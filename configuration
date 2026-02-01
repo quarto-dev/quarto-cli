@@ -17,6 +17,7 @@ export PANDOC=3.8.3
 export DARTSASS=1.87.0
 export ESBUILD=0.25.10
 export TYPST=0.14.2
+export VERAPDF=1.28.2
 
 
 # NB: we can't put comments in the same line as export statements because it

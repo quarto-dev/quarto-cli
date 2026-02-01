@@ -25,14 +25,18 @@ export type PandocFormatRequestHeaders = ((string)[])[];
 
 export type PandocFormatOutputFile = string | null;
 
+export type FilterEntryPoint =
+  | "pre-ast"
+  | "post-ast"
+  | "pre-quarto"
+  | "post-quarto"
+  | "pre-render"
+  | "post-render"
+  | "pre-finalize"
+  | "post-finalize";
+
 export type PandocFormatFilters = ((string | { path: string; type?: string } | {
-  at:
-    | "pre-ast"
-    | "post-ast"
-    | "pre-quarto"
-    | "post-quarto"
-    | "pre-render"
-    | "post-render";
+  at: FilterEntryPoint;
   path: string;
   type?: string;
 } | { type: "citeproc" }))[];

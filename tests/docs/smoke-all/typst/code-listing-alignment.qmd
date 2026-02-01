@@ -1,0 +1,26 @@
+---
+title: Code Listing Alignment Test
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfTextPositions:
+        - # Code listing should be left-aligned with body text
+          # NOTE: Subject must be text at the START of a line because
+          # ensurePdfTextPositions uses word positions, not semantic containers.
+          # A proper fix would walk the PDF structure tree to find the
+          # parent container and aggregate its bounds.
+          - subject: "CODESTART_func():"
+            relation: leftAligned
+            object: "BODYTEXT_ALIGN_MARKER"
+            tolerance: 5
+---
+
+BODYTEXT_ALIGN_MARKER is body text that should left-align with code listings.
+
+```{#lst-test .python lst-cap="Test Listing"}
+CODESTART_func():
+    print("Hello, World!")
+```
+
+See @lst-test for the test listing.

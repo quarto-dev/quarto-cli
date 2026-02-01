@@ -25,7 +25,7 @@ function warn(message, offset)
 end
 
 function error(message, offset)
-  io.stderr:write(lunacolors.red("ERROR (" .. caller_info(offset) .. ") " .. message .. "\n"))
+  io.stderr:write(lunacolors.red(("ERROR (%s) %s\n"):format(caller_info(offset), message)))
 end
 
 function fatal(message, offset)

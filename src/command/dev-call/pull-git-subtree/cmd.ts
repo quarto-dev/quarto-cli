@@ -24,7 +24,12 @@ const SUBTREES: SubtreeConfig[] = [
     remoteUrl: "https://github.com/gordonwoodhull/quarto-julia-engine.git",
     remoteBranch: "main",
   },
-  // Add more subtrees here as needed
+  {
+    name: "orange-book",
+    prefix: "src/resources/extension-subtrees/orange-book",
+    remoteUrl: "https://github.com/quarto-ext/orange-book.git",
+    remoteBranch: "main",
+  },
 ];
 
 async function findLastSplit(

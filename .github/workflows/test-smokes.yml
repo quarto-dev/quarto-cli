@@ -94,7 +94,7 @@ jobs:
 
       - name: Install node dependencies
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
-        run: yarn
+        run: npm install --loglevel=error --no-audit
         working-directory: ./tests/integration/playwright
         shell: bash
 
@@ -105,7 +105,7 @@ jobs:
 
       - name: Install MECA validator
         if: ${{ runner.os != 'Windows' }}
-        run: npm install -g meca
+        run: npm install -g meca --loglevel=error --no-audit
 
       - name: Set RENV_PATHS_ROOT
         shell: bash

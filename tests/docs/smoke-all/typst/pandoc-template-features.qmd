@@ -74,7 +74,7 @@ _quarto:
           []
 ---
 
-## Introduction
+## Introduction {#sec-intro}
 
 This document tests all the Pandoc typst template features that have been merged into Quarto's modular template structure.
 
@@ -87,18 +87,26 @@ def hello():
     print("Hello, world!")
 ```
 
-## Math Example
+## Links and Cross-References
+
+Here is an external [link to Quarto](https://quarto.org) which should be blue (`linkcolor`).
+
+Here is a cross-reference to @fig-test which should be green (`citecolor`).
+
+Here is a cross-reference to @eq-einstein which should also be green.
+
+Here is an internal link to [the introduction](#sec-intro) which should be red (`filecolor`).
+
+See also [the math section](#sec-math) for another internal link example.
+
+## Math Example {#sec-math}
 
 Here is some math with custom font:
 
 $$
 E = mc^2
-$$
+$$ {#eq-einstein}
 
-## Links
+## Figure Example
 
-Here is a [link to Quarto](https://quarto.org) which should be colored.
-
-## Conclusion
-
-All features work correctly.
+![A simple test figure](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzAwZmYwMCIvPjwvc3ZnPg==){#fig-test width=100}

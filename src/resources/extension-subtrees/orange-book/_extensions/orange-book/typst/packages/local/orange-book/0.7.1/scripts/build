@@ -1,0 +1,63 @@
+#!/bin/env bash
+set -eu
+set -o pipefail
+
+DIR="$(dirname "${BASH_SOURCE[0]}")"
+
+MODE="${1:-test}";
+if (( $# > 1)); then shift; fi
+
+FLAG_INSTALL=0
+
+while :; do
+  case "${1:-}" in
+    '--install') FLAG_INSTALL=1 ;;
+    *) break
+  esac
+  shift
+done
+
+
+TYPST_VERSION="v0.7.0"
+TYPST_BASE_URL="https://github.com/typst/typst/releases/download"
+TYPST_ARCHIVE="typst-x86_64-unknown-linux-musl.tar.xz"
+
+TYPST_ROOT="$(realpath "$DIR/..")"
+
+
+function install_typst()
+{
+  if [[ "$OSTYPE" != "linux"* ]]; then
+    >&2 echo "Automatic installation of typst on a non linux system is currently unsupported."
+    exit 1
+  fi
+
+  #TMP="$(mktemp -d)"
+  TMP="${TMP:-/tmp}/typst-${TYPST_VERSION}"
+  if mkdir -p "$TMP" 2> /dev/null ; then
+    local PKG="${TMP}/typst.tar.xz"
+
+    echo "Installing typst from $TYPST_BASE_URL/$TYPST_ARCHIVE"
+    wget "${TYPST_BASE_URL}/${TYPST_VERSION}/${TYPST_ARCHIVE}" \
+         --quiet \
+         -O "$PKG"
+    mkdir -p "${TMP}/typst"
+    tar -xf "$PKG" -C "${TMP}/typst" --strip-components=1
+    rm "$PKG"
+  fi
+
+  PATH="${TMP}/typst/:$PATH"
+  export PATH
+}
+
+if [[ "$FLAG_INSTALL" == "1" ]]; then
+  install_typst
+fi
+
+if ! hash typst; then
+  >&2 echo "Could not find 'typst' binary. Run this script with the --install argument to temporarily install typst."
+  exit 1
+fi
+
+typst compile example/main.typ --root "$TYPST_ROOT" --font-path "$TYPST_ROOT/fonts" 
+echo "[  OK]"

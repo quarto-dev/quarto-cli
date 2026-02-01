@@ -78,7 +78,6 @@
   label: none,
   supplement: str,
   position: none,
-  subrefnumbering: "1a",
   subcapnumbering: "(a)",
   body,
 ) = {
@@ -91,7 +90,10 @@
       supplement: supplement,
       caption: caption,
       {
-        show figure.where(kind: kind): set figure(numbering: _ => numbering(subrefnumbering, n-super, quartosubfloatcounter.get().first() + 1))
+        show figure.where(kind: kind): set figure(numbering: _ => {
+          let subfloat-idx = quartosubfloatcounter.get().first() + 1
+          subfloat-numbering(n-super, subfloat-idx)
+        })
         show figure.where(kind: kind): set figure.caption(position: position)
 
         show figure: it => {
@@ -139,10 +141,13 @@
   }
 
   // TODO use custom separator if available
+  // Use the figure's counter display which handles chapter-based numbering
+  // (when numbering is a function that includes the heading counter)
+  let callout_num = it.counter.display(it.numbering)
   let new_title = if empty(old_title) {
-    [#kind #it.counter.display()]
+    [#kind #callout_num]
   } else {
-    [#kind #it.counter.display(): #old_title]
+    [#kind #callout_num: #old_title]
   }
 
   let new_title_block = block_with_new_content(

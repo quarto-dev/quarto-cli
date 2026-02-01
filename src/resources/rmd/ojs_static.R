@@ -45,7 +45,8 @@ ojs_define <- function(...) {
     dataframe = "columns",
     null = "null",
     na = "null",
-    auto_unbox = TRUE
+    auto_unbox = TRUE,
+    digits = NA
   )
   script_string <- c(
     "<script type=\"ojs-define\">",

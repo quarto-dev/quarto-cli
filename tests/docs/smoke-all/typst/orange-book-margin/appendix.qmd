@@ -1,0 +1,165 @@
+---
+_quarto:
+  tests:
+    run:
+      skip: "Book chapter - only renders as part of full book"
+---
+
+# Additional Resources {#sec-resources}
+
+This appendix contains additional resources and supplementary material.
+
+## Data Sources {#sec-data-sources}
+
+The data used in this book comes from various sources.
+
+## Code Repository {#sec-code-repository}
+
+All code examples are available in the companion repository. Computationa theory from @turing1950 establishes foundational concepts.
+
+Foundationa material in @sec-intro, with kinematica visualization in @fig-cars.
+
+## Appendix Margin Figures {#sec-appendix-margin-figures}
+
+Appendixia body text introduces the appendix margin content.
+
+::: {.column-margin}
+![Appendorba supplementary diagram](logo.svg){#fig-appendix-margin}
+:::
+
+Additiva diagram in @fig-appendix-margin demonstrates appendix margin figure numbering.
+
+## Appendix Sub-figures {#sec-appendix-sub-figures}
+
+Appendiculata subfigure numbering test. @sec-appendix-sub-figures validates letter-based chapter numbering.
+
+Compositia panel in @fig-appendix-panel, with @fig-appendix-panel-a and @fig-appendix-panel-b as components.
+
+::: {#fig-appendix-panel layout-ncol=2}
+
+![First appendix panel](logo.svg){#fig-appendix-panel-a}
+
+![Second appendix panel](logo.svg){#fig-appendix-panel-b}
+
+A panel of sub-figures in the appendix demonstrating letter-based numbering.
+:::
+
+## Appendix Margin Tables {#sec-appendix-margin-tables}
+
+Tabulata body text introduces supplementary data.
+
+::: {.column-margin}
+| Constant | Value |
+|----------|-------|
+| G | 6.674e-11 |
+| c | 299792458 |
+| h | 6.626e-34 |
+
+: Constantia values {#tbl-appendix-margin}
+:::
+
+Fundamentala constants in @tbl-appendix-margin demonstrate appendix margin table placement.
+
+## Appendix Callouts {#sec-appendix-callouts}
+
+Admonitia appendix numbering test. @sec-appendix-callouts validates letter-based callout numbering.
+
+::: {#wrn-appendix .callout-warning}
+## Appendix Warning
+Pericula appendix hazard documented here. Admonitoria reference in @wrn-appendix.
+:::
+
+Appendicata body text introduces the supplementary guidance.
+
+::: {#tip-appendix .callout-tip .column-margin}
+## Appendix Tip
+Consilia appendix guidance provided here.
+:::
+
+Advisoria reference in @tip-appendix demonstrates margin callout placement.
+
+Retrospecta: beveragia warning in @wrn-tea from @sec-intro.
+
+## Appendix Custom Crossref Dinosaurs {#sec-appendix-dinosaurs}
+
+Taxonomica appendix numbering test. @sec-appendix-dinosaurs validates letter-based crossref numbering.
+
+::: {#dino-appendix}
+**Triceratops**
+
+Ceratopsia specimen documented here. Fossilica reference in @dino-appendix.
+:::
+
+Comparativa: herbivorica specimen @dino-steg from @sec-intro.
+
+## Appendix Margin Dinosaurs {#sec-appendix-margin-dinosaurs}
+
+::: {#dino-appendix-margin .column-margin}
+**Diplodoca**
+
+This long-necked dinosaur demonstrates appendix margin placement.
+:::
+
+Longneckia body text discusses the margin dinosaur placement.
+
+## Appendix Equations {#sec-appendix-equations}
+
+The Pythagorean theorem:
+
+$$
+a^2 + b^2 = c^2
+$$ {#eq-pythagorean}
+
+Geometrica appendix result in @eq-pythagorean.
+
+Retrospectiva: relativistica in @eq-einstein from @sec-intro and algebraica in @eq-quadratic from @sec-methods.
+
+## Appendix Margin Equations {#sec-appendix-margin-equations}
+
+Electrica body text introduces supplementary mathematics.
+
+::: {.column-margin}
+$$
+\oint \vec{E} \cdot d\vec{A} = \frac{Q}{\epsilon_0}
+$$ {#eq-appendix-margin-gauss}
+
+Gaussiana electric field law.
+:::
+
+Integrala surface law in @eq-appendix-margin-gauss demonstrates appendix margin equation placement.
+
+## Appendix Theorems {#sec-appendix-theorems}
+
+::: {#thm-appendix}
+## Example Appendix Theorem
+This theorem demonstrates appendix numbering. It should ideally be Theorem A.1.
+:::
+
+Demonstrata result in @thm-appendix. Retrospectiva: @thm-pythagorean from @sec-intro and @thm-calculus from @sec-methods.
+
+## Appendix Listings {#sec-appendix-listings}
+
+```{#lst-appendix-example .python lst-cap="Appendix Code Example"}
+# This demonstrates appendix listing numbering
+# Should display as Listing A.1
+def appendix_function():
+    return "Appendix example"
+```
+
+Exemplara code in @lst-appendix-example.
+
+Retrospectiva: programmata in @lst-hello from @sec-intro and sortiva in @lst-quicksort from @sec-methods.
+
+## Appendix Margin Listings {#sec-appendix-margin-listings}
+
+Algoritha body text introduces supplementary code.
+
+::: {.column-margin}
+```{#lst-appendix-margin .python lst-cap="Auxiliara annotation"}
+def appendix_helper():
+    """Appendix margin code."""
+    return 42
+```
+:::
+
+Helpera function in @lst-appendix-margin demonstrates appendix margin listing placement.

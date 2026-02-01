@@ -45,7 +45,7 @@ function currentFileMetadataState()
 end
 
 
-function resetFileMetadata()  
+function resetFileMetadata()
   fileMetadataState = {
     file = nil,
     appendix = false,
@@ -53,4 +53,4 @@ function resetFileMetadata()
   }
 end
 
-  
+

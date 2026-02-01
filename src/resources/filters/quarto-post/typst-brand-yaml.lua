@@ -61,68 +61,76 @@ function render_typst_brand_yaml()
       local brand = param('brand')
       local brandMode = param('brand-mode') or 'light'
       brand = brand and brand[brandMode]
-      if brand and brand.processedData then
-        -- color
-        if brand.processedData.color and next(brand.processedData.color) then
-          local brandColor = brand.processedData.color
-          local colors = {}
-          for name, _ in pairs(brandColor) do
-            colors[name] = _quarto.modules.brand.get_color(brandMode, name)
-          end
-          local decl = '#let brand-color = ' .. to_typst_dict_indent(colors)
-          quarto.doc.include_text('in-header', decl)
+
+      -- Always emit brand-color (empty dict if no brand colors defined)
+      -- This allows templates to safely use brand-color.at("primary", default: blue)
+      local colors = {}
+      local themebk = {}
+      local brandColor = brand and brand.processedData and brand.processedData.color
+      if brandColor and next(brandColor) then
+        for name, _ in pairs(brandColor) do
+          colors[name] = _quarto.modules.brand.get_color(brandMode, name)
+        end
+        for name, _ in pairs(brandColor) do
           if brandColor.background then
-            quarto.doc.include_text('in-header', '#set page(fill: brand-color.background)')
-          end
-          if brandColor.foreground then
-            quarto.doc.include_text('in-header', '#set text(fill: brand-color.foreground)')
-            quarto.doc.include_text('in-header', '#set table.hline(stroke: (paint: brand-color.foreground))')
-            quarto.doc.include_text('in-header', '#set line(stroke: (paint: brand-color.foreground))')
-    
-          end
-          local themebk = {}
-          for name, _ in pairs(brandColor) do
-            if brandColor.background then
-              local brandPercent = 15
-              if brandMode == 'dark' then
-                brandPercent = 50
-              end
-              local bkPercent = 100 - brandPercent
-              themebk[name] = 'color.mix((brand-color.' .. name .. ', ' .. brandPercent .. '%), (brand-color.background, ' .. bkPercent .. '%))'
-            else
-              themebk[name] = 'brand-color.' .. name .. '.lighten(85%)'
+            local brandPercent = 15
+            if brandMode == 'dark' then
+              brandPercent = 50
             end
-          end
-          local decl = '#let brand-color-background = ' .. to_typst_dict_indent(themebk)
-          quarto.doc.include_text('in-header', decl)
-        end
-        if brand.processedData.logo and next(brand.processedData.logo) then
-          local logo = brand.processedData.logo
-          if logo.images then
-            local declImage = {}
-            for name, image in pairs(logo.images) do
-              declImage[name] = {
-                path = quote_string(image.path):gsub('\\', '\\\\'),
-                alt = quote_string(image.alt),
-              }
-            end
-            if next(declImage) then
-              quarto.doc.include_text('in-header', '#let brand-logo-images = ' .. to_typst_dict_indent(declImage))
-            end
-          end
-          local declLogo = {}
-          for _, size in pairs({'small', 'medium', 'large'}) do
-            if logo[size] then
-              declLogo[size] = {
-                path = quote_string(logo[size].path):gsub('\\', '\\\\'),
-                alt = quote_string(logo[size].alt),
-              }
-            end
-          end
-          if next(declLogo) then
-            quarto.doc.include_text('in-header', '#let brand-logo = ' .. to_typst_dict_indent(declLogo))
+            local bkPercent = 100 - brandPercent
+            themebk[name] = 'color.mix((brand-color.' .. name .. ', ' .. brandPercent .. '%), (brand-color.background, ' .. bkPercent .. '%))'
+          else
+            themebk[name] = 'brand-color.' .. name .. '.lighten(85%)'
           end
         end
+      end
+      -- Always emit brand-color and brand-color-background FIRST (before any usage)
+      local colorDecl = '#let brand-color = ' .. (to_typst_dict_indent(colors) or '(:)')
+      quarto.doc.include_text('in-header', colorDecl)
+      local bkDecl = '#let brand-color-background = ' .. (to_typst_dict_indent(themebk) or '(:)')
+      quarto.doc.include_text('in-header', bkDecl)
+      -- Now emit the #set statements that USE brand-color
+      if brandColor and next(brandColor) then
+        if brandColor.background then
+          quarto.doc.include_text('in-header', '#set page(fill: brand-color.background)')
+        end
+        if brandColor.foreground then
+          quarto.doc.include_text('in-header', '#set text(fill: brand-color.foreground)')
+          quarto.doc.include_text('in-header', '#set table.hline(stroke: (paint: brand-color.foreground))')
+          quarto.doc.include_text('in-header', '#set line(stroke: (paint: brand-color.foreground))')
+        end
+      end
+
+      -- Always emit brand-logo (empty dict if no logos defined)
+      -- This allows templates to safely use brand-logo.at("medium", default: none)
+      local declLogo = {}
+      local brandLogo = brand and brand.processedData and brand.processedData.logo
+      if brandLogo and next(brandLogo) then
+        if brandLogo.images then
+          local declImage = {}
+          for name, image in pairs(brandLogo.images) do
+            declImage[name] = {
+              path = quote_string(image.path):gsub('\\', '\\\\'),
+              alt = quote_string(image.alt),
+            }
+          end
+          if next(declImage) then
+            quarto.doc.include_text('in-header', '#let brand-logo-images = ' .. to_typst_dict_indent(declImage))
+          end
+        end
+        for _, size in pairs({'small', 'medium', 'large'}) do
+          if brandLogo[size] then
+            declLogo[size] = {
+              path = quote_string(brandLogo[size].path):gsub('\\', '\\\\'),
+              alt = quote_string(brandLogo[size].alt),
+            }
+          end
+        end
+      end
+      local logoDecl = '#let brand-logo = ' .. (to_typst_dict_indent(declLogo) or '(:)')
+      quarto.doc.include_text('in-header', logoDecl)
+
+      if brand and brand.processedData then
         local function conditional_entry(key, value, quote_strings)
           if quote_strings == null then quote_strings = true end
           if not value then return '' end

@@ -23,6 +23,7 @@ import {
   ensureDocxXpath,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  ensureIpynbCellMatches,
   ensurePdfRegexMatches,
   ensurePdfTextPositions,
   ensurePdfMetadata,
@@ -181,6 +182,7 @@ function resolveTestSpecs(
     ensureHtmlElementContents,
     ensureHtmlElementCount,
     ensureFileRegexMatches,
+    ensureIpynbCellMatches,
     ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
     ensureDocxRegexMatches,
@@ -288,14 +290,22 @@ function resolveTestSpecs(
             const usesKeepTex = key === "ensureLatexFileRegexMatches" &&
               (metadata.format?.pdf?.['keep-tex'] || metadata['keep-tex']);
             const needsInputPath = usesKeepTyp || usesKeepTex;
+
+            // For book projects, use intermediateTypstPath (index.typ at project root)
+            // instead of the output path (which would be _book/BookTitle.typ)
+            let targetPath = outputFile.outputPath;
+            if (key === "ensureTypstFileRegexMatches" && outputFile.intermediateTypstPath) {
+              targetPath = outputFile.intermediateTypstPath;
+            }
+
             if (typeof value === "object" && Array.isArray(value)) {
               // value is [matches, noMatches?] - ensure inputFile goes in the right position
               const matches = value[0];
               const noMatches = value[1];
               const inputFile = needsInputPath ? input : undefined;
-              verifyFns.push(verifyMap[key](outputFile.outputPath, matches, noMatches, inputFile));
+              verifyFns.push(verifyMap[key](targetPath, matches, noMatches, inputFile));
             } else {
-              verifyFns.push(verifyMap[key](outputFile.outputPath, value, undefined, needsInputPath ? input : undefined));
+              verifyFns.push(verifyMap[key](targetPath, value, undefined, needsInputPath ? input : undefined));
             }
           } else {
             throw new Error(`Unknown verify function used: ${key} in file ${input} for format ${format}`) ;
@@ -448,6 +458,9 @@ for (const { path: fileName } of files) {
 // Wait for all the promises to resolve
 // Meaning all the files have been tested and we can clean
 Promise.all(testFilesPromises).then(() => {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   // Clean up any projects that were tested
   for (const project of testedProjects) {
     // Clean project output directory

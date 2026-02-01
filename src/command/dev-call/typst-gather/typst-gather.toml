@@ -1,2 +1,6 @@
 destination = "src/resources/formats/typst/packages"
 discover = ["src/resources/formats/typst/pandoc/quarto"]
+
+[preview]
+fontawesome = "0.5.0"
+theorion = "0.4.1"

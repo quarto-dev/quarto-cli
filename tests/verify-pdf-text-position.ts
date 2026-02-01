@@ -62,6 +62,7 @@ export const TextSelectorSchema = z.object({
   role: z.string().optional(),   // PDF 1.4 structure role: P, H1, H2, Figure, Table, Span, etc.
   page: z.number().optional(),   // Page number (1-indexed), required for role: "Page"
   edge: EdgeSchema.optional(),   // Which edge to use for comparison (overrides relation default)
+  granularity: z.string().optional(),  // Aggregate bbox to ancestor with this role (e.g., "Div", "P")
 });
 export type TextSelector = z.infer<typeof TextSelectorSchema>;
 
@@ -394,29 +395,38 @@ function extractMarkedTextItems(
 }
 
 /**
- * Recursively build MCID -> StructNode map from structure tree.
- * Returns the struct node that directly contains the MCID content.
+ * Recursively build MCID -> StructNode map and parent map from structure tree.
+ * Returns the struct node that directly contains the MCID content, plus a map
+ * from each struct node to its parent for tree traversal.
  */
 function buildMcidStructMap(
   tree: StructTreeNode | null,
-  map: Map<string, StructTreeNode> = new Map(),
+  mcidMap: Map<string, StructTreeNode> = new Map(),
+  parentMap: Map<StructTreeNode, StructTreeNode> = new Map(),
   parentNode: StructTreeNode | null = null,
-): Map<string, StructTreeNode> {
-  if (!tree) return map;
+): { mcidMap: Map<string, StructTreeNode>; parentMap: Map<StructTreeNode, StructTreeNode> } {
+  if (!tree) return { mcidMap, parentMap };
 
   for (const child of tree.children ?? []) {
     if (isStructTreeContent(child)) {
       if (child.type === "content" && child.id) {
         // Map MCID to the parent struct node (the semantic element)
-        map.set(child.id, parentNode ?? tree);
+        mcidMap.set(child.id, parentNode ?? tree);
       }
     } else {
+      // Record parent for tree traversal
+      if (parentNode) {
+        parentMap.set(child, parentNode);
+      } else {
+        // Root-level children have tree as parent
+        parentMap.set(child, tree);
+      }
       // Recurse into child struct nodes
-      buildMcidStructMap(child, map, child);
+      buildMcidStructMap(child, mcidMap, parentMap, child);
     }
   }
 
-  return map;
+  return { mcidMap, parentMap };
 }
 
 /**
@@ -436,6 +446,46 @@ function collectDirectMcids(node: StructTreeNode): string[] {
   }
 
   return mcids;
+}
+
+/**
+ * Recursively collect ALL MCIDs under a structure node and its descendants.
+ * Used for granularity aggregation to compute bbox of an entire subtree.
+ */
+function collectAllMcids(node: StructTreeNode): string[] {
+  const mcids: string[] = [];
+
+  for (const child of node.children ?? []) {
+    if (isStructTreeContent(child)) {
+      if (child.type === "content" && child.id) {
+        mcids.push(child.id);
+      }
+    } else {
+      // Recurse into child struct nodes
+      mcids.push(...collectAllMcids(child));
+    }
+  }
+
+  return mcids;
+}
+
+/**
+ * Walk up the structure tree to find the nearest ancestor with a matching role.
+ * Returns null if no ancestor with the target role is found.
+ */
+function findAncestorWithRole(
+  node: StructTreeNode,
+  targetRole: string,
+  parentMap: Map<StructTreeNode, StructTreeNode>,
+): StructTreeNode | null {
+  let current: StructTreeNode | undefined = node;
+  while (current) {
+    if (current.role === targetRole) {
+      return current;
+    }
+    current = parentMap.get(current);
+  }
+  return null;
 }
 
 /**
@@ -582,12 +632,20 @@ export const ensurePdfTextPositions = (
       const isPageRole = (sel: TextSelector): boolean => sel.role === "Page";
 
       // Helper: get unique key for a selector (for resolvedSelectors map)
+      // Includes granularity since different granularity settings need different bbox computation
       const selectorKey = (sel: TextSelector): string => {
         if (isPageRole(sel)) {
           return `Page:${sel.page}`;
         }
-        return sel.text ?? "";
+        const base = sel.text ?? "";
+        if (sel.granularity) {
+          return `${base}@${sel.granularity}`;
+        }
+        return base;
       };
+
+      // Track unique selectors by their full key (including granularity)
+      const uniqueSelectors = new Map<string, TextSelector>();
 
       const addSelector = (sel: TextSelector) => {
         if (isPageRole(sel)) {
@@ -605,6 +663,8 @@ export const ensurePdfTextPositions = (
           const existing = textToSelectors.get(sel.text) ?? [];
           existing.push(sel);
           textToSelectors.set(sel.text, existing);
+          // Also track by full key for resolution
+          uniqueSelectors.set(selectorKey(sel), sel);
         }
       };
 
@@ -633,6 +693,7 @@ export const ensurePdfTextPositions = (
       const allTextItems: MarkedTextItem[] = [];
       const mcidToTextItems = new Map<string, MarkedTextItem[]>();
       const mcidToStructNode = new Map<string, StructTreeNode>();
+      const structNodeToParent = new Map<StructTreeNode, StructTreeNode>();
       const pageDimensions = new Map<number, { width: number; height: number }>();
 
       for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
@@ -663,15 +724,22 @@ export const ensurePdfTextPositions = (
           }
         }
 
-        // Get structure tree and build MCID -> struct node map
+        // Get structure tree and build MCID -> struct node map + parent map
         const structTree = await page.getStructTree();
         if (structTree) {
-          buildMcidStructMap(structTree, mcidToStructNode);
+          const { mcidMap, parentMap } = buildMcidStructMap(structTree);
+          for (const [k, v] of mcidMap) {
+            mcidToStructNode.set(k, v);
+          }
+          for (const [k, v] of parentMap) {
+            structNodeToParent.set(k, v);
+          }
         }
       }
 
       // Stage 5: Find text items for each search text (must be unique, unless Decoration)
       const foundTexts = new Map<string, MarkedTextItem>();
+      const ambiguousTexts = new Set<string>();
       for (const searchText of searchTexts) {
         const matches = allTextItems.filter((t) => t.str.includes(searchText));
         if (matches.length === 1) {
@@ -681,6 +749,7 @@ export const ensurePdfTextPositions = (
           if (isDecoration(searchText)) {
             foundTexts.set(searchText, matches[0]);
           } else {
+            ambiguousTexts.add(searchText);
             errors.push(
               `Text "${searchText}" is ambiguous - found ${matches.length} matches. Use a more specific search string.`,
             );
@@ -714,11 +783,15 @@ export const ensurePdfTextPositions = (
         });
       }
 
-      // Then, resolve text-based selectors
-      for (const searchText of searchTexts) {
+      // Then, resolve text-based selectors (iterate by unique selector key to handle granularity)
+      for (const [key, selector] of uniqueSelectors) {
+        const searchText = selector.text!;
         const textItem = foundTexts.get(searchText);
         if (!textItem) {
-          errors.push(`Text not found in PDF: "${searchText}"`);
+          // Don't report "not found" if we already reported "ambiguous"
+          if (!ambiguousTexts.has(searchText)) {
+            errors.push(`Text not found in PDF: "${searchText}"`);
+          }
           continue;
         }
 
@@ -742,28 +815,52 @@ export const ensurePdfTextPositions = (
         } else {
           structNode = mcidToStructNode.get(textItem.mcid) ?? null;
 
-          // Same-MCID approach: compute bbox from all text items sharing this MCID
-          const mcidItems = mcidToTextItems.get(textItem.mcid);
-          if (mcidItems && mcidItems.length > 0) {
-            const mcidBBox = unionBBox(mcidItems);
-            if (mcidBBox) {
-              bbox = mcidBBox;
+          // Check for granularity: aggregate bbox to ancestor with target role
+          if (selector.granularity && structNode) {
+            const ancestor = findAncestorWithRole(structNode, selector.granularity, structNodeToParent);
+            if (ancestor) {
+              // Collect ALL MCIDs recursively under that ancestor
+              const allMcids = collectAllMcids(ancestor);
+              const allItems = allMcids.flatMap((id) => mcidToTextItems.get(id) ?? []);
+              const ancestorBBox = unionBBox(allItems);
+              if (ancestorBBox) {
+                bbox = ancestorBBox;
+              } else {
+                errors.push(
+                  `Could not compute bbox for "${searchText}" with granularity "${selector.granularity}" - no content items found`,
+                );
+                continue;
+              }
             } else {
               errors.push(
-                `Could not compute bbox for "${searchText}" - all text items in MCID are whitespace-only`,
+                `No ancestor with role "${selector.granularity}" found for "${searchText}"`,
               );
               continue;
             }
           } else {
-            errors.push(
-              `No text items found for MCID ${textItem.mcid} containing "${searchText}"`,
-            );
-            continue;
+            // Same-MCID approach: compute bbox from all text items sharing this MCID
+            const mcidItems = mcidToTextItems.get(textItem.mcid);
+            if (mcidItems && mcidItems.length > 0) {
+              const mcidBBox = unionBBox(mcidItems);
+              if (mcidBBox) {
+                bbox = mcidBBox;
+              } else {
+                errors.push(
+                  `Could not compute bbox for "${searchText}" - all text items in MCID are whitespace-only`,
+                );
+                continue;
+              }
+            } else {
+              errors.push(
+                `No text items found for MCID ${textItem.mcid} containing "${searchText}"`,
+              );
+              continue;
+            }
           }
         }
 
-        resolvedSelectors.set(searchText, {
-          selector: { text: searchText },
+        resolvedSelectors.set(key, {
+          selector,
           textItem,
           structNode,
           bbox,
@@ -848,7 +945,7 @@ export const ensurePdfTextPositions = (
                 (a.byMax !== undefined ? ` (required <= ${a.byMax}pt)` : "")
               : "";
             errors.push(
-              `Position assertion failed: "${subjectKey}" is NOT ${a.relation} "${objectKey}".` +
+              `Position assertion failed (page ${subjectResolved.bbox.page}): "${subjectKey}" is NOT ${a.relation} "${objectKey}".` +
               ` Subject.${result.subjectEdge}=${result.subjectValue.toFixed(1)},` +
               ` Object.${result.objectEdge}=${result.objectValue.toFixed(1)}.${distanceInfo}` +
               (result.failureReason ? ` (${result.failureReason})` : ""),
@@ -867,7 +964,7 @@ export const ensurePdfTextPositions = (
 
           if (!result.passed) {
             errors.push(
-              `Position assertion failed: "${subjectKey}" is NOT ${a.relation} "${objectKey}".` +
+              `Position assertion failed (page ${subjectResolved.bbox.page}): "${subjectKey}" is NOT ${a.relation} "${objectKey}".` +
               ` Subject.${result.subjectEdge}=${result.subjectValue.toFixed(1)},` +
               ` Object.${result.objectEdge}=${result.objectValue.toFixed(1)}.` +
               ` Difference: ${result.difference.toFixed(1)}pt (tolerance: ${a.tolerance}pt)`,
@@ -930,7 +1027,7 @@ export const ensurePdfTextPositions = (
 
         if (passed) {
           errors.push(
-            `Negative assertion failed: "${subjectKey}" IS ${a.relation} "${objectKey}" (expected NOT to be). ` +
+            `Negative assertion failed (page ${subjectResolved.bbox.page}): "${subjectKey}" IS ${a.relation} "${objectKey}" (expected NOT to be). ` +
             resultInfo,
           );
         }

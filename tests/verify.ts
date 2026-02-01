@@ -302,6 +302,40 @@ export const validJsonWithFields = (file: string, fields: Record<string, unknown
   }
 }
 
+export const ensureIpynbCellMatches = (
+  file: string,
+  options: {
+    cellType: "code" | "markdown";
+    matches?: (string | RegExp)[];
+    noMatches?: (string | RegExp)[];
+  }
+): Verify => {
+  const { cellType, matches = [], noMatches = [] } = options;
+  return {
+    name: `IPYNB ${file} has ${cellType} cells matching patterns`,
+    verify: async (_output: ExecuteOutput[]) => {
+      const jsonStr = Deno.readTextFileSync(file);
+      const notebook = JSON.parse(jsonStr);
+      // deno-lint-ignore no-explicit-any
+      const cells = notebook.cells.filter((c: any) => c.cell_type === cellType);
+      // deno-lint-ignore no-explicit-any
+      const content = cells.map((c: any) =>
+        Array.isArray(c.source) ? c.source.join("") : c.source
+      ).join("\n");
+
+      for (const m of matches) {
+        const regex = typeof m === "string" ? new RegExp(m) : m;
+        assert(regex.test(content), `Pattern ${m} not found in ${cellType} cells of ${file}`);
+      }
+      for (const m of noMatches) {
+        const regex = typeof m === "string" ? new RegExp(m) : m;
+        assert(!regex.test(content), `Pattern ${m} should not be in ${cellType} cells of ${file}`);
+      }
+      return Promise.resolve();
+    }
+  };
+};
+
 export const outputCreated = (
   input: string,
   to: string,
@@ -420,15 +454,15 @@ export const ensureHtmlElementCount = (
     verify: async (_output: ExecuteOutput[]) => {
       const htmlInput = await Deno.readTextFile(file);
       const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-      
+
       // Convert single values to arrays for unified processing
       const selectorsArray = Array.isArray(options.selectors) ? options.selectors : [options.selectors];
       const countsArray = Array.isArray(options.counts) ? options.counts : [options.counts];
-      
+
       if (selectorsArray.length !== countsArray.length) {
         throw new Error("Selectors and counts arrays must have the same length");
       }
-      
+
       selectorsArray.forEach((selector, index) => {
         const expectedCount = countsArray[index];
         const elements = doc.querySelectorAll(selector);
@@ -439,6 +473,31 @@ export const ensureHtmlElementCount = (
       });
     }
   };
+};
+
+export const verifyOjsDefine = (
+  callback: (contents: Array<{name: string, value: any}>) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting OJS Define",
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlContent = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlContent, "text/html")!;
+      const scriptElement = doc.querySelector('script[type="ojs-define"]');
+      assert(
+        scriptElement,
+        "Should find ojs-define script element in rendered HTML"
+      );
+      const jsonContent = scriptElement.textContent.trim();
+      const ojsData = JSON.parse(jsonContent);
+      assert(
+        ojsData.contents && Array.isArray(ojsData.contents),
+        "ojs-define should have contents array"
+      );
+      await callback(ojsData.contents);
+    },
+  });
 };
 
 const printColoredDiff = (diff: string) => {
@@ -649,21 +708,27 @@ export const ensurePdfRegexMatches = (
       assert(output.success, `Failed to extract text from ${file}.`)
       const text = new TextDecoder().decode(output.stdout);
 
+      // Collect all failures instead of failing on first mismatch
+      const failures: string[] = [];
+
       matches.forEach((regex) => {
-        assert(
-          regex.test(text),
-          `Required match ${String(regex)} is missing from file ${file}.`,
-        );
+        if (!regex.test(text)) {
+          failures.push(`Required match ${String(regex)} is missing`);
+        }
       });
 
       if (noMatches) {
         noMatches.forEach((regex) => {
-          assert(
-            !regex.test(text),
-            `Illegal match ${String(regex)} was found in file ${file}.`,
-          );
+          if (regex.test(text)) {
+            failures.push(`Illegal match ${String(regex)} was found`);
+          }
         });
       }
+
+      assert(
+        failures.length === 0,
+        `${failures.length} regex mismatch(es) in ${file}:\n  - ${failures.join('\n  - ')}`,
+      );
     },
   };
 }

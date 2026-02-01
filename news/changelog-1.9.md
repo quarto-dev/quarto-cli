@@ -32,6 +32,7 @@ All changes included in 1.9:
 - ([#11929](https://github.com/quarto-dev/quarto-cli/issues/11929)): Import all `brand.typography.fonts` in CSS, whether or not fonts are referenced by typography elements.
 - ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in `video` shortcodes from cross-reference divs. (author: @bruvellu)
 - ([#13508](https://github.com/quarto-dev/quarto-cli/issues/13508)): Add `aria-label` support to `video` shortcode for improved accessibility.
+- ([#13883](https://github.com/quarto-dev/quarto-cli/issues/13883)): Fix unequal top/bottom spacing in simple untitled callouts.
 
 ### `typst`
 
@@ -53,6 +54,8 @@ All changes included in 1.9:
   - Two-column layout now uses `set page(columns:)` instead of `columns()` function, fixing compatibility with landscape sections.
   - Title block now properly spans both columns in multi-column layouts.
 - ([#13870](https://github.com/quarto-dev/quarto-cli/issues/13870)): Add support for `alt` attribute on cross-referenced equations for improved accessibility. (author: @mcanouil)
+- ([#13950](https://github.com/quarto-dev/quarto-cli/pull/13950)): Replace ctheorems with theorion package for theorem environments. Add `theorem-appearance` option to control styling: `simple` (default, classic LaTeX style), `fancy` (colored boxes with brand colors), `clouds` (rounded backgrounds), or `rainbow` (colored start border and colored title).
+- ([#13954](https://github.com/quarto-dev/quarto-cli/issues/13954)): Add support for Typst book projects via format extensions. Quarto now bundles the `orange-book` extension which provides a textbook-style format with chapter numbering, cross-references, and professional styling. Book projects with `format: typst` automatically use this extension.
 
 ### `pdf`
 
@@ -73,6 +76,10 @@ All changes included in 1.9:
 ### `revealjs`
 
 - ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
+
+### `ipynb`
+
+- ([#13956](https://github.com/quarto-dev/quarto-cli/issues/13956)): Fix crash when rendering to `ipynb` format with figure labels (`#| label: fig-*`) on cells for cross references.
 
 ## Projects
 
@@ -120,6 +127,10 @@ All changes included in 1.9:
 
 - ([#4426](https://github.com/quarto-dev/quarto-cli/issues/4426)): New `quarto install verapdf` command installs [veraPDF](https://verapdf.org/) for PDF/A and PDF/UA validation. When verapdf is available, PDFs created with the `pdf-standard` option are automatically validated for compliance. Also supports `quarto uninstall verapdf`, `quarto update verapdf`, and `quarto tools`.
 
+### `preview`
+
+- ([#13804](https://github.com/quarto-dev/quarto-cli/pull/13804)): Fix intermittent preview crashes during re-renders by properly managing project context lifecycle. Resolves issues with missing temporary directories and `quarto_ipynb` files when editing notebooks and qmd files together.
+
 ## Extensions
 
 - Metadata and brand extensions now work without a `_quarto.yml` project. (Engine extensions do too.) A temporary default project is created in memory.
@@ -131,6 +142,12 @@ All changes included in 1.9:
 ### `jupyter`
 
 - ([#13748](https://github.com/quarto-dev/quarto-cli/pull/13748)): Fix stdin encoding to UTF-8 on Windows to correctly handle JSON in documents containing non-ASCII characters.
+- ([#13936](https://github.com/quarto-dev/quarto-cli/pull/13936)): Add support for q/kdb+ programming language in percent format notebooks and code cell options. (author: @benlubas)
+- ([#13936](https://github.com/quarto-dev/quarto-cli/pull/13936)): Fix `isJupyterPercentScript` regex to correctly detect percent scripts with `[raw]` cells and cells not at the start of the file. The regex now properly groups the alternation `(markdown|raw)` and uses multiline mode.
+
+### `knitr`
+
+- ([#13958](https://github.com/quarto-dev/quarto-cli/issues/13958)): Use max precision for `ojs_define` number like this is the case for `jupyter` or `julia` engine.
 
 ## Other fixes and improvements
 

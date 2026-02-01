@@ -37,3 +37,35 @@ syntax in the string.
 ---@param path string String to be converted
 ---@return pandoc.Blocks
 function quarto.utils.string_to_blocks(path) end
+
+--[[
+Returns a filter that parses book metadata markers during document traversal.
+
+When combined with your filter using `combineFilters()`, this enables access
+to book-specific metadata like `bookItemType`, `bookItemNumber`, etc. through
+`quarto.doc.file_metadata()`.
+
+This is primarily useful for Typst book extensions that need to handle
+parts and appendices differently based on the book structure.
+]]
+---@return table Pandoc filter table
+function quarto.utils.file_metadata_filter() end
+
+--[[
+Combines multiple Pandoc filters into a single filter for one traversal.
+
+This is useful when your extension filter needs to run alongside another
+filter (like `file_metadata_filter()`) in a single document traversal,
+ensuring proper state synchronization.
+
+Example:
+```lua
+return quarto.utils.combineFilters({
+  quarto.utils.file_metadata_filter(),
+  my_header_filter
+})
+```
+]]
+---@param filters table[] Array of Pandoc filter tables to combine
+---@return table Combined Pandoc filter table
+function quarto.utils.combineFilters(filters) end
