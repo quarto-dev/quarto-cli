@@ -28,6 +28,9 @@
   it
 }
 
+// Prevent breaking inside definition items, i.e., keep term and description together.
+#show terms.item: set block(breakable: false)
+
 // Some quarto-specific definitions.
 
 #show raw.where(block: true): set block(
