@@ -99,6 +99,7 @@ import {
   kFormatResources,
   kFrom,
   kHighlightStyle,
+  kSyntaxHighlighting,
   kHtmlMathMethod,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -699,15 +700,18 @@ export async function runPandoc(
       printAllDefaults = mergeConfigs(extras.pandoc, printAllDefaults);
 
       // Special case - theme is resolved on extras and should override allDefaults
-      if (extras.pandoc[kHighlightStyle] === null) {
-        delete printAllDefaults[kHighlightStyle];
-        allDefaults[kHighlightStyle] = null;
-      } else if (extras.pandoc[kHighlightStyle]) {
-        delete printAllDefaults[kHighlightStyle];
-        allDefaults[kHighlightStyle] = extras.pandoc[kHighlightStyle];
+      // Clean up deprecated kHighlightStyle if user used old name
+      delete printAllDefaults[kHighlightStyle];
+      delete allDefaults[kHighlightStyle];
+      if (extras.pandoc[kSyntaxHighlighting] === null) {
+        delete printAllDefaults[kSyntaxHighlighting];
+        allDefaults[kSyntaxHighlighting] = null;
+      } else if (extras.pandoc[kSyntaxHighlighting]) {
+        delete printAllDefaults[kSyntaxHighlighting];
+        allDefaults[kSyntaxHighlighting] = extras.pandoc[kSyntaxHighlighting];
       } else {
-        delete printAllDefaults[kHighlightStyle];
-        delete allDefaults[kHighlightStyle];
+        delete printAllDefaults[kSyntaxHighlighting];
+        delete allDefaults[kSyntaxHighlighting];
       }
     }
 
@@ -1756,13 +1760,24 @@ function resolveTextHighlightStyle(
   } as FormatExtras;
 
   // Get the user selected theme or choose a default
-  const highlightTheme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
+  // Check both syntax-highlighting (new) and highlight-style (deprecated alias)
+  const highlightTheme = pandoc[kSyntaxHighlighting] ||
+    pandoc[kHighlightStyle] ||
+    kDefaultHighlightStyle;
   const textHighlightingMode = extras.html?.[kTextHighlightingMode];
 
   if (highlightTheme === "none") {
     // Disable highlighting - pass "none" string (not null, which Pandoc 3.8+ rejects)
     extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kHighlightStyle] = "none";
+    extras.pandoc[kSyntaxHighlighting] = "none";
+    return extras;
+  }
+
+  if (highlightTheme === "idiomatic") {
+    // Use native format highlighting (typst, LaTeX listings, reveal.js highlight.js)
+    // Pass through to Pandoc 3.8+ which handles this natively
+    extras.pandoc = extras.pandoc || {};
+    extras.pandoc[kSyntaxHighlighting] = "idiomatic";
     return extras;
   }
 
@@ -1775,7 +1790,7 @@ function resolveTextHighlightStyle(
     case "dark":
       // Set light or dark mode as appropriate
       extras.pandoc = extras.pandoc || {};
-      extras.pandoc[kHighlightStyle] = textHighlightThemePath(
+      extras.pandoc[kSyntaxHighlighting] = textHighlightThemePath(
         inputDir,
         highlightTheme,
         textHighlightingMode,
@@ -1787,7 +1802,7 @@ function resolveTextHighlightStyle(
       // Clear the highlighting
       if (extras.pandoc) {
         extras.pandoc = extras.pandoc || {};
-        extras.pandoc[kHighlightStyle] = textHighlightThemePath(
+        extras.pandoc[kSyntaxHighlighting] = textHighlightThemePath(
           inputDir,
           "none",
         );
@@ -1797,7 +1812,7 @@ function resolveTextHighlightStyle(
     default:
       // Set the the light (default) highlighting mode
       extras.pandoc = extras.pandoc || {};
-      extras.pandoc[kHighlightStyle] =
+      extras.pandoc[kSyntaxHighlighting] =
         textHighlightThemePath(inputDir, highlightTheme, "light") ||
         highlightTheme;
       break;

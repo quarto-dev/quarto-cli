@@ -6,7 +6,7 @@
 import { join } from "../deno_ral/path.ts";
 
 import { kDefaultHighlightStyle } from "../command/render/constants.ts";
-import { kHighlightStyle } from "../config/constants.ts";
+import { kHighlightStyle, kSyntaxHighlighting } from "../config/constants.ts";
 import { FormatPandoc } from "../config/types.ts";
 
 import { existsSync } from "../deno_ral/fs.ts";
@@ -69,7 +69,10 @@ export function readHighlightingTheme(
   pandoc: FormatPandoc,
   style: "dark" | "light" | "default",
 ): ThemeDescriptor | undefined {
-  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
+  // Check both syntax-highlighting (new) and highlight-style (deprecated alias)
+  const theme = pandoc[kSyntaxHighlighting] ||
+    pandoc[kHighlightStyle] ||
+    kDefaultHighlightStyle;
   if (theme) {
     const themeRaw = readTheme(inputDir, theme, style);
     if (themeRaw) {
@@ -86,12 +89,16 @@ export function readHighlightingTheme(
 }
 
 export function hasAdaptiveTheme(pandoc: FormatPandoc) {
-  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
+  // Check both syntax-highlighting (new) and highlight-style (deprecated alias)
+  const theme = pandoc[kSyntaxHighlighting] ||
+    pandoc[kHighlightStyle] ||
+    kDefaultHighlightStyle;
   return theme && isAdaptiveTheme(theme);
 }
 
 export function hasTextHighlighting(pandoc: FormatPandoc): boolean {
-  const theme = pandoc[kHighlightStyle];
+  // Check both syntax-highlighting (new) and highlight-style (deprecated alias)
+  const theme = pandoc[kSyntaxHighlighting] ?? pandoc[kHighlightStyle];
   return theme !== null;
 }
 
