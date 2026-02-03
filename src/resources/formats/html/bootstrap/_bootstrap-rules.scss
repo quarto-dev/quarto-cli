@@ -730,6 +730,12 @@ aside,
   display: block;
 }
 
+// Fix for light/dark renderings in column-margin: when light-content is hidden
+// in dark mode, remove padding-top from dark-content so it aligns correctly
+body.quarto-dark .column-margin.column-container > .light-content + .dark-content {
+  padding-top: 0;
+}
+
 .column-margin.column-container > *.collapse:not(.show) {
   display: none;
 }
