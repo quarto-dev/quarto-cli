@@ -1,6 +1,6 @@
 ---
-title: "Code annotations with highlight-style: none"
-highlight-style: none
+title: "Code annotations with syntax-highlighting: none"
+syntax-highlighting: none
 format:
   latex: default
 _quarto:
@@ -13,7 +13,7 @@ _quarto:
         - ['\\CommentTok', '\\begin\{Shaded\}']
 ---
 
-Code with annotation using deprecated highlight-style option:
+Code with annotation using deprecated syntax-highlighting option:
 
 ```python
 x = 1  # <1>

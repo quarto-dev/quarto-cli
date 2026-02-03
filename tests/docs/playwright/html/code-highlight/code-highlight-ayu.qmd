@@ -1,6 +1,6 @@
 ---
 title: Testing ayu code highlight
-highlight-style: ayu
+syntax-highlighting: ayu
 ---
 
 {{< include _body.md >}}
