@@ -123,9 +123,8 @@ async function latestRelease(): Promise<RemotePackageInfo> {
   // Use pinned version from configuration or default
   const version = Deno.env.get("VERAPDF") || kDefaultVersion;
   const filename = `verapdf-greenfield-${version}-installer.zip`;
-  // Use quarto.org redirect (points to S3 bucket)
-  const downloadUrl =
-    `${kDownloadBaseUrl}/verapdf/verapdf-greenfield-installer.zip`;
+  // Use quarto.org redirect with version in path (points to S3 bucket)
+  const downloadUrl = `${kDownloadBaseUrl}/verapdf/${version}/${filename}`;
 
   return {
     url: downloadUrl,
