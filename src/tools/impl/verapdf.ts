@@ -21,8 +21,8 @@ import {
 import { createToolSymlink, removeToolSymlink } from "../tools.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 
-// S3 bucket for veraPDF downloads
-const kBucketBaseUrl = "https://s3.amazonaws.com/rstudio-buildtools/quarto";
+// Download base URL (quarto.org redirects to S3 bucket)
+const kDownloadBaseUrl = "https://quarto.org/download";
 const kDefaultVersion = "1.28.2";
 
 // Supported Java versions for veraPDF
@@ -123,7 +123,8 @@ async function latestRelease(): Promise<RemotePackageInfo> {
   // Use pinned version from configuration or default
   const version = Deno.env.get("VERAPDF") || kDefaultVersion;
   const filename = `verapdf-greenfield-${version}-installer.zip`;
-  const downloadUrl = `${kBucketBaseUrl}/verapdf/${version}/${filename}`;
+  // Use quarto.org redirect with version in path (points to S3 bucket)
+  const downloadUrl = `${kDownloadBaseUrl}/verapdf/${version}/${filename}`;
 
   return {
     url: downloadUrl,
