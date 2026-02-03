@@ -98,8 +98,10 @@ export function hasAdaptiveTheme(pandoc: FormatPandoc) {
 
 export function hasTextHighlighting(pandoc: FormatPandoc): boolean {
   // Check both syntax-highlighting (new) and highlight-style (deprecated alias)
-  const theme = pandoc[kSyntaxHighlighting] ?? pandoc[kHighlightStyle];
-  return theme !== null;
+  const theme = pandoc[kSyntaxHighlighting] ||
+    pandoc[kHighlightStyle] ||
+    kDefaultHighlightStyle;
+  return theme !== "none";
 }
 
 export function isAdaptiveTheme(theme: string | Record<string, string>) {
