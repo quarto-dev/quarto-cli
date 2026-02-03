@@ -88,62 +88,6 @@ testQuartoCmd(
 - Use absolute paths with `join()` for file verification
 - Clean up output directories in teardown
 
-### Pre/Post Render Script Tests
-
-For testing pre-render or post-render scripts that run during project rendering:
-
-```typescript
-import { docs } from "../../utils.ts";
-import { join } from "../../../src/deno_ral/path.ts";
-import { existsSync } from "../../../src/deno_ral/fs.ts";
-import { testQuartoCmd } from "../../test.ts";
-import { noErrors, validJsonWithFields } from "../../verify.ts";
-import { safeRemoveIfExists } from "../../../src/core/path.ts";
-
-const projectDir = docs("project/prepost/my-test");
-const projectDirAbs = join(Deno.cwd(), projectDir);
-const dumpPath = join(projectDirAbs, "output.json");
-const outDir = join(projectDirAbs, "_site");
-
-testQuartoCmd(
-  "render",
-  [projectDir],
-  [
-    noErrors,
-    validJsonWithFields(dumpPath, {
-      expected: "value",
-    }),
-  ],
-  {
-    teardown: async () => {
-      safeRemoveIfExists(dumpPath);
-      if (existsSync(outDir)) {
-        await Deno.remove(outDir, { recursive: true });
-      }
-    },
-  },
-);
-```
-
-**Fixture structure:**
-
-```
-tests/docs/project/prepost/my-test/
-├── _quarto.yml       # project config with pre-render/post-render scripts
-├── index.qmd         # minimal page (website needs at least one)
-├── check-env.ts      # pre/post-render script (Deno TypeScript)
-└── .gitignore        # exclude .quarto/ and *.quarto_ipynb
-```
-
-**Key points:**
-- Pre/post-render scripts run as subprocesses with `cwd` set to the project directory
-- Scripts access environment variables via `Deno.env.get()` and can write files for verification
-- Use `validJsonWithFields` for JSON file verification (parses and compares field values exactly)
-- Use `ensureFileRegexMatches` for non-JSON files or when regex matching is needed
-- The file dump pattern (script writes JSON, test reads it) is useful for verifying env vars and other runtime state
-- Clean up both the dump file and the output directory in teardown
-- Existing fixtures: `tests/docs/project/prepost/` (mutate-render-list, invalid-mutate, extension, issue-10828, script-env-vars)
-
 ### Extension Template Tests
 
 For testing `quarto use template`:
@@ -218,43 +162,6 @@ folderExists(path: string)
 
 // Directory contains only allowed paths
 directoryEmptyButFor(dir: string, allowedFiles: string[])
-```
-
-### Content Verifiers
-
-```typescript
-// Regex match on file contents (matches required, noMatches must be absent)
-ensureFileRegexMatches(file: string, matches: (string | RegExp)[], noMatches?: (string | RegExp)[])
-
-// Regex match on CSS files linked from HTML
-ensureCssRegexMatches(file: string, matches: (string | RegExp)[], noMatches?: (string | RegExp)[])
-
-// Check HTML elements exist or don't exist (CSS selectors)
-ensureHtmlElements(file: string, noElements: string[], elements: string[])
-
-// Verify JSON structure has expected fields (parses JSON, compares values with deep equality)
-validJsonWithFields(file: string, fields: Record<string, unknown>)
-
-// Check output message at specific log level
-printsMessage(options: { level: string, regex: RegExp })
-```
-
-### Assertion Helpers
-
-```typescript
-// Assert path exists (throws if missing)
-verifyPath(path: string)
-
-// Assert path does NOT exist (throws if present)
-verifyNoPath(path: string)
-```
-
-### Cleanup Helpers
-
-```typescript
-// Safe file removal (no error if missing) - from src/core/path.ts
-import { safeRemoveIfExists } from "../../../src/core/path.ts";
-safeRemoveIfExists(path: string)
 ```
 
 ### Path Helpers
@@ -451,3 +358,37 @@ testQuartoCmd(
 ```
 
 Run test **without fix** first to verify it fails, then verify it passes with fix.
+
+## Smoke-All Tests (YAML-Based)
+
+Smoke-all tests embed test specifications directly in `.qmd` files using `_quarto.tests` metadata. See `.claude/rules/testing/smoke-all-tests.md` for full documentation.
+
+### YAML String Escaping for Regex
+
+**Critical rule:** In YAML single-quoted strings, `'\('` and `"\\("` are equivalent - both produce a literal `\(` in the regex.
+
+**Common mistake:** Over-escaping with `'\\('` produces `\\(` (two backslashes), causing regex to fail.
+
+```yaml
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        # CORRECT - single backslash in YAML single quotes
+        - ['\(1\)', '\\circled\{1\}', "Variable assignment"]
+        - ['\\CommentTok', '\\begin\{Shaded\}']
+
+        # WRONG - over-escaped (produces \\( in regex)
+        - ['\\(1\\)', '\\\\circled\\{1\\}']
+```
+
+**YAML escaping cheat sheet:**
+
+| To match in file | In single quotes `'...'` | In double quotes `"..."` |
+|------------------|--------------------------|--------------------------|
+| `\(` | `'\('` | `"\\("` |
+| `\begin{` | `'\\begin\{'` | `"\\\\begin\\{"` |
+| `\\` (literal) | `'\\\\'` | `"\\\\\\\\"` |
+| `[` (regex) | `'\['` | `"\\["` |
+
+**Recommendation:** Use single-quoted strings. They're simpler - only `'` itself needs escaping (as `''`).
