@@ -22,6 +22,15 @@ export interface ThemeDescriptor {
 const kDarkSuffix = "dark";
 const kLightSuffix = "light";
 
+// Resolve highlight theme from syntax-highlighting (new) or highlight-style (deprecated)
+export function getHighlightTheme(
+  pandoc: FormatPandoc,
+): string | Record<string, string> {
+  return pandoc[kSyntaxHighlighting] ||
+    pandoc[kHighlightStyle] ||
+    kDefaultHighlightStyle;
+}
+
 export function textHighlightThemePath(
   inputDir: string,
   theme: string | Record<string, string>,
@@ -69,39 +78,23 @@ export function readHighlightingTheme(
   pandoc: FormatPandoc,
   style: "dark" | "light" | "default",
 ): ThemeDescriptor | undefined {
-  // Check both syntax-highlighting (new) and highlight-style (deprecated alias)
-  const theme = pandoc[kSyntaxHighlighting] ||
-    pandoc[kHighlightStyle] ||
-    kDefaultHighlightStyle;
-  if (theme) {
-    const themeRaw = readTheme(inputDir, theme, style);
-    if (themeRaw) {
-      return {
-        json: JSON.parse(themeRaw),
-        isAdaptive: isAdaptiveTheme(theme),
-      };
-    } else {
-      return undefined;
-    }
-  } else {
-    return undefined;
+  const theme = getHighlightTheme(pandoc);
+  const themeRaw = readTheme(inputDir, theme, style);
+  if (themeRaw) {
+    return {
+      json: JSON.parse(themeRaw),
+      isAdaptive: isAdaptiveTheme(theme),
+    };
   }
+  return undefined;
 }
 
 export function hasAdaptiveTheme(pandoc: FormatPandoc) {
-  // Check both syntax-highlighting (new) and highlight-style (deprecated alias)
-  const theme = pandoc[kSyntaxHighlighting] ||
-    pandoc[kHighlightStyle] ||
-    kDefaultHighlightStyle;
-  return theme && isAdaptiveTheme(theme);
+  return isAdaptiveTheme(getHighlightTheme(pandoc));
 }
 
 export function hasTextHighlighting(pandoc: FormatPandoc): boolean {
-  // Check both syntax-highlighting (new) and highlight-style (deprecated alias)
-  const theme = pandoc[kSyntaxHighlighting] ||
-    pandoc[kHighlightStyle] ||
-    kDefaultHighlightStyle;
-  return theme !== "none";
+  return getHighlightTheme(pandoc) !== "none";
 }
 
 export function isAdaptiveTheme(theme: string | Record<string, string>) {

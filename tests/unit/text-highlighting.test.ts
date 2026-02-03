@@ -7,11 +7,43 @@
 import { unitTest } from "../test.ts";
 import { assertEquals } from "testing/asserts";
 import {
+  getHighlightTheme,
   hasAdaptiveTheme,
   hasTextHighlighting,
   isAdaptiveTheme,
 } from "../../src/quarto-core/text-highlighting.ts";
 import { FormatPandoc } from "../../src/config/types.ts";
+
+// getHighlightTheme tests
+
+// deno-lint-ignore require-await
+unitTest("getHighlightTheme - returns default when no options set", async () => {
+  const pandoc: FormatPandoc = {};
+  assertEquals(getHighlightTheme(pandoc), "arrow");
+});
+
+// deno-lint-ignore require-await
+unitTest("getHighlightTheme - returns syntax-highlighting when set", async () => {
+  const pandoc: FormatPandoc = { "syntax-highlighting": "github" };
+  assertEquals(getHighlightTheme(pandoc), "github");
+});
+
+// deno-lint-ignore require-await
+unitTest("getHighlightTheme - returns highlight-style as fallback", async () => {
+  const pandoc: FormatPandoc = { "highlight-style": "monokai" };
+  assertEquals(getHighlightTheme(pandoc), "monokai");
+});
+
+// deno-lint-ignore require-await
+unitTest("getHighlightTheme - syntax-highlighting takes precedence", async () => {
+  const pandoc: FormatPandoc = {
+    "syntax-highlighting": "github",
+    "highlight-style": "monokai",
+  };
+  assertEquals(getHighlightTheme(pandoc), "github");
+});
+
+// hasTextHighlighting tests
 
 // deno-lint-ignore require-await
 unitTest("text-highlighting - returns true when no options set (default applies)", async () => {
