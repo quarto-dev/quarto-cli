@@ -6,7 +6,7 @@
 
 import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 
-import { info } from "../../deno_ral/log.ts";
+import { info, warning } from "../../deno_ral/log.ts";
 
 import { ensureDir, existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
 
@@ -1774,11 +1774,19 @@ function resolveTextHighlightStyle(
   }
 
   if (highlightTheme === "idiomatic") {
-    // Use native format highlighting (typst, LaTeX listings, reveal.js highlight.js)
-    // Pass through to Pandoc 3.8+ which handles this natively
-    extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kSyntaxHighlighting] = "idiomatic";
-    return extras;
+    if (isRevealjsOutput(pandoc)) {
+      // reveal.js idiomatic mode doesn't produce working highlighting
+      // Fall through to default skylighting instead
+      warning(
+        "syntax-highlighting: idiomatic is not supported for reveal.js. Using default highlighting.",
+      );
+    } else {
+      // Use native format highlighting (typst native, LaTeX listings)
+      // Pass through to Pandoc 3.8+ which handles this natively
+      extras.pandoc = extras.pandoc || {};
+      extras.pandoc[kSyntaxHighlighting] = "idiomatic";
+      return extras;
+    }
   }
 
   // create the possible name matches based upon the dark vs. light
