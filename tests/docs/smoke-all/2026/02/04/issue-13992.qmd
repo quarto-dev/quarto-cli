@@ -1,0 +1,38 @@
+---
+title: "Crossref table with conditional visibility (#13992)"
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['Type 1', 'Type 2', 'Item 1', 'Item 2', 'tbl-mytypes']
+        - []
+    html:
+      ensureHtmlElements:
+        - []
+        - ['#tbl-mytypes', 'table']
+      ensureFileRegexMatches:
+        - []
+        - ['Type 1', 'Type 2', 'Item 1', 'Item 2']
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#ref\(<tbl-mytypes>', 'Type 1', 'Type 2', 'Item 1', 'Item 2']
+        - []
+---
+
+This tests that a table div with both a cross-reference ID and conditional visibility renders correctly.
+
+See @tbl-mytypes for the table.
+
+::: {#tbl-mytypes .content-visible unless-format="html"}
+
+| Type 1 | Type 2 |
+| ------ | ------ |
+| Item 1 | Item 2 |
+
+: Test table caption
+
+:::
+
+The table above should appear in PDF and Typst but not HTML.

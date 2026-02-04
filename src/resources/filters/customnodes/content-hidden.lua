@@ -59,8 +59,16 @@ _quarto.ast.add_handler({
     local visible = is_visible(node)
     if visible then
       local el = node.node
-      clearHiddenVisibleAttributes(el)
-      return el.content
+      -- Handle case where slot content was transformed (e.g., Div → FloatRefTarget → Table)
+      if is_regular_node(el, "Div") then
+        -- Original behavior for Div: clear attributes and return inner content
+        clearHiddenVisibleAttributes(el)
+        return el.content
+      else
+        -- Slot was transformed to another type (Table, etc.)
+        -- Return the rendered element wrapped in Blocks
+        return pandoc.Blocks({el})
+      end
     else
       return {}
     end
