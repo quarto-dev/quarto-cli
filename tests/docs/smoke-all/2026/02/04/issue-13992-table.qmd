@@ -19,6 +19,7 @@ _quarto:
       ensureTypstFileRegexMatches:
         - ['#ref\(<tbl-mytypes>', 'Type 1', 'Type 2', 'Item 1', 'Item 2']
         - []
+    native: default
 ---
 
 This tests that a table div with both a cross-reference ID and conditional visibility renders correctly.
