@@ -23,6 +23,7 @@ REM Validate that a path was provided
 IF "%TARGET_PATH%"=="" (
   echo Error: No directory path provided
   echo Usage: check-deno-in-use.cmd ^<directory-path^>
+  ENDLOCAL
   EXIT /B 1
 )
 
@@ -32,7 +33,9 @@ IF "!TARGET_PATH:~-1!"=="\" SET "TARGET_PATH=!TARGET_PATH:~0,-1!"
 REM Check if deno.exe is running from target path using PowerShell
 REM Uses .StartsWith() for exact prefix matching (not wildcard matching)
 REM Case-insensitive comparison appropriate for Windows file paths
-powershell -NoProfile -Command "if (Get-Process -Name deno -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith('!TARGET_PATH!', [System.StringComparison]::CurrentCultureIgnoreCase) }) { exit 1 } else { exit 0 }" >NUL 2>&1
+REM Path passed via environment variable to safely handle special characters
+SET "DENO_CHECK_PATH=!TARGET_PATH!"
+powershell -NoProfile -Command "if (Get-Process -Name deno -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($env:DENO_CHECK_PATH, [System.StringComparison]::CurrentCultureIgnoreCase) }) { exit 1 } else { exit 0 }" >NUL 2>&1
 
 IF "!ERRORLEVEL!"=="1" (
   REM Deno process found - show error message and process list
@@ -45,9 +48,11 @@ IF "!ERRORLEVEL!"=="1" (
   echo Directory: !TARGET_PATH!
   echo.
   echo Deno processes from this directory:
-  powershell -NoProfile -Command "Get-Process -Name deno -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith('!TARGET_PATH!', [System.StringComparison]::CurrentCultureIgnoreCase) } | Format-Table Id, Path -AutoSize"
+  powershell -NoProfile -Command "Get-Process -Name deno -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($env:DENO_CHECK_PATH, [System.StringComparison]::CurrentCultureIgnoreCase) } | Format-Table Id, Path -AutoSize"
+  ENDLOCAL
   EXIT /B 1
 )
 
 REM No blocking deno process found
+ENDLOCAL
 EXIT /B 0
