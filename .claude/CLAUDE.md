@@ -128,21 +128,6 @@ The feature format matrix in `dev-docs/feature-format-matrix/` documents and tes
 - Project types are registered via `project/types/register.ts`
 - Each type defines metadata, rendering behavior, and output structure
 
-**Single-File Rendering with `--output-dir` (Non-obvious variant)**
-
-When `--output-dir` is used without a project file, Quarto creates a "synthetic" project context:
-
-- Triggers when: `quarto render file.qmd --output-dir output/` and no `_quarto.yml` exists
-- Creates temporary `.quarto` directory to manage the render
-- Uses full `renderProject()` path, NOT `singleFileProjectContext()`
-- `forceClean` flag in `RenderOptions` signals this is temporary and needs cleanup
-- After rendering: closes file handles then removes `.quarto` directory
-- Key locations:
-  - Creation: [render-shared.ts:52-58](src/command/render/render-shared.ts#L52-L58)
-  - Cleanup: [project.ts:889-907](src/command/render/project.ts#L889-L907)
-- Related issues: #9745 (avoid leaving `.quarto` debris), #13625 (Windows file locking)
-- Test coverage: [tests/smoke/render/render-output-dir.test.ts](tests/smoke/render/render-output-dir.test.ts)
-
 **Format System** (`src/format/`)
 
 - Format handlers for different output types (HTML, PDF, DOCX, reveal.js, etc.)

@@ -193,48 +193,6 @@ format: myformat
 Test content
 ```
 
-## Common Patterns
-
-**Format extending another:**
-```typescript
-// Dashboard extends HTML
-const dashboardFormat = mergeConfigs(
-  htmlFormat(7, 5),
-  {
-    identifier: { displayName: "Dashboard", ... },
-    render: { echo: false },
-    // Override formatExtras to add dashboard processing
-  },
-);
-```
-
-**Wrapping formatExtras:**
-```typescript
-const baseExtras = baseFormat.formatExtras;
-return {
-  ...baseFormat,
-  formatExtras: async (...args) => {
-    const extras = baseExtras ? await baseExtras(...args) : {};
-    return {
-      ...extras,
-      postprocessors: [
-        ...(extras.postprocessors || []),
-        myPostprocessor,
-      ],
-    };
-  },
-};
-```
-
-**Binary output (PDF):**
-```typescript
-const pdfFormat = createFormat("PDF", "pdf", {
-  pandoc: { to: "latex" },  // Pandoc produces LaTeX
-  render: { "keep-tex": false },
-  // postprocessors convert .tex → .pdf via latexmk
-});
-```
-
 ## Directory Structure
 
 ```

@@ -106,33 +106,9 @@ Valid OS values: `linux`, `darwin`, `windows`
 
 ## YAML String Escaping for Regex
 
-**Critical rule:** In YAML single-quoted strings, `'\('` and `"\\("` are equivalent - both produce a literal `\(` in the regex.
+**Details:** `llm-docs/testing-patterns.md` → "YAML String Escaping for Regex"
 
-**Common mistake:** Over-escaping with `'\\('` produces `\\(` (two backslashes), causing regex to fail.
-
-```yaml
-_quarto:
-  tests:
-    latex:
-      ensureFileRegexMatches:
-        # CORRECT - single backslash in YAML single quotes
-        - ['\(1\)', '\\circled\{1\}', "Variable assignment"]
-        - ['\\CommentTok', '\\begin\{Shaded\}']
-
-        # WRONG - over-escaped (produces \\( in regex)
-        - ['\\(1\\)', '\\\\circled\\{1\\}']
-```
-
-**YAML escaping cheat sheet:**
-
-| To match in file | In single quotes `'...'` | In double quotes `"..."` |
-|------------------|--------------------------|--------------------------|
-| `\(` | `'\('` | `"\\("` |
-| `\begin{` | `'\\begin\{'` | `"\\\\begin\\{"` |
-| `\\` (literal) | `'\\\\'` | `"\\\\\\\\"` |
-| `[` (regex) | `'\['` | `"\\["` |
-
-**Recommendation:** Use single-quoted strings. They're simpler - only `'` itself needs escaping (as `''`).
+**Quick rule:** In YAML single quotes, use single backslash: `'\('` matches `\(`. Double-escaping `'\\('` is wrong.
 
 ## File Organization
 
