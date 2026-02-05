@@ -244,13 +244,9 @@ LaTeX error pattern maintenance is documented in [dev-docs/tinytex-pattern-maint
 
 ### Changelog Conventions
 
-- Check `configuration` file for current version
-- Add entries to `news/changelog-{version}.md` (e.g., `changelog-1.9.md` for version 1.9)
-- Format: `- ([#issue](url)): Description.`
-- Distinguish between:
-  - **Fixes**: Fixing bugs or broken functionality (e.g., "Fix `icon=false` not working...")
-  - **Enhancements**: Adding new features or support (e.g., "Add support for `icon=false`...")
-- Group entries by format/feature area (typst, html, website, pdf, etc.)
+- Changelog files live in `news/changelog-{version}.md` (e.g., `changelog-1.9.md`)
+- Check `configuration` file for current `QUARTO_VERSION`
+- See `.claude/rules/changelog.md` for comprehensive conventions (section hierarchy, entry format, backports, regression fixes)
 
 ## Key File Paths
 
