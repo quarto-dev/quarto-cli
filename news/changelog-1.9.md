@@ -163,3 +163,4 @@ All changes included in 1.9:
 - ([#13890](https://github.com/quarto-dev/quarto-cli/issues/13890)): Fix render failure when using `embed-resources: true` with input path through a symlinked directory. The cleanup now resolves symlinks before comparing paths.
 - ([#13907](https://github.com/quarto-dev/quarto-cli/issues/13907)): Ignore AI assistant configuration files (`CLAUDE.md`, `AGENTS.md`) when scanning for project input files and in extension templates, similar to how `README.md` is handled.
 - ([#13935](https://github.com/quarto-dev/quarto-cli/issues/13935)): Fix `quarto install`, `quarto update`, and `quarto uninstall` interactive tool selection.
+- ([#13997](https://github.com/quarto-dev/quarto-cli/issues/13997)): Fix Windows dart-sass theme compilation failing when Quarto is installed in a path with spaces (e.g., `C:\Program Files\`) and the project path also contains spaces.
