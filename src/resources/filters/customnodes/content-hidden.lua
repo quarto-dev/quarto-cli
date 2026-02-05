@@ -61,7 +61,9 @@ _quarto.ast.add_handler({
       local el = node.node
       -- Handle case where slot content was transformed (e.g., Div → FloatRefTarget → Table)
       if is_regular_node(el, "Div") then
-        -- Original behavior for Div: clear attributes and return inner content
+        -- Defensive: parse() already stripped visibility attrs (lines 46-47), so this is
+        -- typically a no-op. Kept as safety net in case future code adds attrs between
+        -- parse and render. See issue #13992 investigation for AST trace evidence.
         clearHiddenVisibleAttributes(el)
         return el.content
       else
