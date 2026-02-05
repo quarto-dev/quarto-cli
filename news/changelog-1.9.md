@@ -164,3 +164,4 @@ All changes included in 1.9:
 - ([#13907](https://github.com/quarto-dev/quarto-cli/issues/13907)): Ignore AI assistant configuration files (`CLAUDE.md`, `AGENTS.md`) when scanning for project input files and in extension templates, similar to how `README.md` is handled.
 - ([#13935](https://github.com/quarto-dev/quarto-cli/issues/13935)): Fix `quarto install`, `quarto update`, and `quarto uninstall` interactive tool selection.
 - ([#13992](https://github.com/quarto-dev/quarto-cli/issues/13992)): Fix crash when rendering div with both cross-reference ID and conditional visibility to PDF.
+- ([#13998](https://github.com/quarto-dev/quarto-cli/issues/13998)): Fix YAML validation error with CR-only line terminators (old Mac format). Documents using `\r` line endings no longer fail with "Expected YAML front matter to contain at least 2 lines".

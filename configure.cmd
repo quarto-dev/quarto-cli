@@ -28,7 +28,7 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
     echo.
     echo ============================================================
     echo Error: Could not delete package/dist/ directory
-    echo A process may be holding files open
+    echo This may be due to permissions, antivirus, or another process holding files
     echo ============================================================
     echo.
     echo Try closing applications and run configure.cmd again
