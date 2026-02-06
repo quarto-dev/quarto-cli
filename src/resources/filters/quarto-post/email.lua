@@ -16,6 +16,8 @@ Extension for generating email components needed for Posit Connect
 6. Produces a local `index.html` file that contains the HTML email for previewing purposes
    (this can be disabled by setting `email-preview: false` in the YAML header)
 --]]
+local constants = require("modules/constants")
+local connectversion = require("modules/connectversion")
 
 -- Get the file extension of any file residing on disk
 function get_file_extension(file_path)
@@ -185,11 +187,26 @@ function generate_html_email_from_template(
   return html_str
 end
 
+-- v2: Collections for multiple emails
+local emails = {}
+local current_email = nil
+
+-- v1 fallback: Document-level metadata
 local subject = ""
-local email_images = {}
-local image_tbl = {}
+local email_text = ""
 local suppress_scheduled_email = false
 local found_email_div = false
+
+-- Track whether we detected v1-style top-level metadata
+local has_top_level_metadata = false
+local email_count = 0
+
+-- Track whether to use v2 JSON format (multi-email array) or v1 format (single email)
+local use_v2_email_format = false
+
+-- Track Connect version capability for v2 format
+local connect_supports_v2 = false
+
 
 function process_meta(meta)
   if not found_email_div then
@@ -211,9 +228,11 @@ function process_meta(meta)
 end
 
 -- Function to check whether a div with the 'email' class is present in the document
+-- and count them for version detection
 function find_email_div(div)
   if div.classes:includes("email") then
     found_email_div = true
+    email_count = email_count + 1
   end
 end
 
@@ -223,81 +242,97 @@ function process_div(div)
     return nil
   end
 
-  if div.classes:includes("subject") then
+  -- V2 mode: email div contains subject/email-text/email-scheduled
+  if div.classes:includes("email") then
+    
+    -- Start a new email object
+    current_email = {
+      subject = "",
+      email_text = "",
+      email_html = "",
+      email_html_preview = "",
+      image_tbl = {},
+      email_images = {},
+      suppress_scheduled_email = nil,  -- nil means not set
+      attachments = {}
+    }
 
-    subject = pandoc.utils.stringify(div)
-    return {}
+    -- Extract nested metadata from immediate children
+    local remaining_content = {}
 
-  elseif div.classes:includes("email-text") then
+    for i, child in ipairs(div.content) do
+      if child.t == "Div" then
+        if child.classes:includes("subject") then
+          current_email.subject = pandoc.utils.stringify(child)
+        elseif child.classes:includes("email-text") then
+          current_email.email_text = pandoc.write(pandoc.Pandoc({ child }), "plain")
+        elseif child.classes:includes("email-scheduled") then
+          local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(child)), 10)
+          local scheduled_email = str_truthy_falsy(email_scheduled_str)
+          current_email.suppress_scheduled_email = not scheduled_email
+        else
+          table.insert(remaining_content, child)
+        end
+      else
+        table.insert(remaining_content, child)
+      end
+    end
+    
+    -- Create a modified div without metadata for processing
+    local email_without_metadata = pandoc.Div(remaining_content, div.attr)
 
-    email_text = pandoc.write(pandoc.Pandoc({ div }), "plain")
-    return {}
-
-  elseif div.classes:includes("email-scheduled") then
-
-    local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(div)), 10)
-    local scheduled_email = str_truthy_falsy(email_scheduled_str)
-
-    suppress_scheduled_email = not scheduled_email
-
-    return {}
-  
-  elseif div.classes:includes("email") then
-
-    --[[
-    Render of HTML email message body for Connect: `email_html`
-
-    For each of the <img> tags found we need to modify the tag so that it contains a
-    reference to the Base64 string; this reference is that of the Content-ID (or CID) tag;
-    the basic form is `<img src="cid:image-id"/>` (the `image-id` will be written as
-    `img<n>.<file_extension>`, incrementing <n> from 1)
-    ]]
-
+    -- Process images with CID tags
     local count = 1
+    local render_div_cid = quarto._quarto.ast.walk(email_without_metadata, {
+      Image = function(img_el)
+        local file_extension = get_file_extension(img_el.src)
+        local cid = "img" .. tostring(count) .. "." .. file_extension
+        current_email.image_tbl[cid] = img_el.src
+        img_el.src = "cid:" .. cid
+        count = count + 1
+        return img_el
+      end
+    })
 
-    local render_div_cid = quarto._quarto.ast.walk(div, {Image = function(img_el)
+    current_email.email_html = extract_email_div_str(render_div_cid)
 
-      local file_extension = get_file_extension(img_el.src)
-      local cid = "img" .. tostring(count) .. "." .. file_extension
-      image_tbl[cid] = img_el.src
-      img_el.src = "cid:" .. cid
-      count = count + 1
-      return img_el
+    -- Process images with base64 for preview
+    local render_div_base64 = quarto._quarto.ast.walk(email_without_metadata, {
+      Image = function(img_el)
+        local image_file = io.open(img_el.src, "rb")
+        if type(image_file) == "userdata" then
+          local image_data = image_file:read("*all")
+          image_file:close()
+          local encoded_data = quarto.base64.encode(image_data)
+          local file_extension = get_file_extension(img_el.src)
+          local base64_str = "data:image/" .. file_extension .. ";base64," .. encoded_data
+          img_el.src = base64_str
+        end
+        return img_el
+      end
+    })
 
-    end})
+    current_email.email_html_preview = extract_email_div_str(render_div_base64)
 
-    email_html = extract_email_div_str(render_div_cid)
-
-    --[[
-    Render of HTML email message body for Connect: `email_html_preview`
-
-    We are keeping a render of the email HTML for previewing purposes (if the option
-    is taken to do so); here, the HTML is self-contained where the image tags contain
-    base64-encoded data
-    ]]
-
-    local render_div_base64 = quarto._quarto.ast.walk(div, {Image = function(img_el)
-
-      local image_file = io.open(img_el.src, "rb")
+    -- Encode base64 images for JSON
+    for cid, img in pairs(current_email.image_tbl) do
+      local image_file = io.open(img, "rb")
 
       if type(image_file) == "userdata" then
-        image_data = image_file:read("*all")
+        local image_data = image_file:read("*all")
         image_file:close()
+
+        local encoded_data = quarto.base64.encode(image_data)
+        current_email.email_images[cid] = encoded_data
       end
+    end
 
-      local encoded_data = quarto.base64.encode(image_data)
-      local file_extension = get_file_extension(img_el.src)
-      local base64_str = "data:image/" .. file_extension .. ";base64," .. encoded_data
-      img_el.src = base64_str
-      return img_el
+    -- Add current email to collection
+    table.insert(emails, current_email)
+    current_email = nil
 
-    end})
-
-    email_html_preview = extract_email_div_str(render_div_base64)
-
-    -- Remove the the `.email` div so it doesn't appear in the main report document
+    -- Remove the email div from output
     return {}
-
   end
 end
 
@@ -312,6 +347,66 @@ function process_document(doc)
     return doc
   end
 
+  -- Detect format upfront: Check Connect version and look for document-level metadata
+  -- This must be determined before processing to avoid confusion about which format to use
+  if connectversion.is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
+    connect_supports_v2 = true
+  end
+
+  -- Scan for document-level metadata at the TOP LEVEL of the document
+  for _, block in ipairs(doc.blocks) do
+    if block.t == "Div" then
+      if block.classes:includes("subject") or block.classes:includes("email-text") or block.classes:includes("email-scheduled") then
+        has_top_level_metadata = true
+        break
+      end
+    end
+  end
+  
+  -- Determine format: v2 only if Connect supports it AND no document-level metadata
+  if connect_supports_v2 and not has_top_level_metadata then
+    use_v2_email_format = true
+  end
+
+  -- V1 fallback: Process document-level metadata divs (not nested in email)
+  -- We already know from the format detection above if these exist
+  doc = quarto._quarto.ast.walk(doc, {
+    Div = function(div)
+      if div.classes:includes("subject") then
+        subject = pandoc.utils.stringify(div)
+        return {}
+      elseif div.classes:includes("email-text") then
+        email_text = pandoc.write(pandoc.Pandoc({ div }), "plain")
+        return {}
+      elseif div.classes:includes("email-scheduled") then
+        local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(div)), 10)
+        local scheduled_email = str_truthy_falsy(email_scheduled_str)
+        suppress_scheduled_email = not scheduled_email
+        return {}
+      end
+      return div
+    end
+  })
+
+  -- Warn if old v1 input format detected
+  if has_top_level_metadata then
+    quarto.log.warning("Invalid email format detected (top-level subject/email-text). Outputting as v1 for backward compatibility.")
+  end
+
+  -- In v1 mode (document-level metadata), only keep the first email
+  if has_top_level_metadata and #emails > 1 then
+    quarto.log.warning("V1 format with document-level metadata should have only one email. Keeping first email only.")
+    emails = { emails[1] }
+    email_count = 1
+  end
+
+  -- If Connect doesn't support v2 format, only keep first email and warn
+  if not use_v2_email_format and not has_top_level_metadata then
+    quarto.log.warning("Detected Connect version < " .. constants.kConnectEmailMetadataChangeVersion .. " which doesn't support multiple emails. Only the first email will be sent. Upgrade Connect to " .. constants.kConnectEmailMetadataChangeVersion .. "+ for multi-email support.")
+    emails = { emails[1] }
+    email_count = 1
+  end
+
   -- Get the current date and time
   local connect_date_time = os.date("%Y-%m-%d %H:%M:%S")
 
@@ -321,117 +416,155 @@ function process_document(doc)
   local connect_report_url = os.getenv("RSC_REPORT_URL")
   local connect_report_subscription_url = os.getenv("RSC_REPORT_SUBSCRIPTION_URL")
 
-  -- The following regexes remove the surrounding <div> from the HTML text
-  email_html = string.gsub(email_html, "^<div class=\"email\">", '')
-  email_html = string.gsub(email_html, "</div>$", '')
-
-  -- Use the Connect email template components along with the `email_html` and
-  -- `email_html_preview` objects to generate the email message body for Connect
-  -- and the email HTML file (as a local preview)
-  
-  html_email_body = generate_html_email_from_template(
-    email_html,
-    connect_date_time,
-    connect_report_rendering_url,
-    connect_report_url,
-    connect_report_subscription_url
-  )
-
-  html_preview_body = generate_html_email_from_template(
-    email_html_preview,
-    connect_date_time,
-    connect_report_rendering_url,
-    connect_report_url,
-    connect_report_subscription_url
-  )
-
-  -- Right after the </head> tag in `html_preview_body` we need to insert a subject line HTML string;
-  -- this is the string to be inserted:
-  subject_html_preview = "<div style=\"text-align: center; background-color: #fcfcfc; padding-top: 12px; font-size: large;\"><span style=\"margin-left: 25px\"><strong><span style=\"font-variant: small-caps;\">subject: </span></strong>" .. subject .. "</span><hr /></div>"
-
-  -- insert `subject_html_preview` into `html_preview_body` at the aforementioned location
-  html_preview_body = string.gsub(html_preview_body, "</head>", "</head>\n" .. subject_html_preview)
-
-  -- For each of the <img> tags we need to create a Base64-encoded representation
-  -- of the image and place that into the table `email_images` (keyed by `cid`)
-
-  local image_data = nil
-
-  for cid, img in pairs(image_tbl) do
-
-    local image_file = io.open(img, "rb")
-
-    if type(image_file) == "userdata" then
-      image_data = image_file:read("*all")
-      image_file:close()
-    end
-
-    local encoded_data = quarto.base64.encode(image_data)
-      
-    -- Insert `encoded_data` into `email_images` table with prepared key
-    email_images[cid] = encoded_data
-  end
-
-  -- Encode all of the strings and tables of strings into the JSON file
-  -- (`.output_metadata.json`) that's needed for Connect's email feature
-
-  if (is_empty_table(email_images)) then
-
-    metadata_str = quarto.json.encode({
-      rsc_email_subject = subject,
-      rsc_email_attachments = attachments,
-      rsc_email_body_html = html_email_body,
-      rsc_email_body_text = email_text,
-      rsc_email_suppress_report_attachment = true,
-      rsc_email_suppress_scheduled = suppress_scheduled_email
-    })
-
-  else
-
-    metadata_str = quarto.json.encode({
-      rsc_email_subject = subject,
-      rsc_email_attachments = attachments,
-      rsc_email_body_html = html_email_body,
-      rsc_email_body_text = email_text,
-      rsc_email_images = email_images,
-      rsc_email_suppress_report_attachment = true,
-      rsc_email_suppress_scheduled = suppress_scheduled_email
-    })
-  end
-
-  -- Determine the location of the Quarto project directory; if not defined
-  -- by the user then set to the location of the input file
+  -- Determine the location of the Quarto project directory
   local project_output_directory = quarto.project.output_directory
-
+  local dir
   if (project_output_directory ~= nil) then
     dir = project_output_directory
   else
     local file = quarto.doc.input_file
     dir = pandoc.path.directory(file)
   end
-
-  -- For all file attachments declared by the user, ensure they copied over
-  -- to the project directory (`dir`)
-  for _, v in pairs(attachments) do
+  
+  -- Process all emails and generate their previews
+  local emails_for_json = {}
+  
+  for idx, email_obj in ipairs(emails) do
     
+    -- Apply document-level fallbacks with warnings
+    if email_obj.subject == "" and subject ~= "" then
+      quarto.log.warning("Email #" .. tostring(idx) .. " has no subject. Using document-level subject.")
+      email_obj.subject = subject
+    end
+    
+    if email_obj.email_text == "" and email_text ~= "" then
+      quarto.log.warning("Email #" .. tostring(idx) .. " has no email-text. Using document-level email-text.")
+      email_obj.email_text = email_text
+    end
+
+    if email_obj.suppress_scheduled_email == nil and suppress_scheduled_email then
+      quarto.log.warning("Email #" .. tostring(idx) .. " has no email-scheduled setting. Using document-level setting.")
+      email_obj.suppress_scheduled_email = suppress_scheduled_email
+    end
+
+    if is_empty_table(email_obj.attachments) and not is_empty_table(attachments) then
+      email_obj.attachments = attachments
+    end
+
+    -- Default suppress_scheduled_email to false if still nil
+    if email_obj.suppress_scheduled_email == nil then
+      email_obj.suppress_scheduled_email = false
+    end
+
+    -- Clean up HTML
+    local email_html_clean = string.gsub(email_obj.email_html, "^<div class=\"email\">", '')
+    email_html_clean = string.gsub(email_html_clean, "</div>$", '')
+
+    -- Generate HTML bodies
+    local html_email_body = generate_html_email_from_template(
+      email_html_clean,
+      connect_date_time,
+      connect_report_rendering_url,
+      connect_report_url,
+      connect_report_subscription_url
+    )
+
+    local html_preview_body = generate_html_email_from_template(
+      email_obj.email_html_preview,
+      connect_date_time,
+      connect_report_rendering_url,
+      connect_report_url,
+      connect_report_subscription_url
+    )
+
+    -- Add subject to preview
+    local subject_html_preview = "<div style=\"text-align: center; background-color: #fcfcfc; padding-top: 12px; font-size: large;\"><span style=\"margin-left: 25px\"><strong><span style=\"font-variant: small-caps;\">subject: </span></strong>" .. email_obj.subject .. "</span><hr /></div>"
+    html_preview_body = string.gsub(html_preview_body, "</head>", "</head>\n" .. subject_html_preview)
+
+    -- Build email object for JSON
+
+    -- rsc_email_suppress_report_attachment (now inverted to send_report_as_attachment) referred to
+    -- the attachment of the rendered report to each connect email.
+    -- This is always true for all emails unless overridden by blastula (as is the case in v1)
+    local email_json_obj = {
+      email_id = idx,
+      subject = email_obj.subject,
+      body_html = html_email_body,
+      body_text = email_obj.email_text,
+      attachments = email_obj.attachments,
+      suppress_scheduled = email_obj.suppress_scheduled_email,
+      send_report_as_attachment = false
+    }
+
+    -- Only add images if present
+    if not is_empty_table(email_obj.email_images) then
+      email_json_obj.images = email_obj.email_images
+    end
+
+    table.insert(emails_for_json, email_json_obj)
+
+    -- Write preview file(s). For v2 produce per-email previews; for v1
+    -- produce a single index.html preview.
+    if meta_email_preview ~= false then
+      local preview_filename
+      if use_v2_email_format then
+        preview_filename = "email-preview/email_id-" .. tostring(idx) .. ".html"
+      else
+        preview_filename = "email-preview/index.html"
+      end
+      quarto._quarto.file.write(pandoc.path.join({dir, preview_filename}), html_preview_body)
+    end
+  end
+
+  -- Generate JSON in appropriate format
+  local metadata_str
+  if use_v2_email_format then
+    metadata_str = quarto.json.encode({
+      rsc_email_version = 2,
+      emails = emails_for_json
+    })
+  else
+    -- V1 format: single email object with rsc_ prefix fields (backward compatible)
+    -- Take the first (and should be only) email
+    local first_email = emails_for_json[1]
+    if first_email then
+      local v1_metadata = {
+        rsc_email_subject = first_email.subject,
+        rsc_email_body_html = first_email.body_html,
+        rsc_email_body_text = first_email.body_text,
+        rsc_email_attachments = first_email.attachments,
+        rsc_email_suppress_scheduled = first_email.suppress_scheduled,
+        rsc_email_suppress_report_attachment = true
+      }
+      
+      -- Only add images if present
+      if first_email.images and not is_empty_table(first_email.images) then
+        v1_metadata.rsc_email_images = first_email.images
+      end
+      
+      metadata_str = quarto.json.encode(v1_metadata)
+    else
+      quarto.log.error("No emails found to generate metadata")
+      metadata_str = quarto.json.encode({})
+    end
+  end
+
+  -- Write metadata file
+  local metadata_path_file = pandoc.path.join({dir, ".output_metadata.json"})
+  io.open(metadata_path_file, "w"):write(metadata_str):close()
+
+  -- Copy attachments to project directory
+  for _, v in pairs(attachments) do
     local source_attachment_file = pandoc.utils.stringify(v)
     local dest_attachment_path_file = pandoc.path.join({dir, pandoc.utils.stringify(v)})
 
-    -- Only if the file exists should it be copied into the project directory
     if (file_exists(source_attachment_file)) then
       local attachment_text = io.open(source_attachment_file):read("*a")
       io.open(dest_attachment_path_file, "w"):write(attachment_text):close()
     end
   end
-  
-  -- Write the `.output_metadata.json` file to the project directory
-  local metadata_path_file = pandoc.path.join({dir, ".output_metadata.json"})
-  io.open(metadata_path_file, "w"):write(metadata_str):close()
 
-  -- Write the `email-preview/index.html` file unless meta_email_preview is false
-  if meta_email_preview ~= false then
-    quarto._quarto.file.write(pandoc.path.join({dir, "email-preview/index.html"}), html_preview_body)
-  end
+  return doc
 end
 
 function render_email()
@@ -445,9 +578,11 @@ function render_email()
       Div = find_email_div,
     },
     {
-      Pandoc = process_document,
       Meta = process_meta,
       Div = process_div,
+    },
+    {
+      Pandoc = process_document,
     }
   }
 end

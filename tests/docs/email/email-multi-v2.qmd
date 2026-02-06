@@ -1,0 +1,37 @@
+---
+title: Multi-Email V2 Test Document
+author: Jules Walzer-Goldfeld
+format: email
+---
+
+The report content. Anything that is here is not part of the email message.
+
+::: {.email}
+
+::: {.subject}
+First Email Subject
+:::
+
+::: {.email-text}
+Text version of first email.
+:::
+
+First email HTML content.
+
+:::
+
+::: {.email}
+
+::: {.subject}
+Second Email Subject
+:::
+
+::: {.email-text}
+Text version of second email.
+:::
+
+Second email HTML content.
+
+:::
+
+Any additional report content not part of the email message.
