@@ -57,7 +57,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 <% } else { %>
 
 ```{=html}
-<%= listing.utilities.imgPlaceholder(listing.id, itemNumber, item.outputHref) %>
+<%= listing.utilities.imgPlaceholder(listing.id, itemNumber, item.outputHref, item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 ```
 
 <% } %>

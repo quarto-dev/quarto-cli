@@ -1,0 +1,35 @@
+---
+title: "UA image with alt text"
+lang: en
+format:
+  pdf:
+    pdf-standard: ua-2
+    keep-tex: true
+  typst:
+    pdf-standard: ua-1
+    keep-typ: true
+_quarto:
+  tests:
+    run:
+      # verapdf validation not available on Windows CI
+      not_os: windows
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        # Alt text MUST be passed to \includegraphics[alt={...}] for PDF/UA
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-2\}', 'tagging=on', 'includegraphics\[.*alt=']
+        - []
+      printsMessage:
+        # Should NOT warn about missing alt text since we provided it
+        level: WARN
+        regex: "PDF accessibility:.*Missing alt text"
+        negate: true
+    typst:
+      noErrors: default
+---
+
+# Test Document
+
+This image has alt text which should be passed through for PDF/UA compliance.
+
+![Test image description](penrose.svg)

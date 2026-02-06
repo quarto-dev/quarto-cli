@@ -51,3 +51,6 @@ testQuartoCmd(
     },
   },
 );
+
+// Note: Typst book tests have been moved to smoke-all infrastructure at
+// tests/docs/smoke-all/typst/orange-book/index.qmd

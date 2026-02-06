@@ -123,8 +123,10 @@ function renderEquation(eq, label, alt, order)
       escaped_alt = escaped_alt:gsub('"', '\\"')
       alt_param = ", alt: \"" .. escaped_alt .. "\""
     end
+    -- Use equation-numbering variable defined in template
+    -- (simple "(1)" for articles, chapter-based function for books)
     result:insert(pandoc.RawInline("typst",
-      "#math.equation(block: " .. is_block .. ", numbering: \"(1)\"" .. alt_param .. ", [ "))
+      "#math.equation(block: " .. is_block .. ", numbering: equation-numbering" .. alt_param .. ", [ "))
     result:insert(eq)
     result:insert(pandoc.RawInline("typst", " ])<" .. label .. ">"))
 

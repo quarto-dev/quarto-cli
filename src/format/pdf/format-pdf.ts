@@ -31,12 +31,16 @@ import {
   kNumberSections,
   kPaperSize,
   kPdfEngine,
+  kPdfStandard,
+  kPdfStandardApplied,
   kReferenceLocation,
   kShiftHeadingLevelBy,
   kTblCapLoc,
   kTopLevelDivision,
   kWarning,
 } from "../../config/constants.ts";
+import { warning } from "../../deno_ral/log.ts";
+import { asArray } from "../../core/array.ts";
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 
 import { createFormat } from "../formats-shared.ts";
@@ -254,6 +258,7 @@ function createPdfFormat(
         const partialNamesPandoc: string[] = [
           "after-header-includes",
           "common",
+          "document-metadata",
           "font-settings",
           "fonts",
           "hypersetup",
@@ -277,10 +282,16 @@ function createPdfFormat(
             ],
           };
         };
+        // Beamer doesn't use document-metadata partial (its template doesn't include it)
+        const beamerPartialNamesPandoc = partialNamesPandoc.filter(
+          (name) => name !== "document-metadata",
+        );
         extras.templateContext = createTemplateContext(
           displayName === "Beamer" ? "beamer" : "pdf",
           partialNamesQuarto,
-          partialNamesPandoc,
+          displayName === "Beamer"
+            ? beamerPartialNamesPandoc
+            : partialNamesPandoc,
         );
 
         // Don't shift the headings if we see any H1s (we can't shift up any longer)
@@ -311,6 +322,36 @@ function createPdfFormat(
           flags[kNumberSections] !== false
         ) {
           extras.pandoc[kNumberSections] = true;
+        }
+
+        // Handle pdf-standard option for PDF/A, PDF/UA, PDF/X conformance
+        const pdfStandard = asArray(
+          format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+        );
+        if (pdfStandard.length > 0) {
+          const { version, standards, needsTagging } =
+            normalizePdfStandardForLatex(pdfStandard);
+          // Set pdfstandard as a map if there are standards or a version
+          if (standards.length > 0 || version) {
+            extras.pandoc.variables = extras.pandoc.variables || {};
+            const pdfstandardMap: Record<string, unknown> = {};
+            if (standards.length > 0) {
+              pdfstandardMap.standards = standards;
+            }
+            if (version) {
+              pdfstandardMap.version = version;
+            }
+            if (needsTagging) {
+              pdfstandardMap.tagging = true;
+            }
+            extras.pandoc.variables["pdfstandard"] = pdfstandardMap;
+          }
+          // Store applied standards in metadata for verapdf validation
+          // (only standards that LaTeX actually supports, not the original list)
+          if (standards.length > 0) {
+            extras.metadata = extras.metadata || {};
+            extras.metadata[kPdfStandardApplied] = standards;
+          }
         }
 
         return extras;
@@ -1239,3 +1280,107 @@ const kbeginLongTablesideCap = `{
 \\makeatother`;
 
 const kEndLongTableSideCap = "}";
+
+// LaTeX-supported PDF standards (from latex3/latex2e DocumentMetadata)
+// See: https://github.com/latex3/latex2e - documentmetadata-support.dtx
+const kLatexSupportedStandards = new Set([
+  // PDF/A standards (note: a-1a is NOT supported, only a-1b)
+  "a-1b",
+  "a-2a",
+  "a-2b",
+  "a-2u",
+  "a-3a",
+  "a-3b",
+  "a-3u",
+  "a-4",
+  "a-4e",
+  "a-4f",
+  // PDF/X standards
+  "x-4",
+  "x-4p",
+  "x-5g",
+  "x-5n",
+  "x-5pg",
+  "x-6",
+  "x-6n",
+  "x-6p",
+  // PDF/UA standards (only ua-2 is supported by LaTeX)
+  "ua-2",
+]);
+
+// Standards that require PDF tagging (document structure)
+// - PDF/A level "a" variants require tagged structure per PDF/A spec
+// - PDF/UA standards require tagging for universal accessibility
+//   (LaTeX does NOT automatically enable tagging for UA standards)
+const kTaggingRequiredStandards = new Set([
+  "a-2a",
+  "a-3a",
+  "ua-1",
+  "ua-2",
+]);
+
+const kVersionPattern = /^(1\.[4-7]|2\.0)$/;
+
+// PDF version required by each standard (maximum version limits)
+// LaTeX defaults to PDF 2.0 with \DocumentMetadata, but some standards
+// have maximum version requirements that are incompatible with 2.0
+// Note: a-1a is intentionally omitted as LaTeX doesn't support it
+const kStandardRequiredVersion: Record<string, string> = {
+  // PDF/A-1 requires exactly PDF 1.4 (only a-1b supported by LaTeX)
+  "a-1b": "1.4",
+  // PDF/A-2 and PDF/A-3 have maximum version of 1.7
+  "a-2a": "1.7",
+  "a-2b": "1.7",
+  "a-2u": "1.7",
+  "a-3a": "1.7",
+  "a-3b": "1.7",
+  "a-3u": "1.7",
+  // PDF/A-4, PDF/UA-1, PDF/UA-2 all work with PDF 2.0 (the default)
+};
+
+function normalizePdfStandardForLatex(
+  standards: unknown[],
+): { version?: string; standards: string[]; needsTagging: boolean } {
+  let version: string | undefined;
+  const result: string[] = [];
+  let needsTagging = false;
+
+  for (const s of standards) {
+    // Convert to string - YAML may parse versions like 2.0 as integer 2
+    let str: string;
+    if (typeof s === "number") {
+      // Handle YAML numeric parsing: integer 2 -> "2.0", float 1.4 -> "1.4"
+      str = Number.isInteger(s) ? `${s}.0` : String(s);
+    } else if (typeof s === "string") {
+      str = s;
+    } else {
+      continue;
+    }
+    // Normalize: lowercase, remove any "pdf" prefix
+    const normalized = str.toLowerCase().replace(/^pdf[/-]?/, "");
+
+    if (kVersionPattern.test(normalized)) {
+      // Use first explicit version (ignore subsequent ones)
+      if (!version) {
+        version = normalized;
+      }
+    } else if (kLatexSupportedStandards.has(normalized)) {
+      // LaTeX is case-insensitive, pass through lowercase
+      result.push(normalized);
+      // Check if this standard requires tagging
+      if (kTaggingRequiredStandards.has(normalized)) {
+        needsTagging = true;
+      }
+      // Infer required PDF version from standard (if not explicitly set)
+      if (!version && kStandardRequiredVersion[normalized]) {
+        version = kStandardRequiredVersion[normalized];
+      }
+    } else {
+      warning(
+        `PDF standard '${s}' is not supported by LaTeX and will be ignored`,
+      );
+    }
+  }
+
+  return { version, standards: result, needsTagging };
+}

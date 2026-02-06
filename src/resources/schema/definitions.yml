@@ -27,6 +27,19 @@
         values: [null]
         hidden: true
 
+- id: filter-entry-point
+  enum:
+    [
+      pre-ast,
+      post-ast,
+      pre-quarto,
+      post-quarto,
+      pre-render,
+      post-render,
+      pre-finalize,
+      post-finalize,
+    ]
+
 - id: pandoc-format-filters
   arrayOf:
     anyOf:
@@ -41,15 +54,7 @@
             type: string
             path: path
             at:
-              enum:
-                [
-                  pre-ast,
-                  post-ast,
-                  pre-quarto,
-                  post-quarto,
-                  pre-render,
-                  post-render,
-                ]
+              ref: filter-entry-point
           required: [path, at]
       - record:
           type:

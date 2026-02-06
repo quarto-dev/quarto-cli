@@ -59,6 +59,18 @@
         }
       ]
     },
+    "FilterEntryPoint": {
+      "enum": [
+        "pre-ast",
+        "post-ast",
+        "pre-quarto",
+        "post-quarto",
+        "pre-render",
+        "post-render",
+        "pre-finalize",
+        "post-finalize"
+      ]
+    },
     "PandocFormatFilters": {
       "type": "array",
       "items": {
@@ -88,14 +100,7 @@
                   "type": "string"
                 },
                 "at": {
-                  "enum": [
-                    "pre-ast",
-                    "post-ast",
-                    "pre-quarto",
-                    "post-quarto",
-                    "pre-render",
-                    "post-render"
-                  ]
+                  "$ref": "#/$defs/FilterEntryPoint"
                 }
               }
             }

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info, warning } from "../../deno_ral/log.ts";
+import { debug, info, warning } from "../../deno_ral/log.ts";
 import {
   basename,
   dirname,
@@ -85,7 +85,7 @@ import {
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
 import { previewMonitorResources } from "../../core/quarto.ts";
-import { exitWithCleanup } from "../../core/cleanup.ts";
+import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import {
   extensionFilesFromDirs,
   inputExtensionDirs,
@@ -151,11 +151,15 @@ export async function preview(
 ) {
   const nbContext = notebookContext();
   // see if this is project file
-  const project = await projectContext(file, nbContext);
+  const project = (await projectContext(file, nbContext)) ||
+    (await singleFileProjectContext(file, nbContext));
+  onCleanup(() => {
+    project.cleanup();
+  });
 
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
-  const format = await previewFormat(file, flags.to, undefined, project);
+  const format = await previewFormat(file, project, flags.to, undefined);
   setPreviewFormat(format, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
@@ -224,6 +228,7 @@ export async function preview(
       options.port!,
       reloader,
       changeHandler.render,
+      project,
     )
     : project
     ? projectHtmlFileRequestHandler(
@@ -241,6 +246,7 @@ export async function preview(
       result.format,
       reloader,
       changeHandler.render,
+      project,
     );
 
   // open browser if this is a browseable format
@@ -340,17 +346,17 @@ export function previewRenderRequest(
 
 export async function previewRenderRequestIsCompatible(
   request: PreviewRenderRequest,
+  project: ProjectContext,
   format?: string,
-  project?: ProjectContext,
 ) {
   if (request.version === 1) {
     return true; // rstudio manages its own request compatibility state
   } else {
     const reqFormat = await previewFormat(
       request.path,
+      project,
       request.format,
       undefined,
-      project,
     );
     return reqFormat === format;
   }
@@ -359,20 +365,20 @@ export async function previewRenderRequestIsCompatible(
 // determine the format to preview
 export async function previewFormat(
   file: string,
+  project: ProjectContext,
   format?: string,
   formats?: Record<string, Format>,
-  project?: ProjectContext,
 ) {
   if (format) {
     return format;
   }
-  const nbContext = notebookContext();
-  project = project || (await singleFileProjectContext(file, nbContext));
+  // const nbContext = notebookContext();
+  // project = project || (await singleFileProjectContext(file, nbContext));
   formats = formats ||
     await withRenderServices(
-      nbContext,
+      project.notebookContext,
       (services: RenderServices) =>
-        renderFormats(file, services, "all", project!),
+        renderFormats(file, services, "all", project),
     );
   format = Object.keys(formats)[0] || "html";
   return format;
@@ -418,6 +424,13 @@ export async function renderForPreview(
   pandocArgs: string[],
   project?: ProjectContext,
 ): Promise<RenderForPreviewResult> {
+  // Invalidate file cache for the file being rendered so changes are picked up.
+  // The project context persists across re-renders in preview mode, but the
+  // fileInformationCache contains file content that needs to be refreshed.
+  // TODO(#13955): Consider adding a dedicated invalidateForFile() method on ProjectContext
+  if (project?.fileInformationCache) {
+    project.fileInformationCache.delete(file);
+  }
 
   // render
   const renderResult = await render(file, {
@@ -426,7 +439,7 @@ export async function renderForPreview(
     pandocArgs: pandocArgs,
     previewServer: true,
     setProjectDir: project !== undefined,
-  });
+  }, project);
   if (renderResult.error) {
     throw renderResult.error;
   }
@@ -479,8 +492,6 @@ export async function renderForPreview(
     },
     [],
   ));
-
-  renderResult.context.cleanup();
 
   return {
     file,
@@ -689,6 +700,7 @@ function htmlFileRequestHandler(
   format: Format,
   reloader: HttpDevServer,
   renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
+  context: ProjectContext,
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
@@ -699,6 +711,7 @@ function htmlFileRequestHandler(
       format,
       reloader,
       renderHandler,
+      context,
     ),
   );
 }
@@ -711,7 +724,7 @@ function htmlFileRequestHandlerOptions(
   format: Format,
   devserver: HttpDevServer,
   renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
-  project?: ProjectContext,
+  project: ProjectContext,
 ): HttpFileRequestOptions {
   // if we an alternate format on the fly we need to do a full re-render
   // to get the correct state back. this flag will be set whenever
@@ -742,7 +755,7 @@ function htmlFileRequestHandlerOptions(
           prevReq &&
           existsSync(prevReq.path) &&
           normalizePath(prevReq.path) === normalizePath(inputFile) &&
-          await previewRenderRequestIsCompatible(prevReq, flags.to)
+          await previewRenderRequestIsCompatible(prevReq, project, flags.to)
         ) {
           // don't wait for the promise so the
           // caller gets an immediate reply
@@ -853,6 +866,7 @@ function pdfFileRequestHandler(
   port: number,
   reloader: HttpDevServer,
   renderHandler: () => Promise<RenderForPreviewResult | undefined>,
+  project: ProjectContext,
 ) {
   // start w/ the html handler (as we still need it's http reload injection)
   const pdfOptions = htmlFileRequestHandlerOptions(
@@ -863,6 +877,7 @@ function pdfFileRequestHandler(
     format,
     reloader,
     renderHandler,
+    project,
   );
 
   // pdf customizations

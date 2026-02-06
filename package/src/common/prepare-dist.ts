@@ -100,7 +100,7 @@ export async function prepareDist(
     }
   }
 
-  // Stage typst-gather binary if it exists (built by configure.sh)
+  // Stage typst-gather binary (built by configure.sh)
   // Only stage if the build machine architecture matches the target architecture
   // (cross-compilation is not currently supported)
   const buildArch = Deno.build.arch === "aarch64" ? "aarch64" : "x86_64";
@@ -111,15 +111,17 @@ export async function prepareDist(
       "package/typst-gather/target/release",
       typstGatherBinaryName,
     );
-    if (existsSync(typstGatherSrc)) {
-      info("\nStaging typst-gather binary");
-      const typstGatherDest = join(targetDir, config.arch, typstGatherBinaryName);
-      ensureDirSync(join(targetDir, config.arch));
-      copySync(typstGatherSrc, typstGatherDest, { overwrite: true });
-      info(`Copied ${typstGatherSrc} to ${typstGatherDest}`);
-    } else {
-      info("\nNote: typst-gather binary not found, skipping staging");
+    if (!existsSync(typstGatherSrc)) {
+      throw new Error(
+        `typst-gather binary not found at ${typstGatherSrc}\n` +
+          "Run ./configure.sh to build it.",
+      );
     }
+    info("\nStaging typst-gather binary");
+    const typstGatherDest = join(targetDir, config.arch, typstGatherBinaryName);
+    ensureDirSync(join(targetDir, config.arch));
+    copySync(typstGatherSrc, typstGatherDest, { overwrite: true });
+    info(`Copied ${typstGatherSrc} to ${typstGatherDest}`);
   } else {
     info(`\nNote: Skipping typst-gather staging (build arch ${buildArch} != target arch ${config.arch})`);
   }
@@ -161,11 +163,6 @@ export async function prepareDist(
   info("\nCreating Inlined LUA Filters");
   inlineFilters(config);
   info("");
-
-  // Appease the bundler testing by patching the bad version from `configuration`
-  if (config.version.split(".").length === 2) {
-    config.version = `${config.version}.1`;
-  }
 
   // Write a version file to share
   info(`Writing version: ${config.version}`);

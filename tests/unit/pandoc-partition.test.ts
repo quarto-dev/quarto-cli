@@ -6,7 +6,7 @@
 */
 import { assert } from "testing/asserts";
 import { Metadata } from "../../src/config/types.ts";
-import { partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
+import { languagesWithClasses, partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
 import { unitTest } from "../test.ts";
 
 // deno-lint-ignore require-await
@@ -53,4 +53,23 @@ unitTest("partitionYaml", async () => {
     partmd.headingAttr?.keyvalue[0][1] === "bar",
     "Heading missing attribute value",
   );
+});
+
+// deno-lint-ignore require-await
+unitTest("languagesWithClasses - dot-joined syntax", async () => {
+  const md = `\`\`\`{python.marimo}
+x = 1
+\`\`\`
+
+\`\`\`{python .foo}
+y = 2
+\`\`\`
+`;
+  const result = languagesWithClasses(md);
+  // {python.marimo} → language "python.marimo", no class
+  assert(result.has("python.marimo"), "Should have language 'python.marimo'");
+  assert(result.get("python.marimo") === undefined, "python.marimo should have no class");
+  // {python .foo} → language "python", class "foo"
+  assert(result.has("python"), "Should have language 'python'");
+  assert(result.get("python") === "foo", "python should have class 'foo'");
 });

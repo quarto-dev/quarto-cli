@@ -59,8 +59,18 @@ _quarto.ast.add_handler({
     local visible = is_visible(node)
     if visible then
       local el = node.node
-      clearHiddenVisibleAttributes(el)
-      return el.content
+      -- Handle case where slot content was transformed (e.g., Div → FloatRefTarget → Table)
+      if is_regular_node(el, "Div") then
+        -- Defensive: parse() already stripped visibility attrs (lines 46-47), so this is
+        -- typically a no-op. Kept as safety net in case future code adds attrs between
+        -- parse and render. See issue #13992 investigation for AST trace evidence.
+        clearHiddenVisibleAttributes(el)
+        return el.content
+      else
+        -- Slot was transformed to another type (Table, etc.)
+        -- Return the rendered element wrapped in Blocks
+        return pandoc.Blocks({el})
+      end
     else
       return {}
     end

@@ -32,6 +32,7 @@ All changes included in 1.9:
 - ([#11929](https://github.com/quarto-dev/quarto-cli/issues/11929)): Import all `brand.typography.fonts` in CSS, whether or not fonts are referenced by typography elements.
 - ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in `video` shortcodes from cross-reference divs. (author: @bruvellu)
 - ([#13508](https://github.com/quarto-dev/quarto-cli/issues/13508)): Add `aria-label` support to `video` shortcode for improved accessibility.
+- ([#13883](https://github.com/quarto-dev/quarto-cli/issues/13883)): Fix unequal top/bottom spacing in simple untitled callouts.
 
 ### `typst`
 
@@ -42,6 +43,7 @@ All changes included in 1.9:
 - ([#13589](https://github.com/quarto-dev/quarto-cli/issues/13589)): Fix callouts with invalid ID prefixes crashing with "attempt to index a nil value". Callouts with unknown reference types now render as non-crossreferenceable callouts with a warning, ignoring the invalid ID.
 - ([#13602](https://github.com/quarto-dev/quarto-cli/issues/13602)): Fix support for multiple files set in `bibliography` field in `biblio.typ` template partial.
 - ([#13775](https://github.com/quarto-dev/quarto-cli/issues/13775)): Fix brand fonts not being applied when using `citeproc: true` with Typst format. Format detection now properly handles Pandoc format variants like `typst-citations`.
+- ([#13868](https://github.com/quarto-dev/quarto-cli/issues/13868)): Add image alt text support for PDF/UA accessibility. Alt text from markdown captions and explicit `alt` attributes is now passed to Typst's `image()` function. (Temporary workaround until [jgm/pandoc#11394](https://github.com/jgm/pandoc/pull/11394) is merged.)
 - ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's Typst template following Pandoc 3.8.3 and Typst 0.14.2 support:
   - Code syntax highlighting now uses Skylighting by default.
   - New template variables `mathfont`, `codefont`, and `linestretch` for font and line spacing customization.
@@ -52,10 +54,15 @@ All changes included in 1.9:
   - Two-column layout now uses `set page(columns:)` instead of `columns()` function, fixing compatibility with landscape sections.
   - Title block now properly spans both columns in multi-column layouts.
 - ([#13870](https://github.com/quarto-dev/quarto-cli/issues/13870)): Add support for `alt` attribute on cross-referenced equations for improved accessibility. (author: @mcanouil)
+- ([#13950](https://github.com/quarto-dev/quarto-cli/pull/13950)): Replace ctheorems with theorion package for theorem environments. Add `theorem-appearance` option to control styling: `simple` (default, classic LaTeX style), `fancy` (colored boxes with brand colors), `clouds` (rounded backgrounds), or `rainbow` (colored start border and colored title).
+- ([#13954](https://github.com/quarto-dev/quarto-cli/issues/13954)): Add support for Typst book projects via format extensions. Quarto now bundles the `orange-book` extension which provides a textbook-style format with chapter numbering, cross-references, and professional styling. Book projects with `format: typst` automatically use this extension.
+- ([#13978])(https://github.com/quarto-dev/quarto-cli/pull/13978)): Keep term and description together in definition lists to avoid breaking across pages. (author: @mcanouil)
 
 ### `pdf`
 
+- ([#4426](https://github.com/quarto-dev/quarto-cli/issues/4426)): Add `pdf-standard` option for PDF/A, PDF/UA, and PDF version control. Supports standards like `a-2b`, `ua-1`, and versions `1.7`, `2.0`. Works with both LaTeX and Typst formats.
 - ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291)): Fix detection of babel hyphenation warnings with straight-quote format instead of backtick-quote format.
+- ([#13248](https://github.com/quarto-dev/quarto-cli/issues/13248)): Fix image alt text not being passed to LaTeX `\includegraphics[alt={...}]` for PDF accessibility. Markdown image captions and `fig-alt` attributes are now preserved for PDF/UA compliance.
 - ([#13661](https://github.com/quarto-dev/quarto-cli/issues/13661)): Fix LaTeX compilation errors when using `mermaid-format: svg` with PDF/LaTeX output. SVG diagrams are now written directly without HTML script tags. Note: `mermaid-format: png` is recommended for best compatibility. SVG format requires `rsvg-convert` (or Inkscape with `use-rsvg-convert: false`) in PATH for conversion to PDF, and may experience text clipping in diagrams with multi-line labels.
 - ([rstudio/tinytex-releases#49](https://github.com/rstudio/tinytex-releases/issues/49)): Fix detection of LuaTeX-ja missing file errors by matching both "File" and "file" in error messages.
 - ([#13667](https://github.com/quarto-dev/quarto-cli/issues/13667)): Fix LaTeX compilation error with Python error output containing caret characters.
@@ -71,6 +78,10 @@ All changes included in 1.9:
 
 - ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
 
+### `ipynb`
+
+- ([#13956](https://github.com/quarto-dev/quarto-cli/issues/13956)): Fix crash when rendering to `ipynb` format with figure labels (`#| label: fig-*`) on cells for cross references.
+
 ## Projects
 
 - ([#13892](https://github.com/quarto-dev/quarto-cli/issues/13892)): Fix `output-dir: ./` deleting entire project directory. `output-dir` must be a subdirectory of the project directory and check is now better to avoid deleting the project itself when it revolves to the same path.
@@ -85,6 +96,7 @@ All changes included in 1.9:
 - ([#13847](https://github.com/quarto-dev/quarto-cli/pull/13847)): Open graph title with markdown is now processed correctly. (author: @mcanouil)
 - ([#13910](https://github.com/quarto-dev/quarto-cli/issues/13910)): Add support for `logo: false` to disable sidebar and navbar logos when using `_brand.yml`. Works in website projects (`sidebar.logo: false`, `navbar.logo: false`) and book projects (`book.sidebar.logo: false`, `book.navbar.logo: false`).
 - ([#13932](https://github.com/quarto-dev/quarto-cli/pull/13932)): Add `llms-txt: true` option to generate LLM-friendly content for websites. Creates `.llms.md` markdown files alongside HTML pages and a root `llms.txt` index file following the [llms.txt](https://llmstxt.org/) specification.
+- ([#13951](https://github.com/quarto-dev/quarto-cli/issues/13951)): Fix `image-lazy-loading` not applying `loading="lazy"` attribute to auto-detected listing images.
 
 ### `book`
 
@@ -114,6 +126,14 @@ All changes included in 1.9:
 
 - (): New `quarto call build-ts-extension` command builds a TypeScript extension, such as an engine extension, and places the artifacts in the `_extensions` directory. See the [engine extension pre-release documentation](https://prerelease.quarto.org/docs/extensions/engine.html) for details.
 
+### `install verapdf`
+
+- ([#4426](https://github.com/quarto-dev/quarto-cli/issues/4426)): New `quarto install verapdf` command installs [veraPDF](https://verapdf.org/) for PDF/A and PDF/UA validation. When verapdf is available, PDFs created with the `pdf-standard` option are automatically validated for compliance. Also supports `quarto uninstall verapdf`, `quarto update verapdf`, and `quarto tools`.
+
+### `preview`
+
+- ([#13804](https://github.com/quarto-dev/quarto-cli/pull/13804)): Fix intermittent preview crashes during re-renders by properly managing project context lifecycle. Resolves issues with missing temporary directories and `quarto_ipynb` files when editing notebooks and qmd files together.
+
 ## Extensions
 
 - Metadata and brand extensions now work without a `_quarto.yml` project. (Engine extensions do too.) A temporary default project is created in memory.
@@ -125,6 +145,12 @@ All changes included in 1.9:
 ### `jupyter`
 
 - ([#13748](https://github.com/quarto-dev/quarto-cli/pull/13748)): Fix stdin encoding to UTF-8 on Windows to correctly handle JSON in documents containing non-ASCII characters.
+- ([#13936](https://github.com/quarto-dev/quarto-cli/pull/13936)): Add support for q/kdb+ programming language in percent format notebooks and code cell options. (author: @benlubas)
+- ([#13936](https://github.com/quarto-dev/quarto-cli/pull/13936)): Fix `isJupyterPercentScript` regex to correctly detect percent scripts with `[raw]` cells and cells not at the start of the file. The regex now properly groups the alternation `(markdown|raw)` and uses multiline mode.
+
+### `knitr`
+
+- ([#13958](https://github.com/quarto-dev/quarto-cli/issues/13958)): Use max precision for `ojs_define` number like this is the case for `jupyter` or `julia` engine.
 
 ## Other fixes and improvements
 
@@ -137,3 +163,7 @@ All changes included in 1.9:
 - ([#13856](https://github.com/quarto-dev/quarto-cli/issues/13856)): Add code annotation support for Typst and Observable.js code blocks. (author: @mcanouil)
 - ([#13890](https://github.com/quarto-dev/quarto-cli/issues/13890)): Fix render failure when using `embed-resources: true` with input path through a symlinked directory. The cleanup now resolves symlinks before comparing paths.
 - ([#13907](https://github.com/quarto-dev/quarto-cli/issues/13907)): Ignore AI assistant configuration files (`CLAUDE.md`, `AGENTS.md`) when scanning for project input files and in extension templates, similar to how `README.md` is handled.
+- ([#13935](https://github.com/quarto-dev/quarto-cli/issues/13935)): Fix `quarto install`, `quarto update`, and `quarto uninstall` interactive tool selection.
+- ([#13992](https://github.com/quarto-dev/quarto-cli/issues/13992)): Fix crash when rendering div with both cross-reference ID and conditional visibility to PDF.
+- ([#13997](https://github.com/quarto-dev/quarto-cli/issues/13997)): Fix Windows dart-sass theme compilation failing when Quarto is installed in a path with spaces (e.g., `C:\Program Files\`) and the project path also contains spaces.
+- ([#13998](https://github.com/quarto-dev/quarto-cli/issues/13998)): Fix YAML validation error with CR-only line terminators (old Mac format). Documents using `\r` line endings no longer fail with "Expected YAML front matter to contain at least 2 lines".

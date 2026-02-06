@@ -27,7 +27,10 @@ import {
   ExecutionTarget,
   kQmdExtensions,
 } from "./types.ts";
-import { languagesInMarkdown } from "../core/pandoc/pandoc-partition.ts";
+import {
+  languagesInMarkdown,
+  languagesWithClasses,
+} from "../core/pandoc/pandoc-partition.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -168,20 +171,35 @@ export function markdownExecutionEngine(
   }
 
   // if there are languages see if any engines want to claim them
-  const languages = languagesInMarkdown(markdown);
+  const languagesWithClassesMap = languagesWithClasses(markdown);
 
-  // see if there is an engine that claims this language
-  for (const language of languages) {
+  // see if there is an engine that claims this language (highest score wins)
+  for (const [language, firstClass] of languagesWithClassesMap) {
+    let bestEngine: ExecutionEngineDiscovery | undefined;
+    let bestScore = -Infinity;
+
     for (const [_, engine] of reorderedEngines) {
-      if (engine.claimsLanguage(language)) {
-        return engine.launch(engineProjectContext(project));
+      const claim = engine.claimsLanguage(language, firstClass);
+      // false means "don't claim", skip this engine entirely
+      if (claim === false) {
+        continue;
       }
+      // true -> score 1, number -> use as score
+      const score = claim === true ? 1 : claim;
+      if (score > bestScore) {
+        bestScore = score;
+        bestEngine = engine;
+      }
+    }
+
+    if (bestEngine) {
+      return bestEngine.launch(engineProjectContext(project));
     }
   }
 
   const handlerLanguagesVal = handlerLanguages();
   // if there is a non-cell handler language then this must be jupyter
-  for (const language of languages) {
+  for (const language of languagesWithClassesMap.keys()) {
     if (language !== "ojs" && !handlerLanguagesVal.includes(language)) {
       return jupyterEngineDiscovery.launch(engineProjectContext(project));
     }

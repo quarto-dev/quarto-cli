@@ -94,7 +94,7 @@ jobs:
 
       - name: Install node dependencies
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
-        run: yarn
+        run: npm install --loglevel=error --no-audit
         working-directory: ./tests/integration/playwright
         shell: bash
 
@@ -105,7 +105,7 @@ jobs:
 
       - name: Install MECA validator
         if: ${{ runner.os != 'Windows' }}
-        run: npm install -g meca
+        run: npm install -g meca --loglevel=error --no-audit
 
       - name: Set RENV_PATHS_ROOT
         shell: bash
@@ -141,7 +141,7 @@ jobs:
 
       - name: Install rsvg-convert for SVG conversion tests
         # Only do it on linux runner, and only if we are running the relevant tests
-        if: runner.os == 'Linux' && contains(inputs.buckets, 'render-pdf-svg-conversion')
+        if: runner.os == 'Linux' && (contains(inputs.buckets, 'render-pdf-svg-conversion') || contains(inputs.buckets, 'pdf-standard'))
         run: |
           sudo apt-get update -y
           sudo apt-get install -y librsvg2-bin
@@ -200,6 +200,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           quarto install tinytex
+
+      - name: Install veraPDF for PDF standard validation
+        if: runner.os == 'Linux' && contains(inputs.buckets, 'pdf-standard')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          quarto install verapdf
 
       - name: Cache Typst packages
         id: cache-typst

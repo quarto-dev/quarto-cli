@@ -452,36 +452,15 @@ export const typstGatherCommand = new Command()
         Deno.exit(1);
       }
 
-      // Find typst-gather binary
-      // First try architecture-specific path, then fall back to PATH
-      let typstGatherBinary: string;
+      // Find typst-gather binary in standard tools location
       const binaryName = isWindows ? "typst-gather.exe" : "typst-gather";
-
-      const archPath = architectureToolsPath(binaryName);
-      if (existsSync(archPath)) {
-        typstGatherBinary = archPath;
-      } else {
-        // Try to find in PATH or use development location
-        const quartoRoot = Deno.env.get("QUARTO_ROOT");
-        if (quartoRoot) {
-          const devPath = join(
-            quartoRoot,
-            "package/typst-gather/target/release",
-            binaryName,
-          );
-          if (existsSync(devPath)) {
-            typstGatherBinary = devPath;
-          } else {
-            console.error(
-              `typst-gather binary not found.\n` +
-                `Build it with: cd package/typst-gather && cargo build --release`,
-            );
-            Deno.exit(1);
-          }
-        } else {
-          console.error("typst-gather binary not found.");
-          Deno.exit(1);
-        }
+      const typstGatherBinary = architectureToolsPath(binaryName);
+      if (!existsSync(typstGatherBinary)) {
+        console.error(
+          `typst-gather binary not found.\n` +
+            `Run ./configure.sh to build and install it.`,
+        );
+        Deno.exit(1);
       }
 
       // Determine config file to use

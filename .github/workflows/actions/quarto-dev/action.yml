@@ -12,11 +12,6 @@ runs:
         restore-keys: |
           ${{ runner.os }}-deno_std-2-
 
-    - name: Install Rust for typst-gather
-      uses: dtolnay/rust-toolchain@master
-      with:
-        toolchain: stable
-
     - name: Cache Cargo dependencies
       uses: actions/cache@v4
       with:

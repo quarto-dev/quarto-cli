@@ -74,6 +74,19 @@ testQuartoCmd(
     folderExists(join(basicDir, "_brand")),
     fileExists(join(basicDir, "_brand", "_brand.yml")),
     fileExists(join(basicDir, "_brand", "logo.png")),
+    // Font file referenced in typography.fonts should be copied
+    folderExists(join(basicDir, "_brand", "fonts")),
+    fileExists(join(basicDir, "_brand", "fonts", "custom-font.woff2")),
+    // README.md is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "README.md should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(basicDir, "_brand", "README.md"))) {
+          throw new Error("README.md should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
   ],
   {
     setup: () => {
@@ -98,7 +111,7 @@ testQuartoCmd(
   [
     noErrorsOrWarnings,
     printsMessage({ level: "INFO", regex: /Would create directory/ }),
-    filesInSections({ create: ["_brand.yml", "logo.png"] }, true),
+    filesInSections({ create: ["_brand.yml", "logo.png", "fonts/custom-font.woff2"] }, true),
     {
       name: "_brand directory should not exist in dry-run mode",
       verify: () => {
@@ -108,7 +121,19 @@ testQuartoCmd(
         }
         return Promise.resolve();
       }
-    }
+    },
+    // README.md should NOT appear in dry-run output (unreferenced)
+    {
+      name: "README.md should not be listed in dry-run output (unreferenced)",
+      verify: (outputs: ExecuteOutput[]) => {
+        for (const output of outputs) {
+          if (output.msg.includes("README.md")) {
+            throw new Error("README.md should not appear in dry-run output - it is not referenced in _brand.yml");
+          }
+        }
+        return Promise.resolve();
+      }
+    },
   ],
   {
     setup: () => {
@@ -284,6 +309,30 @@ testQuartoCmd(
     fileExists(join(multiFileDir, "_brand", "_brand.yml")),
     fileExists(join(multiFileDir, "_brand", "logo.png")),
     fileExists(join(multiFileDir, "_brand", "favicon.png")),
+    // Font files referenced in typography.fonts should be copied
+    folderExists(join(multiFileDir, "_brand", "fonts")),
+    fileExists(join(multiFileDir, "_brand", "fonts", "brand-regular.woff2")),
+    fileExists(join(multiFileDir, "_brand", "fonts", "brand-bold.woff2")),
+    // unused-styles.css is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "unused-styles.css should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(multiFileDir, "_brand", "unused-styles.css"))) {
+          throw new Error("unused-styles.css should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+    // fonts/unused-italic.woff2 is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "fonts/unused-italic.woff2 should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(multiFileDir, "_brand", "fonts", "unused-italic.woff2"))) {
+          throw new Error("fonts/unused-italic.woff2 should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
   ],
   {
     setup: () => {
@@ -312,6 +361,26 @@ testQuartoCmd(
     folderExists(join(nestedDir, "_brand", "images")),
     fileExists(join(nestedDir, "_brand", "images", "logo.png")),
     fileExists(join(nestedDir, "_brand", "images", "header.png")),
+    // notes.txt is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "notes.txt should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(nestedDir, "_brand", "notes.txt"))) {
+          throw new Error("notes.txt should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+    // images/extra-icon.png is NOT referenced in _brand.yml - should NOT be copied
+    {
+      name: "images/extra-icon.png should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(nestedDir, "_brand", "images", "extra-icon.png"))) {
+          throw new Error("images/extra-icon.png should not be copied - it is not referenced in _brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
   ],
   {
     setup: () => {
@@ -327,18 +396,22 @@ testQuartoCmd(
   "quarto use brand - nested directory structure"
 );
 
-// Scenario 8: Error - no project directory
+// Scenario 8: Single-file mode (no _quarto.yml) - should work, using current directory
 const noProjectDir = join(tempDir, "no-project");
 ensureDirSync(noProjectDir);
 testQuartoCmd(
   "use",
   ["brand", join(fixtureDir, "basic-brand"), "--force"],
   [
-    printsMessage({ level: "ERROR", regex: /Could not find project dir/ }),
+    noErrorsOrWarnings,
+    // Should create _brand/ in the current directory even without _quarto.yml
+    folderExists(join(noProjectDir, "_brand")),
+    fileExists(join(noProjectDir, "_brand", "_brand.yml")),
+    fileExists(join(noProjectDir, "_brand", "logo.png")),
   ],
   {
     setup: () => {
-      // No _quarto.yml created - this should cause an error
+      // No _quarto.yml created - single-file mode should work
       return Promise.resolve();
     },
     cwd: () => noProjectDir,
@@ -347,7 +420,7 @@ testQuartoCmd(
       return Promise.resolve();
     }
   },
-  "quarto use brand - error on no project"
+  "quarto use brand - single-file mode (no _quarto.yml)"
 );
 
 // Scenario 9: Nested directory - overwrite files in subdirectories, remove extra
@@ -649,4 +722,145 @@ testQuartoCmd(
     }
   },
   "quarto use brand - deeply nested directories recursively cleaned up"
+);
+
+// Scenario 15: Brand extension - basic installation
+// Tests that brand extensions are detected and the brand file is renamed to _brand.yml
+const brandExtDir = join(tempDir, "brand-ext");
+ensureDirSync(brandExtDir);
+testQuartoCmd(
+  "use",
+  ["brand", join(fixtureDir, "brand-extension"), "--force"],
+  [
+    noErrorsOrWarnings,
+    folderExists(join(brandExtDir, "_brand")),
+    // brand.yml should be renamed to _brand.yml
+    fileExists(join(brandExtDir, "_brand", "_brand.yml")),
+    // logo.png should be copied
+    fileExists(join(brandExtDir, "_brand", "logo.png")),
+    // _extension.yml should NOT be copied
+    {
+      name: "_extension.yml should not be copied",
+      verify: () => {
+        if (existsSync(join(brandExtDir, "_brand", "_extension.yml"))) {
+          throw new Error("_extension.yml should not be copied from brand extension");
+        }
+        return Promise.resolve();
+      }
+    },
+    // Verify the content is correct (from brand.yml, not some other file)
+    {
+      name: "_brand.yml should contain brand extension content",
+      verify: () => {
+        const content = Deno.readTextFileSync(join(brandExtDir, "_brand", "_brand.yml"));
+        if (!content.includes("Test Brand Extension")) {
+          throw new Error("_brand.yml should contain content from brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+    // template.html is NOT referenced in brand.yml - should NOT be copied
+    {
+      name: "template.html should not be copied (unreferenced)",
+      verify: () => {
+        if (existsSync(join(brandExtDir, "_brand", "template.html"))) {
+          throw new Error("template.html should not be copied - it is not referenced in brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+  ],
+  {
+    setup: () => {
+      Deno.writeTextFileSync(join(brandExtDir, "_quarto.yml"), "project:\n  type: default\n");
+      return Promise.resolve();
+    },
+    cwd: () => brandExtDir,
+    teardown: () => {
+      try { Deno.removeSync(brandExtDir, { recursive: true }); } catch { /* ignore */ }
+      return Promise.resolve();
+    }
+  },
+  "quarto use brand - brand extension installation"
+);
+
+// Scenario 16: Brand extension - dry-run shows correct file names
+const brandExtDryRunDir = join(tempDir, "brand-ext-dry-run");
+ensureDirSync(brandExtDryRunDir);
+testQuartoCmd(
+  "use",
+  ["brand", join(fixtureDir, "brand-extension"), "--dry-run"],
+  [
+    noErrorsOrWarnings,
+    // Should show _brand.yml (renamed from brand.yml), not brand.yml
+    filesInSections({ create: ["_brand.yml", "logo.png"] }, true),
+    // _brand directory should not exist in dry-run mode
+    {
+      name: "_brand directory should not exist in dry-run mode",
+      verify: () => {
+        if (existsSync(join(brandExtDryRunDir, "_brand"))) {
+          throw new Error("_brand directory should not exist in dry-run mode");
+        }
+        return Promise.resolve();
+      }
+    }
+  ],
+  {
+    setup: () => {
+      Deno.writeTextFileSync(join(brandExtDryRunDir, "_quarto.yml"), "project:\n  type: default\n");
+      return Promise.resolve();
+    },
+    cwd: () => brandExtDryRunDir,
+    teardown: () => {
+      try { Deno.removeSync(brandExtDryRunDir, { recursive: true }); } catch { /* ignore */ }
+      return Promise.resolve();
+    }
+  },
+  "quarto use brand - brand extension dry-run shows renamed file"
+);
+
+// Scenario 17: Brand extension with brand file in subdirectory
+// Tests that brand path in _extension.yml can be a relative path (e.g., subdir/brand.yml)
+// and that referenced files are resolved relative to the brand file's directory
+const brandExtSubdirDir = join(tempDir, "brand-ext-subdir");
+ensureDirSync(brandExtSubdirDir);
+testQuartoCmd(
+  "use",
+  ["brand", join(fixtureDir, "brand-extension-subdir"), "--force"],
+  [
+    noErrorsOrWarnings,
+    folderExists(join(brandExtSubdirDir, "_brand")),
+    // subdir/brand.yml should be renamed to _brand.yml
+    fileExists(join(brandExtSubdirDir, "_brand", "_brand.yml")),
+    // logo.png (referenced as logo.png in subdir/brand.yml) should be copied
+    // The logo is at subdir/logo.png relative to extension dir
+    fileExists(join(brandExtSubdirDir, "_brand", "logo.png")),
+    // images/nested-logo.png (referenced as images/nested-logo.png in subdir/brand.yml)
+    // should be copied to _brand/images/nested-logo.png
+    folderExists(join(brandExtSubdirDir, "_brand", "images")),
+    fileExists(join(brandExtSubdirDir, "_brand", "images", "nested-logo.png")),
+    // Verify the content is correct
+    {
+      name: "_brand.yml should contain subdir brand content",
+      verify: () => {
+        const content = Deno.readTextFileSync(join(brandExtSubdirDir, "_brand", "_brand.yml"));
+        if (!content.includes("Test Brand Extension Subdir")) {
+          throw new Error("_brand.yml should contain content from subdir/brand.yml");
+        }
+        return Promise.resolve();
+      }
+    },
+  ],
+  {
+    setup: () => {
+      Deno.writeTextFileSync(join(brandExtSubdirDir, "_quarto.yml"), "project:\n  type: default\n");
+      return Promise.resolve();
+    },
+    cwd: () => brandExtSubdirDir,
+    teardown: () => {
+      try { Deno.removeSync(brandExtSubdirDir, { recursive: true }); } catch { /* ignore */ }
+      return Promise.resolve();
+    }
+  },
+  "quarto use brand - brand extension with subdir brand file"
 );

@@ -95,8 +95,12 @@ export interface ExecutionEngineDiscovery {
 
   /**
    * Whether this engine can handle the given language
+   *
+   * @param language - The language identifier (e.g., "python", "r", "julia")
+   * @param firstClass - Optional first class from code block attributes (e.g., "marimo" from {python .marimo})
+   * @returns false to skip (don't claim), true to claim with priority 1, or any number for custom priority (higher wins)
    */
-  claimsLanguage: (language: string) => boolean;
+  claimsLanguage: (language: string, firstClass?: string) => boolean | number;
 
   /**
    * Whether this engine supports freezing

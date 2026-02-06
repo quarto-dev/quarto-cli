@@ -1,0 +1,24 @@
+---
+title: "LaTeX multiple PDF standards"
+lang: en
+format: pdf
+pdf-standard: [a-4f, ua-2]
+keep-tex: true
+_quarto:
+  tests:
+    run:
+      # verapdf validation not available on Windows CI
+      not_os: windows
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{a-4f,ua-2\}', 'tagging=on']
+        - []
+---
+
+# Test Document
+
+This tests combined PDF/A-4f + PDF/UA-2 output with LaTeX.
+
+PDF/A-4f (file) and PDF/UA-2 are compatible - both use PDF 2.0 and
+pass verapdf validation together.

@@ -5,9 +5,11 @@
  */
 
 import { Command } from "cliffy/command/mod.ts";
+import { existsSync } from "../../../deno_ral/fs.ts";
 import { error, info } from "../../../deno_ral/log.ts";
 import { join } from "../../../deno_ral/path.ts";
 import { isWindows } from "../../../deno_ral/platform.ts";
+import { architectureToolsPath } from "../../../core/resources.ts";
 
 export const typstGatherCommand = new Command()
   .name("typst-gather")
@@ -33,21 +35,13 @@ export const typstGatherCommand = new Command()
       "src/command/dev-call/typst-gather/typst-gather.toml",
     );
 
-    // Path to the typst-gather binary
+    // Find typst-gather binary in standard tools location
     const binaryName = isWindows ? "typst-gather.exe" : "typst-gather";
-    const typstGatherBinary = join(
-      quartoRoot,
-      "package/typst-gather/target/release",
-      binaryName,
-    );
-
-    // Check if binary exists
-    try {
-      await Deno.stat(typstGatherBinary);
-    } catch {
+    const typstGatherBinary = architectureToolsPath(binaryName);
+    if (!existsSync(typstGatherBinary)) {
       error(
-        `typst-gather binary not found at ${typstGatherBinary}\n` +
-          "Build it with: cd package/typst-gather && cargo build --release",
+        `typst-gather binary not found.\n` +
+          "Run ./configure.sh to build and install it.",
       );
       Deno.exit(1);
     }

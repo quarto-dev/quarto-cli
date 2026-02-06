@@ -6,9 +6,9 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - 
+        -
           - "Customers #emph\\[query\\]"
-          - '#figure\(\[[\s]+#set align\(left\)' # FIXME: change if we manage center in typst's template
+          - '#show figure\.where\(kind: "quarto-float-lst"\): set align\(start\)'  # Listings use show rule for alignment
 
 ---
 

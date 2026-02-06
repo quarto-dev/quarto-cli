@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 import * as colors from "fmt/colors";
-import { Confirm, Select } from "cliffy/prompt/mod.ts";
+import { Confirm, prompt, Select } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { info, warning } from "../deno_ral/log.ts";
 
@@ -237,7 +237,8 @@ export async function selectTool(
     }
   };
 
-  const toolTarget: string = (await Select.prompt({
+  const result = await prompt([{
+    name: "tool",
     message: `Select a tool to ${action}`,
     options: toolsInfo.map((toolInfo) => {
       return {
@@ -248,6 +249,7 @@ export async function selectTool(
           : !toolInfo.installed,
       };
     }),
-  })).value;
-  return toolTarget;
+    type: Select,
+  }]);
+  return result.tool;
 }

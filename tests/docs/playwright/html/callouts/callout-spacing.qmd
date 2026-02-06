@@ -1,0 +1,29 @@
+---
+title: Callout Spacing Test
+---
+
+## Simple Untitled {#simple-untitled}
+
+::: {.callout-note appearance="simple"}
+Content without title to test spacing symmetry.
+:::
+
+## Simple Titled {#simple-titled}
+
+::: {.callout-note appearance="simple"}
+## Note Title
+Content with title.
+:::
+
+## Default Untitled {#default-untitled}
+
+::: {.callout-note appearance="default"}
+Content without title in default appearance.
+:::
+
+## Default Titled {#default-titled}
+
+::: {.callout-note appearance="default"}
+## Note Title
+Content with title in default appearance.
+:::
