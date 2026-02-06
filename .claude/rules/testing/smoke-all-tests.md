@@ -104,6 +104,17 @@ _quarto:
 
 Valid OS values: `linux`, `darwin`, `windows`
 
+## Pattern Specificity
+
+Avoid patterns that match template boilerplate instead of document content:
+
+- Bad: `'#figure\('` - matches any figure including template definitions
+- Good: `'#figure\(\[(\r\n?|\n)#block\['` - matches specific document structure
+
+**Line breaks:** `(\r\n?|\n)` for exact line breaks; `\s*` or `\s+` for flexible whitespace.
+
+**Examples:** `tests/docs/smoke-all/typst/`, `tests/docs/smoke-all/crossrefs/`
+
 ## YAML String Escaping for Regex
 
 **Details:** `llm-docs/testing-patterns.md` → "YAML String Escaping for Regex"
