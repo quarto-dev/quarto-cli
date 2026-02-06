@@ -1,0 +1,30 @@
+---
+title: "Conditional visibility with theorem (#13992)"
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['Theorem content visible', 'thm-cond', '\\begin\{theorem\}']
+        - []
+    html:
+      ensureHtmlElements:
+        - []
+        - ['#thm-cond']
+      ensureFileRegexMatches:
+        - []
+        - ['Theorem content visible']
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['Theorem content visible', '#ref\(<thm-cond>', '#theorem']
+        - []
+---
+
+See @thm-cond for conditional theorem.
+
+::: {#thm-cond .content-visible unless-format="html"}
+## Test Theorem
+
+Theorem content visible.
+:::
