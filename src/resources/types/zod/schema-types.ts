@@ -297,6 +297,7 @@ export const ZodBaseWebsite = z.object({
     z.array(z.enum(["none", "edit", "source", "issue"] as const)),
   ]),
   "reader-mode": z.boolean(),
+  "llms-txt": z.boolean(),
   "google-analytics": z.union([
     z.string(),
     z.object({
@@ -475,6 +476,7 @@ export const ZodBookSchema = z.object({
     z.array(z.enum(["none", "edit", "source", "issue"] as const)),
   ]),
   "reader-mode": z.boolean(),
+  "llms-txt": z.boolean(),
   "google-analytics": z.union([
     z.string(),
     z.object({

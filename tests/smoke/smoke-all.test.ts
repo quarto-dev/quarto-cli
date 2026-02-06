@@ -43,6 +43,12 @@ import {
   shouldError,
   ensureHtmlElementContents,
   ensureHtmlElementCount,
+  ensureLlmsMdRegexMatches,
+  ensureLlmsMdExists,
+  ensureLlmsMdDoesNotExist,
+  ensureLlmsTxtRegexMatches,
+  ensureLlmsTxtExists,
+  ensureLlmsTxtDoesNotExist,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -197,7 +203,13 @@ function resolveTestSpecs(
     ensurePptxLayout,
     ensurePptxMaxSlides,
     ensureSnapshotMatches,
-    printsMessage
+    printsMessage,
+    ensureLlmsMdRegexMatches,
+    ensureLlmsMdExists,
+    ensureLlmsMdDoesNotExist,
+    ensureLlmsTxtRegexMatches,
+    ensureLlmsTxtExists,
+    ensureLlmsTxtDoesNotExist,
   };
 
   for (const [format, testObj] of Object.entries(specs)) {

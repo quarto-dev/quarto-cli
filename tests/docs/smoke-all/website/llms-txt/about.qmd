@@ -1,0 +1,44 @@
+---
+title: "About"
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureLlmsMdRegexMatches:
+        # First array: patterns that MUST match
+        - ["^# About", "> \\*\\*NOTE:\\*\\*", "> \\*\\*WARNING:\\*\\*", "This is a note", "``` python", "def hello", "\\| Feature", "\\|[-]+\\|", "\\[home page\\]\\(.*\\.llms\\.md\\)"]
+        # Second array: patterns that must NOT match (no .html links in llms.md)
+        - ["\\.html\\)"]
+---
+
+About this test site.
+
+## Callout Examples
+
+::: {.callout-note}
+This is a note about the llms-txt feature.
+:::
+
+::: {.callout-warning}
+Be careful with this setting!
+:::
+
+## Code Example
+
+```{python}
+#| eval: false
+def hello():
+    print("Hello, world!")
+```
+
+## Table Example
+
+| Feature | Status |
+|---------|--------|
+| Callouts | Working |
+| Code | Working |
+| Tables | Working |
+
+## Link Example
+
+Go back to the [home page](index.qmd).

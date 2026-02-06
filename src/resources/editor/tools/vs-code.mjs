@@ -9412,6 +9412,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
                 }
               },
+              "llms-txt": {
+                boolean: {
+                  description: "Generate llms.txt and .llms.md files for LLM-friendly content consumption.\n"
+                }
+              },
               "google-analytics": {
                 anyOf: [
                   "string",
@@ -21780,6 +21785,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -21946,6 +21952,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -23986,10 +23993,6 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors.",
           long: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors, for example\n<code>ISO coated v2 300\\letterpercent\\space (ECI)</code>\nIf left unspecified, <code>sRGB IEC61966-2.1</code> is used as\ndefault."
         },
-        {
-          short: "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
-          long: "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
-        },
         "Document bibliography (BibTeX or CSL). May be a single file or a list\nof files",
         "Citation Style Language file to use for formatting references.",
         "Enables a hover popup for citation that shows the reference\ninformation.",
@@ -24357,6 +24360,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -24681,10 +24685,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Inner (left) margin geometry.",
         "Outer (right) margin geometry.",
         "Minimum vertical spacing between margin notes (default: 8pt).",
-        {
-          short: "Visual style for theorem environments in Typst output.",
-          long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
-        },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24723,6 +24723,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -25036,7 +25037,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        {
+          short: "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
+          long: "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
+        },
+        {
+          short: "Visual style for theorem environments in Typst output.",
+          long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -25266,12 +25275,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 220795,
+        _internalId: 219987,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 220787,
+            _internalId: 219979,
             type: "enum",
             enum: [
               "png",
@@ -25287,7 +25296,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 220794,
+            _internalId: 219986,
             type: "anyOf",
             anyOf: [
               {
@@ -25584,7 +25593,7 @@ function locationString(loc) {
 
 // ../text.ts
 function lines(text) {
-  return text.split(/\r?\n/);
+  return text.split(/\r\n?|\n/);
 }
 function* matchAll(text, regexp) {
   if (!regexp.global) {
@@ -25597,7 +25606,7 @@ function* matchAll(text, regexp) {
 }
 function* lineOffsets(text) {
   yield 0;
-  for (const match of matchAll(text, /\r?\n/g)) {
+  for (const match of matchAll(text, /\r\n?|\n/g)) {
     yield match.index + match[0].length;
   }
 }
@@ -25783,7 +25792,7 @@ function matchAll2(str2, regex) {
   return result;
 }
 function rangedLines(text, includeNewLines = false) {
-  const regex = /\r?\n/g;
+  const regex = /\r\n?|\n/g;
   const result = [];
   let startOffset = 0;
   if (!includeNewLines) {
@@ -34656,7 +34665,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false, startCodeC
   };
   const yamlRegEx = /^---\s*$/;
   const startCodeCellRegEx = startCodeCellRegex || new RegExp(
-    "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
+    "^\\s*(```+)\\s*\\{([=A-Za-z][=A-Za-z0-9._]*)( *[ ,].*)?\\}\\s*$"
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*(```+)\s*$/;
