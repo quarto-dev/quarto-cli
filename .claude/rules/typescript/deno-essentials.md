@@ -67,6 +67,21 @@ fs.readFileSync(path);
 
 Prefer sync APIs in CLI handlers for simpler code flow. Use async for I/O-heavy parallel operations.
 
+## Path Handling
+
+```typescript
+import { normalizePath } from "../core/path.ts";
+import { isWindows } from "../deno_ral/platform.ts";
+
+// Normalize paths for consistent comparison
+const normalized = normalizePath(Deno.cwd());
+
+// Platform-specific logic
+if (isWindows) {
+  // Windows-specific handling
+}
+```
+
 ## Lint Directives
 
 Common directives (use sparingly):
