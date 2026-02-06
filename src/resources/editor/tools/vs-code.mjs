@@ -13685,13 +13685,14 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "highlight-style",
+          name: "syntax-highlighting",
           tags: {
             formats: [
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -13720,6 +13721,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     "github",
                     "gruvbox",
                     "haddock",
+                    "idiomatic",
                     "kate",
                     "monochrome",
                     "monokai",
@@ -13740,7 +13742,38 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Specifies the coloring style to be used in highlighted source code.",
-            long: "Specifies the coloring style to be used in highlighted source code.\n\nInstead of a *STYLE* name, a JSON file with extension\n` .theme` may be supplied.  This will be parsed as a KDE\nsyntax highlighting theme and (if valid) used as the\nhighlighting style.\n"
+            long: "Specifies the coloring style to be used in highlighted source code.\n\nValid values:\n\n- `none`: Disables syntax highlighting for code blocks.\n- `idiomatic`: Uses the format's native syntax highlighter\n  (e.g., Typst's built-in highlighting, LaTeX `listings` package,\n  or reveal.js highlight.js plugin).\n- A style name (e.g., `pygments`, `tango`, `github`): Uses\n  Pandoc's skylighting with the specified theme.\n- A path to a `.theme` file: Uses a custom KDE syntax\n  highlighting theme.\n\nFor adaptive light/dark themes, specify an object with `light`\nand `dark` properties pointing to theme files.\n"
+          }
+        },
+        {
+          name: "highlight-style",
+          hidden: true,
+          tags: {
+            formats: [
+              "$html-all",
+              "docx",
+              "ms",
+              "$pdf-all",
+              "typst"
+            ]
+          },
+          schema: {
+            anyOf: [
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "path",
+                    dark: "path"
+                  }
+                }
+              },
+              "string"
+            ]
+          },
+          description: {
+            short: "Deprecated: use `syntax-highlighting` instead.",
+            long: "Deprecated: use `syntax-highlighting` instead.\n\nSpecifies the coloring style to be used in highlighted source code.\n"
           }
         },
         {
@@ -13750,7 +13783,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: "path",
@@ -13764,7 +13798,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -23195,7 +23230,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Specifies the coloring style to be used in highlighted source\ncode.",
-          long: "Specifies the coloring style to be used in highlighted source\ncode.\nInstead of a <em>STYLE</em> name, a JSON file with extension\n<code>.theme</code> may be supplied. This will be parsed as a KDE syntax\nhighlighting theme and (if valid) used as the highlighting style."
+          long: "Specifies the coloring style to be used in highlighted source\ncode.\nValid values:"
+        },
+        {
+          short: "Deprecated: use <code>syntax-highlighting</code> instead.",
+          long: "Deprecated: use <code>syntax-highlighting</code> instead.\nSpecifies the coloring style to be used in highlighted source\ncode."
         },
         "KDE language syntax definition file (XML)",
         "KDE language syntax definition files (XML)",
@@ -25266,12 +25305,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 220795,
+        _internalId: 221789,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 220787,
+            _internalId: 221781,
             type: "enum",
             enum: [
               "png",
@@ -25287,7 +25326,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 220794,
+            _internalId: 221788,
             type: "anyOf",
             anyOf: [
               {

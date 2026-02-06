@@ -6,7 +6,7 @@ execute:
 theme:
   light: [cosmo, theme.scss]
   dark: [solar, theme-dark.scss]
-highlight-style: a11y
+syntax-highlighting: a11y
 ---
 
 ### Inline code

@@ -93,9 +93,9 @@
     long: |
       Specifies to apply a background color on code blocks. Provide a hex color to specify that the background color is
       enabled as well as the color of the background.
-- name: highlight-style
+- name: syntax-highlighting
   tags:
-    formats: [$html-all, docx, ms, $pdf-all]
+    formats: [$html-all, docx, ms, $pdf-all, typst]
   schema:
     anyOf:
       - object:
@@ -117,6 +117,7 @@
             - github
             - gruvbox
             - haddock
+            - idiomatic
             - kate
             - monochrome
             - monokai
@@ -135,21 +136,49 @@
     long: |
       Specifies the coloring style to be used in highlighted source code.
 
-      Instead of a *STYLE* name, a JSON file with extension
-      ` .theme` may be supplied.  This will be parsed as a KDE
-      syntax highlighting theme and (if valid) used as the
-      highlighting style.
+      Valid values:
+
+      - `none`: Disables syntax highlighting for code blocks.
+      - `idiomatic`: Uses the format's native syntax highlighter
+        (e.g., Typst's built-in highlighting, LaTeX `listings` package,
+        or reveal.js highlight.js plugin).
+      - A style name (e.g., `pygments`, `tango`, `github`): Uses
+        Pandoc's skylighting with the specified theme.
+      - A path to a `.theme` file: Uses a custom KDE syntax
+        highlighting theme.
+
+      For adaptive light/dark themes, specify an object with `light`
+      and `dark` properties pointing to theme files.
+
+- name: highlight-style
+  hidden: true
+  tags:
+    formats: [$html-all, docx, ms, $pdf-all, typst]
+  schema:
+    anyOf:
+      - object:
+          closed: true
+          properties:
+            light: path
+            dark: path
+      - string
+  description:
+    short: "Deprecated: use `syntax-highlighting` instead."
+    long: |
+      Deprecated: use `syntax-highlighting` instead.
+
+      Specifies the coloring style to be used in highlighted source code.
 
 - name: syntax-definition
   tags:
-    formats: [$html-all, docx, ms, $pdf-all]
+    formats: [$html-all, docx, ms, $pdf-all, typst]
   schema: path
   hidden: true
   description: "KDE language syntax definition file (XML)"
 
 - name: syntax-definitions
   tags:
-    formats: [$html-all, docx, ms, $pdf-all]
+    formats: [$html-all, docx, ms, $pdf-all, typst]
   schema:
     arrayOf: path
   description: "KDE language syntax definition files (XML)"

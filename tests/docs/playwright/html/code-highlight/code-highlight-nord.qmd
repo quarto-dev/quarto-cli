@@ -1,6 +1,6 @@
 ---
 title: Testing nord code highlight
-highlight-style: nord
+syntax-highlighting: nord
 ---
 
 {{< include _body.md >}}

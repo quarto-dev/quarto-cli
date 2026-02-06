@@ -1,6 +1,6 @@
 ---
 title: Testing zenburn code highlight
-highlight-style: zenburn
+syntax-highlighting: zenburn
 ---
 
 {{< include _body.md >}}

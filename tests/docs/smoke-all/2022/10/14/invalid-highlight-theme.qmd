@@ -7,7 +7,7 @@ format:
       - lux
 #    code-fold: true
 #    code-line-numbers: true
-    highlight-style: asa
+    syntax-highlighting: asa
 _quarto:
   tests:
     html:
