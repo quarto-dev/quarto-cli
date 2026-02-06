@@ -356,6 +356,22 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             },
 
             item({ item, createElement }) {
+              // process items to include text fragments as they are rendered
+              if (item.text && item.href && !item.href.includes(':~:text=')) {
+                // e.g. `item.text` for a search "def fiz": "bla bla bla<mark class='search-match'>def fiz</mark> bla bla"
+                const fullMatches = item.text.matchAll(/<mark class='search-match'>(.*?)<\/mark>/g)
+                // extract capture group with the search match
+                // result e.g. ["def fiz"]
+                const searchMatches = [...fullMatches].map(match => match[1])
+                if (searchMatches[0]) {
+                  if (item.href.includes('#')) {
+                    item.href += ':~:text=' + encodeURIComponent(searchMatches[0])
+                  } else {
+                    item.href += '#:~:text=' + encodeURIComponent(searchMatches[0])
+                  }
+                }
+              }
+              
               return renderItem(
                 item,
                 createElement,
