@@ -1,35 +1,37 @@
 import { testQuartoCmd } from "../../test.ts";
-import { directoryContainsOnlyAllowedPaths, fileExists, folderExists, noErrorsOrWarnings, printsMessage } from "../../verify.ts";
+import { directoryContainsOnlyAllowedPaths, fileExists, noErrorsOrWarnings, printsMessage } from "../../verify.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 
 const tempDir = Deno.makeTempDirSync();
 
-const templateFolder = "article";
-const workingDir = join(tempDir, templateFolder);
-const extensionsDir = join(workingDir, "_extensions");
-ensureDirSync(workingDir);
-testQuartoCmd(
-  "use",
-  ["template", "quarto-journals/jasa", "--no-prompt"],
-  [noErrorsOrWarnings, fileExists(`${templateFolder}.qmd`), folderExists(extensionsDir)],
-  {
-    setup: () => {
-      return Promise.resolve();
-    },
-    cwd: () => {
-      return workingDir;
-    },
-    teardown: () => {
-      try {
-       Deno.removeSync(workingDir, {recursive: true});
-      } catch {
+for (const ext of ["jasa", "acm"]) {
+  const templateFolder = `${ext}-article`;
+  const workingDir = join(tempDir, templateFolder);
+  const extensionYml = join(workingDir, "_extensions", "quarto-journals", ext, "_extension.yml");
+  ensureDirSync(workingDir);
+  testQuartoCmd(
+    "use",
+    ["template", `quarto-journals/${ext}`, "--no-prompt"],
+    [noErrorsOrWarnings, fileExists(`${templateFolder}.qmd`), fileExists(extensionYml)],
+    {
+      setup: () => {
+        return Promise.resolve();
+      },
+      cwd: () => {
+        return workingDir;
+      },
+      teardown: () => {
+        try {
+         Deno.removeSync(workingDir, {recursive: true});
+        } catch {
 
+        }
+         return Promise.resolve();
       }
-       return Promise.resolve();
     }
-  }
-)
+  )
+}
 
 const nonEmptyTemplateFolder = "notempty";
 const nonEmptyFileName = `${nonEmptyTemplateFolder}.qmd`;
@@ -52,7 +54,7 @@ testQuartoCmd(
       try {
        Deno.removeSync(nonEmptyWorkingDir, {recursive: true});
       } catch {
-        
+
       }
        return Promise.resolve();
     }
