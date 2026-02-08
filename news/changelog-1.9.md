@@ -117,6 +117,10 @@ All changes included in 1.9:
 
 ## Commands
 
+### `use template`
+
+- ([#14008](https://github.com/quarto-dev/quarto-cli/issues/14008)): Fix `quarto use template` failing to install extensions from GitHub organisation repositories (e.g., `quarto-journals/acm`). (author: @mcanouil)
+
 ### `use brand`
 
 - ([#13828](https://github.com/quarto-dev/quarto-cli/pull/13828)): New `quarto use brand` command copies and synchronizes the `_brand/` directory from a repo, directory, or ZIP file. See [the prerelease documentation](https://prerelease.quarto.org/docs/authoring/brand.html#quarto-use-brand) for details.
