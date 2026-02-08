@@ -119,7 +119,7 @@ All changes included in 1.9:
 
 ### `use template`
 
-- ([#14008](https://github.com/quarto-dev/quarto-cli/issues/14008)): Fix `quarto use template` failing to install extensions from GitHub organisation repositories (e.g., `quarto-journals/acm`). (author: @mcanouil)
+- ([#14008](https://github.com/quarto-dev/quarto-cli/issues/14008)): Fix `quarto use template` failing to install extensions from GitHub organisation repositories when the extension was scoped with the organisation (e.g., `quarto-journals/acm`). (author: @mcanouil)
 
 ### `use brand`
 
