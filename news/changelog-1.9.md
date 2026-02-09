@@ -27,6 +27,10 @@ All changes included in 1.9:
 - ([#13421](https://github.com/quarto-dev/quarto-cli/issues/13421)): Do not word-wrap titles in header.
 - ([#13603](https://github.com/quarto-dev/quarto-cli/issues/13603)): Fix callouts with title but no body content causing fatal error when rendering to GitHub Flavored Markdown.
 
+### `email`
+
+- ([#13882](https://github.com/quarto-dev/quarto-cli/pull/13882)): Add support for multiple email outputs when rendering to `format: email` for Posit Connect.
+
 ### `html`
 
 - ([#11929](https://github.com/quarto-dev/quarto-cli/issues/11929)): Import all `brand.typography.fonts` in CSS, whether or not fonts are referenced by typography elements.
