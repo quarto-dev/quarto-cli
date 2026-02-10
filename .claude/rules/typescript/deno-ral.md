@@ -11,7 +11,7 @@ The `deno_ral/` directory provides a runtime abstraction layer over Deno's stand
 
 | Module | Purpose | Key exports |
 |--------|---------|-------------|
-| `fs.ts` | File system | `existsSync`, `ensureDirSync`, `copySync` |
+| `fs.ts` | File system | `existsSync`, `ensureDirSync`, `copySync`, `safeMoveSync`, `safeRemoveSync` |
 | `path.ts` | Path utilities | `join`, `dirname`, `basename`, `extname` |
 | `log.ts` | Logging | `debug`, `info`, `warning`, `error` |
 | `platform.ts` | Platform detection | `isWindows` |
@@ -47,6 +47,14 @@ const result = await execProcess({
   stdout: "piped",
 });
 ```
+
+## Safe File Operations
+
+`deno_ral/fs.ts` provides safe wrappers over raw Deno APIs. Prefer these:
+
+- **`safeMoveSync(src, dest)`** — Use instead of `Deno.renameSync`. Handles cross-device moves by falling back to copy+delete on `EXDEV` errors.
+- **`safeRemoveSync(path, options)`** — Use instead of `Deno.removeSync`. Tolerates already-removed paths (no error if file doesn't exist).
+- **`safeRemoveDirSync(path, boundary)`** — Safe recursive removal that refuses to delete outside the boundary directory.
 
 ## Module Loading Order
 
