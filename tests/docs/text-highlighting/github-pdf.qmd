@@ -6,7 +6,7 @@ date-format: 'YYYY-MM-DDTHH:mm:ssZ'
 
 format:
   pdf: default
-highlight-style: github  
+syntax-highlighting: github  
 ---
   
 ## Some Math

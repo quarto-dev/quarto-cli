@@ -8,7 +8,7 @@ format:
   html:
     self-contained: true
     theme: darkly
-highlight-style:
+syntax-highlighting:
   light: light.theme
   dark: dark.theme
 ---

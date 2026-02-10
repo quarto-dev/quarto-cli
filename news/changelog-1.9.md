@@ -22,6 +22,10 @@ All changes included in 1.9:
 
 ## Formats
 
+### All Formats
+
+- ([#13878](https://github.com/quarto-dev/quarto-cli/issues/13878)): Add `syntax-highlighting` option replacing the deprecated `highlight-style` in Pandoc 3.8. It supports style names (e.g., `tango`, `github`), custom `.theme` files, `none` to disable highlighting, or `idiomatic` for native format highlighting. The `highlight-style` option remains supported but is deprecated.
+
 ### `gfm`
 
 - ([#13421](https://github.com/quarto-dev/quarto-cli/issues/13421)): Do not word-wrap titles in header.
@@ -60,7 +64,8 @@ All changes included in 1.9:
 - ([#13870](https://github.com/quarto-dev/quarto-cli/issues/13870)): Add support for `alt` attribute on cross-referenced equations for improved accessibility. (author: @mcanouil)
 - ([#13950](https://github.com/quarto-dev/quarto-cli/pull/13950)): Replace ctheorems with theorion package for theorem environments. Add `theorem-appearance` option to control styling: `simple` (default, classic LaTeX style), `fancy` (colored boxes with brand colors), `clouds` (rounded backgrounds), or `rainbow` (colored start border and colored title).
 - ([#13954](https://github.com/quarto-dev/quarto-cli/issues/13954)): Add support for Typst book projects via format extensions. Quarto now bundles the `orange-book` extension which provides a textbook-style format with chapter numbering, cross-references, and professional styling. Book projects with `format: typst` automatically use this extension.
-- ([#13978])(https://github.com/quarto-dev/quarto-cli/pull/13978)): Keep term and description together in definition lists to avoid breaking across pages. (author: @mcanouil)
+- ([#13978](https://github.com/quarto-dev/quarto-cli/pull/13978)): Keep term and description together in definition lists to avoid breaking across pages. (author: @mcanouil)
+- ([#13878](https://github.com/quarto-dev/quarto-cli/issues/13878)): Typst now uses Pandoc's skylighting for syntax highlighting by default (consistent with other formats). Use `syntax-highlighting: idiomatic` to opt-in to Typst's native syntax highlighting instead.
 
 ### `pdf`
 

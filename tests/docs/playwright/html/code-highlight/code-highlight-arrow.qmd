@@ -1,6 +1,6 @@
 ---
 title: Testing arrow code highlight
-highlight-style: arrow
+syntax-highlighting: arrow
 ---
 
 {{< include _body.md >}}
