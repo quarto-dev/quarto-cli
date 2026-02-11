@@ -1,0 +1,15 @@
+---
+title: "French Canadian language variant"
+lang: fr-CA
+author: Jean Tremblay
+date: 2026-02-11
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['Auteur\(-trice\)', 'Date de publication']
+        - ['Auteur·rice']
+---
+
+Content to verify `lang: fr-CA` applies regional French translations, while still using main `lang: fr` translation.
