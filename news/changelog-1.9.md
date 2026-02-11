@@ -40,6 +40,7 @@ All changes included in 1.9:
 - ([#11929](https://github.com/quarto-dev/quarto-cli/issues/11929)): Import all `brand.typography.fonts` in CSS, whether or not fonts are referenced by typography elements.
 - ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in `video` shortcodes from cross-reference divs. (author: @bruvellu)
 - ([#13508](https://github.com/quarto-dev/quarto-cli/issues/13508)): Add `aria-label` support to `video` shortcode for improved accessibility.
+- ([#13825](https://github.com/quarto-dev/quarto-cli/issues/13825)): Fix `column: margin` not working with `renderings: [light, dark]` option. Column classes are now preserved when applying theme classes to cell outputs.
 - ([#13883](https://github.com/quarto-dev/quarto-cli/issues/13883)): Fix unequal top/bottom spacing in simple untitled callouts.
 
 ### `typst`
