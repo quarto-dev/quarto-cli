@@ -347,10 +347,22 @@ function process_document(doc)
     return doc
   end
 
-  -- Detect format upfront: Check Connect version and look for document-level metadata
-  -- This must be determined before processing to avoid confusion about which format to use
-  if connectversion.is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
-    connect_supports_v2 = true
+  -- Check for explicit email format override first
+  local format_override = connectversion.get_email_format_override(doc.meta)
+  if format_override then
+    -- If override is set, interpret the value as a string
+    if format_override == "2" then
+      connect_supports_v2 = true
+      io.stderr:write("WARNING: Email format v2 is being forced via 'format.email.version: " .. format_override .. "' in YAML. This overrides the Connect version detection.\n")
+    else
+      connect_supports_v2 = false
+      io.stderr:write("WARNING: Email format v1 is being forced via 'format.email.version: " .. format_override .. "' in YAML. This overrides the Connect version detection.\n")
+    end
+  else
+    -- Fall back to version sniffing if no explicit override
+    if connectversion.is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
+      connect_supports_v2 = true
+    end
   end
 
   -- Scan for document-level metadata at the TOP LEVEL of the document
