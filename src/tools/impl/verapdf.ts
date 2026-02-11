@@ -40,8 +40,15 @@ export const verapdfInstallable: InstallableTool = {
         kSupportedJavaVersions.includes(javaVersion);
     },
     os: ["darwin", "linux", "windows"],
-    message:
-      `Java is not installed or version is not supported. veraPDF requires Java 8, 11, 17, or 21.`,
+    message: async () => {
+      const javaVersion = await getJavaVersion();
+      const supportedVersions = kSupportedJavaVersions.join(", ");
+      if (javaVersion === undefined) {
+        return `Java is not installed. veraPDF requires Java ${supportedVersions}.`;
+      } else {
+        return `Java ${javaVersion} is installed but not supported. veraPDF requires Java ${supportedVersions}.`;
+      }
+    },
   }],
   installed,
   installDir,
