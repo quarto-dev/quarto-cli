@@ -34,14 +34,15 @@ const kVersionFileName = "version";
 export const verapdfInstallable: InstallableTool = {
   name: "VeraPDF",
   prereqs: [{
-    check: async () => {
+    check: async (context) => {
       const javaVersion = await getJavaVersion();
+      context.props.javaVersion = javaVersion;
       return javaVersion !== undefined &&
         kSupportedJavaVersions.includes(javaVersion);
     },
     os: ["darwin", "linux", "windows"],
-    message: async () => {
-      const javaVersion = await getJavaVersion();
+    message: (context) => {
+      const javaVersion = context.props.javaVersion as number | undefined;
       const supportedVersions = kSupportedJavaVersions.join(", ");
       if (javaVersion === undefined) {
         return `Java is not installed. veraPDF requires Java ${supportedVersions}.`;
