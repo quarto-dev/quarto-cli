@@ -178,3 +178,4 @@ All changes included in 1.9:
 - ([#13997](https://github.com/quarto-dev/quarto-cli/issues/13997)): Fix Windows dart-sass theme compilation failing when Quarto is installed in a path with spaces (e.g., `C:\Program Files\`) and the project path also contains spaces.
 - ([#13998](https://github.com/quarto-dev/quarto-cli/issues/13998)): Fix YAML validation error with CR-only line terminators (old Mac format). Documents using `\r` line endings no longer fail with "Expected YAML front matter to contain at least 2 lines".
 - ([#14012](https://github.com/quarto-dev/quarto-cli/issues/14012)): Add `fr-CA` language translation for Quebec French inclusive writing conventions, using parenthetical forms instead of middle dots for author labels. (author: @tdhock)
+- ([#14032](https://github.com/quarto-dev/quarto-cli/issues/14032)): Add `editor_options` with `chunk_output_type` to YAML schema for autocompletion and validation in RStudio and Positron.
