@@ -29,6 +29,10 @@ const kDefaultVersion = "1.28.2";
 // Minimum Java version required
 const kMinJavaVersion = 8;
 
+// Highest Java LTS version officially supported by this veraPDF version.
+// Update this when bumping kDefaultVersion to a release that supports a newer LTS.
+const kMaxSupportedLtsVersion = 21;
+
 // The name of the file that we use to store the installed version
 const kVersionFileName = "version";
 
@@ -52,11 +56,20 @@ export const verapdfInstallable: InstallableTool = {
         return false;
       }
 
-      // Warn but allow installation for non-LTS Java versions
+      // Warn but allow installation for non-LTS or too-new LTS Java versions
       if (!isLtsJavaVersion(javaVersion)) {
+        const supportedVersions = Array.from(
+          { length: kMaxSupportedLtsVersion - 8 + 1 },
+          (_, i) => i + 8,
+        ).filter(isLtsJavaVersion).join(", ");
         warning(
           `Java ${javaVersion} is not a Long-Term Support (LTS) version. ` +
-            `veraPDF officially supports LTS versions (8, 11, 17, 21, 25, ...). ` +
+            `veraPDF ${kDefaultVersion} officially supports Java ${supportedVersions}. ` +
+            `Installation will proceed, but you may encounter issues.`,
+        );
+      } else if (javaVersion > kMaxSupportedLtsVersion) {
+        warning(
+          `Java ${javaVersion} is newer than veraPDF ${kDefaultVersion} officially supports. ` +
             `Installation will proceed, but you may encounter issues.`,
         );
       }
