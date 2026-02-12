@@ -82,7 +82,7 @@ All changes included in 1.9:
   - New `shorthands` variable for Babel language shortcuts control.
   - New `pdf-trailer-id` support for reproducible PDF builds.
   - New `cancel` package support for `\cancel` command in math.
-- ([#14017](https://github.com/quarto-dev/quarto-cli/issues/14017)]): `tColorOptions()` in .tex file will now always have options in alphabetical order. Previously, they were in random order leading to a different .tex intermediates for identical .qmd.
+- ([#14017](https://github.com/quarto-dev/quarto-cli/issues/14017)): `tColorOptions()` in .tex file will now always have options in alphabetical order. Previously, they were in random order leading to a different .tex intermediates for identical .qmd.
 
 ### `revealjs`
 
