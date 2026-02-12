@@ -12,6 +12,7 @@ import { UnreachableError } from "./lib/error.ts";
 import { quartoDataDir } from "./appdirs.ts";
 import { isMac, isWindows } from "../deno_ral/platform.ts";
 import puppeteer from "puppeteer";
+import { chromeHeadlessShellExecutablePath } from "../tools/impl/chrome-headless-shell.ts";
 
 // deno-lint-ignore no-explicit-any
 // let puppeteerImport: any = undefined;
@@ -291,10 +292,17 @@ export async function getBrowserExecutablePath() {
 
   let executablePath: string | undefined = undefined;
 
+  // Priority 1: QUARTO_CHROMIUM env var + system Chrome/Edge
   if (executablePath === undefined) {
     executablePath = (await findChrome()).path;
   }
 
+  // Priority 2: Quarto-installed chrome-headless-shell
+  if (executablePath === undefined) {
+    executablePath = chromeHeadlessShellExecutablePath();
+  }
+
+  // Priority 3: Legacy puppeteer-managed Chromium revisions
   if (executablePath === undefined && availableRevisions.length > 0) {
     // get the latest available revision
     availableRevisions.sort((a: string, b: string) => Number(b) - Number(a));
@@ -306,7 +314,7 @@ export async function getBrowserExecutablePath() {
   if (executablePath === undefined) {
     error("Chrome not found");
     info(
-      "\nNo Chrome or Chromium installation was detected.\n\nPlease run 'quarto install chromium' to install Chromium.\n",
+      "\nNo Chrome or Chromium installation was detected.\n\nPlease run 'quarto install chrome-headless-shell' to install a headless browser.\n",
     );
     throw new Error();
   }

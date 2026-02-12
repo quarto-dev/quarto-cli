@@ -12,6 +12,7 @@ import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
 import { findCftExecutable } from "../../../src/tools/impl/chrome-for-testing.ts";
+import { installableTool, installableTools } from "../../../src/tools/tools.ts";
 import {
   chromeHeadlessShellInstallable,
   chromeHeadlessShellInstallDir,
@@ -238,3 +239,19 @@ unitTest("install lifecycle - prepare, install, verify, uninstall", async () => 
     safeRemoveSync(tempDir, { recursive: true });
   }
 }, { ignore: runningInCI() });
+
+// -- Step 8: Tool registry integration --
+
+unitTest("tool registry - chrome-headless-shell is listed in installableTools", async () => {
+  const tools = installableTools();
+  assert(
+    tools.includes("chrome-headless-shell"),
+    `installableTools() should include "chrome-headless-shell", got: ${tools}`,
+  );
+});
+
+unitTest("tool registry - installableTool looks up chrome-headless-shell", async () => {
+  const tool = installableTool("chrome-headless-shell");
+  assert(tool !== undefined, "installableTool should find chrome-headless-shell");
+  assertEquals(tool.name, "Chrome Headless Shell");
+});

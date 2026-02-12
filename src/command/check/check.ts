@@ -22,7 +22,7 @@ import { pandocBinaryPath } from "../../core/resources.ts";
 import { lines } from "../../core/text.ts";
 import { satisfies } from "semver/mod.ts";
 import { dartCommand } from "../../core/dart-sass.ts";
-import { allTools } from "../../tools/tools.ts";
+import { allTools, installableTool } from "../../tools/tools.ts";
 import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
 import { dirname } from "../../deno_ral/path.ts";
@@ -32,6 +32,11 @@ import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
 import { findChrome } from "../../core/puppeteer.ts";
+import {
+  chromeHeadlessShellExecutablePath,
+  chromeHeadlessShellInstallDir,
+  readInstalledVersion,
+} from "../../tools/impl/chrome-headless-shell.ts";
 import { executionEngines } from "../../execute/engine.ts";
 
 export function getTargets(): readonly string[] {
@@ -437,9 +442,11 @@ async function checkInstall(conf: CheckConfiguration) {
   }
   const chromeCb = async () => {
     const chromeDetected = await findChrome();
-    const chromiumQuarto = tools.installed.find((tool) =>
-      tool.name === "chromium"
-    );
+    const chromeHsPath = chromeHeadlessShellExecutablePath();
+    const chromiumTool = installableTool("chromium");
+    const chromiumQuarto = chromiumTool && await chromiumTool.installed()
+      ? chromiumTool
+      : undefined;
     if (chromeDetected.path !== undefined) {
       chromeHeadlessOutput.push(`${kIndent}Using: Chrome found on system`);
       chromeHeadlessOutput.push(
@@ -450,6 +457,18 @@ async function checkInstall(conf: CheckConfiguration) {
       }
       chromeJson["path"] = chromeDetected.path;
       chromeJson["source"] = chromeDetected.source;
+    } else if (chromeHsPath !== undefined) {
+      const version = readInstalledVersion(chromeHeadlessShellInstallDir());
+      chromeJson["source"] = "quarto-chrome-headless-shell";
+      chromeHeadlessOutput.push(
+        `${kIndent}Using: Chrome Headless Shell installed by Quarto`,
+      );
+      chromeHeadlessOutput.push(`${kIndent}Path: ${chromeHsPath}`);
+      chromeJson["path"] = chromeHsPath;
+      if (version) {
+        chromeHeadlessOutput.push(`${kIndent}Version: ${version}`);
+        chromeJson["version"] = version;
+      }
     } else if (chromiumQuarto !== undefined) {
       chromeJson["source"] = "quarto";
       chromeHeadlessOutput.push(
