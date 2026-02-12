@@ -32,6 +32,7 @@ import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
 import { findChrome } from "../../core/puppeteer.ts";
+import { safeExistsSync } from "../../core/path.ts";
 import {
   chromeHeadlessShellExecutablePath,
   chromeHeadlessShellInstallDir,
@@ -441,22 +442,18 @@ async function checkInstall(conf: CheckConfiguration) {
     conf.jsonResult.chrome = chromeJson;
   }
   const chromeCb = async () => {
-    const chromeDetected = await findChrome();
+    const envPath = Deno.env.get("QUARTO_CHROMIUM");
     const chromeHsPath = chromeHeadlessShellExecutablePath();
+    const chromeDetected = await findChrome();
     const chromiumTool = installableTool("chromium");
     const chromiumQuarto = chromiumTool && await chromiumTool.installed()
       ? chromiumTool
       : undefined;
-    if (chromeDetected.path !== undefined) {
-      chromeHeadlessOutput.push(`${kIndent}Using: Chrome found on system`);
-      chromeHeadlessOutput.push(
-        `${kIndent}Path: ${chromeDetected.path}`,
-      );
-      if (chromeDetected.source) {
-        chromeHeadlessOutput.push(`${kIndent}Source: ${chromeDetected.source}`);
-      }
-      chromeJson["path"] = chromeDetected.path;
-      chromeJson["source"] = chromeDetected.source;
+    if (envPath && safeExistsSync(envPath)) {
+      chromeHeadlessOutput.push(`${kIndent}Using: Chrome from QUARTO_CHROMIUM`);
+      chromeHeadlessOutput.push(`${kIndent}Path: ${envPath}`);
+      chromeJson["path"] = envPath;
+      chromeJson["source"] = "QUARTO_CHROMIUM";
     } else if (chromeHsPath !== undefined) {
       const version = readInstalledVersion(chromeHeadlessShellInstallDir());
       chromeJson["source"] = "quarto-chrome-headless-shell";
@@ -469,6 +466,16 @@ async function checkInstall(conf: CheckConfiguration) {
         chromeHeadlessOutput.push(`${kIndent}Version: ${version}`);
         chromeJson["version"] = version;
       }
+    } else if (chromeDetected.path !== undefined) {
+      chromeHeadlessOutput.push(`${kIndent}Using: Chrome found on system`);
+      chromeHeadlessOutput.push(
+        `${kIndent}Path: ${chromeDetected.path}`,
+      );
+      if (chromeDetected.source) {
+        chromeHeadlessOutput.push(`${kIndent}Source: ${chromeDetected.source}`);
+      }
+      chromeJson["path"] = chromeDetected.path;
+      chromeJson["source"] = chromeDetected.source;
     } else if (chromiumQuarto !== undefined) {
       chromeJson["source"] = "quarto";
       chromeHeadlessOutput.push(

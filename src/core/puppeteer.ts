@@ -213,20 +213,8 @@ interface ChromeInfo {
 export async function findChrome(): Promise<ChromeInfo> {
   let path;
   let source;
-  // First check env var and use this path if specified
-  const envPath = Deno.env.get("QUARTO_CHROMIUM");
-  if (envPath) {
-    debug("[CHROMIUM] Using path specified in QUARTO_CHROMIUM");
-    if (safeExistsSync(envPath)) {
-      debug(`[CHROMIUM] Found at ${envPath}, and will be used.`);
-      return { path: envPath, source: "QUARTO_CHROMIUM" };
-    } else {
-      debug(
-        `[CHROMIUM] Not found at ${envPath}. Check your environment variable valye. Searching now for another binary.`,
-      );
-    }
-  }
-  // Otherwise, try to find the path based on OS.
+  // Find Chrome/Edge from OS-specific known locations.
+  // QUARTO_CHROMIUM env var is handled by callers before calling this function.
   if (isMac) {
     const programs = [
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -292,17 +280,31 @@ export async function getBrowserExecutablePath() {
 
   let executablePath: string | undefined = undefined;
 
-  // Priority 1: QUARTO_CHROMIUM env var + system Chrome/Edge
-  if (executablePath === undefined) {
-    executablePath = (await findChrome()).path;
+  // Priority 1: QUARTO_CHROMIUM env var
+  const envPath = Deno.env.get("QUARTO_CHROMIUM");
+  if (envPath && safeExistsSync(envPath)) {
+    debug(`[CHROMIUM] Using QUARTO_CHROMIUM: ${envPath}`);
+    executablePath = envPath;
   }
 
   // Priority 2: Quarto-installed chrome-headless-shell
   if (executablePath === undefined) {
     executablePath = chromeHeadlessShellExecutablePath();
+    if (executablePath) {
+      debug(`[CHROMIUM] Using chrome-headless-shell: ${executablePath}`);
+    }
   }
 
-  // Priority 3: Legacy puppeteer-managed Chromium revisions
+  // Priority 3: System Chrome/Edge
+  if (executablePath === undefined) {
+    const chromeInfo = await findChrome();
+    if (chromeInfo.path) {
+      debug(`[CHROMIUM] Using system Chrome from ${chromeInfo.source}: ${chromeInfo.path}`);
+      executablePath = chromeInfo.path;
+    }
+  }
+
+  // Priority 4: Legacy puppeteer-managed Chromium revisions
   if (executablePath === undefined && availableRevisions.length > 0) {
     // get the latest available revision
     availableRevisions.sort((a: string, b: string) => Number(b) - Number(a));
