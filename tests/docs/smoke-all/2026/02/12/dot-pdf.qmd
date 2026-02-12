@@ -1,0 +1,20 @@
+---
+title: "Graphviz to PDF (#11877)"
+format: pdf
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+---
+
+## Graphviz Diagram
+
+```{dot}
+digraph G {
+    A -> B
+    B -> C
+    B -> D
+    C -> E
+    D -> E
+}
+```

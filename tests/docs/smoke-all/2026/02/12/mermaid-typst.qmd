@@ -1,0 +1,19 @@
+---
+title: "Mermaid to Typst (#11877)"
+format: typst
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+## Mermaid Flowchart
+
+```{mermaid}
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Good]
+    B -->|No| D[Bad]
+    C --> E[End]
+    D --> E
+```

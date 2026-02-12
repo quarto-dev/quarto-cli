@@ -1,0 +1,19 @@
+---
+title: "Mermaid to PDF (#11877)"
+format: pdf
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+---
+
+## Mermaid Flowchart
+
+```{mermaid}
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Good]
+    B -->|No| D[Bad]
+    C --> E[End]
+    D --> E
+```

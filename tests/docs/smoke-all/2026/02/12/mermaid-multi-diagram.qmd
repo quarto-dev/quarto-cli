@@ -1,0 +1,39 @@
+---
+title: "Multiple Mermaid Diagrams to PDF (#11877)"
+format: pdf
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+---
+
+## Flowchart
+
+```{mermaid}
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Good]
+    B -->|No| D[Bad]
+    C --> E[End]
+    D --> E
+```
+
+## Sequence Diagram
+
+```{mermaid}
+sequenceDiagram
+    Alice->>Bob: Hello
+    Bob-->>Alice: Hi back
+    Alice->>Bob: How are you?
+    Bob-->>Alice: Good thanks
+```
+
+## Pie Chart
+
+```{mermaid}
+pie title Favorite Languages
+    "TypeScript" : 40
+    "Lua" : 30
+    "R" : 20
+    "Python" : 10
+```

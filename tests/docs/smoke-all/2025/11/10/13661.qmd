@@ -12,8 +12,6 @@ format:
     use-rsvg-convert: false
 _quarto:
   tests:
-    run:
-      not_os: linux
     latex:
       printsMessage:
         level: INFO
