@@ -6,6 +6,7 @@
 
 import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import { basename, join } from "../../deno_ral/path.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import { unzip } from "../../core/zip.ts";
 import { execProcess } from "../../core/process.ts";
@@ -25,11 +26,19 @@ import { isWindows } from "../../deno_ral/platform.ts";
 const kDownloadBaseUrl = "https://quarto.org/download";
 const kDefaultVersion = "1.28.2";
 
-// Supported Java versions for veraPDF
-const kSupportedJavaVersions = [8, 11, 17, 21];
+// Minimum Java version required
+const kMinJavaVersion = 8;
 
 // The name of the file that we use to store the installed version
 const kVersionFileName = "version";
+
+// Check if a Java version is a Long-Term Support (LTS) release.
+// LTS versions: 8, 11, then every 2 years starting from 17 (17, 21, 25, 29, ...)
+function isLtsJavaVersion(version: number): boolean {
+  if (version === 8 || version === 11) return true;
+  if (version >= 17 && (version - 17) % 4 === 0) return true;
+  return false;
+}
 
 export const verapdfInstallable: InstallableTool = {
   name: "VeraPDF",
@@ -37,17 +46,30 @@ export const verapdfInstallable: InstallableTool = {
     check: async (context) => {
       const javaVersion = await getJavaVersion();
       context.props.javaVersion = javaVersion;
-      return javaVersion !== undefined &&
-        kSupportedJavaVersions.includes(javaVersion);
+
+      // Block installation if Java is not installed or version is too old
+      if (javaVersion === undefined || javaVersion < kMinJavaVersion) {
+        return false;
+      }
+
+      // Warn but allow installation for non-LTS Java versions
+      if (!isLtsJavaVersion(javaVersion)) {
+        warning(
+          `Java ${javaVersion} is not a Long-Term Support (LTS) version. ` +
+            `veraPDF officially supports LTS versions (8, 11, 17, 21, 25, ...). ` +
+            `Installation will proceed, but you may encounter issues.`,
+        );
+      }
+
+      return true;
     },
     os: ["darwin", "linux", "windows"],
     message: (context) => {
       const javaVersion = context.props.javaVersion as number | undefined;
-      const supportedVersions = kSupportedJavaVersions.join(", ");
       if (javaVersion === undefined) {
-        return `Java is not installed. veraPDF requires Java ${supportedVersions}.`;
+        return `Java is not installed. veraPDF requires Java ${kMinJavaVersion} or later.`;
       } else {
-        return `Java ${javaVersion} is installed but not supported. veraPDF requires Java ${supportedVersions}.`;
+        return `Java ${javaVersion} is too old. veraPDF requires Java ${kMinJavaVersion} or later.`;
       }
     },
   }],
