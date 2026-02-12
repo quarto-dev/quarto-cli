@@ -442,66 +442,27 @@ async function checkInstall(conf: CheckConfiguration) {
     conf.jsonResult.chrome = chromeJson;
   }
   const chromeCb = async () => {
-    const envPath = Deno.env.get("QUARTO_CHROMIUM");
-    const chromeHsPath = chromeHeadlessShellExecutablePath();
-    const chromeDetected = await findChrome();
-    const chromiumTool = installableTool("chromium");
-    const chromiumQuarto = chromiumTool && await chromiumTool.installed()
-      ? chromiumTool
-      : undefined;
-    if (envPath && !safeExistsSync(envPath)) {
-      chromeHeadlessOutput.push(
-        `${kIndent}NOTE: QUARTO_CHROMIUM is set to ${envPath} but the path does not exist.`,
-      );
-      chromeJson["QUARTO_CHROMIUM_invalid"] = envPath;
+    const check = await detectChromeForCheck();
+
+    if (check.warning) {
+      chromeHeadlessOutput.push(`${kIndent}NOTE: ${check.warning}`);
+      chromeJson["warning"] = check.warning;
     }
-    if (envPath && safeExistsSync(envPath)) {
-      chromeHeadlessOutput.push(`${kIndent}Using: Chrome from QUARTO_CHROMIUM`);
-      chromeHeadlessOutput.push(`${kIndent}Path: ${envPath}`);
-      chromeJson["path"] = envPath;
-      chromeJson["source"] = "QUARTO_CHROMIUM";
-    } else if (chromeHsPath !== undefined) {
-      const version = readInstalledVersion(chromeHeadlessShellInstallDir());
-      chromeJson["source"] = "quarto-chrome-headless-shell";
-      chromeHeadlessOutput.push(
-        `${kIndent}Using: Chrome Headless Shell installed by Quarto`,
-      );
-      chromeHeadlessOutput.push(`${kIndent}Path: ${chromeHsPath}`);
-      chromeJson["path"] = chromeHsPath;
+
+    if (check.detected) {
+      const { label, path, source, displaySource, version } = check.detected;
+      chromeHeadlessOutput.push(`${kIndent}Using: ${label}`);
+      if (path) {
+        chromeHeadlessOutput.push(`${kIndent}Path: ${path}`);
+        chromeJson["path"] = path;
+      }
+      chromeJson["source"] = source;
+      if (displaySource) {
+        chromeHeadlessOutput.push(`${kIndent}Source: ${displaySource}`);
+      }
       if (version) {
         chromeHeadlessOutput.push(`${kIndent}Version: ${version}`);
         chromeJson["version"] = version;
-      }
-    } else if (chromeDetected.path !== undefined) {
-      chromeHeadlessOutput.push(`${kIndent}Using: Chrome found on system`);
-      chromeHeadlessOutput.push(
-        `${kIndent}Path: ${chromeDetected.path}`,
-      );
-      if (chromeDetected.source) {
-        chromeHeadlessOutput.push(`${kIndent}Source: ${chromeDetected.source}`);
-      }
-      chromeJson["path"] = chromeDetected.path;
-      chromeJson["source"] = chromeDetected.source;
-    } else if (chromiumQuarto !== undefined) {
-      chromeJson["source"] = "quarto";
-      chromeHeadlessOutput.push(
-        `${kIndent}Using: Chromium installed by Quarto`,
-      );
-      if (chromiumQuarto.binDir) {
-        const binPath = await chromiumQuarto.binDir();
-        if (binPath) {
-          chromeHeadlessOutput.push(
-            `${kIndent}Path: ${binPath}`,
-          );
-          chromeJson["path"] = binPath;
-        }
-      }
-      const chromiumVersion = await chromiumQuarto.installedVersion();
-      if (chromiumVersion) {
-        chromeHeadlessOutput.push(
-          `${kIndent}Version: ${chromiumVersion}`,
-        );
-        chromeJson["version"] = chromiumVersion;
       }
     } else {
       chromeHeadlessOutput.push(`${kIndent}Chrome:  (not detected)`);
@@ -561,4 +522,81 @@ title: "Title"
       doneMessage: kMessage + "OK\n",
     }, markdownRenderCb);
   }
+}
+
+interface ChromeDetectionResult {
+  label: string;
+  path?: string;
+  source: string;
+  version?: string;
+  displaySource?: string;
+}
+
+interface ChromeCheckInfo {
+  warning?: string;
+  detected?: ChromeDetectionResult;
+}
+
+async function detectChromeForCheck(): Promise<ChromeCheckInfo> {
+  const result: ChromeCheckInfo = {};
+
+  // 1. QUARTO_CHROMIUM environment variable
+  const envPath = Deno.env.get("QUARTO_CHROMIUM");
+  if (envPath) {
+    if (safeExistsSync(envPath)) {
+      result.detected = {
+        label: "Chrome from QUARTO_CHROMIUM",
+        path: envPath,
+        source: "QUARTO_CHROMIUM",
+      };
+      return result;
+    }
+    result.warning =
+      `QUARTO_CHROMIUM is set to ${envPath} but the path does not exist.`;
+  }
+
+  // 2. Chrome headless shell installed by Quarto
+  const chromeHsPath = chromeHeadlessShellExecutablePath();
+  if (chromeHsPath !== undefined) {
+    const version = readInstalledVersion(chromeHeadlessShellInstallDir());
+    result.detected = {
+      label: "Chrome Headless Shell installed by Quarto",
+      path: chromeHsPath,
+      source: "quarto-chrome-headless-shell",
+      version,
+    };
+    return result;
+  }
+
+  // 3. System Chrome
+  const chromeDetected = await findChrome();
+  if (chromeDetected.path !== undefined) {
+    result.detected = {
+      label: "Chrome found on system",
+      path: chromeDetected.path,
+      source: chromeDetected.source ?? "system",
+      displaySource: chromeDetected.source,
+    };
+    return result;
+  }
+
+  // 4. Legacy chromium installed by Quarto
+  const chromiumTool = installableTool("chromium");
+  if (chromiumTool && await chromiumTool.installed()) {
+    let path: string | undefined;
+    if (chromiumTool.binDir) {
+      path = await chromiumTool.binDir();
+    }
+    const version = await chromiumTool.installedVersion();
+    result.detected = {
+      label: "Chromium installed by Quarto",
+      path,
+      source: "quarto",
+      version,
+    };
+    return result;
+  }
+
+  // 5. Not found
+  return result;
 }
