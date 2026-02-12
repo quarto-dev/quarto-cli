@@ -185,18 +185,24 @@ async function authorizeToken(
     const kMaxAttempts = 300;
     const kPollInterval = 2000;
     let found: Account[] = [];
-    for (let i = 0; i < kMaxAttempts; i++) {
-      await sleep(kPollInterval);
-      try {
-        const refreshed = await client.listAccounts();
-        found = refreshed.filter((a) =>
-          a.permissions?.includes("content:create")
-        );
-        if (found.length > 0) break;
-      } catch (err) {
-        debug(`[publish][connect-cloud] Account polling error (will retry): ${err}`);
+    await withSpinner({
+      message: "Waiting for account setup",
+    }, async () => {
+      for (let i = 0; i < kMaxAttempts; i++) {
+        await sleep(kPollInterval);
+        try {
+          const refreshed = await client.listAccounts();
+          found = refreshed.filter((a) =>
+            a.permissions?.includes("content:create")
+          );
+          if (found.length > 0) break;
+        } catch (err) {
+          debug(
+            `[publish][connect-cloud] Account polling error (will retry): ${err}`,
+          );
+        }
       }
-    }
+    });
 
     if (found.length === 0) {
       throw new Error(

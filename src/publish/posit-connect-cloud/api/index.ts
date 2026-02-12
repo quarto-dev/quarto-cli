@@ -172,8 +172,10 @@ export class ConnectCloudClient {
   public async publishContent(contentId: string) {
     debug(`[publish][connect-cloud] POST /contents/${contentId}/publish`);
     const url = `https://${this.env_.apiHost}/v1/contents/${contentId}/publish`;
-    // No request body per OpenAPI spec; empty headers (auth added by fetchWithRetry_)
-    await this.fetchWithRetry_("POST", url, {}, undefined);
+    const response = await this.fetchWithRetry_("POST", url, {
+      "Accept": "application/json",
+    }, undefined);
+    await response.arrayBuffer();
   }
 
   public async getRevision(revisionId: string): Promise<Revision> {
@@ -330,10 +332,11 @@ export async function initiateDeviceAuth(
     `[publish][connect-cloud] OAuth: initiating device authorization (client_id: ${env.clientId})`,
   );
   const response = await fetch(
-    `https://${env.authHost}/oauth/device/authorize?${params}`,
+    `https://${env.authHost}/oauth/device/authorize`,
     {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
     },
   );
   if (!response.ok) {
@@ -360,7 +363,7 @@ export async function pollForToken(
     grant_type: "urn:ietf:params:oauth:grant-type:device_code",
     device_code: deviceCode,
   });
-  const url = `https://${env.authHost}/oauth/token?${params}`;
+  const url = `https://${env.authHost}/oauth/token`;
   const startTime = Date.now();
   const timeoutMs = expiresIn * 1000;
 
@@ -379,6 +382,7 @@ export async function pollForToken(
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
     });
 
     if (response.ok) {
@@ -436,10 +440,11 @@ export async function refreshAccessToken(
   });
   debug("[publish][connect-cloud] Refreshing access token");
   const response = await fetch(
-    `https://${env.authHost}/oauth/token?${params}`,
+    `https://${env.authHost}/oauth/token`,
     {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
     },
   );
   if (!response.ok) {
