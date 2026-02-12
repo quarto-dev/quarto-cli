@@ -1,0 +1,22 @@
+---
+title: Skylighting Style
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: tango
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # tango style has specific KeywordTok color
+        - ["#Skylighting", "#KeywordTok", 'rgb\("#204a87"\)']
+        # Should NOT have default arrow color or raw fenced blocks
+        - ['rgb\("#003b4f"\)', "```python"]
+---
+
+Test that `syntax-highlighting: tango` forces skylighting in typst.
+
+```python
+def hello():
+    print("world")
+```

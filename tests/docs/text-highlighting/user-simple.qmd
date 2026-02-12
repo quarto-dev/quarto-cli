@@ -7,7 +7,7 @@ date-format: 'YYYY-MM-DDTHH:mm:ssZ'
 format:
   html: 
     self-contained: true
-highlight-style: light.theme  
+syntax-highlighting: light.theme  
 ---
   
 ## Some Math

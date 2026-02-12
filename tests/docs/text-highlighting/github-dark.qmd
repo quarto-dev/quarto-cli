@@ -8,7 +8,7 @@ format:
   html: 
     theme: solar
     self-contained: true
-highlight-style: github
+syntax-highlighting: github
 ---
   
 ## Some Math

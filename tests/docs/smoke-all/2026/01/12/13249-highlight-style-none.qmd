@@ -1,15 +1,15 @@
 ---
-title: highlight-style none test
+title: syntax-highlighting none test
 format:
   html:
-    highlight-style: none
+    syntax-highlighting: none
 _quarto:
   tests:
     html:
       noErrors: default
 ---
 
-Test that `highlight-style: none` works with Pandoc 3.8+.
+Test that `syntax-highlighting: none` works with Pandoc 3.8+.
 
 ```python
 print("Hello, World!")

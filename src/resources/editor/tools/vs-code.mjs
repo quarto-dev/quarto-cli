@@ -13690,13 +13690,14 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "highlight-style",
+          name: "syntax-highlighting",
           tags: {
             formats: [
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -13725,6 +13726,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     "github",
                     "gruvbox",
                     "haddock",
+                    "idiomatic",
                     "kate",
                     "monochrome",
                     "monokai",
@@ -13745,7 +13747,38 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Specifies the coloring style to be used in highlighted source code.",
-            long: "Specifies the coloring style to be used in highlighted source code.\n\nInstead of a *STYLE* name, a JSON file with extension\n` .theme` may be supplied.  This will be parsed as a KDE\nsyntax highlighting theme and (if valid) used as the\nhighlighting style.\n"
+            long: "Specifies the coloring style to be used in highlighted source code.\n\nValid values:\n\n- `none`: Disables syntax highlighting for code blocks.\n- `idiomatic`: Uses the format's native syntax highlighter\n  (e.g., Typst's built-in highlighting, LaTeX `listings` package,\n  or reveal.js highlight.js plugin).\n- A style name (e.g., `pygments`, `tango`, `github`): Uses\n  Pandoc's skylighting with the specified theme.\n- A path to a `.theme` file: Uses a custom KDE syntax\n  highlighting theme.\n\nFor adaptive light/dark themes, specify an object with `light`\nand `dark` properties pointing to theme files.\n"
+          }
+        },
+        {
+          name: "highlight-style",
+          hidden: true,
+          tags: {
+            formats: [
+              "$html-all",
+              "docx",
+              "ms",
+              "$pdf-all",
+              "typst"
+            ]
+          },
+          schema: {
+            anyOf: [
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "path",
+                    dark: "path"
+                  }
+                }
+              },
+              "string"
+            ]
+          },
+          description: {
+            short: "Deprecated: use `syntax-highlighting` instead.",
+            long: "Deprecated: use `syntax-highlighting` instead.\n\nSpecifies the coloring style to be used in highlighted source code.\n"
           }
         },
         {
@@ -13755,7 +13788,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: "path",
@@ -13769,7 +13803,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -23993,6 +24028,10 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors.",
           long: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors, for example\n<code>ISO coated v2 300\\letterpercent\\space (ECI)</code>\nIf left unspecified, <code>sRGB IEC61966-2.1</code> is used as\ndefault."
         },
+        {
+          short: "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
+          long: "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
+        },
         "Document bibliography (BibTeX or CSL). May be a single file or a list\nof files",
         "Citation Style Language file to use for formatting references.",
         "Enables a hover popup for citation that shows the reference\ninformation.",
@@ -24685,6 +24724,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Inner (left) margin geometry.",
         "Outer (right) margin geometry.",
         "Minimum vertical spacing between margin notes (default: 8pt).",
+        {
+          short: "Visual style for theorem environments in Typst output.",
+          long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
+        },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -25039,12 +25082,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "internal-schema-hack",
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         {
-          short: "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
-          long: "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
-        },
-        {
-          short: "Visual style for theorem environments in Typst output.",
-          long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
+          short: "Specifies the coloring style to be used in highlighted source\ncode.",
+          long: "Specifies the coloring style to be used in highlighted source\ncode.\nValid values:"
         }
       ],
       "schema/external-schemas.yml": [
@@ -25275,12 +25314,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 219987,
+        _internalId: 220811,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 219979,
+            _internalId: 220803,
             type: "enum",
             enum: [
               "png",
@@ -25296,7 +25335,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 219986,
+            _internalId: 220810,
             type: "anyOf",
             anyOf: [
               {

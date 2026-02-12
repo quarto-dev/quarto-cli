@@ -1,6 +1,6 @@
 ---
 title: Testing monokai code highlight
-highlight-style: monokai
+syntax-highlighting: monokai
 ---
 
 {{< include _body.md >}}

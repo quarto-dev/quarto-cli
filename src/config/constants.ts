@@ -543,7 +543,10 @@ export const kNumberDepth = "number-depth";
 export const kTopLevelDivision = "top-level-division";
 export const kPaperSize = "papersize";
 export const kLogFile = "log-file";
+// TODO: Deprecate kHighlightStyle in favor of kSyntaxHighlighting
+// Kept for backward compatibility with older documents using highlight-style
 export const kHighlightStyle = "highlight-style";
+export const kSyntaxHighlighting = "syntax-highlighting";
 export const kDefaultImageExtension = "default-image-extension";
 export const kLogo = "logo";
 export const kLinkColor = "linkcolor";
@@ -709,6 +712,7 @@ export const kPandocDefaultsKeys = [
   "ascii",
   kDefaultImageExtension,
   kHighlightStyle,
+  kSyntaxHighlighting,
   kSyntaxDefinitions,
   kSyntaxDefinition,
   kListings,

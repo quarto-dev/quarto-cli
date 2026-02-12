@@ -1,0 +1,22 @@
+---
+title: Reveal.js Idiomatic Warning
+format: revealjs
+syntax-highlighting: idiomatic
+_quarto:
+  tests:
+    revealjs:
+      noErrors: default
+      printsMessage:
+        level: WARN
+        regex: "syntax-highlighting: idiomatic is not supported for reveal.js"
+      ensureFileRegexMatches:
+        # Should still have skylighting highlighting (fallback worked)
+        - ["sourceCode", "class="]
+---
+
+Test that `syntax-highlighting: idiomatic` emits warning for reveal.js and falls back to default highlighting.
+
+```python
+def hello():
+    print("world")
+```

@@ -22,10 +22,18 @@ All changes included in 1.9:
 
 ## Formats
 
+### All Formats
+
+- ([#13878](https://github.com/quarto-dev/quarto-cli/issues/13878)): Add `syntax-highlighting` option replacing the deprecated `highlight-style` in Pandoc 3.8. It supports style names (e.g., `tango`, `github`), custom `.theme` files, `none` to disable highlighting, or `idiomatic` for native format highlighting. The `highlight-style` option remains supported but is deprecated.
+
 ### `gfm`
 
 - ([#13421](https://github.com/quarto-dev/quarto-cli/issues/13421)): Do not word-wrap titles in header.
 - ([#13603](https://github.com/quarto-dev/quarto-cli/issues/13603)): Fix callouts with title but no body content causing fatal error when rendering to GitHub Flavored Markdown.
+
+### `email`
+
+- ([#13882](https://github.com/quarto-dev/quarto-cli/pull/13882)): Add support for multiple email outputs when rendering to `format: email` for Posit Connect.
 
 ### `html`
 
@@ -56,7 +64,8 @@ All changes included in 1.9:
 - ([#13870](https://github.com/quarto-dev/quarto-cli/issues/13870)): Add support for `alt` attribute on cross-referenced equations for improved accessibility. (author: @mcanouil)
 - ([#13950](https://github.com/quarto-dev/quarto-cli/pull/13950)): Replace ctheorems with theorion package for theorem environments. Add `theorem-appearance` option to control styling: `simple` (default, classic LaTeX style), `fancy` (colored boxes with brand colors), `clouds` (rounded backgrounds), or `rainbow` (colored start border and colored title).
 - ([#13954](https://github.com/quarto-dev/quarto-cli/issues/13954)): Add support for Typst book projects via format extensions. Quarto now bundles the `orange-book` extension which provides a textbook-style format with chapter numbering, cross-references, and professional styling. Book projects with `format: typst` automatically use this extension.
-- ([#13978])(https://github.com/quarto-dev/quarto-cli/pull/13978)): Keep term and description together in definition lists to avoid breaking across pages. (author: @mcanouil)
+- ([#13978](https://github.com/quarto-dev/quarto-cli/pull/13978)): Keep term and description together in definition lists to avoid breaking across pages. (author: @mcanouil)
+- ([#13878](https://github.com/quarto-dev/quarto-cli/issues/13878)): Typst now uses Pandoc's skylighting for syntax highlighting by default (consistent with other formats). Use `syntax-highlighting: idiomatic` to opt-in to Typst's native syntax highlighting instead.
 
 ### `pdf`
 
@@ -73,6 +82,7 @@ All changes included in 1.9:
   - New `shorthands` variable for Babel language shortcuts control.
   - New `pdf-trailer-id` support for reproducible PDF builds.
   - New `cancel` package support for `\cancel` command in math.
+- ([#14017](https://github.com/quarto-dev/quarto-cli/issues/14017)): `tColorOptions()` in .tex file will now always have options in alphabetical order. Previously, they were in random order leading to a different .tex intermediates for identical .qmd.
 
 ### `revealjs`
 
@@ -97,6 +107,7 @@ All changes included in 1.9:
 - ([#13910](https://github.com/quarto-dev/quarto-cli/issues/13910)): Add support for `logo: false` to disable sidebar and navbar logos when using `_brand.yml`. Works in website projects (`sidebar.logo: false`, `navbar.logo: false`) and book projects (`book.sidebar.logo: false`, `book.navbar.logo: false`).
 - ([#13932](https://github.com/quarto-dev/quarto-cli/pull/13932)): Add `llms-txt: true` option to generate LLM-friendly content for websites. Creates `.llms.md` markdown files alongside HTML pages and a root `llms.txt` index file following the [llms.txt](https://llmstxt.org/) specification.
 - ([#13951](https://github.com/quarto-dev/quarto-cli/issues/13951)): Fix `image-lazy-loading` not applying `loading="lazy"` attribute to auto-detected listing images.
+- ([#14003](https://github.com/quarto-dev/quarto-cli/pull/14003)): Add text fragments to search result links so browsers scroll to and highlight the matched text on the target page.
 
 ### `book`
 
@@ -167,3 +178,4 @@ All changes included in 1.9:
 - ([#13992](https://github.com/quarto-dev/quarto-cli/issues/13992)): Fix crash when rendering div with both cross-reference ID and conditional visibility to PDF.
 - ([#13997](https://github.com/quarto-dev/quarto-cli/issues/13997)): Fix Windows dart-sass theme compilation failing when Quarto is installed in a path with spaces (e.g., `C:\Program Files\`) and the project path also contains spaces.
 - ([#13998](https://github.com/quarto-dev/quarto-cli/issues/13998)): Fix YAML validation error with CR-only line terminators (old Mac format). Documents using `\r` line endings no longer fail with "Expected YAML front matter to contain at least 2 lines".
+- ([#14012](https://github.com/quarto-dev/quarto-cli/issues/14012)): Add `fr-CA` language translation for Quebec French inclusive writing conventions, using parenthetical forms instead of middle dots for author labels. (author: @tdhock)

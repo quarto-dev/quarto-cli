@@ -93,6 +93,7 @@ import {
   kFreeze,
   kGladtex,
   kHighlightStyle,
+  kSyntaxHighlighting,
   kHtmlMathMethod,
   kHtmlPreTagProcessing,
   kHtmlTableProcessing,
@@ -594,6 +595,7 @@ export interface FormatPandoc {
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
   [kHighlightStyle]?: string | Record<string, string> | null;
+  [kSyntaxHighlighting]?: string | Record<string, string> | null;
   [kSectionDivs]?: boolean;
   [kHtmlMathMethod]?: string | { method: string; url: string };
   [kTopLevelDivision]?: string;
