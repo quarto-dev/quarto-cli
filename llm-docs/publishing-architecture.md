@@ -65,6 +65,7 @@ const kPublishProviders = [
   ghpagesProvider,
   rsconnectProvider,
   netlifyProvider,
+  positConnectCloudProvider,
   confluenceProvider,
   huggingfaceProvider,
 ];
@@ -72,7 +73,7 @@ const kPublishProviders = [
 
 Discovery functions: `publishProviders()`, `findProvider(name)`.
 
-There is also a deprecation warning for the old `posit-cloud` provider (removed in `142a8791f`) that suggests using `quarto-pub` instead. This should be updated when `posit-connect-cloud` is added.
+There is also a deprecation warning for the old `posit-cloud` provider (removed in `142a8791f`) that now suggests using `posit-connect-cloud` as an alternative.
 
 ## Two Publish Patterns
 
@@ -215,6 +216,7 @@ Each provider can check for env vars in `accountTokens()`. Convention:
 | `rsconnect` | B (bundle) | API key (`Key <key>`) | true |
 | `ghpages` | Custom (git push) | Git credentials | false |
 | `confluence` | Custom | API token | true |
+| `posit-connect-cloud` | B (bundle) | OAuth Device Code (RFC 8628) | false |
 | `huggingface` | Custom | HF token | false |
 
 ## Reusable Utilities

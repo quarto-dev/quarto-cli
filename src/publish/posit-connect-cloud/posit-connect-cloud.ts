@@ -347,12 +347,8 @@ async function publish(
     );
   }
 
-  let contentId: string;
-  let revisionId: string;
-  let uploadUrl: string;
-
   // Step 1: Prepare - create or update content
-  await withSpinner({
+  const { contentId, revisionId, uploadUrl } = await withSpinner({
     message: `Preparing to publish ${type}`,
   }, async () => {
     if (!target) {
@@ -363,21 +359,22 @@ async function publish(
         title,
         "index.html",
       );
-      contentId = content.id;
       if (!content.next_revision?.source_bundle_upload_url) {
         throw new Error(
           "Content creation did not return an upload URL",
         );
       }
-      revisionId = content.next_revision.id;
-      uploadUrl = content.next_revision.source_bundle_upload_url;
       debug(
-        `[publish][posit-connect-cloud] Content created: ${contentId}`,
+        `[publish][posit-connect-cloud] Content created: ${content.id}`,
       );
+      return {
+        contentId: content.id,
+        revisionId: content.next_revision.id,
+        uploadUrl: content.next_revision.source_bundle_upload_url,
+      };
     } else {
       // Existing content - check if first publish or update
       const content = await client.getContent(target.id);
-      contentId = content.id;
 
       if (content.state === "deleted") {
         throw new Error(
@@ -396,13 +393,16 @@ async function publish(
             "Content has no upload URL in next_revision",
           );
         }
-        revisionId = content.next_revision.id;
-        uploadUrl = content.next_revision.source_bundle_upload_url;
+        return {
+          contentId: content.id,
+          revisionId: content.next_revision.id,
+          uploadUrl: content.next_revision.source_bundle_upload_url,
+        };
       } else {
         // Subsequent publish - PATCH to create new revision
         debug("[publish][posit-connect-cloud] Updating existing content");
         const updated = await client.updateContent(
-          contentId,
+          content.id,
           "index.html",
         );
         if (!updated.next_revision?.source_bundle_upload_url) {
@@ -410,8 +410,11 @@ async function publish(
             "Content update did not return an upload URL",
           );
         }
-        revisionId = updated.next_revision.id;
-        uploadUrl = updated.next_revision.source_bundle_upload_url;
+        return {
+          contentId: content.id,
+          revisionId: updated.next_revision.id,
+          uploadUrl: updated.next_revision.source_bundle_upload_url,
+        };
       }
     }
   });
@@ -431,18 +434,18 @@ async function publish(
         publishFiles,
         tempContext,
       );
-      const bundleBytes = Deno.readFileSync(bundlePath);
+      const bundleBytes = await Deno.readFile(bundlePath);
       debug(
         `[publish][posit-connect-cloud] Bundle: ${publishFiles.files.length} files, ${bundleBytes.length} bytes compressed`,
       );
-      await client.uploadBundle(uploadUrl!, bundleBytes);
+      await client.uploadBundle(uploadUrl, bundleBytes);
     });
 
     // Step 4: Publish and poll
     await withSpinner({
       message: `Publishing ${type}`,
     }, async () => {
-      await client.publishContent(contentId!);
+      await client.publishContent(contentId);
 
       // Poll revision status
       const pollStartTime = Date.now();
@@ -455,7 +458,7 @@ async function publish(
           );
         }
 
-        const revision = await client.getRevision(revisionId!);
+        const revision = await client.getRevision(revisionId);
 
         // Log status changes
         if (revision.status && revision.status !== lastStatus) {
@@ -482,11 +485,11 @@ async function publish(
     });
 
     // Build the content URL
-    const contentUrl = client.contentUrl(accountName, contentId!);
+    const contentUrl = client.contentUrl(accountName, contentId);
     completeMessage(`Published: ${contentUrl}\n`);
 
     const publishRecord: PublishRecord = {
-      id: contentId!,
+      id: contentId,
       url: contentUrl,
       code: false,
     };
