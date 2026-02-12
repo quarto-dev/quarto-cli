@@ -1,7 +1,7 @@
 /*
  * cmd.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2026 Posit Software, PBC
  */
 
 import { existsSync } from "../../deno_ral/fs.ts";
@@ -50,6 +50,7 @@ export const publishCommand =
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
+        " - Posit Connect Cloud (posit-connect-cloud)\n" +
         " - Netlify (netlify)\n" +
         " - Confluence (confluence)\n" +
         " - Hugging Face Spaces (huggingface)\n\n" +

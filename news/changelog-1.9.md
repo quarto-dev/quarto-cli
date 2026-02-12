@@ -118,6 +118,10 @@ All changes included in 1.9:
 
 ## Publishing
 
+### Posit Connect Cloud
+
+- ([#14027](https://github.com/quarto-dev/quarto-cli/issues/14027)): Add `quarto publish posit-connect-cloud` for publishing static content to Posit Connect Cloud.
+
 ### Confluence
 
 - ([#13414](https://github.com/quarto-dev/quarto-cli/issues/13414)): Be more forgiving when Confluence server returns malformed JSON response. (author: @m1no)
