@@ -449,6 +449,12 @@ async function checkInstall(conf: CheckConfiguration) {
     const chromiumQuarto = chromiumTool && await chromiumTool.installed()
       ? chromiumTool
       : undefined;
+    if (envPath && !safeExistsSync(envPath)) {
+      chromeHeadlessOutput.push(
+        `${kIndent}NOTE: QUARTO_CHROMIUM is set to ${envPath} but the path does not exist.`,
+      );
+      chromeJson["QUARTO_CHROMIUM_invalid"] = envPath;
+    }
     if (envPath && safeExistsSync(envPath)) {
       chromeHeadlessOutput.push(`${kIndent}Using: Chrome from QUARTO_CHROMIUM`);
       chromeHeadlessOutput.push(`${kIndent}Path: ${envPath}`);

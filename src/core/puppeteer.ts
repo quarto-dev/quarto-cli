@@ -282,9 +282,13 @@ export async function getBrowserExecutablePath() {
 
   // Priority 1: QUARTO_CHROMIUM env var
   const envPath = Deno.env.get("QUARTO_CHROMIUM");
-  if (envPath && safeExistsSync(envPath)) {
-    debug(`[CHROMIUM] Using QUARTO_CHROMIUM: ${envPath}`);
-    executablePath = envPath;
+  if (envPath) {
+    if (safeExistsSync(envPath)) {
+      debug(`[CHROMIUM] Using QUARTO_CHROMIUM: ${envPath}`);
+      executablePath = envPath;
+    } else {
+      debug(`[CHROMIUM] QUARTO_CHROMIUM is set to ${envPath} but the path does not exist. Searching for another browser.`);
+    }
   }
 
   // Priority 2: Quarto-installed chrome-headless-shell
