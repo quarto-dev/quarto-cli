@@ -474,16 +474,20 @@ async function checkInstall(conf: CheckConfiguration) {
       chromeHeadlessOutput.push(
         `${kIndent}Using: Chromium installed by Quarto`,
       );
-      if (chromiumQuarto?.binDir) {
-        chromeHeadlessOutput.push(
-          `${kIndent}Path: ${chromiumQuarto?.binDir}`,
-        );
-        chromeJson["path"] = chromiumQuarto?.binDir;
+      if (chromiumQuarto.binDir) {
+        const binPath = await chromiumQuarto.binDir();
+        if (binPath) {
+          chromeHeadlessOutput.push(
+            `${kIndent}Path: ${binPath}`,
+          );
+          chromeJson["path"] = binPath;
+        }
       }
+      const chromiumVersion = await chromiumQuarto.installedVersion();
       chromeHeadlessOutput.push(
-        `${kIndent}Version: ${chromiumQuarto.installedVersion}`,
+        `${kIndent}Version: ${chromiumVersion}`,
       );
-      chromeJson["version"] = chromiumQuarto.installedVersion;
+      chromeJson["version"] = chromiumVersion;
     } else {
       chromeHeadlessOutput.push(`${kIndent}Chrome:  (not detected)`);
       chromeJson["installed"] = false;
