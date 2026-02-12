@@ -1,0 +1,18 @@
+---
+title: "Issue 14017"
+code-block-bg: true
+format:
+  pdf:
+    keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['boxrule=0pt, breakable, enhanced, frame hidden, interior hidden, sharp corners']
+        - []
+---
+
+```r
+1 + 1
+```
