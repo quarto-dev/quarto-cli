@@ -14479,6 +14479,26 @@ try {
             description: "Visual editor configuration"
           },
           {
+            name: "editor_options",
+            schema: {
+              object: {
+                properties: {
+                  chunk_output_type: {
+                    enum: [
+                      "inline",
+                      "console"
+                    ],
+                    description: "Determines where chunk output is shown in the editor."
+                  }
+                }
+              }
+            },
+            description: {
+              short: "Editor-specific options (used by RStudio and Positron).",
+              long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure\nper-document editor settings.\n"
+            }
+          },
+          {
             name: "zotero",
             schema: {
               anyOf: [
@@ -25076,7 +25096,12 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+          {
+            short: "Editor-specific options (used by RStudio and Positron).",
+            long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
+          },
+          "Determines where chunk output is shown in the editor."
         ],
         "schema/external-schemas.yml": [
           {
@@ -25306,12 +25331,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 221789,
+          _internalId: 221795,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 221781,
+              _internalId: 221787,
               type: "enum",
               enum: [
                 "png",
@@ -25327,7 +25352,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 221788,
+              _internalId: 221794,
               type: "anyOf",
               anyOf: [
                 {
@@ -25637,7 +25662,7 @@ ${heading}`;
 
   // ../text.ts
   function lines(text) {
-    return text.split(/\r?\n/);
+    return text.split(/\r\n?|\n/);
   }
   function* matchAll(text, regexp) {
     if (!regexp.global) {
@@ -25650,7 +25675,7 @@ ${heading}`;
   }
   function* lineOffsets(text) {
     yield 0;
-    for (const match of matchAll(text, /\r?\n/g)) {
+    for (const match of matchAll(text, /\r\n?|\n/g)) {
       yield match.index + match[0].length;
     }
   }
@@ -25836,7 +25861,7 @@ ${heading}`;
     return result;
   }
   function rangedLines(text, includeNewLines = false) {
-    const regex = /\r?\n/g;
+    const regex = /\r\n?|\n/g;
     const result = [];
     let startOffset = 0;
     if (!includeNewLines) {
@@ -34709,7 +34734,7 @@ ${tidyverseInfo(
     };
     const yamlRegEx = /^---\s*$/;
     const startCodeCellRegEx = startCodeCellRegex || new RegExp(
-      "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
+      "^\\s*(```+)\\s*\\{([=A-Za-z][=A-Za-z0-9._]*)( *[ ,].*)?\\}\\s*$"
     );
     const startCodeRegEx = /^```/;
     const endCodeRegEx = /^\s*(```+)\s*$/;
