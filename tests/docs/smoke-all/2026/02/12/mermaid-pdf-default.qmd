@@ -1,10 +1,15 @@
 ---
 title: "Mermaid to PDF (#11877)"
-format: pdf
+format:
+  pdf:
+    keep-tex: true
 _quarto:
   tests:
     pdf:
       noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\includegraphics.*mermaid-figure-1\.png']
+        - []
 ---
 
 ## Mermaid Flowchart

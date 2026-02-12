@@ -1,10 +1,15 @@
 ---
 title: "Mermaid to Typst (#11877)"
-format: typst
+format:
+  typst:
+    keep-typ: true
 _quarto:
   tests:
     typst:
       noErrors: default
+      ensureTypstFileRegexMatches:
+        - ['image\(.*mermaid-figure-1\.png']
+        - []
 ---
 
 ## Mermaid Flowchart
