@@ -484,10 +484,12 @@ async function checkInstall(conf: CheckConfiguration) {
         }
       }
       const chromiumVersion = await chromiumQuarto.installedVersion();
-      chromeHeadlessOutput.push(
-        `${kIndent}Version: ${chromiumVersion}`,
-      );
-      chromeJson["version"] = chromiumVersion;
+      if (chromiumVersion) {
+        chromeHeadlessOutput.push(
+          `${kIndent}Version: ${chromiumVersion}`,
+        );
+        chromeJson["version"] = chromiumVersion;
+      }
     } else {
       chromeHeadlessOutput.push(`${kIndent}Chrome:  (not detected)`);
       chromeJson["installed"] = false;
