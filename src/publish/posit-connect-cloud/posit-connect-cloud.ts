@@ -30,27 +30,27 @@ import { sleep } from "../../core/wait.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 
 import {
-  ConnectCloudClient,
   getEnvironment,
   getEnvironmentConfig,
   initiateDeviceAuth,
   pollForToken,
+  PositConnectCloudClient,
   readStoredTokens,
   writeStoredToken,
   writeStoredTokens,
 } from "./api/index.ts";
-import { Account, ConnectCloudToken } from "./api/types.ts";
+import { Account, PositConnectCloudToken } from "./api/types.ts";
 
-export const kConnectCloud = "posit-connect-cloud";
-const kConnectCloudDescription = "Posit Connect Cloud";
-const kConnectCloudAccessTokenVar = "CONNECT_CLOUD_ACCESS_TOKEN";
-const kConnectCloudRefreshTokenVar = "CONNECT_CLOUD_REFRESH_TOKEN";
-const kConnectCloudAccountIdVar = "CONNECT_CLOUD_ACCOUNT_ID";
+export const kPositConnectCloud = "posit-connect-cloud";
+const kPositConnectCloudDescription = "Posit Connect Cloud";
+const kPositConnectCloudAccessTokenVar = "POSIT_CONNECT_CLOUD_ACCESS_TOKEN";
+const kPositConnectCloudRefreshTokenVar = "POSIT_CONNECT_CLOUD_REFRESH_TOKEN";
+const kPositConnectCloudAccountIdVar = "POSIT_CONNECT_CLOUD_ACCOUNT_ID";
 const kRevisionPollTimeoutMs = 30 * 60 * 1000; // 30 minutes
 
-export const connectCloudProvider: PublishProvider = {
-  name: kConnectCloud,
-  description: kConnectCloudDescription,
+export const positConnectCloudProvider: PublishProvider = {
+  name: kPositConnectCloud,
+  description: kPositConnectCloudDescription,
   requiresServer: false,
   listOriginOnly: false,
   accountTokens,
@@ -66,12 +66,12 @@ function accountTokens(): Promise<AccountToken[]> {
   const accounts: AccountToken[] = [];
 
   // Check for environment variable token (CI/CD)
-  // See also: CONNECT_CLOUD_REFRESH_TOKEN, CONNECT_CLOUD_ACCOUNT_ID
-  const envToken = Deno.env.get(kConnectCloudAccessTokenVar);
+  // See also: POSIT_CONNECT_CLOUD_REFRESH_TOKEN, POSIT_CONNECT_CLOUD_ACCOUNT_ID
+  const envToken = Deno.env.get(kPositConnectCloudAccessTokenVar);
   if (envToken) {
     accounts.push({
       type: AccountTokenType.Environment,
-      name: kConnectCloudAccessTokenVar,
+      name: kPositConnectCloudAccessTokenVar,
       server: null,
       token: envToken,
     });
@@ -97,13 +97,13 @@ function accountTokens(): Promise<AccountToken[]> {
 async function authorizeToken(
   _options: PublishOptions,
 ): Promise<AccountToken | undefined> {
-  if (!await authorizePrompt(connectCloudProvider)) {
+  if (!await authorizePrompt(positConnectCloudProvider)) {
     return undefined;
   }
 
   const env = getEnvironmentConfig();
   debug(
-    `[publish][connect-cloud] Starting authorization (env: ${getEnvironment()}, client_id: ${env.clientId})`,
+    `[publish][posit-connect-cloud] Starting authorization (env: ${getEnvironment()}, client_id: ${env.clientId})`,
   );
 
   // Step 1: Initiate device authorization
@@ -141,10 +141,10 @@ async function authorizeToken(
   );
 
   // Step 4: Verify token and get user info
-  const client = new ConnectCloudClient(tokenResponse.access_token);
+  const client = new PositConnectCloudClient(tokenResponse.access_token);
   const user = await client.getUser();
   debug(
-    `[publish][connect-cloud] Authenticated as: ${user.display_name} (${user.email})`,
+    `[publish][posit-connect-cloud] Authenticated as: ${user.display_name} (${user.email})`,
   );
 
   // Step 5: Get accounts with publishing permissions
@@ -198,7 +198,7 @@ async function authorizeToken(
           if (found.length > 0) break;
         } catch (err) {
           debug(
-            `[publish][connect-cloud] Account polling error (will retry): ${err}`,
+            `[publish][posit-connect-cloud] Account polling error (will retry): ${err}`,
           );
         }
       }
@@ -214,7 +214,7 @@ async function authorizeToken(
   } else if (publishableAccounts.length === 1) {
     selectedAccount = publishableAccounts[0];
     debug(
-      `[publish][connect-cloud] Auto-selected account: ${selectedAccount.name}`,
+      `[publish][posit-connect-cloud] Auto-selected account: ${selectedAccount.name}`,
     );
   } else {
     // Multiple accounts - prompt user
@@ -236,7 +236,7 @@ async function authorizeToken(
   );
 
   // Step 7: Store token
-  const storedToken: ConnectCloudToken = {
+  const storedToken: PositConnectCloudToken = {
     username: user.display_name || user.email,
     accountId: selectedAccount.id,
     accountName: selectedAccount.name,
@@ -246,7 +246,7 @@ async function authorizeToken(
     environment: getEnvironment(),
   };
   writeStoredToken(storedToken);
-  debug("[publish][connect-cloud] Token stored");
+  debug("[publish][posit-connect-cloud] Token stored");
 
   return {
     type: AccountTokenType.Authorized,
@@ -274,7 +274,7 @@ async function resolveTarget(
     const content = await client.getContent(target.id);
     if (content.state === "deleted") {
       debug(
-        `[publish][connect-cloud] Content ${target.id} is deleted, treating as not found`,
+        `[publish][posit-connect-cloud] Content ${target.id} is deleted, treating as not found`,
       );
       return undefined;
     }
@@ -307,10 +307,12 @@ async function publish(
   let accountId = storedToken?.accountId || "";
 
   // For environment tokens (CI/CD), resolve account via API.
-  // Honors CONNECT_CLOUD_ACCOUNT_ID env var to select a specific account;
+  // Honors POSIT_CONNECT_CLOUD_ACCOUNT_ID env var to select a specific account;
   // without it, auto-selects the first publishable account.
   if (!storedToken && account.type === AccountTokenType.Environment) {
-    debug("[publish][connect-cloud] Resolving account for environment token");
+    debug(
+      "[publish][posit-connect-cloud] Resolving account for environment token",
+    );
     const accounts = await client.listAccounts();
     const publishable = accounts.filter((a) =>
       a.permissions?.includes("content:create")
@@ -320,7 +322,7 @@ async function publish(
         "No publishable accounts found for the provided access token.",
       );
     }
-    const envAccountId = Deno.env.get(kConnectCloudAccountIdVar);
+    const envAccountId = Deno.env.get(kPositConnectCloudAccountIdVar);
     if (envAccountId) {
       const match = publishable.find((a) => a.id === envAccountId);
       if (!match) {
@@ -336,12 +338,12 @@ async function publish(
       if (publishable.length > 1) {
         warning(
           `Multiple publishable accounts found. Using "${accountName}". ` +
-            `Set ${kConnectCloudAccountIdVar} to select a specific account.`,
+            `Set ${kPositConnectCloudAccountIdVar} to select a specific account.`,
         );
       }
     }
     debug(
-      `[publish][connect-cloud] Resolved account: ${accountName} (${accountId})`,
+      `[publish][posit-connect-cloud] Resolved account: ${accountName} (${accountId})`,
     );
   }
 
@@ -355,7 +357,7 @@ async function publish(
   }, async () => {
     if (!target) {
       // New content
-      debug("[publish][connect-cloud] Creating new content");
+      debug("[publish][posit-connect-cloud] Creating new content");
       const content = await client.createContent(
         accountId,
         title,
@@ -370,7 +372,7 @@ async function publish(
       revisionId = content.next_revision.id;
       uploadUrl = content.next_revision.source_bundle_upload_url;
       debug(
-        `[publish][connect-cloud] Content created: ${contentId}`,
+        `[publish][posit-connect-cloud] Content created: ${contentId}`,
       );
     } else {
       // Existing content - check if first publish or update
@@ -387,7 +389,7 @@ async function publish(
       if (content.current_revision === null) {
         // First publish after creation - use existing next_revision
         debug(
-          "[publish][connect-cloud] First publish (no current_revision), using existing next_revision",
+          "[publish][posit-connect-cloud] First publish (no current_revision), using existing next_revision",
         );
         if (!content.next_revision?.source_bundle_upload_url) {
           throw new Error(
@@ -398,7 +400,7 @@ async function publish(
         uploadUrl = content.next_revision.source_bundle_upload_url;
       } else {
         // Subsequent publish - PATCH to create new revision
-        debug("[publish][connect-cloud] Updating existing content");
+        debug("[publish][posit-connect-cloud] Updating existing content");
         const updated = await client.updateContent(
           contentId,
           "index.html",
@@ -431,7 +433,7 @@ async function publish(
       );
       const bundleBytes = Deno.readFileSync(bundlePath);
       debug(
-        `[publish][connect-cloud] Bundle: ${publishFiles.files.length} files, ${bundleBytes.length} bytes compressed`,
+        `[publish][posit-connect-cloud] Bundle: ${publishFiles.files.length} files, ${bundleBytes.length} bytes compressed`,
       );
       await client.uploadBundle(uploadUrl!, bundleBytes);
     });
@@ -458,7 +460,7 @@ async function publish(
         // Log status changes
         if (revision.status && revision.status !== lastStatus) {
           debug(
-            `[publish][connect-cloud] Revision status: ${revision.status}`,
+            `[publish][posit-connect-cloud] Revision status: ${revision.status}`,
           );
           lastStatus = revision.status;
         }
@@ -504,14 +506,14 @@ function isNotFound(err: Error): boolean {
 
 // --- Helpers ---
 
-function clientForAccount(account: AccountToken): ConnectCloudClient {
+function clientForAccount(account: AccountToken): PositConnectCloudClient {
   const storedToken = findStoredToken(account);
 
   // For environment tokens, check for optional refresh token
   if (account.type === AccountTokenType.Environment) {
-    const refreshToken = Deno.env.get(kConnectCloudRefreshTokenVar);
+    const refreshToken = Deno.env.get(kPositConnectCloudRefreshTokenVar);
     if (refreshToken) {
-      const pseudoToken: ConnectCloudToken = {
+      const pseudoToken: PositConnectCloudToken = {
         username: account.name,
         accountId: "",
         accountName: account.name,
@@ -520,17 +522,17 @@ function clientForAccount(account: AccountToken): ConnectCloudClient {
         expiresAt: 0, // Unknown for env tokens; rely on reactive refresh
         environment: getEnvironment(),
       };
-      return new ConnectCloudClient(account.token, pseudoToken);
+      return new PositConnectCloudClient(account.token, pseudoToken);
     }
-    return new ConnectCloudClient(account.token);
+    return new PositConnectCloudClient(account.token);
   }
 
-  return new ConnectCloudClient(account.token, storedToken);
+  return new PositConnectCloudClient(account.token, storedToken);
 }
 
 function findStoredToken(
   account: AccountToken,
-): ConnectCloudToken | undefined {
+): PositConnectCloudToken | undefined {
   const currentEnv = getEnvironment();
   return readStoredTokens().find(
     (t) => t.accountName === account.name && t.environment === currentEnv,

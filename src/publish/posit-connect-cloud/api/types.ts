@@ -8,7 +8,10 @@
 
 // Environment configuration
 
-export type ConnectCloudEnvironment = "production" | "staging" | "development";
+export type PositConnectCloudEnvironment =
+  | "production"
+  | "staging"
+  | "development";
 
 export interface EnvironmentConfig {
   authHost: string;
@@ -19,7 +22,7 @@ export interface EnvironmentConfig {
 
 // Token storage (persisted in accounts.json)
 
-export interface ConnectCloudToken {
+export interface PositConnectCloudToken {
   username: string;
   accountId: string;
   accountName: string;

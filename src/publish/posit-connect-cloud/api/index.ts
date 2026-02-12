@@ -14,12 +14,12 @@ import { ApiError } from "../../types.ts";
 
 import {
   Account,
-  ConnectCloudEnvironment,
-  ConnectCloudToken,
   Content,
   DeviceAuthResponse,
   EnvironmentConfig,
   PaginatedResponse,
+  PositConnectCloudEnvironment,
+  PositConnectCloudToken,
   Revision,
   TokenResponse,
   User,
@@ -33,7 +33,7 @@ import {
 
 const kProviderName = "posit-connect-cloud";
 
-const kEnvironments: Record<ConnectCloudEnvironment, EnvironmentConfig> = {
+const kEnvironments: Record<PositConnectCloudEnvironment, EnvironmentConfig> = {
   production: {
     authHost: "login.posit.cloud",
     apiHost: "api.connect.posit.cloud",
@@ -54,8 +54,8 @@ const kEnvironments: Record<ConnectCloudEnvironment, EnvironmentConfig> = {
   },
 };
 
-export function getEnvironment(): ConnectCloudEnvironment {
-  const env = Deno.env.get("CONNECT_CLOUD_ENVIRONMENT");
+export function getEnvironment(): PositConnectCloudEnvironment {
+  const env = Deno.env.get("POSIT_CONNECT_CLOUD_ENVIRONMENT");
   if (env === "staging" || env === "development" || env === "production") {
     return env;
   }
@@ -70,20 +70,20 @@ export function getEnvironmentConfig(): EnvironmentConfig {
 // Proactive refresh threshold: 5 minutes before expiry
 const kRefreshThresholdMs = 5 * 60 * 1000;
 
-export class ConnectCloudClient {
+export class PositConnectCloudClient {
   private env_: EnvironmentConfig;
   private accessToken_: string;
-  private storedToken_: ConnectCloudToken | undefined;
+  private storedToken_: PositConnectCloudToken | undefined;
 
   constructor(
     accessToken: string,
-    storedToken?: ConnectCloudToken,
+    storedToken?: PositConnectCloudToken,
   ) {
     this.env_ = getEnvironmentConfig();
     this.accessToken_ = accessToken;
     this.storedToken_ = storedToken;
     debug(
-      `[publish][connect-cloud] Client created for ${this.env_.apiHost}`,
+      `[publish][posit-connect-cloud] Client created for ${this.env_.apiHost}`,
     );
   }
 
@@ -117,7 +117,7 @@ export class ConnectCloudClient {
       secrets: [],
     };
     debug(
-      `[publish][connect-cloud] POST /contents (title: ${title}, account: ${accountId})`,
+      `[publish][posit-connect-cloud] POST /contents (title: ${title}, account: ${accountId})`,
     );
     return await this.apiPost<Content>("contents", body);
   }
@@ -138,7 +138,7 @@ export class ConnectCloudClient {
       },
     };
     debug(
-      `[publish][connect-cloud] PATCH /contents/${contentId}?new_bundle=true`,
+      `[publish][posit-connect-cloud] PATCH /contents/${contentId}?new_bundle=true`,
     );
     return await this.apiFetch<Content>(
       "PATCH",
@@ -149,7 +149,7 @@ export class ConnectCloudClient {
 
   public async uploadBundle(uploadUrl: string, bundleData: Uint8Array) {
     debug(
-      `[publish][connect-cloud] Uploading bundle (${bundleData.length} bytes)`,
+      `[publish][posit-connect-cloud] Uploading bundle (${bundleData.length} bytes)`,
     );
     const response = await fetch(uploadUrl, {
       method: "POST",
@@ -166,11 +166,11 @@ export class ConnectCloudClient {
         text || undefined,
       );
     }
-    debug("[publish][connect-cloud] Bundle uploaded successfully");
+    debug("[publish][posit-connect-cloud] Bundle uploaded successfully");
   }
 
   public async publishContent(contentId: string) {
-    debug(`[publish][connect-cloud] POST /contents/${contentId}/publish`);
+    debug(`[publish][posit-connect-cloud] POST /contents/${contentId}/publish`);
     const url = `https://${this.env_.apiHost}/v1/contents/${contentId}/publish`;
     const response = await this.fetchWithRetry_("POST", url, {
       "Accept": "application/json",
@@ -197,7 +197,7 @@ export class ConnectCloudClient {
     const now = Date.now();
     if (now >= this.storedToken_.expiresAt - kRefreshThresholdMs) {
       debug(
-        "[publish][connect-cloud] Token refresh: proactive (expires soon)",
+        "[publish][posit-connect-cloud] Token refresh: proactive (expires soon)",
       );
       await this.tryRefreshToken_();
     }
@@ -224,11 +224,11 @@ export class ConnectCloudClient {
         (a, b) =>
           a.accountId === b.accountId && a.environment === b.environment,
       );
-      debug("[publish][connect-cloud] Token refreshed and persisted");
+      debug("[publish][posit-connect-cloud] Token refreshed and persisted");
       return true;
     } catch (err) {
       debug(
-        `[publish][connect-cloud] Token refresh failed: ${err}`,
+        `[publish][posit-connect-cloud] Token refresh failed: ${err}`,
       );
       return false;
     }
@@ -293,7 +293,7 @@ export class ConnectCloudClient {
 
     // On 401, try refresh + retry once
     if (response.status === 401 && await this.tryRefreshToken_()) {
-      debug("[publish][connect-cloud] Retrying after token refresh");
+      debug("[publish][posit-connect-cloud] Retrying after token refresh");
       const retryResponse = await fetch(url, {
         method,
         headers: {
@@ -329,7 +329,7 @@ export async function initiateDeviceAuth(
     client_id: env.clientId,
   });
   debug(
-    `[publish][connect-cloud] OAuth: initiating device authorization (client_id: ${env.clientId})`,
+    `[publish][posit-connect-cloud] OAuth: initiating device authorization (client_id: ${env.clientId})`,
   );
   const response = await fetch(
     `https://${env.authHost}/oauth/device/authorize`,
@@ -369,7 +369,7 @@ export async function pollForToken(
 
   while (true) {
     debug(
-      `[publish][connect-cloud] OAuth: polling for token (interval: ${interval}s)`,
+      `[publish][posit-connect-cloud] OAuth: polling for token (interval: ${interval}s)`,
     );
     await sleep(interval * 1000);
 
@@ -386,7 +386,7 @@ export async function pollForToken(
     });
 
     if (response.ok) {
-      debug("[publish][connect-cloud] OAuth: token received");
+      debug("[publish][posit-connect-cloud] OAuth: token received");
       return await response.json() as TokenResponse;
     }
 
@@ -407,7 +407,7 @@ export async function pollForToken(
       case "slow_down":
         interval += 5;
         debug(
-          `[publish][connect-cloud] OAuth: slow_down, new interval: ${interval}s`,
+          `[publish][posit-connect-cloud] OAuth: slow_down, new interval: ${interval}s`,
         );
         break;
       case "expired_token":
@@ -438,7 +438,7 @@ export async function refreshAccessToken(
     grant_type: "refresh_token",
     refresh_token: refreshToken,
   });
-  debug("[publish][connect-cloud] Refreshing access token");
+  debug("[publish][posit-connect-cloud] Refreshing access token");
   const response = await fetch(
     `https://${env.authHost}/oauth/token`,
     {
@@ -460,15 +460,15 @@ export async function refreshAccessToken(
 
 // --- Token storage helpers ---
 
-export function readStoredTokens(): ConnectCloudToken[] {
-  return readAccessTokens<ConnectCloudToken>(kProviderName) || [];
+export function readStoredTokens(): PositConnectCloudToken[] {
+  return readAccessTokens<PositConnectCloudToken>(kProviderName) || [];
 }
 
-export function writeStoredTokens(tokens: ConnectCloudToken[]) {
+export function writeStoredTokens(tokens: PositConnectCloudToken[]) {
   writeAccessTokens(kProviderName, tokens);
 }
 
-export function writeStoredToken(token: ConnectCloudToken) {
+export function writeStoredToken(token: PositConnectCloudToken) {
   writeAccessToken(
     kProviderName,
     token,

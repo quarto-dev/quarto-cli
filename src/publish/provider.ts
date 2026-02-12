@@ -10,7 +10,7 @@ import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
 import { confluenceProvider } from "./confluence/confluence.ts";
 import { huggingfaceProvider } from "./huggingface/huggingface.ts";
-import { connectCloudProvider } from "./posit-connect-cloud/posit-connect-cloud.ts";
+import { positConnectCloudProvider } from "./posit-connect-cloud/posit-connect-cloud.ts";
 import { AccountToken } from "./provider-types.ts";
 import { warning } from "../deno_ral/log.ts";
 
@@ -23,7 +23,7 @@ const kPublishProviders = [
   ghpagesProvider,
   rsconnectProvider,
   netlifyProvider,
-  connectCloudProvider,
+  positConnectCloudProvider,
   confluenceProvider,
   huggingfaceProvider,
 ];
