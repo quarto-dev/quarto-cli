@@ -36,7 +36,7 @@ export const installCommand = new Command()
     "Update system path when a tool is installed",
   )
   .description(
-    `Installs an extension or global dependency (${installableToolNames().join(", ")}).`,
+    `Installs a global dependency (${installableToolNames().join(", ")}).`,
   )
   .example(
     "Install TinyTeX",

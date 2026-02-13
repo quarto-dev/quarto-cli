@@ -27,7 +27,7 @@ export const uninstallCommand = new Command()
     "Update system path when a tool is installed",
   )
   .description(
-    `Removes an extension or global dependency (${installableToolNames().join(", ")}).`,
+    `Uninstalls a global dependency (${installableToolNames().join(", ")}).`,
   )
   .example(
     "Remove extension using name",
