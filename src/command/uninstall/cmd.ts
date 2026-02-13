@@ -30,8 +30,8 @@ export const uninstallCommand = new Command()
     `Uninstalls a global dependency (${installableToolNames().join(", ")}).`,
   )
   .example(
-    "Remove extension using name",
-    "quarto remove <extension-name>",
+    "Uninstall TinyTeX",
+    "quarto uninstall tinytex",
   )
   .example(
     "Uninstall Chrome Headless Shell",
