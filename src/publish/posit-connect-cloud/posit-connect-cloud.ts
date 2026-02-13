@@ -366,7 +366,7 @@ async function publish(
   }, async () => {
     if (!target) {
       // Guard: accountId is required for content creation
-      if (!accountId) {
+      if (!accountId?.trim()) {
         throw new Error(
           "Account ID not found. Please re-authorize with " +
             "'quarto publish posit-connect-cloud --authorize'.",
