@@ -22,7 +22,7 @@ _quarto:
           # Page columns set via set page()
           - 'columns: 2,'
           # Title block wrapped with place(scope: "parent") for column spanning
-          - 'place\(top, float: true, scope: "parent", clearance: 4mm\)'
+          - 'place\(top, float: true, scope: "parent", clearance: 4mm, block\(below: 1em, width: 100%\)'
           # Landscape page start
           - '#set page\(flipped: true\)'
           # Landscape page end
