@@ -22,6 +22,7 @@ import {
 import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 import { authorizePrompt } from "../account.ts";
 import { createBundle } from "../common/bundle.ts";
+import { renderForPublish } from "../common/publish.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { openUrl } from "../../core/shell.ts";
@@ -64,6 +65,8 @@ export const positConnectCloudProvider: PublishProvider = {
 
 function accountTokens(): Promise<AccountToken[]> {
   const accounts: AccountToken[] = [];
+  const env = getEnvironmentConfig();
+  const serverUrl = `https://${env.uiHost}`;
 
   // Check for environment variable token (CI/CD)
   // See also: POSIT_CONNECT_CLOUD_REFRESH_TOKEN, POSIT_CONNECT_CLOUD_ACCOUNT_ID
@@ -72,7 +75,7 @@ function accountTokens(): Promise<AccountToken[]> {
     accounts.push({
       type: AccountTokenType.Environment,
       name: kPositConnectCloudAccessTokenVar,
-      server: null,
+      server: serverUrl,
       token: envToken,
     });
   }
@@ -85,7 +88,7 @@ function accountTokens(): Promise<AccountToken[]> {
       accounts.push({
         type: AccountTokenType.Authorized,
         name: stored.accountName,
-        server: null,
+        server: serverUrl,
         token: stored.accessToken,
       });
     }
@@ -140,12 +143,21 @@ async function authorizeToken(
     deviceAuth.expires_in,
   );
 
-  // Step 4: Verify token and get user info
+  // Step 4: Verify token and get user info (non-fatal if signup incomplete)
   const client = new PositConnectCloudClient(tokenResponse.access_token);
-  const user = await client.getUser();
-  debug(
-    `[publish][posit-connect-cloud] Authenticated as: ${user.display_name} (${user.email})`,
-  );
+  try {
+    const user = await client.getUser();
+    debug(
+      `[publish][posit-connect-cloud] Authenticated as: ${user.display_name} (${user.email})`,
+    );
+  } catch (err) {
+    // 401 means Connect Cloud signup incomplete — user authenticated with Posit
+    // but hasn't created a Connect Cloud account yet. The account creation flow
+    // in Step 6 below handles this. (rsconnect skips getUser entirely.)
+    if (!(err instanceof ApiError && err.status === 401)) {
+      throw err;
+    }
+  }
 
   // Step 5: Get accounts with publishing permissions
   let accounts: Account[];
@@ -237,7 +249,7 @@ async function authorizeToken(
 
   // Step 7: Store token
   const storedToken: PositConnectCloudToken = {
-    username: user.display_name || user.email,
+    username: selectedAccount.display_name || selectedAccount.name,
     accountId: selectedAccount.id,
     accountName: selectedAccount.name,
     accessToken: tokenResponse.access_token,
@@ -251,7 +263,7 @@ async function authorizeToken(
   return {
     type: AccountTokenType.Authorized,
     name: selectedAccount.name,
-    server: null,
+    server: `https://${env.uiHost}`,
     token: tokenResponse.access_token,
   };
 }
@@ -420,8 +432,13 @@ async function publish(
   });
   info("");
 
-  // Step 2: Render
-  const publishFiles = await render();
+  // Step 2: Render and stage
+  const publishFiles = await renderForPublish(
+    render,
+    kPositConnectCloud,
+    type,
+    title,
+  );
 
   // Step 3: Bundle and upload
   const tempContext = createTempContext();
