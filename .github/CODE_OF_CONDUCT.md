@@ -36,7 +36,9 @@ Examples of unacceptable behavior include:
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
 * Providing bad information by copying output from AI assistants
-  without verifying its validity
+  without verifying its validity. This, _specifically_ includes autonomous agents
+  from OpenClaw, etc. We consider these account-bannable on first offense.
+  You have been warned.
 
 ## Enforcement Responsibilities
 
