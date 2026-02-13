@@ -157,6 +157,7 @@ async function authorizeToken(
     if (!(err instanceof ApiError && err.status === 401)) {
       throw err;
     }
+    debug("[publish][posit-connect-cloud] getUser returned 401 — signup may be incomplete");
   }
 
   // Step 5: Get accounts with publishing permissions

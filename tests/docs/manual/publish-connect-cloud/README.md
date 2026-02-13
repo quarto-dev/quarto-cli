@@ -312,6 +312,8 @@ unset POSIT_CONNECT_CLOUD_ACCESS_TOKEN
 
 Access tokens expire after some time. To test proactive refresh:
 
+**Pre-condition:** The stored token file must contain a valid `refreshToken` (present by default after interactive auth in Test 1).
+
 1. Open the stored token file (see token storage path in Setup)
 2. Change `expiresAt` to a past timestamp (e.g., `1000`)
 3. Publish:
@@ -353,7 +355,6 @@ Access tokens expire after some time. To test proactive refresh:
    ```bash
    unset POSIT_CONNECT_CLOUD_ENVIRONMENT
    unset POSIT_CONNECT_CLOUD_ACCESS_TOKEN
-   unset POSIT_CONNECT_CLOUD_REFRESH_TOKEN
    unset POSIT_CONNECT_CLOUD_ACCOUNT_ID
    ```
 4. Revert any test fixture edits:
