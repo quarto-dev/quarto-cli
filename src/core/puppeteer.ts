@@ -12,7 +12,11 @@ import { UnreachableError } from "./lib/error.ts";
 import { quartoDataDir } from "./appdirs.ts";
 import { isMac, isWindows } from "../deno_ral/platform.ts";
 import puppeteer from "puppeteer";
-import { chromeHeadlessShellExecutablePath } from "../tools/impl/chrome-headless-shell.ts";
+import {
+  chromeHeadlessShellExecutablePath,
+  chromeHeadlessShellInstallDir,
+  readInstalledVersion,
+} from "../tools/impl/chrome-headless-shell.ts";
 
 // deno-lint-ignore no-explicit-any
 // let puppeteerImport: any = undefined;
@@ -273,59 +277,101 @@ export async function findChrome(): Promise<ChromeInfo> {
   return { path: path, source: source };
 }
 
-export async function getBrowserExecutablePath() {
-  // Cook up a new instance
-  const browserFetcher = await fetcher();
-  const availableRevisions = await browserFetcher.localRevisions();
+export interface BrowserDetection {
+  path: string;
+  source: string;
+  label: string;
+  version?: string;
+  displaySource?: string;
+}
 
-  let executablePath: string | undefined = undefined;
+export interface BrowserDetectionResult {
+  detected?: BrowserDetection;
+  warning?: string;
+}
 
-  // Priority 1: QUARTO_CHROMIUM env var
+/**
+ * Detect available Chrome/Chromium browser using the standard priority order:
+ * 1. QUARTO_CHROMIUM env var
+ * 2. Quarto-installed chrome-headless-shell
+ * 3. System Chrome/Edge
+ *
+ * Does NOT check legacy fallbacks (puppeteer revisions, chromium tool) —
+ * callers handle those based on their context.
+ */
+export async function detectBrowser(): Promise<BrowserDetectionResult> {
+  const result: BrowserDetectionResult = {};
+
+  // 1. QUARTO_CHROMIUM environment variable
   const envPath = Deno.env.get("QUARTO_CHROMIUM");
   if (envPath) {
     if (safeExistsSync(envPath)) {
-      debug(`[CHROMIUM] Using QUARTO_CHROMIUM: ${envPath}`);
-      executablePath = envPath;
-    } else {
-      debug(`[CHROMIUM] QUARTO_CHROMIUM is set to ${envPath} but the path does not exist. Searching for another browser.`);
+      result.detected = {
+        path: envPath,
+        source: "QUARTO_CHROMIUM",
+        label: "Chrome from QUARTO_CHROMIUM",
+      };
+      return result;
     }
+    result.warning =
+      `QUARTO_CHROMIUM is set to ${envPath} but the path does not exist.`;
   }
 
-  // Priority 2: Quarto-installed chrome-headless-shell
-  if (executablePath === undefined) {
-    executablePath = chromeHeadlessShellExecutablePath();
-    if (executablePath) {
-      debug(`[CHROMIUM] Using chrome-headless-shell: ${executablePath}`);
-    }
+  // 2. Quarto-installed chrome-headless-shell
+  const chromeHsPath = chromeHeadlessShellExecutablePath();
+  if (chromeHsPath !== undefined) {
+    const version = readInstalledVersion(chromeHeadlessShellInstallDir());
+    result.detected = {
+      path: chromeHsPath,
+      source: "quarto-chrome-headless-shell",
+      label: "Chrome Headless Shell installed by Quarto",
+      version,
+    };
+    return result;
   }
 
-  // Priority 3: System Chrome/Edge
-  if (executablePath === undefined) {
-    const chromeInfo = await findChrome();
-    if (chromeInfo.path) {
-      debug(`[CHROMIUM] Using system Chrome from ${chromeInfo.source}: ${chromeInfo.path}`);
-      executablePath = chromeInfo.path;
-    }
+  // 3. System Chrome/Edge
+  const chromeInfo = await findChrome();
+  if (chromeInfo.path) {
+    result.detected = {
+      path: chromeInfo.path,
+      source: chromeInfo.source ?? "system",
+      label: "Chrome found on system",
+      displaySource: chromeInfo.source,
+    };
+    return result;
   }
 
-  // Priority 4: Legacy puppeteer-managed Chromium revisions
-  if (executablePath === undefined && availableRevisions.length > 0) {
-    // get the latest available revision
+  return result;
+}
+
+export async function getBrowserExecutablePath() {
+  const detection = await detectBrowser();
+
+  if (detection.detected) {
+    debug(`[CHROMIUM] Using ${detection.detected.label}: ${detection.detected.path}`);
+    return detection.detected.path;
+  }
+
+  if (detection.warning) {
+    debug(`[CHROMIUM] ${detection.warning} Searching for another browser.`);
+  }
+
+  // Legacy: puppeteer-managed Chromium revisions
+  const browserFetcher = await fetcher();
+  const availableRevisions = await browserFetcher.localRevisions();
+  if (availableRevisions.length > 0) {
     availableRevisions.sort((a: string, b: string) => Number(b) - Number(a));
     const revision = availableRevisions[0];
     const revisionInfo = browserFetcher.revisionInfo(revision);
-    executablePath = revisionInfo.executablePath;
+    return revisionInfo.executablePath;
   }
 
-  if (executablePath === undefined) {
-    error("Chrome not found");
-    info(
-      "\nNo Chrome or Chromium installation was detected.\n\nPlease run 'quarto install chrome-headless-shell' to install a headless browser.\n",
-    );
-    throw new Error();
-  }
-
-  return executablePath;
+  error("Chrome not found");
+  info(
+    "\nNo Chrome or Chromium installation was detected.\n\nPlease run 'quarto install chrome-headless-shell' to install a headless browser.\n",
+  );
+  throw new Error();
 }
 
 async function fetchBrowser() {

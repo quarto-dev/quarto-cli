@@ -8,8 +8,8 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import { basename } from "../../deno_ral/path.ts";
-import { safeChmodSync, safeRemoveSync, walkSync } from "../../deno_ral/fs.ts";
+import { basename, join } from "../../deno_ral/path.ts";
+import { existsSync, safeChmodSync, safeRemoveSync, walkSync } from "../../deno_ral/fs.ts";
 import { debug } from "../../deno_ral/log.ts";
 import { arch, isWindows, os } from "../../deno_ral/platform.ts";
 import { unzip } from "../../core/zip.ts";
@@ -133,7 +133,19 @@ export function findCftExecutable(
 ): string | undefined {
   const target = isWindows ? `${binaryName}.exe` : binaryName;
 
-  for (const entry of walkSync(extractedDir, { includeDirs: false })) {
+  // CfT zips extract to {binaryName}-{platform}/{target}
+  try {
+    const { platform } = detectCftPlatform();
+    const knownPath = join(extractedDir, `${binaryName}-${platform}`, target);
+    if (existsSync(knownPath)) {
+      return knownPath;
+    }
+  } catch {
+    // Platform detection failed — fall through to walk
+  }
+
+  // Fallback: bounded walk for unexpected directory structures
+  for (const entry of walkSync(extractedDir, { includeDirs: false, maxDepth: 3 })) {
     if (basename(entry.path) === target) {
       return entry.path;
     }

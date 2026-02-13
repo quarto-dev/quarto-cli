@@ -31,13 +31,7 @@ import { typstBinaryPath } from "../../core/typst.ts";
 import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
-import { findChrome } from "../../core/puppeteer.ts";
-import { safeExistsSync } from "../../core/path.ts";
-import {
-  chromeHeadlessShellExecutablePath,
-  chromeHeadlessShellInstallDir,
-  readInstalledVersion,
-} from "../../tools/impl/chrome-headless-shell.ts";
+import { detectBrowser } from "../../core/puppeteer.ts";
 import { executionEngines } from "../../execute/engine.ts";
 
 export function getTargets(): readonly string[] {
@@ -538,49 +532,18 @@ interface ChromeCheckInfo {
 }
 
 async function detectChromeForCheck(): Promise<ChromeCheckInfo> {
+  const detection = await detectBrowser();
+
+  if (detection.detected) {
+    return { detected: detection.detected };
+  }
+
   const result: ChromeCheckInfo = {};
-
-  // 1. QUARTO_CHROMIUM environment variable
-  const envPath = Deno.env.get("QUARTO_CHROMIUM");
-  if (envPath) {
-    if (safeExistsSync(envPath)) {
-      result.detected = {
-        label: "Chrome from QUARTO_CHROMIUM",
-        path: envPath,
-        source: "QUARTO_CHROMIUM",
-      };
-      return result;
-    }
-    result.warning =
-      `QUARTO_CHROMIUM is set to ${envPath} but the path does not exist.`;
+  if (detection.warning) {
+    result.warning = detection.warning;
   }
 
-  // 2. Chrome headless shell installed by Quarto
-  const chromeHsPath = chromeHeadlessShellExecutablePath();
-  if (chromeHsPath !== undefined) {
-    const version = readInstalledVersion(chromeHeadlessShellInstallDir());
-    result.detected = {
-      label: "Chrome Headless Shell installed by Quarto",
-      path: chromeHsPath,
-      source: "quarto-chrome-headless-shell",
-      version,
-    };
-    return result;
-  }
-
-  // 3. System Chrome
-  const chromeDetected = await findChrome();
-  if (chromeDetected.path !== undefined) {
-    result.detected = {
-      label: "Chrome found on system",
-      path: chromeDetected.path,
-      source: chromeDetected.source ?? "system",
-      displaySource: chromeDetected.source,
-    };
-    return result;
-  }
-
-  // 4. Legacy chromium installed by Quarto
+  // Legacy: chromium installed by Quarto
   const chromiumTool = installableTool("chromium");
   if (chromiumTool && await chromiumTool.installed()) {
     let path: string | undefined;
@@ -594,9 +557,7 @@ async function detectChromeForCheck(): Promise<ChromeCheckInfo> {
       source: "quarto",
       version,
     };
-    return result;
   }
 
-  // 5. Not found
   return result;
 }
