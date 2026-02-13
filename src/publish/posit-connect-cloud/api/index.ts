@@ -293,6 +293,7 @@ export class PositConnectCloudClient {
 
     // On 401, try refresh + retry once
     if (response.status === 401 && await this.tryRefreshToken_()) {
+      await response.arrayBuffer();
       debug("[publish][posit-connect-cloud] Retrying after token refresh");
       const retryResponse = await fetch(url, {
         method,
