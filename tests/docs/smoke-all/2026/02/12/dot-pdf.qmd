@@ -1,0 +1,25 @@
+---
+title: "Graphviz to PDF (#11877)"
+format:
+  pdf:
+    keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\includegraphics.*dot-figure-1\.png']
+        - []
+---
+
+## Graphviz Diagram
+
+```{dot}
+digraph G {
+    A -> B
+    B -> C
+    B -> D
+    C -> E
+    D -> E
+}
+```

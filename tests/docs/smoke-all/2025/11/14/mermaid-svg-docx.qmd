@@ -5,8 +5,6 @@ format:
     mermaid-format: svg
 _quarto:
   tests:
-    run:
-      not_os: linux
     docx:
       printsMessage:
         level: INFO

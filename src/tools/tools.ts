@@ -18,6 +18,7 @@ import {
 } from "./types.ts";
 import { tinyTexInstallable } from "./impl/tinytex.ts";
 import { chromiumInstallable } from "./impl/chromium.ts";
+import { chromeHeadlessShellInstallable } from "./impl/chrome-headless-shell.ts";
 import { verapdfInstallable } from "./impl/verapdf.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
@@ -32,6 +33,7 @@ const kInstallableTools: { [key: string]: InstallableTool } = {
   tinytex: tinyTexInstallable,
   // temporarily disabled until deno 1.28.* gets puppeteer support
   chromium: chromiumInstallable,
+  "chrome-headless-shell": chromeHeadlessShellInstallable,
   verapdf: verapdfInstallable,
 };
 
@@ -59,12 +61,11 @@ export async function allTools(): Promise<{
 }
 
 export function installableTools(): string[] {
-  const tools: string[] = [];
-  Object.keys(kInstallableTools).forEach((key) => {
-    const tool = kInstallableTools[key];
-    tools.push(tool.name.toLowerCase());
-  });
-  return tools;
+  return Object.keys(kInstallableTools);
+}
+
+export function installableToolNames(): string[] {
+  return Object.values(kInstallableTools).map((tool) => tool.name);
 }
 
 export async function printToolInfo(name: string) {
@@ -101,6 +102,11 @@ export function checkToolRequirement(name: string) {
       "- See https://github.com/quarto-dev/quarto-cli/issues/1822 for more context.",
     ].join("\n"));
     return false;
+  } else if (name.toLowerCase() === "chrome-headless-shell" && isWSL()) {
+    info(
+      "Note: chrome-headless-shell is a headless-only binary and should work on WSL without additional system dependencies.",
+    );
+    return true;
   } else {
     return true;
   }
