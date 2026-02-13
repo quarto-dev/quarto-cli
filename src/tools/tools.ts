@@ -64,6 +64,10 @@ export function installableTools(): string[] {
   return Object.keys(kInstallableTools);
 }
 
+export function installableToolNames(): string[] {
+  return Object.values(kInstallableTools).map((tool) => tool.name);
+}
+
 export async function printToolInfo(name: string) {
   name = name || "";
   // Run the install

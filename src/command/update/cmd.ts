@@ -47,7 +47,11 @@ export const updateCommand = new Command()
     "quarto update tool tinytex",
   )
   .example(
-    "Update Chromium",
+    "Update Chrome Headless Shell",
+    "quarto update tool chrome-headless-shell",
+  )
+  .example(
+    "Update Chromium (legacy)",
     "quarto update tool chromium",
   )
   .example(
