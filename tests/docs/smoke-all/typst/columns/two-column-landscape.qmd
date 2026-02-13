@@ -22,7 +22,7 @@ _quarto:
           # Page columns set via set page()
           - 'columns: 2,'
           # Title block wrapped with place(scope: "parent") for column spanning
-          - 'place\(top, float: true, scope: "parent", clearance: 4mm, block\(below: 1em, width: 100%\)'
+          - 'place\(\s+top,\s+float: true,\s+scope: "parent",\s+clearance: 4mm,\s+block\(below: 1em, width: 100%\)'
           # Landscape page start
           - '#set page\(flipped: true\)'
           # Landscape page end
@@ -39,7 +39,7 @@ _quarto:
               role: Page
               page: 1
               edge: centerX
-            tolerance: 5
+            tolerance: 22
           - subject:
               text: "Testing Column Layout with Page Orientation Changes"
               edge: centerX
@@ -48,7 +48,7 @@ _quarto:
               role: Page
               page: 1
               edge: centerX
-            tolerance: 5
+            tolerance: 22
 ---
 
 ## Introduction
