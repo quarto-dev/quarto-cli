@@ -6,6 +6,7 @@
 
 import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import { basename, join } from "../../deno_ral/path.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import { unzip } from "../../core/zip.ts";
 import { execProcess } from "../../core/process.ts";
@@ -25,23 +26,65 @@ import { isWindows } from "../../deno_ral/platform.ts";
 const kDownloadBaseUrl = "https://quarto.org/download";
 const kDefaultVersion = "1.28.2";
 
-// Supported Java versions for veraPDF
-const kSupportedJavaVersions = [8, 11, 17, 21];
+// Minimum Java version required
+const kMinJavaVersion = 8;
+
+// Highest Java LTS version officially supported by this veraPDF version.
+// Update this when bumping kDefaultVersion to a release that supports a newer LTS.
+const kMaxSupportedLtsVersion = 21;
 
 // The name of the file that we use to store the installed version
 const kVersionFileName = "version";
 
+// Check if a Java version is a Long-Term Support (LTS) release.
+// LTS versions: 8, 11, then every 2 years starting from 17 (17, 21, 25, 29, ...)
+function isLtsJavaVersion(version: number): boolean {
+  if (version === 8 || version === 11) return true;
+  if (version >= 17 && (version - 17) % 4 === 0) return true;
+  return false;
+}
+
 export const verapdfInstallable: InstallableTool = {
   name: "VeraPDF",
   prereqs: [{
-    check: async () => {
+    check: async (context) => {
       const javaVersion = await getJavaVersion();
-      return javaVersion !== undefined &&
-        kSupportedJavaVersions.includes(javaVersion);
+      context.props.javaVersion = javaVersion;
+
+      // Block installation if Java is not installed or version is too old
+      if (javaVersion === undefined || javaVersion < kMinJavaVersion) {
+        return false;
+      }
+
+      // Warn but allow installation for non-LTS or too-new LTS Java versions
+      if (!isLtsJavaVersion(javaVersion)) {
+        const supportedVersions = Array.from(
+          { length: kMaxSupportedLtsVersion - 8 + 1 },
+          (_, i) => i + 8,
+        ).filter(isLtsJavaVersion).join(", ");
+        warning(
+          `Java ${javaVersion} is not a Long-Term Support (LTS) version. ` +
+            `veraPDF ${kDefaultVersion} officially supports Java ${supportedVersions}. ` +
+            `Installation will proceed, but you may encounter issues.`,
+        );
+      } else if (javaVersion > kMaxSupportedLtsVersion) {
+        warning(
+          `Java ${javaVersion} is newer than veraPDF ${kDefaultVersion} officially supports. ` +
+            `Installation will proceed, but you may encounter issues.`,
+        );
+      }
+
+      return true;
     },
     os: ["darwin", "linux", "windows"],
-    message:
-      `Java is not installed or version is not supported. veraPDF requires Java 8, 11, 17, or 21.`,
+    message: (context) => {
+      const javaVersion = context.props.javaVersion as number | undefined;
+      if (javaVersion === undefined) {
+        return `Java is not installed. veraPDF requires Java ${kMinJavaVersion} or later.`;
+      } else {
+        return `Java ${javaVersion} is too old. veraPDF requires Java ${kMinJavaVersion} or later.`;
+      }
+    },
   }],
   installed,
   installDir,

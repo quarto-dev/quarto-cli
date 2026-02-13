@@ -136,7 +136,10 @@ export async function installTool(name: string, updatePath?: boolean) {
           for (const prereq of platformPrereqs) {
             const met = await prereq.check(context);
             if (!met) {
-              context.error(prereq.message);
+              const message = typeof prereq.message === "function"
+                ? await prereq.message(context)
+                : prereq.message;
+              context.error(message);
               Deno.exit(1);
             }
           }
