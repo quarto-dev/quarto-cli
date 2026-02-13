@@ -44,6 +44,25 @@ _quarto:
         - # Patterns that must NOT be found
           # Should NOT have columns() function call wrapping doc at end of article()
           - 'columns\(cols, doc\)\n\}'
+      ensurePdfTextPositions:
+        - - subject:
+              text: "Two Column with Full Title Block"
+              edge: centerX
+            relation: leftAligned
+            object:
+              role: Page
+              page: 1
+              edge: centerX
+            tolerance: 5
+          - subject:
+              text: "Testing Column-Spanning Title Elements"
+              edge: centerX
+            relation: leftAligned
+            object:
+              role: Page
+              page: 1
+              edge: centerX
+            tolerance: 5
 ---
 
 ## Introduction

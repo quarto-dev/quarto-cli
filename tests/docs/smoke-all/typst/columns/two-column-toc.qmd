@@ -28,6 +28,16 @@ _quarto:
         - # Patterns that must NOT be found
           # Should NOT have columns() function call wrapping doc at end of article()
           - 'columns\(cols, doc\)\n\}'
+      ensurePdfTextPositions:
+        - - subject:
+              text: "Two Column with Table of Contents"
+              edge: centerX
+            relation: leftAligned
+            object:
+              role: Page
+              page: 1
+              edge: centerX
+            tolerance: 5
 ---
 
 ## Introduction
