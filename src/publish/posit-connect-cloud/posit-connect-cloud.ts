@@ -365,6 +365,13 @@ async function publish(
     message: `Preparing to publish ${type}`,
   }, async () => {
     if (!target) {
+      // Guard: accountId is required for content creation
+      if (!accountId) {
+        throw new Error(
+          "Account ID not found. Please re-authorize with " +
+            "'quarto publish posit-connect-cloud --authorize'.",
+        );
+      }
       // New content
       debug("[publish][posit-connect-cloud] Creating new content");
       const content = await client.createContent(
