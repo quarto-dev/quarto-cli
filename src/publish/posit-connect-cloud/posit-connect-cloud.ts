@@ -301,8 +301,8 @@ async function publish(
   _options: PublishOptions,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
-  const client = clientForAccount(account);
   const storedToken = findStoredToken(account);
+  const client = clientForAccount(account, storedToken);
   let accountName = storedToken?.accountName || account.name;
   let accountId = storedToken?.accountId || "";
 
@@ -509,8 +509,11 @@ function isNotFound(err: Error): boolean {
 
 // --- Helpers ---
 
-function clientForAccount(account: AccountToken): PositConnectCloudClient {
-  const storedToken = findStoredToken(account);
+function clientForAccount(
+  account: AccountToken,
+  storedToken?: PositConnectCloudToken,
+): PositConnectCloudClient {
+  const token = storedToken ?? findStoredToken(account);
 
   // For environment tokens, check for optional refresh token
   if (account.type === AccountTokenType.Environment) {
@@ -530,7 +533,7 @@ function clientForAccount(account: AccountToken): PositConnectCloudClient {
     return new PositConnectCloudClient(account.token);
   }
 
-  return new PositConnectCloudClient(account.token, storedToken);
+  return new PositConnectCloudClient(account.token, token);
 }
 
 function findStoredToken(
