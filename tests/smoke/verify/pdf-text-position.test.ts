@@ -53,6 +53,7 @@ testQuartoCmd("render", [fixtureQmd, "--to", "typst"], [], {
     await runDistanceConstraintTests();
     await runDistanceConstraintErrorTests();
     await runPageRoleWithEdgeTests();
+    await runCenterEdgeTests();
 
     // Cleanup
     if (safeExistsSync(fixturePdf)) {
@@ -574,4 +575,40 @@ async function runPageRoleWithEdgeTests() {
     },
   ]);
   await headerNearPageTop.verify([]);
+}
+
+/**
+ * Test centerX and centerY edge functionality
+ */
+async function runCenterEdgeTests() {
+  // Test: centerX - title's horizontal centre should align with page's horizontal centre
+  const centerXPageTest = ensurePdfTextPositions(fixturePdf, [
+    {
+      subject: { text: "FIXTURE_TITLE_TEXT", edge: "centerX" },
+      relation: "leftAligned",
+      object: { role: "Page", page: 1, edge: "centerX" },
+      tolerance: 20,
+    },
+  ]);
+  await centerXPageTest.verify([]);
+
+  // Test: centerY directional - header decoration's centerY should be above title's centerY
+  const centerYDirectionalTest = ensurePdfTextPositions(fixturePdf, [
+    {
+      subject: { text: "FIXTURE_HEADER_TEXT", role: "Decoration", edge: "centerY" },
+      relation: "above",
+      object: { text: "FIXTURE_TITLE_TEXT", edge: "centerY" },
+    },
+  ]);
+  await centerYDirectionalTest.verify([]);
+
+  // Test: centerX directional - a left-aligned heading's centerX should be leftOf page centerX
+  const centerXDirectionalTest = ensurePdfTextPositions(fixturePdf, [
+    {
+      subject: { text: "FIXTURE_H1_TEXT", edge: "centerX" },
+      relation: "leftOf",
+      object: { role: "Page", page: 1, edge: "centerX" },
+    },
+  ]);
+  await centerXDirectionalTest.verify([]);
 }

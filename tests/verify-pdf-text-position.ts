@@ -40,7 +40,7 @@ import { ExecuteOutput, Verify } from "./test.ts";
 // ============================================================================
 
 // Edge schema for precise bbox edge selection
-export const EdgeSchema = z.enum(["left", "right", "top", "bottom"]);
+export const EdgeSchema = z.enum(["left", "right", "top", "bottom", "centerX", "centerY"]);
 export type Edge = z.infer<typeof EdgeSchema>;
 
 // Relation schemas
@@ -215,6 +215,10 @@ function getEdgeValue(bbox: BBox, edge: Edge): number {
       return bbox.y;
     case "bottom":
       return bbox.y + bbox.height;
+    case "centerX":
+      return bbox.x + bbox.width / 2;
+    case "centerY":
+      return bbox.y + bbox.height / 2;
   }
 }
 
