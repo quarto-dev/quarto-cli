@@ -4,6 +4,7 @@ project:
 
 website:
   title: "llms-txt Test Site"
+  site-url: "https://example.com"
   llms-txt: true
   navbar:
     left:

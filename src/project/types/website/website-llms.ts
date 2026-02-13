@@ -18,6 +18,7 @@ import { ProjectOutputFile } from "../types.ts";
 
 import { kLlmsTxt } from "./website-constants.ts";
 import {
+  websiteBaseurl,
   websiteConfigBoolean,
   websiteDescription,
   websiteTitle,
@@ -210,6 +211,7 @@ export async function updateLlmsTxt(
 
   const siteTitle = websiteTitle(context.config) || "Untitled";
   const siteDesc = websiteDescription(context.config) || "";
+  const baseUrl = websiteBaseurl(context.config);
   const draftMode = projectDraftMode(context);
 
   // Helper to check if output file is a draft
@@ -244,8 +246,12 @@ export async function updateLlmsTxt(
       // Extract title from the format metadata or use filename
       const title = (file.format.metadata?.title as string) ||
         basename(file.file, ".html");
+      const relativePath = pathWithForwardSlashes(relative(outputDir, llmsPath));
+      const filePath = baseUrl
+        ? (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + relativePath
+        : relativePath;
       llmsFiles.push({
-        path: pathWithForwardSlashes(relative(outputDir, llmsPath)),
+        path: filePath,
         title,
       });
     }
