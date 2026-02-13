@@ -1,7 +1,7 @@
 /*
  * index.ts
  *
- * Copyright (C) 2020-2025 Posit Software, PBC
+ * Copyright (C) 2020-2026 Posit Software, PBC
  *
  * API client for Posit Connect Cloud. Handles OAuth Device Code flow
  * authentication and all Connect Cloud API operations.
