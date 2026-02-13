@@ -43,6 +43,20 @@
                 for the saved document be already running). This option currently works only within VS Code.
   description: Visual editor configuration
 
+- name: editor_options
+  schema:
+    object:
+      properties:
+        chunk_output_type:
+          enum: [inline, console]
+          description: "Determines where chunk output is shown in the editor."
+  description:
+    short: "Editor-specific options (used by RStudio and Positron)."
+    long: |
+      Editor-specific options that control IDE behavior for this document.
+      These options are used by RStudio and Positron to configure
+      per-document editor settings.
+
 - name: zotero
   schema:
     anyOf:
