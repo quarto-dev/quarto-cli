@@ -21,6 +21,7 @@ import {
   removeTool,
   selectTool,
 } from "../../tools/tools-console.ts";
+import { installableTools } from "../../tools/tools.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { signalCommandFailure } from "../utils.ts";
 
@@ -172,7 +173,7 @@ export const resolveCompatibleArgs = (
       return {
         action: "extension",
       };
-    } else if (extname === "tinytex" || extname === "chromium") {
+    } else if (installableTools().includes(extname)) {
       return {
         action: "tool",
         name: args[0],
