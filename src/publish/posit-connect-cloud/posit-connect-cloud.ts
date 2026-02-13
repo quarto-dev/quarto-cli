@@ -8,7 +8,7 @@
  * Authentication uses OAuth 2.0 Device Code flow.
  */
 
-import { debug, info, warning } from "../../deno_ral/log.ts";
+import { info, warning } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors";
 
 import { Select } from "cliffy/prompt/select.ts";
@@ -35,6 +35,7 @@ import {
   getEnvironmentConfig,
   initiateDeviceAuth,
   pollForToken,
+  positConnectCloudDebug as publishDebug,
   PositConnectCloudClient,
   readStoredTokens,
   writeStoredToken,
@@ -105,8 +106,8 @@ async function authorizeToken(
   }
 
   const env = getEnvironmentConfig();
-  debug(
-    `[publish][posit-connect-cloud] Starting authorization (env: ${getEnvironment()}, client_id: ${env.clientId})`,
+  publishDebug(
+    `Starting authorization (env: ${getEnvironment()}, client_id: ${env.clientId})`,
   );
 
   // Step 1: Initiate device authorization
@@ -147,8 +148,8 @@ async function authorizeToken(
   const client = new PositConnectCloudClient(tokenResponse.access_token);
   try {
     const user = await client.getUser();
-    debug(
-      `[publish][posit-connect-cloud] Authenticated as: ${user.display_name} (${user.email})`,
+    publishDebug(
+      `Authenticated as: ${user.display_name} (${user.email})`,
     );
   } catch (err) {
     // 401 means Connect Cloud signup incomplete — user authenticated with Posit
@@ -157,7 +158,7 @@ async function authorizeToken(
     if (!(err instanceof ApiError && err.status === 401)) {
       throw err;
     }
-    debug("[publish][posit-connect-cloud] getUser returned 401 — signup may be incomplete");
+    publishDebug("getUser returned 401 — signup may be incomplete");
   }
 
   // Step 5: Get accounts with publishing permissions
@@ -210,8 +211,8 @@ async function authorizeToken(
           );
           if (found.length > 0) break;
         } catch (err) {
-          debug(
-            `[publish][posit-connect-cloud] Account polling error (will retry): ${err}`,
+          publishDebug(
+            `Account polling error (will retry): ${err}`,
           );
         }
       }
@@ -226,8 +227,8 @@ async function authorizeToken(
     selectedAccount = found[0];
   } else if (publishableAccounts.length === 1) {
     selectedAccount = publishableAccounts[0];
-    debug(
-      `[publish][posit-connect-cloud] Auto-selected account: ${selectedAccount.name}`,
+    publishDebug(
+      `Auto-selected account: ${selectedAccount.name}`,
     );
   } else {
     // Multiple accounts - prompt user
@@ -259,7 +260,7 @@ async function authorizeToken(
     environment: getEnvironment(),
   };
   writeStoredToken(storedToken);
-  debug("[publish][posit-connect-cloud] Token stored");
+  publishDebug("Token stored");
 
   return {
     type: AccountTokenType.Authorized,
@@ -286,8 +287,8 @@ async function resolveTarget(
   try {
     const content = await client.getContent(target.id);
     if (content.state === "deleted") {
-      debug(
-        `[publish][posit-connect-cloud] Content ${target.id} is deleted, treating as not found`,
+      publishDebug(
+        `Content ${target.id} is deleted, treating as not found`,
       );
       return undefined;
     }
@@ -311,9 +312,21 @@ async function publish(
   title: string,
   _slug: string,
   render: (flags?: RenderFlags) => Promise<PublishFiles>,
-  _options: PublishOptions,
+  options: PublishOptions,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
+  // --token is not supported: Connect Cloud uses short-lived OAuth tokens,
+  // not permanent API keys. CI/CD should use environment variables instead.
+  if (options.token) {
+    throw new Error(
+      "Posit Connect Cloud does not support --token. " +
+        "For CI/CD, use environment variables: " +
+        "POSIT_CONNECT_CLOUD_ACCESS_TOKEN, " +
+        "POSIT_CONNECT_CLOUD_REFRESH_TOKEN, and " +
+        "POSIT_CONNECT_CLOUD_ACCOUNT_ID.",
+    );
+  }
+
   const storedToken = findStoredToken(account);
   const client = clientForAccount(account, storedToken);
   let accountName = storedToken?.accountName || account.name;
@@ -323,8 +336,8 @@ async function publish(
   // Honors POSIT_CONNECT_CLOUD_ACCOUNT_ID env var to select a specific account;
   // without it, auto-selects the first publishable account.
   if (!storedToken && account.type === AccountTokenType.Environment) {
-    debug(
-      "[publish][posit-connect-cloud] Resolving account for environment token",
+    publishDebug(
+      "Resolving account for environment token",
     );
     const accounts = await client.listAccounts();
     const publishable = accounts.filter((a) =>
@@ -355,8 +368,8 @@ async function publish(
         );
       }
     }
-    debug(
-      `[publish][posit-connect-cloud] Resolved account: ${accountName} (${accountId})`,
+    publishDebug(
+      `Resolved account: ${accountName} (${accountId})`,
     );
   }
 
@@ -373,7 +386,7 @@ async function publish(
         );
       }
       // New content
-      debug("[publish][posit-connect-cloud] Creating new content");
+      publishDebug("Creating new content");
       const content = await client.createContent(
         accountId,
         title,
@@ -384,8 +397,8 @@ async function publish(
           "Content creation did not return an upload URL",
         );
       }
-      debug(
-        `[publish][posit-connect-cloud] Content created: ${content.id}`,
+      publishDebug(
+        `Content created: ${content.id}`,
       );
       return {
         contentId: content.id,
@@ -405,8 +418,8 @@ async function publish(
 
       if (content.current_revision === null) {
         // First publish after creation - use existing next_revision
-        debug(
-          "[publish][posit-connect-cloud] First publish (no current_revision), using existing next_revision",
+        publishDebug(
+          "First publish (no current_revision), using existing next_revision",
         );
         if (!content.next_revision?.source_bundle_upload_url) {
           throw new Error(
@@ -420,7 +433,7 @@ async function publish(
         };
       } else {
         // Subsequent publish - PATCH to create new revision
-        debug("[publish][posit-connect-cloud] Updating existing content");
+        publishDebug("Updating existing content");
         const updated = await client.updateContent(
           content.id,
           "index.html",
@@ -460,8 +473,8 @@ async function publish(
         tempContext,
       );
       const bundleBytes = await Deno.readFile(bundlePath);
-      debug(
-        `[publish][posit-connect-cloud] Bundle: ${publishFiles.files.length} files, ${bundleBytes.length} bytes compressed`,
+      publishDebug(
+        `Bundle: ${publishFiles.files.length} files, ${bundleBytes.length} bytes compressed`,
       );
       await client.uploadBundle(uploadUrl, bundleBytes);
     });
@@ -487,8 +500,8 @@ async function publish(
 
         // Log status changes
         if (revision.status && revision.status !== lastStatus) {
-          debug(
-            `[publish][posit-connect-cloud] Revision status: ${revision.status}`,
+          publishDebug(
+            `Revision status: ${revision.status}`,
           );
           lastStatus = revision.status;
         }

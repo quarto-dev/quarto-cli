@@ -115,6 +115,10 @@ export const publishCommand =
       "quarto publish connect --server example.com --token 01A24233E294",
     )
     .example(
+      "Publish project to Posit Connect Cloud",
+      "quarto publish posit-connect-cloud",
+    )
+    .example(
       "Publish without confirmation prompt",
       "quarto publish --no-prompt",
     )

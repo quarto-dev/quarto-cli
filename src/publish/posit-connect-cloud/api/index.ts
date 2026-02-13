@@ -33,6 +33,10 @@ import {
 
 const kProviderName = "posit-connect-cloud";
 
+const publishDebug = (msg: string) =>
+  debug(`[publish][posit-connect-cloud] ${msg}`);
+export { publishDebug as positConnectCloudDebug };
+
 const kEnvironments: Record<PositConnectCloudEnvironment, EnvironmentConfig> = {
   production: {
     authHost: "login.posit.cloud",
@@ -82,8 +86,8 @@ export class PositConnectCloudClient {
     this.env_ = getEnvironmentConfig();
     this.accessToken_ = accessToken;
     this.storedToken_ = storedToken;
-    debug(
-      `[publish][posit-connect-cloud] Client created for ${this.env_.apiHost}`,
+    publishDebug(
+      `Client created for ${this.env_.apiHost}`,
     );
   }
 
@@ -116,8 +120,8 @@ export class PositConnectCloudClient {
       },
       secrets: [],
     };
-    debug(
-      `[publish][posit-connect-cloud] POST /contents (title: ${title}, account: ${accountId})`,
+    publishDebug(
+      `POST /contents (title: ${title}, account: ${accountId})`,
     );
     return await this.apiPost<Content>("contents", body);
   }
@@ -137,8 +141,8 @@ export class PositConnectCloudClient {
         app_mode: "static",
       },
     };
-    debug(
-      `[publish][posit-connect-cloud] PATCH /contents/${contentId}?new_bundle=true`,
+    publishDebug(
+      `PATCH /contents/${contentId}?new_bundle=true`,
     );
     return await this.apiFetch<Content>(
       "PATCH",
@@ -148,8 +152,8 @@ export class PositConnectCloudClient {
   }
 
   public async uploadBundle(uploadUrl: string, bundleData: Uint8Array) {
-    debug(
-      `[publish][posit-connect-cloud] Uploading bundle (${bundleData.length} bytes)`,
+    publishDebug(
+      `Uploading bundle (${bundleData.length} bytes)`,
     );
     const response = await fetch(uploadUrl, {
       method: "POST",
@@ -166,11 +170,11 @@ export class PositConnectCloudClient {
         text || undefined,
       );
     }
-    debug("[publish][posit-connect-cloud] Bundle uploaded successfully");
+    publishDebug("Bundle uploaded successfully");
   }
 
   public async publishContent(contentId: string) {
-    debug(`[publish][posit-connect-cloud] POST /contents/${contentId}/publish`);
+    publishDebug(`POST /contents/${contentId}/publish`);
     const url = `https://${this.env_.apiHost}/v1/contents/${contentId}/publish`;
     const response = await this.fetchWithRetry_("POST", url, {
       "Accept": "application/json",
@@ -196,8 +200,8 @@ export class PositConnectCloudClient {
     if (!this.storedToken_) return;
     const now = Date.now();
     if (now >= this.storedToken_.expiresAt - kRefreshThresholdMs) {
-      debug(
-        "[publish][posit-connect-cloud] Token refresh: proactive (expires soon)",
+      publishDebug(
+        "Token refresh: proactive (expires soon)",
       );
       await this.tryRefreshToken_();
     }
@@ -224,11 +228,11 @@ export class PositConnectCloudClient {
         (a, b) =>
           a.accountId === b.accountId && a.environment === b.environment,
       );
-      debug("[publish][posit-connect-cloud] Token refreshed and persisted");
+      publishDebug("Token refreshed and persisted");
       return true;
     } catch (err) {
-      debug(
-        `[publish][posit-connect-cloud] Token refresh failed: ${err}`,
+      publishDebug(
+        `Token refresh failed: ${err}`,
       );
       return false;
     }
@@ -294,7 +298,7 @@ export class PositConnectCloudClient {
     // On 401, try refresh + retry once
     if (response.status === 401 && await this.tryRefreshToken_()) {
       await response.arrayBuffer();
-      debug("[publish][posit-connect-cloud] Retrying after token refresh");
+      publishDebug("Retrying after token refresh");
       const retryResponse = await fetch(url, {
         method,
         headers: {
@@ -329,8 +333,8 @@ export async function initiateDeviceAuth(
     scope: "vivid",
     client_id: env.clientId,
   });
-  debug(
-    `[publish][posit-connect-cloud] OAuth: initiating device authorization (client_id: ${env.clientId})`,
+  publishDebug(
+    `OAuth: initiating device authorization (client_id: ${env.clientId})`,
   );
   const response = await fetch(
     `https://${env.authHost}/oauth/device/authorize`,
@@ -369,8 +373,8 @@ export async function pollForToken(
   const timeoutMs = expiresIn * 1000;
 
   while (true) {
-    debug(
-      `[publish][posit-connect-cloud] OAuth: polling for token (interval: ${interval}s)`,
+    publishDebug(
+      `OAuth: polling for token (interval: ${interval}s)`,
     );
     await sleep(interval * 1000);
 
@@ -387,7 +391,7 @@ export async function pollForToken(
     });
 
     if (response.ok) {
-      debug("[publish][posit-connect-cloud] OAuth: token received");
+      publishDebug("OAuth: token received");
       return await response.json() as TokenResponse;
     }
 
@@ -407,8 +411,8 @@ export async function pollForToken(
         break;
       case "slow_down":
         interval += 5;
-        debug(
-          `[publish][posit-connect-cloud] OAuth: slow_down, new interval: ${interval}s`,
+        publishDebug(
+          `OAuth: slow_down, new interval: ${interval}s`,
         );
         break;
       case "expired_token":
@@ -439,7 +443,7 @@ export async function refreshAccessToken(
     grant_type: "refresh_token",
     refresh_token: refreshToken,
   });
-  debug("[publish][posit-connect-cloud] Refreshing access token");
+  publishDebug("Refreshing access token");
   const response = await fetch(
     `https://${env.authHost}/oauth/token`,
     {
