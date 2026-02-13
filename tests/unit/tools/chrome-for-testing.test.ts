@@ -78,7 +78,8 @@ unitTest("fetchLatestCftRelease - download URLs are valid", async () => {
 unitTest("findCftExecutable - finds binary in CfT directory structure", async () => {
   const tempDir = Deno.makeTempDirSync();
   try {
-    const subdir = join(tempDir, "chrome-headless-shell-linux64");
+    const { platform } = detectCftPlatform();
+    const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
     const binaryName = isWindows
       ? "chrome-headless-shell.exe"
@@ -110,7 +111,8 @@ unitTest("findCftExecutable - returns undefined for empty directory", async () =
 unitTest("findCftExecutable - finds binary in nested structure", async () => {
   const tempDir = Deno.makeTempDirSync();
   try {
-    const nested = join(tempDir, "chrome-headless-shell-win64", "subfolder");
+    const { platform } = detectCftPlatform();
+    const nested = join(tempDir, `chrome-headless-shell-${platform}`, "subfolder");
     Deno.mkdirSync(nested, { recursive: true });
     const binaryName = isWindows
       ? "chrome-headless-shell.exe"

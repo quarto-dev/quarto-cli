@@ -11,7 +11,7 @@ import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
-import { findCftExecutable } from "../../../src/tools/impl/chrome-for-testing.ts";
+import { detectCftPlatform, findCftExecutable } from "../../../src/tools/impl/chrome-for-testing.ts";
 import { installableTool, installableTools } from "../../../src/tools/tools.ts";
 import {
   chromeHeadlessShellInstallable,
@@ -91,7 +91,8 @@ unitTest("isInstalled - returns false when only version file exists", async () =
 unitTest("isInstalled - returns false when only binary exists (no version file)", async () => {
   const tempDir = Deno.makeTempDirSync();
   try {
-    const subdir = join(tempDir, "chrome-headless-shell-win64");
+    const { platform } = detectCftPlatform();
+    const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
     const binaryName = isWindows ? "chrome-headless-shell.exe" : "chrome-headless-shell";
     Deno.writeTextFileSync(join(subdir, binaryName), "fake");
@@ -105,7 +106,8 @@ unitTest("isInstalled - returns true when version file and binary exist", async 
   const tempDir = Deno.makeTempDirSync();
   try {
     noteInstalledVersion(tempDir, "145.0.0.0");
-    const subdir = join(tempDir, "chrome-headless-shell-win64");
+    const { platform } = detectCftPlatform();
+    const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
     const binaryName = isWindows ? "chrome-headless-shell.exe" : "chrome-headless-shell";
     Deno.writeTextFileSync(join(subdir, binaryName), "fake");
