@@ -173,7 +173,7 @@ export const resolveCompatibleArgs = (
       return {
         action: "extension",
       };
-    } else if (installableTools().includes(extname)) {
+    } else if (installableTools().includes(extname.toLowerCase())) {
       return {
         action: "tool",
         name: args[0],

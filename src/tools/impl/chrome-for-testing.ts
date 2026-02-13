@@ -140,8 +140,8 @@ export function findCftExecutable(
     if (existsSync(knownPath)) {
       return knownPath;
     }
-  } catch {
-    // Platform detection failed — fall through to walk
+  } catch (e) {
+    debug(`findCftExecutable: platform detection failed, falling back to walk: ${e}`);
   }
 
   // Fallback: bounded walk for unexpected directory structures
