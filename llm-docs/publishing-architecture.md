@@ -168,10 +168,12 @@ Token storage functions:
 File: `src/publish/publish.ts`
 
 `publishSite()` or `publishDocument()` coordinates:
-1. Calls `render()` to produce output files
-2. Calls provider's `publish()` with the rendered files
+1. Calls provider's `publish()`, passing a `render` callback
+2. Provider calls `renderForPublish()` (or `render()` directly for sites)
 3. Provider uploads and deploys
 4. Returns `[PublishRecord, URL]`
+
+**Important:** Providers publishing documents should call `renderForPublish()` instead of `render()` directly. `renderForPublish()` wraps `render()` and stages the output: for HTML documents it copies `document.html` → `index.html`, for PDFs it creates a pdf.js viewer wrapper as `index.html`. Without this staging, the primary file name won't match `index.html` and bundle-based providers will fail.
 
 ### 6. Update `_publish.yml`
 
@@ -227,6 +229,7 @@ Each provider can check for env vars in `accountTokens()`. Convention:
 | `readAccessTokens<T>()` | `src/publish/common/account.ts` | Read stored tokens |
 | `writeAccessToken<T>()` | `src/publish/common/account.ts` | Write/update token |
 | `authorizeAccessToken()` | `src/publish/common/account.ts` | Ticket-based auth flow |
+| `renderForPublish()` | `src/publish/common/publish.ts` | Render + stage documents (HTML→index.html, PDF→pdf.js wrapper) |
 | `handlePublish()` | `src/publish/common/publish.ts` | File-by-file upload orchestration |
 | `withSpinner()` | `src/core/console.ts` | Progress spinner display |
 | `completeMessage()` | `src/core/console.ts` | Success/failure messages |
