@@ -63,8 +63,7 @@ export function getEnvironment(): PositConnectCloudEnvironment {
   if (env === "staging" || env === "development" || env === "production") {
     return env;
   }
-  // Default to staging while production client_id is pending registration
-  return "staging";
+  return "production";
 }
 
 export function getEnvironmentConfig(): EnvironmentConfig {
