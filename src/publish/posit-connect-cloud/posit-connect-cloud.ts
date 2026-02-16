@@ -155,7 +155,7 @@ async function authorizeToken(
     // 401 means Connect Cloud signup incomplete — user authenticated with Posit
     // but hasn't created a Connect Cloud account yet. The account creation flow
     // in Step 6 below handles this. (rsconnect skips getUser entirely.)
-    if (!(err instanceof ApiError && err.status === 401)) {
+    if (!isUnauthorized(err as Error)) {
       throw err;
     }
     publishDebug("getUser returned 401 — signup may be incomplete");
@@ -167,7 +167,7 @@ async function authorizeToken(
     accounts = await client.listAccounts();
   } catch (err) {
     // 401 with "no_user_for_lucid_user" means signup incomplete
-    if (err instanceof ApiError && err.status === 401) {
+    if (isUnauthorized(err as Error)) {
       accounts = [];
     } else {
       throw err;
@@ -306,7 +306,7 @@ async function resolveTarget(
       code: false,
     };
   } catch (err) {
-    if (err instanceof ApiError && err.status === 404) {
+    if (isNotFound(err as Error)) {
       publishDebug(
         `Content ${target.id} not found (404), treating as not found`,
       );
@@ -581,6 +581,8 @@ async function publish(
   }
 }
 
+// --- Helpers ---
+
 function isUnauthorized(err: Error): boolean {
   return err instanceof ApiError && err.status === 401;
 }
@@ -588,9 +590,6 @@ function isUnauthorized(err: Error): boolean {
 function isNotFound(err: Error): boolean {
   return err instanceof ApiError && err.status === 404;
 }
-
-// --- Helpers ---
-
 function clientForAccount(
   account: AccountToken,
   storedToken: PositConnectCloudToken | undefined,
