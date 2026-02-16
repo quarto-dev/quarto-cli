@@ -520,6 +520,9 @@ async function publish(
           );
         }
 
+        // Revision polling can run for up to 30 minutes (~1,800 calls),
+        // so transient HTTP 500s or network timeouts are likely. Tolerate
+        // up to kMaxConsecutiveErrors before aborting.
         let revision: Revision;
         try {
           revision = await client.getRevision(revisionId);
