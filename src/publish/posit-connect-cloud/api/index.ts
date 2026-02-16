@@ -33,6 +33,9 @@ import {
 
 const kProviderName = "posit-connect-cloud";
 
+// Connect Cloud OAuth scope granting access to the Connect Cloud (Vivid) API
+const kOAuthScope = "vivid";
+
 const publishDebug = (msg: string) =>
   debug(`[publish][posit-connect-cloud] ${msg}`);
 export { publishDebug as positConnectCloudDebug };
@@ -96,6 +99,8 @@ export class PositConnectCloudClient {
     return await this.apiGet<User>("users/me");
   }
 
+  // Single-page fetch is sufficient: Connect Cloud limits accounts per user
+  // (typically 1-3), and has_user_role=true further restricts the result set.
   public async listAccounts(): Promise<Account[]> {
     const response = await this.apiGet<PaginatedResponse<Account>>(
       "accounts?has_user_role=true",
@@ -174,7 +179,7 @@ export class PositConnectCloudClient {
 
   public async publishContent(contentId: string) {
     publishDebug(`POST /contents/${contentId}/publish`);
-    const url = `https://${this.env_.apiHost}/v1/contents/${contentId}/publish`;
+    const url = this.buildUrl_(`contents/${contentId}/publish`);
     const response = await this.fetchWithRetry_("POST", url, {
       "Accept": "application/json",
     }, undefined);
@@ -183,6 +188,10 @@ export class PositConnectCloudClient {
 
   public async getRevision(revisionId: string): Promise<Revision> {
     return await this.apiGet<Revision>(`revisions/${revisionId}`);
+  }
+
+  private buildUrl_(path: string): string {
+    return `https://${this.env_.apiHost}/v1/${path}`;
   }
 
   public contentUrl(accountName: string, contentId: string): string {
@@ -197,6 +206,7 @@ export class PositConnectCloudClient {
 
   private async ensureValidToken_() {
     if (!this.storedToken_) return;
+    if (this.storedToken_.expiresAt === 0) return; // Unknown expiry (env tokens)
     const now = Date.now();
     if (now >= this.storedToken_.expiresAt - kRefreshThresholdMs) {
       publishDebug(
@@ -220,14 +230,18 @@ export class PositConnectCloudClient {
         refreshToken: tokenResponse.refresh_token,
         expiresAt: Date.now() + (tokenResponse.expires_in * 1000),
       };
-      // Persist updated tokens immediately
-      writeAccessToken(
-        kProviderName,
-        this.storedToken_,
-        (a, b) =>
-          a.accountId === b.accountId && a.environment === b.environment,
-      );
-      publishDebug("Token refreshed and persisted");
+      // Only persist to disk for real accounts (not env pseudo-tokens with empty accountId)
+      if (this.storedToken_.accountId) {
+        writeAccessToken(
+          kProviderName,
+          this.storedToken_,
+          (a, b) =>
+            a.accountId === b.accountId && a.environment === b.environment,
+        );
+        publishDebug("Token refreshed and persisted");
+      } else {
+        publishDebug("Token refreshed (in-memory only, env token)");
+      }
       return true;
     } catch (err) {
       publishDebug(
@@ -255,7 +269,7 @@ export class PositConnectCloudClient {
     path: string,
     body?: Record<string, unknown>,
   ): Promise<T> {
-    const url = `https://${this.env_.apiHost}/v1/${path}`;
+    const url = this.buildUrl_(path);
     const headers: Record<string, string> = {
       "Accept": "application/json",
     };
@@ -329,7 +343,7 @@ export async function initiateDeviceAuth(
   env: EnvironmentConfig,
 ): Promise<DeviceAuthResponse> {
   const params = new URLSearchParams({
-    scope: "vivid",
+    scope: kOAuthScope,
     client_id: env.clientId,
   });
   publishDebug(
@@ -362,7 +376,7 @@ export async function pollForToken(
 ): Promise<TokenResponse> {
   let interval = initialInterval;
   const params = new URLSearchParams({
-    scope: "vivid",
+    scope: kOAuthScope,
     client_id: env.clientId,
     grant_type: "urn:ietf:params:oauth:grant-type:device_code",
     device_code: deviceCode,
@@ -372,16 +386,16 @@ export async function pollForToken(
   const timeoutMs = expiresIn * 1000;
 
   while (true) {
-    publishDebug(
-      `OAuth: polling for token (interval: ${interval}s)`,
-    );
-    await sleep(interval * 1000);
-
     if (Date.now() - startTime > timeoutMs) {
       throw new Error(
         "Authorization timed out. The verification code has expired. Please try again.",
       );
     }
+
+    publishDebug(
+      `OAuth: polling for token (interval: ${interval}s)`,
+    );
+    await sleep(interval * 1000);
 
     const response = await fetch(url, {
       method: "POST",
@@ -437,7 +451,7 @@ export async function refreshAccessToken(
   refreshToken: string,
 ): Promise<TokenResponse> {
   const params = new URLSearchParams({
-    scope: "vivid",
+    scope: kOAuthScope,
     client_id: env.clientId,
     grant_type: "refresh_token",
     refresh_token: refreshToken,

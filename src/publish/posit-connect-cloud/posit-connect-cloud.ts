@@ -180,9 +180,9 @@ async function authorizeToken(
   );
 
   // Step 6: Handle account selection
-  let selectedAccount: Account;
+  let publishable = publishableAccounts;
 
-  if (publishableAccounts.length === 0) {
+  if (publishable.length === 0) {
     // Open account creation page and poll
     info("  No publishable accounts found. Opening account setup...");
     const accountUrl = client.accountCreationUrl();
@@ -224,23 +224,26 @@ async function authorizeToken(
       );
     }
 
-    selectedAccount = found[0];
-  } else if (publishableAccounts.length === 1) {
-    selectedAccount = publishableAccounts[0];
+    publishable = found;
+  }
+
+  // Unified account selection (matches rsconnect behavior)
+  let selectedAccount: Account;
+  if (publishable.length === 1) {
+    selectedAccount = publishable[0];
     publishDebug(
       `Auto-selected account: ${selectedAccount.name}`,
     );
   } else {
-    // Multiple accounts - prompt user
     const selectedIdx = await Select.prompt({
       indent: "",
       message: "Select account:",
-      options: publishableAccounts.map((a, i) => ({
+      options: publishable.map((a, i) => ({
         name: a.display_name ? `${a.display_name} (${a.name})` : a.name,
         value: String(i),
       })),
     });
-    selectedAccount = publishableAccounts[Number(selectedIdx)];
+    selectedAccount = publishable[Number(selectedIdx)];
   }
 
   info(
@@ -283,7 +286,8 @@ async function resolveTarget(
   account: AccountToken,
   target: PublishRecord,
 ): Promise<PublishRecord | undefined> {
-  const client = clientForAccount(account);
+  const storedToken = findStoredToken(account);
+  const client = clientForAccount(account, storedToken);
   try {
     const content = await client.getContent(target.id);
     if (content.state === "deleted") {
