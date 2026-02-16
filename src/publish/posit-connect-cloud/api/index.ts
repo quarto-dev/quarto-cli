@@ -336,6 +336,17 @@ export class PositConnectCloudClient {
 
 // --- OAuth Device Code Flow (standalone functions, used by authorizeToken) ---
 
+function postFormUrlEncoded(
+  url: string,
+  params: URLSearchParams,
+): Promise<Response> {
+  return fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  });
+}
+
 export async function initiateDeviceAuth(
   env: EnvironmentConfig,
 ): Promise<DeviceAuthResponse> {
@@ -346,13 +357,9 @@ export async function initiateDeviceAuth(
   publishDebug(
     `OAuth: initiating device authorization (client_id: ${env.clientId})`,
   );
-  const response = await fetch(
+  const response = await postFormUrlEncoded(
     `https://${env.authHost}/oauth/device/authorize`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    },
+    params,
   );
   if (!response.ok) {
     const text = await response.text().catch(() => "");
@@ -394,11 +401,7 @@ export async function pollForToken(
     );
     await sleep(interval * 1000);
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    });
+    const response = await postFormUrlEncoded(url, params);
 
     if (response.ok) {
       publishDebug("OAuth: token received");
@@ -455,13 +458,9 @@ export async function refreshAccessToken(
     refresh_token: refreshToken,
   });
   publishDebug("Refreshing access token");
-  const response = await fetch(
+  const response = await postFormUrlEncoded(
     `https://${env.authHost}/oauth/token`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    },
+    params,
   );
   if (!response.ok) {
     const text = await response.text().catch(() => "");
