@@ -1,6 +1,6 @@
 ---
-main_commit: 54c7493e9
-analyzed_date: 2026-02-10
+main_commit: 76b946025
+analyzed_date: 2026-02-16
 key_files:
   - src/publish/provider-types.ts
   - src/publish/provider.ts
@@ -11,6 +11,9 @@ key_files:
   - src/publish/common/account.ts
   - src/publish/types.ts
   - src/command/publish/cmd.ts
+  - src/publish/posit-connect-cloud/posit-connect-cloud.ts
+  - src/publish/posit-connect-cloud/api/index.ts
+  - src/publish/posit-connect-cloud/api/types.ts
 ---
 
 # Quarto Publishing Architecture
@@ -104,7 +107,7 @@ export interface PublishHandler {
 
 ### Pattern B: Bundle upload
 
-Used by: `rsconnect` (Posit Connect)
+Used by: `rsconnect` (Posit Connect), `posit-connect-cloud` (Posit Connect Cloud)
 
 File: `src/publish/common/bundle.ts`
 
@@ -208,6 +211,7 @@ Each provider can check for env vars in `accountTokens()`. Convention:
 - `QUARTO_PUB_AUTH_TOKEN`
 - `CONNECT_SERVER` + `CONNECT_API_KEY` (rsconnect)
 - `NETLIFY_AUTH_TOKEN`
+- `POSIT_CONNECT_CLOUD_ACCESS_TOKEN` + `POSIT_CONNECT_CLOUD_REFRESH_TOKEN` + `POSIT_CONNECT_CLOUD_ACCOUNT_ID` (posit-connect-cloud)
 
 ## Existing Providers Summary
 
