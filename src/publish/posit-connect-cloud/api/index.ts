@@ -293,15 +293,15 @@ export class PositConnectCloudClient {
     body?: string | Uint8Array,
   ): Promise<Response> {
     await this.ensureValidToken_();
-    const authHeaders = {
+    const buildHeaders = () => ({
       ...headers,
       "Authorization": `Bearer ${this.accessToken_}`,
       "User-Agent": `quarto-cli/${quartoConfig.version()}`,
-    };
+    });
 
     const response = await fetch(url, {
       method,
-      headers: authHeaders,
+      headers: buildHeaders(),
       body,
     });
 
@@ -315,11 +315,7 @@ export class PositConnectCloudClient {
       publishDebug("Retrying after token refresh");
       const retryResponse = await fetch(url, {
         method,
-        headers: {
-          ...headers,
-          "Authorization": `Bearer ${this.accessToken_}`,
-          "User-Agent": `quarto-cli/${quartoConfig.version()}`,
-        },
+        headers: buildHeaders(),
         body,
       });
       if (retryResponse.ok) {
