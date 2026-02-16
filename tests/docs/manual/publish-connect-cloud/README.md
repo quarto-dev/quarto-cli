@@ -142,8 +142,6 @@ This content was updated for Test 4.
 - [ ] URL is same as Test 3
 - [ ] Hard-refresh (Ctrl+F5) shows updated text
 - [ ] About page still works
-- [ ] External link to quarto.org opens in new tab (siteUrl active → linkExternalFilter works)
-- [ ] View source: external link has appropriate attributes (not treated as internal link)
 - [ ] No duplicate content created on dashboard
 
 **Cleanup:** Revert the edit:

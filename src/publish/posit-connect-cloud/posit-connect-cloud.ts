@@ -462,12 +462,16 @@ async function publish(
   info("");
 
   // Step 2: Render and stage
+  // Note: siteUrl is intentionally not passed here. Connect Cloud serves
+  // content at a different domain (*.share.connect.posit.cloud) than the
+  // dashboard URL stored in _publish.yml (connect.posit.cloud/account/content/id).
+  // Passing the dashboard URL would break linkExternalFilter by overriding
+  // the correct window.location.host fallback in the rendered HTML.
   const publishFiles = await renderForPublish(
     render,
     kPositConnectCloud,
     type,
     title,
-    type === "site" ? target?.url : undefined,
   );
 
   // Step 3: Bundle and upload
