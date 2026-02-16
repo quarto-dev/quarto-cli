@@ -1,0 +1,24 @@
+---
+title: Test Title
+subtitle: |
+  First Part
+
+  Second Part
+format:
+  html: default
+  revealjs: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementContents:
+        selectors: ['p.subtitle']
+        matches: ['First Part']
+    revealjs:
+      ensureHtmlElementContents:
+        selectors: ['p.subtitle']
+        matches: ['First Part']
+---
+
+## Test Content
+
+This tests that a multi-paragraph | scalar subtitle stays inside the subtitle class.
