@@ -415,6 +415,7 @@ export async function pollForToken(
       errorCode = body.trim();
     }
 
+    // Error codes per RFC 8628 Section 3.5 (OAuth 2.0 Device Authorization Grant)
     switch (errorCode) {
       case "authorization_pending":
         // Keep polling
