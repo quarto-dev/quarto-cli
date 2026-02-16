@@ -370,6 +370,12 @@ async function publish(
       accountName = match.name;
       accountId = match.id;
     } else {
+      if (publishable.length > 1 && !options.prompt) {
+        throw new Error(
+          "Multiple publishable accounts found. " +
+            `Set ${kPositConnectCloudAccountIdVar} to select a specific account.`,
+        );
+      }
       accountName = publishable[0].name;
       accountId = publishable[0].id;
       if (publishable.length > 1) {

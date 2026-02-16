@@ -214,6 +214,21 @@ Remove stored accounts via `quarto publish accounts` so only env var token is us
 - [ ] Publish succeeds
 - [ ] No ghost token persisted (run `quarto publish accounts` after — should show no posit-connect-cloud accounts)
 
+### 6b: Multiple Accounts Without ACCOUNT_ID (--no-prompt)
+
+If the access token has access to multiple publishable accounts:
+
+```bash
+export POSIT_CONNECT_CLOUD_ACCESS_TOKEN="<accessToken>"
+# Intentionally do NOT set POSIT_CONNECT_CLOUD_ACCOUNT_ID
+./package/dist/bin/quarto.cmd publish posit-connect-cloud tests/docs/manual/publish-connect-cloud/single-doc/document.qmd --no-prompt
+```
+
+- [ ] Publish fails with error: "Multiple publishable accounts found. Set POSIT_CONNECT_CLOUD_ACCOUNT_ID to select a specific account."
+- [ ] No content published
+
+This matches other providers' behavior: ambiguous account selection fails in non-interactive mode.
+
 **Cleanup:**
 
 ```bash
@@ -340,6 +355,7 @@ Access tokens expire after some time. To test proactive refresh:
 | 4 | Update existing content | | |
 | 5 | Account management | | |
 | 6 | CI/CD mode | | |
+| 6b | Multiple accounts without ACCOUNT_ID | | |
 | 7 | Provider selection | | |
 | 8 | posit-cloud deprecation | | |
 | 9a | Invalid token error | | |
