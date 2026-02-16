@@ -292,9 +292,11 @@ unset POSIT_CONNECT_CLOUD_ACCESS_TOKEN
 ./package/dist/bin/quarto.cmd publish posit-connect-cloud tests/docs/manual/publish-connect-cloud/single-doc/document.qmd
 ```
 
-- [ ] Detects content is gone (deleted or 404)
-- [ ] Prompts as new publish (or creates new content)
+- [ ] Silently detects content is gone via `resolveTarget` (debug log: "not found" or "deleted")
+- [ ] No "Publish update to:" prompt for the deleted target
+- [ ] Falls through to new publish flow ("Publish with account:" prompt)
 - [ ] Publishes successfully with new content ID
+- [ ] Old stale entry remains in `_publish.yml` (not cleaned up — known limitation)
 
 ### 9c: --no-render Flag
 

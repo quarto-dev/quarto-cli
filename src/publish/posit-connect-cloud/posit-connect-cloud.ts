@@ -307,6 +307,9 @@ async function resolveTarget(
     };
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
+      publishDebug(
+        `Content ${target.id} not found (404), treating as not found`,
+      );
       return undefined;
     }
     throw err;
