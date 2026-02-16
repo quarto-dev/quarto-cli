@@ -375,7 +375,7 @@ export async function pollForToken(
   initialInterval: number,
   expiresIn: number,
 ): Promise<TokenResponse> {
-  let interval = initialInterval;
+  let interval = Math.max(initialInterval, 5);
   const params = new URLSearchParams({
     scope: kOAuthScope,
     client_id: env.clientId,

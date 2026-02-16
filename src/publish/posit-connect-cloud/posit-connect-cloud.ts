@@ -41,7 +41,7 @@ import {
   writeStoredToken,
   writeStoredTokens,
 } from "./api/index.ts";
-import { Account, PositConnectCloudToken } from "./api/types.ts";
+import { Account, PositConnectCloudToken, Revision } from "./api/types.ts";
 
 export const kPositConnectCloud = "posit-connect-cloud";
 const kPositConnectCloudDescription = "Posit Connect Cloud";
@@ -356,7 +356,7 @@ async function publish(
         "No publishable accounts found for the provided access token.",
       );
     }
-    const envAccountId = Deno.env.get(kPositConnectCloudAccountIdVar);
+    const envAccountId = Deno.env.get(kPositConnectCloudAccountIdVar)?.trim();
     if (envAccountId) {
       const match = publishable.find((a) => a.id === envAccountId);
       if (!match) {
@@ -501,6 +501,8 @@ async function publish(
       // Poll revision status
       const pollStartTime = Date.now();
       let lastStatus = "";
+      let consecutiveErrors = 0;
+      const kMaxConsecutiveErrors = 5;
       while (true) {
         if (Date.now() - pollStartTime > kRevisionPollTimeoutMs) {
           throw new Error(
@@ -509,7 +511,27 @@ async function publish(
           );
         }
 
-        const revision = await client.getRevision(revisionId);
+        let revision: Revision;
+        try {
+          revision = await client.getRevision(revisionId);
+          consecutiveErrors = 0;
+        } catch (err) {
+          if (err instanceof ApiError || err instanceof TypeError) {
+            consecutiveErrors++;
+            publishDebug(
+              `Revision poll error (${consecutiveErrors}/${kMaxConsecutiveErrors}): ${err}`,
+            );
+            if (consecutiveErrors >= kMaxConsecutiveErrors) {
+              throw new Error(
+                "Lost connection to Connect Cloud while monitoring deployment. " +
+                  "The deployment may still succeed — check the dashboard for status.",
+              );
+            }
+            await sleep(2000);
+            continue;
+          }
+          throw err;
+        }
 
         // Log status changes
         if (revision.status && revision.status !== lastStatus) {
