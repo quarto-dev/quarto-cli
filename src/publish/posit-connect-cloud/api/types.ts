@@ -1,7 +1,7 @@
 /*
  * types.ts
  *
- * Copyright (C) 2020-2026 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  *
  * Types for Posit Connect Cloud publish provider.
  */

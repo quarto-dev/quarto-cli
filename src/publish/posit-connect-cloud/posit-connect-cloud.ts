@@ -1,7 +1,7 @@
 /*
  * posit-connect-cloud.ts
  *
- * Copyright (C) 2020-2026 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  *
  * Publish provider for Posit Connect Cloud (connect.posit.cloud).
  * Supports static content publishing via bundle upload (Pattern B).
@@ -35,8 +35,8 @@ import {
   getEnvironmentConfig,
   initiateDeviceAuth,
   pollForToken,
-  positConnectCloudDebug as publishDebug,
   PositConnectCloudClient,
+  positConnectCloudDebug as publishDebug,
   readStoredTokens,
   writeStoredToken,
   writeStoredTokens,
@@ -595,7 +595,6 @@ function clientForAccount(
   account: AccountToken,
   storedToken: PositConnectCloudToken | undefined,
 ): PositConnectCloudClient {
-
   // For environment tokens, check for optional refresh token
   if (account.type === AccountTokenType.Environment) {
     const refreshToken = Deno.env.get(kPositConnectCloudRefreshTokenVar);
