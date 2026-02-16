@@ -183,6 +183,23 @@ testRender(docs("email/email-multi-v2.qmd"), "email", false, [
   }
 });
 
+// Test v2 format override with old Connect version
+// Uses email-format: v2 in YAML to force v2 despite old Connect version
+testRender(docs("email/email-force-v2.qmd"), "email", false, [fileExists(previewFileV2_1), validJsonWithMultipleEmails(jsonFile, 1, {
+  "0": {
+    "email_id": 1,
+    "subject": "The subject line.",
+    "attachments": [],
+    "suppress_scheduled": false,
+    "send_report_as_attachment": false
+  }
+})], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2024.09.0"
+  }
+});
+
 // Test mixed metadata - some emails have metadata, others don't
 testRender(docs("email/email-mixed-metadata-v2.qmd"), "email", false, [
   fileExists(previewFileV2_1),

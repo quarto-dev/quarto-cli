@@ -4,6 +4,20 @@ Connect version sniffing utilities for email extension
 Functions to detect and compare Posit Connect versions from environment variables
 ]]
 
+-- Get email format version override from metadata
+-- Can be set in YAML as: 
+--   format:
+--     email:
+--       email-version: 2
+-- Returns: version string (e.g., "2") if override is set, nil otherwise
+function get_email_format_override(meta)
+  if meta and meta["email-version"] then
+    return pandoc.utils.stringify(meta["email-version"])
+  end
+
+  return nil
+end
+
 -- Parse Connect version from SPARK_CONNECT_USER_AGENT
 -- Format:  posit-connect/2024.09.0
 --          posit-connect/2024.09.0-dev+26-dirty-g51b853f70e
@@ -70,5 +84,6 @@ end
 
 -- Export functions for module usage
 return {
-  is_connect_version_at_least = is_connect_version_at_least
+  is_connect_version_at_least = is_connect_version_at_least,
+  get_email_format_override = get_email_format_override
 }
