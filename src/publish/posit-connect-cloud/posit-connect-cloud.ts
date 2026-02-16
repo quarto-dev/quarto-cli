@@ -211,9 +211,13 @@ async function authorizeToken(
           );
           if (found.length > 0) break;
         } catch (err) {
-          publishDebug(
-            `Account polling error (will retry): ${err}`,
-          );
+          if (err instanceof ApiError || err instanceof TypeError) {
+            publishDebug(
+              `Account polling error (will retry): ${err}`,
+            );
+          } else {
+            throw err;
+          }
         }
       }
     });
@@ -463,6 +467,7 @@ async function publish(
     kPositConnectCloud,
     type,
     title,
+    type === "site" ? target?.url : undefined,
   );
 
   // Step 3: Bundle and upload
@@ -553,9 +558,8 @@ function isNotFound(err: Error): boolean {
 
 function clientForAccount(
   account: AccountToken,
-  storedToken?: PositConnectCloudToken,
+  storedToken: PositConnectCloudToken | undefined,
 ): PositConnectCloudClient {
-  const token = storedToken ?? findStoredToken(account);
 
   // For environment tokens, check for optional refresh token
   if (account.type === AccountTokenType.Environment) {
@@ -575,7 +579,7 @@ function clientForAccount(
     return new PositConnectCloudClient(account.token);
   }
 
-  return new PositConnectCloudClient(account.token, token);
+  return new PositConnectCloudClient(account.token, storedToken);
 }
 
 function findStoredToken(

@@ -183,6 +183,7 @@ export class PositConnectCloudClient {
     const response = await this.fetchWithRetry_("POST", url, {
       "Accept": "application/json",
     }, undefined);
+    // Drain response body to release the connection (no useful payload)
     await response.arrayBuffer();
   }
 
