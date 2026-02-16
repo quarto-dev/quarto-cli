@@ -68,8 +68,12 @@ export async function validateBundle(
     cleanupFiles.forEach((file) => {
       try {
         Deno.removeSync(file, {recursive: true});
-      } catch (_e) {
-        // File may not exist if validation failed early
+      } catch (e) {
+        if (e instanceof Deno.errors.NotFound) {
+          // File may not exist if validation failed early
+        } else {
+          info(`Failed to remove cleanup file '${file}': ${e instanceof Error ? e.message : String(e)}`);
+        }
       }
     })
   }
