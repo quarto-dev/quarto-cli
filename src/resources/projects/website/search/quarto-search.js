@@ -47,6 +47,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     // perform any highlighting
     highlight(escapeRegExp(query), mainEl);
 
+    // activate tabs that contain highlighted matches
+    activateTabsWithMatches(mainEl);
+
     // fix up the URL to remove the q query param
     const replacementUrl = new URL(window.location);
     replacementUrl.searchParams.delete(kQueryArg);
@@ -1110,6 +1113,47 @@ function clearHighlight(searchterm, el) {
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
+
+// After search highlighting, activate any tabs whose panes contain <mark> matches.
+// This ensures that search results inside inactive Bootstrap tabs become visible.
+// Only switches tabs when no match is already visible in the active tab of that tabset.
+function activateTabsWithMatches(mainEl) {
+  if (typeof bootstrap === "undefined") return;
+
+  const marks = mainEl.querySelectorAll("mark");
+  if (marks.length === 0) return;
+
+  // Group marks by their parent tabset (.tab-content container)
+  const tabsetMatches = new Map();
+  for (const mark of marks) {
+    const pane = mark.closest(".tab-pane");
+    if (!pane) continue;
+    const tabContent = pane.parentElement;
+    if (!tabContent || !tabContent.classList.contains("tab-content")) continue;
+
+    if (!tabsetMatches.has(tabContent)) {
+      tabsetMatches.set(tabContent, { activeHasMatch: false, firstInactivePane: null });
+    }
+    const info = tabsetMatches.get(tabContent);
+    if (pane.classList.contains("active")) {
+      info.activeHasMatch = true;
+    } else if (!info.firstInactivePane) {
+      info.firstInactivePane = pane;
+    }
+  }
+
+  // For each tabset, only activate if the active tab has no match
+  for (const [, info] of tabsetMatches) {
+    if (info.activeHasMatch || !info.firstInactivePane) continue;
+
+    const tabButton = mainEl.querySelector(
+      `[data-bs-toggle="tab"][data-bs-target="#${info.firstInactivePane.id}"]`
+    );
+    if (tabButton) {
+      new bootstrap.Tab(tabButton).show();
+    }
+  }
 }
 
 // highlight matches

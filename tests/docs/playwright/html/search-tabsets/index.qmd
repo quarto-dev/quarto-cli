@@ -1,0 +1,49 @@
+---
+title: "Search Tab Test"
+---
+
+## Plain Section
+
+This section contains epsilon-no-tabs content outside of any tabset.
+
+## Ungrouped Tabset
+
+::: {.panel-tabset}
+
+### Tab Alpha
+
+This tab contains alpha-visible-content that is in the default active tab.
+
+### Tab Beta
+
+This tab contains beta-unique-search-term that is only in this inactive tab.
+
+:::
+
+## Both Tabs Match
+
+::: {.panel-tabset}
+
+### R
+
+This tab contains gamma-both-tabs content in the active R tab.
+
+### Python
+
+This tab also contains gamma-both-tabs content in the inactive Python tab.
+
+:::
+
+## Grouped Tabset
+
+::: {.panel-tabset group="language"}
+
+### R
+
+This tab contains delta-r-only-term that is only in the R tab.
+
+### Python
+
+This tab contains python-only-content in the Python tab.
+
+:::
