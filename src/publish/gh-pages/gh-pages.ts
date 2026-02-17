@@ -27,12 +27,18 @@ import { joinUrl } from "../../core/url.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
 import { RenderFlags } from "../../command/render/types.ts";
-import { gitBranchExists, gitCmds, gitVersion } from "../../core/git.ts";
+import {
+  gitBranchExists,
+  gitCmds,
+  gitUserIdentityConfigured,
+  gitVersion,
+} from "../../core/git.ts";
 import {
   anonymousAccount,
   gitHubContextForPublish,
   verifyContext,
 } from "../common/git.ts";
+import { throwUnableToPublish } from "../common/errors.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 
@@ -115,6 +121,16 @@ async function publish(
   // get context
   const ghContext = await gitHubContextForPublish(options.input);
   verifyContext(ghContext, "GitHub Pages");
+
+  // verify git user identity is configured (needed for commits in worktree)
+  if (!await gitUserIdentityConfigured(input)) {
+    throwUnableToPublish(
+      "git user.name and/or user.email is not configured\n" +
+        "(run 'git config user.name \"Your Name\"' and " +
+        "'git config user.email \"you@example.com\"' to set them)",
+      "GitHub Pages",
+    );
+  }
 
   // create gh pages branch on remote and local if there is none yet
   const createGhPagesBranchRemote = !ghContext.ghPagesRemote;
@@ -211,7 +227,7 @@ async function publish(
       const worktreePath = join(projectScratchPath(input), entry.name);
       await execProcess({
         cmd: "git",
-        args: ["worktree", "remove", worktreePath],
+        args: ["worktree", "remove", "--force", worktreePath],
         cwd: projectScratchPath(input),
       });
       removeIfExists(worktreePath);
@@ -423,7 +439,7 @@ async function withWorktree(
   } finally {
     await execProcess({
       cmd: "git",
-      args: ["worktree", "remove", siteDir],
+      args: ["worktree", "remove", "--force", siteDir],
       cwd: dir,
     });
   }
