@@ -34,6 +34,7 @@ All changes included in 1.9:
 ### `email`
 
 - ([#13882](https://github.com/quarto-dev/quarto-cli/pull/13882)): Add support for multiple email outputs when rendering to `format: email` for Posit Connect.
+- ([#14021](https://github.com/quarto-dev/quarto-cli/issues/14021)): Add `email-version` hook to override detected Connect version when rendering emails for Posit Connect.
 
 ### `html`
 
@@ -119,6 +120,10 @@ All changes included in 1.9:
 
 ## Publishing
 
+### Posit Connect Cloud
+
+- ([#14027](https://github.com/quarto-dev/quarto-cli/issues/14027)): Add `quarto publish posit-connect-cloud` for publishing static content to Posit Connect Cloud.
+
 ### Confluence
 
 - ([#13414](https://github.com/quarto-dev/quarto-cli/issues/13414)): Be more forgiving when Confluence server returns malformed JSON response. (author: @m1no)
@@ -137,9 +142,10 @@ All changes included in 1.9:
 
 - (): New `quarto call build-ts-extension` command builds a TypeScript extension, such as an engine extension, and places the artifacts in the `_extensions` directory. See the [engine extension pre-release documentation](https://prerelease.quarto.org/docs/extensions/engine.html) for details.
 
-### `install verapdf`
+### `install`
 
 - ([#4426](https://github.com/quarto-dev/quarto-cli/issues/4426)): New `quarto install verapdf` command installs [veraPDF](https://verapdf.org/) for PDF/A and PDF/UA validation. When verapdf is available, PDFs created with the `pdf-standard` option are automatically validated for compliance. Also supports `quarto uninstall verapdf`, `quarto update verapdf`, and `quarto tools`.
+- ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877), [#10961](https://github.com/quarto-dev/quarto-cli/issues/10961), [#6821](https://github.com/quarto-dev/quarto-cli/issues/6821), [#13704](https://github.com/quarto-dev/quarto-cli/issues/13704)): New `quarto install chrome-headless-shell` command downloads [Chrome Headless Shell](https://developer.chrome.com/blog/chrome-headless-shell) from Google's Chrome for Testing API. This is the recommended headless browser for diagram rendering (Mermaid, Graphviz) to non-HTML formats. Smaller and lighter than full Chrome, with fewer system dependencies.
 
 ### `preview`
 
@@ -179,3 +185,4 @@ All changes included in 1.9:
 - ([#13997](https://github.com/quarto-dev/quarto-cli/issues/13997)): Fix Windows dart-sass theme compilation failing when Quarto is installed in a path with spaces (e.g., `C:\Program Files\`) and the project path also contains spaces.
 - ([#13998](https://github.com/quarto-dev/quarto-cli/issues/13998)): Fix YAML validation error with CR-only line terminators (old Mac format). Documents using `\r` line endings no longer fail with "Expected YAML front matter to contain at least 2 lines".
 - ([#14012](https://github.com/quarto-dev/quarto-cli/issues/14012)): Add `fr-CA` language translation for Quebec French inclusive writing conventions, using parenthetical forms instead of middle dots for author labels. (author: @tdhock)
+- ([#14032](https://github.com/quarto-dev/quarto-cli/issues/14032)): Add `editor_options` with `chunk_output_type` to YAML schema for autocompletion and validation in RStudio and Positron.

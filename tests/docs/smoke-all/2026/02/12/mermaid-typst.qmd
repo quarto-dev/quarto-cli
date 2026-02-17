@@ -1,0 +1,24 @@
+---
+title: "Mermaid to Typst (#11877)"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        - ['image\(.*mermaid-figure-1\.png']
+        - []
+---
+
+## Mermaid Flowchart
+
+```{mermaid}
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Good]
+    B -->|No| D[Bad]
+    C --> E[End]
+    D --> E
+```

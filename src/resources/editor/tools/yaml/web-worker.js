@@ -14484,6 +14484,26 @@ try {
             description: "Visual editor configuration"
           },
           {
+            name: "editor_options",
+            schema: {
+              object: {
+                properties: {
+                  chunk_output_type: {
+                    enum: [
+                      "inline",
+                      "console"
+                    ],
+                    description: "Determines where chunk output is shown in the editor."
+                  }
+                }
+              }
+            },
+            description: {
+              short: "Editor-specific options (used by RStudio and Positron).",
+              long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure\nper-document editor settings.\n"
+            }
+          },
+          {
             name: "zotero",
             schema: {
               anyOf: [
@@ -23238,7 +23258,11 @@ try {
           },
           {
             short: "Specifies the coloring style to be used in highlighted source\ncode.",
-            long: "Specifies the coloring style to be used in highlighted source\ncode.\nInstead of a <em>STYLE</em> name, a JSON file with extension\n<code>.theme</code> may be supplied. This will be parsed as a KDE syntax\nhighlighting theme and (if valid) used as the highlighting style."
+            long: "Specifies the coloring style to be used in highlighted source\ncode.\nValid values:"
+          },
+          {
+            short: "Deprecated: use <code>syntax-highlighting</code> instead.",
+            long: "Deprecated: use <code>syntax-highlighting</code> instead.\nSpecifies the coloring style to be used in highlighted source\ncode."
           },
           "KDE language syntax definition file (XML)",
           "KDE language syntax definition files (XML)",
@@ -25083,8 +25107,13 @@ try {
           "internal-schema-hack",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
           {
-            short: "Specifies the coloring style to be used in highlighted source\ncode.",
-            long: "Specifies the coloring style to be used in highlighted source\ncode.\nValid values:"
+            short: "Editor-specific options (used by RStudio and Positron).",
+            long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
+          },
+          "Determines where chunk output is shown in the editor.",
+          {
+            short: "Email format version",
+            long: "Specifies which email format version to use."
           }
         ],
         "schema/external-schemas.yml": [
@@ -25315,12 +25344,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 220811,
+          _internalId: 221802,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 220803,
+              _internalId: 221794,
               type: "enum",
               enum: [
                 "png",
@@ -25336,7 +25365,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 220810,
+              _internalId: 221801,
               type: "anyOf",
               anyOf: [
                 {
@@ -25471,6 +25500,26 @@ try {
             description: {
               short: "Visual style for theorem environments in Typst output.",
               long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+            }
+          }
+        ],
+        "schema/document-email.yml": [
+          {
+            name: "email-version",
+            tags: {
+              formats: [
+                "email"
+              ]
+            },
+            schema: {
+              enum: [
+                1,
+                2
+              ]
+            },
+            description: {
+              short: "Email format version",
+              long: "Specifies which email format version to use.\n\n- `1`: Legacy email format with document-level metadata (compatible with older Connect versions)\n- `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)\n"
             }
           }
         ]

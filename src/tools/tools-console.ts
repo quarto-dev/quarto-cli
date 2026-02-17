@@ -9,7 +9,8 @@ import { Table } from "cliffy/table/mod.ts";
 import { info, warning } from "../deno_ral/log.ts";
 
 import {
-  allTools,
+  installableTool,
+  installableTools,
   installTool,
   toolSummary,
   uninstallTool,
@@ -24,6 +25,7 @@ import {
 } from "../tools/types.ts";
 
 interface ToolInfo {
+  key: string;
   tool: InstallableTool;
   installed: boolean;
   version?: string;
@@ -51,18 +53,16 @@ export async function outputTools() {
     }
   };
 
-  // The column widths for output (in chars)
   const tools = await loadTools();
   for (const tool of tools) {
-    const summary = await toolSummary(tool.tool.name);
+    const summary = await toolSummary(tool.key);
     if (summary) {
-      const toolDetails = [
-        tool.tool.name.toLowerCase(),
+      toolRows.push([
+        tool.key,
         installStatus(summary),
         summary.installedVersion || "---",
         summary.latestRelease.version,
-      ];
-      toolRows.push(toolDetails);
+      ]);
 
       if (summary.configuration.status !== "ok") {
         statusMsgs.push(
@@ -73,7 +73,6 @@ export async function outputTools() {
   }
 
   info("");
-  // Write the output
   const table = new Table().header([
     colors.bold("Tool"),
     colors.bold("Status"),
@@ -91,27 +90,13 @@ export async function outputTools() {
 export async function loadTools(): Promise<ToolInfo[]> {
   let sorted: ToolInfo[] = [];
   await withSpinner({ message: "Inspecting tools" }, async () => {
-    const all = await allTools();
-    const toolsWithInstall = [{
-      tools: all.installed,
-      installed: true,
-    }, {
-      tools: all.notInstalled,
-      installed: false,
-    }];
-
     const toolInfos = [];
-    for (const toolWithInstall of toolsWithInstall) {
-      for (const tool of toolWithInstall.tools) {
-        const version = await tool.installedVersion();
-        const latest = await tool.latestRelease();
-        toolInfos.push({
-          tool,
-          version,
-          installed: toolWithInstall.installed,
-          latest,
-        });
-      }
+    for (const key of installableTools()) {
+      const tool = installableTool(key);
+      const installed = await tool.installed();
+      const version = await tool.installedVersion();
+      const latest = await tool.latestRelease();
+      toolInfos.push({ key, tool, version, installed, latest });
     }
 
     sorted = toolInfos.sort((tool1, tool2) => {
@@ -243,7 +228,7 @@ export async function selectTool(
     options: toolsInfo.map((toolInfo) => {
       return {
         name: name(toolInfo),
-        value: toolInfo.tool.name.toLowerCase(),
+        value: toolInfo.key,
         disabled: action === "install"
           ? toolInfo.installed
           : !toolInfo.installed,

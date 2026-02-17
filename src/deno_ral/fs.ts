@@ -9,6 +9,7 @@ import { resolve, SEP as SEPARATOR } from "./path.ts";
 import { copySync } from "fs/copy";
 import { existsSync } from "fs/exists";
 import { originalRealPathSync } from "./original-real-path.ts";
+import { debug } from "./log.ts";
 
 export { ensureDir, ensureDirSync } from "fs/ensure-dir";
 export { existsSync } from "fs/exists";
@@ -172,6 +173,21 @@ export function safeModeFromFile(path: string): number | undefined {
     const stat = Deno.statSync(path);
     if (stat.mode !== null) {
       return stat.mode;
+    }
+  }
+}
+
+/**
+ * Set file mode in a platform-safe way. No-op on Windows (where chmod
+ * is not supported). Swallows errors on other platforms since permission
+ * changes are often non-fatal (e.g., on filesystems that don't support it).
+ */
+export function safeChmodSync(path: string, mode: number): void {
+  if (Deno.build.os !== "windows") {
+    try {
+      Deno.chmodSync(path, mode);
+    } catch (e) {
+      debug(`safeChmodSync: failed to chmod ${path}: ${e}`);
     }
   }
 }

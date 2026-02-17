@@ -30,7 +30,7 @@ export interface InstallableTool {
 export interface InstallPreReq {
   check: (context: InstallContext) => Promise<boolean>;
   os: string[];
-  message: string;
+  message: string | ((context: InstallContext) => string | Promise<string>);
 }
 
 // Locally accessible Package information
