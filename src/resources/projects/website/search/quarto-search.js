@@ -1129,8 +1129,8 @@ function activateTabsWithMatches(mainEl) {
   for (const mark of marks) {
     const pane = mark.closest(".tab-pane");
     if (!pane) continue;
-    const tabContent = pane.parentElement;
-    if (!tabContent || !tabContent.classList.contains("tab-content")) continue;
+    const tabContent = pane.closest(".tab-content");
+    if (!tabContent) continue;
 
     if (!tabsetMatches.has(tabContent)) {
       tabsetMatches.set(tabContent, { activeHasMatch: false, firstInactivePane: null });
@@ -1147,8 +1147,9 @@ function activateTabsWithMatches(mainEl) {
   for (const [, info] of tabsetMatches) {
     if (info.activeHasMatch || !info.firstInactivePane) continue;
 
+    const escapedId = CSS.escape(info.firstInactivePane.id);
     const tabButton = mainEl.querySelector(
-      `[data-bs-toggle="tab"][data-bs-target="#${info.firstInactivePane.id}"]`
+      `[data-bs-toggle="tab"][data-bs-target="#${escapedId}"]`
     );
     if (tabButton) {
       new bootstrap.Tab(tabButton).show();
