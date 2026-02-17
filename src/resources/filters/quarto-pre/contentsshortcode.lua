@@ -29,7 +29,7 @@ function contents_shortcode_filter()
 
   return {
     Pandoc = function(doc)
-      _quarto.ast.walk(doc.blocks, {
+      doc = doc:walk({
         RawInline = function(el)
           if el.format ~= "quarto-internal" then
             return
@@ -44,7 +44,8 @@ function contents_shortcode_filter()
           end
         end
       })
-      doc.blocks = _quarto.ast.walk(doc.blocks, {
+      
+      doc = doc:walk({
         Div = function(el)
           if ids_used[el.attr.identifier] then
             divs[el.attr.identifier] = el
@@ -110,13 +111,12 @@ function contents_shortcode_filter()
           "Removing from document.")
         return {}
       end
-      -- replace div-context entries
-      doc.blocks = _quarto.ast.walk(doc.blocks, {
+      doc = doc:walk({
         Para = handle_block,
         Plain = handle_block
       })
       -- replace span-context entries
-      doc.blocks = _quarto.ast.walk(doc.blocks, {
+      doc = doc:walk({
         RawInline = function(el)
           if el.format ~= "quarto-internal" then
             return
