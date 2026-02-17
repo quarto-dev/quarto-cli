@@ -82,6 +82,7 @@ import {
 import {
   repoUrlIcon,
   websiteConfigActions,
+  websiteConfigString,
   websiteProjectConfig,
 } from "../website/website-config.ts";
 
@@ -191,7 +192,7 @@ export async function bookProjectConfig(
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
   siteSidebar[kSiteTitle] = siteSidebar[kSiteTitle] || book?.[kSiteTitle];
-  siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] || book?.[kSidebarLogo];
+  siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] ?? book?.[kSidebarLogo];
   siteSidebar[kSidebarLogoHref] = siteSidebar[kSidebarLogoHref] ||
     book?.[kSidebarLogoHref];
   siteSidebar[kSidebarLogoAlt] = siteSidebar[kSidebarLogoAlt] ||
@@ -229,11 +230,25 @@ export async function bookProjectConfig(
   if (site[kSiteRepoUrl]) {
     const repoUrl = siteRepoUrl(site);
     const icon = repoUrlIcon(repoUrl);
-    tools.push({
+    const tool = {
       text: language[kCodeToolsSourceCode] || "Source Code",
       icon,
       href: repoUrl,
-    });
+    } as Record<string, unknown>;
+
+    // Apply repo-link-target if configured
+    const linkTarget = websiteConfigString(kSiteRepoLinkTarget, config);
+    if (linkTarget) {
+      tool.target = linkTarget;
+    }
+
+    // Apply repo-link-rel if configured
+    const linkRel = websiteConfigString(kSiteRepoLinkRel, config);
+    if (linkRel) {
+      tool.rel = linkRel;
+    }
+
+    tools.push(tool);
   }
   tools.push(...(downloadTools(projectDir, config, language) || []));
   tools.push(...(sharingTools(config, language) || []));

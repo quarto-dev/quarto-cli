@@ -1046,6 +1046,7 @@ engine_comment_chars <- function(engine) {
     dot = "//",
     apl = "\u235D",
     ocaml = c("(*", "*)"),
+    q = "/",
     rust = "//"
   )
   comment_chars[[engine]] %||% "#"
@@ -1120,8 +1121,10 @@ is_label_type <- function(type, label) {
 
 block_attr <- function(id = NULL, lang = NULL, class = NULL, attr = NULL) {
   id <- labelId(id)
-  if (!is.null(lang)) {
+  if (!is.null(lang) && nzchar(lang)) {
     lang <- paste0(".", lang)
+  } else {
+    lang <- NULL
   }
   if (!is.null(class)) {
     class <- paste(block_class(class))

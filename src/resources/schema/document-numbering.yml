@@ -72,6 +72,22 @@
       a level-N heading at the beginning of the document
       replaces the metadata title.
 
+- name: page-numbering
+  schema: 
+    anyOf:
+      - boolean
+      - string
+  tags:
+    formats: [typst]
+  description:
+    short: |
+      Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.
+    long: |
+      Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.
+
+      See [Typst Numbering](https://typst.app/docs/reference/model/numbering/) 
+      for additional information.
+
 - name: pagenumbering
   schema:
     maybeArrayOf: string

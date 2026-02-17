@@ -1,0 +1,86 @@
+---
+_quarto:
+  tests:
+    run:
+      skip: "Book chapter - only renders as part of full book"
+---
+
+# Results {#sec-results}
+
+This is the third chapter of the book.
+
+## Cross-chapter references {#sec-cross-chapter-refs}
+
+Synthesica analysis combines previous findings. Compositia visualization in @fig-panel from @sec-methods provides the complete panel. Componenta breakdown: @fig-panel-a shows the first panel and @fig-panel-b shows the second panel.
+
+Kinematica data from @fig-cars in @sec-intro establishes velocity-distance relationships.
+
+## Results Citations {#sec-results-citations}
+
+Algorithmia body text discusses computational complexity as established by @knuth84. The foundational work on classical mechanics [@newton1687] informs our physical models. Relativistica principles from @einstein1905 provide the theoretical framework.
+
+Bibliographica marginalia demonstrates citation placement in chapter 3.
+
+## Cross-chapter margin references {#sec-cross-chapter-margin}
+
+Marginala content from previous chapters:
+
+- Copernicana orbital diagram in @fig-margin-orbital from @sec-intro
+- Ptolemaica caption figure in @fig-margincap-epicycle
+- Planetaria periods in @tbl-margin-planets from @sec-methods
+- Wavelengthra panel in @fig-margin-panel
+- Attractiva equation in @eq-margin-gravity
+- Keplerian solver in @lst-margin-kepler
+
+## Cross-chapter callout references {#sec-cross-chapter-callouts}
+
+Admonitia references from previous chapters:
+
+- Beveragia hazard in @wrn-tea from @sec-intro
+- Fabricata utility in @tip-towel from @sec-methods
+- Poetica horrors in @nte-vogon
+
+Anagnorisis body text reveals the cosmic truth.
+
+::: {#imp-answer .callout-important .column-margin}
+## The Answer
+Peripeteia: The answer to the ultimate question of life, the universe, and everything is 42. Ultimata response documented in @imp-answer.
+:::
+
+## Custom crossref dinosaurs {#sec-custom-crossref-dinosaurs-ch3}
+
+::: {#dino-ptero}
+**Pterodactyl**
+
+Pterosaura flight mechanics documented here. See @dino-ptero for aerodynamic analysis.
+:::
+
+Comparativa taxonomy: @dino-steg from @sec-intro and @dino-raptor from @sec-methods.
+
+Marginala specimen: @dino-margin-ankylo from @sec-intro demonstrates placement.
+
+## Wide Content {#sec-wide-content}
+
+Panoramica observation body text introduces wide figures.
+
+![Celestica wide survey visualization](logo.svg){#fig-wide-observation .column-page}
+
+Expansiva layout demonstrated in @fig-wide-observation spans page width.
+
+## Forward references to appendices {#sec-forward-refs}
+
+Appendica A content:
+
+- Compositia panel in @fig-appendix-panel
+- Admonitia warning in @wrn-appendix
+- Consilia tip in @tip-appendix
+- Fossilica specimen in @dino-appendix
+- Orbitala margin figure in @fig-appendix-margin
+
+Appendica B content:
+
+- Secundaria panel in @fig-appendix-b-panel
+- Monitoria warning in @wrn-appendix-b
+- Advisoria tip in @tip-appendix-b
+- Brachiosaura specimen in @dino-appendix-b
+- Visualica margin figure in @fig-appendix-b-margin

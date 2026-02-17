@@ -1,0 +1,37 @@
+---
+title: "Typst Margin Layout Tests"
+---
+
+This is a collection of test documents for Typst margin layout features.
+
+## Test Categories
+
+### Margin Notes & Asides
+- Basic margin notes and aside elements
+- Shift, alignment, and offset attributes
+
+### Sidenotes (Footnotes in Margin)
+- `reference-location: margin` converts footnotes to sidenotes
+- Multi-paragraph and complex content in sidenotes
+
+### Margin Citations
+- `citation-location: margin` shows full citations in margin
+- Various citation syntax (locators, prefix/suffix, etc.)
+
+### Margin Figures, Tables, and Listings
+- `.column-margin` on floats
+- Cross-references and caption positioning
+
+### Margin Captions
+- `cap-location: margin` for figures/tables/listings
+
+### Full-Width Layouts
+- `column-page`, `column-screen`, and variants
+
+### Geometry/Grid Customization
+- Paper sizes (A4, Legal, Letter)
+- Grid width options
+
+## Test Status
+
+Tests marked with ❌ are expected to fail, documenting unimplemented features.

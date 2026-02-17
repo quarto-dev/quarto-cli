@@ -62,6 +62,7 @@ inject_user_filters_at_entry_points = function(filter_list)
         return
       end
     end
+
     local filter = {
       name = entry_point .. "-user-" .. tostring(entry_point_counts[entry_point]),
       -- The filter might not work as expected when doing a non-lazy jog, so

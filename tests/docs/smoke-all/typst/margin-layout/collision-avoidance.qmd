@@ -1,0 +1,54 @@
+---
+title: "Collision Avoidance Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#note\(']
+        - []
+      ensurePdfTextPositions:
+        - # All margin notes right of body
+          - subject: "First margin"
+            relation: rightOf
+            object: "Line 1"
+          # Vertical stacking chain
+          - subject: "First margin"
+            relation: above
+            object: "Second note"
+          - subject: "Second note"
+            relation: above
+            object: "Third note"
+          - subject: "Third note"
+            relation: above
+            object: "NOTE4"
+          # Line 5 should be top-aligned with its margin note (enough space)
+          - subject: "Line 5"
+            relation: topAligned
+            object: "This note"
+        - []
+      noErrors: default
+---
+
+This tests that multiple notes on nearby lines stack properly without overlapping.
+
+Line 1 [First margin note with longer content that takes up multiple lines in the narrow margin column to test stacking]{.column-margin}.
+Line 2 [Second note should shift down to avoid the first]{.column-margin}.
+Line 3 [Third note shifts further down]{.column-margin}.
+Line 4 [NOTE4 margin content]{.column-margin}.
+
+## About Tufte Layout
+
+The Tufte layout style, named after Edward Tufte, places supplementary information in wide margins alongside the main text. This approach keeps the primary narrative clean while providing context, citations, and asides within the reader's peripheral vision.
+
+Tufte's books on information design—*The Visual Display of Quantitative Information*, *Envisioning Information*, and *Beautiful Evidence*—pioneered this layout for print. The wide right margin accommodates sidenotes, small figures, and citations without interrupting the flow of the main argument.
+
+In digital contexts, this layout translates well to screens wide enough to display both columns comfortably. For narrower screens, the margin content typically reflows into the main column or becomes expandable.
+
+The key advantage is reduced cognitive load: readers don't need to jump to footnotes at the page bottom or endnotes in a separate section. The relevant context appears exactly where it's needed.
+
+Line 5 [This note should appear near its source line since there's enough vertical space now]{.column-margin}.

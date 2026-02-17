@@ -3,9 +3,14 @@
 # Determine the path to this script (we'll use this to figure out relative positions of other files)
 $SOURCE = $MyInvocation.MyCommand.Path
 
+# Check if verbose mode is enabled (GitHub Actions debug mode or explicit flag)
+$VERBOSE_MODE = $env:RUNNER_DEBUG -eq "1" -or $env:QUARTO_TEST_VERBOSE -eq "true"
+
 # ------ Setting all the paths required
 
-Write-Host "> Setting all the paths required..."
+if ($VERBOSE_MODE) {
+  Write-Host "> Setting all the paths required..."
+}
 
 # Tests folder 
 # e.g quarto-cli/tests folder
@@ -42,8 +47,9 @@ If ( $null -eq $Env:GITHUB_ACTION -and $null -eq $Env:QUARTO_TESTS_NO_CONFIG ) {
 
 # ----- Preparing running tests ------------
 
-
-Write-Host "> Preparing running tests..."
+if ($VERBOSE_MODE) {
+  Write-Host "> Preparing running tests..."
+}
 
 # Exporting some variables with paths as env var required for running quarto
 $Env:QUARTO_ROOT = $QUARTO_ROOT
@@ -51,7 +57,14 @@ $Env:QUARTO_BIN_PATH = $QUARTO_BIN_PATH
 $Env:QUARTO_SHARE_PATH = $QUARTO_SHARE_PATH
 
 # Activated debug mode by default for stack trace
-$Env:QUARTO_DEBUG = "true" 
+$Env:QUARTO_DEBUG = "true"
+
+# Set DENO_DIR to cache location (respects QUARTO_DENO_DIR override)
+If ($null -eq $Env:QUARTO_DENO_DIR) {
+  $Env:DENO_DIR = Join-Path $QUARTO_BIN_PATH "deno_cache"
+} Else {
+  $Env:DENO_DIR = $Env:QUARTO_DENO_DIR
+}
 
 # Preparing running Deno with default arguments
 
@@ -67,31 +80,53 @@ if ( $MyInvocation.Line -eq "" ) {
   # when script is ran from a child process using -F
   # e.g pwsh -F ./run-tests.ps1 smoke/smoke-all.test.ts -- docs\smoke-all\2023\02\08\4272.qmd
   $customArgs = $MyInvocation.UnboundArguments
+} elseif ($MyInvocation.InvocationName -eq '&') {
+  # when script is called via call operator from another script
+  # e.g & .\run-tests.ps1 @args
+  # Use UnboundArguments directly as it contains the actual arguments passed
+  $customArgs = $MyInvocation.UnboundArguments
 } elseif ($MyInvocation.Line -match "^[.] '[^']*'") {
   # when script is ran from a child process using -command
   # e.g pwsh -command ". 'run-tests.ps1' smoke/smoke-all.test.ts -- docs\smoke-all\2023\02\08\4272.qmd"
   # This is what happens on GHA when using 'run: |' and 'shell: pwsh'
   $argList = ($MyInvocation.Line -replace "^[.] '[^']*'\s*" -split '[;|]')[0].Trim()
   # Extract the argument list from the invocation command line.
-  
+
   # Use Invoke-Expression with a Write-Output call to parse the raw argument list,
   # performing evaluation and splitting it into an array:
-  $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()    
+  $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()
 } else {
   # When script is called from main process
   # e.g ./run-tests.ps1 smoke/smoke-all.test.ts -- docs\smoke-all\2023\02\08\4272.qmd
   $argList = ($MyInvocation.Line -replace ('^.*' + [regex]::Escape($MyInvocation.InvocationName)) -split '[;|]')[0].Trim()
   # Extract the argument list from the invocation command line.
-  
+
   # Use Invoke-Expression with a Write-Output call to parse the raw argument list,
   # performing evaluation and splitting it into an array:
-  $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()    
+  $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()
+}
+
+# Check if keep-outputs mode is enabled and filter it from arguments
+$KEEP_OUTPUTS = $false
+$FILTERED_CUSTOM_ARGS = @()
+foreach ($arg in $customArgs) {
+  if ($arg -eq "--keep-outputs" -or $arg -eq "-k") {
+    $KEEP_OUTPUTS = $true
+  } else {
+    $FILTERED_CUSTOM_ARGS += $arg
+  }
+}
+$customArgs = $FILTERED_CUSTOM_ARGS
+
+if ($KEEP_OUTPUTS) {
+  $env:QUARTO_TEST_KEEP_OUTPUTS = "true"
+  Write-Host "> Keep outputs mode enabled - test artifacts will not be deleted"
 }
 
 ## Short version syntax to run smoke-all.test.ts
 ## Only use if different than ./run-test.ps1 ./smoke/smoke-all.test.ts
 If ($customArgs[0] -notlike "*smoke-all.test.ts") {
-  
+
   $SMOKE_ALL_TEST_FILE="./smoke/smoke-all.test.ts"
   # Check file argument
   $SMOKE_ALL_FILES=@()
@@ -99,7 +134,8 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
 
   ForEach ($file in $customArgs) {
     $filename=$(Split-Path -Path $file -Leaf)
-    If ($filename -match "^^[^_].*[.]qmd$" -Or $filename -match "^[^_].*[.]ipynb$" -Or $filename -match "^[^_].*[.]md$") {
+
+    If ($filename -match "^[^_].*[.]qmd$" -Or $filename -match "^[^_].*[.]ipynb$" -Or $filename -match "^[^_].*[.]md$") {
       $SMOKE_ALL_FILES+=$file
     } elseif ($file -Like "*.ts") {
       $TESTS_TO_RUN+=$file
@@ -146,15 +182,21 @@ If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV -and $null -ne $Env:QUARTO_TESTS_F
 If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV) {
   # Save possible activated virtualenv for later restauration
   $OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-  Write-Host "> Activating virtualenv from .venv for Python tests in Quarto"
+  if ($VERBOSE_MODE) {
+    Write-Host "> Activating virtualenv from .venv for Python tests in Quarto"
+  }
   . $(Join-Path $QUARTO_ROOT "tests" ".venv/Scripts/activate.ps1")
-  Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
-  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  if ($VERBOSE_MODE) {
+    Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+    Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  }
   $quarto_venv_activated = $true
 }
 
 
-Write-Host "> Running tests with `"$QUARTO_DENO $DENO_ARGS`" "
+if ($VERBOSE_MODE) {
+  Write-Host "> Running tests with `"$QUARTO_DENO $DENO_ARGS`" "
+}
 
 & $QUARTO_DENO $DENO_ARGS
 
@@ -164,17 +206,25 @@ $DENO_EXIT_CODE = $LASTEXITCODE
 # Add Coverage handling
 
 If($quarto_venv_activated) {
-  Write-Host "> Exiting virtualenv activated for tests"
+  if ($VERBOSE_MODE) {
+    Write-Host "> Exiting virtualenv activated for tests"
+  }
   deactivate
-  Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
-  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  if ($VERBOSE_MODE) {
+    Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+    Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  }
   Remove-Variable quarto_venv_activated
 }
 If($null -ne $OLD_VIRTUAL_ENV) {
-  Write-Host "> Reactivating original virtualenv"
+  if ($VERBOSE_MODE) {
+    Write-Host "> Reactivating original virtualenv"
+  }
   . "$OLD_VIRTUAL_ENV/Scripts/activate.ps1"
-  Write-Host "> New Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
-  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  if ($VERBOSE_MODE) {
+    Write-Host "> New Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+    Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
+  }
   Remove-Variable OLD_VIRTUAL_ENV
 }
 

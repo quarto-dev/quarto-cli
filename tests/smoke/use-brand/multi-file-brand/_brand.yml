@@ -1,0 +1,23 @@
+meta:
+  name: Multi-file Test Brand
+color:
+  primary: "#28a745"
+logo:
+  images:
+    main:
+      path: logo.png
+      alt: "Main logo"
+    favicon:
+      path: favicon.png
+      alt: "Favicon"
+typography:
+  fonts:
+    - source: file
+      family: "Brand Font"
+      files:
+        - path: fonts/brand-regular.woff2
+          weight: 400
+          style: normal
+        - path: fonts/brand-bold.woff2
+          weight: 700
+          style: normal

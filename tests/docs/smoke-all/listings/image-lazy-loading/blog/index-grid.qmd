@@ -6,15 +6,20 @@ listing:
     - title
     - image
 _quarto:
+  render-project: true
   tests:
     html:
       ensureHtmlElements:
-        - 
+        -
           - "img[loading='lazy'][src='https://placeholder.co/100/100.png']"
           - "img[src='https://placeholder.co/200/200.png']"
           - "img[loading='lazy'][src='https://placeholder.co/300/300.png']"
+          - "img[loading='lazy'][src='https://placeholder.co/400/400.png']"
+          - "img[src='https://placeholder.co/500/500.png']"
+          - "img[loading='lazy'][src='https://placeholder.co/600/600.png']"
         -
           - "img[loading='lazy'][src='https://placeholder.co/200/200.png']"
+          - "img[loading='lazy'][src='https://placeholder.co/500/500.png']"
 ---
 
 ## Hello, here's some listings

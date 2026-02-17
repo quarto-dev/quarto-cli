@@ -4,3 +4,42 @@
   tags:
     formats: [typst]
   description: "The logo image."
+
+- name: margin-geometry
+  schema:
+    object:
+      closed: true
+      properties:
+        inner:
+          ref: marginalia-side-geometry
+          description: "Inner (left) margin geometry."
+        outer:
+          ref: marginalia-side-geometry
+          description: "Outer (right) margin geometry."
+        clearance:
+          string:
+            description: "Minimum vertical spacing between margin notes (default: 8pt)."
+  tags:
+    formats: [typst]
+  description:
+    short: "Advanced geometry settings for Typst margin layout."
+    long: |
+      Fine-grained control over marginalia package geometry. Most users should
+      use `margin` and `grid` options instead; these values are computed automatically.
+
+      User-specified values override the computed defaults.
+
+- name: theorem-appearance
+  schema:
+    enum: [simple, fancy, clouds, rainbow]
+  default: simple
+  tags:
+    formats: [typst]
+  description:
+    short: "Visual style for theorem environments in Typst output."
+    long: |
+      Controls how theorems, lemmas, definitions, etc. are rendered:
+      - `simple`: Plain text with bold title and italic body (default)
+      - `fancy`: Colored boxes using brand colors
+      - `clouds`: Rounded colored background boxes
+      - `rainbow`: Colored left border with colored title

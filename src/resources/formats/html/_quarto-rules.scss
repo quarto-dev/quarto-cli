@@ -762,3 +762,13 @@ $mermaid-node-fg-color: $primary !default;
     color: #666;
   }
 }
+
+// light and dark content
+
+body.quarto-light .dark-content {
+  display: none !important;
+}
+
+body.quarto-dark .light-content {
+  display: none !important;
+}

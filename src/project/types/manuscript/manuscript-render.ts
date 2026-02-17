@@ -41,7 +41,7 @@ import { logProgress } from "../../../core/log.ts";
 import { kOutputFile } from "../../../config/constants.ts";
 import { readBaseInputIndex } from "../../project-index.ts";
 import { outputFile } from "../../../render/notebook/notebook-contributor-ipynb.ts";
-import { isQmdFile } from "../../../execute/qmd.ts";
+import { isQmdFile } from "../../../core/path.ts";
 
 interface ManuscriptCompletion {
   completion: PandocRenderCompletion;

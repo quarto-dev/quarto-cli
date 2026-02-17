@@ -325,11 +325,11 @@ export async function resolveSassBundles(
       "dark",
       defaultStyle,
     );
-    if (defaultStyle === "light") {
+    if (defaultStyle === "light" && lightEntry) {
       const dep2 = extras.html?.[kDependencies]?.find((extraDep) =>
         extraDep.name === kQuartoHtmlDependency
       );
-      assert(dep2?.stylesheets && lightEntry);
+      assert(dep2?.stylesheets);
       dep2.stylesheets.push({
         ...lightEntry,
         attribs: {

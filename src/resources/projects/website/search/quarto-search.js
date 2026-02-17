@@ -356,6 +356,22 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             },
 
             item({ item, createElement }) {
+              // process items to include text fragments as they are rendered
+              if (item.text && item.href && !item.href.includes(':~:text=')) {
+                // e.g. `item.text` for a search "def fiz": "bla bla bla<mark class='search-match'>def fiz</mark> bla bla"
+                const fullMatches = item.text.matchAll(/<mark class='search-match'>(.*?)<\/mark>/g)
+                // extract capture group with the search match
+                // result e.g. ["def fiz"]
+                const searchMatches = [...fullMatches].map(match => match[1])
+                if (searchMatches[0]) {
+                  if (item.href.includes('#')) {
+                    item.href += ':~:text=' + encodeURIComponent(searchMatches[0])
+                  } else {
+                    item.href += '#:~:text=' + encodeURIComponent(searchMatches[0])
+                  }
+                }
+              }
+              
               return renderItem(
                 item,
                 createElement,
@@ -466,10 +482,19 @@ function configurePlugins(quartoSearchOptions) {
         window.aa &&
         window["@algolia/autocomplete-plugin-algolia-insights"]
       ) {
+        // Check if cookie consent is enabled from search options
+        const cookieConsentEnabled = algoliaOptions["cookie-consent-enabled"] || false;
+
+        // Generate random session token only when cookies are disabled
+        const userToken = cookieConsentEnabled ? undefined : Array.from(Array(20), () =>
+          Math.floor(Math.random() * 36).toString(36)
+        ).join("");
+
         window.aa("init", {
           appId,
           apiKey,
-          useCookie: true,
+          useCookie: cookieConsentEnabled,
+          userToken: userToken,
         });
 
         const { createAlgoliaInsightsPlugin } =

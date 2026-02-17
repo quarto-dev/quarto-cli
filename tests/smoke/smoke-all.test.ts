@@ -11,6 +11,8 @@ import {
   initState,
   setInitializer,
 } from "../../src/core/lib/yaml-validation/state.ts";
+import { os } from "../../src/deno_ral/platform.ts";
+import { asArray } from "../../src/core/array.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
@@ -21,7 +23,10 @@ import {
   ensureDocxXpath,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  ensureIpynbCellMatches,
   ensurePdfRegexMatches,
+  ensurePdfTextPositions,
+  ensurePdfMetadata,
   ensureJatsXpath,
   ensureOdtXpath,
   ensurePptxRegexMatches,
@@ -91,17 +96,53 @@ async function guessFormat(fileName: string): Promise<string[]> {
   return Array.from(formats);
 }
 
-function skipTestOnCi(metadata: Record<string, any>): boolean {
-  return runningInCI() && metadata["_quarto"]?.["tests-on-ci"] === false;
+function skipTest(metadata: Record<string, any>): string | undefined {
+  // deno-lint-ignore no-explicit-any
+  const quartoMeta = metadata["_quarto"] as any;
+  const runConfig = quartoMeta?.tests?.run;
+
+  // No run config means run everywhere
+  if (!runConfig) {
+    return undefined;
+  }
+
+  // Check explicit skip with message
+  if (runConfig.skip) {
+    return typeof runConfig.skip === "string" ? runConfig.skip : "tests.run.skip is true";
+  }
+
+  // Check CI
+  if (runningInCI() && runConfig.ci === false) {
+    return "tests.run.ci is false";
+  }
+
+  // Check OS blacklist (not_os)
+  const notOs = runConfig.not_os;
+  if (notOs !== undefined && asArray(notOs).includes(os)) {
+    return `tests.run.not_os includes ${os}`;
+  }
+
+  // Check OS whitelist (os) - if specified, must match
+  const onlyOs = runConfig.os;
+  if (onlyOs !== undefined && !asArray(onlyOs).includes(os)) {
+    return `tests.run.os does not include ${os}`;
+  }
+
+  return undefined;
 }
 
 //deno-lint-ignore no-explicit-any
 function hasTestSpecs(metadata: any, input: string): boolean {
-  const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
-  if (!hasTestSpecs && metadata?.["_quarto"]?.["test"] != undefined) {
+  const tests = metadata?.["_quarto"]?.["tests"];
+  if (!tests && metadata?.["_quarto"]?.["test"] != undefined) {
     throw new Error(`Test is ${input} is using 'test' in metadata instead of 'tests'. This is probably a typo.`);
   }
-  return hasTestSpecs
+  // Check if tests has any format specs (keys other than 'run')
+  if (tests && typeof tests === "object") {
+    const formatKeys = Object.keys(tests).filter(key => key !== "run");
+    return formatKeys.length > 0;
+  }
+  return false;
 }
 
 interface QuartoInlineTestSpec {
@@ -115,6 +156,9 @@ function registerPostRenderCleanupFile(file: string): void {
   postRenderCleanupFiles.push(file);
 }
 const postRenderCleanup = () => {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   for (const file of postRenderCleanupFiles) {
     console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
     if (safeExistsSync(file)) {
@@ -138,6 +182,7 @@ function resolveTestSpecs(
     ensureHtmlElementContents,
     ensureHtmlElementCount,
     ensureFileRegexMatches,
+    ensureIpynbCellMatches,
     ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
     ensureDocxRegexMatches,
@@ -145,6 +190,8 @@ function resolveTestSpecs(
     ensureOdtXpath,
     ensureJatsXpath,
     ensurePdfRegexMatches,
+    ensurePdfTextPositions,
+    ensurePdfMetadata,
     ensurePptxRegexMatches,
     ensurePptxXpath,
     ensurePptxLayout,
@@ -154,6 +201,10 @@ function resolveTestSpecs(
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
+    // Skip the 'run' key - it's not a format
+    if (format === "run") {
+      continue;
+    }
     let checkWarnings = true;
     const verifyFns: Verify[] = [];
     if (testObj && typeof testObj === "object") {
@@ -230,12 +281,31 @@ function resolveTestSpecs(
                 throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
               }
             }
-            
+
+            // keep-typ/keep-tex files are alongside source, so pass input path
+            // But output-ext: typ puts files in output directory, so don't pass input path
+            const usesKeepTyp = key === "ensureTypstFileRegexMatches" &&
+              (metadata.format?.typst?.['keep-typ'] || metadata['keep-typ']) &&
+              !(metadata.format?.typst?.['output-ext'] === 'typ' || metadata['output-ext'] === 'typ');
+            const usesKeepTex = key === "ensureLatexFileRegexMatches" &&
+              (metadata.format?.pdf?.['keep-tex'] || metadata['keep-tex']);
+            const needsInputPath = usesKeepTyp || usesKeepTex;
+
+            // For book projects, use intermediateTypstPath (index.typ at project root)
+            // instead of the output path (which would be _book/BookTitle.typ)
+            let targetPath = outputFile.outputPath;
+            if (key === "ensureTypstFileRegexMatches" && outputFile.intermediateTypstPath) {
+              targetPath = outputFile.intermediateTypstPath;
+            }
+
             if (typeof value === "object" && Array.isArray(value)) {
-              // Only use spread operator for arrays
-              verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+              // value is [matches, noMatches?] - ensure inputFile goes in the right position
+              const matches = value[0];
+              const noMatches = value[1];
+              const inputFile = needsInputPath ? input : undefined;
+              verifyFns.push(verifyMap[key](targetPath, matches, noMatches, inputFile));
             } else {
-              verifyFns.push(verifyMap[key](outputFile.outputPath, value));
+              verifyFns.push(verifyMap[key](targetPath, value, undefined, needsInputPath ? input : undefined));
             }
           } else {
             throw new Error(`Unknown verify function used: ${key} in file ${input} for format ${format}`) ;
@@ -293,8 +363,9 @@ for (const { path: fileName } of files) {
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
 
-  if (skipTestOnCi(metadata) === true) {
-    console.log(`Skipping tests for ${input} as tests-on-ci is false in metadata`);
+  const skipReason = skipTest(metadata);
+  if (skipReason !== undefined) {
+    console.log(`Skipping tests for ${input}: ${skipReason}`);
     continue;
   }
 
@@ -387,6 +458,9 @@ for (const { path: fileName } of files) {
 // Wait for all the promises to resolve
 // Meaning all the files have been tested and we can clean
 Promise.all(testFilesPromises).then(() => {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   // Clean up any projects that were tested
   for (const project of testedProjects) {
     // Clean project output directory

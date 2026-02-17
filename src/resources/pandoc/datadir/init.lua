@@ -959,7 +959,8 @@ quarto = {
 
     output_file = outputFile(),
     input_file = inputFile(),
-    crossref = {}
+    crossref = {},
+    language = param("language", nil)
   },
   project = {
     directory = projectDirectory(),
@@ -989,6 +990,9 @@ quarto = {
     end,
     tinytex_bin_dir = function()
       return param('quarto-environment', nil).paths.TinyTexBinDir
+    end,
+    typst = function()
+      return param('quarto-environment', nil).paths.Typst
     end,
   },
   json = json,

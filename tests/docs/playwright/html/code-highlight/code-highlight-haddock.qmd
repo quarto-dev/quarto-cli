@@ -1,6 +1,6 @@
 ---
 title: Testing haddock code highlight
-highlight-style: haddock
+syntax-highlighting: haddock
 ---
 
 {{< include _body.md >}}

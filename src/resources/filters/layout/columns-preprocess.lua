@@ -1,11 +1,23 @@
 -- columns-preprocess.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-function columns_preprocess() 
+function columns_preprocess()
   return {
     FloatRefTarget = function(float)
       if float.parent_id ~= nil then
         return nil
+      end
+      -- Check for margin figure placement (.column-margin or .aside class)
+      if hasMarginColumn(float) then
+        noteHasColumns()
+      end
+      -- Check for full-width classes (column-page-*, column-screen-*)
+      if getWideblockSide(float.classes) then
+        noteHasColumns()
+      end
+      -- Check for margin caption class (added directly to element)
+      if hasMarginCaption(float) then
+        noteHasColumns()
       end
       local location = cap_location(float)
       if location == 'margin' then

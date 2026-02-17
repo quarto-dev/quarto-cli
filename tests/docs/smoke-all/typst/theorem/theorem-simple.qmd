@@ -1,0 +1,42 @@
+---
+format:
+  typst:
+    keep-typ: true
+    theorem-appearance: simple
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#import \"@preview/theorion:0\\.4\\.1\": make-frame"
+          - "#show: show-theorem"
+          - "#show: show-lemma"
+          - "#show: show-definition"
+          - "simple-theorem-render"
+          - "strong\\["
+          - "emph\\("
+        -
+          - "cosmos"
+          - "fancy-box"
+          - "clouds-render"
+          - "rainbow-render"
+---
+
+# Theorem Test - Simple Theme
+
+::: {#thm-pythagorean}
+## Pythagorean Theorem
+For a right triangle with sides $a$, $b$ and hypotenuse $c$: $a^2 + b^2 = c^2$
+:::
+
+::: {#lem-triangle}
+## Triangle Inequality
+For any triangle, the sum of any two sides must be greater than the third side.
+:::
+
+::: {#def-continuous}
+## Continuous Function
+A function $f$ is continuous at $x_0$ if $\lim_{x \to x_0} f(x) = f(x_0)$.
+:::
+
+See @thm-pythagorean, @lem-triangle, and @def-continuous.

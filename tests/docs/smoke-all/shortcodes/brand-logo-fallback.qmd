@@ -6,26 +6,20 @@ brand:
     logo:
       small: light-logo.png
       medium: light-medium-logo.png
-      # No dark logo specified
+      large: light-large-logo.png
 _quarto:
   tests:
     html:
       ensureFileRegexMatches:
         - 
-          # When requesting light mode explicitly, should get light logo
-          - '<img src="\.(/|\\)light-logo\.png" class="light-content.*>'
-          # When requesting dark mode explicitly (which doesn't exist), should fall back to light logo but with dark-content class
-          - '<img src="\.(/|\\)light-logo\.png" class="dark-content.*>'
-          # When requesting medium size with dark mode (doesn't exist), should fall back to light-medium with dark-content class
-          - '<img src="\.(/|\\)light-medium-logo\.png" class="dark-content.*>'
+          - '<img src="\.(/|\\)light-logo\.png" class="img-fluid.*>'
+          - '<img src="\.(/|\\)light-medium-logo\.png" class="img-fluid.*>'
+          - '<img src="\.(/|\\)light-large-logo\.png" class="img-fluid.*>'
         - []
 ---
 
-### Light Logo (Light Mode)
 {{< brand logo small light >}}
 
-### Light Logo (Dark Mode - should fall back)
-{{< brand logo small dark >}}
-
-### Medium Logo (Dark Mode - should fall back)
 {{< brand logo medium dark >}}
+
+{{< brand logo large dark >}}

@@ -1,0 +1,18 @@
+[package]
+name = "typst-gather"
+version = "0.1.2"
+edition = "2021"
+rust-version = "1.81"
+
+[dependencies]
+typst-kit = { version = "0.14.2", features = ["packages"] }
+typst-syntax = "0.14.2"
+ecow = "0.2"
+serde = { version = "1", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
+toml = "0.8"
+walkdir = "2"
+globset = "0.4"
+
+[dev-dependencies]
+tempfile = "3"

@@ -1,0 +1,11 @@
+---
+title: conclusion
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['a.sidebar-logo-link']
+        - ['a.navbar-brand-logo']
+---
+
+Content

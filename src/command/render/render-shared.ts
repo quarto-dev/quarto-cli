@@ -33,32 +33,41 @@ import { kTextPlain } from "../../core/mime.ts";
 import { normalizePath } from "../../core/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
-import { assert } from "testing/asserts";
+import { ProjectContext } from "../../project/types.ts";
 
 export async function render(
   path: string,
   options: RenderOptions,
+  pContext?: ProjectContext,
 ): Promise<RenderResult> {
   // one time initialization of yaml validators
   setInitializer(initYamlIntelligenceResourcesFromFilesystem);
   await initState();
 
-  const nbContext = notebookContext();
+  const nbContext = pContext?.notebookContext || notebookContext();
 
   // determine target context/files
-  let context = await projectContext(path, nbContext, options);
+  let context = pContext || (await projectContext(path, nbContext, options));
 
-  // if there is no project parent and an output-dir was passed, then force a project
+  // Create a synthetic project when --output-dir is used without a project file
+  // This creates a temporary .quarto directory to manage the render, which must
+  // be fully cleaned up afterward to avoid leaving debris (see #9745)
   if (!context && options.flags?.outputDir) {
-    // recompute context
     context = await projectContextForDirectory(path, nbContext, options);
 
-    // force clean as --output-dir implies fully overwrite the target
+    // forceClean signals this is a synthetic project that needs full cleanup
+    // including removing the .quarto scratch directory after rendering (#13625)
     options.forceClean = options.flags.clean !== false;
+  }
+
+  // Fall back to single file context if we still don't have a context
+  if (!context) {
+    context = await singleFileProjectContext(path, nbContext, options);
   }
 
   // set env var if requested
   if (context && options.setProjectDir) {
+    // FIXME we can't set environment variables like this with asyncs flying around
     Deno.env.set("QUARTO_PROJECT_DIR", context.dir);
   }
 
@@ -95,10 +104,6 @@ export async function render(
 
   // validate that we didn't get any project-only options
   validateDocumentRenderFlags(options.flags);
-
-  assert(!context, "Expected no context here");
-  // NB: singleFileProjectContext is currently not fully-featured
-  context = await singleFileProjectContext(path, nbContext, options.flags);
 
   // otherwise it's just a file render
   const result = await renderFiles(
@@ -145,7 +150,7 @@ export async function render(
 
   if (!renderResult.error && engine?.postRender) {
     for (const file of renderResult.files) {
-      await engine.postRender(file, renderResult.context);
+      await engine.postRender(file);
     }
   }
 

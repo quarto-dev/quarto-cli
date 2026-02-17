@@ -1,0 +1,7 @@
+project:
+  type: website
+
+website:
+  title: "Plausible Path Test"
+  plausible-analytics:
+    path: _plausible_snippet.html

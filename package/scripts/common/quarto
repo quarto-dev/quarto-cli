@@ -129,15 +129,26 @@ fi
 if [[ $OSTYPE == 'darwin'* ]]; then
   # We cannot use uname to determine the _machine_ architecture:
   # https://github.com/quarto-dev/quarto-cli/issues/2420#issuecomment-1245768732
-  FULLARCH="$(/usr/sbin/sysctl machdep.cpu.brand_string)"
-  
-  if [[ $FULLARCH == *"Intel"* ]]; then
+  # However, sysctl can return unexpected values in sandboxed/virtualized environments.
+  # Use sysctl -n to get just the value, and check multiple possible patterns.
+  FULLARCH="$(/usr/sbin/sysctl -n machdep.cpu.brand_string 2>/dev/null)"
+
+  if [[ $FULLARCH == *"Intel"* ]] || [[ $FULLARCH == *"Xeon"* ]] || [[ $FULLARCH == *"Core"* ]]; then
     ARCH_DIR=x86_64
-  elif [[ $FULLARCH == *"Apple"* ]]; then
+  elif [[ $FULLARCH == *"Apple"* ]] || [[ $FULLARCH == *"ARM"* ]]; then
     ARCH_DIR=aarch64
   else
-    echo "quarto script failed: unrecognized architecture " ${FULLARCH}
-    exit 1
+    # Fallback to uname -m if sysctl doesn't give us recognizable output
+    # This helps with sandboxed/virtualized environments
+    UNAME_ARCH=$(uname -m)
+    if [[ $UNAME_ARCH == "x86_64" ]]; then
+      ARCH_DIR=x86_64
+    elif [[ $UNAME_ARCH == "arm64" ]]; then
+      ARCH_DIR=aarch64
+    else
+      echo "quarto script failed: unrecognized architecture. sysctl returned: '${FULLARCH}', uname -m returned: '${UNAME_ARCH}'"
+      exit 1
+    fi
   fi
 
 else
@@ -176,9 +187,9 @@ QUARTO_DENO_OPTIONS="--unstable-ffi --unstable-kv --no-config --no-lock ${QUARTO
 
 # --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
 if [ "$QUARTO_DENO_V8_OPTIONS" != "" ]; then
-  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,${QUARTO_DENO_V8_OPTIONS}"
+  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,--stack-trace-limit=100,${QUARTO_DENO_V8_OPTIONS}"
 else
-  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
+  QUARTO_DENO_V8_OPTIONS="--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,--stack-trace-limit=100"
 fi
 
 if [ "$QUARTO_DENO_EXTRA_OPTIONS" == "" ]; then

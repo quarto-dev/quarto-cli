@@ -1,0 +1,44 @@
+---
+title: "Two-Column Layout with Margins"
+papersize: us-letter
+columns: 2
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Should have columns: 2 and marginalia if margin content present
+        - ['columns: 2']
+        - []
+      ensurePdfRegexMatches:
+        - ['TWO-COL-TEST', 'MARGIN-IN-TWOCOL', 'marginalia', 'show rules']
+        - []
+      noErrors: default
+---
+
+## Two-Column Layout Test
+
+TWO-COL-TEST: This tests margin notes in a two-column document layout.[MARGIN-IN-TWOCOL: How does this margin note interact with two-column layout?]{.column-margin} In a two-column layout, the text flows from the bottom of column one to the top of column two. This document explores how margin notes interact with multi-column layouts, which is an interesting edge case for the marginalia package.
+
+## Typst Margin Layout Architecture
+
+The Quarto Typst margin layout system uses the marginalia package[Another margin note demonstrating the layout.]{.column-margin} for placing content in page margins. The geometry is calculated based on marginalia's recommended proportions, which allocate approximately 21% of page width to the inner margin, 30.5% to the outer margin, and 48.5% to the body text. For US Letter paper (8.5 inches wide), this produces an outer margin width of about 1.62 inches, which provides ample space for sidenotes, margin figures, and margin citations. The inner margin is narrower at about 0.81 inches.
+
+## Footnotes and Sidenotes
+
+When `reference-location: margin` is set, footnotes are transformed into sidenotes[This margin note explains the show rule approach.]{.column-margin} that appear in the margin rather than at the bottom of the page. This transformation uses Typst show rules rather than Lua filter interception. The key insight is that Pandoc's Note element is a special inline type that can contain block-level content like lists, blockquotes, and code blocks. When we intercept notes in Lua and try to convert them, we must return inlines, which loses the block structure. The solution is to let Pandoc output native `#footnote` elements and use Typst show rules to transform them: `#show footnote: it => column-sidenote(it.body)` combined with `#show footnote.entry: none` to suppress the bottom-of-page entries. This way, Pandoc's native Typst writer handles all block-to-Typst conversion correctly.
+
+## Subfigures in Margins
+
+Panel layouts (subfigures and subtables) require special handling for margin placement. The parent figure wraps `quarto_super` in a `#note()` call for margin placement, while individual subfloats must NOT be wrapped individually. The fix checks for `float.parent_id` to skip margin handling for child subfloats, since the parent handles placement for the entire panel. This ensures proper numbering like Figure 1a, 1b while keeping all subfigures together in the margin.
+
+## Column Width Classes
+
+Quarto supports various column width classes[A final margin note to test stacking.]{.column-margin} for Typst output. The `.column-margin` class places content in the margin using marginalia's `note()` function. The `.column-page` class extends content to full page width using `wideblock()`. Intermediate classes like `.column-body-outset` extend slightly into the margins. The `-left` and `-right` variants (like `.column-page-left` or `.column-screen-inset-right`) map to marginalia's inner/outer side parameters, allowing asymmetric expansion into specific margins.
+
+## Second Section
+
+This section continues the two-column flow with additional content about the implementation details we discovered during development. The `noteHasColumns()` function name is somewhat misleading as it sounds like a getter but is actually a setter that marks `layoutState.hasColumns = true`. This flag triggers the margin layout configuration during document setup. Different paper sizes (A4, US Legal, etc.) automatically receive proportionally adjusted margin geometry. The calculations maintain the same ratios while scaling to the paper width, ensuring consistent visual proportions across formats.

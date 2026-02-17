@@ -7,10 +7,12 @@
 
 import { basename, dirname, extname, join, relative } from "../src/deno_ral/path.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
-import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
+import { kMetadataFormat, kOutputExt, kOutputFile } from "../src/config/constants.ts";
 import { pathWithForwardSlashes, safeExistsSync } from "../src/core/path.ts";
 import { readYaml } from "../src/core/yaml.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
+import { bookOutputStem } from "../src/project/types/book/book-shared.ts";
+import { ProjectConfig } from "../src/project/types.ts";
 
 // caller is responsible for cleanup!
 export function inTempDirectory(fn: (dir: string) => unknown): unknown {
@@ -67,6 +69,21 @@ export function findProjectOutputDir(projectdir: string | undefined) {
   return (yaml as any)?.project?.["output-dir"] || "";
 }
 
+// Get the book output stem using the real bookOutputStem() from book-shared.ts
+export function findBookOutputStem(projectdir: string | undefined): string | undefined {
+  if (!projectdir) {
+    return undefined;
+  }
+  const yaml = readYaml(join(projectdir, "_quarto.yml")) as Record<string, unknown>;
+  // deno-lint-ignore no-explicit-any
+  const projectType = ((yaml as any).project as any)?.type;
+  if (projectType !== "book") {
+    return undefined;
+  }
+  // Pass the yaml as ProjectConfig - it has { project: {...}, book: {...} }
+  return bookOutputStem(projectdir, yaml as ProjectConfig);
+}
+
 // Gets output that should be created for this input file and target format
 export function outputForInput(
   input: string,
@@ -79,8 +96,16 @@ export function outputForInput(
   // TODO: Consider improving this (e.g. for cases like Beamer, or typst)
   projectRoot = projectRoot ?? findProjectDir(input);
   projectOutDir = projectOutDir ?? findProjectOutputDir(projectRoot);
-  const dir = projectRoot ? relative(projectRoot, dirname(input)) : dirname(input);
-  let stem = basename(input, extname(input));
+
+  // For book projects with single-file output (PDF, Typst, EPUB), use the book title as stem
+  // Multi-file formats (HTML) produce individual chapter files, so use input filename
+  // Single-file formats only produce merged output when rendering the index file
+  const inputBasename = basename(input, extname(input));
+  const isMultiFileFormat = to.startsWith("html") || to === "revealjs";
+  const isSingleFileBookRender = !isMultiFileFormat && inputBasename === "index";
+  const bookStem = isSingleFileBookRender ? findBookOutputStem(projectRoot) : undefined;
+  const dir = bookStem ? "" : (projectRoot ? relative(projectRoot, dirname(input)) : dirname(input));
+  let stem = bookStem || metadata?.[kMetadataFormat]?.[to]?.[kOutputFile] || inputBasename;
   let ext = metadata?.[kMetadataFormat]?.[to]?.[kOutputExt];
 
   // TODO: there's a bug where output-ext keys from a custom format are 
@@ -146,14 +171,27 @@ export function outputForInput(
 
   const outputPath: string = projectRoot && projectOutDir !== undefined
       ? join(projectRoot, projectOutDir, dir, `${stem}.${outputExt}`)
+      : projectOutDir !== undefined
+      ? join(projectOutDir, dir, `${stem}.${outputExt}`)
       : join(dir, `${stem}.${outputExt}`);
   const supportPath: string = projectRoot && projectOutDir !== undefined
     ? join(projectRoot, projectOutDir, dir, `${stem}_files`)
+    : projectOutDir !== undefined
+    ? join(projectOutDir, dir, `${stem}_files`)
     : join(dir, `${stem}_files`);
+
+  // For book projects with typst format, the intermediate .typ file is at project root
+  // as index.typ (from the merged book content), not derived from the PDF path
+  let intermediateTypstPath: string | undefined;
+  if (baseFormat === "typst" && projectRoot && projectOutDir === "_book") {
+    // Book projects place the merged .typ at project root as index.typ
+    intermediateTypstPath = join(projectRoot, "index.typ");
+  }
 
   return {
     outputPath,
     supportPath,
+    intermediateTypstPath,
   };
 }
 

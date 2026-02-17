@@ -25,14 +25,18 @@ export type PandocFormatRequestHeaders = ((string)[])[];
 
 export type PandocFormatOutputFile = string | null;
 
+export type FilterEntryPoint =
+  | "pre-ast"
+  | "post-ast"
+  | "pre-quarto"
+  | "post-quarto"
+  | "pre-render"
+  | "post-render"
+  | "pre-finalize"
+  | "post-finalize";
+
 export type PandocFormatFilters = ((string | { path: string; type?: string } | {
-  at:
-    | "pre-ast"
-    | "post-ast"
-    | "pre-quarto"
-    | "post-quarto"
-    | "pre-render"
-    | "post-render";
+  at: FilterEntryPoint;
   path: string;
   type?: string;
 } | { type: "citeproc" }))[];
@@ -79,7 +83,7 @@ export type NavigationItemObject = {
   "aria-label"?: string /* Accessible label for the item. */;
   file?: string /* Alias for href */;
   href?: string /* Link to file contained with the project or external URL */;
-  icon?: string /* Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+  icon?: string /* Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)
 See <https://icons.getbootstrap.com/> for a list of available icons */;
   id?: string;
   menu?: (NavigationItem)[];
@@ -153,6 +157,10 @@ website:
         dark: dark_dimmed # giscus theme used for dark website theme
 ``` */
 };
+
+export type ExternalEngine = {
+  path: string; /* Path to the TypeScript module for the execution engine */
+}; /* An execution engine not pre-loaded in Quarto */
 
 export type DocumentCommentsConfiguration = false | {
   giscus?: GiscusConfiguration;
@@ -378,6 +386,38 @@ For more about choosing storage options see [Storage](https://quarto.org/docs/we
 
 This is automatically detected based upon the `tracking-id`, but you may specify it. */
   } /* Enable Google Analytics for this website */;
+  "plausible-analytics"?: string | {
+    path:
+      string; /* Path to a file containing the Plausible Analytics script snippet */
+  } /* Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,
+or by providing a path to a file containing the snippet.
+
+Plausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.
+
+**Option 1: Inline snippet**
+
+```yaml
+website:
+  plausible-analytics: |
+    <script async src="https://plausible.io/js/script.js"></script>
+```
+
+**Option 2: File path**
+
+```yaml
+website:
+  plausible-analytics:
+    path: _plausible_snippet.html
+```
+
+To get your script snippet:
+
+1. Log into your Plausible account at <https://plausible.io>
+2. Go to your site settings
+3. Copy the JavaScript snippet provided
+4. Either paste it directly in your configuration or save it to a file
+
+For more information, see <https://plausible.io/docs/plausible-script> */;
   "cookie-consent"?: ("express" | "implied") | boolean | {
     "policy-url"?: string;
     "prefs-text"?: string;
@@ -399,12 +439,12 @@ This is automatically detected based upon the `tracking-id`, but you may specify
 
 - `standalone`: An opaque overlay of the entire website. */;
     type?:
-      | "implied"
-      | "express"; /* The type of consent that should be requested, using one of these two values:
+      | "express"
+      | "implied"; /* The type of consent that should be requested, using one of these two values:
 
-- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
 
-- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree). */
+- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences. */
   } /* Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).
 
 The user’s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent). */;
@@ -745,7 +785,7 @@ of field names. By default all fields of the listing will be used
 when filtering. */;
   "date-format"?:
     string /* The date format to use when displaying dates (e.g. d-M-yyy).
-Learn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime). */;
+Learn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html). */;
   "max-description-length"?:
     number /* The maximum length (in characters) of the description displayed in the listing.
 Defaults to 175. */;
@@ -1176,7 +1216,31 @@ export type ProjectProfile = {
 export type BadParseSchema = JsonObject;
 
 export type QuartoDevSchema = {
-  _quarto?: { "trace-filters"?: string; tests?: JsonObject };
+  _quarto?: {
+    "trace-filters"?: string;
+    tests?: {
+      run?: {
+        ci?: boolean /* Run tests on CI (true = run, false = skip) */;
+        not_os?:
+          | ("linux" | "darwin" | "windows")
+          | ((
+            | "linux"
+            | "darwin"
+            | "windows"
+          ))[] /* Don't run tests on these platforms (blacklist) */;
+        os?:
+          | ("linux" | "darwin" | "windows")
+          | ((
+            | "linux"
+            | "darwin"
+            | "windows"
+          ))[] /* Run tests ONLY on these platforms (whitelist) */;
+        skip?:
+          | boolean
+          | string; /* Skip test unconditionally (true = skip with default message, string = skip with custom message) */
+      }; /* Control when tests should run */
+    };
+  };
 };
 
 export type NotebookViewSchema = {
@@ -1267,10 +1331,10 @@ export type LogoOptionsPathOptional = { alt?: string; path?: string };
 
 export type LogoSpecifierPathOptional = string | LogoOptionsPathOptional;
 
-export type LogoLightDarkSpecifier = LogoSpecifier | {
+export type LogoLightDarkSpecifier = false | LogoSpecifier | {
   dark?: LogoSpecifier;
   light?: LogoSpecifier;
-}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
+}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo. */
 
 export type LogoLightDarkSpecifierPathOptional = LogoSpecifierPathOptional | {
   dark?: LogoSpecifierPathOptional;
@@ -1469,8 +1533,7 @@ export type BrandFont =
   | BrandFontGoogle
   | BrandFontBunny
   | BrandFontFile
-  | BrandFontSystem
-  | BrandFontCommon; /* Font files and definitions for the brand. */
+  | BrandFontSystem; /* Font files and definitions for the brand. */
 
 export type BrandFontWeight =
   | 100
@@ -1514,15 +1577,15 @@ export type BrandFontCommon = {
 };
 
 export type BrandFontSystem =
-  & { source?: "system" }
+  & { source: "system" }
   & BrandFontCommon; /* A system font definition. */
 
 export type BrandFontGoogle =
-  & { source?: "google" }
+  & { source: "google" }
   & BrandFontCommon; /* A font definition from Google Fonts. */
 
 export type BrandFontBunny =
-  & { source?: "bunny" }
+  & { source: "bunny" }
   & BrandFontCommon; /* A font definition from fonts.bunny.net. */
 
 export type BrandFontFile = {
@@ -1580,6 +1643,12 @@ export type BrandDefaults = {
 
 export type BrandDefaultsBootstrap = {
   defaults?: { [key: string]: string | boolean | number };
+};
+
+export type MarginaliaSideGeometry = {
+  far?: string /* Distance from page edge to wideblock boundary. */;
+  separation?: string /* Gap between margin column and body text. */;
+  width?: string; /* Width of the margin note column. */
 };
 
 export type ProjectConfig = {

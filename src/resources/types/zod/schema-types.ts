@@ -38,6 +38,19 @@ export const ZodPandocFormatRequestHeaders = z.array(z.array(z.string()));
 
 export const ZodPandocFormatOutputFile = z.union([z.string(), z.literal(null)]);
 
+export const ZodFilterEntryPoint = z.enum(
+  [
+    "pre-ast",
+    "post-ast",
+    "pre-quarto",
+    "post-quarto",
+    "pre-render",
+    "post-render",
+    "pre-finalize",
+    "post-finalize",
+  ] as const,
+);
+
 export const ZodPandocFormatFilters = z.array(
   z.union([
     z.string(),
@@ -46,16 +59,7 @@ export const ZodPandocFormatFilters = z.array(
     z.object({
       type: z.string(),
       path: z.string(),
-      at: z.enum(
-        [
-          "pre-ast",
-          "post-ast",
-          "pre-quarto",
-          "post-quarto",
-          "pre-render",
-          "post-render",
-        ] as const,
-      ),
+      at: z.lazy(() => ZodFilterEntryPoint),
     }).passthrough().partial().required({ path: true, at: true }),
     z.object({ type: z.enum(["citeproc"] as const) }).strict(),
   ]),
@@ -134,6 +138,9 @@ export const ZodGiscusConfiguration = z.object({
   ]),
   language: z.string(),
 }).strict().partial().required({ repo: true });
+
+export const ZodExternalEngine = z.object({ path: z.string() }).strict()
+  .partial().required({ path: true });
 
 export const ZodDocumentCommentsConfiguration = z.union([
   z.literal(false),
@@ -299,6 +306,10 @@ export const ZodBaseWebsite = z.object({
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
   ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
+  ]),
   announcement: z.union([
     z.string(),
     z.object({
@@ -324,7 +335,7 @@ export const ZodBaseWebsite = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
@@ -473,6 +484,10 @@ export const ZodBookSchema = z.object({
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
   ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
+  ]),
   announcement: z.union([
     z.string(),
     z.object({
@@ -498,7 +513,7 @@ export const ZodBookSchema = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
@@ -1238,7 +1253,20 @@ export const ZodBadParseSchema = z.object({}).passthrough().partial();
 export const ZodQuartoDevSchema = z.object({
   _quarto: z.object({
     "trace-filters": z.string(),
-    tests: z.object({}).passthrough(),
+    tests: z.object({
+      run: z.object({
+        ci: z.boolean(),
+        skip: z.union([z.boolean(), z.string()]),
+        os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+        not_os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+      }).passthrough().partial(),
+    }).passthrough().partial(),
   }).passthrough().partial(),
 }).passthrough().partial();
 
@@ -1362,6 +1390,7 @@ export const ZodLogoSpecifierPathOptional = z.union([
 ]);
 
 export const ZodLogoLightDarkSpecifier = z.union([
+  z.literal(false),
   z.lazy(() => ZodLogoSpecifier),
   z.object({
     light: z.lazy(() => ZodLogoSpecifier),
@@ -1624,7 +1653,6 @@ export const ZodBrandFont = z.union([
   z.lazy(() => ZodBrandFontBunny),
   z.lazy(() => ZodBrandFontFile),
   z.lazy(() => ZodBrandFontSystem),
-  z.lazy(() => ZodBrandFontCommon),
 ]);
 
 export const ZodBrandFontWeight = z.union([
@@ -1685,7 +1713,7 @@ export const ZodBrandFontSystem = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["system"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontGoogle = z.object({
   family: z.string(),
@@ -1699,7 +1727,7 @@ export const ZodBrandFontGoogle = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["google"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontBunny = z.object({
   family: z.string(),
@@ -1713,7 +1741,7 @@ export const ZodBrandFontBunny = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["bunny"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontFile = z.object({
   source: z.enum(["file"] as const),
@@ -1774,6 +1802,12 @@ export const ZodBrandDefaultsBootstrap = z.object({
   ),
 }).passthrough().partial();
 
+export const ZodMarginaliaSideGeometry = z.object({
+  far: z.string(),
+  width: z.string(),
+  separation: z.string(),
+}).strict().partial();
+
 export const ZodProjectConfig = z.object({
   title: z.string(),
   type: z.string(),
@@ -1803,6 +1837,8 @@ export type PandocFormatRequestHeaders = z.infer<
 
 export type PandocFormatOutputFile = z.infer<typeof ZodPandocFormatOutputFile>;
 
+export type FilterEntryPoint = z.infer<typeof ZodFilterEntryPoint>;
+
 export type PandocFormatFilters = z.infer<typeof ZodPandocFormatFilters>;
 
 export type PandocShortcodes = z.infer<typeof ZodPandocShortcodes>;
@@ -1818,6 +1854,8 @@ export type ContentsAuto = z.infer<typeof ZodContentsAuto>;
 export type GiscusThemes = z.infer<typeof ZodGiscusThemes>;
 
 export type GiscusConfiguration = z.infer<typeof ZodGiscusConfiguration>;
+
+export type ExternalEngine = z.infer<typeof ZodExternalEngine>;
 
 export type DocumentCommentsConfiguration = z.infer<
   typeof ZodDocumentCommentsConfiguration
@@ -2035,6 +2073,8 @@ export type BrandDefaults = z.infer<typeof ZodBrandDefaults>;
 
 export type BrandDefaultsBootstrap = z.infer<typeof ZodBrandDefaultsBootstrap>;
 
+export type MarginaliaSideGeometry = z.infer<typeof ZodMarginaliaSideGeometry>;
+
 export type ProjectConfig = z.infer<typeof ZodProjectConfig>;
 
 export type BookProject = z.infer<typeof ZodBookProject>;
@@ -2045,6 +2085,7 @@ export const Zod = {
   MathMethods: ZodMathMethods,
   PandocFormatRequestHeaders: ZodPandocFormatRequestHeaders,
   PandocFormatOutputFile: ZodPandocFormatOutputFile,
+  FilterEntryPoint: ZodFilterEntryPoint,
   PandocFormatFilters: ZodPandocFormatFilters,
   PandocShortcodes: ZodPandocShortcodes,
   PageColumn: ZodPageColumn,
@@ -2053,6 +2094,7 @@ export const Zod = {
   NavigationItemObject: ZodNavigationItemObject,
   GiscusThemes: ZodGiscusThemes,
   GiscusConfiguration: ZodGiscusConfiguration,
+  ExternalEngine: ZodExternalEngine,
   DocumentCommentsConfiguration: ZodDocumentCommentsConfiguration,
   SocialMetadata: ZodSocialMetadata,
   PageFooterRegion: ZodPageFooterRegion,
@@ -2148,6 +2190,7 @@ export const Zod = {
   BrandPathBoolLightDark: ZodBrandPathBoolLightDark,
   BrandDefaults: ZodBrandDefaults,
   BrandDefaultsBootstrap: ZodBrandDefaultsBootstrap,
+  MarginaliaSideGeometry: ZodMarginaliaSideGeometry,
   ProjectConfig: ZodProjectConfig,
   BookProject: ZodBookProject,
 };

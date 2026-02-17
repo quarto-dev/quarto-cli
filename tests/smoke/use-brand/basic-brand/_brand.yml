@@ -1,0 +1,12 @@
+meta:
+  name: Basic Test Brand
+color:
+  primary: "#007bff"
+logo:
+  small: logo.png
+typography:
+  fonts:
+    - source: file
+      family: "Custom Font"
+      files:
+        - fonts/custom-font.woff2

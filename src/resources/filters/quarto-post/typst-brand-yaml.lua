@@ -61,68 +61,76 @@ function render_typst_brand_yaml()
       local brand = param('brand')
       local brandMode = param('brand-mode') or 'light'
       brand = brand and brand[brandMode]
-      if brand and brand.processedData then
-        -- color
-        if brand.processedData.color and next(brand.processedData.color) then
-          local brandColor = brand.processedData.color
-          local colors = {}
-          for name, _ in pairs(brandColor) do
-            colors[name] = _quarto.modules.brand.get_color(brandMode, name)
-          end
-          local decl = '#let brand-color = ' .. to_typst_dict_indent(colors)
-          quarto.doc.include_text('in-header', decl)
+
+      -- Always emit brand-color (empty dict if no brand colors defined)
+      -- This allows templates to safely use brand-color.at("primary", default: blue)
+      local colors = {}
+      local themebk = {}
+      local brandColor = brand and brand.processedData and brand.processedData.color
+      if brandColor and next(brandColor) then
+        for name, _ in pairs(brandColor) do
+          colors[name] = _quarto.modules.brand.get_color(brandMode, name)
+        end
+        for name, _ in pairs(brandColor) do
           if brandColor.background then
-            quarto.doc.include_text('in-header', '#set page(fill: brand-color.background)')
-          end
-          if brandColor.foreground then
-            quarto.doc.include_text('in-header', '#set text(fill: brand-color.foreground)')
-            quarto.doc.include_text('in-header', '#set table.hline(stroke: (paint: brand-color.foreground))')
-            quarto.doc.include_text('in-header', '#set line(stroke: (paint: brand-color.foreground))')
-    
-          end
-          local themebk = {}
-          for name, _ in pairs(brandColor) do
-            if brandColor.background then
-              local brandPercent = 15
-              if brandMode == 'dark' then
-                brandPercent = 50
-              end
-              local bkPercent = 100 - brandPercent
-              themebk[name] = 'color.mix((brand-color.' .. name .. ', ' .. brandPercent .. '%), (brand-color.background, ' .. bkPercent .. '%))'
-            else
-              themebk[name] = 'brand-color.' .. name .. '.lighten(85%)'
+            local brandPercent = 15
+            if brandMode == 'dark' then
+              brandPercent = 50
             end
-          end
-          local decl = '#let brand-color-background = ' .. to_typst_dict_indent(themebk)
-          quarto.doc.include_text('in-header', decl)
-        end
-        if brand.processedData.logo and next(brand.processedData.logo) then
-          local logo = brand.processedData.logo
-          if logo.images then
-            local declImage = {}
-            for name, image in pairs(logo.images) do
-              declImage[name] = {
-                path = quote_string(image.path):gsub('\\', '\\\\'),
-                alt = quote_string(image.alt),
-              }
-            end
-            if next(declImage) then
-              quarto.doc.include_text('in-header', '#let brand-logo-images = ' .. to_typst_dict_indent(declImage))
-            end
-          end
-          local declLogo = {}
-          for _, size in pairs({'small', 'medium', 'large'}) do
-            if logo[size] then
-              declLogo[size] = {
-                path = quote_string(logo[size].path):gsub('\\', '\\\\'),
-                alt = quote_string(logo[size].alt),
-              }
-            end
-          end
-          if next(declLogo) then
-            quarto.doc.include_text('in-header', '#let brand-logo = ' .. to_typst_dict_indent(declLogo))
+            local bkPercent = 100 - brandPercent
+            themebk[name] = 'color.mix((brand-color.' .. name .. ', ' .. brandPercent .. '%), (brand-color.background, ' .. bkPercent .. '%))'
+          else
+            themebk[name] = 'brand-color.' .. name .. '.lighten(85%)'
           end
         end
+      end
+      -- Always emit brand-color and brand-color-background FIRST (before any usage)
+      local colorDecl = '#let brand-color = ' .. (to_typst_dict_indent(colors) or '(:)')
+      quarto.doc.include_text('in-header', colorDecl)
+      local bkDecl = '#let brand-color-background = ' .. (to_typst_dict_indent(themebk) or '(:)')
+      quarto.doc.include_text('in-header', bkDecl)
+      -- Now emit the #set statements that USE brand-color
+      if brandColor and next(brandColor) then
+        if brandColor.background then
+          quarto.doc.include_text('in-header', '#set page(fill: brand-color.background)')
+        end
+        if brandColor.foreground then
+          quarto.doc.include_text('in-header', '#set text(fill: brand-color.foreground)')
+          quarto.doc.include_text('in-header', '#set table.hline(stroke: (paint: brand-color.foreground))')
+          quarto.doc.include_text('in-header', '#set line(stroke: (paint: brand-color.foreground))')
+        end
+      end
+
+      -- Always emit brand-logo (empty dict if no logos defined)
+      -- This allows templates to safely use brand-logo.at("medium", default: none)
+      local declLogo = {}
+      local brandLogo = brand and brand.processedData and brand.processedData.logo
+      if brandLogo and next(brandLogo) then
+        if brandLogo.images then
+          local declImage = {}
+          for name, image in pairs(brandLogo.images) do
+            declImage[name] = {
+              path = quote_string(image.path):gsub('\\', '\\\\'),
+              alt = quote_string(image.alt),
+            }
+          end
+          if next(declImage) then
+            quarto.doc.include_text('in-header', '#let brand-logo-images = ' .. to_typst_dict_indent(declImage))
+          end
+        end
+        for _, size in pairs({'small', 'medium', 'large'}) do
+          if brandLogo[size] then
+            declLogo[size] = {
+              path = quote_string(brandLogo[size].path):gsub('\\', '\\\\'),
+              alt = quote_string(brandLogo[size].alt),
+            }
+          end
+        end
+      end
+      local logoDecl = '#let brand-logo = ' .. (to_typst_dict_indent(declLogo) or '(:)')
+      quarto.doc.include_text('in-header', logoDecl)
+
+      if brand and brand.processedData then
         local function conditional_entry(key, value, quote_strings)
           if quote_strings == null then quote_strings = true end
           if not value then return '' end
@@ -170,11 +178,12 @@ function render_typst_brand_yaml()
           end
         end
 
+        -- monospace font family is handled by codefont in typst-template.typ via typst-show.typ
+        -- here we only handle properties that Pandoc doesn't support: weight, size, color
         local monospaceInline = _quarto.modules.brand.get_typography(brandMode, 'monospace-inline')
         if monospaceInline and next(monospaceInline) then
             quarto.doc.include_text('in-header', table.concat({
               '#show raw.where(block: false): set text(',
-              conditional_entry('font', monospaceInline.family and _quarto.modules.typst.css.translate_font_family_list(monospaceInline.family), false),
               conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceInline.weight)),
               conditional_entry('size', monospaceInline.size, false),
               conditional_entry('fill', monospaceInline.color, false),
@@ -189,11 +198,12 @@ function render_typst_brand_yaml()
           }))
         end
     
+        -- monospace font family is handled by codefont in typst-template.typ via typst-show.typ
+        -- here we only handle properties that Pandoc doesn't support: weight, size, color
         local monospaceBlock = _quarto.modules.brand.get_typography(brandMode, 'monospace-block')
         if monospaceBlock and next(monospaceBlock) then
           quarto.doc.include_text('in-header', table.concat({
             '#show raw.where(block: true): set text(',
-            conditional_entry('font', monospaceBlock.family and _quarto.modules.typst.css.translate_font_family_list(monospaceBlock.family), false),
             conditional_entry('weight', _quarto.modules.typst.css.translate_font_weight(monospaceBlock.weight)),
             conditional_entry('size', monospaceBlock.size, false),
             conditional_entry('fill', monospaceBlock.color, false),
@@ -251,7 +261,7 @@ function render_typst_brand_yaml()
       end
       -- logo
       local logo = param('logo')
-      if not next(logo) then
+      if logo and not next(logo) then
         meta.logo = nil
       end
       local logoOptions = {}
@@ -307,7 +317,7 @@ function render_typst_brand_yaml()
           inset = '0.75in'
         end
         logoOptions.width = _quarto.modules.typst.css.translate_length(logoOptions.width or '1.5in')
-        logoOptions.inset = inset
+        logoOptions.inset = pandoc.RawInline('typst', inset)
         logoOptions.location = logoOptions.location and
           location_to_typst_align(logoOptions.location) or 'left+top'
         quarto.log.debug('logo options', logoOptions)
@@ -354,6 +364,13 @@ function render_typst_brand_yaml()
           color = color,
           ['background-color'] = headings['background-color'] or base['background-color'],
           ['line-height'] = line_height_to_leading(headings['line-height'] or base['line-height']),
+        }
+      end
+
+      local monospace = _quarto.modules.brand.get_typography(brandMode, 'monospace')
+      if monospace and monospace.family then
+        meta.brand.typography.monospace = {
+          family = pandoc.RawInline('typst', _quarto.modules.typst.css.translate_font_family_list(monospace.family)),
         }
       end
       return meta

@@ -45,7 +45,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% if (item.image) { %>
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 <% } else { %>
-<%= listing.utilities.imgPlaceholder(listing.id, itemNumber, item.outputHref) %>
+<%= listing.utilities.imgPlaceholder(listing.id, itemNumber, item.outputHref, item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 <% } %>
 </a></div>
 ```

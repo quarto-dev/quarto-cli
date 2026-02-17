@@ -1,0 +1,43 @@
+---
+title: "Full Width Div Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#wideblock\(side: "outer"\)', '#wideblock\(side: "both"\)', '#wideblock\(side: "inner"\)']
+        - []
+      ensurePdfTextPositions:
+        - # Margin note is in margin (rightOf body text)
+          - subject: "MARGIN-NOTE-DIV"
+            relation: rightOf
+            object: "Full Width Div"
+        - # Negative: fullwidth content NOT rightOf margin note
+          - subject: "FULLWIDTH-RIGHT-CONTENT"
+            relation: rightOf
+            object: "MARGIN-NOTE-DIV"
+      noErrors: default
+---
+
+## Column Page Right
+[MARGIN-NOTE-DIV: This note stays in the margin while the div extends across.]{.aside}
+
+::: {.column-page-right}
+FULLWIDTH-RIGHT-CONTENT: {{< lipsum 1 >}}
+:::
+
+## Column Page (Full Width)
+
+::: {.column-page}
+{{< lipsum 2 >}}
+:::
+
+## Column Page Left
+
+::: {.column-page-left}
+{{< lipsum 1 >}}
+:::

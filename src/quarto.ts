@@ -4,6 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+// Must be FIRST to save original Deno.realPathSync before monkey-patching
+import "./deno_ral/original-real-path.ts";
 import "./core/deno/monkey-patch.ts";
 
 import {
@@ -49,6 +51,9 @@ import "./project/types/register.ts";
 
 // ensures writer formats are registered
 import "./format/imports.ts";
+
+// ensures API namespaces are registered
+import "./core/api/register.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";

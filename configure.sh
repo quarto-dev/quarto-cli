@@ -102,3 +102,8 @@ else
   export QUARTO_DENO_EXTRA_OPTIONS="--reload"
 	quarto --version
 fi
+
+# Build typst-gather and install to tools directory
+echo "Building typst-gather..."
+cargo build --release --manifest-path package/typst-gather/Cargo.toml
+cp package/typst-gather/target/release/typst-gather "$QUARTO_BIN_PATH/tools/$DENO_ARCH_DIR/"

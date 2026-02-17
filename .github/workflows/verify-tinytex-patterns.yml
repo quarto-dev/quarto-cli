@@ -1,0 +1,177 @@
+name: Verify TinyTeX Pattern Coverage
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily 2am UTC (matches TinyTeX daily release)
+  workflow_dispatch:      # Manual trigger for testing
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+jobs:
+  verify:
+    name: Check TinyTeX Pattern Updates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download and extract regex.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release download daily --repo rstudio/tinytex-releases --pattern "regex.tar.gz"; then
+            echo "::warning::Failed to download TinyTeX daily release - may not be published yet"
+            exit 0
+          fi
+          tar -xzf regex.tar.gz
+          echo "✓ Downloaded and extracted regex.json"
+
+      - name: Restore cached regex.json
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/regex.json
+          key: tinytex-regex-latest
+
+      - name: Compare versions
+        id: compare
+        run: |
+          if [ -f .cache/regex.json ]; then
+            if git diff --no-index --quiet .cache/regex.json regex.json; then
+              echo "changed=false" >> $GITHUB_OUTPUT
+              echo "first_run=false" >> $GITHUB_OUTPUT
+              echo "✓ No changes detected"
+            else
+              echo "changed=true" >> $GITHUB_OUTPUT
+              echo "first_run=false" >> $GITHUB_OUTPUT
+              echo "✗ Changes detected"
+              git diff --no-index .cache/regex.json regex.json > pattern-diff.txt || true
+            fi
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "first_run=true" >> $GITHUB_OUTPUT
+            echo "⚠ No cached version (first run)"
+          fi
+
+      - name: Handle first run
+        if: steps.compare.outputs.first_run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get tinytex commit SHA
+          TINYTEX_COMMIT=$(gh api repos/rstudio/tinytex/commits/main --jq '.sha')
+          TINYTEX_SHORT=$(echo $TINYTEX_COMMIT | cut -c1-7)
+
+          # Count patterns and categories
+          PATTERN_COUNT=$(jq '[.[] | length] | add' regex.json)
+          CATEGORY_COUNT=$(jq 'keys | length' regex.json)
+
+          # Write GitHub Actions summary
+          echo "## TinyTeX Pattern Baseline Established" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Date:** $(date +%Y-%m-%d)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **TinyTeX commit:** [\`$TINYTEX_SHORT\`](https://github.com/rstudio/tinytex/commit/$TINYTEX_COMMIT)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Pattern source:** [R/latex.R](https://github.com/rstudio/tinytex/blob/$TINYTEX_COMMIT/R/latex.R)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Baseline:** $PATTERN_COUNT patterns across $CATEGORY_COUNT categories" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Cache key:** tinytex-regex-latest" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "No issue created (first run - baseline established)." >> "$GITHUB_STEP_SUMMARY"
+
+          # Prepare cache directory
+          mkdir -p .cache
+          cp regex.json .cache/regex.json
+
+          echo "✓ Baseline established - cache will be saved"
+
+      - name: Exit if unchanged
+        if: steps.compare.outputs.changed == 'false' && steps.compare.outputs.first_run == 'false'
+        run: |
+          echo "No pattern changes detected. Cache hit - exiting."
+          exit 0
+
+      - name: Prepare readable diff
+        if: steps.compare.outputs.changed == 'true'
+        run: |
+          # Pretty-print both JSON files for readable diff
+          if [ -f .cache/regex.json ]; then
+            jq --sort-keys . .cache/regex.json > old-formatted.json
+            jq --sort-keys . regex.json > new-formatted.json
+            git diff --no-index old-formatted.json new-formatted.json > readable-diff.txt || true
+          else
+            jq --sort-keys . regex.json > new-formatted.json
+            echo "First run - no previous version to compare" > readable-diff.txt
+          fi
+
+      - name: Create or update issue
+        if: steps.compare.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ISSUE_TITLE="TinyTeX patterns require review"
+          CURRENT_DATE=$(date +%Y-%m-%d)
+
+          # Search for existing open issue
+          ISSUE_NUM=$(gh issue list \
+            --label "tinytex-patterns" \
+            --state open \
+            --json number,title \
+            --jq ".[] | select(.title == \"$ISSUE_TITLE\") | .number")
+
+          if [ -z "$ISSUE_NUM" ]; then
+            echo "No matching issue found, creating new one..."
+
+            # Use template and replace placeholders
+            sed "s|{{DATE}}|$CURRENT_DATE|g" .github/workflows/templates/tinytex-issue-body.md | \
+              sed -e "/{{DIFF}}/r readable-diff.txt" -e "/{{DIFF}}/d" > issue-body.md
+
+            gh issue create \
+              --title "$ISSUE_TITLE" \
+              --assignee cderv \
+              --label "tinytex-patterns" \
+              --body-file issue-body.md
+          else
+            echo "Found existing issue #$ISSUE_NUM, adding comment..."
+
+            # Use template and replace placeholders
+            sed "s|{{DATE}}|$CURRENT_DATE|g" .github/workflows/templates/tinytex-comment-body.md | \
+              sed -e "/{{DIFF}}/r readable-diff.txt" -e "/{{DIFF}}/d" > comment-body.md
+
+            gh issue comment "$ISSUE_NUM" --body-file comment-body.md
+          fi
+
+      - name: Update cache with new patterns
+        if: steps.compare.outputs.changed == 'true'
+        run: |
+          mkdir -p .cache
+          cp regex.json .cache/regex.json
+          echo "✓ Cache updated with new patterns"
+
+      - name: Delete old cache
+        if: steps.compare.outputs.changed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh cache delete tinytex-regex-latest || echo "No existing cache to delete"
+
+      - name: Save new cache
+        if: steps.compare.outputs.changed == 'true' || steps.compare.outputs.first_run == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/regex.json
+          key: tinytex-regex-latest
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "${{ steps.compare.outputs.first_run }}" == "true" ]; then
+            echo "✓ Baseline established - cache created"
+          elif [ "${{ steps.compare.outputs.changed }}" == "true" ]; then
+            echo "✗ Pattern changes detected - issue created/updated"
+          else
+            echo "✓ No pattern changes - cache hit"
+          fi

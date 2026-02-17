@@ -9,17 +9,54 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
+# Check if verbose mode is enabled (GitHub Actions debug mode or explicit flag)
+VERBOSE_MODE=false
+if [[ "$RUNNER_DEBUG" == "1" ]] || [[ "$QUARTO_TEST_VERBOSE" == "true" ]]; then
+  VERBOSE_MODE=true
+fi
+
+# Check if keep-outputs mode is enabled
+KEEP_OUTPUTS=false
+FILTERED_ARGS=()
+for arg in "$@"; do
+  case $arg in
+    --keep-outputs|-k)
+      KEEP_OUTPUTS=true
+      ;;
+    *)
+      FILTERED_ARGS+=("$arg")
+      ;;
+  esac
+done
+set -- "${FILTERED_ARGS[@]}"
+
+if [[ "$KEEP_OUTPUTS" == "true" ]]; then
+  export QUARTO_TEST_KEEP_OUTPUTS=true
+  echo "> Keep outputs mode enabled - test artifacts will not be deleted"
+fi
+
 source $SCRIPT_PATH/../package/scripts/common/utils.sh
 
-export QUARTO_ROOT="`cd "$SCRIPT_PATH/.." > /dev/null 2>&1 && pwd`"
+export QUARTO_ROOT="$(cd "$SCRIPT_PATH/.." > /dev/null 2>&1 && pwd)"
 QUARTO_SRC_DIR="$QUARTO_ROOT/src"
+
+# Architecture detection (preserve original DENO_DIR from environment)
 DENO_ARCH_DIR=$DENO_DIR
-DENO_DIR="$QUARTO_ROOT/package/dist/bin/"
+
+# Set bin path explicitly (not derived from DENO_DIR)
+QUARTO_BIN_PATH="$QUARTO_ROOT/package/dist/bin"
+
+# Set DENO_DIR to cache location (respects QUARTO_DENO_DIR override)
+if [ "$QUARTO_DENO_DIR" == "" ]; then
+  export DENO_DIR="$QUARTO_BIN_PATH/deno_cache"
+else
+  export DENO_DIR="$QUARTO_DENO_DIR"
+fi
 
 # Local import map
 QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_DIR/import_map.json
 
-export QUARTO_BIN_PATH=$DENO_DIR
+export QUARTO_BIN_PATH
 export QUARTO_SHARE_PATH="`cd "$QUARTO_ROOT/src/resources/";pwd`"
 export QUARTO_DEBUG=true
 
@@ -42,10 +79,14 @@ if [[ -z $QUARTO_TESTS_FORCE_NO_VENV ]]
 then
   # Save possible activated virtualenv for later restauration
   OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-  echo "> Activating virtualenv from .venv for Python tests in Quarto"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Activating virtualenv from .venv for Python tests in Quarto"
+  fi
   source "${QUARTO_ROOT}/tests/.venv/bin/activate"
-  echo "> Using Python from $(which python)"
-  echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using Python from $(which python)"
+    echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  fi
   quarto_venv_activated="true"
 fi
 
@@ -73,13 +114,13 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
       SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -regextype "posix-extended" -regex ".*/[^_][^/]*[.]qmd" -o -regex ".*/[^_][^/]*[.]md" -o -regex ".*/[^_][^/]*[.]ipynb"`
       for j in $SMOKE_ALL_FILES; do
         echo "${SMOKE_ALL_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
-        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" ${SMOKE_ALL_TEST_FILE} -- ${j}
+        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" ${SMOKE_ALL_TEST_FILE} -- ${j}
       done
       continue
     fi
     # Otherwise we time the individual test.ts test
     echo $i >> "$QUARTO_TEST_TIMING"
-    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $i
+    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $i
   done
   # exit the script with an error code if the timing file shows error
   grep -q 'Command exited with non-zero status' $QUARTO_TEST_TIMING && SUCCESS=1 || SUCCESS=0
@@ -96,14 +137,12 @@ else
     TESTS_TO_RUN=""
     if [[ ! -z "$*" ]]; then
       for file in "$*"; do
-        echo $file
         filename=$(basename "$file")
         # smoke-all.test.ts works with .qmd, .md and .ipynb but  will ignored file starting with _
         if [[ $filename =~ ^[^_].*[.]qmd$ ]] || [[ $filename =~ ^[^_].*[.]ipynb$ ]] || [[ $filename =~ ^[^_].*[.]md$ ]]; then
           SMOKE_ALL_FILES="${SMOKE_ALL_FILES} ${file}"
         elif [[ $file =~ .*[.]ts$ ]]; then
           TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
-          echo $TESTS_TO_RUN
         else
           echo "#### WARNING"
           echo "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)."
@@ -122,24 +161,32 @@ else
       TESTS_TO_RUN="${SMOKE_ALL_TEST_FILE} -- ${SMOKE_ALL_FILES}"
     fi
   fi
-  "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $TESTS_TO_RUN
+  "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $TESTS_TO_RUN
   SUCCESS=$?
 fi
 
-if [[ $quarto_venv_activated == "true" ]] 
+if [[ $quarto_venv_activated == "true" ]]
 then
-  echo "> Exiting virtualenv activated for tests"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Exiting virtualenv activated for tests"
+  fi
   deactivate
-  echo "> Using Python from $(which python)"
-  echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using Python from $(which python)"
+    echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  fi
   unset quarto_venv_activated
 fi
 if [[ -n $OLD_VIRTUAL_ENV ]]
 then
-  echo "> Reactivating original virtualenv"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Reactivating original virtualenv"
+  fi
   source $OLD_VIRTUAL_ENV/bin/activate
-  echo "> Using Python from $(which python)"
-  echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using Python from $(which python)"
+    echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  fi
   unset OLD_VIRTUAL_ENV
 fi
 
@@ -150,7 +197,7 @@ if [[ $@ == *"--coverage"* ]]; then
   [[ $@ =~ .*--coverage=(.+) ]] && export COV="${BASH_REMATCH[1]}"
 
   echo Generating coverage report...
-  ${DENO_DIR}/deno coverage --unstable-kv --unstable-ffi ${COV} --lcov > ${COV}.lcov
+  ${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno coverage --unstable-kv --unstable-ffi ${COV} --lcov > ${COV}.lcov
   genhtml -o ${COV}/html ${COV}.lcov
   open ${COV}/html/index.html
 fi

@@ -1,0 +1,22 @@
+---
+title: No Highlighting
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: none
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # none = no highlighting, plain code block
+        - ["```"]
+        # Should NOT have any highlighting tokens or classes on code cell
+        - ["#Skylighting", "#KeywordTok", "```python"]
+---
+
+Test that `syntax-highlighting: none` disables highlighting in typst.
+
+```python
+def hello():
+    print("world")
+```

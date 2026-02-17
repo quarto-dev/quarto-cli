@@ -1,0 +1,22 @@
+---
+title: Native Typst Highlighting
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: idiomatic
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # idiomatic = native typst highlighting = raw fenced code blocks
+        - ["```python"]
+        # Should NOT have Skylighting tokens
+        - ["#Skylighting", "#KeywordTok", "#StringTok"]
+---
+
+Test that `syntax-highlighting: idiomatic` produces native typst highlighting.
+
+```python
+def hello():
+    print("world")
+```

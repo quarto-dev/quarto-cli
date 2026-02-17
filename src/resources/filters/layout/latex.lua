@@ -332,6 +332,10 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
     -- see if it's a captioned figure
     if image and #image.caption > 0 then
       caption = image.caption:clone()
+      -- preserve caption as alt attribute for PDF accessibility before clearing
+      if not image.attributes["alt"] then
+        image.attributes["alt"] = pandoc.utils.stringify(image.caption)
+      end
       tclear(image.caption)
     elseif tbl then
       caption = pandoc.utils.blocks_to_inlines(tbl.caption.long)
@@ -380,6 +384,10 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
     if image and #image.caption > 0 then
       local caption = image.caption:clone()
       markupLatexCaption(cell, caption)
+      -- preserve caption as alt attribute for PDF accessibility before clearing
+      if not image.attributes["alt"] then
+        image.attributes["alt"] = pandoc.utils.stringify(image.caption)
+      end
       tclear(image.caption)
       content:insert(pandoc.RawBlock("latex", "\\raisebox{-\\height}{"))
       content:insert(pandoc.Para(image))
@@ -658,9 +666,13 @@ end
 function latexImageFigure(image)
 
   return renderLatexFigure(image, function(figure)
-    
+
     -- make a copy of the caption and clear it
     local caption = image.caption:clone()
+    -- preserve caption as alt attribute for PDF accessibility before clearing
+    if #image.caption > 0 and not image.attributes["alt"] then
+      image.attributes["alt"] = pandoc.utils.stringify(image.caption)
+    end
     tclear(image.caption)
     
     -- get align

@@ -1,0 +1,40 @@
+---
+title: "Margin Figure Shift Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['shift: false', 'shift: "avoid"']
+        - []
+      ensurePdfTextPositions:
+        - # Both figures in margin
+          - subject: "FIXED-FIG-CAP"
+            relation: rightOf
+            object: "Line 1"
+          - subject: "AVOID-FIG-CAP"
+            relation: rightOf
+            object: "Line 2"
+          # First figure above second
+          - subject: "FIXED-FIG-CAP"
+            relation: above
+            object: "AVOID-FIG-CAP"
+        - []
+      noErrors: default
+---
+
+This tests shift control on margin figures.
+
+Line 1 with a fixed figure:
+
+![FIXED-FIG-CAP](test-plot.svg){#fig-fixed .column-margin shift="false" width=100%}
+
+Line 2 with an avoid figure:
+
+![AVOID-FIG-CAP](test-plot.svg){#fig-avoid .column-margin shift="avoid" width=100%}
+
+The first figure stays fixed, the second only shifts if necessary.

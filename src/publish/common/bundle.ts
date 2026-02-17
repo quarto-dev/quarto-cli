@@ -10,10 +10,7 @@ import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
 
-import { copy } from "io/copy";
-import { TarStream, type TarStreamInput } from "tar/tar-stream";
 import { createTarFromFiles } from "../../deno_ral/tar.ts";
 
 interface ManifestMetadata {
@@ -110,7 +107,7 @@ export async function createBundle(
   // await copy(tar.getReader(), writer);
   // writer.close();
 
-  await createTarFromFiles(tarFile, tarFiles);
+  await createTarFromFiles(tarFile, tarFiles, { baseDir: stageDir });
 
   // compress to tar.gz
   const targzFile = `${tarFile}.gz`;

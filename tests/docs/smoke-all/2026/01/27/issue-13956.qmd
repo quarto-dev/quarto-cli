@@ -1,0 +1,23 @@
+---
+title: "Issue 13956"
+format: ipynb
+_quarto:
+  tests:
+    ipynb:
+      ensureIpynbCellMatches:
+        cellType: markdown
+        matches:
+          - 'Figure\s1'
+          - '#fig-test'
+          - 'quarto-xref'
+          - 'This should render without crashing'
+---
+
+Testing crash when using inline `#| label: fig-*` syntax with format: ipynb.
+
+```{python}
+#| label: fig-test
+print("This should render without crashing")
+```
+
+See @fig-test for the output.

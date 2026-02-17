@@ -1,0 +1,8 @@
+meta:
+  name: Nested Test Brand
+color:
+  primary: "#dc3545"
+logo:
+  small:
+    light: images/logo.png
+    dark: images/header.png

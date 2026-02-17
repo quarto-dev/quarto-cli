@@ -1498,6 +1498,11 @@ kbd,
   margin-bottom: 0.2rem;
 }
 
+.callout.callout-style-simple:not(.callout-titled) .callout-body > :last-child,
+.callout.callout-style-simple:not(.callout-titled) .callout-body > div > :last-child {
+  margin-bottom: 0.5em;
+}
+
 $code-block-border-left-color: $table-border-color !default;
 
 .callout.callout-style-simple .callout-icon::before,

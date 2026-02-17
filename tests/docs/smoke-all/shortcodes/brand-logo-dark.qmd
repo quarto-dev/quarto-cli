@@ -13,7 +13,7 @@ _quarto:
     html:
       ensureFileRegexMatches:
         -
-          - '<img src="\.(/|\\)moon\.png" class="dark-content.*>'
+          - '<img src="\.(/|\\)moon\.png" class="img-fluid.*>'
         - []
 ---
 

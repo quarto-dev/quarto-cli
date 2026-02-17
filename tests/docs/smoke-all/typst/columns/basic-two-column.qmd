@@ -1,0 +1,45 @@
+---
+title: "Basic Two Column Layout"
+format:
+  typst:
+    columns: 2
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - # Patterns that MUST be found
+          # Page columns set via set page()
+          - 'columns: 2,'
+          # Title block wrapped with place(scope: "parent") for column spanning
+          - 'place\(\s+top,\s+float: true,\s+scope: "parent",\s+clearance: 4mm,\s+block\(below: 1em, width: 100%\)'
+        - # Patterns that must NOT be found
+          # Should NOT have columns() function call wrapping doc at end of article()
+          - 'columns\(cols, doc\)\n\}'
+      ensurePdfTextPositions:
+        - - subject:
+              text: "Basic Two Column Layout"
+              edge: centerX
+            relation: leftAligned
+            object:
+              role: Page
+              page: 1
+              edge: centerX
+            tolerance: 5
+---
+
+## Introduction
+
+This document tests the basic two-column layout in Typst. The title should span both columns, while the body content flows in two columns.
+
+## First Section
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+
+## Second Section
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.
+
+## Third Section
+
+Sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium.

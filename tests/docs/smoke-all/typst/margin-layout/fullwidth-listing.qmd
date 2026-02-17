@@ -1,0 +1,77 @@
+---
+title: "Full Width Listing Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Full-width listings should use wideblock
+        - ['#wideblock\(side: "outer"\)', '#wideblock\(side: "both"\)']
+        - []
+      ensurePdfRegexMatches:
+        - ['Listing 1', 'FULLWIDTH-CSS-STYLES', 'Listing 2', 'FULLWIDTH-SHELL-PIPELINE']
+        - []
+      ensurePdfTextPositions:
+        - # Margin note is in margin (rightOf body text)
+          - subject: "MARGIN-NOTE-LISTING"
+            relation: rightOf
+            object: "Full Width Listing"
+          # Listing caption should be left-aligned with body text (not centered)
+          - subject: "FULLWIDTH-CSS-STYLES"
+            relation: leftAligned
+            object: "This tests code listings"
+            tolerance: 10
+          # Full-page listing code should be near left page edge (within body margin)
+          - subject: "docker"
+            relation: leftAligned
+            object: { role: "Page", page: 1, edge: "left" }
+            tolerance: 50  # Body margin ~47pt from page edge
+        - # Negative: fullwidth listing caption NOT rightOf margin note
+          - subject: "FULLWIDTH-CSS-STYLES"
+            relation: rightOf
+            object: "MARGIN-NOTE-LISTING"
+      noErrors: default
+---
+
+This tests code listings that extend into the margins for displaying wide code.
+[MARGIN-NOTE-LISTING: This note stays in the margin while listings extend across.]{.aside}
+
+## CSS with Long Selectors (Page Right)
+
+```{#lst-fullwidth-css .css .column-page-right lst-cap="FULLWIDTH-CSS-STYLES"}
+/* Complex CSS selectors and media queries that benefit from wide display */
+.dashboard-container .sidebar-navigation .menu-item.active .submenu-list .submenu-item:hover .submenu-link { color: #3498db; background-color: rgba(52, 152, 219, 0.1); transition: all 0.3s ease-in-out; }
+.dashboard-container .main-content .card-grid .card-item .card-header .card-title { font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem; }
+@media screen and (min-width: 1200px) and (max-width: 1600px) { .dashboard-container .sidebar-navigation { width: 280px; } .dashboard-container .main-content { margin-left: 300px; padding: 2rem; } }
+@media screen and (min-width: 1600px) { .dashboard-container .sidebar-navigation { width: 320px; } .dashboard-container .main-content { margin-left: 340px; padding: 2.5rem; } }
+```
+
+See @lst-fullwidth-css for CSS styles using wide layout.
+
+## Shell Pipeline (Full Page)
+
+```{#lst-fullwidth-shell .bash .column-page lst-cap="FULLWIDTH-SHELL-PIPELINE"}
+# Complex data processing pipeline that benefits from full-width display to avoid line wrapping
+cat /var/log/application/access.log | grep -E "^[0-9]{4}-[0-9]{2}-[0-9]{2}" | awk -F'\t' '{print $1, $4, $7, $9}' | sort -t' ' -k1,1 -k2,2 | uniq -c | sort -rn | head -100 | tee /tmp/top_requests.txt
+
+# Docker command with many configuration options
+docker run --detach --name production-api-server --hostname api.example.com --network bridge --publish 8080:8080 --publish 8443:8443 --volume /etc/ssl/certs:/etc/ssl/certs:ro --volume /var/log/api:/var/log/api:rw --env NODE_ENV=production --env DATABASE_URL=postgresql://user:pass@db.example.com:5432/production --env REDIS_URL=redis://cache.example.com:6379 --env JWT_SECRET_KEY=supersecretkey123 --memory 2g --cpus 2 --restart unless-stopped myregistry.example.com/api-server:v2.3.1
+
+# Kubernetes kubectl command with complex selectors - uses spaces between arguments to allow wrapping
+kubectl get pods --all-namespaces --selector 'app.kubernetes.io/component=backend,environment in (staging, production)' -o wide --sort-by '.metadata.creationTimestamp' --show-labels --field-selector 'status.phase!=Succeeded' --chunk-size 500
+```
+
+See @lst-fullwidth-shell for shell pipelines using full-page width.
+
+## Summary
+
+Full-width code listings are useful for:
+
+- CSS with deeply nested selectors
+- Shell commands with many arguments
+- Long SQL queries
+- Configuration files with long values

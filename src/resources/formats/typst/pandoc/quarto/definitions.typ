@@ -1,8 +1,15 @@
 // Some definitions presupposed by pandoc's typst output.
-#let blockquote(body) = [
-  #set text( size: 0.92em )
-  #block(inset: (left: 1.5em, top: 0.2em, bottom: 0.2em))[#body]
-]
+#let content-to-string(content) = {
+  if content.has("text") {
+    content.text
+  } else if content.has("children") {
+    content.children.map(content-to-string).join("")
+  } else if content.has("body") {
+    content-to-string(content.body)
+  } else if content == [ ] {
+    " "
+  }
+}
 
 #let horizontalrule = line(start: (25%,0%), end: (75%,0%))
 
@@ -10,14 +17,19 @@
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
 ]
 
+// Use nested show rule to preserve list structure for PDF/UA-1 accessibility
+// See: https://github.com/quarto-dev/quarto-cli/pull/13249#discussion_r2678934509
 #show terms: it => {
-  it.children
-    .map(child => [
-      #strong[#child.term]
-      #block(inset: (left: 1.5em, top: -0.4em))[#child.description]
-      ])
-    .join()
+  show terms.item: item => {
+    set text(weight: "bold")
+    item.term
+    block(inset: (left: 1.5em, top: -0.4em))[#item.description]
+  }
+  it
 }
+
+// Prevent breaking inside definition items, i.e., keep term and description together.
+#show terms.item: set block(breakable: false)
 
 // Some quarto-specific definitions.
 
@@ -69,7 +81,6 @@
   label: none,
   supplement: str,
   position: none,
-  subrefnumbering: "1a",
   subcapnumbering: "(a)",
   body,
 ) = {
@@ -82,16 +93,19 @@
       supplement: supplement,
       caption: caption,
       {
-        show figure.where(kind: kind): set figure(numbering: _ => numbering(subrefnumbering, n-super, quartosubfloatcounter.get().first() + 1))
+        show figure.where(kind: kind): set figure(numbering: _ => {
+          let subfloat-idx = quartosubfloatcounter.get().first() + 1
+          subfloat-numbering(n-super, subfloat-idx)
+        })
         show figure.where(kind: kind): set figure.caption(position: position)
 
         show figure: it => {
           let num = numbering(subcapnumbering, n-super, quartosubfloatcounter.get().first() + 1)
-          show figure.caption: it => {
+          show figure.caption: it => block({
             num.slice(2) // I don't understand why the numbering contains output that it really shouldn't, but this fixes it shrug?
             [ ]
             it.body
-          }
+          })
 
           quartosubfloatcounter.step()
           it
@@ -122,22 +136,32 @@
   // when we cleanup pandoc's emitted code to avoid spaces this will have to change
   let old_callout = it.body.children.at(1).body.children.at(1)
   let old_title_block = old_callout.body.children.at(0)
-  let old_title = old_title_block.body.body.children.at(2)
+  let children = old_title_block.body.body.children
+  let old_title = if children.len() == 1 {
+    children.at(0)  // no icon: title at index 0
+  } else {
+    children.at(1)  // with icon: title at index 1
+  }
 
   // TODO use custom separator if available
+  // Use the figure's counter display which handles chapter-based numbering
+  // (when numbering is a function that includes the heading counter)
+  let callout_num = it.counter.display(it.numbering)
   let new_title = if empty(old_title) {
-    [#kind #it.counter.display()]
+    [#kind #callout_num]
   } else {
-    [#kind #it.counter.display(): #old_title]
+    [#kind #callout_num: #old_title]
   }
 
   let new_title_block = block_with_new_content(
-    old_title_block, 
+    old_title_block,
     block_with_new_content(
-      old_title_block.body, 
-      old_title_block.body.body.children.at(0) +
-      old_title_block.body.body.children.at(1) +
-      new_title))
+      old_title_block.body,
+      if children.len() == 1 {
+        new_title  // no icon: just the title
+      } else {
+        children.at(0) + new_title  // with icon: preserve icon block + new title
+      }))
 
   block_with_new_content(old_callout,
     block(below: 0pt, new_title_block) +
@@ -157,9 +181,9 @@
       width: 100%, 
       below: 0pt, 
       block(
-        fill: background_color, 
-        width: 100%, 
-        inset: 8pt)[#text(icon_color, weight: 900)[#icon] #title]) +
+        fill: background_color,
+        width: 100%,
+        inset: 8pt)[#if icon != none [#text(icon_color, weight: 900)[#icon] ]#title]) +
       if(body != []){
         block(
           inset: 1pt, 
@@ -169,3 +193,74 @@
     )
 }
 
+$if(margin-geometry)$
+// Margin layout support using marginalia package
+#import "@preview/marginalia:0.3.1" as marginalia: note, notefigure, wideblock
+
+// Render footnote as margin note using standard footnote counter
+// Used via show rule: #show footnote: it => column-sidenote(it.body)
+// The footnote element already steps the counter, so we just display it
+#let column-sidenote(body) = {
+  context {
+    let num = counter(footnote).display("1")
+    // Superscript mark in text
+    super(num)
+    // Content in margin with matching number
+    note(
+      alignment: "baseline",
+      shift: auto,
+      counter: none,  // We display our own number from footnote counter
+    )[
+      #super(num) #body
+    ]
+  }
+}
+
+// Note: Margin citations are now emitted directly from Lua as #note() calls
+// with #cite(form: "full") + locator text, preserving citation locators.
+
+// Utility: compute padding for each side based on side parameter
+#let side-pad(side, left-amount, right-amount) = {
+  let l = if side == "both" or side == "left" or side == "inner" { left-amount } else { 0pt }
+  let r = if side == "both" or side == "right" or side == "outer" { right-amount } else { 0pt }
+  (left: l, right: r)
+}
+
+// body-outset: extends ~15% into margin area
+#let column-body-outset(side: "both", body) = context {
+  let r = marginalia.get-right()
+  let out = 0.15 * (r.sep + r.width)
+  pad(..side-pad(side, -out, -out), body)
+}
+
+// page-inset: wideblock minus small inset from page boundary
+#let column-page-inset(side: "both", body) = context {
+  let l = marginalia.get-left()
+  let r = marginalia.get-right()
+  // Inset is a small fraction of the extension area (wideblock stops at far)
+  let left-inset = 0.15 * l.sep
+  let right-inset = 0.15 * (r.sep + r.width)
+  wideblock(side: side)[#pad(..side-pad(side, left-inset, right-inset), body)]
+}
+
+// screen-inset: full width minus `far` distance from edges
+#let column-screen-inset(side: "both", body) = context {
+  let l = marginalia.get-left()
+  let r = marginalia.get-right()
+  wideblock(side: side)[#pad(..side-pad(side, l.far, r.far), body)]
+}
+
+// screen-inset-shaded: screen-inset with gray background
+#let column-screen-inset-shaded(body) = context {
+  let l = marginalia.get-left()
+  wideblock(side: "both")[
+    #block(fill: luma(245), width: 100%, inset: (x: l.far, y: 1em), body)
+  ]
+}
+$endif$
+
+$if(highlighting-definitions)$
+// syntax highlighting functions from skylighting:
+$highlighting-definitions$
+
+$endif$

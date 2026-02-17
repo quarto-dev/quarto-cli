@@ -123,7 +123,7 @@ function server_shiny()
       end
 
       -- Write the code cells to a temporary file.
-      codeCellsOutfile = pandoc.path.split_extension(quarto.doc.output_file) .. "-cells.tmp.json"
+      local codeCellsOutfile = pandoc.path.split_extension(quarto.doc.output_file) .. "-cells.tmp.json"
       local file = io.open(codeCellsOutfile, "w")
       if file == nil then
         error("Error opening file: " .. codeCellsOutfile .. " for writing.")
@@ -132,7 +132,7 @@ function server_shiny()
       file:close()
 
       -- Convert the json file to app.py by calling `shiny convert-cells`.
-      appOutfile = pandoc.path.join({
+      local appOutfile = pandoc.path.join({
         pandoc.path.directory(quarto.doc.output_file),
         "app.py"
       });

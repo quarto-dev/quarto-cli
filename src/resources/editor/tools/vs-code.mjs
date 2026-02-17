@@ -8002,7 +8002,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8024,7 +8025,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8046,7 +8048,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8412,6 +8415,19 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "filter-entry-point",
+          enum: [
+            "pre-ast",
+            "post-ast",
+            "pre-quarto",
+            "post-quarto",
+            "pre-render",
+            "post-render",
+            "pre-finalize",
+            "post-finalize"
+          ]
+        },
+        {
           id: "pandoc-format-filters",
           arrayOf: {
             anyOf: [
@@ -8433,14 +8449,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     type: "string",
                     path: "path",
                     at: {
-                      enum: [
-                        "pre-ast",
-                        "post-ast",
-                        "pre-quarto",
-                        "post-quarto",
-                        "pre-render",
-                        "post-render"
-                      ]
+                      ref: "filter-entry-point"
                     }
                   },
                   required: [
@@ -8540,8 +8549,8 @@ var require_yaml_intelligence_resources = __commonJS({
               icon: {
                 string: {
                   description: {
-                    short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                    long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                    short: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)",
+                    long: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
                   }
                 }
               },
@@ -8722,6 +8731,25 @@ var require_yaml_intelligence_resources = __commonJS({
             required: [
               "repo"
             ]
+          }
+        },
+        {
+          id: "external-engine",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                path: {
+                  path: {
+                    description: "Path to the TypeScript module for the execution engine"
+                  }
+                }
+              },
+              required: [
+                "path"
+              ]
+            },
+            description: "An execution engine not pre-loaded in Quarto"
           }
         },
         {
@@ -9427,6 +9455,30 @@ var require_yaml_intelligence_resources = __commonJS({
                 ],
                 description: "Enable Google Analytics for this website"
               },
+              "plausible-analytics": {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        path: {
+                          path: {
+                            description: "Path to a file containing the Plausible Analytics script snippet"
+                          }
+                        }
+                      },
+                      required: [
+                        "path"
+                      ]
+                    }
+                  }
+                ],
+                description: {
+                  short: "Enable Plausible Analytics for this website by providing a script snippet or path to snippet file",
+                  long: 'Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,\nor by providing a path to a file containing the snippet.\n\nPlausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.\n\n**Option 1: Inline snippet**\n\n```yaml\nwebsite:\n  plausible-analytics: |\n    <script async src="https://plausible.io/js/script.js"><\/script>\n```\n\n**Option 2: File path**\n\n```yaml\nwebsite:\n  plausible-analytics:\n    path: _plausible_snippet.html\n```\n\nTo get your script snippet:\n\n1. Log into your Plausible account at <https://plausible.io>\n2. Go to your site settings\n3. Copy the JavaScript snippet provided\n4. Either paste it directly in your configuration or save it to a file\n\nFor more information, see <https://plausible.io/docs/plausible-script>\n'
+                }
+              },
               announcement: {
                 anyOf: [
                   "string",
@@ -9498,12 +9550,12 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         type: {
                           enum: [
-                            "implied",
-                            "express"
+                            "express",
+                            "implied"
                           ],
                           description: {
                             short: "The type of consent that should be requested",
-                            long: "The type of consent that should be requested, using one of these two values:\n\n- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n"
+                            long: "The type of consent that should be requested, using one of these two values:\n\n- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n\n- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n"
                           }
                         },
                         style: {
@@ -10604,7 +10656,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: {
                     short: "The date format to use when displaying dates (e.g. d-M-yyy).",
-                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).\n"
+                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html).\n"
                   }
                 }
               },
@@ -11651,7 +11703,74 @@ var require_yaml_intelligence_resources = __commonJS({
                   object: {
                     properties: {
                       "trace-filters": "string",
-                      tests: "object"
+                      tests: {
+                        object: {
+                          properties: {
+                            run: {
+                              object: {
+                                description: "Control when tests should run",
+                                properties: {
+                                  ci: {
+                                    boolean: {
+                                      description: "Run tests on CI (true = run, false = skip)",
+                                      default: true
+                                    }
+                                  },
+                                  skip: {
+                                    description: "Skip test unconditionally (true = skip with default message, string = skip with custom message)",
+                                    anyOf: [
+                                      "boolean",
+                                      "string"
+                                    ]
+                                  },
+                                  os: {
+                                    description: "Run tests ONLY on these platforms (whitelist)",
+                                    anyOf: [
+                                      {
+                                        enum: [
+                                          "linux",
+                                          "darwin",
+                                          "windows"
+                                        ]
+                                      },
+                                      {
+                                        arrayOf: {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  not_os: {
+                                    description: "Don't run tests on these platforms (blacklist)",
+                                    anyOf: [
+                                      {
+                                        enum: [
+                                          "linux",
+                                          "darwin",
+                                          "windows"
+                                        ]
+                                      },
+                                      {
+                                        arrayOf: {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -12064,8 +12183,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "logo-light-dark-specifier",
-          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
           anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
             {
               ref: "logo-specifier"
             },
@@ -12806,9 +12930,6 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               ref: "brand-font-system"
-            },
-            {
-              ref: "brand-font-common"
             }
           ]
         },
@@ -12910,7 +13031,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "system"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12927,7 +13051,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "google"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12944,7 +13071,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "bunny"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -13132,6 +13262,29 @@ var require_yaml_intelligence_resources = __commonJS({
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        },
+        {
+          id: "marginalia-side-geometry",
+          object: {
+            closed: true,
+            properties: {
+              far: {
+                string: {
+                  description: "Distance from page edge to wideblock boundary."
+                }
+              },
+              width: {
+                string: {
+                  description: "Width of the margin note column."
+                }
+              },
+              separation: {
+                string: {
+                  description: "Gap between margin column and body text."
                 }
               }
             }
@@ -13532,13 +13685,14 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "highlight-style",
+          name: "syntax-highlighting",
           tags: {
             formats: [
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -13567,6 +13721,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     "github",
                     "gruvbox",
                     "haddock",
+                    "idiomatic",
                     "kate",
                     "monochrome",
                     "monokai",
@@ -13587,7 +13742,38 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Specifies the coloring style to be used in highlighted source code.",
-            long: "Specifies the coloring style to be used in highlighted source code.\n\nInstead of a *STYLE* name, a JSON file with extension\n` .theme` may be supplied.  This will be parsed as a KDE\nsyntax highlighting theme and (if valid) used as the\nhighlighting style.\n"
+            long: "Specifies the coloring style to be used in highlighted source code.\n\nValid values:\n\n- `none`: Disables syntax highlighting for code blocks.\n- `idiomatic`: Uses the format's native syntax highlighter\n  (e.g., Typst's built-in highlighting, LaTeX `listings` package,\n  or reveal.js highlight.js plugin).\n- A style name (e.g., `pygments`, `tango`, `github`): Uses\n  Pandoc's skylighting with the specified theme.\n- A path to a `.theme` file: Uses a custom KDE syntax\n  highlighting theme.\n\nFor adaptive light/dark themes, specify an object with `light`\nand `dark` properties pointing to theme files.\n"
+          }
+        },
+        {
+          name: "highlight-style",
+          hidden: true,
+          tags: {
+            formats: [
+              "$html-all",
+              "docx",
+              "ms",
+              "$pdf-all",
+              "typst"
+            ]
+          },
+          schema: {
+            anyOf: [
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "path",
+                    dark: "path"
+                  }
+                }
+              },
+              "string"
+            ]
+          },
+          description: {
+            short: "Deprecated: use `syntax-highlighting` instead.",
+            long: "Deprecated: use `syntax-highlighting` instead.\n\nSpecifies the coloring style to be used in highlighted source code.\n"
           }
         },
         {
@@ -13597,7 +13783,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: "path",
@@ -13611,7 +13798,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -14288,6 +14476,26 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "Visual editor configuration"
+        },
+        {
+          name: "editor_options",
+          schema: {
+            object: {
+              properties: {
+                chunk_output_type: {
+                  enum: [
+                    "inline",
+                    "console"
+                  ],
+                  description: "Determines where chunk output is shown in the editor."
+                }
+              }
+            }
+          },
+          description: {
+            short: "Editor-specific options (used by RStudio and Positron).",
+            long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure\nper-document editor settings.\n"
+          }
         },
         {
           name: "zotero",
@@ -15247,7 +15455,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$markdown-all",
               "muse",
               "$html-files",
-              "pdf"
+              "pdf",
+              "typst"
             ]
           },
           schema: {
@@ -15928,6 +16137,21 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "YAML file containing custom language translations"
         },
         {
+          name: "shorthands",
+          tags: {
+            formats: [
+              "pdf",
+              "beamer"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: {
+            short: "Enable babel language-specific shorthands in LaTeX output.",
+            long: "Enable babel language-specific shorthands in LaTeX output. When `true`,\nbabel's language shortcuts are enabled (e.g., French `<<`/`>>` for guillemets,\nGerman `\"` shortcuts, proper spacing around French punctuation).\n\nDefault is `false` because language shorthands can interfere with code blocks\nand other content. Only enable if you need specific typographic features\nfor your language.\n"
+          }
+        },
+        {
           name: "dir",
           schema: {
             enum: [
@@ -16215,6 +16439,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "grid",
+          tags: {
+            formats: [
+              "$html-doc",
+              "typst"
+            ]
+          },
           schema: {
             object: {
               closed: true,
@@ -16235,24 +16465,24 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 "margin-width": {
                   string: {
-                    description: "The base width of the margin (right) column in an HTML page."
+                    description: "The base width of the margin (right) column. For Typst, this controls the width of the margin note column."
                   }
                 },
                 "body-width": {
                   string: {
-                    description: "The base width of the body (center) column in an HTML page."
+                    description: "The base width of the body (center) column. For Typst, this is computed as the remainder after other columns."
                   }
                 },
                 "gutter-width": {
                   string: {
-                    description: "The width of the gutter that appears between columns in an HTML page."
+                    description: "The width of the gutter that appears between columns. For Typst, this is the gap between the text column and margin notes."
                   }
                 }
               }
             }
           },
           description: {
-            short: "Properties of the grid system used to layout Quarto HTML pages."
+            short: "Properties of the grid system used to layout Quarto HTML and Typst pages."
           }
         },
         {
@@ -17216,6 +17446,24 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "page-numbering",
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n",
+            long: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
+          }
+        },
+        {
           name: "pagenumbering",
           schema: {
             maybeArrayOf: "string"
@@ -17888,6 +18136,51 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "When used in conjunction with `pdfa`, specifies the output intent for the colors.",
             long: "When used in conjunction with `pdfa`, specifies the output intent for\nthe colors, for example `ISO coated v2 300\\letterpercent\\space (ECI)`\n\nIf left unspecified, `sRGB IEC61966-2.1` is used as default.\n"
           }
+        },
+        {
+          name: "pdf-standard",
+          schema: {
+            maybeArrayOf: {
+              enum: [
+                "1.4",
+                "1.5",
+                "1.6",
+                "1.7",
+                "2.0",
+                "a-1b",
+                "a-2a",
+                "a-2b",
+                "a-2u",
+                "a-3a",
+                "a-3b",
+                "a-3u",
+                "a-4",
+                "a-4f",
+                "a-1a",
+                "a-4e",
+                "ua-1",
+                "ua-2",
+                "x-4",
+                "x-4p",
+                "x-5g",
+                "x-5n",
+                "x-5pg",
+                "x-6",
+                "x-6n",
+                "x-6p"
+              ]
+            }
+          },
+          tags: {
+            formats: [
+              "$pdf-all",
+              "typst"
+            ]
+          },
+          description: {
+            short: "PDF conformance standard (e.g., ua-2, a-2b,  1.7)",
+            long: "Specifies PDF conformance standards and/or version for the output.\n\nAccepts a single value or array of values:\n\n**PDF versions** (both Typst and LaTeX):\n`1.4`, `1.5`, `1.6`, `1.7`, `2.0`\n\n**PDF/A standards** (both engines):\n`a-1b`, `a-2a`, `a-2b`, `a-2u`, `a-3a`, `a-3b`, `a-3u`, `a-4`, `a-4f`\n\n**PDF/A standards** (Typst only):\n`a-1a`, `a-4e`\n\n**PDF/UA standards**:\n`ua-1` (Typst), `ua-2` (LaTeX)\n\n**PDF/X standards** (LaTeX only):\n`x-4`, `x-4p`, `x-5g`, `x-5n`, `x-5pg`, `x-6`, `x-6n`, `x-6p`\n\nExample: `pdf-standard: [a-2b, ua-2]` for accessible archival PDF.\n"
+          }
         }
       ],
       "schema/document-references.yml": [
@@ -17924,7 +18217,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           tags: {
             formats: [
-              "$html-doc"
+              "$html-doc",
+              "typst"
             ]
           },
           default: "document",
@@ -19270,7 +19564,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     url: {
                       string: {
-                        default: "https://reveal-multiplex.glitch.me/",
+                        default: "https://multiplex.up.railway.app/",
                         description: "Multiplex token server (defaults to Reveal-hosted server)\n"
                       }
                     },
@@ -19942,7 +20236,8 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: "Print a list of figures in the document."
@@ -19953,7 +20248,8 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: "Print a list of tables in the document."
@@ -20106,10 +20402,39 @@ var require_yaml_intelligence_resources = __commonJS({
                   arrayOf: "path"
                 },
                 filters: {
-                  arrayOf: "path"
+                  arrayOf: {
+                    anyOf: [
+                      "path",
+                      {
+                        object: {
+                          properties: {
+                            path: {
+                              schema: "path"
+                            },
+                            at: {
+                              ref: "filter-entry-point"
+                            }
+                          },
+                          required: [
+                            "path"
+                          ]
+                        }
+                      }
+                    ]
+                  }
                 },
                 formats: {
                   schema: "object"
+                },
+                engines: {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "external-engine"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -20548,7 +20873,14 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "engines",
           schema: {
-            arrayOf: "string"
+            arrayOf: {
+              anyOf: [
+                "string",
+                {
+                  ref: "external-engine"
+                }
+              ]
+            }
           },
           description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
         }
@@ -21239,6 +21571,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "asciidoc",
         "asciidoc_legacy",
         "asciidoctor",
+        "bbcode",
+        "bbcode_fluxbb",
+        "bbcode_hubzilla",
+        "bbcode_phpbb",
+        "bbcode_steam",
+        "bbcode_xenforo",
         "beamer",
         "biblatex",
         "bibtex",
@@ -21300,6 +21638,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "texinfo",
         "textile",
         "typst",
+        "vimdoc",
+        "xml",
         "xwiki",
         "zimwiki"
       ],
@@ -21312,8 +21652,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alias for href",
         "Link to file contained with the project or external URL",
         {
-          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
         },
         "Text to display for item (defaults to the document title if not\nprovided)",
         "Alias for href",
@@ -21349,6 +21689,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "An execution engine not pre-loaded in Quarto",
+        "Path to the TypeScript module for the execution engine",
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -21507,6 +21849,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -21668,6 +22015,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -21908,7 +22260,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
         {
           short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
-          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
+          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://quarto.org/docs/reference/dates.html">here</a>.'
         },
         {
           short: "The maximum length (in characters) of the description displayed in\nthe listing.",
@@ -22460,6 +22812,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "Control when tests should run",
+        "Run tests on CI (true = run, false = skip)",
+        "Skip test unconditionally (true = skip with default message, string =\nskip with custom message)",
+        "Run tests ONLY on these platforms (whitelist)",
+        "Don\u2019t run tests on these platforms (blacklist)",
         "The path to the locally referenced notebook.",
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
@@ -22512,7 +22869,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alternative text for the logo, used for accessibility.",
         "Path or brand.yml logo resource name.",
         "Alternative text for the logo, used for accessibility.",
-        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
         "Specification of a light logo",
         "Specification of a dark logo",
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
@@ -22615,6 +22972,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
         "The path to a light brand file or an inline light brand\ndefinition.",
         "The path to a dark brand file or an inline dark brand definition.",
+        "Distance from page edge to wideblock boundary.",
+        "Width of the margin note column.",
+        "Gap between margin column and body text.",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -22890,7 +23250,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Specifies the coloring style to be used in highlighted source\ncode.",
-          long: "Specifies the coloring style to be used in highlighted source\ncode.\nInstead of a <em>STYLE</em> name, a JSON file with extension\n<code>.theme</code> may be supplied. This will be parsed as a KDE syntax\nhighlighting theme and (if valid) used as the highlighting style."
+          long: "Specifies the coloring style to be used in highlighted source\ncode.\nValid values:"
+        },
+        {
+          short: "Deprecated: use <code>syntax-highlighting</code> instead.",
+          long: "Deprecated: use <code>syntax-highlighting</code> instead.\nSpecifies the coloring style to be used in highlighted source\ncode."
         },
         "KDE language syntax definition file (XML)",
         "KDE language syntax definition files (XML)",
@@ -23006,6 +23370,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Write markdown links as references rather than inline.",
         "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
         "Automatically re-render for preview whenever document is saved (note\nthat this requires a preview for the saved document be already running).\nThis option currently works only within VS Code.",
+        {
+          short: "Editor-specific options (used by RStudio and Positron).",
+          long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
+        },
+        "Determines where chunk output is shown in the editor.",
         "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
         "The identifier for this publication.",
         "The identifier value.",
@@ -23377,6 +23746,10 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "YAML file containing custom language translations",
         {
+          short: "Enable babel language-specific shorthands in LaTeX output.",
+          long: 'Enable babel language-specific shorthands in LaTeX output. When\n<code>true</code>, babel\u2019s language shortcuts are enabled (e.g., French\n<code>&lt;&lt;</code>/<code>&gt;&gt;</code> for guillemets, German\n<code>"</code> shortcuts, proper spacing around French punctuation).\nDefault is <code>false</code> because language shorthands can\ninterfere with code blocks and other content. Only enable if you need\nspecific typographic features for your language.'
+        },
+        {
           short: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).",
           long: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute can be used to\noverride the base direction in some output formats. This may not always\nbe necessary if the final renderer (e.g.&nbsp;the browser, when generating\nHTML) supports the [Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>)."
         },
@@ -23412,14 +23785,14 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
         },
         {
-          short: "Properties of the grid system used to layout Quarto HTML pages.",
+          short: "Properties of the grid system used to layout Quarto HTML and Typst\npages.",
           long: ""
         },
         "Defines whether to use the standard, slim, or full content grid or to\nautomatically select the most appropriate content grid.",
         "The base width of the sidebar (left) column in an HTML page.",
-        "The base width of the margin (right) column in an HTML page.",
-        "The base width of the body (center) column in an HTML page.",
-        "The width of the gutter that appears between columns in an HTML\npage.",
+        "The base width of the margin (right) column. For Typst, this controls\nthe width of the margin note column.",
+        "The base width of the body (center) column. For Typst, this is\ncomputed as the remainder after other columns.",
+        "The width of the gutter that appears between columns. For Typst, this\nis the gap between the text column and margin notes.",
         {
           short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
           long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
@@ -23578,6 +23951,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
         },
         {
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
+        },
+        {
           short: "Sets the page numbering style and location for the document.",
           long: 'Sets the page numbering style and location for the document using the\n<code>\\setuppagenumbering</code> command.\nSee <a href="https://wiki.contextgarden.net/Command/setuppagenumbering">ConTeXt\nPage Numbering</a> for additional information.'
         },
@@ -23672,6 +24049,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors.",
           long: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors, for example\n<code>ISO coated v2 300\\letterpercent\\space (ECI)</code>\nIf left unspecified, <code>sRGB IEC61966-2.1</code> is used as\ndefault."
+        },
+        {
+          short: "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
+          long: "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
         },
         "Document bibliography (BibTeX or CSL). May be a single file or a list\nof files",
         "Citation Style Language file to use for formatting references.",
@@ -24054,6 +24435,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -24352,6 +24738,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "When defined, run axe-core accessibility tests on the document.",
         "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
         "The logo image.",
+        {
+          short: "Advanced geometry settings for Typst margin layout.",
+          long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+        },
+        "Inner (left) margin geometry.",
+        "Outer (right) margin geometry.",
+        "Minimum vertical spacing between margin notes (default: 8pt).",
+        {
+          short: "Visual style for theorem environments in Typst output.",
+          long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
+        },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24404,6 +24801,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
@@ -24698,7 +25100,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
+        {
+          short: "Email format version",
+          long: "Specifies which email format version to use."
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -24923,16 +25329,17 @@ var require_yaml_intelligence_resources = __commonJS({
           "(*",
           "*)"
         ],
+        q: "/",
         rust: "//",
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 197539,
+        _internalId: 222358,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 197531,
+            _internalId: 222350,
             type: "enum",
             enum: [
               "png",
@@ -24948,7 +25355,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 197538,
+            _internalId: 222357,
             type: "anyOf",
             anyOf: [
               {
@@ -24992,6 +25399,11 @@ var require_yaml_intelligence_resources = __commonJS({
       "schema/document-a11y.yml": [
         {
           name: "axe",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
           schema: {
             anyOf: [
               "boolean",
@@ -25026,6 +25438,79 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "The logo image."
+        },
+        {
+          name: "margin-geometry",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                inner: {
+                  ref: "marginalia-side-geometry",
+                  description: "Inner (left) margin geometry."
+                },
+                outer: {
+                  ref: "marginalia-side-geometry",
+                  description: "Outer (right) margin geometry."
+                },
+                clearance: {
+                  string: {
+                    description: "Minimum vertical spacing between margin notes (default: 8pt)."
+                  }
+                }
+              }
+            }
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Advanced geometry settings for Typst margin layout.",
+            long: "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
+          }
+        },
+        {
+          name: "theorem-appearance",
+          schema: {
+            enum: [
+              "simple",
+              "fancy",
+              "clouds",
+              "rainbow"
+            ]
+          },
+          default: "simple",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Visual style for theorem environments in Typst output.",
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+          }
+        }
+      ],
+      "schema/document-email.yml": [
+        {
+          name: "email-version",
+          tags: {
+            formats: [
+              "email"
+            ]
+          },
+          schema: {
+            enum: [
+              1,
+              2
+            ]
+          },
+          description: {
+            short: "Email format version",
+            long: "Specifies which email format version to use.\n\n- `1`: Legacy email format with document-level metadata (compatible with older Connect versions)\n- `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)\n"
+          }
         }
       ]
     };
@@ -25187,7 +25672,7 @@ function locationString(loc) {
 
 // ../text.ts
 function lines(text) {
-  return text.split(/\r?\n/);
+  return text.split(/\r\n?|\n/);
 }
 function* matchAll(text, regexp) {
   if (!regexp.global) {
@@ -25200,7 +25685,7 @@ function* matchAll(text, regexp) {
 }
 function* lineOffsets(text) {
   yield 0;
-  for (const match of matchAll(text, /\r?\n/g)) {
+  for (const match of matchAll(text, /\r\n?|\n/g)) {
     yield match.index + match[0].length;
   }
 }
@@ -25386,7 +25871,7 @@ function matchAll2(str2, regex) {
   return result;
 }
 function rangedLines(text, includeNewLines = false) {
-  const regex = /\r?\n/g;
+  const regex = /\r\n?|\n/g;
   const result = [];
   let startOffset = 0;
   if (!includeNewLines) {
@@ -28068,7 +28553,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = function() {
+  state.dump = (function() {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -28106,7 +28591,7 @@ function writeScalar(state, string, level, iskey, inblock) {
       default:
         throw new exception("impossible error: invalid scalar style");
     }
-  }();
+  })();
 }
 function blockHeader(string, indentPerLevel) {
   var indentIndicator = needIndentIndicator(string) ? String(indentPerLevel) : "";
@@ -28120,12 +28605,12 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = function() {
+  var result = (function() {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
     return foldLine(string.slice(0, nextLF), width);
-  }();
+  })();
   var prevMoreIndented = string[0] === "\n" || string[0] === " ";
   var moreIndented;
   var match;
@@ -32212,8 +32697,8 @@ function validateGeneric(value, s, context) {
     "boolean": (schema2) => validateBoolean(value, schema2, context),
     "number": (schema2) => validateNumber(value, schema2, context),
     "string": (schema2) => validateString(value, schema2, context),
-    "null": (schema2) => validateNull(value, schema2, context),
-    "enum": (schema2) => validateEnum(value, schema2, context),
+    "null": ((schema2) => validateNull(value, schema2, context)),
+    "enum": ((schema2) => validateEnum(value, schema2, context)),
     "anyOf": (schema2) => validateAnyOf(value, schema2, context),
     "allOf": (schema2) => validateAllOf(value, schema2, context),
     "array": (schema2) => validateArray(value, schema2, context),
@@ -34163,6 +34648,7 @@ var kLangCommentChars = {
   ojs: "//",
   apl: "\u235D",
   ocaml: ["(*", "*)"],
+  q: "/",
   rust: "//"
 };
 function escapeRegExp(str2) {
@@ -34248,7 +34734,7 @@ function parseShortcode(shortCodeCapture) {
 }
 
 // ../break-quarto-md.ts
-async function breakQuartoMd(src, validate2 = false, lenient = false) {
+async function breakQuartoMd(src, validate2 = false, lenient = false, startCodeCellRegex) {
   if (typeof src === "string") {
     src = asMappedString(src);
   }
@@ -34257,8 +34743,8 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
     cells: []
   };
   const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = new RegExp(
-    "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
+  const startCodeCellRegEx = startCodeCellRegex || new RegExp(
+    "^\\s*(```+)\\s*\\{([=A-Za-z][=A-Za-z0-9._]*)( *[ ,].*)?\\}\\s*$"
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*(```+)\s*$/;

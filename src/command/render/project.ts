@@ -59,7 +59,6 @@ import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import {
   removeIfEmptyDir,
-  removeIfExists,
   safeRemoveIfExists,
 } from "../../core/path.ts";
 import { handlerForScript } from "../../core/run/run.ts";
@@ -280,15 +279,17 @@ export async function renderProject(
       (projectRenderConfig.options.flags?.clean == true) &&
         (projType.cleanOutputDir === true))
   ) {
-    // output dir
+    // output dir - use safeRemoveDirSync for boundary protection (#13892)
     const realProjectDir = normalizePath(context.dir);
     if (existsSync(projOutputDir)) {
       const realOutputDir = normalizePath(projOutputDir);
-      if (
-        (realOutputDir !== realProjectDir) &&
-        realOutputDir.startsWith(realProjectDir)
-      ) {
-        removeIfExists(realOutputDir);
+      try {
+        safeRemoveDirSync(realOutputDir, realProjectDir);
+      } catch (e) {
+        if (!(e instanceof UnsafeRemovalError)) {
+          throw e;
+        }
+        // Silently skip if output dir equals or is outside project dir
       }
     }
     // remove index
@@ -599,7 +600,7 @@ export async function renderProject(
     // as an example case)
     const uniqOps = ld.uniqBy(fileOperations, (op: FileOperation) => {
       return op.key;
-    });
+    }) as FileOperation[];
 
     const sortedOperations = uniqOps.sort((a, b) => {
       if (a.src === b.src) {
@@ -792,7 +793,7 @@ export async function renderProject(
         context,
       );
       if (engine?.postRender) {
-        await engine.postRender(file, projResults.context);
+        await engine.postRender(file);
       }
     }
 
@@ -886,13 +887,20 @@ export async function renderProject(
     );
   }
 
-  // in addition to the cleanup above, if forceClean is set, we need to clean up the project scratch dir
-  // entirely. See options.forceClean in render-shared.ts
-  // .quarto is really a fiction created because of `--output-dir` being set on non-project
-  // renders
+  // Clean up synthetic project created for --output-dir
+  // When --output-dir is used without a project file, we create a temporary
+  // project context with a .quarto directory (see render-shared.ts).
+  // After rendering completes, we must remove this directory to avoid leaving
+  // debris in non-project directories (#9745).
   //
-  // cf https://github.com/quarto-dev/quarto-cli/issues/9745#issuecomment-2125951545
+  // Critical ordering for Windows: Close file handles BEFORE removing directory
+  // to avoid "The process cannot access the file because it is being used by
+  // another process" (os error 32) (#13625).
   if (projectRenderConfig.options.forceClean) {
+    // 1. Close all file handles (KV database, temp context, etc.)
+    context.cleanup();
+
+    // 2. Remove the temporary .quarto directory
     const scratchDir = join(projDir, kQuartoScratch);
     if (existsSync(scratchDir)) {
       safeRemoveSync(scratchDir, { recursive: true });

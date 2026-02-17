@@ -66,8 +66,15 @@ export async function validateBundle(
   } finally {
     const cleanupFiles = [moveScriptDest, outFile, "package-lock.json", "node_modules"];
     cleanupFiles.forEach((file) => {
-      Deno.removeSync(file, {recursive: true});
+      try {
+        Deno.removeSync(file, {recursive: true});
+      } catch (e) {
+        if (e instanceof Deno.errors.NotFound) {
+          // File may not exist if validation failed early
+        } else {
+          info(`Failed to remove cleanup file '${file}': ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
     })
-
   }
 }

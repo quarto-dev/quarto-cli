@@ -292,7 +292,7 @@ export const previewCommand = new Command()
           services.cleanup();
         }
       })();
-      const format = await previewFormat(file, flags.to, formats, project);
+      const format = await previewFormat(file, project, flags.to, formats);
 
       // see if this is server: shiny document and if it is then forward to previewShiny
       if (isHtmlOutput(parseFormatString(format).baseFormat)) {
@@ -314,6 +314,7 @@ export const previewCommand = new Command()
               format,
               pandocArgs: args,
               watchInputs: options.watchInputs!,
+              project,
             });
             exitWithCleanup(result.code);
             throw new Error(); // unreachable

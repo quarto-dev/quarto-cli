@@ -1,8 +1,23 @@
 ---
-format: 
+format:
   pdf:
     geometry:
       - showframe
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        -
+          # Verify margintable environment wraps the table
+          - '\\begin\{margintable\}'
+          # Verify longtable with caption and label inside margintable
+          - '\\begin\{margintable\}[\s\S]*\\begin\{longtable\}[\s\S]*\\caption\{\\label\{tbl-cars\}Cars\}'
+          # Verify margintable ends after longtable
+          - '\\end\{longtable\}[\s\S]*\\end\{margintable\}%'
+          # Verify cross-reference works
+          - 'Table~\\ref\{tbl-cars\}'
+        - []
 ---
 
 {{< lipsum 1 >}}
@@ -17,3 +32,5 @@ knitr::kable(head(cars))
 ```
 
 {{< lipsum 1 >}}
+
+See @tbl-cars

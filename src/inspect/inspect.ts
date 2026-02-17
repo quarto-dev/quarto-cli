@@ -139,11 +139,13 @@ const populateFileInformation = async (
   }
   await projectResolveCodeCellsForFile(context, engine, file);
   await projectFileMetadata(context, file);
-  fileInformation[file] = {
-    includeMap: context.fileInformationCache.get(file)?.includeMap ??
-      [],
-    codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
-    metadata: context.fileInformationCache.get(file)?.metadata ?? {},
+  const cacheEntry = context.fileInformationCache.get(file);
+  // Output key: project-relative for portability
+  const outputKey = relative(context.dir, normalizePath(file));
+  fileInformation[outputKey] = {
+    includeMap: cacheEntry?.includeMap ?? [],
+    codeCells: cacheEntry?.codeCells ?? [],
+    metadata: cacheEntry?.metadata ?? {},
   };
 };
 

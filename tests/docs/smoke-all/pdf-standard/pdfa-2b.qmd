@@ -1,0 +1,28 @@
+---
+title: "PDF/A-2b standard"
+lang: en
+pdf-standard: a-2b
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    run:
+      # verapdf validation not available on Windows CI
+      not_os: windows
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        # a-2b is "basic" level - does NOT require tagging
+        # PDF/A-2 requires maximum PDF version 1.7
+        - ['\\DocumentMetadata\{', 'pdfversion=1\.7', 'pdfstandard=\{a-2b\}']
+        - ['tagging=on']
+    typst:
+      noErrors: default
+---
+
+# Test Document
+
+This tests PDF/A-2b output with both LaTeX and Typst.
+
+PDF/A-2 is based on ISO 32000-1 (PDF 1.7) and has a maximum PDF version of 1.7.
+Both LaTeX and Typst automatically use PDF 1.7 when `pdf-standard: a-2b` is specified.

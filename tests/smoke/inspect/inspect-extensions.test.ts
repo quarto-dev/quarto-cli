@@ -25,8 +25,9 @@ import { assert, assertEquals } from "testing/asserts";
         verify: async (outputs: ExecuteOutput[]) => {
           assert(existsSync(output));
           const json = JSON.parse(Deno.readTextFileSync(output));
-          assert(json.extensions.length === 1);
-          assertEquals(json.extensions[0].title, "Auto Dark Mode");
+          assert(json.extensions.length === 3);
+          // 0 is orange-book, 1 is julia-engine (bundled extensions)
+          assertEquals(json.extensions[2].title, "Auto Dark Mode");
         }
       }
     ],

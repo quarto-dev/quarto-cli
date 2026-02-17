@@ -1,0 +1,29 @@
+---
+title: "Mermaid SVG with DOCX - Clipping warning expected (#13661)"
+format:
+  docx:
+    mermaid-format: svg
+_quarto:
+  tests:
+    docx:
+      printsMessage:
+        level: INFO
+        regex: 'multi-line text labels may experience clipping'
+---
+
+## Test Diagram
+
+This tests that DOCX format with mermaid-format:svg emits a warning about
+potential text clipping issues (but NOT about external tooling requirements).
+
+```{mermaid}
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Good]
+    B -->|No| D[Bad]
+    C --> E[End]
+    D --> E
+```
+
+Expected: Warning about text clipping in multi-line labels.
+NOT expected: Warning about rsvg-convert/Inkscape (DOCX doesn't strictly require it).

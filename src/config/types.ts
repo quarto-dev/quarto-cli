@@ -93,6 +93,7 @@ import {
   kFreeze,
   kGladtex,
   kHighlightStyle,
+  kSyntaxHighlighting,
   kHtmlMathMethod,
   kHtmlPreTagProcessing,
   kHtmlTableProcessing,
@@ -176,6 +177,7 @@ import {
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
+  kPdfStandard,
   kPlotlyConnected,
   kPreferHtml,
   kPreserveYaml,
@@ -492,6 +494,7 @@ export interface FormatRender {
   [kLatexMinRuns]?: number;
   [kLatexMaxRuns]?: number;
   [kLatexClean]?: boolean;
+  [kPdfStandard]?: string | string[];
   [kLatexInputPaths]?: string[];
   [kLatexMakeIndex]?: string;
   [kLatexMakeIndexOpts]?: string[];
@@ -592,6 +595,7 @@ export interface FormatPandoc {
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
   [kHighlightStyle]?: string | Record<string, string> | null;
+  [kSyntaxHighlighting]?: string | Record<string, string> | null;
   [kSectionDivs]?: boolean;
   [kHtmlMathMethod]?: string | { method: string; url: string };
   [kTopLevelDivision]?: string;

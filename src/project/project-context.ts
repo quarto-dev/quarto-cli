@@ -10,6 +10,7 @@ import {
   isAbsolute,
   join,
   relative,
+  resolve,
   SEP,
 } from "../deno_ral/path.ts";
 
@@ -63,8 +64,9 @@ import {
   fileExecutionEngine,
   fileExecutionEngineAndTarget,
   projectIgnoreGlobs,
+  resolveEngines,
 } from "../execute/engine.ts";
-import { ExecutionEngine, kMarkdownEngine } from "../execute/types.ts";
+import { ExecutionEngineInstance, kMarkdownEngine } from "../execute/types.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 
@@ -96,7 +98,6 @@ import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
 import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
-import { debug } from "../deno_ral/log.ts";
 import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
@@ -106,10 +107,10 @@ import { createProjectCache } from "../core/cache/cache.ts";
 import { createTempContext } from "../core/temp.ts";
 
 import { onCleanup } from "../core/cleanup.ts";
-import { once } from "../core/once.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
+import { ExternalEngine } from "../resources/types/schema-types.ts";
 
-const mergeExtensionMetadata = async (
+export const mergeExtensionMetadata = async (
   context: ProjectContext,
   pOptions: RenderOptions,
 ) => {
@@ -119,9 +120,10 @@ const mergeExtensionMetadata = async (
     const extensions = await pOptions.services.extension.extensions(
       undefined,
       context.config,
-      context.isSingleFile ? undefined : context.dir,
+      context.dir,
       { builtIn: false },
     );
+    // Handle project metadata extensions
     const projectMetadata = extensions.filter((extension) =>
       extension.contributes.metadata?.project
     ).map((extension) => {
@@ -213,6 +215,15 @@ export async function projectContext(
         projectConfig = mergeProjectMetadata(projectConfig, metadata);
       }
 
+      // Process engine extensions
+      if (extensionContext) {
+        projectConfig = await resolveEngineExtensions(
+          extensionContext,
+          projectConfig,
+          dir,
+        );
+      }
+
       // collect then merge configuration profiles
       const result = await initializeProfileConfig(
         dir,
@@ -289,11 +300,17 @@ export async function projectContext(
           projectConfig.project[kProjectOutputDir] = type.outputDir;
         }
 
-        // if the output-dir is "." that's equivalent to no output dir so make that
-        // conversion now (this allows code downstream to just check for no output dir
-        // rather than that as well as ".")
-        if (projectConfig.project[kProjectOutputDir] === ".") {
-          delete projectConfig.project[kProjectOutputDir];
+        // if the output-dir resolves to the project directory, that's equivalent to
+        // no output dir so make that conversion now (this allows code downstream to
+        // just check for no output dir rather than checking for ".", "./", etc.)
+        // Fixes issue #13892: output-dir: ./ would delete the entire project
+        const outputDir = projectConfig.project[kProjectOutputDir];
+        if (outputDir) {
+          const resolvedOutputDir = resolve(dir, outputDir);
+          const resolvedDir = resolve(dir);
+          if (resolvedOutputDir === resolvedDir) {
+            delete projectConfig.project[kProjectOutputDir];
+          }
         }
 
         // if the output-dir is absolute then make it project dir relative
@@ -315,7 +332,7 @@ export async function projectContext(
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
-            engine: ExecutionEngine | undefined,
+            engine: ExecutionEngineInstance | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
@@ -353,13 +370,14 @@ export async function projectContext(
             return projectFileMetadata(result, file, force);
           },
           isSingleFile: false,
+          previewServer: renderOptions?.previewServer,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
-          cleanup: once(() => {
+          cleanup: () => {
             cleanupFileInformationCache(result);
             result.diskCache.close();
             temp.cleanup();
-          }),
+          },
         };
 
         // see if the project [kProjectType] wants to filter the project config
@@ -381,8 +399,6 @@ export async function projectContext(
           return undefined;
         }
 
-        debug(`projectContext: Found Quarto project in ${dir}`);
-
         if (type.formatExtras) {
           result.formatExtras = async (
             source: string,
@@ -400,7 +416,6 @@ export async function projectContext(
         };
         return await returnResult(result);
       } else {
-        debug(`projectContext: Found Quarto project in ${dir}`);
         const temp = createTempContext({
           dir: join(dir, ".quarto"),
           prefix: "quarto-session-temp",
@@ -411,7 +426,7 @@ export async function projectContext(
           resolveBrand: async (fileName?: string) =>
             projectResolveBrand(result, fileName),
           resolveFullMarkdownForFile: (
-            engine: ExecutionEngine | undefined,
+            engine: ExecutionEngineInstance | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
@@ -447,13 +462,14 @@ export async function projectContext(
           },
           notebookContext,
           isSingleFile: false,
+          previewServer: renderOptions?.previewServer,
           diskCache: await createProjectCache(join(dir, ".quarto")),
           temp,
-          cleanup: once(() => {
+          cleanup: () => {
             cleanupFileInformationCache(result);
             result.diskCache.close();
             temp.cleanup();
-          }),
+          },
         };
         const { files, engines } = await projectInputFiles(
           result,
@@ -486,7 +502,7 @@ export async function projectContext(
             resolveBrand: async (fileName?: string) =>
               projectResolveBrand(context, fileName),
             resolveFullMarkdownForFile: (
-              engine: ExecutionEngine | undefined,
+              engine: ExecutionEngineInstance | undefined,
               file: string,
               markdown?: MappedString,
               force?: boolean,
@@ -526,13 +542,14 @@ export async function projectContext(
               return projectFileMetadata(context, file, force);
             },
             isSingleFile: false,
+            previewServer: renderOptions?.previewServer,
             diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
             temp,
-            cleanup: once(() => {
+            cleanup: () => {
               cleanupFileInformationCache(context);
               context.diskCache.close();
               temp.cleanup();
-            }),
+            },
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = await projectInputFiles(context);
@@ -544,7 +561,6 @@ export async function projectContext(
             context.engines = [engine?.name ?? kMarkdownEngine];
             context.files.input = [input];
           }
-          debug(`projectContext: Found Quarto project in ${originalDir}`);
           return await returnResult(context);
         } else {
           return undefined;
@@ -720,6 +736,64 @@ async function resolveProjectExtension(
   return projectConfig;
 }
 
+export async function resolveEngineExtensions(
+  context: ExtensionContext,
+  projectConfig: ProjectConfig,
+  dir: string,
+) {
+  // First, resolve any relative paths in existing project engines
+  if (projectConfig.engines) {
+    projectConfig.engines =
+      (projectConfig.engines as (string | ExternalEngine)[]).map(
+        (engine) => {
+          if (
+            typeof engine === "object" && engine.path &&
+            !isAbsolute(engine.path)
+          ) {
+            // Convert relative path to absolute path based on project directory
+            return {
+              ...engine,
+              path: join(dir, engine.path),
+            };
+          }
+          return engine;
+        },
+      );
+  }
+
+  // Find all extensions that contribute engines
+  const extensions = await context.extensions(
+    undefined,
+    projectConfig,
+    dir,
+  );
+
+  // Filter to only those with engines
+  const engineExtensions = extensions.filter((extension) =>
+    extension.contributes.engines !== undefined &&
+    extension.contributes.engines.length > 0
+  );
+
+  if (engineExtensions.length > 0) {
+    // Initialize engines array if needed
+    if (!projectConfig.engines) {
+      projectConfig.engines = [];
+    }
+
+    const existingEngines = projectConfig
+      .engines as (string | ExternalEngine)[];
+
+    // Extract and merge engines
+    const extensionEngines = engineExtensions
+      .map((extension) => extension.contributes.engines)
+      .flat();
+
+    projectConfig.engines = [...existingEngines, ...extensionEngines];
+  }
+
+  return projectConfig;
+}
+
 // migrate 'site' to 'website'
 // TODO make this a deprecation warning
 function migrateProjectConfig(projectConfig: ProjectConfig) {
@@ -805,7 +879,9 @@ function projectHiddenIgnoreGlob(dir: string) {
   return projectIgnoreGlobs(dir) // standard ignores for all projects
     .concat(["**/_*", "**/_*/**"]) // underscore prefx
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
-    .concat(["**/README.?([Rrq])md"]); // README
+    .concat(["**/README.?([Rrq])md"]) // README
+    .concat(["**/CLAUDE.md"]) // Anthropic claude code file
+    .concat(["**/AGENTS.md"]); // https://agents.md/
 }
 
 export const projectInputFiles = makeTimedFunctionAsync(
@@ -817,6 +893,9 @@ async function projectInputFilesInternal(
   project: ProjectContext,
   metadata?: ProjectConfig,
 ): Promise<{ files: string[]; engines: string[] }> {
+  // Resolve engines so engineIgnoreDirs() uses all engines (including external)
+  await resolveEngines(project);
+
   const { dir } = project;
 
   const outputDir = metadata?.project[kProjectOutputDir];

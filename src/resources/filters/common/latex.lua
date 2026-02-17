@@ -6,7 +6,7 @@ function tColorOptions(options)
 
   local optionStr = ""
   local prepend = false
-  for k, v in pairs(options) do
+  for k, v in spairs(options) do
     if (prepend) then 
       optionStr = optionStr .. ', '
     end
