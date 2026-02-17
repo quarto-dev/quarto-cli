@@ -728,6 +728,10 @@
         boolean:
           description: |
             Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.
+      llms-txt:
+        boolean:
+          description: |
+            Generate llms.txt and .llms.md files for LLM-friendly content consumption.
       google-analytics:
         anyOf:
           - string

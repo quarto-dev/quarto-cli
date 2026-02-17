@@ -1,0 +1,18 @@
+project:
+  type: website
+  output-dir: .
+
+website:
+  title: "llms-txt Test Site"
+  site-url: "https://example.com"
+  llms-txt: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    toc: true

@@ -9413,6 +9413,11 @@ try {
                     description: "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
                   }
                 },
+                "llms-txt": {
+                  boolean: {
+                    description: "Generate llms.txt and .llms.md files for LLM-friendly content consumption.\n"
+                  }
+                },
                 "google-analytics": {
                   anyOf: [
                     "string",
@@ -21836,6 +21841,7 @@ try {
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
           "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+          "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
@@ -22002,6 +22008,7 @@ try {
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
           "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+          "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
@@ -23371,11 +23378,6 @@ try {
           "Write markdown links as references rather than inline.",
           "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
           "Automatically re-render for preview whenever document is saved (note\nthat this requires a preview for the saved document be already running).\nThis option currently works only within VS Code.",
-          {
-            short: "Editor-specific options (used by RStudio and Positron).",
-            long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
-          },
-          "Determines where chunk output is shown in the editor.",
           "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
           "The identifier for this publication.",
           "The identifier value.",
@@ -24422,6 +24424,7 @@ try {
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
           "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+          "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
@@ -24788,6 +24791,7 @@ try {
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
           "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+          "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
@@ -25103,6 +25107,11 @@ try {
           "internal-schema-hack",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
           {
+            short: "Editor-specific options (used by RStudio and Positron).",
+            long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
+          },
+          "Determines where chunk output is shown in the editor.",
+          {
             short: "Email format version",
             long: "Specifies which email format version to use."
           }
@@ -25335,12 +25344,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 222358,
+          _internalId: 221802,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 222350,
+              _internalId: 221794,
               type: "enum",
               enum: [
                 "png",
@@ -25356,7 +25365,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 222357,
+              _internalId: 221801,
               type: "anyOf",
               anyOf: [
                 {

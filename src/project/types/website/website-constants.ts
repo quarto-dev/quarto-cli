@@ -18,6 +18,7 @@ export const kSiteRepoLinkRel = "repo-link-rel";
 export const kSiteIssueUrl = "issue-url";
 export const kSiteRepoActions = "repo-actions";
 export const kSiteReaderMode = "reader-mode";
+export const kLlmsTxt = "llms-txt";
 
 export const kSiteNavbar = "navbar";
 export const kSiteSidebar = "sidebar";

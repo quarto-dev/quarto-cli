@@ -1,0 +1,25 @@
+---
+title: "Listing Test Site"
+listing:
+  contents: posts
+  type: default
+_quarto:
+  render-project: true
+  tests:
+    html:
+      noErrors: true
+      ensureLlmsMdExists: true
+      ensureLlmsTxtExists: true
+      ensureLlmsMdRegexMatches:
+        # First array: patterns that MUST match
+        - ["\\[Welcome Post\\]"]
+        # Second array: patterns that must NOT match (no empty links)
+        - ["\\[\\]\\("]
+      ensureLlmsTxtRegexMatches:
+        # First array: patterns that MUST match
+        - ["\\[Listing Test Site\\]", "\\[Welcome Post\\]", "posts/welcome/index\\.llms\\.md"]
+        # Second array: patterns that must NOT match
+        - []
+---
+
+Welcome to the listing test site.
