@@ -450,9 +450,9 @@ async function publish(
         const res = await tasks[0];
         uploadAttachmentsResult.push(res);
 
-        // short backoff (milliseconds)
+        // short backoff between uploads
         const t0 = performance.now();
-        await new Promise<void>(r => setTimeout(r, 800)); // 0.8s
+        await sleep(800);
         trace("[ATTACHMENT] sleptMs", { ms: Math.round(performance.now() - t0) }, LogPrefix.ATTACHMENT);
       }
       trace(
