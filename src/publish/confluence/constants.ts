@@ -18,6 +18,9 @@ export const V2EDITOR_METADATA = {
 
 export const DELETE_SLEEP_MILLIS = 1000; //TODO replace with polling
 
+// Empirically determined delay to avoid Confluence 500 errors on concurrent attachment updates
+export const ATTACHMENT_UPLOAD_DELAY_MS = 800;
+
 export const CAN_SET_PERMISSIONS_DISABLED = "CONFLUENCE_LOCAL_STORAGE_CAN_SET_PERMISSIONS_DISABLED";
 
 export const CAN_SET_PERMISSIONS_ENABLED_CACHED = "CONFLUENCE_LOCAL_STORAGE_CAN_SET_PERMISSIONS_ENABLED_CACHED"
