@@ -87,6 +87,7 @@ import {
 } from "./confluence-verify.ts";
 import {
   DELETE_DISABLED,
+  ATTACHMENT_UPLOAD_DELAY_MS,
   DELETE_SLEEP_MILLIS,
   DESCENDANT_PAGE_SIZE,
   EXIT_ON_ERROR,
@@ -452,7 +453,7 @@ async function publish(
 
         // short backoff between uploads
         const t0 = performance.now();
-        await sleep(800);
+        await sleep(ATTACHMENT_UPLOAD_DELAY_MS);
         trace("[ATTACHMENT] sleptMs", { ms: Math.round(performance.now() - t0) }, LogPrefix.ATTACHMENT);
       }
       trace(
