@@ -452,10 +452,7 @@ async function publish(
         uploadAttachmentsResult.push(res);
 
         if (i < attachmentsToUpload.length - 1) {
-          // short backoff between uploads
-          const t0 = performance.now();
           await sleep(ATTACHMENT_UPLOAD_DELAY_MS);
-          trace("[ATTACHMENT] sleptMs", { ms: Math.round(performance.now() - t0) }, LogPrefix.ATTACHMENT);
         }
       }
       trace(
