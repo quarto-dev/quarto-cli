@@ -131,7 +131,7 @@ All changes included in 1.9:
 
 ### Quarto Pub Sunsetting
 
-- ([#14060](https://github.com/quarto-dev/quarto-cli/issues/14060)):Remove `quarto publish quarto-pub` option due to Quarto Pub sunsetting.
+- ([#14060](https://github.com/quarto-dev/quarto-cli/issues/14060)): Remove `quarto publish quarto-pub` option due to Quarto Pub sunsetting.
 
 ### Posit Connect Cloud
 
