@@ -135,6 +135,7 @@ All changes included in 1.9:
 
 ### Confluence
 
+- ([#12558](https://github.com/quarto-dev/quarto-cli/issues/12558)): Fix 500 error when updating multiple Confluence attachments. Attachments are now uploaded sequentially instead of concurrently. (author: @fkgruber)
 - ([#13414](https://github.com/quarto-dev/quarto-cli/issues/13414)): Be more forgiving when Confluence server returns malformed JSON response. (author: @m1no)
 
 ### `gh-pages`
