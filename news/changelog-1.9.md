@@ -137,6 +137,10 @@ All changes included in 1.9:
 
 - ([#13414](https://github.com/quarto-dev/quarto-cli/issues/13414)): Be more forgiving when Confluence server returns malformed JSON response. (author: @m1no)
 
+### `gh-pages`
+
+- ([#14046](https://github.com/quarto-dev/quarto-cli/issues/14046)): Fix `quarto publish gh-pages` leaving stale worktrees when `git commit` fails due to missing `user.name`/`user.email` configuration. Git identity is now validated before worktree creation, and worktree cleanup uses `--force` to handle modified/untracked files.
+
 ## Lua API
 
 - ([#13762](https://github.com/quarto-dev/quarto-cli/issues/13762)): Add `quarto.paths.typst()` to Quarto's Lua API to resolve Typst binary path in Lua filters and extensions consistently with Quarto itself. (author: @mcanouil)
