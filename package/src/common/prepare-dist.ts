@@ -310,6 +310,7 @@ function inlineFilters(config: Configuration) {
     { name: "crossref" },
     { name: "customwriter" },
     { name: "qmd-reader", dir: "." },
+    { name: "llms", dir: "llms" },
     { name: "leveloneanalysis", dir: "quarto-internals"}
   ];
 
