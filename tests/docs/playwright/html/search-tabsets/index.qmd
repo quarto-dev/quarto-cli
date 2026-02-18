@@ -47,3 +47,43 @@ This tab contains delta-r-only-term that is only in the R tab.
 This tab contains python-only-content in the Python tab.
 
 :::
+
+## Second Grouped Tabset
+
+::: {.panel-tabset group="language"}
+
+### R
+
+This tab shows R content in the second grouped tabset.
+
+### Python
+
+This tab shows Python content in the second grouped tabset.
+
+:::
+
+## Nested Tabset
+
+::: {.panel-tabset}
+
+### Outer Tab A
+
+This is outer-tab-a-content in the default active outer tab.
+
+### Outer Tab B
+
+Content in outer tab B.
+
+::: {.panel-tabset}
+
+#### Inner Tab X
+
+This is inner-tab-x-content in the default active inner tab.
+
+#### Inner Tab Y
+
+This tab contains nested-inner-only-term that is only in this deeply nested inactive tab.
+
+:::
+
+:::

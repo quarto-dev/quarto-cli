@@ -47,8 +47,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     // perform any highlighting
     highlight(escapeRegExp(query), mainEl);
 
-    // activate tabs that contain highlighted matches
-    activateTabsWithMatches(mainEl);
+    // Activate tabs that contain highlighted matches on pageshow rather than
+    // DOMContentLoaded. tabsets.js (loaded as a module) registers its pageshow
+    // handler during module execution, before DOMContentLoaded. By registering
+    // ours during DOMContentLoaded, listener ordering guarantees we run after
+    // tabsets.js restores tab state from localStorage — so search activation
+    // wins over stored tab preference.
+    window.addEventListener("pageshow", function (event) {
+      if (!event.persisted) {
+        activateTabsWithMatches(mainEl);
+      }
+    }, { once: true });
 
     // fix up the URL to remove the q query param
     const replacementUrl = new URL(window.location);
@@ -1117,21 +1126,20 @@ function escapeRegExp(string) {
 
 // After search highlighting, activate any tabs whose panes contain <mark> matches.
 // This ensures that search results inside inactive Bootstrap tabs become visible.
-// Only switches tabs when no match is already visible in the active tab of that tabset.
+// Handles nested tabsets by walking up ancestor panes and activating outermost first.
 function activateTabsWithMatches(mainEl) {
   if (typeof bootstrap === "undefined") return;
 
   const marks = mainEl.querySelectorAll("mark");
   if (marks.length === 0) return;
 
-  // Group marks by their parent tabset (.tab-content container)
+  // Collect all tab panes that contain marks, including ancestor panes for nesting.
+  // Group by their parent tabset (.tab-content container).
   const tabsetMatches = new Map();
-  for (const mark of marks) {
-    const pane = mark.closest(".tab-pane");
-    if (!pane) continue;
-    const tabContent = pane.closest(".tab-content");
-    if (!tabContent) continue;
 
+  const recordPane = (pane) => {
+    const tabContent = pane.closest(".tab-content");
+    if (!tabContent) return;
     if (!tabsetMatches.has(tabContent)) {
       tabsetMatches.set(tabContent, { activeHasMatch: false, firstInactivePane: null });
     }
@@ -1141,10 +1149,25 @@ function activateTabsWithMatches(mainEl) {
     } else if (!info.firstInactivePane) {
       info.firstInactivePane = pane;
     }
+  };
+
+  for (const mark of marks) {
+    // Walk up all ancestor tab panes (handles nested tabsets)
+    let pane = mark.closest(".tab-pane");
+    while (pane) {
+      recordPane(pane);
+      pane = pane.parentElement?.closest(".tab-pane") ?? null;
+    }
   }
 
-  // For each tabset, only activate if the active tab has no match
-  for (const [, info] of tabsetMatches) {
+  // Sort tabsets by DOM depth (outermost first) so outer tabs activate before inner
+  const sorted = [...tabsetMatches.entries()].sort((a, b) => {
+    const depthA = ancestorCount(a[0], mainEl);
+    const depthB = ancestorCount(b[0], mainEl);
+    return depthA - depthB;
+  });
+
+  for (const [, info] of sorted) {
     if (info.activeHasMatch || !info.firstInactivePane) continue;
 
     const escapedId = CSS.escape(info.firstInactivePane.id);
@@ -1155,6 +1178,16 @@ function activateTabsWithMatches(mainEl) {
       new bootstrap.Tab(tabButton).show();
     }
   }
+}
+
+function ancestorCount(el, stopAt) {
+  let count = 0;
+  let node = el.parentElement;
+  while (node && node !== stopAt) {
+    count++;
+    node = node.parentElement;
+  }
+  return count;
 }
 
 // highlight matches
