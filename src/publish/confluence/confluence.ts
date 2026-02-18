@@ -436,7 +436,7 @@ async function publish(
         LogPrefix.ATTACHMENT,
       );
 
-      const uploadAttachmentsResult: unknown[] = [];
+      const uploadAttachmentsResult: (AttachmentSummary | null)[] = [];
 
       for (let i = 0; i < attachmentsToUpload.length; i++) {
         // Start exactly ONE upload by calling the helper with a single attachment
@@ -446,7 +446,7 @@ async function publish(
           toUpdate.id,
           fileName,
           existingAttachments,
-        ) as Promise<unknown>[];    // uploadAttachments returns an array of Promises
+        );
 
         const res = await tasks[0];
         uploadAttachmentsResult.push(res);
