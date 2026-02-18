@@ -438,11 +438,11 @@ async function publish(
 
       const uploadAttachmentsResult: unknown[] = [];
 
-      for (const att of attachmentsToUpload) {
+      for (let i = 0; i < attachmentsToUpload.length; i++) {
         // Start exactly ONE upload by calling the helper with a single attachment
         const tasks = uploadAttachments(
           publishFiles.baseDir,
-          [att],                    // <-- one at a time
+          [attachmentsToUpload[i]],  // <-- one at a time
           toUpdate.id,
           fileName,
           existingAttachments,
@@ -451,10 +451,12 @@ async function publish(
         const res = await tasks[0];
         uploadAttachmentsResult.push(res);
 
-        // short backoff between uploads
-        const t0 = performance.now();
-        await sleep(ATTACHMENT_UPLOAD_DELAY_MS);
-        trace("[ATTACHMENT] sleptMs", { ms: Math.round(performance.now() - t0) }, LogPrefix.ATTACHMENT);
+        if (i < attachmentsToUpload.length - 1) {
+          // short backoff between uploads
+          const t0 = performance.now();
+          await sleep(ATTACHMENT_UPLOAD_DELAY_MS);
+          trace("[ATTACHMENT] sleptMs", { ms: Math.round(performance.now() - t0) }, LogPrefix.ATTACHMENT);
+        }
       }
       trace(
         "uploadAttachmentsResult",
