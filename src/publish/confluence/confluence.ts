@@ -435,26 +435,26 @@ async function publish(
         LogPrefix.ATTACHMENT,
       );
 
-	const uploadAttachmentsResult: unknown[] = [];
+      const uploadAttachmentsResult: unknown[] = [];
 
-	for (const att of attachmentsToUpload) {
-	    // Start exactly ONE upload by calling the helper with a single attachment
-	    const tasks = uploadAttachments(
-		publishFiles.baseDir,
-		[att],                    // <-- one at a time
-		toUpdate.id,
-		fileName,
-		existingAttachments,
-	    ) as Promise<unknown>[];    // uploadAttachments returns an array of Promises
+      for (const att of attachmentsToUpload) {
+        // Start exactly ONE upload by calling the helper with a single attachment
+        const tasks = uploadAttachments(
+          publishFiles.baseDir,
+          [att],                    // <-- one at a time
+          toUpdate.id,
+          fileName,
+          existingAttachments,
+        ) as Promise<unknown>[];    // uploadAttachments returns an array of Promises
 
-	    const res = await tasks[0];
-	    uploadAttachmentsResult.push(res);
+        const res = await tasks[0];
+        uploadAttachmentsResult.push(res);
 
-	    // short backoff (milliseconds)
-	    const t0 = performance.now();
-	    await new Promise<void>(r => setTimeout(r, 800)); // 0.8s
-	    trace("[ATTACHMENT] sleptMs", { ms: Math.round(performance.now() - t0) }, LogPrefix.ATTACHMENT);
-	}
+        // short backoff (milliseconds)
+        const t0 = performance.now();
+        await new Promise<void>(r => setTimeout(r, 800)); // 0.8s
+        trace("[ATTACHMENT] sleptMs", { ms: Math.round(performance.now() - t0) }, LogPrefix.ATTACHMENT);
+      }
       trace(
         "uploadAttachmentsResult",
         uploadAttachmentsResult,
