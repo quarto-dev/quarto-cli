@@ -11,6 +11,11 @@ website:
       - href: index.qmd
         text: Home
       - about.qmd
+  sidebar:
+    contents:
+      - section: Info
+        contents:
+          - about.qmd
 
 format:
   html:

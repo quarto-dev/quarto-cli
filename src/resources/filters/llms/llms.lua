@@ -25,6 +25,7 @@ local droppable_classes = {
     ["listing-categories"] = true,
     ["quarto-listing-category"] = true,  -- category filter sidebar
     ["listing-category"] = true,  -- individual category badges
+    ["quarto-page-breadcrumbs"] = true,  -- breadcrumb navigation
 }
 local droppable_ids = {
     ["quarto-header"] = true,
@@ -140,7 +141,8 @@ function Link(link)
         return link.content
     end
 
-    if link.target and link.target:match("%.html$") then
+    if link.target and (link.target:match("%.html$") or link.target:match("%.html#")) then
+        link.target = link.target:gsub("%.html#", ".llms.md#")
         link.target = link.target:gsub("%.html$", ".llms.md")
         if link.classes:includes("btn") then
             link.attr = pandoc.Attr()

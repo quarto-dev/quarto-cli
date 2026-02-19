@@ -11,8 +11,17 @@ _quarto:
         - ["^# llms-txt Test Site", "^## Pages", "\\[.*\\]\\(.*\\.llms\\.md\\)"]
         # Second array: patterns that must NOT match (empty)
         - []
+      ensureLlmsMdRegexMatches:
+        # First array: patterns that MUST match - verify anchor links are converted
+        - ["\\[callout examples\\]\\(about\\.llms\\.md#callout-examples\\)"]
+        # Second array: patterns that must NOT match (no .html or .html# links)
+        - ["\\.html\\)", "\\.html#"]
 ---
+
+## Test Content
 
 This is a test website for the llms-txt feature.
 
 See the [about page](about.qmd) for more information.
+
+Also see the [callout examples](about.qmd#callout-examples).
