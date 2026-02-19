@@ -193,6 +193,7 @@ function Link(link)
     if link.target and (link.target:match("%.html$") or link.target:match("%.html#")) then
         link.target = link.target:gsub("%.html#", ".llms.md#")
         link.target = link.target:gsub("%.html$", ".llms.md")
+        link.target = link.target:gsub("^%./", "")
         if link.classes:includes("btn") then
             link.attr = pandoc.Attr()
         end

@@ -131,6 +131,7 @@ function extractMainContent(doc: Document): string {
     ".sidebar",
     ".quarto-search",
     "nav.navbar",
+    ".quarto-page-breadcrumbs",
     "script",
     "style",
     "link[rel='stylesheet']",
