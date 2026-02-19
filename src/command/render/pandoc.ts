@@ -4,7 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  resolve,
+} from "../../deno_ral/path.ts";
 
 import { info, warning } from "../../deno_ral/log.ts";
 
@@ -99,7 +105,6 @@ import {
   kFormatResources,
   kFrom,
   kHighlightStyle,
-  kSyntaxHighlighting,
   kHtmlMathMethod,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -125,6 +130,7 @@ import {
   kSectionTitleAbstract,
   kSelfContained,
   kSyntaxDefinitions,
+  kSyntaxHighlighting,
   kTemplate,
   kTheme,
   kTitle,
@@ -1529,7 +1535,7 @@ async function resolveExtras(
           const font = Zod.BrandFontFile.parse(_font);
           for (const file of font.files || []) {
             const path = typeof file === "object" ? file.path : file;
-            fontdirs.add(dirname(join(brand.brandDir, path)));
+            fontdirs.add(resolve(dirname(join(brand.brandDir, path))));
           }
         } else if (source === "bunny") {
           const font = Zod.BrandFontBunny.parse(_font);
