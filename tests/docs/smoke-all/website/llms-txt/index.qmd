@@ -12,10 +12,10 @@ _quarto:
         # Second array: patterns that must NOT match (empty)
         - []
       ensureLlmsMdRegexMatches:
-        # First array: patterns that MUST match - verify anchor links and code annotations
-        - ["\\[callout examples\\]\\(about\\.llms\\.md#callout-examples\\)", "#<1>", "#<2>", "Load tidyverse", "Open help for ggplot"]
-        # Second array: patterns that must NOT match (no .html links, no annotation UI)
-        - ["\\.html\\)", "\\.html#", "code-annotation-anchor"]
+        # First array: patterns that MUST match - verify anchor links, code annotations, and conditional content
+        - ["\\[callout examples\\]\\(about\\.llms\\.md#callout-examples\\)", "#<1>", "#<2>", "Load tidyverse", "Open help for ggplot", "only for LLM consumption"]
+        # Second array: patterns that must NOT match (no .html links, no annotation UI, no hidden content)
+        - ["\\.html\\)", "\\.html#", "code-annotation-anchor", "should not appear in LLM output"]
 ---
 
 ## Test Content
@@ -25,6 +25,16 @@ This is a test website for the llms-txt feature.
 See the [about page](about.qmd) for more information.
 
 Also see the [callout examples](about.qmd#callout-examples).
+
+## Conditional Content
+
+::: {.content-visible when-format="llms-txt"}
+This content is only for LLM consumption.
+:::
+
+::: {.content-hidden when-format="llms-txt"}
+This content should not appear in LLM output.
+:::
 
 ## Code Annotations
 

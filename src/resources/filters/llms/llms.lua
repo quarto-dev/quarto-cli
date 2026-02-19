@@ -15,6 +15,7 @@ local skippable_classes = {
     ["quarto-float"] = true,
     ["quarto-float-fig"] = true,
     ["figure"] = true,
+    ["llms-conditional-content"] = true,
 }
 local droppable_classes = {
     ["navbar-container"] = true,
@@ -26,6 +27,7 @@ local droppable_classes = {
     ["quarto-listing-category"] = true,  -- category filter sidebar
     ["listing-category"] = true,  -- individual category badges
     ["quarto-page-breadcrumbs"] = true,  -- breadcrumb navigation
+    ["llms-hidden-content"] = true,
 }
 local droppable_ids = {
     ["quarto-header"] = true,

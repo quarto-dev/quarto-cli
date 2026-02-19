@@ -8,7 +8,7 @@ import { basename, join, relative } from "../../../deno_ral/path.ts";
 import { existsSync } from "../../../deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 
-import { Document, Element } from "../../../core/deno-dom.ts";
+import { Document, Element, Node } from "../../../core/deno-dom.ts";
 import { execProcess } from "../../../core/process.ts";
 import { pandocBinaryPath, resourcePath } from "../../../core/resources.ts";
 
@@ -83,7 +83,34 @@ export function llmsHtmlFinalizer(
 
     // Convert HTML to markdown using Pandoc with the llms.lua filter
     await convertHtmlToLlmsMarkdown(htmlContent, llmsOutputPath);
+
+    // Clean up conditional content markers from the original HTML doc
+    cleanupConditionalContent(doc);
   };
+}
+
+/**
+ * Clean up conditional content markers from the HTML document.
+ * - Remove llms-only content (should not appear in HTML output)
+ * - Unwrap llms-hidden markers (keep content, remove wrapper div)
+ */
+function cleanupConditionalContent(doc: Document): void {
+  // Remove llms-only content from HTML output
+  for (const el of doc.querySelectorAll(".llms-conditional-content")) {
+    (el as Element).remove();
+  }
+
+  // Unwrap llms-hidden markers (keep content, remove wrapper div)
+  for (const el of doc.querySelectorAll(".llms-hidden-content")) {
+    const parent = (el as Element).parentElement;
+    if (parent) {
+      const element = el as Element;
+      while (element.firstChild) {
+        parent.insertBefore(element.firstChild as Node, element as Node);
+      }
+      element.remove();
+    }
+  }
 }
 
 /**

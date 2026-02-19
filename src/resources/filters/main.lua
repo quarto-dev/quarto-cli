@@ -144,6 +144,7 @@ import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
 import("./quarto-pre/code-annotation.lua")
 import("./quarto-pre/llms-code-annotations.lua")
+import("./quarto-pre/llms-conditional-content.lua")
 import("./quarto-pre/code-filename.lua")
 import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
@@ -319,6 +320,15 @@ local quarto_pre_filters = {
   { name = "strip-notes-from-hidden",
     filter = strip_notes_from_hidden(),
     flags = { "has_notes" },
+    traverser = 'jog',
+  },
+
+  { name = "pre-llms-conditional-content",
+    filter = filterIf(
+      function() return param("llms-txt", false) end,
+      llms_resolve_conditional_content()
+    ),
+    flags = { "has_conditional_content" },
     traverser = 'jog',
   },
 
