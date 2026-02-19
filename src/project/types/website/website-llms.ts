@@ -128,6 +128,9 @@ function extractMainContent(doc: Document): string {
     return "";
   }
 
+  // Preprocess annotated code blocks before converting to markdown
+  preprocessAnnotatedCodeBlocks(clone, main as Element);
+
   // Return a minimal HTML document with just the content
   return `<!DOCTYPE html>
 <html>
@@ -136,6 +139,65 @@ function extractMainContent(doc: Document): string {
 ${main.innerHTML}
 </body>
 </html>`;
+}
+
+/**
+ * Preprocess annotated code blocks for llms output.
+ * Restores original code text (with annotation markers) and converts
+ * the annotation definition list to an ordered list.
+ */
+function preprocessAnnotatedCodeBlocks(doc: Document, container: Element): void {
+  // Restore original code text in annotated code blocks.
+  // The llms-code-annotations.lua filter saves the original text
+  // (before code-annotation.lua strips markers) as a data attribute.
+  const annotated = container.querySelectorAll("[data-llms-code-original]");
+  for (const node of annotated) {
+    const el = node as Element;
+    const originalText = el.getAttribute("data-llms-code-original");
+    if (!originalText) continue;
+
+    // The attribute is on the wrapper div; find the <code> element inside
+    const codeEl = el.tagName === "CODE"
+      ? el
+      : el.querySelector("code") as Element | null;
+    if (codeEl) {
+      // Replace content with original (removes syntax highlighting spans + annotation buttons)
+      codeEl.textContent = originalText;
+    }
+
+    el.removeAttribute("data-llms-code-original");
+  }
+
+  // Remove annotation gutter elements
+  const gutters = container.querySelectorAll(
+    ".code-annotation-gutter, .code-annotation-gutter-bg",
+  );
+  for (const gutter of gutters) {
+    (gutter as Element).remove();
+  }
+
+  // Convert annotation definition lists to ordered lists.
+  // The annotation text is in <dd> elements; <dt> elements have just the number.
+  const dls = container.querySelectorAll("dl.code-annotation-container-grid");
+  for (const dlNode of dls) {
+    const dl = dlNode as Element;
+    const ol = doc.createElement("ol");
+    const dds = dl.querySelectorAll("dd");
+    for (const ddNode of dds) {
+      const dd = ddNode as Element;
+      const li = doc.createElement("li");
+      li.innerHTML = dd.innerHTML;
+      ol.appendChild(li);
+    }
+
+    // Replace the DL (and its cell-annotation wrapper div if present)
+    const parent = dl.parentElement;
+    if (parent && parent.classList.contains("cell-annotation")) {
+      parent.parentElement?.replaceChild(ol, parent);
+    } else {
+      dl.parentElement?.replaceChild(ol, dl);
+    }
+  }
 }
 
 /**

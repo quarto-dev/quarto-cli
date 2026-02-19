@@ -12,10 +12,10 @@ _quarto:
         # Second array: patterns that must NOT match (empty)
         - []
       ensureLlmsMdRegexMatches:
-        # First array: patterns that MUST match - verify anchor links are converted
-        - ["\\[callout examples\\]\\(about\\.llms\\.md#callout-examples\\)"]
-        # Second array: patterns that must NOT match (no .html or .html# links)
-        - ["\\.html\\)", "\\.html#"]
+        # First array: patterns that MUST match - verify anchor links and code annotations
+        - ["\\[callout examples\\]\\(about\\.llms\\.md#callout-examples\\)", "#<1>", "#<2>", "Load tidyverse", "Open help for ggplot"]
+        # Second array: patterns that must NOT match (no .html links, no annotation UI)
+        - ["\\.html\\)", "\\.html#", "code-annotation-anchor"]
 ---
 
 ## Test Content
@@ -25,3 +25,12 @@ This is a test website for the llms-txt feature.
 See the [about page](about.qmd) for more information.
 
 Also see the [callout examples](about.qmd#callout-examples).
+
+## Code Annotations
+
+```r
+library(tidyverse) # <1>
+?ggplot # <2>
+```
+1. Load tidyverse
+2. Open help for ggplot
