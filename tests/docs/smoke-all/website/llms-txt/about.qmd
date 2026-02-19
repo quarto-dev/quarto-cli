@@ -6,9 +6,9 @@ _quarto:
       ensureLlmsMdExists: true
       ensureLlmsMdRegexMatches:
         # First array: patterns that MUST match
-        - ["^# About", "> \\*\\*NOTE:\\*\\*", "> \\*\\*WARNING:\\*\\*", "This is a note", "``` python", "def hello", "\\| Feature", "\\|[-]+\\|", "\\[home page\\]\\(.*\\.llms\\.md\\)", "\\[test site intro\\]\\(index\\.llms\\.md#test-content\\)"]
-        # Second array: patterns that must NOT match (no .html links, no breadcrumbs)
-        - ["\\.html\\)", "\\.html#", "\\[Info\\]"]
+        - ["^# About", "> \\*\\*NOTE:\\*\\*", "> \\*\\*WARNING:\\*\\*", "This is a note", "``` python", "def hello", "\\| Feature", "\\|[-]+\\|", "\\[home page\\]\\(.*\\.llms\\.md\\)", "\\[test site intro\\]\\(index\\.llms\\.md#test-content\\)", "## Alpha Tab", "Alpha content here", "## Beta Tab", "Beta content here"]
+        # Second array: patterns that must NOT match (no .html links, no breadcrumbs, no empty tab links)
+        - ["\\.html\\)", "\\.html#", "\\[Info\\]", "\\[Alpha Tab\\]\\(\\)", "\\[Beta Tab\\]\\(\\)"]
 ---
 
 About this test site.
@@ -38,6 +38,20 @@ def hello():
 | Callouts | Working |
 | Code | Working |
 | Tables | Working |
+
+## Tabset Example
+
+::: {.panel-tabset}
+
+## Alpha Tab
+
+Alpha content here.
+
+## Beta Tab
+
+Beta content here.
+
+:::
 
 ## Link Example
 
