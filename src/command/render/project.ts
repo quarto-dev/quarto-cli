@@ -986,7 +986,7 @@ async function runScripts(
       env["QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES"] = output;
     }
 
-    const result = await handler.run(script, args.splice(1), undefined, {
+    const result = await handler.run(script, args.slice(1), undefined, {
       cwd: projDir,
       stdout: quiet ? "piped" : "inherit",
       env,
