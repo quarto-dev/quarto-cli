@@ -4,7 +4,14 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  normalize,
+  relative,
+  resolve,
+} from "../../deno_ral/path.ts";
 import {
   copySync,
   ensureDirSync,
@@ -146,7 +153,9 @@ export function typstPdfOutputRecipe(
     const pdfOutput = join(inputDir, inputStem + ".pdf");
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
-      fontPaths: asArray(format.metadata?.[kFontPaths]) as string[],
+      fontPaths: (asArray(format.metadata?.[kFontPaths]) as string[]).map(
+        (p) => isAbsolute(p) ? p : resolve(inputDir, p),
+      ),
       pdfStandard: normalizePdfStandardForTypst(
         asArray(
           format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
