@@ -328,10 +328,6 @@ function render_typst_brand_yaml()
           imageFilename = imageFilename and imageFilename:gsub('\\_', '_')
         else
           -- backslashes need to be doubled for Windows
-          if imageFilename[1] ~= "/" and _quarto.projectOffset() ~= "." then
-            local offset = _quarto.projectOffset()
-            imageFilename = pandoc.path.join({offset, imageFilename})
-          end
           imageFilename = string.gsub(imageFilename, '\\', '\\\\')
         end
         logoOptions.path = pandoc.RawInline('typst', imageFilename)

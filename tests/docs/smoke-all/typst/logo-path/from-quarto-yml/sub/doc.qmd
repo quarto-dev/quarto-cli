@@ -1,0 +1,16 @@
+---
+title: "Logo from _quarto.yml in subdirectory"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      -
+        - 'image\("\.\./logo\.svg"'
+      -
+        - 'image\("\.\./\.\./logo\.svg"'
+---
+
+Hello world.

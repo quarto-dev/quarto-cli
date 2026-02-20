@@ -1,0 +1,16 @@
+---
+title: "Logo from extension in subdirectory"
+keep-typ: true
+format:
+  testformat-typst: default
+_quarto:
+  tests:
+    testformat-typst:
+      ensureTypstFileRegexMatches:
+      -
+        - 'image\("\.\.\/_extensions\/testformat\/logo\.svg"'
+      -
+        - 'image\("\.\./\.\.\/_extensions\/testformat\/logo\.svg"'
+---
+
+Hello world.
