@@ -6,9 +6,9 @@ _quarto:
       ensureLlmsMdExists: true
       ensureLlmsMdRegexMatches:
         # First array: patterns that MUST match
-        - ["^# About", "> \\*\\*NOTE:\\*\\*", "> \\*\\*WARNING:\\*\\*", "This is a note", "``` python", "def hello", "\\| Feature", "\\|[-]+\\|", "\\[home page\\]\\(.*\\.llms\\.md\\)"]
-        # Second array: patterns that must NOT match (no .html links in llms.md)
-        - ["\\.html\\)"]
+        - ["^# About", "> \\*\\*NOTE:\\*\\*", "> \\*\\*WARNING:\\*\\*", "This is a note", "``` python", "def hello", "\\| Feature", "\\|[-]+\\|", "\\[home page\\]\\(.*\\.llms\\.md\\)", "\\[test site intro\\]\\(index\\.llms\\.md#test-content\\)", "## Alpha Tab", "Alpha content here", "## Beta Tab", "Beta content here"]
+        # Second array: patterns that must NOT match (no .html links, no breadcrumbs, no empty tab links)
+        - ["\\.html\\)", "\\.html#", "\\[Info\\]", "\\[Alpha Tab\\]\\(\\)", "\\[Beta Tab\\]\\(\\)"]
 ---
 
 About this test site.
@@ -39,6 +39,22 @@ def hello():
 | Code | Working |
 | Tables | Working |
 
+## Tabset Example
+
+::: {.panel-tabset}
+
+## Alpha Tab
+
+Alpha content here.
+
+## Beta Tab
+
+Beta content here.
+
+:::
+
 ## Link Example
 
 Go back to the [home page](index.qmd).
+
+Go to the [test site intro](index.qmd#test-content).

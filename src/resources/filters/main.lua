@@ -143,6 +143,8 @@ import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
 import("./quarto-pre/code-annotation.lua")
+import("./quarto-pre/llms-code-annotations.lua")
+import("./quarto-pre/llms-conditional-content.lua")
 import("./quarto-pre/code-filename.lua")
 import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
@@ -321,6 +323,15 @@ local quarto_pre_filters = {
     traverser = 'jog',
   },
 
+  { name = "pre-llms-conditional-content",
+    filter = filterIf(
+      function() return param("llms-txt", false) end,
+      llms_resolve_conditional_content()
+    ),
+    flags = { "has_conditional_content" },
+    traverser = 'jog',
+  },
+
   { name = "pre-combined-hidden",
     filter = combineFilters({
       hidden(),
@@ -333,6 +344,15 @@ local quarto_pre_filters = {
   { name = "pre-table-captions",
     filter = table_captions(),
     flags = { "has_table_captions" },
+    traverser = 'jog',
+  },
+
+  { name = "pre-llms-save-code-annotations",
+    filter = filterIf(
+      function() return param("llms-txt", false) end,
+      llms_save_code_annotations()
+    ),
+    flags = { "has_code_annotations" },
     traverser = 'jog',
   },
 
