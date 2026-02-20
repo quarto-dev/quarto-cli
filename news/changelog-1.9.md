@@ -3,6 +3,7 @@ All changes included in 1.9:
 ## Shortcodes
 
 - ([#13342](https://github.com/quarto-dev/quarto-cli/issues/13342)): Ensure that the `contents` shortcode works inside metadata.
+- ([#14061](https://github.com/quarto-dev/quarto-cli/issues/14061)): Fix `meta` shortcode not preserving line breaks in values. The shortcode now respects its usage context (block, inline, or text) and preserves paragraph breaks in block and code block contexts.
 
 ## Regression fixes
 
