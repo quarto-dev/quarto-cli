@@ -70,34 +70,13 @@ This command regenerates:
 
 ### Running Tests
 
+Tests live in `tests/` and require R, Python, and Julia. See `.claude/rules/testing/overview.md` for commands, test types, dependencies, and debugging tips.
+
 ```bash
 cd tests
-
-# Linux/macOS
-./run-tests.sh                                              # Run all tests
-./run-tests.sh smoke/extensions/extension-render-doc.test.ts # Run specific test
-./run-tests.sh smoke/extensions/                             # Run test directory
-./run-tests.sh docs/smoke-all/2023/01/04/issue-3847.qmd     # Run smoke-all test
-
-# Windows (PowerShell 7+)
-.\run-tests.ps1                                              # Run all tests
-.\run-tests.ps1 smoke/extensions/extension-render-doc.test.ts # Run specific test
-.\run-tests.ps1 docs/smoke-all/2023/01/04/issue-3847.qmd     # Run smoke-all test
+./run-tests.sh smoke/render/render.test.ts  # Linux/macOS
+.\run-tests.ps1 smoke/render/render.test.ts # Windows
 ```
-
-**Test Dependencies:** Tests require R, Python, and Julia. Run `configure-test-env.sh` (or `.ps1`) to set up test environments using renv (R), uv (Python), and Pkg.jl (Julia).
-
-**Skip test configuration:** Set `QUARTO_TESTS_NO_CONFIG=true` to skip dependency setup when running tests.
-
-### Test Structure
-
-- `tests/unit/` - Unit tests
-- `tests/integration/` - Integration tests
-- `tests/smoke/` - Smoke tests
-- `tests/docs/` - Test fixtures and sample documents
-- `tests/docs/smoke-all/` - Document-based tests using `_quarto` YAML key
-
-See `tests/README.md` for comprehensive test documentation.
 
 ### Feature Format Matrix
 
@@ -181,7 +160,7 @@ The feature format matrix in `dev-docs/feature-format-matrix/` documents and tes
 
 ### Debugging Flaky Tests
 
-Comprehensive methodology for debugging flaky tests documented in: https://gist.github.com/cderv/77405f5a5ea0c1db38693159c4a260dd
+Comprehensive methodology for debugging flaky tests documented in [dev-docs/debugging-flaky-tests.md](../dev-docs/debugging-flaky-tests.md).
 
 Key phases:
 1. Reproduce locally (outside CI)
@@ -274,7 +253,7 @@ See CONTRIBUTING.md for pull request guidelines. Significant changes require a s
 This project uses Claude Code memory files for AI-assisted development. When updating memory files:
 
 - **Add new feature area?** Create `.claude/rules/<feature>/feature-name.md` with `paths:` frontmatter
-- **Update existing feature?** Edit the relevant rule file or subfolder CLAUDE.md
+- **Update existing feature?** Edit the relevant rule file
 - **Deep dive doc needed?** Place it in `llm-docs/` and reference from rules
 
 **Memory file types:**
@@ -283,9 +262,11 @@ This project uses Claude Code memory files for AI-assisted development. When upd
 |----------|-------------|---------|
 | `.claude/CLAUDE.md` | Always | Project overview, essential commands |
 | `.claude/rules/<feature>/` | When paths match | Feature-specific conventions |
-| `<subfolder>/CLAUDE.md` | When reading files in folder | Deep documentation for that area |
+| `llm-docs/` | When explicitly read | Architectural deep dives |
 
 **Personal overrides:** Create `CLAUDE.local.md` (gitignored) for personal preferences like preferred shell syntax or workflow customizations. This file is loaded alongside the project CLAUDE.md but won't be committed.
+
+For setup details, see [dev-docs/claude-code-setup.md](../dev-docs/claude-code-setup.md).
 
 ## Additional Resources
 
