@@ -177,8 +177,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                     title: isExpanded
                       ? language["search-hide-matches-text"]
                       : remainingCount === 1
-                      ? `${remainingCount} ${language["search-more-match-text"]}`
-                      : `${remainingCount} ${language["search-more-matches-text"]}`,
+                        ? `${remainingCount} ${language["search-more-match-text"]}`
+                        : `${remainingCount} ${language["search-more-matches-text"]}`,
                     type: kItemTypeMore,
                     href: kItemTypeMoreHref,
                   });
@@ -296,9 +296,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               return createElement(
                 "div",
                 {
-                  class: `quarto-search-no-results${
-                    hasQuery ? "" : " no-query"
-                  }`,
+                  class: `quarto-search-no-results${hasQuery ? "" : " no-query"
+                    }`,
                 },
                 language["search-no-results-text"]
               );
@@ -1113,8 +1112,26 @@ function getLeafNodes(root) {
   traverse(root);
   return leaves;
 }
+/** create and return `<mark>${txt}</mark>` */
+const markEl = txt => {
+  const el = document.createElement("mark");
+  el.appendChild(document.createTextNode(txt));
+  return el
+}
+/** get all ancestors of an element matching the given css selector */
+const matchAncestors = (el, selector) => {
+  let ancestors = [];
+  while (el) {
+    if (el.matches?.(selector)) ancestors.push(el);
+    el = el.parentNode;
+  }
+  return ancestors;
+};
 
 const isWhitespace = s => s.trim().length === 0
+// =================
+// MATCHING CODE
+// =================
 const initMatch = () => ({
   i: 0,
   lohisByNode: new Map()
@@ -1185,12 +1202,6 @@ function searchMatches(inSearch, el) {
   return matches
 }
 
-/** create and return `<mark>${txt}</mark>` */
-const markEl = txt => {
-  const el = document.createElement("mark");
-  el.appendChild(document.createTextNode(txt));
-  return el
-}
 /** 
  * e.g. `markMatches(myTextNode, [[0,5],[12,15]])` would wrap the
  * character sequences in myTextNode from 0-5 and 12-15 in marks.
@@ -1220,16 +1231,7 @@ function markMatches(node, lohis) {
   return parent
 }
 
-/** get all ancestors of an element matching the given css selector */
-const matchAncestors = (el, selector) => {
-  let ancestors = [];
-  while (el) {
-    if (el.matches?.(selector)) ancestors.push(el);
-    el = el.parentNode;
-  }
-  return ancestors;
-};
-const openAllTabsetsContainingEl = el => {
+function openAllTabsetsContainingEl(el) {
   for (const tab of matchAncestors(el, '.tab-pane')) {
     const tabButton = document.querySelector(`[data-bs-target="#${tab.id}"]`);
     if (tabButton) new bootstrap.Tab(tabButton).show();
