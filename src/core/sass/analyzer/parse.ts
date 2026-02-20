@@ -41,6 +41,14 @@ export const makeParserModule = (
         "$1: $2",
       );
 
+      // scss-parser's tokenizer only handles ASCII identifier characters.
+      // Encode non-ASCII characters as ASCII codepoint placeholders since the
+      // parser is only used for variable analysis, not CSS generation.
+      contents = contents.replaceAll(
+        /[^\x00-\x7F]/g,
+        (ch) => `_u${ch.codePointAt(0)!.toString(16)}_`,
+      );
+
       // This is relatively painful, because unfortunately the error message of scss-parser
       // is not helpful.
 
