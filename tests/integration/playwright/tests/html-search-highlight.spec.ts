@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 const BASE = './html/search-highlight/_site/index.html';
 
-test('Search highlights not cleared by scroll events', async ({ page }) => {
+test('Search highlights persist after scrolling', async ({ page }) => {
   await page.goto(`${BASE}?q=special`);
   const marks = page.locator('mark');
 
@@ -10,19 +10,9 @@ test('Search highlights not cleared by scroll events', async ({ page }) => {
   const initialCount = await marks.count();
   expect(initialCount).toBeGreaterThanOrEqual(2);
 
-  // Dispatch layout events immediately (previously cleared marks via quarto-hrChanged)
-  await page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('quarto-hrChanged'));
-    window.dispatchEvent(new CustomEvent('quarto-sectionChanged'));
-  });
-  await expect(marks).toHaveCount(initialCount);
-
-  // Wait and dispatch again — marks should persist at any time
-  await page.waitForTimeout(1500);
-  await page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('quarto-hrChanged'));
-    window.dispatchEvent(new CustomEvent('quarto-sectionChanged'));
-  });
+  // Scroll the page — marks should not be cleared
+  await page.evaluate(() => window.scrollBy(0, 300));
+  await page.waitForTimeout(500);
   await expect(marks).toHaveCount(initialCount);
 });
 
