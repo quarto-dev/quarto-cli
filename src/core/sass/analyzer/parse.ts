@@ -42,8 +42,15 @@ export const makeParserModule = (
       );
 
       // scss-parser's tokenizer only handles ASCII identifier characters.
-      // Encode non-ASCII characters as ASCII codepoint placeholders since the
-      // parser is only used for variable analysis, not CSS generation.
+      // Non-ASCII codepoints are valid in both CSS and SCSS identifiers:
+      // - CSS Syntax L3 §4.2 defines "ident code point" as including any
+      //   codepoint >= U+0080 (https://www.w3.org/TR/css-syntax-3/#ident-code-point)
+      // - CSS2 grammar includes `nonascii` in `nmstart`/`nmchar` productions
+      //   (https://www.w3.org/TR/CSS2/grammar.html#scanner)
+      // - Sass inherits CSS's <ident-token> grammar for identifiers
+      //   (https://github.com/sass/sass/blob/main/spec/syntax.md)
+      // Dart Sass handles them correctly, so we encode here as ASCII
+      // placeholders for analysis only, then decode in add-css-vars.ts.
       contents = contents.replaceAll(
         /[^\x00-\x7F]/g,
         (ch) => `_u${ch.codePointAt(0)!.toString(16)}_`,

@@ -19,6 +19,8 @@ const { getSassAst } = makeParserModule(parse);
 // Reverse the _u<hex>_ encoding applied in parse.ts so that
 // variable names emitted into the CSS vars block match the
 // original SCSS source that Dart Sass compiles against.
+// Non-ASCII codepoints are valid in CSS custom property names since they
+// follow the <ident> production (see spec references in parse.ts).
 const decodeScssName = (name: string) =>
   name.replace(/_u([0-9a-f]+)_/g, (_, hex: string) =>
     String.fromCodePoint(parseInt(hex, 16))
