@@ -1,6 +1,6 @@
 ---
 title: "Logo from front matter in subdirectory"
-logo: ../logo.svg
+logo: ../images/logo.svg
 format:
   typst:
     keep-typ: true
@@ -9,9 +9,9 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
       -
-        - 'image\("\.\./logo\.svg"'
+        - 'image\("\.\./images/logo\.svg"'
       -
-        - 'image\("\.\./\.\./logo\.svg"'
+        - 'image\("\.\./\.\./images/logo\.svg"'
 ---
 
 Hello world.

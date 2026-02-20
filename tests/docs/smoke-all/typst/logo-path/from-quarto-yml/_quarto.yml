@@ -2,4 +2,4 @@ project:
   type: default
 format:
   typst:
-    logo: logo.svg
+    logo: images/logo.svg

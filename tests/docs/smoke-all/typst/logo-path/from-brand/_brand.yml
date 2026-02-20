@@ -1,5 +1,5 @@
 logo:
   images:
     main:
-      path: logo.svg
+      path: images/logo.svg
   small: main
