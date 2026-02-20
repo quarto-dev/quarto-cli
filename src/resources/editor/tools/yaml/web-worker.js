@@ -13531,7 +13531,8 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             description: "The contents of an acknowledgments footnote after the document title."
@@ -13860,12 +13861,13 @@ try {
               formats: [
                 "$html-doc",
                 "context",
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             description: {
               short: "Sets the color of hyperlinks in the document.",
-              long: "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n"
+              long: "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n\nFor Typst output, sets the color of internal hyperlinks using Typst color syntax.\n"
             }
           },
           {
@@ -13899,12 +13901,13 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             description: {
-              short: "The color used for external links using color options allowed by `xcolor`",
-              long: "The color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
+              short: "The color used for external links.",
+              long: "For LaTeX output, the color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor Typst output, sets the color of external file links using Typst color syntax.\n"
             }
           },
           {
@@ -13912,12 +13915,13 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             description: {
-              short: "The color used for citation links using color options allowed by `xcolor`",
-              long: "The color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
+              short: "The color used for citation links.",
+              long: "For LaTeX output, the color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor Typst output, sets the color of citation links using Typst color syntax.\n"
             }
           },
           {
@@ -15140,6 +15144,19 @@ try {
             }
           },
           {
+            name: "codefont",
+            schema: "string",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: {
+              short: "Sets the font used for code in Typst output.",
+              long: "For Typst output, sets the font used for displaying code. Takes\nthe name of any font available to Typst (system fonts or fonts in\ndirectories specified by `font-paths`).\n"
+            }
+          },
+          {
             name: "fontsize",
             schema: "string",
             tags: {
@@ -15217,12 +15234,13 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             description: {
-              short: "The math font family for use with `xelatex` or `lualatex`.",
-              long: "The math font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n"
+              short: "The math font family for use with `xelatex`, `lualatex`, or Typst.",
+              long: "For LaTeX output, the math font family for use with `xelatex` or\n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n\nFor Typst output, sets the font used for mathematical content.\n"
             }
           },
           {
@@ -15375,12 +15393,13 @@ try {
               formats: [
                 "$html-doc",
                 "context",
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             description: {
               short: "Sets the line height or spacing for text in the document.",
-              long: "For HTML output sets the CSS `line-height` property on the html \nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the \n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n"
+              long: "For HTML output sets the CSS `line-height` property on the html\nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the\n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n\nFor Typst output, adjusts the spacing between lines of text.\n"
             }
           },
           {
@@ -23378,6 +23397,11 @@ try {
           "Write markdown links as references rather than inline.",
           "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
           "Automatically re-render for preview whenever document is saved (note\nthat this requires a preview for the saved document be already running).\nThis option currently works only within VS Code.",
+          {
+            short: "Editor-specific options (used by RStudio and Positron).",
+            long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
+          },
+          "Determines where chunk output is shown in the editor.",
           "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
           "The identifier for this publication.",
           "The identifier value.",
@@ -24753,6 +24777,10 @@ try {
             short: "Visual style for theorem environments in Typst output.",
             long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
           },
+          {
+            short: "Email format version",
+            long: "Specifies which email format version to use."
+          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -25107,13 +25135,8 @@ try {
           "internal-schema-hack",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
           {
-            short: "Editor-specific options (used by RStudio and Positron).",
-            long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
-          },
-          "Determines where chunk output is shown in the editor.",
-          {
-            short: "Email format version",
-            long: "Specifies which email format version to use."
+            short: "Sets the font used for code in Typst output.",
+            long: "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
           }
         ],
         "schema/external-schemas.yml": [
@@ -25344,12 +25367,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 221802,
+          _internalId: 222606,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 221794,
+              _internalId: 222598,
               type: "enum",
               enum: [
                 "png",
@@ -25365,7 +25388,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 221801,
+              _internalId: 222605,
               type: "anyOf",
               anyOf: [
                 {
