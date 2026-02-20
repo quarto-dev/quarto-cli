@@ -103,3 +103,14 @@ test('Search activation overrides localStorage tab preference', async ({ page })
   await expect(marks).toHaveCount(1);
   expect(await visibleMarkCount(page)).toBe(1);
 });
+
+test('Search scrolls to first visible match', async ({ page }) => {
+  // Use small viewport so the nested tabset at the bottom is below the fold,
+  // ensuring the test actually exercises scrollIntoView (not trivially passing).
+  await page.setViewportSize({ width: 800, height: 400 });
+  await page.goto(`${BASE}?q=nested-inner-only-term`);
+
+  const mark = page.locator('mark').first();
+  await expect(mark).toBeVisible({ timeout: 5000 });
+  await expect(mark).toBeInViewport();
+});

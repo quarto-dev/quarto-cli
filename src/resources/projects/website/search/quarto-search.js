@@ -56,6 +56,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     window.addEventListener("pageshow", function (event) {
       if (!event.persisted) {
         activateTabsWithMatches(mainEl);
+        // Let the browser settle layout after Bootstrap tab transitions
+        // before calculating scroll position.
+        requestAnimationFrame(() => scrollToFirstMatch(mainEl));
       }
     }, { once: true });
 
@@ -1192,6 +1195,29 @@ function ancestorCount(el, stopAt) {
     node = node.parentElement;
   }
   return count;
+}
+
+// After tab activation, scroll to the first visible search match so the user
+// sees the highlighted result without manually scrolling.
+// Only checks tab-pane visibility (not collapsed callouts, details/summary, etc.)
+// since this runs specifically after tab activation for search results.
+function scrollToFirstMatch(mainEl) {
+  const marks = mainEl.querySelectorAll("mark");
+  for (const mark of marks) {
+    let hidden = false;
+    let el = mark.parentElement;
+    while (el && el !== mainEl) {
+      if (el.classList.contains("tab-pane") && !el.classList.contains("active")) {
+        hidden = true;
+        break;
+      }
+      el = el.parentElement;
+    }
+    if (!hidden) {
+      mark.scrollIntoView({ block: "center" });
+      return;
+    }
+  }
 }
 
 // highlight matches
