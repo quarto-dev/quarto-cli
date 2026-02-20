@@ -22,12 +22,12 @@ test('Search highlights cleared when query changes', async ({ page }) => {
 
   await expect(marks.first()).toBeVisible({ timeout: 5000 });
 
-  // Open the detached search overlay
-  await page.locator('.aa-DetachedSearchButton').click();
-  const input = page.locator('.aa-Input');
+  // Open the search overlay and type a different query
+  await page.locator('#quarto-search').getByRole('button').click();
+  const input = page.getByRole('searchbox');
   await expect(input).toBeVisible({ timeout: 2000 });
 
-  // Type a different query — triggers onStateChange which clears marks
+  // Typing a different query triggers onStateChange which clears marks
   await input.fill('different');
   await expect(page.locator('main mark')).toHaveCount(0, { timeout: 2000 });
 });
