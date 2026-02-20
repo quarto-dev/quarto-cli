@@ -35,7 +35,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
       - 
-        - '#set page\(background: align\(left\+horizon, box\(inset: \(bottom: 18.75pt, left: 26.25pt, right: 11.25pt, top: 18.75pt\), image\("quarto(/|\\\\)quarto.png", width: 165pt\)\)\)\)'
+        - '#set page\(background: align\(left\+horizon, box\(inset: \(bottom: 18.75pt, left: 26.25pt, right: 11.25pt, top: 18.75pt\), image\("/quarto(/|\\\\)quarto.png", width: 165pt\)\)\)\)'
       - []
 ---
 
