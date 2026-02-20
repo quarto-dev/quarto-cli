@@ -119,7 +119,7 @@ All changes included in 1.9:
 - ([#13932](https://github.com/quarto-dev/quarto-cli/pull/13932)): Add `llms-txt: true` option to generate LLM-friendly content for websites. Creates `.llms.md` markdown files alongside HTML pages and a root `llms.txt` index file following the [llms.txt](https://llmstxt.org/) specification.
 - ([#13951](https://github.com/quarto-dev/quarto-cli/issues/13951)): Fix `image-lazy-loading` not applying `loading="lazy"` attribute to auto-detected listing images.
 - ([#14003](https://github.com/quarto-dev/quarto-cli/pull/14003)): Add text fragments to search result links so browsers scroll to and highlight the matched text on the target page.
-- ([#14047](https://github.com/quarto-dev/quarto-cli/issues/14047)): Fix search highlights cleared before user can see them when landing on a page with `?q=` search parameter.
+- ([#9802](https://github.com/quarto-dev/quarto-cli/issues/9802), [#14047](https://github.com/quarto-dev/quarto-cli/issues/14047)): Fix search term highlighting disappearing on page scroll or layout events when navigating from search results. (author: @jtbayly, [#13442](https://github.com/quarto-dev/quarto-cli/pull/13442))
 
 ### `book`
 

@@ -1,38 +1,53 @@
 import { test, expect } from "@playwright/test";
 
-test('Search highlights persist after page load', async ({ page }) => {
-  await page.goto('./html/search-highlight/_site/index.html?q=special');
+const BASE = './html/search-highlight/_site/index.html';
+
+test('Search highlights not cleared by scroll events', async ({ page }) => {
+  await page.goto(`${BASE}?q=special`);
   const marks = page.locator('mark');
 
-  // Marks should exist after page load
   await expect(marks.first()).toBeVisible({ timeout: 5000 });
+  const initialCount = await marks.count();
+  expect(initialCount).toBeGreaterThanOrEqual(2);
 
-  // Simulate the layout-triggered quarto-hrChanged event that clears marks
-  // prematurely without the fix (#14047). With the fix, the listener is
-  // registered after a delay, so early events like this are ignored.
+  // Dispatch layout events immediately (previously cleared marks via quarto-hrChanged)
   await page.evaluate(() => {
     window.dispatchEvent(new CustomEvent('quarto-hrChanged'));
+    window.dispatchEvent(new CustomEvent('quarto-sectionChanged'));
   });
+  await expect(marks).toHaveCount(initialCount);
 
-  // Marks should still be visible after the simulated layout event
-  await expect(marks.first()).toBeVisible();
-  await expect(marks.first()).toContainText(/special/i);
+  // Wait and dispatch again — marks should persist at any time
+  await page.waitForTimeout(1500);
+  await page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent('quarto-hrChanged'));
+    window.dispatchEvent(new CustomEvent('quarto-sectionChanged'));
+  });
+  await expect(marks).toHaveCount(initialCount);
 });
 
-test('Search highlights are cleared by scroll after delay', async ({ page }) => {
-  await page.goto('./html/search-highlight/_site/index.html?q=special');
+test('Search highlights cleared when query changes', async ({ page }) => {
+  await page.goto(`${BASE}?q=special`);
   const marks = page.locator('mark');
 
-  // Marks should exist after page load
   await expect(marks.first()).toBeVisible({ timeout: 5000 });
 
-  // Wait for the delayed listener registration (1000ms in quarto-search.js)
-  await page.waitForTimeout(1500);
+  // Open the detached search overlay
+  await page.locator('.aa-DetachedSearchButton').click();
+  const input = page.locator('.aa-Input');
+  await expect(input).toBeVisible({ timeout: 2000 });
 
-  // Now quarto-hrChanged should clear marks (listener is registered)
-  await page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('quarto-hrChanged'));
-  });
+  // Type a different query — triggers onStateChange which clears marks
+  await input.fill('different');
+  await expect(page.locator('main mark')).toHaveCount(0, { timeout: 2000 });
+});
 
-  await expect(marks).toHaveCount(0);
+test('No highlights without search query', async ({ page }) => {
+  await page.goto(BASE);
+
+  // Wait for page to fully load
+  await expect(page.locator('main')).toBeVisible();
+
+  // No marks should exist without ?q= parameter
+  await expect(page.locator('mark')).toHaveCount(0);
 });
