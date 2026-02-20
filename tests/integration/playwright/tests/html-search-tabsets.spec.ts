@@ -1,10 +1,10 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 
 const BASE = './html/search-tabsets/_site/index.html';
 
 // Helper: wait for search tab activation (deferred to pageshow)
 // and return the active pane ID for a given tab-content index.
-async function getActiveTabId(page, tabContentIndex: number): Promise<string> {
+async function getActiveTabId(page: Page, tabContentIndex: number): Promise<string> {
   return page.evaluate((idx) => {
     const tabContents = document.querySelectorAll('.tab-content');
     const tc = tabContents[idx];
@@ -15,7 +15,7 @@ async function getActiveTabId(page, tabContentIndex: number): Promise<string> {
 }
 
 // Helper: count marks visible (not inside an inactive tab pane)
-async function visibleMarkCount(page): Promise<number> {
+async function visibleMarkCount(page: Page): Promise<number> {
   return page.evaluate(() => {
     return Array.from(document.querySelectorAll('mark')).filter(m => {
       let el: Element | null = m;
