@@ -3396,7 +3396,8 @@
                     #     string:
                     #       pattern: '^U\+[0-9A-F]{4}(?:-[0-9A-F]{4})?(?:,U\+[0-9A-F]{4}(?:-[0-9A-F]{4})?)*$'
         description: >
-          The font files to include. These can be local or online.
+          The font files to include as an array (`- path: <path>` or `- <path>`).
+          These can be local or online.
           Local file paths should be relative to the `brand.yml` file.
           Online paths should be complete URLs.
     required: [files, family, source]

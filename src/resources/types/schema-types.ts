@@ -1596,7 +1596,7 @@ export type BrandFontFile = {
     path: string;
     style?: BrandFontStyle;
     weight?: BrandFontWeight;
-  }))[] /* The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */;
+  }))[] /* The font files to include as an array (`- path: <path>` or `- <path>`). These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */;
   source: "file";
 }; /* A method for providing font files directly, either locally or from an online location. */
 
