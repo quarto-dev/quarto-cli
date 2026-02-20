@@ -7,3 +7,5 @@ website:
     left:
       - href: index.qmd
         text: Home
+
+format: html

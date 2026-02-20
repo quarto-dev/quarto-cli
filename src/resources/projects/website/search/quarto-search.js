@@ -1178,7 +1178,7 @@ function activateTabsWithMatches(mainEl) {
       try {
         new bootstrap.Tab(tabButton).show();
       } catch (e) {
-        // Skip this tab if Bootstrap Tab API fails
+        console.debug("Failed to activate tab for search match:", e);
       }
     }
   }
