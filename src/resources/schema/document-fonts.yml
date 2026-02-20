@@ -34,6 +34,17 @@
       system font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more
       information.
 
+- name: codefont
+  schema: string
+  tags:
+    formats: [typst]
+  description:
+    short: Sets the font used for code in Typst output.
+    long: |
+      For Typst output, sets the font used for displaying code. Takes
+      the name of any font available to Typst (system fonts or fonts in
+      directories specified by `font-paths`).
+
 - name: fontsize
   schema: string
   tags:
@@ -106,13 +117,15 @@
 - name: mathfont
   schema: string
   tags:
-    formats: [$pdf-all]
+    formats: [$pdf-all, typst]
   description:
-    short: The math font family for use with `xelatex` or `lualatex`.
+    short: The math font family for use with `xelatex`, `lualatex`, or Typst.
     long: |
-      The math font family for use with `xelatex` or 
+      For LaTeX output, the math font family for use with `xelatex` or
       `lualatex`. Takes the name of any system font, using the
       [`fontspec`](https://ctan.org/pkg/fontspec) package.
+
+      For Typst output, sets the font used for mathematical content.
 
 - name: CJKmainfont
   schema: string
@@ -229,15 +242,17 @@
       - string
       - number
   tags:
-    formats: [$html-doc, context, $pdf-all]
+    formats: [$html-doc, context, $pdf-all, typst]
   description:
     short: Sets the line height or spacing for text in the document.
     long: |
-      For HTML output sets the CSS `line-height` property on the html 
+      For HTML output sets the CSS `line-height` property on the html
       element, which is preferred to be unitless.
 
-      For LaTeX output, adjusts line spacing using the 
+      For LaTeX output, adjusts line spacing using the
       [setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.
+
+      For Typst output, adjusts the spacing between lines of text.
 
 - name: interlinespace
   schema:

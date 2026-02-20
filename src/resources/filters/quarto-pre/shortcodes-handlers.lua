@@ -251,11 +251,31 @@ function handleMeta(args, _kwargs, _meta, _raw_args, context)
 
     -- read the option value
     local optionValue = option(varName, nil)
-    if optionValue ~= nil then
-      return processValue(optionValue, varName, "meta")
-    else 
+    if optionValue == nil then
       warn("Unknown meta key " .. varName .. " specified in a metadata Shortcode.")
       return { pandoc.Strong(pandoc.Inlines {pandoc.Str("?meta:" .. varName)}) } 
+    end
+
+    if context == "block" then
+      return processValueInBlockContext(optionValue, varName, "meta")
+    elseif context == "inline" then
+      return processValue(optionValue, varName, "meta")
+    elseif context == "text" then
+      -- As a special case, we treat the result of using
+      --
+      -- key2: '`Str "Something *with* a _line_ break\n\nI want to preserve"`{=pandoc-native}'
+      --
+      -- differently to allow users to specify precisely the
+      -- string they want to use.
+      if type(optionValue) == "table" and #optionValue > 0 and optionValue[1].t == "Str" then
+        return optionValue[1].text
+      else
+        local blocks = pandoc.Blocks(optionValue)
+        return pandoc.write(pandoc.Pandoc(blocks), "markdown")
+      end
+    else
+      internal_error("Unknown context " .. context)
+      return nil
     end
   else
     -- no args, we can't do anything
@@ -297,6 +317,25 @@ function processValue(val, name, t)
       return pandoc.utils.blocks_to_inlines(val)
     elseif pandoc.utils.type(val) == "List" and #val == 1 then
       return processValue(val[1], name, t)
+    else
+      warn("Unsupported type '" .. pandoc.utils.type(val)  .. "' for key " .. name .. " in a " .. t .. " shortcode.")
+      return { pandoc.Strong(pandoc.Inlines { pandoc.Str("?invalid " .. t .. " type:" .. name) } ) }
+    end
+  else 
+    return { pandoc.Str( tostring(val) ) }
+  end
+end
+
+function processValueInBlockContext(val, name, t)    
+  if type(val) == "table" then
+    if #val == 0 then
+      return { pandoc.Str( "") }
+    end
+    local pt = pandoc.utils.type(val)
+    if pt == "Inlines" or pt == "Blocks" then
+      return val
+    elseif pt == "List" and #val == 1 then
+      return processValueInBlockContext(val[1], name, t)
     else
       warn("Unsupported type '" .. pandoc.utils.type(val)  .. "' for key " .. name .. " in a " .. t .. " shortcode.")
       return { pandoc.Strong(pandoc.Inlines { pandoc.Str("?invalid " .. t .. " type:" .. name) } ) }

@@ -13,7 +13,7 @@ _quarto:
       -
         - '#let brand-logo-images = \(\s*large-light: \(\s*path: "brand_yaml(/|\\\\)resources(/|\\\\)quarto.png"\s*\)\s*\)'
         - '#let brand-logo = \(\s*large: \(\s*path: "brand_yaml(/|\\\\)resources(/|\\\\)quarto.png"\s*\)\s*\)'
-        - '#set page\(background: align\(center\+top, box\(inset: 2em, image\("brand_yaml(/|\\\\)resources(/|\\\\)quarto.png", width: 225pt\)\)\)\)'
+        - '#set page\(background: align\(center\+top, box\(inset: 2em, image\("/brand_yaml(/|\\\\)resources(/|\\\\)quarto.png", width: 225pt\)\)\)\)'
         - '#image\(brand-logo-images\.large-light\.path, alt:"from brand-logo-images"\)'
       - []
 ---

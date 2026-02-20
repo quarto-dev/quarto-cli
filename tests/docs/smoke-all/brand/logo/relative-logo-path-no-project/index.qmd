@@ -20,7 +20,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'background: align\(left\+top, box\(inset: 0\.75in, image\("logos(/|\\\\)logo\.png", width: 1\.5in\)\)'
+          - 'background: align\(left\+top, box\(inset: 0\.75in, image\("/logos(/|\\\\)logo\.png", width: 1\.5in\)\)'
         - []
 ---
 

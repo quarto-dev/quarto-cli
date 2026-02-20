@@ -425,6 +425,45 @@ export function logoAddLeadingSlashes(
   };
 }
 
+// Return a copy of the brand with logo paths converted from project-relative
+// to project-absolute (leading /). Typst resolves these via --root, which
+// points to the project directory. Call this before resolveLogo so that
+// brand-sourced paths get the / prefix while document-sourced paths are
+// left untouched.
+export function brandWithAbsoluteLogoPaths(
+  brand: LightDarkBrand | undefined,
+): LightDarkBrand | undefined {
+  if (!brand) {
+    return brand;
+  }
+  const transformBrand = (b: Brand | undefined): Brand | undefined => {
+    if (!b) return b;
+    const oldLogo = b.processedData.logo;
+    const logo: ProcessedBrandData["logo"] = { images: {} };
+    for (const size of Zod.BrandNamedLogo.options) {
+      if (oldLogo[size]) {
+        logo[size] = {
+          ...oldLogo[size],
+          path: ensureLeadingSlashIfNotExternal(oldLogo[size]!.path),
+        };
+      }
+    }
+    for (const [key, value] of Object.entries(oldLogo.images)) {
+      logo.images[key] = {
+        ...value,
+        path: ensureLeadingSlashIfNotExternal(value.path),
+      };
+    }
+    const copy = Object.create(b) as Brand;
+    copy.processedData = { ...b.processedData, logo };
+    return copy;
+  };
+  return {
+    light: transformBrand(brand.light),
+    dark: transformBrand(brand.dark),
+  };
+}
+
 // this a typst workaround but might as well write it as a proper function
 export function fillLogoPaths(
   brand: LightDarkBrand | undefined,
