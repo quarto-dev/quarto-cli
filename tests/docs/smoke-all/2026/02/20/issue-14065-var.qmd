@@ -1,0 +1,15 @@
+---
+title: "Unicode SCSS Variable Test"
+format:
+  html:
+    theme:
+      - default
+      - custom-14065-var.scss
+_quarto:
+  tests:
+    html:
+      ensureCssRegexMatches:
+        - ['#test-unicode-var', 'background-color']
+---
+
+Content with a unicode-named color variable in SCSS.
