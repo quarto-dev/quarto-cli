@@ -107,7 +107,6 @@
 \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
 
 \usepackage{longtable,booktabs,array}
-\newcounter{none} % for unnumbered tables
 \usepackage{calc} % for calculating minipage widths
 % Correct order of tables after \paragraph or \subparagraph
 \usepackage{etoolbox}
@@ -221,7 +220,7 @@
 
 \caption{\label{tbl-tables}Tables}
 
-\begin{minipage}[t]{0.50\linewidth}
+\begin{minipage}[b]{0.50\linewidth}
 
 \subcaption{\label{tbl-tables-1}cars}
 
@@ -244,7 +243,7 @@ speed & dist\\
 
 \end{minipage}%
 %
-\begin{minipage}[t]{0.50\linewidth}
+\begin{minipage}[b]{0.50\linewidth}
 
 \subcaption{\label{tbl-tables-2}pressure}
 
