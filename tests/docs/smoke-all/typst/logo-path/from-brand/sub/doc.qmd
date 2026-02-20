@@ -8,9 +8,9 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
       -
-        - 'image\("/images/logo\.svg"'
+        - 'image\("(/|\\\\)images(/|\\\\)logo\.svg"'
       -
-        - 'image\("\.\./images/logo\.svg"'
+        - 'image\("\.\.(/|\\\\)images(/|\\\\)logo\.svg"'
 ---
 
 Hello world.

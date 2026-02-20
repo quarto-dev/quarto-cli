@@ -8,9 +8,9 @@ _quarto:
     testformat-typst:
       ensureTypstFileRegexMatches:
       -
-        - 'image\("\.\.\/_extensions\/testformat\/logo\.svg"'
+        - 'image\("\.\.(/|\\\\)_extensions(/|\\\\)testformat(/|\\\\)logo\.svg"'
       -
-        - 'image\("\.\./\.\.\/_extensions\/testformat\/logo\.svg"'
+        - 'image\("\.\.(/|\\\\)\.\.(/|\\\\)_extensions(/|\\\\)testformat(/|\\\\)logo\.svg"'
 ---
 
 Hello world.
