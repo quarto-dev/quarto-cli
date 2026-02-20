@@ -1,6 +1,11 @@
-# LLM Documentation
+---
+paths:
+  - "llm-docs/**"
+---
 
-This directory contains documentation written for LLM assistants working on the Quarto codebase.
+# LLM Documentation Maintenance
+
+The `llm-docs/` directory contains documentation written for LLM assistants working on the Quarto codebase. These docs capture architectural understanding that would otherwise require extensive codebase exploration.
 
 ## Staleness Check
 
@@ -41,12 +46,12 @@ Then update `main_commit`, `analyzed_date`, and verify `key_files` list is compl
 
 ## Document Purpose
 
-These docs capture architectural understanding that would otherwise require extensive codebase exploration. They are NOT:
-- User documentation (that's at quarto.org)
-- Code comments (those live in source files)
-- Issue-specific notes (those go in PR descriptions)
-
-They ARE:
+These docs are:
 - Architectural overviews for AI assistants
 - File location maps for common tasks
 - Pattern documentation for consistency
+
+They are NOT:
+- User documentation (that's at quarto.org)
+- Code comments (those live in source files)
+- Issue-specific notes (those go in PR descriptions)

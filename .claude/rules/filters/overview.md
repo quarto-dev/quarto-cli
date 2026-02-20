@@ -1,6 +1,11 @@
+---
+paths:
+  - "src/resources/filters/**"
+---
+
 # Lua Filter System
 
-This directory contains Quarto's Lua filter system - a multi-stage document transformation pipeline that processes Pandoc AST through ~212 Lua files.
+Quarto's Lua filter system is a multi-stage document transformation pipeline that processes Pandoc AST through ~212 Lua files.
 
 **For coding conventions:** See `.claude/rules/filters/lua-development.md`
 
