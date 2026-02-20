@@ -32,19 +32,16 @@ import { debug } from "../../deno_ral/log";
 
 ## Deno RAL (Runtime Abstraction Layer)
 
-Import from `src/deno_ral/` instead of standard library directly:
+Import from `src/deno_ral/` instead of standard library directly. See `.claude/rules/typescript/deno-ral.md` for the full module reference, safe file operations, and internals.
 
 ```typescript
 // Correct
 import { join, dirname } from "../deno_ral/path.ts";
 import { existsSync } from "../deno_ral/fs.ts";
-import { info, warning } from "../deno_ral/log.ts";
 
 // Wrong - direct std lib import
 import { join } from "jsr:/@std/path";
 ```
-
-Key modules: `fs.ts`, `path.ts`, `log.ts`, `platform.ts`, `process.ts`
 
 ## Deno APIs vs Node.js
 
