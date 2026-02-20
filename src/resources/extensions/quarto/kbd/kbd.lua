@@ -12,16 +12,19 @@ return {
     if mode ~= nil then
       mode = pandoc.utils.stringify(mode)
       kwargs["mode"] = nil
-      if mode ~= "plain" then
+      if mode == "" then
+        mode = nil
+      elseif mode ~= "plain" then
         return quarto.shortcode.error_output("kbd", "unknown mode: " .. mode .. ", supported modes are: plain", "inline")
-      end
-      -- plain mode requires a positional argument
-      if #args == 0 then
-        return quarto.shortcode.error_output("kbd", "plain mode requires a positional argument", "inline")
-      end
-      -- plain mode doesn't accept OS kwargs
-      for k, _ in pairs(kwargs) do
-        return quarto.shortcode.error_output("kbd", "plain mode does not accept OS-specific arguments", "inline")
+      else
+        -- plain mode requires a positional argument
+        if #args == 0 then
+          return quarto.shortcode.error_output("kbd", "plain mode requires a positional argument", "inline")
+        end
+        -- plain mode doesn't accept OS kwargs
+        for k, _ in pairs(kwargs) do
+          return quarto.shortcode.error_output("kbd", "plain mode does not accept OS-specific arguments", "inline")
+        end
       end
     end
 

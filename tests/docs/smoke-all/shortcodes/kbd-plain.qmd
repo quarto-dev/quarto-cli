@@ -5,9 +5,8 @@ _quarto:
   tests:
     html:
       ensureFileRegexMatches:
-        - ['data-mode="plain"']
-        - ['Shift-Ctrl-K']
-        - ['Command-Shift-K']
+        - ['data-mode="plain"', 'Shift-Ctrl-K', 'Command-Shift-K']
+        - []
 ---
 
 {{< kbd Shift-Ctrl-K mode=plain >}}
