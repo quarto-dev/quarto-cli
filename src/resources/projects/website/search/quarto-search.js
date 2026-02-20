@@ -1175,7 +1175,11 @@ function activateTabsWithMatches(mainEl) {
       `[data-bs-toggle="tab"][data-bs-target="#${escapedId}"]`
     );
     if (tabButton) {
-      new bootstrap.Tab(tabButton).show();
+      try {
+        new bootstrap.Tab(tabButton).show();
+      } catch (e) {
+        // Skip this tab if Bootstrap Tab API fails
+      }
     }
   }
 }
