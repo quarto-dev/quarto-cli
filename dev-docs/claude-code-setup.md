@@ -81,6 +81,8 @@ CLAUDE.local.md           # Personal overrides
 
 These stay personal to each developer.
 
+Avoid committing API keys, tokens, or credentials in any `.claude/` or `llm-docs/` file. Use environment variables or `.env` (also gitignored) for sensitive values.
+
 ## Further Reading
 
 - [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code)

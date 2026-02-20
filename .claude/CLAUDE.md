@@ -205,7 +205,7 @@ Key phases:
 
 ### LaTeX Error Detection
 
-LaTeX error pattern maintenance is documented in [dev-docs/tinytex-pattern-maintenance.md](dev-docs/tinytex-pattern-maintenance.md).
+LaTeX error pattern maintenance is documented in [dev-docs/tinytex-pattern-maintenance.md](../dev-docs/tinytex-pattern-maintenance.md).
 
 - Patterns inspired by TinyTeX's comprehensive regex.json
 - Automated daily verification workflow checks for TinyTeX pattern updates
