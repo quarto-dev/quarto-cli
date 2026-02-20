@@ -1,6 +1,11 @@
+---
+paths:
+  - "tests/**"
+---
+
 # Test Infrastructure
 
-This directory contains Quarto's test suite. For comprehensive documentation, see `README.md`.
+Quarto's test suite lives in `tests/`. For comprehensive documentation, see `tests/README.md`.
 
 ## Running Tests
 
@@ -27,8 +32,8 @@ $env:QUARTO_TESTS_NO_CONFIG=$true; .\run-tests.ps1      # Windows
 
 | Type | Location | File Pattern | Details |
 |------|----------|--------------|---------|
-| Unit | `tests/unit/` | `*.test.ts` | `.claude/rules/testing/unit-tests.md` |
-| Smoke | `tests/smoke/` | `*.test.ts` | `.claude/rules/testing/smoke-tests.md` |
+| Unit | `tests/unit/` | `*.test.ts` | `.claude/rules/testing/typescript-tests.md` |
+| Smoke | `tests/smoke/` | `*.test.ts` | `.claude/rules/testing/typescript-tests.md` |
 | Smoke-all | `tests/docs/smoke-all/` | `*.qmd` | `.claude/rules/testing/smoke-all-tests.md` |
 | Playwright | `tests/integration/playwright/` | `*.spec.ts` | `.claude/rules/testing/playwright-tests.md` |
 
@@ -63,8 +68,4 @@ Managed via:
 1. Run single test to isolate failures
 2. Check render output - tests capture stdout/stderr
 3. VSCode debugging via `.vscode/launch.json`
-
-## Related Documentation
-
-- **Full test docs**: `tests/README.md`
-- **Flaky test debugging**: https://gist.github.com/cderv/77405f5a5ea0c1db38693159c4a260dd
+4. Flaky test methodology: [dev-docs/debugging-flaky-tests.md](../../../dev-docs/debugging-flaky-tests.md)
