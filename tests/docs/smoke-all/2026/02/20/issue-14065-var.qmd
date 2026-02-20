@@ -9,7 +9,7 @@ _quarto:
   tests:
     html:
       ensureCssRegexMatches:
-        - ['#test-unicode-var', '--quarto-scss-export-pr.*sentation-bg']
+        - ['#test-unicode-var', '--quarto-scss-export-présentation-bg']
 ---
 
 Content with a unicode-named color variable in SCSS.
