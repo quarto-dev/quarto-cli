@@ -51,6 +51,7 @@ All changes included in 1.9:
 - ([#13825](https://github.com/quarto-dev/quarto-cli/issues/13825)): Fix `column: margin` not working with `renderings: [light, dark]` option. Column classes are now preserved when applying theme classes to cell outputs.
 - ([#13883](https://github.com/quarto-dev/quarto-cli/issues/13883)): Fix unequal top/bottom spacing in simple untitled callouts.
 - ([#13900](https://github.com/quarto-dev/quarto-cli/issues/13900)): Warn when `renderings` cell option contains duplicate names. Previously, duplicate names like `[dark, light, dark, light]` would silently use only the last output for each name.
+- ([#14065](https://github.com/quarto-dev/quarto-cli/issues/14065)): Fix `SCSSParsingError` when custom SCSS themes contain non-ASCII characters in selectors (e.g., `#présentation`).
 
 ### `typst`
 
