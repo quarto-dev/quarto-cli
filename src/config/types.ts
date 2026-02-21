@@ -34,8 +34,10 @@ import {
   kCodeSummary,
   kCodeTools,
   kCodeToolsHideAllCode,
+  kCodeToolsHideAllSections,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
+  kCodeToolsShowAllSections,
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
   kColumns,
@@ -483,6 +485,7 @@ export interface FormatRender {
     source?: boolean;
     toggle?: boolean;
     caption?: string;
+    section?: boolean;
   };
   [kTblColwidths]?: "auto" | boolean | number[];
   [kShortcodes]?: string[];
@@ -684,6 +687,8 @@ export interface FormatLanguage {
   [kCodeToolsMenuCaption]?: string;
   [kCodeToolsShowAllCode]?: string;
   [kCodeToolsHideAllCode]?: string;
+  [kCodeToolsShowAllSections]?: string;
+  [kCodeToolsHideAllSections]?: string;
   [kCodeToolsViewSource]?: string;
   [kCodeToolsSourceCode]?: string;
   [kToolsDownload]?: string;

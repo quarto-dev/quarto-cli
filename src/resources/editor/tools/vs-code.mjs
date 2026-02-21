@@ -10355,6 +10355,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "section-title-appendices": "string",
               "code-summary": "string",
               "code-tools-menu-caption": "string",
+              "code-tools-show-all-sections": "string",
+              "code-tools-hide-all-sections": "string",
               "code-tools-show-all-code": "string",
               "code-tools-hide-all-code": "string",
               "code-tools-view-source": "string",
