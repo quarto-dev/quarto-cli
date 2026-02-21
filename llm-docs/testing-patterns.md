@@ -232,8 +232,8 @@ ensureCssRegexMatches(file: string, matches: (string | RegExp)[], noMatches?: (s
 // Check HTML elements exist or don't exist (CSS selectors)
 ensureHtmlElements(file: string, noElements: string[], elements: string[])
 
-// Verify JSON structure has expected fields
-validJsonWithFields(file: string, fields: string[])
+// Verify JSON structure has expected fields (parses JSON, compares values with deep equality)
+validJsonWithFields(file: string, fields: Record<string, unknown>)
 
 // Check output message at specific log level
 printsMessage(options: { level: string, regex: RegExp })
