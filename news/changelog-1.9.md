@@ -109,6 +109,7 @@ All changes included in 1.9:
 
 ## Projects
 
+- ([#12444](https://github.com/quarto-dev/quarto-cli/pull/12444)): Improve pre/post render script logging with `Running script` prefix and add `QUARTO_PROJECT_SCRIPT_PROGRESS` and `QUARTO_PROJECT_SCRIPT_QUIET` environment variables so scripts can adapt their output.
 - ([#13892](https://github.com/quarto-dev/quarto-cli/issues/13892)): Fix `output-dir: ./` deleting entire project directory. `output-dir` must be a subdirectory of the project directory and check is now better to avoid deleting the project itself when it revolves to the same path.
 
 ### `website`
