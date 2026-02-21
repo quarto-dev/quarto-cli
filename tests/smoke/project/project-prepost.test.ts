@@ -75,6 +75,10 @@ testQuartoCmd(
       const path = join(docs("project/prepost/extension"), "i-was-created.txt");
       verifyPath(path);
       safeRemoveIfExists(path);
+      const siteDir = join(docs("project/prepost/extension"), "_site");
+      if (existsSync(siteDir)) {
+        await Deno.remove(siteDir, { recursive: true });
+      }
     }
   });
 
@@ -94,6 +98,10 @@ testQuartoCmd(
         safeRemoveIfExists(inputPath);
         verifyPath(outputPath);
         safeRemoveIfExists(outputPath);
+        const siteDir = join(docs("project/prepost/issue-10828"), "_site");
+        if (existsSync(siteDir)) {
+          await Deno.remove(siteDir, { recursive: true });
+        }
       }
     }
   )
