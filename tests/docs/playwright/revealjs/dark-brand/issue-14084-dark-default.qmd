@@ -1,0 +1,14 @@
+---
+title: "Issue 14084 - RevealJS dark theme baseline"
+format:
+  revealjs:
+    theme: dark
+---
+
+## Dark theme baseline
+
+[This is light content]{.light-content}
+
+[This is dark content]{.dark-content}
+
+Body should have class `quarto-dark` for the built-in dark theme.

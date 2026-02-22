@@ -168,6 +168,14 @@ export async function resolveSassBundles(
         bundle.key = bundle.key + "-dark";
         return bundle;
       });
+
+      // Inject dark/light sentinel comments directly, rather than relying
+      // on the SCSS blackness() heuristic which fails for perceptually-dark
+      // colours with low HWB blackness (e.g. blue #0000FF).
+      // See https://github.com/quarto-dev/quarto-cli/issues/14084
+      darkBundles.push(darkModeSentinelBundle("dark"));
+      bundles.push(darkModeSentinelBundle("light"));
+
       const darkTarget = {
         name: `${dependency}-dark.min.css`,
         bundles: darkBundles as any,
@@ -195,6 +203,10 @@ export async function resolveSassBundles(
       }
 
       hasDarkStyles = true;
+    } else {
+      // Single-theme: detect dark/light via WCAG relative luminance,
+      // which correctly handles saturated colours (unlike HWB blackness).
+      bundles.push(darkModeSentinelBundle("detect"));
     }
 
     for (const target of targets) {
@@ -653,6 +665,43 @@ async function processCssIntoExtras(
 }
 const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
+
+// Creates a SassBundle that injects the dark/light mode sentinel comment
+// into compiled CSS. For dual-theme builds the mode is known at build time;
+// for single-theme builds we detect via oklch perceptual lightness.
+function darkModeSentinelBundle(
+  mode: "dark" | "light" | "detect",
+): SassBundle {
+  let uses = "";
+  let defaults = "";
+  let sentinelRules: string;
+
+  if (mode === "detect") {
+    uses = '@use "sass:color";';
+    defaults = "$body-bg: #fff !default;\n";
+    sentinelRules = [
+      '@if (color.channel($body-bg, "lightness", $space: oklch) < 50%) {',
+      "  /*! dark */",
+      "} @else {",
+      "  /*! light */",
+      "}",
+    ].join("\n");
+  } else {
+    sentinelRules = `/*! ${mode} */`;
+  }
+
+  return {
+    dependency: "quarto-dark-sentinel",
+    key: `quarto-${mode}-sentinel`,
+    quarto: {
+      uses,
+      defaults,
+      functions: "",
+      mixins: "",
+      rules: sentinelRules,
+    },
+  };
+}
 
 // Attributes for the style tag
 function attribForThemeStyle(

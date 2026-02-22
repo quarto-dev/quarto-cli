@@ -1934,13 +1934,9 @@ code a:any-link {
   text-decoration-color: $gray-600;
 }
 
-// This is a sentinel value that renderers can use to determine
-// whether the theme is dark or light
-@if (quarto-color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
-  /*! dark */
-} @else {
-  /*! light */
-}
+// The dark/light sentinel comment is now injected by the TypeScript
+// compilation pipeline (see pandoc-html.ts) which knows at build time
+// whether the target stylesheet is dark or light.
 
 // observable UI element tweaks to support light-mode vs dark-mode
 div.observablehq table thead tr th {

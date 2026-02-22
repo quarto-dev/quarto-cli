@@ -1,0 +1,19 @@
+---
+title: "Issue 14084 - RevealJS dark theme with blue background"
+brand:
+  color:
+    background: "blue"
+    foreground: "yellow"
+format:
+  revealjs:
+    theme: [dark, brand]
+---
+
+## Dark theme with blue background
+
+[This is light content]{.light-content}
+
+[This is dark content]{.dark-content}
+
+Body should have class `quarto-dark` because the theme is dark,
+even though blue (#0000FF) has 0% HWB blackness.

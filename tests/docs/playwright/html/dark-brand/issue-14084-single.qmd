@@ -1,0 +1,17 @@
+---
+title: "Issue 14084 - single dark theme with blue background"
+brand:
+  color:
+    background: "blue"
+    foreground: "yellow"
+format:
+  html:
+    theme:
+      - darkly
+      - brand
+---
+
+## Single dark theme
+
+This page uses a single dark theme (darkly) with a blue background set via brand.
+The body should have class `quarto-dark`.
