@@ -1,23 +1,17 @@
 ---
-title: "Scroll view config"
+title: "Scroll view snap false"
 format:
   revealjs:
     scroll-view:
       activate: true
-      progress: true
       snap: false
-      layout: compact
-      activation-width: 0
 _quarto:
   tests:
     revealjs:
       ensureFileRegexMatches:
         -
           - 'view: ''scroll'','
-          - 'scrollProgress: true,'
           - 'scrollSnap: false,'
-          - 'scrollLayout: ''compact'','
-          - 'scrollActivationWidth: 0,'
         - []
 ---
 
@@ -25,7 +19,6 @@ _quarto:
 
 Content
 
-## test 
+## test
 
 Content
-
