@@ -1,0 +1,61 @@
+---
+title: Email Recipients R Test Document
+author: Jules Walzer-Goldfeld
+format: email
+---
+
+The report content. Anything that is here is not part of the email message.
+
+::: {.email}
+
+::: {.subject}
+R Recipients Email
+:::
+
+```{r}
+# Static recipients vector
+recipients <- c("alice@example.com", "bob@example.com", "charlie@example.com")
+```
+
+::: {.recipients}
+`{r} recipients`
+:::
+
+::: {.email-text}
+Text version of email with R recipients.
+:::
+
+First email HTML content with R recipients.
+
+:::
+
+::: {.email}
+
+::: {.subject}
+Conditional Recipients Email (R)
+:::
+
+```{r}
+# Conditional recipients based on a fixed boolean (for deterministic testing)
+is_weekday <- TRUE  # Fixed value for testing
+
+if (is_weekday) {
+    recipients <- c("weekday@example.com", "team@example.com")
+} else {
+    recipients <- c("weekend@example.com")
+}
+```
+
+::: {.recipients}
+`{r} recipients`
+:::
+
+::: {.email-text}
+Text version of conditional recipients email (R).
+:::
+
+Second email HTML content with conditional recipients (R).
+
+:::
+
+Any additional report content not part of the email message.

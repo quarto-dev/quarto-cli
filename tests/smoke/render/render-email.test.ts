@@ -226,7 +226,92 @@ testRender(docs("email/email-mixed-metadata-v2.qmd"), "email", false, [
     "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
   }
 });
+// Test Python recipients with v2 format
+testRender(docs("email/email-recipients-python.qmd"), "email", false, [
+  fileExists(previewFileV2_1),
+  fileExists(previewFileV2_2),
+  validJsonWithMultipleEmails(jsonFile, 2, {
+    "0": {
+      "email_id": 1,
+      "subject": "Python Recipients Email",
+      "recipients": ["alice@example.com", "bob@example.com", "charlie@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "1": {
+      "email_id": 2,
+      "subject": "Conditional Recipients Email (Weekday)",
+      "recipients": ["weekday@example.com", "team@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    }
+  })
+], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
+  }
+});
 
+// Test R recipients with v2 format
+testRender(docs("email/email-recipients-r.qmd"), "email", false, [
+  fileExists(previewFileV2_1),
+  fileExists(previewFileV2_2),
+  validJsonWithMultipleEmails(jsonFile, 2, {
+    "0": {
+      "email_id": 1,
+      "subject": "R Recipients Email",
+      "recipients": ["alice@example.com", "bob@example.com", "charlie@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "1": {
+      "email_id": 2,
+      "subject": "Conditional Recipients Email (R)",
+      "recipients": ["weekday@example.com", "team@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    }
+  })
+], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
+  }
+});
+
+// Test alternative recipient formats (line-separated and comma-separated plain text)
+testRender(docs("email/email-recipients-formats.qmd"), "email", false, [
+  fileExists(previewFileV2_1),
+  fileExists(previewFileV2_2),
+  validJsonWithMultipleEmails(jsonFile, 2, {
+    "0": {
+      "email_id": 1,
+      "subject": "Line-Separated Recipients",
+      "recipients": ["alice@example.com", "bob@example.com", "charlie@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "1": {
+      "email_id": 2,
+      "subject": "Comma-Separated Recipients",
+      "recipients": ["alice@example.com", "bob@example.com", "charlie@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    }
+  })
+], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
+  }
+});
 // Render in a project with an output directory set in _quarto.yml and confirm that everything ends up in the output directory
 testProjectRender(docs("email/project/email-attach.qmd"), "email", (outputDir: string) => {
   const verify: Verify[]= [];

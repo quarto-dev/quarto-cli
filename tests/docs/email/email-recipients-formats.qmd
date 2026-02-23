@@ -1,0 +1,47 @@
+---
+title: Email Recipients Formats Test Document
+author: Jules Walzer-Goldfeld
+format: email
+---
+
+Test document for various recipient input formats.
+
+::: {.email}
+
+::: {.subject}
+Line-Separated Recipients
+:::
+
+::: {.recipients}
+alice@example.com
+bob@example.com
+charlie@example.com
+:::
+
+::: {.email-text}
+Email with line-separated recipients (plain text, one per line).
+:::
+
+First email with line-separated recipients.
+
+:::
+
+::: {.email}
+
+::: {.subject}
+Comma-Separated Recipients
+:::
+
+::: {.recipients}
+alice@example.com, bob@example.com, charlie@example.com
+:::
+
+::: {.email-text}
+Email with comma-separated recipients (plain text).
+:::
+
+Second email with comma-separated recipients.
+
+:::
+
+Done with test emails.

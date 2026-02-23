@@ -65,6 +65,127 @@ function str_truthy_falsy(str)
   return false
 end
 
+-- Parse recipients from inline code output or plain text
+-- Supports multiple formats:
+--   1. Python list: ['a', 'b'] or ["a", "b"]
+--   2. R vector: "a" "b" "c"
+--   3. Comma-separated: a, b, c
+--   4. Line-separated: a\nb\nc
+-- Returns an empty array if parsing fails
+function parse_recipients(recipient_str)
+  recipient_str = str_trunc_trim(recipient_str, 10000)
+
+  if recipient_str == "" then
+    return {}
+  end
+
+  local recipients = {}
+
+  -- Try Python list format ['...', '...'] or ["...", "..."]
+  if string.match(recipient_str, "^%[") and string.match(recipient_str, "%]$") then
+    local content = string.sub(recipient_str, 2, -2)
+
+    -- Try to parse as Python/R list by splitting on commas
+    -- and stripping quotes and brackets from each item
+    recipients = {}
+    for item in string.gmatch(content, "[^,]+") do
+      local trimmed = str_trunc_trim(item, 1000)
+      -- Strip leading/trailing brackets
+      trimmed = string.gsub(trimmed, "^%[", "")
+      trimmed = string.gsub(trimmed, "%]$", "")
+      trimmed = str_trunc_trim(trimmed, 1000)
+
+      -- Strip leading/trailing quotes (ASCII single/double and UTF-8 curly quotes)
+      -- ASCII single quote '
+      trimmed = string.gsub(trimmed, "^'", "")
+      trimmed = string.gsub(trimmed, "'$", "")
+      -- ASCII double quote "
+      trimmed = string.gsub(trimmed, '^"', "")
+      trimmed = string.gsub(trimmed, '"$', "")
+      -- UTF-8 curly single quotes ' and '  (U+2018, U+2019)
+      trimmed = string.gsub(trimmed, "^" .. string.char(226, 128, 152), "")
+      trimmed = string.gsub(trimmed, string.char(226, 128, 153) .. "$", "")
+      -- UTF-8 curly double quotes " and " (U+201C, U+201D)
+      trimmed = string.gsub(trimmed, "^" .. string.char(226, 128, 156), "")
+      trimmed = string.gsub(trimmed, string.char(226, 128, 157) .. "$", "")
+
+      trimmed = str_trunc_trim(trimmed, 1000)
+      if trimmed ~= "" then
+        table.insert(recipients, trimmed)
+      end
+    end
+    if #recipients > 0 then
+      return recipients
+    end
+  end
+
+  -- Try R-style quoted format (space-separated quoted strings outside of brackets)
+  recipients = {}
+  local found_any = false
+
+  -- Try single quotes: 'a' 'b' 'c'
+  for quoted_pair in string.gmatch(recipient_str, "'([^']*)'") do
+    local trimmed = str_trunc_trim(quoted_pair, 1000)
+    if trimmed ~= "" then
+      table.insert(recipients, trimmed)
+      found_any = true
+    end
+  end
+  if found_any then
+    return recipients
+  end
+
+  -- Try double quotes: "a" "b" "c"
+  recipients = {}
+  for quoted_pair in string.gmatch(recipient_str, '"([^"]*)"') do
+    local trimmed = str_trunc_trim(quoted_pair, 1000)
+    if trimmed ~= "" then
+      table.insert(recipients, trimmed)
+      found_any = true
+    end
+  end
+  if found_any then
+    return recipients
+  end
+
+  -- Try line-separated format (newlines or spaces)
+  -- Check if there are newlines or multiple space-separated emails
+  if string.match(recipient_str, "\n") or
+     (string.match(recipient_str, "@.*%s+.*@") and not string.match(recipient_str, ",")) then
+    recipients = {}
+    -- Split on newlines or spaces
+    for item in string.gmatch(recipient_str, "[^\n%s]+") do
+      local trimmed = str_trunc_trim(item, 1000)
+      if trimmed ~= "" and string.match(trimmed, "@") then
+        table.insert(recipients, trimmed)
+        found_any = true
+      end
+    end
+    if found_any then
+      return recipients
+    end
+  end
+
+  -- Try comma-separated format without quotes
+  -- Split by comma and trim each part
+  recipients = {}
+  found_any = false
+  for part in string.gmatch(recipient_str, "[^,]+") do
+    local trimmed = str_trunc_trim(part, 1000)
+    if trimmed ~= "" and not string.match(trimmed, "^[%[%]]") then
+      table.insert(recipients, trimmed)
+      found_any = true
+    end
+  end
+  if found_any then
+    return recipients
+  end
+
+  -- Could not parse - log warning and return empty
+  quarto.log.warning("Could not parse recipients format: " .. recipient_str)
+  return {}
+end
+
 local html_email_template_1 = [[
 <!DOCTYPE html>
 <html>
@@ -254,6 +375,7 @@ function process_div(div)
       image_tbl = {},
       email_images = {},
       suppress_scheduled_email = nil,  -- nil means not set
+      recipients = {},
       attachments = {}
     }
 
@@ -270,6 +392,8 @@ function process_div(div)
           local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(child)), 10)
           local scheduled_email = str_truthy_falsy(email_scheduled_str)
           current_email.suppress_scheduled_email = not scheduled_email
+        elseif child.classes:includes("recipients") then
+          current_email.recipients = parse_recipients(pandoc.utils.stringify(child))
         else
           table.insert(remaining_content, child)
         end
@@ -507,6 +631,11 @@ function process_document(doc)
       suppress_scheduled = email_obj.suppress_scheduled_email,
       send_report_as_attachment = false
     }
+
+    -- Only add recipients if present
+    if not is_empty_table(email_obj.recipients) then
+      email_json_obj.recipients = email_obj.recipients
+    end
 
     -- Only add images if present
     if not is_empty_table(email_obj.email_images) then

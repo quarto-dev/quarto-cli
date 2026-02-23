@@ -1,0 +1,60 @@
+---
+title: Email Recipients Python Test Document
+author: Jules Walzer-Goldfeld
+format: email
+---
+
+The report content. Anything that is here is not part of the email message.
+
+::: {.email}
+
+::: {.subject}
+Python Recipients Email
+:::
+
+```{python}
+# Static recipients list
+recipients = ["alice@example.com", "bob@example.com", "charlie@example.com"]
+```
+
+::: {.recipients}
+`{python} recipients`
+:::
+
+::: {.email-text}
+Text version of email with Python recipients.
+:::
+
+First email HTML content with Python recipients.
+
+:::
+
+::: {.email}
+
+::: {.subject}
+Conditional Recipients Email (Weekday)
+:::
+
+```{python}
+# Conditional recipients based on a fixed boolean (for deterministic testing)
+is_weekday = True  # Fixed value for testing
+
+if is_weekday:
+    recipients = ["weekday@example.com", "team@example.com"]
+else:
+    recipients = ["weekend@example.com"]
+```
+
+::: {.recipients}
+`{python} recipients`
+:::
+
+::: {.email-text}
+Text version of conditional recipients email.
+:::
+
+Second email HTML content with conditional recipients.
+
+:::
+
+Any additional report content not part of the email message.
