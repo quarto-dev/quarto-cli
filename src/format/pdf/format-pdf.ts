@@ -38,6 +38,7 @@ import {
   kTblCapLoc,
   kTopLevelDivision,
   kWarning,
+  pdfStandardEnv,
 } from "../../config/constants.ts";
 import { warning } from "../../deno_ral/log.ts";
 import { asArray } from "../../core/array.ts";
@@ -326,7 +327,8 @@ function createPdfFormat(
 
         // Handle pdf-standard option for PDF/A, PDF/UA, PDF/X conformance
         const pdfStandard = asArray(
-          format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+          format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard] ??
+            pdfStandardEnv(),
         );
         if (pdfStandard.length > 0) {
           const { version, standards, needsTagging } =

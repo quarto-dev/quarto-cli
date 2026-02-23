@@ -34,6 +34,7 @@ import {
   kOutputFile,
   kPdfStandard,
   kVariant,
+  pdfStandardEnv,
 } from "../../config/constants.ts";
 import { error, warning } from "../../deno_ral/log.ts";
 import { ErrorEx } from "../../core/lib/error.ts";
@@ -158,7 +159,8 @@ export function typstPdfOutputRecipe(
       ),
       pdfStandard: normalizePdfStandardForTypst(
         asArray(
-          format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+          format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard] ??
+            pdfStandardEnv(),
         ),
       ),
     };
@@ -185,7 +187,8 @@ export function typstPdfOutputRecipe(
 
     // Validate PDF against specified standards using verapdf (if available)
     const pdfStandards = asArray(
-      format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard],
+      format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard] ??
+        pdfStandardEnv(),
     ) as string[];
     if (pdfStandards.length > 0) {
       await validatePdfStandards(pdfOutput, pdfStandards, {
