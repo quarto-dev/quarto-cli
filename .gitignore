@@ -1,5 +1,13 @@
 .DS_Store
 .idea
+
+# Claude Code files
+CLAUDE.local.md
+.claude/commands/
+.claude/docs/
+.claude/settings.local.json
+.claude/.claude/
+.claude/.private-journal/
 *.RData
 *.Rproj
 *.Rhistory

@@ -5,6 +5,7 @@ This document describes the standard patterns for writing smoke tests in the Qua
 ## Test Structure Overview
 
 Quarto uses Deno for testing with custom verification helpers located in:
+
 - `tests/test.ts` - Core test runner (`testQuartoCmd`)
 - `tests/verify.ts` - Verification helpers (`fileExists`, `pathDoNotExists`, etc.)
 - `tests/utils.ts` - Utility functions (`docs()`, `outputForInput()`, etc.)
@@ -34,13 +35,12 @@ const input = docs("minimal.qmd");
 const output = outputForInput(input, "html");
 
 testRender(input, "html", true, [
-  ensureHtmlElements(output.outputPath, [], [
-    "script#quarto-html-after-body",
-  ]),
+  ensureHtmlElements(output.outputPath, [], ["script#quarto-html-after-body"]),
 ]);
 ```
 
 **Key points:**
+
 - `testRender()` automatically handles output verification and cleanup
 - Respects `QUARTO_TEST_KEEP_OUTPUTS` env var for debugging
 - Set `noSupporting` parameter based on expected output:
@@ -61,15 +61,15 @@ import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { fileExists, pathDoNotExists, noErrors } from "../../verify.ts";
 
-const projectDir = docs("project/my-test");        // Relative path via docs()
-const outputDir = join(projectDir, "_site");       // Append output dir for websites
+const projectDir = docs("project/my-test"); // Relative path via docs()
+const outputDir = join(projectDir, "_site"); // Append output dir for websites
 
 testQuartoCmd(
   "render",
   [projectDir],
   [
-    noErrors,                                       // Check for no errors
-    fileExists(join(outputDir, "index.html")),    // Verify expected file exists
+    noErrors, // Check for no errors
+    fileExists(join(outputDir, "index.html")), // Verify expected file exists
     pathDoNotExists(join(outputDir, "ignored.html")), // Verify file doesn't exist
   ],
   {
@@ -83,66 +83,11 @@ testQuartoCmd(
 ```
 
 **Key points:**
+
 - Use `docs()` helper to create relative paths from `tests/docs/`
 - For website projects, output goes to `_site` subdirectory
 - Use absolute paths with `join()` for file verification
 - Clean up output directories in teardown
-
-### Pre/Post Render Script Tests
-
-For testing pre-render or post-render scripts that run during project rendering:
-
-```typescript
-import { docs } from "../../utils.ts";
-import { join } from "../../../src/deno_ral/path.ts";
-import { existsSync } from "../../../src/deno_ral/fs.ts";
-import { testQuartoCmd } from "../../test.ts";
-import { noErrors, validJsonWithFields } from "../../verify.ts";
-import { safeRemoveIfExists } from "../../../src/core/path.ts";
-
-const projectDir = docs("project/prepost/my-test");
-const projectDirAbs = join(Deno.cwd(), projectDir);
-const dumpPath = join(projectDirAbs, "output.json");
-const outDir = join(projectDirAbs, "_site");
-
-testQuartoCmd(
-  "render",
-  [projectDir],
-  [
-    noErrors,
-    validJsonWithFields(dumpPath, {
-      expected: "value",
-    }),
-  ],
-  {
-    teardown: async () => {
-      safeRemoveIfExists(dumpPath);
-      if (existsSync(outDir)) {
-        await Deno.remove(outDir, { recursive: true });
-      }
-    },
-  },
-);
-```
-
-**Fixture structure:**
-
-```
-tests/docs/project/prepost/my-test/
-├── _quarto.yml       # project config with pre-render/post-render scripts
-├── index.qmd         # minimal page (website needs at least one)
-├── check-env.ts      # pre/post-render script (Deno TypeScript)
-└── .gitignore        # exclude .quarto/ and *.quarto_ipynb
-```
-
-**Key points:**
-- Pre/post-render scripts run as subprocesses with `cwd` set to the project directory
-- Scripts access environment variables via `Deno.env.get()` and can write files for verification
-- Use `validJsonWithFields` for JSON file verification (parses and compares field values exactly)
-- Use `ensureFileRegexMatches` for non-JSON files or when regex matching is needed
-- The file dump pattern (script writes JSON, test reads it) is useful for verifying env vars and other runtime state
-- Clean up both the dump file and the output directory in teardown
-- Existing fixtures: `tests/docs/project/prepost/` (mutate-render-list, invalid-mutate, extension, issue-10828, script-env-vars)
 
 ### Extension Template Tests
 
@@ -150,7 +95,11 @@ For testing `quarto use template`:
 
 ```typescript
 import { testQuartoCmd } from "../../test.ts";
-import { fileExists, noErrorsOrWarnings, pathDoNotExists } from "../../verify.ts";
+import {
+  fileExists,
+  noErrorsOrWarnings,
+  pathDoNotExists,
+} from "../../verify.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 
@@ -171,11 +120,11 @@ testQuartoCmd(
   ["template", templateSourceDir, "--no-prompt"],
   [
     noErrorsOrWarnings,
-    fileExists(`${templateFolder}.qmd`),             // Relative - template file renamed to folder name
+    fileExists(`${templateFolder}.qmd`), // Relative - template file renamed to folder name
     pathDoNotExists(join(workingDir, "README.md")), // Absolute - excluded file
   ],
   {
-    cwd: () => workingDir,                           // Set working directory
+    cwd: () => workingDir, // Set working directory
     teardown: () => {
       try {
         Deno.removeSync(tempDir, { recursive: true });
@@ -183,12 +132,13 @@ testQuartoCmd(
         // Ignore cleanup errors
       }
       return Promise.resolve();
-    }
-  }
+    },
+  },
 );
 ```
 
 **Key points:**
+
 - Use `Deno.makeTempDirSync()` for isolated test environment
 - Create mock template source with test files
 - Template files get renamed to match target directory name
@@ -218,43 +168,6 @@ folderExists(path: string)
 
 // Directory contains only allowed paths
 directoryEmptyButFor(dir: string, allowedFiles: string[])
-```
-
-### Content Verifiers
-
-```typescript
-// Regex match on file contents (matches required, noMatches must be absent)
-ensureFileRegexMatches(file: string, matches: (string | RegExp)[], noMatches?: (string | RegExp)[])
-
-// Regex match on CSS files linked from HTML
-ensureCssRegexMatches(file: string, matches: (string | RegExp)[], noMatches?: (string | RegExp)[])
-
-// Check HTML elements exist or don't exist (CSS selectors)
-ensureHtmlElements(file: string, noElements: string[], elements: string[])
-
-// Verify JSON structure has expected fields (parses JSON, compares values with deep equality)
-validJsonWithFields(file: string, fields: Record<string, unknown>)
-
-// Check output message at specific log level
-printsMessage(options: { level: string, regex: RegExp })
-```
-
-### Assertion Helpers
-
-```typescript
-// Assert path exists (throws if missing)
-verifyPath(path: string)
-
-// Assert path does NOT exist (throws if present)
-verifyNoPath(path: string)
-```
-
-### Cleanup Helpers
-
-```typescript
-// Safe file removal (no error if missing) - from src/core/path.ts
-import { safeRemoveIfExists } from "../../../src/core/path.ts";
-safeRemoveIfExists(path: string)
 ```
 
 ### Path Helpers
@@ -327,7 +240,7 @@ teardown: async () => {
   if (existsSync(outputPath)) {
     await Deno.remove(outputPath, { recursive: true });
   }
-}
+};
 ```
 
 ### Multiple Test Cases
@@ -359,17 +272,21 @@ testQuartoCmd(...);
 ## Examples from Codebase
 
 ### Simple Render Test
+
 See `tests/smoke/render/render-plain.test.ts` for the simplest render tests (no additional verifiers).
 
 See `tests/smoke/render/render-minimal.test.ts` for render test with custom HTML element verification.
 
 ### Project Ignore Test
+
 See `tests/smoke/project/project-ignore-dirs.test.ts` for testing directory exclusion patterns.
 
 ### Website Rendering Test
+
 See `tests/smoke/project/project-website.test.ts` for website project rendering patterns.
 
 ### Template Usage Test
+
 See `tests/smoke/use/template.test.ts` for extension template patterns.
 
 ## Engine-Specific Test Considerations
@@ -395,6 +312,7 @@ tests/docs/my-test/
 ```
 
 **Why this fails:**
+
 - Julia searches UP for `Project.toml` and uses the first one found
 - Python/R will use local environments if present
 - CI scripts won't configure these local environments
@@ -432,6 +350,26 @@ Rscript -e "renv::install(); renv::snapshot()"
 6. **Comment intent**: Add comments explaining what should/shouldn't happen
 7. **Handle errors**: Wrap cleanup in try-catch to avoid test suite failures from cleanup issues
 
+## Environment Variable Testing Pitfalls
+
+`Deno.env.set()` modifies process-global state. Deno runs test files in parallel by default (same OS process), so concurrent tests can see modified values. Save/restore patterns don't help - other tests see the modified value during the test window.
+
+| Execution Mode             | Risk               | Why                                     |
+| -------------------------- | ------------------ | --------------------------------------- |
+| `./run-tests.sh` (default) | **Race condition** | Files run in parallel, share `Deno.env` |
+| `./run-parallel-tests.sh`  | **None**           | Separate OS processes                   |
+
+**Existing bad pattern** - `tests/smoke/website/drafts-env.test.ts`:
+
+```typescript
+// BAD: Sets env var, never restores it
+// Only "works" because no other test reads QUARTO_PROFILE
+Deno.env.set("QUARTO_PROFILE", "drafts");
+testQuartoCmd("render", [renderDir], [...]);
+```
+
+**Alternatives:** Unit test the env var reader, refactor code to accept parameters, or use subprocess isolation.
+
 ## Testing File Exclusion
 
 When testing that files are excluded (like AI config files):
@@ -443,7 +381,7 @@ testQuartoCmd(
   [projectDir],
   [
     noErrors,
-    fileExists(join(outputDir, "expected.html")),      // Should exist
+    fileExists(join(outputDir, "expected.html")), // Should exist
     pathDoNotExists(join(outputDir, "excluded.html")), // Should NOT exist
   ],
   // ...
@@ -451,3 +389,37 @@ testQuartoCmd(
 ```
 
 Run test **without fix** first to verify it fails, then verify it passes with fix.
+
+## Smoke-All Tests (YAML-Based)
+
+Smoke-all tests embed test specifications directly in `.qmd` files using `_quarto.tests` metadata. See `.claude/rules/testing/smoke-all-tests.md` for full documentation.
+
+### YAML String Escaping for Regex
+
+**Critical rule:** In YAML single-quoted strings, `'\('` and `"\\("` are equivalent - both produce a literal `\(` in the regex.
+
+**Common mistake:** Over-escaping with `'\\('` produces `\\(` (two backslashes), causing regex to fail.
+
+```yaml
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        # CORRECT - single backslash in YAML single quotes
+        - ['\(1\)', '\\circled\{1\}', "Variable assignment"]
+        - ['\\CommentTok', '\\begin\{Shaded\}']
+
+        # WRONG - over-escaped (produces \\( in regex)
+        - ['\\(1\\)', '\\\\circled\\{1\\}']
+```
+
+**YAML escaping cheat sheet:**
+
+| To match in file | In single quotes `'...'` | In double quotes `"..."` |
+| ---------------- | ------------------------ | ------------------------ |
+| `\(`             | `'\('`                   | `"\\("`                  |
+| `\begin{`        | `'\\begin\{'`            | `"\\\\begin\\{"`         |
+| `\\` (literal)   | `'\\\\'`                 | `"\\\\\\\\"`             |
+| `[` (regex)      | `'\['`                   | `"\\["`                  |
+
+**Recommendation:** Use single-quoted strings. They're simpler - only `'` itself needs escaping (as `''`).
