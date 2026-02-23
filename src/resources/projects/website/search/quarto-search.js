@@ -47,6 +47,19 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     // perform any highlighting
     highlight(query, mainEl);
 
+    // Activate tabs on pageshow — after tabsets.js restores localStorage state.
+    // tabsets.js registers its pageshow handler during module execution (before
+    // DOMContentLoaded). By registering ours during DOMContentLoaded, listener
+    // ordering guarantees we run after tabsets.js — so search activation wins.
+    window.addEventListener("pageshow", function (event) {
+      if (!event.persisted) {
+        for (const mark of mainEl.querySelectorAll("mark")) {
+          openAllTabsetsContainingEl(mark);
+        }
+        requestAnimationFrame(() => scrollToFirstVisibleMatch(mainEl));
+      }
+    }, { once: true });
+
     // fix up the URL to remove the q query param
     const replacementUrl = new URL(window.location);
     replacementUrl.searchParams.delete(kQueryArg);
@@ -1170,7 +1183,7 @@ function searchMatches(inSearch, el) {
   /** @type {{i:number; els:Map<HTMLElement,{lo:number,hi:number}>}[]} */
   let curMatchContext = initMatch()
 
-  for (leaf of leafNodes) {
+  for (const leaf of leafNodes) {
     const leafStr = leaf.textContent.toLowerCase()
     // for each character in this leaf's text:
     for (let leafi = 0; leafi < leafStr.length; leafi++) {
@@ -1231,18 +1244,43 @@ function markMatches(node, lohis) {
   return parent
 }
 
+// Activate ancestor tabs so a search match inside an inactive pane becomes visible.
+// When multiple panes in the same tabset contain matches, avoid switching away from
+// the currently active pane — the user already sees a match there.
 function openAllTabsetsContainingEl(el) {
-  for (const tab of matchAncestors(el, '.tab-pane')) {
-    const tabButton = document.querySelector(`[data-bs-target="#${tab.id}"]`);
+  for (const pane of matchAncestors(el, '.tab-pane')) {
+    const tabContent = pane.closest('.tab-content');
+    if (!tabContent) continue;
+    const activePane = tabContent.querySelector(':scope > .tab-pane.active');
+    if (activePane?.querySelector('mark')) continue;
+    const tabButton = document.querySelector(`[data-bs-target="#${pane.id}"]`);
     if (tabButton) new bootstrap.Tab(tabButton).show();
   }
 }
 
+function scrollToFirstVisibleMatch(mainEl) {
+  for (const mark of mainEl.querySelectorAll("mark")) {
+    let hidden = false;
+    let el = mark.parentElement;
+    while (el && el !== mainEl) {
+      if (el.classList.contains("tab-pane") && !el.classList.contains("active")) {
+        hidden = true;
+        break;
+      }
+      el = el.parentElement;
+    }
+    if (!hidden) {
+      mark.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+  }
+}
+
 /**
- * e.g. 
+ * e.g.
  * ```js
  * const m = new Map()
- * 
+ *
  * arrayMapPush(m, 'dog', 'Max')
  * console.log(m) // Map { dog->['Max'] }
  * 
@@ -1270,16 +1308,9 @@ function highlight(searchStr, el) {
     }
   }
 
-  const matchNodes = [...matchesGroupedByNode].map(([node, lohis]) => {
-    const matchNode = markMatches(node, lohis)
-    openAllTabsetsContainingEl(matchNode)
-    return matchNode
-  })
-  // let things settle before scrolling
-  setTimeout(() =>
-    matchNodes[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
-    400
-  )
+  for (const [node, lohis] of matchesGroupedByNode) {
+    markMatches(node, lohis)
+  }
 }
 
 /* Link Handling */
