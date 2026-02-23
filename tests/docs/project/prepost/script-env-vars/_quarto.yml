@@ -1,0 +1,10 @@
+project:
+  type: website
+  pre-render: check-env.ts
+
+website:
+  title: "script-env-vars"
+
+format:
+  html:
+    theme: cosmo
