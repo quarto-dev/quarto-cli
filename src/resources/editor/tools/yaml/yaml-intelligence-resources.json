@@ -9670,6 +9670,55 @@
       }
     },
     {
+      "name": "margin",
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
+      "schema": {
+        "object": {
+          "closed": true,
+          "properties": {
+            "x": {
+              "string": {
+                "description": "Horizontal margin (e.g. 1.5in)"
+              }
+            },
+            "y": {
+              "string": {
+                "description": "Vertical margin (e.g. 1.5in)"
+              }
+            },
+            "top": {
+              "string": {
+                "description": "Top margin (e.g. 1.5in)"
+              }
+            },
+            "bottom": {
+              "string": {
+                "description": "Bottom margin (e.g. 1.5in)"
+              }
+            },
+            "left": {
+              "string": {
+                "description": "Left margin (e.g. 1.5in)"
+              }
+            },
+            "right": {
+              "string": {
+                "description": "Right margin (e.g. 1.5in)"
+              }
+            }
+          }
+        }
+      },
+      "description": {
+        "short": "Page margins for Typst output.",
+        "long": "A dictionary specifying page margins. Use `x` and `y` for symmetric\nhorizontal/vertical margins, or `top`, `bottom`, `left`, `right` for\nindividual sides. Values should include units (e.g. `1.5in`, `2cm`).\n"
+      }
+    },
+    {
       "name": "geometry",
       "schema": {
         "maybeArrayOf": "string"
@@ -11802,54 +11851,12 @@
       "name": "margin",
       "tags": {
         "formats": [
-          "revealjs",
-          "typst"
+          "revealjs"
         ]
       },
-      "schema": {
-        "anyOf": [
-          "number",
-          {
-            "object": {
-              "closed": true,
-              "properties": {
-                "x": {
-                  "string": {
-                    "description": "Horizontal margin (e.g. 5cm)"
-                  }
-                },
-                "y": {
-                  "string": {
-                    "description": "Vertical margin (e.g. 5cm)"
-                  }
-                },
-                "top": {
-                  "string": {
-                    "description": "Top margin (e.g. 5cm)"
-                  }
-                },
-                "bottom": {
-                  "string": {
-                    "description": "Bottom margin (e.g. 5cm)"
-                  }
-                },
-                "left": {
-                  "string": {
-                    "description": "Left margin (e.g. 5cm)"
-                  }
-                },
-                "right": {
-                  "string": {
-                    "description": "Right margin (e.g. 5cm)"
-                  }
-                }
-              }
-            }
-          }
-        ]
-      },
+      "schema": "number",
       "default": 0.1,
-      "description": "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n"
+      "description": "Factor of the display size that should remain empty around the content (e.g. 0.1)."
     },
     {
       "name": "min-scale",
@@ -13615,6 +13622,9 @@
       },
       "dashboard": {
         "title": "Dashboard"
+      },
+      "typst": {
+        "title": "Typst"
       },
       "options": {
         "title": "Format Options"
@@ -16264,17 +16274,17 @@
     "Sets the CSS <code>color</code> property.",
     {
       "short": "Sets the color of hyperlinks in the document.",
-      "long": "For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document."
+      "long": "For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.\nFor Typst output, sets the color of internal hyperlinks using Typst\ncolor syntax."
     },
     "Sets the CSS <code>background-color</code> property on code elements\nand adds extra padding.",
     "Sets the CSS <code>background-color</code> property on the html\nelement.",
     {
-      "short": "The color used for external links using color options allowed by\n<code>xcolor</code>",
-      "long": "The color used for external links using color options allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists."
+      "short": "The color used for external links.",
+      "long": "For LaTeX output, the color used for external links using color\noptions allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of external file links using Typst\ncolor syntax."
     },
     {
-      "short": "The color used for citation links using color options allowed by\n<code>xcolor</code>",
-      "long": "The color used for citation links using color options allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists."
+      "short": "The color used for citation links.",
+      "long": "For LaTeX output, the color used for citation links using color\noptions allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of citation links using Typst color\nsyntax."
     },
     {
       "short": "The color used for linked URLs using color options allowed by\n<code>xcolor</code>",
@@ -16471,6 +16481,10 @@
       "long": "For HTML output, sets the CSS font-family property on code\nelements.\nFor PowerPoint output, sets the font used for code.\nFor LaTeX output, the monospace font family for use with\n<code>xelatex</code> or <code>lualatex</code>: take the name of any\nsystem font, using the <a href=\"https://ctan.org/pkg/fontspec\"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the monspace font family. Use the name of any\nsystem font. See <a href=\"https://wiki.contextgarden.net/Fonts\">ConTeXt\nFonts</a> for more information."
     },
     {
+      "short": "Sets the font used for code in Typst output.",
+      "long": "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
+    },
+    {
       "short": "Sets the main font size for the document.",
       "long": "For HTML output, sets the base CSS <code>font-size</code>\nproperty.\nFor LaTeX and ConTeXt output, sets the font size for the document\nbody text."
     },
@@ -16491,8 +16505,8 @@
       "long": "The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href=\"https://ctan.org/pkg/fontspec\"><code>fontspec</code></a>\npackage."
     },
     {
-      "short": "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-      "long": "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href=\"https://ctan.org/pkg/fontspec\"><code>fontspec</code></a>\npackage."
+      "short": "The math font family for use with <code>xelatex</code>,\n<code>lualatex</code>, or Typst.",
+      "long": "For LaTeX output, the math font family for use with\n<code>xelatex</code> or <code>lualatex</code>. Takes the name of any\nsystem font, using the <a href=\"https://ctan.org/pkg/fontspec\"><code>fontspec</code></a>\npackage.\nFor Typst output, sets the font used for mathematical content."
     },
     {
       "short": "The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -16530,7 +16544,7 @@
     "The line height, for example, <code>12p</code>.",
     {
       "short": "Sets the line height or spacing for text in the document.",
-      "long": "For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href=\"https://ctan.org/pkg/setspace\">setspace</a> package, e.g.&nbsp;1.25,\n1.5."
+      "long": "For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href=\"https://ctan.org/pkg/setspace\">setspace</a> package, e.g.&nbsp;1.25,\n1.5.\nFor Typst output, adjusts the spacing between lines of text."
     },
     "Adjusts line spacing using the <code>\\setupinterlinespace</code>\ncommand.",
     "The typeface style for links in the document.",
@@ -18106,9 +18120,15 @@
     "internal-schema-hack",
     "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
     {
-      "short": "Sets the font used for code in Typst output.",
-      "long": "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
-    }
+      "short": "Page margins for Typst output.",
+      "long": "A dictionary specifying page margins. Use <code>x</code> and\n<code>y</code> for symmetric horizontal/vertical margins, or\n<code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code> for individual sides. Values should include units\n(e.g.&nbsp;<code>1.5in</code>, <code>2cm</code>)."
+    },
+    "Horizontal margin (e.g.&nbsp;1.5in)",
+    "Vertical margin (e.g.&nbsp;1.5in)",
+    "Top margin (e.g.&nbsp;1.5in)",
+    "Bottom margin (e.g.&nbsp;1.5in)",
+    "Left margin (e.g.&nbsp;1.5in)",
+    "Right margin (e.g.&nbsp;1.5in)"
   ],
   "schema/external-schemas.yml": [
     {
@@ -18338,12 +18358,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 222606,
+    "_internalId": 222771,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 222598,
+        "_internalId": 222763,
         "type": "enum",
         "enum": [
           "png",
@@ -18359,7 +18379,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 222605,
+        "_internalId": 222770,
         "type": "anyOf",
         "anyOf": [
           {
