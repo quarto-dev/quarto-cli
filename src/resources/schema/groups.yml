@@ -25,6 +25,8 @@ document:
     title: "Title & Author"
   dashboard:
     title: "Dashboard"
+  typst:
+    title: "Typst"
   options:
     title: "Format Options"
   toc:
