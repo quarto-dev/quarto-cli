@@ -53,6 +53,7 @@ All changes included in 1.9:
 - ([#13883](https://github.com/quarto-dev/quarto-cli/issues/13883)): Fix unequal top/bottom spacing in simple untitled callouts.
 - ([#13900](https://github.com/quarto-dev/quarto-cli/issues/13900)): Warn when `renderings` cell option contains duplicate names. Previously, duplicate names like `[dark, light, dark, light]` would silently use only the last output for each name.
 - ([#14065](https://github.com/quarto-dev/quarto-cli/issues/14065)): Fix `SCSSParsingError` when custom SCSS themes contain non-ASCII characters in selectors (e.g., `#présentation`).
+- ([#14084](https://github.com/quarto-dev/quarto-cli/issues/14084)): Fix dark mode detection for brand colour overrides with perceptually-dark but low-HWB-blackness colours (e.g. blue `#0000FF`). The dark/light sentinel now uses oklch perceptual lightness instead of HWB blackness, and dual-theme builds inject the sentinel directly from the build pipeline.
 
 ### `typst`
 
@@ -102,6 +103,7 @@ All changes included in 1.9:
 ### `revealjs`
 
 - ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
+- ([#14084](https://github.com/quarto-dev/quarto-cli/issues/14084)): Fix dark mode detection for brand colour overrides with perceptually-dark but low-HWB-blackness colours (e.g. blue `#0000FF`). The dark/light sentinel now uses oklch perceptual lightness instead of HWB blackness.
 
 ### `ipynb`
 

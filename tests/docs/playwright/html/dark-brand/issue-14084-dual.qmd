@@ -1,0 +1,26 @@
+---
+title: "Issue 14084 - dual theme with blue dark background"
+brand:
+  color:
+    background:
+      light: "white"
+      dark: "blue"
+    foreground:
+      light: "black"
+      dark: "yellow"
+format:
+  html:
+    theme:
+      light:
+        - cosmo
+        - brand
+      dark:
+        - darkly
+        - brand
+---
+
+## Light and dark content
+
+[This text is visible only in light mode]{.light-content}
+
+[This text is visible only in dark mode]{.dark-content}
