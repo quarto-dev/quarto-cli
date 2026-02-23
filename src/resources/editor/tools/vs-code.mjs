@@ -23875,6 +23875,16 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "For HTML output, sets the <code>margin-bottom</code> property on the\nBody element.\nFor LaTeX output, sets the bottom margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the bottom margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the bottom page margin."
         },
         {
+          short: "Page margins for Typst output.",
+          long: "A dictionary specifying page margins. Use <code>x</code> and\n<code>y</code> for symmetric horizontal/vertical margins, or\n<code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code> for individual sides. Values should include units\n(e.g.&nbsp;<code>1.5in</code>, <code>2cm</code>)."
+        },
+        "Horizontal margin (e.g.&nbsp;1.5in)",
+        "Vertical margin (e.g.&nbsp;1.5in)",
+        "Top margin (e.g.&nbsp;1.5in)",
+        "Bottom margin (e.g.&nbsp;1.5in)",
+        "Left margin (e.g.&nbsp;1.5in)",
+        "Right margin (e.g.&nbsp;1.5in)",
+        {
           short: "Options for the geometry package.",
           long: 'Options for the <a href="https://ctan.org/pkg/geometry">geometry</a>\npackage. For example:'
         },
@@ -24207,13 +24217,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The \u2018normal\u2019 height of the presentation",
           long: "The \u201Cnormal\u201D height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
         },
-        "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary with the fields defined in the\nTypst documentation: <code>x</code>, <code>y</code>, <code>top</code>,\n<code>bottom</code>, <code>left</code>, <code>right</code> (margins are\nspecified in <code>cm</code> units, e.g.&nbsp;<code>5cm</code>).",
-        "Horizontal margin (e.g.&nbsp;5cm)",
-        "Vertical margin (e.g.&nbsp;5cm)",
-        "Top margin (e.g.&nbsp;5cm)",
-        "Bottom margin (e.g.&nbsp;5cm)",
-        "Left margin (e.g.&nbsp;5cm)",
-        "Right margin (e.g.&nbsp;5cm)",
+        "Factor of the display size that should remain empty around the\ncontent (e.g.&nbsp;0.1).",
         "Bounds for smallest possible scale to apply to content",
         "Bounds for largest possible scale to apply to content",
         "Vertical centering of slides",
@@ -25146,17 +25150,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        {
-          short: "Page margins for Typst output.",
-          long: "A dictionary specifying page margins. Use <code>x</code> and\n<code>y</code> for symmetric horizontal/vertical margins, or\n<code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code> for individual sides. Values should include units\n(e.g.&nbsp;<code>1.5in</code>, <code>2cm</code>)."
-        },
-        "Horizontal margin (e.g.&nbsp;1.5in)",
-        "Vertical margin (e.g.&nbsp;1.5in)",
-        "Top margin (e.g.&nbsp;1.5in)",
-        "Bottom margin (e.g.&nbsp;1.5in)",
-        "Left margin (e.g.&nbsp;1.5in)",
-        "Right margin (e.g.&nbsp;1.5in)"
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -25386,12 +25380,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222771,
+        _internalId: 222532,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222763,
+            _internalId: 222524,
             type: "enum",
             enum: [
               "png",
@@ -25407,7 +25401,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222770,
+            _internalId: 222531,
             type: "anyOf",
             anyOf: [
               {
@@ -25541,7 +25535,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Visual style for theorem environments in Typst output.",
-            long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
           }
         }
       ],
