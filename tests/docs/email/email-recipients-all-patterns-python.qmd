@@ -22,11 +22,62 @@ def write_yaml_metadata_block(**kwargs):
     return Markdown(yaml_block)
 ```
 
-Test document demonstrating both recipient patterns with Python.
+Test document demonstrating all recipient patterns with Python.
+
+```{python}
+# Email 1: Static inline recipients
+static_recipients = ["alice@example.com", "bob@example.com", "charlie@example.com"]
+```
+
+::: {.email}
+
+::: {.subject}
+Email 1: Static Inline Recipients
+:::
+
+::: {.recipients}
+`{python} static_recipients`
+:::
+
+::: {.email-text}
+Text version of email with static inline recipients.
+:::
+
+First email with static inline recipients.
+
+:::
+
+```{python}
+# Email 2: Conditional inline recipients
+is_weekday = True  # Fixed value for deterministic testing
+
+if is_weekday:
+    conditional_recipients = ["weekday@example.com", "team@example.com"]
+else:
+    conditional_recipients = ["weekend@example.com"]
+```
+
+::: {.email}
+
+::: {.subject}
+Email 2: Conditional Inline Recipients
+:::
+
+::: {.recipients}
+`{python} conditional_recipients`
+:::
+
+::: {.email-text}
+Text version of conditional recipients email.
+:::
+
+Second email with conditional inline recipients.
+
+:::
 
 ```{python}
 #| output: asis
-# Email 1: Metadata attribute pattern
+# Email 3: Metadata attribute pattern
 metadata_recipients = ["metadata1@example.com", "metadata2@example.com"]
 write_yaml_metadata_block(metadata_recipients=metadata_recipients)
 ```
@@ -34,36 +85,40 @@ write_yaml_metadata_block(metadata_recipients=metadata_recipients)
 ::: {.email recipients=metadata_recipients}
 
 ::: {.subject}
-Email 1: Metadata Attribute Pattern
+Email 3: Metadata Attribute Pattern
 :::
 
 ::: {.email-text}
 This email uses the metadata attribute pattern.
 :::
 
-First email using metadata attribute pattern with Python.
+Third email using metadata attribute pattern.
 
 :::
 
 ```{python}
-# Email 2: Inline recipients pattern
-inline_recipients = ["inline1@example.com", "inline2@example.com"]
+#| output: asis
+# Email 4: Conditional metadata attribute pattern
+is_admin = True  # Fixed for testing
+
+if is_admin:
+    admin_recipients = ["admin@example.com", "superuser@example.com"]
+else:
+    admin_recipients = ["user@example.com"]
+
+write_yaml_metadata_block(admin_recipients=admin_recipients)
 ```
 
-::: {.email}
+::: {.email recipients=admin_recipients}
 
 ::: {.subject}
-Email 2: Inline Recipients Pattern
-:::
-
-::: {.recipients}
-`{python} inline_recipients`
+Email 4: Conditional Metadata Attribute
 :::
 
 ::: {.email-text}
-This email uses the inline recipients pattern.
+This email uses conditional metadata attribute pattern.
 :::
 
-Second email using inline recipients pattern with Python.
+Fourth email using conditional metadata attribute pattern.
 
 :::

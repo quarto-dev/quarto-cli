@@ -226,64 +226,6 @@ testRender(docs("email/email-mixed-metadata-v2.qmd"), "email", false, [
     "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
   }
 });
-// Test Python recipients with v2 format
-testRender(docs("email/email-recipients-python.qmd"), "email", false, [
-  fileExists(previewFileV2_1),
-  fileExists(previewFileV2_2),
-  validJsonWithMultipleEmails(jsonFile, 2, {
-    "0": {
-      "email_id": 1,
-      "subject": "Python Recipients Email",
-      "recipients": ["alice@example.com", "bob@example.com", "charlie@example.com"],
-      "attachments": [],
-      "suppress_scheduled": false,
-      "send_report_as_attachment": false
-    },
-    "1": {
-      "email_id": 2,
-      "subject": "Conditional Recipients Email (Weekday)",
-      "recipients": ["weekday@example.com", "team@example.com"],
-      "attachments": [],
-      "suppress_scheduled": false,
-      "send_report_as_attachment": false
-    }
-  })
-], {
-  ...cleanupCtx,
-  env: {
-    "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
-  }
-});
-
-// Test R recipients with v2 format
-testRender(docs("email/email-recipients-r.qmd"), "email", false, [
-  fileExists(previewFileV2_1),
-  fileExists(previewFileV2_2),
-  validJsonWithMultipleEmails(jsonFile, 2, {
-    "0": {
-      "email_id": 1,
-      "subject": "R Recipients Email",
-      "recipients": ["alice@example.com", "bob@example.com", "charlie@example.com"],
-      "attachments": [],
-      "suppress_scheduled": false,
-      "send_report_as_attachment": false
-    },
-    "1": {
-      "email_id": 2,
-      "subject": "Conditional Recipients Email (R)",
-      "recipients": ["weekday@example.com", "team@example.com"],
-      "attachments": [],
-      "suppress_scheduled": false,
-      "send_report_as_attachment": false
-    }
-  })
-], {
-  ...cleanupCtx,
-  env: {
-    "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
-  }
-});
-
 // Test alternative recipient formats (line-separated and comma-separated plain text)
 testRender(docs("email/email-recipients-formats.qmd"), "email", false, [
   fileExists(previewFileV2_1),
@@ -313,23 +255,41 @@ testRender(docs("email/email-recipients-formats.qmd"), "email", false, [
   }
 });
 
-// Test both recipient patterns with Python (metadata attribute + inline)
+// Test all recipient patterns with Python (static inline, conditional inline, metadata, conditional metadata)
 testRender(docs("email/email-recipients-all-patterns-python.qmd"), "email", false, [
   fileExists(previewFileV2_1),
   fileExists(previewFileV2_2),
-  validJsonWithMultipleEmails(jsonFile, 2, {
+  fileExists(docs("email/email-preview/email_id-3.html")),
+  fileExists(docs("email/email-preview/email_id-4.html")),
+  validJsonWithMultipleEmails(jsonFile, 4, {
     "0": {
       "email_id": 1,
-      "subject": "Email 1: Metadata Attribute Pattern",
-      "recipients": ["metadata1@example.com", "metadata2@example.com"],
+      "subject": "Email 1: Static Inline Recipients",
+      "recipients": ["alice@example.com", "bob@example.com", "charlie@example.com"],
       "attachments": [],
       "suppress_scheduled": false,
       "send_report_as_attachment": false
     },
     "1": {
       "email_id": 2,
-      "subject": "Email 2: Inline Recipients Pattern",
-      "recipients": ["inline1@example.com", "inline2@example.com"],
+      "subject": "Email 2: Conditional Inline Recipients",
+      "recipients": ["weekday@example.com", "team@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "2": {
+      "email_id": 3,
+      "subject": "Email 3: Metadata Attribute Pattern",
+      "recipients": ["metadata1@example.com", "metadata2@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "3": {
+      "email_id": 4,
+      "subject": "Email 4: Conditional Metadata Attribute",
+      "recipients": ["admin@example.com", "superuser@example.com"],
       "attachments": [],
       "suppress_scheduled": false,
       "send_report_as_attachment": false
@@ -342,23 +302,41 @@ testRender(docs("email/email-recipients-all-patterns-python.qmd"), "email", fals
   }
 });
 
-// Test both recipient patterns with R (metadata attribute + inline)
+// Test all recipient patterns with R (static inline, conditional inline, metadata, conditional metadata)
 testRender(docs("email/email-recipients-all-patterns-r.qmd"), "email", false, [
   fileExists(previewFileV2_1),
   fileExists(previewFileV2_2),
-  validJsonWithMultipleEmails(jsonFile, 2, {
+  fileExists(docs("email/email-preview/email_id-3.html")),
+  fileExists(docs("email/email-preview/email_id-4.html")),
+  validJsonWithMultipleEmails(jsonFile, 4, {
     "0": {
       "email_id": 1,
-      "subject": "Email 1: Metadata Attribute Pattern",
-      "recipients": ["metadata1@example.com", "metadata2@example.com"],
+      "subject": "Email 1: Static Inline Recipients",
+      "recipients": ["alice@example.com", "bob@example.com", "charlie@example.com"],
       "attachments": [],
       "suppress_scheduled": false,
       "send_report_as_attachment": false
     },
     "1": {
       "email_id": 2,
-      "subject": "Email 2: Inline Recipients Pattern",
-      "recipients": ["inline1@example.com", "inline2@example.com"],
+      "subject": "Email 2: Conditional Inline Recipients",
+      "recipients": ["weekday@example.com", "team@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "2": {
+      "email_id": 3,
+      "subject": "Email 3: Metadata Attribute Pattern",
+      "recipients": ["metadata1@example.com", "metadata2@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "3": {
+      "email_id": 4,
+      "subject": "Email 4: Conditional Metadata Attribute",
+      "recipients": ["admin@example.com", "superuser@example.com"],
       "attachments": [],
       "suppress_scheduled": false,
       "send_report_as_attachment": false
