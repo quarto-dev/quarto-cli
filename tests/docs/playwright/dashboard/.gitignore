@@ -1,0 +1,3 @@
+*.html
+*_files/
+.quarto/

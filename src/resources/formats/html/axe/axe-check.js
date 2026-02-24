@@ -132,6 +132,7 @@ class QuartoAxeChecker {
     });
     const reporter = this.options === true ? new QuartoAxeConsoleReporter(result) : new reporters[this.options.output](result, this.options);
     reporter.report();
+    document.body.setAttribute('data-quarto-axe-complete', 'true');
   }
 }
 

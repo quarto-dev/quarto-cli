@@ -1,0 +1,12 @@
+---
+format:
+  html:
+    axe:
+      output: json
+---
+
+## HTML Document
+
+Content for axe accessibility testing.
+
+This text violates contrast rules: [insufficient contrast.]{style="color: #eee; background: #fff;"}.

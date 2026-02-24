@@ -61,6 +61,40 @@ test("Feature description", async ({ page }) => {
 });
 ```
 
+### Parameterized Tests
+
+When testing the same behavior across multiple formats or configurations, use `test.describe` with a test cases array instead of separate spec files. See `html-math-katex.spec.ts` and `axe-accessibility.spec.ts` for examples.
+
+```typescript
+const testCases = [
+  { format: 'html', url: '/html/feature.html' },
+  { format: 'revealjs', url: '/revealjs/feature.html', shouldFail: 'reason (#issue)' },
+];
+
+test.describe('Feature across formats', () => {
+  for (const { format, url, shouldFail } of testCases) {
+    test(`${format} — feature works`, async ({ page }) => {
+      if (shouldFail) test.fail();
+      // shared test logic
+    });
+  }
+});
+```
+
+**When to use:** Same assertion logic applied to multiple formats, output modes, or configurations. Reduces file count and centralizes shared helpers.
+
+### Expected Failures
+
+Use `test.fail()` to document known failures. Playwright inverts the result: the test passes if it fails, and flags if it unexpectedly passes (signaling the fix landed).
+
+```typescript
+test('Feature that is known broken', async ({ page }) => {
+  // Brief explanation of why this fails and issue reference
+  test.fail();
+  // ... normal test logic
+});
+```
+
 ## Configuration
 
 - **Config file:** `playwright.config.ts`

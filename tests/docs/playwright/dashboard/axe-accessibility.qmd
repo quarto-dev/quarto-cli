@@ -1,0 +1,12 @@
+---
+format:
+  dashboard:
+    axe:
+      output: document
+---
+
+## Row
+
+Content for axe accessibility testing.
+
+This text violates contrast rules: [insufficient contrast.]{style="color: #eee; background: #fff;"}.
