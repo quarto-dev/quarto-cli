@@ -7,6 +7,9 @@ _quarto:
         level: INFO
         regex: 'Citeproc: citation'
         negate: true
+      ensureHtmlElements:
+        - ['a.nav-link[href="https://mastodon.online/@testuser"]']
+        - []
 ---
 
 # Test {.unnumbered}
