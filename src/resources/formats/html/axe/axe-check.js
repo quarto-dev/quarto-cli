@@ -131,7 +131,7 @@ class QuartoAxeChecker {
       preload: { assets: ['cssom'], timeout: 50000 }    
     });
     const reporter = this.options === true ? new QuartoAxeConsoleReporter(result) : new reporters[this.options.output](result, this.options);
-    reporter.report();
+    await reporter.report();
     document.body.setAttribute('data-quarto-axe-complete', 'true');
   }
 }
