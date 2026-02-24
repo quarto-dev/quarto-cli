@@ -105,7 +105,7 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     violations.forEach((violation) => {
       reportElement.appendChild(this.createViolationElement(violation));
     });
-    document.querySelector("main").appendChild(reportElement);
+    (document.querySelector("main") || document.body).appendChild(reportElement);
   }
 }
 
@@ -144,3 +144,7 @@ export async function init() {
     await checker.init();
   }
 }
+
+// Self-initialize when loaded as a standalone module.
+// ES modules are deferred, so the DOM is fully parsed when this runs.
+init();

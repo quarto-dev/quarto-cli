@@ -34,58 +34,69 @@ interface AxeTestCase {
   format: string;
   outputMode: OutputMode;
   url: string;
-  shouldFail?: string; // reason for test.fail(), undefined if test should pass
+  // Expected violation ID. RevealJS CSS transforms prevent axe-core from
+  // computing color contrast, so revealjs tests check for a different violation.
+  expectedViolation: string;
 }
 
 const testCases: AxeTestCase[] = [
-  // HTML — all modes work (bootstrap loads axe-check.js, has <main>)
-  { format: 'html', outputMode: 'document', url: '/html/axe-accessibility.html' },
-  { format: 'html', outputMode: 'console', url: '/html/axe-console.html' },
-  { format: 'html', outputMode: 'json', url: '/html/axe-json.html' },
+  // HTML — bootstrap format, color contrast detected
+  { format: 'html', outputMode: 'document', url: '/html/axe-accessibility.html',
+    expectedViolation: 'color-contrast' },
+  { format: 'html', outputMode: 'console', url: '/html/axe-console.html',
+    expectedViolation: 'color-contrast' },
+  { format: 'html', outputMode: 'json', url: '/html/axe-json.html',
+    expectedViolation: 'color-contrast' },
 
-  // RevealJS — axe-check.js never loads (bundled in bootstrap-only quarto.js) (#13781)
+  // RevealJS — axe-check.js loads as standalone module (#13781).
+  // RevealJS CSS transforms prevent axe-core from computing color contrast,
+  // so we check for link-name (slide-menu-button has unlabeled <a>).
   { format: 'revealjs', outputMode: 'document', url: '/revealjs/axe-accessibility.html',
-    shouldFail: 'axe-check.js bundled in quarto.js (bootstrap-only), never loads for revealjs (#13781)' },
+    expectedViolation: 'link-name' },
   { format: 'revealjs', outputMode: 'console', url: '/revealjs/axe-console.html',
-    shouldFail: 'axe-check.js bundled in quarto.js (bootstrap-only), never loads for revealjs (#13781)' },
+    expectedViolation: 'link-name' },
   { format: 'revealjs', outputMode: 'json', url: '/revealjs/axe-json.html',
-    shouldFail: 'axe-check.js bundled in quarto.js (bootstrap-only), never loads for revealjs (#13781)' },
+    expectedViolation: 'link-name' },
 
-  // Dashboard — axe loads but document reporter fails (no <main> element) (#13781)
+  // Dashboard — axe-check.js loads as standalone module, falls back to document.body (#13781)
   { format: 'dashboard', outputMode: 'document', url: '/dashboard/axe-accessibility.html',
-    shouldFail: 'Dashboard has no <main> element; document reporter fails on querySelector("main") (#13781)' },
+    expectedViolation: 'color-contrast' },
 ];
 
 // -- Tests --
 
 test.describe('Axe accessibility checking', () => {
-  for (const { format, outputMode, url, shouldFail } of testCases) {
-    test(`${format} — ${outputMode} mode detects contrast violation`, async ({ page }) => {
-      if (shouldFail) {
-        test.fail();
-      }
-
+  for (const { format, outputMode, url, expectedViolation } of testCases) {
+    test(`${format} — ${outputMode} mode detects ${expectedViolation} violation`, async ({ page }) => {
       if (outputMode === 'document') {
         await page.goto(url, { waitUntil: 'networkidle' });
         const axeReport = page.locator('.quarto-axe-report');
         await expect(axeReport).toBeVisible({ timeout: 10000 });
         const reportText = await axeReport.textContent();
-        expect(reportText).toContain('color contrast');
+        // Document reporter shows violation descriptions, not IDs.
+        // Map violation IDs to expected text in the report.
+        const expectedText = expectedViolation === 'color-contrast'
+          ? 'color contrast'
+          : 'discernible text';
+        expect(reportText).toContain(expectedText);
 
       } else if (outputMode === 'console') {
         const messages = await collectConsoleLogs(page);
         await page.goto(url, { waitUntil: 'networkidle' });
-        await waitForAxeCompletion(page, shouldFail ? 5000 : 15000);
-        expect(messages.some(m => m.toLowerCase().includes('contrast'))).toBe(true);
+        await waitForAxeCompletion(page);
+        const expectedText = expectedViolation === 'color-contrast'
+          ? 'contrast'
+          : 'discernible text';
+        expect(messages.some(m => m.toLowerCase().includes(expectedText))).toBe(true);
 
       } else if (outputMode === 'json') {
         const messages = await collectConsoleLogs(page);
         await page.goto(url, { waitUntil: 'networkidle' });
-        await waitForAxeCompletion(page, shouldFail ? 5000 : 15000);
+        await waitForAxeCompletion(page);
         const result = findAxeJsonResult(messages);
         expect(result).toBeDefined();
         expect(result!.violations.length).toBeGreaterThan(0);
-        expect(result!.violations.some(v => v.id === 'color-contrast')).toBe(true);
+        expect(result!.violations.some(v => v.id === expectedViolation)).toBe(true);
       }
     });
   }

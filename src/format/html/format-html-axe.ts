@@ -6,9 +6,11 @@
 
 import { kIncludeInHeader } from "../../config/constants.ts";
 import { isRevealjsOutput } from "../../config/format.ts";
-import { Format, FormatExtras } from "../../config/types.ts";
+import { Format, FormatExtras, kDependencies } from "../../config/types.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { encodeBase64 } from "../../deno_ral/encoding.ts";
+import { join } from "../../deno_ral/path.ts";
 
 export function axeFormatDependencies(
   format: Format,
@@ -35,6 +37,14 @@ export function axeFormatDependencies(
       ),
     ],
     html: {
+      [kDependencies]: [{
+        name: "quarto-axe",
+        scripts: [{
+          name: "axe-check.js",
+          path: formatResourcePath("html", join("axe", "axe-check.js")),
+          attribs: { type: "module" },
+        }],
+      }],
       "sass-bundles": [
         {
           key: "axe",
