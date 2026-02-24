@@ -102,6 +102,7 @@ All changes included in 1.9:
 ### `revealjs`
 
 - ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
+- ([#13852](https://github.com/quarto-dev/quarto-cli/issues/13852)): Scroll-view options (`scrollSnap`, `scrollProgress`, `scrollActivationWidth`, `scrollLayout`) are now rendered in the Pandoc template instead of injected at runtime. Custom revealjs templates may need updating to include the scroll-view configuration block.
 
 ### `ipynb`
 
