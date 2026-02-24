@@ -1,0 +1,25 @@
+---
+title: "Scroll view defaults"
+format:
+  revealjs:
+    scroll-view: true
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - 'view: ''scroll'','
+          - 'scrollProgress: ''auto'','
+          - 'scrollSnap: ''mandatory'','
+          - 'scrollLayout: ''full'','
+          - 'scrollActivationWidth: 0,'
+        - []
+---
+
+## test
+
+Content
+
+## test
+
+Content

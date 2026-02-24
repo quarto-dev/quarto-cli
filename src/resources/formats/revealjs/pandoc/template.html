@@ -217,7 +217,27 @@ $endif$
         // devices. It is advisable to set this to a lower number than
         // viewDistance in order to save resources.
         mobileViewDistance: $mobileViewDistance$,
-$-- // TODO: Add scroll view option in template: https://github.com/quarto-dev/quarto-cli/issues/13852
+$-- Scroll view: differs from Pandoc's revealjs.template to fix JS type issues.
+$-- See jgm/pandoc#11486 and llm-docs/revealjs-format-architecture.md
+$if(view)$
+
+        // Enable scroll view
+        view: '$view/nowrap$',
+$if(scrollProgressAuto)$
+        scrollProgress: 'auto',
+$elseif(scrollProgress)$
+        scrollProgress: $scrollProgress$,
+$else$
+        scrollProgress: false,
+$endif$
+        scrollActivationWidth: $scrollActivationWidth$,
+$if(scrollSnap)$
+        scrollSnap: '$scrollSnap/nowrap$',
+$else$
+        scrollSnap: false,
+$endif$
+        scrollLayout: '$scrollLayout/nowrap$',
+$endif$
 $if(parallaxBackgroundImage)$
 
         // Parallax background image

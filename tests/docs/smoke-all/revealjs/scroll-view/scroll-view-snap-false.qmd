@@ -1,0 +1,24 @@
+---
+title: "Scroll view snap false"
+format:
+  revealjs:
+    scroll-view:
+      activate: true
+      snap: false
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - 'view: ''scroll'','
+          - 'scrollSnap: false,'
+        - []
+---
+
+## test
+
+Content
+
+## test
+
+Content

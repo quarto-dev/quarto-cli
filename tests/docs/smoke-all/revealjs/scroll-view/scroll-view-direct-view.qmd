@@ -1,0 +1,25 @@
+---
+title: "Scroll view via direct view key"
+format:
+  revealjs:
+    view: scroll
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - 'view: ''scroll'','
+          - 'scrollProgress: ''auto'','
+          - 'scrollSnap: ''mandatory'','
+          - 'scrollLayout: ''full'','
+          - 'scrollActivationWidth: 0,'
+        - []
+---
+
+## test
+
+Content
+
+## test
+
+Content
