@@ -1,0 +1,14 @@
+---
+title: "Test"
+_quarto:
+  tests:
+    html:
+      printsMessage:
+        level: INFO
+        regex: 'Citeproc: citation'
+        negate: true
+---
+
+# Test {.unnumbered}
+
+No false citeproc warnings from @ in book navbar URLs.
