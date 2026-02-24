@@ -28,28 +28,31 @@ end
         return
       end
 
-      -- propagate fig-alt
-      if _quarto.format.isHtmlOutput() then
-        -- read the fig-alt text and set the image alt
-        local altText = attribute(float, kFigAlt, nil)
-        if altText ~= nil then
+      -- propagate fig-alt to Image elements for accessibility
+      local altText = attribute(float, kFigAlt, nil)
+      if altText ~= nil then
+        if _quarto.format.isHtmlOutput() then
+          -- HTML: set alt on the float itself
           float.attributes["alt"] = altText
-          float.attributes[kFigAlt] = nil
-          return float
-        end
-      elseif _quarto.format.isLatexOutput() then
-        -- propagate fig-alt to Image elements for LaTeX (enables \includegraphics[alt={...}])
-        local altText = attribute(float, kFigAlt, nil)
-        if altText ~= nil then
+        else
+          -- LaTeX, Typst, and other formats: propagate to Image elements
+          -- (enables \includegraphics[alt={...}] for LaTeX, image(alt: "...") for Typst)
           float.content = _quarto.ast.walk(float.content, {
             Image = function(image)
               image.attributes["alt"] = altText
               return image
             end
           })
-          float.attributes[kFigAlt] = nil
         end
+        float.attributes[kFigAlt] = nil
+      end
+
+      if _quarto.format.isLatexOutput() then
         return forward_pos_and_env(float)
+      end
+
+      if altText ~= nil then
+        return float
       end
     end,
     Figure = function(figure)
