@@ -112,15 +112,18 @@ figure .quarto-layout-row figure figcaption {
   margin-bottom: 0;
 }
 .quarto-figure-left > figure > p,
-.quarto-figure-left > figure > div /* for mermaid and dot diagrams */ {
+/* for mermaid and dot diagrams, excluding impact on htmlwidget output */ 
+.quarto-figure-left > figure > div:not(.html-widget, :nth-child(1):not(.html-widget)) {
   text-align: left;
 }
 .quarto-figure-center > figure > p,
-.quarto-figure-center > figure > div /* for mermaid and dot diagrams */ {
+/* for mermaid and dot diagrams, excluding impact on htmlwidget output */ 
+.quarto-figure-center > figure > div:not(.html-widget, :nth-child(1):not(.html-widget)) {
   text-align: center;
 }
 .quarto-figure-right > figure > p,
-.quarto-figure-right > figure > div /* for mermaid and dot diagrams */ {
+/* for mermaid and dot diagrams, excluding impact on htmlwidget output */ 
+.quarto-figure-right > figure > div:not(.html-widget, :nth-child(1):not(.html-widget)) {
   text-align: right;
 }
 
