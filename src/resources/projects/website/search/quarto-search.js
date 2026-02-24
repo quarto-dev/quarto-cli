@@ -1260,16 +1260,10 @@ function openAllTabsetsContainingEl(el) {
 
 function scrollToFirstVisibleMatch(mainEl) {
   for (const mark of mainEl.querySelectorAll("mark")) {
-    let hidden = false;
-    let el = mark.parentElement;
-    while (el && el !== mainEl) {
-      if (el.classList.contains("tab-pane") && !el.classList.contains("active")) {
-        hidden = true;
-        break;
-      }
-      el = el.parentElement;
-    }
-    if (!hidden) {
+    const isMarkVisible = matchAncestors(mark, '.tab-pane').every(markTabPane =>
+      markTabPane.classList.contains("active")
+    )
+    if (isMarkVisible) {
       mark.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
