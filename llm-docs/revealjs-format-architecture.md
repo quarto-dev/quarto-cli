@@ -55,6 +55,7 @@ extras.metadata = {
   ...extras.metadata,
   ...revealMetadataFilter({
     width: 1050,
+    height: 700,
     center: false,
     transition: "none",
     // ...
