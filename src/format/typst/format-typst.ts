@@ -37,7 +37,11 @@ import {
   BrandNamedLogo,
   LogoLightDarkSpecifier,
 } from "../../resources/types/schema-types.ts";
-import { fillLogoPaths, resolveLogo } from "../../core/brand/brand.ts";
+import {
+  brandWithAbsoluteLogoPaths,
+  fillLogoPaths,
+  resolveLogo,
+} from "../../core/brand/brand.ts";
 import { LogoLightDarkSpecifierPathOptional } from "../../resources/types/zod/schema-types.ts";
 
 const typstBookExtension: BookExtension = {
@@ -98,6 +102,10 @@ export function typstFormat(): Format {
       }
 
       const brand = format.render.brand;
+      // For Typst, convert brand logo paths to project-absolute (with /)
+      // before merging with document logo metadata. Typst resolves / paths
+      // via --root which points to the project directory.
+      const typstBrand = brandWithAbsoluteLogoPaths(brand);
       const logoSpec = format
         .metadata[kLogo] as LogoLightDarkSpecifierPathOptional;
       const sizeOrder: BrandNamedLogo[] = [
@@ -108,8 +116,8 @@ export function typstFormat(): Format {
       // temporary: if document logo has object or light/dark objects
       // without path, do our own findLogo to add the path
       // typst is the exception not needing path but we'll probably deprecate this
-      const logo = fillLogoPaths(brand, logoSpec, sizeOrder);
-      format.metadata[kLogo] = resolveLogo(brand, logo, sizeOrder);
+      const logo = fillLogoPaths(typstBrand, logoSpec, sizeOrder);
+      format.metadata[kLogo] = resolveLogo(typstBrand, logo, sizeOrder);
       // force columns to wrap and move any 'columns' setting to metadata
       const columns = format.pandoc[kColumns];
       if (columns) {

@@ -1,6 +1,6 @@
 ---
-title: "Jump to slide"
-format: 
+title: "Scroll view config"
+format:
   revealjs:
     scroll-view:
       activate: true
@@ -12,12 +12,12 @@ _quarto:
   tests:
     revealjs:
       ensureFileRegexMatches:
-        - 
-          - '''view'': "scroll",'
-          - '''scrollProgress'': true,'
-          - '''scrollSnap'': false,'
-          - '''scrollLayout'': "compact",'
-          - '''scrollActivationWidth'': 0,'
+        -
+          - 'view: ''scroll'','
+          - 'scrollProgress: true,'
+          - 'scrollSnap: false,'
+          - 'scrollLayout: ''compact'','
+          - 'scrollActivationWidth: 0,'
         - []
 ---
 

@@ -21,7 +21,8 @@ _quarto.modules = {
   string = require("modules/string"),
   tablecolwidths = require("modules/tablecolwidths"),
   typst = require("modules/typst"),
-  listtable = require("modules/listtable")
+  listtable = require("modules/listtable"),
+  tableutils = require("modules/tableutils"),
 }
 
 quarto.brand = _quarto.modules.brand

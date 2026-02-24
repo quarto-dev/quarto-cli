@@ -15,6 +15,7 @@ local skippable_classes = {
     ["quarto-float"] = true,
     ["quarto-float-fig"] = true,
     ["figure"] = true,
+    ["llms-conditional-content"] = true,
 }
 local droppable_classes = {
     ["navbar-container"] = true,
@@ -25,6 +26,8 @@ local droppable_classes = {
     ["listing-categories"] = true,
     ["quarto-listing-category"] = true,  -- category filter sidebar
     ["listing-category"] = true,  -- individual category badges
+    ["quarto-page-breadcrumbs"] = true,  -- breadcrumb navigation
+    ["llms-hidden-content"] = true,
 }
 local droppable_ids = {
     ["quarto-header"] = true,
@@ -68,6 +71,53 @@ local function clean_element(el)
     for i, k in ipairs(removable_attributes) do
         el.attributes[k] = nil
     end
+end
+
+local function handle_tabset(div)
+    local titles = {}
+    local panes = {}
+
+    -- Extract tab titles from the nav BulletList (first one in the div)
+    -- and tab pane contents from the tab-content Div
+    for _, block in ipairs(div.content) do
+        if block.t == "BulletList" and #titles == 0 then
+            for _, item in ipairs(block.content) do
+                for _, inner_block in ipairs(item) do
+                    if inner_block.t == "Plain" or inner_block.t == "Para" then
+                        for _, inline in ipairs(inner_block.content) do
+                            if inline.t == "Link" then
+                                table.insert(titles, inline.content)
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        elseif block.t == "Div" and block.classes:includes("tab-content") then
+            for _, inner in ipairs(block.content) do
+                if inner.t == "Div" and inner.classes:includes("tab-pane") then
+                    table.insert(panes, inner.content)
+                end
+            end
+        end
+    end
+
+    -- Build output: heading + content for each tab
+    local result = pandoc.Blocks({})
+    for i = 1, math.max(#titles, #panes) do
+        if titles[i] then
+            result:insert(pandoc.Header(2, titles[i]))
+        end
+        if panes[i] then
+            result:extend(panes[i])
+        end
+    end
+
+    if #result > 0 then
+        return result
+    end
+    -- Fallback: return content as-is
+    return div.content
 end
 
 local function handle_callout(div)
@@ -140,8 +190,10 @@ function Link(link)
         return link.content
     end
 
-    if link.target and link.target:match("%.html$") then
+    if link.target and (link.target:match("%.html$") or link.target:match("%.html#")) then
+        link.target = link.target:gsub("%.html#", ".llms.md#")
         link.target = link.target:gsub("%.html$", ".llms.md")
+        link.target = link.target:gsub("^%./", "")
         if link.classes:includes("btn") then
             link.attr = pandoc.Attr()
         end
@@ -173,6 +225,10 @@ function RawBlock(raw)
 end
 
 function Div(div)
+
+    if div.classes:includes("panel-tabset") then
+        return handle_tabset(div)
+    end
 
     if div.classes:includes("callout") then
         return handle_callout(div)

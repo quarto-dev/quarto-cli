@@ -32,6 +32,7 @@ import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
 
 import {
+  kFilterParams,
   kIncludeInHeader,
   kPageTitle,
   kTitle,
@@ -358,6 +359,8 @@ export const websiteProjectType: ProjectType = {
 
     // Add llms.txt finalizer if enabled
     if (websiteConfigBoolean(kLlmsTxt, false, project.config)) {
+      extras[kFilterParams] = extras[kFilterParams] || {};
+      extras[kFilterParams]["llms-txt"] = true;
       extras.html[kHtmlFinalizers]?.push(
         llmsHtmlFinalizer(source, project, format),
       );

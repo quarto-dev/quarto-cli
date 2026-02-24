@@ -1,0 +1,7 @@
+---
+title: "Search Highlight Test"
+---
+
+This page contains a special keyword that we use for testing search highlighting.
+
+The word special appears multiple times on this page to ensure search highlighting works correctly.

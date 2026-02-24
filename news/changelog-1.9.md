@@ -3,6 +3,8 @@ All changes included in 1.9:
 ## Shortcodes
 
 - ([#13342](https://github.com/quarto-dev/quarto-cli/issues/13342)): Ensure that the `contents` shortcode works inside metadata.
+- ([#13489](https://github.com/quarto-dev/quarto-cli/issues/13489)): Add `mode=plain` option to the `kbd` shortcode to render keyboard shortcuts exactly as written, without OS-specific symbol translation.
+- ([#14061](https://github.com/quarto-dev/quarto-cli/issues/14061)): Fix `meta` shortcode not preserving line breaks in values. The shortcode now respects its usage context (block, inline, or text) and preserves paragraph breaks in block and code block contexts.
 
 ## Regression fixes
 
@@ -43,6 +45,7 @@ All changes included in 1.9:
 
 ### `html`
 
+- ([#14072](https://github.com/quarto-dev/quarto-cli/pull/14072)): Add q syntax files
 - ([#11929](https://github.com/quarto-dev/quarto-cli/issues/11929)): Import all `brand.typography.fonts` in CSS, whether or not fonts are referenced by typography elements.
 - ([#13413](https://github.com/quarto-dev/quarto-cli/issues/13413)): Fix uncentered play button in `video` shortcodes from cross-reference divs. (author: @bruvellu)
 - ([#13508](https://github.com/quarto-dev/quarto-cli/issues/13508)): Add `aria-label` support to `video` shortcode for improved accessibility.
@@ -50,6 +53,7 @@ All changes included in 1.9:
 - ([#13825](https://github.com/quarto-dev/quarto-cli/issues/13825)): Fix `column: margin` not working with `renderings: [light, dark]` option. Column classes are now preserved when applying theme classes to cell outputs.
 - ([#13883](https://github.com/quarto-dev/quarto-cli/issues/13883)): Fix unequal top/bottom spacing in simple untitled callouts.
 - ([#13900](https://github.com/quarto-dev/quarto-cli/issues/13900)): Warn when `renderings` cell option contains duplicate names. Previously, duplicate names like `[dark, light, dark, light]` would silently use only the last output for each name.
+- ([#14065](https://github.com/quarto-dev/quarto-cli/issues/14065)): Fix `SCSSParsingError` when custom SCSS themes contain non-ASCII characters in selectors (e.g., `#présentation`).
 
 ### `typst`
 
@@ -59,8 +63,10 @@ All changes included in 1.9:
 - ([#13555](https://github.com/quarto-dev/quarto-cli/issues/13555)): Add support for `icon=false` in callouts when used in `format: typst`.
 - ([#13589](https://github.com/quarto-dev/quarto-cli/issues/13589)): Fix callouts with invalid ID prefixes crashing with "attempt to index a nil value". Callouts with unknown reference types now render as non-crossreferenceable callouts with a warning, ignoring the invalid ID.
 - ([#13602](https://github.com/quarto-dev/quarto-cli/issues/13602)): Fix support for multiple files set in `bibliography` field in `biblio.typ` template partial.
+- ([#13745](https://github.com/quarto-dev/quarto-cli/issues/13745)): Fix relative `font-paths` from extensions or document metadata not resolving correctly for Typst compilation. Relative paths are now resolved against the document directory before being passed to the Typst CLI.
 - ([#13775](https://github.com/quarto-dev/quarto-cli/issues/13775)): Fix brand fonts not being applied when using `citeproc: true` with Typst format. Format detection now properly handles Pandoc format variants like `typst-citations`.
 - ([#13868](https://github.com/quarto-dev/quarto-cli/issues/13868)): Add image alt text support for PDF/UA accessibility. Alt text from markdown captions and explicit `alt` attributes is now passed to Typst's `image()` function. (Temporary workaround until [jgm/pandoc#11394](https://github.com/jgm/pandoc/pull/11394) is merged.)
+- ([#13917](https://github.com/quarto-dev/quarto-cli/issues/13917)): Fix brand logo paths not resolving correctly for Typst documents in project subdirectories. Brand logo paths are now converted to project-absolute paths before merging with document metadata, replacing the fragile `projectOffset()` workaround.
 - ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's Typst template following Pandoc 3.8.3 and Typst 0.14.2 support:
   - Code syntax highlighting now uses Skylighting by default.
   - New template variables `mathfont`, `codefont`, and `linestretch` for font and line spacing customization.
@@ -97,6 +103,7 @@ All changes included in 1.9:
 ### `revealjs`
 
 - ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
+- ([#13852](https://github.com/quarto-dev/quarto-cli/issues/13852)): Scroll-view options (`scrollSnap`, `scrollProgress`, `scrollActivationWidth`, `scrollLayout`) are now rendered in the Pandoc template instead of injected at runtime. Custom revealjs templates may need updating to include the scroll-view configuration block.
 
 ### `ipynb`
 
@@ -104,6 +111,7 @@ All changes included in 1.9:
 
 ## Projects
 
+- ([#12444](https://github.com/quarto-dev/quarto-cli/pull/12444)): Improve pre/post render script logging with `Running script` prefix and add `QUARTO_PROJECT_SCRIPT_PROGRESS` and `QUARTO_PROJECT_SCRIPT_QUIET` environment variables so scripts can adapt their output.
 - ([#13892](https://github.com/quarto-dev/quarto-cli/issues/13892)): Fix `output-dir: ./` deleting entire project directory. `output-dir` must be a subdirectory of the project directory and check is now better to avoid deleting the project itself when it revolves to the same path.
 
 ### `website`
@@ -118,6 +126,7 @@ All changes included in 1.9:
 - ([#13932](https://github.com/quarto-dev/quarto-cli/pull/13932)): Add `llms-txt: true` option to generate LLM-friendly content for websites. Creates `.llms.md` markdown files alongside HTML pages and a root `llms.txt` index file following the [llms.txt](https://llmstxt.org/) specification.
 - ([#13951](https://github.com/quarto-dev/quarto-cli/issues/13951)): Fix `image-lazy-loading` not applying `loading="lazy"` attribute to auto-detected listing images.
 - ([#14003](https://github.com/quarto-dev/quarto-cli/pull/14003)): Add text fragments to search result links so browsers scroll to and highlight the matched text on the target page.
+- ([#9802](https://github.com/quarto-dev/quarto-cli/issues/9802), [#14047](https://github.com/quarto-dev/quarto-cli/issues/14047)): Fix search term highlighting disappearing on page scroll or layout events when navigating from search results. (author: @jtbayly, [#13442](https://github.com/quarto-dev/quarto-cli/pull/13442))
 
 ### `book`
 
@@ -194,6 +203,7 @@ All changes included in 1.9:
 - ([#13528](https://github.com/quarto-dev/quarto-cli/pull/13528)): Adds support for table specification using nested lists and the `list-table` class.
 - ([#13575](https://github.com/quarto-dev/quarto-cli/pull/13575)): Improve CPU architecture detection/reporting in macOS to allow quarto to run in virtualized environments such as OpenAI's `codex`.
 - ([#13656](https://github.com/quarto-dev/quarto-cli/issues/13656)): Fix R code cells with empty `lang: ""` option producing invalid markdown class attributes.
+- ([#13776](https://github.com/quarto-dev/quarto-cli/issues/13776)): Do not process tblwidths attributes for non-simple tables, since this breaks rowspan handling.
 - ([#13832](https://github.com/quarto-dev/quarto-cli/pull/13832)): Fix `license.text` metadata not being accessible when using an inline license (`license: "text"`), and populate it with the license name for CC licenses instead of empty string. (author: @mcanouil)
 - ([#13856](https://github.com/quarto-dev/quarto-cli/issues/13856)): Add code annotation support for Typst and Observable.js code blocks. (author: @mcanouil)
 - ([#13890](https://github.com/quarto-dev/quarto-cli/issues/13890)): Fix render failure when using `embed-resources: true` with input path through a symlinked directory. The cleanup now resolves symlinks before comparing paths.

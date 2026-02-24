@@ -47,6 +47,21 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     // perform any highlighting
     highlight(escapeRegExp(query), mainEl);
 
+    // Activate tabs that contain highlighted matches on pageshow rather than
+    // DOMContentLoaded. tabsets.js (loaded as a module) registers its pageshow
+    // handler during module execution, before DOMContentLoaded. By registering
+    // ours during DOMContentLoaded, listener ordering guarantees we run after
+    // tabsets.js restores tab state from localStorage — so search activation
+    // wins over stored tab preference.
+    window.addEventListener("pageshow", function (event) {
+      if (!event.persisted) {
+        activateTabsWithMatches(mainEl);
+        // Let the browser settle layout after Bootstrap tab transitions
+        // before calculating scroll position.
+        requestAnimationFrame(() => scrollToFirstMatch(mainEl));
+      }
+    }, { once: true });
+
     // fix up the URL to remove the q query param
     const replacementUrl = new URL(window.location);
     replacementUrl.searchParams.delete(kQueryArg);
@@ -62,18 +77,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       highlighting = false;
     }
   };
-
-  // Clear search highlighting when the user scrolls sufficiently
-  const resetFn = () => {
-    resetHighlighting("");
-    window.removeEventListener("quarto-hrChanged", resetFn);
-    window.removeEventListener("quarto-sectionChanged", resetFn);
-  };
-
-  // Register this event after the initial scrolling and settling of events
-  // on the page
-  window.addEventListener("quarto-hrChanged", resetFn);
-  window.addEventListener("quarto-sectionChanged", resetFn);
 
   // Responsively switch to overlay mode if the search is present on the navbar
   // Note that switching the sidebar to overlay mode requires more coordinate (not just
@@ -1122,6 +1125,99 @@ function clearHighlight(searchterm, el) {
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
+
+// After search highlighting, activate any tabs whose panes contain <mark> matches.
+// This ensures that search results inside inactive Bootstrap tabs become visible.
+// Handles nested tabsets by walking up ancestor panes and activating outermost first.
+function activateTabsWithMatches(mainEl) {
+  if (typeof bootstrap === "undefined") return;
+
+  const marks = mainEl.querySelectorAll("mark");
+  if (marks.length === 0) return;
+
+  // Collect all tab panes that contain marks, including ancestor panes for nesting.
+  // Group by their parent tabset (.tab-content container).
+  const tabsetMatches = new Map();
+
+  const recordPane = (pane) => {
+    const tabContent = pane.closest(".tab-content");
+    if (!tabContent) return;
+    if (!tabsetMatches.has(tabContent)) {
+      tabsetMatches.set(tabContent, { activeHasMatch: false, firstInactivePane: null });
+    }
+    const info = tabsetMatches.get(tabContent);
+    if (pane.classList.contains("active")) {
+      info.activeHasMatch = true;
+    } else if (!info.firstInactivePane) {
+      info.firstInactivePane = pane;
+    }
+  };
+
+  for (const mark of marks) {
+    // Walk up all ancestor tab panes (handles nested tabsets)
+    let pane = mark.closest(".tab-pane");
+    while (pane) {
+      recordPane(pane);
+      pane = pane.parentElement?.closest(".tab-pane") ?? null;
+    }
+  }
+
+  // Sort tabsets by DOM depth (outermost first) so outer tabs activate before inner
+  const sorted = [...tabsetMatches.entries()].sort((a, b) => {
+    const depthA = ancestorCount(a[0], mainEl);
+    const depthB = ancestorCount(b[0], mainEl);
+    return depthA - depthB;
+  });
+
+  for (const [, info] of sorted) {
+    if (info.activeHasMatch || !info.firstInactivePane) continue;
+
+    const escapedId = CSS.escape(info.firstInactivePane.id);
+    const tabButton = mainEl.querySelector(
+      `[data-bs-toggle="tab"][data-bs-target="#${escapedId}"]`
+    );
+    if (tabButton) {
+      try {
+        new bootstrap.Tab(tabButton).show();
+      } catch (e) {
+        console.debug("Failed to activate tab for search match:", e);
+      }
+    }
+  }
+}
+
+function ancestorCount(el, stopAt) {
+  let count = 0;
+  let node = el.parentElement;
+  while (node && node !== stopAt) {
+    count++;
+    node = node.parentElement;
+  }
+  return count;
+}
+
+// After tab activation, scroll to the first visible search match so the user
+// sees the highlighted result without manually scrolling.
+// Only checks tab-pane visibility (not collapsed callouts, details/summary, etc.)
+// since this runs specifically after tab activation for search results.
+function scrollToFirstMatch(mainEl) {
+  const marks = mainEl.querySelectorAll("mark");
+  for (const mark of marks) {
+    let hidden = false;
+    let el = mark.parentElement;
+    while (el && el !== mainEl) {
+      if (el.classList.contains("tab-pane") && !el.classList.contains("active")) {
+        hidden = true;
+        break;
+      }
+      el = el.parentElement;
+    }
+    if (!hidden) {
+      mark.scrollIntoView({ block: "center" });
+      return;
+    }
+  }
 }
 
 // highlight matches

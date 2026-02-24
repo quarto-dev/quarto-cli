@@ -31,3 +31,7 @@ Pull requests are very welcome! Here's how to contribute via PR:
 3.  Submit the [pull request](https://help.github.com/articles/using-pull-requests). It is ok to submit as draft if your are still working on it but would like some feedback from us. It is always good to share in the open that you are working on it.
 
 We'll try to be as responsive as possible in reviewing and accepting pull requests.
+
+## AI-Assisted Development
+
+This repository includes shared [Claude Code](https://docs.anthropic.com/en/docs/claude-code) memory files in `.claude/` that help AI assistants understand the Quarto codebase. See [dev-docs/claude-code-setup.md](dev-docs/claude-code-setup.md) for details on how these work and how to contribute to them.

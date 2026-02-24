@@ -1,5 +1,10 @@
 .DS_Store
 .idea
+
+# Claude Code personal files
+CLAUDE.local.md
+.claude/settings.local.json
+
 *.RData
 *.Rproj
 *.Rhistory
@@ -13,7 +18,6 @@ package/dist/**
 /tests/test-out.json
 *~
 .env
-.private-journal/
 # deno_std library
 src/resources/deno_std/cache
 src/vendor-*
