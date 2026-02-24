@@ -401,7 +401,41 @@ function process_div(div)
         table.insert(remaining_content, child)
       end
     end
-    
+
+    -- Check for recipients attribute on the email div itself
+    -- This allows referencing metadata set via write_yaml_metadata_block()
+    if div.attributes.recipients then
+      local meta_key = div.attributes.recipients
+      local meta_value = quarto.metadata.get(meta_key)
+
+      if meta_value then
+        -- Convert metadata to recipients array
+        if quarto.utils.type(meta_value) == "List" then
+          local recipients_from_meta = {}
+          for _, item in ipairs(meta_value) do
+            local recipient_str = pandoc.utils.stringify(item)
+            if recipient_str ~= "" then
+              table.insert(recipients_from_meta, recipient_str)
+            end
+          end
+
+          -- If recipients were also found in child divs, merge them
+          if #current_email.recipients > 0 then
+            quarto.log.warning("Recipients found in both attribute and child div. Merging both lists.")
+            for _, recipient in ipairs(recipients_from_meta) do
+              table.insert(current_email.recipients, recipient)
+            end
+          else
+            current_email.recipients = recipients_from_meta
+          end
+        else
+          quarto.log.warning("Recipients metadata '" .. meta_key .. "' is not a list. Expected format: ['email1@example.com', 'email2@example.com']")
+        end
+      else
+        quarto.log.warning("Recipients attribute references metadata key '" .. meta_key .. "' which does not exist.")
+      end
+    end
+
     -- Create a modified div without metadata for processing
     local email_without_metadata = pandoc.Div(remaining_content, div.attr)
 

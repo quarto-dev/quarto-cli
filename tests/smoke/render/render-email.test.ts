@@ -312,6 +312,64 @@ testRender(docs("email/email-recipients-formats.qmd"), "email", false, [
     "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
   }
 });
+
+// Test both recipient patterns with Python (metadata attribute + inline)
+testRender(docs("email/email-recipients-all-patterns-python.qmd"), "email", false, [
+  fileExists(previewFileV2_1),
+  fileExists(previewFileV2_2),
+  validJsonWithMultipleEmails(jsonFile, 2, {
+    "0": {
+      "email_id": 1,
+      "subject": "Email 1: Metadata Attribute Pattern",
+      "recipients": ["metadata1@example.com", "metadata2@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "1": {
+      "email_id": 2,
+      "subject": "Email 2: Inline Recipients Pattern",
+      "recipients": ["inline1@example.com", "inline2@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    }
+  })
+], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
+  }
+});
+
+// Test both recipient patterns with R (metadata attribute + inline)
+testRender(docs("email/email-recipients-all-patterns-r.qmd"), "email", false, [
+  fileExists(previewFileV2_1),
+  fileExists(previewFileV2_2),
+  validJsonWithMultipleEmails(jsonFile, 2, {
+    "0": {
+      "email_id": 1,
+      "subject": "Email 1: Metadata Attribute Pattern",
+      "recipients": ["metadata1@example.com", "metadata2@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "1": {
+      "email_id": 2,
+      "subject": "Email 2: Inline Recipients Pattern",
+      "recipients": ["inline1@example.com", "inline2@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    }
+  })
+], {
+  ...cleanupCtx,
+  env: {
+    "SPARK_CONNECT_USER_AGENT": "posit-connect/2026.03.0"
+  }
+});
 // Render in a project with an output directory set in _quarto.yml and confirm that everything ends up in the output directory
 testProjectRender(docs("email/project/email-attach.qmd"), "email", (outputDir: string) => {
   const verify: Verify[]= [];

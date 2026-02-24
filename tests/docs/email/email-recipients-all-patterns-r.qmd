@@ -1,0 +1,69 @@
+---
+title: Email Recipients - All Patterns (R)
+author: Jules Walzer-Goldfeld
+format: email
+email-version: 2
+---
+
+```{r}
+#| echo: false
+# Simple metadata block writer for testing
+# (Ideally we use the quarto R package: install.packages("quarto"))
+# We are awiting PR #
+write_yaml_metadata_block <- function(...) {
+  args <- list(...)
+  if (length(args) == 0) {
+    return()
+  }
+
+  yaml_content <- yaml::as.yaml(args)
+  yaml_block <- paste0("---\n", yaml_content, "---\n")
+  knitr::asis_output(yaml_block)
+}
+```
+
+Test document demonstrating both recipient patterns with R.
+
+```{r}
+#| output: asis
+# Email 1: Metadata attribute pattern
+metadata_recipients <- c("metadata1@example.com", "metadata2@example.com")
+write_yaml_metadata_block(metadata_recipients = metadata_recipients)
+```
+
+::: {.email recipients=metadata_recipients}
+
+::: {.subject}
+Email 1: Metadata Attribute Pattern
+:::
+
+::: {.email-text}
+This email uses the metadata attribute pattern.
+:::
+
+First email using metadata attribute pattern with R.
+
+:::
+
+```{r}
+# Email 2: Inline recipients pattern
+inline_recipients <- c("inline1@example.com", "inline2@example.com")
+```
+
+::: {.email}
+
+::: {.subject}
+Email 2: Inline Recipients Pattern
+:::
+
+::: {.recipients}
+`{r} inline_recipients`
+:::
+
+::: {.email-text}
+This email uses the inline recipients pattern.
+:::
+
+Second email using inline recipients pattern with R.
+
+:::

@@ -1,0 +1,69 @@
+---
+title: Email Recipients - All Patterns (Python)
+author: Jules Walzer-Goldfeld
+format: email
+email-version: 2
+---
+
+```{python}
+#| echo: false
+import yaml
+from IPython.display import Markdown
+
+def write_yaml_metadata_block(**kwargs):
+    """Write YAML metadata block that will be parsed by Quarto."""
+    yaml_content = yaml.dump(
+        kwargs,
+        default_flow_style=False,
+        allow_unicode=True,
+        sort_keys=False
+    )
+    yaml_block = f"---\n{yaml_content}---\n"
+    return Markdown(yaml_block)
+```
+
+Test document demonstrating both recipient patterns with Python.
+
+```{python}
+#| output: asis
+# Email 1: Metadata attribute pattern
+metadata_recipients = ["metadata1@example.com", "metadata2@example.com"]
+write_yaml_metadata_block(metadata_recipients=metadata_recipients)
+```
+
+::: {.email recipients=metadata_recipients}
+
+::: {.subject}
+Email 1: Metadata Attribute Pattern
+:::
+
+::: {.email-text}
+This email uses the metadata attribute pattern.
+:::
+
+First email using metadata attribute pattern with Python.
+
+:::
+
+```{python}
+# Email 2: Inline recipients pattern
+inline_recipients = ["inline1@example.com", "inline2@example.com"]
+```
+
+::: {.email}
+
+::: {.subject}
+Email 2: Inline Recipients Pattern
+:::
+
+::: {.recipients}
+`{python} inline_recipients`
+:::
+
+::: {.email-text}
+This email uses the inline recipients pattern.
+:::
+
+Second email using inline recipients pattern with Python.
+
+:::
