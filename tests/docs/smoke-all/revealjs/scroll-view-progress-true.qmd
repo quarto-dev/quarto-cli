@@ -1,0 +1,24 @@
+---
+title: "Scroll view progress true"
+format:
+  revealjs:
+    scroll-view:
+      activate: true
+      progress: true
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - 'view: ''scroll'','
+          - 'scrollProgress: true,'
+        - []
+---
+
+## test
+
+Content
+
+## test
+
+Content
