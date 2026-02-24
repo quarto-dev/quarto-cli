@@ -43,8 +43,7 @@ export function findProvider(name?: string) {
     warning(
       `The Quarto Pub publishing destination is no longer supported. ` +
         `Consider publishing to Posit Connect Cloud instead ` +
-        `using \`quarto publish posit-connect-cloud\`. ` +
-        `See https://docs.posit.co/cloud/whats_new/#october-2024 for details.`,
+        `using \`quarto publish posit-connect-cloud\`.`
     );
   }
   return kPublishProviders.find((provider) => provider.name === name);
