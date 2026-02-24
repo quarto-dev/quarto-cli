@@ -227,7 +227,7 @@ testRender(docs("email/email-mixed-metadata-v2.qmd"), "email", false, [
   }
 });
 // Test alternative recipient formats (line-separated and comma-separated plain text)
-testRender(docs("email/email-recipients-formats.qmd"), "email", false, [
+testRender(docs("email/email-recipients-plaintext-formats.qmd"), "email", false, [
   fileExists(previewFileV2_1),
   fileExists(previewFileV2_2),
   validJsonWithMultipleEmails(jsonFile, 2, {
