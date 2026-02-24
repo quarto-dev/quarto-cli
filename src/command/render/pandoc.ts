@@ -27,6 +27,7 @@ import { Document } from "../../core/deno-dom.ts";
 import { execProcess } from "../../core/process.ts";
 import { dirAndStem, normalizePath } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
+import { isExternalPath } from "../../core/url.ts";
 
 import {
   Format,
@@ -1844,7 +1845,7 @@ function resolveTextHighlightStyle(
 // deno-lint-ignore no-explicit-any
 function escapeAtInMetadata(value: any): any {
   if (typeof value === "string") {
-    return value.replaceAll("@", "&#64;");
+    return isExternalPath(value) ? value.replaceAll("@", "&#64;") : value;
   }
   if (Array.isArray(value)) {
     return value.map(escapeAtInMetadata);
