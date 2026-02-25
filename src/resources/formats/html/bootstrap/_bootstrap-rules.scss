@@ -863,6 +863,14 @@ div.sourceCode {
   div.sourceCode pre.sourceCode {
     color: $code-block-color;
   }
+  // Themes that omit "Normal" from text-styles (e.g. zenburn, espresso)
+  // don't generate a span-level color rule in the syntax highlighting CSS.
+  // When layered with a light theme that does, the light theme's near-black
+  // span color persists in dark mode. This ensures a base span color is set.
+  pre > code.sourceCode > span,
+  code.sourceCode > span {
+    color: $code-block-color;
+  }
 }
 
 pre.sourceCode {
