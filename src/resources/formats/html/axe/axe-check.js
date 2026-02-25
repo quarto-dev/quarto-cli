@@ -136,7 +136,11 @@ class QuartoAxeChecker {
   }
 }
 
-export async function init() {
+let initialized = false;
+
+async function init() {
+  if (initialized) return;
+  initialized = true;
   const opts = document.querySelector("#quarto-axe-checker-options");
   if (opts) {
     const jsonOptions = JSON.parse(atob(opts.textContent));

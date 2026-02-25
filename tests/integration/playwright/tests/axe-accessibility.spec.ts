@@ -63,6 +63,13 @@ const testCases: AxeTestCase[] = [
     expectedViolation: 'color-contrast' },
 ];
 
+// Map axe violation IDs to the text that appears in document/console reporters.
+// Document reporter shows the full description; console reporter shows a shorter form.
+const violationText: Record<string, { document: string; console: string }> = {
+  'color-contrast': { document: 'color contrast', console: 'contrast' },
+  'link-name': { document: 'discernible text', console: 'discernible text' },
+};
+
 // -- Tests --
 
 test.describe('Axe accessibility checking', () => {
@@ -73,21 +80,13 @@ test.describe('Axe accessibility checking', () => {
         const axeReport = page.locator('.quarto-axe-report');
         await expect(axeReport).toBeVisible({ timeout: 10000 });
         const reportText = await axeReport.textContent();
-        // Document reporter shows violation descriptions, not IDs.
-        // Map violation IDs to expected text in the report.
-        const expectedText = expectedViolation === 'color-contrast'
-          ? 'color contrast'
-          : 'discernible text';
-        expect(reportText).toContain(expectedText);
+        expect(reportText).toContain(violationText[expectedViolation].document);
 
       } else if (outputMode === 'console') {
         const messages = await collectConsoleLogs(page);
         await page.goto(url, { waitUntil: 'networkidle' });
         await waitForAxeCompletion(page);
-        const expectedText = expectedViolation === 'color-contrast'
-          ? 'contrast'
-          : 'discernible text';
-        expect(messages.some(m => m.toLowerCase().includes(expectedText))).toBe(true);
+        expect(messages.some(m => m.toLowerCase().includes(violationText[expectedViolation].console))).toBe(true);
 
       } else if (outputMode === 'json') {
         const messages = await collectConsoleLogs(page);
