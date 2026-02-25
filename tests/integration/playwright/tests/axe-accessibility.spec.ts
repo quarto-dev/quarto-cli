@@ -75,6 +75,9 @@ const violationText: Record<string, { document: string; console: string }> = {
 test.describe('Axe accessibility checking', () => {
   for (const { format, outputMode, url, expectedViolation } of testCases) {
     test(`${format} — ${outputMode} mode detects ${expectedViolation} violation`, async ({ page }) => {
+      expect(violationText[expectedViolation],
+        `Missing violationText entry for "${expectedViolation}"`).toBeDefined();
+
       if (outputMode === 'document') {
         await page.goto(url, { waitUntil: 'networkidle' });
         const axeReport = page.locator('.quarto-axe-report');
