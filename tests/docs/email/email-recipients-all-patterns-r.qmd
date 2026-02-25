@@ -1,8 +1,9 @@
 ---
 title: Email Recipients - All Patterns (R)
 author: Jules Walzer-Goldfeld
-format: email
-email-version: 2
+format:
+    email:
+        email-version: 2
 ---
 
 ```{r}
@@ -49,7 +50,7 @@ First email with static inline recipients.
 
 ```{r}
 # Email 2: Conditional inline recipients
-is_weekday <- TRUE  # Fixed value for deterministic testing
+is_weekday <- TRUE # Fixed value for deterministic testing
 
 if (is_weekday) {
   conditional_recipients <- c("weekday@example.com", "team@example.com")
@@ -100,7 +101,7 @@ Third email using metadata attribute pattern.
 ```{r}
 #| output: asis
 # Email 4: Conditional metadata attribute pattern
-is_admin <- TRUE  # Fixed for testing
+is_admin <- TRUE # Fixed for testing
 
 if (is_admin) {
   admin_recipients <- c("admin@example.com", "superuser@example.com")

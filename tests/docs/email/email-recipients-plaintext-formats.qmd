@@ -1,7 +1,9 @@
 ---
 title: Email Recipients Formats Test Document
 author: Jules Walzer-Goldfeld
-format: email
+format:
+    email:
+        email-version: 2
 ---
 
 Test document for various recipient input formats.

@@ -1,8 +1,9 @@
 ---
 title: Email Recipients - All Patterns (Python)
 author: Jules Walzer-Goldfeld
-format: email
-email-version: 2
+format:
+    email:
+        email-version: 2
 ---
 
 ```{python}
