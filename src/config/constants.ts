@@ -283,6 +283,8 @@ export const kCodeLines = "code-lines";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
 export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
+export const kCodeToolsShowAllSections = "code-tools-show-all-sections";
+export const kCodeToolsHideAllSections = "code-tools-hide-all-sections";
 export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
@@ -413,6 +415,8 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
   kCodeToolsHideAllCode,
+  kCodeToolsHideAllSections,
+  kCodeToolsShowAllSections,
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
   kToolsShare,
