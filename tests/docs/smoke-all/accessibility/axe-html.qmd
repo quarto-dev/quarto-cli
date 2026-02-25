@@ -7,7 +7,7 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ['script[src*="axe"]', '#quarto-axe-checker-options']
+        - ['script[src*="axe-check"]', '#quarto-axe-checker-options']
         - []
       ensureFileRegexMatches:
         - ['quarto-axe-checker-options']
