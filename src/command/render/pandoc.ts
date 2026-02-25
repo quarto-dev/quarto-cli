@@ -27,6 +27,7 @@ import { Document } from "../../core/deno-dom.ts";
 import { execProcess } from "../../core/process.ts";
 import { dirAndStem, normalizePath } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
+import { isExternalPath } from "../../core/url.ts";
 
 import {
   Format,
@@ -1339,6 +1340,13 @@ export async function runPandoc(
     }
   }
 
+  // Escape @ in book metadata to prevent false citeproc warnings (#12136).
+  // Book metadata can't be deleted like website/about because {{< meta book.* >}}
+  // shortcodes depend on it. Pandoc resolves &#64; back to @ in the AST.
+  if (pandocPassedMetadata.book) {
+    pandocPassedMetadata.book = escapeAtInMetadata(pandocPassedMetadata.book);
+  }
+
   Deno.writeTextFileSync(
     metadataTemp,
     stringify(pandocPassedMetadata, {
@@ -1832,4 +1840,22 @@ function resolveTextHighlightStyle(
       break;
   }
   return extras;
+}
+
+// deno-lint-ignore no-explicit-any
+function escapeAtInMetadata(value: any): any {
+  if (typeof value === "string") {
+    return isExternalPath(value) ? value.replaceAll("@", "&#64;") : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(escapeAtInMetadata);
+  }
+  if (value !== null && typeof value === "object") {
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      result[k] = escapeAtInMetadata(v);
+    }
+    return result;
+  }
+  return value;
 }

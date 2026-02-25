@@ -131,6 +131,7 @@ All changes included in 1.9:
 
 ### `book`
 
+- ([#12136](https://github.com/quarto-dev/quarto-cli/issues/12136)): Fix false `citeproc: citation not found` warnings when book metadata URLs contain `@` (e.g., Mastodon links). The `@` in URL strings is now escaped before passing to Pandoc, preventing misinterpretation as citation references.
 - ([#13769](https://github.com/quarto-dev/quarto-cli/issues/13769)): Apply `repo-link-target` and `repo-link-rel` options to tools in book sidebar for consistent link attribute handling with website projects. (author: @mcanouil)
 
 ### `manuscript`
