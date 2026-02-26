@@ -31,13 +31,6 @@
       be preserved when the presentation is scaled to fit different
       resolutions. Can be specified using percentage units.
 
-- name: margin
-  tags:
-    formats: [revealjs]
-  schema: number
-  default: 0.1
-  description: "Factor of the display size that should remain empty around the content (e.g. 0.1)."
-
 - name: min-scale
   tags:
     formats: [revealjs]

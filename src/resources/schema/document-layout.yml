@@ -280,33 +280,38 @@
 
 - name: margin
   tags:
-    formats: [typst]
+    formats: [revealjs, typst]
   schema:
-    object:
-      closed: true
-      properties:
-        x:
-          string:
-            description: "Horizontal margin (e.g. 1.5in)"
-        y:
-          string:
-            description: "Vertical margin (e.g. 1.5in)"
-        top:
-          string:
-            description: "Top margin (e.g. 1.5in)"
-        bottom:
-          string:
-            description: "Bottom margin (e.g. 1.5in)"
-        left:
-          string:
-            description: "Left margin (e.g. 1.5in)"
-        right:
-          string:
-            description: "Right margin (e.g. 1.5in)"
+    anyOf:
+      - number
+      - object:
+          closed: true
+          properties:
+            x:
+              string:
+                description: "Horizontal margin (e.g. 1.5in)"
+            y:
+              string:
+                description: "Vertical margin (e.g. 1.5in)"
+            top:
+              string:
+                description: "Top margin (e.g. 1.5in)"
+            bottom:
+              string:
+                description: "Bottom margin (e.g. 1.5in)"
+            left:
+              string:
+                description: "Left margin (e.g. 1.5in)"
+            right:
+              string:
+                description: "Right margin (e.g. 1.5in)"
+  default: 0.1
   description:
-    short: "Page margins for Typst output."
+    short: "Margin settings for Reveal.js or Typst output."
     long: |
-      A dictionary specifying page margins. Use `x` and `y` for symmetric
+      For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).
+
+      For `typst`, a dictionary specifying page margins. Use `x` and `y` for symmetric
       horizontal/vertical margins, or `top`, `bottom`, `left`, `right` for
       individual sides. Values should include units (e.g. `1.5in`, `2cm`).
 
