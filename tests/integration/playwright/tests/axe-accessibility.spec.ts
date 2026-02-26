@@ -11,7 +11,7 @@ async function collectConsoleLogs(page: Page): Promise<string[]> {
 }
 
 async function waitForAxeCompletion(page: Page, timeout = 15000): Promise<void> {
-  await page.waitForSelector('[data-quarto-axe-complete]', { timeout });
+  await page.locator('[data-quarto-axe-complete]').waitFor({ timeout });
 }
 
 function findAxeJsonResult(messages: string[]): { violations: { id: string }[] } | undefined {
@@ -100,8 +100,7 @@ test.describe('Axe accessibility checking', () => {
           // Report content is inside the slide
           const axeReport = reportSlide.locator('.quarto-axe-report');
           await expect(axeReport).toBeAttached();
-          const reportText = await axeReport.textContent();
-          expect(reportText).toContain(violationText[expectedViolation].document);
+          await expect(axeReport).toContainText(violationText[expectedViolation].document);
 
           // Report element is static (not fixed overlay)
           await expect(axeReport).toHaveCSS('position', 'static');
@@ -110,25 +109,23 @@ test.describe('Axe accessibility checking', () => {
           // HTML/Dashboard: report appears as a fixed overlay
           const axeReport = page.locator('.quarto-axe-report');
           await expect(axeReport).toBeVisible({ timeout: 10000 });
-          const reportText = await axeReport.textContent();
-          expect(reportText).toContain(violationText[expectedViolation].document);
+          await expect(axeReport).toContainText(violationText[expectedViolation].document);
 
           // Verify report overlay CSS properties
           await expect(axeReport).toHaveCSS('z-index', '9999');
           await expect(axeReport).toHaveCSS('overflow-y', 'auto');
 
           // Background must not be transparent
-          const bgColor = await axeReport.evaluate(el =>
-            window.getComputedStyle(el).getPropertyValue('background-color')
-          );
-          expect(bgColor).not.toBe('rgba(0, 0, 0, 0)');
+          await expect(axeReport).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
         }
 
       } else if (outputMode === 'console') {
         const messages = await collectConsoleLogs(page);
         await page.goto(url, { waitUntil: 'networkidle' });
         await waitForAxeCompletion(page);
-        expect(messages.some(m => m.toLowerCase().includes(violationText[expectedViolation].console))).toBe(true);
+        const expectedText = violationText[expectedViolation].console;
+        expect(messages.some(m => m.toLowerCase().includes(expectedText)),
+          `Expected console output to contain "${expectedText}"`).toBe(true);
 
       } else if (outputMode === 'json') {
         const messages = await collectConsoleLogs(page);
@@ -149,18 +146,14 @@ test.describe('RevealJS axe — cross-slide scanning and state restoration', () 
   test('report slide exists when completion signal fires', async ({ page }) => {
     await page.goto(revealjsUrl, { waitUntil: 'networkidle' });
     await waitForAxeCompletion(page);
-    const reportExists = await page.evaluate(() =>
-      document.querySelector('section.quarto-axe-report-slide') !== null
-    );
-    expect(reportExists).toBe(true);
+    await expect(page.locator('section.quarto-axe-report-slide')).toBeAttached();
   });
 
   test('detects image-alt violation on non-visible slide', async ({ page }) => {
     await page.goto(revealjsUrl, { waitUntil: 'networkidle' });
     const reportSlide = page.locator('section.quarto-axe-report-slide');
     await expect(reportSlide).toBeAttached({ timeout: 10000 });
-    const reportText = await reportSlide.textContent();
-    expect(reportText).toContain(violationText['image-alt'].document);
+    await expect(reportSlide).toContainText(violationText['image-alt'].document);
   });
 
   test('restores presentation state after axe completes', async ({ page }) => {
@@ -220,7 +213,6 @@ test.describe('RevealJS axe — cross-slide scanning and state restoration', () 
     await page.goto('/revealjs/axe-accessibility-vertical.html', { waitUntil: 'networkidle' });
     const reportSlide = page.locator('section.quarto-axe-report-slide');
     await expect(reportSlide).toBeAttached({ timeout: 10000 });
-    const reportText = await reportSlide.textContent();
-    expect(reportText).toContain(violationText['image-alt'].document);
+    await expect(reportSlide).toContainText(violationText['image-alt'].document);
   });
 });
