@@ -1,0 +1,24 @@
+---
+title: "Typst fig-alt propagation for static images"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        - # Patterns that MUST be found - fig-alt propagated to image(alt: ...)
+          - 'alt:\s*"Alt for captioned non-crossref image"'
+          - 'alt:\s*"Alt for uncaptioned image"'
+        - # Patterns that must NOT be found
+          []
+---
+
+## Static image with caption but no cross-ref label
+
+![A caption](typst-fig-alt-static-images-img.svg){fig-alt="Alt for captioned non-crossref image"}
+
+## Static image without caption and no cross-ref label
+
+![](typst-fig-alt-static-images-img.svg){fig-alt="Alt for uncaptioned image"}
