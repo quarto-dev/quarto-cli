@@ -166,7 +166,12 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
       if (Reveal.isReady()) {
         this.createReportSlide();
       } else {
-        Reveal.on("ready", () => this.createReportSlide());
+        return new Promise((resolve) => {
+          Reveal.on("ready", () => {
+            this.createReportSlide();
+            resolve();
+          });
+        });
       }
     } else {
       this.createReportOverlay();
@@ -188,7 +193,7 @@ class QuartoAxeChecker {
   // non-visible slides have hidden and aria-hidden attributes. Temporarily
   // remove these so axe can check all slides, then restore them.
   revealUnhideSlides() {
-    const slides = document.querySelectorAll(".reveal .slides > section");
+    const slides = document.querySelectorAll(".reveal .slides section");
     if (slides.length === 0) return null;
     const saved = [];
     slides.forEach((s) => {
@@ -214,16 +219,20 @@ class QuartoAxeChecker {
   async init() {
     const axe = (await import("https://cdn.skypack.dev/pin/axe-core@v4.10.3-aVOFXWsJaCpVrtv89pCa/mode=imports,min/optimized/axe-core.js")).default;
     const saved = this.revealUnhideSlides();
-    const result = await axe.run({
-      exclude: [
-       // https://github.com/microsoft/tabster/issues/288
-       // MS has claimed they won't fix this, so we need to add an exclusion to
-       // all tabster elements
-       "[data-tabster-dummy]"
-      ],
-      preload: { assets: ['cssom'], timeout: 50000 }
-    });
-    this.revealRestoreSlides(saved);
+    let result;
+    try {
+      result = await axe.run({
+        exclude: [
+         // https://github.com/microsoft/tabster/issues/288
+         // MS has claimed they won't fix this, so we need to add an exclusion to
+         // all tabster elements
+         "[data-tabster-dummy]"
+        ],
+        preload: { assets: ['cssom'], timeout: 50000 }
+      });
+    } finally {
+      this.revealRestoreSlides(saved);
+    }
     const reporter = this.options === true ? new QuartoAxeConsoleReporter(result) : new reporters[this.options.output](result, this.options);
     await reporter.report();
     document.body.setAttribute('data-quarto-axe-complete', 'true');

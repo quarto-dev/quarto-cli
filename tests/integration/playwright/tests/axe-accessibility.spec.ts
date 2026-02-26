@@ -146,6 +146,15 @@ test.describe('Axe accessibility checking', () => {
 test.describe('RevealJS axe — cross-slide scanning and state restoration', () => {
   const revealjsUrl = '/revealjs/axe-accessibility.html';
 
+  test('report slide exists when completion signal fires', async ({ page }) => {
+    await page.goto(revealjsUrl, { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+    const reportExists = await page.evaluate(() =>
+      document.querySelector('section.quarto-axe-report-slide') !== null
+    );
+    expect(reportExists).toBe(true);
+  });
+
   test('detects image-alt violation on non-visible slide', async ({ page }) => {
     await page.goto(revealjsUrl, { waitUntil: 'networkidle' });
     const reportSlide = page.locator('section.quarto-axe-report-slide');
@@ -205,5 +214,13 @@ test.describe('RevealJS axe — cross-slide scanning and state restoration', () 
     // The img element should have the highlight class
     const highlightedImg = page.locator('img.quarto-axe-hover-highlight');
     await expect(highlightedImg).toBeAttached({ timeout: 3000 });
+  });
+
+  test('detects image-alt violation on hidden vertical slide', async ({ page }) => {
+    await page.goto('/revealjs/axe-accessibility-vertical.html', { waitUntil: 'networkidle' });
+    const reportSlide = page.locator('section.quarto-axe-report-slide');
+    await expect(reportSlide).toBeAttached({ timeout: 10000 });
+    const reportText = await reportSlide.textContent();
+    expect(reportText).toContain(violationText['image-alt'].document);
   });
 });
