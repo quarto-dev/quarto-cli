@@ -1,0 +1,15 @@
+---
+title: "issue-11189"
+filters:
+  - _extensions/remove-class/remove-class.lua
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+
+::: {.quarto-exclude-from-search-index}
+
+Please find me.
+
+:::
