@@ -100,6 +100,11 @@ test.describe('Axe accessibility checking', () => {
         );
         expect(bgColor).not.toBe('rgba(0, 0, 0, 0)');
 
+        // Dark theme: verify CSS custom property bridge uses theme color, not Sass fallback
+        if (format === 'revealjs-dark') {
+          expect(bgColor).not.toBe('rgb(255, 255, 255)');
+        }
+
       } else if (outputMode === 'console') {
         const messages = await collectConsoleLogs(page);
         await page.goto(url, { waitUntil: 'networkidle' });
