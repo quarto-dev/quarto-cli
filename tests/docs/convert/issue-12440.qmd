@@ -1,0 +1,18 @@
+---
+format: typst
+---
+
+# This is what happens when I don't set the title.
+
+## This is a level 2 heading
+
+This is some paragraph text.
+
+```{python}
+# This is an executable Python code block.
+print("This is the output of an executable Python code block.")
+```
+
+## This is another level 2 heading
+
+This is some more paragraph text.

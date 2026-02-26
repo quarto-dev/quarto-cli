@@ -1,5 +1,5 @@
 /*
-* convert-backticks.test.ts
+* convert-issue-12042.test.ts
 *
 * Copyright (C) 2020-2024 Posit Software, PBC
 *
@@ -12,7 +12,6 @@ import {
 import { assert } from "testing/asserts";
 
 (() => {
-  const input = "docs/convert/backticks.ipynb";
   testQuartoCmd(
     "convert",
     ["docs/convert/issue-12042.ipynb"],
