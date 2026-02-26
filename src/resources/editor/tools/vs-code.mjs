@@ -23871,8 +23871,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "For HTML output, sets the <code>margin-bottom</code> property on the\nBody element.\nFor LaTeX output, sets the bottom margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the bottom margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the bottom page margin."
         },
         {
-          short: "Page margins for Typst output.",
-          long: "A dictionary specifying page margins. Use <code>x</code> and\n<code>y</code> for symmetric horizontal/vertical margins, or\n<code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code> for individual sides. Values should include units\n(e.g.&nbsp;<code>1.5in</code>, <code>2cm</code>)."
+          short: "Margin settings for Reveal.js or Typst output.",
+          long: "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary specifying page margins. Use\n<code>x</code> and <code>y</code> for symmetric horizontal/vertical\nmargins, or <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code> for individual sides. Values should include units\n(e.g.&nbsp;<code>1.5in</code>, <code>2cm</code>)."
         },
         "Horizontal margin (e.g.&nbsp;1.5in)",
         "Vertical margin (e.g.&nbsp;1.5in)",
@@ -24213,7 +24213,6 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The \u2018normal\u2019 height of the presentation",
           long: "The \u201Cnormal\u201D height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
         },
-        "Factor of the display size that should remain empty around the\ncontent (e.g.&nbsp;0.1).",
         "Bounds for smallest possible scale to apply to content",
         "Bounds for largest possible scale to apply to content",
         "Vertical centering of slides",
@@ -25376,12 +25375,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222535,
+        _internalId: 222774,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222527,
+            _internalId: 222766,
             type: "enum",
             enum: [
               "png",
@@ -25397,7 +25396,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222534,
+            _internalId: 222773,
             type: "anyOf",
             anyOf: [
               {
