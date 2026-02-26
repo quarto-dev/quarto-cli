@@ -65,6 +65,41 @@ function str_truthy_falsy(str)
   return false
 end
 
+-- Parse recipients using regex to find email addresses
+-- Matches pattern: local-part@domain.tld
+-- Handles any format: Python lists, R vectors, comma-separated,
+-- space-separated, quoted, unquoted, etc.
+-- Returns an empty array if no valid emails found
+function parse_recipients(recipient_str)
+  recipient_str = str_trunc_trim(recipient_str, 10000)
+
+  if recipient_str == "" then
+    return {}
+  end
+
+  local recipients = {}
+  -- Match anything that's not a separator (quotes, commas, spaces, brackets, parens)
+  -- This allows international characters while stopping at separators
+  for email in string.gmatch(recipient_str, "[^%s,'\"%[%]%(%)]+@[^%s,'\"%[%]%(%)]+%.[^%s,'\"%[%]%(%)]+") do
+    -- Strip any leading/trailing quote characters (both straight and curly)
+    -- Straight quotes: ' "
+    -- Curly single quotes: ' ' (U+2018, U+2019)
+    -- Curly double quotes: " " (U+201C, U+201D)
+    email = string.gsub(email, "^['\"" .. string.char(226, 128, 152) .. string.char(226, 128, 153) .. string.char(226, 128, 156) .. string.char(226, 128, 157) .. "]+", "")
+    email = string.gsub(email, "['\"" .. string.char(226, 128, 152) .. string.char(226, 128, 153) .. string.char(226, 128, 156) .. string.char(226, 128, 157) .. "]+$", "")
+
+    if email ~= "" and string.match(email, "@") then
+      table.insert(recipients, email)
+    end
+  end
+
+  if #recipients == 0 then
+    quarto.log.warning("Could not parse recipients format: " .. recipient_str)
+  end
+
+  return recipients
+end
+
 local html_email_template_1 = [[
 <!DOCTYPE html>
 <html>
@@ -254,6 +289,7 @@ function process_div(div)
       image_tbl = {},
       email_images = {},
       suppress_scheduled_email = nil,  -- nil means not set
+      recipients = {},
       attachments = {}
     }
 
@@ -270,6 +306,8 @@ function process_div(div)
           local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(child)), 10)
           local scheduled_email = str_truthy_falsy(email_scheduled_str)
           current_email.suppress_scheduled_email = not scheduled_email
+        elseif child.classes:includes("recipients") then
+          current_email.recipients = parse_recipients(pandoc.utils.stringify(child))
         else
           table.insert(remaining_content, child)
         end
@@ -277,7 +315,41 @@ function process_div(div)
         table.insert(remaining_content, child)
       end
     end
-    
+
+    -- Check for recipients attribute on the email div itself
+    -- This allows referencing metadata set via write_yaml_metadata_block()
+    if div.attributes.recipients then
+      local meta_key = div.attributes.recipients
+      local meta_value = quarto.metadata.get(meta_key)
+
+      if meta_value then
+        -- Convert metadata to recipients array
+        if quarto.utils.type(meta_value) == "List" then
+          local recipients_from_meta = {}
+          for _, item in ipairs(meta_value) do
+            local recipient_str = pandoc.utils.stringify(item)
+            if recipient_str ~= "" then
+              table.insert(recipients_from_meta, recipient_str)
+            end
+          end
+
+          -- If recipients were also found in child divs, merge them
+          if #current_email.recipients > 0 then
+            quarto.log.warning("Recipients found in both attribute and child div. Merging both lists.")
+            for _, recipient in ipairs(recipients_from_meta) do
+              table.insert(current_email.recipients, recipient)
+            end
+          else
+            current_email.recipients = recipients_from_meta
+          end
+        else
+          quarto.log.warning("Recipients metadata '" .. meta_key .. "' is not a list. Expected format: ['email1@example.com', 'email2@example.com']")
+        end
+      else
+        quarto.log.warning("Recipients attribute references metadata key '" .. meta_key .. "' which does not exist.")
+      end
+    end
+
     -- Create a modified div without metadata for processing
     local email_without_metadata = pandoc.Div(remaining_content, div.attr)
 
@@ -507,6 +579,11 @@ function process_document(doc)
       suppress_scheduled = email_obj.suppress_scheduled_email,
       send_report_as_attachment = false
     }
+
+    -- Only add recipients if present
+    if not is_empty_table(email_obj.recipients) then
+      email_json_obj.recipients = email_obj.recipients
+    end
 
     -- Only add images if present
     if not is_empty_table(email_obj.email_images) then
