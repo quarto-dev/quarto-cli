@@ -19,6 +19,7 @@ import {
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 import {
   Format,
+  FormatDependency,
   FormatExtras,
   kDependencies,
   kHtmlFinalizers,
@@ -183,25 +184,42 @@ export const websiteProjectType: ProjectType = {
     }
 
     // dependency for favicon if we have one
-    let favicon = websiteConfigString(kSiteFavicon, project.config);
-    if (!favicon) {
+    let faviconLight = websiteConfigString(kSiteFavicon, project.config);
+    let faviconDark = undefined; // until schema upgrade
+    if (!faviconLight) {
       const brand = await project.resolveBrand();
       if (brand?.light) {
-        favicon = getFavicon(brand.light);
+        faviconLight = getFavicon(brand.light);
+      }
+      if (brand?.dark) {
+        faviconDark = getFavicon(brand.dark);
       }
     }
-    if (favicon) {
+    if (faviconLight || faviconDark) {
       const offset = projectOffset(project, source);
       extras.html = extras.html || {};
       extras.html.dependencies = extras.html.dependencies || [];
-      extras.html.dependencies.push({
+      const faviconDep: FormatDependency = {
         name: kSiteFavicon,
-        links: [{
+        links: [],
+      };
+      if (faviconDark) {
+        faviconDep.links!.push({
           rel: "icon",
-          href: offset + "/" + favicon,
-          type: contentType(favicon),
-        }],
-      });
+          href: offset + "/" + faviconDark,
+          type: contentType(faviconDark),
+          media: "(prefers-color-scheme:dark)",
+        });
+      }
+      if (faviconLight) {
+        faviconDep.links!.push({
+          rel: "icon",
+          href: offset + "/" + faviconLight,
+          type: contentType(faviconLight),
+          media: "(prefers-color-scheme:light)",
+        });
+      }
+      extras.html.dependencies.push(faviconDep);
     }
 
     // pagetitle for home page if it has no title
