@@ -227,7 +227,11 @@ function render_typst_fixups()
 
       -- Workaround for Pandoc not passing alt text to Typst image() calls
       -- See: https://github.com/jgm/pandoc/pull/11394
-      local alt_text = image.attributes["alt"]
+      -- Check fig-alt first (Quarto's custom alt text override), then alt, then caption
+      local alt_text = image.attributes[kFigAlt] or image.attributes["alt"]
+      if alt_text then
+        image.attributes[kFigAlt] = nil
+      end
       if (alt_text == nil or alt_text == "") and #image.caption > 0 then
         alt_text = pandoc.utils.stringify(image.caption)
       end
