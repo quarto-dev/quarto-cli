@@ -65,13 +65,11 @@ function str_truthy_falsy(str)
   return false
 end
 
--- Parse recipients from inline code output or plain text
--- Supports multiple formats:
---   1. Python list: ['a', 'b'] or ["a", "b"]
---   2. R vector: "a" "b" "c"
---   3. Comma-separated: a, b, c
---   4. Line-separated: a\nb\nc
--- Returns an empty array if parsing fails
+-- Parse recipients using regex to find email addresses
+-- Matches pattern: local-part@domain.tld
+-- Handles any format: Python lists, R vectors, comma-separated,
+-- space-separated, quoted, unquoted, etc.
+-- Returns an empty array if no valid emails found
 function parse_recipients(recipient_str)
   recipient_str = str_trunc_trim(recipient_str, 10000)
 
@@ -80,110 +78,26 @@ function parse_recipients(recipient_str)
   end
 
   local recipients = {}
+  -- Match anything that's not a separator (quotes, commas, spaces, brackets, parens)
+  -- This allows international characters while stopping at separators
+  for email in string.gmatch(recipient_str, "[^%s,'\"%[%]%(%)]+@[^%s,'\"%[%]%(%)]+%.[^%s,'\"%[%]%(%)]+") do
+    -- Strip any leading/trailing quote characters (both straight and curly)
+    -- Straight quotes: ' "
+    -- Curly single quotes: ' ' (U+2018, U+2019)
+    -- Curly double quotes: " " (U+201C, U+201D)
+    email = string.gsub(email, "^['\"" .. string.char(226, 128, 152) .. string.char(226, 128, 153) .. string.char(226, 128, 156) .. string.char(226, 128, 157) .. "]+", "")
+    email = string.gsub(email, "['\"" .. string.char(226, 128, 152) .. string.char(226, 128, 153) .. string.char(226, 128, 156) .. string.char(226, 128, 157) .. "]+$", "")
 
-  -- Try Python list format ['...', '...'] or ["...", "..."]
-  if string.match(recipient_str, "^%[") and string.match(recipient_str, "%]$") then
-    local content = string.sub(recipient_str, 2, -2)
-
-    -- Try to parse as Python/R list by splitting on commas
-    -- and stripping quotes and brackets from each item
-    recipients = {}
-    for item in string.gmatch(content, "[^,]+") do
-      local trimmed = str_trunc_trim(item, 1000)
-      -- Strip leading/trailing brackets
-      trimmed = string.gsub(trimmed, "^%[", "")
-      trimmed = string.gsub(trimmed, "%]$", "")
-      trimmed = str_trunc_trim(trimmed, 1000)
-
-      -- Strip leading/trailing quotes (ASCII single/double and UTF-8 curly quotes)
-      -- ASCII single quote '
-      trimmed = string.gsub(trimmed, "^'", "")
-      trimmed = string.gsub(trimmed, "'$", "")
-      -- ASCII double quote "
-      trimmed = string.gsub(trimmed, '^"', "")
-      trimmed = string.gsub(trimmed, '"$', "")
-      -- UTF-8 curly single quotes ' and '  (U+2018, U+2019)
-      trimmed = string.gsub(trimmed, "^" .. string.char(226, 128, 152), "")
-      trimmed = string.gsub(trimmed, string.char(226, 128, 153) .. "$", "")
-      -- UTF-8 curly double quotes " and " (U+201C, U+201D)
-      trimmed = string.gsub(trimmed, "^" .. string.char(226, 128, 156), "")
-      trimmed = string.gsub(trimmed, string.char(226, 128, 157) .. "$", "")
-
-      trimmed = str_trunc_trim(trimmed, 1000)
-      if trimmed ~= "" then
-        table.insert(recipients, trimmed)
-      end
-    end
-    if #recipients > 0 then
-      return recipients
+    if email ~= "" and string.match(email, "@") then
+      table.insert(recipients, email)
     end
   end
 
-  -- Try R-style quoted format (space-separated quoted strings outside of brackets)
-  recipients = {}
-  local found_any = false
-
-  -- Try single quotes: 'a' 'b' 'c'
-  for quoted_pair in string.gmatch(recipient_str, "'([^']*)'") do
-    local trimmed = str_trunc_trim(quoted_pair, 1000)
-    if trimmed ~= "" then
-      table.insert(recipients, trimmed)
-      found_any = true
-    end
-  end
-  if found_any then
-    return recipients
+  if #recipients == 0 then
+    quarto.log.warning("Could not parse recipients format: " .. recipient_str)
   end
 
-  -- Try double quotes: "a" "b" "c"
-  recipients = {}
-  for quoted_pair in string.gmatch(recipient_str, '"([^"]*)"') do
-    local trimmed = str_trunc_trim(quoted_pair, 1000)
-    if trimmed ~= "" then
-      table.insert(recipients, trimmed)
-      found_any = true
-    end
-  end
-  if found_any then
-    return recipients
-  end
-
-  -- Try line-separated format (newlines or spaces)
-  -- Check if there are newlines or multiple space-separated emails
-  if string.match(recipient_str, "\n") or
-     (string.match(recipient_str, "@.*%s+.*@") and not string.match(recipient_str, ",")) then
-    recipients = {}
-    -- Split on newlines or spaces
-    for item in string.gmatch(recipient_str, "[^\n%s]+") do
-      local trimmed = str_trunc_trim(item, 1000)
-      if trimmed ~= "" and string.match(trimmed, "@") then
-        table.insert(recipients, trimmed)
-        found_any = true
-      end
-    end
-    if found_any then
-      return recipients
-    end
-  end
-
-  -- Try comma-separated format without quotes
-  -- Split by comma and trim each part
-  recipients = {}
-  found_any = false
-  for part in string.gmatch(recipient_str, "[^,]+") do
-    local trimmed = str_trunc_trim(part, 1000)
-    if trimmed ~= "" and not string.match(trimmed, "^[%[%]]") then
-      table.insert(recipients, trimmed)
-      found_any = true
-    end
-  end
-  if found_any then
-    return recipients
-  end
-
-  -- Could not parse - log warning and return empty
-  quarto.log.warning("Could not parse recipients format: " .. recipient_str)
-  return {}
+  return recipients
 end
 
 local html_email_template_1 = [[

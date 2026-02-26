@@ -230,7 +230,11 @@ testRender(docs("email/email-mixed-metadata-v2.qmd"), "email", false, [
 testRender(docs("email/email-recipients-plaintext-formats.qmd"), "email", false, [
   fileExists(previewFileV2_1),
   fileExists(previewFileV2_2),
-  validJsonWithMultipleEmails(jsonFile, 2, {
+  fileExists(docs("email/email-preview/email_id-3.html")),
+  fileExists(docs("email/email-preview/email_id-4.html")),
+  fileExists(docs("email/email-preview/email_id-5.html")),
+  fileExists(docs("email/email-preview/email_id-6.html")),
+  validJsonWithMultipleEmails(jsonFile, 6, {
     "0": {
       "email_id": 1,
       "subject": "Line-Separated Recipients",
@@ -243,6 +247,38 @@ testRender(docs("email/email-recipients-plaintext-formats.qmd"), "email", false,
       "email_id": 2,
       "subject": "Comma-Separated Recipients",
       "recipients": ["alice@example.com", "bob@example.com", "charlie@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "2": {
+      "email_id": 3,
+      "subject": "Funky Email Formats - Dots and Hyphens",
+      "recipients": ["first.last@example.com", "john-doe@test-domain.org", "user_name@example.co.uk"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "3": {
+      "email_id": 4,
+      "subject": "Funky Email Formats - Plus Signs",
+      "recipients": ["user+tag@example.com", "test+filter@domain.org", "admin+reports@company.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "4": {
+      "email_id": 5,
+      "subject": "Mixed Separators and Quotes",
+      "recipients": ["user1@example.com", "user2@example.com", "user3@example.com", "user4@example.com", "user5@example.com"],
+      "attachments": [],
+      "suppress_scheduled": false,
+      "send_report_as_attachment": false
+    },
+    "5": {
+      "email_id": 6,
+      "subject": "Complex Local Parts",
+      "recipients": ["first.middle.last@example.com", "user+tag1+tag2@domain.org", "test_user-name.v2@example.co.uk"],
       "attachments": [],
       "suppress_scheduled": false,
       "send_report_as_attachment": false
