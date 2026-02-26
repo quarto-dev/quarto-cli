@@ -1,12 +1,47 @@
 ---
-format:
-  dashboard:
-    axe:
-      output: document
+title: "Sales Dashboard"
+format: dashboard
+axe:
+  output: document
 ---
 
-## Row
+## Row {height=30%}
 
-Content for axe accessibility testing.
+### Column
 
-This text violates contrast rules: [insufficient contrast.]{style="color: #eee; background: #fff;"}.
+::: {.valuebox title="Total Revenue" color="primary"}
+$1.2M
+:::
+
+### Column
+
+::: {.valuebox title="Active Users" color="success"}
+8,432
+:::
+
+### Column
+
+::: {.valuebox title="Conversion Rate" color="warning"}
+3.2%
+:::
+
+## Row {height=70%}
+
+### Column {width=60%}
+
+::: {.card title="Monthly Revenue"}
+This card shows [monthly revenue trends]{style="color: #eee; background: #fff;"} across all regions.
+
+Additional analysis text to fill the card with content. The dashboard layout should fill the viewport.
+:::
+
+### Column {width=40%}
+
+::: {.card title="Top Products"}
+| Product | Sales |
+|---------|-------|
+| Widget A | $450K |
+| Widget B | $320K |
+| Widget C | $280K |
+| Widget D | $150K |
+:::

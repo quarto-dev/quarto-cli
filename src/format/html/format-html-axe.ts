@@ -53,6 +53,7 @@ export function axeFormatDependencies(
             uses: "",
             defaults: `
 $body-color: #222 !default;
+$body-bg: #fff !default;
 $link-color: #2a76dd !default;
 `,
             functions: "",
@@ -63,7 +64,12 @@ body div.quarto-axe-report {
   bottom: 3rem;
   right: 3rem;
   padding: 1rem;
-  border: 1px solid $body-color;
+  border: 1px solid var(--r-main-color, $body-color);
+  z-index: 9999;
+  background-color: var(--r-background-color, $body-bg);
+  color: var(--r-main-color, $body-color);
+  max-height: 50vh;
+  overflow-y: auto;
 }
 
 .quarto-axe-violation-help { padding-left: 0.5rem; }

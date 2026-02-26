@@ -1,0 +1,17 @@
+---
+format:
+  revealjs:
+    theme: dark
+    axe:
+      output: document
+---
+
+## Slide 1
+
+Content for axe accessibility testing on dark theme.
+
+This text violates contrast rules: [insufficient contrast.]{style="color: #333; background: #222;"}.
+
+## Slide 2
+
+More content to check.

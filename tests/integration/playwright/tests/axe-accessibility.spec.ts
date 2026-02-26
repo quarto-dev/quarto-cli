@@ -58,6 +58,11 @@ const testCases: AxeTestCase[] = [
   { format: 'revealjs', outputMode: 'json', url: '/revealjs/axe-json.html',
     expectedViolation: 'link-name' },
 
+  // RevealJS dark theme — verifies CSS custom property bridge for theming.
+  // Report should use --r-background-color/#191919, not the Sass fallback #fff.
+  { format: 'revealjs-dark', outputMode: 'document', url: '/revealjs/axe-accessibility-dark.html',
+    expectedViolation: 'link-name' },
+
   // Dashboard — axe-check.js loads as standalone module, falls back to document.body (#13781)
   { format: 'dashboard', outputMode: 'document', url: '/dashboard/axe-accessibility.html',
     expectedViolation: 'color-contrast' },
@@ -84,6 +89,16 @@ test.describe('Axe accessibility checking', () => {
         await expect(axeReport).toBeVisible({ timeout: 10000 });
         const reportText = await axeReport.textContent();
         expect(reportText).toContain(violationText[expectedViolation].document);
+
+        // Verify report overlay CSS properties
+        await expect(axeReport).toHaveCSS('z-index', '9999');
+        await expect(axeReport).toHaveCSS('overflow-y', 'auto');
+
+        // Background must not be transparent
+        const bgColor = await axeReport.evaluate(el =>
+          window.getComputedStyle(el).getPropertyValue('background-color')
+        );
+        expect(bgColor).not.toBe('rgba(0, 0, 0, 0)');
 
       } else if (outputMode === 'console') {
         const messages = await collectConsoleLogs(page);
