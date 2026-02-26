@@ -48,6 +48,8 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
       if (section) {
         const indices = Reveal.getIndices(section);
         Reveal.slide(indices.h, indices.v);
+      } else {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     } else {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -107,7 +109,6 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
             }
           });
         }
-        nodeElement.appendChild(targetElement);
       }
       nodesElement.appendChild(nodeElement);
     }

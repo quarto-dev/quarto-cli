@@ -194,13 +194,13 @@ test.describe('RevealJS axe — cross-slide scanning and state restoration', () 
     });
     await expect(reportSlide).toHaveClass(/present/);
 
-    // Click the img violation target — the img is on Slide 1 (index 0)
+    // Click the img violation target — the img is on Slide 2 (index 1)
     const imgTarget = reportSlide.locator('.quarto-axe-violation-target', { hasText: 'img' });
     await imgTarget.click();
 
-    // After click, Reveal should have navigated to Slide 1 (index 0)
+    // After click, Reveal should have navigated to Slide 2 (index 1)
     const afterClick = await page.evaluate(() => Reveal.getIndices().h);
-    expect(afterClick).toBe(0);
+    expect(afterClick).toBe(1);
 
     // The img element should have the highlight class
     const highlightedImg = page.locator('img.quarto-axe-hover-highlight');
