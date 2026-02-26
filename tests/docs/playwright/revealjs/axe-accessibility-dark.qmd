@@ -12,6 +12,8 @@ Content for axe accessibility testing on dark theme.
 
 This text violates contrast rules: [insufficient contrast.]{style="color: #333; background: #222;"}.
 
+<img src="placeholder.png" class="axe-test-img">
+
 ## Slide 2
 
 More content to check.

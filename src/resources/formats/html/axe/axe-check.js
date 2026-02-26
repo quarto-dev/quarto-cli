@@ -78,25 +78,35 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
         targetElement.className = "quarto-axe-violation-target";
         targetElement.innerText = target;
         nodeElement.appendChild(targetElement);
-        nodeElement.addEventListener("mouseenter", () => {
-          const element = document.querySelector(target);
-          if (element) {
-            this.navigateToElement(element);
-            element.classList.add("quarto-axe-hover-highlight");
-            setTimeout(() => {
-              element.style.border = "";
-            }, 2000);
-          }
-        });
-        nodeElement.addEventListener("mouseleave", () => {
-          const element = document.querySelector(target);
-          if (element) {
-            element.classList.remove("quarto-axe-hover-highlight");
-          }
-        });
-        nodeElement.addEventListener("click", () => {
-          console.log(document.querySelector(target));
-        });
+        const isReveal = typeof Reveal !== "undefined";
+        if (isReveal) {
+          // RevealJS: click navigates to the slide and highlights the element
+          nodeElement.addEventListener("click", () => {
+            const element = document.querySelector(target);
+            if (element) {
+              this.navigateToElement(element);
+              element.classList.add("quarto-axe-hover-highlight");
+              setTimeout(() => {
+                element.classList.remove("quarto-axe-hover-highlight");
+              }, 3000);
+            }
+          });
+        } else {
+          // HTML/Dashboard: hover scrolls to and highlights the element
+          nodeElement.addEventListener("mouseenter", () => {
+            const element = document.querySelector(target);
+            if (element) {
+              this.navigateToElement(element);
+              element.classList.add("quarto-axe-hover-highlight");
+            }
+          });
+          nodeElement.addEventListener("mouseleave", () => {
+            const element = document.querySelector(target);
+            if (element) {
+              element.classList.remove("quarto-axe-hover-highlight");
+            }
+          });
+        }
         nodeElement.appendChild(targetElement);
       }
       nodesElement.appendChild(nodeElement);
@@ -133,7 +143,7 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     }
 
     const section = document.createElement("section");
-    section.className = "quarto-axe-report-slide scrollable";
+    section.className = "slide quarto-axe-report-slide scrollable";
 
     const title = document.createElement("h2");
     title.textContent = "Accessibility Report";
@@ -173,8 +183,36 @@ class QuartoAxeChecker {
   constructor(opts) {
     this.options = opts;
   }
+  // In RevealJS, only the current slide is accessible to axe-core because
+  // non-visible slides have hidden and aria-hidden attributes. Temporarily
+  // remove these so axe can check all slides, then restore them.
+  revealUnhideSlides() {
+    const slides = document.querySelectorAll(".reveal .slides > section");
+    if (slides.length === 0) return null;
+    const saved = [];
+    slides.forEach((s) => {
+      saved.push({
+        el: s,
+        hidden: s.hasAttribute("hidden"),
+        ariaHidden: s.getAttribute("aria-hidden"),
+      });
+      s.removeAttribute("hidden");
+      s.removeAttribute("aria-hidden");
+    });
+    return saved;
+  }
+
+  revealRestoreSlides(saved) {
+    if (!saved) return;
+    saved.forEach(({ el, hidden, ariaHidden }) => {
+      if (hidden) el.setAttribute("hidden", "");
+      if (ariaHidden !== null) el.setAttribute("aria-hidden", ariaHidden);
+    });
+  }
+
   async init() {
     const axe = (await import("https://cdn.skypack.dev/pin/axe-core@v4.10.3-aVOFXWsJaCpVrtv89pCa/mode=imports,min/optimized/axe-core.js")).default;
+    const saved = this.revealUnhideSlides();
     const result = await axe.run({
       exclude: [
        // https://github.com/microsoft/tabster/issues/288
@@ -182,8 +220,9 @@ class QuartoAxeChecker {
        // all tabster elements
        "[data-tabster-dummy]"
       ],
-      preload: { assets: ['cssom'], timeout: 50000 }    
+      preload: { assets: ['cssom'], timeout: 50000 }
     });
+    this.revealRestoreSlides(saved);
     const reporter = this.options === true ? new QuartoAxeConsoleReporter(result) : new reporters[this.options.output](result, this.options);
     await reporter.report();
     document.body.setAttribute('data-quarto-axe-complete', 'true');

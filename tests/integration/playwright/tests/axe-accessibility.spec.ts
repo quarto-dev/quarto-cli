@@ -73,6 +73,7 @@ const testCases: AxeTestCase[] = [
 const violationText: Record<string, { document: string; console: string }> = {
   'color-contrast': { document: 'color contrast', console: 'contrast' },
   'link-name': { document: 'discernible text', console: 'discernible text' },
+  'image-alt': { document: 'alternative text', console: 'alternative text' },
 };
 
 // -- Tests --
@@ -140,4 +141,69 @@ test.describe('Axe accessibility checking', () => {
       }
     });
   }
+});
+
+test.describe('RevealJS axe — cross-slide scanning and state restoration', () => {
+  const revealjsUrl = '/revealjs/axe-accessibility.html';
+
+  test('detects image-alt violation on non-visible slide', async ({ page }) => {
+    await page.goto(revealjsUrl, { waitUntil: 'networkidle' });
+    const reportSlide = page.locator('section.quarto-axe-report-slide');
+    await expect(reportSlide).toBeAttached({ timeout: 10000 });
+    const reportText = await reportSlide.textContent();
+    expect(reportText).toContain(violationText['image-alt'].document);
+  });
+
+  test('restores presentation state after axe completes', async ({ page }) => {
+    await page.goto(revealjsUrl, { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    // Reveal state should be valid: on slide 0 (first slide)
+    const state = await page.evaluate(() => Reveal.getState());
+    expect(state.indexh).toBe(0);
+
+    // Non-present slides must have hidden and aria-hidden restored
+    const slideState = await page.evaluate(() => {
+      return Reveal.getSlides().map((s: Element) => ({
+        id: s.id || s.className.substring(0, 30),
+        isPresent: s.classList.contains('present'),
+        hidden: s.hasAttribute('hidden'),
+        ariaHidden: s.getAttribute('aria-hidden'),
+      }));
+    });
+
+    for (const slide of slideState) {
+      if (slide.isPresent) {
+        expect(slide.hidden, `Present slide "${slide.id}" should not be hidden`).toBe(false);
+        expect(slide.ariaHidden, `Present slide "${slide.id}" should not have aria-hidden`).toBeNull();
+      } else {
+        expect(slide.hidden, `Non-present slide "${slide.id}" should be hidden`).toBe(true);
+        expect(slide.ariaHidden, `Non-present slide "${slide.id}" should have aria-hidden`).toBe('true');
+      }
+    }
+  });
+
+  test('click navigates to slide containing violation element', async ({ page }) => {
+    await page.goto(revealjsUrl, { waitUntil: 'networkidle' });
+    const reportSlide = page.locator('section.quarto-axe-report-slide');
+    await expect(reportSlide).toBeAttached({ timeout: 10000 });
+
+    // Navigate to the report slide (last slide) and wait for transition
+    await page.evaluate(() => {
+      Reveal.slide(Reveal.getTotalSlides() - 1);
+    });
+    await expect(reportSlide).toHaveClass(/present/);
+
+    // Click the img violation target — the img is on Slide 1 (index 0)
+    const imgTarget = reportSlide.locator('.quarto-axe-violation-target', { hasText: 'img' });
+    await imgTarget.click();
+
+    // After click, Reveal should have navigated to Slide 1 (index 0)
+    const afterClick = await page.evaluate(() => Reveal.getIndices().h);
+    expect(afterClick).toBe(0);
+
+    // The img element should have the highlight class
+    const highlightedImg = page.locator('img.quarto-axe-hover-highlight');
+    await expect(highlightedImg).toBeAttached({ timeout: 3000 });
+  });
 });

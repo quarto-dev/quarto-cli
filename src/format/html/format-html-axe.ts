@@ -61,7 +61,11 @@ body div.quarto-axe-report {
     ? `
 .reveal .slides section.quarto-axe-report-slide {
   text-align: left;
-  h2 { margin-bottom: 1rem; }
+  font-size: 0.55em;
+  h2 {
+    margin-bottom: 0.5em;
+    font-size: 1.8em;
+  }
   div.quarto-axe-report {
     position: static;
     padding: 0;
@@ -70,6 +74,13 @@ body div.quarto-axe-report {
     max-height: none;
     overflow-y: visible;
     z-index: auto;
+  }
+  .quarto-axe-violation-description {
+    margin-top: 0.6em;
+    font-weight: bold;
+  }
+  .quarto-axe-violation-target {
+    font-size: 0.9em;
   }
 }`
     : "";
