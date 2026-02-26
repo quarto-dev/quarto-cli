@@ -85,24 +85,42 @@ test.describe('Axe accessibility checking', () => {
 
       if (outputMode === 'document') {
         await page.goto(url, { waitUntil: 'networkidle' });
-        const axeReport = page.locator('.quarto-axe-report');
-        await expect(axeReport).toBeVisible({ timeout: 10000 });
-        const reportText = await axeReport.textContent();
-        expect(reportText).toContain(violationText[expectedViolation].document);
 
-        // Verify report overlay CSS properties
-        await expect(axeReport).toHaveCSS('z-index', '9999');
-        await expect(axeReport).toHaveCSS('overflow-y', 'auto');
+        if (format.startsWith('revealjs')) {
+          // RevealJS: report appears as a dedicated slide, not a fixed overlay
+          const reportSlide = page.locator('section.quarto-axe-report-slide');
+          await expect(reportSlide).toBeAttached({ timeout: 10000 });
+          await expect(reportSlide).toHaveClass(/scrollable/);
 
-        // Background must not be transparent
-        const bgColor = await axeReport.evaluate(el =>
-          window.getComputedStyle(el).getPropertyValue('background-color')
-        );
-        expect(bgColor).not.toBe('rgba(0, 0, 0, 0)');
+          // Slide has a title
+          const title = reportSlide.locator('h2');
+          await expect(title).toHaveText('Accessibility Report');
 
-        // Dark theme: verify CSS custom property bridge uses theme color, not Sass fallback
-        if (format === 'revealjs-dark') {
-          expect(bgColor).not.toBe('rgb(255, 255, 255)');
+          // Report content is inside the slide
+          const axeReport = reportSlide.locator('.quarto-axe-report');
+          await expect(axeReport).toBeAttached();
+          const reportText = await axeReport.textContent();
+          expect(reportText).toContain(violationText[expectedViolation].document);
+
+          // Report element is static (not fixed overlay)
+          await expect(axeReport).toHaveCSS('position', 'static');
+
+        } else {
+          // HTML/Dashboard: report appears as a fixed overlay
+          const axeReport = page.locator('.quarto-axe-report');
+          await expect(axeReport).toBeVisible({ timeout: 10000 });
+          const reportText = await axeReport.textContent();
+          expect(reportText).toContain(violationText[expectedViolation].document);
+
+          // Verify report overlay CSS properties
+          await expect(axeReport).toHaveCSS('z-index', '9999');
+          await expect(axeReport).toHaveCSS('overflow-y', 'auto');
+
+          // Background must not be transparent
+          const bgColor = await axeReport.evaluate(el =>
+            window.getComputedStyle(el).getPropertyValue('background-color')
+          );
+          expect(bgColor).not.toBe('rgba(0, 0, 0, 0)');
         }
 
       } else if (outputMode === 'console') {
