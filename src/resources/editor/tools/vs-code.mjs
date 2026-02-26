@@ -16701,49 +16701,56 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "margin",
           tags: {
             formats: [
+              "revealjs",
               "typst"
             ]
           },
           schema: {
-            object: {
-              closed: true,
-              properties: {
-                x: {
-                  string: {
-                    description: "Horizontal margin (e.g. 1.5in)"
-                  }
-                },
-                y: {
-                  string: {
-                    description: "Vertical margin (e.g. 1.5in)"
-                  }
-                },
-                top: {
-                  string: {
-                    description: "Top margin (e.g. 1.5in)"
-                  }
-                },
-                bottom: {
-                  string: {
-                    description: "Bottom margin (e.g. 1.5in)"
-                  }
-                },
-                left: {
-                  string: {
-                    description: "Left margin (e.g. 1.5in)"
-                  }
-                },
-                right: {
-                  string: {
-                    description: "Right margin (e.g. 1.5in)"
+            anyOf: [
+              "number",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    x: {
+                      string: {
+                        description: "Horizontal margin (e.g. 1.5in)"
+                      }
+                    },
+                    y: {
+                      string: {
+                        description: "Vertical margin (e.g. 1.5in)"
+                      }
+                    },
+                    top: {
+                      string: {
+                        description: "Top margin (e.g. 1.5in)"
+                      }
+                    },
+                    bottom: {
+                      string: {
+                        description: "Bottom margin (e.g. 1.5in)"
+                      }
+                    },
+                    left: {
+                      string: {
+                        description: "Left margin (e.g. 1.5in)"
+                      }
+                    },
+                    right: {
+                      string: {
+                        description: "Right margin (e.g. 1.5in)"
+                      }
+                    }
                   }
                 }
               }
-            }
+            ]
           },
+          default: 0.1,
           description: {
-            short: "Page margins for Typst output.",
-            long: "A dictionary specifying page margins. Use `x` and `y` for symmetric\nhorizontal/vertical margins, or `top`, `bottom`, `left`, `right` for\nindividual sides. Values should include units (e.g. `1.5in`, `2cm`).\n"
+            short: "Margin settings for Reveal.js or Typst output.",
+            long: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary specifying page margins. Use `x` and `y` for symmetric\nhorizontal/vertical margins, or `top`, `bottom`, `left`, `right` for\nindividual sides. Values should include units (e.g. `1.5in`, `2cm`).\n"
           }
         },
         {
@@ -18874,17 +18881,6 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "The 'normal' height of the presentation",
             long: 'The "normal" height of the presentation, aspect ratio will\nbe preserved when the presentation is scaled to fit different\nresolutions. Can be specified using percentage units.\n'
           }
-        },
-        {
-          name: "margin",
-          tags: {
-            formats: [
-              "revealjs"
-            ]
-          },
-          schema: "number",
-          default: 0.1,
-          description: "Factor of the display size that should remain empty around the content (e.g. 0.1)."
         },
         {
           name: "min-scale",
@@ -24792,7 +24788,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Minimum vertical spacing between margin notes (default: 8pt).",
         {
           short: "Visual style for theorem environments in Typst output.",
-          long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
+          long: "Controls how theorems, lemmas, definitions, etc. are rendered:"
         },
         {
           short: "Email format version",
@@ -25380,12 +25376,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222532,
+        _internalId: 222535,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222524,
+            _internalId: 222527,
             type: "enum",
             enum: [
               "png",
@@ -25401,7 +25397,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222531,
+            _internalId: 222534,
             type: "anyOf",
             anyOf: [
               {
