@@ -24,9 +24,55 @@ export function axeFormatDependencies(
   // (which compiles in format-reveal-theme.ts), so the !default values
   // below are used instead of actual theme colors. This is a known
   // limitation - see GitHub issue for architectural context.
-  const sassDependency = isRevealjsOutput(format.pandoc)
-    ? "reveal-theme"
-    : "bootstrap";
+  const isRevealjs = isRevealjsOutput(format.pandoc);
+  const sassDependency = isRevealjs ? "reveal-theme" : "bootstrap";
+
+  // Base overlay rules shared by all formats (also serves as fallback for revealjs)
+  const baseRules = `
+body div.quarto-axe-report {
+  position: fixed;
+  bottom: 3rem;
+  right: 3rem;
+  padding: 1rem;
+  border: 1px solid var(--r-main-color, $body-color);
+  z-index: 9999;
+  background-color: var(--r-background-color, $body-bg);
+  color: var(--r-main-color, $body-color);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.quarto-axe-violation-help { padding-left: 0.5rem; }
+.quarto-axe-violation-selector { padding-left: 1rem; }
+.quarto-axe-violation-target {
+  padding: 0.5rem;
+  color: $link-color;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.quarto-axe-hover-highlight {
+  background-color: red;
+  border: 2px solid red;
+}`;
+
+  // RevealJS: override overlay styles when report is embedded as a slide
+  const revealjsRules = isRevealjs
+    ? `
+.reveal .slides section.quarto-axe-report-slide {
+  text-align: left;
+  h2 { margin-bottom: 1rem; }
+  div.quarto-axe-report {
+    position: static;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    max-height: none;
+    overflow-y: visible;
+    z-index: auto;
+  }
+}`
+    : "";
 
   return {
     [kIncludeInHeader]: [
@@ -58,33 +104,7 @@ $link-color: #2a76dd !default;
 `,
             functions: "",
             mixins: "",
-            rules: `
-body div.quarto-axe-report {
-  position: fixed;
-  bottom: 3rem;
-  right: 3rem;
-  padding: 1rem;
-  border: 1px solid var(--r-main-color, $body-color);
-  z-index: 9999;
-  background-color: var(--r-background-color, $body-bg);
-  color: var(--r-main-color, $body-color);
-  max-height: 50vh;
-  overflow-y: auto;
-}
-
-.quarto-axe-violation-help { padding-left: 0.5rem; }
-.quarto-axe-violation-selector { padding-left: 1rem; }
-.quarto-axe-violation-target {
-  padding: 0.5rem;
-  color: $link-color;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.quarto-axe-hover-highlight {
-  background-color: red;
-  border: 1px solid $body-color;
-}`,
+            rules: baseRules + revealjsRules,
           }],
         },
       ],

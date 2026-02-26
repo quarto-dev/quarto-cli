@@ -42,6 +42,18 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     super(axeResult, options);
   }
 
+  navigateToElement(element) {
+    if (typeof Reveal !== "undefined") {
+      const section = element.closest("section");
+      if (section) {
+        const indices = Reveal.getIndices(section);
+        Reveal.slide(indices.h, indices.v);
+      }
+    } else {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
   createViolationElement(violation) {
     const violationElement = document.createElement("div");
 
@@ -69,7 +81,7 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
         nodeElement.addEventListener("mouseenter", () => {
           const element = document.querySelector(target);
           if (element) {
-            element.scrollIntoView({ behavior: "smooth", block: "center" });
+            this.navigateToElement(element);
             element.classList.add("quarto-axe-hover-highlight");
             setTimeout(() => {
               element.style.border = "";
@@ -92,7 +104,7 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     return violationElement;
   }
 
-  report() {
+  createReportElement() {
     const violations = this.axeResult.violations;
     const reportElement = document.createElement("div");
     reportElement.className = "quarto-axe-report";
@@ -105,7 +117,49 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     violations.forEach((violation) => {
       reportElement.appendChild(this.createViolationElement(violation));
     });
+    return reportElement;
+  }
+
+  createReportOverlay() {
+    const reportElement = this.createReportElement();
     (document.querySelector("main") || document.body).appendChild(reportElement);
+  }
+
+  createReportSlide() {
+    const slidesContainer = document.querySelector(".reveal .slides");
+    if (!slidesContainer) {
+      this.createReportOverlay();
+      return;
+    }
+
+    const section = document.createElement("section");
+    section.className = "quarto-axe-report-slide scrollable";
+
+    const title = document.createElement("h2");
+    title.textContent = "Accessibility Report";
+    section.appendChild(title);
+
+    section.appendChild(this.createReportElement());
+    slidesContainer.appendChild(section);
+
+    // sync() registers the new slide but doesn't update visibility classes.
+    // Re-navigating to the current slide triggers the visibility update so
+    // the report slide gets the correct past/present/future class.
+    const indices = Reveal.getIndices();
+    Reveal.sync();
+    Reveal.slide(indices.h, indices.v);
+  }
+
+  report() {
+    if (typeof Reveal !== "undefined") {
+      if (Reveal.isReady()) {
+        this.createReportSlide();
+      } else {
+        Reveal.on("ready", () => this.createReportSlide());
+      }
+    } else {
+      this.createReportOverlay();
+    }
   }
 }
 
