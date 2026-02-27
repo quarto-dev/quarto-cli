@@ -147,10 +147,12 @@ function extractMainContent(doc: Document): string {
   }
 
   // Get the main content area
+  // Note: use querySelector("body") instead of clone.body because
+  // deno-dom's cloneNode() doesn't preserve the .body convenience getter
   const main = clone.querySelector("main") ||
     clone.querySelector("#quarto-document-content") ||
     clone.querySelector("article") ||
-    clone.body;
+    clone.querySelector("body");
 
   if (!main) {
     return "";

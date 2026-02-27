@@ -1,0 +1,50 @@
+---
+pagetitle: "Custom Layout Page"
+page-layout: custom
+section-divs: false
+toc: false
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureLlmsMdRegexMatches:
+        - ["Welcome to the Custom Page", "Feature One", "Feature Two", "Learn more"]
+        - []
+---
+
+::: {.hero-banner}
+::: {.content-block}
+
+# Welcome to the Custom Page
+
+### A page using custom layout
+
+- This tests that llms-txt works with page-layout: custom.
+- Custom layout pages lack a `<main>` element in the rendered HTML.
+
+:::
+:::
+
+::: {.content-block}
+::: {.features}
+
+::: {.feature}
+### Feature One
+Description of the first feature.
+
+::: {.learn-more}
+[Learn more »](about.qmd)
+:::
+:::
+
+::: {.feature}
+### Feature Two
+Description of the second feature.
+
+::: {.learn-more}
+[Learn more »](about.qmd)
+:::
+:::
+
+:::
+:::
