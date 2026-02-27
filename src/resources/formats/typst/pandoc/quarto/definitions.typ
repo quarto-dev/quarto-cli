@@ -163,9 +163,9 @@
         children.at(0) + new_title  // with icon: preserve icon block + new title
       }))
 
-  block_with_new_content(old_callout,
+  align(left, block_with_new_content(old_callout,
     block(below: 0pt, new_title_block) +
-    old_callout.body.children.at(1))
+    old_callout.body.children.at(1)))
 }
 
 // 2023-10-09: #fa-icon("fa-info") is not working, so we'll eval "#fa-info()" instead
