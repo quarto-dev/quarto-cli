@@ -19,8 +19,12 @@ This page has [low contrast text]{#page1-contrast style="color: #eee; background
 
 # Page 2
 
-## Row
+## Row {.tabset}
 
-::: {.card title="Page 2 Content"}
-This page has only normal contrast text. No intentional violations here.
+::: {.card title="Tab A"}
+This tab has [low contrast text]{#tab-a-contrast style="color: #eee; background: #fff;"} that triggers a color-contrast violation.
+:::
+
+::: {.card title="Tab B"}
+This tab has only normal contrast text. No intentional violations here.
 :::

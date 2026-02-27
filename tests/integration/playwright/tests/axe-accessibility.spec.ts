@@ -314,6 +314,10 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
     // Sidebar violation should still be present (sidebar is visible on all pages)
     expect(afterTargets.some(t => t.includes('#sidebar-contrast')),
       '#sidebar-contrast should still be detected').toBe(true);
+
+    // Card tabset Tab A is active by default on Page 2 — its violation should appear
+    expect(afterTargets.some(t => t.includes('#tab-a-contrast')),
+      '#tab-a-contrast should be detected (Tab A is active on Page 2)').toBe(true);
   });
 
   test('switching back to Page 1 restores page 1 violations', async ({ page }) => {
@@ -388,5 +392,40 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
     const backTargets = await getViolationTargetIds(page);
     expect(backTargets.some(t => t.includes('#page1-contrast')),
       'After going back, #page1-contrast should be detected again').toBe(true);
+  });
+
+  test('re-scans on card tabset switch — hidden tab violations disappear', async ({ page }) => {
+    await page.goto(pagesUrl, { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    // Switch to Page 2 where the card tabset lives
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.locator('a[data-bs-target="#page-2"]').click();
+    await waitForAxeCompletion(page);
+
+    // Tab A is active by default — #tab-a-contrast should be present
+    const tabATargets = await getViolationTargetIds(page);
+    expect(tabATargets.some(t => t.includes('#tab-a-contrast')),
+      'Tab A active: #tab-a-contrast should be detected').toBe(true);
+
+    // Switch to Tab B within the card tabset
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.locator('a[data-bs-toggle="tab"][data-value="Tab B"]').click();
+    await waitForAxeCompletion(page);
+
+    // Tab A is now hidden — #tab-a-contrast should be gone
+    const tabBTargets = await getViolationTargetIds(page);
+    expect(tabBTargets.some(t => t.includes('#tab-a-contrast')),
+      'Tab B active: #tab-a-contrast should not be detected').toBe(false);
+
+    // Switch back to Tab A
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.locator('a[data-bs-toggle="tab"][data-value="Tab A"]').click();
+    await waitForAxeCompletion(page);
+
+    // #tab-a-contrast should reappear
+    const restoredTargets = await getViolationTargetIds(page);
+    expect(restoredTargets.some(t => t.includes('#tab-a-contrast')),
+      'Tab A restored: #tab-a-contrast should be detected again').toBe(true);
   });
 });
