@@ -86,6 +86,8 @@ export function isHtmlSlideOutput(format: string | FormatPandoc) {
   ].some((fmt) => isFormatTo(format, fmt));
 }
 
+// Dashboard uses pandoc.to="html", so pass format.identifier["base-format"]
+// (not format.pandoc.to) when checking from a Format object.
 export function isHtmlDashboardOutput(format?: string) {
   return format === "dashboard" || format?.endsWith("-dashboard");
 }
