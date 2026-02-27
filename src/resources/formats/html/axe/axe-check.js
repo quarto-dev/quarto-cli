@@ -42,6 +42,19 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     super(axeResult, options);
   }
 
+  highlightTarget(target) {
+    const element = document.querySelector(target);
+    if (!element) return null;
+    this.navigateToElement(element);
+    element.classList.add("quarto-axe-hover-highlight");
+    return element;
+  }
+
+  unhighlightTarget(target) {
+    const element = document.querySelector(target);
+    if (element) element.classList.remove("quarto-axe-hover-highlight");
+  }
+
   navigateToElement(element) {
     if (typeof Reveal !== "undefined") {
       const section = element.closest("section");
@@ -80,34 +93,16 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
         targetElement.className = "quarto-axe-violation-target";
         targetElement.innerText = target;
         nodeElement.appendChild(targetElement);
-        const isReveal = typeof Reveal !== "undefined";
-        if (isReveal) {
-          // RevealJS: click navigates to the slide and highlights the element
+        if (typeof Reveal !== "undefined") {
+          // RevealJS: click navigates to the slide and highlights briefly
           nodeElement.addEventListener("click", () => {
-            const element = document.querySelector(target);
-            if (element) {
-              this.navigateToElement(element);
-              element.classList.add("quarto-axe-hover-highlight");
-              setTimeout(() => {
-                element.classList.remove("quarto-axe-hover-highlight");
-              }, 3000);
-            }
+            const el = this.highlightTarget(target);
+            if (el) setTimeout(() => el.classList.remove("quarto-axe-hover-highlight"), 3000);
           });
         } else {
-          // HTML/Dashboard: hover scrolls to and highlights the element
-          nodeElement.addEventListener("mouseenter", () => {
-            const element = document.querySelector(target);
-            if (element) {
-              this.navigateToElement(element);
-              element.classList.add("quarto-axe-hover-highlight");
-            }
-          });
-          nodeElement.addEventListener("mouseleave", () => {
-            const element = document.querySelector(target);
-            if (element) {
-              element.classList.remove("quarto-axe-hover-highlight");
-            }
-          });
+          // HTML/Dashboard: hover highlights while mouse is over the target
+          nodeElement.addEventListener("mouseenter", () => this.highlightTarget(target));
+          nodeElement.addEventListener("mouseleave", () => this.unhighlightTarget(target));
         }
       }
       nodesElement.appendChild(nodeElement);
