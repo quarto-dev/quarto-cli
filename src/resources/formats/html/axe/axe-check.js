@@ -201,6 +201,7 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     toggle.setAttribute("data-bs-toggle", "offcanvas");
     toggle.setAttribute("data-bs-target", "#quarto-axe-offcanvas");
     toggle.setAttribute("aria-controls", "quarto-axe-offcanvas");
+    toggle.setAttribute("aria-label", "Toggle accessibility report");
 
     const icon = document.createElement("i");
     icon.className = "bi bi-universal-access";

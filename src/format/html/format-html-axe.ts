@@ -98,7 +98,7 @@ body div.quarto-axe-report {
     z-index: auto;
   }
 }
-.quarto-axe-toggle {
+.quarto-dashboard .quarto-axe-toggle {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
