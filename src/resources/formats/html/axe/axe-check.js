@@ -310,19 +310,33 @@ class QuartoAxeChecker {
       body.appendChild(scanning);
     }
 
-    const result = await this.runAxeScan();
+    try {
+      const result = await this.runAxeScan();
 
-    if (gen !== this.scanGeneration) return;
+      if (gen !== this.scanGeneration) return;
 
-    const reporter = new QuartoAxeDocumentReporter(result, this.options);
-    const reportElement = reporter.createReportElement();
+      const reporter = new QuartoAxeDocumentReporter(result, this.options);
+      const reportElement = reporter.createReportElement();
 
-    if (body) {
-      body.innerHTML = "";
-      body.appendChild(reportElement);
+      if (body) {
+        body.innerHTML = "";
+        body.appendChild(reportElement);
+      }
+    } catch (error) {
+      console.error("Axe rescan failed:", error);
+      if (gen !== this.scanGeneration) return;
+      if (body) {
+        body.innerHTML = "";
+        const msg = document.createElement("div");
+        msg.className = "quarto-axe-scanning";
+        msg.textContent = "Accessibility scan failed. See console for details.";
+        body.appendChild(msg);
+      }
+    } finally {
+      if (gen === this.scanGeneration) {
+        document.body.setAttribute("data-quarto-axe-complete", "true");
+      }
     }
-
-    document.body.setAttribute("data-quarto-axe-complete", "true");
   }
 
   async init() {
