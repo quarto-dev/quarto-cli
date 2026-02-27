@@ -1,0 +1,25 @@
+---
+format:
+  revealjs:
+    navigation-mode: vertical
+    axe:
+      output: document
+---
+
+# Stack 1
+
+## Visible Slide
+
+Content on the first vertical slide.
+
+## Hidden Vertical Slide
+
+This vertical slide is not visible on load.
+
+<img src="placeholder.png" class="axe-test-img">
+
+# Stack 2
+
+## Another Slide
+
+More content to check.

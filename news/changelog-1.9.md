@@ -105,7 +105,13 @@ All changes included in 1.9:
 ### `revealjs`
 
 - ([#13722](https://github.com/quarto-dev/quarto-cli/issues/13722)): Fix `light-content` / `dark-content` SCSS rules not included in Reveal.js format. (author: @mcanouil)
+- ([#13781](https://github.com/quarto-dev/quarto-cli/issues/13781)): Fix `axe` accessibility checks failing with SCSS compilation error for revealjs format. Axe now loads as a standalone module for all HTML formats with format-specific report placement.
 - ([#13852](https://github.com/quarto-dev/quarto-cli/issues/13852)): Scroll-view options (`scrollSnap`, `scrollProgress`, `scrollActivationWidth`, `scrollLayout`) are now rendered in the Pandoc template instead of injected at runtime. Custom revealjs templates may need updating to include the scroll-view configuration block.
+- ([#14125](https://github.com/quarto-dev/quarto-cli/pull/14125)): Add format-specific `axe` accessibility report for revealjs when using `axe: {output: document}`. Report appears as a dedicated slide appended to the deck with hover-to-highlight navigation to offending slides.
+
+### `dashboard`
+
+- ([#14125](https://github.com/quarto-dev/quarto-cli/pull/14125)): Add format-specific `axe` accessibility report for dashboards when using `axe: {output: document}`. Report appears as a Bootstrap offcanvas sidebar with automatic rescan when switching pages, card tabsets, or toggling the sidebar.
 
 ### `ipynb`
 

@@ -61,6 +61,40 @@ test("Feature description", async ({ page }) => {
 });
 ```
 
+### Parameterized Tests
+
+When testing the same behavior across multiple formats or configurations, use `test.describe` with a test cases array instead of separate spec files. See `html-math-katex.spec.ts` and `axe-accessibility.spec.ts` for examples.
+
+```typescript
+const testCases = [
+  { format: 'html', url: '/html/feature.html' },
+  { format: 'revealjs', url: '/revealjs/feature.html', shouldFail: 'reason (#issue)' },
+];
+
+test.describe('Feature across formats', () => {
+  for (const { format, url, shouldFail } of testCases) {
+    test(`${format} — feature works`, async ({ page }) => {
+      if (shouldFail) test.fail();
+      // shared test logic
+    });
+  }
+});
+```
+
+**When to use:** Same assertion logic applied to multiple formats, output modes, or configurations. Reduces file count and centralizes shared helpers.
+
+### Expected Failures
+
+Use `test.fail()` to document known failures. Playwright inverts the result: the test passes if it fails, and flags if it unexpectedly passes (signaling the fix landed).
+
+```typescript
+test('Feature that is known broken', async ({ page }) => {
+  // Brief explanation of why this fails and issue reference
+  test.fail();
+  // ... normal test logic
+});
+```
+
 ## Configuration
 
 - **Config file:** `playwright.config.ts`
@@ -76,6 +110,17 @@ Playwright starts a Python HTTP server automatically when running tests:
 uv run python -m http.server 8080
 # Serves from tests/docs/playwright/
 ```
+
+## Best Practices
+
+**For detailed examples and patterns, see [llm-docs/playwright-best-practices.md](../../llm-docs/playwright-best-practices.md)**
+
+Key patterns for reliable tests:
+
+- **Web-first assertions:** Use `expect(el).toContainText()`, `toBeAttached()`, `toHaveCSS()` instead of imperative DOM queries
+- **Role-based selectors:** Prefer `getByRole('tab', { name: 'Page 2' })` over `locator('a[data-bs-target]')`
+- **Non-unique selectors:** When using `.first()`, add comment explaining why selector may be non-unique and what you're testing
+- **Completion signals:** Use `data-feature-complete` attributes in finally blocks instead of arbitrary delays
 
 ## Utilities
 
