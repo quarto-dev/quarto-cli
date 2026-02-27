@@ -3,6 +3,7 @@ main_commit: ee0f68be1
 analyzed_date: 2026-02-27
 key_files:
   - src/format/html/format-html.ts
+  - src/format/html/format-html-axe.ts
   - src/resources/formats/html/axe/axe-check.js
   - src/resources/formats/html/axe/axe-check.scss
   - src/resources/formats/revealjs/axe/axe-check.scss

@@ -4,17 +4,33 @@
  * Copyright (C) 2020-2025 Posit Software, PBC
  */
 
-import { kIncludeInHeader } from "../../config/constants.ts";
 import { isHtmlDashboardOutput, isRevealjsOutput } from "../../config/format.ts";
-import { Format, FormatExtras, kDependencies } from "../../config/types.ts";
+import {
+  Format,
+  FormatDependency,
+  FormatExtras,
+  kDependencies,
+} from "../../config/types.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { TempContext } from "../../core/temp-types.ts";
 import { encodeBase64 } from "../../deno_ral/encoding.ts";
 import { join } from "../../deno_ral/path.ts";
 
+function axeHtmlDependency(options: unknown): FormatDependency {
+  return {
+    name: "quarto-axe",
+    head: `<script id="quarto-axe-checker-options" type="text/plain">${
+      encodeBase64(JSON.stringify(options))
+    }</script>`,
+    scripts: [{
+      name: "axe-check.js",
+      path: formatResourcePath("html", join("axe", "axe-check.js")),
+      attribs: { type: "module" },
+    }],
+  };
+}
+
 export function axeFormatDependencies(
   format: Format,
-  temp: TempContext,
   options?: unknown,
 ): FormatExtras {
   if (!options) return {};
@@ -122,22 +138,10 @@ body div.quarto-axe-report {
     : "";
 
   return {
-    [kIncludeInHeader]: [
-      temp.createFileFromString(
-        `<script id="quarto-axe-checker-options" type="text/plain">${
-          encodeBase64(JSON.stringify(options))
-        }</script>`,
-      ),
-    ],
     html: {
-      [kDependencies]: [{
-        name: "quarto-axe",
-        scripts: [{
-          name: "axe-check.js",
-          path: formatResourcePath("html", join("axe", "axe-check.js")),
-          attribs: { type: "module" },
-        }],
-      }],
+      [kDependencies]: [
+        axeHtmlDependency(options),
+      ],
       "sass-bundles": [
         {
           key: "axe",

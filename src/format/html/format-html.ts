@@ -248,7 +248,7 @@ export async function htmlFormatExtras(
   scssOptions?: HtmlFormatScssOptions,
 ): Promise<FormatExtras> {
   const configurableExtras: FormatExtras[] = [
-    axeFormatDependencies(format, temp, format.metadata[kAxe]),
+    axeFormatDependencies(format, format.metadata[kAxe]),
   ];
 
   // note whether we are targeting bootstrap
