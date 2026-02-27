@@ -85,9 +85,9 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     const nodesElement = document.createElement("div");
     nodesElement.className = "quarto-axe-violation-nodes";
     violationElement.appendChild(nodesElement);
-    const nodeElement = document.createElement("div");
-    nodeElement.className = "quarto-axe-violation-selector";
     for (const node of violation.nodes) {
+      const nodeElement = document.createElement("div");
+      nodeElement.className = "quarto-axe-violation-selector";
       for (const target of node.target) {
         const targetElement = document.createElement("span");
         targetElement.className = "quarto-axe-violation-target";
@@ -235,7 +235,8 @@ const reporters = {
 
 class QuartoAxeChecker {
   constructor(opts) {
-    this.options = opts;
+    // Normalize boolean shorthand: axe: true → {output: "console"}
+    this.options = opts === true ? { output: "console" } : opts;
     this.axe = null;
     this.scanGeneration = 0;
   }
@@ -343,15 +344,20 @@ class QuartoAxeChecker {
   }
 
   async init() {
-    this.axe = (await import("https://cdn.skypack.dev/pin/axe-core@v4.10.3-aVOFXWsJaCpVrtv89pCa/mode=imports,min/optimized/axe-core.js")).default;
-    const result = await this.runAxeScan();
-    const reporter = this.options === true ? new QuartoAxeConsoleReporter(result) : new reporters[this.options.output](result, this.options);
-    await reporter.report();
-    document.body.setAttribute('data-quarto-axe-complete', 'true');
+    try {
+      this.axe = (await import("https://cdn.skypack.dev/pin/axe-core@v4.10.3-aVOFXWsJaCpVrtv89pCa/mode=imports,min/optimized/axe-core.js")).default;
+      const result = await this.runAxeScan();
+      const reporter = new reporters[this.options.output](result, this.options);
+      await reporter.report();
 
-    if (document.body.classList.contains("quarto-dashboard") &&
-        this.options !== true && this.options.output === "document") {
-      this.setupDashboardRescan();
+      if (document.body.classList.contains("quarto-dashboard") &&
+          this.options.output === "document") {
+        this.setupDashboardRescan();
+      }
+    } catch (error) {
+      console.error("Axe accessibility check failed:", error);
+    } finally {
+      document.body.setAttribute('data-quarto-axe-complete', 'true');
     }
   }
 }
