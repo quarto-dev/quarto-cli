@@ -66,6 +66,14 @@ const testCases: AxeTestCase[] = [
   // Dashboard — axe-check.js loads as standalone module, falls back to document.body (#13781)
   { format: 'dashboard', outputMode: 'document', url: '/dashboard/axe-accessibility.html',
     expectedViolation: 'color-contrast' },
+  { format: 'dashboard', outputMode: 'console', url: '/dashboard/axe-console.html',
+    expectedViolation: 'color-contrast' },
+  { format: 'dashboard', outputMode: 'json', url: '/dashboard/axe-json.html',
+    expectedViolation: 'color-contrast' },
+
+  // Dashboard dark theme — verifies CSS custom property bridge for theming
+  { format: 'dashboard-dark', outputMode: 'document', url: '/dashboard/axe-accessibility-dark.html',
+    expectedViolation: 'color-contrast' },
 
   // Dashboard with pages — multi-page dashboard with global sidebar
   { format: 'dashboard-pages', outputMode: 'document', url: '/dashboard/axe-accessibility-pages.html',
@@ -272,12 +280,41 @@ test.describe('Dashboard axe — offcanvas interaction and highlight', () => {
     await target.hover();
 
     // The corresponding element in the dashboard should get highlight class
-    const highlighted = page.locator(`${selector}.quarto-axe-hover-highlight`);
-    await expect(highlighted).toBeAttached({ timeout: 3000 });
+    // Use .first() since selector may match multiple elements
+    const element = page.locator(selector).first();
+    await expect(element).toHaveClass(/quarto-axe-hover-highlight/, { timeout: 3000 });
 
     // Move mouse away — highlight should be removed
     await page.mouse.move(0, 0);
-    await expect(highlighted).not.toBeAttached();
+    await expect(element).not.toHaveClass(/quarto-axe-hover-highlight/);
+  });
+});
+
+test.describe('HTML axe — hover interaction and highlight', () => {
+  const htmlUrl = '/html/axe-accessibility.html';
+
+  test('hover highlights the corresponding page element', async ({ page }) => {
+    await page.goto(htmlUrl, { waitUntil: 'networkidle' });
+
+    // Wait for axe to complete
+    const axeReport = page.locator('.quarto-axe-report');
+    await expect(axeReport).toBeVisible({ timeout: 10000 });
+
+    // Find the first violation target and get its CSS selector text
+    const target = axeReport.locator('.quarto-axe-violation-target').first();
+    const selector = await target.textContent();
+
+    // Hover the target (event bubbles to parent with mouseenter listener)
+    await target.hover();
+
+    // The corresponding element on the page should get highlight class
+    // Use .first() since selector may match multiple elements (e.g., "span")
+    const element = page.locator(selector).first();
+    await expect(element).toHaveClass(/quarto-axe-hover-highlight/, { timeout: 3000 });
+
+    // Move mouse away — highlight should be removed
+    await page.mouse.move(0, 0);
+    await expect(element).not.toHaveClass(/quarto-axe-hover-highlight/);
   });
 });
 
