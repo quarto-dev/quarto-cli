@@ -303,7 +303,7 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
 
     // Switch to Page 2 — remove completion signal first so we detect the NEXT scan
     await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
-    await page.locator('a[data-bs-target="#page-2"]').click();
+    await page.getByRole('tab', { name: 'Page 2' }).click();
     await waitForAxeCompletion(page);
 
     // After rescan, #page1-contrast should be gone (Page 1 is now hidden)
@@ -326,12 +326,12 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
 
     // Switch to Page 2
     await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
-    await page.locator('a[data-bs-target="#page-2"]').click();
+    await page.getByRole('tab', { name: 'Page 2' }).click();
     await waitForAxeCompletion(page);
 
     // Switch back to Page 1
     await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
-    await page.locator('a[data-bs-target="#page-1"]').click();
+    await page.getByRole('tab', { name: 'Page 1' }).click();
     await waitForAxeCompletion(page);
 
     // #page1-contrast should be back
@@ -351,7 +351,7 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
 
     // Collapse the sidebar
     await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
-    await page.locator('.collapse-toggle').click();
+    await page.getByRole('button', { name: 'Toggle sidebar' }).click();
     await waitForAxeCompletion(page);
 
     // After collapse, #sidebar-contrast should be gone (sidebar is hidden)
@@ -361,7 +361,7 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
 
     // Expand the sidebar again
     await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
-    await page.locator('.collapse-toggle').click();
+    await page.getByRole('button', { name: 'Toggle sidebar' }).click();
     await waitForAxeCompletion(page);
 
     // #sidebar-contrast should be back
@@ -376,7 +376,7 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
 
     // Switch to Page 2 (this pushes history via Bootstrap tab)
     await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
-    await page.locator('a[data-bs-target="#page-2"]').click();
+    await page.getByRole('tab', { name: 'Page 2' }).click();
     await waitForAxeCompletion(page);
 
     // Verify Page 2 is active and page1-contrast is gone
@@ -400,7 +400,7 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
 
     // Switch to Page 2 where the card tabset lives
     await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
-    await page.locator('a[data-bs-target="#page-2"]').click();
+    await page.getByRole('tab', { name: 'Page 2' }).click();
     await waitForAxeCompletion(page);
 
     // Tab A is active by default — #tab-a-contrast should be present
@@ -410,7 +410,7 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
 
     // Switch to Tab B within the card tabset
     await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
-    await page.locator('a[data-bs-toggle="tab"][data-value="Tab B"]').click();
+    await page.getByRole('tab', { name: 'Tab B' }).click();
     await waitForAxeCompletion(page);
 
     // Tab A is now hidden — #tab-a-contrast should be gone
@@ -420,7 +420,7 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
 
     // Switch back to Tab A
     await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
-    await page.locator('a[data-bs-toggle="tab"][data-value="Tab A"]').click();
+    await page.getByRole('tab', { name: 'Tab A' }).click();
     await waitForAxeCompletion(page);
 
     // #tab-a-contrast should reappear
