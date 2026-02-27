@@ -111,6 +111,17 @@ uv run python -m http.server 8080
 # Serves from tests/docs/playwright/
 ```
 
+## Best Practices
+
+**For detailed examples and patterns, see [llm-docs/playwright-best-practices.md](../../llm-docs/playwright-best-practices.md)**
+
+Key patterns for reliable tests:
+
+- **Web-first assertions:** Use `expect(el).toContainText()`, `toBeAttached()`, `toHaveCSS()` instead of imperative DOM queries
+- **Role-based selectors:** Prefer `getByRole('tab', { name: 'Page 2' })` over `locator('a[data-bs-target]')`
+- **Non-unique selectors:** When using `.first()`, add comment explaining why selector may be non-unique and what you're testing
+- **Completion signals:** Use `data-feature-complete` attributes in finally blocks instead of arbitrary delays
+
 ## Utilities
 
 From `src/utils.ts`:
