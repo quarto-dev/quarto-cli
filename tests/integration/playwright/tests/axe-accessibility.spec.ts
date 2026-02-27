@@ -105,8 +105,25 @@ test.describe('Axe accessibility checking', () => {
           // Report element is static (not fixed overlay)
           await expect(axeReport).toHaveCSS('position', 'static');
 
+        } else if (format === 'dashboard') {
+          // Dashboard: report appears in Bootstrap offcanvas sidebar
+          const offcanvas = page.locator('#quarto-axe-offcanvas');
+          await expect(offcanvas).toBeVisible({ timeout: 10000 });
+
+          // Report content is inside the offcanvas
+          const axeReport = offcanvas.locator('.quarto-axe-report');
+          await expect(axeReport).toBeAttached();
+          await expect(axeReport).toContainText(violationText[expectedViolation].document);
+
+          // Toggle button exists
+          const toggle = page.locator('.quarto-axe-toggle');
+          await expect(toggle).toBeVisible();
+
+          // Report is static inside offcanvas (not fixed overlay)
+          await expect(axeReport).toHaveCSS('position', 'static');
+
         } else {
-          // HTML/Dashboard: report appears as a fixed overlay
+          // HTML: report appears as a fixed overlay
           const axeReport = page.locator('.quarto-axe-report');
           await expect(axeReport).toBeVisible({ timeout: 10000 });
           await expect(axeReport).toContainText(violationText[expectedViolation].document);
@@ -214,5 +231,48 @@ test.describe('RevealJS axe — cross-slide scanning and state restoration', () 
     const reportSlide = page.locator('section.quarto-axe-report-slide');
     await expect(reportSlide).toBeAttached({ timeout: 10000 });
     await expect(reportSlide).toContainText(violationText['image-alt'].document);
+  });
+});
+
+test.describe('Dashboard axe — offcanvas interaction and highlight', () => {
+  const dashboardUrl = '/dashboard/axe-accessibility.html';
+
+  test('offcanvas can be closed and reopened via toggle button', async ({ page }) => {
+    await page.goto(dashboardUrl, { waitUntil: 'networkidle' });
+    const offcanvas = page.locator('#quarto-axe-offcanvas');
+    await expect(offcanvas).toBeVisible({ timeout: 10000 });
+
+    // Close via close button
+    await offcanvas.locator('.btn-close').click();
+    await expect(offcanvas).not.toBeVisible();
+
+    // Toggle button should still be visible
+    const toggle = page.locator('.quarto-axe-toggle');
+    await expect(toggle).toBeVisible();
+
+    // Reopen via toggle
+    await toggle.click();
+    await expect(offcanvas).toBeVisible();
+  });
+
+  test('hover highlights the corresponding dashboard element', async ({ page }) => {
+    await page.goto(dashboardUrl, { waitUntil: 'networkidle' });
+    const offcanvas = page.locator('#quarto-axe-offcanvas');
+    await expect(offcanvas).toBeVisible({ timeout: 10000 });
+
+    // Find the first violation target in the offcanvas and get its CSS selector text
+    const target = offcanvas.locator('.quarto-axe-violation-target').first();
+    const selector = await target.textContent();
+
+    // Hover the target
+    await target.hover();
+
+    // The corresponding element in the dashboard should get highlight class
+    const highlighted = page.locator(`${selector}.quarto-axe-hover-highlight`);
+    await expect(highlighted).toBeAttached({ timeout: 3000 });
+
+    // Move mouse away — highlight should be removed
+    await page.mouse.move(0, 0);
+    await expect(highlighted).not.toBeAttached();
   });
 });

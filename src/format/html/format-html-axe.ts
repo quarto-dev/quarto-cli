@@ -85,6 +85,33 @@ body div.quarto-axe-report {
 }`
     : "";
 
+  // Dashboard: report inside offcanvas sidebar (not fixed overlay)
+  const dashboardRules = `
+.quarto-dashboard .offcanvas.quarto-axe-offcanvas {
+  .quarto-axe-report {
+    position: static;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    max-height: none;
+    overflow-y: visible;
+    z-index: auto;
+  }
+}
+.quarto-axe-toggle {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1040;
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}`;
+
   return {
     [kIncludeInHeader]: [
       temp.createFileFromString(
@@ -115,7 +142,7 @@ $link-color: #2a76dd !default;
 `,
             functions: "",
             mixins: "",
-            rules: baseRules + revealjsRules,
+            rules: baseRules + revealjsRules + dashboardRules,
           }],
         },
       ],

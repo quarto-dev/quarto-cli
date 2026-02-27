@@ -161,6 +161,56 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     Reveal.slide(indices.h, indices.v);
   }
 
+  createReportOffcanvas() {
+    const offcanvas = document.createElement("div");
+    offcanvas.className = "offcanvas offcanvas-end quarto-axe-offcanvas";
+    offcanvas.id = "quarto-axe-offcanvas";
+    offcanvas.tabIndex = -1;
+    offcanvas.setAttribute("aria-labelledby", "quarto-axe-offcanvas-label");
+    offcanvas.setAttribute("data-bs-scroll", "true");
+    offcanvas.setAttribute("data-bs-backdrop", "false");
+
+    const header = document.createElement("div");
+    header.className = "offcanvas-header";
+
+    const title = document.createElement("h5");
+    title.className = "offcanvas-title";
+    title.id = "quarto-axe-offcanvas-label";
+    title.textContent = "Accessibility Report";
+    header.appendChild(title);
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "btn-close";
+    closeBtn.setAttribute("data-bs-dismiss", "offcanvas");
+    closeBtn.setAttribute("aria-label", "Close");
+    header.appendChild(closeBtn);
+
+    offcanvas.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "offcanvas-body";
+    body.appendChild(this.createReportElement());
+    offcanvas.appendChild(body);
+
+    document.body.appendChild(offcanvas);
+
+    const toggle = document.createElement("button");
+    toggle.className = "btn btn-dark quarto-axe-toggle";
+    toggle.type = "button";
+    toggle.setAttribute("data-bs-toggle", "offcanvas");
+    toggle.setAttribute("data-bs-target", "#quarto-axe-offcanvas");
+    toggle.setAttribute("aria-controls", "quarto-axe-offcanvas");
+
+    const icon = document.createElement("i");
+    icon.className = "bi bi-universal-access";
+    toggle.appendChild(icon);
+
+    document.body.appendChild(toggle);
+
+    new bootstrap.Offcanvas(offcanvas).show();
+  }
+
   report() {
     if (typeof Reveal !== "undefined") {
       if (Reveal.isReady()) {
@@ -173,6 +223,8 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
           });
         });
       }
+    } else if (document.body.classList.contains("quarto-dashboard")) {
+      this.createReportOffcanvas();
     } else {
       this.createReportOverlay();
     }
