@@ -7,6 +7,11 @@ function columns_preprocess()
       if float.parent_id ~= nil then
         return nil
       end
+      -- Apply scoped column classes from document-level options (e.g. fig-column, tbl-column)
+      -- This ensures the column class reaches the float directly, rather than relying
+      -- on the Div propagation chain which can fail for some float types
+      local ref = ref_type_from_float(float)
+      resolveElementForScopedColumns(float, ref)
       -- Check for margin figure placement (.column-margin or .aside class)
       if hasMarginColumn(float) then
         noteHasColumns()

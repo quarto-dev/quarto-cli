@@ -862,10 +862,10 @@ export function getDivAttributes(
     classes.push(`tbl-cap-location-${options?.[kTblCapLoc]}`);
   }
   if (typeof options?.[kCellFigColumn] === "string") {
-    classes.push(`fig-caption-${options?.[kCellFigColumn]}`);
+    classes.push(`fig-column-${options?.[kCellFigColumn]}`);
   }
   if (typeof options?.[kCellTblColumn] === "string") {
-    classes.push(`fig-caption-${options?.[kCellTblColumn]}`);
+    classes.push(`tbl-column-${options?.[kCellTblColumn]}`);
   }
   return { attrs, classes };
 }
