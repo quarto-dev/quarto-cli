@@ -17,6 +17,7 @@ All changes included in 1.9:
 - ([#13633](https://github.com/quarto-dev/quarto-cli/issues/13633)): Fix detection and auto-installation of babel language packages from newer error format that doesn't explicitly mention `.ldf` filename.
 - ([#13694](https://github.com/quarto-dev/quarto-cli/issues/13694)): Fix `notebook-view.url` being ignored - external notebook links now properly use specified URLs instead of local preview files.
 - ([#13732](https://github.com/quarto-dev/quarto-cli/issues/13732)): Fix automatic font package installation for fonts with spaces in their names (e.g., "Noto Emoji", "DejaVu Sans"). Font file search patterns now match both with and without spaces.
+- ([#14120](https://github.com/quarto-dev/quarto-cli/pull/14120)): Fix code-tools show/hide all code buttons, and allow them to act on cells with `output: asis`
 
 ## Dependencies
 
