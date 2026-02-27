@@ -287,7 +287,9 @@ class QuartoAxeChecker {
     // Page tabs and card tabsets both fire shown.bs.tab on the document
     document.addEventListener("shown.bs.tab", () => this.rescanDashboard());
 
-    // Browser back/forward — showPage() toggles classes without firing shown.bs.tab
+    // Browser back/forward — showPage() toggles classes without firing shown.bs.tab.
+    // The 50ms delay lets the dashboard finish toggling .active classes on tab panes
+    // before axe scans, so the correct page content is visible.
     window.addEventListener("popstate", () => {
       setTimeout(() => this.rescanDashboard(), 50);
     });
