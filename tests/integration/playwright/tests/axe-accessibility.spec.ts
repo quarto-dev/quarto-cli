@@ -280,11 +280,12 @@ test.describe('Dashboard axe — offcanvas interaction and highlight', () => {
     await target.hover();
 
     // The corresponding element in the dashboard should get highlight class
-    // Use .first() since selector may match multiple elements
+    // Use .first() since axe-core may produce non-unique selectors (e.g., "span").
+    // This tests integration (hover triggers highlight) not selector uniqueness.
     const element = page.locator(selector).first();
     await expect(element).toHaveClass(/quarto-axe-hover-highlight/, { timeout: 3000 });
 
-    // Move mouse away — highlight should be removed
+    // Move mouse to top-left corner (away from all elements) to clear hover state
     await page.mouse.move(0, 0);
     await expect(element).not.toHaveClass(/quarto-axe-hover-highlight/);
   });
@@ -308,11 +309,12 @@ test.describe('HTML axe — hover interaction and highlight', () => {
     await target.hover();
 
     // The corresponding element on the page should get highlight class
-    // Use .first() since selector may match multiple elements (e.g., "span")
+    // Use .first() since axe-core may produce non-unique selectors (e.g., "span").
+    // This tests integration (hover triggers highlight) not selector uniqueness.
     const element = page.locator(selector).first();
     await expect(element).toHaveClass(/quarto-axe-hover-highlight/, { timeout: 3000 });
 
-    // Move mouse away — highlight should be removed
+    // Move mouse to top-left corner (away from all elements) to clear hover state
     await page.mouse.move(0, 0);
     await expect(element).not.toHaveClass(/quarto-axe-hover-highlight/);
   });
