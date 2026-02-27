@@ -41,15 +41,14 @@
   )
 
 #let block_with_new_content(old_block, new_content) = {
-  let d = (:)
   let fields = old_block.fields()
-  fields.remove("body")
+  let _ = fields.remove("body")
   if fields.at("below", default: none) != none {
     // TODO: this is a hack because below is a "synthesized element"
     // according to the experts in the typst discord...
     fields.below = fields.below.abs
   }
-  return block.with(..fields)(new_content)
+  block.with(..fields)(new_content)
 }
 
 #let empty(v) = {
