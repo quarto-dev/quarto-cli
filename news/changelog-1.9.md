@@ -57,6 +57,7 @@ All changes included in 1.9:
 
 ### `typst`
 
+- ([#12803](https://github.com/quarto-dev/quarto-cli/issues/12803)): Fix callout text being centered instead of left-aligned when callout has a cross-reference ID prefix (e.g., `#tip-abc`).
 - ([#13249](https://github.com/quarto-dev/quarto-cli/pull/13249)): Update to Pandoc's Typst template following Pandoc 3.8.3 and Typst 0.14.2 support:
   - Code syntax highlighting now uses Skylighting by default.
   - New template variables `mathfont`, `codefont`, and `linestretch` for font and line spacing customization.
