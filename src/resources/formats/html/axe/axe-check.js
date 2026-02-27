@@ -329,6 +329,7 @@ class QuartoAxeChecker {
         body.innerHTML = "";
         const msg = document.createElement("div");
         msg.className = "quarto-axe-scanning";
+        msg.setAttribute("role", "alert");
         msg.textContent = "Accessibility scan failed. See console for details.";
         body.appendChild(msg);
       }
