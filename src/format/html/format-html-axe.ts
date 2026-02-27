@@ -5,7 +5,7 @@
  */
 
 import { kIncludeInHeader } from "../../config/constants.ts";
-import { isRevealjsOutput } from "../../config/format.ts";
+import { isHtmlDashboardOutput, isRevealjsOutput } from "../../config/format.ts";
 import { Format, FormatExtras, kDependencies } from "../../config/types.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp-types.ts";
@@ -25,6 +25,7 @@ export function axeFormatDependencies(
   // below are used instead of actual theme colors. This is a known
   // limitation - see GitHub issue for architectural context.
   const isRevealjs = isRevealjsOutput(format.pandoc);
+  const isDashboard = isHtmlDashboardOutput(format.identifier["base-format"]);
   const sassDependency = isRevealjs ? "reveal-theme" : "bootstrap";
 
   // Base overlay rules shared by all formats (also serves as fallback for revealjs)
@@ -86,7 +87,8 @@ body div.quarto-axe-report {
     : "";
 
   // Dashboard: report inside offcanvas sidebar (not fixed overlay)
-  const dashboardRules = `
+  const dashboardRules = isDashboard
+    ? `
 .quarto-dashboard .offcanvas.quarto-axe-offcanvas {
   .quarto-axe-report {
     position: static;
@@ -110,7 +112,8 @@ body div.quarto-axe-report {
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
-}`;
+}`
+    : "";
 
   return {
     [kIncludeInHeader]: [
