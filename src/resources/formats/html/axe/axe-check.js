@@ -236,6 +236,8 @@ const reporters = {
 class QuartoAxeChecker {
   constructor(opts) {
     this.options = opts;
+    this.axe = null;
+    this.scanGeneration = 0;
   }
   // In RevealJS, only the current slide is accessible to axe-core because
   // non-visible slides have hidden and aria-hidden attributes. Temporarily
@@ -264,12 +266,10 @@ class QuartoAxeChecker {
     });
   }
 
-  async init() {
-    const axe = (await import("https://cdn.skypack.dev/pin/axe-core@v4.10.3-aVOFXWsJaCpVrtv89pCa/mode=imports,min/optimized/axe-core.js")).default;
+  async runAxeScan() {
     const saved = this.revealUnhideSlides();
-    let result;
     try {
-      result = await axe.run({
+      return await this.axe.run({
         exclude: [
          // https://github.com/microsoft/tabster/issues/288
          // MS has claimed they won't fix this, so we need to add an exclusion to
@@ -281,9 +281,61 @@ class QuartoAxeChecker {
     } finally {
       this.revealRestoreSlides(saved);
     }
+  }
+
+  setupDashboardRescan() {
+    // Page tabs and card tabsets both fire shown.bs.tab on the document
+    document.addEventListener("shown.bs.tab", () => this.rescanDashboard());
+
+    // Browser back/forward — showPage() toggles classes without firing shown.bs.tab
+    window.addEventListener("popstate", () => {
+      setTimeout(() => this.rescanDashboard(), 50);
+    });
+
+    // bslib sidebar open/close — fires with bubbles:true after transition ends
+    document.addEventListener("bslib.sidebar", () => this.rescanDashboard());
+  }
+
+  async rescanDashboard() {
+    const gen = ++this.scanGeneration;
+
+    document.body.removeAttribute("data-quarto-axe-complete");
+
+    const body = document.querySelector("#quarto-axe-offcanvas .offcanvas-body");
+    if (body) {
+      body.innerHTML = "";
+      const scanning = document.createElement("div");
+      scanning.className = "quarto-axe-scanning";
+      scanning.textContent = "Scanning\u2026";
+      body.appendChild(scanning);
+    }
+
+    const result = await this.runAxeScan();
+
+    if (gen !== this.scanGeneration) return;
+
+    const reporter = new QuartoAxeDocumentReporter(result, this.options);
+    const reportElement = reporter.createReportElement();
+
+    if (body) {
+      body.innerHTML = "";
+      body.appendChild(reportElement);
+    }
+
+    document.body.setAttribute("data-quarto-axe-complete", "true");
+  }
+
+  async init() {
+    this.axe = (await import("https://cdn.skypack.dev/pin/axe-core@v4.10.3-aVOFXWsJaCpVrtv89pCa/mode=imports,min/optimized/axe-core.js")).default;
+    const result = await this.runAxeScan();
     const reporter = this.options === true ? new QuartoAxeConsoleReporter(result) : new reporters[this.options.output](result, this.options);
     await reporter.report();
     document.body.setAttribute('data-quarto-axe-complete', 'true');
+
+    if (document.body.classList.contains("quarto-dashboard") &&
+        this.options !== true && this.options.output === "document") {
+      this.setupDashboardRescan();
+    }
   }
 }
 

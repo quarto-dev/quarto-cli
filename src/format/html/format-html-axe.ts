@@ -112,6 +112,12 @@ body div.quarto-axe-report {
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
+}
+.quarto-dashboard .quarto-axe-scanning {
+  padding: 1rem;
+  text-align: center;
+  opacity: 0.7;
+  font-style: italic;
 }`
     : "";
 

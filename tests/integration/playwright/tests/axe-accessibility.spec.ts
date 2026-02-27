@@ -66,6 +66,10 @@ const testCases: AxeTestCase[] = [
   // Dashboard — axe-check.js loads as standalone module, falls back to document.body (#13781)
   { format: 'dashboard', outputMode: 'document', url: '/dashboard/axe-accessibility.html',
     expectedViolation: 'color-contrast' },
+
+  // Dashboard with pages — multi-page dashboard with global sidebar
+  { format: 'dashboard-pages', outputMode: 'document', url: '/dashboard/axe-accessibility-pages.html',
+    expectedViolation: 'color-contrast' },
 ];
 
 // Map axe violation IDs to the text that appears in document/console reporters.
@@ -105,7 +109,7 @@ test.describe('Axe accessibility checking', () => {
           // Report element is static (not fixed overlay)
           await expect(axeReport).toHaveCSS('position', 'static');
 
-        } else if (format === 'dashboard') {
+        } else if (format.startsWith('dashboard')) {
           // Dashboard: report appears in Bootstrap offcanvas sidebar
           const offcanvas = page.locator('#quarto-axe-offcanvas');
           await expect(offcanvas).toBeVisible({ timeout: 10000 });
@@ -274,5 +278,115 @@ test.describe('Dashboard axe — offcanvas interaction and highlight', () => {
     // Move mouse away — highlight should be removed
     await page.mouse.move(0, 0);
     await expect(highlighted).not.toBeAttached();
+  });
+});
+
+test.describe('Dashboard axe — re-scan on visibility change', () => {
+  const pagesUrl = '/dashboard/axe-accessibility-pages.html';
+
+  // Helper: collect violation target IDs from the offcanvas report
+  async function getViolationTargetIds(page: Page): Promise<string[]> {
+    return page.evaluate(() => {
+      const targets = document.querySelectorAll('#quarto-axe-offcanvas .quarto-axe-violation-target');
+      return Array.from(targets).map(t => t.textContent || '');
+    });
+  }
+
+  test('re-scans when switching to Page 2 — page 1 violations disappear', async ({ page }) => {
+    await page.goto(pagesUrl, { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    // Initial scan should include #page1-contrast (Page 1 is active)
+    const initialTargets = await getViolationTargetIds(page);
+    expect(initialTargets.some(t => t.includes('#page1-contrast')),
+      'Initial scan should detect #page1-contrast').toBe(true);
+
+    // Switch to Page 2 — remove completion signal first so we detect the NEXT scan
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.locator('a[data-bs-target="#page-2"]').click();
+    await waitForAxeCompletion(page);
+
+    // After rescan, #page1-contrast should be gone (Page 1 is now hidden)
+    const afterTargets = await getViolationTargetIds(page);
+    expect(afterTargets.some(t => t.includes('#page1-contrast')),
+      'After switching to Page 2, #page1-contrast should not be detected').toBe(false);
+
+    // Sidebar violation should still be present (sidebar is visible on all pages)
+    expect(afterTargets.some(t => t.includes('#sidebar-contrast')),
+      '#sidebar-contrast should still be detected').toBe(true);
+  });
+
+  test('switching back to Page 1 restores page 1 violations', async ({ page }) => {
+    await page.goto(pagesUrl, { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    // Switch to Page 2
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.locator('a[data-bs-target="#page-2"]').click();
+    await waitForAxeCompletion(page);
+
+    // Switch back to Page 1
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.locator('a[data-bs-target="#page-1"]').click();
+    await waitForAxeCompletion(page);
+
+    // #page1-contrast should be back
+    const targets = await getViolationTargetIds(page);
+    expect(targets.some(t => t.includes('#page1-contrast')),
+      'After switching back to Page 1, #page1-contrast should be detected again').toBe(true);
+  });
+
+  test('re-scans on sidebar toggle — collapsed sidebar hides violations', async ({ page }) => {
+    await page.goto(pagesUrl, { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    // Initial scan should include #sidebar-contrast
+    const initialTargets = await getViolationTargetIds(page);
+    expect(initialTargets.some(t => t.includes('#sidebar-contrast')),
+      'Initial scan should detect #sidebar-contrast').toBe(true);
+
+    // Collapse the sidebar
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.locator('.collapse-toggle').click();
+    await waitForAxeCompletion(page);
+
+    // After collapse, #sidebar-contrast should be gone (sidebar is hidden)
+    const collapsedTargets = await getViolationTargetIds(page);
+    expect(collapsedTargets.some(t => t.includes('#sidebar-contrast')),
+      'After collapsing sidebar, #sidebar-contrast should not be detected').toBe(false);
+
+    // Expand the sidebar again
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.locator('.collapse-toggle').click();
+    await waitForAxeCompletion(page);
+
+    // #sidebar-contrast should be back
+    const expandedTargets = await getViolationTargetIds(page);
+    expect(expandedTargets.some(t => t.includes('#sidebar-contrast')),
+      'After expanding sidebar, #sidebar-contrast should be detected again').toBe(true);
+  });
+
+  test('back/forward navigation triggers rescan', async ({ page }) => {
+    await page.goto(pagesUrl, { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    // Switch to Page 2 (this pushes history via Bootstrap tab)
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.locator('a[data-bs-target="#page-2"]').click();
+    await waitForAxeCompletion(page);
+
+    // Verify Page 2 is active and page1-contrast is gone
+    const page2Targets = await getViolationTargetIds(page);
+    expect(page2Targets.some(t => t.includes('#page1-contrast'))).toBe(false);
+
+    // Go back — this triggers popstate, which should rescan
+    await page.evaluate(() => document.body.removeAttribute('data-quarto-axe-complete'));
+    await page.goBack();
+    await waitForAxeCompletion(page);
+
+    // Page 1 should be active again, with its violations restored
+    const backTargets = await getViolationTargetIds(page);
+    expect(backTargets.some(t => t.includes('#page1-contrast')),
+      'After going back, #page1-contrast should be detected again').toBe(true);
   });
 });
