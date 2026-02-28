@@ -257,7 +257,7 @@ _quarto:
           - subject: "ALIGNTEST_MARKER"
             relation: leftAligned
             object: "LISTING_BODY_ALIGN_TEST"
-            tolerance: 5
+            tolerance: 10  # 8pt inset from Skylighting block styling
 ---
 
 # Preface {.unnumbered}

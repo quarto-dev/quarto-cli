@@ -1,0 +1,19 @@
+color:
+  palette:
+    block-bg: "#f0f4f8"
+    block-fg: "#1a365d"
+    inline-bg: "#fed7d7"
+    inline-fg: "#9b2c2c"
+
+typography:
+  monospace-block:
+    color: block-fg
+    background-color: block-bg
+    size: 11pt
+    weight: 400
+    line-height: 1.5
+  monospace-inline:
+    color: inline-fg
+    background-color: inline-bg
+    weight: 600
+    size: 0.9rem

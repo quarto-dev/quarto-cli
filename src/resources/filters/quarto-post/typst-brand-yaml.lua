@@ -250,6 +250,7 @@ function render_typst_brand_yaml()
           }))
         end
       end
+
     end,
     Meta = function(meta)
       local brand = param('brand')
