@@ -1177,8 +1177,13 @@ export async function runPandoc(
       if (key === kFieldCategories && projectIsWebsite(options.project)) {
         continue;
       }
-      // perform the override
-      pandocMetadata[key] = engineMetadata[key];
+
+      // to handle all possible objects correctly when merging,
+      // we call mergeConfigs on temporary objects so the structure
+      // matches what that function expects
+      const a = { content: pandocMetadata[key] };
+      const b = { content: engineMetadata[key] };
+      pandocMetadata[key] = mergeConfigs(a, b).content;
     }
   }
 
