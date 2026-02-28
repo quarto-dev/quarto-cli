@@ -1,0 +1,41 @@
+---
+title: Brand Monospace Inheritance with Skylighting
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Skylighting is active (default)
+          - "#Skylighting"
+          # Base monospace family applied via codefont
+          - 'codefont: \("Fira Code",\),$'
+          # monospace-block inherits color from base monospace, gets its own bg
+          - '^#show raw\.where\(block: true\): set text\(weight: 400, size: 0\.85em, fill: rgb\("#2d3748"\), \)$'
+          - '^#show raw\.where\(block: true\): set block\(fill: rgb\("#edf2f7"\)\)$'
+          - '^#show raw\.where\(block: true\): set par\(leading: 0\.75em\)$'
+          # Quarto Skylighting override with inherited brand bg
+          - 'let bgcolor = rgb\("#edf2f7"\)'
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+          # monospace-inline overrides weight to 700, inherits color, gets its own bg
+          - '^#show raw\.where\(block: false\): set text\(weight: 700, size: 0\.85em, fill: rgb\("#2d3748"\), \)$'
+          - '^#show raw\.where\(block: false\): content => highlight\(fill: rgb\("#fefcbf"\), content\)$'
+        - ["```python"]
+---
+
+This tests that `monospace` base properties are properly inherited by
+`monospace-block` and `monospace-inline`, with specific overrides taking
+precedence.
+
+Inline code: `hello()`{.python} and `x + y`{.r} should use bold weight (700) from
+monospace-inline override, with yellow background.
+
+```python
+# Block code inherits base weight (400) with blue-gray background
+def greet(name):
+    return f"Hello, {name}!"
+```
+
+More `len(x)`{.python} code references.

@@ -28,8 +28,8 @@ _quarto:
           # Full-page listing code should be near left page edge (within body margin)
           - subject: "docker"
             relation: leftAligned
-            object: { role: "Page", page: 1, edge: "left" }
-            tolerance: 50  # Body margin ~47pt from page edge
+            object: { role: "Page", page: 2, edge: "left" }
+            tolerance: 58  # Body margin ~47pt + 8pt Skylighting inset from page edge
         - # Negative: fullwidth listing caption NOT rightOf margin note
           - subject: "FULLWIDTH-CSS-STYLES"
             relation: rightOf

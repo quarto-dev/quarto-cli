@@ -84,6 +84,7 @@ All changes included in 1.9:
 - ([#13954](https://github.com/quarto-dev/quarto-cli/issues/13954)): Add support for Typst book projects via format extensions. Quarto now bundles the `orange-book` extension which provides a textbook-style format with chapter numbering, cross-references, and professional styling. Book projects with `format: typst` automatically use this extension.
 - ([#13978](https://github.com/quarto-dev/quarto-cli/pull/13978)): Keep term and description together in definition lists to avoid breaking across pages. (author: @mcanouil)
 - ([#13878](https://github.com/quarto-dev/quarto-cli/issues/13878)): Typst now uses Pandoc's skylighting for syntax highlighting by default (consistent with other formats). Use `syntax-highlighting: idiomatic` to opt-in to Typst's native syntax highlighting instead.
+- ([#14126](https://github.com/quarto-dev/quarto-cli/issues/14126)): Fix Skylighting code blocks in Typst lacking full-width background, padding, and border radius. A postprocessor patches the Pandoc-generated Skylighting function to add `width: 100%`, `inset: 8pt`, and `radius: 2pt` to the block call, matching the styling of native code blocks. Brand `monospace-block.background-color` also now correctly applies to Skylighting output. This workaround will be removed once the fix is upstreamed to Skylighting.
 
 ### `pdf`
 

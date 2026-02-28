@@ -1,0 +1,31 @@
+---
+title: Skylighting with Line Numbers
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: tango
+    code-line-numbers: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Skylighting with line numbering enabled
+          - '#Skylighting\(number: true'
+          - "#KeywordTok"
+          # Quarto override with proper block styling
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+        - ["```python"]
+---
+
+Code blocks with line numbers should render properly with Skylighting.
+
+```python
+def fibonacci(n):
+    if n <= 1:
+        return n
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+```

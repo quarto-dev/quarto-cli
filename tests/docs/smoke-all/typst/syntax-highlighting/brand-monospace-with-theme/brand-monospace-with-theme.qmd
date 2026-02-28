@@ -1,0 +1,41 @@
+---
+title: Brand Monospace with Explicit Theme
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: espresso
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Skylighting with espresso theme
+          - "#Skylighting"
+          - "#KeywordTok"
+          # Brand monospace-block properties (show rules for idiomatic fallback)
+          - '^#show raw\.where\(block: true\): set text\(weight: 400, size: 9pt, fill: rgb\("#f8f8f2"\), \)$'
+          - '^#show raw\.where\(block: true\): set block\(fill: rgb\("#282a36"\)\)$'
+          - '^#show raw\.where\(block: true\): set par\(leading: 0\.65em\)$'
+          # Quarto Skylighting override uses brand bg (not espresso theme bg)
+          - 'let bgcolor = rgb\("#282a36"\)'
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+          # Brand monospace-inline properties
+          - '^#show raw\.where\(block: false\): set text\(weight: 500, fill: rgb\("#6c3483"\), \)$'
+          - '^#show raw\.where\(block: false\): content => highlight\(fill: rgb\("#e8e0f0"\), content\)$'
+        - ["```python"]
+---
+
+This tests that brand monospace options and an explicit syntax-highlighting theme
+can coexist. The theme controls token colors; the brand controls the block
+container styling.
+
+Here's some `x <- 1`{.r} with brand styling.
+
+```python
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+```
+
+And more `def foo()`{.python} references.
