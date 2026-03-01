@@ -2024,17 +2024,9 @@ pre.code-annotation-code {
   }
 }
 
+#code-annotation-line-highlight,
 #code-annotation-line-highlight-gutter {
   width: 100%;
-  border-top: solid $code-annotation-higlight-color 1px;
-  border-bottom: solid $code-annotation-higlight-color 1px;
-  z-index: 2;
-  background-color: $code-annotation-higlight-bg;
-}
-
-#code-annotation-line-highlight {
-  margin-left: -4em;
-  width: calc(100% + 4em);
   border-top: solid $code-annotation-higlight-color 1px;
   border-bottom: solid $code-annotation-higlight-color 1px;
   z-index: 2;
