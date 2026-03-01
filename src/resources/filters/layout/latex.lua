@@ -67,8 +67,14 @@ function latexPanel(layout)
   end
   local caption = create_latex_caption(layout)
   
-   -- read vertical alignment and strip attribute
-  local vAlign = validatedVAlign(layout.attributes[kLayoutVAlign])
+  -- convert valign_class to latex notion, read vertical alignment and strip attribute
+  local vAlign = "top"
+  if layout.valign_class ~= nil then
+    local vAlignClass = layout.valign_class
+    vAlign = vAlignClass:gsub("quarto%-layout%-valign%-","")
+  end
+  
+  vAlign = validatedVAlign(vAlign)
   layout.attributes[kLayoutVAlign] = nil
 
   for i, row in ipairs(layout.rows.content) do
