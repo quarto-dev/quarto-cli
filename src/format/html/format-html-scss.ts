@@ -314,7 +314,13 @@ export function resolveTextHighlightingLayer(
           true,
         );
       }
+    }
 
+    // Inject a text color regardless of adaptive status. Adaptive themes
+    // handle their own bg, but when separate light/dark themes are paired
+    // (e.g. kate + zenburn), the dark theme still needs its text-color
+    // emitted as $code-block-color so Bootstrap rules can apply it.
+    if (themeDescriptor) {
       const textColor = themeDescriptor.json["text-color"] as string;
       if (textColor) {
         layer.defaults = layer.defaults + "\n" + outputVariable(
