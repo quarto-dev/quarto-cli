@@ -118,6 +118,10 @@ All changes included in 1.9:
 
 - ([#13956](https://github.com/quarto-dev/quarto-cli/issues/13956)): Fix crash when rendering to `ipynb` format with figure labels (`#| label: fig-*`) on cells for cross references.
 
+### `revealjs`
+
+- ([#13712](https://github.com/quarto-dev/quarto-cli/issues/13712)): Add support for tabset fragments in Reveal.js presentations, allowing content within tabs to be revealed incrementally during presentations. (author: @mcanouil)
+
 ## Projects
 
 - ([#12444](https://github.com/quarto-dev/quarto-cli/pull/12444)): Improve pre/post render script logging with `Running script` prefix and add `QUARTO_PROJECT_SCRIPT_PROGRESS` and `QUARTO_PROJECT_SCRIPT_QUIET` environment variables so scripts can adapt their output.
