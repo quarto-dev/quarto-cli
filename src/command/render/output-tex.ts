@@ -18,6 +18,7 @@ import {
   kPdfStandard,
   kPdfStandardApplied,
   kTargetFormat,
+  pdfStandardEnv,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import { asArray } from "../../core/array.ts";
@@ -90,7 +91,8 @@ export function texToPdfOutputRecipe(
     const pdfStandards = asArray(
       pandocOptions.format.metadata?.[kPdfStandardApplied] ??
         format.render?.[kPdfStandard] ??
-        format.metadata?.[kPdfStandard],
+        format.metadata?.[kPdfStandard] ??
+        pdfStandardEnv(),
     ) as string[];
     if (pdfStandards.length > 0) {
       await validatePdfStandards(pdfOutput, pdfStandards, {
