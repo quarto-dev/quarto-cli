@@ -2752,8 +2752,9 @@
 - id: logo-light-dark-specifier-path-optional
   description: >
     Any of the ways a logo can be specified: string, object, or light/dark object of
-    string or object
+    string or object. Use `false` to explicitly disable the logo.
   anyOf:
+    - enum: [false]
     - ref: logo-specifier-path-optional
     - object:
         closed: true
