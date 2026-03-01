@@ -35,26 +35,6 @@
     ref: epub-contributor
   description: Contributors to this publication.
 
-- name: subject
-  tags:
-    formats: [$epub-all]
-  schema:
-    anyOf:
-      - string
-      - object:
-          closed: true
-          properties:
-            text:
-              string:
-                description: The subject text.
-            authority:
-              string:
-                description: An EPUB reserved authority value.
-            term:
-              string:
-                description: The subject term (defined by the schema).
-  description: The subject of the publication.
-
 - name: type
   tags:
     formats: [$epub-all]

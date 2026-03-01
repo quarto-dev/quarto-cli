@@ -12221,8 +12221,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "logo-light-dark-specifier-path-optional",
-          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
           anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
             {
               ref: "logo-specifier-path-optional"
             },
@@ -14589,42 +14594,6 @@ var require_yaml_intelligence_resources = __commonJS({
             ref: "epub-contributor"
           },
           description: "Contributors to this publication."
-        },
-        {
-          name: "subject",
-          tags: {
-            formats: [
-              "$epub-all"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              {
-                object: {
-                  closed: true,
-                  properties: {
-                    text: {
-                      string: {
-                        description: "The subject text."
-                      }
-                    },
-                    authority: {
-                      string: {
-                        description: "An EPUB reserved authority value."
-                      }
-                    },
-                    term: {
-                      string: {
-                        description: "The subject term (defined by the schema)."
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          description: "The subject of the publication."
         },
         {
           name: "type",
@@ -17213,12 +17182,39 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "subject",
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    text: {
+                      string: {
+                        description: "The subject text."
+                      }
+                    },
+                    authority: {
+                      string: {
+                        description: "An EPUB reserved authority value."
+                      }
+                    },
+                    term: {
+                      string: {
+                        description: "The subject term (defined by the schema)."
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
           tags: {
             formats: [
               "$pdf-all",
               "$office-all",
-              "odt"
+              "odt",
+              "$epub-all"
             ]
           },
           description: "The document subject"
@@ -23292,17 +23288,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "Sets the CSS <code>color</code> property.",
         {
           short: "Sets the color of hyperlinks in the document.",
-          long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.'
+          long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.\nFor Typst output, sets the color of internal hyperlinks using Typst\ncolor syntax.'
         },
         "Sets the CSS <code>background-color</code> property on code elements\nand adds extra padding.",
         "Sets the CSS <code>background-color</code> property on the html\nelement.",
         {
-          short: "The color used for external links using color options allowed by\n<code>xcolor</code>",
-          long: 'The color used for external links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short: "The color used for external links.",
+          long: 'For LaTeX output, the color used for external links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of external file links using Typst\ncolor syntax.'
         },
         {
-          short: "The color used for citation links using color options allowed by\n<code>xcolor</code>",
-          long: 'The color used for citation links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short: "The color used for citation links.",
+          long: 'For LaTeX output, the color used for citation links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of citation links using Typst color\nsyntax.'
         },
         {
           short: "The color used for linked URLs using color options allowed by\n<code>xcolor</code>",
@@ -23499,6 +23495,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'For HTML output, sets the CSS font-family property on code\nelements.\nFor PowerPoint output, sets the font used for code.\nFor LaTeX output, the monospace font family for use with\n<code>xelatex</code> or <code>lualatex</code>: take the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the monspace font family. Use the name of any\nsystem font. See <a href="https://wiki.contextgarden.net/Fonts">ConTeXt\nFonts</a> for more information.'
         },
         {
+          short: "Sets the font used for code in Typst output.",
+          long: "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
+        },
+        {
           short: "Sets the main font size for the document.",
           long: "For HTML output, sets the base CSS <code>font-size</code>\nproperty.\nFor LaTeX and ConTeXt output, sets the font size for the document\nbody text."
         },
@@ -23519,8 +23519,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
         },
         {
-          short: "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
+          short: "The math font family for use with <code>xelatex</code>,\n<code>lualatex</code>, or Typst.",
+          long: 'For LaTeX output, the math font family for use with\n<code>xelatex</code> or <code>lualatex</code>. Takes the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor Typst output, sets the font used for mathematical content.'
         },
         {
           short: "The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -23558,7 +23558,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The line height, for example, <code>12p</code>.",
         {
           short: "Sets the line height or spacing for text in the document.",
-          long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.'
+          long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.\nFor Typst output, adjusts the spacing between lines of text.'
         },
         "Adjusts line spacing using the <code>\\setupinterlinespace</code>\ncommand.",
         "The typeface style for links in the document.",
@@ -25132,11 +25132,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        {
-          short: "Sets the font used for code in Typst output.",
-          long: "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
-        }
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -25366,12 +25362,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222606,
+        _internalId: 222775,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222598,
+            _internalId: 222767,
             type: "enum",
             enum: [
               "png",
@@ -25387,7 +25383,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222605,
+            _internalId: 222774,
             type: "anyOf",
             anyOf: [
               {

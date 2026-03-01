@@ -1,0 +1,19 @@
+schema:
+  anyOf:
+    - string
+    - object:
+        closed: true
+        properties:
+          text:
+            string:
+              description: The subject text.
+          authority:
+            string:
+              description: An EPUB reserved authority value.
+          term:
+            string:
+              description: The subject term (defined by the schema).
+value:
+  text: "Science"
+  authority: "BISAC"
+  term: "SCI000000"

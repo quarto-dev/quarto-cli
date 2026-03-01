@@ -3392,6 +3392,11 @@
     "LogoLightDarkSpecifierPathOptional": {
       "anyOf": [
         {
+          "enum": [
+            false
+          ]
+        },
+        {
           "$ref": "#/$defs/LogoSpecifierPathOptional"
         },
         {
