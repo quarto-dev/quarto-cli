@@ -17,19 +17,10 @@
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
 ]
 
-// Use nested show rule to preserve list structure for PDF/UA-1 accessibility
-// See: https://github.com/quarto-dev/quarto-cli/pull/13249#discussion_r2678934509
-#show terms: it => {
-  show terms.item: item => {
-    set text(weight: "bold")
-    item.term
-    block(inset: (left: 1.5em, top: -0.4em))[#item.description]
-  }
-  it
-}
-
-// Prevent breaking inside definition items, i.e., keep term and description together.
-#show terms.item: set block(breakable: false)
+#show terms.item: it => block(breakable: false)[
+  #text(weight: "bold")[#it.term]
+  #block(inset: (left: 1.5em, top: -0.4em))[#it.description]
+]
 
 // Some quarto-specific definitions.
 
