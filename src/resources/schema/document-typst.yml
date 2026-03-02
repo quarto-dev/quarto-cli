@@ -39,6 +39,7 @@
     short: "Visual style for theorem environments in Typst output."
     long: |
       Controls how theorems, lemmas, definitions, etc. are rendered:
+
       - `simple`: Plain text with bold title and italic body (default)
       - `fancy`: Colored boxes using brand colors
       - `clouds`: Rounded colored background boxes

@@ -16699,6 +16699,62 @@ try {
             }
           },
           {
+            name: "margin",
+            tags: {
+              formats: [
+                "revealjs",
+                "typst"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "number",
+                {
+                  object: {
+                    closed: true,
+                    properties: {
+                      x: {
+                        string: {
+                          description: "Horizontal margin (e.g. 1.5in)"
+                        }
+                      },
+                      y: {
+                        string: {
+                          description: "Vertical margin (e.g. 1.5in)"
+                        }
+                      },
+                      top: {
+                        string: {
+                          description: "Top margin (e.g. 1.5in)"
+                        }
+                      },
+                      bottom: {
+                        string: {
+                          description: "Bottom margin (e.g. 1.5in)"
+                        }
+                      },
+                      left: {
+                        string: {
+                          description: "Left margin (e.g. 1.5in)"
+                        }
+                      },
+                      right: {
+                        string: {
+                          description: "Right margin (e.g. 1.5in)"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            default: 0.1,
+            description: {
+              short: "Margin settings for Reveal.js or Typst output.",
+              long: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary specifying page margins. Use `x` and `y` for symmetric\nhorizontal/vertical margins, or `top`, `bottom`, `left`, `right` for\nindividual sides. Values should include units (e.g. `1.5in`, `2cm`).\n"
+            }
+          },
+          {
             name: "geometry",
             schema: {
               maybeArrayOf: "string"
@@ -18828,59 +18884,6 @@ try {
             }
           },
           {
-            name: "margin",
-            tags: {
-              formats: [
-                "revealjs",
-                "typst"
-              ]
-            },
-            schema: {
-              anyOf: [
-                "number",
-                {
-                  object: {
-                    closed: true,
-                    properties: {
-                      x: {
-                        string: {
-                          description: "Horizontal margin (e.g. 5cm)"
-                        }
-                      },
-                      y: {
-                        string: {
-                          description: "Vertical margin (e.g. 5cm)"
-                        }
-                      },
-                      top: {
-                        string: {
-                          description: "Top margin (e.g. 5cm)"
-                        }
-                      },
-                      bottom: {
-                        string: {
-                          description: "Bottom margin (e.g. 5cm)"
-                        }
-                      },
-                      left: {
-                        string: {
-                          description: "Left margin (e.g. 5cm)"
-                        }
-                      },
-                      right: {
-                        string: {
-                          description: "Right margin (e.g. 5cm)"
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            },
-            default: 0.1,
-            description: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n"
-          },
-          {
             name: "min-scale",
             tags: {
               formats: [
@@ -20644,6 +20647,9 @@ try {
             },
             dashboard: {
               title: "Dashboard"
+            },
+            typst: {
+              title: "Typst"
             },
             options: {
               title: "Format Options"
@@ -23293,17 +23299,17 @@ try {
           "Sets the CSS <code>color</code> property.",
           {
             short: "Sets the color of hyperlinks in the document.",
-            long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.'
+            long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.\nFor Typst output, sets the color of internal hyperlinks using Typst\ncolor syntax.'
           },
           "Sets the CSS <code>background-color</code> property on code elements\nand adds extra padding.",
           "Sets the CSS <code>background-color</code> property on the html\nelement.",
           {
-            short: "The color used for external links using color options allowed by\n<code>xcolor</code>",
-            long: 'The color used for external links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+            short: "The color used for external links.",
+            long: 'For LaTeX output, the color used for external links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of external file links using Typst\ncolor syntax.'
           },
           {
-            short: "The color used for citation links using color options allowed by\n<code>xcolor</code>",
-            long: 'The color used for citation links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+            short: "The color used for citation links.",
+            long: 'For LaTeX output, the color used for citation links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of citation links using Typst color\nsyntax.'
           },
           {
             short: "The color used for linked URLs using color options allowed by\n<code>xcolor</code>",
@@ -23500,6 +23506,10 @@ try {
             long: 'For HTML output, sets the CSS font-family property on code\nelements.\nFor PowerPoint output, sets the font used for code.\nFor LaTeX output, the monospace font family for use with\n<code>xelatex</code> or <code>lualatex</code>: take the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the monspace font family. Use the name of any\nsystem font. See <a href="https://wiki.contextgarden.net/Fonts">ConTeXt\nFonts</a> for more information.'
           },
           {
+            short: "Sets the font used for code in Typst output.",
+            long: "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
+          },
+          {
             short: "Sets the main font size for the document.",
             long: "For HTML output, sets the base CSS <code>font-size</code>\nproperty.\nFor LaTeX and ConTeXt output, sets the font size for the document\nbody text."
           },
@@ -23520,8 +23530,8 @@ try {
             long: 'The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
           },
           {
-            short: "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-            long: 'The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
+            short: "The math font family for use with <code>xelatex</code>,\n<code>lualatex</code>, or Typst.",
+            long: 'For LaTeX output, the math font family for use with\n<code>xelatex</code> or <code>lualatex</code>. Takes the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor Typst output, sets the font used for mathematical content.'
           },
           {
             short: "The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -23559,7 +23569,7 @@ try {
           "The line height, for example, <code>12p</code>.",
           {
             short: "Sets the line height or spacing for text in the document.",
-            long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.'
+            long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.\nFor Typst output, adjusts the spacing between lines of text.'
           },
           "Adjusts line spacing using the <code>\\setupinterlinespace</code>\ncommand.",
           "The typeface style for links in the document.",
@@ -23861,6 +23871,16 @@ try {
             short: "Sets the bottom margin of the document.",
             long: "For HTML output, sets the <code>margin-bottom</code> property on the\nBody element.\nFor LaTeX output, sets the bottom margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the bottom margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the bottom page margin."
           },
+          {
+            short: "Margin settings for Reveal.js or Typst output.",
+            long: "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary specifying page margins. Use\n<code>x</code> and <code>y</code> for symmetric horizontal/vertical\nmargins, or <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code> for individual sides. Values should include units\n(e.g.&nbsp;<code>1.5in</code>, <code>2cm</code>)."
+          },
+          "Horizontal margin (e.g.&nbsp;1.5in)",
+          "Vertical margin (e.g.&nbsp;1.5in)",
+          "Top margin (e.g.&nbsp;1.5in)",
+          "Bottom margin (e.g.&nbsp;1.5in)",
+          "Left margin (e.g.&nbsp;1.5in)",
+          "Right margin (e.g.&nbsp;1.5in)",
           {
             short: "Options for the geometry package.",
             long: 'Options for the <a href="https://ctan.org/pkg/geometry">geometry</a>\npackage. For example:'
@@ -24194,13 +24214,6 @@ try {
             short: "The \u2018normal\u2019 height of the presentation",
             long: "The \u201Cnormal\u201D height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
           },
-          "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary with the fields defined in the\nTypst documentation: <code>x</code>, <code>y</code>, <code>top</code>,\n<code>bottom</code>, <code>left</code>, <code>right</code> (margins are\nspecified in <code>cm</code> units, e.g.&nbsp;<code>5cm</code>).",
-          "Horizontal margin (e.g.&nbsp;5cm)",
-          "Vertical margin (e.g.&nbsp;5cm)",
-          "Top margin (e.g.&nbsp;5cm)",
-          "Bottom margin (e.g.&nbsp;5cm)",
-          "Left margin (e.g.&nbsp;5cm)",
-          "Right margin (e.g.&nbsp;5cm)",
           "Bounds for smallest possible scale to apply to content",
           "Bounds for largest possible scale to apply to content",
           "Vertical centering of slides",
@@ -24775,7 +24788,7 @@ try {
           "Minimum vertical spacing between margin notes (default: 8pt).",
           {
             short: "Visual style for theorem environments in Typst output.",
-            long: "Controls how theorems, lemmas, definitions, etc. are rendered: -\n<code>simple</code>: Plain text with bold title and italic body\n(default) - <code>fancy</code>: Colored boxes using brand colors -\n<code>clouds</code>: Rounded colored background boxes -\n<code>rainbow</code>: Colored left border with colored title"
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered:"
           },
           {
             short: "Email format version",
@@ -25133,11 +25146,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-          {
-            short: "Sets the font used for code in Typst output.",
-            long: "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
-          }
+          "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
         ],
         "schema/external-schemas.yml": [
           {
@@ -25367,12 +25376,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 222606,
+          _internalId: 222774,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 222598,
+              _internalId: 222766,
               type: "enum",
               enum: [
                 "png",
@@ -25388,7 +25397,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 222605,
+              _internalId: 222773,
               type: "anyOf",
               anyOf: [
                 {
@@ -25522,7 +25531,7 @@ try {
             },
             description: {
               short: "Visual style for theorem environments in Typst output.",
-              long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+              long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
             }
           }
         ],
