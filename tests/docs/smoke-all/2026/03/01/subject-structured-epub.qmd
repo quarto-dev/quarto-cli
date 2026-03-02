@@ -1,0 +1,18 @@
+---
+title: Test
+subject:
+  text: "Science"
+  authority: "BISAC"
+  term: "SCI000000"
+format: epub
+_quarto:
+  tests:
+    epub:
+      ensureEpubFileRegexMatches:
+        - path: EPUB/content.opf
+          regexes:
+            - ['dc:subject id="subject-1">Science</dc:subject>', 'property="authority">BISAC', 'property="term">SCI000000']
+            - []
+---
+
+Test structured subject metadata in epub output.
