@@ -32,6 +32,22 @@ test('Search highlights cleared when query changes', async ({ page }) => {
   await expect(page.locator('main mark')).toHaveCount(0, { timeout: 2000 });
 });
 
+test('TOC links do not retain search query parameter', async ({ page }) => {
+  await page.goto(`${BASE}?q=special`);
+  await page.waitForSelector('mark');
+
+  // Check that sidebar/TOC links don't contain ?q=
+  const tocLinks = page.locator('#TOC a[href], .sidebar-navigation a[href]');
+  const count = await tocLinks.count();
+  expect(count).toBeGreaterThan(0);
+  for (let i = 0; i < count; i++) {
+    const href = await tocLinks.nth(i).getAttribute('href');
+    if (href) {
+      expect(href).not.toContain('q=special');
+    }
+  }
+});
+
 test('No highlights without search query', async ({ page }) => {
   await page.goto(BASE);
 

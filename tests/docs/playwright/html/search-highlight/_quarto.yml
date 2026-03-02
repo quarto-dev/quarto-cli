@@ -8,4 +8,6 @@ website:
       - href: index.qmd
         text: Home
 
-format: html
+format:
+  html:
+    toc: true
