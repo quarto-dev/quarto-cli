@@ -146,6 +146,13 @@ function render_pandoc3_figure()
       for k, v in pairs(figure.attributes) do
         image.attributes[k] = v
       end
+      -- Convert fig-alt to alt for LaTeX \includegraphics[alt=...]
+      if image.attributes[kFigAlt] then
+        if not image.attributes["alt"] then
+          image.attributes["alt"] = image.attributes[kFigAlt]
+        end
+        image.attributes[kFigAlt] = nil
+      end
       if subfig then
         image.attributes['quarto-caption-env'] = 'subcaption'
       end
@@ -170,6 +177,26 @@ function render_pandoc3_figure()
     return {
       traverse = "topdown",
       Figure = function(figure)
+        -- For figure images: prevent caption-as-alt fallback when caption IS the
+        -- visible figure caption (not an explicit alt override via {alt="..."}).
+        -- In Pandoc 3, {alt="text"} replaces image.caption with the alt value,
+        -- so image.caption != figure.caption means an explicit alt was provided.
+        -- Also propagate fig-alt from figure to image for accessibility.
+        local figure_caption_text = pandoc.utils.stringify(figure.caption.long)
+        local fig_alt = figure.attributes[kFigAlt]
+        for _, block in ipairs(figure.content) do
+          if block.t == "Plain" or block.t == "Para" then
+            for _, inline in ipairs(block.content) do
+              if inline.t == "Image" then
+                if fig_alt then
+                  inline.attributes[kFigAlt] = fig_alt
+                elseif pandoc.utils.stringify(inline.caption) == figure_caption_text then
+                  inline.attributes["_quarto_no_caption_alt"] = "true"
+                end
+              end
+            end
+          end
+        end
         return make_typst_figure({
           content = figure.content[1],
           caption = figure.caption.long[1],

@@ -9,7 +9,6 @@ _quarto:
       noErrors: default
       ensureTypstFileRegexMatches:
         - # Patterns that MUST be found - alt text in image() calls
-          - 'image\("tc1-figure\.svg",\s*alt:\s*"TC1 figure caption as alt'
           - 'image\("tc2-inline\.svg",\s*alt:\s*"TC2 inline image'
           - 'image\("tc3-explicit\.svg",\s*alt:\s*"TC3 explicit alt attribute'
           - 'image\("tc4-dimensions\.svg",\s*alt:\s*"TC4 with dimensions",\s*height:\s*1in,\s*width:\s*1in'
@@ -17,7 +16,11 @@ _quarto:
           - 'image\("tc6-backslash\.svg",\s*alt:\s*"TC6 backslash C:\\\\path'
           # TC7 should have the image but without alt parameter
           - 'image\("tc7-no-alt\.svg"\)'
+          # TC8: Explicit fig-alt should produce alt text
+          - 'image\("tc8-fig-alt\.svg",\s*alt:\s*"TC8 explicit fig-alt'
         - # Patterns that must NOT be found
+          # TC1 figure caption should NOT be used as alt text
+          - 'tc1-figure\.svg.*alt:.*TC1 figure caption'
           # TC7 with no caption/alt should NOT have alt parameter
           - 'tc7-no-alt\.svg.*alt:'
 ---
@@ -55,3 +58,7 @@ Here is ![TC4 with dimensions](tc4-dimensions.svg){width=1in height=1in} inline.
 This image has no caption and no alt attribute.
 
 ![](tc7-no-alt.svg)
+
+## TC8: Explicit fig-alt on a figure
+
+![TC8 visible caption](tc8-fig-alt.svg){fig-alt="TC8 explicit fig-alt description"}
