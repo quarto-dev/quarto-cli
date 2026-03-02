@@ -141,7 +141,7 @@ jobs:
 
       - name: Install rsvg-convert for SVG conversion tests
         # Only do it on linux runner, and only if we are running the relevant tests
-        if: runner.os == 'Linux' && (contains(inputs.buckets, 'render-pdf-svg-conversion') || contains(inputs.buckets, 'pdf-standard'))
+        if: runner.os == 'Linux' && (format('{0}', inputs.buckets) == '' || contains(inputs.buckets, 'render-pdf-svg-conversion') || contains(inputs.buckets, 'pdf-standard'))
         run: |
           sudo apt-get update -y
           sudo apt-get install -y librsvg2-bin
@@ -202,7 +202,7 @@ jobs:
           quarto install tinytex
 
       - name: Install veraPDF for PDF standard validation
-        if: runner.os == 'Linux' && contains(inputs.buckets, 'pdf-standard')
+        if: runner.os == 'Linux' && (format('{0}', inputs.buckets) == '' || contains(inputs.buckets, 'pdf-standard'))
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
