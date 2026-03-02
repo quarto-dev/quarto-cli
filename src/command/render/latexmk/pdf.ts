@@ -204,7 +204,7 @@ async function initialCompileLatex(
       if (accessibilityWarnings.missingAltText.length > 0) {
         const fileList = accessibilityWarnings.missingAltText.join(", ");
         warning(
-          `PDF accessibility: Missing alt text for image(s): ${fileList}. Add alt text using ![alt text](image.png) syntax for PDF/UA compliance.\n`,
+          `PDF accessibility: Missing alt text for image(s): ${fileList}. Add alt text using fig-alt in YAML or {fig-alt="description"} on the image for PDF/UA compliance.\n`,
         );
       }
       if (accessibilityWarnings.missingLanguage) {

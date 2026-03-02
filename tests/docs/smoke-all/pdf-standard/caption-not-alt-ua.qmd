@@ -19,6 +19,11 @@ _quarto:
         - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-2\}', 'tagging=on']
         - # Caption must NOT appear as alt text on \includegraphics
           ['includegraphics\[.*alt=']
+      printsMessage:
+        # tagpdf warns about missing alt text and falls back to filename;
+        # Quarto surfaces this as a user-facing warning
+        level: WARN
+        regex: "PDF accessibility:.*Missing alt text"
     typst:
       # Typst's own PDF/UA enforcement errors on missing alt
       shouldError: default
@@ -29,4 +34,8 @@ _quarto:
 A figure with a caption but no explicit `fig-alt`.
 The caption should NOT be copied into alt text.
 
-![This is a caption, not alt text](penrose.svg)
+Uses a cross-ref label to go through FloatRefTarget, which produces
+valid UA-2 structure. See `ua2-unlabeled-figure-caption.qmd` for the
+known structural issue with unlabeled captioned figures.
+
+![This is a caption, not alt text](penrose.svg){#fig-test}

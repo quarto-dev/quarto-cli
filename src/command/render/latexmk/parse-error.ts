@@ -125,8 +125,10 @@ export function findPdfAccessibilityWarnings(
 
   // Match: Package tagpdf Warning: Alternative text for graphic is missing.
   //        (tagpdf)                Using 'filename' instead.
+  // Note: tagpdf wraps long filenames across multiple (tagpdf) continuation
+  // lines, so we allow optional line breaks with (tagpdf) prefixes.
   const altTextRegex =
-    /Package tagpdf Warning: Alternative text for graphic is missing\.\s*\n\(tagpdf\)\s*Using ['`]([^'`]+)['`] instead\./g;
+    /Package tagpdf Warning: Alternative text for graphic is missing\.\s*\n\(tagpdf\)\s*Using ['`]([^'`]+)['`]\s*(?:\n\(tagpdf\)\s*)?instead\./g;
   let match;
   while ((match = altTextRegex.exec(logText)) !== null) {
     result.missingAltText.push(match[1]);
