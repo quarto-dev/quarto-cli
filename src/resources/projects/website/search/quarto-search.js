@@ -8,6 +8,18 @@ const kResultsArg = "show-results";
 // item is a more item (along with the type) and can be handled appropriately
 const kItemTypeMoreHref = "0767FDFD-0422-4E5A-BC8A-3BE11E5BBA05";
 
+// Capture search params and clean ?q= from URL at module load time, before
+// any DOMContentLoaded handlers run. quarto-nav.js resolves all <a> hrefs
+// against window.location during DOMContentLoaded — if ?q= is still present,
+// every link on the page gets the query param baked into its href.
+const currentUrl = new URL(window.location);
+const kQuery = currentUrl.searchParams.get(kQueryArg);
+if (kQuery) {
+  const replacementUrl = new URL(window.location);
+  replacementUrl.searchParams.delete(kQueryArg);
+  window.history.replaceState({}, "", replacementUrl);
+}
+
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Ensure that search is available on this page. If it isn't,
   // should return early and not do anything
@@ -37,14 +49,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Used to determine highlighting behavior for this page
   // A `q` query param is expected when the user follows a search
   // to this page
-  const currentUrl = new URL(window.location);
-  const query = currentUrl.searchParams.get(kQueryArg);
+  const query = kQuery;
   const showSearchResults = currentUrl.searchParams.get(kResultsArg);
   const mainEl = window.document.querySelector("main");
 
   // highlight matches on the page
   if (query && mainEl) {
-    // perform any highlighting
     highlight(query, mainEl);
 
     // Activate tabs on pageshow — after tabsets.js restores localStorage state.
@@ -56,14 +66,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         for (const mark of mainEl.querySelectorAll("mark")) {
           openAllTabsetsContainingEl(mark);
         }
-        requestAnimationFrame(() => scrollToFirstVisibleMatch(mainEl));
+        // Only scroll to first match when there's no hash fragment.
+        // With a hash, the browser already scrolled to the target section.
+        if (!currentUrl.hash) {
+          requestAnimationFrame(() => scrollToFirstVisibleMatch(mainEl));
+        }
       }
     }, { once: true });
-
-    // fix up the URL to remove the q query param
-    const replacementUrl = new URL(window.location);
-    replacementUrl.searchParams.delete(kQueryArg);
-    window.history.replaceState({}, "", replacementUrl);
   }
 
   // function to clear highlighting on the page when the search query changes

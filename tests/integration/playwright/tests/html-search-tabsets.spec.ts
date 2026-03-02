@@ -104,6 +104,30 @@ test('Search activation overrides localStorage tab preference', async ({ page })
   expect(await visibleMarkCount(page)).toBe(1);
 });
 
+test('Search with hash fragment scrolls to target section, not first match', async ({ page }) => {
+  // Use a very small viewport so mark and hash target can't both be visible
+  await page.setViewportSize({ width: 800, height: 200 });
+  // Navigate with ?q= matching near the top AND #hash pointing to section further down
+  await page.goto(`${BASE}?q=beta-unique-search-term#grouped-tabset`);
+
+  // Marks should exist (highlighting works)
+  const marks = page.locator('mark');
+  await expect(marks.first()).toBeVisible({ timeout: 5000 });
+
+  // Wait for all scroll behavior to settle (rAF + smooth scroll animation)
+  await page.waitForFunction(() => {
+    return new Promise<boolean>(resolve => {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setTimeout(() => resolve(true), 800);
+      }));
+    });
+  });
+
+  // The hash target section should still be in viewport (not scrolled away to first mark)
+  const section = page.locator('#grouped-tabset');
+  await expect(section).toBeInViewport();
+});
+
 test('Search scrolls to first visible match', async ({ page }) => {
   // Use small viewport so the nested tabset at the bottom is below the fold,
   // ensuring the test actually exercises scrollIntoView (not trivially passing).
