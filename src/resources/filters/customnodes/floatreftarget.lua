@@ -978,6 +978,22 @@ end, function(float)
   local kind = "quarto-float-" .. ref
   local supplement = titleString(ref, info.name)
 
+  -- For figures: mark images so typst.lua won't use caption-as-alt fallback
+  -- when caption IS the visible figure caption (not an explicit alt override).
+  -- In Pandoc 3, {alt="text"} replaces image.caption with the alt value,
+  -- so image.caption != float.caption means an explicit alt was provided.
+  if ref == "fig" then
+    local float_caption_text = pandoc.utils.stringify(float.caption_long or {})
+    float.content = _quarto.ast.walk(float.content, {
+      Image = function(img)
+        if pandoc.utils.stringify(img.caption) == float_caption_text then
+          img.attributes["_quarto_no_caption_alt"] = "true"
+        end
+        return img
+      end
+    })
+  end
+
   -- Inject show rule to left-align listing figures (only once per document)
   -- This overrides any template centering for listing-kind figures
   -- https://github.com/quarto-dev/quarto-cli/issues/9724

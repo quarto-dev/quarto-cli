@@ -232,7 +232,11 @@ function render_typst_fixups()
       if alt_text then
         image.attributes[kFigAlt] = nil
       end
-      if (alt_text == nil or alt_text == "") and #image.caption > 0 then
+      -- Use caption as alt only for inline images (not figures)
+      -- Figure images are marked with _quarto_no_caption_alt by layout filters
+      local no_caption_alt = image.attributes["_quarto_no_caption_alt"]
+      image.attributes["_quarto_no_caption_alt"] = nil
+      if (alt_text == nil or alt_text == "") and #image.caption > 0 and not no_caption_alt then
         alt_text = pandoc.utils.stringify(image.caption)
       end
 
