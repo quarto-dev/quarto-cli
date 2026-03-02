@@ -505,7 +505,10 @@ export function fillLogoPaths(
     }
     return undefined;
   }
-  if (!spec || typeof spec === "string") {
+  if (!spec) {
+    return undefined;
+  }
+  if (typeof spec === "string") {
     return spec;
   }
   if ("light" in spec || "dark" in spec) {
