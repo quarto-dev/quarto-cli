@@ -9,7 +9,7 @@ _quarto:
   tests:
     pdf:
       ensureLatexFileRegexMatches:
-        - ['\\begin\{minipage\}\[t\]\{0\.50\\linewidth\}']
+        - ['\\begin\{minipage\}\[b\]\{0\.50\\linewidth\}']
         - []
 ---
 
@@ -20,6 +20,7 @@ _quarto:
 #|   - cars
 #|   - pressure
 #| layout-ncol: 2
+#| layout-valign: bottom
 
 library(knitr)
 kable(head(cars))
