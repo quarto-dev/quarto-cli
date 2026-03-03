@@ -67,7 +67,7 @@ function latexPanel(layout)
   end
   local caption = create_latex_caption(layout)
   
-  -- convert valign_class to latex notion, read vertical alignment and strip attribute
+  -- convert valign_class to latex notation, read vertical alignment and strip attribute
   local vAlign = "top"
   if layout.valign_class ~= nil then
     local vAlignClass = layout.valign_class
