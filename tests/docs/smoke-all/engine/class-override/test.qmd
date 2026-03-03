@@ -1,0 +1,27 @@
+---
+title: Engine Class Override Test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "#foo-engine-marker"
+          - ".foo-engine-output"
+        - []
+      ensureFileRegexMatches:
+        -
+          - "FOO ENGINE PROCESSED THIS BLOCK"
+        - []
+---
+
+This document tests that `{python.foo}` blocks are processed by the foo-engine
+instead of Jupyter, because foo-engine claims `python` with `firstClass === "foo"`
+at priority 2 (higher than Jupyter's default of 1).
+
+```{python .foo}
+x = 1 + 1
+print(x)
+```
+
+The block above should show "FOO ENGINE PROCESSED THIS BLOCK" instead of
+actually executing the Python code.

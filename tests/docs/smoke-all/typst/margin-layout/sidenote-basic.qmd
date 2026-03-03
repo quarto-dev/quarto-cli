@@ -1,0 +1,29 @@
+---
+title: "Basic Sidenote Test"
+papersize: us-letter
+reference-location: margin
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Show rule transforms footnotes to sidenotes; Pandoc outputs #footnote natively
+        - ['#show footnote:', 'column-sidenote', '#footnote']
+        - []
+      ensurePdfRegexMatches:
+        - ['SIDENOTE-CONTENT', 'Main text']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "SIDENOTE-CONTENT"
+            relation: rightOf
+            object: "Main text"
+        - []
+      noErrors: default
+---
+
+Main text with a sidenote^[SIDENOTE-CONTENT should appear in margin.].
+
+More main text continues here after the sidenote.

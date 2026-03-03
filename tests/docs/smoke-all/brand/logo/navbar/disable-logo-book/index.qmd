@@ -1,0 +1,14 @@
+---
+title: intro
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['a.sidebar-logo-link']
+        - ['a.navbar-brand-logo']
+---
+
+This test verifies that setting `navbar.logo: false` disables the navbar logo
+in a book project even when `_brand.yml` defines a logo.
+
+Sidebar logo will be the brand logo by default.

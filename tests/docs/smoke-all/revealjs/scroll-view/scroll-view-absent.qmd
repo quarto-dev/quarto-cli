@@ -1,0 +1,23 @@
+---
+title: "No scroll view"
+format:
+  revealjs: default
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        - []
+        -
+          - 'scrollActivationWidth'
+          - 'scrollSnap'
+          - 'scrollLayout'
+          - 'scrollProgress'
+---
+
+## test
+
+Content
+
+## test
+
+Content

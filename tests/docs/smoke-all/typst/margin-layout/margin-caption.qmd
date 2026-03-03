@@ -1,0 +1,40 @@
+---
+title: "Margin Caption Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Uses show rule approach: figure.caption transformed to note()
+        - ['#show figure.caption:', 'note\(', 'counter: none', 'Figure']
+        - []
+      ensurePdfRegexMatches:
+        - ['Figure 1', 'CAP-MARGINCAP']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "CAP-MARGINCAP"
+            relation: rightOf
+            object: "This document"
+          # Figure in body, caption in margin
+          - subject: "★"
+            relation: leftOf
+            object: "CAP-MARGINCAP"
+          # Test top alignment with show rule approach
+          # Tolerance of 12pt accounts for SVG bbox vs text position
+          - subject: "CAP-MARGINCAP"
+            relation: topAligned
+            object: "★"
+            tolerance: 12
+        - []
+      noErrors: default
+---
+
+This document tests per-figure margin captions.
+
+![CAP-MARGINCAP test caption](test-plot.svg){#fig-margin-cap cap-location="margin"}
+
+Text with REF-MARGINCAP pointing to @fig-margin-cap.

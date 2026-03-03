@@ -1,0 +1,30 @@
+---
+title: "Conditional visibility with nested callout (#13992)"
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['Nested callout visible', 'tcolorbox', 'quarto-callout-note']
+        - []
+    html:
+      ensureHtmlElements:
+        - []
+        - ['div.callout']
+      ensureFileRegexMatches:
+        - []
+        - ['Nested callout visible']
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['Nested callout visible', '#callout']
+        - []
+---
+
+This tests a callout nested inside a conditional visibility div.
+
+::: {.content-visible unless-format="html"}
+::: {.callout-note}
+Nested callout visible.
+:::
+:::

@@ -1,0 +1,34 @@
+---
+title: Skylighting Default Style
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Default highlighting uses Skylighting (arrow theme)
+          - "#Skylighting"
+          - "#KeywordTok"
+          - "#let EndLine"
+          # Quarto override with proper block styling and arrow theme bgcolor
+          - 'let bgcolor = rgb\("#f1f3f5"\)'
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+        - ["```python"]
+---
+
+Default Skylighting (no explicit theme, no brand). This tests the baseline
+behavior that code blocks should have proper styling.
+
+```python
+def hello():
+    print("world")
+```
+
+```r
+x <- 1 + 1
+print(x)
+```
+
+And some `x <- 1`{.r} and `def hello()`{.python} inline code with Skylighting.

@@ -109,3 +109,35 @@ export function markdownWithExtractedHeading(markdown: string) {
     contentBeforeHeading,
   };
 }
+
+export function languagesInMarkdownFile(file: string) {
+  return languagesInMarkdown(Deno.readTextFileSync(file));
+}
+
+export function languagesWithClasses(
+  markdown: string,
+): Map<string, string | undefined> {
+  const result = new Map<string, string | undefined>();
+  // Capture language and everything after it (including dot-joined classes like {python.marimo})
+  const kChunkRegex =
+    /^[\t >]*```+\s*\{([a-zA-Z][a-zA-Z0-9_.]*)([^}]*)?\}\s*$/gm;
+  kChunkRegex.lastIndex = 0;
+  let match = kChunkRegex.exec(markdown);
+  while (match) {
+    const language = match[1].toLowerCase();
+    if (!result.has(language)) {
+      // Extract first class from attrs (group 2)
+      // Handles {python.marimo}, {python .marimo}, {python #id .marimo}, etc.
+      const attrs = match[2];
+      const firstClass = attrs?.match(/\.([a-zA-Z][a-zA-Z0-9_-]*)/)?.[1];
+      result.set(language, firstClass);
+    }
+    match = kChunkRegex.exec(markdown);
+  }
+  kChunkRegex.lastIndex = 0;
+  return result;
+}
+
+export function languagesInMarkdown(markdown: string): Set<string> {
+  return new Set(languagesWithClasses(markdown).keys());
+}

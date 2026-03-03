@@ -32,6 +32,7 @@ import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
 
 import {
+  kFilterParams,
   kIncludeInHeader,
   kPageTitle,
   kTitle,
@@ -51,11 +52,13 @@ import { updateSearchIndex } from "./website-search.ts";
 import {
   kDraftMode,
   kDrafts,
+  kLlmsTxt,
   kSiteFavicon,
   kWebsite,
 } from "./website-constants.ts";
 import {
   websiteConfigArray,
+  websiteConfigBoolean,
   websiteConfigString,
   websiteMetadataFields,
   websiteProjectConfig,
@@ -86,6 +89,7 @@ import { formatDate } from "../../../core/date.ts";
 import { projectExtensionPathResolver } from "../../../extension/extension.ts";
 import { websiteDraftPostProcessor } from "./website-draft.ts";
 import { projectDraftMode } from "./website-utils.ts";
+import { llmsHtmlFinalizer, updateLlmsTxt } from "./website-llms.ts";
 import { kFieldCategories } from "./listing/website-listing-shared.ts";
 import { pandocNativeStr } from "../../../core/pandoc/codegen.ts";
 import { asArray } from "../../../core/array.ts";
@@ -353,6 +357,15 @@ export const websiteProjectType: ProjectType = {
       extras.html[kHtmlPostprocessors].push(cookieDep.htmlPostProcessor);
     }
 
+    // Add llms.txt finalizer if enabled
+    if (websiteConfigBoolean(kLlmsTxt, false, project.config)) {
+      extras[kFilterParams] = extras[kFilterParams] || {};
+      extras[kFilterParams]["llms-txt"] = true;
+      extras.html[kHtmlFinalizers]?.push(
+        llmsHtmlFinalizer(source, project, format),
+      );
+    }
+
     return Promise.resolve(extras);
   },
 
@@ -424,6 +437,9 @@ export async function websitePostRender(
 
   // generate any page aliases
   await updateAliases(context, outputFiles, incremental);
+
+  // generate llms.txt index
+  await updateLlmsTxt(context, outputFiles, incremental);
 
   // write redirecting index.html if there is none
   await ensureIndexPage(context);

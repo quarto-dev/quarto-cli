@@ -1,0 +1,15 @@
+---
+title: "Connect Cloud Test Document"
+format: html
+---
+
+## Overview
+
+Minimal test document for Posit Connect Cloud publishing.
+
+- Bullet list item
+- Another item
+
+Some text with **bold** and *italic* formatting.
+
+[Link to Quarto](https://quarto.org)

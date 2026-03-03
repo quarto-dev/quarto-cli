@@ -1,0 +1,1 @@
+#let celebrate(occasion) = [🎉 #occasion 🎊]

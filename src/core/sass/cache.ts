@@ -145,7 +145,9 @@ class SassCache implements Cloneable<SassCache> {
   // add a cleanup method to register a cleanup handler
   cleanup(temp: TempContext | undefined) {
     const registerCleanup = temp ? temp.onCleanup : onCleanup;
+    const cachePath = this.path;
     registerCleanup(() => {
+      log.debug(`SassCache cleanup executing for ${cachePath}`);
       try {
         this.kv.close();
         if (temp) safeRemoveIfExists(this.path);

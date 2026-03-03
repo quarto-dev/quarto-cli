@@ -1,0 +1,38 @@
+project:
+  type: book
+
+book:
+  title: "Test Typst Book with Margins"
+  author: "Test Author"
+  date: "2024-01-01"
+  chapters:
+    - index.qmd
+    - part: "Part I: Getting Started"
+      chapters:
+        - chapter1.qmd
+    - part: "Part II: Advanced Topics"
+      chapters:
+        - chapter2.qmd
+        - chapter3.qmd
+  appendices:
+    - appendix.qmd
+    - appendix-b.qmd
+
+bibliography: references.bib
+reference-location: margin
+citation-location: margin
+suppress-bibliography: true
+
+grid:
+  margin-width: 2in
+  gutter-width: 0.25in
+
+crossref:
+  custom:
+    - kind: float
+      key: dino
+      reference-prefix: Dinosaur
+
+format:
+  typst:
+    keep-typ: true

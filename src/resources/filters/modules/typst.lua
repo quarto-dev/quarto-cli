@@ -89,12 +89,23 @@ local function _main()
     if #entries == 0 then return nil end
     return '(' .. table.concat(entries, ', ') .. ')'
   end
-  
+
+  -- Helper to format shift parameter for marginalia
+  -- auto/true/false are unquoted, "avoid"/"ignore" are quoted strings
+  local function format_shift_param(shift)
+    if shift == "true" or shift == "false" or shift == "auto" then
+      return shift
+    else
+      return '"' .. shift .. '"'
+    end
+  end
+
   return {
     function_call = typst_function_call,
     sortedPairs = sortedPairs,
     as_typst_content = as_typst_content,
     as_typst_dictionary = as_typst_dictionary,
+    format_shift_param = format_shift_param,
     css = require("modules/typst_css")
   }
 end

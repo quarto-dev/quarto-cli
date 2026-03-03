@@ -1,0 +1,56 @@
+---
+title: "Combined Margin Citations and Sidenotes"
+papersize: us-letter
+citation-location: margin
+reference-location: margin
+bibliography: borges-refs.bib
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Should have both margin citations (note) and sidenotes (column-sidenote)
+        - ['#note\(', 'column-sidenote', 'form: "full"']
+        - []
+      ensurePdfRegexMatches:
+        - ['COMBINED-TEST', 'SIDENOTE-CONTENT', 'Borges', 'bifurcan']
+        - []
+      ensurePdfTextPositions:
+        - # Both citation and sidenote should be in margin
+          - subject: "bifurcan"
+            relation: rightOf
+            object: "COMBINED-TEST"
+          - subject: "SIDENOTE-CONTENT"
+            relation: rightOf
+            object: "explains"
+          # Vertical stacking: citations and sidenotes alternate
+          - subject: "SIDENOTE-CONTENT"
+            relation: below
+            object: "bifurcan"
+          - subject: "rosa"
+            relation: below
+            object: "SIDENOTE-CONTENT"
+          - subject: "Another sidenote"
+            relation: below
+            object: "rosa"
+          - subject: "Calvino"
+            relation: below
+            object: "Another sidenote"
+        - []
+      noErrors: default
+---
+
+# Testing Combined Margin Citations and Sidenotes
+
+COMBINED-TEST: This paragraph has a margin citation [@borges1941library] that should appear in the margin.
+
+This paragraph explains^[SIDENOTE-CONTENT: This is a sidenote that should also appear in the margin] a concept with a footnote.
+
+When both `citation-location: margin` and `reference-location: margin` are set, citations and footnotes should coexist in the margin without conflicts.
+
+Here's another citation [@eco1980name] followed by another footnote^[Another sidenote in the margin].
+
+The margin should handle the interleaving of citations and sidenotes gracefully, avoiding overlaps [@calvino1979winter].

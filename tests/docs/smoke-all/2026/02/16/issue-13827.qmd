@@ -1,0 +1,22 @@
+---
+title: Test Title
+subtitle: |
+  A Single Line Subtitle
+format:
+  html: default
+  revealjs: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementContents:
+        selectors: ['p.subtitle']
+        matches: ['A Single Line Subtitle']
+    revealjs:
+      ensureHtmlElementContents:
+        selectors: ['p.subtitle']
+        matches: ['A Single Line Subtitle']
+---
+
+## Test Content
+
+This tests that a single-line | scalar subtitle stays inside the subtitle class.

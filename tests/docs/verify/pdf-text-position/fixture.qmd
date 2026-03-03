@@ -1,0 +1,97 @@
+---
+title: FIXTURE_TITLE_TEXT
+format: typst
+header-includes: |
+  #set page(
+    header: [FIXTURE_HEADER_TEXT],
+    footer: [FIXTURE_FOOTER_TEXT]
+  )
+---
+
+# FIXTURE_H1_TEXT {#sec-main}
+
+This is the first paragraph. FIXTURE_BODY_P1_TEXT is a unique marker in the first paragraph.
+
+## FIXTURE_H2_TEXT {#sec-second}
+
+::: {.column-margin}
+FIXTURE_MARGIN_TEXT is in the margin column.
+:::
+
+FIXTURE_BODY_P2_TEXT is a unique marker in the second paragraph, which appears alongside the margin content.
+
+### FIXTURE_H3_TEXT {#sec-third}
+
+More body content here. FIXTURE_BODY_P3_TEXT marks the third paragraph.
+
+## Labeled Elements {#sec-labeled}
+
+### Figure with Label {#sec-figure}
+
+![FIXTURE_FIG_CAPTION_TEXT](data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNTAiIGZpbGw9IiNjY2MiLz48dGV4dCB4PSI1MCIgeT0iMjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZTwvdGV4dD48L3N2Zz4=){#fig-sample}
+
+See @fig-sample for the sample figure.
+
+### Table with Label {#sec-table}
+
+| Column A | Column B |
+|----------|----------|
+| FIXTURE_TBL_CELL_A1 | Cell B1 |
+| Cell A2 | Cell B2 |
+
+: FIXTURE_TBL_CAPTION_TEXT {#tbl-data}
+
+See @tbl-data for the data table.
+
+### Equation with Label {#sec-equation}
+
+$$
+E = mc^2
+$$ {#eq-energy}
+
+FIXTURE_EQ_REF_TEXT: See @eq-energy for the energy equation.
+
+### Code Listing with Label {#sec-listing}
+
+```{#lst-hello .python lst-cap="FIXTURE_LST_CAPTION_TEXT"}
+print("FIXTURE_CODE_TEXT")
+```
+
+See @lst-hello for the code listing.
+
+### Theorem with Label {#sec-theorem}
+
+::: {#thm-main}
+## FIXTURE_THM_TITLE_TEXT
+
+FIXTURE_THM_BODY_TEXT: This is the main theorem content.
+:::
+
+See @thm-main for the main theorem.
+
+### Definition with Label {#sec-definition}
+
+::: {#def-concept}
+## FIXTURE_DEF_TITLE_TEXT
+
+FIXTURE_DEF_BODY_TEXT: This defines an important concept.
+:::
+
+See @def-concept for the definition.
+
+{{< pagebreak >}}
+
+# FIXTURE_PAGE2_H1_TEXT {#sec-page2}
+
+FIXTURE_PAGE2_BODY_TEXT is on the second page for testing cross-page assertions.
+
+## Raw Typst Labels {#sec-raw-typst}
+
+```{=typst}
+#figure(
+  rect(width: 50pt, height: 30pt, fill: gray)[FIXTURE_TYPST_FIG_TEXT],
+  caption: [FIXTURE_TYPST_FIG_CAPTION]
+) <fig-typst-raw>
+```
+
+FIXTURE_TYPST_REF_TEXT: See the raw Typst figure above.

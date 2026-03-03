@@ -57,4 +57,6 @@ const kBuiltInExcludes = [
   "COPYRIGHT",
   "LICENSE",
   "_extensions",
+  "CLAUDE.md",
+  "AGENTS.md",
 ];

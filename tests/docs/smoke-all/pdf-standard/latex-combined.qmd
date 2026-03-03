@@ -1,0 +1,23 @@
+---
+title: "LaTeX version + standards combined"
+lang: en
+format: pdf
+pdf-standard: ["1.7", a-2b]
+keep-tex: true
+_quarto:
+  tests:
+    run:
+      # verapdf validation not available on Windows CI
+      not_os: windows
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfversion=1\.7', 'pdfstandard=\{a-2b\}']
+        - []
+---
+
+# Test Document
+
+This tests explicit PDF 1.7 version with PDF/A-2b standard.
+
+PDF/A-2b requires PDF version 1.7 max, which matches the explicit version.

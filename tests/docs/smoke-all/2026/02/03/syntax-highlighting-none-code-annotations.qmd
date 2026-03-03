@@ -1,0 +1,21 @@
+---
+title: "Code annotations with syntax-highlighting: none"
+syntax-highlighting: none
+format:
+  latex: default
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        # matches: With highlighting disabled, LaTeX uses verbatim with (1) annotation
+        # noMatches: Should NOT have syntax highlighting tokens
+        - ['\(1\)', '\\circled\{1\}', "Variable assignment"]
+        - ['\\CommentTok', '\\begin\{Shaded\}']
+---
+
+Code with annotation using deprecated syntax-highlighting option:
+
+```python
+x = 1  # <1>
+```
+1. Variable assignment

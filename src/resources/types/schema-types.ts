@@ -25,14 +25,18 @@ export type PandocFormatRequestHeaders = ((string)[])[];
 
 export type PandocFormatOutputFile = string | null;
 
+export type FilterEntryPoint =
+  | "pre-ast"
+  | "post-ast"
+  | "pre-quarto"
+  | "post-quarto"
+  | "pre-render"
+  | "post-render"
+  | "pre-finalize"
+  | "post-finalize";
+
 export type PandocFormatFilters = ((string | { path: string; type?: string } | {
-  at:
-    | "pre-ast"
-    | "post-ast"
-    | "pre-quarto"
-    | "post-quarto"
-    | "pre-render"
-    | "post-render";
+  at: FilterEntryPoint;
   path: string;
   type?: string;
 } | { type: "citeproc" }))[];
@@ -153,6 +157,10 @@ website:
         dark: dark_dimmed # giscus theme used for dark website theme
 ``` */
 };
+
+export type ExternalEngine = {
+  path: string; /* Path to the TypeScript module for the execution engine */
+}; /* An execution engine not pre-loaded in Quarto */
 
 export type DocumentCommentsConfiguration = false | {
   giscus?: GiscusConfiguration;
@@ -359,6 +367,8 @@ export type BaseWebsite = {
   > /* Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`) */;
   "reader-mode"?:
     boolean /* Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page. */;
+  "llms-txt"?:
+    boolean /* Generate llms.txt and .llms.md files for LLM-friendly content consumption. */;
   "google-analytics"?: string | {
     "tracking-id"?: string;
     "anonymize-ip"?: boolean;
@@ -1226,7 +1236,10 @@ export type QuartoDevSchema = {
             | "linux"
             | "darwin"
             | "windows"
-          ))[]; /* Run tests ONLY on these platforms (whitelist) */
+          ))[] /* Run tests ONLY on these platforms (whitelist) */;
+        skip?:
+          | boolean
+          | string; /* Skip test unconditionally (true = skip with default message, string = skip with custom message) */
       }; /* Control when tests should run */
     };
   };
@@ -1320,10 +1333,10 @@ export type LogoOptionsPathOptional = { alt?: string; path?: string };
 
 export type LogoSpecifierPathOptional = string | LogoOptionsPathOptional;
 
-export type LogoLightDarkSpecifier = LogoSpecifier | {
+export type LogoLightDarkSpecifier = false | LogoSpecifier | {
   dark?: LogoSpecifier;
   light?: LogoSpecifier;
-}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object */
+}; /* Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo. */
 
 export type LogoLightDarkSpecifierPathOptional = LogoSpecifierPathOptional | {
   dark?: LogoSpecifierPathOptional;
@@ -1632,6 +1645,12 @@ export type BrandDefaults = {
 
 export type BrandDefaultsBootstrap = {
   defaults?: { [key: string]: string | boolean | number };
+};
+
+export type MarginaliaSideGeometry = {
+  far?: string /* Distance from page edge to wideblock boundary. */;
+  separation?: string /* Gap between margin column and body text. */;
+  width?: string; /* Width of the margin note column. */
 };
 
 export type ProjectConfig = {

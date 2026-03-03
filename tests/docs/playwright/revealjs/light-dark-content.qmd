@@ -1,0 +1,23 @@
+---
+format: revealjs
+title: Light and dark content
+---
+
+## Slide with light and dark content
+
+[This is light content]{.light-content}
+
+:::: {.light-content}
+This block is visible only in light mode.
+:::
+
+[This is dark content]{.dark-content}
+
+:::: {.dark-content}
+This block is visible only in dark mode.
+:::
+
+## Another slide
+
+Both light and dark content should display correctly depending on the theme.
+

@@ -1,0 +1,11 @@
+---
+_quarto:
+  tests:
+    run:
+      skip: "Book chapter - only renders as part of full book"
+---
+
+# References {.unnumbered}
+
+::: {#refs}
+:::

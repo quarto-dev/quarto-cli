@@ -19,7 +19,7 @@
   schema:
     enum: [document, margin]
   tags:
-    formats: [$html-doc]
+    formats: [$html-doc, typst]
   default: document
   description: Where citation information should be displayed (`document` or `margin`)
 

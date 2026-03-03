@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           pushd package/src
-          ./quarto-bld prepare-dist
+          ./quarto-bld prepare-dist --set-version $(cat ../../version.txt)
           mv ../../src/quarto.ts ../../src/quarto1.ts
           pushd ../pkg-working/bin
           ./quarto check

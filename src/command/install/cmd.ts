@@ -14,7 +14,7 @@ import {
   selectTool,
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
-import { installTool } from "../../tools/tools.ts";
+import { installableToolNames, installTool } from "../../tools/tools.ts";
 import { resolveCompatibleArgs } from "../remove/cmd.ts";
 
 export const installCommand = new Command()
@@ -36,14 +36,18 @@ export const installCommand = new Command()
     "Update system path when a tool is installed",
   )
   .description(
-    "Installs a global dependency (TinyTex or Chromium).",
+    `Installs a global dependency (${installableToolNames().join(", ")}).`,
   )
   .example(
     "Install TinyTeX",
     "quarto install tinytex",
   )
   .example(
-    "Install Chromium",
+    "Install Chrome Headless Shell",
+    "quarto install chrome-headless-shell",
+  )
+  .example(
+    "Install Chromium (legacy)",
     "quarto install chromium",
   )
   .example(

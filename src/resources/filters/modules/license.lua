@@ -83,10 +83,14 @@ local function processLicense(el, meta)
     if ccLicense ~= nil then
       local license = licenses[ccLicense.base]
       if license ~= nil then
+        local licenseText = ''
+        if ccLicense.base and ccLicense.base ~= '' and ccLicense.version and ccLicense.version ~= '' then
+          licenseText = ccLicense.base:upper() .. ' ' .. ccLicense.version
+        end
         return {
           type = pandoc.Inlines(license.type),
           url = pandoc.Inlines(license.licenseUrl(meta.lang, ccLicense.version)),
-          text = pandoc.Inlines('')
+          text = pandoc.Inlines(licenseText)
         }
       end
     end
@@ -159,7 +163,7 @@ local function processLicenseMeta(meta)
         end
         meta[constants.kLicense] = normalizedEls
       elseif pandoc.utils.type(licenseMeta) == "Inlines" then
-        meta[constants.kLicense] = {processLicense(licenseMeta, meta)}
+        meta[constants.kLicense] = processLicense(licenseMeta, meta)
       end
     end
 

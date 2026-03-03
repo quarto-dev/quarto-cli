@@ -1,0 +1,113 @@
+---
+_quarto:
+  tests:
+    run:
+      skip: "Book chapter - only renders as part of full book"
+---
+
+# Introduction {#sec-intro}
+
+This is the first chapter of the book. The foundations of modern computing draw from seminal work by @turing1950 on machine intelligence.
+
+## Basic Figures {#sec-basic-figures}
+
+Some content in @sec-basic-figures. See @fig-cars for an example figure.
+
+```{r}
+#| label: fig-cars
+#| fig-cap: "A plot of the cars dataset"
+plot(cars)
+```
+
+## Embedded Notebooks {#sec-embedded-notebooks}
+
+Some content in @sec-embedded-notebooks. See @fig-visualization for an embedded notebook figure.
+
+{{< embed notebooks/computations.ipynb#fig-visualization >}}
+
+We will discuss methods in @sec-methods.
+
+## Callouts {#sec-callouts}
+
+::: {.callout-note}
+The ships hung in the sky in much the same way that bricks don't. This is a note callout without a custom title. As @dijkstra1968 noted, certain control structures are harmful.
+:::
+
+::: {#wrn-tea .callout-warning}
+## Whose Tea Is This?
+On no account allow anyone to make you a conditions-affected beverage. The alarm on Arthur Dent's alarm clock had been going off for several hours when he finally woke up. See @wrn-tea to reference this warning.
+:::
+
+## Custom Crossref Dinosaurs {#sec-custom-crossref-dinosaurs}
+
+@sec-custom-crossref-dinosaurs tests custom cross-reference types using the user-defined "Dinosaur" category. The symbolic approach of @mccarthy1960 inspired this classification system.
+
+::: {#dino-steg}
+**Stegosaurus**
+
+This is the first dinosaur in @sec-intro, a herbivore with distinctive plates. See @dino-steg to self-reference.
+:::
+
+::: {#dino-trex}
+**Tyrannosaurus Rex**
+
+This is the second dinosaur in @sec-intro, the king of predators. See @dino-trex to self-reference, or @dino-steg for the first dinosaur.
+:::
+
+## Equations {#sec-equations}
+
+The fundamental equation of special relativity:
+
+$$
+E = mc^2
+$$ {#eq-einstein}
+
+As shown in @eq-einstein, energy and mass are equivalent. The information-theoretic implications were explored by @shannon1948.
+
+Another important equation:
+
+$$
+F = ma
+$$ {#eq-newton}
+
+Newton's second law (@eq-newton) relates force to acceleration.
+
+## Theorems {#sec-theorems}
+
+::: {#thm-pythagorean}
+## Pythagorean Theorem
+For a right triangle with legs $a$ and $b$ and hypotenuse $c$: $a^2 + b^2 = c^2$
+:::
+
+See @thm-pythagorean for the classic result. The functional approach to proofs is discussed in @backus1978.
+
+::: {#lem-triangle}
+## Triangle Inequality
+For any triangle with sides $a$, $b$, and $c$: $a + b > c$
+:::
+
+See @lem-triangle for the inequality.
+
+## Code Listings {#sec-code-listings}
+
+LISTING_BODY_ALIGN_TEST is body text that should left-align with code listings.
+
+```{#lst-hello .python lst-cap="Hello World in Python"}
+# ALIGNTEST_MARKER
+def hello():
+    print("Hello, World!")
+
+if __name__ == "__main__":
+    hello()
+```
+
+See @lst-hello for a simple Python example. Exploratory approaches to data are covered in @tukey1977.
+
+```{#lst-fibonacci .python lst-cap="Fibonacci Sequence"}
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+```
+
+The Fibonacci function (@lst-fibonacci) uses recursion.

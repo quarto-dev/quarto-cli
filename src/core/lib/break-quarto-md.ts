@@ -29,6 +29,7 @@ export async function breakQuartoMd(
   src: EitherString,
   validate = false,
   lenient = false,
+  startCodeCellRegex?: RegExp,
 ) {
   if (typeof src === "string") {
     src = asMappedString(src);
@@ -42,8 +43,8 @@ export async function breakQuartoMd(
 
   // regexes
   const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = new RegExp(
-    "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
+  const startCodeCellRegEx = startCodeCellRegex || new RegExp(
+    "^\\s*(```+)\\s*\\{([=A-Za-z][=A-Za-z0-9._]*)( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*(```+)\s*$/;

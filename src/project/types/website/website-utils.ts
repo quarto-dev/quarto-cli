@@ -8,6 +8,7 @@ import { Document, Element } from "../../../core/deno-dom.ts";
 import { getDecodedAttribute } from "../../../core/html.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
+import { isExternalPath } from "../../../core/url.ts";
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { engineValidExtensions } from "../../../execute/engine.ts";
 import { ProjectContext } from "../../types.ts";
@@ -118,8 +119,4 @@ export async function resolveProjectInputLinks(
       }
     }
   }
-}
-
-function isExternalPath(path: string) {
-  return /^\w+:/.test(path);
 }

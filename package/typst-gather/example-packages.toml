@@ -1,0 +1,8 @@
+destination = "/path/to/cache"
+
+[preview]
+cetz = "0.4.1"
+tablex = "0.0.8"
+
+[local]
+my-pkg = "/path/to/my-pkg"

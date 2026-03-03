@@ -150,7 +150,7 @@ async function textPreviewHtml(file: string, req: Request) {
   const cmd = [pandocBinaryPath()];
   cmd.push("--to", "html");
   cmd.push(
-    "--highlight-style",
+    "--syntax-highlighting",
     textHighlightThemePath("atom-one", darkMode ? "dark" : "light")!,
   );
   cmd.push("--standalone");
@@ -239,7 +239,7 @@ async function gfmPreview(file: string, request: Request) {
     cmd.push("--lua-filter");
     cmd.push(filter);
     if (highlightPath) {
-      cmd.push("--highlight-style");
+      cmd.push("--syntax-highlighting");
       cmd.push(highlightPath);
     }
     // Github renders math with MathJax now, so our preview mode does the same

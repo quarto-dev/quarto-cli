@@ -1,0 +1,96 @@
+---
+title: "Margin Caption Tables and Figures Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # All margin captions use show rule with top alignment, scoped with #[...]
+        - ['#show figure.caption:', 'note\(alignment: "top"', '#\[']
+        - []
+      ensurePdfRegexMatches:
+        # Check caption labels (anchor text)
+        - - 'Figure 1: CAP-FIG-ONE'
+          - 'Table 1: CAP-TBL-ONE'
+          - 'Figure 2: CAP-FIG-TWO'
+          - 'Table 2: CAP-TBL-TWO'
+          - 'Figure 3: CAP-FIG-THREE'
+        # Check cross-references
+          - 'REF-FIG-ONE pointing to Figure 1'
+          - 'REF-TBL-ONE pointing to Table 1'
+          - 'REF-FIG-TWO pointing to Figure 2'
+          - 'REF-TBL-TWO pointing to Table 2'
+          - 'REF-FIG-THREE pointing to Figure 3'
+        # Ensure wrong values don't appear
+        - - 'Table 0'
+          - 'Figure 0'
+      ensurePdfTextPositions:
+        - # First page: margin captions right of body, refs left of captions
+          - subject: "CAP-FIG-ONE"
+            relation: rightOf
+            object: "First Figure"
+          - subject: "REF-FIG-ONE"
+            relation: leftOf
+            object: "CAP-FIG-ONE"
+          - subject: "CAP-FIG-ONE"
+            relation: above
+            object: "CAP-TBL-ONE"
+        - []
+      noErrors: default
+---
+
+This document tests interleaved tables and figures with margin captions, verifying separate counters.
+
+## First Figure
+
+![CAP-FIG-ONE](test-plot.svg){#fig-one cap-location="margin"}
+
+Text with REF-FIG-ONE pointing to @fig-one.
+
+## First Table
+
+| A | B | C |
+|---|---|---|
+| 1 | 2 | 3 |
+| 4 | 5 | 6 |
+
+: CAP-TBL-ONE {#tbl-one cap-location="margin"}
+
+Text with REF-TBL-ONE pointing to @tbl-one.
+
+## Second Figure
+
+![CAP-FIG-TWO](test-plot.svg){#fig-two cap-location="margin"}
+
+Text with REF-FIG-TWO pointing to @fig-two.
+
+## Second Table
+
+| X | Y | Z |
+|---|---|---|
+| a | b | c |
+| d | e | f |
+
+: CAP-TBL-TWO {#tbl-two cap-location="margin"}
+
+Text with REF-TBL-TWO pointing to @tbl-two.
+
+## Third Figure
+
+![CAP-FIG-THREE](test-plot.svg){#fig-three cap-location="margin"}
+
+Text with REF-FIG-THREE pointing to @fig-three.
+
+## Summary
+
+Figures and tables should have separate sequential numbering:
+
+- @fig-one should be Figure 1
+- @fig-two should be Figure 2
+- @fig-three should be Figure 3
+- @tbl-one should be Table 1
+- @tbl-two should be Table 2

@@ -1,0 +1,12 @@
+- name: email-version
+  tags:
+    formats: [email]
+  schema:
+    enum: [1, 2]
+  description:
+    short: "Email format version"
+    long: |
+      Specifies which email format version to use.
+      
+      - `1`: Legacy email format with document-level metadata (compatible with older Connect versions)
+      - `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)

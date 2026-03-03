@@ -1,0 +1,10 @@
+color:
+  primary: "#F36619"
+  secondary: "#2E86AB"
+
+logo:
+  images:
+    test-logo:
+      path: logo.svg
+      alt: "Test Logo"
+  medium: test-logo

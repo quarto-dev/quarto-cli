@@ -1,0 +1,4 @@
+/.quarto/
+**/*.quarto_ipynb
+test.pdf
+test.typ

@@ -1,0 +1,25 @@
+color:
+  palette:
+    mono-base-fg: "#2d3748"
+    block-bg: "#edf2f7"
+    inline-bg: "#fefcbf"
+
+typography:
+  fonts:
+    - source: google
+      family: Fira Code
+      weight: [300, 400, 700]
+  # Base monospace: family and weight inherited by both inline and block
+  monospace:
+    family: Fira Code
+    weight: 400
+    size: 0.85rem
+    color: mono-base-fg
+  # Block overrides only background-color; inherits family, weight, size, color
+  monospace-block:
+    background-color: block-bg
+    line-height: 1.5
+  # Inline overrides only background-color and weight; inherits family, size, color
+  monospace-inline:
+    background-color: inline-bg
+    weight: 700

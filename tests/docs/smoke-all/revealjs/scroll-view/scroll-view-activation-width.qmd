@@ -1,0 +1,24 @@
+---
+title: "Scroll view activation width"
+format:
+  revealjs:
+    scroll-view:
+      activate: true
+      activation-width: 600
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - 'view: ''scroll'','
+          - 'scrollActivationWidth: 600,'
+        - []
+---
+
+## test
+
+Content
+
+## test
+
+Content

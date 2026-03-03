@@ -37,7 +37,7 @@ import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { createTempContext } from "../core/temp.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
-import { ExecutionEngine } from "../execute/types.ts";
+import { ExecutionEngineInstance } from "../execute/types.ts";
 import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
@@ -356,7 +356,7 @@ export async function directoryMetadataForInputFile(
 
 const mdForFile = async (
   _project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
 ): Promise<MappedString> => {
   if (engine) {
@@ -369,7 +369,7 @@ const mdForFile = async (
 
 export async function projectResolveCodeCellsForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
@@ -461,7 +461,7 @@ export async function projectFileMetadata(
 
 export async function projectResolveFullMarkdownForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
@@ -506,7 +506,7 @@ export const ensureFileInformationCache = (
   file: string,
 ) => {
   if (!project.fileInformationCache) {
-    project.fileInformationCache = new Map();
+    project.fileInformationCache = new FileInformationCacheMap();
   }
   assert(
     project.fileInformationCache instanceof Map,
@@ -557,9 +557,12 @@ export async function projectResolveBrand(
       return project.brandCache.brand;
     }
     project.brandCache = {};
-    let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
-      join(project.dir, file)
-    );
+    let fileNames = [
+      "_brand.yml",
+      "_brand.yaml",
+      "_brand/_brand.yml",
+      "_brand/_brand.yaml",
+    ].map((file) => join(project.dir, file));
     const brand = (project?.config?.brand ??
       project?.config?.project.brand) as
         | boolean
@@ -652,11 +655,36 @@ export async function projectResolveBrand(
   }
 }
 
-// Create a class that extends Map and implements Cloneable
+// A Map that normalizes path keys for cross-platform consistency.
+// All path operations normalize keys (forward slashes, lowercase on Windows).
+// Implements Cloneable but shares state intentionally - in preview mode,
+// the project context is reused across renders and cache state must persist.
 export class FileInformationCacheMap extends Map<string, FileInformation>
   implements Cloneable<Map<string, FileInformation>> {
+  override get(key: string): FileInformation | undefined {
+    return super.get(normalizePath(key));
+  }
+
+  override has(key: string): boolean {
+    return super.has(normalizePath(key));
+  }
+
+  override set(key: string, value: FileInformation): this {
+    return super.set(normalizePath(key), value);
+  }
+
+  override delete(key: string): boolean {
+    return super.delete(normalizePath(key));
+  }
+
+  // Note: Iterator methods (keys(), entries(), forEach(), [Symbol.iterator])
+  // return normalized keys as stored. Code iterating over the cache sees
+  // normalized paths, which is consistent with how keys are stored.
+
+  // Returns this instance (shared reference) rather than a copy.
+  // This is intentional: in preview mode, project context is cloned for
+  // each render but the cache must be shared so invalidations persist.
   clone(): Map<string, FileInformation> {
-    // Return the same instance (reference) instead of creating a clone
     return this;
   }
 }

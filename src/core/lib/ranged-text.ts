@@ -40,7 +40,7 @@ export function rangedLines(
   text: string,
   includeNewLines = false,
 ): RangedSubstring[] {
-  const regex = /\r?\n/g;
+  const regex = /\r\n?|\n/g;
   const result: RangedSubstring[] = [];
 
   let startOffset = 0;

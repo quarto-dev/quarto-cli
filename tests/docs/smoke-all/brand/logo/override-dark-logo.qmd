@@ -46,7 +46,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'background: align\(left\+top, box\(inset: 0.75in, image\("quarto-dark.png", width: 1\.5in, alt: "quarto dark logo"\)\)'
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("/quarto-dark.png", width: 1\.5in, alt: "quarto dark logo"\)\)'
         - []
 ---
 

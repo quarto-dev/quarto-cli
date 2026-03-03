@@ -1,0 +1,44 @@
+---
+title: "Grid Body Width Test"
+papersize: us-letter
+grid:
+  body-width: 5in
+  margin-width: 2in
+  gutter-width: 0.25in
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Should have marginalia setup with outer margin configuration
+        - ['marginalia.setup', 'outer:']
+        - []
+      ensurePdfRegexMatches:
+        - ['BODYTEST1', 'MARGINNOTE1']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "MARGINNOTE1"
+            relation: rightOf
+            object: "BODYTEST1"
+        - []
+      noErrors: default
+---
+
+## Testing Grid Body Width
+
+BODYTEST1: This tests the `grid.body-width` option which should control the width of the main text column.
+
+[MARGINNOTE1: This note should appear in a 2-inch margin column.]{.column-margin}
+
+With `body-width: 5in`, the text column should be narrower than default, leaving more room for margins.
+
+The layout should respect:
+
+- `body-width: 5in` - narrower text column
+- `margin-width: 2in` - wider margin for notes
+- `gutter-width: 0.25in` - gap between columns
+
+More text to fill out the column and show the narrower width.

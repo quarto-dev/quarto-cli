@@ -1,0 +1,7 @@
+---
+format: html
+filters:
+  - typst-path-api.lua
+---
+
+The Typst path is accessible.

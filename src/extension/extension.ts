@@ -56,6 +56,7 @@ import {
   ExtensionOptions,
   RevealPluginInline,
 } from "./types.ts";
+import { ExternalEngine } from "../resources/types/schema-types.ts";
 
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -276,6 +277,34 @@ export function filterExtensions(
   }
 }
 
+// Read git subtree extensions (pattern 3 only)
+// Looks for top-level directories containing _extensions/ subdirectories
+export async function readSubtreeExtensions(
+  subtreeDir: string,
+): Promise<Extension[]> {
+  const extensions: Extension[] = [];
+
+  const topLevelDirs = safeExistsSync(subtreeDir) &&
+      Deno.statSync(subtreeDir).isDirectory
+    ? Deno.readDirSync(subtreeDir)
+    : [];
+
+  for (const topLevelDir of topLevelDirs) {
+    if (!topLevelDir.isDirectory) continue;
+
+    const dirPath = join(subtreeDir, topLevelDir.name);
+    const subtreeExtensionsPath = join(dirPath, kExtensionDir);
+
+    if (safeExistsSync(subtreeExtensionsPath)) {
+      // This is a git subtree wrapper - read extensions preserving their natural organization
+      const exts = await readExtensions(subtreeExtensionsPath);
+      extensions.push(...exts);
+    }
+  }
+
+  return extensions;
+}
+
 // Loads all extensions for a given input
 // (note this needs to be sure to return copies from
 // the cache in the event that the objects are mutated)
@@ -286,6 +315,7 @@ const loadExtensions = async (
 ) => {
   const extensionPath = inputExtensionDirs(input, projectDir);
   const allExtensions: Record<string, Extension> = {};
+  const subtreePath = builtinSubtreeExtensions();
 
   for (const extensionDir of extensionPath) {
     if (cache[extensionDir]) {
@@ -293,7 +323,10 @@ const loadExtensions = async (
         allExtensions[extensionIdString(ext.id)] = cloneDeep(ext);
       });
     } else {
-      const extensions = await readExtensions(extensionDir);
+      // Check if this is the subtree extensions directory
+      const extensions = extensionDir === subtreePath
+        ? await readSubtreeExtensions(extensionDir)
+        : await readExtensions(extensionDir);
       extensions.forEach((extension) => {
         allExtensions[extensionIdString(extension.id)] = cloneDeep(extension);
       });
@@ -356,6 +389,8 @@ function findExtensions(
     } else if (
       contributes === kRevealJSPlugins && ext.contributes[kRevealJSPlugins]
     ) {
+      return true;
+    } else if (contributes === "engines" && ext.contributes.engines) {
       return true;
     } else {
       return contributes === undefined;
@@ -517,7 +552,10 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
   };
 
   // read extensions (start with built-in)
-  const extensionDirectories: string[] = [builtinExtensions()];
+  const extensionDirectories: string[] = [
+    builtinExtensions(),
+    builtinSubtreeExtensions(),
+  ];
   if (projectDir && input) {
     let currentDir = normalizePath(inputDirName(input));
     do {
@@ -590,6 +628,24 @@ export function discoverExtensionPath(
     return builtinExtensionDir;
   }
 
+  // check for built-in subtree extensions (pattern: extension-subtrees/*/\_extensions/name)
+  const subtreePath = builtinSubtreeExtensions();
+  if (safeExistsSync(subtreePath)) {
+    for (const topLevelDir of Deno.readDirSync(subtreePath)) {
+      if (!topLevelDir.isDirectory) continue;
+      const subtreeExtDir = join(subtreePath, topLevelDir.name, kExtensionDir);
+      if (safeExistsSync(subtreeExtDir)) {
+        const subtreeExtensionDir = findExtensionDir(
+          subtreeExtDir,
+          extensionDirGlobs,
+        );
+        if (subtreeExtensionDir) {
+          return subtreeExtensionDir;
+        }
+      }
+    }
+  }
+
   // Start in the source directory
   const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
   const sourceDirAbs = normalizePath(sourceDir);
@@ -622,6 +678,11 @@ function builtinExtensions() {
   return resourcePath("extensions");
 }
 
+// Path for built-in subtree extensions
+export function builtinSubtreeExtensions() {
+  return resourcePath("extension-subtrees");
+}
+
 // Validate the extension
 function validateExtension(extension: Extension) {
   let contribCount = 0;
@@ -632,6 +693,7 @@ function validateExtension(extension: Extension) {
     extension.contributes.project,
     extension.contributes[kRevealJSPlugins],
     extension.contributes.metadata,
+    extension.contributes.engines,
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -837,6 +899,23 @@ async function readExtension(
     return resolveRevealPlugin(extensionDir, plugin);
   });
 
+  // Process engine contributions
+  const engines =
+    ((contributes?.engines || []) as Array<string | ExternalEngine>).map(
+      (engine) => {
+        if (typeof engine === "string") {
+          return engine;
+        } else if (typeof engine === "object" && engine.path) {
+          // Convert relative path to absolute path
+          return {
+            ...engine,
+            path: join(extensionDir, engine.path),
+          };
+        }
+        return engine;
+      },
+    );
+
   // Create the extension data structure
   const result = {
     title,
@@ -852,6 +931,7 @@ async function readExtension(
       formats,
       project: project ?? {},
       [kRevealJSPlugins]: revealJSPlugins,
+      engines: engines.length > 0 ? engines : undefined,
     },
   };
   validateExtension(result);

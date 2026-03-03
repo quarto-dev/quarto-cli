@@ -19,10 +19,10 @@ _quarto:
         - []
     typst:
       ensureTypstFileRegexMatches:
-        - 
+        -
           - "#ref\\(<alg-gcd>, supplement: \\[alg.\\]\\)"
           - "#ref\\(<alg-gcd>, supplement: \\[Alg.\\]\\)"
-          - "#algorithm\\(\"Euclid\"\\)"
+          - "#algorithm\\(title: \"Euclid\"\\)"
         - []
     markdown:
       ensureFileRegexMatches:

@@ -1,0 +1,50 @@
+{
+    "text-color": "#000000",
+    "background-color": "#f8f8f8",
+    "line-number-color": "#aaaaaa",
+    "line-number-background-color": null,
+    "text-styles": {
+        "Other": {
+            "text-color": "#007020",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Keyword": {
+            "text-color": "#008000",
+            "background-color": null,
+            "bold": true,
+            "italic": false,
+            "underline": false
+        },
+        "DataType": {
+            "text-color": "#902000",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "String": {
+            "text-color": "#4070a0",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Comment": {
+            "text-color": "#60a0b0",
+            "background-color": null,
+            "bold": false,
+            "italic": true,
+            "underline": false
+        },
+        "Function": {
+            "text-color": "#06287e",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        }
+    }
+}

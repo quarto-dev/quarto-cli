@@ -8,6 +8,8 @@ import { fromFileUrl } from "./path.ts";
 import { resolve, SEP as SEPARATOR } from "./path.ts";
 import { copySync } from "fs/copy";
 import { existsSync } from "fs/exists";
+import { originalRealPathSync } from "./original-real-path.ts";
+import { debug } from "./log.ts";
 
 export { ensureDir, ensureDirSync } from "fs/ensure-dir";
 export { existsSync } from "fs/exists";
@@ -132,7 +134,26 @@ export function safeRemoveDirSync(
   path: string,
   boundary: string,
 ) {
-  if (path === boundary || !isSubdir(boundary, path)) {
+  // Resolve symlinks to ensure consistent path comparison.
+  // This is needed because external tools (like knitr) may resolve symlinks
+  // while project.dir preserves them.
+  //
+  // We use the original Deno.realPathSync (saved before monkey-patching)
+  // because the monkey-patch replaces it with normalizePath which doesn't
+  // resolve symlinks.
+  //
+  // Note: The UNC path bug that motivated the monkey-patch was fixed in
+  // Deno v1.16 (see denoland/deno#12243), so this is safe on all platforms.
+  let resolvedPath = path;
+  let resolvedBoundary = boundary;
+  try {
+    resolvedPath = originalRealPathSync(path);
+    resolvedBoundary = originalRealPathSync(boundary);
+  } catch {
+    // If resolution fails (e.g., path doesn't exist), use original paths
+  }
+
+  if (resolvedPath === resolvedBoundary || !isSubdir(resolvedBoundary, resolvedPath)) {
     throw new UnsafeRemovalError(
       `Refusing to remove directory ${path} that isn't a subdirectory of ${boundary}`,
     );
@@ -152,6 +173,21 @@ export function safeModeFromFile(path: string): number | undefined {
     const stat = Deno.statSync(path);
     if (stat.mode !== null) {
       return stat.mode;
+    }
+  }
+}
+
+/**
+ * Set file mode in a platform-safe way. No-op on Windows (where chmod
+ * is not supported). Swallows errors on other platforms since permission
+ * changes are often non-fatal (e.g., on filesystems that don't support it).
+ */
+export function safeChmodSync(path: string, mode: number): void {
+  if (Deno.build.os !== "windows") {
+    try {
+      Deno.chmodSync(path, mode);
+    } catch (e) {
+      debug(`safeChmodSync: failed to chmod ${path}: ${e}`);
     }
   }
 }

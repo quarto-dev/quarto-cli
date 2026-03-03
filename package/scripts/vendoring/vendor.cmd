@@ -26,7 +26,9 @@ IF EXIST "!DENO_DIR!" (
 PUSHD "!QUARTO_SRC_PATH!"
 
 FOR %%E IN (quarto.ts vendor_deps.ts ..\tests\test-deps.ts ..\package\scripts\deno_std\deno_std.ts) DO (
-  CALL !DENO_BIN_PATH! install --allow-all --no-config --entrypoint %%E --importmap="!QUARTO_SRC_PATH!\import_map.json"
+  CALL !DENO_BIN_PATH! install --allow-all --no-config --entrypoint %%E --importmap="!QUARTO_SRC_PATH!\import_map.json" || (
+    ECHO Warning: Failed to vendor %%E, continuing...
+  )
 )
 
 REM Return to the original directory

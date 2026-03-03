@@ -22,6 +22,21 @@
         shortcodes:
           arrayOf: path
         filters:
-          arrayOf: path
+          arrayOf:
+            anyOf:
+              - path
+              - object:
+                  properties:
+                    path:
+                      schema: path
+                    at:
+                      ref: filter-entry-point
+                  required:
+                    - path
         formats:
           schema: object
+        engines:
+          arrayOf:
+            anyOf:
+              - string
+              - ref: external-engine

@@ -254,7 +254,7 @@ export async function emplaceNotebookPreviews(
         (nbPath: { href: string; title?: string }) => {
           return nbPath.href;
         },
-      ).forEach((nbPath) => {
+      ).forEach((nbPath: NotebookPreview) => {
         const li = doc.createElement("li");
 
         const link = doc.createElement("a");

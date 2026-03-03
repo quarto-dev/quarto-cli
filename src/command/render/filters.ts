@@ -85,7 +85,7 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { relative } from "../../deno_ral/path.ts";
+import { basename, relative } from "../../deno_ral/path.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "../../deno_ral/log.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
@@ -95,6 +95,7 @@ import { pythonExec } from "../../core/jupyter/exec.ts";
 import { kTocIndent } from "../../config/constants.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { tinyTexBinDir } from "../../tools/impl/tinytex-info.ts";
+import { typstBinaryPath } from "../../core/typst.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -204,6 +205,7 @@ async function quartoEnvironmentParams(_options: PandocOptions) {
     "paths": {
       "Rscript": await rBinaryPath("Rscript"),
       "TinyTexBinDir": tinyTexBinDir(), // will be undefined if no tinytex found and quarto will look in PATH
+      "Typst": typstBinaryPath(),
     },
   };
 }
@@ -658,7 +660,11 @@ async function quartoFilterParams(
   params[kHasResourcePath] = hasResourcePath;
 
   // The source document
-  params[kQuartoSource] = options.source;
+  if (options.project.isSingleFile) {
+    params[kQuartoSource] = basename(options.source);
+  } else {
+    params[kQuartoSource] = options.source;
+  }
 
   // profile as an array
   params[kQuartoProfile.toLowerCase()] = activeProfiles();
@@ -858,7 +864,7 @@ async function resolveFilterExtension(
     }
 
     let pathToResolve: string | null = null;
-    
+
     if (typeof filter === "string") {
       pathToResolve = filter;
     } else if (typeof filter === "object" && filter.path) {
@@ -867,7 +873,9 @@ async function resolveFilterExtension(
 
     if (pathToResolve) {
       // The filter string points to an executable file which exists
-      if (existsSync(pathToResolve) && !Deno.statSync(pathToResolve).isDirectory) {
+      if (
+        existsSync(pathToResolve) && !Deno.statSync(pathToResolve).isDirectory
+      ) {
         return filter;
       }
 
@@ -894,17 +902,19 @@ async function resolveFilterExtension(
           if (typeof filter === "string") {
             return extensionFilters;
           } else if (isFilterEntryPoint(filter)) {
-            return extensionFilters.map(extFilter => {
+            return extensionFilters.map((extFilter) => {
               if (typeof extFilter === "string") {
                 return {
-                  type: extFilter.endsWith(".lua") ? "lua" : "json" as "lua" | "json",
+                  type: extFilter.endsWith(".lua")
+                    ? "lua"
+                    : "json" as "lua" | "json",
                   path: extFilter,
-                  at: filter.at
+                  at: filter.at,
                 };
               } else {
                 return {
                   ...extFilter,
-                  at: filter.at
+                  at: filter.at,
                 };
               }
             });

@@ -1,6 +1,30 @@
 ---
 format:
   pdf: default
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        -
+          # Verify outer figure environment wraps the layout
+          - '\\begin\{figure\}[\s\S]*\\begin\{minipage\}'
+          # Verify two minipages with equal width
+          - '\\begin\{minipage\}\{0\.50\\linewidth\}'
+          # Verify figure[H] inside first minipage with caption and label
+          - '\\begin\{minipage\}[\s\S]*\\begin\{figure\}\[H\][\s\S]*\\caption\{\\label\{fig-example\}Figure caption\}'
+          # Verify longtable (NOT wrapped in table environment) inside second minipage
+          - '\\begin\{minipage\}\{0\.50\\linewidth\}[\s\S]*\\begin\{longtable\}'
+          # Verify table caption with label
+          - '\\caption\{\\label\{tbl-example\}Table caption\}'
+          # Verify minipage ends before outer figure ends
+          - '\\end\{minipage\}%[\s\S]*\\end\{figure\}%'
+          # Verify cross-references work
+          - 'Figure~\\ref\{fig-example\}'
+          - 'Table~\\ref\{tbl-example\}'
+        -
+          # Verify NO table environment wrapper around longtable
+          - '\\begin\{table\}[\s\S]*\\begin\{longtable\}'
 execute:
   echo: false
 ---
@@ -20,3 +44,5 @@ knitr::kable(head(cars))
 ```
 
 :::
+
+See @fig-example and @tbl-example

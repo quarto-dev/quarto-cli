@@ -83,6 +83,22 @@ local function tblColwidthValues(tbl, tblColwidths)
 end
 
 local function resolve_table_colwidths_scoped(tbl, scope)
+  local all_cells = require("modules/tableutils").all_cells
+  local function is_simple(tbl)
+    for cell in all_cells(tbl) do
+        if cell.col_span ~= 1 or cell.row_span ~= 1 then
+            return false
+        end        
+    end
+    return true
+  end
+  -- https://github.com/quarto-dev/quarto-cli/issues/13776: do
+  -- not process a table with to_simple_table/from_simple_table
+  -- roundtrip is table isn't simple
+  if not is_simple(tbl) then
+    return nil
+  end
+
   -- see if we have a tbl-colwidths attribute
   local tblColwidths = nil
   if tbl.caption.long ~= nil and #tbl.caption.long > 0 then

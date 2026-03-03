@@ -1,0 +1,38 @@
+---
+title: "Column Screen Mapping Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # column-screen* classes should map to wideblock with appropriate sides
+        - ['#wideblock\(side: "both"\)']
+        - []
+      ensurePdfTextPositions:
+        - # Aside is above wideblock content (wideblock spans full page)
+          - subject: "haunts"
+            relation: above
+            object:
+              text: "catastrophic"
+              role: Decoration
+        - []
+      noErrors: default
+---
+
+## Column Screen (Maps to Full Page)
+[Zalgo text exploits Unicode combining diacritical marks to stack characters vertically, creating the "corrupted" appearance that haunts Stack Overflow regex questions.]{.aside}
+
+::: {.column-screen}
+Look, I know you want to parse HTML with regex, but you really, truly, cannot do this correctly in the general case because HTML is not a regular language and the regex engine will consume your sanity before it consumes the closing tags, and honestly at this point you should just use a proper HTML parser like BeautifulSoup or lxml or even the browser's built-in DOMParser because life is too short to debug catastrophic backtracking at 3am when your boss asks why the production server is at 100% CPU because someone put a nested div inside another nested div inside yet another nested div and your regex is now contemplating the heat death of the universe and t̃hẽ c̃õm̃b̃ĩñĩñg̃ m̃ãr̃k̃s̃ ãr̃ẽ s̃t̃ãr̃t̃ĩñg̃ t̃õ ãp̃p̃ẽãr̃ and ṱ̈ḧ̤ë̤ṳ̈ ä̤r̤̈ë̤ g̤̈ë̤ṱ̈ṱ̈ï̤n̤̈g̤̈ d̤̈ë̤ë̤p̤̈ë̤r̤̈ and T̸̢̧̛̮̣͓̦̱̲̪̯͎͇̙̼̬̪͇̿̈́̆̏̎̾̇̈́͒͗̑̒̎̎͂̕͜͝͝H̵̢̨̛̙̣̜̫̪̼̫͖̙̤̫̫̪͍̒̈́̅̆̌̈́̊̉́̽̐͆̏̎̕͝͠E̸̢̧̛̬̫̼̙͓̦̫̣̯͎̪̭͎̫͓̿̈́̏̆̎̾̊̈́͒̑͗̒̎̕͜͝͝ ̵̧̨̛̮̪̣͓̦̱̲̫̯͎̭̙̼͇̿̈́̆̎̾̇̈́͒͗̑̒̎̎̕͜͝͝V̸̢̧̛̬̫̼̙͓̦̫̣̯͎̪̭͎̫͓̒̈́̏̆̅̎̾̊̈́͒̑͗̒̎̕͜͝͝Ơ̵̧̨̮̪̣͓̦̱̲̫̯͎̭̙̼͇̈́̿̈́̆̎̾̇̈́͒͗̑̒̎̎̕͜͝͝I̸̢̧̛̬̫̼̙͓̦̫̣̯͎̪̭͎̫͓̿̈́̏̆̅̎̾̊̈́͒̑͗̒̎̕͜͝͝Ḑ̵̨̛̮̪̣͓̦̱̲̫̯͎̭̙̼͇̿̈́̆̎̾̇̈́͒͗̑̒̎̎̕͜͝͝ ̸̢̧̛̬̫̼̙͓̦̫̣̯͎̪̭͎̫͓̿̈́̏̆̅̎̾̊̈́͒̑͗̒̎̕͜͝͝Ç̵̨̛̮̪̣͓̦̱̲̫̯͎̭̙̼͇̿̈́̆̎̾̇̈́͒͗̑̒̎̎̕͜͝͝Ơ̸̢̧̬̫̼̙͓̦̫̣̯͎̪̭͎̫͓̂̿̈́̏̆̅̎̾̊̈́͒̑͗̒̎̕͜͝͝Ņ̵̨̛̮̪̣͓̦̱̲̫̯͎̭̙̼͇̿̈́̆̎̾̇̈́͒͗̑̒̎̎̕͜͝͝S̸̢̧̛̬̫̼̙͓̦̫̣̯͎̪̭͎̫͓̿̈́̏̆̅̎̾̊̈́͒̑͗̒̎̕͜͝͝Ų̵̧̨̛̮̪̣͓̦̱̲̫̯͎̭̙̼͇̿̈́̆̎̾̇̈́͒͗̑̒̎̎̕͜͝͝M̸̢̧̛̬̫̼̙͓̦̫̣̯͎̪̭͎̫͓̿̈́̏̆̅̎̾̊̈́͒̑͗̒̎̕͜͝͝Ȩ̵̧̨̛̮̪̣͓̦̱̲̫̯͎̭̙̼͇̿̈́̆̎̾̇̈́͒͗̑̒̎̎̕͜͝͝S̸̢̧̛̬̫̼̙͓̦̫̣̯͎̪̭͎̫͓̿̈́̏̆̅̎̾̊̈́͒̑͗̒̎̕͜͝͝
+:::
+
+
+## Column Screen Inset
+
+::: {.column-screen-inset}
+The thing about Zalgo text is that it technically works by stacking Unicode combining characters above and below the base character, and while most text rendering systems will dutifully attempt to display U+0300 through U+036F stacked seventeen layers high, this does not mean your database schema was prepared for a username field containing what appears to be an eldritch summoning ritual, and no amount of VARCHAR(255) is going to save you when someone pastes in the collected works of H.P. Lovecraft rendered entirely in combining marks, so please just sanitize your inputs and also maybe consider that the void gazes also into you. H̶̷̸̴̵̨̧̡̢̛̪̫̬̭̮̯̰̱̲̳̹̺̻̼̽̾̿̀́͂̓̈́͆͊͋͌͐͑͒͗͘̕͜͝͞͠͡ͅE̶̷̸̴̵̡̢̨̧̛̖̗̘̙̽̾̿̀́͂̓̈́͆͊͋͌͐͑͒͗̚͘̕͜͝͞͠͡ͅ ̶̷̸̴̵̧̨̡̢̛̜̝̞̟̠̣̤̥̦̩̪̫̬̭̮̯̰̱̲̳̹̺̻̼̽̾̿̀́͂̓̈́͆͊͋͌͐͑͒͗͘̕͜͝͞͠͡ͅC̶̷̸̴̵̨̧̡̢̛̬̭̮̯̰̱̲̳̹̺̻̼̽̾̿̀́͂̓̈́͆͊͋͌͐͑͒͗͘̕͜͝͞͠͡ͅO̶̷̸̴̵̡̢̨̧̽̾̿̀́͂̓̈́͆͊͋͌͐͑͒͗͘̕͜͝͞͠͡M̶̷̸̴̵̧̨̡̢̛̽̾̿̀́͂̓̈́͆͊͋͌͐͑͒͗͘̕͜͝͞͠͡E̶̷̸̴̵̡̢̨̧̛̽̾̿̀́͂̓̈́͆͊͋͌͐͑͒͗͘̕͜͝͞͠͡S̶̷̸̴̵̨̧̡̢̛̽̾̿̀́͂̓̈́͆͊͋͌͐͑͒͗͘̕͜͝͞͠͡
+:::

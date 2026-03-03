@@ -1,0 +1,52 @@
+---
+title: "Fig-Column Margin Test"
+papersize: us-letter
+fig-column: margin
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Figure should use notefigure for margin placement
+        - ['#notefigure\(', 'kind: "quarto-float-fig"']
+        - []
+      ensurePdfRegexMatches:
+        - ['Table 1', 'TBL-BODY-CAP', 'TBL-BODY-MARKER']
+        - []
+      ensurePdfTextPositions:
+        - # Table stays in body, not pushed to margin
+          - subject: "TBL-BODY-MARKER"
+            relation: below
+            object: "BODY-TEXT-MARKER"
+        - # Table should NOT be right of body text (not in margin)
+          - subject: "TBL-BODY-MARKER"
+            relation: rightOf
+            object: "BODY-TEXT-MARKER"
+      noErrors: default
+---
+
+BODY-TEXT-MARKER: This tests the document-level `fig-column: margin` option. Figures should go to the margin; tables should stay in the body.
+
+```{r}
+#| label: fig-fc-test
+#| fig-cap: "FIG-COL-MARGIN-CAP"
+#| echo: false
+library(ggplot2)
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point() +
+  theme_minimal()
+```
+
+```{r}
+#| label: tbl-fc-test
+#| tbl-cap: "TBL-BODY-CAP"
+#| echo: false
+knitr::kable(
+  data.frame(Item = c("TBL-BODY-MARKER", "Row2"), Value = c(10, 20))
+)
+```
+
+The figure should be in the margin and the table in the body.

@@ -1,0 +1,105 @@
+---
+_quarto:
+  tests:
+    run:
+      skip: "Book chapter - only renders as part of full book"
+---
+
+# Supplementary Data {#sec-supplementary}
+
+This is the second appendix containing supplementary data and additional examples.
+
+## Appendix B Margin Figures {#sec-appendix-b-margin-figures}
+
+Secondaria body text introduces the supplementary margin content.
+
+::: {.column-margin}
+![Databvisual supplementary data](logo.svg){#fig-appendix-b-margin}
+:::
+
+Graphica diagram in @fig-appendix-b-margin demonstrates second appendix margin figure numbering.
+
+## Additional Figures {#sec-additional-figures}
+
+::: {#fig-appendix-b-panel layout-ncol=2}
+
+![Third appendix panel](logo.svg){#fig-appendix-b-panel-a}
+
+![Fourth appendix panel](logo.svg){#fig-appendix-b-panel-b}
+
+A panel of sub-figures in Appendix B demonstrating B-prefix numbering.
+:::
+
+Secundaria panel in @fig-appendix-b-panel, with @fig-appendix-b-panel-a and @fig-appendix-b-panel-b as components.
+
+## Appendix B Margin Tables {#sec-appendix-b-margin-tables}
+
+Metrica body text introduces additional supplementary data.
+
+::: {.column-margin}
+| Parameter | Unit |
+|-----------|------|
+| Mass | kg |
+| Length | m |
+| Time | s |
+
+: Unitaria values {#tbl-appendix-b-margin}
+:::
+
+Dimensiona units in @tbl-appendix-b-margin demonstrate Appendix B margin table placement.
+
+## Additional Callouts {#sec-additional-callouts}
+
+::: {#wrn-appendix-b .callout-warning}
+## Appendix B Warning
+Pericula secundaria hazard documented here. Monitoria reference in @wrn-appendix-b.
+:::
+
+Exegesis body text explicates supplementary guidance.
+
+::: {#tip-appendix-b .callout-tip .column-margin}
+## Appendix B Tip
+Gnomicon: Consilia secundaria guidance provided here. Advisoria reference in @tip-appendix-b.
+:::
+
+## Additional Dinosaurs {#sec-additional-dinosaurs}
+
+::: {#dino-appendix-b}
+**Brachiosaurus**
+
+Sauropoda giganta specimen documented here. Brachiosaura reference in @dino-appendix-b.
+:::
+
+## Appendix B Margin Dinosaurs {#sec-appendix-b-margin-dinosaurs}
+
+::: {#dino-appendix-b-margin .column-margin}
+**Parasaura**
+
+This crested dinosaur demonstrates Appendix B margin placement.
+:::
+
+Hadrosaura body text discusses the margin dinosaur placement.
+
+## Appendix B Margin Equations {#sec-appendix-b-margin-equations}
+
+Magnetica body text introduces additional supplementary mathematics.
+
+::: {.column-margin}
+$$
+\nabla \times \vec{B} = \mu_0 \vec{J} + \mu_0 \epsilon_0 \frac{\partial \vec{E}}{\partial t}
+$$ {#eq-appendix-b-margin}
+
+Maxwelliana field law.
+:::
+
+Electromagnetica law in @eq-appendix-b-margin demonstrates Appendix B margin equation placement.
+
+## Cross-references {#sec-appendix-b-crossrefs}
+
+Retrospecta from Appendix A: compositia panel in @fig-appendix-panel.
+
+Marginala from Appendix A: orbitala diagram in @fig-appendix-margin.
+
+Foundationa content: carnivorica @dino-trex from @sec-intro and beveragia @wrn-tea.
+
+Marginala from Chapter 1: copernicana @fig-margin-orbital and keplerian @lst-margin-kepler.

@@ -8,7 +8,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '#set page\(background:.*image\("\.\.(/|\\\\)brand(/|\\\\)images(/|\\\\)favicon\.png'
+          - '#set page\(background:.*image\("/brand(/|\\\\)images(/|\\\\)favicon\.png'
           - '#box\(image\("\.\.(/|\\\\)brand(/|\\\\)images(/|\\\\)logo.png"\)\)'
           - '#box\(image\("\.\.(/|\\\\)brand(/|\\\\)images(/|\\\\)header.png"\)\)'
         - []

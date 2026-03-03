@@ -13,6 +13,7 @@ import {
   removeTool,
   selectTool,
 } from "../../tools/tools-console.ts";
+import { installableToolNames } from "../../tools/tools.ts";
 
 export const uninstallCommand = new Command()
   .name("uninstall")
@@ -26,11 +27,19 @@ export const uninstallCommand = new Command()
     "Update system path when a tool is installed",
   )
   .description(
-    "Removes an extension.",
+    `Uninstalls a global dependency (${installableToolNames().join(", ")}).`,
   )
   .example(
-    "Remove extension using name",
-    "quarto remove <extension-name>",
+    "Uninstall TinyTeX",
+    "quarto uninstall tinytex",
+  )
+  .example(
+    "Uninstall Chrome Headless Shell",
+    "quarto uninstall chrome-headless-shell",
+  )
+  .example(
+    "Uninstall Chromium (legacy)",
+    "quarto uninstall chromium",
   )
   .action(
     async (

@@ -7,7 +7,8 @@
 
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts";
-import { join } from "../../src/deno_ral/path.ts";
+import { join, resolve } from "../../src/deno_ral/path.ts";
+import { isWindows } from "../../src/deno_ral/platform.ts";
 import {
   dirAndStem,
   removeIfEmptyDir,
@@ -152,4 +153,46 @@ unitTest("path - resolvePathGlobs", async () => {
       `Invalid exclude result: ${globTest.name}`,
     );
   });
+});
+
+// Test for issue #13892: output-dir: ./ should resolve to same path as .
+// This validates the fix approach using resolve() for path comparison
+// deno-lint-ignore require-await
+unitTest("path - output-dir equivalence with resolve()", async () => {
+  const testDir = Deno.makeTempDirSync({ prefix: "quarto-outputdir-test" });
+
+  // All variations of "current directory" should resolve to the same path
+  // Note: ".\" is Windows-only (backslash separator)
+  const variations = [".", "./", "././", "./."];
+  if (isWindows) {
+    variations.push(".\\");
+  }
+  for (const variation of variations) {
+    const resolved = resolve(testDir, variation);
+    const resolvedDir = resolve(testDir);
+    assert(
+      resolved === resolvedDir,
+      `output-dir "${variation}" should resolve to project dir, got ${resolved} vs ${resolvedDir}`,
+    );
+  }
+
+  // Parent traversal back to project dir should also be equivalent
+  // e.g., project in "quarto-proj", output-dir: "../quarto-proj"
+  const dirName = testDir.split(/[/\\]/).pop()!;
+  const parentRef = `../${dirName}`;
+  const resolvedParentRef = resolve(testDir, parentRef);
+  assert(
+    resolvedParentRef === resolve(testDir),
+    `output-dir "${parentRef}" should resolve to project dir, got ${resolvedParentRef} vs ${resolve(testDir)}`,
+  );
+
+  // Actual subdirectories should NOT be equivalent
+  const subdir = "output";
+  const resolvedSubdir = resolve(testDir, subdir);
+  assert(
+    resolvedSubdir !== resolve(testDir),
+    `output-dir "${subdir}" should NOT resolve to project dir`,
+  );
+
+  Deno.removeSync(testDir, { recursive: true });
 });

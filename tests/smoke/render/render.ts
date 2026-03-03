@@ -83,13 +83,16 @@ export function testRender(
 }
 
 export function cleanoutput(
-  input: string, 
-  to: string, 
+  input: string,
+  to: string,
   projectOutDir?: string,
   projectRoot?: string,
   // deno-lint-ignore no-explicit-any
   metadata?: Record<string, any>,
 ) {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   const out = outputForInput(input, to, projectOutDir, projectRoot, metadata);
   if (safeExistsSync(out.outputPath)) {
     safeRemoveSync(out.outputPath);

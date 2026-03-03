@@ -20,7 +20,16 @@ local authors = require 'modules/authors'
 local license = require 'modules/license'
 local shortcode_ast = require 'modules/astshortcode'
 
-function normalize_filter() 
+-- Convert block-level metadata to inline for fields rendered inside <p> tags.
+-- Multi-line YAML values produce MetaBlocks (Para), which nest <p> in <p> — invalid HTML5.
+local function ensureMetaInlines(meta, field)
+  local val = meta[field]
+  if val ~= nil and quarto.utils.type(val) == "Blocks" then
+    meta[field] = quarto.utils.as_inlines(val)
+  end
+end
+
+function normalize_filter()
   return {
     Meta = function(meta)
       -- normalizes the author/affiliation metadata
@@ -31,6 +40,9 @@ function normalize_filter()
 
       -- normalizes the license metadata
       normalized = license.processLicenseMeta(normalized)
+
+      -- Convert block-level metadata to inline for fields rendered in <p> tags
+      ensureMetaInlines(normalized, "subtitle")
 
       -- for JATs, forward keywords or categories to tags
       if _quarto.format.isJatsOutput() then

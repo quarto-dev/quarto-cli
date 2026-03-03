@@ -59,7 +59,6 @@ import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import {
   removeIfEmptyDir,
-  removeIfExists,
   safeRemoveIfExists,
 } from "../../core/path.ts";
 import { handlerForScript } from "../../core/run/run.ts";
@@ -79,6 +78,7 @@ import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
 import { ProjectType } from "../../project/types/types.ts";
+import { RunHandlerOptions } from "../../core/run/types.ts";
 
 const noMutationValidations = (
   projType: ProjectType,
@@ -280,15 +280,17 @@ export async function renderProject(
       (projectRenderConfig.options.flags?.clean == true) &&
         (projType.cleanOutputDir === true))
   ) {
-    // output dir
+    // output dir - use safeRemoveDirSync for boundary protection (#13892)
     const realProjectDir = normalizePath(context.dir);
     if (existsSync(projOutputDir)) {
       const realOutputDir = normalizePath(projOutputDir);
-      if (
-        (realOutputDir !== realProjectDir) &&
-        realOutputDir.startsWith(realProjectDir)
-      ) {
-        removeIfExists(realOutputDir);
+      try {
+        safeRemoveDirSync(realOutputDir, realProjectDir);
+      } catch (e) {
+        if (!(e instanceof UnsafeRemovalError)) {
+          throw e;
+        }
+        // Silently skip if output dir equals or is outside project dir
       }
     }
     // remove index
@@ -599,7 +601,7 @@ export async function renderProject(
     // as an example case)
     const uniqOps = ld.uniqBy(fileOperations, (op: FileOperation) => {
       return op.key;
-    });
+    }) as FileOperation[];
 
     const sortedOperations = uniqOps.sort((a, b) => {
       if (a.src === b.src) {
@@ -792,7 +794,7 @@ export async function renderProject(
         context,
       );
       if (engine?.postRender) {
-        await engine.postRender(file, projResults.context);
+        await engine.postRender(file);
       }
     }
 
@@ -936,52 +938,61 @@ async function runScripts(
   quiet: boolean,
   env?: { [key: string]: string },
 ) {
+  // initialize the environment if needed
+  if (env) {
+    env = {
+      ...env,
+    };
+  } else {
+    env = {};
+  }
+  if (!env) throw new Error("should never get here");
+
+  // Pass some argument as environment
+  env["QUARTO_PROJECT_SCRIPT_PROGRESS"] = progress ? "1" : "0";
+  env["QUARTO_PROJECT_SCRIPT_QUIET"] = quiet ? "1" : "0";
+
   for (let i = 0; i < scripts.length; i++) {
     const args = parseShellRunCommand(scripts[i]);
     const script = args[0];
 
     if (progress && !quiet) {
-      info(colors.bold(colors.blue(`${script}`)));
+      info(colors.bold(colors.blue(`Running script '${script}'`)));
     }
 
-    const handler = handlerForScript(script);
-    if (handler) {
-      if (env) {
-        env = {
-          ...env,
-        };
-      } else {
-        env = {};
-      }
-      if (!env) throw new Error("should never get here");
-      const input = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
-      const output = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
-      if (input) {
-        env["QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES"] = input;
-      }
-      if (output) {
-        env["QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES"] = output;
-      }
+    const handler = handlerForScript(script) ?? {
+      run: async (
+        script: string,
+        args: string[],
+        _stdin?: string,
+        options?: RunHandlerOptions,
+      ) => {
+        return await execProcess({
+          cmd: script,
+          args: args,
+          cwd: options?.cwd,
+          stdout: options?.stdout,
+          env: options?.env,
+        });
+      },
+    };
 
-      const result = await handler.run(script, args.splice(1), undefined, {
-        cwd: projDir,
-        stdout: quiet ? "piped" : "inherit",
-        env,
-      });
-      if (!result.success) {
-        throw new Error();
-      }
-    } else {
-      const result = await execProcess({
-        cmd: args[0],
-        args: args.slice(1),
-        cwd: projDir,
-        stdout: quiet ? "piped" : "inherit",
-        env,
-      });
-      if (!result.success) {
-        throw new Error();
-      }
+    const input = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
+    const output = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
+    if (input) {
+      env["QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES"] = input;
+    }
+    if (output) {
+      env["QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES"] = output;
+    }
+
+    const result = await handler.run(script, args.slice(1), undefined, {
+      cwd: projDir,
+      stdout: quiet ? "piped" : "inherit",
+      env,
+    });
+    if (!result.success) {
+      throw new Error();
     }
   }
   if (scripts.length > 0) {

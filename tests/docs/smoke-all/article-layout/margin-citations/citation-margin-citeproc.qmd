@@ -1,0 +1,36 @@
+---
+title: "Apocryphal Librarians and Impossible Catalogues"
+citation-location: margin
+bibliography: borges-refs.bib
+format:
+  pdf:
+    keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        # Verify placeholders are resolved - should NOT find unresolved markers
+        - []
+        - ['\?quarto-cite:']
+      ensurePdfRegexMatches:
+        # Verify rendered citations appear in PDF
+        - ['FIRST-CITE-MARKER', 'SECOND-CITE-MARKER', 'MULTI-CITE-MARKER', 'Vindication', 'Borges', 'Funes']
+        - []
+      noErrors: default
+---
+
+# The Seekers of the Vindication
+
+Among the infinite shelves of the Library, certain books have achieved mythical status. FIRST-CITE-MARKER The most sought-after is the Vindication [@vindication1738]---a book said to contain the complete justification of every person who has ever lived, written in clear prose.
+
+## The First Librarian's Paradox
+
+SECOND-CITE-MARKER The First Librarian of the Third Hexagon [@librarians1638first] famously observed that if the Library contains all books, it must contain both the faithful catalogue of the Library and the demonstration that this catalogue is false. Soergel's attempt at an index [@soergel1638index] proved to be merely an index of all indexes, recursively swallowing itself.
+
+## Fictional Precursors
+
+MULTI-CITE-MARKER These paradoxes echo throughout literature [@borges1941library; @eco1980name; @calvino1979winter]. The tradition of impossible books extends from Scheherazade's tales [@ts1001nights] through Pierre Menard's verbatim yet infinitely richer Quixote [@menard1934quixote].
+
+## The Memory of Funes
+
+Not all impossible texts require a library. Ireneo Funes [@funes1897memory], after an accident that left him with perfect memory, devised a numbering system where each integer had a unique name. He could recall every leaf on every tree he had ever seen. His attempt to catalogue his memories would have required more time than the universe contains.

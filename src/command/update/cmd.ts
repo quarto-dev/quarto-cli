@@ -14,6 +14,7 @@ import {
   selectTool,
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
+import { installableToolNames } from "../../tools/tools.ts";
 import { resolveCompatibleArgs } from "../remove/cmd.ts";
 
 export const updateCommand = new Command()
@@ -28,7 +29,7 @@ export const updateCommand = new Command()
     "Embed this extension within another extension (used when authoring extensions).",
   )
   .description(
-    "Updates an extension or global dependency.",
+    `Updates an extension or global dependency (${installableToolNames().join(", ")}).`,
   )
   .example(
     "Update extension (Github)",
@@ -47,7 +48,11 @@ export const updateCommand = new Command()
     "quarto update tool tinytex",
   )
   .example(
-    "Update Chromium",
+    "Update Chrome Headless Shell",
+    "quarto update tool chrome-headless-shell",
+  )
+  .example(
+    "Update Chromium (legacy)",
     "quarto update tool chromium",
   )
   .example(

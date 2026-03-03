@@ -1,0 +1,74 @@
+---
+title: "Margin Table Shift Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['shift: false', 'shift: "avoid"']
+        - []
+      ensurePdfTextPositions:
+        - # Both tables in margin, right of body text
+          - subject: "Fixed Position"
+            relation: rightOf
+            object: "Line 1"
+          - subject: "Avoid Overlap"
+            relation: rightOf
+            object: "Line 2"
+          # First table above second
+          - subject: "Fixed Position"
+            relation: above
+            object: "Avoid Overlap"
+        - []
+      noErrors: default
+---
+
+This tests shift control on margin tables.
+
+Line 1 with a fixed table:
+
+::: {.column-margin shift="false"}
+
+```{python}
+#| classes: plain
+#| echo: false
+#| label: tbl-fixed
+#| tbl-cap: "Fixed Position"
+
+from great_tables import GT
+from great_tables.data import islands
+
+(
+    GT(islands.head(10), rowname_col="name")
+    .fmt_integer(columns="size")
+)
+```
+
+:::
+
+Line 2 with an avoid table:
+
+::: {.column-margin shift="avoid"}
+
+```{python}
+#| classes: plain
+#| echo: false
+#| label: tbl-avoid
+#| tbl-cap: "Avoid Overlap"
+
+from great_tables import GT
+from great_tables.data import islands
+
+(
+    GT(islands.tail(10), rowname_col="name")
+    .fmt_integer(columns="size")
+)
+```
+
+:::
+
+The first table stays fixed, the second only shifts if necessary.

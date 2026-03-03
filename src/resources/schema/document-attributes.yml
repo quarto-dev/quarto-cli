@@ -144,7 +144,7 @@
 - name: thanks
   schema: string
   tags:
-    formats: [$pdf-all]
+    formats: [$pdf-all, typst]
   description: The contents of an acknowledgments footnote after the document title.
 
 - name: order

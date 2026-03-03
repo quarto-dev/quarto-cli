@@ -1,0 +1,16 @@
+---
+title: syntax-highlighting none test
+format:
+  html:
+    syntax-highlighting: none
+_quarto:
+  tests:
+    html:
+      noErrors: default
+---
+
+Test that `syntax-highlighting: none` works with Pandoc 3.8+.
+
+```python
+print("Hello, World!")
+```

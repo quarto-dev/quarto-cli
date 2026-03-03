@@ -1,0 +1,13 @@
+[package]
+name = "theorion"
+version = "0.4.1"
+entrypoint = "lib.typ"
+authors = ["OrangeX4"]
+license = "MIT"
+description = "Out-of-the-box, customizable and multilingual theorem environment package."
+repository = "https://github.com/OrangeX4/typst-theorion"
+keywords = ["theorem", "corollary", "lemma", "html", "environment", "math", "box", "multilingual", "boxes", "colorful"]
+disciplines = ["computer-science", "engineering", "mathematics", "physics", "education"]
+categories = ["components"]
+compiler = "0.13.0"
+exclude = ["examples"]

@@ -1,0 +1,16 @@
+---
+format:
+  revealjs:
+    axe:
+      output: json
+---
+
+## Slide 1
+
+Content for axe accessibility testing.
+
+This text violates contrast rules: [insufficient contrast.]{style="color: #eee; background: #fff;"}.
+
+## Slide 2
+
+More content to check.

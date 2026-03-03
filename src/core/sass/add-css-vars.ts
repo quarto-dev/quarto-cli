@@ -16,6 +16,16 @@ import { getVariableDependencies } from "./analyzer/get-dependencies.ts";
 
 const { getSassAst } = makeParserModule(parse);
 
+// Reverse the _u<hex>_ encoding applied in parse.ts so that
+// variable names emitted into the CSS vars block match the
+// original SCSS source that Dart Sass compiles against.
+// Non-ASCII codepoints are valid in CSS custom property names since they
+// follow the <ident> production (see spec references in parse.ts).
+const decodeScssName = (name: string) =>
+  name.replace(/_u([0-9a-f]+)_/g, (_, hex: string) =>
+    String.fromCodePoint(parseInt(hex, 16))
+  );
+
 export class SCSSParsingError extends Error {
   constructor(message: string) {
     super(`SCSS Parsing Error: ${message}`);
@@ -38,7 +48,8 @@ export const cssVarsBlock = (scssSource: string) => {
   for (const [dep, _] of deps) {
     const decl = ast.get(dep);
     if (decl.valueType === "color") {
-      output.push(`--quarto-scss-export-${dep}: #{$${dep}};`);
+      const originalName = decodeScssName(dep);
+      output.push(`--quarto-scss-export-${originalName}: #{$${originalName}};`);
     }
   }
   output.push("}");

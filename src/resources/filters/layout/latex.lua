@@ -664,7 +664,7 @@ end
 function latexImageFigure(image)
 
   return renderLatexFigure(image, function(figure)
-    
+
     -- make a copy of the caption and clear it
     local caption = image.caption:clone()
     tclear(image.caption)

@@ -1,0 +1,36 @@
+---
+title: "Margin Citation with Prefix and Suffix"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Margin citations emit note() with cite(form: "full") directly
+        - ['#note\(', 'form: "full"']
+        - []
+      ensurePdfRegexMatches:
+        # Check that suffix text appears (prefix handled separately for margin citations)
+        - ['PREFIX-MARKER', 'SUFFIX-MARKER', 'emphasis', 'Borges']
+        - []
+      ensurePdfTextPositions:
+        - # Full citation in margin - "bifurcan" is unique to borges1941library booktitle
+          - subject: "bifurcan"
+            relation: rightOf
+            object: "PREFIX-MARKER"
+        - []
+      noErrors: default
+---
+
+# Testing Citation Prefix and Suffix in Margins
+
+PREFIX-MARKER: As noted by several scholars [see @borges1941library], the Library concept is profound.
+
+SUFFIX-MARKER: The story was revolutionary [@borges1944ficciones, emphasis added].
+
+COMPLEX-MARKER: For background [cf. @eco1980name; but see also @calvino1979winter for a contrasting view].

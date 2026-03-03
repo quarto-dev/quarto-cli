@@ -12,6 +12,17 @@ runs:
         restore-keys: |
           ${{ runner.os }}-deno_std-2-
 
+    - name: Cache Cargo dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          package/typst-gather/target
+        key: ${{ runner.os }}-cargo-typst-gather-${{ hashFiles('package/typst-gather/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-typst-gather-
+
     - name: Configure Quarto (.sh)
       if: runner.os != 'Windows'
       shell: bash
@@ -33,13 +44,13 @@ runs:
     - name: Basic dev mode sanity check
       shell: pwsh
       run: |
-        If ( "$(quarto --version)" -ne "99.9.9") { 
+        If ( "$(quarto --version)" -ne "99.9.9") {
           echo "Unexpected version detected: $(quarto --version)"
-          Exit 1 
+          Exit 1
         }
-        If ( $(quarto --paths | Select-String -Pattern "package[/\\]+dist[/\\]+share") -ne $null ) { 
+        If ( $(quarto --paths | Select-String -Pattern "package[/\\]+dist[/\\]+share") -ne $null ) {
           echo "Unexpected package/dist/share path detected: $(quarto --paths)"
-          Exit 1 
+          Exit 1
         }
         # check if configure is modifying some files as it should not
         $modifiedFiles = git diff --name-only

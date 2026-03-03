@@ -1,0 +1,26 @@
+---
+title: "Margin Div Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#note\(alignment: "baseline"']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "This content appears"
+            relation: rightOf
+            object: "Main content"
+        - []
+      noErrors: default
+---
+
+::: {.column-margin}
+This content appears in the margin.
+:::
+
+Main content here.

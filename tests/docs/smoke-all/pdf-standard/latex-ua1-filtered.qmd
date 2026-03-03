@@ -1,0 +1,34 @@
+---
+title: "LaTeX filters unsupported ua-1"
+lang: en
+format: pdf
+pdf-standard: [a-2b, ua-1]
+keep-tex: true
+_quarto:
+  tests:
+    run:
+      # verapdf validation not available on Windows CI
+      not_os: windows
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        # Quarto filters out unsupported ua-1, only a-2b is passed to LaTeX
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{a-2b\}']
+        - []
+      printsMessage:
+        # ua-1 should be warned about as unsupported
+        level: WARN
+        regex: "PDF standard 'ua-1' is not supported by LaTeX"
+---
+
+# Test: Quarto Filters Unsupported Standards
+
+This test verifies that when `pdf-standard: [a-2b, ua-1]` is specified:
+
+1. Quarto warns that ua-1 is not supported by LaTeX
+2. Only supported standards (a-2b) are passed to LaTeX in `\DocumentMetadata{pdfstandard={a-2b}}`
+3. verapdf validates ONLY against a-2b (not ua-1)
+4. The render succeeds because unsupported standards are filtered out
+
+Without filtering, verapdf would fail because the PDF isn't actually PDF/UA-1 compliant
+(LaTeX only supports ua-2 for PDF/UA).

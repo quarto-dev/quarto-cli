@@ -6,11 +6,6 @@ REM    Variables set dynamically (including being read from a file) should be ev
 REM    using ! ! instead of % %. However, this only allows one level of expansion. Do not
 REM    try to create a variable that derives from a derived variable. It will be empty.
 
-REM First Check that Deno isn't running since this causes weird and confusing errors
-REM find can conflict with one provided in bash with other args so use absolute path
-tasklist /fi "ImageName eq deno.exe" /fo csv 2>NUL | "%WINDIR%/system32/find" /I "deno.exe">NUL
-if "%ERRORLEVEL%"=="0" goto :denoRunning
-
 call package\src\store_win_configuration.bat
 call win_configuration.bat
 
@@ -19,7 +14,27 @@ if NOT DEFINED QUARTO_VENDOR_BINARIES (
 )
 
 if "%QUARTO_VENDOR_BINARIES%" == "true" (
-  RMDIR /S /Q "!QUARTO_DIST_PATH!"
+
+  REM Windows-specific: Check if deno.exe is running before deleting package/dist
+  REM Extracted to package/scripts/windows/check-deno-in-use.cmd for maintainability
+  call package\scripts\windows\check-deno-in-use.cmd "!QUARTO_DIST_PATH!"
+  if "!ERRORLEVEL!"=="1" exit /B 1
+
+  echo Removing package/dist/ directory...
+  RMDIR /S /Q "!QUARTO_DIST_PATH!" 2>NUL
+
+  REM Fallback: Verify deletion succeeded (defense in depth)
+  if exist "!QUARTO_DIST_PATH!" (
+    echo.
+    echo ============================================================
+    echo Error: Could not delete package/dist/ directory
+    echo This may be due to permissions, antivirus, or another process holding files
+    echo ============================================================
+    echo.
+    echo Try closing applications and run configure.cmd again
+    exit /B 1
+  )
+
   MKDIR !QUARTO_BIN_PATH!\tools
   PUSHD !QUARTO_BIN_PATH!\tools
 
@@ -62,6 +77,12 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
   POPD
 )
 
+IF NOT DEFINED QUARTO_DENO_DIR (
+  SET "DENO_DIR=!QUARTO_BIN_PATH!\deno_cache"
+) ELSE (
+  SET "DENO_DIR=!QUARTO_DENO_DIR!"
+)
+
 PUSHD !QUARTO_PACKAGE_PATH!\src
 ECHO Configuring Quarto from !cd!
 CALL quarto-bld.cmd configure --log-level info
@@ -83,12 +104,11 @@ IF EXIST !QUARTO_BIN_PATH!\quarto.cmd (
 ECHO NOTE: To use quarto please use quarto.cmd (located in this folder) or add the following path to your PATH
 ECHO !QUARTO_BIN_PATH!
 
+REM Build typst-gather and install to tools directory
+ECHO Building typst-gather...
+cargo build --release --manifest-path package\typst-gather\Cargo.toml
+COPY package\typst-gather\target\release\typst-gather.exe "!QUARTO_BIN_PATH!\tools\x86_64\"
+
 endlocal & set QUARTO_BIN_DEV=%QUARTO_BIN_PATH%
 
-GOTO :eof
-
-:denoRunning
-
-echo Please ensure no instances of `deno.exe` are running before configuring.
-echo (Deno might be running as an LSP if you have Visual Studio Code open.)
 GOTO :eof

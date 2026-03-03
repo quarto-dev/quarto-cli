@@ -1,0 +1,95 @@
+---
+title: "Custom Geometry: Wide Margins"
+papersize: us-letter
+grid:
+  margin-width: 3in
+  gutter-width: 0.5in
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # outer block contains width: 3.000in (margin column) and sep: 0.500in (gutter)
+        - ['outer:', 'width: 3.000in', 'sep: 0.500in']
+        - []
+      ensurePdfRegexMatches:
+        - - 'Figure 1'
+          - 'Figure 2'
+          - 'Wide margin'
+          - 'This is a note'
+        - []
+      ensurePdfTextPositions:
+        - # Margin notes are in margin (rightOf body text) with wide geometry
+          - subject: "This is a note"
+            relation: rightOf
+            object: "Wide Margin Layout"
+          - subject: "This is a note"
+            relation: above
+            object: "Additional context"
+        - []
+      noErrors: default
+---
+
+```{r}
+#| label: setup
+#| echo: false
+library(ggplot2)
+```
+
+## Wide Margin Layout Test
+
+This document tests a wide margin configuration with 3-inch margin notes and 0.5-inch gutter.
+[This is a note in the wide 3-inch margin column. It has plenty of room for detailed annotations.]{.aside}
+
+The text column is narrower to accommodate the larger margin area.
+[Additional context can be placed here without feeling cramped.]{.aside}
+
+```{r}
+#| label: fig-wide-margin-1
+#| echo: false
+#| fig-cap: "Sine waves with wide margin (seed 42)"
+
+set.seed(42)
+x <- seq(0, 4 * pi, length.out = 200)
+df <- data.frame(
+  x = rep(x, 3),
+  y = c(sin(x), sin(2 * x + runif(1)) * 0.7 + rnorm(200, 0, 0.05),
+        sin(0.5 * x + runif(1)) * 0.8 + rnorm(200, 0, 0.05)),
+  wave = rep(c("Wave 1", "Wave 2", "Wave 3"), each = 200)
+)
+ggplot(df, aes(x, y, color = wave)) +
+  geom_line(linewidth = 1) +
+  theme_minimal() +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "bottom")
+```
+
+[Wide margin layouts are ideal for documents with extensive annotations, like academic papers or technical documentation.]{.aside}
+
+Another figure with different data to verify cross-references work correctly.
+
+```{r}
+#| label: fig-wide-margin-2
+#| echo: false
+#| fig-cap: "Cosine waves with noise (seed 123)"
+
+set.seed(123)
+x <- seq(0, 4 * pi, length.out = 200)
+df <- data.frame(
+  x = rep(x, 3),
+  y = c(cos(x) + rnorm(200, 0, 0.03),
+        cos(2 * x) * 0.6 + rnorm(200, 0, 0.04),
+        cos(0.3 * x) * 1.2 + rnorm(200, 0, 0.02)),
+  wave = rep(c("Primary", "Harmonic", "Subharmonic"), each = 200)
+)
+ggplot(df, aes(x, y, color = wave)) +
+  geom_line(linewidth = 1) +
+  theme_minimal() +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "bottom")
+```
+
+References: See @fig-wide-margin-1 and @fig-wide-margin-2 for the wave plots.
