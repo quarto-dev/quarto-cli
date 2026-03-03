@@ -75,7 +75,6 @@ function latexPanel(layout)
   end
   
   vAlign = validatedVAlign(vAlign)
-  layout.attributes[kLayoutVAlign] = nil
 
   for i, row in ipairs(layout.rows.content) do
     
