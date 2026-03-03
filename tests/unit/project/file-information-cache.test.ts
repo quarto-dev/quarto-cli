@@ -9,7 +9,7 @@
 
 import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts";
-import { join } from "../../../src/deno_ral/path.ts";
+import { join, relative } from "../../../src/deno_ral/path.ts";
 import {
   ensureFileInformationCache,
   FileInformationCacheMap,
@@ -104,6 +104,29 @@ unitTest(
     assert(
       project.fileInformationCache instanceof FileInformationCacheMap,
       "Should create FileInformationCacheMap, not plain Map",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "fileInformationCache - relative and absolute paths share same entry",
+  async () => {
+    const project = createMockProjectContext();
+
+    const absolutePath = join(project.dir, "subdir", "page.qmd");
+    const relativePath = relative(Deno.cwd(), absolutePath);
+
+    const entry1 = ensureFileInformationCache(project, relativePath);
+    const entry2 = ensureFileInformationCache(project, absolutePath);
+
+    assert(
+      entry1 === entry2,
+      "Relative and absolute paths to same file should share a cache entry",
+    );
+    assert(
+      project.fileInformationCache.size === 1,
+      "Should have exactly one cache entry",
     );
   },
 );
