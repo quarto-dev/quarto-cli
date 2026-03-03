@@ -1,0 +1,127 @@
+---
+title: Email Recipients - All Patterns (R)
+author: Jules Walzer-Goldfeld
+format:
+    email:
+        email-version: 2
+---
+
+```{r}
+#| echo: false
+# Simple metadata block writer for testing
+# (Ideally we use the quarto R package: install.packages("quarto"))
+# We are awiting PR #
+write_yaml_metadata_block <- function(...) {
+  args <- list(...)
+  if (length(args) == 0) {
+    return()
+  }
+
+  yaml_content <- yaml::as.yaml(args)
+  yaml_block <- paste0("---\n", yaml_content, "---\n")
+  knitr::asis_output(yaml_block)
+}
+```
+
+Test document demonstrating all recipient patterns with R.
+
+```{r}
+# Email 1: Static inline recipients
+static_recipients <- c("alice@example.com", "bob@example.com", "charlie@example.com")
+```
+
+::: {.email}
+
+::: {.subject}
+Email 1: Static Inline Recipients
+:::
+
+::: {.recipients}
+`{r} static_recipients`
+:::
+
+::: {.email-text}
+Text version of email with static inline recipients.
+:::
+
+First email with static inline recipients.
+
+:::
+
+```{r}
+# Email 2: Conditional inline recipients
+is_weekday <- TRUE # Fixed value for deterministic testing
+
+if (is_weekday) {
+  conditional_recipients <- c("weekday@example.com", "team@example.com")
+} else {
+  conditional_recipients <- c("weekend@example.com")
+}
+```
+
+::: {.email}
+
+::: {.subject}
+Email 2: Conditional Inline Recipients
+:::
+
+::: {.recipients}
+`{r} conditional_recipients`
+:::
+
+::: {.email-text}
+Text version of conditional recipients email.
+:::
+
+Second email with conditional inline recipients.
+
+:::
+
+```{r}
+#| output: asis
+# Email 3: Metadata attribute pattern
+metadata_recipients <- c("metadata1@example.com", "metadata2@example.com")
+write_yaml_metadata_block(metadata_recipients = metadata_recipients)
+```
+
+::: {.email recipients=metadata_recipients}
+
+::: {.subject}
+Email 3: Metadata Attribute Pattern
+:::
+
+::: {.email-text}
+This email uses the metadata attribute pattern.
+:::
+
+Third email using metadata attribute pattern.
+
+:::
+
+```{r}
+#| output: asis
+# Email 4: Conditional metadata attribute pattern
+is_admin <- TRUE # Fixed for testing
+
+if (is_admin) {
+  admin_recipients <- c("admin@example.com", "superuser@example.com")
+} else {
+  admin_recipients <- c("user@example.com")
+}
+
+write_yaml_metadata_block(admin_recipients = admin_recipients)
+```
+
+::: {.email recipients=admin_recipients}
+
+::: {.subject}
+Email 4: Conditional Metadata Attribute
+:::
+
+::: {.email-text}
+This email uses conditional metadata attribute pattern.
+:::
+
+Fourth email using conditional metadata attribute pattern.
+
+:::

@@ -42,6 +42,7 @@ All changes included in 1.9:
 
 - ([#13882](https://github.com/quarto-dev/quarto-cli/pull/13882)): Add support for multiple email outputs when rendering to `format: email` for Posit Connect.
 - ([#14021](https://github.com/quarto-dev/quarto-cli/issues/14021)): Add `email-version` hook to override detected Connect version when rendering emails for Posit Connect.
+- ([#14098](https://github.com/quarto-dev/quarto-cli/pull/14098)): Add support for dynamic email recipients computed via Python or R code.
 
 ### `html`
 
