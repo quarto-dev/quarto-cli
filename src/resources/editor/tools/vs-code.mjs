@@ -12221,8 +12221,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "logo-light-dark-specifier-path-optional",
-          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
           anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
             {
               ref: "logo-specifier-path-optional"
             },
@@ -14589,42 +14594,6 @@ var require_yaml_intelligence_resources = __commonJS({
             ref: "epub-contributor"
           },
           description: "Contributors to this publication."
-        },
-        {
-          name: "subject",
-          tags: {
-            formats: [
-              "$epub-all"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              {
-                object: {
-                  closed: true,
-                  properties: {
-                    text: {
-                      string: {
-                        description: "The subject text."
-                      }
-                    },
-                    authority: {
-                      string: {
-                        description: "An EPUB reserved authority value."
-                      }
-                    },
-                    term: {
-                      string: {
-                        description: "The subject term (defined by the schema)."
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          description: "The subject of the publication."
         },
         {
           name: "type",
@@ -17269,12 +17238,39 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "subject",
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    text: {
+                      string: {
+                        description: "The subject text."
+                      }
+                    },
+                    authority: {
+                      string: {
+                        description: "An EPUB reserved authority value."
+                      }
+                    },
+                    term: {
+                      string: {
+                        description: "The subject term (defined by the schema)."
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
           tags: {
             formats: [
               "$pdf-all",
               "$office-all",
-              "odt"
+              "odt",
+              "$epub-all"
             ]
           },
           description: "The document subject"
@@ -20737,6 +20733,9 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           comments: {
             title: "Comments"
+          },
+          a11y: {
+            title: "Accessibility"
           },
           includes: {
             title: "Includes"
@@ -25375,12 +25374,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222774,
+        _internalId: 222775,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222766,
+            _internalId: 222767,
             type: "enum",
             enum: [
               "png",
@@ -25396,7 +25395,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222773,
+            _internalId: 222774,
             type: "anyOf",
             anyOf: [
               {
