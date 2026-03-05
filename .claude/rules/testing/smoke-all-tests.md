@@ -63,6 +63,21 @@ _quarto:
         - ['\\begin\{figure\}']
 ```
 
+### Regex Match Array Format
+
+`ensureFileRegexMatches` (and variants like `ensureTypstFileRegexMatches`, `ensureLatexFileRegexMatches`) takes two arrays:
+
+```yaml
+ensureFileRegexMatches:
+  -                                   # First array: patterns that MUST match
+    - "pattern1"
+    - "pattern2"
+  -                                   # Second array (optional): patterns that must NOT match
+    - "forbidden-pattern"
+```
+
+Both patterns in the first array must be found. Any pattern in the second array causes failure if found.
+
 ### Message Verification
 
 Lua `warn()` appears as `level: INFO` on TypeScript side:
