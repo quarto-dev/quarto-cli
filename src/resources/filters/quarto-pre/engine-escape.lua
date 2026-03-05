@@ -3,39 +3,39 @@
 
 local patterns = require("modules/patterns")
 
--- Line-by-line replacement for the pattern (\n?[^`\n]+`+){({+([^<}]+)}+)}
--- which suffers from O(n^2) backtracking on long lines without backticks.
--- See https://github.com/quarto-dev/quarto-cli/issues/14156
---
--- The original pattern cannot cross newlines (due to [^`\n]+), so processing
--- per-line is semantically equivalent and avoids catastrophic backtracking.
-local line_pattern = "([^`\n]+`+)" .. patterns.engine_escape
-local function unescape_inline_engine_codes(text)
-  if not text:find("{{", 1, true) then
-    return text
-  end
-  local result = {}
-  local pos = 1
-  local len = #text
-  while pos <= len do
-    local nl = text:find("\n", pos, true)
-    local line
-    if nl then
-      line = text:sub(pos, nl)
-      pos = nl + 1
-    else
-      line = text:sub(pos)
-      pos = len + 1
-    end
-    if line:find("`", 1, true) and line:find("{{", 1, true) then
-      line = line:gsub(line_pattern, "%1%2")
-    end
-    result[#result + 1] = line
-  end
-  return table.concat(result)
-end
-
 function engine_escape()
+  -- Line-by-line replacement for the pattern (\n?[^`\n]+`+){({+([^<}]+)}+)}
+  -- which suffers from O(n^2) backtracking on long lines without backticks.
+  -- See https://github.com/quarto-dev/quarto-cli/issues/14156
+  --
+  -- The original pattern cannot cross newlines (due to [^`\n]+), so processing
+  -- per-line is semantically equivalent and avoids catastrophic backtracking.
+  local line_pattern = "([^`\n]+`+)" .. patterns.engine_escape
+  local function unescape_inline_engine_codes(text)
+    if not text:find("{{", 1, true) then
+      return text
+    end
+    local result = {}
+    local pos = 1
+    local len = #text
+    while pos <= len do
+      local nl = text:find("\n", pos, true)
+      local line
+      if nl then
+        line = text:sub(pos, nl)
+        pos = nl + 1
+      else
+        line = text:sub(pos)
+        pos = len + 1
+      end
+      if line:find("`", 1, true) and line:find("{{", 1, true) then
+        line = line:gsub(line_pattern, "%1%2")
+      end
+      result[#result + 1] = line
+    end
+    return table.concat(result)
+  end
+
   return {
     CodeBlock = function(el)
 
