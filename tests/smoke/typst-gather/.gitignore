@@ -2,7 +2,10 @@
 _extensions/test-format/typst/
 with-config/_extensions/config-format/typst/
 with-local/_extensions/local-format/typst/
+with-transitive-deps/_extensions/transitive-format/typst/
 
-# Generated config files
-typst-gather.toml
+# Generated config files (only at top level and in test dirs that generate them)
+/typst-gather.toml
 with-local/typst-gather.toml.bak
+with-transitive-deps/typst-gather.toml.bak
+empty-extension/typst-gather.toml
