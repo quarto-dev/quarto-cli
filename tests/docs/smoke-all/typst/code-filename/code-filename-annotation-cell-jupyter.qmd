@@ -9,7 +9,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'quarto-code-filename\('
+          - 'quarto-code-filename\("hello\.py"\)\[\s*#Skylighting\(annotations:'
           - "quarto-annotation-item"
           - "annotations:"
         - []
@@ -17,10 +17,7 @@ _quarto:
 
 ```{python}
 #| filename: "hello.py"
-x = 1  # <1>
-y = 2
-z = x + y  # <2>
+print("Hello, world!")  # <1>
 ```
 
-1. Assign x.
-2. Compute sum.
+1. Print a greeting.
