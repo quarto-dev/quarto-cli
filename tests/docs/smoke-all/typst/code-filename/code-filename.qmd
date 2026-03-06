@@ -1,5 +1,5 @@
 ---
-title: Code Filename Bar
+title: Code Filename (Code Block)
 format:
   typst:
     keep-typ: true
