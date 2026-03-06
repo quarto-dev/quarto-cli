@@ -207,7 +207,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
 
   // Annotation markers emitted by the Lua filter as Typst comments
   const annotationMarkerRe =
-    /\/\/ quarto-code-annotations: (\([^)]*\))\n\s*#Skylighting\(/g;
+    /\/\/ quarto-code-annotations: (\([^)]*\))\n(\s*(?:#block\[\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
 
   return async (output: string) => {
     let content = Deno.readTextFileSync(output);
@@ -260,10 +260,11 @@ function skylightingPostProcessor(brandBgColor?: string) {
       }
     }
 
-    // Merge annotation markers into Skylighting call sites
+    // Merge annotation markers into Skylighting call sites, including
+    // optional #block[ wrappers and #quarto-code-filename(...)[ wrappers.
     const merged = content.replace(
       annotationMarkerRe,
-      "#Skylighting(annotations: $1, ",
+      "$2#Skylighting(annotations: $1, ",
     );
     if (merged !== content) {
       content = merged;
