@@ -35,11 +35,14 @@
 
 // Derive a contrasting annotation colour from a background fill.
 // Light backgrounds get dark circles; dark backgrounds get light circles.
-// Uses relative luminance: 0.2126R + 0.7152G + 0.0722B.
 #let quarto-annote-color(bg) = {
   if type(bg) == color {
-    let (r, g, b, ..) = bg.components(alpha: false)
-    let lum = 0.2126 * r / 100% + 0.7152 * g / 100% + 0.0722 * b / 100%
+    let comps = bg.components(alpha: false)
+    let lum = if comps.len() == 1 {
+      comps.at(0) / 100%
+    } else {
+      0.2126 * comps.at(0) / 100% + 0.7152 * comps.at(1) / 100% + 0.0722 * comps.at(2) / 100%
+    }
     if lum < 0.5 { luma(200) } else { luma(60) }
   } else {
     luma(60)
