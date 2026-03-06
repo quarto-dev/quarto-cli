@@ -7,19 +7,18 @@
 import { Command } from "cliffy/command/mod.ts";
 import { info } from "../../../deno_ral/log.ts";
 
-import { architectureToolsPath } from "../../../core/resources.ts";
 import { execProcess } from "../../../core/process.ts";
 import { dirname, join, relative } from "../../../deno_ral/path.ts";
 import { existsSync } from "../../../deno_ral/fs.ts";
-import { isWindows } from "../../../deno_ral/platform.ts";
 import { expandGlobSync } from "../../../core/deno/expand-glob.ts";
 import { readYaml } from "../../../core/yaml.ts";
-
-// Convert path to use forward slashes for TOML compatibility
-// TOML treats backslash as escape character, so Windows paths must use forward slashes
-function toTomlPath(p: string): string {
-  return p.replace(/\\/g, "/");
-}
+import {
+  type AnalyzeImport,
+  type AnalyzeResult,
+  runAnalyze,
+  toTomlPath,
+  typstGatherBinaryPath,
+} from "../../../core/typst-gather.ts";
 
 interface ExtensionYml {
   contributes?: {
@@ -163,55 +162,7 @@ async function resolveConfig(
   };
 }
 
-export interface AnalyzeImport {
-  namespace: string;
-  name: string;
-  version: string;
-  source: string;
-  direct: boolean;
-}
-
-export interface AnalyzeResult {
-  imports: AnalyzeImport[];
-  files: string[];
-}
-
-function typstGatherBinaryPath(): string {
-  const binaryName = isWindows ? "typst-gather.exe" : "typst-gather";
-  const binary = Deno.env.get("QUARTO_TYPST_GATHER") ||
-    architectureToolsPath(binaryName);
-
-  if (!existsSync(binary)) {
-    throw new Error(
-      `typst-gather binary not found.\n` +
-        `Run ./configure.sh to build and install it.`,
-    );
-  }
-
-  return binary;
-}
-
-async function runAnalyze(tomlConfig: string): Promise<AnalyzeResult> {
-  const binary = typstGatherBinaryPath();
-
-  const result = await execProcess(
-    {
-      cmd: binary,
-      args: ["analyze", "-"],
-      stdout: "piped",
-      stderr: "piped",
-    },
-    tomlConfig,
-  );
-
-  if (!result.success) {
-    throw new Error(
-      result.stderr || "typst-gather analyze failed",
-    );
-  }
-
-  return JSON.parse(result.stdout!) as AnalyzeResult;
-}
+export type { AnalyzeImport, AnalyzeResult };
 
 export function generateConfigFromAnalysis(
   result: AnalyzeResult,

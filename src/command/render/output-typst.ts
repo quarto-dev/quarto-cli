@@ -48,70 +48,150 @@ import {
   TypstCompileOptions,
   validateRequiredTypstVersion,
 } from "../../core/typst.ts";
+import { runAnalyze, toTomlPath } from "../../core/typst-gather.ts";
 import { asArray } from "../../core/array.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { validatePdfStandards } from "../../core/verapdf.ts";
 
-// Stage typst packages to .quarto/typst-packages/
-// First stages built-in packages, then extension packages (which can override)
-async function stageTypstPackages(
+export interface NeededPackage {
+  namespace: string;
+  name: string;
+  version: string;
+}
+
+// Collect all package source directories (built-in + extensions)
+async function collectPackageSources(
   input: string,
-  projectDir?: string,
-): Promise<string | undefined> {
-  if (!projectDir) {
-    return undefined;
-  }
+  projectDir: string,
+): Promise<string[]> {
+  const sources: string[] = [];
 
-  const packageSources: string[] = [];
-
-  // 1. Add built-in packages from quarto resources
+  // 1. Built-in packages
   const builtinPackages = resourcePath("formats/typst/packages");
   if (existsSync(builtinPackages)) {
-    packageSources.push(builtinPackages);
+    sources.push(builtinPackages);
   }
 
-  // 2. Add packages from extensions (can override built-in)
+  // 2. Extension packages
   const extensionDirs = inputExtensionDirs(input, projectDir);
   const subtreePath = builtinSubtreeExtensions();
   for (const extDir of extensionDirs) {
-    // Use readSubtreeExtensions for subtree directory, readExtensions for others
     const extensions = extDir === subtreePath
       ? await readSubtreeExtensions(extDir)
       : await readExtensions(extDir);
     for (const ext of extensions) {
       const packagesDir = join(ext.path, "typst/packages");
       if (existsSync(packagesDir)) {
-        packageSources.push(packagesDir);
+        sources.push(packagesDir);
       }
     }
   }
 
+  return sources;
+}
+
+// Build the TOML config string for typst-gather analyze
+export function buildAnalyzeToml(
+  typstInput: string,
+  packageSources: string[],
+): string {
+  const discoverPath = toTomlPath(typstInput);
+  const cachePaths = packageSources.map((p) => `"${toTomlPath(p)}"`).join(", ");
+
+  return [
+    `discover = ["${discoverPath}"]`,
+    `package-cache = [${cachePaths}]`,
+  ].join("\n");
+}
+
+// Run typst-gather analyze on the .typ file to determine needed packages
+async function analyzeNeededPackages(
+  typstInput: string,
+  packageSources: string[],
+): Promise<NeededPackage[] | null> {
+  const tomlConfig = buildAnalyzeToml(typstInput, packageSources);
+
+  try {
+    const result = await runAnalyze(tomlConfig);
+    return result.imports.map(({ namespace, name, version }) => ({
+      namespace,
+      name,
+      version,
+    }));
+  } catch {
+    // Fallback: if analyze fails, stage everything (current behavior)
+    warning("typst-gather analyze failed; staging all packages as fallback");
+    return null;
+  }
+}
+
+// Stage only the needed packages from source dirs into the cache dir.
+// Last write wins — extensions (listed after built-in) override built-in packages.
+export function stageSelectedPackages(
+  sources: string[],
+  cacheDir: string,
+  needed: NeededPackage[] | null,
+): void {
+  if (needed === null) {
+    stageAllPackages(sources, cacheDir);
+    return;
+  }
+
+  for (const pkg of needed) {
+    const relPath = join(pkg.namespace, pkg.name, pkg.version);
+    const destPath = join(cacheDir, relPath);
+
+    for (const source of sources) {
+      const srcPath = join(source, relPath);
+      if (existsSync(srcPath)) {
+        ensureDirSync(dirname(destPath));
+        copySync(srcPath, destPath, { overwrite: true });
+      }
+    }
+  }
+}
+
+// Fallback: copy all packages from all sources. Last write wins at the
+// package directory level. Built-in listed first, extensions after.
+export function stageAllPackages(sources: string[], cacheDir: string): void {
+  for (const source of sources) {
+    for (const nsEntry of Deno.readDirSync(source)) {
+      if (!nsEntry.isDirectory) continue;
+      const nsSrc = join(source, nsEntry.name);
+      const nsDest = join(cacheDir, nsEntry.name);
+      ensureDirSync(nsDest);
+      for (const pkgEntry of Deno.readDirSync(nsSrc)) {
+        const pkgSrc = join(nsSrc, pkgEntry.name);
+        const pkgDest = join(nsDest, pkgEntry.name);
+        copySync(pkgSrc, pkgDest, { overwrite: true });
+      }
+    }
+  }
+}
+
+// Stage typst packages to .quarto/typst-packages/
+// First stages built-in packages, then extension packages (which can override)
+async function stageTypstPackages(
+  input: string,
+  typstInput: string,
+  projectDir?: string,
+): Promise<string | undefined> {
+  if (!projectDir) {
+    return undefined;
+  }
+
+  const packageSources = await collectPackageSources(input, projectDir);
   if (packageSources.length === 0) {
     return undefined;
   }
 
-  // Stage to .quarto/typst/packages/
-  const cacheDir = projectScratchPath(projectDir, "typst/packages");
+  const neededPackages = await analyzeNeededPackages(
+    typstInput,
+    packageSources,
+  );
 
-  // Copy contents of each source directory (merging namespaces like "preview", "local")
-  for (const source of packageSources) {
-    for (const entry of Deno.readDirSync(source)) {
-      const srcPath = join(source, entry.name);
-      const destPath = join(cacheDir, entry.name);
-      if (!existsSync(destPath)) {
-        copySync(srcPath, destPath);
-      } else if (entry.isDirectory) {
-        // Merge directory contents (e.g., merge packages within "preview" namespace)
-        for (const subEntry of Deno.readDirSync(srcPath)) {
-          const subSrcPath = join(srcPath, subEntry.name);
-          const subDestPath = join(destPath, subEntry.name);
-          if (!existsSync(subDestPath)) {
-            copySync(subSrcPath, subDestPath);
-          }
-        }
-      }
-    }
-  }
+  const cacheDir = projectScratchPath(projectDir, "typst/packages");
+  stageSelectedPackages(packageSources, cacheDir, neededPackages);
 
   return cacheDir;
 }
@@ -166,7 +246,11 @@ export function typstPdfOutputRecipe(
       typstOptions.rootDir = project.dir;
 
       // Stage extension typst packages
-      const packagePath = await stageTypstPackages(input, project.dir);
+      const packagePath = await stageTypstPackages(
+        input,
+        typstInput,
+        project.dir,
+      );
       if (packagePath) {
         typstOptions.packagePath = packagePath;
       }
