@@ -198,7 +198,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     }) or pandoc.Blocks({})
     local blocks = pandoc.Blocks({})
     blocks:insert(pandoc.RawBlock("typst",
-      '#quarto-code-block(filename: "' .. node.filename .. '")['))
+      '#quarto-code-filename("' .. node.filename .. '")['))
     blocks:extend(rendered)
     blocks:insert(pandoc.RawBlock("typst", "]"))
     return pandoc.Div(blocks)

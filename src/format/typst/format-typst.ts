@@ -217,10 +217,10 @@ function skylightingPostProcessor(brandBgColor?: string) {
     if (match) {
       let fn = match[1];
 
-      // Fix block() call: add width, inset, radius
+      // Fix block() call: add width, inset, radius, stroke
       fn = fn.replace(
         "block(fill: bgcolor, blocks)",
-        "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks)",
+        "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, stroke: 0.5pt + luma(200), blocks)",
       );
 
       // Override bgcolor with brand monospace-block background-color
@@ -243,21 +243,15 @@ function skylightingPostProcessor(brandBgColor?: string) {
         "lnum = lnum + 1\n     if number {\n",
       );
 
-      // Add annotation rendering per line
+      // Add annotation rendering per line (derive circle colour from bgcolor)
       fn = fn.replace(
         "blocks = blocks + ln + EndLine()",
         `let annote-num = annotations.at(str(lnum), default: none)
      if annote-num != none {
-       blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-circled-number(annote-num)] + EndLine()
+       blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
      } else {
        blocks = blocks + ln + EndLine()
      }`,
-      );
-
-      // Route through unified quarto-code-block wrapper
-      fn = fn.replace(
-        /block\(fill: bgcolor,[^)]*blocks\)/,
-        "quarto-code-block(fill: bgcolor, blocks)",
       );
 
       if (fn !== match[1]) {
@@ -269,7 +263,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
     // Merge annotation markers into Skylighting call sites
     const merged = content.replace(
       annotationMarkerRe,
-      "#Skylighting(annotations: $1, (",
+      "#Skylighting(annotations: $1, ",
     );
     if (merged !== content) {
       content = merged;
