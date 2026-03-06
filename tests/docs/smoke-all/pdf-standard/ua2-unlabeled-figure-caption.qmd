@@ -1,5 +1,5 @@
 ---
-title: "UA-2: unlabeled figure caption produces invalid structure"
+title: "UA-2: unlabeled figure caption"
 lang: en
 format:
   pdf:
@@ -14,34 +14,15 @@ _quarto:
       noErrors: default
       ensureLatexFileRegexMatches:
         - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-2\}', 'tagging=on']
-        - []
-      printsMessage:
-        # Known issue: unlabeled captioned figures go through pandoc3_figure.lua
-        # which produces a bare \begin{figure}[H] environment. LaTeX's tagpdf
-        # places <Caption> as a sibling of <Figure> under <Document> instead of
-        # nesting them inside a grouping element. This violates UA-2 which
-        # requires <Caption> to be a child of <Figure>, <Table>, or <Formula>.
-        #
-        # Labeled figures ({#fig-label}) go through FloatRefTarget, which wraps
-        # the figure in a \Div that provides the grouping context tagpdf needs.
-        #
-        # Structure produced (invalid):
-        #   /Document
-        #     /Caption    <- should be inside a grouping element
-        #     /Figure     <- sibling instead of parent
-        #
-        # Expected (valid, as produced by labeled figures):
-        #   /Document
-        #     /Div
-        #       /Caption  <- properly nested
-        #       /Figure
-        level: WARN
-        regex: "PDF validation failed for ua-2"
+        # Must NOT have \begin{figure}[H] — [H] breaks PDF tag structure
+        # See https://github.com/quarto-dev/quarto-cli/issues/14164
+        - ['\\begin\{figure\}\[H\]']
 ---
 
-# Known LaTeX tagging limitation
+# Unlabeled captioned figure
 
-An unlabeled captioned figure produces invalid UA-2 structure because
-tagpdf does not nest `<Caption>` inside a grouping element.
+An unlabeled captioned figure. Previously this produced invalid UA-2
+structure because `[H]` placement broke lualatex's tag tree. With
+`[htbp]` the tag structure is correct.
 
 ![This is a caption on an unlabeled figure](penrose.svg)

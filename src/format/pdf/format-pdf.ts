@@ -352,6 +352,12 @@ function createPdfFormat(
             extras.metadata = extras.metadata || {};
             extras.metadata[kPdfStandardApplied] = standards;
           }
+          // Expose tagging state to Lua filters so they can adjust
+          // figure placement (e.g., avoid [H] which breaks tag structure)
+          if (needsTagging) {
+            extras.metadata = extras.metadata || {};
+            extras.metadata["pdf-tagging"] = true;
+          }
         }
 
         return extras;

@@ -260,7 +260,8 @@ function render_latex()
       if f ~= nil then
         noteHasColumns()
         el.content = strip(el.content, f)
-        tprepend(el.content, {pandoc.RawBlock("latex", "\\begin{figure*}[H]")})
+        local star_pos = option("pdf-tagging", false) and "h" or "H"
+        tprepend(el.content, {pandoc.RawBlock("latex", "\\begin{figure*}[" .. star_pos .. "]")})
         tappend(el.content, {pandoc.RawBlock("latex", "\\end{figure*}")})
         return el, false
       end
@@ -268,6 +269,10 @@ function render_latex()
   end
 
   local function handle_panel_layout(panel)
+    -- Use [htbp] instead of [H] when PDF tagging is active.
+    -- [H] (float package) breaks lualatex's tag structure.
+    -- See https://github.com/quarto-dev/quarto-cli/issues/14164
+    local forced_pos = option("pdf-tagging", false) and "h" or "H"
     panel.rows = _quarto.ast.walk(panel.rows, {
       FloatRefTarget = function(float)
         if float.attributes["ref-parent"] == nil then
@@ -278,14 +283,14 @@ function render_latex()
             -- give up
             return nil
           end
-          float.attributes[ref .. "-pos"] = "H"
+          float.attributes[ref .. "-pos"] = forced_pos
           return float
         end
       end,
       Figure = function(figure)
         if figure.identifier ~= nil then
           local ref = refType(figure.identifier) or "fig"
-          figure.attributes[ref .. "-pos"] = "H"
+          figure.attributes[ref .. "-pos"] = forced_pos
         end
         return figure
       end
@@ -337,11 +342,12 @@ function render_latex()
           end
         })
       end
+      local panel_pos = option("pdf-tagging", false) and "h" or "H"
       float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
         PanelLayout = function(panel)
-          panel.attributes["fig-pos"] = "H"
+          panel.attributes["fig-pos"] = panel_pos
           return panel
-        end 
+        end
       })
       return float, false
     end,

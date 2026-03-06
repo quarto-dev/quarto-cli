@@ -1,0 +1,35 @@
+---
+title: "Code chunk figure tag structure"
+lang: en
+format:
+  pdf:
+    pdf-standard: ua-2
+    keep-tex: true
+_quarto:
+  tests:
+    run:
+      # verapdf validation not available on Windows CI
+      not_os: windows
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-2\}', 'tagging=on', '\\begin\{figure\}']
+        # Must NOT have \begin{figure}[H] — [H] breaks PDF tag structure
+        # See https://github.com/quarto-dev/quarto-cli/issues/14164
+        - ['\\begin\{figure\}\[H\]']
+---
+
+# Code chunk figure with cross-ref
+
+R code chunk figures with `fig-cap` get automatic `fig-pos='H'` when code is echoed.
+The `[H]` specifier (from LaTeX's `float` package) breaks lualatex's PDF tagging,
+causing `/Caption` and `/Figure` to be direct children of `/Document` instead of
+nested inside `/figures` → `/float`.
+
+```{r}
+#| label: fig-test-plot
+#| fig-cap: "Test plot"
+plot(1:10)
+```
+
+See @fig-test-plot.

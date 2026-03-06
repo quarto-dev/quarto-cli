@@ -124,9 +124,13 @@ function render_pandoc3_figure()
       -- if this ends up in a layout without fig-pos = H, it'll fail
       -- 'H' forces it to not float
       if figure.identifier == "" then
+        -- Use [htbp] instead of [H] when PDF tagging is active.
+        -- [H] (float package) breaks lualatex's tag structure.
+        -- See https://github.com/quarto-dev/quarto-cli/issues/14164
+        local forced_pos = option("pdf-tagging", false) and "h" or "H"
         figure = _quarto.ast.walk(figure, {
           Image = function(image)
-            image.attributes['fig-pos'] = 'H'
+            image.attributes['fig-pos'] = forced_pos
             return image
           end
         })

@@ -14,6 +14,14 @@ function quarto_pre_figures()
     if el.attributes[kFigPos] == "FALSE" then
       el.attributes[kFigPos] = nil
     end
+    -- Replace fig-pos='H' with 'htbp' when PDF tagging is active.
+    -- The [H] specifier (float package) breaks lualatex's tag structure,
+    -- causing /Caption and /Figure to be direct children of /Document.
+    -- Standard [htbp] works correctly with tagging.
+    -- See https://github.com/quarto-dev/quarto-cli/issues/14164
+    if el.attributes[kFigPos] == "H" and option("pdf-tagging", false) then
+      el.attributes[kFigPos] = "h"
+    end
     local figEnv = param(kFigEnv)
     
     if figEnv and not el.attributes[kFigEnv] then
