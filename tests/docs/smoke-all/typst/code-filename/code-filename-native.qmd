@@ -1,8 +1,9 @@
 ---
-title: Code Filename (Code Block)
+title: Code Filename (Native)
 format:
   typst:
     keep-typ: true
+    syntax-highlighting: idiomatic
 _quarto:
   tests:
     typst:

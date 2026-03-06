@@ -10,8 +10,8 @@ _quarto:
       ensureTypstFileRegexMatches:
         - []
         -
-          - "quarto-annotation-item"
-          - "quarto-circled-number"
+          - '#quarto-annotation-item\('
+          - 'annotations: \("'
 ---
 
 ```python

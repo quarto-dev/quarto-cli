@@ -1,18 +1,25 @@
 ---
-title: Code Filename (Code Block)
+title: Code Filename + Annotation (Code Block)
 format:
   typst:
     keep-typ: true
+    code-annotations: true
 _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
         -
           - 'quarto-code-filename\('
+          - "quarto-annotation-item"
+          - "annotations:"
         - []
 ---
 
 ```{.python filename="example.py"}
-def hello():
-    print("Hello, world!")
+x = 1  # <1>
+y = 2
+z = x + y  # <2>
 ```
+
+1. Assign x.
+2. Compute sum.
