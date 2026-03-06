@@ -24,12 +24,48 @@
 
 // Some quarto-specific definitions.
 
-#show raw.where(block: true): set block(
-    fill: luma(230),
-    width: 100%,
-    inset: 8pt,
-    radius: 2pt
-  )
+// Code annotation support
+#let quarto-circled-number(n) = {
+  box(baseline: 15%, circle(
+    radius: 0.55em,
+    stroke: 0.5pt + text.fill,
+  )[#set text(size: 0.7em); #align(center + horizon, str(n))])
+}
+
+#let quarto-code-block(fill: luma(230), filename: none, annotations: (:), body) = {
+  // Prevent the outer show rule from re-wrapping inner raw blocks
+  show raw.where(block: true): it => it
+  // Handle annotations for native raw blocks (no-op when annotations is empty)
+  show raw.line: it => {
+    let annote-num = annotations.at(str(it.number), default: none)
+    if annote-num != none {
+      box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num)]
+    } else {
+      it
+    }
+  }
+  block(fill: fill, width: 100%, inset: 0pt, radius: 2pt, clip: true)[
+    #if filename != none {
+      block(
+        fill: fill.darken(10%),
+        width: 100%,
+        inset: (x: 8pt, y: 4pt),
+      )[#text(size: 0.85em, weight: "bold")[#filename]]
+    }
+    #block(inset: 8pt, width: 100%, body)
+  ]
+}
+
+#let quarto-annotation-item(n, content) = {
+  block(above: 0.4em, below: 0.4em)[
+    #quarto-circled-number(n)
+    #h(0.4em)
+    #content
+  ]
+}
+
+// Route all native raw code blocks through the unified wrapper
+#show raw.where(block: true): it => quarto-code-block(it)
 
 #let block_with_new_content(old_block, new_content) = {
   let fields = old_block.fields()
