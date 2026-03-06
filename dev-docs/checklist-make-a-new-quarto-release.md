@@ -32,17 +32,19 @@
       - [ ] change `docs/prerelease/_highlights.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.5)
       - [ ] change `docs/prerelease/_highlights-release.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.4)
     - [ ] add the stable version to the older downloads list by editing /docs/download/\_download-older.yml
-    - [ ] run `quarto run tools/release-notes.R` to generate the release notes
+    - [ ] run `quarto run tools/release-notes.R` to generate the release notes and bump `version` in `_quarto.yml` (to released version) and `_quarto-prerelease-docs.yml` (to next prerelease)
   - [ ] push the changes to `prerelease` branch, ensure they build correctly
   - [ ] Merge the `prerelease` branch into `main`, push to `main`
     - [ ] ensure the build completes successfully
+    - [ ] verify `_quarto.yml` `version` on `main` reflects the released version (e.g. `'1.4'`) — needed for `prerelease-docs-url` shortcode to resolve blog links to quarto.org
   - [ ] Merge `main` into `prerelease`, push to `prerelease`
     - [ ] ensure the build completes successfully
   - [ ] Create new tag on `main` with stable release version number (here, `v1.4`) to mark when the new main site version went live
     - [ ] `git tag -a v1.4 -m "v1.4"`
     - [ ] `git push origin v1.4`
-  - [ ] Update `prerelease` version number (here, `v1.5`)
-    - [ ] edit `_quarto-prerelease-docs.yml` to point to the new version
+  - [ ] Verify version numbers were updated by `tools/release-notes.R`
+    - [ ] `_quarto.yml` `version` should be the released version (e.g. `'1.4'`)
+    - [ ] `_quarto-prerelease-docs.yml` `version` should be the next prerelease (e.g. `'1.5'`)
   - [ ] publish the release blog post that should exist in https://github.com/quarto-dev/quarto-web/tree/main/docs/blog/posts
     - [ ] Create a branch off of `main` (to trigger our PR automation to make the corresponding change to `prerelease`).
     - [ ] Removing the `draft: true` line in the metadata
