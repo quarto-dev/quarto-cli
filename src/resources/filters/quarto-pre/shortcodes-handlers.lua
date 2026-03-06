@@ -267,8 +267,10 @@ function handleMeta(args, _kwargs, _meta, _raw_args, context)
       --
       -- differently to allow users to specify precisely the
       -- string they want to use.
-      if type(optionValue) == "table" and #optionValue > 0 and optionValue[1].t == "Str" then
+      if type(optionValue) == "table" and #optionValue == 1 and optionValue[1].t == "Str" then
         return optionValue[1].text
+      elseif pandoc.utils.type(optionValue) == "Inlines" then
+        return pandoc.utils.stringify(optionValue)
       else
         local blocks = pandoc.Blocks(optionValue)
         return pandoc.write(pandoc.Pandoc(blocks), "markdown")

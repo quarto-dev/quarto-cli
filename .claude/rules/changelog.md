@@ -65,7 +65,9 @@ For external contributors (not core team):
 
 ## Regression Fixes
 
-**What qualifies:** Bugs introduced in recent versions (same major.minor)
+**What qualifies:** Bugs introduced in a previous major.minor version (e.g., a 1.8 feature that broke in 1.9)
+
+**Skip changelog entirely** when the regression was introduced by another change in the same version cycle. For example, if a 1.9 bug fix introduced a new bug also fixed in 1.9, the fix does not need a changelog entry — the original entry covers the feature area.
 
 **Placement:** Always at TOP of the file, before Dependencies
 
