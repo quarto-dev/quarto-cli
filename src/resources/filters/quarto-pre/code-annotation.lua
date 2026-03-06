@@ -318,10 +318,6 @@ function processAnnotation(line, annoteNumber, annotationProvider)
     return stripped
 end
 
-function processTypstAnnotation(line, annoteNumber, annotationProvider)
-  local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
-  return stripped
-end
 
 function code_meta()
   return {
@@ -416,8 +412,6 @@ function code_annotations()
             annotationProcessor = processLaTeXAnnotation
           elseif _quarto.format.isAsciiDocOutput() then
             annotationProcessor = processAsciidocAnnotation
-          elseif _quarto.format.isTypstOutput() then
-            annotationProcessor = processTypstAnnotation
           end
 
           -- resolve annotations
@@ -561,7 +555,7 @@ function code_annotations()
                 local annotationNumber = block.start + i - 1
                 local annoteId = toAnnoteId(annotationNumber)
                 if pendingAnnotations[annoteId] then
-                  local content = pandoc.utils.stringify(v[1])
+                  local content = pandoc.write(pandoc.Pandoc({v[1]}), "typst")
                   annotationBlocks:insert(pandoc.RawBlock("typst",
                     "#quarto-annotation-item(" .. tostring(annotationNumber) .. ", [" .. content .. "])"))
                 end
