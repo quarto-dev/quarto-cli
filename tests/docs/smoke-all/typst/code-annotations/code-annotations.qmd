@@ -1,0 +1,25 @@
+---
+title: Code Annotations (Skylighting)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "quarto-circled-number"
+          - "quarto-annotation-item"
+          - "annotations:"
+        - []
+---
+
+```python
+x = 1  # <1>
+y = 2
+z = x + y  # <2>
+```
+
+1. Assign x.
+2. Compute sum.
