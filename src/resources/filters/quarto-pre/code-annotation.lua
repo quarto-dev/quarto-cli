@@ -113,7 +113,7 @@ local function typstAnnotationMarker(annotations)
   return pandoc.RawBlock("typst", "// quarto-code-annotations: " .. dict)
 end
 
--- Native/none mode: wrap a CodeBlock in #quarto-code-block(annotations: ...).
+-- Native/none mode: wrap a CodeBlock in #quarto-code-annotation(annotations)[...].
 -- raw.line numbers always start at 1 regardless of startFrom, so adjust keys.
 local function wrapTypstAnnotatedCode(codeBlock, annotations)
   local startFrom = tonumber(codeBlock.attr.attributes['startFrom']) or 1
@@ -133,7 +133,7 @@ local function wrapTypstAnnotatedCode(codeBlock, annotations)
     maxBackticks = math.max(maxBackticks, #seq)
   end
   local fence = string.rep("`", maxBackticks + 1)
-  local raw = "#quarto-code-block(annotations: " .. dict .. ")[" .. fence .. lang .. "\n" .. code .. "\n" .. fence .. "]"
+  local raw = "#quarto-code-annotation(" .. dict .. ")[" .. fence .. lang .. "\n" .. code .. "\n" .. fence .. "]"
   return pandoc.RawBlock("typst", raw)
 end
 
@@ -322,7 +322,8 @@ function processAnnotation(line, annoteNumber, annotationProvider)
 end
 
 function processTypstAnnotation(line, annoteNumber, annotationProvider)
-  return annotationProvider.stripAnnotation(line, annoteNumber)
+  local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
+  return stripped
 end
 
 function code_meta()
@@ -483,7 +484,9 @@ function code_annotations()
               -- output the pending code cell and continue
               flushPending()
 
-              if #block.content == 1 and #block.content[1].content == 1 then
+              if #block.content == 1 and #block.content[1].content == 1
+                  and block.content[1].content[1] ~= nil
+                  and block.content[1].content[1].t == "CodeBlock" then
                 -- Find the code block and process that
                 local codeblock = block.content[1].content[1]
 
@@ -493,13 +496,14 @@ function code_annotations()
                   if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
                     codeCell.attr.identifier = cellId;
                   end
-                  -- Typst DecoratedCodeBlock: emit annotation data
+                  -- Typst DecoratedCodeBlock: embed annotation data inside the block
+                  -- so the marker stays adjacent to the Skylighting call after rendering
                   if _quarto.format.isTypstOutput()
                       and codeAnnotations ~= constants.kCodeAnnotationStyleNone
                       and pendingAnnotations and next(pendingAnnotations) ~= nil then
                     if param(constants.kSyntaxHighlighting, true) then
-                      outputBlock(typstAnnotationMarker(pendingAnnotations))
                       block.content[1].content[1] = codeCell
+                      block.content[1].content:insert(1, typstAnnotationMarker(pendingAnnotations))
                     else
                       block.content[1].content[1] = wrapTypstAnnotatedCode(codeCell, pendingAnnotations)
                     end
@@ -582,16 +586,18 @@ function code_annotations()
                   end
                 })
 
-                if useSkylighting then
-                  outputBlock(typstAnnotationMarker(pendingAnnotations))
-                end
-
                 local dlDiv = pandoc.Div(annotationBlocks, pandoc.Attr("", {constants.kCellAnnotationClass}))
                 if is_custom_node(resolvedCell) then
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
-                  custom.content:insert(2, dlDiv)
+                  if useSkylighting then
+                    custom.content:insert(1, typstAnnotationMarker(pendingAnnotations))
+                  end
+                  custom.content:insert(dlDiv)
                 else
-                  resolvedCell.content:insert(2, dlDiv)
+                  if useSkylighting then
+                    resolvedCell.content:insert(1, typstAnnotationMarker(pendingAnnotations))
+                  end
+                  resolvedCell.content:insert(dlDiv)
                 end
                 outputBlock(resolvedCell)
               else

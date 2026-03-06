@@ -25,35 +25,48 @@
 // Some quarto-specific definitions.
 
 // Code annotation support
-#let quarto-circled-number(n) = {
+#let quarto-circled-number(n, color: none) = context {
+  let c = if color != none { color } else { text.fill }
   box(baseline: 15%, circle(
     radius: 0.55em,
-    stroke: 0.5pt + text.fill,
-  )[#set text(size: 0.7em); #align(center + horizon, str(n))])
+    stroke: 0.5pt + c,
+  )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])
 }
 
-#let quarto-code-block(fill: luma(230), filename: none, annotations: (:), body) = {
-  // Prevent the outer show rule from re-wrapping inner raw blocks
+// Derive a contrasting annotation colour from a background fill.
+// Light backgrounds get dark circles; dark backgrounds get light circles.
+// Uses relative luminance: 0.2126R + 0.7152G + 0.0722B.
+#let quarto-annote-color(bg) = {
+  if type(bg) == color {
+    let (r, g, b, ..) = bg.components(alpha: false)
+    let lum = 0.2126 * r / 100% + 0.7152 * g / 100% + 0.0722 * b / 100%
+    if lum < 0.5 { luma(200) } else { luma(60) }
+  } else {
+    luma(60)
+  }
+}
+
+#let quarto-code-filename(filename, body) = {
   show raw.where(block: true): it => it
-  // Handle annotations for native raw blocks (no-op when annotations is empty)
+  block(width: 100%, radius: 2pt, clip: true, stroke: 0.5pt + luma(200))[
+    #set block(spacing: 0pt)
+    #block(fill: luma(220), width: 100%, inset: (x: 8pt, y: 4pt))[
+      #text(size: 0.85em, weight: "bold")[#filename]]
+    #body
+  ]
+}
+
+#let quarto-code-annotation(annotations, color: luma(60), body) = {
+  show raw.where(block: true): it => it
   show raw.line: it => {
     let annote-num = annotations.at(str(it.number), default: none)
     if annote-num != none {
-      box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num)]
+      box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num, color: color)]
     } else {
       it
     }
   }
-  block(fill: fill, width: 100%, inset: 0pt, radius: 2pt, clip: true)[
-    #if filename != none {
-      block(
-        fill: fill.darken(10%),
-        width: 100%,
-        inset: (x: 8pt, y: 4pt),
-      )[#text(size: 0.85em, weight: "bold")[#filename]]
-    }
-    #block(inset: 8pt, width: 100%, body)
-  ]
+  body
 }
 
 #let quarto-annotation-item(n, content) = {
@@ -64,8 +77,11 @@
   ]
 }
 
-// Route all native raw code blocks through the unified wrapper
-#show raw.where(block: true): it => quarto-code-block(it)
+// Style native raw code blocks with default inset, radius, and stroke
+#show raw.where(block: true): it => block(
+  fill: luma(230), width: 100%, inset: 8pt, radius: 2pt,
+  stroke: 0.5pt + luma(200), it,
+)
 
 #let block_with_new_content(old_block, new_content) = {
   let fields = old_block.fields()
