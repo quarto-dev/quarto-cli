@@ -1,0 +1,5 @@
+---
+title: "No Packages Test"
+---
+
+Hello world. This document uses no typst packages.
