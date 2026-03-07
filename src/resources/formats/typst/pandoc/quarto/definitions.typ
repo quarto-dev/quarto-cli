@@ -60,13 +60,28 @@
 }
 
 #let quarto-code-annotation(annotations, cell-id: "", color: luma(60), body) = {
+  // Build a set of first-line positions per annotation number so that
+  // back-labels are only emitted once (avoiding duplicate labels when
+  // one annotation spans multiple lines).
+  let first-lines = (:)
+  for (line, num) in annotations {
+    let key = str(num)
+    if key not in first-lines or int(line) < int(first-lines.at(key)) {
+      first-lines.insert(key, line)
+    }
+  }
   show raw.where(block: true): it => it
   show raw.line: it => {
     let annote-num = annotations.at(str(it.number), default: none)
     if annote-num != none {
       if cell-id != "" {
         let lbl = cell-id + "-annote-" + str(annote-num)
-        box(width: 100%)[#it #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: color)] #label(lbl + "-back")]
+        let is-first = first-lines.at(str(annote-num), default: none) == str(it.number)
+        if is-first {
+          box(width: 100%)[#it #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: color)] #label(lbl + "-back")]
+        } else {
+          box(width: 100%)[#it #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: color)]]
+        }
       } else {
         box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num, color: color)]
       }
