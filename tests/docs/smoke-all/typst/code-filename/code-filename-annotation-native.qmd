@@ -12,6 +12,7 @@ _quarto:
         -
           - 'quarto-code-filename\('
           - "quarto-code-annotation"
+          - "cell-id:"
           - "quarto-annotation-item"
         - []
 ---

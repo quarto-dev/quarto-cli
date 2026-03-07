@@ -9,8 +9,9 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'quarto-code-filename\("hello\.py"\)\[\s*#Skylighting\(annotations:'
+          - 'quarto-code-filename\("hello\.py"\)\[\s*#Skylighting\(cell-id:'
           - "quarto-annotation-item"
+          - "cell-id:"
           - "annotations:"
         - []
 ---
