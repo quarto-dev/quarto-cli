@@ -210,7 +210,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
     /\/\/ quarto-code-annotations: ([\w-]*) (\([^)]*\))\n(\s*(?:#block\[\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
 
   return async (output: string) => {
-    let content = Deno.readTextFileSync(output);
+    let content = Deno.readTextFileSync(output).replace(/\r\n/g, "\n");
     let changed = false;
 
     const match = skylightingFnRe.exec(content);
@@ -243,6 +243,14 @@ function skylightingPostProcessor(brandBgColor?: string) {
         "lnum = lnum + 1\n     if number {\n",
       );
 
+      // Initialise a dictionary to track which annotation numbers have
+      // already emitted a back-label (avoids duplicate labels when one
+      // annotation spans multiple lines).
+      fn = fn.replace(
+        /let lnum = start - 1\n/,
+        "let lnum = start - 1\n     let seen-annotes = (:)\n",
+      );
+
       // Add annotation rendering per line (derive circle colour from bgcolor)
       fn = fn.replace(
         "blocks = blocks + ln + EndLine()",
@@ -250,7 +258,12 @@ function skylightingPostProcessor(brandBgColor?: string) {
      if annote-num != none {
        if cell-id != "" {
          let lbl = cell-id + "-annote-" + str(annote-num)
-         blocks = blocks + box(width: 100%)[#ln #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
+         if str(annote-num) not in seen-annotes {
+           seen-annotes.insert(str(annote-num), true)
+           blocks = blocks + box(width: 100%)[#ln #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
+         } else {
+           blocks = blocks + box(width: 100%)[#ln #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))]] + EndLine()
+         }
        } else {
          blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
        }

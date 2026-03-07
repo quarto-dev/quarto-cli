@@ -123,10 +123,6 @@ local function wrapTypstAnnotatedCode(codeBlock, annotations, cellId)
     adjustedAnnotations[annoteId] = adjusted
   end
   local dict = typstAnnotationsDict(adjustedAnnotations)
-  local cellIdParam = ""
-  if cellId and cellId ~= "" then
-    cellIdParam = ", cell-id: \"" .. cellId .. "\""
-  end
   local lang = codeBlock.attr.classes[1] or ""
   local code = codeBlock.text
   local maxBackticks = 2
@@ -134,7 +130,9 @@ local function wrapTypstAnnotatedCode(codeBlock, annotations, cellId)
     maxBackticks = math.max(maxBackticks, #seq)
   end
   local fence = string.rep("`", maxBackticks + 1)
-  local raw = "#quarto-code-annotation(" .. dict .. cellIdParam .. ")[" .. fence .. lang .. "\n" .. code .. "\n" .. fence .. "]"
+  local raw = "#quarto-code-annotation(" .. dict
+    .. (cellId and cellId ~= "" and (", cell-id: \"" .. cellId .. "\"") or "")
+    .. ")[" .. fence .. lang .. "\n" .. code .. "\n" .. fence .. "]"
   return pandoc.RawBlock("typst", raw)
 end
 
@@ -565,14 +563,12 @@ function code_annotations()
                 end
               end
 
-              local useSkylighting = param(constants.kSyntaxHighlighting, true)
-
               if pendingCodeCell ~= nil then
                 local resolvedCell = _quarto.ast.walk(pendingCodeCell, {
                   CodeBlock = function(el)
                     if el.attr.classes:find('cell-code') or
                        el.attr.classes:find(constants.kDataCodeAnnonationClz) then
-                      if useSkylighting then
+                      if param(constants.kSyntaxHighlighting, true) then
                         return nil
                       else
                         return wrapTypstAnnotatedCode(el, pendingAnnotations, pendingCellId)
@@ -584,12 +580,12 @@ function code_annotations()
                 local dlDiv = pandoc.Div(annotationBlocks, pandoc.Attr("", {constants.kCellAnnotationClass}))
                 if is_custom_node(resolvedCell) then
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
-                  if useSkylighting then
+                  if param(constants.kSyntaxHighlighting, true) then
                     custom.content:insert(1, typstAnnotationMarker(pendingAnnotations, pendingCellId))
                   end
                   custom.content:insert(dlDiv)
                 else
-                  if useSkylighting then
+                  if param(constants.kSyntaxHighlighting, true) then
                     resolvedCell.content:insert(1, typstAnnotationMarker(pendingAnnotations, pendingCellId))
                   end
                   resolvedCell.content:insert(dlDiv)
