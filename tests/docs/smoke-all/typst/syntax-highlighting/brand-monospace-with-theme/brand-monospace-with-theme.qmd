@@ -18,7 +18,7 @@ _quarto:
           - '^#show raw\.where\(block: true\): set par\(leading: 0\.65em\)$'
           # Quarto Skylighting override uses brand bg (not espresso theme bg)
           - 'let bgcolor = rgb\("#282a36"\)'
-          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, stroke: 0\.5pt \+ luma\(200\), blocks\)'
           # Brand monospace-inline properties
           - '^#show raw\.where\(block: false\): set text\(weight: 500, fill: rgb\("#6c3483"\), \)$'
           - '^#show raw\.where\(block: false\): content => highlight\(fill: rgb\("#e8e0f0"\), content\)$'
