@@ -207,7 +207,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
 
   // Annotation markers emitted by the Lua filter as Typst comments
   const annotationMarkerRe =
-    /\/\/ quarto-code-annotations: (\([^)]*\))\n(\s*(?:#block\[\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
+    /\/\/ quarto-code-annotations: ([\w-]*) (\([^)]*\))\n(\s*(?:#block\[\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
 
   return async (output: string) => {
     let content = Deno.readTextFileSync(output);
@@ -231,10 +231,10 @@ function skylightingPostProcessor(brandBgColor?: string) {
         );
       }
 
-      // Add annotations parameter to function signature
+      // Add cell-id and annotations parameters to function signature
       fn = fn.replace(
         "start: 1, sourcelines)",
-        "start: 1, annotations: (:), sourcelines)",
+        "start: 1, cell-id: \"\", annotations: (:), sourcelines)",
       );
 
       // Move lnum increment outside if-number block (always track position)
@@ -248,7 +248,12 @@ function skylightingPostProcessor(brandBgColor?: string) {
         "blocks = blocks + ln + EndLine()",
         `let annote-num = annotations.at(str(lnum), default: none)
      if annote-num != none {
-       blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
+       if cell-id != "" {
+         let lbl = cell-id + "-annote-" + str(annote-num)
+         blocks = blocks + box(width: 100%)[#ln #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
+       } else {
+         blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
+       }
      } else {
        blocks = blocks + ln + EndLine()
      }`,
@@ -264,7 +269,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
     // optional #block[ wrappers and #quarto-code-filename(...)[ wrappers.
     const merged = content.replace(
       annotationMarkerRe,
-      "$2#Skylighting(annotations: $1, ",
+      "$3#Skylighting(cell-id: \"$1\", annotations: $2, ",
     );
     if (merged !== content) {
       content = merged;
