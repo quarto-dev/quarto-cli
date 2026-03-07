@@ -59,12 +59,17 @@
   ]
 }
 
-#let quarto-code-annotation(annotations, color: luma(60), body) = {
+#let quarto-code-annotation(annotations, cell-id: "", color: luma(60), body) = {
   show raw.where(block: true): it => it
   show raw.line: it => {
     let annote-num = annotations.at(str(it.number), default: none)
     if annote-num != none {
-      box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num, color: color)]
+      if cell-id != "" {
+        let lbl = cell-id + "-annote-" + str(annote-num)
+        box(width: 100%)[#it #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: color)] #label(lbl + "-back")]
+      } else {
+        box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num, color: color)]
+      }
     } else {
       it
     }
@@ -72,12 +77,20 @@
   body
 }
 
-#let quarto-annotation-item(n, content) = {
-  block(above: 0.4em, below: 0.4em)[
-    #quarto-circled-number(n)
-    #h(0.4em)
-    #content
-  ]
+#let quarto-annotation-item(cell-id, n, content) = {
+  if cell-id != "" {
+    [#block(above: 0.4em, below: 0.4em)[
+      #link(label(cell-id + "-annote-" + str(n) + "-back"))[#quarto-circled-number(n)]
+      #h(0.4em)
+      #content
+    ] #label(cell-id + "-annote-" + str(n))]
+  } else {
+    block(above: 0.4em, below: 0.4em)[
+      #quarto-circled-number(n)
+      #h(0.4em)
+      #content
+    ]
+  }
 }
 
 // Style native raw code blocks with default inset, radius, and stroke
