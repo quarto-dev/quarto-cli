@@ -37,7 +37,8 @@ export const typstGatherCommand = new Command()
 
     // Find typst-gather binary in standard tools location
     const binaryName = isWindows ? "typst-gather.exe" : "typst-gather";
-    const typstGatherBinary = architectureToolsPath(binaryName);
+    const typstGatherBinary = Deno.env.get("QUARTO_TYPST_GATHER") ||
+      architectureToolsPath(binaryName);
     if (!existsSync(typstGatherBinary)) {
       error(
         `typst-gather binary not found.\n` +
@@ -52,7 +53,7 @@ export const typstGatherCommand = new Command()
 
     // Run typst-gather from the quarto root directory
     const command = new Deno.Command(typstGatherBinary, {
-      args: [tomlPath],
+      args: ["gather", tomlPath],
       cwd: quartoRoot,
       stdout: "inherit",
       stderr: "inherit",

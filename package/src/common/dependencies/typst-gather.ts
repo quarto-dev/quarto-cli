@@ -42,7 +42,6 @@ export function typstGather(version: string): Dependency {
     name: "typst-gather",
     bucket: "typst-gather",
     version,
-    archiveOnly: true,
     architectureDependencies: {
       "x86_64": {
         "windows": typstGatherRelease("typst-gather-x86_64-pc-windows-msvc.zip"),
