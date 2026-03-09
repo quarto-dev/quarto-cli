@@ -197,7 +197,12 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
       CodeBlock = render_folded_block
     }) or pandoc.Blocks({})
     local blocks = pandoc.Blocks({})
-    local escaped = node.filename:gsub('\\', '\\\\'):gsub('"', '\\"')
+    local escaped = node.filename
+      :gsub('\\', '\\\\')
+      :gsub('"', '\\"')
+      :gsub('\n', '\\n')
+      :gsub('\r', '\\r')
+      :gsub('\t', '\\t')
     blocks:insert(pandoc.RawBlock("typst",
       '#quarto-code-filename("' .. escaped .. '")['))
     blocks:extend(rendered)
