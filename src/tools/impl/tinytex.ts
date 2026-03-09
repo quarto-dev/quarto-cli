@@ -160,7 +160,10 @@ async function preparePackage(
     await context.download(`TinyTex ${version}`, result.url, filePath);
     return { filePath, version };
   } else {
-    context.error("Couldn't determine what URL to use to download");
+    context.error(
+      `Couldn't determine what URL to use to download TinyTeX. ` +
+        `Tried: ${candidates.join(", ")}`,
+    );
     return Promise.reject();
   }
 }

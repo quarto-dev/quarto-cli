@@ -12,7 +12,7 @@ import { safeWindowsExec } from "./windows.ts";
 export function unzip(file: string, dir?: string) {
   if (!dir) dir = dirname(file);
 
-  if (file.endsWith(".exe")) {
+  if (isWindows && file.endsWith(".exe")) {
     // Self-extracting 7z archive (e.g., TinyTeX-windows.exe)
     return safeWindowsExec(
       file,
