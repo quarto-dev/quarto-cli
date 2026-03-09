@@ -7,8 +7,14 @@ function engine_escape()
   -- Line-by-line replacement for the pattern (\n?[^`\n]+`+){({+([^<}]+)}+)}
   -- which suffers from O(n^2) backtracking on long lines without backticks.
   -- See https://github.com/quarto-dev/quarto-cli/issues/14156
-  
-  local line_pattern = "([^`\n]*`+)" .. patterns.engine_escape
+  -- Start-of-line fix for https://github.com/quarto-dev/quarto-cli/issues/14177
+  --
+  -- Two patterns for inline engine escape replacement:
+  -- 1. Start-of-line: match 1-2 backticks only (inline code, not code fences)
+  -- 2. Mid-line: match any backticks preceded by non-backtick text
+  -- This avoids over-processing code fence patterns (```{{engine}}) produced by step 2.
+  local sol_pattern = "^(``?)" .. patterns.engine_escape
+  local mid_pattern = "([^`\n]+`+)" .. patterns.engine_escape
   local function unescape_inline_engine_codes(text)
     if not text:find("{{", 1, true) then
       return text
@@ -27,7 +33,8 @@ function engine_escape()
         pos = len + 1
       end
       if line:find("`", 1, true) and line:find("{{", 1, true) then
-        line = line:gsub(line_pattern, "%1%2")
+        line = line:gsub(sol_pattern, "%1%2")
+        line = line:gsub(mid_pattern, "%1%2")
       end
       result[#result + 1] = line
     end
