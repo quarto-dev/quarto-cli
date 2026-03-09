@@ -7,10 +7,8 @@ function engine_escape()
   -- Line-by-line replacement for the pattern (\n?[^`\n]+`+){({+([^<}]+)}+)}
   -- which suffers from O(n^2) backtracking on long lines without backticks.
   -- See https://github.com/quarto-dev/quarto-cli/issues/14156
-  --
-  -- The original pattern cannot cross newlines (due to [^`\n]+), so processing
-  -- per-line is semantically equivalent and avoids catastrophic backtracking.
-  local line_pattern = "([^`\n]+`+)" .. patterns.engine_escape
+  
+  local line_pattern = "([^`\n]*`+)" .. patterns.engine_escape
   local function unescape_inline_engine_codes(text)
     if not text:find("{{", 1, true) then
       return text
