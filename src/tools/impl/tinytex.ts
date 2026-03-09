@@ -33,6 +33,7 @@ import { suggestUserBinPaths } from "../../core/path.ts";
 
 import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
 import {
+  arch,
   isLinux,
   isMac,
   isWindows,
@@ -65,15 +66,6 @@ export const tinyTexInstallable: InstallableTool = {
     },
     os: ["darwin"],
     message: "The directory /usr/local/bin is not writable.",
-  }, {
-    check: () => {
-      // Can't be a linux non-x86 platform
-      const needsSource = needsSourceInstall();
-      return Promise.resolve(!needsSource);
-    },
-    os: ["linux"],
-    message:
-      "This platform doesn't support installation at this time. Please install manually instead. See https://yihui.org/tinytex/#installation.",
   }],
   installed,
   installDir,
@@ -161,14 +153,11 @@ async function preparePackage(
   const version = pkgInfo.version;
 
   // target package information
-  const pkgName = tinyTexPkgName(kPackageMaximal, version);
-  const filePath = join(context.workingDir, pkgName);
-
-  // Download the package
-  const url = tinyTexUrl(pkgName, pkgInfo);
-  if (url) {
-    // Download the package
-    await context.download(`TinyTex ${version}`, url, filePath);
+  const candidates = tinyTexPkgName(kPackageMaximal, version);
+  const result = tinyTexUrl(candidates, pkgInfo);
+  if (result) {
+    const filePath = join(context.workingDir, result.name);
+    await context.download(`TinyTex ${version}`, result.url, filePath);
     return { filePath, version };
   } else {
     context.error("Couldn't determine what URL to use to download");
@@ -502,22 +491,55 @@ async function textLiveRepo() {
   return autoUrl;
 }
 
-function tinyTexPkgName(base?: string, ver?: string) {
-  const ext = isWindows ? "zip" : isLinux ? "tar.gz" : "tgz";
+export function tinyTexPkgName(
+  base?: string,
+  ver?: string,
+  options?: { os?: string; arch?: string },
+): string[] {
+  const effectiveOs = options?.os ??
+    (isWindows ? "windows" : isLinux ? "linux" : "darwin");
+  const effectiveArch = options?.arch ?? arch;
 
   base = base || "TinyTeX";
-  if (ver) {
-    return `${base}-${ver}.${ext}`;
-  } else {
-    return `${base}.${ext}`;
+
+  if (!ver) {
+    const ext = effectiveOs === "windows"
+      ? "zip"
+      : effectiveOs === "linux"
+      ? "tar.gz"
+      : "tgz";
+    return [`${base}.${ext}`];
   }
+
+  const candidates: string[] = [];
+
+  if (effectiveOs === "windows") {
+    candidates.push(`${base}-windows-${ver}.exe`);
+    candidates.push(`${base}-${ver}.zip`);
+  } else if (effectiveOs === "linux") {
+    if (effectiveArch === "aarch64") {
+      candidates.push(`${base}-linux-arm64-${ver}.tar.xz`);
+      candidates.push(`${base}-arm64-${ver}.tar.gz`);
+    } else {
+      candidates.push(`${base}-linux-x86_64-${ver}.tar.xz`);
+      candidates.push(`${base}-${ver}.tar.gz`);
+    }
+  } else {
+    candidates.push(`${base}-darwin-${ver}.tar.xz`);
+    candidates.push(`${base}-${ver}.tgz`);
+  }
+
+  return candidates;
 }
 
-function tinyTexUrl(pkg: string, remotePkgInfo: RemotePackageInfo) {
-  const asset = remotePkgInfo.assets.find((asset) => {
-    return asset.name === pkg;
-  });
-  return asset?.url;
+function tinyTexUrl(candidates: string[], remotePkgInfo: RemotePackageInfo) {
+  for (const pkg of candidates) {
+    const asset = remotePkgInfo.assets.find((asset) => asset.name === pkg);
+    if (asset) {
+      return { url: asset.url, name: pkg };
+    }
+  }
+  return undefined;
 }
 
 async function remotePackageInfo(): Promise<RemotePackageInfo> {
@@ -535,14 +557,6 @@ async function isWritable(path: string) {
   const desc = { name: "write", path } as const;
   const status = await Deno.permissions.query(desc);
   return status.state === "granted";
-}
-
-function needsSourceInstall() {
-  if (isLinux && Deno.build.arch !== "x86_64") {
-    return true;
-  } else {
-    return false;
-  }
 }
 
 async function isTinyTex() {
