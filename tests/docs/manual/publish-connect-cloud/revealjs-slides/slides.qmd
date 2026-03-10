@@ -1,0 +1,30 @@
+---
+title: "Connect Cloud RevealJS Test"
+format: revealjs
+---
+
+## Slide 1
+
+This is a minimal RevealJS presentation for testing publishing to Posit Connect Cloud.
+
+## Slide 2
+
+- Bullet point one
+- Bullet point two
+- Bullet point three
+
+## Slide 3 {background-color="aquamarine"}
+
+### Custom background
+
+Testing that reveal.js assets are bundled correctly.
+
+## Slide 4
+
+```python
+import pandas as pd
+df = pd.DataFrame({"x": [1, 2, 3]})
+print(df)
+```
+
+Code highlighting should work after publish.
