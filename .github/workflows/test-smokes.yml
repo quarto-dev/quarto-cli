@@ -81,7 +81,7 @@ jobs:
       - name: Install node (for Playwright, MECA)
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Cache multiplex server node_modules
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
