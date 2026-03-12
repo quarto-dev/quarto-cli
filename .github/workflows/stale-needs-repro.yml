@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
-      - uses: actions/stale@v9
+      - uses: actions/stale@v10
         with:
           start-date: 2023-01-01T01:00:00Z
           stale-issue-label: "stale"
