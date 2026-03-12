@@ -28,7 +28,7 @@
       - [ ] Ensure the download links on https://quarto.org/docs/get-started/ and https://quarto.org/docs/download/ point to the stable and prerelease versions respectively
   - In the `prerelease` branch:
     - [ ] update the highlights files
-      - [ ] create `docs/prerelease/1.5/{_highlights, index, _pre-release-feature}.qmd` files based on the ones from the previous release
+      - [ ] create `docs/prerelease/1.5/{_highlights, index}.qmd` files based on the ones from the previous release
       - [ ] change `docs/prerelease/_highlights.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.5)
       - [ ] change `docs/prerelease/_highlights-release.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.4)
     - [ ] add the stable version to the older downloads list by editing /docs/download/\_download-older.yml
@@ -36,7 +36,7 @@
   - [ ] push the changes to `prerelease` branch, ensure they build correctly
   - [ ] Merge the `prerelease` branch into `main`, push to `main`
     - [ ] ensure the build completes successfully
-    - [ ] verify `_quarto.yml` `version` on `main` reflects the released version (e.g. `'1.4'`) — needed for `prerelease-docs-url` shortcode to resolve blog links to quarto.org
+    - [ ] verify `_quarto.yml` `version` on `main` reflects the released version (e.g. `'1.4'`) — needed for `prerelease` shortcodes to resolve blog links and pre-release callouts
   - [ ] Merge `main` into `prerelease`, push to `prerelease`
     - [ ] ensure the build completes successfully
   - [ ] Create new tag on `main` with stable release version number (here, `v1.4`) to mark when the new main site version went live
