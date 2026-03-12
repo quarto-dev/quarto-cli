@@ -880,8 +880,8 @@ function projectHiddenIgnoreGlob(dir: string) {
     .concat(["**/_*", "**/_*/**"]) // underscore prefix
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
     .concat(["**/README.?([Rrq])md"]) // README
-    .concat(["**/CLAUDE.md"]) // Anthropic claude code file
-    .concat(["**/AGENTS.md"]) // https://agents.md/
+    .concat(["**/CLAUDE.md", "**/CLAUDE.local.md"]) // Anthropic claude code file
+    .concat(["**/AGENTS.md", "**/AGENTS.local.md"]) // https://agents.md/
     .concat(["**/*.llms.md"]); // llms.txt companion markdown files
 }
 
