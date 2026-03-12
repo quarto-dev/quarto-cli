@@ -182,7 +182,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Install uv for Python
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v7
         with:
           version: "0.9.5"
           enable-cache: true
