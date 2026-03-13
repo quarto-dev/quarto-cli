@@ -157,7 +157,7 @@ async function useTemplate(
         // Copy the extensions into a substaging directory
         // this will ensure that they are namespaced properly
         const subStagedDir = tempContext.createDir();
-        await copyExtensions(source, stagedDir, subStagedDir);
+        await copyExtensions(source, extDir, subStagedDir);
 
         // Now complete installation from this sub-staged directory
         await completeInstallation(subStagedDir, outputDirectory);
