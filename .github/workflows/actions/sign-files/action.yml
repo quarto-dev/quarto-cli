@@ -71,7 +71,7 @@ runs:
           $process = Start-Process msiexec -ArgumentList '/i', 'smtools-windows-x64.msi', '/quiet', '/qn', '/log', 'smtools-windows-x64.log' -Wait -PassThru
           if ($process.ExitCode -ne 0) {
             Write-Output "::error title=Install Error::msiexec failed with exit code $($process.ExitCode)"
-            Get-Content smtools-windows-x64.log -Tail 50
+            if (Test-Path smtools-windows-x64.log) { Get-Content smtools-windows-x64.log -Tail 50 }
             exit 1
           }
           # Verify smctl is actually on disk before declaring success
