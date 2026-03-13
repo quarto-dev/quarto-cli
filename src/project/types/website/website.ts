@@ -48,7 +48,11 @@ import {
 } from "./website-navigation.ts";
 
 import { updateSitemap } from "./website-sitemap.ts";
-import { updateSearchIndex } from "./website-search.ts";
+import {
+  runPagefindIndex,
+  searchOptions,
+  updateSearchIndex,
+} from "./website-search.ts";
 import {
   kDraftMode,
   kDrafts,
@@ -430,7 +434,14 @@ export async function websitePostRender(
   await updateSitemap(context, outputFiles, incremental);
 
   // update search index
-  await updateSearchIndex(context, outputFiles, incremental);
+  const options = await searchOptions(context);
+  const engine = options?.["engine"] ?? "fuse";
+  if (engine === "pagefind" && !incremental) {
+    await runPagefindIndex(context, outputFiles);
+  } else if (engine !== "pagefind") {
+    await updateSearchIndex(context, outputFiles, incremental);
+  }
+  // When engine === "pagefind" && incremental: skip indexing (preview mode)
 
   // Any full content feeds need to be 'completed'
   completeListingGeneration(context, outputFiles, incremental);
