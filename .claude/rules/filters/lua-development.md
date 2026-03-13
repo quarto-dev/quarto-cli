@@ -142,6 +142,25 @@ if quarto.log.debug then
 end
 ```
 
+## External Command Execution
+
+Use `pandoc.pipe()` instead of `io.popen()` for calling external programs:
+
+```lua
+-- ✅ Correct - pandoc.pipe passes args as array, no shell interpretation
+local ok, result = pcall(pandoc.pipe, command, {"arg1", "arg2"}, "")
+if not ok then
+  quarto.log.error("Command failed: " .. tostring(result))
+end
+
+-- ❌ Wrong - io.popen uses shell, breaks on paths with spaces
+local handle = io.popen(command .. " arg1 arg2", "r")
+```
+
+`io.popen()` passes a string to the shell, which breaks when paths contain spaces (e.g., `C:\Program Files\...`). `pandoc.pipe()` calls the executable directly with arguments as an array — no shell, no quoting issues.
+
+Reference: `quarto-pre/shiny.lua`, `quarto-post/pdf-images.lua`
+
 ## Filter Return Values
 
 ```lua
