@@ -1,0 +1,18 @@
+---
+date: '2025-03-06T14:38:55+09:00'
+title: "Yes, meta image but empty"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - '\<meta name="twitter:image" content="../..[/|\\]posts/welcome/thumbnail.jpg'
+          - '\<meta property="og:image" content="../..[/|\\]posts/welcome/thumbnail.jpg'
+        - []
+image: ""
+---
+
+Testing images.
+
+![](/posts/welcome/thumbnail.jpg)
