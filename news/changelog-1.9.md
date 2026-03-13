@@ -86,6 +86,7 @@ All changes included in 1.9:
 - ([#13978](https://github.com/quarto-dev/quarto-cli/pull/13978)): Keep term and description together in definition lists to avoid breaking across pages. (author: @mcanouil)
 - ([#13878](https://github.com/quarto-dev/quarto-cli/issues/13878)): Typst now uses Pandoc's skylighting for syntax highlighting by default (consistent with other formats). Use `syntax-highlighting: idiomatic` to opt-in to Typst's native syntax highlighting instead.
 - ([#14126](https://github.com/quarto-dev/quarto-cli/issues/14126)): Fix Skylighting code blocks in Typst lacking full-width background, padding, and border radius. A postprocessor patches the Pandoc-generated Skylighting function to add `width: 100%`, `inset: 8pt`, and `radius: 2pt` to the block call, matching the styling of native code blocks. Brand `monospace-block.background-color` also now correctly applies to Skylighting output. This workaround will be removed once the fix is upstreamed to Skylighting.
+- ([#14202](https://github.com/quarto-dev/quarto-cli/issues/14202)): Fix CSS inlining (`juice`) failing on Windows when Quarto is installed in a path with spaces (e.g., `C:\Program Files\Quarto\`).
 
 ### `pdf`
 
