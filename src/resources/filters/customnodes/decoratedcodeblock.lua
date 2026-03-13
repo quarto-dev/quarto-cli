@@ -180,3 +180,32 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
 
     return pandoc.Div(blocks, pandoc.Attr("", classes))
   end)
+
+-- typst renderer
+_quarto.ast.add_renderer("DecoratedCodeBlock",
+  function(_)
+    return _quarto.format.isTypstOutput()
+  end,
+  function(node)
+    if node.filename == nil then
+      return _quarto.ast.walk(quarto.utils.as_blocks(node.code_block), {
+        CodeBlock = render_folded_block
+      })
+    end
+    local el = node.code_block
+    local rendered = _quarto.ast.walk(quarto.utils.as_blocks(el), {
+      CodeBlock = render_folded_block
+    }) or pandoc.Blocks({})
+    local blocks = pandoc.Blocks({})
+    local escaped = node.filename
+      :gsub('\\', '\\\\')
+      :gsub('"', '\\"')
+      :gsub('\n', '\\n')
+      :gsub('\r', '\\r')
+      :gsub('\t', '\\t')
+    blocks:insert(pandoc.RawBlock("typst",
+      '#quarto-code-filename("' .. escaped .. '")['))
+    blocks:extend(rendered)
+    blocks:insert(pandoc.RawBlock("typst", "]"))
+    return pandoc.Div(blocks)
+  end)

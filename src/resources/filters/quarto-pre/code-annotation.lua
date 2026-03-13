@@ -81,7 +81,62 @@ local function toAnnoteId(number)
 end
 
 local function latexListPlaceholder(number)
-  return '5CB6E08D-list-annote-' .. number 
+  return '5CB6E08D-list-annote-' .. number
+end
+
+-- Typst annotation helpers
+
+-- Convert annotations table to a flat Typst dictionary string.
+-- Keys are line positions (as strings), values are annotation numbers.
+local function typstAnnotationsDict(annotations)
+  local entries = {}
+  for annoteId, lineNumbers in pairs(annotations) do
+    local num = annoteId:match("annote%-(%d+)")
+    if num then
+      for _, lineNo in ipairs(lineNumbers) do
+        table.insert(entries, {pos = lineNo, annoteNum = tonumber(num)})
+      end
+    end
+  end
+  table.sort(entries, function(a, b) return a.pos < b.pos end)
+  local parts = {}
+  for _, e in ipairs(entries) do
+    table.insert(parts, '"' .. tostring(e.pos) .. '": ' .. tostring(e.annoteNum))
+  end
+  return '(' .. table.concat(parts, ', ') .. ')'
+end
+
+-- Skylighting mode: emit a Typst comment that the TS post-processor
+-- will merge into the Skylighting call site.
+local function typstAnnotationMarker(annotations, cellId)
+  local dict = typstAnnotationsDict(annotations)
+  return pandoc.RawBlock("typst", "// quarto-code-annotations: " .. (cellId or "") .. " " .. dict)
+end
+
+-- Native/none mode: wrap a CodeBlock in #quarto-code-annotation(annotations)[...].
+-- raw.line numbers always start at 1 regardless of startFrom, so adjust keys.
+local function wrapTypstAnnotatedCode(codeBlock, annotations, cellId)
+  local startFrom = tonumber(codeBlock.attr.attributes['startFrom']) or 1
+  local adjustedAnnotations = {}
+  for annoteId, lineNumbers in pairs(annotations) do
+    local adjusted = pandoc.List({})
+    for _, lineNo in ipairs(lineNumbers) do
+      adjusted:insert(lineNo - startFrom + 1)
+    end
+    adjustedAnnotations[annoteId] = adjusted
+  end
+  local dict = typstAnnotationsDict(adjustedAnnotations)
+  local lang = codeBlock.attr.classes[1] or ""
+  local code = codeBlock.text
+  local maxBackticks = 2
+  for seq in code:gmatch("`+") do
+    maxBackticks = math.max(maxBackticks, #seq)
+  end
+  local fence = string.rep("`", maxBackticks + 1)
+  local raw = "#quarto-code-annotation(" .. dict
+    .. (cellId and cellId ~= "" and (", cell-id: \"" .. cellId .. "\"") or "")
+    .. ")[" .. fence .. lang .. "\n" .. code .. "\n" .. fence .. "]"
+  return pandoc.RawBlock("typst", raw)
 end
 
 local function toLines(s)
@@ -263,10 +318,11 @@ end
 
 function processAnnotation(line, annoteNumber, annotationProvider)
     -- For all other formats, just strip the annotation- the definition list is converted
-    -- to be based upon line numbers. 
+    -- to be based upon line numbers.
         local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
     return stripped
 end
+
 
 function code_meta()
   return {
@@ -424,17 +480,32 @@ function code_annotations()
               -- output the pending code cell and continue
               flushPending()
 
-              if #block.content == 1 and #block.content[1].content == 1 then
+              if #block.content == 1 and #block.content[1].content == 1
+                  and block.content[1].content[1] ~= nil
+                  and block.content[1].content[1].t == "CodeBlock" then
                 -- Find the code block and process that
                 local codeblock = block.content[1].content[1]
-                
+
                 local cellId = resolveCellId(codeblock.attr.identifier)
                 local codeCell = processCodeCell(codeblock, cellId)
                 if codeCell then
                   if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
                     codeCell.attr.identifier = cellId;
                   end
-                  block.content[1].content[1] = codeCell
+                  -- Typst DecoratedCodeBlock: embed annotation data inside the block
+                  -- so the marker stays adjacent to the Skylighting call after rendering
+                  if _quarto.format.isTypstOutput()
+                      and codeAnnotations ~= constants.kCodeAnnotationStyleNone
+                      and pendingAnnotations and next(pendingAnnotations) ~= nil then
+                    if param(constants.kSyntaxHighlighting, true) then
+                      block.content[1].content[1] = codeCell
+                      block.content[1].content:insert(1, typstAnnotationMarker(pendingAnnotations, pendingCellId))
+                    else
+                      block.content[1].content[1] = wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId)
+                    end
+                  else
+                    block.content[1].content[1] = codeCell
+                  end
                   outputBlock(block)
                 else
                   outputBlockClearPending(block)
@@ -460,7 +531,20 @@ function code_annotations()
                 if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
                   codeCell.attr.identifier = cellId;
                 end
-                outputBlock(codeCell)
+                -- Typst standalone CodeBlock: emit annotation data alongside
+                -- the code block. The OL handler will emit annotation items.
+                if _quarto.format.isTypstOutput()
+                    and codeAnnotations ~= constants.kCodeAnnotationStyleNone
+                    and pendingAnnotations and next(pendingAnnotations) ~= nil then
+                  if param(constants.kSyntaxHighlighting, true) then
+                    outputBlock(typstAnnotationMarker(pendingAnnotations, pendingCellId))
+                    outputBlock(codeCell)
+                  else
+                    outputBlock(wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId))
+                  end
+                else
+                  outputBlock(codeCell)
+                end
               else
                 outputBlockClearPending(block)
               end
@@ -468,6 +552,59 @@ function code_annotations()
               outputBlockClearPending(block)
             end
           elseif block.t == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
+
+            -- Typst: emit annotation items as raw Typst blocks
+            if _quarto.format.isTypstOutput() and codeAnnotations ~= constants.kCodeAnnotationStyleNone then
+              local annotationBlocks = pandoc.List()
+              for i, v in ipairs(block.content) do
+                local annotationNumber = block.start + i - 1
+                local annoteId = toAnnoteId(annotationNumber)
+                if pendingAnnotations[annoteId] then
+                  local content = pandoc.write(pandoc.Pandoc({v[1]}), "typst")
+                  annotationBlocks:insert(pandoc.RawBlock("typst",
+                    "#quarto-annotation-item(\"" .. (pendingCellId or "") .. "\", " .. tostring(annotationNumber) .. ", [" .. content .. "])"))
+                end
+              end
+
+              if pendingCodeCell ~= nil then
+                local resolvedCell = _quarto.ast.walk(pendingCodeCell, {
+                  CodeBlock = function(el)
+                    if el.attr.classes:find('cell-code') or
+                       el.attr.classes:find(constants.kDataCodeAnnonationClz) then
+                      if param(constants.kSyntaxHighlighting, true) then
+                        return nil
+                      else
+                        return wrapTypstAnnotatedCode(el, pendingAnnotations, pendingCellId)
+                      end
+                    end
+                  end
+                })
+
+                local dlDiv = pandoc.Div(annotationBlocks, pandoc.Attr("", {constants.kCellAnnotationClass}))
+                if is_custom_node(resolvedCell) then
+                  local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
+                  if param(constants.kSyntaxHighlighting, true) then
+                    custom.content:insert(1, typstAnnotationMarker(pendingAnnotations, pendingCellId))
+                  end
+                  custom.content:insert(dlDiv)
+                else
+                  if param(constants.kSyntaxHighlighting, true) then
+                    resolvedCell.content:insert(1, typstAnnotationMarker(pendingAnnotations, pendingCellId))
+                  end
+                  resolvedCell.content:insert(dlDiv)
+                end
+                outputBlock(resolvedCell)
+              else
+                for _, ab in ipairs(annotationBlocks) do
+                  outputBlock(ab)
+                end
+              end
+              pendingAnnotations = nil
+              pendingCellId = nil
+              pendingCodeCell = nil
+
+            -- Generic handler for all other formats
+            else
             -- There are pending annotations, which means this OL is immediately after
             -- a code cell with annotations. Use to emit a DL describing the code
             local items = pandoc.List()
@@ -496,7 +633,7 @@ function code_annotations()
                 end
 
                 -- compute the definition for the DD
-                local definitionContent = v[1].content 
+                local definitionContent = v[1].content
                 local annotationToken = tostring(annotationNumber);
 
                 -- Only output span for certain formats (HTML)
@@ -511,7 +648,7 @@ function code_annotations()
                     {constants.kDataCodeCellAnnotation, annotationToken}
                   }
                   definition = pandoc.Span(definitionContent, pandoc.Attr(attribs))
-                else 
+                else
                   definition = pandoc.Plain(definitionContent)
                 end
 
@@ -554,15 +691,16 @@ function code_annotations()
                 flushPending()
               else
                 if requireNonIncremental then
-                  -- wrap in Non Incremental Div to prevent automatique 
+                  -- wrap in Non Incremental Div to prevent automatique
                   outputBlockClearPending(pandoc.Div({dl}, pandoc.Attr("", {constants.kNonIncremental})))
-                else 
+                else
                   outputBlockClearPending(dl)
                 end
               end
             else
               flushPending()
             end
+            end -- end generic handler
           else
             outputBlockClearPending(block)
           end
