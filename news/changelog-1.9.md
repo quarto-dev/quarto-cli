@@ -225,3 +225,4 @@ All changes included in 1.9:
 - ([#14012](https://github.com/quarto-dev/quarto-cli/issues/14012)): Add `fr-CA` language translation for Quebec French inclusive writing conventions, using parenthetical forms instead of middle dots for author labels. (author: @tdhock)
 - ([#14032](https://github.com/quarto-dev/quarto-cli/issues/14032)): Add `editor_options` with `chunk_output_type` to YAML schema for autocompletion and validation in RStudio and Positron.
 - ([#14156](https://github.com/quarto-dev/quarto-cli/issues/14156)): Avoid O(n^2) performance in handling large code blocks.
+- ([#14177](https://github.com/quarto-dev/quarto-cli/issues/14177)): Escape fenced code correctly when backticks occur at the beginning of a line.
