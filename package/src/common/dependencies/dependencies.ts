@@ -15,6 +15,7 @@ import { esBuild } from "./esbuild.ts";
 import { pandoc } from "./pandoc.ts";
 import { archiveUrl } from "../archive-binary-dependencies.ts";
 import { typst } from "./typst.ts";
+import { typstGather } from "./typst-gather.ts";
 import { verapdf } from "./verapdf.ts";
 
 // The list of binary dependencies for Quarto
@@ -24,6 +25,7 @@ export const kDependencies = [
   dartSass(version("DARTSASS")),
   esBuild(version("ESBUILD")),
   typst(version("TYPST")),
+  typstGather(version("TYPST_GATHER")),
   verapdf(version("VERAPDF")),
 ];
 
