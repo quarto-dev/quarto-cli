@@ -1,0 +1,28 @@
+---
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensurePdfTextPositions:
+        - # Body text should be on page 1 (no spurious blank page before it)
+          - subject: "BODY_CONTENT_START"
+            relation: above
+            object:
+              role: "Page"
+              page: 1
+              edge: bottom
+        - []
+      noErrors: default
+---
+
+```{=typst}
+#set page(footer: none)
+```
+
+BODY_CONTENT_START
+
+| a | b |
+|---|---|
+| 1 | 2 |
