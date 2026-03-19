@@ -21,7 +21,7 @@ const SUBTREES: SubtreeConfig[] = [
   {
     name: "julia-engine",
     prefix: "src/resources/extension-subtrees/julia-engine",
-    remoteUrl: "https://github.com/gordonwoodhull/quarto-julia-engine.git",
+    remoteUrl: "https://github.com/PumasAI/quarto-julia-engine.git",
     remoteBranch: "main",
   },
   {
