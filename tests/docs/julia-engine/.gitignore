@@ -1,0 +1,6 @@
+# Ignore everything in subdirectories (render artifacts, caches, etc.)
+*/*
+
+# Allow only source files
+!*/*.qmd
+!*/_quarto.yml
