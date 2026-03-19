@@ -60,6 +60,8 @@ jobs:
         with:
           version: ${{ github.ref == 'refs/heads/main' && 'pre-release' || 'release' }}
 
+      - uses: ./.github/actions/merge-extension-tests
+
       - name: Create Job for tests
         id: tests-buckets
         run: |

@@ -1,0 +1,16 @@
+name: "Merge extension tests into test tree"
+description: >
+  Copies test files from extension subtrees into the main test directories
+  so they are discovered by the test runner and bucket creation.
+  Extension tests live in their own repos (single source of truth) and are
+  pulled in via git subtree — this step avoids duplicating them.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Merge julia-engine tests
+      shell: bash
+      run: |
+        SUBTREE=src/resources/extension-subtrees/julia-engine/tests
+        cp -r "$SUBTREE/docs/julia-engine" tests/docs/julia-engine
+        cp -r "$SUBTREE/smoke/julia-engine" tests/smoke/julia-engine

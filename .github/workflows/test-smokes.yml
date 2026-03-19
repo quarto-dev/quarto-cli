@@ -241,6 +241,8 @@ jobs:
           echo "Julia Jupyter:"
           uv run julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
 
+      - uses: ./.github/actions/merge-extension-tests
+
       - name: Setup timing file for timed test
         if: ${{ matrix.time-test == true }}
         run: |
