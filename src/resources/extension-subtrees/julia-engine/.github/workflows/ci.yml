@@ -1,0 +1,100 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+# Reference quarto-cli version to test against.
+# Full commit hash for reproducibility; comment documents the human-readable version.
+env:
+  QUARTO_CLI_REPO: quarto-dev/quarto-cli
+  QUARTO_CLI_REV: 97e7649bf14607cf39cda13f013185a4146e047b # v1.9.35
+
+jobs:
+  test:
+    name: Julia engine tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Checkout quarto-cli
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ${{ env.QUARTO_CLI_REPO }}
+          ref: ${{ env.QUARTO_CLI_REV }}
+          path: _quarto-cli
+
+      - name: Cache typst-gather build
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: _quarto-cli/package/typst-gather/target
+          key: ${{ runner.os }}-typst-gather-${{ env.QUARTO_CLI_REV }}
+
+      - name: Configure Quarto (Unix)
+        if: runner.os != 'Windows'
+        working-directory: _quarto-cli
+        run: ./configure.sh
+
+      - name: Configure Quarto (Windows)
+        if: runner.os == 'Windows'
+        working-directory: _quarto-cli
+        shell: cmd
+        run: ./configure.cmd
+
+      - name: Add quarto to PATH (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "$(Get-ChildItem -Path _quarto-cli/package/dist/bin/quarto.cmd | ForEach-Object { $_.FullName } | Split-Path)" >> $env:GITHUB_PATH
+
+      # Rebuild the bundled JS from our TS source using the configured quarto,
+      # then verify it matches what's checked in. This catches forgotten rebuilds.
+      - name: Verify bundled JS is up to date (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          quarto call build-ts-extension src/julia-engine.ts
+          if ! git diff --exit-code _extensions/julia-engine/julia-engine.js; then
+            echo "::error::Bundled JS is out of date. Run 'quarto call build-ts-extension src/julia-engine.ts' and commit the result."
+            exit 1
+          fi
+
+      - name: Verify bundled JS is up to date (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          quarto call build-ts-extension src/julia-engine.ts
+          git diff --exit-code _extensions/julia-engine/julia-engine.js
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Bundled JS is out of date. Run 'quarto call build-ts-extension src/julia-engine.ts' and commit the result."
+            exit 1
+          }
+
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@5c9647d97b78a5debe5164e9eec09d653d29bd71 # v2.6.1
+        with:
+          version: "1.11"
+
+      - name: Cache Julia packages
+        uses: julia-actions/cache@b6a98a496542b2eeda9b4402ce8f79f8fd753d5e # v3.0.0
+
+      - name: Run tests (Unix)
+        if: runner.os != 'Windows'
+        run: tests/run-tests.sh
+
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: tests/run-tests.ps1

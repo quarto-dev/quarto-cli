@@ -6,9 +6,10 @@ The engine extension requires a compatible version of quarto (>= 1.9.0). If work
 
 ## Repo structure
 
-- `_extensions/julia-engine/` — the actual extension (contains `_extension.yml` and the bundled `julia-engine.js`)
+- `_extensions/julia-engine/` — the actual extension (contains `_extension.yml`, the bundled `julia-engine.js`, and Julia resource files like `Project.toml`, `*.jl`)
 - `src/` — TypeScript source for the engine (`julia-engine.ts`, `constants.ts`). Changes here must be bundled into `_extensions/julia-engine/julia-engine.js` to take effect.
 - `_quarto.yml` — makes the repo root a quarto project so rendering picks up the extension from `_extensions/`
+- `tests/` — self-contained test suite (see Testing below)
 
 ## Building
 
@@ -18,27 +19,43 @@ After editing the TypeScript source in `src/`, rebuild the bundled JS:
 quarto call build-ts-extension src/julia-engine.ts
 ```
 
-This bundles `src/julia-engine.ts` into `_extensions/julia-engine/julia-engine.js`.
+This bundles `src/julia-engine.ts` into `_extensions/julia-engine/julia-engine.js`. CI verifies the bundled JS matches the TS source.
 
-## Testing locally
+## Testing
+
+Tests are self-contained Deno tests using `jsr:` imports — no import map or quarto internals needed. `tests/docs/` contains `.qmd` files and quarto projects that the `.test.ts` files in `tests/smoke/` render and verify. These directories mirror quarto-cli's `tests/docs/` and `tests/smoke/` structure and are intended to be merged into those directories when quarto-cli runs its own CI (since this extension is a fixed part of quarto-cli via git subtree).
+
+### Running tests locally
+
+The test runner uses the deno bundled with quarto (to avoid version mismatches):
+
+```sh
+# With quarto on PATH:
+tests/run-tests.sh
+
+# With explicit quarto path:
+QUARTO=/path/to/quarto tests/run-tests.sh
+
+# Run a specific test file:
+tests/run-tests.sh smoke/julia-engine/render.test.ts
+```
 
 ### Quick: render in this repo
 
-Create or edit a `.qmd` file in the repo root with `engine: julia` and render it:
+Create or edit a `.qmd` file in the repo root (e.g. in `scratch/`) with `engine: julia` and render it:
 
 ```sh
-quarto render some-file.qmd
+quarto render scratch/test.qmd
 ```
 
 Since this directory is a quarto project with the extension in `_extensions/`, quarto discovers and uses the engine from here.
 
-### Full: run quarto-cli's tests
+## CI
 
-To test with quarto-cli's own test suite, push the current state into the subtree in a local quarto-cli clone:
+CI runs on all three platforms (Linux, macOS, Windows) against a pinned quarto-cli revision (see `QUARTO_CLI_REV` in `.github/workflows/ci.yml`). It:
 
-```sh
-cd /path/to/quarto-cli
-git subtree pull --prefix=src/resources/extension-subtrees/julia-engine /path/to/quarto-julia-engine <branch> --squash
-```
+1. Configures quarto from the pinned rev
+2. Verifies the bundled JS is up to date with the TS source
+3. Runs the full test suite
 
-Then run quarto-cli's tests as usual.
+When bumping `QUARTO_CLI_REV`, use the full commit hash annotated with the version tag for clarity (e.g. `abc123 # v1.9.35`).

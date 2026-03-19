@@ -5,7 +5,7 @@
  */
 
 // Standard library imports
-import { join, resolve } from "path";
+import { dirname, fromFileUrl, join, resolve } from "path";
 import { existsSync } from "fs/exists";
 import { encodeBase64 } from "encoding/base64";
 
@@ -41,6 +41,9 @@ import {
 
 // Platform detection
 const isWindows = Deno.build.os === "windows";
+
+// Extension directory (where the bundled JS and resource files live)
+const extensionDir = dirname(fromFileUrl(import.meta.url));
 
 // Module-level quarto API reference
 let quarto: QuartoAPI;
@@ -390,7 +393,7 @@ async function startOrReuseJuliaServer(
             powershell_argument_list_to_string(
               "--startup-file=no",
               `--project=${juliaProject}`,
-              quarto.path.resource("julia", "quartonotebookrunner.jl"),
+              join(extensionDir, "quartonotebookrunner.jl"),
               transportFile,
               juliaServerLogFile(),
             ),
@@ -414,13 +417,10 @@ async function startOrReuseJuliaServer(
       const command = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
-          quarto.path.resource(
-            "julia",
-            "start_quartonotebookrunner_detached.jl",
-          ),
+          join(extensionDir, "start_quartonotebookrunner_detached.jl"),
           juliaCmd(),
           juliaProject,
-          quarto.path.resource("julia", "quartonotebookrunner.jl"),
+          join(extensionDir, "quartonotebookrunner.jl"),
           transportFile,
           juliaServerLogFile(),
         ],
@@ -451,17 +451,14 @@ async function ensureQuartoNotebookRunnerEnvironment(
   options: JuliaExecuteOptions,
 ) {
   const runtimeDir = quarto.path.runtime("julia");
-  const projectTomlTemplate = quarto.path.resource(
-    "julia",
-    "Project.toml",
-  );
+  const projectTomlTemplate = join(extensionDir, "Project.toml");
   const projectToml = join(runtimeDir, "Project.toml");
   Deno.writeFileSync(projectToml, Deno.readFileSync(projectTomlTemplate));
   const command = new Deno.Command(juliaCmd(), {
     args: [
       "--startup-file=no",
       `--project=${runtimeDir}`,
-      quarto.path.resource("julia", "ensure_environment.jl"),
+      join(extensionDir, "ensure_environment.jl"),
     ],
   });
   const proc = command.spawn();
