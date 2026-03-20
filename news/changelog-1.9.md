@@ -105,6 +105,7 @@ All changes included in 1.9:
   - New `pdf-trailer-id` support for reproducible PDF builds.
   - New `cancel` package support for `\cancel` command in math.
 - ([#14017](https://github.com/quarto-dev/quarto-cli/issues/14017)): `tColorOptions()` in .tex file will now always have options in alphabetical order. Previously, they were in random order leading to a different .tex intermediates for identical .qmd.
+- ([#14241](https://github.com/quarto-dev/quarto-cli/pull/14241)): Add `QUARTO_PDF_STANDARD` environment variable as a fallback for the `pdf-standard` option. Accepts comma-separated values (e.g., `QUARTO_PDF_STANDARD=ua-2`), enabling PDF standard conformance without modifying document YAML. Works with both LaTeX and Typst formats.
 
 ### `revealjs`
 
