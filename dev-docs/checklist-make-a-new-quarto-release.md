@@ -15,7 +15,7 @@
     - [ ] "Set as pre-release" should be unchecked, and
     - [ ] "Set as latest release" should be checked.
 - [ ] once the v1.5 build completes, edit the quarto.org website configuration on https://github.com/quarto-dev/quarto-web to reflect the new version
-  - this means flipping the profile group configuration in `_quarto.yml` from `[rc,prelease]` to `[prerelease,rc]`
+  - this means flipping the profile group configuration in `_quarto.yml` from `[rc,prerelease]` to `[prerelease,rc]`
     - [ ] push the changes to the `main` branch
 - [ ] quarto-dev/quarto-web changes
 
@@ -29,7 +29,7 @@
   - In the `prerelease` branch:
     - [ ] update the highlights files
       - [ ] create `docs/prerelease/1.5/{_highlights, index}.qmd` files based on the ones from the previous release
-      - [ ] change `docs/prerelease/_highlights.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.5)
+      - [ ] change `docs/prerelease/_highlights-prerelease.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.5)
       - [ ] change `docs/prerelease/_highlights-release.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.4)
     - [ ] add the stable version to the older downloads list by editing /docs/download/\_download-older.yml
     - [ ] run `quarto run tools/release-notes.R` to generate the release notes and bump `version` in `_quarto.yml` (to released version) and `_quarto-prerelease-docs.yml` (to next prerelease)
