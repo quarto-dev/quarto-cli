@@ -1,0 +1,10 @@
+---
+title: PDF Standard from Environment Variable
+lang: en
+format:
+  pdf:
+    keep-tex: true
+---
+
+This document does not set `pdf-standard` in its YAML.
+It should only get PDF standard settings from the `QUARTO_PDF_STANDARD` environment variable.
