@@ -20,7 +20,7 @@ authors:
   given-names: "Gordon"
   orcid: "https://orcid.org/0009-0005-1809-8936"
 title: "Quarto"
-version: 1.8
+version: 1.9
 doi: 10.5281/zenodo.5960048
-date-released: 2025-09-12
+date-released: 2026-03-20
 url: "https://github.com/quarto-dev/quarto-cli"
