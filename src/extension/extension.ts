@@ -563,7 +563,9 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
       if (extensionPath) {
         extensionDirectories.push(extensionPath);
       }
-      currentDir = dirname(currentDir);
+      const nextDir = dirname(currentDir);
+      if (nextDir === currentDir) break;
+      currentDir = nextDir;
     } while (isSubdir(projectDir, currentDir) || projectDir === currentDir);
     return extensionDirectories;
   } else if (input) {
@@ -878,7 +880,12 @@ async function readExtension(
             let projectDir = extensionDir, last;
             do {
               last = basename(projectDir);
-              projectDir = dirname(projectDir);
+              const nextDir = dirname(projectDir);
+              if (nextDir === projectDir) {
+                projectDir = "";
+                break;
+              }
+              projectDir = nextDir;
             } while (projectDir && last !== "_extensions");
             if (projectDir) {
               (object.project as Record<string, unknown>)[key] = relative(
