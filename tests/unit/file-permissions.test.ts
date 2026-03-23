@@ -32,8 +32,8 @@ unitTest(
 
     ensureUserWritable(file);
 
-    assertEquals(safeModeFromFile(file), 0o644,
-      "Mode should be exactly 0o644 (0o444 | 0o200) — only user write bit added");
+    assertEquals(safeModeFromFile(file)! & 0o777, 0o644,
+      "Permission bits should be 0o644 (0o444 | 0o200) — only user write bit added");
   }),
   { ignore: isWindows },
 );
@@ -74,7 +74,7 @@ unitTest(
 
     ensureUserWritable(dest);
 
-    assertEquals(safeModeFromFile(dest), 0o644,
+    assertEquals(safeModeFromFile(dest)! & 0o777, 0o644,
       "Copied file should be user-writable after ensureUserWritable");
   }),
   { ignore: isWindows },
