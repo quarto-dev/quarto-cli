@@ -191,3 +191,15 @@ export function safeChmodSync(path: string, mode: number): void {
     }
   }
 }
+
+/**
+ * Ensure a file has user write permission. Files copied from installed
+ * resources (e.g. system packages) may be read-only, but users expect
+ * to edit files created by `quarto create`. No-op on Windows.
+ */
+export function ensureUserWritable(path: string): void {
+  const mode = safeModeFromFile(path);
+  if (mode !== undefined && !(mode & 0o200)) {
+    safeChmodSync(path, mode | 0o200);
+  }
+}
