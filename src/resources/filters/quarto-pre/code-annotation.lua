@@ -2,6 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 local constants = require("modules/constants")
+local typstAnnotations = require("modules/typst-code-annotations")
 
 
 local hasAnnotations = false
@@ -82,61 +83,6 @@ end
 
 local function latexListPlaceholder(number)
   return '5CB6E08D-list-annote-' .. number
-end
-
--- Typst annotation helpers
-
--- Convert annotations table to a flat Typst dictionary string.
--- Keys are line positions (as strings), values are annotation numbers.
-local function typstAnnotationsDict(annotations)
-  local entries = {}
-  for annoteId, lineNumbers in pairs(annotations) do
-    local num = annoteId:match("annote%-(%d+)")
-    if num then
-      for _, lineNo in ipairs(lineNumbers) do
-        table.insert(entries, {pos = lineNo, annoteNum = tonumber(num)})
-      end
-    end
-  end
-  table.sort(entries, function(a, b) return a.pos < b.pos end)
-  local parts = {}
-  for _, e in ipairs(entries) do
-    table.insert(parts, '"' .. tostring(e.pos) .. '": ' .. tostring(e.annoteNum))
-  end
-  return '(' .. table.concat(parts, ', ') .. ')'
-end
-
--- Skylighting mode: emit a Typst comment that the TS post-processor
--- will merge into the Skylighting call site.
-local function typstAnnotationMarker(annotations, cellId)
-  local dict = typstAnnotationsDict(annotations)
-  return pandoc.RawBlock("typst", "// quarto-code-annotations: " .. (cellId or "") .. " " .. dict)
-end
-
--- Native/none mode: wrap a CodeBlock in #quarto-code-annotation(annotations)[...].
--- raw.line numbers always start at 1 regardless of startFrom, so adjust keys.
-local function wrapTypstAnnotatedCode(codeBlock, annotations, cellId)
-  local startFrom = tonumber(codeBlock.attr.attributes['startFrom']) or 1
-  local adjustedAnnotations = {}
-  for annoteId, lineNumbers in pairs(annotations) do
-    local adjusted = pandoc.List({})
-    for _, lineNo in ipairs(lineNumbers) do
-      adjusted:insert(lineNo - startFrom + 1)
-    end
-    adjustedAnnotations[annoteId] = adjusted
-  end
-  local dict = typstAnnotationsDict(adjustedAnnotations)
-  local lang = codeBlock.attr.classes[1] or ""
-  local code = codeBlock.text
-  local maxBackticks = 2
-  for seq in code:gmatch("`+") do
-    maxBackticks = math.max(maxBackticks, #seq)
-  end
-  local fence = string.rep("`", maxBackticks + 1)
-  local raw = "#quarto-code-annotation(" .. dict
-    .. (cellId and cellId ~= "" and (", cell-id: \"" .. cellId .. "\"") or "")
-    .. ")[" .. fence .. lang .. "\n" .. code .. "\n" .. fence .. "]"
-  return pandoc.RawBlock("typst", raw)
 end
 
 local function toLines(s)
@@ -499,9 +445,9 @@ function code_annotations()
                       and pendingAnnotations and next(pendingAnnotations) ~= nil then
                     if param(constants.kSyntaxHighlighting, true) then
                       block.content[1].content[1] = codeCell
-                      block.content[1].content:insert(1, typstAnnotationMarker(pendingAnnotations, pendingCellId))
+                      block.content[1].content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId))
                     else
-                      block.content[1].content[1] = wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId)
+                      block.content[1].content[1] = typstAnnotations.wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId)
                     end
                   else
                     block.content[1].content[1] = codeCell
@@ -537,10 +483,10 @@ function code_annotations()
                     and codeAnnotations ~= constants.kCodeAnnotationStyleNone
                     and pendingAnnotations and next(pendingAnnotations) ~= nil then
                   if param(constants.kSyntaxHighlighting, true) then
-                    outputBlock(typstAnnotationMarker(pendingAnnotations, pendingCellId))
+                    outputBlock(typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId))
                     outputBlock(codeCell)
                   else
-                    outputBlock(wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId))
+                    outputBlock(typstAnnotations.wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId))
                   end
                 else
                   outputBlock(codeCell)
@@ -574,7 +520,7 @@ function code_annotations()
                       if param(constants.kSyntaxHighlighting, true) then
                         return nil
                       else
-                        return wrapTypstAnnotatedCode(el, pendingAnnotations, pendingCellId)
+                        return typstAnnotations.wrapTypstAnnotatedCode(el, pendingAnnotations, pendingCellId)
                       end
                     end
                   end
@@ -584,12 +530,12 @@ function code_annotations()
                 if is_custom_node(resolvedCell) then
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
                   if param(constants.kSyntaxHighlighting, true) then
-                    custom.content:insert(1, typstAnnotationMarker(pendingAnnotations, pendingCellId))
+                    custom.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId))
                   end
                   custom.content:insert(dlDiv)
                 else
                   if param(constants.kSyntaxHighlighting, true) then
-                    resolvedCell.content:insert(1, typstAnnotationMarker(pendingAnnotations, pendingCellId))
+                    resolvedCell.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId))
                   end
                   resolvedCell.content:insert(dlDiv)
                 end
