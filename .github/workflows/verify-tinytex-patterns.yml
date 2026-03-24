@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download and extract regex.json
         env:
@@ -32,7 +32,7 @@ jobs:
 
       - name: Restore cached regex.json
         id: cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: .cache/regex.json
           key: tinytex-regex-latest
@@ -160,7 +160,7 @@ jobs:
 
       - name: Save new cache
         if: steps.compare.outputs.changed == 'true' || steps.compare.outputs.first_run == 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: .cache/regex.json
           key: tinytex-regex-latest

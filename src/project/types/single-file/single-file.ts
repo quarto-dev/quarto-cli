@@ -35,6 +35,7 @@ import {
   mergeExtensionMetadata,
   resolveEngineExtensions,
 } from "../../project-context.ts";
+import { createExtensionContext } from "../../../extension/extension.ts";
 
 export async function singleFileProjectContext(
   source: string,
@@ -93,17 +94,19 @@ export async function singleFileProjectContext(
       result.diskCache.close();
     },
   };
+  // Always resolve engine extensions so bundled engines (e.g. Julia) are
+  // discovered even when called without renderOptions (e.g. from preview)
+  const extensionContext = renderOptions?.services.extension ||
+    createExtensionContext();
+  result.config = result.config || { project: {} };
+  result.config = await resolveEngineExtensions(
+    extensionContext,
+    result.config,
+    result.dir,
+  );
+
   if (renderOptions) {
-    result.config = {
-      project: {},
-    };
-    // First resolve engine extensions
-    result.config = await resolveEngineExtensions(
-      renderOptions.services.extension,
-      result.config,
-      result.dir,
-    );
-    // Then merge extension metadata
+    // Merge extension metadata (requires renderOptions for full services)
     await mergeExtensionMetadata(result, renderOptions);
 
     // Check if extensions contributed output-dir metadata

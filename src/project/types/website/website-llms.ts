@@ -24,16 +24,24 @@ import {
   websiteTitle,
 } from "./website-config.ts";
 import { inputFileHref } from "./website-shared.ts";
-import { isDraftVisible, isProjectDraft, projectDraftMode } from "./website-utils.ts";
+import {
+  isDraftVisible,
+  isProjectDraft,
+  projectDraftMode,
+} from "./website-utils.ts";
 import { resolveInputTargetForOutputFile } from "../../project-index.ts";
-import { Format } from "../../../config/types.ts";
+import { Format, Metadata } from "../../../config/types.ts";
+import { kWebsite } from "./website-constants.ts";
 
 /**
  * Compute the output HTML file path from the source file.
  * Uses inputFileHref to convert the relative source path to an HTML href,
  * then joins with the output directory.
  */
-function computeOutputFilePath(source: string, project: ProjectContext): string {
+function computeOutputFilePath(
+  source: string,
+  project: ProjectContext,
+): string {
   const outputDir = projectOutputDir(project);
   const sourceRelative = relative(project.dir, source);
   // inputFileHref returns "/path/to/file.html" - strip leading / and join with output dir
@@ -176,7 +184,10 @@ ${main.innerHTML}
  * Restores original code text (with annotation markers) and converts
  * the annotation definition list to an ordered list.
  */
-function preprocessAnnotatedCodeBlocks(doc: Document, container: Element): void {
+function preprocessAnnotatedCodeBlocks(
+  doc: Document,
+  container: Element,
+): void {
   // Restore original code text in annotated code blocks.
   // The llms-code-annotations.lua filter saves the original text
   // (before code-annotation.lua strips markers) as a data attribute.
@@ -301,8 +312,17 @@ export async function updateLlmsTxt(
     return;
   }
 
-  const siteTitle = websiteTitle(context.config) || "Untitled";
-  const siteDesc = websiteDescription(context.config) || "";
+  // Read resolved site title/description from the first output file's format
+  // metadata. The metadata markdown pipeline in website-meta.ts writes resolved
+  // values (with shortcodes expanded) back into format.metadata during per-page
+  // rendering, and these flow through to ProjectOutputFile.format.
+  const firstFileMeta = outputFiles.length > 0
+    ? outputFiles[0].format.metadata[kWebsite] as Metadata | undefined
+    : undefined;
+  const siteTitle = (firstFileMeta?.title as string) ||
+    websiteTitle(context.config) || "Untitled";
+  const siteDesc = (firstFileMeta?.description as string) ||
+    websiteDescription(context.config) || "";
   const baseUrl = websiteBaseurl(context.config);
   const draftMode = projectDraftMode(context);
 
@@ -338,7 +358,9 @@ export async function updateLlmsTxt(
       // Extract title from the format metadata or use filename
       const title = (file.format.metadata?.title as string) ||
         basename(file.file, ".html");
-      const relativePath = pathWithForwardSlashes(relative(outputDir, llmsPath));
+      const relativePath = pathWithForwardSlashes(
+        relative(outputDir, llmsPath),
+      );
       const filePath = baseUrl
         ? (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + relativePath
         : relativePath;

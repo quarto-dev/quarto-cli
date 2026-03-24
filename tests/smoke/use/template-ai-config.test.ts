@@ -30,6 +30,14 @@ Deno.writeTextFileSync(
   "# Agents Configuration\n\nThis should be excluded."
 );
 Deno.writeTextFileSync(
+  join(templateSourceDir, "CLAUDE.local.md"),
+  "# Claude Local Configuration\n\nThis should be excluded."
+);
+Deno.writeTextFileSync(
+  join(templateSourceDir, "AGENTS.local.md"),
+  "# Agents Local Configuration\n\nThis should be excluded."
+);
+Deno.writeTextFileSync(
   join(templateSourceDir, "README.md"),
   "# Template README\n\nThis should also be excluded."
 );
@@ -46,6 +54,8 @@ testQuartoCmd(
     fileExists(`${templateFolder}.qmd`),             // Template file should be copied and renamed
     pathDoNotExists(join(workingDir, "CLAUDE.md")), // CLAUDE.md should be excluded
     pathDoNotExists(join(workingDir, "AGENTS.md")), // AGENTS.md should be excluded
+    pathDoNotExists(join(workingDir, "CLAUDE.local.md")), // CLAUDE.local.md should be excluded
+    pathDoNotExists(join(workingDir, "AGENTS.local.md")), // AGENTS.local.md should be excluded
     pathDoNotExists(join(workingDir, "README.md")), // README.md should also be excluded (sanity check)
   ],
   {

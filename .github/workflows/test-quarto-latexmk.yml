@@ -22,7 +22,7 @@ jobs:
           - { os: ubuntu-latest }
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -55,7 +55,7 @@ jobs:
           ../dist/bin/tinitex/x86_64-unknown-linux-gnu/tinitex --help
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tinitex-${{ matrix.config.os }}
           path: |

@@ -65,28 +65,19 @@ function quarto_ast_pipeline()
         jin:write(htmltext)
         jin:flush()
         local quarto_path = quarto.config.cli_path()
-        local jout, jerr = io.popen(quarto_path .. ' run ' ..
-            pandoc.path.join({os.getenv('QUARTO_SHARE_PATH'), 'scripts', 'juice.ts'}) .. ' ' ..
-            juice_in, 'r')
-        if not jout then
-          quarto.log.error('Running juice failed with message: ' .. (jerr or "Unknown error"))
+        local juice_script = pandoc.path.join({os.getenv('QUARTO_SHARE_PATH'), 'scripts', 'juice.ts'})
+        local ok, content = pcall(pandoc.pipe, quarto_path, {'run', juice_script, juice_in}, '')
+        if not ok then
+          quarto.log.error('Running juice failed: ' .. tostring(content))
           return htmltext
         end
-        local content = jout:read('a')
-        local success, _, exitCode = jout:close()
-        -- Check the exit status
-        if not success then
-          quarto.log.error("Running juice failed with exit code: " .. (exitCode or "unknown exit code"))
-          return htmltext
-        else
-          local index = 1
-          content = content:gsub(data_uri_uuid:gsub('-', '%%-'), function(_)
-            local data_uri = data_uris[index]
-            index = index + 1
-            return data_uri
-          end)
-          return content
-        end
+        local index = 1
+        content = content:gsub(data_uri_uuid:gsub('-', '%%-'), function(_)
+          local data_uri = data_uris[index]
+          index = index + 1
+          return data_uri
+        end)
+        return content
       end)
     end   
     local function should_handle_raw_html_as_table(el)

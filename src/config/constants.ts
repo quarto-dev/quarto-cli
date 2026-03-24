@@ -88,6 +88,15 @@ export const kKeepTex = "keep-tex";
 export const kKeepTyp = "keep-typ";
 export const kPdfStandard = "pdf-standard";
 export const kPdfStandardApplied = "pdf-standard-applied";
+
+/** Read QUARTO_PDF_STANDARD env var as a fallback for pdf-standard option. */
+export function pdfStandardEnv(): string[] | undefined {
+  const val = Deno.env.get("QUARTO_PDF_STANDARD");
+  if (val) {
+    return val.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+  }
+  return undefined;
+}
 export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";

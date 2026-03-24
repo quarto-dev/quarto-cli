@@ -41,7 +41,7 @@ runs:
 
     - name: Cache Typst package folder
       id: cache-typst-restore
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ${{ env.TYPST_CACHE }}
         key: ${{ runner.os }}-typst-1

@@ -190,7 +190,8 @@ function Link(link)
         return link.content
     end
 
-    if link.target and (link.target:match("%.html$") or link.target:match("%.html#")) then
+    local is_absolute = link.target:match("^%a[%w+%-%.]*:") or link.target:match("^//")
+    if link.target and not is_absolute and (link.target:match("%.html$") or link.target:match("%.html#")) then
         link.target = link.target:gsub("%.html#", ".llms.md#")
         link.target = link.target:gsub("%.html$", ".llms.md")
         link.target = link.target:gsub("^%./", "")

@@ -431,6 +431,8 @@ const kTwitterDesc = "quarto-twittercarddesc";
 const kOgTitle = "quarto-ogcardtitle";
 const kOgDesc = "quarto-ogcardddesc";
 const kMetaSideNameId = "quarto-metasitename";
+const kMetaSiteDescId = "quarto-metasitedesc";
+
 function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
   const resolvedTitle = computePageTitle(format);
 
@@ -504,7 +506,13 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
     processRendered(rendered: Record<string, Element>, doc: Document) {
       const renderedEl = rendered[kMetaSideNameId];
       if (renderedEl) {
-        // Update the document title
+        // Write resolved title back into format.metadata so it flows
+        // through to ProjectOutputFile.format for post-render consumers
+        const siteMeta = format.metadata[kWebsite] as Metadata;
+        if (siteMeta) {
+          siteMeta[kTitle] = renderedEl.innerText;
+        }
+        // Update the og:site_name meta tag
         const el = doc.querySelector(
           `meta[property="og:site_name"]`,
         );
@@ -555,9 +563,32 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
     },
   };
 
+  const siteDescriptionHandler = {
+    getUnrendered() {
+      const siteMeta = format.metadata[kWebsite] as Metadata;
+      if (siteMeta && siteMeta[kDescription]) {
+        return {
+          inlines: { [kMetaSiteDescId]: siteMeta[kDescription] as string },
+        };
+      }
+    },
+    processRendered(rendered: Record<string, Element>) {
+      const renderedEl = rendered[kMetaSiteDescId];
+      if (renderedEl) {
+        // Write resolved description back into format.metadata so it flows
+        // through to ProjectOutputFile.format for post-render consumers
+        const siteMeta = format.metadata[kWebsite] as Metadata;
+        if (siteMeta) {
+          siteMeta[kDescription] = renderedEl.innerText;
+        }
+      }
+    },
+  };
+
   return createMarkdownPipeline("quarto-meta-markdown", [
     titleMetaHandler,
     siteTitleMetaHandler,
     descriptionMetaHandler,
+    siteDescriptionHandler,
   ]);
 }

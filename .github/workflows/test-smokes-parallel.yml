@@ -53,12 +53,14 @@ jobs:
       BUCKETS: ${{ steps.tests-buckets.outputs.BUCKETS }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: ${{ github.ref == 'refs/heads/main' && 'pre-release' || 'release' }}
+
+      - uses: ./.github/actions/merge-extension-tests
 
       - name: Create Job for tests
         id: tests-buckets

@@ -61,61 +61,64 @@
     }
    }
 
-  place(
-    top,
-    float: true,
-    scope: "parent",
-    clearance: 4mm,
-    block(below: 1em, width: 100%)[
+  let has-title-block = title != none or (authors != none and authors != ()) or date != none or abstract != none
+  if has-title-block {
+    place(
+      top,
+      float: true,
+      scope: "parent",
+      clearance: 4mm,
+      block(below: 1em, width: 100%)[
 
-      #if title != none {
-        align(center, block(inset: 2em)[
-          #set par(leading: heading-line-height) if heading-line-height != none
-          #set text(font: heading-family) if heading-family != none
-          #set text(weight: heading-weight)
-          #set text(style: heading-style) if heading-style != "normal"
-          #set text(fill: heading-color) if heading-color != black
+        #if title != none {
+          align(center, block(inset: 2em)[
+            #set par(leading: heading-line-height) if heading-line-height != none
+            #set text(font: heading-family) if heading-family != none
+            #set text(weight: heading-weight)
+            #set text(style: heading-style) if heading-style != "normal"
+            #set text(fill: heading-color) if heading-color != black
 
-          #text(size: title-size)[#title #if thanks != none {
-            footnote(thanks, numbering: "*")
-            counter(footnote).update(n => n - 1)
-          }]
-          #(if subtitle != none {
-            parbreak()
-            text(size: subtitle-size)[#subtitle]
-          })
-        ])
-      }
+            #text(size: title-size)[#title #if thanks != none {
+              footnote(thanks, numbering: "*")
+              counter(footnote).update(n => n - 1)
+            }]
+            #(if subtitle != none {
+              parbreak()
+              text(size: subtitle-size)[#subtitle]
+            })
+          ])
+        }
 
-      #if authors != none and authors != () {
-        let count = authors.len()
-        let ncols = calc.min(count, 3)
-        grid(
-          columns: (1fr,) * ncols,
-          row-gutter: 1.5em,
-          ..authors.map(author =>
-              align(center)[
-                #author.name \
-                #author.affiliation \
-                #author.email
-              ]
+        #if authors != none and authors != () {
+          let count = authors.len()
+          let ncols = calc.min(count, 3)
+          grid(
+            columns: (1fr,) * ncols,
+            row-gutter: 1.5em,
+            ..authors.map(author =>
+                align(center)[
+                  #author.name \
+                  #author.affiliation \
+                  #author.email
+                ]
+            )
           )
-        )
-      }
+        }
 
-      #if date != none {
-        align(center)[#block(inset: 1em)[
-          #date
-        ]]
-      }
+        #if date != none {
+          align(center)[#block(inset: 1em)[
+            #date
+          ]]
+        }
 
-      #if abstract != none {
-        block(inset: 2em)[
-        #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
-        ]
-      }
-    ]
-  )
+        #if abstract != none {
+          block(inset: 2em)[
+          #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
+          ]
+        }
+      ]
+    )
+  }
 
   if toc {
     let title = if toc_title == none {

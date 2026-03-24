@@ -6,9 +6,9 @@ _quarto:
       ensureLlmsMdExists: true
       ensureLlmsMdRegexMatches:
         # First array: patterns that MUST match
-        - ["^# About", "> \\*\\*NOTE:\\*\\*", "> \\*\\*WARNING:\\*\\*", "This is a note", "``` python", "def hello", "\\| Feature", "\\|[-]+\\|", "\\[home page\\]\\(.*\\.llms\\.md\\)", "\\[test site intro\\]\\(index\\.llms\\.md#test-content\\)", "## Alpha Tab", "Alpha content here", "## Beta Tab", "Beta content here"]
-        # Second array: patterns that must NOT match (no .html links, no breadcrumbs, no empty tab links)
-        - ["\\.html\\)", "\\.html#", "\\[Info\\]", "\\[Alpha Tab\\]\\(\\)", "\\[Beta Tab\\]\\(\\)"]
+        - ["^# About", "> \\*\\*NOTE:\\*\\*", "> \\*\\*WARNING:\\*\\*", "This is a note", "``` python", "def hello", "\\| Feature", "\\|[-]+\\|", "\\[home page\\]\\(.*\\.llms\\.md\\)", "\\[test site intro\\]\\(index\\.llms\\.md#test-content\\)", "## Alpha Tab", "Alpha content here", "## Beta Tab", "Beta content here", "https://pandoc.org/lua-filters.html", "https://www.lua.org/manual/5.3/manual.html#6.4"]
+        # Second array: patterns that must NOT match (no internal .html links, no breadcrumbs, no empty tab links)
+        - ["\\(index\\.html\\)", "\\(index\\.html#", "\\[Info\\]", "\\[Alpha Tab\\]\\(\\)", "\\[Beta Tab\\]\\(\\)"]
 ---
 
 About this test site.
@@ -58,3 +58,9 @@ Beta content here.
 Go back to the [home page](index.qmd).
 
 Go to the [test site intro](index.qmd#test-content).
+
+## External Link Example
+
+Check out [Pandoc filters](https://pandoc.org/lua-filters.html) for more info.
+
+See the [Lua manual](https://www.lua.org/manual/5.3/manual.html#6.4) for string functions.

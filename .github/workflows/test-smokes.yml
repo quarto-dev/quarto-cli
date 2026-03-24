@@ -60,7 +60,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Fix temp dir to use runner one (windows)
         if: runner.os == 'Windows'
@@ -79,13 +79,13 @@ jobs:
           windows-path-include-rtools: false
 
       - name: Install node (for Playwright, MECA)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Cache multiplex server node_modules
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: tests/integration/playwright/multiplex-server/node_modules
           key: ${{ runner.os }}-multiplex-server-${{ hashFiles('tests/integration/playwright/multiplex-server/package.json') }}
@@ -121,7 +121,7 @@ jobs:
 
       - name: Restore Renv package cache
         id: cache-renv-packages-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ${{ env.RENV_PATHS_ROOT }}
@@ -182,7 +182,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Install uv for Python
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v7
         with:
           version: "0.9.5"
           enable-cache: true
@@ -240,6 +240,8 @@ jobs:
           uv run --frozen julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
           echo "Julia Jupyter:"
           uv run julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
+
+      - uses: ./.github/actions/merge-extension-tests
 
       - name: Setup timing file for timed test
         if: ${{ matrix.time-test == true }}
@@ -340,7 +342,7 @@ jobs:
         shell: pwsh
 
       - name: Upload test timing file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: matrix.time-test
         with:
           name: timed test file
@@ -348,7 +350,7 @@ jobs:
 
       - name: Save Typst cache
         if: always() && steps.cache-typst.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ steps.cache-typst.outputs.cache-primary-key }}
           path: ${{ steps.cache-typst.outputs.cache-path }}
@@ -356,14 +358,14 @@ jobs:
       - name: Save Renv package cache
         # don't save cache if we have extra R packages
         if: ${{ always() && steps.cache-renv-packages-restore.outputs.cache-hit != 'true' && inputs.extra-r-packages == '' }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ${{ env.RENV_PATHS_ROOT }}
             renv/library
           key: ${{ steps.cache-renv-packages-restore.outputs.cache-primary-key }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         # Upload pLaywright test report if they exists (playwright is only running on Linux for now)
         if: ${{ !cancelled() && runner.os != 'Windows' && hashFiles('tests/integration/playwright/playwright-report/**/*') != '' }}
         with:

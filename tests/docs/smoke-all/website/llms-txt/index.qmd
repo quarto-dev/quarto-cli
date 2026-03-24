@@ -14,8 +14,8 @@ _quarto:
       ensureLlmsMdRegexMatches:
         # First array: patterns that MUST match - verify anchor links, code annotations, and conditional content
         - ["\\[callout examples\\]\\(about\\.llms\\.md#callout-examples\\)", "# <1>", "# <2>", "Load tidyverse", "Open help for ggplot", "only for LLM consumption"]
-        # Second array: patterns that must NOT match (no .html links, no annotation UI, no hidden content)
-        - ["\\.html\\)", "\\.html#", "code-annotation-anchor", "should not appear in LLM output"]
+        # Second array: patterns that must NOT match (no internal .html links, no annotation UI, no hidden content)
+        - ["\\(about\\.html\\)", "\\(about\\.html#", "code-annotation-anchor", "should not appear in LLM output"]
 ---
 
 ## Test Content

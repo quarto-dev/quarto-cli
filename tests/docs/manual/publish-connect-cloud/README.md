@@ -98,7 +98,29 @@ Verify re-publish works without re-authorization.
 
 ---
 
-## Test 3: Publish a Website
+## Test 3: Publish RevealJS Slides
+
+Verify single-document revealjs publishing works (reveal.js assets bundled correctly).
+
+**Run:**
+
+```bash
+./package/dist/bin/quarto.cmd publish posit-connect-cloud tests/docs/manual/publish-connect-cloud/revealjs-slides/slides.qmd
+```
+
+**Check in browser:**
+
+- [ ] Slides load with reveal.js navigation (arrow keys, progress bar)
+- [ ] Slide 3 has aquamarine background color
+- [ ] Slide 4 has syntax-highlighted Python code block
+- [ ] No broken assets (check browser console for 404s)
+- [ ] All reveal.js transitions and controls functional
+
+**Record:** Content ID: ___ | URL: ___
+
+---
+
+## Test 4: Publish a Website
 
 Verify multi-page site publishing.
 
@@ -121,14 +143,14 @@ Verify multi-page site publishing.
 
 ---
 
-## Test 4: Update Existing Content
+## Test 5: Update Existing Content
 
 Verify re-publishing updates content in-place.
 
 **Setup:** Edit `simple-website/index.qmd` — add a line:
 
 ```markdown
-This content was updated for Test 4.
+This content was updated for Test 5.
 ```
 
 **Run:**
@@ -139,7 +161,7 @@ This content was updated for Test 4.
 
 **Check:**
 
-- [ ] URL is same as Test 3
+- [ ] URL is same as Test 4
 - [ ] Hard-refresh (Ctrl+F5) shows updated text
 - [ ] About page still works
 - [ ] No duplicate content created on dashboard
@@ -152,7 +174,7 @@ git checkout tests/docs/manual/publish-connect-cloud/simple-website/index.qmd
 
 ---
 
-## Test 5: Account Management
+## Test 6: Account Management
 
 Verify accounts listing and removal.
 
@@ -178,7 +200,7 @@ Verify accounts listing and removal.
 
 ---
 
-## Test 6: CI/CD Mode (Environment Token)
+## Test 7: CI/CD Mode (Environment Token)
 
 Verify non-interactive publishing with environment variables.
 
@@ -214,7 +236,7 @@ Remove stored accounts via `quarto publish accounts` so only env var token is us
 - [ ] Publish succeeds
 - [ ] No ghost token persisted (run `quarto publish accounts` after — should show no posit-connect-cloud accounts)
 
-### 6b: Multiple Accounts Without ACCOUNT_ID (--no-prompt)
+### 7b: Multiple Accounts Without ACCOUNT_ID (--no-prompt)
 
 If the access token has access to multiple publishable accounts:
 
@@ -240,7 +262,7 @@ Re-authorize interactively for remaining tests.
 
 ---
 
-## Test 7: Provider Selection (Interactive)
+## Test 8: Provider Selection (Interactive)
 
 Verify posit-connect-cloud appears in the interactive provider menu.
 
@@ -261,7 +283,7 @@ Verify posit-connect-cloud appears in the interactive provider menu.
 
 ---
 
-## Test 8: posit-cloud Deprecation Warning
+## Test 9: posit-cloud Deprecation Warning
 
 Verify the old provider name shows a helpful warning.
 
@@ -281,9 +303,9 @@ Verify the old provider name shows a helpful warning.
 
 ---
 
-## Test 9: Error Cases
+## Test 10: Error Cases
 
-### 9a: Invalid Token
+### 10a: Invalid Token
 
 ```bash
 export POSIT_CONNECT_CLOUD_ACCESS_TOKEN="invalid_garbage_token"
@@ -297,7 +319,7 @@ export POSIT_CONNECT_CLOUD_ACCESS_TOKEN="invalid_garbage_token"
 unset POSIT_CONNECT_CLOUD_ACCESS_TOKEN
 ```
 
-### 9b: Deleted Content
+### 10b: Deleted Content
 
 1. Publish the single doc (or use existing from Test 1)
 2. Delete the content from the Connect Cloud dashboard
@@ -313,7 +335,7 @@ unset POSIT_CONNECT_CLOUD_ACCESS_TOKEN
 - [ ] Publishes successfully with new content ID
 - [ ] Old stale entry remains in `_publish.yml` (not cleaned up — known limitation)
 
-### 9c: --no-render Flag
+### 10c: --no-render Flag
 
 ```bash
 ./package/dist/bin/quarto.cmd publish posit-connect-cloud tests/docs/manual/publish-connect-cloud/single-doc/document.qmd --no-render
@@ -326,7 +348,7 @@ unset POSIT_CONNECT_CLOUD_ACCESS_TOKEN
 
 ---
 
-## Test 10: Token Refresh
+## Test 11: Token Refresh
 
 Access tokens expire after some time. To test proactive refresh:
 
@@ -351,17 +373,18 @@ Access tokens expire after some time. To test proactive refresh:
 |---|------|--------|-------|
 | 1 | First-time authorization | | |
 | 2 | Token persistence | | |
-| 3 | Publish website | | |
-| 4 | Update existing content | | |
-| 5 | Account management | | |
-| 6 | CI/CD mode | | |
-| 6b | Multiple accounts without ACCOUNT_ID | | |
-| 7 | Provider selection | | |
-| 8 | posit-cloud deprecation | | |
-| 9a | Invalid token error | | |
-| 9b | Deleted content | | |
-| 9c | --no-render flag | | |
-| 10 | Token refresh | | |
+| 3 | Publish revealjs slides | | |
+| 4 | Publish website | | |
+| 5 | Update existing content | | |
+| 6 | Account management | | |
+| 7 | CI/CD mode | | |
+| 7b | Multiple accounts without ACCOUNT_ID | | |
+| 8 | Provider selection | | |
+| 9 | posit-cloud deprecation | | |
+| 10a | Invalid token error | | |
+| 10b | Deleted content | | |
+| 10c | --no-render flag | | |
+| 11 | Token refresh | | |
 
 ## Post-Testing Cleanup
 

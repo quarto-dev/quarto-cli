@@ -86,6 +86,7 @@ All changes included in 1.9:
 - ([#13978](https://github.com/quarto-dev/quarto-cli/pull/13978)): Keep term and description together in definition lists to avoid breaking across pages. (author: @mcanouil)
 - ([#13878](https://github.com/quarto-dev/quarto-cli/issues/13878)): Typst now uses Pandoc's skylighting for syntax highlighting by default (consistent with other formats). Use `syntax-highlighting: idiomatic` to opt-in to Typst's native syntax highlighting instead.
 - ([#14126](https://github.com/quarto-dev/quarto-cli/issues/14126)): Fix Skylighting code blocks in Typst lacking full-width background, padding, and border radius. A postprocessor patches the Pandoc-generated Skylighting function to add `width: 100%`, `inset: 8pt`, and `radius: 2pt` to the block call, matching the styling of native code blocks. Brand `monospace-block.background-color` also now correctly applies to Skylighting output. This workaround will be removed once the fix is upstreamed to Skylighting.
+- ([#14202](https://github.com/quarto-dev/quarto-cli/issues/14202)): Fix CSS inlining (`juice`) failing on Windows when Quarto is installed in a path with spaces (e.g., `C:\Program Files\Quarto\`).
 
 ### `pdf`
 
@@ -104,6 +105,7 @@ All changes included in 1.9:
   - New `pdf-trailer-id` support for reproducible PDF builds.
   - New `cancel` package support for `\cancel` command in math.
 - ([#14017](https://github.com/quarto-dev/quarto-cli/issues/14017)): `tColorOptions()` in .tex file will now always have options in alphabetical order. Previously, they were in random order leading to a different .tex intermediates for identical .qmd.
+- ([#14241](https://github.com/quarto-dev/quarto-cli/pull/14241)): Add `QUARTO_PDF_STANDARD` environment variable as a fallback for the `pdf-standard` option. Accepts comma-separated values (e.g., `QUARTO_PDF_STANDARD=ua-2`), enabling PDF standard conformance without modifying document YAML. Works with both LaTeX and Typst formats.
 
 ### `revealjs`
 
@@ -181,6 +183,7 @@ All changes included in 1.9:
 
 - ([#4426](https://github.com/quarto-dev/quarto-cli/issues/4426)): New `quarto install verapdf` command installs [veraPDF](https://verapdf.org/) for PDF/A and PDF/UA validation. When verapdf is available, PDFs created with the `pdf-standard` option are automatically validated for compliance. Also supports `quarto uninstall verapdf`, `quarto update verapdf`, and `quarto tools`.
 - ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877), [#10961](https://github.com/quarto-dev/quarto-cli/issues/10961), [#6821](https://github.com/quarto-dev/quarto-cli/issues/6821), [#13704](https://github.com/quarto-dev/quarto-cli/issues/13704)): New `quarto install chrome-headless-shell` command downloads [Chrome Headless Shell](https://developer.chrome.com/blog/chrome-headless-shell) from Google's Chrome for Testing API. This is the recommended headless browser for diagram rendering (Mermaid, Graphviz) to non-HTML formats. Smaller and lighter than full Chrome, with fewer system dependencies.
+- ([#12124](https://github.com/quarto-dev/quarto-cli/issues/12124)): Support `quarto install tinytex` on ARM64 Linux and adopt new TinyTeX naming scheme with `.tar.xz` compression.
 
 ### `preview`
 
@@ -216,6 +219,7 @@ All changes included in 1.9:
 - ([#13856](https://github.com/quarto-dev/quarto-cli/issues/13856)): Add code annotation support for Typst and Observable.js code blocks. (author: @mcanouil)
 - ([#13890](https://github.com/quarto-dev/quarto-cli/issues/13890)): Fix render failure when using `embed-resources: true` with input path through a symlinked directory. The cleanup now resolves symlinks before comparing paths.
 - ([#13907](https://github.com/quarto-dev/quarto-cli/issues/13907)): Ignore AI assistant configuration files (`CLAUDE.md`, `AGENTS.md`) when scanning for project input files and in extension templates, similar to how `README.md` is handled.
+- ([#14198](https://github.com/quarto-dev/quarto-cli/issues/14198)): Ignore `.local.md` variants of AI assistant configuration files (`CLAUDE.local.md`, `AGENTS.local.md`) during project render and `quarto use template`.
 - ([#13935](https://github.com/quarto-dev/quarto-cli/issues/13935)): Fix `quarto install`, `quarto update`, and `quarto uninstall` interactive tool selection.
 - ([#13992](https://github.com/quarto-dev/quarto-cli/issues/13992)): Fix crash when rendering div with both cross-reference ID and conditional visibility to PDF.
 - ([#13997](https://github.com/quarto-dev/quarto-cli/issues/13997)): Fix Windows dart-sass theme compilation failing when Quarto is installed in a path with spaces (e.g., `C:\Program Files\`) and the project path also contains spaces.

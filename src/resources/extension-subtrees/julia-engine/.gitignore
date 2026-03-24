@@ -1,6 +1,5 @@
-example.html
-example_files/
+.DS_Store
+.claude/
 .quarto/
-
-/.quarto/
 **/*.quarto_ipynb
+scratch/
