@@ -1,7 +1,6 @@
 -- code.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local typstAnnotations = require("modules/typst-code-annotations")
 
 local hasAnnotations = false
 
@@ -287,6 +286,8 @@ end
 -- The actual filter that will look for a code cell and then
 -- find its annotations, then process the subsequent OL
 function code_annotations()
+  local typstAnnotations = require("modules/typst-code-annotations")
+
   -- the localized strings
   local language = param("language", nil)
 
