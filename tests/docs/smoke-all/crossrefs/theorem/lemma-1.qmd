@@ -20,7 +20,7 @@ _quarto:
       ensureTypstFileRegexMatches:
         -
           - "#ref\\(<lem-line>, supplement: \\[Lemma\\]\\)"
-          - "#lemma\\(title: \"Line\"\\)"
+          - "#lemma\\(title: \\[Line\\]\\)"
         - []
     markdown:
       ensureFileRegexMatches:
