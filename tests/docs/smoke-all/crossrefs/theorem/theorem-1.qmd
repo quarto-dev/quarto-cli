@@ -21,7 +21,7 @@ _quarto:
       ensureTypstFileRegexMatches:
         -
           - "#ref\\(<thm-line>, supplement: \\[Theorem\\]\\)"
-          - "#theorem\\(title: \"Line\"\\)"
+          - "#theorem\\(title: \\[Line\\]\\)"
           - "#import \"@preview/theorion:0\\.4\\.1\": make-frame"
           - "simple-theorem-render"
         -

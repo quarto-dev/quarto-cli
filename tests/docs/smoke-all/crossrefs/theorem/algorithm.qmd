@@ -22,7 +22,7 @@ _quarto:
         -
           - "#ref\\(<alg-gcd>, supplement: \\[alg.\\]\\)"
           - "#ref\\(<alg-gcd>, supplement: \\[Alg.\\]\\)"
-          - "#algorithm\\(title: \"Euclid\"\\)"
+          - "#algorithm\\(title: \\[Euclid\\]\\)"
         - []
     markdown:
       ensureFileRegexMatches:
