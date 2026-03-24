@@ -259,9 +259,9 @@ end, function(thm)
     ensure_typst_theorems(type)
     local preamble = pandoc.Plain({pandoc.RawInline("typst", "#" .. theorem_type.env .. "(")})
     if name and #name > 0 then
-      preamble.content:insert(pandoc.RawInline("typst", 'title: "'))
+      preamble.content:insert(pandoc.RawInline("typst", 'title: ['))
       tappend(preamble.content, name)
-      preamble.content:insert(pandoc.RawInline("typst", '"'))
+      preamble.content:insert(pandoc.RawInline("typst", ']'))
     end
     preamble.content:insert(pandoc.RawInline("typst", ")["))
     local callthm = make_scaffold(pandoc.Div, preamble)
