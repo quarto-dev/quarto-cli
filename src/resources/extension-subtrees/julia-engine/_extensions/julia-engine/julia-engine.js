@@ -631,6 +631,7 @@ var kFigFormat = "fig-format";
 var kFigPos = "fig-pos";
 var kIpynbProduceSourceNotebook = "produce-source-notebook";
 var kKeepHidden = "keep-hidden";
+var kKeepIpynb = "keep-ipynb";
 
 // src/julia-engine.ts
 var isWindows2 = Deno.build.os === "windows";
@@ -749,6 +750,11 @@ var juliaEngineDiscovery = {
           language: "julia"
         };
         const assets = quarto.jupyter.assets(options.target.input, options.format.pandoc.to);
+        if (options.format.execute[kKeepIpynb]) {
+          const stem = options.target.source.replace(/\.[^.]+$/, "");
+          const ipynbPath = stem + ".ipynb";
+          Deno.writeTextFileSync(ipynbPath, JSON.stringify(nb, null, 2));
+        }
         const result = await quarto.jupyter.toMarkdown(nb, {
           executeOptions: options,
           language: nb.metadata.kernelspec.language.toLowerCase(),

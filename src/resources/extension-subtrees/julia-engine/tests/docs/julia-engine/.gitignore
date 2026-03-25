@@ -4,3 +4,4 @@
 # Allow only source files
 !*/*.qmd
 !*/_quarto.yml
+!*/_metadata.yml
