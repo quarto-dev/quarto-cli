@@ -414,8 +414,23 @@ async function checkInstall(conf: CheckConfiguration) {
       latexOutput.push(`${kIndent}Version: ${version}`);
       latexJson["version"] = version;
     } else {
-      latexOutput.push(`${kIndent}Tex:  (not detected)`);
-      latexJson["installed"] = false;
+      // Check for MiKTeX (uses initexmf instead of tlmgr)
+      const miktexDetection = await detectMiktex();
+      if (miktexDetection) {
+        latexOutput.push(`${kIndent}Using: MiKTeX`);
+        if (miktexDetection.path) {
+          latexOutput.push(`${kIndent}Path: ${miktexDetection.path}`);
+          latexJson["path"] = miktexDetection.path;
+        }
+        latexJson["source"] = "miktex";
+        if (miktexDetection.version) {
+          latexOutput.push(`${kIndent}Version: ${miktexDetection.version}`);
+          latexJson["version"] = miktexDetection.version;
+        }
+      } else {
+        latexOutput.push(`${kIndent}Tex:  (not detected)`);
+        latexJson["installed"] = false;
+      }
     }
   };
   if (conf.jsonResult) {
@@ -560,4 +575,51 @@ async function detectChromeForCheck(): Promise<ChromeCheckInfo> {
   }
 
   return result;
+}
+
+interface MiktexDetectionResult {
+  path?: string;
+  version?: string;
+}
+
+async function detectMiktex(): Promise<MiktexDetectionResult | undefined> {
+  try {
+    const initexmfPath = await which("initexmf");
+    if (!initexmfPath) {
+      return undefined;
+    }
+
+    const result: MiktexDetectionResult = {
+      path: dirname(initexmfPath),
+    };
+
+    // Get MiKTeX version via initexmf --version
+    try {
+      const versionResult = await execProcess({
+        cmd: "initexmf",
+        args: ["--version"],
+        stdout: "piped",
+        stderr: "piped",
+      });
+      if (versionResult.code === 0 && versionResult.stdout) {
+        // initexmf --version outputs lines like:
+        // MiKTeX Configuration Utility 4.12 (MiKTeX 24.1)
+        // The parenthesized version is the distribution version
+        const distVersionMatch = versionResult.stdout.match(
+          /\(MiKTeX\s+(\d[\d.]*)\)/i,
+        );
+        const versionMatch = distVersionMatch ||
+          versionResult.stdout.match(/MiKTeX\s+(\d[\d.]*)/i);
+        if (versionMatch) {
+          result.version = versionMatch[1];
+        }
+      }
+    } catch {
+      // Version detection is best-effort
+    }
+
+    return result;
+  } catch {
+    return undefined;
+  }
 }
