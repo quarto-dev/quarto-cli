@@ -1,3 +1,13 @@
+# v1.10 backports
+
+## In this release
+
+- ([#14267](https://github.com/quarto-dev/quarto-cli/issues/14267)): Fix Windows paths with accented characters (e.g., `C:\Users\Sébastien\`) breaking dart-sass compilation.
+
+## In previous releases
+
+# v1.9 changes
+
 All changes included in 1.9:
 
 ## Shortcodes
