@@ -155,3 +155,58 @@ echo ARG: %~1
   },
   { ignore: !isWindows },
 );
+
+// Test that safeWindowsExec handles accented/Unicode characters in paths (issue #14267)
+// The bug: safeWindowsExec writes .bat as UTF-8 but cmd.exe reads using OEM code page
+// (e.g., CP850), garbling multi-byte chars like é (0xC3 0xA9 → two CP850 chars).
+unitTest(
+  "safeWindowsExec - handles accented characters in paths (issue #14267)",
+  async () => {
+    const tempDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
+
+    try {
+      // Create directory with accented characters (simulates C:\Users\Sébastien\)
+      const accentedDir = join(tempDir, "Sébastien", "project");
+      Deno.mkdirSync(accentedDir, { recursive: true });
+
+      // Create a test file at the accented path
+      const testFile = join(accentedDir, "test.txt");
+      Deno.writeTextFileSync(testFile, "accented path works");
+
+      // Create batch file that reads the accented-path file
+      const batFile = join(tempDir, "read-file.bat");
+      Deno.writeTextFileSync(
+        batFile,
+        `@echo off
+type %1
+`,
+      );
+
+      const quoted = requireQuoting([batFile, testFile]);
+
+      const result = await safeWindowsExec(
+        quoted.args[0],
+        quoted.args.slice(1),
+        (cmd) =>
+          execProcess({
+            cmd: cmd[0],
+            args: cmd.slice(1),
+            stdout: "piped",
+            stderr: "piped",
+          }),
+      );
+
+      assert(
+        result.success,
+        `Should execute successfully with accented path. stderr: ${result.stderr}`,
+      );
+      assert(
+        result.stdout?.includes("accented path works"),
+        `Should read file at accented path. Got: ${result.stdout}`,
+      );
+    } finally {
+      Deno.removeSync(tempDir, { recursive: true });
+    }
+  },
+  { ignore: !isWindows },
+);
