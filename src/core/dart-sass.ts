@@ -76,7 +76,7 @@ function resolveSassCommand(options?: DartCommandOptions): {
   baseArgs: string[];
 } {
   const installDir = options?.installDir;
-  if (!installDir) {
+  if (installDir == null) {
     const dartOverrideCmd = Deno.env.get("QUARTO_DART_SASS");
     if (dartOverrideCmd) {
       if (!existsSync(dartOverrideCmd)) {
