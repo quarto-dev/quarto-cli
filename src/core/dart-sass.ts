@@ -75,28 +75,30 @@ function resolveSassCommand(options?: DartCommandOptions): {
   cmd: string;
   baseArgs: string[];
 } {
-  const dartOverrideCmd = Deno.env.get("QUARTO_DART_SASS");
-  if (dartOverrideCmd) {
-    if (!existsSync(dartOverrideCmd)) {
-      warnOnce(
-        `Specified QUARTO_DART_SASS does not exist, using built in dart sass.`,
-      );
-    } else {
-      return { cmd: dartOverrideCmd, baseArgs: [] };
+  const installDir = options?.installDir;
+  if (!installDir) {
+    const dartOverrideCmd = Deno.env.get("QUARTO_DART_SASS");
+    if (dartOverrideCmd) {
+      if (!existsSync(dartOverrideCmd)) {
+        warnOnce(
+          `Specified QUARTO_DART_SASS does not exist, using built in dart sass.`,
+        );
+      } else {
+        return { cmd: dartOverrideCmd, baseArgs: [] };
+      }
     }
   }
 
-  const installDir = options?.installDir ??
-    architectureToolsPath("dart-sass");
+  const sassDir = installDir ?? architectureToolsPath("dart-sass");
 
   if (isWindows) {
     return {
-      cmd: join(installDir, "src", "dart.exe"),
-      baseArgs: [join(installDir, "src", "sass.snapshot")],
+      cmd: join(sassDir, "src", "dart.exe"),
+      baseArgs: [join(sassDir, "src", "sass.snapshot")],
     };
   }
 
-  return { cmd: join(installDir, "sass"), baseArgs: [] };
+  return { cmd: join(sassDir, "sass"), baseArgs: [] };
 }
 
 export async function dartCommand(
