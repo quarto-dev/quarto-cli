@@ -196,13 +196,6 @@ export async function quarto(
 
   try {
     await promise;
-    for (const [key, value] of Object.entries(oldEnv)) {
-      if (value === undefined) {
-        Deno.env.delete(key);
-      } else {
-        Deno.env.set(key, value);
-      }
-    }
     if (commandFailed()) {
       exitWithCleanup(1);
     }
@@ -212,6 +205,14 @@ export async function quarto(
       exitWithCleanup(1);
     } else {
       throw e;
+    }
+  } finally {
+    for (const [key, value] of Object.entries(oldEnv)) {
+      if (value === undefined) {
+        Deno.env.delete(key);
+      } else {
+        Deno.env.set(key, value);
+      }
     }
   }
 }
