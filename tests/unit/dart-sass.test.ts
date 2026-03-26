@@ -60,7 +60,7 @@ unitTest(
       Deno.writeTextFileSync(inputScss, "body { color: red; }");
 
       const result = await dartCommand([inputScss, outputCss], {
-        sassPath: spacedSassDir,
+        installDir: spacedSassDir,
       });
 
       assert(
@@ -106,7 +106,7 @@ unitTest(
       Deno.writeTextFileSync(inputScss, "body { color: blue; }");
 
       const result = await dartCommand([inputScss, outputCss], {
-        sassPath: accentedSassDir,
+        installDir: accentedSassDir,
       });
 
       assert(

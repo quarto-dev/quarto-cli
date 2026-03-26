@@ -1,7 +1,7 @@
 /*
  * dart-sass.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2025 Posit Software, PBC
  */
 import { join } from "../deno_ral/path.ts";
 
@@ -58,10 +58,10 @@ export async function dartCompile(
  */
 export interface DartCommandOptions {
   /**
-   * Override the path to the dart-sass install directory.
+   * Override the dart-sass install directory.
    * Used for testing with non-standard paths (spaces, accented characters).
    */
-  sassPath?: string;
+  installDir?: string;
 }
 
 /**
@@ -86,8 +86,11 @@ function resolveSassCommand(options?: DartCommandOptions): {
   cmd: string;
   baseArgs: string[];
 } {
-  const sassPath = options?.sassPath;
-  if (sassPath == null) {
+  const installDir = options?.installDir;
+  if (installDir == null) {
+    // Only check env var override when no explicit installDir is provided.
+    // If QUARTO_DART_SASS doesn't exist on disk, fall through to use the
+    // bundled dart-sass at the default architectureToolsPath.
     const dartOverrideCmd = Deno.env.get("QUARTO_DART_SASS");
     if (dartOverrideCmd) {
       if (!existsSync(dartOverrideCmd)) {
@@ -100,7 +103,7 @@ function resolveSassCommand(options?: DartCommandOptions): {
     }
   }
 
-  const sassDir = sassPath ?? architectureToolsPath("dart-sass");
+  const sassDir = installDir ?? architectureToolsPath("dart-sass");
 
   if (isWindows) {
     return {
