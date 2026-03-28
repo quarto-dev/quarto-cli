@@ -13,3 +13,4 @@ export const kFigFormat = "fig-format";
 export const kFigPos = "fig-pos";
 export const kIpynbProduceSourceNotebook = "produce-source-notebook";
 export const kKeepHidden = "keep-hidden";
+export const kKeepIpynb = "keep-ipynb";
