@@ -224,7 +224,7 @@ div.quarto-about-trestles {
 // Marquee
 div.quarto-about-marquee {
   padding-bottom: 1em;
-  padding-top: 14px !important;
+  padding-top: $content-padding-top !important;
 
   .about-contents {
     display: flex;
@@ -261,7 +261,7 @@ div.quarto-about-broadside {
   display: flex;
   flex-direction: column;
   padding-bottom: 1em;
-  padding-top: 14px !important;
+  padding-top: $content-padding-top !important;
 
   .about-main {
     display: flex !important;
