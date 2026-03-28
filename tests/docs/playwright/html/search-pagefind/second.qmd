@@ -1,0 +1,11 @@
+---
+title: "Second Page"
+---
+
+## More Content
+
+This is a second page with different content about crystallography and thermodynamics.
+
+## Details
+
+Additional details to ensure there is enough text for pagefind to index across multiple pages.
