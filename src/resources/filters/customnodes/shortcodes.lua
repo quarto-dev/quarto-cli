@@ -325,6 +325,10 @@ function shortcodes_filter()
       doc = _quarto.ast.walk(doc, {
         Shortcode = inline_handler,
         RawInline = code_handler,
+        Math = function(el)
+          el.text = apply_code_shortcode(el.text)
+          return el
+        end,
         Image = function(el)
           el = attr_handler(el)
           el.src = apply_code_shortcode(el.src)
