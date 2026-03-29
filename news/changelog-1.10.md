@@ -10,6 +10,10 @@ All changes included in 1.10:
 
 - ([#14261](https://github.com/quarto-dev/quarto-cli/issues/14261)): Fix theorem/example block titles containing inline code producing invalid Typst markup when syntax highlighting is applied.
 
+### `revealjs`
+
+- ([#14249](https://github.com/quarto-dev/quarto-cli/issues/14249)): Add `aria-label` to slide-menu button link for screen reader accessibility. (author: @mcanouil)
+
 ## Commands
 
 ### `quarto create`
@@ -19,4 +23,3 @@ All changes included in 1.10:
 ## Other fixes and improvements
 
 - ([#6651](https://github.com/quarto-dev/quarto-cli/issues/6651)): Fix dart-sass compilation failing in enterprise environments where `.bat` files are blocked by group policy.
-
