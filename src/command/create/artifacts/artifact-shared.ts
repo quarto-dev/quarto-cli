@@ -12,7 +12,11 @@ import { gfmAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 import { coerce } from "semver/mod.ts";
 import { info } from "../../../deno_ral/log.ts";
 import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
-import { ensureDirSync, walkSync } from "../../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  ensureUserWritable,
+  walkSync,
+} from "../../../deno_ral/fs.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 import { CreateDirective, CreateDirectiveData } from "../cmd-types.ts";
@@ -116,6 +120,7 @@ const renderArtifact = (
     }
     ensureDirSync(dirname(target));
     Deno.copyFileSync(src, target);
+    ensureUserWritable(target);
     return target;
   }
 };

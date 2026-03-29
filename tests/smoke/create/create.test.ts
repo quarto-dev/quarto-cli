@@ -7,6 +7,7 @@
 
 import { execProcess } from "../../../src/core/process.ts";
 import { join } from "../../../src/deno_ral/path.ts";
+import { walkSync } from "../../../src/deno_ral/fs.ts";
 import { CreateResult } from "../../../src/command/create/cmd-types.ts";
 import { assert } from "testing/asserts";
 import { quartoDevCmd } from "../../utils.ts";
@@ -59,6 +60,27 @@ for (const type of Object.keys(kCreateTypes)) {
           result = JSON.parse(process.stdout) as CreateResult;
         }
         assert(process.success, process.stderr);
+      });
+
+      // Verify all created files are user-writable.
+      // NOTE: In dev environments, resource files are already writable (0o644),
+      // so this test passes even without ensureUserWritable. It guards against
+      // regressions; the unit test in file-permissions.test.ts covers the
+      // read-only → writable transition directly.
+      await t.step({
+        name: `> check writable ${type} ${template}`,
+        ignore: Deno.build.os === "windows",
+        fn: () => {
+          for (const entry of walkSync(artifactPath)) {
+            if (entry.isFile) {
+              const stat = Deno.statSync(entry.path);
+              assert(
+                stat.mode !== null && (stat.mode! & 0o200) !== 0,
+                `File ${entry.path} is not user-writable (mode: ${stat.mode?.toString(8)})`,
+              );
+            }
+          }
+        },
       });
 
       // Render the artifact
