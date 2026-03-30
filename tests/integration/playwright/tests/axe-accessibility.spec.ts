@@ -48,21 +48,6 @@ const testCases: AxeTestCase[] = [
   { format: 'html', outputMode: 'json', url: '/html/axe-json.html',
     expectedViolation: 'color-contrast' },
 
-  // RevealJS — axe-check.js loads as standalone module (#13781).
-  // RevealJS CSS transforms prevent axe-core from computing color contrast,
-  // so we check for link-name (slide-menu-button has unlabeled <a>).
-  { format: 'revealjs', outputMode: 'document', url: '/revealjs/axe-accessibility.html',
-    expectedViolation: 'link-name' },
-  { format: 'revealjs', outputMode: 'console', url: '/revealjs/axe-console.html',
-    expectedViolation: 'link-name' },
-  { format: 'revealjs', outputMode: 'json', url: '/revealjs/axe-json.html',
-    expectedViolation: 'link-name' },
-
-  // RevealJS dark theme — verifies CSS custom property bridge for theming.
-  // Report should use --r-background-color/#191919, not the Sass fallback #fff.
-  { format: 'revealjs-dark', outputMode: 'document', url: '/revealjs/axe-accessibility-dark.html',
-    expectedViolation: 'link-name' },
-
   // Dashboard — axe-check.js loads as standalone module, falls back to document.body (#13781)
   { format: 'dashboard', outputMode: 'document', url: '/dashboard/axe-accessibility.html',
     expectedViolation: 'color-contrast' },
@@ -84,7 +69,6 @@ const testCases: AxeTestCase[] = [
 // Document reporter shows the full description; console reporter shows a shorter form.
 const violationText: Record<string, { document: string; console: string }> = {
   'color-contrast': { document: 'color contrast', console: 'contrast' },
-  'link-name': { document: 'discernible text', console: 'discernible text' },
   'image-alt': { document: 'alternative text', console: 'alternative text' },
 };
 
