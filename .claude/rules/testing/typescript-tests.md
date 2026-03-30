@@ -92,3 +92,20 @@ const fixtureDir = docs("my-fixture");  // → tests/docs/my-fixture/
 - `tests/docs/<feature>/` - Test fixtures
 
 **Details:** `llm-docs/testing-patterns.md` for comprehensive patterns and examples.
+
+## Common Test Utilities
+
+**Constructing `MappedString` values:**
+```typescript
+import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
+
+// Use asMappedString("") instead of casting or constructing MappedString manually
+const markdown = asMappedString("");
+const markdownWithContent = asMappedString("# Title\nSome content");
+```
+
+**Mock ProjectContext:**
+```typescript
+import { createMockProjectContext } from "./utils.ts";  // tests/unit/project/utils.ts
+const project = createMockProjectContext();  // Creates temp dir + FileInformationCacheMap
+```
