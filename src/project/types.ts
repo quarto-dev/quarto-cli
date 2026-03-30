@@ -68,6 +68,13 @@ export type FileInformation = {
   brand?: LightDarkBrandDarkFlag;
 };
 
+export interface FileInformationCache extends Map<string, FileInformation> {
+  // Removes a cache entry and cleans up any associated transient files from disk.
+  // Use this instead of delete() when invalidating entries that may reference
+  // transient notebooks (.quarto_ipynb) to prevent file accumulation.
+  invalidateForFile(key: string): void;
+}
+
 export interface ProjectContext extends Cloneable<ProjectContext> {
   dir: string;
   engines: string[];
@@ -76,7 +83,7 @@ export interface ProjectContext extends Cloneable<ProjectContext> {
   notebookContext: NotebookContext;
   outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
 
-  fileInformationCache: Map<string, FileInformation>;
+  fileInformationCache: FileInformationCache;
 
   // This is a cache of _brand.yml for a project
   brandCache?: { brand?: LightDarkBrandDarkFlag };
@@ -182,7 +189,7 @@ export interface EngineProjectContext {
    * For file information cache management
    * Used for the transient notebook tracking in Jupyter
    */
-  fileInformationCache: Map<string, FileInformation>;
+  fileInformationCache: FileInformationCache;
 
   /**
    * Get the output directory for the project
