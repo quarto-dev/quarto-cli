@@ -148,10 +148,13 @@ export async function preview(
   flags: RenderFlags,
   pandocArgs: string[],
   options: PreviewOptions,
+  pProject?: ProjectContext,
 ) {
-  const nbContext = notebookContext();
-  // see if this is project file
-  const project = (await projectContext(file, nbContext)) ||
+  // Reuse the project context from cmd.ts if provided, avoiding redundant
+  // context creation and transient notebook file duplication (#14281).
+  const nbContext = pProject?.notebookContext ?? notebookContext();
+  const project = pProject ??
+    (await projectContext(file, nbContext)) ??
     (await singleFileProjectContext(file, nbContext));
   onCleanup(() => {
     project.cleanup();

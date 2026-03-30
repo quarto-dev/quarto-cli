@@ -274,10 +274,11 @@ export const previewCommand = new Command()
     // and convert the render to a project one
     let touchPath: string | undefined;
     let projectTarget: string | ProjectContext = file;
+    let project: ProjectContext | undefined;
     if (Deno.statSync(file).isFile) {
       // get project and preview format
       const nbContext = notebookContext();
-      const project = (await projectContext(dirname(file), nbContext)) ||
+      project = (await projectContext(dirname(file), nbContext)) ||
         (await singleFileProjectContext(file, nbContext));
       const formats = await (async () => {
         const services = renderServices(nbContext);
@@ -431,6 +432,6 @@ export const previewCommand = new Command()
         [kProjectWatchInputs]: options.watchInputs,
         timeout: options.timeout,
         presentation: options.presentation,
-      });
+      }, project);
     }
   });
