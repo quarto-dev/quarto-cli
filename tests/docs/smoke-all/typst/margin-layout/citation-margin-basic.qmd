@@ -1,0 +1,43 @@
+---
+title: "On the Library of Babel"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Margin citations emit note() with cite(form: "full") directly
+        - ['#note\(', 'form: "full"']
+        - []
+      ensurePdfRegexMatches:
+        - ['Library', 'Borges', 'hexagon', 'infinite']
+        - []
+      ensurePdfTextPositions:
+        - # Citation in margin (rightOf body text) - "bifurcan" from booktitle only in citation
+          - subject: "bifurcan"
+            relation: rightOf
+            object: "hexagonal galleries"
+        - []
+      noErrors: default
+---
+
+# The Library of Babel
+
+In 1941, Jorge Luis Borges published what many consider his most perfect short story: "La biblioteca de Babel" [@borges1941library]. The premise is deceptively simple yet philosophically devastating: the universe consists of an enormous, perhaps infinite, library.
+
+## Structure of the Library
+
+The Library is composed of an indefinite, perhaps infinite, number of hexagonal galleries. Each hexagon contains exactly twenty bookshelves, five on each of four walls. Each shelf holds thirty-two books of identical format: each book has four hundred ten pages; each page, forty lines; each line, approximately eighty black letters.
+
+The totality of such letters comprises twenty-five orthographical symbols: the twenty-two letters of the alphabet, the comma, the period, and the space. No two books are identical. From these incontrovertible premises, the librarian deduces that the Library is total---that its shelves contain all possible combinations of the twenty-five symbols, which is to say, all that can be expressed in any language.
+
+## The Total Library
+
+The concept of a universal library predates Borges. The German author Kurd Lasswitz explored similar territory [@kurd1933hexagonal], calculating that such a library, while enormous, would be finite. Borges, characteristically, preferred the more vertiginous infinite.
+
+Later collected in *Ficciones* [@borges1944ficciones], the story has influenced countless writers. Umberto Eco's medieval mystery [@eco1980name] features a labyrinthine library that kills to protect its secrets. Italo Calvino [@calvino1979winter] wrote an entire novel about the impossibility of reading a single book completely.

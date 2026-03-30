@@ -6,8 +6,10 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - 
-          - '#figure\(\[\s+#set align\(left\)\s+#Skylighting'
+        -
+          # Listings now use a show rule for alignment instead of inline #set align
+          - '#show figure\.where\(kind: "quarto-float-lst"\): set align\(start\)'
+          - '#figure\(\[\s*\n#Skylighting'
           - 'kind: "quarto-float-lst"'
           - '#ref\(<lst-customers>, supplement: \[Listing\]\)'
           - 'Customers Query'

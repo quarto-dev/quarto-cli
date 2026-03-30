@@ -279,9 +279,9 @@ export function filterExtensions(
 
 // Read git subtree extensions (pattern 3 only)
 // Looks for top-level directories containing _extensions/ subdirectories
-const readSubtreeExtensions = async (
+export async function readSubtreeExtensions(
   subtreeDir: string,
-): Promise<Extension[]> => {
+): Promise<Extension[]> {
   const extensions: Extension[] = [];
 
   const topLevelDirs = safeExistsSync(subtreeDir) &&
@@ -303,7 +303,7 @@ const readSubtreeExtensions = async (
   }
 
   return extensions;
-};
+}
 
 // Loads all extensions for a given input
 // (note this needs to be sure to return copies from
@@ -628,6 +628,24 @@ export function discoverExtensionPath(
     return builtinExtensionDir;
   }
 
+  // check for built-in subtree extensions (pattern: extension-subtrees/*/\_extensions/name)
+  const subtreePath = builtinSubtreeExtensions();
+  if (safeExistsSync(subtreePath)) {
+    for (const topLevelDir of Deno.readDirSync(subtreePath)) {
+      if (!topLevelDir.isDirectory) continue;
+      const subtreeExtDir = join(subtreePath, topLevelDir.name, kExtensionDir);
+      if (safeExistsSync(subtreeExtDir)) {
+        const subtreeExtensionDir = findExtensionDir(
+          subtreeExtDir,
+          extensionDirGlobs,
+        );
+        if (subtreeExtensionDir) {
+          return subtreeExtensionDir;
+        }
+      }
+    }
+  }
+
   // Start in the source directory
   const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
   const sourceDirAbs = normalizePath(sourceDir);
@@ -661,7 +679,7 @@ function builtinExtensions() {
 }
 
 // Path for built-in subtree extensions
-function builtinSubtreeExtensions() {
+export function builtinSubtreeExtensions() {
   return resourcePath("extension-subtrees");
 }
 

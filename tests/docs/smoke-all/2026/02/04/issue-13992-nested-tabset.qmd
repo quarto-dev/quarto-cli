@@ -1,0 +1,31 @@
+---
+title: "Conditional visibility with nested tabset (#13992)"
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - []
+        - ['Nested tabset visible', 'Tab A']
+    html:
+      ensureHtmlElements:
+        - ['div.panel-tabset']
+        - []
+      ensureFileRegexMatches:
+        - ['Nested tabset visible', 'Tab A']
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        - []
+        - ['Nested tabset visible', 'Tab A']
+---
+
+This tests a tabset nested inside a conditional visibility div.
+
+::: {.content-visible when-format="html"}
+::: {.panel-tabset}
+### Tab A
+Nested tabset visible. 
+:::
+:::

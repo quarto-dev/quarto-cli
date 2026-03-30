@@ -1,0 +1,8 @@
+typography:
+  fonts:
+    - family: Noto Sans
+      source: file
+      files:
+        - path: https://notofonts.github.io/latin-greek-cyrillic/fonts/NotoSans/unhinted/ttf/NotoSans-Regular.ttf
+  base:
+    family: Noto Sans

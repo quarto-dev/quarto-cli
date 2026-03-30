@@ -1,0 +1,12 @@
+---
+title: intro
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ['a.navbar-brand-logo', 'a.sidebar-logo-link']
+---
+
+This test verifies that setting both `navbar.logo: false` and `sidebar.logo: false`
+disables both logos in a book project even when `_brand.yml` defines a logo.

@@ -1,0 +1,18 @@
+project:
+  type: book
+
+book:
+  title: "Disable Both Logos Test"
+  chapters:
+    - index.qmd
+    - chapter.qmd
+  navbar:
+    logo: false
+  sidebar:
+    logo: false
+
+format:
+  html:
+    theme:
+      light: [cosmo, brand]
+      dark: [darkly, brand]

@@ -4,9 +4,15 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  resolve,
+} from "../../deno_ral/path.ts";
 
-import { info } from "../../deno_ral/log.ts";
+import { info, warning } from "../../deno_ral/log.ts";
 
 import { ensureDir, existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
 
@@ -21,6 +27,7 @@ import { Document } from "../../core/deno-dom.ts";
 import { execProcess } from "../../core/process.ts";
 import { dirAndStem, normalizePath } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
+import { isExternalPath } from "../../core/url.ts";
 
 import {
   Format,
@@ -66,6 +73,7 @@ import {
   projectIsWebsite,
 } from "../../project/project-shared.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
+import { migrateProjectScratchPath } from "../../project/project-scratch.ts";
 
 import {
   getPandocArg,
@@ -123,6 +131,7 @@ import {
   kSectionTitleAbstract,
   kSelfContained,
   kSyntaxDefinitions,
+  kSyntaxHighlighting,
   kTemplate,
   kTheme,
   kTitle,
@@ -698,15 +707,18 @@ export async function runPandoc(
       printAllDefaults = mergeConfigs(extras.pandoc, printAllDefaults);
 
       // Special case - theme is resolved on extras and should override allDefaults
-      if (extras.pandoc[kHighlightStyle] === null) {
-        delete printAllDefaults[kHighlightStyle];
-        allDefaults[kHighlightStyle] = null;
-      } else if (extras.pandoc[kHighlightStyle]) {
-        delete printAllDefaults[kHighlightStyle];
-        allDefaults[kHighlightStyle] = extras.pandoc[kHighlightStyle];
+      // Clean up deprecated kHighlightStyle if user used old name
+      delete printAllDefaults[kHighlightStyle];
+      delete allDefaults[kHighlightStyle];
+      if (extras.pandoc[kSyntaxHighlighting] === null) {
+        delete printAllDefaults[kSyntaxHighlighting];
+        allDefaults[kSyntaxHighlighting] = null;
+      } else if (extras.pandoc[kSyntaxHighlighting]) {
+        delete printAllDefaults[kSyntaxHighlighting];
+        allDefaults[kSyntaxHighlighting] = extras.pandoc[kSyntaxHighlighting];
       } else {
-        delete printAllDefaults[kHighlightStyle];
-        delete allDefaults[kHighlightStyle];
+        delete printAllDefaults[kSyntaxHighlighting];
+        delete allDefaults[kSyntaxHighlighting];
       }
     }
 
@@ -1328,6 +1340,13 @@ export async function runPandoc(
     }
   }
 
+  // Escape @ in book metadata to prevent false citeproc warnings (#12136).
+  // Book metadata can't be deleted like website/about because {{< meta book.* >}}
+  // shortcodes depend on it. Pandoc resolves &#64; back to @ in the AST.
+  if (pandocPassedMetadata.book) {
+    pandocPassedMetadata.book = escapeAtInMetadata(pandocPassedMetadata.book);
+  }
+
   Deno.writeTextFileSync(
     metadataTemp,
     stringify(pandocPassedMetadata, {
@@ -1524,7 +1543,7 @@ async function resolveExtras(
           const font = Zod.BrandFontFile.parse(_font);
           for (const file of font.files || []) {
             const path = typeof file === "object" ? file.path : file;
-            fontdirs.add(dirname(join(brand.brandDir, path)));
+            fontdirs.add(resolve(dirname(join(brand.brandDir, path))));
           }
         } else if (source === "bunny") {
           const font = Zod.BrandFontBunny.parse(_font);
@@ -1586,7 +1605,11 @@ async function resolveExtras(
       }
     }
     if (ttf_urls.length || woff_urls.length) {
-      const font_cache = join(brand!.projectDir, ".quarto", "typst-font-cache");
+      const font_cache = migrateProjectScratchPath(
+        brand!.projectDir,
+        "typst-font-cache",
+        "typst/fonts",
+      );
       const url_to_path = (url: string) => url.replace(/^https?:\/\//, "");
       const cached = async (url: string) => {
         const path = url_to_path(url);
@@ -1751,14 +1774,33 @@ function resolveTextHighlightStyle(
   } as FormatExtras;
 
   // Get the user selected theme or choose a default
-  const highlightTheme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
+  // Check both syntax-highlighting (new) and highlight-style (deprecated alias)
+  const highlightTheme = pandoc[kSyntaxHighlighting] ||
+    pandoc[kHighlightStyle] ||
+    kDefaultHighlightStyle;
   const textHighlightingMode = extras.html?.[kTextHighlightingMode];
 
   if (highlightTheme === "none") {
     // Disable highlighting - pass "none" string (not null, which Pandoc 3.8+ rejects)
     extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kHighlightStyle] = "none";
+    extras.pandoc[kSyntaxHighlighting] = "none";
     return extras;
+  }
+
+  if (highlightTheme === "idiomatic") {
+    if (isRevealjsOutput(pandoc)) {
+      // reveal.js idiomatic mode doesn't produce working highlighting
+      // Fall through to default skylighting instead
+      warning(
+        "syntax-highlighting: idiomatic is not supported for reveal.js. Using default highlighting.",
+      );
+    } else {
+      // Use native format highlighting (typst native, LaTeX listings)
+      // Pass through to Pandoc 3.8+ which handles this natively
+      extras.pandoc = extras.pandoc || {};
+      extras.pandoc[kSyntaxHighlighting] = "idiomatic";
+      return extras;
+    }
   }
 
   // create the possible name matches based upon the dark vs. light
@@ -1770,7 +1812,7 @@ function resolveTextHighlightStyle(
     case "dark":
       // Set light or dark mode as appropriate
       extras.pandoc = extras.pandoc || {};
-      extras.pandoc[kHighlightStyle] = textHighlightThemePath(
+      extras.pandoc[kSyntaxHighlighting] = textHighlightThemePath(
         inputDir,
         highlightTheme,
         textHighlightingMode,
@@ -1782,7 +1824,7 @@ function resolveTextHighlightStyle(
       // Clear the highlighting
       if (extras.pandoc) {
         extras.pandoc = extras.pandoc || {};
-        extras.pandoc[kHighlightStyle] = textHighlightThemePath(
+        extras.pandoc[kSyntaxHighlighting] = textHighlightThemePath(
           inputDir,
           "none",
         );
@@ -1792,10 +1834,28 @@ function resolveTextHighlightStyle(
     default:
       // Set the the light (default) highlighting mode
       extras.pandoc = extras.pandoc || {};
-      extras.pandoc[kHighlightStyle] =
+      extras.pandoc[kSyntaxHighlighting] =
         textHighlightThemePath(inputDir, highlightTheme, "light") ||
         highlightTheme;
       break;
   }
   return extras;
+}
+
+// deno-lint-ignore no-explicit-any
+function escapeAtInMetadata(value: any): any {
+  if (typeof value === "string") {
+    return isExternalPath(value) ? value.replaceAll("@", "&#64;") : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(escapeAtInMetadata);
+  }
+  if (value !== null && typeof value === "object") {
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      result[k] = escapeAtInMetadata(v);
+    }
+    return result;
+  }
+  return value;
 }

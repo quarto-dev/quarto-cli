@@ -16,7 +16,7 @@ jobs:
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # checkout full tree
           fetch-depth: 0
@@ -38,7 +38,7 @@ jobs:
           pushd package/src
 
           bundle_start=$(date +%s.%3N)
-          ./quarto-bld prepare-dist
+          ./quarto-bld prepare-dist --set-version $(cat ../../version.txt)
           bundle_end=$(date +%s.%3N)
           bundle_elapsed=$(printf '%.3f\n' $(echo "scale=3; $bundle_end - $bundle_start" | bc))
 

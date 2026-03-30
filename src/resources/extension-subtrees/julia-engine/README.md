@@ -1,14 +1,6 @@
-# engine extension for julia in quarto
+# Julia engine extension for quarto
 
-Quarto will introduce engine extensions in 1.9, and this is an experimental port of Quarto's Julia engine to the new architecture.
-
-Install it with
-
-```
-quarto add gordonwoodhull/quarto-julia-engine
-```
-
-You'll need the `feature/engine-extension-3` branch of Quarto, until it's merged.
+Quarto's Julia engine, extracted from quarto-cli into a standalone engine extension. It was originally built directly into quarto-cli and is now pulled back in via a git subtree.
 
 ## Development
 

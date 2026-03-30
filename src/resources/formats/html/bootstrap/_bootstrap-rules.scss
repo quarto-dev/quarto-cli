@@ -730,6 +730,12 @@ aside,
   display: block;
 }
 
+// Fix for light/dark renderings in column-margin: when light-content is hidden
+// in dark mode, remove padding-top from dark-content so it aligns correctly
+body.quarto-dark .column-margin.column-container > .light-content + .dark-content {
+  padding-top: 0;
+}
+
 .column-margin.column-container > *.collapse:not(.show) {
   display: none;
 }
@@ -1496,6 +1502,11 @@ kbd,
 .callout:not(.callout-titled) .callout-body > :last-child,
 .callout:not(.callout-titled) .callout-body > div > :last-child {
   margin-bottom: 0.2rem;
+}
+
+.callout.callout-style-simple:not(.callout-titled) .callout-body > :last-child,
+.callout.callout-style-simple:not(.callout-titled) .callout-body > div > :last-child {
+  margin-bottom: 0.5em;
 }
 
 $code-block-border-left-color: $table-border-color !default;

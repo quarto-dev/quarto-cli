@@ -10,11 +10,11 @@ _quarto:
           # Verify outer figure environment wraps the layout
           - '\\begin\{figure\}[\s\S]*\\begin\{minipage\}'
           # Verify two minipages with equal width
-          - '\\begin\{minipage\}\{0\.50\\linewidth\}'
+          - '\\begin\{minipage\}\[b\]\{0\.50\\linewidth\}'
           # Verify figure[H] inside first minipage with caption and label
-          - '\\begin\{minipage\}[\s\S]*\\begin\{figure\}\[H\][\s\S]*\\caption\{\\label\{fig-example\}Figure caption\}'
+          - '\\begin\{minipage\}\[b\][\s\S]*\\begin\{figure\}\[H\][\s\S]*\\caption\{\\label\{fig-example\}Figure caption\}'
           # Verify longtable (NOT wrapped in table environment) inside second minipage
-          - '\\begin\{minipage\}\{0\.50\\linewidth\}[\s\S]*\\begin\{longtable\}'
+          - '\\begin\{minipage\}\[b\]\{0\.50\\linewidth\}[\s\S]*\\begin\{longtable\}'
           # Verify table caption with label
           - '\\caption\{\\label\{tbl-example\}Table caption\}'
           # Verify minipage ends before outer figure ends

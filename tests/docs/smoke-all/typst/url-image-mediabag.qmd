@@ -1,0 +1,21 @@
+---
+title: URL image mediabag handling
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Image should be extracted to mediabag, not remain as URL
+        - ['image\("url-image-mediabag_files(/|\\\\)mediabag(/|\\\\)400']
+        # Should NOT contain the raw URL - it must be extracted to mediabag
+        - ['https://placehold\.co/400']
+---
+
+# URL Image Test
+
+This tests that URL images are correctly extracted to the mediabag
+when rendering to Typst format. The image below should be fetched
+from the URL and stored locally, not left as a raw URL.
+
+![Placeholder image from URL](https://placehold.co/400){alt="A 400x400 placeholder image"}

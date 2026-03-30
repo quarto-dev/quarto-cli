@@ -106,7 +106,6 @@ function fold_code_and_lift_codeblocks()
           })
           if need_to_move_dl then
             assert(prev_annotated_code_block_scaffold)
-            print(prev_annotated_code_block_scaffold)
             prev_annotated_code_block_scaffold.content:insert(div)
             return {}
           end

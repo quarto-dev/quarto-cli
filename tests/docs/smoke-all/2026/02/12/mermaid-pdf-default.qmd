@@ -1,0 +1,24 @@
+---
+title: "Mermaid to PDF (#11877)"
+format:
+  pdf:
+    keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        - ['\\includegraphics.*mermaid-figure-1\.png']
+        - []
+---
+
+## Mermaid Flowchart
+
+```{mermaid}
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Good]
+    B -->|No| D[Bad]
+    C --> E[End]
+    D --> E
+```

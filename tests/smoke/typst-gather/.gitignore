@@ -1,0 +1,8 @@
+# Cached packages created by tests
+_extensions/test-format/typst/
+with-config/_extensions/config-format/typst/
+with-local/_extensions/local-format/typst/
+
+# Generated config files
+typst-gather.toml
+with-local/typst-gather.toml.bak

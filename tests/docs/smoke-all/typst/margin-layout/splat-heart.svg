@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" width="120" height="100">
+  <!-- Comic-style splat background -->
+  <defs>
+    <radialGradient id="splatGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFE135"/>
+      <stop offset="70%" stop-color="#FFA500"/>
+      <stop offset="100%" stop-color="#FF6B00"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#333" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Splat shape - irregular star burst -->
+  <path d="M60,5 L70,30 L95,20 L80,42 L115,50 L80,58 L95,80 L70,70 L60,95 L50,70 L25,80 L40,58 L5,50 L40,42 L25,20 L50,30 Z"
+        fill="url(#splatGrad)" stroke="#E65100" stroke-width="2" filter="url(#shadow)"/>
+
+  <!-- Inner highlight -->
+  <ellipse cx="60" cy="50" rx="25" ry="22" fill="#FFEB3B" opacity="0.6"/>
+
+  <!-- Heart symbol -->
+  <text x="60" y="62" font-family="Georgia, serif" font-size="42" font-weight="bold"
+        fill="#B71C1C" text-anchor="middle" stroke="#7B1FA2" stroke-width="1">♥</text>
+</svg>

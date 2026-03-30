@@ -1,0 +1,2 @@
+This file should NOT be deleted when rendering with output-dir: ../output-dir-parent-ref
+This pattern references the project directory via parent traversal.

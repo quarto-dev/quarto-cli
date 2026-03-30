@@ -107,3 +107,50 @@ if this render is in the context of a project (otherwise `nil`)
 ]]
 ---@return string|nil
 function quarto.doc.project_output_file() end
+
+--[[
+Returns the current file metadata state for book projects.
+
+This provides access to book-specific information like the current file's
+role in the book structure. The returned table contains:
+- `file`: Table with `bookItemType` ("chapter", "part", "appendix"),
+  `bookItemNumber`, `bookItemDepth`, and `appendix` (boolean)
+- `appendix`: Boolean indicating if currently in appendix section
+- `include_directory`: Directory for includes
+
+Note: This function requires `quarto.utils.file_metadata_filter()` to be
+combined with your filter using `quarto.utils.combineFilters()` for the
+metadata to be properly populated during traversal.
+]]
+---@return table|nil File metadata state or nil if not in a book context
+function quarto.doc.file_metadata() end
+
+--[[
+Language settings for the current document.
+
+Provides access to localized strings for document elements like section titles.
+For example, `quarto.doc.language["section-title-appendices"]` returns the
+localized title for the appendices section (e.g., "Appendices" in English).
+
+Returns `nil` if no language settings are available.
+]]
+---@type table|nil
+quarto.doc.language = nil
+
+--[[
+Cross-reference category definitions.
+
+Provides access to all crossref categories including built-in types (figures,
+tables, equations) and custom types defined by the document. Each category
+includes properties like `ref_type`, `kind` ("float" or "Block"), and `name`.
+
+Use `quarto.doc.crossref.categories.all` to iterate over all categories.
+
+This is useful for extensions that need to generate counter resets or
+other category-specific code dynamically.
+]]
+---@type table
+quarto.doc.crossref = {}
+
+---@type table[]
+quarto.doc.crossref.categories = {}

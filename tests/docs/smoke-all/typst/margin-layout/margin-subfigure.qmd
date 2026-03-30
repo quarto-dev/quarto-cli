@@ -1,0 +1,54 @@
+---
+title: "Subfigures in Margin"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Should have note() wrapping quarto_super for margin subfigure placement
+        - ['#note\(', 'quarto_super']
+        - []
+      ensurePdfRegexMatches:
+        # Subfigure labels, main figure label, and subfigure numbering together
+        - ['Figure 1', 'SUBFIG-PANEL', '\(a\) Sub A', '\(b\) Sub B']
+        - []
+      ensurePdfTextPositions:
+        - # Subfigure panel in margin
+          - subject: "Sub A"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Sub B"
+            relation: rightOf
+            object: "This tests"
+          # Sub A is above Sub B (vertical ordering of subfigures)
+          - subject: "Sub A"
+            relation: above
+            object: "Sub B"
+          # Main figure caption is below Sub B (caption at bottom)
+          - subject: "Sub B"
+            relation: above
+            object: "SUBFIG-PANEL"
+        - []
+      noErrors: default
+---
+
+This tests subfigures (panel figures) placed in the margin.
+
+::: {.column-margin}
+::: {#fig-margin-panel layout-ncol=1}
+
+![Sub A](test-image.png){#fig-sub-a width=100%}
+
+![Sub B](test-image.png){#fig-sub-b width=100%}
+
+SUBFIG-PANEL: Two subfigures in margin
+:::
+:::
+
+Reference to @fig-margin-panel shows the panel, @fig-sub-a shows subfigure A, @fig-sub-b shows subfigure B.
+
+More text in the main column to show the layout alongside the margin subfigures.

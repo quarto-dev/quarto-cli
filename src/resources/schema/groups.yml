@@ -25,6 +25,8 @@ document:
     title: "Title & Author"
   dashboard:
     title: "Dashboard"
+  typst:
+    title: "Typst"
   options:
     title: "Format Options"
   toc:
@@ -92,6 +94,8 @@ document:
     title: "Language"
   comments:
     title: "Comments"
+  a11y:
+    title: "Accessibility"
   includes:
     title: "Includes"
   metadata:

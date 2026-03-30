@@ -1,6 +1,6 @@
 ---
 title: Testing oblivion code highlight
-highlight-style: oblivion
+syntax-highlighting: oblivion
 ---
 
 {{< include _body.md >}}

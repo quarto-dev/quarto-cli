@@ -1,0 +1,2 @@
+This file should NOT be deleted when rendering with output-dir: ./
+If this file is missing after render, the bug is present.

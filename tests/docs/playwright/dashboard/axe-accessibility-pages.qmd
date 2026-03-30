@@ -1,0 +1,30 @@
+---
+title: "Multi-Page Dashboard"
+format: dashboard
+axe:
+  output: document
+---
+
+# Global Sidebar {.sidebar}
+
+Sidebar content with [low contrast text]{#sidebar-contrast style="color: #eee; background: #fff;"} that triggers a color-contrast violation.
+
+# Page 1
+
+## Row
+
+::: {.card title="Page 1 Content"}
+This page has [low contrast text]{#page1-contrast style="color: #eee; background: #fff;"} that triggers a color-contrast violation.
+:::
+
+# Page 2
+
+## Row {.tabset}
+
+::: {.card title="Tab A"}
+This tab has [low contrast text]{#tab-a-contrast style="color: #eee; background: #fff;"} that triggers a color-contrast violation.
+:::
+
+::: {.card title="Tab B"}
+This tab has only normal contrast text. No intentional violations here.
+:::

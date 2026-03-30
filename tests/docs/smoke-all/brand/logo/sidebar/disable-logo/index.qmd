@@ -1,0 +1,12 @@
+---
+title: intro
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ['a.sidebar-logo-link']
+---
+
+This test verifies that setting `sidebar.logo: false` disables the sidebar logo
+even when `_brand.yml` defines a logo.

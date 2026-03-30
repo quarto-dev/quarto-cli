@@ -1046,6 +1046,7 @@ engine_comment_chars <- function(engine) {
     dot = "//",
     apl = "\u235D",
     ocaml = c("(*", "*)"),
+    q = "/",
     rust = "//"
   )
   comment_chars[[engine]] %||% "#"

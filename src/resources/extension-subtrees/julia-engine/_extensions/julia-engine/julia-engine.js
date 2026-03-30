@@ -8,6 +8,22 @@ function assertPath(path) {
   }
 }
 
+// deno:https://jsr.io/@std/path/1.0.8/_common/strip_trailing_separators.ts
+function stripTrailingSeparators(segment, isSep) {
+  if (segment.length <= 1) {
+    return segment;
+  }
+  let end = segment.length;
+  for (let i = segment.length - 1; i > 0; i--) {
+    if (isSep(segment.charCodeAt(i))) {
+      end = i;
+    } else {
+      break;
+    }
+  }
+  return segment.slice(0, end);
+}
+
 // deno:https://jsr.io/@std/path/1.0.8/_common/constants.ts
 var CHAR_UPPERCASE_A = 65;
 var CHAR_LOWERCASE_A = 97;
@@ -24,11 +40,141 @@ function isPosixPathSeparator(code) {
 }
 
 // deno:https://jsr.io/@std/path/1.0.8/windows/_util.ts
+function isPosixPathSeparator2(code) {
+  return code === CHAR_FORWARD_SLASH;
+}
 function isPathSeparator(code) {
   return code === CHAR_FORWARD_SLASH || code === CHAR_BACKWARD_SLASH;
 }
 function isWindowsDeviceRoot(code) {
   return code >= CHAR_LOWERCASE_A && code <= CHAR_LOWERCASE_Z || code >= CHAR_UPPERCASE_A && code <= CHAR_UPPERCASE_Z;
+}
+
+// deno:https://jsr.io/@std/path/1.0.8/_common/dirname.ts
+function assertArg(path) {
+  assertPath(path);
+  if (path.length === 0) return ".";
+}
+
+// deno:https://jsr.io/@std/path/1.0.8/posix/dirname.ts
+function dirname(path) {
+  assertArg(path);
+  let end = -1;
+  let matchedNonSeparator = false;
+  for (let i = path.length - 1; i >= 1; --i) {
+    if (isPosixPathSeparator(path.charCodeAt(i))) {
+      if (matchedNonSeparator) {
+        end = i;
+        break;
+      }
+    } else {
+      matchedNonSeparator = true;
+    }
+  }
+  if (end === -1) {
+    return isPosixPathSeparator(path.charCodeAt(0)) ? "/" : ".";
+  }
+  return stripTrailingSeparators(path.slice(0, end), isPosixPathSeparator);
+}
+
+// deno:https://jsr.io/@std/path/1.0.8/windows/dirname.ts
+function dirname2(path) {
+  assertArg(path);
+  const len = path.length;
+  let rootEnd = -1;
+  let end = -1;
+  let matchedSlash = true;
+  let offset = 0;
+  const code = path.charCodeAt(0);
+  if (len > 1) {
+    if (isPathSeparator(code)) {
+      rootEnd = offset = 1;
+      if (isPathSeparator(path.charCodeAt(1))) {
+        let j = 2;
+        let last = j;
+        for (; j < len; ++j) {
+          if (isPathSeparator(path.charCodeAt(j))) break;
+        }
+        if (j < len && j !== last) {
+          last = j;
+          for (; j < len; ++j) {
+            if (!isPathSeparator(path.charCodeAt(j))) break;
+          }
+          if (j < len && j !== last) {
+            last = j;
+            for (; j < len; ++j) {
+              if (isPathSeparator(path.charCodeAt(j))) break;
+            }
+            if (j === len) {
+              return path;
+            }
+            if (j !== last) {
+              rootEnd = offset = j + 1;
+            }
+          }
+        }
+      }
+    } else if (isWindowsDeviceRoot(code)) {
+      if (path.charCodeAt(1) === CHAR_COLON) {
+        rootEnd = offset = 2;
+        if (len > 2) {
+          if (isPathSeparator(path.charCodeAt(2))) rootEnd = offset = 3;
+        }
+      }
+    }
+  } else if (isPathSeparator(code)) {
+    return path;
+  }
+  for (let i = len - 1; i >= offset; --i) {
+    if (isPathSeparator(path.charCodeAt(i))) {
+      if (!matchedSlash) {
+        end = i;
+        break;
+      }
+    } else {
+      matchedSlash = false;
+    }
+  }
+  if (end === -1) {
+    if (rootEnd === -1) return ".";
+    else end = rootEnd;
+  }
+  return stripTrailingSeparators(path.slice(0, end), isPosixPathSeparator2);
+}
+
+// deno:https://jsr.io/@std/path/1.0.8/dirname.ts
+function dirname3(path) {
+  return isWindows ? dirname2(path) : dirname(path);
+}
+
+// deno:https://jsr.io/@std/path/1.0.8/_common/from_file_url.ts
+function assertArg3(url) {
+  url = url instanceof URL ? url : new URL(url);
+  if (url.protocol !== "file:") {
+    throw new TypeError(`URL must be a file URL: received "${url.protocol}"`);
+  }
+  return url;
+}
+
+// deno:https://jsr.io/@std/path/1.0.8/posix/from_file_url.ts
+function fromFileUrl(url) {
+  url = assertArg3(url);
+  return decodeURIComponent(url.pathname.replace(/%(?![0-9A-Fa-f]{2})/g, "%25"));
+}
+
+// deno:https://jsr.io/@std/path/1.0.8/windows/from_file_url.ts
+function fromFileUrl2(url) {
+  url = assertArg3(url);
+  let path = decodeURIComponent(url.pathname.replace(/\//g, "\\").replace(/%(?![0-9A-Fa-f]{2})/g, "%25")).replace(/^\\*([A-Za-z]:)(\\|$)/, "$1\\");
+  if (url.hostname !== "") {
+    path = `\\\\${url.hostname}${path}`;
+  }
+  return path;
+}
+
+// deno:https://jsr.io/@std/path/1.0.8/from_file_url.ts
+function fromFileUrl3(url) {
+  return isWindows ? fromFileUrl2(url) : fromFileUrl(url);
 }
 
 // deno:https://jsr.io/@std/path/1.0.8/_common/normalize.ts
@@ -488,6 +634,7 @@ var kKeepHidden = "keep-hidden";
 
 // src/julia-engine.ts
 var isWindows2 = Deno.build.os === "windows";
+var extensionDir = dirname3(fromFileUrl3(import.meta.url));
 var quarto;
 function safeRemoveSync(file, options = {}) {
   try {
@@ -716,7 +863,7 @@ async function startOrReuseJuliaServer(options) {
           "Start-Process",
           juliaCmd(),
           "-ArgumentList",
-          powershell_argument_list_to_string("--startup-file=no", `--project=${juliaProject}`, quarto.path.resource("julia", "quartonotebookrunner.jl"), transportFile, juliaServerLogFile()),
+          powershell_argument_list_to_string("--startup-file=no", `--project=${juliaProject}`, join3(extensionDir, "quartonotebookrunner.jl"), transportFile, juliaServerLogFile()),
           "-WindowStyle",
           "Hidden"
         ],
@@ -733,10 +880,10 @@ async function startOrReuseJuliaServer(options) {
       const command = new Deno.Command(juliaCmd(), {
         args: [
           "--startup-file=no",
-          quarto.path.resource("julia", "start_quartonotebookrunner_detached.jl"),
+          join3(extensionDir, "start_quartonotebookrunner_detached.jl"),
           juliaCmd(),
           juliaProject,
-          quarto.path.resource("julia", "quartonotebookrunner.jl"),
+          join3(extensionDir, "quartonotebookrunner.jl"),
           transportFile,
           juliaServerLogFile()
         ],
@@ -762,14 +909,14 @@ async function startOrReuseJuliaServer(options) {
 }
 async function ensureQuartoNotebookRunnerEnvironment(options) {
   const runtimeDir = quarto.path.runtime("julia");
-  const projectTomlTemplate = quarto.path.resource("julia", "Project.toml");
+  const projectTomlTemplate = join3(extensionDir, "Project.toml");
   const projectToml = join3(runtimeDir, "Project.toml");
   Deno.writeFileSync(projectToml, Deno.readFileSync(projectTomlTemplate));
   const command = new Deno.Command(juliaCmd(), {
     args: [
       "--startup-file=no",
       `--project=${runtimeDir}`,
-      quarto.path.resource("julia", "ensure_environment.jl")
+      join3(extensionDir, "ensure_environment.jl")
     ]
   });
   const proc = command.spawn();

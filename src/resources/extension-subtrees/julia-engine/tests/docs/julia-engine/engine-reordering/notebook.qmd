@@ -1,0 +1,10 @@
+```{julia}
+using Test
+@test haskey(
+  Base.loaded_modules,
+  Base.PkgId(
+    Base.UUID("38328d9c-a911-4051-bc06-3f7f556ffeda"),
+    "QuartoNotebookWorker",
+  )
+)
+```

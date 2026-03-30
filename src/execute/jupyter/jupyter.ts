@@ -317,7 +317,23 @@ title: "Title"
           // of additional changes to our file handling code (without changes,
           // our output files would be called $FILE.quarto.html, which
           // is not what we want). So for now, we'll use .quarto_ipynb
-          const notebook = join(fileDir, fileStem + ".quarto_ipynb");
+          let counter: number | undefined = undefined;
+          let notebook = join(
+            fileDir,
+            `${fileStem}.quarto_ipynb${counter ? "_" + String(counter) : ""}`,
+          );
+
+          while (existsSync(notebook)) {
+            if (!counter) {
+              counter = 1;
+            } else {
+              ++counter;
+            }
+            notebook = join(
+              fileDir,
+              `${fileStem}.quarto_ipynb${counter ? "_" + String(counter) : ""}`,
+            );
+          }
           const target = {
             source: file,
             input: notebook,

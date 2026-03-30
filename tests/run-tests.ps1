@@ -80,31 +80,53 @@ if ( $MyInvocation.Line -eq "" ) {
   # when script is ran from a child process using -F
   # e.g pwsh -F ./run-tests.ps1 smoke/smoke-all.test.ts -- docs\smoke-all\2023\02\08\4272.qmd
   $customArgs = $MyInvocation.UnboundArguments
+} elseif ($MyInvocation.InvocationName -eq '&') {
+  # when script is called via call operator from another script
+  # e.g & .\run-tests.ps1 @args
+  # Use UnboundArguments directly as it contains the actual arguments passed
+  $customArgs = $MyInvocation.UnboundArguments
 } elseif ($MyInvocation.Line -match "^[.] '[^']*'") {
   # when script is ran from a child process using -command
   # e.g pwsh -command ". 'run-tests.ps1' smoke/smoke-all.test.ts -- docs\smoke-all\2023\02\08\4272.qmd"
   # This is what happens on GHA when using 'run: |' and 'shell: pwsh'
   $argList = ($MyInvocation.Line -replace "^[.] '[^']*'\s*" -split '[;|]')[0].Trim()
   # Extract the argument list from the invocation command line.
-  
+
   # Use Invoke-Expression with a Write-Output call to parse the raw argument list,
   # performing evaluation and splitting it into an array:
-  $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()    
+  $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()
 } else {
   # When script is called from main process
   # e.g ./run-tests.ps1 smoke/smoke-all.test.ts -- docs\smoke-all\2023\02\08\4272.qmd
   $argList = ($MyInvocation.Line -replace ('^.*' + [regex]::Escape($MyInvocation.InvocationName)) -split '[;|]')[0].Trim()
   # Extract the argument list from the invocation command line.
-  
+
   # Use Invoke-Expression with a Write-Output call to parse the raw argument list,
   # performing evaluation and splitting it into an array:
-  $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()    
+  $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()
+}
+
+# Check if keep-outputs mode is enabled and filter it from arguments
+$KEEP_OUTPUTS = $false
+$FILTERED_CUSTOM_ARGS = @()
+foreach ($arg in $customArgs) {
+  if ($arg -eq "--keep-outputs" -or $arg -eq "-k") {
+    $KEEP_OUTPUTS = $true
+  } else {
+    $FILTERED_CUSTOM_ARGS += $arg
+  }
+}
+$customArgs = $FILTERED_CUSTOM_ARGS
+
+if ($KEEP_OUTPUTS) {
+  $env:QUARTO_TEST_KEEP_OUTPUTS = "true"
+  Write-Host "> Keep outputs mode enabled - test artifacts will not be deleted"
 }
 
 ## Short version syntax to run smoke-all.test.ts
 ## Only use if different than ./run-test.ps1 ./smoke/smoke-all.test.ts
 If ($customArgs[0] -notlike "*smoke-all.test.ts") {
-  
+
   $SMOKE_ALL_TEST_FILE="./smoke/smoke-all.test.ts"
   # Check file argument
   $SMOKE_ALL_FILES=@()
@@ -112,7 +134,8 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
 
   ForEach ($file in $customArgs) {
     $filename=$(Split-Path -Path $file -Leaf)
-    If ($filename -match "^^[^_].*[.]qmd$" -Or $filename -match "^[^_].*[.]ipynb$" -Or $filename -match "^[^_].*[.]md$") {
+
+    If ($filename -match "^[^_].*[.]qmd$" -Or $filename -match "^[^_].*[.]ipynb$" -Or $filename -match "^[^_].*[.]md$") {
       $SMOKE_ALL_FILES+=$file
     } elseif ($file -Like "*.ts") {
       $TESTS_TO_RUN+=$file

@@ -1,0 +1,11 @@
+---
+title: "Home"
+---
+
+## Welcome
+
+Minimal test website for Posit Connect Cloud publishing.
+
+Visit the [About](about.qmd) page.
+
+Learn more at [Quarto documentation](https://quarto.org).

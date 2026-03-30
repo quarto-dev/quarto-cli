@@ -1,0 +1,32 @@
+---
+title: "Multi-paragraph Sidenote"
+papersize: us-letter
+reference-location: margin
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - ['PARA-ONE', 'PARA-TWO']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "PARA-ONE"
+            relation: rightOf
+            object: "Text with a long"
+          - subject: "PARA-ONE"
+            relation: above
+            object: "PARA-TWO"
+        - []
+      noErrors: default
+---
+
+Text with a long sidenote[^1].
+
+[^1]: PARA-ONE first paragraph of the sidenote.
+
+    PARA-TWO second paragraph (indented to continue the footnote).
+
+The multi-paragraph footnote should be converted to a sidenote with both paragraphs.

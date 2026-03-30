@@ -1,0 +1,22 @@
+---
+title: "Document font-paths from subdirectory"
+format:
+  typst:
+    font-paths:
+      - ../fonts
+include-in-header:
+  text: |
+    #set text(fallback: false)
+_quarto:
+  tests:
+    typst:
+      printsMessage:
+        level: INFO
+        regex: 'warning: unknown font family'
+        negate: true
+---
+
+```{=typst}
+#set text(font: "Amaranth")
+Testing document font-paths from a subdirectory.
+```

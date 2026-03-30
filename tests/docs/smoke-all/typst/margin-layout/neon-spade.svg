@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">
+  <!-- Neon sign style -->
+  <defs>
+    <!-- Neon glow effect -->
+    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur2"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur3"/>
+      <feMerge>
+        <feMergeNode in="blur3"/>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Border neon glow -->
+    <filter id="borderGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Dark background like night -->
+  <rect x="0" y="0" width="120" height="80" fill="#1A1A2E"/>
+
+  <!-- Neon border frame -->
+  <rect x="8" y="6" width="104" height="68" rx="8" ry="8"
+        fill="none" stroke="#FF1493" stroke-width="3" filter="url(#borderGlow)"/>
+
+  <!-- Inner frame -->
+  <rect x="14" y="12" width="92" height="56" rx="4" ry="4"
+        fill="none" stroke="#00FFFF" stroke-width="2" filter="url(#borderGlow)"/>
+
+  <!-- Glow layer (visual only) -->
+  <text x="60" y="48" font-family="Georgia, serif" font-size="40" font-weight="bold"
+        fill="#39FF14" text-anchor="middle" filter="url(#neonGlow)" aria-hidden="true">♠</text>
+  <!-- Spade symbol (searchable, on top) -->
+  <text x="60" y="48" font-family="Georgia, serif" font-size="40" font-weight="bold"
+        fill="#39FF14" text-anchor="middle">♠</text>
+
+  <!-- Decorative dots like neon bulbs -->
+  <circle cx="25" cy="40" r="3" fill="#FF6EC7" filter="url(#borderGlow)"/>
+  <circle cx="95" cy="40" r="3" fill="#FF6EC7" filter="url(#borderGlow)"/>
+</svg>

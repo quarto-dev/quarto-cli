@@ -1,0 +1,8 @@
+typography:
+  fonts:
+    - family: "Amaranth"
+      source: file
+      files:
+        - fonts/Amaranth-Regular.ttf
+  base:
+    family: Amaranth

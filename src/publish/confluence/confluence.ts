@@ -87,6 +87,7 @@ import {
 } from "./confluence-verify.ts";
 import {
   DELETE_DISABLED,
+  ATTACHMENT_UPLOAD_DELAY_MS,
   DELETE_SLEEP_MILLIS,
   DESCENDANT_PAGE_SIZE,
   EXIT_ON_ERROR,
@@ -435,15 +436,25 @@ async function publish(
         LogPrefix.ATTACHMENT,
       );
 
-      const uploadAttachmentsResult = await Promise.all(
-        uploadAttachments(
+      const uploadAttachmentsResult: (AttachmentSummary | null)[] = [];
+
+      for (let i = 0; i < attachmentsToUpload.length; i++) {
+        // Start exactly ONE upload by calling the helper with a single attachment
+        const tasks = uploadAttachments(
           publishFiles.baseDir,
-          attachmentsToUpload,
+          [attachmentsToUpload[i]],  // <-- one at a time
           toUpdate.id,
           fileName,
           existingAttachments,
-        ),
-      );
+        );
+
+        const res = await tasks[0];
+        uploadAttachmentsResult.push(res);
+
+        if (i < attachmentsToUpload.length - 1) {
+          await sleep(ATTACHMENT_UPLOAD_DELAY_MS);
+        }
+      }
       trace(
         "uploadAttachmentsResult",
         uploadAttachmentsResult,

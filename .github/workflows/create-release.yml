@@ -35,7 +35,7 @@ jobs:
       tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -44,9 +44,9 @@ jobs:
         uses: ./.github/workflows/actions/prevent-rerun
 
       # we _also_ need npm, specifically for webui/preview
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 18
+          node-version: 22
 
       - name: Get previous version
         id: read-version
@@ -78,7 +78,7 @@ jobs:
           # echo -e "Due to an issue with upstream dependency, the RHEL build may not included in this release." >> "release_note.md"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: News
           path: |
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -116,7 +116,7 @@ jobs:
           tar --owner=root --group=root -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Source
           path: ./quarto-${{needs.configure.outputs.version}}.tar.gz
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -153,7 +153,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Deb Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
@@ -162,7 +162,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -190,7 +190,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Deb Arm64 Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
@@ -201,7 +201,7 @@ jobs:
     if: false
     needs: [configure]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -240,7 +240,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RHEL Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
@@ -253,7 +253,7 @@ jobs:
         arch: [x86_64, aarch64]
         format: [deb, rpm]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -302,7 +302,7 @@ jobs:
           fi
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Linux-${{ matrix.format }}-${{ matrix.arch }}-Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-${{ steps.pkg_arch.outputs.arch_name }}.${{ matrix.format }}
@@ -311,7 +311,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure, make-tarball]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
           sparse-checkout: |
@@ -321,7 +321,7 @@ jobs:
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: Deb Zip
           path: .
@@ -352,7 +352,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -360,10 +360,6 @@ jobs:
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
 
-      - name: Configure Rust Tools
-        run: |
-          rustup.exe toolchain install 1.63.0 --component rustfmt --component clippy --no-self-update
-          rustup.exe default 1.63.0
       - name: Configure
         run: |
           .\configure.cmd
@@ -389,6 +385,7 @@ jobs:
             ./package/pkg-working/bin/tools/x86_64/esbuild.exe
             ./package/pkg-working/bin/tools/x86_64/dart-sass/src/dart.exe
             ./package/pkg-working/bin/tools/x86_64/deno_dom/plugin.dll
+            ./package/pkg-working/bin/tools/x86_64/typst-gather.exe
             ./package/pkg-working/bin/tools/pandoc.exe
             ./package/pkg-working/bin/quarto.js
         env:
@@ -420,13 +417,13 @@ jobs:
           CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Windows Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Windows Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip
@@ -435,7 +432,7 @@ jobs:
     runs-on: windows-latest
     needs: [configure, make-installer-win]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
           sparse-checkout: |
@@ -446,7 +443,7 @@ jobs:
         uses: ./.github/workflows/actions/prevent-rerun
 
       - name: "Download Windows Zip"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Windows Zip
           path: .
@@ -483,7 +480,7 @@ jobs:
     runs-on: macos-latest
     needs: [configure]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -532,13 +529,13 @@ jobs:
           QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Mac Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Mac Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
@@ -552,7 +549,7 @@ jobs:
     runs-on: macos-latest
     needs: [configure, make-installer-mac]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
           sparse-checkout: |
@@ -562,7 +559,7 @@ jobs:
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: Mac Zip
           path: .
@@ -606,7 +603,7 @@ jobs:
       ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
           path: quarto-cli
@@ -618,7 +615,7 @@ jobs:
         uses: ./quarto-cli/.github/workflows/actions/prevent-rerun
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Rename news
         run: |
@@ -726,7 +723,7 @@ jobs:
       ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Prevent Re-run
         if: ${{ inputs.publish-release }}
@@ -754,7 +751,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure, publish-release]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           sparse-checkout: |
             .github
@@ -764,7 +761,7 @@ jobs:
         uses: ./.github/workflows/actions/prevent-rerun
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - uses: ./.github/actions/docker
         with:

@@ -32,6 +32,10 @@ import("./common/debug.lua")
 import("./common/error.lua")
 import("./common/figures.lua")
 import("./common/filemetadata.lua")
+
+-- Expose file metadata to extension filters.
+quarto.doc.file_metadata = currentFileMetadataState
+
 import("./common/floats.lua")
 import("./common/format.lua")
 import("./common/latex.lua")
@@ -139,6 +143,8 @@ import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
 import("./quarto-pre/code-annotation.lua")
+import("./quarto-pre/llms-code-annotations.lua")
+import("./quarto-pre/llms-conditional-content.lua")
 import("./quarto-pre/code-filename.lua")
 import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
@@ -196,6 +202,21 @@ import("./layout/hugo.lua")
 import("./quarto-init/metainit.lua")
 
 -- [/import]
+
+-- Expose filter utilities to extensions via quarto.utils
+-- file_metadata_filter() returns a filter that parses book metadata markers during traversal
+-- combineFilters() merges multiple filters into one for a single traversal
+-- Usage: return quarto.utils.combineFilters({quarto.utils.file_metadata_filter(), yourFilter})
+quarto.utils.file_metadata_filter = file_metadata
+quarto.utils.combineFilters = combineFilters
+
+-- Expose file_metadata state reader to extensions via quarto.doc API
+-- Returns the current file metadata state (file, appendix, include_directory)
+quarto.doc.file_metadata = currentFileMetadataState
+
+-- Expose crossref categories to extensions via quarto.doc.crossref
+-- Provides access to all crossref category definitions (figures, tables, callouts, custom types)
+quarto.doc.crossref.categories = crossref.categories
 
 initCrossrefIndex()
 
@@ -302,6 +323,15 @@ local quarto_pre_filters = {
     traverser = 'jog',
   },
 
+  { name = "pre-llms-conditional-content",
+    filter = filterIf(
+      function() return param("llms-txt", false) end,
+      llms_resolve_conditional_content()
+    ),
+    flags = { "has_conditional_content" },
+    traverser = 'jog',
+  },
+
   { name = "pre-combined-hidden",
     filter = combineFilters({
       hidden(),
@@ -314,6 +344,15 @@ local quarto_pre_filters = {
   { name = "pre-table-captions",
     filter = table_captions(),
     flags = { "has_table_captions" },
+    traverser = 'jog',
+  },
+
+  { name = "pre-llms-save-code-annotations",
+    filter = filterIf(
+      function() return param("llms-txt", false) end,
+      llms_save_code_annotations()
+    ),
+    flags = { "has_code_annotations" },
     traverser = 'jog',
   },
 
@@ -673,7 +712,7 @@ tappend(quarto_filter_list, quarto_pre_filters)
 if enableCrossRef then
   tappend(quarto_filter_list, quarto_crossref_filters)
 end
-table.insert(quarto_filter_list, { name = "post-quarto", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "post-quarto", filter = file_metadata() }) -- entry point for user filters
 table.insert(quarto_filter_list, { name = "pre-render", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_layout_filters)
 tappend(quarto_filter_list, quarto_post_filters)

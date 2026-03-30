@@ -1,0 +1,13 @@
+---
+title: "ojs_define numeric precision test"
+format: html
+engine: knitr
+---
+
+```{r}
+ojs_define(num = 0.00008604168504168504)
+```
+
+```{ojs}
+num
+```

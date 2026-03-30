@@ -1,0 +1,25 @@
+---
+title: "Conditional visibility with proof (#13992)"
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['Proof content visible', '\\begin{proof}', '\\end{proof}']
+        - []
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ['Proof content visible']
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#emph\[Proof\]\. Proof content visible']
+        - []
+---
+
+This tests a proof div with `.proof` class and `.content-visible`.
+
+::: {.proof .content-visible unless-format="html"}
+Proof content visible.
+:::

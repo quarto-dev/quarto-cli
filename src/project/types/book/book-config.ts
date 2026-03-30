@@ -192,7 +192,7 @@ export async function bookProjectConfig(
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
   siteSidebar[kSiteTitle] = siteSidebar[kSiteTitle] || book?.[kSiteTitle];
-  siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] || book?.[kSidebarLogo];
+  siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] ?? book?.[kSidebarLogo];
   siteSidebar[kSidebarLogoHref] = siteSidebar[kSidebarLogoHref] ||
     book?.[kSidebarLogoHref];
   siteSidebar[kSidebarLogoAlt] = siteSidebar[kSidebarLogoAlt] ||

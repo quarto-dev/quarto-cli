@@ -4,6 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+// Must be FIRST to save original Deno.realPathSync before monkey-patching
+import "./deno_ral/original-real-path.ts";
 import "./core/deno/monkey-patch.ts";
 
 import {
@@ -194,13 +196,6 @@ export async function quarto(
 
   try {
     await promise;
-    for (const [key, value] of Object.entries(oldEnv)) {
-      if (value === undefined) {
-        Deno.env.delete(key);
-      } else {
-        Deno.env.set(key, value);
-      }
-    }
     if (commandFailed()) {
       exitWithCleanup(1);
     }
@@ -210,6 +205,14 @@ export async function quarto(
       exitWithCleanup(1);
     } else {
       throw e;
+    }
+  } finally {
+    for (const [key, value] of Object.entries(oldEnv)) {
+      if (value === undefined) {
+        Deno.env.delete(key);
+      } else {
+        Deno.env.set(key, value);
+      }
     }
   }
 }

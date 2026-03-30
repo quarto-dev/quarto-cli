@@ -676,11 +676,24 @@ const readExtensionFormat = async (
   extensionContext: ExtensionContext,
   project?: ProjectContext,
 ) => {
+  // Determine effective extension - use default for certain project/format combinations
+  let effectiveExtension = formatDesc.extension;
+
+  // For book projects with typst format and no explicit extension,
+  // use orange-book as the default typst book template
+  if (
+    !effectiveExtension &&
+    formatDesc.baseFormat === "typst" &&
+    project?.config?.project?.[kProjectType] === "book"
+  ) {
+    effectiveExtension = "orange-book";
+  }
+
   // Read the format file and populate this
-  if (formatDesc.extension) {
+  if (effectiveExtension) {
     // Find the yaml file
     const extension = await extensionContext.extension(
-      formatDesc.extension,
+      effectiveExtension,
       file,
       project?.config,
       project?.dir,
@@ -696,7 +709,7 @@ const readExtensionFormat = async (
         (extensionFormat[fmtTarget] || extensionFormat[formatDesc.baseFormat] ||
           {}) as Metadata;
       extensionMetadata[kExtensionName] = extensionMetadata[kExtensionName] ||
-        formatDesc.extension;
+        effectiveExtension;
 
       const formats = await resolveFormatsFromMetadata(
         extensionMetadata,
@@ -707,7 +720,7 @@ const readExtensionFormat = async (
       return formats;
     } else {
       throw new Error(
-        `No valid format ${formatDesc.baseFormat} is provided by the extension ${formatDesc.extension}`,
+        `No valid format ${formatDesc.baseFormat} is provided by the extension ${effectiveExtension}`,
       );
     }
   } else {

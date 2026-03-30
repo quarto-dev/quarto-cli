@@ -1,0 +1,57 @@
+---
+title: "Subfigures in Margin (SVG)"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Should have note() wrapping quarto_super for margin subfigure placement
+        - ['#note\(', 'quarto_super']
+        - []
+      ensurePdfRegexMatches:
+        # Subfigure labels, main figure label, subfigure numbering, and SVG text
+        - ['Figure 1', 'SVG-PANEL', '\(a\) Splat', '\(b\) Neon']
+        - []
+      ensurePdfTextPositions:
+        - # SVG content and captions are in margin (right of body text)
+          - subject: "♥"
+            relation: rightOf
+            object: "This tests"
+          - subject: "♠"
+            relation: rightOf
+            object: "This tests"
+          # Vertical ordering: heart above Splat above spade above Neon above panel caption
+          - subject: "♥"
+            relation: above
+            object: "Splat"
+          - subject: "Splat"
+            relation: above
+            object: "♠"
+          - subject: "♠"
+            relation: above
+            object: "Neon"
+          - subject: "Neon"
+            relation: above
+            object: "SVG-PANEL"
+        - []
+      noErrors: default
+---
+
+This tests subfigures (panel figures) placed in the margin using inline SVG graphics.
+
+::: {#fig-margin-svg .column-margin layout-ncol=1}
+
+![Splat Style](splat-heart.svg){#fig-splat-heart}
+
+![Neon Style](neon-spade.svg){#fig-neon-spade}
+
+SVG-PANEL: Two SVG subfigures in margin
+:::
+
+Reference to @fig-margin-svg shows the panel.
+
+More text in the main column to show the layout alongside the margin subfigures.

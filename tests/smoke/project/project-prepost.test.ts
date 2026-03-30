@@ -9,7 +9,7 @@ import { docs } from "../../utils.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { testQuartoCmd } from "../../test.ts";
-import { fileExists, noErrors, printsMessage, verifyNoPath, verifyPath } from "../../verify.ts";
+import { fileExists, noErrors, printsMessage, validJsonWithFields, verifyNoPath, verifyPath } from "../../verify.ts";
 import { normalizePath, safeRemoveIfExists } from "../../../src/core/path.ts";
 
 const renderDir = docs("project/prepost/mutate-render-list");
@@ -75,6 +75,10 @@ testQuartoCmd(
       const path = join(docs("project/prepost/extension"), "i-was-created.txt");
       verifyPath(path);
       safeRemoveIfExists(path);
+      const siteDir = join(docs("project/prepost/extension"), "_site");
+      if (existsSync(siteDir)) {
+        await Deno.remove(siteDir, { recursive: true });
+      }
     }
   });
 
@@ -94,6 +98,37 @@ testQuartoCmd(
         safeRemoveIfExists(inputPath);
         verifyPath(outputPath);
         safeRemoveIfExists(outputPath);
+        const siteDir = join(docs("project/prepost/issue-10828"), "_site");
+        if (existsSync(siteDir)) {
+          await Deno.remove(siteDir, { recursive: true });
+        }
       }
     }
   )
+
+// Verify that pre-render scripts receive QUARTO_PROJECT_SCRIPT_PROGRESS
+// and QUARTO_PROJECT_SCRIPT_QUIET environment variables
+const scriptEnvDir = docs("project/prepost/script-env-vars");
+const scriptEnvDirAbs = join(Deno.cwd(), scriptEnvDir);
+const envDumpPath = join(scriptEnvDirAbs, "env-dump.json");
+const scriptEnvOutDir = join(scriptEnvDirAbs, "_site");
+
+testQuartoCmd(
+  "render",
+  [scriptEnvDir],
+  [
+    noErrors,
+    validJsonWithFields(envDumpPath, {
+      progress: "1",
+      quiet: "0",
+    }),
+  ],
+  {
+    teardown: async () => {
+      safeRemoveIfExists(envDumpPath);
+      if (existsSync(scriptEnvOutDir)) {
+        await Deno.remove(scriptEnvOutDir, { recursive: true });
+      }
+    },
+  },
+);

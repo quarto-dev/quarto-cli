@@ -1,0 +1,19 @@
+---
+title: Highlight Style Alias
+format:
+  typst:
+    keep-typ: true
+    highlight-style: tango
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # highlight-style (deprecated alias) should still work
+        - ["#Skylighting", "#KeywordTok"]
+---
+Test that `highlight-style` (deprecated) still works as an alias for `syntax-highlighting`.
+
+```python
+def hello():
+    print("world")
+```

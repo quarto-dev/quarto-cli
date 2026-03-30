@@ -1,0 +1,36 @@
+---
+title: "Margin Citation with Bare Citations"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Margin citations emit note() with cite(form: "full") directly
+        - ['#note\(', 'form: "full"']
+        - []
+      ensurePdfRegexMatches:
+        # Bare citations should render author-date inline with full in margin
+        - ['BARE-MARKER', 'Borges', '1941']
+        - []
+      ensurePdfTextPositions:
+        - # Full citation in margin - "bifurcan" is unique to borges1941library booktitle
+          - subject: "bifurcan"
+            relation: rightOf
+            object: "BARE-MARKER"
+        - []
+      noErrors: default
+---
+
+# Testing Bare (In-Text) Citations in Margins
+
+BARE-MARKER: According to @borges1941library, the Library is infinite.
+
+The story was later collected by @borges1944ficciones in his famous anthology.
+
+Both @eco1980name and @calvino1979winter were influenced by Borges.

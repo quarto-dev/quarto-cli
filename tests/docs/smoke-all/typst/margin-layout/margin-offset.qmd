@@ -1,0 +1,30 @@
+---
+title: "Margin Offset Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#note\(alignment: "baseline", dy: -2em']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "Offset margin"
+            relation: rightOf
+            object: "Main content"
+          # With negative dy, margin content should be above body text
+          - subject: "Offset margin"
+            relation: above
+            object: "Main content"
+        - []
+      noErrors: default
+---
+
+::: {.column-margin dy="-2em"}
+Offset margin content.
+:::
+
+Main content here.

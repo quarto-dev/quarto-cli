@@ -1,0 +1,55 @@
+---
+title: "Margin Table with Caption Below"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Cell option produces #notefigure (entire figure in margin)
+        - ['#notefigure\(', 'kind: "quarto-float-tbl"', 'position: bottom']
+        - []
+      ensurePdfRegexMatches:
+        - ['Table 1', 'Large Landmasses']
+        - []
+      ensurePdfTextPositions:
+        - # Table in margin, right of body text
+          - subject: "Large Landmasses"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Borneo"
+            relation: rightOf
+            object: "This tests"
+          # Caption BELOW table content (cap-location: bottom)
+          - subject: "Borneo"
+            relation: above
+            object: "Large Landmasses"
+        - []
+      noErrors: default
+---
+
+This tests a great_tables table in the margin with caption below using `cap-location="bottom"`.
+
+```{python}
+#| column: margin
+#| classes: plain
+#| echo: false
+#| label: tbl-islands
+#| tbl-cap: "Large Landmasses"
+#| cap-location: bottom
+
+from great_tables import GT
+from great_tables.data import islands
+
+(
+    GT(islands.head(20), rowname_col="name")
+    .fmt_integer(columns="size")
+)
+```
+
+See @tbl-islands for the table in the margin.
+
+More text in the main column to show the layout.

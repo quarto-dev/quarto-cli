@@ -1,0 +1,73 @@
+---
+title: "Custom Geometry: Narrow Margins"
+papersize: us-letter
+grid:
+  margin-width: 1.5in
+  gutter-width: 0.2in
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # outer block contains width: 1.500in (margin column) and sep: 0.200in (gutter)
+        - ['outer:', 'width: 1.500in', 'sep: 0.200in']
+        - []
+      ensurePdfRegexMatches:
+        - - 'Figure 1'
+          - 'Narrow margin'
+          - 'compact notes'
+        - []
+      ensurePdfTextPositions:
+        - # Margin notes are in margin (rightOf body text) with narrow geometry
+          - subject: "compact notes"
+            relation: rightOf
+            object: "Narrow Margin Layout"
+          - subject: "compact notes"
+            relation: above
+            object: "Short annotations"
+        - []
+      noErrors: default
+---
+
+```{r}
+#| label: setup
+#| echo: false
+library(ggplot2)
+```
+
+## Narrow Margin Layout Test
+
+This document tests a narrow margin configuration with 1.5-inch margin notes and a tight 0.2-inch gutter.
+[Narrow margins require more compact notes.]{.aside}
+
+The text column is wider, giving more room for the main content.
+[Short annotations work best here.]{.aside}
+
+```{r}
+#| label: fig-narrow-margin
+#| echo: false
+#| fig-cap: "Damped oscillation (seed 777)"
+
+set.seed(777)
+x <- seq(0, 4 * pi, length.out = 200)
+damping <- exp(-x / 6)
+df <- data.frame(
+  x = rep(x, 3),
+  y = c(sin(x) * damping + rnorm(200, 0, 0.02),
+        sin(2 * x) * damping * 0.7 + rnorm(200, 0, 0.02),
+        sin(3 * x) * damping * 0.5 + rnorm(200, 0, 0.02)),
+  wave = rep(c("Fundamental", "2nd Harmonic", "3rd Harmonic"), each = 200)
+)
+ggplot(df, aes(x, y, color = wave)) +
+  geom_line(linewidth = 1) +
+  theme_minimal() +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "bottom")
+```
+
+[The narrow margin still works for brief notes.]{.aside}
+
+This layout maximizes reading space while still allowing margin annotations.

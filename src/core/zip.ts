@@ -12,7 +12,21 @@ import { safeWindowsExec } from "./windows.ts";
 export function unzip(file: string, dir?: string) {
   if (!dir) dir = dirname(file);
 
-  if (file.endsWith("zip")) {
+  if (isWindows && file.endsWith(".exe")) {
+    // Self-extracting 7z archive (e.g., TinyTeX-windows.exe)
+    return safeWindowsExec(
+      file,
+      ["-y"],
+      (cmd: string[]) => {
+        return execProcess({
+          cmd: cmd[0],
+          args: cmd.slice(1),
+          cwd: dir,
+          stdout: "piped",
+        });
+      },
+    );
+  } else if (file.endsWith("zip")) {
     // It's a zip file
     if (isWindows) {
       const args = [
@@ -51,7 +65,7 @@ export function unzip(file: string, dir?: string) {
       // Otherwise fall back to "tar" in PATH
     }
     return execProcess(
-      { cmd: tarCmd, args: ["xfz", file], cwd: dir, stdout: "piped" },
+      { cmd: tarCmd, args: ["xf", file], cwd: dir, stdout: "piped" },
     );
   }
 }

@@ -1,0 +1,8 @@
+---
+title: "Output Dir Parent Ref Test"
+format: html
+---
+
+# Test Document
+
+This document tests that `output-dir: ../output-dir-parent-ref` (referencing the project directory via parent traversal) does not delete the project directory.

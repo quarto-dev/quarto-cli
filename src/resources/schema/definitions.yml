@@ -27,6 +27,19 @@
         values: [null]
         hidden: true
 
+- id: filter-entry-point
+  enum:
+    [
+      pre-ast,
+      post-ast,
+      pre-quarto,
+      post-quarto,
+      pre-render,
+      post-render,
+      pre-finalize,
+      post-finalize,
+    ]
+
 - id: pandoc-format-filters
   arrayOf:
     anyOf:
@@ -41,15 +54,7 @@
             type: string
             path: path
             at:
-              enum:
-                [
-                  pre-ast,
-                  post-ast,
-                  pre-quarto,
-                  post-quarto,
-                  pre-render,
-                  post-render,
-                ]
+              ref: filter-entry-point
           required: [path, at]
       - record:
           type:
@@ -723,6 +728,10 @@
         boolean:
           description: |
             Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.
+      llms-txt:
+        boolean:
+          description: |
+            Generate llms.txt and .llms.md files for LLM-friendly content consumption.
       google-analytics:
         anyOf:
           - string
@@ -2722,8 +2731,9 @@
 - id: logo-light-dark-specifier
   description: >
     Any of the ways a logo can be specified: string, object, or light/dark object of
-    string or object
+    string or object. Use `false` to explicitly disable the logo.
   anyOf:
+    - enum: [false]
     - ref: logo-specifier
     - object:
         closed: true
@@ -2742,8 +2752,9 @@
 - id: logo-light-dark-specifier-path-optional
   description: >
     Any of the ways a logo can be specified: string, object, or light/dark object of
-    string or object
+    string or object. Use `false` to explicitly disable the logo.
   anyOf:
+    - enum: [false]
     - ref: logo-specifier-path-optional
     - object:
         closed: true
@@ -3483,4 +3494,18 @@
                   - string
                   - boolean
                   - number
+- id: marginalia-side-geometry
+  object:
+    closed: true
+    properties:
+      far:
+        string:
+          description: "Distance from page edge to wideblock boundary."
+      width:
+        string:
+          description: "Width of the margin note column."
+      separation:
+        string:
+          description: "Gap between margin column and body text."
+
 # - id: quarto-extension

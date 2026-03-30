@@ -385,8 +385,24 @@ export async function renderPandoc(
           ));
       }
 
-      // if there is a project context then return paths relative to the project
-      const projectPath = (path: string) => {
+      // Compute the project-relative path for the input source file.
+      // Uses normalizePath to handle both relative and absolute source paths.
+      const projectRelativeInput = (sourcePath: string) => {
+        if (context.project) {
+          return relative(
+            normalizePath(context.project.dir),
+            normalizePath(sourcePath),
+          );
+        }
+        return sourcePath;
+      };
+
+      // Resolve an output file path to a project-relative path.
+      // Output paths (like "page.html") are relative to the source file's
+      // directory, so we join with dirname(target.source) before computing
+      // the project-relative result. Absolute output paths pass through
+      // normalizePath directly.
+      const projectOutputPath = (path: string) => {
         if (context.project) {
           if (isAbsolute(path)) {
             return relative(
@@ -411,7 +427,7 @@ export async function renderPandoc(
 
       const result: RenderedFile = {
         isTransient: recipe.isOutputTransient,
-        input: projectPath(context.target.source),
+        input: projectRelativeInput(context.target.source),
         markdown: executeResult.markdown,
         format,
         supporting: supporting
@@ -421,7 +437,7 @@ export async function renderPandoc(
           : undefined,
         file: recipe.isOutputTransient
           ? finalOutput!
-          : projectPath(finalOutput!),
+          : projectOutputPath(finalOutput!),
         resourceFiles: {
           globs: pandocResult.resources,
           files,

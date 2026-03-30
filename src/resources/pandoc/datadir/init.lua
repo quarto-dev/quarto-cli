@@ -914,11 +914,6 @@ quarto = {
       writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
     end,
 
-    -- could be add_metadata(namespace, {stuff})
-    add_typst_font_path = function(path)
-      writeToDependencyFile(dependency("typst-font-path", {path = path}))
-    end,
-
     add_format_resource = function(path)
       writeToDependencyFile(dependency("format-resources", { file = resolvePathExt(path)}))
     end,
@@ -959,7 +954,8 @@ quarto = {
 
     output_file = outputFile(),
     input_file = inputFile(),
-    crossref = {}
+    crossref = {},
+    language = param("language", nil)
   },
   project = {
     directory = projectDirectory(),

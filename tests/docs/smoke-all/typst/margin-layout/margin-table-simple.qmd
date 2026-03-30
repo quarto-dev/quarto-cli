@@ -1,0 +1,49 @@
+---
+title: "Margin Table Simple Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Table in margin div uses #notefigure( for proper margin placement
+        - ['#notefigure\(', 'kind: "quarto-float-tbl"']
+        - []
+      ensurePdfRegexMatches:
+        - ['Table 1', 'SIMPLE-TBL-CAP', 'Alpha']
+        - []
+      ensurePdfTextPositions:
+        - # Table in margin, right of body text
+          - subject: "SIMPLE-TBL-CAP"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Alpha"
+            relation: rightOf
+            object: "This tests"
+          # Caption above table content (default for tables)
+          - subject: "SIMPLE-TBL-CAP"
+            relation: above
+            object: "Alpha"
+        - []
+      noErrors: default
+---
+
+This tests a simple markdown table placed in the margin.
+
+::: {.column-margin}
+
+| Col1  | Col2  | Col3  |
+|-------|-------|-------|
+| Alpha | Beta  | Gamma |
+| Delta | Omega | Zeta  |
+
+: SIMPLE-TBL-CAP {#tbl-margin}
+
+:::
+
+See @tbl-margin for the table in the margin.
+
+More text in the main column to show the layout.

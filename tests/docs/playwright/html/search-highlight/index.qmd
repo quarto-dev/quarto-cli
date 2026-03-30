@@ -1,0 +1,15 @@
+---
+title: "Search Highlight Test"
+---
+
+## First Section
+
+This page contains a special keyword that we use for testing search highlighting.
+
+## Second Section
+
+The word special appears multiple times on this page to ensure search highlighting works correctly.
+
+## Third Section
+
+More content here for navigation testing.

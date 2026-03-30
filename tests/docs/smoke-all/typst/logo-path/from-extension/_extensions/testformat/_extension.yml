@@ -1,0 +1,7 @@
+title: Test Format
+author: Test
+version: 1.0.0
+contributes:
+  formats:
+    typst:
+      logo: logo.svg

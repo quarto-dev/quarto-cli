@@ -38,6 +38,19 @@ export const ZodPandocFormatRequestHeaders = z.array(z.array(z.string()));
 
 export const ZodPandocFormatOutputFile = z.union([z.string(), z.literal(null)]);
 
+export const ZodFilterEntryPoint = z.enum(
+  [
+    "pre-ast",
+    "post-ast",
+    "pre-quarto",
+    "post-quarto",
+    "pre-render",
+    "post-render",
+    "pre-finalize",
+    "post-finalize",
+  ] as const,
+);
+
 export const ZodPandocFormatFilters = z.array(
   z.union([
     z.string(),
@@ -46,16 +59,7 @@ export const ZodPandocFormatFilters = z.array(
     z.object({
       type: z.string(),
       path: z.string(),
-      at: z.enum(
-        [
-          "pre-ast",
-          "post-ast",
-          "pre-quarto",
-          "post-quarto",
-          "pre-render",
-          "post-render",
-        ] as const,
-      ),
+      at: z.lazy(() => ZodFilterEntryPoint),
     }).passthrough().partial().required({ path: true, at: true }),
     z.object({ type: z.enum(["citeproc"] as const) }).strict(),
   ]),
@@ -293,6 +297,7 @@ export const ZodBaseWebsite = z.object({
     z.array(z.enum(["none", "edit", "source", "issue"] as const)),
   ]),
   "reader-mode": z.boolean(),
+  "llms-txt": z.boolean(),
   "google-analytics": z.union([
     z.string(),
     z.object({
@@ -471,6 +476,7 @@ export const ZodBookSchema = z.object({
     z.array(z.enum(["none", "edit", "source", "issue"] as const)),
   ]),
   "reader-mode": z.boolean(),
+  "llms-txt": z.boolean(),
   "google-analytics": z.union([
     z.string(),
     z.object({
@@ -1386,6 +1392,7 @@ export const ZodLogoSpecifierPathOptional = z.union([
 ]);
 
 export const ZodLogoLightDarkSpecifier = z.union([
+  z.literal(false),
   z.lazy(() => ZodLogoSpecifier),
   z.object({
     light: z.lazy(() => ZodLogoSpecifier),
@@ -1394,6 +1401,7 @@ export const ZodLogoLightDarkSpecifier = z.union([
 ]);
 
 export const ZodLogoLightDarkSpecifierPathOptional = z.union([
+  z.literal(false),
   z.lazy(() => ZodLogoSpecifierPathOptional),
   z.object({
     light: z.lazy(() => ZodLogoSpecifierPathOptional),
@@ -1797,6 +1805,12 @@ export const ZodBrandDefaultsBootstrap = z.object({
   ),
 }).passthrough().partial();
 
+export const ZodMarginaliaSideGeometry = z.object({
+  far: z.string(),
+  width: z.string(),
+  separation: z.string(),
+}).strict().partial();
+
 export const ZodProjectConfig = z.object({
   title: z.string(),
   type: z.string(),
@@ -1825,6 +1839,8 @@ export type PandocFormatRequestHeaders = z.infer<
 >;
 
 export type PandocFormatOutputFile = z.infer<typeof ZodPandocFormatOutputFile>;
+
+export type FilterEntryPoint = z.infer<typeof ZodFilterEntryPoint>;
 
 export type PandocFormatFilters = z.infer<typeof ZodPandocFormatFilters>;
 
@@ -2060,6 +2076,8 @@ export type BrandDefaults = z.infer<typeof ZodBrandDefaults>;
 
 export type BrandDefaultsBootstrap = z.infer<typeof ZodBrandDefaultsBootstrap>;
 
+export type MarginaliaSideGeometry = z.infer<typeof ZodMarginaliaSideGeometry>;
+
 export type ProjectConfig = z.infer<typeof ZodProjectConfig>;
 
 export type BookProject = z.infer<typeof ZodBookProject>;
@@ -2070,6 +2088,7 @@ export const Zod = {
   MathMethods: ZodMathMethods,
   PandocFormatRequestHeaders: ZodPandocFormatRequestHeaders,
   PandocFormatOutputFile: ZodPandocFormatOutputFile,
+  FilterEntryPoint: ZodFilterEntryPoint,
   PandocFormatFilters: ZodPandocFormatFilters,
   PandocShortcodes: ZodPandocShortcodes,
   PageColumn: ZodPageColumn,
@@ -2174,6 +2193,7 @@ export const Zod = {
   BrandPathBoolLightDark: ZodBrandPathBoolLightDark,
   BrandDefaults: ZodBrandDefaults,
   BrandDefaultsBootstrap: ZodBrandDefaultsBootstrap,
+  MarginaliaSideGeometry: ZodMarginaliaSideGeometry,
   ProjectConfig: ZodProjectConfig,
   BookProject: ZodBookProject,
 };

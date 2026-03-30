@@ -15,7 +15,7 @@
     - [ ] "Set as pre-release" should be unchecked, and
     - [ ] "Set as latest release" should be checked.
 - [ ] once the v1.5 build completes, edit the quarto.org website configuration on https://github.com/quarto-dev/quarto-web to reflect the new version
-  - this means flipping the profile group configuration in `_quarto.yml` from `[rc,prelease]` to `[prerelease,rc]`
+  - this means flipping the profile group configuration in `_quarto.yml` from `[rc,prerelease]` to `[prerelease,rc]`
     - [ ] push the changes to the `main` branch
 - [ ] quarto-dev/quarto-web changes
 
@@ -28,21 +28,23 @@
       - [ ] Ensure the download links on https://quarto.org/docs/get-started/ and https://quarto.org/docs/download/ point to the stable and prerelease versions respectively
   - In the `prerelease` branch:
     - [ ] update the highlights files
-      - [ ] create `docs/prerelease/1.5/{_highlights, index, _pre-release-feature}.qmd` files based on the ones from the previous release
-      - [ ] change `docs/prerelease/_highlights.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.5)
+      - [ ] create `docs/prerelease/1.5/{_highlights, index}.qmd` files based on the ones from the previous release
+      - [ ] change `docs/prerelease/_highlights-prerelease.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.5)
       - [ ] change `docs/prerelease/_highlights-release.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.4)
     - [ ] add the stable version to the older downloads list by editing /docs/download/\_download-older.yml
-    - [ ] run `quarto run tools/release-notes.R` to generate the release notes
+    - [ ] run `quarto run tools/release-notes.R` to generate the release notes and bump `version` in `_quarto.yml` (to released version) and `_quarto-prerelease-docs.yml` (to next prerelease)
   - [ ] push the changes to `prerelease` branch, ensure they build correctly
   - [ ] Merge the `prerelease` branch into `main`, push to `main`
     - [ ] ensure the build completes successfully
+    - [ ] verify `_quarto.yml` `version` on `main` reflects the released version (e.g. `'1.4'`) — needed for `prerelease` shortcodes to resolve blog links and pre-release callouts
   - [ ] Merge `main` into `prerelease`, push to `prerelease`
     - [ ] ensure the build completes successfully
   - [ ] Create new tag on `main` with stable release version number (here, `v1.4`) to mark when the new main site version went live
     - [ ] `git tag -a v1.4 -m "v1.4"`
     - [ ] `git push origin v1.4`
-  - [ ] Update `prerelease` version number (here, `v1.5`)
-    - [ ] edit `_quarto-prerelease-docs.yml` to point to the new version
+  - [ ] Verify version numbers were updated by `tools/release-notes.R`
+    - [ ] `_quarto.yml` `version` should be the released version (e.g. `'1.4'`)
+    - [ ] `_quarto-prerelease-docs.yml` `version` should be the next prerelease (e.g. `'1.5'`)
   - [ ] publish the release blog post that should exist in https://github.com/quarto-dev/quarto-web/tree/main/docs/blog/posts
     - [ ] Create a branch off of `main` (to trigger our PR automation to make the corresponding change to `prerelease`).
     - [ ] Removing the `draft: true` line in the metadata

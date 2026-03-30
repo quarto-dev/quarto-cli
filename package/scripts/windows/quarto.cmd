@@ -142,8 +142,11 @@ IF DEFINED QUARTO_DENO_V8_OPTIONS (
 	IF "!QUARTO_DENO_V8_OPTIONS!"=="!QUARTO_DENO_V8_OPTIONS:--max-heap-size=!" (
 		SET "QUARTO_DENO_V8_OPTIONS=--max-heap-size=8192,!QUARTO_DENO_V8_OPTIONS!"
 	)
+	IF "!QUARTO_DENO_V8_OPTIONS!"=="!QUARTO_DENO_V8_OPTIONS:--stack-trace-limit=!" (
+		SET "QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=100,!QUARTO_DENO_V8_OPTIONS!"
+	)
 ) ELSE (
-  SET "QUARTO_DENO_V8_OPTIONS=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192"
+  SET "QUARTO_DENO_V8_OPTIONS=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192,--stack-trace-limit=100"
 )
 
 REM Prepend v8-flags for deno run if necessary

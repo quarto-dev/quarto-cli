@@ -1,0 +1,12 @@
+[package]
+name = "showybox"
+version = "2.0.4"
+entrypoint = "showy.typ"
+authors = ["Pablo González Calderón", "Showybox Contributors"]
+license = "MIT"
+categories = ["components"]
+keywords = ["boxes", "colorful"]
+compiler = "0.12.0"
+description = "Colorful and customizable boxes for Typst"
+repository = "https://github.com/Pablo-Gonzalez-Calderon/showybox-package"
+exclude = ["assets", "Showybox's Manual.pdf", "examples", "manual"]

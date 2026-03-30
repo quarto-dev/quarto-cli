@@ -18,12 +18,16 @@ import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
+  ensureCssRegexMatches,
   ensureEpubFileRegexMatches,
   ensureDocxRegexMatches,
   ensureDocxXpath,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  ensureIpynbCellMatches,
   ensurePdfRegexMatches,
+  ensurePdfTextPositions,
+  ensurePdfMetadata,
   ensureJatsXpath,
   ensureOdtXpath,
   ensurePptxRegexMatches,
@@ -40,6 +44,12 @@ import {
   shouldError,
   ensureHtmlElementContents,
   ensureHtmlElementCount,
+  ensureLlmsMdRegexMatches,
+  ensureLlmsMdExists,
+  ensureLlmsMdDoesNotExist,
+  ensureLlmsTxtRegexMatches,
+  ensureLlmsTxtExists,
+  ensureLlmsTxtDoesNotExist,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
@@ -153,6 +163,9 @@ function registerPostRenderCleanupFile(file: string): void {
   postRenderCleanupFiles.push(file);
 }
 const postRenderCleanup = () => {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   for (const file of postRenderCleanupFiles) {
     console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
     if (safeExistsSync(file)) {
@@ -171,11 +184,13 @@ function resolveTestSpecs(
   const result = [];
   // deno-lint-ignore no-explicit-any
   const verifyMap: Record<string, any> = {
+    ensureCssRegexMatches,
     ensureEpubFileRegexMatches,
     ensureHtmlElements,
     ensureHtmlElementContents,
     ensureHtmlElementCount,
     ensureFileRegexMatches,
+    ensureIpynbCellMatches,
     ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
     ensureDocxRegexMatches,
@@ -183,12 +198,20 @@ function resolveTestSpecs(
     ensureOdtXpath,
     ensureJatsXpath,
     ensurePdfRegexMatches,
+    ensurePdfTextPositions,
+    ensurePdfMetadata,
     ensurePptxRegexMatches,
     ensurePptxXpath,
     ensurePptxLayout,
     ensurePptxMaxSlides,
     ensureSnapshotMatches,
-    printsMessage
+    printsMessage,
+    ensureLlmsMdRegexMatches,
+    ensureLlmsMdExists,
+    ensureLlmsMdDoesNotExist,
+    ensureLlmsTxtRegexMatches,
+    ensureLlmsTxtExists,
+    ensureLlmsTxtDoesNotExist,
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
@@ -256,7 +279,11 @@ function resolveTestSpecs(
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             }
           } else if (key === "printsMessage") {
-            verifyFns.push(verifyMap[key](value));
+            // Support both single object and array of printsMessage checks
+            const messages = Array.isArray(value) ? value : [value];
+            for (const msg of messages) {
+              verifyFns.push(verifyMap[key](msg));
+            }
           } else if (key === "ensureEpubFileRegexMatches") {
             // this ensure function is special because it takes an array of path + regex specifiers,
             // so we should never use the spread operator
@@ -272,12 +299,31 @@ function resolveTestSpecs(
                 throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
               }
             }
-            
+
+            // keep-typ/keep-tex files are alongside source, so pass input path
+            // But output-ext: typ puts files in output directory, so don't pass input path
+            const usesKeepTyp = key === "ensureTypstFileRegexMatches" &&
+              (metadata.format?.typst?.['keep-typ'] || metadata['keep-typ']) &&
+              !(metadata.format?.typst?.['output-ext'] === 'typ' || metadata['output-ext'] === 'typ');
+            const usesKeepTex = key === "ensureLatexFileRegexMatches" &&
+              (metadata.format?.pdf?.['keep-tex'] || metadata['keep-tex']);
+            const needsInputPath = usesKeepTyp || usesKeepTex;
+
+            // For book projects, use intermediateTypstPath (index.typ at project root)
+            // instead of the output path (which would be _book/BookTitle.typ)
+            let targetPath = outputFile.outputPath;
+            if (key === "ensureTypstFileRegexMatches" && outputFile.intermediateTypstPath) {
+              targetPath = outputFile.intermediateTypstPath;
+            }
+
             if (typeof value === "object" && Array.isArray(value)) {
-              // Only use spread operator for arrays
-              verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+              // value is [matches, noMatches?] - ensure inputFile goes in the right position
+              const matches = value[0];
+              const noMatches = value[1];
+              const inputFile = needsInputPath ? input : undefined;
+              verifyFns.push(verifyMap[key](targetPath, matches, noMatches, inputFile));
             } else {
-              verifyFns.push(verifyMap[key](outputFile.outputPath, value));
+              verifyFns.push(verifyMap[key](targetPath, value, undefined, needsInputPath ? input : undefined));
             }
           } else {
             throw new Error(`Unknown verify function used: ${key} in file ${input} for format ${format}`) ;
@@ -430,6 +476,9 @@ for (const { path: fileName } of files) {
 // Wait for all the promises to resolve
 // Meaning all the files have been tested and we can clean
 Promise.all(testFilesPromises).then(() => {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   // Clean up any projects that were tested
   for (const project of testedProjects) {
     // Clean project output directory

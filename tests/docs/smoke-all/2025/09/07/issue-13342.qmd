@@ -1,0 +1,22 @@
+---
+title: "I wish I could write inline code in the abstract"
+author: carlos
+format: latex
+abstract: |
+  This is an abstract. My fancy value is {{< contents placeholder-source >}}.
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ['\{7\}\.\n\\end\{abstract\}']
+        - []
+---
+
+## A section
+
+```{r}
+#| include: false
+my_fancy_code <- 3 + 4
+```
+
+Of course when I do it here it works. We analyze `{r} my_fancy_code` articles and find that this doesn't work at all. [`{r} my_fancy_code`]{#placeholder-source}

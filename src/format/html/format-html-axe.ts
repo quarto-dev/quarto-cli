@@ -4,43 +4,59 @@
  * Copyright (C) 2020-2025 Posit Software, PBC
  */
 
-import { kIncludeInHeader } from "../../config/constants.ts";
-import { Format, FormatExtras } from "../../config/types.ts";
-import { TempContext } from "../../core/temp-types.ts";
+import { isHtmlDashboardOutput, isRevealjsOutput } from "../../config/format.ts";
+import {
+  Format,
+  FormatDependency,
+  FormatExtras,
+  kDependencies,
+} from "../../config/types.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 import { encodeBase64 } from "../../deno_ral/encoding.ts";
+import { join } from "../../deno_ral/path.ts";
+
+function axeHtmlDependency(options: unknown): FormatDependency {
+  return {
+    name: "quarto-axe",
+    head: `<script id="quarto-axe-checker-options" type="text/plain">${
+      encodeBase64(JSON.stringify(options))
+    }</script>`,
+    scripts: [{
+      name: "axe-check.js",
+      path: formatResourcePath("html", join("axe", "axe-check.js")),
+      attribs: { type: "module" },
+    }],
+  };
+}
 
 export function axeFormatDependencies(
-  _format: Format,
-  temp: TempContext,
+  format: Format,
   options?: unknown,
 ): FormatExtras {
   if (!options) return {};
 
-  return {
-    [kIncludeInHeader]: [
-      temp.createFileFromString(
-        `<script id="quarto-axe-checker-options" type="text/plain">${
-          encodeBase64(JSON.stringify(options))
-        }</script>`,
-      ),
-    ],
-    html: {
-      "sass-bundles": [
-        {
-          key: "axe",
-          dependency: "bootstrap",
-          user: [{
-            uses: "",
-            defaults: "",
-            functions: "",
-            mixins: "",
-            rules: `
+  // Use reveal-theme for revealjs, bootstrap for other HTML formats.
+  // Note: For revealjs, sass-bundles compile separately from the theme
+  // (which compiles in format-reveal-theme.ts), so the !default values
+  // below are used instead of actual theme colors. This is a known
+  // limitation - see GitHub issue for architectural context.
+  const isRevealjs = isRevealjsOutput(format.pandoc);
+  const isDashboard = isHtmlDashboardOutput(format.identifier["base-format"]);
+  const sassDependency = isRevealjs ? "reveal-theme" : "bootstrap";
+
+  // Base overlay rules shared by all formats (also serves as fallback for revealjs)
+  const baseRules = `
 body div.quarto-axe-report {
   position: fixed;
   bottom: 3rem;
   right: 3rem;
   padding: 1rem;
-  border: 1px solid $body-color;
+  border: 1px solid var(--r-main-color, $body-color);
+  z-index: 9999;
+  background-color: var(--r-background-color, $body-bg);
+  color: var(--r-main-color, $body-color);
+  max-height: 50vh;
+  overflow-y: auto;
 }
 
 .quarto-axe-violation-help { padding-left: 0.5rem; }
@@ -51,11 +67,95 @@ body div.quarto-axe-report {
   text-decoration: underline;
   cursor: pointer;
 }
-  
+
 .quarto-axe-hover-highlight {
   background-color: red;
-  border: 1px solid $body-color;
-}`,
+  border: 2px solid red;
+}`;
+
+  // RevealJS: override overlay styles when report is embedded as a slide
+  const revealjsRules = isRevealjs
+    ? `
+.reveal .slides section.quarto-axe-report-slide {
+  text-align: left;
+  font-size: 0.55em;
+  h2 {
+    margin-bottom: 0.5em;
+    font-size: 1.8em;
+  }
+  div.quarto-axe-report {
+    position: static;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    max-height: none;
+    overflow-y: visible;
+    z-index: auto;
+  }
+  .quarto-axe-violation-description {
+    margin-top: 0.6em;
+    font-weight: bold;
+  }
+  .quarto-axe-violation-target {
+    font-size: 0.9em;
+  }
+}`
+    : "";
+
+  // Dashboard: report inside offcanvas sidebar (not fixed overlay)
+  const dashboardRules = isDashboard
+    ? `
+.quarto-dashboard .offcanvas.quarto-axe-offcanvas {
+  .quarto-axe-report {
+    position: static;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    max-height: none;
+    overflow-y: visible;
+    z-index: auto;
+  }
+}
+.quarto-dashboard .quarto-axe-toggle {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1040;
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+.quarto-dashboard .quarto-axe-scanning {
+  padding: 1rem;
+  text-align: center;
+  opacity: 0.7;
+  font-style: italic;
+}`
+    : "";
+
+  return {
+    html: {
+      [kDependencies]: [
+        axeHtmlDependency(options),
+      ],
+      "sass-bundles": [
+        {
+          key: "axe",
+          dependency: sassDependency,
+          user: [{
+            uses: "",
+            defaults: `
+$body-color: #222 !default;
+$body-bg: #fff !default;
+$link-color: #2a76dd !default;
+`,
+            functions: "",
+            mixins: "",
+            rules: baseRules + revealjsRules + dashboardRules,
           }],
         },
       ],

@@ -38,7 +38,12 @@ function choose_cell_renderings()
       end
     
       local outputs = {}
+      local seen = {}
       for i, r in ipairs(renderings) do
+        if seen[r] then
+          quarto.log.warning("duplicate rendering name '" .. r .. "' in renderings; only the last cell output with each name will be used")
+        end
+        seen[r] = true
         outputs[r] = cods[i]
       end
       local lightDiv = outputs['light']
@@ -52,8 +57,11 @@ function choose_cell_renderings()
           blocks:insert(darkDiv)
         end
       elseif quarto.format.isHtmlOutput() and lightDiv and darkDiv then
-        blocks:insert(pandoc.Div(lightDiv.content, pandoc.Attr("", {'light-content'}, {})))
-        blocks:insert(pandoc.Div(darkDiv.content, pandoc.Attr("", {'dark-content'}, {})))
+        -- Preserve existing classes (e.g., column-margin, cell-output-display) and add theme class
+        lightDiv.classes:insert('light-content')
+        darkDiv.classes:insert('dark-content')
+        blocks:insert(lightDiv)
+        blocks:insert(darkDiv)
       else
         blocks:insert(lightDiv or darkDiv)
       end

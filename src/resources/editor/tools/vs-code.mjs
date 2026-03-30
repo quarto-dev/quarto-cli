@@ -8002,7 +8002,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8024,7 +8025,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8046,7 +8048,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8412,6 +8415,19 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "filter-entry-point",
+          enum: [
+            "pre-ast",
+            "post-ast",
+            "pre-quarto",
+            "post-quarto",
+            "pre-render",
+            "post-render",
+            "pre-finalize",
+            "post-finalize"
+          ]
+        },
+        {
           id: "pandoc-format-filters",
           arrayOf: {
             anyOf: [
@@ -8433,14 +8449,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     type: "string",
                     path: "path",
                     at: {
-                      enum: [
-                        "pre-ast",
-                        "post-ast",
-                        "pre-quarto",
-                        "post-quarto",
-                        "pre-render",
-                        "post-render"
-                      ]
+                      ref: "filter-entry-point"
                     }
                   },
                   required: [
@@ -9401,6 +9410,11 @@ var require_yaml_intelligence_resources = __commonJS({
               "reader-mode": {
                 boolean: {
                   description: "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
+                }
+              },
+              "llms-txt": {
+                boolean: {
+                  description: "Generate llms.txt and .llms.md files for LLM-friendly content consumption.\n"
                 }
               },
               "google-analytics": {
@@ -12174,8 +12188,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "logo-light-dark-specifier",
-          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
           anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
             {
               ref: "logo-specifier"
             },
@@ -12202,8 +12221,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "logo-light-dark-specifier-path-optional",
-          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
           anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
             {
               ref: "logo-specifier-path-optional"
             },
@@ -13252,6 +13276,29 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        },
+        {
+          id: "marginalia-side-geometry",
+          object: {
+            closed: true,
+            properties: {
+              far: {
+                string: {
+                  description: "Distance from page edge to wideblock boundary."
+                }
+              },
+              width: {
+                string: {
+                  description: "Width of the margin note column."
+                }
+              },
+              separation: {
+                string: {
+                  description: "Gap between margin column and body text."
+                }
+              }
+            }
+          }
         }
       ],
       "schema/document-about.yml": [
@@ -13488,7 +13535,8 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: "The contents of an acknowledgments footnote after the document title."
@@ -13648,13 +13696,14 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "highlight-style",
+          name: "syntax-highlighting",
           tags: {
             formats: [
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -13683,6 +13732,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     "github",
                     "gruvbox",
                     "haddock",
+                    "idiomatic",
                     "kate",
                     "monochrome",
                     "monokai",
@@ -13703,7 +13753,38 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Specifies the coloring style to be used in highlighted source code.",
-            long: "Specifies the coloring style to be used in highlighted source code.\n\nInstead of a *STYLE* name, a JSON file with extension\n` .theme` may be supplied.  This will be parsed as a KDE\nsyntax highlighting theme and (if valid) used as the\nhighlighting style.\n"
+            long: "Specifies the coloring style to be used in highlighted source code.\n\nValid values:\n\n- `none`: Disables syntax highlighting for code blocks.\n- `idiomatic`: Uses the format's native syntax highlighter\n  (e.g., Typst's built-in highlighting, LaTeX `listings` package,\n  or reveal.js highlight.js plugin).\n- A style name (e.g., `pygments`, `tango`, `github`): Uses\n  Pandoc's skylighting with the specified theme.\n- A path to a `.theme` file: Uses a custom KDE syntax\n  highlighting theme.\n\nFor adaptive light/dark themes, specify an object with `light`\nand `dark` properties pointing to theme files.\n"
+          }
+        },
+        {
+          name: "highlight-style",
+          hidden: true,
+          tags: {
+            formats: [
+              "$html-all",
+              "docx",
+              "ms",
+              "$pdf-all",
+              "typst"
+            ]
+          },
+          schema: {
+            anyOf: [
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "path",
+                    dark: "path"
+                  }
+                }
+              },
+              "string"
+            ]
+          },
+          description: {
+            short: "Deprecated: use `syntax-highlighting` instead.",
+            long: "Deprecated: use `syntax-highlighting` instead.\n\nSpecifies the coloring style to be used in highlighted source code.\n"
           }
         },
         {
@@ -13713,7 +13794,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: "path",
@@ -13727,7 +13809,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -13782,12 +13865,13 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "context",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
             short: "Sets the color of hyperlinks in the document.",
-            long: "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n"
+            long: "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n\nFor Typst output, sets the color of internal hyperlinks using Typst color syntax.\n"
           }
         },
         {
@@ -13821,12 +13905,13 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
-            short: "The color used for external links using color options allowed by `xcolor`",
-            long: "The color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
+            short: "The color used for external links.",
+            long: "For LaTeX output, the color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor Typst output, sets the color of external file links using Typst color syntax.\n"
           }
         },
         {
@@ -13834,12 +13919,13 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
-            short: "The color used for citation links using color options allowed by `xcolor`",
-            long: "The color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
+            short: "The color used for citation links.",
+            long: "For LaTeX output, the color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor Typst output, sets the color of citation links using Typst color syntax.\n"
           }
         },
         {
@@ -14406,6 +14492,26 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Visual editor configuration"
         },
         {
+          name: "editor_options",
+          schema: {
+            object: {
+              properties: {
+                chunk_output_type: {
+                  enum: [
+                    "inline",
+                    "console"
+                  ],
+                  description: "Determines where chunk output is shown in the editor."
+                }
+              }
+            }
+          },
+          description: {
+            short: "Editor-specific options (used by RStudio and Positron).",
+            long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure\nper-document editor settings.\n"
+          }
+        },
+        {
           name: "zotero",
           schema: {
             anyOf: [
@@ -14488,42 +14594,6 @@ var require_yaml_intelligence_resources = __commonJS({
             ref: "epub-contributor"
           },
           description: "Contributors to this publication."
-        },
-        {
-          name: "subject",
-          tags: {
-            formats: [
-              "$epub-all"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              {
-                object: {
-                  closed: true,
-                  properties: {
-                    text: {
-                      string: {
-                        description: "The subject text."
-                      }
-                    },
-                    authority: {
-                      string: {
-                        description: "An EPUB reserved authority value."
-                      }
-                    },
-                    term: {
-                      string: {
-                        description: "The subject term (defined by the schema)."
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          description: "The subject of the publication."
         },
         {
           name: "type",
@@ -15042,6 +15112,19 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "codefont",
+          schema: "string",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Sets the font used for code in Typst output.",
+            long: "For Typst output, sets the font used for displaying code. Takes\nthe name of any font available to Typst (system fonts or fonts in\ndirectories specified by `font-paths`).\n"
+          }
+        },
+        {
           name: "fontsize",
           schema: "string",
           tags: {
@@ -15119,12 +15202,13 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
-            short: "The math font family for use with `xelatex` or `lualatex`.",
-            long: "The math font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n"
+            short: "The math font family for use with `xelatex`, `lualatex`, or Typst.",
+            long: "For LaTeX output, the math font family for use with `xelatex` or\n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n\nFor Typst output, sets the font used for mathematical content.\n"
           }
         },
         {
@@ -15277,12 +15361,13 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "context",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
             short: "Sets the line height or spacing for text in the document.",
-            long: "For HTML output sets the CSS `line-height` property on the html \nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the \n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n"
+            long: "For HTML output sets the CSS `line-height` property on the html\nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the\n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n\nFor Typst output, adjusts the spacing between lines of text.\n"
           }
         },
         {
@@ -15363,7 +15448,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$markdown-all",
               "muse",
               "$html-files",
-              "pdf"
+              "pdf",
+              "typst"
             ]
           },
           schema: {
@@ -16346,6 +16432,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "grid",
+          tags: {
+            formats: [
+              "$html-doc",
+              "typst"
+            ]
+          },
           schema: {
             object: {
               closed: true,
@@ -16366,24 +16458,24 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 "margin-width": {
                   string: {
-                    description: "The base width of the margin (right) column in an HTML page."
+                    description: "The base width of the margin (right) column. For Typst, this controls the width of the margin note column."
                   }
                 },
                 "body-width": {
                   string: {
-                    description: "The base width of the body (center) column in an HTML page."
+                    description: "The base width of the body (center) column. For Typst, this is computed as the remainder after other columns."
                   }
                 },
                 "gutter-width": {
                   string: {
-                    description: "The width of the gutter that appears between columns in an HTML page."
+                    description: "The width of the gutter that appears between columns. For Typst, this is the gap between the text column and margin notes."
                   }
                 }
               }
             }
           },
           description: {
-            short: "Properties of the grid system used to layout Quarto HTML pages."
+            short: "Properties of the grid system used to layout Quarto HTML and Typst pages."
           }
         },
         {
@@ -16572,6 +16664,62 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Sets the bottom margin of the document.",
             long: "For HTML output, sets the `margin-bottom` property on the Body element.\n\nFor LaTeX output, sets the bottom margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the bottom margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the bottom page margin.\n"
+          }
+        },
+        {
+          name: "margin",
+          tags: {
+            formats: [
+              "revealjs",
+              "typst"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "number",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    x: {
+                      string: {
+                        description: "Horizontal margin (e.g. 1.5in)"
+                      }
+                    },
+                    y: {
+                      string: {
+                        description: "Vertical margin (e.g. 1.5in)"
+                      }
+                    },
+                    top: {
+                      string: {
+                        description: "Top margin (e.g. 1.5in)"
+                      }
+                    },
+                    bottom: {
+                      string: {
+                        description: "Bottom margin (e.g. 1.5in)"
+                      }
+                    },
+                    left: {
+                      string: {
+                        description: "Left margin (e.g. 1.5in)"
+                      }
+                    },
+                    right: {
+                      string: {
+                        description: "Right margin (e.g. 1.5in)"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          default: 0.1,
+          description: {
+            short: "Margin settings for Reveal.js or Typst output.",
+            long: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary specifying page margins. Use `x` and `y` for symmetric\nhorizontal/vertical margins, or `top`, `bottom`, `left`, `right` for\nindividual sides. Values should include units (e.g. `1.5in`, `2cm`).\n"
           }
         },
         {
@@ -17090,12 +17238,39 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "subject",
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    text: {
+                      string: {
+                        description: "The subject text."
+                      }
+                    },
+                    authority: {
+                      string: {
+                        description: "An EPUB reserved authority value."
+                      }
+                    },
+                    term: {
+                      string: {
+                        description: "The subject term (defined by the schema)."
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
           tags: {
             formats: [
               "$pdf-all",
               "$office-all",
-              "odt"
+              "odt",
+              "$epub-all"
             ]
           },
           description: "The document subject"
@@ -18037,6 +18212,51 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "When used in conjunction with `pdfa`, specifies the output intent for the colors.",
             long: "When used in conjunction with `pdfa`, specifies the output intent for\nthe colors, for example `ISO coated v2 300\\letterpercent\\space (ECI)`\n\nIf left unspecified, `sRGB IEC61966-2.1` is used as default.\n"
           }
+        },
+        {
+          name: "pdf-standard",
+          schema: {
+            maybeArrayOf: {
+              enum: [
+                "1.4",
+                "1.5",
+                "1.6",
+                "1.7",
+                "2.0",
+                "a-1b",
+                "a-2a",
+                "a-2b",
+                "a-2u",
+                "a-3a",
+                "a-3b",
+                "a-3u",
+                "a-4",
+                "a-4f",
+                "a-1a",
+                "a-4e",
+                "ua-1",
+                "ua-2",
+                "x-4",
+                "x-4p",
+                "x-5g",
+                "x-5n",
+                "x-5pg",
+                "x-6",
+                "x-6n",
+                "x-6p"
+              ]
+            }
+          },
+          tags: {
+            formats: [
+              "$pdf-all",
+              "typst"
+            ]
+          },
+          description: {
+            short: "PDF conformance standard (e.g., ua-2, a-2b,  1.7)",
+            long: "Specifies PDF conformance standards and/or version for the output.\n\nAccepts a single value or array of values:\n\n**PDF versions** (both Typst and LaTeX):\n`1.4`, `1.5`, `1.6`, `1.7`, `2.0`\n\n**PDF/A standards** (both engines):\n`a-1b`, `a-2a`, `a-2b`, `a-2u`, `a-3a`, `a-3b`, `a-3u`, `a-4`, `a-4f`\n\n**PDF/A standards** (Typst only):\n`a-1a`, `a-4e`\n\n**PDF/UA standards**:\n`ua-1` (Typst), `ua-2` (LaTeX)\n\n**PDF/X standards** (LaTeX only):\n`x-4`, `x-4p`, `x-5g`, `x-5n`, `x-5pg`, `x-6`, `x-6n`, `x-6p`\n\nExample: `pdf-standard: [a-2b, ua-2]` for accessible archival PDF.\n"
+          }
         }
       ],
       "schema/document-references.yml": [
@@ -18073,7 +18293,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           tags: {
             formats: [
-              "$html-doc"
+              "$html-doc",
+              "typst"
             ]
           },
           default: "document",
@@ -18656,59 +18877,6 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "The 'normal' height of the presentation",
             long: 'The "normal" height of the presentation, aspect ratio will\nbe preserved when the presentation is scaled to fit different\nresolutions. Can be specified using percentage units.\n'
           }
-        },
-        {
-          name: "margin",
-          tags: {
-            formats: [
-              "revealjs",
-              "typst"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "number",
-              {
-                object: {
-                  closed: true,
-                  properties: {
-                    x: {
-                      string: {
-                        description: "Horizontal margin (e.g. 5cm)"
-                      }
-                    },
-                    y: {
-                      string: {
-                        description: "Vertical margin (e.g. 5cm)"
-                      }
-                    },
-                    top: {
-                      string: {
-                        description: "Top margin (e.g. 5cm)"
-                      }
-                    },
-                    bottom: {
-                      string: {
-                        description: "Bottom margin (e.g. 5cm)"
-                      }
-                    },
-                    left: {
-                      string: {
-                        description: "Left margin (e.g. 5cm)"
-                      }
-                    },
-                    right: {
-                      string: {
-                        description: "Right margin (e.g. 5cm)"
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          default: 0.1,
-          description: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n"
         },
         {
           name: "min-scale",
@@ -20091,7 +20259,8 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: "Print a list of figures in the document."
@@ -20102,7 +20271,8 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: "Print a list of tables in the document."
@@ -20255,7 +20425,26 @@ var require_yaml_intelligence_resources = __commonJS({
                   arrayOf: "path"
                 },
                 filters: {
-                  arrayOf: "path"
+                  arrayOf: {
+                    anyOf: [
+                      "path",
+                      {
+                        object: {
+                          properties: {
+                            path: {
+                              schema: "path"
+                            },
+                            at: {
+                              ref: "filter-entry-point"
+                            }
+                          },
+                          required: [
+                            "path"
+                          ]
+                        }
+                      }
+                    ]
+                  }
                 },
                 formats: {
                   schema: "object"
@@ -20454,6 +20643,9 @@ var require_yaml_intelligence_resources = __commonJS({
           dashboard: {
             title: "Dashboard"
           },
+          typst: {
+            title: "Typst"
+          },
           options: {
             title: "Format Options"
           },
@@ -20541,6 +20733,9 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           comments: {
             title: "Comments"
+          },
+          a11y: {
+            title: "Accessibility"
           },
           includes: {
             title: "Includes"
@@ -21669,6 +21864,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -21835,6 +22031,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -22703,7 +22900,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alternative text for the logo, used for accessibility.",
         "Path or brand.yml logo resource name.",
         "Alternative text for the logo, used for accessibility.",
-        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
         "Specification of a light logo",
         "Specification of a dark logo",
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
@@ -22806,6 +23003,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
         "The path to a light brand file or an inline light brand\ndefinition.",
         "The path to a dark brand file or an inline dark brand definition.",
+        "Distance from page edge to wideblock boundary.",
+        "Width of the margin note column.",
+        "Gap between margin column and body text.",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -23081,7 +23281,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Specifies the coloring style to be used in highlighted source\ncode.",
-          long: "Specifies the coloring style to be used in highlighted source\ncode.\nInstead of a <em>STYLE</em> name, a JSON file with extension\n<code>.theme</code> may be supplied. This will be parsed as a KDE syntax\nhighlighting theme and (if valid) used as the highlighting style."
+          long: "Specifies the coloring style to be used in highlighted source\ncode.\nValid values:"
+        },
+        {
+          short: "Deprecated: use <code>syntax-highlighting</code> instead.",
+          long: "Deprecated: use <code>syntax-highlighting</code> instead.\nSpecifies the coloring style to be used in highlighted source\ncode."
         },
         "KDE language syntax definition file (XML)",
         "KDE language syntax definition files (XML)",
@@ -23093,17 +23297,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "Sets the CSS <code>color</code> property.",
         {
           short: "Sets the color of hyperlinks in the document.",
-          long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.'
+          long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.\nFor Typst output, sets the color of internal hyperlinks using Typst\ncolor syntax.'
         },
         "Sets the CSS <code>background-color</code> property on code elements\nand adds extra padding.",
         "Sets the CSS <code>background-color</code> property on the html\nelement.",
         {
-          short: "The color used for external links using color options allowed by\n<code>xcolor</code>",
-          long: 'The color used for external links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short: "The color used for external links.",
+          long: 'For LaTeX output, the color used for external links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of external file links using Typst\ncolor syntax.'
         },
         {
-          short: "The color used for citation links using color options allowed by\n<code>xcolor</code>",
-          long: 'The color used for citation links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short: "The color used for citation links.",
+          long: 'For LaTeX output, the color used for citation links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of citation links using Typst color\nsyntax.'
         },
         {
           short: "The color used for linked URLs using color options allowed by\n<code>xcolor</code>",
@@ -23197,6 +23401,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Write markdown links as references rather than inline.",
         "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
         "Automatically re-render for preview whenever document is saved (note\nthat this requires a preview for the saved document be already running).\nThis option currently works only within VS Code.",
+        {
+          short: "Editor-specific options (used by RStudio and Positron).",
+          long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
+        },
+        "Determines where chunk output is shown in the editor.",
         "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
         "The identifier for this publication.",
         "The identifier value.",
@@ -23295,6 +23504,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'For HTML output, sets the CSS font-family property on code\nelements.\nFor PowerPoint output, sets the font used for code.\nFor LaTeX output, the monospace font family for use with\n<code>xelatex</code> or <code>lualatex</code>: take the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the monspace font family. Use the name of any\nsystem font. See <a href="https://wiki.contextgarden.net/Fonts">ConTeXt\nFonts</a> for more information.'
         },
         {
+          short: "Sets the font used for code in Typst output.",
+          long: "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
+        },
+        {
           short: "Sets the main font size for the document.",
           long: "For HTML output, sets the base CSS <code>font-size</code>\nproperty.\nFor LaTeX and ConTeXt output, sets the font size for the document\nbody text."
         },
@@ -23315,8 +23528,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
         },
         {
-          short: "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
+          short: "The math font family for use with <code>xelatex</code>,\n<code>lualatex</code>, or Typst.",
+          long: 'For LaTeX output, the math font family for use with\n<code>xelatex</code> or <code>lualatex</code>. Takes the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor Typst output, sets the font used for mathematical content.'
         },
         {
           short: "The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -23354,7 +23567,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The line height, for example, <code>12p</code>.",
         {
           short: "Sets the line height or spacing for text in the document.",
-          long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.'
+          long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.\nFor Typst output, adjusts the spacing between lines of text.'
         },
         "Adjusts line spacing using the <code>\\setupinterlinespace</code>\ncommand.",
         "The typeface style for links in the document.",
@@ -23607,14 +23820,14 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
         },
         {
-          short: "Properties of the grid system used to layout Quarto HTML pages.",
+          short: "Properties of the grid system used to layout Quarto HTML and Typst\npages.",
           long: ""
         },
         "Defines whether to use the standard, slim, or full content grid or to\nautomatically select the most appropriate content grid.",
         "The base width of the sidebar (left) column in an HTML page.",
-        "The base width of the margin (right) column in an HTML page.",
-        "The base width of the body (center) column in an HTML page.",
-        "The width of the gutter that appears between columns in an HTML\npage.",
+        "The base width of the margin (right) column. For Typst, this controls\nthe width of the margin note column.",
+        "The base width of the body (center) column. For Typst, this is\ncomputed as the remainder after other columns.",
+        "The width of the gutter that appears between columns. For Typst, this\nis the gap between the text column and margin notes.",
         {
           short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
           long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
@@ -23656,6 +23869,16 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Sets the bottom margin of the document.",
           long: "For HTML output, sets the <code>margin-bottom</code> property on the\nBody element.\nFor LaTeX output, sets the bottom margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the bottom margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the bottom page margin."
         },
+        {
+          short: "Margin settings for Reveal.js or Typst output.",
+          long: "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary specifying page margins. Use\n<code>x</code> and <code>y</code> for symmetric horizontal/vertical\nmargins, or <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code> for individual sides. Values should include units\n(e.g.&nbsp;<code>1.5in</code>, <code>2cm</code>)."
+        },
+        "Horizontal margin (e.g.&nbsp;1.5in)",
+        "Vertical margin (e.g.&nbsp;1.5in)",
+        "Top margin (e.g.&nbsp;1.5in)",
+        "Bottom margin (e.g.&nbsp;1.5in)",
+        "Left margin (e.g.&nbsp;1.5in)",
+        "Right margin (e.g.&nbsp;1.5in)",
         {
           short: "Options for the geometry package.",
           long: 'Options for the <a href="https://ctan.org/pkg/geometry">geometry</a>\npackage. For example:'
@@ -23773,6 +23996,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
         },
         {
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
+        },
+        {
           short: "Sets the page numbering style and location for the document.",
           long: 'Sets the page numbering style and location for the document using the\n<code>\\setuppagenumbering</code> command.\nSee <a href="https://wiki.contextgarden.net/Command/setuppagenumbering">ConTeXt\nPage Numbering</a> for additional information.'
         },
@@ -23867,6 +24094,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors.",
           long: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors, for example\n<code>ISO coated v2 300\\letterpercent\\space (ECI)</code>\nIf left unspecified, <code>sRGB IEC61966-2.1</code> is used as\ndefault."
+        },
+        {
+          short: "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
+          long: "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
         },
         "Document bibliography (BibTeX or CSL). May be a single file or a list\nof files",
         "Citation Style Language file to use for formatting references.",
@@ -23981,13 +24212,6 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The \u2018normal\u2019 height of the presentation",
           long: "The \u201Cnormal\u201D height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
         },
-        "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary with the fields defined in the\nTypst documentation: <code>x</code>, <code>y</code>, <code>top</code>,\n<code>bottom</code>, <code>left</code>, <code>right</code> (margins are\nspecified in <code>cm</code> units, e.g.&nbsp;<code>5cm</code>).",
-        "Horizontal margin (e.g.&nbsp;5cm)",
-        "Vertical margin (e.g.&nbsp;5cm)",
-        "Top margin (e.g.&nbsp;5cm)",
-        "Bottom margin (e.g.&nbsp;5cm)",
-        "Left margin (e.g.&nbsp;5cm)",
-        "Right margin (e.g.&nbsp;5cm)",
         "Bounds for smallest possible scale to apply to content",
         "Bounds for largest possible scale to apply to content",
         "Vertical centering of slides",
@@ -24235,6 +24459,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -24552,6 +24777,21 @@ var require_yaml_intelligence_resources = __commonJS({
         "When defined, run axe-core accessibility tests on the document.",
         "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
         "The logo image.",
+        {
+          short: "Advanced geometry settings for Typst margin layout.",
+          long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+        },
+        "Inner (left) margin geometry.",
+        "Outer (right) margin geometry.",
+        "Minimum vertical spacing between margin notes (default: 8pt).",
+        {
+          short: "Visual style for theorem environments in Typst output.",
+          long: "Controls how theorems, lemmas, definitions, etc. are rendered:"
+        },
+        {
+          short: "Email format version",
+          long: "Specifies which email format version to use."
+        },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -24590,6 +24830,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -24903,11 +25144,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-        {
-          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
-          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
-        }
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -25132,16 +25369,17 @@ var require_yaml_intelligence_resources = __commonJS({
           "(*",
           "*)"
         ],
+        q: "/",
         rust: "//",
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 218561,
+        _internalId: 222775,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 218553,
+            _internalId: 222767,
             type: "enum",
             enum: [
               "png",
@@ -25157,7 +25395,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 218560,
+            _internalId: 222774,
             type: "anyOf",
             anyOf: [
               {
@@ -25240,6 +25478,79 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "The logo image."
+        },
+        {
+          name: "margin-geometry",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                inner: {
+                  ref: "marginalia-side-geometry",
+                  description: "Inner (left) margin geometry."
+                },
+                outer: {
+                  ref: "marginalia-side-geometry",
+                  description: "Outer (right) margin geometry."
+                },
+                clearance: {
+                  string: {
+                    description: "Minimum vertical spacing between margin notes (default: 8pt)."
+                  }
+                }
+              }
+            }
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Advanced geometry settings for Typst margin layout.",
+            long: "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
+          }
+        },
+        {
+          name: "theorem-appearance",
+          schema: {
+            enum: [
+              "simple",
+              "fancy",
+              "clouds",
+              "rainbow"
+            ]
+          },
+          default: "simple",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Visual style for theorem environments in Typst output.",
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+          }
+        }
+      ],
+      "schema/document-email.yml": [
+        {
+          name: "email-version",
+          tags: {
+            formats: [
+              "email"
+            ]
+          },
+          schema: {
+            enum: [
+              1,
+              2
+            ]
+          },
+          description: {
+            short: "Email format version",
+            long: "Specifies which email format version to use.\n\n- `1`: Legacy email format with document-level metadata (compatible with older Connect versions)\n- `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)\n"
+          }
         }
       ]
     };
@@ -25401,7 +25712,7 @@ function locationString(loc) {
 
 // ../text.ts
 function lines(text) {
-  return text.split(/\r?\n/);
+  return text.split(/\r\n?|\n/);
 }
 function* matchAll(text, regexp) {
   if (!regexp.global) {
@@ -25414,7 +25725,7 @@ function* matchAll(text, regexp) {
 }
 function* lineOffsets(text) {
   yield 0;
-  for (const match of matchAll(text, /\r?\n/g)) {
+  for (const match of matchAll(text, /\r\n?|\n/g)) {
     yield match.index + match[0].length;
   }
 }
@@ -25600,7 +25911,7 @@ function matchAll2(str2, regex) {
   return result;
 }
 function rangedLines(text, includeNewLines = false) {
-  const regex = /\r?\n/g;
+  const regex = /\r\n?|\n/g;
   const result = [];
   let startOffset = 0;
   if (!includeNewLines) {
@@ -34377,6 +34688,7 @@ var kLangCommentChars = {
   ojs: "//",
   apl: "\u235D",
   ocaml: ["(*", "*)"],
+  q: "/",
   rust: "//"
 };
 function escapeRegExp(str2) {
@@ -34472,7 +34784,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false, startCodeC
   };
   const yamlRegEx = /^---\s*$/;
   const startCodeCellRegEx = startCodeCellRegex || new RegExp(
-    "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
+    "^\\s*(```+)\\s*\\{([=A-Za-z][=A-Za-z0-9._]*)( *[ ,].*)?\\}\\s*$"
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*(```+)\s*$/;

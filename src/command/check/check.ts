@@ -22,7 +22,7 @@ import { pandocBinaryPath } from "../../core/resources.ts";
 import { lines } from "../../core/text.ts";
 import { satisfies } from "semver/mod.ts";
 import { dartCommand } from "../../core/dart-sass.ts";
-import { allTools } from "../../tools/tools.ts";
+import { allTools, installableTool } from "../../tools/tools.ts";
 import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
 import { dirname } from "../../deno_ral/path.ts";
@@ -31,7 +31,7 @@ import { typstBinaryPath } from "../../core/typst.ts";
 import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
-import { findChrome } from "../../core/puppeteer.ts";
+import { detectBrowser } from "../../core/puppeteer.ts";
 import { executionEngines } from "../../execute/engine.ts";
 
 export function getTargets(): readonly string[] {
@@ -436,35 +436,28 @@ async function checkInstall(conf: CheckConfiguration) {
     conf.jsonResult.chrome = chromeJson;
   }
   const chromeCb = async () => {
-    const chromeDetected = await findChrome();
-    const chromiumQuarto = tools.installed.find((tool) =>
-      tool.name === "chromium"
-    );
-    if (chromeDetected.path !== undefined) {
-      chromeHeadlessOutput.push(`${kIndent}Using: Chrome found on system`);
-      chromeHeadlessOutput.push(
-        `${kIndent}Path: ${chromeDetected.path}`,
-      );
-      if (chromeDetected.source) {
-        chromeHeadlessOutput.push(`${kIndent}Source: ${chromeDetected.source}`);
+    const check = await detectChromeForCheck();
+
+    if (check.warning) {
+      chromeHeadlessOutput.push(`${kIndent}NOTE: ${check.warning}`);
+      chromeJson["warning"] = check.warning;
+    }
+
+    if (check.detected) {
+      const { label, path, source, displaySource, version } = check.detected;
+      chromeHeadlessOutput.push(`${kIndent}Using: ${label}`);
+      if (path) {
+        chromeHeadlessOutput.push(`${kIndent}Path: ${path}`);
+        chromeJson["path"] = path;
       }
-      chromeJson["path"] = chromeDetected.path;
-      chromeJson["source"] = chromeDetected.source;
-    } else if (chromiumQuarto !== undefined) {
-      chromeJson["source"] = "quarto";
-      chromeHeadlessOutput.push(
-        `${kIndent}Using: Chromium installed by Quarto`,
-      );
-      if (chromiumQuarto?.binDir) {
-        chromeHeadlessOutput.push(
-          `${kIndent}Path: ${chromiumQuarto?.binDir}`,
-        );
-        chromeJson["path"] = chromiumQuarto?.binDir;
+      chromeJson["source"] = source;
+      if (displaySource) {
+        chromeHeadlessOutput.push(`${kIndent}Source: ${displaySource}`);
       }
-      chromeHeadlessOutput.push(
-        `${kIndent}Version: ${chromiumQuarto.installedVersion}`,
-      );
-      chromeJson["version"] = chromiumQuarto.installedVersion;
+      if (version) {
+        chromeHeadlessOutput.push(`${kIndent}Version: ${version}`);
+        chromeJson["version"] = version;
+      }
     } else {
       chromeHeadlessOutput.push(`${kIndent}Chrome:  (not detected)`);
       chromeJson["installed"] = false;
@@ -523,4 +516,48 @@ title: "Title"
       doneMessage: kMessage + "OK\n",
     }, markdownRenderCb);
   }
+}
+
+interface ChromeDetectionResult {
+  label: string;
+  path?: string;
+  source: string;
+  version?: string;
+  displaySource?: string;
+}
+
+interface ChromeCheckInfo {
+  warning?: string;
+  detected?: ChromeDetectionResult;
+}
+
+async function detectChromeForCheck(): Promise<ChromeCheckInfo> {
+  const detection = await detectBrowser();
+
+  if (detection.detected) {
+    return { detected: detection.detected };
+  }
+
+  const result: ChromeCheckInfo = {};
+  if (detection.warning) {
+    result.warning = detection.warning;
+  }
+
+  // Legacy: chromium installed by Quarto
+  const chromiumTool = installableTool("chromium");
+  if (chromiumTool && await chromiumTool.installed()) {
+    let path: string | undefined;
+    if (chromiumTool.binDir) {
+      path = await chromiumTool.binDir();
+    }
+    const version = await chromiumTool.installedVersion();
+    result.detected = {
+      label: "Chromium installed by Quarto",
+      path,
+      source: "quarto",
+      version,
+    };
+  }
+
+  return result;
 }

@@ -1,12 +1,16 @@
 ---
 title: "Untitled"
-format: latex
+format:
+  pdf:
+    keep-tex: true
 execute:
   warning: false
 _quarto:
   tests:
-    latex:
-      ensureSnapshotMatches: true
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\\begin\{minipage\}\[t\]\{0\.50\\linewidth\}']
+        - []
 ---
 
 ```{r}

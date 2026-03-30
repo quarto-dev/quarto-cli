@@ -1,0 +1,22 @@
+---
+format: html
+key: |
+  Something with a line break
+
+  I want to preserve.
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - "Something with a line break"
+          - "I want to preserve"
+        -
+          - "line break I want"
+---
+
+``` yaml
+{{< meta key >}}
+```
+
+{{< meta key >}}

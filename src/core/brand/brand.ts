@@ -32,6 +32,7 @@ import { InternalError } from "../lib/error.ts";
 import { dirname, join, relative, resolve } from "../../deno_ral/path.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
+import { isExternalPath } from "../url.ts";
 import {
   LogoLightDarkSpecifierPathOptional,
   LogoOptionsPathOptional,
@@ -272,10 +273,6 @@ export class Brand {
   }
 }
 
-function isExternalPath(path: string) {
-  return /^\w+:/.test(path);
-}
-
 export type LightDarkBrand = {
   light?: Brand;
   dark?: Brand;
@@ -343,6 +340,9 @@ export function resolveLogo(
     }
     return logo;
   };
+  if (spec === false) {
+    return undefined;
+  }
   if (!spec) {
     const lightLogo = findLogo("light", order);
     const darkLogo = findLogo("dark", order);
@@ -425,6 +425,45 @@ export function logoAddLeadingSlashes(
   };
 }
 
+// Return a copy of the brand with logo paths converted from project-relative
+// to project-absolute (leading /). Typst resolves these via --root, which
+// points to the project directory. Call this before resolveLogo so that
+// brand-sourced paths get the / prefix while document-sourced paths are
+// left untouched.
+export function brandWithAbsoluteLogoPaths(
+  brand: LightDarkBrand | undefined,
+): LightDarkBrand | undefined {
+  if (!brand) {
+    return brand;
+  }
+  const transformBrand = (b: Brand | undefined): Brand | undefined => {
+    if (!b) return b;
+    const oldLogo = b.processedData.logo;
+    const logo: ProcessedBrandData["logo"] = { images: {} };
+    for (const size of Zod.BrandNamedLogo.options) {
+      if (oldLogo[size]) {
+        logo[size] = {
+          ...oldLogo[size],
+          path: ensureLeadingSlashIfNotExternal(oldLogo[size]!.path),
+        };
+      }
+    }
+    for (const [key, value] of Object.entries(oldLogo.images)) {
+      logo.images[key] = {
+        ...value,
+        path: ensureLeadingSlashIfNotExternal(value.path),
+      };
+    }
+    const copy = Object.create(b) as Brand;
+    copy.processedData = { ...b.processedData, logo };
+    return copy;
+  };
+  return {
+    light: transformBrand(brand.light),
+    dark: transformBrand(brand.dark),
+  };
+}
+
 // this a typst workaround but might as well write it as a proper function
 export function fillLogoPaths(
   brand: LightDarkBrand | undefined,
@@ -466,7 +505,10 @@ export function fillLogoPaths(
     }
     return undefined;
   }
-  if (!spec || typeof spec === "string") {
+  if (!spec) {
+    return undefined;
+  }
+  if (typeof spec === "string") {
     return spec;
   }
   if ("light" in spec || "dark" in spec) {

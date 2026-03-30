@@ -1,0 +1,30 @@
+---
+title: "Shift Ignore Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['shift: "ignore"']
+        - []
+      ensurePdfTextPositions:
+        - # All notes in margin, right of body text
+          - subject: "IGNORE1"
+            relation: rightOf
+            object: "Line with ignore"
+          - subject: "AUTO1"
+            relation: rightOf
+            object: "Line with auto"
+        - []
+      noErrors: default
+---
+
+This tests `shift: "ignore"` - notes stay fixed and CAN overlap (others don't avoid them).
+
+Line with ignore note [IGNORE1: I stay put and others don't try to avoid me]{.column-margin shift="ignore"}.
+Line with auto note [AUTO1: I don't see the ignore note, may overlap]{.column-margin}.
+Line with another ignore [IGNORE2: We might overlap each other]{.column-margin shift="ignore"}.

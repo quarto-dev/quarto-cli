@@ -6,7 +6,7 @@
 import { join } from "../deno_ral/path.ts";
 
 import { kDefaultHighlightStyle } from "../command/render/constants.ts";
-import { kHighlightStyle } from "../config/constants.ts";
+import { kHighlightStyle, kSyntaxHighlighting } from "../config/constants.ts";
 import { FormatPandoc } from "../config/types.ts";
 
 import { existsSync } from "../deno_ral/fs.ts";
@@ -21,6 +21,15 @@ export interface ThemeDescriptor {
 
 const kDarkSuffix = "dark";
 const kLightSuffix = "light";
+
+// Resolve highlight theme from syntax-highlighting (new) or highlight-style (deprecated)
+export function getHighlightTheme(
+  pandoc: FormatPandoc,
+): string | Record<string, string> {
+  return pandoc[kSyntaxHighlighting] ||
+    pandoc[kHighlightStyle] ||
+    kDefaultHighlightStyle;
+}
 
 export function textHighlightThemePath(
   inputDir: string,
@@ -69,30 +78,23 @@ export function readHighlightingTheme(
   pandoc: FormatPandoc,
   style: "dark" | "light" | "default",
 ): ThemeDescriptor | undefined {
-  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
-  if (theme) {
-    const themeRaw = readTheme(inputDir, theme, style);
-    if (themeRaw) {
-      return {
-        json: JSON.parse(themeRaw),
-        isAdaptive: isAdaptiveTheme(theme),
-      };
-    } else {
-      return undefined;
-    }
-  } else {
-    return undefined;
+  const theme = getHighlightTheme(pandoc);
+  const themeRaw = readTheme(inputDir, theme, style);
+  if (themeRaw) {
+    return {
+      json: JSON.parse(themeRaw),
+      isAdaptive: isAdaptiveTheme(theme),
+    };
   }
+  return undefined;
 }
 
 export function hasAdaptiveTheme(pandoc: FormatPandoc) {
-  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
-  return theme && isAdaptiveTheme(theme);
+  return isAdaptiveTheme(getHighlightTheme(pandoc));
 }
 
 export function hasTextHighlighting(pandoc: FormatPandoc): boolean {
-  const theme = pandoc[kHighlightStyle];
-  return theme !== null;
+  return getHighlightTheme(pandoc) !== "none";
 }
 
 export function isAdaptiveTheme(theme: string | Record<string, string>) {

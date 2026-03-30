@@ -1,0 +1,38 @@
+---
+title: "Legal Paper Size Test"
+papersize: us-legal
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Should have marginalia setup with legal geometry
+        - ['marginalia.setup', 'paper: "us-legal"']
+        - []
+      ensurePdfRegexMatches:
+        - ['LEGAL-PAPER-TEST', 'MARGIN-LEGAL']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "MARGIN-LEGAL"
+            relation: rightOf
+            object: "LEGAL-PAPER-TEST"
+        - []
+      noErrors: default
+---
+
+## Testing Legal Paper Size
+
+LEGAL-PAPER-TEST: This tests margin layout on US Legal paper (8.5" × 14"), which is the same width as Letter but taller.
+
+[MARGIN-LEGAL: This note should appear in the margin with geometry computed for Legal dimensions.]{.column-margin}
+
+Legal paper has the same width as Letter (8.5"), so the margin column widths should be identical. However, the taller page (14" vs 11") provides more vertical space.
+
+More text to demonstrate the layout on Legal paper. Since the width matches Letter, the horizontal layout should be identical.
+
+[Another margin note on Legal paper.]{.column-margin}
+
+Additional content in the main column to show the layout.

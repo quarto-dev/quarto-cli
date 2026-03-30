@@ -1249,6 +1249,7 @@ const kLangCommentChars: Record<string, string | string[]> = {
   mermaid: "%%",
   apl: "⍝",
   ocaml: ["(*", "*)"],
+  q: "/",
   rust: "//",
 };
 

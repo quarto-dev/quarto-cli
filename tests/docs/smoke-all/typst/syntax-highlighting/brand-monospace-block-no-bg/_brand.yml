@@ -1,0 +1,10 @@
+color:
+  palette:
+    code-fg: "#2d3748"
+
+typography:
+  monospace-block:
+    color: code-fg
+    weight: 500
+    size: 10pt
+    line-height: 1.5

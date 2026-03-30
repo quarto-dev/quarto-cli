@@ -1,0 +1,72 @@
+---
+title: "Column Widths Right Test"
+papersize: us-letter
+format:
+  html:
+    include-in-header:
+      text: |
+        <style>body { text-align: justify; }</style>
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#column-body-outset\(side: "outer"', '#column-page-inset\(side: "outer"']
+        - []
+      ensurePdfRegexMatches:
+        - ['BODY-R', 'OUTSET-R', 'PINSET-R', 'PAGE-R']
+        - []
+      ensurePdfTextPositions:
+        # Test width progression (right edge moves rightward): body < body-outset < page-inset < page
+        # Using rightOf with edge overrides to compare right edges
+        - - subject: {text: "OUTSET-R", edge: "right"}
+            relation: rightOf
+            object: {text: "BODY-R", edge: "right"}
+            byMin: 1
+          - subject: {text: "PINSET-R", edge: "right"}
+            relation: rightOf
+            object: {text: "OUTSET-R", edge: "right"}
+            byMin: 1
+          - subject: {text: "PAGE-R", edge: "right"}
+            relation: rightOf
+            object: {text: "PINSET-R", edge: "right"}
+            byMin: 1
+          # Left edges should stay aligned with body (within tolerance)
+          - subject: "OUTSET-R"
+            relation: leftAligned
+            object: "BODY-R"
+            tolerance: 5
+          - subject: "PINSET-R"
+            relation: leftAligned
+            object: "BODY-R"
+            tolerance: 5
+          - subject: "PAGE-R"
+            relation: leftAligned
+            object: "BODY-R"
+            tolerance: 5
+        - []
+      noErrors: default
+---
+
+## Column Widths Right Test
+
+Tests the width progression of right-extending column classes: body < body-outset-right < page-inset-right < page-right.
+
+::: {.column-body}
+BODY-R: Standard body column width. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+:::
+
+::: {.column-body-outset-right}
+OUTSET-R: Body outset right extends slightly into the right margin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+:::
+
+::: {.column-page-inset-right}
+PINSET-R: Page inset right extends further into the right margin than body-outset. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+:::
+
+::: {.column-page-right}
+PAGE-R: Full page right extends to the right page edge. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+:::
+
+Regular text for comparison.

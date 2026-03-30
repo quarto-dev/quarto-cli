@@ -133,7 +133,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
 
   // note no document-level customization of brand logo #11309
   const projectBrand = await project.resolveBrand();
-  if (navbar) {
+  if (navbar && navbar.logo !== false) {
     let navLogo = navbar.logo;
     if (navbar[kLogoAlt]) {
       if (typeof navLogo === "string") {
@@ -172,8 +172,8 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     }
 
     let sideLogo = sidebars[0].logo;
-    if (sideLogo) {
-      if (sidebars[0][kLogoAlt]) {
+    if (sideLogo !== false) { // don't do anything logo processing when sidebar logo is opt-out
+      if (sideLogo && sidebars[0][kLogoAlt]) {
         const alt = sidebars[0][kLogoAlt];
         if (typeof sideLogo === "string") {
           sideLogo = { path: sideLogo, alt };
@@ -198,14 +198,14 @@ export async function websiteNavigationConfig(project: ProjectContext) {
         //   };
         // }
       }
+      let logo = resolveLogo(projectBrand, sideLogo, [
+        "medium",
+        "small",
+        "large",
+      ]);
+      logo = logoAddLeadingSlashes(logo, projectBrand, undefined);
+      sidebars[0].logo = logo;
     }
-    let logo = resolveLogo(projectBrand, sideLogo, [
-      "medium",
-      "small",
-      "large",
-    ]);
-    logo = logoAddLeadingSlashes(logo, projectBrand, undefined);
-    sidebars[0].logo = logo;
 
     // convert contents: auto into items
     for (const sb of sidebars) {

@@ -1,0 +1,26 @@
+---
+title: Email Test Document with Divs outside the Email
+author: Jules Walzer-Goldfeld
+format: email
+---
+
+The report content. Anything that is here is not part of the email message.
+
+::: {.email}
+
+The HTML email content. Here you can add code cells, produce images, and write accompanying text.
+This content is not seen when viewing the rendered document on Connect (it's only
+seen when sending an email from the Connect document page). Emails from Connect
+can be sent manually, and they can also be scheduled.
+
+:::
+
+::: {.email-text}
+An optional text-only version of the email message.
+:::
+
+::: {.subject}
+The subject line, after the email div.
+:::
+
+Any additional report content not part of the email message.

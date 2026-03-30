@@ -321,13 +321,13 @@ local function string_to_hex(str)
 end
 
 local md_shortcode_2_uuid         = "b58fc729-690b-4000-b19f-365a4093b2ff"
-local md_shortcode_2_uuid_pattern = "b58fc729%-690b%-4000%-b19f%-365a4093b2ff%-"
+local md_shortcode_2_uuid_pattern = "b58fc729%-690b%-4000%-b19f%-365a4093b2ff;"
 local function md_escaped_shortcode_2_fun(s)
   return table.concat({
     md_shortcode_2_uuid,
-    "-",
+    ";",
     string_to_hex("{{{<" .. s .. ">}}}"),
-    "-"
+    ";"
   })
 end
 
@@ -340,9 +340,9 @@ local function md_shortcode_2_fun(open, space, lst, close)
   raw = raw .. close
   return table.concat({
     md_shortcode_2_uuid,
-    "-",
+    ";",
     string_to_hex(raw),
-    "-"
+    ";"
   });
 end
 

@@ -12,19 +12,33 @@ import { kCellRawMimeType } from "../../config/constants.ts";
 import { mdFormatOutput, mdRawOutput } from "./jupyter.ts";
 import { lines, trimEmptyLines } from "../lib/text.ts";
 import { asYamlText } from "./jupyter-fixups.ts";
+import { kLangCommentChars } from "../lib/partition-cell-options.ts";
 
 export const kJupyterPercentScriptExtensions = [
   ".py",
   ".jl",
   ".r",
+  ".q",
 ];
+
+export const kLanguageExtensions: Record<string, string> = {
+  ".jl": "julia",
+  ".r": "r",
+  ".py": "python",
+  ".q": "q",
+};
+
 
 export function isJupyterPercentScript(file: string, extensions?: string[]) {
   const ext = extname(file).toLowerCase();
   const availableExtensions = extensions ?? kJupyterPercentScriptExtensions;
   if (availableExtensions.includes(ext)) {
     const text = Deno.readTextFileSync(file);
-    return !!text.match(/^\s*#\s*%%+\s+\[markdown|raw\]/);
+    const cms = kLangCommentChars[kLanguageExtensions[ext]];
+    // Use multiline mode (m) so ^ matches start of any line, not just start of file.
+    // Group the alternation properly: (markdown|raw) not markdown|raw
+    const pat = new RegExp(`^\\s*${cms}\\s*%%+\\s+\\[(markdown|raw)\\]`, "m");
+    return !!text.match(pat);
   } else {
     return false;
   }
@@ -33,13 +47,17 @@ export function isJupyterPercentScript(file: string, extensions?: string[]) {
 export function markdownFromJupyterPercentScript(file: string) {
   // determine language/kernel
   const ext = extname(file).toLowerCase();
-  const language = ext === ".jl" ? "julia" : ext === ".r" ? "r" : "python";
+  const language = kLanguageExtensions[ext];
+  const cms =  kLangCommentChars[language];
+  if (!language) {
+    throw new Error(`Could not determine language from file extension ${ext}`);
+  }
 
   // break into cells
   const cells: PercentCell[] = [];
   const activeCell = () => cells[cells.length - 1];
   for (const line of lines(Deno.readTextFileSync(file).trim())) {
-    const header = percentCellHeader(line);
+    const header = percentCellHeader(line, language);
     if (header) {
       cells.push({ header, lines: [] });
     } else {
@@ -50,7 +68,7 @@ export function markdownFromJupyterPercentScript(file: string) {
   // resolve markdown and raw cells
   const isTripleQuote = (line: string) => !!line.match(/^"{3,}\s*$/);
   const asCell = (lines: string[]) => lines.join("\n") + "\n\n";
-  const stripPrefix = (line: string) => line.replace(/^#\s?/, "");
+  const stripPrefix = (line: string) => line.replace(new RegExp(`^${cms}\\s?`), "");
   const cellContent = (cellLines: string[]) => {
     if (
       cellLines.length > 2 && isTripleQuote(cellLines[0]) &&
@@ -68,7 +86,7 @@ export function markdownFromJupyterPercentScript(file: string) {
     if (cell.header.type === "code") {
       if (cell.header.metadata) {
         const yamlText = asYamlText(cell.header.metadata);
-        cellLines.unshift(...lines(yamlText).map((line) => `#| ${line}`));
+        cellLines.unshift(...lines(yamlText).map((line) => `${cms}| ${line}`));
       }
       markdown += asCell(["```{" + language + "}", ...cellLines, "```"]);
     } else if (cell.header.type === "markdown") {
@@ -99,9 +117,10 @@ interface PercentCellHeader {
   metadata?: Metadata;
 }
 
-function percentCellHeader(line: string): PercentCellHeader | undefined {
+function percentCellHeader(line: string, language: string): PercentCellHeader | undefined {
+  const cms = kLangCommentChars[language];
   const match = line.match(
-    /^\s*#\s*%%+\s*(?:\[(markdown|raw)\])?\s*(.*)?$/,
+    new RegExp(`^\\s*${cms}\\s*%%+\\s*(?:\\[(markdown|raw)\\])?\\s*(.*)?$`),
   );
   if (match) {
     const type = match[1] || "code";

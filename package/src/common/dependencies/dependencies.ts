@@ -15,6 +15,7 @@ import { esBuild } from "./esbuild.ts";
 import { pandoc } from "./pandoc.ts";
 import { archiveUrl } from "../archive-binary-dependencies.ts";
 import { typst } from "./typst.ts";
+import { verapdf } from "./verapdf.ts";
 
 // The list of binary dependencies for Quarto
 export const kDependencies = [
@@ -22,7 +23,8 @@ export const kDependencies = [
   pandoc(version("PANDOC")),
   dartSass(version("DARTSASS")),
   esBuild(version("ESBUILD")),
-  typst(version("TYPST"))
+  typst(version("TYPST")),
+  verapdf(version("VERAPDF")),
 ];
 
 // Defines a binary dependency for Quarto
@@ -30,6 +32,9 @@ export interface Dependency {
   name: string;
   bucket: string;
   version: string;
+  // If true, this dependency is only archived to S3 but not downloaded during configure.
+  // Use for optional dependencies installed separately via `quarto install`.
+  archiveOnly?: boolean;
   architectureDependencies: Record<
     string,
     ArchitectureDependency
@@ -66,8 +71,14 @@ export async function configureDependency(
   targetDir: string,
   config: PlatformConfiguration,
 ) {
+  // Skip archive-only dependencies (installed separately via `quarto install`)
+  if (dependency.archiveOnly) {
+    info(`Skipping ${dependency.name} (archive-only)`);
+    return;
+  }
+
   info(`Preparing ${dependency.name} (${config.os} - ${config.arch})`);
-  let archDep = dependency.architectureDependencies[config.arch];
+  const archDep = dependency.architectureDependencies[config.arch];
 
   if (archDep) {
     const platformDep = archDep[config.os];
