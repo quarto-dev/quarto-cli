@@ -1,32 +1,9 @@
 /**
- * MIT License
- *
- * Copyright (c) 2025 Mickaël Canouil
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
-/**
- * Author: Mickaël Canouil
- * Version: 1.0.0
- * License: MIT
- * Source: https://github.com/mcanouil/quarto-revealjs-tabset
+ * @module RevealJsTabset
+ * @version 1.2.0
+ * @license MIT
+ * @copyright 2026 Mickaël Canouil
+ * @author Mickaël Canouil
  */
 
 window.RevealJsTabset = function () {
@@ -52,7 +29,9 @@ window.RevealJsTabset = function () {
        * fragment triggers for tab navigation.
        */
       deck.on("ready", function () {
-        const tabsetSlides = document.querySelectorAll(".reveal .slides section .panel-tabset");
+        const tabsetSlides = document.querySelectorAll(
+          ".reveal .slides section .panel-tabset",
+        );
 
         tabsetSlides.forEach(function (tabset) {
           const tabs = tabset.querySelectorAll(TAB_SELECTOR);
@@ -81,6 +60,7 @@ window.RevealJsTabset = function () {
               fragmentDiv.dataset.tabIndex = i + 1;
               fragmentDiv.setAttribute("data-fragment-index", currentIndex);
               fragmentDiv.style.display = "none";
+              fragmentDiv.setAttribute("aria-hidden", "true");
               parentNode.appendChild(fragmentDiv);
               currentIndex++;
             }
@@ -96,6 +76,7 @@ window.RevealJsTabset = function () {
         if (!event.fragment.classList.contains("panel-tabset-fragment")) return;
 
         const tabIndex = parseInt(event.fragment.dataset.tabIndex, 10);
+        if (isNaN(tabIndex)) return;
         const tabset = deck.getCurrentSlide().querySelector(".panel-tabset");
         if (!tabset) return;
 
@@ -113,6 +94,7 @@ window.RevealJsTabset = function () {
         if (!event.fragment.classList.contains("panel-tabset-fragment")) return;
 
         const tabIndex = parseInt(event.fragment.dataset.tabIndex, 10);
+        if (isNaN(tabIndex)) return;
         const tabset = deck.getCurrentSlide().querySelector(".panel-tabset");
         if (!tabset) return;
 
@@ -141,7 +123,7 @@ window.RevealJsTabset = function () {
           fragments.forEach(function (fragment) {
             if (fragment.classList.contains("visible")) {
               const tabIndex = parseInt(fragment.dataset.tabIndex, 10);
-              if (tabIndex > activeTabIndex) {
+              if (!isNaN(tabIndex) && tabIndex > activeTabIndex) {
                 activeTabIndex = tabIndex;
               }
             }
@@ -167,6 +149,11 @@ window.RevealJsTabset = function () {
 
             panel.classList.toggle("active", isActive);
             panel.style.display = isActive ? "block" : "none";
+            if (isActive) {
+              panel.removeAttribute("hidden");
+            } else {
+              panel.setAttribute("hidden", "");
+            }
           });
         });
       });
