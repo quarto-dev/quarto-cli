@@ -89,7 +89,7 @@ For tests without Jupyter execution (T9, T10, T11), verify no `.quarto_ipynb` fi
 
 #### T10b: File excluded from project inputs (regression)
 
-- **Setup:** Website project with `_quarto.yml`. Create `excluded.qmd` with a Python cell that is NOT listed in the project's input files (e.g., starts with `_`)
+- **Setup:** Website project with `_quarto.yml`. Create `_excluded.qmd` with a Python cell (files starting with `_` are excluded from project inputs by default)
 - **Steps:** `quarto preview _excluded.qmd`, save 3 times, check files, Ctrl+C
 - **Expected:** Falls back to single-file preview (not project preview). At most one `.quarto_ipynb`.
 - **Catches:** Context reuse from cmd.ts incorrectly applying project semantics to excluded files
