@@ -427,9 +427,10 @@ export async function renderForPreview(
   // Invalidate file cache for the file being rendered so changes are picked up.
   // The project context persists across re-renders in preview mode, but the
   // fileInformationCache contains file content that needs to be refreshed.
-  // TODO(#13955): Consider adding a dedicated invalidateForFile() method on ProjectContext
+  // Uses invalidateForFile() to also clean up transient notebook files
+  // (.quarto_ipynb) from disk before removing the cache entry (#14281).
   if (project?.fileInformationCache) {
-    project.fileInformationCache.delete(file);
+    project.fileInformationCache.invalidateForFile(file);
   }
 
   // render
