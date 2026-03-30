@@ -43,10 +43,16 @@ Filter log entries with `grep` or `jq` for structured output.
 ### In background
 
 ```bash
+# Linux/macOS
 ./package/dist/bin/quarto preview <file> --no-browser --port 4444 &
 PREVIEW_PID=$!
 # ... run verification ...
 kill $PREVIEW_PID
+
+# Windows (PowerShell)
+$proc = Start-Process -PassThru -NoNewWindow ./package/dist/bin/quarto.cmd preview, <file>, --no-browser, --port, 4444
+# ... run verification ...
+Stop-Process $proc
 ```
 
 ## Edit-Verify Cycle

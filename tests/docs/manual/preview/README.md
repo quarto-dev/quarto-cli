@@ -10,9 +10,11 @@ For browser interaction, `/agent-browser` is preferred over Chrome DevTools MCP 
 
 ## Test Matrix: quarto_ipynb Accumulation (#14281)
 
-After every test, verify:
-1. `ls *.quarto_ipynb*` — only one `{name}.quarto_ipynb` should exist (no `_1`, `_2` variants)
-2. After Ctrl+C exit — no `.quarto_ipynb` files remain
+After every test involving Jupyter execution (Python/Julia cells), verify:
+1. `ls *.quarto_ipynb*` — at most one `{name}.quarto_ipynb` (no `_1`, `_2` variants)
+2. After Ctrl+C exit — no `.quarto_ipynb` files remain (unless `keep-ipynb: true`)
+
+For tests without Jupyter execution (T9, T10, T11), verify no `.quarto_ipynb` files are created at all.
 
 ### P1: Critical
 
@@ -84,6 +86,13 @@ After every test, verify:
 - **Setup:** `r-test.qmd` with R code cell and `engine: knitr`
 - **Steps:** Preview, save 3 times, check for `.quarto_ipynb` files
 - **Expected:** No `.quarto_ipynb` files. Knitr doesn't use Jupyter intermediate.
+
+#### T10b: File excluded from project inputs (regression)
+
+- **Setup:** Website project with `_quarto.yml`. Create `excluded.qmd` with a Python cell that is NOT listed in the project's input files (e.g., starts with `_`)
+- **Steps:** `quarto preview _excluded.qmd`, save 3 times, check files, Ctrl+C
+- **Expected:** Falls back to single-file preview (not project preview). At most one `.quarto_ipynb`.
+- **Catches:** Context reuse from cmd.ts incorrectly applying project semantics to excluded files
 
 ### P3: Nice-to-Have
 
