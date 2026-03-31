@@ -220,7 +220,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
         id: setup-julia
         with:
-          version: "1.11.7"
+          version: "1.12.5"
 
       - name: Load Julia packages from cache
         uses: julia-actions/cache@v2
