@@ -1,3 +1,16 @@
+---
+main_commit: 94ebb7f79
+analyzed_date: 2026-03-31
+key_files:
+  - src/command/preview/cmd.ts
+  - src/command/preview/preview.ts
+  - src/project/serve/serve.ts
+  - src/project/serve/watch.ts
+  - src/project/project-shared.ts
+  - src/execute/jupyter/jupyter.ts
+  - src/execute/engine.ts
+---
+
 # Preview Architecture
 
 How `quarto preview` works, from CLI entry through rendering and file watching.
@@ -113,7 +126,7 @@ Without step 1, the Jupyter engine's `target()` function sees the old file on di
 
 ### cleanupFileInformationCache()
 
-Called at project cleanup (preview exit). Iterates ALL cache entries and removes transient files. This is the final cleanup — `invalidateForFile()` handles per-render cleanup.
+Called at project cleanup (preview exit). Delegates to `invalidateForFile()` for each cache entry, removing all transient files and clearing the cache. This is the final cleanup — `invalidateForFile()` handles per-render cleanup for individual files.
 
 ## Transient Notebook Lifecycle (.quarto_ipynb)
 
