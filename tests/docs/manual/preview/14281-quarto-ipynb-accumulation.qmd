@@ -36,4 +36,4 @@ with file-save events that cannot be triggered in automated smoke tests.
 
 Edit the line below to trigger re-renders:
 
-Current value: 8
+Current value: 11
