@@ -207,3 +207,42 @@ unitTest(
     );
   },
 );
+
+// deno-lint-ignore require-await
+unitTest(
+  "fileInformationCache - invalidateForFile handles entry with no target",
+  async () => {
+    const project = createMockProjectContext();
+    const sourcePath = join(project.dir, "doc.qmd");
+
+    // Populate cache entry with metadata only (no target)
+    const entry = ensureFileInformationCache(project, sourcePath);
+    entry.metadata = { title: "Test" };
+
+    // Should not throw
+    project.fileInformationCache.invalidateForFile(sourcePath);
+
+    assert(
+      !project.fileInformationCache.has(sourcePath),
+      "Cache entry should be removed even without a target",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "fileInformationCache - invalidateForFile is a no-op for missing keys",
+  async () => {
+    const project = createMockProjectContext();
+
+    // Should not throw on a key that doesn't exist
+    project.fileInformationCache.invalidateForFile(
+      join(project.dir, "nonexistent.qmd"),
+    );
+
+    assert(
+      project.fileInformationCache.size === 0,
+      "Cache should remain empty",
+    );
+  },
+);

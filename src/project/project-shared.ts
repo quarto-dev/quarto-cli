@@ -707,16 +707,9 @@ export class FileInformationCacheMap extends Map<string, FileInformation>
 }
 
 export function cleanupFileInformationCache(project: ProjectContext) {
-  project.fileInformationCache.forEach((entry) => {
-    if (entry?.target?.data) {
-      const data = entry.target.data as {
-        transient?: boolean;
-      };
-      if (data.transient && entry.target?.input) {
-        safeRemoveSync(entry.target?.input);
-      }
-    }
-  });
+  for (const key of [...project.fileInformationCache.keys()]) {
+    project.fileInformationCache.invalidateForFile(key);
+  }
 }
 
 export async function withProjectCleanup<T>(
