@@ -22,6 +22,7 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import {
   FileInclusion,
   FileInformation,
+  FileInformationCache,
   kProjectOutputDir,
   kProjectType,
   ProjectConfig,
@@ -660,7 +661,7 @@ export async function projectResolveBrand(
 // Implements Cloneable but shares state intentionally - in preview mode,
 // the project context is reused across renders and cache state must persist.
 export class FileInformationCacheMap extends Map<string, FileInformation>
-  implements Cloneable<Map<string, FileInformation>> {
+  implements FileInformationCache, Cloneable<Map<string, FileInformation>> {
   override get(key: string): FileInformation | undefined {
     return super.get(normalizePath(key));
   }
@@ -681,6 +682,22 @@ export class FileInformationCacheMap extends Map<string, FileInformation>
   // return normalized keys as stored. Code iterating over the cache sees
   // normalized paths, which is consistent with how keys are stored.
 
+  // Removes a cache entry and cleans up any associated transient files.
+  // In preview mode, this should be used instead of delete() to ensure
+  // transient notebooks (.quarto_ipynb) are removed from disk before the
+  // cache entry is dropped. Without this, the collision-avoidance logic
+  // in jupyter.ts target() creates numbered variants on each re-render.
+  invalidateForFile(key: string): void {
+    const existing = this.get(key);
+    if (existing?.target?.data) {
+      const data = existing.target.data as { transient?: boolean };
+      if (data.transient && existing.target.input) {
+        safeRemoveSync(existing.target.input);
+      }
+    }
+    this.delete(key);
+  }
+
   // Returns this instance (shared reference) rather than a copy.
   // This is intentional: in preview mode, project context is cloned for
   // each render but the cache must be shared so invalidations persist.
@@ -690,16 +707,9 @@ export class FileInformationCacheMap extends Map<string, FileInformation>
 }
 
 export function cleanupFileInformationCache(project: ProjectContext) {
-  project.fileInformationCache.forEach((entry) => {
-    if (entry?.target?.data) {
-      const data = entry.target.data as {
-        transient?: boolean;
-      };
-      if (data.transient && entry.target?.input) {
-        safeRemoveSync(entry.target?.input);
-      }
-    }
-  });
+  for (const key of [...project.fileInformationCache.keys()]) {
+    project.fileInformationCache.invalidateForFile(key);
+  }
 }
 
 export async function withProjectCleanup<T>(
