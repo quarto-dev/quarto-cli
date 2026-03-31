@@ -304,10 +304,14 @@ export async function processDocumentAppendix(
 
             const bibTexDiv = createCodeBlock(doc, cite.bibtex, "bibtex");
             bibTexDiv.classList.add(kQuartoCiteBibtexClass);
-            contentsDiv.appendChild(bibTexDiv);
+            
+            const outerScaffold = doc.createElement("div");
+            outerScaffold.classList.add("code-copy-outer-scaffold");
+            outerScaffold.appendChild(bibTexDiv);
+            contentsDiv.appendChild(outerScaffold);
 
             const copyButton = createCodeCopyButton(doc, format);
-            bibTexDiv.appendChild(copyButton);
+            outerScaffold.appendChild(copyButton);
           }
 
           if (cite?.html) {
