@@ -217,7 +217,7 @@ jobs:
           quarto install chrome-headless-shell --no-prompt
 
       - name: Setup Julia
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@a8c65a2a580b6a5cf30070e825e62f9fc0fee1d7
         id: setup-julia
         with:
           version: "1.12.5"
