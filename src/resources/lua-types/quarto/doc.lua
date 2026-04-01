@@ -123,7 +123,7 @@ function quarto.doc.has_bootstrap() end
 Check whether a specific internal Quarto filter is currently active.
 ]]
 ---@param filter string Filter name to check
----@return boolean
+---@return boolean|nil
 function quarto.doc.is_filter_active(filter) end
 
 --[[

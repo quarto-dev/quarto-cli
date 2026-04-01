@@ -142,14 +142,14 @@ Accepts string path selectors separated by `/` with support for:
 Returns a function that, when called with an AST node, returns the matched
 node(s) or `false`/`nil` if no match.
 ]]
----@param ... string|function Selector path components
+---@param ... string|number|function Selector path components
 ---@return function Matcher function
 function quarto.utils.match(...) end
 
 --[[
 Append a Block, Blocks, or Inlines value to an existing Blocks list.
 
-Inlines are wrapped in a Plain block before appending.
+Blocks and Inlines are extended into the list; a single Block is inserted.
 ]]
 ---@param blocks pandoc.Blocks Target Blocks list
 ---@param block pandoc.Block|pandoc.Blocks|pandoc.Inlines Value to append
