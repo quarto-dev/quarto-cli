@@ -89,7 +89,7 @@ jobs:
         run: |
           echo ${{ steps.read-version.outputs.version_full }} > version.txt
 
-      - uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5
+      - uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321
         if: ${{ inputs.publish-release }}
         id: version_commit
         with:
@@ -677,9 +677,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@4634c16e79c963813287e889244c50009e7f0981
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
         with:
           tag_name: ${{needs.configure.outputs.tag_name}}
           target_commitish: ${{ needs.configure.outputs.version_commit }}
