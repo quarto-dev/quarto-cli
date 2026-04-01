@@ -268,10 +268,12 @@ async function runQuarto(
   cwd: string,
   env?: Record<string, string>,
 ): Promise<{ success: boolean; stdout: string; stderr: string }> {
+  const quartoCmd = Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
   const quartoPath = join(
     Deno.cwd(),
     "..",
-    "package/dist/bin/quarto",
+    "package/dist/bin",
+    quartoCmd,
   );
   const result = await execProcess({
     cmd: quartoPath,
@@ -432,7 +434,7 @@ unitTest(
     // analyzeNeededPackages catches the error and falls back to stageAll.
     const projectDir = join(
       Deno.cwd(),
-      "docs/smoke-all/typst/orange-book",
+      "docs/smoke-all/typst/marginalia-only-project",
     );
     const result = await runQuarto(
       ["render", "index.qmd", "--to", "typst"],
@@ -443,6 +445,11 @@ unitTest(
       result.success,
       `Expected render to succeed with fallback staging, but failed:\n${result.stderr}`,
     );
+    // Clean up .quarto so fallback staging doesn't pollute subsequent tests
+    const quartoDir = join(projectDir, ".quarto");
+    if (existsSync(quartoDir)) {
+      Deno.removeSync(quartoDir, { recursive: true });
+    }
   },
 );
 
@@ -450,20 +457,31 @@ unitTest(
 unitTest(
   "staging falls back when typst-gather analyze returns non-zero",
   async () => {
-    // /usr/bin/false always exits with code 1
+    // Use a real executable that will exit non-zero when called with
+    // typst-gather's arguments. On Unix, /usr/bin/false always exits 1.
+    // On Windows, use the quarto binary itself which will fail when called
+    // with "analyze -" arguments.
+    const falseCmd = Deno.build.os === "windows"
+      ? Deno.execPath() // deno binary will fail on "analyze -" args
+      : "/usr/bin/false";
     const projectDir = join(
       Deno.cwd(),
-      "docs/smoke-all/typst/orange-book",
+      "docs/smoke-all/typst/marginalia-only-project",
     );
     const result = await runQuarto(
       ["render", "index.qmd", "--to", "typst"],
       projectDir,
-      { QUARTO_TYPST_GATHER: "/usr/bin/false" },
+      { QUARTO_TYPST_GATHER: falseCmd },
     );
     assert(
       result.success,
       `Expected render to succeed with fallback staging, but failed:\n${result.stderr}`,
     );
+    // Clean up .quarto so fallback staging doesn't pollute subsequent tests
+    const quartoDir = join(projectDir, ".quarto");
+    if (existsSync(quartoDir)) {
+      Deno.removeSync(quartoDir, { recursive: true });
+    }
   },
 );
 
