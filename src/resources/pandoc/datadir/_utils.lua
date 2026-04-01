@@ -592,7 +592,7 @@ local function is_empty_node (node)
     return not next(node.caption)
   elseif node.text then
     -- looks like a code node or text node
-    return node.text ~= ''
+    return node.text == ''
   else
     -- Not sure what this is, but it's probably not empty.
     return false
