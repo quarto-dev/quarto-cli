@@ -48,7 +48,25 @@ which must be copied into the LaTeX output directory.
 function quarto.doc.add_format_resource(file) end
 
 --[[
-Include text at the specified location (`in-header`, `before-body`, or `after-body`). 
+Add a resource file to the document. The file will be copied to the same
+relative location in the output directory.
+
+The path should be relative to the Lua script calling this function.
+]]
+---@param path string Resource file path (relative to Lua script)
+function quarto.doc.add_resource(path) end
+
+--[[
+Add a supporting file to the document. Supporting files are moved to the
+output directory and may be cleaned up after rendering.
+
+The path should be relative to the Lua script calling this function.
+]]
+---@param path string Supporting file path (relative to Lua script)
+function quarto.doc.add_supporting(path) end
+
+--[[
+Include text at the specified location (`in-header`, `before-body`, or `after-body`).
 ]]
 ---@param location 'in-header'|'before-body'|'after-body' Location for include
 ---@param text string Text to include
@@ -100,6 +118,13 @@ Does the current output format include Bootstrap themed HTML
 ]]
 ---@return boolean
 function quarto.doc.has_bootstrap() end
+
+--[[
+Check whether a specific internal Quarto filter is currently active.
+]]
+---@param filter string Filter name to check
+---@return boolean
+function quarto.doc.is_filter_active(filter) end
 
 --[[
 Provides the project relative path to the current input
