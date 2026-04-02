@@ -251,6 +251,8 @@ Consult `src/resources/lua-types/` for available methods, properties, and functi
 
 These type definition files document the complete API surface.
 
+For details on maintaining lua-types stubs (runtime source mapping, annotation format, public vs internal API), see `llm-docs/lua-types-guide.md`.
+
 ## Key Conventions Summary
 
 1. **Use `import()` for filters** - `require()` for modules only
