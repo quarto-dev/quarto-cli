@@ -174,5 +174,5 @@ Handles functional forms like `rgb(...)` and `rgba(...)`.
 ---@param start number Start position
 ---@param warnings? pandoc.List Optional list to collect warnings
 ---@return string|nil Typst color string
----@return number Next start position
+---@return number|nil Next start position (nil when no token found)
 function quarto.format.typst.css.consume_color(s, start, warnings) end

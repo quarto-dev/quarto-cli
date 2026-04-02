@@ -9,7 +9,7 @@ Create a Tab object for use in a Tabset.
 
 String content is parsed as Markdown. The `active` field defaults to `false`.
 ]]
----@param params { content: nil|pandoc.Blocks|string, title: pandoc.Inlines|string, active: nil|boolean }
+---@param params { content: nil|pandoc.Blocks|pandoc.Block|string, title: pandoc.Inlines|string, active: nil|boolean }
 ---@return quarto.Tab
 function quarto.Tab(params) end
 

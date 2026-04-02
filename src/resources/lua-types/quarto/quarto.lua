@@ -3,5 +3,5 @@
 ---@module 'quarto'
 quarto = {}
 
----@type pandoc.Version
+---@type pandoc.Version|string
 quarto.version = nil

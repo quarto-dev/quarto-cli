@@ -13,7 +13,7 @@ Create a FloatRefTarget node for cross-referenceable floats (figures, tables, et
 Accepts `attr` as a convenience shorthand that is unpacked into
 `identifier`, `classes`, and `attributes`.
 ]]
----@param tbl { identifier: string, classes: nil|pandoc.List, attributes: nil|table, content: pandoc.Blocks|pandoc.Block, caption_long: nil|pandoc.Blocks, caption_short: nil|pandoc.Inlines, type: nil|string, parent_id: nil|string, attr: nil|pandoc.Attr }
+---@param tbl { identifier: nil|string, classes: nil|pandoc.List, attributes: nil|table, content: pandoc.Blocks|pandoc.Block, caption_long: nil|pandoc.Blocks, caption_short: nil|pandoc.Inlines, type: nil|string, parent_id: nil|string, attr: nil|pandoc.Attr }
 ---@return pandoc.Div, table
 function quarto.FloatRefTarget(tbl) end
 
@@ -37,7 +37,7 @@ Create an HtmlTag node for raw HTML element wrappers.
 Accepts `attr` as a convenience shorthand that is unpacked into
 `identifier`, `classes`, and `attributes`.
 ]]
----@param tbl { name: string, content: nil|pandoc.Blocks, identifier: nil|string, classes: nil|table, attributes: nil|table, attr: nil|pandoc.Attr }
+---@param tbl { name: string, content: nil|pandoc.Blocks|pandoc.Block, identifier: nil|string, classes: nil|table, attributes: nil|table, attr: nil|pandoc.Attr }
 ---@return pandoc.Div, table
 function quarto.HtmlTag(tbl) end
 
