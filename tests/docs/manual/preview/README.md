@@ -132,6 +132,35 @@ For tests without Jupyter execution (T9, T10, T11), verify no `.quarto_ipynb` fi
 - **Steps:** Preview project, edit index, navigate to about, edit about
 - **Expected:** At most one `.quarto_ipynb` per Jupyter-using file. No accumulation.
 
+## Test Matrix: Single-file Preview Root URL (#14298)
+
+After every change to preview URL or handler logic, verify that single-file previews serve content at the root URL and print the correct Browse URL.
+
+### P1: Critical
+
+#### T17: Single-file preview — root URL accessible
+
+- **Setup:** `plain.qmd` with only markdown content (no code cells)
+- **Steps:** `quarto preview plain.qmd --port XXXX --no-browser`, then `curl -s -o /dev/null -w "%{http_code}" http://localhost:XXXX/`
+- **Expected:** HTTP 200. Browse URL prints `http://localhost:XXXX/` (no filename appended).
+- **Catches:** `projectHtmlFileRequestHandler` used for single files (defaultFile=`index.html` instead of output filename), or `previewInitialPath` returning filename instead of `""`
+
+#### T18: Single-file preview — named output URL also accessible
+
+- **Setup:** Same `plain.qmd`
+- **Steps:** `quarto preview plain.qmd --port XXXX --no-browser`, then `curl -s -o /dev/null -w "%{http_code}" http://localhost:XXXX/plain.html`
+- **Expected:** HTTP 200. The output filename path also serves the rendered content.
+- **Catches:** Handler regression where only root or only named path works
+
+### P2: Important
+
+#### T19: Project preview — non-index file URL correct
+
+- **Setup:** Website project with `_quarto.yml`, `index.qmd`, and `about.qmd`
+- **Steps:** `quarto preview --port XXXX --no-browser`, navigate to `http://localhost:XXXX/about.html`
+- **Expected:** HTTP 200. Browse URL may include path for non-index files in project context.
+- **Catches:** `isSingleFile` guard accidentally excluding real project files from path computation
+
 ## Test File Templates
 
 **Minimal Python .qmd:**
