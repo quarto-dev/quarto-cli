@@ -9,6 +9,7 @@ Note that you should use `quarto.log.output()` instead of this function.
 ]]
 ---@deprecated
 ---@param value any Value to dump
+---@param raw? boolean If true, include private/internal keys in output
 function quarto.utils.dump(value) end
 
 --[[
@@ -70,18 +71,17 @@ function quarto.utils.resolve_path_relative_to_document(path) end
 Converts a string to a list of Pandoc Inlines, processing any Quarto custom
 syntax in the string.
 ]]
----@param path string String to be converted
----@param sep pandoc.Inline|nil separator to be used between parsed blocks (default is pandoc.LineBreak)
+---@param s string String of Quarto markdown to be converted
 ---@return pandoc.Inlines
-function quarto.utils.string_to_inlines(path, sep) end
+function quarto.utils.string_to_inlines(s) end
 
 --[[
 Converts a string to a list of Pandoc Blocks, processing any Quarto custom
 syntax in the string.
 ]]
----@param path string String to be converted
+---@param s string String of Quarto markdown to be converted
 ---@return pandoc.Blocks
-function quarto.utils.string_to_blocks(path) end
+function quarto.utils.string_to_blocks(s) end
 
 --[[
 Coerce the given object into a `pandoc.Inlines` list.
