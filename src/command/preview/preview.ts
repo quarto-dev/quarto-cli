@@ -245,7 +245,7 @@ export async function preview(
       changeHandler.render,
       project,
     )
-    : project
+    : project && !project.isSingleFile
     ? projectHtmlFileRequestHandler(
       project,
       normalizePath(file),
