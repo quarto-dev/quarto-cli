@@ -14,7 +14,7 @@ Get a brand color in CSS format, for the brand of the specified `mode`.
 ]]
 ---@param mode string Mode string, `light` or `dark`
 ---@param name string Brand color name
----@return string
+---@return string|nil
 function quarto.brand.get_color_css(mode, name) end
 
 --[[
@@ -22,7 +22,7 @@ Get a brand color in the output format, for the brand of the specified `mode`.
 ]]
 ---@param mode string Mode string, `light` or `dark`
 ---@param name string Brand color name
----@return string
+---@return string|nil
 function quarto.brand.get_color(mode, name) end
 
 --[[
@@ -33,7 +33,7 @@ The options table may have `family`, `size`, `weight`, `style`, `line-height`, `
 ]]
 ---@param mode string Mode string, `light` or `dark`
 ---@param name string Typography element name
----@return table
+---@return table|nil
 function quarto.brand.get_typography(mode, name) end
 
 --[[
@@ -45,6 +45,6 @@ each a table with `path` and `alt`.
 In the future, we could resolve fully based on `mode`.
 ]]
 ---@param mode string Mode string, `light` or `dark`
----@param name string String to be converted
----@return table
+---@param name string Logo element name
+---@return table|nil
 function quarto.brand.get_logo(mode, name) end
