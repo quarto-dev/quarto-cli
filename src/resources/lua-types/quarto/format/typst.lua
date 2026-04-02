@@ -25,14 +25,6 @@ this to ensure your output isn't interpreted as typst computations.
 function quarto.format.typst.as_typst_content(content, blocks_or_inlines) end
 
 --[[
-Iterate over table keys in sorted order.
-]]
----@param t table Table to iterate
----@param f? function Optional comparison function for sorting
----@return function Iterator function
-function quarto.format.typst.sortedPairs(t, f) end
-
---[[
 Convert a Lua table to a Typst dictionary string representation.
 Returns nil if the table is empty.
 ]]

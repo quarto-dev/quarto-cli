@@ -10,7 +10,7 @@ Note that you should use `quarto.log.output()` instead of this function.
 ---@deprecated
 ---@param value any Value to dump
 ---@param raw? boolean If true, include private/internal keys in output
-function quarto.utils.dump(value) end
+function quarto.utils.dump(value, raw) end
 
 --[[
 Extended type function that returns Pandoc types with Quarto custom node awareness.
