@@ -11,7 +11,7 @@ quarto.project.output_directory = ""
 ---@type string|nil Offset (relative path) from the directory of the current file to the root of the project (`nil` if no project)
 quarto.project.offset = ""
 
----@type pandoc.List Currently active project profile
+---@type pandoc.List Currently active project profiles
 quarto.project.profile = pandoc.List()
 
 

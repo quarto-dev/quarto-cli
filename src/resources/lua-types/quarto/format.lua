@@ -240,7 +240,7 @@ function quarto.format.is_email_output() end
 
 ---@class quarto.format.ParseFormatResult
 ---@field format string The base string of the format
----@field extensions table<string, boolean> A table describing which extensions have been disabled (`-`) or enabled (`+`)
+---@field extensions table<string, boolean> A table mapping extension names to booleans (`true` = enabled, `false` = disabled)
 
 --[[
 Returns an object with the format name and variants as would be interpreted by Pandoc
