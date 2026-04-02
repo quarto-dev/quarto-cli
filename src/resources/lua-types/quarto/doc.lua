@@ -104,7 +104,7 @@ function quarto.doc.is_format(name) end
 --[[
 Cite method (`citeproc`, `natbib`, or `biblatex`) for the current render
 ]]
----@return 'citeproc'|'natbib'|'biblatex'
+---@return 'citeproc'|'natbib'|'biblatex'|nil
 function quarto.doc.cite_method() end
 
 --[[

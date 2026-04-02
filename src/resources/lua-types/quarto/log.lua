@@ -19,6 +19,7 @@ The initial log level is `0`, unless the following pandoc command-line options a
 * `--quiet` : `-1`
 ]]
 ---@param level integer Log level
+---@return integer
 function quarto.log.setloglevel(level) end
 
 --[[

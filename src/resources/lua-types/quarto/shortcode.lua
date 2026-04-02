@@ -5,7 +5,7 @@ quarto.shortcode = {}
 --[[
 Read the `n`-th shortcode argument from the passed `args` table.
 ]]
----@param args string[] arguments from the handler
+---@param args (string|pandoc.Inlines)[] arguments from the handler
 ---@param n number|nil index of the argument to read (default: 1)
 ---@return string|nil
 function quarto.shortcode.read_arg(args, n) end
