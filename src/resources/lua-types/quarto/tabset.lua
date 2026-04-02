@@ -2,7 +2,7 @@
 
 quarto = {}
 
----@alias quarto.Tab { content: pandoc.Blocks, title: pandoc.Inlines, active: boolean }
+---@alias quarto.Tab { content: pandoc.Blocks|pandoc.Block, title: pandoc.Inlines, active: boolean }
 
 --[[
 Create a Tab object for use in a Tabset.
