@@ -143,6 +143,21 @@ interface PreviewOptions {
   presentation: boolean;
 }
 
+export function previewInitialPath(
+  outputFile: string,
+  project: ProjectContext | undefined,
+): string {
+  if (isPdfContent(outputFile)) {
+    return kPdfJsInitialPath;
+  }
+  if (project && !project.isSingleFile) {
+    return pathWithForwardSlashes(
+      relative(projectOutputDir(project), outputFile),
+    );
+  }
+  return "";
+}
+
 export async function preview(
   file: string,
   flags: RenderFlags,
@@ -233,7 +248,7 @@ export async function preview(
       changeHandler.render,
       project,
     )
-    : project
+    : project && !project.isSingleFile
     ? projectHtmlFileRequestHandler(
       project,
       normalizePath(file),
@@ -253,13 +268,7 @@ export async function preview(
     );
 
   // open browser if this is a browseable format
-  const initialPath = isPdfContent(result.outputFile)
-    ? kPdfJsInitialPath
-    : project
-    ? pathWithForwardSlashes(
-      relative(projectOutputDir(project), result.outputFile),
-    )
-    : "";
+  const initialPath = previewInitialPath(result.outputFile, project);
   if (
     options.browser &&
     !isServerSession() &&
