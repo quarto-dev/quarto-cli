@@ -14,7 +14,15 @@ export function isWSL() {
   return !!Deno.env.get("WSL_DISTRO_NAME");
 }
 
+// Test override for isRStudio — avoids Deno.env.set() race conditions
+// in parallel tests. See quarto-dev/quarto-cli#14218 and PR #12621.
+let _isRStudioOverride: boolean | undefined;
+export function _setIsRStudioForTest(value: boolean | undefined) {
+  _isRStudioOverride = value;
+}
+
 export function isRStudio() {
+  if (_isRStudioOverride !== undefined) return _isRStudioOverride;
   return !!Deno.env.get("RSTUDIO");
 }
 
