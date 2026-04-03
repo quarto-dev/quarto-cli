@@ -18,7 +18,7 @@ Interactive testing of `quarto preview` with automated browser verification.
 ## Prerequisites
 
 - Quarto dev version built (`./configure.sh` or `./configure.cmd`)
-- Test environment configured (`tests/configure-test-env.sh` or `.ps1`)
+- Test environment configured (`tests/configure-test-env.sh` or `tests/configure-test-env.ps1`)
 - `/agent-browser` CLI installed (preferred), OR Chrome + Chrome DevTools MCP connected
 
 ## Starting Preview
