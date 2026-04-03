@@ -23,6 +23,6 @@ All changes included in 1.10:
 
 ## Other fixes and improvements
 
+- Fix website Open Graph metadata for posts to include the missing `og:type` and `og:url` tags.
 - ([#6651](https://github.com/quarto-dev/quarto-cli/issues/6651)): Fix dart-sass compilation failing in enterprise environments where `.bat` files are blocked by group policy.
 - ([#14255](https://github.com/quarto-dev/quarto-cli/issues/14255)): Fix shortcodes inside inline and display math expressions not being resolved.
-
