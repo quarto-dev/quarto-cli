@@ -99,6 +99,6 @@ function quarto.Proof(tbl) end
 --[[
 Create a Theorem node for mathematical theorems, lemmas, corollaries, etc.
 ]]
----@param tbl { name: nil|pandoc.Inlines|string, div: pandoc.Div|pandoc.Blocks, identifier: string }
+---@param tbl { name: nil|pandoc.Inlines|string, div: pandoc.Div, identifier: string }
 ---@return pandoc.Div, table
 function quarto.Theorem(tbl) end
