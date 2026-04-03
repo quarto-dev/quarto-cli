@@ -18,7 +18,7 @@ Interactive testing of `quarto preview` with automated browser verification.
 ## Prerequisites
 
 - Quarto dev version built (`./configure.sh` or `./configure.cmd`)
-- Test environment configured (`tests/configure-test-env.sh` or `.ps1`)
+- Test environment configured (`tests/configure-test-env.sh` or `tests/configure-test-env.ps1`)
 - `/agent-browser` CLI installed (preferred), OR Chrome + Chrome DevTools MCP connected
 
 ## Starting Preview
@@ -91,8 +91,6 @@ Preview behaves differently depending on input:
 | Single file (no project) | `preview()` -> `renderForPreview()` |
 | File within a project | May redirect to project preview via `serveProject()` |
 | Project directory | `serveProject()` -> `watchProject()` |
-
-See `llm-docs/preview-architecture.md` for the full architecture.
 
 ## When NOT to Use
 
