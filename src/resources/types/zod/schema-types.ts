@@ -269,6 +269,8 @@ export const ZodOpenGraphConfig = z.object({
   "image-height": z.number(),
   locale: z.string(),
   "site-name": z.string(),
+  type: z.string(),
+  url: z.string(),
 }).strict().partial();
 
 export const ZodPageFooter = z.object({
