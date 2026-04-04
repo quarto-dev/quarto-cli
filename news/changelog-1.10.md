@@ -11,6 +11,7 @@ All changes included in 1.10:
 ### `typst`
 
 - ([#14261](https://github.com/quarto-dev/quarto-cli/issues/14261)): Fix theorem/example block titles containing inline code producing invalid Typst markup when syntax highlighting is applied.
+- ([#14290](https://github.com/quarto-dev/quarto-cli/issues/14290)): Fix cross-referencing `remark` and `solution` environments producing invalid Typst output.
 
 ## Commands
 

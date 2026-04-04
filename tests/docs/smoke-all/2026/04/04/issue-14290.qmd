@@ -1,0 +1,43 @@
+---
+title: "Cross-reference remark and solution in Typst (#14290)"
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - '#remark\('
+          - '#solution\('
+          - '<rem-example>'
+          - '<sol-exercise>'
+          - '#show: show-remark'
+          - '#show: show-solution'
+          - '#ref\(<rem-example>'
+          - '#ref\(<sol-exercise>'
+        - []
+---
+
+::: {#rem-example}
+
+## A Remark
+
+This is a remark that should be cross-referenceable.
+
+:::
+
+::: {#sol-exercise}
+
+## A Solution
+
+This is a solution that should be cross-referenceable.
+
+:::
+
+::: {.proof}
+
+This is an unnumbered proof.
+
+:::
+
+See @rem-example and @sol-exercise.

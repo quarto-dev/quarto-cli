@@ -61,6 +61,37 @@ _quarto.ast.add_handler({
   end
 })
 
+-- Color mapping for clouds/rainbow themes (per proof type)
+local proof_theme_colors = {
+  proof = "gray", remark = "orange", solution = "teal"
+}
+
+local function ensure_typst_proofs(proof_env)
+  local appearance = ensureTheoremTypstAppearanceImports()
+  local proof_info = proof_types[proof_env]
+  local title = envTitle(proof_env, proof_info.title)
+  local render_code
+
+  if appearance == "fancy" then
+    render_code = "  render: fancy-box.with(\n" ..
+      "    get-border-color: get-tertiary-border-color,\n" ..
+      "    get-body-color: get-tertiary-body-color,\n" ..
+      "    get-symbol: loc => none,\n" ..
+      "  ),\n"
+  elseif appearance == "clouds" then
+    local color = proof_theme_colors[proof_env] or "gray"
+    render_code = "  render: clouds-render.with(fill: " .. color .. ".lighten(85%)),\n"
+  elseif appearance == "rainbow" then
+    local color = proof_theme_colors[proof_env] or "gray"
+    render_code = "  render: rainbow-render.with(fill: " .. color .. ".darken(20%)),\n"
+  else
+    ensureTheoremTypstSimpleRender("simple-proof-render", false)
+    render_code = "  render: simple-proof-render,\n"
+  end
+
+  ensureTheoremTypstFrame(proof_env, title, render_code)
+end
+
 function is_proof_div(div)
   local ref = refType(div.identifier)
   if ref ~= nil then
@@ -141,6 +172,27 @@ end, function(proof_tbl)
     end
   elseif _quarto.format.isJatsOutput() then
     el = jatsTheorem(el,  nil, name )
+  elseif _quarto.format.isTypstOutput() then
+    if #el.content == 0 then
+      warn("Proof block has no content; skipping")
+      return pandoc.Null()
+    end
+    ensure_typst_proofs(proof.env)
+    local preamble = pandoc.Plain({pandoc.RawInline("typst", "#" .. proof.env .. "(")})
+    if name and #name > 0 then
+      preamble.content:insert(pandoc.RawInline("typst", 'title: ['))
+      tappend(preamble.content, name)
+      preamble.content:insert(pandoc.RawInline("typst", ']'))
+    end
+    preamble.content:insert(pandoc.RawInline("typst", ")["))
+    local callproof = make_scaffold(pandoc.Div, preamble)
+    tappend(callproof.content, quarto.utils.as_blocks(el.content))
+    if proof_tbl.identifier and proof_tbl.identifier ~= "" then
+      callproof.content:insert(pandoc.RawInline("typst", "] <" .. proof_tbl.identifier .. ">"))
+    else
+      callproof.content:insert(pandoc.RawInline("typst", "]"))
+    end
+    return callproof
   else
     el.classes:insert(proof.title:lower())
     local span_title = pandoc.Emph(pandoc.Str(envTitle(proof.env, proof.title)))
