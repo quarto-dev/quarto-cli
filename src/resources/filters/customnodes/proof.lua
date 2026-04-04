@@ -67,7 +67,7 @@ local proof_theme_colors = {
 }
 
 local function ensure_typst_proofs(proof_env)
-  local appearance = ensureTheoremTypstAppearanceImports()
+  local appearance = _quarto.modules.theorems.ensure_appearance_imports()
   local proof_info = proof_types[proof_env]
   local title = envTitle(proof_env, proof_info.title)
   local render_code
@@ -85,11 +85,11 @@ local function ensure_typst_proofs(proof_env)
     local color = proof_theme_colors[proof_env] or "gray"
     render_code = "  render: rainbow-render.with(fill: " .. color .. ".darken(20%)),\n"
   else
-    ensureTheoremTypstSimpleRender("simple-proof-render", false)
+    _quarto.modules.theorems.ensure_simple_render("simple-proof-render", false)
     render_code = "  render: simple-proof-render,\n"
   end
 
-  ensureTheoremTypstFrame(proof_env, title, render_code)
+  _quarto.modules.theorems.ensure_frame(proof_env, title, render_code)
 end
 
 function is_proof_div(div)

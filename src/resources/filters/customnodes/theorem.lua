@@ -100,7 +100,7 @@ local theme_colors = {
 }
 
 local function ensure_typst_theorems(reftype)
-  local appearance = ensureTheoremTypstAppearanceImports()
+  local appearance = _quarto.modules.theorems.ensure_appearance_imports()
   local theorem_type = theorem_types[reftype]
   local title = titleString(reftype, theorem_type.title)
   local render_code
@@ -124,11 +124,11 @@ local function ensure_typst_theorems(reftype)
     local color = theme_colors[reftype] or "gray"
     render_code = "  render: rainbow-render.with(fill: " .. color .. ".darken(20%)),\n"
   else
-    ensureTheoremTypstSimpleRender("simple-theorem-render", true)
+    _quarto.modules.theorems.ensure_simple_render("simple-theorem-render", true)
     render_code = "  render: simple-theorem-render,\n"
   end
 
-  ensureTheoremTypstFrame(theorem_type.env, title, render_code)
+  _quarto.modules.theorems.ensure_frame(theorem_type.env, title, render_code)
 end
 
 
