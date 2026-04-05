@@ -89,8 +89,16 @@ export async function findPackages(
     // Special cases for known packages where tlmgr file search doesn't work
     // https://github.com/rstudio/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L470
     const knownPackages = ["fandol", "latex-lab", "colorprofiles"];
+    // Special cases where tlmgr --file search returns no results for a .sty file
+    // because the TeX Live package name differs from what the file search returns.
+    // tagpdf-base.sty is in the tagpdf-base package in TeX Live 2026.
+    const knownFileMappings: Record<string, string> = {
+      "tagpdf-base.sty": "tagpdf-base",
+    };
     if (knownPackages.includes(searchTerm)) {
       results.push(searchTerm);
+    } else if (knownFileMappings[searchTerm]) {
+      results.push(knownFileMappings[searchTerm]);
     } else {
       const result = await tlmgrCommand(
         "search",
