@@ -1,6 +1,6 @@
 /**
  * @module RevealJsTabset
- * @version 1.2.0
+ * @version 1.3.0
  * @license MIT
  * @copyright 2026 Mickaël Canouil
  * @author Mickaël Canouil
@@ -106,56 +106,96 @@ window.RevealJsTabset = function () {
       });
 
       /**
+       * Update tab link and pane states for a given active tab index.
+       * @param {Element} tabset - The tabset container element
+       * @param {number} activeTabIndex - The index of the tab to activate
+       */
+      function updateTabState(tabset, activeTabIndex) {
+        const tabLinks = tabset.querySelectorAll(TAB_LINK_SELECTOR);
+        const tabPanesArray = Array.from(getTabPanes(tabset));
+
+        tabLinks.forEach(function (link, index) {
+          const li = link.parentElement;
+          const isActive = index === activeTabIndex;
+
+          li.classList.toggle("active", isActive);
+          link.setAttribute("aria-selected", isActive ? "true" : "false");
+          link.setAttribute("tabindex", isActive ? "0" : "-1");
+        });
+
+        tabPanesArray.forEach(function (panel, index) {
+          const isActive = index === activeTabIndex;
+
+          panel.classList.toggle("active", isActive);
+          panel.style.display = isActive ? "block" : "none";
+          if (isActive) {
+            panel.removeAttribute("hidden");
+          } else {
+            panel.setAttribute("hidden", "");
+          }
+        });
+      }
+
+      /**
        * Handle PDF export mode.
-       * Ensures the correct tab is visible based on fragment state.
+       * When pdfSeparateFragments is enabled, updates tab visibility based
+       * on fragment state (existing behaviour).
+       * Otherwise, clones slides for each tab so every tab appears on its
+       * own PDF page without affecting other fragments in the deck.
        */
       deck.on("pdf-ready", function () {
+        const config = deck.getConfig();
         const slides = document.querySelectorAll(".reveal .slides section");
 
-        slides.forEach(function (slide) {
-          const tabset = slide.querySelector(".panel-tabset");
-          if (!tabset) return;
+        if (config.pdfSeparateFragments) {
+          // Existing behaviour: determine active tab from visible fragments
+          slides.forEach(function (slide) {
+            const tabset = slide.querySelector(".panel-tabset");
+            if (!tabset) return;
 
-          const fragments = slide.querySelectorAll(".panel-tabset-fragment");
-          let activeTabIndex = 0;
+            const fragments = slide.querySelectorAll(".panel-tabset-fragment");
+            let activeTabIndex = 0;
 
-          // Find the highest visible tab index
-          fragments.forEach(function (fragment) {
-            if (fragment.classList.contains("visible")) {
-              const tabIndex = parseInt(fragment.dataset.tabIndex, 10);
-              if (!isNaN(tabIndex) && tabIndex > activeTabIndex) {
-                activeTabIndex = tabIndex;
+            fragments.forEach(function (fragment) {
+              if (fragment.classList.contains("visible")) {
+                const tabIndex = parseInt(fragment.dataset.tabIndex, 10);
+                if (!isNaN(tabIndex) && tabIndex > activeTabIndex) {
+                  activeTabIndex = tabIndex;
+                }
               }
+            });
+
+            updateTabState(tabset, activeTabIndex);
+          });
+        } else {
+          // Clone slides so each tab gets its own PDF page
+          slides.forEach(function (slide) {
+            const tabset = slide.querySelector(".panel-tabset");
+            if (!tabset) return;
+
+            const tabLinks = tabset.querySelectorAll(TAB_LINK_SELECTOR);
+            const tabCount = tabLinks.length;
+            if (tabCount <= 1) return;
+
+            const pageElement = slide.closest(".pdf-page") || slide;
+
+            // Show tab 0 on the original slide
+            updateTabState(tabset, 0);
+
+            // Clone for each remaining tab
+            let insertAfter = pageElement;
+            for (let i = 1; i < tabCount; i++) {
+              const clone = pageElement.cloneNode(true);
+              const cloneTabset = clone.querySelector(".panel-tabset");
+              updateTabState(cloneTabset, i);
+              insertAfter.parentNode.insertBefore(
+                clone,
+                insertAfter.nextSibling,
+              );
+              insertAfter = clone;
             }
           });
-
-          // Update tab states
-          const tabLinks = tabset.querySelectorAll(TAB_LINK_SELECTOR);
-          const tabPanes = getTabPanes(tabset);
-          const tabPanesArray = Array.from(tabPanes);
-
-          tabLinks.forEach(function (link, index) {
-            const li = link.parentElement;
-            const isActive = index === activeTabIndex;
-
-            li.classList.toggle("active", isActive);
-            link.setAttribute("aria-selected", isActive ? "true" : "false");
-            link.setAttribute("tabindex", isActive ? "0" : "-1");
-          });
-
-          // Update pane visibility
-          tabPanesArray.forEach(function (panel, index) {
-            const isActive = index === activeTabIndex;
-
-            panel.classList.toggle("active", isActive);
-            panel.style.display = isActive ? "block" : "none";
-            if (isActive) {
-              panel.removeAttribute("hidden");
-            } else {
-              panel.setAttribute("hidden", "");
-            }
-          });
-        });
+        }
       });
     },
   };
