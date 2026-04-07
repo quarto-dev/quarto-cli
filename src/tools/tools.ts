@@ -114,6 +114,16 @@ export function checkToolRequirement(name: string) {
 
 export async function installTool(name: string, updatePath?: boolean) {
   name = name || "";
+
+  // Deprecation: redirect chromium → chrome-headless-shell
+  if (name.toLowerCase() === "chromium") {
+    warning(
+      "'chromium' is deprecated. Installing 'chrome-headless-shell' instead.\n" +
+        "Please update your scripts to use 'quarto install chrome-headless-shell'.",
+    );
+    return installTool("chrome-headless-shell", updatePath);
+  }
+
   // Run the install
   const tool = installableTool(name);
   if (tool) {
