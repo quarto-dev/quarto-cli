@@ -119,9 +119,15 @@ export function createExtensionContext(): ExtensionContext {
     input: string,
     config?: ProjectConfig,
     projectDir?: string,
+    preferLocal = false,
   ): Promise<Extension | undefined> => {
     // Load the extension and resolve any paths
-    const unresolved = await loadExtension(name, input, projectDir);
+    const unresolved = await loadExtension(
+      name,
+      input,
+      projectDir,
+      preferLocal,
+    );
     return resolveExtensionPaths(unresolved, input, config);
   };
 
@@ -342,9 +348,15 @@ const loadExtension = async (
   extension: string,
   input: string,
   projectDir?: string,
+  preferLocal = false,
 ): Promise<Extension> => {
   const extensionId = toExtensionId(extension);
-  const extensionPath = discoverExtensionPath(input, extensionId, projectDir);
+  const extensionPath = discoverExtensionPath(
+    input,
+    extensionId,
+    projectDir,
+    preferLocal,
+  );
 
   if (extensionPath) {
     // Find the metadata file, if any
@@ -585,8 +597,9 @@ export function discoverExtensionPath(
   input: string,
   extensionId: ExtensionId,
   projectDir?: string,
+  preferLocal = false,
 ) {
-  const extensionDirGlobs = [];
+  const extensionDirGlobs: string[] = [];
   if (extensionId.organization) {
     // If there is an organization, always match that exactly
     extensionDirGlobs.push(
@@ -619,6 +632,41 @@ export function discoverExtensionPath(
     }
   };
 
+  const findLocalExtensionDir = () => {
+    const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
+    const sourceDirAbs = normalizePath(sourceDir);
+
+    if (projectDir && isSubdir(projectDir, sourceDirAbs)) {
+      let extensionDir;
+      let currentDir = normalize(sourceDirAbs);
+      const projDir = normalize(projectDir);
+      while (!extensionDir) {
+        extensionDir = findExtensionDir(
+          join(currentDir, kExtensionDir),
+          extensionDirGlobs,
+        );
+        if (currentDir == projDir) {
+          break;
+        }
+        currentDir = dirname(currentDir);
+      }
+      return extensionDir;
+    } else {
+      return findExtensionDir(
+        join(sourceDirAbs, kExtensionDir),
+        extensionDirGlobs,
+      );
+    }
+  };
+
+  // When preferLocal is set, check local project extensions first
+  if (preferLocal) {
+    const localDir = findLocalExtensionDir();
+    if (localDir) {
+      return localDir;
+    }
+  }
+
   // check for built-in
   const builtinExtensionDir = findExtensionDir(
     builtinExtensions(),
@@ -646,30 +694,9 @@ export function discoverExtensionPath(
     }
   }
 
-  // Start in the source directory
-  const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
-  const sourceDirAbs = normalizePath(sourceDir);
-
-  if (projectDir && isSubdir(projectDir, sourceDirAbs)) {
-    let extensionDir;
-    let currentDir = normalize(sourceDirAbs);
-    const projDir = normalize(projectDir);
-    while (!extensionDir) {
-      extensionDir = findExtensionDir(
-        join(currentDir, kExtensionDir),
-        extensionDirGlobs,
-      );
-      if (currentDir == projDir) {
-        break;
-      }
-      currentDir = dirname(currentDir);
-    }
-    return extensionDir;
-  } else {
-    return findExtensionDir(
-      join(sourceDirAbs, kExtensionDir),
-      extensionDirGlobs,
-    );
+  // Check local project extensions (when not already checked via preferLocal)
+  if (!preferLocal) {
+    return findLocalExtensionDir();
   }
 }
 

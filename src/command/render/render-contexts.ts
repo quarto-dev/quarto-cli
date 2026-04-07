@@ -678,15 +678,20 @@ const readExtensionFormat = async (
 ) => {
   // Determine effective extension - use default for certain project/format combinations
   let effectiveExtension = formatDesc.extension;
+  let preferLocal = false;
 
-  // For book projects with typst format and no explicit extension,
-  // use orange-book as the default typst book template
   if (
-    !effectiveExtension &&
     formatDesc.baseFormat === "typst" &&
     project?.config?.project?.[kProjectType] === "book"
   ) {
-    effectiveExtension = "orange-book";
+    if (effectiveExtension) {
+      // User explicitly named a typst book extension (e.g. format: orange-book-typst),
+      // prefer a locally installed copy over the built-in so customizations take effect
+      preferLocal = true;
+    } else {
+      // No explicit extension - use orange-book as the default typst book template
+      effectiveExtension = "orange-book";
+    }
   }
 
   // Read the format file and populate this
@@ -697,6 +702,7 @@ const readExtensionFormat = async (
       file,
       project?.config,
       project?.dir,
+      preferLocal,
     );
 
     // Read the yaml file and resolve / bucketize
