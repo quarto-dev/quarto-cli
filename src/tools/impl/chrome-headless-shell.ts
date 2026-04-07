@@ -91,7 +91,9 @@ async function installedVersion(): Promise<string | undefined> {
 }
 
 async function latestRelease(): Promise<RemotePackageInfo> {
-  if (isPlaywrightCdnPlatform()) {
+  const platformInfo = detectChromePlatform();
+
+  if (isPlaywrightCdnPlatform(platformInfo)) {
     // arm64 Linux: use Playwright CDN
     const entry = await fetchPlaywrightBrowsersJson();
     const url = playwrightCdnDownloadUrl(entry.revision);
@@ -104,7 +106,7 @@ async function latestRelease(): Promise<RemotePackageInfo> {
 
   // All other platforms: use CfT API
   const release = await fetchLatestCftRelease();
-  const { platform } = detectChromePlatform();
+  const { platform } = platformInfo;
 
   const downloads = release.downloads["chrome-headless-shell"];
   if (!downloads) {
