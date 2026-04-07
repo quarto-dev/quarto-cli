@@ -19,7 +19,7 @@ import { unzip } from "../../core/zip.ts";
 import { InstallContext } from "../types.ts";
 
 /** Platform identifiers for Chrome binary downloads (CfT API + Playwright CDN). */
-export type CftPlatform =
+export type ChromePlatform =
   | "linux64"
   | "linux-arm64"
   | "mac-arm64"
@@ -29,7 +29,7 @@ export type CftPlatform =
 
 /** Platform detection result. */
 export interface PlatformInfo {
-  platform: CftPlatform;
+  platform: ChromePlatform;
   os: string;
   arch: string;
 }
@@ -39,9 +39,10 @@ export interface PlatformInfo {
  * For linux arm64, returns a PlatformInfo with platform "linux-arm64" — callers
  * should use isPlaywrightCdnPlatform() to route to the Playwright CDN path.
  */
-export function detectCftPlatform(): PlatformInfo {
-  const platformMap: Record<string, CftPlatform> = {
+export function detectChromePlatform(): PlatformInfo {
+  const platformMap: Record<string, ChromePlatform> = {
     "linux-x86_64": "linux64",
+    "linux-aarch64": "linux-arm64",
     "darwin-aarch64": "mac-arm64",
     "darwin-x86_64": "mac-x64",
     "windows-x86_64": "win64",
@@ -52,11 +53,6 @@ export function detectCftPlatform(): PlatformInfo {
   const platform = platformMap[key];
 
   if (!platform) {
-    if (os === "linux" && arch === "aarch64") {
-      // linux arm64 is supported via Playwright CDN, not CfT.
-      // Return a PlatformInfo that callers can check to use the Playwright path.
-      return { platform: "linux-arm64" as CftPlatform, os, arch };
-    }
     throw new Error(
       `Unsupported platform for Chrome for Testing: ${os} ${arch}`,
     );
@@ -67,13 +63,13 @@ export function detectCftPlatform(): PlatformInfo {
 
 /** Check if the current platform requires Playwright CDN (arm64 Linux). */
 export function isPlaywrightCdnPlatform(info?: PlatformInfo): boolean {
-  const p = info ?? detectCftPlatform();
+  const p = info ?? detectChromePlatform();
   return p.os === "linux" && p.arch === "aarch64";
 }
 
 /** A single download entry from the CfT API. */
 export interface CftDownload {
-  platform: CftPlatform;
+  platform: ChromePlatform;
   url: string;
 }
 
@@ -208,7 +204,7 @@ export function playwrightCdnDownloadUrl(revision: string): string {
  * Handles platform-specific naming (.exe on Windows) and nested directory structures.
  * Returns absolute path to the executable, or undefined if not found.
  */
-export function findCftExecutable(
+export function findChromeExecutable(
   extractedDir: string,
   binaryName: string,
 ): string | undefined {
@@ -216,13 +212,13 @@ export function findCftExecutable(
 
   // CfT zips extract to {binaryName}-{platform}/{target}
   try {
-    const { platform } = detectCftPlatform();
+    const { platform } = detectChromePlatform();
     const knownPath = join(extractedDir, `${binaryName}-${platform}`, target);
     if (existsSync(knownPath)) {
       return knownPath;
     }
   } catch (e) {
-    debug(`findCftExecutable: platform detection failed, falling back to walk: ${e}`);
+    debug(`findChromeExecutable: platform detection failed, falling back to walk: ${e}`);
   }
 
   // Fallback: bounded walk for unexpected directory structures
@@ -241,7 +237,7 @@ export function findCftExecutable(
  * When binaryName is provided, sets executable permission only on that binary.
  * Returns the target directory path.
  */
-export async function downloadAndExtractCft(
+export async function downloadAndExtractChrome(
   label: string,
   url: string,
   targetDir: string,
@@ -258,11 +254,11 @@ export async function downloadAndExtractCft(
   }
 
   if (binaryName) {
-    const executable = findCftExecutable(targetDir, binaryName);
+    const executable = findChromeExecutable(targetDir, binaryName);
     if (executable) {
       safeChmodSync(executable, 0o755);
     } else {
-      debug(`downloadAndExtractCft: expected binary '${binaryName}' not found in ${targetDir}`);
+      debug(`downloadAndExtractChrome: expected binary '${binaryName}' not found in ${targetDir}`);
     }
   }
 

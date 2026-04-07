@@ -12,9 +12,9 @@ import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
 import {
-  detectCftPlatform,
+  detectChromePlatform,
   fetchPlaywrightBrowsersJson,
-  findCftExecutable,
+  findChromeExecutable,
   isPlaywrightCdnPlatform,
   playwrightCdnDownloadUrl,
 } from "../../../src/tools/impl/chrome-for-testing.ts";
@@ -97,7 +97,7 @@ unitTest("isInstalled - returns false when only version file exists", async () =
 unitTest("isInstalled - returns false when only binary exists (no version file)", async () => {
   const tempDir = Deno.makeTempDirSync();
   try {
-    const { platform } = detectCftPlatform();
+    const { platform } = detectChromePlatform();
     const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
     const binaryName = isWindows ? "chrome-headless-shell.exe" : "chrome-headless-shell";
@@ -112,7 +112,7 @@ unitTest("isInstalled - returns true when version file and binary exist", async 
   const tempDir = Deno.makeTempDirSync();
   try {
     noteInstalledVersion(tempDir, "145.0.0.0");
-    const { platform } = detectCftPlatform();
+    const { platform } = detectChromePlatform();
     const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
     const binaryName = isWindows ? "chrome-headless-shell.exe" : "chrome-headless-shell";
@@ -187,7 +187,7 @@ unitTest("preparePackage - downloads and extracts chrome-headless-shell", async 
   try {
     assert(pkg.version, "version should be non-empty");
     assert(pkg.filePath, "filePath should be non-empty");
-    const binary = findCftExecutable(pkg.filePath, "chrome-headless-shell");
+    const binary = findChromeExecutable(pkg.filePath, "chrome-headless-shell");
     assert(binary !== undefined, "binary should exist in extracted dir");
   } finally {
     safeRemoveSync(pkg.filePath, { recursive: true });

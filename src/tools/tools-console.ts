@@ -156,20 +156,16 @@ export async function updateOrInstallTool(
         "Please update your scripts to use 'quarto install chrome-headless-shell'.",
     );
     if (action === "update") {
-      // Uninstall legacy chromium if present
+      // Check if chrome-headless-shell is already present to pick the right action
+      const chsSummary = await toolSummary("chrome-headless-shell");
+      const redirectAction = chsSummary?.installed ? "update" : "install";
+      // Uninstall legacy chromium after redirect succeeds via installTool/updateTool
+      // (those functions call Deno.exit, so we clean up before delegating)
       const legacyTool = installableTool("chromium");
       if (legacyTool && await legacyTool.installed()) {
         await uninstallTool("chromium");
       }
-      // Check if chrome-headless-shell is already present
-      const chsSummary = await toolSummary("chrome-headless-shell");
-      const redirectAction = chsSummary?.installed ? "update" : "install";
-      return updateOrInstallTool(
-        "chrome-headless-shell",
-        redirectAction,
-        prompt,
-        updatePath,
-      );
+      return updateOrInstallTool("chrome-headless-shell", redirectAction, prompt, updatePath);
     }
     return updateOrInstallTool("chrome-headless-shell", "install", prompt, updatePath);
   }

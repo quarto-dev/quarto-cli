@@ -1,7 +1,8 @@
 /*
  * chrome-headless-shell.ts
  *
- * InstallableTool implementation for Chrome Headless Shell via Chrome for Testing (CfT).
+ * InstallableTool implementation for Chrome Headless Shell via Chrome for Testing (CfT)
+ * and Playwright CDN (arm64 Linux).
  * Provides quarto install/uninstall chrome-headless-shell functionality.
  *
  * Copyright (C) 2026 Posit Software, PBC
@@ -17,11 +18,11 @@ import {
   RemotePackageInfo,
 } from "../types.ts";
 import {
-  detectCftPlatform,
-  downloadAndExtractCft,
+  detectChromePlatform,
+  downloadAndExtractChrome,
   fetchLatestCftRelease,
   fetchPlaywrightBrowsersJson,
-  findCftExecutable,
+  findChromeExecutable,
   isPlaywrightCdnPlatform,
   playwrightCdnDownloadUrl,
 } from "./chrome-for-testing.ts";
@@ -45,8 +46,8 @@ export function chromeHeadlessShellExecutablePath(): string | undefined {
     return undefined;
   }
   // Try CfT name first, then Playwright arm64 name
-  return findCftExecutable(dir, "chrome-headless-shell")
-    ?? findCftExecutable(dir, "headless_shell");
+  return findChromeExecutable(dir, "chrome-headless-shell")
+    ?? findChromeExecutable(dir, "headless_shell");
 }
 
 /** Record the installed version as a plain text file. */
@@ -67,8 +68,8 @@ export function readInstalledVersion(dir: string): string | undefined {
 /** Check if chrome-headless-shell is installed in the given directory. */
 export function isInstalled(dir: string): boolean {
   return existsSync(join(dir, kVersionFileName)) &&
-    (findCftExecutable(dir, "chrome-headless-shell") !== undefined ||
-      findCftExecutable(dir, "headless_shell") !== undefined);
+    (findChromeExecutable(dir, "chrome-headless-shell") !== undefined ||
+      findChromeExecutable(dir, "headless_shell") !== undefined);
 }
 
 // -- InstallableTool methods --
@@ -103,7 +104,7 @@ async function latestRelease(): Promise<RemotePackageInfo> {
 
   // All other platforms: use CfT API
   const release = await fetchLatestCftRelease();
-  const { platform } = detectCftPlatform();
+  const { platform } = detectChromePlatform();
 
   const downloads = release.downloads["chrome-headless-shell"];
   if (!downloads) {
@@ -134,7 +135,7 @@ async function preparePackage(ctx: InstallContext): Promise<PackageInfo> {
     : "chrome-headless-shell";
 
   try {
-    await downloadAndExtractCft(
+    await downloadAndExtractChrome(
       "Chrome Headless Shell",
       release.url,
       workingDir,

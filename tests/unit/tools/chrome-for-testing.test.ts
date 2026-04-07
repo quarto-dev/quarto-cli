@@ -13,18 +13,18 @@ import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
 import {
-  detectCftPlatform,
-  downloadAndExtractCft,
+  detectChromePlatform,
+  downloadAndExtractChrome,
   fetchLatestCftRelease,
   fetchPlaywrightBrowsersJson,
-  findCftExecutable,
+  findChromeExecutable,
   isPlaywrightCdnPlatform,
   playwrightCdnDownloadUrl,
 } from "../../../src/tools/impl/chrome-for-testing.ts";
 
-// Step 1: detectCftPlatform()
-unitTest("detectCftPlatform - returns valid CftPlatform for current system", async () => {
-  const result = detectCftPlatform();
+// Step 1: detectChromePlatform()
+unitTest("detectChromePlatform - returns valid CftPlatform for current system", async () => {
+  const result = detectChromePlatform();
   const validPlatforms = ["linux64", "linux-arm64", "mac-arm64", "mac-x64", "win32", "win64"];
   assert(
     validPlatforms.includes(result.platform),
@@ -34,11 +34,11 @@ unitTest("detectCftPlatform - returns valid CftPlatform for current system", asy
   assert(result.arch.length > 0, "arch should be non-empty");
 });
 
-unitTest("detectCftPlatform - returns win64 on Windows x86_64", async () => {
+unitTest("detectChromePlatform - returns win64 on Windows x86_64", async () => {
   if (os !== "windows" || arch !== "x86_64") {
     return; // Skip on non-Windows
   }
-  const result = detectCftPlatform();
+  const result = detectChromePlatform();
   assertEquals(result.platform, "win64");
   assertEquals(result.os, "windows");
   assertEquals(result.arch, "x86_64");
@@ -77,11 +77,11 @@ unitTest("fetchLatestCftRelease - download URLs are valid", async () => {
   }
 }, { ignore: runningInCI() });
 
-// Step 3: findCftExecutable()
-unitTest("findCftExecutable - finds binary in CfT directory structure", async () => {
+// Step 3: findChromeExecutable()
+unitTest("findChromeExecutable - finds binary in CfT directory structure", async () => {
   const tempDir = Deno.makeTempDirSync();
   try {
-    const { platform } = detectCftPlatform();
+    const { platform } = detectChromePlatform();
     const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
     const binaryName = isWindows
@@ -90,7 +90,7 @@ unitTest("findCftExecutable - finds binary in CfT directory structure", async ()
     const binaryPath = join(subdir, binaryName);
     Deno.writeTextFileSync(binaryPath, "fake binary");
 
-    const found = findCftExecutable(tempDir, "chrome-headless-shell");
+    const found = findChromeExecutable(tempDir, "chrome-headless-shell");
     assert(found !== undefined, "should find the binary");
     assert(
       found!.endsWith(binaryName),
@@ -101,20 +101,20 @@ unitTest("findCftExecutable - finds binary in CfT directory structure", async ()
   }
 });
 
-unitTest("findCftExecutable - returns undefined for empty directory", async () => {
+unitTest("findChromeExecutable - returns undefined for empty directory", async () => {
   const tempDir = Deno.makeTempDirSync();
   try {
-    const found = findCftExecutable(tempDir, "chrome-headless-shell");
+    const found = findChromeExecutable(tempDir, "chrome-headless-shell");
     assertEquals(found, undefined);
   } finally {
     safeRemoveSync(tempDir, { recursive: true });
   }
 });
 
-unitTest("findCftExecutable - finds binary in nested structure", async () => {
+unitTest("findChromeExecutable - finds binary in nested structure", async () => {
   const tempDir = Deno.makeTempDirSync();
   try {
-    const { platform } = detectCftPlatform();
+    const { platform } = detectChromePlatform();
     const nested = join(tempDir, `chrome-headless-shell-${platform}`, "subfolder");
     Deno.mkdirSync(nested, { recursive: true });
     const binaryName = isWindows
@@ -123,16 +123,16 @@ unitTest("findCftExecutable - finds binary in nested structure", async () => {
     const binaryPath = join(nested, binaryName);
     Deno.writeTextFileSync(binaryPath, "fake binary");
 
-    const found = findCftExecutable(tempDir, "chrome-headless-shell");
+    const found = findChromeExecutable(tempDir, "chrome-headless-shell");
     assert(found !== undefined, "should find the binary in nested dir");
   } finally {
     safeRemoveSync(tempDir, { recursive: true });
   }
 });
 
-// Step 3b: findCftExecutable() — Playwright arm64 layout
+// Step 3b: findChromeExecutable() — Playwright arm64 layout
 // Skip on Windows: arm64 layout is Linux-only, no .exe extension.
-unitTest("findCftExecutable - finds binary in Playwright arm64 layout", async () => {
+unitTest("findChromeExecutable - finds binary in Playwright arm64 layout", async () => {
   if (isWindows) return; // arm64 layout is Linux-only
   const tempDir = Deno.makeTempDirSync();
   try {
@@ -141,7 +141,7 @@ unitTest("findCftExecutable - finds binary in Playwright arm64 layout", async ()
     Deno.mkdirSync(subdir);
     Deno.writeTextFileSync(join(subdir, "headless_shell"), "fake binary");
 
-    const found = findCftExecutable(tempDir, "headless_shell");
+    const found = findChromeExecutable(tempDir, "headless_shell");
     assert(found !== undefined, "should find headless_shell in chrome-linux/");
     assert(found!.endsWith("headless_shell"), `should end with headless_shell, got: ${found}`);
   } finally {
@@ -188,12 +188,12 @@ unitTest("isPlaywrightCdnPlatform - returns false on non-arm64 platform", async 
   assertEquals(result, false);
 });
 
-// Step 4: downloadAndExtractCft() — integration test, downloads ~50MB
+// Step 4: downloadAndExtractChrome() — integration test, downloads ~50MB
 unitTest(
-  "downloadAndExtractCft - downloads and extracts chrome-headless-shell",
+  "downloadAndExtractChrome - downloads and extracts chrome-headless-shell",
   async () => {
     const release = await fetchLatestCftRelease();
-    const { platform } = detectCftPlatform();
+    const { platform } = detectChromePlatform();
     const downloads = release.downloads["chrome-headless-shell"]!;
     const dl = downloads.find((d) => d.platform === platform);
     assert(dl, `No download found for platform ${platform}`);
@@ -218,9 +218,9 @@ unitTest(
         flags: {},
       };
 
-      await downloadAndExtractCft("Chrome Headless Shell", dl!.url, targetDir, mockContext, "chrome-headless-shell");
+      await downloadAndExtractChrome("Chrome Headless Shell", dl!.url, targetDir, mockContext, "chrome-headless-shell");
 
-      const found = findCftExecutable(targetDir, "chrome-headless-shell");
+      const found = findChromeExecutable(targetDir, "chrome-headless-shell");
       assert(
         found !== undefined,
         "should find chrome-headless-shell after extraction",
