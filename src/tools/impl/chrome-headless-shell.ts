@@ -37,6 +37,14 @@ export function chromeHeadlessShellInstallDir(): string {
 }
 
 /**
+ * The executable name for chrome-headless-shell on the current platform.
+ * CfT builds use "chrome-headless-shell", Playwright arm64 builds use "headless_shell".
+ */
+export function chromeHeadlessShellBinaryName(): string {
+  return isPlaywrightCdnPlatform() ? "headless_shell" : "chrome-headless-shell";
+}
+
+/**
  * Find the chrome-headless-shell executable in the install directory.
  * Returns the absolute path if installed, undefined otherwise.
  */
@@ -45,9 +53,7 @@ export function chromeHeadlessShellExecutablePath(): string | undefined {
   if (!existsSync(dir)) {
     return undefined;
   }
-  // Try CfT name first, then Playwright arm64 name
-  return findChromeExecutable(dir, "chrome-headless-shell")
-    ?? findChromeExecutable(dir, "headless_shell");
+  return findChromeExecutable(dir, chromeHeadlessShellBinaryName());
 }
 
 /** Record the installed version as a plain text file. */
@@ -68,8 +74,7 @@ export function readInstalledVersion(dir: string): string | undefined {
 /** Check if chrome-headless-shell is installed in the given directory. */
 export function isInstalled(dir: string): boolean {
   return existsSync(join(dir, kVersionFileName)) &&
-    (findChromeExecutable(dir, "chrome-headless-shell") !== undefined ||
-      findChromeExecutable(dir, "headless_shell") !== undefined);
+    findChromeExecutable(dir, chromeHeadlessShellBinaryName()) !== undefined;
 }
 
 // -- InstallableTool methods --
@@ -131,10 +136,7 @@ async function preparePackage(ctx: InstallContext): Promise<PackageInfo> {
   const release = await latestRelease();
   const workingDir = Deno.makeTempDirSync({ prefix: "quarto-chrome-hs-" });
 
-  // arm64 Playwright builds use "headless_shell" as the binary name
-  const binaryName = isPlaywrightCdnPlatform()
-    ? "headless_shell"
-    : "chrome-headless-shell";
+  const binaryName = chromeHeadlessShellBinaryName();
 
   try {
     await downloadAndExtractChrome(
