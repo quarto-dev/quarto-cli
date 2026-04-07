@@ -11,7 +11,13 @@ import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
-import { detectCftPlatform, findCftExecutable } from "../../../src/tools/impl/chrome-for-testing.ts";
+import {
+  detectCftPlatform,
+  fetchPlaywrightBrowsersJson,
+  findCftExecutable,
+  isPlaywrightCdnPlatform,
+  playwrightCdnDownloadUrl,
+} from "../../../src/tools/impl/chrome-for-testing.ts";
 import { installableTool, installableTools } from "../../../src/tools/tools.ts";
 import {
   chromeHeadlessShellInstallable,
@@ -131,6 +137,25 @@ unitTest("latestRelease - returns valid RemotePackageInfo", async () => {
   assert(release.url.includes(release.version), "URL should contain version");
   assert(release.assets.length > 0, "should have at least one asset");
   assertEquals(release.assets[0].name, "chrome-headless-shell");
+}, { ignore: runningInCI() });
+
+// -- Playwright CDN integration (arm64 Linux only, skip on CI) --
+
+unitTest("Playwright CDN - browsers.json and URL construction", async () => {
+  const entry = await fetchPlaywrightBrowsersJson();
+  const url = playwrightCdnDownloadUrl(entry.revision);
+  assert(
+    /^\d+\.\d+\.\d+\.\d+$/.test(entry.browserVersion),
+    `browserVersion format wrong: ${entry.browserVersion}`,
+  );
+  assert(
+    url.includes(entry.revision),
+    `URL should contain revision ${entry.revision}`,
+  );
+  assert(
+    url.includes("linux-arm64"),
+    "URL should be for linux-arm64",
+  );
 }, { ignore: runningInCI() });
 
 // -- Step 5: preparePackage() (downloads ~50MB, skip on CI) --
