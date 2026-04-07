@@ -139,7 +139,9 @@ unitTest("latestRelease - returns valid RemotePackageInfo", async () => {
   assertEquals(release.assets[0].name, "chrome-headless-shell");
 }, { ignore: runningInCI() });
 
-// -- Playwright CDN integration (arm64 Linux only, skip on CI) --
+// -- Playwright CDN integration --
+// Skipped on CI: makes external HTTP calls to GitHub/Playwright CDN.
+// Same pattern as CfT API tests above — run locally to catch API contract changes.
 
 unitTest("Playwright CDN - browsers.json and URL construction", async () => {
   const entry = await fetchPlaywrightBrowsersJson();

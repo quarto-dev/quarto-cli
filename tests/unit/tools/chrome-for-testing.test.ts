@@ -23,7 +23,7 @@ import {
 } from "../../../src/tools/impl/chrome-for-testing.ts";
 
 // Step 1: detectChromePlatform()
-unitTest("detectChromePlatform - returns valid CftPlatform for current system", async () => {
+unitTest("detectChromePlatform - returns valid ChromePlatform for current system", async () => {
   const result = detectChromePlatform();
   const validPlatforms = ["linux64", "linux-arm64", "mac-arm64", "mac-x64", "win32", "win64"];
   assert(
@@ -149,7 +149,9 @@ unitTest("findChromeExecutable - finds binary in Playwright arm64 layout", async
   }
 });
 
-// Playwright CDN tests — skip on CI (external HTTP)
+// Playwright CDN tests
+// Skipped on CI: makes external HTTP calls to GitHub/Playwright CDN.
+// Same pattern as CfT API tests above — run locally to catch API contract changes.
 unitTest("fetchPlaywrightBrowsersJson - returns chromium-headless-shell entry", async () => {
   const entry = await fetchPlaywrightBrowsersJson();
   assert(entry.revision, "revision should be non-empty");
