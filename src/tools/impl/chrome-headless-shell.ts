@@ -39,9 +39,14 @@ export function chromeHeadlessShellInstallDir(): string {
 /**
  * The executable name for chrome-headless-shell on the current platform.
  * CfT builds use "chrome-headless-shell", Playwright arm64 builds use "headless_shell".
+ * Returns the CfT name if platform detection fails (unsupported platform).
  */
 export function chromeHeadlessShellBinaryName(): string {
-  return isPlaywrightCdnPlatform() ? "headless_shell" : "chrome-headless-shell";
+  try {
+    return isPlaywrightCdnPlatform() ? "headless_shell" : "chrome-headless-shell";
+  } catch {
+    return "chrome-headless-shell";
+  }
 }
 
 /**
