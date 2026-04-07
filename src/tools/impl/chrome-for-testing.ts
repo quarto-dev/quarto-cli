@@ -54,7 +54,7 @@ export function detectChromePlatform(): PlatformInfo {
 
   if (!platform) {
     throw new Error(
-      `Unsupported platform for Chrome for Testing: ${os} ${arch}`,
+      `Unsupported platform for chrome-headless-shell: ${os} ${arch}`,
     );
   }
 
@@ -64,7 +64,7 @@ export function detectChromePlatform(): PlatformInfo {
 /** Check if the current platform requires Playwright CDN (arm64 Linux). */
 export function isPlaywrightCdnPlatform(info?: PlatformInfo): boolean {
   const p = info ?? detectChromePlatform();
-  return p.os === "linux" && p.arch === "aarch64";
+  return p.platform === "linux-arm64";
 }
 
 /** A single download entry from the CfT API. */
