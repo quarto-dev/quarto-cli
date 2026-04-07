@@ -71,6 +71,7 @@ export interface ExtensionContext {
     input: string,
     config?: ProjectConfig,
     projectDir?: string,
+    preferLocal?: boolean,
   ): Promise<Extension | undefined>;
   find(
     name: string,
