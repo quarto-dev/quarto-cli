@@ -1,9 +1,12 @@
 /*
  * chrome-for-testing.ts
  *
- * Utilities for downloading binaries from the Chrome for Testing (CfT) API.
+ * Utilities for downloading binaries from the Chrome for Testing (CfT) API
+ * and the Playwright CDN (for arm64 Linux where CfT has no builds).
+ *
  * https://github.com/GoogleChromeLabs/chrome-for-testing
  * https://googlechromelabs.github.io/chrome-for-testing/
+ * https://playwright.dev/docs/browsers#hermetic-install
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
