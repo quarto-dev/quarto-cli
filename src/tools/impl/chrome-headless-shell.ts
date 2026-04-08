@@ -26,7 +26,6 @@ import {
   isPlaywrightCdnPlatform,
   playwrightCdnDownloadUrl,
 } from "./chrome-for-testing.ts";
-import { chromiumInstallable } from "./chromium.ts";
 
 const kVersionFileName = "version";
 
@@ -181,12 +180,7 @@ async function install(pkg: PackageInfo, _ctx: InstallContext): Promise<void> {
   noteInstalledVersion(installDir, pkg.version);
 }
 
-async function afterInstall(ctx: InstallContext): Promise<boolean> {
-  // Clean up legacy chromium installed by 'quarto install chromium'
-  if (await chromiumInstallable.installed()) {
-    ctx.info("Removing legacy Chromium installation...");
-    await chromiumInstallable.uninstall(ctx);
-  }
+async function afterInstall(_ctx: InstallContext): Promise<boolean> {
   return false;
 }
 
