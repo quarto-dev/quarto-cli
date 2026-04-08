@@ -87,3 +87,34 @@ jobs:
             Write-Host "Deprecation warning missing"
             exit 1
           }
+
+      - name: Verify quarto check warns about outdated Chromium (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          # Only assert if chromium was actually installed (fails on arm64)
+          if grep -q "Installation successful" /tmp/chromium-output.txt; then
+            quarto check install 2>&1 | tee /tmp/check-output.txt || true
+            if grep -q "outdated" /tmp/check-output.txt; then
+              echo "Outdated Chromium warning found in quarto check"
+            else
+              echo "Outdated Chromium warning missing from quarto check"
+              cat /tmp/check-output.txt
+              exit 1
+            fi
+          else
+            echo "Chromium install did not succeed on this platform, skipping check"
+          fi
+
+      - name: Verify quarto check warns about outdated Chromium (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Chromium installs via Puppeteer on Windows, so should always be present
+          $output = quarto check install 2>&1 | Out-String
+          Write-Host $output
+          if ($output -match "outdated") {
+            Write-Host "Outdated Chromium warning found in quarto check"
+          } else {
+            Write-Host "Outdated Chromium warning missing from quarto check"
+            exit 1
+          }
