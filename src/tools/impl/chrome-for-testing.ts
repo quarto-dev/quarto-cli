@@ -33,7 +33,7 @@ export interface PlatformInfo {
 
 /**
  * Map os + arch to a CfT platform string.
- * Throws on unsupported platforms (e.g., linux aarch64 — to be handled by Playwright CDN).
+ * Throws on unsupported platforms.
  */
 export function detectCftPlatform(): PlatformInfo {
   const platformMap: Record<string, CftPlatform> = {
