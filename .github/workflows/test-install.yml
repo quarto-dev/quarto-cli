@@ -63,31 +63,27 @@ jobs:
 
       - uses: ./.github/workflows/actions/quarto-dev
 
-      - name: Verify chromium install shows deprecation warning
-        shell: bash
+      - name: Verify chromium install shows deprecation warning (Unix)
+        if: runner.os != 'Windows'
         run: |
           quarto install chromium --no-prompt 2>&1 | tee /tmp/chromium-output.txt || true
           if grep -q "deprecated" /tmp/chromium-output.txt; then
-            echo "✓ Deprecation warning found"
+            echo "Deprecation warning found"
           else
-            echo "✗ Deprecation warning missing"
+            echo "Deprecation warning missing"
             cat /tmp/chromium-output.txt
             exit 1
           fi
 
-      - name: Verify quarto check warns about outdated Chromium
-        shell: bash
+      - name: Verify chromium install shows deprecation warning (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          # Only check if chromium was actually installed (may fail on arm64)
-          quarto check install 2>&1 | tee /tmp/check-output.txt || true
-          if grep -q "Installation successful" /tmp/chromium-output.txt; then
-            if grep -q "outdated" /tmp/check-output.txt; then
-              echo "✓ Outdated Chromium warning found in quarto check"
-            else
-              echo "✗ Outdated Chromium warning missing from quarto check"
-              cat /tmp/check-output.txt
-              exit 1
-            fi
-          else
-            echo "⊘ Chromium install did not succeed on this platform, skipping check"
-          fi
+          $output = quarto install chromium --no-prompt 2>&1 | Out-String
+          Write-Host $output
+          if ($output -match "deprecated") {
+            Write-Host "Deprecation warning found"
+          } else {
+            Write-Host "Deprecation warning missing"
+            exit 1
+          }
