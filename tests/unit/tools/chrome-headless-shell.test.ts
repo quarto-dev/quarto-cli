@@ -21,13 +21,13 @@ import {
 import { installableTool, installableTools } from "../../../src/tools/tools.ts";
 import {
   chromeHeadlessShellBinaryName,
-  chromeHeadlessShellInstallable,
   chromeHeadlessShellInstallDir,
   chromeHeadlessShellExecutablePath,
   isInstalled,
   noteInstalledVersion,
   readInstalledVersion,
-} from "../../../src/tools/impl/chrome-headless-shell.ts";
+} from "../../../src/tools/impl/chrome-headless-shell-paths.ts";
+import { chromeHeadlessShellInstallable } from "../../../src/tools/impl/chrome-headless-shell.ts";
 
 // -- Step 1: Install directory + executable path --
 

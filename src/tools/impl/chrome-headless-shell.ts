@@ -33,15 +33,6 @@ import {
 } from "./chrome-headless-shell-paths.ts";
 import { chromiumInstallable } from "./chromium.ts";
 
-// Re-export path utilities for external consumers
-export {
-  chromeHeadlessShellBinaryName,
-  chromeHeadlessShellExecutablePath,
-  chromeHeadlessShellInstallDir,
-  isInstalled,
-  noteInstalledVersion,
-  readInstalledVersion,
-} from "./chrome-headless-shell-paths.ts";
 
 // -- InstallableTool methods --
 
