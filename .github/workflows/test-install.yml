@@ -43,11 +43,34 @@ jobs:
           quarto install tinytex
 
       - name: Install Chrome Headless Shell
-        # arm64 Linux support requires #14334. Remove this condition once merged.
-        if: runner.arch != 'ARM64'
         run: |
           quarto install chrome-headless-shell --no-prompt
 
       - name: Verify tools with quarto check
         run: |
           quarto check install
+
+  test-chromium-deprecation:
+    name: Chromium deprecation warning (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Verify chromium install shows deprecation warning
+        shell: bash
+        run: |
+          quarto install chromium --no-prompt 2>&1 | tee /tmp/chromium-output.txt || true
+          if grep -q "deprecated" /tmp/chromium-output.txt; then
+            echo "✓ Deprecation warning found"
+          else
+            echo "✗ Deprecation warning missing"
+            cat /tmp/chromium-output.txt
+            exit 1
+          fi
