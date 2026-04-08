@@ -22,7 +22,7 @@ import {
 // Step 1: detectCftPlatform()
 unitTest("detectCftPlatform - returns valid CftPlatform for current system", async () => {
   const result = detectCftPlatform();
-  const validPlatforms = ["linux64", "mac-arm64", "mac-x64", "win32", "win64"];
+  const validPlatforms = ["linux64", "linux-arm64", "mac-arm64", "mac-x64", "win32", "win64"];
   assert(
     validPlatforms.includes(result.platform),
     `Expected one of ${validPlatforms.join(", ")}, got: ${result.platform}`,
@@ -172,3 +172,67 @@ unitTest(
     ignore: runningInCI(),
   },
 );
+
+// -- Playwright CDN tests (arm64 Linux support) --
+
+import {
+  isPlaywrightCdnPlatform,
+  playwrightCdnDownloadUrl,
+  fetchPlaywrightBrowsersJson,
+} from "../../../src/tools/impl/chrome-for-testing.ts";
+
+// isPlaywrightCdnPlatform — pure logic, runs everywhere
+unitTest("isPlaywrightCdnPlatform - returns false on non-arm64 platform", async () => {
+  if (os === "linux" && arch === "aarch64") return; // Skip on actual arm64
+  const result = isPlaywrightCdnPlatform();
+  assertEquals(result, false);
+});
+
+// playwrightCdnDownloadUrl — pure function, no HTTP
+unitTest("playwrightCdnDownloadUrl - constructs correct arm64 URL", async () => {
+  const url = playwrightCdnDownloadUrl("1219");
+  assert(
+    url.startsWith("https://cdn.playwright.dev/"),
+    `URL should start with cdn.playwright.dev, got: ${url}`,
+  );
+  assert(
+    url.includes("/builds/chromium/1219/"),
+    `URL should contain revision path, got: ${url}`,
+  );
+  assert(
+    url.endsWith("chromium-headless-shell-linux-arm64.zip"),
+    `URL should end with arm64 zip name, got: ${url}`,
+  );
+});
+
+// fetchPlaywrightBrowsersJson — external HTTP, skip on CI
+unitTest("fetchPlaywrightBrowsersJson - returns chromium-headless-shell entry", async () => {
+  const entry = await fetchPlaywrightBrowsersJson();
+  assert(entry.revision, "revision should be non-empty");
+  assert(
+    /^\d+$/.test(entry.revision),
+    `revision should be numeric, got: ${entry.revision}`,
+  );
+  assert(entry.browserVersion, "browserVersion should be non-empty");
+  assert(
+    /^\d+\.\d+\.\d+\.\d+$/.test(entry.browserVersion),
+    `browserVersion format wrong: ${entry.browserVersion}`,
+  );
+}, { ignore: runningInCI() });
+
+// findCftExecutable with Playwright arm64 layout (chrome-linux/headless_shell)
+unitTest("findCftExecutable - finds binary in Playwright arm64 layout", async () => {
+  if (isWindows) return; // arm64 layout is Linux-only, no .exe
+  const tempDir = Deno.makeTempDirSync();
+  try {
+    const subdir = join(tempDir, "chrome-linux");
+    Deno.mkdirSync(subdir);
+    Deno.writeTextFileSync(join(subdir, "headless_shell"), "fake binary");
+
+    const found = findCftExecutable(tempDir, "headless_shell");
+    assert(found !== undefined, "should find headless_shell in chrome-linux/");
+    assert(found!.endsWith("headless_shell"), `should end with headless_shell, got: ${found}`);
+  } finally {
+    safeRemoveSync(tempDir, { recursive: true });
+  }
+});

@@ -18,6 +18,7 @@ import { InstallContext } from "../types.ts";
 /** CfT platform identifiers matching the Google Chrome for Testing API. */
 export type CftPlatform =
   | "linux64"
+  | "linux-arm64"
   | "mac-arm64"
   | "mac-x64"
   | "win32"
@@ -37,6 +38,7 @@ export interface PlatformInfo {
 export function detectCftPlatform(): PlatformInfo {
   const platformMap: Record<string, CftPlatform> = {
     "linux-x86_64": "linux64",
+    "linux-aarch64": "linux-arm64",
     "darwin-aarch64": "mac-arm64",
     "darwin-x86_64": "mac-x64",
     "windows-x86_64": "win64",
@@ -47,14 +49,8 @@ export function detectCftPlatform(): PlatformInfo {
   const platform = platformMap[key];
 
   if (!platform) {
-    if (os === "linux" && arch === "aarch64") {
-      throw new Error(
-        "linux-arm64 is not supported by Chrome for Testing. " +
-          "Use 'quarto install chromium' for arm64 support.",
-      );
-    }
     throw new Error(
-      `Unsupported platform for Chrome for Testing: ${os} ${arch}`,
+      `Unsupported platform for chrome-headless-shell: ${os} ${arch}`,
     );
   }
 
@@ -120,6 +116,79 @@ export async function fetchLatestCftRelease(): Promise<CftStableRelease> {
     version: stable.version,
     downloads: stable.downloads,
   };
+}
+
+/** Parsed entry from Playwright's browsers.json for chromium-headless-shell. */
+export interface PlaywrightBrowserEntry {
+  revision: string;
+  browserVersion: string;
+}
+
+const kPlaywrightBrowsersJsonUrl =
+  "https://raw.githubusercontent.com/microsoft/playwright/main/packages/playwright-core/browsers.json";
+
+/** Check if the current platform requires Playwright CDN (arm64 Linux). */
+export function isPlaywrightCdnPlatform(info?: PlatformInfo): boolean {
+  const p = info ?? detectCftPlatform();
+  return p.platform === "linux-arm64";
+}
+
+/**
+ * Fetch Playwright's browsers.json and extract the chromium-headless-shell entry.
+ * Used as the version/revision source for arm64 Linux where CfT has no builds.
+ */
+export async function fetchPlaywrightBrowsersJson(): Promise<PlaywrightBrowserEntry> {
+  let response: Response;
+  const fallbackHint = "\nIf this persists, install a system Chrome/Chromium instead " +
+    "(Quarto will detect it automatically).";
+  try {
+    response = await fetch(kPlaywrightBrowsersJsonUrl);
+  } catch (e) {
+    throw new Error(
+      `Failed to fetch Playwright browsers.json: ${
+        e instanceof Error ? e.message : String(e)
+      }${fallbackHint}`,
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Playwright browsers.json returned ${response.status}: ${response.statusText}${fallbackHint}`,
+    );
+  }
+
+  // deno-lint-ignore no-explicit-any
+  let data: any;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Playwright browsers.json returned invalid JSON");
+  }
+
+  const browsers = data?.browsers;
+  if (!Array.isArray(browsers)) {
+    throw new Error("Playwright browsers.json missing 'browsers' array");
+  }
+
+  // deno-lint-ignore no-explicit-any
+  const entry = browsers.find((b: any) => b.name === "chromium-headless-shell");
+  if (!entry || !entry.revision || !entry.browserVersion) {
+    throw new Error(
+      "Playwright browsers.json has no 'chromium-headless-shell' entry with revision and browserVersion",
+    );
+  }
+
+  return {
+    revision: entry.revision,
+    browserVersion: entry.browserVersion,
+  };
+}
+
+/**
+ * Construct the Playwright CDN download URL for chrome-headless-shell on linux arm64.
+ */
+export function playwrightCdnDownloadUrl(revision: string): string {
+  return `https://cdn.playwright.dev/builds/chromium/${revision}/chromium-headless-shell-linux-arm64.zip`;
 }
 
 /**
