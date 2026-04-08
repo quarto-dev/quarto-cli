@@ -108,6 +108,12 @@ export function checkToolRequirement(name: string) {
     );
     return true;
   } else {
+    if (name.toLowerCase() === "chromium") {
+      warning(
+        '"quarto install chromium" is deprecated and will be removed in Quarto 1.10. ' +
+          'Use "quarto install chrome-headless-shell" instead.',
+      );
+    }
     return true;
   }
 }
