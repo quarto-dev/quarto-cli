@@ -29,6 +29,7 @@ on:
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
       - ".github/workflows/test-ff-matrix.yml"
+      - ".github/workflows/test-install.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
       - ".github/workflows/update-test-timing.yml"
   push:
