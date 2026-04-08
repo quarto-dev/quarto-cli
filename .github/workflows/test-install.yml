@@ -74,3 +74,20 @@ jobs:
             cat /tmp/chromium-output.txt
             exit 1
           fi
+
+      - name: Verify quarto check warns about outdated Chromium
+        shell: bash
+        run: |
+          # Only check if chromium was actually installed (may fail on arm64)
+          quarto check install 2>&1 | tee /tmp/check-output.txt || true
+          if grep -q "Installation successful" /tmp/chromium-output.txt; then
+            if grep -q "outdated" /tmp/check-output.txt; then
+              echo "✓ Outdated Chromium warning found in quarto check"
+            else
+              echo "✗ Outdated Chromium warning missing from quarto check"
+              cat /tmp/check-output.txt
+              exit 1
+            fi
+          else
+            echo "⊘ Chromium install did not succeed on this platform, skipping check"
+          fi
