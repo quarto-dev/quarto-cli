@@ -1,0 +1,131 @@
+# Integration test for `quarto install` on platforms not covered by smoke tests.
+# Smoke tests (test-smokes.yml) cover x86_64 Linux and Windows.
+# This workflow fills the gap for arm64 Linux and macOS.
+name: Test Tool Install
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - "v1.*"
+    paths:
+      - "src/tools/**"
+      - ".github/workflows/test-install.yml"
+  pull_request:
+    paths:
+      - "src/tools/**"
+      - ".github/workflows/test-install.yml"
+  schedule:
+    # Weekly Monday 9am UTC — detect upstream CDN/API breakage
+    - cron: "0 9 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  test-install:
+    name: Install tools (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04-arm, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Install TinyTeX
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          quarto install tinytex
+
+      - name: Install Chrome Headless Shell
+        run: |
+          quarto install chrome-headless-shell --no-prompt
+
+      - name: Verify tools with quarto check
+        run: |
+          quarto check install
+
+  test-chromium-deprecation:
+    name: Chromium deprecation redirect (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Make quarto available in bash (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          quarto_cmd=$(command -v quarto.cmd)
+          dir=$(dirname "$quarto_cmd")
+          printf '#!/bin/bash\nexec "%s" "$@"\n' "$quarto_cmd" > "$dir/quarto"
+          chmod +x "$dir/quarto"
+
+      - name: Install chromium (should redirect to chrome-headless-shell)
+        id: install-chromium
+        shell: bash
+        run: |
+          output=$(quarto install chromium --no-prompt 2>&1) || true
+          echo "$output"
+          if echo "$output" | grep -q "deprecated"; then
+            echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$output" | grep -q "Installation successful"; then
+            echo "install-successful=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Assert deprecation warning was shown
+        if: steps.install-chromium.outputs.deprecation-warning != 'true'
+        shell: bash
+        run: |
+          echo "::error::Deprecation warning missing from 'quarto install chromium' output"
+          exit 1
+
+      - name: Assert installation succeeded (via redirect)
+        if: steps.install-chromium.outputs.install-successful != 'true'
+        shell: bash
+        run: |
+          echo "::error::Installation did not succeed — redirect to chrome-headless-shell may have failed"
+          exit 1
+
+      - name: Verify quarto check shows Chrome Headless Shell
+        shell: bash
+        run: |
+          output=$(quarto check install 2>&1) || true
+          echo "$output"
+          if ! echo "$output" | grep -q "Chrome Headless Shell"; then
+            echo "::error::Chrome Headless Shell not detected by quarto check after redirect install"
+            exit 1
+          fi
+          if echo "$output" | grep -q "outdated"; then
+            echo "::error::Unexpected 'outdated' warning — legacy chromium should have been auto-removed"
+            exit 1
+          fi
+
+      - name: Update chromium (should redirect) and capture result
+        id: update-chromium
+        shell: bash
+        run: |
+          output=$(quarto update tool chromium --no-prompt 2>&1) || true
+          echo "$output"
+          if echo "$output" | grep -q "deprecated"; then
+            echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Assert update deprecation warning was shown
+        if: steps.update-chromium.outputs.deprecation-warning != 'true'
+        shell: bash
+        run: |
+          echo "::error::Deprecation warning missing from 'quarto update tool chromium' output"
+          exit 1
