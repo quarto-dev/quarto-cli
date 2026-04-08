@@ -1,0 +1,14 @@
+---
+keep-typ: true
+_quarto:
+  render-project: true
+  tests:
+    orange-book-typst:
+      ensureTypstFileRegexMatches:
+        - # must match
+          - "LOCAL-OVERRIDE-MARKER"
+---
+
+# Introduction
+
+Hello world.

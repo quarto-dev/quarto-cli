@@ -1,0 +1,13 @@
+project:
+  type: book
+
+book:
+  title: "Override Test"
+  author: "Test Author"
+  date: "2024-01-01"
+  chapters:
+    - index.qmd
+
+format:
+  orange-book-typst:
+    keep-typ: true
