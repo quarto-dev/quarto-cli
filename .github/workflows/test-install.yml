@@ -76,12 +76,15 @@ jobs:
         id: install-chromium
         shell: bash
         run: |
-          output=$(quarto install chromium --no-prompt 2>&1) || true
+          set +e
+          output=$(quarto install chromium --no-prompt 2>&1)
+          exit_code=$?
+          set -e
           echo "$output"
-          if echo "$output" | grep -q "deprecated"; then
+          if echo "$output" | grep -Fq "is deprecated"; then
             echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
           fi
-          if echo "$output" | grep -q "Installation successful"; then
+          if [ "$exit_code" -eq 0 ]; then
             echo "install-successful=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -102,13 +105,13 @@ jobs:
       - name: Verify quarto check shows Chrome Headless Shell
         shell: bash
         run: |
-          output=$(quarto check install 2>&1) || true
+          output=$(quarto check install 2>&1)
           echo "$output"
-          if ! echo "$output" | grep -q "Chrome Headless Shell"; then
+          if ! echo "$output" | grep -Fq "Chrome Headless Shell"; then
             echo "::error::Chrome Headless Shell not detected by quarto check after redirect install"
             exit 1
           fi
-          if echo "$output" | grep -q "outdated"; then
+          if echo "$output" | grep -Fq "outdated"; then
             echo "::error::Unexpected 'outdated' warning — legacy chromium should have been auto-removed"
             exit 1
           fi
@@ -117,9 +120,11 @@ jobs:
         id: update-chromium
         shell: bash
         run: |
-          output=$(quarto update tool chromium --no-prompt 2>&1) || true
+          set +e
+          output=$(quarto update tool chromium --no-prompt 2>&1)
+          set -e
           echo "$output"
-          if echo "$output" | grep -q "deprecated"; then
+          if echo "$output" | grep -Fq "is deprecated"; then
             echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
           fi
 
