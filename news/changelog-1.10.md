@@ -22,7 +22,11 @@ All changes included in 1.10:
 ### `install`
 
 - ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877), [#9710](https://github.com/quarto-dev/quarto-cli/issues/9710)): Add arm64 Linux support for `quarto install chrome-headless-shell` using Playwright CDN as download source, since Chrome for Testing has no arm64 Linux builds.
-- ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877)): Deprecate `quarto install chromium` — the command now transparently redirects to `chrome-headless-shell`. Use `chrome-headless-shell` instead, which always installs the latest stable Chrome (the legacy `chromium` installer pins an outdated Puppeteer revision that cannot receive security updates).
+- ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877)): Deprecate `quarto install chromium` — the command now transparently redirects to `chrome-headless-shell`. Installing `chrome-headless-shell` automatically removes any legacy Chromium installation. Use `chrome-headless-shell` instead, which always installs the latest stable Chrome (the legacy `chromium` installer pins an outdated Puppeteer revision that cannot receive security updates).
+
+### `check`
+
+- ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877)): `quarto check install` now shows a deprecation warning when legacy Chromium (installed via `quarto install chromium`) is detected, directing users to install `chrome-headless-shell` as a replacement.
 
 ### `quarto create`
 
