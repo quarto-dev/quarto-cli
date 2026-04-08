@@ -89,18 +89,22 @@ jobs:
           fi
 
       - name: Assert deprecation warning was shown
-        if: steps.install-chromium.outputs.deprecation-warning != 'true'
         shell: bash
         run: |
-          echo "::error::Deprecation warning missing from 'quarto install chromium' output"
-          exit 1
+          if [ "${{ steps.install-chromium.outputs.deprecation-warning }}" != "true" ]; then
+            echo "::error::Deprecation warning missing from 'quarto install chromium' output"
+            exit 1
+          fi
+          echo "Install deprecation warning found"
 
       - name: Assert installation succeeded (via redirect)
-        if: steps.install-chromium.outputs.install-successful != 'true'
         shell: bash
         run: |
-          echo "::error::Installation did not succeed — redirect to chrome-headless-shell may have failed"
-          exit 1
+          if [ "${{ steps.install-chromium.outputs.install-successful }}" != "true" ]; then
+            echo "::error::Installation did not succeed — redirect to chrome-headless-shell may have failed"
+            exit 1
+          fi
+          echo "Installation succeeded via redirect"
 
       - name: Verify quarto check shows Chrome Headless Shell
         shell: bash
@@ -129,8 +133,10 @@ jobs:
           fi
 
       - name: Assert update deprecation warning was shown
-        if: steps.update-chromium.outputs.deprecation-warning != 'true'
         shell: bash
         run: |
-          echo "::error::Deprecation warning missing from 'quarto update tool chromium' output"
-          exit 1
+          if [ "${{ steps.update-chromium.outputs.deprecation-warning }}" != "true" ]; then
+            echo "::error::Deprecation warning missing from 'quarto update tool chromium' output"
+            exit 1
+          fi
+          echo "Update deprecation warning found"
