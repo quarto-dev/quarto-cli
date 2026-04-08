@@ -115,8 +115,8 @@ jobs:
             echo "::error::Chrome Headless Shell not detected by quarto check after redirect install"
             exit 1
           fi
-          if echo "$output" | grep -Fq "Chromium (deprecated)"; then
-            echo "::error::Legacy Chromium still present — afterInstall should have removed it"
+          if echo "$output" | grep -Fq 'chrome-headless-shell" to replace'; then
+            echo "::error::Legacy Chromium still installed — afterInstall should have removed it"
             exit 1
           fi
 
