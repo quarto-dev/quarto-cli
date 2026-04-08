@@ -562,8 +562,6 @@ async function detectChromeForCheck(): Promise<ChromeCheckInfo> {
       source: "quarto",
       version,
     };
-    result.warning =
-      'Chromium installed by Quarto is outdated. Run "quarto install chrome-headless-shell" to get the latest Chrome.';
   }
 
   return result;
