@@ -89,11 +89,13 @@ jobs:
           fi
 
       - name: Assert install deprecation warning was shown
-        if: steps.install-chromium.outputs.deprecation-warning != 'true'
         shell: bash
         run: |
-          echo "::error::Deprecation warning missing from quarto install chromium output"
-          exit 1
+          if [ "${{ steps.install-chromium.outputs.deprecation-warning }}" != "true" ]; then
+            echo "::error::Deprecation warning missing from quarto install chromium output"
+            exit 1
+          fi
+          echo "Install deprecation warning found"
 
       - name: Update chromium and capture result
         id: update-chromium
@@ -108,19 +110,25 @@ jobs:
           fi
 
       - name: Assert update deprecation warning was shown
-        if: steps.update-chromium.outputs.deprecation-warning != 'true'
         shell: bash
         run: |
-          echo "::error::Deprecation warning missing from quarto update chromium output"
-          exit 1
+          if [ "${{ steps.update-chromium.outputs.deprecation-warning }}" != "true" ]; then
+            echo "::error::Deprecation warning missing from quarto update chromium output"
+            exit 1
+          fi
+          echo "Update deprecation warning found"
 
       - name: Verify quarto check warns about outdated Chromium
-        if: steps.install-chromium.outputs.chromium-installed == 'true'
         shell: bash
         run: |
+          if [ "${{ steps.install-chromium.outputs.chromium-installed }}" != "true" ]; then
+            echo "Chromium install did not succeed on this platform, skipping check"
+            exit 0
+          fi
           output=$(quarto check install 2>&1)
           echo "$output"
           if ! echo "$output" | grep -Fq "Chromium is outdated"; then
             echo "::error::Outdated Chromium warning missing from quarto check"
             exit 1
           fi
+          echo "Outdated Chromium warning found in quarto check"
