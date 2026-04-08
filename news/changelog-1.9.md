@@ -6,6 +6,7 @@
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Fix transient `.quarto_ipynb` files accumulating during `quarto preview` with Jupyter engine.
 - ([#14298](https://github.com/quarto-dev/quarto-cli/issues/14298)): Fix `quarto preview` browse URL including output filename (e.g., `hello.html`) for single-file documents, breaking Posit Workbench proxied server access.
 - ([rstudio/rstudio#17333](https://github.com/rstudio/rstudio/issues/17333)): Fix `quarto inspect` on standalone files emitting project metadata that breaks RStudio's publishing wizard.
+- ([#14334](https://github.com/quarto-dev/quarto-cli/pull/14334)): Add arm64 Linux support for `quarto install chrome-headless-shell` using Playwright CDN as download source. `quarto install chromium` now shows a deprecation warning — use `chrome-headless-shell` instead, which always installs the latest stable Chrome (the legacy `chromium` installer pins an outdated Puppeteer revision that cannot receive security updates).
 
 ## In previous releases
 
