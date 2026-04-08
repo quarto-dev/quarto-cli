@@ -52,10 +52,6 @@ export const updateCommand = new Command()
     "quarto update tool chrome-headless-shell",
   )
   .example(
-    "Update Chromium (legacy)",
-    "quarto update tool chromium",
-  )
-  .example(
     "Choose tool to update",
     "quarto update tool",
   )

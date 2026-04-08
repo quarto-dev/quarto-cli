@@ -37,10 +37,6 @@ export const uninstallCommand = new Command()
     "Uninstall Chrome Headless Shell",
     "quarto uninstall chrome-headless-shell",
   )
-  .example(
-    "Uninstall Chromium (legacy)",
-    "quarto uninstall chromium",
-  )
   .action(
     async (
       options: { prompt?: boolean; updatePath?: boolean },
