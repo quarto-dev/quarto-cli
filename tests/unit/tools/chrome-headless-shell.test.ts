@@ -8,12 +8,13 @@ import { unitTest } from "../../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
-import { isWindows } from "../../../src/deno_ral/platform.ts";
+import { arch, isWindows, os } from "../../../src/deno_ral/platform.ts";
 import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
 import { detectCftPlatform, findCftExecutable } from "../../../src/tools/impl/chrome-for-testing.ts";
 import { installableTool, installableTools } from "../../../src/tools/tools.ts";
 import {
+  chromeHeadlessShellBinaryName,
   chromeHeadlessShellInstallable,
   chromeHeadlessShellInstallDir,
   chromeHeadlessShellExecutablePath,
@@ -256,4 +257,11 @@ unitTest("tool registry - installableTool looks up chrome-headless-shell", async
   const tool = installableTool("chrome-headless-shell");
   assert(tool !== undefined, "installableTool should find chrome-headless-shell");
   assertEquals(tool.name, "Chrome Headless Shell");
+});
+
+// -- arm64 support --
+
+unitTest("chromeHeadlessShellBinaryName - returns chrome-headless-shell on non-arm64", async () => {
+  if (os === "linux" && arch === "aarch64") return; // Skip on actual arm64
+  assertEquals(chromeHeadlessShellBinaryName(), "chrome-headless-shell");
 });

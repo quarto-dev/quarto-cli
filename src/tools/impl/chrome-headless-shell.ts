@@ -20,7 +20,10 @@ import {
   detectCftPlatform,
   downloadAndExtractCft,
   fetchLatestCftRelease,
+  fetchPlaywrightBrowsersJson,
   findCftExecutable,
+  isPlaywrightCdnPlatform,
+  playwrightCdnDownloadUrl,
 } from "./chrome-for-testing.ts";
 
 const kVersionFileName = "version";
@@ -33,6 +36,18 @@ export function chromeHeadlessShellInstallDir(): string {
 }
 
 /**
+ * The executable name for chrome-headless-shell on the current platform.
+ * CfT builds use "chrome-headless-shell", Playwright arm64 builds use "headless_shell".
+ */
+export function chromeHeadlessShellBinaryName(): string {
+  try {
+    return isPlaywrightCdnPlatform() ? "headless_shell" : "chrome-headless-shell";
+  } catch {
+    return "chrome-headless-shell";
+  }
+}
+
+/**
  * Find the chrome-headless-shell executable in the install directory.
  * Returns the absolute path if installed, undefined otherwise.
  */
@@ -41,7 +56,7 @@ export function chromeHeadlessShellExecutablePath(): string | undefined {
   if (!existsSync(dir)) {
     return undefined;
   }
-  return findCftExecutable(dir, "chrome-headless-shell");
+  return findCftExecutable(dir, chromeHeadlessShellBinaryName());
 }
 
 /** Record the installed version as a plain text file. */
@@ -62,7 +77,7 @@ export function readInstalledVersion(dir: string): string | undefined {
 /** Check if chrome-headless-shell is installed in the given directory. */
 export function isInstalled(dir: string): boolean {
   return existsSync(join(dir, kVersionFileName)) &&
-    findCftExecutable(dir, "chrome-headless-shell") !== undefined;
+    findCftExecutable(dir, chromeHeadlessShellBinaryName()) !== undefined;
 }
 
 // -- InstallableTool methods --
@@ -84,8 +99,22 @@ async function installedVersion(): Promise<string | undefined> {
 }
 
 async function latestRelease(): Promise<RemotePackageInfo> {
+  const platformInfo = detectCftPlatform();
+
+  if (isPlaywrightCdnPlatform(platformInfo)) {
+    // arm64 Linux: use Playwright CDN
+    const entry = await fetchPlaywrightBrowsersJson();
+    const url = playwrightCdnDownloadUrl(entry.revision);
+    return {
+      url,
+      version: entry.browserVersion,
+      assets: [{ name: "chrome-headless-shell", url }],
+    };
+  }
+
+  // All other platforms: use CfT API
   const release = await fetchLatestCftRelease();
-  const { platform } = detectCftPlatform();
+  const { platform } = platformInfo;
 
   const downloads = release.downloads["chrome-headless-shell"];
   if (!downloads) {
@@ -110,13 +139,15 @@ async function preparePackage(ctx: InstallContext): Promise<PackageInfo> {
   const release = await latestRelease();
   const workingDir = Deno.makeTempDirSync({ prefix: "quarto-chrome-hs-" });
 
+  const binaryName = chromeHeadlessShellBinaryName();
+
   try {
     await downloadAndExtractCft(
       "Chrome Headless Shell",
       release.url,
       workingDir,
       ctx,
-      "chrome-headless-shell",
+      binaryName,
     );
   } catch (e) {
     safeRemoveSync(workingDir, { recursive: true });
