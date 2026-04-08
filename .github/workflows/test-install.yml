@@ -115,8 +115,8 @@ jobs:
             echo "::error::Chrome Headless Shell not detected by quarto check after redirect install"
             exit 1
           fi
-          if echo "$output" | grep -Fq "outdated"; then
-            echo "::error::Unexpected 'outdated' warning — legacy chromium should have been auto-removed"
+          if echo "$output" | grep -Fq "Chromium (deprecated)"; then
+            echo "::error::Legacy Chromium still present — afterInstall should have removed it"
             exit 1
           fi
 
@@ -126,13 +126,17 @@ jobs:
         run: |
           set +e
           output=$(quarto update tool chromium --no-prompt 2>&1)
+          exit_code=$?
           set -e
           echo "$output"
           if echo "$output" | grep -Fq "is deprecated"; then
             echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
           fi
+          if [ "$exit_code" -eq 0 ]; then
+            echo "update-successful=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Assert update deprecation warning was shown
+      - name: Assert update deprecation warning was shown and succeeded
         shell: bash
         run: |
           if [ "${{ steps.update-chromium.outputs.deprecation-warning }}" != "true" ]; then
@@ -140,3 +144,8 @@ jobs:
             exit 1
           fi
           echo "Update deprecation warning found"
+          if [ "${{ steps.update-chromium.outputs.update-successful }}" != "true" ]; then
+            echo "::error::Update command failed — redirect to chrome-headless-shell may have failed"
+            exit 1
+          fi
+          echo "Update succeeded via redirect"
