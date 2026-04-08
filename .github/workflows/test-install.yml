@@ -85,11 +85,28 @@ jobs:
             echo "chromium-installed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Assert deprecation warning was shown
+      - name: Assert install deprecation warning was shown
         if: steps.install-chromium.outputs.deprecation-warning != 'true'
         shell: bash
         run: |
           echo "::error::Deprecation warning missing from quarto install chromium output"
+          exit 1
+
+      - name: Update chromium and capture result
+        id: update-chromium
+        shell: bash
+        run: |
+          output=$(quarto update chromium --no-prompt 2>&1) || true
+          echo "$output"
+          if echo "$output" | grep -q "deprecated"; then
+            echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Assert update deprecation warning was shown
+        if: steps.update-chromium.outputs.deprecation-warning != 'true'
+        shell: bash
+        run: |
+          echo "::error::Deprecation warning missing from quarto update chromium output"
           exit 1
 
       - name: Verify quarto check warns about outdated Chromium
