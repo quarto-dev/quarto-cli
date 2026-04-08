@@ -43,6 +43,8 @@ jobs:
           quarto install tinytex
 
       - name: Install Chrome Headless Shell
+        # arm64 Linux support requires #14334. Remove this condition once merged.
+        if: runner.arch != 'ARM64'
         run: |
           quarto install chrome-headless-shell --no-prompt
 
