@@ -1,0 +1,53 @@
+# Integration test for `quarto install` on platforms not covered by smoke tests.
+# Smoke tests (test-smokes.yml) cover x86_64 Linux and Windows.
+# This workflow fills the gap for arm64 Linux and macOS.
+name: Test Tool Install
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - "v1.*"
+    paths:
+      - "src/tools/**"
+      - ".github/workflows/test-install.yml"
+  pull_request:
+    paths:
+      - "src/tools/**"
+      - ".github/workflows/test-install.yml"
+  schedule:
+    # Weekly Monday 9am UTC — detect upstream CDN/API breakage
+    - cron: "0 9 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  test-install:
+    name: Install tools (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04-arm, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Install TinyTeX
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          quarto install tinytex
+
+      - name: Install Chrome Headless Shell
+        # arm64 Linux support requires #14334. Remove this condition once merged.
+        if: runner.arch != 'ARM64'
+        run: |
+          quarto install chrome-headless-shell --no-prompt
+
+      - name: Verify tools with quarto check
+        run: |
+          quarto check install

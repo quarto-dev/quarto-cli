@@ -20,6 +20,7 @@ on:
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
       - ".github/workflows/test-smokes-parallel.yml"
+      - ".github/workflows/test-install.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
       - ".github/workflows/update-test-timing.yml"
   pull_request:
@@ -31,6 +32,7 @@ on:
       - ".github/workflows/performance-check.yml"
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
+      - ".github/workflows/test-install.yml"
       - ".github/workflows/test-smokes-parallel.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
       - ".github/workflows/update-test-timing.yml"
