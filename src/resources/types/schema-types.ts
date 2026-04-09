@@ -331,6 +331,8 @@ export type OpenGraphConfig = {
 provided in the `open-graph` metadata, Quarto will use the website or
 book `title` by default. */;
   locale?: string; /* Locale of open graph metadata */
+  type?: string; /* Content to use for the `og:type` tag */
+  url?: string; /* Content to use for the `og:url` tag */
 } & SocialMetadata;
 
 export type PageFooter = {

@@ -1,0 +1,21 @@
+---
+title: "Override Open Graph"
+description: "A test post for Open Graph metadata overrides."
+date: "2026-04-02"
+author: "Quarto Tester"
+website:
+  open-graph:
+    type: website
+    url: https://www.example.com/
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:type" content="website">'
+          - '<meta property="og:url" content="https://www.example.com/">'
+        - []
+---
+
+This is a test post with overridden Open Graph metadata.

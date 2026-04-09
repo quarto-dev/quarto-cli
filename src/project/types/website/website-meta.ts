@@ -8,6 +8,10 @@ import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "../../../deno_ral/path.ts";
 import {
   kAbstract,
+  kAuthor,
+  kAuthors,
+  kDate,
+  kDateModified,
   kDescription,
   kNumberSections,
   kSubtitle,
@@ -49,9 +53,12 @@ import { imageSize } from "../../../core/image.ts";
 import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
 import { joinUrl } from "../../../core/url.ts";
 import { truncateText } from "../../../core/text.ts";
+import { synthesizeCitationUrl } from "../../../quarto-core/attribution/document.ts";
 import { websiteImage } from "./website-config.ts";
 
 const kCard = "card";
+const kType = "type";
+const kUrl = "url";
 
 interface SocialMetadataProvider {
   key: string;
@@ -117,6 +124,17 @@ export function metadataHtmlPostProcessor(
         }
 
         return value;
+      },
+      resolveDefaults: (finalMetadata: Metadata) => {
+        if (finalMetadata[kType] === undefined) {
+          finalMetadata[kType] = openGraphType(format);
+        }
+        if (finalMetadata[kUrl] === undefined) {
+          const url = openGraphUrl(source, project, format);
+          if (url) {
+            finalMetadata[kUrl] = url;
+          }
+        }
       },
     };
 
@@ -261,6 +279,8 @@ function opengraphMetadata(
       kImageWidth,
       kLocale,
       kSiteName,
+      kType,
+      kUrl,
     ].forEach((key) => {
       if (openGraph[key] !== undefined) {
         metadata[key] = openGraph[key];
@@ -343,6 +363,28 @@ function resolveImageMetadata(
 
     return inputRelImg as string;
   }
+}
+
+function openGraphType(format: Format) {
+  return format.metadata[kDate] !== undefined ||
+      format.metadata[kDateModified] !== undefined ||
+      format.metadata[kAuthor] !== undefined ||
+      format.metadata[kAuthors] !== undefined
+    ? "article"
+    : "website";
+}
+
+function openGraphUrl(
+  source: string,
+  project: ProjectContext,
+  format: Format,
+) {
+  return synthesizeCitationUrl(
+    source,
+    format.metadata,
+    format.pandoc["output-file"],
+    relative(dirname(source), project.dir),
+  );
 }
 
 function mergedSiteAndDocumentData(
