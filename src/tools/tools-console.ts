@@ -149,6 +149,14 @@ export async function updateOrInstallTool(
   prompt?: boolean,
   updatePath?: boolean,
 ) {
+  // Deprecation warning for chromium
+  if (tool.toLowerCase() === "chromium" && action === "update") {
+    warning(
+      '"quarto update chromium" is deprecated and will be removed in Quarto 1.10. ' +
+        'Use "quarto install chrome-headless-shell" instead.',
+    );
+  }
+
   const summary = await toolSummary(tool);
 
   if (action === "update") {

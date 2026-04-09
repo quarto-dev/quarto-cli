@@ -8,12 +8,13 @@ import { unitTest } from "../../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
-import { isWindows } from "../../../src/deno_ral/platform.ts";
+import { arch, isWindows, os } from "../../../src/deno_ral/platform.ts";
 import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
-import { detectCftPlatform, findCftExecutable } from "../../../src/tools/impl/chrome-for-testing.ts";
+import { detectCftPlatform, findCftExecutable, isPlaywrightCdnPlatform } from "../../../src/tools/impl/chrome-for-testing.ts";
 import { installableTool, installableTools } from "../../../src/tools/tools.ts";
 import {
+  chromeHeadlessShellBinaryName,
   chromeHeadlessShellInstallable,
   chromeHeadlessShellInstallDir,
   chromeHeadlessShellExecutablePath,
@@ -92,10 +93,13 @@ unitTest("isInstalled - returns false when only binary exists (no version file)"
   const tempDir = Deno.makeTempDirSync();
   try {
     const { platform } = detectCftPlatform();
+    const binName = chromeHeadlessShellBinaryName();
+    // CfT layout: chrome-headless-shell-{platform}/binary
+    // Playwright arm64 layout: chrome-linux/binary (found via walkSync fallback)
     const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
-    const binaryName = isWindows ? "chrome-headless-shell.exe" : "chrome-headless-shell";
-    Deno.writeTextFileSync(join(subdir, binaryName), "fake");
+    const target = isWindows ? `${binName}.exe` : binName;
+    Deno.writeTextFileSync(join(subdir, target), "fake");
     assertEquals(isInstalled(tempDir), false);
   } finally {
     safeRemoveSync(tempDir, { recursive: true });
@@ -107,10 +111,11 @@ unitTest("isInstalled - returns true when version file and binary exist", async 
   try {
     noteInstalledVersion(tempDir, "145.0.0.0");
     const { platform } = detectCftPlatform();
+    const binName = chromeHeadlessShellBinaryName();
     const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
-    const binaryName = isWindows ? "chrome-headless-shell.exe" : "chrome-headless-shell";
-    Deno.writeTextFileSync(join(subdir, binaryName), "fake");
+    const target = isWindows ? `${binName}.exe` : binName;
+    Deno.writeTextFileSync(join(subdir, target), "fake");
 
     assertEquals(isInstalled(tempDir), true);
   } finally {
@@ -128,7 +133,12 @@ unitTest("latestRelease - returns valid RemotePackageInfo", async () => {
     `version format wrong: ${release.version}`,
   );
   assert(release.url.startsWith("https://"), `URL should be https: ${release.url}`);
-  assert(release.url.includes(release.version), "URL should contain version");
+  // CfT URLs contain the version; Playwright CDN URLs contain a revision number instead
+  if (!isPlaywrightCdnPlatform()) {
+    assert(release.url.includes(release.version), "CfT URL should contain version");
+  } else {
+    assert(release.url.includes("cdn.playwright.dev"), "arm64 URL should use Playwright CDN");
+  }
   assert(release.assets.length > 0, "should have at least one asset");
   assertEquals(release.assets[0].name, "chrome-headless-shell");
 }, { ignore: runningInCI() });
@@ -162,7 +172,7 @@ unitTest("preparePackage - downloads and extracts chrome-headless-shell", async 
   try {
     assert(pkg.version, "version should be non-empty");
     assert(pkg.filePath, "filePath should be non-empty");
-    const binary = findCftExecutable(pkg.filePath, "chrome-headless-shell");
+    const binary = findCftExecutable(pkg.filePath, chromeHeadlessShellBinaryName());
     assert(binary !== undefined, "binary should exist in extracted dir");
   } finally {
     safeRemoveSync(pkg.filePath, { recursive: true });
@@ -256,4 +266,11 @@ unitTest("tool registry - installableTool looks up chrome-headless-shell", async
   const tool = installableTool("chrome-headless-shell");
   assert(tool !== undefined, "installableTool should find chrome-headless-shell");
   assertEquals(tool.name, "Chrome Headless Shell");
+});
+
+// -- arm64 support --
+
+unitTest("chromeHeadlessShellBinaryName - returns chrome-headless-shell on non-arm64", async () => {
+  if (os === "linux" && arch === "aarch64") return; // Skip on actual arm64
+  assertEquals(chromeHeadlessShellBinaryName(), "chrome-headless-shell");
 });

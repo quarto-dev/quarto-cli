@@ -1,0 +1,134 @@
+# Integration test for `quarto install` on platforms not covered by smoke tests.
+# Smoke tests (test-smokes.yml) cover x86_64 Linux and Windows.
+# This workflow fills the gap for arm64 Linux and macOS.
+name: Test Tool Install
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - "v1.*"
+    paths:
+      - "src/tools/**"
+      - ".github/workflows/test-install.yml"
+  pull_request:
+    paths:
+      - "src/tools/**"
+      - ".github/workflows/test-install.yml"
+  schedule:
+    # Weekly Monday 9am UTC — detect upstream CDN/API breakage
+    - cron: "0 9 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  test-install:
+    name: Install tools (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04-arm, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Install TinyTeX
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          quarto install tinytex
+
+      - name: Install Chrome Headless Shell
+        run: |
+          quarto install chrome-headless-shell --no-prompt
+
+      - name: Verify tools with quarto check
+        run: |
+          quarto check install
+
+  test-chromium-deprecation:
+    name: Chromium deprecation warning (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Make quarto available in bash (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          quarto_cmd=$(command -v quarto.cmd)
+          dir=$(dirname "$quarto_cmd")
+          printf '#!/bin/bash\nexec "%s" "$@"\n' "$quarto_cmd" > "$dir/quarto"
+          chmod +x "$dir/quarto"
+
+      - name: Install chromium and capture result
+        id: install-chromium
+        shell: bash
+        run: |
+          set +e
+          output=$(quarto install chromium --no-prompt 2>&1)
+          exit_code=$?
+          set -e
+          echo "$output"
+          if echo "$output" | grep -Fq "is deprecated"; then
+            echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "$exit_code" -eq 0 ]; then
+            echo "chromium-installed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Assert install deprecation warning was shown
+        shell: bash
+        run: |
+          if [ "${{ steps.install-chromium.outputs.deprecation-warning }}" != "true" ]; then
+            echo "::error::Deprecation warning missing from quarto install chromium output"
+            exit 1
+          fi
+          echo "Install deprecation warning found"
+
+      - name: Update chromium and capture result
+        id: update-chromium
+        shell: bash
+        run: |
+          set +e
+          output=$(quarto update chromium --no-prompt 2>&1)
+          set -e
+          echo "$output"
+          if echo "$output" | grep -Fq "is deprecated"; then
+            echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Assert update deprecation warning was shown
+        shell: bash
+        run: |
+          if [ "${{ steps.update-chromium.outputs.deprecation-warning }}" != "true" ]; then
+            echo "::error::Deprecation warning missing from quarto update chromium output"
+            exit 1
+          fi
+          echo "Update deprecation warning found"
+
+      - name: Verify quarto check warns about outdated Chromium
+        shell: bash
+        run: |
+          if [ "${{ steps.install-chromium.outputs.chromium-installed }}" != "true" ]; then
+            echo "Chromium install did not succeed on this platform, skipping check"
+            exit 0
+          fi
+          output=$(quarto check install 2>&1)
+          echo "$output"
+          if ! echo "$output" | grep -Fq "Chromium is outdated"; then
+            echo "::error::Outdated Chromium warning missing from quarto check"
+            exit 1
+          fi
+          echo "Outdated Chromium warning found in quarto check"

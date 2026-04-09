@@ -364,6 +364,11 @@ async function checkInstall(conf: CheckConfiguration) {
       toolsJson[tool.name] = {
         version,
       };
+      if (tool.name === "Chromium") {
+        toolsOutput.push(
+          `${kIndent}      (Chromium is outdated. Run "quarto uninstall chromium" then "quarto install chrome-headless-shell")`,
+        );
+      }
     }
     for (const tool of tools.notInstalled) {
       toolsOutput.push(`${kIndent}${tool.name}: (not installed)`);
