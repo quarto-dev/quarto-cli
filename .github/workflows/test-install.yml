@@ -120,6 +120,16 @@ jobs:
             exit 1
           fi
 
+      - name: Verify quarto list tools does not show chromium
+        shell: bash
+        run: |
+          output=$(quarto list tools 2>&1)
+          echo "$output"
+          if echo "$output" | grep -iq "chromium"; then
+            echo "::error::Deprecated chromium should not appear in 'quarto list tools' when not installed"
+            exit 1
+          fi
+
       - name: Update chromium (should redirect) and capture result
         id: update-chromium
         shell: bash
