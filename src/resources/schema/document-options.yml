@@ -70,6 +70,14 @@
     formats: [$html-doc]
   description: Enables hover over a section title to see an anchor link.
 
+- name: section-collapse
+  schema:
+    enum: [true, false, "closed"]
+  default: false
+  tags:
+    formats: [$html-doc]
+  description: Add a button that collapses the content below a header
+
 - name: tabsets
   schema: boolean
   default: true
