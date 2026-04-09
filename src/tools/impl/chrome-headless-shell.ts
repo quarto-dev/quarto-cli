@@ -1,7 +1,8 @@
 /*
  * chrome-headless-shell.ts
  *
- * InstallableTool implementation for Chrome Headless Shell via Chrome for Testing (CfT).
+ * InstallableTool implementation for Chrome Headless Shell via Chrome for Testing (CfT)
+ * and Playwright CDN (arm64 Linux).
  * Provides quarto install/uninstall chrome-headless-shell functionality.
  *
  * Copyright (C) 2026 Posit Software, PBC
@@ -9,7 +10,6 @@
 
 import { join } from "../../deno_ral/path.ts";
 import { existsSync, safeMoveSync, safeRemoveSync } from "../../deno_ral/fs.ts";
-import { quartoDataDir } from "../../core/appdirs.ts";
 import {
   InstallableTool,
   InstallContext,
@@ -17,53 +17,22 @@ import {
   RemotePackageInfo,
 } from "../types.ts";
 import {
-  detectCftPlatform,
-  downloadAndExtractCft,
+  detectChromePlatform,
+  downloadAndExtractChrome,
   fetchLatestCftRelease,
-  findCftExecutable,
+  fetchPlaywrightBrowsersJson,
+  isPlaywrightCdnPlatform,
+  playwrightCdnDownloadUrl,
 } from "./chrome-for-testing.ts";
+import {
+  chromeHeadlessShellBinaryName,
+  chromeHeadlessShellInstallDir,
+  isInstalled,
+  noteInstalledVersion,
+  readInstalledVersion,
+} from "./chrome-headless-shell-paths.ts";
+import { chromiumInstallable } from "./chromium.ts";
 
-const kVersionFileName = "version";
-
-// -- Version helpers --
-
-/** Return the chrome-headless-shell install directory under quartoDataDir. */
-export function chromeHeadlessShellInstallDir(): string {
-  return quartoDataDir("chrome-headless-shell");
-}
-
-/**
- * Find the chrome-headless-shell executable in the install directory.
- * Returns the absolute path if installed, undefined otherwise.
- */
-export function chromeHeadlessShellExecutablePath(): string | undefined {
-  const dir = chromeHeadlessShellInstallDir();
-  if (!existsSync(dir)) {
-    return undefined;
-  }
-  return findCftExecutable(dir, "chrome-headless-shell");
-}
-
-/** Record the installed version as a plain text file. */
-export function noteInstalledVersion(dir: string, version: string): void {
-  Deno.writeTextFileSync(join(dir, kVersionFileName), version);
-}
-
-/** Read the installed version. Returns undefined if not present. */
-export function readInstalledVersion(dir: string): string | undefined {
-  const path = join(dir, kVersionFileName);
-  if (!existsSync(path)) {
-    return undefined;
-  }
-  const text = Deno.readTextFileSync(path).trim();
-  return text || undefined;
-}
-
-/** Check if chrome-headless-shell is installed in the given directory. */
-export function isInstalled(dir: string): boolean {
-  return existsSync(join(dir, kVersionFileName)) &&
-    findCftExecutable(dir, "chrome-headless-shell") !== undefined;
-}
 
 // -- InstallableTool methods --
 
@@ -84,8 +53,22 @@ async function installedVersion(): Promise<string | undefined> {
 }
 
 async function latestRelease(): Promise<RemotePackageInfo> {
+  const platformInfo = detectChromePlatform();
+
+  if (isPlaywrightCdnPlatform(platformInfo)) {
+    // arm64 Linux: use Playwright CDN
+    const entry = await fetchPlaywrightBrowsersJson();
+    const url = playwrightCdnDownloadUrl(entry.revision);
+    return {
+      url,
+      version: entry.browserVersion,
+      assets: [{ name: "chrome-headless-shell", url }],
+    };
+  }
+
+  // All other platforms: use CfT API
   const release = await fetchLatestCftRelease();
-  const { platform } = detectCftPlatform();
+  const { platform } = platformInfo;
 
   const downloads = release.downloads["chrome-headless-shell"];
   if (!downloads) {
@@ -110,13 +93,15 @@ async function preparePackage(ctx: InstallContext): Promise<PackageInfo> {
   const release = await latestRelease();
   const workingDir = Deno.makeTempDirSync({ prefix: "quarto-chrome-hs-" });
 
+  const binaryName = chromeHeadlessShellBinaryName();
+
   try {
-    await downloadAndExtractCft(
+    await downloadAndExtractChrome(
       "Chrome Headless Shell",
       release.url,
       workingDir,
       ctx,
-      "chrome-headless-shell",
+      binaryName,
     );
   } catch (e) {
     safeRemoveSync(workingDir, { recursive: true });
@@ -147,7 +132,19 @@ async function install(pkg: PackageInfo, _ctx: InstallContext): Promise<void> {
   noteInstalledVersion(installDir, pkg.version);
 }
 
-async function afterInstall(_ctx: InstallContext): Promise<boolean> {
+async function afterInstall(ctx: InstallContext): Promise<boolean> {
+  // Clean up legacy chromium installed by 'quarto install chromium'
+  try {
+    if (await chromiumInstallable.installed()) {
+      ctx.info("Removing legacy Chromium installation...");
+      await chromiumInstallable.uninstall(ctx);
+    }
+  } catch {
+    ctx.info(
+      "Note: Could not remove legacy Chromium. " +
+        "You can remove it manually with 'quarto uninstall chromium'.",
+    );
+  }
   return false;
 }
 

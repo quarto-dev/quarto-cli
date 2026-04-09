@@ -43,11 +43,109 @@ jobs:
           quarto install tinytex
 
       - name: Install Chrome Headless Shell
-        # arm64 Linux support requires #14334. Remove this condition once merged.
-        if: runner.arch != 'ARM64'
         run: |
           quarto install chrome-headless-shell --no-prompt
 
       - name: Verify tools with quarto check
         run: |
           quarto check install
+
+  test-chromium-deprecation:
+    name: Chromium deprecation redirect (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Make quarto available in bash (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          quarto_cmd=$(command -v quarto.cmd)
+          dir=$(dirname "$quarto_cmd")
+          printf '#!/bin/bash\nexec "%s" "$@"\n' "$quarto_cmd" > "$dir/quarto"
+          chmod +x "$dir/quarto"
+
+      - name: Install chromium (should redirect to chrome-headless-shell)
+        id: install-chromium
+        shell: bash
+        run: |
+          set +e
+          output=$(quarto install chromium --no-prompt 2>&1)
+          exit_code=$?
+          set -e
+          echo "$output"
+          if echo "$output" | grep -Fq "is deprecated"; then
+            echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "$exit_code" -eq 0 ]; then
+            echo "install-successful=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Assert deprecation warning was shown
+        shell: bash
+        run: |
+          if [ "${{ steps.install-chromium.outputs.deprecation-warning }}" != "true" ]; then
+            echo "::error::Deprecation warning missing from 'quarto install chromium' output"
+            exit 1
+          fi
+          echo "Install deprecation warning found"
+
+      - name: Assert installation succeeded (via redirect)
+        shell: bash
+        run: |
+          if [ "${{ steps.install-chromium.outputs.install-successful }}" != "true" ]; then
+            echo "::error::Installation did not succeed — redirect to chrome-headless-shell may have failed"
+            exit 1
+          fi
+          echo "Installation succeeded via redirect"
+
+      - name: Verify quarto check shows Chrome Headless Shell
+        shell: bash
+        run: |
+          output=$(quarto check install 2>&1)
+          echo "$output"
+          if ! echo "$output" | grep -Fq "Chrome Headless Shell"; then
+            echo "::error::Chrome Headless Shell not detected by quarto check after redirect install"
+            exit 1
+          fi
+          if echo "$output" | grep -Fq 'chrome-headless-shell" to replace'; then
+            echo "::error::Legacy Chromium still installed — afterInstall should have removed it"
+            exit 1
+          fi
+
+      - name: Update chromium (should redirect) and capture result
+        id: update-chromium
+        shell: bash
+        run: |
+          set +e
+          output=$(quarto update tool chromium --no-prompt 2>&1)
+          exit_code=$?
+          set -e
+          echo "$output"
+          if echo "$output" | grep -Fq "is deprecated"; then
+            echo "deprecation-warning=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "$exit_code" -eq 0 ]; then
+            echo "update-successful=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Assert update deprecation warning was shown and succeeded
+        shell: bash
+        run: |
+          if [ "${{ steps.update-chromium.outputs.deprecation-warning }}" != "true" ]; then
+            echo "::error::Deprecation warning missing from 'quarto update tool chromium' output"
+            exit 1
+          fi
+          echo "Update deprecation warning found"
+          if [ "${{ steps.update-chromium.outputs.update-successful }}" != "true" ]; then
+            echo "::error::Update command failed — redirect to chrome-headless-shell may have failed"
+            exit 1
+          fi
+          echo "Update succeeded via redirect"

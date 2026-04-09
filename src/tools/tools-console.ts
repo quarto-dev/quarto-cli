@@ -149,6 +149,27 @@ export async function updateOrInstallTool(
   prompt?: boolean,
   updatePath?: boolean,
 ) {
+  // Deprecation: redirect chromium → chrome-headless-shell
+  if (tool.toLowerCase() === "chromium") {
+    warning(
+      "'chromium' is deprecated. Installing 'chrome-headless-shell' instead.\n" +
+        "Please update your scripts to use 'quarto install chrome-headless-shell'.",
+    );
+    if (action === "update") {
+      // Check if chrome-headless-shell is already present to pick the right action
+      const chsSummary = await toolSummary("chrome-headless-shell");
+      const redirectAction = chsSummary?.installed ? "update" : "install";
+      // Uninstall legacy chromium before delegating to chrome-headless-shell.
+      // We can't do this after because installTool/updateTool call Deno.exit.
+      const legacyTool = installableTool("chromium");
+      if (legacyTool && await legacyTool.installed()) {
+        await uninstallTool("chromium");
+      }
+      return updateOrInstallTool("chrome-headless-shell", redirectAction, prompt, updatePath);
+    }
+    return updateOrInstallTool("chrome-headless-shell", "install", prompt, updatePath);
+  }
+
   const summary = await toolSummary(tool);
 
   if (action === "update") {

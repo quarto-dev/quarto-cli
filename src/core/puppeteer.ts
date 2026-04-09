@@ -16,7 +16,7 @@ import {
   chromeHeadlessShellExecutablePath,
   chromeHeadlessShellInstallDir,
   readInstalledVersion,
-} from "../tools/impl/chrome-headless-shell.ts";
+} from "../tools/impl/chrome-headless-shell-paths.ts";
 
 // deno-lint-ignore no-explicit-any
 // let puppeteerImport: any = undefined;

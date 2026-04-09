@@ -11,16 +11,23 @@ import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
-import { detectCftPlatform, findCftExecutable } from "../../../src/tools/impl/chrome-for-testing.ts";
+import {
+  detectChromePlatform,
+  fetchPlaywrightBrowsersJson,
+  findChromeExecutable,
+  isPlaywrightCdnPlatform,
+  playwrightCdnDownloadUrl,
+} from "../../../src/tools/impl/chrome-for-testing.ts";
 import { installableTool, installableTools } from "../../../src/tools/tools.ts";
 import {
-  chromeHeadlessShellInstallable,
+  chromeHeadlessShellBinaryName,
   chromeHeadlessShellInstallDir,
   chromeHeadlessShellExecutablePath,
   isInstalled,
   noteInstalledVersion,
   readInstalledVersion,
-} from "../../../src/tools/impl/chrome-headless-shell.ts";
+} from "../../../src/tools/impl/chrome-headless-shell-paths.ts";
+import { chromeHeadlessShellInstallable } from "../../../src/tools/impl/chrome-headless-shell.ts";
 
 // -- Step 1: Install directory + executable path --
 
@@ -91,11 +98,14 @@ unitTest("isInstalled - returns false when only version file exists", async () =
 unitTest("isInstalled - returns false when only binary exists (no version file)", async () => {
   const tempDir = Deno.makeTempDirSync();
   try {
-    const { platform } = detectCftPlatform();
+    const { platform } = detectChromePlatform();
+    const binName = chromeHeadlessShellBinaryName();
+    // CfT layout: chrome-headless-shell-{platform}/binary
+    // Playwright arm64 layout: chrome-linux/binary (found via walkSync fallback)
     const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
-    const binaryName = isWindows ? "chrome-headless-shell.exe" : "chrome-headless-shell";
-    Deno.writeTextFileSync(join(subdir, binaryName), "fake");
+    const target = isWindows ? `${binName}.exe` : binName;
+    Deno.writeTextFileSync(join(subdir, target), "fake");
     assertEquals(isInstalled(tempDir), false);
   } finally {
     safeRemoveSync(tempDir, { recursive: true });
@@ -106,11 +116,12 @@ unitTest("isInstalled - returns true when version file and binary exist", async 
   const tempDir = Deno.makeTempDirSync();
   try {
     noteInstalledVersion(tempDir, "145.0.0.0");
-    const { platform } = detectCftPlatform();
+    const { platform } = detectChromePlatform();
+    const binName = chromeHeadlessShellBinaryName();
     const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
-    const binaryName = isWindows ? "chrome-headless-shell.exe" : "chrome-headless-shell";
-    Deno.writeTextFileSync(join(subdir, binaryName), "fake");
+    const target = isWindows ? `${binName}.exe` : binName;
+    Deno.writeTextFileSync(join(subdir, target), "fake");
 
     assertEquals(isInstalled(tempDir), true);
   } finally {
@@ -128,9 +139,35 @@ unitTest("latestRelease - returns valid RemotePackageInfo", async () => {
     `version format wrong: ${release.version}`,
   );
   assert(release.url.startsWith("https://"), `URL should be https: ${release.url}`);
-  assert(release.url.includes(release.version), "URL should contain version");
+  // CfT URLs contain the version; Playwright CDN URLs contain a revision number instead
+  if (!isPlaywrightCdnPlatform()) {
+    assert(release.url.includes(release.version), "CfT URL should contain version");
+  } else {
+    assert(release.url.includes("cdn.playwright.dev"), "arm64 URL should use Playwright CDN");
+  }
   assert(release.assets.length > 0, "should have at least one asset");
   assertEquals(release.assets[0].name, "chrome-headless-shell");
+}, { ignore: runningInCI() });
+
+// -- Playwright CDN integration --
+// Skipped on CI: makes external HTTP calls to GitHub/Playwright CDN.
+// Same pattern as CfT API tests above — run locally to catch API contract changes.
+
+unitTest("Playwright CDN - browsers.json and URL construction", async () => {
+  const entry = await fetchPlaywrightBrowsersJson();
+  const url = playwrightCdnDownloadUrl(entry.revision);
+  assert(
+    /^\d+\.\d+\.\d+\.\d+$/.test(entry.browserVersion),
+    `browserVersion format wrong: ${entry.browserVersion}`,
+  );
+  assert(
+    url.includes(entry.revision),
+    `URL should contain revision ${entry.revision}`,
+  );
+  assert(
+    url.includes("linux-arm64"),
+    "URL should be for linux-arm64",
+  );
 }, { ignore: runningInCI() });
 
 // -- Step 5: preparePackage() (downloads ~50MB, skip on CI) --
@@ -162,7 +199,7 @@ unitTest("preparePackage - downloads and extracts chrome-headless-shell", async 
   try {
     assert(pkg.version, "version should be non-empty");
     assert(pkg.filePath, "filePath should be non-empty");
-    const binary = findCftExecutable(pkg.filePath, "chrome-headless-shell");
+    const binary = findChromeExecutable(pkg.filePath, chromeHeadlessShellBinaryName());
     assert(binary !== undefined, "binary should exist in extracted dir");
   } finally {
     safeRemoveSync(pkg.filePath, { recursive: true });
