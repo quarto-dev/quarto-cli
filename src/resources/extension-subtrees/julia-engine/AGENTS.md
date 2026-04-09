@@ -59,3 +59,7 @@ CI runs on all three platforms (Linux, macOS, Windows) against a pinned quarto-c
 3. Runs the full test suite
 
 When bumping `QUARTO_CLI_REV`, use the full commit hash annotated with the version tag for clarity (e.g. `abc123 # v1.9.35`).
+
+## Changelog
+
+Every PR with user-facing or otherwise meaningful changes must include an update to `CHANGELOG.md` (enforced by CI). Add entries under the `## Unreleased` section. Use the `skip-changelog` label to bypass the check for PRs that don't need an entry (e.g. internal cleanups, CI, or docs changes).

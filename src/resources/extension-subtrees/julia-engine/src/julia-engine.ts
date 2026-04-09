@@ -37,6 +37,7 @@ import {
   kIpynbProduceSourceNotebook,
   kJuliaEngine,
   kKeepHidden,
+  kKeepIpynb,
 } from "./constants.ts";
 
 // Platform detection
@@ -219,6 +220,14 @@ export const juliaEngineDiscovery: ExecutionEngineDiscovery = {
           options.target.input,
           options.format.pandoc.to,
         );
+
+        // Write notebook to file if keep-ipynb is set (must happen before
+        // toMarkdown which mutates nb in place)
+        if (options.format.execute[kKeepIpynb]) {
+          const stem = options.target.source.replace(/\.[^.]+$/, "");
+          const ipynbPath = stem + ".ipynb";
+          Deno.writeTextFileSync(ipynbPath, JSON.stringify(nb, null, 2));
+        }
 
         // NOTE: for perforance reasons the 'nb' is mutated in place
         // by jupyterToMarkdown (we don't want to make a copy of a
