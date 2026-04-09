@@ -37,6 +37,13 @@ const kInstallableTools: { [key: string]: InstallableTool } = {
   verapdf: verapdfInstallable,
 };
 
+// Tools deprecated in v1.10, to be removed from the registry in v1.11
+const kDeprecatedTools = new Set(["chromium"]);
+
+export function isDeprecatedTool(key: string): boolean {
+  return kDeprecatedTools.has(key);
+}
+
 export async function allTools(): Promise<{
   installed: InstallableTool[];
   notInstalled: InstallableTool[];
@@ -50,7 +57,7 @@ export async function allTools(): Promise<{
     const isInstalled = await tool.installed();
     if (isInstalled) {
       installed.push(tool);
-    } else {
+    } else if (!isDeprecatedTool(name)) {
       notInstalled.push(tool);
     }
   }

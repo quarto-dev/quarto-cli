@@ -12,6 +12,7 @@ import {
   installableTool,
   installableTools,
   installTool,
+  isDeprecatedTool,
   toolSummary,
   uninstallTool,
   updateTool,
@@ -94,6 +95,7 @@ export async function loadTools(): Promise<ToolInfo[]> {
     for (const key of installableTools()) {
       const tool = installableTool(key);
       const installed = await tool.installed();
+      if (!installed && isDeprecatedTool(key)) continue;
       const version = await tool.installedVersion();
       const latest = await tool.latestRelease();
       toolInfos.push({ key, tool, version, installed, latest });
