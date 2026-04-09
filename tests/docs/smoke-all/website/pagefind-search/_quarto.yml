@@ -1,0 +1,14 @@
+project:
+  type: website
+
+website:
+  title: "Pagefind Test Site"
+  search:
+    engine: pagefind
+  sidebar:
+    contents:
+      - index.qmd
+      - section: "Guide"
+        contents:
+          - getting-started.qmd
+      - no-search.qmd

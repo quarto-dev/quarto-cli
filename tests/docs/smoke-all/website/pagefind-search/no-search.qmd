@@ -1,0 +1,6 @@
+---
+title: "No Search"
+search: false
+---
+
+This page should be excluded from the search index.

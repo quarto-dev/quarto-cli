@@ -295,7 +295,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             }
 
             const limit = quartoSearchOptions.limit;
-            if (quartoSearchOptions.algolia) {
+            const engine = quartoSearchOptions.engine || "fuse";
+            if (engine === "pagefind") {
+              return pagefindSearch(query, limit);
+            } else if (quartoSearchOptions.algolia || engine === "algolia") {
               return algoliaSearch(query, limit, quartoSearchOptions.algolia);
             } else {
               // Fuse search options
@@ -458,6 +461,101 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   if (showSearchResults) {
     setIsOpen(true);
     focusSearchInput();
+  }
+
+  // Pagefind search support
+  let pagefindInstance = null;
+
+  async function getPagefind() {
+    if (!pagefindInstance) {
+      const offset = getMeta("quarto:offset") || "/";
+      // Resolve pagefind path as absolute URL relative to the document,
+      // since dynamic import() resolves relative to the script, not the page.
+      const pagefindUrl = new URL(offset + "pagefind/pagefind.js", document.baseURI).href;
+      pagefindInstance = await import(pagefindUrl);
+      const pagefindOptions = { excerptLength: 40 };
+      // Pass through ranking options if configured
+      if (quartoSearchOptions.pagefind && quartoSearchOptions.pagefind.ranking) {
+        const r = quartoSearchOptions.pagefind.ranking;
+        const ranking = {};
+        if (r["page-length"] !== undefined) ranking.pageLength = r["page-length"];
+        if (r["term-frequency"] !== undefined)
+          ranking.termFrequency = r["term-frequency"];
+        if (r["term-saturation"] !== undefined)
+          ranking.termSaturation = r["term-saturation"];
+        if (r["term-similarity"] !== undefined)
+          ranking.termSimilarity = r["term-similarity"];
+        pagefindOptions.ranking = ranking;
+      }
+      await pagefindInstance.options(pagefindOptions);
+    }
+    return pagefindInstance;
+  }
+
+  async function pagefindSearch(query, limit) {
+    const pf = await getPagefind();
+    const searchResult = await pf.search(query);
+    const results = searchResult.results.slice(0, limit);
+    const items = await Promise.all(results.map((r) => r.data()));
+    return items.flatMap((fragment) =>
+      transformPagefindResult(fragment, query)
+    );
+  }
+
+  function transformPagefindResult(fragment, query) {
+    const results = [];
+    const crumbs = fragment.meta.crumbs
+      ? fragment.meta.crumbs.split("||")
+      : undefined;
+
+    // Strip leading slash from pagefind URLs — they are root-relative,
+    // but offsetURL() will prepend the quarto:offset prefix (e.g. "./").
+    const stripLeadingSlash = (url) => url.startsWith("/") ? url.slice(1) : url;
+
+    // Add a query parameter to the URL for highlight support
+    const addQueryParam = (url) => {
+      const cleaned = stripLeadingSlash(url);
+      const [main, hash] = cleaned.split("#");
+      const sep = main.includes("?") ? "&" : "?";
+      const hashAppend = hash ? "#" + hash : "";
+      return main + sep + kQueryArg + "=" + encodeURIComponent(query) + hashAppend;
+    };
+
+    // Pagefind sub_results contain section-level matches
+    if (fragment.sub_results && fragment.sub_results.length > 0) {
+      for (const sub of fragment.sub_results) {
+        // The first sub_result with no anchor is the page-level result
+        const isPageLevel = sub.url === fragment.url && !sub.url.includes("#");
+
+        // Rewrite <mark> to use quarto's search-match class
+        const excerpt = sub.excerpt
+          ? sub.excerpt.replace(/<mark>/g, "<mark class='search-match'>")
+          : "";
+
+        results.push({
+          title: isPageLevel ? fragment.meta.title : fragment.meta.title,
+          section: isPageLevel ? "" : sub.title,
+          href: addQueryParam(sub.url),
+          text: excerpt,
+          crumbs: crumbs,
+        });
+      }
+    } else {
+      // Fallback: no sub_results, create a single page-level entry
+      const excerpt = fragment.excerpt
+        ? fragment.excerpt.replace(/<mark>/g, "<mark class='search-match'>")
+        : "";
+
+      results.push({
+        title: fragment.meta.title,
+        section: "",
+        href: addQueryParam(fragment.url),
+        text: excerpt,
+        crumbs: crumbs,
+      });
+    }
+
+    return results;
   }
 });
 
