@@ -13,8 +13,9 @@ _quarto:
         - []
         - ['Proof content visible']
     typst:
+      noErrors: default
       ensureTypstFileRegexMatches:
-        - ['#emph\[Proof\]\. Proof content visible']
+        - ['#proof\(']
         - []
 ---
 
