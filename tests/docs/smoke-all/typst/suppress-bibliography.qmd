@@ -1,0 +1,24 @@
+---
+title: "Suppress Bibliography with Typst Native Citations"
+bibliography: refs.bib
+suppress-bibliography: true
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#show bibliography: none', '#bibliography\(']
+        - []
+      ensurePdfRegexMatches:
+        - ['Cronbach']
+        - ['References\s*$', 'Bibliography\s*$']
+      noErrors: default
+---
+
+Testing that `suppress-bibliography: true` works with Typst native citations (#14327).
+
+@Cronbach_1951 is a classic reference.
+
+The bibliography should not appear at the end of this document.

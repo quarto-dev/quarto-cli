@@ -1,0 +1,11 @@
+---
+title: "Preview Test Project"
+---
+
+## T3/T4: Project preview with Python cell
+
+```{python}
+print("Hello from project preview")
+```
+
+Edit counter: 0

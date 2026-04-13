@@ -7,19 +7,18 @@
 import { Command } from "cliffy/command/mod.ts";
 import { info } from "../../../deno_ral/log.ts";
 
-import { architectureToolsPath } from "../../../core/resources.ts";
 import { execProcess } from "../../../core/process.ts";
 import { dirname, join, relative } from "../../../deno_ral/path.ts";
 import { existsSync } from "../../../deno_ral/fs.ts";
-import { isWindows } from "../../../deno_ral/platform.ts";
 import { expandGlobSync } from "../../../core/deno/expand-glob.ts";
 import { readYaml } from "../../../core/yaml.ts";
-
-// Convert path to use forward slashes for TOML compatibility
-// TOML treats backslash as escape character, so Windows paths must use forward slashes
-function toTomlPath(p: string): string {
-  return p.replace(/\\/g, "/");
-}
+import {
+  type AnalyzeImport,
+  type AnalyzeResult,
+  runAnalyze,
+  toTomlPath,
+  typstGatherBinaryPath,
+} from "../../../core/typst-gather.ts";
 
 interface ExtensionYml {
   contributes?: {
@@ -116,12 +115,11 @@ async function resolveConfig(
   const configPath = join(cwd, "typst-gather.toml");
   if (existsSync(configPath)) {
     info(`Using config: ${configPath}`);
-    // Return the config file path - rust will parse it directly
-    // We still parse minimally to validate and show info
-    const content = Deno.readTextFileSync(configPath);
-    const config = parseSimpleToml(content);
-    config.configFile = configPath;
-    return config;
+    return {
+      configFile: configPath,
+      destination: "",
+      discover: [],
+    };
   }
 
   // No config file - try to auto-detect from _extension.yml
@@ -164,105 +162,10 @@ async function resolveConfig(
   };
 }
 
-function parseSimpleToml(content: string): TypstGatherConfig {
-  const lines = content.split("\n");
-  let rootdir: string | undefined;
-  let destination = "";
-  const discover: string[] = [];
+export type { AnalyzeImport, AnalyzeResult };
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-
-    // Parse rootdir
-    const rootdirMatch = trimmed.match(/^rootdir\s*=\s*"([^"]+)"/);
-    if (rootdirMatch) {
-      rootdir = rootdirMatch[1];
-      continue;
-    }
-
-    // Parse destination
-    const destMatch = trimmed.match(/^destination\s*=\s*"([^"]+)"/);
-    if (destMatch) {
-      destination = destMatch[1];
-      continue;
-    }
-
-    // Parse discover as string
-    const discoverStrMatch = trimmed.match(/^discover\s*=\s*"([^"]+)"/);
-    if (discoverStrMatch) {
-      discover.push(discoverStrMatch[1]);
-      continue;
-    }
-
-    // Parse discover as array (simple single-line parsing)
-    const discoverArrMatch = trimmed.match(/^discover\s*=\s*\[([^\]]+)\]/);
-    if (discoverArrMatch) {
-      const items = discoverArrMatch[1].split(",");
-      for (const item of items) {
-        const match = item.trim().match(/"([^"]+)"/);
-        if (match) {
-          discover.push(match[1]);
-        }
-      }
-    }
-  }
-
-  return { rootdir, destination, discover };
-}
-
-interface DiscoveredImport {
-  name: string;
-  version: string;
-  sourceFile: string;
-}
-
-interface DiscoveryResult {
-  preview: DiscoveredImport[];
-  local: DiscoveredImport[];
-  scannedFiles: string[];
-}
-
-function discoverImportsFromFiles(files: string[]): DiscoveryResult {
-  const result: DiscoveryResult = {
-    preview: [],
-    local: [],
-    scannedFiles: [],
-  };
-
-  // Regex to match @namespace/name:version imports
-  // Note: #include is for files, not packages, so we only match #import
-  const importRegex = /#import\s+"@(\w+)\/([^:]+):([^"]+)"/g;
-
-  for (const file of files) {
-    if (!existsSync(file)) continue;
-    if (!file.endsWith(".typ")) continue;
-
-    const filename = file.split("/").pop() || file;
-    result.scannedFiles.push(filename);
-
-    try {
-      const content = Deno.readTextFileSync(file);
-      let match;
-      while ((match = importRegex.exec(content)) !== null) {
-        const [, namespace, name, version] = match;
-        const entry = { name, version, sourceFile: filename };
-
-        if (namespace === "preview") {
-          result.preview.push(entry);
-        } else if (namespace === "local") {
-          result.local.push(entry);
-        }
-      }
-    } catch {
-      // Skip files that can't be read
-    }
-  }
-
-  return result;
-}
-
-function generateConfigContent(
-  discovery: DiscoveryResult,
+export function generateConfigFromAnalysis(
+  result: AnalyzeResult,
   rootdir?: string,
 ): string {
   const lines: string[] = [];
@@ -278,14 +181,11 @@ function generateConfigContent(
   lines.push("");
 
   // Discover section
-  if (discovery.scannedFiles.length > 0) {
-    if (discovery.scannedFiles.length === 1) {
-      lines.push(`discover = "${toTomlPath(discovery.scannedFiles[0])}"`);
-    } else {
-      const files = discovery.scannedFiles.map((f) => `"${toTomlPath(f)}"`)
-        .join(", ");
-      lines.push(`discover = [${files}]`);
-    }
+  if (result.files.length === 1) {
+    lines.push(`discover = "${toTomlPath(result.files[0])}"`);
+  } else if (result.files.length > 1) {
+    const files = result.files.map((f) => `"${toTomlPath(f)}"`).join(", ");
+    lines.push(`discover = [${files}]`);
   } else {
     lines.push('# discover = "template.typ"  # Add your .typ files here');
   }
@@ -293,16 +193,19 @@ function generateConfigContent(
   lines.push("");
 
   // Preview section (commented out - packages will be auto-discovered)
+  const previewImports = result.imports.filter((i) =>
+    i.namespace === "preview"
+  );
   lines.push("# Preview packages are auto-discovered from imports.");
   lines.push("# Uncomment to pin specific versions:");
   lines.push("# [preview]");
-  if (discovery.preview.length > 0) {
-    // Deduplicate
+  if (previewImports.length > 0) {
     const seen = new Set<string>();
-    for (const { name, version } of discovery.preview) {
+    for (const { name, version, direct, source } of previewImports) {
       if (!seen.has(name)) {
         seen.add(name);
-        lines.push(`# ${name} = "${version}"`);
+        const suffix = direct ? "" : `  # via ${source}`;
+        lines.push(`# ${name} = "${version}"${suffix}`);
       }
     }
   } else {
@@ -312,21 +215,24 @@ function generateConfigContent(
   lines.push("");
 
   // Local section
+  const localImports = result.imports.filter(
+    (i) => i.namespace === "local" && i.direct,
+  );
   lines.push(
     "# Local packages (@local namespace) must be configured manually.",
   );
-  if (discovery.local.length > 0) {
+  if (localImports.length > 0) {
     lines.push("# Found @local imports:");
     const seen = new Set<string>();
-    for (const { name, version, sourceFile } of discovery.local) {
+    for (const { name, version, source } of localImports) {
       if (!seen.has(name)) {
         seen.add(name);
-        lines.push(`#   @local/${name}:${version} (in ${sourceFile})`);
+        lines.push(`#   @local/${name}:${version} (in ${source})`);
       }
     }
     lines.push("[local]");
     seen.clear();
-    for (const { name } of discovery.local) {
+    for (const { name } of localImports) {
       if (!seen.has(name)) {
         seen.add(name);
         lines.push(`${name} = "/path/to/${name}"  # TODO: set correct path`);
@@ -373,14 +279,18 @@ async function initConfig(): Promise<void> {
     info(`Found extension: ${extensionDir}`);
   }
 
-  // Discover imports from the files
-  const discovery = discoverImportsFromFiles(typFiles);
+  // Build analyze config with discover paths
+  const discoverArray = typFiles.map((f) => `"${toTomlPath(f)}"`).join(", ");
+  const analyzeConfig = `discover = [${discoverArray}]\n`;
+
+  // Run typst-gather analyze to discover imports
+  const analysis = await runAnalyze(analyzeConfig);
 
   // Calculate relative path from cwd to extension dir for rootdir
   const rootdir = relative(Deno.cwd(), extensionDir);
 
-  // Generate config content
-  const configContent = generateConfigContent(discovery, rootdir);
+  // Generate config content from analysis
+  const configContent = generateConfigFromAnalysis(analysis, rootdir);
 
   // Write config file
   try {
@@ -390,23 +300,30 @@ async function initConfig(): Promise<void> {
     Deno.exit(1);
   }
 
+  const previewImports = analysis.imports.filter(
+    (i) => i.namespace === "preview",
+  );
+  const localImports = analysis.imports.filter(
+    (i) => i.namespace === "local" && i.direct,
+  );
+
   info("Created typst-gather.toml");
-  if (discovery.scannedFiles.length > 0) {
-    info(`  Scanned: ${discovery.scannedFiles.join(", ")}`);
+  if (analysis.files.length > 0) {
+    info(`  Scanned: ${analysis.files.join(", ")}`);
   }
-  if (discovery.preview.length > 0) {
-    info(`  Found ${discovery.preview.length} @preview import(s)`);
+  if (previewImports.length > 0) {
+    info(`  Found ${previewImports.length} @preview import(s)`);
   }
-  if (discovery.local.length > 0) {
+  if (localImports.length > 0) {
     info(
-      `  Found ${discovery.local.length} @local import(s) - configure paths in [local] section`,
+      `  Found ${localImports.length} @local import(s) - configure paths in [local] section`,
     );
   }
 
   info("");
   info("Next steps:");
   info("  1. Review and edit typst-gather.toml");
-  if (discovery.local.length > 0) {
+  if (localImports.length > 0) {
     info("  2. Add paths for @local packages in [local] section");
   }
   info("  3. Run: quarto call typst-gather");
@@ -442,37 +359,21 @@ export const typstGatherCommand = new Command()
         Deno.exit(1);
       }
 
-      if (!config.destination) {
-        console.error("No destination specified in configuration.");
-        Deno.exit(1);
-      }
+      const typstGatherBinary = typstGatherBinaryPath();
 
-      if (config.discover.length === 0) {
-        console.error("No files to discover imports from.");
-        Deno.exit(1);
-      }
+      info(`Running typst-gather...`);
 
-      // Find typst-gather binary in standard tools location
-      const binaryName = isWindows ? "typst-gather.exe" : "typst-gather";
-      const typstGatherBinary = architectureToolsPath(binaryName);
-      if (!existsSync(typstGatherBinary)) {
-        console.error(
-          `typst-gather binary not found.\n` +
-            `Run ./configure.sh to build and install it.`,
-        );
-        Deno.exit(1);
-      }
-
-      // Determine config file to use
-      let configFileToUse: string;
-      let tempConfig: string | null = null;
-
+      // Run typst-gather gather
+      let result;
       if (config.configFile) {
-        // Use existing config file directly - rust will parse [local], [preview], etc.
-        configFileToUse = config.configFile;
+        // Existing config file — pass directly
+        result = await execProcess({
+          cmd: typstGatherBinary,
+          args: ["gather", config.configFile],
+          cwd: Deno.cwd(),
+        });
       } else {
-        // Create a temporary TOML config file for auto-detected config
-        tempConfig = Deno.makeTempFileSync({ suffix: ".toml" });
+        // Auto-detected — pipe config on stdin
         const discoverArray = config.discover.map((p) => `"${toTomlPath(p)}"`)
           .join(", ");
         let tomlContent = "";
@@ -481,26 +382,15 @@ export const typstGatherCommand = new Command()
         }
         tomlContent += `destination = "${toTomlPath(config.destination)}"\n`;
         tomlContent += `discover = [${discoverArray}]\n`;
-        Deno.writeTextFileSync(tempConfig, tomlContent);
-        configFileToUse = tempConfig;
-      }
 
-      info(`Running typst-gather...`);
-
-      // Run typst-gather
-      const result = await execProcess({
-        cmd: typstGatherBinary,
-        args: [configFileToUse],
-        cwd: Deno.cwd(),
-      });
-
-      // Clean up temp file if we created one
-      if (tempConfig) {
-        try {
-          Deno.removeSync(tempConfig);
-        } catch {
-          // Ignore cleanup errors
-        }
+        result = await execProcess(
+          {
+            cmd: typstGatherBinary,
+            args: ["gather", "-"],
+            cwd: Deno.cwd(),
+          },
+          tomlContent,
+        );
       }
 
       if (!result.success) {

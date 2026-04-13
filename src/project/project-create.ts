@@ -5,7 +5,11 @@
  */
 
 import * as ld from "../core/lodash.ts";
-import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  ensureUserWritable,
+  existsSync,
+} from "../deno_ral/fs.ts";
 import { basename, dirname, join } from "../deno_ral/path.ts";
 import { info } from "../deno_ral/log.ts";
 
@@ -139,6 +143,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
       if (!existsSync(dest)) {
         ensureDirSync(dirname(dest));
         copyTo(src, dest);
+        ensureUserWritable(dest);
         if (!options.quiet) {
           info("- Created " + displayName, { indent: 2 });
         }
@@ -256,6 +261,7 @@ function projectMarkdownFile(
       const name = basename(from);
       const target = join(dirname(path), name);
       copyTo(from, target);
+      ensureUserWritable(target);
     });
 
     return subdirectory ? join(subdirectory, name) : name;

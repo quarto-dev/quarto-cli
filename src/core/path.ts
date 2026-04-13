@@ -172,13 +172,23 @@ export function resolvePathGlobs(
   const expandGlobs = (targetGlobs: string[]) => {
     const expanded: string[] = [];
     for (const glob of targetGlobs) {
-      for (
-        const file of expandGlobSync(
-          glob,
-          { root, exclude, includeDirs: true, extended: true, globstar: true },
-        )
-      ) {
-        expanded.push(file.path);
+      try {
+        for (
+          const file of expandGlobSync(
+            glob,
+            { root, exclude, includeDirs: true, extended: true, globstar: true },
+          )
+        ) {
+          expanded.push(file.path);
+        }
+      } catch (e) {
+        // expandGlobSync can throw NotFound if a file is deleted between
+        // directory listing and stat (TOCTOU race). This is expected during
+        // preview when the IDE or other processes modify the project
+        // directory concurrently.
+        if (!(e instanceof Deno.errors.NotFound)) {
+          throw e;
+        }
       }
     }
     return ld.uniq(expanded);

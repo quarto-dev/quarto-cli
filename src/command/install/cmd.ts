@@ -47,10 +47,6 @@ export const installCommand = new Command()
     "quarto install chrome-headless-shell",
   )
   .example(
-    "Install Chromium (legacy)",
-    "quarto install chromium",
-  )
-  .example(
     "Choose tool to install",
     "quarto install",
   )

@@ -364,6 +364,11 @@ async function checkInstall(conf: CheckConfiguration) {
       toolsJson[tool.name] = {
         version,
       };
+      if (tool.name === "Chromium (deprecated)") {
+        toolsOutput.push(
+          `${kIndent}      (Run "quarto install chrome-headless-shell" to replace)`,
+        );
+      }
     }
     for (const tool of tools.notInstalled) {
       toolsOutput.push(`${kIndent}${tool.name}: (not installed)`);

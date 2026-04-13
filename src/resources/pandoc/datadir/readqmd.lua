@@ -192,6 +192,7 @@ local function readqmd(txt, opts)
     Code = unshortcode_text,
     RawInline = unshortcode_text,
     RawBlock = unshortcode_text,
+    Math = unshortcode_text,
     Header = filter_attrs,
     Span = filter_attrs,
     Div = filter_attrs,

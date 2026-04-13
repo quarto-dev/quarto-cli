@@ -9,6 +9,8 @@
 
 import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts";
+import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join, relative } from "../../../src/deno_ral/path.ts";
 import {
   ensureFileInformationCache,
@@ -127,6 +129,120 @@ unitTest(
     assert(
       project.fileInformationCache.size === 1,
       "Should have exactly one cache entry",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "fileInformationCache - invalidateForFile deletes transient notebook file",
+  async () => {
+    const project = createMockProjectContext();
+    const sourcePath = join(project.dir, "doc.qmd");
+
+    // Create a real temp file simulating a transient .quarto_ipynb
+    const notebookPath = join(project.dir, "doc.quarto_ipynb");
+    Deno.writeTextFileSync(notebookPath, '{"cells": []}');
+    assert(existsSync(notebookPath), "Temp notebook file should exist");
+
+    // Populate cache entry with a transient target pointing to the file
+    const entry = ensureFileInformationCache(project, sourcePath);
+    entry.target = {
+      source: sourcePath,
+      input: notebookPath,
+      markdown: asMappedString(""),
+      metadata: {},
+      data: { transient: true, kernelspec: {} },
+    };
+
+    // Invalidate the cache entry for this file
+    project.fileInformationCache.invalidateForFile(sourcePath);
+
+    // The transient file should be deleted from disk
+    assert(
+      !existsSync(notebookPath),
+      "Transient notebook file should be deleted on invalidation",
+    );
+    // The cache entry should be removed
+    assert(
+      !project.fileInformationCache.has(sourcePath),
+      "Cache entry should be removed after invalidation",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "fileInformationCache - invalidateForFile preserves non-transient files",
+  async () => {
+    const project = createMockProjectContext();
+    const sourcePath = join(project.dir, "notebook.ipynb");
+
+    // Create a real file simulating a user's .ipynb (non-transient)
+    const notebookPath = join(project.dir, "notebook.ipynb");
+    Deno.writeTextFileSync(notebookPath, '{"cells": []}');
+
+    // Populate cache entry with a non-transient target
+    const entry = ensureFileInformationCache(project, sourcePath);
+    entry.target = {
+      source: sourcePath,
+      input: notebookPath,
+      markdown: asMappedString(""),
+      metadata: {},
+      data: { transient: false, kernelspec: {} },
+    };
+
+    // Invalidate the cache entry
+    project.fileInformationCache.invalidateForFile(sourcePath);
+
+    // The non-transient file should NOT be deleted
+    assert(
+      existsSync(notebookPath),
+      "Non-transient file should be preserved on invalidation",
+    );
+    // But the cache entry should still be removed
+    assert(
+      !project.fileInformationCache.has(sourcePath),
+      "Cache entry should be removed after invalidation",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "fileInformationCache - invalidateForFile handles entry with no target",
+  async () => {
+    const project = createMockProjectContext();
+    const sourcePath = join(project.dir, "doc.qmd");
+
+    // Populate cache entry with metadata only (no target)
+    const entry = ensureFileInformationCache(project, sourcePath);
+    entry.metadata = { title: "Test" };
+
+    // Should not throw
+    project.fileInformationCache.invalidateForFile(sourcePath);
+
+    assert(
+      !project.fileInformationCache.has(sourcePath),
+      "Cache entry should be removed even without a target",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "fileInformationCache - invalidateForFile is a no-op for missing keys",
+  async () => {
+    const project = createMockProjectContext();
+
+    // Should not throw on a key that doesn't exist
+    project.fileInformationCache.invalidateForFile(
+      join(project.dir, "nonexistent.qmd"),
+    );
+
+    assert(
+      project.fileInformationCache.size === 0,
+      "Cache should remain empty",
     );
   },
 );

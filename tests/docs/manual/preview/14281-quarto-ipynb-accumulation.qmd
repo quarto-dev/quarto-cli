@@ -1,0 +1,39 @@
+---
+title: "Manual Test: quarto_ipynb accumulation during preview (#14281)"
+format: html
+execute:
+  keep-ipynb: false
+---
+
+## Purpose
+
+This document tests that `.quarto_ipynb` files do not accumulate during
+`quarto preview`. Before the fix, each save during preview created a new
+numbered variant (`test.quarto_ipynb_1`, `test.quarto_ipynb_2`, etc.)
+that was never cleaned up.
+
+**Why manual?** Preview re-render behavior requires an interactive session
+with file-save events that cannot be triggered in automated smoke tests.
+
+## Steps
+
+1. Run: `quarto preview tests/docs/manual/preview/14281-quarto-ipynb-accumulation.qmd`
+2. Wait for the preview to open in the browser
+3. Edit this file (e.g., change the text below) and save 3-4 times
+4. Check this directory for `.quarto_ipynb` files
+
+## Expected
+
+- Only one `14281-quarto-ipynb-accumulation.quarto_ipynb` file should exist
+  at any time during preview (no `_1`, `_2` suffixes)
+- After stopping preview (Ctrl+C), the `.quarto_ipynb` file should be cleaned up
+
+## Code cell
+
+```{python}
+1 + 1
+```
+
+Edit the line below to trigger re-renders:
+
+Current value: 11

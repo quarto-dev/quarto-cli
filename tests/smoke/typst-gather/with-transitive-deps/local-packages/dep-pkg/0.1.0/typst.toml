@@ -1,0 +1,7 @@
+[package]
+name = "dep-pkg"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Test"]
+license = "MIT"
+description = "Local package that imports a preview package"

@@ -49,6 +49,7 @@ import {
 import { validateDocumentFromSource } from "../core/schema/validate-document.ts";
 import { error } from "../deno_ral/log.ts";
 import { ProjectContext } from "../project/types.ts";
+import { isRStudio } from "../core/platform.ts";
 
 export function isProjectConfig(
   config: InspectedConfig,
@@ -238,7 +239,9 @@ const inspectDocumentConfig = async (path: string) => {
     };
 
     // if there is a project then add it
-    if (context?.config) {
+    // Suppress project for standalone files in RStudio: current releases
+    // assume project.dir implies _quarto.yml exists (rstudio/rstudio#17333)
+    if (context?.config && !(context.isSingleFile && isRStudio())) {
       config.project = await inspectProjectConfig(context);
     }
     return config;
