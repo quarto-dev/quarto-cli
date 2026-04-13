@@ -122,6 +122,8 @@ jobs:
 
       - name: Verify quarto list tools does not show chromium
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
           output=$(quarto list tools 2>&1)
