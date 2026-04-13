@@ -15,8 +15,18 @@ import { testRender } from "./render.ts";
 // demo file renders ok
 testRender(docs("reveal/index.qmd"), "revealjs", false);
 
-let input = docs("reveal/aside-footnotes.qmd");
+let input = docs("reveal/title-fancy-author.qmd");
 let output = outputForInput(input, "revealjs");
+testRender(input, "revealjs", false, [
+  ensureFileRegexMatches(output.outputPath, [
+    /Jonathan N\. Katz\n<\/div>/,
+  ], [
+    /Jonathan N\. Katz[ \t]+\n<\/div>/,
+  ]),
+]);
+
+input = docs("reveal/aside-footnotes.qmd");
+output = outputForInput(input, "revealjs");
 testRender(input, "revealjs", false, [
   ensureHtmlElements(output.outputPath, [
     // speaker notes are left not moved
