@@ -1,0 +1,24 @@
+project:
+  type: website
+  output-dir: _site
+
+render:
+  - index.qmd
+  - page.qmd
+
+website:
+  title: "Issue 14353"
+  sidebar:
+    - title: "Group 1"
+      logo: /img/logo-a.png
+      contents:
+        - index.qmd
+
+    - title: "Group 2"
+      logo: /img/logo-b.png
+      contents:
+        - page.qmd
+
+format:
+  html:
+    theme: cosmo
