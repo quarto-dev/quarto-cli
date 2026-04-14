@@ -1,0 +1,17 @@
+---
+title: "RevealJS Title Author No ORCID"
+author: "Jane Doe"
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - "Jane Doe\n</div>"
+        -
+          - "Jane Doe[ \t]+\n</div>"
+---
+
+## Slide
+
+Content
