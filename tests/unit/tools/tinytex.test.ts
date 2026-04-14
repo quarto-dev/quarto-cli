@@ -231,15 +231,19 @@ unitTest(
         await tinyTexInstallable.install(pkgInfo, context);
         throw new Error("Expected install to throw");
       } catch (e) {
+        assert(
+          e instanceof Error && e.message.includes("Failed to extract"),
+          `Error should indicate extraction failure, got: ${e}`,
+        );
         if (isLinux) {
           assert(
-            e instanceof Error && e.message.includes("xz-utils"),
-            `On Linux, error should mention xz-utils, got: ${e}`,
+            e.message.includes("xz-utils"),
+            `On Linux, error should mention xz-utils, got: ${e.message}`,
           );
         } else {
           assert(
-            e instanceof Error && !e.message.includes("xz-utils"),
-            `On non-Linux, error should not mention xz-utils, got: ${e}`,
+            !e.message.includes("xz-utils"),
+            `On non-Linux, error should not mention xz-utils, got: ${e.message}`,
           );
         }
       }
