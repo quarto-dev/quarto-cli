@@ -13,6 +13,10 @@ All changes included in 1.10:
 
 - ([#14261](https://github.com/quarto-dev/quarto-cli/issues/14261)): Fix theorem/example block titles containing inline code producing invalid Typst markup when syntax highlighting is applied.
 
+### `revealjs`
+
+- ([#14354](https://github.com/quarto-dev/quarto-cli/pull/14354)): Fix trailing whitespace after author name on title slide when ORCID is not set. (author: @jnkatz)
+
 ## Commands
 
 ### `quarto preview`
