@@ -171,8 +171,10 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       sidebars[0].tools = [];
     }
 
-    for (const sb of sidebars) {
-      if (sb.logo === undefined) continue; // let propagation handle inheritance
+    for (let i = 0; i < sidebars.length; i++) {
+      const sb = sidebars[i];
+      // Secondary sidebars without explicit logo inherit from the first via propagation
+      if (i > 0 && sb.logo === undefined) continue;
       let sideLogo = sb.logo;
       if (sideLogo !== false) { // don't do anything logo processing when sidebar logo is opt-out
         if (sideLogo && sb[kLogoAlt]) {
