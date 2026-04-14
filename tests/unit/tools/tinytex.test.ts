@@ -13,6 +13,7 @@ import {
 import { getLatestRelease } from "../../../src/tools/github.ts";
 import { GitHubRelease, InstallContext, PackageInfo } from "../../../src/tools/types.ts";
 import { join } from "../../../src/deno_ral/path.ts";
+import { isLinux } from "../../../src/deno_ral/platform.ts";
 
 // ---- Pure logic tests for tinyTexPkgName ----
 
@@ -210,7 +211,7 @@ unitTest(
 );
 
 unitTest(
-  "install - extraction failure for .tar.xz includes xz-utils hint",
+  "install - extraction failure for .tar.xz includes xz-utils hint only on Linux",
   async () => {
     const workingDir = Deno.makeTempDirSync({ prefix: "quarto-tinytex-test" });
     try {
@@ -230,10 +231,17 @@ unitTest(
         await tinyTexInstallable.install(pkgInfo, context);
         throw new Error("Expected install to throw");
       } catch (e) {
-        assert(
-          e instanceof Error && e.message.includes("xz-utils"),
-          `Error message should mention xz-utils, got: ${e}`,
-        );
+        if (isLinux) {
+          assert(
+            e instanceof Error && e.message.includes("xz-utils"),
+            `On Linux, error should mention xz-utils, got: ${e}`,
+          );
+        } else {
+          assert(
+            e instanceof Error && !e.message.includes("xz-utils"),
+            `On non-Linux, error should not mention xz-utils, got: ${e}`,
+          );
+        }
       }
     } finally {
       Deno.removeSync(workingDir, { recursive: true });
