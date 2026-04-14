@@ -5,10 +5,14 @@
  */
 
 import { unitTest } from "../../test.ts";
-import { assert, assertEquals } from "testing/asserts";
-import { tinyTexPkgName } from "../../../src/tools/impl/tinytex.ts";
+import { assert, assertEquals, assertRejects } from "testing/asserts";
+import {
+  tinyTexInstallable,
+  tinyTexPkgName,
+} from "../../../src/tools/impl/tinytex.ts";
 import { getLatestRelease } from "../../../src/tools/github.ts";
-import { GitHubRelease } from "../../../src/tools/types.ts";
+import { GitHubRelease, InstallContext, PackageInfo } from "../../../src/tools/types.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 
 // ---- Pure logic tests for tinyTexPkgName ----
 
@@ -156,5 +160,83 @@ unitTest(
       arch: "x86_64",
     });
     assertAssetExists(candidates, assetNames, "Windows");
+  },
+);
+
+// ---- Extraction failure tests ----
+
+function createMockContext(workingDir: string): InstallContext {
+  return {
+    workingDir,
+    info: (_msg: string) => {},
+    withSpinner: async (_options, op) => {
+      await op();
+    },
+    error: (_msg: string) => {},
+    confirm: async (_msg: string) => true,
+    download: async (_name: string, _url: string, _target: string) => {},
+    props: {},
+    flags: {},
+  };
+}
+
+unitTest(
+  "install - throws on extraction failure for corrupt archive",
+  async () => {
+    const workingDir = Deno.makeTempDirSync({ prefix: "quarto-tinytex-test" });
+    try {
+      // Create a corrupt .tar.xz file that tar cannot extract
+      const badArchive = join(
+        workingDir,
+        "TinyTeX-linux-x86_64-v2026.04.tar.xz",
+      );
+      Deno.writeTextFileSync(badArchive, "this is not a valid archive");
+
+      const pkgInfo: PackageInfo = {
+        filePath: badArchive,
+        version: "v2026.04",
+      };
+      const context = createMockContext(workingDir);
+
+      await assertRejects(
+        () => tinyTexInstallable.install(pkgInfo, context),
+        Error,
+        "Failed to extract",
+      );
+    } finally {
+      Deno.removeSync(workingDir, { recursive: true });
+    }
+  },
+);
+
+unitTest(
+  "install - extraction failure for .tar.xz includes xz-utils hint",
+  async () => {
+    const workingDir = Deno.makeTempDirSync({ prefix: "quarto-tinytex-test" });
+    try {
+      const badArchive = join(
+        workingDir,
+        "TinyTeX-linux-x86_64-v2026.04.tar.xz",
+      );
+      Deno.writeTextFileSync(badArchive, "this is not a valid archive");
+
+      const pkgInfo: PackageInfo = {
+        filePath: badArchive,
+        version: "v2026.04",
+      };
+      const context = createMockContext(workingDir);
+
+      try {
+        await tinyTexInstallable.install(pkgInfo, context);
+        throw new Error("Expected install to throw");
+      } catch (e) {
+        assert(
+          e instanceof Error && e.message.includes("xz-utils"),
+          `Error message should mention xz-utils, got: ${e}`,
+        );
+      }
+    } finally {
+      Deno.removeSync(workingDir, { recursive: true });
+    }
   },
 );
