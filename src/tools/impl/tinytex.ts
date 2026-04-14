@@ -190,7 +190,15 @@ async function install(
       await context.withSpinner(
         { message: `Unzipping ${basename(pkgInfo.filePath)}` },
         async () => {
-          await unzip(pkgInfo.filePath);
+          const result = await unzip(pkgInfo.filePath);
+          if (!result.success) {
+            const hint = pkgInfo.filePath.endsWith(".tar.xz")
+              ? "\nOn Linux, you may need to install xz-utils (e.g., apt install xz-utils)."
+              : "";
+            throw new Error(
+              `Failed to extract ${basename(pkgInfo.filePath)}.${hint}\n${result.stderr}`,
+            );
+          }
         },
       );
 
