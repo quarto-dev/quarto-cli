@@ -5,6 +5,7 @@ project:
 render:
   - index.qmd
   - page.qmd
+  - page2.qmd
 
 website:
   title: "Issue 14353"
@@ -18,6 +19,10 @@ website:
       logo: /img/logo-b.png
       contents:
         - page.qmd
+
+    - title: "Group 3"
+      contents:
+        - page2.qmd
 
 format:
   html:

@@ -13,6 +13,12 @@ All changes included in 1.10:
 
 - ([#14261](https://github.com/quarto-dev/quarto-cli/issues/14261)): Fix theorem/example block titles containing inline code producing invalid Typst markup when syntax highlighting is applied.
 
+## Projects
+
+### Websites
+
+- ([#13565](https://github.com/quarto-dev/quarto-cli/issues/13565), [#14353](https://github.com/quarto-dev/quarto-cli/issues/14353)): Fix sidebar logo not appearing on secondary sidebars in multi-sidebar website layouts.
+
 ## Commands
 
 ### `quarto preview`
