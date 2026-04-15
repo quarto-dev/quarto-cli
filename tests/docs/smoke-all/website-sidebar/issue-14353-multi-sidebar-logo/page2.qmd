@@ -1,0 +1,12 @@
+---
+title: "Group 3 Page"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'a.sidebar-logo-link img[src$="logo-a.png"][class*="sidebar-logo"]'
+        - []
+---
+
+This page belongs to the third sidebar entry which has no explicit logo. It should inherit logo-a.png from the first sidebar.
