@@ -7,7 +7,7 @@
 import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { satisfies } from "semver/mod.ts";
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 
 import { error, info } from "../../deno_ral/log.ts";
 
@@ -870,6 +870,8 @@ function cleanupNotebook(
     if (cached.target && cached.target.data) {
       (cached.target.data as JupyterTargetData).transient = false;
     }
+  } else if (data.transient) {
+    safeRemoveSync(target.input);
   }
 }
 
