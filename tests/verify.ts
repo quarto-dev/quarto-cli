@@ -235,6 +235,16 @@ export const fileExists = (file: string): Verify => {
   };
 };
 
+export const fileNotExists = (file: string): Verify => {
+  return {
+    name: `File ${file} does not exist`,
+    verify: (_output: ExecuteOutput[]) => {
+      verifyNoPath(file);
+      return Promise.resolve();
+    },
+  };
+};
+
 export const pathDoNotExists = (path: string): Verify => {
   return {
     name: `path ${path} do not exists`,
