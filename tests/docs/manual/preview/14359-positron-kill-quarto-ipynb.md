@@ -35,8 +35,16 @@ covers the interactive preview scenario.
 - Ungraceful termination does not leave stale files because deletion already
   happened
 
+## Note on Positron fix
+
+Quarto extension v1.131.0 (posit-dev/positron#13006) now sends
+`previewTerminateRequest()` when the terminal is closed, giving Quarto
+a clean shutdown. Our fix (immediate deletion after execution) and their
+fix (clean shutdown signal) are complementary — either alone prevents
+stale files, both together provide defense in depth.
+
 ## Related
 
 - #14281 — within-session accumulation (fixed by PR #14287)
 - #12780 — `keep-ipynb` support (PR #12793 introduced this regression)
-- posit-dev/positron#13006 — Killing Quarto Preview should exit process
+- posit-dev/positron#13006 — Killing Quarto Preview should exit process (fixed in extension v1.131.0)
