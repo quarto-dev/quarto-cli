@@ -10,10 +10,12 @@ on:
       - "v1.*"
     paths:
       - "src/tools/**"
+      - "src/core/download.ts"
       - ".github/workflows/test-install.yml"
   pull_request:
     paths:
       - "src/tools/**"
+      - "src/core/download.ts"
       - ".github/workflows/test-install.yml"
   schedule:
     # Weekly Monday 9am UTC — detect upstream CDN/API breakage
