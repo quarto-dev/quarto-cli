@@ -92,11 +92,15 @@ async function createNfpmConfig(
   // Format-specific configuration
   if (format === 'deb') {
     config.overrides.deb = {
-      recommends: ["unzip"],
+      recommends: ["unzip", "xz-utils"],
     };
     // Add Debian-specific metadata
     config.section = "user/text";
     config.priority = "optional";
+  } else if (format === 'rpm') {
+    config.overrides.rpm = {
+      recommends: ["xz"],
+    };
   }
   return config;
 }
