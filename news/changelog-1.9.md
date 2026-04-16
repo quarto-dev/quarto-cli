@@ -3,6 +3,7 @@
 ## In this release
 
 - ([#14304](https://github.com/quarto-dev/quarto-cli/issues/14304)): Fix `quarto install tinytex` silently ignoring extraction failures. When archive extraction fails (e.g., `.tar.xz` on a system without `xz-utils`), the installer now reports a clear error instead of proceeding and failing with a confusing `NotFound` message.
+- ([#14367](https://github.com/quarto-dev/quarto-cli/issues/14367)): Fix Dart Sass invocation failing on enterprise Windows systems where Group Policy blocks `.bat` execution from `%TEMP%`. When the `safeWindowsExec` temp wrapper is blocked, Quarto now falls back to calling `sass.bat` directly.
 
 ## In previous releases
 

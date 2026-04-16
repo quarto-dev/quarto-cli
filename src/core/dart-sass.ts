@@ -125,7 +125,22 @@ export async function dartCommand(
         });
       },
     );
-    return processResult(result);
+    if (result.success) {
+      return processResult(result);
+    }
+
+    // safeWindowsExec failed — fall back to direct execution (v1.8 behavior).
+    // Enterprise environments may block .bat execution from %TEMP% via
+    // Group Policy / AppLocker, causing the temp wrapper to fail.
+    // See https://github.com/quarto-dev/quarto-cli/issues/14367
+    debug("[DART] safeWindowsExec failed, falling back to direct execution");
+    const directResult = await execProcess({
+      cmd: sass,
+      args,
+      stdout: "piped",
+      stderr: "piped",
+    });
+    return processResult(directResult);
   }
 
   // Non-Windows: direct execution
