@@ -45,3 +45,4 @@ All changes included in 1.10:
 - ([#6651](https://github.com/quarto-dev/quarto-cli/issues/6651)): Fix dart-sass compilation failing in enterprise environments where `.bat` files are blocked by group policy.
 - ([#14255](https://github.com/quarto-dev/quarto-cli/issues/14255)): Fix shortcodes inside inline and display math expressions not being resolved.
 - ([#14342](https://github.com/quarto-dev/quarto-cli/issues/14342)): Work around TOCTOU race in Deno's `expandGlobSync` that can cause unexpected exceptions to be raised while traversing directories during project initialization.
+- ([#14299](https://github.com/quarto-dev/quarto-cli/issues/14299)): Update default arrow-light theme to highlight BuiltIn and Extension styles
