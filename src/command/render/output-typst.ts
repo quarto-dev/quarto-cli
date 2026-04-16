@@ -62,7 +62,7 @@ export interface NeededPackage {
 
 // Collect all package source directories (built-in + extensions)
 async function collectPackageSources(
-  input: string,
+  inputDir: string,
   projectDir: string,
 ): Promise<string[]> {
   const sources: string[] = [];
@@ -74,7 +74,7 @@ async function collectPackageSources(
   }
 
   // 2. Extension packages
-  const extensionDirs = inputExtensionDirs(input, projectDir);
+  const extensionDirs = inputExtensionDirs(inputDir, projectDir);
   const subtreePath = builtinSubtreeExtensions();
   for (const extDir of extensionDirs) {
     const extensions = extDir === subtreePath
@@ -173,7 +173,7 @@ export function stageAllPackages(sources: string[], cacheDir: string): void {
 // Stage typst packages to .quarto/typst-packages/
 // First stages built-in packages, then extension packages (which can override)
 async function stageTypstPackages(
-  input: string,
+  inputDir: string,
   typstInput: string,
   projectDir?: string,
 ): Promise<string | undefined> {
@@ -181,7 +181,7 @@ async function stageTypstPackages(
     return undefined;
   }
 
-  const packageSources = await collectPackageSources(input, projectDir);
+  const packageSources = await collectPackageSources(inputDir, projectDir);
   if (packageSources.length === 0) {
     return undefined;
   }
@@ -249,7 +249,7 @@ export function typstPdfOutputRecipe(
 
       // Stage extension typst packages
       const packagePath = await stageTypstPackages(
-        input,
+        inputDir,
         typstInput,
         project.dir,
       );
