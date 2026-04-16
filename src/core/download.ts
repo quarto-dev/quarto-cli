@@ -6,6 +6,7 @@
 
 import { writeAll } from "io/write-all";
 import { progressBar } from "./console.ts";
+import { withRetry } from "./retry.ts";
 
 export interface DownloadError extends Error {
   statusCode: number;
@@ -17,42 +18,62 @@ export async function downloadWithProgress(
   msg: string,
   toFile: string,
 ) {
-  // Fetch the data
-  const response = await (typeof url === "string"
-    ? fetch(
-      url,
-      {
-        redirect: "follow",
-      },
-    )
-    : url);
+  await withRetry(async () => {
+    // Fetch the data
+    const response = await (typeof url === "string"
+      ? fetch(
+        url,
+        {
+          redirect: "follow",
+        },
+      )
+      : url);
 
-  // Write the data to a file
-  if (response.status === 200 && response.body) {
-    const pkgFile = await Deno.open(toFile, { create: true, write: true });
+    // Write the data to a file
+    if (response.status === 200 && response.body) {
+      const pkgFile = await Deno.open(
+        toFile,
+        { create: true, write: true, truncate: true },
+      );
 
-    const contentLength =
-      (response.headers.get("content-length") || 0) as number;
-    const contentLengthMb = contentLength / 1024 / 1024;
+      const contentLength =
+        (response.headers.get("content-length") || 0) as number;
+      const contentLengthMb = contentLength / 1024 / 1024;
 
-    const prog = progressBar(contentLengthMb, msg);
+      const prog = progressBar(contentLengthMb, msg);
 
-    let totalLength = 0;
-    for await (const chunk of response.body) {
-      await writeAll(pkgFile, chunk);
-      totalLength = totalLength + chunk.length;
-      if (contentLength > 0) {
-        prog.update(
-          totalLength / 1024 / 1024,
-          `${(totalLength / 1024 / 1024).toFixed(1)}MB`,
-        );
+      try {
+        let totalLength = 0;
+        for await (const chunk of response.body) {
+          await writeAll(pkgFile, chunk);
+          totalLength = totalLength + chunk.length;
+          if (contentLength > 0) {
+            prog.update(
+              totalLength / 1024 / 1024,
+              `${(totalLength / 1024 / 1024).toFixed(1)}MB`,
+            );
+          }
+        }
+        prog.complete();
+      } finally {
+        pkgFile.close();
       }
+    } else {
+      throw new Error(
+        `download failed (HTTP status ${response.status} - ${response.statusText})`,
+      );
     }
-    prog.complete();
-    pkgFile.close();
-  } else {
-    throw new Error(
-      `download failed (HTTP status ${response.status} - ${response.statusText})`,
-    );
-  }
+  }, {
+    attempts: 3,
+    minWait: 2000,
+    maxWait: 10000,
+    retry: (err: Error) => {
+      // Don't retry HTTP status errors (4xx, 5xx) — they're deterministic
+      if (err.message.startsWith("download failed (HTTP status")) {
+        return false;
+      }
+      // Retry network errors (connection reset, timeout, body read errors)
+      return true;
+    },
+  });
 }

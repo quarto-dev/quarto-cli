@@ -10,10 +10,14 @@ on:
       - "v1.*"
     paths:
       - "src/tools/**"
+      - "src/core/download.ts"
+      - "src/core/retry.ts"
       - ".github/workflows/test-install.yml"
   pull_request:
     paths:
       - "src/tools/**"
+      - "src/core/download.ts"
+      - "src/core/retry.ts"
       - ".github/workflows/test-install.yml"
   schedule:
     # Weekly Monday 9am UTC — detect upstream CDN/API breakage
@@ -40,11 +44,31 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          quarto install tinytex
+          for attempt in 1 2 3; do
+            if quarto install tinytex; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::Attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            fi
+          done
+          echo "::error::TinyTeX install failed after 3 attempts"
+          exit 1
 
       - name: Install Chrome Headless Shell
         run: |
-          quarto install chrome-headless-shell --no-prompt
+          for attempt in 1 2 3; do
+            if quarto install chrome-headless-shell --no-prompt; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::Attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            fi
+          done
+          echo "::error::Chrome Headless Shell install failed after 3 attempts"
+          exit 1
 
       - name: Verify tools with quarto check
         run: |
