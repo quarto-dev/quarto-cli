@@ -52,7 +52,7 @@ All changes included in 1.10:
 
 ### Jupyter
 
-- ([#14374](https://github.com/quarto-dev/quarto-cli/pull/14374)): Avoid a crash when a XEUS-based kernel (e.g. Maple 2025) returns `execute_reply` without the required `status` field. The failing cell is recorded as an error instead of aborting the render. (author: @ChrisJefferson)
+- ([#14374](https://github.com/quarto-dev/quarto-cli/pull/14374)): Avoid a crash when a third-party Jupyter kernel (observed with Maple 2025, built on XEUS) returns `execute_reply` without the required `status` field. The failing cell is recorded as an error instead of aborting the render. (author: @ChrisJefferson)
 
 ## Other fixes and improvements
 
