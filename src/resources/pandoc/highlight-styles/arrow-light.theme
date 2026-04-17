@@ -92,14 +92,14 @@
             "underline": false
         },
         "BuiltIn": {
-            "text-color": null,
+            "text-color": "#4758AB",
             "background-color": null,
             "bold": false,
             "italic": false,
             "underline": false
         },
         "Extension": {
-            "text-color": null,
+            "text-color": "#4758AB",
             "background-color": null,
             "bold": false,
             "italic": false,
