@@ -563,12 +563,26 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
         # execute (w/o yaml options so that cell magics work)
         source = cell.source
         cell.source = nb_strip_yaml_options(client, cell.source)
-        cell = client.execute_cell(
-            cell=cell,
-            cell_index=index,
-            execution_count=execution_count,
-            store_history=store_history,
-        )
+        try:
+            cell = client.execute_cell(
+                cell=cell,
+                cell_index=index,
+                execution_count=execution_count,
+                store_history=store_history,
+            )
+        except KeyError as e:
+            # Some kernels (e.g. XEUS-based Maple) omit 'status' from
+            # execute_reply on error, violating the Jupyter protocol.
+            # Record the error in the cell outputs rather than crashing.
+            if str(e) == "'status'":
+                cell.outputs.append(nbformat.v4.new_output(
+                    output_type="error",
+                    ename="KernelProtocolError",
+                    evalue="Kernel returned execute_reply without status field",
+                    traceback=["Cell source:", source],
+                ))
+            else:
+                raise
         cell.source = source
 
         # if lines_to_next_cell is 0 then fix it to be 1
