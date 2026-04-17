@@ -380,9 +380,18 @@ def notebook_execute(options, status):
     if cleanup_cell:
         kernel_supports_daemonization = True
         nb.cells.append(cleanup_cell)
-        client.execute_cell(
-            cell=cleanup_cell, cell_index=len(client.nb.cells) - 1, store_history=False
-        )
+        try:
+            client.execute_cell(
+                cell=cleanup_cell, cell_index=len(client.nb.cells) - 1, store_history=False
+            )
+        except KeyError as e:
+            # Same XEUS-based protocol violation as in cell_execute.
+            # Cleanup failures are non-fatal: trace and continue so the
+            # render still completes (kernel deps just won't be collected).
+            if e.args == ("status",):
+                trace("cleanup cell failed with missing 'status' in execute_reply; kernel deps unavailable")
+            else:
+                raise
         nb.cells.pop()
 
         # record kernel deps after execution (picks up imports that occurred
@@ -574,12 +583,12 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
             # Some kernels (e.g. XEUS-based Maple) omit 'status' from
             # execute_reply on error, violating the Jupyter protocol.
             # Record the error in the cell outputs rather than crashing.
-            if str(e) == "'status'":
+            if e.args == ("status",):
                 cell.outputs.append(nbformat.v4.new_output(
                     output_type="error",
                     ename="KernelProtocolError",
                     evalue="Kernel returned execute_reply without status field",
-                    traceback=["Cell source:", source],
+                    traceback=[],
                 ))
             else:
                 raise

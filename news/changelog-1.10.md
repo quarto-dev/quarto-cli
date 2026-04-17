@@ -48,6 +48,12 @@ All changes included in 1.10:
 
 - ([#14297](https://github.com/quarto-dev/quarto-cli/pull/14297)): Fix `quarto.utils.is_empty_node()` returning inverted results for text nodes (`Str`, `Code`, `RawInline`).
 
+## Engines
+
+### Jupyter
+
+- ([#14374](https://github.com/quarto-dev/quarto-cli/pull/14374)): Avoid a crash when a XEUS-based kernel (e.g. Maple 2025) returns `execute_reply` without the required `status` field. The failing cell is recorded as an error instead of aborting the render. (author: @ChrisJefferson)
+
 ## Other fixes and improvements
 
 - ([#6651](https://github.com/quarto-dev/quarto-cli/issues/6651)): Fix dart-sass compilation failing in enterprise environments where `.bat` files are blocked by group policy.
