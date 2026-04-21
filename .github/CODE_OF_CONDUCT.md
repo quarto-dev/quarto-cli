@@ -36,8 +36,13 @@ Examples of unacceptable behavior include:
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
 * Providing bad information by copying output from AI assistants
-  without verifying its validity. This _specifically_ includes autonomous agents
-  from OpenClaw, etc. We consider these account-bannable on first offense.
+  without verifying its validity.
+* Submitting issues or pull requests via autonomous AI agents acting without
+  human oversight. This _specifically_ includes autonomous agents such as
+  OpenClaw. AI assistants are accepted only when a human contributor has
+  reviewed and verified the submission (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+  Autonomous agents deciding on their own to open issues or PRs in this
+  repository are not. We consider these account-bannable on first offense.
   You have been warned.
 
 ## Enforcement Responsibilities
