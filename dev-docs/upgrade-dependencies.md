@@ -12,6 +12,8 @@ Contact Carlos so he uploads the binaries to the S3 bucket.
 
 - run `./configure.sh`.
 
+Bumping a version in `src/import_map.json` (or any of the other keyed files) automatically invalidates the CI Deno cache on next run. See [ci-deno-caching.md](ci-deno-caching.md) for the key composition and how to force invalidation manually.
+
 ### Upgrade Deno download link for RHEL build from conda-forge
 
 - Go to <https://anaconda.org/conda-forge/deno/files> and find the version of Deno required.
