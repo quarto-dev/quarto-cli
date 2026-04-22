@@ -34,6 +34,7 @@ import {
   ensureTypstFileRegexMatches,
   ensureSnapshotMatches,
   fileExists,
+  fileNotExists,
   noErrors,
   noErrorsOrWarnings,
   ensurePptxXpath,
@@ -266,6 +267,22 @@ function resolveTestSpecs(
               } else if (path === "supportPath") {
                 verifyFns.push(
                   fileExists(join(outputFile.supportPath, file)),
+                );
+              }
+            }
+          } else if (key === "fileNotExists") {
+            for (
+              const [path, file] of Object.entries(
+                value as Record<string, string>,
+              )
+            ) {
+              if (path === "outputPath") {
+                verifyFns.push(
+                  fileNotExists(join(dirname(outputFile.outputPath), file)),
+                );
+              } else if (path === "supportPath") {
+                verifyFns.push(
+                  fileNotExists(join(outputFile.supportPath, file)),
                 );
               }
             }
