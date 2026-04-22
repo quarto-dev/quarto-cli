@@ -1,6 +1,10 @@
 name: Cleanup github runner caches on closed pull requests
 on:
-  pull_request:
+  # pull_request_target is required so fork PRs can delete their own caches on close.
+  # pull_request from a fork ships a read-only GITHUB_TOKEN regardless of the
+  # permissions: block, causing gh cache delete to fail with HTTP 403.
+  # Safe here: no PR code is checked out, the workflow only calls gh cache list/delete.
+  pull_request_target:
     types:
       - closed
 
