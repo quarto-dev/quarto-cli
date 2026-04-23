@@ -18,13 +18,25 @@ import {
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
-import { suggestUserBinPaths } from "../../../src/core/path.ts";
+import { suggestUserBinPaths, which } from "../../../src/core/path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 export async function configure(
   config: Configuration,
 ) {
+  // npm is only required for building quarto-preview.js (used by `quarto preview`
+  // for HTML/revealjs live-reload). Warn upfront so the user knows before the
+  // long dependency downloads; the JS build is skipped below if npm is missing.
+  const hasNpm = (await which("npm")) !== undefined;
+  if (!hasNpm) {
+    warning(
+      "npm not found on PATH. The 'quarto preview' live-reload feature " +
+        "will not be available. Install Node.js (which provides npm) and " +
+        "re-run configure to enable it.",
+    );
+  }
+
   // Download dependencies
   for (const dependency of kDependencies) {
     const targetDir = join(
@@ -34,12 +46,16 @@ export async function configure(
     await configureDependency(dependency, targetDir, config);
   }
 
-  info("Building quarto-preview.js...");
-  const result = buildQuartoPreviewJs(config.directoryInfo.src);
-  if (!result.success) {
-    throw new Error();
+  if (hasNpm) {
+    info("Building quarto-preview.js...");
+    const result = buildQuartoPreviewJs(config.directoryInfo.src);
+    if (!result.success) {
+      throw new Error();
+    }
+    info("Build completed.");
+  } else {
+    info("Skipping quarto-preview.js build (npm not found).");
   }
-  info("Build completed.");
 
   // Move the quarto script into place
   info("Placing Quarto script");
