@@ -163,6 +163,7 @@ The feature format matrix in `dev-docs/feature-format-matrix/` documents and tes
 Comprehensive methodology for debugging flaky tests documented in [dev-docs/debugging-flaky-tests.md](../dev-docs/debugging-flaky-tests.md).
 
 Key phases:
+
 1. Reproduce locally (outside CI)
 2. Binary search to isolate culprit test
 3. Narrow down within test file
@@ -236,8 +237,8 @@ LaTeX error pattern maintenance is documented in [dev-docs/tinytex-pattern-maint
 
 ## Documentation
 
-- Documentation is at <https://quarto.org> with a sitemap at <https://quarto.org/sitemap.xml>
-- Prerelease docs: <https://prerelease.quarto.org/> for features in dev versions
+- Documentation is at <https://quarto.org/llms.txt>
+- Prerelease docs: <https://prerelease.quarto.org/llms.txt> for features in dev versions
 - Dev documentation in `dev-docs/` includes:
   - Checklists for releases and backports
   - Dependency update procedures
@@ -246,7 +247,7 @@ LaTeX error pattern maintenance is documented in [dev-docs/tinytex-pattern-maint
 
 ## Contributing
 
-See CONTRIBUTING.md for pull request guidelines. Significant changes require a signed contributor agreement (individual or corporate).
+See [.github/CONTRIBUTING.md](../.github/CONTRIBUTING.md) for contributing and pull request guidelines.
 
 ## Maintaining Memory Files
 
@@ -258,11 +259,11 @@ This project uses Claude Code memory files for AI-assisted development. When upd
 
 **Memory file types:**
 
-| Location | When Loaded | Use For |
-|----------|-------------|---------|
-| `.claude/CLAUDE.md` | Always | Project overview, essential commands |
-| `.claude/rules/<feature>/` | When paths match | Feature-specific conventions |
-| `llm-docs/` | When explicitly read | Architectural deep dives |
+| Location                   | When Loaded          | Use For                              |
+| -------------------------- | -------------------- | ------------------------------------ |
+| `.claude/CLAUDE.md`        | Always               | Project overview, essential commands |
+| `.claude/rules/<feature>/` | When paths match     | Feature-specific conventions         |
+| `llm-docs/`                | When explicitly read | Architectural deep dives             |
 
 **Personal overrides:** Create `CLAUDE.local.md` (gitignored) for personal preferences like preferred shell syntax or workflow customizations. This file is loaded alongside the project CLAUDE.md but won't be committed.
 

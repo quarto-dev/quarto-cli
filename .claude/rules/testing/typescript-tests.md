@@ -104,8 +104,11 @@ const markdown = asMappedString("");
 const markdownWithContent = asMappedString("# Title\nSome content");
 ```
 
-**Mock ProjectContext:**
-```typescript
-import { createMockProjectContext } from "./utils.ts";  // tests/unit/project/utils.ts
-const project = createMockProjectContext();  // Creates temp dir + FileInformationCacheMap
-```
+**Mock Contexts:**
+
+Several subsystems use context interfaces passed to functions. For unit tests, create `createMock*()` helpers with no-op stubs. Key pattern: async callbacks (like `withSpinner`) should just `await op()` so errors propagate normally. Check existing test files for helpers before writing new ones.
+
+| Context | Interface | Existing helpers |
+|---------|-----------|-----------------|
+| `ProjectContext` | `src/project/types.ts` | `tests/unit/project/utils.ts` → `createMockProjectContext()` |
+| `InstallContext` | `src/tools/types.ts` | `tests/unit/tools/chrome-headless-shell.test.ts` → `createMockContext()` |

@@ -7,7 +7,7 @@
 import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { satisfies } from "semver/mod.ts";
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 
 import { error, info } from "../../deno_ral/log.ts";
 
@@ -863,14 +863,26 @@ function cleanupNotebook(
   format: Format,
   project: EngineProjectContext,
 ) {
-  // Make notebook non-transient when keep-ipynb is set
   const data = target.data as JupyterTargetData;
-  const cached = project.fileInformationCache.get(target.source);
-  if (cached && data.transient && format.execute[kKeepIpynb]) {
-    if (cached.target && cached.target.data) {
+
+  // Nothing to do for non-transient notebooks (user-authored .ipynb files)
+  if (!data.transient) {
+    return;
+  }
+
+  // User wants to keep the notebook — do not delete.
+  // Also mark the cache entry (if any) as non-transient so later cache
+  // cleanup doesn't remove it.
+  if (format.execute[kKeepIpynb]) {
+    const cached = project.fileInformationCache.get(target.source);
+    if (cached && cached.target && cached.target.data) {
       (cached.target.data as JupyterTargetData).transient = false;
     }
+    return;
   }
+
+  // Otherwise the transient notebook is no longer needed; delete it.
+  safeRemoveSync(target.input);
 }
 
 interface JupyterTargetData {
