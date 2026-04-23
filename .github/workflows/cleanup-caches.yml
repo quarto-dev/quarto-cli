@@ -1,4 +1,4 @@
-name: Cleanup github runner caches on closed pull requests
+name: Cleanup github runner caches
 on:
   # pull_request_target is required so fork PRs can delete their own caches on close.
   # pull_request from a fork ships a read-only GITHUB_TOKEN regardless of the
@@ -7,9 +7,17 @@ on:
   pull_request_target:
     types:
       - closed
+  # Daily cleanup of stale julia caches on long-lived branches. julia-actions/cache@v3
+  # does not run delete-old-caches on the default branch (by design, to avoid races
+  # between concurrent runs), so caches accumulate. This job keeps only the newest
+  # cache per (workflow, os) tuple.
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
 
 jobs:
-  cleanup:
+  cleanup-pr:
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -65,3 +73,81 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           BRANCH: refs/pull/${{ github.event.pull_request.number }}/merge
+
+  cleanup-branches:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    strategy:
+      fail-fast: false
+      matrix:
+        ref:
+          - refs/heads/main
+          - refs/heads/v1.9
+    steps:
+      - name: Cleanup stale julia caches on ${{ matrix.ref }}
+        run: |
+          echo "::group::Julia cache list for $REF"
+
+          # Filter at source with --key (prefix match) so non-julia caches
+          # don't push stale julia entries past the --limit window.
+          caches=$(gh cache list --ref "$REF" --key julia-cache --limit 100 --json id,key,createdAt,sizeInBytes)
+          total=$(echo "$caches" | jq 'length')
+
+          echo "Found $total julia cache(s) on $REF"
+
+          if [ "$total" -eq 0 ]; then
+            echo "::endgroup::"
+            echo "::notice::No julia caches on $REF"
+            exit 0
+          fi
+
+          # Group key is the cache key with run_id=... onwards stripped.
+          # Sort by createdAt descending so the newest cache per group comes first;
+          # awk keeps the first occurrence of each group (newest) and prints the rest.
+          toDelete=$(echo "$caches" \
+            | jq -r '.[] | "\(.createdAt)|\(.id)|\(.sizeInBytes)|\(.key | split(";run_id=") | .[0])"' \
+            | sort -r \
+            | awk -F'|' 'seen[$4]++ { print $2 "|" $3 "|" $4 }')
+
+          deleteCount=$(echo "$toDelete" | grep -c '|' || true)
+          keepCount=$((total - deleteCount))
+
+          echo "Will delete $deleteCount stale cache(s), keep $keepCount newest per (workflow, os)"
+          echo "::endgroup::"
+
+          if [ "$deleteCount" -eq 0 ]; then
+            echo "::notice::Nothing to delete on $REF - all caches are already the newest per (workflow, os)"
+            exit 0
+          fi
+
+          ## Do not fail the workflow on a single delete error.
+          set +e
+
+          echo "::group::Deleting stale caches"
+          deleted=0
+          failed=0
+          freedMb=0
+
+          while IFS='|' read -r id size group; do
+            [ -z "$id" ] && continue
+            mb=$((size / 1024 / 1024))
+            echo "Deleting cache $id (${mb}MB) - group: $group"
+            if gh cache delete "$id"; then
+              echo "  ✓ deleted"
+              deleted=$((deleted + 1))
+              freedMb=$((freedMb + mb))
+            else
+              echo "  ✗ failed"
+              failed=$((failed + 1))
+            fi
+          done <<< "$toDelete"
+
+          echo "::endgroup::"
+
+          echo "::notice::Cleanup complete on $REF: $deleted deleted (${freedMb}MB freed), $failed failed"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF: ${{ matrix.ref }}
