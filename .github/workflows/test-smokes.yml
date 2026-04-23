@@ -58,6 +58,8 @@ jobs:
           - os: windows-latest
             time-test: true
     runs-on: ${{ matrix.os }}
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
@@ -98,8 +100,26 @@ jobs:
         working-directory: ./tests/integration/playwright
         shell: bash
 
+      - name: Get Playwright version
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        run: |
+          VERSION=$(node -p "require('@playwright/test/package.json').version")
+          echo "PLAYWRIGHT_VERSION=$VERSION" >> "$GITHUB_ENV"
+        working-directory: ./tests/integration/playwright
+        shell: bash
+
+      - name: Cache Playwright browsers
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: Install Playwright Browsers
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        timeout-minutes: 10
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
 
