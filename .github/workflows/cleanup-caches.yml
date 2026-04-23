@@ -90,8 +90,9 @@ jobs:
         run: |
           echo "::group::Julia cache list for $REF"
 
-          caches=$(gh cache list --ref "$REF" --limit 100 --json id,key,createdAt,sizeInBytes \
-            | jq -c '[.[] | select(.key | startswith("julia-cache"))]')
+          # Filter at source with --key (prefix match) so non-julia caches
+          # don't push stale julia entries past the --limit window.
+          caches=$(gh cache list --ref "$REF" --key julia-cache --limit 100 --json id,key,createdAt,sizeInBytes)
           total=$(echo "$caches" | jq 'length')
 
           echo "Found $total julia cache(s) on $REF"
