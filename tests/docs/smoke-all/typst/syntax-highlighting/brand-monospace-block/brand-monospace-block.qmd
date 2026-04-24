@@ -18,7 +18,7 @@ _quarto:
           - '^#show raw\.where\(block: true\): set par\(leading: 0\.85em\)$'
           # Quarto-generated Skylighting override with brand bg and proper block styling
           - 'let bgcolor = rgb\("#1e1e2e"\)'
-          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, stroke: 0\.5pt \+ luma\(200\), blocks\)'
         # Should NOT have raw fenced blocks
         - ["```python"]
 ---

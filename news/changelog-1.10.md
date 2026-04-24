@@ -12,6 +12,7 @@ All changes included in 1.10:
 ### `typst`
 
 - ([#14261](https://github.com/quarto-dev/quarto-cli/issues/14261)): Fix theorem/example block titles containing inline code producing invalid Typst markup when syntax highlighting is applied.
+- ([#14170](https://github.com/quarto-dev/quarto-cli/pull/14170)): Add support for code annotations and filename features in Typst output. (author: @mcanouil)
 
 ### `revealjs`
 
