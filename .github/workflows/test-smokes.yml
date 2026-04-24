@@ -158,6 +158,7 @@ jobs:
           sudo apt-get install -y libxml2-utils
           sudo apt-get install -y libharfbuzz-dev libfribidi-dev
           sudo apt-get install -y poppler-utils
+          sudo apt-get install -y libnode-dev
 
       - name: Install rsvg-convert for SVG conversion tests
         # Only do it on linux runner, and only if we are running the relevant tests
