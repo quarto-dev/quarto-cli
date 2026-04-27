@@ -17,7 +17,7 @@ export PANDOC=3.8.3
 export DARTSASS=1.87.0
 export ESBUILD=0.25.10
 export TYPST=0.14.2
-export TYPST_GATHER=0.2.2
+export TYPST_GATHER=0.2.3
 export VERAPDF=1.28.2
 
 
