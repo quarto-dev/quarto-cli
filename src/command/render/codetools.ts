@@ -14,8 +14,10 @@ import { Format } from "../../config/types.ts";
 import {
   kCodeTools,
   kCodeToolsHideAllCode,
+  kCodeToolsHideAllSections,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
+  kCodeToolsShowAllSections,
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
   kKeepSource,
@@ -29,9 +31,12 @@ import { isHtmlOutput } from "../../config/format.ts";
 import { executionEngineCanKeepSource } from "../../execute/engine-info.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { withTiming } from "../../core/timing.ts";
+import { kSectionCollapse } from "../../format/html/format-html-shared.ts";
 
 const kHideAllCodeLinkId = "quarto-hide-all-code";
 const kShowAllCodeLinkId = "quarto-show-all-code";
+const kShowAllSectionsLinkId = "quarto-show-all-sections";
+const kHideAllSectionsLinkId = "quarto-hide-all-sections";
 const kViewSourceLinkId = "quarto-view-source";
 const kEmbeddedSourceClass = "quarto-embedded-source-code";
 export const kEmbeddedSourceModalId = kEmbeddedSourceClass + "-modal";
@@ -140,7 +145,7 @@ export function codeToolsPostprocessor(format: Format) {
       if (formatHasCodeTools(format)) {
         // resolve what sort of code tools we will present
         const codeTools = resolveCodeTools(format, doc);
-        if (codeTools.source || codeTools.toggle) {
+        if (codeTools.source || codeTools.toggle || codeTools.section) {
           const title = doc.querySelector("#title-block-header h1");
           const header = title !== null
             ? (title as Element).parentElement
@@ -178,7 +183,7 @@ export function codeToolsPostprocessor(format: Format) {
               header!.prepend(titleDiv);
             }
 
-            if (codeTools.toggle) {
+            if (codeTools.toggle || codeTools.section) {
               button.setAttribute("id", kCodeToolsMenuButtonId);
               button.classList.add("dropdown-toggle");
               button.setAttribute("data-bs-toggle", "dropdown");
@@ -206,14 +211,29 @@ export function codeToolsPostprocessor(format: Format) {
                 li.appendChild(hr);
                 ul.appendChild(li);
               };
-              addListItem(
-                kShowAllCodeLinkId,
-                format.language[kCodeToolsShowAllCode]!,
-              );
-              addListItem(
-                kHideAllCodeLinkId,
-                format.language[kCodeToolsHideAllCode]!,
-              );
+              if (codeTools.toggle) {
+                addListItem(
+                  kShowAllCodeLinkId,
+                  format.language[kCodeToolsShowAllCode]!,
+                );
+                addListItem(
+                  kHideAllCodeLinkId,
+                  format.language[kCodeToolsHideAllCode]!,
+                );
+              }
+              if (codeTools.section) {
+                if (codeTools.toggle) {
+                  addDivider();
+                }
+                addListItem(
+                  kShowAllSectionsLinkId,
+                  format.language[kCodeToolsShowAllSections]!,
+                );
+                addListItem(
+                  kHideAllSectionsLinkId,
+                  format.language[kCodeToolsHideAllSections]!,
+                );
+              }
               if (codeTools.source) {
                 addDivider();
                 const vsLi = addListItem(
@@ -323,6 +343,7 @@ interface CodeTools {
   source: boolean | string;
   toggle: boolean;
   caption: string;
+  section: boolean;
 }
 
 function resolveCodeTools(format: Format, doc: Document): CodeTools {
@@ -343,6 +364,11 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
     caption: typeof codeTools === "boolean"
       ? kCodeCaption
       : codeTools?.caption || kCodeCaption,
+    section: typeof codeTools === "boolean"
+      ? codeTools
+      : codeTools?.section !== undefined
+      ? codeTools?.section
+      : true,
   };
 
   // if we have request source without an external url,
@@ -360,6 +386,20 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
       ".cell .sourceCode.hidden:not(div pre.js)",
     );
     codeToolsResolved.toggle = !!codeDetails || !!codeHidden;
+  }
+
+  // if we have requested section, make sure there are things to collapse
+  if (codeToolsResolved.section === true) {
+    codeToolsResolved.section = !!format.metadata[kSectionCollapse];
+  }
+
+  // Change the default caption based on what tools are shown
+  if (
+    codeToolsResolved.section &&
+    (codeTools === true ||
+      (typeof codeTools !== "boolean" && codeTools?.caption === undefined))
+  ) {
+    codeToolsResolved.caption = "Tools";
   }
 
   // return resolved
