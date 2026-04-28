@@ -119,9 +119,12 @@ async function analyzeNeededPackages(
       name,
       version,
     }));
-  } catch {
+  } catch (e) {
     // Fallback: if analyze fails, stage everything (current behavior)
-    warning("typst-gather analyze failed; staging all packages as fallback");
+    const detail = e instanceof Error ? e.message : String(e);
+    warning(
+      `typst-gather analyze failed; staging all packages as fallback: ${detail}`,
+    );
     return null;
   }
 }

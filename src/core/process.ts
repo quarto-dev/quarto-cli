@@ -94,7 +94,17 @@ export async function execProcess(
         offset += window.byteLength;
       }
       stdinWriter.releaseLock();
-      process.stdin.close();
+      try {
+        await process.stdin.close();
+      } catch (e) {
+        // The child may have closed its read end of the pipe before our
+        // close() completed (e.g. exited fast, failed to spawn). The
+        // resulting "Writable stream is closed or errored." is not a
+        // failure of execProcess — the child's exit status reflects any
+        // real problem. Swallow it so it doesn't escape as an unhandled
+        // rejection that aborts the process. See #14445.
+        debug(`[execProcess] stdin.close() rejected: ${e}`);
+      }
     }
 
     let stdoutText = "";
