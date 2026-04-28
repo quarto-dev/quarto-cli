@@ -37,7 +37,11 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
     # Ensure directory is there for Deno
     echo "Bootstrapping Deno..."
 
-    rm -rf "$QUARTO_DIST_PATH"
+    # CI sets QUARTO_SKIP_DENO_CACHE_WIPE=1 so the restored deno_cache survives
+    # (matches the gate used by package/scripts/vendoring/vendor.sh).
+    if [ "${QUARTO_SKIP_DENO_CACHE_WIPE}" != "1" ]; then
+      rm -rf "$QUARTO_DIST_PATH"
+    fi
 
     ## Binary Directory
     mkdir -p "$QUARTO_BIN_PATH/tools"
