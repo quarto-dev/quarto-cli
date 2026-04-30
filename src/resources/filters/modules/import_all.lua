@@ -20,6 +20,7 @@ _quarto.modules = {
   scope = require("modules/scope"),
   string = require("modules/string"),
   tablecolwidths = require("modules/tablecolwidths"),
+  theorems = require("modules/theorems"),
   typst = require("modules/typst"),
   listtable = require("modules/listtable"),
   tableutils = require("modules/tableutils"),
