@@ -126,9 +126,7 @@ export async function configure(
           info(`> Didn't create symlink at ${symlinkPath}`);
           if (i === symlinksFiltered.length - 1) {
             warning(
-              `\n> Please ensure that ${
-                join(config.directoryInfo.bin, "quarto")
-              } is in your path.`,
+              `\n> Please ensure that ${config.directoryInfo.bin} is in your path.`,
             );
           }
         }
@@ -136,9 +134,7 @@ export async function configure(
     } else {
       // Just warn the user and create a symlink in our last resort
       warning(
-        `\n> Please ensure that ${
-          join(config.directoryInfo.bin, "quarto")
-        } is in your path.`,
+        `\n> Please ensure that ${config.directoryInfo.bin} is in your path.`,
       );
     }
   }
