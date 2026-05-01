@@ -679,7 +679,9 @@ local function translate_border(v, warnings)
   local style = 'solid' -- css specifies none
   local paint = 'black' -- css specifies currentcolor
   parse_multiple(v, 3, function(s, start)
-    local fbeg, fend = s:find('%w+%b()', start)
+    -- '^' anchors the match at `start` so a width/style token (e.g. "0px",
+    -- "solid") preceding an rgb()/rgba() color is not skipped. See #14460.
+    local fbeg, fend = s:find('^%w+%b()', start)
     if fbeg then
       local paint2 = translate_border_color(s:sub(fbeg, fend), warnings)
       if paint2 then
@@ -728,7 +730,9 @@ local function consume_style(s, start, warnings)
 end
 
 local function consume_color(s, start, warnings)
-  local fbeg, fend = s:find('%w+%b()', start)
+  -- '^' anchors at `start` so we consume the token AT start instead of
+  -- skipping ahead to a later rgb()/rgba(). See #14460.
+  local fbeg, fend = s:find('^%w+%b()', start)
   if not fbeg then
     fbeg, fend = s:find('%S+', start)
   end
