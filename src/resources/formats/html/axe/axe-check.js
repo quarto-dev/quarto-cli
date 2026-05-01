@@ -140,6 +140,10 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
 
     const section = document.createElement("section");
     section.className = "slide quarto-axe-report-slide scrollable";
+    // Force a white slide background so the report stays readable regardless
+    // of the deck's brand/theme colors. Reveal applies this to the slide's
+    // generated `.slide-background` element during sync().
+    section.setAttribute("data-background-color", "#fff");
 
     const title = document.createElement("h2");
     title.textContent = "Accessibility Report";

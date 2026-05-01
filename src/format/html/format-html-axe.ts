@@ -35,26 +35,27 @@ export function axeFormatDependencies(
 ): FormatExtras {
   if (!options) return {};
 
-  // Use reveal-theme for revealjs, bootstrap for other HTML formats.
-  // Note: For revealjs, sass-bundles compile separately from the theme
-  // (which compiles in format-reveal-theme.ts), so the !default values
-  // below are used instead of actual theme colors. This is a known
-  // limitation - see GitHub issue for architectural context.
+  // The axe report is developer chrome, not document content, so its colors
+  // are literals here rather than theme-derived (`$body-bg` etc.). This keeps
+  // the overlay readable regardless of the page's brand or theme — which
+  // matters most when the user is auditing exactly those colors.
   const isRevealjs = isRevealjsOutput(format.pandoc);
   const isDashboard = isHtmlDashboardOutput(format.identifier["base-format"]);
   const sassDependency = isRevealjs ? "reveal-theme" : "bootstrap";
 
-  // Base overlay rules shared by all formats (also serves as fallback for revealjs)
+  // Base overlay rules shared by all formats. For revealjs, the `var(--r-*)`
+  // lookups pick up the slide's actual colors at runtime; the literal
+  // fallbacks apply everywhere else.
   const baseRules = `
 body div.quarto-axe-report {
   position: fixed;
   bottom: 3rem;
   right: 3rem;
   padding: 1rem;
-  border: 1px solid var(--r-main-color, $body-color);
+  border: 1px solid var(--r-main-color, #222);
   z-index: 9999;
-  background-color: var(--r-background-color, $body-bg);
-  color: var(--r-main-color, $body-color);
+  background-color: var(--r-background-color, #fff);
+  color: var(--r-main-color, #222);
   max-height: 50vh;
   overflow-y: auto;
 }
@@ -63,7 +64,7 @@ body div.quarto-axe-report {
 .quarto-axe-violation-selector { padding-left: 1rem; }
 .quarto-axe-violation-target {
   padding: 0.5rem;
-  color: $link-color;
+  color: #0747a6;
   text-decoration: underline;
   cursor: pointer;
 }
@@ -73,21 +74,26 @@ body div.quarto-axe-report {
   border: 2px solid red;
 }`;
 
-  // RevealJS: override overlay styles when report is embedded as a slide
+  // RevealJS: override overlay styles when report is embedded as a slide.
+  // The slide's white background is set by the JS via data-background-color;
+  // here we only need to keep text/link colors readable on white.
   const revealjsRules = isRevealjs
     ? `
 .reveal .slides section.quarto-axe-report-slide {
   text-align: left;
   font-size: 0.55em;
+  color: #222;
   h2 {
     margin-bottom: 0.5em;
     font-size: 1.8em;
+    color: #222;
   }
   div.quarto-axe-report {
     position: static;
     padding: 0;
     border: none;
     background-color: transparent;
+    color: #222;
     max-height: none;
     overflow-y: visible;
     z-index: auto;
@@ -102,15 +108,20 @@ body div.quarto-axe-report {
 }`
     : "";
 
-  // Dashboard: report inside offcanvas sidebar (not fixed overlay)
+  // Dashboard: report inside offcanvas sidebar (not fixed overlay).
+  // Override Bootstrap's themed offcanvas vars so the panel keeps axe's own
+  // colors regardless of brand/theme.
   const dashboardRules = isDashboard
     ? `
 .quarto-dashboard .offcanvas.quarto-axe-offcanvas {
+  --bs-offcanvas-bg: #fff;
+  --bs-offcanvas-color: #222;
   .quarto-axe-report {
     position: static;
     padding: 0;
     border: none;
     background-color: transparent;
+    color: #222;
     max-height: none;
     overflow-y: visible;
     z-index: auto;
@@ -148,11 +159,7 @@ body div.quarto-axe-report {
           dependency: sassDependency,
           user: [{
             uses: "",
-            defaults: `
-$body-color: #222 !default;
-$body-bg: #fff !default;
-$link-color: #2a76dd !default;
-`,
+            defaults: "",
             functions: "",
             mixins: "",
             rules: baseRules + revealjsRules + dashboardRules,

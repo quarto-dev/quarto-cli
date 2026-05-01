@@ -1,0 +1,28 @@
+---
+title: "Issue 14468 - axe sass bundle still compiles for revealjs"
+format:
+  revealjs:
+    axe: 
+      output: document
+brand:
+  color:
+    background: "#5e1717"
+    foreground: "#d6c50f"
+  typography:
+    link:
+      color: "#18a918"
+_quarto:
+  tests:
+    revealjs:
+      ensureCssRegexMatches:
+        - ['\.quarto-axe-report', 'quarto-axe-report-slide\s*\{[^}]*color:\s*#222']
+        - ['\$body-bg', '\$body-color', '\$link-color']
+---
+
+## Slide 1
+
+Content for accessibility checking. <http://example.org>.
+
+## Slide 2
+
+More content.
