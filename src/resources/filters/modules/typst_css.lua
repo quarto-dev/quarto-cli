@@ -191,14 +191,18 @@ local function parse_opacity(opacity)
       value = 100
     }
   elseif opacity:find '%%$' then
+    local n = tonumber(opacity:sub(1, -2), 10)
+    if not n then return nil end
     return {
       unit = 'percent',
-      value = tonumber(opacity:sub(1, -2), 10)
+      value = n
     }
   else
+    local n = tonumber(opacity)
+    if not n then return nil end
     return {
       unit = 'fraction',
-      value = math.min(1.0, tonumber(opacity))
+      value = math.min(1.0, n)
     }
   end
 end
@@ -280,7 +284,14 @@ end
 local function parse_color(color, warnings)
   if color:sub(1, 1) == '#' then
     local value = color:sub(2)
-    local short = value:len() < 5
+    local len = value:len()
+    -- valid CSS hex colors are exactly 3, 4, 6, or 8 hex digits
+    if (len ~= 3 and len ~= 4 and len ~= 6 and len ~= 8)
+       or value:match('[^0-9a-fA-F]') then
+      output_warning(warnings, 'invalid hex color ' .. color)
+      return nil
+    end
+    local short = len <= 4
     local comps = {}
     if short then
       for c in value:gmatch '.' do
@@ -452,7 +463,7 @@ local length_units = {
   -- viewport-relative
   'vw', 'svw', 'lvw', 'dvw', 'vh', 'svh', 'lvh', 'dvh',
   'vi', 'svi', 'lvi', 'dvi', 'vb', 'svb', 'lvb', 'dvb',
-  'vmin', 'svmin', 'lvmin', 'dvmin ', 'vmax', 'svmax', 'lvmax', 'dvmax',
+  'vmin', 'svmin', 'lvmin', 'dvmin', 'vmax', 'svmax', 'lvmax', 'dvmax',
   -- absolute
   'cm', 'mm', 'Q', 'in', 'pt', 'pc', 'px',
   -- not really a length unit, but used for font-size
@@ -621,6 +632,10 @@ local function translate_font_weight(w, warnings)
   if num and 1 <= num and num <= 1000 then
     return num
   end
+  -- CSS keywords are case-insensitive; lower-case before lookup.
+  if type(w) == 'string' then
+    w = w:lower()
+  end
   w = weight_synonyms[w] or w
   if tcontains(same_weights, w) then
     return w
@@ -647,8 +662,10 @@ local function translate_font_family_list(sl)
   end
   local strings = {}
   for s in sl:gmatch('([^,]+)') do
-    s = s:gsub('^%s+', '')
-    table.insert(strings, quote(dequote(s)))
+    s = s:gsub('^%s+', ''):gsub('%s+$', '')
+    if s ~= '' then
+      table.insert(strings, quote(dequote(s)))
+    end
   end
   local trailcomma = #strings == 1 and ',' or ''
   return '(' .. table.concat(strings, ', ') .. trailcomma .. ')'

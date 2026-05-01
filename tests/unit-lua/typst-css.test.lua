@@ -242,6 +242,223 @@ end
 -- the bug — we have to read the source.
 TestModuleExports = {}
 
+-- ---------------------------------------------------------------------
+-- Per-feature coverage: 3 tests per feature. Failing tests document
+-- known bugs; lock-in tests pin down current behavior so future refactors
+-- don't drift.
+-- ---------------------------------------------------------------------
+
+-- Color: parse_opacity --------------------------------------------------
+TestParseOpacity = {}
+
+function TestParseOpacity:testPercent()
+  lu.assertEquals(typst_css.parse_opacity('50%'),
+    { unit = 'percent', value = 50 })
+end
+
+function TestParseOpacity:testFractionClampsToOne()
+  lu.assertEquals(typst_css.parse_opacity('2'),
+    { unit = 'fraction', value = 1.0 })
+end
+
+function TestParseOpacity:testInvalidNumberDoesNotCrash()
+  -- BUG F: math.min(1.0, tonumber('foo')) raises 'number expected, got
+  -- nil'. A bad alpha in user CSS (e.g. `rgba(0 0 0 / abc)`) would
+  -- crash the filter.
+  local ok, result = pcall(typst_css.parse_opacity, 'not-a-number')
+  lu.assertTrue(ok, 'parse_opacity crashed: ' .. tostring(result))
+  lu.assertNil(result)
+end
+
+-- Color: parse_color (hex paths; brand path is in TestParseColorBrand) -
+TestParseColorHex = {}
+
+function TestParseColorHex:testThreeDigitHexShorthand()
+  lu.assertEquals(typst_css.parse_color('#abc', new_warnings()), {
+    type = 'rgb',
+    value = {
+      { unit = 'hex', value = 0xaa },
+      { unit = 'hex', value = 0xbb },
+      { unit = 'hex', value = 0xcc },
+    },
+    rep = 'shorthex',
+  })
+end
+
+function TestParseColorHex:testEightDigitHexWithAlpha()
+  lu.assertEquals(typst_css.parse_color('#aabbccdd', new_warnings()), {
+    type = 'rgb',
+    value = {
+      { unit = 'hex', value = 0xaa },
+      { unit = 'hex', value = 0xbb },
+      { unit = 'hex', value = 0xcc },
+      { unit = 'hex', value = 0xdd },
+    },
+    rep = 'hex',
+  })
+end
+
+function TestParseColorHex:testFiveDigitHexInvalid()
+  -- BUG G: 5-digit hex is not valid CSS; it currently parses silently
+  -- as 2 components because gmatch '..' drops the trailing odd digit.
+  lu.assertNil(typst_css.parse_color('#fffff', new_warnings()))
+end
+
+-- Color: parse_color delegating to parse_rgb (parse_rgb is private; we
+-- exercise it through the public parse_color entrypoint).
+TestParseColorRgb = {}
+
+function TestParseColorRgb:testLegacyCommaThreeComponents()
+  lu.assertEquals(typst_css.parse_color('rgb(255, 0, 0)', new_warnings()), {
+    type = 'rgb',
+    value = {
+      { unit = 'int', value = 255 },
+      { unit = 'int', value = 0 },
+      { unit = 'int', value = 0 },
+    },
+  })
+end
+
+function TestParseColorRgb:testModernSlashAlpha()
+  lu.assertEquals(typst_css.parse_color('rgb(255 0 0 / 50%)', new_warnings()), {
+    type = 'rgb',
+    value = {
+      { unit = 'int', value = 255 },
+      { unit = 'int', value = 0 },
+      { unit = 'int', value = 0 },
+      { unit = 'percent', value = 50 },
+    },
+  })
+end
+
+function TestParseColorRgb:testOneCommaIsRejected()
+  -- parse_color drops `warnings` when delegating to parse_rgb (a separate
+  -- latent bug — see line 306), so we only assert the nil return.
+  lu.assertNil(typst_css.parse_color('rgb(255, 0)', new_warnings()))
+end
+
+-- Color: output_color --------------------------------------------------
+TestOutputColor = {}
+
+function TestOutputColor:testTypstNativeNamedShortcut()
+  lu.assertEquals(
+    typst_css.output_color({ type = 'named', value = 'red' }, nil,
+      new_warnings()),
+    'red')
+end
+
+function TestOutputColor:testCssOnlyNamedFallsBackToRgb()
+  -- aliceblue isn't in typst_named_colors, so output_color falls back
+  -- to the rgb() form pulled from css_named_colors.
+  lu.assertEquals(
+    typst_css.output_color({ type = 'named', value = 'aliceblue' }, nil,
+      new_warnings()),
+    'rgb(240, 248, 255)')
+end
+
+function TestOutputColor:testNilColorWithOpacityIsTransparentBlack()
+  lu.assertEquals(
+    typst_css.output_color(nil, { unit = 'percent', value = 50 },
+      new_warnings()),
+    'rgb(0, 0, 0, 50%)')
+end
+
+-- Length parsing: extra coverage for parse_length_unit ----------------
+function TestTranslateLength:testDvminUnitParses()
+  -- BUG H: 'dvmin ' has a stray trailing space in the length_units
+  -- table, so the suffix matcher falls through to the shorter 'vmin'
+  -- and the unit is never recognized.
+  lu.assertEquals(typst_css.parse_length_unit('10dvmin'), 'dvmin')
+end
+
+-- Border parsing: ordering + defaults ---------------------------------
+function TestTranslateBorder:testKeywordWidthDottedNamedColor()
+  local r = typst_css.translate_border('thick dotted blue', new_warnings())
+  lu.assertEquals(r.thickness, '3.75pt') -- thick = 5px = 3.75pt
+  lu.assertEquals(r.dash, '"dotted"')
+  lu.assertEquals(r.paint, 'blue')
+end
+
+function TestTranslateBorder:testWidthOnlyShorthandKeepsDefaults()
+  -- 'solid' default has no Typst literal so dash is nil ("let Typst
+  -- pick"); paint stays as the literal string 'black' (Typst built-in).
+  local r = typst_css.translate_border('1px', new_warnings())
+  lu.assertEquals(r.thickness, '0.75pt')
+  lu.assertNil(r.dash)
+  lu.assertEquals(r.paint, 'black')
+end
+
+function TestTranslateBorder:testColorFirstOrderIsHandled()
+  -- CSS shorthand is order-agnostic.
+  local r = typst_css.translate_border('blue dashed 2px', new_warnings())
+  lu.assertEquals(r.thickness, '1.5pt')
+  lu.assertEquals(r.dash, '"dashed"')
+  lu.assertEquals(r.paint, 'blue')
+end
+
+-- Font: translate_font_weight (extends existing class) ----------------
+function TestTranslateFontWeight:testNumericInRange()
+  lu.assertEquals(typst_css.translate_font_weight('400', new_warnings()), 400)
+end
+
+function TestTranslateFontWeight:testDashedToUndashed()
+  lu.assertEquals(
+    typst_css.translate_font_weight('extra-light', new_warnings()),
+    'extralight')
+end
+
+function TestTranslateFontWeight:testCaseInsensitiveBold()
+  -- BUG K: CSS keywords are case-insensitive but the module's tables
+  -- only contain lowercase entries.
+  lu.assertEquals(
+    typst_css.translate_font_weight('BOLD', new_warnings()),
+    'bold')
+end
+
+-- Font: translate_font_family_list ------------------------------------
+TestTranslateFontFamilyList = {}
+
+function TestTranslateFontFamilyList:testMultipleWithQuotes()
+  lu.assertEquals(
+    typst_css.translate_font_family_list('Helvetica, "Arial Black"'),
+    '("Helvetica", "Arial Black")')
+end
+
+function TestTranslateFontFamilyList:testSingleHasTrailingComma()
+  lu.assertEquals(
+    typst_css.translate_font_family_list('foo'),
+    '("foo",)')
+end
+
+function TestTranslateFontFamilyList:testWhitespaceOnlyIsEmpty()
+  -- BUG L: '   ' yields '("",)' because the gmatch matches the
+  -- whitespace run as one token, leading-space trim makes it empty,
+  -- but we still emit it as a quoted empty family.
+  lu.assertEquals(typst_css.translate_font_family_list('   '), '()')
+end
+
+-- Sides: expand_side_shorthand ----------------------------------------
+TestExpandSideShorthand = {}
+
+function TestExpandSideShorthand:testOneItemAllSidesEqual()
+  lu.assertEquals(
+    typst_css.expand_side_shorthand({'1'}, 'context', new_warnings()),
+    { top = '1', right = '1', bottom = '1', left = '1' })
+end
+
+function TestExpandSideShorthand:testTwoItemRule()
+  lu.assertEquals(
+    typst_css.expand_side_shorthand({'1', '2'}, 'context', new_warnings()),
+    { top = '1', right = '2', bottom = '1', left = '2' })
+end
+
+function TestExpandSideShorthand:testThreeItemRule()
+  -- 3-item rule: top, right, bottom; left mirrors right.
+  lu.assertEquals(
+    typst_css.expand_side_shorthand({'1', '2', '3'}, 'context', new_warnings()),
+    { top = '1', right = '2', bottom = '3', left = '2' })
+end
+
 function TestModuleExports:testNoPhantomExports()
   local source_path = package.searchpath('typst_css', package.path)
   lu.assertNotNil(source_path, 'could not find typst_css.lua source')
