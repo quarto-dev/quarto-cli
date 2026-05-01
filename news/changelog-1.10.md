@@ -9,6 +9,10 @@ All changes included in 1.10:
 
 ## Formats
 
+### `html`
+
+- ([#14468](https://github.com/quarto-dev/quarto-cli/issues/14468)): Fix `axe` enabling clobbering brand colors (e.g. `background`, `link.color`) when set via `_brand.yml` or `brand:` metadata.
+
 ### `pdf`
 
 - ([#13588](https://github.com/quarto-dev/quarto-cli/issues/13588)): Fix Lua error when rendering PDF with `reference-location: margin` and a footnote alongside a figure with `fig-cap`. (author: @mcanouil)
