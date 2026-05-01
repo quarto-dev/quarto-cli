@@ -226,4 +226,43 @@ function TestConsumeNoGlobalLeak:testConsumeStyleDoesNotLeak()
   lu.assertNil(rawget(_G, 'fend'), 'consume_style leaked global "fend"')
 end
 
+-- The module's `function parse_multiple(...)` declaration is missing
+-- `local`, so loading the module installs `parse_multiple` as a global.
+TestModuleNoGlobalLeak = {}
+
+function TestModuleNoGlobalLeak:testParseMultipleNotGlobal()
+  lu.assertNil(rawget(_G, 'parse_multiple'),
+    'loading typst_css leaked global "parse_multiple"')
+end
+
+-- Every key listed on the LHS of the module's `return { ... }` table
+-- should resolve to a non-nil value on the loaded module. A `K = V,`
+-- entry where `V` is undefined silently turns the export into nil
+-- (Lua tables drop nil-valued keys), so `pairs(typst_css)` cannot see
+-- the bug — we have to read the source.
+TestModuleExports = {}
+
+function TestModuleExports:testNoPhantomExports()
+  local source_path = package.searchpath('typst_css', package.path)
+  lu.assertNotNil(source_path, 'could not find typst_css.lua source')
+  local f = assert(io.open(source_path, 'r'))
+  local src = f:read('*all')
+  f:close()
+
+  -- Anchor on `\nreturn {` and `\n}` so we pick the top-level export
+  -- block, not an indented `return { ... }` inside a function body.
+  local export_body = src:match('\nreturn%s*{(.-)\n}%s*$')
+  lu.assertNotNil(export_body, 'could not locate top-level export table')
+
+  local nils = {}
+  for k in export_body:gmatch('([%w_]+)%s*=') do
+    if typst_css[k] == nil then
+      table.insert(nils, k)
+    end
+  end
+  lu.assertEquals(#nils, 0,
+    'phantom exports (LHS in source but nil on module): ' ..
+    table.concat(nils, ', '))
+end
+
 os.exit(lu.LuaUnit.run())
