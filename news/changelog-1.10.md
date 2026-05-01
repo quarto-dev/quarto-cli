@@ -11,7 +11,7 @@ All changes included in 1.10:
 
 ### `html`
 
-- ([#14468](https://github.com/quarto-dev/quarto-cli/issues/14468)): Fix `axe` enabling clobbering brand colors (e.g. `background`, `link.color`) when set via `_brand.yml` or `brand:` metadata.
+- ([#14468](https://github.com/quarto-dev/quarto-cli/issues/14468)): The `axe` accessibility report UI (HTML overlay, revealjs report slide, dashboard offcanvas) now uses its own theme-independent colors instead of inheriting from `brand` or theme. Keeps the report readable regardless of page styling, and stops `axe` from clobbering brand colors set via `_brand.yml`.
 
 ### `pdf`
 
