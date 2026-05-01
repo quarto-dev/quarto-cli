@@ -150,4 +150,80 @@ function TestTranslateLength:testPassthroughPt()
   lu.assertEquals(typst_css.translate_length('12pt', new_warnings()), '12pt')
 end
 
+-- Bug A: output_color creates `zero` as an implicit global on the no-color
+-- path because the local keyword is missing.
+TestOutputColorGlobalLeak = {}
+
+function TestOutputColorGlobalLeak:setUp()
+  -- Make sure no prior test poisoned this global.
+  rawset(_G, 'zero', nil)
+end
+
+function TestOutputColorGlobalLeak:testNoColorWithOpacityDoesNotLeakGlobal()
+  typst_css.output_color(nil, { unit = 'percent', value = 50 }, new_warnings())
+  lu.assertNil(rawget(_G, 'zero'),
+    'output_color leaked an implicit global "zero"')
+end
+
+-- Bug B+C: parse_color of a brand reference whose name contains digits
+-- (e.g. `--brand-red-50`) currently crashes because:
+--   (B) the [%a--]* class only allows alphas + hyphens, so the capture fails
+--       and the function falls into the error branch
+--   (C) the error branch concatenates a never-defined `v` and returns
+--       `null` (also undefined)
+TestParseColorBrand = {}
+
+function TestParseColorBrand:testBrandNameWithDigitsParses()
+  local c = typst_css.parse_color('var(--brand-red-50)', new_warnings())
+  lu.assertNotIsNil(c)
+  lu.assertEquals(c.type, 'brand')
+  lu.assertEquals(c.value, 'red-50')
+end
+
+function TestParseColorBrand:testMalformedBrandRefReturnsNilNoCrash()
+  -- Anything matching the var(--brand- prefix but failing the name capture
+  -- must not throw a Lua error; it should warn and return nil.
+  local warnings = new_warnings()
+  local ok, c = pcall(typst_css.parse_color, 'var(--brand-!!)', warnings)
+  lu.assertTrue(ok,
+    'parse_color crashed on a malformed brand ref: ' .. tostring(c))
+  lu.assertNil(c)
+end
+
+-- Bug D: translate_font_weight passes `null` (an undefined global -> nil)
+-- to output_warning instead of `warnings`, so the user-supplied warnings
+-- collector is silently bypassed.
+TestTranslateFontWeight = {}
+
+function TestTranslateFontWeight:testInvalidWeightWarnsToCollector()
+  local warnings = new_warnings()
+  local result = typst_css.translate_font_weight('not-a-weight', warnings)
+  lu.assertNil(result)
+  lu.assertEquals(#warnings, 1,
+    'expected the invalid-weight warning to land in the collector, ' ..
+    'but the collector saw ' .. #warnings .. ' warning(s)')
+end
+
+-- Bug E: consume_width and consume_style write `fbeg, fend = ...` without
+-- `local`, leaking them as globals. (consume_color and translate_border
+-- correctly declare them local.)
+TestConsumeNoGlobalLeak = {}
+
+function TestConsumeNoGlobalLeak:setUp()
+  rawset(_G, 'fbeg', nil)
+  rawset(_G, 'fend', nil)
+end
+
+function TestConsumeNoGlobalLeak:testConsumeWidthDoesNotLeak()
+  typst_css.consume_width('2px', 1, new_warnings())
+  lu.assertNil(rawget(_G, 'fbeg'), 'consume_width leaked global "fbeg"')
+  lu.assertNil(rawget(_G, 'fend'), 'consume_width leaked global "fend"')
+end
+
+function TestConsumeNoGlobalLeak:testConsumeStyleDoesNotLeak()
+  typst_css.consume_style('solid', 1, new_warnings())
+  lu.assertNil(rawget(_G, 'fbeg'), 'consume_style leaked global "fbeg"')
+  lu.assertNil(rawget(_G, 'fend'), 'consume_style leaked global "fend"')
+end
+
 os.exit(lu.LuaUnit.run())

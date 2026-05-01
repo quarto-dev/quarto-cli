@@ -305,12 +305,14 @@ local function parse_color(color, warnings)
   elseif color:find '^rgb%(' or color:find '^rgba%(' then
     return parse_rgb(color)
   elseif color:find '^var%(%-%-brand%-' then
-    local colorName = color:match '^var%(%-%-brand%-([%a--]*)%)'
+    -- [%w-] (alphanumerics + hyphen) so names like `red-50` parse. Bare
+    -- [%a--] excluded digits, breaking any brand name with a number.
+    local colorName = color:match '^var%(%-%-brand%-([%w-]*)%)'
     if not colorName then
-      output_warning(warnings, 'invalid brand color reference ' .. v)
-      return null
+      output_warning(warnings, 'invalid brand color reference ' .. color)
+      return nil
     end
-    return colorName and {
+    return {
       type = 'brand',
       value = colorName
     }
@@ -332,7 +334,7 @@ local function output_color(color, opacity, warnings)
   quarto.log.debug('output_color input', color, opacity)
   if opacity then
     if not color then
-      zero = {
+      local zero = {
         unit = 'int',
         value = 0
       }
@@ -627,10 +629,10 @@ local function translate_font_weight(w, warnings)
   if tcontains(same_weights, w) then
     return w
   end
-  if tcontains(dashed_weights, w) then  
+  if tcontains(dashed_weights, w) then
     return w:gsub('-', '')
   else
-    output_warning(null, 'invalid font weight ' .. tostring(w))
+    output_warning(warnings, 'invalid font weight ' .. tostring(w))
     return nil
   end
 end
@@ -716,14 +718,14 @@ local function translate_border(v, warnings)
 end
 
 local function consume_width(s, start, warnings)
-    fbeg, fend = s:find('%S+', start)
-    local term = s:sub(fbeg, fend)
-    local thickness = translate_border_width(term, warnings)
-    return thickness, fend + 1
+  local fbeg, fend = s:find('%S+', start)
+  local term = s:sub(fbeg, fend)
+  local thickness = translate_border_width(term, warnings)
+  return thickness, fend + 1
 end
 
 local function consume_style(s, start, warnings)
-  fbeg, fend = s:find('%S+', start)
+  local fbeg, fend = s:find('%S+', start)
   local term = s:sub(fbeg, fend)
   local dash = translate_border_style(term, warnings)
   return dash, fend + 1
