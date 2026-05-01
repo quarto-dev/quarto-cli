@@ -357,7 +357,7 @@ local function output_color(color, opacity, warnings)
       end
       color = _quarto.format.typst.css.parse_color(cssColor)
     end
-    local mult = 1
+    local mult
     if opacity.unit == 'int' then
       mult = opacity.value / 255.9999
     elseif opacity.unit == 'percent' then
@@ -553,7 +553,7 @@ local function output_length(length, warnings)
   if not csf then
     output_warning(warnings, 'unit ' .. length.unit .. ' is not supported in ' .. length.csslen )
     return nil
-  end 
+  end
   return csf(length.value, length.unit, length.csslen, warnings)
 end
 
@@ -567,7 +567,7 @@ local border_styles = {
   'none', 'hidden', 'dotted', 'dashed', 'solid', 'double', 'groove', 'ridge', 'inset', 'outset', 'inherit', 'initial', 'revert', 'revert-layer', 'unset'
 }
 
-function parse_multiple(s, limit, callback)
+local function parse_multiple(s, limit, callback)
   local start = 0
   local count = 0
   repeat
@@ -591,10 +591,6 @@ local function translate_border_width(v, warnings)
   v = border_width_keywords[v] or v
   local thickness = translate_length(v, warnings)
   return thickness == '0pt' and 'delete' or thickness
-end
-
-local function quote(s)
-  return '"' .. s .. '"'
 end
 
 local same_weights = {
@@ -660,7 +656,6 @@ end
 
 
 local function translate_border_style(v, _warnings)
-  local dash
   if v == 'none' then
     return 'delete'
   elseif tcontains({'dotted', 'dashed'}, v) then
@@ -777,7 +772,6 @@ end
 return {
   quote = quote,
   dequote = dequote,
-  set_brand_mode = set_brand_mode,
   parse_color = parse_color,
   parse_opacity = parse_opacity,
   output_color = output_color,
