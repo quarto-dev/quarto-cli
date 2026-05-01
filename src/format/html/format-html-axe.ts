@@ -64,7 +64,7 @@ body div.quarto-axe-report {
 .quarto-axe-violation-selector { padding-left: 1rem; }
 .quarto-axe-violation-target {
   padding: 0.5rem;
-  color: #0a58ca;
+  color: #0747a6;
   text-decoration: underline;
   cursor: pointer;
 }
