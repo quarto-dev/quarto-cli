@@ -16,7 +16,7 @@ All changes included in 1.10:
 ### `typst`
 
 - ([#14261](https://github.com/quarto-dev/quarto-cli/issues/14261)): Fix theorem/example block titles containing inline code producing invalid Typst markup when syntax highlighting is applied.
-- ([#14460](https://github.com/quarto-dev/quarto-cli/issues/14460)): Fix CSS `border` and `border-color` declarations losing tokens that precede an `rgb()`/`rgba()` color (e.g. `border: 0px solid rgb(255, 0, 0)` rendering as a 2.25pt border instead of being suppressed). Also fixes `var(--brand-NAME)` references crashing the Typst CSS translator when `NAME` contained digits (e.g. `--brand-red-50`).
+- ([#14460](https://github.com/quarto-dev/quarto-cli/issues/14460)): Fix CSS `border` and `border-color` declarations losing tokens that precede an `rgb()`/`rgba()` color (e.g. `border: 0px solid rgb(255, 0, 0)` rendering as a 2.25pt border instead of being suppressed). Also fixes: `var(--brand-NAME)` references crashing the Typst CSS translator when `NAME` contained digits (e.g. `--brand-red-50`); a crash when an `rgba()` alpha is unparseable; the `dvmin` length unit being silently rejected (a stray space in the unit table); CSS keywords like `BOLD` not matching as `bold` (CSS keywords are case-insensitive); invalid hex colors like `#fffff` being silently accepted as 2-component colors.
 
 ### `revealjs`
 
