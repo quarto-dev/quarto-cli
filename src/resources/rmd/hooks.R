@@ -1031,6 +1031,7 @@ engine_comment_chars <- function(engine) {
     stata = "*",
     java = "//",
     groovy = "//",
+    kotlin = "//",
     sed = "#",
     perl = "#",
     ruby = "#",

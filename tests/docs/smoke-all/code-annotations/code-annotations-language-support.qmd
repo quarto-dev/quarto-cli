@@ -34,6 +34,7 @@ _quarto:
           - "[data-filename='JS'] .code-annotation-code, .code-annotation-code[data-filename='JS']"
           - "[data-filename='JSON'] .code-annotation-code, .code-annotation-code[data-filename='JSON']"
           - "[data-filename='Julia'] .code-annotation-code, .code-annotation-code[data-filename='Julia']"
+          - "[data-filename='Kotlin'] .code-annotation-code, .code-annotation-code[data-filename='Kotlin']"
           - "[data-filename='LaTeX'] .code-annotation-code, .code-annotation-code[data-filename='LaTeX']"
           - "[data-filename='Lua'] .code-annotation-code, .code-annotation-code[data-filename='Lua']"
           - "[data-filename='Markdown'] .code-annotation-code, .code-annotation-code[data-filename='Markdown']"
@@ -68,7 +69,7 @@ _quarto:
         - []
 ---
 
-This test verifies code annotation support for all 49 languages from `src/resources/filters/modules/constants.lua`.
+This test verifies code annotation support for all 50 languages from `src/resources/filters/modules/constants.lua`.
 
 ## APL
 
@@ -269,6 +270,13 @@ const x = 1; // <1>
 x = 1 # <1>
 ```
 1. Julia annotation.
+
+## Kotlin
+
+```{.kotlin filename="Kotlin"}
+fun main() { println("hello") } // <1>
+```
+1. Kotlin annotation.
 
 ## LaTeX
 
