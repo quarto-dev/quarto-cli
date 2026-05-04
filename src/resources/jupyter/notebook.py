@@ -884,6 +884,7 @@ def nb_language_comment_chars(lang):
         stata="*",
         java="//",
         groovy="//",
+        kotlin="//",
         sed="#",
         perl="#",
         ruby="#",
