@@ -1,0 +1,13 @@
+project:
+  type: website
+
+website:
+  title: "Multi-listing blog"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: blog/index.qmd
+        text: Blog
+
+format: html

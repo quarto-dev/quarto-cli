@@ -1,0 +1,15 @@
+---
+title: "Home"
+listing:
+  id: latest
+  contents: blog/*/index.qmd
+  type: default
+  sort: "date desc"
+  filter-ui: false
+  sort-ui: false
+---
+
+Site root with a listing of latest posts.
+
+::: {#latest}
+:::
