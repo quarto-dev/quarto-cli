@@ -492,7 +492,13 @@ function fmtutilCommand(context: TexLiveContext) {
     });
   };
   if (isWindows) {
-    return safeWindowsExec(fmtutil.fullPath, ["--all"], execFmtutil);
+    // Quote both program and args before handing them to `safeWindowsExec`
+    // — `safeWindowsExec` joins them into a `.bat` line with a literal space
+    // separator, so paths containing spaces (e.g. `C:\Users\Jane Doe\...`)
+    // would otherwise be tokenized incorrectly. See issue #13997 and the
+    // `safeWindowsExec - handles program path with spaces` unit test.
+    const quoted = requireQuoting([fmtutil.fullPath, "--all"]);
+    return safeWindowsExec(quoted.args[0], quoted.args.slice(1), execFmtutil);
   }
   return execFmtutil([fmtutil.fullPath, "--all"]);
 }
