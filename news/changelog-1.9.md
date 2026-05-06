@@ -4,6 +4,7 @@
 
 - ([#14304](https://github.com/quarto-dev/quarto-cli/issues/14304)): Fix `quarto install tinytex` silently ignoring extraction failures. When archive extraction fails (e.g., `.tar.xz` on a system without `xz-utils`), the installer now reports a clear error instead of proceeding and failing with a confusing `NotFound` message.
 - ([#14367](https://github.com/quarto-dev/quarto-cli/issues/14367)): Fix Dart Sass invocation failing on enterprise Windows systems where Group Policy blocks `.bat` execution from `%TEMP%`. When the `safeWindowsExec` temp wrapper is blocked, Quarto now falls back to calling `sass.bat` directly.
+- ([#14489](https://github.com/quarto-dev/quarto-cli/issues/14489)): Restore `--output-dir` support for `quarto preview` of single files when no `_quarto.yml` is present (e.g. R-package workspaces). Regression introduced in v1.9.18.
 
 ## In previous releases
 
@@ -34,7 +35,6 @@ All changes included in 1.9:
 - ([#13633](https://github.com/quarto-dev/quarto-cli/issues/13633)): Fix detection and auto-installation of babel language packages from newer error format that doesn't explicitly mention `.ldf` filename.
 - ([#13694](https://github.com/quarto-dev/quarto-cli/issues/13694)): Fix `notebook-view.url` being ignored - external notebook links now properly use specified URLs instead of local preview files.
 - ([#13732](https://github.com/quarto-dev/quarto-cli/issues/13732)): Fix automatic font package installation for fonts with spaces in their names (e.g., "Noto Emoji", "DejaVu Sans"). Font file search patterns now match both with and without spaces.
-- ([#14489](https://github.com/quarto-dev/quarto-cli/issues/14489)): Restore `--output-dir` support for `quarto preview` of single files when no `_quarto.yml` is present (e.g. R-package workspaces). Regression introduced in v1.9.18.
 
 ## Dependencies
 
