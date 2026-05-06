@@ -13,6 +13,7 @@ import { hasTinyTex, tinyTexBinDir } from "../../../tools/impl/tinytex-info.ts";
 import { join } from "../../../deno_ral/path.ts";
 import { logProgress } from "../../../core/log.ts";
 import { isWindows } from "../../../deno_ral/platform.ts";
+import { warning } from "../../../deno_ral/log.ts";
 
 export interface TexLiveContext {
   preferTinyTex: boolean;
@@ -243,12 +244,12 @@ async function installPackage(
       return Promise.reject("Problem running `tlmgr update`.");
     }
 
-    // Rebuild format tree
+    // Rebuild format tree (best-effort; failure is non-fatal — see
+    // fmtutilFailureMessage doc).
     const fmtutilResult = await fmtutilCommand(context);
-    if (fmtutilResult.code !== 0) {
-      return Promise.reject(
-        "Problem running `fmtutil-sys --all` to rebuild format tree.",
-      );
+    const fmtutilWarn = fmtutilFailureMessage(fmtutilResult);
+    if (fmtutilWarn) {
+      warning(fmtutilWarn);
     }
   }
 
@@ -282,12 +283,12 @@ async function installPackage(
       return Promise.reject("Problem running `tlmgr update`.");
     }
 
-    // Rebuild format tree
+    // Rebuild format tree (best-effort; failure is non-fatal — see
+    // fmtutilFailureMessage doc).
     const fmtutilResult = await fmtutilCommand(context);
-    if (fmtutilResult.code !== 0) {
-      return Promise.reject(
-        "Problem running `fmtutil-sys --all` to rebuild format tree.",
-      );
+    const fmtutilWarn = fmtutilFailureMessage(fmtutilResult);
+    if (fmtutilWarn) {
+      warning(fmtutilWarn);
     }
 
     // Rerun the install command
