@@ -6,6 +6,7 @@
 import * as ld from "../../../core/lodash.ts";
 
 import { execProcess } from "../../../core/process.ts";
+import { ProcessResult } from "../../../core/process-types.ts";
 import { lines } from "../../../core/text.ts";
 import { requireQuoting, safeWindowsExec } from "../../../core/windows.ts";
 import { hasTinyTex, tinyTexBinDir } from "../../../tools/impl/tinytex-info.ts";
@@ -451,6 +452,25 @@ function tlmgrCommand(
   } else {
     return execTlmgr([tlmgr.fullPath, tlmgrCmd, ...args]);
   }
+}
+
+// Returns a warning message when `fmtutil-sys --all` failed, or `undefined`
+// when it succeeded. fmtutil failure is treated as non-fatal: package install
+// already succeeded by the time we reach the recovery branches in
+// `installPackage`, and the format-tree rebuild is best-effort housekeeping
+// to mitigate l3kernel version-mismatch issues (#7252).
+//
+// Upstream tinytex R package follows the same pattern (R/tlmgr.R discards
+// the `system2('fmtutil', ...)` exit code).
+export function fmtutilFailureMessage(
+  result: ProcessResult,
+): string | undefined {
+  if (result.code === 0) {
+    return undefined;
+  }
+  const stderr = result.stderr?.trim() ?? "";
+  const detail = stderr.length > 0 ? `\n${stderr}` : "";
+  return `Failed to rebuild format tree (\`fmtutil-sys --all\` exited ${result.code}). This is non-fatal — package installation will continue.${detail}`;
 }
 
 // Execute fmtutil
