@@ -5,7 +5,7 @@ paths:
 
 # Windows: `safeWindowsExec` quoting
 
-`safeWindowsExec` (defined at `src/core/windows.ts`) is the right tool whenever a Windows process needs to be spawned through `cmd /c` instead of being launched directly by Deno — `.bat` wrappers (`tlmgr.bat`), TeX Live binaries that use `runscript.tlu` for path resolution (`fmtutil-sys.exe`, see `rstudio/tinytex#427`), and registry queries via `reg.exe` are the existing call sites.
+`safeWindowsExec` (defined at `src/core/windows.ts`) is the right tool whenever a Windows process needs to be spawned through `cmd /c` instead of being launched directly by Deno. Examples include `.bat` wrappers (`tlmgr.bat`), TeX Live binaries that use `runscript.tlu` for path resolution (`fmtutil-sys.exe`, see `rstudio/tinytex#427`), registry queries via `reg.exe`, and other shell-sensitive callouts elsewhere under `src/core/` (`zip.ts`, `shell.ts`). Grep `safeWindowsExec` for the current set of call sites.
 
 ## Quote both program and args before calling
 
