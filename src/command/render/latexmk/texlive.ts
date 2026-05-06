@@ -476,14 +476,23 @@ export function fmtutilFailureMessage(
 
 // Execute fmtutil
 // https://tug.org/texlive/doc/fmtutil.html
+//
+// On Windows, route through `safeWindowsExec` (mirrors `tlmgrCommand`).
+// This wraps the call in a temp `.bat` invoked via `cmd /c`, which
+// avoids 8.3 short-path resolution failures inside TeX Live's
+// `runscript.tlu` (rstudio/tinytex#427).
 function fmtutilCommand(context: TexLiveContext) {
   const fmtutil = texLiveCmd("fmtutil-sys", context);
-  return execProcess(
-    {
-      cmd: fmtutil.fullPath,
-      args: ["--all"],
+  const execFmtutil = (cmd: string[]) => {
+    return execProcess({
+      cmd: cmd[0],
+      args: cmd.slice(1),
       stdout: "piped",
       stderr: "piped",
-    },
-  );
+    });
+  };
+  if (isWindows) {
+    return safeWindowsExec(fmtutil.fullPath, ["--all"], execFmtutil);
+  }
+  return execFmtutil([fmtutil.fullPath, "--all"]);
 }
