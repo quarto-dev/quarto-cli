@@ -6,6 +6,7 @@
 
 import { existsSync } from "../../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../../deno_ral/path.ts";
+import * as pagefind from "pagefind";
 
 // currently not building the index here so not using fuse
 // @ deno-types="fuse/dist/fuse.d.ts"
@@ -90,8 +91,24 @@ const kLimit = "limit";
 // Whether to show the parent in the search results
 const kShowItemContext = "show-item-context";
 
-// Any aloglia configuration
+// Any algolia configuration
 const kAlgolia = "algolia";
+
+// The search engine backend
+const kEngine = "engine";
+
+// Pagefind-specific configuration
+const kPagefind = "pagefind";
+const kRootSelector = "root-selector";
+const kExcludeSelectors = "exclude-selectors";
+const kForceLanguage = "force-language";
+const kRanking = "ranking";
+const kPageLength = "page-length";
+const kTermFrequency = "term-frequency";
+const kTermSaturation = "term-saturation";
+const kTermSimilarity = "term-similarity";
+
+export type SearchEngine = "fuse" | "pagefind" | "algolia";
 
 interface SearchOptions {
   [kLocation]: SearchInputLocation;
@@ -100,10 +117,24 @@ interface SearchOptions {
   [kType]: "textbox" | "overlay";
   [kPanelPlacement]: "start" | "end" | "full-width" | "input-wrapper-width";
   [kLimit]?: number;
+  [kEngine]?: SearchEngine;
   [kAlgolia]?: SearchOptionsAlgolia;
+  [kPagefind]?: SearchOptionsPagefind;
   [kLanguageDefaults]?: FormatLanguage;
   [kKbShortcutSearch]?: string[];
   [kShowItemContext]?: boolean | "parent" | "root" | "tree";
+}
+
+interface SearchOptionsPagefind {
+  [kRootSelector]?: string;
+  [kExcludeSelectors]?: string[];
+  [kForceLanguage]?: string;
+  [kRanking]?: {
+    [kPageLength]?: number;
+    [kTermFrequency]?: number;
+    [kTermSaturation]?: number;
+    [kTermSimilarity]?: number;
+  };
 }
 
 const kSearchOnlyApiKey = "search-only-api-key";
@@ -425,6 +456,172 @@ export async function updateSearchIndex(
   }
 }
 
+export async function runPagefindIndex(
+  context: ProjectContext,
+  outputFiles: ProjectOutputFile[],
+) {
+  const outputDir = projectOutputDir(context);
+
+  // Get pagefind-specific options
+  const options = await searchOptions(context);
+  const pagefindOpts = options?.[kPagefind];
+
+  // Annotate HTML files with breadcrumbs and search exclusions before indexing
+  await annotateHtmlForPagefind(context, outputFiles);
+
+  // Use the statically imported pagefind module
+
+  // Build the createIndex config
+  const rootSelector = pagefindOpts?.[kRootSelector] ?? "main";
+  const defaultExcludeSelectors = [
+    "nav[role='doc-toc']",
+    "#title-block-header",
+    "script",
+    "style",
+    ".sidebar",
+    ".quarto-title-block",
+  ];
+  const userExcludeSelectors = pagefindOpts?.[kExcludeSelectors] ?? [];
+  const excludeSelectors = [
+    ...defaultExcludeSelectors,
+    ...userExcludeSelectors,
+  ];
+
+  const indexConfig: Record<string, unknown> = {
+    rootSelector,
+    excludeSelectors,
+  };
+  if (pagefindOpts?.[kForceLanguage]) {
+    indexConfig.forceLanguage = pagefindOpts[kForceLanguage];
+  }
+
+  // Create index
+  const { index, errors: createErrors } = await pagefind.createIndex(
+    indexConfig,
+  );
+  if (createErrors.length > 0) {
+    warning("Pagefind index creation warnings: " + createErrors.join(", "));
+  }
+  if (!index) {
+    warning("Pagefind failed to create index");
+    return;
+  }
+
+  // Index the output directory
+  const { errors: addErrors, page_count } = await index.addDirectory({
+    path: outputDir,
+  });
+  if (addErrors.length > 0) {
+    warning("Pagefind indexing warnings: " + addErrors.join(", "));
+  }
+
+  // Write the pagefind bundle to the output directory
+  const pagefindOutputPath = join(outputDir, "pagefind");
+  const { errors: writeErrors } = await index.writeFiles({
+    outputPath: pagefindOutputPath,
+  });
+  if (writeErrors.length > 0) {
+    warning(
+      "Pagefind write warnings: " + writeErrors.join(", "),
+    );
+  }
+
+  await pagefind.close();
+}
+
+async function annotateHtmlForPagefind(
+  context: ProjectContext,
+  outputFiles: ProjectOutputFile[],
+) {
+  const outputDir = projectOutputDir(context);
+  const draftMode = projectDraftMode(context);
+
+  for (const outputFile of outputFiles) {
+    // Skip non-HTML files
+    if (!isHtmlFileOutput(outputFile.format.pandoc)) {
+      continue;
+    }
+
+    const file = outputFile.file;
+    const href = pathWithForwardSlashes(relative(outputDir, file));
+
+    // Check for search exclusion (same logic as updateSearchIndex)
+    const index = await resolveInputTargetForOutputFile(
+      context,
+      relative(outputDir, outputFile.file),
+    );
+    const draft = index ? index.draft : false;
+    const excluded = outputFile.format.metadata[kSearch] === false ||
+      (draft === true && !isDraftVisible(draftMode));
+
+    // Read the HTML
+    const html = Deno.readTextFileSync(file);
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    if (!doc) continue;
+
+    let modified = false;
+
+    // For excluded pages, inject data-pagefind-ignore on <body>
+    if (excluded) {
+      const body = doc.querySelector("body");
+      if (body) {
+        (body as Element).setAttribute("data-pagefind-ignore", "all");
+        modified = true;
+      }
+    }
+
+    // Compute and inject breadcrumbs (same logic as updateSearchIndex)
+    const navHref = `/${href}`;
+    const sidebar = sidebarForHref(navHref, outputFile.format);
+    if (sidebar) {
+      const bc = breadCrumbs(navHref, sidebar);
+      const crumbTexts = bc.length > 0
+        ? bc.filter((crumb) => crumb.text !== undefined)
+          .map((crumb) => crumb.text as string)
+        : [];
+
+      // Merge navbar crumbs if applicable
+      // deno-lint-ignore no-explicit-any
+      const mergeNavBarSearchCrumbs = (outputFile.format.metadata as any)
+        ?.website?.search?.["merge-navbar-crumbs"];
+      if (mergeNavBarSearchCrumbs !== false && crumbTexts.length > 0) {
+        const navItem = navbarItemForSidebar(sidebar, outputFile.format);
+        if (navItem && typeof navItem === "object") {
+          const navbarParentText = (navItem as NavigationItemObject).text;
+          if (
+            navbarParentText && crumbTexts.length > 0 &&
+            crumbTexts[0] !== navbarParentText
+          ) {
+            crumbTexts.unshift(navbarParentText);
+          }
+        }
+      }
+
+      if (crumbTexts.length > 0) {
+        const mainEl = doc.querySelector("main");
+        if (mainEl) {
+          const meta = doc.createElement("meta");
+          (meta as Element).setAttribute(
+            "data-pagefind-meta",
+            `crumbs:${crumbTexts.join("||")}`,
+          );
+          mainEl.insertBefore(meta, mainEl.firstChild);
+          modified = true;
+        }
+      }
+    }
+
+    // Write back if modified
+    if (modified) {
+      // Serialize back to HTML, preserving the original doctype
+      const doctype = html.match(/^<!DOCTYPE[^>]*>/i)?.[0] ?? "";
+      const serialized = doctype + "\n" +
+        (doc.documentElement?.outerHTML ?? "");
+      Deno.writeTextFileSync(file, serialized);
+    }
+  }
+}
+
 const kDefaultCollapse = 3;
 
 export async function searchOptions(
@@ -444,6 +641,13 @@ export async function searchOptions(
         ? kDefaultCollapse
         : false;
 
+    // Determine the search engine
+    const algolia = algoliaOptions(searchMetadata, project);
+    const engine = searchEngine(searchMetadata, algolia);
+    const pagefindOpts = engine === "pagefind"
+      ? pagefindOptions(searchMetadata)
+      : undefined;
+
     return {
       [kLocation]: location,
       [kCopyButton]: searchMetadata[kCopyButton] === true,
@@ -451,7 +655,9 @@ export async function searchOptions(
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
       [kType]: searchType(searchMetadata[kType], location),
       [kLimit]: searchInputLimit(searchMetadata),
-      [kAlgolia]: algoliaOptions(searchMetadata, project),
+      [kEngine]: engine,
+      [kAlgolia]: algolia,
+      [kPagefind]: pagefindOpts,
       [kKbShortcutSearch]: searchKbdShortcut(searchMetadata),
       [kShowItemContext]: searchShowItemContext(searchMetadata),
     };
@@ -565,6 +771,61 @@ function algoliaOptions(
   }
 }
 
+function searchEngine(
+  searchConfig: Record<string, unknown>,
+  algolia: SearchOptionsAlgolia | undefined,
+): SearchEngine {
+  const engineRaw = searchConfig[kEngine];
+  if (typeof engineRaw === "string") {
+    if (engineRaw === "pagefind" || engineRaw === "algolia" || engineRaw === "fuse") {
+      return engineRaw;
+    }
+  }
+  // Auto-detect algolia when algolia config is present (backward compat)
+  if (algolia) {
+    return "algolia";
+  }
+  return "fuse";
+}
+
+function pagefindOptions(
+  searchConfig: Record<string, unknown>,
+): SearchOptionsPagefind | undefined {
+  const pagefindRaw = searchConfig[kPagefind];
+  if (pagefindRaw && typeof pagefindRaw === "object") {
+    const pagefindObj = pagefindRaw as Record<string, unknown>;
+    const result: SearchOptionsPagefind = {};
+    if (typeof pagefindObj[kRootSelector] === "string") {
+      result[kRootSelector] = pagefindObj[kRootSelector] as string;
+    }
+    if (Array.isArray(pagefindObj[kExcludeSelectors])) {
+      result[kExcludeSelectors] = pagefindObj[kExcludeSelectors] as string[];
+    }
+    if (typeof pagefindObj[kForceLanguage] === "string") {
+      result[kForceLanguage] = pagefindObj[kForceLanguage] as string;
+    }
+    const rankingRaw = pagefindObj[kRanking];
+    if (rankingRaw && typeof rankingRaw === "object") {
+      const r = rankingRaw as Record<string, unknown>;
+      result[kRanking] = {};
+      if (typeof r[kPageLength] === "number") {
+        result[kRanking][kPageLength] = r[kPageLength] as number;
+      }
+      if (typeof r[kTermFrequency] === "number") {
+        result[kRanking][kTermFrequency] = r[kTermFrequency] as number;
+      }
+      if (typeof r[kTermSaturation] === "number") {
+        result[kRanking][kTermSaturation] = r[kTermSaturation] as number;
+      }
+      if (typeof r[kTermSimilarity] === "number") {
+        result[kRanking][kTermSimilarity] = r[kTermSimilarity] as number;
+      }
+    }
+    return result;
+  }
+  return undefined;
+}
+
 export async function searchInputLocation(
   project: ProjectContext,
 ): Promise<SearchInputLocation> {
@@ -658,7 +919,9 @@ export async function websiteSearchDependency(
 
     const scripts = [
       searchDependency("autocomplete.umd.js"),
-      searchDependency("fuse.min.js"),
+      ...(options[kEngine] !== "pagefind"
+        ? [searchDependency("fuse.min.js")]
+        : []),
       searchDependency("quarto-search.js"),
     ];
 

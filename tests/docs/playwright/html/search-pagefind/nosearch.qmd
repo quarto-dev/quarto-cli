@@ -1,0 +1,8 @@
+---
+title: "No Search Page"
+search: false
+---
+
+## Excluded Content
+
+This page has `search: false` and should not appear in pagefind results. It contains the word xylophone which should not be findable via search.

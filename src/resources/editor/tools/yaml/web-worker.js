@@ -9629,6 +9629,14 @@ try {
                             ],
                             description: "Type of search UI (`overlay` or `textbox`)"
                           },
+                          engine: {
+                            enum: [
+                              "fuse",
+                              "pagefind",
+                              "algolia"
+                            ],
+                            description: "Search engine backend (`fuse`, `pagefind`, or `algolia`). Defaults to `fuse`."
+                          },
                           limit: {
                             schema: "number",
                             description: "Number of matches to display (defaults to 20)"
@@ -9725,6 +9733,52 @@ try {
                               closed: true
                             },
                             description: "Use external Algolia search index"
+                          },
+                          pagefind: {
+                            object: {
+                              properties: {
+                                "root-selector": {
+                                  schema: "string",
+                                  description: "CSS selector for the indexable content region (defaults to `main`)"
+                                },
+                                "exclude-selectors": {
+                                  arrayOf: {
+                                    schema: "string"
+                                  },
+                                  description: "Additional CSS selectors to exclude from indexing"
+                                },
+                                "force-language": {
+                                  schema: "string",
+                                  description: "Override automatic language detection with an ISO 639-1 code (e.g., `en`)"
+                                },
+                                ranking: {
+                                  object: {
+                                    properties: {
+                                      "page-length": {
+                                        schema: "number",
+                                        description: "BM25 page length normalization (0.0-1.0)"
+                                      },
+                                      "term-frequency": {
+                                        schema: "number",
+                                        description: "Term frequency weight (0.0-1.0)"
+                                      },
+                                      "term-saturation": {
+                                        schema: "number",
+                                        description: "Term frequency saturation (0.0-2.0)"
+                                      },
+                                      "term-similarity": {
+                                        schema: "number",
+                                        description: "Term similarity weight (0.0+)"
+                                      }
+                                    },
+                                    closed: true
+                                  },
+                                  description: "BM25 ranking algorithm tuning parameters"
+                                }
+                              },
+                              closed: true
+                            },
+                            description: "Pagefind-specific configuration options"
                           }
                         },
                         closed: true
@@ -22904,7 +22958,7 @@ try {
           "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
           "Specification of a light logo",
           "Specification of a dark logo",
-          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+          "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
           "Specification of a light logo",
           "Specification of a dark logo",
           "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
@@ -23413,10 +23467,6 @@ try {
           "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
           "Creators of this publication.",
           "Contributors to this publication.",
-          "The subject of the publication.",
-          "The subject text.",
-          "An EPUB reserved authority value.",
-          "The subject term (defined by the schema).",
           {
             short: "Text describing the specialized type of this publication.",
             long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
@@ -23954,6 +24004,9 @@ try {
           "The mermaid built-in theme to use.",
           "List of keywords to be included in the document metadata.",
           "The document subject",
+          "The subject text.",
+          "An EPUB reserved authority value.",
+          "The subject term (defined by the schema).",
           "The document description. Some applications show this as\n<code>Comments</code> metadata.",
           "The document category.",
           "The copyright for this document, if any.",
@@ -25375,12 +25428,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 222775,
+          _internalId: 222655,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 222767,
+              _internalId: 222647,
               type: "enum",
               enum: [
                 "png",
@@ -25396,7 +25449,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 222774,
+              _internalId: 222654,
               type: "anyOf",
               anyOf: [
                 {

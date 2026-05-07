@@ -1,0 +1,17 @@
+---
+title: "Home"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['script#quarto-search-options']
+        - []
+      ensureFileRegexMatches:
+        - ['"engine": "pagefind"']
+        - []
+      fileExists:
+        outputPath: "pagefind/pagefind.js"
+---
+
+Welcome to the Pagefind test site. This page tests basic search indexing.

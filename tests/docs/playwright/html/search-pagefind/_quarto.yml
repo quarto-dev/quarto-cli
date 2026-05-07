@@ -1,0 +1,24 @@
+project:
+  type: website
+
+website:
+  title: "Pagefind Search Test"
+  search:
+    engine: pagefind
+    type: overlay
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: second.qmd
+        text: Second Page
+  sidebar:
+    - id: default
+      contents:
+        - index.qmd
+        - second.qmd
+        - nosearch.qmd
+
+format:
+  html:
+    toc: true

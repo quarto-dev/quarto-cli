@@ -550,10 +550,26 @@ The user’s cookie preferences will automatically control Google Analytics (if 
       params?:
         JsonObject; /* Additional parameters to pass when executing a search */
     } /* Use external Algolia search index */;
+    engine?:
+      | "fuse"
+      | "pagefind"
+      | "algolia" /* Search engine backend (`fuse`, `pagefind`, or `algolia`). Defaults to `fuse`. */;
     location?:
       | "navbar"
       | "sidebar" /* Location for search widget (`navbar` or `sidebar`) */;
     limit?: number;
+    pagefind?: {
+      "root-selector"?: string;
+      "exclude-selectors"?:
+        (string)[] /* Additional CSS selectors to exclude from indexing */;
+      "force-language"?: string;
+      ranking?: {
+        "page-length"?: number;
+        "term-frequency"?: number;
+        "term-saturation"?: number;
+        "term-similarity"?: number;
+      }; /* BM25 ranking algorithm tuning parameters */
+    } /* Pagefind-specific configuration options */;
     type?:
       | "overlay"
       | "textbox"; /* Type of search UI (`overlay` or `textbox`) */

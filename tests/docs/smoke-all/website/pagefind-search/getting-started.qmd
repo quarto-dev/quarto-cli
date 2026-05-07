@@ -1,0 +1,13 @@
+---
+title: "Getting Started"
+---
+
+This is the getting started guide. It should have breadcrumbs in the search index.
+
+## Installation
+
+Install the software using your package manager.
+
+## Configuration
+
+Configure the settings in your project file.

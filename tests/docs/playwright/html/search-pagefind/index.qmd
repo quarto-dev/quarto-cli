@@ -1,0 +1,15 @@
+---
+title: "Pagefind Home"
+---
+
+## Introduction
+
+This is the home page for testing pagefind search integration with Quarto websites.
+
+## Quarto Features
+
+Quarto supports multiple output formats including HTML, PDF, and Word documents. The rendering engine uses Pandoc under the hood.
+
+## Search Testing
+
+This page contains specific keywords likeastrophysics and bioluminescence that are unlikely to appear elsewhere, making them reliable search targets.

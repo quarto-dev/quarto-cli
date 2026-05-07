@@ -960,6 +960,13 @@
                         "textbox"
                       ]
                     },
+                    "engine": {
+                      "enum": [
+                        "fuse",
+                        "pagefind",
+                        "algolia"
+                      ]
+                    },
                     "limit": {
                       "type": "number"
                     },
@@ -1038,6 +1045,42 @@
                           "params": {
                             "object": {
                               "properties": {}
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "pagefind": {
+                      "object": {
+                        "properties": {
+                          "root-selector": {
+                            "type": "string"
+                          },
+                          "exclude-selectors": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "force-language": {
+                            "type": "string"
+                          },
+                          "ranking": {
+                            "object": {
+                              "properties": {
+                                "page-length": {
+                                  "type": "number"
+                                },
+                                "term-frequency": {
+                                  "type": "number"
+                                },
+                                "term-saturation": {
+                                  "type": "number"
+                                },
+                                "term-similarity": {
+                                  "type": "number"
+                                }
+                              }
                             }
                           }
                         }

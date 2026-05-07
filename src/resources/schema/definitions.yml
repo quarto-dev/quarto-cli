@@ -924,6 +924,9 @@
                 type:
                   enum: [overlay, textbox]
                   description: "Type of search UI (`overlay` or `textbox`)"
+                engine:
+                  enum: [fuse, pagefind, algolia]
+                  description: "Search engine backend (`fuse`, `pagefind`, or `algolia`). Defaults to `fuse`."
                 limit:
                   schema: number
                   description: "Number of matches to display (defaults to 20)"
@@ -986,6 +989,38 @@
                           description: "Additional parameters to pass when executing a search"
                     closed: true
                   description: "Use external Algolia search index"
+                pagefind:
+                  object:
+                    properties:
+                      root-selector:
+                        schema: string
+                        description: "CSS selector for the indexable content region (defaults to `main`)"
+                      exclude-selectors:
+                        arrayOf:
+                          schema: string
+                        description: "Additional CSS selectors to exclude from indexing"
+                      force-language:
+                        schema: string
+                        description: "Override automatic language detection with an ISO 639-1 code (e.g., `en`)"
+                      ranking:
+                        object:
+                          properties:
+                            page-length:
+                              schema: number
+                              description: "BM25 page length normalization (0.0-1.0)"
+                            term-frequency:
+                              schema: number
+                              description: "Term frequency weight (0.0-1.0)"
+                            term-saturation:
+                              schema: number
+                              description: "Term frequency saturation (0.0-2.0)"
+                            term-similarity:
+                              schema: number
+                              description: "Term similarity weight (0.0+)"
+                          closed: true
+                        description: "BM25 ranking algorithm tuning parameters"
+                    closed: true
+                  description: "Pagefind-specific configuration options"
               closed: true
         description: "Provide full text search for website"
 

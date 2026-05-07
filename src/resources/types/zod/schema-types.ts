@@ -351,6 +351,7 @@ export const ZodBaseWebsite = z.object({
     z.object({
       location: z.enum(["navbar", "sidebar"] as const),
       type: z.enum(["overlay", "textbox"] as const),
+      engine: z.enum(["fuse", "pagefind", "algolia"] as const),
       limit: z.number(),
       "collapse-after": z.number(),
       "copy-button": z.boolean(),
@@ -373,6 +374,17 @@ export const ZodBaseWebsite = z.object({
           section: z.string(),
         }).strict().partial(),
         params: z.object({}).passthrough().partial(),
+      }).strict().partial(),
+      pagefind: z.object({
+        "root-selector": z.string(),
+        "exclude-selectors": z.array(z.string()),
+        "force-language": z.string(),
+        ranking: z.object({
+          "page-length": z.number(),
+          "term-frequency": z.number(),
+          "term-saturation": z.number(),
+          "term-similarity": z.number(),
+        }).strict().partial(),
       }).strict().partial(),
     }).strict().partial(),
   ]),
@@ -530,6 +542,7 @@ export const ZodBookSchema = z.object({
     z.object({
       location: z.enum(["navbar", "sidebar"] as const),
       type: z.enum(["overlay", "textbox"] as const),
+      engine: z.enum(["fuse", "pagefind", "algolia"] as const),
       limit: z.number(),
       "collapse-after": z.number(),
       "copy-button": z.boolean(),
@@ -552,6 +565,17 @@ export const ZodBookSchema = z.object({
           section: z.string(),
         }).strict().partial(),
         params: z.object({}).passthrough().partial(),
+      }).strict().partial(),
+      pagefind: z.object({
+        "root-selector": z.string(),
+        "exclude-selectors": z.array(z.string()),
+        "force-language": z.string(),
+        ranking: z.object({
+          "page-length": z.number(),
+          "term-frequency": z.number(),
+          "term-saturation": z.number(),
+          "term-similarity": z.number(),
+        }).strict().partial(),
       }).strict().partial(),
     }).strict().partial(),
   ]),
