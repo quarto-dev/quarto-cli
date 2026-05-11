@@ -9305,15 +9305,15 @@ try {
               properties: {
                 left: {
                   ref: "page-footer-region",
-                  description: "Footer left content"
+                  description: "Footer left content. Supports markdown formatting."
                 },
                 right: {
                   ref: "page-footer-region",
-                  description: "Footer right content"
+                  description: "Footer right content. Supports markdown formatting."
                 },
                 center: {
                   ref: "page-footer-region",
-                  description: "Footer center content"
+                  description: "Footer center content. Supports markdown formatting."
                 },
                 border: {
                   anyOf: [
@@ -9493,7 +9493,7 @@ try {
                         properties: {
                           content: {
                             schema: "string",
-                            description: "The content of the announcement"
+                            description: "The content of the announcement. Supports markdown formatting."
                           },
                           dismissable: {
                             schema: "boolean",
@@ -9744,7 +9744,7 @@ try {
                               "string",
                               "boolean"
                             ],
-                            description: "The navbar title. Uses the project title if none is specified."
+                            description: "The navbar title. Uses the project title if none is specified. Supports markdown formatting."
                           },
                           logo: {
                             ref: "logo-light-dark-specifier",
@@ -9869,7 +9869,7 @@ try {
                                 "string",
                                 "boolean"
                               ],
-                              description: "The sidebar title. Uses the project title if none is specified."
+                              description: "The sidebar title. Uses the project title if none is specified. Supports markdown formatting."
                             },
                             logo: {
                               ref: "logo-light-dark-specifier",

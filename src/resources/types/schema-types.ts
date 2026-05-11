@@ -523,7 +523,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     search?: boolean /* Include a search box in the navbar. */;
     title?:
       | string
-      | boolean; /* The navbar title. Uses the project title if none is specified. */
+      | boolean; /* The navbar title. Uses the project title if none is specified. Supports markdown formatting. */
   } /* Top navigation options */;
   search?: boolean | {
     "collapse-after"?: number;
@@ -592,7 +592,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
           | "floating" /* The style of sidebar (`docked` or `floating`). */;
         title?:
           | string
-          | boolean /* The sidebar title. Uses the project title if none is specified. */;
+          | boolean /* The sidebar title. Uses the project title if none is specified. Supports markdown formatting. */;
         tools?: (NavigationItemObject)[]; /* List of sidebar tools */
       }
     > /* Side navigation options */;

@@ -660,13 +660,13 @@
     properties:
       left:
         ref: page-footer-region
-        description: "Footer left content"
+        description: "Footer left content. Supports markdown formatting."
       right:
         ref: page-footer-region
-        description: "Footer right content"
+        description: "Footer right content. Supports markdown formatting."
       center:
         ref: page-footer-region
-        description: "Footer center content"
+        description: "Footer center content. Supports markdown formatting."
       border:
         anyOf:
           - boolean
@@ -820,7 +820,7 @@
               properties:
                 content:
                   schema: string
-                  description: "The content of the announcement"
+                  description: "The content of the announcement. Supports markdown formatting."
                 dismissable:
                   schema: boolean
                   description: "Whether this announcement may be dismissed by the user."
@@ -998,7 +998,7 @@
                   anyOf:
                     - string
                     - boolean
-                  description: "The navbar title. Uses the project title if none is specified."
+                  description: "The navbar title. Uses the project title if none is specified. Supports markdown formatting."
                 logo:
                   ref: logo-light-dark-specifier
                   description: "Specification of image that will be displayed to the left of the title."
@@ -1080,7 +1080,7 @@
                     anyOf:
                       - string
                       - boolean
-                    description: "The sidebar title. Uses the project title if none is specified."
+                    description: "The sidebar title. Uses the project title if none is specified. Supports markdown formatting."
                   logo:
                     ref: logo-light-dark-specifier
                     description: "Specification of image that will be displayed in the sidebar."
