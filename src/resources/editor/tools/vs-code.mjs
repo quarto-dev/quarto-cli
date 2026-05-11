@@ -8567,7 +8567,7 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               text: {
                 string: {
-                  description: "Text to display for item (defaults to the\ndocument title if not provided)\n"
+                  description: "Text to display for item (defaults to the\ndocument title if not provided). Supports markdown formatting.\n"
                 }
               },
               url: {
@@ -9304,15 +9304,15 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               left: {
                 ref: "page-footer-region",
-                description: "Footer left content"
+                description: "Footer left content. Supports markdown formatting."
               },
               right: {
                 ref: "page-footer-region",
-                description: "Footer right content"
+                description: "Footer right content. Supports markdown formatting."
               },
               center: {
                 ref: "page-footer-region",
-                description: "Footer center content"
+                description: "Footer center content. Supports markdown formatting."
               },
               border: {
                 anyOf: [
@@ -9492,7 +9492,7 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         content: {
                           schema: "string",
-                          description: "The content of the announcement"
+                          description: "The content of the announcement. Supports markdown formatting."
                         },
                         dismissable: {
                           schema: "boolean",
@@ -9743,7 +9743,7 @@ var require_yaml_intelligence_resources = __commonJS({
                             "string",
                             "boolean"
                           ],
-                          description: "The navbar title. Uses the project title if none is specified."
+                          description: "The navbar title. Uses the project title if none is specified. Supports markdown formatting."
                         },
                         logo: {
                           ref: "logo-light-dark-specifier",
@@ -9868,7 +9868,7 @@ var require_yaml_intelligence_resources = __commonJS({
                               "string",
                               "boolean"
                             ],
-                            description: "The sidebar title. Uses the project title if none is specified."
+                            description: "The sidebar title. Uses the project title if none is specified. Supports markdown formatting."
                           },
                           logo: {
                             ref: "logo-light-dark-specifier",
@@ -21684,7 +21684,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
           long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
         },
-        "Text to display for item (defaults to the document title if not\nprovided)",
+        "Text to display for item (defaults to the document title if not\nprovided). Supports markdown formatting.",
         "Alias for href",
         'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
         'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
@@ -22903,7 +22903,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
         "Specification of a light logo",
         "Specification of a dark logo",
-        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
         "Specification of a light logo",
         "Specification of a dark logo",
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
@@ -23412,10 +23412,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
         "Creators of this publication.",
         "Contributors to this publication.",
-        "The subject of the publication.",
-        "The subject text.",
-        "An EPUB reserved authority value.",
-        "The subject term (defined by the schema).",
         {
           short: "Text describing the specialized type of this publication.",
           long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
@@ -23953,6 +23949,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "The mermaid built-in theme to use.",
         "List of keywords to be included in the document metadata.",
         "The document subject",
+        "The subject text.",
+        "An EPUB reserved authority value.",
+        "The subject term (defined by the schema).",
         "The document description. Some applications show this as\n<code>Comments</code> metadata.",
         "The document category.",
         "The copyright for this document, if any.",
@@ -25348,6 +25347,7 @@ var require_yaml_intelligence_resources = __commonJS({
         stata: "*",
         java: "//",
         groovy: "//",
+        kotlin: "//",
         sed: "#",
         perl: "#",
         prql: "#",
@@ -25374,12 +25374,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222775,
+        _internalId: 222617,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222767,
+            _internalId: 222609,
             type: "enum",
             enum: [
               "png",
@@ -25395,7 +25395,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222774,
+            _internalId: 222616,
             type: "anyOf",
             anyOf: [
               {
@@ -34670,6 +34670,7 @@ var kLangCommentChars = {
   stata: "*",
   java: "//",
   groovy: "//",
+  kotlin: "//",
   sed: "#",
   perl: "#",
   prql: "#",

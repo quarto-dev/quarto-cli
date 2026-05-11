@@ -92,7 +92,7 @@ See <https://icons.getbootstrap.com/> for a list of available icons */;
 See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
 for a details. */;
   text?: string /* Text to display for item (defaults to the
-document title if not provided) */;
+document title if not provided). Supports markdown formatting. */;
   target?: string /* Value for target attribute.
 See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
 for details. */;
@@ -523,7 +523,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     search?: boolean /* Include a search box in the navbar. */;
     title?:
       | string
-      | boolean; /* The navbar title. Uses the project title if none is specified. */
+      | boolean; /* The navbar title. Uses the project title if none is specified. Supports markdown formatting. */
   } /* Top navigation options */;
   search?: boolean | {
     "collapse-after"?: number;
@@ -592,7 +592,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
           | "floating" /* The style of sidebar (`docked` or `floating`). */;
         title?:
           | string
-          | boolean /* The sidebar title. Uses the project title if none is specified. */;
+          | boolean /* The sidebar title. Uses the project title if none is specified. Supports markdown formatting. */;
         tools?: (NavigationItemObject)[]; /* List of sidebar tools */
       }
     > /* Side navigation options */;
