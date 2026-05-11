@@ -21,7 +21,7 @@ Bumping a version in `src/import_map.json` (or any of the other keyed files) aut
 - Take the hash part of the download link for linux-64 (e.g. `hcab8b69_0` for `linux-64/deno-1.46.3-hcab8b69_0.conda`)
 - Use it in the build release action: `.github\workflows\create-release.yml` at the step `- name: Move Custom Deno`. The hash appears in **three places** inside that step (echo line, curl line, tar line). All three must be updated.
   ```
-  echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
+  echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files hcab8b69_0
   curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-hcab8b69_0.conda --output deno.conda
   unzip deno.conda
   tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-hcab8b69_0.tar.zst
