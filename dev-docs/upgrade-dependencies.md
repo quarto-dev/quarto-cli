@@ -1,16 +1,16 @@
 Change version numbers in `./configuration` to correspond to new versions.
 
-Contact Carlos so he uploads the binaries to the S3 bucket.
+Update hardcoded version strings in `src/command/check/check.ts` (`versionConstraints` array, ~line 249) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment.
 
 ## Upgrade deno
 
 ### Upgrade standard library
 
-- run `./configure.sh` to locally install all dependencies.
+- run `./configure.sh` (Linux/macOS) or `./configure.cmd` (Windows) to locally install all dependencies against the new Deno binary.
 
-- In `src/import_map.json`, change the version number of the imports like `https://deno.land/std@0.204.0/archive` to the new version number (e.g. `0.205.0`).
+- `src/import_map.json` has migrated to JSR (`jsr:/@std/<package>@<version>` entries). If `configure` errors with `Module not found: jsr:/@std/...`, bump only the specific `@std` package(s) named in the error to a compatible version on <https://jsr.io/@std>. Otherwise, leave `src/import_map.json` alone — historical pattern is reactive (no pre-emptive bumps).
 
-- run `./configure.sh`.
+- run `./configure.sh` / `./configure.cmd` again.
 
 Bumping a version in `src/import_map.json` (or any of the other keyed files) automatically invalidates the CI Deno cache on next run. See [ci-deno-caching.md](ci-deno-caching.md) for the key composition and how to force invalidation manually.
 
@@ -19,11 +19,14 @@ Bumping a version in `src/import_map.json` (or any of the other keyed files) aut
 - Go to <https://anaconda.org/conda-forge/deno/files> and find the version of Deno required.
   - BTW those versions are built at <https://github.com/conda-forge/deno-feedstock>
 - Take the hash part of the download link for linux-64 (e.g. `hcab8b69_0` for `linux-64/deno-1.46.3-hcab8b69_0.conda`)
-- Use it in the build release action: `.github\workflows\create-release.yml` at the step `- name: Move Custom Deno`
+- Use it in the build release action: `.github\workflows\create-release.yml` at the step `- name: Move Custom Deno`. The hash appears in **three places** inside that step (echo line, curl line, tar line). All three must be updated.
   ```
   echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
   curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-hcab8b69_0.conda --output deno.conda
+  unzip deno.conda
+  tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-hcab8b69_0.tar.zst
   ```
+- The `make-tarball-rhel` job that wraps these steps may carry `if: false` for unrelated reasons; the hash is updated for forward consistency even while the job is disabled.
 - Commit the `create-release.yml`
 
 ## Upgrade mermaidjs
