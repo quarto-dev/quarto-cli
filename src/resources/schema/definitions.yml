@@ -145,7 +145,7 @@
         string:
           description: |
             Text to display for item (defaults to the
-            document title if not provided)
+            document title if not provided). Supports markdown formatting.
       url:
         hidden: true
         string:
