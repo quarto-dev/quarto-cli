@@ -1530,6 +1530,21 @@
             - string
             - ref: website-listing-contents-object
         description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
+      recursive:
+        boolean:
+          default: true
+          description:
+            short: "Match `contents` globs recursively across the project."
+            long: |
+              When `true` (the default), non-anchored globs in `contents`
+              (e.g. `posts/*.qmd`) are expanded with an implicit globstar
+              prefix and may match nested directories anywhere under the
+              project root.
+
+              Set to `false` to anchor `contents` globs to the listing's own
+              directory. Useful for multi-section or bilingual sites where two
+              listings each own a sibling `posts/` subdirectory and should not
+              pull each other's files.
       sort:
         anyOf:
           - boolean

@@ -32,6 +32,7 @@ All changes included in 1.10:
 ### Websites
 
 - ([#13565](https://github.com/quarto-dev/quarto-cli/issues/13565), [#14353](https://github.com/quarto-dev/quarto-cli/issues/14353)): Fix sidebar logo not appearing on secondary sidebars in multi-sidebar website layouts.
+- ([#14512](https://github.com/quarto-dev/quarto-cli/issues/14512)): Add `recursive: false` option to `listing` to anchor `contents` globs to the listing's own directory. Prevents a listing's `contents: posts/*.qmd` from also matching files in sibling subdirectories such as `ko/posts/*.qmd`, which is the common breakage in multi-section / bilingual websites.
 
 ## Commands
 

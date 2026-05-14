@@ -20,6 +20,7 @@ import { existsSync } from "../../../../deno_ral/fs.ts";
 import { Format, Metadata } from "../../../../config/types.ts";
 import {
   filterPaths,
+  GlobOptions,
   pathWithForwardSlashes,
   resolvePathGlobs,
   safeExistsSync,
@@ -68,6 +69,7 @@ import {
   kListing,
   kMaxDescLength,
   kPageSize,
+  kRecursive,
   kSortAsc,
   kSortDesc,
   kSortUi,
@@ -720,6 +722,14 @@ async function readContents(
   );
 
   const filterListingFiles = (globOrPaths: string[]) => {
+    // Default: smart globs (current behavior, recursive across the project).
+    // Opt out with `recursive: false` on the listing to anchor `contents`
+    // globs to the listing's own directory.
+    const recursive = listing[kRecursive] !== false;
+    const globOptions: GlobOptions | undefined = recursive
+      ? undefined
+      : { mode: "auto", explicitSubfolderSearch: true };
+
     const hasDefaultGlob = globOrPaths.some((glob) => {
       return glob === kDefaultContentsGlobToken;
     });
@@ -758,6 +768,7 @@ async function readContents(
         dirname(source),
         inputsWithoutSource,
         finalGlobs,
+        globOptions,
       );
 
       // If a glob points to a file that exists, go ahead and just include
@@ -776,6 +787,7 @@ async function readContents(
         dirname(source),
         finalGlobs,
         ["_*", ".*", "**/_*", "**/.*", source],
+        globOptions,
       );
     }
   };

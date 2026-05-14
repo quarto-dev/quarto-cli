@@ -93,6 +93,7 @@ export const kTableHover = "table-hover";
 // Items to include
 export const kInclude = "include";
 export const kExclude = "exclude";
+export const kRecursive = "recursive";
 
 // Fields
 export const kFieldTitle = "title";
