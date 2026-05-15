@@ -338,6 +338,14 @@ export function typstPdfOutputRecipe(
 
   // if we have some variant declared, resolve it
   // (use for opt-out citations extension)
+  //
+  // Note: this block reads from the captured `format` parameter (the
+  // construction-time snapshot). That is safe today because it runs
+  // synchronously before `renderPandoc`, i.e. before any post-construction
+  // reassignment of `recipe.format` (such as `withBookTitleMetadata`'s deep
+  // clone — see #14511). Any future code reading format state from this
+  // recipe AFTER `renderPandoc` has started must use `pandocOptions.format`
+  // / `recipe.format` (live), not the captured parameter.
   if (format.render?.[kVariant]) {
     const to = format.pandoc.to;
     const variant = format.render[kVariant];
