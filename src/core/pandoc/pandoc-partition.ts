@@ -84,7 +84,7 @@ export function markdownWithExtractedHeading(markdown: string) {
         const parsedHeading = parsePandocTitle(line);
         headingText = parsedHeading.heading;
         headingAttr = parsedHeading.attr;
-        contentBeforeHeading = mdLines.length !== 0;
+        contentBeforeHeading = (mdLines.join("").trim()).length !== 0;
       } else if (line.match(/^=+\s*$/) || line.match(/^-+\s*$/)) {
         const prevLine = mdLines[mdLines.length - 1];
         if (prevLine) {
