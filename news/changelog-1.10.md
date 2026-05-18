@@ -8,6 +8,10 @@ All changes included in 1.10:
 - ([#14489](https://github.com/quarto-dev/quarto-cli/issues/14489)): Restore `--output-dir` support for `quarto preview` of single files when no `_quarto.yml` is present (e.g. R-package workspaces). Regression introduced in v1.9.18.
 - ([rstudio/rstudio#17333](https://github.com/rstudio/rstudio/issues/17333)): Fix `quarto inspect` on standalone files emitting project metadata that breaks RStudio's publishing wizard.
 
+## Dependencies
+
+- ([#14291](https://github.com/quarto-dev/quarto-cli/issues/14291)): Update `deno` to v2.7.14 (fixes silent crash on Windows builds older than 16299).
+
 ## Accessibility
 
 - ([#14468](https://github.com/quarto-dev/quarto-cli/issues/14468)): The `axe` accessibility report UI (HTML overlay, revealjs report slide, dashboard offcanvas) now uses its own theme-independent colors instead of inheriting from `brand` or theme. Keeps the report readable regardless of page styling, and stops `axe` from clobbering brand colors set via `_brand.yml`.
