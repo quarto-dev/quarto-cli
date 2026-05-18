@@ -87,7 +87,20 @@ function metaInjectHtml(meta, func)
 end
 
 
-function readMetaOptions(meta) 
+-- Copy a filter param into Pandoc metadata so it resolves as a $key$
+-- variable in Pandoc templates. Skips when the user already set the key
+-- (explicit metadata wins). See llm-docs/localization-architecture.md for
+-- the broader pattern.
+function surfaceParamToMeta(meta, key)
+  if meta[key] == nil then
+    local value = param(key, nil)
+    if value ~= nil then
+      meta[key] = value
+    end
+  end
+end
+
+function readMetaOptions(meta)
   local options = {}
   for key,value in pairs(meta) do
     if type(value) == "table" and value.clone ~= nil then
