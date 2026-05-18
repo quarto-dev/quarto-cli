@@ -30,6 +30,7 @@ $endif$
 $if(lot)$
   list-of-table-title: "$if(crossref.lot-title)$$crossref.lot-title$$else$$crossref-lot-title$$endif$",
 $endif$
+  supplement-chapter: "$crossref-ch-prefix$",
 $if(margin-geometry)$
   padded-heading-number: false,
 $endif$
