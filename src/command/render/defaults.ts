@@ -46,6 +46,19 @@ export async function generateDefaults(
       },
     } as FormatPandoc;
 
+    // Surface format.language as a nested Pandoc template variable so any
+    // Pandoc template can resolve $quarto.language.<key>$ (e.g.
+    // $quarto.language.crossref-ch-prefix$). This is the bulk channel for
+    // localized strings consumed by Pandoc templates. Values flow only into
+    // the defaults-file variables: section, never into format.metadata, so
+    // writers with +yaml_metadata_block do not serialize them to output.
+    if (options.format.language) {
+      allDefaults.variables!.quarto = {
+        ...((allDefaults.variables!.quarto as Record<string, unknown>) || {}),
+        language: options.format.language,
+      };
+    }
+
     // resolve filters
     const resolvedFilters = await resolveFilters(
       [
