@@ -85,7 +85,7 @@ Sequence:
    - **Without entitlements**: shell wrappers and JS bundle — `quarto`, `quarto.js`, `dart-sass/sass`.
    - `codesign` invocation: `-s <id> --timestamp --options=runtime --force --deep --verbose=4` (`+ --entitlements <plist>` for the first list). `--options=runtime` opts into Hardened Runtime, a notarization prerequisite.
 3. **Build the tarball** (`quarto-<v>-macos.tar.gz`) from the signed `pkg-working` tree. The tarball ships unwrapped binaries with the signatures embedded — no `.pkg`, no notarization, but each Mach-O is signed individually.
-4. **Build the core `.pkg`** with `pkgbuild` (identifier `org.rstudio.quarto`, install location `/Library/Quarto`), then sign it via `productsign --sign <installer-id> --timestamp` (function `signPackage()` at `package/src/macos/installer.ts:282`). Renames signed output back over the original.
+4. **Build the core `.pkg`** with `pkgbuild` (identifier `org.rstudio.quarto`), then sign it via `productsign --sign <installer-id> --timestamp` (function `signPackage()` at `package/src/macos/installer.ts:282`). Renames signed output back over the original. Note: the `pkgbuild` invocation passes `--install-location` twice (`/Library/Quarto` then `/Applications/quarto`); CLI argv semantics mean the later flag wins, so the effective install location is `/Applications/quarto`. The earlier `/Library/Quarto` value is dead and should be cleaned up next time the file is touched.
 5. **Wrap with `productbuild`** using `distribution.xml` (in `package/scripts/macos/`) to produce the user-facing `quarto-<v>-macos.pkg`. The distribution XML restricts host architectures to `arm64,x86_64` and disables customization. The wrapped `.pkg` is signed again with `productsign`.
 6. **Notarize** the wrapped `.pkg` (`notarizeAndWait()` at `package/src/macos/installer.ts:325`):
    ```
@@ -141,7 +141,7 @@ Determining which type the current signing team uses: inspect any past released 
 - `sleepSync()` (`package/src/macos/installer.ts:276`) — `SharedArrayBuffer` + `Atomics.wait` polyfill for a removed Deno `sleepSync` API. Not called from anywhere either; was a helper for the same polling pattern.
 - The TODO at the top of the file ("Could also consider moving the keychain work out of the github actions and into typescript") is unresolved but unrelated to the dead code.
 
-**Recommendation:** safe to delete `waitForNotaryStatus()` and `sleepSync()` in a small cleanup PR. No external callers (grep `waitForNotaryStatus` / `sleepSync` outside this file returns nothing — both are private to `installer.ts`). The `notarytool` path is the only supported Apple notarization API today; if it ever breaks, the fix is to update arguments, not to fall back to `altool`.
+**Recommendation:** safe to delete `waitForNotaryStatus()` and the local `sleepSync()` in `installer.ts` in a small cleanup PR. `waitForNotaryStatus()` has no callers anywhere in the repo, and the `sleepSync()` defined in this file is unused locally and not referenced elsewhere. (An unrelated `sleepSync()` helper also lives in `src/project/serve/serve.ts:888` — same `SharedArrayBuffer` + `Atomics.wait` polyfill, but it has its own caller at `serve.ts:908` and is independent of the installer's copy.) The `notarytool` path is the only supported Apple notarization API today; if it ever breaks, the fix is to update arguments, not to fall back to `altool`.
 
 ### What does NOT get signed on macOS
 
