@@ -20,6 +20,17 @@ import { PandocOptions } from "./types.ts";
 //   3. (Optional) Update llm-docs/localization-architecture.md if the
 //      new key participates in localization.
 //
+// `quarto.*` is an INTERNAL namespace. The user-facing override path for
+// localized strings is the top-level `language:` YAML key (resolved by
+// formatLanguage in src/core/language.ts and merged into
+// options.format.language before this builder runs). Users are not
+// expected to set `variables.quarto.*` directly in YAML frontmatter,
+// and the schema does not surface it as a user option. If a user does
+// set it explicitly as an escape hatch, the wiring in
+// `src/command/render/defaults.ts:generateDefaults` honors their value
+// on collision instead of clobbering — but new contributors to this
+// file should not design APIs around that path.
+//
 // Values declared here flow into the defaults-file `variables:` section
 // only — never into `format.metadata`. That means writers with
 // `+yaml_metadata_block` (markdown, native, json) do NOT serialize them
