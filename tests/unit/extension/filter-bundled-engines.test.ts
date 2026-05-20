@@ -62,6 +62,29 @@ unitTest(
 );
 
 unitTest(
+  "isBundledSubtreeEnginePath - sibling directory sharing prefix is not bundled",
+  // deno-lint-ignore require-await
+  async () => {
+    const subtreePath = "/usr/local/share/quarto/extension-subtrees";
+    const siblingPath =
+      "/usr/local/share/quarto/extension-subtrees-custom/foo/_extensions/foo/foo.js";
+    assert(!isBundledSubtreeEnginePath(siblingPath, subtreePath));
+  },
+);
+
+unitTest(
+  "isBundledSubtreeEnginePath - Windows sibling directory sharing prefix is not bundled",
+  // deno-lint-ignore require-await
+  async () => {
+    const subtreePath =
+      "C:\\Users\\me\\scoop\\apps\\quarto\\current\\share\\extension-subtrees";
+    const siblingPath =
+      "C:\\Users\\me\\scoop\\apps\\quarto\\current\\share\\extension-subtrees-custom\\foo\\_extensions\\foo\\foo.js";
+    assert(!isBundledSubtreeEnginePath(siblingPath, subtreePath));
+  },
+);
+
+unitTest(
   "filterBundledSubtreeEngines - drops bundled julia-engine in current env",
   // deno-lint-ignore require-await
   async () => {
