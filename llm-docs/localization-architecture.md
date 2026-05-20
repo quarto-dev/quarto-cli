@@ -1,6 +1,6 @@
 ---
 main_commit: 4aa86e524
-analyzed_date: 2026-05-19
+analyzed_date: 2026-05-20
 key_files:
   - src/resources/language/_language.yml
   - src/resources/language/_language-fr.yml
@@ -9,6 +9,7 @@ key_files:
   - src/command/render/pandoc.ts
   - src/command/render/filters.ts
   - src/command/render/defaults.ts
+  - src/command/render/quarto-template-variables.ts
   - src/resources/filters/crossref/meta.lua
   - src/resources/filters/crossref/refs.lua
   - src/resources/filters/crossref/format.lua
@@ -146,7 +147,7 @@ These bypass both Pandoc metadata and Lua filters. The string lands directly in 
 
 ### 2d. Pandoc defaults-file `variables:` section (the bulk template channel)
 
-`src/command/render/defaults.ts:generateDefaults` writes the entire `format.language` table under `allDefaults.variables.quarto.language`. When `writeDefaultsFile` serializes `allDefaults` to YAML, the nested map lands in the `variables:` section of the defaults file. Pandoc reads structured `variables:` values natively (per the Pandoc manual under `--variable`: *"Structured values (lists, maps) … can be assigned in the variables section of a defaults file"*).
+`src/command/render/quarto-template-variables.ts` defines the `QuartoTemplateVariables` interface and the `buildQuartoTemplateVariables(options)` builder that collects every contribution to the reserved `quarto.*` Pandoc template-variable namespace. Today the only field is `language: FormatLanguage`, sourced verbatim from `options.format.language`. `src/command/render/defaults.ts:generateDefaults` calls the builder and spreads the result under `allDefaults.variables.quarto`. When `writeDefaultsFile` serializes `allDefaults` to YAML, the nested map lands in the `variables:` section of the defaults file. Pandoc reads structured `variables:` values natively (per the Pandoc manual under `--variable`: *"Structured values (lists, maps) … can be assigned in the variables section of a defaults file"*).
 
 From any Pandoc template — built-in (`html.template`, `latex.template`, `typst-template.typ`), extension partial, or custom user template — every localized key is then accessible as:
 
@@ -217,7 +218,8 @@ Pick the channel that matches your consumer:
 |----------|---------|--------------|
 | Lua filter logic, AST text injection | 2a | New `kLanguageDefaultsKeys` constant. Optionally extend `languageFilterParams` if the prefix is unusual. Read in Lua via `param()`. |
 | Built-in Pandoc template `$var$` (single scalar, flat) | 2b (TS) | Add copy block in `pandoc.ts` near `kTocTitle`. Pattern: `metadata[k] = metadata[k] || language[k];`. Use this only when changing the template is not an option; otherwise prefer 2d. |
-| Pandoc template `$quarto.language.<key>$` (any template, any format) | **2d** | No code change beyond adding the key to `_language.yml` and the schema — `generateDefaults` exposes the whole table. Templates read `$quarto.language.<key>$`. |
+| Pandoc template `$quarto.language.<key>$` (any template, any format) | **2d** | No code change beyond adding the key to `_language.yml` and the schema — `buildQuartoTemplateVariables` exposes the whole `format.language` table. Templates read `$quarto.language.<key>$`. |
+| New Pandoc template variable under a fresh `$quarto.<area>.<key>$` form (not language) | **2d** | Add a field to `QuartoTemplateVariables` and a contribution branch to `buildQuartoTemplateVariables` in `src/command/render/quarto-template-variables.ts`. Templates read `$quarto.<area>.<key>$`. |
 | HTML DOM / front-end JSON | 2c | Add `format.language[key]` read in the appropriate `format-html-*.ts` postprocessor. |
 | LaTeX command override | 3b path 2 | Add `maybeRenewCommand("<cmd>", localized-value)` inside the existing `metaInjectLatex` block in `crossref/meta.lua`. |
 
