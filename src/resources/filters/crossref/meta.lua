@@ -5,18 +5,6 @@
 function crossrefMetaInject()
   return {
     Meta = function(meta)
-      -- surface localized crossref strings as Pandoc template variables
-      -- (consumed by Pandoc templates like orange-book typst-show.typ via
-      -- $crossref-ch-prefix$, $crossref-lof-title$, $crossref-lot-title$).
-      -- Filter params are Lua-only; templates need values in meta.
-      for _, key in ipairs({
-        "crossref-ch-prefix",
-        "crossref-lof-title",
-        "crossref-lot-title",
-      }) do
-        surfaceParamToMeta(meta, key)
-      end
-
       local function as_latex(inlines)
         return trim(pandoc.write(pandoc.Pandoc(quarto.utils.as_blocks(inlines)), "latex"))
       end
