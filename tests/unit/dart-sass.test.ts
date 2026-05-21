@@ -83,6 +83,53 @@ unitTest(
   { ignore: !isWindows },
 );
 
+// Test that dartCommand handles ampersand in paths (issue #14534)
+// Windows user profile paths like C:\Users\Tom & Jerry\ broke dart-sass
+// because the temp .bat wrapper written by safeWindowsExec was split on `&`
+// by cmd.exe. Direct dart.exe invocation bypasses cmd.exe entirely.
+unitTest(
+  "dartCommand - handles ampersand in paths (issue #14534)",
+  async () => {
+    const tempBase = Deno.makeTempDirSync({ prefix: "quarto_test_" });
+    const ampSassDir = join(tempBase, "Tom & Jerry", "dart-sass");
+    const ampProjectDir = join(tempBase, "Tom & Jerry", "project");
+
+    let removeJunction: (() => Promise<void>) | undefined;
+
+    try {
+      Deno.mkdirSync(join(tempBase, "Tom & Jerry"), { recursive: true });
+      Deno.mkdirSync(ampProjectDir, { recursive: true });
+
+      removeJunction = await createDartSassJunction(ampSassDir);
+
+      const inputScss = join(ampProjectDir, "style.scss");
+      const outputCss = join(ampProjectDir, "style.css");
+      Deno.writeTextFileSync(inputScss, "body { color: green; }");
+
+      const result = await dartCommand([inputScss, outputCss], {
+        installDir: ampSassDir,
+      });
+
+      assert(
+        result === undefined || result === "",
+        "Sass compile should succeed with ampersand in path",
+      );
+      assert(
+        Deno.statSync(outputCss).isFile,
+        "Output CSS file should be created at ampersand path",
+      );
+    } finally {
+      try {
+        if (removeJunction) await removeJunction();
+        await Deno.remove(tempBase, { recursive: true });
+      } catch (e) {
+        console.debug("Test cleanup failed:", e);
+      }
+    }
+  },
+  { ignore: !isWindows },
+);
+
 // Test that dartCommand handles accented characters in paths (issue #14267)
 // Accented chars in user paths (e.g., C:\Users\Sébastien\) broke when
 // dart-sass was invoked through a .bat wrapper with UTF-8/OEM mismatch.
