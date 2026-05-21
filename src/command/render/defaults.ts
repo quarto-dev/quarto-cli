@@ -31,6 +31,8 @@ import {
 import { kPatchedTemplateExt } from "./template.ts";
 import { PandocOptions } from "./types.ts";
 import { quartoMainFilter, resolveFilters } from "./filters.ts";
+import { buildQuartoTemplateVariables } from "./quarto-template-variables.ts";
+import { mergeConfigs } from "../../core/config.ts";
 import { TempContext } from "../../core/temp.ts";
 
 export async function generateDefaults(
@@ -45,6 +47,33 @@ export async function generateDefaults(
         ...(options.format.pandoc?.variables || {}),
       },
     } as FormatPandoc;
+
+    const quartoVars = buildQuartoTemplateVariables(options);
+    if (quartoVars) {
+      // `variables.quarto.*` is an internal namespace populated by
+      // Quarto; the user-facing override path for localized strings is
+      // the top-level `language:` YAML key (resolved by formatLanguage
+      // and already merged into options.format.language). Still, if a
+      // user explicitly sets `variables: { quarto: ... }` in YAML, we
+      // honor their value on collision instead of silently clobbering
+      // it. mergeConfigs (src/core/config.ts) gives leaf-key precedence
+      // at any nesting depth, so a user override of e.g.
+      // variables.quarto.language.crossref-ch-prefix wins on that key
+      // without dropping the rest of the localized language table.
+      // (Same helper is used in src/core/language.ts:formatLanguage to
+      // merge user-supplied `language:` onto _language.yml defaults.)
+      // Anything in `variables.quarto` that is not a plain object is
+      // ignored defensively — mergeConfigs on a non-object src would
+      // iterate characters of a string or array indices.
+      const existing = allDefaults.variables!.quarto;
+      const existingQuarto = ld.isPlainObject(existing)
+        ? existing as Record<string, unknown>
+        : {};
+      allDefaults.variables!.quarto = mergeConfigs(
+        quartoVars,
+        existingQuarto,
+      );
+    }
 
     // resolve filters
     const resolvedFilters = await resolveFilters(

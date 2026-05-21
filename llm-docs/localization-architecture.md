@@ -1,6 +1,6 @@
 ---
-main_commit: a8d0dcfee
-analyzed_date: 2026-05-18
+main_commit: 4aa86e524
+analyzed_date: 2026-05-20
 key_files:
   - src/resources/language/_language.yml
   - src/resources/language/_language-fr.yml
@@ -8,7 +8,8 @@ key_files:
   - src/command/render/render-contexts.ts
   - src/command/render/pandoc.ts
   - src/command/render/filters.ts
-  - src/resources/filters/common/meta.lua
+  - src/command/render/defaults.ts
+  - src/command/render/quarto-template-variables.ts
   - src/resources/filters/crossref/meta.lua
   - src/resources/filters/crossref/refs.lua
   - src/resources/filters/crossref/format.lua
@@ -50,18 +51,25 @@ core/language.ts (formatLanguage, translationsForLang)
         ▼
 format.language          (per-render Format object)
         │
-        ├─► languageFilterParams (filters.ts)
+        ├─► languageFilterParams (filters.ts)                  [2a]
         │     └─► Lua filter params (JSON)
         │           └─► param("key", default) in Lua filters
-        │                 ├─► written into Pandoc AST as text
-        │                 └─► written into meta (becomes $var$ in templates)
+        │                 └─► written into Pandoc AST or meta
         │
-        ├─► explicit copies into format.metadata (pandoc.ts)
+        ├─► explicit copies into format.metadata (pandoc.ts)   [2b]
         │     └─► Pandoc YAML metadata
-        │           └─► $var$ in Pandoc templates
+        │           └─► $key$ in Pandoc templates
+        │           └─► leaked into +yaml_metadata_block writers
         │
-        └─► direct TS reads (HTML format extras, listings, search,
-              appendices) writing into rendered DOM / config
+        ├─► direct TS reads (HTML format extras, listings,     [2c]
+        │     search, appendices) writing into rendered DOM
+        │
+        └─► defaults-file variables.quarto.language            [2d]
+              (defaults.ts:generateDefaults)
+              └─► Pandoc template variables
+                    └─► $quarto.language.<key>$ in any template
+                    └─► NEVER reaches format.metadata,
+                        so no +yaml_metadata_block leakage
 ```
 
 Plus format-native localization (LaTeX babel, Typst `set text(lang:)`) that Quarto does NOT control — the language just flows as a value Pandoc/Typst/babel know to interpret.
@@ -87,9 +95,9 @@ Plus format-native localization (LaTeX babel, Typst `set text(lang:)`) that Quar
 
 After this point, `format.language` is the in-memory canonical map of `{ "crossref-ch-prefix": "Chapitre", "toc-title-document": "Table des matières", ... }`.
 
-## 2. Three downstream surfaces from `format.language`
+## 2. Four downstream surfaces from `format.language`
 
-`format.language` is not consumed directly by Pandoc. Three distinct pipelines plug into it.
+`format.language` is not consumed directly by Pandoc. Four distinct pipelines plug into it.
 
 ### 2a. Lua filter params (the broad channel)
 
@@ -137,6 +145,28 @@ Some HTML/PDF rendering code reads `format.language[...]` directly to populate D
 
 These bypass both Pandoc metadata and Lua filters. The string lands directly in the rendered DOM or in a JSON blob the front-end JS reads.
 
+### 2d. Pandoc defaults-file `variables:` section (the bulk template channel)
+
+`src/command/render/quarto-template-variables.ts` defines the `QuartoTemplateVariables` interface and the `buildQuartoTemplateVariables(options)` builder that collects every contribution to the reserved `quarto.*` Pandoc template-variable namespace. Today the only field is `language: FormatLanguage`, sourced verbatim from `options.format.language`. `src/command/render/defaults.ts:generateDefaults` calls the builder and merges the result onto `allDefaults.variables.quarto`. When `writeDefaultsFile` serializes `allDefaults` to YAML, the nested map lands in the `variables:` section of the defaults file. Pandoc reads structured `variables:` values natively (per the Pandoc manual under `--variable`: *"Structured values (lists, maps) … can be assigned in the variables section of a defaults file"*).
+
+`quarto.*` is an internal namespace. The user-facing override path for localized strings is the top-level `language:` YAML key (resolved by `formatLanguage`, already merged into `options.format.language` before the builder runs). The schema does not advertise `variables.quarto.*` as a user option, but the merge in `generateDefaults` honors a user-set value on collision: it deep-merges via `mergeConfigs` (`src/core/config.ts`) so user-supplied keys win at any nesting depth while all other localized values remain available. For example, a user setting `variables.quarto.language.crossref-ch-prefix: Bouquin` overrides only that one leaf — `$quarto.language.toc-title-document$` still resolves to the localized fallback. (Same helper is used in `src/core/language.ts:formatLanguage` to merge user-supplied `language:` onto `_language.yml` defaults.) A non-object `variables.quarto` (string, number, array) is ignored defensively. New contributors to this file should design around the `language:` path, not around the escape hatch.
+
+From any Pandoc template — built-in (`html.template`, `latex.template`, `typst-template.typ`), extension partial, or custom user template — every localized key is then accessible as:
+
+```pandoc
+$quarto.language.<key>$
+```
+
+For example, `$quarto.language.crossref-ch-prefix$` resolves to `Chapitre` when `lang: fr` is set. Hyphens within the leaf segment are valid Pandoc template-variable syntax (manual: *"Variable names can include letters, numbers, underscores, hyphens, and periods"*).
+
+This is the channel of choice for new template consumers because:
+- It is bulk — every key in `format.language` is exposed, no per-key wiring.
+- It does **not** touch `format.metadata`, so writers with `+yaml_metadata_block` (markdown, native, json) never serialize the values back into the document YAML header.
+- It does not depend on Lua filter ordering or AST traversal.
+- Pandoc's last-write-wins rule between defaults-file variables and `--variable` on the CLI lets users override individual values without breaking the bulk channel.
+
+It does **not** replace 2a — Lua filters still need `param("key")` because Pandoc templates and Lua filter params are independent surfaces. It does not replace 2b for the two specific keys that ship via `pandoc.ts` today (`toc-title`, `abstract-title`) — those are kept so existing built-in templates that read the flat `$toc-title$` and `$abstract-title$` keep working without a template change. New consumers should reach for 2d.
+
 ## 3. Format-by-format breakdown
 
 ### 3a. HTML
@@ -174,7 +204,7 @@ Localization paths:
 2. **Pandoc template `$var$` via meta** — same channel as HTML.
    - `$toc-title$` (resolved via 2b in `pandoc.ts:498`) used in `typst-show.typ:93-95` as `toc_title:`.
    - `$labels.abstract$` (written by `authors.lua` `computeLabels`) used in `typst-show.typ:30` as `abstract-title:`.
-   - For orange-book (`extension-subtrees/orange-book/_extensions/orange-book/typst-show.typ:28-33`): `$crossref-lof-title$`, `$crossref-lot-title$`, `$crossref-ch-prefix$` used to set `list-of-figure-title`, `list-of-table-title`, `supplement-chapter` parameters on `book.with(...)`. These are surfaced into meta by `crossref/meta.lua:6-23` (the recent fix — see §4 below).
+   For orange-book (`src/resources/extension-subtrees/orange-book/_extensions/orange-book/typst-show.typ`): as of this writing the template still uses the legacy channel-2b form `$if(crossref.lof-title)$$crossref.lof-title$$else$$crossref-lof-title$$endif$` (and similarly for `lot-title`) to set `list-of-figure-title` and `list-of-table-title` on `book.with(...)`. The fallback `$crossref-lof-title$` resolves against `format.metadata` (channel 2b), so on writers like `+yaml_metadata_block` it can leak into the rendered markdown YAML header. There is no `supplement-chapter` argument wired today. Migration of orange-book's `typst-show.typ` to the `$quarto.language.*$` form (channel 2d), including adding `supplement-chapter`, is tracked at GitHub #14524 — once that lands the leakage path disappears.
 
 3. **Lua-injected supplements for refs** — `crossref/refs.lua:89-91` wraps every `@fig-foo`-style reference into `#ref(<label>, supplement: [<prefix>])` raw Typst. The supplement string comes from `param("crossref-<type>-prefix")` via `refPrefix()` in `crossref/format.lua:68`. This overrides Typst's native ref supplement so the language matches Quarto's localization.
 
@@ -182,19 +212,18 @@ Localization paths:
 
 Subtle: figure CAPTIONS (`Figure 1: caption`) use Typst native localization (path 1). Figure REFERENCES (`@fig-foo` → `Figure 1`) use Quarto-injected supplement (path 3). The prefix word is the same in most languages, but they go through different code paths.
 
-For book mode specifically, the orange-book extension's running header uses `heading.supplement` set by a `show` rule (`lib.typ:419`), so the chapter prefix in the running header comes from the `supplement-chapter` parameter on `book.with(...)`. That parameter is filled via path 2 using `$crossref-ch-prefix$`. Without the meta surface in `crossref/meta.lua`, the value never reaches Pandoc and `supplement-chapter` defaults to the English literal in `lib.typ:311`. This was the original bug (issue tracked in beads `quarto-cli-3vrv`).
-
 ## 4. Adding a new localized string
 
 Pick the channel that matches your consumer:
 
-| Consumer                                                  | Channel       | Touch points                              |
-|-----------------------------------------------------------|---------------|-------------------------------------------|
-| Lua filter logic, AST text injection                      | 2a            | New `kLanguageDefaultsKeys` constant. Optionally extend `languageFilterParams` if the prefix is unusual. Read in Lua via `param()`. |
-| Built-in Pandoc template `$var$` (single scalar)          | 2b (TS)       | Add copy block in `pandoc.ts` near `kTocTitle`. Pattern: `metadata[k] = metadata[k] || language[k];`. |
-| Pandoc template `$var$` for a Lua-domain feature (crossref, callouts, authors) | 2b (Lua) | Extend the relevant `Meta` handler. Use `surfaceParamToMeta(meta, key)` (`common/meta.lua`). Used by `crossref/meta.lua:7-19`. `authors.lua:856-913` uses a similar pattern for the `meta.labels.*` grouping. |
-| HTML DOM / front-end JSON                                 | 2c            | Add `format.language[key]` read in the appropriate `format-html-*.ts` postprocessor. |
-| LaTeX command override                                    | 3b path 2     | Add `maybeRenewCommand("<cmd>", localized-value)` inside the existing `metaInjectLatex` block in `crossref/meta.lua` (or a new format-gated injection if it is not crossref-related). |
+| Consumer | Channel | Touch points |
+|----------|---------|--------------|
+| Lua filter logic, AST text injection | 2a | New `kLanguageDefaultsKeys` constant. Optionally extend `languageFilterParams` if the prefix is unusual. Read in Lua via `param()`. |
+| Built-in Pandoc template `$var$` (single scalar, flat) | 2b (TS) | Add copy block in `pandoc.ts` near `kTocTitle`. Pattern: `metadata[k] = metadata[k] || language[k];`. Use this only when changing the template is not an option; otherwise prefer 2d. |
+| Pandoc template `$quarto.language.<key>$` (any template, any format) | **2d** | Once the key is in `format.language`, `buildQuartoTemplateVariables` exposes the whole table — no builder-side wiring needed. Reaching `format.language` still requires step 3 below (the key must be in `kLanguageDefaultsKeys`, or match the `crossref-*-{title,prefix}` patterns at `src/core/language.ts:167-173`). Templates then read `$quarto.language.<key>$`. |
+| New Pandoc template variable under a fresh `$quarto.<area>.<key>$` form (not language) | **2d** | Add a field to `QuartoTemplateVariables` and a contribution branch to `buildQuartoTemplateVariables` in `src/command/render/quarto-template-variables.ts`. Templates read `$quarto.<area>.<key>$`. |
+| HTML DOM / front-end JSON | 2c | Add `format.language[key]` read in the appropriate `format-html-*.ts` postprocessor. |
+| LaTeX command override | 3b path 2 | Add `maybeRenewCommand("<cmd>", localized-value)` inside the existing `metaInjectLatex` block in `crossref/meta.lua`. |
 
 Steps for every new key:
 
@@ -206,17 +235,18 @@ Steps for every new key:
 
 ## 5. Common pitfalls
 
-- **Writing a `$var$` reference in a Pandoc template does not auto-populate the variable.** Pandoc templates resolve against `format.metadata` (the YAML metadata file), not filter params. A new template variable needs an explicit write to meta (channel 2b TS or 2b Lua). Existing template-only pipes silently resolve to empty.
+- **Prefer channel 2d for any new key with a Pandoc-template consumer.** Channels 2b (TS or Lua) copy individual keys into `format.metadata`, where writers with `+yaml_metadata_block` then serialize them into the rendered YAML header. Channel 2d (defaults-file `variables.quarto.language.<key>`) avoids that entirely. The pre-existing 2b-TS copies of `toc-title` and `abstract-title` are kept only for backwards compatibility with built-in templates that already read the flat `$toc-title$` and `$abstract-title$` keys.
+- **Writing a `$var$` reference in a Pandoc template does not auto-populate the variable.** Pandoc templates resolve against either `format.metadata` (the YAML metadata, channel 2b) or the defaults-file `variables:` section (channel 2d). Existing template-only pipes that lack either wiring silently resolve to empty. Prefer channel 2d for new keys.
 - **`param("foo")` in a Pandoc template will not work.** Templates have no access to filter params. Only Lua filters do.
 - **Don't conflate `format.language[k]` and `format.metadata[k]`.** First is the resolved translation table; second is Pandoc YAML metadata. Lua filter params bridge the first into Lua; explicit copies in `pandoc.ts` bridge the first into the second.
 - **Guard meta writes with `if meta[k] == nil` / `||`.** User-provided metadata or extension defaults must win over the auto-injected localized fallback.
 - **Format-native localization (babel, Typst) overlaps Quarto's localization.** For LaTeX `\figurename` etc., babel sets these; Quarto's `\renewcommand` deliberately overrides — so user customization via crossref options reaches LaTeX. For Typst figure captions, Typst's own translation table wins; Quarto only overrides the ref `supplement:` argument.
 - **Adding to `languageFilterParams` is rarely needed.** The bulk `startsWith("crossref-"|"callout-"|"environment-")` clause already exposes most new keys to Lua. Only special-purpose keys (like the `crossref-<type>-prefix = crossref-<type>-title` aliasing) belong in the explicit block.
-- **`languageFilterParams` does not write to `format.metadata`.** It only populates filter params. If your template needs the value, you still need channel 2b.
+- **`languageFilterParams` does not write to `format.metadata` or `variables:`.** It only populates filter params. If your template needs the value, use channel 2d (preferred) or 2b.
 - **`crossref:` block vs `language:` block are different user-facing surfaces.** Per the [Quarto crossref options docs](https://quarto.org/docs/authoring/cross-reference-options.llms.md) and `src/resources/schema/document-crossref.yml`, the `crossref:` YAML block accepts per-document override of common crossref strings — `fig-title`, `fig-prefix`, `sec-prefix`, `lof-title`, `lst-prefix`, theorem family, etc. Translations / locale overrides for ALL localized strings (including those NOT in the crossref schema) go in the `language:` block instead, using the flat `crossref-*` key form (e.g., `language: { crossref-ch-prefix: "Chapitre" }`).
 
   Deliberately NOT in the `crossref:` schema: `ch-prefix`, `apx-prefix`, `pt-prefix`. These are language-only keys — book-structure terms that ride the locale rather than per-document tweaks. `crossref/format.lua:refPrefix()` only handles types that have a documented `crossref.<type>-prefix` form; `ch` / `apx` / `pt` are never passed in (chapter/appendix headings use a different code path — `book-chapters.ts:149` for HTML appendix, babel `\chaptername` for LaTeX, `$crossref-ch-prefix$` from meta for Typst extensions).
 
-- **Pandoc templates for keys that have BOTH user-config and language forms** (e.g., `lof-title`) should probe both via `$if(crossref.foo)$$crossref.foo$$else$$crossref-foo$$endif$` — see the existing pipes in orange-book `typst-show.typ` for `lof-title` and `lot-title`.
+- **Pandoc templates for keys that have BOTH user-config and language forms** (e.g., `lof-title`) should probe both via `$if(crossref.foo)$$crossref.foo$$else$$quarto.language.crossref-foo$$endif$` — user-set `crossref:` block values take precedence; the `$quarto.language.*$` form (channel 2d) provides the localized fallback.
 
-- **For keys that are language-only** (e.g., `ch-prefix`), the template should NOT use the `$crossref.foo$` form because it is unreachable — schema rejects user input and no Lua writes to `meta.crossref.foo`. Just use `$crossref-foo$` directly (after surfacing via `surfaceParamToMeta`). The orange-book `supplement-chapter` pipe uses this minimal form.
+- **For keys that are language-only** (e.g., `ch-prefix`), the template should NOT use the `$crossref.foo$` form because it is unreachable — schema rejects user input and no code writes to `meta.crossref.foo`. Use `$quarto.language.crossref-foo$` directly (channel 2d). The orange-book `supplement-chapter` pipe uses this minimal form.

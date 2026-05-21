@@ -32,6 +32,12 @@ Use H3 headings with backtick-wrapped names:
 ### `pdf`
 ```
 
+Use `### All Formats` (no backticks) for cross-format features that apply regardless of output format. Place it first among the H3 subsections, before format-specific ones. Example: `changelog-1.9.md` uses it for a `syntax-highlighting` option change that affects all formats.
+
+### Major Feature Sections
+
+Large new features that deserve prominence can get a dedicated H2 section instead of being buried in `## Other fixes and improvements`. Examples from past releases: `## Shortcodes` (1.9), `## Crossrefs` (1.8), `## Languages` (1.8), `## YAML validation` (1.7). Place these sections in the hierarchy where they fit logically — before `## Formats` if format-agnostic, or after `## Formats` if they extend format concerns. Highlights (promotional) still go in quarto-web, not here.
+
 ## Entry Format
 
 ```markdown
