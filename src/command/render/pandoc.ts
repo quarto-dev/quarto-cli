@@ -59,6 +59,7 @@ import {
   metadataGetDeep,
 } from "../../config/metadata.ts";
 import { pandocBinaryPath, resourcePath } from "../../core/resources.ts";
+import { filterBundledSubtreeEngines } from "../../extension/extension.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import {
   partitionYamlFrontMatter,
@@ -439,15 +440,9 @@ export async function runPandoc(
     // This can cause issue on regex test for printed output
     cleanQuartoTestsMetadata(metadata);
 
-    // Filter out bundled engines from the engines array
+    // Filter out bundled engines from the engines array (#14529)
     if (Array.isArray(metadata.engines)) {
-      const filteredEngines = metadata.engines.filter((engine) => {
-        const enginePath = typeof engine === "string" ? engine : engine.path;
-        // Keep user engines, filter out bundled ones
-        return !enginePath?.replace(/\\/g, "/").includes(
-          "resources/extension-subtrees/",
-        );
-      });
+      const filteredEngines = filterBundledSubtreeEngines(metadata.engines);
 
       // Remove the engines key entirely if empty, otherwise assign filtered array
       if (filteredEngines.length === 0) {
@@ -1323,15 +1318,11 @@ export async function runPandoc(
   // and it breaks ensureFileRegexMatches
   cleanQuartoTestsMetadata(pandocPassedMetadata);
 
-  // Filter out bundled engines from metadata passed to Pandoc
+  // Filter out bundled engines from metadata passed to Pandoc (#14529)
   if (Array.isArray(pandocPassedMetadata.engines)) {
-    const filteredEngines = pandocPassedMetadata.engines.filter((engine) => {
-      const enginePath = typeof engine === "string" ? engine : engine.path;
-      if (!enginePath) return true;
-      return !enginePath.replace(/\\/g, "/").includes(
-        "resources/extension-subtrees/",
-      );
-    });
+    const filteredEngines = filterBundledSubtreeEngines(
+      pandocPassedMetadata.engines,
+    );
 
     if (filteredEngines.length === 0) {
       delete pandocPassedMetadata.engines;
