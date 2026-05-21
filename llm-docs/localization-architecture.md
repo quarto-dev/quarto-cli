@@ -1,6 +1,6 @@
 ---
-main_commit: 4aa86e524
-analyzed_date: 2026-05-20
+main_commit: eca40cdab
+analyzed_date: 2026-05-21
 key_files:
   - src/resources/language/_language.yml
   - src/resources/language/_language-fr.yml
@@ -204,7 +204,7 @@ Localization paths:
 2. **Pandoc template `$var$` via meta** — same channel as HTML.
    - `$toc-title$` (resolved via 2b in `pandoc.ts:498`) used in `typst-show.typ:93-95` as `toc_title:`.
    - `$labels.abstract$` (written by `authors.lua` `computeLabels`) used in `typst-show.typ:30` as `abstract-title:`.
-   For orange-book (`src/resources/extension-subtrees/orange-book/_extensions/orange-book/typst-show.typ`): as of this writing the template still uses the legacy channel-2b form `$if(crossref.lof-title)$$crossref.lof-title$$else$$crossref-lof-title$$endif$` (and similarly for `lot-title`) to set `list-of-figure-title` and `list-of-table-title` on `book.with(...)`. The fallback `$crossref-lof-title$` resolves against `format.metadata` (channel 2b), so on writers like `+yaml_metadata_block` it can leak into the rendered markdown YAML header. There is no `supplement-chapter` argument wired today. Migration of orange-book's `typst-show.typ` to the `$quarto.language.*$` form (channel 2d), including adding `supplement-chapter`, is tracked at GitHub #14524 — once that lands the leakage path disappears.
+   For orange-book (`src/resources/extension-subtrees/orange-book/_extensions/orange-book/typst-show.typ`): the template uses the channel-2d form `$quarto.language.crossref-lof-title$` / `$quarto.language.crossref-lot-title$` / `$quarto.language.crossref-ch-prefix$` for `list-of-figure-title`, `list-of-table-title`, and `supplement-chapter` on `book.with(...)`. The `lof` and `lot` pipes use nested `$if(...)$` guards so pre-#14530 Quarto omits the argument entirely and `book()`'s built-in defaults apply. User-override path via the `crossref:` block (`$crossref.lof-title$` / `$crossref.lot-title$`) is preserved as the first cascade branch. Migration shipped via #14525 and [quarto-ext/orange-book#4](https://github.com/quarto-ext/orange-book/pull/4).
 
 3. **Lua-injected supplements for refs** — `crossref/refs.lua:89-91` wraps every `@fig-foo`-style reference into `#ref(<label>, supplement: [<prefix>])` raw Typst. The supplement string comes from `param("crossref-<type>-prefix")` via `refPrefix()` in `crossref/format.lua:68`. This overrides Typst's native ref supplement so the language matches Quarto's localization.
 
