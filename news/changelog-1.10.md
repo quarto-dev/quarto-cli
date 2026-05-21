@@ -14,6 +14,10 @@ All changes included in 1.10:
 
 ## Formats
 
+### All Formats
+
+- ([#14530](https://github.com/quarto-dev/quarto-cli/pull/14530)): Add `quarto.*` Pandoc template variable namespace. `format.language` is now exposed as `$quarto.language.<key>$` in custom Pandoc templates via the defaults-file `variables:` section, with no leakage into rendered output.
+
 ### `pdf`
 
 - ([#13588](https://github.com/quarto-dev/quarto-cli/issues/13588)): Fix Lua error when rendering PDF with `reference-location: margin` and a footnote alongside a figure with `fig-cap`. (author: @mcanouil)
