@@ -1,0 +1,15 @@
+---
+lang: fr
+format:
+  plain:
+    template: lang-fr-template-resolve.template.txt
+    output-ext: txt
+_quarto:
+  tests:
+    plain:
+      ensureFileRegexMatches:
+        -
+          - "^Chapitre\\s*$"
+---
+
+Body intentionally empty — the template ignores the document body and only emits the variable value.

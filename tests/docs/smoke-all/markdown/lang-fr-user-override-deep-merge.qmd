@@ -1,0 +1,23 @@
+---
+lang: fr
+format:
+  plain:
+    template: lang-fr-user-override-deep-merge.template.txt
+    output-ext: txt
+    variables:
+      quarto:
+        language:
+          crossref-ch-prefix: "Bouquin"
+_quarto:
+  tests:
+    plain:
+      ensureFileRegexMatches:
+        -
+          - "^Bouquin\\|Table des matières\\s*$"
+---
+
+Deep-merge regression guard: when a user overrides one key under
+`variables.quarto.language`, the other localized `language.*` keys must
+still resolve in templates. A shallow spread would replace the entire
+`language` map with the user's partial, dropping `toc-title-document` and
+producing `Bouquin|` instead of `Bouquin|Table des matières`.

@@ -422,4 +422,35 @@ _quarto:
 | `\\` (literal)   | `'\\\\'`                 | `"\\\\\\\\"`             |
 | `[` (regex)      | `'\['`                   | `"\\["`                  |
 
+### Probe enough keys to surface the bug
+
+A precedence test where the template reads only the one key being
+overridden can pass under a deep-merge bug. The dropped sibling keys
+never resolve, but no assertion notices.
+
+Example: the merge of user-supplied `variables.quarto.language.crossref-ch-prefix: Bouquin`
+onto Quarto's built `format.language` table under
+`variables.quarto.language`. Under a shallow spread (`{ ...a, ...b }`),
+`b.language` replaces the entire localized map — all other
+`$quarto.language.<key>$` resolutions silently return empty. A template
+that reads only `$quarto.language.crossref-ch-prefix$` still asserts
+"Bouquin", so the regression test passes.
+
+The fix is to probe at least one non-overridden sibling key in the same
+template. Concretely, the regression guard
+`tests/docs/smoke-all/markdown/lang-fr-user-override-deep-merge.qmd`
+uses the template
+
+```
+$quarto.language.crossref-ch-prefix$|$quarto.language.toc-title-document$
+```
+
+and asserts the full string `^Bouquin\|Table des matières\s*$`. Pre-fix
+the output was `Bouquin|`; post-fix it is `Bouquin|Table des matières`.
+
+Heuristic: when writing a precedence smoke test for any merge between
+two structured config trees, ensure the assertion exercises at least
+one path the user did NOT override. Otherwise the test only proves
+"the overridden value wins" — not "the rest survives".
+
 **Recommendation:** Use single-quoted strings. They're simpler - only `'` itself needs escaping (as `''`).
