@@ -211,14 +211,20 @@ export interface RenderMonitor {
 
 export class HttpDevServerRenderMonitor {
   public static onRenderStart() {
-    this.renderStart_ = Date.now();
+    if (this.inFlight_ === 0) {
+      this.renderStart_ = Date.now();
+    }
+    this.inFlight_++;
     this.handlers_.forEach((handler) =>
       handler.onRenderStart(this.lastRenderTime_)
     );
   }
 
   public static onRenderStop(success: boolean) {
-    if (this.renderStart_) {
+    if (this.inFlight_ > 0) {
+      this.inFlight_--;
+    }
+    if (this.inFlight_ === 0 && this.renderStart_ !== undefined) {
       this.lastRenderTime_ = Date.now() - this.renderStart_;
       this.renderStart_ = undefined;
     }
@@ -229,15 +235,21 @@ export class HttpDevServerRenderMonitor {
     this.handlers_.push(handler);
   }
 
-  // True between onRenderStart and onRenderStop. Used by the preview
+  // True while any render is in flight. Used by the preview
   // compatibility check to defer destructive cache invalidation that
-  // would race with the in-flight render's transient .quarto_ipynb.
+  // would race with an in-flight render's transient .quarto_ipynb.
+  //
+  // Counter-based so overlapping submits stay correct: onRenderStart
+  // fires on submitRender (synchronous), onRenderStop fires when the
+  // outer promise resolves. With a single timestamp, render A's stop
+  // could clear the flag while render B was still queued or running.
   public static isRendering(): boolean {
-    return this.renderStart_ !== undefined;
+    return this.inFlight_ > 0;
   }
 
   private static handlers_ = new Array<RenderMonitor>();
 
+  private static inFlight_ = 0;
   private static renderStart_: number | undefined;
   private static lastRenderTime_: number | undefined;
 }

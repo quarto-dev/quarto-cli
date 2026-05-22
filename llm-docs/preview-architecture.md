@@ -120,6 +120,8 @@ Fix: invalidate `fileInformationCache` for `request.path` at the top of `preview
 
 The in-flight gate avoids a race: `invalidateForFile` calls `safeRemoveSync` on the cached `target.input`, which is the transient `.quarto_ipynb` that an in-flight render is writing or reading. On Windows this throws (file lock); on Linux it orphans the inode. Since the in-flight render's own `renderForPreview` already invalidated and repopulated the cache at its start, the cache reflects the in-flight render's view until it completes. A frontmatter edit made during the in-flight window is picked up on the next compatibility check after the render finishes.
 
+`HttpDevServerRenderMonitor.isRendering()` is **counter-based**, not a single-timestamp flag. `submitRender` (`src/project/serve/render.ts`) calls `onRenderStart` synchronously at queue time, but `onRenderStop` only fires when each render's outer promise resolves. With two queued renders, a single-timestamp tracker would clear the gate when render A finishes even though render B is still queued or running. The counter increments on every start and decrements on every stop; `isRendering()` returns true while at least one render is outstanding.
+
 For unchanged frontmatter, `previewFormat` repopulates the cache with the same value and the compatibility verdict is identical — only the cache lookup runs again. Cost: one cache re-read per IDE-driven render request, no functional change.
 
 ## FileInformationCache and invalidateForFile

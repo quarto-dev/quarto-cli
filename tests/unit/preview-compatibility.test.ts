@@ -220,6 +220,60 @@ unitTest(
 );
 
 unitTest(
+  "HttpDevServerRenderMonitor - isRendering tracks overlapping renders via counter",
+  // deno-lint-ignore require-await
+  async () => {
+    // submitRender in src/project/serve/render.ts calls onRenderStart
+    // synchronously at queue time, but onRenderStop only fires when
+    // each render's outer promise resolves. With two queued renders,
+    // a single-timestamp tracker would clear the gate when render A
+    // finishes even though render B is still queued or running —
+    // re-introducing the race the in-flight gate is meant to prevent.
+    // The counter approach must keep isRendering() true until ALL
+    // submitted renders have stopped.
+    const initialInFlight = HttpDevServerRenderMonitor.isRendering();
+    let openStarts = 0;
+    try {
+      HttpDevServerRenderMonitor.onRenderStart();
+      openStarts++;
+      HttpDevServerRenderMonitor.onRenderStart();
+      openStarts++;
+
+      assertEquals(
+        HttpDevServerRenderMonitor.isRendering(),
+        true,
+        "two in-flight renders must report isRendering=true",
+      );
+
+      HttpDevServerRenderMonitor.onRenderStop(true);
+      openStarts--;
+
+      assertEquals(
+        HttpDevServerRenderMonitor.isRendering(),
+        true,
+        "isRendering must remain true after one stop while another render is still in flight",
+      );
+
+      HttpDevServerRenderMonitor.onRenderStop(true);
+      openStarts--;
+
+      assertEquals(
+        HttpDevServerRenderMonitor.isRendering(),
+        initialInFlight,
+        "isRendering must return to initial state after both stops",
+      );
+    } finally {
+      // Drain any starts not yet matched by a stop (assertion failure
+      // mid-test). onRenderStop is a no-op when the counter is already 0.
+      while (openStarts > 0) {
+        HttpDevServerRenderMonitor.onRenderStop(true);
+        openStarts--;
+      }
+    }
+  },
+);
+
+unitTest(
   "previewRenderRequestIsCompatible - version 1 short-circuits without consulting project",
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
@@ -311,7 +365,7 @@ unitTest(
 );
 
 unitTest(
-  "previewRenderRequestIsCompatible - pinned request.format differing from flags.to returns false",
+  "previewRenderRequestIsCompatible - pinned request.format differing from flags.to returns false without invalidating cache",
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
@@ -327,6 +381,9 @@ unitTest(
       const nbContext = notebookContext();
       const project = await singleFileProjectContext(file, nbContext);
 
+      await fileExecutionEngineAndTarget(file, undefined, project);
+      const cacheEntryBefore = project.fileInformationCache?.get(file);
+
       // Pinned format that disagrees with the running preview process's
       // flags.to. The verdict reflects the pinned value directly; the
       // file's frontmatter (also html) is not consulted.
@@ -340,6 +397,18 @@ unitTest(
         compatible,
         false,
         "Pinned format differing from flags.to must return false",
+      );
+
+      // Same cache invariant as the match case: pinned-format path must
+      // not touch fileInformationCache regardless of match/mismatch.
+      // Without this assertion, a regression that invalidated and
+      // repopulated the cache on the mismatch path would still produce
+      // the correct boolean (typst !== html) and ship undetected.
+      const cacheEntryAfter = project.fileInformationCache?.get(file);
+      assertStrictEquals(
+        cacheEntryAfter,
+        cacheEntryBefore,
+        "Pinned-format path must not invalidate fileInformationCache",
       );
     } finally {
       Deno.removeSync(tmpDir, { recursive: true });
