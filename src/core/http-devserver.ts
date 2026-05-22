@@ -242,9 +242,18 @@ export class HttpDevServerRenderMonitor {
     );
     return promise.then(
       (value) => {
-        const success = successFromValue(value);
+        // A throwing predicate must not strand the counter; the whole
+        // point of trackInFlight is that settlement always decrements.
+        let success = false;
+        let predicateError: unknown;
+        try {
+          success = successFromValue(value);
+        } catch (e) {
+          predicateError = e;
+        }
         this.decrementInFlight();
         this.handlers_.forEach((handler) => handler.onRenderStop(success));
+        if (predicateError !== undefined) throw predicateError;
         return value;
       },
       (error) => {

@@ -342,6 +342,48 @@ unitTest(
 );
 
 unitTest(
+  "HttpDevServerRenderMonitor.trackInFlight - predicate throw still decrements counter",
+  async () => {
+    // trackInFlight's invariant is "decrement exactly once on settlement
+    // regardless of what callers do". If the success predicate throws,
+    // the counter must still drop and onRenderStop must still fire so
+    // the predicate failure surfaces to the caller without stranding
+    // global state.
+    const initialInFlight = HttpDevServerRenderMonitor.isRendering();
+    const stopCalls: boolean[] = [];
+    HttpDevServerRenderMonitor.monitor({
+      onRenderStart: () => {},
+      onRenderStop: (success: boolean) => {
+        stopCalls.push(success);
+      },
+    });
+
+    try {
+      await HttpDevServerRenderMonitor.trackInFlight(
+        Promise.resolve("value"),
+        () => {
+          throw new Error("predicate failure");
+        },
+      );
+      throw new Error("expected trackInFlight to rethrow predicate error");
+    } catch (e) {
+      if ((e as Error).message !== "predicate failure") throw e;
+    }
+
+    assertEquals(
+      HttpDevServerRenderMonitor.isRendering(),
+      initialInFlight,
+      "isRendering must return to initial state after predicate throw",
+    );
+    assertEquals(
+      stopCalls.includes(false),
+      true,
+      "onRenderStop(false) must fire when predicate throws",
+    );
+  },
+);
+
+unitTest(
   "ServeRenderManager.submitRender - inflight decremented when render promise rejects",
   async () => {
     // Mirror case for failed render: queue rejection must also decrement
