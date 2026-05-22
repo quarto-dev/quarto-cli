@@ -364,6 +364,14 @@ export async function previewRenderRequestIsCompatible(
   if (request.version === 1) {
     return true; // rstudio manages its own request compatibility state
   } else {
+    // When the caller does not pin a format, the compatibility check
+    // resolves the format from the file via renderFormats, which consults
+    // fileInformationCache. The cache may carry frontmatter from a prior
+    // render; invalidate it here so a format edit since the last render
+    // is detected on this request (#14533).
+    if (request.format === undefined) {
+      project.fileInformationCache?.invalidateForFile(request.path);
+    }
     const reqFormat = await previewFormat(
       request.path,
       project,
