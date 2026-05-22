@@ -516,10 +516,17 @@ export async function isTlnet(
   url: string,
   fetchFn: typeof fetch = fetch,
 ): Promise<boolean> {
+  // Probe the TLPDB file inside the mirror, not the URL root: a valid mirror
+  // root commonly serves an HTML directory index, while a misconfigured
+  // Cloudflare catch-all returns text/html for every path including the TLPDB.
+  // Combining a deep-file probe with the text/html guard rejects both
+  // unreachable and catch-all-misconfigured deployments. Matches R tinytex's
+  // is_tlnet() at R/install.R (rstudio/tinytex commit 71ae68f).
+  const probeUrl = `${url.replace(/\/$/, "")}/tlpkg/texlive.tlpdb`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30_000);
   try {
-    const response = await fetchFn(url, {
+    const response = await fetchFn(probeUrl, {
       method: "HEAD",
       signal: controller.signal,
       redirect: "follow",

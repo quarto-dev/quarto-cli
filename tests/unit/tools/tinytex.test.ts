@@ -297,6 +297,26 @@ unitTest("isTlnet - returns false when fetch throws", async () => {
   assertEquals(await isTlnet(kTlnetMirror, stub), false);
 });
 
+unitTest("isTlnet - probes <url>/tlpkg/texlive.tlpdb, not root", async () => {
+  let probedUrl: string | undefined;
+  const stub: typeof fetch = (input) => {
+    probedUrl = typeof input === "string" ? input : input.toString();
+    return Promise.resolve(mockResponse(200, "application/octet-stream"));
+  };
+  await isTlnet(kTlnetMirror, stub);
+  assertEquals(probedUrl, `${kTlnetMirror}/tlpkg/texlive.tlpdb`);
+});
+
+unitTest("isTlnet - strips trailing slash from url before appending tlpdb path", async () => {
+  let probedUrl: string | undefined;
+  const stub: typeof fetch = (input) => {
+    probedUrl = typeof input === "string" ? input : input.toString();
+    return Promise.resolve(mockResponse(200, "application/octet-stream"));
+  };
+  await isTlnet(`${kTlnetMirror}/`, stub);
+  assertEquals(probedUrl, `${kTlnetMirror}/tlpkg/texlive.tlpdb`);
+});
+
 // ---- resolveTinytexRepo orchestrator tests ----
 
 unitTest("resolveTinytexRepo - env override bypasses probe", async () => {
