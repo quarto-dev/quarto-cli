@@ -211,24 +211,39 @@ export interface RenderMonitor {
 
 export class HttpDevServerRenderMonitor {
   public static onRenderStart() {
-    if (this.inFlight_ === 0) {
-      this.renderStart_ = Date.now();
-    }
-    this.inFlight_++;
+    this.incrementInFlight();
     this.handlers_.forEach((handler) =>
       handler.onRenderStart(this.lastRenderTime_)
     );
   }
 
   public static onRenderStop(success: boolean) {
-    if (this.inFlight_ > 0) {
-      this.inFlight_--;
-    }
-    if (this.inFlight_ === 0 && this.renderStart_ !== undefined) {
-      this.lastRenderTime_ = Date.now() - this.renderStart_;
-      this.renderStart_ = undefined;
-    }
+    this.decrementInFlight();
     this.handlers_.forEach((handler) => handler.onRenderStop(success));
+  }
+
+  // Wraps a render promise so the in-flight counter is decremented
+  // exactly once when the promise settles, regardless of what callers
+  // do with the resolved value. The single timestamp/counter state stays
+  // consistent even if post-render processing throws between submission
+  // and any explicit onRenderResult / onRenderError call.
+  public static trackInFlight<T>(promise: Promise<T>): Promise<T> {
+    this.incrementInFlight();
+    this.handlers_.forEach((handler) =>
+      handler.onRenderStart(this.lastRenderTime_)
+    );
+    return promise.then(
+      (value) => {
+        this.decrementInFlight();
+        this.handlers_.forEach((handler) => handler.onRenderStop(true));
+        return value;
+      },
+      (error) => {
+        this.decrementInFlight();
+        this.handlers_.forEach((handler) => handler.onRenderStop(false));
+        throw error;
+      },
+    );
   }
 
   public static monitor(handler: RenderMonitor) {
@@ -245,6 +260,23 @@ export class HttpDevServerRenderMonitor {
   // could clear the flag while render B was still queued or running.
   public static isRendering(): boolean {
     return this.inFlight_ > 0;
+  }
+
+  private static incrementInFlight() {
+    if (this.inFlight_ === 0) {
+      this.renderStart_ = Date.now();
+    }
+    this.inFlight_++;
+  }
+
+  private static decrementInFlight() {
+    if (this.inFlight_ > 0) {
+      this.inFlight_--;
+    }
+    if (this.inFlight_ === 0 && this.renderStart_ !== undefined) {
+      this.lastRenderTime_ = Date.now() - this.renderStart_;
+      this.renderStart_ = undefined;
+    }
   }
 
   private static handlers_ = new Array<RenderMonitor>();

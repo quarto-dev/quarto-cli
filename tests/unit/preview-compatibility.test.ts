@@ -17,6 +17,8 @@ import { fileExecutionEngineAndTarget } from "../../src/execute/engine.ts";
 import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 import { HttpDevServerRenderMonitor } from "../../src/core/http-devserver.ts";
+import { ServeRenderManager } from "../../src/project/serve/render.ts";
+import { RenderResult } from "../../src/command/render/types.ts";
 
 unitTest(
   "previewRenderRequestIsCompatible - detects format change in frontmatter on first request (#14533)",
@@ -270,6 +272,64 @@ unitTest(
         openStarts--;
       }
     }
+  },
+);
+
+unitTest(
+  "ServeRenderManager.submitRender - inflight decremented when post-render handler throws",
+  async () => {
+    // serve.ts and watch.ts attach .then(result => ...) handlers to
+    // submitRender's returned promise that can throw before any explicit
+    // onRenderError / onRenderResult call (e.g. serve.ts "No output created"
+    // throw at line 838). Counter must still decrement, otherwise
+    // isRendering() stays true forever and the compatibility check keeps
+    // skipping invalidateForFile until process restart.
+    const initialInFlight = HttpDevServerRenderMonitor.isRendering();
+    const renderManager = new ServeRenderManager();
+
+    const mockResult = {} as RenderResult;
+    const settled = renderManager.submitRender(() => Promise.resolve(mockResult))
+      .then(() => {
+        throw new Error("simulated post-render throw");
+      });
+
+    try {
+      await settled;
+      throw new Error("expected post-render handler to throw");
+    } catch (e) {
+      if ((e as Error).message !== "simulated post-render throw") throw e;
+    }
+
+    assertEquals(
+      HttpDevServerRenderMonitor.isRendering(),
+      initialInFlight,
+      "isRendering must return to initial state after post-render throw",
+    );
+  },
+);
+
+unitTest(
+  "ServeRenderManager.submitRender - inflight decremented when render promise rejects",
+  async () => {
+    // Mirror case for failed render: queue rejection must also decrement
+    // the counter so isRendering() reflects the actual queue state.
+    const initialInFlight = HttpDevServerRenderMonitor.isRendering();
+    const renderManager = new ServeRenderManager();
+
+    try {
+      await renderManager.submitRender(() =>
+        Promise.reject(new Error("simulated render failure"))
+      );
+      throw new Error("expected submitRender promise to reject");
+    } catch (e) {
+      if ((e as Error).message !== "simulated render failure") throw e;
+    }
+
+    assertEquals(
+      HttpDevServerRenderMonitor.isRendering(),
+      initialInFlight,
+      "isRendering must return to initial state after render rejection",
+    );
   },
 );
 

@@ -36,8 +36,9 @@ export class ServeRenderManager {
   }
 
   public submitRender(render: () => Promise<RenderResult>) {
-    HttpDevServerRenderMonitor.onRenderStart();
-    return this.renderQueue_.enqueue(render);
+    return HttpDevServerRenderMonitor.trackInFlight(
+      this.renderQueue_.enqueue(render),
+    );
   }
 
   public isRendering() {
@@ -45,7 +46,6 @@ export class ServeRenderManager {
   }
 
   public onRenderError(error: Error) {
-    HttpDevServerRenderMonitor.onRenderStop(false);
     if (error.message) {
       logError(error);
     }
@@ -57,7 +57,6 @@ export class ServeRenderManager {
     resourceFiles: string[],
     project: ProjectContext,
   ) {
-    HttpDevServerRenderMonitor.onRenderStop(true);
     const fileOutputDir = (file: RenderResultFile) => {
       const format = file.format;
       return projectFormatOutputDir(
