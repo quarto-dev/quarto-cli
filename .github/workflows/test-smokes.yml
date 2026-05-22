@@ -117,10 +117,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
 
+      - name: Install Playwright system dependencies
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        timeout-minutes: 15
+        run: npx playwright install-deps
+        working-directory: ./tests/integration/playwright
+
       - name: Install Playwright Browsers
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
-        timeout-minutes: 10
-        run: npx playwright install --with-deps
+        timeout-minutes: 15
+        run: npx playwright install
         working-directory: ./tests/integration/playwright
 
       - name: Install MECA validator

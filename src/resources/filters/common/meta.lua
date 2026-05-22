@@ -87,7 +87,7 @@ function metaInjectHtml(meta, func)
 end
 
 
-function readMetaOptions(meta) 
+function readMetaOptions(meta)
   local options = {}
   for key,value in pairs(meta) do
     if type(value) == "table" and value.clone ~= nil then

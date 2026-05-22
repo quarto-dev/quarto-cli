@@ -18,6 +18,10 @@ All changes included in 1.10:
 
 ## Formats
 
+### All Formats
+
+- ([#14530](https://github.com/quarto-dev/quarto-cli/pull/14530)): Add `quarto.*` Pandoc template variable namespace. `format.language` is now exposed as `$quarto.language.<key>$` in custom Pandoc templates via the defaults-file `variables:` section, with no leakage into rendered output.
+
 ### `pdf`
 
 - ([#13588](https://github.com/quarto-dev/quarto-cli/issues/13588)): Fix Lua error when rendering PDF with `reference-location: margin` and a footnote alongside a figure with `fig-cap`. (author: @mcanouil)
@@ -26,6 +30,8 @@ All changes included in 1.10:
 
 - ([#14261](https://github.com/quarto-dev/quarto-cli/issues/14261)): Fix theorem/example block titles containing inline code producing invalid Typst markup when syntax highlighting is applied.
 - ([#14460](https://github.com/quarto-dev/quarto-cli/issues/14460)): Fix CSS `border` and `border-color` declarations losing tokens that precede an `rgb()`/`rgba()` color (e.g. `border: 0px solid rgb(255, 0, 0)` rendering as a 2.25pt border instead of being suppressed). Also fixes: `var(--brand-NAME)` references crashing the Typst CSS translator when `NAME` contained digits (e.g. `--brand-red-50`); a crash when an `rgba()` alpha is unparseable; the `dvmin` length unit being silently rejected (a stray space in the unit table); CSS keywords like `BOLD` not matching as `bold` (CSS keywords are case-insensitive); invalid hex colors like `#fffff` being silently accepted as 2-component colors.
+- ([#14511](https://github.com/quarto-dev/quarto-cli/issues/14511)): Fix brand fonts downloaded for a Typst book project not being passed to `typst compile`, causing `unknown font family` warnings and fallback to Libertinus Serif.
+- ([#14524](https://github.com/quarto-dev/quarto-cli/issues/14524), [quarto-ext/orange-book#4](https://github.com/quarto-ext/orange-book/pull/4)): Fix orange-book Typst book running header not honoring `lang:` — chapter heading band stayed `Chapter N.` instead of the locale's word (e.g. `Chapitre N.` for `lang: fr`). Also fixes the orange-book `list-of-figure-title` / `list-of-table-title` template pipes which were silently rendering as empty strings. Consumes the `$quarto.language.*$` template-variable namespace from [#14530](https://github.com/quarto-dev/quarto-cli/pull/14530).
 
 ### `revealjs`
 
@@ -77,3 +83,4 @@ All changes included in 1.10:
 - ([#14359](https://github.com/quarto-dev/quarto-cli/issues/14359)): Fix intermediate `.quarto_ipynb` file not being deleted after rendering a `.qmd` with Jupyter engine, causing numbered variants (`_1`, `_2`, ...) to accumulate on disk across renders.
 - ([#14461](https://github.com/quarto-dev/quarto-cli/issues/14461)): Fix `quarto render --to pdf` aborting with `ERROR: Problem running 'fmtutil-sys --all' to rebuild format tree.` when an automatically-installed LaTeX package's post-update format rebuild fails. Format-tree rebuild is now treated as best-effort housekeeping (matching upstream `tinytex` R behavior) — the failure is logged as a warning and the package install completes.
 - ([#14472](https://github.com/quarto-dev/quarto-cli/issues/14472)): Add support for Kotlin in code annotations and YAML cell options. (author: @barendgehrels)
+- ([#14529](https://github.com/quarto-dev/quarto-cli/issues/14529)): Fix bundled Julia engine path leaking into rendered YAML metadata and pandoc log output when running an installed Quarto. The internal subtree-engine filter only matched the source-tree share-path layout (`resources/extension-subtrees/`) and missed installed layouts where the path is `share/extension-subtrees/`.

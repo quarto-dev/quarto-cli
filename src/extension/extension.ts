@@ -28,6 +28,7 @@ import { Metadata, QuartoFilter } from "../config/types.ts";
 import {
   kSkipHidden,
   normalizePath,
+  pathWithForwardSlashes,
   resolvePathGlobs,
   safeExistsSync,
 } from "../core/path.ts";
@@ -708,6 +709,39 @@ function builtinExtensions() {
 // Path for built-in subtree extensions
 export function builtinSubtreeExtensions() {
   return resourcePath("extension-subtrees");
+}
+
+// Predicate: does `enginePath` live under the built-in subtree path?
+// Works in both source-tree (QUARTO_SHARE_PATH=src/resources) and
+// installed (QUARTO_SHARE_PATH=share) layouts. See #14529.
+// Uses a path-boundary check so a sibling directory whose name merely
+// starts with the same prefix (e.g. `extension-subtrees-custom/`) does
+// not register as bundled.
+export function isBundledSubtreeEnginePath(
+  enginePath: string,
+  subtreePath: string,
+): boolean {
+  const normalizedEngine = pathWithForwardSlashes(enginePath);
+  const normalizedSubtree = pathWithForwardSlashes(subtreePath).replace(
+    /\/+$/,
+    "",
+  );
+  return normalizedEngine === normalizedSubtree ||
+    normalizedEngine.startsWith(normalizedSubtree + "/");
+}
+
+// Filters out bundled subtree engines from a metadata `engines` array.
+export function filterBundledSubtreeEngines(
+  engines: ReadonlyArray<unknown>,
+): unknown[] {
+  const subtreePath = builtinSubtreeExtensions();
+  return engines.filter((engine) => {
+    const enginePath = typeof engine === "string"
+      ? engine
+      : (engine as { path?: string } | null | undefined)?.path;
+    if (!enginePath) return true;
+    return !isBundledSubtreeEnginePath(enginePath, subtreePath);
+  });
 }
 
 // Validate the extension
