@@ -338,9 +338,12 @@ async function afterInstall(context: InstallContext) {
       },
     );
 
-    // Set the default repo to an https repo
+    // Set the default repo to an https repo.
+    // Prefer the TinyTeX CDN mirror (kTlnetMirror); fall back to mirror.ctan.org
+    // redirect or kDefaultRepos. Allow override via QUARTO_TINYTEX_REPOSITORY.
     let restartRequired = false;
-    const defaultRepo = await textLiveRepo();
+    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY") ?? undefined;
+    const defaultRepo = await resolveTinytexRepo(envRepo);
     await context.withSpinner(
       {
         message: `Setting default repository`,
@@ -487,7 +490,7 @@ function exec(path: string, cmd: string[]) {
 
 const kTlMgrKey = "tlmgr";
 
-async function textLiveRepo() {
+async function textLiveRepoFallback() {
   // We don't set the default to `ctan` because one caveat of mirror.ctan.org
   // is that it resolves to many different hosts, and they are not perfectly synchronized;
   // Recommendation is to update only daily (at most), and not more often, which we don't want.
@@ -539,7 +542,7 @@ export async function resolveTinytexRepo(
   if (await isTlnet(kTlnetMirror, fetchFn)) {
     return kTlnetMirror;
   }
-  return textLiveRepo();
+  return textLiveRepoFallback();
 }
 
 export function tinyTexPkgName(
