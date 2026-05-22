@@ -47,7 +47,7 @@ const kDefaultRepos = [
   "https://mirror.las.iastate.edu/tex-archive/systems/texlive/tlnet/",
 ];
 
-// New CDN-backed TinyTeX mirror (https://yihui.org/en/2026/03/tinytex-ctan-mirror/)
+// CDN-backed TinyTeX mirror (https://yihui.org/en/2026/03/tinytex-ctan-mirror/).
 // Probed first by resolveTinytexRepo(); falls back to mirror.ctan.org redirect
 // then kDefaultRepos if unreachable or returns a Cloudflare catch-all html response.
 export const kTlnetMirror = "https://tlnet.yihui.org";
