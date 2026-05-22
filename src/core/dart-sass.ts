@@ -1,7 +1,7 @@
 /*
  * dart-sass.ts
  *
- * Copyright (C) 2020-2025 Posit Software, PBC
+ * Copyright (C) 2020-2026 Posit Software, PBC
  */
 import { join } from "../deno_ral/path.ts";
 
