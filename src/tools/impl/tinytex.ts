@@ -41,7 +41,7 @@ import {
 } from "../../deno_ral/platform.ts";
 
 // This the https texlive repo that we use by default
-const kDefaultRepos = [
+export const kDefaultRepos = [
   "https://mirrors.rit.edu/CTAN/systems/texlive/tlnet/",
   "https://ctan.math.illinois.edu/systems/texlive/tlnet/",
   "https://mirror.las.iastate.edu/tex-archive/systems/texlive/tlnet/",
@@ -490,7 +490,9 @@ function exec(path: string, cmd: string[]) {
 
 const kTlMgrKey = "tlmgr";
 
-async function textLiveRepoFallback() {
+async function textLiveRepoFallback(
+  fetchFn: typeof fetch = fetch,
+) {
   // We don't set the default to `ctan` because one caveat of mirror.ctan.org
   // is that it resolves to many different hosts, and they are not perfectly synchronized;
   // Recommendation is to update only daily (at most), and not more often, which we don't want.
@@ -500,7 +502,7 @@ async function textLiveRepoFallback() {
   let autoUrl;
   try {
     const url = "https://mirror.ctan.org/systems/texlive/tlnet";
-    const response = await fetch(url, { redirect: "follow" });
+    const response = await fetchFn(url, { redirect: "follow" });
     autoUrl = response.url;
   } catch (_e) {}
   if (!autoUrl) {
@@ -542,7 +544,7 @@ export async function resolveTinytexRepo(
   if (await isTlnet(kTlnetMirror, fetchFn)) {
     return kTlnetMirror;
   }
-  return textLiveRepoFallback();
+  return textLiveRepoFallback(fetchFn);
 }
 
 export function tinyTexPkgName(

@@ -8,6 +8,7 @@ import { unitTest } from "../../test.ts";
 import { assert, assertEquals, assertRejects } from "testing/asserts";
 import {
   isTlnet,
+  kDefaultRepos,
   kTlnetMirror,
   resolveTinytexRepo,
   tinyTexInstallable,
@@ -326,15 +327,19 @@ unitTest("resolveTinytexRepo - returns kTlnetMirror when probe succeeds", async 
   assertEquals(result, kTlnetMirror);
 });
 
-unitTest("resolveTinytexRepo - falls back when probe returns html catch-all", async () => {
-  const stub: typeof fetch = () =>
-    Promise.resolve(mockResponse(200, "text/html"));
+unitTest("resolveTinytexRepo - falls back to kDefaultRepos when probe and mirror.ctan.org both unreachable", async () => {
+  // Stub returns html for the tlnet probe and throws for any other fetch
+  // (mirror.ctan.org). textLiveRepoFallback then picks from kDefaultRepos.
+  const stub: typeof fetch = (input) => {
+    const url = typeof input === "string" ? input : input.toString();
+    if (url.startsWith(kTlnetMirror)) {
+      return Promise.resolve(mockResponse(200, "text/html"));
+    }
+    return Promise.reject(new Error("unreachable"));
+  };
   const result = await resolveTinytexRepo(undefined, stub);
-  // Fallback returns a URL string from mirror.ctan.org redirect or kDefaultRepos.
-  // Cannot assert specific value (depends on network), but it must NOT equal kTlnetMirror.
-  assert(typeof result === "string" && result.length > 0);
   assert(
-    result !== kTlnetMirror,
-    `Expected fallback URL, got ${result} (== kTlnetMirror)`,
+    kDefaultRepos.includes(result),
+    `Expected result in kDefaultRepos, got ${result}`,
   );
 });
