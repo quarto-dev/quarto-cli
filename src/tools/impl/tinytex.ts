@@ -344,7 +344,9 @@ async function afterInstall(context: InstallContext) {
     // or CTAN_REPO (honored for parity with the R tinytex package, which reads
     // it during install-tl).
     let restartRequired = false;
-    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY") ??
+    // Use `||` (not `??`) so an explicit empty `QUARTO_TINYTEX_REPOSITORY=""`
+    // falls through to `CTAN_REPO` rather than masking it.
+    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY") ||
       Deno.env.get("CTAN_REPO");
     const defaultRepo = await resolveTinytexRepo(envRepo);
     await context.withSpinner(
