@@ -43,6 +43,7 @@ All changes included in 1.10:
 ### `quarto preview`
 
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Avoid creating a duplicate `.quarto_ipynb` file on preview startup for single-file Jupyter documents.
+- ([#14533](https://github.com/quarto-dev/quarto-cli/issues/14533)): Fix `quarto preview` not detecting a frontmatter `format:` change until the second render request. The first request after the edit now correctly restarts the preview process with the new format.
 
 ### `install`
 
@@ -78,4 +79,3 @@ All changes included in 1.10:
 - ([#14359](https://github.com/quarto-dev/quarto-cli/issues/14359)): Fix intermediate `.quarto_ipynb` file not being deleted after rendering a `.qmd` with Jupyter engine, causing numbered variants (`_1`, `_2`, ...) to accumulate on disk across renders.
 - ([#14461](https://github.com/quarto-dev/quarto-cli/issues/14461)): Fix `quarto render --to pdf` aborting with `ERROR: Problem running 'fmtutil-sys --all' to rebuild format tree.` when an automatically-installed LaTeX package's post-update format rebuild fails. Format-tree rebuild is now treated as best-effort housekeeping (matching upstream `tinytex` R behavior) — the failure is logged as a warning and the package install completes.
 - ([#14472](https://github.com/quarto-dev/quarto-cli/issues/14472)): Add support for Kotlin in code annotations and YAML cell options. (author: @barendgehrels)
-- ([#14533](https://github.com/quarto-dev/quarto-cli/issues/14533)): Fix `quarto preview` not detecting a frontmatter `format:` change until the second render request. The first request after the edit now correctly restarts the preview process with the new format.
