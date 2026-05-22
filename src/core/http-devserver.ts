@@ -229,6 +229,13 @@ export class HttpDevServerRenderMonitor {
     this.handlers_.push(handler);
   }
 
+  // True between onRenderStart and onRenderStop. Used by the preview
+  // compatibility check to defer destructive cache invalidation that
+  // would race with the in-flight render's transient .quarto_ipynb.
+  public static isRendering(): boolean {
+    return this.renderStart_ !== undefined;
+  }
+
   private static handlers_ = new Array<RenderMonitor>();
 
   private static renderStart_: number | undefined;
