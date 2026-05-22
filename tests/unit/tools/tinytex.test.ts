@@ -9,6 +9,7 @@ import { assert, assertEquals, assertRejects } from "testing/asserts";
 import {
   isTlnet,
   kTlnetMirror,
+  resolveTinytexRepo,
   tinyTexInstallable,
   tinyTexPkgName,
 } from "../../../src/tools/impl/tinytex.ts";
@@ -293,4 +294,47 @@ unitTest("isTlnet - returns false when fetch throws", async () => {
   const stub: typeof fetch = () =>
     Promise.reject(new Error("network unreachable"));
   assertEquals(await isTlnet(kTlnetMirror, stub), false);
+});
+
+// ---- resolveTinytexRepo orchestrator tests ----
+
+unitTest("resolveTinytexRepo - env override bypasses probe", async () => {
+  let probed = false;
+  const stub: typeof fetch = () => {
+    probed = true;
+    return Promise.resolve(mockResponse(200, "application/octet-stream"));
+  };
+  const result = await resolveTinytexRepo(
+    "https://example.com/my/mirror",
+    stub,
+  );
+  assertEquals(result, "https://example.com/my/mirror");
+  assertEquals(probed, false);
+});
+
+unitTest("resolveTinytexRepo - empty env override is treated as unset", async () => {
+  const stub: typeof fetch = () =>
+    Promise.resolve(mockResponse(200, "application/octet-stream"));
+  const result = await resolveTinytexRepo("", stub);
+  assertEquals(result, kTlnetMirror);
+});
+
+unitTest("resolveTinytexRepo - returns kTlnetMirror when probe succeeds", async () => {
+  const stub: typeof fetch = () =>
+    Promise.resolve(mockResponse(200, "application/octet-stream"));
+  const result = await resolveTinytexRepo(undefined, stub);
+  assertEquals(result, kTlnetMirror);
+});
+
+unitTest("resolveTinytexRepo - falls back when probe returns html catch-all", async () => {
+  const stub: typeof fetch = () =>
+    Promise.resolve(mockResponse(200, "text/html"));
+  const result = await resolveTinytexRepo(undefined, stub);
+  // Fallback returns a URL string from mirror.ctan.org redirect or kDefaultRepos.
+  // Cannot assert specific value (depends on network), but it must NOT equal kTlnetMirror.
+  assert(typeof result === "string" && result.length > 0);
+  assert(
+    result !== kTlnetMirror,
+    `Expected fallback URL, got ${result} (== kTlnetMirror)`,
+  );
 });

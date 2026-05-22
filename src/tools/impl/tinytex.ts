@@ -529,6 +529,19 @@ export async function isTlnet(
   }
 }
 
+export async function resolveTinytexRepo(
+  envOverride?: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<string> {
+  if (envOverride && envOverride.length > 0) {
+    return envOverride;
+  }
+  if (await isTlnet(kTlnetMirror, fetchFn)) {
+    return kTlnetMirror;
+  }
+  return textLiveRepo();
+}
+
 export function tinyTexPkgName(
   base?: string,
   ver?: string,
