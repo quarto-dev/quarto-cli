@@ -268,45 +268,52 @@ function mockResponse(
   return new Response(null, { status, headers });
 }
 
+// Stub that always resolves to a given (status, contentType) response.
+const okStub = (status: number, contentType: string | null): typeof fetch =>
+() => Promise.resolve(mockResponse(status, contentType));
+
+// Stub that always rejects with the given error message.
+const errStub = (message: string): typeof fetch =>
+() => Promise.reject(new Error(message));
+
 unitTest("isTlnet - returns true for 200 with non-html Content-Type", async () => {
-  const stub: typeof fetch = () =>
-    Promise.resolve(mockResponse(200, "application/octet-stream"));
-  assertEquals(await isTlnet(kTlnetMirror, stub), true);
+  assertEquals(
+    await isTlnet(kTlnetMirror, okStub(200, "application/octet-stream")),
+    true,
+  );
 });
 
 unitTest("isTlnet - returns true when Content-Type header missing", async () => {
-  const stub: typeof fetch = () => Promise.resolve(mockResponse(200, null));
-  assertEquals(await isTlnet(kTlnetMirror, stub), true);
+  assertEquals(await isTlnet(kTlnetMirror, okStub(200, null)), true);
 });
 
 unitTest("isTlnet - returns false for 200 with text/html (Cloudflare catch-all)", async () => {
-  const stub: typeof fetch = () =>
-    Promise.resolve(mockResponse(200, "text/html; charset=utf-8"));
-  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+  assertEquals(
+    await isTlnet(kTlnetMirror, okStub(200, "text/html; charset=utf-8")),
+    false,
+  );
 });
 
 unitTest("isTlnet - returns false for 4xx status", async () => {
-  const stub: typeof fetch = () =>
-    Promise.resolve(mockResponse(404, "text/plain"));
-  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+  assertEquals(await isTlnet(kTlnetMirror, okStub(404, "text/plain")), false);
 });
 
 unitTest("isTlnet - returns false for status exactly 400 (boundary)", async () => {
-  const stub: typeof fetch = () =>
-    Promise.resolve(mockResponse(400, "application/octet-stream"));
-  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+  assertEquals(
+    await isTlnet(kTlnetMirror, okStub(400, "application/octet-stream")),
+    false,
+  );
 });
 
 unitTest("isTlnet - returns false for 5xx server error", async () => {
-  const stub: typeof fetch = () =>
-    Promise.resolve(mockResponse(503, "text/plain"));
-  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+  assertEquals(await isTlnet(kTlnetMirror, okStub(503, "text/plain")), false);
 });
 
 unitTest("isTlnet - rejects Content-Type case-insensitively (uppercase TEXT/HTML)", async () => {
-  const stub: typeof fetch = () =>
-    Promise.resolve(mockResponse(200, "TEXT/HTML; CHARSET=UTF-8"));
-  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+  assertEquals(
+    await isTlnet(kTlnetMirror, okStub(200, "TEXT/HTML; CHARSET=UTF-8")),
+    false,
+  );
 });
 
 unitTest("isTlnet - passes method 'HEAD' and redirect 'follow' to fetchFn", async () => {
@@ -321,9 +328,10 @@ unitTest("isTlnet - passes method 'HEAD' and redirect 'follow' to fetchFn", asyn
 });
 
 unitTest("isTlnet - returns false when fetch throws", async () => {
-  const stub: typeof fetch = () =>
-    Promise.reject(new Error("network unreachable"));
-  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+  assertEquals(
+    await isTlnet(kTlnetMirror, errStub("network unreachable")),
+    false,
+  );
 });
 
 unitTest("isTlnet - probes <url>/tlpkg/texlive.tlpdb, not root", async () => {
@@ -374,9 +382,10 @@ unitTest("resolveTinytexRepo - empty env override is treated as unset", async ()
 });
 
 unitTest("resolveTinytexRepo - returns kTlnetMirror when probe succeeds", async () => {
-  const stub: typeof fetch = () =>
-    Promise.resolve(mockResponse(200, "application/octet-stream"));
-  const result = await resolveTinytexRepo(undefined, stub);
+  const result = await resolveTinytexRepo(
+    undefined,
+    okStub(200, "application/octet-stream"),
+  );
   assertEquals(result, kTlnetMirror);
 });
 
