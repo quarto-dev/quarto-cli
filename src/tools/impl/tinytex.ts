@@ -340,9 +340,12 @@ async function afterInstall(context: InstallContext) {
 
     // Set the default repo to an https repo.
     // Prefer the TinyTeX CDN mirror (kTlnetMirror); fall back to mirror.ctan.org
-    // redirect or kDefaultRepos. Allow override via QUARTO_TINYTEX_REPOSITORY.
+    // redirect or kDefaultRepos. Allow override via QUARTO_TINYTEX_REPOSITORY,
+    // or CTAN_REPO (honored for parity with the R tinytex package, which reads
+    // it during install-tl).
     let restartRequired = false;
-    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY");
+    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY") ??
+      Deno.env.get("CTAN_REPO");
     const defaultRepo = await resolveTinytexRepo(envRepo);
     await context.withSpinner(
       {
