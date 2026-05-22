@@ -342,7 +342,7 @@ async function afterInstall(context: InstallContext) {
     // Prefer the TinyTeX CDN mirror (kTlnetMirror); fall back to mirror.ctan.org
     // redirect or kDefaultRepos. Allow override via QUARTO_TINYTEX_REPOSITORY.
     let restartRequired = false;
-    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY") ?? undefined;
+    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY");
     const defaultRepo = await resolveTinytexRepo(envRepo);
     await context.withSpinner(
       {
@@ -545,7 +545,7 @@ export async function resolveTinytexRepo(
   envOverride?: string,
   fetchFn: typeof fetch = fetch,
 ): Promise<string> {
-  if (envOverride && envOverride.length > 0) {
+  if (envOverride) {
     return envOverride;
   }
   if (await isTlnet(kTlnetMirror, fetchFn)) {
