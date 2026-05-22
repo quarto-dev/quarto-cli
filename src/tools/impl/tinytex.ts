@@ -531,10 +531,20 @@ export async function isTlnet(
       signal: controller.signal,
       redirect: "follow",
     });
-    if (response.status >= 400) return false;
+    if (response.status >= 400) {
+      debug(`isTlnet probe ${probeUrl} rejected: status ${response.status}`);
+      return false;
+    }
     const contentType = response.headers.get("Content-Type") ?? "";
-    return !contentType.toLowerCase().includes("text/html");
-  } catch (_e) {
+    if (contentType.toLowerCase().includes("text/html")) {
+      debug(
+        `isTlnet probe ${probeUrl} rejected: Content-Type ${contentType} (catch-all html)`,
+      );
+      return false;
+    }
+    return true;
+  } catch (e) {
+    debug(`isTlnet probe ${probeUrl} rejected: fetch error ${e}`);
     return false;
   } finally {
     clearTimeout(timeoutId);
