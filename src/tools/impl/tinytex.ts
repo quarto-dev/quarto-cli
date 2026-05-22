@@ -48,8 +48,6 @@ export const kDefaultRepos = [
 ];
 
 // CDN-backed TinyTeX mirror (https://yihui.org/en/2026/03/tinytex-ctan-mirror/).
-// Probed first by resolveTinytexRepo(); falls back to mirror.ctan.org redirect
-// then kDefaultRepos if unreachable or returns a Cloudflare catch-all html response.
 export const kTlnetMirror = "https://tlnet.yihui.org";
 
 // Different packages
@@ -339,10 +337,8 @@ async function afterInstall(context: InstallContext) {
     );
 
     // Set the default repo to an https repo.
-    // Prefer the TinyTeX CDN mirror (kTlnetMirror); fall back to mirror.ctan.org
-    // redirect or kDefaultRepos. Allow override via QUARTO_TINYTEX_REPOSITORY,
-    // or CTAN_REPO (honored for parity with the R tinytex package, which reads
-    // it during install-tl).
+    // Allow override via QUARTO_TINYTEX_REPOSITORY, or CTAN_REPO (honored for
+    // parity with the R tinytex package, which reads it during install-tl).
     let restartRequired = false;
     // Use `||` (not `??`) so an explicit empty `QUARTO_TINYTEX_REPOSITORY=""`
     // falls through to `CTAN_REPO` rather than masking it.
@@ -526,7 +522,7 @@ export async function isTlnet(
   // Cloudflare catch-all returns text/html for every path including the TLPDB.
   // Combining a deep-file probe with the text/html guard rejects both
   // unreachable and catch-all-misconfigured deployments. Matches R tinytex's
-  // is_tlnet() at R/install.R (rstudio/tinytex commit 71ae68f).
+  // is_tlnet() at R/install.R.
   const probeUrl = `${url.replace(/\/$/, "")}/tlpkg/texlive.tlpdb`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30_000);
