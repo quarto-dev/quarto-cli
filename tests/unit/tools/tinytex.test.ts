@@ -316,7 +316,7 @@ unitTest("isTlnet - rejects Content-Type case-insensitively (uppercase TEXT/HTML
   );
 });
 
-unitTest("isTlnet - passes method 'HEAD' and redirect 'follow' to fetchFn", async () => {
+unitTest("isTlnet - passes method 'HEAD', redirect 'follow', and AbortSignal to fetchFn", async () => {
   let init: RequestInit | undefined;
   const stub: typeof fetch = (_input, requestInit) => {
     init = requestInit;
@@ -325,6 +325,10 @@ unitTest("isTlnet - passes method 'HEAD' and redirect 'follow' to fetchFn", asyn
   await isTlnet(kTlnetMirror, stub);
   assertEquals(init?.method, "HEAD");
   assertEquals(init?.redirect, "follow");
+  assert(
+    init?.signal instanceof AbortSignal,
+    "expected AbortSignal wired to fetch init",
+  );
 });
 
 unitTest("isTlnet - returns false when fetch throws", async () => {
