@@ -1,6 +1,6 @@
 ---
-main_commit: 94ebb7f79
-analyzed_date: 2026-03-31
+main_commit: eca40cdab
+analyzed_date: 2026-05-22
 key_files:
   - src/command/preview/cmd.ts
   - src/command/preview/preview.ts
@@ -100,6 +100,25 @@ When the watched source file changes:
 5. Browser reloads
 
 The project context persists across all re-renders. Only the per-file cache entry is invalidated.
+
+## Render Request Compatibility Check
+
+The HTTP dev server receives explicit render requests from the IDE/extension on every preview-triggered render. Before serving one, `previewRenderRequestIsCompatible(request, flags, project)` (in `src/command/preview/preview.ts`) decides whether the running preview process can satisfy the new request or whether the extension must restart it.
+
+| `request.format` | Resolution path | Cache consulted? |
+|------------------|-----------------|------------------|
+| Pinned by caller | Compare directly with `flags.to` | No (`previewFormat` short-circuits) |
+| Undefined        | Resolve via `previewFormat → renderFormats → fileExecutionEngineAndTarget` | Yes (`fileInformationCache`) |
+
+Mismatch → 404, extension restarts the process with the new format. Match → 200, in-process re-render proceeds via the file-watcher path described above.
+
+### Stale-cache hazard (#14533)
+
+Cache invalidation runs inside `renderForPreview` — *after* the compatibility check has returned its answer. So a frontmatter `format:` edit since the previous render was not visible to the compatibility check: it read the old format from cache, returned 200, then `renderForPreview` invalidated and re-populated the cache for the next request. The bug surfaced as "format change detected on second request, not first".
+
+Fix: invalidate `fileInformationCache` for `request.path` at the top of `previewRenderRequestIsCompatible`, but only when `request.format === undefined`. When the caller pins the format, `previewFormat` short-circuits before consulting the cache; invalidation would just churn transient `.quarto_ipynb` cleanup unnecessarily.
+
+For unchanged frontmatter, `previewFormat` repopulates the cache with the same value and the compatibility verdict is identical — only the cache lookup runs again. Cost: one cache re-read per IDE-driven render request, no functional change.
 
 ## FileInformationCache and invalidateForFile
 
