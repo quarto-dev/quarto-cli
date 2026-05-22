@@ -324,7 +324,7 @@ export function normalizePath(path: string | URL): string {
   file = normalize(file);
   // some runtimes (e.g. nodejs) create paths w/ lowercase drive
   // letters, make those uppercase
-  return file.replace(/^\w:\\/, (m) => m[0].toUpperCase() + ":\\");
+  return file.replace(/^\w:\\/, (m: string) => m[0].toUpperCase() + ":\\");
 }
 
 // Moved here from env.ts to avoid circular dependency
