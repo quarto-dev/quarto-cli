@@ -291,6 +291,35 @@ unitTest("isTlnet - returns false for 4xx status", async () => {
   assertEquals(await isTlnet(kTlnetMirror, stub), false);
 });
 
+unitTest("isTlnet - returns false for status exactly 400 (boundary)", async () => {
+  const stub: typeof fetch = () =>
+    Promise.resolve(mockResponse(400, "application/octet-stream"));
+  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+});
+
+unitTest("isTlnet - returns false for 5xx server error", async () => {
+  const stub: typeof fetch = () =>
+    Promise.resolve(mockResponse(503, "text/plain"));
+  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+});
+
+unitTest("isTlnet - rejects Content-Type case-insensitively (uppercase TEXT/HTML)", async () => {
+  const stub: typeof fetch = () =>
+    Promise.resolve(mockResponse(200, "TEXT/HTML; CHARSET=UTF-8"));
+  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+});
+
+unitTest("isTlnet - passes method 'HEAD' and redirect 'follow' to fetchFn", async () => {
+  let init: RequestInit | undefined;
+  const stub: typeof fetch = (_input, requestInit) => {
+    init = requestInit;
+    return Promise.resolve(mockResponse(200, "application/octet-stream"));
+  };
+  await isTlnet(kTlnetMirror, stub);
+  assertEquals(init?.method, "HEAD");
+  assertEquals(init?.redirect, "follow");
+});
+
 unitTest("isTlnet - returns false when fetch throws", async () => {
   const stub: typeof fetch = () =>
     Promise.reject(new Error("network unreachable"));
@@ -334,10 +363,14 @@ unitTest("resolveTinytexRepo - env override bypasses probe", async () => {
 });
 
 unitTest("resolveTinytexRepo - empty env override is treated as unset", async () => {
-  const stub: typeof fetch = () =>
-    Promise.resolve(mockResponse(200, "application/octet-stream"));
+  let probed = false;
+  const stub: typeof fetch = () => {
+    probed = true;
+    return Promise.resolve(mockResponse(200, "application/octet-stream"));
+  };
   const result = await resolveTinytexRepo("", stub);
   assertEquals(result, kTlnetMirror);
+  assertEquals(probed, true);
 });
 
 unitTest("resolveTinytexRepo - returns kTlnetMirror when probe succeeds", async () => {
