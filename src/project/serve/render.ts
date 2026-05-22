@@ -38,6 +38,7 @@ export class ServeRenderManager {
   public submitRender(render: () => Promise<RenderResult>) {
     return HttpDevServerRenderMonitor.trackInFlight(
       this.renderQueue_.enqueue(render),
+      (result) => !result.error,
     );
   }
 

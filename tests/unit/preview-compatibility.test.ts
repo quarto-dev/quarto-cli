@@ -309,6 +309,39 @@ unitTest(
 );
 
 unitTest(
+  "ServeRenderManager.submitRender - fulfilled RenderResult with error emits onRenderStop(false)",
+  async () => {
+    // Render flows in render-files.ts fulfill with RenderResult.error
+    // instead of rejecting. submitRender must translate that into a
+    // failure signal for handlers so the preview WebSocket broadcasts
+    // render:stop:false to clients (consumed by progress UI etc.).
+    const initialInFlight = HttpDevServerRenderMonitor.isRendering();
+    const stopCalls: boolean[] = [];
+    HttpDevServerRenderMonitor.monitor({
+      onRenderStart: () => {},
+      onRenderStop: (success: boolean) => {
+        stopCalls.push(success);
+      },
+    });
+
+    const renderManager = new ServeRenderManager();
+    const mockResult = { error: new Error("render failed") } as RenderResult;
+    await renderManager.submitRender(() => Promise.resolve(mockResult));
+
+    assertEquals(
+      HttpDevServerRenderMonitor.isRendering(),
+      initialInFlight,
+      "isRendering must return to initial state after fulfilled-with-error result",
+    );
+    assertEquals(
+      stopCalls.includes(false),
+      true,
+      "onRenderStop(false) must fire when RenderResult.error is set",
+    );
+  },
+);
+
+unitTest(
   "ServeRenderManager.submitRender - inflight decremented when render promise rejects",
   async () => {
     // Mirror case for failed render: queue rejection must also decrement

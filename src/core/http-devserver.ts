@@ -227,15 +227,24 @@ export class HttpDevServerRenderMonitor {
   // do with the resolved value. The single timestamp/counter state stays
   // consistent even if post-render processing throws between submission
   // and any explicit onRenderResult / onRenderError call.
-  public static trackInFlight<T>(promise: Promise<T>): Promise<T> {
+  //
+  // Render flows can fulfill with a RenderResult carrying `.error`
+  // instead of rejecting (see render-files.ts), so `successFromValue`
+  // lets callers compute the stop-success signal from the resolved
+  // value. Defaults to `true` on fulfillment, `false` on rejection.
+  public static trackInFlight<T>(
+    promise: Promise<T>,
+    successFromValue: (value: T) => boolean = () => true,
+  ): Promise<T> {
     this.incrementInFlight();
     this.handlers_.forEach((handler) =>
       handler.onRenderStart(this.lastRenderTime_)
     );
     return promise.then(
       (value) => {
+        const success = successFromValue(value);
         this.decrementInFlight();
-        this.handlers_.forEach((handler) => handler.onRenderStop(true));
+        this.handlers_.forEach((handler) => handler.onRenderStop(success));
         return value;
       },
       (error) => {
