@@ -384,6 +384,59 @@ unitTest(
 );
 
 unitTest(
+  "HttpDevServerRenderMonitor.trackInFlight - predicate `throw undefined` still rethrows",
+  async () => {
+    // Edge case: a predicate that throws `undefined` must not be
+    // swallowed. The fulfillment branch tracks throw state with a
+    // separate boolean instead of using undefined-as-sentinel so the
+    // rethrow path still fires.
+    const initialInFlight = HttpDevServerRenderMonitor.isRendering();
+    const stopCalls: boolean[] = [];
+    HttpDevServerRenderMonitor.monitor({
+      onRenderStart: () => {},
+      onRenderStop: (success: boolean) => {
+        stopCalls.push(success);
+      },
+    });
+
+    let rethrew = false;
+    let rethrownValue: unknown = "sentinel";
+    try {
+      await HttpDevServerRenderMonitor.trackInFlight(
+        Promise.resolve("value"),
+        () => {
+          throw undefined;
+        },
+      );
+    } catch (e) {
+      rethrew = true;
+      rethrownValue = e;
+    }
+
+    assertEquals(
+      rethrew,
+      true,
+      "trackInFlight must rethrow even when predicate throws undefined",
+    );
+    assertEquals(
+      rethrownValue,
+      undefined,
+      "rethrown value must be the original undefined",
+    );
+    assertEquals(
+      HttpDevServerRenderMonitor.isRendering(),
+      initialInFlight,
+      "isRendering must return to initial state after `throw undefined`",
+    );
+    assertEquals(
+      stopCalls.includes(false),
+      true,
+      "onRenderStop(false) must fire when predicate throws undefined",
+    );
+  },
+);
+
+unitTest(
   "ServeRenderManager.submitRender - inflight decremented when render promise rejects",
   async () => {
     // Mirror case for failed render: queue rejection must also decrement

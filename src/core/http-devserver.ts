@@ -244,16 +244,20 @@ export class HttpDevServerRenderMonitor {
       (value) => {
         // A throwing predicate must not strand the counter; the whole
         // point of trackInFlight is that settlement always decrements.
+        // Track throw state separately so `throw undefined` is still
+        // rethrown (undefined-as-sentinel would swallow it).
         let success = false;
+        let predicateThrew = false;
         let predicateError: unknown;
         try {
           success = successFromValue(value);
         } catch (e) {
+          predicateThrew = true;
           predicateError = e;
         }
         this.decrementInFlight();
         this.handlers_.forEach((handler) => handler.onRenderStop(success));
-        if (predicateError !== undefined) throw predicateError;
+        if (predicateThrew) throw predicateError;
         return value;
       },
       (error) => {
