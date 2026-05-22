@@ -7,6 +7,8 @@
 import { unitTest } from "../../test.ts";
 import { assert, assertEquals, assertRejects } from "testing/asserts";
 import {
+  isTlnet,
+  kTlnetMirror,
   tinyTexInstallable,
   tinyTexPkgName,
 } from "../../../src/tools/impl/tinytex.ts";
@@ -252,3 +254,43 @@ unitTest(
     }
   },
 );
+
+// ---- isTlnet probe tests ----
+
+function mockResponse(
+  status: number,
+  contentType: string | null,
+): Response {
+  const headers = new Headers();
+  if (contentType !== null) headers.set("Content-Type", contentType);
+  return new Response(null, { status, headers });
+}
+
+unitTest("isTlnet - returns true for 200 with non-html Content-Type", async () => {
+  const stub: typeof fetch = () =>
+    Promise.resolve(mockResponse(200, "application/octet-stream"));
+  assertEquals(await isTlnet(kTlnetMirror, stub), true);
+});
+
+unitTest("isTlnet - returns true when Content-Type header missing", async () => {
+  const stub: typeof fetch = () => Promise.resolve(mockResponse(200, null));
+  assertEquals(await isTlnet(kTlnetMirror, stub), true);
+});
+
+unitTest("isTlnet - returns false for 200 with text/html (Cloudflare catch-all)", async () => {
+  const stub: typeof fetch = () =>
+    Promise.resolve(mockResponse(200, "text/html; charset=utf-8"));
+  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+});
+
+unitTest("isTlnet - returns false for 4xx status", async () => {
+  const stub: typeof fetch = () =>
+    Promise.resolve(mockResponse(404, "text/plain"));
+  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+});
+
+unitTest("isTlnet - returns false when fetch throws", async () => {
+  const stub: typeof fetch = () =>
+    Promise.reject(new Error("network unreachable"));
+  assertEquals(await isTlnet(kTlnetMirror, stub), false);
+});

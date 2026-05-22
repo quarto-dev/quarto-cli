@@ -47,6 +47,11 @@ const kDefaultRepos = [
   "https://mirror.las.iastate.edu/tex-archive/systems/texlive/tlnet/",
 ];
 
+// New CDN-backed TinyTeX mirror (https://yihui.org/en/2026/03/tinytex-ctan-mirror/)
+// Probed first by resolveTinytexRepo(); falls back to mirror.ctan.org redirect
+// then kDefaultRepos if unreachable or returns a Cloudflare catch-all html response.
+export const kTlnetMirror = "https://tlnet.yihui.org";
+
 // Different packages
 const kTinyTexRepo = "rstudio/tinytex-releases";
 // const kPackageMinimal = "TinyTeX-0"; // smallest
@@ -500,6 +505,28 @@ async function textLiveRepo() {
     autoUrl = kDefaultRepos[randomInt];
   }
   return autoUrl;
+}
+
+export async function isTlnet(
+  url: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<boolean> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const response = await fetchFn(url, {
+      method: "HEAD",
+      signal: controller.signal,
+      redirect: "follow",
+    });
+    if (response.status >= 400) return false;
+    const contentType = response.headers.get("Content-Type") ?? "";
+    return !contentType.toLowerCase().includes("text/html");
+  } catch (_e) {
+    return false;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export function tinyTexPkgName(
