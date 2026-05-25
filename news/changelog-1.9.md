@@ -2,10 +2,6 @@
 
 ## In this release
 
-- ([#14304](https://github.com/quarto-dev/quarto-cli/issues/14304)): Fix `quarto install tinytex` silently ignoring extraction failures. When archive extraction fails (e.g., `.tar.xz` on a system without `xz-utils`), the installer now reports a clear error instead of proceeding and failing with a confusing `NotFound` message.
-- ([#14367](https://github.com/quarto-dev/quarto-cli/issues/14367), [#14534](https://github.com/quarto-dev/quarto-cli/issues/14534)): Fix Dart Sass invocation failing on Windows when the user profile path contains `&` (e.g., `C:\Users\Tom & Jerry\`) and on enterprise systems where Group Policy blocks `.bat` execution from `%TEMP%`. Quarto now invokes the bundled `dart.exe` with `sass.snapshot` directly, bypassing `sass.bat` and `cmd.exe` entirely.
-- ([#14489](https://github.com/quarto-dev/quarto-cli/issues/14489)): Restore `--output-dir` support for `quarto preview` of single files when no `_quarto.yml` is present (e.g. R-package workspaces). Regression introduced in v1.9.18.
-
 ## In previous releases
 
 - ([#14267](https://github.com/quarto-dev/quarto-cli/issues/14267)): Fix Windows paths with accented characters (e.g., `C:\Users\Sébastien\`) breaking dart-sass compilation.
@@ -13,6 +9,9 @@
 - ([#14298](https://github.com/quarto-dev/quarto-cli/issues/14298)): Fix `quarto preview` browse URL including output filename (e.g., `hello.html`) for single-file documents, breaking Posit Workbench proxied server access.
 - ([rstudio/rstudio#17333](https://github.com/rstudio/rstudio/issues/17333)): Fix `quarto inspect` on standalone files emitting project metadata that breaks RStudio's publishing wizard.
 - ([#14334](https://github.com/quarto-dev/quarto-cli/pull/14334), [#9710](https://github.com/quarto-dev/quarto-cli/issues/9710)): Add arm64 Linux support for `quarto install chrome-headless-shell` using Playwright CDN as download source. `quarto install chromium` and `quarto update chromium` now show a deprecation warning — use `chrome-headless-shell` instead, which always installs the latest stable Chrome (the legacy `chromium` installer pins an outdated Puppeteer revision that cannot receive security updates). `quarto check install` also warns when legacy Chromium is detected.
+- ([#14304](https://github.com/quarto-dev/quarto-cli/issues/14304)): Fix `quarto install tinytex` silently ignoring extraction failures. When archive extraction fails (e.g., `.tar.xz` on a system without `xz-utils`), the installer now reports a clear error instead of proceeding and failing with a confusing `NotFound` message.
+- ([#14367](https://github.com/quarto-dev/quarto-cli/issues/14367), [#14534](https://github.com/quarto-dev/quarto-cli/issues/14534)): Fix Dart Sass invocation failing on Windows when the user profile path contains `&` (e.g., `C:\Users\Tom & Jerry\`) and on enterprise systems where Group Policy blocks `.bat` execution from `%TEMP%`. Quarto now invokes the bundled `dart.exe` with `sass.snapshot` directly, bypassing `sass.bat` and `cmd.exe` entirely.
+- ([#14489](https://github.com/quarto-dev/quarto-cli/issues/14489)): Restore `--output-dir` support for `quarto preview` of single files when no `_quarto.yml` is present (e.g. R-package workspaces). Regression introduced in v1.9.18.
 
 # v1.9 changes
 
