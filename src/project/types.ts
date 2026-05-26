@@ -60,6 +60,8 @@ export type FileInclusion = {
 
 export type FileInformation = {
   fullMarkdown?: MappedString;
+  sourceMtime?: number;
+  sourceSize?: number;
   includeMap?: FileInclusion[];
   codeCells?: InspectedMdCell[];
   engine?: ExecutionEngineInstance;
