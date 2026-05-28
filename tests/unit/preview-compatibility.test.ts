@@ -317,27 +317,31 @@ unitTest(
     // render:stop:false to clients (consumed by progress UI etc.).
     const initialInFlight = HttpDevServerRenderMonitor.isRendering();
     const stopCalls: boolean[] = [];
-    HttpDevServerRenderMonitor.monitor({
+    const dispose = HttpDevServerRenderMonitor.monitor({
       onRenderStart: () => {},
       onRenderStop: (success: boolean) => {
         stopCalls.push(success);
       },
     });
 
-    const renderManager = new ServeRenderManager();
-    const mockResult = { error: new Error("render failed") } as RenderResult;
-    await renderManager.submitRender(() => Promise.resolve(mockResult));
+    try {
+      const renderManager = new ServeRenderManager();
+      const mockResult = { error: new Error("render failed") } as RenderResult;
+      await renderManager.submitRender(() => Promise.resolve(mockResult));
 
-    assertEquals(
-      HttpDevServerRenderMonitor.isRendering(),
-      initialInFlight,
-      "isRendering must return to initial state after fulfilled-with-error result",
-    );
-    assertEquals(
-      stopCalls.includes(false),
-      true,
-      "onRenderStop(false) must fire when RenderResult.error is set",
-    );
+      assertEquals(
+        HttpDevServerRenderMonitor.isRendering(),
+        initialInFlight,
+        "isRendering must return to initial state after fulfilled-with-error result",
+      );
+      assertEquals(
+        stopCalls.includes(false),
+        true,
+        "onRenderStop(false) must fire when RenderResult.error is set",
+      );
+    } finally {
+      dispose();
+    }
   },
 );
 
@@ -351,7 +355,7 @@ unitTest(
     // global state.
     const initialInFlight = HttpDevServerRenderMonitor.isRendering();
     const stopCalls: boolean[] = [];
-    HttpDevServerRenderMonitor.monitor({
+    const dispose = HttpDevServerRenderMonitor.monitor({
       onRenderStart: () => {},
       onRenderStop: (success: boolean) => {
         stopCalls.push(success);
@@ -359,27 +363,31 @@ unitTest(
     });
 
     try {
-      await HttpDevServerRenderMonitor.trackInFlight(
-        Promise.resolve("value"),
-        () => {
-          throw new Error("predicate failure");
-        },
-      );
-      throw new Error("expected trackInFlight to rethrow predicate error");
-    } catch (e) {
-      if ((e as Error).message !== "predicate failure") throw e;
-    }
+      try {
+        await HttpDevServerRenderMonitor.trackInFlight(
+          Promise.resolve("value"),
+          () => {
+            throw new Error("predicate failure");
+          },
+        );
+        throw new Error("expected trackInFlight to rethrow predicate error");
+      } catch (e) {
+        if ((e as Error).message !== "predicate failure") throw e;
+      }
 
-    assertEquals(
-      HttpDevServerRenderMonitor.isRendering(),
-      initialInFlight,
-      "isRendering must return to initial state after predicate throw",
-    );
-    assertEquals(
-      stopCalls.includes(false),
-      true,
-      "onRenderStop(false) must fire when predicate throws",
-    );
+      assertEquals(
+        HttpDevServerRenderMonitor.isRendering(),
+        initialInFlight,
+        "isRendering must return to initial state after predicate throw",
+      );
+      assertEquals(
+        stopCalls.includes(false),
+        true,
+        "onRenderStop(false) must fire when predicate throws",
+      );
+    } finally {
+      dispose();
+    }
   },
 );
 
@@ -392,47 +400,51 @@ unitTest(
     // rethrow path still fires.
     const initialInFlight = HttpDevServerRenderMonitor.isRendering();
     const stopCalls: boolean[] = [];
-    HttpDevServerRenderMonitor.monitor({
+    const dispose = HttpDevServerRenderMonitor.monitor({
       onRenderStart: () => {},
       onRenderStop: (success: boolean) => {
         stopCalls.push(success);
       },
     });
 
-    let rethrew = false;
-    let rethrownValue: unknown = "sentinel";
     try {
-      await HttpDevServerRenderMonitor.trackInFlight(
-        Promise.resolve("value"),
-        () => {
-          throw undefined;
-        },
-      );
-    } catch (e) {
-      rethrew = true;
-      rethrownValue = e;
-    }
+      let rethrew = false;
+      let rethrownValue: unknown = "sentinel";
+      try {
+        await HttpDevServerRenderMonitor.trackInFlight(
+          Promise.resolve("value"),
+          () => {
+            throw undefined;
+          },
+        );
+      } catch (e) {
+        rethrew = true;
+        rethrownValue = e;
+      }
 
-    assertEquals(
-      rethrew,
-      true,
-      "trackInFlight must rethrow even when predicate throws undefined",
-    );
-    assertEquals(
-      rethrownValue,
-      undefined,
-      "rethrown value must be the original undefined",
-    );
-    assertEquals(
-      HttpDevServerRenderMonitor.isRendering(),
-      initialInFlight,
-      "isRendering must return to initial state after `throw undefined`",
-    );
-    assertEquals(
-      stopCalls.includes(false),
-      true,
-      "onRenderStop(false) must fire when predicate throws undefined",
-    );
+      assertEquals(
+        rethrew,
+        true,
+        "trackInFlight must rethrow even when predicate throws undefined",
+      );
+      assertEquals(
+        rethrownValue,
+        undefined,
+        "rethrown value must be the original undefined",
+      );
+      assertEquals(
+        HttpDevServerRenderMonitor.isRendering(),
+        initialInFlight,
+        "isRendering must return to initial state after `throw undefined`",
+      );
+      assertEquals(
+        stopCalls.includes(false),
+        true,
+        "onRenderStop(false) must fire when predicate throws undefined",
+      );
+    } finally {
+      dispose();
+    }
   },
 );
 

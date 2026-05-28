@@ -268,8 +268,12 @@ export class HttpDevServerRenderMonitor {
     );
   }
 
-  public static monitor(handler: RenderMonitor) {
+  public static monitor(handler: RenderMonitor): () => void {
     this.handlers_.push(handler);
+    return () => {
+      const idx = this.handlers_.indexOf(handler);
+      if (idx >= 0) this.handlers_.splice(idx, 1);
+    };
   }
 
   // True while any render is in flight. Used by the preview
