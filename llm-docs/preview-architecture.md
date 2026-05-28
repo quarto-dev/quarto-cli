@@ -103,7 +103,7 @@ The project context persists across all re-renders. Only the per-file cache entr
 
 ## Render Request Compatibility Check
 
-The HTTP dev server receives explicit render requests from the IDE/extension on every preview-triggered render. Before serving one, `previewRenderRequestIsCompatible(request, flags, project)` (in `src/command/preview/preview.ts`) decides whether the running preview process can satisfy the new request or whether the extension must restart it.
+The HTTP dev server receives explicit render requests from the IDE/extension on every preview-triggered render. Before serving one, `previewRenderRequestIsCompatible(request, project, format)` (in `src/command/preview/preview.ts`) decides whether the running preview process can satisfy the new request or whether the extension must restart it.
 
 | `request.format` | Resolution path | Cache consulted? |
 |------------------|-----------------|------------------|
