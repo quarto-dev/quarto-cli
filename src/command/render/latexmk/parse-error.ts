@@ -265,6 +265,14 @@ const formatFontFilter = (match: string, _text: string) => {
   return /[.]/.test(base) ? base : fontSearchTerm(base);
 };
 
+// luaotfload appends ';-fallback' internally to each fallback-chain entry
+// (registered via monofontfallback / luaotfload.add_fallback) to prevent
+// recursive fallback resolution. Strip it before building the search term.
+// https://github.com/quarto-dev/quarto-cli/issues/14558
+const luaotfloadFontFilter = (match: string, text: string) => {
+  return formatFontFilter(match.replace(/;-fallback$/, ""), text);
+};
+
 const estoPdfFilter = (_match: string, _text: string) => {
   return "epstopdf";
 };
@@ -290,6 +298,13 @@ const packageMatchers = [
   {
     regex: /.*\(fontspec\)\s+The font "([^"]+)" cannot be.*/g,
     filter: formatFontFilter,
+  },
+  {
+    // luaotfload fallback-chain font (monofontfallback) missing. fontspec does
+    // not fire its own error in this path, so this is the only signal.
+    // https://github.com/quarto-dev/quarto-cli/issues/14558
+    regex: /.*luaotfload.*reason: Font "([^"]+)" not found.*/g,
+    filter: luaotfloadFontFilter,
   },
   {
     regex: /.*Package widetext error: Install the ([^ ]+) package.*/g,
