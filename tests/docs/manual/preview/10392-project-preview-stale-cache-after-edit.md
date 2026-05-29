@@ -84,8 +84,8 @@ This case proves the surgical-fix invalidation is correctly serialized with the 
   2. Open the page in the browser to trigger an HTTP-handler render that reads the transient `.quarto_ipynb`.
   3. While the HTTP-handler render is still in flight (best done by editing during a long-running Python cell), save the `.qmd` 5 times in quick succession (≤ 1s between saves). Aim to fire the watcher while step 2's render is still executing.
   4. Watch the `quarto preview` console for errors of the form "file not found" / "cannot read `.quarto_ipynb`" / `ENOENT`.
-- **Expected (after fix):** No file-not-found errors in the console. All renders complete cleanly. Final HTML reflects the latest edit.
-- **Catches:** Race between watcher-triggered `invalidateForFile` and an in-flight render holding the transient notebook open. Window is narrow but reproducible on slow Python cells (use a `time.sleep(5)` cell to widen it).
+- **Expected (after fix):** No file-not-found errors in the console (`ENOENT` / `BadResource` / "cannot read `.quarto_ipynb`"). All renders complete cleanly. The HTML reflects the last *coalesced* render — under a sub-second burst the watcher collapses the saves into a single execution, so the final body may correspond to the first read of the burst rather than the very last keystroke. That coalescing is render-scheduling behavior, not a cache-staleness failure; a single edit or edits seconds apart always render fresh. The trailing-render-after-coalesce gap is tracked separately as a follow-up.
+- **Catches:** Race between watcher-triggered `invalidateForFile` and an in-flight render holding the transient notebook open. Window is narrow but reproducible on slow Python cells (use a `time.sleep(5)` cell to widen it). This case asserts transient-notebook safety under concurrency, not last-keystroke freshness.
 
 ## P3: Polish
 
