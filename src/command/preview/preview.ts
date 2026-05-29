@@ -364,6 +364,27 @@ export async function previewRenderRequestIsCompatible(
   if (request.version === 1) {
     return true; // rstudio manages its own request compatibility state
   } else {
+    // When the caller does not pin a format, the compatibility check
+    // resolves the format from the file via renderFormats, which consults
+    // fileInformationCache. The cache may carry frontmatter from a prior
+    // render; invalidate it here so a format edit since the last render
+    // is detected on this request (#14533).
+    //
+    // Skip the invalidation while a render is in flight. invalidateForFile
+    // removes the transient .quarto_ipynb that the in-flight render is
+    // writing or reading, which would either throw from safeRemoveSync
+    // (Windows file lock) or orphan the inode (Linux). The in-flight
+    // render's own renderForPreview already invalidates and repopulates
+    // the cache at its start, so the cache reflects the in-flight render's
+    // view until it completes. A frontmatter edit made during the
+    // in-flight window is picked up on the next compatibility check after
+    // the render finishes.
+    if (
+      request.format === undefined &&
+      !HttpDevServerRenderMonitor.isRendering()
+    ) {
+      project.fileInformationCache?.invalidateForFile(request.path);
+    }
     const reqFormat = await previewFormat(
       request.path,
       project,
