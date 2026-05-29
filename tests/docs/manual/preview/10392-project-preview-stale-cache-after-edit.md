@@ -102,9 +102,87 @@ This case proves the surgical-fix invalidation is correctly serialized with the 
 - **Steps:** T1, watch the browser console.
 - **Expected:** WebSocket reload signal fires; the page reloads with the new content.
 
+## Blast-radius regression protocol
+
+The fix touches two surfaces with different reach:
+
+- **A — `invalidateForFile(input)` loop in `src/project/serve/watch.ts`.** Runs in **project preview only**. Calls a function already used elsewhere (#14281, `preview.ts`); only the call site is new.
+- **B — `mtime + size` guard in `projectResolveFullMarkdownForFile` (`src/project/project-shared.ts`).** Runs **everywhere** the function is called: every render (single doc + project), the single-file project type, `quarto inspect`, and the knitr (`rmd.ts`) and jupyter (`jupyter.ts`) execute paths.
+
+Outside preview, B is functionally a no-op (a one-shot context never sees the source change mid-life, so the guard always agrees with the old cache), but it adds one `Deno.statSync` per cache hit. The cases below confirm both that the fix works on its target surfaces and that the wide change B introduces no regression or perceptible cost elsewhere.
+
+These are interactive preview tests (require real file-save events) and cannot run as automated smoke tests. Drive them with `/quarto-preview-test`. The `#14281` accumulation matrix in `README.md` covers transient-notebook *accumulation*; the cases here cover *content freshness after an edit*, a different axis.
+
+### P1: Critical
+
+#### T8: Single-document preview — freshness after body edit (guard B, single-file path)
+
+- **Setup:** `tests/docs/manual/preview/plain.qmd` (pure markdown, no project).
+- **Steps:**
+  1. `quarto preview tests/docs/manual/preview/plain.qmd`.
+  2. Edit a body line to `MARKER-T8`. Save. Wait 5s.
+  3. `curl http://127.0.0.1:<port>/ | Select-String MARKER-T8` and reload the browser.
+- **Expected:** Both find `MARKER-T8`.
+- **Catches:** Guard B regressing the single-file project type's resolve path — the one surface where single-doc preview leans on B alone (no watcher invalidation A).
+
+#### T9: Project + Jupyter `.qmd` — freshness after edit, no accumulation
+
+- **Setup:** In `project-preview/`, add `pycell.qmd` with a Python cell (`print("v1")`) and link it from `index.qmd`. Requires the Python test env.
+- **Steps:**
+  1. `cd tests/docs/manual/preview/project-preview && quarto preview`.
+  2. Open `/pycell.html`. Change the cell to `print("v2")`. Save. Wait 10s.
+  3. Check `_site/pycell.html` and the served page for `v2`.
+  4. `ls *.quarto_ipynb*` — confirm at most one `pycell.quarto_ipynb`, no `_1`/`_2` variants.
+- **Expected:** Fresh `v2` output; at most one transient notebook; zero after Ctrl+C.
+- **Catches:** A interacting badly with the #14281 transient cleanup, or stale jupyter output surviving the edit.
+
+#### T10: Project + raw `.ipynb` input — source preserved, content fresh
+
+- **Setup:** Copy a native `.ipynb` (the `T11` notebook from the README #14281 matrix, or any executed notebook) into `project-preview/` as `notebook.ipynb`; link from `index.qmd`.
+- **Steps:**
+  1. `quarto preview` the project. Open `/notebook.html`.
+  2. Edit a markdown cell in `notebook.ipynb` to add `MARKER-T10`. Save. Wait 10s.
+  3. After Ctrl+C, confirm `notebook.ipynb` still exists on disk.
+- **Expected:** `MARKER-T10` in served HTML; `notebook.ipynb` **not deleted** (its cache entry has `transient = false`, so `invalidateForFile` must not `safeRemoveSync` it).
+- **Catches:** The new A call site firing `invalidateForFile` on a user `.ipynb` and wrongly deleting the source.
+
+### P2: Important
+
+#### T11: Project + knitr `.qmd` — freshness after edit (regression for guard B on `rmd.ts`)
+
+- **Setup:** In `project-preview/`, add `rcell.qmd` with `engine: knitr` and an R cell (`print("r-v1")`); link from `index.qmd`. Requires the R test env.
+- **Steps:** Preview the project; change the cell to `print("r-v2")`; save; wait 10s; check served `/rcell.html`.
+- **Expected:** Fresh `r-v2`. No `.quarto_ipynb` files (knitr has no jupyter intermediate).
+- **Catches:** Guard B regressing the knitr resolve path (`src/execute/rmd.ts:245`).
+
+#### T12: Format-change + stale-body invalidation coexist in one project preview
+
+- **Setup:** `project-preview/about.qmd`, default `format: html`.
+- **Steps:**
+  1. Preview the project. Edit `about.qmd` body to `MARKER-T12a`. Save. Confirm fresh (the #10392 path, A).
+  2. Without restarting, edit `about.qmd` frontmatter to `format: typst`. Save. Trigger one render.
+- **Expected:** Step 1 serves fresh body; step 2 detects the format change (#14533) without the two invalidation sites — `watch.ts` (A) and `preview.ts` compatibility check — conflicting.
+- **Catches:** Double-invalidation interaction (over-eager eviction → spurious 404, or under-eager → stale format). Cross-ref `README.md` #14533 T20–T25.
+
+### P3: Polish
+
+#### T13: `quarto inspect` after an edit (guard B + added `statSync`)
+
+- **Setup:** Any project file.
+- **Steps:** `quarto inspect <file>`, edit the file, `quarto inspect <file>` again in the same shell.
+- **Expected:** Both succeed; second reflects the edit. No error from the added `Deno.statSync`.
+- **Catches:** Guard B or the stat breaking the inspect resolve calls (`src/inspect/inspect.ts`).
+
+#### T14: Book / many-file project — perf sanity for per-hit `statSync`
+
+- **Setup:** A multi-chapter book (10+ inputs), e.g. `quarto create project book`.
+- **Steps:** `quarto render` the book cold, then `quarto preview` and edit one chapter.
+- **Expected:** No perceptible slowdown vs `upstream/main`; edited chapter renders fresh.
+- **Catches:** The extra `Deno.statSync` per cache hit (guard B) becoming a noticeable cost at scale. Expected negligible; this is the explicit check.
+
 ## Cleanup
 
-`quarto preview` exit (Ctrl+C). No persistent state to clean up beyond `_site/` which the next preview run rebuilds.
+`quarto preview` exit (Ctrl+C). No persistent state to clean up beyond `_site/` which the next preview run rebuilds. Remove any ad-hoc fixtures added for T9–T14 (`pycell.qmd`, `notebook.ipynb`, `rcell.qmd`) — they are not committed.
 
 ## Related
 
