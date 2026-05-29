@@ -161,6 +161,61 @@ After every change to preview URL or handler logic, verify that single-file prev
 - **Expected:** HTTP 200. Browse URL may include path for non-index files in project context.
 - **Catches:** `isSingleFile` guard accidentally excluding real project files from path computation
 
+## Test Matrix: Format Change Detection (#14533)
+
+After every change to `previewRenderRequestIsCompatible` or the
+`fileInformationCache` invalidation path, verify that a frontmatter
+format edit is detected on the **first** render request.
+
+### P1: Critical
+
+#### T20: Single .qmd — `format: html` → `format: typst`
+
+- **Setup:** `14533-format-change-detection.qmd` with `format: html`
+- **Steps:** `quarto preview tests/docs/manual/preview/14533-format-change-detection.qmd`, edit frontmatter to `format: typst`, save, trigger one Preview render
+- **Expected:** Output switches to typst on the first request. Preview process restarts.
+- **Catches:** Stale `fileInformationCache` entry leaking previous format into `previewRenderRequestIsCompatible`
+
+#### T21: Single .qmd — `format: typst` → `format: html`
+
+- **Setup:** Same doc but starting at `format: typst`
+- **Steps:** Same as T20 but reverse direction
+- **Expected:** Same as T20 — direction-independent
+- **Catches:** Asymmetric format-resolution path that only fires for html start state
+
+### P2: Important
+
+#### T22: Multi-format frontmatter — first-format change detected
+
+- **Setup:** `format: [html, pdf]` initially
+- **Steps:** Edit to `format: [typst, pdf]`, save, trigger one Preview render
+- **Expected:** First format (typst) drives the compatibility check, preview restarts
+- **Catches:** `previewFormat` picking up the wrong array element after invalidation
+
+#### T23: Format change while preview is mid-render
+
+- **Setup:** Doc with code cell long enough to render for several seconds
+- **Steps:** Trigger preview, immediately edit frontmatter format mid-render, save
+- **Expected:** No deadlock. Next render request after the in-flight one finishes resolves the new format.
+- **Catches:** Cache-invalidation racing with cache-population in `renderForPreview`
+
+### P3: Nice-to-Have
+
+#### T24: File with spaces in name
+
+- **Setup:** `my doc.qmd` with `format: html`
+- **Steps:** Same as T20
+- **Expected:** Same as T20. Path normalization handles the cache key correctly.
+
+### Regression Guard
+
+#### T25: Unchanged frontmatter — no spurious restart
+
+- **Setup:** Any preview-able `.qmd`
+- **Steps:** Save the file without editing the frontmatter format, trigger a Preview render
+- **Expected:** No preview process restart. Render runs in the same process.
+- **Catches:** Over-eager invalidation triggering 404 when the format is in fact unchanged
+
 ## Test File Templates
 
 **Minimal Python .qmd:**

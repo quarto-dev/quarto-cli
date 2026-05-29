@@ -1,6 +1,6 @@
 ---
-main_commit: 94ebb7f79
-analyzed_date: 2026-03-31
+main_commit: eca40cdab
+analyzed_date: 2026-05-22
 key_files:
   - src/command/preview/cmd.ts
   - src/command/preview/preview.ts
@@ -100,6 +100,29 @@ When the watched source file changes:
 5. Browser reloads
 
 The project context persists across all re-renders. Only the per-file cache entry is invalidated.
+
+## Render Request Compatibility Check
+
+The HTTP dev server receives explicit render requests from the IDE/extension on every preview-triggered render. Before serving one, `previewRenderRequestIsCompatible(request, project, format)` (in `src/command/preview/preview.ts`) decides whether the running preview process can satisfy the new request or whether the extension must restart it.
+
+| `request.format` | Resolution path | Cache consulted? |
+|------------------|-----------------|------------------|
+| Pinned by caller | Compare directly with `flags.to` | No (`previewFormat` short-circuits) |
+| Undefined        | Resolve via `previewFormat → renderFormats → fileExecutionEngineAndTarget` | Yes (`fileInformationCache`) |
+
+Mismatch → 404, extension restarts the process with the new format. Match → 200, in-process re-render proceeds via the file-watcher path described above.
+
+### Stale-cache hazard (#14533)
+
+Cache invalidation runs inside `renderForPreview` — *after* the compatibility check has returned its answer. So a frontmatter `format:` edit since the previous render was not visible to the compatibility check: it read the old format from cache, returned 200, then `renderForPreview` invalidated and re-populated the cache for the next request. The bug surfaced as "format change detected on second request, not first".
+
+Fix: invalidate `fileInformationCache` for `request.path` at the top of `previewRenderRequestIsCompatible`, but only when `request.format === undefined` **and** no render is currently in flight (`HttpDevServerRenderMonitor.isRendering()` is false). When the caller pins the format, `previewFormat` short-circuits before consulting the cache; invalidation would just churn transient `.quarto_ipynb` cleanup unnecessarily.
+
+The in-flight gate avoids a race: `invalidateForFile` calls `safeRemoveSync` on the cached `target.input`, which is the transient `.quarto_ipynb` that an in-flight render is writing or reading. On Windows this throws (file lock); on Linux it orphans the inode. Since the in-flight render's own `renderForPreview` already invalidated and repopulated the cache at its start, the cache reflects the in-flight render's view until it completes. A frontmatter edit made during the in-flight window is picked up on the next compatibility check after the render finishes.
+
+`HttpDevServerRenderMonitor.isRendering()` is **counter-based**, not a single-timestamp flag. `submitRender` (`src/project/serve/render.ts`) calls `onRenderStart` synchronously at queue time, but `onRenderStop` only fires when each render's outer promise resolves. With two queued renders, a single-timestamp tracker would clear the gate when render A finishes even though render B is still queued or running. The counter increments on every start and decrements on every stop; `isRendering()` returns true while at least one render is outstanding.
+
+For unchanged frontmatter, `previewFormat` repopulates the cache with the same value and the compatibility verdict is identical — only the cache lookup runs again. Cost: one cache re-read per IDE-driven render request, no functional change.
 
 ## FileInformationCache and invalidateForFile
 

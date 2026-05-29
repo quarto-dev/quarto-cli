@@ -35,6 +35,9 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound('! Font \\JY3/mc/m/n/10=file:HaranoAjiMincho-Regular.otf:-kern;jfm=ujis at 9.24713pt not loadable: metric data not found or bad.', "HaranoAjiMincho-Regular.otf");
   assertFound('! The font "Noto Emoji" cannot be found.', fontSearchTerm("Noto Emoji"));
   assertFound('! Package fontspec Error: The font "DejaVu Sans" cannot be found.', fontSearchTerm("DejaVu Sans"));
+  // luaotfload fallback-chain font (monofontfallback) - https://github.com/quarto-dev/quarto-cli/issues/14558
+  // luaotfload appends ;-fallback internally; it must be stripped before building the search term
+  assertFound('luaotfload | db : Reload initiated (formats: otf,ttf,ttc); reason: Font "DejaVu Sans Mono;-fallback" not found.', fontSearchTerm("DejaVu Sans Mono"));
   assertFound("! LaTeX Error: File `framed.sty' not found.", "framed.sty");
   assertFound("! LaTeX Error: File 'framed.sty' not found.", "framed.sty");
   assertFound("/usr/local/bin/mktexpk: line 123: mf: command not found", "mf");

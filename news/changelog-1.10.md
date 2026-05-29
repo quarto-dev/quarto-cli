@@ -25,6 +25,7 @@ All changes included in 1.10:
 ### `pdf`
 
 - ([#13588](https://github.com/quarto-dev/quarto-cli/issues/13588)): Fix Lua error when rendering PDF with `reference-location: margin` and a footnote alongside a figure with `fig-cap`. (author: @mcanouil)
+- ([#14553](https://github.com/quarto-dev/quarto-cli/issues/14553), [#14558](https://github.com/quarto-dev/quarto-cli/issues/14558)): Fix PDF render failing instead of auto-installing a missing font referenced by `monofontfallback` (and other `mainfont`/`sansfont`/`monofont` fallbacks).
 
 ### `typst`
 
@@ -49,6 +50,7 @@ All changes included in 1.10:
 
 - ([#10392](https://github.com/quarto-dev/quarto-cli/issues/10392)): Fix `quarto preview` of a website or book project showing stale HTML for non-index pages after editing the source `.qmd`.
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Avoid creating a duplicate `.quarto_ipynb` file on preview startup for single-file Jupyter documents.
+- ([#14533](https://github.com/quarto-dev/quarto-cli/issues/14533)): Fix `quarto preview` not detecting a frontmatter `format:` change until the second render request. The first request after the edit now correctly restarts the preview process with the new format.
 
 ### `install`
 
@@ -56,6 +58,7 @@ All changes included in 1.10:
 - ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877), [#9710](https://github.com/quarto-dev/quarto-cli/issues/9710)): Add arm64 Linux support for `quarto install chrome-headless-shell` using Playwright CDN as download source, since Chrome for Testing has no arm64 Linux builds.
 - ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877)): Deprecate `quarto install chromium` — the command now transparently redirects to `chrome-headless-shell`. Installing `chrome-headless-shell` automatically removes any legacy Chromium installation. Use `chrome-headless-shell` instead, which always installs the latest stable Chrome (the legacy `chromium` installer pins an outdated Puppeteer revision that cannot receive security updates).
 - ([#14363](https://github.com/quarto-dev/quarto-cli/pull/14363)): Add retry logic for tool downloads to handle transient network failures (connection resets, CDN timeouts) during `quarto install`.
+- ([#14538](https://github.com/quarto-dev/quarto-cli/pull/14538)): `quarto install tinytex` and `quarto update tinytex` now set the TeX Live repository to the TinyTeX CDN-backed mirror at <https://tlnet.yihui.org> when reachable, falling back to `mirror.ctan.org`'s automatic redirect and the existing US university mirrors otherwise. Matches the default in the [R tinytex package](https://github.com/rstudio/tinytex) since March 2026. Override the resolved repository with the `QUARTO_TINYTEX_REPOSITORY` environment variable, or with `CTAN_REPO` (also honored for parity with the R [tinytex](https://github.com/rstudio/tinytex) package). See <https://yihui.org/en/2026/03/tinytex-ctan-mirror/> for background.
 
 ### `check`
 
