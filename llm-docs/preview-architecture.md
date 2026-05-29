@@ -1,6 +1,6 @@
 ---
-main_commit: eca40cdab
-analyzed_date: 2026-05-22
+main_commit: fc0cf88dc
+analyzed_date: 2026-05-29
 key_files:
   - src/command/preview/cmd.ts
   - src/command/preview/preview.ts
@@ -124,6 +124,71 @@ The in-flight gate avoids a race: `invalidateForFile` calls `safeRemoveSync` on 
 
 For unchanged frontmatter, `previewFormat` repopulates the cache with the same value and the compatibility verdict is identical — only the cache lookup runs again. Cost: one cache re-read per IDE-driven render request, no functional change.
 
+## Project Preview Re-render Path (Paths B/D)
+
+Project preview (website/book) does NOT go through `renderForPreview()`. A single
+source edit produces **two** Pandoc invocations from two different call sites, and
+they share state in a way that caused #10392.
+
+1. **Watcher invocation** (`watch.ts`, `watchProject()`). The file watcher fires on
+   the edit. The single-input branch calls `render(inputs[0], …)` **without**
+   passing `pContext`, so a fresh `ProjectContext` (empty `fileInformationCache`) is
+   built inside `render()`. `projectResolveFullMarkdownForFile` reads source from
+   disk — this invocation sees the edit. It writes the correct HTML.
+
+2. **HTTP-handler invocation** (`serve.ts`). The watcher signals reload, the browser
+   refetches, and the serve handler calls `renderProject(watcher.project(), …,
+   [inputFile])`. `watcher.project()` is the **persistent** context whose
+   `fileInformationCache.fullMarkdown` was populated at preview startup. Before the
+   #10392 fix this invocation read pre-edit expanded markdown from that cache and
+   overwrote invocation #1's fresh HTML with stale content.
+
+```
+edit saved
+   │
+   ▼
+watch.ts ── render(input)         ── fresh ctx, reads disk  ──► correct HTML  (#1)
+   │
+   ▼ (reload signal → browser refetch)
+serve.ts ── renderProject(watcher.project(), [input])
+                   │
+                   └─ persistent ctx, cached fullMarkdown ──► STALE HTML overwrites (#2)
+```
+
+### The #10392 fix (two layers)
+
+1. **Surgical** — `watch.ts` invalidates the persistent context's cache for each
+   changed input before rendering:
+
+   ```typescript
+   for (const input of inputs) {
+     project.fileInformationCache?.invalidateForFile(input);
+   }
+   ```
+
+   This runs **inside** the `submitRender()` callback so it is serialized on the
+   render queue. `invalidateForFile` may delete a transient `.quarto_ipynb`; running
+   it outside the queue could race a concurrent in-flight render still reading that
+   notebook. Invalidation drops the WHOLE entry (`metadata`, `codeCells`, `engine`,
+   `target`, `fullMarkdown`), so it covers more than the freshness guard alone.
+
+2. **Defense-in-depth** — the `fullMarkdown` mtime+size guard (above). Even if a
+   future caller forgets to invalidate, invocation #2 re-reads on the mtime/size
+   mismatch. The two layers are complementary, not redundant: the guard refreshes
+   only `fullMarkdown`; `invalidateForFile` refreshes all fields.
+
+### Out of scope for #10392
+
+The freshness guard fingerprints the edited input file itself. It does NOT detect
+edits to a file's non-input dependencies, because the input's own mtime/size is
+unchanged:
+
+- `{{< include >}}`d files — the includer's cache is not invalidated when the
+  includee changes (tracked in #2795).
+- `template-partials:` files (tracked in #14561).
+
+These need a dependency→consumer map in the watch list, not a per-file stat.
+
 ## FileInformationCache and invalidateForFile
 
 `FileInformationCacheMap` stores per-file cached data:
@@ -131,12 +196,31 @@ For unchanged frontmatter, `previewFormat` repopulates the cache with the same v
 | Field | Content | Cost of re-computation |
 |-------|---------|----------------------|
 | `fullMarkdown` | Expanded markdown with includes | Re-reads file, re-expands includes |
+| `sourceMtime` | Source file mtime (ms) when `fullMarkdown` was cached | Stat of source file |
+| `sourceSize` | Source file byte size when `fullMarkdown` was cached | Stat of source file |
 | `includeMap` | Include source→target mappings | Recomputed with markdown |
 | `codeCells` | Parsed code cells | Recomputed from markdown |
 | `engine` | Execution engine instance | Re-determined |
 | `target` | Execution target (includes `.quarto_ipynb` path) | Re-created by `target()` |
 | `metadata` | YAML front matter | Recomputed from markdown |
 | `brand` | Resolved `_brand.yml` data | Re-loaded from disk |
+
+### fullMarkdown freshness guard (added for #10392)
+
+`projectResolveFullMarkdownForFile()` (`project-shared.ts`) no longer trusts a
+populated `fullMarkdown` unconditionally. It stats the source file on every call
+and returns the cached value only when both `sourceMtime` and `sourceSize` match
+the current file. On any mismatch (or if the stat fails) it re-reads and
+re-expands, then stores the new mtime+size alongside the result.
+
+Size is checked alongside mtime to catch an edit that lands within a single
+mtime tick on a coarse-resolution filesystem (FAT32 ~2 s, some network mounts)
+while still changing the byte count.
+
+This is defense-in-depth for the project-preview path (below), where a
+persistent context's cache is reused across renders and a caller may forget to
+invalidate. The guard refreshes only `fullMarkdown`; stale `metadata`,
+`codeCells`, `engine`, or `target` still require an explicit `invalidateForFile()`.
 
 ### invalidateForFile() (added for #14281)
 
@@ -169,9 +253,13 @@ When rendering a `.qmd` with a Jupyter kernel, the engine creates a transient `.
 | Single file, no project | 1 (cmd.ts, passed to preview) | 0 (cached project reused) |
 | Single file in serveable project | 1 (cmd.ts, passed to serveProject) | See project rows |
 | Project directory | 1 (serve.ts) | See project rows |
-| Project: single input changed | — | 1 (render() without pContext) |
-| Project: multiple inputs changed | — | 0 (renderProject reuses cached) |
+| Project: single input changed | — | 1 (watcher render() without pContext) + 1 (serve.ts HTTP-handler renderProject reusing persistent ctx) |
+| Project: multiple inputs changed | — | 0 new (watcher renderProject reuses cached) |
 | Project: config file changed (HTML) | — | 1 (refreshProjectConfig) |
+
+The single-input row shows two invocations: the watcher render and the HTTP-handler
+render. Both must produce fresh output — see "Project Preview Re-render Path" for the
+#10392 stale-cache interaction between them.
 
 ## Key Files
 
