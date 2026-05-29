@@ -61,6 +61,7 @@
                 - string
             toggle: boolean
             caption: string
+            section: boolean
   default: false
   description:
     short: "Include a code tools menu (for hiding and showing code)."
