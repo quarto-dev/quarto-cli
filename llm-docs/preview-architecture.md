@@ -253,13 +253,15 @@ When rendering a `.qmd` with a Jupyter kernel, the engine creates a transient `.
 | Single file, no project | 1 (cmd.ts, passed to preview) | 0 (cached project reused) |
 | Single file in serveable project | 1 (cmd.ts, passed to serveProject) | See project rows |
 | Project directory | 1 (serve.ts) | See project rows |
-| Project: single input changed | — | 1 (watcher render() without pContext) + 1 (serve.ts HTTP-handler renderProject reusing persistent ctx) |
+| Project: single input changed | — | 1 (watcher render() without pContext) + 0 (serve.ts HTTP-handler renderProject reuses persistent ctx) |
 | Project: multiple inputs changed | — | 0 new (watcher renderProject reuses cached) |
 | Project: config file changed (HTML) | — | 1 (refreshProjectConfig) |
 
-The single-input row shows two invocations: the watcher render and the HTTP-handler
-render. Both must produce fresh output — see "Project Preview Re-render Path" for the
-#10392 stale-cache interaction between them.
+The single-input row's `+ 0` reflects two render invocations but only one new
+context computation: the watcher render builds a fresh context, while the
+HTTP-handler render reuses the persistent one (0 new computations). Both
+invocations must still produce fresh output — see "Project Preview Re-render
+Path" for the #10392 stale-cache interaction between them.
 
 ## Key Files
 
