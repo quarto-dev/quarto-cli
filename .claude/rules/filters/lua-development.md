@@ -1,11 +1,23 @@
 ---
 paths:
   - "src/resources/filters/**/*.lua"
+  - "src/resources/pandoc/datadir/*.lua"
 ---
 
 # Lua Filter Development Conventions
 
 Guidance for developing Lua filters in Quarto's filter system.
+
+## The qmd Custom Reader Is a Special Case
+
+`src/resources/pandoc/datadir/readqmd.lua` (and `filters/qmd-reader.lua`) is the custom
+Pandoc reader, not a filter. It runs **before** parsing, in a **separate Lua context**
+from the filter chain — filter globals (e.g. `crossref.categories`) do not exist there,
+and it communicates with filters via document metadata and `param(...)`. The conventions
+below target the filter pipeline; the reader follows its own patterns (raw-text
+escape-then-restore). See
+[llm-docs/qmd-reader-architecture.md](../../../llm-docs/qmd-reader-architecture.md)
+before changing reader-stage code.
 
 ## Module Loading
 

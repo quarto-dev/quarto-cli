@@ -26,6 +26,7 @@ All changes included in 1.10:
 
 - ([#13588](https://github.com/quarto-dev/quarto-cli/issues/13588)): Fix Lua error when rendering PDF with `reference-location: margin` and a footnote alongside a figure with `fig-cap`. (author: @mcanouil)
 - ([#14553](https://github.com/quarto-dev/quarto-cli/issues/14553)): Report a clear, actionable error when a font fallback (`mainfontfallback`, `monofontfallback`, ...) crashes LuaLaTeX on recent TeX Live, pointing to a single-font workaround, instead of a generic compilation failure.
+- ([#14553](https://github.com/quarto-dev/quarto-cli/issues/14553), [#14558](https://github.com/quarto-dev/quarto-cli/issues/14558)): Fix PDF render failing instead of auto-installing a missing font referenced by `monofontfallback` (and other `mainfont`/`sansfont`/`monofont` fallbacks).
 
 ### `typst`
 
@@ -49,6 +50,7 @@ All changes included in 1.10:
 ### `quarto preview`
 
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Avoid creating a duplicate `.quarto_ipynb` file on preview startup for single-file Jupyter documents.
+- ([#14533](https://github.com/quarto-dev/quarto-cli/issues/14533)): Fix `quarto preview` not detecting a frontmatter `format:` change until the second render request. The first request after the edit now correctly restarts the preview process with the new format.
 
 ### `install`
 
