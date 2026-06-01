@@ -12,10 +12,10 @@ _quarto:
         # MUST match in HTML: Case B content present, shortcode expanded
         - ["BWHENEXPANDED", "BUNLESSEXPANDED"]
         # MUST NOT match in HTML: Case A content absent; no raw shortcode keys; no marker classes
-        - ["AWHENEXPANDED", "AUNLESSEXPANDED", "sc-a-when", "sc-a-unless", "sc-b-when", "sc-b-unless", "llms-conditional-content", "llms-hidden-content"]
+        - ["AWHENEXPANDED", "AUNLESSEXPANDED", "sc-a-when", "sc-a-unless", "sc-b-when", "sc-b-unless", "llms-conditional-content", "llms-hidden-content", "Lorem ipsum"]
       ensureLlmsMdRegexMatches:
         # MUST match in .llms.md: Case A content present, shortcode expanded
-        - ["AWHENEXPANDED", "AUNLESSEXPANDED"]
+        - ["AWHENEXPANDED", "AUNLESSEXPANDED", "Lorem ipsum"]
         # MUST NOT match in .llms.md: Case B content absent; no raw shortcode keys
         - ["BWHENEXPANDED", "BUNLESSEXPANDED", "sc-a-when", "sc-a-unless", "sc-b-when", "sc-b-unless"]
 ---
@@ -42,4 +42,10 @@ Case B1 shortcode: {{< meta sc-b-unless >}}
 
 ::: {.content-hidden when-format="llms-txt"}
 Case B2 shortcode: {{< meta sc-b-when >}}
+:::
+
+## Case A3 — content-visible when-format llms-txt with lipsum shortcode
+
+::: {.content-visible when-format="llms-txt"}
+{{< lipsum 1 >}}
 :::
