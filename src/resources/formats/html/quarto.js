@@ -311,22 +311,22 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   }
 
   const findNearestParentListing = (href, listingHrefs) => {
-    if (!href || !listingHrefs) {
+    if (!href || !listingHrefs?.length) {
       return undefined;
     }
-    // Look up the tree for a nearby linting and use that if we find one
-    const relativeParts = href.substring(1).split("/");
-    while (relativeParts.length > 0) {
-      const path = relativeParts.join("/");
-      for (const listingHref of listingHrefs) {
-        if (listingHref.startsWith(path)) {
-          return listingHref;
-        }
+    // Match listings whose directory is a prefix of the post directory at a
+    // path-segment boundary, then keep the deepest one.
+    const postDir = href.replace(/[^/]+$/, "");
+    let best;
+    let bestLen = -1;
+    for (const listingHref of listingHrefs) {
+      const listingDir = listingHref.replace(/[^/]+$/, "");
+      if (postDir.startsWith(listingDir) && listingDir.length > bestLen) {
+        best = listingHref;
+        bestLen = listingDir.length;
       }
-      relativeParts.pop();
     }
-
-    return undefined;
+    return best;
   };
 
   const manageSidebarVisiblity = (el, placeholderDescriptor) => {

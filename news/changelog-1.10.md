@@ -43,6 +43,7 @@ All changes included in 1.10:
 ### Websites
 
 - ([#13565](https://github.com/quarto-dev/quarto-cli/issues/13565), [#14353](https://github.com/quarto-dev/quarto-cli/issues/14353)): Fix sidebar logo not appearing on secondary sidebars in multi-sidebar website layouts.
+- ([#14493](https://github.com/quarto-dev/quarto-cli/issues/14493)): Fix category links on a post going to the wrong listing when the post appears in multiple listings.
 
 ## Commands
 
