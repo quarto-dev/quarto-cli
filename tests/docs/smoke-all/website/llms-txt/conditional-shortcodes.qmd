@@ -1,0 +1,45 @@
+---
+title: "Conditional Shortcodes"
+sc-a-when: "AWHENEXPANDED"
+sc-a-unless: "AUNLESSEXPANDED"
+sc-b-when: "BWHENEXPANDED"
+sc-b-unless: "BUNLESSEXPANDED"
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureFileRegexMatches:
+        # MUST match in HTML: Case B content present, shortcode expanded
+        - ["BWHENEXPANDED", "BUNLESSEXPANDED"]
+        # MUST NOT match in HTML: Case A content absent; no raw shortcode keys; no marker classes
+        - ["AWHENEXPANDED", "AUNLESSEXPANDED", "sc-a-when", "sc-a-unless", "sc-b-when", "sc-b-unless", "llms-conditional-content", "llms-hidden-content"]
+      ensureLlmsMdRegexMatches:
+        # MUST match in .llms.md: Case A content present, shortcode expanded
+        - ["AWHENEXPANDED", "AUNLESSEXPANDED"]
+        # MUST NOT match in .llms.md: Case B content absent; no raw shortcode keys
+        - ["BWHENEXPANDED", "BUNLESSEXPANDED", "sc-a-when", "sc-a-unless", "sc-b-when", "sc-b-unless"]
+---
+
+## Case A1 — content-visible when-format llms-txt (llms-only)
+
+::: {.content-visible when-format="llms-txt"}
+Case A1 shortcode: {{< meta sc-a-when >}}
+:::
+
+## Case A2 — content-hidden unless-format llms-txt (llms-only)
+
+::: {.content-hidden unless-format="llms-txt"}
+Case A2 shortcode: {{< meta sc-a-unless >}}
+:::
+
+## Case B1 — content-visible unless-format llms-txt (html-only)
+
+::: {.content-visible unless-format="llms-txt"}
+Case B1 shortcode: {{< meta sc-b-unless >}}
+:::
+
+## Case B2 — content-hidden when-format llms-txt (html-only)
+
+::: {.content-hidden when-format="llms-txt"}
+Case B2 shortcode: {{< meta sc-b-when >}}
+:::
