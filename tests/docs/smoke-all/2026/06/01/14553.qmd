@@ -1,0 +1,30 @@
+---
+title: Font fallback does not crash LuaLaTeX
+# luaotfload appends a ";-fallback" feature to every font name passed to
+# add_fallback. A font name only terminates at ":" "(" or "/" in luaotfload's
+# request grammar, so without a trailing ":" the appended ";-fallback" is
+# swallowed into the font name, the lookup fails, and LuaLaTeX crashes
+# (luaotfload-fallback.lua: attempt to index a nil value). The generated
+# LaTeX must emit each fallback font name colon-terminated, for every entry
+# produced by the template's for-loop over multiple fallbacks.
+format:
+  pdf:
+    pdf-engine: lualatex
+    keep-tex: true
+mainfont: "Latin Modern Roman"
+monofont: "Latin Modern Mono"
+monofontfallback:
+  - "Latin Modern Roman"
+  - "Latin Modern Sans"
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        -
+          - 'luaotfload\.add_fallback\("monofontfallback"'
+          - '"Latin Modern Roman:"'
+          - '"Latin Modern Sans:"'
+---
+
+A paragraph with some `inline code` to exercise the monospace font and its
+fallbacks.
