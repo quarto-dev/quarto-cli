@@ -192,5 +192,19 @@ export function pandocDefaultsMessage(
     }
   }
 
+  // suppress the internal `quarto.*` template-variable namespace. It is
+  // populated by Quarto (e.g. the full localized language table, see
+  // quarto-template-variables.ts) and would otherwise flood the render
+  // message. This is print-only: the defaults file actually written for
+  // pandoc (writeDefaultsFile) keeps the namespace intact. Clone before
+  // the nested delete — defaults.variables aliases the caller's object.
+  if (defaults.variables && "quarto" in defaults.variables) {
+    defaults.variables = { ...defaults.variables };
+    delete defaults.variables.quarto;
+    if (Object.keys(defaults.variables).length === 0) {
+      delete defaults.variables;
+    }
+  }
+
   return stringify(defaults as Record<string, unknown>);
 }
