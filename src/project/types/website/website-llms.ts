@@ -108,11 +108,22 @@ function cleanupConditionalContent(doc: Document): void {
     (el as Element).remove();
   }
 
-  // Unwrap llms-hidden markers (keep content, remove wrapper div)
+  // Unwrap llms-hidden markers (keep content, remove wrapper div).
+  //
+  // When the marked block leads with a heading, Pandoc's --section-divs fuses
+  // the marker class onto the <section> it generates for that heading (e.g.
+  // <section id="..." class="level2 llms-hidden-content">). Unwrapping that
+  // section would strip the <section> and its id, breaking the TOC, anchors,
+  // and cross-references. So keep the section and only drop the marker class;
+  // genuine wrapper divs are still unwrapped. See issue #14562.
   for (const el of doc.querySelectorAll(".llms-hidden-content")) {
-    const parent = (el as Element).parentElement;
+    const element = el as Element;
+    if (element.tagName === "SECTION") {
+      element.classList.remove("llms-hidden-content");
+      continue;
+    }
+    const parent = element.parentElement;
     if (parent) {
-      const element = el as Element;
       while (element.firstChild) {
         parent.insertBefore(element.firstChild as Node, element as Node);
       }

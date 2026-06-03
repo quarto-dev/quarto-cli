@@ -468,7 +468,35 @@ export async function projectResolveFullMarkdownForFile(
   force?: boolean,
 ): Promise<MappedString> {
   const cache = ensureFileInformationCache(project, file);
-  if (!force && cache.fullMarkdown) {
+
+  // Source-mtime + size guard: in preview mode the persistent project
+  // context (and its fileInformationCache) is reused across renders. If
+  // the source file was edited since the cache entry was populated, the
+  // cached expanded markdown is stale (#10392). Re-read in that case.
+  // Size is checked alongside mtime to catch the edge case where an
+  // edit lands within a single mtime tick on a coarse-resolution
+  // filesystem but changes the byte count.
+  let currentMtime: number | undefined;
+  let currentSize: number | undefined;
+  try {
+    const stat = Deno.statSync(file);
+    currentMtime = stat.mtime?.getTime();
+    currentSize = stat.size;
+  } catch {
+    currentMtime = undefined;
+    currentSize = undefined;
+  }
+
+  if (
+    !force &&
+    cache.fullMarkdown &&
+    cache.sourceMtime !== undefined &&
+    cache.sourceSize !== undefined &&
+    currentMtime !== undefined &&
+    currentSize !== undefined &&
+    cache.sourceMtime === currentMtime &&
+    cache.sourceSize === currentSize
+  ) {
     return cache.fullMarkdown;
   }
 
@@ -495,6 +523,8 @@ export async function projectResolveFullMarkdownForFile(
   try {
     const result = await expandIncludes(markdown, options, file);
     cache.fullMarkdown = result;
+    cache.sourceMtime = currentMtime;
+    cache.sourceSize = currentSize;
     cache.includeMap = options.state?.include.includes as FileInclusion[];
     return result;
   } finally {

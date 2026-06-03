@@ -44,11 +44,14 @@ All changes included in 1.10:
 ### Websites
 
 - ([#13565](https://github.com/quarto-dev/quarto-cli/issues/13565), [#14353](https://github.com/quarto-dev/quarto-cli/issues/14353)): Fix sidebar logo not appearing on secondary sidebars in multi-sidebar website layouts.
+- ([#14562](https://github.com/quarto-dev/quarto-cli/issues/14562)): Fix a heading inside `content-hidden when-format="llms-txt"` (visible in HTML) losing its `<section>` wrapper and `id` in a website with `llms-txt` enabled, which broke its table-of-contents link, anchors, and cross-references.
+- ([#14563](https://github.com/quarto-dev/quarto-cli/issues/14563)): Fix a fatal error when a shortcode is used inside conditional content (e.g. `content-visible when-format="llms-txt"`) in a website with `llms-txt` enabled.
 
 ## Commands
 
 ### `quarto preview`
 
+- ([#10392](https://github.com/quarto-dev/quarto-cli/issues/10392)): Fix `quarto preview` of a website or book project showing stale HTML for non-index pages after editing the source `.qmd`.
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Avoid creating a duplicate `.quarto_ipynb` file on preview startup for single-file Jupyter documents.
 - ([#14533](https://github.com/quarto-dev/quarto-cli/issues/14533)): Fix `quarto preview` not detecting a frontmatter `format:` change until the second render request. The first request after the edit now correctly restarts the preview process with the new format.
 
