@@ -9,7 +9,7 @@ $if(mainfontfallback)$
   \ifLuaTeX
     \usepackage{luaotfload}
     \directlua{luaotfload.add_fallback("mainfontfallback",{
-      $for(mainfontfallback)$"$mainfontfallback$:"$sep$,$endfor$
+      $for(mainfontfallback)$"$mainfontfallback$"$sep$,$endfor$
     })}
   \fi
 $endif$
@@ -20,7 +20,7 @@ $if(sansfontfallback)$
   \ifLuaTeX
     \usepackage{luaotfload}
     \directlua{luaotfload.add_fallback("sansfontfallback",{
-      $for(sansfontfallback)$"$sansfontfallback$:"$sep$,$endfor$
+      $for(sansfontfallback)$"$sansfontfallback$"$sep$,$endfor$
     })}
   \fi
 $endif$
@@ -31,7 +31,7 @@ $if(monofontfallback)$
   \ifLuaTeX
     \usepackage{luaotfload}
     \directlua{luaotfload.add_fallback("monofontfallback",{
-      $for(monofontfallback)$"$monofontfallback$:"$sep$,$endfor$
+      $for(monofontfallback)$"$monofontfallback$"$sep$,$endfor$
     })}
   \fi
 $endif$
