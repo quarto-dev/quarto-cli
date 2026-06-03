@@ -18,10 +18,14 @@ _quarto:
           # No internal marker classes leak into the HTML output
           - '.llms-hidden-content'
           - '.llms-conditional-content'
+          # llms-only content is removed entirely from the HTML output
+          - 'section#llms-only-heading'
       ensureLlmsMdRegexMatches:
         -
           # Normal content is present in the .llms.md output
           - 'NORMALSECTIONTEXT'
+          # llms-only content is present in the .llms.md output
+          - 'LLMSONLYHEADINGCONTENT'
         -
           # html-only content is excluded from the .llms.md output
           - 'HTMLONLYHEADINGCONTENT'
@@ -36,5 +40,13 @@ NORMALSECTIONTEXT
 ## HTML Only Heading
 
 HTMLONLYHEADINGCONTENT
+
+:::
+
+::: {.content-visible when-format="llms-txt"}
+
+## LLMS Only Heading
+
+LLMSONLYHEADINGCONTENT
 
 :::
