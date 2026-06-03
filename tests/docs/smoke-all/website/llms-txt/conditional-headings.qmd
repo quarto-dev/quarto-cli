@@ -1,0 +1,40 @@
+---
+title: "Conditional Headings"
+# Regression test for https://github.com/quarto-dev/quarto-cli/issues/14562
+# A heading that leads a `content-hidden when-format="llms-txt"` block is visible
+# in HTML. Pandoc's --section-divs fuses the `llms-hidden-content` marker class
+# onto the <section> it creates for that heading. The llms HTML finalizer must
+# keep that <section> (and its id) intact for HTML while still excluding the
+# content from the .llms.md output.
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureHtmlElements:
+        -
+          # HTML keeps the section + id for the html-only heading
+          - 'section#html-only-heading.level2'
+        -
+          # No internal marker classes leak into the HTML output
+          - '.llms-hidden-content'
+          - '.llms-conditional-content'
+      ensureLlmsMdRegexMatches:
+        -
+          # Normal content is present in the .llms.md output
+          - 'NORMALSECTIONTEXT'
+        -
+          # html-only content is excluded from the .llms.md output
+          - 'HTMLONLYHEADINGCONTENT'
+---
+
+## Normal Section
+
+NORMALSECTIONTEXT
+
+::: {.content-hidden when-format="llms-txt"}
+
+## HTML Only Heading
+
+HTMLONLYHEADINGCONTENT
+
+:::
