@@ -78,6 +78,7 @@ All changes included in 1.10:
 
 ### Jupyter
 
+- ([#13582](https://github.com/quarto-dev/quarto-cli/pull/13582)): Fix `application/pdf` and `text/latex` MIME types not being preferred over `image/svg+xml` when rendering Jupyter notebooks to PDF, which caused errors when `rsvg-convert` was not available. (author: @jkrumbiegel)
 - ([#14374](https://github.com/quarto-dev/quarto-cli/pull/14374)): Avoid a crash when a third-party Jupyter kernel (observed with Maple 2025, built on XEUS) returns `execute_reply` without the required `status` field. The failing cell is recorded as an error instead of aborting the render. (author: @ChrisJefferson)
 
 ## Other fixes and improvements
