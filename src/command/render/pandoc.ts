@@ -1666,8 +1666,12 @@ async function resolveExtras(
     format.metadata[kFontPaths] = fontPaths;
 
     // Enumerate available fonts for CSS fallback list filtering (#12556)
+    // Resolve relative paths to absolute, matching compilation in output-typst.ts
+    const resolvedFontPaths = fontPaths.map((p: string) =>
+      isAbsolute(p) ? p : resolve(inputDir, p)
+    );
     const availableTypstFonts = await getAvailableTypstFonts(
-      fontPaths,
+      resolvedFontPaths,
       project?.dir,
     );
     if (availableTypstFonts.length > 0) {
