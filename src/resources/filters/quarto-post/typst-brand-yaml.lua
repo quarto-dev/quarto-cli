@@ -253,7 +253,6 @@ function render_typst_brand_yaml()
 
     end,
     Meta = function(meta)
-      _quarto.modules.typst.css.init_available_fonts(meta)
       local brand = param('brand')
       local brandMode = param('brand-mode') or 'light'
       brand = brand and brand[brandMode]

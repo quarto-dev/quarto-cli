@@ -657,15 +657,12 @@ local function quote(s)
 end
 
 local _available_fonts = nil
+local _fonts_initialized = false
 
-local function init_available_fonts(meta)
-  if meta == nil then
-    _available_fonts = nil
-    return
-  end
-  local list = meta['typst-available-fonts']
+local function init_available_fonts(list)
+  _fonts_initialized = true
   if list == nil then
-    _available_fonts = false
+    _available_fonts = nil
     return
   end
   _available_fonts = {}
@@ -675,10 +672,16 @@ local function init_available_fonts(meta)
   end
 end
 
+local function ensure_available_fonts()
+  if _fonts_initialized then return end
+  init_available_fonts(param('typst-available-fonts'))
+end
+
 local function translate_font_family_list(sl)
   if sl == nil then
     return '()'
   end
+  ensure_available_fonts()
   local all_strings = {}
   local filtered = {}
   for s in sl:gmatch('([^,]+)') do

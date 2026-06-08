@@ -1671,7 +1671,8 @@ async function resolveExtras(
       project?.dir,
     );
     if (availableTypstFonts.length > 0) {
-      format.metadata["typst-available-fonts"] = availableTypstFonts;
+      extras[kFilterParams] = extras[kFilterParams] || {};
+      extras[kFilterParams]["typst-available-fonts"] = availableTypstFonts;
     }
   }
 

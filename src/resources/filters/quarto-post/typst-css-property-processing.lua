@@ -272,9 +272,6 @@ function render_typst_css_property_processing()
   end
   
   return {
-    Meta = function(meta)
-      _quarto.format.typst.css.init_available_fonts(meta)
-    end,
     Table = function(tab)
       _warnings = new_table()
       local tabstyle = tab.attributes['style']
