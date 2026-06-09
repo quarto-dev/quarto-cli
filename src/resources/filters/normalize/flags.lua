@@ -199,6 +199,9 @@ function compute_flags()
       elseif lightbox_auto == false then
         flags.has_lightbox = false
       end
+      if el.mainfontfallback ~= nil or el.sansfontfallback ~= nil or el.monofontfallback ~= nil then
+        flags.has_font_fallback = true
+      end
     end,
   }}
 end

@@ -118,6 +118,14 @@ if _quarto.format.isRevealJsOutput() then ... end
 if _quarto.format.isDashboardOutput() then ... end
 ```
 
+### Gate format checks at execution time, not construction time
+
+`main.lua` builds its filter tables by calling the constructor (`filter = my_filter()`) at load time, **before** the output format is resolved. A format gate placed at the top of the constructor (`if not _quarto.format.isLatexOutput() then return {} end`) therefore evaluates too early, returns an empty filter, and the filter silently never runs for any document. Put the `_quarto.format.*` check **inside** the returned element function (`Meta`, `Div`, ...) so it runs when the format is known. Reference: `quarto-pre/font.lua`.
+
+## Metadata Values
+
+Pandoc Lua metadata values are **not** tagged with a `.t` field (`val.t` is `nil`), so `val.t == "MetaList"` never matches. Detect the shape with `quarto.utils.type(val)` — the in-tree, custom-node-aware superset of `pandoc.utils.type` — which returns `"List"` for a YAML list (iterate with `ipairs`), `"string"` for a plain scalar, and `"Inlines"` for an inline-formatted scalar. Rebuild as a `pandoc.MetaList` of `pandoc.MetaString`; `pandoc.utils.stringify` flattens any scalar to text. Reference: `quarto-post/email.lua` (meta-list iteration).
+
 ## Options and Parameters
 
 ```lua
@@ -254,6 +262,8 @@ When adding filters to `main.lua`:
 -- Filters in same stage run in order defined
 ```
 
+A filter entry can carry `flags = { "has_x" }`; `ast/runemulation.lua` skips the entire filter pass when none of the listed flags are set. Compute the flag in `normalize/flags.lua`'s `compute_flags` (its second returned table holds a `Meta` handler for metadata-derived flags). Use this to skip a whole tree traversal for documents that don't need the filter, rather than relying on an early-return inside the function. Examples: `has_notes`, `has_hidden`, `has_font_fallback`.
+
 ## API Reference
 
 Consult `src/resources/lua-types/` for available methods, properties, and function signatures:
@@ -272,3 +282,6 @@ These type definition files document the complete API surface.
 5. **Use `_quarto.format`** - For format detection
 6. **Return `nil` to continue** - Return value replaces element
 7. **`warn()` = INFO level** - On TypeScript side
+8. **Gate format inside element fns** - Constructor runs before format is resolved
+9. **Detect meta shape with `quarto.utils.type`** - Meta values have no `.t` tag
+10. **Gate expensive filters with `flags`** - Skips the whole pass when unneeded

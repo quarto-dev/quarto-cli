@@ -5,7 +5,7 @@
 *
 */
 
-import { findMissingFontsAndPackages, findMissingHyphenationFiles } from "../../../src/command/render/latexmk/parse-error.ts"
+import { findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles } from "../../../src/command/render/latexmk/parse-error.ts"
 import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts";
 
@@ -79,6 +79,32 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound("! Package pdfx Error: No color profile sRGB_IEC61966-2-1_black_scaled.icc found", "colorprofiles.sty");
   assertFound("No file LGRcmr.fd. ! LaTeX Error: This NFSS system isn't set up properly.", "lgrcmr.fd");
 },{
+  cwd: () => "unit/latexmk/"
+})
+
+// deno-lint-ignore require-await
+unitTest("Detect luaotfload font fallback crash and surface an actionable hint", async () => {
+  // The luaotfload font-fallback resolver crashes on recent TeX Live when a
+  // fallback font is set (mainfontfallback/monofontfallback): define_font of the
+  // internal `<font>;-fallback` name returns nil and luaotfload-fallback.lua
+  // dereferences it. There is no `! ...Here is how much` block, so the generic
+  // error extraction finds nothing — we want a specific, actionable message.
+  // Upstream: https://github.com/latex3/luaotfload/issues/331
+  const fallbackCrashLog =
+    `luaotfload | db : Reload initiated (formats: otf,ttf,ttc); reason: Font "Latin Modern Roman;-fallback" not found.
+luaotfload | resolve : sequence of 3 lookups yielded nothing appropriate....texmf-dist/tex/luatex/luaotfload/luaotfload-fallback.lua:50: attempt to index a nil value (local 'f').
+!  ==> Fatal error occurred, no output PDF file produced!`;
+
+  const message = findLatexError(fallbackCrashLog) ?? "";
+  assert(
+    message.includes("font fallback"),
+    `Expected a font-fallback hint, got: "${message}"`,
+  );
+  assert(
+    message.includes("luaotfload/issues/331"),
+    `Expected the upstream issue link, got: "${message}"`,
+  );
+}, {
   cwd: () => "unit/latexmk/"
 })
 

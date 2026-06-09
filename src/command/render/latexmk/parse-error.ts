@@ -205,10 +205,24 @@ export function findMissingHyphenationFiles(logText: string) {
 const kErrorRegex = /^\!\s([\s\S]+)?Here is how much/m;
 const kEmptyRegex = /(No pages of output)\./;
 
+// luaotfload's font-fallback resolver crashes on recent TeX Live (luaotfload
+// v3.29): when a fallback is set (mainfontfallback / monofontfallback / ...),
+// define_font of the internal `<font>;-fallback` name returns nil and
+// luaotfload-fallback.lua dereferences it. The crash is a Lua runtime error
+// with no `! ...Here is how much` block, so the generic extraction below finds
+// nothing — detect it directly and give actionable guidance.
+// Upstream: https://github.com/latex3/luaotfload/issues/331
+const kLuaotfloadFallbackCrash =
+  /luaotfload-fallback\.lua:\d+: attempt to index a nil value/;
+
 export function findLatexError(
   logText: string,
   stderr?: string,
 ): string | undefined {
+  if (kLuaotfloadFallbackCrash.test(logText)) {
+    return "A font fallback (e.g. 'mainfontfallback' or 'monofontfallback') triggered a known luaotfload bug on this TeX Live version, which crashes LuaLaTeX before a PDF is produced. Until it is fixed upstream, set a single font that covers the required glyphs (e.g. 'monofont: JuliaMono') instead of a fallback list. See https://github.com/latex3/luaotfload/issues/331";
+  }
+
   const errors: string[] = [];
 
   const match = logText.match(kErrorRegex);
