@@ -1,0 +1,10 @@
+typography:
+  fonts:
+    - family: Roboto
+      source: google
+    - family: Inconsolata
+      source: google
+  base:
+    family: "Roboto, sans-serif"
+  monospace:
+    family: "Inconsolata, monospace"
