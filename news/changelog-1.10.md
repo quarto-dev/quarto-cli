@@ -25,7 +25,7 @@ All changes included in 1.10:
 ### `pdf`
 
 - ([#13588](https://github.com/quarto-dev/quarto-cli/issues/13588)): Fix Lua error when rendering PDF with `reference-location: margin` and a footnote alongside a figure with `fig-cap`. (author: @mcanouil)
-- ([#14553](https://github.com/quarto-dev/quarto-cli/issues/14553)): Fix font fallbacks (`mainfontfallback`, `monofontfallback`, ...) crashing LuaLaTeX on recent TeX Live instead of filling in missing glyphs. A clear, actionable error is also reported if a fallback crash is still detected.
+- ([#14553](https://github.com/quarto-dev/quarto-cli/issues/14553)): Fix font fallbacks (`mainfontfallback`, `sansfontfallback`, `monofontfallback`) crashing LuaLaTeX on TeX Live 2026 (luaotfload v3.29+) instead of filling in missing glyphs. A clear, actionable error is also reported if a fallback crash is still detected.
 - ([#14553](https://github.com/quarto-dev/quarto-cli/issues/14553), [#14558](https://github.com/quarto-dev/quarto-cli/issues/14558)): Fix PDF render failing instead of auto-installing a missing font referenced by `monofontfallback` (and other `mainfont`/`sansfont`/`monofont` fallbacks).
 
 ### `typst`
