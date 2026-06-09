@@ -12,7 +12,7 @@ brand:
       - family: Inconsolata
         source: google
     base: InvalidFont, Roboto, 
-    headings: Barrio, Times New Roman
+    headings: Barrio, Roboto
     monospace: InvalidFont, Inconsolata
 _quarto:
   tests:
@@ -22,12 +22,12 @@ _quarto:
           # InvalidFont filtered out by font availability check (#12556)
           - 'font: \("Roboto",\),'
           - 'codefont: \("Inconsolata",\),'
-          # heading fonts both available, so tuple preserved intact
-          - '#show heading: set text\(font: \("Barrio", "Times New Roman"\), \)'
+          # heading fonts (both Google-sourced via brand) available on all platforms
+          - '#show heading: set text\(font: \("Barrio", "Roboto"\), \)'
         - []
       ensurePdfRegexMatches:
         -
-          - 'Heading is \("barrio", "times new roman"\)'
+          - 'Heading is \("barrio", "roboto"\)'
         - []
 ---
 
