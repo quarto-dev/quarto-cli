@@ -35,7 +35,7 @@ function normalize_font_fallbacks()
     Meta = function(meta)
       -- format is not resolved when this filter table is constructed, so the
       -- LaTeX gate must run here, not at construction time
-      if not _quarto.format.isLatexOutput() then
+      if not _quarto.format.isLatexOutput() or quarto.doc.pdf_engine() ~= "lualatex" then
         return nil
       end
       for _, key in ipairs(fallback_keys) do
