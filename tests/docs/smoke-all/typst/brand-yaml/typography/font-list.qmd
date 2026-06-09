@@ -19,13 +19,14 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'font: \("InvalidFont", "Roboto"\),'
-          # monospace font now goes through codefont parameter instead of header injection
-          - 'codefont: \("InvalidFont", "Inconsolata"\),'
+          # InvalidFont filtered out by font availability check (#12556)
+          - 'font: \("Roboto",\),'
+          - 'codefont: \("Inconsolata",\),'
+          # heading fonts both available, so tuple preserved intact
+          - '#show heading: set text\(font: \("Barrio", "Times New Roman"\), \)'
         - []
       ensurePdfRegexMatches:
         -
-          - 'Base is \("invalidfont", "roboto"\)'
           - 'Heading is \("barrio", "times new roman"\)'
         - []
 ---
