@@ -482,4 +482,59 @@ function TestModuleExports:testNoPhantomExports()
     table.concat(nils, ', '))
 end
 
+-- Font filtering: init_available_fonts + translate_font_family_list -----
+TestFontFiltering = {}
+
+function TestFontFiltering:setUp()
+  -- Reset module state before each test
+  typst_css.init_available_fonts(nil)
+end
+
+function TestFontFiltering:testNoMetadataPassesThrough()
+  typst_css.init_available_fonts(nil)
+  lu.assertEquals(
+    typst_css.translate_font_family_list('Inter, Helvetica Neue, Arial'),
+    '("Inter", "Helvetica Neue", "Arial")')
+end
+
+function TestFontFiltering:testFiltersUnavailableFonts()
+  typst_css.init_available_fonts({ 'arial' })
+  lu.assertEquals(
+    typst_css.translate_font_family_list('Inter, Helvetica Neue, Arial'),
+    '("Arial",)')
+end
+
+function TestFontFiltering:testKeepsMultipleAvailableFonts()
+  typst_css.init_available_fonts({ 'inter', 'arial' })
+  lu.assertEquals(
+    typst_css.translate_font_family_list('Inter, Helvetica Neue, Arial'),
+    '("Inter", "Arial")')
+end
+
+function TestFontFiltering:testAllFilteredKeepsOriginal()
+  typst_css.init_available_fonts({ 'dejavu sans' })
+  lu.assertEquals(
+    typst_css.translate_font_family_list('Inter, Helvetica Neue, Arial'),
+    '("Inter", "Helvetica Neue", "Arial")')
+end
+
+function TestFontFiltering:testCaseInsensitiveMatching()
+  typst_css.init_available_fonts({ 'helvetica neue' })
+  lu.assertEquals(
+    typst_css.translate_font_family_list('"Helvetica Neue"'),
+    '("Helvetica Neue",)')
+end
+
+function TestFontFiltering:testNilInputStillReturnsEmpty()
+  typst_css.init_available_fonts({ 'arial' })
+  lu.assertEquals(typst_css.translate_font_family_list(nil), '()')
+end
+
+function TestFontFiltering:testEmptyMetaListNoFiltering()
+  typst_css.init_available_fonts({})
+  lu.assertEquals(
+    typst_css.translate_font_family_list('Inter, Arial'),
+    '("Inter", "Arial")')
+end
+
 os.exit(lu.LuaUnit.run())

@@ -59,6 +59,7 @@ import {
   metadataGetDeep,
 } from "../../config/metadata.ts";
 import { pandocBinaryPath, resourcePath } from "../../core/resources.ts";
+import { getAvailableTypstFonts } from "../../core/typst.ts";
 import { filterBundledSubtreeEngines } from "../../extension/extension.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import {
@@ -1663,6 +1664,20 @@ async function resolveExtras(
     );
     fontPaths.push(...fontdirs);
     format.metadata[kFontPaths] = fontPaths;
+
+    // Enumerate available fonts for CSS fallback list filtering (#12556)
+    // Resolve relative paths to absolute, matching compilation in output-typst.ts
+    const resolvedFontPaths = fontPaths.map((p: string) =>
+      isAbsolute(p) ? p : resolve(inputDir, p)
+    );
+    const availableTypstFonts = await getAvailableTypstFonts(
+      resolvedFontPaths,
+      project?.dir,
+    );
+    if (availableTypstFonts.length > 0) {
+      extras[kFilterParams] = extras[kFilterParams] || {};
+      extras[kFilterParams]["typst-available-fonts"] = availableTypstFonts;
+    }
   }
 
   // Process format resources

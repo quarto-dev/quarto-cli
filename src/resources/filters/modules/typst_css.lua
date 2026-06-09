@@ -656,19 +656,52 @@ local function quote(s)
   return '"' .. s .. '"'
 end
 
+local _available_fonts = nil
+local _fonts_initialized = false
+local _generic_families = {
+  ["serif"] = true, ["sans-serif"] = true, ["monospace"] = true,
+  ["cursive"] = true, ["fantasy"] = true, ["math"] = true,
+}
+
+local function init_available_fonts(list)
+  _fonts_initialized = true
+  if list == nil then
+    _available_fonts = nil
+    return
+  end
+  _available_fonts = {}
+  for _, f in ipairs(list) do
+    local name = type(f) == 'string' and f or pandoc.utils.stringify(f)
+    _available_fonts[name:lower()] = true
+  end
+end
+
+local function ensure_available_fonts()
+  if _fonts_initialized then return end
+  init_available_fonts(param('typst-available-fonts'))
+end
+
 local function translate_font_family_list(sl)
   if sl == nil then
     return '()'
   end
-  local strings = {}
+  ensure_available_fonts()
+  local all_strings = {}
+  local filtered = {}
   for s in sl:gmatch('([^,]+)') do
     s = s:gsub('^%s+', ''):gsub('%s+$', '')
     if s ~= '' then
-      table.insert(strings, quote(dequote(s)))
+      local cleaned = dequote(s)
+      local quoted = quote(cleaned)
+      table.insert(all_strings, quoted)
+      if not _available_fonts or _available_fonts[cleaned:lower()] or _generic_families[cleaned:lower()] then
+        table.insert(filtered, quoted)
+      end
     end
   end
-  local trailcomma = #strings == 1 and ',' or ''
-  return '(' .. table.concat(strings, ', ') .. trailcomma .. ')'
+  local result = #filtered > 0 and filtered or all_strings
+  local trailcomma = #result == 1 and ',' or ''
+  return '(' .. table.concat(result, ', ') .. trailcomma .. ')'
 end
 
 
@@ -804,6 +837,7 @@ return {
   translate_border_color = translate_border_color,
   translate_font_weight = translate_font_weight,
   translate_font_family_list = translate_font_family_list,
+  init_available_fonts = init_available_fonts,
   consume_width = consume_width,
   consume_style = consume_style,
   consume_color = consume_color
