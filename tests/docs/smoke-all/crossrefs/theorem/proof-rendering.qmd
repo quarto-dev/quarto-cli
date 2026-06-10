@@ -10,6 +10,7 @@ _quarto:
         -
           - '\\begin\{proof\}'
           - '\\end\{proof\}'
+          - '\\begin\{proof\}\[Of the main theorem\]'
           - '\\begin\{remark\}'
           - '\\end\{remark\}'
 ---

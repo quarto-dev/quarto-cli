@@ -10,6 +10,8 @@ _quarto:
         -
           - '\\begin\{center\}'
           - '\\end\{center\}'
+          - '\\begin\{flushright\}'
+          - '\\end\{flushright\}'
 ---
 
 ## Non-empty LaTeX div
@@ -20,5 +22,5 @@ Some centered content.
 
 ## Empty LaTeX div
 
-::: {.center latex="true"}
+::: {.flushright latex="true"}
 :::
