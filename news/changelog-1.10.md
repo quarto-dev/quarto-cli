@@ -39,6 +39,7 @@ All changes included in 1.10:
 ### `revealjs`
 
 - ([#14354](https://github.com/quarto-dev/quarto-cli/pull/14354)): Fix trailing whitespace after author name on title slide when ORCID is not set. (author: @jnkatz)
+- ([#14585](https://github.com/quarto-dev/quarto-cli/issues/14585)): Fix empty blockquote (`> `) crashing render for revealjs format.
 
 ## Projects
 
