@@ -486,7 +486,7 @@ function parse_floatreftargets()
       if category == nil then
         return nil
       end
-      if #fig.content ~= 1 and fig.content[1].t ~= "Plain" then
+      if #fig.content ~= 1 or fig.content[1].t ~= "Plain" then
         -- we don't know how to parse this pandoc 3 figure
         -- just return as is
         return nil
