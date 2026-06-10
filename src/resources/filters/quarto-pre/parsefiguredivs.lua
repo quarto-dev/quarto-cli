@@ -305,11 +305,9 @@ function parse_floatreftargets()
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
     assert(content)
-    if (#content == 1 and content[1].t == "Para" and
-        content[1].content[1].t == "Image") then
-      -- if the div contains a single image, then we simply use the image as
-      -- the content
-      content = content[1].content[1]
+    local single_image = quarto.utils.match("[1]/Para/[1]/Image")(content)
+    if #content == 1 and single_image then
+      content = single_image
 
       -- don't merge classes because they often have CSS consequences 
       -- but merge attributes because they're needed to correctly resolve
@@ -486,7 +484,7 @@ function parse_floatreftargets()
       if category == nil then
         return nil
       end
-      if #fig.content ~= 1 and fig.content[1].t ~= "Plain" then
+      if #fig.content ~= 1 or fig.content[1].t ~= "Plain" then
         -- we don't know how to parse this pandoc 3 figure
         -- just return as is
         return nil

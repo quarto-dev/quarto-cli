@@ -11,14 +11,8 @@ function render_pandoc3_figure()
   local function html_handle_linked_image(figure)
     local div = pandoc.Div({})
     div.identifier = "fig-yesiamafigure" -- this is a bad hack to make discoverLinkedFigureDiv work
-    local link = nil
-    if figure.content[1].t == "Plain" then
-      local plain = figure.content[1]
-      if plain.content[1].t == "Link" then
-        link = plain.content[1]
-      end
-    end
-    if link == nil then
+    local link = quarto.utils.match("[1]/Plain/[1]/Link")(figure)
+    if not link then
       return nil
     end
     div.content:insert(pandoc.Para({link}))
@@ -196,6 +190,9 @@ function render_pandoc3_figure()
               end
             end
           end
+        end
+        if #figure.content == 0 then
+          return nil
         end
         return make_typst_figure({
           content = figure.content[1],
