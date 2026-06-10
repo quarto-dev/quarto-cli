@@ -79,6 +79,36 @@ if node.is_custom_node then
 end
 ```
 
+### AST Pattern Matching with `quarto.utils.match`
+
+Use `quarto.utils.match()` for safe structural checks on AST nodes. It handles nil/empty content internally — no manual length or nil guards needed. Defined in `src/resources/pandoc/datadir/_utils.lua`.
+
+```lua
+-- ✅ Correct - safe, handles empty content
+if quarto.utils.match("[1]/BulletList")(b) then ...
+
+-- ❌ Wrong - crashes on empty content (0 is truthy in Lua)
+if #b.content and b.content[1].t == "BulletList" then ...
+
+-- ❌ Fragile - manual nil guard, verbose
+if #b.content > 0 and b.content[1].t == "BulletList" then ...
+```
+
+Selector syntax supports `/` child traversal, `[n]` nth-child, `{Type}` capture, `:child`/`:descendant` search, and CSS-like class matching:
+
+```lua
+-- Check nested structure
+quarto.utils.match("Figure/[1]/Plain/[1]/Image")(fig)
+
+-- Capture matched nodes (returned in a list)
+quarto.utils.match("[1]/{Plain}")(content)
+
+-- Search direct children for class
+quarto.utils.match(".cell-output-display/:child/{Para}")(div)
+```
+
+Prefer `match()` over manual `.content[1].t ==` checks — it's nil-safe, readable, and already used in 20+ filter callsites.
+
 ### Slot Assignment
 
 Use the proxy pattern for slot modification:
@@ -285,3 +315,4 @@ These type definition files document the complete API surface.
 8. **Gate format inside element fns** - Constructor runs before format is resolved
 9. **Detect meta shape with `quarto.utils.type`** - Meta values have no `.t` tag
 10. **Gate expensive filters with `flags`** - Skips the whole pass when unneeded
+11. **Use `quarto.utils.match()` for content checks** - Nil-safe, prefer over manual `.content[1].t`
