@@ -216,6 +216,22 @@ format edit is detected on the **first** render request.
 - **Expected:** No preview process restart. Render runs in the same process.
 - **Catches:** Over-eager invalidation triggering 404 when the format is in fact unchanged
 
+## Extension Format PDF Preview (#14582)
+
+### P1: Core functionality
+
+#### T26: Book preview with extension PDF format
+- **Setup**: `extension-pdf-book/` fixture
+- **Steps**: `quarto preview . --to dummy-extension-pdf --no-browser --port 4444`
+- **Expected**: Browse URL contains `web/viewer.html`. PDF.js viewer loads in browser with live-reload.
+- **Catches**: `isFormatTo` startsWith check failing for extension format strings.
+
+#### T27: Book preview with extension HTML format (no regression)
+- **Setup**: Same fixture
+- **Steps**: `quarto preview . --to dummy-extension-html --no-browser --port 4444`
+- **Expected**: Normal HTML preview with live-reload. No PDF.js viewer.
+- **Catches**: Fix doesn't accidentally enable PDF mode for non-PDF extension formats.
+
 ## Test File Templates
 
 **Minimal Python .qmd:**
