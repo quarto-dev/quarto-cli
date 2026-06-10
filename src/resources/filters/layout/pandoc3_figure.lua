@@ -12,7 +12,7 @@ function render_pandoc3_figure()
     local div = pandoc.Div({})
     div.identifier = "fig-yesiamafigure" -- this is a bad hack to make discoverLinkedFigureDiv work
     local link = quarto.utils.match("[1]/Plain/[1]/Link")(figure)
-    if link == nil then
+    if not link then
       return nil
     end
     div.content:insert(pandoc.Para({link}))
