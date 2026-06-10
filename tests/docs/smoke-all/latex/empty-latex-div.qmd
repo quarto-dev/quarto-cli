@@ -1,0 +1,24 @@
+---
+title: Empty LaTeX div
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        -
+          - '\\begin\{center\}'
+          - '\\end\{center\}'
+---
+
+## Non-empty LaTeX div
+
+::: {.center latex="true"}
+Some centered content.
+:::
+
+## Empty LaTeX div
+
+::: {.center latex="true"}
+:::
