@@ -107,6 +107,8 @@ quarto.utils.match("[1]/{Plain}")(content)
 quarto.utils.match(".cell-output-display/:child/{Para}")(div)
 ```
 
+**Return value:** `match()` returns the matched node on success, `false` (not `nil`) on no-match. As a boolean guard this is fine (`false` is falsy). But when using the result as an element, check `if not result` — never `if result == nil`, which lets `false` through to Pandoc constructors ("Inline-ish expected, got boolean").
+
 Prefer `match()` over manual `.content[1].t ==` checks — it's nil-safe, readable, and already used in 20+ filter callsites.
 
 ### Slot Assignment
