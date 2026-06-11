@@ -191,11 +191,12 @@
 
     <% if (respectUserColorScheme) { %>
     queryPrefersDark.addEventListener("change", e => {
-      if(window.localStorage.getItem("quarto-color-scheme") !== null)
-        return;
-      const alternate = e.matches
+      const alternate = e.matches;
+      if (window.localStorage.getItem("quarto-color-scheme") !== null) {
+        window.localStorage.removeItem("quarto-color-scheme");
+      }
       toggleColorMode(alternate);
-      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      localAlternateSentinel = alternate ? 'alternate' : 'default';
       toggleGiscusIfUsed(alternate, darkModeDefault);
     });
     <% } %>
