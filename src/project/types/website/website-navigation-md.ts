@@ -301,7 +301,16 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
       );
       for (let i = 0; i < sidebarSectionEls.length; i++) {
         const sectionEl = sidebarSectionEls[i] as Element;
-        const target = sectionEl.getAttribute("data-bs-target");
+        // When a section has an href, the .sidebar-item-text element is a
+        // plain link without data-bs-target. Fall back to the sibling
+        // .sidebar-item-toggle, which always carries data-bs-target.
+        let target = sectionEl.getAttribute("data-bs-target");
+        if (!target) {
+          const toggleEl = sectionEl.parentElement?.querySelector(
+            ".sidebar-item-toggle",
+          );
+          target = toggleEl?.getAttribute("data-bs-target") ?? null;
+        }
 
         if (target) {
           const id = target.slice(1);
