@@ -87,8 +87,11 @@ export interface ProjectContext extends Cloneable<ProjectContext> {
 
   fileInformationCache: FileInformationCache;
 
-  // This is a cache of _brand.yml for a project
-  brandCache?: { brand?: LightDarkBrandDarkFlag };
+  // This is a cache of _brand.yml for a project. sourceState is a token over
+  // the candidate brand files' existence + mtime + size, so a _brand.yml added,
+  // removed, or edited during a long-lived preview context invalidates the
+  // cache instead of serving a stale brand (#14593).
+  brandCache?: { brand?: LightDarkBrandDarkFlag; sourceState?: string };
   resolveBrand: (
     fileName?: string,
   ) => Promise<

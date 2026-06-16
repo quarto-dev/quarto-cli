@@ -56,6 +56,7 @@ All changes included in 1.10:
 - ([#10392](https://github.com/quarto-dev/quarto-cli/issues/10392)): Fix `quarto preview` of a website or book project showing stale HTML for non-index pages after editing the source `.qmd`.
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Avoid creating a duplicate `.quarto_ipynb` file on preview startup for single-file Jupyter documents.
 - ([#14533](https://github.com/quarto-dev/quarto-cli/issues/14533)): Fix `quarto preview` not detecting a frontmatter `format:` change until the second render request. The first request after the edit now correctly restarts the preview process with the new format.
+- ([#14593](https://github.com/quarto-dev/quarto-cli/issues/14593)): Fix `quarto preview` ignoring a `_brand.yml` added or removed while the preview is running. The brand change is now applied on the next render instead of requiring a preview restart.
 
 ### `install`
 

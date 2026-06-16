@@ -216,6 +216,58 @@ format edit is detected on the **first** render request.
 - **Expected:** No preview process restart. Render runs in the same process.
 - **Catches:** Over-eager invalidation triggering 404 when the format is in fact unchanged
 
+## Test Matrix: Brand Detection (#14593)
+
+After every change to `projectResolveBrand` or the `project.brandCache` guard,
+verify that a sibling `_brand.yml` added or removed **while a preview is running**
+takes effect on the next render — without restarting the preview process. Fixture:
+`brand-detection/` (`report.qmd`, `brand-imperial.yml`); drive it with the
+`/quarto-preview-test` workflow. The
+brand signal in the kept `report.typ` is the line
+`#show link: set text(fill: rgb("#bc1e22")` (present ⇒ brand applied). See
+`brand-detection/README.md` for the on/off check.
+
+### P1: Critical
+
+#### T28: Single .qmd — `_brand.yml` added mid-preview
+
+- **Setup:** `brand-detection/report.qmd` (`format: typst`, `keep-typ: true`), no `_brand.yml` present
+- **Steps:** `quarto preview report.qmd --to typst --no-browser`, copy `brand-imperial.yml` to `_brand.yml`, force one re-render (e.g. touch `report.qmd`), grep `report.typ`
+- **Expected:** `report.typ` gains the brand link-color line. Brand applies without restarting preview.
+- **Catches:** Stale `project.brandCache` serving "no brand" after a `_brand.yml` appeared
+
+#### T29: Single .qmd — `_brand.yml` removed mid-preview
+
+- **Setup:** Same fixture with `_brand.yml` present and the link colored
+- **Steps:** Remove `_brand.yml`, force one re-render, grep `report.typ`
+- **Expected:** The brand link-color line disappears — output reverts to no-brand
+- **Catches:** Stale `project.brandCache` holding the previous brand after the file was removed
+
+### P2: Important
+
+#### T30: HTML format — `_brand.yml` added mid-preview
+
+- **Setup:** `report.qmd` with `format: html`, no `_brand.yml`
+- **Steps:** As T28, inspect the rendered HTML/CSS for the brand primary color
+- **Expected:** Brand applies. `projectResolveBrand` is format-independent, so the same guard covers HTML.
+- **Catches:** A fix that only worked for the typst code path
+
+#### T31: Project (`_quarto.yml`) — `_brand.yml` added/removed mid-preview
+
+- **Setup:** Website/book project with `_quarto.yml`, no project-level `_brand.yml`
+- **Steps:** `quarto preview` the project, add then remove a `_brand.yml`, force re-renders between
+- **Expected:** Brand applies on add and reverts on remove, both without restart
+- **Catches:** The project (multi-file) `ProjectContext` sharing the same stale `brandCache`
+
+### Regression Guard
+
+#### T32: Unchanged `_brand.yml` — no spurious re-resolve cost
+
+- **Setup:** A preview with a stable `_brand.yml`
+- **Steps:** Save the source repeatedly without touching `_brand.yml`
+- **Expected:** Brand stays applied; the source-state token matches so the cache is reused (only cheap stat calls per resolve)
+- **Catches:** A guard that re-loads the brand on every render even when nothing changed
+
 ## Extension Format PDF Preview (#14582)
 
 ### P1: Core functionality
