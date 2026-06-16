@@ -1,12 +1,13 @@
 ---
-main_commit: fc0cf88dc
-analyzed_date: 2026-05-29
+main_commit: 16257efdc
+analyzed_date: 2026-06-15
 key_files:
   - src/command/preview/cmd.ts
   - src/command/preview/preview.ts
   - src/project/serve/serve.ts
   - src/project/serve/watch.ts
   - src/project/project-shared.ts
+  - src/project/types.ts
   - src/execute/jupyter/jupyter.ts
   - src/execute/engine.ts
 ---
@@ -203,7 +204,12 @@ These need a dependency→consumer map in the watch list, not a per-file stat.
 | `engine` | Execution engine instance | Re-determined |
 | `target` | Execution target (includes `.quarto_ipynb` path) | Re-created by `target()` |
 | `metadata` | YAML front matter | Recomputed from markdown |
-| `brand` | Resolved `_brand.yml` data | Re-loaded from disk |
+| `brand` | Per-file brand resolved from the file's frontmatter `brand:` | Re-loaded from disk |
+
+The `brand` row here is the **per-file** resolution (`resolveBrand(fileName)`), keyed
+on the file's own frontmatter `brand:` and invalidated each re-render by
+`invalidateForFile`. It is distinct from the project-level `project.brandCache`
+(see "Project-lifetime caches"), which is the cache that went stale in #14593.
 
 ### fullMarkdown freshness guard (added for #10392)
 
@@ -234,6 +240,46 @@ Without step 1, the Jupyter engine's `target()` function sees the old file on di
 ### cleanupFileInformationCache()
 
 Called at project cleanup (preview exit). Delegates to `invalidateForFile()` for each cache entry, removing all transient files and clearing the cache. This is the final cleanup — `invalidateForFile()` handles per-render cleanup for individual files.
+
+## Project-lifetime caches (outside `fileInformationCache`)
+
+Two render-affecting caches hang directly off `ProjectContext` (`src/project/types.ts`),
+**not** inside the per-file `fileInformationCache`:
+
+| Field | Content | Lifetime |
+|-------|---------|----------|
+| `brandCache` | Project-level brand resolved from `_brand.yml` candidates | Write-once |
+| `outputNameIndex` | Map of output name → input file + format | Write-once |
+
+Both are populated on first use and read forever after. Nothing in the preview
+re-render path clears them — only a full context rebuild does
+(`refreshProjectConfig` in `watch.ts` replaces the whole `ProjectContext` when a
+config file changes). The per-file `invalidateForFile` does **not** touch them.
+
+### `brandCache` staleness (#14593)
+
+`projectResolveBrand` (`project-shared.ts`, the `fileName === undefined` branch)
+populated `project.brandCache` on first resolve and early-returned it forever. In
+a long-lived preview context a `_brand.yml` added or removed mid-session was
+ignored until the process restarted. RStudio's "Render" button runs
+`quarto preview --no-watch-inputs` over the same persistent context, so it
+observed the same stale brand.
+
+Unlike a source edit, the render-request path carries **no change signal**: the
+input `.qmd` is unchanged, and the watcher does not watch `_brand.yml` (a
+separate watcher-coverage issue). Active invalidation has nothing to hook onto. The only
+place that can notice the brand file appearing/disappearing is **at resolve time,
+by checking the filesystem** — so the fix is a passive staleness guard inside
+`projectResolveBrand`, mirroring the `fullMarkdown` mtime+size guard.
+
+The guard derives a *source-state token* over the candidate brand paths the
+resolver already consults (the four `_brand.{yml,yaml}` / `_brand/_brand.{yml,yaml}`
+defaults under `project.dir`, or the `brand:` string path, or the `{light,dark}`
+paths) — combining each file's existence + mtime + size into one comparable
+string. The cache is reused only when the freshly-computed token matches; on any
+mismatch (add, remove, or content edit) the brand is re-resolved and the new
+token stored. Format-independent, since `projectResolveBrand` takes no format
+argument — typst and HTML are both covered.
 
 ## Transient Notebook Lifecycle (.quarto_ipynb)
 
