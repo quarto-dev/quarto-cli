@@ -6,14 +6,14 @@ format:
       beblob:
         client-id: test-client-id
         redirect-uri: https://example.com/
-        project-name: group/project
+        project-name: test-quarto-comments
         gitlab-url: https://gitlab.example.com
         theme: dark
 _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ['div#beblob_thread', 'script#beblob-script[data-project-name="group/project"]']
+        - ['div#beblob_thread', 'script#beblob-script[data-project-name="test-quarto-comments"][data-gitlab-url="https://gitlab.example.com"]']
 ---
 
 Some content, with GitLab-backed comments below.

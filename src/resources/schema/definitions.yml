@@ -366,7 +366,11 @@
                       (must match the value configured in GitLab, typically your site URL).
                 project-name:
                   string:
-                    description: The GitLab project (e.g. `group/project`) that will be used to store comments as issues.
+                    description: |
+                      The name of the GitLab project used to store comments as issues
+                      (e.g. `my-project`). This is the project's name as shown in GitLab —
+                      BeBlob looks the project up by searching GitLab for this name — not
+                      the full `namespace/path`.
                 issue-mapping-strategy:
                   string:
                     description:

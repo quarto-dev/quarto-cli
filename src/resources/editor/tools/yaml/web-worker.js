@@ -8836,7 +8836,7 @@ try {
                           },
                           "project-name": {
                             string: {
-                              description: "The GitLab project (e.g. `group/project`) that will be used to store comments as issues."
+                              description: "The name of the GitLab project used to store comments as issues\n(e.g. `my-project`). This is the project's name as shown in GitLab \u2014\nBeBlob looks the project up by searching GitLab for this name \u2014 not\nthe full `namespace/path`.\n"
                             }
                           },
                           "issue-mapping-strategy": {
@@ -21810,6 +21810,22 @@ try {
             short: "How posts should be mapped to Github issues",
             long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
           },
+          "The GitLab OAuth Application ID used to authenticate commenters.",
+          "The redirect URI registered for the GitLab OAuth Application (must\nmatch the value configured in GitLab, typically your site URL).",
+          "The GitLab project (e.g.&nbsp;<code>group/project</code>) that will be\nused to store comments as issues.",
+          {
+            short: "How pages are mapped to GitLab issues.",
+            long: "How pages are mapped to GitLab issues (<code>url</code>,\n<code>pageTitle</code>, or <code>issueId</code>)."
+          },
+          "The GitLab issue id to use. Required only when\n<code>issue-mapping-strategy</code> is <code>issueId</code>.",
+          "The base URL of the GitLab instance (use this for self-managed\nGitLab). Defaults to <code>https://gitlab.com</code>.",
+          {
+            short: "The theme that should be used for BeBlob.",
+            long: "The theme that should be used for BeBlob (<code>dark</code>,\n<code>white</code>, <code>light</code>, or <code>classic</code>)."
+          },
+          "Load the BeBlob assets locally from your own server instead of from\nthe CDN.",
+          "The BeBlob version to load from the CDN.",
+          "Override the default BeBlob client url with a custom client url\n(e.g.&nbsp;a self-hosted bundle).",
           "Override the default hypothesis client url with a custom client\nurl.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -25454,12 +25470,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 222640,
+          _internalId: 222663,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 222632,
+              _internalId: 222655,
               type: "enum",
               enum: [
                 "png",
@@ -25475,7 +25491,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 222639,
+              _internalId: 222662,
               type: "anyOf",
               anyOf: [
                 {

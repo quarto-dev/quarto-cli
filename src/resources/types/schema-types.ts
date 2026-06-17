@@ -170,7 +170,10 @@ export type DocumentCommentsConfiguration = false | {
       string /* The redirect URI registered for the GitLab OAuth Application
 (must match the value configured in GitLab, typically your site URL). */;
     "project-name":
-      string /* The GitLab project (e.g. `group/project`) that will be used to store comments as issues. */;
+      string /* The name of the GitLab project used to store comments as issues
+(e.g. `my-project`). This is the project's name as shown in GitLab —
+BeBlob looks the project up by searching GitLab for this name — not
+the full `namespace/path`. */;
     "issue-mapping-strategy"?: string /* How pages are mapped to GitLab issues
 (`url`, `pageTitle`, or `issueId`). */;
     "issue-id"?:
