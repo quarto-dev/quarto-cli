@@ -69,6 +69,7 @@ import {
   createCodeCopyButton,
   kAnchorSections,
   kAxe,
+  kBeblob,
   kBootstrapDependencyName,
   kCitationsHover,
   kCodeAnnotations,
@@ -295,6 +296,9 @@ export async function htmlFormatExtras(
           false,
         [kGiscus]:
           (format.metadata[kComments] as Record<string, unknown>)[kGiscus] ||
+          false,
+        [kBeblob]:
+          (format.metadata[kComments] as Record<string, unknown>)[kBeblob] ||
           false,
       }
       : {};
@@ -563,6 +567,36 @@ export async function htmlFormatExtras(
       ),
     );
     includeAfterBody.push(utterancesAfterBody);
+  }
+
+  // beblob (GitLab-backed comments)
+  if (options.beblob) {
+    if (typeof (options.beblob) !== "object") {
+      throw new Error(
+        "Invalid beblob configuration (must provide client-id, redirect-uri and project-name)",
+      );
+    }
+    const beblob = options.beblob as Record<string, unknown>;
+    for (const key of ["client-id", "redirect-uri", "project-name"]) {
+      if (!beblob[key]) {
+        throw new Error(`Invalid beblob configuration (must provide ${key})`);
+      }
+    }
+    beblob["issue-mapping-strategy"] = beblob["issue-mapping-strategy"] ||
+      "pageTitle";
+    beblob["gitlab-url"] = beblob["gitlab-url"] || "https://gitlab.com";
+    beblob["theme"] = beblob["theme"] || "light";
+    beblob["version"] = beblob["version"] || "1.6.0";
+    beblob["dev-mode"] = beblob["dev-mode"] ?? false;
+    const beblobAfterBody = temp.createFile({ suffix: "-beblob.html" });
+    Deno.writeTextFileSync(
+      beblobAfterBody,
+      renderEjs(
+        formatResourcePath("html", join("beblob", "beblob.ejs")),
+        { beblob },
+      ),
+    );
+    includeAfterBody.push(beblobAfterBody);
   }
 
   // giscus

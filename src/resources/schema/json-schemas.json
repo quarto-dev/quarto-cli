@@ -369,6 +369,42 @@
               "giscus": {
                 "$ref": "#/$defs/GiscusConfiguration"
               },
+              "beblob": {
+                "object": {
+                  "properties": {
+                    "client-id": {
+                      "type": "string"
+                    },
+                    "redirect-uri": {
+                      "type": "string"
+                    },
+                    "project-name": {
+                      "type": "string"
+                    },
+                    "issue-mapping-strategy": {
+                      "type": "string"
+                    },
+                    "issue-id": {
+                      "type": "string"
+                    },
+                    "gitlab-url": {
+                      "type": "string"
+                    },
+                    "theme": {
+                      "type": "string"
+                    },
+                    "dev-mode": {
+                      "type": "boolean"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "client-url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "hypothesis": {
                 "anyOf": [
                   {

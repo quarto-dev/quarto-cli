@@ -1,0 +1,19 @@
+---
+title: Beblob GitLab comments
+format:
+  html:
+    comments:
+      beblob:
+        client-id: test-client-id
+        redirect-uri: https://example.com/
+        project-name: group/project
+        gitlab-url: https://gitlab.example.com
+        theme: dark
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['div#beblob_thread', 'script#beblob-script[data-project-name="group/project"]']
+---
+
+Some content, with GitLab-backed comments below.

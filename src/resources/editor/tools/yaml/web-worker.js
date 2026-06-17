@@ -8820,6 +8820,85 @@ try {
                     giscus: {
                       ref: "giscus-configuration"
                     },
+                    beblob: {
+                      object: {
+                        closed: true,
+                        properties: {
+                          "client-id": {
+                            string: {
+                              description: "The GitLab OAuth Application ID used to authenticate commenters."
+                            }
+                          },
+                          "redirect-uri": {
+                            string: {
+                              description: "The redirect URI registered for the GitLab OAuth Application\n(must match the value configured in GitLab, typically your site URL).\n"
+                            }
+                          },
+                          "project-name": {
+                            string: {
+                              description: "The GitLab project (e.g. `group/project`) that will be used to store comments as issues."
+                            }
+                          },
+                          "issue-mapping-strategy": {
+                            string: {
+                              description: {
+                                short: "How pages are mapped to GitLab issues.",
+                                long: "How pages are mapped to GitLab issues\n(`url`, `pageTitle`, or `issueId`).\n"
+                              },
+                              completions: [
+                                "url",
+                                "pageTitle",
+                                "issueId"
+                              ]
+                            }
+                          },
+                          "issue-id": {
+                            string: {
+                              description: "The GitLab issue id to use. Required only when `issue-mapping-strategy` is `issueId`."
+                            }
+                          },
+                          "gitlab-url": {
+                            string: {
+                              description: "The base URL of the GitLab instance (use this for self-managed GitLab). Defaults to `https://gitlab.com`."
+                            }
+                          },
+                          theme: {
+                            string: {
+                              description: {
+                                short: "The theme that should be used for BeBlob.",
+                                long: "The theme that should be used for BeBlob\n(`dark`, `white`, `light`, or `classic`).\n"
+                              },
+                              completions: [
+                                "dark",
+                                "white",
+                                "light",
+                                "classic"
+                              ]
+                            }
+                          },
+                          "dev-mode": {
+                            boolean: {
+                              description: "Load the BeBlob assets locally from your own server instead of from the CDN."
+                            }
+                          },
+                          version: {
+                            string: {
+                              description: "The BeBlob version to load from the CDN."
+                            }
+                          },
+                          "client-url": {
+                            string: {
+                              description: "Override the default BeBlob client url with a custom client url (e.g. a self-hosted bundle)."
+                            }
+                          }
+                        },
+                        required: [
+                          "client-id",
+                          "redirect-uri",
+                          "project-name"
+                        ]
+                      }
+                    },
                     hypothesis: {
                       anyOf: [
                         "boolean",
@@ -21839,9 +21918,9 @@ try {
             short: "Name that should be displayed for the overall site",
             long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
           },
-          "Footer left content",
-          "Footer right content",
-          "Footer center content",
+          "Footer left content. Supports markdown formatting.",
+          "Footer right content. Supports markdown formatting.",
+          "Footer center content. Supports markdown formatting.",
           "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
           "Footer background color",
           "Footer foreground color",
@@ -21886,7 +21965,7 @@ try {
           },
           "Path to a file containing the Plausible Analytics script snippet",
           "Provides an announcement displayed at the top of the page.",
-          "The content of the announcement",
+          "The content of the announcement. Supports markdown formatting.",
           "Whether this announcement may be dismissed by the user.",
           {
             short: "The icon to display in the announcement",
@@ -21944,7 +22023,7 @@ try {
           "Field that contains the section of index entries",
           "Additional parameters to pass when executing a search",
           "Top navigation options",
-          "The navbar title. Uses the project title if none is specified.",
+          "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -21960,7 +22039,7 @@ try {
           "Collapse tools into the navbar menu when the display becomes\nnarrow.",
           "Side navigation options",
           "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
+          "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -21977,7 +22056,7 @@ try {
           "Markdown to place above sidebar content (text or file path)",
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
+          "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -22053,7 +22132,7 @@ try {
           },
           "Path to a file containing the Plausible Analytics script snippet",
           "Provides an announcement displayed at the top of the page.",
-          "The content of the announcement",
+          "The content of the announcement. Supports markdown formatting.",
           "Whether this announcement may be dismissed by the user.",
           {
             short: "The icon to display in the announcement",
@@ -22111,7 +22190,7 @@ try {
           "Field that contains the section of index entries",
           "Additional parameters to pass when executing a search",
           "Top navigation options",
-          "The navbar title. Uses the project title if none is specified.",
+          "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -22127,7 +22206,7 @@ try {
           "Collapse tools into the navbar menu when the display becomes\nnarrow.",
           "Side navigation options",
           "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
+          "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -22144,7 +22223,7 @@ try {
           "Markdown to place above sidebar content (text or file path)",
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
+          "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24480,7 +24559,7 @@ try {
           },
           "Path to a file containing the Plausible Analytics script snippet",
           "Provides an announcement displayed at the top of the page.",
-          "The content of the announcement",
+          "The content of the announcement. Supports markdown formatting.",
           "Whether this announcement may be dismissed by the user.",
           {
             short: "The icon to display in the announcement",
@@ -24538,7 +24617,7 @@ try {
           "Field that contains the section of index entries",
           "Additional parameters to pass when executing a search",
           "Top navigation options",
-          "The navbar title. Uses the project title if none is specified.",
+          "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24554,7 +24633,7 @@ try {
           "Collapse tools into the navbar menu when the display becomes\nnarrow.",
           "Side navigation options",
           "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
+          "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24571,7 +24650,7 @@ try {
           "Markdown to place above sidebar content (text or file path)",
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
+          "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24851,7 +24930,7 @@ try {
           },
           "Path to a file containing the Plausible Analytics script snippet",
           "Provides an announcement displayed at the top of the page.",
-          "The content of the announcement",
+          "The content of the announcement. Supports markdown formatting.",
           "Whether this announcement may be dismissed by the user.",
           {
             short: "The icon to display in the announcement",
@@ -24909,7 +24988,7 @@ try {
           "Field that contains the section of index entries",
           "Additional parameters to pass when executing a search",
           "Top navigation options",
-          "The navbar title. Uses the project title if none is specified.",
+          "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24925,7 +25004,7 @@ try {
           "Collapse tools into the navbar menu when the display becomes\nnarrow.",
           "Side navigation options",
           "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
+          "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24942,7 +25021,7 @@ try {
           "Markdown to place above sidebar content (text or file path)",
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
-          "The sidebar title. Uses the project title if none is specified.",
+          "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
           "Specification of image that will be displayed in the sidebar.",
           "Alternate text for the logo image.",
           "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -25375,12 +25454,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 222617,
+          _internalId: 222640,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 222609,
+              _internalId: 222632,
               type: "enum",
               enum: [
                 "png",
@@ -25396,7 +25475,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 222616,
+              _internalId: 222639,
               type: "anyOf",
               anyOf: [
                 {

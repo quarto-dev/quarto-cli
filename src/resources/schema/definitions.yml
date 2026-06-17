@@ -352,6 +352,60 @@
               required: [repo]
           giscus:
             ref: giscus-configuration
+          beblob:
+            object:
+              closed: true
+              properties:
+                client-id:
+                  string:
+                    description: The GitLab OAuth Application ID used to authenticate commenters.
+                redirect-uri:
+                  string:
+                    description: |
+                      The redirect URI registered for the GitLab OAuth Application
+                      (must match the value configured in GitLab, typically your site URL).
+                project-name:
+                  string:
+                    description: The GitLab project (e.g. `group/project`) that will be used to store comments as issues.
+                issue-mapping-strategy:
+                  string:
+                    description:
+                      short: How pages are mapped to GitLab issues.
+                      long: |
+                        How pages are mapped to GitLab issues
+                        (`url`, `pageTitle`, or `issueId`).
+                    completions:
+                      - url
+                      - pageTitle
+                      - issueId
+                issue-id:
+                  string:
+                    description: The GitLab issue id to use. Required only when `issue-mapping-strategy` is `issueId`.
+                gitlab-url:
+                  string:
+                    description: The base URL of the GitLab instance (use this for self-managed GitLab). Defaults to `https://gitlab.com`.
+                theme:
+                  string:
+                    description:
+                      short: The theme that should be used for BeBlob.
+                      long: |
+                        The theme that should be used for BeBlob
+                        (`dark`, `white`, `light`, or `classic`).
+                    completions:
+                      - dark
+                      - white
+                      - light
+                      - classic
+                dev-mode:
+                  boolean:
+                    description: Load the BeBlob assets locally from your own server instead of from the CDN.
+                version:
+                  string:
+                    description: The BeBlob version to load from the CDN.
+                client-url:
+                  string:
+                    description: Override the default BeBlob client url with a custom client url (e.g. a self-hosted bundle).
+              required: [client-id, redirect-uri, project-name]
           hypothesis:
             anyOf:
               - boolean
