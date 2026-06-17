@@ -586,7 +586,7 @@ export async function htmlFormatExtras(
       "pageTitle";
     beblob["gitlab-url"] = beblob["gitlab-url"] || "https://gitlab.com";
     beblob["theme"] = beblob["theme"] || "light";
-    beblob["version"] = beblob["version"] || "1.6.0";
+    beblob["version"] = beblob["version"] || "2.1.0";
     beblob["dev-mode"] = beblob["dev-mode"] ?? false;
     const beblobAfterBody = temp.createFile({ suffix: "-beblob.html" });
     Deno.writeTextFileSync(
