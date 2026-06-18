@@ -11,7 +11,7 @@ All changes included in 1.10:
 ## Dependencies
 
 - ([#14291](https://github.com/quarto-dev/quarto-cli/issues/14291)): Update `deno` to v2.7.14 (fixes silent crash on Windows builds older than 16299).
-- ([#14602](https://github.com/quarto-dev/quarto-cli/pull/14602)): Add alt-text to ORCID image in author metadata HTML/Reveal.js partial. (author: @mcanouil)
+- ([#14602](https://github.com/quarto-dev/quarto-cli/pull/14602)): Add aria-label and alt to ORCID image link in author metadata HTML/Reveal.js partial. (author: @mcanouil)
 
 ## Accessibility
 
