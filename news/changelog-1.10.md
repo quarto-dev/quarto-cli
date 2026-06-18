@@ -15,6 +15,7 @@ All changes included in 1.10:
 ## Accessibility
 
 - ([#14468](https://github.com/quarto-dev/quarto-cli/issues/14468)): The `axe` accessibility report UI (HTML overlay, revealjs report slide, dashboard offcanvas) now uses its own theme-independent colors instead of inheriting from `brand` or theme. Keeps the report readable regardless of page styling, and stops `axe` from clobbering brand colors set via `_brand.yml`.
+- ([#14604](https://github.com/quarto-dev/quarto-cli/issues/14604)): The `axe` accessibility report UI  now shows each violation's WCAG conformance level (e.g. `WCAG 2.0 AA (1.4.3)`) or `Best Practice`, derived from the violation's axe-core tags.
 
 ## Formats
 

@@ -37,12 +37,15 @@ interface AxeTestCase {
   // Expected violation ID. RevealJS CSS transforms prevent axe-core from
   // computing color contrast, so revealjs tests check for a different violation.
   expectedViolation: string;
+  // WCAG conformance label the document reporter derives from the violation's
+  // axe-core tags (#14604). Only the document reporter renders this.
+  expectedConformance?: string;
 }
 
 const testCases: AxeTestCase[] = [
   // HTML — bootstrap format, color contrast detected
   { format: 'html', outputMode: 'document', url: '/html/axe-accessibility.html',
-    expectedViolation: 'color-contrast' },
+    expectedViolation: 'color-contrast', expectedConformance: 'WCAG 2.0 AA (1.4.3)' },
   { format: 'html', outputMode: 'console', url: '/html/axe-console.html',
     expectedViolation: 'color-contrast' },
   { format: 'html', outputMode: 'json', url: '/html/axe-json.html',
@@ -52,7 +55,7 @@ const testCases: AxeTestCase[] = [
   // RevealJS CSS transforms prevent axe-core from computing color contrast,
   // so we check for link-name (slide-menu-button has unlabeled <a>).
   { format: 'revealjs', outputMode: 'document', url: '/revealjs/axe-accessibility.html',
-    expectedViolation: 'link-name' },
+    expectedViolation: 'link-name', expectedConformance: 'WCAG 2.0 A (2.4.4, 4.1.2)' },
   { format: 'revealjs', outputMode: 'console', url: '/revealjs/axe-console.html',
     expectedViolation: 'link-name' },
   { format: 'revealjs', outputMode: 'json', url: '/revealjs/axe-json.html',
@@ -61,11 +64,11 @@ const testCases: AxeTestCase[] = [
   // RevealJS dark theme — verifies CSS custom property bridge for theming.
   // Report should use --r-background-color/#191919, not the Sass fallback #fff.
   { format: 'revealjs-dark', outputMode: 'document', url: '/revealjs/axe-accessibility-dark.html',
-    expectedViolation: 'link-name' },
+    expectedViolation: 'link-name', expectedConformance: 'WCAG 2.0 A (2.4.4, 4.1.2)' },
 
   // Dashboard — axe-check.js loads as standalone module, falls back to document.body (#13781)
   { format: 'dashboard', outputMode: 'document', url: '/dashboard/axe-accessibility.html',
-    expectedViolation: 'color-contrast' },
+    expectedViolation: 'color-contrast', expectedConformance: 'WCAG 2.0 AA (1.4.3)' },
   { format: 'dashboard', outputMode: 'console', url: '/dashboard/axe-console.html',
     expectedViolation: 'color-contrast' },
   { format: 'dashboard', outputMode: 'json', url: '/dashboard/axe-json.html',
@@ -73,11 +76,11 @@ const testCases: AxeTestCase[] = [
 
   // Dashboard dark theme — verifies CSS custom property bridge for theming
   { format: 'dashboard-dark', outputMode: 'document', url: '/dashboard/axe-accessibility-dark.html',
-    expectedViolation: 'color-contrast' },
+    expectedViolation: 'color-contrast', expectedConformance: 'WCAG 2.0 AA (1.4.3)' },
 
   // Dashboard with pages — multi-page dashboard with global sidebar
   { format: 'dashboard-pages', outputMode: 'document', url: '/dashboard/axe-accessibility-pages.html',
-    expectedViolation: 'color-contrast' },
+    expectedViolation: 'color-contrast', expectedConformance: 'WCAG 2.0 AA (1.4.3)' },
 ];
 
 // Map axe violation IDs to the text that appears in document/console reporters.
@@ -91,7 +94,7 @@ const violationText: Record<string, { document: string; console: string }> = {
 // -- Tests --
 
 test.describe('Axe accessibility checking', () => {
-  for (const { format, outputMode, url, expectedViolation } of testCases) {
+  for (const { format, outputMode, url, expectedViolation, expectedConformance } of testCases) {
     test(`${format} — ${outputMode} mode detects ${expectedViolation} violation`, async ({ page }) => {
       expect(violationText[expectedViolation],
         `Missing violationText entry for "${expectedViolation}"`).toBeDefined();
@@ -114,6 +117,11 @@ test.describe('Axe accessibility checking', () => {
           await expect(axeReport).toBeAttached();
           await expect(axeReport).toContainText(violationText[expectedViolation].document);
 
+          // Conformance level is derived from the violation's axe-core tags (#14604)
+          if (expectedConformance) {
+            await expect(axeReport).toContainText(expectedConformance);
+          }
+
           // Report element is static (not fixed overlay)
           await expect(axeReport).toHaveCSS('position', 'static');
 
@@ -127,6 +135,11 @@ test.describe('Axe accessibility checking', () => {
           await expect(axeReport).toBeAttached();
           await expect(axeReport).toContainText(violationText[expectedViolation].document);
 
+          // Conformance level is derived from the violation's axe-core tags (#14604)
+          if (expectedConformance) {
+            await expect(axeReport).toContainText(expectedConformance);
+          }
+
           // Toggle button exists
           const toggle = page.locator('.quarto-axe-toggle');
           await expect(toggle).toBeVisible();
@@ -139,6 +152,11 @@ test.describe('Axe accessibility checking', () => {
           const axeReport = page.locator('.quarto-axe-report');
           await expect(axeReport).toBeVisible({ timeout: 10000 });
           await expect(axeReport).toContainText(violationText[expectedViolation].document);
+
+          // Conformance level is derived from the violation's axe-core tags (#14604)
+          if (expectedConformance) {
+            await expect(axeReport).toContainText(expectedConformance);
+          }
 
           // Verify report overlay CSS properties
           await expect(axeReport).toHaveCSS('z-index', '9999');

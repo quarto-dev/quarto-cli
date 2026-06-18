@@ -1,3 +1,40 @@
+// Derive a human-readable WCAG conformance label from axe-core's `tags` array.
+// Tags encode the version+level (`wcag2a`, `wcag21aa`), the specific success
+// criteria (`wcag111` → 1.1.1), and `best-practice` for axe's own
+// recommendations that aren't tied to any WCAG success criterion. Returns "" when
+// no conformance tags are present so callers can fall back to the impact alone.
+function axeConformanceLevel(tags) {
+  if (tags.includes("best-practice")) return "Best Practice";
+
+  // Version+level: wcag2a, wcag2aa, wcag21aa, wcag22aa, ... An `-obsolete`
+  // suffix (e.g. `wcag2a-obsolete` on the deprecated `duplicate-id` rule) marks
+  // a criterion that was withdrawn from later WCAG versions, e.g. SC 4.1.1,
+  // removed in WCAG 2.2. We surface the original level but flag it as obsolete
+  // so a withdrawn criterion isn't mistaken for a current conformance failure.
+  const versionTag = tags.find((t) => /^wcag\d+a+(-obsolete)?$/.test(t));
+  // Without a version+level tag there's no conformance level to report, so fall
+  // back to the impact alone rather than emitting a bare, level-less criterion.
+  if (!versionTag) return "";
+
+  const [, major, minor, level, obsolete] =
+    versionTag.match(/^wcag(\d)(\d?)(a+)(-obsolete)?$/);
+  let label = `WCAG ${major}.${minor || "0"} ${level.toUpperCase()}`;
+
+  // Success criteria: wcag111 → 1.1.1, wcag1410 → 1.4.10. Principle and
+  // guideline are always single digits; the remainder is the criterion number.
+  const criteria = tags
+    .filter((t) => /^wcag\d{3,}$/.test(t))
+    .map((t) => {
+      const d = t.slice(4);
+      return `${d[0]}.${d[1]}.${d.slice(2)}`;
+    })
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  if (criteria.length) {
+    label += ` (${criteria.join(", ")})`;
+  }
+  return obsolete ? `Obsolete ${label}` : label;
+}
+
 class QuartoAxeReporter {
   constructor(axeResult, options) {
     this.axeResult = axeResult;
@@ -74,7 +111,10 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
 
     const descriptionElement = document.createElement("div");
     descriptionElement.className = "quarto-axe-violation-description";
-    descriptionElement.innerText = `${violation.impact.replace(/^[a-z]/, match => match.toLocaleUpperCase())}: ${violation.description}`;
+    const impact = violation.impact.replace(/^[a-z]/, match => match.toLocaleUpperCase());
+    const level = axeConformanceLevel(violation.tags);
+    const prefix = level ? `${impact} · ${level}` : impact;
+    descriptionElement.innerText = `${prefix}: ${violation.description}`;
     violationElement.appendChild(descriptionElement);
 
     const helpElement = document.createElement("div");
