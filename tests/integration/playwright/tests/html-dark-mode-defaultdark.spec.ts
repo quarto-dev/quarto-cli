@@ -89,7 +89,7 @@ test('Project specifies dark and light brands, dynamic respect-user-color-scheme
 });
 
 
-test('Project specifies dark and light brands, do not respect-user-color-scheme after toggling', async ({ page }) => {
+test('Project specifies dark and light brands, manual override expires on system theme change', async ({ page }) => {
   await page.goto('./html/dark-brand/project-dark/simple-respect-color-scheme.html');
   const locatr = await page.locator('body').first();
   await expect(locatr).toHaveClass(`fullcontent quarto-dark`);
@@ -100,8 +100,10 @@ test('Project specifies dark and light brands, do not respect-user-color-scheme 
   await check_backgrounds(page, 'quarto-light', blue, red);
   await check_toggle(page, true);
 
+  // After the system theme changes, the manual override expires
+  // and the page follows the system again
   await page.emulateMedia({ colorScheme: 'light' });
-  await expect(locatr).toHaveClass(`fullcontent quarto-dark`);
-  await expect(locatr).toHaveCSS('background-color', red);
-  await check_toggle(page, true);
+  await expect(locatr).toHaveClass(`fullcontent quarto-light`);
+  await expect(locatr).toHaveCSS('background-color', blue);
+  await check_toggle(page, false);
 });
