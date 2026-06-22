@@ -1,0 +1,15 @@
+<% let srcHref = beblob['client-url'] || ("https://unpkg.com/beblob@" + beblob.version + "/dist/beblob.js"); %>
+<div id="beblob_thread"></div>
+<script
+  id="beblob-script"
+  src="<%- srcHref %>"
+  data-client-id="<%- beblob['client-id'] %>"
+  data-redirect-uri="<%- beblob['redirect-uri'] %>"
+  data-project-name="<%- beblob['project-name'] %>"
+  data-issue-mapping-strategy="<%- beblob['issue-mapping-strategy'] %>"
+  <% if (beblob['issue-mapping-strategy'] === 'issueId' && beblob['issue-id']) { %>data-issue-id="<%- beblob['issue-id'] %>"
+  <% } %>data-gitlab-url="<%- beblob['gitlab-url'] %>"
+  data-dev-mode="<%- beblob['dev-mode'] ? 'true' : 'false' %>"
+  data-beblob-version="<%- beblob.version %>"
+  data-theme="<%- beblob.theme %>"
+></script>
