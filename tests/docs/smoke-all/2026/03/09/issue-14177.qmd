@@ -1,0 +1,20 @@
+---
+title: "Issue with fenced inline code at beginning of line"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ["\\{\\{"]
+---
+
+For teaching materials explaining how to use insert inline code, I would like to display source code demonstrating how to use inline code in the rendered version of a Quarto document. Here's an example below:
+
+``` markdown
+## Inline code demo
+
+`{{r}} nrow(penguins)` penguins are included in the amazing `penguins` dataset. 
+On average these penguins weigh `{{r}} mean(penguins$body_mass, na.rm = TRUE)` grams, although the lightest weighs `{{r}} min(penguins$body_mass, na.rm = TRUE)` g and the heaviest `{{r}} max(penguins$body_mass, na.rm = TRUE)` g.
+```
+
+When the paragraph above is rendered, the inline code snippets are all correctly rendered as fenced code except the first one that retains its double curly brackets (see screenshot).
