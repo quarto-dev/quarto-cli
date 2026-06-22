@@ -3,7 +3,7 @@
 // criteria (`wcag111` → 1.1.1), and `best-practice` for axe's own
 // recommendations that aren't tied to any WCAG success criterion. Returns "" when
 // no conformance tags are present so callers can fall back to the impact alone.
-function axeConformanceLevel(tags) {
+export function axeConformanceLevel(tags) {
   if (tags.includes("best-practice")) return "Best Practice";
 
   // Version+level: wcag2a, wcag2aa, wcag21aa, wcag22aa, ... An `-obsolete`
@@ -419,6 +419,10 @@ async function init() {
   }
 }
 
-// Self-initialize when loaded as a standalone module.
-// ES modules are deferred, so the DOM is fully parsed when this runs.
-init();
+// Self-initialize when loaded as a standalone module in a browser. ES modules
+// are deferred, so the DOM is fully parsed when this runs. The `document` guard
+// keeps the module side-effect-free when imported outside a browser (e.g. unit
+// tests that exercise axeConformanceLevel directly).
+if (typeof document !== "undefined") {
+  init();
+}
