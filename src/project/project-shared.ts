@@ -583,17 +583,20 @@ export async function projectResolveBrand(
     }
     return resolved;
   }
+  // A token over the candidate brand files' existence + mtime + size, so the
+  // long-lived preview brandCache is reused only while the on-disk brand state
+  // is unchanged. Mirrors the fullMarkdown mtime+size guard above.
+  function brandSourceState(paths: string[]): string {
+    return paths.map((path) => {
+      try {
+        const stat = Deno.statSync(path);
+        return `${path}:${stat.mtime?.getTime()}:${stat.size}`;
+      } catch {
+        return `${path}:absent`;
+      }
+    }).join("|");
+  }
   if (fileName === undefined) {
-    if (project.brandCache) {
-      return project.brandCache.brand;
-    }
-    project.brandCache = {};
-    let fileNames = [
-      "_brand.yml",
-      "_brand.yaml",
-      "_brand/_brand.yml",
-      "_brand/_brand.yaml",
-    ].map((file) => join(project.dir, file));
     const brand = (project?.config?.brand ??
       project?.config?.project.brand) as
         | boolean
@@ -602,6 +605,39 @@ export async function projectResolveBrand(
           light?: string;
           dark?: string;
         };
+
+    // Determine the candidate brand files this resolve will consult, so the
+    // staleness token below covers exactly the paths that affect the result.
+    let candidatePaths: string[];
+    if (
+      typeof brand === "object" && brand &&
+      ("light" in brand || "dark" in brand)
+    ) {
+      candidatePaths = [
+        brand.light ? resolveBrandPath(brand.light, project.dir) : undefined,
+        brand.dark ? resolveBrandPath(brand.dark, project.dir) : undefined,
+      ].filter((path): path is string => path !== undefined);
+    } else if (typeof brand === "string") {
+      candidatePaths = [join(project.dir, brand)];
+    } else {
+      candidatePaths = [
+        "_brand.yml",
+        "_brand.yaml",
+        "_brand/_brand.yml",
+        "_brand/_brand.yaml",
+      ].map((file) => join(project.dir, file));
+    }
+
+    // In preview mode the project context is long-lived and brandCache is
+    // reused across re-renders. Reuse the cached brand only when the on-disk
+    // state of the candidate files is unchanged; otherwise re-resolve so a
+    // _brand.yml added, removed, or edited mid-session takes effect (#14593).
+    const sourceState = brandSourceState(candidatePaths);
+    if (project.brandCache && project.brandCache.sourceState === sourceState) {
+      return project.brandCache.brand;
+    }
+    project.brandCache = { sourceState };
+
     if (brand === false) {
       project.brandCache.brand = undefined;
       return project.brandCache.brand;
@@ -621,11 +657,8 @@ export async function projectResolveBrand(
       };
       return project.brandCache.brand;
     }
-    if (typeof brand === "string") {
-      fileNames = [join(project.dir, brand)];
-    }
 
-    for (const brandPath of fileNames) {
+    for (const brandPath of candidatePaths) {
       if (!existsSync(brandPath)) {
         continue;
       }
