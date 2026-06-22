@@ -19,8 +19,11 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '#{set text\(font: \("Georgia", "serif"\)\); table\('
-        - []
+          # Georgia is kept; the CSS generic "serif" is dropped (not a real
+          # Typst font), leaving a single-element font tuple.
+          - '#{set text\(font: \("Georgia",\)\); table\('
+        -
+          - '"serif"'
 ---
 
 ```{=html}
