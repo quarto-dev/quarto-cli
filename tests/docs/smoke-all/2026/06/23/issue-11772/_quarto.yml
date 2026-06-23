@@ -11,6 +11,7 @@ book:
     - summary.qmd
 
 format:
+  html: default
   pdf:
     documentclass: scrreprt
     keep-tex: true

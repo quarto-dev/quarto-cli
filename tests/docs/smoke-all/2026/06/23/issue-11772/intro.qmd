@@ -1,3 +1,17 @@
+---
+_quarto:
+  render-project: true
+  tests:
+    html:
+      # crossref.appendix-title ("Whatever") must drive the appendix
+      # cross-reference prefix in HTML too. This cross-file reference from a
+      # numbered chapter is resolved by the book post-render step, which
+      # previously only honored language.crossref-apx-prefix — issue #11772.
+      ensureFileRegexMatches:
+        - ['>Whatever A<']
+        - ['>Appendix A<']
+---
+
 # Introduction
 
 See @sec-summary.

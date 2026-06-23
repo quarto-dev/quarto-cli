@@ -394,6 +394,23 @@ Run test **without fix** first to verify it fails, then verify it passes with fi
 
 Smoke-all tests embed test specifications directly in `.qmd` files using `_quarto.tests` metadata. See `.claude/rules/testing/smoke-all-tests.md` for full documentation.
 
+### Project pre-render for cross-file resolution
+
+A `_quarto.tests` block renders only its own input file (`quarto render <input> --to <format>`). In a multi-file project (book/website), cross-file references that are resolved at the project post-render stage — e.g. an appendix cross-reference in one chapter pointing at another chapter — stay unresolved under a single-file render.
+
+Set `render-project: true` as a sibling of `tests:` to render the whole project first:
+
+```yaml
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['>Whatever A<']
+```
+
+The harness runs `quarto render <projectDir>` (in `smoke-all.test.ts`) before the per-file render. **Gotcha:** that pre-render has no `--to`, so it builds only the formats declared in `_quarto.yml`. To test a format's cross-file output, declare that format in the project config — otherwise the pre-render skips it and the per-file render alone cannot resolve cross-file references. Reference fixture: `tests/docs/smoke-all/2026/06/23/issue-11772` (the book declares `format: html` so the HTML appendix cross-reference resolves; the per-file HTML render then reuses the project crossref index).
+
 ### YAML String Escaping for Regex
 
 **Critical rule:** In YAML single-quoted strings, `'\('` and `"\\("` are equivalent - both produce a literal `\(` in the regex.

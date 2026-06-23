@@ -18,6 +18,8 @@ import {
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 
 import {
+  kCrossref,
+  kCrossrefAppendixTitle,
   kCrossrefApxPrefix,
   kCrossrefChapterId,
   kCrossrefChapters,
@@ -37,7 +39,7 @@ import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
 import { isMultiFileBookFormat } from "./book-shared.ts";
-import { Format } from "../../../config/types.ts";
+import { Format, Metadata } from "../../../config/types.ts";
 
 export async function bookCrossrefsPostRender(
   context: ProjectContext,
@@ -305,11 +307,21 @@ function formatCrossref(
   // if this is a section we need a prefix
   const refNumber = numberOption(entry.order, options, type);
   if (type === "sec" && !noPrefix) {
-    const prefix = (options[kCrossrefChapters] && isChapterRef(entry))
-      ? options[kCrossrefChaptersAppendix]
-        ? language[kCrossrefApxPrefix]
-        : language[kCrossrefChPrefix]
-      : language[kCrossrefSecPrefix];
+    let prefix;
+    if (options[kCrossrefChapters] && isChapterRef(entry)) {
+      if (options[kCrossrefChaptersAppendix]) {
+        // appendix cross-references prefer crossref.appendix-title (the same
+        // option that titles the appendix chapter heading) so the reference
+        // text matches the heading
+        const crossref = format.metadata?.[kCrossref] as Metadata | undefined;
+        prefix = (crossref?.[kCrossrefAppendixTitle] as string) ??
+          language[kCrossrefApxPrefix];
+      } else {
+        prefix = language[kCrossrefChPrefix];
+      }
+    } else {
+      prefix = language[kCrossrefSecPrefix];
+    }
     const crossref = prefix + " " + refNumber;
     return crossref;
   } else {

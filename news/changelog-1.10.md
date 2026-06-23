@@ -50,6 +50,10 @@ All changes included in 1.10:
 - ([#14562](https://github.com/quarto-dev/quarto-cli/issues/14562)): Fix a heading inside `content-hidden when-format="llms-txt"` (visible in HTML) losing its `<section>` wrapper and `id` in a website with `llms-txt` enabled, which broke its table-of-contents link, anchors, and cross-references.
 - ([#14563](https://github.com/quarto-dev/quarto-cli/issues/14563)): Fix a fatal error when a shortcode is used inside conditional content (e.g. `content-visible when-format="llms-txt"`) in a website with `llms-txt` enabled.
 
+### Books
+
+- ([#11772](https://github.com/quarto-dev/quarto-cli/issues/11772)): Fix `crossref.appendix-title` not being applied to appendix cross-references in PDF output. Appendix cross-references now use the configured title (e.g. `See Whatever A`) instead of always showing the default `Appendix` prefix.
+
 ## Commands
 
 ### `quarto preview`

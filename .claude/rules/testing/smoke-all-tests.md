@@ -119,6 +119,23 @@ _quarto:
 
 Valid OS values: `linux`, `darwin`, `windows`
 
+## Project Rendering (cross-file resolution)
+
+Each `_quarto.tests` block renders only its own input file (`quarto render <input> --to <format>`). In a multi-file project (book/website) that leaves cross-file references resolved at the project post-render stage (e.g. an appendix cross-reference pointing into another chapter) unresolved.
+
+Set `render-project: true` as a sibling of `tests:` (under `_quarto`) to render the whole project first:
+
+```yaml
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['>Whatever A<']
+```
+
+Gotcha: the project pre-render runs `quarto render <projectDir>` with **no `--to`**, so it builds only the formats **declared in `_quarto.yml`**. To test a format's cross-file output, that format must be declared in the project config — otherwise the pre-render skips it and the per-file render alone cannot resolve cross-file refs. Example: `tests/docs/smoke-all/2026/06/23/issue-11772` (book must declare `format: html` for the HTML appendix cross-reference test).
+
 ## Pattern Specificity
 
 Avoid patterns that match template boilerplate instead of document content:

@@ -77,6 +77,14 @@ function refPrefix(type, upper)
   end
   default = stringToInlines(default)
   local prefix = crossrefOption(opt, default)
+  -- appendix cross-references prefer crossref.appendix-title (the same option that
+  -- titles the appendix chapter heading) so the reference text matches the heading
+  if type == "apx" then
+    local appendixTitle = crossrefOption("appendix-title")
+    if appendixTitle ~= nil then
+      prefix = appendixTitle
+    end
+  end
   if upper then
     local el = pandoc.Plain(prefix)
     local firstStr = true
