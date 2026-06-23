@@ -1,0 +1,20 @@
+project:
+  type: book
+
+book:
+  title: "issue-11772"
+  author: "Norah Jones"
+  chapters:
+    - index.qmd
+    - intro.qmd
+  appendices:
+    - summary.qmd
+
+format:
+  pdf:
+    documentclass: scrreprt
+    keep-tex: true
+
+crossref:
+  appendix-title: "Whatever"
+  appendix-delim: ":"

@@ -1,0 +1,19 @@
+---
+format:
+  pdf:
+    keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      # crossref.appendix-title ("Whatever") must drive the appendix
+      # cross-reference prefix in PDF, like it does in HTML output.
+      # Currently the prefix falls back to the default "Appendix"
+      # (only language.crossref-apx-prefix is honored) — issue #11772.
+      ensureLatexFileRegexMatches:
+        - ['See Whatever~\\ref\{sec-summary\}']
+        - ['See Appendix~\\ref\{sec-summary\}']
+---
+
+# Preface {.unnumbered}
+
+This is a book testing crossref appendix options in PDF (issue #11772).
