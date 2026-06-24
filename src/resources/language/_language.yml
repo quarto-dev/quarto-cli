@@ -46,6 +46,8 @@ code-summary: "Code"
 code-tools-menu-caption: "Code"
 code-tools-show-all-code: "Show All Code"
 code-tools-hide-all-code: "Hide All Code"
+code-tools-show-all-sections: "Expand Sections"
+code-tools-hide-all-sections: "Collapse Sections"
 code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
 
