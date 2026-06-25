@@ -16,8 +16,10 @@ local function split_longtable_start(content_str)
   
   -- we need to do this through utf8 because lua strings are not unicode-aware
   local codepoints = {}
+  local n = 0
   for _, c in utf8.codes(content_str) do
-    table.insert(codepoints, c)
+    n = n + 1
+    codepoints[n] = c
   end
   local function find_codepoint(start_idx, ...)
     if start_idx > #codepoints then
