@@ -15,7 +15,12 @@ local function split_longtable_start(content_str)
   -- we do this by counting the number of open braces
   
   -- we need to do this through utf8 because lua strings are not unicode-aware
-  local codepoints = table.pack(utf8.codepoint(content_str, 1, #content_str))
+  local codepoints = {}
+  local n = 0
+  for _, c in utf8.codes(content_str) do
+    n = n + 1
+    codepoints[n] = c
+  end
   local function find_codepoint(start_idx, ...)
     if start_idx > #codepoints then
       return nil
