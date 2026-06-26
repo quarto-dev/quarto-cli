@@ -1,0 +1,17 @@
+---
+format:
+  docx:
+    line-numbers: true
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        -
+          - "//w:lnNumType"
+        - []
+---
+
+# Section
+
+A paragraph of text so that the rendered Word document has several lines, which
+`line-numbers: true` should number continuously in the margin.
