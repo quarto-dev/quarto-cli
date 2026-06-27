@@ -18,13 +18,13 @@ You can contribute in many ways:
 This repository is for the command-line program `quarto`.
 Please use the destination that matches your need so we can respond quickly.
 
-| You want to | Use |
-| --- | --- |
-| Report a bug or unexpected behaviour. | [Bug report issue form](https://github.com/quarto-dev/quarto-cli/issues/new?template=bug_report.yml). |
-| Report an issue on quarto.org or suggest a documentation improvement. | [Documentation issue form](https://github.com/quarto-dev/quarto-cli/issues/new?template=documentation.yml). |
-| Suggest a new or missing feature. | [Feature Requests discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests). |
-| Ask for help or ask a usage question. | [Q&A discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a). |
-| Share what you built with Quarto. | [Show and Tell discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/show-and-tell). |
+| You want to                                                           | Use                                                                                                               |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Report a bug or unexpected behaviour.                                 | [Bug report issue form](https://github.com/quarto-dev/quarto-cli/issues/new?template=bug_report.yml).             |
+| Report an issue on quarto.org or suggest a documentation improvement. | [Documentation issue form](https://github.com/quarto-dev/quarto-cli/issues/new?template=documentation.yml).       |
+| Suggest a new or missing feature.                                     | [Feature Requests discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests). |
+| Ask for help or ask a usage question.                                 | [Q&A discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).                           |
+| Share what you built with Quarto.                                     | [Show and Tell discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/show-and-tell).       |
 
 Some issues belong to other repositories:
 
@@ -81,17 +81,17 @@ If an AI assistant helped prepare a PR, please complete the AI-assisted section 
 
 1. [Fork](https://github.com/quarto-dev/quarto-cli/fork) the repository, clone it locally, and make your changes in a new branch specific to the PR. For example:
 
-    ```bash
-    # clone your fork
-    $ git clone https://github.com/<username>/quarto-cli
+   ```bash
+   # clone your fork
+   $ git clone https://github.com/<username>/quarto-cli
 
-    # configure for your platform (./configure.sh for linux/mac  or ./configure.cmd for Windows)
-    $ cd quarto-cli
-    $ ./configure.sh
+   # configure for your platform (./configure.sh for linux/mac  or ./configure.cmd for Windows)
+   $ cd quarto-cli
+   $ ./configure.sh
 
-    # checkout a new branch
-    $ git checkout -b bugfix/myfix
-    ```
+   # checkout a new branch
+   $ git checkout -b bugfix/myfix
+   ```
 
 2. Submit the [pull request](https://help.github.com/articles/using-pull-requests). It is ok to submit as a draft if you are still working on it but would like some feedback from us. It is always good to share in the open that you are working on it.
 
