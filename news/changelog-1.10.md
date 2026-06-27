@@ -16,6 +16,7 @@ All changes included in 1.10:
 ## Accessibility
 
 - ([#14468](https://github.com/quarto-dev/quarto-cli/issues/14468)): The `axe` accessibility report UI (HTML overlay, revealjs report slide, dashboard offcanvas) now uses its own theme-independent colors instead of inheriting from `brand` or theme. Keeps the report readable regardless of page styling, and stops `axe` from clobbering brand colors set via `_brand.yml`.
+- ([#14604](https://github.com/quarto-dev/quarto-cli/issues/14604)): The `axe` accessibility report UI  now shows each violation's WCAG conformance level (e.g. `WCAG 2.0 AA (1.4.3)`) or `Best Practice`, derived from the violation's axe-core tags.
 
 ## Formats
 
@@ -57,6 +58,7 @@ All changes included in 1.10:
 - ([#10392](https://github.com/quarto-dev/quarto-cli/issues/10392)): Fix `quarto preview` of a website or book project showing stale HTML for non-index pages after editing the source `.qmd`.
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Avoid creating a duplicate `.quarto_ipynb` file on preview startup for single-file Jupyter documents.
 - ([#14533](https://github.com/quarto-dev/quarto-cli/issues/14533)): Fix `quarto preview` not detecting a frontmatter `format:` change until the second render request. The first request after the edit now correctly restarts the preview process with the new format.
+- ([#14593](https://github.com/quarto-dev/quarto-cli/issues/14593)): Fix `quarto preview` ignoring a `_brand.yml` added or removed while the preview is running. The brand change is now applied on the next render instead of requiring a preview restart.
 
 ### `install`
 
@@ -96,3 +98,4 @@ All changes included in 1.10:
 - ([#14472](https://github.com/quarto-dev/quarto-cli/issues/14472)): Add support for Kotlin in code annotations and YAML cell options. (author: @barendgehrels)
 - ([#14529](https://github.com/quarto-dev/quarto-cli/issues/14529)): Fix bundled Julia engine path leaking into rendered YAML metadata and pandoc log output when running an installed Quarto. The internal subtree-engine filter only matched the source-tree share-path layout (`resources/extension-subtrees/`) and missed installed layouts where the path is `share/extension-subtrees/`.
 - ([#14582](https://github.com/quarto-dev/quarto-cli/issues/14582)): Fix format detection for extension formats (e.g. `acm-pdf`) in project preview, manuscript notebooks, MECA bundles, and website format ordering.
+- ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment.
