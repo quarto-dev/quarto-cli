@@ -60,10 +60,15 @@ Before starting one, please search [existing discussions](https://github.com/qua
 
 If you are using an AI assistant to help investigate a bug or prepare an issue, point it to the Quarto codebase before asking it to analyze the problem:
 
-- **[DeepWiki](https://deepwiki.com/quarto-dev/quarto-cli)** — AI-indexed documentation for the repository. Available as a web UI for human queries and as an [MCP server](https://docs.devin.ai/work-with-devin/deepwiki-mcp) to give your AI assistant direct access. Useful for understanding architecture, finding relevant source files, and asking questions about how Quarto works internally.
-- **[Context7](https://context7.com)** — Provides up-to-date Quarto documentation and related tool docs. Available as a web UI, a [cli tool](https://context7.com/docs/clients/cli) and as an [MCP server](https://context7.com/docs/resources/all-clients) so AI assistants can fetch current docs on demand.
-- **`https://quarto.org/llms.txt`** — Machine-readable index of Quarto documentation, following the [llms.txt convention](https://llmstxt.org/). Point your AI assistant at this URL to give it a structured map of available documentation.
-- **Clone the repo** — AI tools that can run code or search files benefit from a local clone. Cloning the repository lets the AI search source files, trace code paths, and verify behavior directly rather than relying on potentially outdated training data.
+- **[DeepWiki](https://deepwiki.com/quarto-dev/quarto-cli)** — AI-indexed documentation for the repository.
+  Available as a web UI for human queries and as an [MCP server](https://docs.devin.ai/work-with-devin/deepwiki-mcp) to give your AI assistant direct access.
+  Useful for understanding architecture, finding relevant source files, and asking questions about how Quarto works internally.
+- **[Context7](https://context7.com)** — Provides up-to-date Quarto documentation and related tool docs.
+  Available as a web UI, a [cli tool](https://context7.com/docs/clients/cli) and as an [MCP server](https://context7.com/docs/resources/all-clients) so AI assistants can fetch current docs on demand.
+- **`https://quarto.org/llms.txt`** — Machine-readable index of Quarto documentation, following the [llms.txt convention](https://llmstxt.org/).
+  Point your AI assistant at this URL to give it a structured map of available documentation.
+- **Clone the repo** — AI tools that can run code or search files benefit from a local clone.
+  Cloning the repository lets the AI search source files, trace code paths, and verify behavior directly rather than relying on potentially outdated training data.
 
 Grounding your AI assistant in the actual codebase leads to more accurate root cause analysis and better-quality issue reports.
 
@@ -79,7 +84,8 @@ If an AI assistant helped prepare a PR, please complete the AI-assisted section 
 
 ## Submitting a pull request
 
-1. [Fork](https://github.com/quarto-dev/quarto-cli/fork) the repository, clone it locally, and make your changes in a new branch specific to the PR. For example:
+1. [Fork](https://github.com/quarto-dev/quarto-cli/fork) the repository, clone it locally, and make your changes in a new branch specific to the PR.
+   For example:
 
    ```bash
    # clone your fork
@@ -93,7 +99,9 @@ If an AI assistant helped prepare a PR, please complete the AI-assisted section 
    $ git checkout -b bugfix/myfix
    ```
 
-2. Submit the [pull request](https://help.github.com/articles/using-pull-requests). It is ok to submit as a draft if you are still working on it but would like some feedback from us. It is always good to share in the open that you are working on it.
+2. Submit the [pull request](https://help.github.com/articles/using-pull-requests).
+   It is ok to submit as a draft if you are still working on it but would like some feedback from us.
+   It is always good to share in the open that you are working on it.
 
 Before you open a PR, please check that you have (when applicable):
 
@@ -103,4 +111,5 @@ Before you open a PR, please check that you have (when applicable):
 - Added new tests for your change.
 - Opened a linked documentation PR in [Quarto's website repo](https://github.com/quarto-dev/quarto-web/) when behaviour or documentation changes.
 
-We'll try to be as responsive as possible in reviewing and accepting pull requests. Very much appreciate your contributions!
+We'll try to be as responsive as possible in reviewing and accepting pull requests.
+Very much appreciate your contributions!
