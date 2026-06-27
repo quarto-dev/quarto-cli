@@ -45,7 +45,7 @@ When reporting a bug, please:
 
 The [bug report form](https://github.com/quarto-dev/quarto-cli/issues/new?template=bug_report.yml) shows the syntax for sharing a Quarto document inside an issue.
 
-For documentation issues, add a link to the page you are referring to and a screenshot when relevant.
+For documentation issues, add a link to the page you are referring to and a screenshot when relevant using the [Documentation issue form](https://github.com/quarto-dev/quarto-cli/issues/new?template=documentation.yml).
 
 ## Starting a discussion
 
