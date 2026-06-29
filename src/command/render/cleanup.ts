@@ -74,11 +74,6 @@ export function renderCleanup(
         filesDir = normalizePath(filesDir);
       }
       supporting = supporting.map((supportingDir) => {
-        // Compare separator-agnostically: the knitr engine reports supportingDir
-        // with forward slashes on Windows (R path convention) while filesDir uses
-        // the platform separator. A raw === comparison fails on Windows, so the
-        // parent index_files dir gets removed wholesale instead of being narrowed
-        // to the figure dir (#14613).
         if (pathsEqual(filesDir, supportingDir)) {
           return join(filesDir, figuresDir(figureFormat));
         } else {
