@@ -45,6 +45,10 @@ All changes included in 1.10:
 
 ## Projects
 
+### Manuscripts
+
+- ([#14613](https://github.com/quarto-dev/quarto-cli/issues/14613)): Fix dynamically generated figures missing from the rendered manuscript on Windows on the first render when using the knitr engine with `freeze: auto`.
+
 ### Websites
 
 - ([#13565](https://github.com/quarto-dev/quarto-cli/issues/13565), [#14353](https://github.com/quarto-dev/quarto-cli/issues/14353)): Fix sidebar logo not appearing on secondary sidebars in multi-sidebar website layouts.
