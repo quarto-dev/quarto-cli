@@ -15,6 +15,7 @@ All changes included in 1.10:
 ## Accessibility
 
 - ([#14468](https://github.com/quarto-dev/quarto-cli/issues/14468)): The `axe` accessibility report UI (HTML overlay, revealjs report slide, dashboard offcanvas) now uses its own theme-independent colors instead of inheriting from `brand` or theme. Keeps the report readable regardless of page styling, and stops `axe` from clobbering brand colors set via `_brand.yml`.
+- ([#14602](https://github.com/quarto-dev/quarto-cli/pull/14602)): Add `aria-label` and `alt=""` to properly announce ORCID image link in author metadata HTML/Reveal.js partial. (author: @mcanouil)
 - ([#14604](https://github.com/quarto-dev/quarto-cli/issues/14604)): The `axe` accessibility report UI  now shows each violation's WCAG conformance level (e.g. `WCAG 2.0 AA (1.4.3)`) or `Best Practice`, derived from the violation's axe-core tags.
 
 ## Formats
@@ -97,4 +98,4 @@ All changes included in 1.10:
 - ([#14472](https://github.com/quarto-dev/quarto-cli/issues/14472)): Add support for Kotlin in code annotations and YAML cell options. (author: @barendgehrels)
 - ([#14529](https://github.com/quarto-dev/quarto-cli/issues/14529)): Fix bundled Julia engine path leaking into rendered YAML metadata and pandoc log output when running an installed Quarto. The internal subtree-engine filter only matched the source-tree share-path layout (`resources/extension-subtrees/`) and missed installed layouts where the path is `share/extension-subtrees/`.
 - ([#14582](https://github.com/quarto-dev/quarto-cli/issues/14582)): Fix format detection for extension formats (e.g. `acm-pdf`) in project preview, manuscript notebooks, MECA bundles, and website format ordering.
-- ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment
+- ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment.
