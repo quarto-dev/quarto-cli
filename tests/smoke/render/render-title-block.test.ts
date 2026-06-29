@@ -48,14 +48,27 @@ testRender(bannerInput, "html", false, [
   ensureFileRegexMatches(bannerOutput.outputPath, [/Nora Jones/], [/\[true\]/]),
 ]);
 
-// The ipynb title-block renders the ORCID icon as a link wrapping the icon
-// image. The link must carry an accessible name so screen readers announce the
-// author's ORCID profile instead of falling back to the base64 image data.
+// ORCID icon links must carry an accessible name so screen readers announce
+// the author profile instead of the base64 image data.
+const orcidInput = docs("doc-layout/title-block-orcid.qmd");
+
+// HTML and Reveal.js: check aria-label on the anchor (#14602).
+const orcidAriaMatches = [
+  /aria-label="ORCID profile for Norah Jones"/,
+  /aria-label="ORCID profile for Jane Doe"/,
+];
+for (const fmt of ["html", "revealjs"] as const) {
+  const orcidOutput = outputForInput(orcidInput, fmt);
+  testRender(orcidInput, fmt, false, [
+    ensureFileRegexMatches(orcidOutput.outputPath, orcidAriaMatches),
+  ]);
+}
+
+// ipynb: check accessible name in notebook cell source (#14632).
 // \s+ between words tolerates pandoc's soft line wrapping of the cell source.
 // Table-form author rows (authors without structured affiliations).
-const orcidIpynbInput = docs("doc-layout/title-block-orcid-ipynb.qmd");
-const orcidIpynbOutput = outputForInput(orcidIpynbInput, "ipynb");
-testRender(orcidIpynbInput, "ipynb", true, [
+const orcidIpynbOutput = outputForInput(orcidInput, "ipynb");
+testRender(orcidInput, "ipynb", true, [
   ensureIpynbCellMatches(orcidIpynbOutput.outputPath, {
     cellType: "markdown",
     matches: [
@@ -66,7 +79,7 @@ testRender(orcidIpynbInput, "ipynb", true, [
 ]);
 
 // By-author block (authors with structured affiliations) — a separate template
-// site from the table-form rows above.
+// path from the table-form rows above.
 const orcidIpynbAffilInput = docs(
   "doc-layout/title-block-orcid-ipynb-affiliation.qmd",
 );
