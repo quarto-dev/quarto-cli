@@ -6,7 +6,11 @@
 */
 
 import { docs, outputForInput } from "../../utils.ts";
-import { ensureFileRegexMatches, ensureHtmlElements } from "../../verify.ts";
+import {
+  ensureFileRegexMatches,
+  ensureHtmlElements,
+  ensureIpynbCellMatches,
+} from "../../verify.ts";
 import { testRender } from "./render.ts";
 
 const input = docs("doc-layout/title-block.qmd");
@@ -42,4 +46,47 @@ testRender(bannerInput, "html", false, [
     ".quarto-categories",
   ]),
   ensureFileRegexMatches(bannerOutput.outputPath, [/Nora Jones/], [/\[true\]/]),
+]);
+
+// ORCID icon links must carry an accessible name so screen readers announce
+// the author profile instead of the base64 image data.
+const orcidInput = docs("doc-layout/title-block-orcid.qmd");
+
+// HTML and Reveal.js: check aria-label on the anchor (#14602).
+const orcidAriaMatches = [
+  /aria-label="ORCID profile for Norah Jones"/,
+  /aria-label="ORCID profile for Jane Doe"/,
+];
+for (const fmt of ["html", "revealjs"] as const) {
+  const orcidOutput = outputForInput(orcidInput, fmt);
+  testRender(orcidInput, fmt, false, [
+    ensureFileRegexMatches(orcidOutput.outputPath, orcidAriaMatches),
+  ]);
+}
+
+// ipynb: check accessible name in notebook cell source (#14632).
+// \s+ between words tolerates pandoc's soft line wrapping of the cell source.
+// Table-form author rows (authors without structured affiliations).
+const orcidIpynbOutput = outputForInput(orcidInput, "ipynb");
+testRender(orcidInput, "ipynb", true, [
+  ensureIpynbCellMatches(orcidIpynbOutput.outputPath, {
+    cellType: "markdown",
+    matches: [
+      /ORCID\s+profile\s+for\s+Norah\s+Jones/,
+      /ORCID\s+profile\s+for\s+Jane\s+Doe/,
+    ],
+  }),
+]);
+
+// By-author block (authors with structured affiliations) — a separate template
+// path from the table-form rows above.
+const orcidIpynbAffilInput = docs(
+  "doc-layout/title-block-orcid-ipynb-affiliation.qmd",
+);
+const orcidIpynbAffilOutput = outputForInput(orcidIpynbAffilInput, "ipynb");
+testRender(orcidIpynbAffilInput, "ipynb", true, [
+  ensureIpynbCellMatches(orcidIpynbAffilOutput.outputPath, {
+    cellType: "markdown",
+    matches: [/ORCID\s+profile\s+for\s+Norah\s+Jones/],
+  }),
 ]);

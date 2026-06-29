@@ -28,6 +28,16 @@ TypeScript-based tests using Deno. Smoke tests render documents; unit tests veri
 | `tests/verify.ts` | Verification functions (`noErrors`, `fileExists`, etc.) |
 | `tests/utils.ts` | `docs()`, `outputForInput()`, path utilities |
 
+### Search for an existing verifier before writing one
+
+`verify.ts` already covers many output shapes — including parsed-content
+verifiers, not just raw-text regex (e.g. `ensureIpynbCellMatches` JSON-parses a
+notebook and matches against joined cell source; `ensureHtmlElements` /
+`ensureHtmlSelectorSatisfies` parse the DOM). Before adding a new `Verify`,
+grep `verify.ts` for the format or assertion you need. Reuse or extend the
+existing helper rather than hand-rolling a near-duplicate. Same applies to
+mock-context and fixture helpers in `tests/unit/**` and `tests/utils.ts`.
+
 ## Smoke Tests (`tests/smoke/`)
 
 Render documents and verify output:
