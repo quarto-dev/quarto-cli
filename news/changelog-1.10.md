@@ -93,6 +93,7 @@ All changes included in 1.10:
 
 ## Other fixes and improvements
 
+- ([#6092](https://github.com/quarto-dev/quarto-cli/issues/6092)): Fix the `default-image-extension` being appended to an extensionless URL ending in a slash (e.g. `![](https://example.com/)`), which broke the embed/iframe image syntax.
 - ([#6651](https://github.com/quarto-dev/quarto-cli/issues/6651)): Fix dart-sass compilation failing in enterprise environments where `.bat` files are blocked by group policy.
 - ([#14255](https://github.com/quarto-dev/quarto-cli/issues/14255)): Fix shortcodes inside inline and display math expressions not being resolved.
 - ([#14342](https://github.com/quarto-dev/quarto-cli/issues/14342)): Work around TOCTOU race in Deno's `expandGlobSync` that can cause unexpected exceptions to be raised while traversing directories during project initialization.
@@ -102,4 +103,5 @@ All changes included in 1.10:
 - ([#14472](https://github.com/quarto-dev/quarto-cli/issues/14472)): Add support for Kotlin in code annotations and YAML cell options. (author: @barendgehrels)
 - ([#14529](https://github.com/quarto-dev/quarto-cli/issues/14529)): Fix bundled Julia engine path leaking into rendered YAML metadata and pandoc log output when running an installed Quarto. The internal subtree-engine filter only matched the source-tree share-path layout (`resources/extension-subtrees/`) and missed installed layouts where the path is `share/extension-subtrees/`.
 - ([#14582](https://github.com/quarto-dev/quarto-cli/issues/14582)): Fix format detection for extension formats (e.g. `acm-pdf`) in project preview, manuscript notebooks, MECA bundles, and website format ordering.
-- ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment.
+- ([#14583](https://github.com/quarto-dev/quarto-cli/issues/14583)): Fix a shortcode used as an image source (e.g. `![]({{< meta logo >}})`) getting the `default-image-extension` appended, producing a doubled extension once the shortcode resolves.
+- ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment

@@ -1,0 +1,82 @@
+---
+title: default-image-extension spurious append
+logo: assets/diagram.png
+imgdir: assets
+noext: figures/plot
+svgfile: figures/chart.svg
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          # #14583: a shortcode resolving to a path that already has an extension
+          # must not end up with a doubled extension
+          - 'src="assets/diagram\.png"'
+          # The doubled extension may be mismatched: a shortcode resolving to a
+          # .svg path in an HTML doc (default png) becomes .svg.png; the spurious
+          # .png must be stripped, leaving the real .svg
+          - 'src="figures/chart\.svg"'
+          # A shortcode resolving to an extensionless path keeps the appended
+          # default extension (the multi-format workflow)
+          - 'src="figures/plot\.png"'
+          # Fix B: provably-spurious empty-filename URL has the extension stripped
+          - 'src="https://example\.com/"'
+          # Guard: local file without extension still gets default appended
+          - 'src="images/screenshot\.png"'
+          # Guard: user-typed URL with real extension is left unchanged
+          - 'src="https://example\.com/logo\.png"'
+          # Guard: data URI is left intact (no spurious extension)
+          - 'src="data:image/png;base64,[^"]+"'
+          # Guard: a shortcode mid-path with a real extension keeps that extension
+          - 'src="assets/logo\.png"'
+        -
+          # No doubled extension survives the shortcode cases
+          - 'diagram\.png\.png'
+          - 'chart\.svg\.png'
+          # Empty-filename URL must not be left with the appended extension
+          - 'src="https://example\.com/\.png"'
+          # Narrow URL fix must not strip a real extension off a user-typed URL
+          - 'src="https://example\.com/logo"'
+          # Mid-path shortcode source must not have its real extension stripped
+          - 'src="assets/logo"'
+          # Data URI must not have a spurious extension appended
+          - 'base64,[^"]*\.png"'
+---
+
+Shortcode resolving to an extensioned path — must not double (issue #14583):
+
+![shortcode]({{< meta logo >}})
+
+Shortcode resolving to a path whose extension differs from the format default
+(here `.svg` in an HTML doc): the spurious default extension must be stripped:
+
+![mismatched ext]({{< meta svgfile >}})
+
+Shortcode resolving to an extensionless path — multi-format append is kept:
+
+![extensionless]({{< meta noext >}})
+
+User explicitly appends the default extension to a shortcode — preserved:
+
+![user explicit]({{< meta noext >}}.png)
+
+Empty-filename URL — embed/iframe syntax (issue #6092):
+
+![empty url](https://example.com/)
+
+Local file without extension — multi-format workflow must keep the append:
+
+![local](images/screenshot)
+
+User-typed URL with a real extension must stay untouched:
+
+![user png](https://example.com/logo.png)
+
+Data URI regression guard:
+
+![data uri](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==)
+
+Shortcode mid-path with a real extension must keep the extension:
+
+![mid-path]({{< meta imgdir >}}/logo.png)
