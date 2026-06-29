@@ -6,7 +6,11 @@
 */
 
 import { docs, outputForInput } from "../../utils.ts";
-import { ensureFileRegexMatches, ensureHtmlElements } from "../../verify.ts";
+import {
+  ensureFileRegexMatches,
+  ensureHtmlElements,
+  ensureIpynbCellMatches,
+} from "../../verify.ts";
 import { testRender } from "./render.ts";
 
 const input = docs("doc-layout/title-block.qmd");
@@ -42,4 +46,34 @@ testRender(bannerInput, "html", false, [
     ".quarto-categories",
   ]),
   ensureFileRegexMatches(bannerOutput.outputPath, [/Nora Jones/], [/\[true\]/]),
+]);
+
+// The ipynb title-block renders the ORCID icon as a link wrapping the icon
+// image. The link must carry an accessible name so screen readers announce the
+// author's ORCID profile instead of falling back to the base64 image data.
+// \s+ between words tolerates pandoc's soft line wrapping of the cell source.
+// Table-form author rows (authors without structured affiliations).
+const orcidIpynbInput = docs("doc-layout/title-block-orcid-ipynb.qmd");
+const orcidIpynbOutput = outputForInput(orcidIpynbInput, "ipynb");
+testRender(orcidIpynbInput, "ipynb", true, [
+  ensureIpynbCellMatches(orcidIpynbOutput.outputPath, {
+    cellType: "markdown",
+    matches: [
+      /ORCID\s+profile\s+for\s+Norah\s+Jones/,
+      /ORCID\s+profile\s+for\s+Jane\s+Doe/,
+    ],
+  }),
+]);
+
+// By-author block (authors with structured affiliations) — a separate template
+// site from the table-form rows above.
+const orcidIpynbAffilInput = docs(
+  "doc-layout/title-block-orcid-ipynb-affiliation.qmd",
+);
+const orcidIpynbAffilOutput = outputForInput(orcidIpynbAffilInput, "ipynb");
+testRender(orcidIpynbAffilInput, "ipynb", true, [
+  ensureIpynbCellMatches(orcidIpynbAffilOutput.outputPath, {
+    cellType: "markdown",
+    matches: [/ORCID\s+profile\s+for\s+Norah\s+Jones/],
+  }),
 ]);
