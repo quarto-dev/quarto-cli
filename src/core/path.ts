@@ -327,6 +327,14 @@ export function normalizePath(path: string | URL): string {
   return file.replace(/^\w:\\/, (m: string) => m[0].toUpperCase() + ":\\");
 }
 
+// Compares two filesystem paths for equality in a separator-agnostic way by
+// normalizing both sides first. Use this instead of comparing raw path strings:
+// engines (notably knitr) can report paths with forward slashes on Windows even
+// when other paths use the platform separator, so a raw === comparison fails.
+export function pathsEqual(a: string, b: string): boolean {
+  return normalizePath(a) === normalizePath(b);
+}
+
 // Moved here from env.ts to avoid circular dependency
 export function suggestUserBinPaths() {
   if (!isWindows) {

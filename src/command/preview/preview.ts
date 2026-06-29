@@ -72,6 +72,7 @@ import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import {
   normalizePath,
+  pathsEqual,
   pathWithForwardSlashes,
   safeExistsSync,
 } from "../../core/path.ts";
@@ -788,7 +789,7 @@ function htmlFileRequestHandlerOptions(
           !invalidateDevServerReRender &&
           prevReq &&
           existsSync(prevReq.path) &&
-          normalizePath(prevReq.path) === normalizePath(inputFile) &&
+          pathsEqual(prevReq.path, inputFile) &&
           await previewRenderRequestIsCompatible(prevReq, project, flags.to)
         ) {
           // don't wait for the promise so the
