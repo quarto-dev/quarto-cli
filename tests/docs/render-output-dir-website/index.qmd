@@ -1,0 +1,8 @@
+---
+title: Home
+---
+
+Minimal website fixture used to verify that a project type with
+`cleanOutputDir: true` (here `type: website`) still cleans stale files
+from its output directory after the #13623 fix narrowed output-dir
+cleaning. See `tests/smoke/render/render-output-dir.test.ts`.

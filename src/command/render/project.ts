@@ -240,6 +240,20 @@ const getProjectRenderScripts = async (
   return { preRenderScripts, postRenderScripts };
 };
 
+// Whether renderProject should remove the project output directory before
+// rendering. Driven solely by the --clean flag and the project type opting in
+// via cleanOutputDir (book, manuscript, website). Deliberately NOT influenced
+// by options.forceClean: forceClean signals a synthetic single-file project
+// that only needs its .quarto scratch directory cleaned, and the synthetic
+// project resolves to the default project type, which must never wipe the
+// output directory (it may contain unrelated user files). See #13623.
+export function shouldCleanProjectOutputDir(
+  projType: ProjectType,
+  options: RenderOptions,
+): boolean {
+  return (options.flags?.clean == true) && (projType.cleanOutputDir === true);
+}
+
 export async function renderProject(
   context: ProjectContext,
   pOptions: RenderOptions,
@@ -276,9 +290,7 @@ export async function renderProject(
   // if there is an output dir then remove it if clean is specified
   if (
     projectRenderConfig.behavior.renderAll && hasProjectOutputDir(context) &&
-    (projectRenderConfig.options.forceClean ||
-      (projectRenderConfig.options.flags?.clean == true) &&
-        (projType.cleanOutputDir === true))
+    shouldCleanProjectOutputDir(projType, projectRenderConfig.options)
   ) {
     // output dir - use safeRemoveDirSync for boundary protection (#13892)
     const realProjectDir = normalizePath(context.dir);

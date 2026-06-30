@@ -96,6 +96,7 @@ All changes included in 1.10:
 
 - ([#6092](https://github.com/quarto-dev/quarto-cli/issues/6092)): Fix the `default-image-extension` being appended to an extensionless URL ending in a slash (e.g. `![](https://example.com/)`), which broke the embed/iframe image syntax.
 - ([#6651](https://github.com/quarto-dev/quarto-cli/issues/6651)): Fix dart-sass compilation failing in enterprise environments where `.bat` files are blocked by group policy.
+- ([#13623](https://github.com/quarto-dev/quarto-cli/issues/13623)): Fix `quarto render <file> --output-dir <dir>` deleting pre-existing files in the output directory.
 - ([#14255](https://github.com/quarto-dev/quarto-cli/issues/14255)): Fix shortcodes inside inline and display math expressions not being resolved.
 - ([#14342](https://github.com/quarto-dev/quarto-cli/issues/14342)): Work around TOCTOU race in Deno's `expandGlobSync` that can cause unexpected exceptions to be raised while traversing directories during project initialization.
 - ([#14445](https://github.com/quarto-dev/quarto-cli/issues/14445)): Fix intermittent `Uncaught (in promise) TypeError: Writable stream is closed or errored.` aborting renders on Linux. `execProcess` now awaits and swallows the rejection from `process.stdin.close()` when the child closes its stdin first. The captured stderr is now also surfaced when `typst-gather analyze` falls back to staging all packages, so failures are diagnosable without bypassing `quarto`.
