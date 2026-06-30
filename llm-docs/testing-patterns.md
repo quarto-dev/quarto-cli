@@ -89,6 +89,29 @@ testQuartoCmd(
 - Use absolute paths with `join()` for file verification
 - Clean up output directories in teardown
 
+### Performance Budget (Render Timeout)
+
+`testQuartoCmd` runs the render under a default 10-minute timeout. For a test guarding a *performance* regression — a render that must not hang — set a tight budget via `TestContext.timeout` (milliseconds) so a regression fails fast instead of riding the 10-minute default:
+
+```typescript
+testQuartoCmd("render", [projectDir], [noErrors /*, ... */], {
+  timeout: 120000, // healthy render is well under this; a hang trips it
+  setup: () => {
+    writeProject(); // generate the fixture project in a temp dir
+    return Promise.resolve();
+  },
+  teardown: () => {
+    safeRemoveSync(projectDir, { recursive: true });
+    return Promise.resolve();
+  },
+});
+```
+
+**Key points:**
+
+- The budget is machine-dependent (post-fix render time must sit well under it, pre-fix hang well over it), so it is defense-in-depth. Pair it with a deterministic unit test on the actual fix mechanism as the primary guard.
+- A timed-out render subprocess is not killed by the harness, so on Windows it may still hold the output directory; use `safeRemoveSync` in teardown and treat cleanup as best-effort.
+
 ### Extension Template Tests
 
 For testing `quarto use template`:
