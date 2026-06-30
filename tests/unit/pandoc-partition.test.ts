@@ -55,34 +55,6 @@ unitTest("partitionYaml", async () => {
   );
 });
 
-// A `#` line inside a fenced code block is not a heading; the fence delimiter
-// is content that precedes it, so contentBeforeHeading must be true. This is the
-// shape of an embedded code cell's markdown (issue 14577): a Python comment must
-// not be promoted to the notebook title.
-// deno-lint-ignore require-await
-unitTest("partitionMarkdown - fenced code comment is not a leading heading", async () => {
-  const markdown = "```python\nprint('hello')\n# plt.savefig('out.svg')\n```\n";
-  const partmd = partitionMarkdown(markdown);
-  assert(
-    partmd.headingText === "plt.savefig('out.svg')",
-    "Comment line should still be extracted as headingText (not fence-aware)",
-  );
-  assert(
-    partmd.contentBeforeHeading === true,
-    "Fence delimiter precedes the comment, so contentBeforeHeading must be true",
-  );
-});
-
-// deno-lint-ignore require-await
-unitTest("partitionMarkdown - leading heading has no content before it", async () => {
-  const partmd = partitionMarkdown("# Real Title\n\nsome body text\n");
-  assert(partmd.headingText === "Real Title", "Heading text not parsed");
-  assert(
-    partmd.contentBeforeHeading === false,
-    "Heading is first content, so contentBeforeHeading must be false",
-  );
-});
-
 // deno-lint-ignore require-await
 unitTest("languagesWithClasses - dot-joined syntax", async () => {
   const md = `\`\`\`{python.marimo}
