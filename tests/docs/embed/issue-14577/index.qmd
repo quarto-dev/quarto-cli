@@ -1,0 +1,9 @@
+---
+title: "Embed code-comment title (issue 14577)"
+---
+
+The embedded notebook has no markdown heading cells and a code cell whose last
+line is a Python comment (`# plt.savefig(...)`). The notebook title used for the
+"Source" link and the sidebar must be the filename, not the code comment.
+
+{{< embed notebook.ipynb echo=true >}}

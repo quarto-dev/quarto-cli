@@ -103,6 +103,47 @@ testRender(ipynbInput, format, false, [
   },
 });
 
+// Embedded notebook title must not be taken from a Python code comment
+// (issue 14577). When a notebook has no markdown heading cells but a code
+// cell whose source contains a `# comment` line, the title used for the
+// "Source" link / sidebar must fall back to the filename, not the comment.
+const commentTitleInput = docs("embed/issue-14577/index.qmd");
+const commentTitleOutput = outputForInput(commentTitleInput, format);
+const commentTitlePreviewNb = join(
+  dirname(commentTitleOutput.outputPath),
+  "notebook-preview.html",
+);
+const commentTitlePreviewSupporting = join(
+  dirname(commentTitleOutput.outputPath),
+  "notebook_files",
+);
+const commentTitlePreviewRendered = join(
+  dirname(commentTitleOutput.outputPath),
+  "notebook.out.ipynb",
+);
+
+testRender(commentTitleInput, format, false, [
+  noErrorsOrWarnings,
+  ensureFileRegexMatches(
+    commentTitleOutput.outputPath,
+    [
+      // The notebook source link uses the filename as the title
+      /Source:\s*notebook\.ipynb/,
+    ],
+    [
+      // The Python comment must never be used as the notebook title
+      /Source:\s*(#\s*)?plt\.savefig/,
+    ],
+  ),
+], {
+  teardown: () => {
+    Deno.removeSync(commentTitlePreviewNb);
+    Deno.removeSync(commentTitlePreviewSupporting, { recursive: true });
+    Deno.removeSync(commentTitlePreviewRendered);
+    return Promise.resolve();
+  },
+});
+
 // Test different echo settings (bug 8472)
 const docInput = docs("embed/qmd-embed/index.qmd");
 const docOutput = outputForInput(docInput, "html");

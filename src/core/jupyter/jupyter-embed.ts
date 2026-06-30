@@ -654,7 +654,11 @@ function findTitle(cells: JupyterCellOutput[]) {
     const partitioned = partitionMarkdown(cell.markdown);
     if (partitioned.yaml?.title) {
       return partitioned.yaml.title as string;
-    } else if (partitioned.headingText) {
+    } else if (partitioned.headingText && !partitioned.contentBeforeHeading) {
+      // Only promote a heading to the title when nothing precedes it, matching
+      // how a notebook's front-matter title is derived in jupyter-fixups.ts.
+      // This excludes a `#` comment inside a code cell's fenced source, whose
+      // fence delimiter always counts as content before the heading (issue 14577).
       return partitioned.headingText;
     }
   }
