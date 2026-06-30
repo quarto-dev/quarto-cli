@@ -1,15 +1,6 @@
 ---
-# Issue #14575: with tbl-cap-location: bottom, the caption of a
-# cross-referenceable table whose content is wrapped in
-# .cell-output-display (knitr/jupyter engine output) is placed inside
-# the longtable body instead of in the foot (\endlastfoot).
-#
-# This file covers the markdown-only cases (CI-safe, no engine needed).
-# Correct behaviour: the bottom caption sits in the longtable foot,
-# i.e. \caption{...}\tabularnewline immediately before \endlastfoot.
-#
-# Cases 1-4 already render correctly (regression guards).
-# Cases 5-6 are the bug (currently fail; should pass after the fix).
+# Issue #14575 — markdown-only cases (CI-safe, no engine needed).
+# See the body below for what each case exercises.
 format: pdf
 tbl-cap-location: bottom
 keep-tex: true
@@ -20,19 +11,23 @@ _quarto:
       ensureLatexFileRegexMatches:
         -
           - '\\end\{document\}'
-          # Case 1: markdown table + caption syntax, no id (guard)
           - '\\caption\{[\s\S]{0,60}CAP1 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
-          # Case 2: markdown table + caption syntax + id (guard)
           - '\\caption\{[\s\S]{0,60}CAP2 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
-          # Case 3: div float + bare table + trailing caption paragraph (guard)
           - '\\caption\{[\s\S]{0,60}CAP3 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
-          # Case 4: div float + tbl-cap attribute + bare table (guard)
           - '\\caption\{[\s\S]{0,60}CAP4 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
-          # Case 5: div float + tbl-cap + .cell-output-display (the bug)
           - '\\caption\{[\s\S]{0,60}CAP5 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
-          # Case 6: .cell + .cell-output-display, mcanouil reprex (the bug)
           - '\\caption\{[\s\S]{0,60}CAP6 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
 ---
+
+With `tbl-cap-location: bottom`, a cross-referenceable table's bottom caption
+must land in the longtable foot — `\caption{...}\tabularnewline` immediately
+before `\endlastfoot` — not after the data rows inside the table body. Each
+`CAPn caption` assertion above checks that placement for one input shape.
+
+Cases 1–4 already rendered correctly before the fix and act as regression
+guards. Cases 5–6 wrap the table in a `.cell-output-display` Div (the shape
+Quarto produces for knitr/Jupyter output); these triggered the bug and pass
+only after the fix.
 
 # Case 1: markdown table, caption syntax, no id
 
