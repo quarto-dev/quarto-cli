@@ -147,6 +147,10 @@ Keep the `_quarto: tests:` block assertion-focused, but inline `#` comments labe
 **Issue-based:** `tests/docs/smoke-all/YYYY/MM/DD/<issue>.qmd`
 **Feature-based:** `tests/docs/smoke-all/<feature>/`
 
+### Many fixtures: prefer a dynamic smoke test
+
+Every non-`_`-prefixed `.qmd` under `smoke-all/` is globbed and rendered as its own test target. When a test needs many fixture files (e.g. dozens of pages to reproduce a project-level bug), each stored page becomes a redundant per-file render — plus repo bloat — on top of the project render. Generate the project in a temp directory from a TypeScript `tests/smoke/<feature>/` test instead (`testQuartoCmd("render", [tempDir], ...)` with `setup`/`teardown`). See the "Project Rendering Tests" and "Performance Budget" patterns in `llm-docs/testing-patterns.md`.
+
 ## Creating New Tests
 
 ```bash
