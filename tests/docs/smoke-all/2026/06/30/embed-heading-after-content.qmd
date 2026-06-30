@@ -1,0 +1,31 @@
+---
+title: "Embedded notebook title aligns with fixupFrontMatter"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          # No leading heading, so the Source link falls back to the filename
+          - 'Source:\s*heading-after-content\.ipynb'
+        -
+          # A heading with content before it must not become the title
+          - 'Source:\s*Some Header'
+      postRenderCleanup:
+        - heading-after-content-preview.html
+        - heading-after-content.out.ipynb
+        - heading-after-content_files
+---
+
+The embedded notebook's first markdown cell has prose before its only heading
+(`# Some Header`). The heading must not be promoted to the embedded notebook's
+title.
+
+This intentionally aligns the embed title with how a notebook's own
+front-matter title is derived. Since #5363 / #6411 (commit 24672a4af),
+`fixupFrontMatter` only promotes a heading to the notebook title when no
+content precedes it; otherwise no title is set. The embed "Source" link follows
+the same rule and falls back to the filename here, rather than using a heading
+that isn't really the document title.
+
+{{< embed heading-after-content.ipynb >}}
