@@ -1,0 +1,89 @@
+---
+# Issue #14575: with tbl-cap-location: bottom, the caption of a
+# cross-referenceable table whose content is wrapped in
+# .cell-output-display (knitr/jupyter engine output) is placed inside
+# the longtable body instead of in the foot (\endlastfoot).
+#
+# This file covers the markdown-only cases (CI-safe, no engine needed).
+# Correct behaviour: the bottom caption sits in the longtable foot,
+# i.e. \caption{...}\tabularnewline immediately before \endlastfoot.
+#
+# Cases 1-4 already render correctly (regression guards).
+# Cases 5-6 are the bug (currently fail; should pass after the fix).
+format: pdf
+tbl-cap-location: bottom
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        -
+          - '\\end\{document\}'
+          # Case 1: markdown table + caption syntax, no id (guard)
+          - '\\caption\{[\s\S]{0,60}CAP1 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          # Case 2: markdown table + caption syntax + id (guard)
+          - '\\caption\{[\s\S]{0,60}CAP2 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          # Case 3: div float + bare table + trailing caption paragraph (guard)
+          - '\\caption\{[\s\S]{0,60}CAP3 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          # Case 4: div float + tbl-cap attribute + bare table (guard)
+          - '\\caption\{[\s\S]{0,60}CAP4 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          # Case 5: div float + tbl-cap + .cell-output-display (the bug)
+          - '\\caption\{[\s\S]{0,60}CAP5 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          # Case 6: .cell + .cell-output-display, mcanouil reprex (the bug)
+          - '\\caption\{[\s\S]{0,60}CAP6 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+---
+
+# Case 1: markdown table, caption syntax, no id
+
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+
+: CAP1 caption
+
+# Case 2: markdown table, caption syntax, with id
+
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+
+: CAP2 caption {#tbl-c2}
+
+# Case 3: div float, bare table, trailing caption paragraph
+
+::: {#tbl-c3}
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+
+CAP3 caption
+:::
+
+# Case 4: div float, tbl-cap attribute, bare table
+
+::: {#tbl-c4 tbl-cap='CAP4 caption'}
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+:::
+
+# Case 5: div float, tbl-cap attribute, .cell-output-display wrapper
+
+::: {#tbl-c5 tbl-cap='CAP5 caption'}
+::: {.cell-output-display}
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+:::
+:::
+
+# Case 6: .cell + .cell-output-display (mcanouil reprex)
+
+::: {#tbl-c6 .cell tbl-cap='CAP6 caption'}
+::: {.cell-output-display}
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+:::
+:::

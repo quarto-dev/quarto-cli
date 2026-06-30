@@ -505,10 +505,29 @@ end, function(float)
               end
               return result
             else
+              -- For a bottom caption, place the caption inside the longtable
+              -- foot (immediately before \endlastfoot) so it renders below the
+              -- table, matching Pandoc's native longtable output. Without this,
+              -- the caption lands after the data rows but inside the body. See #14575.
+              -- Tables without a foot (e.g. kable(longtable=TRUE)) fall through
+              -- to the behavior below.
+              local foot_pos = cap_loc ~= "top" and content:find("\\endlastfoot", 1, true)
+              if foot_pos then
+                return pandoc.Blocks({
+                  pandoc.RawBlock("latex", longtable_preamble),
+                  pandoc.RawBlock("latex", start),
+                  pandoc.RawBlock("latex", content:sub(1, foot_pos - 1)),
+                  latex_caption,
+                  pandoc.RawInline("latex", "\\tabularnewline"),
+                  pandoc.RawBlock("latex", content:sub(foot_pos)),
+                  pandoc.RawBlock("latex", "\\end{longtable}"),
+                  pandoc.RawBlock("latex", longtable_postamble),
+                })
+              end
               local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
               -- if cap_loc is top, insert content on bottom
               if cap_loc == "top" then
-                result:insert(pandoc.RawBlock("latex", content))        
+                result:insert(pandoc.RawBlock("latex", content))
               else
                 result:insert(1, pandoc.RawBlock("latex", content))
               end

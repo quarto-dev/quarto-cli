@@ -1,0 +1,44 @@
+---
+# Issue #14575 (knitr engine cases). With tbl-cap-location: bottom, a
+# cross-referenced knitr/kable table (wrapped by Quarto in
+# .cell-output-display) places its caption inside the longtable body
+# instead of the foot.
+#
+# Correct behaviour: \caption{...}\tabularnewline immediately before
+# \endlastfoot.
+#
+# Case 7 is the reported bug (currently fails; should pass after fix).
+# Case 8 already renders correctly (regression guard).
+#
+# The kable(longtable = TRUE, caption = ...) variant (no \endlastfoot
+# in kable's own \hline longtable) is tracked separately.
+format: pdf
+tbl-cap-location: bottom
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        -
+          - '\\end\{document\}'
+          # Case 7: knitr kable with label + tbl-cap (the reported bug)
+          - '\\caption\{[\s\S]{0,60}CAP7 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          # Case 8: knitr kable with tbl-cap, no label (guard)
+          - '\\caption\{[\s\S]{0,60}CAP8 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+---
+
+# Case 7: knitr kable with label (reported bug)
+
+```{r}
+#| label: tbl-c7
+#| tbl-cap: "CAP7 caption"
+knitr::kable(head(cars, 3))
+```
+
+# Case 8: knitr kable with tbl-cap, no label (guard)
+
+```{r}
+#| tbl-cap: "CAP8 caption"
+knitr::kable(head(cars, 3))
+```
