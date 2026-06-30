@@ -655,18 +655,17 @@ function findTitle(cells: JupyterCellOutput[]) {
     if (partitioned.yaml?.title) {
       return partitioned.yaml.title as string;
     } else if (partitioned.headingText && !partitioned.contentBeforeHeading) {
-      // Only promote a heading to the title when nothing precedes it, matching
-      // how fixupFrontMatter derives a notebook's front-matter title in
-      // jupyter-fixups.ts.
+      // Only promote a heading to the title when nothing precedes it. This
+      // borrows the same content-before-heading gate that fixupFrontMatter uses
+      // in jupyter-fixups.ts; the two are not otherwise equivalent (this scans
+      // every cell, fixupFrontMatter inspects only the first markdown cell, and
+      // it can filter on cell.cell_type === "markdown" where findTitle can't —
+      // rendered JupyterCellOutput carries no cell_type).
       //
-      // fixupFrontMatter has a stronger guard: it only inspects markdown cells
-      // (cell.cell_type === "markdown"), so a code cell's source is never even
-      // considered. We can't do that here: findTitle runs on rendered
-      // JupyterCellOutput, which carries no cell_type, and a code cell's
-      // `markdown` is its fenced source. The !contentBeforeHeading check covers
-      // the same case anyway — a code cell's markdown always opens with the
-      // fence delimiter, which counts as content before any `#` line inside it,
-      // so a code comment can never be the leading heading (issue 14577).
+      // The gate is what fixes issue 14577: a code cell's `markdown` is its
+      // fenced source, whose opening fence delimiter always counts as content
+      // before any `#` line inside it, so a code comment can never be mistaken
+      // for the leading heading.
       return partitioned.headingText;
     }
   }
