@@ -53,10 +53,9 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
   markdown = partitioned ? partitioned.markdown : markdown;
 
   // extract heading
-  const { lines, headingText, headingAttr, contentBeforeHeading } =
-    markdownWithExtractedHeading(
-      markdown,
-    );
+  const { lines, headingText, headingAttr } = markdownWithExtractedHeading(
+    markdown,
+  );
 
   // does this contain refs?
   const containsRefs = lines.some((line) =>
@@ -67,7 +66,6 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
     yaml: (partitioned ? readYamlFromMarkdown(partitioned.yaml) : undefined),
     headingText,
     headingAttr,
-    contentBeforeHeading,
     containsRefs,
     markdown: lines.join("\n"),
     srcMarkdownNoYaml: partitioned?.markdown || "",

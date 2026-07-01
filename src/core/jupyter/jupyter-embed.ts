@@ -654,18 +654,12 @@ function findTitle(cells: JupyterCellOutput[]) {
     const partitioned = partitionMarkdown(cell.markdown);
     if (partitioned.yaml?.title) {
       return partitioned.yaml.title as string;
-    } else if (partitioned.headingText && !partitioned.contentBeforeHeading) {
-      // Only promote a heading to the title when nothing precedes it. This
-      // borrows the same content-before-heading gate that fixupFrontMatter uses
-      // in jupyter-fixups.ts; the two are not otherwise equivalent (this scans
-      // every cell, fixupFrontMatter inspects only the first markdown cell, and
-      // it can filter on cell.cell_type === "markdown" where findTitle can't —
-      // rendered JupyterCellOutput carries no cell_type).
-      //
-      // The gate is what fixes issue 14577: a code cell's `markdown` is its
-      // fenced source, whose opening fence delimiter always counts as content
-      // before any `#` line inside it, so a code comment can never be mistaken
-      // for the leading heading.
+    } else if (partitioned.headingText) {
+      // A code cell's `markdown` is its fenced source, so a comment that
+      // looks like an ATX heading (e.g. `# plt.savefig(...)`) never reaches
+      // here as `headingText` -- markdownWithExtractedHeading (via
+      // partitionMarkdown) skips heading detection inside fenced code
+      // blocks. See #14577.
       return partitioned.headingText;
     }
   }

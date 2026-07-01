@@ -17,7 +17,6 @@ export interface PartitionedMarkdown {
   yaml?: Metadata;
   headingText?: string;
   headingAttr?: PandocAttr;
-  contentBeforeHeading?: boolean;
   containsRefs: boolean;
   markdown: string;
   srcMarkdownNoYaml: string;
