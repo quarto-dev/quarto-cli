@@ -655,8 +655,6 @@ function findTitle(cells: JupyterCellOutput[]) {
     if (partitioned.yaml?.title) {
       return partitioned.yaml.title as string;
     } else if (partitioned.headingText) {
-      // Fence-aware heading detection means a fenced code comment that
-      // looks like a heading never reaches here as headingText.
       return partitioned.headingText;
     }
   }
