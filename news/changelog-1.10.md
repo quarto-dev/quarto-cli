@@ -16,7 +16,7 @@ All changes included in 1.10:
 
 - ([#14468](https://github.com/quarto-dev/quarto-cli/issues/14468)): The `axe` accessibility report UI (HTML overlay, revealjs report slide, dashboard offcanvas) now uses its own theme-independent colors instead of inheriting from `brand` or theme. Keeps the report readable regardless of page styling, and stops `axe` from clobbering brand colors set via `_brand.yml`.
 - ([#14602](https://github.com/quarto-dev/quarto-cli/pull/14602), [#14632](https://github.com/quarto-dev/quarto-cli/pull/14632)): Fix ORCID profile link having no accessible name for screen readers in HTML, Reveal.js, and ipynb title-block author metadata. (author: @mcanouil for #14602)
-- ([#14604](https://github.com/quarto-dev/quarto-cli/issues/14604)): The `axe` accessibility report UI  now shows each violation's WCAG conformance level (e.g. `WCAG 2.0 AA (1.4.3)`) or `Best Practice`, derived from the violation's axe-core tags.
+- ([#14604](https://github.com/quarto-dev/quarto-cli/issues/14604)): The `axe` accessibility report UI now shows each violation's WCAG conformance level (e.g. `WCAG 2.0 AA (1.4.3)`) or `Best Practice`, derived from the violation's axe-core tags.
 
 ## Formats
 
@@ -104,7 +104,7 @@ All changes included in 1.10:
 - ([#14472](https://github.com/quarto-dev/quarto-cli/issues/14472)): Add support for Kotlin in code annotations and YAML cell options. (author: @barendgehrels)
 - ([#14529](https://github.com/quarto-dev/quarto-cli/issues/14529)): Fix bundled Julia engine path leaking into rendered YAML metadata and pandoc log output when running an installed Quarto. The internal subtree-engine filter only matched the source-tree share-path layout (`resources/extension-subtrees/`) and missed installed layouts where the path is `share/extension-subtrees/`.
 - ([#14576](https://github.com/quarto-dev/quarto-cli/issues/14576)): Fix website render hanging when sidebar titles contain double-underscore (dunder) names.
-- ([#14577](https://github.com/quarto-dev/quarto-cli/issues/14577)): Fix an embedded notebook with no explicit title using a Python comment inside a code cell as the notebook title. Heading extraction now skips fenced code blocks, so a comment that merely looks like a heading is never promoted; a real markdown heading anywhere in the notebook is still used as before.
+- ([#14577](https://github.com/quarto-dev/quarto-cli/issues/14577)): Fix an embedded notebook with no explicit title using a Python comment inside a code cell as the notebook title. Heading extraction now skips fenced code blocks, so a comment that merely looks like a heading is never promoted; first real markdown heading anywhere in the notebook markdown body is still used as before if not `title` provided.
 - ([#14582](https://github.com/quarto-dev/quarto-cli/issues/14582)): Fix format detection for extension formats (e.g. `acm-pdf`) in project preview, manuscript notebooks, MECA bundles, and website format ordering.
 - ([#14583](https://github.com/quarto-dev/quarto-cli/issues/14583)): Fix a shortcode used as an image source (e.g. `![]({{< meta logo >}})`) getting the `default-image-extension` appended, producing a doubled extension once the shortcode resolves.
 - ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment
