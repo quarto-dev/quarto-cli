@@ -72,10 +72,10 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
   };
 }
 
-// CommonMark also allows fences indented up to 3 spaces; intentionally
-// unsupported here since the fences this scanner sees (code cell source)
-// always start at column 0.
-const kFenceOpenRegex = /^(`{3,}|~{3,})/;
+// CommonMark allows fence markers indented up to 3 spaces (content lines
+// inside the fence can have any indentation, including none).
+const kFenceOpenRegex = /^ {0,3}(`{3,}|~{3,})/;
+const kFenceCloseRegex = /^ {0,3}(`{3,}|~{3,})\s*$/;
 
 export function markdownWithExtractedHeading(markdown: string) {
   const mdLines: string[] = [];
@@ -90,7 +90,7 @@ export function markdownWithExtractedHeading(markdown: string) {
     // never mistaken for the document heading.
     if (fence) {
       mdLines.push(line);
-      const closeMatch = line.match(/^(`{3,}|~{3,})\s*$/);
+      const closeMatch = line.match(kFenceCloseRegex);
       if (
         closeMatch && closeMatch[1][0] === fence.char &&
         closeMatch[1].length >= fence.length

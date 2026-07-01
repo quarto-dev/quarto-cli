@@ -147,6 +147,22 @@ unitTest(
 
 // deno-lint-ignore require-await
 unitTest(
+  "markdownWithExtractedHeading - ignores an ATX-heading-like line inside a fenced code block whose fence markers are indented up to 3 spaces",
+  async () => {
+    const markdown = [
+      "- a list item with a nested code block",
+      "",
+      "  ```python",
+      "# not a heading",
+      "  ```",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, undefined);
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
   "markdownWithExtractedHeading - extracts a setext-style heading",
   async () => {
     const markdown = [
