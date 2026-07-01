@@ -74,13 +74,38 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
   };
 }
 
+const kFenceOpenRegex = /^(`{3,}|~{3,})/;
+
 export function markdownWithExtractedHeading(markdown: string) {
   const mdLines: string[] = [];
   let headingText: string | undefined;
   let headingAttr: PandocAttr | undefined;
   let contentBeforeHeading = false;
+  let fence: { char: string; length: number } | undefined;
 
   for (const line of lines(markdown)) {
+    // Skip heading detection for any line inside a fenced code block
+    // (``` or ~~~, CommonMark-style) so a line that merely looks like an
+    // ATX heading -- e.g. a Python `# comment` in a code cell's fenced
+    // source -- is never mistaken for the document heading.
+    if (fence) {
+      mdLines.push(line);
+      const closeMatch = line.match(/^(`{3,}|~{3,})\s*$/);
+      if (
+        closeMatch && closeMatch[1][0] === fence.char &&
+        closeMatch[1].length >= fence.length
+      ) {
+        fence = undefined;
+      }
+      continue;
+    }
+    const openMatch = !headingText && line.match(kFenceOpenRegex);
+    if (openMatch) {
+      fence = { char: openMatch[1][0], length: openMatch[1].length };
+      mdLines.push(line);
+      continue;
+    }
+
     if (!headingText) {
       if (line.match(/^\#{1,}\s/)) {
         const parsedHeading = parsePandocTitle(line);
