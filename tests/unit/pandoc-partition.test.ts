@@ -144,3 +144,47 @@ unitTest(
     assertEquals(result.headingText, undefined);
   },
 );
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - extracts a setext-style heading",
+  async () => {
+    const markdown = [
+      "Real Heading",
+      "===",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, "Real Heading");
+    assertEquals(result.lines, []);
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - no heading present",
+  async () => {
+    const markdown = [
+      "Just a paragraph.",
+      "",
+      "Another paragraph.",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, undefined);
+    assertEquals(result.lines, markdown.split("\n"));
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - contentBeforeHeading is false when the heading is the first line",
+  async () => {
+    const markdown = [
+      "# Real Heading",
+      "",
+      "Some body text.",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, "Real Heading");
+    assertEquals(result.contentBeforeHeading, false);
+  },
+);
