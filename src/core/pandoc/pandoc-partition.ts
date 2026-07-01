@@ -82,10 +82,9 @@ export function markdownWithExtractedHeading(markdown: string) {
   let fence: { char: string; length: number } | undefined;
 
   for (const line of lines(markdown)) {
-    // Skip heading detection for any line inside a fenced code block
-    // (``` or ~~~, CommonMark-style) so a line that merely looks like an
-    // ATX heading -- e.g. a Python `# comment` in a code cell's fenced
-    // source -- is never mistaken for the document heading.
+    // Skip heading detection while inside a fenced code block (``` or ~~~,
+    // CommonMark-style) so a line that merely looks like a heading is
+    // never mistaken for the document heading.
     if (fence) {
       mdLines.push(line);
       const closeMatch = line.match(/^(`{3,}|~{3,})\s*$/);

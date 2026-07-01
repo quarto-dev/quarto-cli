@@ -655,11 +655,8 @@ function findTitle(cells: JupyterCellOutput[]) {
     if (partitioned.yaml?.title) {
       return partitioned.yaml.title as string;
     } else if (partitioned.headingText) {
-      // A code cell's `markdown` is its fenced source, so a comment that
-      // looks like an ATX heading (e.g. `# plt.savefig(...)`) never reaches
-      // here as `headingText` -- markdownWithExtractedHeading (via
-      // partitionMarkdown) skips heading detection inside fenced code
-      // blocks. See #14577.
+      // Fence-aware heading detection means a fenced code comment that
+      // looks like a heading never reaches here as headingText.
       return partitioned.headingText;
     }
   }
