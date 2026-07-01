@@ -131,6 +131,8 @@ export function markdownWithExtractedHeading(markdown: string) {
     lines: mdLines,
     headingText,
     headingAttr,
+    // Consumed only by fixupFrontMatter's direct call to this function;
+    // partitionMarkdown intentionally does not forward it (see PartitionedMarkdown).
     contentBeforeHeading,
   };
 }
