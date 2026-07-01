@@ -163,6 +163,21 @@ unitTest(
 
 // deno-lint-ignore require-await
 unitTest(
+  "markdownWithExtractedHeading - closes a fence whose closing marker is indented, then extracts the following heading",
+  async () => {
+    const markdown = [
+      "```python",
+      "code",
+      "   ```",
+      "# Real Heading",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, "Real Heading");
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
   "markdownWithExtractedHeading - extracts a setext-style heading",
   async () => {
     const markdown = [
