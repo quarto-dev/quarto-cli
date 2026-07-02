@@ -1,0 +1,58 @@
+---
+title: "Intermediate matplotlib output shown in dashboard (#11150)"
+format:
+  html: default
+  dashboard: default
+engine: jupyter
+echo: true
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        - ['img']                       # the figure is still rendered
+      ensureFileRegexMatches:
+        -
+          - '<code>123</code>'          # non-last expression value preserved (shell-interactivity: all)
+          - '<code>234</code>'          # last expression value preserved
+        -
+          - 'Text\(0\.5'                # plt.title() Text repr suppressed
+          - 'whiskers'                  # plt.boxplot() dict repr suppressed
+    html:
+      ensureHtmlElements:
+        - ['img']                       # the figure is still rendered
+      ensureFileRegexMatches:
+        -
+          - '<code>234</code>'          # last expression value shown (last_expr)
+        -
+          - 'Text\(0\.5'                # plt.title() Text repr suppressed
+          - '<code>123</code>'          # non-last expression not echoed under last_expr
+---
+
+Dashboard format runs the Jupyter kernel with
+`ipynb-shell-interactivity: all`, so every top-level expression statement in a
+cell echoes its value, not just the last one. matplotlib/pandas/seaborn
+plotting calls return objects (`plt.title()` returns a `Text`, `plt.boxplot()`
+returns a dict of `Line2D`), and those object reprs leaked into the rendered
+output as spurious intermediate text next to the figure — the difference from
+HTML that #11150 reported. HTML is affected too, just less: under the default
+`last_expr` it only echoes the final expression's repr (`Text(...)`).
+
+The first cell exercises the bug: it must render the figure but must not show
+the `Text(...)` or boxplot-dict reprs, in either format. The second cell guards
+the intentional multi-output capability that `shell-interactivity: all` gives
+dashboards — both `123` and `234` must survive in the dashboard output (HTML,
+being `last_expr`, keeps only `234`).
+
+```{python}
+#| title: plot with a title
+import matplotlib.pyplot as plt
+x = [1, 2, 3, 4, 5, 10]
+plt.boxplot(x)
+plt.title("Test")
+```
+
+```{python}
+#| title: multiple values in one cell
+100 + 23
+200 + 34
+```
