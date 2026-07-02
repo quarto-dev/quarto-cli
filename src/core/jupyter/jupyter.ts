@@ -1767,15 +1767,21 @@ export function isDiscardableTextExecuteResult(
       const textPlain = data?.[kTextPlain] as string[] | undefined;
       if (textPlain && textPlain.length) {
         if (haveImage) {
-          // object reprs echoed next to the figure. Bracketed wrappers
-          // (Axes, Line2D, tuples) plus matplotlib Text from
-          // title()/xlabel()/ylabel()/set_title(); and the dict of Line2D
-          // returned by boxplot()/hist(). text/plain may arrive as one
-          // multi-line string, so match against the joined text.
-          const text = textPlain.join("").trim();
-          return /^([<(\[])[\s\S]*?([>)\]])$/.test(text) ||
-            text.startsWith("Text(") ||
-            (text.startsWith("{") && text.includes("<matplotlib."));
+          if (textPlain.length === 1) {
+            // single-line object reprs echoed next to the figure: <...>/(...)/[...]
+            // wrappers (Axes, Line2D, tuples) plus matplotlib Text from
+            // title()/xlabel()/ylabel()/set_title() — whose repr leads with a
+            // numeric coordinate (Text(0.5, ...)), unlike other libraries' Text
+            const first = textPlain[0].trim();
+            return /^([<(\[]).*?([>)\]])$/.test(first) ||
+              /^Text\([-\d]/.test(first);
+          } else {
+            // multi-line reprs that are collections of matplotlib artists, e.g.
+            // the dict of Line2D returned by boxplot(). Only suppress when a
+            // matplotlib object is referenced, leaving ordinary multi-line
+            // output (lists, tuples, custom reprs) untouched
+            return textPlain.some((line) => line.includes("<matplotlib."));
+          }
         } else {
           return [
             "[<matplotlib",

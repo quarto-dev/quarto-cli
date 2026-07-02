@@ -1,7 +1,7 @@
 /*
  * discardable-text.test.ts
  *
- * Copyright (C) 2025 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { unitTest } from "../../test.ts";
@@ -49,24 +49,25 @@ unitTest(
   // deno-lint-ignore require-await
   async () => {
     // Discard plotting-object noise when the cell also emitted an image.
-    // plt.title()/set_title() -> Text(...): single line, not bracket-wrapped.
     assertEquals(
       isDiscardableTextExecuteResult(execResult(titleText), true),
       true,
+      "plt.title()/set_title() Text repr should be discarded",
     );
-    // plt.boxplot() -> multi-line dict of Line2D.
     assertEquals(
       isDiscardableTextExecuteResult(execResult(boxplotDict), true),
       true,
+      "plt.boxplot() multi-line dict of Line2D should be discarded",
     );
-    // seaborn/pandas Axes and bare Line2D: single-line <...>.
     assertEquals(
       isDiscardableTextExecuteResult(execResult(axesRepr), true),
       true,
+      "seaborn/pandas Axes repr should be discarded",
     );
     assertEquals(
       isDiscardableTextExecuteResult(execResult(line2DRepr), true),
       true,
+      "bare Line2D repr should be discarded",
     );
 
     // Gate: with no image in the cell, nothing here is discarded — a cell
@@ -74,13 +75,15 @@ unitTest(
     assertEquals(
       isDiscardableTextExecuteResult(execResult(titleText), false),
       false,
+      "Text repr must be kept when the cell has no image",
     );
     assertEquals(
       isDiscardableTextExecuteResult(execResult(boxplotDict), false),
       false,
+      "boxplot dict must be kept when the cell has no image",
     );
 
-    // No over-suppression: legitimate output survives even with an image.
+    // No over-suppression: legitimate output survives even alongside an image.
     // A Name(...) repr that is not a matplotlib Text must not be swept up.
     assertEquals(
       isDiscardableTextExecuteResult(
@@ -88,6 +91,24 @@ unitTest(
         true,
       ),
       false,
+      "non-matplotlib single-line Name(...) repr must be kept",
+    );
+    // A non-matplotlib Text( repr (e.g. rich.text.Text -> Text('...')) has no
+    // leading coordinate, so it must be kept.
+    assertEquals(
+      isDiscardableTextExecuteResult(execResult(["Text('hello world')"]), true),
+      false,
+      "non-matplotlib Text('...') repr must be kept",
+    );
+    // A multi-line bracketed value (list/tuple) with no matplotlib reference
+    // must survive — the discard heuristic must not widen to arbitrary brackets.
+    assertEquals(
+      isDiscardableTextExecuteResult(
+        execResult(["[1, 2, 3,\n", " 4, 5, 6]"]),
+        true,
+      ),
+      false,
+      "multi-line list with no matplotlib reference must be kept",
     );
     // An arbitrary multi-line repr with no matplotlib reference must survive.
     assertEquals(
@@ -96,6 +117,7 @@ unitTest(
         true,
       ),
       false,
+      "multi-line custom repr with no matplotlib reference must be kept",
     );
     // Multiple mime types (e.g. a DataFrame's text/plain + text/html) -> keep.
     assertEquals(
@@ -107,6 +129,7 @@ unitTest(
         true,
       ),
       false,
+      "multi-mime output (DataFrame text/plain + text/html) must be kept",
     );
 
     // Only execute_result is ever discardable.
@@ -116,6 +139,7 @@ unitTest(
         true,
       ),
       false,
+      "display_data must never be discarded",
     );
     assertEquals(
       isDiscardableTextExecuteResult(
@@ -123,6 +147,7 @@ unitTest(
         true,
       ),
       false,
+      "stream output must never be discarded",
     );
   },
 );
