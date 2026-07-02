@@ -170,7 +170,9 @@ const postRenderCleanup = () => {
   for (const file of postRenderCleanupFiles) {
     console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
     if (safeExistsSync(file)) {
-      Deno.removeSync(file);
+      // recursive so a registered entry can be a directory (e.g. an embedded
+      // notebook's `*_files` support dir), not just a single file
+      safeRemoveSync(file, { recursive: true });
     }
   }
 }

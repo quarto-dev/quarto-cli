@@ -1,0 +1,26 @@
+---
+title: "Embedded notebook title still promotes a heading after prose"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          # A heading is still promoted to the title even when a prose
+          # paragraph precedes it in the notebook's markdown cell.
+          - 'Source:\s*Some Header'
+      postRenderCleanup:
+        - heading-after-content-preview.html
+        - heading-after-content.out.ipynb
+        - heading-after-content_files
+---
+
+The embedded notebook's first markdown cell has prose before its only heading
+(`# Some Header`). Unlike `fixupFrontMatter` (used for a notebook's own
+front-matter title, see #5363 / #6411, commit `24672a4af`), the embed "Source"
+link title (`findTitle` in `jupyter-embed.ts`) does not require the heading to
+be the very first thing in the cell — it promotes the first heading it finds
+in any cell. Only content inside a fenced code block (a comment that merely
+looks like an ATX heading, see #14577) is excluded from heading detection.
+
+{{< embed heading-after-content.ipynb >}}
