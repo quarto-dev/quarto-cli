@@ -165,6 +165,25 @@ const githubBranchUrlProvider = {
   },
 };
 
+const githubCommitUrlProvider = {
+  extensionUrl: (host: ExtensionHost) => {
+    if (host.modifier && isCommitSha(host.modifier)) {
+      return `https://github.com/${host.organization}/${host.repo}/archive/${host.modifier}${archiveExt}`;
+    }
+  },
+  archiveSubdir: (host: ExtensionHost) => {
+    const baseDir = `${host.repo}-${host.modifier}`;
+    if (host.subdirectory) {
+      return baseDir + "/" + host.subdirectory;
+    } else {
+      return baseDir;
+    }
+  },
+  learnMoreUrl: (host: ExtensionHost) => {
+    return `https://github.com/${host.organization}/${host.repo}/tree/${host.modifier}#readme`;
+  },
+};
+
 // The github extension source
 const kGithubExtensionSource: ExtensionHostSource = {
   parse: (name: string) => {
@@ -184,6 +203,7 @@ const kGithubExtensionSource: ExtensionHostSource = {
   urlProviders: [
     githubLatestUrlProvider,
     githubTagUrlProvider,
+    githubCommitUrlProvider,
     githubBranchUrlProvider,
   ],
 };
@@ -218,7 +238,7 @@ const kGithubArchiveUrlSource: ExtensionHostSource = {
 };
 
 const kGithubArchiveUrlRegex =
-  /https?\:\/\/github.com\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\/archive\/refs\/(?:tags|heads)\/(.+)(?:\.tar\.gz|\.zip)$/;
+  /https?\:\/\/github.com\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\/archive\/(?:refs\/(?:tags|heads)\/)?(.+)(?:\.tar\.gz|\.zip)$/;
 
 function tagSubDirectory(tag?: string) {
   // Strip the leading 'v' from tag names
@@ -227,6 +247,11 @@ function tagSubDirectory(tag?: string) {
   } else {
     return tag;
   }
+}
+
+function isCommitSha(modifier?: string): boolean {
+  if (!modifier) return false;
+  return /^[a-f0-9]{7,40}$/i.test(modifier);
 }
 
 function makeResolvers(
