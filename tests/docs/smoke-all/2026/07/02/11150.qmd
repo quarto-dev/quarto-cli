@@ -11,23 +11,14 @@ _quarto:
       ensureHtmlElements:
         - ['img']                       # the matplotlib figure is still rendered
       ensureHtmlElementCount:
-        selectors: ['table', '.plotly-graph-div']
-        counts: [1, 1]                  # table AND graph both survive in one card (shell-interactivity: all)
-      ensureFileRegexMatches:
-        - []                            # nothing required beyond the element checks
-        -
-          - 'Text\(0\.5'                # plt.title() Text repr suppressed
-          - 'whiskers'                  # plt.boxplot() dict repr suppressed
+        selectors: ['table', '.plotly-graph-div', '.cell-output-display pre']
+        counts: [1, 1, 0]               # table + graph both survive in one card (all); zero spurious text-output reprs
     html:
       ensureHtmlElements:
         - ['img']                       # the matplotlib figure is still rendered
       ensureHtmlElementCount:
-        selectors: ['table', '.plotly-graph-div']
-        counts: [0, 1]                  # last_expr keeps only the last expression (the graph); table dropped
-      ensureFileRegexMatches:
-        - []                            # nothing required beyond the element checks
-        -
-          - 'Text\(0\.5'                # plt.title() Text repr suppressed
+        selectors: ['table', '.plotly-graph-div', '.cell-output-display pre']
+        counts: [0, 1, 0]               # last_expr drops the table; one graph; zero spurious text-output reprs
 ---
 
 Dashboard format runs the Jupyter kernel with

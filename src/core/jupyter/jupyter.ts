@@ -1757,7 +1757,7 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscardableTextExecuteResult(
+export function isDiscardableTextExecuteResult(
   output: JupyterOutput,
   haveImage: boolean,
 ) {
@@ -1766,8 +1766,16 @@ function isDiscardableTextExecuteResult(
     if (Object.keys(data).length === 1) {
       const textPlain = data?.[kTextPlain] as string[] | undefined;
       if (textPlain && textPlain.length) {
-        if (haveImage && textPlain.length === 1) {
-          return /^([<(\[]).*?([>)\]])$/.test(textPlain[0].trim());
+        if (haveImage) {
+          // object reprs echoed next to the figure. Bracketed wrappers
+          // (Axes, Line2D, tuples) plus matplotlib Text from
+          // title()/xlabel()/ylabel()/set_title(); and the dict of Line2D
+          // returned by boxplot()/hist(). text/plain may arrive as one
+          // multi-line string, so match against the joined text.
+          const text = textPlain.join("").trim();
+          return /^([<(\[])[\s\S]*?([>)\]])$/.test(text) ||
+            text.startsWith("Text(") ||
+            (text.startsWith("{") && text.includes("<matplotlib."));
         } else {
           return [
             "[<matplotlib",
