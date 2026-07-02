@@ -31,6 +31,9 @@ const boxplotDict = [
   " 'fliers': [<matplotlib.lines.Line2D at 0x17685b55010>],\n",
   " 'means': []}",
 ];
+// A single-line dict of matplotlib artists (small enough that IPython does not
+// pretty-print it across lines). Unambiguous plotting noise.
+const singleLineDict = ["{'line': <matplotlib.lines.Line2D at 0x1407>}"];
 const titleText = ["Text(0.5, 1.0, 'Test')"];
 const axesRepr = ["<Axes: title={'center': 'Test'}>"];
 const line2DRepr = ["<matplotlib.lines.Line2D at 0x14071bc7e00>"];
@@ -68,6 +71,11 @@ unitTest(
       isDiscardableTextExecuteResult(execResult(line2DRepr), true),
       true,
       "bare Line2D repr should be discarded",
+    );
+    assertEquals(
+      isDiscardableTextExecuteResult(execResult(singleLineDict), true),
+      true,
+      "single-line dict of matplotlib artists should be discarded",
     );
 
     // Gate: with no image in the cell, nothing here is discarded — a cell

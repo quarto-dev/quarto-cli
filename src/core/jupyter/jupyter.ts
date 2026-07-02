@@ -1774,7 +1774,8 @@ export function isDiscardableTextExecuteResult(
             // numeric coordinate (Text(0.5, ...)), unlike other libraries' Text
             const first = textPlain[0].trim();
             return /^([<(\[]).*?([>)\]])$/.test(first) ||
-              /^Text\([-\d]/.test(first);
+              /^Text\([-\d]/.test(first) ||
+              (first.startsWith("{") && first.includes("<matplotlib."));
           } else {
             // multi-line reprs that are collections of matplotlib artists, e.g.
             // the dict of Line2D returned by boxplot(). Only suppress when a
