@@ -44,6 +44,10 @@ All changes included in 1.10:
 - ([#14354](https://github.com/quarto-dev/quarto-cli/pull/14354)): Fix trailing whitespace after author name on title slide when ORCID is not set. (author: @jnkatz)
 - ([#14585](https://github.com/quarto-dev/quarto-cli/issues/14585)): Fix empty blockquote (`> `) crashing render for revealjs format.
 
+### `dashboard`
+
+- ([#14646](https://github.com/quarto-dev/quarto-cli/issues/14646)): Fix inline code formatting in a dashboard card title being extracted from its original position and appended elsewhere in the header instead of staying inline, the same issue previously fixed for math, emphasis and bold in [#10340](https://github.com/quarto-dev/quarto-cli/issues/10340).
+
 ## Projects
 
 ### Manuscripts
