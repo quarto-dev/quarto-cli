@@ -152,6 +152,22 @@ export const ZodDocumentCommentsConfiguration = z.union([
       "issue-term": z.string(),
     }).strict().partial().required({ repo: true }),
     giscus: z.lazy(() => ZodGiscusConfiguration),
+    beblob: z.object({
+      "client-id": z.string(),
+      "redirect-uri": z.string(),
+      "project-name": z.string(),
+      "issue-mapping-strategy": z.string(),
+      "issue-id": z.string(),
+      "gitlab-url": z.string(),
+      theme: z.string(),
+      "dev-mode": z.boolean(),
+      version: z.string(),
+      "client-url": z.string(),
+    }).strict().partial().required({
+      "client-id": true,
+      "redirect-uri": true,
+      "project-name": true,
+    }),
     hypothesis: z.union([
       z.boolean(),
       z.object({

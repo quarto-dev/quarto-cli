@@ -163,6 +163,31 @@ export type ExternalEngine = {
 }; /* An execution engine not pre-loaded in Quarto */
 
 export type DocumentCommentsConfiguration = false | {
+  beblob?: {
+    "client-id":
+      string /* The GitLab OAuth Application ID used to authenticate commenters. */;
+    "redirect-uri":
+      string /* The redirect URI registered for the GitLab OAuth Application
+(must match the value configured in GitLab, typically your site URL). */;
+    "project-name":
+      string /* The name of the GitLab project used to store comments as issues
+(e.g. `my-project`). This is the project's name as shown in GitLab —
+BeBlob looks the project up by searching GitLab for this name — not
+the full `namespace/path`. */;
+    "issue-mapping-strategy"?: string /* How pages are mapped to GitLab issues
+(`url`, `pageTitle`, or `issueId`). */;
+    "issue-id"?:
+      string /* The GitLab issue id to use. Required only when `issue-mapping-strategy` is `issueId`. */;
+    "gitlab-url"?:
+      string /* The base URL of the GitLab instance (use this for self-managed GitLab). Defaults to `https://gitlab.com`. */;
+    "dev-mode"?:
+      boolean /* Load the BeBlob assets locally from your own server instead of from the CDN. */;
+    "client-url"?:
+      string /* Override the default BeBlob client url with a custom client url (e.g. a self-hosted bundle). */;
+    theme?: string /* The theme that should be used for BeBlob
+(`dark`, `white`, `light`, or `classic`). */;
+    version?: string; /* The BeBlob version to load from the CDN. */
+  };
   giscus?: GiscusConfiguration;
   hypothesis?: boolean | {
     "client-url"?:

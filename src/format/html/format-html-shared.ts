@@ -56,6 +56,7 @@ export const kComments = "comments";
 export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";
 export const kGiscus = "giscus";
+export const kBeblob = "beblob";
 export const kAxe = "axe";
 
 export const kGiscusRepoId = "repo-id";

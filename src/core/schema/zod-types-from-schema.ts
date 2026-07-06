@@ -409,7 +409,7 @@ ${zodObject}
     if (Array.isArray(required)) {
       baseObj = `${baseObj}.partial().required({${
         required.map((key: string) => {
-          return `${key}: true`;
+          return `${yamlToTypeScriptKey(key)}: true`;
         }).join(", ")
       }})`;
     } else if (required === undefined) {
