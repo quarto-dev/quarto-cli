@@ -8,13 +8,17 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          # CSS generic families (sans-serif, monospace) preserved alongside real fonts
-          - 'font: \("Roboto", "sans-serif"\),'
-          - 'codefont: \("Inconsolata", "monospace"\),'
-        - []
+          # Real available fonts are kept; CSS generic families are dropped.
+          - 'font: \("Roboto",\),'
+          - 'codefont: \("Inconsolata",\),'
+        -
+          # Generic families must not reach Typst: they are not real fonts and
+          # would trigger "unknown font family" warnings.
+          - '"sans-serif"'
+          - '"monospace"'
 ---
 
-Verifies that CSS generic font family names (sans-serif, monospace, serif,
-cursive, fantasy, math) are preserved during font availability filtering,
-since they are valid fallback specifiers even though they don't appear in
-`typst fonts` output.
+Verifies that CSS generic font family names are stripped from the Typst
+font-family output during availability filtering. They are not real Typst
+fonts and would otherwise trigger "unknown font family" warnings. The real
+brand fonts (Roboto, Inconsolata, both downloaded from Google) are preserved.

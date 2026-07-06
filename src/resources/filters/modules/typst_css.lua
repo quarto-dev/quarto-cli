@@ -658,10 +658,6 @@ end
 
 local _available_fonts = nil
 local _fonts_initialized = false
-local _generic_families = {
-  ["serif"] = true, ["sans-serif"] = true, ["monospace"] = true,
-  ["cursive"] = true, ["fantasy"] = true, ["math"] = true,
-}
 
 local function init_available_fonts(list)
   _fonts_initialized = true
@@ -694,7 +690,11 @@ local function translate_font_family_list(sl)
       local cleaned = dequote(s)
       local quoted = quote(cleaned)
       table.insert(all_strings, quoted)
-      if not _available_fonts or _available_fonts[cleaned:lower()] or _generic_families[cleaned:lower()] then
+      -- CSS generic families (serif, sans-serif, monospace, ...) are not real
+      -- Typst fonts and trigger "unknown font family" warnings, so they are
+      -- not kept here. When no real font remains, the all-filtered fallback
+      -- below re-emits the original list to avoid an empty (illegal) tuple.
+      if not _available_fonts or _available_fonts[cleaned:lower()] then
         table.insert(filtered, quoted)
       end
     end

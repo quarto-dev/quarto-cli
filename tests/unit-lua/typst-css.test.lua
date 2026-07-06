@@ -537,4 +537,31 @@ function TestFontFiltering:testEmptyMetaListNoFiltering()
     '("Inter", "Arial")')
 end
 
+function TestFontFiltering:testStripsGenericWhenRealFontAvailable()
+  -- CSS generic families (sans-serif, serif, ...) are not real Typst fonts;
+  -- Typst warns "unknown font family" on them. When an available real font
+  -- remains, the generic is pure dead weight and is dropped.
+  typst_css.init_available_fonts({ 'arial' })
+  lu.assertEquals(
+    typst_css.translate_font_family_list('Arial, sans-serif'),
+    '("Arial",)')
+end
+
+function TestFontFiltering:testStripsGenericKeepsMultipleReal()
+  typst_css.init_available_fonts({ 'roboto', 'inconsolata' })
+  lu.assertEquals(
+    typst_css.translate_font_family_list('Roboto, Inconsolata, monospace'),
+    '("Roboto", "Inconsolata")')
+end
+
+function TestFontFiltering:testGenericOnlyFallsBackToOriginal()
+  -- A generic-only stack filters to empty; the all-filtered fallback
+  -- re-emits the original so Typst never receives an empty tuple (a hard
+  -- error). Typst still warns here, but the document compiles.
+  typst_css.init_available_fonts({ 'arial' })
+  lu.assertEquals(
+    typst_css.translate_font_family_list('sans-serif'),
+    '("sans-serif",)')
+end
+
 os.exit(lu.LuaUnit.run())
