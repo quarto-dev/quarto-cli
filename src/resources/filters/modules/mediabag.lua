@@ -82,7 +82,10 @@ local function write_mediabag_entry(src)
   if contents == nil then return nil end
 
   local mediabagDir = param("mediabag-dir", nil)
-  local mediaFile = pandoc.path.join{mediabagDir, src}
+  -- Always use forward slashes: this path is assigned to el.src and can flow
+  -- into writers (e.g. Typst 0.15+) that reject backslash path separators,
+  -- while forward slashes work fine for the actual file write on Windows too.
+  local mediaFile = pandoc.path.join{mediabagDir, src}:gsub('\\', '/')
 
   local file = _quarto.file.write(mediaFile, contents)
   if not file then

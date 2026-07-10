@@ -25,6 +25,7 @@ import { unitTest } from "../../test.ts";
 
 // Explicit list, relative to tests/unit-lua/. Keep alphabetized.
 const LUA_TESTS: string[] = [
+  "mediabag.test.lua",
   "typst-css.test.lua",
 ];
 
