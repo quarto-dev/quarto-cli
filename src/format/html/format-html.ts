@@ -732,6 +732,40 @@ function htmlFormatPostprocessor(
     for (let i = 0; i < codeBlocks.length; i++) {
       const code = codeBlocks[i] as Element;
 
+      // Give each line-number anchor an accessible name (#14655). Skylighting
+      // emits an empty <a href="#cbN-n"></a> as the first child of every line
+      // span and draws the visible number purely via a CSS counter on
+      // ::before, so axe-core reports these focusable links as having no
+      // discernible text (WCAG 2.4.4/4.1.2). Set aria-label to the visible
+      // line number. aria-hidden is not an option here: these anchors are
+      // focusable fragment links, and aria-hidden on a focusable element is
+      // itself an accessibility violation.
+      if (code.classList.contains("numberSource")) {
+        const codeEl = code.querySelector("code");
+        // Custom start numbers surface as `counter-reset: source-line N` on
+        // the <code>; the first visible line is then N + 1. Default is 0.
+        let startZero = 0;
+        // Signed digits: startFrom="0" emits `counter-reset: source-line -1`,
+        // and negative starts are possible — a bare \d+ would drop the sign and
+        // mislabel. skylighting emits exactly one well-formed declaration, so
+        // multiple/malformed counter-reset is not a real input.
+        const counterMatch = codeEl?.getAttribute("style")?.match(
+          /counter-reset:\s*source-line\s+(-?\d+)/,
+        );
+        if (counterMatch) {
+          startZero = parseInt(counterMatch[1], 10);
+        }
+        const lineAnchors = code.querySelectorAll(
+          "code > span > a:first-child",
+        );
+        for (let j = 0; j < lineAnchors.length; j++) {
+          const anchor = lineAnchors[j] as Element;
+          if (!anchor.hasAttribute("aria-label")) {
+            anchor.setAttribute("aria-label", String(startZero + j + 1));
+          }
+        }
+      }
+
       // hoist hidden and cell-code to parent div
       const parentHoist = (clz: string) => {
         if (code.classList.contains(clz)) {
