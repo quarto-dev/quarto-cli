@@ -28,6 +28,30 @@ function pandoc.types.Version(version_specifier) end
 
 
 --[[
+A named source of text, e.g. a file name paired with its contents.
+Used as an item in a `Sources` list.
+]]
+---@class pandoc.types.Source
+---@field name string Name/path the text originated from
+---@field text string The source text
+
+--[[
+A list of `Source` items, pairing input text with information on
+where it originated (e.g. a file name). Used by Pandoc's text readers.
+]]
+---@class pandoc.types.Sources: pandoc.List
+
+---@alias sources_specifier string|table<string,string>|pandoc.types.Source[]|pandoc.types.Sources
+
+--[[
+Creates a new Sources element, i.e., a list of `Source` items.
+]]
+---@param srcs sources_specifier
+---@return pandoc.types.Sources
+function pandoc.types.Sources(srcs) end
+
+
+--[[
 Raise an error message if the version is older than the expected version; 
 does nothing if actual is equal to or newer than the expected version.  
 ]]
