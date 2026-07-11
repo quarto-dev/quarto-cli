@@ -62,7 +62,7 @@ import {
   RenderFlags,
   RenderOptions,
 } from "./types.ts";
-import { error, info } from "../../deno_ral/log.ts";
+import { error, info, warning } from "../../deno_ral/log.ts";
 import * as ld from "../../core/lodash.ts";
 import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { Format } from "../../config/types.ts";
@@ -71,9 +71,11 @@ import {
   inputFilesDir,
   isServerShiny,
   isServerShinyKnitr,
+  projectedOutputFile,
 } from "../../core/render.ts";
 import {
   normalizePath,
+  pathsEqual,
   removeIfEmptyDir,
   removeIfExists,
 } from "../../core/path.ts";
@@ -460,6 +462,20 @@ async function renderFileInternal(
       files,
       options,
     );
+
+    // let each context know the projected outputs of the formats being
+    // rendered: keep-md intermediate handling must not write to or delete
+    // a path that a format owns (e.g. output-file: index.html plus a
+    // markdown format yields index.html.md, which is also the conventional
+    // keep-md location for the html format) (#14669)
+    const formatOutputs = Object.values(contexts)
+      .filter((context) => context.active)
+      .map((context) =>
+        projectedOutputFile(context.target.input, context.format)
+      );
+    for (const context of Object.values(contexts)) {
+      context.siblingFormatOutputs = formatOutputs;
+    }
   } catch (e) {
     // bad YAML can cause failure before validation. We
     // reconstruct the context as best we can and try to validate.
@@ -670,7 +686,22 @@ async function renderFileInternal(
           // keep md if requested
           const keepMd = executionEngineKeepMd(context);
           if (keepMd && context.format.execute[kKeepMd]) {
-            Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
+            if (
+              context.siblingFormatOutputs?.some((output) =>
+                pathsEqual(output, keepMd)
+              )
+            ) {
+              warning(
+                `${
+                  basename(context.target.input)
+                }: not saving the keep-md intermediate because its ` +
+                  `conventional location (${
+                    basename(keepMd)
+                  }) is the output file of another format`,
+              );
+            } else {
+              Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
+            }
           }
 
           // now get "unmapped" execute result back to send to pandoc

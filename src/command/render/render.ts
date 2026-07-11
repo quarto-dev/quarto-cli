@@ -15,6 +15,7 @@ import { resourcePath } from "../../core/resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import {
   normalizePath,
+  pathsEqual,
   pathWithForwardSlashes,
   safeExistsSync,
 } from "../../core/path.ts";
@@ -374,6 +375,15 @@ export async function renderPandoc(
       }
 
       if (cleanup !== false) {
+        // the conventional keep-md location can coincide with the declared
+        // output of another format (e.g. output-file: index.html plus a
+        // markdown format yields index.html.md) -- never clean up a path
+        // that a format owns (#14669)
+        const keepMd = executionEngineKeepMd(context);
+        const keepMdIsFormatOutput = keepMd !== undefined &&
+          context.siblingFormatOutputs?.some((output) =>
+            pathsEqual(output, keepMd)
+          );
         withTiming("render-cleanup", () =>
           renderCleanup(
             context.target.input,
@@ -381,7 +391,7 @@ export async function renderPandoc(
             format,
             file.context.project,
             cleanupSelfContained,
-            executionEngineKeepMd(context),
+            keepMdIsFormatOutput ? undefined : keepMd,
           ));
       }
 
