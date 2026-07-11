@@ -60,6 +60,7 @@ All changes included in 1.10:
 - ([#13565](https://github.com/quarto-dev/quarto-cli/issues/13565), [#14353](https://github.com/quarto-dev/quarto-cli/issues/14353)): Fix sidebar logo not appearing on secondary sidebars in multi-sidebar website layouts.
 - ([#14562](https://github.com/quarto-dev/quarto-cli/issues/14562)): Fix a heading inside `content-hidden when-format="llms-txt"` (visible in HTML) losing its `<section>` wrapper and `id` in a website with `llms-txt` enabled, which broke its table-of-contents link, anchors, and cross-references.
 - ([#14563](https://github.com/quarto-dev/quarto-cli/issues/14563)): Fix a fatal error when a shortcode is used inside conditional content (e.g. `content-visible when-format="llms-txt"`) in a website with `llms-txt` enabled.
+- ([#14667](https://github.com/quarto-dev/quarto-cli/issues/14667)): Fix the clean-URL rewrite in `quarto-nav.js` breaking links to files whose names merely start with `index.html`, such as the `index.html.md` "Other Formats" links produced when `output-file: index.html` is paired with a markdown format (e.g. by nbdev for llms.txt workflows). The rewrite now only strips `index.html` at the end of the path.
 
 ## Commands
 
