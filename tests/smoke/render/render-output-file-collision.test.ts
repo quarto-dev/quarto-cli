@@ -14,6 +14,7 @@
  */
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
+import { quarto } from "../../../src/quarto.ts";
 import { docs } from "../../utils.ts";
 import { testQuartoCmd } from "../../test.ts";
 import {
@@ -86,6 +87,27 @@ testQuartoCmd(
     teardown: cleanup(defaultDir, [...defaultOutputs, ".quarto"]),
   },
   "#14669 default project: markdown output is not silently dropped",
+);
+
+// partial render: a format that is declared but not being rendered still
+// owns its output -- quarto render --to html must not delete the markdown
+// twin a previous full render produced (outputs live in place in
+// default-type projects)
+testQuartoCmd(
+  "render",
+  [join(defaultDir, "index.qmd"), "--to", "html"],
+  [
+    fileExists(join(defaultDir, "index.html")),
+    fileExists(join(defaultDir, "index.html.md")),
+  ],
+  {
+    setup: async () => {
+      await cleanup(defaultDir, [...defaultOutputs, ".quarto"])();
+      await quarto(["render", defaultDir]);
+    },
+    teardown: cleanup(defaultDir, [...defaultOutputs, ".quarto"]),
+  },
+  "#14669 partial render: --to html preserves the existing markdown output",
 );
 
 // keep-md: true wants to write its intermediate to the same path the

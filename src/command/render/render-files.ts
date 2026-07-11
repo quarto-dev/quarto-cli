@@ -463,13 +463,13 @@ async function renderFileInternal(
       options,
     );
 
-    // let each context know the projected outputs of the formats being
-    // rendered: keep-md intermediate handling must not write to or delete
-    // a path that a format owns (e.g. output-file: index.html plus a
-    // markdown format yields index.html.md, which is also the conventional
-    // keep-md location for the html format) (#14669)
+    // let each context know the projected outputs of every declared format,
+    // including formats not in this render (e.g. quarto render --to html):
+    // keep-md intermediate handling must not write to or delete a path that
+    // a format owns (e.g. output-file: index.html plus a markdown format
+    // yields index.html.md, which is also the conventional keep-md location
+    // for the html format) (#14669)
     const formatOutputs = Object.values(contexts)
-      .filter((context) => context.active)
       .map((context) =>
         projectedOutputFile(context.target.input, context.format)
       );
