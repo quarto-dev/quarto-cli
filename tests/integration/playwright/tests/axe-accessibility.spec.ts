@@ -166,6 +166,13 @@ test.describe('Axe accessibility checking', () => {
           // templates center <main>, which the overlay is appended into)
           await expect(axeReport).toHaveCSS('text-align', 'left');
 
+          // The overlay scrolls when the report overflows, so it must be a
+          // focusable, labeled region or it fails axe's own
+          // scrollable-region-focusable rule
+          await expect(axeReport).toHaveAttribute('tabindex', '0');
+          await expect(axeReport).toHaveAttribute('role', 'region');
+          await expect(axeReport).toHaveAttribute('aria-label', 'Accessibility report');
+
           // Background must not be transparent
           await expect(axeReport).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
         }

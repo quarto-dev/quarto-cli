@@ -216,6 +216,15 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
 
   createReportOverlay() {
     const reportElement = this.createReportElement();
+    // The fixed overlay scrolls (max-height: 50vh + overflow-y: auto), so it
+    // must be keyboard-focusable or it fails axe's own
+    // scrollable-region-focusable rule once the report overflows. The role and
+    // label give the resulting tab stop an accessible name. The reveal slide
+    // and dashboard offcanvas variants don't scroll the report element itself,
+    // so they skip the extra tab stop.
+    reportElement.tabIndex = 0;
+    reportElement.setAttribute("role", "region");
+    reportElement.setAttribute("aria-label", "Accessibility report");
     (document.querySelector("main") || document.body).appendChild(reportElement);
   }
 
