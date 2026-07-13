@@ -516,7 +516,7 @@ test.describe('Axe — code line-number anchors have accessible names (#14655)',
 });
 
 test.describe('Axe — standard and best-practice scoping (#14607)', () => {
-  // The three fixtures share the same body — an image-alt violation (WCAG 2.0 A),
+  // The fixtures share the same body — an image-alt violation (WCAG 2.0 A),
   // a color-contrast violation (WCAG 2.0 AA), and a heading-order violation
   // (axe best practice) — and differ only in their axe options. Presence in one
   // case proves absence in another is scoping, not a fixture that stopped violating.
@@ -559,4 +559,21 @@ test.describe('Axe — standard and best-practice scoping (#14607)', () => {
       }
     });
   }
+
+  test('standard with no output falls back to console reporting, still scoped', async ({ page }) => {
+    // `axe: {standard: wcag2a}` with no `output` key previously hit
+    // `reporters[undefined]` and silently did nothing; it now defaults to the
+    // console reporter, which logs each violation's description text.
+    const messages = await collectConsoleLogs(page);
+    await page.goto('/html/axe-standard-default-output.html', { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    const all = messages.join('\n').toLowerCase();
+    expect(all, 'image-alt (WCAG 2.0 A) should be reported on the console')
+      .toContain('alternative text');
+    expect(all, 'color-contrast (AA) is outside standard: wcag2a')
+      .not.toContain('contrast');
+    expect(all, 'heading-order (best practice) is outside standard: wcag2a')
+      .not.toContain('heading');
+  });
 });
