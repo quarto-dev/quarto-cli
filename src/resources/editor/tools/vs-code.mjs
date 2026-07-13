@@ -24775,6 +24775,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         "When defined, run axe-core accessibility tests on the document.",
         "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+        "Only check the rules for this WCAG conformance level, named as\nversion then level (e.g.&nbsp;<code>wcag21aa</code> for WCAG 2.1 AA). Each\nlevel includes the levels and versions it builds on, and may check rules\naxe-core disables by default (such as AAA color contrast). Axe\u2019s\nbest-practice rules are excluded unless <code>best-practice: true</code>\nis also set.",
+        "Whether to check axe-core\u2019s best-practice rules (checks recommended\nby axe that aren\u2019t required by any WCAG success criterion). Checked by\ndefault when <code>standard</code> is unset; excluded by default when\n<code>standard</code> is set.",
         "The logo image.",
         {
           short: "Advanced geometry settings for Typst margin layout.",
@@ -25374,12 +25376,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222617,
+        _internalId: 223022,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222609,
+            _internalId: 223014,
             type: "enum",
             enum: [
               "png",
@@ -25395,7 +25397,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222616,
+            _internalId: 223021,
             type: "anyOf",
             anyOf: [
               {
@@ -25457,6 +25459,25 @@ var require_yaml_intelligence_resources = __commonJS({
                         "document"
                       ],
                       description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                    },
+                    standard: {
+                      enum: [
+                        "wcag2a",
+                        "wcag2aa",
+                        "wcag2aaa",
+                        "wcag21a",
+                        "wcag21aa",
+                        "wcag21aaa",
+                        "wcag22a",
+                        "wcag22aa",
+                        "wcag22aaa"
+                      ],
+                      description: "Only check the rules for this WCAG conformance level, named as version then level (e.g. `wcag21aa` for WCAG 2.1 AA). Each level includes the levels and versions it builds on, and may check rules axe-core disables by default (such as AAA color contrast). Axe's best-practice rules are excluded unless `best-practice: true` is also set."
+                    },
+                    "best-practice": {
+                      boolean: {
+                        description: "Whether to check axe-core's best-practice rules (checks recommended by axe that aren't required by any WCAG success criterion). Checked by default when `standard` is unset; excluded by default when `standard` is set."
+                      }
                     }
                   }
                 }
