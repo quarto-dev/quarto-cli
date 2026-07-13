@@ -474,5 +474,5 @@ export function containsHref(href: string, items: SidebarItem[]) {
 
 export function itemHasNavTarget(item: SidebarItem, href: string) {
   return item.href === href ||
-    item.href === href.replace(/\/index\.html/, "/");
+    item.href === href.replace(/\/index\.html(?=[?#]|$)/, "/");
 }
