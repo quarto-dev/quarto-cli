@@ -487,6 +487,32 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
   });
 });
 
+test.describe('Axe report — violations sorted by severity (#14676)', () => {
+  test('html — report lists critical before serious before moderate', async ({ page }) => {
+    // Fixture triggers image-alt (critical), color-contrast (serious), and
+    // heading-order (moderate). axe-core emits these roughly alphabetically by
+    // rule id (color-contrast, heading-order, image-alt), which is not
+    // severity order, so this fails if the report stops sorting.
+    await page.goto('/html/axe-sort-order.html', { waitUntil: 'networkidle' });
+
+    const axeReport = page.locator('.quarto-axe-report');
+    await expect(axeReport).toBeVisible({ timeout: 10000 });
+
+    const descriptions = await axeReport
+      .locator('.quarto-axe-violation-description').allTextContents();
+    const indexOf = (impact: string) =>
+      descriptions.findIndex(d => d.startsWith(impact));
+
+    for (const impact of ['Critical', 'Serious', 'Moderate']) {
+      expect(indexOf(impact),
+        `Expected a ${impact} violation in: ${descriptions.join(' | ')}`)
+        .toBeGreaterThanOrEqual(0);
+    }
+    expect(indexOf('Critical')).toBeLessThan(indexOf('Serious'));
+    expect(indexOf('Serious')).toBeLessThan(indexOf('Moderate'));
+  });
+});
+
 test.describe('Axe — code line-number anchors have accessible names (#14655)', () => {
   test('html — numbered code block has no axe violations', async ({ page }) => {
     await page.goto('/html/axe-code-line-numbers.html', { waitUntil: 'networkidle' });
