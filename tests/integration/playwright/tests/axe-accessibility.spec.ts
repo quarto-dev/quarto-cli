@@ -385,6 +385,29 @@ test.describe('HTML axe — hover scrolls element clear of the report overlay', 
   });
 });
 
+test.describe('HTML axe — the report overlay passes its own scan', () => {
+  test('overlay has no axe-core violations', async ({ page }) => {
+    // The overlay is injected after the page scan runs, so it never audits
+    // itself. Scan it here with the same vendored axe-core build the page
+    // already loaded (window.axe), on the long-report page where the overlay
+    // is scrollable — the state that tripped scrollable-region-focusable.
+    await page.goto('/html/axe-overlay-scroll.html', { waitUntil: 'networkidle' });
+
+    const axeReport = page.locator('.quarto-axe-report');
+    await expect(axeReport).toBeVisible({ timeout: 10000 });
+
+    const violations = await page.evaluate(async () => {
+      const axe = (window as any).axe;
+      const result = await axe.run(document.querySelector('.quarto-axe-report'));
+      return result.violations.map((v: { id: string; nodes: { target: string[] }[] }) => ({
+        id: v.id,
+        targets: v.nodes.map((n) => n.target),
+      }));
+    });
+    expect(violations).toEqual([]);
+  });
+});
+
 test.describe('Dashboard axe — re-scan on visibility change', () => {
   const pagesUrl = '/dashboard/axe-accessibility-pages.html';
 
