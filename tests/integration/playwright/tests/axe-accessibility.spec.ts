@@ -514,3 +514,49 @@ test.describe('Axe — code line-number anchors have accessible names (#14655)',
     expect(codeLineTargets, `Unexpected code-line-number targets: ${targets.join(', ')}`).toEqual([]);
   });
 });
+
+test.describe('Axe — standard and best-practice scoping (#14607)', () => {
+  // The three fixtures share the same body — an image-alt violation (WCAG 2.0 A),
+  // a color-contrast violation (WCAG 2.0 AA), and a heading-order violation
+  // (axe best practice) — and differ only in their axe options. Presence in one
+  // case proves absence in another is scoping, not a fixture that stopped violating.
+  interface ScopeCase {
+    name: string;
+    url: string;
+    expected: string[]; // violation ids that must be reported
+    excluded: string[]; // violation ids that must not be reported
+  }
+
+  const scopeCases: ScopeCase[] = [
+    { name: 'standard: wcag2a reports A violations only',
+      url: '/html/axe-standard.html',
+      expected: ['image-alt'],
+      excluded: ['color-contrast', 'heading-order'] },
+    { name: 'standard: wcag21aa + best-practice: true reports A, AA, and best-practice',
+      url: '/html/axe-standard-best-practice.html',
+      expected: ['image-alt', 'color-contrast', 'heading-order'],
+      excluded: [] },
+    { name: 'best-practice: false without standard drops only best-practice rules',
+      url: '/html/axe-no-best-practice.html',
+      expected: ['image-alt', 'color-contrast'],
+      excluded: ['heading-order'] },
+  ];
+
+  for (const { name, url, expected, excluded } of scopeCases) {
+    test(name, async ({ page }) => {
+      const messages = await collectConsoleLogs(page);
+      await page.goto(url, { waitUntil: 'networkidle' });
+      await waitForAxeCompletion(page);
+
+      const result = findAxeJsonResult(messages);
+      expect(result).toBeDefined();
+      const ids = result!.violations.map(v => v.id);
+      for (const id of expected) {
+        expect(ids, `expected "${id}" to be reported`).toContain(id);
+      }
+      for (const id of excluded) {
+        expect(ids, `expected "${id}" not to be reported`).not.toContain(id);
+      }
+    });
+  }
+});
