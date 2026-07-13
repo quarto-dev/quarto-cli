@@ -7,7 +7,7 @@
 import { kOutputExt, kOutputFile, kServer } from "../config/constants.ts";
 import { Format, Metadata } from "../config/types.ts";
 import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
-import { dirAndStem } from "./path.ts";
+import { dirAndStem, pathsEqual } from "./path.ts";
 import { dirname, extname, join } from "../deno_ral/path.ts";
 
 export function inputFilesDir(input: string) {
@@ -57,6 +57,17 @@ export function projectedOutputFile(input: string, format: Format): string {
   }
   const [dir, stem] = dirAndStem(input);
   return join(dir, `${stem}.${format.render[kOutputExt] || "html"}`);
+}
+
+// true when the keep-md intermediate location is a path another declared
+// format owns, so it must not be written to or cleaned up (#14669)
+export function keepMdCollidesWithFormatOutput(
+  keepMd: string | undefined,
+  siblingFormatOutputs: string[] | undefined,
+): boolean {
+  return keepMd !== undefined &&
+    (siblingFormatOutputs?.some((output) => pathsEqual(output, keepMd)) ??
+      false);
 }
 
 export function formatOutputFile(format: Format) {

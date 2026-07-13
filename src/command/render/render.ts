@@ -12,10 +12,12 @@ import { Document, parseHtml } from "../../core/deno-dom.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { inputFilesDir } from "../../core/render.ts";
+import {
+  inputFilesDir,
+  keepMdCollidesWithFormatOutput,
+} from "../../core/render.ts";
 import {
   normalizePath,
-  pathsEqual,
   pathWithForwardSlashes,
   safeExistsSync,
 } from "../../core/path.ts";
@@ -380,10 +382,10 @@ export async function renderPandoc(
         // markdown format yields index.html.md) -- never clean up a path
         // that a format owns (#14669)
         const keepMd = executionEngineKeepMd(context);
-        const keepMdIsFormatOutput = keepMd !== undefined &&
-          context.siblingFormatOutputs?.some((output) =>
-            pathsEqual(output, keepMd)
-          );
+        const keepMdIsFormatOutput = keepMdCollidesWithFormatOutput(
+          keepMd,
+          context.siblingFormatOutputs,
+        );
         withTiming("render-cleanup", () =>
           renderCleanup(
             context.target.input,

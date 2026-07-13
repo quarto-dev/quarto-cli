@@ -71,11 +71,11 @@ import {
   inputFilesDir,
   isServerShiny,
   isServerShinyKnitr,
+  keepMdCollidesWithFormatOutput,
   projectedOutputFile,
 } from "../../core/render.ts";
 import {
   normalizePath,
-  pathsEqual,
   removeIfEmptyDir,
   removeIfExists,
 } from "../../core/path.ts";
@@ -687,8 +687,9 @@ async function renderFileInternal(
           const keepMd = executionEngineKeepMd(context);
           if (keepMd && context.format.execute[kKeepMd]) {
             if (
-              context.siblingFormatOutputs?.some((output) =>
-                pathsEqual(output, keepMd)
+              keepMdCollidesWithFormatOutput(
+                keepMd,
+                context.siblingFormatOutputs,
               )
             ) {
               warning(
