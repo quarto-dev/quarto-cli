@@ -116,3 +116,4 @@ All changes included in 1.10:
 - ([#14583](https://github.com/quarto-dev/quarto-cli/issues/14583)): Fix a shortcode used as an image source (e.g. `![]({{< meta logo >}})`) getting the `default-image-extension` appended, producing a doubled extension once the shortcode resolves.
 - ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment
 - ([#14669](https://github.com/quarto-dev/quarto-cli/issues/14669)): Fix markdown output being deleted when `output-file` has an `.html` extension and an html format is paired with a markdown format.
+- ([#14687](https://github.com/quarto-dev/quarto-cli/issues/14687)): Fix SCSS color-variable export (`--quarto-scss-export-*`) being silently skipped when a theme rule places a declaration on the same line as the opening brace with no space after the colon (e.g. `.example {width:100px;}`).

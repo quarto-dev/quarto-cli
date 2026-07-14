@@ -40,6 +40,13 @@ export const makeParserModule = (
         /(^\s*[A-Za-z0-9-]+):([^ \n])/mg,
         "$1: $2",
       );
+      // https://github.com/quarto-dev/quarto-cli/issues/14687
+      // ... and the same when the declaration doesn't start a line but
+      // follows `{` or `;`, e.g. `.example {width:100px;}`
+      contents = contents.replaceAll(
+        /([{;]\s*[A-Za-z0-9-]+):([^ \n])/g,
+        "$1: $2",
+      );
 
       // scss-parser's tokenizer only handles ASCII identifier characters.
       // Non-ASCII codepoints are valid in both CSS and SCSS identifiers:
