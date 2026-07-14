@@ -718,6 +718,7 @@ export const ZodFormatLanguage = z.object({
   "search-no-results-text": z.string(),
   "copy-button-tooltip": z.string(),
   "copy-button-tooltip-success": z.string(),
+  "skip-to-content": z.string(),
   "repo-action-links-edit": z.string(),
   "repo-action-links-source": z.string(),
   "repo-action-links-issue": z.string(),
