@@ -23,6 +23,29 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
   margin-top: 1rem;
 }
 
+// skip-to-content link (WCAG 2.4.1 Bypass Blocks); visually hidden via
+// Bootstrap's .visually-hidden-focusable helper until it receives focus
+#quarto-skip-link:focus {
+  position: fixed;
+  top: $spacer * 0.5;
+  inset-inline-start: $spacer * 0.5;
+  z-index: $zindex-skip-link;
+  padding: $spacer * 0.5 $spacer;
+  background-color: $body-bg;
+  color: $link-color;
+  text-decoration: none;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
+}
+
+// the skip-link target receives programmatic focus (tabindex="-1"); don't
+// draw a focus ring around the entire content area
+#quarto-document-content:focus,
+#quarto-content:focus {
+  outline: none;
+}
+
 // Grid layout
 body {
   margin: 0;
