@@ -4,7 +4,9 @@
  * Tests for the SCSS static-analysis parser wrapper, in particular the
  * text-level workarounds in src/core/sass/analyzer/parse.ts that shield
  * the brittle third-party scss-parser from valid-but-oddly-formatted SCSS.
- * Validates fix for https://github.com/quarto-dev/quarto-cli/issues/14687
+ * Validates fixes for:
+ *   https://github.com/quarto-dev/quarto-cli/issues/14687 (colon with no space)
+ *   https://github.com/quarto-dev/quarto-cli/issues/11703 (double semicolon)
  *
  * Copyright (C) 2020-2026 Posit Software, PBC
  */
@@ -44,6 +46,15 @@ const parseableSnippets: [string, string][] = [
     "data: url payload containing colons and semicolons",
   ],
   ['.x {content:"{a:1}";}', "string value containing brace/colon characters"],
+  // issue #11703: consecutive semicolons (empty statements) inside a block
+  ["a { b: 1;; }", "double semicolon after a declaration"],
+  ["a { b: 1; ; }", "semicolons separated by a space"],
+  ["a { b: 1;;; }", "triple semicolon"],
+  ["a { b: 1;\n;\n}", "semicolons separated by a newline"],
+  [
+    ".hanged { max-height: 100% !important;; }",
+    "double semicolon after !important (issue #11703 shape)",
+  ],
   // shapes that already worked before issue #14687; guard against regressions
   [".example {\n  width:100px;\n}", "line-start declaration, no space after colon"],
   [".foo { &:hover {color:red;} }", "nested parent-selector rule on one line"],
@@ -51,7 +62,7 @@ const parseableSnippets: [string, string][] = [
 ];
 
 unitTest(
-  "scss-analyzer - parses valid SCSS shapes that break raw scss-parser (issue #14687)",
+  "scss-analyzer - parses valid SCSS shapes that break raw scss-parser (issues #14687, #11703)",
   // deno-lint-ignore require-await
   async () => {
     for (const [snippet, description] of parseableSnippets) {
