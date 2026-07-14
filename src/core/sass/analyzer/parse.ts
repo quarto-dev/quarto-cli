@@ -27,6 +27,15 @@ export const makeParserModule = (
         "$1$2 /* empty rule */ $3",
       );
 
+      // https://github.com/quarto-dev/quarto-cli/issues/11703
+      // It also doesn't like consecutive semicolons inside a block
+      // (an empty statement, valid CSS/SCSS), even across lines,
+      // e.g. `a { b: 1;; }`. Collapse each run of semicolons into one.
+      contents = contents.replaceAll(
+        /;[\s;]*;/g,
+        ";",
+      );
+
       // it also really doesn't like statements that don't end in a semicolon
       // so, in case you are reading this code to understand why the parser is failing,
       // ensure that your SCSS has semicolons at the end of every statement.
@@ -38,6 +47,13 @@ export const makeParserModule = (
       // It also doesn't like values that follow a colon directly without a space
       contents = contents.replaceAll(
         /(^\s*[A-Za-z0-9-]+):([^ \n])/mg,
+        "$1: $2",
+      );
+      // https://github.com/quarto-dev/quarto-cli/issues/14687
+      // ... and the same when the declaration doesn't start a line but
+      // follows `{` or `;`, e.g. `.example {width:100px;}`
+      contents = contents.replaceAll(
+        /([{;]\s*[A-Za-z0-9-]+):([^ \n])/g,
         "$1: $2",
       );
 
