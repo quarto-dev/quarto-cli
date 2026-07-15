@@ -90,3 +90,13 @@ testRender(orcidIpynbAffilInput, "ipynb", true, [
     matches: [/ORCID\s+profile\s+for\s+Norah\s+Jones/],
   }),
 ]);
+
+// ipynb: no title metadata should not produce an empty "# " header (#14693).
+const noTitleInput = docs("doc-layout/title-block-no-title.qmd");
+const noTitleIpynbOutput = outputForInput(noTitleInput, "ipynb");
+testRender(noTitleInput, "ipynb", true, [
+  ensureIpynbCellMatches(noTitleIpynbOutput.outputPath, {
+    cellType: "markdown",
+    noMatches: [/^#\s*$/m],
+  }),
+]);

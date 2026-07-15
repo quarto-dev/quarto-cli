@@ -49,6 +49,10 @@ All changes included in 1.10:
 
 - ([#14646](https://github.com/quarto-dev/quarto-cli/issues/14646)): Fix inline code formatting in a dashboard card title being extracted from its original position and appended elsewhere in the header instead of staying inline, the same issue previously fixed for math, emphasis and bold in [#10340](https://github.com/quarto-dev/quarto-cli/issues/10340).
 
+### `ipynb`
+
+- ([#14693](https://github.com/quarto-dev/quarto-cli/issues/14693)): Fix an empty level-1 heading (`# `) being emitted in the first markdown cell when rendering a document with no `title` to `ipynb`.
+
 ## Projects
 
 ### Manuscripts
