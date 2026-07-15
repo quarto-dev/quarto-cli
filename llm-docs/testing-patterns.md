@@ -169,6 +169,40 @@ testQuartoCmd(
 - Clean up entire temp directory including source files
 - File verification uses relative paths when checking files in `cwd()`
 
+### Working-Directory-Sensitive Tests
+
+Some tests need to run from a specific directory (e.g. reproducing a bug that
+depends on the process cwd). **Do not `Deno.chdir()` inside the test body** —
+it mutates process-global cwd and can leak into other tests in the same
+process. Use the `TestContext` options instead; the harness changes the cwd
+before the test and restores it afterward:
+
+```typescript
+const workingDir = Deno.makeTempDirSync();
+
+unitTest("runs from workingDir", async () => {
+  // cwd is workingDir here (set by the harness)
+}, {
+  setup: () => { Deno.writeTextFileSync(".env.example", "..."); return Promise.resolve(); },
+  cwd: () => workingDir,
+  teardown: () => { try { Deno.removeSync(workingDir, { recursive: true }); } catch { /* best-effort */ } return Promise.resolve(); },
+});
+```
+
+**Key points:**
+
+- The harness calls `cwd()` **before** `setup()`, so the directory must already
+  exist when `cwd()` runs — create it at module scope, not in `setup`.
+- `teardown` runs **before** the harness restores the cwd, so on Windows the
+  temp dir may still be the cwd and resist removal. Wrap the removal in
+  try/catch (best-effort) — see `tests/smoke/use/template.test.ts` and
+  `tests/unit/dotenv-config.test.ts`.
+- For a temp directory you don't need to run *from*, prefer `withTempDir`
+  (`tests/utils.ts`), which creates and recursively removes it in a `finally`.
+- A test that only needs a **relative** input (not a specific cwd) can pass a
+  path relative to the current cwd (`relative(Deno.cwd(), absFile)`) without
+  changing directories at all.
+
 ## Verification Helpers
 
 ### Core Verifiers
