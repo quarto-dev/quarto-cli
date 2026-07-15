@@ -8,6 +8,7 @@
 
 local typst = require("modules/typst")
 _quarto.format.typst = typst
+local path = require("modules/path")
 
 -- Helper to format marginalia shift parameter
 -- auto/true/false are unquoted, "avoid"/"ignore" are quoted strings
@@ -252,8 +253,8 @@ function render_typst_fixups()
         -- Build image() parameters
         local params = {}
 
-        -- Source path (escape backslashes for Windows paths)
-        src = src:gsub('\\', '\\\\')
+        -- Typst 0.15+ rejects backslash path separators in image() calls.
+        src = path.to_forward_slashes(src)
         table.insert(params, '"' .. src .. '"')
 
         -- Alt text second (escape backslashes and quotes)

@@ -2,11 +2,14 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 local constants = require("modules/constants")
+local pathmodule = require("modules/path")
 
 local function resolveProjectPath(path)
   local offset = _quarto.projectOffset()
   if offset and path and startsWith(path, '/') then
-    return pandoc.path.join({offset, pandoc.text.sub(path, 2, #path)})
+    -- This path can flow into writers (e.g. Typst 0.15+) that reject
+    -- backslash path separators, so it needs forward slashes.
+    return pathmodule.to_forward_slashes(pandoc.path.join({offset, pandoc.text.sub(path, 2, #path)}))
   else
     return nil
   end

@@ -4,6 +4,7 @@
 -- helpers for working with the pandoc mediabag
 
 local filenames = require 'modules/filenames'
+local path = require 'modules/path'
 
 -- A cache of image urls that we've resolved into the mediabag
 -- keyed by {url: mediabagpath}
@@ -82,10 +83,9 @@ local function write_mediabag_entry(src)
   if contents == nil then return nil end
 
   local mediabagDir = param("mediabag-dir", nil)
-  -- Always use forward slashes: this path is assigned to el.src and can flow
-  -- into writers (e.g. Typst 0.15+) that reject backslash path separators,
-  -- while forward slashes work fine for the actual file write on Windows too.
-  local mediaFile = pandoc.path.join{mediabagDir, src}:gsub('\\', '/')
+  -- This path is assigned to el.src, so it needs forward slashes. See
+  -- modules/path.lua.
+  local mediaFile = path.to_forward_slashes(pandoc.path.join{mediabagDir, src})
 
   local file = _quarto.file.write(mediaFile, contents)
   if not file then
