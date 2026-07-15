@@ -161,6 +161,13 @@ After every change to preview URL or handler logic, verify that single-file prev
 - **Expected:** HTTP 200. Browse URL may include path for non-index files in project context.
 - **Catches:** `isSingleFile` guard accidentally excluding real project files from path computation
 
+#### T33: knitr doc in a subdirectory — preview from that subdirectory (#14683)
+
+- **Setup:** Website project with `_quarto.yml`; a knitr doc at `labs/doc.qmd` containing an `{r}` chunk (e.g. `1 + 1`). Requires R + `rmarkdown`/`knitr`.
+- **Steps:** From `labs/` (the doc's own directory), run `quarto preview doc.qmd --to html --no-watch-inputs --no-browser --port XXXX` — the shape RStudio's Render button uses (bare filename, cwd = the doc's subdirectory).
+- **Expected:** Renders without `Error in rmarkdown:::abs_path(input)`; `_site/labs/doc.html` is produced with the executed chunk output. `QUARTO_DOCUMENT_PATH` resolves to the doc's absolute subdirectory (not `.` / the project root).
+- **Catches:** `fileExecutionEngineAndTarget` not normalizing the input to absolute — a cwd-relative `target.input`/`source` in the shared preview cache makes the knitr R subprocess (cwd = project dir) fail `abs_path` on the subdirectory-relative filename.
+
 ## Test Matrix: Format Change Detection (#14533)
 
 After every change to `previewRenderRequestIsCompatible` or the
