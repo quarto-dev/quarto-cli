@@ -163,9 +163,9 @@ After every change to preview URL or handler logic, verify that single-file prev
 
 #### T33: knitr doc in a subdirectory — preview from that subdirectory (#14683)
 
-- **Setup:** Website project with `_quarto.yml`; a knitr doc at `labs/doc.qmd` containing an `{r}` chunk (e.g. `1 + 1`). Requires R + `rmarkdown`/`knitr`.
-- **Steps:** From `labs/` (the doc's own directory), run `quarto preview doc.qmd --to html --no-watch-inputs --no-browser --port XXXX` — the shape RStudio's Render button uses (bare filename, cwd = the doc's subdirectory).
-- **Expected:** Renders without `Error in rmarkdown:::abs_path(input)`; `_site/labs/doc.html` is produced with the executed chunk output. `QUARTO_DOCUMENT_PATH` resolves to the doc's absolute subdirectory (not `.` / the project root).
+- **Setup:** Fixture `knitr-subdir-14683/` — a website project with a knitr doc at `labs/doc.qmd` (an `{r}` chunk plus a `QUARTO_DOCUMENT_PATH` echo). Requires R + `rmarkdown`/`knitr`.
+- **Steps:** From `knitr-subdir-14683/labs/` (the doc's own directory), run `quarto preview doc.qmd --to html --no-watch-inputs --no-browser --port XXXX` — the shape RStudio's Render button uses (bare filename, cwd = the doc's subdirectory).
+- **Expected:** Renders without `Error in rmarkdown:::abs_path(input)`; `_site/labs/doc.html` is produced showing `[1] 2` (the R chunk executed). The echoed `QUARTO_DOCUMENT_PATH` is the doc's absolute subdirectory (ends in `labs`), not `.` / the project root (#12401).
 - **Catches:** `fileExecutionEngineAndTarget` not normalizing the input to absolute — a cwd-relative `target.input`/`source` in the shared preview cache makes the knitr R subprocess (cwd = project dir) fail `abs_path` on the subdirectory-relative filename.
 
 ## Test Matrix: Format Change Detection (#14533)
