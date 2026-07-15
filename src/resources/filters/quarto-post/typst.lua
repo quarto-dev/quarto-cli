@@ -275,6 +275,16 @@ function render_typst_fixups()
         return pandoc.RawInline("typst", "#box(image(" .. table.concat(params, ", ") .. "))")
       end
 
+      -- When caption-as-alt is deliberately suppressed (this Image is the
+      -- sole content of a Figure whose caption is rendered separately, see
+      -- layout/pandoc3_figure.lua) and no other alt text applies, clear the
+      -- caption before returning the bare Image. Otherwise Pandoc's own
+      -- Typst writer independently re-derives alt: from the Image's
+      -- caption, reintroducing the leak this suppression exists to prevent.
+      if no_caption_alt then
+        image.caption = pandoc.Inlines{}
+      end
+
       return image
     end,
     Div = function(div)
