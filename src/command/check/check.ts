@@ -244,7 +244,7 @@ async function checkVersions(conf: CheckConfiguration) {
   // file is in an awkward format and it is not packaged
   // with our installers
   const versionConstraints: [string | undefined, string, string][] = [
-    [pandocVersion, "3.10", "Pandoc"],
+    [pandocVersion, "3.10.0", "Pandoc"],
     [sassVersion, "1.101.0", "Dart Sass"],
     [denoVersion, "2.7.14", "Deno"],
     [typstVersion, "0.15.0", "Typst"],
