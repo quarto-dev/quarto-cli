@@ -285,6 +285,11 @@ function render_typst_fixups()
         image.caption = pandoc.Inlines{}
       end
 
+      -- Typst 0.15+ rejects backslash path separators in image() calls, and
+      -- this bare-Image path (no alt text) is handed to Pandoc's own Typst
+      -- writer, which emits image.src verbatim.
+      image.src = path.to_forward_slashes(image.src)
+
       return image
     end,
     Div = function(div)

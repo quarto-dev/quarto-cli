@@ -41,7 +41,7 @@ where it originated (e.g. a file name). Used by Pandoc's text readers.
 ]]
 ---@class pandoc.types.Sources: pandoc.List
 
----@alias sources_specifier string|table<string,string>|pandoc.types.Source[]|pandoc.types.Sources
+---@alias sources_specifier string|pandoc.types.Source[]|pandoc.types.Sources
 
 --[[
 Creates a new Sources element, i.e., a list of `Source` items.
