@@ -2,7 +2,11 @@
 paths:
   - "package/src/macos/installer.ts"
   - "package/src/windows/installer.ts"
+  - "package/scripts/macos/entitlements.plist"
+  - "package/scripts/macos/distribution.xml"
   - ".github/workflows/create-release.yml"
+  - ".github/workflows/actions/keychain/action.yml"
+  - ".github/workflows/actions/sign-files/action.yml"
 ---
 
 # Code Signing for Installers

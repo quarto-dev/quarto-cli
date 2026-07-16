@@ -2,6 +2,7 @@
 paths:
   - "src/resources/formats/pdf/pandoc/**"
   - "src/resources/formats/typst/pandoc/**"
+  - "package/src/common/update-pandoc.ts"
 ---
 
 # Pandoc Templates (LaTeX & Typst)
