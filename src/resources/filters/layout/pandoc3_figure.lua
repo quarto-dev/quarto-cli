@@ -5,8 +5,6 @@
 -- never cross-referenceable but they need to be rendered as 
 -- if they were.
 
-local scope_utils = require("modules/scope")
-
 function render_pandoc3_figure()
   local function html_handle_linked_image(figure)
     local div = pandoc.Div({})
@@ -151,7 +149,7 @@ function render_pandoc3_figure()
         image.attributes['quarto-caption-env'] = 'subcaption'
       end
       image.classes:extend(figure.classes)
-      if scope_utils.lookup_class(scope, "column-margin") then
+      if _quarto.modules.scope.lookup_class(scope, "column-margin") then
         image.classes:insert("column-margin")
       end
       return latexImageFigure(image)

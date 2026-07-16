@@ -1,7 +1,6 @@
 -- manuscript.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local constants = require("modules/constants")
 local kUnrollMarkdownCells = "unroll-markdown-cells"
 
 function manuscriptUnroll() 
@@ -28,10 +27,10 @@ function manuscript()
   if _quarto.format.isWordProcessorOutput() or _quarto.format.isLatexOutput() then
 
     local language = param("language", nil);
-    local notebookPrefix = language[constants.kLangSourcePrefix]
+    local notebookPrefix = language[_quarto.modules.constants.kLangSourcePrefix]
     
-    local manuscriptBaseUrl = param(constants.kManuscriptUrl)
-    local notebookLinks = param(constants.kNotebookLinks)
+    local manuscriptBaseUrl = param(_quarto.modules.constants.kManuscriptUrl)
+    local notebookLinks = param(_quarto.modules.constants.kNotebookLinks)
 
     return {
       traverse = 'topdown',
@@ -51,8 +50,8 @@ function manuscript()
         end
 
         -- Read notebook parameters from the cell, if present
-        local nbAbsPath = divEl.attributes[constants.kNotebook]
-        local nbTitle = divEl.attributes[constants.kNotebookTitle]
+        local nbAbsPath = divEl.attributes[_quarto.modules.constants.kNotebook]
+        local nbTitle = divEl.attributes[_quarto.modules.constants.kNotebookTitle]
 
         -- If this is a notebook embed cell, 'lift' the contents of any child divs
         -- up (unroll their contents), this will help us avoid
@@ -115,7 +114,7 @@ function manuscript()
           end
 
           -- The Id
-          local cellId = divEl.attributes[constants.kNotebookCellId];
+          local cellId = divEl.attributes[_quarto.modules.constants.kNotebookCellId];
           if cellId ~= nil then
             cellId = '#' .. cellId
           else
