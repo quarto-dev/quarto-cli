@@ -317,7 +317,7 @@ jobs:
             echo ">>> ./run-tests.sh ${file}"
             # Run tests without -e so we don't exit on first failure
             set +e
-            shopt -s globstar && ./run-tests.sh "$file"
+            ./run-tests.sh "$file"
             status=$?
             set -e
             echo "::endgroup::"
