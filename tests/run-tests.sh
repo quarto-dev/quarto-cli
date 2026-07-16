@@ -130,19 +130,19 @@ else
   ## Short version syntax to run smoke-all.test.ts
   ## Only use if different than ./run-test.sh ./smoke/smoke-all.test.ts
   if [[ "$1" =~ smoke-all\.test\.ts ]]; then
-    TESTS_TO_RUN=$@
+    TESTS_TO_RUN=("$@")
   else
     # Check file argument
-    SMOKE_ALL_FILES=""
-    TESTS_TO_RUN=""
+    SMOKE_ALL_FILES=()
+    TESTS_TO_RUN=()
     if [[ ! -z "$*" ]]; then
-      for file in "$*"; do
+      for file in "$@"; do
         filename=$(basename "$file")
         # smoke-all.test.ts works with .qmd, .md and .ipynb but  will ignored file starting with _
         if [[ $filename =~ ^[^_].*[.]qmd$ ]] || [[ $filename =~ ^[^_].*[.]ipynb$ ]] || [[ $filename =~ ^[^_].*[.]md$ ]]; then
-          SMOKE_ALL_FILES="${SMOKE_ALL_FILES} ${file}"
+          SMOKE_ALL_FILES+=("${file}")
         elif [[ $file =~ .*[.]ts$ ]]; then
-          TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
+          TESTS_TO_RUN+=("${file}")
         else
           echo "#### WARNING"
           echo "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)."
@@ -151,17 +151,22 @@ else
         fi
       done
     fi
-    if [ "$SMOKE_ALL_FILES" != "" ]; then
-      if [ "$TESTS_TO_RUN" != "" ]; then
+    if [ "${#SMOKE_ALL_FILES[@]}" -ne 0 ]; then
+      if [ "${#TESTS_TO_RUN[@]}" -ne 0 ]; then
         echo "#### WARNING"
         echo "When passing .qmd, .md and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
-        echo "Ignoring ${TESTS_TO_RUN}."
+        echo "Ignoring ${TESTS_TO_RUN[*]}."
         echo "####"
       fi
-      TESTS_TO_RUN="${SMOKE_ALL_TEST_FILE} -- ${SMOKE_ALL_FILES}"
+      TESTS_TO_RUN=("${SMOKE_ALL_TEST_FILE}" "--" "${SMOKE_ALL_FILES[@]}")
     fi
   fi
-  "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $TESTS_TO_RUN
+  # TESTS_TO_RUN is an array and quoted here on purpose: a bucket can be a
+  # literal, unexpanded ** glob pattern (e.g. from the ff-matrix CI bucket),
+  # and smoke-all.test.ts expands it itself via expandGlobSync. Expanding it
+  # here instead would depend on bash's own (non-recursive by default) glob
+  # semantics and could silently drop deeply nested matches.
+  "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${TESTS_TO_RUN[@]}"
   SUCCESS=$?
 fi
 
