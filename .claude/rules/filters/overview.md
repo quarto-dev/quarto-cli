@@ -68,19 +68,7 @@ Reach for it when a Pandoc *parsing* behavior must change before any filter can 
 
 ## Debugging
 
-**Filter tracing (recommended):**
-```bash
-# Linux/macOS
-package/dist/bin/quarto dev-call show-ast-trace document.qmd
-
-# Windows
-package/dist/bin/quarto.cmd dev-call show-ast-trace document.qmd
-```
-
-**AST diagram:**
-```bash
-quarto dev-call make-ast-diagram document.qmd
-```
+Visualize filter transformations with the `dev-call` tools `show-ast-trace` (interactive trace viewer) and `make-ast-diagram` (static AST diagram) — see `.claude/rules/dev-tools/dev-call-commands.md` for both.
 
 ## Related Documentation
 

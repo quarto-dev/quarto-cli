@@ -34,13 +34,7 @@ package/dist/bin/quarto dev-call build-artifacts # regenerate schemas + editor t
 
 Use `quarto-bld` for builds, not direct Deno commands. `dev-call build-artifacts` regenerates JSON schemas (`src/resources/schema/json-schemas.json`), Zod + TypeScript types (`src/resources/types/`), and editor tooling files (VSCode IntelliSense, YAML intelligence).
 
-**Tests** live in `tests/` and require R, Python, and Julia. See `.claude/rules/testing/overview.md` for commands, test types, dependencies, and debugging.
-
-```bash
-cd tests
-./run-tests.sh smoke/render/render.test.ts    # Linux/macOS
-.\run-tests.ps1 smoke/render/render.test.ts   # Windows
-```
+**Tests** live in `tests/` and require R, Python, and Julia. See `.claude/rules/testing/overview.md` for run commands, test types, dependencies, and debugging.
 
 **Feature format matrix** (`dev-docs/feature-format-matrix/`) documents and tests feature support across output formats. Test documents live in `qmd-files/` subdirectories with quality ratings `0` (broken/partial), `1` (good), `2` (excellent) in format metadata. Runs on CI via `.github/workflows/test-ff-matrix.yml`.
 
@@ -52,7 +46,7 @@ Core systems, each with a registration point used to extend it:
 
 - **Projects** (`src/project/`) — types (book, website, manuscript, …) in `types/`, registered in `types/register.ts`
 - **Formats** (`src/format/`) — handlers per output type; registry in `formats.ts`, common handling in `format-handlers.ts`, register new formats in `imports.ts`
-- **Filters** (`src/resources/filters/`) — Lua filters over the Pandoc AST, chained from `main.lua`; organized as `crossref/`, `layout/`, `quarto-pre/`, `quarto-post/`, `quarto-finalize/`; custom AST nodes in `customnodes/`, shared helpers in `common/`
+- **Filters** (`src/resources/filters/`) — Lua filters over the Pandoc AST, chained from `main.lua`; run in pipeline order `quarto-pre/`, `crossref/`, `layout/`, `quarto-post/`, `quarto-finalize/`; custom AST nodes in `customnodes/`, shared helpers in `common/`
 - **Execution engines** (`src/execute/`) — Jupyter, Knitr, Observable (Python/R/Julia/JS)
 - **Resources** (`src/resources/`) — templates, bundled libraries, extensions, Pandoc datadir customizations
 - **Preview** (`src/preview/`) — dev server with live reload
