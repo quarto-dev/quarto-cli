@@ -22,48 +22,68 @@
 
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts";
-import { isAbsolute, join, relative } from "../../src/deno_ral/path.ts";
-import { withTempDir } from "../utils.ts";
+import { isAbsolute, join } from "../../src/deno_ral/path.ts";
 import { singleFileProjectContext } from "../../src/project/types/single-file/single-file.ts";
 import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
+
+// Uses TestContext.cwd + a bare filename rather than relative(Deno.cwd(),
+// absFile): path.relative() falls back to returning the absolute path
+// unchanged when its two arguments are on different Windows drives, which
+// would make "the single-file render path used to keep this relative"
+// silently pass even without the fix on a machine/CI job where the OS temp
+// drive differs from the checkout drive.
+const fixtureDir = Deno.makeTempDirSync({ prefix: "quarto_test_12401_" });
+const relFile = "doc.qmd";
+const absFile = join(fixtureDir, relFile);
 
 unitTest(
   "single-file render builds an absolute target from a relative arg (#12401)",
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    await withTempDir(async (tempBase) => {
-      const absFile = join(tempBase, "doc.qmd");
+    // cwd is fixtureDir (set by the harness via TestContext.cwd).
+    const nbContext = notebookContext();
+    const project = await singleFileProjectContext(relFile, nbContext);
+
+    try {
+      const { target } = await project.fileExecutionEngineAndTarget(relFile);
+
+      // Before the fix, target.source/input were the relative arg, so
+      // QUARTO_DOCUMENT_PATH (dirname(target.source)) diverged from project
+      // renders. They are now absolute in both cases.
+      assert(
+        isAbsolute(target.source),
+        `Expected an absolute target.source for single-file render, got ` +
+          `${target.source} (regression #12401)`,
+      );
+      assert(
+        isAbsolute(target.input),
+        `Expected an absolute target.input for single-file render, got ` +
+          `${target.input} (regression #12401)`,
+      );
+      assert(
+        target.source === absFile,
+        `Expected target.source to resolve to ${absFile}, got ` +
+          `${target.source} (regression #12401)`,
+      );
+    } finally {
+      project.cleanup();
+    }
+  },
+  {
+    cwd: () => fixtureDir,
+    setup: () => {
       Deno.writeTextFileSync(absFile, "---\ntitle: Doc\n---\n\nHello.\n");
-
-      // A cwd-relative path — the single-file (non-project) render path used to
-      // keep this verbatim in target.source/input, diverging from project
-      // renders (which are absolute).
-      const relFile = relative(Deno.cwd(), absFile);
-
-      const nbContext = notebookContext();
-      const project = await singleFileProjectContext(relFile, nbContext);
-
+      return Promise.resolve();
+    },
+    teardown: () => {
       try {
-        const { target } = await project.fileExecutionEngineAndTarget(relFile);
-
-        // Before the fix, target.source/input were the relative arg, so
-        // QUARTO_DOCUMENT_PATH (dirname(target.source)) diverged from project
-        // renders. They are now absolute in both cases.
-        assert(
-          isAbsolute(target.source),
-          `Expected an absolute target.source for single-file render, got ` +
-            `${target.source} (regression #12401)`,
-        );
-        assert(
-          isAbsolute(target.input),
-          `Expected an absolute target.input for single-file render, got ` +
-            `${target.input} (regression #12401)`,
-        );
-      } finally {
-        project.cleanup();
+        Deno.removeSync(fixtureDir, { recursive: true });
+      } catch {
+        // ignore — best-effort (see the anti-pattern doc's Windows cwd note)
       }
-    }, "quarto_test_12401_");
+      return Promise.resolve();
+    },
   },
 );

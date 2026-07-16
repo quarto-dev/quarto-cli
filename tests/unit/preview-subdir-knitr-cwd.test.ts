@@ -29,10 +29,9 @@
 
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts";
-import { dirname, isAbsolute, join, relative } from "../../src/deno_ral/path.ts";
+import { dirname, isAbsolute, join } from "../../src/deno_ral/path.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
 import { which } from "../../src/core/path.ts";
-import { withTempDir } from "../utils.ts";
 import { projectContext } from "../../src/project/project-context.ts";
 import { singleFileProjectContext } from "../../src/project/types/single-file/single-file.ts";
 import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
@@ -44,13 +43,15 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/sche
 
 // --- End-to-end fixture (RED-1) ---
 // The harness applies TestContext.cwd() BEFORE setup(), so the working
-// directory must already exist when it chdirs in — create the tree at module
-// scope. This test keeps the literal RStudio shape: cwd = the doc's
-// subdirectory, input = the bare filename.
-const e2eBase = Deno.makeTempDirSync({ prefix: "quarto_test_14683_" });
-const e2eProjDir = join(e2eBase, "testsite");
-const e2eLabsDir = join(e2eProjDir, "labs");
-Deno.mkdirSync(e2eLabsDir, { recursive: true });
+// directory must already exist when it chdirs in — create the tree in the
+// prereq check itself (the harness runs prereq before cwd()/setup(), and
+// skips cwd()/setup()/teardown() together when prereq is false), so nothing
+// is left on disk when Rscript is absent and the test is skipped. This test
+// keeps the literal RStudio shape: cwd = the doc's subdirectory, input = the
+// bare filename.
+let e2eBase: string;
+let e2eProjDir: string;
+let e2eLabsDir: string;
 
 unitTest(
   "preview of a knitr subdir doc from that subdir's cwd renders (#14683)",
@@ -134,8 +135,17 @@ unitTest(
     }
   },
   {
-    // Spawns the R/knitr engine; skip (not fail) where R is absent.
-    prereq: async () => (await which("Rscript")) !== undefined,
+    // Spawns the R/knitr engine; skip (not fail) where R is absent. Creates
+    // the fixture tree as a side effect only when Rscript is present, so a
+    // skipped run leaves nothing on disk (teardown never runs otherwise).
+    prereq: async () => {
+      if ((await which("Rscript")) === undefined) return false;
+      e2eBase = Deno.makeTempDirSync({ prefix: "quarto_test_14683_" });
+      e2eProjDir = join(e2eBase, "testsite");
+      e2eLabsDir = join(e2eProjDir, "labs");
+      Deno.mkdirSync(e2eLabsDir, { recursive: true });
+      return true;
+    },
     // Run from the doc's subdirectory so the bare filename is cwd-relative,
     // exactly as RStudio's Render button invokes preview. The harness restores
     // the original cwd afterward.
@@ -180,66 +190,83 @@ unitTest(
 // knitr R subprocesses (execute, dependencies, postprocess) read, so asserting
 // the target is absolute covers every reader without needing R. A fix that only
 // absolutized at execute time would leave the cached target relative and fail.
-// No cwd change needed: a path relative to the current cwd exercises the same
-// normalization the bug's bare filename would.
+// Uses TestContext.cwd + a bare filename (not relative(Deno.cwd(), absFile)):
+// path.relative() falls back to returning the absolute path unchanged when its
+// two arguments are on different Windows drives, which would make the "seed
+// with a relative path" step silently seed with an absolute one instead and
+// pass even without the fix (see .github/workflows/test-smokes.yml's "Fix temp
+// dir to use runner one" step, which exists because the default drive for
+// %TEMP% and the checkout can differ on GitHub's Windows runners).
+const guardBase = Deno.makeTempDirSync({ prefix: "quarto_test_14683b_" });
+const guardProjDir = join(guardBase, "testsite");
+const guardLabsDir = join(guardProjDir, "labs");
+Deno.mkdirSync(guardLabsDir, { recursive: true });
+
 unitTest(
   "fileExecutionEngineAndTarget yields an absolute target for a relative subdir input (#14683)",
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    await withTempDir(async (tempBase) => {
-      const projDir = join(tempBase, "testsite");
-      const labsDir = join(projDir, "labs");
-      Deno.mkdirSync(labsDir, { recursive: true });
+    // cwd is guardLabsDir (set by the harness via TestContext.cwd).
+    const absFile = join(guardLabsDir, "claudetest.qmd");
+    const relFile = "claudetest.qmd";
 
+    const nbContext = notebookContext();
+    const project = (await projectContext(guardLabsDir, nbContext)) ??
+      (await singleFileProjectContext(absFile, nbContext));
+
+    try {
+      // Seed with the relative path. Building the target reads only
+      // markdown/YAML (no R execution), so this is deterministic.
+      const seeded = await project.fileExecutionEngineAndTarget(relFile);
+      assert(
+        isAbsolute(seeded.target.input) && isAbsolute(seeded.target.source),
+        `Seeded target should be absolute; got input=${seeded.target.input} ` +
+          `source=${seeded.target.source} (#14683)`,
+      );
+
+      // Look up by the absolute path (renderProject's spelling). The
+      // normalized cache key collides with the seeded entry; the returned
+      // target must still be absolute and be the same cached object.
+      const resolved = await project.fileExecutionEngineAndTarget(absFile);
+      assert(
+        isAbsolute(resolved.target.input),
+        `Expected absolute target.input after absolute lookup, got ` +
+          `${resolved.target.input} (#14683)`,
+      );
+      assert(
+        isAbsolute(resolved.target.source),
+        `Expected absolute target.source after absolute lookup, got ` +
+          `${resolved.target.source} (#14683)`,
+      );
+      assert(
+        resolved.target === seeded.target,
+        "Relative and absolute lookups must hit the same cached target (#14683)",
+      );
+    } finally {
+      project.cleanup();
+    }
+  },
+  {
+    cwd: () => guardLabsDir,
+    setup: () => {
       Deno.writeTextFileSync(
-        join(projDir, "_quarto.yml"),
+        join(guardProjDir, "_quarto.yml"),
         'project:\n  type: website\n\nwebsite:\n  title: "testsite"\n',
       );
       Deno.writeTextFileSync(
-        join(labsDir, "claudetest.qmd"),
+        join(guardLabsDir, "claudetest.qmd"),
         "---\ntitle: Claude Test\n---\n\n```{r}\n1 + 1\n```\n",
       );
-
-      const absFile = join(labsDir, "claudetest.qmd");
-      // A cwd-relative path — the "relative input" the preview seed carries.
-      const relFile = relative(Deno.cwd(), absFile);
-
-      const nbContext = notebookContext();
-      const project = (await projectContext(labsDir, nbContext)) ??
-        (await singleFileProjectContext(absFile, nbContext));
-
+      return Promise.resolve();
+    },
+    teardown: () => {
       try {
-        // Seed with the relative path. Building the target reads only
-        // markdown/YAML (no R execution), so this is deterministic.
-        const seeded = await project.fileExecutionEngineAndTarget(relFile);
-        assert(
-          isAbsolute(seeded.target.input) && isAbsolute(seeded.target.source),
-          `Seeded target should be absolute; got input=${seeded.target.input} ` +
-            `source=${seeded.target.source} (#14683)`,
-        );
-
-        // Look up by the absolute path (renderProject's spelling). The
-        // normalized cache key collides with the seeded entry; the returned
-        // target must still be absolute and be the same cached object.
-        const resolved = await project.fileExecutionEngineAndTarget(absFile);
-        assert(
-          isAbsolute(resolved.target.input),
-          `Expected absolute target.input after absolute lookup, got ` +
-            `${resolved.target.input} (#14683)`,
-        );
-        assert(
-          isAbsolute(resolved.target.source),
-          `Expected absolute target.source after absolute lookup, got ` +
-            `${resolved.target.source} (#14683)`,
-        );
-        assert(
-          resolved.target === seeded.target,
-          "Relative and absolute lookups must hit the same cached target (#14683)",
-        );
-      } finally {
-        project.cleanup();
+        Deno.removeSync(guardBase, { recursive: true });
+      } catch {
+        // ignore — best-effort (see the anti-pattern doc's Windows cwd note)
       }
-    }, "quarto_test_14683b_");
+      return Promise.resolve();
+    },
   },
 );
