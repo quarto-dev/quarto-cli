@@ -75,5 +75,5 @@ Packaging lives in `package/`; build orchestration in `package/src/quarto-bld` (
 
 - Docs: <https://quarto.org/llms.txt> (stable), <https://prerelease.quarto.org/llms.txt> (dev features). DeepWiki: <https://deepwiki.com/quarto-dev/quarto-cli>.
 - `dev-docs/` — release/backport checklists, dependency-update procedures, internals guides, performance monitoring.
-- `llm-docs/` — architectural deep dives, read on demand when a rule or task points to them.
+- `llm-docs/` — architecture deep-dives for major subsystems. **Before non-trivial work on an unfamiliar area — especially when planning or investigating, before any matching file is open — run `ls llm-docs/` (files are topic-named, e.g. `preview-architecture.md`, `sass-theming-architecture.md`) and read the relevant one.** Path-scoped rules under `.claude/rules/` also surface the matching doc when you edit its source, but that is a lazy backstop, not the primary trigger.
 - **Memory file layout:** `.claude/CLAUDE.md` always loaded (overview + essential commands); `.claude/rules/<feature>/*.md` loaded when their `paths:` frontmatter matches (feature conventions); `llm-docs/` read on demand (deep dives). Personal overrides go in gitignored `CLAUDE.local.md`. Setup + maintenance: `dev-docs/claude-code-setup.md`.
