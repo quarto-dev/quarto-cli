@@ -1,7 +1,5 @@
 -- code.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
-local constants = require("modules/constants")
-
 local function toLines(s)
   if s:sub(-1)~="\n" then s=s.."\n" end
   return s:gmatch("(.-)\n")
@@ -12,7 +10,7 @@ function removeCodeOptions()
     CodeBlock = function(codeEl)
       local lang = codeEl.attr.classes[1] 
   
-      local commentChars = constants.kLangCommentChars[lang]
+      local commentChars = _quarto.modules.constants.kLangCommentChars[lang]
       if commentChars then
         local pattern = '^' .. patternEscape(commentChars[1]) .. "|%s*%S+%s*:.+" 
         if #commentChars == 2 then

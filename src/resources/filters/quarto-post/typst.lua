@@ -6,8 +6,7 @@
 -- FIXME Ideally this would go directly on init.lua, but
 -- the module path set up doesn't appear to be working there.
 
-local typst = require("modules/typst")
-_quarto.format.typst = typst
+_quarto.format.typst = _quarto.modules.typst
 
 -- Helper to format marginalia shift parameter
 -- auto/true/false are unquoted, "avoid"/"ignore" are quoted strings
