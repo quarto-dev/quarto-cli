@@ -7,3 +7,5 @@ qmd-files/**/*.md
 qmd-files/**/*.mdx
 
 /.quarto/
+
+**/*.quarto_ipynb
