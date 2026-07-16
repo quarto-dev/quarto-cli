@@ -1,9 +1,7 @@
 -- book-links.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local path = require 'modules/path'
-
-function index_book_file_targets() 
+function index_book_file_targets()
     if not param("single-file-book", false) then
       return {} 
     else 
@@ -55,7 +53,7 @@ function resolve_book_file_targets()
             package.config:sub(1,1)
             
             -- Paths are always using '/' separator (even on windows)
-            linkTarget = path.to_forward_slashes(linkTarget)
+            linkTarget = _quarto.modules.path.to_forward_slashes(linkTarget)
             local sectionId = quarto_global_state.fileSectionIds[linkTarget];
             if sectionId ~= nil then
               el.target = '#' .. sectionId

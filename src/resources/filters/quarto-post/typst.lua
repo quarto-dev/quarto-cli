@@ -8,7 +8,6 @@
 
 local typst = require("modules/typst")
 _quarto.format.typst = typst
-local path = require("modules/path")
 
 -- Helper to format marginalia shift parameter
 -- auto/true/false are unquoted, "avoid"/"ignore" are quoted strings
@@ -254,7 +253,7 @@ function render_typst_fixups()
         local params = {}
 
         -- Typst 0.15+ rejects backslash path separators in image() calls.
-        src = path.to_forward_slashes(src)
+        src = _quarto.modules.path.to_forward_slashes(src)
         table.insert(params, '"' .. src .. '"')
 
         -- Alt text second (escape backslashes and quotes)
@@ -288,7 +287,7 @@ function render_typst_fixups()
       -- Typst 0.15+ rejects backslash path separators in image() calls, and
       -- this bare-Image path (no alt text) is handed to Pandoc's own Typst
       -- writer, which emits image.src verbatim.
-      image.src = path.to_forward_slashes(image.src)
+      image.src = _quarto.modules.path.to_forward_slashes(image.src)
 
       return image
     end,

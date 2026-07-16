@@ -1,5 +1,3 @@
-local path = require 'modules/path'
-
 function render_typst_brand_yaml()
   if not _quarto.format.isTypstOutput() then
     return {}
@@ -113,7 +111,7 @@ function render_typst_brand_yaml()
           for name, image in pairs(brandLogo.images) do
             declImage[name] = {
               -- Typst 0.15+ rejects backslash path separators.
-              path = path.to_forward_slashes(quote_string(image.path)),
+              path = _quarto.modules.path.to_forward_slashes(quote_string(image.path)),
               alt = quote_string(image.alt),
             }
           end
@@ -125,7 +123,7 @@ function render_typst_brand_yaml()
           if brandLogo[size] then
             declLogo[size] = {
               -- Typst 0.15+ rejects backslash path separators.
-              path = path.to_forward_slashes(quote_string(brandLogo[size].path)),
+              path = _quarto.modules.path.to_forward_slashes(quote_string(brandLogo[size].path)),
               alt = quote_string(brandLogo[size].alt),
             }
           end
@@ -333,7 +331,7 @@ function render_typst_brand_yaml()
           imageFilename = imageFilename and imageFilename:gsub('\\_', '_')
         else
           -- Typst 0.15+ rejects backslash path separators.
-          imageFilename = path.to_forward_slashes(imageFilename)
+          imageFilename = _quarto.modules.path.to_forward_slashes(imageFilename)
         end
         logoOptions.path = pandoc.RawInline('typst', imageFilename)
         meta.logo = logoOptions
