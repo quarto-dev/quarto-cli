@@ -11,7 +11,7 @@ All changes included in 1.10:
 ## Dependencies
 
 - ([#14291](https://github.com/quarto-dev/quarto-cli/issues/14291)): Update `deno` to v2.7.14 (fixes silent crash on Windows builds older than 16299).
-- Bundle `axe-core` 4.10.3 (used by the `axe` HTML accessibility option), previously loaded at runtime from the Skypack CDN.
+- ([#14677](https://github.com/quarto-dev/quarto-cli/pull/14677)): Bundle `axe-core` 4.10.3 (used by the `axe` HTML accessibility option), previously loaded at runtime from the Skypack CDN.
 
 ## Accessibility
 
