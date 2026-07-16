@@ -63,6 +63,8 @@ _quarto:
         - ['\\begin\{figure\}']
 ```
 
+**Details:** `llm-docs/ensure-pdf-text-positions.md` — the `ensurePdfTextPositions` verification function for asserting spatial text-position relationships in tagged PDFs (Typst only; LaTeX not yet supported).
+
 ### Regex Match Array Format
 
 `ensureFileRegexMatches` (and variants like `ensureTypstFileRegexMatches`, `ensureLatexFileRegexMatches`) takes two arrays:
