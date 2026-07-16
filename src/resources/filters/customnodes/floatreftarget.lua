@@ -2,7 +2,6 @@
 -- Copyright (C) 2023 Posit Software, PBC
 
 local drop_class = require("modules/filters").drop_class
-local patterns = require("modules/patterns")
 
 -- Track whether we've injected the Typst show rule for listing alignment
 local injected_listing_align_rule = false
@@ -565,7 +564,7 @@ end, function(float)
   -- and recreating it below.
   -- See #7937
   if _quarto.format.isRawLatex(float.content) then
-    local _b, _e, _beginenv, inner_content, _endenv = float.content.text:find(patterns.latex_table_star)
+    local _b, _e, _beginenv, inner_content, _endenv = float.content.text:find(_quarto.modules.patterns.latex_table_star)
     if _b ~= nil then 
       figEnv = "table*"
       float.content.text = inner_content

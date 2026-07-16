@@ -2,20 +2,18 @@
 -- Copyright (C) 2022 Posit Software, PBC
 
 
-local constants = require("modules/constants")
-
 local kConditions = pandoc.List({
-  constants.kWhenMeta, constants.kUnlessMeta, 
-  constants.kWhenFormat, constants.kUnlessFormat, 
-  constants.kWhenProfile, constants.kUnlessProfile
+  _quarto.modules.constants.kWhenMeta, _quarto.modules.constants.kUnlessMeta, 
+  _quarto.modules.constants.kWhenFormat, _quarto.modules.constants.kUnlessFormat, 
+  _quarto.modules.constants.kWhenProfile, _quarto.modules.constants.kUnlessProfile
 })
 
 function is_visible(node)
   local profiles = pandoc.List(param("quarto_profile", {}))
   local match = propertiesMatch(node.condition, profiles)
-  if node.behavior == constants.kContentVisible then
+  if node.behavior == _quarto.modules.constants.kContentVisible then
     return match
-  elseif node.behavior == constants.kContentHidden then
+  elseif node.behavior == _quarto.modules.constants.kContentHidden then
     return not match
   else
     -- luacov: disable
@@ -26,14 +24,14 @@ function is_visible(node)
 end
 
 _quarto.ast.add_handler({
-  class_name = { constants.kContentVisible, constants.kContentHidden },
+  class_name = { _quarto.modules.constants.kContentVisible, _quarto.modules.constants.kContentHidden },
   
   ast_name = "ConditionalBlock",
 
   kind = "Block",
 
   parse = function(div)
-    local behavior = div.classes:find(constants.kContentVisible) or div.classes:find(constants.kContentHidden)
+    local behavior = div.classes:find(_quarto.modules.constants.kContentVisible) or div.classes:find(_quarto.modules.constants.kContentHidden)
     local condition = pandoc.List({})
     local remaining_attributes = pandoc.List({})
     for i, v in ipairs(div.attributes) do
@@ -44,7 +42,7 @@ _quarto.ast.add_handler({
       end
     end
     div.attributes = remaining_attributes
-    div.classes = div.classes:filter(function(k) return k ~= constants.kContentVisible and k ~= constants.kContentHidden end)
+    div.classes = div.classes:filter(function(k) return k ~= _quarto.modules.constants.kContentVisible and k ~= _quarto.modules.constants.kContentHidden end)
 
     return quarto.ConditionalBlock({
       node = div,
@@ -144,10 +142,10 @@ end
 function handleHiddenVisible(profiles)
   return function(el)
     local visible
-    if el.attr.classes:find(constants.kContentVisible) then
+    if el.attr.classes:find(_quarto.modules.constants.kContentVisible) then
       visible = propertiesMatch(el.attributes, profiles)
       clearHiddenVisibleAttributes(el)
-    elseif el.attr.classes:find(constants.kContentHidden) then
+    elseif el.attr.classes:find(_quarto.modules.constants.kContentHidden) then
       visible = not propertiesMatch(el.attributes, profiles)
       clearHiddenVisibleAttributes(el)
     else
@@ -191,12 +189,12 @@ function propertiesMatch(properties, profiles)
     end
   end
   local tests = {
-    { constants.kWhenMeta, check_meta, false },
-    { constants.kUnlessMeta, check_meta, true },
-    { constants.kWhenFormat, quarto.format.is_format, false },
-    { constants.kUnlessFormat, quarto.format.is_format, true },
-    { constants.kWhenProfile, check_profile, false },
-    { constants.kUnlessProfile, check_profile, true }
+    { _quarto.modules.constants.kWhenMeta, check_meta, false },
+    { _quarto.modules.constants.kUnlessMeta, check_meta, true },
+    { _quarto.modules.constants.kWhenFormat, quarto.format.is_format, false },
+    { _quarto.modules.constants.kUnlessFormat, quarto.format.is_format, true },
+    { _quarto.modules.constants.kWhenProfile, check_profile, false },
+    { _quarto.modules.constants.kUnlessProfile, check_profile, true }
   }
   local match = true
   for _, test in ipairs(tests) do
@@ -211,10 +209,10 @@ function propertiesMatch(properties, profiles)
 end
 
 function clearHiddenVisibleAttributes(el)
-  el.attributes[constants.kUnlessFormat] = nil
-  el.attributes[constants.kWhenFormat] = nil
-  el.attributes[constants.kUnlessProfile] = nil
-  el.attributes[constants.kWhenProfile] = nil
-  el.attr.classes = removeClass(el.attr.classes, constants.kContentVisible)
-  el.attr.classes = removeClass(el.attr.classes, constants.kContentHidden)
+  el.attributes[_quarto.modules.constants.kUnlessFormat] = nil
+  el.attributes[_quarto.modules.constants.kWhenFormat] = nil
+  el.attributes[_quarto.modules.constants.kUnlessProfile] = nil
+  el.attributes[_quarto.modules.constants.kWhenProfile] = nil
+  el.attr.classes = removeClass(el.attr.classes, _quarto.modules.constants.kContentVisible)
+  el.attr.classes = removeClass(el.attr.classes, _quarto.modules.constants.kContentHidden)
 end

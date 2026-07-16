@@ -1,25 +1,23 @@
 -- includes.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local constants = require("modules/constants")
-
 function read_includes(meta)
   -- return {
   --   Meta = function(meta)
       -- ensure all includes are meta lists
-      ensureIncludes(meta, constants.kHeaderIncludes)
-      ensureIncludes(meta, constants.kIncludeBefore)
-      ensureIncludes(meta, constants.kIncludeAfter)
+      ensureIncludes(meta, _quarto.modules.constants.kHeaderIncludes)
+      ensureIncludes(meta, _quarto.modules.constants.kIncludeBefore)
+      ensureIncludes(meta, _quarto.modules.constants.kIncludeAfter)
           
       -- read file includes
-      readIncludeFiles(meta, constants.kIncludeInHeader, constants.kHeaderIncludes)
-      readIncludeFiles(meta, constants.kIncludeBeforeBody, constants.kIncludeBefore)
-      readIncludeFiles(meta, constants.kIncludeAfterBody, constants.kIncludeAfter)
+      readIncludeFiles(meta, _quarto.modules.constants.kIncludeInHeader, _quarto.modules.constants.kHeaderIncludes)
+      readIncludeFiles(meta, _quarto.modules.constants.kIncludeBeforeBody, _quarto.modules.constants.kIncludeBefore)
+      readIncludeFiles(meta, _quarto.modules.constants.kIncludeAfterBody, _quarto.modules.constants.kIncludeAfter)
 
       -- read text based includes
-      readIncludeStrings(meta, constants.kHeaderIncludes)
-      readIncludeStrings(meta, constants.kIncludeBefore)
-      readIncludeStrings(meta, constants.kIncludeAfter)
+      readIncludeStrings(meta, _quarto.modules.constants.kHeaderIncludes)
+      readIncludeStrings(meta, _quarto.modules.constants.kIncludeBefore)
+      readIncludeStrings(meta, _quarto.modules.constants.kIncludeAfter)
      
       return meta
   --   end
