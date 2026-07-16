@@ -136,7 +136,7 @@ else
     SMOKE_ALL_FILES=()
     TESTS_TO_RUN=()
     if [[ ! -z "$*" ]]; then
-      for file in "$*"; do
+      for file in "$@"; do
         filename=$(basename "$file")
         # smoke-all.test.ts works with .qmd, .md and .ipynb but  will ignored file starting with _
         if [[ $filename =~ ^[^_].*[.]qmd$ ]] || [[ $filename =~ ^[^_].*[.]ipynb$ ]] || [[ $filename =~ ^[^_].*[.]md$ ]]; then
