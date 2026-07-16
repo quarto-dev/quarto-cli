@@ -1,8 +1,6 @@
 -- engine-escape.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local patterns = require("modules/patterns")
-
 function engine_escape()
   -- Line-by-line replacement for the pattern (\n?[^`\n]+`+){({+([^<}]+)}+)}
   -- which suffers from O(n^2) backtracking on long lines without backticks.
@@ -10,7 +8,7 @@ function engine_escape()
   --
   -- The original pattern cannot cross newlines (due to [^`\n]+), so processing
   -- per-line is semantically equivalent and avoids catastrophic backtracking.
-  local line_pattern = "([^`\n]+`+)" .. patterns.engine_escape
+  local line_pattern = "([^`\n]+`+)" .. _quarto.modules.patterns.engine_escape
   local function unescape_inline_engine_codes(text)
     if not text:find("{{", 1, true) then
       return text
@@ -41,7 +39,7 @@ function engine_escape()
 
       -- handle code block with 'escaped' language engine
       if #el.attr.classes == 1 or #el.attr.classes == 2 and el.attr.classes[2] == 'code-annotation-code' then
-        local engine, lang = el.attr.classes[1]:match(patterns.engine_escape)
+        local engine, lang = el.attr.classes[1]:match(_quarto.modules.patterns.engine_escape)
         if engine then
           el.text = "```" .. engine .. "\n" .. el.text .. "\n" .. "```"
           el.attr.classes[1] = "markdown"
@@ -50,7 +48,7 @@ function engine_escape()
       end
 
       -- handle escaped engines within a code block
-      el.text = el.text:gsub("```" .. patterns.engine_escape, function(engine, lang)
+      el.text = el.text:gsub("```" .. _quarto.modules.patterns.engine_escape, function(engine, lang)
         if #el.attr.classes == 0 or not isHighlightClass(el.attr.classes[1]) then
           el.attr.classes:insert(1, "markdown")
         end
@@ -64,13 +62,13 @@ function engine_escape()
 
     Code = function(el)
       -- don't accidentally process escaped shortcodes
-      if el.text:match("^" .. patterns.shortcode) then
+      if el.text:match("^" .. _quarto.modules.patterns.shortcode) then
         return el
       end
       -- handle `{{python}} code`
-      el.text = el.text:gsub("^" .. patterns.engine_escape, "%1")
+      el.text = el.text:gsub("^" .. _quarto.modules.patterns.engine_escape, "%1")
       -- handles `` `{{python}} code` ``
-      el.text = el.text:gsub("^(`+)" .. patterns.engine_escape, "%1%2")
+      el.text = el.text:gsub("^(`+)" .. _quarto.modules.patterns.engine_escape, "%1%2")
       return el
     end
   }
