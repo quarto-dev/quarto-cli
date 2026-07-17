@@ -74,6 +74,13 @@ testQuartoCmd(
     }
   }],
   {
+    // remove artifacts a prior crashed run may have left behind, so verifyPath
+    // proves this render created i-was-created.txt (not a stale copy) and
+    // pre-render's i-exist.txt guard starts from a clean slate
+    setup: async () => {
+      safeRemoveIfExists(join(docs("project/prepost/extension"), "i-was-created.txt"));
+      safeRemoveIfExists(join(docs("project/prepost/extension"), "i-exist.txt"));
+    },
     teardown: async () => {
       safeRemoveIfExists(join(docs("project/prepost/extension"), "i-was-created.txt"));
       const siteDir = join(docs("project/prepost/extension"), "_site");
@@ -99,6 +106,12 @@ testQuartoCmd(
       env: {
         "QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES": normalizePath(docs("project/prepost/issue-10828/input-files.txt")),
         "QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES": normalizePath(docs("project/prepost/issue-10828/output-files.txt"))
+      },
+      // remove artifacts a prior crashed run may have left behind, so verifyPath
+      // proves this render wrote input-files.txt/output-files.txt, not a stale copy
+      setup: async () => {
+        safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/input-files.txt")));
+        safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/output-files.txt")));
       },
       teardown: async () => {
         safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/input-files.txt")));
