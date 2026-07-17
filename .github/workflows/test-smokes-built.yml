@@ -56,36 +56,22 @@ jobs:
         shell: bash
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Configure
-        shell: bash
-        run: ./configure.sh
-
-      - name: Prepare Distribution
+      - name: Compute version marker
+        id: version
         shell: bash
         # BUILD METADATA version marker (+test.<date>): semver-valid and
         # range-transparent for every 'quarto-required' gate, while still
         # distinguishable from the dev sentinel 99.9.9. NEVER use a '-suffix'
         # (prereleases fail plain ranges) or a 4th dot component (not semver).
-        run: |
-          pushd package/src
-          ./quarto-bld prepare-dist --set-version "$(cat ../../version.txt)+test.$(date +%Y%m%d)" --log-level info
-          popd
+        run: echo "version=$(cat version.txt)+test.$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
 
-      - name: Make Tarball
-        shell: bash
-        # mirrors create-release.yml's make-tarball recipe, with a fixed name
-        run: |
-          pushd package
-          mv pkg-working quarto-built-test
-          tar --owner=root --group=root -czf built-quarto-linux-amd64.tar.gz quarto-built-test
-          mv quarto-built-test pkg-working
-          popd
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+      - name: Build dist tarball
+        uses: ./.github/actions/build-dist-tarball
         with:
-          name: built-quarto-linux-amd64
-          path: ./package/built-quarto-linux-amd64.tar.gz
+          version: ${{ steps.version.outputs.version }}
+          arch: amd64
+          tarball-name: built-quarto-linux-amd64.tar.gz
+          artifact-name: built-quarto-linux-amd64
 
   run-smokes-artifact:
     name: Smoke tests against built artifact
