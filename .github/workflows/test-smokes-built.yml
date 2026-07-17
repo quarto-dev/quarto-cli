@@ -33,7 +33,7 @@ on:
   workflow_dispatch:
     inputs:
       source:
-        description: "Where the quarto under test comes from: build = build from this ref now; nightly = artifacts of a create-release run; release = published (pre-)release. The weekly schedule always uses nightly."
+        description: "Where the quarto under test comes from: build = build from this ref now; nightly = artifacts of a create-release run; release = published (pre-)release. The workflow_run trigger (after each nightly build) always uses nightly."
         required: false
         type: choice
         options:
@@ -170,9 +170,9 @@ jobs:
       quarto-version: ${{ needs.resolve-release.outputs.version }}
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
 
-  # source: nightly (the weekly schedule path; also dispatchable) - reuse the
-  # signed artifacts of a completed no-publish create-release run (linux
-  # tarball + signed Windows zip)
+  # source: nightly (the workflow_run path, daily after each build; also
+  # dispatchable) - reuse the signed artifacts of a completed no-publish
+  # create-release run (linux tarball + signed Windows zip + notarized Mac zip)
   resolve-nightly:
     name: Resolve create-release run
     # on workflow_run: only test successful builds (a skipped day is visible,
