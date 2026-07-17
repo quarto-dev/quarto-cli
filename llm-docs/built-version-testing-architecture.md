@@ -61,6 +61,26 @@ Dev mode and built modes are complementary, not redundant: dev covers
 `unit/`, `integration/`, `QUARTO_DEBUG` paths, and the `quarto check` dev
 branch; built modes cover the packaged product dev mode never executes.
 
+In practice:
+
+- **Mostly, trigger nothing.** `nightly` fires itself after each nightly
+  build and is the preventive workhorse: it tests the exact signed
+  binaries the release pipeline produces, on all three OSes, *before*
+  anything is published. Red here means we caught it before users did.
+- **Dispatch `build`** when a branch touches packaging or the harness
+  itself (`prepare-dist`, `configure`, `tests/quarto-cmd.ts`, ...) and you
+  want built-version feedback on *that ref* now. Trades coverage
+  (linux-only, unsigned) for immediacy and fork-friendliness. To get
+  *signed* Windows binaries for a branch instead, dispatch
+  `create-release` with `publish-release=false` +
+  `smoke-artifacts-only=true`, then dispatch this workflow with
+  `source=nightly` and that run's id (see D7).
+- **Dispatch `release`** after publishing, as post-publish verification —
+  e.g. the optional step in
+  `dev-docs/checklist-make-a-new-quarto-prerelease.md`. Curative by
+  nature: it can only detect a broken published version, never prevent
+  one. Only works for releases cut after the harness support merged (D10).
+
 ## Design decisions
 
 Each entry: what was decided, why, and what would justify revisiting.
