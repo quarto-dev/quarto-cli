@@ -565,6 +565,27 @@ mode, so `build` runs exercise the release recipe by construction.
 Constraint: works only for create-release runs whose commit contains the
 binary-mode harness (post-merge); the preflight fails clearly otherwise.
 
+### 5.2c Wiring decision: why `workflow_run` (2026-07, maintainer question)
+
+Considered and rejected: create-release *dispatching* the test workflow
+(hand-rolled `workflow_run` needing `actions: write` + code in the
+release workflow); create-release *calling* `test-smokes.yml` via
+`workflow_call` (same-run artifacts, but smoke results would redden
+`Build Installers` runs — including real publishes — and testing config
+would live in the release workflow); and the *inversion* —
+`test-smokes-built` owning the schedule and `workflow_call`ing
+create-release (feasible: create-release uses the `inputs.` context
+throughout, and `github.event_name` propagates from the caller; but
+`smoke-artifacts-only` skips `make-installer-mac` so the daily would
+need the full build anyway — zero compute saved, no double build exists
+today — and it would make the nightly build canary depend on the test
+workflow's health). `workflow_run` keeps the release pipeline untouched
+and the failure signals separate ("Build Installers" red = pipeline
+broke; "Smoke Tests (Built Version)" red = product broke). Accepted
+weaknesses: the trigger couples on the workflow *name* string, and a
+never-fired trigger is silent (mitigated by daily cadence). Full
+decision record: `llm-docs/built-version-testing-architecture.md` (D1).
+
 ### 5.3 Release mode scope **[R]**
 
 Release mode checks out the tag while the *workflow file and local

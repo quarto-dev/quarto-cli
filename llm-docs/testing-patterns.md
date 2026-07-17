@@ -36,8 +36,10 @@ under test:
   `QUARTO_DEBUG`, `DENO_DIR`, ...) are stripped from the child.
   `run-tests.sh`/`.ps1` refuse a binary reporting the `99.9.9` dev sentinel
   and default the selection to `smoke/` only (`unit/` and `integration/` are
-  dev-only). Exercised by `.github/workflows/test-smokes-built.yml`; full
-  design in `dev-docs/smoke-tests-built-version-plan.md`.
+  dev-only). Exercised by `.github/workflows/test-smokes-built.yml`.
+  Architecture and design decisions:
+  `llm-docs/built-version-testing-architecture.md` (original plan:
+  `dev-docs/smoke-tests-built-version-plan.md`).
 
 Consequences for writing smoke tests:
 
