@@ -8,7 +8,9 @@ export function navigationHandler() {
 
   return () => {
     const normalizeTarget = (target: string) => {
-      return target.replace(/\/index\.html/, "/")
+      // only strip index.html at the end of the path so that files like
+      // index.html.md (alternate-format twins) are left alone (#14667)
+      return target.replace(/\/index\.html(?=[?#]|$)/, "/")
     };
 
     return (ev: MessageEvent<string>): boolean => {

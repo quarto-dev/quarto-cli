@@ -1,6 +1,6 @@
 $-- Be very careful about whitespace in this document - line breaks are very meaningful
 $-- and it is very easy to break the layout with poorly considered line breaks
-# $title$
+$if(title)$# $title$$endif$
 
 $if(subtitle)$$subtitle$$endif$
 

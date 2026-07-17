@@ -61,6 +61,9 @@ export interface RenderContext {
   libDir: string;
   project: ProjectContext;
   active: boolean;
+  // projected output paths of the input's other formats; keep-md intermediate
+  // handling must not write to or delete paths a format owns (#14669)
+  siblingFormatOutputs?: string[];
 }
 
 export interface RunPandocResult {

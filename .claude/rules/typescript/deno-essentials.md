@@ -92,3 +92,5 @@ Common directives (use sparingly):
 3. **Import from deno_ral** - Not directly from std library
 4. **Use Deno APIs** - No Node.js equivalents
 5. **Prefer sync APIs** - Simpler code flow for CLI
+
+For the `error()` / `warning()` / `info()` one-line message-formatting convention, see `llm-docs/error-messages.md`.

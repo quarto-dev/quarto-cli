@@ -486,3 +486,31 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
       'Tab A restored: #tab-a-contrast should be detected again').toBe(true);
   });
 });
+
+test.describe('Axe — code line-number anchors have accessible names (#14655)', () => {
+  test('html — numbered code block has no axe violations', async ({ page }) => {
+    await page.goto('/html/axe-code-line-numbers.html', { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    const axeReport = page.locator('.quarto-axe-report');
+    await expect(axeReport).toBeVisible({ timeout: 10000 });
+    await expect(axeReport.locator('.quarto-axe-no-violations'))
+      .toHaveText('No axe-core violations found.');
+  });
+
+  test('revealjs — code line-number anchors are not reported for missing link text', async ({ page }) => {
+    await page.goto('/revealjs/axe-code-line-numbers.html', { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    const reportSlide = page.locator('section.quarto-axe-report-slide');
+    await expect(reportSlide).toBeAttached({ timeout: 10000 });
+
+    // RevealJS chrome (.slide-menu-button) and its default viewport meta trip
+    // their own pre-existing, unrelated violations — out of scope for #14655.
+    // The regression guard here is narrower: no violation should target a
+    // code line-number anchor (id `cbN-n`).
+    const targets = await reportSlide.locator('.quarto-axe-violation-target').allTextContents();
+    const codeLineTargets = targets.filter((t) => /#cb\d+-\d+/.test(t));
+    expect(codeLineTargets, `Unexpected code-line-number targets: ${targets.join(', ')}`).toEqual([]);
+  });
+});

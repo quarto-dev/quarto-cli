@@ -5,6 +5,7 @@ qmd-files/**/*.html
 qmd-files/**/*.pdf
 qmd-files/**/*.md
 qmd-files/**/*.mdx
+qmd-files/**/*.typ
 
 /.quarto/
 

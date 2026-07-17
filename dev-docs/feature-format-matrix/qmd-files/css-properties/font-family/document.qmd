@@ -19,12 +19,12 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '#{set text\(font: \("Georgia", "serif"\)\);\s*table\('
+          - '#{set text\(font: \("Libertinus Serif", "serif"\)\);\s*table\('
         - []
 ---
 
 ```{=html}
-<table style="font-family: Georgia, serif;">
+<table style="font-family: 'Libertinus Serif', serif;">
     <tr><td>A</td><td>B</td></tr>
 </table>
 ```

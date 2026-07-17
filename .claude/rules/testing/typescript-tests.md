@@ -22,11 +22,7 @@ TypeScript-based tests using Deno. Smoke tests render documents; unit tests veri
 
 ## Core Infrastructure
 
-| File | Purpose |
-|------|---------|
-| `tests/test.ts` | `testQuartoCmd()`, `testRender()`, `unitTest()` |
-| `tests/verify.ts` | Verification functions (`noErrors`, `fileExists`, etc.) |
-| `tests/utils.ts` | `docs()`, `outputForInput()`, path utilities |
+Core test files (`test.ts`, `verify.ts`, `utils.ts`) are described in `.claude/rules/testing/overview.md` § Core Files.
 
 ### Search for an existing verifier before writing one
 
