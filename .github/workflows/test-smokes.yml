@@ -5,9 +5,10 @@ on:
   workflow_call:
     inputs:
       buckets:
-        description: "JSON string for buckets of tests to run in loop. Array of grouped tests."
-        required: true
+        description: "JSON string for buckets of tests to run in loop. Array of grouped tests. Empty means a full run."
+        required: false
         type: string
+        default: ""
       time-test:
         description: "Should we run tests to produce test file"
         required: false
@@ -18,6 +19,31 @@ on:
         required: false
         type: string
         default: ""
+      quarto-install:
+        description: "Which quarto to test: 'dev' (source tree, default), 'release' (published release via quarto-actions/setup), or 'artifact' (built tarball from a workflow artifact)"
+        required: false
+        type: string
+        default: "dev"
+      quarto-version:
+        description: "Version to install when quarto-install is 'release' (passed to quarto-dev/quarto-actions/setup)"
+        required: false
+        type: string
+        default: ""
+      quarto-artifact-name:
+        description: "Workflow artifact name containing the built quarto tarball when quarto-install is 'artifact'"
+        required: false
+        type: string
+        default: ""
+      ref:
+        description: "Git ref to check out (empty means the default checkout behavior)"
+        required: false
+        type: string
+        default: ""
+      runners:
+        description: "JSON list of runner labels for the OS matrix"
+        required: false
+        type: string
+        default: '["ubuntu-latest", "windows-latest"]'
   workflow_dispatch:
     inputs:
       buckets:
@@ -50,7 +76,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        # inputs is empty on workflow_dispatch/schedule triggers; fall back to the historical default
+        os: ${{ fromJSON(inputs.runners || '["ubuntu-latest", "windows-latest"]') }}
         time-test:
           - ${{ inputs.time-test }}
         exclude:
@@ -63,6 +90,9 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
+        with:
+          # empty (the default) keeps the standard checkout behavior
+          ref: ${{ inputs.ref }}
 
       - name: Fix temp dir to use runner one (windows)
         if: runner.os == 'Windows'
@@ -86,7 +116,7 @@ jobs:
           node-version: 22
 
       - name: Cache multiplex server node_modules
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' || (inputs.quarto-install != 'dev' && inputs.quarto-install != '') }}
         uses: actions/cache@v5
         with:
           path: tests/integration/playwright/multiplex-server/node_modules
@@ -95,13 +125,13 @@ jobs:
             ${{ runner.os }}-multiplex-server-
 
       - name: Install node dependencies
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' || (inputs.quarto-install != 'dev' && inputs.quarto-install != '') }}
         run: npm install --loglevel=error --no-audit
         working-directory: ./tests/integration/playwright
         shell: bash
 
       - name: Get Playwright version
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' || (inputs.quarto-install != 'dev' && inputs.quarto-install != '') }}
         run: |
           VERSION=$(node -p "require('@playwright/test/package.json').version")
           echo "PLAYWRIGHT_VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -109,7 +139,7 @@ jobs:
         shell: bash
 
       - name: Cache Playwright browsers
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' || (inputs.quarto-install != 'dev' && inputs.quarto-install != '') }}
         uses: actions/cache@v5
         with:
           path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
@@ -118,13 +148,13 @@ jobs:
             ${{ runner.os }}-playwright-
 
       - name: Install Playwright system dependencies
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' || (inputs.quarto-install != 'dev' && inputs.quarto-install != '') }}
         timeout-minutes: 15
         run: npx playwright install-deps
         working-directory: ./tests/integration/playwright
 
       - name: Install Playwright Browsers
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' || (inputs.quarto-install != 'dev' && inputs.quarto-install != '') }}
         timeout-minutes: 15
         run: npx playwright install
         working-directory: ./tests/integration/playwright
@@ -227,7 +257,58 @@ jobs:
         run: |
           uv sync --frozen
 
+      # ALWAYS runs, in every quarto-install mode: it provisions the Deno runtime,
+      # deno_cache and dev tree that the test harness itself needs. In non-dev modes
+      # the quarto under test is layered on top via a PATH prepend + QUARTO_TEST_BIN.
       - uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Set up release quarto
+        if: inputs.quarto-install == 'release'
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: ${{ inputs.quarto-version }}
+
+      - name: Download built quarto artifact
+        if: inputs.quarto-install == 'artifact'
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.quarto-artifact-name }}
+          path: ${{ runner.temp }}/quarto-artifact
+
+      - name: Install built quarto outside the checkout
+        if: inputs.quarto-install == 'artifact'
+        shell: bash
+        # extraction must happen OUTSIDE the git checkout: the launcher detects a
+        # sibling src/quarto.ts and would silently run dev mode (dev-mode trap)
+        run: |
+          mkdir -p "$RUNNER_TEMP/quarto-under-test"
+          tar -xzf "$RUNNER_TEMP"/quarto-artifact/built-quarto-*.tar.gz -C "$RUNNER_TEMP/quarto-under-test" --strip-components=1
+          echo "$RUNNER_TEMP/quarto-under-test/bin" >> "$GITHUB_PATH"
+
+      - name: Pin and verify test target
+        if: inputs.quarto-install != 'dev' && inputs.quarto-install != ''
+        shell: bash
+        run: |
+          v="$(quarto --version)"
+          echo "quarto under test: $v ($(command -v quarto))"
+          if [ "$v" = "99.9.9" ]; then
+            echo "::error::quarto on PATH reports the dev sentinel version 99.9.9 - the built/released quarto was not picked up (dev-mode trap)"
+            exit 1
+          fi
+          # version-marker guard: version must be plain semver, optionally with build
+          # metadata (+...). A '-prerelease' suffix or a 4th component would fail
+          # every 'quarto-required' range check in the corpus (semver range gates).
+          if ! echo "$v" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(\+[0-9A-Za-z.-]+)?$'; then
+            echo "::error::quarto version '$v' is not range-transparent semver (only build metadata '+...' is allowed; never a '-suffix' or a 4th component)"
+            exit 1
+          fi
+          # preflight: the checked-out harness must support binary mode; older tags
+          # (before tests/quarto-cmd.ts existed) cannot be tested in this mode
+          if [ ! -f tests/quarto-cmd.ts ]; then
+            echo "::error::this checkout's test harness lacks binary-mode support (tests/quarto-cmd.ts is missing); release/artifact mode only works for refs that include the QUARTO_TEST_BIN harness support"
+            exit 1
+          fi
+          echo "QUARTO_TEST_BIN=$(command -v quarto)" >> "$GITHUB_ENV"
 
       - name: Install Tinytex
         env:
