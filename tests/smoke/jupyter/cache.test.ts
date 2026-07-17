@@ -7,7 +7,7 @@ import { dirname, join } from "path";
 import { runQuarto } from "../../quarto-cmd.ts";
 import { test } from "../../test.ts";
 import { docs } from "../../utils.ts";
-import { folderExists, printsMessage } from "../../verify.ts";
+import { folderExists, noErrors, printsMessage } from "../../verify.ts";
 import { fileLoader } from "../../utils.ts";
 import { safeExistsSync, safeRemoveSync } from "../../../src/core/path.ts";
 
@@ -43,6 +43,7 @@ test({
     }
   },
   verify: [
+    noErrors,
     folderExists(cacheFolder),
     // this will check only for the second render that should be read from cache
     printsMessage({ level: "INFO", regex: /Notebook read from cache/})
@@ -88,6 +89,7 @@ test({
     }
   },
   verify: [
+    noErrors,
     folderExists(cacheFolder2),
     // this will check only for the second render that should be read from cache
     printsMessage({level: "INFO", regex: /Notebook read from cache/})
