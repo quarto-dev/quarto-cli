@@ -10,7 +10,7 @@ import { assert } from "testing/asserts";
 
 import { Metadata } from "../../../src/config/types.ts";
 import { removeIfEmptyDir } from "../../../src/core/path.ts";
-import { quarto } from "../../../src/quarto.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
 import { ExecuteOutput, Verify } from "../../test.ts";
 import { outputCreated } from "../../verify.ts";
 import { testRender } from "./render.ts";
@@ -107,7 +107,7 @@ function testFileContext(
         markdown,
       );
 
-      await quarto(["render", path]);
+      await runQuarto(["render", path]);
     },
     teardown: async () => {
       // Clean up the test file
