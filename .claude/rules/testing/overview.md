@@ -28,7 +28,7 @@ QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh test.ts    # Linux/macOS
 $env:QUARTO_TESTS_NO_CONFIG=$true; .\run-tests.ps1      # Windows
 ```
 
-**Binary mode:** set `QUARTO_TEST_BIN` to a built quarto (extracted outside the checkout — the runner refuses the 99.9.9 dev sentinel) to spawn it instead of running the dev sources in-process; defaults to `smoke/` only (`unit/` and `integration/` are dev-only). See `tests/README.md` → "Binary mode".
+**Binary mode:** set `QUARTO_TEST_BIN` to a built quarto (extracted outside the checkout — the runner refuses the 99.9.9 dev sentinel) to spawn it instead of running the dev sources in-process; defaults to `smoke/` only (`unit/` and `integration/` are dev-only). See `tests/README.md` → "Binary mode"; architecture and design decisions in `llm-docs/built-version-testing-architecture.md`.
 
 ## Test Types
 
