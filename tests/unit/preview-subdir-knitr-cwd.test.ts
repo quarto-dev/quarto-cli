@@ -95,13 +95,14 @@ unitTest(
         // The behavioral signal for this bug is whether the knitr render
         // actually produced output. With the bug, the R subprocess fails at
         // rmarkdown:::abs_path(input) (execute.R) before Pandoc runs, so no
-        // HTML is written. The wrapped renderProject error carries no message
-        // (render-files.ts), so we assert on the output itself, not error text.
+        // HTML is written. Surface renderProject's error (if any) first, since
+        // the missing-file assertion below would otherwise mask it.
         const outputHtml = join(e2eProjDir, "_site", "labs", "claudetest.html");
         assert(
           existsSync(outputHtml),
           "Expected rendered HTML at _site/labs/claudetest.html — knitr render " +
-            "of the subdir doc failed to produce output (regression #14683)",
+            "of the subdir doc failed to produce output (regression #14683). " +
+            `renderProject error: ${result.error?.message} ${result.error?.stack}`,
         );
 
         // Mere existence is not enough: prove the knitr chunk actually
