@@ -16,6 +16,7 @@ import {
 } from "../../test.ts";
 import { assert, fail } from "testing/asserts";
 import { runQuarto } from "../../quarto-cmd.ts";
+import { safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 
 const syntaxQmd = crossref("syntax.qmd", "html");
 testRender(syntaxQmd.input, "html", false, [
@@ -58,11 +59,15 @@ const verify: Verify = {
 };
 const context: TestContext = {
   teardown: () => {
-    Deno.removeSync(imgQmd.output.outputPath);
-    Deno.removeSync(imgQmd.output.supportPath, { recursive: true });
+    // safeRemoveSync tolerates a missing path: when a render fails, noErrors
+    // fails first and these outputs never exist. Raw Deno.removeSync would then
+    // throw NotFound from this finally-phase teardown and mask the noErrors
+    // report with an unhelpful ENOENT.
+    safeRemoveSync(imgQmd.output.outputPath);
+    safeRemoveSync(imgQmd.output.supportPath, { recursive: true });
 
-    Deno.removeSync(divQmd.output.outputPath);
-    Deno.removeSync(divQmd.output.supportPath, { recursive: true });
+    safeRemoveSync(divQmd.output.outputPath);
+    safeRemoveSync(divQmd.output.supportPath, { recursive: true });
     return Promise.resolve();
   },
 };
