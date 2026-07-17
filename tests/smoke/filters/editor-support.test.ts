@@ -35,15 +35,23 @@ async function runEditorSupportCrossref(doc: string) {
   return json;
 }
 
+// The harness swallows errors thrown from execute() (they become log
+// records nothing here reads), so the spawn + assertions must live in a
+// verifier for these tests to be able to fail at all.
 test({
   name: "editor-support:crossref:smoke-1",
   context: {},
-  execute: async () => {
-    const json = await runEditorSupportCrossref(docs("crossrefs/sections.qmd"));
-    assertEquals(json.entries[0].key, "sec-introduction");
-    assertEquals(json.entries[0].caption, "Introduction");
-  },
-  verify: [],
+  execute: async () => {},
+  verify: [{
+    name: "editor-support crossref output",
+    verify: async (_outputs) => {
+      const json = await runEditorSupportCrossref(
+        docs("crossrefs/sections.qmd"),
+      );
+      assertEquals(json.entries[0].key, "sec-introduction");
+      assertEquals(json.entries[0].caption, "Introduction");
+    },
+  }],
   type: "smoke",
 });
 
@@ -51,10 +59,13 @@ function smokeTestCrossref(name: string, doc: string) {
   test({
     name,
     context: {},
-    execute: async () => {
-      await runEditorSupportCrossref(doc);
-    },
-    verify: [],
+    execute: async () => {},
+    verify: [{
+      name: "editor-support crossref runs cleanly",
+      verify: async (_outputs) => {
+        await runEditorSupportCrossref(doc);
+      },
+    }],
     type: "smoke",
   });
 }
