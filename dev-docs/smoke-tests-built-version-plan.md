@@ -176,17 +176,22 @@ Introduce `QUARTO_TEST_BIN` (absolute path to a built `quarto` /
 
 ### 3.4 Tests that can't run in binary mode
 
-Most `tests/smoke/**/*.test.ts` are pure `testQuartoCmd` and will just work.
-A minority poke internals (unit tests, tests importing quarto APIs to compute
-expectations, `quarto run` TS scripts relying on dev Deno, env-var tests).
+A full classification sweep of all 133 `tests/smoke/**/*.test.ts` files was
+performed (2026-07-17, six parallel agents reading every file; results in
+§7). Outcome: **107 compatible as-is, 24 adaptable via a handful of
+mechanical patterns, only 2 genuinely dev-only** (both `unitTest()`-based
+yaml-intelligence tests that arguably belong in `tests/unit/`).
+
 Mechanism:
 
 - Add `TestContext.requiresDevQuarto?: boolean`; the `test()` wrapper sets
-  Deno's `ignore` when binary mode is active.
+  Deno's `ignore` when binary mode is active. Given the sweep results this
+  flag is a rare escape hatch, not a broad annotation campaign.
 - Unit tests (`tests/unit/`) are dev-only by definition — excluded wholesale
-  in binary mode.
-- Start by targeting only **smoke-all + feature-format matrix** (bucket
-  invocation), where this problem is near-zero, and grow coverage from there.
+  in binary mode. The 2 dev-only smoke files should simply **move to
+  `tests/unit/`** rather than carry the flag (see §7.3).
+- The 24 "adapt" files reduce to shared-helper fixes (§7.2), not per-test
+  work.
 
 ---
 
@@ -350,3 +355,120 @@ matched-commit strategy.
   optional extra), against an artifact **built in the same workflow run**
   (preventive), with published-(pre)release testing as a secondary dispatch
   input (curative/backfill).
+
+---
+
+## 7. Classification sweep results (2026-07-17)
+
+All 133 `tests/smoke/**/*.test.ts` files were read in full and classified
+for binary-mode compatibility: **107 compatible / 24 adapt / 2 dev-only**.
+
+### 7.1 Compatible directories (no changes needed)
+
+`render` (28/31), `crossref`+`site`+`website` (25/26), `project` (8/8),
+`inspect` (5/6), `extensions` (5/7), `yaml`, `ojs`, `use`, `verify`, `jats`,
+`book`, `shortcodes`, `search`, `scholar`, `manuscript`, `embed`, `authors`,
+`build-ts-extension`, `check`, and more — everything funneling through
+`testQuartoCmd` or its wrappers (`testRender`, `testSite`,
+`testProjectRender`, `testManuscriptRender`). Their `src/` imports are
+expectation/path/cleanup helpers only. `TestContext.env` is already passed
+as a parameter (not `Deno.env.set`), so it forwards cleanly to a subprocess
+— binary mode actually *improves* isolation for env-dependent tests.
+
+### 7.2 The 24 "adapt" files — four mechanical patterns
+
+**(a) Direct `quarto()` import from `src/quarto.ts`** (~14 files; greppable
+via `from ".*src/quarto.ts"`). Setup-side pre-renders or multi-step bodies:
+`render-freeze`, `render-format-extension`, `render-output-file-collision`,
+`crossref/syntax`, `extensions/extension-render-{journals,typst-templates}`,
+`convert/issue-12318`, `jupyter/{cache,issue-10097,issue-12374}`,
+`engine/invalid-engine-in-project`, `self-contained/stdout`, `issues/9133`,
+and `smoke-all.test.ts` itself (project pre-render). Fix: one shared
+`runQuarto(args, {env, cwd})` helper dispatching to in-process `quarto()`
+or a `QUARTO_TEST_BIN` spawn; three of these are trivial rewrites to plain
+`testQuartoCmd`. Notes: `invalid-engine-in-project` asserts on a thrown
+Error (convert to exit-code + ERROR-log assertion; its `assertRejects` is
+currently not awaited, so it silently passes today — a pre-existing bug);
+`issues/9133` reproduces an *intra*-process concurrency bug, so the
+two-subprocess version needs a runtime check that it still triggers.
+
+**(b) PATH-quarto subprocess via `quartoDevCmd()`** (`run/*` ×3,
+`lua-unit`, `logging`, `create`): a **one-line fix** — `quartoDevCmd()`
+(`tests/utils.ts:244`) returns `QUARTO_TEST_BIN` when set. These tests
+already spawn a real binary; several (e.g. `stdlib-run-version`,
+`lua-unit`) arguably *belong* in binary mode since they verify the shipped
+`quarto run` stdlib/embedded deno.
+
+**(c) Hardcoded `../package/dist/bin/quarto` spawns**
+(`filters/editor-support`, `typst-gather` tests 7–12): consolidate onto the
+patched `quartoDevCmd()`.
+
+**(d) Semantic one-offs**: `env/check.test.ts` hardcodes `Version: 99.9.9`
+(compute expectation from the binary, or relax the regex);
+`inspect/inspect-standalone-rstudio.test.ts` uses the in-process
+`_setIsRStudioForTest` hook (in binary mode, set `RSTUDIO=1` in the child
+env instead — simpler than today; the companion "not RStudio" test requires
+the harness to spawn with a *clean* env).
+
+Implementation caveats surfaced by the sweep:
+- `testQuartoCmd`'s `cwd` option must keep chdir-ing the **harness**
+  process too (relative-path verifiers and teardowns depend on it), while
+  also setting the subprocess cwd.
+- Binary mode's `--log/--log-format` injection applies only to
+  `testQuartoCmd`-driven invocations — never to tests that spawn quarto
+  themselves and own their flags (`logging/log-level-and-formats` exists
+  precisely to test those flags).
+
+### 7.3 Genuinely dev-only (2 files)
+
+`yaml-intelligence/yaml-intelligence.test.ts` and
+`yaml-intelligence/yaml-intelligence-folded-block-strings.test.ts` —
+`unitTest()` calls exercising `src/core/lib/yaml-intelligence` internals
+with no CLI surface. **Recommendation: move them to `tests/unit/`** (the
+other two files in `smoke/yaml-intelligence/` are ordinary render tests and
+stay). With that move, *zero* smoke tests need `requiresDevQuarto` today;
+the flag remains as an escape hatch for future tests.
+
+**Reorganization verdict:** a folder/name convention (e.g. `smoke-dev/`,
+`*.dev.test.ts`) is not worth it — dev-only-ness is too rare. Caution:
+"uses `unitTest()`" is NOT a reliable dev-only signal (`run/*`,
+`lua-unit`, `typst-gather` use it as a generic wrapper around subprocess
+spawns). The reliable, greppable signals are: (a) `import ... from
+".*src/quarto.ts"` in a test file, (b) spawns not routed through
+`quartoDevCmd()`. Enforce both as lightweight lint/CI rules so new tests
+stay binary-compatible by construction.
+
+### 7.4 Smoke-all documents audit
+
+The docs themselves are almost entirely binary-clean: no doc executes
+quarto from a code cell, no runtime dev-tree paths, no pre/post-render
+scripts in fixture `_quarto.yml`s, and **every `printsMessage` assertion
+uses INFO/WARN/ERROR — never DEBUG** — matching a built binary's default
+log level. The json-stream record shape from `--log <file> --log-format
+json-stream` is identical to what `readExecuteOutput` parses, and
+`--quiet` does not affect the file handler.
+
+**One systemic blocker:** ten fixture extensions declare
+`quarto-required: '>=99.9.0'`, which passes only against the dev sentinel
+version — a real-version binary hard-errors in `validateExtension`
+(`src/extension/extension.ts:776-788`). Affected fixtures: the
+`dragonstyle/lipsum` copies under `dashboard/`, `lightbox/`,
+`format/html/`, `2023/04/24/`; the brand/typst extension fixtures under
+`typst/brand-yaml/typography/`, `typst/font-paths/`,
+`brand/typography/remote-font-extension/`, `brand/logo/logo-extension*/`;
+and `2023/01/06/input-relative/`. Two options:
+- **Relax the fixtures to `'>=1.9'`** (preferred — keeps the binary's real
+  version visible to everything else), unless a doc specifically tests
+  version gating;
+- or export `QUARTO_FORCE_VERSION=99.9.9` into the child env (honored at
+  `src/core/quarto.ts:35`) — a blunter tool that masks real version
+  behavior.
+
+Driver adaptations beyond plain render: route the `editor-support-crossref`
+pseudo-format (2 docs) and the 24 `render-project` pre-renders through the
+binary; tolerate non-zero child exit (read the log file regardless — the
+binary's top-level handler writes the ERROR record `shouldError` needs).
+Runtime one-time checks: `engine/class-override` extensions
+(`quarto-required '>=1.9.17'` — fails on older release binaries by design),
+`QUARTO_EXECUTE_INFO` / `QUARTO_PROJECT_ROOT` env-var docs, and the
+pandoc-args INFO echo docs (`2025/12/09/13775-*`).
