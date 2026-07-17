@@ -52,9 +52,16 @@ const kStripEnvVars = [
 // (level 40 == std/log LogLevels.ERROR)
 const kErrorLevel = 40;
 
-export function binaryMode(): string | undefined {
+// Path of the built quarto under test, when binary mode is active.
+export function quartoTestBin(): string | undefined {
   const bin = Deno.env.get("QUARTO_TEST_BIN");
   return bin && bin.length > 0 ? bin : undefined;
+}
+
+// True when tests target an external built quarto (QUARTO_TEST_BIN) instead
+// of the in-process dev sources.
+export function isBinaryMode(): boolean {
+  return quartoTestBin() !== undefined;
 }
 
 // Path to the quarto executable for tests that historically pinned the
@@ -62,7 +69,7 @@ export function binaryMode(): string | undefined {
 // keeps them testing the dev tree in local runs where PATH may hold a stale
 // system quarto. QUARTO_BIN_PATH is exported by run-tests.sh/.ps1.
 export function quartoDevBinCmd(): string {
-  const bin = binaryMode();
+  const bin = quartoTestBin();
   if (bin) {
     return bin;
   }
@@ -93,7 +100,7 @@ export function buildBinaryEnv(
 export function quartoSpawnEnvOptions(
   overlay?: Record<string, string>,
 ): { env?: Record<string, string>; clearEnv?: boolean } {
-  if (binaryMode()) {
+  if (isBinaryMode()) {
     return { env: buildBinaryEnv(overlay), clearEnv: true };
   }
   return overlay !== undefined ? { env: overlay } : {};
@@ -252,7 +259,7 @@ export async function runQuarto(
   args: string[],
   options: RunQuartoOptions = {},
 ): Promise<RunQuartoResult> {
-  const bin = binaryMode();
+  const bin = quartoTestBin();
   const timeoutMs = options.timeoutMs ?? 600000;
 
   if (!bin) {
