@@ -1,3 +1,13 @@
+---
+main_commit: a3f6218b7
+analyzed_date: 2026-07-17
+key_files:
+  - tests/test.ts
+  - tests/quarto-cmd.ts
+  - tests/verify.ts
+  - tests/utils.ts
+---
+
 # Quarto Test Patterns
 
 This document describes the standard patterns for writing smoke tests in the Quarto CLI test suite.
@@ -7,8 +17,40 @@ This document describes the standard patterns for writing smoke tests in the Qua
 Quarto uses Deno for testing with custom verification helpers located in:
 
 - `tests/test.ts` - Core test runner (`testQuartoCmd`)
+- `tests/quarto-cmd.ts` - Quarto invocation dispatch (`runQuarto`: in-process dev quarto vs built binary)
 - `tests/verify.ts` - Verification helpers (`fileExists`, `pathDoNotExists`, etc.)
 - `tests/utils.ts` - Utility functions (`docs()`, `outputForInput()`, etc.)
+
+### Dev Mode vs Binary Mode
+
+`testQuartoCmd` does not call quarto directly — it goes through `runQuarto()`
+in `tests/quarto-cmd.ts`, the single dispatch point for invoking the quarto
+under test:
+
+- **Dev mode (default):** quarto runs in-process via the `quarto()` entry
+  point imported from `src/quarto.ts`, as the harness always has.
+- **Binary mode:** when `QUARTO_TEST_BIN` points at an installed quarto (a
+  built distribution extracted *outside* this checkout), quarto is spawned as
+  a subprocess with `--log <file> --log-format json-stream`, so the log-record
+  verifiers work unchanged. Dev-tree env vars (`QUARTO_SHARE_PATH`,
+  `QUARTO_DEBUG`, `DENO_DIR`, ...) are stripped from the child.
+  `run-tests.sh`/`.ps1` refuse a binary reporting the `99.9.9` dev sentinel
+  and default the selection to `smoke/` only (`unit/` and `integration/` are
+  dev-only). Exercised by `.github/workflows/test-smokes-built.yml`; full
+  design in `dev-docs/smoke-tests-built-version-plan.md`.
+
+Consequences for writing smoke tests:
+
+- Do **not** import `src/quarto.ts` (or call `quarto()`) directly from
+  `tests/smoke/` — route invocations through `testQuartoCmd`/`runQuarto` so
+  the test works in both modes.
+- Tests that spawn a quarto subprocess themselves should resolve the
+  executable via `quartoDevCmd()` (`tests/utils.ts`, honors
+  `QUARTO_TEST_BIN`) and pass `quartoSpawnEnvOptions()` from
+  `tests/quarto-cmd.ts` as spawn env options.
+- A test that genuinely exercises quarto internals in-process can set
+  `TestContext.requiresDevQuarto: true`; it is ignored in binary mode. Use
+  sparingly — most such code belongs in `tests/unit/` instead.
 
 ## Common Test Patterns
 
@@ -110,7 +152,7 @@ testQuartoCmd("render", [projectDir], [noErrors /*, ... */], {
 **Key points:**
 
 - The budget is machine-dependent (post-fix render time must sit well under it, pre-fix hang well over it), so it is defense-in-depth. Pair it with a deterministic unit test on the actual fix mechanism as the primary guard.
-- A timed-out render subprocess is not killed by the harness, so on Windows it may still hold the output directory; use `safeRemoveSync` in teardown and treat cleanup as best-effort.
+- In dev (in-process) mode a timed-out render is not killed by the harness (the timeout only rejects), so on Windows it may still hold the output directory; use `safeRemoveSync` in teardown and treat cleanup as best-effort. In binary mode (`QUARTO_TEST_BIN`) the spawned process tree *is* killed on timeout, but the kill is best-effort — keep the same defensive teardown.
 
 ### Extension Template Tests
 
