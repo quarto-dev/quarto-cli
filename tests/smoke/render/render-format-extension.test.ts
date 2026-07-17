@@ -12,7 +12,7 @@
 // Both files serve different purposes and should remain separate.
 
 import { safeRemoveSync } from "../../../src/core/path.ts";
-import { docs } from "../../utils.ts";
+import { docs, withCwd } from "../../utils.ts";
 import { runQuarto } from "../../quarto-cmd.ts";
 
 import { testRender } from "./render.ts";
@@ -28,19 +28,16 @@ import { testRender } from "./render.ts";
 const updateExtensions = async () => {
   try {
     console.log("Updating quarto-journals extensions to latest versions...");
-    const wd = Deno.cwd();
-    Deno.chdir(docs("extensions/format/academic"));
-
-    for (const repo of ["acs", "elsevier"]) {
-      await runQuarto([
-        "update",
-        "extension",
-        `quarto-journals/${repo}`,
-        "--no-prompt",
-      ]);
-    }
-
-    Deno.chdir(wd);
+    await withCwd(docs("extensions/format/academic"), async () => {
+      for (const repo of ["acs", "elsevier"]) {
+        await runQuarto([
+          "update",
+          "extension",
+          `quarto-journals/${repo}`,
+          "--no-prompt",
+        ]);
+      }
+    });
     console.log("Extensions updated successfully");
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
