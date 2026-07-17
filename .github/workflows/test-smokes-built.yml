@@ -1,0 +1,157 @@
+# Runs the smoke test suite against a BUILT quarto instead of the dev source tree.
+# Two modes:
+#   - build (default; also the weekly schedule path): build a linux-amd64 dist from
+#     this checkout with `quarto-bld prepare-dist`, then run the smokes against it
+#     (harness and binary come from the same commit).
+#   - release (workflow_dispatch only): install a published (pre-)release with
+#     quarto-actions/setup and run the smokes at the matching refs/tags/v<version>.
+#     Only works for releases whose harness already has binary-mode support
+#     (tests/quarto-cmd.ts) - see dev-docs/smoke-tests-built-version-plan.md §5.3.
+name: Smoke Tests (Built Version)
+on:
+  schedule:
+    - cron: "0 8 * * 1" # weekly, Monday
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Test a quarto built from this ref (build) or a published (pre-)release (release)"
+        required: false
+        type: choice
+        options:
+          - build
+          - release
+        default: build
+      version:
+        description: "For source=release: 'pre-release' (latest prerelease), 'release' (latest stable), or a literal version like 1.9.10"
+        required: false
+        type: string
+        default: "pre-release"
+
+# required by the called test-smokes.yml (julia cache cleanup)
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  # source: build (default; also the schedule path)
+  build-artifact:
+    name: Build quarto dist (linux-amd64)
+    if: >-
+      (github.event_name != 'schedule' || github.repository == 'quarto-dev/quarto-cli')
+      && github.event.inputs.source != 'release'
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.rec.outputs.sha }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - name: Record commit under test
+        id: rec
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Configure
+        shell: bash
+        run: ./configure.sh
+
+      - name: Prepare Distribution
+        shell: bash
+        # BUILD METADATA version marker (+test.<date>): semver-valid and
+        # range-transparent for every 'quarto-required' gate, while still
+        # distinguishable from the dev sentinel 99.9.9. NEVER use a '-suffix'
+        # (prereleases fail plain ranges) or a 4th dot component (not semver).
+        run: |
+          pushd package/src
+          ./quarto-bld prepare-dist --set-version "$(cat ../../version.txt)+test.$(date +%Y%m%d)" --log-level info
+          popd
+
+      - name: Make Tarball
+        shell: bash
+        # mirrors create-release.yml's make-tarball recipe, with a fixed name
+        run: |
+          pushd package
+          mv pkg-working quarto-built-test
+          tar --owner=root --group=root -czf built-quarto-linux-amd64.tar.gz quarto-built-test
+          mv quarto-built-test pkg-working
+          popd
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: built-quarto-linux-amd64
+          path: ./package/built-quarto-linux-amd64.tar.gz
+
+  run-smokes-artifact:
+    name: Smoke tests against built artifact
+    if: github.event.inputs.source != 'release'
+    needs: [build-artifact]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      # harness commit == binary commit: no version skew by construction
+      ref: ${{ needs.build-artifact.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: built-quarto-linux-amd64
+      runners: '["ubuntu-latest"]'
+      buckets: "" # full run
+
+  # source: release (workflow_dispatch only)
+  resolve-release:
+    name: Resolve release version
+    if: github.event.inputs.source == 'release'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.r.outputs.version }}
+    steps:
+      - name: Resolve version
+        id: r
+        shell: bash
+        run: |
+          input="${{ github.event.inputs.version }}"
+          case "$input" in
+            pre-release | prerelease | "")
+              version="$(curl -fsSL https://quarto.org/docs/download/_prerelease.json | jq -r '.version')"
+              ;;
+            release)
+              version="$(curl -fsSL https://quarto.org/docs/download/_download.json | jq -r '.version')"
+              ;;
+            *)
+              version="$input"
+              ;;
+          esac
+          if [ -z "$version" ] || [ "$version" = "null" ]; then
+            echo "::error::could not resolve a quarto version from input '$input'"
+            exit 1
+          fi
+          echo "Resolved version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Preflight - tag must have binary-mode harness support
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.r.outputs.version }}
+        # releases cut before the QUARTO_TEST_BIN harness support merged cannot be
+        # tested in this mode (the harness at the tag lacks tests/quarto-cmd.ts);
+        # test-smokes.yml's "Pin and verify" step re-checks this in the checkout.
+        run: |
+          status="$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.raw+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/tests/quarto-cmd.ts?ref=refs/tags/v${VERSION}")"
+          if [ "$status" != "200" ]; then
+            echo "::error::tests/quarto-cmd.ts not found at refs/tags/v${VERSION} (HTTP ${status}): either the tag does not exist or the release predates binary-mode harness support - it cannot be tested in release mode"
+            exit 1
+          fi
+          echo "refs/tags/v${VERSION} has binary-mode harness support"
+
+  run-smokes-release:
+    name: Smoke tests against published release
+    if: github.event.inputs.source == 'release'
+    needs: [resolve-release]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
+      quarto-install: release
+      quarto-version: ${{ needs.resolve-release.outputs.version }}
+      buckets: "" # full run
