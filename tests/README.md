@@ -432,7 +432,7 @@ Don't do
 
 ### Binary mode (`QUARTO_TEST_BIN`)
 
-By default, tests run quarto **in-process** from the dev sources: `runQuarto()` in `tests/quarto-cmd.ts` calls the `quarto()` entry point imported from `src/quarto.ts`. When the `QUARTO_TEST_BIN` environment variable points at an installed quarto, `runQuarto()` instead spawns that binary as a subprocess, with `--log <file> --log-format json-stream` so the log-based verifiers keep working unchanged. This is used to run the smoke tests against a built distribution (see `dev-docs/smoke-tests-built-version-plan.md` for the design, and the `test-smokes-built.yml` CI workflow below).
+By default, tests run quarto **in-process** from the dev sources: `runQuarto()` in `tests/quarto-cmd.ts` calls the `quarto()` entry point imported from `src/quarto.ts`. When the `QUARTO_TEST_BIN` environment variable points at an installed quarto, `runQuarto()` instead spawns that binary as a subprocess, with `--log <file> --log-format json-stream` so the log-based verifiers keep working unchanged. This is used to run the smoke tests against a built distribution (see `llm-docs/built-version-testing-architecture.md` for the architecture and design decisions, `dev-docs/smoke-tests-built-version-plan.md` for the original plan, and the `test-smokes-built.yml` CI workflow below).
 
 To run in binary mode locally:
 
