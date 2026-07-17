@@ -63,18 +63,19 @@ testQuartoCmd(
 testQuartoCmd(
   "render",
   [docs("project/prepost/extension")],
-  [{
-    name: "i-exist.txt exists",
+  // assertions live in verify (teardown assertions skip cleanup on failure);
+  // noErrors keeps the purely-negative i-exist check from passing vacuously
+  // on a failed render
+  [noErrors, {
+    name: "prepost extension file effects",
     verify: async () => {
-      const path = join(docs("project/prepost/extension"), "i-exist.txt");
-      verifyNoPath(path);
+      verifyNoPath(join(docs("project/prepost/extension"), "i-exist.txt"));
+      verifyPath(join(docs("project/prepost/extension"), "i-was-created.txt"));
     }
   }],
   {
     teardown: async () => {
-      const path = join(docs("project/prepost/extension"), "i-was-created.txt");
-      verifyPath(path);
-      safeRemoveIfExists(path);
+      safeRemoveIfExists(join(docs("project/prepost/extension"), "i-was-created.txt"));
       const siteDir = join(docs("project/prepost/extension"), "_site");
       if (existsSync(siteDir)) {
         await Deno.remove(siteDir, { recursive: true });
@@ -85,19 +86,23 @@ testQuartoCmd(
   testQuartoCmd(
     "render",
     [docs("project/prepost/issue-10828")],
-    [],
+    // assertions live in verify, not teardown (an empty verify list
+    // asserted nothing about the render itself)
+    [noErrors, {
+      name: "project input/output files written",
+      verify: async () => {
+        verifyPath(normalizePath(docs("project/prepost/issue-10828/input-files.txt")));
+        verifyPath(normalizePath(docs("project/prepost/issue-10828/output-files.txt")));
+      }
+    }],
     {
       env: {
         "QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES": normalizePath(docs("project/prepost/issue-10828/input-files.txt")),
         "QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES": normalizePath(docs("project/prepost/issue-10828/output-files.txt"))
       },
       teardown: async () => {
-        const inputPath = normalizePath(docs("project/prepost/issue-10828/input-files.txt"));
-        const outputPath = normalizePath(docs("project/prepost/issue-10828/output-files.txt"));
-        verifyPath(inputPath);
-        safeRemoveIfExists(inputPath);
-        verifyPath(outputPath);
-        safeRemoveIfExists(outputPath);
+        safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/input-files.txt")));
+        safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/output-files.txt")));
         const siteDir = join(docs("project/prepost/issue-10828"), "_site");
         if (existsSync(siteDir)) {
           await Deno.remove(siteDir, { recursive: true });
