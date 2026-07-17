@@ -568,12 +568,19 @@ test.describe('Axe — standard and best-practice scoping (#14607)', () => {
     await page.goto('/html/axe-standard-default-output.html', { waitUntil: 'networkidle' });
     await waitForAxeCompletion(page);
 
-    const all = messages.join('\n').toLowerCase();
-    expect(all, 'image-alt (WCAG 2.0 A) should be reported on the console')
+    // Assert only on the console reporter's violation-description lines (axe
+    // rule descriptions all start with "Ensure"); the reporter also logs
+    // selectors and elements, and an unrelated console message could contain
+    // words like "heading" or "contrast".
+    const descriptions = messages
+      .filter((m) => m.startsWith('Ensure'))
+      .join('\n')
+      .toLowerCase();
+    expect(descriptions, 'image-alt (WCAG 2.0 A) should be reported on the console')
       .toContain('alternative text');
-    expect(all, 'color-contrast (AA) is outside standard: wcag2a')
+    expect(descriptions, 'color-contrast (AA) is outside standard: wcag2a')
       .not.toContain('contrast');
-    expect(all, 'heading-order (best practice) is outside standard: wcag2a')
+    expect(descriptions, 'heading-order (best practice) is outside standard: wcag2a')
       .not.toContain('heading');
   });
 });
