@@ -57,7 +57,7 @@ import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.t
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { WalkEntry } from "../../src/deno_ral/fs.ts";
-import { quarto } from "../../src/quarto.ts";
+import { runQuarto } from "../quarto-cmd.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 import { runningInCI } from "../../src/core/ci-info.ts";
 
@@ -431,7 +431,9 @@ for (const { path: fileName } of files) {
     projectPath && 
     !renderedProjects.has(projectPath)
   ) {
-      await quarto(["render", projectPath]);
+      // fail-loudly pre-render (throwOnFailure defaults to true);
+      // dispatches to the built binary when QUARTO_TEST_BIN is set
+      await runQuarto(["render", projectPath]);
       renderedProjects.add(projectPath);
     }
 
