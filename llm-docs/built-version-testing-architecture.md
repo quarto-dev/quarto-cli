@@ -73,8 +73,10 @@ In practice:
   (linux-only, unsigned) for immediacy and fork-friendliness. To get
   *signed* Windows binaries for a branch instead, dispatch
   `create-release` with `publish-release=false` +
-  `smoke-artifacts-only=true`, then dispatch this workflow with
-  `source=nightly` and that run's id (see D7).
+  `smoke-artifacts-only=true` — the `workflow_run` trigger then tests the
+  build automatically (only the legs whose artifacts exist); a manual
+  `source=nightly` dispatch with a `run-id` is just for re-testing an
+  older run (see D7).
 - **Dispatch `release`** after publishing, as post-publish verification —
   e.g. the optional step in
   `dev-docs/checklist-make-a-new-quarto-prerelease.md`. Curative by
@@ -123,6 +125,10 @@ pipeline broke; "Smoke Tests (Built Version)" red = the product broke.
 *display name* string (`workflows: ["Build Installers"]`; renaming
 create-release's `name:` silently stops the trigger), and "trigger never
 fired" is silent (mitigated by daily cadence — an absent run is visible).
+Note the trigger fires on EVERY completed create-release run, not only
+nightly schedules — manual dispatches (including partial
+`smoke-artifacts-only` builds) get tested too, which is why each nightly
+OS leg is gated on its artifact actually existing in the resolved run.
 
 **Revisit when:** the system has a green track record and maintainers want
 one atomic nightly build-and-test signal — then the inversion is the
@@ -179,11 +185,16 @@ are skipped and nothing changes.
 
 The `create-release.yml` input skips source/arm64 tarballs and the Mac
 installer, yielding a fast signed Linux+Windows build for on-demand testing
-of a branch (`dispatch create-release publish-release=false
-smoke-artifacts-only=true`, then `dispatch test-smokes-built source=nightly
-run-id=<that run>`). It deliberately does NOT feed the daily path: the
-daily needs the full build (Mac Zip = the only macOS smoke coverage), and
-`publish-release` is hard-guarded against partial builds.
+of a branch: dispatch create-release with `publish-release=false` +
+`smoke-artifacts-only=true` and the `workflow_run` trigger tests the build
+automatically (mac leg skipped via the artifact-existence gate — one
+dispatch total). Guards: `configure` fails fast if `publish-release` (which
+defaults to true) is combined with `smoke-artifacts-only` — otherwise the
+version commit+tag step would push an orphan tag — and such runs use a
+per-run concurrency group so they never queue in the shared `prerelease`
+group against a real release. It deliberately does NOT feed the daily
+path: the daily needs the full build (Mac Zip = the only macOS smoke
+coverage).
 
 ### D8. macOS runners: scheduled/built runs only, never per-commit
 

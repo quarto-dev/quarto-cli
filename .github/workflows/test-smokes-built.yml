@@ -6,10 +6,14 @@
 #     the linux 'Deb Zip' tarball, the signed 'Windows Zip' (the real
 #     quarto.exe), AND the signed+notarized 'Mac Zip' - and run the smokes at
 #     that run's commit. No duplicate build, three-OS coverage for free
-#     (the ONLY macOS smoke coverage in CI). To test a
-#     signed build of a specific commit on demand: dispatch create-release with
-#     publish-release=false, then dispatch this workflow with source=nightly and
-#     that run's id.
+#     (the ONLY macOS smoke coverage in CI). Each OS leg is gated on its
+#     artifact existing in the run, so a smoke-artifacts-only build (no Mac
+#     Zip) gets linux+windows tested instead of a red mac job. To test a
+#     signed build of a specific commit on demand: dispatch create-release
+#     with publish-release=false (+ smoke-artifacts-only for a cheaper
+#     linux+windows build) - the workflow_run trigger then tests it
+#     automatically; dispatching this workflow with source=nightly and a
+#     run-id is only needed to re-test an older run.
 #   - build (dispatch default): build a linux-amd64 dist from THIS ref with the
 #     same recipe as create-release (shared build-dist-tarball action) and test
 #     it. The only mode that works for arbitrary refs/PR branches and on forks
@@ -23,10 +27,12 @@
 # dispatch => the source input (default build).
 name: Smoke Tests (Built Version)
 on:
-  # Fires once per completed nightly create-release build (main only:
-  # workflow_run triggers require the workflow file on the default branch).
-  # This makes built-version testing DAILY, right after each build, with no
-  # stale-artifact risk (vs a cron that resolves "latest successful run").
+  # Fires on EVERY completed create-release run - the nightly schedule
+  # (daily built-version testing, right after each build, no stale-artifact
+  # risk) but also manual create-release dispatches, whose builds get tested
+  # too (partial smoke-artifacts-only builds only run the legs whose
+  # artifacts exist). The workflow file must be on the default branch for
+  # workflow_run to fire; the triggering build may be on any branch.
   workflow_run:
     workflows: ["Build Installers"]
     types: [completed]
@@ -180,8 +186,11 @@ jobs:
     outputs:
       run-id: ${{ steps.r.outputs.run-id }}
       sha: ${{ steps.r.outputs.sha }}
+      has-linux: ${{ steps.r.outputs.has-linux }}
+      has-windows: ${{ steps.r.outputs.has-windows }}
+      has-mac: ${{ steps.r.outputs.has-mac }}
     steps:
-      - name: Resolve run id and commit
+      - name: Resolve run id, commit and artifacts
         id: r
         shell: bash
         env:
@@ -202,13 +211,32 @@ jobs:
             echo "::error::could not resolve head_sha for run ${run_id}"
             exit 1
           fi
-          echo "Using create-release run ${run_id} at commit ${sha}"
+          # A smoke-artifacts-only build has no 'Mac Zip' (and workflow_run
+          # fires on EVERY completed create-release run, not only nightly
+          # schedules) - gate each OS leg on its artifact actually existing
+          # instead of failing red at download time.
+          names="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
+            --paginate --jq '.artifacts[].name')"
+          has() { grep -Fxq "$1" <<<"$names" && echo true || echo false; }
+          has_linux="$(has 'Deb Zip')"
+          has_windows="$(has 'Windows Zip')"
+          has_mac="$(has 'Mac Zip')"
+          if [ "$has_linux" = false ] && [ "$has_windows" = false ] && [ "$has_mac" = false ]; then
+            echo "::error::run ${run_id} produced none of the expected artifacts (Deb Zip / Windows Zip / Mac Zip)"
+            exit 1
+          fi
+          echo "Using create-release run ${run_id} at commit ${sha} (linux=${has_linux} windows=${has_windows} mac=${has_mac})"
           echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "has-linux=$has_linux" >> "$GITHUB_OUTPUT"
+          echo "has-windows=$has_windows" >> "$GITHUB_OUTPUT"
+          echo "has-mac=$has_mac" >> "$GITHUB_OUTPUT"
 
   run-smokes-nightly-linux:
     name: Smoke tests against nightly build (linux)
-    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-linux == 'true'
     needs: [resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
@@ -222,7 +250,9 @@ jobs:
 
   run-smokes-nightly-windows:
     name: Smoke tests against nightly build (windows)
-    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-windows == 'true'
     needs: [resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
@@ -236,7 +266,9 @@ jobs:
 
   run-smokes-nightly-mac:
     name: Smoke tests against nightly build (macOS)
-    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-mac == 'true'
     needs: [resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
