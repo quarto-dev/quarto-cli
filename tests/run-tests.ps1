@@ -71,7 +71,7 @@ If ($null -eq $Env:QUARTO_DENO_DIR) {
 # itself still runs from the dev tree — the dev env vars above stay — and
 # tests/quarto-cmd.ts dispatches quarto invocations to the binary, stripping
 # the dev env from the child process. See
-# dev-docs/smoke-tests-built-version-plan.md.
+# llm-docs/built-version-testing-architecture.md.
 If ($null -ne $Env:QUARTO_TEST_BIN) {
   If (-not (Test-Path $Env:QUARTO_TEST_BIN)) {
     Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) does not exist"

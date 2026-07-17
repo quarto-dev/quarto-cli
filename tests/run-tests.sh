@@ -67,7 +67,7 @@ QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-re
 # itself still runs from the dev tree — the dev env exports above stay — and
 # tests/quarto-cmd.ts dispatches quarto invocations to the binary, stripping
 # the dev env from the child process. See
-# dev-docs/smoke-tests-built-version-plan.md.
+# llm-docs/built-version-testing-architecture.md.
 if [[ -n "$QUARTO_TEST_BIN" ]]; then
   if [[ ! -x "$QUARTO_TEST_BIN" ]]; then
     echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) does not exist or is not executable"

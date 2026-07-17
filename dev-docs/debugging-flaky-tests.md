@@ -186,7 +186,7 @@ for test in test1.ts test2.ts test3.ts; do
 done
 
 # Run against a built quarto instead of the in-process dev sources
-# (binary mode; see dev-docs/smoke-tests-built-version-plan.md)
+# (binary mode; see llm-docs/built-version-testing-architecture.md)
 QUARTO_TEST_BIN=/path/to/installed/quarto ./run-tests.sh path/to/test.ts
 ```
 
