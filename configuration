@@ -18,7 +18,7 @@ export DARTSASS=1.101.0
 export ESBUILD=0.28.1
 export TYPST=0.15.0
 export TYPST_GATHER=0.2.3
-export VERAPDF=1.30.2
+export VERAPDF=1.28.2
 
 
 # NB: we can't put comments in the same line as export statements because it

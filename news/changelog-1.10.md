@@ -17,7 +17,6 @@ All changes included in 1.10:
   - Update `typst-gather` to 0.2.3.
   - Update `dart-sass` to 1.101.0.
   - Update `esbuild` to 0.28.1.
-  - Update `veraPDF` to 1.30.2.
 
 ## Accessibility
 
