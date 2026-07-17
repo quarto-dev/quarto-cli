@@ -3,6 +3,8 @@ import { assert } from "testing/asserts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { execProcess } from "../../../src/core/process.ts";
+import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 
 // Test 1: Auto-detection from _extension.yml
 const verifyPackagesCreated: Verify = {
@@ -268,20 +270,16 @@ async function runQuarto(
   cwd: string,
   env?: Record<string, string>,
 ): Promise<{ success: boolean; stdout: string; stderr: string }> {
-  const quartoCmd = Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
-  const quartoPath = join(
-    Deno.cwd(),
-    "..",
-    "package/dist/bin",
-    quartoCmd,
-  );
   const result = await execProcess({
-    cmd: quartoPath,
+    cmd: quartoDevCmd(),
     args,
     cwd,
     stdout: "piped",
     stderr: "piped",
-    env: env ? { ...Deno.env.toObject(), ...env } : undefined,
+    // dev mode: overlay merges into the inherited ambient env (same child
+    // env as the previous explicit { ...Deno.env.toObject(), ...env });
+    // binary mode: sanitized ambient env + overlay with clearEnv
+    ...quartoSpawnEnvOptions(env),
   });
   return {
     success: result.success,

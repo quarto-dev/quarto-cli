@@ -1,16 +1,18 @@
 import { assert } from "testing/asserts";
 import { execProcess } from "../../../src/core/process.ts";
 import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { unitTest } from "../../test.ts";
 
 const testPassthroughCmd = (name: string, command: string, args: string[]) => {
   unitTest(name, async () => {
     const result = await execProcess({
-      cmd: quartoDevCmd(), 
+      cmd: quartoDevCmd(),
       args: [
         command,
         ...args,
-      ]
+      ],
+      ...quartoSpawnEnvOptions(),
     });
     assert(result.success);
   });

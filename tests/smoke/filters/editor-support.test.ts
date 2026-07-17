@@ -4,21 +4,18 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { docs } from "../../utils.ts";
+import { docs, quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { test } from "../../test.ts";
 import { assertEquals } from "testing/asserts";
-import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 async function runEditorSupportCrossref(doc: string) {
-  const cmdLine: string = isWindows ?
-    "../package/dist/bin/quarto.cmd" :
-    "../package/dist/bin/quarto";
-
-  const cmd = new Deno.Command(cmdLine, {
+  const cmd = new Deno.Command(quartoDevCmd(), {
     args: ["editor-support", "crossref"],
     stdin: "piped",
     stdout: "piped",
     stderr: "piped",
+    ...quartoSpawnEnvOptions(),
   });
   const child = cmd.spawn();
   const writer = child.stdin.getWriter();

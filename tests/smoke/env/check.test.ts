@@ -5,13 +5,20 @@
 *
 */
 import { testQuartoCmd } from "../../test.ts";
+import { binaryMode } from "../../quarto-cmd.ts";
 import { noErrorsOrWarnings, printsMessage } from "../../verify.ts";
+
+// Dev mode reports the 99.9.9 sentinel version; a built binary reports its
+// real version, so only require a semver-shaped version line there.
+const versionRegex = binaryMode()
+  ? /Version: \d+\.\d+\.\d+/
+  : /Version: 99\.9\.9/;
 
 testQuartoCmd(
   "check",
   [],
   [
     noErrorsOrWarnings,
-    printsMessage({level: "INFO", regex: /Version: 99\.9\.9/}),
+    printsMessage({level: "INFO", regex: versionRegex}),
   ],
 );
