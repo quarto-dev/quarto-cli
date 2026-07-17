@@ -17,7 +17,9 @@
 *
 */
 import { quarto } from "../src/quarto.ts";
+import { kLocalDevelopment } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
+import { join } from "../src/deno_ral/path.ts";
 
 // Env vars that identify the dev tree (or stale per-render state) and must
 // never leak into the spawned binary: the installed launchers inherit
@@ -46,8 +48,6 @@ const kStripEnvVars = [
   "RSTUDIO",
 ];
 
-const kDevVersionSentinel = "99.9.9";
-
 // json-stream ERROR record shape expected by readExecuteOutput/verify.ts
 // (level 40 == std/log LogLevels.ERROR)
 const kErrorLevel = 40;
@@ -55,6 +55,20 @@ const kErrorLevel = 40;
 export function binaryMode(): string | undefined {
   const bin = Deno.env.get("QUARTO_TEST_BIN");
   return bin && bin.length > 0 ? bin : undefined;
+}
+
+// Path to the quarto executable for tests that historically pinned the
+// locally-built dev CLI (package/dist/bin/quarto) rather than PATH quarto —
+// keeps them testing the dev tree in local runs where PATH may hold a stale
+// system quarto. QUARTO_BIN_PATH is exported by run-tests.sh/.ps1.
+export function quartoDevBinCmd(): string {
+  const bin = binaryMode();
+  if (bin) {
+    return bin;
+  }
+  const binPath = Deno.env.get("QUARTO_BIN_PATH") ??
+    join("..", "package", "dist", "bin");
+  return join(binPath, isWindows ? "quarto.cmd" : "quarto");
 }
 
 export function buildBinaryEnv(
@@ -103,13 +117,7 @@ export function appendLogError(logFile: string, msg: string) {
   Deno.writeTextFileSync(logFile, existing + sep + record + "\n");
 }
 
-function hasErrorRecord(logFile: string): boolean {
-  let content = "";
-  try {
-    content = Deno.readTextFileSync(logFile);
-  } catch {
-    return false;
-  }
+function hasErrorRecordText(content: string): boolean {
   for (const line of content.split("\n")) {
     if (!line) continue;
     try {
@@ -148,9 +156,9 @@ export function assertTestBinary(bin: string) {
       `QUARTO_TEST_BIN (${bin}) failed to report a version (exit ${result.code}):\n${stderr}`,
     );
   }
-  if (version === kDevVersionSentinel) {
+  if (version === kLocalDevelopment) {
     throw new Error(
-      `QUARTO_TEST_BIN (${bin}) reports the dev version sentinel ${kDevVersionSentinel}. ` +
+      `QUARTO_TEST_BIN (${bin}) reports the dev version sentinel ${kLocalDevelopment}. ` +
         `It is resolving to a dev-mode quarto (the launcher runs the TS sources when a ` +
         `sibling src/quarto.ts exists). Point QUARTO_TEST_BIN at a built distribution ` +
         `extracted outside the git checkout.`,
@@ -187,8 +195,10 @@ async function killProcessTree(pid: number) {
     const current = stack.pop()!;
     pids.push(current);
     try {
-      const result = new Deno.Command("ps", {
-        args: ["-o", "pid=", "--ppid", String(current)],
+      // pgrep -P is portable across Linux and macOS/BSD (unlike the
+      // procps-only `ps --ppid` long option)
+      const result = new Deno.Command("pgrep", {
+        args: ["-P", String(current)],
         stdout: "piped",
         stderr: "null",
       }).outputSync();
@@ -199,7 +209,7 @@ async function killProcessTree(pid: number) {
         .filter((child) => !isNaN(child));
       stack.push(...children);
     } catch {
-      // ps unavailable; fall back to killing what we have
+      // pgrep unavailable; fall back to killing what we have
     }
   }
   for (const target of pids.reverse()) {
@@ -248,21 +258,34 @@ export async function runQuarto(
   if (!bin) {
     // dev mode: in-process call, preserving existing semantics exactly
     // (a timeout rejects but does not kill the in-process render)
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<never>((_resolve, reject) => {
-      setTimeout(reject, timeoutMs, `timed out after ${timeoutMs}ms`);
+      timer = setTimeout(reject, timeoutMs, `timed out after ${timeoutMs}ms`);
     });
-    await Promise.race([quarto(args, undefined, options.env), timeout]);
+    try {
+      await Promise.race([quarto(args, undefined, options.env), timeout]);
+    } finally {
+      if (timer !== undefined) {
+        clearTimeout(timer);
+      }
+    }
     return { code: 0, timedOut: false };
   }
 
   assertTestBinary(bin);
   const throwOnFailure = options.throwOnFailure ?? true;
 
+  // The binary's LogFileHandler opens --log in truncate mode, so two
+  // invocations sharing one log file would erase the first invocation's
+  // records (including any synthetic ERROR). Give each child its own temp
+  // log and merge it into the caller's log file after exit.
   const spawnArgs = [...args];
+  let childLog: string | undefined;
   if (options.logFile) {
+    childLog = Deno.makeTempFileSync({ suffix: ".json" });
     spawnArgs.push(
       "--log",
-      options.logFile,
+      childLog,
       "--log-format",
       options.logFormat ?? "json-stream",
       // per-test log intent must land in the flags: explicit flags beat
@@ -298,13 +321,35 @@ export async function runQuarto(
   const stderrTail = stderrText.split("\n").slice(-25).join("\n").trim();
   const commandLine = `quarto ${args.join(" ")}`;
 
-  if (options.logFile) {
+  if (options.logFile && childLog) {
+    // merge this invocation's records into the caller's log file
+    let childContent = "";
+    try {
+      childContent = Deno.readTextFileSync(childLog);
+    } catch {
+      // child never wrote the log (e.g. failed before logger init)
+    }
+    try {
+      Deno.removeSync(childLog);
+    } catch {
+      // best effort
+    }
+    if (childContent.length > 0) {
+      let existing = "";
+      try {
+        existing = Deno.readTextFileSync(options.logFile);
+      } catch {
+        // log file may not exist yet
+      }
+      const sep = existing.length === 0 || existing.endsWith("\n") ? "" : "\n";
+      Deno.writeTextFileSync(options.logFile, existing + sep + childContent);
+    }
     if (timedOut) {
       appendLogError(
         options.logFile,
         `${commandLine} timed out after ${timeoutMs}ms and was killed`,
       );
-    } else if (output.code !== 0 && !hasErrorRecord(options.logFile)) {
+    } else if (output.code !== 0 && !hasErrorRecordText(childContent)) {
       // A child can exit non-zero without any ERROR record: failures
       // before logger init (deno startup, bundle load, missing share) and
       // commandFailed paths (quarto add/remove). Without this synthetic
