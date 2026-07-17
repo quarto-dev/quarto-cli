@@ -11,6 +11,7 @@ import { walkSync } from "../../../src/deno_ral/fs.ts";
 import { CreateResult } from "../../../src/command/create/cmd-types.ts";
 import { assert } from "testing/asserts";
 import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 
 const kCreateTypes: Record<string, string[]> = {
   "project": ["website", "default", "book", "website:blog"],
@@ -54,6 +55,7 @@ for (const type of Object.keys(kCreateTypes)) {
           args: cmd.slice(1),
           stdout: "piped",
           stderr: "piped",
+          ...quartoSpawnEnvOptions(),
         }, stdIn);
         assert(process.success, process.stderr);
         if (process.stdout) {
@@ -101,6 +103,7 @@ for (const type of Object.keys(kCreateTypes)) {
             cwd: path,
             stdout: "piped",
             stderr: "piped",
+            ...quartoSpawnEnvOptions(),
           });
           assert(buildProcess.success, buildProcess.stderr);
         }
@@ -115,6 +118,7 @@ for (const type of Object.keys(kCreateTypes)) {
               cwd: path,
               stdout: "piped",
               stderr: "piped",
+              ...quartoSpawnEnvOptions(),
             });
             assert(process.success, process.stderr);
           }
