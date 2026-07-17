@@ -533,12 +533,12 @@ flowchart LR
     end
     subgraph built ["Binary mode: quarto = built distribution (QUARTO_TEST_BIN)"]
         TSB["test-smokes-built.yml<br>weekly Monday + manual dispatch"]
-        BUILDM["source: build (default)<br>build linux-amd64 dist from this ref"]
-        NIGHTM["source: nightly<br>reuse SIGNED artifacts of a<br>create-release run (linux + windows quarto.exe)"]
+        BUILDM["source: build (dispatch default)<br>build linux-amd64 dist from this ref<br>(any ref, works on forks)"]
+        NIGHTM["source: nightly (weekly schedule)<br>reuse SIGNED artifacts of a<br>create-release run (linux + windows quarto.exe)"]
         RELM["source: release<br>install published (pre-)release,<br>checkout its v-tag"]
-        TSB --> BUILDM
-        TSB --> NIGHTM
-        TSB --> RELM
+        TSB -->|"dispatch"| BUILDM
+        TSB -->|"weekly schedule<br>+ dispatch"| NIGHTM
+        TSB -->|"dispatch"| RELM
     end
     CR["create-release.yml<br>nightly build (no publish),<br>dispatch = publish"]
     ACT[".github/actions/build-dist-tarball<br>(shared build recipe)"]
