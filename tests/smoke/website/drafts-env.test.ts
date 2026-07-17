@@ -16,13 +16,12 @@ const renderDir = docs("websites/drafts/drafts-env");
 const dir = join(Deno.cwd(), renderDir);
 const outDir = join(dir, "_site");
 
-Deno.env.set("QUARTO_PROFILE", "drafts");
-
 testQuartoCmd(
   "render",
   [renderDir],
   [noErrorsOrWarnings, ...[doesntHaveContentLinksToDrafts, doesntHaveEnvelopeLinksToDrafts, draftPostIsEmpty, searchDoesntHaveDraft, siteMapDoesntHaveDraft].map((ver) => { return ver(outDir)})],
   {
+    env: { QUARTO_PROFILE: "drafts" },
     teardown: async () => {
       if (existsSync(outDir)) {
         await Deno.remove(outDir, { recursive: true });
