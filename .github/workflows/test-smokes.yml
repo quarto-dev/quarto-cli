@@ -30,7 +30,12 @@ on:
         type: string
         default: ""
       quarto-artifact-name:
-        description: "Workflow artifact name containing the built quarto tarball when quarto-install is 'artifact'"
+        description: "Workflow artifact name containing the built quarto tarball/zip when quarto-install is 'artifact'"
+        required: false
+        type: string
+        default: ""
+      quarto-artifact-run-id:
+        description: "Workflow run id to download the artifact from (empty = the current run); lets a caller test artifacts built by another workflow run, e.g. a no-publish create-release build"
         required: false
         type: string
         default: ""
@@ -269,11 +274,20 @@ jobs:
           version: ${{ inputs.quarto-version }}
 
       - name: Download built quarto artifact
-        if: inputs.quarto-install == 'artifact'
+        if: inputs.quarto-install == 'artifact' && inputs.quarto-artifact-run-id == ''
         uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.quarto-artifact-name }}
           path: ${{ runner.temp }}/quarto-artifact
+
+      - name: Download built quarto artifact (from another run)
+        if: inputs.quarto-install == 'artifact' && inputs.quarto-artifact-run-id != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.quarto-artifact-name }}
+          path: ${{ runner.temp }}/quarto-artifact
+          run-id: ${{ inputs.quarto-artifact-run-id }}
+          github-token: ${{ github.token }}
 
       - name: Install built quarto outside the checkout
         if: inputs.quarto-install == 'artifact'
@@ -282,7 +296,24 @@ jobs:
         # sibling src/quarto.ts and would silently run dev mode (dev-mode trap)
         run: |
           mkdir -p "$RUNNER_TEMP/quarto-under-test"
-          tar -xzf "$RUNNER_TEMP"/quarto-artifact/built-quarto-*.tar.gz -C "$RUNNER_TEMP/quarto-under-test" --strip-components=1
+          shopt -s nullglob
+          artifacts=("$RUNNER_TEMP"/quarto-artifact/*.tar.gz "$RUNNER_TEMP"/quarto-artifact/*.zip)
+          if [ "${#artifacts[@]}" -ne 1 ]; then
+            echo "::error::expected exactly one .tar.gz or .zip in the quarto artifact, found: ${artifacts[*]:-none}"
+            exit 1
+          fi
+          case "${artifacts[0]}" in
+            *.tar.gz)
+              # linux tarball layout: quarto-<version>/{bin,share}
+              tar -xzf "${artifacts[0]}" -C "$RUNNER_TEMP/quarto-under-test" --strip-components=1
+              ;;
+            *.zip)
+              # Windows Zip layout: {bin,share} at the archive root; bsdtar on
+              # windows runners extracts zip archives (same as test-zip-win in
+              # create-release.yml)
+              tar -xf "${artifacts[0]}" -C "$RUNNER_TEMP/quarto-under-test"
+              ;;
+          esac
           echo "$RUNNER_TEMP/quarto-under-test/bin" >> "$GITHUB_PATH"
 
       - name: Pin and verify test target

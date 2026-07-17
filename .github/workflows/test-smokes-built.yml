@@ -1,12 +1,17 @@
 # Runs the smoke test suite against a BUILT quarto instead of the dev source tree.
-# Two modes:
+# Three modes:
 #   - build (default; also the weekly schedule path): build a linux-amd64 dist from
 #     this checkout with `quarto-bld prepare-dist`, then run the smokes against it
 #     (harness and binary come from the same commit).
+#   - nightly (workflow_dispatch only): reuse the SIGNED artifacts of a completed
+#     create-release run (its nightly schedule builds without publishing) - the
+#     linux 'Deb Zip' tarball AND the signed 'Windows Zip' (the real quarto.exe) -
+#     and run the smokes at that run's commit. Preventive Windows coverage without
+#     any extra build or signing infrastructure.
 #   - release (workflow_dispatch only): install a published (pre-)release with
 #     quarto-actions/setup and run the smokes at the matching refs/tags/v<version>.
-#     Only works for releases whose harness already has binary-mode support
-#     (tests/quarto-cmd.ts) - see dev-docs/smoke-tests-built-version-plan.md §5.3.
+# nightly/release only work when the target commit's harness has binary-mode
+# support (tests/quarto-cmd.ts) - see dev-docs/smoke-tests-built-version-plan.md §5.3.
 name: Smoke Tests (Built Version)
 on:
   schedule:
@@ -14,11 +19,12 @@ on:
   workflow_dispatch:
     inputs:
       source:
-        description: "Test a quarto built from this ref (build) or a published (pre-)release (release)"
+        description: "Test a quarto built from this ref (build), the artifacts of a create-release run (nightly), or a published (pre-)release (release)"
         required: false
         type: choice
         options:
           - build
+          - nightly
           - release
         default: build
       buckets:
@@ -31,6 +37,11 @@ on:
         required: false
         type: string
         default: "pre-release"
+      run-id:
+        description: "For source=nightly: create-release run id to take artifacts from (empty = latest successful run)"
+        required: false
+        type: string
+        default: ""
 
 # required by the called test-smokes.yml (julia cache cleanup)
 permissions:
@@ -44,6 +55,7 @@ jobs:
     if: >-
       (github.event_name != 'schedule' || github.repository == 'quarto-dev/quarto-cli')
       && github.event.inputs.source != 'release'
+      && github.event.inputs.source != 'nightly'
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.rec.outputs.sha }}
@@ -75,7 +87,7 @@ jobs:
 
   run-smokes-artifact:
     name: Smoke tests against built artifact
-    if: github.event.inputs.source != 'release'
+    if: github.event.inputs.source != 'release' && github.event.inputs.source != 'nightly'
     needs: [build-artifact]
     uses: ./.github/workflows/test-smokes.yml
     with:
@@ -145,4 +157,71 @@ jobs:
       ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
       quarto-install: release
       quarto-version: ${{ needs.resolve-release.outputs.version }}
+      buckets: ${{ github.event.inputs.buckets }} # empty = full run
+
+  # source: nightly (workflow_dispatch only) - reuse the signed artifacts of a
+  # completed no-publish create-release run (linux tarball + signed Windows zip)
+  resolve-nightly:
+    name: Resolve create-release run
+    if: github.event.inputs.source == 'nightly'
+    runs-on: ubuntu-latest
+    outputs:
+      run-id: ${{ steps.r.outputs.run-id }}
+      sha: ${{ steps.r.outputs.sha }}
+    steps:
+      - name: Resolve run id and commit
+        id: r
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          run_id="${{ github.event.inputs.run-id }}"
+          if [ -z "$run_id" ]; then
+            run_id="$(curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/create-release.yml/runs?status=success&per_page=1" \
+              | jq -r '.workflow_runs[0].id // empty')"
+          fi
+          if [ -z "$run_id" ]; then
+            echo "::error::no successful create-release run found to take artifacts from"
+            exit 1
+          fi
+          sha="$(curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" \
+            | jq -r '.head_sha // empty')"
+          if [ -z "$sha" ]; then
+            echo "::error::could not resolve head_sha for run ${run_id}"
+            exit 1
+          fi
+          echo "Using create-release run ${run_id} at commit ${sha}"
+          echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+  run-smokes-nightly-linux:
+    name: Smoke tests against nightly build (linux)
+    if: github.event.inputs.source == 'nightly'
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      # harness commit == the commit create-release built from
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: Deb Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["ubuntu-latest"]'
+      buckets: ${{ github.event.inputs.buckets }} # empty = full run
+
+  run-smokes-nightly-windows:
+    name: Smoke tests against nightly build (windows)
+    if: github.event.inputs.source == 'nightly'
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      # the SIGNED Windows layout (quarto.exe) produced by make-installer-win
+      quarto-artifact-name: Windows Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["windows-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
