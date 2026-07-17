@@ -149,12 +149,8 @@ jobs:
         # tested in this mode (the harness at the tag lacks tests/quarto-cmd.ts);
         # test-smokes.yml's "Pin and verify" step re-checks this in the checkout.
         run: |
-          status="$(curl -s -o /dev/null -w '%{http_code}' \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github.raw+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/tests/quarto-cmd.ts?ref=refs/tags/v${VERSION}")"
-          if [ "$status" != "200" ]; then
-            echo "::error::tests/quarto-cmd.ts not found at refs/tags/v${VERSION} (HTTP ${status}): either the tag does not exist or the release predates binary-mode harness support - it cannot be tested in release mode"
+          if ! gh api "repos/${GITHUB_REPOSITORY}/contents/tests/quarto-cmd.ts?ref=refs/tags/v${VERSION}" --silent 2>/dev/null; then
+            echo "::error::tests/quarto-cmd.ts not found at refs/tags/v${VERSION}: either the tag does not exist or the release predates binary-mode harness support - it cannot be tested in release mode"
             exit 1
           fi
           echo "refs/tags/v${VERSION} has binary-mode harness support"
