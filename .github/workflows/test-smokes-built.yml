@@ -27,6 +27,9 @@
 # dispatch => the source input (default build).
 name: Smoke Tests (Built Version)
 on:
+  # TEMP: shakedown trigger for this PR branch - REMOVE before merge.
+  push:
+    branches: [test/smoke-tests-built-version]
   # Fires on EVERY completed create-release run - the nightly schedule
   # (daily built-version testing, right after each build, no stale-artifact
   # risk) but also manual create-release dispatches, whose builds get tested
@@ -113,7 +116,9 @@ jobs:
       quarto-install: artifact
       quarto-artifact-name: built-quarto-linux-amd64
       runners: '["ubuntu-latest"]'
-      buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      # TEMP: small bucket for PR-branch shakedown - restore to
+      # `${{ github.event.inputs.buckets }}` before merge.
+      buckets: '["smoke/render/render-output-dir.test.ts"]'
 
   # source: release (workflow_dispatch only)
   resolve-release:
