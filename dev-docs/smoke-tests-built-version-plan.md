@@ -1,6 +1,7 @@
 # Plan: Running Smoke Tests Against a Built Quarto
 
-Status: **detailed design — v2** (grounded; pending adversarial review + Phase 0 spike).
+Status: **detailed design — v3** (grounded + adversarially reviewed;
+ready for Phase 0 spike).
 
 Goal: run the existing smoke test suites — the full smoke-all corpus first,
 plus the `.test.ts` smokes and the feature-format matrix — against a
@@ -15,6 +16,11 @@ Decisions (maintainer, 2026-07-17):
   same workflow run and test it — not only after-the-fact testing of
   published prereleases (that stays as a secondary dispatch input).
 - No release-pipeline gating until the mode has a track record.
+
+Review history: v2 was attacked by a 5-lens adversarial review (19 agents;
+every critical/major finding independently verification-checked). All 32
+standing findings are folded into this v3; the design-changing ones are
+marked **[R]** below.
 
 ---
 
@@ -36,8 +42,9 @@ Decisions (maintainer, 2026-07-17):
   `QUARTO_BIN_PATH=package/dist/bin` (`:47`),
   `QUARTO_SHARE_PATH=src/resources` (`:60`), `QUARTO_DEBUG=true` (`:61`),
   `DENO_DIR=package/dist/bin/deno_cache` (`:50-54`).
-- `smoke-all.test.ts` globs `docs/smoke-all/**/*.{md,qmd,ipynb}`, parses
-  `_quarto.tests` with dev-source YAML code, dispatches spec keys to
+- `smoke-all.test.ts` globs `docs/smoke-all/**/*.{md,qmd,ipynb}`
+  (**1424 documents** as of 2026-07-17, many with multiple format specs),
+  parses `_quarto.tests` with dev-source YAML code, dispatches spec keys to
   verifiers via an inline `verifyMap`, and renders via
   `testQuartoCmd("render", [input, "--to", format])` (`:462`); project
   pre-renders call `quarto(["render", projectPath])` directly (`:434`).
@@ -45,30 +52,38 @@ Decisions (maintainer, 2026-07-17):
   `test-ff-matrix.yml:44-50` calls `test-smokes.yml` with a qmd glob that
   `run-tests.sh:132-164` routes to `smoke-all.test.ts`. Anything that fixes
   smoke-all fixes the matrix.
-- `create-release.yml` runs nightly: builds per-OS artifacts, uploads them
-  as workflow artifacts, publishes GitHub Release assets (prerelease by
-  default) and tags `v<version>` on the exact commit built
-  (`create-release.yml:88-100,678-703`). The linux tarball recipe is just
+- `create-release.yml` builds per-OS artifacts and uploads them as workflow
+  artifacts. **[R]** The nightly `schedule` runs are build-only (the
+  tag-creating commit and the whole `publish-release` job are gated on
+  `inputs.publish-release`, and `inputs` is empty on schedule events);
+  published + `v<version>`-tagged (pre)releases come from
+  `workflow_dispatch` runs, where `publish-release` defaults to true
+  (`create-release.yml:88-100,678-703`). The linux tarball recipe is
   `./configure.sh` → `quarto-bld prepare-dist --set-version <v>` → tar of
   `package/pkg-working` (`create-release.yml:136-159`).
 
 ## 2. Strategy
 
-1. **The dev-tree coupling is concentrated in one seam** — the body of
-   `test.execute()` (in-process `quarto()` call + programmatic logger init).
-   The verifier layer and the `_quarto.tests` dispatch consume only the
-   json-stream log file and files on disk, both reproducible by a
-   subprocess via `--log <file> --log-format json-stream --log-level info`.
+1. **The dev-tree coupling is concentrated in the execution path** — the
+   body of `test.execute()` plus the logger lifecycle around it in
+   `test()` (two touch points, both in `tests/test.ts`). The verifier
+   layer and the `_quarto.tests` dispatch consume only the json-stream log
+   file and files on disk, both reproducible by a subprocess via
+   `--log <file> --log-format json-stream`.
 2. **Version skew is avoided by construction.** The primary workflow builds
    the artifact from the same SHA the harness checks out. For
-   published-release testing, check out `refs/tags/v<version>`. The harness
-   keeps importing `src/` for *parsing and path math* only; *execution*
-   moves to the binary.
+   published-release testing, check out `refs/tags/v<version>` — with the
+   scope limitation in §5.3 **[R]**. The harness keeps importing `src/`
+   for *parsing and path math* only; *execution* moves to the binary.
+
+**What this design does NOT test [R]:** signing/notarization, MSI/pkg/deb
+installer logic and installer PATH setup, Cloudsmith packages, arm64
+tarballs, and (until Phase 3 release mode) the Windows Rust launcher. A
+green "Smoke Tests (Built Version)" badge means the linux-amd64 built
+*layout* renders correctly — not that release artifacts are safe
+end-to-end. Keep this list next to any badge/gate.
 
 ## 3. Ground truths verified in code (2026-07-17)
-
-These were verified by dedicated review passes with file:line evidence;
-the design in §4–§5 depends on them.
 
 **Log pipeline (CONFIRMED):**
 
@@ -82,23 +97,34 @@ the design in §4–§5 depends on them.
 - json-stream writes one `JSON.stringify(logRecord)` per line with
   `msg`/`level`/`levelName` (`log.ts:262-263`) — byte-compatible with
   `readExecuteOutput`. The file handler **flushes after every record**
-  (`log.ts:267-273`), so even a hard crash loses nothing already logged.
+  (`log.ts:267-273`).
 - On render failure an ERROR record is written before exit 1: errors
   propagate to `mainRunner`'s catch → `logError(e)` (`main.ts:70-73`) →
   ERROR record in the file; then `exitWithCleanup(1)` (`main.ts:74-81`).
   `CommandError` likewise (`src/quarto.ts:202-208`).
-- **Exception:** the `pandoc`/`typst`/`run` passthroughs `Deno.exit(code)`
-  with the child's code and route child stderr directly — a failing
-  passthrough writes no ERROR record to the log file (`src/quarto.ts:100,
-  119, 139`). The tests covering these already use `execProcess` and assert
-  on stdout/stderr/exit code, so this is a documentation caveat for the
-  seam, not a blocker.
+- **[R] But "non-zero exit ⇒ ERROR record in the log" is NOT an
+  invariant.** It fails for (a) any child failure *before* `mainRunner`'s
+  logger init — deno startup errors, bundle/import-resolution failures
+  loading the esbuild `quarto.js`, missing modules (`main.ts:26-27` runs
+  after the module graph loads; the launcher just execs deno,
+  `common/quarto:205-209`); (b) `quarto add`/`remove` failures via
+  `commandFailed()`/`signalCommandFailure` → `exitWithCleanup(1)` with
+  only INFO output (`src/quarto.ts:199-201`,
+  `src/command/add/cmd.ts:48-51,59-61`); (c) the `pandoc`/`typst`/`run`
+  passthroughs, which `Deno.exit(code)` and route child stderr directly
+  (`src/quarto.ts:100,119,139`). Because the harness pre-creates the log
+  file, an untouched log parses to `[]` and `noErrors`/
+  `noErrorsOrWarnings` pass **vacuously** — and ~23% of smoke-all docs
+  (326/1424) use the default log-only spec with no file verifier. The
+  seam therefore MUST synthesize an ERROR record for record-free non-zero
+  exits (§4.1) — otherwise the exact failure class binary mode exists to
+  catch (broken bundle, missing share) reports green on those docs.
 
-**`QUARTO_FORCE_VERSION=99.9.9` is rejected (NUANCED → do not use):**
-honored at `src/core/quarto.ts:34-45` but `99.9.9` equals
-`kLocalDevelopment`, which (a) satisfies every lower-bound version gate
-(extensions `src/extension/extension.ts:776-788`, document
-`quarto-required` `src/command/render/render-files.ts:130-144`, engines
+**`QUARTO_FORCE_VERSION=99.9.9` is rejected (do not use):** honored at
+`src/core/quarto.ts:34-45` but `99.9.9` equals `kLocalDevelopment`, which
+(a) satisfies every lower-bound version gate (extensions
+`src/extension/extension.ts:776-788`, document `quarto-required`
+`src/command/render/render-files.ts:130-144`, engines
 `src/execute/engine.ts:62-80`, freezer `src/core/cache/cache.ts:81`) —
 masking real "version too old" behavior — and (b) flips `quarto check`
 into a dev-mode branch that shells `git rev-parse` in `$QUARTO_ROOT`
@@ -112,81 +138,92 @@ version truncated to `major.minor.0`
 (`99.9.9`) that yields exactly `>=99.9.0`. All ten fixtures were authored
 on dev checkouts (four separate lipsum vendorings 2023; brand/typst
 fixtures 2025–2026). No test anywhere exercises the version-gate error
-path (zero test references to `quarto-required` / "incompatible with this
-quarto"); sibling extensions in the same `_extensions/` dirs use
-`>=1.3.0`, as does upstream `quarto-ext/lipsum` and Quarto's own bundled
-copy (`src/resources/extensions/quarto/lipsum/_extension.yml:4`). **All
-ten are safe to relax.**
+path; sibling extensions in the same `_extensions/` dirs use `>=1.3.0`,
+as does upstream `quarto-ext/lipsum` and Quarto's own bundled copy
+(`src/resources/extensions/quarto/lipsum/_extension.yml:4`). **All ten
+are safe to relax.**
+
+**[R] Semver behavior of version markers (verified by executing the
+vendored `deno.land/x/semver@v1.4.0`):** `satisfies()` **throws** on
+non-semver strings (no try/catch around `new SemVer` in `Range.test`,
+unlike node-semver), and **prerelease versions do not satisfy plain
+ranges** (`1.10.16-test` fails `>=1.9`; no call site passes
+`includePrerelease`). Only **build metadata** (`1.10.15+test.20260717`)
+is both valid and range-transparent. This dictates the §5.2 version
+marker.
 
 **Launcher & env behavior:**
 
-- The installed launcher inherits `QUARTO_SHARE_PATH` and `QUARTO_DEBUG`
-  if already set (`package/scripts/common/quarto:102-110, 68-70`;
-  `package/scripts/windows/quarto.cmd:80-81, 47`), recomputes
-  `QUARTO_ROOT`/`QUARTO_BIN_PATH` unconditionally, and **never sets
-  `DENO_DIR` outside dev mode** — so a leaked dev `DENO_DIR` reaches the
-  binary's deno. Strip list follows in §4.2.
-- **Dev-mode trap:** the launcher decides dev vs installed by finding a
-  sibling `src/quarto.ts` relative to its own path
-  (`common/quarto:22-37`). Therefore `QUARTO_TEST_BIN` pointing at the
-  in-repo `package/dist/bin/quarto` silently runs **dev mode** (TS
-  sources, `--check`, dev env defaults) — not the built layout. The dist
-  must be extracted **outside the git checkout**, and the seam must fail
-  loudly if `<bin> --version` reports `99.9.9`.
-- A genuinely installed binary runs a single esbuild-bundled `quarto.js`
-  with `--no-check` (`common/quarto:91-121, 205-208`), a real
-  `share/version` file, inlined Lua filters, and arch-specific
-  deno/deno_dom (`package/src/common/prepare-dist.ts:128-147, 191-224`).
-  Binary mode therefore covers bundling/import-resolution errors, missing
-  share resources, version wiring, and the `--no-check` gap — none of
-  which dev mode can catch.
-- `QUARTO_DEBUG=true` (dev default) only adds stack traces to ERROR `msg`
-  text (`src/core/log.ts:371-386`) plus dev-only reconfigure/watch paths.
-  Binary mode runs **without** it — truer to shipped behavior; ERROR
-  counts are unaffected, only `printsMessage` regexes matching stack text
-  could differ (none known in smoke-all: audit found all `printsMessage`
-  levels are INFO/WARN/ERROR with content-based regexes).
+- The installed bash launcher inherits `QUARTO_SHARE_PATH` and
+  `QUARTO_DEBUG` if already set (`package/scripts/common/quarto:102-110,
+  68-70`; `quarto.cmd:80-81, 47`), recomputes `QUARTO_ROOT`/
+  `QUARTO_BIN_PATH` unconditionally, **never sets `DENO_DIR` outside dev
+  mode**, and inherits `QUARTO_DENO` and `QUARTO_DENO_DOM`
+  (`common/quarto:167-173`) — note it is `QUARTO_DENO_DOM` that is
+  inherited; `DENO_DOM_PLUGIN` itself is unconditionally overwritten by
+  both launchers **[R]**.
+- **Dev-mode trap:** the bash/cmd launchers decide dev vs installed by
+  finding a sibling `src/quarto.ts` relative to their own path
+  (`common/quarto:22-37`). `QUARTO_TEST_BIN` pointing at the in-repo
+  `package/dist/bin/quarto` silently runs **dev mode** (TS sources,
+  `--check`, dev env defaults). The dist must be extracted **outside the
+  git checkout**, and the seam must fail loudly if `<bin> --version`
+  reports `99.9.9`.
 - **Windows built layout ships two entry points.** `prepare-dist` copies
   `quarto.cmd` into the dist (`copyQuartoScript`,
   `package/src/common/configure.ts:143-149`); the `make-installer-win`
   job additionally builds and signs the **Rust launcher `quarto.exe`**
-  (`cargo build`, `package/launcher/src/main.rs`;
-  `create-release.yml:350-429`), which is what the MSI/zip put on PATH —
-  i.e. what Windows users actually run. `QUARTO_TEST_BIN` should target
-  `quarto.exe` for published-release testing (trivial spawn, no `.cmd`
-  handling); a `prepare-dist`-only Windows artifact has `quarto.cmd`,
-  which spawns **directly** with `Deno.Command` — no `cmd /c` (the repo's
-  established pattern: `quartoDevCmd()` `tests/utils.ts:244-246`; npm.cmd
-  in `src/project/serve/serve.ts:434`). Notes: the Rust launcher has **no
-  dev-mode branch** (always runs the bundled `quarto.js` — the dev-mode
-  trap below doesn't apply to it), reads `--version` straight from
-  `share/version`, and inherits `QUARTO_SHARE_PATH` and `QUARTO_DENO`
-  from the environment (`path_from_env`, `main.rs:21-23,50-52`) — the
-  strip list applies to it equally.
+  (`package/launcher/src/main.rs`; `create-release.yml:350-429`) — what
+  the MSI/zip put on PATH, i.e. what Windows users actually run.
+  `QUARTO_TEST_BIN` should target `quarto.exe` for published-release
+  testing; a `prepare-dist`-only Windows artifact has `quarto.cmd`, which
+  spawns **directly** with `Deno.Command` — no `cmd /c` (established
+  pattern: `quartoDevCmd()` `tests/utils.ts:244-246`). The Rust launcher
+  has **no dev-mode branch**, reads `--version` straight from
+  `share/version`, and inherits `QUARTO_SHARE_PATH`, `QUARTO_DENO`, and
+  `QUARTO_DENO_DOM` from the environment (`main.rs:21-23,50-60,65-68`).
+- A genuinely installed binary runs a single esbuild-bundled `quarto.js`
+  with `--no-check` (`common/quarto:91-121, 205-208`), a real
+  `share/version` file, inlined Lua filters, and arch-specific
+  deno/deno_dom (`package/src/common/prepare-dist.ts:128-147, 191-224`).
+  Binary mode covers bundling/import-resolution errors, missing share
+  resources, version wiring, and the `--no-check` gap.
+- `QUARTO_DEBUG=true` (dev default) adds stack traces to ERROR `msg` text
+  (`src/core/log.ts:371-386`) plus dev-only reconfigure/watch paths.
+  Binary mode spawns the child **without** it. ERROR counts are
+  unaffected; no smoke-all `printsMessage` depends on stack text.
 
 **CI structure:**
 
-- `run-tests.sh` **never** uses PATH `quarto`; it hardcodes the harness
-  runtime at `package/dist/bin/tools/<arch>/deno` +
-  `package/dist/bin/deno_cache` + `src/import_map.json`
-  (`run-tests.sh:47,57,164`), all produced only by `configure.sh`.
-  **Consequence: the `quarto-dev` action must run in every CI mode** —
-  it provisions the harness runtime; the built binary is added *on top*
-  (PATH override + `QUARTO_TEST_BIN`), not substituted. (Corrects v1 §4.0,
-  which framed the setup modes as mutually exclusive.)
-- The dev symlink lands in `/usr/local/bin`
-  (`package/src/common/dependencies.ts:87-127`); a later `$GITHUB_PATH`
-  prepend shadows it for all subsequent steps, so
+- `run-tests.sh` hardcodes the harness runtime at
+  `package/dist/bin/tools/<arch>/deno` + `package/dist/bin/deno_cache` +
+  `src/import_map.json` (`run-tests.sh:47,57,164`), all produced only by
+  `configure.sh`. **Consequence: the `quarto-dev` action must run in
+  every CI mode** — it provisions the harness runtime; the built binary
+  is added *on top* (PATH override + `QUARTO_TEST_BIN`), not substituted.
+  **[R]** Nuance: this "never uses PATH quarto" claim is CI-scoped —
+  local runs source `configure-test-env.sh` (which calls PATH `quarto
+  install tinytex/verapdf`) unless `QUARTO_TESTS_NO_CONFIG` is set; the
+  Phase 0/1 local recipe must set it or order PATH deliberately.
+- The dev quarto reaches PATH via a `/usr/local/bin` symlink on
+  Linux/macOS (`package/src/common/configure.ts:81-133`,
+  `suggestUserBinPaths`) and via a `GITHUB_PATH` append of
+  `package/dist/bin` on Windows CI **[R]**; in both cases a later
+  `$GITHUB_PATH` prepend shadows it for subsequent steps, so
   `quarto install tinytex/verapdf/chrome-headless-shell`
   (`test-smokes.yml:236,243,251`) and PATH-based tests automatically use
-  the binary under test. `merge-extension-tests` is a plain `cp -r` — mode
-  independent.
-- `prepare-dist` writes only to `package/pkg-working` (disjoint from
-  `package/dist`; `package/src/common/config.ts:65-89`) and removes only
-  `package/dist/config` (unused by `run-tests.sh`), so build and test can
-  share a checkout; separate jobs remain preferable for artifact reuse and
-  a future OS matrix. `configure.sh` + `prepare-dist` need network (public
-  URLs) but **no secrets** and no signing for the linux tarball.
+  the binary under test. `merge-extension-tests` is a plain `cp -r` —
+  mode independent.
+- **[R]** `prepare-dist` populates `package/pkg-working` (disjoint from
+  `package/dist`; `package/src/common/config.ts:65-89`) **but also
+  regenerates artifacts inside `src/`** (quarto-preview JS via
+  `build.ts --force`; schema/yaml-intelligence assets under
+  `src/resources` via `buildAssets()`), so a build job and a test run
+  sharing one checkout can race on the harness's own
+  `QUARTO_SHARE_PATH=src/resources`. Separate build/test jobs (the
+  chosen design) are the mitigation, not merely a preference.
+  `configure.sh` + `prepare-dist` need network (public URLs) but **no
+  secrets** for the linux tarball.
 
 ## 4. Design — harness "binary mode"
 
@@ -194,78 +231,119 @@ Activated by `QUARTO_TEST_BIN=<abs path to installed quarto | quarto.exe |
 quarto.cmd>` (on Windows prefer `quarto.exe` — what releases ship, §3).
 Unset ⇒ current behavior, byte-for-byte unchanged.
 
-### 4.1 The execution seam (`tests/test.ts` + a shared helper)
-
-New helper (e.g. `tests/quarto-cmd.ts`):
+### 4.1 The execution seam (`tests/quarto-cmd.ts` + `tests/test.ts`)
 
 ```ts
-export function binaryMode(): string | undefined =>
-  Deno.env.get("QUARTO_TEST_BIN") || undefined;
+export function binaryMode(): string | undefined;
 
-// Single dispatch point used by test.execute() AND all direct call sites.
 export async function runQuarto(
   args: string[],
-  options?: { env?: Record<string, string>; cwd?: string;
-              logFile?: string; timeoutMs?: number },
+  options?: {
+    env?: Record<string, string>;
+    cwd?: string;
+    logFile?: string;            // json-stream target (binary mode)
+    timeoutMs?: number;
+    throwOnFailure?: boolean;    // [R] default TRUE for direct call sites
+    logLevel?: string;           // [R] honor per-test log intent
+  },
 ): Promise<void>
 ```
 
 - **Dev branch** (no `QUARTO_TEST_BIN`): call in-process `quarto(args,
   undefined, options?.env)` exactly as today.
-- **Binary branch**: `new Deno.Command(bin, { args: [...args, "--log",
-  logFile, "--log-format", "json-stream", "--log-level", "info"], cwd,
-  env: <contract §4.2>, clearEnv: true })`.
-  - Reuse the temp log path already created at `test.ts:243`; in binary
-    mode skip `initializeLogger` for capture but keep the harness able to
-    append its own ERROR records (spawn failure, timeout) to the same file
-    so existing reporting works.
-  - **Do not throw on non-zero exit** — the binary already wrote its ERROR
-    record (§3); mirrors today's catch-and-log at `test.ts:262-266`.
-  - Timeout: `setTimeout` → `child.kill("SIGKILL" /* windows: kill() */)`,
-    then append a timeout ERROR record. (Improvement over dev mode, where
-    a timed-out render keeps running.)
-  - `--log*` flags are appended **only** here — never for tests that spawn
-    quarto themselves and own their flags
-    (`logging/log-level-and-formats.test.ts` tests exactly those flags).
+- **Binary branch**: spawn the binary with
+  `--log <logFile> --log-format json-stream --log-level <level ?? info>`
+  appended — but **only** for seam-driven invocations; never for tests
+  that spawn quarto themselves and own their flags
+  (`logging/log-level-and-formats.test.ts`). **[R]** If a test overlays
+  `QUARTO_LOG_LEVEL` via `context.env` or passes `logConfig`, the seam
+  uses that level/format for the flags instead of silently overriding
+  (flags beat env in `logOptions`, so passing the env var through is not
+  enough).
+- **[R] Failure semantics — the silent-green invariant.** The seam never
+  relies on "child exited non-zero ⇒ ERROR record exists" (§3). After the
+  child exits: parse the log; if exit ≠ 0 **and** the parsed records
+  contain no ERROR-level entry, append a synthetic ERROR record (exit
+  code + stderr tail) to the log before verification. With that
+  guarantee:
+  - `test.execute()` uses `throwOnFailure: false` (mirrors today's
+    catch-and-log, `test.ts:262-266`); verifiers see the synthetic record.
+  - **Direct call sites keep throw semantics** (`throwOnFailure: true`,
+    the default): the smoke-all module-level project pre-render and the
+    `context.setup` pre-renders (`render-freeze`, extension installs, …)
+    run *outside* the test try/catch today and fail loudly on error —
+    a never-throwing helper would convert those into false greens against
+    stale outputs.
+- **[R] stdout/stderr**: pipe both and drain concurrently (undrained
+  pipes deadlock at 64 KiB on verbose renders — the child runs without
+  `--quiet`, so its StdErr handler emits all progress). Keep the stderr
+  tail for the synthetic ERROR record and for failure reports. Do not
+  pass `--quiet` (shipped console behavior stays exercised and available
+  for triage).
+- **[R] Timeout kills the process tree, not the direct child.**
+  `QUARTO_TEST_BIN` is a launcher; the bash script and `quarto.exe` both
+  spawn-and-wait on deno (`common/quarto:205-209` does not `exec`), so
+  `child.kill()` orphans the actual renderer — which also still holds
+  the log file at its own offset (mode `"w"`, no `O_APPEND`), corrupting
+  any harness-appended record. Implementation: POSIX — spawn in its own
+  process group and signal the group (or, better long-term, change the
+  installed launcher's non-dev branch to `exec "${QUARTO_DENO}" …`, a
+  one-line shipped improvement); Windows — `taskkill /PID <pid> /T /F`.
+  Append the timeout ERROR record only after the tree is confirmed dead.
+- **[R] Logger lifecycle in `test()`**: in binary mode, `test()` skips
+  `initializeLogger`/`cleanupLogger`/`flushLoggers` entirely (the child
+  owns the log file), and the execute-catch appends a synthetic ERROR
+  record to the file instead of calling `logError` (which, with no
+  initialized logger, would go to the console handler and — worse —
+  `cleanupLogger()` would permanently destroy the default handlers for
+  subsequent tests in the same file).
 - `testQuartoCmd`'s `cwd` context keeps chdir-ing the harness process
-  (relative-path verifiers and teardowns depend on it) *and* passes cwd to
-  the subprocess.
-- Startup guard, once per run: if `QUARTO_TEST_BIN` is set, execute
-  `<bin> --version`; **fail hard** if it reports `99.9.9` (dev-mode trap,
-  §3) or doesn't match `QUARTO_TEST_EXPECTED_VERSION` when provided.
-  Print the version banner.
+  (relative-path verifiers and teardowns depend on it) *and* passes cwd
+  to the subprocess.
+- Startup guard, once per run: execute `<bin> --version`; **fail hard**
+  on `99.9.9` (dev-mode trap) or mismatch with
+  `QUARTO_TEST_EXPECTED_VERSION` when provided; print the banner.
 
 ### 4.2 Env contract for the spawned binary
 
-With `clearEnv: true`, construct the child env as:
+**[R] Mechanism: inherit ambient env + strip, not `clearEnv` +
+allowlist.** The v2 `clearEnv` design required enumerating every var the
+toolchains need; the Windows system-var surface alone (`SystemRoot`,
+`ComSpec`, `PATHEXT`, `APPDATA`, `LOCALAPPDATA`, `ProgramData`,
+`PROGRAMFILES`, `windir`, …) is large, failure modes are obscure
+(CPython misbehaves without `SystemRoot`; TinyTeX resolves from
+`APPDATA` — `tinyTexInstallDir()`; `quartoDataDir()` is
+`LOCALAPPDATA`-based for chrome-headless-shell/verapdf), and a
+linux-only Phase 0 cannot validate it. The dangerous set is the small,
+known one. Contract:
 
-1. **Base pass-through from ambient env** (needed for engines/toolchains):
-   `PATH`, `HOME`/`USERPROFILE`, `TMPDIR`/`TEMP`/`TMP`, `LANG`/`LC_*`,
-   `VIRTUAL_ENV`, `PYTHONPATH`, `R_LIBS*`, `RENV_*`, `JULIA_*`,
-   `GH_TOKEN`, CI markers (`CI`, `GITHUB_ACTIONS`), proxy vars, and the
-   toolchain overrides `QUARTO_R`, `QUARTO_PYTHON`, `QUARTO_TYPST`,
-   `QUARTO_ESBUILD`, `QUARTO_DART_SASS`, `QUARTO_CHROMIUM`,
-   `QUARTO_TEXLIVE_BINPATH`, `QUARTO_TINYTEX_REPOSITORY`,
-   `QUARTO_KNITR_RSCRIPT_ARGS` (audit: legitimately CI-environment vars,
-   not dev-tree vars — stripping them breaks every engine test).
-2. **Never pass** (dev-tree identity; the strip list):
+1. **Inherit** the ambient environment (toolchain vars `QUARTO_R`,
+   `QUARTO_PYTHON`, `QUARTO_TYPST`, `QUARTO_ESBUILD`,
+   `QUARTO_DART_SASS`, `QUARTO_CHROMIUM`, `QUARTO_TEXLIVE_BINPATH`,
+   `QUARTO_TINYTEX_REPOSITORY`, `QUARTO_KNITR_RSCRIPT_ARGS` are ambient
+   CI env and flow through, as do PATH/HOME/locale/proxy/venv/renv/Julia
+   and all platform system vars).
+2. **Strip** (dev-tree identity + stale-leak guards):
    `QUARTO_SHARE_PATH`, `QUARTO_BIN_PATH`, `QUARTO_DEBUG`, `DENO_DIR`,
-   `QUARTO_DENO`, `DENO_DOM_PLUGIN` (both launchers inherit these if
-   set — bash `common/quarto:167-179`, Rust `main.rs:50-60`),
-   `QUARTO_ROOT`, `QUARTO_SRC_PATH`, `QUARTO_FORCE_VERSION`,
-   `QUARTO_VERSION_REQUIREMENT`, `QUARTO_PROJECT_DIR` (stale-leak guard),
-   `RSTUDIO` (must be affirmatively absent for the "not RStudio" test).
-3. **Overlay `context.env` last** (per-test intent wins): e.g.
-   `QUARTO_PROFILE`, `QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES/_OUTPUT_FILES`,
-   `QUARTO_PDF_STANDARD`, `QUARTO_LOG_LEVEL`, `RSTUDIO=1`, `LUA_PATH`.
+   `QUARTO_DENO`, `QUARTO_DENO_DOM` **[R]**, `QUARTO_ROOT`,
+   `QUARTO_SRC_PATH`, `QUARTO_FORCE_VERSION`,
+   `QUARTO_VERSION_REQUIREMENT`, `QUARTO_PROJECT_DIR`, `QUARTO_PROFILE`
+   (unless test-provided), `QUARTO_LOG`/`_LEVEL`/`_FORMAT` (seam owns
+   logging via flags), `RSTUDIO` (must be affirmatively absent for the
+   "not RStudio" test).
+3. **Overlay `context.env` last** (per-test intent wins):
+   `QUARTO_PROFILE`, `QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES/
+   _OUTPUT_FILES`, `QUARTO_PDF_STANDARD`, `RSTUDIO=1`, `LUA_PATH`, etc.
 
-The exact allowlist is finalized in Phase 0 when real failures show what's
-missing; the shape (allowlist + strip + overlay) is fixed.
+**[R]** The same strip must apply to the `quartoDevCmd()`/`execProcess`
+spawns once they target `QUARTO_TEST_BIN` (§4.5b/c) — the one-line
+path switch alone leaves them inheriting `DENO_DIR` etc. Route them
+through a shared `spawnQuartoEnv()` helper.
 
 ### 4.3 smoke-all driver changes (`tests/smoke/smoke-all.test.ts`)
 
-- Route the project pre-render (`:434`) and the `editor-support-crossref`
-  pseudo-format (2 docs) through `runQuarto`.
+- Route the project pre-render (`:434`; `throwOnFailure: true`) and the
+  `editor-support-crossref` pseudo-format (2 docs) through `runQuarto`.
 - Everything else (discovery, `_quarto.tests` parsing, `verifyMap`
   dispatch, cleanup, `run:` skip logic) is harness-side and unchanged.
 - The YAML-intelligence bootstrap stays (harness-process-only).
@@ -274,98 +352,118 @@ missing; the shape (allowlist + strip + overlay) is fixed.
 
 When `QUARTO_TEST_BIN` is set (or `--bin <path>` given):
 
-- Still resolve the repo Deno + import map — the harness always needs them.
-- **Do not export** `QUARTO_SHARE_PATH` / `QUARTO_DEBUG` (defense in depth
-  on top of `clearEnv`; also keeps the harness's own process honest).
-- Default no-args test selection must **exclude `unit/`** (dev-only by
-  definition) — e.g. pass the `smoke/` tree explicitly instead of letting
-  `deno test` discover everything.
-- Print `<bin> --version` banner; refuse `99.9.9` (§4.1 guard).
+- Still resolve the repo Deno + import map — the harness always needs
+  them. **[R] Keep exporting `QUARTO_SHARE_PATH` (and the dev env
+  generally) for the harness process in ALL modes** — the harness itself
+  requires it (`smoke-all.test.ts`'s module-level
+  `initYamlIntelligenceResourcesFromFilesystem()` →
+  `quartoConfig.sharePath()` → `getenv()` **throws** when unset,
+  `src/core/env.ts:9-16`). Child isolation is achieved solely by the
+  §4.2 strip, applied at spawn time.
+- **[R] Default test selection**: `run-tests.sh` cannot take a directory
+  argument today (the arg-validation loop rejects non-`.ts`/doc paths
+  and exits 1). In binary mode, set `TESTS_TO_RUN` internally to the
+  smoke tree, and classify `tests/integration/*.test.ts` explicitly
+  (include or document as dev-only) rather than losing them silently.
+  `tests/unit/` is excluded (dev-only by definition).
+- Print the `<bin> --version` banner; refuse `99.9.9` (§4.1 guard).
+- Local recipe: set `QUARTO_TESTS_NO_CONFIG=true` (or order PATH
+  deliberately) so `configure-test-env.sh` doesn't invoke a PATH
+  `quarto` you didn't intend (§3 **[R]**).
 
 ### 4.5 Test adaptations (from the 133-file classification, §8)
 
 - **Shared-helper migrations** (~14 files importing `src/quarto.ts`):
-  replace direct `quarto()` calls with `runQuarto` (setup pre-renders:
-  `render-freeze`, `render-format-extension`,
-  `render-output-file-collision`, `extension-render-{journals,
-  typst-templates}`; bodies: `crossref/syntax`, `convert/issue-12318`,
-  `jupyter/cache`, `self-contained/stdout`, `issues/9133`). Trivial
-  `testQuartoCmd` rewrites where possible (`jupyter/issue-10097`,
-  `issue-12374`). `engine/invalid-engine-in-project` converts from
-  `assertRejects` (currently un-awaited — a latent bug) to exit-code +
-  ERROR-log assertion.
-- **`quartoDevCmd()` one-liner** (`tests/utils.ts:244`): return
+  replace direct `quarto()` calls with `runQuarto` (setup pre-renders
+  keep throw semantics — §4.1 **[R]**). Trivial `testQuartoCmd` rewrites
+  where possible (`jupyter/issue-10097`, `issue-12374`).
+  `engine/invalid-engine-in-project` converts from `assertRejects`
+  (currently un-awaited — a latent bug) to exit-code + ERROR-log
+  assertion.
+- **`quartoDevCmd()` switch** (`tests/utils.ts:244`): return
   `QUARTO_TEST_BIN` when set — migrates `run/*`, `lua-unit`, `logging`,
-  `create` wholesale; consolidate the hardcoded
-  `../package/dist/bin/quarto` spawns (`filters/editor-support`,
-  `typst-gather`) onto it.
+  `create`; consolidate the hardcoded `../package/dist/bin/quarto`
+  spawns (`filters/editor-support`, `typst-gather`) onto it. **[R]**
+  Pair the switch with the shared env-strip helper (§4.2) — the path
+  change alone is insufficient.
 - **Semantic one-offs**: `env/check.test.ts` — compute expected version
   from the binary instead of hardcoding `99.9.9`;
   `inspect-standalone-rstudio` — `RSTUDIO=1` via `context.env` in binary
-  mode (the in-process `_setIsRStudioForTest` hook stays for dev mode).
+  mode.
 - **Anti-pattern fix**: `website/drafts-env.test.ts` converts
-  `Deno.env.set("QUARTO_PROFILE", ...)` to `context.env` (already flagged
-  by `.claude/rules/testing/test-anti-patterns.md`; would become
-  cross-subprocess leakage in binary mode).
-- **Move, don't flag**: the 2 genuinely dev-only files
+  `Deno.env.set("QUARTO_PROFILE", ...)` to `context.env`.
+- **Move, don't flag**: the 2 dev-only files
   (`yaml-intelligence/yaml-intelligence.test.ts`,
-  `yaml-intelligence-folded-block-strings.test.ts`) move to `tests/unit/`.
-  `TestContext.requiresDevQuarto` is still added as an escape hatch
-  (sets Deno `ignore` in binary mode) but starts with zero users.
-- **Guard rails** (lightweight lint/CI checks): forbid
-  `import ... from ".*src/quarto.ts"` under `tests/smoke/`; forbid
-  quarto spawns not routed through `quartoDevCmd()`/`runQuarto`.
+  `yaml-intelligence-folded-block-strings.test.ts`) move to
+  `tests/unit/`. `TestContext.requiresDevQuarto` is added as an escape
+  hatch (sets Deno `ignore` in binary mode), starting with zero users.
+- **Guard rails** (lint/CI checks): forbid `import ... from
+  ".*src/quarto.ts"` under `tests/smoke/`; forbid quarto spawns not
+  routed through `quartoDevCmd()`/`runQuarto`.
 
 ### 4.6 Fixture fixes
 
 - Relax the ten `quarto-required: '>=99.9.0'` fixture extensions to
-  `'>=1.9'` (evidence in §3; matches their own sibling extensions).
-- These are safe, standalone commits that can land **before** any harness
-  work (they are no-ops for dev mode since `99.9.9 >= 1.9`).
+  `'>=1.9'` (evidence in §3; matches their sibling extensions). Safe,
+  standalone, dev-mode no-ops (`99.9.9 >= 1.9`) — can land first.
 
 ## 5. CI design
 
 ### 5.1 Parameterize `test-smokes.yml`
 
 New `workflow_call` inputs: `quarto-install` (`dev`|`release`|`artifact`,
-default `dev`), `quarto-version` (for `release`), `quarto-artifact-name`
-(for `artifact`), and `ref` (checkout ref, so callers can pin harness =
-binary commit).
+default `dev`), `quarto-version`, `quarto-artifact-name`, `ref`
+(checkout ref), and **[R]** `runners` (JSON list for the OS matrix,
+default `'["ubuntu-latest","windows-latest"]'`). **[R]** `buckets`
+changes from `required: true` to `required: false, default: ""` (both
+existing callers always pass it — behavior-neutral).
 
-Step changes — all **additive**, inserted after the existing `quarto-dev`
-step (`test-smokes.yml:230`), which now runs **unconditionally in every
-mode** (it provisions the harness Deno runtime, §3):
+Additional adjustments **[R]**:
+
+- The seven Windows setup steps gated
+  `runner.os != 'Windows' || github.event_name == 'schedule'`
+  (node/playwright/multiplex) must also fire for full non-dev runs
+  (`inputs.quarto-install != 'dev'`), or a dispatch-triggered full
+  Windows release-mode run executes in an environment no full Windows
+  run has ever used.
+- All new steps carry `shell: bash` explicitly (they run on the Windows
+  leg too).
+
+Step changes — inserted after the existing `quarto-dev` step
+(`test-smokes.yml:230`), which runs **unconditionally in every mode**
+(harness runtime, §3):
 
 ```yaml
-- uses: ./.github/workflows/actions/quarto-dev        # ALWAYS (harness runtime)
+- uses: ./.github/workflows/actions/quarto-dev        # ALWAYS
 
-- name: Set up release quarto                          # release mode
+- name: Set up release quarto
   if: inputs.quarto-install == 'release'
   uses: quarto-dev/quarto-actions/setup@v2
   with: { version: "${{ inputs.quarto-version }}" }
 
-- name: Download built quarto artifact                 # artifact mode
+- name: Download built quarto artifact
   if: inputs.quarto-install == 'artifact'
-  uses: actions/download-artifact@v7
+  uses: actions/download-artifact@v8                  # repo standard [R]
   with: { name: "${{ inputs.quarto-artifact-name }}" }
-- name: Install built quarto outside the checkout      # artifact mode
+- name: Install built quarto outside the checkout
   if: inputs.quarto-install == 'artifact'
-  run: |                                               # extract OUTSIDE repo (§3 dev-mode trap)
+  shell: bash
+  run: |                                              # outside repo (§3 dev-mode trap)
     mkdir -p "$RUNNER_TEMP/quarto-under-test"
     tar -xzf built-quarto-*.tar.gz -C "$RUNNER_TEMP/quarto-under-test" --strip-components=1
     echo "$RUNNER_TEMP/quarto-under-test/bin" >> "$GITHUB_PATH"
 
-- name: Pin and verify test target                     # both non-dev modes
+- name: Pin and verify test target
   if: inputs.quarto-install != 'dev'
+  shell: bash
   run: |
     v="$(quarto --version)"
     [ "$v" != "99.9.9" ] || { echo "dev sentinel detected"; exit 1; }
     echo "QUARTO_TEST_BIN=$(command -v quarto)" >> "$GITHUB_ENV"
 ```
 
-Everything downstream is untouched: `quarto install tinytex/verapdf/…`
-pick up the PATH override automatically; `run-tests.sh` reads
-`QUARTO_TEST_BIN` from the env; language setup is shared.
+`quarto install tinytex/verapdf/…` pick up the PATH override
+automatically; language setup is shared.
 
 ### 5.2 New `test-smokes-built.yml`
 
@@ -380,7 +478,9 @@ on:
 
 jobs:
   build-artifact:            # source: build (default; also the schedule path)
-    if: inputs.source != 'release'
+    if: >
+      (github.event_name != 'schedule' || github.repository == 'quarto-dev/quarto-cli')
+      && (github.event.inputs.source != 'release')      # fork guard [R]
     runs-on: ubuntu-latest
     outputs: { sha: "${{ steps.rec.outputs.sha }}" }
     steps:
@@ -388,13 +488,13 @@ jobs:
       - id: rec
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - run: ./configure.sh
+      - run: |                                          # [R] BUILD METADATA marker —
+          pushd package/src                             # semver-valid, range-transparent,
+          ./quarto-bld prepare-dist \                   # still != 99.9.9. NEVER use a
+            --set-version "$(cat ../../version.txt)+test.$(date +%Y%m%d)" \
+            --log-level info                            # '-prerelease' suffix or a 4th
+          popd                                          # component (both fail all gates)
       - run: |
-          pushd package/src
-          ./quarto-bld prepare-dist \
-            --set-version "$(cat ../../version.txt).$(date +%Y%m%d)-test" \
-            --log-level info
-          popd
-      - run: |                                   # same recipe as make-tarball
           pushd package
           mv pkg-working quarto-built-test
           tar czf built-quarto-linux-amd64.tar.gz quarto-built-test
@@ -405,102 +505,130 @@ jobs:
                 path: package/built-quarto-linux-amd64.tar.gz }
 
   run-smokes-artifact:
-    if: inputs.source != 'release'
+    if: github.event.inputs.source != 'release'
     needs: [build-artifact]
     uses: ./.github/workflows/test-smokes.yml
     with:
-      ref: "${{ needs.build-artifact.outputs.sha }}"   # harness == binary commit
+      ref: "${{ needs.build-artifact.outputs.sha }}"    # harness == binary commit
       quarto-install: artifact
       quarto-artifact-name: built-quarto-linux-amd64
+      runners: '["ubuntu-latest"]'                      # linux only [R]
+      buckets: ""                                       # full run [R]
 
-  run-smokes-release:                                  # dispatch-only, curative/backfill
-    if: inputs.source == 'release'
+  resolve-release:                                      # [R] resolve step needs its
+    if: github.event.inputs.source == 'release'         # own job (uses:-jobs have no steps)
+    runs-on: ubuntu-latest
+    outputs: { version: "${{ steps.r.outputs.version }}" }
+    steps:
+      - id: r
+        run: |  # input 'pre-release'/'release' -> concrete 1.x.y via _prerelease.json/_download.json
+          ...
+
+  run-smokes-release:
+    if: github.event.inputs.source == 'release'
+    needs: [resolve-release]
     uses: ./.github/workflows/test-smokes.yml
     with:
-      ref: "refs/tags/v${{ <resolved version> }}"      # resolve pre-release → concrete tag first
+      ref: "refs/tags/v${{ needs.resolve-release.outputs.version }}"
       quarto-install: release
-      quarto-version: "${{ inputs.version }}"
+      quarto-version: "${{ needs.resolve-release.outputs.version }}"
+      buckets: ""
 ```
 
-Notes:
+**[R] Version-marker guard**: Phase 0 asserts (with the vendored semver)
+`satisfies("<marker>", ">=1.3.0") === true` before adopting any marker;
+the CI "Pin and verify" step gains the same assertion.
 
-- The version marker embeds `-test` so the built binary can never be
-  mistaken for a published build; it also keeps `quarto --version` ≠
-  `99.9.9`, satisfying the guard.
-- Platform: **linux-amd64 first** (Windows zip needs the signing pipeline;
-  Windows coverage comes via `source: release`, or later an unsigned local
-  zip build).
-- `release` mode needs a small resolve step (input `pre-release`/`release`
-  → concrete `1.x.y` via `_prerelease.json`/`_download.json` or the GitHub
-  API) before computing the checkout tag.
-- Full run duration: the daily `test-smokes.yml` scheduled run already
-  does a full un-sharded run per OS, so a weekly built-mode equivalent is
-  a known, bounded cost; the `run-parallel-tests` bucket matrix remains
-  available if needed.
-- Later (Phase 4): call the same parameterized workflow from
-  `create-release.yml` as an initially non-blocking gate before
-  `publish-release`.
+### 5.3 Release mode scope **[R]**
+
+Release mode checks out the tag while the *workflow file and local
+composite actions* resolve from the checked-out tree. Consequences:
+
+- The harness at the tag must already contain the binary-mode plumbing —
+  **no existing tag has it**. Release mode therefore only works for
+  releases cut **after Phase 1 merges**. "Backfill any historical
+  version" is out of scope (would require the Phase-4 harness/binary
+  decoupling: main-branch harness testing an older binary).
+- Local-action interface drift is real (`.github/actions/cache-typst` is
+  referenced unconditionally and only exists since 2026-05; older tags
+  fail with "action not found").
+- Add a preflight step that fails with a clear message when the
+  checked-out ref lacks `QUARTO_TEST_BIN` support in `tests/run-tests.sh`.
+
+### 5.4 Later (Phase 4+)
+
+Call the parameterized workflow from `create-release.yml` as an
+initially non-blocking gate before `publish-release`; revisit the §2
+non-goals list before presenting it as a release gate.
 
 ## 6. Phased roadmap
 
-**Phase 0 — spike (≈1 day).** Locally: `configure.sh` +
-`quarto-bld prepare-dist`, copy `pkg-working` **outside the checkout**
-(§3 dev-mode trap), hack the seam, run ~20–30 representative smoke-all
-docs + a few `.test.ts` smokes. Acceptance: catalog of failure classes;
-confirmation the log-file contract holds end-to-end; finalized env
-allowlist.
+**Phase 0 — spike (≈1–2 days).** Locally: `configure.sh` +
+`quarto-bld prepare-dist`, copy `pkg-working` **outside the checkout**,
+`QUARTO_TESTS_NO_CONFIG=true`, hack the seam, run ~20–30 representative
+smoke-all docs + a few `.test.ts` smokes. Acceptance: failure-class
+catalog; log-file contract confirmed end-to-end **including the
+synthetic-ERROR path** (kill a child mid-render; corrupt the dist and
+confirm red, not green); semver marker assertion passes; **measured
+per-spawn overhead** (product cold-start, not just process launch — the
+corpus is 1424 docs ⇒ 1500+ spawns; if overhead is high, the
+`run-parallel-tests` bucket matrix becomes the Phase 2 default rather
+than a contingency).
 
 **Phase 1 — fixtures + harness binary mode.** Land the ten
-`quarto-required` relaxations and the `drafts-env` anti-pattern fix
-(standalone, dev-mode no-ops). Implement `runQuarto`, the env contract,
-`quartoDevCmd()` change, runner plumbing (incl. `unit/` exclusion),
-version guard, `requiresDevQuarto`, the ~14 shared-helper migrations, the
-2 file moves to `tests/unit/`. Acceptance: full dev-mode suite still
-green (default path untouched); a binary-mode subset green locally.
+`quarto-required` relaxations and the `drafts-env` fix (standalone,
+dev-mode no-ops). Implement `runQuarto` (+ `throwOnFailure`, synthetic
+ERROR, tree-kill, stderr capture), the env strip helper, `quartoDevCmd()`
+switch, runner plumbing (internal `TESTS_TO_RUN`, `integration/`
+classification, version guard), logger-lifecycle branching in `test()`,
+`requiresDevQuarto`, the ~14 migrations, the 2 file moves. Acceptance:
+full dev-mode suite green (default path untouched); binary-mode subset
+green locally; the corrupt-dist scenario fails red.
 
-**Phase 2 — CI.** Parameterize `test-smokes.yml` (additive inputs);
-add `test-smokes-built.yml` (weekly + dispatch, build-then-test, full
-smoke-all, linux). Acceptance: first green (or triaged) weekly run;
-failures classified into product bugs / harness assumptions / dev-only.
+**Phase 2 — CI.** Parameterize `test-smokes.yml` (§5.1 incl. `runners`,
+`buckets` default, Windows-gate fix); add `test-smokes-built.yml`
+(weekly + dispatch, build-then-test, full smoke-all, linux). Acceptance:
+first green (or fully triaged) weekly run; failures classified into
+product bugs / harness assumptions / dev-only.
 
-**Phase 3 — broaden.** `source: release` path (Windows coverage, version
-backfill), ff-matrix bucket job, guard-rail lint checks. Acceptance:
-dispatch run against latest published prerelease succeeds on both OSes.
+**Phase 3 — broaden.** `source: release` path for releases cut after
+Phase 1 (Windows coverage via `quarto.exe`; §5.3 scope), ff-matrix
+bucket job, guard-rail lint checks. Acceptance: dispatch run against the
+first post-Phase-1 prerelease succeeds on both OSes.
 
 **Phase 4 — optional.** Non-blocking gate in `create-release.yml`;
-decouple harness from `src/` (via `quarto inspect`) only if testing
-binaries from a *different* commit than the harness ever matters.
+harness/binary decoupling (via `quarto inspect`) if testing binaries
+from a different commit than the harness (incl. true backfill) becomes
+worth the drift risk.
 
 ## 7. Risks & open items
 
-- **Subprocess startup cost** (~100–300 ms × hundreds of renders): small
-  vs render time; measure in Phase 0.
-- **`shouldError` + passthrough commands**: `run`/`pandoc`/`typst`
-  failures exit non-zero without a log ERROR record (§3); their tests
-  already use `execProcess` and don't rely on log verifiers — document
-  the constraint in the seam.
-- **Behavioral diffs without `QUARTO_DEBUG`**: ERROR messages lose stack
-  traces; no known verifier depends on them; Phase 0 confirms.
-- **`quarto check` dev branch**: with a real version the
-  `git rev-parse`/dev branch is skipped — `check`-based tests
-  (`smoke/check`, `env/check`) assert against installed behavior; adapt
-  expectations (§4.5).
+- **Per-spawn cost at corpus scale**: 1500+ spawns × product cold-start
+  (bundle load, schema init) — measured in Phase 0; bucket-matrix
+  sharding is the fallback.
+- **Binary-only flakiness classes**: jupyter daemon behavior across
+  separate quarto processes, per-process knitr/renv startup, memory/CPU
+  contention under deno-test parallelism — watch in Phase 2 triage.
+- **`shouldError` + passthrough/add/remove commands**: §3's record-free
+  non-zero exits are handled by the synthetic-ERROR invariant; the
+  passthrough tests keep their own `execProcess` assertions.
+- **`quarto check` dev branch**: with a real version the dev branch is
+  skipped — `check`-based tests assert against installed behavior (§4.5).
 - **Intra- vs inter-process concurrency**: `issues/9133` reproduces an
   in-process race; the two-subprocess variant needs a runtime check that
   the regression still triggers.
-- **`configure.sh` cost in binary-mode CI**: it still downloads the full
-  dev toolchain (pandoc, dart-sass, …) the binary won't use — wasted
-  minutes, correctness-neutral; optional later flag in `quarto-bld
-  configure`.
-- **Skip-list drift**: guard-rail greps (§4.5) + `requiresDevQuarto`
-  review-time convention.
+- **`configure.sh` cost in binary-mode CI**: still downloads the dev
+  toolchain the binary won't use — wasted minutes, correctness-neutral.
+- **Skip-list drift**: guard-rail greps + `requiresDevQuarto` convention.
+- **Scope honesty**: keep the §2 "does not test" list current.
 
 ---
 
 ## 8. Appendix — classification sweep (2026-07-17)
 
 All 133 `tests/smoke/**/*.test.ts` read in full: **107 compatible / 24
-adapt / 2 dev-only**.
+adapt / 2 dev-only**. (`tests/integration/*.test.ts` — 3 files — were
+outside this sweep and get classified in Phase 1, §4.4.)
 
 ### 8.1 Compatible as-is (107)
 
@@ -517,12 +645,12 @@ parameter (not `Deno.env.set`) and forwards cleanly.
 
 (a) direct `quarto()` import (~14 files; greppable) → `runQuarto` helper /
 trivial `testQuartoCmd` rewrites; (b) `quartoDevCmd()` PATH spawns
-(`run/*`, `lua-unit`, `logging`, `create`) → one-line env-var switch;
-(c) hardcoded `../package/dist/bin/quarto` spawns (`filters/
-editor-support`, `typst-gather` 7–12) → consolidate onto (b); (d)
-semantic one-offs (`env/check` 99.9.9 expectation;
-`inspect-standalone-rstudio` in-process hook → `RSTUDIO=1` child env).
-Details and per-file notes in §4.5. Note: "uses `unitTest()`" is NOT a
+(`run/*`, `lua-unit`, `logging`, `create`) → env-var switch **plus the
+shared env-strip helper (§4.2)**; (c) hardcoded
+`../package/dist/bin/quarto` spawns (`filters/editor-support`,
+`typst-gather` 7–12) → consolidate onto (b); (d) semantic one-offs
+(`env/check` 99.9.9 expectation; `inspect-standalone-rstudio` in-process
+hook → `RSTUDIO=1` child env). Note: "uses `unitTest()`" is NOT a
 dev-only signal — several files use it as a generic wrapper around
 subprocess spawns.
 
@@ -537,9 +665,11 @@ yaml-intelligence internals with no CLI surface → move to `tests/unit/`.
 Binary-clean except the ten `quarto-required: '>=99.9.0'` fixtures
 (§4.6): no doc executes quarto from a code cell, no runtime dev-tree
 paths, no pre/post-render scripts, every `printsMessage` uses
-INFO/WARN/ERROR (never DEBUG). Driver adaptations: project pre-renders
-(24 docs) and `editor-support-crossref` (2 docs) through `runQuarto`;
-tolerate non-zero child exit. One-time runtime checks:
-`engine/class-override` (`>=1.9.17` — correctly fails on older release
-binaries), `QUARTO_EXECUTE_INFO`/`QUARTO_PROJECT_ROOT` env docs, the
-pandoc-args INFO echo docs (`2025/12/09/13775-*`).
+INFO/WARN/ERROR (never DEBUG). Corpus: 1424 docs; ~326 use the default
+log-only spec (the silent-green exposure §3 [R] closes); 1032 of the
+1098 spec-bearing docs also have file-content verifiers that fail loudly
+when nothing renders. Driver adaptations: project pre-renders (24 docs)
+and `editor-support-crossref` (2 docs) through `runQuarto`. One-time
+runtime checks: `engine/class-override` (`>=1.9.17`),
+`QUARTO_EXECUTE_INFO`/`QUARTO_PROJECT_ROOT` env docs, the pandoc-args
+INFO echo docs (`2025/12/09/13775-*`).
