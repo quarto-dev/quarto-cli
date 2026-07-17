@@ -10,6 +10,7 @@ import { execProcess } from "../../../src/core/process.ts";
 import { md5HashSync } from "../../../src/core/hash.ts";
 import { safeRemoveIfExists } from "../../../src/core/path.ts";
 import { quartoDevCmd, outputForInput } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { assert } from "testing/asserts";
 import { LogFormat } from "../../../src/core/log.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
@@ -97,7 +98,7 @@ function testLogDirectly(options: {
           args: args,
           stdout: "piped",
           stderr: "piped",
-          env: options.env,
+          ...quartoSpawnEnvOptions(options.env),
         });
         
         // Get stdout/stderr with fallback to empty string

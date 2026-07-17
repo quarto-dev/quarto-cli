@@ -67,6 +67,24 @@ export function buildBinaryEnv(
   return { ...env, ...(overlay ?? {}) };
 }
 
+// Env/clearEnv spawn options for tests that launch the quarto under test
+// themselves (via execProcess or Deno.Command with quartoDevCmd()) instead
+// of going through runQuarto. In binary mode: full ambient env with the
+// dev-tree vars stripped (kStripEnvVars) and the per-test overlay merged
+// last, plus clearEnv so the sanitized env is authoritative — otherwise the
+// installed launcher would inherit QUARTO_SHARE_PATH/QUARTO_DEBUG/DENO_DIR
+// from the harness (run-tests.sh exports them) and silently use dev-tree
+// resources. In dev mode: today's behavior exactly — the overlay (if any)
+// merges into the inherited ambient env.
+export function quartoSpawnEnvOptions(
+  overlay?: Record<string, string>,
+): { env?: Record<string, string>; clearEnv?: boolean } {
+  if (binaryMode()) {
+    return { env: buildBinaryEnv(overlay), clearEnv: true };
+  }
+  return overlay !== undefined ? { env: overlay } : {};
+}
+
 // Appends a synthetic ERROR record to a json-stream log file. Only call
 // after the child process has exited (single-writer at that point).
 export function appendLogError(logFile: string, msg: string) {
