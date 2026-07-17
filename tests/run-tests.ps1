@@ -66,6 +66,27 @@ If ($null -eq $Env:QUARTO_DENO_DIR) {
   $Env:DENO_DIR = $Env:QUARTO_DENO_DIR
 }
 
+# BINARY MODE: when QUARTO_TEST_BIN is set, tests run against a built quarto
+# (an installed distribution extracted OUTSIDE this checkout). The harness
+# itself still runs from the dev tree — the dev env vars above stay — and
+# tests/quarto-cmd.ts dispatches quarto invocations to the binary, stripping
+# the dev env from the child process. See
+# dev-docs/smoke-tests-built-version-plan.md.
+If ($null -ne $Env:QUARTO_TEST_BIN) {
+  If (-not (Test-Path $Env:QUARTO_TEST_BIN)) {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) does not exist"
+    Exit 1
+  }
+  $QUARTO_TEST_BIN_VERSION = & $Env:QUARTO_TEST_BIN --version
+  If ($QUARTO_TEST_BIN_VERSION -eq "99.9.9") {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
+    Write-Host -ForegroundColor red "It resolves to a dev-mode quarto: the launcher runs the TS sources whenever a sibling src/quarto.ts exists."
+    Write-Host -ForegroundColor red "Point QUARTO_TEST_BIN at a built distribution extracted outside the git checkout."
+    Exit 1
+  }
+  Write-Host "> BINARY MODE: testing built quarto $QUARTO_TEST_BIN_VERSION at $($Env:QUARTO_TEST_BIN)"
+}
+
 # Preparing running Deno with default arguments
 
 $QUARTO_IMPORT_MAP_ARG="--importmap=$(Join-Path $QUARTO_SRC_DIR "import_map.json")"
@@ -159,6 +180,14 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
 
 } else {
   $TESTS_TO_RUN=$customArgs
+}
+
+# Binary-mode default selection: smoke tests only. tests/unit/ exercises
+# quarto internals in-process (dev-only by definition) and
+# tests/integration/ requires the dev playwright setup.
+If ($null -ne $Env:QUARTO_TEST_BIN -and $TESTS_TO_RUN.count -eq 0 -and $customArgs.count -eq 0) {
+  $TESTS_TO_RUN = @("smoke/")
+  Write-Host "> BINARY MODE: defaulting to smoke/ tests (unit/ and integration/ are dev-only)"
 }
 
 # ---- Running tests with Deno -------

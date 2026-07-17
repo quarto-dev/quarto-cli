@@ -62,6 +62,26 @@ export QUARTO_DEBUG=true
 
 QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --no-lock --allow-all"
 
+# BINARY MODE: when QUARTO_TEST_BIN is set, tests run against a built quarto
+# (an installed distribution extracted OUTSIDE this checkout). The harness
+# itself still runs from the dev tree — the dev env exports above stay — and
+# tests/quarto-cmd.ts dispatches quarto invocations to the binary, stripping
+# the dev env from the child process. See
+# dev-docs/smoke-tests-built-version-plan.md.
+if [[ -n "$QUARTO_TEST_BIN" ]]; then
+  if [[ ! -x "$QUARTO_TEST_BIN" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) does not exist or is not executable"
+    exit 1
+  fi
+  QUARTO_TEST_BIN_VERSION="$("$QUARTO_TEST_BIN" --version 2>/dev/null)"
+  if [[ "$QUARTO_TEST_BIN_VERSION" == "99.9.9" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
+    echo "It resolves to a dev-mode quarto: the launcher runs the TS sources whenever a sibling src/quarto.ts exists."
+    echo "Point QUARTO_TEST_BIN at a built distribution extracted outside the git checkout."
+    exit 1
+  fi
+  echo "> BINARY MODE: testing built quarto ${QUARTO_TEST_BIN_VERSION} at ${QUARTO_TEST_BIN}"
+fi
 
 if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
 then
@@ -160,6 +180,13 @@ else
       fi
       TESTS_TO_RUN=("${SMOKE_ALL_TEST_FILE}" "--" "${SMOKE_ALL_FILES[@]}")
     fi
+  fi
+  # Binary-mode default selection: smoke tests only. tests/unit/ exercises
+  # quarto internals in-process (dev-only by definition) and
+  # tests/integration/ requires the dev playwright setup.
+  if [[ -n "$QUARTO_TEST_BIN" && "${#TESTS_TO_RUN[@]}" -eq 0 && -z "$*" ]]; then
+    TESTS_TO_RUN=("smoke/")
+    echo "> BINARY MODE: defaulting to smoke/ tests (unit/ and integration/ are dev-only)"
   fi
   # TESTS_TO_RUN is an array and quoted here on purpose: a bucket can be a
   # literal, unexpanded ** glob pattern (e.g. from the ff-matrix CI bucket),
