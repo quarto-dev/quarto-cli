@@ -532,15 +532,15 @@ flowchart LR
         FFM["test-ff-matrix.yml<br>(ff-matrix qmd bucket)"]
     end
     subgraph built ["Binary mode: quarto = built distribution (QUARTO_TEST_BIN)"]
-        TSB["test-smokes-built.yml<br>weekly Monday + manual dispatch"]
+        TSB["test-smokes-built.yml<br>runs after every nightly build<br>(workflow_run) + manual dispatch"]
         BUILDM["source: build (dispatch default)<br>build linux-amd64 dist from this ref<br>(any ref, works on forks)"]
-        NIGHTM["source: nightly (weekly schedule)<br>reuse SIGNED artifacts of a<br>create-release run (linux + windows quarto.exe)"]
+        NIGHTM["source: nightly (daily via workflow_run)<br>reuse SIGNED artifacts of a create-release run:<br>linux + windows quarto.exe + macOS<br>(the only macOS smoke coverage)"]
         RELM["source: release<br>install published (pre-)release,<br>checkout its v-tag"]
         TSB -->|"dispatch"| BUILDM
-        TSB -->|"weekly schedule<br>+ dispatch"| NIGHTM
+        TSB -->|"after each nightly build<br>+ dispatch"| NIGHTM
         TSB -->|"dispatch"| RELM
     end
-    CR["create-release.yml<br>nightly build (no publish),<br>dispatch = publish"]
+    CR["create-release.yml<br>nightly build (no publish),<br>dispatch = publish; smoke-artifacts-only<br>input = cheap signed branch builds"]
     ACT[".github/actions/build-dist-tarball<br>(shared build recipe)"]
 
     TS["test-smokes.yml (reusable)<br>inputs: quarto-install, ref, runners,<br>buckets, quarto-artifact-*"]

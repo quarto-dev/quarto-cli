@@ -1,10 +1,12 @@
 # Runs the smoke test suite against a BUILT quarto instead of the dev source tree.
 # Three sources for the quarto under test:
-#   - nightly (the weekly schedule path; also dispatchable): reuse the SIGNED
-#     artifacts of a completed create-release run (its nightly schedule builds
-#     without publishing) - the linux 'Deb Zip' tarball AND the signed
-#     'Windows Zip' (the real quarto.exe) - and run the smokes at that run's
-#     commit. No duplicate build, and Windows coverage for free. To test a
+#   - nightly (the workflow_run path - runs after every nightly create-release
+#     build; also dispatchable): reuse the SIGNED artifacts of a completed
+#     create-release run (its nightly schedule builds without publishing) -
+#     the linux 'Deb Zip' tarball, the signed 'Windows Zip' (the real
+#     quarto.exe), AND the signed+notarized 'Mac Zip' - and run the smokes at
+#     that run's commit. No duplicate build, three-OS coverage for free
+#     (the ONLY macOS smoke coverage in CI). To test a
 #     signed build of a specific commit on demand: dispatch create-release with
 #     publish-release=false, then dispatch this workflow with source=nightly and
 #     that run's id.
@@ -17,12 +19,17 @@
 # nightly/release only work when the target commit's harness has binary-mode
 # support (tests/quarto-cmd.ts) - see dev-docs/smoke-tests-built-version-plan.md §5.3.
 #
-# Mode resolution (repeated in each job's `if`): schedule => nightly;
+# Mode resolution (repeated in each job's `if`): workflow_run => nightly;
 # dispatch => the source input (default build).
 name: Smoke Tests (Built Version)
 on:
-  schedule:
-    - cron: "0 8 * * 1" # weekly, Monday
+  # Fires once per completed nightly create-release build (main only:
+  # workflow_run triggers require the workflow file on the default branch).
+  # This makes built-version testing DAILY, right after each build, with no
+  # stale-artifact risk (vs a cron that resolves "latest successful run").
+  workflow_run:
+    workflows: ["Build Installers"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       source:
@@ -59,7 +66,7 @@ jobs:
   # source: build (dispatch default) - build from THIS ref
   build-artifact:
     name: Build quarto dist (linux-amd64)
-    if: (github.event_name == 'schedule' && 'nightly' || github.event.inputs.source || 'build') == 'build'
+    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.rec.outputs.sha }}
@@ -91,7 +98,7 @@ jobs:
 
   run-smokes-artifact:
     name: Smoke tests against built artifact
-    if: (github.event_name == 'schedule' && 'nightly' || github.event.inputs.source || 'build') == 'build'
+    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
     needs: [build-artifact]
     uses: ./.github/workflows/test-smokes.yml
     with:
@@ -168,9 +175,11 @@ jobs:
   # tarball + signed Windows zip)
   resolve-nightly:
     name: Resolve create-release run
+    # on workflow_run: only test successful builds (a skipped day is visible,
+    # a stale artifact is not)
     if: >-
-      (github.event_name != 'schedule' || github.repository == 'quarto-dev/quarto-cli')
-      && (github.event_name == 'schedule' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     outputs:
       run-id: ${{ steps.r.outputs.run-id }}
@@ -182,7 +191,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          run_id="${{ github.event.inputs.run-id }}"
+          # workflow_run: the triggering build IS the run to test
+          run_id="${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || github.event.inputs.run-id }}"
           if [ -z "$run_id" ]; then
             run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow create-release.yml \
               --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
@@ -202,7 +212,7 @@ jobs:
 
   run-smokes-nightly-linux:
     name: Smoke tests against nightly build (linux)
-    if: (github.event_name == 'schedule' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
     needs: [resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
@@ -216,7 +226,7 @@ jobs:
 
   run-smokes-nightly-windows:
     name: Smoke tests against nightly build (windows)
-    if: (github.event_name == 'schedule' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
     needs: [resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
@@ -226,4 +236,19 @@ jobs:
       quarto-artifact-name: Windows Zip
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["windows-latest"]'
+      buckets: ${{ github.event.inputs.buckets }} # empty = full run
+
+  run-smokes-nightly-mac:
+    name: Smoke tests against nightly build (macOS)
+    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      # the SIGNED + notarized Mac layout produced by make-installer-mac -
+      # the only macOS smoke coverage in CI
+      quarto-artifact-name: Mac Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["macos-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
