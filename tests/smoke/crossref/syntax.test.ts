@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureFileRegexMatches } from "../../verify.ts";
+import { ensureFileRegexMatches, noErrors } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
 import { crossref } from "./utils.ts";
 import {
@@ -70,7 +70,9 @@ const testDesc: TestDescriptor = { // FIXME: why is this test flaky now? Ask @dr
   name: "test html produced by different figure syntax",
   context,
   execute: async (logFile?: string) => {
-    // failures reach the harness as log records, mirroring testQuartoCmd
+    // render failures land in the log as ERROR records; noErrors below
+    // surfaces them (otherwise the comparison verify would just hit an
+    // unhelpful ENOENT on the missing output file)
     await runQuarto(["render", imgQmd.input], {
       logFile,
       throwOnFailure: false,
@@ -80,7 +82,7 @@ const testDesc: TestDescriptor = { // FIXME: why is this test flaky now? Ask @dr
       throwOnFailure: false,
     });
   },
-  verify: [verify],
+  verify: [noErrors, verify],
   type: "smoke",
 };
 test(testDesc);
