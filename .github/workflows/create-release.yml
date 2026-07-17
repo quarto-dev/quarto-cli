@@ -14,6 +14,11 @@ on:
         required: false
         type: boolean
         default: true
+      smoke-artifacts-only:
+        description: "Build only the artifacts consumed by Smoke Tests (Built Version) nightly mode: the linux amd64 tarball and the signed Windows zip. Skips source/arm64 tarballs, deb/rpm installers, and the macOS build. For cheap signed builds of a branch (dispatch with publish-release=false); incompatible with publishing."
+        required: false
+        type: boolean
+        default: false
 
 env:
   NFPM_VERSION: "2.43.1"
@@ -100,6 +105,7 @@ jobs:
           default_author: github_actions
 
   make-source-tarball:
+    if: ${{ !inputs.smoke-artifacts-only }}
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
@@ -142,6 +148,7 @@ jobs:
           artifact-name: Deb Zip
 
   make-arm64-tarball:
+    if: ${{ !inputs.smoke-artifacts-only }}
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
@@ -212,6 +219,7 @@ jobs:
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
 
   make-installer-linux:
+    if: ${{ !inputs.smoke-artifacts-only }}
     runs-on: ubuntu-latest
     needs: [configure]
     strategy:
@@ -443,6 +451,7 @@ jobs:
           quarto --version
 
   make-installer-mac:
+    if: ${{ !inputs.smoke-artifacts-only }}
     runs-on: macos-latest
     needs: [configure]
     steps:
@@ -512,6 +521,7 @@ jobs:
           security delete-keychain build.keychain
 
   test-zip-mac:
+    if: ${{ !inputs.smoke-artifacts-only }}
     runs-on: macos-latest
     needs: [configure, make-installer-mac]
     steps:
@@ -551,7 +561,8 @@ jobs:
           quarto --version
 
   publish-release:
-    if: ${{ inputs.publish-release }}
+    # never publish from a partial (smoke-artifacts-only) build
+    if: ${{ inputs.publish-release && !inputs.smoke-artifacts-only }}
     runs-on: ubuntu-latest
     needs: [
         configure,

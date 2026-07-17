@@ -208,6 +208,14 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y librsvg2-bin
 
+      - name: Install missing system deps (macOS)
+        if: runner.os == 'macOS'
+        # macos runners preinstall most toolchain deps; poppler (pdftotext/
+        # pdftoppm) and librsvg (rsvg-convert) are the ones PDF tests need.
+        # Tests requiring other optional tools prereq-skip gracefully.
+        run: |
+          brew install poppler librsvg
+
       - name: Restore R packages
         working-directory: tests
         run: |
@@ -302,18 +310,19 @@ jobs:
             echo "::error::expected exactly one .tar.gz or .zip in the quarto artifact, found: ${artifacts[*]:-none}"
             exit 1
           fi
-          case "${artifacts[0]}" in
-            *.tar.gz)
-              # linux tarball layout: quarto-<version>/{bin,share}
-              tar -xzf "${artifacts[0]}" -C "$RUNNER_TEMP/quarto-under-test" --strip-components=1
-              ;;
-            *.zip)
-              # Windows Zip layout: {bin,share} at the archive root; bsdtar on
-              # windows runners extracts zip archives (same as test-zip-win in
-              # create-release.yml)
-              tar -xf "${artifacts[0]}" -C "$RUNNER_TEMP/quarto-under-test"
-              ;;
-          esac
+          # layouts differ per artifact: the linux tarball has a
+          # quarto-<version>/ top dir; the Mac tarball and Windows Zip are flat
+          # ({bin,share} at the archive root). Extract, then flatten if needed.
+          # bsdtar (windows/mac runners) also handles .zip via tar -xf.
+          tar -xf "${artifacts[0]}" -C "$RUNNER_TEMP/quarto-under-test"
+          if [ ! -d "$RUNNER_TEMP/quarto-under-test/bin" ]; then
+            top="$(find "$RUNNER_TEMP/quarto-under-test" -mindepth 1 -maxdepth 1 -type d | head -1)"
+            if [ -z "$top" ] || [ ! -d "$top/bin" ]; then
+              echo "::error::could not locate bin/ in the extracted quarto artifact"
+              exit 1
+            fi
+            mv "$top"/* "$RUNNER_TEMP/quarto-under-test"/
+          fi
           echo "$RUNNER_TEMP/quarto-under-test/bin" >> "$GITHUB_PATH"
 
       - name: Pin and verify test target
