@@ -192,8 +192,19 @@ Mechanism:
 
 ## 4. CI integration
 
-Two complementary modes; both funnel through a parameterized
-`test-smokes.yml`.
+> **Decisions recorded (2026-07-17):** weekly schedule **plus manual
+> `workflow_dispatch`**; scope is **full smoke-all** (ff-matrix bucket is a
+> nice-to-have addition, not the target); and the primary goal is
+> **preventive** — test artifacts *as built*, not only published prereleases
+> (which is curative, after the fact). Since `create-release.yml` builds the
+> linux tarball with just `./configure.sh` + `quarto-bld prepare-dist
+> --set-version` + tar of `package/pkg-working`
+> (`create-release.yml:124-159`), the test workflow can **build the artifact
+> itself with the exact same steps** and test it in the same run — same
+> commit by construction, no version-skew handling, and zero changes to the
+> release pipeline.
+
+Modes below funnel through a parameterized `test-smokes.yml`.
 
 ### 4.0 Parameterize `test-smokes.yml`
 
@@ -217,48 +228,68 @@ For `release`/`artifact`: skip the `99.9.9` dev assertion, instead assert
 `QUARTO_TEST_BIN=$(command -v quarto)` for the run-tests steps. All
 language-dependency setup (R/Python/Julia/TinyTeX/…) is shared and unchanged.
 
-### 4.1 Mode A — scheduled run against the GitHub prerelease (recommended first)
+### 4.1 Mode A — build-then-test workflow (primary)
 
-New workflow `test-smokes-built.yml`:
+New workflow `test-smokes-built.yml`, **weekly `schedule` + manual
+`workflow_dispatch`**, testing an artifact built *in the same run* from the
+current `main` (preventive — catches packaging/built-layout breakage before
+the nightly `create-release.yml` ships it):
 
-1. Trigger: `workflow_dispatch` (inputs: version, bucket) + weekly `schedule`.
-   Optionally later: `release: [prereleased, released]` event for
-   run-on-every-nightly.
-2. Resolve version: input, or "latest prerelease" via
-   `https://quarto.org/docs/download/_prerelease.json` / `gh release list`.
-3. **Checkout `refs/tags/v<version>`** → harness matches binary (§2.2).
-4. Call `test-smokes.yml` with `quarto-install: release`,
-   `quarto-version: <version>`, and
-   `buckets: '[ "../dev-docs/feature-format-matrix/qmd-files/**/*.qmd" ]'`
-   initially (expand to smoke-all buckets once stable).
+1. **`build-artifact` job** (ubuntu-latest): checkout `main` (record the SHA
+   as a job output), then reproduce `make-tarball` exactly
+   (`create-release.yml:136-159`):
+   `./configure.sh` → `pushd package/src && ./quarto-bld prepare-dist
+   --set-version <version> --log-level info` → tar `package/pkg-working` →
+   upload as workflow artifact `built-quarto-linux-amd64`. Version string:
+   `version.txt` base + a `+test`/run-number marker so it is never confused
+   with a published build.
+2. **`run-smokes` job**: call the parameterized `test-smokes.yml` with
+   `quarto-install: artifact`, `quarto-artifact-name:
+   built-quarto-linux-amd64`, **checking out the same SHA** as the build job
+   (harness = binary commit, zero skew), and **no buckets** → full run, which
+   includes all of smoke-all (`docs/smoke-all/**`) plus the `.test.ts`
+   smokes that survive binary mode. Optionally add the ff-matrix bucket
+   (`dev-docs/feature-format-matrix/qmd-files/**/*.qmd`) as a second job for
+   extra coverage.
+3. Platform: **linux-amd64 first**. The Windows zip requires the signing
+   pipeline (`make-installer-win`, `create-release.yml:350-429`), so
+   Windows coverage comes more easily from the published-prerelease mode
+   below (unsigned local zip build is a possible later enhancement).
 
-Pros: zero impact on the release pipeline's duration/reliability; tests the
-exact bits users install (post signing/packaging); easy to backfill any
-released version for bisecting.
+Cost note: the build job is cheap (`configure.sh` + `prepare-dist`, a few
+minutes — same as every `create-release` build job); the expensive part is
+the smoke suite itself, which already runs daily in dev mode, so a weekly
+built-mode run is a modest addition.
 
-### 4.2 Mode B — artifact as prerequisite inside `create-release.yml`
+### 4.2 Mode A′ — same workflow, published (pre)release as input
 
-Extend the existing `test-tarball-linux` job (or add a sibling
-`smoke-test-tarball-linux`) to call the parameterized `test-smokes.yml` with
-`quarto-install: artifact`, `quarto-artifact-name: "Deb Zip"`. Same commit by
-construction — no tag gymnastics needed.
+`test-smokes-built.yml` also takes a `workflow_dispatch` input
+`source: build (default) | release`, plus `version` (`pre-release`,
+`release`, or an explicit `1.x.y`). With `source: release` it skips the
+build job, checks out **`refs/tags/v<version>`** (harness matches binary,
+§2.2), and calls `test-smokes.yml` with `quarto-install: release`. Use
+cases: verifying the bits users actually install (post signing/packaging),
+Windows coverage, and backfilling any historical version when bisecting a
+regression report ("did 1.9.12 already have this?").
 
-Recommendations to keep the nightly pipeline healthy:
+### 4.3 Mode B (later option) — gate inside `create-release.yml`
 
-- Start with the **feature-format-matrix bucket only** (bounded, well-specified
-  suite) on **linux-amd64 only**.
-- Make it **non-blocking** initially (`continue-on-error: true` + a visible
-  summary), promote to blocking once the skip-list has settled.
-- Full smoke-all in the release pipeline is probably too slow/flaky for a
-  nightly release gate; keep the full suite in Mode A instead.
+Once binary mode is stable and the dev-only skip-list has settled, the same
+parameterized `test-smokes.yml` can be called from `create-release.yml`
+between build and `publish-release` (artifact `Deb Zip`), turning the weekly
+preventive check into a true release gate. Recommendation: keep this out of
+scope until Mode A has produced a few weeks of clean signal — a flaky gate
+on the nightly pipeline is worse than none. Start `continue-on-error: true`
+and possibly with a bounded bucket (ff-matrix) rather than full smoke-all to
+keep the nightly duration sane.
 
 ---
 
 ## 5. Phased roadmap
 
 **Phase 0 — spike (≈1 day).** Hack the seam locally (no plumbing polish):
-download the current prerelease tarball, set `QUARTO_TEST_BIN`, run ~20–30
-representative smoke-all docs + a couple of ff-matrix files. Catalog failure
+build a dist locally (`configure.sh` + `quarto-bld prepare-dist`), set
+`QUARTO_TEST_BIN`, run ~20–30 representative smoke-all docs. Catalog failure
 classes (env leakage, path derivation drift, dev-only assumptions). This
 validates the log-file contract end-to-end before investing in CI.
 
@@ -268,16 +299,18 @@ validates the log-file contract end-to-end before investing in CI.
 sanity job (or manual checklist) that runs a tiny binary-mode bucket to keep
 the mode from rotting.
 
-**Phase 2 — Mode A workflow.** Parameterize `test-smokes.yml` (§4.0), add
-`test-smokes-built.yml` running the ff-matrix bucket weekly against the
-latest prerelease, Linux first, then Windows. Triage failures into: real
-product bugs (jackpot — this is the point of the project), harness
-assumptions (fix), dev-only tests (skip-list).
+**Phase 2 — Mode A workflow (build-then-test).** Parameterize
+`test-smokes.yml` (§4.0); add `test-smokes-built.yml` (weekly +
+`workflow_dispatch`) that builds the linux-amd64 dist from `main` and runs
+**full smoke-all** against it (§4.1). Triage failures into: real product
+bugs caught pre-release (jackpot — this is the point of the project),
+harness assumptions (fix), dev-only tests (skip-list).
 
-**Phase 3 — broaden.** Run full smoke-all buckets in Mode A; wire Mode B
-(ff-matrix bucket, non-blocking) into `create-release.yml`; consider the
-`release` event trigger so every nightly prerelease gets a built-version run
-without touching the release pipeline itself.
+**Phase 3 — broaden.** Add the `source: release` input path (§4.2) for
+published-prerelease testing, Windows coverage, and version backfill; add
+the ff-matrix bucket job if wanted. Once several weeks of clean signal
+exist, consider Mode B — calling the same suite from `create-release.yml`
+as a (initially non-blocking) gate before `publish-release` (§4.3).
 
 **Phase 4 — optional decoupling.** If testing binaries whose version diverges
 from the harness checkout ever matters (e.g. running main's test suite
@@ -285,7 +318,7 @@ against last stable), replace the remaining `src/` imports in the smoke-all
 driver: `quarto inspect` for metadata/format discovery, `@std/fs` glob, and
 derive output paths from actual render results instead of `outputForInput`.
 This is a bigger refactor with drift risk and is **not** needed for the
-matched-tag strategy.
+matched-commit strategy.
 
 ---
 
@@ -306,9 +339,14 @@ matched-tag strategy.
   which is actually *safer* than today's process-global `Deno.env` mutation.
 - **Skip-list drift**: `requiresDevQuarto` annotations need a home in review
   guidelines so new dev-only tests get tagged at authoring time.
-- **Decision needed — cadence & blocking-ness**: weekly scheduled (Mode A)
-  vs. every nightly prerelease vs. inside `create-release.yml` (Mode B), and
-  whether failures should ever block publishing. Recommendation: Mode A
-  weekly non-blocking first; revisit after a month of signal.
-- **Decision needed — scope**: start with ff-matrix bucket only (recommended)
-  or jump straight to full smoke-all.
+- **Full smoke-all duration in one job**: the daily dev-mode `test-smokes.yml`
+  scheduled run already does a full un-sharded run per OS, so a weekly
+  built-mode equivalent is feasible; if it proves too slow, reuse the
+  `run-parallel-tests` bucket matrix from `test-smokes-parallel.yml`.
+- ~~Decision needed — cadence & blocking-ness~~ **Decided:** weekly schedule
+  + manual `workflow_dispatch`; non-blocking (no release gate) until the
+  mode has a track record (§4.3).
+- ~~Decision needed — scope~~ **Decided:** full smoke-all (ff-matrix bucket
+  optional extra), against an artifact **built in the same workflow run**
+  (preventive), with published-(pre)release testing as a secondary dispatch
+  input (curative/backfill).
