@@ -382,16 +382,19 @@ Rscript -e "renv::install(); renv::snapshot()"
 | `./run-tests.sh` (default) | **Race condition** | Files run in parallel, share `Deno.env` |
 | `./run-parallel-tests.sh`  | **None**           | Separate OS processes                   |
 
-**Existing bad pattern** - `tests/smoke/website/drafts-env.test.ts`:
+**Preferred channel:** pass per-test env via `TestContext.env` — it reaches
+the in-process `quarto()` call in dev mode and the spawned binary in binary
+mode (`QUARTO_TEST_BIN`), without mutating process-global state.
 
-```typescript
-// BAD: Sets env var, never restores it
-// Only "works" because no other test reads QUARTO_PROFILE
-Deno.env.set("QUARTO_PROFILE", "drafts");
-testQuartoCmd("render", [renderDir], [...]);
-```
+**Known justified exception** - `tests/smoke/website/drafts-env.test.ts`
+still sets `QUARTO_PROFILE` at module load *in addition to* `context.env`:
+`src/project/project-profile.ts` caches the base profile from the env on the
+first render in the process (`baseQuartoProfile`), so in dev (in-process)
+mode a per-render env override is ignored whenever another test rendered
+first. The module-load set runs before any test and keeps the cache correct;
+the `context.env` copy is what the spawned binary sees in binary mode.
 
-**Alternatives:** Unit test the env var reader, refactor code to accept parameters, or use subprocess isolation.
+**Alternatives for new tests:** Unit test the env var reader, refactor code to accept parameters, or use subprocess isolation.
 
 ## Testing File Exclusion
 
