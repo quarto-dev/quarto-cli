@@ -12,7 +12,7 @@ Tests are run in our CI workflow on GHA at each commit, and for each PR.
 
 ## How the tests are created and organized ?
 
-Tests are running through `Deno.test()` framework, adapted for our Quarto project and all written in Typescript. Infrastructure are in `tests.ts`, `tests.deps.ts` `verify.ts` and `utils.ts` which contains the helper functions that can be used.
+Tests are running through `Deno.test()` framework, adapted for our Quarto project and all written in Typescript. Infrastructure are in `test.ts`, `test-deps.ts`, `quarto-cmd.ts`, `verify.ts` and `utils.ts` which contains the helper functions that can be used.
 
 - `unit/` and `integration/`, `smoke/`contain some `.ts` script representing each tests.
 - `docs/` is a special folder containing of the necessary files and projects used for the tests.
@@ -430,6 +430,41 @@ Don't do
 ./run-tests.sh smoke/extensions/extension-render-doc.test.ts smoke/smoke-all.test.ts -- ./docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
 
+### Binary mode (`QUARTO_TEST_BIN`)
+
+By default, tests run quarto **in-process** from the dev sources: `runQuarto()` in `tests/quarto-cmd.ts` calls the `quarto()` entry point imported from `src/quarto.ts`. When the `QUARTO_TEST_BIN` environment variable points at an installed quarto, `runQuarto()` instead spawns that binary as a subprocess, with `--log <file> --log-format json-stream` so the log-based verifiers keep working unchanged. This is used to run the smoke tests against a built distribution (see `dev-docs/smoke-tests-built-version-plan.md` for the design, and the `test-smokes-built.yml` CI workflow below).
+
+To run in binary mode locally:
+
+```bash
+# 1. Build a distribution (after ./configure.sh)
+cd package/src
+./quarto-bld prepare-dist --set-version "$(cat ../../version.txt)+test.$(date +%Y%m%d)"
+cd ../..
+
+# 2. Copy the built dist OUTSIDE the git checkout. An in-repo quarto
+#    (e.g. package/dist/bin/quarto) resolves to dev mode — the launcher runs
+#    the TS sources when it finds a sibling src/quarto.ts — and must NOT be
+#    used: run-tests.[sh|ps1] refuses a binary reporting the 99.9.9 dev
+#    version sentinel.
+cp -r package/pkg-working ~/quarto-under-test
+
+# 3. Run the tests against it
+cd tests
+QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh
+```
+
+In binary mode:
+
+- With no test arguments, `run-tests.[sh|ps1]` defaults to `smoke/` only: `unit/` exercises quarto internals in-process and `integration/` requires the dev playwright setup, so both are dev-only.
+- The test environment is configured as usual; set `QUARTO_TESTS_NO_CONFIG` to skip that step as in dev mode.
+- Tests with `requiresDevQuarto: true` in their `TestContext` are ignored (rare escape hatch for tests that must exercise quarto internals in-process).
+
+Authoring rules that keep tests working in both modes:
+
+- Never `import { quarto } from "../src/quarto.ts"` in tests — invoke quarto through `testQuartoCmd()` (`tests/test.ts`) or `runQuarto()` (`tests/quarto-cmd.ts`).
+- Tests that spawn quarto as a subprocess themselves should resolve the executable with `quartoDevCmd()` (`tests/utils.ts`, honors `QUARTO_TEST_BIN`) — or `quartoDevBinCmd()` (`tests/quarto-cmd.ts`) when the test must pin the locally-built dev CLI — and pass `quartoSpawnEnvOptions()` as spawn env options so the dev-tree env vars don't leak into the built quarto.
+
 ## Debugging within tests
 
 `.vscode/launch.json` has a `Run Quarto test` configuration that can be used to debug when running tests. One need to modify the `program` and `args` fields to match the test to run.
@@ -519,3 +554,5 @@ Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tes
 - `test-smokes.yml` is the main CI workflow which configure the environment, and run the tests on Ubuntu and Windows.
   - If it was triggerred by `workflow_call`, then it will run each test in using `run-tests.[sh|ps1]` in a for-loop.
   - Scheduled tests are still run daily in their sequential version.
+  - It is parameterized (`quarto-install`, `quarto-version`, `quarto-artifact-name`, `ref`, `runners`, ...) so callers can run the suite against a built quarto instead of the dev source tree: the workflow installs the quarto under test outside the checkout and exports `QUARTO_TEST_BIN` (see "Binary mode" above).
+- `test-smokes-built.yml` runs the smoke tests against a **built** quarto (weekly on Monday, plus `workflow_dispatch`) by calling `test-smokes.yml`. Three modes: `build` (build a linux-amd64 dist from the checkout, via the shared `.github/actions/build-dist-tarball` composite action also used by `create-release.yml`), `nightly` (reuse the signed artifacts of a completed create-release run, Linux and Windows), and `release` (install a published (pre-)release).
