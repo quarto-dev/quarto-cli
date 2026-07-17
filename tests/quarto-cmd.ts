@@ -151,16 +151,28 @@ export function assertTestBinary(bin: string) {
   if (checkedBinary === bin) {
     return;
   }
+  // Probe with the sanitized env used for test spawns: the installed
+  // launcher keeps an inherited QUARTO_SHARE_PATH (exported by
+  // run-tests.[sh|ps1] for the harness), under which --version reads the
+  // dev tree's nonexistent src/resources/version and reports empty.
   const result = new Deno.Command(bin, {
     args: ["--version"],
     stdout: "piped",
     stderr: "piped",
+    env: buildBinaryEnv(),
+    clearEnv: true,
   }).outputSync();
   const version = new TextDecoder().decode(result.stdout).trim();
   if (result.code !== 0) {
     const stderr = new TextDecoder().decode(result.stderr).trim();
     throw new Error(
       `QUARTO_TEST_BIN (${bin}) failed to report a version (exit ${result.code}):\n${stderr}`,
+    );
+  }
+  if (version.length === 0) {
+    throw new Error(
+      `QUARTO_TEST_BIN (${bin}) reported an empty version. ` +
+        `The distribution is likely incomplete (missing share/version).`,
     );
   }
   if (version === kLocalDevelopment) {

@@ -77,7 +77,34 @@ If ($null -ne $Env:QUARTO_TEST_BIN) {
     Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) does not exist"
     Exit 1
   }
-  $QUARTO_TEST_BIN_VERSION = & $Env:QUARTO_TEST_BIN --version
+  # Probe with the dev-tree env stripped (same list as tests/quarto-cmd.ts):
+  # the installed launcher keeps an inherited QUARTO_SHARE_PATH, and the dev
+  # exports above would make a healthy built quarto read the dev tree's
+  # (nonexistent) src/resources/version and report an EMPTY version.
+  $probeStrip = @(
+    "QUARTO_SHARE_PATH", "QUARTO_BIN_PATH", "QUARTO_DEBUG", "DENO_DIR",
+    "QUARTO_DENO", "QUARTO_DENO_DOM", "QUARTO_ROOT", "QUARTO_SRC_PATH",
+    "QUARTO_FORCE_VERSION"
+  )
+  $probeSaved = @{}
+  ForEach ($name in $probeStrip) {
+    $probeSaved[$name] = [Environment]::GetEnvironmentVariable($name)
+    Remove-Item "Env:$name" -ErrorAction SilentlyContinue
+  }
+  Try {
+    $QUARTO_TEST_BIN_VERSION = & $Env:QUARTO_TEST_BIN --version
+  } Finally {
+    ForEach ($name in $probeStrip) {
+      If ($null -ne $probeSaved[$name]) {
+        [Environment]::SetEnvironmentVariable($name, $probeSaved[$name])
+      }
+    }
+  }
+  If ([string]::IsNullOrWhiteSpace($QUARTO_TEST_BIN_VERSION)) {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) did not report a version."
+    Write-Host -ForegroundColor red "The distribution is likely incomplete (missing share/version)."
+    Exit 1
+  }
   If ($QUARTO_TEST_BIN_VERSION -eq "99.9.9") {
     Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
     Write-Host -ForegroundColor red "It resolves to a dev-mode quarto: the launcher runs the TS sources whenever a sibling src/quarto.ts exists."
