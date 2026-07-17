@@ -5,7 +5,7 @@
  */
 
 import { join } from "../../../src/deno_ral/path.ts";
-import { quarto } from "../../../src/quarto.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
 import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
 import { testRender } from "../render/render.ts";
 import { removeIfEmptyDir } from "../../../src/core/path.ts";
@@ -42,7 +42,7 @@ for (const name of typstTemplates) {
       console.log(`using template: ${source}`);
       const wd = Deno.cwd();
       Deno.chdir(workingDir);
-      await quarto([
+      await runQuarto([
         "use",
         "template",
         source,
