@@ -45,7 +45,7 @@ on:
         type: string
         default: ""
       runners:
-        description: "JSON list of runner labels for the OS matrix"
+        description: "JSON list of runner labels for the OS matrix. Policy: macos-latest is reserved for scheduled/built-version runs (test-smokes-built.yml nightly mode) - do NOT add it to per-commit callers (test-smokes-parallel.yml), which must stay fast."
         required: false
         type: string
         default: '["ubuntu-latest", "windows-latest"]'
