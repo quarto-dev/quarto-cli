@@ -22,6 +22,10 @@ function axeHtmlDependency(options: unknown): FormatDependency {
       encodeBase64(JSON.stringify(options))
     }</script>`,
     scripts: [{
+      // Classic script, so it executes before the deferred module below.
+      name: "axe.min.js",
+      path: formatResourcePath("html", join("axe", "axe.min.js")),
+    }, {
       name: "axe-check.js",
       path: formatResourcePath("html", join("axe", "axe-check.js")),
       attribs: { type: "module" },

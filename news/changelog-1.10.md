@@ -11,6 +11,7 @@ All changes included in 1.10:
 ## Dependencies
 
 - ([#14291](https://github.com/quarto-dev/quarto-cli/issues/14291)): Update `deno` to v2.7.14 (fixes silent crash on Windows builds older than 16299).
+- ([#14677](https://github.com/quarto-dev/quarto-cli/pull/14677)): Bundle `axe-core` 4.10.3 (used by the `axe` HTML accessibility option), previously loaded at runtime from the Skypack CDN.
 
 ## Accessibility
 
@@ -18,6 +19,7 @@ All changes included in 1.10:
 - ([#14602](https://github.com/quarto-dev/quarto-cli/pull/14602), [#14632](https://github.com/quarto-dev/quarto-cli/pull/14632)): Fix ORCID profile link having no accessible name for screen readers in HTML, Reveal.js, and ipynb title-block author metadata. (author: @mcanouil for #14602)
 - ([#14604](https://github.com/quarto-dev/quarto-cli/issues/14604)): The `axe` accessibility report UI now shows each violation's WCAG conformance level (e.g. `WCAG 2.0 AA (1.4.3)`) or `Best Practice`, derived from the violation's axe-core tags.
 - ([#14655](https://github.com/quarto-dev/quarto-cli/issues/14655)): Add accessible names to code line-number links so screen readers and accessibility audits no longer report them as empty links.
+- ([#14677](https://github.com/quarto-dev/quarto-cli/pull/14677)): The `axe` option now uses a copy of axe-core bundled with Quarto instead of loading it from the Skypack CDN in the reader's browser. Accessibility checking now works offline, and viewing a rendered document no longer triggers a request to `cdn.skypack.dev`. The axe-core version is unchanged (4.10.3), so scan results are identical.
 
 ## Formats
 

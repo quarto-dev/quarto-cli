@@ -389,7 +389,17 @@ class QuartoAxeChecker {
 
   async init() {
     try {
-      this.axe = (await import("https://cdn.skypack.dev/pin/axe-core@v4.10.3-aVOFXWsJaCpVrtv89pCa/mode=imports,min/optimized/axe-core.js")).default;
+      // set by the vendored axe.min.js, a classic script that runs before this module
+      this.axe = window.axe;
+      // Deferred modules run before DOMContentLoaded, but the dashboard layout
+      // runs on DOMContentLoaded and keeps <html> hidden until then — and axe
+      // skips hidden elements. Wait for full page load before the first scan.
+      // (The Skypack import's network latency used to mask this race.)
+      if (document.readyState !== "complete") {
+        await new Promise((resolve) =>
+          window.addEventListener("load", resolve, { once: true })
+        );
+      }
       const result = await this.runAxeScan();
       const reporter = new reporters[this.options.output](result, this.options);
       await reporter.report();
