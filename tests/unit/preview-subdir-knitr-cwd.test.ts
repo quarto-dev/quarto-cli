@@ -29,10 +29,14 @@
 
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts";
-import { dirname, isAbsolute, join } from "../../src/deno_ral/path.ts";
+import {
+  dirname,
+  fromFileUrl,
+  isAbsolute,
+  join,
+} from "../../src/deno_ral/path.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
 import { which } from "../../src/core/path.ts";
-import { rBinaryPath } from "../../src/core/resources.ts";
 import { projectContext } from "../../src/project/project-context.ts";
 import { singleFileProjectContext } from "../../src/project/types/single-file/single-file.ts";
 import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
@@ -67,36 +71,6 @@ unitTest(
       (await singleFileProjectContext(file, nbContext));
 
     try {
-      // Temporary diagnostic (#14683 CI investigation): prove whether R can
-      // load rmarkdown/knitr from callR's actual spawn cwd (the project dir)
-      // on CI before blaming the render pipeline for the missing output.
-      {
-        // Pass a script file (not inline -e code) — an -e argument containing
-        // double quotes gets re-tokenized by cmd.exe when Rscript resolves to
-        // a .bat shim (e.g. rig-managed installs), corrupting the call.
-        // Production callR never uses -e for the same reason (rmd.R is a file).
-        const rscript = await rBinaryPath("Rscript");
-        const probeScript = join(e2eBase, "probe.R");
-        Deno.writeTextFileSync(
-          probeScript,
-          'cat("LIBPATHS:", paste(.libPaths(), collapse="|"), "\\n")\n' +
-            "library(rmarkdown)\nlibrary(knitr)\ncat(\"PKG_OK\\n\")\n",
-        );
-        const probe = new Deno.Command(rscript, {
-          args: [probeScript],
-          cwd: e2eProjDir,
-          stdout: "piped",
-          stderr: "piped",
-        });
-        const probeResult = await probe.output();
-        assert(
-          probeResult.success,
-          `R probe failed (code ${probeResult.code}) rscript=${rscript} in cwd=${e2eProjDir}\n` +
-            `STDOUT:\n${new TextDecoder().decode(probeResult.stdout)}\n` +
-            `STDERR:\n${new TextDecoder().decode(probeResult.stderr)}`,
-        );
-      }
-
       // Mimic preview cmd.ts: resolve the preview format first, using the
       // bare filename. This seeds the shared context's fileInformationCache.
       const services = renderServices(nbContext);
@@ -183,6 +157,22 @@ unitTest(
     // the original cwd afterward.
     cwd: () => e2eLabsDir,
     setup: () => {
+      // Force renv activation for the fixture project, regardless of cwd.
+      // R's own .Rprofile lookup is cwd-exact (no parent-directory search),
+      // and this fixture's cwd (e2eLabsDir, required to reproduce #14683) is
+      // outside tests/, so it would never find tests/.Rprofile on its own.
+      // Without this, CI environments where rmarkdown/knitr are installed
+      // only in tests/renv's project library (not a global R library) fail
+      // with "there is no package called 'rmarkdown'" before ever reaching
+      // the #14683 code path. See tests/unit/CLAUDE.md for the full story.
+      const testsDir = dirname(dirname(fromFileUrl(import.meta.url)))
+        .replaceAll("\\", "/");
+      Deno.writeTextFileSync(
+        join(e2eProjDir, ".Rprofile"),
+        `Sys.setenv(RENV_PROJECT = "${testsDir}")\n` +
+          `source("${testsDir}/renv/activate.R")\n`,
+      );
+
       Deno.writeTextFileSync(
         join(e2eProjDir, "_quarto.yml"),
         'project:\n  type: website\n\nwebsite:\n  title: "testsite"\n',
