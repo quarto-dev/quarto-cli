@@ -15,7 +15,7 @@ import {
   Verify,
 } from "../../test.ts";
 import { assert, fail } from "testing/asserts";
-import { quarto } from "../../../src/quarto.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
 
 const syntaxQmd = crossref("syntax.qmd", "html");
 testRender(syntaxQmd.input, "html", false, [
@@ -69,9 +69,16 @@ const context: TestContext = {
 const testDesc: TestDescriptor = { // FIXME: why is this test flaky now? Ask @dragonstyle
   name: "test html produced by different figure syntax",
   context,
-  execute: async () => {
-    await quarto(["render", imgQmd.input]);
-    await quarto(["render", divQmd.input]);
+  execute: async (logFile?: string) => {
+    // failures reach the harness as log records, mirroring testQuartoCmd
+    await runQuarto(["render", imgQmd.input], {
+      logFile,
+      throwOnFailure: false,
+    });
+    await runQuarto(["render", divQmd.input], {
+      logFile,
+      throwOnFailure: false,
+    });
   },
   verify: [verify],
   type: "smoke",

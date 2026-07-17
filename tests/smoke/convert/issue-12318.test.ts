@@ -11,7 +11,7 @@ import {
   test,
 } from "../../test.ts";
 import { assert } from "testing/asserts";
-import { quarto } from "../../../src/quarto.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
 
 (() => {
   const input = "docs/convert/issue-12318";
@@ -29,9 +29,15 @@ import { quarto } from "../../../src/quarto.ts";
     },
   
     // Executes the test
-    execute: async () => {
-      await quarto(["convert", "docs/convert/issue-12318.qmd"]);
-      await quarto(["convert", "docs/convert/issue-12318.ipynb", "--output", "issue-12318-2.qmd"]);
+    execute: async (logFile?: string) => {
+      await runQuarto(["convert", "docs/convert/issue-12318.qmd"], {
+        logFile,
+        throwOnFailure: false,
+      });
+      await runQuarto(["convert", "docs/convert/issue-12318.ipynb", "--output", "issue-12318-2.qmd"], {
+        logFile,
+        throwOnFailure: false,
+      });
       const txt = Deno.readTextFileSync("issue-12318-2.qmd");
       assert(!txt.includes('}```'), "Triple backticks found not at beginning of line");
     },
