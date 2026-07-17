@@ -1,8 +1,11 @@
-# tests/unit — notes for AI-assisted debugging
+---
+paths:
+  - "tests/unit/preview-subdir-knitr-cwd.test.ts"
+---
 
-## `preview-subdir-knitr-cwd.test.ts` — forced renv activation
+# `preview-subdir-knitr-cwd.test.ts` — forced renv activation
 
-This test's first case (`preview of a knitr subdir doc from that subdir's cwd
+The first test case (`preview of a knitr subdir doc from that subdir's cwd
 renders (#14683)`) writes a `.Rprofile` into its scratch project directory
 during `setup()`. If this test starts failing on CI with an R error like:
 
@@ -14,7 +17,7 @@ read this before touching product code (`src/execute/rmd.ts`,
 `src/execute/engine.ts`) — it is very likely this workaround, not a
 regression in Quarto itself.
 
-### Why it's there
+## Why it's there
 
 The test reproduces quarto-dev/quarto-cli#14683, which only manifests when
 the process's working directory is the *document's subdirectory* (not the
@@ -46,7 +49,7 @@ This never showed up locally because a typical dev machine (e.g. an R
 install managed by `rig`) has rmarkdown/knitr in a library that's on
 `.libPaths()` regardless of renv activation.
 
-### The fix
+## The fix
 
 `setup()` writes a `.Rprofile` into the scratch project dir (`e2eProjDir` —
 the directory `callR` actually spawns Rscript in for a non-single-file
@@ -64,7 +67,7 @@ project and library, regardless of the fixture's own cwd. The absolute path
 is derived from `import.meta.url` (this test file's own location), not an
 env var, so it's self-contained.
 
-### If this breaks again
+## If this breaks again
 
 - Confirm the theory by reading the raw Rscript stderr in the CI log for
   this test (search the job log for `preview-subdir-knitr-cwd`) — a missing
