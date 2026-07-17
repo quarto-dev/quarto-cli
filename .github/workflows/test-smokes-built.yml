@@ -21,7 +21,7 @@
 #   - release: install a published (pre-)release with quarto-actions/setup and
 #     run the smokes at the matching refs/tags/v<version>.
 # nightly/release only work when the target commit's harness has binary-mode
-# support (tests/quarto-cmd.ts) - see dev-docs/smoke-tests-built-version-plan.md §5.3.
+# support (tests/quarto-cmd.ts) - see llm-docs/built-version-testing-architecture.md (D10).
 #
 # Mode resolution (repeated in each job's `if`): workflow_run => nightly;
 # dispatch => the source input (default build).

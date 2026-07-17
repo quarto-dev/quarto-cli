@@ -38,8 +38,7 @@ under test:
   and default the selection to `smoke/` only (`unit/` and `integration/` are
   dev-only). Exercised by `.github/workflows/test-smokes-built.yml`.
   Architecture and design decisions:
-  `llm-docs/built-version-testing-architecture.md` (original plan:
-  `dev-docs/smoke-tests-built-version-plan.md`).
+  `llm-docs/built-version-testing-architecture.md`.
 
 Consequences for writing smoke tests:
 
