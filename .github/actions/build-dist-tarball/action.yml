@@ -1,0 +1,53 @@
+name: "Build Quarto dist tarball"
+description: |
+  Builds a Quarto distribution tarball from the current checkout:
+  configure.sh, quarto-bld prepare-dist --set-version, then a tar.gz of
+  package/pkg-working (top-level directory quarto-<version>) uploaded as a
+  workflow artifact. Shared by create-release.yml (make-tarball /
+  make-arm64-tarball) and test-smokes-built.yml.
+inputs:
+  version:
+    description: "Version to stamp into the distribution (--set-version)"
+    required: true
+  arch:
+    description: "Target architecture: amd64 or arm64"
+    required: false
+    default: "amd64"
+  tarball-name:
+    description: "File name of the produced .tar.gz"
+    required: true
+  artifact-name:
+    description: "Workflow artifact name to upload the tarball as"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Configure
+      shell: bash
+      run: ./configure.sh
+
+    - name: Prepare Distribution
+      shell: bash
+      run: |
+        pushd package/src/
+        if [ "${{ inputs.arch }}" = "arm64" ]; then
+          ./quarto-bld prepare-dist --set-version ${{ inputs.version }} --arch aarch64 --log-level info
+        else
+          ./quarto-bld prepare-dist --set-version ${{ inputs.version }} --log-level info
+        fi
+        popd
+
+    - name: Make Tarball
+      shell: bash
+      run: |
+        pushd package/
+        mv pkg-working quarto-${{ inputs.version }}
+        tar --owner=root --group=root -czf "${{ inputs.tarball-name }}" quarto-${{ inputs.version }}
+        mv quarto-${{ inputs.version }} pkg-working
+        popd
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ./package/${{ inputs.tarball-name }}
