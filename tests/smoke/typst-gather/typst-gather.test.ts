@@ -5,6 +5,17 @@ import { join } from "../../../src/deno_ral/path.ts";
 import { execProcess } from "../../../src/core/process.ts";
 
 import { quartoDevBinCmd, quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
+import { noErrors } from "../../verify.ts";
+
+// The cached typst/ dirs are gitignored and SURVIVE across local runs - a
+// stale cache would keep the existence verifiers green even if typst-gather
+// broke entirely. Each test removes its cache first so verification is
+// always against a fresh gather.
+const freshCache = (cacheDir: string) => async () => {
+  if (existsSync(cacheDir)) {
+    Deno.removeSync(cacheDir, { recursive: true });
+  }
+};
 
 // Test 1: Auto-detection from _extension.yml
 const verifyPackagesCreated: Verify = {
@@ -40,9 +51,10 @@ const verifyExamplePackageCached: Verify = {
 testQuartoCmd(
   "call",
   ["typst-gather"],
-  [verifyPackagesCreated, verifyExamplePackageCached],
+  [noErrors, verifyPackagesCreated, verifyExamplePackageCached],
   {
     cwd: () => "smoke/typst-gather",
+    setup: freshCache("_extensions/test-format/typst"),
   },
   "typst-gather caches preview packages from extension templates",
 );
@@ -80,9 +92,10 @@ const verifyConfigExamplePackageCached: Verify = {
 testQuartoCmd(
   "call",
   ["typst-gather"],
-  [verifyConfigPackagesCreated, verifyConfigExamplePackageCached],
+  [noErrors, verifyConfigPackagesCreated, verifyConfigExamplePackageCached],
   {
     cwd: () => "smoke/typst-gather/with-config",
+    setup: freshCache("_extensions/config-format/typst"),
   },
   "typst-gather uses rootdir from config file",
 );
@@ -248,7 +261,9 @@ const verifyNoPackagesStaged: Verify = {
 testQuartoCmd(
   "render",
   [join(noPackagesProjectDir, "index.qmd"), "--to", "typst"],
-  [verifyNoPackagesStaged],
+  // noErrors: a render failing before staging would trivially satisfy the
+  // purely-negative "nothing staged" assertions
+  [noErrors, verifyNoPackagesStaged],
   {
     teardown: async () => {
       try {

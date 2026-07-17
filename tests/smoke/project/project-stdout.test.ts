@@ -14,6 +14,7 @@ import { docs } from "../../utils.ts";
 import {
   directoryEmptyButFor,
   fileExists,
+  noErrors,
   verifyYamlFile,
 } from "../../verify.ts";
 
@@ -30,7 +31,8 @@ const siteOutDir = join(siteProjDir, outDir);
 testQuartoCmd(
   "render",
   [siteProjDir, "-o", "-"],
-  [],
+  // an empty verify list asserted nothing - a failed stdout render passed
+  [noErrors],
   {
     teardown: async () => {
       if (existsSync(siteOutDir)) {

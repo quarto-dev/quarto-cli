@@ -299,9 +299,15 @@ export function test(test: TestDescriptor) {
             flushLoggers(handlers);
           }
 
-          // Read the output
-          const testOutput = logOutput(log);
-          if (testOutput) {
+          // Read the output. Verifiers must read logTarget - the harness
+          // logger and the binary-mode child both write there; reading the
+          // temp file would hand every log verifier an empty array whenever
+          // logConfig.log is set. And a missing log is a FAILURE - skipping
+          // verification would pass the test without checking anything.
+          const testOutput = logOutput(logTarget);
+          if (testOutput === undefined) {
+            fail(`test log file is missing: ${logTarget}`);
+          } else {
             for (const ver of test.verify) {
               lastVerify = ver;
               if (userSession) {
@@ -349,7 +355,14 @@ export function test(test: TestDescriptor) {
             ? colors.brightGreen(verifyFailed)
             : verifyFailed;
 
-          const logMessages = logOutput(log);
+          // guarded: a corrupt/unparseable log must not clobber the
+          // assembled failure report with a secondary parse error
+          let logMessages: ExecuteOutput[] | undefined;
+          try {
+            logMessages = logOutput(logTarget);
+          } catch {
+            logMessages = undefined;
+          }
 
           // Create distinctive failure marker for easy log navigation
           // This helps users find the failure when clicking GitHub Actions annotations
