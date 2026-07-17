@@ -52,6 +52,9 @@ const kStripEnvVars = [
 // (level 40 == std/log LogLevels.ERROR)
 const kErrorLevel = 40;
 
+// Default per-invocation render timeout (dev and binary mode alike).
+const kDefaultRenderTimeoutMs = 600000;
+
 // Path of the built quarto under test, when binary mode is active.
 export function quartoTestBin(): string | undefined {
   const bin = Deno.env.get("QUARTO_TEST_BIN");
@@ -267,31 +270,50 @@ export interface RunQuartoResult {
   stderrTail?: string;
 }
 
+// Dispatches to the in-process dev sources or, when QUARTO_TEST_BIN is set,
+// the built binary. The two modes have distinct process/logging/timeout
+// mechanics, so each lives in its own helper below.
 export async function runQuarto(
   args: string[],
   options: RunQuartoOptions = {},
 ): Promise<RunQuartoResult> {
   const bin = quartoTestBin();
-  const timeoutMs = options.timeoutMs ?? 600000;
+  return bin
+    ? runBinaryQuarto(bin, args, options)
+    : runDevQuarto(args, options);
+}
 
-  if (!bin) {
-    // dev mode: in-process call, preserving existing semantics exactly
-    // (a timeout rejects but does not kill the in-process render)
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeout = new Promise<never>((_resolve, reject) => {
-      timer = setTimeout(reject, timeoutMs, `timed out after ${timeoutMs}ms`);
-    });
-    try {
-      await Promise.race([quarto(args, undefined, options.env), timeout]);
-    } finally {
-      if (timer !== undefined) {
-        clearTimeout(timer);
-      }
+// dev mode: in-process call, preserving existing semantics exactly
+// (a timeout rejects but does not kill the in-process render)
+async function runDevQuarto(
+  args: string[],
+  options: RunQuartoOptions,
+): Promise<RunQuartoResult> {
+  const timeoutMs = options.timeoutMs ?? kDefaultRenderTimeoutMs;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(reject, timeoutMs, `timed out after ${timeoutMs}ms`);
+  });
+  try {
+    await Promise.race([quarto(args, undefined, options.env), timeout]);
+  } finally {
+    if (timer !== undefined) {
+      clearTimeout(timer);
     }
-    return { code: 0, timedOut: false };
   }
+  return { code: 0, timedOut: false };
+}
 
+// binary mode: spawn the built quarto, enforce the timeout by killing the
+// process tree, reconcile the child's log into the caller's, and apply the
+// failure policy.
+async function runBinaryQuarto(
+  bin: string,
+  args: string[],
+  options: RunQuartoOptions,
+): Promise<RunQuartoResult> {
   assertTestBinary(bin);
+  const timeoutMs = options.timeoutMs ?? kDefaultRenderTimeoutMs;
   const throwOnFailure = options.throwOnFailure ?? true;
 
   // The binary's LogFileHandler opens --log in truncate mode, so two
@@ -341,45 +363,13 @@ export async function runQuarto(
   const commandLine = `quarto ${args.join(" ")}`;
 
   if (options.logFile && childLog) {
-    // merge this invocation's records into the caller's log file
-    let childContent = "";
-    try {
-      childContent = Deno.readTextFileSync(childLog);
-    } catch {
-      // child never wrote the log (e.g. failed before logger init)
-    }
-    try {
-      Deno.removeSync(childLog);
-    } catch {
-      // best effort
-    }
-    if (childContent.length > 0) {
-      let existing = "";
-      try {
-        existing = Deno.readTextFileSync(options.logFile);
-      } catch {
-        // log file may not exist yet
-      }
-      const sep = existing.length === 0 || existing.endsWith("\n") ? "" : "\n";
-      Deno.writeTextFileSync(options.logFile, existing + sep + childContent);
-    }
-    if (timedOut) {
-      appendLogError(
-        options.logFile,
-        `${commandLine} timed out after ${timeoutMs}ms and was killed`,
-      );
-    } else if (output.code !== 0 && !hasErrorRecordText(childContent)) {
-      // A child can exit non-zero without any ERROR record: failures
-      // before logger init (deno startup, bundle load, missing share) and
-      // commandFailed paths (quarto add/remove). Without this synthetic
-      // record, log-only verifiers (noErrorsOrWarnings — the default
-      // smoke-all spec) would pass vacuously against an empty log.
-      appendLogError(
-        options.logFile,
-        `${commandLine} exited with code ${output.code} without logging an error\n` +
-          `stderr (tail):\n${stderrTail}`,
-      );
-    }
+    mergeChildLog(options.logFile, childLog, {
+      timedOut,
+      code: output.code,
+      timeoutMs,
+      commandLine,
+      stderrTail,
+    });
   }
 
   if ((output.code !== 0 || timedOut) && throwOnFailure) {
@@ -391,4 +381,58 @@ export async function runQuarto(
   }
 
   return { code: output.code, timedOut, stderrTail };
+}
+
+// Merges a binary invocation's temp log into the caller's log file and
+// synthesizes an ERROR record when the child failed without logging one, so
+// log-reading verifiers can see the failure. Deletes the temp log.
+function mergeChildLog(
+  logFile: string,
+  childLog: string,
+  outcome: {
+    timedOut: boolean;
+    code: number;
+    timeoutMs: number;
+    commandLine: string;
+    stderrTail: string;
+  },
+) {
+  let childContent = "";
+  try {
+    childContent = Deno.readTextFileSync(childLog);
+  } catch {
+    // child never wrote the log (e.g. failed before logger init)
+  }
+  try {
+    Deno.removeSync(childLog);
+  } catch {
+    // best effort
+  }
+  if (childContent.length > 0) {
+    let existing = "";
+    try {
+      existing = Deno.readTextFileSync(logFile);
+    } catch {
+      // log file may not exist yet
+    }
+    const sep = existing.length === 0 || existing.endsWith("\n") ? "" : "\n";
+    Deno.writeTextFileSync(logFile, existing + sep + childContent);
+  }
+  if (outcome.timedOut) {
+    appendLogError(
+      logFile,
+      `${outcome.commandLine} timed out after ${outcome.timeoutMs}ms and was killed`,
+    );
+  } else if (outcome.code !== 0 && !hasErrorRecordText(childContent)) {
+    // A child can exit non-zero without any ERROR record: failures
+    // before logger init (deno startup, bundle load, missing share) and
+    // commandFailed paths (quarto add/remove). Without this synthetic
+    // record, log-only verifiers (noErrorsOrWarnings — the default
+    // smoke-all spec) would pass vacuously against an empty log.
+    appendLogError(
+      logFile,
+      `${outcome.commandLine} exited with code ${outcome.code} without logging an error\n` +
+        `stderr (tail):\n${outcome.stderrTail}`,
+    );
+  }
 }

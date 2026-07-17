@@ -32,6 +32,22 @@ export async function withTempDir<T>(
   }
 }
 
+// Runs fn with the process cwd changed to dir, restoring the original cwd
+// even if fn throws. Bare Deno.chdir(dir) ... Deno.chdir(wd) leaks the cwd
+// into later tests when fn rejects.
+export async function withCwd<T>(
+  dir: string,
+  fn: () => T | Promise<T>,
+): Promise<T> {
+  const wd = Deno.cwd();
+  Deno.chdir(dir);
+  try {
+    return await fn();
+  } finally {
+    Deno.chdir(wd);
+  }
+}
+
 // Find a _quarto.yaml file in the directory hierarchy of the input file
 export function findProjectDir(input: string, until?: RegExp | undefined): string | undefined {
   let dir = dirname(input);

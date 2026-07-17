@@ -73,10 +73,13 @@ if [[ -n "$QUARTO_TEST_BIN" ]]; then
     echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) does not exist or is not executable"
     exit 1
   fi
-  # Probe with the dev-tree env stripped (same list as tests/quarto-cmd.ts):
-  # the installed launcher keeps an inherited QUARTO_SHARE_PATH, and the dev
-  # exports above would make a healthy built quarto read the dev tree's
-  # (nonexistent) src/resources/version and report an EMPTY version.
+  # Probe with the dev-tree env stripped. This is the subset of
+  # tests/quarto-cmd.ts's kStripEnvVars that affects `--version` resolution
+  # (share/root/deno paths) — the logging/profile vars in the full list don't
+  # change --version output, so they're omitted here. The installed launcher
+  # keeps an inherited QUARTO_SHARE_PATH, and the dev exports above would make
+  # a healthy built quarto read the dev tree's (nonexistent)
+  # src/resources/version and report an EMPTY version.
   QUARTO_TEST_BIN_VERSION="$(env -u QUARTO_SHARE_PATH -u QUARTO_BIN_PATH \
     -u QUARTO_DEBUG -u DENO_DIR -u QUARTO_DENO -u QUARTO_DENO_DOM \
     -u QUARTO_ROOT -u QUARTO_SRC_PATH -u QUARTO_FORCE_VERSION \
