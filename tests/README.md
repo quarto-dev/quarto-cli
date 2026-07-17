@@ -669,7 +669,7 @@ Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tes
 
   | Mode | Trigger | Use it to answer |
   |---|---|---|
-  | `nightly` | automatic (after each nightly build); dispatchable with a `run-id` | does what we ship work? Signed artifacts from a create-release run — Linux, Windows (`quarto.exe`), macOS (the only macOS smoke coverage in CI) |
+  | `nightly` | automatic (after each completed create-release run, scheduled or dispatched); dispatchable with a `run-id` to re-test an older run | does what we ship work? Signed artifacts from a create-release run — Linux, Windows (`quarto.exe`), macOS (the only macOS smoke coverage in CI); each OS leg runs only if its artifact exists in the run |
   | `build` | dispatch (default) | will *this ref* survive packaging? Builds a linux-amd64 dist from the checkout via the shared `.github/actions/build-dist-tarball` action (also used by `create-release.yml`); the only mode that works on forks/PR branches |
   | `release` | dispatch | is the *published* (pre-)release healthy? Post-publish verification; only works for releases whose tag contains the binary-mode harness |
 
