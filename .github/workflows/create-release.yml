@@ -133,30 +133,13 @@ jobs:
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
 
-      - name: Configure
-        run: |
-          ./configure.sh
-
-      - name: Prepare Distribution
-        run: |
-          pushd package/src/
-          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
-          popd
-
-      - name: Make Tarball
-        run: |
-          pushd package/
-          mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
-          gzip quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
-          mv quarto-${{needs.configure.outputs.version}} pkg-working
-          popd
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+      - name: Build dist tarball
+        uses: ./.github/actions/build-dist-tarball
         with:
-          name: Deb Zip
-          path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+          version: ${{ needs.configure.outputs.version }}
+          arch: amd64
+          tarball-name: quarto-${{ needs.configure.outputs.version }}-linux-amd64.tar.gz
+          artifact-name: Deb Zip
 
   make-arm64-tarball:
     runs-on: ubuntu-latest
@@ -170,30 +153,13 @@ jobs:
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
 
-      - name: Configure
-        run: |
-          ./configure.sh
-
-      - name: Prepare Distribution
-        run: |
-          pushd package/src/
-          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
-          popd
-
-      - name: Make Tarball
-        run: |
-          pushd package/
-          mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-arm64.tar quarto-${{needs.configure.outputs.version}}
-          gzip quarto-${{needs.configure.outputs.version}}-linux-arm64.tar
-          mv quarto-${{needs.configure.outputs.version}} pkg-working
-          popd
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+      - name: Build dist tarball
+        uses: ./.github/actions/build-dist-tarball
         with:
-          name: Deb Arm64 Zip
-          path: ./package/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+          version: ${{ needs.configure.outputs.version }}
+          arch: arm64
+          tarball-name: quarto-${{ needs.configure.outputs.version }}-linux-arm64.tar.gz
+          artifact-name: Deb Arm64 Zip
 
   make-tarball-rhel:
     runs-on: ubuntu-latest
