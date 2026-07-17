@@ -25,8 +25,10 @@ async function runEditorSupportCrossref(doc: string) {
     Deno.readTextFileSync(doc),
   );
   await writer.write(buf);
-  // close() flushes and releases the lock; calling releaseLock() first
-  // detaches the writer and makes close() throw "A writable stream is not
+  // close() flushes the write and closes the stream (sends EOF to the child);
+  // it does not release the writer's lock, but nothing reuses the stream so
+  // the held lock is inert and leaks no resource. Do NOT releaseLock() first —
+  // that detaches the writer and makes close() throw "A writable stream is not
   // associated with the writer".
   await writer.close();
   const outputBuf = await child.output();
