@@ -11,12 +11,13 @@ All changes included in 1.10:
 ## Dependencies
 
 - ([#14291](https://github.com/quarto-dev/quarto-cli/issues/14291)): Update `deno` to v2.7.14 (fixes silent crash on Windows builds older than 16299).
-- Update `pandoc` to 3.10.
-- Update `typst` to 0.15.0.
-- Update `typst-gather` to 0.2.3.
-- Update `dart-sass` to 1.101.0.
-- Update `esbuild` to 0.28.1.
-- Update `veraPDF` to 1.30.2.
+- ([#14664](https://github.com/quarto-dev/quarto-cli/issues/14664)): Update more dependencies:
+  - Update `pandoc` to 3.10.
+  - Update `typst` to 0.15.0.
+  - Update `typst-gather` to 0.2.3.
+  - Update `dart-sass` to 1.101.0.
+  - Update `esbuild` to 0.28.1.
+  - Update `veraPDF` to 1.30.2.
 
 ## Accessibility
 
