@@ -665,4 +665,12 @@ Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tes
   - If it was triggerred by `workflow_call`, then it will run each test in using `run-tests.[sh|ps1]` in a for-loop.
   - Scheduled tests are still run daily in their sequential version.
   - It is parameterized (`quarto-install`, `quarto-version`, `quarto-artifact-name`, `ref`, `runners`, ...) so callers can run the suite against a built quarto instead of the dev source tree: the workflow installs the quarto under test outside the checkout and exports `QUARTO_TEST_BIN` (see "Binary mode" above).
-- `test-smokes-built.yml` runs the smoke tests against a **built** quarto (daily, via `workflow_run` after each nightly `create-release.yml` build, plus `workflow_dispatch`) by calling `test-smokes.yml`. Three modes: `build` (build a linux-amd64 dist from the checkout, via the shared `.github/actions/build-dist-tarball` composite action also used by `create-release.yml`), `nightly` (reuse the signed artifacts of a completed create-release run — Linux, Windows, and macOS, the only macOS smoke coverage in CI), and `release` (install a published (pre-)release).
+- `test-smokes-built.yml` runs the smoke tests against a **built** quarto (daily, via `workflow_run` after each nightly `create-release.yml` build, plus `workflow_dispatch`) by calling `test-smokes.yml`. Which mode to trigger when:
+
+  | Mode | Trigger | Use it to answer |
+  |---|---|---|
+  | `nightly` | automatic (after each nightly build); dispatchable with a `run-id` | does what we ship work? Signed artifacts from a create-release run — Linux, Windows (`quarto.exe`), macOS (the only macOS smoke coverage in CI) |
+  | `build` | dispatch (default) | will *this ref* survive packaging? Builds a linux-amd64 dist from the checkout via the shared `.github/actions/build-dist-tarball` action (also used by `create-release.yml`); the only mode that works on forks/PR branches |
+  | `release` | dispatch | is the *published* (pre-)release healthy? Post-publish verification; only works for releases whose tag contains the binary-mode harness |
+
+  Full rationale and design decisions: `llm-docs/built-version-testing-architecture.md`.
