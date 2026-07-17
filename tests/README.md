@@ -465,6 +465,116 @@ Authoring rules that keep tests working in both modes:
 - Never `import { quarto } from "../src/quarto.ts"` in tests — invoke quarto through `testQuartoCmd()` (`tests/test.ts`) or `runQuarto()` (`tests/quarto-cmd.ts`).
 - Tests that spawn quarto as a subprocess themselves should resolve the executable with `quartoDevCmd()` (`tests/utils.ts`, honors `QUARTO_TEST_BIN`) — or `quartoDevBinCmd()` (`tests/quarto-cmd.ts`) when the test must pin the locally-built dev CLI — and pass `quartoSpawnEnvOptions()` as spawn env options so the dev-tree env vars don't leak into the built quarto.
 
+## How tests run (diagrams)
+
+### Test invocation: one seam, two modes
+
+Every `testQuartoCmd()`-based test goes through a single dispatch point,
+`runQuarto()` in `tests/quarto-cmd.ts`. The verifiers never know which mode
+ran — they only read the json-stream log file and the rendered outputs.
+
+```mermaid
+flowchart TB
+    subgraph deno ["Deno test process (tests/ harness, always runs from the repo checkout)"]
+        TQC["testQuartoCmd / testRender / testSite / smoke-all driver"]
+        RQ{"runQuarto()<br>tests/quarto-cmd.ts"}
+        LOG[("json-stream log file<br>{msg, level, levelName} per line")]
+        OUT[("rendered output files")]
+        VER["verifiers (tests/verify.ts)<br>noErrors, printsMessage, ensureHtmlElements, ..."]
+    end
+    DEV["in-process quarto()<br>imported from src/quarto.ts<br>dev TS sources, version 99.9.9"]
+    BIN["spawned subprocess: built quarto<br>--log file --log-format json-stream<br>dev env vars stripped (QUARTO_SHARE_PATH, DENO_DIR, ...)"]
+
+    TQC --> RQ
+    RQ -->|"dev mode (default:<br>QUARTO_TEST_BIN unset)"| DEV
+    RQ -->|"binary mode<br>(QUARTO_TEST_BIN set)"| BIN
+    DEV --> LOG
+    DEV --> OUT
+    BIN --> LOG
+    BIN --> OUT
+    LOG --> VER
+    OUT --> VER
+```
+
+### Binary mode: lifecycle of one test
+
+```mermaid
+sequenceDiagram
+    participant T as test() (tests/test.ts)
+    participant R as runQuarto()
+    participant Q as built quarto (subprocess)
+    participant V as verifiers
+
+    T->>T: create temp json-stream log file
+    Note over T: binary mode: harness logger NOT initialized<br>(the child owns log capture)
+    T->>R: execute(logFile)
+    R->>Q: spawn QUARTO_TEST_BIN render ...<br>--log (per-invocation temp) --log-format json-stream<br>env = ambient minus dev-tree vars, plus TestContext.env
+    Q->>Q: render, write log records + output files
+    Q-->>R: exit (code, stdout/stderr drained)
+    R->>T: merge child log into the test log file
+    alt exit != 0 and no ERROR record in child log
+        R->>T: append synthetic ERROR record<br>(exit code + stderr tail) — prevents silent green
+    end
+    alt timeout
+        R->>Q: kill process tree (launcher spawns deno and waits)
+        R->>T: append timeout ERROR record
+    end
+    T->>V: verify(log records) + verify(output files)
+```
+
+### CI: which workflow tests what
+
+```mermaid
+flowchart LR
+    subgraph dev ["Dev mode (unchanged): quarto = in-process TS sources"]
+        PR["PR / push"] --> TSP["test-smokes-parallel.yml<br>sharded buckets"]
+        DAILY["daily schedule"] --> TSfull["full run"]
+        FFM["test-ff-matrix.yml<br>(ff-matrix qmd bucket)"]
+    end
+    subgraph built ["Binary mode: quarto = built distribution (QUARTO_TEST_BIN)"]
+        TSB["test-smokes-built.yml<br>weekly Monday + manual dispatch"]
+        BUILDM["source: build (default)<br>build linux-amd64 dist from this ref"]
+        NIGHTM["source: nightly<br>reuse SIGNED artifacts of a<br>create-release run (linux + windows quarto.exe)"]
+        RELM["source: release<br>install published (pre-)release,<br>checkout its v-tag"]
+        TSB --> BUILDM
+        TSB --> NIGHTM
+        TSB --> RELM
+    end
+    CR["create-release.yml<br>nightly build (no publish),<br>dispatch = publish"]
+    ACT[".github/actions/build-dist-tarball<br>(shared build recipe)"]
+
+    TS["test-smokes.yml (reusable)<br>inputs: quarto-install, ref, runners,<br>buckets, quarto-artifact-*"]
+    TSP --> TS
+    DAILY --> TS
+    FFM --> TS
+    BUILDM --> TS
+    NIGHTM --> TS
+    RELM --> TS
+    BUILDM -. uses .-> ACT
+    CR -. "make-tarball jobs use" .-> ACT
+    NIGHTM -. "downloads artifacts from" .-> CR
+```
+
+### Binary mode in CI: how `QUARTO_TEST_BIN` reaches the tests
+
+`QUARTO_TEST_BIN` is never declared statically — the "Pin and verify test
+target" step in `test-smokes.yml` computes it at runtime and exports it via
+`$GITHUB_ENV`, making it visible to every later step of the job. When
+`quarto-install` is `dev` (all existing callers), these steps are skipped
+and nothing changes.
+
+```mermaid
+flowchart TB
+    IN["workflow input<br>quarto-install: artifact | release"]
+    QD["quarto-dev action (ALWAYS runs)<br>provisions the harness Deno runtime"]
+    INST["install quarto under test<br>artifact: extract to RUNNER_TEMP (outside checkout)<br>release: quarto-actions/setup"]
+    PIN["Pin and verify test target<br>refuse 99.9.9 dev sentinel; check semver shape;<br>echo QUARTO_TEST_BIN=path >> GITHUB_ENV"]
+    RTS["./run-tests.sh (unchanged invocation)<br>sees QUARTO_TEST_BIN: banner + guard,<br>default selection = smoke/ only"]
+    QC["tests/quarto-cmd.ts<br>Deno.env.get('QUARTO_TEST_BIN')<br>every runQuarto spawns the built binary"]
+
+    IN --> QD --> INST --> PIN --> RTS --> QC
+```
+
 ## Debugging within tests
 
 `.vscode/launch.json` has a `Run Quarto test` configuration that can be used to debug when running tests. One need to modify the `program` and `args` fields to match the test to run.
