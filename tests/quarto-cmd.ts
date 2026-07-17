@@ -11,7 +11,7 @@
 * subprocess instead, with `--log <file> --log-format json-stream` so the
 * existing log-record verifiers keep working unchanged.
 *
-* See dev-docs/smoke-tests-built-version-plan.md for the full design.
+* See llm-docs/built-version-testing-architecture.md for the design and rationale.
 *
 * Copyright (C) 2020-2026 Posit Software, PBC
 *

@@ -27,9 +27,6 @@ Document map:
   operational "how" (local recipe, authoring rules, four mermaid diagrams).
 - `llm-docs/testing-patterns.md` → "Dev Mode vs Binary Mode" — authoring
   patterns for tests that must work in both modes.
-- `dev-docs/smoke-tests-built-version-plan.md` — the original plan/spec with
-  full grounding evidence, roadmap phases, and open items (historical record;
-  this doc supersedes it as the go-to reference for the settled design).
 
 ## Architecture in one paragraph
 
