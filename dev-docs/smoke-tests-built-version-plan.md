@@ -546,7 +546,10 @@ Studied post-review (maintainer suggestion): the signing steps in
 `publish-release` — so every create-release run, including the nightly
 no-publish schedule, already uploads a **signed** `Windows Zip` (the real
 `quarto.exe`) and the linux `Deb Zip` as workflow artifacts. The
-implemented `source: nightly` dispatch mode reuses them: resolve a
+implemented `source: nightly` mode — **the weekly schedule path** (a
+scheduled `build` would duplicate what create-release built hours
+earlier, unsigned and linux-only; `build` stays dispatch-only for
+arbitrary refs and forks) — reuses them: resolve a
 create-release run (explicit `run-id` input or latest successful), check
 out its `head_sha` for the harness (same-commit, no skew), download the
 artifacts cross-run (`test-smokes.yml` input `quarto-artifact-run-id` →
