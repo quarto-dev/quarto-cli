@@ -10,7 +10,7 @@ import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
 import { cleanupLogger, initializeLogger, flushLoggers, logError, LogLevel, LogFormat } from "../src/core/log.ts";
-import { appendLogError, binaryMode, runQuarto } from "./quarto-cmd.ts";
+import { appendLogError, isBinaryMode, runQuarto } from "./quarto-cmd.ts";
 import { join } from "../src/deno_ral/path.ts";
 import * as colors from "fmt/colors";
 import { runningInCI } from "../src/core/ci-info.ts";
@@ -223,7 +223,7 @@ export function test(test: TestDescriptor) {
   const sanitizeExit = test.context.sanitize?.exit;
   // dev-only tests are ignored when targeting an external built binary
   const ignore = test.context.ignore ||
-    (binaryMode() !== undefined && test.context.requiresDevQuarto === true);
+    (isBinaryMode() && test.context.requiresDevQuarto);
   const userSession = !runningInCI();
 
   const args: Deno.TestDefinition = {
@@ -245,7 +245,7 @@ export function test(test: TestDescriptor) {
         // must not initialize (or later destroy) its own logger for
         // capture — cleanupLogger() would permanently tear down the
         // default handlers for subsequent tests in this process.
-        const binMode = binaryMode() !== undefined;
+        const binMode = isBinaryMode();
 
         let cleanedup = false;
         const cleanupLogOnce = async () => {

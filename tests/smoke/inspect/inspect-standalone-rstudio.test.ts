@@ -7,7 +7,7 @@
 
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { _setIsRStudioForTest } from "../../../src/core/platform.ts";
-import { binaryMode } from "../../quarto-cmd.ts";
+import { isBinaryMode } from "../../quarto-cmd.ts";
 import {
   ExecuteOutput,
   testQuartoCmd,
@@ -38,14 +38,14 @@ import { assert, assertEquals } from "testing/asserts";
       }
     ],
     {
-      env: binaryMode() ? { RSTUDIO: "1" } : undefined,
+      env: isBinaryMode() ? { RSTUDIO: "1" } : undefined,
       setup: async () => {
-        if (!binaryMode()) {
+        if (!isBinaryMode()) {
           _setIsRStudioForTest(true);
         }
       },
       teardown: async () => {
-        if (!binaryMode()) {
+        if (!isBinaryMode()) {
           _setIsRStudioForTest(undefined);
         }
         if (existsSync(output)) {
