@@ -624,6 +624,27 @@ harness/binary decoupling (via `quarto inspect`) if testing binaries
 from a different commit than the harness (incl. true backfill) becomes
 worth the drift risk.
 
+**Phase 5 — daily built-version as the primary signal (studied
+2026-07-17, maintainer proposal).** Verified: `create-release.yml` can
+be dispatched on any branch tip with `publish-release=false` — all
+publish/tag/docker/cloudsmith paths are input-gated, secrets are
+available on non-default branches (no protected environments), and
+`version_commit` resolves empty so jobs build the dispatched ref. The
+`smoke-artifacts-only` input makes such branch builds cheap (linux
+tarball + signed Windows zip only). Implemented now (additive — Phase
+A): `test-smokes-built.yml` triggers via **`workflow_run` after every
+nightly create-release build** (once per build, no stale-artifact
+risk; a failed build means a visibly skipped day, not a silent stale
+test) and gained a **macOS leg** from the nightly `Mac Zip` — the only
+macOS smoke coverage in CI. Remaining maintainer decisions, AFTER a
+green track record (~2 weeks): (Phase B) give `unit/` + `integration/`
+(74 files, currently covered by every PR run) a cheap dedicated daily
+dev job so they keep daily env-drift coverage; (Phase C) downgrade the
+daily dev `test-smokes.yml` cron to weekly — not delete: a weekly dev
+run keeps the dev-only classes covered (QUARTO_DEBUG paths, `quarto
+check` dev branch, in-process races, Windows playwright setup) and the
+safety net for paths-ignored doc-only PRs.
+
 ## 7. Risks & open items
 
 - **Per-spawn cost at corpus scale**: 1500+ spawns × product cold-start
