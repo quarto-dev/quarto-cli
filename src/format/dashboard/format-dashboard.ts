@@ -23,6 +23,7 @@ import {
   DependencyHtmlFile,
   Format,
   FormatExtras,
+  FormatLanguage,
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
@@ -154,7 +155,7 @@ export function dashboardFormat() {
         extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
           [];
         extras.html[kHtmlPostprocessors].push(
-          dashboardHtmlPostProcessor(dashboard),
+          dashboardHtmlPostProcessor(dashboard, format.language),
         );
 
         extras.metadata = extras.metadata || {};
@@ -317,6 +318,7 @@ registerWriterFormatHandler((format) => {
 
 function dashboardHtmlPostProcessor(
   dashboardMeta: DashboardMeta,
+  language: FormatLanguage,
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     const result: HtmlPostProcessResult = {
@@ -391,7 +393,7 @@ function dashboardHtmlPostProcessor(
     processNavigation(doc);
 
     // Process pages that may be present in the document
-    processPages(doc, dashboardMeta);
+    processPages(doc, dashboardMeta, language);
 
     // Process Navbar buttons
     processNavButtons(doc, dashboardMeta);

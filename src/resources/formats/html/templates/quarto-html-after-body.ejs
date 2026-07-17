@@ -10,10 +10,13 @@
     
     // Ensure there is a toggle, if there isn't float one in the top right
     if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
-      const a = window.document.createElement('a');
+      const a = window.document.createElement('button');
+      a.type = "button";
+      a.setAttribute("role", "switch");
+      a.setAttribute("aria-checked", "false");
       a.classList.add('top-right');
       a.classList.add('quarto-color-scheme-toggle');
-      a.href = "";
+      a.setAttribute("aria-label", "<%- language['toggle-dark-mode'] %>");
       a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
   
       const i = window.document.createElement("i");
