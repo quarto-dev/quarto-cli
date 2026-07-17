@@ -157,14 +157,9 @@ unitTest(
     // the original cwd afterward.
     cwd: () => e2eLabsDir,
     setup: () => {
-      // Force renv activation for the fixture project, regardless of cwd.
-      // R's own .Rprofile lookup is cwd-exact (no parent-directory search),
-      // and this fixture's cwd (e2eLabsDir, required to reproduce #14683) is
-      // outside tests/, so it would never find tests/.Rprofile on its own.
-      // Without this, CI environments where rmarkdown/knitr are installed
-      // only in tests/renv's project library (not a global R library) fail
-      // with "there is no package called 'rmarkdown'" before ever reaching
-      // the #14683 code path. See tests/unit/CLAUDE.md for the full story.
+      // Re-activate renv against the real tests/ project, regardless of
+      // this fixture's cwd — see llm-docs/testing-patterns.md → "R Tests
+      // That Change Working Directory" for why this is needed.
       const testsDir = dirname(dirname(fromFileUrl(import.meta.url)))
         .replaceAll("\\", "/");
       Deno.writeTextFileSync(

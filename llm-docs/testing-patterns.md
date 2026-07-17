@@ -397,6 +397,36 @@ Rscript -e "renv::install(); renv::snapshot()"
 
 **Note:** While Quarto supports local Project.toml files in document directories for production use, the quarto-cli test infrastructure specifically does NOT support this pattern. All test dependencies must be in the main `tests/` environment.
 
+### R Tests That Change Working Directory
+
+R resolves `.Rprofile` from the **exact** process cwd (no parent-directory
+search). On CI, rmarkdown/knitr live only in `tests/renv`'s project library,
+activated when cwd is `tests/` (via `tests/.Rprofile` sourcing
+`renv/activate.R`). Most knitr tests never leave `tests/` — they pass paths
+relative to the current cwd instead of changing directories — so activation
+happens automatically.
+
+A test that must run with cwd set elsewhere (a scratch temp dir, via
+`TestContext.cwd()` — see "Working-Directory-Sensitive Tests" above) loses
+that activation: the R subprocess starts outside `tests/`, renv never
+activates, and package loads fail with `there is no package called
+'rmarkdown'`. This is CI-only — a developer machine with rmarkdown on the
+default `.libPaths()` masks it entirely. The render pipeline also tends to
+swallow the underlying subprocess error, so the failure can be silent beyond
+the bare package-load message.
+
+**Fix:** in the fixture's cwd, write a `.Rprofile` that re-points renv at the
+real project, regardless of where the test's cwd actually is:
+
+```r
+Sys.setenv(RENV_PROJECT = "<absolute path to tests/>")
+source("<absolute path to tests/>/renv/activate.R")
+```
+
+`renv/activate.R` reads `RENV_PROJECT` to determine the project root if set,
+falling back to `getwd()` otherwise — setting it explicitly decouples renv
+activation from the test's cwd.
+
 ## Best Practices
 
 1. **Always clean up**: Use teardown to remove generated files
