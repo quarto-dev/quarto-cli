@@ -13,7 +13,7 @@
 
 import { safeRemoveSync } from "../../../src/core/path.ts";
 import { docs } from "../../utils.ts";
-import { quarto } from "../../../src/quarto.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
 
 import { testRender } from "./render.ts";
 
@@ -32,7 +32,7 @@ const updateExtensions = async () => {
     Deno.chdir(docs("extensions/format/academic"));
 
     for (const repo of ["acs", "elsevier"]) {
-      await quarto([
+      await runQuarto([
         "update",
         "extension",
         `quarto-journals/${repo}`,
