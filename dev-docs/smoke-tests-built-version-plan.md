@@ -539,6 +539,26 @@ jobs:
 `satisfies("<marker>", ">=1.3.0") === true` before adopting any marker;
 the CI "Pin and verify" step gains the same assertion.
 
+### 5.2b `source: nightly` — signed artifacts from a no-publish create-release run
+
+Studied post-review (maintainer suggestion): the signing steps in
+`make-installer-win` are **unconditional** — not gated on
+`publish-release` — so every create-release run, including the nightly
+no-publish schedule, already uploads a **signed** `Windows Zip` (the real
+`quarto.exe`) and the linux `Deb Zip` as workflow artifacts. The
+implemented `source: nightly` dispatch mode reuses them: resolve a
+create-release run (explicit `run-id` input or latest successful), check
+out its `head_sha` for the harness (same-commit, no skew), download the
+artifacts cross-run (`test-smokes.yml` input `quarto-artifact-run-id` →
+`download-artifact` `run-id`/`github-token`), and run the smokes on both
+OSes. This is the **preventive Windows coverage** path — signed shipped
+binaries, zero extra build/signing infrastructure. The build recipe
+itself is also shared now: `.github/actions/build-dist-tarball` is used
+by both `create-release.yml` (amd64 + arm64 tarballs) and the `build`
+mode, so the weekly build exercises the release recipe by construction.
+Constraint: works only for create-release runs whose commit contains the
+binary-mode harness (post-merge); the preflight fails clearly otherwise.
+
 ### 5.3 Release mode scope **[R]**
 
 Release mode checks out the tag while the *workflow file and local
