@@ -73,7 +73,19 @@ if [[ -n "$QUARTO_TEST_BIN" ]]; then
     echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) does not exist or is not executable"
     exit 1
   fi
-  QUARTO_TEST_BIN_VERSION="$("$QUARTO_TEST_BIN" --version 2>/dev/null)"
+  # Probe with the dev-tree env stripped (same list as tests/quarto-cmd.ts):
+  # the installed launcher keeps an inherited QUARTO_SHARE_PATH, and the dev
+  # exports above would make a healthy built quarto read the dev tree's
+  # (nonexistent) src/resources/version and report an EMPTY version.
+  QUARTO_TEST_BIN_VERSION="$(env -u QUARTO_SHARE_PATH -u QUARTO_BIN_PATH \
+    -u QUARTO_DEBUG -u DENO_DIR -u QUARTO_DENO -u QUARTO_DENO_DOM \
+    -u QUARTO_ROOT -u QUARTO_SRC_PATH -u QUARTO_FORCE_VERSION \
+    "$QUARTO_TEST_BIN" --version 2>/dev/null)"
+  if [[ -z "$QUARTO_TEST_BIN_VERSION" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) did not report a version."
+    echo "The distribution is likely incomplete (missing share/version)."
+    exit 1
+  fi
   if [[ "$QUARTO_TEST_BIN_VERSION" == "99.9.9" ]]; then
     echo "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
     echo "It resolves to a dev-mode quarto: the launcher runs the TS sources whenever a sibling src/quarto.ts exists."
