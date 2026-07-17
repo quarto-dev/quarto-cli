@@ -1,0 +1,29 @@
+---
+title: Skip-to-content link (dashboard)
+format: dashboard
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          # skip link is the first element of the body
+          - 'body > a#quarto-skip-link:first-child[href="#quarto-document-content"]'
+          # dashboards have no <main>; the content container gets the id,
+          # tabindex, and a main landmark role
+          - 'div.quarto-dashboard-content#quarto-document-content[tabindex="-1"][role="main"]'
+        - []
+---
+
+Dashboards should include a "Skip to main content" link that bypasses the
+navbar and page tabs, and their content container should be marked as the
+main landmark (<https://github.com/quarto-dev/quarto-cli/issues/14684>).
+
+# Heat
+
+## Row
+
+Content A
+
+# Cool
+
+Content B

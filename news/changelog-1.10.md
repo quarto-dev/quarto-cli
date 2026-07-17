@@ -18,6 +18,7 @@ All changes included in 1.10:
 - ([#14602](https://github.com/quarto-dev/quarto-cli/pull/14602), [#14632](https://github.com/quarto-dev/quarto-cli/pull/14632)): Fix ORCID profile link having no accessible name for screen readers in HTML, Reveal.js, and ipynb title-block author metadata. (author: @mcanouil for #14602)
 - ([#14604](https://github.com/quarto-dev/quarto-cli/issues/14604)): The `axe` accessibility report UI now shows each violation's WCAG conformance level (e.g. `WCAG 2.0 AA (1.4.3)`) or `Best Practice`, derived from the violation's axe-core tags.
 - ([#14655](https://github.com/quarto-dev/quarto-cli/issues/14655)): Add accessible names to code line-number links so screen readers and accessibility audits no longer report them as empty links.
+- ([#14684](https://github.com/quarto-dev/quarto-cli/issues/14684)): Add a "Skip to main content" link to Bootstrap-themed HTML output (documents, websites, books, dashboards) so keyboard users can bypass navigation blocks (WCAG 2.4.1). The link is the first tab stop on every page, visually hidden until focused, and its text is customizable via the `language` key `skip-to-content`. Dashboards additionally mark their content container as the `main` landmark.
 
 ## Formats
 

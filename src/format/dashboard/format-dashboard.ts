@@ -335,6 +335,9 @@ function dashboardHtmlPostProcessor(
     // Mark the page container with layout instructions
     const containerEl = doc.querySelector("div.page-layout-custom");
     if (containerEl) {
+      // dashboards have no <main> element, so mark the content container
+      // as the main landmark for assistive technology
+      containerEl.setAttribute("role", "main");
       const containerClz = [
         "quarto-dashboard-content",
         "bslib-gap-spacing",

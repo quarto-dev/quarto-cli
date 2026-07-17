@@ -64,6 +64,8 @@ repo-action-links-issue: "Informar sobre problema"
 
 back-to-top: "Volver arriba"
 
+skip-to-content: "Saltar al contenido principal"
+
 search-no-results-text: "No se han encontrado resultados"
 search-matching-documents-text: "documentos encontrados"
 search-copy-link-title: "Copiar el enlace en la búsqueda"
