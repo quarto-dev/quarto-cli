@@ -25,7 +25,9 @@ env:
 
 concurrency:
   # make publishing release concurrent (but others trigger not)
-  group: building-releases-${{ inputs.publish-release && 'prerelease' || github.run_id }}
+  # smoke-artifacts-only runs never publish, so they must not queue in the
+  # shared 'prerelease' group behind/ahead of a real release
+  group: building-releases-${{ inputs.publish-release && !inputs.smoke-artifacts-only && 'prerelease' || github.run_id }}
 
 jobs:
   configure:
@@ -40,6 +42,16 @@ jobs:
       tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
+      # publish-release defaults to TRUE, so checking only the
+      # smoke-artifacts-only box would otherwise reach the version
+      # commit+tag step below and push an orphan tag (the publish-release
+      # job itself is guarded, but the tag push lives in this job)
+      - name: Fail on publish-release + smoke-artifacts-only
+        if: ${{ inputs.publish-release && inputs.smoke-artifacts-only }}
+        run: |
+          echo "::error::smoke-artifacts-only builds cannot publish - re-dispatch with publish-release=false"
+          exit 1
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
