@@ -240,8 +240,15 @@ export function fileLoader(...path: string[]) {
   };
 }
 
+// Resolves the quarto executable for tests that spawn a real subprocess.
+// Honors QUARTO_TEST_BIN (binary mode) so these tests target the built
+// quarto under test; otherwise the dev quarto from PATH.
 // On Windows, `quarto.cmd` needs to be explicit in `execProcess()`
 export function quartoDevCmd(): string {
+  const bin = Deno.env.get("QUARTO_TEST_BIN");
+  if (bin && bin.length > 0) {
+    return bin;
+  }
   return isWindows ? "quarto.cmd" : "quarto";
 }
 
