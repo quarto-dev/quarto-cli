@@ -470,10 +470,12 @@ automatically; language setup is shared.
 ```yaml
 name: Smoke Tests (Built Version)
 on:
-  schedule: [{ cron: "0 8 * * 1" }]     # weekly, Monday
+  workflow_run:                         # daily: after each nightly build (§5.2b, §6 Phase 5)
+    workflows: ["Build Installers"]
+    types: [completed]
   workflow_dispatch:
     inputs:
-      source:  { type: choice, options: [build, release], default: build }
+      source:  { type: choice, options: [build, nightly, release], default: build }
       version: { type: string, default: "pre-release" }  # for source: release
 
 jobs:
@@ -546,10 +548,11 @@ Studied post-review (maintainer suggestion): the signing steps in
 `publish-release` — so every create-release run, including the nightly
 no-publish schedule, already uploads a **signed** `Windows Zip` (the real
 `quarto.exe`) and the linux `Deb Zip` as workflow artifacts. The
-implemented `source: nightly` mode — **the weekly schedule path** (a
-scheduled `build` would duplicate what create-release built hours
-earlier, unsigned and linux-only; `build` stays dispatch-only for
-arbitrary refs and forks) — reuses them: resolve a
+implemented `source: nightly` mode — **the `workflow_run` path, firing
+daily after each completed nightly build** (a scheduled `build` would
+duplicate what create-release built hours earlier, unsigned and
+linux-only; `build` stays dispatch-only for arbitrary refs and forks) —
+reuses them: resolve a
 create-release run (explicit `run-id` input or latest successful), check
 out its `head_sha` for the harness (same-commit, no skew), download the
 artifacts cross-run (`test-smokes.yml` input `quarto-artifact-run-id` →
@@ -558,7 +561,7 @@ OSes. This is the **preventive Windows coverage** path — signed shipped
 binaries, zero extra build/signing infrastructure. The build recipe
 itself is also shared now: `.github/actions/build-dist-tarball` is used
 by both `create-release.yml` (amd64 + arm64 tarballs) and the `build`
-mode, so the weekly build exercises the release recipe by construction.
+mode, so `build` runs exercise the release recipe by construction.
 Constraint: works only for create-release runs whose commit contains the
 binary-mode harness (post-merge); the preflight fails clearly otherwise.
 
@@ -610,9 +613,10 @@ green locally; the corrupt-dist scenario fails red.
 
 **Phase 2 — CI.** Parameterize `test-smokes.yml` (§5.1 incl. `runners`,
 `buckets` default, Windows-gate fix); add `test-smokes-built.yml`
-(weekly + dispatch, build-then-test, full smoke-all, linux). Acceptance:
-first green (or fully triaged) weekly run; failures classified into
-product bugs / harness assumptions / dev-only.
+(dispatch build-then-test, full smoke-all, linux; the scheduled trigger
+later became `workflow_run` on the nightly build — §6 Phase 5).
+Acceptance: first green (or fully triaged) built-version run; failures
+classified into product bugs / harness assumptions / dev-only.
 
 **Phase 3 — broaden.** `source: release` path for releases cut after
 Phase 1 (Windows coverage via `quarto.exe`; §5.3 scope), ff-matrix
