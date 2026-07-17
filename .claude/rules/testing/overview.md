@@ -59,6 +59,7 @@ Managed via:
 | File | Purpose |
 |------|---------|
 | `test.ts` | Test infrastructure (`testQuartoCmd`, `unitTest`) |
+| `quarto-cmd.ts` | Quarto invocation dispatch (`runQuarto`; in-process dev vs `QUARTO_TEST_BIN` binary mode) |
 | `verify.ts` | Verification functions |
 | `utils.ts` | Path utilities (`docs()`, `outputForInput()`) |
 | `README.md` | Comprehensive documentation |

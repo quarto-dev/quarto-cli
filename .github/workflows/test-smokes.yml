@@ -308,7 +308,24 @@ jobs:
             echo "::error::this checkout's test harness lacks binary-mode support (tests/quarto-cmd.ts is missing); release/artifact mode only works for refs that include the QUARTO_TEST_BIN harness support"
             exit 1
           fi
-          echo "QUARTO_TEST_BIN=$(command -v quarto)" >> "$GITHUB_ENV"
+          # resolve the executable path in a form Deno.Command can spawn:
+          # on Windows, `command -v quarto` yields an extensionless bash-style
+          # path (/c/...) that neither Test-Path nor Deno.Command can use —
+          # prefer the real .exe/.cmd and convert to a native Windows path
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            bin="$(command -v quarto.exe || command -v quarto.cmd || command -v quarto)"
+            bin="$(cygpath -w "$bin")"
+          else
+            bin="$(command -v quarto)"
+          fi
+          echo "QUARTO_TEST_BIN=$bin" >> "$GITHUB_ENV"
+          # when the caller pinned a concrete version, have the harness verify
+          # every spawn targets exactly that version
+          if [ -n "${{ inputs.quarto-version }}" ] \
+            && [ "${{ inputs.quarto-version }}" != "pre-release" ] \
+            && [ "${{ inputs.quarto-version }}" != "release" ]; then
+            echo "QUARTO_TEST_EXPECTED_VERSION=${{ inputs.quarto-version }}" >> "$GITHUB_ENV"
+          fi
 
       - name: Install Tinytex
         env:

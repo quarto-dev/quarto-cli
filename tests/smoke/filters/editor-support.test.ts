@@ -4,13 +4,15 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { docs, quartoDevCmd } from "../../utils.ts";
-import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
+import { docs } from "../../utils.ts";
+import { quartoDevBinCmd, quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { test } from "../../test.ts";
 import { assertEquals } from "testing/asserts";
 
 async function runEditorSupportCrossref(doc: string) {
-  const cmd = new Deno.Command(quartoDevCmd(), {
+  // pinned to the locally-built dev CLI (not PATH quarto) as before the
+  // binary-mode migration; resolves to QUARTO_TEST_BIN in binary mode
+  const cmd = new Deno.Command(quartoDevBinCmd(), {
     args: ["editor-support", "crossref"],
     stdin: "piped",
     stdout: "piped",

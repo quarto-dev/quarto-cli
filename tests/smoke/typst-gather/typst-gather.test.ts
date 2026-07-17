@@ -3,8 +3,8 @@ import { assert } from "testing/asserts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { execProcess } from "../../../src/core/process.ts";
-import { quartoDevCmd } from "../../utils.ts";
-import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
+
+import { quartoDevBinCmd, quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 
 // Test 1: Auto-detection from _extension.yml
 const verifyPackagesCreated: Verify = {
@@ -271,7 +271,9 @@ async function runQuarto(
   env?: Record<string, string>,
 ): Promise<{ success: boolean; stdout: string; stderr: string }> {
   const result = await execProcess({
-    cmd: quartoDevCmd(),
+    // pinned to the locally-built dev CLI (not PATH quarto) as before the
+    // binary-mode migration; resolves to QUARTO_TEST_BIN in binary mode
+    cmd: quartoDevBinCmd(),
     args,
     cwd,
     stdout: "piped",
