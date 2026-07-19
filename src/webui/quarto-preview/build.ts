@@ -5,6 +5,18 @@ export {};
 
 const args = Deno.args;
 
+// Packagers building from a source tarball (no .git directory) rather than a
+// git checkout have no way to satisfy buildFromGit()'s `git ls-files` check,
+// which unconditionally triggers a rebuild (and thus a network-dependent
+// `npm install`) even though quarto-preview.js is already committed to the
+// tree. Let them opt out explicitly and use the shipped build.
+if (Deno.env.get("QUARTO_SKIP_PREVIEW_BUILD")) {
+  console.log(
+    "QUARTO_SKIP_PREVIEW_BUILD set, skipping quarto-preview.js rebuild",
+  );
+  Deno.exit(0);
+}
+
 // establish target js build time
 const kQuartoPreviewJs = "../../resources/preview/quarto-preview.js";
 let jsBuildTime: number;
