@@ -23,8 +23,18 @@ fi
 
 pushd "${QUARTO_SRC_PATH}"
 set +e
+# QUARTO_VENDOR_LOCK / QUARTO_VENDOR_OFFLINE let packagers building from a
+# pre-populated, checksummed DENO_DIR (no network in the build sandbox) force
+# resolution to fail loudly on any cache miss instead of silently fetching.
+DENO_INSTALL_EXTRA_ARGS=()
+if [ -n "$QUARTO_VENDOR_LOCK" ]; then
+  DENO_INSTALL_EXTRA_ARGS+=("--lock=$QUARTO_VENDOR_LOCK" "--frozen")
+fi
+if [ "$QUARTO_VENDOR_OFFLINE" = "1" ]; then
+  DENO_INSTALL_EXTRA_ARGS+=("--cached-only")
+fi
 for entrypoint in quarto.ts vendor_deps.ts ../tests/test-deps.ts ../package/scripts/deno_std/deno_std.ts; do
-  $DENO_BIN_PATH install --allow-all --no-config --entrypoint $entrypoint "--importmap=$QUARTO_SRC_PATH/import_map.json"
+  $DENO_BIN_PATH install --allow-all --no-config --entrypoint $entrypoint "--importmap=$QUARTO_SRC_PATH/import_map.json" "${DENO_INSTALL_EXTRA_ARGS[@]}"
 done
 set -e
 popd
