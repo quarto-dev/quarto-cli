@@ -408,6 +408,86 @@ test.describe('HTML axe — the report overlay passes its own scan', () => {
   });
 });
 
+test.describe('RevealJS axe — the report slide passes its own scan', () => {
+  test('report slide has no axe-core violations', async ({ page }) => {
+    // The report slide is injected after the page scan runs, so it never
+    // audits itself (same gap as the HTML overlay). Scan it here with the
+    // same vendored axe-core build the deck already loaded (window.axe).
+    //
+    // createReportSlide() navigates back to the original slide, leaving the
+    // report slide as a hidden future slide (hidden + aria-hidden). axe skips
+    // hidden elements, so we MUST navigate to the report slide and wait for
+    // `.present` first — otherwise the scan is a vacuous, permanent PASS.
+    await page.goto('/revealjs/axe-accessibility.html', { waitUntil: 'networkidle' });
+
+    const reportSlide = page.locator('section.quarto-axe-report-slide');
+    await expect(reportSlide).toBeAttached({ timeout: 10000 });
+    await waitForAxeCompletion(page);
+
+    await page.evaluate(() => Reveal.slide(Reveal.getTotalSlides() - 1));
+    await expect(reportSlide).toHaveClass(/present/);
+
+    // Non-empty precondition: guards against the region silently becoming
+    // empty in a future refactor, which would make violations == [] a
+    // vacuous pass rather than a real guard.
+    await expect(
+      reportSlide.locator('.quarto-axe-violation-description'),
+    ).not.toHaveCount(0);
+
+    const violations = await page.evaluate(async () => {
+      const axe = (window as any).axe;
+      const result = await axe.run(document.querySelector('.quarto-axe-report-slide'));
+      return result.violations.map((v: { id: string; nodes: { target: string[] }[] }) => ({
+        id: v.id,
+        targets: v.nodes.map((n) => n.target),
+      }));
+    });
+    expect(violations).toEqual([]);
+  });
+});
+
+test.describe('Dashboard axe — the offcanvas passes its own scan', () => {
+  test('offcanvas and toggle have no axe-core violations', async ({ page }) => {
+    // The offcanvas and its toggle button are injected after the page scan
+    // runs, so they never audit themselves on initial load. Scan both here.
+    // The toggle (.quarto-axe-toggle) is a SIBLING of #quarto-axe-offcanvas
+    // (both appended to <body>), so it must be an explicit include — scanning
+    // the offcanvas alone would miss a dropped aria-label on the toggle.
+    await page.goto('/dashboard/axe-accessibility.html', { waitUntil: 'networkidle' });
+
+    const offcanvas = page.locator('#quarto-axe-offcanvas');
+    await expect(offcanvas).toBeVisible({ timeout: 10000 });
+
+    // Non-empty precondition — see reveal test above for rationale.
+    await expect(
+      offcanvas.locator('.quarto-axe-violation-description'),
+    ).not.toHaveCount(0);
+
+    const violations = await page.evaluate(async () => {
+      const axe = (window as any).axe;
+      const result = await axe.run({
+        include: [['#quarto-axe-offcanvas'], ['.quarto-axe-toggle']],
+      });
+      return result.violations.map((v: { id: string; nodes: { target: string[] }[] }) => ({
+        id: v.id,
+        targets: v.nodes.map((n) => n.target),
+      }));
+    });
+
+    // Known issue quarto-dev/quarto-cli#14710: .offcanvas-body is a scrolling
+    // region with no focusable descendant and isn't itself focusable, so it
+    // trips scrollable-region-focusable even on this short fixture (its fixed
+    // height already overflows). Filtered out (not test.fail()'d) so this
+    // test still catches any other regression here — e.g. a dropped
+    // aria-label on .btn-close or .quarto-axe-toggle — while #14710 is open.
+    const unexpected = violations.filter(
+      (v) => !(v.id === 'scrollable-region-focusable' &&
+        v.targets.some((t) => t.includes('.offcanvas-body'))),
+    );
+    expect(unexpected).toEqual([]);
+  });
+});
+
 test.describe('Dashboard axe — re-scan on visibility change', () => {
   const pagesUrl = '/dashboard/axe-accessibility-pages.html';
 
