@@ -162,6 +162,17 @@ test.describe('Axe accessibility checking', () => {
           await expect(axeReport).toHaveCSS('z-index', '9999');
           await expect(axeReport).toHaveCSS('overflow-y', 'auto');
 
+          // Overlay must not inherit page-level centering (e.g. about
+          // templates center <main>, which the overlay is appended into)
+          await expect(axeReport).toHaveCSS('text-align', 'left');
+
+          // The overlay scrolls when the report overflows, so it must be a
+          // focusable, labeled region or it fails axe's own
+          // scrollable-region-focusable rule
+          await expect(axeReport).toHaveAttribute('tabindex', '0');
+          await expect(axeReport).toHaveAttribute('role', 'region');
+          await expect(axeReport).toHaveAttribute('aria-label', 'Accessibility report');
+
           // Background must not be transparent
           await expect(axeReport).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
         }
@@ -338,6 +349,65 @@ test.describe('HTML axe — hover interaction and highlight', () => {
   });
 });
 
+test.describe('HTML axe — hover scrolls element clear of the report overlay', () => {
+  test('highlighted element settles above the overlay, not under it', async ({ page }) => {
+    await page.goto('/html/axe-overlay-scroll.html', { waitUntil: 'networkidle' });
+
+    const axeReport = page.locator('.quarto-axe-report');
+    await expect(axeReport).toBeVisible({ timeout: 10000 });
+
+    // Hover the selector for the full-width violation near the page bottom.
+    // Default block:center scrolling would land it under the bottom-right
+    // fixed overlay; the overlay-aware scroll targets the band above it.
+    const target = axeReport.locator('.quarto-axe-violation-target', {
+      hasText: '#bottom-contrast',
+    });
+    await target.hover();
+
+    // axe targets the text-bearing element (the <p> inside #bottom-contrast,
+    // e.g. "#bottom-contrast > p"), so locate the highlight by class rather
+    // than assuming the exact selector.
+    const element = page.locator('.quarto-axe-hover-highlight');
+    await expect(element).toBeAttached({ timeout: 3000 });
+
+    // Poll until the smooth scroll settles with the element fully inside the
+    // viewport band above the overlay.
+    await expect.poll(async () => {
+      const elementBox = await element.boundingBox();
+      const overlayBox = await axeReport.boundingBox();
+      if (!elementBox || !overlayBox) return 'missing bounding box';
+      if (elementBox.y < 0) return `element top ${elementBox.y} above viewport`;
+      if (elementBox.y + elementBox.height > overlayBox.y) {
+        return `element bottom ${elementBox.y + elementBox.height} below overlay top ${overlayBox.y}`;
+      }
+      return 'clear of overlay';
+    }, { timeout: 5000 }).toBe('clear of overlay');
+  });
+});
+
+test.describe('HTML axe — the report overlay passes its own scan', () => {
+  test('overlay has no axe-core violations', async ({ page }) => {
+    // The overlay is injected after the page scan runs, so it never audits
+    // itself. Scan it here with the same vendored axe-core build the page
+    // already loaded (window.axe), on the long-report page where the overlay
+    // is scrollable — the state that tripped scrollable-region-focusable.
+    await page.goto('/html/axe-overlay-scroll.html', { waitUntil: 'networkidle' });
+
+    const axeReport = page.locator('.quarto-axe-report');
+    await expect(axeReport).toBeVisible({ timeout: 10000 });
+
+    const violations = await page.evaluate(async () => {
+      const axe = (window as any).axe;
+      const result = await axe.run(document.querySelector('.quarto-axe-report'));
+      return result.violations.map((v: { id: string; nodes: { target: string[] }[] }) => ({
+        id: v.id,
+        targets: v.nodes.map((n) => n.target),
+      }));
+    });
+    expect(violations).toEqual([]);
+  });
+});
+
 test.describe('Dashboard axe — re-scan on visibility change', () => {
   const pagesUrl = '/dashboard/axe-accessibility-pages.html';
 
@@ -484,6 +554,32 @@ test.describe('Dashboard axe — re-scan on visibility change', () => {
     const restoredTargets = await getViolationTargetIds(page);
     expect(restoredTargets.some(t => t.includes('#tab-a-contrast')),
       'Tab A restored: #tab-a-contrast should be detected again').toBe(true);
+  });
+});
+
+test.describe('Axe report — violations sorted by severity (#14676)', () => {
+  test('html — report lists critical before serious before moderate', async ({ page }) => {
+    // Fixture triggers image-alt (critical), color-contrast (serious), and
+    // heading-order (moderate). axe-core emits these roughly alphabetically by
+    // rule id (color-contrast, heading-order, image-alt), which is not
+    // severity order, so this fails if the report stops sorting.
+    await page.goto('/html/axe-sort-order.html', { waitUntil: 'networkidle' });
+
+    const axeReport = page.locator('.quarto-axe-report');
+    await expect(axeReport).toBeVisible({ timeout: 10000 });
+
+    const descriptions = await axeReport
+      .locator('.quarto-axe-violation-description').allTextContents();
+    const indexOf = (impact: string) =>
+      descriptions.findIndex(d => d.startsWith(impact));
+
+    for (const impact of ['Critical', 'Serious', 'Moderate']) {
+      expect(indexOf(impact),
+        `Expected a ${impact} violation in: ${descriptions.join(' | ')}`)
+        .toBeGreaterThanOrEqual(0);
+    }
+    expect(indexOf('Critical')).toBeLessThan(indexOf('Serious'));
+    expect(indexOf('Serious')).toBeLessThan(indexOf('Moderate'));
   });
 });
 
