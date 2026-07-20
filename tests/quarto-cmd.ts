@@ -211,7 +211,16 @@ async function killProcessTree(pid: number) {
         stderr: "null",
       }).output();
     } catch {
-      // taskkill unavailable or the tree already exited
+      // taskkill unavailable (should not happen on a real Windows runner) or
+      // the tree already exited. Fall back to killing the direct child so the
+      // awaited child.output() can resolve instead of blocking on a still-live
+      // launcher; this cannot reach an orphaned grandchild renderer, but is
+      // strictly better than killing nothing.
+      try {
+        Deno.kill(pid, "SIGKILL");
+      } catch {
+        // already exited
+      }
     }
     return;
   }
