@@ -105,6 +105,95 @@ export function overlayAwareScrollTop(
   return Math.max(0, scrollY + elementRect.top - offset);
 }
 
+// Map each `standard` option value to the axe-core tags that cover that WCAG
+// conformance level (https://github.com/quarto-dev/quarto-cli/issues/14607).
+// Axe tags aren't cumulative — a rule's version tag marks where its criterion
+// was *introduced*, not every level it applies to — so each level lists its
+// own tag plus those of the lower levels and earlier versions it builds on.
+// The lists follow WCAG conformance logic, not the bundled axe-core's rule
+// inventory: some tags currently match no rules (axe has none for criteria
+// introduced at 2.1 AAA, 2.2 A, or 2.2 AAA). That's safe — axe's unknown-tag
+// warning explicitly exempts wcag2x level tags (Audit.normalizeOptions) — and
+// future-proof: an axe upgrade that adds rules for those criteria scopes them
+// in with no change here.
+export const STANDARD_TAGS = {
+  // WCAG 2.0
+  wcag2a: ["wcag2a"],
+  wcag2aa: ["wcag2a", "wcag2aa"],
+  wcag2aaa: ["wcag2a", "wcag2aa", "wcag2aaa"],
+  // WCAG 2.1
+  wcag21a: ["wcag2a", "wcag21a"],
+  wcag21aa: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+  wcag21aaa: ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag21aaa"],
+  // WCAG 2.2
+  wcag22a: ["wcag2a", "wcag21a", "wcag22a"],
+  wcag22aa: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"],
+  wcag22aaa: [
+    "wcag2a", "wcag2aa", "wcag2aaa",
+    "wcag21a", "wcag21aa", "wcag21aaa",
+    "wcag22a", "wcag22aa", "wcag22aaa",
+  ],
+};
+
+// Build the axe.run options fragment ({runOnly?, rules?}) that scopes a scan
+// per the `standard` and `best-practice` options. `rules` is the axe.getRules()
+// catalog ({ruleId, tags} objects); passing it in keeps this pure for unit tests.
+//
+// `runOnly` by tag matches on tags alone, overriding axe's per-rule
+// `enabled: false` defaults. That is what lets a standard reach the
+// default-disabled rules for its level (the AAA rules, `target-size` for
+// 2.2 AA), which is the point of choosing a standard.
+//
+// Deprecated rules (`aria-roledescription`, `audio-caption`) still carry a
+// level tag like `wcag2a`, but they also carry the `deprecated` tag, which is
+// in axe's default `tagExclude` (`["experimental", "deprecated"]`). Tag-based
+// `runOnly` still applies `tagExclude` (minus any tag we explicitly include),
+// so deprecated rules are already excluded — the same mechanism that keeps
+// experimental rules out. We also disable each matching deprecated rule here
+// via a rule-level override, so the scoping is self-contained rather than
+// relying on that axe default, and survives a future change to it.
+export function axeScopeOptions(options, rules) {
+  const standard = options.standard;
+  const bestPractice = options["best-practice"];
+
+  if (standard) {
+    const tags = STANDARD_TAGS[standard];
+    if (!tags) {
+      console.warn(
+        `Unknown axe standard "${standard}"; running the default rule set.`,
+      );
+      return {};
+    }
+    const values = bestPractice === true ? [...tags, "best-practice"] : tags;
+    const overrides = {};
+    for (const rule of rules) {
+      if (
+        rule.tags.includes("deprecated") &&
+        rule.tags.some((t) => values.includes(t))
+      ) {
+        overrides[rule.ruleId] = { enabled: false };
+      }
+    }
+    const scope = { runOnly: { type: "tag", values } };
+    if (Object.keys(overrides).length > 0) scope.rules = overrides;
+    return scope;
+  }
+
+  // Without a standard there is no tag list to omit `best-practice` from, so
+  // `best-practice: false` disables each best-practice rule individually.
+  if (bestPractice === false) {
+    const overrides = {};
+    for (const rule of rules) {
+      if (rule.tags.includes("best-practice")) {
+        overrides[rule.ruleId] = { enabled: false };
+      }
+    }
+    if (Object.keys(overrides).length > 0) return { rules: overrides };
+  }
+
+  return {};
+}
+
 class QuartoAxeReporter {
   constructor(axeResult, options) {
     this.axeResult = axeResult;
@@ -376,8 +465,9 @@ const reporters = {
 
 class QuartoAxeChecker {
   constructor(opts) {
-    // Normalize boolean shorthand: axe: true → {output: "console"}
-    this.options = opts === true ? { output: "console" } : opts;
+    // Normalize boolean shorthand (axe: true) and default the output mode, so
+    // e.g. `axe: {standard: wcag21aa}` reports to the console like `axe: true`.
+    this.options = { output: "console", ...(opts === true ? {} : opts) };
     this.axe = null;
     this.scanGeneration = 0;
   }
@@ -417,7 +507,9 @@ class QuartoAxeChecker {
          // MS has claimed they won't fix this, so we need to add an exclusion to
          // all tabster elements
          "[data-tabster-dummy]"
-        ],
+        ]
+      }, {
+        ...axeScopeOptions(this.options, this.axe.getRules()),
         preload: { assets: ['cssom'], timeout: 50000 }
       });
     } finally {
