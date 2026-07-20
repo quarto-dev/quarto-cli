@@ -537,10 +537,9 @@ flowchart LR
     subgraph dev ["Dev mode (unchanged): quarto = in-process TS sources"]
         PR["PR / push"] --> TSP["test-smokes-parallel.yml<br>sharded buckets"]
         DAILY["daily schedule"] --> TSfull["full run"]
-        FFM["test-ff-matrix.yml<br>(ff-matrix qmd bucket)"]
     end
     subgraph built ["Binary mode: quarto = built distribution (QUARTO_TEST_BIN)"]
-        TSB["test-smokes-built.yml<br>runs after every nightly build<br>(workflow_run) + manual dispatch"]
+        TSB["test-smokes-built.yml<br>runs after every nightly build<br>(workflow_run) + manual dispatch<br>3 legs per source mode:<br>smoke + playwright + ff-matrix"]
         BUILDM["source: build (dispatch default)<br>build linux-amd64 dist from this ref<br>(any ref, works on forks)"]
         NIGHTM["source: nightly (daily via workflow_run)<br>reuse SIGNED artifacts of a create-release run:<br>linux + windows quarto.exe + macOS<br>(the only macOS smoke coverage)"]
         RELM["source: release<br>install published (pre-)release,<br>checkout its v-tag"]
@@ -551,13 +550,17 @@ flowchart LR
     CR["create-release.yml<br>nightly build (no publish),<br>dispatch = publish; smoke-artifacts-only<br>input = cheap signed branch builds"]
     ACT[".github/actions/build-dist-tarball<br>(shared build recipe)"]
 
+    FFM["test-ff-matrix.yml (reusable)<br>dev triggers: cron / push / PR<br>owns the ff-matrix qmd bucket"]
     TS["test-smokes.yml (reusable)<br>inputs: quarto-install, ref, runners,<br>buckets, quarto-artifact-*"]
     TSP --> TS
     DAILY --> TS
     FFM --> TS
-    BUILDM --> TS
-    NIGHTM --> TS
-    RELM --> TS
+    BUILDM -->|"smoke + playwright legs"| TS
+    NIGHTM -->|"smoke + playwright legs"| TS
+    RELM -->|"smoke + playwright legs"| TS
+    BUILDM -->|"ff-matrix leg"| FFM
+    NIGHTM -->|"ff-matrix leg"| FFM
+    RELM -->|"ff-matrix leg"| FFM
     BUILDM -. uses .-> ACT
     CR -. "make-tarball jobs use" .-> ACT
     NIGHTM -. "downloads artifacts from" .-> CR
