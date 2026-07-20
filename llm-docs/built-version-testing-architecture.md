@@ -1,13 +1,15 @@
 ---
-main_commit: a3f6218b7
-analyzed_date: 2026-07-17
+main_commit: 2e6695811
+analyzed_date: 2026-07-20
 key_files:
   - tests/quarto-cmd.ts
   - tests/test.ts
   - tests/run-tests.sh
   - tests/run-tests.ps1
+  - tests/integration/playwright-tests.test.ts
   - .github/workflows/test-smokes.yml
   - .github/workflows/test-smokes-built.yml
+  - .github/workflows/test-ff-matrix.yml
   - .github/workflows/create-release.yml
   - .github/actions/build-dist-tarball/action.yml
 ---
@@ -54,9 +56,12 @@ build — fires automatically via `workflow_run` after each one), and
 | build | fresh linux-amd64 dist from the current ref (unsigned) | manual dispatch | will *this branch* survive packaging? (works on forks/PR branches) |
 | release | published (pre-)release via quarto-actions/setup, harness at its `v` tag | manual dispatch | is the version users download healthy? (curative, post-publish) |
 
-Dev mode and built modes are complementary, not redundant: dev covers
-`unit/`, `integration/`, `QUARTO_DEBUG` paths, and the `quarto check` dev
-branch; built modes cover the packaged product dev mode never executes.
+Dev mode and built modes are complementary, not redundant: dev uniquely
+covers `unit/`, `QUARTO_DEBUG` paths, the `quarto check` dev branch, and
+in-process races; built modes cover the packaged product dev mode never
+executes. `integration/` is NOT dev-only anymore: every built-mode source
+runs three suites ("legs") — smoke, playwright, and the feature-format
+matrix — see "Built-mode test legs" below.
 
 In practice:
 
@@ -79,6 +84,61 @@ In practice:
   `dev-docs/checklist-make-a-new-quarto-prerelease.md`. Curative by
   nature: it can only detect a broken published version, never prevent
   one. Only works for releases cut after the harness support merged (D10).
+
+## Built-mode test legs (scheduler layout)
+
+`test-smokes-built.yml` = the mode **resolvers** (build-artifact /
+resolve-nightly / resolve-release, unchanged) + a **scheduler**: per-leg
+caller jobs fanning out to the reusable workflows. Three legs per source
+mode, each an independent job (one red suite never cancels the others):
+
+| leg | goes through | bucket | OS scope |
+|---|---|---|---|
+| smoke | `test-smokes.yml` | `inputs.buckets` (empty = binary-mode `smoke/` default) | build: linux; nightly: linux+windows+mac (`has-*` gated); release: linux+windows |
+| playwright | `test-smokes.yml` | `["integration/playwright-tests.test.ts"]` | linux (+ mac on nightly) — **never windows**, see below |
+| ff-matrix | `test-ff-matrix.yml` (reusable) | owned by `test-ff-matrix.yml` | linux (+ windows on nightly/release) — no macOS (Julia/TeX toolchain unproven there) |
+
+Key points:
+
+- **The smoke leg doubles as the general bucket runner.** A manual dispatch
+  with the `buckets` input set runs only the smoke-slot jobs with that
+  bucket; the playwright + ff-matrix legs carry
+  `github.event.inputs.buckets == ''` in their `if:` and skip.
+- **No windows playwright leg, deliberately.** The browser assertions are
+  hard-ignored on Windows CI (`playwright-tests.test.ts`
+  `ignore: gha.isGitHubActions() && isWindows`) — a windows leg would render
+  the corpus, skip every assertion, and report a misleading green. Rework
+  that gate (plus the `runner.os != 'Windows'` report-upload gate in
+  `test-smokes.yml`) before adding windows to the leg.
+- **The playwright render wrapper needs the sanitized spawn env.**
+  `playwright-tests.test.ts` renders via `execProcess` +
+  `quartoDevCmd()` and MUST pass `quartoSpawnEnvOptions()`: without it the
+  built quarto inherits the dev-tree env (`QUARTO_SHARE_PATH`, ...) exported
+  by `run-tests.[sh|ps1]` for the harness and silently renders with
+  dev-tree resources (the D3/D4 dev-mode trap).
+- **Playwright report artifacts are named per OS**
+  (`playwright-report-${{ runner.os }}`): several `test-smokes.yml` calls
+  share one workflow run in the fan-out, and duplicate artifact names make
+  `upload-artifact` fail even on green tests.
+- **Per-leg OS scope is tuned in one place** — the `runners` inputs on the
+  scheduler jobs in `test-smokes-built.yml`.
+
+### `test-ff-matrix.yml` is reusable (`workflow_call`)
+
+The ff-matrix bucket glob
+(`../dev-docs/feature-format-matrix/qmd-files/**/*.qmd`) is defined **only**
+in `test-ff-matrix.yml`; built-mode callers reuse it through its
+`workflow_call` trigger, which coexists with the dev triggers
+(cron/push/PR/dispatch). Inputs `quarto-install`, `quarto-version`,
+`quarto-artifact-name`, `quarto-artifact-run-id`, `ref`, `runners`,
+`extra-r-packages` are forwarded verbatim to `test-smokes.yml`; the job uses
+`${{ inputs.x || <dev default> }}` fallbacks so the non-call triggers (where
+`inputs.*` is empty) keep today's dev behavior. Nesting depth
+`test-smokes-built.yml → test-ff-matrix.yml → test-smokes.yml` is 3 (GitHub
+allows 4). Note `test-ff-matrix.yml`'s top-level `concurrency` group is not
+applied under `workflow_call` (a called workflow has no run of its own), and
+it declares no `permissions`, so the caller's `actions: write` (julia cache
+cleanup) flows through.
 
 ## Design decisions
 
@@ -200,14 +260,32 @@ coverage).
 `macos-latest` smoke job is the nightly Mac leg in `test-smokes-built.yml`.
 Encoded in the `runners` input description in `test-smokes.yml`.
 
-### D9. The daily dev cron stays (for now)
+### D9. Built mode runs smoke + playwright + ff-matrix daily; the dev crons stay
 
-Built-version nightly runs do not replace the daily dev `test-smokes.yml`
-schedule: dev mode uniquely covers `QUARTO_DEBUG` paths, the `quarto check`
-dev branch, in-process races, and doc-only PRs. Pending maintainer decision
-after ~2 weeks of green nightly runs (plan §6 Phase 5): add a cheap daily
-dev job for `unit/` + `integration/`, then downgrade the daily dev cron to
-weekly — never delete it.
+**Revised 2026-07-20** (originally: `integration/` stays dev-only with a
+future dev daily job — that deferral is resolved the other way).
+
+Built mode is not smoke-only: the nightly path (and every other source
+mode) runs three legs — smoke, playwright
+(`integration/playwright-tests.test.ts`), and the feature-format matrix —
+so packaging/launcher/signing regressions surface in browser behavior and
+the full ff corpus too, not just the smoke suite (see "Built-mode test
+legs"). Both suites were only ever excluded from binary mode by the
+`run-tests.[sh|ps1]` default, never hard-blocked; the harness prerequisites
+(the `quartoSpawnEnvOptions()` render-env fix, playwright provisioning in
+non-dev CI modes) are in place.
+
+What stays dev-only: `unit/` (in-process by definition), `QUARTO_DEBUG`
+paths, the `quarto check` dev branch, and in-process races. The daily dev
+crons also stay — dev ff-matrix catches source regressions, built
+ff-matrix catches packaging regressions; complementary, not redundant.
+Nothing is throttled initially (all legs daily): per-leg OS scope lives in
+the scheduler jobs as the tuning knob once real CI spend is observed. Known
+cost blind spot, accepted: the `workflow_run` trigger fires on EVERY
+completed create-release run (D1), so manual builds also get the full
+fan-out; gate the heavy legs on
+`github.event.workflow_run.event == 'schedule'` if that ever needs
+trimming.
 
 ### D10. Release mode only works for post-harness tags
 
