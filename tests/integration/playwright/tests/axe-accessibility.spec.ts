@@ -680,3 +680,41 @@ test.describe('Axe — standard and best-practice scoping (#14607)', () => {
       .not.toContain('heading');
   });
 });
+
+test.describe('Axe — no third-party/CDN dependency (regression guard for #14677)', () => {
+  const CDN_DENYLIST = [
+    'skypack.dev',
+    'unpkg.com',
+    'jsdelivr.net',
+    'esm.sh',
+    'cdnjs.cloudflare.com',
+  ];
+
+  function cdnHost(url: string): string | null {
+    let hostname: string;
+    try {
+      hostname = new URL(url).hostname;
+    } catch {
+      return null;
+    }
+    return CDN_DENYLIST.find(
+      (base) => hostname === base || hostname.endsWith('.' + base),
+    ) ?? null;
+  }
+
+  test('html — axe-enabled page makes no request to a package CDN', async ({ page }) => {
+    const cdnRequests: string[] = [];
+    page.on('request', (req) => {
+      if (cdnHost(req.url())) cdnRequests.push(req.url());
+    });
+
+    await page.goto('/html/axe-accessibility.html', { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    expect(
+      cdnRequests,
+      `axe-enabled page must not load resources from a package CDN. ` +
+        `Offending request(s): ${cdnRequests.join(', ')}`,
+    ).toEqual([]);
+  });
+});
