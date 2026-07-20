@@ -17,7 +17,56 @@ import { runningInCI } from "../src/core/ci-info.ts";
 import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
+import {
+  AnnotationBudget,
+  error as ghError,
+  harnessOwnsStep,
+  isGitHubActions,
+  kStepSummaryBudgetBytes,
+  stepSummary,
+  stepSummarySize,
+  stripAnsi,
+  summaryDetailBlock,
+  summaryTableHeader,
+  summaryTableRow,
+  summaryTableRowNameOnly,
+} from "../src/tools/github.ts";
 
+
+// GitHub Actions failure-surfacing state (Phase 1 of
+// dev-docs/ci-test-log-grouping-design.md). Everything here is a no-op unless
+// GITHUB_ACTIONS=true, so local test output stays byte-identical. In the
+// default full run one `deno test` process is the whole workflow step, so
+// these module-level values are exactly per-step.
+const kExcerptLines = 20;
+const annotationBudget = new AnnotationBudget();
+let summaryHeaderEmitted = false;
+// GFM ends a table at the first non-row line, so per-failure <details> blocks
+// cannot sit between table rows; buffer them and flush after all rows at
+// process exit (see the unload listener below).
+const pendingSummaryDetails: string[] = [];
+
+if (isGitHubActions()) {
+  globalThis.addEventListener("unload", () => {
+    // Flush buffered detail blocks after the (now contiguous) row table,
+    // stopping if the shared summary file crosses the size budget.
+    for (const detail of pendingSummaryDetails) {
+      if (stepSummarySize() > kStepSummaryBudgetBytes) break;
+      stepSummary(detail);
+    }
+    // One aggregate ::error for failures beyond the per-step annotation cap,
+    // only when the harness owns the step (bucket mode's YAML loop owns its
+    // own annotations).
+    if (harnessOwnsStep()) {
+      const extra = annotationBudget.suppressedCount();
+      if (extra > 0) {
+        ghError(`${extra} additional failures — see step summary`, {
+          title: "More test failures",
+        });
+      }
+    }
+  });
+}
 
 export interface TestLogConfig {
   // Path to log file
@@ -229,6 +278,7 @@ export function test(test: TestDescriptor) {
   const args: Deno.TestDefinition = {
     name: testName,
     async fn(context) {
+      const testStart = performance.now();
       await initDenoDom();
       const runTest = !test.context.prereq || await test.context.prereq();
       if (runTest) {
@@ -394,6 +444,73 @@ export function test(test: TestDescriptor) {
                 output.push("    " + part);
               });
             });
+          }
+
+          // GitHub Actions: a failure annotation (navigation) and a
+          // step-summary row (the complete failure record). No-op off CI.
+          if (isGitHubActions()) {
+            const fwd = (p: string) => p.replaceAll("\\", "/");
+            // The repro path is tests-relative (run-tests.sh runs from
+            // tests/); the annotation file= is repo-relative with forward
+            // slashes. For smoke-all doc tests the navigable file is the
+            // rendered document (embedded in the test name by
+            // smoke-all.test.ts), not the harness .test.ts file.
+            let reproPath = fwd(relPath);
+            if (fwd(absPath).endsWith("/smoke/smoke-all.test.ts")) {
+              const m = fwd(testName).match(
+                /(\S+\.(?:qmd|ipynb|md))(?=\s|$)/,
+              );
+              if (m) {
+                reproPath = m[1];
+              }
+            }
+            const annotationFile = `tests/${reproPath}`;
+            const repro = `${command} ${reproPath}`;
+
+            const rawExcerpt: string[] = [ex.message];
+            if (ex.stack) {
+              rawExcerpt.push(ex.stack);
+            }
+            if (logMessages && logMessages.length > 0) {
+              rawExcerpt.push("OUTPUT:");
+              for (const out of logMessages) {
+                for (const part of out.msg.split("\n")) {
+                  rawExcerpt.push("    " + part);
+                }
+              }
+            }
+            const excerpt = stripAnsi(rawExcerpt.join("\n"))
+              .split("\n")
+              .slice(0, kExcerptLines)
+              .join("\n");
+
+            // Step-summary row — emitted in ALL modes (cap-free, size-
+            // coordinated via the file). Degrade to name-only once the
+            // shared file is over budget.
+            const overBudget = stepSummarySize() > kStepSummaryBudgetBytes;
+            if (!summaryHeaderEmitted) {
+              stepSummary(summaryTableHeader());
+              summaryHeaderEmitted = true;
+            }
+            if (overBudget) {
+              stepSummary(summaryTableRowNameOnly(annotationFile, testName));
+            } else {
+              const durationMs = Math.round(performance.now() - testStart);
+              stepSummary(
+                summaryTableRow(annotationFile, testName, durationMs),
+              );
+              pendingSummaryDetails.push(summaryDetailBlock(repro, excerpt));
+            }
+
+            // Failure annotation — navigation only, and only when the
+            // harness owns the step. Over the per-step cap, count toward the
+            // aggregate emitted at unload.
+            if (harnessOwnsStep() && annotationBudget.recordFailure()) {
+              ghError(`${repro}\n\n${excerpt}`, {
+                file: annotationFile,
+                title: testName,
+              });
+            }
           }
 
           fail(output.join("\n"));

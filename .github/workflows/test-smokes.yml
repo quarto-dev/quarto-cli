@@ -446,6 +446,9 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This loop owns the per-file ::group:: and ::error:: markers, so the
+          # test harness must not also emit annotations for this step.
+          QUARTO_TESTS_GHA_ORCHESTRATED: "1"
         run: |
           haserror=0
           failed_tests=()
@@ -484,6 +487,9 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This loop owns the per-file ::group:: and ::error:: markers, so the
+          # test harness must not also emit annotations for this step.
+          QUARTO_TESTS_GHA_ORCHESTRATED: "1"
         run: |
           $haserror=$false
           $failed_tests=@()
