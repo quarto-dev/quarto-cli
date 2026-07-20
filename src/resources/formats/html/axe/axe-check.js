@@ -139,12 +139,19 @@ export const STANDARD_TAGS = {
 // per the `standard` and `best-practice` options. `rules` is the axe.getRules()
 // catalog ({ruleId, tags} objects); passing it in keeps this pure for unit tests.
 //
-// `runOnly` by tag matches on tags alone, overriding axe's `enabled: false`
-// defaults. That is what lets a standard reach the default-disabled rules for
-// its level (the AAA rules, `target-size` for 2.2 AA) — but it would also
-// resurrect deprecated rules (`aria-roledescription` and `audio-caption` carry
-// `wcag2a`). Rule-level overrides beat tag matching, so deprecated rules that
-// match the tag list are explicitly disabled.
+// `runOnly` by tag matches on tags alone, overriding axe's per-rule
+// `enabled: false` defaults. That is what lets a standard reach the
+// default-disabled rules for its level (the AAA rules, `target-size` for
+// 2.2 AA), which is the point of choosing a standard.
+//
+// Deprecated rules (`aria-roledescription`, `audio-caption`) still carry a
+// level tag like `wcag2a`, but they also carry the `deprecated` tag, which is
+// in axe's default `tagExclude` (`["experimental", "deprecated"]`). Tag-based
+// `runOnly` still applies `tagExclude` (minus any tag we explicitly include),
+// so deprecated rules are already excluded — the same mechanism that keeps
+// experimental rules out. We also disable each matching deprecated rule here
+// via a rule-level override, so the scoping is self-contained rather than
+// relying on that axe default, and survives a future change to it.
 export function axeScopeOptions(options, rules) {
   const standard = options.standard;
   const bestPractice = options["best-practice"];

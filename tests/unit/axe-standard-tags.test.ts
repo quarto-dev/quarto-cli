@@ -120,10 +120,11 @@ unitTest(
   async () => {
     assertEquals(axeScopeOptions({ standard: "wcag2a" }, rules), {
       runOnly: { type: "tag", values: ["wcag2a"] },
-      // audio-caption is deprecated but tagged wcag2a; runOnly by tag ignores
-      // axe's enabled:false default, so it must be disabled explicitly.
-      // duplicate-id's only wcag tag is the obsolete variant, which never
-      // matches a tag list, so it needs no override.
+      // audio-caption is deprecated but tagged wcag2a, so it matches the tag
+      // list; axeScopeOptions disables it explicitly (axe's default tagExclude
+      // already excludes deprecated rules, but the override keeps the scoping
+      // self-contained). duplicate-id's only wcag tag is the obsolete variant,
+      // which never matches a tag list, so it produces no override.
       rules: { "audio-caption": { enabled: false } },
     });
   },
