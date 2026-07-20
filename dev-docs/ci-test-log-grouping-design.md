@@ -1,7 +1,10 @@
 # Design: GitHub Actions log grouping and failure surfacing for the full (non-bucketed) test run
 
-Status: **proposal** (not implemented). This document plans the work; it
-deliberately ships no behavior change.
+Status: **Phases 1–2 implemented** on this branch (Phase 1: annotations +
+step summary, `tests/test.ts` + `src/tools/github.ts`; Phase 2: per-file
+grouping, `tests/gha-grouping.ts` + the `tests/tools/check-gha-log.ts`
+checker). Phase 3 remains optional/unscheduled. The fork `workflow_dispatch`
+trial matrix (verification item 3) has not run yet.
 
 Base: written on top of `test/smoke-tests-built-version` (the built-version
 testing branch — see `llm-docs/built-version-testing-architecture.md`). The
@@ -251,6 +254,10 @@ does.**
    outside groups). Run it locally on
    `GITHUB_ACTIONS=true ./run-tests.sh <subset> | tee log.txt`. Re-run on every
    Deno version bump (reporter framing is version-sensitive).
+   Windows capture gotcha: use `pwsh -File run-tests.ps1 <files>` with the
+   redirect at the shell level — `pwsh -Command '... run-tests.ps1 <files>
+   *> log'` feeds the `*>` into the script's own arg parsing, blanking the
+   file arguments and silently running the full suite.
 2. **Unit tests** for the new pure logic: annotation cap counter, the
    orchestrated-mode gate (no annotations/groups when
    `QUARTO_TESTS_GHA_ORCHESTRATED` is set), ANSI stripping, the stat-based
