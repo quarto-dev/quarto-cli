@@ -29,8 +29,9 @@ import {
 
 // deno-lint-ignore require-await
 unitTest("gha-reporting - annotation budget caps at 9 then aggregates once", async () => {
-  // no counter path → instance-local state (the off-CI fallback)
-  const budget = new AnnotationBudget(9, undefined);
+  // null counter path → instance-local state, never touches the real
+  // per-step sidecar file (which exists when this suite runs on CI)
+  const budget = new AnnotationBudget(9, null);
   const decisions = [];
   for (let i = 0; i < 12; i++) {
     decisions.push(budget.recordFailure());
@@ -48,7 +49,7 @@ unitTest("gha-reporting - annotation budget caps at 9 then aggregates once", asy
 
 // deno-lint-ignore require-await
 unitTest("gha-reporting - annotation budget honors a custom cap", async () => {
-  const budget = new AnnotationBudget(2, undefined);
+  const budget = new AnnotationBudget(2, null);
   assertEquals(budget.recordFailure(), { emitAnnotation: true, emitAggregate: false });
   assertEquals(budget.recordFailure(), { emitAnnotation: true, emitAggregate: false });
   assertEquals(budget.recordFailure(), { emitAnnotation: false, emitAggregate: true });
@@ -86,13 +87,16 @@ unitTest("gha-reporting - annotation budget is step-wide across module instances
 
 // deno-lint-ignore require-await
 unitTest("gha-reporting - harnessOwnsStep gate", async () => {
-  // owns the step: on CI with no orchestrator claiming it
-  assertEquals(harnessOwnsStep(true, undefined), true);
+  // owns the step: on CI with no orchestrator claiming it. null = "treat as
+  // unset" — an explicit undefined would trigger the default parameter and
+  // read the REAL env, which IS set inside CI bucket steps, flipping this
+  // test's result depending on where it runs.
+  assertEquals(harnessOwnsStep(true, null), true);
   assertEquals(harnessOwnsStep(true, ""), true);
   // an outer orchestrator owns the step
   assertEquals(harnessOwnsStep(true, "1"), false);
   // never emits off CI
-  assertEquals(harnessOwnsStep(false, undefined), false);
+  assertEquals(harnessOwnsStep(false, null), false);
   assertEquals(harnessOwnsStep(false, "1"), false);
 });
 
@@ -124,11 +128,14 @@ unitTest("gha-reporting - step summary size budget and degrade path", async () =
       "now over budget → callers degrade to name-only rows",
     );
 
-    // no-op (does not throw) when the summary file is unset
+    // no-op (does not throw) when the summary file is explicitly absent.
+    // null is the sentinel; an explicit `undefined` would trigger the
+    // default parameter and hit the REAL $GITHUB_STEP_SUMMARY on CI (the
+    // bug this trial-run regression guards: cderv/quarto-cli run 29767179626)
     stepSummary("ignored", "");
-    stepSummary("ignored", undefined);
+    stepSummary("ignored", null);
     assertEquals(stepSummarySize(""), 0);
-    assertEquals(stepSummarySize(undefined), 0);
+    assertEquals(stepSummarySize(null), 0);
   } finally {
     Deno.removeSync(tmp);
   }
