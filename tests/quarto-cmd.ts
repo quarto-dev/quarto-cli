@@ -408,15 +408,21 @@ function mergeChildLog(
   } catch {
     // best effort
   }
+  // Always ensure logFile exists, even when the child logged nothing on a
+  // successful run: test.ts treats a MISSING logTarget as a hard failure
+  // ("test log file is missing"). A quiet successful command must leave an
+  // empty log (which verifiers read as an empty record array), not no file.
+  let existing = "";
+  try {
+    existing = Deno.readTextFileSync(logFile);
+  } catch {
+    // log file may not exist yet
+  }
   if (childContent.length > 0) {
-    let existing = "";
-    try {
-      existing = Deno.readTextFileSync(logFile);
-    } catch {
-      // log file may not exist yet
-    }
     const sep = existing.length === 0 || existing.endsWith("\n") ? "" : "\n";
     Deno.writeTextFileSync(logFile, existing + sep + childContent);
+  } else if (existing.length === 0) {
+    Deno.writeTextFileSync(logFile, "");
   }
   if (outcome.timedOut) {
     appendLogError(
