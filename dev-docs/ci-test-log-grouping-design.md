@@ -232,7 +232,11 @@ neither groups nor failure annotations. Today that is chiefly the
 extension-subtree tests copied into the tree by
 `.github/actions/merge-extension-tests` (`smoke/julia-engine/*.test.ts` from
 the `PumasAI/quarto-julia-engine` subtree — self-contained, `jsr:` imports
-only, raw `Deno.Command("quarto")` spawns).
+only, raw `Deno.Command("quarto")` spawns). Those spawns also leak the
+harness dev env into the built quarto, so the merge action currently skips
+them in binary mode entirely; the un-gating plan (upstream env
+sanitization) is `dev-docs/ci-julia-engine-binary-mode-followup.md` — in
+dev shards they still run, ungrouped.
 
 Known wrinkle of the lazy per-file closure: the harness only closes a group
 when its *next* test starts (or at `unload`), so a non-harness file running
