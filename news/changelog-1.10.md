@@ -21,6 +21,9 @@ All changes included in 1.10:
 - ([#14655](https://github.com/quarto-dev/quarto-cli/issues/14655)): Add accessible names to code line-number links so screen readers and accessibility audits no longer report them as empty links.
 - ([#14676](https://github.com/quarto-dev/quarto-cli/pull/14676)): The `axe` accessibility report UI now lists violations most-important-first: by impact (critical first), then WCAG conformance level (A before AA, current criteria before Best Practice and obsolete ones), then rule id. `output: json` still emits axe-core's raw, unsorted result.
 - ([#14677](https://github.com/quarto-dev/quarto-cli/pull/14677)): The `axe` option now uses a copy of axe-core bundled with Quarto instead of loading it from the Skypack CDN in the reader's browser. Accessibility checking now works offline, and viewing a rendered document no longer triggers a request to `cdn.skypack.dev`. The axe-core version is unchanged (4.10.3), so scan results are identical.
+- ([#14680](https://github.com/quarto-dev/quarto-cli/pull/14680)): Fix the `axe` accessibility report overlay inheriting page-level text centering (e.g. from the `jolla` about template) in HTML output; the overlay is now always left-aligned.
+- ([#14680](https://github.com/quarto-dev/quarto-cli/pull/14680)): Fix hovering a selector in the `axe` accessibility report overlay scrolling the highlighted element underneath the overlay; the element now settles in the viewport area above the report.
+- ([#14680](https://github.com/quarto-dev/quarto-cli/pull/14680)): Fix the `axe` accessibility report overlay in HTML output failing axe's own `scrollable-region-focusable` rule: a report long enough to scroll could not be scrolled by keyboard. The overlay is now a focusable, labeled region.
 
 ## Formats
 
