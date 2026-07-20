@@ -290,7 +290,14 @@ What stays dev-only: `unit/` (in-process by definition), the
 non-playwright `integration/` tests
 (`guess-chunk-options-format-document.test.ts`,
 `mermaid/github-issue-1340.test.ts` — dev shards only), `QUARTO_DEBUG`
-paths, the `quarto check` dev branch, and in-process races. Residual gaps
+paths, the `quarto check` dev branch, and in-process races. Also
+*temporarily* dev-only: the julia-engine subtree tests
+(`smoke/julia-engine/`, copied in by `merge-extension-tests`) — their raw
+`Deno.Command("quarto")` spawns inherit the harness dev env (the D3/D4
+trap: `QUARTO_DEBUG` crashes the built quarto in `checkReconfiguration`),
+so the merge action skips them when `QUARTO_TEST_BIN` is set until the
+spawns are sanitized upstream; plan in
+`dev-docs/ci-julia-engine-binary-mode-followup.md`. Residual gaps
 no suite exercises against the built quarto (not covered anywhere in CI
 today, recorded so they read as known boundaries rather than oversights):
 `quarto preview`/serve interactive paths (the playwright render glob
