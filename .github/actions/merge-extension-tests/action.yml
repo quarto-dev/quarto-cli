@@ -11,6 +11,17 @@ runs:
     - name: Merge julia-engine tests
       shell: bash
       run: |
+        # TODO(binary-mode): the julia-engine subtree tests spawn quarto with
+        # raw Deno.Command (inherited env), so in binary mode the built quarto
+        # inherits the harness dev env (QUARTO_DEBUG, QUARTO_SHARE_PATH, ...)
+        # and crashes in checkReconfiguration / renders with dev-tree
+        # resources. Until the tests sanitize their spawn env upstream in
+        # PumasAI/quarto-julia-engine, skip them in binary mode. Plan:
+        # dev-docs/ci-julia-engine-binary-mode-followup.md
+        if [[ -n "$QUARTO_TEST_BIN" ]]; then
+          echo "::notice title=julia-engine tests skipped in binary mode::subtree tests do not sanitize their quarto spawn env yet (see dev-docs/ci-julia-engine-binary-mode-followup.md)"
+          exit 0
+        fi
         SUBTREE=src/resources/extension-subtrees/julia-engine/tests
         cp -r "$SUBTREE/docs/julia-engine" tests/docs/julia-engine
         cp -r "$SUBTREE/smoke/julia-engine" tests/smoke/julia-engine
