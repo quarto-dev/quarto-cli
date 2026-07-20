@@ -104,6 +104,17 @@ Sync rule: the list mirrors `kStripEnvVars` in quarto-cli
 `tests/quarto-cmd.ts`. If a var is added there, add it upstream too (the
 comment in both files points each way).
 
+Manual sync is not enough — after the subtree pull, **both files live in
+this repo** (`tests/quarto-cmd.ts` and
+`src/resources/extension-subtrees/julia-engine/tests/spawn-env.ts`), so
+drift is mechanically checkable here: add a quarto-cli unit test
+(`tests/unit/strip-env-sync.test.ts`) that imports `kStripEnvVars` and
+parses the subtree helper's list (regex over the file text — the subtree
+file is `jsr:`-only and must not import harness modules), asserting set
+equality. A future addition to `kStripEnvVars` then fails CI until the
+upstream helper is updated and re-pulled, instead of silently re-opening
+the env leak.
+
 ## Procedure
 
 1. Open the upstream PR in `PumasAI/quarto-julia-engine` (helper + spawn
@@ -114,7 +125,10 @@ comment in both files points each way).
    edit or rebase them — `.claude/rules/extension-subtrees.md`).
 3. Remove the `QUARTO_TEST_BIN` gate (and its TODO comment) from
    `.github/actions/merge-extension-tests/action.yml`.
-4. Verify: dispatch `test-smokes-built.yml` with `source=build`; the smoke
+4. Add the strip-list drift unit test
+   (`tests/unit/strip-env-sync.test.ts`, see above) in the same quarto-cli
+   PR that pulls the subtree.
+5. Verify: dispatch `test-smokes-built.yml` with `source=build`; the smoke
    leg must now run `smoke/julia-engine/*` and pass. Also confirm one dev
    shard still runs them (no regression from the helper in dev mode).
 
@@ -123,6 +137,8 @@ comment in both files points each way).
 - Binary-mode smoke leg runs the julia-engine tests green (no
   `checkReconfiguration` crash, no dev-tree resource use — spot-check the
   child's reported share path if in doubt).
+- The strip-list drift unit test is in place and fails when the two lists
+  diverge.
 - Dev shards unchanged.
 - Gate and TODO removed; this doc updated to Status: done (or deleted, with
   the sync rule moved to `llm-docs/built-version-testing-architecture.md`).
