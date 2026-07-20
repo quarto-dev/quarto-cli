@@ -204,11 +204,15 @@ export function assertTestBinary(bin: string) {
 // and kill can escape.)
 async function killProcessTree(pid: number) {
   if (isWindows) {
-    await new Deno.Command("taskkill", {
-      args: ["/PID", String(pid), "/T", "/F"],
-      stdout: "null",
-      stderr: "null",
-    }).output();
+    try {
+      await new Deno.Command("taskkill", {
+        args: ["/PID", String(pid), "/T", "/F"],
+        stdout: "null",
+        stderr: "null",
+      }).output();
+    } catch {
+      // taskkill unavailable or the tree already exited
+    }
     return;
   }
   const pids: number[] = [];
@@ -349,7 +353,9 @@ async function runBinaryQuarto(
   let timedOut = false;
   const timer = setTimeout(() => {
     timedOut = true;
-    killProcessTree(child.pid);
+    // fire-and-forget: child.output() below resolves once the kill lands.
+    // Swallow any rejection so it never surfaces as an unhandled rejection.
+    killProcessTree(child.pid).catch(() => {});
   }, timeoutMs);
 
   // output() drains both streams (undrained pipes deadlock at the 64KiB
