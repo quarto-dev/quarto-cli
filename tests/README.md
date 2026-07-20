@@ -432,7 +432,7 @@ Don't do
 
 ### Binary mode (`QUARTO_TEST_BIN`)
 
-By default, tests run quarto **in-process** from the dev sources: `runQuarto()` in `tests/quarto-cmd.ts` calls the `quarto()` entry point imported from `src/quarto.ts`. When the `QUARTO_TEST_BIN` environment variable points at an installed quarto, `runQuarto()` instead spawns that binary as a subprocess, with `--log <file> --log-format json-stream` so the log-based verifiers keep working unchanged. This is used to run the smoke tests against a built distribution (see `llm-docs/built-version-testing-architecture.md` for the architecture and design decisions, and the `test-smokes-built.yml` CI workflow below).
+By default, tests run quarto **in-process** from the dev sources: `runQuarto()` in `tests/quarto-cmd.ts` calls the `quarto()` entry point imported from `src/quarto.ts`. When the `QUARTO_TEST_BIN` environment variable points at an installed quarto, `runQuarto()` instead spawns that binary as a subprocess, with `--log <file> --log-format json-stream` so the log-based verifiers keep working unchanged. This is used to run the test suites (smoke, playwright, ff-matrix legs) against a built distribution (see `llm-docs/built-version-testing-architecture.md` for the architecture and design decisions, and the `test-smokes-built.yml` CI workflow below).
 
 To run in binary mode locally:
 
@@ -550,7 +550,7 @@ flowchart LR
     CR["create-release.yml<br>nightly build (no publish),<br>dispatch = publish; smoke-artifacts-only<br>input = cheap signed branch builds"]
     ACT[".github/actions/build-dist-tarball<br>(shared build recipe)"]
 
-    FFM["test-ff-matrix.yml (reusable)<br>dev triggers: cron / push / PR<br>owns the ff-matrix qmd bucket"]
+    FFM["test-ff-matrix.yml (reusable)<br>dev triggers: cron / push / PR / dispatch<br>owns the ff-matrix qmd bucket"]
     TS["test-smokes.yml (reusable)<br>inputs: quarto-install, ref, runners,<br>buckets, quarto-artifact-*"]
     TSP --> TS
     DAILY --> TS

@@ -1,5 +1,5 @@
 /*
- * smoke-all.test.ts
+ * playwright-tests.test.ts
  *
  * Copyright (C) 2022 Posit Software, PBC
  *
@@ -97,8 +97,11 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
 }
 
 Deno.test({
-  name: "Playwright tests are passing", 
-  // currently we run playwright tests only on Linux
+  name: "Playwright tests are passing",
+  // browser assertions are skipped on Windows CI (the renders above still
+  // run); Linux and macOS run them. This gate is why built-version CI
+  // (test-smokes-built.yml) has no windows playwright leg - rework it AND
+  // the report-upload gate in test-smokes.yml before adding one.
   ignore: gha.isGitHubActions() && isWindows,
   fn: async () => {
     try {
