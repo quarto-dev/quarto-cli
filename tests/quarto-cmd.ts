@@ -127,6 +127,29 @@ export function appendLogError(logFile: string, msg: string) {
   Deno.writeTextFileSync(logFile, existing + sep + record + "\n");
 }
 
+// A timeout kill can interrupt the child mid-write, leaving a torn (partial)
+// final JSON line. Drop a trailing unparseable line so the merged log stays
+// valid json-stream — readExecuteOutput is deliberately strict (a parse throw
+// is how the logging tests detect malformed output), so the torn line must be
+// removed at the source rather than tolerated by every reader.
+function stripTornTrailingLine(content: string): string {
+  const lines = content.split("\n");
+  let i = lines.length - 1;
+  while (i >= 0 && lines[i] === "") {
+    i--;
+  }
+  if (i < 0) {
+    return content;
+  }
+  try {
+    JSON.parse(lines[i]);
+    return content;
+  } catch {
+    lines.splice(i, 1);
+    return lines.join("\n");
+  }
+}
+
 function hasErrorRecordText(content: string): boolean {
   for (const line of content.split("\n")) {
     if (!line) continue;
@@ -422,6 +445,10 @@ function mergeChildLog(
     Deno.removeSync(childLog);
   } catch {
     // best effort
+  }
+  // Only a timeout kill can tear a line; a clean exit flushes whole records.
+  if (outcome.timedOut) {
+    childContent = stripTornTrailingLine(childContent);
   }
   // Always ensure logFile exists, even when the child logged nothing on a
   // successful run: test.ts treats a MISSING logTarget as a hard failure
