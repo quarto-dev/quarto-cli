@@ -13,6 +13,7 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 import { cleanoutput } from "../smoke/render/render.ts";
 import { execProcess } from "../../src/core/process.ts";
+import { quartoSpawnEnvOptions } from "../quarto-cmd.ts";
 import { quartoDevCmd } from "../utils.ts";
 import { fail } from "testing/asserts";
 import { isWindows } from "../../src/deno_ral/platform.ts";
@@ -72,11 +73,16 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
     // mediabag inspection if we don't wait all renders
     // individually. This is very slow..
     console.log(`Rendering ${input}...`);
+    // quartoSpawnEnvOptions: in binary mode the built quarto must not
+    // inherit the dev-tree env (QUARTO_SHARE_PATH etc.) exported by
+    // run-tests.[sh|ps1] for the harness — it would silently render with
+    // dev-tree resources instead of the packaged ones
     const result = await execProcess({
       cmd: quartoDevCmd(),
       args: ["render", input, ...options],
       stdout: "piped",
       stderr: "piped",
+      ...quartoSpawnEnvOptions(),
     });
 
     if (!result.success) {

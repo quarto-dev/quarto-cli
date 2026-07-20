@@ -197,11 +197,13 @@ else
     fi
   fi
   # Binary-mode default selection: smoke tests only. tests/unit/ exercises
-  # quarto internals in-process (dev-only by definition) and
-  # tests/integration/ requires the dev playwright setup.
+  # quarto internals in-process (dev-only by definition);
+  # tests/integration/playwright-tests.test.ts IS binary-compatible but needs
+  # the playwright toolchain, so it only runs when asked for explicitly (CI
+  # runs it as its own leg in test-smokes-built.yml).
   if [[ -n "$QUARTO_TEST_BIN" && "${#TESTS_TO_RUN[@]}" -eq 0 && -z "$*" ]]; then
     TESTS_TO_RUN=("smoke/")
-    echo "> BINARY MODE: defaulting to smoke/ tests (unit/ and integration/ are dev-only)"
+    echo "> BINARY MODE: defaulting to smoke/ tests (pass a path explicitly to run others, e.g. integration/playwright-tests.test.ts)"
   fi
   # TESTS_TO_RUN is an array and quoted here on purpose: a bucket can be a
   # literal, unexpanded ** glob pattern (e.g. from the ff-matrix CI bucket),

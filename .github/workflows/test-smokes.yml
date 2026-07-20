@@ -538,9 +538,13 @@ jobs:
           key: ${{ steps.cache-renv-packages-restore.outputs.cache-primary-key }}
 
       - uses: actions/upload-artifact@v7
-        # Upload pLaywright test report if they exists (playwright is only running on Linux for now)
+        # Upload playwright test report if it exists (the browser assertions
+        # are ignored on Windows CI - see playwright-tests.test.ts). The name
+        # includes the runner OS: several calls of this workflow can share one
+        # workflow run (e.g. the per-OS playwright legs of
+        # test-smokes-built.yml) and duplicate artifact names fail the upload.
         if: ${{ !cancelled() && runner.os != 'Windows' && hashFiles('tests/integration/playwright/playwright-report/**/*') != '' }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ runner.os }}
           path: ./tests/integration/playwright/playwright-report/
           retention-days: 30
