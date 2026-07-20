@@ -35,8 +35,10 @@ under test:
   verifiers work unchanged. Dev-tree env vars (`QUARTO_SHARE_PATH`,
   `QUARTO_DEBUG`, `DENO_DIR`, ...) are stripped from the child.
   `run-tests.sh`/`.ps1` refuse a binary reporting the `99.9.9` dev sentinel
-  and default the selection to `smoke/` only (`unit/` and `integration/` are
-  dev-only). Exercised by `.github/workflows/test-smokes-built.yml`.
+  and default the selection to `smoke/` (`unit/` is dev-only; the playwright
+  suite and ff-matrix corpus are binary-compatible and run when passed
+  explicitly). Exercised by `.github/workflows/test-smokes-built.yml`,
+  which runs smoke + playwright + ff-matrix legs per source mode.
   Architecture and design decisions:
   `llm-docs/built-version-testing-architecture.md`.
 

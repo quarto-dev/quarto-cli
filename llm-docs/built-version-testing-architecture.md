@@ -45,16 +45,18 @@ ever see log records and rendered outputs. CI-side, the reusable
 sources for the binary under test: `build` (build from this ref, dispatch
 only), `nightly` (reuse the signed artifacts of a nightly `create-release`
 build — fires automatically via `workflow_run` after each one), and
-`release` (install a published (pre-)release at its tag).
+`release` (install a published (pre-)release at its tag) — fanning each
+source out to three test legs: smoke, playwright, and the feature-format
+matrix (see "Built-mode test legs").
 
 ## When to use which mode
 
-| Mode | Quarto under test | Trigger | Question answered |
-|---|---|---|---|
-| dev (`test-smokes.yml`) | in-process TS sources (99.9.9) | every PR/push + daily cron | did this code change break behavior? |
-| nightly | signed nightly artifacts (Linux tarball, signed `quarto.exe`, notarized Mac zip) | automatic, after each nightly build | does what we *ship* work? (bundling/packaging/launcher bugs; only macOS smoke coverage in CI) |
-| build | fresh linux-amd64 dist from the current ref (unsigned) | manual dispatch | will *this branch* survive packaging? (works on forks/PR branches) |
-| release | published (pre-)release via quarto-actions/setup, harness at its `v` tag | manual dispatch | is the version users download healthy? (curative, post-publish) |
+| Mode | Quarto under test | Trigger | Suites (legs) | Question answered |
+|---|---|---|---|---|
+| dev (`test-smokes.yml`) | in-process TS sources (99.9.9) | every PR/push + daily cron | everything (sharded per-commit; ff-matrix via its own cron) | did this code change break behavior? |
+| nightly | signed nightly artifacts (Linux tarball, signed `quarto.exe`, notarized Mac zip) | automatic, after each nightly build | smoke (linux+windows+mac) + playwright (linux+mac) + ff-matrix (linux+windows) | does what we *ship* work? (bundling/packaging/launcher bugs; only macOS smoke coverage in CI) |
+| build | fresh linux-amd64 dist from the current ref (unsigned) | manual dispatch | smoke + playwright + ff-matrix (all linux) | will *this branch* survive packaging? (works on forks/PR branches) |
+| release | published (pre-)release via quarto-actions/setup, harness at its `v` tag | manual dispatch | smoke (linux+windows) + playwright (linux) + ff-matrix (linux+windows) | is the version users download healthy? (curative, post-publish) |
 
 Dev mode and built modes are complementary, not redundant: dev uniquely
 covers `unit/`, `QUARTO_DEBUG` paths, the `quarto check` dev branch, and
