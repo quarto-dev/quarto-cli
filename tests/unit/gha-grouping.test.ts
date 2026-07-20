@@ -145,10 +145,12 @@ unitTest("gha-grouping - single-open-group invariant across many files", async (
 unitTest("gha-grouping - ownership gate honors both env dimensions", async () => {
   // The singleton wrappers gate on harnessOwnsStep(); confirm its truth table
   // matches the grouping contract: emit only on CI with no orchestrator.
-  assertEquals(harnessOwnsStep(true, undefined), true);
+  // null = "treat env var as unset"; an explicit undefined would read the
+  // REAL env via the default parameter — set inside CI bucket steps.
+  assertEquals(harnessOwnsStep(true, null), true);
   assertEquals(harnessOwnsStep(true, ""), true);
   assertEquals(harnessOwnsStep(true, "1"), false);
-  assertEquals(harnessOwnsStep(false, undefined), false);
+  assertEquals(harnessOwnsStep(false, null), false);
   assertEquals(harnessOwnsStep(false, "1"), false);
 
   // a GroupEmitter driven by that gate emits nothing when orchestrated

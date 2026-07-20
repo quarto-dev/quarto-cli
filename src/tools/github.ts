@@ -159,13 +159,19 @@ export function stripAnsi(s: string): string {
 // via QUARTO_TESTS_GHA_ORCHESTRATED (the bucket-loop YAML sets it and emits
 // its own per-file ::error). Arguments default to the live environment;
 // unit tests pass them explicitly to avoid mutating process-global env.
+// `orchestrated` semantics: omitted → read QUARTO_TESTS_GHA_ORCHESTRATED
+// from the live environment; `null` → treat as unset. Tests must pass `null`
+// (never an explicit `undefined`, which triggers the default parameter and
+// reads the real env — inside a CI bucket step that variable IS set, so the
+// test would flip depending on where it runs).
 export function harnessOwnsStep(
   githubActions: boolean = isGitHubActions(),
-  orchestrated: string | undefined = Deno.env.get(
-    "QUARTO_TESTS_GHA_ORCHESTRATED",
-  ),
+  orchestrated?: string | null,
 ): boolean {
-  return githubActions && !orchestrated;
+  const o = orchestrated === undefined
+    ? Deno.env.get("QUARTO_TESTS_GHA_ORCHESTRATED")
+    : orchestrated;
+  return githubActions && !o;
 }
 
 // GitHub caps annotations at 10 ::error per workflow STEP; excess is silently
@@ -191,16 +197,25 @@ export interface AnnotationDecision {
   emitAggregate: boolean;
 }
 
+// `counterPath` semantics: omitted → the env-derived per-step sidecar file;
+// `null` → instance-local state, guaranteed to touch no file. The null
+// sentinel exists because passing `undefined` explicitly triggers the
+// default parameter (JS semantics) — in CI that silently pointed unit tests
+// at the REAL step counter, found by trial run cderv/quarto-cli#29767179626.
 export class AnnotationBudget {
   private localCount = 0;
+  private readonly counterPath: string | null;
   constructor(
     private readonly max = 9,
-    private readonly counterPath: string | undefined =
-      defaultAnnotationCounterPath(),
-  ) {}
+    counterPath?: string | null,
+  ) {
+    this.counterPath = counterPath === undefined
+      ? defaultAnnotationCounterPath() ?? null
+      : counterPath;
+  }
 
   private readCount(): number {
-    if (this.counterPath === undefined) return this.localCount;
+    if (this.counterPath === null) return this.localCount;
     try {
       return parseInt(Deno.readTextFileSync(this.counterPath), 10) || 0;
     } catch {
@@ -209,7 +224,7 @@ export class AnnotationBudget {
   }
 
   private writeCount(n: number): void {
-    if (this.counterPath === undefined) {
+    if (this.counterPath === null) {
       this.localCount = n;
       return;
     }
@@ -237,24 +252,30 @@ export class AnnotationBudget {
 export const kStepSummaryBudgetBytes = 512 * 1024;
 
 // Append markdown to the GitHub Actions step summary. No-op when the file is
-// unset (local runs, or steps without a summary). `path` is injectable for
-// unit tests.
+// unset (local runs, or steps without a summary). `path` semantics: omitted →
+// $GITHUB_STEP_SUMMARY; `null` (or "") → guaranteed no-op. Tests must pass
+// `null` or a temp path, never an explicit `undefined` — that triggers the
+// default parameter and, on CI, writes to the REAL step summary (found by
+// trial run cderv/quarto-cli#29767179626).
 export function stepSummary(
   markdown: string,
-  path: string | undefined = Deno.env.get("GITHUB_STEP_SUMMARY"),
+  path?: string | null,
 ): void {
-  if (!path) return;
-  Deno.writeTextFileSync(path, markdown, { append: true });
+  const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
+  if (!p) return;
+  Deno.writeTextFileSync(p, markdown, { append: true });
 }
 
 // Current size of the step-summary file (0 when unset/missing). Callers
 // compare against kStepSummaryBudgetBytes to decide whether to degrade.
+// Same `path` semantics as stepSummary.
 export function stepSummarySize(
-  path: string | undefined = Deno.env.get("GITHUB_STEP_SUMMARY"),
+  path?: string | null,
 ): number {
-  if (!path) return 0;
+  const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
+  if (!p) return 0;
   try {
-    return Deno.statSync(path).size;
+    return Deno.statSync(p).size;
   } catch {
     return 0;
   }
