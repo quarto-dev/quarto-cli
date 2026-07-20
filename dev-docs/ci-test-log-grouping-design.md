@@ -146,9 +146,16 @@ helpers (gated on `isGitHubActions()`, so local runs are byte-identical):
    `$GITHUB_STEP_SUMMARY` (plain `Deno.writeTextFileSync(..., { append: true })`;
    add a small `stepSummary()` helper to `src/tools/github.ts`):
    - a table header once per process (guard with a module flag), then one row
-     per failure: test file / test name / duration, followed by a
-     `<details><summary>output</summary>` block with the ANSI-stripped log
-     excerpt and the repro command;
+     per failure: test file / test name / duration. Per-failure
+     `<details><summary>output</summary>` blocks (ANSI-stripped excerpt +
+     repro command) are **buffered and flushed after the table at an
+     `unload` listener** — GFM ends a table at the first non-row line, so
+     detail blocks cannot interleave between rows (implementation deviation,
+     adopted). The aggregate over-cap `::error` flushes at the same
+     listener. Accepted consequence: on a hard process death (panic/OOM)
+     the unload never fires and buffered details plus the aggregate are
+     lost — but every row was already appended at failure time, so the
+     summary table remains the complete record;
    - the size budget must also be per *step*, not per process (bucket mode:
      many processes append to the same summary file): before each append,
      `stat` the summary file and degrade to name-only rows once it exceeds
