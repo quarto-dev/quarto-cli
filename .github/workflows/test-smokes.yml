@@ -428,7 +428,11 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./run-tests.ps1
+        # TRIAL ONLY (DO NOT MERGE): explicit subset instead of the full
+        # no-arg run — same single-process multi-file deno test flow, so
+        # grouping/annotation behavior is identical, without the full-suite
+        # runtime on a cold fork.
+        run: ./run-tests.ps1 unit/path.test.ts unit/github-actions-reporting.test.ts unit/gha-grouping.test.ts smoke/jats/render-jats.test.ts smoke/inspect/inspect-include.test.ts smoke/trial-fail/fail-01.test.ts smoke/trial-fail/fail-02.test.ts smoke/trial-fail/fail-03.test.ts smoke/trial-fail/fail-04.test.ts smoke/trial-fail/fail-05.test.ts smoke/trial-fail/fail-06.test.ts smoke/trial-fail/fail-07.test.ts smoke/trial-fail/fail-08.test.ts smoke/trial-fail/fail-09.test.ts smoke/trial-fail/fail-10.test.ts smoke/trial-fail/fail-11.test.ts smoke/trial-fail/fail-12.test.ts
         working-directory: tests
         shell: pwsh
 
@@ -437,7 +441,11 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./run-tests.sh
+        # TRIAL ONLY (DO NOT MERGE): explicit subset instead of the full
+        # no-arg run — same single-process multi-file deno test flow, so
+        # grouping/annotation behavior is identical, without the full-suite
+        # runtime on a cold fork.
+        run: ./run-tests.sh unit/path.test.ts unit/github-actions-reporting.test.ts unit/gha-grouping.test.ts smoke/jats/render-jats.test.ts smoke/inspect/inspect-include.test.ts smoke/trial-fail/fail-01.test.ts smoke/trial-fail/fail-02.test.ts smoke/trial-fail/fail-03.test.ts smoke/trial-fail/fail-04.test.ts smoke/trial-fail/fail-05.test.ts smoke/trial-fail/fail-06.test.ts smoke/trial-fail/fail-07.test.ts smoke/trial-fail/fail-08.test.ts smoke/trial-fail/fail-09.test.ts smoke/trial-fail/fail-10.test.ts smoke/trial-fail/fail-11.test.ts smoke/trial-fail/fail-12.test.ts
         working-directory: tests
         shell: bash
 
