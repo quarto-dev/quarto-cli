@@ -456,7 +456,15 @@ QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh
 
 In binary mode:
 
-- With no test arguments, `run-tests.[sh|ps1]` defaults to `smoke/` only: `unit/` exercises quarto internals in-process and `integration/` requires the dev playwright setup, so both are dev-only.
+- With no test arguments, `run-tests.[sh|ps1]` defaults to `smoke/` only. `unit/` exercises quarto internals in-process and is dev-only by definition; `integration/playwright-tests.test.ts` and the feature-format matrix ARE binary-compatible but need extra toolchain (playwright browsers, the full R/Python/Julia/TeX corpus deps), so they run only when passed explicitly — in CI they are their own legs in `test-smokes-built.yml` (smoke + playwright + ff-matrix, daily against the nightly build):
+
+  ```bash
+  # playwright suite against a built quarto
+  QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh integration/playwright-tests.test.ts
+  # feature-format matrix against a built quarto
+  QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh "../dev-docs/feature-format-matrix/qmd-files/**/*.qmd"
+  ```
+
 - The test environment is configured as usual; set `QUARTO_TESTS_NO_CONFIG` to skip that step as in dev mode.
 - Tests with `requiresDevQuarto: true` in their `TestContext` are ignored (rare escape hatch for tests that must exercise quarto internals in-process).
 
@@ -665,7 +673,7 @@ Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tes
   - If it was triggerred by `workflow_call`, then it will run each test in using `run-tests.[sh|ps1]` in a for-loop.
   - Scheduled tests are still run daily in their sequential version.
   - It is parameterized (`quarto-install`, `quarto-version`, `quarto-artifact-name`, `ref`, `runners`, ...) so callers can run the suite against a built quarto instead of the dev source tree: the workflow installs the quarto under test outside the checkout and exports `QUARTO_TEST_BIN` (see "Binary mode" above).
-- `test-smokes-built.yml` runs the smoke tests against a **built** quarto (daily, via `workflow_run` after each nightly `create-release.yml` build, plus `workflow_dispatch`) by calling `test-smokes.yml`. Which mode to trigger when:
+- `test-smokes-built.yml` runs the test suites against a **built** quarto (daily, via `workflow_run` after each nightly `create-release.yml` build, plus `workflow_dispatch`). Per source mode it fans out to three independent legs: **smoke** (`test-smokes.yml`; also the general bucket runner when the `buckets` dispatch input is set — the other legs then skip), **playwright** (`test-smokes.yml` with the `integration/playwright-tests.test.ts` bucket; linux + macOS only — browser assertions are ignored on Windows CI), and **ff-matrix** (the reusable `test-ff-matrix.yml`, which owns the feature-format bucket glob; linux + windows). Which mode to trigger when:
 
   | Mode | Trigger | Use it to answer |
   |---|---|---|
