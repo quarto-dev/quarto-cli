@@ -428,7 +428,18 @@ export function test(test: TestDescriptor) {
 export function readExecuteOutput(log: string) {
   const jsonStream = Deno.readTextFileSync(log);
   const lines = jsonStream.split("\n").filter((line) => !!line);
-  return lines.map((line) => {
-    return JSON.parse(line) as ExecuteOutput;
-  });
+  const records: ExecuteOutput[] = [];
+  for (const line of lines) {
+    // Tolerate a torn final line: a timeout-killed built quarto can leave a
+    // partial record before mergeChildLog appends the synthetic timeout
+    // ERROR. Skipping it lets that ERROR reach the verifiers instead of a
+    // JSON.parse throw masking the real timeout (matches hasErrorRecordText
+    // in quarto-cmd.ts).
+    try {
+      records.push(JSON.parse(line) as ExecuteOutput);
+    } catch {
+      // ignore unparseable line
+    }
+  }
+  return records;
 }
