@@ -6,8 +6,8 @@ on:
   # forwarded to test-smokes.yml; their defaults preserve today's dev
   # behavior, and the `inputs.x || default` fallbacks in the job keep the
   # schedule/push/PR triggers (where inputs.* is empty) on those defaults.
-  # Nesting: test-smokes-built.yml -> this -> test-smokes.yml = 3 levels
-  # (GitHub allows 4).
+  # Nesting: test-smokes-built.yml -> this -> test-smokes.yml = 3 levels,
+  # well within GitHub's reusable-workflow nesting limit.
   workflow_call:
     inputs:
       extra-r-packages:
@@ -64,6 +64,7 @@ on:
       - ".github/workflows/performance-check.yml"
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
+      - ".github/workflows/test-smokes-built.yml"
       - ".github/workflows/test-smokes-parallel.yml"
       - ".github/workflows/test-install.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
@@ -78,12 +79,21 @@ on:
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
       - ".github/workflows/test-install.yml"
+      - ".github/workflows/test-smokes-built.yml"
       - ".github/workflows/test-smokes-parallel.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
       - ".github/workflows/update-test-timing.yml"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}
+  # The suffix matters under workflow_call (the built-version ff-matrix
+  # legs): a called workflow's top-level concurrency evaluates in the
+  # CALLER's context (github.workflow/ref/run_id are the caller run's), so
+  # without a per-call component every ff-matrix leg of one
+  # test-smokes-built.yml run would share a single cancel-in-progress group
+  # and could cancel a sibling leg. inputs.runners is only ever set on
+  # workflow_call, and differs per leg; dev triggers (inputs empty) get the
+  # constant '-dev' suffix, keeping today's dedup groups.
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}-${{ inputs.runners && format('call-{0}-{1}', github.run_id, inputs.runners) || 'dev' }}
   cancel-in-progress: true
 
 jobs:

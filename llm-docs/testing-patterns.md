@@ -1,6 +1,6 @@
 ---
-main_commit: a3f6218b7
-analyzed_date: 2026-07-17
+main_commit: 2e6695811
+analyzed_date: 2026-07-20
 key_files:
   - tests/test.ts
   - tests/quarto-cmd.ts
