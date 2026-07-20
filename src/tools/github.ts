@@ -169,27 +169,64 @@ export function harnessOwnsStep(
 }
 
 // GitHub caps annotations at 10 ::error per workflow STEP; excess is silently
-// dropped. In the harness-owned (non-orchestrated) path one `deno test`
-// process IS the step, so this module-level budget is exactly a per-step
-// budget: allow `max` per-test annotations, leaving room for one aggregate.
-export class AnnotationBudget {
-  private emitted = 0;
-  private suppressed = 0;
-  constructor(private readonly max = 9) {}
+// dropped. One `deno test` process is the step in the harness-owned path, BUT
+// Deno instantiates each test file's module graph separately (verified on the
+// pinned 2.7.14: module state does not carry across test files, and `unload`
+// fires once per file), so a module-level counter would be a per-FILE budget.
+// The count is therefore coordinated through a sidecar counter file derived
+// from GITHUB_STEP_SUMMARY — unique per step and in a runner-writable
+// directory. No locking: without `deno test --parallel`, test files run
+// strictly sequentially. With no counter path (not on CI), state falls back
+// to instance-local, which unit tests also use via injection.
+export function defaultAnnotationCounterPath(): string | undefined {
+  const summary = Deno.env.get("GITHUB_STEP_SUMMARY");
+  return summary ? `${summary}.qt-annotation-count` : undefined;
+}
 
-  // true  → caller should emit a per-test ::error;
-  // false → over budget, counts toward the aggregate instead.
-  recordFailure(): boolean {
-    if (this.emitted < this.max) {
-      this.emitted++;
-      return true;
+export interface AnnotationDecision {
+  // emit the per-test ::error for this failure
+  emitAnnotation: boolean;
+  // this failure is the first one past the cap: emit the single aggregate
+  // ::error (the 10th and last annotation for the step) instead
+  emitAggregate: boolean;
+}
+
+export class AnnotationBudget {
+  private localCount = 0;
+  constructor(
+    private readonly max = 9,
+    private readonly counterPath: string | undefined =
+      defaultAnnotationCounterPath(),
+  ) {}
+
+  private readCount(): number {
+    if (this.counterPath === undefined) return this.localCount;
+    try {
+      return parseInt(Deno.readTextFileSync(this.counterPath), 10) || 0;
+    } catch {
+      return 0;
     }
-    this.suppressed++;
-    return false;
   }
 
-  suppressedCount(): number {
-    return this.suppressed;
+  private writeCount(n: number): void {
+    if (this.counterPath === undefined) {
+      this.localCount = n;
+      return;
+    }
+    Deno.writeTextFileSync(this.counterPath, String(n));
+  }
+
+  // Record one failure and decide what to emit for it. The aggregate fires
+  // exactly when the count first crosses the cap — no end-of-run hook exists
+  // that spans test files, so it must be emitted inline by the failure that
+  // crosses the line; later failures emit nothing.
+  recordFailure(): AnnotationDecision {
+    const count = this.readCount() + 1;
+    this.writeCount(count);
+    return {
+      emitAnnotation: count <= this.max,
+      emitAggregate: count === this.max + 1,
+    };
   }
 }
 

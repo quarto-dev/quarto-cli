@@ -28,34 +28,60 @@ import {
 } from "../../src/tools/github.ts";
 
 // deno-lint-ignore require-await
-unitTest("gha-reporting - annotation budget caps at 9 then aggregates", async () => {
-  const budget = new AnnotationBudget();
-  const emitted: boolean[] = [];
+unitTest("gha-reporting - annotation budget caps at 9 then aggregates once", async () => {
+  // no counter path → instance-local state (the off-CI fallback)
+  const budget = new AnnotationBudget(9, undefined);
+  const decisions = [];
   for (let i = 0; i < 12; i++) {
-    emitted.push(budget.recordFailure());
+    decisions.push(budget.recordFailure());
   }
   // exactly 9 per-test annotations, leaving room for one aggregate under
   // GitHub's 10-per-step cap
-  assertEquals(emitted.filter((x) => x).length, 9);
-  assertEquals(emitted.slice(0, 9).every((x) => x), true);
-  assertEquals(emitted.slice(9).some((x) => x), false);
-  // the 3 failures past the cap are counted for the aggregate
-  assertEquals(budget.suppressedCount(), 3);
+  assertEquals(decisions.filter((d) => d.emitAnnotation).length, 9);
+  assertEquals(decisions.slice(0, 9).every((d) => d.emitAnnotation), true);
+  // the 10th failure — and only the 10th — emits the single aggregate
+  assertEquals(decisions.map((d) => d.emitAggregate), [
+    false, false, false, false, false, false, false, false, false,
+    true, false, false,
+  ]);
 });
 
 // deno-lint-ignore require-await
 unitTest("gha-reporting - annotation budget honors a custom cap", async () => {
-  const budget = new AnnotationBudget(2);
-  assertEquals(budget.recordFailure(), true);
-  assertEquals(budget.recordFailure(), true);
-  assertEquals(budget.recordFailure(), false);
-  assertEquals(budget.suppressedCount(), 1);
+  const budget = new AnnotationBudget(2, undefined);
+  assertEquals(budget.recordFailure(), { emitAnnotation: true, emitAggregate: false });
+  assertEquals(budget.recordFailure(), { emitAnnotation: true, emitAggregate: false });
+  assertEquals(budget.recordFailure(), { emitAnnotation: false, emitAggregate: true });
+  assertEquals(budget.recordFailure(), { emitAnnotation: false, emitAggregate: false });
 });
 
 // deno-lint-ignore require-await
-unitTest("gha-reporting - budget with no failures aggregates nothing", async () => {
-  const budget = new AnnotationBudget();
-  assertEquals(budget.suppressedCount(), 0);
+unitTest("gha-reporting - annotation budget is step-wide across module instances", async () => {
+  // Deno instantiates each test file's module graph separately, so each file
+  // gets its own AnnotationBudget instance; the sidecar counter file is what
+  // makes the cap per-step. Two instances sharing one file must consume ONE
+  // budget between them.
+  const counter = Deno.makeTempFileSync({ suffix: ".count" });
+  Deno.removeSync(counter); // budget must cope with a not-yet-created file
+  try {
+    const fileA = new AnnotationBudget(3, counter);
+    const fileB = new AnnotationBudget(3, counter);
+    assertEquals(fileA.recordFailure(), { emitAnnotation: true, emitAggregate: false });
+    assertEquals(fileA.recordFailure(), { emitAnnotation: true, emitAggregate: false });
+    // a fresh instance (new "file") continues the same step-wide count
+    assertEquals(fileB.recordFailure(), { emitAnnotation: true, emitAggregate: false });
+    // cap crossed in instance B: exactly one aggregate, then silence — in
+    // both instances
+    assertEquals(fileB.recordFailure(), { emitAnnotation: false, emitAggregate: true });
+    assertEquals(fileA.recordFailure(), { emitAnnotation: false, emitAggregate: false });
+    assertEquals(fileB.recordFailure(), { emitAnnotation: false, emitAggregate: false });
+  } finally {
+    try {
+      Deno.removeSync(counter);
+    } catch {
+      // already gone
+    }
+  }
 });
 
 // deno-lint-ignore require-await

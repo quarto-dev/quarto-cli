@@ -1,20 +1,26 @@
 /*
-* test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * test.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { existsSync, safeRemoveSync } from "../src/deno_ral/fs.ts";
 import { AssertionError, fail } from "testing/asserts";
 import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
-import { cleanupLogger, initializeLogger, flushLoggers, logError, LogLevel, LogFormat } from "../src/core/log.ts";
+import {
+  cleanupLogger,
+  flushLoggers,
+  initializeLogger,
+  logError,
+  LogFormat,
+  LogLevel,
+} from "../src/core/log.ts";
 import { appendLogError, isBinaryMode, runQuarto } from "./quarto-cmd.ts";
 import { join } from "../src/deno_ral/path.ts";
 import * as colors from "fmt/colors";
 import { runningInCI } from "../src/core/ci-info.ts";
-import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
+import { fromFileUrl, relative } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 import {
@@ -33,43 +39,37 @@ import {
 } from "../src/tools/github.ts";
 import { closeTestFileGroup, enterTestFileGroup } from "./gha-grouping.ts";
 
-
 // GitHub Actions failure-surfacing state (Phase 1 of
 // dev-docs/ci-test-log-grouping-design.md). Everything here is a no-op unless
-// GITHUB_ACTIONS=true, so local test output stays byte-identical. In the
-// default full run one `deno test` process is the whole workflow step, so
-// these module-level values are exactly per-step.
+// GITHUB_ACTIONS=true, so local test output stays byte-identical.
+//
+// SCOPE WARNING: Deno instantiates each test FILE's module graph separately
+// (verified on the pinned 2.7.14) — this module-level state is per test file,
+// not per process, and `unload` fires once per file. Anything that must be
+// per-STEP (the annotation budget) is coordinated through a sidecar file
+// inside AnnotationBudget instead of module state.
 const kExcerptLines = 20;
 const annotationBudget = new AnnotationBudget();
+// Per-file header flag: each failing test file starts its own summary table.
 let summaryHeaderEmitted = false;
 // GFM ends a table at the first non-row line, so per-failure <details> blocks
-// cannot sit between table rows; buffer them and flush after all rows at
-// process exit (see the unload listener below).
+// cannot sit between table rows; buffer them and flush after this file's rows
+// at its unload event.
 const pendingSummaryDetails: string[] = [];
 
 if (isGitHubActions()) {
   globalThis.addEventListener("unload", () => {
-    // Close any still-open per-file group FIRST, before emitting the
-    // aggregate ::error below — a collapsed group would hide that log line,
-    // and Deno's terminal ERRORS/FAILURES/summary sections must land outside
-    // any group too (Phase 2). No-op unless the harness owns the step.
+    // Fires at the end of EACH test file's module instance. Close this
+    // file's group if still open — this is what ends a passing file's group
+    // before the next file starts, and keeps Deno's terminal
+    // ERRORS/FAILURES/summary sections outside any group (Phase 2). No-op
+    // unless the harness owns the step.
     closeTestFileGroup();
-    // Flush buffered detail blocks after the (now contiguous) row table,
+    // Flush this file's buffered detail blocks after its row table,
     // stopping if the shared summary file crosses the size budget.
     for (const detail of pendingSummaryDetails) {
       if (stepSummarySize() > kStepSummaryBudgetBytes) break;
       stepSummary(detail);
-    }
-    // One aggregate ::error for failures beyond the per-step annotation cap,
-    // only when the harness owns the step (bucket mode's YAML loop owns its
-    // own annotations).
-    if (harnessOwnsStep()) {
-      const extra = annotationBudget.suppressedCount();
-      if (extra > 0) {
-        ghError(`${extra} additional failures — see step summary`, {
-          title: "More test failures",
-        });
-      }
     }
   });
 }
@@ -99,7 +99,7 @@ export interface TestDescriptor {
 
   // type of test
   type: "smoke" | "unit";
-  
+
   // Optional logging configuration
   logConfig?: TestLogConfig;
 }
@@ -151,7 +151,10 @@ export interface TestContext {
 }
 
 // Allow to merge test contexts in Tests helpers
-export function mergeTestContexts(baseContext: TestContext, additionalContext?: TestContext): TestContext {
+export function mergeTestContexts(
+  baseContext: TestContext,
+  additionalContext?: TestContext,
+): TestContext {
   if (!additionalContext) {
     return baseContext;
   }
@@ -162,7 +165,8 @@ export function mergeTestContexts(baseContext: TestContext, additionalContext?: 
     // combine prereq conditions
     prereq: async () => {
       const baseResult = !baseContext.prereq || await baseContext.prereq();
-      const additionalResult = !additionalContext.prereq || await additionalContext.prereq();
+      const additionalResult = !additionalContext.prereq ||
+        await additionalContext.prereq();
       return baseResult && additionalResult;
     },
     // run teardowns in reverse order
@@ -179,7 +183,8 @@ export function mergeTestContexts(baseContext: TestContext, additionalContext?: 
     cwd: additionalContext.cwd || baseContext.cwd,
     // merge sanitize options
     sanitize: {
-      resources: additionalContext.sanitize?.resources ?? baseContext.sanitize?.resources,
+      resources: additionalContext.sanitize?.resources ??
+        baseContext.sanitize?.resources,
       ops: additionalContext.sanitize?.ops ?? baseContext.sanitize?.ops,
       exit: additionalContext.sanitize?.exit ?? baseContext.sanitize?.exit,
     },
@@ -253,7 +258,15 @@ export function unitTest(
         name: `${name}`,
         verify: async (_outputs: ExecuteOutput[]) => {
           const timeout = new Promise((_resolve, reject) => {
-            setTimeout(() => reject(new AssertionError(`timed out after 2 minutes. Something may be wrong with verify function in the test '${name}'.`)), 120000);
+            setTimeout(
+              () =>
+                reject(
+                  new AssertionError(
+                    `timed out after 2 minutes. Something may be wrong with verify function in the test '${name}'.`,
+                  ),
+                ),
+              120000,
+            );
           });
           await Promise.race([ver(), timeout]);
         },
@@ -270,9 +283,7 @@ function testFileFromOrigin(origin: string): {
   absPath: string;
   relPath: string;
 } {
-  const absPath = isWindows
-    ? fromFileUrl(origin)
-    : (new URL(origin)).pathname;
+  const absPath = isWindows ? fromFileUrl(origin) : (new URL(origin)).pathname;
   const quartoRoot = join(quartoConfig.binPath(), "..", "..", "..");
   const relPath = relative(join(quartoRoot, "tests"), absPath);
   return { absPath, relPath };
@@ -305,251 +316,271 @@ export function test(test: TestDescriptor) {
           testFileFromOrigin(context.origin).relPath.replaceAll("\\", "/"),
         );
       }
-      const testStart = performance.now();
-      await initDenoDom();
-      const runTest = !test.context.prereq || await test.context.prereq();
-      if (runTest) {
-        const wd = Deno.cwd();
+      try {
+        const testStart = performance.now();
+        await initDenoDom();
+        const runTest = !test.context.prereq || await test.context.prereq();
+        if (runTest) {
+          const wd = Deno.cwd();
 
-        // The child owns log capture in binary mode.
-        const binMode = isBinaryMode();
+          // The child owns log capture in binary mode.
+          const binMode = isBinaryMode();
 
-        let cleanedup = false;
-        const cleanupLogOnce = async () => {
-          if (!cleanedup && !binMode) {
-            await cleanupLogger();
-            cleanedup = true;
-          }
-        };
+          let cleanedup = false;
+          const cleanupLogOnce = async () => {
+            if (!cleanedup && !binMode) {
+              await cleanupLogger();
+              cleanedup = true;
+            }
+          };
 
-        // Capture the output
-        const log = Deno.makeTempFileSync({ suffix: ".json" });
-        const logTarget = test.logConfig?.log || log;
-        const handlers = binMode ? undefined : await initializeLogger({
-          log: logTarget,
-          level: test.logConfig?.level || "INFO",
-          format: test.logConfig?.format || "json-stream",
-          quiet: true,
-        });
+          // Capture the output
+          const log = Deno.makeTempFileSync({ suffix: ".json" });
+          const logTarget = test.logConfig?.log || log;
+          const handlers = binMode ? undefined : await initializeLogger({
+            log: logTarget,
+            level: test.logConfig?.level || "INFO",
+            format: test.logConfig?.format || "json-stream",
+            quiet: true,
+          });
 
-        const logOutput = (path: string) => {
-          if (existsSync(path)) {
-            return readExecuteOutput(path);
-          } else {
-            return undefined;
-          }
-        };
-        let lastVerify;
-
-        try {
-          // Inside the try so a throwing setup or chdir still reaches the
-          // teardown and cwd restore below, instead of skipping them and
-          // leaking the process cwd into every later test in the file.
-          if (test.context?.cwd) {
-            Deno.chdir(test.context.cwd());
-          }
-
-          if (test.context.setup) {
-            await test.context.setup();
-          }
-
-          try {
-            await test.execute(logTarget);
-          } catch (e) {
-            if (binMode) {
-              // Append directly because binary mode has no harness logger.
-              const message = e instanceof Error
-                ? `${e.message}\n${e.stack ?? ""}`
-                : String(e);
-              appendLogError(logTarget, message);
+          const logOutput = (path: string) => {
+            if (existsSync(path)) {
+              return readExecuteOutput(path);
             } else {
-              logError(e);
+              return undefined;
             }
-          }
+          };
+          let lastVerify;
 
-          // Cleanup the output logging
-          await cleanupLogOnce();
-
-          if (handlers) {
-            flushLoggers(handlers);
-          }
-
-          // Both logging modes write to logTarget; a missing log is a failure.
-          const testOutput = logOutput(logTarget);
-          if (testOutput === undefined) {
-            fail(`test log file is missing: ${logTarget}`);
-          } else {
-            for (const ver of test.verify) {
-              lastVerify = ver;
-              if (userSession) {
-                const verifyMsg = "[verify] > " + ver.name;
-                console.log(userSession ? colors.dim(verifyMsg) : verifyMsg);
-              }
-              await ver.verify(testOutput);
-            }
-          }
-        } catch (ex) {
-          if (!(ex instanceof Error)) throw ex;
-
-          // Pop out of the per-file group BEFORE emitting the ::error
-          // annotation and throwing, so the annotation, the FAILED result
-          // line, and the end-of-run failure detail all land outside any
-          // collapsed group (Phase 2, spike-verified). The next test re-opens
-          // a group with the same file title.
-          closeTestFileGroup();
-
-          const border = "-".repeat(80);
-          const coloredName = userSession
-            ? colors.brightGreen(colors.italic(testName))
-            : testName;
-
-          // Compute an inset based upon the testName
-          const offset = testName.indexOf(">");
-
-          // Form the test runner command
-          const { absPath, relPath } = testFileFromOrigin(context.origin);
-          const command = isWindows
-            ? "run-tests.ps1"
-            : "./run-tests.sh";
-          const testCommand = `${
-            offset > 0 ? " ".repeat(offset + 2) : ""
-          }${command} ${relPath}`;
-          const coloredTestCommand = userSession
-            ? colors.brightGreen(testCommand)
-            : testCommand;
-
-          const verifyFailed = `[verify] > ${
-            lastVerify ? lastVerify.name : "unknown"
-          }`;
-          const coloredVerify = userSession
-            ? colors.brightGreen(verifyFailed)
-            : verifyFailed;
-
-          // Preserve the primary failure if the log is malformed.
-          let logMessages: ExecuteOutput[] | undefined;
           try {
-            logMessages = logOutput(logTarget);
-          } catch {
-            logMessages = undefined;
-          }
+            // Inside the try so a throwing setup or chdir still reaches the
+            // teardown and cwd restore below, instead of skipping them and
+            // leaking the process cwd into every later test in the file.
+            if (test.context?.cwd) {
+              Deno.chdir(test.context.cwd());
+            }
 
-          // Create distinctive failure marker for easy log navigation
-          // This helps users find the failure when clicking GitHub Actions annotations
-          const failureMarker = `━━━ TEST FAILURE: ${testName}`;
-          const coloredFailureMarker = userSession
-            ? colors.red(colors.bold(failureMarker))
-            : failureMarker;
+            if (test.context.setup) {
+              await test.context.setup();
+            }
 
-          const output: string[] = [
-            "",
-            "",
-            coloredFailureMarker,
-            border,
-            coloredName,
-            coloredTestCommand,
-            "",
-            coloredVerify,
-            "",
-            ex.message,
-            ex.stack ?? "",
-            "",
-          ];
-
-          if (logMessages && logMessages.length > 0) {
-            output.push("OUTPUT:");
-            logMessages.forEach((out) => {
-              const parts = out.msg.split("\n");
-              parts.forEach((part) => {
-                output.push("    " + part);
-              });
-            });
-          }
-
-          // GitHub Actions: a failure annotation (navigation) and a
-          // step-summary row (the complete failure record). No-op off CI.
-          if (isGitHubActions()) {
-            const fwd = (p: string) => p.replaceAll("\\", "/");
-            // The repro path is tests-relative (run-tests.sh runs from
-            // tests/); the annotation file= is repo-relative with forward
-            // slashes. For smoke-all doc tests the navigable file is the
-            // rendered document (embedded in the test name by
-            // smoke-all.test.ts), not the harness .test.ts file.
-            let reproPath = fwd(relPath);
-            if (fwd(absPath).endsWith("/smoke/smoke-all.test.ts")) {
-              const m = fwd(testName).match(
-                /(\S+\.(?:qmd|ipynb|md))(?=\s|$)/,
-              );
-              if (m) {
-                reproPath = m[1];
+            try {
+              await test.execute(logTarget);
+            } catch (e) {
+              if (binMode) {
+                // Append directly because binary mode has no harness logger.
+                const message = e instanceof Error
+                  ? `${e.message}\n${e.stack ?? ""}`
+                  : String(e);
+                appendLogError(logTarget, message);
+              } else {
+                logError(e);
               }
             }
-            const annotationFile = `tests/${reproPath}`;
-            const repro = `${command} ${reproPath}`;
 
-            const rawExcerpt: string[] = [ex.message];
-            if (ex.stack) {
-              rawExcerpt.push(ex.stack);
+            // Cleanup the output logging
+            await cleanupLogOnce();
+
+            if (handlers) {
+              flushLoggers(handlers);
             }
+
+            // Both logging modes write to logTarget; a missing log is a failure.
+            const testOutput = logOutput(logTarget);
+            if (testOutput === undefined) {
+              fail(`test log file is missing: ${logTarget}`);
+            } else {
+              for (const ver of test.verify) {
+                lastVerify = ver;
+                if (userSession) {
+                  const verifyMsg = "[verify] > " + ver.name;
+                  console.log(userSession ? colors.dim(verifyMsg) : verifyMsg);
+                }
+                await ver.verify(testOutput);
+              }
+            }
+          } catch (ex) {
+            if (!(ex instanceof Error)) throw ex;
+
+            // Pop out of the per-file group BEFORE emitting the ::error
+            // annotation and throwing, so the annotation, the FAILED result
+            // line, and the end-of-run failure detail all land outside any
+            // collapsed group (Phase 2, spike-verified). The next test re-opens
+            // a group with the same file title.
+            closeTestFileGroup();
+
+            const border = "-".repeat(80);
+            const coloredName = userSession
+              ? colors.brightGreen(colors.italic(testName))
+              : testName;
+
+            // Compute an inset based upon the testName
+            const offset = testName.indexOf(">");
+
+            // Form the test runner command
+            const { absPath, relPath } = testFileFromOrigin(context.origin);
+            const command = isWindows ? "run-tests.ps1" : "./run-tests.sh";
+            const testCommand = `${
+              offset > 0 ? " ".repeat(offset + 2) : ""
+            }${command} ${relPath}`;
+            const coloredTestCommand = userSession
+              ? colors.brightGreen(testCommand)
+              : testCommand;
+
+            const verifyFailed = `[verify] > ${
+              lastVerify ? lastVerify.name : "unknown"
+            }`;
+            const coloredVerify = userSession
+              ? colors.brightGreen(verifyFailed)
+              : verifyFailed;
+
+            // Preserve the primary failure if the log is malformed.
+            let logMessages: ExecuteOutput[] | undefined;
+            try {
+              logMessages = logOutput(logTarget);
+            } catch {
+              logMessages = undefined;
+            }
+
+            // Create distinctive failure marker for easy log navigation
+            // This helps users find the failure when clicking GitHub Actions annotations
+            const failureMarker = `━━━ TEST FAILURE: ${testName}`;
+            const coloredFailureMarker = userSession
+              ? colors.red(colors.bold(failureMarker))
+              : failureMarker;
+
+            const output: string[] = [
+              "",
+              "",
+              coloredFailureMarker,
+              border,
+              coloredName,
+              coloredTestCommand,
+              "",
+              coloredVerify,
+              "",
+              ex.message,
+              ex.stack ?? "",
+              "",
+            ];
+
             if (logMessages && logMessages.length > 0) {
-              rawExcerpt.push("OUTPUT:");
-              for (const out of logMessages) {
-                for (const part of out.msg.split("\n")) {
-                  rawExcerpt.push("    " + part);
+              output.push("OUTPUT:");
+              logMessages.forEach((out) => {
+                const parts = out.msg.split("\n");
+                parts.forEach((part) => {
+                  output.push("    " + part);
+                });
+              });
+            }
+
+            // GitHub Actions: a failure annotation (navigation) and a
+            // step-summary row (the complete failure record). No-op off CI.
+            if (isGitHubActions()) {
+              const fwd = (p: string) => p.replaceAll("\\", "/");
+              // The repro path is tests-relative (run-tests.sh runs from
+              // tests/); the annotation file= is repo-relative with forward
+              // slashes. For smoke-all doc tests the navigable file is the
+              // rendered document (embedded in the test name by
+              // smoke-all.test.ts), not the harness .test.ts file.
+              let reproPath = fwd(relPath);
+              if (fwd(absPath).endsWith("/smoke/smoke-all.test.ts")) {
+                const m = fwd(testName).match(
+                  /(\S+\.(?:qmd|ipynb|md))(?=\s|$)/,
+                );
+                if (m) {
+                  reproPath = m[1];
+                }
+              }
+              const annotationFile = `tests/${reproPath}`;
+              const repro = `${command} ${reproPath}`;
+
+              const rawExcerpt: string[] = [ex.message];
+              if (ex.stack) {
+                rawExcerpt.push(ex.stack);
+              }
+              if (logMessages && logMessages.length > 0) {
+                rawExcerpt.push("OUTPUT:");
+                for (const out of logMessages) {
+                  for (const part of out.msg.split("\n")) {
+                    rawExcerpt.push("    " + part);
+                  }
+                }
+              }
+              const excerpt = stripAnsi(rawExcerpt.join("\n"))
+                .split("\n")
+                .slice(0, kExcerptLines)
+                .join("\n");
+
+              // Step-summary row — emitted in ALL modes (cap-free, size-
+              // coordinated via the file). Degrade to name-only once the
+              // shared file is over budget.
+              const overBudget = stepSummarySize() > kStepSummaryBudgetBytes;
+              if (!summaryHeaderEmitted) {
+                stepSummary(summaryTableHeader());
+                summaryHeaderEmitted = true;
+              }
+              if (overBudget) {
+                stepSummary(summaryTableRowNameOnly(annotationFile, testName));
+              } else {
+                const durationMs = Math.round(performance.now() - testStart);
+                stepSummary(
+                  summaryTableRow(annotationFile, testName, durationMs),
+                );
+                pendingSummaryDetails.push(summaryDetailBlock(repro, excerpt));
+              }
+
+              // Failure annotation — navigation only, and only when the
+              // harness owns the step. The budget is step-wide (sidecar
+              // counter file — module state is per test FILE, see the scope
+              // warning at the top); the failure that crosses the cap emits
+              // the single aggregate as the step's 10th and last annotation.
+              if (harnessOwnsStep()) {
+                const decision = annotationBudget.recordFailure();
+                if (decision.emitAnnotation) {
+                  ghError(`${repro}\n\n${excerpt}`, {
+                    file: annotationFile,
+                    title: testName,
+                  });
+                } else if (decision.emitAggregate) {
+                  ghError(
+                    "Further test failures are not annotated (GitHub caps " +
+                      "annotations per step) — see the step summary for " +
+                      "the complete list",
+                    { title: "More test failures" },
+                  );
                 }
               }
             }
-            const excerpt = stripAnsi(rawExcerpt.join("\n"))
-              .split("\n")
-              .slice(0, kExcerptLines)
-              .join("\n");
 
-            // Step-summary row — emitted in ALL modes (cap-free, size-
-            // coordinated via the file). Degrade to name-only once the
-            // shared file is over budget.
-            const overBudget = stepSummarySize() > kStepSummaryBudgetBytes;
-            if (!summaryHeaderEmitted) {
-              stepSummary(summaryTableHeader());
-              summaryHeaderEmitted = true;
-            }
-            if (overBudget) {
-              stepSummary(summaryTableRowNameOnly(annotationFile, testName));
-            } else {
-              const durationMs = Math.round(performance.now() - testStart);
-              stepSummary(
-                summaryTableRow(annotationFile, testName, durationMs),
-              );
-              pendingSummaryDetails.push(summaryDetailBlock(repro, excerpt));
-            }
-
-            // Failure annotation — navigation only, and only when the
-            // harness owns the step. Over the per-step cap, count toward the
-            // aggregate emitted at unload.
-            if (harnessOwnsStep() && annotationBudget.recordFailure()) {
-              ghError(`${repro}\n\n${excerpt}`, {
-                file: annotationFile,
-                title: testName,
-              });
-            }
-          }
-
-          fail(output.join("\n"));
-        } finally {
-          safeRemoveSync(log);
-          await cleanupLogOnce();
-          // A throwing teardown still fails the test, but only after the cwd
-          // is restored - otherwise it leaks into every later test in the file.
-          try {
-            if (test.context.teardown) {
-              await test.context.teardown();
-            }
+            fail(output.join("\n"));
           } finally {
-            if (test.context?.cwd) {
-              Deno.chdir(wd);
+            safeRemoveSync(log);
+            await cleanupLogOnce();
+            // A throwing teardown still fails the test, but only after the cwd
+            // is restored - otherwise it leaks into every later test in the file.
+            try {
+              if (test.context.teardown) {
+                await test.context.teardown();
+              }
+            } finally {
+              if (test.context?.cwd) {
+                Deno.chdir(wd);
+              }
             }
           }
+        } else {
+          warning(`Skipped - ${test.name}`);
         }
-      } else {
-        warning(`Skipped - ${test.name}`);
+      } catch (e) {
+        // Close the per-file group before ANY failure propagates to Deno.
+        // init/prereq/setup/teardown errors bypass the execute/verify
+        // failure path (which closes it itself; close() is idempotent) and
+        // would otherwise leave the FAILED result line inside a collapsed
+        // group until the unload handler runs.
+        closeTestFileGroup();
+        throw e;
       }
     },
     ignore,

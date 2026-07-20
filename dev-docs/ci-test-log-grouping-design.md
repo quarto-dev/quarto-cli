@@ -94,20 +94,33 @@ A standalone experiment (two test files, markers emitted from inside
   [smoke] > first test name ...                <- visible
   ::group::./smoke/foo.test.ts                 <- group opens
      ...all per-test output and "... ok" lines of the file...
-  ::endgroup::                                 <- emitted by the next file's first test
+  ::endgroup::                                 <- emitted by THIS file's unload
   running M tests from ./smoke/bar.test.ts     <- visible
   ```
 
   i.e. per-file grouping collapses exactly the noise (per-test output blocks
   and `ok` lines) while keeping Deno's own file headers visible as structure.
+- **Per-file module instances (correction, found via review #1986).** Deno
+  instantiates each test file's module graph separately: module state resets
+  between files, and each file gets its own `unload` event, flushed before
+  the next file's header. The original spike misread the inter-file
+  `::endgroup::` as the next file's first test closing the previous group
+  via shared state — it is actually the previous file's own unload. The
+  observable grouping output is identical either way (which is why the
+  probes looked right), but it means module-level state is per-FILE: any
+  genuinely per-step value (the annotation budget) must be coordinated
+  through the filesystem, and the grouping state machine's cross-file
+  transition close is in practice a no-op safety net (each instance only
+  ever sees its own file).
 - **On failure**, emitting `::endgroup::` from the failure path *before*
   throwing puts the `FAILED` result line **outside** any group (visible in the
   collapsed view), with the `::error` annotation adjacent. The next passing
   test simply re-opens a group with the same file title (flat sequential
   groups — allowed).
-- An `unload` listener's `::endgroup::` flushes **before** Deno's terminal
-  `ERRORS` / `FAILURES` / summary sections, so the end-of-run failure details
-  are never swallowed by the last group.
+- Each file's `unload` `::endgroup::` flushes **before** the next file's
+  header and before Deno's terminal `ERRORS` / `FAILURES` / summary
+  sections, so file groups never bleed into the next file and the end-of-run
+  failure details are never swallowed by the last group.
 
 Caveat: the exact attribution of output to Deno's `output` vs `post-test
 output` blocks is reporter behavior that may shift across Deno upgrades. It
@@ -137,10 +150,17 @@ helpers (gated on `isGitHubActions()`, so local runs are byte-identical):
      per-process counter cannot implement a per-step budget there, and the
      YAML bucket loop already emits its own `::error` per failed file.
      Resolution: **the harness emits annotations only when it owns the step**
-     (`QUARTO_TESTS_GHA_ORCHESTRATED` unset — the default path, where one
-     `deno test` process *is* the whole step, so a module-level counter is
-     exactly a step budget: stop at 9, then one aggregate
-     `::error title=More test failures::N additional failures — see step summary`).
+     (`QUARTO_TESTS_GHA_ORCHESTRATED` unset — the default path). One
+     `deno test` process is the whole step there, BUT a module-level counter
+     is still NOT a step budget: Deno instantiates each test file's module
+     graph separately (verified on the pinned 2.7.14 — module state resets
+     per file and `unload` fires once per file), so the count is coordinated
+     through a sidecar counter file derived from `GITHUB_STEP_SUMMARY`
+     (unique per step, runner-writable; no locking needed — files run
+     sequentially without `--parallel`). Stop at 9; the failure that crosses
+     the cap emits the single aggregate `::error` inline as the step's 10th
+     and last annotation (no cross-file end-of-run hook exists to emit it
+     later).
      In bucket mode the YAML loop keeps its per-file `::error` as today.
      Known, accepted: if more than 10 bucket files fail, GitHub silently
      drops the excess YAML annotations too — the step summary (below) is the
@@ -148,17 +168,17 @@ helpers (gated on `isGitHubActions()`, so local runs are byte-identical):
 2. **Step summary row per failed test**: append to the file at
    `$GITHUB_STEP_SUMMARY` (plain `Deno.writeTextFileSync(..., { append: true })`;
    add a small `stepSummary()` helper to `src/tools/github.ts`):
-   - a table header once per process (guard with a module flag), then one row
-     per failure: test file / test name / duration. Per-failure
-     `<details><summary>output</summary>` blocks (ANSI-stripped excerpt +
-     repro command) are **buffered and flushed after the table at an
-     `unload` listener** — GFM ends a table at the first non-row line, so
-     detail blocks cannot interleave between rows (implementation deviation,
-     adopted). The aggregate over-cap `::error` flushes at the same
-     listener. Accepted consequence: on a hard process death (panic/OOM)
-     the unload never fires and buffered details plus the aggregate are
-     lost — but every row was already appended at failure time, so the
-     summary table remains the complete record;
+   - a table header once per test FILE (module state is per file — see the
+     spike correction above), then one row per failure: test file / test
+     name / duration. Per-failure `<details><summary>output</summary>`
+     blocks (ANSI-stripped excerpt + repro command) are **buffered and
+     flushed after that file's table at its per-file `unload` event** — GFM
+     ends a table at the first non-row line, so detail blocks cannot
+     interleave between rows. Each failing file therefore contributes its
+     own small table followed by its detail blocks. Accepted consequence:
+     on a hard process death (panic/OOM) pending unloads never fire and
+     buffered details are lost — but every row was already appended at
+     failure time, so the summary tables remain the complete record;
    - the size budget must also be per *step*, not per process (bucket mode:
      many processes append to the same summary file): before each append,
      `stat` the summary file and degrade to name-only rows once it exceeds
@@ -188,25 +208,31 @@ does.**
     harness already knows it — `testQuartoCmd`/`unitTest` call sites — or via
     the registration call's captured stack);
   - on file change: `endGroup()` (defensive, harmless if none open) then
-    `startGroup(relativePath)`;
+    `startGroup(relativePath)`. NOTE (spike correction): since each test
+    file gets a fresh module instance, an instance in practice only ever
+    sees its own file — the transition close is a safety net for a future
+    Deno that shares module state again, not the working mechanism;
   - on the failure path (before `fail()` throws): `endGroup()` and clear the
     "open" flag, so the `FAILED` line and annotation land outside groups
-    (verified by the spike);
-  - `globalThis.addEventListener("unload", ...)`: close any open group so the
-    terminal `ERRORS`/summary sections are never grouped (verified);
+    (verified by the spike). Any failure that escapes the harness's
+    execute/verify path (init, prereq, setup, teardown — review #1991) must
+    also close the group before propagating to Deno: an outer catch around
+    the whole test body closes-and-rethrows, idempotently;
+  - `globalThis.addEventListener("unload", ...)`: fires once per test FILE
+    and closes that file's group — this is what actually ends a passing
+    file's group before the next file's header, and keeps the terminal
+    `ERRORS`/summary sections ungrouped (verified);
   - every emission gated on
     `isGitHubActions() && !Deno.env.get("QUARTO_TESTS_GHA_ORCHESTRATED")`.
-- **Closure policy (explicit choice): lazy per-file closure.** A group is
-  closed on the next harness test's file change, on the failure path, and at
-  `unload` — not when each test ends. Consequence, accepted: a direct
-  `Deno.test` file (no harness registration) running between two harness
-  files executes inside the previous file's still-open group (see "Coverage
-  limitation" below); invariant 3 is therefore scoped to harness-registered
-  tests. The documented fallback, **eager closure** (end the group when the
-  test that opened it ends; reopen on the next test of the same file), trades
-  one collapsed block per file for one per test but holds invariant 3 for
-  foreign tests too — switch to it if non-harness test files ever become
-  common in grouped runs.
+- **Closure policy: per-file closure at the file's own `unload`** (plus the
+  failure-path close). A pleasant consequence of per-file module instances:
+  a direct `Deno.test` file (no harness registration) running between two
+  harness files executes AFTER the previous file's unload closed its group —
+  foreign tests' output and `FAILED` lines land ungrouped, visible. The
+  stale-group swallowing originally accepted under "lazy closure" does not
+  occur in practice; invariant 3 stays scoped to harness-registered tests
+  only as a guard against Deno changing its module-instantiation model
+  (which the checker script would catch).
 - Granularity is **per test file**, matching Deno's own "running N tests
   from ..." structure. Per-test granularity is the documented fallback if real
   logs show files whose single collapsed group is still too coarse (e.g.
@@ -233,13 +259,14 @@ does.**
    contract).
 3. For **harness-registered** tests: `FAILED` result lines, the
    `ERRORS`/`FAILURES` sections, and the run summary are never inside a
-   group. (Direct `Deno.test` files are exempt under lazy closure — see the
-   closure policy in Phase 2 and "Coverage limitation"; their failures
-   remain visible in the ungrouped end-of-run `ERRORS` section.)
+   group. (Direct `Deno.test` files are formally exempt, though in practice
+   per-file unload closure keeps them ungrouped too — see the closure policy
+   in Phase 2 and "Coverage limitation".)
 4. Per-test `::error` annotations only when the harness owns the step, and
-   then ≤ 9 + 1 aggregate per step (one process = one step in that mode);
-   ≤ 50 annotations total per job including the YAML bucket loop's own.
-   The step summary is the complete failure record in every mode.
+   then ≤ 9 + 1 aggregate per step — enforced across per-file module
+   instances via the sidecar counter file, NOT module state; ≤ 50
+   annotations total per job including the YAML bucket loop's own. The step
+   summary is the complete failure record in every mode.
 5. Everything is a no-op unless `GITHUB_ACTIONS == "true"`: local output is
    byte-identical.
 6. No change to which tests run, their order, or exit codes.
@@ -293,16 +320,14 @@ them in binary mode entirely; the un-gating plan (upstream env
 sanitization) is `dev-docs/ci-julia-engine-binary-mode-followup.md` — in
 dev shards they still run, ungrouped.
 
-Known consequence of the chosen **lazy per-file closure** (see the closure
-policy in Phase 2): the harness only closes a group when its *next* test
-starts (or at `unload`), so a non-harness file running between two harness
-files executes while the previous file's group is still open — its output,
-including inline `FAILED` lines, is swallowed into that stale group under a
-misleading title. This is the documented exemption in invariant 3, accepted
-because Deno's end-of-run `ERRORS`/`FAILURES` sections always repeat the
-full failure detail outside any group (spike-verified), so such failures
-remain findable; the eager-closure fallback defined in Phase 2 removes the
-exemption if it ever bites. Richer coverage (own groups + annotations)
+Group placement for such files (updated after the per-file-instance
+correction): each harness file's group is closed by that file's own `unload`
+before the next file starts, so a non-harness file runs with NO group open —
+its output and inline `FAILED` lines land ungrouped and visible. The
+stale-group swallowing this section originally accepted does not occur under
+the current Deno model; invariant 3's harness-only scoping remains as a
+guard in case a future Deno shares module state across files again (the
+checker script would flag it). Richer coverage (own groups + annotations)
 requires adopting the markers upstream in the subtree repo — subtree files
 must not be edited in quarto-cli; see `.claude/rules/extension-subtrees.md`.
 
