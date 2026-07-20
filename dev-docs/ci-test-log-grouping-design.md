@@ -129,9 +129,19 @@ helpers (gated on `isGitHubActions()`, so local runs are byte-identical):
    - `title`: the test name (`[smoke] > ...`);
    - message: the repro command (`./run-tests.sh <path>`) plus the first ~20
      lines of ANSI-stripped captured output, `%0A`-escaped.
-   - **Cap**: a module-level counter stops at 9 annotations; the 10th failure
-     emits a single aggregate
-     `::error title=More test failures::N additional failures — see step summary`.
+   - **Cap and ownership**: GitHub's 10-errors cap is per *workflow step*,
+     but bucket mode runs many `run-tests.sh` processes inside one step — a
+     per-process counter cannot implement a per-step budget there, and the
+     YAML bucket loop already emits its own `::error` per failed file.
+     Resolution: **the harness emits annotations only when it owns the step**
+     (`QUARTO_TESTS_GHA_ORCHESTRATED` unset — the default path, where one
+     `deno test` process *is* the whole step, so a module-level counter is
+     exactly a step budget: stop at 9, then one aggregate
+     `::error title=More test failures::N additional failures — see step summary`).
+     In bucket mode the YAML loop keeps its per-file `::error` as today.
+     Known, accepted: if more than 10 bucket files fail, GitHub silently
+     drops the excess YAML annotations too — the step summary (below) is the
+     complete record in all modes; annotations are best-effort navigation.
 2. **Step summary row per failed test**: append to the file at
    `$GITHUB_STEP_SUMMARY` (plain `Deno.writeTextFileSync(..., { append: true })`;
    add a small `stepSummary()` helper to `src/tools/github.ts`):
@@ -139,21 +149,29 @@ helpers (gated on `isGitHubActions()`, so local runs are byte-identical):
      per failure: test file / test name / duration, followed by a
      `<details><summary>output</summary>` block with the ANSI-stripped log
      excerpt and the repro command;
-   - a byte budget (~512 KiB per process) after which rows degrade to
-     name-only lines, to stay clear of the silent-drop bug.
+   - the size budget must also be per *step*, not per process (bucket mode:
+     many processes append to the same summary file): before each append,
+     `stat` the summary file and degrade to name-only rows once it exceeds
+     ~512 KiB — the file size itself is the cross-process coordination, and
+     staying at ~half the 1 MiB limit dodges the silent-drop bug.
 
-This works identically in bucket mode and default mode (each bucket job gets
-its own annotations and summary), and interacts with nothing that exists.
+Summary rows are emitted in **all** modes (cap-free, cross-process safe);
+annotations follow the ownership rule above. Each bucket *job* still gets its
+own summary page and annotation set.
 
 ### Phase 2 — per-file grouping for the default path (env-gated harness emission)
 
-Owner rule: **the harness owns grouping only when nothing else does.**
+Owner rule: **the harness owns groups and annotations only when nothing else
+does.**
 
-- New env switch `QUARTO_TESTS_NO_LOG_GROUP`. The two YAML bucket loops in
-  `test-smokes.yml` set it (`=1`) alongside their existing
-  `::group::Testing ${file}` — the #13807 bucket log format does not change at
-  all. Anyone else wrapping `run-tests.sh` in their own group can use the same
-  switch.
+- One env switch, `QUARTO_TESTS_GHA_ORCHESTRATED=1`, set by the two YAML
+  bucket loops in `test-smokes.yml` alongside their existing
+  `::group::Testing ${file}` — meaning "an outer orchestrator owns workflow
+  commands for this step": the harness emits **no groups and no
+  annotations** (step-summary rows are always emitted; they are cap-free and
+  size-coordinate via the summary file, see Phase 1). The #13807 bucket log
+  format does not change at all. Anyone else wrapping `run-tests.sh` in their
+  own group can use the same switch.
 - In `tests/test.ts`, a small module (or an extension of the existing
   `src/tools/github.ts` import) tracks the current test-file origin:
   - at the start of each test's `execute`, resolve the declaring file (the
@@ -167,7 +185,18 @@ Owner rule: **the harness owns grouping only when nothing else does.**
   - `globalThis.addEventListener("unload", ...)`: close any open group so the
     terminal `ERRORS`/summary sections are never grouped (verified);
   - every emission gated on
-    `isGitHubActions() && !Deno.env.get("QUARTO_TESTS_NO_LOG_GROUP")`.
+    `isGitHubActions() && !Deno.env.get("QUARTO_TESTS_GHA_ORCHESTRATED")`.
+- **Closure policy (explicit choice): lazy per-file closure.** A group is
+  closed on the next harness test's file change, on the failure path, and at
+  `unload` — not when each test ends. Consequence, accepted: a direct
+  `Deno.test` file (no harness registration) running between two harness
+  files executes inside the previous file's still-open group (see "Coverage
+  limitation" below); invariant 3 is therefore scoped to harness-registered
+  tests. The documented fallback, **eager closure** (end the group when the
+  test that opened it ends; reopen on the next test of the same file), trades
+  one collapsed block per file for one per test but holds invariant 3 for
+  foreign tests too — switch to it if non-harness test files ever become
+  common in grouped runs.
 - Granularity is **per test file**, matching Deno's own "running N tests
   from ..." structure. Per-test granularity is the documented fallback if real
   logs show files whose single collapsed group is still too coarse (e.g.
@@ -189,12 +218,18 @@ Owner rule: **the harness owns grouping only when nothing else does.**
 
 1. At most one group open at any time per job step; every `::group::` is
    closed before the next one opens (defensive `endGroup()` first).
-2. No `::group::`/`::endgroup::` emitted while an outer YAML group is open
-   (`QUARTO_TESTS_NO_LOG_GROUP` contract).
-3. `FAILED` result lines, the `ERRORS`/`FAILURES` sections, and the run
-   summary are never inside a group.
-4. ≤ 9 per-test `::error` annotations per step + 1 aggregate; ≤ 50 total per
-   job.
+2. No `::group::`/`::endgroup::` and no harness `::error` emitted while an
+   outer orchestrator owns the step (`QUARTO_TESTS_GHA_ORCHESTRATED`
+   contract).
+3. For **harness-registered** tests: `FAILED` result lines, the
+   `ERRORS`/`FAILURES` sections, and the run summary are never inside a
+   group. (Direct `Deno.test` files are exempt under lazy closure — see the
+   closure policy in Phase 2 and "Coverage limitation"; their failures
+   remain visible in the ungrouped end-of-run `ERRORS` section.)
+4. Per-test `::error` annotations only when the harness owns the step, and
+   then ≤ 9 + 1 aggregate per step (one process = one step in that mode);
+   ≤ 50 annotations total per job including the YAML bucket loop's own.
+   The step summary is the complete failure record in every mode.
 5. Everything is a no-op unless `GITHUB_ACTIONS == "true"`: local output is
    byte-identical.
 6. No change to which tests run, their order, or exit codes.
@@ -209,11 +244,16 @@ Owner rule: **the harness owns grouping only when nothing else does.**
    outside groups). Run it locally on
    `GITHUB_ACTIONS=true ./run-tests.sh <subset> | tee log.txt`. Re-run on every
    Deno version bump (reporter framing is version-sensitive).
-2. **Unit tests** for the new pure logic: annotation cap counter, ANSI
-   stripping, summary byte budget/truncation, escaping.
+2. **Unit tests** for the new pure logic: annotation cap counter, the
+   orchestrated-mode gate (no annotations/groups when
+   `QUARTO_TESTS_GHA_ORCHESTRATED` is set), ANSI stripping, the stat-based
+   summary size budget (including the degrade-to-name-only path), escaping.
 3. **Trial CI runs** on a fork via `workflow_dispatch`, with one deliberately
    failing test committed temporarily, covering all four cells:
-   {bucketed, default} × {Linux, Windows}. Check in the real UI:
+   {bucketed, default} × {Linux, Windows} — plus one bucket run with **more
+   than 10 failing files**, to observe GitHub's silent annotation dropping
+   and confirm the step summary still lists every failure. Check in the real
+   UI:
    - groups collapse and titles read well; bucket-mode logs unchanged;
    - annotations appear on the run summary (and PR checks view when opened as
      a PR), pointing at the right file;
@@ -221,8 +261,9 @@ Owner rule: **the harness owns grouping only when nothing else does.**
      many failures;
    - job still fails with the same exit semantics as before.
 4. **Rollback safety**: Phase 1 and Phase 2 are separate commits; each is
-   revertable without touching the other. `QUARTO_TESTS_NO_LOG_GROUP=1` in the
-   environment is a global kill switch for grouping without a revert.
+   revertable without touching the other. `QUARTO_TESTS_GHA_ORCHESTRATED=1`
+   in the environment is a global kill switch for harness grouping and
+   annotations without a revert (summary rows remain).
 
 ## Coverage limitation: tests that bypass `tests/test.ts`
 
@@ -238,19 +279,18 @@ them in binary mode entirely; the un-gating plan (upstream env
 sanitization) is `dev-docs/ci-julia-engine-binary-mode-followup.md` — in
 dev shards they still run, ungrouped.
 
-Known wrinkle of the lazy per-file closure: the harness only closes a group
-when its *next* test starts (or at `unload`), so a non-harness file running
-between two harness files executes while the previous file's group is still
-open — its output, including inline `FAILED` lines, is swallowed into that
-stale group under a misleading title. Acceptable because Deno's end-of-run
-`ERRORS`/`FAILURES` sections always repeat the full failure detail outside
-any group (spike-verified), so such failures remain findable; but the doc'd
-alternative if this bites is eager closure (end each group when the test that
-opened it ends — safe against foreign tests, at the cost of one collapsed
-block per test instead of per file). Richer coverage (own groups +
-annotations) requires adopting the markers upstream in the subtree repo —
-subtree files must not be edited in quarto-cli; see
-`.claude/rules/extension-subtrees.md`.
+Known consequence of the chosen **lazy per-file closure** (see the closure
+policy in Phase 2): the harness only closes a group when its *next* test
+starts (or at `unload`), so a non-harness file running between two harness
+files executes while the previous file's group is still open — its output,
+including inline `FAILED` lines, is swallowed into that stale group under a
+misleading title. This is the documented exemption in invariant 3, accepted
+because Deno's end-of-run `ERRORS`/`FAILURES` sections always repeat the
+full failure detail outside any group (spike-verified), so such failures
+remain findable; the eager-closure fallback defined in Phase 2 removes the
+exemption if it ever bites. Richer coverage (own groups + annotations)
+requires adopting the markers upstream in the subtree repo — subtree files
+must not be edited in quarto-cli; see `.claude/rules/extension-subtrees.md`.
 
 ## Non-goals / explicitly deferred
 
