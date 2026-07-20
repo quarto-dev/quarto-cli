@@ -67,15 +67,6 @@ export function overlayAwareScrollTop(
   return Math.max(0, scrollY + elementRect.top - offset);
 }
 
-// Which of a violation node's target selectors a single hover/click should act on.
-// A node.target with several selectors is one element's cross-frame selector chain,
-// not distinct elements, so a hover must act on the primary (first) target only —
-// otherwise one hover fires one competing window.scrollTo per selector (last-wins
-// jank). Pure and DOM-free, like overlayAwareScrollTop, so it is unit-testable.
-export function nodeScrollTargets(node) {
-  return node.target.slice(0, 1);
-}
-
 class QuartoAxeReporter {
   constructor(axeResult, options) {
     this.axeResult = axeResult;
@@ -185,16 +176,11 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
     for (const node of violation.nodes) {
       const nodeElement = document.createElement("div");
       nodeElement.className = "quarto-axe-violation-selector";
-      // Render a span for every selector so the full cross-frame chain is shown.
       for (const target of node.target) {
         const targetElement = document.createElement("span");
         targetElement.className = "quarto-axe-violation-target";
         targetElement.innerText = target;
         nodeElement.appendChild(targetElement);
-      }
-      // Register hover/click on the node's scroll target(s) only — see
-      // nodeScrollTargets — so one hover fires one scroll, not one per selector.
-      for (const target of nodeScrollTargets(node)) {
         if (typeof Reveal !== "undefined") {
           // RevealJS: click navigates to the slide and highlights briefly
           nodeElement.addEventListener("click", () => {

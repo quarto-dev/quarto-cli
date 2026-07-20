@@ -14,7 +14,7 @@
 
 import { unitTest } from "../test.ts";
 import { assertEquals } from "testing/asserts";
-import { nodeScrollTargets, overlayAwareScrollTop } from "../../src/resources/formats/html/axe/axe-check.js";
+import { overlayAwareScrollTop } from "../../src/resources/formats/html/axe/axe-check.js";
 
 // A bottom-right overlay in a 1280x720 viewport: top edge at y=400, left edge
 // at x=800. The unobscured band above it is [0, 400], centered at y=200.
@@ -108,24 +108,5 @@ unitTest(
       ),
       null,
     );
-  },
-);
-
-unitTest(
-  "nodeScrollTargets - a multi-selector node acts on a single (primary) target",
-  // deno-lint-ignore require-await
-  async () => {
-    // Several selectors are one element's cross-frame selector chain, not distinct
-    // elements. Registering a hover listener per selector fired one competing
-    // window.scrollTo per selector; a hover must act on the primary target only.
-    assertEquals(nodeScrollTargets({ target: ["#frame", "#inner"] }), ["#frame"]);
-  },
-);
-
-unitTest(
-  "nodeScrollTargets - a single-selector node is unchanged",
-  // deno-lint-ignore require-await
-  async () => {
-    assertEquals(nodeScrollTargets({ target: ["#only"] }), ["#only"]);
   },
 );
