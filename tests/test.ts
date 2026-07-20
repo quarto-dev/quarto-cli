@@ -31,6 +31,7 @@ import {
   summaryTableRow,
   summaryTableRowNameOnly,
 } from "../src/tools/github.ts";
+import { closeTestFileGroup, enterTestFileGroup } from "./gha-grouping.ts";
 
 
 // GitHub Actions failure-surfacing state (Phase 1 of
@@ -48,6 +49,11 @@ const pendingSummaryDetails: string[] = [];
 
 if (isGitHubActions()) {
   globalThis.addEventListener("unload", () => {
+    // Close any still-open per-file group FIRST, before emitting the
+    // aggregate ::error below — a collapsed group would hide that log line,
+    // and Deno's terminal ERRORS/FAILURES/summary sections must land outside
+    // any group too (Phase 2). No-op unless the harness owns the step.
+    closeTestFileGroup();
     // Flush buffered detail blocks after the (now contiguous) row table,
     // stopping if the shared summary file crosses the size budget.
     for (const detail of pendingSummaryDetails) {
@@ -262,6 +268,22 @@ export function unitTest(
   });
 }
 
+// Resolve a Deno test's declaring file from context.origin: the absolute path
+// (fromFileUrl on Windows, URL pathname elsewhere) and the tests-relative path
+// (run-tests.sh runs from tests/). Used both to open the per-file GitHub
+// Actions group at the start of fn and to build the repro command on failure.
+function testFileFromOrigin(origin: string): {
+  absPath: string;
+  relPath: string;
+} {
+  const absPath = isWindows
+    ? fromFileUrl(origin)
+    : (new URL(origin)).pathname;
+  const quartoRoot = join(quartoConfig.binPath(), "..", "..", "..");
+  const relPath = relative(join(quartoRoot, "tests"), absPath);
+  return { absPath, relPath };
+}
+
 export function test(test: TestDescriptor) {
   const testName = test.context.name
     ? `[${test.type}] > ${test.name} (${test.context.name})`
@@ -278,6 +300,17 @@ export function test(test: TestDescriptor) {
   const args: Deno.TestDefinition = {
     name: testName,
     async fn(context) {
+      // GitHub Actions per-file log grouping (Phase 2 of
+      // dev-docs/ci-test-log-grouping-design.md): open (or transition to) the
+      // group for this test's declaring file before any output. Gated on
+      // harnessOwnsStep() so local and orchestrated (bucket) runs do no origin
+      // resolution and stay byte-identical; enterTestFileGroup re-checks the
+      // gate for its other caller.
+      if (harnessOwnsStep()) {
+        enterTestFileGroup(
+          testFileFromOrigin(context.origin).relPath.replaceAll("\\", "/"),
+        );
+      }
       const testStart = performance.now();
       await initDenoDom();
       const runTest = !test.context.prereq || await test.context.prereq();
@@ -370,6 +403,13 @@ export function test(test: TestDescriptor) {
         } catch (ex) {
           if (!(ex instanceof Error)) throw ex;
 
+          // Pop out of the per-file group BEFORE emitting the ::error
+          // annotation and throwing, so the annotation, the FAILED result
+          // line, and the end-of-run failure detail all land outside any
+          // collapsed group (Phase 2, spike-verified). The next test re-opens
+          // a group with the same file title.
+          closeTestFileGroup();
+
           const border = "-".repeat(80);
           const coloredName = userSession
             ? colors.brightGreen(colors.italic(testName))
@@ -379,15 +419,7 @@ export function test(test: TestDescriptor) {
           const offset = testName.indexOf(">");
 
           // Form the test runner command
-          const absPath = isWindows
-            ? fromFileUrl(context.origin)
-            : (new URL(context.origin)).pathname;
-
-          const quartoRoot = join(quartoConfig.binPath(), "..", "..", "..");
-          const relPath = relative(
-            join(quartoRoot, "tests"),
-            absPath,
-          );
+          const { absPath, relPath } = testFileFromOrigin(context.origin);
           const command = isWindows
             ? "run-tests.ps1"
             : "./run-tests.sh";
