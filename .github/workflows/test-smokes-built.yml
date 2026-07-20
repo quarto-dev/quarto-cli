@@ -1,4 +1,4 @@
-# Runs the smoke test suite against a BUILT quarto instead of the dev source tree.
+# Runs the test suites against a BUILT quarto instead of the dev source tree.
 # Three sources for the quarto under test:
 #   - nightly (the workflow_run path - runs after every nightly create-release
 #     build; also dispatchable): reuse the SIGNED artifacts of a completed
@@ -33,13 +33,15 @@
 #     binary-mode default, smoke/).
 #   - playwright leg: bucket ["integration/playwright-tests.test.ts"] -
 #     renders the playwright corpus with the built quarto, then runs browser
-#     assertions over the served output. Linux + macOS only: the browser
-#     assertions are hard-ignored on Windows CI (playwright-tests.test.ts
-#     `ignore:` gate), so a windows leg would render-then-skip and report a
-#     misleading green. Revisit the gate before adding windows here.
+#     assertions over the served output. Linux in every mode, plus macOS on
+#     nightly; NEVER windows: the browser assertions are hard-ignored on
+#     Windows CI (playwright-tests.test.ts `ignore:` gate), so a windows leg
+#     would render-then-skip and report a misleading green. Revisit the gate
+#     before adding windows here.
 #   - ff-matrix leg: calls the reusable test-ff-matrix.yml, which owns the
-#     feature-format bucket glob. Linux + windows (matching the dev ff-matrix
-#     OS scope); no macOS - its Julia/TeX toolchain there is unproven.
+#     feature-format bucket glob. Linux in every mode, plus windows on
+#     nightly/release (matching the dev ff-matrix OS scope); no macOS - its
+#     Julia/TeX toolchain there is unproven.
 # When the `buckets` dispatch input is set, only the smoke-slot leg runs
 # (with that bucket); playwright + ff-matrix legs skip. Per-leg OS scope is
 # tuned HERE (the runners inputs below), in one place.
@@ -215,6 +217,7 @@ jobs:
       ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
       quarto-install: release
       quarto-version: ${{ needs.resolve-release.outputs.version }}
+      runners: '["ubuntu-latest", "windows-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
 
   run-playwright-release:
@@ -239,7 +242,8 @@ jobs:
       ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
       quarto-install: release
       quarto-version: ${{ needs.resolve-release.outputs.version }}
-      # default runners: ubuntu + windows, matching the dev ff-matrix scope
+      # ubuntu + windows, matching the dev ff-matrix scope
+      runners: '["ubuntu-latest", "windows-latest"]'
 
   # source: nightly (the workflow_run path, daily after each build; also
   # dispatchable) - reuse the signed artifacts of a completed no-publish
@@ -284,8 +288,11 @@ jobs:
           # fires on EVERY completed create-release run, not only nightly
           # schedules) - gate each OS leg on its artifact actually existing
           # instead of failing red at download time.
+          # exclude expired artifacts: a source=nightly re-test dispatch of an
+          # old run-id would otherwise pass the has-* gates and fail at
+          # download time
           names="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
-            --paginate --jq '.artifacts[].name')"
+            --paginate --jq '.artifacts[] | select(.expired | not) | .name')"
           has() { grep -Fxq "$1" <<<"$names" && echo true || echo false; }
           has_linux="$(has 'Deb Zip')"
           has_windows="$(has 'Windows Zip')"

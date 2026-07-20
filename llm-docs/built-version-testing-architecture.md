@@ -53,7 +53,7 @@ matrix (see "Built-mode test legs").
 
 | Mode | Quarto under test | Trigger | Suites (legs) | Question answered |
 |---|---|---|---|---|
-| dev (`test-smokes.yml`) | in-process TS sources (99.9.9) | every PR/push + daily cron | everything (sharded per-commit; ff-matrix via its own cron) | did this code change break behavior? |
+| dev (`test-smokes.yml`) | in-process TS sources (99.9.9) | every PR/push + daily cron | everything (sharded per-commit; ff-matrix via its own cron/push/PR) | did this code change break behavior? |
 | nightly | signed nightly artifacts (Linux tarball, signed `quarto.exe`, notarized Mac zip) | automatic, after each nightly build | smoke (linux+windows+mac) + playwright (linux+mac) + ff-matrix (linux+windows) | does what we *ship* work? (bundling/packaging/launcher bugs; only macOS smoke coverage in CI) |
 | build | fresh linux-amd64 dist from the current ref (unsigned) | manual dispatch | smoke + playwright + ff-matrix (all linux) | will *this branch* survive packaging? (works on forks/PR branches) |
 | release | published (pre-)release via quarto-actions/setup, harness at its `v` tag | manual dispatch | smoke (linux+windows) + playwright (linux) + ff-matrix (linux+windows) | is the version users download healthy? (curative, post-publish) |
@@ -61,9 +61,12 @@ matrix (see "Built-mode test legs").
 Dev mode and built modes are complementary, not redundant: dev uniquely
 covers `unit/`, `QUARTO_DEBUG` paths, the `quarto check` dev branch, and
 in-process races; built modes cover the packaged product dev mode never
-executes. `integration/` is NOT dev-only anymore: every built-mode source
-runs three suites ("legs") — smoke, playwright, and the feature-format
-matrix — see "Built-mode test legs" below.
+executes. The playwright suite (`integration/playwright-tests.test.ts`) is
+no longer dev-only either: every built-mode source runs three suites
+("legs") — smoke, playwright, and the feature-format matrix — see
+"Built-mode test legs" below. The two other `tests/integration/` tests
+(`guess-chunk-options-format-document.test.ts`,
+`mermaid/github-issue-1340.test.ts`) still run only in the dev shards.
 
 In practice:
 
@@ -136,11 +139,17 @@ in `test-ff-matrix.yml`; built-mode callers reuse it through its
 `extra-r-packages` are forwarded verbatim to `test-smokes.yml`; the job uses
 `${{ inputs.x || <dev default> }}` fallbacks so the non-call triggers (where
 `inputs.*` is empty) keep today's dev behavior. Nesting depth
-`test-smokes-built.yml → test-ff-matrix.yml → test-smokes.yml` is 3 (GitHub
-allows 4). Note `test-ff-matrix.yml`'s top-level `concurrency` group is not
-applied under `workflow_call` (a called workflow has no run of its own), and
-it declares no `permissions`, so the caller's `actions: write` (julia cache
-cleanup) flows through.
+`test-smokes-built.yml → test-ff-matrix.yml → test-smokes.yml` is 3, well
+within GitHub's reusable-workflow nesting limit. CAUTION on
+`test-ff-matrix.yml`'s top-level `concurrency`: a called workflow's
+top-level concurrency evaluates in the CALLER's context
+(`github.workflow`/`ref`/`run_id` are the caller run's), so the group
+carries a per-call suffix derived from `inputs.runners` + `github.run_id` —
+without it, every ff-matrix leg of one `test-smokes-built.yml` run would
+share a single cancel-in-progress group and could cancel a sibling leg.
+Dev triggers get a constant `-dev` suffix (dedup semantics unchanged).
+`test-ff-matrix.yml` declares no `permissions`, so the caller's
+`actions: write` (julia cache cleanup) flows through.
 
 ## Design decisions
 
@@ -277,8 +286,21 @@ legs"). Both suites were only ever excluded from binary mode by the
 (the `quartoSpawnEnvOptions()` render-env fix, playwright provisioning in
 non-dev CI modes) are in place.
 
-What stays dev-only: `unit/` (in-process by definition), `QUARTO_DEBUG`
-paths, the `quarto check` dev branch, and in-process races. The daily dev
+What stays dev-only: `unit/` (in-process by definition), the
+non-playwright `integration/` tests
+(`guess-chunk-options-format-document.test.ts`,
+`mermaid/github-issue-1340.test.ts` — dev shards only), `QUARTO_DEBUG`
+paths, the `quarto check` dev branch, and in-process races. Residual gaps
+no suite exercises against the built quarto (not covered anywhere in CI
+today, recorded so they read as known boundaries rather than oversights):
+`quarto preview`/serve interactive paths (the playwright render glob
+excludes `docs/playwright/(serve|shiny)`), `quarto publish` flows
+(credentials), the actual installer packages (`.deb`/`.msi`/`.pkg` — the
+legs test the tarball/zip layouts, never install-time behavior like PATH or
+registry), the linux-arm64 tarball, and playwright visual snapshots
+(`--ignore-snapshots`). Windows browser behavior and macOS ff-matrix are
+also uncovered but deliberate, with revisit conditions in "Built-mode test
+legs". The daily dev
 crons also stay — dev ff-matrix catches source regressions, built
 ff-matrix catches packaging regressions; complementary, not redundant.
 Nothing is throttled initially (all legs daily): per-leg OS scope lives in
@@ -295,3 +317,14 @@ Release mode checks out the tag, so the harness at that tag must already
 contain `tests/quarto-cmd.ts` — a preflight fails clearly for older
 releases. True backfill (main-branch harness testing an older binary)
 would require harness/binary decoupling (plan §6 Phase 4, not implemented).
+
+The same skew applies per-suite: nightly/release legs run the harness at
+the *target* ref, so a ref that has `tests/quarto-cmd.ts` but predates the
+`quartoSpawnEnvOptions()` render fix in `playwright-tests.test.ts`
+(2026-07-20) runs the old env-leaking wrapper — its playwright leg renders
+with dev-tree resources and its result (green or red) is not meaningful.
+The existence preflight cannot detect this. Affected window: releases and
+nightly build shas cut between the harness-support merge and the multi-leg
+merge, including the first post-merge `workflow_run` firings on pre-merge
+build commits. The smoke and ff-matrix legs are unaffected (their spawns go
+through `runQuarto`, whose env sanitization is as old as `quarto-cmd.ts`).
