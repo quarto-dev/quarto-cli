@@ -718,3 +718,48 @@ test.describe('Axe — no third-party/CDN dependency (regression guard for #1467
     ).toEqual([]);
   });
 });
+
+test.describe('HTML axe — the report overlay scrolls by keyboard (#14680)', () => {
+  // Commit 4a528a2e3 made the fixed overlay a focusable scroll region so a
+  // report taller than max-height: 50vh can be scrolled from the keyboard.
+  // Keyboard scrolling here is *native* browser behavior (overflow-y: auto +
+  // tabindex=0, no keydown handler), so the regression this guards is the
+  // scroll behavior breaking — overflow-y flipped away from auto, or a future
+  // keydown handler swallowing the keys — while tabindex/role/aria-label stay
+  // intact. Those cases pass the static attribute checks (line ~172) AND the
+  // overlay self-scan (scrollable-region-focusable, line ~388), so only an
+  // actual key press that moves scrollTop catches them.
+  for (const key of ['PageDown', 'ArrowDown']) {
+    test(`html — focused overlay scrolls on ${key}`, async ({ page }) => {
+      await page.goto('/html/axe-overlay-scroll.html', { waitUntil: 'networkidle' });
+
+      const axeReport = page.locator('.quarto-axe-report');
+      await expect(axeReport).toBeVisible({ timeout: 10000 });
+
+      // Precondition: the fixture must inflate the report past its max-height,
+      // or there is nothing to scroll and a green result would be meaningless.
+      const overflow = await axeReport.evaluate(
+        (el) => ({ scrollHeight: el.scrollHeight, clientHeight: el.clientHeight }),
+      );
+      expect(
+        overflow.scrollHeight,
+        `overlay must overflow to be scrollable (scrollHeight ${overflow.scrollHeight} ` +
+          `must exceed clientHeight ${overflow.clientHeight}); check axe-overlay-scroll.qmd`,
+      ).toBeGreaterThan(overflow.clientHeight);
+
+      // Start from the top and put focus on the overlay itself. toBeFocused is
+      // test hygiene: it proves the key goes to the overlay, not the document,
+      // so a scrollTop change can only mean the overlay scrolled.
+      await axeReport.evaluate((el) => { el.scrollTop = 0; });
+      await axeReport.focus();
+      await expect(axeReport).toBeFocused();
+
+      await page.keyboard.press(key);
+
+      // Native key scroll is instant, but poll to avoid any timing race.
+      await expect
+        .poll(() => axeReport.evaluate((el) => el.scrollTop), { timeout: 3000 })
+        .toBeGreaterThan(0);
+    });
+  }
+});
