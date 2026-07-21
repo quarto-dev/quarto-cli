@@ -1,8 +1,6 @@
 -- project_paths.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local constants = require("modules/constants")
-
 local function resolveProjectPath(path)
   local offset = _quarto.projectOffset()
   if offset and path and startsWith(path, '/') then
@@ -21,8 +19,8 @@ end
 function project_paths()
   return {
     Image = function(el)
-      if el.attr.attributes[constants.kProjectResolverIgnore] then
-        el.attr.attributes[constants.kProjectResolverIgnore] = ''
+      if el.attr.attributes[_quarto.modules.constants.kProjectResolverIgnore] then
+        el.attr.attributes[_quarto.modules.constants.kProjectResolverIgnore] = ''
         return el
       end
 
@@ -52,8 +50,8 @@ function project_paths()
     end,
 
     Link = function(el)
-      if el.attr.attributes[constants.kProjectResolverIgnore] then
-        el.attr.attributes[constants.kProjectResolverIgnore] = ''
+      if el.attr.attributes[_quarto.modules.constants.kProjectResolverIgnore] then
+        el.attr.attributes[_quarto.modules.constants.kProjectResolverIgnore] = ''
         return el
       end
 

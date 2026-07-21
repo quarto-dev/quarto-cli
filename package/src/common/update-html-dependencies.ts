@@ -78,6 +78,12 @@ export async function updateHtmlDependencies(config: Configuration) {
   );
   cleanSourceMap(anchorJs);
 
+  // Axe (LICENSE files must ship alongside the MPL-2.0 axe.min.js)
+  const axeDir = join(formatDir, "axe");
+  for (const file of ["axe.min.js", "LICENSE", "LICENSE-3RD-PARTY.txt"]) {
+    await updateUnpkgDependency("AXE_JS", "axe-core", file, join(axeDir, file));
+  }
+
   // Poppper
   const popperJs = join(formatDir, "popper", "popper.min.js");
   await updateUnpkgDependency(

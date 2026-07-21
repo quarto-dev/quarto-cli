@@ -16,7 +16,6 @@ Extension for generating email components needed for Posit Connect
 6. Produces a local `index.html` file that contains the HTML email for previewing purposes
    (this can be disabled by setting `email-preview: false` in the YAML header)
 --]]
-local constants = require("modules/constants")
 local connectversion = require("modules/connectversion")
 
 -- Get the file extension of any file residing on disk
@@ -432,7 +431,7 @@ function process_document(doc)
     end
   else
     -- Fall back to version sniffing if no explicit override
-    if connectversion.is_connect_version_at_least(constants.kConnectEmailMetadataChangeVersion) then
+    if connectversion.is_connect_version_at_least(_quarto.modules.constants.kConnectEmailMetadataChangeVersion) then
       connect_supports_v2 = true
     end
   end
@@ -486,7 +485,7 @@ function process_document(doc)
 
   -- If Connect doesn't support v2 format, only keep first email and warn
   if not use_v2_email_format and not has_top_level_metadata then
-    quarto.log.warning("Detected Connect version < " .. constants.kConnectEmailMetadataChangeVersion .. " which doesn't support multiple emails. Only the first email will be sent. Upgrade Connect to " .. constants.kConnectEmailMetadataChangeVersion .. "+ for multi-email support.")
+    quarto.log.warning("Detected Connect version < " .. _quarto.modules.constants.kConnectEmailMetadataChangeVersion .. " which doesn't support multiple emails. Only the first email will be sent. Upgrade Connect to " .. _quarto.modules.constants.kConnectEmailMetadataChangeVersion .. "+ for multi-email support.")
     emails = { emails[1] }
     email_count = 1
   end

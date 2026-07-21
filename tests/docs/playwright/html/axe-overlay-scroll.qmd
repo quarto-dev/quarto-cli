@@ -1,0 +1,50 @@
+---
+format:
+  html:
+    axe:
+      output: document
+---
+
+## Long Document
+
+The dozen violations below inflate the report to its `max-height: 50vh`, so the
+fixed overlay really covers the lower half of the viewport — with only one
+violation the report is short and even default centered scrolling clears it.
+
+[low contrast 1]{#c1 style="color: #eee; background: #fff;"}
+
+[low contrast 2]{#c2 style="color: #eee; background: #fff;"}
+
+[low contrast 3]{#c3 style="color: #eee; background: #fff;"}
+
+[low contrast 4]{#c4 style="color: #eee; background: #fff;"}
+
+[low contrast 5]{#c5 style="color: #eee; background: #fff;"}
+
+[low contrast 6]{#c6 style="color: #eee; background: #fff;"}
+
+[low contrast 7]{#c7 style="color: #eee; background: #fff;"}
+
+[low contrast 8]{#c8 style="color: #eee; background: #fff;"}
+
+[low contrast 9]{#c9 style="color: #eee; background: #fff;"}
+
+[low contrast 10]{#c10 style="color: #eee; background: #fff;"}
+
+[low contrast 11]{#c11 style="color: #eee; background: #fff;"}
+
+[low contrast 12]{#c12 style="color: #eee; background: #fff;"}
+
+Filler so the page scrolls well past one viewport; the hovered violation sits
+near the bottom where centering it would put it under the report overlay.
+
+::: {style="height: 3000px;"}
+:::
+
+::: {#bottom-contrast style="color: #eee; background: #fff;"}
+This full-width block near the bottom of the page violates contrast rules, so
+its bounding box overlaps the report overlay horizontally.
+:::
+
+::: {style="height: 400px;"}
+:::

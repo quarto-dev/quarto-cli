@@ -31,11 +31,18 @@ jobs:
           name: timed test file
           path: tests/
 
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.QUARTO_DEV_BOT_APP_ID }}
+          private-key: ${{ secrets.QUARTO_DEV_BOT_APP_PRIVATE_KEY }}
+
       - name: Create Pull Request for new tests timing
         id: cpr
         uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           add-paths: tests/timing-for-ci.txt
           commit-message: |
             timing for new tests [auto PR]

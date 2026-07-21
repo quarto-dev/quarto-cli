@@ -5,16 +5,12 @@
 -- so that we can skip as many filters as possible
 -- when we don't need them
 
-local patterns = require("modules/patterns")
-local constants = require("modules/constants")
-local lightbox_module = require("modules/lightbox")
-
 flags = {}
 
 function compute_flags()
-  local table_pattern = patterns.html_table
-  local table_tag_pattern = patterns.html_table_tag_name
-  local gt_table_pattern = patterns.html_gt_table
+  local table_pattern = _quarto.modules.patterns.html_table
+  local table_tag_pattern = _quarto.modules.patterns.html_table_tag_name
+  local gt_table_pattern = _quarto.modules.patterns.html_gt_table
   local function find_shortcode_in_attributes(el)
     for k, v in pairs(el.attributes) do
       if type(v) == "string" and v:find("%{%{%<") then
@@ -79,7 +75,7 @@ function compute_flags()
         flags.has_theorem_refs = true
       end
 
-      local has_lightbox = lightbox_module.el_has_lightbox(node)
+      local has_lightbox = _quarto.modules.lightbox.el_has_lightbox(node)
       if has_lightbox then
         flags.has_lightbox = true
       end
@@ -161,7 +157,7 @@ function compute_flags()
         flags.has_shortcodes = true
       end
 
-      local has_lightbox = lightbox_module.el_has_lightbox(node)
+      local has_lightbox = _quarto.modules.lightbox.el_has_lightbox(node)
       if has_lightbox then
         flags.has_lightbox = true
       end
@@ -193,7 +189,7 @@ function compute_flags()
     end,
   }, {
     Meta = function(el)
-      local lightbox_auto = lightbox_module.automatic(el)
+      local lightbox_auto = _quarto.modules.lightbox.automatic(el)
       if lightbox_auto then
         flags.has_lightbox = true
       elseif lightbox_auto == false then
