@@ -6,6 +6,7 @@ All changes included in 1.10:
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Fix transient `.quarto_ipynb` files accumulating during `quarto preview` with Jupyter engine.
 - ([#14298](https://github.com/quarto-dev/quarto-cli/issues/14298)): Fix `quarto preview` browse URL including output filename (e.g., `hello.html`) for single-file documents, breaking Posit Workbench proxied server access.
 - ([#14489](https://github.com/quarto-dev/quarto-cli/issues/14489)): Restore `--output-dir` support for `quarto preview` of single files when no `_quarto.yml` is present (e.g. R-package workspaces). Regression introduced in v1.9.18.
+- ([#14683](https://github.com/quarto-dev/quarto-cli/issues/14683)): Fix `quarto preview` of a knitr document in a project subdirectory failing when run from that subdirectory with a bare filename (the shape RStudio's Render button uses). Regression introduced in v1.9.18.
 - ([rstudio/rstudio#17333](https://github.com/rstudio/rstudio/issues/17333)): Fix `quarto inspect` on standalone files emitting project metadata that breaks RStudio's publishing wizard.
 
 ## Dependencies
@@ -115,6 +116,7 @@ All changes included in 1.10:
 - ([#6092](https://github.com/quarto-dev/quarto-cli/issues/6092)): Fix the `default-image-extension` being appended to an extensionless URL ending in a slash (e.g. `![](https://example.com/)`), which broke the embed/iframe image syntax.
 - ([#6651](https://github.com/quarto-dev/quarto-cli/issues/6651)): Fix dart-sass compilation failing in enterprise environments where `.bat` files are blocked by group policy.
 - ([#11703](https://github.com/quarto-dev/quarto-cli/issues/11703)): Fix SCSS color-variable export (`--quarto-scss-export-*`) being silently skipped when a theme rule contains consecutive semicolons (e.g. `max-height: 100% !important;;`).
+- ([#12401](https://github.com/quarto-dev/quarto-cli/issues/12401)): Fix `QUARTO_DOCUMENT_PATH` being a relative path for single-file renders, inconsistent with project renders where it was absolute. Execution target paths are now normalized to absolute at a single point, so single-file and project renders behave the same.
 - ([#14255](https://github.com/quarto-dev/quarto-cli/issues/14255)): Fix shortcodes inside inline and display math expressions not being resolved.
 - ([#14342](https://github.com/quarto-dev/quarto-cli/issues/14342)): Work around TOCTOU race in Deno's `expandGlobSync` that can cause unexpected exceptions to be raised while traversing directories during project initialization.
 - ([#14445](https://github.com/quarto-dev/quarto-cli/issues/14445)): Fix intermittent `Uncaught (in promise) TypeError: Writable stream is closed or errored.` aborting renders on Linux. `execProcess` now awaits and swallows the rejection from `process.stdin.close()` when the child closes its stdin first. The captured stderr is now also surfaced when `typst-gather analyze` falls back to staging all packages, so failures are diagnosable without bypassing `quarto`.
