@@ -477,13 +477,17 @@ test.describe('Dashboard axe — the offcanvas passes its own scan', () => {
     // Known issue quarto-dev/quarto-cli#14710: .offcanvas-body is a scrolling
     // region with no focusable descendant and isn't itself focusable, so it
     // trips scrollable-region-focusable even on this short fixture (its fixed
-    // height already overflows). Filtered out (not test.fail()'d) so this
-    // test still catches any other regression here — e.g. a dropped
-    // aria-label on .btn-close or .quarto-axe-toggle — while #14710 is open.
-    const unexpected = violations.filter(
-      (v) => !(v.id === 'scrollable-region-focusable' &&
-        v.targets.some((t) => t.includes('.offcanvas-body'))),
-    );
+    // height already overflows). That one node is filtered out (not
+    // test.fail()'d) at the node level — not the whole violation — so this
+    // test still catches any other regression here, including a second,
+    // unrelated scrollable-region-focusable node — while #14710 is open.
+    const unexpected = violations
+      .map((v) =>
+        v.id === 'scrollable-region-focusable'
+          ? { ...v, targets: v.targets.filter((t) => !t.includes('.offcanvas-body')) }
+          : v,
+      )
+      .filter((v) => v.targets.length > 0);
     expect(unexpected).toEqual([]);
   });
 });
