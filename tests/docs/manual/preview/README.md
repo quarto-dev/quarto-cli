@@ -275,6 +275,48 @@ brand signal in the kept `report.typ` is the line
 - **Expected:** Brand stays applied; the source-state token matches so the cache is reused (only cheap stat calls per resolve)
 - **Catches:** A guard that re-loads the brand on every render even when nothing changed
 
+## Test Matrix: Sass Cache Reuse (#14594)
+
+After every change to `SassCache.cleanup()` or the `_sassCache` registry in
+`src/core/sass/cache.ts`, verify that a book/website preview survives repeated
+re-renders instead of crashing with `BadResource: Bad resource ID`. On each
+re-render the serve/watch reload path runs `refreshProjectConfig`
+(`src/project/serve/watch.ts`, ~line 277 for HTML; also on config changes,
+~line 305), which calls `project.cleanup()` and closes the session Sass KV
+handle; the next render must open a fresh handle rather than reuse the closed
+one. Fixture: `sass-cache-crash-14594/` (a flat multi-chapter book with
+`theme: cosmo` + `css:`, which routes the theme through the session Sass cache);
+drive it with the `/quarto-preview-test` workflow. Deterministic unit coverage
+lives in `tests/unit/sass-cache.test.ts` — this matrix is the interactive
+regression guide that path can't cover.
+
+### P1: Critical
+
+#### T34: Book project preview — `_quarto.yml` edit does not crash on Sass recompile
+
+- **Setup:** `sass-cache-crash-14594/` book (`theme: cosmo`, `css: styles.css`), no prior `.quarto/` or `_book/`
+- **Steps:** From the fixture dir, `quarto preview --no-browser --port XXXX`; after the first render, edit `_quarto.yml` (tweak the title or append a comment line) and save 3-5 times, watching the preview log
+- **Expected:** Every re-render completes and reloads. No `BadResource: Bad resource ID` in the log. The cosmo theme + custom CSS keep recompiling/serving.
+- **Catches:** `SassCache.cleanup()` closing the KV handle but leaving the stale instance in `_sassCache`, so the next resolve reuses a closed handle (#14594, #13955)
+
+### P2: Important
+
+#### T35: Book project preview — chapter content edit (content re-render path)
+
+- **Setup:** Same fixture
+- **Steps:** `quarto preview --no-browser --port XXXX`; after the first render, edit a chapter body (`index.qmd` / `chapter1.qmd`) and save 3-5 times
+- **Expected:** Same as T34 — no crash, pages keep reloading
+- **Catches:** The HTML reload path (`refreshProjectConfig` at watch.ts ~277) closes the session KV on a plain content re-render too, so a content save must not reuse a closed handle either
+
+### Regression Guard
+
+#### T36: Single-file preview — unaffected by the registry cleanup
+
+- **Setup:** `plain.qmd` (markdown-only, no project)
+- **Steps:** `quarto preview plain.qmd --no-browser --port XXXX`, save 3-5 times
+- **Expected:** No crash and no behavior change — the fix is a no-op for the common single-file preview path
+- **Catches:** The registry-entry deletion in cleanup accidentally breaking or churning the non-project preview path
+
 ## Extension Format PDF Preview (#14582)
 
 ### P1: Core functionality

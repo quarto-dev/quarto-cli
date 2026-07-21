@@ -1,0 +1,14 @@
+project:
+  type: book
+
+book:
+  title: "Sass Cache Preview Crash (#14594)"
+  chapters:
+    - index.qmd
+    - chapter1.qmd
+    - chapter2.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
