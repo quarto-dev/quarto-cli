@@ -21,8 +21,9 @@ import {
 } from "../../src/resources/formats/html/axe/axe-check.js";
 
 // A miniature rule catalog covering the cases axeScopeOptions must
-// distinguish: current rules at several levels, a deprecated rule that a tag
-// list would otherwise resurrect, a deprecated rule whose only wcag tag is
+// distinguish: current rules at several levels, a deprecated rule that
+// matches a selected wcag tag and is explicitly disabled by axeScopeOptions
+// as a self-contained guard, a deprecated rule whose only wcag tag is
 // obsolete, and a best-practice rule.
 const rules = [
   { ruleId: "image-alt", tags: ["cat.text-alternatives", "wcag2a", "wcag111"] },
