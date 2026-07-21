@@ -408,6 +408,90 @@ test.describe('HTML axe — the report overlay passes its own scan', () => {
   });
 });
 
+test.describe('RevealJS axe — the report slide passes its own scan', () => {
+  test('report slide has no axe-core violations', async ({ page }) => {
+    // The report slide is injected after the page scan runs, so it never
+    // audits itself (same gap as the HTML overlay). Scan it here with the
+    // same vendored axe-core build the deck already loaded (window.axe).
+    //
+    // createReportSlide() navigates back to the original slide, leaving the
+    // report slide as a hidden future slide (hidden + aria-hidden). axe skips
+    // hidden elements, so we MUST navigate to the report slide and wait for
+    // `.present` first — otherwise the scan is a vacuous, permanent PASS.
+    await page.goto('/revealjs/axe-accessibility.html', { waitUntil: 'networkidle' });
+
+    const reportSlide = page.locator('section.quarto-axe-report-slide');
+    await expect(reportSlide).toBeAttached({ timeout: 10000 });
+    await waitForAxeCompletion(page);
+
+    await page.evaluate(() => Reveal.slide(Reveal.getTotalSlides() - 1));
+    await expect(reportSlide).toHaveClass(/present/);
+
+    // Non-empty precondition: guards against the region silently becoming
+    // empty in a future refactor, which would make violations == [] a
+    // vacuous pass rather than a real guard.
+    await expect(
+      reportSlide.locator('.quarto-axe-violation-description'),
+    ).not.toHaveCount(0);
+
+    const violations = await page.evaluate(async () => {
+      const axe = (window as any).axe;
+      const result = await axe.run(document.querySelector('.quarto-axe-report-slide'));
+      return result.violations.map((v: { id: string; nodes: { target: string[] }[] }) => ({
+        id: v.id,
+        targets: v.nodes.map((n) => n.target),
+      }));
+    });
+    expect(violations).toEqual([]);
+  });
+});
+
+test.describe('Dashboard axe — the offcanvas passes its own scan', () => {
+  test('offcanvas and toggle have no axe-core violations', async ({ page }) => {
+    // The offcanvas and its toggle button are injected after the page scan
+    // runs, so they never audit themselves on initial load. Scan both here.
+    // The toggle (.quarto-axe-toggle) is a SIBLING of #quarto-axe-offcanvas
+    // (both appended to <body>), so it must be an explicit include — scanning
+    // the offcanvas alone would miss a dropped aria-label on the toggle.
+    await page.goto('/dashboard/axe-accessibility.html', { waitUntil: 'networkidle' });
+
+    const offcanvas = page.locator('#quarto-axe-offcanvas');
+    await expect(offcanvas).toBeVisible({ timeout: 10000 });
+
+    // Non-empty precondition — see reveal test above for rationale.
+    await expect(
+      offcanvas.locator('.quarto-axe-violation-description'),
+    ).not.toHaveCount(0);
+
+    const violations = await page.evaluate(async () => {
+      const axe = (window as any).axe;
+      const result = await axe.run({
+        include: [['#quarto-axe-offcanvas'], ['.quarto-axe-toggle']],
+      });
+      return result.violations.map((v: { id: string; nodes: { target: string[] }[] }) => ({
+        id: v.id,
+        targets: v.nodes.map((n) => n.target),
+      }));
+    });
+
+    // Known issue quarto-dev/quarto-cli#14710: .offcanvas-body is a scrolling
+    // region with no focusable descendant and isn't itself focusable, so it
+    // trips scrollable-region-focusable even on this short fixture (its fixed
+    // height already overflows). That one node is filtered out (not
+    // test.fail()'d) at the node level — not the whole violation — so this
+    // test still catches any other regression here, including a second,
+    // unrelated scrollable-region-focusable node — while #14710 is open.
+    const unexpected = violations
+      .map((v) =>
+        v.id === 'scrollable-region-focusable'
+          ? { ...v, targets: v.targets.filter((t) => !t.includes('.offcanvas-body')) }
+          : v,
+      )
+      .filter((v) => v.targets.length > 0);
+    expect(unexpected).toEqual([]);
+  });
+});
+
 test.describe('Dashboard axe — re-scan on visibility change', () => {
   const pagesUrl = '/dashboard/axe-accessibility-pages.html';
 
@@ -679,4 +763,87 @@ test.describe('Axe — standard and best-practice scoping (#14607)', () => {
     expect(descriptions, 'heading-order (best practice) is outside standard: wcag2a')
       .not.toContain('heading');
   });
+});
+
+test.describe('Axe — no third-party/CDN dependency (regression guard for #14677)', () => {
+  const CDN_DENYLIST = [
+    'skypack.dev',
+    'unpkg.com',
+    'jsdelivr.net',
+    'esm.sh',
+    'cdnjs.cloudflare.com',
+  ];
+
+  function cdnHost(url: string): string | null {
+    let hostname: string;
+    try {
+      hostname = new URL(url).hostname;
+    } catch {
+      return null;
+    }
+    return CDN_DENYLIST.find(
+      (base) => hostname === base || hostname.endsWith('.' + base),
+    ) ?? null;
+  }
+
+  test('html — axe-enabled page makes no request to a package CDN', async ({ page }) => {
+    const cdnRequests: string[] = [];
+    page.on('request', (req) => {
+      if (cdnHost(req.url())) cdnRequests.push(req.url());
+    });
+
+    await page.goto('/html/axe-accessibility.html', { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    expect(
+      cdnRequests,
+      `axe-enabled page must not load resources from a package CDN. ` +
+        `Offending request(s): ${cdnRequests.join(', ')}`,
+    ).toEqual([]);
+  });
+});
+
+test.describe('HTML axe — the report overlay scrolls by keyboard (#14680)', () => {
+  // Commit 4a528a2e3 made the fixed overlay a focusable scroll region so a
+  // report taller than max-height: 50vh can be scrolled from the keyboard.
+  // Keyboard scrolling here is *native* browser behavior (overflow-y: auto +
+  // tabindex=0, no keydown handler), so the regression this guards is the
+  // scroll behavior breaking — overflow-y flipped away from auto, or a future
+  // keydown handler swallowing the keys — while tabindex/role/aria-label stay
+  // intact. Those cases pass the static attribute checks (line ~172) AND the
+  // overlay self-scan (scrollable-region-focusable, line ~388), so only an
+  // actual key press that moves scrollTop catches them.
+  for (const key of ['PageDown', 'ArrowDown']) {
+    test(`html — focused overlay scrolls on ${key}`, async ({ page }) => {
+      await page.goto('/html/axe-overlay-scroll.html', { waitUntil: 'networkidle' });
+
+      const axeReport = page.locator('.quarto-axe-report');
+      await expect(axeReport).toBeVisible({ timeout: 10000 });
+
+      // Precondition: the fixture must inflate the report past its max-height,
+      // or there is nothing to scroll and a green result would be meaningless.
+      const overflow = await axeReport.evaluate(
+        (el) => ({ scrollHeight: el.scrollHeight, clientHeight: el.clientHeight }),
+      );
+      expect(
+        overflow.scrollHeight,
+        `overlay must overflow to be scrollable (scrollHeight ${overflow.scrollHeight} ` +
+          `must exceed clientHeight ${overflow.clientHeight}); check axe-overlay-scroll.qmd`,
+      ).toBeGreaterThan(overflow.clientHeight);
+
+      // Start from the top and put focus on the overlay itself. toBeFocused is
+      // test hygiene: it proves the key goes to the overlay, not the document,
+      // so a scrollTop change can only mean the overlay scrolled.
+      await axeReport.evaluate((el) => { el.scrollTop = 0; });
+      await axeReport.focus();
+      await expect(axeReport).toBeFocused();
+
+      await page.keyboard.press(key);
+
+      // Native key scroll is instant, but poll to avoid any timing race.
+      await expect
+        .poll(() => axeReport.evaluate((el) => el.scrollTop), { timeout: 3000 })
+        .toBeGreaterThan(0);
+    });
+  }
 });
