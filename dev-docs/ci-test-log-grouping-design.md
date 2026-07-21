@@ -4,14 +4,18 @@ Status: **Phases 1–2 implemented** on this branch (Phase 1: annotations +
 step summary, `tests/test.ts` + `src/tools/github.ts`; Phase 2: per-file
 grouping, `tests/gha-grouping.ts` + the `tests/tools/check-gha-log.ts`
 checker). Phase 3 remains optional/unscheduled. The fork `workflow_dispatch`
-trial matrix (verification item 3) has not run yet.
+trial matrix (verification item 3) has been run (Linux + Windows, seeded
+failures, including the >10-failing-file case) and caught two real bugs, both
+fixed on this branch.
 
 Base: written on top of `test/smoke-tests-built-version` (the built-version
 testing branch — see `llm-docs/built-version-testing-architecture.md`). The
-non-bucketed full runs this design targets are exactly the runs that branch
-adds: the smoke/playwright/ff-matrix legs of `test-smokes-built.yml` all call
-`test-smokes.yml` with `buckets` empty (or a single-file bucket), landing in
-the flat-log path described below. The design is mode-agnostic: in both dev
+non-bucketed full run this design targets is the smoke leg of
+`test-smokes-built.yml`, which calls `test-smokes.yml` with `buckets` empty
+(binary-mode default `smoke/`), landing in the flat-log path described below.
+The playwright and ff-matrix legs pass a non-empty `buckets`, so they take the
+per-file bucket loop instead — already grouped by #13787/#13807, orchestrated,
+and the harness stays silent there by design. The design is mode-agnostic: in both dev
 and binary mode the harness runs in the same `deno test` process, so marker
 emission points are identical.
 
@@ -29,8 +33,9 @@ Linux/Windows" steps in `test-smokes.yml` — runs one giant `deno test` over
 every discovered test file (in binary mode, `run-tests.sh` defaults this to
 `smoke/`). No code on that path emits a single workflow command, so the log is
 thousands of flat lines and finding a failure means scrolling or text search.
-Every leg of `test-smokes-built.yml` (smoke, playwright, ff-matrix) reaches
-this path.
+The smoke leg of `test-smokes-built.yml` reaches this path (empty `buckets`);
+the playwright and ff-matrix legs pass non-empty buckets and take the
+already-grouped bucket loop instead.
 
 Additional gaps that apply to *both* paths:
 
@@ -74,8 +79,8 @@ These drive the whole design; sources at the end.
    `%0A` escaping (`escapeData` in `src/tools/github.ts` already does this).
 8. **Interleaved parallel output corrupts grouping** (process B's `::group::`
    implicitly closes process A's). Today this is a non-issue: `run-tests.sh`
-   line 164 invokes `deno test` **without `--parallel`**, so test files run
-   serially in one process. If `--parallel` is ever added, grouping must move
+   invokes `deno test` **without `--parallel`** (the generic-case invocation),
+   so test files run serially in one process. If `--parallel` is ever added, grouping must move
    to buffer-and-flush emission (see Non-goals).
 
 ## Spike results (verified with the pinned Deno v2.7.14)
@@ -205,8 +210,8 @@ does.**
 - In `tests/test.ts`, a small module (or an extension of the existing
   `src/tools/github.ts` import) tracks the current test-file origin:
   - at the start of each test's `execute`, resolve the declaring file (the
-    harness already knows it — `testQuartoCmd`/`unitTest` call sites — or via
-    the registration call's captured stack);
+    harness already knows it — resolved from Deno's per-test `context.origin`
+    (`testFileFromOrigin`, `tests/test.ts`));
   - on file change: `endGroup()` (defensive, harmless if none open) then
     `startGroup(relativePath)`. NOTE (spike correction): since each test
     file gets a fresh module instance, an instance in practice only ever
@@ -246,7 +251,8 @@ does.**
   duration (from an `unload` hook), so a green run also leaves a one-line
   receipt.
 - Group the setup portions of the default-path steps in YAML (precedent: the
-  R-setup steps already do this, `test-smokes.yml` lines 179–216).
+  R-setup steps already do this, the "Restore R packages" step in
+  `test-smokes.yml`).
 - Add the final marker-emission conventions to `llm-docs/testing-patterns.md`
   so future automated changes preserve the invariants below.
 
@@ -358,6 +364,6 @@ must not be edited in quarto-cli; see `.claude/rules/extension-subtrees.md`.
 - Escaping rules: `@actions/core` `command.ts` (mirrored by
   `src/tools/github.ts` `escapeData`/`escapeProperty`)
 - Prior art in this repo: PR #13787, PR #13807, `test-smokes.yml` bucket
-  loops, R-setup grouping (`test-smokes.yml`, "Setup R packages" step)
+  loops, R-setup grouping (`test-smokes.yml`, "Restore R packages" step)
 - Built-version testing context: `llm-docs/built-version-testing-architecture.md`
   (the CI legs whose logs this design targets)
