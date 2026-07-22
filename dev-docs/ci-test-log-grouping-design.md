@@ -105,6 +105,9 @@ A standalone experiment (two test files, markers emitted from inside
 
   i.e. per-file grouping collapses exactly the noise (per-test output blocks
   and `ok` lines) while keeping Deno's own file headers visible as structure.
+  (Phase 2.1 later moved the group open earlier, to registration time, so the
+  `running N tests from` header and the first-test announcement now land
+  *inside* the group rather than above it — see "Phase 2.1" below.)
 - **Per-file module instances (correction, found via review #1986).** Deno
   instantiates each test file's module graph separately: module state resets
   between files, and each file gets its own `unload` event, flushed before
@@ -244,6 +247,35 @@ does.**
   `smoke-all.test.ts` runs many documents as separate tests — if needed, treat
   each smoke-all *document* as the boundary instead; the harness knows the
   document path).
+
+#### Phase 2.1 — open the group at registration time
+
+Phase 2 opens a file's group inside the *body of its first test*, which
+leaves Deno's `running N tests from ...` header and that first test's
+announcement line above the group (the spike snippet above). Phase 2.1 moves
+the open earlier — to **registration (module-eval) time**, when the file's
+first `test(...)` call runs — so those reporter lines land inside the group.
+
+- At registration there is no `context.origin` yet, so the declaring file is
+  recovered from the call stack: `testFileUrlFromStack()`
+  (`tests/gha-grouping.ts`, kept pure so it is unit-testable with synthetic
+  stacks) returns the first `.test.ts` frame's `file://` URL, and
+  `testFileFromStack()` (`tests/test.ts`) turns it into the tests-relative
+  group title via the existing `testFileFromOrigin`.
+- Once per file, via a module-level `registrationGroupAttempted` flag —
+  per-file module instances (the correction above) make this once-per-file for
+  free, mirroring `summaryHeaderEmitted` — and gated on `harnessOwnsStep()`, so
+  local and orchestrated (bucket) runs do no stack resolution and stay
+  unchanged.
+- The body-time `enterTestFileGroup(origin)` from Phase 2 stays as a
+  self-correcting fallback: a wrong stack guess transitions to the correct
+  group when the first test runs, and a stack-parse failure is identical to
+  Phase 2 behavior (the group just opens at body time). Registration-time
+  opening can therefore only improve placement, never break it.
+- This relies on test files registering serially in one process — the same
+  no-`--parallel` assumption Phase 2 already carries (see the interleaved
+  parallel-output hard constraint and the `deno test --parallel` non-goal). If
+  `--parallel` is ever adopted, this moves with the rest of the grouping.
 
 ### Phase 3 (optional follow-ups)
 
