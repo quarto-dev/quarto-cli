@@ -190,6 +190,9 @@ export function defaultAnnotationCounterPath(): string | undefined {
 }
 
 export interface AnnotationDecision {
+  // step-wide 1-based count of this failure (every CI failure gets one, used
+  // to build its navigation label; see failureLabel)
+  ordinal: number;
   // emit the per-test ::error for this failure
   emitAnnotation: boolean;
   // this failure is the first one past the cap: emit the single aggregate
@@ -231,14 +234,17 @@ export class AnnotationBudget {
     Deno.writeTextFileSync(this.counterPath, String(n));
   }
 
-  // Record one failure and decide what to emit for it. The aggregate fires
-  // exactly when the count first crosses the cap — no end-of-run hook exists
-  // that spans test files, so it must be emitted inline by the failure that
-  // crosses the line; later failures emit nothing.
+  // Record one failure and decide what to emit for it. Returns the step-wide
+  // ordinal (the running count, used to build the failure's navigation label
+  // — every failure gets one, uncapped) alongside the emit decisions. The
+  // aggregate fires exactly when the count first crosses the cap — no
+  // end-of-run hook exists that spans test files, so it must be emitted inline
+  // by the failure that crosses the line; later failures emit nothing.
   recordFailure(): AnnotationDecision {
     const count = this.readCount() + 1;
     this.writeCount(count);
     return {
+      ordinal: count,
       emitAnnotation: count <= this.max,
       emitAggregate: count === this.max + 1,
     };
@@ -298,43 +304,120 @@ function formatDuration(ms: number): string {
   return `${(ms / 1000).toFixed(2)}s`;
 }
 
+// A failure's navigation label: the step-wide ordinal prefixed with the
+// runner OS (RUNNER_OS: "Linux"/"Windows"/"macOS"; anything else → X). The
+// run summary page concatenates every job's summary, so the prefix keeps the
+// label unambiguous across jobs — it is the Ctrl+F target that ties a table
+// row to its detail block (step-summary heading anchors do not resolve, so
+// there is no link; the shared ASCII label is the navigation).
+export function failureLabel(ordinal: number, runnerOs: string): string {
+  const os = runnerOs.toLowerCase();
+  const prefix = os.startsWith("linux")
+    ? "L"
+    : os.startsWith("windows")
+    ? "W"
+    : os.startsWith("macos")
+    ? "M"
+    : "X";
+  return `${prefix}-F${ordinal}`;
+}
+
+// The clustering key for a failure: the first three non-empty lines of the
+// ANSI-stripped excerpt. Three, not one, because the first line alone is a
+// generic banner for many failure kinds and would over-cluster.
+export function excerptSignature(excerpt: string): string {
+  return stripAnsi(excerpt)
+    .split("\n")
+    .filter((line) => line.trim().length > 0)
+    .slice(0, 3)
+    .join("\n");
+}
+
 export function summaryTableHeader(): string {
-  return "| Test file | Test | Duration |\n| :-- | :-- | --: |\n";
+  return "| # | Test file | Test | Duration |\n| :-- | :-- | :-- | --: |\n";
 }
 
 export function summaryTableRow(
+  label: string,
   file: string,
   name: string,
   durationMs: number,
 ): string {
-  return `| \`${file}\` | ${summaryCell(name)} | ${formatDuration(durationMs)} |\n`;
+  return `| ${label} | \`${file}\` | ${summaryCell(name)} | ${
+    formatDuration(durationMs)
+  } |\n`;
 }
 
 // Degraded row emitted once the summary file is over budget: the failure is
 // still recorded by name (the complete record), just without duration/output.
-export function summaryTableRowNameOnly(file: string, name: string): string {
-  return `| \`${file}\` | ${summaryCell(name)} | |\n`;
+// The label column renders the same plain text as a full row.
+export function summaryTableRowNameOnly(
+  label: string,
+  file: string,
+  name: string,
+): string {
+  return `| ${label} | \`${file}\` | ${summaryCell(name)} | |\n`;
 }
 
-// Expandable output block for one failure. The <summary> label names the
-// failing test (file + test name) so collapsed blocks are identifiable
-// without expanding — with many failures, N anonymous "output" blocks are
-// unusable. Uses <pre> (not a ``` fence) with HTML-escaped content so
-// backticks/pipes in captured output can't break out; the label is escaped
-// too (test names contain `>`). GFM ends a table at the first non-row line,
-// so these blocks are flushed after all table rows, never interleaved
-// between them.
-export function summaryDetailBlock(
-  file: string,
-  testName: string,
+export interface ClusterMember {
+  label: string;
+  file: string;
+  testName: string;
+  repro: string;
+}
+
+export interface FailureCluster {
+  label: string;
+  members: ClusterMember[];
+  excerpt: string;
+}
+
+// Expandable output block for one CLUSTER of same-signature failures. Preceded
+// by a label-only `#### L-F7` heading (the second Ctrl+F hit). The <summary>
+// label names the first failing test (file + test name); with >1 member it
+// also carries the member count and lists every member (label + file + repro).
+// One shared excerpt (the first member's) renders inside a <pre> with
+// HTML-escaped content so backticks/pipes/angle brackets in captured output
+// can't break out. GFM ends a table at the first non-row line, so these blocks
+// are flushed after all table rows, never interleaved between them.
+export function summaryClusterBlock(cluster: FailureCluster): string {
+  const first = cluster.members[0];
+  const n = cluster.members.length;
+  const count = n > 1 ? ` (${n} tests)` : "";
+  const summaryLabel = `<code>${htmlEscape(first.file)}</code> — ${
+    htmlEscape(first.testName).replace(/\r?\n/g, " ")
+  }${count}`;
+  // With more than one member, list every clustered failure (label + file +
+  // repro) so the reader can reach each one; the shared excerpt is shown once.
+  let memberList = "";
+  if (n > 1) {
+    memberList = "\n" + cluster.members
+      .map((m) =>
+        `- ${m.label} · <code>${htmlEscape(m.file)}</code> (<code>${
+          htmlEscape(m.repro)
+        }</code>)`
+      )
+      .join("\n") + "\n";
+  }
+  const body = htmlEscape(`${first.repro}\n\n${cluster.excerpt}`);
+  return `\n#### ${cluster.label}\n\n<details><summary>${summaryLabel}</summary>\n${memberList}\n<pre>\n${body}\n</pre>\n</details>\n\n`;
+}
+
+// Trimmed annotation message: the repro, a blank line, the first `maxLines`
+// non-empty excerpt lines, an ellipsis, then a pointer at the step-summary
+// entry (by label). The full repro+excerpt already lives in the summary on the
+// same page, so the annotation only needs enough to identify the failure.
+export function annotationBody(
   repro: string,
   excerpt: string,
+  label: string,
+  maxLines = 5,
 ): string {
-  const label = `<code>${htmlEscape(file)}</code> — ${
-    htmlEscape(testName).replace(/\r?\n/g, " ")
-  }`;
-  const body = htmlEscape(`${repro}\n\n${excerpt}`);
-  return `\n<details><summary>${label}</summary>\n\n<pre>\n${body}\n</pre>\n</details>\n\n`;
+  const lines = stripAnsi(excerpt)
+    .split("\n")
+    .filter((line) => line.trim().length > 0)
+    .slice(0, maxLines);
+  return `${repro}\n\n${lines.join("\n")}\n…\nFull output: step summary → ${label}`;
 }
 
 // GitHub API

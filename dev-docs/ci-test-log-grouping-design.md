@@ -3,7 +3,8 @@
 Status: **Phases 1–2 implemented** on this branch (Phase 1: annotations +
 step summary, `tests/test.ts` + `src/tools/github.ts`; Phase 2: per-file
 grouping, `tests/gha-grouping.ts` + the `tests/tools/check-gha-log.ts`
-checker). Phase 3 remains optional/unscheduled. The fork `workflow_dispatch`
+checker; Phase 2.2: navigable, clustered step summaries + trimmed
+annotations). Phase 3 remains optional/unscheduled. The fork `workflow_dispatch`
 trial matrix (verification item 3) has been run (Linux + Windows, seeded
 failures, including the >10-failing-file case) and caught two real bugs, both
 fixed on this branch.
@@ -276,6 +277,79 @@ first `test(...)` call runs — so those reporter lines land inside the group.
   no-`--parallel` assumption Phase 2 already carries (see the interleaved
   parallel-output hard constraint and the `deno test --parallel` non-goal). If
   `--parallel` is ever adopted, this moves with the rest of the grouping.
+
+#### Phase 2.2 — navigable, clustered step summaries + trimmed annotations
+
+Phases 1–2 emit one step-summary row and one `<details>` block per failure
+plus a per-failure `::error`. On a real 36-failures-per-job run
+(cderv/quarto-cli run 29841891595) three problems showed: (a) the table had
+no navigation to its detail blocks; (b) 28 of 36 failures shared ONE identical
+error yet produced 28 duplicate blocks, wasting the 512 KiB budget and the
+reader's time; (c) annotations duplicated the full repro+excerpt already on the
+same page. Phase 2.2 addresses all three, in one commit, touching only
+`src/tools/github.ts` + `tests/test.ts` (+ unit tests). No workflow or checker
+changes; all Phase 1–2 invariants still hold.
+
+- **Step-wide failure ordinal.** `AnnotationBudget.recordFailure()` already
+  counts failures once per step via its sidecar file; it now also returns that
+  count as `ordinal`. In `tests/test.ts` the call moves OUT of the
+  `harnessOwnsStep()` gate (but stays under `isGitHubActions()`), so every CI
+  failure — including orchestrated bucket-leg rows — gets an ordinal; the
+  `emitAnnotation`/`emitAggregate` decisions are still consumed only inside the
+  gate, and the counter write is a file (not stdout), so orchestrated stdout
+  stays byte-identical.
+- **Failure labels.** Pure `failureLabel(ordinal, runnerOs)` → `L-F7` / `W-F7`
+  / `M-F7` (Linux/Windows/macOS; unknown → `X`). `RUNNER_OS` is read once in
+  the gated failure path and passed in; the helper reads no env. The OS prefix
+  is required because the run summary page concatenates every job's summary —
+  an unprefixed label would collide across Linux/Windows sections. The label
+  leads the summary table's new `#` column and precedes each detail block as a
+  label-only `#### L-F7` heading.
+- **No link syntax — plain-text labels (VERIFY-FIRST outcome).** The original
+  design linked table rows to detail blocks via `[L-F7](#l-f7)` fragment links
+  against the `#### L-F7` headings. A verification probe settled that this does
+  NOT work: **fork run 29923715216** (two jobs, prefixed + unprefixed label
+  probes; authenticated-browser DOM inspection) found step-summary headings
+  render as bare `<h4>` with **empty `id`**, no `id`s anywhere in the rendered
+  `markdown-body`, and every fragment link dead — GitHub's step-summary
+  renderer omits the heading-slug/anchor post-processing that README/issue
+  rendering applies. So labels are emitted as **plain text** in every row and
+  heading (no `[…](#…)`); Ctrl+F on a label gives exact two-hit navigation (row
+  ↔ heading). The OS prefix stays — it keeps that Ctrl+F hit unambiguous across
+  the concatenated per-job summaries. (This also constrains the future
+  `ci-run` helper's `verdict`: in-summary deep links are impossible, so
+  navigation there must be API-based.)
+- **Cluster identical errors.** The per-file `pendingSummaryDetails: string[]`
+  buffer becomes a `Map<signature, FailureCluster>`, keyed by
+  `excerptSignature()` = the first THREE non-empty ANSI-stripped excerpt lines
+  (one line is too generic — many failures share the "Error or Warnings During
+  Execution" banner — and would over-cluster). Cluster identity is decided at
+  failure time; the first member's label anchors the cluster and every member's
+  table row still streams immediately (crash-safety unchanged). At `unload`,
+  one block per cluster is flushed: `#### <label>` then a `<details>` whose
+  summary carries the first member's file/test name and, when N>1, a
+  `(N tests)` count and a member list (`- <label> · <file> (<repro>)`), then a
+  single shared `<pre>` excerpt (the first member's). Single-member clusters
+  render as the Phase-1 block plus its heading. Each member's table row keeps
+  its OWN unique label (which also matches its annotation title); only the
+  first member's label becomes a `#### L-Fn` heading, so a non-first member's
+  second Ctrl+F hit is its entry in the cluster's member list (which
+  find-in-page auto-expands in modern browsers), not a second heading. On run
+  29841891595 this collapses ~36 blocks to ~4, making the over-budget degrade
+  path an edge case rather than the norm.
+- **Trimmed annotations.** `annotationBody(repro, excerpt, label, maxLines=5)`
+  builds the `::error` message as: repro, blank line, first 5 non-empty excerpt
+  lines, `…`, then `Full output: step summary → <label>`. The title becomes
+  `<label> · <testName>` so an annotation cross-references its summary entry.
+  The aggregate annotation is unchanged. The full repro+excerpt lives in the
+  summary on the same page, so the annotation only needs enough to identify the
+  failure and point at the record.
+
+All seven invariants below still hold: summary rows stream per failure (the
+complete record survives a mid-file crash); orchestrated legs see no stdout
+change (the ordinal is a counter-file write); everything no-ops off CI; labels
+are ASCII by construction while file/test names keep going through
+`htmlEscape`/`escapeProperty`; the checker is untouched.
 
 ### Phase 3 (optional follow-ups)
 
