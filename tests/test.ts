@@ -527,7 +527,9 @@ export function test(test: TestDescriptor) {
                 stepSummary(
                   summaryTableRow(annotationFile, testName, durationMs),
                 );
-                pendingSummaryDetails.push(summaryDetailBlock(repro, excerpt));
+                pendingSummaryDetails.push(
+                  summaryDetailBlock(annotationFile, testName, repro, excerpt),
+                );
               }
 
               // Failure annotation — navigation only, and only when the

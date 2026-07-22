@@ -164,10 +164,21 @@ unitTest("gha-reporting - summary rows escape table-breaking characters", async 
 // deno-lint-ignore require-await
 unitTest("gha-reporting - detail block escapes HTML so output cannot break out", async () => {
   const block = summaryDetailBlock(
+    "docs/smoke-all/x.qmd",
+    "[smoke] > quarto render docs/smoke-all/x.qmd <b>",
     "./run-tests.sh docs/smoke-all/x.qmd",
     "boom <script> & ``` end",
   );
-  assert(block.includes("<details><summary>output</summary>"));
+  // the label names the failing test so collapsed blocks are identifiable
+  assert(
+    block.includes("<summary><code>docs/smoke-all/x.qmd</code> — "),
+    "summary label carries the test file",
+  );
+  assert(
+    block.includes("[smoke] &gt; quarto render docs/smoke-all/x.qmd &lt;b&gt;"),
+    "test name in label is HTML-escaped",
+  );
+  assert(!block.includes("<summary>output</summary>"), "no anonymous label");
   assert(block.includes("<pre>"));
   assert(block.includes("&lt;script&gt;"), "angle brackets escaped");
   assert(block.includes("&amp;"), "ampersand escaped");
