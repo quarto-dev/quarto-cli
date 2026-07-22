@@ -420,8 +420,30 @@ async function waitForNotaryStatus(
 }
 
 async function stapleNotary(input: string) {
-  await runCmd(
-    "xcrun",
-    ["stapler", "staple", input],
-  );
+  // Apple's stapling ticket can take a few seconds to propagate after
+  // notarytool reports success, so an immediate staple attempt can fail
+  // with a transient error even though notarization succeeded. Retry
+  // with a short delay before giving up.
+  const maxAttempts = 5;
+  const retryDelayMs = 15000;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await runCmd(
+        "xcrun",
+        ["stapler", "staple", input],
+      );
+      return;
+    } catch (e) {
+      if (attempt === maxAttempts) {
+        throw e;
+      }
+      warning(
+        `Stapling failed (attempt ${attempt}/${maxAttempts}), retrying in ${
+          retryDelayMs / 1000
+        }s...`,
+      );
+      sleepSync(retryDelayMs);
+    }
+  }
 }
