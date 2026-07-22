@@ -167,6 +167,7 @@ After every change to preview URL or handler logic, verify that single-file prev
 - **Steps:** From `knitr-subdir-14683/labs/` (the doc's own directory), run `quarto preview doc.qmd --to html --no-watch-inputs --no-browser --port XXXX` — the shape RStudio's Render button uses (bare filename, cwd = the doc's subdirectory).
 - **Expected:** Renders without `Error in rmarkdown:::abs_path(input)`; `_site/labs/doc.html` is produced showing `[1] 2` (the R chunk executed). The echoed `QUARTO_DOCUMENT_PATH` is the doc's absolute subdirectory (ends in `labs`), not `.` / the project root (#12401).
 - **Catches:** `fileExecutionEngineAndTarget` not normalizing the input to absolute — a cwd-relative `target.input`/`source` in the shared preview cache makes the knitr R subprocess (cwd = project dir) fail `abs_path` on the subdirectory-relative filename.
+- **Automated coverage:** `tests/unit/preview-subdir-knitr-cwd.test.ts` exercises this same scenario end-to-end (real R/knitr subprocess) plus a deterministic cache-key guard. Manual rerun of this test is optional — only needed to hand-verify against a real `quarto preview` CLI/browser session (e.g. after changing the preview HTTP/format-resolution layer), since the automated test calls the internal render functions directly rather than spinning up the actual preview server.
 
 ## Test Matrix: Format Change Detection (#14533)
 
