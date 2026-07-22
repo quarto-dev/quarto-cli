@@ -1,0 +1,43 @@
+---
+# Issue #14575 — knitr engine cases. See the body below for details.
+format: pdf
+tbl-cap-location: bottom
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        -
+          - '\\end\{document\}'
+          - '\\caption\{[\s\S]{0,60}CAP7 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          - '\\caption\{[\s\S]{0,60}CAP8 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+---
+
+With `tbl-cap-location: bottom`, a knitr `kable()` table that Quarto wraps in
+`.cell-output-display` must place its bottom caption in the longtable foot —
+`\caption{...}\tabularnewline` immediately before `\endlastfoot` — not inside
+the table body. Both assertions above check that placement.
+
+Case 7 is the reported bug (cross-referenced kable with a label); it passes
+only after the fix. Case 8 (kable with a caption but no label) already
+rendered correctly and acts as a regression guard.
+
+The `kable(longtable = TRUE, caption = ...)` variant is a different shape —
+its longtable has no `\endlastfoot`, so the caption is orphaned — and is
+tracked separately, out of scope here.
+
+# Case 7: knitr kable with label (reported bug)
+
+```{r}
+#| label: tbl-c7
+#| tbl-cap: "CAP7 caption"
+knitr::kable(head(cars, 3))
+```
+
+# Case 8: knitr kable with tbl-cap, no label (guard)
+
+```{r}
+#| tbl-cap: "CAP8 caption"
+knitr::kable(head(cars, 3))
+```

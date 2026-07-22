@@ -15,27 +15,31 @@ if NOT DEFINED QUARTO_VENDOR_BINARIES (
 
 if "%QUARTO_VENDOR_BINARIES%" == "true" (
 
-  REM Windows-specific: Check if deno.exe is running before deleting package/dist
-  REM Extracted to package/scripts/windows/check-deno-in-use.cmd for maintainability
-  call package\scripts\windows\check-deno-in-use.cmd "!QUARTO_DIST_PATH!"
-  if "!ERRORLEVEL!"=="1" exit /B 1
+  REM CI sets QUARTO_SKIP_DENO_CACHE_WIPE=1 so the restored deno_cache survives
+  REM (matches the gate used by package\scripts\vendoring\vendor.cmd).
+  IF NOT "!QUARTO_SKIP_DENO_CACHE_WIPE!"=="1" (
+    REM Windows-specific: Check if deno.exe is running before deleting package/dist
+    REM Extracted to package/scripts/windows/check-deno-in-use.cmd for maintainability
+    call package\scripts\windows\check-deno-in-use.cmd "!QUARTO_DIST_PATH!"
+    if "!ERRORLEVEL!"=="1" exit /B 1
 
-  echo Removing package/dist/ directory...
-  RMDIR /S /Q "!QUARTO_DIST_PATH!" 2>NUL
+    echo Removing package/dist/ directory...
+    RMDIR /S /Q "!QUARTO_DIST_PATH!" 2>NUL
 
-  REM Fallback: Verify deletion succeeded (defense in depth)
-  if exist "!QUARTO_DIST_PATH!" (
-    echo.
-    echo ============================================================
-    echo Error: Could not delete package/dist/ directory
-    echo This may be due to permissions, antivirus, or another process holding files
-    echo ============================================================
-    echo.
-    echo Try closing applications and run configure.cmd again
-    exit /B 1
+    REM Fallback: Verify deletion succeeded (defense in depth)
+    if exist "!QUARTO_DIST_PATH!" (
+      echo.
+      echo ============================================================
+      echo Error: Could not delete package/dist/ directory
+      echo This may be due to permissions, antivirus, or another process holding files
+      echo ============================================================
+      echo.
+      echo Try closing applications and run configure.cmd again
+      exit /B 1
+    )
   )
 
-  MKDIR !QUARTO_BIN_PATH!\tools
+  IF NOT EXIST "!QUARTO_BIN_PATH!\tools" MKDIR !QUARTO_BIN_PATH!\tools
   PUSHD !QUARTO_BIN_PATH!\tools
 
   ECHO Bootstrapping Deno...

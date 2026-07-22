@@ -1233,6 +1233,7 @@ const kLangCommentChars: Record<string, string | string[]> = {
   stata: "*",
   java: "//",
   groovy: "//",
+  kotlin: "//",
   sed: "#",
   perl: "#",
   ruby: "#",
@@ -1756,7 +1757,7 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscardableTextExecuteResult(
+export function isDiscardableTextExecuteResult(
   output: JupyterOutput,
   haveImage: boolean,
 ) {
@@ -1765,8 +1766,23 @@ function isDiscardableTextExecuteResult(
     if (Object.keys(data).length === 1) {
       const textPlain = data?.[kTextPlain] as string[] | undefined;
       if (textPlain && textPlain.length) {
-        if (haveImage && textPlain.length === 1) {
-          return /^([<(\[]).*?([>)\]])$/.test(textPlain[0].trim());
+        if (haveImage) {
+          if (textPlain.length === 1) {
+            // single-line object reprs echoed next to the figure: <...>/(...)/[...]
+            // wrappers (Axes, Line2D, tuples) plus matplotlib Text from
+            // title()/xlabel()/ylabel()/set_title() — whose repr leads with a
+            // numeric coordinate (Text(0.5, ...)), unlike other libraries' Text
+            const first = textPlain[0].trim();
+            return /^([<(\[]).*?([>)\]])$/.test(first) ||
+              /^Text\([-\d]/.test(first) ||
+              (first.startsWith("{") && first.includes("<matplotlib."));
+          } else {
+            // multi-line reprs that are collections of matplotlib artists, e.g.
+            // the dict of Line2D returned by boxplot(). Only suppress when a
+            // matplotlib object is referenced, leaving ordinary multi-line
+            // output (lists, tuples, custom reprs) untouched
+            return textPlain.some((line) => line.includes("<matplotlib."));
+          }
         } else {
           return [
             "[<matplotlib",

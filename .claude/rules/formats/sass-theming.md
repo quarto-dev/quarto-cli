@@ -20,3 +20,5 @@ background-color: var(--r-background-color, $body-bg);
 ```
 
 Read `llm-docs/sass-theming-architecture.md` for full compilation pipeline details.
+
+For the three-tier callout CSS architecture (Bootstrap, RevealJS, standalone HTML), see `llm-docs/callout-styling-html.md`.

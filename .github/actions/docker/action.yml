@@ -49,6 +49,10 @@ runs:
       run: |
         cat << 'EOF' >> Dockerfile
         FROM ubuntu:22.04
+        ENV DEBIAN_FRONTEND=noninteractive
+        RUN apt-get update \
+          && apt-get install -y --no-install-recommends unzip \
+          && rm -rf /var/lib/apt/lists/*
         COPY ["${{ inputs.source }}", "quarto-linux-amd64.deb"]
         RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
         EOF

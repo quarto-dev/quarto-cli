@@ -89,6 +89,29 @@ testQuartoCmd(
 - Use absolute paths with `join()` for file verification
 - Clean up output directories in teardown
 
+### Performance Budget (Render Timeout)
+
+`testQuartoCmd` runs the render under a default 10-minute timeout. For a test guarding a *performance* regression — a render that must not hang — set a tight budget via `TestContext.timeout` (milliseconds) so a regression fails fast instead of riding the 10-minute default:
+
+```typescript
+testQuartoCmd("render", [projectDir], [noErrors /*, ... */], {
+  timeout: 120000, // healthy render is well under this; a hang trips it
+  setup: () => {
+    writeProject(); // generate the fixture project in a temp dir
+    return Promise.resolve();
+  },
+  teardown: () => {
+    safeRemoveSync(projectDir, { recursive: true });
+    return Promise.resolve();
+  },
+});
+```
+
+**Key points:**
+
+- The budget is machine-dependent (post-fix render time must sit well under it, pre-fix hang well over it), so it is defense-in-depth. Pair it with a deterministic unit test on the actual fix mechanism as the primary guard.
+- A timed-out render subprocess is not killed by the harness, so on Windows it may still hold the output directory; use `safeRemoveSync` in teardown and treat cleanup as best-effort.
+
 ### Extension Template Tests
 
 For testing `quarto use template`:
@@ -145,6 +168,40 @@ testQuartoCmd(
 - Use `cwd()` function to set working directory for command execution
 - Clean up entire temp directory including source files
 - File verification uses relative paths when checking files in `cwd()`
+
+### Working-Directory-Sensitive Tests
+
+Some tests need to run from a specific directory (e.g. reproducing a bug that
+depends on the process cwd). **Do not `Deno.chdir()` inside the test body** —
+it mutates process-global cwd and can leak into other tests in the same
+process. Use the `TestContext` options instead; the harness changes the cwd
+before the test and restores it afterward:
+
+```typescript
+const workingDir = Deno.makeTempDirSync();
+
+unitTest("runs from workingDir", async () => {
+  // cwd is workingDir here (set by the harness)
+}, {
+  setup: () => { Deno.writeTextFileSync(".env.example", "..."); return Promise.resolve(); },
+  cwd: () => workingDir,
+  teardown: () => { try { Deno.removeSync(workingDir, { recursive: true }); } catch { /* best-effort */ } return Promise.resolve(); },
+});
+```
+
+**Key points:**
+
+- The harness calls `cwd()` **before** `setup()`, so the directory must already
+  exist when `cwd()` runs — create it at module scope, not in `setup`.
+- `teardown` runs **before** the harness restores the cwd, so on Windows the
+  temp dir may still be the cwd and resist removal. Wrap the removal in
+  try/catch (best-effort) — see `tests/smoke/use/template.test.ts` and
+  `tests/unit/dotenv-config.test.ts`.
+- For a temp directory you don't need to run *from*, prefer `withTempDir`
+  (`tests/utils.ts`), which creates and recursively removes it in a `finally`.
+- A test that only needs a **relative** input (not a specific cwd) can pass a
+  path relative to the current cwd (`relative(Deno.cwd(), absFile)`) without
+  changing directories at all.
 
 ## Verification Helpers
 
@@ -340,6 +397,36 @@ Rscript -e "renv::install(); renv::snapshot()"
 
 **Note:** While Quarto supports local Project.toml files in document directories for production use, the quarto-cli test infrastructure specifically does NOT support this pattern. All test dependencies must be in the main `tests/` environment.
 
+### R Tests That Change Working Directory
+
+R resolves `.Rprofile` from the **exact** process cwd (no parent-directory
+search). On CI, rmarkdown/knitr live only in `tests/renv`'s project library,
+activated when cwd is `tests/` (via `tests/.Rprofile` sourcing
+`renv/activate.R`). Most knitr tests never leave `tests/` — they pass paths
+relative to the current cwd instead of changing directories — so activation
+happens automatically.
+
+A test that must run with cwd set elsewhere (a scratch temp dir, via
+`TestContext.cwd()` — see "Working-Directory-Sensitive Tests" above) loses
+that activation: the R subprocess starts outside `tests/`, renv never
+activates, and package loads fail with `there is no package called
+'rmarkdown'`. This is CI-only — a developer machine with rmarkdown on the
+default `.libPaths()` masks it entirely. The render pipeline also tends to
+swallow the underlying subprocess error, so the failure can be silent beyond
+the bare package-load message.
+
+**Fix:** in the fixture's cwd, write a `.Rprofile` that re-points renv at the
+real project, regardless of where the test's cwd actually is:
+
+```r
+Sys.setenv(RENV_PROJECT = "<absolute path to tests/>")
+source("<absolute path to tests/>/renv/activate.R")
+```
+
+`renv/activate.R` reads `RENV_PROJECT` to determine the project root if set,
+falling back to `getwd()` otherwise — setting it explicitly decouples renv
+activation from the test's cwd.
+
 ## Best Practices
 
 1. **Always clean up**: Use teardown to remove generated files
@@ -421,5 +508,36 @@ _quarto:
 | `\begin{`        | `'\\begin\{'`            | `"\\\\begin\\{"`         |
 | `\\` (literal)   | `'\\\\'`                 | `"\\\\\\\\"`             |
 | `[` (regex)      | `'\['`                   | `"\\["`                  |
+
+### Probe enough keys to surface the bug
+
+A precedence test where the template reads only the one key being
+overridden can pass under a deep-merge bug. The dropped sibling keys
+never resolve, but no assertion notices.
+
+Example: the merge of user-supplied `variables.quarto.language.crossref-ch-prefix: Bouquin`
+onto Quarto's built `format.language` table under
+`variables.quarto.language`. Under a shallow spread (`{ ...a, ...b }`),
+`b.language` replaces the entire localized map — all other
+`$quarto.language.<key>$` resolutions silently return empty. A template
+that reads only `$quarto.language.crossref-ch-prefix$` still asserts
+"Bouquin", so the regression test passes.
+
+The fix is to probe at least one non-overridden sibling key in the same
+template. Concretely, the regression guard
+`tests/docs/smoke-all/markdown/lang-fr-user-override-deep-merge.qmd`
+uses the template
+
+```
+$quarto.language.crossref-ch-prefix$|$quarto.language.toc-title-document$
+```
+
+and asserts the full string `^Bouquin\|Table des matières\s*$`. Pre-fix
+the output was `Bouquin|`; post-fix it is `Bouquin|Table des matières`.
+
+Heuristic: when writing a precedence smoke test for any merge between
+two structured config trees, ensure the assertion exercises at least
+one path the user did NOT override. Otherwise the test only proves
+"the overridden value wins" — not "the rest survives".
 
 **Recommendation:** Use single-quoted strings. They're simpler - only `'` itself needs escaping (as `''`).

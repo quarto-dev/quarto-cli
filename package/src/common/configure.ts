@@ -18,13 +18,22 @@ import {
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
-import { suggestUserBinPaths } from "../../../src/core/path.ts";
+import { suggestUserBinPaths, which } from "../../../src/core/path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 export async function configure(
   config: Configuration,
 ) {
+  // npm is required later for building quarto-preview.js (used by `quarto
+  // preview` live-reload). Check upfront to fail fast before downloading
+  // hundreds of MB of dependencies when npm is missing.
+  if ((await which("npm")) === undefined) {
+    throw new Error(
+      "npm not found on PATH. Please install Node.js (which provides npm) before running configure.",
+    );
+  }
+
   // Download dependencies
   for (const dependency of kDependencies) {
     const targetDir = join(
@@ -117,9 +126,7 @@ export async function configure(
           info(`> Didn't create symlink at ${symlinkPath}`);
           if (i === symlinksFiltered.length - 1) {
             warning(
-              `\n> Please ensure that ${
-                join(config.directoryInfo.bin, "quarto")
-              } is in your path.`,
+              `\n> Please ensure that ${config.directoryInfo.bin} is in your path.`,
             );
           }
         }
@@ -127,9 +134,7 @@ export async function configure(
     } else {
       // Just warn the user and create a symlink in our last resort
       warning(
-        `\n> Please ensure that ${
-          join(config.directoryInfo.bin, "quarto")
-        } is in your path.`,
+        `\n> Please ensure that ${config.directoryInfo.bin} is in your path.`,
       );
     }
   }

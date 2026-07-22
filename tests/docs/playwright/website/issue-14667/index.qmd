@@ -1,0 +1,18 @@
+---
+title: Home
+---
+
+Links exercising the clean-URL rewrite in `quarto-nav.js` (issue #14667).
+The rewrite must strip `index.html` only at the end of the path, leaving
+names that merely start with `index.html` (like the `index.html.md`
+markdown twins generated for llms.txt workflows) untouched.
+
+- [markdown twin](index.html.md){#lnk-md} — must NOT be rewritten
+- [clean url](sub/index.html){#lnk-clean} — must become `sub/`
+- [fragment](index.html#section){#lnk-frag} — must become `#section` on `./`
+- [query](index.html?a=1){#lnk-query} — must become `./?a=1`
+- [path segment](index.html/foo){#lnk-segment} — must NOT be rewritten
+
+## Section {#section}
+
+Target for the fragment link.

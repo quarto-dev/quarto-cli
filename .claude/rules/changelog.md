@@ -32,6 +32,12 @@ Use H3 headings with backtick-wrapped names:
 ### `pdf`
 ```
 
+Use `### All Formats` (no backticks) for cross-format features that apply regardless of output format. Place it first among the H3 subsections, before format-specific ones. Example: `changelog-1.9.md` uses it for a `syntax-highlighting` option change that affects all formats.
+
+### Major Feature Sections
+
+Large new features that deserve prominence can get a dedicated H2 section instead of being buried in `## Other fixes and improvements`. Examples from past releases: `## Shortcodes` (1.9), `## Crossrefs` (1.8), `## Languages` (1.8), `## YAML validation` (1.7). Place these sections in the hierarchy where they fit logically — before `## Formats` if format-agnostic, or after `## Formats` if they extend format concerns. Highlights (promotional) still go in quarto-web, not here.
+
 ## Entry Format
 
 ```markdown
@@ -75,9 +81,39 @@ For external contributors (not core team):
 
 ## Backports
 
-When a fix is backported to a stable branch:
-1. Entry exists in current version changelog (e.g., `changelog-1.9.md`)
-2. **Also add entry to stable version changelog** (e.g., `changelog-1.8.md`)
+A backport adds the entry to **two changelog files**, each with its own location:
+
+### On `main` (current dev version, e.g. `changelog-1.10.md`)
+
+Entry goes under `## Regression fixes` (or another appropriate section). One file, flat `##` section list — same as any other entry on main. The `Regression fixes` section signals the change is also backported to stable; non-backported fixes go under `## Other fixes and improvements`.
+
+### On the stable release branch (e.g. `changelog-1.9.md` on `v1.9`)
+
+The stable changelog has a dual top-level structure that does NOT exist on main:
+
+```markdown
+# v1.10 backports
+
+## In this release          <- backports landing in the next v1.9.x patch
+## In previous releases     <- backports already shipped in earlier v1.9.x patches
+
+# v1.9 changes
+
+## Shortcodes
+## Regression fixes         <- original v1.9 release fixes (NOT backports)
+## Dependencies
+...
+```
+
+**Backport entries always go under `# v{next} backports > ## In this release`.** Never under `## Regression fixes` of the `# v{this} changes` section — that section is frozen and tracks the original v1.x release.
+
+**Lifecycle:** When the next v1.x.y patch ships, entries under `## In this release` get demoted to `## In previous releases` as part of release prep. Don't pre-empt this — leave them under `In this release` until release time.
+
+### Workflow
+
+1. Land the change on main with an entry in `changelog-{next}.md`.
+2. Backport via cherry-pick to the stable branch. Drop the main changelog change from the cherry-pick (it modifies a file that doesn't exist on stable).
+3. Add a separate commit on the stable branch adding the entry under `# v{next} backports > ## In this release` of `changelog-{this}.md`.
 
 ## What NOT to Put Here
 

@@ -117,10 +117,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
 
+      - name: Install Playwright system dependencies
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        timeout-minutes: 15
+        run: npx playwright install-deps
+        working-directory: ./tests/integration/playwright
+
       - name: Install Playwright Browsers
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
-        timeout-minutes: 10
-        run: npx playwright install --with-deps
+        timeout-minutes: 15
+        run: npx playwright install
         working-directory: ./tests/integration/playwright
 
       - name: Install MECA validator
@@ -158,6 +164,7 @@ jobs:
           sudo apt-get install -y libxml2-utils
           sudo apt-get install -y libharfbuzz-dev libfribidi-dev
           sudo apt-get install -y poppler-utils
+          sudo apt-get install -y libnode-dev
 
       - name: Install rsvg-convert for SVG conversion tests
         # Only do it on linux runner, and only if we are running the relevant tests
@@ -247,7 +254,7 @@ jobs:
         uses: julia-actions/setup-julia@a8c65a2a580b6a5cf30070e825e62f9fc0fee1d7
         id: setup-julia
         with:
-          version: "1.12.5"
+          version: "1.12.6"
 
       - name: Load Julia packages from cache
         uses: julia-actions/cache@v3
@@ -310,7 +317,7 @@ jobs:
             echo ">>> ./run-tests.sh ${file}"
             # Run tests without -e so we don't exit on first failure
             set +e
-            shopt -s globstar && ./run-tests.sh "$file"
+            ./run-tests.sh "$file"
             status=$?
             set -e
             echo "::endgroup::"

@@ -48,6 +48,12 @@ filters/
 
 User filters run between stages via entry points (`pre-ast`, `post-ast`, `pre-quarto`, etc.).
 
+This pipeline runs **after** Pandoc has parsed the document into an AST. The stage that
+turns raw `.qmd` text into that AST — Quarto's custom Lua reader, which also does
+pre-parse raw-text transforms (shortcode encoding, fenced-code escaping) — is separate
+and documented in [llm-docs/qmd-reader-architecture.md](../../../llm-docs/qmd-reader-architecture.md).
+Reach for it when a Pandoc *parsing* behavior must change before any filter can run.
+
 ## Key Files
 
 | File | Purpose |
@@ -62,22 +68,11 @@ User filters run between stages via entry points (`pre-ast`, `post-ast`, `pre-qu
 
 ## Debugging
 
-**Filter tracing (recommended):**
-```bash
-# Linux/macOS
-package/dist/bin/quarto dev-call show-ast-trace document.qmd
-
-# Windows
-package/dist/bin/quarto.cmd dev-call show-ast-trace document.qmd
-```
-
-**AST diagram:**
-```bash
-quarto dev-call make-ast-diagram document.qmd
-```
+Visualize filter transformations with the `dev-call` tools `show-ast-trace` (interactive trace viewer) and `make-ast-diagram` (static AST diagram) — see `.claude/rules/dev-tools/dev-call-commands.md` for both.
 
 ## Related Documentation
 
 - **Coding conventions**: `.claude/rules/filters/lua-development.md`
+- **qmd custom reader (pre-parse stage)**: [llm-docs/qmd-reader-architecture.md](../../../llm-docs/qmd-reader-architecture.md)
 - **Lua API**: <https://quarto.org/docs/extensions/lua-api.html>
 - **Filter tracing**: `dev-docs/lua-filter-trace-viewer.qmd`

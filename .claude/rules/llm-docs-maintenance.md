@@ -55,3 +55,11 @@ They are NOT:
 - User documentation (that's at quarto.org)
 - Code comments (those live in source files)
 - Issue-specific notes (those go in PR descriptions)
+
+## Discovery Pointers
+
+So a relevant deep-dive actually gets read when a matching task comes up, each `llm-docs/*.md` should be reachable from a **discovery pointer** — a one-line "see `llm-docs/<file>.md`" reference — placed inside a path-scoped rule under `.claude/rules/` whose `paths:` frontmatter matches the doc's own source files. This reuses the existing lazy-load gate at zero baseline context cost.
+
+Granularity rule: the pointer inherits its host rule's `paths:`, so it must live in a rule scoped **no broader than the doc's topic** — otherwise it loads on unrelated work (a reveal.js pointer does not belong in a rule scoped to all of `src/format/**`). If the best existing rule is too generic, create a small dedicated rule scoped to that doc's source instead.
+
+**When adding a new `llm-docs/*.md`:** add its discovery pointer to a matching path-scoped rule, or create a narrowly-scoped rule for it.

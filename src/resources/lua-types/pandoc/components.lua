@@ -199,6 +199,16 @@ pandoc.TableBody = {}
 
 
 --[[
+Creates a table body
+]]
+---@param body? pandoc.List List of `Row`
+---@param head? pandoc.List Intermediate head (list of `Row`)
+---@param row_head_columns? integer Number of columns taken up by the row head of each row of a `TableBody`
+---@param attr? pandoc.Attr Table body attributes
+---@return pandoc.TableBody
+function pandoc.TableBody(body, head, row_head_columns, attr) end
+
+--[[
 Make a clone
 ]]
 ---@return pandoc.TableBody

@@ -6,7 +6,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '\[#set text\(fill: rgb\(255, 0, 255\)\); B\]'
+          - '\[#set text\(fill: rgb\(255, 0, 255\)\);\s*B\]'
         - []
 ---
 

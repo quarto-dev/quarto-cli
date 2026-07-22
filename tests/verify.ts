@@ -429,23 +429,26 @@ export const ensureHtmlElementContents = (
       const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
       options.selectors.forEach((sel) => {
         const el = doc.querySelector(sel);
-        if (el !== null) {
-          const contents = el.innerText;
-          options.matches.forEach((regex) => {
-            assert(
-              asRegexp(regex).test(contents),
-              `Required match ${String(regex)} is missing from selector ${sel} content: ${contents}.`,
-            );
-          });
+        // a selector matching nothing must fail, not skip - otherwise the
+        // content assertions are silently vacuous
+        assert(
+          el !== null,
+          `Selector ${sel} matched no element in ${file}.`,
+        );
+        const contents = el.innerText;
+        options.matches.forEach((regex) => {
+          assert(
+            asRegexp(regex).test(contents),
+            `Required match ${String(regex)} is missing from selector ${sel} content: ${contents}.`,
+          );
+        });
 
-          options.noMatches?.forEach((regex) => {
-            assert(
-              !asRegexp(regex).test(contents),
-              `Unexpected match ${String(regex)} is present from selector ${sel} content: ${contents}.`,
-            );
-          });
-  
-        }
+        options.noMatches?.forEach((regex) => {
+          assert(
+            !asRegexp(regex).test(contents),
+            `Unexpected match ${String(regex)} is present from selector ${sel} content: ${contents}.`,
+          );
+        });
       });
     },
   };
@@ -1061,7 +1064,9 @@ export const ensurePptxMaxSlides = (
     // callback won't be used here
     () => Promise.resolve(),
     `Checking Pptx for maximum ${slideNumberMax} slides`,
-  )(file, slideNumberMax, true);
+    // positional args: rels=false, isSlideMax=true - passing true in the
+    // rels slot silently disabled the max-slides check entirely
+  )(file, slideNumberMax, false, true);
 };
 
 export const ensureDocxRegexMatches = (
@@ -1173,9 +1178,10 @@ export const ensurePptxRegexMatches = (
       const [_dir, stem] = dirAndStem(file);
       const temp = await Deno.makeTempDir();
       try {
-        // Move the docx to a temp dir and unzip it
+        // Copy (not move - later verifiers may still need the pptx) to a
+        // temp dir and unzip it
         const zipFile = join(temp, stem + ".zip");
-        await Deno.rename(file, zipFile);
+        await Deno.copyFile(file, zipFile);
         await unzip(zipFile);
 
         // Open the core xml document and match the matches
@@ -1247,14 +1253,13 @@ export const verifyYamlFile = (
   return {
     name: "Project Yaml is Valid",
     verify: async (_output: ExecuteOutput[]) => {
-      if (existsSync(file)) {
-        const raw = await Deno.readTextFile(file);
-        if (raw) {
-          const yaml = readYamlFromString(raw);
-          const isValid = func(yaml);
-          assert(isValid, "Project Metadata isn't valid");
-        }
-      }
+      // missing or empty yaml must fail, not skip the predicate
+      assert(existsSync(file), `Yaml file ${file} doesn't exist`);
+      const raw = await Deno.readTextFile(file);
+      assert(raw.trim().length > 0, `Yaml file ${file} is empty`);
+      const yaml = readYamlFromString(raw);
+      const isValid = func(yaml);
+      assert(isValid, "Project Metadata isn't valid");
     },
   };
 };

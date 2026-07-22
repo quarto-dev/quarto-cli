@@ -6,8 +6,7 @@
 -- FIXME Ideally this would go directly on init.lua, but
 -- the module path set up doesn't appear to be working there.
 
-local typst = require("modules/typst")
-_quarto.format.typst = typst
+_quarto.format.typst = _quarto.modules.typst
 
 -- Helper to format marginalia shift parameter
 -- auto/true/false are unquoted, "avoid"/"ignore" are quoted strings
@@ -252,8 +251,8 @@ function render_typst_fixups()
         -- Build image() parameters
         local params = {}
 
-        -- Source path (escape backslashes for Windows paths)
-        src = src:gsub('\\', '\\\\')
+        -- Typst 0.15+ rejects backslash path separators in image() calls.
+        src = _quarto.modules.path.to_forward_slashes(src)
         table.insert(params, '"' .. src .. '"')
 
         -- Alt text second (escape backslashes and quotes)
@@ -273,6 +272,21 @@ function render_typst_fixups()
         -- Use #box() wrapper for inline compatibility
         return pandoc.RawInline("typst", "#box(image(" .. table.concat(params, ", ") .. "))")
       end
+
+      -- When caption-as-alt is deliberately suppressed (this Image is the
+      -- sole content of a Figure whose caption is rendered separately, see
+      -- layout/pandoc3_figure.lua) and no other alt text applies, clear the
+      -- caption before returning the bare Image. Otherwise Pandoc's own
+      -- Typst writer independently re-derives alt: from the Image's
+      -- caption, reintroducing the leak this suppression exists to prevent.
+      if no_caption_alt then
+        image.caption = pandoc.Inlines{}
+      end
+
+      -- Typst 0.15+ rejects backslash path separators in image() calls, and
+      -- this bare-Image path (no alt text) is handed to Pandoc's own Typst
+      -- writer, which emits image.src verbatim.
+      image.src = _quarto.modules.path.to_forward_slashes(image.src)
 
       return image
     end,

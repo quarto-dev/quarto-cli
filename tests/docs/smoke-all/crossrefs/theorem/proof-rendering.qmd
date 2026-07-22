@@ -1,0 +1,39 @@
+---
+title: Proof rendering
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        -
+          - '\\begin\{proof\}'
+          - '\\end\{proof\}'
+          - '\\begin\{proof\}\[Of the main theorem\]'
+          - '\\begin\{remark\}'
+          - '\\end\{remark\}'
+---
+
+## Proof with content
+
+::: {.proof}
+This is a proof with content.
+:::
+
+## Named proof
+
+::: {.proof name="Of the main theorem"}
+Named proof body.
+:::
+
+## Empty proof
+
+::: {.proof}
+:::
+
+## Remark
+
+::: {.remark}
+This is a remark.
+:::

@@ -12,21 +12,22 @@ brand:
       - family: Inconsolata
         source: google
     base: InvalidFont, Roboto, 
-    headings: Barrio, Times New Roman
+    headings: Barrio, Roboto
     monospace: InvalidFont, Inconsolata
 _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'font: \("InvalidFont", "Roboto"\),'
-          # monospace font now goes through codefont parameter instead of header injection
-          - 'codefont: \("InvalidFont", "Inconsolata"\),'
+          # InvalidFont filtered out by font availability check (#12556)
+          - 'font: \("Roboto",\),'
+          - 'codefont: \("Inconsolata",\),'
+          # heading fonts (both Google-sourced via brand) available on all platforms
+          - '#show heading: set text\(font: \("Barrio", "Roboto"\), \)'
         - []
       ensurePdfRegexMatches:
         -
-          - 'Base is \("invalidfont", "roboto"\)'
-          - 'Heading is \("barrio", "times new roman"\)'
+          - 'Heading is \("barrio", "roboto"\)'
         - []
 ---
 

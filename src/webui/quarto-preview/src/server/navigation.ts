@@ -8,17 +8,20 @@ export function navigationHandler() {
 
   return () => {
     const normalizeTarget = (target: string) => {
-      return target.replace(/\/index\.html/, "/")
+      // only strip index.html at the end of the path so that files like
+      // index.html.md (alternate-format twins) are left alone (#14667)
+      return target.replace(/\/index\.html(?=[?#]|$)/, "/")
     };
-    
-    return (ev: MessageEvent<string>) : boolean => {
+
+    return (ev: MessageEvent<string>): boolean => {
       if (ev.data.startsWith('reload')) {
         let target = normalizeTarget(ev.data.replace(/^reload/, ""));
         // prepend proxy path to target if we have one
         if (target) {
-          const pathPrefix = 
+          const pathPrefix =
             window.location.pathname.match(/^.*?\/p\/\w+\//) ||
-            window.location.pathname.match(/^.*?\/user\/[\w\d]+\/proxy\/\d+\//);
+            window.location.pathname.match(/^.*?\/user\/[\w\d]+\/proxy\/\d+\//) ||
+            window.location.pathname.match(/^.*?\/(?:abs)?proxy\/\d+\//);
           if (pathPrefix) {
             target = pathPrefix + target.slice(1);
           }

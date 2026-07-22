@@ -205,10 +205,24 @@ export function findMissingHyphenationFiles(logText: string) {
 const kErrorRegex = /^\!\s([\s\S]+)?Here is how much/m;
 const kEmptyRegex = /(No pages of output)\./;
 
+// luaotfload's font-fallback resolver crashes on recent TeX Live (luaotfload
+// v3.29): when a fallback is set (mainfontfallback / monofontfallback / ...),
+// define_font of the internal `<font>;-fallback` name returns nil and
+// luaotfload-fallback.lua dereferences it. The crash is a Lua runtime error
+// with no `! ...Here is how much` block, so the generic extraction below finds
+// nothing — detect it directly and give actionable guidance.
+// Upstream: https://github.com/latex3/luaotfload/issues/331
+const kLuaotfloadFallbackCrash =
+  /luaotfload-fallback\.lua:\d+: attempt to index a nil value/;
+
 export function findLatexError(
   logText: string,
   stderr?: string,
 ): string | undefined {
+  if (kLuaotfloadFallbackCrash.test(logText)) {
+    return "A font fallback (e.g. 'mainfontfallback' or 'monofontfallback') triggered a known luaotfload bug on this TeX Live version, which crashes LuaLaTeX before a PDF is produced. Until it is fixed upstream, set a single font that covers the required glyphs (e.g. 'monofont: JuliaMono') instead of a fallback list. See https://github.com/latex3/luaotfload/issues/331";
+  }
+
   const errors: string[] = [];
 
   const match = logText.match(kErrorRegex);
@@ -265,6 +279,14 @@ const formatFontFilter = (match: string, _text: string) => {
   return /[.]/.test(base) ? base : fontSearchTerm(base);
 };
 
+// luaotfload appends ';-fallback' internally to each fallback-chain entry
+// (registered via monofontfallback / luaotfload.add_fallback) to prevent
+// recursive fallback resolution. Strip it before building the search term.
+// https://github.com/quarto-dev/quarto-cli/issues/14558
+const luaotfloadFontFilter = (match: string, text: string) => {
+  return formatFontFilter(match.replace(/;-fallback$/, ""), text);
+};
+
 const estoPdfFilter = (_match: string, _text: string) => {
   return "epstopdf";
 };
@@ -290,6 +312,13 @@ const packageMatchers = [
   {
     regex: /.*\(fontspec\)\s+The font "([^"]+)" cannot be.*/g,
     filter: formatFontFilter,
+  },
+  {
+    // luaotfload fallback-chain font (monofontfallback) missing. fontspec does
+    // not fire its own error in this path, so this is the only signal.
+    // https://github.com/quarto-dev/quarto-cli/issues/14558
+    regex: /.*luaotfload.*reason: Font "([^"]+)" not found.*/g,
+    filter: luaotfloadFontFilter,
   },
   {
     regex: /.*Package widetext error: Install the ([^ ]+) package.*/g,

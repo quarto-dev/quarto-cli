@@ -16,8 +16,8 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         - [
-          'table.cell\(fill: rgb\("#ffc0cb"\)\)\[#set text\(fill: white\); 1.867558\]',
-          '\[#set text\(fill: rgb\("#ff413633"\)\); -0.151357\]'
+          'table.cell\(fill: rgb\("#ffc0cb"\)\)\[#set text\(fill: white\);\s*1.867558\]',
+          '\[#set text\(fill: rgb\("#ff413633"\)\);\s*\\?-0.151357\]'
         ]
         - []
 ---

@@ -9,6 +9,7 @@
     "http/": "jsr:/@std/http@1.0.14/",
     "path": "jsr:@std/path@1.0.8",
     "path/posix": "jsr:@std/path@1.0.8/posix",
+    "@std/path": "jsr:@std/path@1.0.8",
     "streams/": "jsr:/@std/streams@1.0.9/",
     "tar": "jsr:/@std/tar@0.1.6",
     "tar/": "jsr:/@std/tar@0.1.6/",

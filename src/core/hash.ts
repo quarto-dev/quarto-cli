@@ -19,7 +19,7 @@ export async function md5HashAsync(content: string) {
 export async function md5HashBytes(content: Uint8Array) {
   const buffer = await crypto.subtle.digest(
     "MD5",
-    content,
+    content as BufferSource,
   );
   return Array.from(new Uint8Array(buffer))
     .map((b) => b.toString(16).padStart(2, "0"))

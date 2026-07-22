@@ -85,6 +85,11 @@ export interface TestContext {
 
   // environment to pass to downstream processes
   env?: Record<string, string>;
+
+  // Maximum time (ms) the quarto command may run before the test fails.
+  // Defaults to 600000 (10 minutes). Lower it to assert a performance budget
+  // (e.g. a render that must not regress into a hang).
+  timeout?: number;
 }
 
 // Allow to merge test contexts in Tests helpers
@@ -124,6 +129,8 @@ export function mergeTestContexts(baseContext: TestContext, additionalContext?: 
     ignore: additionalContext.ignore ?? baseContext.ignore,
     // merge env with additional context taking precedence
     env: { ...baseContext.env, ...additionalContext.env },
+    // override timeout if provided
+    timeout: additionalContext.timeout ?? baseContext.timeout,
   };
 }
 
@@ -141,8 +148,13 @@ export function testQuartoCmd(
   test({
     name,
     execute: async () => {
+      const timeoutMs = context?.timeout ?? 600000;
       const timeout = new Promise((_resolve, reject) => {
-        setTimeout(reject, 600000, "timed out after 10 minutes");
+        setTimeout(
+          reject,
+          timeoutMs,
+          `timed out after ${timeoutMs}ms`,
+        );
       });
       await Promise.race([
         quarto([cmd, ...args], undefined, context?.env),

@@ -8567,7 +8567,7 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               text: {
                 string: {
-                  description: "Text to display for item (defaults to the\ndocument title if not provided)\n"
+                  description: "Text to display for item (defaults to the\ndocument title if not provided). Supports markdown formatting.\n"
                 }
               },
               url: {
@@ -9304,15 +9304,15 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               left: {
                 ref: "page-footer-region",
-                description: "Footer left content"
+                description: "Footer left content. Supports markdown formatting."
               },
               right: {
                 ref: "page-footer-region",
-                description: "Footer right content"
+                description: "Footer right content. Supports markdown formatting."
               },
               center: {
                 ref: "page-footer-region",
-                description: "Footer center content"
+                description: "Footer center content. Supports markdown formatting."
               },
               border: {
                 anyOf: [
@@ -9492,7 +9492,7 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         content: {
                           schema: "string",
-                          description: "The content of the announcement"
+                          description: "The content of the announcement. Supports markdown formatting."
                         },
                         dismissable: {
                           schema: "boolean",
@@ -9743,7 +9743,7 @@ var require_yaml_intelligence_resources = __commonJS({
                             "string",
                             "boolean"
                           ],
-                          description: "The navbar title. Uses the project title if none is specified."
+                          description: "The navbar title. Uses the project title if none is specified. Supports markdown formatting."
                         },
                         logo: {
                           ref: "logo-light-dark-specifier",
@@ -9868,7 +9868,7 @@ var require_yaml_intelligence_resources = __commonJS({
                               "string",
                               "boolean"
                             ],
-                            description: "The sidebar title. Uses the project title if none is specified."
+                            description: "The sidebar title. Uses the project title if none is specified. Supports markdown formatting."
                           },
                           logo: {
                             ref: "logo-light-dark-specifier",
@@ -21684,7 +21684,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
           long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
         },
-        "Text to display for item (defaults to the document title if not\nprovided)",
+        "Text to display for item (defaults to the document title if not\nprovided). Supports markdown formatting.",
         "Alias for href",
         'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
         'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
@@ -21838,9 +21838,9 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Name that should be displayed for the overall site",
           long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
         },
-        "Footer left content",
-        "Footer right content",
-        "Footer center content",
+        "Footer left content. Supports markdown formatting.",
+        "Footer right content. Supports markdown formatting.",
+        "Footer center content. Supports markdown formatting.",
         "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
         "Footer background color",
         "Footer foreground color",
@@ -21885,7 +21885,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
-        "The content of the announcement",
+        "The content of the announcement. Supports markdown formatting.",
         "Whether this announcement may be dismissed by the user.",
         {
           short: "The icon to display in the announcement",
@@ -21943,7 +21943,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Field that contains the section of index entries",
         "Additional parameters to pass when executing a search",
         "Top navigation options",
-        "The navbar title. Uses the project title if none is specified.",
+        "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -21959,7 +21959,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -21976,7 +21976,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above sidebar content (text or file path)",
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -22052,7 +22052,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
-        "The content of the announcement",
+        "The content of the announcement. Supports markdown formatting.",
         "Whether this announcement may be dismissed by the user.",
         {
           short: "The icon to display in the announcement",
@@ -22110,7 +22110,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Field that contains the section of index entries",
         "Additional parameters to pass when executing a search",
         "Top navigation options",
-        "The navbar title. Uses the project title if none is specified.",
+        "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -22126,7 +22126,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -22143,7 +22143,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above sidebar content (text or file path)",
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -22903,7 +22903,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
         "Specification of a light logo",
         "Specification of a dark logo",
-        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
         "Specification of a light logo",
         "Specification of a dark logo",
         "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
@@ -23412,10 +23412,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
         "Creators of this publication.",
         "Contributors to this publication.",
-        "The subject of the publication.",
-        "The subject text.",
-        "An EPUB reserved authority value.",
-        "The subject term (defined by the schema).",
         {
           short: "Text describing the specialized type of this publication.",
           long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
@@ -23953,6 +23949,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "The mermaid built-in theme to use.",
         "List of keywords to be included in the document metadata.",
         "The document subject",
+        "The subject text.",
+        "An EPUB reserved authority value.",
+        "The subject term (defined by the schema).",
         "The document description. Some applications show this as\n<code>Comments</code> metadata.",
         "The document category.",
         "The copyright for this document, if any.",
@@ -24480,7 +24479,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
-        "The content of the announcement",
+        "The content of the announcement. Supports markdown formatting.",
         "Whether this announcement may be dismissed by the user.",
         {
           short: "The icon to display in the announcement",
@@ -24538,7 +24537,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Field that contains the section of index entries",
         "Additional parameters to pass when executing a search",
         "Top navigation options",
-        "The navbar title. Uses the project title if none is specified.",
+        "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24554,7 +24553,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24571,7 +24570,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above sidebar content (text or file path)",
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24776,6 +24775,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         "When defined, run axe-core accessibility tests on the document.",
         "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+        "Only check the rules for this WCAG conformance level, named as\nversion then level (e.g.&nbsp;<code>wcag21aa</code> for WCAG 2.1 AA). Each\nlevel includes the levels and versions it builds on, and may check rules\naxe-core disables by default (such as AAA color contrast). Axe\u2019s\nbest-practice rules are excluded unless <code>best-practice: true</code>\nis also set.",
+        "Whether to check axe-core\u2019s best-practice rules (checks recommended\nby axe that aren\u2019t required by any WCAG success criterion). Checked by\ndefault when <code>standard</code> is unset; excluded by default when\n<code>standard</code> is set.",
         "The logo image.",
         {
           short: "Advanced geometry settings for Typst margin layout.",
@@ -24851,7 +24852,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
-        "The content of the announcement",
+        "The content of the announcement. Supports markdown formatting.",
         "Whether this announcement may be dismissed by the user.",
         {
           short: "The icon to display in the announcement",
@@ -24909,7 +24910,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Field that contains the section of index entries",
         "Additional parameters to pass when executing a search",
         "Top navigation options",
-        "The navbar title. Uses the project title if none is specified.",
+        "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24925,7 +24926,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -24942,7 +24943,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above sidebar content (text or file path)",
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
         "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
@@ -25348,6 +25349,7 @@ var require_yaml_intelligence_resources = __commonJS({
         stata: "*",
         java: "//",
         groovy: "//",
+        kotlin: "//",
         sed: "#",
         perl: "#",
         prql: "#",
@@ -25374,12 +25376,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222775,
+        _internalId: 223022,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222767,
+            _internalId: 223014,
             type: "enum",
             enum: [
               "png",
@@ -25395,7 +25397,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222774,
+            _internalId: 223021,
             type: "anyOf",
             anyOf: [
               {
@@ -25457,6 +25459,25 @@ var require_yaml_intelligence_resources = __commonJS({
                         "document"
                       ],
                       description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                    },
+                    standard: {
+                      enum: [
+                        "wcag2a",
+                        "wcag2aa",
+                        "wcag2aaa",
+                        "wcag21a",
+                        "wcag21aa",
+                        "wcag21aaa",
+                        "wcag22a",
+                        "wcag22aa",
+                        "wcag22aaa"
+                      ],
+                      description: "Only check the rules for this WCAG conformance level, named as version then level (e.g. `wcag21aa` for WCAG 2.1 AA). Each level includes the levels and versions it builds on, and may check rules axe-core disables by default (such as AAA color contrast). Axe's best-practice rules are excluded unless `best-practice: true` is also set."
+                    },
+                    "best-practice": {
+                      boolean: {
+                        description: "Whether to check axe-core's best-practice rules (checks recommended by axe that aren't required by any WCAG success criterion). Checked by default when `standard` is unset; excluded by default when `standard` is set."
+                      }
                     }
                   }
                 }
@@ -34670,6 +34691,7 @@ var kLangCommentChars = {
   stata: "*",
   java: "//",
   groovy: "//",
+  kotlin: "//",
   sed: "#",
   perl: "#",
   prql: "#",

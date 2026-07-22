@@ -151,11 +151,15 @@ export async function initDenoDom() {
         };
 
         const parse = (html: string): string => {
-          return genericParse(dylibParseSync, html);
+          return genericParse(dylibParseSync as DocumentParser, html);
         };
 
         const parseFrag = (html: string, contextLocalName?: string): string => {
-          return genericParse(dylibParseFragSync, html, contextLocalName);
+          return genericParse(
+            dylibParseFragSync as FragmentParser,
+            html,
+            contextLocalName,
+          );
         };
 
         debug("Loaded deno-dom-native");
