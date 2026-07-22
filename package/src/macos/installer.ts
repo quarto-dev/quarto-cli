@@ -434,11 +434,13 @@ async function stapleNotary(input: string) {
       ["stapler", "staple", input],
     );
   }, {
-    attempts: 6,
+    // withRetry's `attempts` counts retries after the first call (see
+    // src/core/retry.ts), so 5 here yields 6 total staple invocations.
+    attempts: 5,
     minWait: 20000,
     maxWait: 30000,
     retry: (err: Error) =>
-      err.message.includes("Record not found") ||
-      err.message.includes("CloudKit"),
+      err.message.includes("CloudKit") &&
+      err.message.includes("Record not found"),
   });
 }
