@@ -19,7 +19,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '\[#set text\(weight: "extralight"\); B\]'
+          - '\[#set text\(weight: "extralight"\);\s*B\]'
         - []
 ---
 

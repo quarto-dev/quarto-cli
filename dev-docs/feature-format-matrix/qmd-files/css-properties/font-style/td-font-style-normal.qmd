@@ -19,7 +19,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '\[#set text\(style: "normal"\); B\]'
+          - '\[#set text\(style: "normal"\);\s*B\]'
         - []
 ---
 
