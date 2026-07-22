@@ -104,6 +104,11 @@ export async function makeInstallerMac(config: Configuration) {
         "dart",
       ));
       signWithoutEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "dart-sass", "sass"));
+      // Dart Sass 1.101.0 ships src/sass.snapshot as a Mach-O binary that
+      // Apple's notary service requires signed; the dart VM that loads it
+      // carries the runtime entitlements, so the snapshot itself needs only a
+      // valid Developer ID signature + secure timestamp.
+      signWithoutEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "dart-sass", "src", "sass.snapshot"));
 
       signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "esbuild"));
       signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "pandoc"));
@@ -470,47 +475,32 @@ async function waitForNotaryStatus(
   return notaryResult;
 }
 
-// Apple's notarization ticket can take a while to become queryable in Apple's
-// CloudKit-backed notary database after notarytool reports success, so an
-// immediate staple attempt can fail with:
+// Once notarizeAndWait confirms the submission is Accepted, the ticket exists
+// and stapling normally succeeds immediately. Rarely, the ticket can take a
+// moment to become queryable in Apple's CloudKit-backed notary database, so an
+// immediate staple fails with:
 //   CloudKit query for ... failed due to "Record not found".
 //   Could not find base64 encoded ticket in response for ...
-// This delay has no published bound; in CI it has exceeded a multi-minute
-// retry window and never recovered within the build.
+// A short bounded retry absorbs that rare timing gap. Anything else - or a
+// persistent "Record not found" that outlasts the retry - is a real problem and
+// must fail the build (a rejected submission never reaches here; its status is
+// verified in notarizeAndWait).
 const isCloudKitPropagation = (err: Error) =>
   err.message.includes("CloudKit") &&
   err.message.includes("Record not found");
 
 async function stapleNotary(input: string) {
-  // Stapling only enables *offline* Gatekeeper validation; a notarized but
-  // unstapled package still validates on first (online) launch. Since the
-  // package is already verified Accepted by notarizeAndWait, a persistent
-  // CloudKit propagation delay must not fail the whole release: retry a bounded
-  // number of times to catch the common short delay, then continue with a
-  // warning. Any other staple failure is a real problem and still throws.
-  try {
-    await withRetry(async () => {
-      await runCmd(
-        "xcrun",
-        ["stapler", "staple", input],
-      );
-    }, {
-      // withRetry's `attempts` counts retries after the first call (see
-      // src/core/retry.ts), so 3 here yields 4 total staple invocations.
-      attempts: 3,
-      minWait: 20000,
-      maxWait: 30000,
-      retry: isCloudKitPropagation,
-    });
-  } catch (err) {
-    if (err instanceof Error && isCloudKitPropagation(err)) {
-      warning(
-        `Could not staple the notarization ticket to ${input} after retries ` +
-          `(Apple's ticket is not yet queryable). The package is notarized and ` +
-          `validates online on first launch; continuing without an offline staple.`,
-      );
-    } else {
-      throw err;
-    }
-  }
+  await withRetry(async () => {
+    await runCmd(
+      "xcrun",
+      ["stapler", "staple", input],
+    );
+  }, {
+    // withRetry's `attempts` counts retries after the first call (see
+    // src/core/retry.ts), so 3 here yields 4 total staple invocations.
+    attempts: 3,
+    minWait: 20000,
+    maxWait: 30000,
+    retry: isCloudKitPropagation,
+  });
 }
