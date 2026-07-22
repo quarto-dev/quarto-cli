@@ -19,6 +19,7 @@ import { runCmd } from "../util/cmd.ts";
 import { getEnv } from "../util/utils.ts";
 import { makeTarball } from "../util/tar.ts";
 import { withRetry } from "../../../src/core/retry.ts";
+import { parseNotarizationResult } from "./notarize-status.ts";
 
 // Packaging specific configuration
 // (Some things are global others may be platform specific)
@@ -254,13 +255,12 @@ export async function makeInstallerMac(config: Configuration) {
     const password = getEnv("QUARTO_APPLE_CONNECT_PW", "");
     const teamId = getEnv("QUARTO_APPLE_CONNECT_TEAMID", "");
     if (username.length > 0 && password.length > 0) {
-      const requestId = await notarizeAndWait(
+      await notarizeAndWait(
         packagePath,
         username,
         password,
-        teamId
+        teamId,
       );
-
 
       // Staple the notary to the package
       await stapleNotary(packagePath);
@@ -345,16 +345,66 @@ async function notarizeAndWait(
     ],
   );
 
-  if (result.status.success) {
-    const match = result.stdout.match(/id: (.*)/);
-    if (match) {
-      const id = match[1];
-      return id;
-    } else {
-      throw new Error("Notarization Failed to return an Id:\n" + result.stdout);
+  // Always surface notarytool's own output (submission id + terminal status).
+  // runCmd only logs stdout at debug level, so without this the Accepted /
+  // Invalid verdict never appears in CI logs.
+  info(result.stdout);
+
+  if (!result.status.success) {
+    throw new Error("Notarization Failed\n" + result.stdout + result.stderr);
+  }
+
+  const { id, status } = parseNotarizationResult(result.stdout);
+  if (!id) {
+    throw new Error("Notarization Failed to return an Id:\n" + result.stdout);
+  }
+
+  // `notarytool submit --wait` can exit 0 even when the service rejects the
+  // submission; the trustworthy signal is the terminal status. Only a genuinely
+  // notarized package should reach the (offline-only) stapling step below.
+  if (status !== "Accepted") {
+    await dumpNotarizationLog(id, username, password, teamId);
+    throw new Error(
+      `Notarization was not accepted (status: ${status ?? "unknown"}) for ${input}`,
+    );
+  }
+
+  return id;
+}
+
+// Best-effort dump of the full developer log for a submission, so a rejected
+// notarization shows its reasons in CI. Never masks the caller's own error.
+async function dumpNotarizationLog(
+  id: string,
+  username: string,
+  password: string,
+  teamId: string,
+) {
+  try {
+    const log = await runCmd(
+      "xcrun",
+      [
+        "notarytool",
+        "log",
+        id,
+        "--apple-id",
+        username,
+        "--password",
+        password,
+        "--team-id",
+        teamId,
+      ],
+    );
+    info(log.stdout);
+    if (log.stderr) {
+      error(log.stderr);
     }
-  } else {
-    throw new Error("Notarization Failed\n" + result.stderr);
+  } catch (err) {
+    warning(
+      `Could not fetch notarization log for ${id}: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
   }
 }
 
@@ -420,27 +470,47 @@ async function waitForNotaryStatus(
   return notaryResult;
 }
 
+// Apple's notarization ticket can take a while to become queryable in Apple's
+// CloudKit-backed notary database after notarytool reports success, so an
+// immediate staple attempt can fail with:
+//   CloudKit query for ... failed due to "Record not found".
+//   Could not find base64 encoded ticket in response for ...
+// This delay has no published bound; in CI it has exceeded a multi-minute
+// retry window and never recovered within the build.
+const isCloudKitPropagation = (err: Error) =>
+  err.message.includes("CloudKit") &&
+  err.message.includes("Record not found");
+
 async function stapleNotary(input: string) {
-  // Apple's notarization ticket can take a while to become queryable in
-  // Apple's CloudKit-backed notary database after notarytool reports
-  // success, so an immediate staple attempt can fail with:
-  //   CloudKit query for ... failed due to "Record not found".
-  //   Could not find base64 encoded ticket in response for ...
-  // Retry only on that known transient signature; anything else is a
-  // real signing/notarization problem and should fail immediately.
-  await withRetry(async () => {
-    await runCmd(
-      "xcrun",
-      ["stapler", "staple", input],
-    );
-  }, {
-    // withRetry's `attempts` counts retries after the first call (see
-    // src/core/retry.ts), so 5 here yields 6 total staple invocations.
-    attempts: 5,
-    minWait: 20000,
-    maxWait: 30000,
-    retry: (err: Error) =>
-      err.message.includes("CloudKit") &&
-      err.message.includes("Record not found"),
-  });
+  // Stapling only enables *offline* Gatekeeper validation; a notarized but
+  // unstapled package still validates on first (online) launch. Since the
+  // package is already verified Accepted by notarizeAndWait, a persistent
+  // CloudKit propagation delay must not fail the whole release: retry a bounded
+  // number of times to catch the common short delay, then continue with a
+  // warning. Any other staple failure is a real problem and still throws.
+  try {
+    await withRetry(async () => {
+      await runCmd(
+        "xcrun",
+        ["stapler", "staple", input],
+      );
+    }, {
+      // withRetry's `attempts` counts retries after the first call (see
+      // src/core/retry.ts), so 3 here yields 4 total staple invocations.
+      attempts: 3,
+      minWait: 20000,
+      maxWait: 30000,
+      retry: isCloudKitPropagation,
+    });
+  } catch (err) {
+    if (err instanceof Error && isCloudKitPropagation(err)) {
+      warning(
+        `Could not staple the notarization ticket to ${input} after retries ` +
+          `(Apple's ticket is not yet queryable). The package is notarized and ` +
+          `validates online on first launch; continuing without an offline staple.`,
+      );
+    } else {
+      throw err;
+    }
+  }
 }
