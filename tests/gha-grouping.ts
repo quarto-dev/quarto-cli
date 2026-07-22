@@ -61,6 +61,34 @@ export class GroupEmitter {
   }
 }
 
+// Parse a V8 error stack and return the `file://` URL (with any trailing
+// `:line:column` removed) of the first `.test.ts` frame — the test file whose
+// top-level `test(...)` call is registering, reading from the innermost frame
+// outward. Harness frames (test.ts, gha-grouping.ts) never end in `.test.ts`,
+// so they are skipped implicitly. Returns undefined for a missing or
+// unparseable stack, or when no test-file frame is present; never throws. Kept
+// pure (string in, string out) so registration-time file resolution is
+// unit-testable without a real stack or a configured environment.
+export function testFileUrlFromStack(
+  stack: string | undefined,
+): string | undefined {
+  if (stack === undefined) return undefined;
+  try {
+    // A V8 frame is `    at <fn> (file:///…:line:col)` or the bare
+    // `    at file:///…:line:col`. The lazy `\S*?` stops at the first
+    // `.test.ts`, so the trailing `:line:column` (and any closing paren) stay
+    // out of the captured URL; `\S` never crosses a newline, so the match is
+    // confined to one frame. On Windows the drive-letter colon sits inside the
+    // URL and is preserved. match() scans top-down, so the innermost (first)
+    // `.test.ts` frame — the registering test file — wins; harness frames
+    // (test.ts, gha-grouping.ts) never contain `.test.ts` and are skipped.
+    const match = stack.match(/file:\/\/\/?\S*?\.test\.ts/);
+    return match?.[0];
+  } catch {
+    return undefined;
+  }
+}
+
 // Module singleton wired to the real workflow-command emitters and gated on
 // harnessOwnsStep(). startGroup/endGroup additionally no-op off CI, so this is
 // doubly safe: local runs never emit, and orchestrated (bucket) runs stay
