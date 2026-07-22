@@ -1,7 +1,7 @@
 /*
  * notarize-status.ts
  *
- * Copyright (C) 2020-2025 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  *
  */
 

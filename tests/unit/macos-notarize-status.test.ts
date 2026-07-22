@@ -11,7 +11,7 @@
  * Apple hands us), so a change to Quarto's own build logic is what these guard,
  * not Apple's service.
  *
- * Copyright (C) 2020-2025 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { unitTest } from "../test.ts";
