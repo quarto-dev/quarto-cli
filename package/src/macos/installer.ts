@@ -421,18 +421,24 @@ async function waitForNotaryStatus(
 }
 
 async function stapleNotary(input: string) {
-  // Apple's stapling ticket can take a few seconds to propagate after
-  // notarytool reports success, so an immediate staple attempt can fail
-  // with a transient error even though notarization succeeded. Retry
-  // with a short delay before giving up.
+  // Apple's notarization ticket can take a while to become queryable in
+  // Apple's CloudKit-backed notary database after notarytool reports
+  // success, so an immediate staple attempt can fail with:
+  //   CloudKit query for ... failed due to "Record not found".
+  //   Could not find base64 encoded ticket in response for ...
+  // Retry only on that known transient signature; anything else is a
+  // real signing/notarization problem and should fail immediately.
   await withRetry(async () => {
     await runCmd(
       "xcrun",
       ["stapler", "staple", input],
     );
   }, {
-    attempts: 5,
-    minWait: 15000,
-    maxWait: 15000,
+    attempts: 6,
+    minWait: 20000,
+    maxWait: 30000,
+    retry: (err: Error) =>
+      err.message.includes("Record not found") ||
+      err.message.includes("CloudKit"),
   });
 }

@@ -42,7 +42,9 @@ export async function runCmd(
     // at debug level and failures show an empty error message.
     error(stdout);
     error(stderr);
-    throw Error(`Command ${[runCmd, ...args]} failed.`);
+    throw Error(
+      `Command ${[runCmd, ...args]} failed.\n${stdout}\n${stderr}`,
+    );
   }
 
   return {
