@@ -19,6 +19,10 @@ import { quartoConfig } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 import {
   AnnotationBudget,
+  annotationBody,
+  excerptSignature,
+  type FailureCluster,
+  failureLabel,
   error as ghError,
   harnessOwnsStep,
   isGitHubActions,
@@ -26,7 +30,7 @@ import {
   stepSummary,
   stepSummarySize,
   stripAnsi,
-  summaryDetailBlock,
+  summaryClusterBlock,
   summaryTableHeader,
   summaryTableRow,
   summaryTableRowNameOnly,
@@ -60,8 +64,13 @@ let summaryHeaderEmitted = false;
 let registrationGroupAttempted = false;
 // GFM ends a table at the first non-row line, so per-failure <details> blocks
 // cannot sit between table rows; buffer them and flush after this file's rows
-// at its unload event.
-const pendingSummaryDetails: string[] = [];
+// at its unload event. Failures with an identical excerpt signature cluster
+// into ONE block (keyed by signature) — a run where dozens of tests share one
+// error collapses to a handful of blocks instead of dozens of duplicates. The
+// first member's label anchors the cluster; the map is per test-file module
+// instance (see the SCOPE WARNING above), which is why the ordinal/label are
+// step-wide (sidecar counter) but the clustering is per file.
+const pendingClusters = new Map<string, FailureCluster>();
 
 if (isGitHubActions()) {
   globalThis.addEventListener("unload", () => {
@@ -71,11 +80,12 @@ if (isGitHubActions()) {
     // ERRORS/FAILURES/summary sections outside any group (Phase 2). No-op
     // unless the harness owns the step.
     closeTestFileGroup();
-    // Flush this file's buffered detail blocks after its row table,
-    // stopping if the shared summary file crosses the size budget.
-    for (const detail of pendingSummaryDetails) {
+    // Flush this file's clustered detail blocks after its row table (one
+    // block per signature), stopping if the shared summary file crosses the
+    // size budget.
+    for (const cluster of pendingClusters.values()) {
       if (stepSummarySize() > kStepSummaryBudgetBytes) break;
-      stepSummary(detail);
+      stepSummary(summaryClusterBlock(cluster));
     }
   });
 }
@@ -549,6 +559,18 @@ export function test(test: TestDescriptor) {
                 .slice(0, kExcerptLines)
                 .join("\n");
 
+              // Record the failure step-wide (sidecar counter) to get its
+              // ordinal, then build the navigation label. This runs for EVERY
+              // CI failure — including orchestrated bucket legs, whose rows
+              // need labels too — because the counter write is a file, not
+              // stdout, so orchestrated stdout stays byte-identical. Only the
+              // emit decisions below are gated on the harness owning the step.
+              const decision = annotationBudget.recordFailure();
+              const label = failureLabel(
+                decision.ordinal,
+                Deno.env.get("RUNNER_OS") ?? "",
+              );
+
               // Step-summary row — emitted in ALL modes (cap-free, size-
               // coordinated via the file). Degrade to name-only once the
               // shared file is over budget.
@@ -558,15 +580,33 @@ export function test(test: TestDescriptor) {
                 summaryHeaderEmitted = true;
               }
               if (overBudget) {
-                stepSummary(summaryTableRowNameOnly(annotationFile, testName));
+                stepSummary(
+                  summaryTableRowNameOnly(label, annotationFile, testName),
+                );
               } else {
                 const durationMs = Math.round(performance.now() - testStart);
                 stepSummary(
-                  summaryTableRow(annotationFile, testName, durationMs),
+                  summaryTableRow(label, annotationFile, testName, durationMs),
                 );
-                pendingSummaryDetails.push(
-                  summaryDetailBlock(annotationFile, testName, repro, excerpt),
-                );
+                // Cluster the detail block by excerpt signature: identical
+                // errors share ONE block, anchored by (and headed with) the
+                // FIRST member's label. Each row keeps its OWN unique label
+                // (matching its annotation title); a non-first member's second
+                // navigation hit is its `- L-Fn ·` line in the cluster's
+                // member list, not a heading. The row already streamed above,
+                // so a mid-file crash still leaves the complete record.
+                const signature = excerptSignature(excerpt);
+                const member = { label, file: annotationFile, testName, repro };
+                const existing = pendingClusters.get(signature);
+                if (existing) {
+                  existing.members.push(member);
+                } else {
+                  pendingClusters.set(signature, {
+                    label,
+                    members: [member],
+                    excerpt,
+                  });
+                }
               }
 
               // Failure annotation — navigation only, and only when the
@@ -574,12 +614,14 @@ export function test(test: TestDescriptor) {
               // counter file — module state is per test FILE, see the scope
               // warning at the top); the failure that crosses the cap emits
               // the single aggregate as the step's 10th and last annotation.
+              // The message is trimmed (the full output is in the summary on
+              // the same page) and the title carries the label so annotations
+              // cross-reference their summary entry.
               if (harnessOwnsStep()) {
-                const decision = annotationBudget.recordFailure();
                 if (decision.emitAnnotation) {
-                  ghError(`${repro}\n\n${excerpt}`, {
+                  ghError(annotationBody(repro, excerpt, label), {
                     file: annotationFile,
-                    title: testName,
+                    title: `${label} · ${testName}`,
                   });
                 } else if (decision.emitAggregate) {
                   ghError(
