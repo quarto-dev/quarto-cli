@@ -316,13 +316,25 @@ export function summaryTableRowNameOnly(file: string, name: string): string {
   return `| \`${file}\` | ${summaryCell(name)} | |\n`;
 }
 
-// Expandable output block for one failure. Uses <pre> (not a ``` fence) with
-// HTML-escaped content so backticks/pipes in captured output can't break out.
-// GFM ends a table at the first non-row line, so these blocks are flushed
-// after all table rows, never interleaved between them.
-export function summaryDetailBlock(repro: string, excerpt: string): string {
+// Expandable output block for one failure. The <summary> label names the
+// failing test (file + test name) so collapsed blocks are identifiable
+// without expanding — with many failures, N anonymous "output" blocks are
+// unusable. Uses <pre> (not a ``` fence) with HTML-escaped content so
+// backticks/pipes in captured output can't break out; the label is escaped
+// too (test names contain `>`). GFM ends a table at the first non-row line,
+// so these blocks are flushed after all table rows, never interleaved
+// between them.
+export function summaryDetailBlock(
+  file: string,
+  testName: string,
+  repro: string,
+  excerpt: string,
+): string {
+  const label = `<code>${htmlEscape(file)}</code> — ${
+    htmlEscape(testName).replace(/\r?\n/g, " ")
+  }`;
   const body = htmlEscape(`${repro}\n\n${excerpt}`);
-  return `\n<details><summary>output</summary>\n\n<pre>\n${body}\n</pre>\n</details>\n\n`;
+  return `\n<details><summary>${label}</summary>\n\n<pre>\n${body}\n</pre>\n</details>\n\n`;
 }
 
 // GitHub API
