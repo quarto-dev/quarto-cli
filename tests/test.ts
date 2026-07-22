@@ -31,7 +31,11 @@ import {
   summaryTableRow,
   summaryTableRowNameOnly,
 } from "../src/tools/github.ts";
-import { closeTestFileGroup, enterTestFileGroup } from "./gha-grouping.ts";
+import {
+  closeTestFileGroup,
+  enterTestFileGroup,
+  testFileUrlFromStack,
+} from "./gha-grouping.ts";
 
 
 // GitHub Actions failure-surfacing state (Phase 1 of
@@ -47,6 +51,13 @@ const kExcerptLines = 20;
 const annotationBudget = new AnnotationBudget();
 // Per-file header flag: each failing test file starts its own summary table.
 let summaryHeaderEmitted = false;
+// Phase 2.1 (dev-docs/ci-test-log-grouping-design.md): the per-file group is
+// opened once at registration (module-eval) time — before Deno prints its
+// "running N tests from" and announcement frame lines — so those lines land
+// inside the group instead of above it. Per-file module state (see SCOPE
+// WARNING above) makes this once-per-file for free, mirroring
+// summaryHeaderEmitted; the first test() call in the file attempts it.
+let registrationGroupAttempted = false;
 // GFM ends a table at the first non-row line, so per-failure <details> blocks
 // cannot sit between table rows; buffer them and flush after this file's rows
 // at its unload event.
@@ -279,7 +290,33 @@ function testFileFromOrigin(origin: string): {
   return { absPath, relPath };
 }
 
+// Resolve the registering test file at registration (module-eval) time, when
+// there is no context.origin yet, by walking the current call stack (Phase
+// 2.1). testFileUrlFromStack picks the first `.test.ts` frame — the file whose
+// top-level test() call is running — and testFileFromOrigin turns that URL into
+// the tests-relative forward-slash path. Returns undefined when the stack
+// cannot be parsed; the body-time enterTestFileGroup(origin) then opens (or
+// transitions to) the correct group, so a missed guess is only a lost early
+// open, never a wrong or duplicated group.
+function testFileFromStack(): string | undefined {
+  const url = testFileUrlFromStack(new Error().stack);
+  if (url === undefined) return undefined;
+  return testFileFromOrigin(url).relPath.replaceAll("\\", "/");
+}
+
 export function test(test: TestDescriptor) {
+  // Phase 2.1: open this file's group now, at registration time, so Deno's
+  // "running N tests from" and announcement lines land inside it. Once per file
+  // (registrationGroupAttempted), gated on harnessOwnsStep() so local and
+  // orchestrated (bucket) runs do no stack resolution and stay byte-identical.
+  if (!registrationGroupAttempted && harnessOwnsStep()) {
+    registrationGroupAttempted = true;
+    const file = testFileFromStack();
+    if (file !== undefined) {
+      enterTestFileGroup(file);
+    }
+  }
+
   const testName = test.context.name
     ? `[${test.type}] > ${test.name} (${test.context.name})`
     : `[${test.type}] > ${test.name}`;
