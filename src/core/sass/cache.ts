@@ -155,6 +155,10 @@ class SassCache implements Cloneable<SassCache> {
         log.info(
           `Error occurred during sass cache cleanup for ${this.path}: ${error}`,
         );
+      } finally {
+        // Drop the registry entry so a later resolve of the same path opens a
+        // fresh KV handle instead of reusing this now-closed one (#14594, #13955).
+        delete _sassCache[cachePath];
       }
     });
   }
