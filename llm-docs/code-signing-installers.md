@@ -82,7 +82,7 @@ Sequence:
 1. **Decide whether to sign** — reads `QUARTO_APPLE_APP_DEV_ID`. Empty → skip everything below with a warning.
 2. **Sign individual binaries** with `codesign` (via `signCode()` at `package/src/macos/installer.ts:293`). Two lists:
    - **With entitlements** (`entitlements.plist`): per-arch `deno`, `dart-sass/src/dart`, `esbuild`, `pandoc`, `typst`, optional `typst-gather`, optional `deno_dom/libplugin.dylib`. Entitlements grant JIT (`com.apple.security.cs.allow-jit`) and unsigned-executable-memory (`com.apple.security.cs.allow-unsigned-executable-memory`) — required by Deno's V8 and by the other JIT-using tools.
-   - **Without entitlements**: shell wrappers and JS bundle — `quarto`, `quarto.js`, `dart-sass/sass`.
+   - **Without entitlements**: shell wrappers, JS bundle, and the Dart Sass AOT snapshot — `quarto`, `quarto.js`, `dart-sass/sass`, `dart-sass/src/sass.snapshot`. The snapshot is a Mach-O loaded by the (entitled) `dart` VM, not its own process, so it needs a valid signature + secure timestamp but no entitlements. See the notarization-Invalid troubleshooting below for why it must be signed.
    - `codesign` invocation: `-s <id> --timestamp --options=runtime --force --deep --verbose=4` (`+ --entitlements <plist>` for the first list). `--options=runtime` opts into Hardened Runtime, a notarization prerequisite.
 3. **Build the tarball** (`quarto-<v>-macos.tar.gz`) from the signed `pkg-working` tree. The tarball ships unwrapped binaries with the signatures embedded — no `.pkg`, no notarization, but each Mach-O is signed individually.
 4. **Build the core `.pkg`** with `pkgbuild` (identifier `org.rstudio.quarto`), then sign it via `productsign --sign <installer-id> --timestamp` (function `signPackage()` at `package/src/macos/installer.ts:282`). Renames signed output back over the original. Note: the `pkgbuild` invocation passes `--install-location` twice (`/Library/Quarto` then `/Applications/quarto`); CLI argv semantics mean the later flag wins, so the effective install location is `/Applications/quarto`. The earlier `/Library/Quarto` value is dead and should be cleaned up next time the file is touched.
@@ -120,6 +120,21 @@ If the Account Holder is unreachable (departed staff, etc.):
 - **Individual enrollment**: the team IS the person — cannot be transferred. The only path is migrating Quarto's signing to a different team (re-issuing both certs under that team and rotating all `APPLE_*` secrets).
 
 Determining which type the current signing team uses: inspect any past released `.pkg` from a non-CI environment (CI logs mask the Team ID portion of cert Common Names). On a Mac, `pkgutil --check-signature quarto-X.Y.Z-macos.pkg` shows the full chain. On Linux/WSL, the `.pkg` is a xar archive — its TOC contains base64-encoded X.509 certs that can be extracted with Python's stdlib and parsed with `openssl x509`. The cert subject's `O = ...` field is a company name for org enrollment, a person name for individual enrollment.
+
+### Troubleshooting: notarization Invalid "Archive contains critical validation errors"
+
+Symptom: `notarizeAndWait()` throws `Notarization was not accepted (status: Invalid)`, and the dumped `xcrun notarytool log <id>` lists per-file `issues` such as:
+
+```text
+"The binary is not signed with a valid Developer ID certificate."
+"The signature does not include a secure timestamp."
+```
+
+Root cause: the named file is a Mach-O binary inside the bundle that no `codesign` call covered. Every native Mach-O in the payload must be individually signed (with `--timestamp`); Apple's notary rejects the whole submission if any is unsigned. Fix: add the file to `signWithEntitlements` (if it JITs / is a directly-executed hardened-runtime process) or `signWithoutEntitlements` (data-like code loaded by another signed process) in `package/src/macos/installer.ts`, then re-run the release build.
+
+This is easy to miss because a bundled binary can *change format across a version bump*. Concrete case (#14664): Dart Sass `src/sass.snapshot` shipped as an **ELF** blob through 1.87.0 — Apple's notary ignored it (not native code), so it was never signed and notarization passed for years. Dart Sass 1.101.0 switched the macOS AOT snapshot to a native **Mach-O** (`cf fa ed fe`), which the notary then required signed; the never-signed snapshot flipped the result to Invalid. Diagnosing this depended on the terminal-status check in `notarizeAndWait()` — `notarytool submit --wait` had exited 0, so an exit-code-only check would (and previously did) mask the rejection and proceed to `stapler staple`, whose downstream "CloudKit … Record not found" error is a misleading symptom of the missing ticket, not a propagation race.
+
+Prevention: dispatch `create-release.yml` (publish-release=false) on the branch before merging any bundled-binary bump — see `dev-docs/upgrade-dependencies.md`.
 
 ### Historical: `waitForNotaryStatus` / `altool` (candidate for removal)
 
