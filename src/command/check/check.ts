@@ -247,7 +247,7 @@ async function checkVersions(conf: CheckConfiguration) {
     [pandocVersion, "3.10.0", "Pandoc"],
     [sassVersion, "1.101.0", "Dart Sass"],
     [denoVersion, "2.7.14", "Deno"],
-    [typstVersion, "0.15.0", "Typst"],
+    [typstVersion, "0.15.1", "Typst"],
   ];
   const checkData: [string | undefined, string, string][] = versionConstraints
     .map(([version, ver, name]) => [
