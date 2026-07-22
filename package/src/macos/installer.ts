@@ -18,6 +18,7 @@ import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 import { getEnv } from "../util/utils.ts";
 import { makeTarball } from "../util/tar.ts";
+import { withRetry } from "../../../src/core/retry.ts";
 
 // Packaging specific configuration
 // (Some things are global others may be platform specific)
@@ -424,26 +425,14 @@ async function stapleNotary(input: string) {
   // notarytool reports success, so an immediate staple attempt can fail
   // with a transient error even though notarization succeeded. Retry
   // with a short delay before giving up.
-  const maxAttempts = 5;
-  const retryDelayMs = 15000;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      await runCmd(
-        "xcrun",
-        ["stapler", "staple", input],
-      );
-      return;
-    } catch (e) {
-      if (attempt === maxAttempts) {
-        throw e;
-      }
-      warning(
-        `Stapling failed (attempt ${attempt}/${maxAttempts}), retrying in ${
-          retryDelayMs / 1000
-        }s...`,
-      );
-      sleepSync(retryDelayMs);
-    }
-  }
+  await withRetry(async () => {
+    await runCmd(
+      "xcrun",
+      ["stapler", "staple", input],
+    );
+  }, {
+    attempts: 5,
+    minWait: 15000,
+    maxWait: 15000,
+  });
 }
