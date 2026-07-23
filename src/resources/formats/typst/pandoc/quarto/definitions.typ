@@ -51,7 +51,7 @@
 
 #let quarto-code-filename(filename, body) = {
   show raw.where(block: true): it => it
-  block(width: 100%, radius: 2pt, clip: true, stroke: 0.5pt + luma(200))[
+  block(width: 100%, radius: 2pt, clip: true)[
     #set block(spacing: 0pt)
     #block(fill: luma(220), width: 100%, inset: (x: 8pt, y: 4pt))[
       #text(size: 0.85em, weight: "bold")[#filename]]
