@@ -42,6 +42,20 @@ local md = require("modules/md")
 import("./modules/patterns.lua")
 ```
 
+### In `import()`ed Files, Prefer the `_quarto.modules` Registry Over a Fresh `require()`
+
+Files loaded via `import()` are textually concatenated into one shared Lua chunk for
+the packaged distribution build, so every top-level `local` they declare — including
+`local x = require("modules/y")` — competes for Lua's hard 200-local-per-function
+limit across *all* inlined files combined. Most `modules/*` are already registered
+in `_quarto.modules` by `modules/import_all.lua` (a single global table assignment,
+so it costs zero additional locals). In an `import()`ed file, reference
+`_quarto.modules.<name>.<fn>(...)` directly instead of adding a new top-level
+`local <name> = require("modules/<name>")`. This doesn't apply inside files loaded
+via `require()` themselves — those get their own independent chunk and aren't
+affected. See [llm-docs/lua-filter-bundle-local-limit.md](../../../llm-docs/lua-filter-bundle-local-limit.md)
+for the full mechanism and why this keeps recurring.
+
 ## Custom Node Patterns
 
 ### Walking Custom Nodes

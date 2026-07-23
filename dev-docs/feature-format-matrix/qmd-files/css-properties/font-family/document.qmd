@@ -19,7 +19,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '#{set text\(font: \("Libertinus Serif", "serif"\)\); table\('
+          - '#{set text\(font: \("Libertinus Serif", "serif"\)\);\s*table\('
         - []
 ---
 

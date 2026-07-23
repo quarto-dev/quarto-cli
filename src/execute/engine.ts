@@ -12,7 +12,7 @@ import {
   partitionYamlFrontMatter,
   readYamlFromMarkdown,
 } from "../core/yaml.ts";
-import { dirAndStem } from "../core/path.ts";
+import { dirAndStem, normalizePath } from "../core/path.ts";
 
 import { metadataAsFormat } from "../config/metadata.ts";
 import { kBaseFormat, kEngine } from "../config/constants.ts";
@@ -355,6 +355,19 @@ export async function fileExecutionEngineAndTarget(
   flags: RenderFlags | undefined,
   project: ProjectContext,
 ): Promise<{ engine: ExecutionEngineInstance; target: ExecutionTarget }> {
+  // Establish an "always absolute" contract for the file path at this single
+  // convergence point for all callers (preview format-resolution, render, and
+  // project render). fileInformationCache keys are normalized to absolute
+  // (FileInformationCacheMap), so a caller passing a cwd-relative path — e.g.
+  // preview seeding the cache with the bare filename RStudio's Render button
+  // uses from a subdirectory — would otherwise store a target whose
+  // source/input stay relative under an absolute key, a stale value that a
+  // later absolute-path lookup reuses. Normalizing here keeps target.source and
+  // target.input consistent with the key and with project renders (which
+  // already pass absolute paths). See #14151 (the contract), #12401
+  // (QUARTO_DOCUMENT_PATH / cwd inconsistency), #14150 (doubled subdirectory),
+  // and #14683 (knitr abs_path failure previewing from a subdirectory).
+  file = normalizePath(file);
   const cached = ensureFileInformationCache(project, file);
   if (cached && cached.engine && cached.target) {
     return { engine: cached.engine, target: cached.target };
