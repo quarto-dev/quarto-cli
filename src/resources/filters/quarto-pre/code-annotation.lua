@@ -439,9 +439,9 @@ function code_annotations()
                   -- Typst DecoratedCodeBlock: embed annotation data inside the block
                   -- so the marker stays adjacent to the Skylighting call after rendering
                   if _quarto.format.isTypstOutput()
-                      and codeAnnotations ~= constants.kCodeAnnotationStyleNone
+                      and codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone
                       and pendingAnnotations and next(pendingAnnotations) ~= nil then
-                    if param(constants.kSyntaxHighlighting, true) then
+                    if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
                       block.content[1].content[1] = codeCell
                       block.content[1].content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId))
                     else
@@ -478,9 +478,9 @@ function code_annotations()
                 -- Typst standalone CodeBlock: emit annotation data alongside
                 -- the code block. The OL handler will emit annotation items.
                 if _quarto.format.isTypstOutput()
-                    and codeAnnotations ~= constants.kCodeAnnotationStyleNone
+                    and codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone
                     and pendingAnnotations and next(pendingAnnotations) ~= nil then
-                  if param(constants.kSyntaxHighlighting, true) then
+                  if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
                     outputBlock(typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId))
                     outputBlock(codeCell)
                   else
@@ -498,7 +498,7 @@ function code_annotations()
           elseif block.t == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
 
             -- Typst: emit annotation items as raw Typst blocks
-            if _quarto.format.isTypstOutput() and codeAnnotations ~= constants.kCodeAnnotationStyleNone then
+            if _quarto.format.isTypstOutput() and codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
               local annotationBlocks = pandoc.List()
               for i, v in ipairs(block.content) do
                 local annotationNumber = block.start + i - 1
@@ -514,8 +514,8 @@ function code_annotations()
                 local resolvedCell = _quarto.ast.walk(pendingCodeCell, {
                   CodeBlock = function(el)
                     if el.attr.classes:find('cell-code') or
-                       el.attr.classes:find(constants.kDataCodeAnnonationClz) then
-                      if param(constants.kSyntaxHighlighting, true) then
+                       el.attr.classes:find(_quarto.modules.constants.kDataCodeAnnonationClz) then
+                      if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
                         return nil
                       else
                         return typstAnnotations.wrapTypstAnnotatedCode(el, pendingAnnotations, pendingCellId)
@@ -524,15 +524,15 @@ function code_annotations()
                   end
                 })
 
-                local dlDiv = pandoc.Div(annotationBlocks, pandoc.Attr("", {constants.kCellAnnotationClass}))
+                local dlDiv = pandoc.Div(annotationBlocks, pandoc.Attr("", {_quarto.modules.constants.kCellAnnotationClass}))
                 if is_custom_node(resolvedCell) then
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
-                  if param(constants.kSyntaxHighlighting, true) then
+                  if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
                     custom.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId))
                   end
                   custom.content:insert(dlDiv)
                 else
-                  if param(constants.kSyntaxHighlighting, true) then
+                  if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
                     resolvedCell.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId))
                   end
                   resolvedCell.content:insert(dlDiv)
