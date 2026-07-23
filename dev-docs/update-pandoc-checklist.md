@@ -27,6 +27,32 @@ Partials:
 - Ours:
   - src/resources/formats/beamer/pandoc/common.latex
 
+#### pdf / latex
+
+- Pandoc's: src/resources/formats/pdf/pandoc/latex.template
+- Ours: src/resources/formats/pdf/pandoc/template.tex (see `llm-docs/pandoc-quarto-latex-templates.md` for the full partial breakdown, including `latex.common`/`common.latex`)
+
+#### html
+
+- Pandoc's: src/resources/formats/html/pandoc/html.template, src/resources/formats/html/pandoc/html.styles
+- Ours: src/resources/formats/html/pandoc/template.html, src/resources/formats/html/pandoc/styles.html
+
+#### revealjs
+
+- Pandoc's: src/resources/formats/revealjs/pandoc/revealjs.template
+- Ours: src/resources/formats/revealjs/pandoc/template.html
+
+#### asciidoc
+
+- Pandoc's: src/resources/formats/asciidoc/pandoc/asciidoc.template
+- Ours: src/resources/formats/asciidoc/pandoc/template.asciidoc
+
+#### typst
+
+See `llm-docs/pandoc-quarto-typst-templates.md` - typst has an extra wrinkle where Pandoc's own `template.typst` partial is also kept verbatim (same filename) alongside the renamed `typst.template`.
+
+**All of the "Pandoc's" files above are dev-reference-only**: none of them are read by any TypeScript code path (confirmed via `grep -rn "<filename>" src/ --include="*.ts"` returning zero matches for each, across every format listed here). They exist purely so `git diff` against a fresh Pandoc checkout shows what changed upstream - patch the corresponding "Ours" file (or its own sub-partials, e.g. `tables.tex`, `toc.tex`) to actually change rendered behavior, and update the "Pandoc's" copy too so the next resync's diff stays meaningful. It's easy to update one and miss the other (or vice versa) since the filenames differ only by which segment comes first - use an unfiltered `ls`/`Glob **/*` on the directory when checking what's there, not an extension-filtered glob (e.g. `*.latex` silently excludes `latex.common`, which ends in `.common`).
+
 ## Manual steps
 
 - [ ] Update schemas by inspecting [their changelog](https://github.com/jgm/pandoc/blob/main/changelog.md) for new commands, deprecation removals, etc
