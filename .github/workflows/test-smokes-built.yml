@@ -56,11 +56,10 @@ jobs:
         shell: bash
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Compute version marker
+      - name: Compute build version
         id: version
         shell: bash
-        # Build metadata keeps quarto-required range checks valid.
-        run: echo "version=$(cat version.txt)+test.$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(cat version.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Build dist tarball
         uses: ./.github/actions/build-dist-tarball
