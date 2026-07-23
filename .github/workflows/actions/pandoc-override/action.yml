@@ -1,0 +1,33 @@
+name: "Pandoc Override"
+description: "Installs an unarchived Pandoc release and points quarto at it via QUARTO_PANDOC, for smoke-testing a version before it has been archived to S3. No-op unless pandoc-version is set - the archived/configured binary is used as normal otherwise."
+
+inputs:
+  pandoc-version:
+    description: "Pandoc release tag to install and use instead of the archived/configured version (e.g. 3.10.1). Leave empty to skip."
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Pandoc override
+      if: inputs.pandoc-version != ''
+      uses: r-lib/actions/setup-pandoc@v2
+      with:
+        pandoc-version: ${{ inputs.pandoc-version }}
+
+    - name: Point QUARTO_PANDOC at override (Linux)
+      if: runner.os == 'Linux' && inputs.pandoc-version != ''
+      shell: bash
+      run: echo "QUARTO_PANDOC=$(command -v pandoc)" >> "$GITHUB_ENV"
+
+    - name: Point QUARTO_PANDOC at override (Windows)
+      if: runner.os == 'Windows' && inputs.pandoc-version != ''
+      shell: pwsh
+      run: |
+        "QUARTO_PANDOC=$((Get-Command pandoc).Source)" >> $env:GITHUB_ENV
+
+    - name: Confirm Pandoc override is live
+      if: inputs.pandoc-version != ''
+      shell: bash
+      run: quarto pandoc --version
