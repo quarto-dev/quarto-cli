@@ -139,3 +139,4 @@ All changes included in 1.10:
 - ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment
 - ([#14669](https://github.com/quarto-dev/quarto-cli/issues/14669)): Fix markdown output being deleted when `output-file` has an `.html` extension and an html format is paired with a markdown format.
 - ([#14687](https://github.com/quarto-dev/quarto-cli/issues/14687)): Fix SCSS color-variable export (`--quarto-scss-export-*`) being silently skipped when a theme rule places a declaration on the same line as the opening brace with no space after the colon (e.g. `.example {width:100px;}`).
+- ([#14722](https://github.com/quarto-dev/quarto-cli/issues/14722)): Fix `{{< placeholder >}}` shortcode failing to render on non-SVG formats after an external image service was retired; placeholders now render locally with no network access.
