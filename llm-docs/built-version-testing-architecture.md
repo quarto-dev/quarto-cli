@@ -1,6 +1,6 @@
 ---
 main_commit: 2e6695811
-analyzed_date: 2026-07-20
+analyzed_date: 2026-07-23
 key_files:
   - tests/quarto-cmd.ts
   - tests/test.ts
@@ -202,14 +202,21 @@ OS leg is gated on its artifact actually existing in the resolved run.
 one atomic nightly build-and-test signal — then the inversion is the
 principled consolidation, done as a deliberate follow-up.
 
-### D2. Version marker: semver *build metadata* (`X.Y.Z+test.YYYYMMDD`)
+### D2. Version stamp: the plain three-component version (`X.Y.Z`)
 
-Built test dists are stamped `$(cat version.txt)+test.$(date +%Y%m%d)`.
-Never a `-suffix` (prerelease versions fail every plain `>=X.Y`
+Built test dists are stamped `$(cat version.txt)` — a plain `X.Y.Z`. An
+earlier `+test.YYYYMMDD` build-metadata marker was dropped: though valid
+semver and range-transparent, build metadata is NOT parseable by pandoc's
+`Version` type (used by the `version` shortcode), so `quarto.version` fell
+back to a raw string and version-dependent smoke docs (issue-12006, 13913,
+which assert a three-component version) failed. A plain version is
+byte-representative of a real release, still range-transparent for every
+`quarto-required` gate, and still distinguishable from the `99.9.9` dev
+sentinel. Never a `-suffix` (prerelease versions fail every plain `>=X.Y`
 `quarto-required` range — the vendored semver has no `includePrerelease`
 anywhere) and never a 4th dot component (not semver; the vendored
-`deno.land/x/semver@1.4.0` throws). Build metadata is range-transparent for
-every gate while still distinguishable from the `99.9.9` dev sentinel.
+`deno.land/x/semver@1.4.0` throws). Trial builds are identified by run
+context (workflow + ref + sha), not the version string.
 
 ### D3. Dist outside the checkout + `99.9.9` sentinel refusal
 

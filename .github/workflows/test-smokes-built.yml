@@ -105,14 +105,10 @@ jobs:
         shell: bash
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Compute version marker
+      - name: Compute build version
         id: version
         shell: bash
-        # BUILD METADATA version marker (+test.<date>): semver-valid and
-        # range-transparent for every 'quarto-required' gate, while still
-        # distinguishable from the dev sentinel 99.9.9. NEVER use a '-suffix'
-        # (prereleases fail plain ranges) or a 4th dot component (not semver).
-        run: echo "version=$(cat version.txt)+test.$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(cat version.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Build dist tarball
         uses: ./.github/actions/build-dist-tarball
