@@ -27,7 +27,12 @@ runs:
       run: |
         "QUARTO_PANDOC=$((Get-Command pandoc).Source)" >> $env:GITHUB_ENV
 
-    - name: Confirm Pandoc override is live
-      if: inputs.pandoc-version != ''
+    - name: Confirm Pandoc override is live (Linux)
+      if: runner.os == 'Linux' && inputs.pandoc-version != ''
       shell: bash
+      run: quarto pandoc --version
+
+    - name: Confirm Pandoc override is live (Windows)
+      if: runner.os == 'Windows' && inputs.pandoc-version != ''
+      shell: pwsh
       run: quarto pandoc --version
