@@ -220,7 +220,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
       // Fix block() call: add width, inset, radius, stroke
       fn = fn.replace(
         "block(fill: bgcolor, blocks)",
-        "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, stroke: 0.5pt + luma(200), blocks)",
+        "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks)",
       );
 
       // Override bgcolor with brand monospace-block background-color
