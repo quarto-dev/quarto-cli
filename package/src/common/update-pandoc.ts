@@ -7,7 +7,7 @@
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
-import { error, info, warning } from "../../../src/deno_ral/log.ts";
+import { error, info } from "../../../src/deno_ral/log.ts";
 
 import {
   Configuration,
@@ -72,32 +72,42 @@ export function updatePandoc() {
           throw new Error("QUARTO_PANDOC is not set");
         }
 
-        // Best-effort sanity check: warn (do not fail) if the override binary
-        // does not report the requested version. Version-string formatting can
-        // differ (e.g. a trailing .0), so a mismatch is a warning, not an error.
+        // Fatal check: pandocBinaryPath() silently falls back to the bundled/
+        // configured Pandoc (with only a warnOnce) if QUARTO_PANDOC is unset,
+        // nonexistent, or otherwise fails to resolve (src/core/resources.ts
+        // toolsPath()). If the resolved binary doesn't report the requested
+        // version, continuing would regenerate format-extension.ts from the
+        // wrong (likely old, bundled) Pandoc - the exact silent corruption
+        // this flag exists to prevent - so this must fail, not warn.
+        let reported: string | undefined;
         try {
-          const reported = lines(
+          reported = lines(
             (await execProcess({
               cmd: pandocBinaryPath(),
               args: ["--version"],
               stdout: "piped",
             })).stdout!,
           )[0]?.split(" ")[1];
-          if (
-            normalizePandocVersion(reported) !== normalizePandocVersion(version)
-          ) {
-            warning(
-              `QUARTO_PANDOC reports Pandoc ${reported}, but --skip-archive was ` +
-                `asked to update to ${version}. Continuing, but double-check that ` +
-                "QUARTO_PANDOC points at the intended binary.",
-            );
-          }
         } catch (_e) {
-          warning(
-            "Could not read the QUARTO_PANDOC binary version for the pre-flight " +
-              "check; continuing. writeVariants() will fail below if the binary is " +
-              "not runnable.",
+          error(
+            "Could not run the QUARTO_PANDOC binary to verify its version. " +
+              `QUARTO_PANDOC is set to "${overridePath}" - confirm it points at a ` +
+              "runnable Pandoc executable.",
           );
+          throw new Error("QUARTO_PANDOC binary is not runnable");
+        }
+        if (
+          normalizePandocVersion(reported) !== normalizePandocVersion(version)
+        ) {
+          error(
+            `The Pandoc binary resolved via QUARTO_PANDOC reports version ` +
+              `${reported}, not the requested ${version}. QUARTO_PANDOC is set to ` +
+              `"${overridePath}" - if that path doesn't exist or isn't a file, ` +
+              "pandocBinaryPath() silently fell back to the bundled/configured " +
+              "Pandoc, which would corrupt format-extension.ts if this continued. " +
+              "Fix QUARTO_PANDOC and retry.",
+          );
+          throw new Error("QUARTO_PANDOC does not resolve to the requested version");
         }
       } else {
         // Update the configuration file
