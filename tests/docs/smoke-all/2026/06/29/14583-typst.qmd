@@ -11,9 +11,9 @@ _quarto:
           # Typst's default-image-extension is svg. A shortcode resolving to a
           # .png path becomes .png.svg; the spurious .svg must be stripped,
           # leaving the real .png (issue #14583, mismatched-extension case).
-          - 'image\("assets/diagram\.png"\)'
+          - 'image\("assets/diagram\.png"'
         -
-          - 'image\("assets/diagram\.png\.svg"\)'
+          - 'image\("assets/diagram\.png\.svg"'
 ---
 
 Shortcode resolving to a `.png` path in a Typst document (default extension

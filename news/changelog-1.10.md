@@ -2,15 +2,23 @@ All changes included in 1.10:
 
 ## Regression fixes
 
+- ([#13583](https://github.com/quarto-dev/quarto-cli/issues/13583)): Fix "Show All Code" and "Hide All Code" in the `code-tools` menu doing nothing when `code-copy` is enabled. (author: @mcanouil)
 - ([#14267](https://github.com/quarto-dev/quarto-cli/issues/14267)): Fix Windows paths with accented characters (e.g., `C:\Users\Sébastien\`) breaking dart-sass compilation.
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Fix transient `.quarto_ipynb` files accumulating during `quarto preview` with Jupyter engine.
 - ([#14298](https://github.com/quarto-dev/quarto-cli/issues/14298)): Fix `quarto preview` browse URL including output filename (e.g., `hello.html`) for single-file documents, breaking Posit Workbench proxied server access.
 - ([#14489](https://github.com/quarto-dev/quarto-cli/issues/14489)): Restore `--output-dir` support for `quarto preview` of single files when no `_quarto.yml` is present (e.g. R-package workspaces). Regression introduced in v1.9.18.
+- ([#14683](https://github.com/quarto-dev/quarto-cli/issues/14683)): Fix `quarto preview` of a knitr document in a project subdirectory failing when run from that subdirectory with a bare filename (the shape RStudio's Render button uses). Regression introduced in v1.9.18.
 - ([rstudio/rstudio#17333](https://github.com/rstudio/rstudio/issues/17333)): Fix `quarto inspect` on standalone files emitting project metadata that breaks RStudio's publishing wizard.
 
 ## Dependencies
 
 - ([#14291](https://github.com/quarto-dev/quarto-cli/issues/14291)): Update `deno` to v2.7.14 (fixes silent crash on Windows builds older than 16299).
+- ([#14664](https://github.com/quarto-dev/quarto-cli/issues/14664)): Update more dependencies:
+  - Update `pandoc` to 3.10.
+  - Update `typst` to 0.15.1.
+  - Update `typst-gather` to 0.2.3.
+  - Update `dart-sass` to 1.101.0.
+  - Update `esbuild` to 0.28.1.
 - ([#14677](https://github.com/quarto-dev/quarto-cli/pull/14677)): Bundle `axe-core` 4.10.3 (used by the `axe` HTML accessibility option), previously loaded at runtime from the Skypack CDN.
 
 ## Accessibility
@@ -18,8 +26,13 @@ All changes included in 1.10:
 - ([#14468](https://github.com/quarto-dev/quarto-cli/issues/14468)): The `axe` accessibility report UI (HTML overlay, revealjs report slide, dashboard offcanvas) now uses its own theme-independent colors instead of inheriting from `brand` or theme. Keeps the report readable regardless of page styling, and stops `axe` from clobbering brand colors set via `_brand.yml`.
 - ([#14602](https://github.com/quarto-dev/quarto-cli/pull/14602), [#14632](https://github.com/quarto-dev/quarto-cli/pull/14632)): Fix ORCID profile link having no accessible name for screen readers in HTML, Reveal.js, and ipynb title-block author metadata. (author: @mcanouil for #14602)
 - ([#14604](https://github.com/quarto-dev/quarto-cli/issues/14604)): The `axe` accessibility report UI now shows each violation's WCAG conformance level (e.g. `WCAG 2.0 AA (1.4.3)`) or `Best Practice`, derived from the violation's axe-core tags.
+- ([#14607](https://github.com/quarto-dev/quarto-cli/issues/14607)): Add `standard` and `best-practice` options to `axe`. `standard` scopes accessibility checks to a WCAG conformance level (e.g. `standard: wcag21aa`), including the rules axe-core keeps off by default for that level (such as AAA color contrast); `best-practice` controls whether axe's best-practice rules (recommendations not required by any WCAG success criterion) are checked.
 - ([#14655](https://github.com/quarto-dev/quarto-cli/issues/14655)): Add accessible names to code line-number links so screen readers and accessibility audits no longer report them as empty links.
+- ([#14676](https://github.com/quarto-dev/quarto-cli/pull/14676)): The `axe` accessibility report UI now lists violations most-important-first: by impact (critical first), then WCAG conformance level (A before AA, current criteria before Best Practice and obsolete ones), then rule id. `output: json` still emits axe-core's raw, unsorted result.
 - ([#14677](https://github.com/quarto-dev/quarto-cli/pull/14677)): The `axe` option now uses a copy of axe-core bundled with Quarto instead of loading it from the Skypack CDN in the reader's browser. Accessibility checking now works offline, and viewing a rendered document no longer triggers a request to `cdn.skypack.dev`. The axe-core version is unchanged (4.10.3), so scan results are identical.
+- ([#14680](https://github.com/quarto-dev/quarto-cli/pull/14680)): Fix the `axe` accessibility report overlay inheriting page-level text centering (e.g. from the `jolla` about template) in HTML output; the overlay is now always left-aligned.
+- ([#14680](https://github.com/quarto-dev/quarto-cli/pull/14680)): Fix hovering a selector in the `axe` accessibility report overlay scrolling the highlighted element underneath the overlay; the element now settles in the viewport area above the report.
+- ([#14680](https://github.com/quarto-dev/quarto-cli/pull/14680)): Fix the `axe` accessibility report overlay in HTML output failing axe's own `scrollable-region-focusable` rule: a report long enough to scroll could not be scrolled by keyboard. The overlay is now a focusable, labeled region.
 
 ## Formats
 
@@ -76,6 +89,7 @@ All changes included in 1.10:
 - ([#14281](https://github.com/quarto-dev/quarto-cli/issues/14281)): Avoid creating a duplicate `.quarto_ipynb` file on preview startup for single-file Jupyter documents.
 - ([#14533](https://github.com/quarto-dev/quarto-cli/issues/14533)): Fix `quarto preview` not detecting a frontmatter `format:` change until the second render request. The first request after the edit now correctly restarts the preview process with the new format.
 - ([#14593](https://github.com/quarto-dev/quarto-cli/issues/14593)): Fix `quarto preview` ignoring a `_brand.yml` added or removed while the preview is running. The brand change is now applied on the next render instead of requiring a preview restart.
+- ([#14594](https://github.com/quarto-dev/quarto-cli/issues/14594)): Fix `quarto preview` of a book or website project crashing with `BadResource: Bad resource ID` when re-rendering pages.
 
 ### `install`
 
@@ -110,6 +124,7 @@ All changes included in 1.10:
 - ([#6092](https://github.com/quarto-dev/quarto-cli/issues/6092)): Fix the `default-image-extension` being appended to an extensionless URL ending in a slash (e.g. `![](https://example.com/)`), which broke the embed/iframe image syntax.
 - ([#6651](https://github.com/quarto-dev/quarto-cli/issues/6651)): Fix dart-sass compilation failing in enterprise environments where `.bat` files are blocked by group policy.
 - ([#11703](https://github.com/quarto-dev/quarto-cli/issues/11703)): Fix SCSS color-variable export (`--quarto-scss-export-*`) being silently skipped when a theme rule contains consecutive semicolons (e.g. `max-height: 100% !important;;`).
+- ([#12401](https://github.com/quarto-dev/quarto-cli/issues/12401)): Fix `QUARTO_DOCUMENT_PATH` being a relative path for single-file renders, inconsistent with project renders where it was absolute. Execution target paths are now normalized to absolute at a single point, so single-file and project renders behave the same.
 - ([#14255](https://github.com/quarto-dev/quarto-cli/issues/14255)): Fix shortcodes inside inline and display math expressions not being resolved.
 - ([#14342](https://github.com/quarto-dev/quarto-cli/issues/14342)): Work around TOCTOU race in Deno's `expandGlobSync` that can cause unexpected exceptions to be raised while traversing directories during project initialization.
 - ([#14445](https://github.com/quarto-dev/quarto-cli/issues/14445)): Fix intermittent `Uncaught (in promise) TypeError: Writable stream is closed or errored.` aborting renders on Linux. `execProcess` now awaits and swallows the rejection from `process.stdin.close()` when the child closes its stdin first. The captured stderr is now also surfaced when `typst-gather analyze` falls back to staging all packages, so failures are diagnosable without bypassing `quarto`.
@@ -124,3 +139,4 @@ All changes included in 1.10:
 - ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment
 - ([#14669](https://github.com/quarto-dev/quarto-cli/issues/14669)): Fix markdown output being deleted when `output-file` has an `.html` extension and an html format is paired with a markdown format.
 - ([#14687](https://github.com/quarto-dev/quarto-cli/issues/14687)): Fix SCSS color-variable export (`--quarto-scss-export-*`) being silently skipped when a theme rule places a declaration on the same line as the opening brace with no space after the colon (e.g. `.example {width:100px;}`).
+- ([#14722](https://github.com/quarto-dev/quarto-cli/issues/14722)): Fix `{{< placeholder >}}` shortcode failing to render on non-SVG formats after an external image service was retired; placeholders now render locally with no network access.

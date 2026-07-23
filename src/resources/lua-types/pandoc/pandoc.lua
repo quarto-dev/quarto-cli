@@ -3,10 +3,10 @@
 ---@module 'pandoc'
 pandoc = {}
 
----@type table<string,boolean>
+---@type table<string,string>
 pandoc.readers = {}
 
----@type table<string,boolean>
+---@type table<string,string>
 pandoc.writers = {}
 
 --[[

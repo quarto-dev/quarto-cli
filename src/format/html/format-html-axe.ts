@@ -62,6 +62,9 @@ body div.quarto-axe-report {
   color: var(--r-main-color, #222);
   max-height: 50vh;
   overflow-y: auto;
+  /* The overlay lives inside <main>, so it inherits page-level centering
+     (e.g. the jolla about template centers main). Pin it left. */
+  text-align: left;
 }
 
 .quarto-axe-violation-help { padding-left: 0.5rem; }

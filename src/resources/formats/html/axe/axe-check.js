@@ -1,24 +1,35 @@
-// Derive a human-readable WCAG conformance label from axe-core's `tags` array.
-// Tags encode the version+level (`wcag2a`, `wcag21aa`), the specific success
-// criteria (`wcag111` → 1.1.1), and `best-practice` for axe's own
-// recommendations that aren't tied to any WCAG success criterion. Returns "" when
-// no conformance tags are present so callers can fall back to the impact alone.
-export function axeConformanceLevel(tags) {
-  if (tags.includes("best-practice")) return "Best Practice";
-
-  // Version+level: wcag2a, wcag2aa, wcag21aa, wcag22aa, ... An `-obsolete`
-  // suffix (e.g. `wcag2a-obsolete` on the deprecated `duplicate-id` rule) marks
-  // a criterion that was withdrawn from later WCAG versions, e.g. SC 4.1.1,
-  // removed in WCAG 2.2. We surface the original level but flag it as obsolete
-  // so a withdrawn criterion isn't mistaken for a current conformance failure.
+// Parse the conformance-related tags from axe-core's `tags` array. Tags encode
+// the version+level (`wcag2a`, `wcag21aa`), and `best-practice` for axe's own
+// recommendations that aren't tied to any WCAG success criterion. An
+// `-obsolete` suffix (e.g. `wcag2a-obsolete` on the deprecated `duplicate-id`
+// rule) marks a criterion that was withdrawn from later WCAG versions, e.g.
+// SC 4.1.1, removed in WCAG 2.2. Returns:
+//   { bestPractice: true }            for best-practice rules
+//   { major, minor, level, obsolete } for WCAG version+level tags (level is
+//                                     the raw "a"/"aa"/"aaa" string)
+//   null                              when no conformance tags are present
+function parseConformanceTags(tags) {
+  if (tags.includes("best-practice")) return { bestPractice: true };
   const versionTag = tags.find((t) => /^wcag\d+a+(-obsolete)?$/.test(t));
-  // Without a version+level tag there's no conformance level to report, so fall
-  // back to the impact alone rather than emitting a bare, level-less criterion.
-  if (!versionTag) return "";
-
+  if (!versionTag) return null;
   const [, major, minor, level, obsolete] =
     versionTag.match(/^wcag(\d)(\d?)(a+)(-obsolete)?$/);
-  let label = `WCAG ${major}.${minor || "0"} ${level.toUpperCase()}`;
+  return { major, minor, level, obsolete: !!obsolete };
+}
+
+// Derive a human-readable WCAG conformance label from axe-core's `tags` array,
+// including the specific success criteria (`wcag111` → 1.1.1). Returns "" when
+// no conformance tags are present so callers can fall back to the impact alone.
+export function axeConformanceLevel(tags) {
+  const parsed = parseConformanceTags(tags);
+  // Without conformance tags there's no level to report, so fall back to the
+  // impact alone rather than emitting a bare, level-less criterion.
+  if (!parsed) return "";
+  if (parsed.bestPractice) return "Best Practice";
+
+  // We surface an obsolete criterion's original level but flag it as obsolete
+  // so it isn't mistaken for a current conformance failure.
+  let label = `WCAG ${parsed.major}.${parsed.minor || "0"} ${parsed.level.toUpperCase()}`;
 
   // Success criteria: wcag111 → 1.1.1, wcag1410 → 1.4.10. Principle and
   // guideline are always single digits; the remainder is the criterion number.
@@ -32,7 +43,155 @@ export function axeConformanceLevel(tags) {
   if (criteria.length) {
     label += ` (${criteria.join(", ")})`;
   }
-  return obsolete ? `Obsolete ${label}` : label;
+  return parsed.obsolete ? `Obsolete ${label}` : label;
+}
+
+// Rank a violation's axe-core `impact` for sorting: critical=0, serious=1,
+// moderate=2, minor=3. A null or unrecognized impact sorts last.
+export function impactRank(impact) {
+  return { critical: 0, serious: 1, moderate: 2, minor: 3 }[impact] ?? 4;
+}
+
+// Rank a violation's conformance standard for sorting: WCAG A=0, AA=1, AAA=2,
+// Best Practice=3, obsolete criteria=4, no conformance tags=5. Violations of a
+// current WCAG requirement outrank recommendations and withdrawn criteria.
+export function standardRank(tags) {
+  const parsed = parseConformanceTags(tags);
+  if (!parsed) return 5;
+  if (parsed.bestPractice) return 3;
+  if (parsed.obsolete) return 4;
+  return parsed.level.length - 1;
+}
+
+// Order report violations most-important-first: by impact, then by
+// conformance standard, then by rule id for deterministic output.
+export function compareViolations(a, b) {
+  return (
+    impactRank(a.impact) - impactRank(b.impact) ||
+    standardRank(a.tags) - standardRank(b.tags) ||
+    a.id.localeCompare(b.id)
+  );
+}
+
+// Margin kept between the viewport top and an element too tall to center in
+// the band above the report overlay.
+const OVERLAY_SCROLL_MARGIN = 16;
+
+// Compute the document scrollTop that positions an element in the viewport band
+// the fixed report overlay does NOT cover, so scrolling a highlighted element
+// into view can't park it underneath the report. The overlay is bottom-anchored,
+// so that band runs from the viewport top down to the overlay's top edge.
+// Returns null when default `block: "center"` scrolling can't be obscured (no
+// horizontal overlap with the overlay) or when the overlay leaves no usable
+// band. All inputs are viewport-relative rects plus scroll state, so this stays
+// a pure function (unit-testable without a DOM, like axeConformanceLevel).
+export function overlayAwareScrollTop(
+  elementRect,
+  overlayRect,
+  viewportHeight,
+  scrollY,
+) {
+  // Element entirely left of the overlay: centering can't obscure it.
+  if (elementRect.right <= overlayRect.left) return null;
+
+  const bandHeight = Math.min(overlayRect.top, viewportHeight);
+  if (bandHeight <= OVERLAY_SCROLL_MARGIN * 2) return null;
+
+  const offset = elementRect.height > bandHeight
+    // Too tall to fit in the band: align its start just inside the top.
+    ? OVERLAY_SCROLL_MARGIN
+    // Otherwise center it within the band.
+    : bandHeight / 2 - elementRect.height / 2;
+  return Math.max(0, scrollY + elementRect.top - offset);
+}
+
+// Map each `standard` option value to the axe-core tags that cover that WCAG
+// conformance level (https://github.com/quarto-dev/quarto-cli/issues/14607).
+// Axe tags aren't cumulative — a rule's version tag marks where its criterion
+// was *introduced*, not every level it applies to — so each level lists its
+// own tag plus those of the lower levels and earlier versions it builds on.
+// The lists follow WCAG conformance logic, not the bundled axe-core's rule
+// inventory: some tags currently match no rules (axe has none for criteria
+// introduced at 2.1 AAA, 2.2 A, or 2.2 AAA). That's safe — axe's unknown-tag
+// warning explicitly exempts wcag2x level tags (Audit.normalizeOptions) — and
+// future-proof: an axe upgrade that adds rules for those criteria scopes them
+// in with no change here.
+export const STANDARD_TAGS = {
+  // WCAG 2.0
+  wcag2a: ["wcag2a"],
+  wcag2aa: ["wcag2a", "wcag2aa"],
+  wcag2aaa: ["wcag2a", "wcag2aa", "wcag2aaa"],
+  // WCAG 2.1
+  wcag21a: ["wcag2a", "wcag21a"],
+  wcag21aa: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+  wcag21aaa: ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag21aaa"],
+  // WCAG 2.2
+  wcag22a: ["wcag2a", "wcag21a", "wcag22a"],
+  wcag22aa: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"],
+  wcag22aaa: [
+    "wcag2a", "wcag2aa", "wcag2aaa",
+    "wcag21a", "wcag21aa", "wcag21aaa",
+    "wcag22a", "wcag22aa", "wcag22aaa",
+  ],
+};
+
+// Build the axe.run options fragment ({runOnly?, rules?}) that scopes a scan
+// per the `standard` and `best-practice` options. `rules` is the axe.getRules()
+// catalog ({ruleId, tags} objects); passing it in keeps this pure for unit tests.
+//
+// `runOnly` by tag matches on tags alone, overriding axe's per-rule
+// `enabled: false` defaults. That is what lets a standard reach the
+// default-disabled rules for its level (the AAA rules, `target-size` for
+// 2.2 AA), which is the point of choosing a standard.
+//
+// Deprecated rules (`aria-roledescription`, `audio-caption`) still carry a
+// level tag like `wcag2a`, but they also carry the `deprecated` tag, which is
+// in axe's default `tagExclude` (`["experimental", "deprecated"]`). Tag-based
+// `runOnly` still applies `tagExclude` (minus any tag we explicitly include),
+// so deprecated rules are already excluded — the same mechanism that keeps
+// experimental rules out. We also disable each matching deprecated rule here
+// via a rule-level override, so the scoping is self-contained rather than
+// relying on that axe default, and survives a future change to it.
+export function axeScopeOptions(options, rules) {
+  const standard = options.standard;
+  const bestPractice = options["best-practice"];
+
+  if (standard) {
+    const tags = STANDARD_TAGS[standard];
+    if (!tags) {
+      console.warn(
+        `Unknown axe standard "${standard}"; running the default rule set.`,
+      );
+      return {};
+    }
+    const values = bestPractice === true ? [...tags, "best-practice"] : tags;
+    const overrides = {};
+    for (const rule of rules) {
+      if (
+        rule.tags.includes("deprecated") &&
+        rule.tags.some((t) => values.includes(t))
+      ) {
+        overrides[rule.ruleId] = { enabled: false };
+      }
+    }
+    const scope = { runOnly: { type: "tag", values } };
+    if (Object.keys(overrides).length > 0) scope.rules = overrides;
+    return scope;
+  }
+
+  // Without a standard there is no tag list to omit `best-practice` from, so
+  // `best-practice: false` disables each best-practice rule individually.
+  if (bestPractice === false) {
+    const overrides = {};
+    for (const rule of rules) {
+      if (rule.tags.includes("best-practice")) {
+        overrides[rule.ruleId] = { enabled: false };
+      }
+    }
+    if (Object.keys(overrides).length > 0) return { rules: overrides };
+  }
+
+  return {};
 }
 
 class QuartoAxeReporter {
@@ -102,6 +261,22 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
         element.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     } else {
+      // Only the plain-HTML fixed overlay can obscure a centered element:
+      // Reveal navigates slides, and the dashboard offcanvas is a static,
+      // full-height side panel that vertical scrolling can't dodge.
+      const report = document.querySelector(".quarto-axe-report");
+      if (report && getComputedStyle(report).position === "fixed") {
+        const top = overlayAwareScrollTop(
+          element.getBoundingClientRect(),
+          report.getBoundingClientRect(),
+          window.innerHeight,
+          window.scrollY,
+        );
+        if (top !== null) {
+          window.scrollTo({ top, behavior: "smooth" });
+          return;
+        }
+      }
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
@@ -151,7 +326,9 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
   }
 
   createReportElement() {
-    const violations = this.axeResult.violations;
+    // Sort a copy so this.axeResult stays untouched: the json reporter (and
+    // anything else reading axeResult) must see raw axe-core output.
+    const violations = [...this.axeResult.violations].sort(compareViolations);
     const reportElement = document.createElement("div");
     reportElement.className = "quarto-axe-report";
     if (violations.length === 0) {
@@ -168,6 +345,15 @@ class QuartoAxeDocumentReporter extends QuartoAxeReporter {
 
   createReportOverlay() {
     const reportElement = this.createReportElement();
+    // The fixed overlay scrolls (max-height: 50vh + overflow-y: auto), so it
+    // must be keyboard-focusable or it fails axe's own
+    // scrollable-region-focusable rule once the report overflows. The role and
+    // label give the resulting tab stop an accessible name. The reveal slide
+    // and dashboard offcanvas variants don't scroll the report element itself,
+    // so they skip the extra tab stop.
+    reportElement.tabIndex = 0;
+    reportElement.setAttribute("role", "region");
+    reportElement.setAttribute("aria-label", "Accessibility report");
     (document.querySelector("main") || document.body).appendChild(reportElement);
   }
 
@@ -279,8 +465,9 @@ const reporters = {
 
 class QuartoAxeChecker {
   constructor(opts) {
-    // Normalize boolean shorthand: axe: true → {output: "console"}
-    this.options = opts === true ? { output: "console" } : opts;
+    // Normalize boolean shorthand (axe: true) and default the output mode, so
+    // e.g. `axe: {standard: wcag21aa}` reports to the console like `axe: true`.
+    this.options = { output: "console", ...(opts === true ? {} : opts) };
     this.axe = null;
     this.scanGeneration = 0;
   }
@@ -320,7 +507,9 @@ class QuartoAxeChecker {
          // MS has claimed they won't fix this, so we need to add an exclusion to
          // all tabster elements
          "[data-tabster-dummy]"
-        ],
+        ]
+      }, {
+        ...axeScopeOptions(this.options, this.axe.getRules()),
         preload: { assets: ['cssom'], timeout: 50000 }
       });
     } finally {

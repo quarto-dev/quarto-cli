@@ -1,0 +1,25 @@
+---
+title: "Test"
+format:
+  beamer:
+    logo: logo.png
+    logooptions: [width=1cm]
+    # this is needed to not trigger the pdf recipe
+    output-ext: tex
+_quarto:
+  tests:
+    beamer:
+      ensureFileRegexMatches:
+        -
+          # logooptions applied to the logo's includegraphics
+          - '\\logo\{\\includegraphics\[width=1cm\]\{logo\.png\}\}'
+        -
+          # must NOT fall back to the bare, no-options form
+          - '\\logo\{\\includegraphics\{logo\.png\}\}'
+---
+
+## Quarto
+
+Guards Pandoc 3.10's `logooptions` template variable passthrough for Beamer's
+`\logo{}` command (`src/resources/formats/beamer/pandoc/title.tex`), reachable
+today via freeform YAML metadata with no dedicated schema key.
