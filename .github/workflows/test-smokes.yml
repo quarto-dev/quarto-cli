@@ -35,6 +35,11 @@ on:
         required: false
         type: string
         default: ""
+      pandoc-override-version:
+        description: "Pandoc release tag to download from GitHub and use via QUARTO_PANDOC instead of the archived/configured version (e.g. 3.10.1) - for smoke-testing a version before it has been archived to S3. Leave empty for normal behavior."
+        required: false
+        type: string
+        default: ""
   schedule:
     - cron: "0 6 * * *"
 
@@ -228,6 +233,32 @@ jobs:
           uv sync --frozen
 
       - uses: ./.github/workflows/actions/quarto-dev
+
+      # Optional override: installs an unarchived Pandoc release and points
+      # quarto at it via QUARTO_PANDOC, for smoke-testing a version before it
+      # has been archived to S3. No-op unless pandoc-override-version is set -
+      # the archived/configured binary is used as normal otherwise.
+      - name: Install Pandoc override
+        if: inputs.pandoc-override-version != ''
+        uses: r-lib/actions/setup-pandoc@v2
+        with:
+          pandoc-version: ${{ inputs.pandoc-override-version }}
+
+      - name: Point QUARTO_PANDOC at override (Linux)
+        if: runner.os == 'Linux' && inputs.pandoc-override-version != ''
+        shell: bash
+        run: echo "QUARTO_PANDOC=$(command -v pandoc)" >> "$GITHUB_ENV"
+
+      - name: Point QUARTO_PANDOC at override (Windows)
+        if: runner.os == 'Windows' && inputs.pandoc-override-version != ''
+        shell: pwsh
+        run: |
+          "QUARTO_PANDOC=$((Get-Command pandoc).Source)" >> $env:GITHUB_ENV
+
+      - name: Confirm Pandoc override is live
+        if: inputs.pandoc-override-version != ''
+        shell: bash
+        run: quarto pandoc --version
 
       - name: Install Tinytex
         env:
