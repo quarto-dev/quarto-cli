@@ -84,7 +84,7 @@ Assembles the document by including all partials in order. This is Quarto's main
 
 Quarto maintains two versions of the common preamble:
 
-**latex.common** (264 lines): Pandoc's original, kept as reference. Contains the full common preamble: paragraph formatting, verbatim, highlighting, tables, graphics, strikeout, CSL citations, Babel, page style, tight lists, subfigure support, text direction, natbib/biblatex configuration.
+**latex.common** (265 lines): Pandoc's original, kept as reference. Contains the full common preamble: paragraph formatting, verbatim, highlighting, tables, graphics, strikeout, CSL citations, Babel, page style, tight lists, subfigure support, text direction, natbib/biblatex configuration.
 
 **common.latex** (66 lines): Quarto's shortened version that:
 
@@ -92,6 +92,8 @@ Quarto maintains two versions of the common preamble:
 - Calls `$pandoc.tex()$` to delegate the rest to Quarto partials
 
 This allows Quarto to selectively override specific parts of the common preamble while maintaining compatibility with Pandoc updates.
+
+**Naming gotcha**: `latex.common` and `common.latex` are two *different* files that happen to share the same two words reversed - `latex.common` is Pandoc's own file (named `common.latex` in Pandoc's own repo, renamed on copy), `common.latex` is Quarto's own, unrelated in content. An extension-filtered glob like `*.latex` will silently miss `latex.common` (it ends in `.common`). When checking whether either file exists or is up to date, list the directory unfiltered rather than filtering by extension.
 
 ### Quarto Partials (\*.tex)
 
