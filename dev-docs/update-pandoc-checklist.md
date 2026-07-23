@@ -1,5 +1,7 @@
 ## Updating the bundled version of Pandoc
 
+Template and rendering changes can be smoke-tested before archival: dispatch `.github/workflows/test-smokes.yml` with the `pandoc-override-version` input set to the new release tag (e.g. `3.10.1`). It downloads that Pandoc release directly from GitHub, points `quarto` at it via `QUARTO_PANDOC` for that run only, and leaves the archived/configured version untouched - no S3 access needed. Scope `buckets` to the relevant smoke-all dirs (e.g. `typst`, `latex`, `table`) for a faster signal.
+
 Carlos needs to run this:
 
 - [ ] Ensure archives are upgraded
