@@ -219,13 +219,13 @@ A dispatch can opt out per-run via `skip-auto-smoke` (see D7.1) when it does not
 
 **Revisit when:** maintainers want a single nightly build-and-test status and are willing to couple the workflows.
 
-### D2. Version marker: semver *build metadata* (`X.Y.Z+test.YYYYMMDD`)
+### D2. Version stamp: the plain three-component version (`X.Y.Z`)
 
-Built test distributions use `$(cat version.txt)+test.$(date +%Y%m%d)`.
-Do not use a prerelease suffix, which fails plain `>=X.Y` `quarto-required` ranges, or a fourth numeric component, which is invalid semver.
-Build metadata preserves range comparisons while distinguishing the build from the `99.9.9` dev version.
-Lua filters see the marker stripped: `init.lua` normalizes the `quarto-version` param to its leading dotted-numeric component, so `quarto.version` is `X.Y.Z` while `quarto --version` reports the full stamp.
-The marker is therefore observable through the CLI, not through `quarto.version`.
+Built test distributions use `$(cat version.txt)`, a plain `X.Y.Z`.
+The earlier `+test.YYYYMMDD` build-metadata marker was valid semver but could not be parsed by Pandoc's `Version` type, causing `quarto.version` to become a string and breaking version-dependent smoke tests.
+The plain version remains compatible with `quarto-required` ranges and represents a release build accurately.
+Do not use a prerelease suffix, which fails plain `>=X.Y` ranges, or a fourth numeric component, which is invalid semver.
+Trial builds are identified by workflow, ref, and SHA rather than by the version string.
 
 ### D3. Dist outside the checkout + `99.9.9` sentinel refusal
 
