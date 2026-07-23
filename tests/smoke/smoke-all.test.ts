@@ -158,7 +158,10 @@ interface QuartoInlineTestSpec {
   verifyFns: Verify[];
 }
 
-// Functions to cleanup leftover testing
+// Functions to cleanup leftover testing.
+// postRenderCleanupFiles is a module-global list swept by EVERY render
+// teardown, so a registered entry only logs/removes at the teardowns where the
+// file actually exists (its owning document), not on every subsequent teardown.
 const postRenderCleanupFiles: string[] = [];
 function registerPostRenderCleanupFile(file: string): void {
   postRenderCleanupFiles.push(file);
@@ -168,8 +171,8 @@ const postRenderCleanup = () => {
     return;
   }
   for (const file of postRenderCleanupFiles) {
-    console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
     if (safeExistsSync(file)) {
+      console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
       // recursive so a registered entry can be a directory (e.g. an embedded
       // notebook's `*_files` support dir), not just a single file
       safeRemoveSync(file, { recursive: true });
