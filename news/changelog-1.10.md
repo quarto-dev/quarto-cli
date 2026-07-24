@@ -9,6 +9,7 @@ All changes included in 1.10:
 - ([#14489](https://github.com/quarto-dev/quarto-cli/issues/14489)): Restore `--output-dir` support for `quarto preview` of single files when no `_quarto.yml` is present (e.g. R-package workspaces). Regression introduced in v1.9.18.
 - ([#14683](https://github.com/quarto-dev/quarto-cli/issues/14683)): Fix `quarto preview` of a knitr document in a project subdirectory failing when run from that subdirectory with a bare filename (the shape RStudio's Render button uses). Regression introduced in v1.9.18.
 - ([rstudio/rstudio#17333](https://github.com/rstudio/rstudio/issues/17333)): Fix `quarto inspect` on standalone files emitting project metadata that breaks RStudio's publishing wizard.
+- ([#13669](https://github.com/quarto-dev/quarto-cli/issues/13669)): Fix BibTeX copy button in citation appendix not visible due to missing `div.code-copy-outer-scaffold` wrapper, a regression from 1.8. (author: @AJBogo9)
 
 ## Dependencies
 
