@@ -1,4 +1,4 @@
-<% if (darkMode !== undefined || tabby || anchors || copyCode || codeTools || tippy || hoverFootnotes || hoverCitations || linkExternalIcon || linkExternalNewwindow || hoverXrefs) { %> 
+<% if (darkMode !== undefined || tabby || anchors || copyCode || codeTools || tippy || hoverFootnotes || hoverCitations || linkExternalIcon || linkExternalNewwindow || hoverXrefs || sectionCollapse) { %> 
   <script id = "quarto-html-after-body" type="application/javascript">
   
   
@@ -678,7 +678,49 @@
     <% } %>
   
   });
-  
+
+  <% if (sectionCollapse) { %>
+
+  const onClickCollapse = (e) => {
+    e.target.classList.toggle('closed');
+  };
+  const sectionSelector = "section:not(.cell-output) > :is(h1, h2, h3, h4, h5, h6)";
+  document.querySelectorAll(sectionSelector).forEach(heading => {
+    const carret = document.createElement("div");
+    carret.innerHTML = "‹";
+    carret.classList.add("sc-carret");
+
+    <% if(sectionCollapseClosed) { %>
+    carret.classList.add("closed");
+    <% } %>
+
+    carret.addEventListener('click', onClickCollapse.bind(heading));
+    heading.appendChild(carret);
+  });
+
+  <% if (codeTools) { %>
+
+  const toggleSectionHandler = (show) => () => {
+    const els = document.querySelectorAll(sectionSelector + " .sc-carret");
+    if (show) {
+      els.forEach(e => e.classList.remove('closed'));
+    } else {
+      els.forEach(e => e.classList.add('closed'));
+    }
+  }
+
+  const hideAllSections = window.document.getElementById("quarto-hide-all-sections");
+  if (hideAllSections) {
+    hideAllSections.addEventListener("click", toggleSectionHandler(false));
+  }
+  const showAllSections = window.document.getElementById("quarto-show-all-sections");
+  if (showAllSections) {
+    showAllSections.addEventListener("click", toggleSectionHandler(true));
+  }
+
+  <% } %>
+
+  <% } %>
   </script>
   <% } %>
   
