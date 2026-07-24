@@ -14,6 +14,16 @@ on:
         required: false
         type: boolean
         default: true
+      os:
+        description: "Which OS builds to run"
+        required: false
+        type: choice
+        options:
+          - all
+          - linux
+          - windows
+          - macos
+        default: all
 
 env:
   NFPM_VERSION: "2.43.1"
@@ -124,6 +134,7 @@ jobs:
   make-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'linux' }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -161,6 +172,7 @@ jobs:
   make-arm64-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'linux' }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -248,6 +260,7 @@ jobs:
   make-installer-linux:
     runs-on: ubuntu-latest
     needs: [configure]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'linux' }}
     strategy:
       matrix:
         arch: [x86_64, aarch64]
@@ -310,6 +323,7 @@ jobs:
   test-tarball-linux:
     runs-on: ubuntu-latest
     needs: [configure, make-tarball]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'linux' }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -350,6 +364,7 @@ jobs:
   make-installer-win:
     runs-on: windows-latest
     needs: [configure]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'windows' }}
 
     steps:
       - uses: actions/checkout@v6
@@ -389,12 +404,12 @@ jobs:
             ./package/pkg-working/bin/tools/pandoc.exe
             ./package/pkg-working/bin/quarto.js
         env:
-          # those environment variables are required to sign with signtool
-          SM_HOST: ${{ secrets.SM_HOST }}
-          SM_API_KEY: ${{ secrets.SM_API_KEY }}
-          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
-          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
-          CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
+          # DigiCert STM 2026 credential set -- testing smctl sign --keypair-alias
+          SM_HOST: ${{ secrets.SM_HOST_2026 }}
+          SM_API_KEY: ${{ secrets.SM_API_KEY_2026 }}
+          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64_2026 }}
+          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD_2026 }}
+          KEYPAIR_ALIAS: ${{ secrets.SM_KEYPAIR_ALIAS_2026 }}
 
       - name: Make Installer
         run: |
@@ -409,12 +424,12 @@ jobs:
           paths: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
           signtools-extra-args: /d "Quarto CLI"
         env:
-          # those environment variables are required to sign with signtool
-          SM_HOST: ${{ secrets.SM_HOST }}
-          SM_API_KEY: ${{ secrets.SM_API_KEY }}
-          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
-          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
-          CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
+          # DigiCert STM 2026 credential set -- testing smctl sign --keypair-alias
+          SM_HOST: ${{ secrets.SM_HOST_2026 }}
+          SM_API_KEY: ${{ secrets.SM_API_KEY_2026 }}
+          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64_2026 }}
+          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD_2026 }}
+          KEYPAIR_ALIAS: ${{ secrets.SM_KEYPAIR_ALIAS_2026 }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
@@ -431,6 +446,7 @@ jobs:
   test-zip-win:
     runs-on: windows-latest
     needs: [configure, make-installer-win]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'windows' }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -479,6 +495,7 @@ jobs:
   make-installer-mac:
     runs-on: macos-latest
     needs: [configure]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'macos' }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -548,6 +565,7 @@ jobs:
   test-zip-mac:
     runs-on: macos-latest
     needs: [configure, make-installer-mac]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'macos' }}
     steps:
       - uses: actions/checkout@v6
         with:
