@@ -19,6 +19,10 @@ inputs:
   artifact-name:
     description: "Workflow artifact name to upload the tarball as"
     required: true
+  retention-days:
+    description: "Artifact retention in days (empty = repo default; upload-artifact ignores an empty value)"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -51,8 +55,6 @@ runs:
       with:
         name: ${{ inputs.artifact-name }}
         path: ./package/${{ inputs.tarball-name }}
-        # intra-run transport only: legs of the same run download it minutes
-        # after upload; nothing reads it after the run
-        retention-days: 1
+        retention-days: ${{ inputs.retention-days }}
         # the tarball is already gzipped - re-compressing wastes CPU
         compression-level: 0
