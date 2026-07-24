@@ -1,16 +1,3 @@
----
-main_commit: d30cdbb9e
-analyzed_date: 2026-07-23
-key_files:
-  - package/src/common/update-pandoc.ts
-  - src/format/pdf/format-pdf.ts
-  - src/resources/formats/pdf/pandoc/template.tex
-  - src/resources/formats/pdf/pandoc/common.latex
-  - src/resources/formats/pdf/pandoc/pandoc.tex
-  - src/resources/formats/pdf/pandoc/document-metadata.latex
-  - src/resources/formats/beamer/pandoc/template.tex
----
-
 # Pandoc and Quarto LaTeX Templates
 
 This document describes how Quarto integrates Pandoc's LaTeX templates and transforms them into a modular structure suitable for Quarto's extended functionality.
@@ -26,7 +13,7 @@ The `writePandocTemplates` function in `package/src/common/update-pandoc.ts` han
 
 ### Files Copied
 
-**Stale-script warning**: `update-pandoc.ts`'s `templateDirFiles` mapping only lists `default.latex`, `common.latex`, `after-header-includes.latex`, `hypersetup.latex`, `font-settings.latex`, `fonts.latex`, and `passoptions.latex`. It does **not** include `document-metadata.latex` (added later, see below), so the script under-copies relative to what `format-pdf.ts` actually wires up. Don't trust the script's file list as the source of truth — cross-check against `partialNamesPandoc` in `format-pdf.ts` instead.
+Seven files are copied from Pandoc for LaTeX support:
 
 | Pandoc Source                 | Quarto Destination | Notes                                              |
 | ----------------------------- | ------------------ | -------------------------------------------------- |
@@ -37,7 +24,6 @@ The `writePandocTemplates` function in `package/src/common/update-pandoc.ts` han
 | `font-settings.latex`         | (unchanged)        | User font configuration                            |
 | `fonts.latex`                 | (unchanged)        | Font engine detection                              |
 | `passoptions.latex`           | (unchanged)        | Package options passthrough                        |
-| `document-metadata.latex`     | (unchanged)        | PDF standard metadata (PDF/A, PDF/UA, PDF/X); added in Quarto 1.7 following Pandoc 3.6.3 support; **not copied by `update-pandoc.ts`'s current mapping** |
 
 ### Purpose of Each Pandoc File
 
@@ -54,8 +40,6 @@ The `writePandocTemplates` function in `package/src/common/update-pandoc.ts` han
 **fonts.latex**: Font engine detection and setup. Loads fontspec for XeTeX/LuaTeX, handles font fallbacks.
 
 **passoptions.latex**: Package options passthrough mechanism for hyperref, xcolor, and xeCJK.
-
-**document-metadata.latex**: Emits a `\DocumentMetadata{...}` block (LuaLaTeX, 2023+ LaTeX) for PDF/A, PDF/UA, and PDF/X standards support, driven by the `pdfstandard` variable. Called first, before `passoptions.latex()`, in the pdf `template.tex`. **Beamer does not use this partial** — its `template.tex` has no `document-metadata.latex()` call, and `format-pdf.ts` filters it out of `beamerPartialNamesPandoc`.
 
 ## 2. Quarto's Modular Template Structure
 
@@ -84,7 +68,7 @@ Assembles the document by including all partials in order. This is Quarto's main
 
 Quarto maintains two versions of the common preamble:
 
-**latex.common** (265 lines): Pandoc's original, kept as reference. Contains the full common preamble: paragraph formatting, verbatim, highlighting, tables, graphics, strikeout, CSL citations, Babel, page style, tight lists, subfigure support, text direction, natbib/biblatex configuration.
+**latex.common** (264 lines): Pandoc's original, kept as reference. Contains the full common preamble: paragraph formatting, verbatim, highlighting, tables, graphics, strikeout, CSL citations, Babel, page style, tight lists, subfigure support, text direction, natbib/biblatex configuration.
 
 **common.latex** (66 lines): Quarto's shortened version that:
 
@@ -92,8 +76,6 @@ Quarto maintains two versions of the common preamble:
 - Calls `$pandoc.tex()$` to delegate the rest to Quarto partials
 
 This allows Quarto to selectively override specific parts of the common preamble while maintaining compatibility with Pandoc updates.
-
-**Naming gotcha**: `latex.common` and `common.latex` are two *different* files that happen to share the same two words reversed - `latex.common` is Pandoc's own file (named `common.latex` in Pandoc's own repo, renamed on copy), `common.latex` is Quarto's own, unrelated in content. An extension-filtered glob like `*.latex` will silently miss `latex.common` (it ends in `.common`). When checking whether either file exists or is up to date, list the directory unfiltered rather than filtering by extension.
 
 ### Quarto Partials (\*.tex)
 
@@ -138,38 +120,37 @@ The `template.tex` orchestrates the full document:
 
 ### Preamble (before `\begin{document}`)
 
-1. `$document-metadata.latex()$` - `\DocumentMetadata{...}` for PDF/A, PDF/UA, PDF/X (pdf only — beamer's `template.tex` omits this call)
-2. `$passoptions.latex()$` - Package options passthrough
-3. `$doc-class.tex()$` - `\documentclass[...]{...}` declaration
-4. (inline) - beamerarticle, xcolor, geometry, amsmath
-5. (inline) - Section numbering configuration
-6. `$fonts.latex()$` - Font engine detection (ifPDFTeX, ifXeTeX, ifLuaTeX)
-7. `$font-settings.latex()$` - User font configuration
-8. `$common.latex()$` - Common preamble setup, which internally calls:
+1. `$passoptions.latex()$` - Package options passthrough
+2. `$doc-class.tex()$` - `\documentclass[...]{...}` declaration
+3. (inline) - beamerarticle, xcolor, geometry, amsmath
+4. (inline) - Section numbering configuration
+5. `$fonts.latex()$` - Font engine detection (ifPDFTeX, ifXeTeX, ifLuaTeX)
+6. `$font-settings.latex()$` - User font configuration
+7. `$common.latex()$` - Common preamble setup, which internally calls:
    - `$pandoc.tex()$` → `$tables.tex()$`, `$graphics.tex()$`, `$citations.tex()$`, `$babel-lang.tex()$`, `$tightlist.tex()$`, `$biblio-config.tex()$`
-9. `$after-header-includes.latex()$` - Bookmark, URL packages
-10. `$hypersetup.latex()$` - Hyperref configuration
-11. `$before-title.tex()$` - Pre-title content
-12. `$title.tex()$` - `\title{}`, `\author{}`, `\date{}`
+8. `$after-header-includes.latex()$` - Bookmark, URL packages
+9. `$hypersetup.latex()$` - Hyperref configuration
+10. `$before-title.tex()$` - Pre-title content
+11. `$title.tex()$` - `\title{}`, `\author{}`, `\date{}`
 
 ### Document Body
 
-13. `\begin{document}`
-14. `$before-body.tex()$` - Frontmatter, `\maketitle`, abstract
-15. (loop) - include-before content
-16. `$toc.tex()$` - Table of contents
-17. (inline) - linestretch, mainmatter
-18. `$body$` - Document content
-19. `$before-bib.tex()$` - Pre-bibliography content
-20. (inline) - backmatter, nocite
-21. `$biblio.tex()$` - Bibliography rendering
-22. (loop) - include-after content
-23. `$after-body.tex()$` - Post-body content
-24. `\end{document}`
+12. `\begin{document}`
+13. `$before-body.tex()$` - Frontmatter, `\maketitle`, abstract
+14. (loop) - include-before content
+15. `$toc.tex()$` - Table of contents
+16. (inline) - linestretch, mainmatter
+17. `$body$` - Document content
+18. `$before-bib.tex()$` - Pre-bibliography content
+19. (inline) - backmatter, nocite
+20. `$biblio.tex()$` - Bibliography rendering
+21. (loop) - include-after content
+22. `$after-body.tex()$` - Post-body content
+23. `\end{document}`
 
 ## 4. TypeScript Configuration
 
-The template configuration is defined inline inside `src/format/pdf/format-pdf.ts` (around lines 241-267, in the function that builds the PDF format):
+The `pdfFormat` function in `src/format/pdf/format-pdf.ts` (lines 236-284) defines the template configuration:
 
 ```typescript
 // Quarto-maintained partials (.tex)
@@ -191,11 +172,10 @@ const partialNamesQuarto: string[] = [
   "toc",
 ];
 
-// Pandoc-derived partials (.latex) — since Pandoc 3.6.3
+// Pandoc-derived partials (.latex)
 const partialNamesPandoc: string[] = [
   "after-header-includes",
   "common",
-  "document-metadata",
   "font-settings",
   "fonts",
   "hypersetup",
@@ -207,8 +187,6 @@ The template context maps these to files:
 
 - Quarto partials: `pandoc/${name}.tex`
 - Pandoc partials: `pandoc/${name}.latex`
-
-Beamer builds its own `beamerPartialNamesPandoc` by filtering `document-metadata` out of `partialNamesPandoc` (`.filter((name) => name !== "document-metadata")`), since beamer's `template.tex` never calls it.
 
 ## 5. Parameter Summary Table
 
