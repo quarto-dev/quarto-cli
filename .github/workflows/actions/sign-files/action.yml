@@ -112,7 +112,7 @@ runs:
         $paths = "${{ inputs.paths }}" -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
         foreach ($path in $paths) {
           Write-Output "::group::Signing ${path}"
-          smctl sign --keypair-alias $env:KEYPAIR_ALIAS --input $path
+          smctl sign --keypair-alias $env:KEYPAIR_ALIAS --input $path --digalg SHA256 --sigalg SHA256 --timestamp=true
           if ($LASTEXITCODE -ne 0) {
             Write-Output "::error title=Signing error::Error while signing ${path}"
             exit 1
