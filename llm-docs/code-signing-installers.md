@@ -1,6 +1,6 @@
 ---
-main_commit: a8d0dcfee
-analyzed_date: 2026-05-19
+main_commit: c3e0f5cae
+analyzed_date: 2026-07-24
 key_files:
   - package/src/macos/installer.ts
   - package/src/windows/installer.ts
@@ -178,7 +178,7 @@ Posit signs via **DigiCert ONE / Software Trust Manager (STM)** (cloud-held EV c
 
 | Secret (env var maps `_2026`-suffixed secret → unsuffixed name below) | Env var on sign step | Used for |
 | --- | --- | --- |
-| `SM_HOST_2026` | `SM_HOST` | DigiCert tenant host URL (must be `https://clientauth.one.digicert.com`) |
+| `SM_HOST_2026` | `SM_HOST` | DigiCert tenant host URL |
 | `SM_API_KEY_2026` | `SM_API_KEY` | DigiCert API auth |
 | `SM_CLIENT_CERT_FILE_B64_2026` | `SM_CLIENT_CERT_FILE_B64` | Base64 of client auth PFX (decoded to `.build\certificates\codesign.pfx`) |
 | `SM_CLIENT_CERT_PASSWORD_2026` | `SM_CLIENT_CERT_PASSWORD` | PFX password |

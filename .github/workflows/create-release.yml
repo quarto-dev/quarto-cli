@@ -410,7 +410,7 @@ jobs:
             ./package/pkg-working/bin/tools/pandoc.exe
             ./package/pkg-working/bin/quarto.js
         env:
-          # DigiCert STM 2026 credential set -- testing smctl sign --keypair-alias
+          # DigiCert STM 2026 credential set (signed via smctl sign --keypair-alias)
           SM_HOST: ${{ secrets.SM_HOST_2026 }}
           SM_API_KEY: ${{ secrets.SM_API_KEY_2026 }}
           SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64_2026 }}
@@ -429,7 +429,7 @@ jobs:
         with:
           paths: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
         env:
-          # DigiCert STM 2026 credential set -- testing smctl sign --keypair-alias
+          # DigiCert STM 2026 credential set (signed via smctl sign --keypair-alias)
           SM_HOST: ${{ secrets.SM_HOST_2026 }}
           SM_API_KEY: ${{ secrets.SM_API_KEY_2026 }}
           SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64_2026 }}
