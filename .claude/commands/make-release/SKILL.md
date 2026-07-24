@@ -1,6 +1,6 @@
 ---
 name: make-release
-description: Drive a Quarto release end-to-end from the dev-docs release checklists. Invoke explicitly with /make-release — do not auto-invoke from ambient conversation, a release cut is high-stakes. Detects whether this is the first stable release of a new major.minor cycle or a patch release on an existing stable branch, then follows the matching checklist, verifying real git/gh state at each step and pausing for explicit human confirmation before every irreversible or externally-visible action.
+description: Drive a Quarto release end-to-end from the dev-docs release checklists. Invoke explicitly with /make-release — do not auto-invoke from ambient conversation, a release cut is high-stakes. Handles three release types — a routine dev prerelease off main, the first stable release of a new major.minor cycle, or a patch release on an existing stable branch — by asking which one applies (or reading it from an unambiguous request), then follows the matching checklist, verifying real git/gh state at each step and pausing for explicit human confirmation before every irreversible or externally-visible action.
 ---
 
 # Make Release
@@ -9,22 +9,32 @@ Command-only helper that drives an existing release checklist. **Do not auto-inv
 
 ## 1. Detect which checklist applies (verify, don't trust self-report)
 
-Check real repo state, not the user's description:
+There are three release types, each with its own checklist. Branch-existence alone doesn't distinguish all three — a routine prerelease and a first-stable-of-cycle release can both start with no `v1.x` branch yet — so first establish intent, then verify with git where that disambiguates:
+
+- **Routine dev prerelease off `main`** (no version bump beyond the prerelease counter, no new branch) → drive
+  `dev-docs/checklist-make-a-new-quarto-prerelease.md`
+- **First stable release of a new major.minor cycle** (cuts a new `v1.x` branch) → drive
+  `dev-docs/checklist-make-a-new-quarto-release.md`
+- **Patch release on an already-cut stable branch** (e.g. another `v1.9.x`) → drive
+  `dev-docs/checklist-make-a-new-stable-quarto-release.md`
+
+If the user's request doesn't already make the type unambiguous, ask. Once it's a stable release (first or patch), confirm which with real state, don't trust self-report:
 
 ```bash
 git ls-remote --heads origin v1.x   # substitute the target major.minor, e.g. v1.10
 ```
 
-- Branch **absent** → first stable release of a new cycle → drive
-  `dev-docs/checklist-make-a-new-quarto-release.md`
-- Branch **present** → patch release on an existing stable branch → drive
-  `dev-docs/checklist-make-a-new-stable-quarto-release.md`
+Branch absent → first stable of the cycle; branch present → patch release.
 
-If it's still ambiguous (e.g. the user's target version is unclear), ask before proceeding.
+Out of scope: backporting an individual merged PR to a stable branch is a different task, not a release cut — see `dev-docs/checklist-backport-a-pr.md` directly, this skill doesn't drive it.
 
-## 2. Drive the checklist top to bottom, verifying real state
+**Always confirm before driving anything** — even when the type seems obvious from the request. State it plainly, e.g. "I will follow this checklist: `dev-docs/checklist-make-a-new-quarto-release.md`", and wait for the user's go-ahead before starting step 1. This is the one point where a wrong detection would send the whole run down the wrong checklist, so confirm every time, not just when ambiguous.
 
-Read the matching checklist and work it in order. At each step, confirm the real state with `git`/`gh` rather than trusting the checklist text or the user's word that something happened — e.g. that a branch/tag exists, a workflow run actually succeeded (`gh run view <id>`), a release's flags are set, a version field is what it should be. A step isn't done until real state confirms it.
+## 2. Drive the checklist top to bottom, verifying real state, narrating as you go
+
+Read the matching checklist and work it in order. Before each step (not just the hard-confirm gates in section 3), state in one line what you're about to do and why, so the user can stop you early if something looks wrong — don't silently chain multiple steps together without narrating between them.
+
+At each step, confirm the real state with `git`/`gh` rather than trusting the checklist text or the user's word that something happened — e.g. that a branch/tag exists, a workflow run actually succeeded (`gh run view <id>`), a release's flags are set, a version field is what it should be. A step isn't done until real state confirms it.
 
 ## 3. Hard-confirm gates (stop and get explicit human OK before running)
 

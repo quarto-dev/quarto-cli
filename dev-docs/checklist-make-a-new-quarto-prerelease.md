@@ -1,3 +1,5 @@
+> A Claude Code skill can drive this checklist interactively: run `/make-release` (see `.claude/commands/make-release/`). It reads this file, verifies real `git`/`gh` state at each step, and pauses for confirmation before irreversible actions. This checklist stays the source of truth — the skill just follows it.
+
 - [ ] ensure main is up to date and tests are passing on latest commit.
 - [ ] create new prerelease installers
   - Click Actions -> Build Installers -> "Run Workflow" Dropdown Menu
