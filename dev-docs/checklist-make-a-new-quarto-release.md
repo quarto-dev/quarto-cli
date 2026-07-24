@@ -5,7 +5,7 @@
 - [ ] create a branch `v1.x`, where x is the version being released
   - `git checkout -b v1.4`
   - `git push origin v1.4`
-  - [ ] on this new branch, update `CITATION.cff` `version` (quote it, e.g. `"1.4"` — unquoted `1.10`-style values parse as a YAML float and drop the trailing zero) and `date-released` to today, and commit. This value is constant for the branch's whole patch-release life, so it's only set once, here, at branch-cut. Later, when doing the same edit on `main` (see the `CITATION.cff` step below), cherry-pick this commit instead of re-deriving it.
+  - [ ] on this new branch, update `CITATION.cff` `version` (quote it, e.g. `"1.4"` — unquoted `1.10`-style values parse as a YAML float and drop the trailing zero) and `date-released` to today, commit, and push again. This value is constant for the branch's whole patch-release life, so it's only set once, here, at branch-cut. Later, when doing the same edit on `main` (see the `CITATION.cff` step below), cherry-pick this commit instead of re-deriving it.
 - [ ] mark the current release as the new release in the `main` branch
   - [ ] switch your repo back to `main`: `git checkout main`
   - [ ] edit QUARTO_VERSION line in `/configuration` to be the new version (e.g. `1.5`)
