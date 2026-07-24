@@ -85,8 +85,16 @@ jobs:
         with:
           node-version: 22
 
+      # Playwright setup is only needed when this job can actually run the
+      # playwright suite: a bucket containing playwright-tests.test.ts, or a
+      # full run (empty buckets, which includes integration/). Windows never
+      # needs it: the suite is ignored on Windows CI (playwright-tests.test.ts,
+      # `ignore: gha.isGitHubActions() && isWindows`).
       - name: Cache multiplex server node_modules
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: >-
+          runner.os != 'Windows'
+          && (format('{0}', inputs.buckets) == ''
+              || contains(inputs.buckets, 'playwright-tests.test.ts'))
         uses: actions/cache@v5
         with:
           path: tests/integration/playwright/multiplex-server/node_modules
@@ -95,13 +103,19 @@ jobs:
             ${{ runner.os }}-multiplex-server-
 
       - name: Install node dependencies
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: >-
+          runner.os != 'Windows'
+          && (format('{0}', inputs.buckets) == ''
+              || contains(inputs.buckets, 'playwright-tests.test.ts'))
         run: npm install --loglevel=error --no-audit
         working-directory: ./tests/integration/playwright
         shell: bash
 
       - name: Get Playwright version
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: >-
+          runner.os != 'Windows'
+          && (format('{0}', inputs.buckets) == ''
+              || contains(inputs.buckets, 'playwright-tests.test.ts'))
         run: |
           VERSION=$(node -p "require('@playwright/test/package.json').version")
           echo "PLAYWRIGHT_VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -109,7 +123,10 @@ jobs:
         shell: bash
 
       - name: Cache Playwright browsers
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: >-
+          runner.os != 'Windows'
+          && (format('{0}', inputs.buckets) == ''
+              || contains(inputs.buckets, 'playwright-tests.test.ts'))
         uses: actions/cache@v5
         with:
           path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
@@ -118,13 +135,19 @@ jobs:
             ${{ runner.os }}-playwright-
 
       - name: Install Playwright system dependencies
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: >-
+          runner.os != 'Windows'
+          && (format('{0}', inputs.buckets) == ''
+              || contains(inputs.buckets, 'playwright-tests.test.ts'))
         timeout-minutes: 15
         run: npx playwright install-deps
         working-directory: ./tests/integration/playwright
 
       - name: Install Playwright Browsers
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+        if: >-
+          runner.os != 'Windows'
+          && (format('{0}', inputs.buckets) == ''
+              || contains(inputs.buckets, 'playwright-tests.test.ts'))
         timeout-minutes: 15
         run: npx playwright install
         working-directory: ./tests/integration/playwright
