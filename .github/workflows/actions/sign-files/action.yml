@@ -4,8 +4,6 @@ inputs:
   paths:
     description: "Paths to sign"
     required: true
-  signtools-extra-args:
-    description: "Additionnal arguments to pass to signtool"
 outputs:
   cert_path:
     description: "certificate path"

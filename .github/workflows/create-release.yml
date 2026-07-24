@@ -422,7 +422,6 @@ jobs:
         uses: ./.github/workflows/actions/sign-files
         with:
           paths: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
-          signtools-extra-args: /d "Quarto CLI"
         env:
           # DigiCert STM 2026 credential set -- testing smctl sign --keypair-alias
           SM_HOST: ${{ secrets.SM_HOST_2026 }}
