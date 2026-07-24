@@ -57,7 +57,7 @@ All changes included in 1.10:
 
 ### `revealjs`
 
-- ([#14354](https://github.com/quarto-dev/quarto-cli/pull/14354)): Fix trailing whitespace after author name on title slide when ORCID is not set. (author: @jnkatz)
+- ([#14356](https://github.com/quarto-dev/quarto-cli/pull/14356)): Fix trailing whitespace after author name on title slide when ORCID is not set. (author: @jnkatz for the initial fix in #14354)
 - ([#14585](https://github.com/quarto-dev/quarto-cli/issues/14585)): Fix empty blockquote (`> `) crashing render for revealjs format.
 
 ### `dashboard`
@@ -81,6 +81,10 @@ All changes included in 1.10:
 - ([#14563](https://github.com/quarto-dev/quarto-cli/issues/14563)): Fix a fatal error when a shortcode is used inside conditional content (e.g. `content-visible when-format="llms-txt"`) in a website with `llms-txt` enabled.
 - ([#14667](https://github.com/quarto-dev/quarto-cli/issues/14667)): Fix the clean-URL rewrite in `quarto-nav.js` breaking links to files whose names merely start with `index.html`, such as the `index.html.md` "Other Formats" links produced when `output-file: index.html` is paired with a markdown format (e.g. by nbdev for llms.txt workflows). The rewrite now only strips `index.html` at the end of the path.
 
+## Lua API
+
+- ([#14297](https://github.com/quarto-dev/quarto-cli/pull/14297)): Fix `quarto.utils.is_empty_node()` returning inverted results for text nodes (`Str`, `Code`, `RawInline`).
+
 ## Commands
 
 ### `quarto preview`
@@ -93,9 +97,9 @@ All changes included in 1.10:
 
 ### `install`
 
-- ([#14304](https://github.com/quarto-dev/quarto-cli/issues/14304)): Fix `quarto install tinytex` silently ignoring extraction failures. When archive extraction fails (e.g., `.tar.xz` on a system without `xz-utils`), the installer now reports a clear error instead of proceeding and failing with a confusing `NotFound` message.
 - ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877), [#9710](https://github.com/quarto-dev/quarto-cli/issues/9710)): Add arm64 Linux support for `quarto install chrome-headless-shell` using Playwright CDN as download source, since Chrome for Testing has no arm64 Linux builds.
 - ([#11877](https://github.com/quarto-dev/quarto-cli/issues/11877)): Deprecate `quarto install chromium` — the command now transparently redirects to `chrome-headless-shell`. Installing `chrome-headless-shell` automatically removes any legacy Chromium installation. Use `chrome-headless-shell` instead, which always installs the latest stable Chrome (the legacy `chromium` installer pins an outdated Puppeteer revision that cannot receive security updates).
+- ([#14304](https://github.com/quarto-dev/quarto-cli/issues/14304)): Fix `quarto install tinytex` silently ignoring extraction failures. When archive extraction fails (e.g., `.tar.xz` on a system without `xz-utils`), the installer now reports a clear error instead of proceeding and failing with a confusing `NotFound` message.
 - ([#14363](https://github.com/quarto-dev/quarto-cli/pull/14363)): Add retry logic for tool downloads to handle transient network failures (connection resets, CDN timeouts) during `quarto install`.
 - ([#14538](https://github.com/quarto-dev/quarto-cli/pull/14538)): `quarto install tinytex` and `quarto update tinytex` now set the TeX Live repository to the TinyTeX CDN-backed mirror at <https://tlnet.yihui.org> when reachable, falling back to `mirror.ctan.org`'s automatic redirect and the existing US university mirrors otherwise. Matches the default in the [R tinytex package](https://github.com/rstudio/tinytex) since March 2026. Override the resolved repository with the `QUARTO_TINYTEX_REPOSITORY` environment variable, or with `CTAN_REPO` (also honored for parity with the R [tinytex](https://github.com/rstudio/tinytex) package). See <https://yihui.org/en/2026/03/tinytex-ctan-mirror/> for background.
 
@@ -106,10 +110,6 @@ All changes included in 1.10:
 ### `quarto create`
 
 - ([#14250](https://github.com/quarto-dev/quarto-cli/issues/14250)): Fix `quarto create` producing read-only files when Quarto is installed via system packages (e.g., `.deb`). Files copied from installed resources now have user-write permission ensured.
-
-## Lua API
-
-- ([#14297](https://github.com/quarto-dev/quarto-cli/pull/14297)): Fix `quarto.utils.is_empty_node()` returning inverted results for text nodes (`Str`, `Code`, `RawInline`).
 
 ## Engines
 
@@ -127,16 +127,16 @@ All changes included in 1.10:
 - ([#12401](https://github.com/quarto-dev/quarto-cli/issues/12401)): Fix `QUARTO_DOCUMENT_PATH` being a relative path for single-file renders, inconsistent with project renders where it was absolute. Execution target paths are now normalized to absolute at a single point, so single-file and project renders behave the same.
 - ([#14255](https://github.com/quarto-dev/quarto-cli/issues/14255)): Fix shortcodes inside inline and display math expressions not being resolved.
 - ([#14342](https://github.com/quarto-dev/quarto-cli/issues/14342)): Work around TOCTOU race in Deno's `expandGlobSync` that can cause unexpected exceptions to be raised while traversing directories during project initialization.
-- ([#14445](https://github.com/quarto-dev/quarto-cli/issues/14445)): Fix intermittent `Uncaught (in promise) TypeError: Writable stream is closed or errored.` aborting renders on Linux. `execProcess` now awaits and swallows the rejection from `process.stdin.close()` when the child closes its stdin first. The captured stderr is now also surfaced when `typst-gather analyze` falls back to staging all packages, so failures are diagnosable without bypassing `quarto`.
 - ([#14359](https://github.com/quarto-dev/quarto-cli/issues/14359)): Fix intermediate `.quarto_ipynb` file not being deleted after rendering a `.qmd` with Jupyter engine, causing numbered variants (`_1`, `_2`, ...) to accumulate on disk across renders.
+- ([#14445](https://github.com/quarto-dev/quarto-cli/issues/14445)): Fix intermittent `Uncaught (in promise) TypeError: Writable stream is closed or errored.` aborting renders on Linux. `execProcess` now awaits and swallows the rejection from `process.stdin.close()` when the child closes its stdin first. The captured stderr is now also surfaced when `typst-gather analyze` falls back to staging all packages, so failures are diagnosable without bypassing `quarto`.
 - ([#14461](https://github.com/quarto-dev/quarto-cli/issues/14461)): Fix `quarto render --to pdf` aborting with `ERROR: Problem running 'fmtutil-sys --all' to rebuild format tree.` when an automatically-installed LaTeX package's post-update format rebuild fails. Format-tree rebuild is now treated as best-effort housekeeping (matching upstream `tinytex` R behavior) — the failure is logged as a warning and the package install completes.
-- ([#14472](https://github.com/quarto-dev/quarto-cli/issues/14472)): Add support for Kotlin in code annotations and YAML cell options. (author: @barendgehrels)
+- ([#14472](https://github.com/quarto-dev/quarto-cli/issues/14472)): Add support for Kotlin in code annotations and YAML cell options.
 - ([#14529](https://github.com/quarto-dev/quarto-cli/issues/14529)): Fix bundled Julia engine path leaking into rendered YAML metadata and pandoc log output when running an installed Quarto. The internal subtree-engine filter only matched the source-tree share-path layout (`resources/extension-subtrees/`) and missed installed layouts where the path is `share/extension-subtrees/`.
 - ([#14576](https://github.com/quarto-dev/quarto-cli/issues/14576)): Fix website render hanging when sidebar titles contain double-underscore (dunder) names.
 - ([#14577](https://github.com/quarto-dev/quarto-cli/issues/14577)): Fix an embedded notebook with no explicit title using a Python comment inside a code cell as the notebook title. Heading extraction now skips fenced code blocks, so a comment that merely looks like a heading is never promoted; first real markdown heading anywhere in the notebook markdown body is still used as before if not `title` provided.
 - ([#14582](https://github.com/quarto-dev/quarto-cli/issues/14582)): Fix format detection for extension formats (e.g. `acm-pdf`) in project preview, manuscript notebooks, MECA bundles, and website format ordering.
 - ([#14583](https://github.com/quarto-dev/quarto-cli/issues/14583)): Fix a shortcode used as an image source (e.g. `![]({{< meta logo >}})`) getting the `default-image-extension` appended, producing a doubled extension once the shortcode resolves.
-- ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment
+- ([#14595](https://github.com/quarto-dev/quarto-cli/issues/14595)): Fix reload preview in code-server environment. (author: @micedre)
 - ([#14669](https://github.com/quarto-dev/quarto-cli/issues/14669)): Fix markdown output being deleted when `output-file` has an `.html` extension and an html format is paired with a markdown format.
 - ([#14687](https://github.com/quarto-dev/quarto-cli/issues/14687)): Fix SCSS color-variable export (`--quarto-scss-export-*`) being silently skipped when a theme rule places a declaration on the same line as the opening brace with no space after the colon (e.g. `.example {width:100px;}`).
 - ([#14722](https://github.com/quarto-dev/quarto-cli/issues/14722)): Fix `{{< placeholder >}}` shortcode failing to render on non-SVG formats after an external image service was retired; placeholders now render locally with no network access.
