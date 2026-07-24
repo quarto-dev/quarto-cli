@@ -11,5 +11,6 @@
   - New release prerelease should be on Github at <https://github.com/quarto-dev/quarto-cli/releases>
   - A new tag should be on main for the new prerelease version
   - `version.txt` on main should have been updated by the workflow to the pre-release version just released: https://github.com/quarto-dev/quarto-cli/blob/main/version.txt
+- (optional) validate the published prerelease: Actions -> "Smoke Tests (Built Version)" -> "Run Workflow" with source `release` (version defaults to `pre-release`) to run the smoke suite against the installed release binaries instead of the dev tree
 
 Note: Cloudsmith publishing is skipped for prereleases (only runs for stable releases).

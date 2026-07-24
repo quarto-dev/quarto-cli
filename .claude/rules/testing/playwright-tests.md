@@ -44,6 +44,14 @@ The wrapper (`playwright-tests.test.ts`):
 3. Runs `npx playwright test`
 4. Cleans up rendered output
 
+The suite runs in dev CI (the per-commit parallel shards) AND against a
+built quarto (`test-smokes-built.yml` playwright legs, binary mode). Two
+constraints follow: the wrapper's render spawns must keep
+`quartoSpawnEnvOptions()` (without it the built quarto inherits the
+dev-tree env and silently renders with dev resources), and the browser
+assertions are ignored on Windows CI (the wrapper's `ignore:` gate) — which
+is why built-version CI has no windows playwright leg.
+
 ## Test Structure
 
 Tests use `@playwright/test` framework:

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureFileRegexMatches } from "../../verify.ts";
+import { ensureFileRegexMatches, noErrors } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
 import { crossref } from "./utils.ts";
 import {
@@ -15,7 +15,8 @@ import {
   Verify,
 } from "../../test.ts";
 import { assert, fail } from "testing/asserts";
-import { quarto } from "../../../src/quarto.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
+import { safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 
 const syntaxQmd = crossref("syntax.qmd", "html");
 testRender(syntaxQmd.input, "html", false, [
@@ -58,22 +59,35 @@ const verify: Verify = {
 };
 const context: TestContext = {
   teardown: () => {
-    Deno.removeSync(imgQmd.output.outputPath);
-    Deno.removeSync(imgQmd.output.supportPath, { recursive: true });
+    // safeRemoveSync tolerates a missing path: when a render fails, noErrors
+    // fails first and these outputs never exist. Raw Deno.removeSync would then
+    // throw NotFound from this finally-phase teardown and mask the noErrors
+    // report with an unhelpful ENOENT.
+    safeRemoveSync(imgQmd.output.outputPath);
+    safeRemoveSync(imgQmd.output.supportPath, { recursive: true });
 
-    Deno.removeSync(divQmd.output.outputPath);
-    Deno.removeSync(divQmd.output.supportPath, { recursive: true });
+    safeRemoveSync(divQmd.output.outputPath);
+    safeRemoveSync(divQmd.output.supportPath, { recursive: true });
     return Promise.resolve();
   },
 };
 const testDesc: TestDescriptor = { // FIXME: why is this test flaky now? Ask @dragonstyle
   name: "test html produced by different figure syntax",
   context,
-  execute: async () => {
-    await quarto(["render", imgQmd.input]);
-    await quarto(["render", divQmd.input]);
+  execute: async (logFile?: string) => {
+    // render failures land in the log as ERROR records; noErrors below
+    // surfaces them (otherwise the comparison verify would just hit an
+    // unhelpful ENOENT on the missing output file)
+    await runQuarto(["render", imgQmd.input], {
+      logFile,
+      throwOnFailure: false,
+    });
+    await runQuarto(["render", divQmd.input], {
+      logFile,
+      throwOnFailure: false,
+    });
   },
-  verify: [verify],
+  verify: [noErrors, verify],
   type: "smoke",
 };
 test(testDesc);

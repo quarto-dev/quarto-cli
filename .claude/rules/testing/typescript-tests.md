@@ -22,7 +22,15 @@ TypeScript-based tests using Deno. Smoke tests render documents; unit tests veri
 
 ## Core Infrastructure
 
-Core test files (`test.ts`, `verify.ts`, `utils.ts`) are described in `.claude/rules/testing/overview.md` § Core Files.
+Core test files (`test.ts`, `quarto-cmd.ts`, `verify.ts`, `utils.ts`) are described in `.claude/rules/testing/overview.md` § Core Files.
+
+### Binary mode compatibility
+
+Tests must keep working when `QUARTO_TEST_BIN` targets a built quarto (binary mode) instead of the in-process dev sources:
+
+- Never `import { quarto } from "../../src/quarto.ts"` in tests — invoke quarto via `testQuartoCmd()`/`runQuarto()`.
+- Subprocess spawns of quarto: resolve the executable with `quartoDevCmd()` (`tests/utils.ts`, honors `QUARTO_TEST_BIN`) or `quartoDevBinCmd()` (`tests/quarto-cmd.ts`, pins the local dev build), and pass `quartoSpawnEnvOptions()` as spawn env options.
+- `TestContext.requiresDevQuarto: true` ignores a test in binary mode — rare escape hatch for tests exercising quarto internals in-process.
 
 ### Search for an existing verifier before writing one
 

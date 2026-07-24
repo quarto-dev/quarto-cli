@@ -1,5 +1,50 @@
 name: Feature-Format Tests
 on:
+  # Reusable interface: lets test-smokes-built.yml run the feature-format
+  # corpus against a BUILT quarto (its ff-matrix legs) while this workflow
+  # stays the single owner of the ff-matrix bucket glob. All inputs are
+  # forwarded to test-smokes.yml; their defaults preserve today's dev
+  # behavior, and the `inputs.x || default` fallbacks in the job keep the
+  # schedule/push/PR triggers (where inputs.* is empty) on those defaults.
+  # Nesting: test-smokes-built.yml -> this -> test-smokes.yml = 3 levels,
+  # well within GitHub's reusable-workflow nesting limit.
+  workflow_call:
+    inputs:
+      extra-r-packages:
+        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        required: false
+        type: string
+        default: ""
+      quarto-install:
+        description: "Which quarto to test (forwarded to test-smokes.yml): 'dev' (source tree, default), 'release', or 'artifact'"
+        required: false
+        type: string
+        default: "dev"
+      quarto-version:
+        description: "Version to install when quarto-install is 'release' (forwarded to test-smokes.yml)"
+        required: false
+        type: string
+        default: ""
+      quarto-artifact-name:
+        description: "Workflow artifact name containing the built quarto tarball/zip when quarto-install is 'artifact' (forwarded to test-smokes.yml)"
+        required: false
+        type: string
+        default: ""
+      quarto-artifact-run-id:
+        description: "Workflow run id to download the artifact from (forwarded to test-smokes.yml; empty = the current run)"
+        required: false
+        type: string
+        default: ""
+      ref:
+        description: "Git ref to check out (forwarded to test-smokes.yml; empty means the default checkout behavior)"
+        required: false
+        type: string
+        default: ""
+      runners:
+        description: "JSON list of runner labels for the OS matrix (forwarded to test-smokes.yml)"
+        required: false
+        type: string
+        default: '["ubuntu-latest", "windows-latest"]'
   workflow_dispatch:
     inputs:
       extra-r-packages:
@@ -19,6 +64,7 @@ on:
       - ".github/workflows/performance-check.yml"
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
+      - ".github/workflows/test-smokes-built.yml"
       - ".github/workflows/test-smokes-parallel.yml"
       - ".github/workflows/test-install.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
@@ -33,12 +79,21 @@ on:
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
       - ".github/workflows/test-install.yml"
+      - ".github/workflows/test-smokes-built.yml"
       - ".github/workflows/test-smokes-parallel.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
       - ".github/workflows/update-test-timing.yml"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}
+  # The suffix matters under workflow_call (the built-version ff-matrix
+  # legs): a called workflow's top-level concurrency evaluates in the
+  # CALLER's context (github.workflow/ref/run_id are the caller run's), so
+  # without a per-call component every ff-matrix leg of one
+  # test-smokes-built.yml run would share a single cancel-in-progress group
+  # and could cancel a sibling leg. inputs.runners is only ever set on
+  # workflow_call, and differs per leg; dev triggers (inputs empty) get the
+  # constant '-dev' suffix, keeping today's dedup groups.
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}-${{ inputs.runners && format('call-{0}-{1}', github.run_id, inputs.runners) || 'dev' }}
   cancel-in-progress: true
 
 jobs:
@@ -46,5 +101,16 @@ jobs:
     name: Run feature-format matrix
     uses: ./.github/workflows/test-smokes.yml
     with:
+      # the ff-matrix bucket glob is defined ONLY here (DRY) - built-version
+      # callers reuse it through the workflow_call interface above
       buckets: '[ "../dev-docs/feature-format-matrix/qmd-files/**/*.qmd" ]'
       extra-r-packages: ${{ inputs.extra-r-packages }}
+      # inputs.* is empty on schedule/push/PR triggers; the fallbacks keep
+      # those paths on today's dev defaults (test-smokes.yml is also
+      # empty-string robust for the inputs passed through without fallback)
+      quarto-install: ${{ inputs.quarto-install || 'dev' }}
+      quarto-version: ${{ inputs.quarto-version }}
+      quarto-artifact-name: ${{ inputs.quarto-artifact-name }}
+      quarto-artifact-run-id: ${{ inputs.quarto-artifact-run-id }}
+      ref: ${{ inputs.ref }}
+      runners: ${{ inputs.runners || '["ubuntu-latest", "windows-latest"]' }}

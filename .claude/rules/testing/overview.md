@@ -28,6 +28,8 @@ QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh test.ts    # Linux/macOS
 $env:QUARTO_TESTS_NO_CONFIG=$true; .\run-tests.ps1      # Windows
 ```
 
+**Binary mode:** set `QUARTO_TEST_BIN` to a built quarto (extracted outside the checkout — the runner refuses the 99.9.9 dev sentinel) to spawn it instead of running the dev sources in-process; defaults to `smoke/` (`unit/` is dev-only; the playwright suite and ff-matrix corpus are binary-compatible and run as their own CI legs in `test-smokes-built.yml`, or locally by passing them explicitly). See `tests/README.md` → "Binary mode"; architecture and design decisions in `llm-docs/built-version-testing-architecture.md`.
+
 ## Test Types
 
 | Type | Location | File Pattern | Details |
@@ -59,6 +61,7 @@ Managed via:
 | File | Purpose |
 |------|---------|
 | `test.ts` | Test infrastructure (`testQuartoCmd`, `unitTest`) |
+| `quarto-cmd.ts` | Quarto invocation dispatch (`runQuarto`; in-process dev vs `QUARTO_TEST_BIN` binary mode) |
 | `verify.ts` | Verification functions |
 | `utils.ts` | Path utilities (`docs()`, `outputForInput()`) |
 | `README.md` | Comprehensive documentation |

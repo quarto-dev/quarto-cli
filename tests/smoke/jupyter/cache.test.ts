@@ -4,10 +4,10 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 import { dirname, join } from "path";
-import { quarto } from "../../../src/quarto.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
 import { test } from "../../test.ts";
 import { docs } from "../../utils.ts";
-import { folderExists, printsMessage } from "../../verify.ts";
+import { folderExists, noErrors, printsMessage } from "../../verify.ts";
 import { fileLoader } from "../../utils.ts";
 import { safeExistsSync, safeRemoveSync } from "../../../src/core/path.ts";
 
@@ -16,14 +16,18 @@ const cacheFolder = join(dirname(testInput.input), ".jupyter_cache")
 
 test({
   name: "Jupyter cache is working",
-  execute: async () => {
-    // return await new Promise((_resolve, reject) => {
-    //   setTimeout(reject, 10000, "timed out after 10 seconds");
-    // })
+  execute: async (logFile?: string) => {
     // https://github.com/quarto-dev/quarto-cli/issues/9618
-    // repeated executions to trigger jupyter cache
-    await quarto(["render", testInput.input, "--to", "html", "--no-execute-daemon"]);
-    await quarto(["render", testInput.input, "--to", "html", "--no-execute-daemon"]);
+    // repeated executions to trigger jupyter cache; failures reach the
+    // verifiers as log records, mirroring testQuartoCmd
+    await runQuarto(["render", testInput.input, "--to", "html", "--no-execute-daemon"], {
+      logFile,
+      throwOnFailure: false,
+    });
+    await runQuarto(["render", testInput.input, "--to", "html", "--no-execute-daemon"], {
+      logFile,
+      throwOnFailure: false,
+    });
   },
   context: {
     teardown: async () => {
@@ -39,6 +43,7 @@ test({
     }
   },
   verify: [
+    noErrors,
     folderExists(cacheFolder),
     // this will check only for the second render that should be read from cache
     printsMessage({ level: "INFO", regex: /Notebook read from cache/})
@@ -54,14 +59,18 @@ const cacheFolder2 = join(dirname(testInput2.input), ".cache/jupyter-cache")
 
 test({
   name: "Jupyter cache folder can be change",
-  execute: async () => {
-    // return await new Promise((_resolve, reject) => {
-    //   setTimeout(reject, 10000, "timed out after 10 seconds");
-    // })
+  execute: async (logFile?: string) => {
     // https://github.com/quarto-dev/quarto-cli/issues/9618
-    // repeated executions to trigger jupyter cache
-    await quarto(["render", testInput2.input, "--to", "html", "--no-execute-daemon"]);
-    await quarto(["render", testInput2.input, "--to", "html", "--no-execute-daemon"]);
+    // repeated executions to trigger jupyter cache; failures reach the
+    // verifiers as log records, mirroring testQuartoCmd
+    await runQuarto(["render", testInput2.input, "--to", "html", "--no-execute-daemon"], {
+      logFile,
+      throwOnFailure: false,
+    });
+    await runQuarto(["render", testInput2.input, "--to", "html", "--no-execute-daemon"], {
+      logFile,
+      throwOnFailure: false,
+    });
   },
   context: {
     teardown: async () => {
@@ -80,6 +89,7 @@ test({
     }
   },
   verify: [
+    noErrors,
     folderExists(cacheFolder2),
     // this will check only for the second render that should be read from cache
     printsMessage({level: "INFO", regex: /Notebook read from cache/})

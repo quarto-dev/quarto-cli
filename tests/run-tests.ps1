@@ -66,6 +66,54 @@ If ($null -eq $Env:QUARTO_DENO_DIR) {
   $Env:DENO_DIR = $Env:QUARTO_DENO_DIR
 }
 
+# BINARY MODE: when QUARTO_TEST_BIN is set, tests run against a built quarto
+# (an installed distribution extracted OUTSIDE this checkout). The harness
+# itself still runs from the dev tree — the dev env vars above stay — and
+# tests/quarto-cmd.ts dispatches quarto invocations to the binary, stripping
+# the dev env from the child process. See
+# llm-docs/built-version-testing-architecture.md.
+If ($null -ne $Env:QUARTO_TEST_BIN) {
+  If (-not (Test-Path $Env:QUARTO_TEST_BIN)) {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) does not exist"
+    Exit 1
+  }
+  # Probe with the dev-tree env stripped (same list as tests/quarto-cmd.ts):
+  # the installed launcher keeps an inherited QUARTO_SHARE_PATH, and the dev
+  # exports above would make a healthy built quarto read the dev tree's
+  # (nonexistent) src/resources/version and report an EMPTY version.
+  $probeStrip = @(
+    "QUARTO_SHARE_PATH", "QUARTO_BIN_PATH", "QUARTO_DEBUG", "DENO_DIR",
+    "QUARTO_DENO", "QUARTO_DENO_DOM", "QUARTO_ROOT", "QUARTO_SRC_PATH",
+    "QUARTO_FORCE_VERSION"
+  )
+  $probeSaved = @{}
+  ForEach ($name in $probeStrip) {
+    $probeSaved[$name] = [Environment]::GetEnvironmentVariable($name)
+    Remove-Item "Env:$name" -ErrorAction SilentlyContinue
+  }
+  Try {
+    $QUARTO_TEST_BIN_VERSION = & $Env:QUARTO_TEST_BIN --version
+  } Finally {
+    ForEach ($name in $probeStrip) {
+      If ($null -ne $probeSaved[$name]) {
+        [Environment]::SetEnvironmentVariable($name, $probeSaved[$name])
+      }
+    }
+  }
+  If ([string]::IsNullOrWhiteSpace($QUARTO_TEST_BIN_VERSION)) {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) did not report a version."
+    Write-Host -ForegroundColor red "The distribution is likely incomplete (missing share/version)."
+    Exit 1
+  }
+  If ($QUARTO_TEST_BIN_VERSION -eq "99.9.9") {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
+    Write-Host -ForegroundColor red "It resolves to a dev-mode quarto: the launcher runs the TS sources whenever a sibling src/quarto.ts exists."
+    Write-Host -ForegroundColor red "Point QUARTO_TEST_BIN at a built distribution extracted outside the git checkout."
+    Exit 1
+  }
+  Write-Host "> BINARY MODE: testing built quarto $QUARTO_TEST_BIN_VERSION at $($Env:QUARTO_TEST_BIN)"
+}
+
 # Preparing running Deno with default arguments
 
 $QUARTO_IMPORT_MAP_ARG="--importmap=$(Join-Path $QUARTO_SRC_DIR "import_map.json")"
@@ -159,6 +207,16 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
 
 } else {
   $TESTS_TO_RUN=$customArgs
+}
+
+# Binary-mode default selection: smoke tests only. tests/unit/ exercises
+# quarto internals in-process (dev-only by definition);
+# tests/integration/playwright-tests.test.ts IS binary-compatible but needs
+# the playwright toolchain, so it only runs when asked for explicitly (CI
+# runs it as its own leg in test-smokes-built.yml).
+If ($null -ne $Env:QUARTO_TEST_BIN -and $TESTS_TO_RUN.count -eq 0 -and $customArgs.count -eq 0) {
+  $TESTS_TO_RUN = @("smoke/")
+  Write-Host "> BINARY MODE: defaulting to smoke/ tests (pass a path explicitly to run others, e.g. integration/playwright-tests.test.ts)"
 }
 
 # ---- Running tests with Deno -------

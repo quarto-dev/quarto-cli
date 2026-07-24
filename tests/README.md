@@ -12,7 +12,7 @@ Tests are run in our CI workflow on GHA at each commit, and for each PR.
 
 ## How the tests are created and organized ?
 
-Tests are running through `Deno.test()` framework, adapted for our Quarto project and all written in Typescript. Infrastructure are in `tests.ts`, `tests.deps.ts` `verify.ts` and `utils.ts` which contains the helper functions that can be used.
+Tests are running through `Deno.test()` framework, adapted for our Quarto project and all written in Typescript. Infrastructure are in `test.ts`, `test-deps.ts`, `quarto-cmd.ts`, `verify.ts` and `utils.ts` which contains the helper functions that can be used.
 
 - `unit/` and `integration/`, `smoke/`contain some `.ts` script representing each tests.
 - `docs/` is a special folder containing of the necessary files and projects used for the tests.
@@ -430,6 +430,162 @@ Don't do
 ./run-tests.sh smoke/extensions/extension-render-doc.test.ts smoke/smoke-all.test.ts -- ./docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
 
+### Binary mode (`QUARTO_TEST_BIN`)
+
+By default, tests run quarto **in-process** from the dev sources: `runQuarto()` in `tests/quarto-cmd.ts` calls the `quarto()` entry point imported from `src/quarto.ts`. When the `QUARTO_TEST_BIN` environment variable points at an installed quarto, `runQuarto()` instead spawns that binary as a subprocess, with `--log <file> --log-format json-stream` so the log-based verifiers keep working unchanged. This is used to run the test suites (smoke, playwright, ff-matrix legs) against a built distribution (see `llm-docs/built-version-testing-architecture.md` for the architecture and design decisions, and the `test-smokes-built.yml` CI workflow below).
+
+To run in binary mode locally:
+
+```bash
+# 1. Build a distribution (after ./configure.sh)
+cd package/src
+./quarto-bld prepare-dist --set-version "$(cat ../../version.txt)+test.$(date +%Y%m%d)"
+cd ../..
+
+# 2. Copy the built dist OUTSIDE the git checkout. An in-repo quarto
+#    (e.g. package/dist/bin/quarto) resolves to dev mode — the launcher runs
+#    the TS sources when it finds a sibling src/quarto.ts — and must NOT be
+#    used: run-tests.[sh|ps1] refuses a binary reporting the 99.9.9 dev
+#    version sentinel.
+cp -r package/pkg-working ~/quarto-under-test
+
+# 3. Run the tests against it
+cd tests
+QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh
+```
+
+In binary mode:
+
+- With no test arguments, `run-tests.[sh|ps1]` defaults to `smoke/` only. `unit/` exercises quarto internals in-process and is dev-only by definition; `integration/playwright-tests.test.ts` and the feature-format matrix ARE binary-compatible but need extra toolchain (playwright browsers, the full R/Python/Julia/TeX corpus deps), so they run only when passed explicitly — in CI they are their own legs in `test-smokes-built.yml` (smoke + playwright + ff-matrix, daily against the nightly build):
+
+  ```bash
+  # playwright suite against a built quarto
+  QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh integration/playwright-tests.test.ts
+  # feature-format matrix against a built quarto
+  QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh "../dev-docs/feature-format-matrix/qmd-files/**/*.qmd"
+  ```
+
+- The test environment is configured as usual; set `QUARTO_TESTS_NO_CONFIG` to skip that step as in dev mode.
+- Tests with `requiresDevQuarto: true` in their `TestContext` are ignored (rare escape hatch for tests that must exercise quarto internals in-process).
+
+Authoring rules that keep tests working in both modes:
+
+- Never `import { quarto } from "../src/quarto.ts"` in tests — invoke quarto through `testQuartoCmd()` (`tests/test.ts`) or `runQuarto()` (`tests/quarto-cmd.ts`).
+- Tests that spawn quarto as a subprocess themselves should resolve the executable with `quartoDevCmd()` (`tests/utils.ts`, honors `QUARTO_TEST_BIN`) — or `quartoDevBinCmd()` (`tests/quarto-cmd.ts`) when the test must pin the locally-built dev CLI — and pass `quartoSpawnEnvOptions()` as spawn env options so the dev-tree env vars don't leak into the built quarto.
+
+## How tests run (diagrams)
+
+### Test invocation: one seam, two modes
+
+Every `testQuartoCmd()`-based test goes through a single dispatch point,
+`runQuarto()` in `tests/quarto-cmd.ts`. The verifiers never know which mode
+ran — they only read the json-stream log file and the rendered outputs.
+
+```mermaid
+flowchart TB
+    subgraph deno ["Deno test process (tests/ harness, always runs from the repo checkout)"]
+        TQC["testQuartoCmd / testRender / testSite / smoke-all driver"]
+        RQ{"runQuarto()<br>tests/quarto-cmd.ts"}
+        LOG[("json-stream log file<br>{msg, level, levelName} per line")]
+        OUT[("rendered output files")]
+        VER["verifiers (tests/verify.ts)<br>noErrors, printsMessage, ensureHtmlElements, ..."]
+    end
+    DEV["in-process quarto()<br>imported from src/quarto.ts<br>dev TS sources, version 99.9.9"]
+    BIN["spawned subprocess: built quarto<br>--log file --log-format json-stream<br>dev env vars stripped (QUARTO_SHARE_PATH, DENO_DIR, ...)"]
+
+    TQC --> RQ
+    RQ -->|"dev mode (default:<br>QUARTO_TEST_BIN unset)"| DEV
+    RQ -->|"binary mode<br>(QUARTO_TEST_BIN set)"| BIN
+    DEV --> LOG
+    DEV --> OUT
+    BIN --> LOG
+    BIN --> OUT
+    LOG --> VER
+    OUT --> VER
+```
+
+### Binary mode: lifecycle of one test
+
+```mermaid
+sequenceDiagram
+    participant T as test() (tests/test.ts)
+    participant R as runQuarto()
+    participant Q as built quarto (subprocess)
+    participant V as verifiers
+
+    T->>T: create temp json-stream log file
+    Note over T: binary mode: harness logger NOT initialized<br>(the child owns log capture)
+    T->>R: execute(logFile)
+    R->>Q: spawn QUARTO_TEST_BIN render ...<br>--log (per-invocation temp) --log-format json-stream<br>env = ambient minus dev-tree vars, plus TestContext.env
+    Q->>Q: render, write log records + output files
+    Q-->>R: exit (code, stdout/stderr drained)
+    R->>T: merge child log into the test log file
+    alt exit != 0 and no ERROR record in child log
+        R->>T: append synthetic ERROR record<br>(exit code + stderr tail) — prevents silent green
+    end
+    alt timeout
+        R->>Q: kill process tree (launcher spawns deno and waits)
+        R->>T: append timeout ERROR record
+    end
+    T->>V: verify(log records) + verify(output files)
+```
+
+### CI: which workflow tests what
+
+```mermaid
+flowchart LR
+    subgraph dev ["Dev mode (unchanged): quarto = in-process TS sources"]
+        PR["PR / push"] --> TSP["test-smokes-parallel.yml<br>sharded buckets"]
+        DAILY["daily schedule"] --> TSfull["full run"]
+    end
+    subgraph built ["Binary mode: quarto = built distribution (QUARTO_TEST_BIN)"]
+        TSB["test-smokes-built.yml<br>runs after every nightly build<br>(workflow_run) + manual dispatch<br>3 legs per source mode:<br>smoke + playwright + ff-matrix"]
+        BUILDM["source: build (dispatch default)<br>build linux-amd64 dist from this ref<br>(any ref, works on forks)"]
+        NIGHTM["source: nightly (daily via workflow_run)<br>reuse SIGNED artifacts of a create-release run:<br>linux + windows quarto.exe + macOS<br>(the only macOS smoke coverage)"]
+        RELM["source: release<br>install published (pre-)release,<br>checkout its v-tag"]
+        TSB -->|"dispatch"| BUILDM
+        TSB -->|"after each nightly build<br>+ dispatch"| NIGHTM
+        TSB -->|"dispatch"| RELM
+    end
+    CR["create-release.yml<br>nightly build (no publish),<br>dispatch = publish; smoke-artifacts-only<br>input = cheap signed branch builds"]
+    ACT[".github/actions/build-dist-tarball<br>(shared build recipe)"]
+
+    FFM["test-ff-matrix.yml (reusable)<br>dev triggers: cron / push / PR / dispatch<br>owns the ff-matrix qmd bucket"]
+    TS["test-smokes.yml (reusable)<br>inputs: quarto-install, ref, runners,<br>buckets, quarto-artifact-*"]
+    TSP --> TS
+    DAILY --> TS
+    FFM --> TS
+    BUILDM -->|"smoke + playwright legs"| TS
+    NIGHTM -->|"smoke + playwright legs"| TS
+    RELM -->|"smoke + playwright legs"| TS
+    BUILDM -->|"ff-matrix leg"| FFM
+    NIGHTM -->|"ff-matrix leg"| FFM
+    RELM -->|"ff-matrix leg"| FFM
+    BUILDM -. uses .-> ACT
+    CR -. "make-tarball jobs use" .-> ACT
+    NIGHTM -. "downloads artifacts from" .-> CR
+```
+
+### Binary mode in CI: how `QUARTO_TEST_BIN` reaches the tests
+
+`QUARTO_TEST_BIN` is never declared statically — the "Pin and verify test
+target" step in `test-smokes.yml` computes it at runtime and exports it via
+`$GITHUB_ENV`, making it visible to every later step of the job. When
+`quarto-install` is `dev` (all existing callers), these steps are skipped
+and nothing changes.
+
+```mermaid
+flowchart TB
+    IN["workflow input<br>quarto-install: artifact | release"]
+    QD["quarto-dev action (ALWAYS runs)<br>provisions the harness Deno runtime"]
+    INST["install quarto under test<br>artifact: extract to RUNNER_TEMP (outside checkout)<br>release: quarto-actions/setup"]
+    PIN["Pin and verify test target<br>refuse 99.9.9 dev sentinel; check semver shape;<br>echo QUARTO_TEST_BIN=path >> GITHUB_ENV"]
+    RTS["./run-tests.sh (unchanged invocation)<br>sees QUARTO_TEST_BIN: banner + guard,<br>default selection = smoke/ only"]
+    QC["tests/quarto-cmd.ts<br>Deno.env.get('QUARTO_TEST_BIN')<br>every runQuarto spawns the built binary"]
+
+    IN --> QD --> INST --> PIN --> RTS --> QC
+```
+
 ## Debugging within tests
 
 `.vscode/launch.json` has a `Run Quarto test` configuration that can be used to debug when running tests. One need to modify the `program` and `args` fields to match the test to run.
@@ -519,3 +675,13 @@ Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tes
 - `test-smokes.yml` is the main CI workflow which configure the environment, and run the tests on Ubuntu and Windows.
   - If it was triggerred by `workflow_call`, then it will run each test in using `run-tests.[sh|ps1]` in a for-loop.
   - Scheduled tests are still run daily in their sequential version.
+  - It is parameterized (`quarto-install`, `quarto-version`, `quarto-artifact-name`, `ref`, `runners`, ...) so callers can run the suite against a built quarto instead of the dev source tree: the workflow installs the quarto under test outside the checkout and exports `QUARTO_TEST_BIN` (see "Binary mode" above).
+- `test-smokes-built.yml` runs the test suites against a **built** quarto (daily, via `workflow_run` after each nightly `create-release.yml` build, plus `workflow_dispatch`). Per source mode it fans out to three independent legs: **smoke** (`test-smokes.yml`; also the general bucket runner when the `buckets` dispatch input is set — the other legs then skip), **playwright** (`test-smokes.yml` with the `integration/playwright-tests.test.ts` bucket; linux + macOS only — browser assertions are ignored on Windows CI), and **ff-matrix** (the reusable `test-ff-matrix.yml`, which owns the feature-format bucket glob; linux + windows). Which mode to trigger when:
+
+  | Mode | Trigger | Use it to answer |
+  |---|---|---|
+  | `nightly` | automatic (after each completed create-release run, scheduled or dispatched); dispatchable with a `run-id` to re-test an older run | does what we ship work? Signed artifacts from a create-release run — Linux, Windows (`quarto.exe`), macOS (the only macOS smoke coverage in CI); each OS leg runs only if its artifact exists in the run |
+  | `build` | dispatch (default) | will *this ref* survive packaging? Builds a linux-amd64 dist from the checkout via the shared `.github/actions/build-dist-tarball` action (also used by `create-release.yml`); the only mode that works on forks/PR branches |
+  | `release` | dispatch | is the *published* (pre-)release healthy? Post-publish verification; only works for releases whose tag contains the binary-mode harness |
+
+  Full rationale and design decisions: `llm-docs/built-version-testing-architecture.md`.

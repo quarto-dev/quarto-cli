@@ -10,6 +10,7 @@ import { execProcess } from "../../../src/core/process.ts";
 import { md5HashSync } from "../../../src/core/hash.ts";
 import { safeRemoveIfExists } from "../../../src/core/path.ts";
 import { quartoDevCmd, outputForInput } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { assert } from "testing/asserts";
 import { LogFormat } from "../../../src/core/log.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
@@ -90,7 +91,8 @@ function testLogDirectly(options: {
           cmd: quartoDevCmd(),
           args: args,
           stdout: "piped",
-          stderr: "piped"
+          stderr: "piped",
+          ...quartoSpawnEnvOptions(),
         });
         
         // Get stdout/stderr with fallback to empty string
@@ -137,35 +139,34 @@ function testLogDirectly(options: {
         }
 
         
-        // If JSON format is specified, verify the output is valid JSON
+        // If JSON format is specified, verify the log file parses and the
+        // record levels match expectations. NOTE: keep the parse try/catch
+        // NARROW - a previous version wrapped the level assertions in a
+        // catch-all that silently swallowed every failure.
         if (logFile && options.format === "json-stream") {
           assert(existsSync(logFile), "Log file should exist");
-          let foundValidJson = false;
+          let outputs;
           try {
-            const outputs = readExecuteOutput(logFile);
-            foundValidJson = true;
-            outputs.filter((out) => out.msg !== "" && options.expectedOutputs?.shouldNotContainLevel?.includes(out.levelName)).forEach(
-              (out) => {
-                assert(false, `JSON output should not contain level ${out.levelName}, but found: ${out.msg}`);
-              }
+            outputs = readExecuteOutput(logFile);
+          } catch {
+            outputs = undefined;
+          }
+          assert(outputs !== undefined, "JSON format should produce valid JSON output");
+          const records = outputs!.filter((out) => out.msg !== "");
+          const levels = new Set(records.map((out) => out.levelName));
+          for (const lvl of options.expectedOutputs?.shouldNotContainLevel ?? []) {
+            const offending = records.find((out) => out.levelName === lvl);
+            assert(
+              offending === undefined,
+              `JSON log should not contain level ${lvl}, but found: ${offending?.msg}`
             );
-            outputs.filter((out) => out.msg !== "" && options.expectedOutputs?.shouldContainLevel?.includes(out.levelName)).forEach(
-              (out) => {
-                let json = undefined;
-                try {
-                  json = JSON.parse(out.msg);
-                } catch {
-                  assert(false, "Error parsing JSON returned by quarto meta");
-                }
-                assert(
-                  Object.keys(json).length > 0,
-                  "JSON returned by quarto meta seems invalid",
-                );
-              }
+          }
+          for (const lvl of options.expectedOutputs?.shouldContainLevel ?? []) {
+            assert(
+              levels.has(lvl),
+              `JSON log should contain at least one ${lvl} record; found levels: ${[...levels].join(", ") || "(none)"}`
             );
-
-          } catch (e) {}
-          assert(foundValidJson, "JSON format should produce valid JSON output");
+          }
         }
       } finally {
         // Clean up log file if it exists
