@@ -5,6 +5,7 @@
 - [ ] mark the current release as the new release in the `main` branch
   - [ ] switch your repo back to `main`: `git checkout main`
   - [ ] edit QUARTO_VERSION line in `/configuration` to be the new version (e.g. `1.5`)
+  - [ ] commit with message '[release checklist] QUARTO_VERSION -> x.x'
   - [ ] push the changes to the `main` branch
   - [ ] kick off a v1.5 build in GHA: https://github.com/quarto-dev/quarto-cli/actions/workflows/create-release.yml
     - [ ] ensure the build completes successfully
@@ -18,7 +19,6 @@
   - this means flipping the profile group configuration in `_quarto.yml` from `[rc,prerelease]` to `[prerelease,rc]`
     - [ ] push the changes to the `main` branch
 - [ ] quarto-dev/quarto-web changes
-
   - wait for the downloads file to be automatically updated by the GitHub Action on https://github.com/quarto-dev/quarto-web
     - [ ] wait for https://github.com/quarto-dev/quarto-web/actions/workflows/update-downloads.yml to run (it runs every 15 minutes, or you can manually trigger it)
       - This workflow run rendered the website: https://github.com/quarto-dev/quarto-web/actions/runs/12016407762
