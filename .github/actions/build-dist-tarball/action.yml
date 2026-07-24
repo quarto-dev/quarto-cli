@@ -51,3 +51,8 @@ runs:
       with:
         name: ${{ inputs.artifact-name }}
         path: ./package/${{ inputs.tarball-name }}
+        # intra-run transport only: legs of the same run download it minutes
+        # after upload; nothing reads it after the run
+        retention-days: 1
+        # the tarball is already gzipped - re-compressing wastes CPU
+        compression-level: 0
