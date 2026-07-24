@@ -1,4 +1,7 @@
 - [ ] ensure your git repo is up to date with `main`
+- [ ] ensure CI is green for `main`
+- [ ] ensure `main` is coherent with last prerelease build (most of the case it last prerelease tag should be at `main`)
+- [ ] Verify `changelog-1.x.md` is a good shape.
 - [ ] create a branch `v1.x`, where x is the version being released
   - `git checkout -b v1.4`
   - `git push origin v1.4`
