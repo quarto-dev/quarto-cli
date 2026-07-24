@@ -53,6 +53,12 @@ jobs:
         if: ${{ inputs.publish-release }}
         uses: ./.github/workflows/actions/prevent-rerun
 
+      - name: Guard against partial-platform release publish
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish-release && inputs.os != 'all' }}
+        run: |
+          echo "::error::Cannot publish a release when os is not 'all' (got '${{ inputs.os }}'). Set publish-release=false for a single-platform test run, or os=all to publish a full release."
+          exit 1
+
       # we _also_ need npm, specifically for webui/preview
       - uses: actions/setup-node@v6
         with:
