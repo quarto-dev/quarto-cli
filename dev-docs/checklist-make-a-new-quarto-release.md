@@ -5,13 +5,15 @@
 - [ ] create a branch `v1.x`, where x is the version being released
   - `git checkout -b v1.4`
   - `git push origin v1.4`
+  - [ ] on this new branch, update `CITATION.cff` `version` (quote it, e.g. `"1.4"` — unquoted `1.10`-style values parse as a YAML float and drop the trailing zero) and `date-released` to today, and commit. This value is constant for the branch's whole patch-release life, so it's only set once, here, at branch-cut. Later, when doing the same edit on `main` (see the `CITATION.cff` step below), cherry-pick this commit instead of re-deriving it.
 - [ ] mark the current release as the new release in the `main` branch
   - [ ] switch your repo back to `main`: `git checkout main`
   - [ ] edit QUARTO_VERSION line in `/configuration` to be the new version (e.g. `1.5`)
   - [ ] commit with message '[release checklist] QUARTO_VERSION -> x.x'
   - [ ] push the changes to the `main` branch
   - [ ] kick off a v1.5 build in GHA: https://github.com/quarto-dev/quarto-cli/actions/workflows/create-release.yml
-    - [ ] ensure the build completes successfully
+        Command: `gh workflow run create-release.yml --repo quarto-dev/quarto-cli --ref main -f publish-release=true -f pre-release=true`
+    - [ ] ensure the build completes successfully (e.g `gh run view <run id>`)
 - [ ] mark v1.4 release as stable
   - [ ] go to https://github.com/quarto-dev/quarto-cli/releases
   - [ ] find the latest v1.4 release and edit, (eg https://github.com/quarto-dev/quarto-cli/releases/edit/v1.4.549)
@@ -20,6 +22,7 @@
     - [ ] "Set as latest release" should be checked.
 - [ ] once the v1.5 build completes, edit the quarto.org website configuration on https://github.com/quarto-dev/quarto-web to reflect the new version
   - this means flipping the profile group configuration in `_quarto.yml` from `[rc,prerelease]` to `[prerelease,rc]`
+  - only needed if this cycle went through a release-candidate (RC) phase — skip if you went straight from prerelease to stable with no RC, since the flip-back to `[rc,prerelease]` (which normally happens when the RC phase starts) never happened either
     - [ ] push the changes to the `main` branch
 - [ ] quarto-dev/quarto-web changes
   - wait for the downloads file to be automatically updated by the GitHub Action on https://github.com/quarto-dev/quarto-web
@@ -34,8 +37,7 @@
       - [ ] create `docs/prerelease/1.5/{_highlights, index}.qmd` files based on the ones from the previous release
       - [ ] change `docs/prerelease/_highlights-prerelease.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.5)
       - [ ] change `docs/prerelease/_highlights-release.qmd` so its include points to the new version-specific `_highlights.qmd` file (here, 1.4)
-    - [ ] add the stable version to the older downloads list by editing /docs/download/\_download-older.yml
-    - [ ] run `quarto run tools/release-notes.R` to generate the release notes and bump `version` in `_quarto.yml` (to released version) and `_quarto-prerelease-docs.yml` (to next prerelease)
+    - [ ] run `quarto run _tools/release-notes.R` to generate the release notes and bump `version` in `_quarto.yml` (to released version) and `_quarto-prerelease-docs.yml` (to next prerelease) — this also adds the stable version to `/docs/download/_download-older.yml` automatically, no separate manual edit needed
   - [ ] push the changes to `prerelease` branch, ensure they build correctly
   - [ ] Merge the `prerelease` branch into `main`, push to `main`
     - [ ] ensure the build completes successfully
@@ -45,15 +47,12 @@
   - [ ] Create new tag on `main` with stable release version number (here, `v1.4`) to mark when the new main site version went live
     - [ ] `git tag -a v1.4 -m "v1.4"`
     - [ ] `git push origin v1.4`
-  - [ ] Verify version numbers were updated by `tools/release-notes.R`
+  - [ ] Verify version numbers were updated by `_tools/release-notes.R`
     - [ ] `_quarto.yml` `version` should be the released version (e.g. `'1.4'`)
     - [ ] `_quarto-prerelease-docs.yml` `version` should be the next prerelease (e.g. `'1.5'`)
-  - [ ] publish the release blog post that should exist in https://github.com/quarto-dev/quarto-web/tree/main/docs/blog/posts
-    - [ ] Create a branch off of `main` (to trigger our PR automation to make the corresponding change to `prerelease`).
-    - [ ] Removing the `draft: true` line in the metadata
-    - [ ] Change the date to match the release date.
+  - [ ] publish the release announcement post — as of the June 2026 blog migration, this is no longer a quarto-web PR: the post goes on the Posit Open Source site (opensource.posit.co), not `quarto-web/docs/blog/posts` (that directory now just redirects there)
 
-- [ ] Update https://github.com/quarto-dev/quarto-cli/blob/main/CITATION.cff
+- [ ] Update https://github.com/quarto-dev/quarto-cli/blob/main/CITATION.cff (cherry-pick the commit already made on the `v1.x` branch at branch-cut time, above)
 - [ ] Packaging and package managers, etc
   - [ ] chocolatey (Only once quarto.org download page is updated with the new release)
     - https://github.com/quarto-dev/quarto-release-bundles/actions/workflows/build-and-publish-choco.yaml
@@ -77,8 +76,10 @@
           - Published to: <https://pypi.org/project/quarto-cli/>
       - Take a sip of tea ☕, bask in the glory of automation.
   - Others installers
-    - Cloudsmith: Automatically published by Build Installers workflow. No action needed.
-      - See [cloudsmith-publishing.md](cloudsmith-publishing.md) for manual republishing if needed.
+    - [ ] Cloudsmith: **not automatic here** — `create-release.yml` only publishes when run with `pre-release=false`, but this checklist cuts the first stable release by relabeling an existing prerelease build, so that never happens. Manually trigger [publish-cloudsmith.yml](https://github.com/quarto-dev/quarto-cli/actions/workflows/publish-cloudsmith.yml) with `version: v1.x.y` — dry-run first, then for real. See [cloudsmith-publishing.md](cloudsmith-publishing.md#first-stable-release-of-a-cycle). Not needed for later patch releases on the stable branch (those use `checklist-make-a-new-stable-quarto-release.md`, which dispatches with `pre-release=false` and does auto-publish).
+      - [ ] Dry run: `gh workflow run publish-cloudsmith.yml --repo quarto-dev/quarto-cli -f version=v1.x.y -f dry-run=true`
+      - [ ] Verify it succeeded: `gh run list --repo quarto-dev/quarto-cli --workflow publish-cloudsmith.yml --limit 1 --json databaseId,status,conclusion`
+      - [ ] Production: `gh workflow run publish-cloudsmith.yml --repo quarto-dev/quarto-cli -f version=v1.x.y -f dry-run=false`
     - conda-forge: An automated PR will be created to update the package version in the feedstock <github.com/conda-forge/quarto-feedstock>
       - This is community maintained, so no action is needed from us - except maybe helping if there are issues with the PR. We are assigned as reviewers to the PR.
     - Winget: An automated PR will be created by a winget bot in <github.com/microsoft/winget-pkgs/>.
