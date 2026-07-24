@@ -205,7 +205,11 @@ Each invocation runs these steps (`.github/workflows/actions/sign-files/action.y
    ```
    `--digalg`/`--sigalg` are pinned explicitly because DigiCert's docs say they otherwise default to "whatever the underlying signing tool supports" rather than a fixed value. `--timestamp=true` keeps the signature valid after cert expiry (RFC 3161-style); DigiCert's own timestamp authority is used, without an explicit `--tsa-url` pin — that flag only records the TSA URL in signature metadata, it doesn't select which server is used.
 
+   `smctl sign verify` shells out to `signtool verify /pa` internally (confirmed from live CI job logs, not just docs) — a verify failure surfaces as a `signtool` error, same as before the migration.
+
 Any single signing or verify failure fails the whole step.
+
+**On the dropped `/d` description flag:** checked the pre-migration MSI (built with `signtool /d "Quarto CLI"`) via `certutil -dump`, `signtool verify /v /pa`, and Explorer's Digital Signatures > Details > Additional Information dialog — none of them surfaced the description text even though the flag was set. Removing it during the migration has no observed user-facing effect, since the field wasn't visibly rendering when present either.
 
 ### Windows launcher
 
