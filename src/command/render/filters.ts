@@ -51,10 +51,13 @@ import {
   kResourcePath,
   kShortcodes,
   kTblColwidths,
+  kHighlightStyle,
+  kSyntaxHighlighting,
   kTocTitleDocument,
   kUnrollMarkdownCells,
   kUseRsvgConvert,
 } from "../../config/constants.ts";
+import { kDefaultHighlightStyle } from "./constants.ts";
 import { PandocOptions } from "./types.ts";
 import {
   Format,
@@ -945,11 +948,19 @@ async function resolveFilterExtension(
 }
 
 const extractTypstFilterParams = (format: Format) => {
+  const theme =
+    format.pandoc[kSyntaxHighlighting] ||
+    format.pandoc[kHighlightStyle] ||
+    kDefaultHighlightStyle;
+  const skylighting =
+    typeof theme === "string" && theme !== "none" && theme !== "idiomatic";
+
   return {
     [kTocIndent]: format.metadata[kTocIndent],
     [kLogo]: format.metadata[kLogo],
     [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
     [kBrandMode]: format.metadata[kBrandMode],
     [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
+    [kSyntaxHighlighting]: skylighting,
   };
 };

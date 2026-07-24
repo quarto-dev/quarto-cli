@@ -18,7 +18,7 @@ _quarto:
           - '^#show raw\.where\(block: true\): set par\(leading: 0\.75em\)$'
           # Quarto Skylighting override with inherited brand bg
           - 'let bgcolor = rgb\("#edf2f7"\)'
-          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, stroke: 0\.5pt \+ luma\(200\), blocks\)'
           # monospace-inline overrides weight to 700, inherits color, gets its own bg
           - '^#show raw\.where\(block: false\): set text\(weight: 700, size: 0\.85em, fill: rgb\("#2d3748"\), \)$'
           - '^#show raw\.where\(block: false\): content => highlight\(fill: rgb\("#fefcbf"\), content\)$'
