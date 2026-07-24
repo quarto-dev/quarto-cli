@@ -40,10 +40,10 @@
     - [ ] run `quarto run _tools/release-notes.R` to generate the release notes and bump `version` in `_quarto.yml` (to released version) and `_quarto-prerelease-docs.yml` (to next prerelease) — this also adds the stable version to `/docs/download/_download-older.yml` automatically, no separate manual edit needed
   - [ ] push the changes to `prerelease` branch, ensure they build correctly
   - [ ] Merge the `prerelease` branch into `main`, push to `main`
-    - [ ] before merging, run `git log --cherry-pick --right-only prerelease...main` to preview commits on `main` not yet in `prerelease` (direct pushes and failed auto-backport PRs both silently miss `prerelease`); cherry-pick any genuine fixes first — don't flag intentional cross-version divergence (e.g. a doc page that deliberately differs per version) as drift
-    - [ ] merging via a direct push (the default) doesn't trigger `port-to-prerelease.yml`, so no backport PR is created. Merging via a PR to `main` instead lets CI verify the build first — if you do, label the PR `no-sync-prerelease` so the backport action doesn't try to cherry-pick prerelease's whole history back onto itself (fails noisily otherwise)
-    - [ ] on a conflict in `docs/cli/cli-info.json`, take the `main`/stable side — the automated regeneration (`update-prerelease-reference.yml`) only targets `prerelease`'s dev version, never `main`'s stable release, so neither side of the merge conflict is actually correct without manual regeneration against the stable tag
-    - [ ] watch for freeze conflicts: a markdown-engine page (mermaid/`dot` diagrams, no computational cells) may carry a vestigial `_freeze` entry that should be deleted rather than regenerated — confirm the page's engine with `quarto inspect <file.qmd>`
+    - [ ] before merging, run `git log --cherry-pick --right-only prerelease...main` to catch drifted commits (direct pushes and failed auto-backport PRs both silently miss `prerelease`); cherry-pick genuine fixes, ignore intentional cross-version divergence
+    - [ ] a direct push (default) skips `port-to-prerelease.yml`. Merging via PR instead lets CI verify the build first — label it `no-sync-prerelease` so the backport action doesn't try to cherry-pick prerelease's history back onto itself
+    - [ ] on a conflict in `docs/cli/cli-info.json`, neither merge side is correct — regenerate it from a quarto build at the stable tag (the only automation, `update-prerelease-reference.yml`, produces the prerelease/dev version, not stable)
+    - [ ] watch for freeze conflicts — see quarto-web `.claude/rules/quarto-web-workflow.md`
     - [ ] ensure the build completes successfully
     - [ ] verify `_quarto.yml` `version` on `main` reflects the released version (e.g. `'1.4'`) — needed for `prerelease` shortcodes to resolve blog links and pre-release callouts
   - [ ] Merge `main` into `prerelease`, push to `prerelease`
