@@ -121,6 +121,9 @@ jobs:
           arch: amd64
           tarball-name: built-quarto-linux-amd64.tar.gz
           artifact-name: built-quarto-linux-amd64
+          # intra-run transport only: the smoke/playwright/ff-matrix legs of
+          # this run download it minutes later; nothing reads it afterward
+          retention-days: 1
 
   run-smokes-artifact:
     name: Smoke tests against built artifact
