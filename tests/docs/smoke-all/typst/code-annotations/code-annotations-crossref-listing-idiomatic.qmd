@@ -10,8 +10,8 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'quarto-code-annotation\('
-          - 'quarto-annotation-item\("annotated-cell'
+          - '#quarto-code-annotation\('
+          - '#quarto-annotation-item\("annotated-cell'
         - []
 ---
 

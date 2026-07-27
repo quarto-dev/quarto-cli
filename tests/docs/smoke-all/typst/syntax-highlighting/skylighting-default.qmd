@@ -15,7 +15,10 @@ _quarto:
           # Quarto override with proper block styling and arrow theme bgcolor
           - 'let bgcolor = rgb\("#f1f3f5"\)'
           - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
-        - ["```python"]
+        -
+          - "```python"
+          # Stroke was reverted for consistency with other formats
+          - 'stroke: 0\.5pt \+ luma\(200\)'
 ---
 
 Default Skylighting (no explicit theme, no brand). This tests the baseline

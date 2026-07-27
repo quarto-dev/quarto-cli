@@ -10,9 +10,9 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - "quarto-code-annotation"
-          - "cell-id:"
-          - "quarto-annotation-item"
+          # Call sites, not the helper definitions inlined from definitions.typ
+          - '#quarto-code-annotation\(\("1": 1, "3": 2\), cell-id: "annotated-cell-1"\)'
+          - '#quarto-annotation-item\("annotated-cell-1", 1'
         - []
 ---
 

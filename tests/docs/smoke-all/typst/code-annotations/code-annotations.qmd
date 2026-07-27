@@ -9,10 +9,10 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - "quarto-circled-number"
-          - "quarto-annotation-item"
-          - "cell-id:"
-          - "annotations:"
+          # Call sites, not the helper definitions inlined from definitions.typ
+          - 'Skylighting\(cell-id: "annotated-cell-1", annotations: \("1": 1, "3": 2\)'
+          - '#quarto-annotation-item\("annotated-cell-1", 1'
+          - '#quarto-annotation-item\("annotated-cell-1", 2'
         - []
 ---
 
