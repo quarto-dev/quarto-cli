@@ -33,6 +33,13 @@
   )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])
 }
 
+// Link to `target` only if that label exists in the document; otherwise
+// render `body` unlinked. Keeps annotation rendering resilient when the
+// counterpart (annotation item or code line) is missing.
+#let quarto-annote-link(target, body) = context {
+  if query(label(target)).len() > 0 { link(label(target), body) } else { body }
+}
+
 // Derive a contrasting annotation colour from a background fill.
 // Light backgrounds get dark circles; dark backgrounds get light circles.
 #let quarto-annote-color(bg) = {
@@ -78,9 +85,9 @@
         let lbl = cell-id + "-annote-" + str(annote-num)
         let is-first = first-lines.at(str(annote-num), default: none) == str(it.number)
         if is-first {
-          box(width: 100%)[#it #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: color)] #label(lbl + "-back")]
+          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color)] #label(lbl + "-back")]
         } else {
-          box(width: 100%)[#it #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: color)]]
+          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color)]]
         }
       } else {
         box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num, color: color)]
@@ -95,7 +102,7 @@
 #let quarto-annotation-item(cell-id, n, content) = {
   if cell-id != "" {
     [#block(above: 0.4em, below: 0.4em)[
-      #link(label(cell-id + "-annote-" + str(n) + "-back"))[#quarto-circled-number(n)]
+      #quarto-annote-link(cell-id + "-annote-" + str(n) + "-back")[#quarto-circled-number(n)]
       #h(0.4em)
       #content
     ] #label(cell-id + "-annote-" + str(n))]
