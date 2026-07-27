@@ -1,9 +1,10 @@
 ---
-title: Code Annotations (crossref listing)
+title: Code Annotations (crossref listing from executable cell)
 format:
   typst:
     keep-typ: true
     code-annotations: true
+engine: knitr
 _quarto:
   tests:
     typst:
@@ -15,10 +16,12 @@ _quarto:
           - 'quarto-code-annotations:'
 ---
 
-```{#lst-good .python lst-cap="A listing"}
-x = 1  # <1>
+```{r}
+#| lst-label: lst-hello
+#| lst-cap: "A listing"
+print("Hello") # <1>
 ```
 
-1. Assign x.
+1. Print a greeting.
 
-See @lst-good.
+See @lst-hello.

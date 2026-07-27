@@ -420,6 +420,33 @@ function code_annotations()
               outputBlock(resolvedBlock)
             end
 
+          elseif _quarto.format.isTypstOutput() and is_custom_node(block, "FloatRefTarget") then
+            -- Typst: a crossref float (e.g. lst-cap listing) wraps its code in a
+            -- nested Blocks list, so the standalone CodeBlock branch below never
+            -- sees it at this level and the following OL would stay unprocessed.
+            -- Process the float's code here and hold onto the float so the OL
+            -- handler can attach the marker and emit annotation items after it.
+            flushPending()
+            local processedAnnotation = false
+            local resolvedBlock = _quarto.ast.walk(block, {
+              CodeBlock = function(el)
+                local cellId = resolveCellId(el.attr.identifier)
+                local codeCell = processCodeCell(el, cellId)
+                if codeCell then
+                  processedAnnotation = true
+                  if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
+                    codeCell.attr.identifier = cellId;
+                  end
+                end
+                return codeCell
+              end
+            })
+            if processedAnnotation then
+              pendingCodeCell = resolvedBlock
+            else
+              outputBlock(resolvedBlock or block)
+            end
+
           elseif block.t == "Div" then
             local isDecoratedCodeBlock = is_custom_node(block, "DecoratedCodeBlock")
             if isDecoratedCodeBlock then
@@ -528,19 +555,37 @@ function code_annotations()
                 })
 
                 local dlDiv = pandoc.Div(annotationBlocks, pandoc.Attr("", {_quarto.modules.constants.kCellAnnotationClass}))
-                if is_custom_node(resolvedCell) then
+                if is_custom_node(resolvedCell, "FloatRefTarget") then
+                  -- Crossref float: put the marker inside the float (adjacent to
+                  -- the code) but emit the annotation items after the float so
+                  -- they don't land inside the captioned figure. The float's
+                  -- content slot may be a bare block rather than a Blocks list.
+                  local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
+                  if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
+                    local marker = typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingOffset)
+                    local floatContent = custom.content
+                    if floatContent ~= nil and floatContent.insert ~= nil then
+                      floatContent:insert(1, marker)
+                    else
+                      custom.content = pandoc.Blocks({ marker, floatContent })
+                    end
+                  end
+                  outputBlock(resolvedCell)
+                  outputBlock(dlDiv)
+                elseif is_custom_node(resolvedCell) then
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
                   if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
                     custom.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingOffset))
                   end
                   custom.content:insert(dlDiv)
+                  outputBlock(resolvedCell)
                 else
                   if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
                     resolvedCell.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingOffset))
                   end
                   resolvedCell.content:insert(dlDiv)
+                  outputBlock(resolvedCell)
                 end
-                outputBlock(resolvedCell)
               else
                 for _, ab in ipairs(annotationBlocks) do
                   outputBlock(ab)
