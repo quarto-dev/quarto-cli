@@ -207,7 +207,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
 
   // Annotation markers emitted by the Lua filter as Typst comments
   const annotationMarkerRe =
-    /\/\/ quarto-code-annotations: ([\w-]*) (\([^)]*\))\n(\s*(?:#block\[\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
+    /\/\/ quarto-code-annotations: (\S*) (\([^)]*\))\n(\s*(?:#block\[\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
 
   return async (output: string) => {
     let content = Deno.readTextFileSync(output).replace(/\r\n/g, "\n");
@@ -234,35 +234,39 @@ function skylightingPostProcessor(brandBgColor?: string) {
       // Add cell-id and annotations parameters to function signature
       fn = fn.replace(
         "start: 1, sourcelines)",
-        "start: 1, cell-id: \"\", annotations: (:), sourcelines)",
+        'start: 1, cell-id: "", annotations: (:), sourcelines)',
       );
 
-      // Move lnum increment outside if-number block (always track position)
+      // Move lnum increment outside if-number block and track a 1-based
+      // annotation position independent of `start` (annotation dict keys
+      // are always 1-based, whether or not Pandoc passes `start:`)
       fn = fn.replace(
         /if number \{\n\s+lnum = lnum \+ 1\n/,
-        "lnum = lnum + 1\n     if number {\n",
+        "lnum = lnum + 1\n     annote-pos = annote-pos + 1\n     if number {\n",
       );
 
-      // Initialise a dictionary to track which annotation numbers have
-      // already emitted a back-label (avoids duplicate labels when one
-      // annotation spans multiple lines).
+      // Initialise the annotation position counter and a dictionary to
+      // track which annotation numbers have already emitted a back-label
+      // (avoids duplicate labels when one annotation spans multiple lines).
       fn = fn.replace(
         /let lnum = start - 1\n/,
-        "let lnum = start - 1\n     let seen-annotes = (:)\n",
+        "let lnum = start - 1\n     let annote-pos = 0\n     let seen-annotes = (:)\n",
       );
 
-      // Add annotation rendering per line (derive circle colour from bgcolor)
+      // Add annotation rendering per line (derive circle colour from bgcolor).
+      // quarto-annote-link degrades to an unlinked circle when the annotation
+      // item label is missing (e.g. no trailing ordered list).
       fn = fn.replace(
         "blocks = blocks + ln + EndLine()",
-        `let annote-num = annotations.at(str(lnum), default: none)
+        `let annote-num = annotations.at(str(annote-pos), default: none)
      if annote-num != none {
        if cell-id != "" {
          let lbl = cell-id + "-annote-" + str(annote-num)
          if str(annote-num) not in seen-annotes {
            seen-annotes.insert(str(annote-num), true)
-           blocks = blocks + box(width: 100%)[#ln #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
+           blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
          } else {
-           blocks = blocks + box(width: 100%)[#ln #h(1fr) #link(label(lbl))[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))]] + EndLine()
+           blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))]] + EndLine()
          }
        } else {
          blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
@@ -282,10 +286,23 @@ function skylightingPostProcessor(brandBgColor?: string) {
     // optional #block[ wrappers and #quarto-code-filename(...)[ wrappers.
     const merged = content.replace(
       annotationMarkerRe,
-      "$3#Skylighting(cell-id: \"$1\", annotations: $2, ",
+      '$3#Skylighting(cell-id: "$1", annotations: $2, ',
     );
     if (merged !== content) {
       content = merged;
+      changed = true;
+    }
+
+    // Strip any markers that could not be merged (e.g. the code block was
+    // wrapped in output the merge regex does not recognise) so they don't
+    // leak into keep-typ output. Rendering degrades gracefully via
+    // quarto-annote-link.
+    const stripped = content.replace(
+      /^[^\S\n]*\/\/ quarto-code-annotations:[^\n]*\n/gm,
+      "",
+    );
+    if (stripped !== content) {
+      content = stripped;
       changed = true;
     }
 

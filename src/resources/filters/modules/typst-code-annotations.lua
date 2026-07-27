@@ -26,26 +26,34 @@ local function _main()
     return '(' .. table.concat(parts, ', ') .. ')'
   end
 
+  -- Annotation line numbers are collected display-based (shifted by the
+  -- startFrom attribute or the fenced-echo start line). Typst-side rendering
+  -- always counts source lines from 1, so shift keys back with the same
+  -- offset used at collection time.
+  local function adjustAnnotations(annotations, offset)
+    offset = offset or 1
+    local adjusted = {}
+    for annoteId, lineNumbers in pairs(annotations) do
+      local list = pandoc.List({})
+      for _, lineNo in ipairs(lineNumbers) do
+        list:insert(lineNo - offset + 1)
+      end
+      adjusted[annoteId] = list
+    end
+    return adjusted
+  end
+
   -- Skylighting mode: emit a Typst comment that the TS post-processor
   -- will merge into the Skylighting call site.
-  local function typstAnnotationMarker(annotations, cellId)
-    local dict = typstAnnotationsDict(annotations)
+  local function typstAnnotationMarker(annotations, cellId, offset)
+    local dict = typstAnnotationsDict(adjustAnnotations(annotations, offset))
     return pandoc.RawBlock("typst", "// quarto-code-annotations: " .. (cellId or "") .. " " .. dict)
   end
 
   -- Native/none mode: wrap a CodeBlock in #quarto-code-annotation(annotations)[...].
   -- raw.line numbers always start at 1 regardless of startFrom, so adjust keys.
-  local function wrapTypstAnnotatedCode(codeBlock, annotations, cellId)
-    local startFrom = tonumber(codeBlock.attr.attributes['startFrom']) or 1
-    local adjustedAnnotations = {}
-    for annoteId, lineNumbers in pairs(annotations) do
-      local adjusted = pandoc.List({})
-      for _, lineNo in ipairs(lineNumbers) do
-        adjusted:insert(lineNo - startFrom + 1)
-      end
-      adjustedAnnotations[annoteId] = adjusted
-    end
-    local dict = typstAnnotationsDict(adjustedAnnotations)
+  local function wrapTypstAnnotatedCode(codeBlock, annotations, cellId, offset)
+    local dict = typstAnnotationsDict(adjustAnnotations(annotations, offset))
     local lang = codeBlock.attr.classes[1] or ""
     local code = codeBlock.text
     local maxBackticks = 2

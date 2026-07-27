@@ -1,0 +1,21 @@
+---
+title: Code Annotations (startFrom without line numbers)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'annotations: \("1": 1\)'
+          - 'quarto-annotation-item\('
+        - []
+---
+
+```{.python startFrom="5"}
+x = 1  # <1>
+```
+
+1. Assign x.
