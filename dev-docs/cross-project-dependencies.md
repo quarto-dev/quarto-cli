@@ -65,6 +65,11 @@ format of editor-support commands is a cross-project change.
 3. For filters: confirm inline-list membership in `prepare-dist.ts`.
 4. Coordinate a companion PR in the consumer if the contract changes.
 
+Bumping the bundled Pandoc version counts as touching a shared surface:
+Pandoc Markdown-writer changes alter the visual-editor roundtrip output in
+`quarto-dev/quarto` and can break its snapshot tests. See the last item of
+[`update-pandoc-checklist.md`](update-pandoc-checklist.md).
+
 ## History
 
 - Removing `crossref-standalone.lua` and `quarto-pre/quarto-pre.lua`: verified

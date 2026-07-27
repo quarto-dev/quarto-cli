@@ -37,8 +37,14 @@ export async function runCmd(
   const code = output.code;
   info(`Status ${code}`);
   if (code !== 0) {
+    // Some tools (e.g. xcrun stapler) write their actual failure reason to
+    // stdout rather than stderr; without this, that reason is only visible
+    // at debug level and failures show an empty error message.
+    error(stdout);
     error(stderr);
-    throw Error(`Command ${[runCmd, ...args]} failed.`);
+    throw Error(
+      `Command ${[runCmd, ...args]} failed.\n${stdout}\n${stderr}`,
+    );
   }
 
   return {

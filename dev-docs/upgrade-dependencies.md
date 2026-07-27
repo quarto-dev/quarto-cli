@@ -2,6 +2,17 @@ Change version numbers in `./configuration` to correspond to new versions.
 
 Update hardcoded version strings in `src/command/check/check.ts` (`versionConstraints` array, ~line 249) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment.
 
+## Verify installer signing & notarization before merging (bundled binaries)
+
+Regular CI does **not** build, sign, or notarize the installers — that only happens in `create-release.yml`. A bundled binary bump (Deno, Pandoc, Dart Sass, Typst, esbuild, …) can change what the platform code-signing/notarization steps must cover, so a bump that passes normal CI can still break the macOS/Windows release build. **Before merging any PR that bumps a bundled binary**, dispatch the release workflow on the PR branch without publishing and confirm the installer jobs pass:
+
+```bash
+gh workflow run create-release.yml --repo quarto-dev/quarto-cli --ref <branch> -f publish-release=false
+# then watch make-installer-mac and make-installer-win in the resulting run
+```
+
+Why this bites (real incident, #14664): Dart Sass 1.101.0 changed its macOS AOT snapshot (`dart-sass/src/sass.snapshot`) container from ELF to Mach-O. Apple's notary ignores non-native files but requires every Mach-O signed, so the never-signed snapshot flipped notarization from Accepted to Invalid — invisible to normal CI, only caught at release time. When a bump does require a new signing entry, add it in `package/src/macos/installer.ts` / the Windows `sign-files` paths; see `llm-docs/code-signing-installers.md`.
+
 ## Upgrade deno
 
 ### Upgrade standard library
