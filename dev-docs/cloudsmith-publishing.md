@@ -6,7 +6,11 @@ Publishes Linux packages (DEBs and RPMs) to Cloudsmith's `posit/open` repository
 
 ## Automatic Publishing
 
-Called automatically by `create-release.yml` for stable releases (non-prereleases).
+Called automatically by `create-release.yml`, but only when it runs with `pre-release=false` — the `call-cloudsmith-publish` job's condition is `inputs.publish-release && !(inputs.pre-release == true)`.
+
+### First stable release of a cycle
+
+The first stable release of a new major.minor (per `checklist-make-a-new-quarto-release.md`) is cut by relabeling an existing prerelease build as "Latest" on GitHub, not by re-running `create-release.yml` with `pre-release=false`. That build's `call-cloudsmith-publish` job was skipped, so Cloudsmith never gets it automatically — manually publish it (see below). Later patch releases on the stable branch (`checklist-make-a-new-stable-quarto-release.md`) dispatch `create-release.yml` with `pre-release=false` directly, so those publish automatically as expected.
 
 ## Manual Publishing
 
