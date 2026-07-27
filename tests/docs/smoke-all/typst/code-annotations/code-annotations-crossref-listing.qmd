@@ -1,0 +1,24 @@
+---
+title: Code Annotations (crossref listing)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'Skylighting\(cell-id: "annotated-cell'
+          - 'quarto-annotation-item\("annotated-cell'
+        -
+          - 'quarto-code-annotations:'
+---
+
+```{#lst-good .python lst-cap="A listing"}
+x = 1  # <1>
+```
+
+1. Assign x.
+
+See @lst-good.

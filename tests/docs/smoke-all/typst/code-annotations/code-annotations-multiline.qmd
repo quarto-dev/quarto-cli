@@ -1,0 +1,26 @@
+---
+title: Code Annotations (one annotation spanning multiple lines)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Annotation 1 spans lines 1-2; back-label dedup must keep this compiling
+          - 'Skylighting\(cell-id: "annotated-cell-1", annotations: \("1": 1, "2": 1, "3": 2\)'
+          - '#quarto-annotation-item\("annotated-cell-1", 1'
+          - '#quarto-annotation-item\("annotated-cell-1", 2'
+        - []
+---
+
+```{.python}
+x = 1  # <1>
+y = 2  # <1>
+z = 3  # <2>
+```
+
+1. Assign.
+2. Last.

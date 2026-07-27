@@ -1,0 +1,24 @@
+---
+title: Code Annotations (None)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: none
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - []
+        -
+          - '#quarto-annotation-item\('
+          - 'annotations: \("'
+---
+
+```python
+x = 1  # <1>
+y = 2
+z = x + y  # <2>
+```
+
+1. Assign x.
+2. Compute sum.

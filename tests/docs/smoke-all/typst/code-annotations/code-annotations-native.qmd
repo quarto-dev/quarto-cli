@@ -1,0 +1,26 @@
+---
+title: Code Annotations (Native)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+    syntax-highlighting: idiomatic
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Call sites, not the helper definitions inlined from definitions.typ
+          - '#quarto-code-annotation\(\("1": 1, "3": 2\), cell-id: "annotated-cell-1"\)'
+          - '#quarto-annotation-item\("annotated-cell-1", 1'
+        - []
+---
+
+```python
+x = 1  # <1>
+y = 2
+z = x + y  # <2>
+```
+
+1. Assign x.
+2. Compute sum.
