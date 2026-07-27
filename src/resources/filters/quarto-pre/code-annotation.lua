@@ -316,13 +316,21 @@ function code_annotations()
         local pendingAnnotations = nil
         local pendingCellId = nil
         local pendingCodeCell = nil
+        -- Collected annotation keys are display-based. Two different shifts
+        -- apply when converting them back to physical source lines for Typst:
+        -- pendingOffset (startFrom or the fenced-echo start line) for code
+        -- re-emitted from the pre-time text (native wrap path, no fence line),
+        -- and pendingStartFrom alone for the Skylighting path, whose output
+        -- still contains the injected fenced-echo line.
         local pendingOffset = nil
+        local pendingStartFrom = nil
 
         local clearPending = function()
           pendingAnnotations = nil
           pendingCellId = nil
           pendingCodeCell = nil
           pendingOffset = nil
+          pendingStartFrom = nil
         end
    
         local outputBlock = function(block)
@@ -372,6 +380,7 @@ function code_annotations()
             pendingAnnotations = annotations
             pendingCellId = identifier
             pendingOffset = annotationOffset or 1
+            pendingStartFrom = tonumber(el.attr.attributes['startFrom']) or 1
             
             -- decorate the cell and return it
             if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
@@ -473,7 +482,7 @@ function code_annotations()
                       and pendingAnnotations and next(pendingAnnotations) ~= nil then
                     if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
                       block.content[1].content[1] = codeCell
-                      block.content[1].content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingOffset))
+                      block.content[1].content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                     else
                       block.content[1].content[1] = typstAnnotations.wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId, pendingOffset)
                     end
@@ -511,7 +520,7 @@ function code_annotations()
                     and codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone
                     and pendingAnnotations and next(pendingAnnotations) ~= nil then
                   if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
-                    outputBlock(typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingOffset))
+                    outputBlock(typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                     outputBlock(codeCell)
                   else
                     outputBlock(typstAnnotations.wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId, pendingOffset))
@@ -562,7 +571,7 @@ function code_annotations()
                   -- content slot may be a bare block rather than a Blocks list.
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
                   if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
-                    local marker = typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingOffset)
+                    local marker = typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom)
                     local floatContent = custom.content
                     if floatContent ~= nil and floatContent.insert ~= nil then
                       floatContent:insert(1, marker)
@@ -575,13 +584,13 @@ function code_annotations()
                 elseif is_custom_node(resolvedCell) then
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
                   if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
-                    custom.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingOffset))
+                    custom.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                   end
                   custom.content:insert(dlDiv)
                   outputBlock(resolvedCell)
                 else
                   if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
-                    resolvedCell.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingOffset))
+                    resolvedCell.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                   end
                   resolvedCell.content:insert(dlDiv)
                   outputBlock(resolvedCell)
