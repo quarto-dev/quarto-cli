@@ -25,6 +25,7 @@ import {
   kFigResponsive,
   kFormatIdentifier,
   kHeaderIncludes,
+  kHighlightStyle,
   kHtmlMathMethod,
   kHtmlPreTagProcessing,
   kHtmlTableProcessing,
@@ -50,9 +51,8 @@ import {
   kRemoveHidden,
   kResourcePath,
   kShortcodes,
-  kTblColwidths,
-  kHighlightStyle,
   kSyntaxHighlighting,
+  kTblColwidths,
   kTocTitleDocument,
   kUnrollMarkdownCells,
   kUseRsvgConvert,
@@ -948,12 +948,12 @@ async function resolveFilterExtension(
 }
 
 const extractTypstFilterParams = (format: Format) => {
-  const theme =
-    format.pandoc[kSyntaxHighlighting] ||
+  const theme = format.pandoc[kSyntaxHighlighting] ||
     format.pandoc[kHighlightStyle] ||
     kDefaultHighlightStyle;
-  const skylighting =
-    typeof theme === "string" && theme !== "none" && theme !== "idiomatic";
+  // Object themes (light/dark) resolve to a single .theme file for Typst
+  // (resolveTextHighlightStyle), so Skylighting is active for them too.
+  const skylighting = theme !== "none" && theme !== "idiomatic";
 
   return {
     [kTocIndent]: format.metadata[kTocIndent],
