@@ -115,10 +115,9 @@
   }
 }
 
-// Style native raw code blocks with default inset, radius, and stroke
+// Style native raw code blocks with default inset and radius
 #show raw.where(block: true): it => block(
-  fill: luma(230), width: 100%, inset: 8pt, radius: 2pt,
-  stroke: 0.5pt + luma(200), it,
+  fill: luma(230), width: 100%, inset: 8pt, radius: 2pt, it,
 )
 
 #let block_with_new_content(old_block, new_content) = {
