@@ -1,0 +1,22 @@
+---
+title: Code Annotations (code containing backtick runs)
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: idiomatic
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Fence must grow beyond the longest backtick run in the code
+          - '#quarto-code-annotation\(\("1": 1\), cell-id: "annotated-cell-1"\)\[```````python'
+        - []
+---
+
+```{.python}
+s = "``````"  # <1>
+```
+
+1. Backticks in string.

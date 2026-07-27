@@ -1,0 +1,23 @@
+---
+title: Code Annotations (fenced echo, idiomatic)
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: idiomatic
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Wrapped raw content has no fence line, so the key stays 1
+          - '#quarto-code-annotation\(\("1": 1\), cell-id: "annotated-cell-1"\)'
+          - '#quarto-annotation-item\("annotated-cell-1"'
+        - []
+---
+
+```{{r}}
+x <- 1 # <1>
+```
+
+1. Assign x.
