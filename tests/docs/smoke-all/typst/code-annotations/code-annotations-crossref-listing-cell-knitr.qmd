@@ -1,0 +1,27 @@
+---
+title: Code Annotations (crossref listing from executable cell)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+engine: knitr
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'Skylighting\(cell-id: "annotated-cell'
+          - 'quarto-annotation-item\("annotated-cell'
+        -
+          - 'quarto-code-annotations:'
+---
+
+```{r}
+#| lst-label: lst-hello
+#| lst-cap: "A listing"
+print("Hello") # <1>
+```
+
+1. Print a greeting.
+
+See @lst-hello.

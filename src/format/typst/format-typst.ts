@@ -205,9 +205,11 @@ function skylightingPostProcessor(brandBgColor?: string) {
   const skylightingFnRe =
     /(#let Skylighting\(fill: none, number: false, start: 1, sourcelines\) = \{[\s\S]*?\n\})/;
 
-  // Annotation markers emitted by the Lua filter as Typst comments
+  // Annotation markers emitted by the Lua filter as Typst comments.
+  // Between the marker and the Skylighting call there may be #block[ (cell
+  // divs), #figure([ (crossref floats), and #quarto-code-filename( wrappers.
   const annotationMarkerRe =
-    /\/\/ quarto-code-annotations: (\S*) (\([^)]*\))\n(\s*(?:#block\[\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
+    /\/\/ quarto-code-annotations: (\S*) (\([^)]*\))\n(\s*(?:(?:#block\[|#figure\(\[)\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
 
   return async (output: string) => {
     let content = Deno.readTextFileSync(output).replace(/\r\n/g, "\n");

@@ -10,6 +10,7 @@ _quarto:
       ensureTypstFileRegexMatches:
         -
           - 'Skylighting\(cell-id: "annotated-cell'
+          - 'quarto-annotation-item\("annotated-cell'
         -
           - 'quarto-code-annotations:'
 ---
