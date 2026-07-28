@@ -40,7 +40,10 @@
 - name: cache-globals
   tags:
     engine: knitr
-  schema: string
+  schema:
+    anyOf:
+      - maybeArrayOf: string
+      - boolean
   description:
     short: "Variables names that are not created from the current chunk"
     long: |
