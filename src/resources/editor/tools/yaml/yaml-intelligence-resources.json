@@ -91,7 +91,14 @@
       "tags": {
         "engine": "knitr"
       },
-      "schema": "string",
+      "schema": {
+        "anyOf": [
+          {
+            "maybeArrayOf": "string"
+          },
+          "boolean"
+        ]
+      },
       "description": {
         "short": "Variables names that are not created from the current chunk",
         "long": "Variables names that are not created from the current chunk.\n\nThis option is mainly for `autodep: true` to work more precisely---a chunk\n`B` depends on chunk `A` when any of `B`'s global variables are `A`'s local \nvariables. In case the automatic detection of global variables in a chunk \nfails, you may manually specify the names of global variables via this option.\nIn addition, `cache-globals: false` means detecting all variables in a code\nchunk, no matter if they are global or local variables.\n"
@@ -18348,12 +18355,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 223022,
+    "_internalId": 223031,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 223014,
+        "_internalId": 223023,
         "type": "enum",
         "enum": [
           "png",
@@ -18369,7 +18376,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 223021,
+        "_internalId": 223030,
         "type": "anyOf",
         "anyOf": [
           {
