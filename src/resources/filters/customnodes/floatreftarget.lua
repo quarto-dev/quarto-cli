@@ -457,9 +457,40 @@ end, function(float)
               "triggered this error.")
               return {}
             end
-            -- Strip Pandoc 3.8+ LTcaptype definition since we're adding our own caption
-            -- Keep the { } wrapper (harmless) to avoid orphan braces
-            longtable_preamble = longtable_preamble:gsub("\\def\\LTcaptype{none}[^\n]*\n?", "")
+            -- Pandoc 3.8.1+ wraps captionless tables in a brace group whose only
+            -- purpose is to scope `\def\LTcaptype{none}` (so that the table counter
+            -- isn't incremented). We add our own \caption here, so the definition has
+            -- to go - and once it's gone, the group has no purpose left. It isn't inert:
+            -- it breaks packages that move the longtable environment out of the text
+            -- flow, notably endfloat's \DeclareDelayedFloatFlavor*{longtable}{table}
+            -- (see https://github.com/quarto-dev/quarto-cli/issues/14741), so we drop
+            -- the braces along with the definition.
+            --
+            -- We only do that when the braces are provably Pandoc's own wrapper and
+            -- nothing else:
+            --   * the preamble is the opening brace and the definition, and nothing
+            --     more - anything else in the group (say a `\setlength`) is scoped by
+            --     it and would leak if we removed the brace;
+            --   * the postamble is the closing brace, and nothing more;
+            --   * this raw block holds a single longtable - the pattern above spans
+            --     from the first \begin{longtable} to the last \end{longtable}, so
+            --     with two of them the two braces belong to different groups and
+            --     removing both leaves the output unbalanced.
+            -- Otherwise we fall back to dropping the definition alone, which is what
+            -- Quarto has always done.
+            local preamble_without_group, opened = longtable_preamble:gsub(
+              "^(%s*){%s*\\def\\LTcaptype{none}[^\n]*\n(%s*)$", "%1%2")
+            local postamble_without_group, closed = longtable_postamble:gsub(
+              "^(%s*)}(%s*)$", "%1%2")
+            local single_longtable =
+              longtable_content:find("\\begin{longtable}", 1, true) == nil
+            if opened > 0 and closed > 0 and single_longtable then
+              longtable_preamble = preamble_without_group
+              longtable_postamble = postamble_without_group
+            else
+              longtable_preamble =
+                longtable_preamble:gsub("\\def\\LTcaptype{none}[^\n]*\n?", "")
+            end
             -- split the content into params and actual content
             -- params are everything in the first line of longtable_content
             -- actual content is everything else
