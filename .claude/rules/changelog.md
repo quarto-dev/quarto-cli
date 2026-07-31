@@ -107,7 +107,9 @@ The stable changelog has a dual top-level structure that does NOT exist on main:
 
 **Backport entries always go under `# v{next} backports > ## In this release`.** Never under `## Regression fixes` of the `# v{this} changes` section — that section is frozen and tracks the original v1.x release.
 
-**Lifecycle:** When the next v1.x.y patch ships, entries under `## In this release` get demoted to `## In previous releases` as part of release prep. Don't pre-empt this — leave them under `In this release` until release time.
+**Where the scaffold comes from:** the `# v{next} backports` heading (with empty `## In this release` / `## In previous releases`) and the `# v{this} changes` wrapper are seeded when the stable branch is cut — see the branch-creation step in `dev-docs/checklist-make-a-new-quarto-release.md`. If a stable branch is missing the `# v{next} backports` heading, it was cut without it: add the scaffold before filing the entry, rather than falling back to `## Regression fixes`.
+
+**Lifecycle:** When the next v1.x.y patch ships, entries under `## In this release` get demoted to `## In previous releases` as part of release prep (the changelog step in `dev-docs/checklist-make-a-new-stable-quarto-release.md`). Don't pre-empt this — leave them under `In this release` until release time.
 
 ### Workflow
 
