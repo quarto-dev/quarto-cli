@@ -8,6 +8,7 @@
   - `git checkout -b v1.4`
   - `git push origin v1.4`
   - [ ] on this new branch, set `CITATION.cff` `version` (quote it — e.g. `"1.4"`; unquoted `1.10`-style values parse as a YAML float and lose the trailing zero) and `date-released` (today), then commit and push. Set once per branch here; the `CITATION.cff` step on `main` below is a cherry-pick of this commit, not a re-edit.
+  - [ ] on this new branch, seed the backports scaffold in `news/changelog-1.x.md`: wrap the existing body under a `# v1.x changes` heading and prepend a `# v1.(x+1) backports` heading holding empty `## In this release` and `## In previous releases` subsections (e.g. cutting `v1.4` with `main` moving to `1.5`, prepend `# v1.5 backports`). Commit and push. Backported PRs land under `## In this release` (`checklist-backport-a-pr.md`); the monthly patch release demotes them to `## In previous releases` (`checklist-make-a-new-stable-quarto-release.md`). Without this scaffold later backports have nowhere correct to go and get mis-filed under the frozen `## Regression fixes`.
 - [ ] mark the current release as the new release in the `main` branch
   - [ ] switch your repo back to `main`: `git checkout main`
   - [ ] edit the QUARTO_VERSION line in `/configuration` to the new version (e.g. `1.5`)
