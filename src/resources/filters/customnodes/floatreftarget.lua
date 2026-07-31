@@ -457,27 +457,14 @@ end, function(float)
               "triggered this error.")
               return {}
             end
-            -- Pandoc 3.8.1+ wraps captionless tables in a brace group whose only
-            -- purpose is to scope `\def\LTcaptype{none}` (so that the table counter
-            -- isn't incremented). We add our own \caption here, so the definition has
-            -- to go - and once it's gone, the group has no purpose left. It isn't inert:
-            -- it breaks packages that move the longtable environment out of the text
-            -- flow, notably endfloat's \DeclareDelayedFloatFlavor*{longtable}{table}
-            -- (see https://github.com/quarto-dev/quarto-cli/issues/14741), so we drop
-            -- the braces along with the definition.
-            --
-            -- We only do that when the braces are provably Pandoc's own wrapper and
-            -- nothing else:
-            --   * the preamble is the opening brace and the definition, and nothing
-            --     more - anything else in the group (say a `\setlength`) is scoped by
-            --     it and would leak if we removed the brace;
-            --   * the postamble is the closing brace, and nothing more;
-            --   * this raw block holds a single longtable - the pattern above spans
-            --     from the first \begin{longtable} to the last \end{longtable}, so
-            --     with two of them the two braces belong to different groups and
-            --     removing both leaves the output unbalanced.
-            -- Otherwise we fall back to dropping the definition alone, which is what
-            -- Quarto has always done.
+            -- Pandoc 3.8.1+ wraps a captionless table in a brace group that only
+            -- scopes `\def\LTcaptype{none}`. We supply our own \caption and drop that
+            -- definition, so the group is now pointless - and not inert: it breaks
+            -- packages that move the environment out of the text flow (endfloat's
+            -- \DeclareDelayedFloatFlavor*{longtable}{table}, #14741). Drop the braces
+            -- with the definition, but only when provably Pandoc's own wrapper:
+            -- preamble is just the brace + def, postamble is just the brace, and the
+            -- block holds a single longtable. Otherwise strip the definition alone.
             local preamble_without_group, opened = longtable_preamble:gsub(
               "^(%s*){%s*\\def\\LTcaptype{none}[^\n]*\n(%s*)$", "%1%2")
             local postamble_without_group, closed = longtable_postamble:gsub(
