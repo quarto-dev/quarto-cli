@@ -1,0 +1,32 @@
+---
+title: "mermaid config front matter and ojs"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["pre.mermaid.mermaid-js", "div[id^=\"ojs-cell-\"]"]
+        - []
+---
+
+A `mermaid` cell can carry Mermaid's own `---` front matter to set diagram
+options such as `config`. That source is emitted verbatim into the intermediate
+markdown, where its closing `---` used to be read as the start of a YAML front
+matter block. Everything after it, including the `ojs` cell below, was swallowed
+into that never-terminated block, so no OJS cell was ever compiled and the cell
+rendered as plain code instead.
+
+```{mermaid}
+---
+config:
+    look: handDrawn
+---
+graph LR
+    A --> B
+```
+
+```{ojs}
+//| echo: true
+x = 2
+x ** 5
+```
