@@ -37,7 +37,7 @@ import {
 import { Element } from "../deno-dom.ts";
 import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
 import { readYamlFromString } from "../yaml.ts";
-import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
+import { pandocCode, pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 import { LocalizedError } from "../lib/located-error.ts";
 import { info, warning } from "../../deno_ral/log.ts";
 import { FormatDependency } from "../../config/types.ts";
@@ -402,13 +402,6 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
     // deno-lint-ignore require-await
     const makeJs = async () => {
       setupMermaidJsRuntime();
-      // removed until we use mermaid 10.0.0
-      //
-      // const { baseName: tooltipName } = handlerContext
-      //   .uniqueFigureName(
-      //     "mermaid-tooltip-",
-      //     "",
-      //   );
       const preAttrs = [];
       if (options.label) {
         preAttrs.push(`label="${options.label}"`);
@@ -426,16 +419,19 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         attrs.reveal = true;
       }
 
+      // the diagram source is user text emitted verbatim, and can contain lines
+      // that breakQuartoMd would read as yaml front matter delimiters (mermaid's
+      // own `---` config block, see https://github.com/quarto-dev/quarto-cli/issues/14765).
+      // a raw html block keeps the markdown splitter from looking inside it.
+      const rawHtmlBlock = pandocCode({
+        language: "=html",
+        contents: [preEl],
+      });
+
       return this.build(
         handlerContext,
         cell,
-        mappedConcat([
-          preEl.mappedString(),
-          // tooltips appear to be broken in mermaid 9.2.2?
-          // They don't even work on their website: https://mermaid-js.github.io/mermaid/#/flowchart
-          // we drop them for now.
-          // `\n<div id="${tooltipName}" class="mermaidTooltip"></div>`,
-        ]),
+        rawHtmlBlock.mappedString(),
         options,
         attrs,
         new Set([kMermaidFormat]),
