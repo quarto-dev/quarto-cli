@@ -1,5 +1,11 @@
 All changes included in 1.11:
 
+## Formats
+
+### `html`
+
+- ([#14774](https://github.com/quarto-dev/quarto-cli/issues/14774)): Fix missing keyboard focus indicator on the code tools button and on a website's sidebar toggle and sidebar search buttons.
+
 ## Engines
 
 ### `knitr`

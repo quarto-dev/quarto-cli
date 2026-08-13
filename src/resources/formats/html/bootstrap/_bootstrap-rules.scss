@@ -1038,6 +1038,16 @@ td code:not(.sourceCode) {
   padding: 0.7rem;
 }
 
+// These buttons are bare .btn elements (no btn-* variant class), so
+// Bootstrap's .btn:focus-visible leaves them with no focus indicator.
+// Restore the browser's ring; unlike box-shadow it survives forced colors.
+// See https://github.com/quarto-dev/quarto-cli/issues/14774
+.quarto-secondary-nav .quarto-btn-toggle:focus-visible,
+.quarto-secondary-nav .quarto-search-button:focus-visible,
+.code-tools-button:focus-visible {
+  outline: revert;
+}
+
 .code-tools-button {
   font-size: 1rem;
   padding: 0.15rem 0.15rem;
