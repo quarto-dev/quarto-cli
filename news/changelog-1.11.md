@@ -1,5 +1,9 @@
 All changes included in 1.11:
 
+## Projects
+
+- Add support for `!exec` in `metadata-file`/`metadata-files` entries: instead of a path, run a command and merge its stdout (parsed as YAML) into the project/document metadata, e.g. `metadata-files: [!exec ./include-chapters.py --lang en]`.
+
 ## Engines
 
 ### `knitr`

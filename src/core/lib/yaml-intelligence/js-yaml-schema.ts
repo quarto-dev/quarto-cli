@@ -42,5 +42,16 @@ export const QuartoJSONSchema = new Schema({
         };
       },
     }),
+    new Type("!exec", {
+      kind: "scalar",
+      // deno-lint-ignore no-explicit-any
+      construct(data: any): Record<string, unknown> {
+        const result: string = data !== null ? data : "";
+        return {
+          value: result,
+          tag: "!exec",
+        };
+      },
+    }),
   ],
 });

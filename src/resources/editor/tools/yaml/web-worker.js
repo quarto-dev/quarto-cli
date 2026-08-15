@@ -16108,7 +16108,7 @@ try {
             hidden: true,
             description: {
               short: "Include file with YAML metadata",
-              long: "Read metadata from the supplied YAML (or JSON) file. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nMetadata values specified inside the document, or by using `-M`,\noverwrite values specified with this option.\n"
+              long: "Read metadata from the supplied YAML (or JSON) file. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nMetadata values specified inside the document, or by using `-M`,\noverwrite values specified with this option.\n\nInstead of a file path, `!exec <command>` may be used to run a\ncommand and parse its standard output as YAML metadata, e.g.\n`metadata-file: !exec ./include-chapters.py --lang en`. The\ncommand is run with the project (or document) directory as its\nworking directory.\n"
             }
           },
           {
@@ -16118,7 +16118,7 @@ try {
             },
             description: {
               short: "Include files with YAML metadata",
-              long: "Read metadata from the supplied YAML (or JSON) files. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nValues in files specified later in the list will be preferred\nover those specified earlier. Metadata values specified inside\nthe document, or by using `-M`, overwrite values specified with\nthis option.\n"
+              long: "Read metadata from the supplied YAML (or JSON) files. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nValues in files specified later in the list will be preferred\nover those specified earlier. Metadata values specified inside\nthe document, or by using `-M`, overwrite values specified with\nthis option.\n\nInstead of a file path, any entry may use `!exec <command>` to\nrun a command and parse its standard output as YAML metadata,\ne.g.:\n\n```yaml\nmetadata-files:\n  - !exec ./include-chapters.py --type technical --lang en\n```\n\nThe command is run with the project (or document) directory as\nits working directory, and its exit code must be `0` for the\nrender to proceed.\n"
             }
           }
         ],
@@ -23777,11 +23777,11 @@ try {
           "The header for man pages.",
           {
             short: "Include file with YAML metadata",
-            long: "Read metadata from the supplied YAML (or JSON) file. This option can\nbe used with every input format, but string scalars in the YAML file\nwill always be parsed as Markdown. Generally, the input will be handled\nthe same as in YAML metadata blocks. Metadata values specified inside\nthe document, or by using <code>-M</code>, overwrite values specified\nwith this option."
+            long: "Read metadata from the supplied YAML (or JSON) file. This option can\nbe used with every input format, but string scalars in the YAML file\nwill always be parsed as Markdown. Generally, the input will be handled\nthe same as in YAML metadata blocks. Metadata values specified inside\nthe document, or by using <code>-M</code>, overwrite values specified\nwith this option.\nInstead of a file path, <code>!exec &lt;command&gt;</code> may be\nused to run a command and parse its standard output as YAML metadata,\ne.g. <code>metadata-file: !exec ./include-chapters.py --lang en</code>.\nThe command is run with the project (or document) directory as its\nworking directory."
           },
           {
             short: "Include files with YAML metadata",
-            long: "Read metadata from the supplied YAML (or JSON) files. This option can\nbe used with every input format, but string scalars in the YAML file\nwill always be parsed as Markdown. Generally, the input will be handled\nthe same as in YAML metadata blocks. Values in files specified later in\nthe list will be preferred over those specified earlier. Metadata values\nspecified inside the document, or by using <code>-M</code>, overwrite\nvalues specified with this option."
+            long: "Read metadata from the supplied YAML (or JSON) files. This option can\nbe used with every input format, but string scalars in the YAML file\nwill always be parsed as Markdown. Generally, the input will be handled\nthe same as in YAML metadata blocks. Values in files specified later in\nthe list will be preferred over those specified earlier. Metadata values\nspecified inside the document, or by using <code>-M</code>, overwrite\nvalues specified with this option.\nInstead of a file path, any entry may use\n<code>!exec &lt;command&gt;</code> to run a command and parse its\nstandard output as YAML metadata, e.g.:"
           },
           {
             short: "Identifies the main language of the document (e.g.&nbsp;<code>en</code> or\n<code>en-GB</code>).",
@@ -25388,12 +25388,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 223031,
+          _internalId: 223751,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 223023,
+              _internalId: 223743,
               type: "enum",
               enum: [
                 "png",
@@ -25409,7 +25409,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 223030,
+              _internalId: 223750,
               type: "anyOf",
               anyOf: [
                 {
@@ -29047,6 +29047,17 @@ ${heading}`;
             tag: "!expr"
           };
         }
+      }),
+      new Type("!exec", {
+        kind: "scalar",
+        // deno-lint-ignore no-explicit-any
+        construct(data) {
+          const result = data !== null ? data : "";
+          return {
+            value: result,
+            tag: "!exec"
+          };
+        }
       })
     ]
   });
@@ -31385,6 +31396,7 @@ ${heading}`;
   // ../yaml-validation/errors.ts
   function setDefaultErrorHandlers(validator) {
     validator.addHandler(ignoreExprViolations);
+    validator.addHandler(ignoreExecViolations);
     validator.addHandler(expandEmptySpan);
     validator.addHandler(improveErrorHeadingForValueErrors);
     validator.addHandler(checkForTypeMismatch);
@@ -31509,6 +31521,17 @@ ${heading}`;
       return error;
     }
     if (result.tag === "!expr" && typeof result.value === "string") {
+      return null;
+    } else {
+      return error;
+    }
+  }
+  function ignoreExecViolations(error, _parse, _schema) {
+    const { result } = error.violatingObject;
+    if (typeof result !== "object" || Array.isArray(result) || result === null || error.schemaPath.slice(-1)[0] !== "type") {
+      return error;
+    }
+    if (result.tag === "!exec" && typeof result.value === "string") {
       return null;
     } else {
       return error;

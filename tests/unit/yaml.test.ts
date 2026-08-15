@@ -80,3 +80,24 @@ yamlValidationUnitTest("annotated-yaml-expr-tag-should-pass", async () => {
   assert(yml["fig-cap"].tag === "!expr");
   assert(yml["fig-cap"].value === 'paste("Air Quality")');
 });
+
+const execYml = `metadata-files:
+  - !exec ./include_chapters.py --type product --lang en`;
+
+// deno-lint-ignore require-await
+unitTest("yaml-exec-tag-should-pass", async () => {
+  // deno-lint-ignore no-explicit-any
+  const yml = readYamlFromString(execYml) as any;
+  const entry = yml["metadata-files"][0];
+  assert(entry.tag === "!exec");
+  assert(entry.value === "./include_chapters.py --type product --lang en");
+});
+
+// deno-lint-ignore require-await
+yamlValidationUnitTest("annotated-yaml-exec-tag-should-pass", async () => {
+  // deno-lint-ignore no-explicit-any
+  const yml = readAnnotatedYamlFromString(execYml).result as any;
+  const entry = yml["metadata-files"][0];
+  assert(entry.tag === "!exec");
+  assert(entry.value === "./include_chapters.py --type product --lang en");
+});

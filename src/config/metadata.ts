@@ -10,9 +10,16 @@ import { existsSync } from "../deno_ral/fs.ts";
 import { join } from "../deno_ral/path.ts";
 import { error } from "../deno_ral/log.ts";
 
-import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
+import {
+  readAndValidateYamlFromFile,
+  readAndValidateYamlFromString,
+} from "../core/schema/validated-yaml.ts";
 import { mergeArrayCustomizer } from "../core/config.ts";
 import { Schema } from "../core/lib/yaml-schema/types.ts";
+import { execProcess } from "../core/process.ts";
+import { handlerForScript } from "../core/run/run.ts";
+import { RunHandlerOptions } from "../core/run/types.ts";
+import { parseShellRunCommand } from "../core/run/shell.ts";
 
 import {
   kCodeLinks,
@@ -48,47 +55,163 @@ import { Format, Metadata } from "./types.ts";
 import { kGfmCommonmarkVariant } from "../format/markdown/format-markdown-consts.ts";
 import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
 
+// A `metadata-files`/`metadata-file` entry is either a plain path string, or
+// a custom-tagged value (e.g. `!exec foo`). We normalize both shapes to a
+// uniform `{ tag, value }` pair, mirroring the `{ tag, value }` shape that
+// the js-yaml schema constructs for any custom tag (see core/yaml.ts's
+// QuartoJSONSchema). Plain paths get the sentinel tag `kMetadataFilePathTag`
+// so callers can dispatch on `spec.tag` alone.
+const kMetadataFilePathTag = "path";
+
+interface MetadataFileSpec {
+  tag: string;
+  value: string;
+}
+
+// Detects any custom YAML tag value (e.g. `!exec foo`, `!expr foo`), which
+// the js-yaml schema always constructs as `{ tag, value }` (see
+// core/yaml.ts's QuartoJSONSchema).
+function isTagged(
+  value: unknown,
+): value is { tag: string; value: string } {
+  return typeof value === "object" && value !== null &&
+    typeof (value as Record<string, unknown>).tag === "string" &&
+    typeof (value as Record<string, unknown>).value === "string";
+}
+
+function metadataFileSpec(dir: string, entry: unknown): MetadataFileSpec {
+  if (isTagged(entry)) {
+    return { tag: entry.tag, value: entry.value };
+  } else {
+    return { tag: kMetadataFilePathTag, value: join(dir, entry as string) };
+  }
+}
+
 export async function includedMetadata(
   dir: string,
   baseMetadata: Metadata,
   schema: Schema,
 ): Promise<{ metadata: Metadata; files: string[] }> {
-  // Read any metadata files that are defined in the metadata itself
-  const yamlFiles: string[] = [];
+  // Read any metadata files (or !exec commands) that are defined in the
+  // metadata itself
+  const specs: MetadataFileSpec[] = [];
   const metadataFile = baseMetadata[kMetadataFile];
   if (metadataFile) {
-    yamlFiles.push(join(dir, metadataFile as string));
+    specs.push(metadataFileSpec(dir, metadataFile));
   }
 
   const metadataFiles = baseMetadata[kMetadataFiles];
   if (metadataFiles && Array.isArray(metadataFiles)) {
-    metadataFiles.forEach((file) => yamlFiles.push(join(dir, file)));
+    metadataFiles.forEach((metadataFile) =>
+      specs.push(metadataFileSpec(dir, metadataFile))
+    );
   }
 
+  const files: string[] = [];
+
   // Read the yaml
-  const filesMetadata = await Promise.all(yamlFiles.map(async (yamlFile) => {
-    if (existsSync(yamlFile)) {
-      try {
-        const yaml = await readAndValidateYamlFromFile(
-          yamlFile,
-          schema,
-          `Validation of metadata file ${yamlFile} failed.`,
-        );
-        return yaml;
-      } catch (e) {
-        error("\nError reading metadata file from " + yamlFile + "\n");
-        throw e;
+  const filesMetadata = await Promise.all(specs.map(async (spec) => {
+    if (spec.tag === kMetadataFilePathTag) {
+      const yamlFile = spec.value;
+      files.push(yamlFile);
+      if (existsSync(yamlFile)) {
+        try {
+          const yaml = await readAndValidateYamlFromFile(
+            yamlFile,
+            schema,
+            `Validation of metadata file ${yamlFile} failed.`,
+          );
+          return yaml;
+        } catch (e) {
+          error("\nError reading metadata file from " + yamlFile + "\n");
+          throw e;
+        }
+      } else {
+        return undefined;
       }
-    } else {
-      return undefined;
     }
+
+    if (spec.tag === "!exec") {
+      return await metadataFromCommand(dir, spec.value, schema, files);
+    }
+
+    error(`\nUnsupported tag '${spec.tag}' in metadata-file(s) entry.\n`);
+    throw new Error(
+      `metadata-file(s) entries only support plain paths or '!exec' commands, ` +
+        `got tag '${spec.tag}'.`,
+    );
   })) as Array<Metadata>;
 
   // merge the result
   return {
     metadata: mergeFormatMetadata({}, ...filesMetadata),
-    files: yamlFiles,
+    files,
   };
+}
+
+// Executes a `!exec` metadata-file command and parses/validates its stdout
+// as YAML, the same way a metadata file's contents would be validated.
+async function metadataFromCommand(
+  dir: string,
+  command: string,
+  schema: Schema,
+  files: string[],
+): Promise<Metadata> {
+  const args = parseShellRunCommand(command);
+  const script = args[0];
+
+  // track the script so callers can treat it like any other metadata
+  // dependency (e.g. for preview file-watching)
+  files.push(join(dir, script));
+
+  const handler = handlerForScript(script) ?? {
+    run: async (
+      script: string,
+      args: string[],
+      _stdin?: string,
+      options?: RunHandlerOptions,
+    ) => {
+      return await execProcess({
+        cmd: script,
+        args,
+        cwd: options?.cwd,
+        stdout: options?.stdout,
+      });
+    },
+  };
+
+  let result;
+  try {
+    result = await handler.run(script, args.slice(1), undefined, {
+      cwd: dir,
+      stdout: "piped",
+    });
+  } catch (e) {
+    error(`\nError executing metadata command '${command}'\n`);
+    throw e;
+  }
+
+  if (!result.success) {
+    error(
+      `\nError executing metadata command '${command}' (exit code ${result.code})\n` +
+        (result.stderr || ""),
+    );
+    throw new Error(`Metadata command failed: ${command}`);
+  }
+
+  try {
+    return await readAndValidateYamlFromString(
+      result.stdout || "",
+      command,
+      schema,
+      `Validation of metadata produced by command '${command}' failed.`,
+    ) as Metadata;
+  } catch (e) {
+    error(
+      "\nError reading metadata produced by command '" + command + "'\n",
+    );
+    throw e;
+  }
 }
 
 export function formatFromMetadata(

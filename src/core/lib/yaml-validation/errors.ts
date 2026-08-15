@@ -50,6 +50,7 @@ import { InternalError } from "../error.ts";
 
 export function setDefaultErrorHandlers(validator: YAMLSchemaT) {
   validator.addHandler(ignoreExprViolations);
+  validator.addHandler(ignoreExecViolations);
   validator.addHandler(expandEmptySpan);
   validator.addHandler(improveErrorHeadingForValueErrors);
   validator.addHandler(checkForTypeMismatch);
@@ -271,6 +272,29 @@ function ignoreExprViolations(
 
   if (result.tag === "!expr" && typeof result.value === "string") {
     // assume that this validation error came from !expr, drop the error.
+    return null;
+  } else {
+    return error;
+  }
+}
+
+function ignoreExecViolations(
+  error: LocalizedError,
+  _parse: AnnotatedParse,
+  _schema: Schema,
+): LocalizedError | null {
+  const { result } = error.violatingObject;
+  if (
+    typeof result !== "object" ||
+    Array.isArray(result) ||
+    result === null ||
+    error.schemaPath.slice(-1)[0] !== "type"
+  ) {
+    return error;
+  }
+
+  if (result.tag === "!exec" && typeof result.value === "string") {
+    // assume that this validation error came from !exec, drop the error.
     return null;
   } else {
     return error;

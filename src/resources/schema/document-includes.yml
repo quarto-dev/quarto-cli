@@ -132,6 +132,12 @@
       Metadata values specified inside the document, or by using `-M`,
       overwrite values specified with this option.
 
+      Instead of a file path, `!exec <command>` may be used to run a
+      command and parse its standard output as YAML metadata, e.g.
+      `metadata-file: !exec ./include-chapters.py --lang en`. The
+      command is run with the project (or document) directory as its
+      working directory.
+
 - name: metadata-files
   schema:
     arrayOf: path
@@ -146,3 +152,16 @@
       over those specified earlier. Metadata values specified inside
       the document, or by using `-M`, overwrite values specified with
       this option.
+
+      Instead of a file path, any entry may use `!exec <command>` to
+      run a command and parse its standard output as YAML metadata,
+      e.g.:
+
+      ```yaml
+      metadata-files:
+        - !exec ./include-chapters.py --type technical --lang en
+      ```
+
+      The command is run with the project (or document) directory as
+      its working directory, and its exit code must be `0` for the
+      render to proceed.

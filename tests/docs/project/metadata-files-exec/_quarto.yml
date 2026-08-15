@@ -1,0 +1,6 @@
+project:
+  type: default
+
+metadata-files:
+  - _extra-meta.yml
+  - !exec ./gen-metadata.ts

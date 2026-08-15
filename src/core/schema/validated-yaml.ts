@@ -52,3 +52,21 @@ export async function readAndValidateYamlFromFile(
   }
   return yaml;
 }
+
+export async function readAndValidateYamlFromString(
+  yamlContents: string,
+  sourceName: string,
+  schema: Schema,
+  errorMessage: string,
+): Promise<unknown> {
+  const contents = asMappedString(yamlContents.trimEnd(), sourceName);
+  const {
+    yaml,
+    yamlValidationErrors,
+  } = await readAndValidateYamlFromMappedString(contents, schema);
+
+  if (yamlValidationErrors.length) {
+    throw new ValidationError(errorMessage, yamlValidationErrors);
+  }
+  return yaml;
+}

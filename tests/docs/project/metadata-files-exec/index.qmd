@@ -1,0 +1,7 @@
+---
+title: "metadata-files exec test"
+---
+
+Marker: {{< meta exec-marker >}}
+
+File marker: {{< meta file-marker >}}
