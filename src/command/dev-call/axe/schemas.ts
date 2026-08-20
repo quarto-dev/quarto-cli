@@ -16,8 +16,24 @@
 
 import { z } from "zod";
 
-/** Bump in step with any breaking change to `findings.json`. */
+/** Bump in step with any breaking change to `findings.json`'s field shape. */
 export const kFindingsVersion = 1;
+
+/**
+ * Which signature-normalization scheme produced the signatures in this file.
+ *
+ * Separate from `kFindingsVersion` on purpose: a normalizer change leaves every
+ * field name intact but re-keys every signature, so a baseline written under an
+ * older scheme matches nothing. Without this, that is indistinguishable from
+ * "you fixed everything and introduced an equal number of new problems", and the
+ * ledger's notes — the record of *why* each finding was accepted — quietly stop
+ * applying. Bump it whenever `normalizeSelector` or `signatureOf` changes in a
+ * way that alters existing signatures.
+ *
+ * 1 — nth-child stripped; volatile attributes dropped; other attribute values
+ *     kept with digit runs wildcarded; trailing instance ids collapsed.
+ */
+export const kSignatureScheme = 1;
 
 // ---------------------------------------------------------------------------
 // findings.json
@@ -99,6 +115,7 @@ export const axeNotOkCellSchema = z.object({
 
 export const axeFindingsSchema = z.object({
   version: z.literal(kFindingsVersion),
+  signatureScheme: z.literal(kSignatureScheme),
   generated: z.string(),
   quartoVersion: z.string(),
   /** Provenance: results move with axe upgrades. */
@@ -226,6 +243,13 @@ function didYouMean(key: string): string | undefined {
  * so pasting a whole finding out of `findings.json` works.
  */
 export const axeBaselineSchema = z.object({
+  /**
+   * The signature scheme the entries were written against. Optional: a ledger
+   * without it is assumed to match the current scheme, which is right for the
+   * first one anybody writes. Once present, a mismatch is an error rather than
+   * a silent mass-invalidation.
+   */
+  signatureScheme: z.number().optional(),
   findings: z.array(axeBaselineEntrySchema.passthrough()),
 }).passthrough();
 
@@ -255,8 +279,10 @@ export type ParsedBaseline =
 export function parseBaseline(data: unknown): ParsedBaseline {
   const issues: AxeBaselineIssue[] = [];
 
-  const outer = z.object({ findings: z.array(z.record(z.unknown())) })
-    .passthrough().safeParse(data);
+  const outer = z.object({
+    signatureScheme: z.number().optional(),
+    findings: z.array(z.record(z.unknown())),
+  }).passthrough().safeParse(data);
   if (!outer.success) {
     return {
       success: false,
@@ -264,6 +290,24 @@ export function parseBaseline(data: unknown): ParsedBaseline {
         path: issue.path.join(".") || "(root)",
         message: issue.message,
       })),
+    };
+  }
+
+  if (
+    outer.data.signatureScheme !== undefined &&
+    outer.data.signatureScheme !== kSignatureScheme
+  ) {
+    return {
+      success: false,
+      issues: [{
+        path: "signatureScheme",
+        message:
+          `this baseline was written against signature scheme ${outer.data.signatureScheme}, ` +
+          `but this build emits scheme ${kSignatureScheme}. Every entry would read as ` +
+          `stale. Re-annotate the entries against the new signatures — the raw ` +
+          `selectors are unchanged in each finding's occurrences[].target — then ` +
+          `set "signatureScheme": ${kSignatureScheme}.`,
+      }],
     };
   }
 

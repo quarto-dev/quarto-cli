@@ -32,6 +32,7 @@ import {
   AxeOccurrence,
   AxeStaleEntry,
   kFindingsVersion,
+  kSignatureScheme,
 } from "./schemas.ts";
 
 // `axe-check.js` is the browser module behind the render-time `axe:` option. Its
@@ -466,6 +467,7 @@ export function aggregate(options: AggregateOptions): AxeFindings {
 
   return {
     version: kFindingsVersion,
+    signatureScheme: kSignatureScheme,
     generated: new Date().toISOString(),
     quartoVersion: quartoConfig.version(),
     axeVersion: options.axeVersion ??
