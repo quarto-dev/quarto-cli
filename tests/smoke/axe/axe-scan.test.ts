@@ -71,9 +71,9 @@ const allCellsOk: Verify = {
       `not-ok cells: ${JSON.stringify(results.notOkCells)}`,
     );
     assertEquals(results.cells.total, results.cells.ok);
-    // 6 pages x 2 viewports x 2 themes
-    assertEquals(results.cells.total, 24);
-    assertEquals(results.pagesScanned, 6);
+    // 7 pages x 2 viewports x 2 themes
+    assertEquals(results.cells.total, 28);
+    assertEquals(results.pagesScanned, 7);
     return Promise.resolve();
   },
 };
@@ -140,6 +140,30 @@ const quartoDarkThemeIsReached: Verify = {
     assertEquals(themeOnly.themes, ["dark"]);
     assertEquals(themeOnly.pages, ["theme.html"]);
     assertEquals(themeOnly.impact, "serious");
+    return Promise.resolve();
+  },
+};
+
+const reuseNeedsADarkBuild: Verify = {
+  name: "light-only colour-scheme links do not count as a dark theme",
+  verify: (_output: ExecuteOutput[]) => {
+    // static/brand-light-only.html carries data-mode="light" links and no dark
+    // build, the shape a light-only _brand.yml produces. A probe matching
+    // [data-mode] rather than [data-mode="dark"] reads that as "there is a dark
+    // theme" and scans both themes for nothing — the bug this pins.
+    const read = (theme: string) =>
+      JSON.parse(
+        Deno.readTextFileSync(
+          `_axe-checks/cells/static_brand-light-only__1440x900__${theme}.json`,
+        ),
+      );
+    assertEquals(read("light").colorScheme, "emulated");
+    assertEquals(read("dark").colorScheme, "assumed-identical");
+    // and the reused payload is the light one, not an empty result
+    assertEquals(
+      read("dark").result.violations.length,
+      read("light").result.violations.length,
+    );
     return Promise.resolve();
   },
 };
@@ -278,6 +302,7 @@ testQuartoCmd(
     plantedFindings,
     matrixEarnsItsCost,
     quartoDarkThemeIsReached,
+    reuseNeedsADarkBuild,
     colorSchemeRoutesRecorded,
     signaturesDiscriminate,
     baselineReconciled,

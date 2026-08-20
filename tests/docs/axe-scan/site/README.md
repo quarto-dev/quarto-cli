@@ -27,6 +27,7 @@ than one page), `localized` = a one-off.
 | `color-contrast` | serious | `media.qmd`, inside `@media (max-width: 500px)` | localized | proves the viewport axis earns its cost |
 | `image-alt` | critical | `examples.qmd`, marked `.a11y-accepted-example` | localized | a deliberate teaching example; v1 has no exclude-in-source, so the baseline absorbs it |
 | `color-contrast` | serious | `theme.qmd`, from Quarto's **dark theme** | localized | the theme axis has two routes and only one is a media query — this one is reachable only by driving Quarto's colour-scheme toggle |
+| `button-name` | critical | `static/brand-light-only.html` | localized | gives that regression page a finding to compare across its light cell and its reused dark one |
 
 Two dimensions are deliberately exercised by *absence* as well: the dark-only
 and mobile-only findings must **not** appear in the light or desktop cells.
@@ -45,6 +46,13 @@ has two routes into a theme and a scanner has to take both:
 Each cell records which route it took, in `colorScheme`. Watch for `toggled` on a
 *light* cell: the toggle writes `localStorage` and every cell shares one origin,
 so a page can load in the theme a previous cell selected and need clicking back.
+
+`static/brand-light-only.html` is a regression fixture for that reuse decision.
+A light-only `_brand.yml` makes Quarto emit `data-mode="light"` links with no
+dark build and no toggle, and a probe matching `[data-mode]` instead of
+`[data-mode="dark"]` reads that as "there is a dark theme" and scans both themes
+for nothing. Found on a real brand.yml site (2026-08-20); the page reproduces the
+markup by hand, which works because the probe runs per page rather than per site.
 
 `static/legacy.html` shows the fourth value, `assumed-identical`: it offers no
 Quarto dark theme, so its dark cells reuse the light payload instead of running
@@ -83,7 +91,7 @@ or to the normalizer, and re-read it: a diff here is either a fixture change or
 a scheme change, and the two need different responses.
 
 <!-- OBSERVED-BEGIN -->
-Recorded from a full scan: 24/24 cells ok, 12 findings (9 new, 3 known), axe-core 4.10.3, signature scheme 1.
+Recorded from a full scan: 28/28 cells ok, 13 findings (10 new, 3 known), axe-core 4.10.3, signature scheme 1.
 
 | signature | impact | scope | n | pages | viewports | themes | status |
 |---|---|---|---|---|---|---|---|
@@ -91,6 +99,7 @@ Recorded from a full scan: 24/24 cells ok, 12 findings (9 new, 3 known), axe-cor
 | `button-name :: button[data-widget-target="#panel-*"]` | critical | systemic | 3 | static/legacy.html | both | both | new |
 | `image-alt :: img[width="*"]` | critical | localized | 2 | examples.html | both | both | known |
 | `image-alt :: #hero` | critical | localized | 2 | static/legacy.html | both | both | new |
+| `button-name :: button` | critical | localized | 1 | static/brand-light-only.html | both | both | new |
 | `button-name :: button[data-widget-target="#settings-dialog"]` | critical | localized | 1 | static/legacy.html | both | both | new |
 | `link-name :: a` | serious | localized | 2 | static/legacy.html | both | both | new |
 | `link-name :: p > a` | serious | localized | 1 | index.html | both | both | known |
