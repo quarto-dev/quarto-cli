@@ -1,7 +1,0 @@
-# Both are throwaway: the smoke test renders and scans, then removes them.
-# _axe-baseline.json is NOT ignored — it is committed fixture data.
-_site/
-_axe-checks/
-
-/.quarto/
-**/*.quarto_ipynb

@@ -21,8 +21,6 @@ failure was invisible: the dark cells rendered the light theme.
 </style>
 ```
 
-{{< include _systemic.qmd >}}
-
 ::: {.axe-fixture-theme-only}
 This paragraph fails colour contrast only when Quarto's dark theme is selected.
 :::

@@ -1,0 +1,12 @@
+# Renders and scan artifacts are throwaway: each smoke test renders its site,
+# scans it, then removes both. `_axe-baseline.json` is NOT ignored — it is
+# committed fixture data.
+sites/*/_site/
+sites/*/_axe-checks/
+sites/*/.quarto/
+**/*.quarto_ipynb
+
+# Quarto writes a .gitignore into every project directory it renders, so each
+# fixture site grows one the moment a test runs. Ignored here rather than
+# committed three times over.
+sites/*/.gitignore

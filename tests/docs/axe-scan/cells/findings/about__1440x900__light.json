@@ -2,9 +2,10 @@
   "page": "about.html",
   "viewport": "1440x900",
   "theme": "light",
-  "url": "http://127.0.0.1:6186/about.html",
+  "url": "http://127.0.0.1:5222/about.html",
   "status": "ok",
-  "elapsed": 948,
+  "elapsed": 975,
+  "colorScheme": "emulated",
   "result": {
     "violations": [
       {
@@ -83,7 +84,7 @@
       "name": "axe-core",
       "version": "4.10.3"
     },
-    "url": "http://127.0.0.1:6186/about.html",
-    "timestamp": "2026-08-20T19:07:18.523Z"
+    "url": "http://127.0.0.1:5222/about.html",
+    "timestamp": "2026-08-20T21:11:33.953Z"
   }
 }
