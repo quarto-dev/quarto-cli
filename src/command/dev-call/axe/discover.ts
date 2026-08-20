@@ -1,0 +1,153 @@
+/*
+ * discover.ts
+ *
+ * Page discovery for `quarto dev-call axe`: which pages to scan, and — per
+ * page — which colour modes exist to scan them in.
+ *
+ * Modes are discovered from the rendered HTML, never probed at runtime. A page
+ * ships one presentation or two, per page (front matter can add or remove a
+ * dark theme), and the rendered file says which: Quarto writes its inline
+ * colour-scheme script iff the page has two modes. So the whole matrix is
+ * known — and printable — before the browser launches.
+ * See llm-docs/html-dark-mode-architecture.md.
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+
+import { globToRegExp, join, relative } from "../../../deno_ral/path.ts";
+import { walkSync } from "../../../deno_ral/fs.ts";
+import { pathWithForwardSlashes } from "../../../core/path.ts";
+import { ErrorEx } from "../../../core/lib/error.ts";
+import { AxeScanConfig, AxeTheme } from "./config.ts";
+
+/**
+ * The colour mode of one cell. `light` and `dark` are the author's two slots
+ * on a two-mode page. `default` is the single presentation of a one-mode page
+ * — uniformly, whether the page is Bootstrap or hand-written, and whatever
+ * colour that presentation happens to be (see `darkColoured`).
+ */
+export type AxeMode = AxeTheme | "default";
+
+/** One page to scan, with its discovered mode axis. */
+export interface AxePage {
+  /** Site-relative forward-slash path, e.g. `docs/index.html`. */
+  path: string;
+  /** `["light", "dark"]` for a two-mode page, `["default"]` otherwise. */
+  modes: AxeMode[];
+  /**
+   * A one-mode page whose single theme is dark-coloured (`theme: darkly`).
+   * An annotation only — the cell is still named `default`, because a measured
+   * colour label would be honest only for Bootstrap pages.
+   */
+  darkColoured: boolean;
+}
+
+/**
+ * The marker for "this page has two modes": the inline before-body script that
+ * defines `window.quartoToggleColorScheme`. It is emitted iff
+ * `formatDarkMode(format) !== undefined` — the single upstream predicate — and
+ * unlike the toggle *element* it is present in the static HTML. The alternate
+ * stylesheet links are NOT a usable marker: a light-only `_brand.yml` emits
+ * them with no dark mode behind them (fixture: sites/brand-light-only).
+ */
+const kTwoModeMarker = "quartoToggleColorScheme";
+
+/**
+ * Discover a page's modes from its rendered HTML.
+ *
+ * `darkColoured` is read from the page's sole `id="quarto-bootstrap"` link:
+ * its `data-mode` measures the compiled CSS's blackness, so `"dark"` on a
+ * one-mode page means `theme: darkly` (or similar) — a visually dark page that
+ * every declaration-level signal calls light. Multiple bootstrap links mean
+ * the split-brand machinery is in play and the measurement is not the page's.
+ */
+export function sniffModes(
+  html: string,
+): { modes: AxeMode[]; darkColoured: boolean } {
+  if (html.includes(kTwoModeMarker)) {
+    return { modes: ["light", "dark"], darkColoured: false };
+  }
+  const bootstrapLinks =
+    html.match(/<link\b[^>]*\bid="quarto-bootstrap"[^>]*>/g) ?? [];
+  const darkColoured = bootstrapLinks.length === 1 &&
+    /\bdata-mode="dark"/.test(bootstrapLinks[0]);
+  return { modes: ["default"], darkColoured };
+}
+
+/**
+ * Every `*.html` under `siteDir`, as sorted site-relative forward-slash paths,
+ * narrowed by `--pages` and capped by `--max-pages` — sorting before the cap
+ * is what makes `--max-pages` deterministic — then each surviving page read
+ * once to discover its modes.
+ */
+export function discoverPages(config: AxeScanConfig): AxePage[] {
+  const paths: string[] = [];
+  for (const entry of walkSync(config.siteDir, { includeDirs: false })) {
+    if (entry.path.endsWith(".html")) {
+      paths.push(
+        pathWithForwardSlashes(relative(config.siteDir, entry.path)),
+      );
+    }
+  }
+  paths.sort();
+
+  let selected = paths;
+  if (config.pages) {
+    const patterns = config.pages.map((glob) =>
+      globToRegExp(glob, { extended: true, globstar: true })
+    );
+    selected = paths.filter((path) =>
+      patterns.some((pattern) => pattern.test(path))
+    );
+  }
+  if (config.maxPages !== undefined) {
+    selected = selected.slice(0, config.maxPages);
+  }
+
+  return selected.map((path) => {
+    const { modes, darkColoured } = sniffModes(
+      Deno.readTextFileSync(join(config.siteDir, path)),
+    );
+    return { path, modes, darkColoured };
+  });
+}
+
+/**
+ * Apply `--themes` to the discovered matrix.
+ *
+ * The flag is a filter, and its job is cost control: it prunes the light/dark
+ * pair on two-mode pages, while `default` cells are always included — so
+ * `--themes light` means "one cell per page", never "skip the one-mode pages".
+ *
+ * A filter that matches zero cells is an error rather than an empty (or
+ * silently unfiltered) scan: asking for `--themes dark` on a site with no
+ * two-mode pages would otherwise scan every page once and read as dark
+ * coverage.
+ */
+export function applyThemesFilter(
+  pages: AxePage[],
+  themes: AxeTheme[],
+): AxePage[] {
+  const narrowed = !(themes.includes("light") && themes.includes("dark"));
+  if (narrowed) {
+    const matched = pages.some((page) =>
+      page.modes.some((mode) => mode !== "default" && themes.includes(mode))
+    );
+    if (!matched) {
+      throw new ErrorEx(
+        "AxeOptionError",
+        `--themes ${themes.join(",")} matched no cells: no page here has a ` +
+          `light/dark mode pair, so every page scans once as 'default'. ` +
+          `Drop --themes.`,
+        false,
+        false,
+      );
+    }
+  }
+  return pages.map((page) => ({
+    ...page,
+    modes: page.modes.filter((mode) =>
+      mode === "default" || themes.includes(mode)
+    ),
+  }));
+}

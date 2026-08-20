@@ -7,8 +7,9 @@ This page's planted failure lives in the **Quarto dark theme**, not in a
 
 Quarto ignores `prefers-color-scheme` unless `respect-user-color-scheme` is set,
 so emulating a dark preference does not select the dark theme. The only route in
-is Quarto's own colour-scheme toggle. Before the scanner drove that toggle, this
-failure was invisible: the dark cells rendered the light theme.
+is the localStorage key Quarto's own colour-scheme script reads. Before the
+scanner seeded that key, this failure was invisible: the dark cells rendered the
+light theme.
 
 ```{=html}
 <style>

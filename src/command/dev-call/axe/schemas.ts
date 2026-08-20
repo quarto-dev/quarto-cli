@@ -133,8 +133,14 @@ export const axeFindingsSchema = z.object({
   /**
    * The pages scanned, as output paths. v1 has no `input`/`title`: source
    * mapping needs Quarto's project index and is deferred to the CLI version.
+   * `modes` are the colour modes the scan covered for the page — discovered
+   * from its HTML, filtered by `--themes` — so a consumer can tell "this page
+   * has no dark mode" from "a dark cell went missing".
    */
-  pages: z.array(z.object({ output: z.string() })),
+  pages: z.array(z.object({
+    output: z.string(),
+    modes: z.array(z.string()),
+  })),
   cells: z.object({
     total: z.number(),
     ok: z.number(),

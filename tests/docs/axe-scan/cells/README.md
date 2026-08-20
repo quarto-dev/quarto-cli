@@ -24,7 +24,7 @@ mean nothing.
 | `index__1440x900__dark` | with the two above and below, one page in all four cells |
 | `index__390x844__dark` | so a finding's per-page cell list can be asserted in full |
 | `about__1440x900__light` | a second page carrying the systemic `image-alt` |
-| `static_legacy__1440x900__light` | hand-written non-Quarto DOM: the digit-run and volatile-attribute cases |
+| `static_legacy__1440x900__default` | hand-written non-Quarto DOM: one-mode (`default`) cell, and the digit-run and volatile-attribute cases |
 
 ## `matrix/` — from `../sites/matrix`
 
@@ -35,9 +35,10 @@ mean nothing.
 | `media__390x844__light` | the mobile-only `color-contrast` failure |
 | `media__390x844__dark` | both conditional failures in one cell |
 
-`theme.qmd`'s toggle-driven failure has no capture. Nothing about it is visible
-in an aggregated payload, because the route into the theme is a property of the
-scan and not of the result. `tests/smoke/axe/axe-matrix.test.ts` covers it.
+`theme.qmd`'s failure — reachable only by seeding Quarto's colour-scheme
+localStorage key — has no capture. Nothing about it is visible in an
+aggregated payload, because mode selection is a property of the scan and not
+of the result. `tests/smoke/axe/axe-matrix.test.ts` covers it.
 
 ## Regenerating
 

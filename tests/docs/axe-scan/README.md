@@ -16,8 +16,9 @@ Each site below now carries one concern, and each has its own smoke test.
 | site | concern | smoke test |
 |---|---|---|
 | `sites/findings/` | grouping, systemic against localized, the impact spread, baseline reconciliation, the report, and a page Quarto did not render | `tests/smoke/axe/axe-findings.test.ts` |
-| `sites/matrix/` | the viewport and theme axes, and the route each cell took to its theme | `tests/smoke/axe/axe-matrix.test.ts` |
-| `sites/brand-light-only/` | a `_brand.yml` with light values only, which must not read as a dark theme | `tests/smoke/axe/axe-brand.test.ts` |
+| `sites/matrix/` | the viewport and mode axes: conditional failures each reachable by exactly one route | `tests/smoke/axe/axe-matrix.test.ts` |
+| `sites/brand-light-only/` | a `_brand.yml` with light values only, which must not read as a dark mode | `tests/smoke/axe/axe-brand.test.ts` |
+| `sites/darkly/` | a single dark-coloured theme: one `default` cell, annotated dark-coloured | `tests/smoke/axe/axe-darkly.test.ts` |
 
 `cells/` holds raw per-cell payloads captured from two of these sites. The unit
 tests read them, so the aggregate stage can be exercised without a browser.

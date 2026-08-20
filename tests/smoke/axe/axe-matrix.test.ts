@@ -6,20 +6,16 @@
  *
  * Every planted failure on that site is conditional, and each is reachable by
  * exactly one route — a narrow viewport, an emulated colour-scheme preference,
- * or Quarto's own colour-scheme toggle. A cell that took the wrong route
+ * or Quarto's own dark theme, selected by seeding the localStorage key its
+ * colour-scheme script reads. A cell that scanned the wrong presentation
  * therefore fails an assertion here rather than quietly reporting a duplicate.
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import { assert, assertEquals } from "testing/asserts";
+import { assertEquals } from "testing/asserts";
 import { ExecuteOutput, Verify } from "../../test.ts";
-import {
-  axeSmokeTest,
-  countColorSchemes,
-  find,
-  readFindings,
-} from "./shared.ts";
+import { axeSmokeTest, find, pageModes, readFindings } from "./shared.ts";
 
 const matrixEarnsItsCost: Verify = {
   name: "the theme and viewport axes each find something the other cannot",
@@ -44,9 +40,10 @@ const quartoDarkThemeIsReached: Verify = {
   verify: (_output: ExecuteOutput[]) => {
     // This failure lives in darkly's own palette, so it is unreachable by
     // prefers-color-scheme emulation: the fixture leaves
-    // respect-user-color-scheme at its default of false. Only driving Quarto's
-    // colour-scheme toggle selects the theme, which is why this assertion is
-    // the one that would fail if the toggle handling regressed.
+    // respect-user-color-scheme at its default of false. Only seeding
+    // localStorage["quarto-color-scheme"] = "alternate" before navigation
+    // selects the theme, which is why this assertion is the one that would
+    // fail if mode selection regressed.
     const { findings } = readFindings();
     const themeOnly = find(findings, "color-contrast :: #6c757d on #222222");
     assertEquals(themeOnly.themes, ["dark"]);
@@ -56,28 +53,20 @@ const quartoDarkThemeIsReached: Verify = {
   },
 };
 
-const colorSchemeRoutesRecorded: Verify = {
-  name: "each cell records how it reached its theme, and none is unreachable",
+const everyPageDiscoversTwoModes: Verify = {
+  name: "every page here discovers the light/dark pair, and scans both",
   verify: (_output: ExecuteOutput[]) => {
-    const routes = countColorSchemes();
-    const seen = JSON.stringify(routes);
-
-    // Every page here is Quarto output with a dark theme, so every cell must
-    // have reached the theme it claims.
-    assertEquals(routes["unreachable"] ?? 0, 0, `unreachable cells: ${seen}`);
-
-    // The toggle must actually have been driven: if this is 0 the scanner fell
-    // back to emulation everywhere and the dark cells are light ones.
-    assert((routes["toggled"] ?? 0) > 0, `toggle never driven: ${seen}`);
-
-    // And nothing reused a sibling. Reuse is correct only where there is no
-    // dark theme to select; here it would mean a dark cell was never scanned.
+    // The site sets `theme: {light, dark}` site-wide, so discovery must find
+    // the before-body script marker on every page. A `default` entry here
+    // would mean a dark cell silently vanished from the matrix.
+    const results = readFindings();
+    for (const [page, modes] of Object.entries(pageModes())) {
+      assertEquals(modes, ["light", "dark"], `wrong modes for ${page}`);
+    }
     assertEquals(
-      routes["assumed-identical"] ?? 0,
-      0,
-      `cells reused a sibling despite a dark theme: ${seen}`,
+      results.cells.total,
+      results.pages.length * results.config.viewports.length * 2,
     );
-
     return Promise.resolve();
   },
 };
@@ -85,5 +74,5 @@ const colorSchemeRoutesRecorded: Verify = {
 axeSmokeTest(
   "matrix",
   "quarto dev-call axe (matrix: viewport and theme axes)",
-  [matrixEarnsItsCost, quartoDarkThemeIsReached, colorSchemeRoutesRecorded],
+  [matrixEarnsItsCost, quartoDarkThemeIsReached, everyPageDiscoversTwoModes],
 );

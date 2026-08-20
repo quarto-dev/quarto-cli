@@ -28,6 +28,7 @@ import { assert, assertEquals } from "testing/asserts";
 import { join } from "../../src/deno_ral/path.ts";
 import { aggregate } from "../../src/command/dev-call/axe/aggregate.ts";
 import { AxeCell } from "../../src/command/dev-call/axe/scan.ts";
+import { AxeMode, AxePage } from "../../src/command/dev-call/axe/discover.ts";
 import {
   axeFindingsSchema,
   kSignatureScheme,
@@ -42,7 +43,7 @@ const kFindingsCells = [
   "index__1440x900__dark",
   "index__390x844__light",
   "index__390x844__dark",
-  "static_legacy__1440x900__light",
+  "static_legacy__1440x900__default",
 ];
 
 /** Captures from the `matrix` site: one page in all four cells. */
@@ -74,13 +75,34 @@ const kConfig: AxeScanConfig = {
   settle: 500,
 };
 
+/**
+ * Reconstruct the discovered page list a scan of exactly `cells` implies: each
+ * page's modes are the distinct modes its cells carry.
+ */
+function pagesOf(cells: AxeCell[]): AxePage[] {
+  const modes = new Map<string, Set<AxeMode>>();
+  for (const cell of cells) {
+    let pageModes = modes.get(cell.page);
+    if (!pageModes) {
+      pageModes = new Set();
+      modes.set(cell.page, pageModes);
+    }
+    pageModes.add(cell.theme);
+  }
+  return [...modes.keys()].sort().map((path) => ({
+    path,
+    modes: [...modes.get(path)!].sort(),
+    darkColoured: false,
+  }));
+}
+
 function aggregateCells(cells: AxeCell[]) {
   return aggregate({
     cells,
     config: kConfig,
     baseline: { findings: [] },
     baselineFile: "_axe-baseline.json",
-    pages: [...new Set(cells.map((cell) => cell.page))].sort(),
+    pages: pagesOf(cells),
   });
 }
 
@@ -393,6 +415,21 @@ unitTest(
       "index.html",
       "static/legacy.html",
     ]);
+  },
+);
+
+unitTest(
+  "aggregate - each page records the modes the scan covered",
+  // deno-lint-ignore require-await
+  async () => {
+    // The per-page modes are what lets a consumer tell "this page has no dark
+    // mode" from "a dark cell went missing".
+    const results = aggregateFindings();
+    const modes = Object.fromEntries(
+      results.pages.map((p) => [p.output, p.modes]),
+    );
+    assertEquals(modes["index.html"], ["dark", "light"]);
+    assertEquals(modes["static/legacy.html"], ["default"]);
   },
 );
 

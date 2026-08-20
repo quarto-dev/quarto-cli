@@ -20,34 +20,33 @@ ledger.
 |---|---|---|---|
 | `color-contrast` | serious | `media.qmd`, inside `@media (prefers-color-scheme: dark)` | emulating a dark colour-scheme preference |
 | `color-contrast` | serious | `media.qmd`, inside `@media (max-width: 500px)` | the narrow viewport |
-| `color-contrast` | serious | `theme.qmd`, from darkly's own palette | clicking Quarto's colour-scheme toggle |
+| `color-contrast` | serious | `theme.qmd`, from darkly's own palette | seeding Quarto's colour-scheme localStorage key |
 
 Absence matters as much as presence. The dark-only findings must **not** appear
 in the light cells, and the mobile-only finding must **not** appear at
 1440x900.
 
-## Two routes into a theme
+## Two routes into a dark cell
 
-The theme axis tests the two themes the author ships, not the two states a
-user's OS can be in. A page can offer either route, so the scanner sets both and
-then reads back which theme is really active.
+The theme axis tests the two presentations the author ships, not the two
+states a user's OS can be in. A dark presentation can live in two places, and a
+dark cell must select both:
 
 - `media.qmd`'s failure is in author CSS under `@media (prefers-color-scheme:
   dark)`, so **emulation** reaches it.
-- `theme.qmd`'s failure is in darkly itself, so **the colour-scheme toggle**
-  reaches it. Emulation cannot. Quarto ignores `prefers-color-scheme` unless
-  `respect-user-color-scheme` is set, and this site leaves it at its default of
-  false. Before the scanner drove the toggle, this failure was invisible and the
-  dark cells rendered the light theme.
+- `theme.qmd`'s failure is in darkly itself, so only **seeding
+  `localStorage["quarto-color-scheme"] = "alternate"` before navigation**
+  reaches it. Emulation cannot: Quarto's themes ignore `prefers-color-scheme`
+  unless `respect-user-color-scheme` is set, and this site leaves it at its
+  default of false. Without the seed, this failure is invisible and the dark
+  cells render the light theme — which is why its assertion is the one that
+  fails if mode selection regresses.
 
-Each cell records its route in `colorScheme`. Watch for `toggled` on a *light*
-cell. The toggle writes `localStorage` and every cell is served from one origin,
-so a page can load in the theme a previous cell selected and need clicking back.
-
-Reuse must never happen on this site. Every page here has a real dark theme, so
-an `assumed-identical` cell would mean a dark cell was never scanned. The smoke
-test asserts that count is zero. `assumed-identical` is covered where it is
-correct, in `../brand-light-only/` and on `../findings/static/legacy.html`.
+Every page here carries the before-body script marker, so discovery must give
+every page the light/dark pair. A `default` cell on this site would mean a
+dark cell silently vanished from the matrix; the smoke test asserts the pair
+on every page. One-mode discovery is covered where it is correct, in
+`../brand-light-only/`, `../darkly/` and on `../findings/static/legacy.html`.
 
 ## Intent against observed
 

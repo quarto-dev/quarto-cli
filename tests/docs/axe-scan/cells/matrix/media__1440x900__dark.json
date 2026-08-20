@@ -2,10 +2,9 @@
   "page": "media.html",
   "viewport": "1440x900",
   "theme": "dark",
-  "url": "http://127.0.0.1:7448/media.html",
+  "url": "http://127.0.0.1:6338/media.html",
   "status": "ok",
-  "elapsed": 1132,
-  "colorScheme": "toggled",
+  "elapsed": 623,
   "result": {
     "violations": [
       {
@@ -66,7 +65,7 @@
       "name": "axe-core",
       "version": "4.10.3"
     },
-    "url": "http://127.0.0.1:7448/media.html",
-    "timestamp": "2026-08-20T21:12:11.503Z"
+    "url": "http://127.0.0.1:6338/media.html",
+    "timestamp": "2026-08-20T22:10:56.023Z"
   }
 }

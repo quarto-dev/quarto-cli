@@ -28,6 +28,7 @@ import {
   axeSmokeTest,
   find,
   kReportFile,
+  pageModes,
   readCell,
   readFindings,
 } from "./shared.ts";
@@ -69,41 +70,33 @@ const plantedFindings: Verify = {
 };
 
 const nonQuartoPageScans: Verify = {
-  name: "a page Quarto did not render scans, and its dark cells reuse",
+  name: "a page Quarto did not render scans once, as default",
   verify: (_output: ExecuteOutput[]) => {
     // static/legacy.html is hand-written and copied through as a resource, the
     // shape a real Quarto site reaches for when it ships a page Pandoc never
     // touched. Nothing in the scanner may require Quarto's DOM: this page has
-    // no colour-scheme links and no toggle, so the dark cells must reuse the
-    // light payload rather than wait for a control that will never appear.
+    // no colour-scheme machinery, so discovery must give it one `default`
+    // cell per viewport while the rendered pages around it get the pair.
     //
     // The signature-normalization edge cases this page also carries are pinned
     // browser-free, in unit/axe-signature.test.ts and unit/axe-aggregate.test.ts.
-    const results = readFindings();
+    const modes = pageModes();
     assert(
-      results.pages.some((page) => page.output === "static/legacy.html"),
-      `legacy.html was not scanned: ${
-        JSON.stringify(results.pages.map((p) => p.output))
-      }`,
+      "static/legacy.html" in modes,
+      `legacy.html was not scanned: ${JSON.stringify(Object.keys(modes))}`,
+    );
+    assertEquals(modes["static/legacy.html"], ["default"]);
+    assertEquals(modes["index.html"], ["light", "dark"]);
+
+    const cell = readCell("static_legacy__1440x900__default");
+    assert(
+      cell.result!.violations.length > 0,
+      "the default cell found nothing, so it proves nothing",
     );
 
-    const light = readCell("static_legacy__1440x900__light");
-    const dark = readCell("static_legacy__1440x900__dark");
-    assertEquals(light.colorScheme, "emulated");
-    assertEquals(dark.colorScheme, "assumed-identical");
-    // the reused payload is the light one, not an empty result
-    assert(
-      light.result!.violations.length > 0,
-      "the light cell found nothing, so reuse proves nothing",
-    );
-    assertEquals(
-      dark.result!.violations.length,
-      light.result!.violations.length,
-    );
-
-    // and reuse is a decision about this page, not the scanner giving up: a
-    // Quarto page on the same site did reach its theme through the toggle.
-    assertEquals(readCell("index__1440x900__dark").colorScheme, "toggled");
+    // and one mode is a discovery about this page, not the scanner giving up:
+    // a Quarto page on the same site did scan a real dark cell.
+    assertEquals(readCell("index__1440x900__dark").status, "ok");
 
     return Promise.resolve();
   },
@@ -169,7 +162,7 @@ const rawCellsKept: Verify = {
       const cell of [
         "_axe-checks/cells/index__1440x900__light.json",
         "_axe-checks/cells/about__390x844__dark.json",
-        "_axe-checks/cells/static_legacy__1440x900__light.json",
+        "_axe-checks/cells/static_legacy__1440x900__default.json",
       ]
     ) {
       assert(existsSync(cell), `missing ${cell}`);
