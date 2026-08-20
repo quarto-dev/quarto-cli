@@ -1,22 +1,22 @@
 project:
   type: website
   resources:
-    # hand-written tier-2 page, copied through unrendered
+    # hand-written page, copied through unrendered
     - static/
 
 website:
-  title: "axe scan fixture"
+  title: "axe findings fixture"
   navbar:
     left:
       - href: index.qmd
         text: Home
       - href: about.qmd
         text: About
-      - href: media.qmd
-        text: Media
       - href: examples.qmd
         text: Examples
 
+# Two themes, so a page that offers the colour-scheme toggle can be told apart
+# from one that does not — static/legacy.html is the one that does not.
 format:
   html:
     theme:

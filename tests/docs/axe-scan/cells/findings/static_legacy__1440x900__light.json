@@ -2,9 +2,10 @@
   "page": "static/legacy.html",
   "viewport": "1440x900",
   "theme": "light",
-  "url": "http://127.0.0.1:6186/static/legacy.html",
+  "url": "http://127.0.0.1:5222/static/legacy.html",
   "status": "ok",
-  "elapsed": 532,
+  "elapsed": 535,
+  "colorScheme": "emulated",
   "result": {
     "violations": [
       {
@@ -528,7 +529,7 @@
       "name": "axe-core",
       "version": "4.10.3"
     },
-    "url": "http://127.0.0.1:6186/static/legacy.html",
-    "timestamp": "2026-08-20T19:07:28.612Z"
+    "url": "http://127.0.0.1:5222/static/legacy.html",
+    "timestamp": "2026-08-20T21:11:47.116Z"
   }
 }

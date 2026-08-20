@@ -1,29 +1,54 @@
 # Captured per-cell axe payloads
 
-Eight cells from one scan of `../site`, saved verbatim as `tests/unit/`
-fixtures so the aggregate stage can be exercised against genuine axe-core
-output without launching a browser.
+Cells from scans of the fixture sites, saved verbatim as `tests/unit/` fixtures.
+They let the aggregate stage run against genuine axe-core output without
+launching a browser.
 
 **Verbatim is the point.** These are not trimmed to the fields the aggregate
-stage happens to read: keeping the whole payload means an axe upgrade that
+stage happens to read. Keeping the whole payload means an axe upgrade that
 changes its shape — how `color-contrast` reports its colour pair, how
 `failureSummary` is worded — surfaces in a fast unit test rather than only in
-the browser-driven smoke test.
+the browser-driven smoke tests.
 
-The eight are chosen to cover every axis the unit tests assert, not to be a
-complete scan:
+One directory per site, and the unit tests aggregate each set separately,
+exactly as a real scan of either site would. Do not merge them. A union of two
+sites is a scan that never happened, and its page list and cell counts would
+mean nothing.
 
-| cell | why it's here |
+## `findings/` — from `../sites/findings`
+
+| cell | why it is here |
 |---|---|
-| `media__1440x900__light` | the desktop/light baseline for the theme and viewport comparisons |
-| `media__1440x900__dark` | the dark-only `color-contrast` failure |
-| `media__390x844__light` | the mobile-only `color-contrast` failure |
-| `media__390x844__dark` | both conditional failures in one cell |
-| `index__1440x900__light` | the localized `link-name` and `heading-order` |
+| `index__1440x900__light` | the desktop and light baseline |
 | `index__390x844__light` | a second cell of the same page, for the matrix union |
+| `index__1440x900__dark` | with the two above and below, one page in all four cells |
+| `index__390x844__dark` | so a finding's per-page cell list can be asserted in full |
 | `about__1440x900__light` | a second page carrying the systemic `image-alt` |
 | `static_legacy__1440x900__light` | hand-written non-Quarto DOM: the digit-run and volatile-attribute cases |
 
-Regenerate by re-scanning `../site` and copying the matching files out of its
-`_axe-checks/cells/`. If the set changes, update `../site/README.md`'s observed
-table too — the two describe the same scan.
+## `matrix/` — from `../sites/matrix`
+
+| cell | why it is here |
+|---|---|
+| `media__1440x900__light` | the baseline the other three are compared against |
+| `media__1440x900__dark` | the dark-only `color-contrast` failure |
+| `media__390x844__light` | the mobile-only `color-contrast` failure |
+| `media__390x844__dark` | both conditional failures in one cell |
+
+`theme.qmd`'s toggle-driven failure has no capture. Nothing about it is visible
+in an aggregated payload, because the route into the theme is a property of the
+scan and not of the result. `tests/smoke/axe/axe-matrix.test.ts` covers it.
+
+## Regenerating
+
+Re-scan the site, then copy the matching files out of its `_axe-checks/cells/`:
+
+```bash
+cd tests/docs/axe-scan/sites/findings
+quarto render
+quarto dev-call axe _site
+cp _axe-checks/cells/index__1440x900__light.json ../../cells/findings/
+```
+
+If the set changes, update this file and the site's observed table. The two
+describe the same scan.

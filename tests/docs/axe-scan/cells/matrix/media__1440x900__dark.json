@@ -1,0 +1,72 @@
+{
+  "page": "media.html",
+  "viewport": "1440x900",
+  "theme": "dark",
+  "url": "http://127.0.0.1:7448/media.html",
+  "status": "ok",
+  "elapsed": 1132,
+  "colorScheme": "toggled",
+  "result": {
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "tags": [
+          "cat.color",
+          "wcag2aa",
+          "wcag143",
+          "TTv5",
+          "TT13.c",
+          "EN-301-549",
+          "EN-9.1.4.3",
+          "ACT"
+        ],
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#555555",
+                  "bgColor": "#333333",
+                  "contrastRatio": 1.69,
+                  "fontSize": "12.8pt (17px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<div class=\"axe-fixture-dark-only\">\n<p>This paragraph fails colour contrast only when the preferred colour scheme is dark.</p>\n</div>",
+                    "target": [
+                      ".axe-fixture-dark-only"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 1.69 (foreground color: #555555, background color: #333333, font size: 12.8pt (17px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<p>This paragraph fails colour contrast only when the preferred colour scheme is dark.</p>",
+            "target": [
+              ".axe-fixture-dark-only > p"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.69 (foreground color: #555555, background color: #333333, font size: 12.8pt (17px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ],
+    "testEngine": {
+      "name": "axe-core",
+      "version": "4.10.3"
+    },
+    "url": "http://127.0.0.1:7448/media.html",
+    "timestamp": "2026-08-20T21:12:11.503Z"
+  }
+}

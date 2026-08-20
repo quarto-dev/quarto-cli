@@ -28,12 +28,12 @@
       "note": "FIXTURE: stands in for exclude-in-source. The image is marked .a11y-accepted-example, which v1 cannot read, so the baseline absorbs it. When exclude-in-source ships this entry should turn stale - a designed test of stale reporting. Expected outcome: known."
     },
     {
-      "id": "color-contrast-0aef59",
-      "signature": "color-contrast :: #555555 on #333333",
+      "id": "heading-order-0aef59",
+      "signature": "heading-order :: h4",
       "pages": [],
       "impact": "minor",
-      "rule": "color-contrast",
-      "note": "FIXTURE: accepted at minor while the planted failure is serious, so escalation past the accepted impact re-alerts rather than hiding behind an old acceptance. Expected outcome: new, despite this entry."
+      "rule": "heading-order",
+      "note": "FIXTURE: accepted at minor while the planted failure is moderate, so escalation past the accepted impact re-alerts rather than hiding behind an old acceptance. Expected outcome: new, despite this entry."
     },
     {
       "id": "region-fixture0",

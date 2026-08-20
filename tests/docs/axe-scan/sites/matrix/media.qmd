@@ -21,8 +21,6 @@ title: Media
 </style>
 ```
 
-{{< include _systemic.qmd >}}
-
 Keep the two paragraphs below free of inline code, links and any other element
 that carries its own colour: a nested colour would add a second, unplanned
 contrast failure and make the fixture depend on the theme's palette.
