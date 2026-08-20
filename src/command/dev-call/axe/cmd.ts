@@ -1,113 +1,182 @@
 /*
  * cmd.ts
  *
+ * `quarto dev-call axe` — hidden prototype accessibility scanner. Serves an
+ * already-rendered site, drives headless Chrome over the page x viewport x
+ * theme matrix with quarto-cli's vendored axe-core, and writes the raw per-cell
+ * payloads. Aggregation and the HTML report come next.
+ *
  * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { Command } from "cliffy/command/mod.ts";
-import { info } from "../../../deno_ral/log.ts";
-import { ErrorEx } from "../../../core/lib/error.ts";
+import { error, info } from "../../../deno_ral/log.ts";
+import { ensureDirSync, existsSync, walkSync } from "../../../deno_ral/fs.ts";
+import { globToRegExp, join, relative } from "../../../deno_ral/path.ts";
+import { pathWithForwardSlashes } from "../../../core/path.ts";
+import { findOpenPort } from "../../../core/port.ts";
+import { httpFileRequestHandler } from "../../../core/http.ts";
+import { handleHttpRequests } from "../../../core/http-server.ts";
+import {
+  AxeScanConfig,
+  axeScanConfig,
+  kAxeBaselineFile,
+  kAxeOutputDir,
+  kDefaultSettle,
+  kDefaultThemes,
+  kDefaultTimeout,
+  kDefaultViewports,
+} from "./config.ts";
+import { AxeCell, launchScanBrowser, runAxeScan } from "./scan.ts";
 
-// Fixed in v1: this prototype deliberately has no knobs for the output dir,
-// the baseline path or whether the report is written.
-export const kAxeOutputDir = "_axe-checks";
-export const kAxeBaselineFile = "_axe-baseline.json";
+/** Scan complete: every cell produced an axe payload. */
+const kExitComplete = 0;
+/**
+ * Scan incomplete: a not-ok cell, no browser, or nothing to scan. There is
+ * deliberately no exit 1 in v1 — findings never fail the command.
+ */
+const kExitIncomplete = 2;
 
-export const kDefaultViewports = "1440x900,390x844";
-export const kDefaultThemes = "light,dark";
-export const kDefaultTimeout = 30000;
-export const kDefaultSettle = 500;
-
-export interface AxeViewport {
-  width: number;
-  height: number;
-  // canonical "WxH" label, used in cell ids and findings.json
-  label: string;
-}
-
-export type AxeTheme = "light" | "dark";
-
-export interface AxeScanConfig {
-  siteDir: string;
-  // undefined means "every *.html under siteDir"
-  pages?: string[];
-  // undefined means "no cap"
-  maxPages?: number;
-  viewports: AxeViewport[];
-  themes: AxeTheme[];
-  timeout: number;
-  settle: number;
-}
-
-function optionError(message: string): ErrorEx {
-  return new ErrorEx("AxeOptionError", message, false, false);
-}
-
-function splitList(value: string): string[] {
-  return value.split(",").map((entry) => entry.trim()).filter((entry) =>
-    entry.length > 0
-  );
-}
-
-function parseViewports(value: string): AxeViewport[] {
-  const viewports = splitList(value).map((entry) => {
-    const match = entry.match(/^(\d+)x(\d+)$/i);
-    if (!match) {
-      throw optionError(
-        `Invalid viewport '${entry}': expected WxH, e.g. 1440x900.`,
+/**
+ * Every `*.html` under `siteDir`, as sorted site-relative forward-slash paths,
+ * narrowed by `--pages` and capped by `--max-pages`. Sorting before the cap is
+ * what makes `--max-pages` deterministic.
+ */
+export function discoverPages(config: AxeScanConfig): string[] {
+  const pages: string[] = [];
+  for (const entry of walkSync(config.siteDir, { includeDirs: false })) {
+    if (entry.path.endsWith(".html")) {
+      pages.push(
+        pathWithForwardSlashes(relative(config.siteDir, entry.path)),
       );
     }
-    return {
-      width: parseInt(match[1], 10),
-      height: parseInt(match[2], 10),
-      label: `${match[1]}x${match[2]}`,
-    };
-  });
-  if (viewports.length === 0) {
-    throw optionError("No viewports specified.");
   }
-  return viewports;
-}
+  pages.sort();
 
-function parseThemes(value: string): AxeTheme[] {
-  const themes = splitList(value).map((entry) => {
-    const theme = entry.toLowerCase();
-    if (theme !== "light" && theme !== "dark") {
-      throw optionError(
-        `Invalid theme '${entry}': expected 'light' or 'dark'.`,
-      );
-    }
-    return theme;
-  });
-  if (themes.length === 0) {
-    throw optionError("No themes specified.");
-  }
-  return themes;
-}
-
-function parsePositiveInt(value: unknown, flag: string): number {
-  const parsed = typeof value === "number" ? value : parseInt(`${value}`, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw optionError(
-      `Invalid ${flag} '${value}': expected a positive integer.`,
+  let selected = pages;
+  if (config.pages) {
+    const patterns = config.pages.map((glob) =>
+      globToRegExp(glob, { extended: true, globstar: true })
+    );
+    selected = pages.filter((page) =>
+      patterns.some((pattern) => pattern.test(page))
     );
   }
-  return parsed;
+  if (config.maxPages !== undefined) {
+    selected = selected.slice(0, config.maxPages);
+  }
+  return selected;
 }
 
-// deno-lint-ignore no-explicit-any
-export function axeScanConfig(options: any, siteDir: string): AxeScanConfig {
-  return {
-    siteDir,
-    pages: options.pages ? splitList(options.pages) : undefined,
-    maxPages: options.maxPages === undefined
-      ? undefined
-      : parsePositiveInt(options.maxPages, "--max-pages"),
-    viewports: parseViewports(options.viewports ?? kDefaultViewports),
-    themes: parseThemes(options.themes ?? kDefaultThemes),
-    timeout: parsePositiveInt(options.timeout ?? kDefaultTimeout, "--timeout"),
-    settle: parsePositiveInt(options.settle ?? kDefaultSettle, "--settle"),
-  };
+function cellLine(cell: AxeCell): string {
+  const name = `${cell.page} ${cell.viewport} ${cell.theme}`;
+  if (cell.status !== "ok") {
+    return `  ${name.padEnd(56)} ${cell.status.toUpperCase()}`;
+  }
+  const violations = cell.result!.violations;
+  const ids = violations.map((violation) => violation.id).join(",") || "(none)";
+  return `  ${name.padEnd(56)} ${
+    String(violations.length).padStart(3)
+  }  ${ids}`;
+}
+
+/**
+ * Run the scan stage against `config.siteDir` and return the process exit code.
+ */
+export async function axeScan(config: AxeScanConfig): Promise<number> {
+  if (!existsSync(config.siteDir)) {
+    error(`Site directory not found: ${config.siteDir}`);
+    return kExitIncomplete;
+  }
+  if (!Deno.statSync(config.siteDir).isDirectory) {
+    error(`Not a directory: ${config.siteDir}`);
+    return kExitIncomplete;
+  }
+
+  const pages = discoverPages(config);
+  if (pages.length === 0) {
+    error(
+      config.pages
+        ? `No pages in ${config.siteDir} matched --pages.`
+        : `No *.html pages found in ${config.siteDir}.`,
+    );
+    return kExitIncomplete;
+  }
+
+  const cellsDir = join(kAxeOutputDir, "cells");
+  ensureDirSync(cellsDir);
+
+  // Serve the site dir first, so the bound port can't be handed to Chrome next.
+  const sitePort = findOpenPort();
+  const server = handleHttpRequests({
+    port: sitePort,
+    hostname: "127.0.0.1",
+    handler: httpFileRequestHandler({
+      baseDir: config.siteDir,
+      defaultFile: "index.html",
+    }),
+    // the scan's own progress output is the interesting part
+    onListen: () => {},
+  });
+  const baseUrl = `http://127.0.0.1:${sitePort}`;
+
+  const cellCount = pages.length * config.viewports.length *
+    config.themes.length;
+  info(
+    `axe: ${pages.length} pages × ${config.viewports.length} viewports × ` +
+      `${config.themes.length} themes — ${cellCount} cells`,
+  );
+
+  let browser;
+  try {
+    browser = await launchScanBrowser(findOpenPort(9222));
+  } catch (e) {
+    error(
+      `Could not start headless Chrome: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+    );
+    server.stop();
+    return kExitIncomplete;
+  }
+
+  try {
+    const scan = await runAxeScan(
+      browser.client,
+      config,
+      baseUrl,
+      pages,
+      cellsDir,
+      (cell) => info(cellLine(cell)),
+    );
+
+    const notOk = scan.cells.filter((cell) => cell.status !== "ok");
+    info("");
+    info(
+      `${scan.cells.length} cells: ${scan.cells.length - notOk.length} ok` +
+        (notOk.length ? `, ${notOk.length} not ok` : ""),
+    );
+    if (scan.axeVersion) {
+      info(
+        `axe-core ${scan.axeVersion} (quarto-cli's vendored build, injected at scan time)`,
+      );
+    }
+    info(`cells: ${cellsDir}`);
+
+    if (notOk.length) {
+      for (const cell of notOk) {
+        error(
+          `  ${cell.page} ${cell.viewport} ${cell.theme}: ${cell.status}` +
+            (cell.message ? ` — ${cell.message}` : ""),
+        );
+      }
+      return kExitIncomplete;
+    }
+    return kExitComplete;
+  } finally {
+    await browser.close();
+    server.stop();
+  }
 }
 
 export const axeCommand = new Command()
@@ -159,8 +228,9 @@ export const axeCommand = new Command()
       "--viewports 1440x900 --themes light",
   )
   // deno-lint-ignore no-explicit-any
-  .action((options: any, siteDir: string) => {
-    const config = axeScanConfig(options, siteDir);
-    // M0: parse and echo. The scan/aggregate/report stages come next.
-    info(JSON.stringify(config, null, 2));
+  .action(async (options: any, siteDir: string) => {
+    const code = await axeScan(axeScanConfig(options, siteDir));
+    if (code !== kExitComplete) {
+      Deno.exit(code);
+    }
   });
