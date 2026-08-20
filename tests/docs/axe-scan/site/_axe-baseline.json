@@ -1,0 +1,47 @@
+{
+  "signatureScheme": 1,
+  "findings": [
+    {
+      "id": "image-alt-4468cc",
+      "signature": "image-alt :: img",
+      "pages": [],
+      "impact": "critical",
+      "rule": "image-alt",
+      "conformance": "WCAG 2.0 A (1.1.1)",
+      "note": "FIXTURE: site-wide acceptance. Planted in _systemic.qmd and included by every content page, so an empty pages list is the right shape - the same defect on a newly added page must not re-alert. Expected outcome: known."
+    },
+    {
+      "id": "link-name-dad2f2",
+      "signature": "link-name :: p > a",
+      "pages": ["index.html"],
+      "impact": "serious",
+      "rule": "link-name",
+      "conformance": "WCAG 2.0 A (2.4.4, 4.1.2)",
+      "note": "FIXTURE: page-scoped acceptance that covers every page the finding occurs on. Expected outcome: known."
+    },
+    {
+      "id": "image-alt-e6f1b5",
+      "signature": "image-alt :: img[width=\"*\"]",
+      "pages": ["examples.html"],
+      "impact": "critical",
+      "rule": "image-alt",
+      "note": "FIXTURE: stands in for exclude-in-source. The image is marked .a11y-accepted-example, which v1 cannot read, so the baseline absorbs it. When exclude-in-source ships this entry should turn stale - a designed test of stale reporting. Expected outcome: known."
+    },
+    {
+      "id": "color-contrast-0aef59",
+      "signature": "color-contrast :: #555555 on #333333",
+      "pages": [],
+      "impact": "minor",
+      "rule": "color-contrast",
+      "note": "FIXTURE: accepted at minor while the planted failure is serious, so escalation past the accepted impact re-alerts rather than hiding behind an old acceptance. Expected outcome: new, despite this entry."
+    },
+    {
+      "id": "region-fixture0",
+      "signature": "region :: nav.axe-fixture-nothing-here",
+      "pages": [],
+      "impact": "moderate",
+      "rule": "region",
+      "note": "FIXTURE: matches nothing in this site. Expected outcome: reported under baseline.stale for hand-pruning, never auto-removed."
+    }
+  ]
+}

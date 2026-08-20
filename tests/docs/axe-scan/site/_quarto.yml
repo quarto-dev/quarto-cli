@@ -1,0 +1,24 @@
+project:
+  type: website
+  resources:
+    # hand-written tier-2 page, copied through unrendered
+    - static/
+
+website:
+  title: "axe scan fixture"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: about.qmd
+        text: About
+      - href: media.qmd
+        text: Media
+      - href: examples.qmd
+        text: Examples
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly

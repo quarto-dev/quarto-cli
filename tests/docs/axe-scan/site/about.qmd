@@ -1,0 +1,10 @@
+---
+title: About
+---
+
+This page carries only the systemic defect, which is the point: the same
+signature on a second page is what makes it systemic rather than localized.
+
+{{< include _systemic.qmd >}}
+
+Some ordinary prose.
