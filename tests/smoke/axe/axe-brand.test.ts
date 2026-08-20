@@ -6,10 +6,11 @@
  *
  * Quarto answers such a brand with `quarto-color-scheme` links tagged
  * `data-mode="light"` — one of them a `quarto-color-alternate` pointing at a
- * dark Bootstrap build — and no colour-scheme toggle. A probe that asks for
- * `[data-mode]`, or for the alternate class, reads that as "there is a dark
- * theme", scans both themes for nothing, and reports duplicate coverage as if
- * it were real. Found on a live brand.yml site, 2026-08-20.
+ * dark Bootstrap build — but no before-body script, because there is no dark
+ * mode behind them. A probe that asks for `[data-mode]`, or for the alternate
+ * class, reads that markup as "there is a dark theme" and scans both themes
+ * for nothing. Found on a live brand.yml site, 2026-08-20. Mode discovery must
+ * read the script marker instead, and give each page one `default` cell.
  *
  * The site is here rather than a hand-written page because the markup belongs
  * to Quarto: a mock would keep passing after Quarto changed it.
@@ -21,55 +22,56 @@ import { assert, assertEquals } from "testing/asserts";
 import { ExecuteOutput, Verify } from "../../test.ts";
 import {
   axeSmokeTest,
-  countColorSchemes,
+  cellNames,
   find,
+  pageModes,
   readCell,
   readFindings,
 } from "./shared.ts";
 
-const lightOnlyBrandIsNotADarkTheme: Verify = {
+const lightOnlyBrandIsOneMode: Verify = {
   name: "light-only colour-scheme links do not count as a dark theme",
   verify: (_output: ExecuteOutput[]) => {
-    const light = readCell("index__1440x900__light");
-    const dark = readCell("index__1440x900__dark");
-    assertEquals(light.colorScheme, "emulated");
-    assertEquals(dark.colorScheme, "assumed-identical");
-
-    // Reuse carried the payload rather than an empty result — an empty one
-    // would look the same as a clean page.
-    assert(
-      light.result!.violations.length > 0,
-      "the light cell found nothing, so reuse proves nothing",
+    // One mode per page, one cell per page x viewport — never a light/dark
+    // pair scanned twice for nothing.
+    const results = readFindings();
+    for (const [page, modes] of Object.entries(pageModes())) {
+      assertEquals(modes, ["default"], `wrong modes for ${page}`);
+    }
+    assertEquals(
+      results.cells.total,
+      results.pages.length * results.config.viewports.length,
     );
     assertEquals(
-      dark.result!.violations.length,
-      light.result!.violations.length,
+      cellNames(),
+      [
+        "index__1440x900__default",
+        "index__390x844__default",
+      ].sort(),
     );
 
-    // Half the matrix reused, and nothing was scanned twice for one theme.
-    const routes = countColorSchemes();
-    const seen = JSON.stringify(routes);
-    assertEquals(routes["toggled"] ?? 0, 0, `a toggle was driven: ${seen}`);
-    assertEquals(
-      routes["assumed-identical"] ?? 0,
-      2,
-      `expected both dark cells to reuse: ${seen}`,
-    );
+    // And the links measuring light means no dark-coloured annotation either.
+    const cell = readCell("index__1440x900__default");
+    assertEquals(cell.darkColoured, undefined);
 
     return Promise.resolve();
   },
 };
 
-const reusedCellsStillReport: Verify = {
-  name: "a reused cell contributes its findings to both themes",
+const defaultCellStillReports: Verify = {
+  name: "the single default cell carries the page's findings",
   verify: (_output: ExecuteOutput[]) => {
-    // Reuse is an assumption about the theme, not a reason to drop coverage:
-    // the planted button must be reported against dark as well as light.
+    // One cell is a discovery about the page, not dropped coverage: the
+    // planted button must still be reported, against the `default` mode.
     const { findings } = readFindings();
     const button = find(findings, "button-name :: button");
     assertEquals(button.impact, "critical");
-    assertEquals(button.themes, ["dark", "light"]);
+    assertEquals(button.themes, ["default"]);
     assertEquals(button.pages, ["index.html"]);
+    assert(
+      readCell("index__1440x900__default").result!.violations.length > 0,
+      "the default cell found nothing, so the comparison proves nothing",
+    );
     return Promise.resolve();
   },
 };
@@ -77,5 +79,5 @@ const reusedCellsStillReport: Verify = {
 axeSmokeTest(
   "brand-light-only",
   "quarto dev-call axe (light-only _brand.yml)",
-  [lightOnlyBrandIsNotADarkTheme, reusedCellsStillReport],
+  [lightOnlyBrandIsOneMode, defaultCellStillReports],
 );

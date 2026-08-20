@@ -90,21 +90,39 @@ export const allCellsOk: Verify = {
   },
 };
 
-/** Count the cells whose `colorScheme` route matches, across a whole scan. */
-export function countColorSchemes(): Record<string, number> {
-  const counts: Record<string, number> = {};
-  for (const entry of Deno.readDirSync(kCellsDir)) {
-    if (!entry.name.endsWith(".json")) {
-      continue;
-    }
-    const cell = JSON.parse(
-      Deno.readTextFileSync(`${kCellsDir}/${entry.name}`),
-    );
-    const route = cell.colorScheme ?? "(none)";
-    counts[route] = (counts[route] ?? 0) + 1;
-  }
-  return counts;
+/** The per-page modes `findings.json` records, keyed by output path. */
+export function pageModes(): Record<string, string[]> {
+  return Object.fromEntries(
+    readFindings().pages.map((page) => [page.output, page.modes]),
+  );
 }
+
+/** Every cell artifact's filename, e.g. `index__1440x900__default`. */
+export function cellNames(): string[] {
+  return [...Deno.readDirSync(kCellsDir)]
+    .filter((entry) => entry.name.endsWith(".json"))
+    .map((entry) => entry.name.replace(/\.json$/, ""))
+    .sort();
+}
+
+/**
+ * The matrix summary printed before the browser launched matches what was
+ * scanned. The matrix is discovered from the rendered HTML, so a drift between
+ * the announcement and the artifacts means discovery and scanning disagree.
+ */
+export const summaryMatchesMatrix: Verify = {
+  name: "the printed matrix matches the scanned cells",
+  verify: (output: ExecuteOutput[]) => {
+    const summary = output.map((line) => line.msg).join("\n").match(
+      /axe: (\d+) pages \([^)]*\) × \d+ viewports — (\d+) cells/,
+    );
+    assert(summary, "the matrix summary line was not printed");
+    const results = readFindings();
+    assertEquals(results.pages.length, parseInt(summary![1], 10));
+    assertEquals(results.cells.total, parseInt(summary![2], 10));
+    return Promise.resolve();
+  },
+};
 
 /**
  * Render one fixture site, scan it, and run `verifiers` against the artifacts.
@@ -130,6 +148,7 @@ export function axeSmokeTest(
         signatureScheme: kSignatureScheme,
       }),
       allCellsOk,
+      summaryMatchesMatrix,
       ...verifiers,
     ],
     {

@@ -31,11 +31,11 @@ or more than one page. `localized` means a one-off.
 Quarto site does this whenever it ships a page Pandoc never touched.
 
 The page earns its place for one reason: nothing in the scanner may require
-Quarto's DOM. It has no colour-scheme links and no toggle, so its dark cells
-must reuse the light payload instead of waiting for a control that will never
-appear. A Quarto page on this same site reaches its theme by clicking the
-toggle, and the smoke test asserts both, so reuse cannot be the scanner giving
-up everywhere.
+Quarto's DOM. It has no colour-scheme machinery at all, so mode discovery must
+give it one `default` cell per viewport while the Quarto pages around it get
+the light/dark pair. The smoke test asserts both on the same scan, so a single
+cell is provably a discovery about this page and not the scanner giving up
+everywhere.
 
 The page also carries exact markup for the signature-normalization edge cases,
 which is convenient but not the reason it is here. Those cases are pinned
@@ -62,17 +62,18 @@ below records what this site actually produces. It is the contract the smoke
 test asserts against.
 
 <!-- OBSERVED-BEGIN -->
-Recorded from a full scan: 16/16 cells ok, 9 findings (6 new, 3 known),
-axe-core 4.10.3, signature scheme 1.
+Recorded from a full scan: 14/14 cells ok (three light+dark pages, one
+`default` page), 9 findings (6 new, 3 known), axe-core 4.10.3, signature
+scheme 1.
 
 | signature | impact | scope | n | pages | viewports | themes | status |
 |---|---|---|---|---|---|---|---|
-| `button-name :: button[data-widget-target="#panel-*"]` | critical | systemic | 3 | static/legacy.html | both | both | new |
+| `button-name :: button[data-widget-target="#panel-*"]` | critical | systemic | 3 | static/legacy.html | both | default | new |
 | `image-alt :: img` | critical | systemic | 2 | about.html, index.html | both | both | known |
 | `image-alt :: img[width="*"]` | critical | localized | 2 | examples.html | both | both | known |
-| `image-alt :: #hero` | critical | localized | 2 | static/legacy.html | both | both | new |
-| `button-name :: button[data-widget-target="#settings-dialog"]` | critical | localized | 1 | static/legacy.html | both | both | new |
-| `link-name :: a` | serious | localized | 2 | static/legacy.html | both | both | new |
+| `image-alt :: #hero` | critical | localized | 2 | static/legacy.html | both | default | new |
+| `button-name :: button[data-widget-target="#settings-dialog"]` | critical | localized | 1 | static/legacy.html | both | default | new |
+| `link-name :: a` | serious | localized | 2 | static/legacy.html | both | default | new |
 | `link-name :: p > a` | serious | localized | 1 | index.html | both | both | known |
 | `heading-order :: h4` | moderate | localized | 1 | index.html | both | both | new |
 | `aria-allowed-role :: .navbar-toggler` | minor | systemic | 3 | about.html, examples.html, index.html | 390x844 | both | new |

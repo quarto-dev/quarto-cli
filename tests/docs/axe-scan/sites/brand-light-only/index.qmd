@@ -2,15 +2,15 @@
 title: Home
 ---
 
-This site's `_brand.yml` sets light values only, so Quarto emits
-`data-mode="light"` stylesheet links, no `data-mode="dark"` build and no
-colour-scheme toggle.
+This site's `_brand.yml` sets light values only, so Quarto emits the
+colour-scheme stylesheet links — all tagged `data-mode="light"` — but no
+before-body script and no colour-scheme toggle: there is one mode.
 
 ```{=html}
-<!-- PLANTED: button-name (critical). A bare button, so the page has one finding
-     to compare between the light cell and the dark cell that reuses it. Reuse
-     that returned an empty result would look identical to a clean page, so the
-     comparison needs something to find. -->
+<!-- PLANTED: button-name (critical). A bare button, so the page's single
+     'default' cell has one finding to report. An empty result would look
+     identical to a page that was never scanned, so the fixture needs
+     something to find. -->
 <p><button></button></p>
 ```
 

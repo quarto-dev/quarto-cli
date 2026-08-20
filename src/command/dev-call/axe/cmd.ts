@@ -2,24 +2,18 @@
  * cmd.ts
  *
  * `quarto dev-call axe` — hidden prototype accessibility scanner. Serves an
- * already-rendered site, drives headless Chrome over the page x viewport x
- * theme matrix with quarto-cli's vendored axe-core, and writes the raw per-cell
- * payloads. Aggregation and the HTML report come next.
+ * already-rendered site, discovers each page's colour modes from its HTML,
+ * drives headless Chrome over the page x viewport x mode matrix with
+ * quarto-cli's vendored axe-core, and writes the raw per-cell payloads.
+ * Aggregation and the HTML report come next.
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { Command } from "cliffy/command/mod.ts";
-import { error, info, warning } from "../../../deno_ral/log.ts";
-import { ensureDirSync, existsSync, walkSync } from "../../../deno_ral/fs.ts";
-import {
-  dirname,
-  globToRegExp,
-  join,
-  relative,
-  resolve,
-} from "../../../deno_ral/path.ts";
-import { pathWithForwardSlashes } from "../../../core/path.ts";
+import { error, info } from "../../../deno_ral/log.ts";
+import { ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
+import { dirname, join, resolve } from "../../../deno_ral/path.ts";
 import { findOpenPort } from "../../../core/port.ts";
 import { httpFileRequestHandler } from "../../../core/http.ts";
 import { handleHttpRequests } from "../../../core/http-server.ts";
@@ -34,6 +28,7 @@ import {
   kDefaultTimeout,
   kDefaultViewports,
 } from "./config.ts";
+import { applyThemesFilter, AxePage, discoverPages } from "./discover.ts";
 import { AxeCell, launchScanBrowser, runAxeScan } from "./scan.ts";
 import { aggregate } from "./aggregate.ts";
 import { renderReport } from "./report.ts";
@@ -46,37 +41,6 @@ const kExitComplete = 0;
  * deliberately no exit 1 in v1 — findings never fail the command.
  */
 const kExitIncomplete = 2;
-
-/**
- * Every `*.html` under `siteDir`, as sorted site-relative forward-slash paths,
- * narrowed by `--pages` and capped by `--max-pages`. Sorting before the cap is
- * what makes `--max-pages` deterministic.
- */
-export function discoverPages(config: AxeScanConfig): string[] {
-  const pages: string[] = [];
-  for (const entry of walkSync(config.siteDir, { includeDirs: false })) {
-    if (entry.path.endsWith(".html")) {
-      pages.push(
-        pathWithForwardSlashes(relative(config.siteDir, entry.path)),
-      );
-    }
-  }
-  pages.sort();
-
-  let selected = pages;
-  if (config.pages) {
-    const patterns = config.pages.map((glob) =>
-      globToRegExp(glob, { extended: true, globstar: true })
-    );
-    selected = pages.filter((page) =>
-      patterns.some((pattern) => pattern.test(page))
-    );
-  }
-  if (config.maxPages !== undefined) {
-    selected = selected.slice(0, config.maxPages);
-  }
-  return selected;
-}
 
 function cellLine(cell: AxeCell): string {
   const name = `${cell.page} ${cell.viewport} ${cell.theme}`;
@@ -179,13 +143,20 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     return kExitIncomplete;
   }
 
-  const pages = discoverPages(config);
-  if (pages.length === 0) {
-    error(
-      config.pages
-        ? `No pages in ${config.siteDir} matched --pages.`
-        : `No *.html pages found in ${config.siteDir}.`,
-    );
+  let pages: AxePage[];
+  try {
+    pages = discoverPages(config);
+    if (pages.length === 0) {
+      error(
+        config.pages
+          ? `No pages in ${config.siteDir} matched --pages.`
+          : `No *.html pages found in ${config.siteDir}.`,
+      );
+      return kExitIncomplete;
+    }
+    pages = applyThemesFilter(pages, config.themes);
+  } catch (e) {
+    error(e instanceof Error ? e.message : String(e));
     return kExitIncomplete;
   }
 
@@ -217,12 +188,29 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   });
   const baseUrl = `http://127.0.0.1:${sitePort}`;
 
-  const cellCount = pages.length * config.viewports.length *
-    config.themes.length;
+  // The matrix is known before the browser launches: modes were discovered
+  // from each page's rendered HTML, so print what will run — not a guess.
+  const modeSplit = new Map<string, number>();
+  for (const page of pages) {
+    const label = page.modes.join("+");
+    modeSplit.set(label, (modeSplit.get(label) ?? 0) + 1);
+  }
+  const split = [...modeSplit.entries()]
+    .map(([label, count]) => `${count} ${label}`)
+    .join(", ");
+  const cellCount = pages.reduce((sum, page) => sum + page.modes.length, 0) *
+    config.viewports.length;
   info(
-    `axe: ${pages.length} pages × ${config.viewports.length} viewports × ` +
-      `${config.themes.length} themes — ${cellCount} cells`,
+    `axe: ${pages.length} pages (${split}) × ` +
+      `${config.viewports.length} viewports — ${cellCount} cells`,
   );
+  const darkColoured = pages.filter((page) => page.darkColoured);
+  if (darkColoured.length) {
+    info(
+      `note: single mode, but the theme is dark-coloured (scanned once, ` +
+        `as 'default'): ${darkColoured.map((page) => page.path).join(", ")}`,
+    );
+  }
 
   let browser;
   try {
@@ -256,38 +244,6 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     if (scan.axeVersion) {
       info(
         `axe-core ${scan.axeVersion} (quarto-cli's vendored build, injected at scan time)`,
-      );
-    }
-
-    // A cell whose theme couldn't be selected is really the other theme. Say so:
-    // silently counting it as coverage is the same mistake as counting a failed
-    // cell as a pass.
-    const unreachable = scan.cells.filter((cell) =>
-      cell.colorScheme === "unreachable"
-    );
-    if (unreachable.length) {
-      warning(
-        `${unreachable.length} cell${
-          unreachable.length === 1 ? "" : "s"
-        } could not be switched to the requested theme, so they scanned the ` +
-          `other one: ${
-            [...new Set(unreachable.map((cell) => cell.page))].join(", ")
-          }`,
-      );
-    }
-    // Cells on pages with no Quarto dark theme reused a sibling's payload rather
-    // than running axe twice. Say so plainly, including the assumption: those
-    // pages are *assumed* to have no dark presentation, which is wrong if they
-    // carry hand-written prefers-color-scheme CSS.
-    const reused = scan.cells.filter((cell) =>
-      cell.colorScheme === "assumed-identical"
-    );
-    if (reused.length) {
-      info(
-        `note: ${reused.length} of ${scan.cells.length} cells reused a sibling ` +
-          `result — those pages offer no Quarto dark theme, so the theme axis ` +
-          `was assumed not to change them. If any has its own ` +
-          `prefers-color-scheme CSS, scan it with --themes dark.`,
       );
     }
 
@@ -356,8 +312,9 @@ export const axeCommand = new Command()
   .arguments("<site-dir:string>")
   .description(
     "Scan a rendered site for accessibility violations with axe-core.\n\n" +
-      "Prototype: scans every page in <site-dir> across the viewport x theme " +
-      "matrix, groups violations by root-cause signature, reconciles " +
+      "Prototype: scans every page in <site-dir> across the viewport x mode " +
+      "matrix (modes discovered per page from its HTML), groups violations " +
+      "by root-cause signature, reconciles " +
       `${kAxeBaselineFile}, and writes findings.json plus report.html to ` +
       `${kAxeOutputDir}/. Both sit at the project root (the nearest ` +
       `_quarto.yml at or above <site-dir>), or the working directory if ` +
@@ -378,7 +335,8 @@ export const axeCommand = new Command()
   )
   .option(
     "--themes <themes:string>",
-    "Comma-separated color schemes to emulate (light, dark).",
+    "Filter a two-mode page's discovered light/dark cells (light, dark). " +
+      "Pages with a single mode always scan once.",
     { default: kDefaultThemes },
   )
   .option(

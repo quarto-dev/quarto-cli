@@ -24,6 +24,7 @@ import { quartoConfig } from "../../../core/quarto.ts";
 import { md5HashSync } from "../../../core/hash.ts";
 import { AxeCell, AxeViolationNode } from "./scan.ts";
 import { AxeScanConfig } from "./config.ts";
+import { AxePage } from "./discover.ts";
 import {
   AxeBaseline,
   AxeFinding,
@@ -383,7 +384,7 @@ export interface AggregateOptions {
   config: AxeScanConfig;
   baseline: AxeBaseline;
   baselineFile: string;
-  pages: string[];
+  pages: AxePage[];
   axeVersion?: string;
 }
 
@@ -473,7 +474,9 @@ export function aggregate(options: AggregateOptions): AxeFindings {
       timeout: config.timeout,
       settle: config.settle,
     },
-    pages: pages.map((page) => ({ output: page })),
+    // `modes` are the modes this scan covered for the page (post `--themes`),
+    // so a CI consumer can tell "no dark mode" from "a cell went missing".
+    pages: pages.map((page) => ({ output: page.path, modes: page.modes })),
     cells: {
       total: cells.length,
       ok: okCells.length,

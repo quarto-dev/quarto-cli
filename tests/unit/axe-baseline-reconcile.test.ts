@@ -74,7 +74,11 @@ function run(cells: AxeCell[], baseline: AxeBaseline): AxeFindings {
     config: kConfig,
     baseline,
     baselineFile: "_axe-baseline.json",
-    pages: [...new Set(cells.map((c) => c.page))].sort(),
+    pages: [...new Set(cells.map((c) => c.page))].sort().map((path) => ({
+      path,
+      modes: ["light"],
+      darkColoured: false,
+    })),
   });
 }
 

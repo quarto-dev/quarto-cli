@@ -2,8 +2,10 @@
  * scan.ts
  *
  * The scan stage of `quarto dev-call axe`: drives headless Chrome over raw CDP
- * and runs quarto-cli's vendored axe-core against every page x viewport x theme
- * cell of an already-rendered site.
+ * and runs quarto-cli's vendored axe-core against every page x viewport x mode
+ * cell of an already-rendered site. The mode axis is discovered per page before
+ * the browser launches (see discover.ts); this stage only *selects* each cell's
+ * mode, by seeding Quarto's own localStorage key before navigation.
  *
  * Ported from the quarto-web harness (`_tools/axe/scan.mjs`), with one
  * architectural change: axe is injected at scan time rather than by a
@@ -24,7 +26,8 @@ import { getBrowserExecutablePath } from "../../../core/puppeteer.ts";
 import { onCleanup } from "../../../core/cleanup.ts";
 import { getenv } from "../../../core/env.ts";
 import { safeRemoveDirSync } from "../../../deno_ral/fs.ts";
-import { AxeScanConfig, AxeTheme, AxeViewport } from "./config.ts";
+import { AxeScanConfig, AxeViewport } from "./config.ts";
+import { AxeMode, AxePage } from "./discover.ts";
 
 /** Status of a single scanned cell. Anything but "ok" fails closed. */
 export type AxeCellStatus = "ok" | "timeout" | "error" | "no-payload";
@@ -67,36 +70,19 @@ export interface AxeRunResult {
   timestamp?: string;
 }
 
-/**
- * How the page was put into the requested colour scheme.
- *
- * - `emulated` — `prefers-color-scheme` was enough, either because the page has
- *   no Quarto colour-scheme machinery to select, or because it already matched.
- * - `toggled` — Quarto's toggle had to be clicked, which is the normal case: a
- *   site with `light:`/`dark:` themes ignores `prefers-color-scheme` unless
- *   `respect-user-color-scheme` is set.
- * - `unreachable` — the page ships a dark theme but the scanner could not select
- *   it (no toggle rendered on this page). The cell is really the other theme, so
- *   it must not read as coverage of this one.
- * - `assumed-identical` — the page offers no Quarto dark theme to select, so an
- *   already-scanned sibling cell's payload was reused instead of running axe
- *   again. An assumption, not a proof: see `hasSelectableDarkTheme`.
- */
-export type AxeColorSchemeMechanism =
-  | "emulated"
-  | "toggled"
-  | "unreachable"
-  | "assumed-identical";
-
-/** One page x viewport x theme cell: the unit of scanning and of fail-closed. */
+/** One page x viewport x mode cell: the unit of scanning and of fail-closed. */
 export interface AxeCell {
   page: string;
   viewport: string;
-  theme: AxeTheme;
+  /** The colour mode this cell scanned: an author slot, or `default`. */
+  theme: AxeMode;
   url: string;
   status: AxeCellStatus;
-  /** How the requested theme was reached. */
-  colorScheme?: AxeColorSchemeMechanism;
+  /**
+   * The page's single mode is dark-coloured (`theme: darkly`). An annotation
+   * carried from discovery — never part of the cell's name.
+   */
+  darkColoured?: boolean;
   /** Present when status is not "ok". */
   message?: string;
   /** Present when status is "ok". */
@@ -429,150 +415,40 @@ const kAxeRunExpression = `
 `;
 
 /**
- * Read the page's active colour scheme.
+ * Select a two-mode page's mode before navigation.
  *
- * `supported` is false when there is no Quarto dark stylesheet to select, which
- * covers single-theme sites and hand-written pages — there, `prefers-color-scheme`
- * emulation is all there is, and it is already applied.
- *
- * The active mode is read from whether the `data-mode="dark"` stylesheet is
- * enabled, not from `localStorage` or the toggle's own state: it is the thing
- * that actually decides what the user sees, and it is correct whether the mode
- * came from `respect-user-color-scheme`, from a click, or from the author's
- * default.
+ * `localStorage["quarto-color-scheme"]` is Quarto's own persistence for the
+ * colour-scheme toggle: `"alternate"` is the dark slot (always), `"default"`
+ * the other. The inline before-body script applies a stored value during
+ * parse, before first paint, and an explicit stored value wins in both
+ * `respect-user-color-scheme` settings — so seeding it via
+ * `Page.addScriptToEvaluateOnNewDocument` (which runs before parse) selects
+ * the mode deterministically: no toggle click, no post-swap settle, no
+ * cross-cell leak to manage. On `file:`/opaque origins setItem throws; those
+ * pages have no localStorage-reading script either, so swallowing it is right.
  */
-const kColorSchemeProbe = `
-(function () {
-  var dark = document.querySelector('link.quarto-color-scheme[data-mode="dark"]');
-  if (!dark) {
-    return { supported: false, active: null, hasToggle: false };
-  }
-  return {
-    supported: true,
-    active: dark.getAttribute("rel") === "stylesheet" ? "dark" : "light",
-    hasToggle: !!document.querySelector(".quarto-color-scheme-toggle"),
-  };
-})()
-`;
-
-const kColorSchemeToggleClick = `
-(function () {
-  var toggle = document.querySelector(".quarto-color-scheme-toggle");
-  if (!toggle) {
-    return false;
-  }
-  toggle.click();
-  return true;
-})()
-`;
-
-/**
- * Does this page offer a Quarto dark theme to select?
- *
- * Used to decide whether a second theme cell can reuse the first's payload. The
- * question is deliberately narrow — one selector, no stylesheet inspection —
- * because on the sites this tool is for, a Quarto dark theme is the only thing
- * that makes a theme cell differ: a rendered Quarto site contains no
- * `prefers-color-scheme` at all (measured on both a single-theme and a
- * light+dark site; Bootstrap's `_color-mode.scss` mixins are compiled away, and
- * the only occurrence in the core template is the `matchMedia` read that
- * `respect-user-color-scheme` emits).
- *
- * **The assumption this makes, and where it is wrong.** A page with no Quarto
- * dark theme but with hand-written `@media (prefers-color-scheme: dark)` CSS
- * *does* have a dark presentation, and its dark-only findings will be missed.
- * Known instances: a custom `.scss` that rolls its own dark mode, and bslib's
- * web components (Quarto dashboards, value boxes), which carry
- * `prefers-color-scheme` rules inside shadow roots. Both are uncommon; neither
- * is impossible. `--themes dark` alone still scans such a page properly, since
- * there is then no sibling to reuse.
- *
- * The safer version — enumerate every stylesheet, including shadow roots, and
- * fail closed on anything unreadable — was built and removed as unjustified
- * complexity for v1. M5 is where we find out whether that was right.
- */
-const kSelectableDarkThemeProbe = `
-!!document.querySelector('link.quarto-color-scheme[data-mode="dark"]')
-`;
-
-/** True when a Quarto dark theme is present, or when the probe can't tell. */
-async function hasSelectableDarkTheme(client: CdpClient): Promise<boolean> {
-  const response = await client.send<RuntimeEvaluateResult>(
-    "Runtime.evaluate",
-    { expression: kSelectableDarkThemeProbe, returnByValue: true },
-  );
-  if (evaluateError(response)) {
-    return true;
-  }
-  return response.result?.value !== false;
-}
-
-interface ColorSchemeState {
-  supported: boolean;
-  active: AxeTheme | null;
-  hasToggle: boolean;
+function colorSchemeSeedSource(mode: AxeMode): string {
+  const value = mode === "dark" ? "alternate" : "default";
+  return `try {
+  window.localStorage.setItem("quarto-color-scheme", "${value}");
+} catch (_e) { /* no localStorage on this origin: nothing reads it either */ }`;
 }
 
 /**
- * Select the author's `theme` presentation, by whichever route this page offers.
- *
- * What the theme axis tests is the two themes the *author* ships, not the two
- * states a user's OS can be in. A given page offers one or both routes into a
- * theme, and they are not interchangeable:
- *
- * - Quarto's `light:`/`dark:` themes are selected by its colour-scheme toggle.
- *   That is the only route when `respect-user-color-scheme` is false, which is
- *   the default — so emulation alone would scan the light theme twice.
- * - Author CSS under `@media (prefers-color-scheme: dark)` is selected by
- *   emulation, and on a non-Quarto page emulation is the only route at all.
- *
- * So both are set, pointing at the same theme, and the result is read back
- * rather than assumed. That makes `respect-user-color-scheme` invisible here:
- * when it is true, emulation has already selected the theme and no click
- * happens.
- *
- * Called for every cell, not once per run. The toggle writes `localStorage` and
- * the whole scan is served from one origin, so a click in one cell would
- * otherwise leak into every later page load.
+ * The mode the loaded page says it is in. Every Bootstrap page carries
+ * `quarto-light` or `quarto-dark` on `body` — identifying the active *slot*,
+ * kept in sync by the before-body script — so on a two-mode page this verifies
+ * the seed took. Null where no such class exists.
  */
-async function alignColorScheme(
-  client: CdpClient,
-  theme: AxeTheme,
-  settle: number,
-): Promise<AxeColorSchemeMechanism> {
-  const read = async (): Promise<ColorSchemeState | undefined> => {
-    const response = await client.send<RuntimeEvaluateResult>(
-      "Runtime.evaluate",
-      { expression: kColorSchemeProbe, returnByValue: true },
-    );
-    if (evaluateError(response)) {
-      return undefined;
-    }
-    return response.result?.value as ColorSchemeState | undefined;
-  };
-
-  const before = await read();
-  // No Quarto dark stylesheet, or the probe failed: emulation is all we have.
-  if (!before?.supported || before.active === theme) {
-    return "emulated";
-  }
-  if (!before.hasToggle) {
-    return "unreachable";
-  }
-
-  const clicked = await client.send<RuntimeEvaluateResult>("Runtime.evaluate", {
-    expression: kColorSchemeToggleClick,
-    returnByValue: true,
-  });
-  if (evaluateError(clicked) || clicked.result?.value !== true) {
-    return "unreachable";
-  }
-  // The swap re-lays-out the page, so give it the same grace as the initial load.
-  await sleep(settle);
-
-  const after = await read();
-  return after?.active === theme ? "toggled" : "unreachable";
-}
+const kBodyModeProbe = `
+(function () {
+  var cls = document.body ? document.body.classList : null;
+  if (!cls) return null;
+  if (cls.contains("quarto-dark")) return "dark";
+  if (cls.contains("quarto-light")) return "light";
+  return null;
+})()
+`;
 
 interface RuntimeEvaluateResult {
   result?: { value?: unknown };
@@ -591,9 +467,9 @@ async function scanCell(
   client: CdpClient,
   axeSource: string,
   config: AxeScanConfig,
-  page: string,
+  page: AxePage,
   viewport: AxeViewport,
-  theme: AxeTheme,
+  mode: AxeMode,
   url: string,
 ): Promise<AxeCell> {
   const started = Date.now();
@@ -601,14 +477,19 @@ async function scanCell(
     status: AxeCellStatus,
     extra: Partial<AxeCell> = {},
   ): AxeCell => ({
-    page,
+    page: page.path,
     viewport: viewport.label,
-    theme,
+    theme: mode,
     url,
     status,
+    ...(page.darkColoured ? { darkColoured: true } : {}),
     elapsed: Date.now() - started,
     ...extra,
   });
+
+  // Registered before navigation, removed after the cell — including on the
+  // timeout path, so a stale seed can't run under a later cell's navigation.
+  let seedId: string | undefined;
 
   const load = client.once("Page.loadEventFired");
   const run = (async (): Promise<AxeCell> => {
@@ -618,9 +499,23 @@ async function scanCell(
       deviceScaleFactor: 1,
       mobile: false,
     });
+    // Kept aligned with the mode for the sake of any hand-written
+    // prefers-color-scheme CSS. It cannot select a Quarto mode — the themes
+    // ignore it unless respect-user-color-scheme is set — and where it could
+    // (respect-user-color-scheme: true), the seeded stored value wins anyway.
     await client.send("Emulation.setEmulatedMedia", {
-      features: [{ name: "prefers-color-scheme", value: theme }],
+      features: [{
+        name: "prefers-color-scheme",
+        value: mode === "dark" ? "dark" : "light",
+      }],
     });
+    if (mode !== "default") {
+      const seeded = await client.send<{ identifier?: string }>(
+        "Page.addScriptToEvaluateOnNewDocument",
+        { source: colorSchemeSeedSource(mode) },
+      );
+      seedId = seeded.identifier;
+    }
 
     const navigation = await client.send<{ errorText?: string }>(
       "Page.navigate",
@@ -637,10 +532,21 @@ async function scanCell(
     // axe reads computed style.
     await sleep(config.settle);
 
-    // Select the author's theme for this cell. Quarto's themes ignore
-    // prefers-color-scheme by default, so emulation alone would scan the light
-    // theme twice.
-    const colorScheme = await alignColorScheme(client, theme, config.settle);
+    // Verify the seed took, from the body class where one exists. A mismatch
+    // is an infrastructure failure: the cell would really be the other mode,
+    // and fail-closed beats miscounted coverage.
+    if (mode !== "default") {
+      const probed = await client.send<RuntimeEvaluateResult>(
+        "Runtime.evaluate",
+        { expression: kBodyModeProbe, returnByValue: true },
+      );
+      const active = evaluateError(probed) ? null : probed.result?.value;
+      if (active != null && active !== mode) {
+        return cell("error", {
+          message: `page loaded in ${active} mode, expected ${mode}`,
+        });
+      }
+    }
 
     const injected = await client.send<RuntimeEvaluateResult>(
       "Runtime.evaluate",
@@ -649,7 +555,6 @@ async function scanCell(
     const injectError = evaluateError(injected);
     if (injectError) {
       return cell("error", {
-        colorScheme,
         message: `axe injection failed: ${injectError}`,
       });
     }
@@ -665,7 +570,6 @@ async function scanCell(
     const runError = evaluateError(evaluated);
     if (runError) {
       return cell("error", {
-        colorScheme,
         message: `axe.run() failed: ${runError}`,
       });
     }
@@ -673,11 +577,10 @@ async function scanCell(
     const value = evaluated.result?.value as AxeRunResult | undefined;
     if (!value || !Array.isArray(value.violations)) {
       return cell("no-payload", {
-        colorScheme,
         message: "axe.run() returned no violations array",
       });
     }
-    return cell("ok", { colorScheme, result: value });
+    return cell("ok", { result: value });
   })();
 
   const timedOut = Symbol("timeout");
@@ -685,31 +588,44 @@ async function scanCell(
     run,
     sleep(config.timeout).then(() => timedOut),
   ]);
+
+  let result: AxeCell;
   if (outcome !== timedOut) {
-    return outcome as AxeCell;
+    result = outcome as AxeCell;
+  } else {
+    // Stop caring about this cell's load event, and take the page down so a
+    // hung axe.run() can't bleed into the next cell.
+    load.cancel();
+    try {
+      await client.send("Page.navigate", { url: "about:blank" });
+    } catch (_e) {
+      // if even that fails the next cell will report the real problem
+    }
+    result = cell("timeout", {
+      message: `cell exceeded --timeout of ${config.timeout}ms`,
+    });
   }
 
-  // Stop caring about this cell's load event, and take the page down so a hung
-  // axe.run() can't bleed into the next cell.
-  load.cancel();
-  try {
-    await client.send("Page.navigate", { url: "about:blank" });
-  } catch (_e) {
-    // if even that fails the next cell will report the real problem
+  if (seedId) {
+    try {
+      await client.send("Page.removeScriptToEvaluateOnNewDocument", {
+        identifier: seedId,
+      });
+    } catch (_e) {
+      // a stale seed runs before the next cell's own, which then overwrites it
+    }
   }
-  return cell("timeout", {
-    message: `cell exceeded --timeout of ${config.timeout}ms`,
-  });
+  return result;
 }
 
 /** Filesystem-safe cell name, e.g. `docs_index__1440x900__dark`. */
 export function cellName(
   page: string,
   viewport: string,
-  theme: string,
+  mode: string,
 ): string {
   const slug = page.replace(/\.html$/, "").replace(/[\/\\]/g, "_") || "index";
-  return `${slug}__${viewport}__${theme}`;
+  return `${slug}__${viewport}__${mode}`;
 }
 
 export interface AxeScanResult {
@@ -719,15 +635,16 @@ export interface AxeScanResult {
 }
 
 /**
- * Run the page x viewport x theme matrix, writing each cell's raw payload to
- * `cellsDir` as it completes. `onCell` is called after each cell so the caller
- * can report progress.
+ * Run the page x viewport x mode matrix — each page contributes exactly its
+ * discovered (and `--themes`-filtered) modes — writing each cell's raw payload
+ * to `cellsDir` as it completes. `onCell` is called after each cell so the
+ * caller can report progress.
  */
 export async function runAxeScan(
   client: CdpClient,
   config: AxeScanConfig,
   baseUrl: string,
-  pages: string[],
+  pages: AxePage[],
   cellsDir: string,
   onCell?: (cell: AxeCell) => void,
 ): Promise<AxeScanResult> {
@@ -740,39 +657,20 @@ export async function runAxeScan(
   let axeVersion: string | undefined;
   for (const page of pages) {
     for (const viewport of config.viewports) {
-      // Within one page x viewport, a later theme reuses an earlier one's
-      // payload when the page has no Quarto dark theme to select. Reuse, never
-      // omission: the cell stays in the matrix with a real result, so nothing
-      // silently drops out of the accounting.
-      let reusable: AxeCell | undefined;
-      for (const theme of config.themes) {
-        const url = `${baseUrl}/${page}`;
-        let cell: AxeCell;
-        if (reusable?.result) {
-          cell = {
-            ...reusable,
-            theme,
-            colorScheme: "assumed-identical",
-            elapsed: 0,
-          };
-        } else {
-          cell = await scanCell(
-            client,
-            axeSource,
-            config,
-            page,
-            viewport,
-            theme,
-            url,
-          );
-          // Only a cell that really ran can be reused from.
-          if (cell.status === "ok" && !await hasSelectableDarkTheme(client)) {
-            reusable = cell;
-          }
-        }
+      for (const mode of page.modes) {
+        const url = `${baseUrl}/${page.path}`;
+        const cell = await scanCell(
+          client,
+          axeSource,
+          config,
+          page,
+          viewport,
+          mode,
+          url,
+        );
         axeVersion = axeVersion ?? cell.result?.testEngine?.version;
         Deno.writeTextFileSync(
-          join(cellsDir, `${cellName(page, viewport.label, theme)}.json`),
+          join(cellsDir, `${cellName(page.path, viewport.label, mode)}.json`),
           JSON.stringify(cell, null, 2),
         );
         cells.push(cell);
