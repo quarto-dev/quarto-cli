@@ -7,6 +7,7 @@ import { showAstTraceCommand } from "./show-ast-trace/cmd.ts";
 import { makeAstDiagramCommand } from "./make-ast-diagram/cmd.ts";
 import { pullGitSubtreeCommand } from "./pull-git-subtree/cmd.ts";
 import { typstGatherCommand } from "./typst-gather/cmd.ts";
+import { axeCommand } from "./axe/cmd.ts";
 
 type CommandOptionInfo = {
   name: string;
@@ -79,4 +80,5 @@ export const devCallCommand = new Command()
   .command("show-ast-trace", showAstTraceCommand)
   .command("make-ast-diagram", makeAstDiagramCommand)
   .command("pull-git-subtree", pullGitSubtreeCommand)
-  .command("typst-gather", typstGatherCommand);
+  .command("typst-gather", typstGatherCommand)
+  .command("axe", axeCommand);
