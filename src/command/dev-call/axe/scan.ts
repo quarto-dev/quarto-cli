@@ -67,6 +67,27 @@ export interface AxeRunResult {
   timestamp?: string;
 }
 
+/**
+ * How the page was put into the requested colour scheme.
+ *
+ * - `emulated` — `prefers-color-scheme` was enough, either because the page has
+ *   no Quarto colour-scheme machinery to select, or because it already matched.
+ * - `toggled` — Quarto's toggle had to be clicked, which is the normal case: a
+ *   site with `light:`/`dark:` themes ignores `prefers-color-scheme` unless
+ *   `respect-user-color-scheme` is set.
+ * - `unreachable` — the page ships a dark theme but the scanner could not select
+ *   it (no toggle rendered on this page). The cell is really the other theme, so
+ *   it must not read as coverage of this one.
+ * - `assumed-identical` — the page offers no Quarto dark theme to select, so an
+ *   already-scanned sibling cell's payload was reused instead of running axe
+ *   again. An assumption, not a proof: see `hasSelectableDarkTheme`.
+ */
+export type AxeColorSchemeMechanism =
+  | "emulated"
+  | "toggled"
+  | "unreachable"
+  | "assumed-identical";
+
 /** One page x viewport x theme cell: the unit of scanning and of fail-closed. */
 export interface AxeCell {
   page: string;
@@ -74,6 +95,8 @@ export interface AxeCell {
   theme: AxeTheme;
   url: string;
   status: AxeCellStatus;
+  /** How the requested theme was reached. */
+  colorScheme?: AxeColorSchemeMechanism;
   /** Present when status is not "ok". */
   message?: string;
   /** Present when status is "ok". */
@@ -405,6 +428,152 @@ const kAxeRunExpression = `
 })()
 `;
 
+/**
+ * Read the page's active colour scheme.
+ *
+ * `supported` is false when there is no Quarto dark stylesheet to select, which
+ * covers single-theme sites and hand-written pages — there, `prefers-color-scheme`
+ * emulation is all there is, and it is already applied.
+ *
+ * The active mode is read from whether the `data-mode="dark"` stylesheet is
+ * enabled, not from `localStorage` or the toggle's own state: it is the thing
+ * that actually decides what the user sees, and it is correct whether the mode
+ * came from `respect-user-color-scheme`, from a click, or from the author's
+ * default.
+ */
+const kColorSchemeProbe = `
+(function () {
+  var dark = document.querySelector('link.quarto-color-scheme[data-mode="dark"]');
+  if (!dark) {
+    return { supported: false, active: null, hasToggle: false };
+  }
+  return {
+    supported: true,
+    active: dark.getAttribute("rel") === "stylesheet" ? "dark" : "light",
+    hasToggle: !!document.querySelector(".quarto-color-scheme-toggle"),
+  };
+})()
+`;
+
+const kColorSchemeToggleClick = `
+(function () {
+  var toggle = document.querySelector(".quarto-color-scheme-toggle");
+  if (!toggle) {
+    return false;
+  }
+  toggle.click();
+  return true;
+})()
+`;
+
+/**
+ * Does this page offer a Quarto dark theme to select?
+ *
+ * Used to decide whether a second theme cell can reuse the first's payload. The
+ * question is deliberately narrow — one selector, no stylesheet inspection —
+ * because on the sites this tool is for, a Quarto dark theme is the only thing
+ * that makes a theme cell differ: a rendered Quarto site contains no
+ * `prefers-color-scheme` at all (measured on both a single-theme and a
+ * light+dark site; Bootstrap's `_color-mode.scss` mixins are compiled away, and
+ * the only occurrence in the core template is the `matchMedia` read that
+ * `respect-user-color-scheme` emits).
+ *
+ * **The assumption this makes, and where it is wrong.** A page with no Quarto
+ * dark theme but with hand-written `@media (prefers-color-scheme: dark)` CSS
+ * *does* have a dark presentation, and its dark-only findings will be missed.
+ * Known instances: a custom `.scss` that rolls its own dark mode, and bslib's
+ * web components (Quarto dashboards, value boxes), which carry
+ * `prefers-color-scheme` rules inside shadow roots. Both are uncommon; neither
+ * is impossible. `--themes dark` alone still scans such a page properly, since
+ * there is then no sibling to reuse.
+ *
+ * The safer version — enumerate every stylesheet, including shadow roots, and
+ * fail closed on anything unreadable — was built and removed as unjustified
+ * complexity for v1. M5 is where we find out whether that was right.
+ */
+const kSelectableDarkThemeProbe = `
+!!document.querySelector('link.quarto-color-scheme[data-mode]')
+`;
+
+/** True when a Quarto dark theme is present, or when the probe can't tell. */
+async function hasSelectableDarkTheme(client: CdpClient): Promise<boolean> {
+  const response = await client.send<RuntimeEvaluateResult>(
+    "Runtime.evaluate",
+    { expression: kSelectableDarkThemeProbe, returnByValue: true },
+  );
+  if (evaluateError(response)) {
+    return true;
+  }
+  return response.result?.value !== false;
+}
+
+interface ColorSchemeState {
+  supported: boolean;
+  active: AxeTheme | null;
+  hasToggle: boolean;
+}
+
+/**
+ * Select the author's `theme` presentation, by whichever route this page offers.
+ *
+ * What the theme axis tests is the two themes the *author* ships, not the two
+ * states a user's OS can be in. A given page offers one or both routes into a
+ * theme, and they are not interchangeable:
+ *
+ * - Quarto's `light:`/`dark:` themes are selected by its colour-scheme toggle.
+ *   That is the only route when `respect-user-color-scheme` is false, which is
+ *   the default — so emulation alone would scan the light theme twice.
+ * - Author CSS under `@media (prefers-color-scheme: dark)` is selected by
+ *   emulation, and on a non-Quarto page emulation is the only route at all.
+ *
+ * So both are set, pointing at the same theme, and the result is read back
+ * rather than assumed. That makes `respect-user-color-scheme` invisible here:
+ * when it is true, emulation has already selected the theme and no click
+ * happens.
+ *
+ * Called for every cell, not once per run. The toggle writes `localStorage` and
+ * the whole scan is served from one origin, so a click in one cell would
+ * otherwise leak into every later page load.
+ */
+async function alignColorScheme(
+  client: CdpClient,
+  theme: AxeTheme,
+  settle: number,
+): Promise<AxeColorSchemeMechanism> {
+  const read = async (): Promise<ColorSchemeState | undefined> => {
+    const response = await client.send<RuntimeEvaluateResult>(
+      "Runtime.evaluate",
+      { expression: kColorSchemeProbe, returnByValue: true },
+    );
+    if (evaluateError(response)) {
+      return undefined;
+    }
+    return response.result?.value as ColorSchemeState | undefined;
+  };
+
+  const before = await read();
+  // No Quarto dark stylesheet, or the probe failed: emulation is all we have.
+  if (!before?.supported || before.active === theme) {
+    return "emulated";
+  }
+  if (!before.hasToggle) {
+    return "unreachable";
+  }
+
+  const clicked = await client.send<RuntimeEvaluateResult>("Runtime.evaluate", {
+    expression: kColorSchemeToggleClick,
+    returnByValue: true,
+  });
+  if (evaluateError(clicked) || clicked.result?.value !== true) {
+    return "unreachable";
+  }
+  // The swap re-lays-out the page, so give it the same grace as the initial load.
+  await sleep(settle);
+
+  const after = await read();
+  return after?.active === theme ? "toggled" : "unreachable";
+}
+
 interface RuntimeEvaluateResult {
   result?: { value?: unknown };
   exceptionDetails?: { text?: string; exception?: { description?: string } };
@@ -468,13 +637,21 @@ async function scanCell(
     // axe reads computed style.
     await sleep(config.settle);
 
+    // Select the author's theme for this cell. Quarto's themes ignore
+    // prefers-color-scheme by default, so emulation alone would scan the light
+    // theme twice.
+    const colorScheme = await alignColorScheme(client, theme, config.settle);
+
     const injected = await client.send<RuntimeEvaluateResult>(
       "Runtime.evaluate",
       { expression: axeSource, returnByValue: false },
     );
     const injectError = evaluateError(injected);
     if (injectError) {
-      return cell("error", { message: `axe injection failed: ${injectError}` });
+      return cell("error", {
+        colorScheme,
+        message: `axe injection failed: ${injectError}`,
+      });
     }
 
     const evaluated = await client.send<RuntimeEvaluateResult>(
@@ -487,16 +664,20 @@ async function scanCell(
     );
     const runError = evaluateError(evaluated);
     if (runError) {
-      return cell("error", { message: `axe.run() failed: ${runError}` });
+      return cell("error", {
+        colorScheme,
+        message: `axe.run() failed: ${runError}`,
+      });
     }
 
     const value = evaluated.result?.value as AxeRunResult | undefined;
     if (!value || !Array.isArray(value.violations)) {
       return cell("no-payload", {
+        colorScheme,
         message: "axe.run() returned no violations array",
       });
     }
-    return cell("ok", { result: value });
+    return cell("ok", { colorScheme, result: value });
   })();
 
   const timedOut = Symbol("timeout");
@@ -559,17 +740,36 @@ export async function runAxeScan(
   let axeVersion: string | undefined;
   for (const page of pages) {
     for (const viewport of config.viewports) {
+      // Within one page x viewport, a later theme reuses an earlier one's
+      // payload when the page has no Quarto dark theme to select. Reuse, never
+      // omission: the cell stays in the matrix with a real result, so nothing
+      // silently drops out of the accounting.
+      let reusable: AxeCell | undefined;
       for (const theme of config.themes) {
         const url = `${baseUrl}/${page}`;
-        const cell = await scanCell(
-          client,
-          axeSource,
-          config,
-          page,
-          viewport,
-          theme,
-          url,
-        );
+        let cell: AxeCell;
+        if (reusable?.result) {
+          cell = {
+            ...reusable,
+            theme,
+            colorScheme: "assumed-identical",
+            elapsed: 0,
+          };
+        } else {
+          cell = await scanCell(
+            client,
+            axeSource,
+            config,
+            page,
+            viewport,
+            theme,
+            url,
+          );
+          // Only a cell that really ran can be reused from.
+          if (cell.status === "ok" && !await hasSelectableDarkTheme(client)) {
+            reusable = cell;
+          }
+        }
         axeVersion = axeVersion ?? cell.result?.testEngine?.version;
         Deno.writeTextFileSync(
           join(cellsDir, `${cellName(page, viewport.label, theme)}.json`),
