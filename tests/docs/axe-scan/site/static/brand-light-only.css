@@ -1,0 +1,8 @@
+/* Referenced by brand-light-only.html so its colour-scheme links resolve
+   rather than 404. Deliberately contains no @media (prefers-color-scheme)
+   rule: the page must look the same in both themes. */
+body {
+  background: #ffffff;
+  color: #1a1a1a;
+  font-family: system-ui, sans-serif;
+}

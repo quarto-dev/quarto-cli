@@ -492,7 +492,7 @@ const kColorSchemeToggleClick = `
  * complexity for v1. M5 is where we find out whether that was right.
  */
 const kSelectableDarkThemeProbe = `
-!!document.querySelector('link.quarto-color-scheme[data-mode]')
+!!document.querySelector('link.quarto-color-scheme[data-mode="dark"]')
 `;
 
 /** True when a Quarto dark theme is present, or when the probe can't tell. */
