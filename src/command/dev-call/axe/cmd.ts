@@ -12,11 +12,18 @@
 import { Command } from "cliffy/command/mod.ts";
 import { error, info } from "../../../deno_ral/log.ts";
 import { ensureDirSync, existsSync, walkSync } from "../../../deno_ral/fs.ts";
-import { globToRegExp, join, relative } from "../../../deno_ral/path.ts";
+import {
+  dirname,
+  globToRegExp,
+  join,
+  relative,
+  resolve,
+} from "../../../deno_ral/path.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { findOpenPort } from "../../../core/port.ts";
 import { httpFileRequestHandler } from "../../../core/http.ts";
 import { handleHttpRequests } from "../../../core/http-server.ts";
+import { projectConfigFile } from "../../../project/project-shared.ts";
 import {
   AxeScanConfig,
   axeScanConfig,
@@ -28,6 +35,9 @@ import {
   kDefaultViewports,
 } from "./config.ts";
 import { AxeCell, launchScanBrowser, runAxeScan } from "./scan.ts";
+import { aggregate } from "./aggregate.ts";
+import { renderReport } from "./report.ts";
+import { AxeBaseline, AxeFindings, parseBaseline } from "./schemas.ts";
 
 /** Scan complete: every cell produced an axe payload. */
 const kExitComplete = 0;
@@ -81,6 +91,82 @@ function cellLine(cell: AxeCell): string {
 }
 
 /**
+ * Where `_axe-checks/` and `_axe-baseline.json` live: the nearest project root
+ * at or above the site dir, else the working directory.
+ *
+ * The artifacts sit *beside* the output dir, never inside it — a full render of
+ * a website or book deletes the output dir, and anything that survived there
+ * would be published. The cheap `_quarto.yml` check agrees with a real
+ * `ProjectContext.dir` wherever a project config exists; reading the project's
+ * own `output-dir` is what would need `projectContext()`, and that is deferred
+ * (see the design note's cut list).
+ */
+export function resolveAnchor(siteDir: string): string {
+  let dir = resolve(siteDir);
+  for (;;) {
+    if (projectConfigFile(dir)) {
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      return Deno.cwd();
+    }
+    dir = parent;
+  }
+}
+
+/**
+ * Read the hand-written ledger. Missing is fine — that's the first run. A
+ * present-but-invalid ledger is an error: a misspelled field would otherwise
+ * mean "no impact recorded" or "site-wide", silently.
+ */
+export function readBaseline(file: string): AxeBaseline {
+  if (!existsSync(file)) {
+    return { findings: [] };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(Deno.readTextFileSync(file));
+  } catch (e) {
+    throw new Error(
+      `${file} is not valid JSON: ${e instanceof Error ? e.message : e}`,
+    );
+  }
+  const result = parseBaseline(parsed);
+  if (!result.success) {
+    const issues = result.issues.map((issue) =>
+      `  ${issue.path}: ${issue.message}`
+    ).join("\n");
+    throw new Error(`${file} is not a valid baseline:\n${issues}`);
+  }
+  return result.baseline;
+}
+
+function summaryTable(results: AxeFindings): string[] {
+  if (results.findings.length === 0) {
+    return ["  (no violations found)"];
+  }
+  const rows = results.findings.map((finding) => [
+    finding.id,
+    finding.impact,
+    finding.standard,
+    String(finding.instances),
+    String(finding.pages.length),
+    finding.label,
+    finding.baselined ? "known" : "new",
+  ]);
+  const header = ["ID", "IMPACT", "STANDARD", "N", "PAGES", "SCOPE", "STATUS"];
+  const widths = header.map((cell, column) =>
+    Math.max(cell.length, ...rows.map((row) => row[column].length))
+  );
+  const line = (cells: string[]) =>
+    "  " +
+    cells.map((cell, column) => cell.padEnd(widths[column])).join("  ")
+      .trimEnd();
+  return [line(header), ...rows.map(line)];
+}
+
+/**
  * Run the scan stage against `config.siteDir` and return the process exit code.
  */
 export async function axeScan(config: AxeScanConfig): Promise<number> {
@@ -103,8 +189,19 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     return kExitIncomplete;
   }
 
-  const cellsDir = join(kAxeOutputDir, "cells");
+  const anchor = resolveAnchor(config.siteDir);
+  const outputDir = join(anchor, kAxeOutputDir);
+  const cellsDir = join(outputDir, "cells");
+  const baselineFile = join(anchor, kAxeBaselineFile);
   ensureDirSync(cellsDir);
+
+  let baseline: AxeBaseline;
+  try {
+    baseline = readBaseline(baselineFile);
+  } catch (e) {
+    error(e instanceof Error ? e.message : String(e));
+    return kExitIncomplete;
+  }
 
   // Serve the site dir first, so the bound port can't be handed to Chrome next.
   const sitePort = findOpenPort();
@@ -161,7 +258,49 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
         `axe-core ${scan.axeVersion} (quarto-cli's vendored build, injected at scan time)`,
       );
     }
-    info(`cells: ${cellsDir}`);
+
+    const results = aggregate({
+      cells: scan.cells,
+      config,
+      baseline,
+      baselineFile,
+      pages,
+      axeVersion: scan.axeVersion,
+    });
+
+    const findingsFile = join(outputDir, "findings.json");
+    const reportFile = join(outputDir, "report.html");
+    Deno.writeTextFileSync(findingsFile, JSON.stringify(results, null, 2));
+    Deno.writeTextFileSync(reportFile, renderReport(results));
+
+    info("");
+    for (const row of summaryTable(results)) {
+      info(row);
+    }
+    info("");
+    info(
+      `  ${results.counts.total} finding${
+        results.counts.total === 1 ? "" : "s"
+      } (${results.counts.new} new, ${results.counts.baselined} known)`,
+    );
+    info(`  findings: ${findingsFile}`);
+    info(`  report:   ${reportFile}`);
+    info(`  cells:    ${cellsDir}`);
+    info(
+      `  baseline: ${baselineFile} (${results.baseline.entries} entr` +
+        `${results.baseline.entries === 1 ? "y" : "ies"}` +
+        `${existsSync(baselineFile) ? "" : ", not present"})`,
+    );
+    if (results.baseline.stale.length) {
+      info(
+        `  ${results.baseline.stale.length} baseline entr${
+          results.baseline.stale.length === 1 ? "y" : "ies"
+        } not seen this scan — prune by hand after a full-site scan: ${
+          results.baseline.stale.map((entry) => entry.id ?? entry.signature)
+            .join(", ")
+        }`,
+      );
+    }
 
     if (notOk.length) {
       for (const cell of notOk) {
@@ -187,8 +326,10 @@ export const axeCommand = new Command()
     "Scan a rendered site for accessibility violations with axe-core.\n\n" +
       "Prototype: scans every page in <site-dir> across the viewport x theme " +
       "matrix, groups violations by root-cause signature, reconciles " +
-      `${kAxeBaselineFile} in the working directory, and writes findings.json ` +
-      `plus report.html to ${kAxeOutputDir}/.`,
+      `${kAxeBaselineFile}, and writes findings.json plus report.html to ` +
+      `${kAxeOutputDir}/. Both sit at the project root (the nearest ` +
+      `_quarto.yml at or above <site-dir>), or the working directory if ` +
+      `there is no project.`,
   )
   .option(
     "--pages <globs:string>",
