@@ -192,56 +192,23 @@ export const axeBaselineEntrySchema = z.object({
 export type AxeBaselineEntry = z.infer<typeof axeBaselineEntrySchema>;
 
 /**
- * Fields the tolerant reader ignores rather than rejects: everything a finding
- * carries, so pasting a whole finding out of `findings.json` and adding a
- * `note` works. Anything outside this set is treated as a misspelling.
+ * The baseline as read from disk.
+ *
+ * `.strict()` is the whole error story: a hand-edited `impcat:` is reported as
+ * an unrecognized key *and* as a missing `impact` in the same pass, so the two
+ * lines sit next to each other and the typo is obvious. (Unlike `superRefine`,
+ * strict-key checking is part of the object parse, so a missing required field
+ * doesn't short-circuit it.)
+ *
+ * Every field a *finding* carries is declared as an ignorable optional, so
+ * pasting a whole finding out of `findings.json` and adding a `note` validates.
+ * Merge order matters: the entry schema goes last, so its required fields stay
+ * required rather than being softened to optional.
  */
-const kToleratedEntryFields = new Set([
-  ...Object.keys(axeFindingSchema.shape),
-  ...Object.keys(axeBaselineEntrySchema.shape),
-]);
+const axeBaselineEntryReader = axeFindingSchema.partial()
+  .merge(axeBaselineEntrySchema)
+  .strict();
 
-/** Levenshtein distance, for "did you mean" on a misspelled field. */
-function editDistance(a: string, b: string): number {
-  const rows = Array.from(
-    { length: a.length + 1 },
-    (_, i) => [i, ...Array(b.length).fill(0)],
-  );
-  for (let j = 0; j <= b.length; j++) {
-    rows[0][j] = j;
-  }
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      rows[i][j] = Math.min(
-        rows[i - 1][j] + 1,
-        rows[i][j - 1] + 1,
-        rows[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
-      );
-    }
-  }
-  return rows[a.length][b.length];
-}
-
-function didYouMean(key: string): string | undefined {
-  let best: string | undefined;
-  let bestDistance = Infinity;
-  for (const candidate of kToleratedEntryFields) {
-    const distance = editDistance(key.toLowerCase(), candidate.toLowerCase());
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = candidate;
-    }
-  }
-  // only suggest when it really looks like a typo rather than a new field
-  return bestDistance <= Math.max(1, Math.floor(key.length / 3))
-    ? best
-    : undefined;
-}
-
-/**
- * The baseline as read from disk. Unknown-but-known-shaped keys pass through,
- * so pasting a whole finding out of `findings.json` works.
- */
 export const axeBaselineSchema = z.object({
   /**
    * The signature scheme the entries were written against. Optional: a ledger
@@ -250,8 +217,8 @@ export const axeBaselineSchema = z.object({
    * a silent mass-invalidation.
    */
   signatureScheme: z.number().optional(),
-  findings: z.array(axeBaselineEntrySchema.passthrough()),
-}).passthrough();
+  findings: z.array(axeBaselineEntryReader),
+}).strict();
 
 export type AxeBaseline = z.infer<typeof axeBaselineSchema>;
 
@@ -266,43 +233,26 @@ export type ParsedBaseline =
   | { success: false; issues: AxeBaselineIssue[] };
 
 /**
- * Validate a hand-edited baseline, reporting misspelled field names alongside
- * the shape errors they cause.
+ * Validate a hand-edited baseline.
  *
- * Zod alone isn't enough here. A misspelled `impcat:` is, to a tolerant object
- * schema, an unknown key (ignored) plus a missing `impact` (an error) — so the
- * report says "impact: Required" while the culprit sits in plain sight two
- * characters away. Zod also short-circuits: a `superRefine` on the entry never
- * runs once a required field is missing, so the two checks can't be composed.
- * Running them separately and merging the issues gives the reader both halves.
+ * The scheme check is separate from the schema because it needs to explain
+ * itself: a mismatch means every entry would read as stale, which is worth more
+ * than "invalid literal". It runs first, since the shape errors underneath it
+ * would be noise.
  */
 export function parseBaseline(data: unknown): ParsedBaseline {
-  const issues: AxeBaselineIssue[] = [];
-
-  const outer = z.object({
-    signatureScheme: z.number().optional(),
-    findings: z.array(z.record(z.unknown())),
-  }).passthrough().safeParse(data);
-  if (!outer.success) {
-    return {
-      success: false,
-      issues: outer.error.issues.map((issue) => ({
-        path: issue.path.join(".") || "(root)",
-        message: issue.message,
-      })),
-    };
-  }
-
+  const scheme = z.object({ signatureScheme: z.number().optional() })
+    .passthrough().safeParse(data);
   if (
-    outer.data.signatureScheme !== undefined &&
-    outer.data.signatureScheme !== kSignatureScheme
+    scheme.success && scheme.data.signatureScheme !== undefined &&
+    scheme.data.signatureScheme !== kSignatureScheme
   ) {
     return {
       success: false,
       issues: [{
         path: "signatureScheme",
         message:
-          `this baseline was written against signature scheme ${outer.data.signatureScheme}, ` +
+          `this baseline was written against signature scheme ${scheme.data.signatureScheme}, ` +
           `but this build emits scheme ${kSignatureScheme}. Every entry would read as ` +
           `stale. Re-annotate the entries against the new signatures — the raw ` +
           `selectors are unchanged in each finding's occurrences[].target — then ` +
@@ -311,31 +261,15 @@ export function parseBaseline(data: unknown): ParsedBaseline {
     };
   }
 
-  outer.data.findings.forEach((entry, index) => {
-    for (const key of Object.keys(entry)) {
-      if (kToleratedEntryFields.has(key)) {
-        continue;
-      }
-      const suggestion = didYouMean(key);
-      issues.push({
-        path: `findings[${index}].${key}`,
-        message: `unknown field '${key}'` +
-          (suggestion ? ` — did you mean '${suggestion}'?` : ""),
-      });
-    }
-    const parsed = axeBaselineEntrySchema.passthrough().safeParse(entry);
-    if (!parsed.success) {
-      for (const issue of parsed.error.issues) {
-        issues.push({
-          path: `findings[${index}].${issue.path.join(".")}`,
-          message: issue.message,
-        });
-      }
-    }
-  });
-
-  if (issues.length) {
-    return { success: false, issues };
+  const result = axeBaselineSchema.safeParse(data);
+  if (!result.success) {
+    return {
+      success: false,
+      issues: result.error.issues.map((issue) => ({
+        path: issue.path.join(".") || "(root)",
+        message: issue.message,
+      })),
+    };
   }
-  return { success: true, baseline: axeBaselineSchema.parse(data) };
+  return { success: true, baseline: result.data };
 }
