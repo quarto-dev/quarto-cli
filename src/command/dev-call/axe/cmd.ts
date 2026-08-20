@@ -10,7 +10,7 @@
  */
 
 import { Command } from "cliffy/command/mod.ts";
-import { error, info } from "../../../deno_ral/log.ts";
+import { error, info, warning } from "../../../deno_ral/log.ts";
 import { ensureDirSync, existsSync, walkSync } from "../../../deno_ral/fs.ts";
 import {
   dirname,
@@ -256,6 +256,38 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     if (scan.axeVersion) {
       info(
         `axe-core ${scan.axeVersion} (quarto-cli's vendored build, injected at scan time)`,
+      );
+    }
+
+    // A cell whose theme couldn't be selected is really the other theme. Say so:
+    // silently counting it as coverage is the same mistake as counting a failed
+    // cell as a pass.
+    const unreachable = scan.cells.filter((cell) =>
+      cell.colorScheme === "unreachable"
+    );
+    if (unreachable.length) {
+      warning(
+        `${unreachable.length} cell${
+          unreachable.length === 1 ? "" : "s"
+        } could not be switched to the requested theme, so they scanned the ` +
+          `other one: ${
+            [...new Set(unreachable.map((cell) => cell.page))].join(", ")
+          }`,
+      );
+    }
+    // Cells on pages with no Quarto dark theme reused a sibling's payload rather
+    // than running axe twice. Say so plainly, including the assumption: those
+    // pages are *assumed* to have no dark presentation, which is wrong if they
+    // carry hand-written prefers-color-scheme CSS.
+    const reused = scan.cells.filter((cell) =>
+      cell.colorScheme === "assumed-identical"
+    );
+    if (reused.length) {
+      info(
+        `note: ${reused.length} of ${scan.cells.length} cells reused a sibling ` +
+          `result — those pages offer no Quarto dark theme, so the theme axis ` +
+          `was assumed not to change them. If any has its own ` +
+          `prefers-color-scheme CSS, scan it with --themes dark.`,
       );
     }
 

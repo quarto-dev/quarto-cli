@@ -71,9 +71,9 @@ const allCellsOk: Verify = {
       `not-ok cells: ${JSON.stringify(results.notOkCells)}`,
     );
     assertEquals(results.cells.total, results.cells.ok);
-    // 5 pages x 2 viewports x 2 themes
-    assertEquals(results.cells.total, 20);
-    assertEquals(results.pagesScanned, 5);
+    // 6 pages x 2 viewports x 2 themes
+    assertEquals(results.cells.total, 24);
+    assertEquals(results.pagesScanned, 6);
     return Promise.resolve();
   },
 };
@@ -91,6 +91,7 @@ const plantedFindings: Verify = {
       "about.html",
       "index.html",
       "media.html",
+      "theme.html",
     ]);
 
     // serious, and localized because it is planted on one page
@@ -113,6 +114,7 @@ const matrixEarnsItsCost: Verify = {
   verify: (_output: ExecuteOutput[]) => {
     const { findings } = readFindings();
 
+    // reached by emulating prefers-color-scheme: author CSS media query
     const darkOnly = find(findings, "color-contrast :: #555555 on #333333");
     assertEquals(darkOnly.themes, ["dark"]);
     assertEquals(darkOnly.viewports, ["1440x900", "390x844"]);
@@ -121,6 +123,51 @@ const matrixEarnsItsCost: Verify = {
     assertEquals(mobileOnly.viewports, ["390x844"]);
     assertEquals(mobileOnly.themes, ["dark", "light"]);
 
+    return Promise.resolve();
+  },
+};
+
+const quartoDarkThemeIsReached: Verify = {
+  name: "the Quarto dark theme is selected, not just emulated",
+  verify: (_output: ExecuteOutput[]) => {
+    // This failure lives in darkly's own palette, so it is unreachable by
+    // prefers-color-scheme emulation: the fixture leaves
+    // respect-user-color-scheme at its default of false. Only driving Quarto's
+    // colour-scheme toggle selects the theme, which is why this assertion is
+    // the one that would fail if the toggle handling regressed.
+    const { findings } = readFindings();
+    const themeOnly = find(findings, "color-contrast :: #6c757d on #222222");
+    assertEquals(themeOnly.themes, ["dark"]);
+    assertEquals(themeOnly.pages, ["theme.html"]);
+    assertEquals(themeOnly.impact, "serious");
+    return Promise.resolve();
+  },
+};
+
+const colorSchemeRoutesRecorded: Verify = {
+  name: "each cell records how it reached its theme, and none is unreachable",
+  verify: (_output: ExecuteOutput[]) => {
+    const dir = "_axe-checks/cells";
+    let toggled = 0;
+    let unreachable = 0;
+    for (const entry of Deno.readDirSync(dir)) {
+      if (!entry.name.endsWith(".json")) {
+        continue;
+      }
+      const cell = JSON.parse(Deno.readTextFileSync(`${dir}/${entry.name}`));
+      if (cell.colorScheme === "toggled") {
+        toggled++;
+      }
+      if (cell.colorScheme === "unreachable") {
+        unreachable++;
+      }
+    }
+    // Every Quarto page in this fixture renders the toggle, so no cell should
+    // have failed to reach its theme.
+    assertEquals(unreachable, 0, "some cells could not select their theme");
+    // And the toggle must actually have been used: if this is 0, the scanner
+    // fell back to emulation everywhere and the dark cells are light ones.
+    assert(toggled > 0, "the colour-scheme toggle was never driven");
     return Promise.resolve();
   },
 };
@@ -230,6 +277,8 @@ testQuartoCmd(
     allCellsOk,
     plantedFindings,
     matrixEarnsItsCost,
+    quartoDarkThemeIsReached,
+    colorSchemeRoutesRecorded,
     signaturesDiscriminate,
     baselineReconciled,
     reportIsUsable,

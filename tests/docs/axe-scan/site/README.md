@@ -26,9 +26,33 @@ than one page), `localized` = a one-off.
 | `color-contrast` | serious | `media.qmd`, inside `@media (prefers-color-scheme: dark)` | localized | proves the theme axis of the matrix earns its cost |
 | `color-contrast` | serious | `media.qmd`, inside `@media (max-width: 500px)` | localized | proves the viewport axis earns its cost |
 | `image-alt` | critical | `examples.qmd`, marked `.a11y-accepted-example` | localized | a deliberate teaching example; v1 has no exclude-in-source, so the baseline absorbs it |
+| `color-contrast` | serious | `theme.qmd`, from Quarto's **dark theme** | localized | the theme axis has two routes and only one is a media query — this one is reachable only by driving Quarto's colour-scheme toggle |
 
 Two dimensions are deliberately exercised by *absence* as well: the dark-only
 and mobile-only findings must **not** appear in the light or desktop cells.
+
+The two dark findings are deliberately different in kind, because the theme axis
+has two routes into a theme and a scanner has to take both:
+
+- `media.qmd`'s failure is in author CSS under `@media (prefers-color-scheme:
+  dark)`, so **emulation** reaches it. This is also the only route on a
+  non-Quarto page.
+- `theme.qmd`'s failure is in Quarto's dark theme itself, so **the colour-scheme
+  toggle** reaches it. Emulation cannot: Quarto ignores `prefers-color-scheme`
+  unless `respect-user-color-scheme` is set, and this fixture leaves it at its
+  default. Before the scanner drove the toggle, this finding was invisible.
+
+Each cell records which route it took, in `colorScheme`. Watch for `toggled` on a
+*light* cell: the toggle writes `localStorage` and every cell shares one origin,
+so a page can load in the theme a previous cell selected and need clicking back.
+
+`static/legacy.html` shows the fourth value, `assumed-identical`: it offers no
+Quarto dark theme, so its dark cells reuse the light payload instead of running
+axe twice. That is an assumption, not a proof — a page with hand-written
+`@media (prefers-color-scheme: dark)` CSS and no Quarto dark theme would be
+reused wrongly, and its dark-only findings missed. This fixture does not contain
+that case, so nothing here would catch the mistake; `--themes dark` alone scans
+such a page correctly, because there is then no sibling to reuse from.
 
 ## Committed baseline
 
@@ -59,11 +83,11 @@ or to the normalizer, and re-read it: a diff here is either a fixture change or
 a scheme change, and the two need different responses.
 
 <!-- OBSERVED-BEGIN -->
-Recorded from a full scan: 20/20 cells ok, 11 findings (8 new, 3 known), axe-core 4.10.3, signature scheme 1.
+Recorded from a full scan: 24/24 cells ok, 12 findings (9 new, 3 known), axe-core 4.10.3, signature scheme 1.
 
 | signature | impact | scope | n | pages | viewports | themes | status |
 |---|---|---|---|---|---|---|---|
-| `image-alt :: img` | critical | systemic | 3 | about.html, index.html, media.html | both | both | known |
+| `image-alt :: img` | critical | systemic | 4 | about.html, index.html, media.html, theme.html | both | both | known |
 | `button-name :: button[data-widget-target="#panel-*"]` | critical | systemic | 3 | static/legacy.html | both | both | new |
 | `image-alt :: img[width="*"]` | critical | localized | 2 | examples.html | both | both | known |
 | `image-alt :: #hero` | critical | localized | 2 | static/legacy.html | both | both | new |
@@ -72,8 +96,9 @@ Recorded from a full scan: 20/20 cells ok, 11 findings (8 new, 3 known), axe-cor
 | `link-name :: p > a` | serious | localized | 1 | index.html | both | both | known |
 | `color-contrast :: #555555 on #333333` | serious | localized | 1 | media.html | both | dark | new |
 | `color-contrast :: #f8f8f8 on #f0f0f0` | serious | localized | 1 | media.html | 390x844 | both | new |
+| `color-contrast :: #6c757d on #222222` | serious | localized | 1 | theme.html | both | dark | new |
 | `heading-order :: h4` | moderate | localized | 1 | index.html | both | both | new |
-| `aria-allowed-role :: .navbar-toggler` | minor | systemic | 4 | about.html, examples.html, index.html, media.html | 390x844 | both | new |
+| `aria-allowed-role :: .navbar-toggler` | minor | systemic | 5 | about.html, examples.html, index.html, media.html, theme.html | 390x844 | both | new |
 
 Stale baseline entries: `region-fixture0`.
 <!-- OBSERVED-END -->
