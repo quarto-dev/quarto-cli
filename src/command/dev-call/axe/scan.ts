@@ -374,12 +374,13 @@ export function vendoredAxePath(): string {
   return formatResourcePath("html", join("axe", "axe.min.js"));
 }
 
-// axe context: keep our own dev chrome and the tabster shim out of results.
-// (https://github.com/microsoft/tabster/issues/288 — won't fix upstream.)
+// The whole document is in scope: what the scan sees is what the site ships.
+// `document` is passed explicitly because axe.run() overloads its first
+// argument between context and options.
 const kAxeRunExpression = `
 (function () {
   return axe.run(
-    { exclude: ["[data-tabster-dummy]", ".quarto-axe-report"] },
+    document,
     // v1 reports violations only, so axe can skip collecting full pass detail.
     { resultTypes: ["violations"] }
   ).then(function (result) {
