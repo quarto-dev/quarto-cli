@@ -35,22 +35,14 @@ import {
   kSignatureScheme,
 } from "./schemas.ts";
 
-// `axe-check.js` is the browser module behind the render-time `axe:` option. Its
-// self-init is guarded on `typeof document`, so importing it here is
-// side-effect-free — the same thing tests/unit/axe-*.test.ts already rely on.
-// Reusing its labellers is deliberate: a finding's conformance label should read
-// identically whether it came from a scan or from the in-page report.
+// Labels mirror the render-time `axe:` report's, without importing its browser
+// module into the CLI bundle — see conformance.ts for why, and
+// tests/unit/axe-conformance-parity.test.ts for what keeps the two in step.
 import {
-  axeConformanceLevel as axeConformanceLevelJs,
-  impactRank as impactRankJs,
-  standardRank as standardRankJs,
-} from "../../../resources/formats/html/axe/axe-check.js";
-
-const axeConformanceLevel = axeConformanceLevelJs as (tags: string[]) => string;
-/** Ascending: critical 0, serious 1, moderate 2, minor 3, unknown 4. */
-const impactRank = impactRankJs as (impact?: string | null) => number;
-/** Ascending: WCAG A 0, AA 1, AAA 2, best-practice 3, obsolete 4, none 5. */
-const standardRank = standardRankJs as (tags: string[]) => number;
+  axeConformanceLevel,
+  impactRank,
+  standardRank,
+} from "./conformance.ts";
 
 /** Instances-or-pages threshold above which a finding is "systemic". */
 const kSystemicMinInstances = 3;
