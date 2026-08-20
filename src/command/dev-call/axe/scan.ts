@@ -29,12 +29,23 @@ import { AxeScanConfig, AxeTheme, AxeViewport } from "./config.ts";
 /** Status of a single scanned cell. Anything but "ok" fails closed. */
 export type AxeCellStatus = "ok" | "timeout" | "error" | "no-payload";
 
+/** One of axe's check results on a node; `data` carries rule-specific detail. */
+export interface AxeCheckResult {
+  id: string;
+  data?: unknown;
+}
+
 /** A single axe violation node, as axe-core reports it. */
 export interface AxeViolationNode {
   html: string;
   target: string[];
   failureSummary?: string;
   impact?: string | null;
+  // The scan keeps axe's nodes whole, so the check arrays survive to the
+  // aggregate stage — color-contrast reads its colour pair out of `any`.
+  any?: AxeCheckResult[];
+  all?: AxeCheckResult[];
+  none?: AxeCheckResult[];
 }
 
 /** A single axe violation, as axe-core reports it. */
