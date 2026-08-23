@@ -90,7 +90,41 @@ $$
 
 See @exr-test.
 
+::: {#alg-test}
+## Algorithm
 
+This is an algorithm
+
+$$
+y = mx + b
+$$
+:::
+
+See @alg-test.
+
+::: {#axm-test}
+## Axiom
+
+This is an axiom
+
+$$
+y = mx + b
+$$
+:::
+
+See @axm-test.
+
+::: {#asm-test}
+## Assumption
+
+This is an assumption
+
+$$
+y = mx + b
+$$
+:::
+
+See @asm-test.
 
 
 

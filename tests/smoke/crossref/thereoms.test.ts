@@ -32,6 +32,9 @@ const types = [
   ["Definition", "def"],
   ["Example", "exm"],
   ["Exercise", "exr"],
+  ["Algorithm", "alg"],
+  ["Axiom", "axm"],
+  ["Assumption", "asm"],
 ];
 const selectors = types.map((type) => {
   return `div#${type[1]}-test span.theorem-title`;
