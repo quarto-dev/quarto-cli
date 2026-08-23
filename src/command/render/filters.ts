@@ -481,6 +481,9 @@ function languageFilterParams(format: Format) {
     "def",
     "exm",
     "exr",
+    "alg",
+    "axm",
+    "asm",
   ].forEach((type) => {
     params[`crossref-${type}-prefix`] = language[`crossref-${type}-title`];
   });
