@@ -1797,6 +1797,15 @@
           "crossref-exr-title": {
             "type": "string"
           },
+          "crossref-alg-title": {
+            "type": "string"
+          },
+          "crossref-axm-title": {
+            "type": "string"
+          },
+          "crossref-asm-title": {
+            "type": "string"
+          },
           "crossref-fig-prefix": {
             "type": "string"
           },
@@ -1840,6 +1849,15 @@
             "type": "string"
           },
           "crossref-exr-prefix": {
+            "type": "string"
+          },
+          "crossref-alg-prefix": {
+            "type": "string"
+          },
+          "crossref-axm-prefix": {
+            "type": "string"
+          },
+          "crossref-asm-prefix": {
             "type": "string"
           },
           "crossref-lof-title": {

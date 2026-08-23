@@ -716,6 +716,9 @@ export type FormatLanguage = {
   "crossref-def-title"?: string;
   "crossref-exm-title"?: string;
   "crossref-exr-title"?: string;
+  "crossref-alg-title"?: string;
+  "crossref-axm-title"?: string;
+  "crossref-asm-title"?: string;
   "crossref-fig-prefix"?: string;
   "crossref-tbl-prefix"?: string;
   "crossref-lst-prefix"?: string;
@@ -731,6 +734,9 @@ export type FormatLanguage = {
   "crossref-def-prefix"?: string;
   "crossref-exm-prefix"?: string;
   "crossref-exr-prefix"?: string;
+  "crossref-alg-prefix"?: string;
+  "crossref-axm-prefix"?: string;
+  "crossref-asm-prefix"?: string;
   "crossref-lof-title"?: string;
   "crossref-lot-title"?: string;
   "crossref-lol-title"?: string;

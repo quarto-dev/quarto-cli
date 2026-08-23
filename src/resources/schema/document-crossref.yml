@@ -88,6 +88,15 @@
             exr-title:
               string:
                 description: The title prefix used for exercise captions.
+            alg-title:
+              string:
+                description: The title prefix used for algorithm captions.
+            axm-title:
+              string:
+                description: The title prefix used for axiom captions.
+            asm-title:
+              string:
+                description: The title prefix used for assumption captions.            
             fig-prefix:
               string:
                 description: The prefix used for an inline reference to a figure.
@@ -127,6 +136,15 @@
             exr-prefix:
               string:
                 description: The prefix used for an inline reference to an exercise.
+            alg-prefix:
+              string:
+                description: The prefix used for an inline reference to an algorithm.
+            axm-prefix:
+              string:
+                description: The prefix used for an inline reference to an axiom.
+            asm-prefix:
+              string:
+                description: The prefix used for an inline reference to an assumption.
 
             fig-labels:
               ref: crossref-labels-schema
@@ -179,6 +197,18 @@
             exr-labels:
               ref: crossref-labels-schema
               description: The numbering scheme used for exercises.
+
+            alg-labels:
+              ref: crossref-labels-schema
+              description: The numbering scheme used for algorithms.
+
+            axm-labels:
+              ref: crossref-labels-schema
+              description: The numbering scheme used for axioms.
+
+            asm-labels:
+              ref: crossref-labels-schema
+              description: The numbering scheme used for assumptions.
 
             lof-title:
               string:

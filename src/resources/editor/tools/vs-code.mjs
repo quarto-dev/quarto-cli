@@ -10396,6 +10396,9 @@ var require_yaml_intelligence_resources = __commonJS({
               "crossref-def-title": "string",
               "crossref-exm-title": "string",
               "crossref-exr-title": "string",
+              "crossref-alg-title": "string",
+              "crossref-axm-title": "string",
+              "crossref-asm-title": "string",
               "crossref-fig-prefix": "string",
               "crossref-tbl-prefix": "string",
               "crossref-lst-prefix": "string",
@@ -10411,6 +10414,9 @@ var require_yaml_intelligence_resources = __commonJS({
               "crossref-def-prefix": "string",
               "crossref-exm-prefix": "string",
               "crossref-exr-prefix": "string",
+              "crossref-alg-prefix": "string",
+              "crossref-axm-prefix": "string",
+              "crossref-asm-prefix": "string",
               "crossref-lof-title": "string",
               "crossref-lot-title": "string",
               "crossref-lol-title": "string"
@@ -14159,6 +14165,21 @@ var require_yaml_intelligence_resources = __commonJS({
                         description: "The title prefix used for exercise captions."
                       }
                     },
+                    "alg-title": {
+                      string: {
+                        description: "The title prefix used for algorithm captions."
+                      }
+                    },
+                    "axm-title": {
+                      string: {
+                        description: "The title prefix used for axiom captions."
+                      }
+                    },
+                    "asm-title": {
+                      string: {
+                        description: "The title prefix used for assumption captions."
+                      }
+                    },
                     "fig-prefix": {
                       string: {
                         description: "The prefix used for an inline reference to a figure."
@@ -14224,6 +14245,21 @@ var require_yaml_intelligence_resources = __commonJS({
                         description: "The prefix used for an inline reference to an exercise."
                       }
                     },
+                    "alg-prefix": {
+                      string: {
+                        description: "The prefix used for an inline reference to an algorithm."
+                      }
+                    },
+                    "axm-prefix": {
+                      string: {
+                        description: "The prefix used for an inline reference to an axiom."
+                      }
+                    },
+                    "asm-prefix": {
+                      string: {
+                        description: "The prefix used for an inline reference to an assumption."
+                      }
+                    },
                     "fig-labels": {
                       ref: "crossref-labels-schema",
                       description: "The numbering scheme used for figures."
@@ -14275,6 +14311,18 @@ var require_yaml_intelligence_resources = __commonJS({
                     "exr-labels": {
                       ref: "crossref-labels-schema",
                       description: "The numbering scheme used for exercises."
+                    },
+                    "alg-labels": {
+                      ref: "crossref-labels-schema",
+                      description: "The numbering scheme used for algorithms."
+                    },
+                    "axm-labels": {
+                      ref: "crossref-labels-schema",
+                      description: "The numbering scheme used for axioms."
+                    },
+                    "asm-labels": {
+                      ref: "crossref-labels-schema",
+                      description: "The numbering scheme used for assumptions."
                     },
                     "lof-title": {
                       string: {
@@ -23362,6 +23410,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "The title prefix used for definition captions.",
         "The title prefix used for example captions.",
         "The title prefix used for exercise captions.",
+        "The title prefix used for algorithm captions.",
+        "The title prefix used for axiom captions.",
+        "The title prefix used for assumption captions.",
         "The prefix used for an inline reference to a figure.",
         "The prefix used for an inline reference to a table.",
         "The prefix used for an inline reference to an equation.",
@@ -23375,6 +23426,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "The prefix used for an inline reference to a definition.",
         "The prefix used for an inline reference to an example.",
         "The prefix used for an inline reference to an exercise.",
+        "The prefix used for an inline reference to an algorithm.",
+        "The prefix used for an inline reference to an axiom.",
+        "The prefix used for an inline reference to an assumption.",
         "The numbering scheme used for figures.",
         "The numbering scheme used for tables.",
         "The numbering scheme used for equations.",
@@ -23388,6 +23442,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "The numbering scheme used for definitions.",
         "The numbering scheme used for examples.",
         "The numbering scheme used for exercises.",
+        "The numbering scheme used for algorithms.",
+        "The numbering scheme used for axioms.",
+        "The numbering scheme used for assumptions.",
         "The title used for the list of figures.",
         "The title used for the list of tables.",
         "The title used for the list of listings.",
@@ -25387,12 +25444,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 223031,
+        _internalId: 225476,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 223023,
+            _internalId: 225468,
             type: "enum",
             enum: [
               "png",
@@ -25408,7 +25465,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 223030,
+            _internalId: 225475,
             type: "anyOf",
             anyOf: [
               {
