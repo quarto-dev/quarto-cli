@@ -107,33 +107,89 @@ import { createProjectCache } from "../core/cache/cache.ts";
 import { createTempContext } from "../core/temp.ts";
 
 import { onCleanup } from "../core/cleanup.ts";
+import { warning } from "../deno_ral/log.ts";
+import { ZodError } from "zod";
+import { extensionIdString } from "../extension/extension-shared.ts";
+import { Extension } from "../extension/types.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
-import { ExternalEngine } from "../resources/types/schema-types.ts";
+import {
+  ExternalEngine,
+  ProjectConfig as ContributedProjectConfig,
+} from "../resources/types/schema-types.ts";
 
-export const mergeExtensionMetadata = async (
+// Turn a validation failure into one line that names the offending keys, so
+// the caller can report it without dumping the raw validation error
+const projectMetadataError = (extension: Extension, err: unknown) => {
+  const reason = err instanceof ZodError
+    ? err.issues.map((issue) =>
+      issue.path.length
+        ? `${issue.path.join(".")}: ${issue.message}`
+        : issue.message
+    ).join("; ")
+    : err instanceof Error
+    ? err.message
+    : String(err);
+  return new Error(
+    `The extension ${
+      extensionIdString(extension.id)
+    } contributes invalid project metadata (${reason}).`,
+  );
+};
+
+const mergeExtensionMetadata = async (
   context: ProjectContext,
-  pOptions: RenderOptions,
+  extensionContext: ExtensionContext,
+  // called with the extension that failed validation; it either throws to
+  // make the failure fatal, or returns to drop that one contribution
+  onInvalid: (err: Error) => void,
 ) => {
   // this will mutate context.config.project to merge
   // in any project metadata from extensions
   if (context.config) {
-    const extensions = await pOptions.services.extension.extensions(
+    const extensions = await extensionContext.extensions(
       undefined,
       context.config,
       context.dir,
       { builtIn: false },
     );
-    // Handle project metadata extensions
-    const projectMetadata = extensions.filter((extension) =>
-      extension.contributes.metadata?.project
-    ).map((extension) => {
-      return Zod.ProjectConfig.parse(extension.contributes.metadata!.project);
-    });
+    // Handle project metadata extensions, one by one, so that a single
+    // invalid extension does not discard what the others contribute
+    const projectMetadata: ContributedProjectConfig[] = [];
+    for (
+      const extension of extensions.filter((extension) =>
+        extension.contributes.metadata?.project
+      )
+    ) {
+      try {
+        projectMetadata.push(
+          Zod.ProjectConfig.parse(extension.contributes.metadata!.project),
+        );
+      } catch (err) {
+        onInvalid(projectMetadataError(extension, err));
+      }
+    }
     context.config.project = mergeProjectMetadata(
       context.config.project,
       ...projectMetadata,
     );
   }
+};
+
+// Extension metadata is validated against a strict schema, so an invalid
+// extension makes the merge fail. That is fatal for a render, as it always
+// was, and elsewhere the contribution of that one extension is dropped with
+// a warning, so commands such as preview and inspect keep working (#14783).
+export const mergeExtensionMetadataForContext = async (
+  context: ProjectContext,
+  extensionContext: ExtensionContext,
+  fatal: boolean,
+) => {
+  await mergeExtensionMetadata(context, extensionContext, (err) => {
+    if (fatal) {
+      throw err;
+    }
+    warning(`Ignoring the invalid project metadata. ${err.message}`);
+  });
 };
 
 export async function projectContext(
@@ -176,10 +232,16 @@ export async function projectContext(
   const returnResult = async (
     context: ProjectContext,
   ) => {
-    if (renderOptions) {
-      await mergeExtensionMetadata(context, renderOptions);
-    }
+    // Register cleanup before merging: the merge validates extension metadata
+    // and can throw, and the context already holds an open disk cache
     onCleanup(context.cleanup);
+    // Always merge extension metadata so contributions such as `brand` are
+    // seen even when called without renderOptions (e.g. from preview, #14783)
+    await mergeExtensionMetadataForContext(
+      context,
+      extensionContext,
+      renderOptions !== undefined,
+    );
     return context;
   };
 

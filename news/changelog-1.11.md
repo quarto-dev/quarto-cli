@@ -1,5 +1,11 @@
 All changes included in 1.11:
 
+## Commands
+
+### `quarto preview`
+
+- ([#14783](https://github.com/quarto-dev/quarto-cli/issues/14783)): Fix `quarto preview` ignoring project metadata contributed by an extension, such as `brand`. (author: @mcanouil)
+
 ## Engines
 
 ### `knitr`
