@@ -148,8 +148,8 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     pages = discoverPages(config);
     if (pages.length === 0) {
       error(
-        config.pages
-          ? `No pages in ${config.siteDir} matched --pages.`
+        config.pages || config.exclude
+          ? `No pages in ${config.siteDir} survived --pages/--exclude.`
           : `No *.html pages found in ${config.siteDir}.`,
       );
       return kExitIncomplete;
@@ -329,6 +329,11 @@ export const axeCommand = new Command()
   .option(
     "--pages <globs:string>",
     "Comma-separated site-relative globs to scan (default: all *.html).",
+  )
+  .option(
+    "--exclude <globs:string>",
+    "Comma-separated site-relative globs to skip, applied after --pages " +
+      "(e.g. slides/**,archive/**).",
   )
   .option(
     "--max-pages <count:number>",

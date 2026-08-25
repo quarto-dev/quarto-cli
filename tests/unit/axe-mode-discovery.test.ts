@@ -130,7 +130,7 @@ unitTest(
 );
 
 unitTest(
-  "page discovery - --pages narrows, then --max-pages caps the sorted list",
+  "page discovery - --pages narrows, --exclude prunes, --max-pages caps",
   async () => {
     await withTempDir((dir) => {
       writeSite(dir, [
@@ -138,11 +138,29 @@ unitTest(
         "docs/a.html",
         "docs/b.html",
         "blog/post.html",
+        "slides/deck.html",
       ]);
       // globstar include
       assertEquals(
         discoverPages(axeScanConfig({ pages: "docs/**" }, dir))
           .map((page) => page.path),
+        ["docs/a.html", "docs/b.html"],
+      );
+      // exclude alone: everything but the decks (the resting-DOM opt-out)
+      assertEquals(
+        discoverPages(axeScanConfig({ exclude: "slides/**" }, dir))
+          .map((page) => page.path),
+        ["blog/post.html", "docs/a.html", "docs/b.html", "index.html"],
+      );
+      // exclude applies after include, and before the cap — pruning frees cap
+      // room for the pages that remain
+      assertEquals(
+        discoverPages(
+          axeScanConfig(
+            { pages: "docs/**,slides/**", exclude: "slides/**", maxPages: 2 },
+            dir,
+          ),
+        ).map((page) => page.path),
         ["docs/a.html", "docs/b.html"],
       );
       // the cap is deterministic: sorted first, then sliced

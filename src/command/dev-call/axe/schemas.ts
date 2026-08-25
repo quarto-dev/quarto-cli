@@ -126,6 +126,7 @@ export const axeFindingsSchema = z.object({
     viewports: z.array(z.string()),
     themes: z.array(z.string()),
     pages: z.array(z.string()).nullable(),
+    exclude: z.array(z.string()).nullable(),
     maxPages: z.number().nullable(),
     timeout: z.number(),
     settle: z.number(),
