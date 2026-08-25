@@ -99,6 +99,18 @@ function parsePositiveInt(value: unknown, flag: string): number {
   return parsed;
 }
 
+// Zero is meaningful for --settle: it is an additive floor on top of the
+// readiness probe, and "no extra delay" is the natural way to trust the probe.
+function parseNonNegativeInt(value: unknown, flag: string): number {
+  const parsed = typeof value === "number" ? value : parseInt(`${value}`, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw optionError(
+      `Invalid ${flag} '${value}': expected a non-negative integer.`,
+    );
+  }
+  return parsed;
+}
+
 // deno-lint-ignore no-explicit-any
 export function axeScanConfig(options: any, siteDir: string): AxeScanConfig {
   return {
@@ -111,6 +123,6 @@ export function axeScanConfig(options: any, siteDir: string): AxeScanConfig {
     viewports: parseViewports(options.viewports ?? kDefaultViewports),
     themes: parseThemes(options.themes ?? kDefaultThemes),
     timeout: parsePositiveInt(options.timeout ?? kDefaultTimeout, "--timeout"),
-    settle: parsePositiveInt(options.settle ?? kDefaultSettle, "--settle"),
+    settle: parseNonNegativeInt(options.settle ?? kDefaultSettle, "--settle"),
   };
 }

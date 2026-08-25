@@ -74,6 +74,55 @@ export function sniffModes(
   return { modes: ["default"], darkColoured };
 }
 
+/** A page that exists only to send the visitor elsewhere, skipped as content. */
+export interface AxeRedirectStub {
+  /** Site-relative forward-slash path of the stub. */
+  path: string;
+  /** Destination, when the stub's markup names one. */
+  to: string | null;
+}
+
+/**
+ * Recognize a redirect stub from its rendered HTML.
+ *
+ * Quarto emits two shapes — `redirect-simple.ejs` (a zero-delay meta refresh,
+ * also the shape of hand-generated stubs like positron-website's `_redirects`
+ * script) and `redirect-map.ejs` (`aliases:` front matter; a hash-keyed
+ * `window.location.replace` map). A stub is site furniture, not scannable
+ * content: failing its cells as not-ok made every `aliases:` site read as a
+ * broken scan. Skipped stubs are recorded, never silently dropped, and the
+ * scan-time redirect guard (scan.ts) remains the fail-closed net for
+ * redirects this sniff can't see.
+ *
+ * The near-empty-body requirement keeps documentation *about* redirects out:
+ * a real content page carries navigation chrome; a stub's body is bytes.
+ */
+export function sniffRedirectStub(
+  html: string,
+): { to: string | null } | undefined {
+  const body = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] ?? "";
+  if (body.trim().length > 1000) {
+    return undefined;
+  }
+  const meta = html.match(/<meta\b[^>]*http-equiv=["']?refresh["']?[^>]*>/i);
+  if (meta) {
+    const target = meta[0].match(/url\s*=\s*["']?([^"'>;]+)/i);
+    return { to: target ? target[1].trim() : null };
+  }
+  if (html.includes("window.location.replace")) {
+    const map = html.match(/var redirects = (\{[^;]*\});/);
+    if (map) {
+      try {
+        const redirects = JSON.parse(map[1]) as Record<string, string>;
+        return { to: redirects[""] ?? Object.values(redirects)[0] ?? null };
+      } catch (_e) {
+        return { to: null };
+      }
+    }
+  }
+  return undefined;
+}
+
 /**
  * Directories whose HTML is never site content, skipped at any depth:
  * `_axe-checks` is the scanner's own output (when the anchor is the site dir —
@@ -84,13 +133,22 @@ export function sniffModes(
  */
 const kSkippedDirs: string[] = [kAxeOutputDir, "site_libs"];
 
+/** What discovery found: the pages to scan, and the redirect stubs it set aside. */
+export interface DiscoveredPages {
+  pages: AxePage[];
+  redirects: AxeRedirectStub[];
+}
+
 /**
  * Every `*.html` under `siteDir`, as sorted site-relative forward-slash paths
  * (minus `kSkippedDirs`), narrowed by `--pages`, pruned by `--exclude` and
  * capped by `--max-pages` — sorting before the cap is what makes `--max-pages`
- * deterministic — then each surviving page read once to discover its modes.
+ * deterministic — then each surviving page read once, classified as a
+ * redirect stub or a page, and (for pages) its modes discovered. Stubs are
+ * classified after the cap, so a capped scan may cover fewer than
+ * `--max-pages` real pages.
  */
-export function discoverPages(config: AxeScanConfig): AxePage[] {
+export function discoverPages(config: AxeScanConfig): DiscoveredPages {
   const paths: string[] = [];
   for (const entry of walkSync(config.siteDir, { includeDirs: false })) {
     if (entry.path.endsWith(".html")) {
@@ -103,8 +161,13 @@ export function discoverPages(config: AxeScanConfig): AxePage[] {
   }
   paths.sort();
 
+  // A bare directory name also matches everything beneath it, so
+  // `--exclude slides` behaves like `--exclude slides/**` instead of silently
+  // excluding nothing. (Full alignment with core/path.ts glob semantics —
+  // `!` negation, implicit `**/` prefixes — is a public-command question.)
   const compile = (globs: string[]) =>
-    globs.map((glob) => globToRegExp(glob, { extended: true, globstar: true }));
+    globs.flatMap((glob) => [glob, `${glob}/**`])
+      .map((glob) => globToRegExp(glob, { extended: true, globstar: true }));
 
   let selected = paths;
   if (config.pages) {
@@ -125,12 +188,19 @@ export function discoverPages(config: AxeScanConfig): AxePage[] {
     selected = selected.slice(0, config.maxPages);
   }
 
-  return selected.map((path) => {
-    const { modes, darkColoured } = sniffModes(
-      Deno.readTextFileSync(join(config.siteDir, path)),
-    );
-    return { path, modes, darkColoured };
-  });
+  const pages: AxePage[] = [];
+  const redirects: AxeRedirectStub[] = [];
+  for (const path of selected) {
+    const html = Deno.readTextFileSync(join(config.siteDir, path));
+    const stub = sniffRedirectStub(html);
+    if (stub) {
+      redirects.push({ path, to: stub.to });
+      continue;
+    }
+    const { modes, darkColoured } = sniffModes(html);
+    pages.push({ path, modes, darkColoured });
+  }
+  return { pages, redirects };
 }
 
 /**

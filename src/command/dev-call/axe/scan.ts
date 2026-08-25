@@ -465,12 +465,19 @@ const kBodyModeProbe = `
  */
 const kReadinessProbe = `
 (async function () {
-  if (document.fonts && document.fonts.ready) {
-    await document.fonts.ready;
-  }
-  await new Promise(function (resolve) {
-    requestAnimationFrame(function () { requestAnimationFrame(resolve); });
-  });
+  var ready = (async function () {
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+    await new Promise(function (resolve) {
+      requestAnimationFrame(function () { requestAnimationFrame(resolve); });
+    });
+  })();
+  // Readiness is best-effort, capped: a hanging subresource (an offline
+  // webfont fetch, say) must not convert a scannable page into a per-cell
+  // --timeout failure.
+  var cap = new Promise(function (resolve) { setTimeout(resolve, 2000); });
+  await Promise.race([ready, cap]);
   return true;
 })()
 `;
@@ -496,16 +503,23 @@ export function redirectTarget(
   requested: string,
   actual: string,
 ): string | undefined {
+  if (!actual) {
+    // no location at all is not the requested page — callers that can tell
+    // "probe returned nothing" from "the page moved" should do so upstream
+    return "(unknown location)";
+  }
   try {
     const from = new URL(requested);
-    const to = new URL(actual);
+    // resolved against the request, so a relative document URL (axe's
+    // result.url on an exotic page) compares by where it actually points
+    const to = new URL(actual, from);
     if (from.origin === to.origin && from.pathname === to.pathname) {
       return undefined;
     }
     return actual;
   } catch (_e) {
     // an unparseable location is not the requested page
-    return actual || "(unknown location)";
+    return actual;
   }
 }
 
@@ -629,7 +643,15 @@ export async function scanCell(
           message: `location probe failed: ${locateError}`,
         });
       }
-      const movedTo = redirectTarget(url, String(located.result?.value ?? ""));
+      const href = located.result?.value;
+      if (typeof href !== "string" || href.length === 0) {
+        // a probe that resolves without a URL is an infrastructure failure,
+        // not a redirect — don't send anyone hunting for one
+        return cell("error", {
+          message: "location probe returned no URL",
+        });
+      }
+      const movedTo = redirectTarget(url, href);
       if (movedTo !== undefined) {
         return cell("redirected", {
           message: `page redirected to ${movedTo} — not scanned`,
@@ -713,11 +735,18 @@ export async function scanCell(
     // Stop caring about this cell's load event, and take the page down so a
     // hung axe.run() can't bleed into the next cell.
     load.cancel();
+    const reset = client.once("Page.loadEventFired");
     try {
       await client.send("Page.navigate", { url: "about:blank" });
+      // Absorb the reset's own load event here (capped — the tab may be truly
+      // wedged): the next cell registers its waiter before it navigates, and
+      // an in-flight about:blank load would resolve that waiter early,
+      // probing the next page mid-load.
+      await Promise.race([reset.event, sleep(1000)]);
     } catch (_e) {
       // if even that fails the next cell will report the real problem
     }
+    reset.cancel();
     result = cell("timeout", {
       message: `cell exceeded --timeout of ${config.timeout}ms`,
     });

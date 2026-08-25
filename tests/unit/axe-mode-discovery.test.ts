@@ -21,6 +21,7 @@ import {
   AxePage,
   discoverPages,
   sniffModes,
+  sniffRedirectStub,
 } from "../../src/command/dev-call/axe/discover.ts";
 import { axeScanConfig } from "../../src/command/dev-call/axe/config.ts";
 import { withTempDir } from "../utils.ts";
@@ -120,12 +121,64 @@ unitTest(
         // nested site_libs (a deck rendered into a subdirectory)
         "slides/site_libs/quarto-html/tippy.html",
       ]);
-      const pages = discoverPages(axeScanConfig({}, dir));
+      const { pages } = discoverPages(axeScanConfig({}, dir));
       assertEquals(
         pages.map((page) => page.path),
         ["docs/guide.html", "index.html"],
       );
     });
+  },
+);
+
+// quarto's redirect-simple.ejs shape (also positron-website's _redirects stubs)
+const kMetaRefreshStub = `<html><head><title>Redirect</title>
+<meta http-equiv="refresh" content="0; url=https://example.com/moved/">
+</head><body><p>Redirecting…</p></body></html>`;
+
+// quarto's redirect-map.ejs shape, written for aliases: front matter
+const kAliasStub = `<html><head><title>Redirect</title>
+<script type="text/javascript">
+  var redirects = {"":"download.html"};
+  window.location.replace(redirects[""]);
+</script></head><body></body></html>`;
+
+unitTest(
+  "page discovery - redirect stubs are set aside, recorded with a destination",
+  async () => {
+    await withTempDir((dir) => {
+      writeSite(dir, ["index.html"]);
+      Deno.writeTextFileSync(join(dir, "old.html"), kMetaRefreshStub);
+      Deno.writeTextFileSync(join(dir, "install.html"), kAliasStub);
+      const { pages, redirects } = discoverPages(axeScanConfig({}, dir));
+      assertEquals(pages.map((page) => page.path), ["index.html"]);
+      assertEquals(redirects, [
+        { path: "install.html", to: "download.html" },
+        { path: "old.html", to: "https://example.com/moved/" },
+      ]);
+    });
+  },
+);
+
+unitTest(
+  "page discovery - a content page about redirects is not a stub",
+  // deno-lint-ignore require-await
+  async () => {
+    // The markers alone must not classify: a docs page quoting the redirect
+    // script in an unhighlighted code block carries them verbatim, but a real
+    // page has real body content where a stub's body is bytes.
+    const docsPage = `<html><head><title>Using aliases</title></head><body>
+<pre><code>var redirects = {"":"download.html"};
+window.location.replace(redirects[""]);</code></pre>
+${
+      "<p>Documentation prose about how alias redirects work in Quarto.</p>"
+        .repeat(20)
+    }
+</body></html>`;
+    assertEquals(sniffRedirectStub(docsPage), undefined);
+    assertEquals(sniffRedirectStub(kMetaRefreshStub), {
+      to: "https://example.com/moved/",
+    });
+    assertEquals(sniffRedirectStub(kAliasStub), { to: "download.html" });
   },
 );
 
@@ -143,13 +196,19 @@ unitTest(
       // globstar include
       assertEquals(
         discoverPages(axeScanConfig({ pages: "docs/**" }, dir))
-          .map((page) => page.path),
+          .pages.map((page) => page.path),
         ["docs/a.html", "docs/b.html"],
       );
       // exclude alone: everything but the decks (the resting-DOM opt-out)
       assertEquals(
         discoverPages(axeScanConfig({ exclude: "slides/**" }, dir))
-          .map((page) => page.path),
+          .pages.map((page) => page.path),
+        ["blog/post.html", "docs/a.html", "docs/b.html", "index.html"],
+      );
+      // a bare directory name means everything beneath it, not nothing
+      assertEquals(
+        discoverPages(axeScanConfig({ exclude: "slides" }, dir))
+          .pages.map((page) => page.path),
         ["blog/post.html", "docs/a.html", "docs/b.html", "index.html"],
       );
       // exclude applies after include, and before the cap — pruning frees cap
@@ -160,13 +219,13 @@ unitTest(
             { pages: "docs/**,slides/**", exclude: "slides/**", maxPages: 2 },
             dir,
           ),
-        ).map((page) => page.path),
+        ).pages.map((page) => page.path),
         ["docs/a.html", "docs/b.html"],
       );
       // the cap is deterministic: sorted first, then sliced
       assertEquals(
         discoverPages(axeScanConfig({ maxPages: 2 }, dir))
-          .map((page) => page.path),
+          .pages.map((page) => page.path),
         ["blog/post.html", "docs/a.html"],
       );
     });

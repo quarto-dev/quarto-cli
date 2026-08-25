@@ -24,7 +24,7 @@ import { quartoConfig } from "../../../core/quarto.ts";
 import { md5HashSync } from "../../../core/hash.ts";
 import { AxeCell, AxeViolationNode } from "./scan.ts";
 import { AxeScanConfig } from "./config.ts";
-import { AxePage } from "./discover.ts";
+import { AxePage, AxeRedirectStub } from "./discover.ts";
 import {
   AxeBaseline,
   AxeFinding,
@@ -385,6 +385,8 @@ export interface AggregateOptions {
   baseline: AxeBaseline;
   baselineFile: string;
   pages: AxePage[];
+  /** Redirect stubs discovery set aside — recorded, never silently dropped. */
+  redirects?: AxeRedirectStub[];
   axeVersion?: string;
 }
 
@@ -478,6 +480,12 @@ export function aggregate(options: AggregateOptions): AxeFindings {
     // `modes` are the modes this scan covered for the page (post `--themes`),
     // so a CI consumer can tell "no dark mode" from "a cell went missing".
     pages: pages.map((page) => ({ output: page.path, modes: page.modes })),
+    // redirect stubs (aliases:, _redirects) discovery set aside: recorded so
+    // the skip is auditable, and distinct from pages and from not-ok cells
+    redirects: (options.redirects ?? []).map((stub) => ({
+      output: stub.path,
+      to: stub.to,
+    })),
     cells: {
       total: cells.length,
       ok: okCells.length,

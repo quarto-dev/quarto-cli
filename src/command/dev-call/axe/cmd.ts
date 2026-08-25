@@ -11,7 +11,7 @@
  */
 
 import { Command } from "cliffy/command/mod.ts";
-import { error, info } from "../../../deno_ral/log.ts";
+import { debug, error, info } from "../../../deno_ral/log.ts";
 import { ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
 import { dirname, join, resolve } from "../../../deno_ral/path.ts";
 import { findOpenPort } from "../../../core/port.ts";
@@ -28,7 +28,12 @@ import {
   kDefaultTimeout,
   kDefaultViewports,
 } from "./config.ts";
-import { applyThemesFilter, AxePage, discoverPages } from "./discover.ts";
+import {
+  applyThemesFilter,
+  AxePage,
+  AxeRedirectStub,
+  discoverPages,
+} from "./discover.ts";
 import { AxeCell, launchScanBrowser, runAxeScan } from "./scan.ts";
 import { aggregate } from "./aggregate.ts";
 import { renderReport } from "./report.ts";
@@ -144,12 +149,17 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   }
 
   let pages: AxePage[];
+  let redirects: AxeRedirectStub[];
   try {
-    pages = discoverPages(config);
+    const discovered = discoverPages(config);
+    pages = discovered.pages;
+    redirects = discovered.redirects;
     if (pages.length === 0) {
       error(
         config.pages || config.exclude
           ? `No pages in ${config.siteDir} survived --pages/--exclude.`
+          : redirects.length
+          ? `Only redirect stubs found in ${config.siteDir} — nothing to scan.`
           : `No *.html pages found in ${config.siteDir}.`,
       );
       return kExitIncomplete;
@@ -165,6 +175,14 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   const cellsDir = join(outputDir, "cells");
   const baselineFile = join(anchor, kAxeBaselineFile);
   ensureDirSync(cellsDir);
+  // A previous run's summary artifacts must not survive an aborted scan to be
+  // read as current; per-cell payloads accumulate by name as before.
+  for (const staleFile of ["findings.json", "report.html"]) {
+    const path = join(outputDir, staleFile);
+    if (existsSync(path)) {
+      Deno.removeSync(path);
+    }
+  }
 
   let baseline: AxeBaseline;
   try {
@@ -211,6 +229,19 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
         `as 'default'): ${darkColoured.map((page) => page.path).join(", ")}`,
     );
   }
+  if (redirects.length) {
+    // Expected furniture (aliases:, _redirects stubs) — a quiet note, never
+    // the red not-ok treatment a *surprising* redirect gets at scan time.
+    const shown = redirects.slice(0, 6)
+      .map((stub) => `${stub.path} → ${stub.to ?? "?"}`)
+      .join(", ");
+    const more = redirects.length > 6 ? `, +${redirects.length - 6} more` : "";
+    info(
+      `note: ${redirects.length} redirect stub${
+        redirects.length === 1 ? "" : "s"
+      } skipped (recorded in findings.json): ${shown}${more}`,
+    );
+  }
 
   let browser;
   try {
@@ -253,6 +284,7 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
       baseline,
       baselineFile,
       pages,
+      redirects,
       axeVersion: scan.axeVersion,
     });
 
@@ -303,8 +335,12 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   } catch (e) {
     // scanCell fails its own cell closed; this catches what it can't — the
     // shared setup (Runtime.enable), a stage bug — so the command reports
-    // incomplete instead of dying on an uncaught error.
+    // incomplete instead of dying on an uncaught error. The stale summary
+    // artifacts were removed up front, so nothing old reads as current.
     error(`Scan aborted: ${e instanceof Error ? e.message : String(e)}`);
+    if (e instanceof Error && e.stack) {
+      debug(e.stack);
+    }
     return kExitIncomplete;
   } finally {
     await browser.close();
