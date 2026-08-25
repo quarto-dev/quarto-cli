@@ -30,7 +30,12 @@ import { AxeScanConfig, AxeViewport } from "./config.ts";
 import { AxeMode, AxePage } from "./discover.ts";
 
 /** Status of a single scanned cell. Anything but "ok" fails closed. */
-export type AxeCellStatus = "ok" | "timeout" | "error" | "no-payload";
+export type AxeCellStatus =
+  | "ok"
+  | "timeout"
+  | "error"
+  | "no-payload"
+  | "redirected";
 
 /** One of axe's check results on a node; `data` carries rule-specific detail. */
 export interface AxeCheckResult {
@@ -450,6 +455,37 @@ const kBodyModeProbe = `
 })()
 `;
 
+/** Where the document actually is, read after load and settle. */
+const kLocationProbe = `window.location.href`;
+
+/**
+ * Compare the requested URL with where the document ended up, by origin and
+ * path. A zero-delay meta refresh (redirect stubs generated from a
+ * `_redirects` file), a JS redirect or a server redirect moves the document
+ * during the settle window, and axe would otherwise audit the destination —
+ * an external site, on the site that found this — under the requested page's
+ * name. Search and hash are ignored: reveal decks rewrite the fragment via
+ * the history API, and that is still the same page.
+ *
+ * Returns where the page went, or undefined when it stayed put.
+ */
+export function redirectTarget(
+  requested: string,
+  actual: string,
+): string | undefined {
+  try {
+    const from = new URL(requested);
+    const to = new URL(actual);
+    if (from.origin === to.origin && from.pathname === to.pathname) {
+      return undefined;
+    }
+    return actual;
+  } catch (_e) {
+    // an unparseable location is not the requested page
+    return actual || "(unknown location)";
+  }
+}
+
 interface RuntimeEvaluateResult {
   result?: { value?: unknown };
   exceptionDetails?: { text?: string; exception?: { description?: string } };
@@ -539,6 +575,26 @@ export async function scanCell(
       // axe reads computed style.
       await sleep(config.settle);
 
+      // The document must still be the page we asked for: a redirect fires
+      // during the settle window, and axe would otherwise audit the
+      // destination under this page's name. Fail closed at the site boundary.
+      const located = await client.send<RuntimeEvaluateResult>(
+        "Runtime.evaluate",
+        { expression: kLocationProbe, returnByValue: true },
+      );
+      const locateError = evaluateError(located);
+      if (locateError) {
+        return cell("error", {
+          message: `location probe failed: ${locateError}`,
+        });
+      }
+      const movedTo = redirectTarget(url, String(located.result?.value ?? ""));
+      if (movedTo !== undefined) {
+        return cell("redirected", {
+          message: `page redirected to ${movedTo} — not scanned`,
+        });
+      }
+
       // Verify the seed took, from the body class where one exists. A mismatch
       // is an infrastructure failure: the cell would really be the other mode,
       // and fail-closed beats miscounted coverage.
@@ -585,6 +641,14 @@ export async function scanCell(
       if (!value || !Array.isArray(value.violations)) {
         return cell("no-payload", {
           message: "axe.run() returned no violations array",
+        });
+      }
+      // Belt and braces for a redirect between the location probe and
+      // axe.run(): axe records the document URL it actually ran against.
+      const ranAt = value.url && redirectTarget(url, value.url);
+      if (ranAt) {
+        return cell("redirected", {
+          message: `axe ran at ${ranAt}, not the requested page — discarded`,
         });
       }
       return cell("ok", { result: value });
