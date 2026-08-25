@@ -33,6 +33,8 @@ export interface AxeScanConfig {
   siteDir: string;
   // undefined means "every *.html under siteDir"
   pages?: string[];
+  // globs to skip, applied after `pages`; undefined means "skip nothing"
+  exclude?: string[];
   // undefined means "no cap"
   maxPages?: number;
   viewports: AxeViewport[];
@@ -102,6 +104,7 @@ export function axeScanConfig(options: any, siteDir: string): AxeScanConfig {
   return {
     siteDir,
     pages: options.pages ? splitList(options.pages) : undefined,
+    exclude: options.exclude ? splitList(options.exclude) : undefined,
     maxPages: options.maxPages === undefined
       ? undefined
       : parsePositiveInt(options.maxPages, "--max-pages"),

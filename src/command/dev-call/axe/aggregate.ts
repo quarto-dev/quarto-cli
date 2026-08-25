@@ -470,6 +470,7 @@ export function aggregate(options: AggregateOptions): AxeFindings {
       viewports: config.viewports.map((viewport) => viewport.label),
       themes: [...config.themes],
       pages: config.pages ?? null,
+      exclude: config.exclude ?? null,
       maxPages: config.maxPages ?? null,
       timeout: config.timeout,
       settle: config.settle,

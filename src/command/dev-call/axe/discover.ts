@@ -86,9 +86,9 @@ const kSkippedDirs: string[] = [kAxeOutputDir, "site_libs"];
 
 /**
  * Every `*.html` under `siteDir`, as sorted site-relative forward-slash paths
- * (minus `kSkippedDirs`), narrowed by `--pages` and capped by `--max-pages` —
- * sorting before the cap is what makes `--max-pages` deterministic — then each
- * surviving page read once to discover its modes.
+ * (minus `kSkippedDirs`), narrowed by `--pages`, pruned by `--exclude` and
+ * capped by `--max-pages` — sorting before the cap is what makes `--max-pages`
+ * deterministic — then each surviving page read once to discover its modes.
  */
 export function discoverPages(config: AxeScanConfig): AxePage[] {
   const paths: string[] = [];
@@ -103,13 +103,22 @@ export function discoverPages(config: AxeScanConfig): AxePage[] {
   }
   paths.sort();
 
+  const compile = (globs: string[]) =>
+    globs.map((glob) => globToRegExp(glob, { extended: true, globstar: true }));
+
   let selected = paths;
   if (config.pages) {
-    const patterns = config.pages.map((glob) =>
-      globToRegExp(glob, { extended: true, globstar: true })
-    );
+    const patterns = compile(config.pages);
     selected = paths.filter((path) =>
       patterns.some((pattern) => pattern.test(path))
+    );
+  }
+  // After --pages, before the cap: an exclusion should free cap room for the
+  // pages that remain.
+  if (config.exclude) {
+    const patterns = compile(config.exclude);
+    selected = selected.filter((path) =>
+      !patterns.some((pattern) => pattern.test(path))
     );
   }
   if (config.maxPages !== undefined) {
