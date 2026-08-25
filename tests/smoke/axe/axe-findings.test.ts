@@ -102,6 +102,33 @@ const nonQuartoPageScans: Verify = {
   },
 };
 
+const redirectStubSetAside: Verify = {
+  name: "an aliases: redirect stub is recorded furniture, never a page",
+  verify: (_output: ExecuteOutput[]) => {
+    // about.qmd declares `aliases: [/about-us.html]`, so Quarto writes a real
+    // redirect-map.ejs stub at about-us.html. Discovery must set it aside —
+    // not scan it (it would fail closed as `redirected`, turning a healthy
+    // aliased site into exit 2) and not lose it (the skip is recorded).
+    const results = readFindings();
+    const modes = pageModes();
+    assert(
+      !("about-us.html" in modes),
+      "the alias stub was scanned as a page",
+    );
+    const stub = (results.redirects ?? []).find((entry) =>
+      entry.output === "about-us.html"
+    );
+    assert(stub, "the alias stub is missing from findings.json redirects");
+    // exact form (leading slash, relative) is the template's business; the
+    // destination page is ours to assert
+    assert(
+      stub!.to?.includes("about.html"),
+      `unexpected destination: ${stub!.to}`,
+    );
+    return Promise.resolve();
+  },
+};
+
 const baselineReconciled: Verify = {
   name: "the committed baseline accepts, re-alerts and reports stale",
   verify: (_output: ExecuteOutput[]) => {
@@ -177,6 +204,7 @@ axeSmokeTest(
   [
     plantedFindings,
     nonQuartoPageScans,
+    redirectStubSetAside,
     baselineReconciled,
     reportIsUsable,
     rawCellsKept,

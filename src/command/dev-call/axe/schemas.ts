@@ -126,7 +126,9 @@ export const axeFindingsSchema = z.object({
     viewports: z.array(z.string()),
     themes: z.array(z.string()),
     pages: z.array(z.string()).nullable(),
-    exclude: z.array(z.string()).nullable(),
+    // nullish, not nullable: added after version 1 shipped, and a version-1
+    // file written without it must keep validating (additive field, no bump)
+    exclude: z.array(z.string()).nullish(),
     maxPages: z.number().nullable(),
     timeout: z.number(),
     settle: z.number(),
@@ -142,6 +144,16 @@ export const axeFindingsSchema = z.object({
     output: z.string(),
     modes: z.array(z.string()),
   })),
+  /**
+   * Redirect stubs (`aliases:` front matter, `_redirects` scripts) that
+   * discovery set aside: site furniture, not content, but the skip is
+   * recorded so a page-count consumer can account for every HTML file.
+   * Nullish: added after version 1 shipped (additive field, no bump).
+   */
+  redirects: z.array(z.object({
+    output: z.string(),
+    to: z.string().nullable(),
+  })).nullish(),
   cells: z.object({
     total: z.number(),
     ok: z.number(),

@@ -129,6 +129,12 @@ unitTest(
       redirectTarget(requested, "http://127.0.0.1:4173/index.html"),
       "http://127.0.0.1:4173/index.html",
     );
+    // a relative document URL resolves against the request before comparing
+    assertEquals(redirectTarget(requested, "/blog/index.html"), undefined);
+    assertEquals(
+      redirectTarget(requested, "/index.html"),
+      "/index.html",
+    );
     // wherever an unparseable location is, it is not the requested page
     assertEquals(redirectTarget(requested, ""), "(unknown location)");
     assertEquals(redirectTarget(requested, "about:blank"), "about:blank");
