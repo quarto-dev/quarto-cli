@@ -16,7 +16,9 @@ export const kAxeBaselineFile = "_axe-baseline.json";
 export const kDefaultViewports = "1440x900,390x844";
 export const kDefaultThemes = "light,dark";
 export const kDefaultTimeout = 30000;
-export const kDefaultSettle = 500;
+// An additive floor on top of the readiness probe (fonts + double rAF in
+// scan.ts), not the whole wait — which is why it is small.
+export const kDefaultSettle = 50;
 
 export interface AxeViewport {
   width: number;

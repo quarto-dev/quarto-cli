@@ -142,6 +142,10 @@ unitTest(
     const client = stubClient((method, params) => {
       if (method === "Runtime.evaluate") {
         const expression = String(params?.expression ?? "");
+        if (expression.includes("document.fonts")) {
+          // the readiness probe: the page reports ready
+          return Promise.resolve({ result: { value: true } });
+        }
         if (expression.includes("location.href")) {
           return Promise.resolve({
             result: { value: "https://opensource.posit.co/blog/q/positron/" },

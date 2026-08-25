@@ -352,7 +352,8 @@ export const axeCommand = new Command()
   )
   .option(
     "--settle <ms:number>",
-    "Delay in milliseconds after load before axe runs.",
+    "Extra delay in milliseconds after the page reports ready (webfonts " +
+      "loaded, layout painted), before axe runs.",
     { default: kDefaultSettle },
   )
   .example(
