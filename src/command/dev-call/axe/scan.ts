@@ -455,6 +455,29 @@ const kBodyModeProbe = `
 })()
 `;
 
+/**
+ * Readiness instead of a fixed worst-case delay: the page is ready for axe
+ * once webfonts have loaded (`document.fonts.ready` — fonts move layout and
+ * decide contrast against backgrounds) and two animation frames have painted
+ * (layout from deferred scripts has run and been committed). `--settle` then
+ * applies on top as an additive floor for pages with slower client-side
+ * rendering axe would otherwise catch mid-paint.
+ */
+const kReadinessProbe = `
+(async function () {
+  if (document.fonts && document.fonts.ready) {
+    await document.fonts.ready;
+  }
+  await new Promise(function (resolve) {
+    requestAnimationFrame(function () { requestAnimationFrame(resolve); });
+  });
+  return true;
+})()
+`;
+
+/** The old fixed delay, kept as the fallback when the probe can't run. */
+const kReadinessFallback = 500;
+
 /** Where the document actually is, read after load and settle. */
 const kLocationProbe = `window.location.href`;
 
@@ -571,8 +594,26 @@ export async function scanCell(
       }
       await load.event;
 
-      // Let webfonts, deferred scripts and any client-side layout settle before
-      // axe reads computed style.
+      // Wait for the page to report ready, then apply --settle as an additive
+      // floor. The probe failing has two causes with one safe answer: a
+      // redirect destroyed its context mid-wait (the location guard below
+      // names it), or the page's JS is pathological — either way, fall back
+      // to the old fixed delay rather than scanning mid-layout.
+      try {
+        const ready = await client.send<RuntimeEvaluateResult>(
+          "Runtime.evaluate",
+          {
+            expression: kReadinessProbe,
+            awaitPromise: true,
+            returnByValue: true,
+          },
+        );
+        if (evaluateError(ready)) {
+          await sleep(kReadinessFallback);
+        }
+      } catch (_e) {
+        await sleep(kReadinessFallback);
+      }
       await sleep(config.settle);
 
       // The document must still be the page we asked for: a redirect fires
