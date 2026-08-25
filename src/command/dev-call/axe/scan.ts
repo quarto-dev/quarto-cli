@@ -463,7 +463,8 @@ function evaluateError(response: RuntimeEvaluateResult): string | undefined {
   return details.exception?.description ?? details.text ?? "evaluation failed";
 }
 
-async function scanCell(
+/** Exported for unit tests; runAxeScan is the real caller. */
+export async function scanCell(
   client: CdpClient,
   axeSource: string,
   config: AxeScanConfig,
@@ -492,95 +493,106 @@ async function scanCell(
   let seedId: string | undefined;
 
   const load = client.once("Page.loadEventFired");
+  // The try/catch is the transport half of fail-closed: an in-page failure is
+  // handled per step below, but a rejected send — a crashed tab, a dropped
+  // WebSocket, a CDP protocol error — must fail this cell, not the whole scan.
+  // If the connection is really dead, every later cell fails fast the same way
+  // and the exit code says incomplete; the cells scanned so far stay reported.
   const run = (async (): Promise<AxeCell> => {
-    await client.send("Emulation.setDeviceMetricsOverride", {
-      width: viewport.width,
-      height: viewport.height,
-      deviceScaleFactor: 1,
-      mobile: false,
-    });
-    // Kept aligned with the mode for the sake of any hand-written
-    // prefers-color-scheme CSS. It cannot select a Quarto mode — the themes
-    // ignore it unless respect-user-color-scheme is set — and where it could
-    // (respect-user-color-scheme: true), the seeded stored value wins anyway.
-    await client.send("Emulation.setEmulatedMedia", {
-      features: [{
-        name: "prefers-color-scheme",
-        value: mode === "dark" ? "dark" : "light",
-      }],
-    });
-    if (mode !== "default") {
-      const seeded = await client.send<{ identifier?: string }>(
-        "Page.addScriptToEvaluateOnNewDocument",
-        { source: colorSchemeSeedSource(mode) },
-      );
-      seedId = seeded.identifier;
-    }
-
-    const navigation = await client.send<{ errorText?: string }>(
-      "Page.navigate",
-      { url },
-    );
-    if (navigation.errorText) {
-      return cell("error", {
-        message: `navigation failed: ${navigation.errorText}`,
+    try {
+      await client.send("Emulation.setDeviceMetricsOverride", {
+        width: viewport.width,
+        height: viewport.height,
+        deviceScaleFactor: 1,
+        mobile: false,
       });
-    }
-    await load.event;
+      // Kept aligned with the mode for the sake of any hand-written
+      // prefers-color-scheme CSS. It cannot select a Quarto mode — the themes
+      // ignore it unless respect-user-color-scheme is set — and where it could
+      // (respect-user-color-scheme: true), the seeded stored value wins anyway.
+      await client.send("Emulation.setEmulatedMedia", {
+        features: [{
+          name: "prefers-color-scheme",
+          value: mode === "dark" ? "dark" : "light",
+        }],
+      });
+      if (mode !== "default") {
+        const seeded = await client.send<{ identifier?: string }>(
+          "Page.addScriptToEvaluateOnNewDocument",
+          { source: colorSchemeSeedSource(mode) },
+        );
+        seedId = seeded.identifier;
+      }
 
-    // Let webfonts, deferred scripts and any client-side layout settle before
-    // axe reads computed style.
-    await sleep(config.settle);
-
-    // Verify the seed took, from the body class where one exists. A mismatch
-    // is an infrastructure failure: the cell would really be the other mode,
-    // and fail-closed beats miscounted coverage.
-    if (mode !== "default") {
-      const probed = await client.send<RuntimeEvaluateResult>(
-        "Runtime.evaluate",
-        { expression: kBodyModeProbe, returnByValue: true },
+      const navigation = await client.send<{ errorText?: string }>(
+        "Page.navigate",
+        { url },
       );
-      const active = evaluateError(probed) ? null : probed.result?.value;
-      if (active != null && active !== mode) {
+      if (navigation.errorText) {
         return cell("error", {
-          message: `page loaded in ${active} mode, expected ${mode}`,
+          message: `navigation failed: ${navigation.errorText}`,
         });
       }
-    }
+      await load.event;
 
-    const injected = await client.send<RuntimeEvaluateResult>(
-      "Runtime.evaluate",
-      { expression: axeSource, returnByValue: false },
-    );
-    const injectError = evaluateError(injected);
-    if (injectError) {
+      // Let webfonts, deferred scripts and any client-side layout settle before
+      // axe reads computed style.
+      await sleep(config.settle);
+
+      // Verify the seed took, from the body class where one exists. A mismatch
+      // is an infrastructure failure: the cell would really be the other mode,
+      // and fail-closed beats miscounted coverage.
+      if (mode !== "default") {
+        const probed = await client.send<RuntimeEvaluateResult>(
+          "Runtime.evaluate",
+          { expression: kBodyModeProbe, returnByValue: true },
+        );
+        const active = evaluateError(probed) ? null : probed.result?.value;
+        if (active != null && active !== mode) {
+          return cell("error", {
+            message: `page loaded in ${active} mode, expected ${mode}`,
+          });
+        }
+      }
+
+      const injected = await client.send<RuntimeEvaluateResult>(
+        "Runtime.evaluate",
+        { expression: axeSource, returnByValue: false },
+      );
+      const injectError = evaluateError(injected);
+      if (injectError) {
+        return cell("error", {
+          message: `axe injection failed: ${injectError}`,
+        });
+      }
+
+      const evaluated = await client.send<RuntimeEvaluateResult>(
+        "Runtime.evaluate",
+        {
+          expression: kAxeRunExpression,
+          awaitPromise: true,
+          returnByValue: true,
+        },
+      );
+      const runError = evaluateError(evaluated);
+      if (runError) {
+        return cell("error", {
+          message: `axe.run() failed: ${runError}`,
+        });
+      }
+
+      const value = evaluated.result?.value as AxeRunResult | undefined;
+      if (!value || !Array.isArray(value.violations)) {
+        return cell("no-payload", {
+          message: "axe.run() returned no violations array",
+        });
+      }
+      return cell("ok", { result: value });
+    } catch (e) {
       return cell("error", {
-        message: `axe injection failed: ${injectError}`,
+        message: `CDP failure: ${e instanceof Error ? e.message : String(e)}`,
       });
     }
-
-    const evaluated = await client.send<RuntimeEvaluateResult>(
-      "Runtime.evaluate",
-      {
-        expression: kAxeRunExpression,
-        awaitPromise: true,
-        returnByValue: true,
-      },
-    );
-    const runError = evaluateError(evaluated);
-    if (runError) {
-      return cell("error", {
-        message: `axe.run() failed: ${runError}`,
-      });
-    }
-
-    const value = evaluated.result?.value as AxeRunResult | undefined;
-    if (!value || !Array.isArray(value.violations)) {
-      return cell("no-payload", {
-        message: "axe.run() returned no violations array",
-      });
-    }
-    return cell("ok", { result: value });
   })();
 
   const timedOut = Symbol("timeout");

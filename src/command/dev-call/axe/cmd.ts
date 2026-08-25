@@ -300,6 +300,12 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
       return kExitIncomplete;
     }
     return kExitComplete;
+  } catch (e) {
+    // scanCell fails its own cell closed; this catches what it can't — the
+    // shared setup (Runtime.enable), a stage bug — so the command reports
+    // incomplete instead of dying on an uncaught error.
+    error(`Scan aborted: ${e instanceof Error ? e.message : String(e)}`);
+    return kExitIncomplete;
   } finally {
     await browser.close();
     server.stop();
