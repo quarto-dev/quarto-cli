@@ -14,11 +14,16 @@
 
 import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts";
+import { join } from "../../src/deno_ral/path.ts";
+import { ensureDirSync } from "../../src/deno_ral/fs.ts";
 import {
   applyThemesFilter,
   AxePage,
+  discoverPages,
   sniffModes,
 } from "../../src/command/dev-call/axe/discover.ts";
+import { axeScanConfig } from "../../src/command/dev-call/axe/config.ts";
+import { withTempDir } from "../utils.ts";
 
 // The inline before-body script, boiled down to its marker. Quarto emits it
 // iff the page has two modes.
@@ -85,6 +90,67 @@ unitTest(
     assertEquals(sniffModes(kDarklyHtml), {
       modes: ["default"],
       darkColoured: true,
+    });
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Page discovery: the walk, its skips, and the --pages / --max-pages narrowing
+// ---------------------------------------------------------------------------
+
+/** A site dir on disk: every entry is a page written with static one-mode HTML. */
+function writeSite(dir: string, pages: string[]) {
+  for (const page of pages) {
+    ensureDirSync(join(dir, page, ".."));
+    Deno.writeTextFileSync(join(dir, page), kStaticHtml);
+  }
+}
+
+unitTest(
+  "page discovery - the scanner's own output and vendored libs are never pages",
+  async () => {
+    await withTempDir((dir) => {
+      writeSite(dir, [
+        "index.html",
+        "docs/guide.html",
+        // a previous run's report, when the anchor is the site dir
+        "_axe-checks/report.html",
+        // vendored: reveal ships this with every deck
+        "site_libs/revealjs/plugin/notes/speaker-view.html",
+        // nested site_libs (a deck rendered into a subdirectory)
+        "slides/site_libs/quarto-html/tippy.html",
+      ]);
+      const pages = discoverPages(axeScanConfig({}, dir));
+      assertEquals(
+        pages.map((page) => page.path),
+        ["docs/guide.html", "index.html"],
+      );
+    });
+  },
+);
+
+unitTest(
+  "page discovery - --pages narrows, then --max-pages caps the sorted list",
+  async () => {
+    await withTempDir((dir) => {
+      writeSite(dir, [
+        "index.html",
+        "docs/a.html",
+        "docs/b.html",
+        "blog/post.html",
+      ]);
+      // globstar include
+      assertEquals(
+        discoverPages(axeScanConfig({ pages: "docs/**" }, dir))
+          .map((page) => page.path),
+        ["docs/a.html", "docs/b.html"],
+      );
+      // the cap is deterministic: sorted first, then sliced
+      assertEquals(
+        discoverPages(axeScanConfig({ maxPages: 2 }, dir))
+          .map((page) => page.path),
+        ["blog/post.html", "docs/a.html"],
+      );
     });
   },
 );

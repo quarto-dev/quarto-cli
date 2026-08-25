@@ -18,7 +18,7 @@ import { globToRegExp, join, relative } from "../../../deno_ral/path.ts";
 import { walkSync } from "../../../deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { ErrorEx } from "../../../core/lib/error.ts";
-import { AxeScanConfig, AxeTheme } from "./config.ts";
+import { AxeScanConfig, AxeTheme, kAxeOutputDir } from "./config.ts";
 
 /**
  * The colour mode of one cell. `light` and `dark` are the author's two slots
@@ -75,18 +75,30 @@ export function sniffModes(
 }
 
 /**
- * Every `*.html` under `siteDir`, as sorted site-relative forward-slash paths,
- * narrowed by `--pages` and capped by `--max-pages` — sorting before the cap
- * is what makes `--max-pages` deterministic — then each surviving page read
- * once to discover its modes.
+ * Directories whose HTML is never site content, skipped at any depth:
+ * `_axe-checks` is the scanner's own output (when the anchor is the site dir —
+ * `output-dir: "."`, or loose HTML scanned from inside it — a rerun would
+ * otherwise scan its own report), and `site_libs` is vendored library code
+ * (reveal ships `plugin/notes/speaker-view.html`), whose findings belong
+ * upstream, not to the site's author.
+ */
+const kSkippedDirs: string[] = [kAxeOutputDir, "site_libs"];
+
+/**
+ * Every `*.html` under `siteDir`, as sorted site-relative forward-slash paths
+ * (minus `kSkippedDirs`), narrowed by `--pages` and capped by `--max-pages` —
+ * sorting before the cap is what makes `--max-pages` deterministic — then each
+ * surviving page read once to discover its modes.
  */
 export function discoverPages(config: AxeScanConfig): AxePage[] {
   const paths: string[] = [];
   for (const entry of walkSync(config.siteDir, { includeDirs: false })) {
     if (entry.path.endsWith(".html")) {
-      paths.push(
-        pathWithForwardSlashes(relative(config.siteDir, entry.path)),
-      );
+      const path = pathWithForwardSlashes(relative(config.siteDir, entry.path));
+      if (path.split("/").some((segment) => kSkippedDirs.includes(segment))) {
+        continue;
+      }
+      paths.push(path);
     }
   }
   paths.sort();
