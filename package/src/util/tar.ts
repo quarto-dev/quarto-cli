@@ -9,16 +9,6 @@ import { dirname, extname } from "../../../src/deno_ral/path.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { os } from "../../../src/deno_ral/platform.ts";
 
-// Deno 2 omits Deno.run from its types, but Quarto's runtime still provides it.
-// Declare only the API used here until these calls migrate to Deno.Command.
-declare global {
-  namespace Deno {
-    function run(options: { cmd: string[]; cwd?: string }): {
-      status(): Promise<{ code: number }>;
-    };
-  }
-}
-
 export function windowsSystemTar(systemRoot?: string): string {
   return `${systemRoot || "C:\\Windows"}\\System32\\tar.exe`;
 }
@@ -100,6 +90,7 @@ export async function makeTarball(
   );
 
   info(tarCmd);
+  // @ts-expect-error `Deno.run()` is soft-removed as of Deno 2; the runtime keeps it.
   const p = Deno.run({
     cmd: tarCmd,
   });
@@ -123,6 +114,7 @@ export async function unTar(input: string, directory?: string) {
   const tarCmd = unTarCommand(currentTarBinary(), input, directory);
 
   info(tarCmd);
+  // @ts-expect-error `Deno.run()` is soft-removed as of Deno 2; the runtime keeps it.
   const p = Deno.run({
     cmd: tarCmd,
     cwd,
