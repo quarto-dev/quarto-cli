@@ -163,10 +163,13 @@ export function translationsForLang(language: FormatLanguage, lang: string) {
   let translations = {} as FormatLanguage;
   Object.keys(language).forEach((key) => {
     // crossrefs can be custom, so be more lenient
+    // any other non-object value is a user or extension defined string,
+    // objects are locale variations and are merged below instead
     if (
       kLanguageDefaultsKeys.includes(key) ||
       key.match(/^crossref-.*-title$/) ||
-      key.match(/^crossref-.*-prefix$/)
+      key.match(/^crossref-.*-prefix$/) ||
+      typeof language[key] !== "object"
     ) {
       translations[key] = language[key];
     }

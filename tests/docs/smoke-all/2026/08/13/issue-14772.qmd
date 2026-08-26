@@ -1,0 +1,41 @@
+---
+title: "Custom `language` keys reach the template namespace (#14772)"
+format:
+  typst:
+    template-partials:
+      - typst-show.typ
+    keep-typ: true
+language:
+  toc-title-document: "Overridden built-in"
+  custom-key: "Custom value"
+  en:
+    variation-key: "Variation value"
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'built-in overridden: `Overridden built-in`'
+          - 'built-in untouched: `Abstract`'
+          - 'custom key: `Custom value`'
+          - 'variation key: `Variation value`'
+        -
+          - 'custom key: ``'
+          - 'variation key: ``'
+      noErrors: true
+---
+
+Regression test for #14772. `translationsForLang` rebuilt the language table
+from an allow-list, and `formatLanguage` ran it after merging the user's
+`language` object over the defaults, so a key Quarto does not ship was
+accepted by the schema, merged, and then discarded before templates saw it.
+`$quarto.language.custom-key$` expanded to an empty string with no warning.
+
+The four keys read back by `typst-show.typ` isolate the parts that must keep
+working alongside the fix: an override of a built-in key still wins over the
+default, an untouched built-in key still resolves to its default, and a
+locale-variation sub-object still merges through the variation loop rather
+than leaking as an object, which is what the non-object test in the filter
+protects. Only the custom key regressed.
+
+The end.
