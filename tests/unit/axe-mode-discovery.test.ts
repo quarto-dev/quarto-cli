@@ -82,6 +82,37 @@ unitTest(
   },
 );
 
+// A one-mode page whose *content* talks about the toggle: the bare name in
+// prose and a code sample, and the full definition split into highlight
+// spans. None of these is the inline before-body script.
+const kMentionsToggleHtml = `<html><head>
+<link href="site_libs/bootstrap/bootstrap-a0.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+</head><body class="quarto-light">
+<p>Quarto defines <code>quartoToggleColorScheme</code> for the toggle.</p>
+<pre><code><span class="kw">window</span><span class="op">.</span><span class="at">quartoToggleColorScheme</span> <span class="op">=</span> () <span class="kw">=&gt;</span> {}</code></pre>
+</body></html>`;
+
+unitTest(
+  "mode discovery - a page documenting the toggle is not two-mode",
+  // deno-lint-ignore require-await
+  async () => {
+    // The sniffer matches the marker's *definition*, not its name: a bare
+    // mention would seed a dark cell on a one-mode page, and the cell would
+    // fail closed with a misleading mode-mismatch error (or pass silently as
+    // a duplicate cell where no body class exists).
+    assertEquals(sniffModes(kMentionsToggleHtml), {
+      modes: ["default"],
+      darkColoured: false,
+    });
+    // Whitespace around the assignment must not defeat the match.
+    assertEquals(
+      sniffModes(`<script>window.quartoToggleColorScheme=() => {}</script>`)
+        .modes,
+      ["light", "dark"],
+    );
+  },
+);
+
 unitTest(
   "mode discovery - a sole dark-measured bootstrap link is annotated, not a mode",
   // deno-lint-ignore require-await

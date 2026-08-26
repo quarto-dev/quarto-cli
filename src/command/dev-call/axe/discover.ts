@@ -49,8 +49,17 @@ export interface AxePage {
  * unlike the toggle *element* it is present in the static HTML. The alternate
  * stylesheet links are NOT a usable marker: a light-only `_brand.yml` emits
  * them with no dark mode behind them (fixture: sites/brand-light-only).
+ *
+ * The match is the *definition*, not the bare name: documentation that
+ * mentions the toggle in a highlighted code sample splits the name across
+ * `<span>`s, and prose mentioning the name alone must not seed a dark cell on
+ * a one-mode page (quarto.org's own dark-mode docs are the live case). An
+ * unhighlighted sample containing the verbatim definition still matches —
+ * accepted residual. The emitting template
+ * (src/resources/formats/html/templates/quarto-html-before-body.ejs) carries
+ * a pointer back here, so a rename can't silently strand discovery.
  */
-const kTwoModeMarker = "quartoToggleColorScheme";
+const kTwoModeMarker = /window\.quartoToggleColorScheme\s*=/;
 
 /**
  * Discover a page's modes from its rendered HTML.
@@ -64,7 +73,7 @@ const kTwoModeMarker = "quartoToggleColorScheme";
 export function sniffModes(
   html: string,
 ): { modes: AxeMode[]; darkColoured: boolean } {
-  if (html.includes(kTwoModeMarker)) {
+  if (kTwoModeMarker.test(html)) {
     return { modes: ["light", "dark"], darkColoured: false };
   }
   const bootstrapLinks =
