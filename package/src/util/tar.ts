@@ -7,6 +7,8 @@
 
 import { info } from "../../../src/deno_ral/log.ts";
 import { dirname, extname } from "../../../src/deno_ral/path.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
+import { os } from "../../../src/deno_ral/platform.ts";
 
 // Deno 2 dropped Deno.run from its type definitions, but the runtime still
 // implements it (verified: typeof Deno.run === "function" on Deno 2.7.14).
@@ -104,6 +106,14 @@ export function makeTarballCommand(
   return cmd;
 }
 
+// The one impure step: read the environment and stat the candidate, then let
+// the pure resolver decide. Not exported - the pure functions are what the
+// tests cover.
+function currentTarBinary(): string {
+  const systemTarPath = windowsSystemTar(Deno.env.get("WINDIR"));
+  return resolveTarBinary(os, systemTarPath, existsSync(systemTarPath));
+}
+
 export async function makeTarball(
   input: string,
   output: string,
@@ -112,17 +122,7 @@ export async function makeTarball(
   info("Make Tarball");
   info(`Input: ${input}`);
   info(`Output: ${output}\n`);
-  const tarCmd: string[] = [];
-  tarCmd.push("tar");
-  tarCmd.push("czvf");
-  tarCmd.push(output);
-  if (changewd) {
-    tarCmd.push("-C");
-  }
-  tarCmd.push(input);
-  if (changewd) {
-    tarCmd.push(".");
-  }
+  const tarCmd = makeTarballCommand(currentTarBinary(), input, output, changewd);
 
   info(tarCmd);
   const p = Deno.run({
@@ -130,7 +130,11 @@ export async function makeTarball(
   });
   const status = await p.status();
   if (status.code !== 0) {
-    throw Error("Failure to make tarball");
+    throw Error(
+      `Failure to make tarball ${output} using ${tarCmd[0]} (exit ${status.code}). Command was: ${
+        tarCmd.join(" ")
+      }`,
+    );
   }
 }
 
@@ -141,30 +145,23 @@ export async function unTar(input: string, directory?: string) {
   const cwd = dirname(input);
   info(`Cwd: ${cwd}`);
 
-  // Properly process the compressions
-  let compressFlag = "z"; // zip by default
-  const ext = extname(input);
-  if (ext === ".xz") {
-    compressFlag = "J";
-  } else if (ext === ".bz2") {
-    compressFlag = "j";
-  }
+  const tarCmd = unTarCommand(currentTarBinary(), input, directory);
 
-  const tarCmd: string[] = [];
-  tarCmd.push("tar");
-  tarCmd.push(`-xv${compressFlag}f`);
-  tarCmd.push(input);
-  if (directory) {
-    tarCmd.push("--directory");
-    tarCmd.push(directory);
-  }
-
+  info(tarCmd);
   const p = Deno.run({
     cmd: tarCmd,
     cwd,
   });
   const status = await p.status();
   if (status.code !== 0) {
-    throw Error("Failure to untar");
+    const systemTarPath = windowsSystemTar(Deno.env.get("WINDIR"));
+    const fellBack = os === "windows" && tarCmd[0] === "tar"
+      ? ` ${systemTarPath} was not found, so tar was resolved from PATH.`
+      : "";
+    throw Error(
+      `Failure to untar ${input} using ${tarCmd[0]} (exit ${status.code}).${fellBack} Command was: ${
+        tarCmd.join(" ")
+      }`,
+    );
   }
 }
