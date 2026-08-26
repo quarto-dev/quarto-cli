@@ -1,4 +1,5 @@
 import * as tabsets from "./tabsets/tabsets.js";
+import * as scrollableRegions from "./scrollable-regions/scrollable-regions.js";
 
 const sectionChanged = new CustomEvent("quarto-sectionChanged", {
   detail: {},
@@ -39,6 +40,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     const resizeObserver = new window.ResizeObserver(
       throttle(() => {
         layoutMarginEls();
+        scrollableRegions.syncScrollableRegions();
         if (
           window.document.body.getBoundingClientRect().width < 990 &&
           isReaderMode()
@@ -49,6 +51,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     );
     resizeObserver.observe(window.document.body);
   }
+  scrollableRegions.syncScrollableRegions();
 
   const tocEl = window.document.querySelector('nav.toc-active[role="doc-toc"]');
   const sidebarEl = window.document.getElementById("quarto-sidebar");
