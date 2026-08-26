@@ -14,6 +14,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { debug, error, info } from "../../../deno_ral/log.ts";
 import { ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
 import { dirname, join, resolve } from "../../../deno_ral/path.ts";
+import { exitWithCleanup } from "../../../core/cleanup.ts";
 import { findOpenPort } from "../../../core/port.ts";
 import { httpFileRequestHandler } from "../../../core/http.ts";
 import { handleHttpRequests } from "../../../core/http-server.ts";
@@ -439,6 +440,6 @@ export const axeCommand = new Command()
   .action(async (options: any, siteDir: string) => {
     const code = await axeScan(axeScanConfig(options, siteDir));
     if (code !== kExitComplete) {
-      Deno.exit(code);
+      exitWithCleanup(code);
     }
   });
