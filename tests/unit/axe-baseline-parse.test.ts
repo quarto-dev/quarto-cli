@@ -77,7 +77,6 @@ unitTest(
       detail: "Element does not have an alt attribute",
       baselined: false,
       baselineNote: null,
-      label: "systemic",
       instances: 2,
       pages: ["about.html", "index.html"],
       cells: 4,

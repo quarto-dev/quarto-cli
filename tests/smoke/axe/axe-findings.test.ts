@@ -2,7 +2,7 @@
  * axe-findings.test.ts
  *
  * `quarto dev-call axe` against tests/docs/axe-scan/sites/findings: grouping,
- * the systemic/localized call, the impact spread, baseline reconciliation and
+ * the impact spread, baseline reconciliation and
  * the report.
  *
  * The matrix axes live in axe-matrix.test.ts and light-only brand reuse in
@@ -43,7 +43,6 @@ const plantedFindings: Verify = {
     // page including _systemic.qmd is a fixture addition, not a regression.
     const systemic = find(findings, "image-alt :: img");
     assertEquals(systemic.impact, "critical");
-    assertEquals(systemic.label, "systemic");
     for (const page of ["about.html", "index.html"]) {
       assert(
         systemic.pages.includes(page),
@@ -56,13 +55,11 @@ const plantedFindings: Verify = {
     // should fail.
     const localized = find(findings, "link-name :: p > a");
     assertEquals(localized.impact, "serious");
-    assertEquals(localized.label, "localized");
     assertEquals(localized.pages, ["index.html"]);
 
     // moderate, completing the impact spread
     const heading = find(findings, "heading-order :: h4");
     assertEquals(heading.impact, "moderate");
-    assertEquals(heading.label, "localized");
     assertEquals(heading.pages, ["index.html"]);
 
     return Promise.resolve();

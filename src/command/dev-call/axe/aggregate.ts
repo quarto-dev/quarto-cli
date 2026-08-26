@@ -45,9 +45,6 @@ import {
   standardRank,
 } from "./conformance.ts";
 
-/** Instances-or-pages threshold above which a finding is "systemic". */
-const kSystemicMinInstances = 3;
-
 // ---------------------------------------------------------------------------
 // Signatures
 // ---------------------------------------------------------------------------
@@ -425,10 +422,6 @@ export function aggregate(options: AggregateOptions): AxeFindings {
       detail: group.detail,
       baselined,
       baselineNote,
-      // systemic = repeated source: many elements, or more than one page
-      label: instances >= kSystemicMinInstances || group.pages.size >= 2
-        ? "systemic"
-        : "localized",
       instances,
       pages: findingPages,
       cells: group.cells.size,

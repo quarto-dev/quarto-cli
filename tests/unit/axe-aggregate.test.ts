@@ -2,7 +2,7 @@
  * axe-aggregate.test.ts
  *
  * Tests the aggregate stage of `quarto dev-call axe` against real captured axe
- * payloads: grouping, the systemic/localized call, matrix coverage, and the
+ * payloads: grouping, matrix coverage, and the
  * `findings.json` contract.
  *
  * The inputs are verbatim per-cell captures from scans of the fixture sites
@@ -31,6 +31,7 @@ import { AxeCell } from "../../src/command/dev-call/axe/scan.ts";
 import { AxeMode, AxePage } from "../../src/command/dev-call/axe/discover.ts";
 import {
   axeFindingsSchema,
+  kFindingsVersion,
   kSignatureScheme,
 } from "../../src/command/dev-call/axe/schemas.ts";
 import { AxeScanConfig } from "../../src/command/dev-call/axe/config.ts";
@@ -134,13 +135,12 @@ const inMatrix = (signature: string) =>
 // ---------------------------------------------------------------------------
 
 unitTest(
-  "aggregate - one defect in a shared include is one systemic finding",
+  "aggregate - one defect in a shared include is one finding",
   // deno-lint-ignore require-await
   async () => {
     // The alt-less image lives in _systemic.qmd, included by every content
     // page on the findings site. Two pages, one finding, not two.
     const finding = bySignature("image-alt :: img");
-    assertEquals(finding.label, "systemic");
     assertEquals(finding.impact, "critical");
     assertEquals(finding.pages, ["about.html", "index.html"]);
     assertEquals(finding.instances, 2);
@@ -148,11 +148,10 @@ unitTest(
 );
 
 unitTest(
-  "aggregate - a one-off is localized",
+  "aggregate - a one-off stays one finding with one instance",
   // deno-lint-ignore require-await
   async () => {
     const finding = bySignature("link-name :: p > a");
-    assertEquals(finding.label, "localized");
     assertEquals(finding.impact, "serious");
     assertEquals(finding.pages, ["index.html"]);
     assertEquals(finding.instances, 1);
@@ -160,15 +159,12 @@ unitTest(
 );
 
 unitTest(
-  "aggregate - three elements on one page are systemic without a second page",
+  "aggregate - repetition within a page collapses to one finding, counted",
   // deno-lint-ignore require-await
   async () => {
-    // Repetition within a page is as much evidence of a shared source as
-    // repetition across pages.
     const finding = bySignature(
       'button-name :: button[data-widget-target="#panel-*"]',
     );
-    assertEquals(finding.label, "systemic");
     assertEquals(finding.pages.length, 1);
     assertEquals(finding.instances, 3);
   },
@@ -341,7 +337,7 @@ unitTest(
   // deno-lint-ignore require-await
   async () => {
     const results = aggregateFindings();
-    assertEquals(results.version, 1);
+    assertEquals(results.version, kFindingsVersion);
     assertEquals(results.signatureScheme, kSignatureScheme);
   },
 );
