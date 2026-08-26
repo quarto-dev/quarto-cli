@@ -1,26 +1,16 @@
 /*
-* tar.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * tar.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info } from "../../../src/deno_ral/log.ts";
 import { dirname, extname } from "../../../src/deno_ral/path.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { os } from "../../../src/deno_ral/platform.ts";
 
-// Deno 2 dropped Deno.run from its type definitions, but the runtime still
-// implements it (verified: typeof Deno.run === "function" on Deno 2.7.14).
-// Declaring its actual shape here fixes the TS2339 errors this file's tests
-// would otherwise hit under `deno test --check`, instead of suppressing them;
-// migrating off Deno.run to Deno.Command is out of scope. The shape below is
-// deliberately minimal - just what this file's two call sites use, not the
-// full Deno 1 RunOptions/Process API. Other files calling Deno.run (git.ts,
-// configure.ts, import-report/*) have their own untested latent TS2339s;
-// if a future change needs to type Deno.run more broadly across the
-// codebase, that belongs in src/deno_ral/process.ts (which already wraps
-// Deno.Command, the migration target), not a wider version of this block.
+// Deno 2 omits Deno.run from its types, but Quarto's runtime still provides it.
+// Declare only the API used here until these calls migrate to Deno.Command.
 declare global {
   namespace Deno {
     function run(options: { cmd: string[]; cwd?: string }): {
@@ -29,24 +19,12 @@ declare global {
   }
 }
 
-// Windows ships bsdtar as System32\tar.exe, which reads ZIP archives.
 export function windowsSystemTar(systemRoot?: string): string {
   return `${systemRoot || "C:\\Windows"}\\System32\\tar.exe`;
 }
 
-// Resolve which tar to run. On Windows prefer the absolute System32 bsdtar: a
-// GNU tar earlier on PATH - Git for Windows installs one in usr\bin, and
-// anything launched from a Git Bash shell inherits that PATH - cannot read ZIP
-// and reads a Windows absolute path as a remote host spec, so it fails every
-// dependency extraction. configure.cmd calls the absolute System32 path for the
-// Deno bootstrap for this same reason.
-//
-// Fall back to PATH when that file is not there. That does not make such a host
-// work, since its PATH tar is the very binary that cannot read ZIP; it keeps
-// this change from regressing a host we have not tested, and it means a wrong
-// systemRoot degrades to today's behaviour instead of failing outright.
-// Callers pass the existence result so this stays pure and both branches are
-// testable.
+// Git for Windows may put GNU tar on PATH, where it cannot extract ZIP files
+// from Windows paths. Prefer the system bsdtar and preserve PATH as a fallback.
 export function resolveTarBinary(
   os: string,
   systemTarPath: string,
@@ -58,10 +36,7 @@ export function resolveTarBinary(
   return systemTarExists ? systemTarPath : "tar";
 }
 
-// tar's compression flag for an archive. A .zip gets none: the format is not
-// gzip, and bsdtar detects it unaided. Passing z for a zip happens to work
-// under bsdtar's lenient format detection, which is what has kept the mistake
-// invisible and made the GNU tar failure look like archive corruption.
+// ZIP archives need no compression flag; bsdtar detects their format.
 export function tarCompressFlag(input: string): string {
   const ext = extname(input).toLowerCase();
   if (ext === ".xz") {
@@ -74,8 +49,6 @@ export function tarCompressFlag(input: string): string {
   return "z";
 }
 
-// The command builders take an already-resolved binary, so the filesystem
-// check stays out of them and a test can pass any binary string it likes.
 export function unTarCommand(
   tarBin: string,
   input: string,
@@ -106,9 +79,6 @@ export function makeTarballCommand(
   return cmd;
 }
 
-// The one impure step: read the environment and stat the candidate, then let
-// the pure resolver decide. Not exported - the pure functions are what the
-// tests cover.
 function currentTarBinary(): string {
   const systemTarPath = windowsSystemTar(Deno.env.get("WINDIR"));
   return resolveTarBinary(os, systemTarPath, existsSync(systemTarPath));
@@ -122,7 +92,12 @@ export async function makeTarball(
   info("Make Tarball");
   info(`Input: ${input}`);
   info(`Output: ${output}\n`);
-  const tarCmd = makeTarballCommand(currentTarBinary(), input, output, changewd);
+  const tarCmd = makeTarballCommand(
+    currentTarBinary(),
+    input,
+    output,
+    changewd,
+  );
 
   info(tarCmd);
   const p = Deno.run({
@@ -131,9 +106,9 @@ export async function makeTarball(
   const status = await p.status();
   if (status.code !== 0) {
     throw Error(
-      `Failure to make tarball ${output} using ${tarCmd[0]} (exit ${status.code}). Command was: ${
-        tarCmd.join(" ")
-      }`,
+      `Failure to make tarball ${output} using ${
+        tarCmd[0]
+      } (exit ${status.code}). Command was: ${tarCmd.join(" ")}`,
     );
   }
 }
@@ -159,9 +134,9 @@ export async function unTar(input: string, directory?: string) {
       ? ` ${systemTarPath} was not found, so tar was resolved from PATH.`
       : "";
     throw Error(
-      `Failure to untar ${input} using ${tarCmd[0]} (exit ${status.code}).${fellBack} Command was: ${
-        tarCmd.join(" ")
-      }`,
+      `Failure to untar ${input} using ${
+        tarCmd[0]
+      } (exit ${status.code}).${fellBack} Command was: ${tarCmd.join(" ")}`,
     );
   }
 }

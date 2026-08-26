@@ -1,13 +1,7 @@
 /*
  * tar-command.test.ts
  *
- * Tests how quarto-bld builds its tar invocations. On Windows the binary must
- * be the absolute System32 bsdtar, because a GNU tar earlier on PATH cannot
- * read ZIP and treats a Windows absolute path as a remote host. Archive names
- * here are the real ones from package/src/common/dependencies.
- *
  * Copyright (C) 2026 Posit Software, PBC
- *
  */
 
 import { unitTest } from "../test.ts";
@@ -27,37 +21,46 @@ unitTest("windowsSystemTar - builds the System32 path", async () => {
   );
 });
 
-unitTest("windowsSystemTar - falls back to C:\\Windows when unset or empty", async () => {
-  assertEquals(windowsSystemTar(), "C:\\Windows\\System32\\tar.exe");
-  assertEquals(windowsSystemTar(""), "C:\\Windows\\System32\\tar.exe");
-});
+unitTest(
+  "windowsSystemTar - falls back to C:\\Windows when unset or empty",
+  async () => {
+    assertEquals(windowsSystemTar(), "C:\\Windows\\System32\\tar.exe");
+    assertEquals(windowsSystemTar(""), "C:\\Windows\\System32\\tar.exe");
+  },
+);
 
 unitTest("windowsSystemTar - honours a relocated system root", async () => {
   assertEquals(windowsSystemTar("D:\\Win"), "D:\\Win\\System32\\tar.exe");
 });
 
-unitTest("resolveTarBinary - windows prefers System32 bsdtar when present", async () => {
-  assertEquals(
-    resolveTarBinary("windows", "C:\\WINDOWS\\System32\\tar.exe", true),
-    "C:\\WINDOWS\\System32\\tar.exe",
-  );
-});
+unitTest(
+  "resolveTarBinary - windows prefers System32 bsdtar when present",
+  async () => {
+    assertEquals(
+      resolveTarBinary("windows", "C:\\WINDOWS\\System32\\tar.exe", true),
+      "C:\\WINDOWS\\System32\\tar.exe",
+    );
+  },
+);
 
-// No System32 bsdtar means a pre-17063 Windows. PATH tar there is very likely
-// GNU tar, which cannot read ZIP, so this does not rescue such a host - it
-// keeps behaviour identical to before this change rather than failing outright.
-unitTest("resolveTarBinary - windows falls back to PATH when System32 tar is absent", async () => {
-  assertEquals(
-    resolveTarBinary("windows", "C:\\WINDOWS\\System32\\tar.exe", false),
-    "tar",
-  );
-});
+unitTest(
+  "resolveTarBinary - windows falls back to PATH when System32 tar is absent",
+  async () => {
+    assertEquals(
+      resolveTarBinary("windows", "C:\\WINDOWS\\System32\\tar.exe", false),
+      "tar",
+    );
+  },
+);
 
-unitTest("resolveTarBinary - other platforms keep the bare binary", async () => {
-  assertEquals(resolveTarBinary("linux", "irrelevant", true), "tar");
-  assertEquals(resolveTarBinary("linux", "irrelevant", false), "tar");
-  assertEquals(resolveTarBinary("darwin", "irrelevant", true), "tar");
-});
+unitTest(
+  "resolveTarBinary - other platforms keep the bare binary",
+  async () => {
+    assertEquals(resolveTarBinary("linux", "irrelevant", true), "tar");
+    assertEquals(resolveTarBinary("linux", "irrelevant", false), "tar");
+    assertEquals(resolveTarBinary("darwin", "irrelevant", true), "tar");
+  },
+);
 
 unitTest("tarCompressFlag - zip gets no compression flag", async () => {
   assertEquals(tarCompressFlag("dart-sass-1.101.0-windows-x64.zip"), "");
@@ -126,28 +129,37 @@ unitTest("unTarCommand - a directory appends --directory", async () => {
   );
 });
 
-unitTest("makeTarballCommand - darwin form is unchanged from today", async () => {
-  assertEquals(
-    makeTarballCommand("tar", "/src/payload", "/out/bundle.tar.gz", false),
-    ["tar", "czvf", "/out/bundle.tar.gz", "/src/payload"],
-  );
-});
+unitTest(
+  "makeTarballCommand - darwin form is unchanged from today",
+  async () => {
+    assertEquals(
+      makeTarballCommand("tar", "/src/payload", "/out/bundle.tar.gz", false),
+      ["tar", "czvf", "/out/bundle.tar.gz", "/src/payload"],
+    );
+  },
+);
 
-unitTest("makeTarballCommand - changewd wraps the input with -C and dot", async () => {
-  assertEquals(
-    makeTarballCommand("tar", "/src/payload", "/out/bundle.tar.gz", true),
-    ["tar", "czvf", "/out/bundle.tar.gz", "-C", "/src/payload", "."],
-  );
-});
+unitTest(
+  "makeTarballCommand - changewd wraps the input with -C and dot",
+  async () => {
+    assertEquals(
+      makeTarballCommand("tar", "/src/payload", "/out/bundle.tar.gz", true),
+      ["tar", "czvf", "/out/bundle.tar.gz", "-C", "/src/payload", "."],
+    );
+  },
+);
 
-unitTest("makeTarballCommand - carries whatever binary it is handed", async () => {
-  assertEquals(
-    makeTarballCommand(
-      kSystemTar,
-      "C:\\src\\payload",
-      "C:\\out\\bundle.tar.gz",
-      false,
-    ),
-    [kSystemTar, "czvf", "C:\\out\\bundle.tar.gz", "C:\\src\\payload"],
-  );
-});
+unitTest(
+  "makeTarballCommand - carries whatever binary it is handed",
+  async () => {
+    assertEquals(
+      makeTarballCommand(
+        kSystemTar,
+        "C:\\src\\payload",
+        "C:\\out\\bundle.tar.gz",
+        false,
+      ),
+      [kSystemTar, "czvf", "C:\\out\\bundle.tar.gz", "C:\\src\\payload"],
+    );
+  },
+);
