@@ -4,6 +4,10 @@ All changes included in 1.11:
 
 - ([#14741](https://github.com/quarto-dev/quarto-cli/issues/14741)): Don't wrap the `longtable` environment of a cross-referenceable table in a `{ ... }` group. Pandoc emits that group to scope its `\def\LTcaptype{none}`, which Quarto removes when adding its own `\caption`; keeping the now-pointless group broke packages that move the environment out of the text flow, such as `endfloat` with `\DeclareDelayedFloatFlavor*{longtable}{table}`.
 
+## Accessibility
+
+- ([#14378](https://github.com/quarto-dev/quarto-cli/issues/14378)): Make scrollable code blocks and cell output keyboard-focusable in HTML output, so keyboard users can Tab to them and scroll with the arrow keys (axe rule `scrollable-region-focusable`, WCAG 2.1.1). While a region overflows it gets `tabindex="0"`, `role="group"`, and a localized `aria-label` (new `scrollable-code-label` and `scrollable-output-label` language keys); when it fits again the attributes are removed. Chrome and Firefox already focus such regions natively; this adds Safari coverage and an accessible name.
+
 ## Engines
 
 ### `knitr`
