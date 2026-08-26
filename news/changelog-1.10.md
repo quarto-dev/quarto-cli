@@ -1,3 +1,13 @@
+# v1.11 backports
+
+## In this release
+
+- ([#14741](https://github.com/quarto-dev/quarto-cli/issues/14741)): Don't wrap the `longtable` environment of a cross-referenceable table in a `{ ... }` group. Pandoc emits that group to scope its `\def\LTcaptype{none}`, which Quarto removes when adding its own `\caption`; keeping the now-pointless group broke packages that move the environment out of the text flow, such as `endfloat` with `\DeclareDelayedFloatFlavor*{longtable}{table}`.
+
+## In previous releases
+
+# v1.10 changes
+
 All changes included in 1.10:
 
 ## Regression fixes
