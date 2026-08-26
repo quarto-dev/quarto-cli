@@ -41,13 +41,15 @@ function plural(count: number, singular = "", many = "s"): string {
   return count === 1 ? singular : many;
 }
 
+// No `rule` column: the id is `<rule>-<hash>`, so a rule column would spend
+// table width repeating the id's prefix — width the id link badly needs
+// (markdown tables have no width control, and long-prose columns squeeze the
+// wrappable id column to a sliver).
 function findingsTable(findings: AxeFinding[], showWhy: boolean): string[] {
   const head = showWhy
-    ? "| id | standard | impact | rule | scope | pages | instances | why accepted |"
-    : "| id | standard | impact | rule | scope | pages | instances | detail |";
-  const rule = showWhy
-    ? "|---|---|---|---|---|---:|---:|---|"
-    : "|---|---|---|---|---|---:|---:|---|";
+    ? "| id | standard | impact | scope | pages | instances | why accepted |"
+    : "| id | standard | impact | scope | pages | instances | detail |";
+  const separator = "|---|---|---|---|---:|---:|---|";
   const rows = findings.map((finding) => {
     const last = showWhy
       ? cell(finding.baselineNote ?? "")
@@ -59,11 +61,11 @@ function findingsTable(findings: AxeFinding[], showWhy: boolean): string[] {
       ? code(finding.id)
       : `[${code(finding.id)}](#${finding.id})`;
     return `| ${id} | ${cell(finding.standard)} | ` +
-      `${cell(finding.impact)} | ${code(finding.rule)} | ` +
+      `${cell(finding.impact)} | ` +
       `${cell(finding.label)} | ${finding.pages.length} | ` +
       `${finding.instances} | ${last} |`;
   });
-  return [head, rule, ...rows];
+  return [head, separator, ...rows];
 }
 
 function occurrenceDetails(finding: AxeFinding): string[] {
