@@ -37,7 +37,7 @@ unitTest(
   "resolveTarBinary - windows prefers System32 bsdtar when present",
   async () => {
     assertEquals(
-      resolveTarBinary("windows", "C:\\WINDOWS\\System32\\tar.exe", true),
+      resolveTarBinary("windows", "C:\\WINDOWS\\System32\\tar.exe"),
       "C:\\WINDOWS\\System32\\tar.exe",
     );
   },
@@ -46,19 +46,16 @@ unitTest(
 unitTest(
   "resolveTarBinary - windows falls back to PATH when System32 tar is absent",
   async () => {
-    assertEquals(
-      resolveTarBinary("windows", "C:\\WINDOWS\\System32\\tar.exe", false),
-      "tar",
-    );
+    assertEquals(resolveTarBinary("windows", undefined), "tar");
   },
 );
 
 unitTest(
   "resolveTarBinary - other platforms keep the bare binary",
   async () => {
-    assertEquals(resolveTarBinary("linux", "irrelevant", true), "tar");
-    assertEquals(resolveTarBinary("linux", "irrelevant", false), "tar");
-    assertEquals(resolveTarBinary("darwin", "irrelevant", true), "tar");
+    assertEquals(resolveTarBinary("linux", "irrelevant"), "tar");
+    assertEquals(resolveTarBinary("linux", undefined), "tar");
+    assertEquals(resolveTarBinary("darwin", "irrelevant"), "tar");
   },
 );
 

@@ -17,13 +17,12 @@ export function windowsSystemTar(systemRoot?: string): string {
 // from Windows paths. Prefer the system bsdtar and preserve PATH as a fallback.
 export function resolveTarBinary(
   os: string,
-  systemTarPath: string,
-  systemTarExists: boolean,
+  systemTarPath: string | undefined,
 ): string {
   if (os !== "windows") {
     return "tar";
   }
-  return systemTarExists ? systemTarPath : "tar";
+  return systemTarPath ?? "tar";
 }
 
 // ZIP archives need no compression flag; bsdtar detects their format.
@@ -71,7 +70,10 @@ export function makeTarballCommand(
 
 function currentTarBinary(): string {
   const systemTarPath = windowsSystemTar(Deno.env.get("WINDIR"));
-  return resolveTarBinary(os, systemTarPath, existsSync(systemTarPath));
+  return resolveTarBinary(
+    os,
+    existsSync(systemTarPath) ? systemTarPath : undefined,
+  );
 }
 
 export async function makeTarball(
@@ -122,13 +124,15 @@ export async function unTar(input: string, directory?: string) {
   const status = await p.status();
   if (status.code !== 0) {
     const systemTarPath = windowsSystemTar(Deno.env.get("WINDIR"));
-    const fellBack = os === "windows" && tarCmd[0] === "tar"
+    const fallbackNote = os === "windows" && tarCmd[0] === "tar"
       ? ` ${systemTarPath} was not found, so tar was resolved from PATH.`
       : "";
     throw Error(
       `Failure to untar ${input} using ${
         tarCmd[0]
-      } (exit ${status.code}).${fellBack} Command was: ${tarCmd.join(" ")}`,
+      } (exit ${status.code}).${fallbackNote} Command was: ${
+        tarCmd.join(" ")
+      }`,
     );
   }
 }
