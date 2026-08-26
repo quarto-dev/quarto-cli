@@ -74,6 +74,7 @@ function run(cells: AxeCell[], baseline: AxeBaseline): AxeFindings {
     config: kConfig,
     baseline,
     baselineFile: "_axe-baseline.json",
+    anchor: Deno.cwd(),
     pages: [...new Set(cells.map((c) => c.page))].sort().map((path) => ({
       path,
       modes: ["light"],

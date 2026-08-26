@@ -64,6 +64,7 @@ function results(overrides: {
     config: { ...kConfig, ...overrides.config },
     baseline: overrides.baseline ?? { findings: [] },
     baselineFile: "_axe-baseline.json",
+    anchor: Deno.cwd(),
     pages: pages.map((path) => ({
       path,
       modes: ["light", "dark"],

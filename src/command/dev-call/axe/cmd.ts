@@ -285,6 +285,7 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
       config,
       baseline,
       baselineFile,
+      anchor,
       pages,
       redirects,
       axeVersion: scan.axeVersion,
