@@ -103,6 +103,7 @@ function aggregateCells(cells: AxeCell[]) {
     config: kConfig,
     baseline: { findings: [] },
     baselineFile: "_axe-baseline.json",
+    anchor: Deno.cwd(),
     pages: pagesOf(cells),
   });
 }
@@ -445,5 +446,36 @@ unitTest(
         `${finding.id} should be prefixed with ${finding.rule}`,
       );
     }
+  },
+);
+
+unitTest(
+  "aggregate - findings.json paths are anchor-relative",
+  // deno-lint-ignore require-await
+  async () => {
+    // Machine-local paths make a committed or CI-uploaded findings.json diff
+    // noisily across machines: relativize against the artifact anchor.
+    const cells = capturedCells("findings", kFindingsCells);
+    const results = aggregate({
+      cells,
+      config: { ...kConfig, siteDir: "/project/site/_site" },
+      baseline: { findings: [] },
+      baselineFile: "/project/site/_axe-baseline.json",
+      anchor: "/project/site",
+      pages: pagesOf(cells),
+    });
+    assertEquals(results.config.siteDir, "_site");
+    assertEquals(results.baseline.file, "_axe-baseline.json");
+
+    // output-dir: "." — the anchor is the site dir itself
+    const atAnchor = aggregate({
+      cells,
+      config: { ...kConfig, siteDir: "/project/site" },
+      baseline: { findings: [] },
+      baselineFile: "/project/site/_axe-baseline.json",
+      anchor: "/project/site",
+      pages: pagesOf(cells),
+    });
+    assertEquals(atAnchor.config.siteDir, ".");
   },
 );

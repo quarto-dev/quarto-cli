@@ -20,6 +20,8 @@
  */
 
 import { warning } from "../../../deno_ral/log.ts";
+import { relative, resolve } from "../../../deno_ral/path.ts";
+import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
 import { md5HashSync } from "../../../core/hash.ts";
 import { AxeCell, AxeViolationNode } from "./scan.ts";
@@ -381,6 +383,12 @@ export interface AggregateOptions {
   config: AxeScanConfig;
   baseline: AxeBaseline;
   baselineFile: string;
+  /**
+   * The artifact anchor (see cmd.ts `resolveAnchor`). Paths in findings.json
+   * are emitted relative to it: absolute paths and as-typed site dirs diff
+   * noisily when the file is committed or compared across machines.
+   */
+  anchor: string;
   pages: AxePage[];
   /** Redirect stubs discovery set aside — recorded, never silently dropped. */
   redirects?: AxeRedirectStub[];
@@ -389,6 +397,10 @@ export interface AggregateOptions {
 
 export function aggregate(options: AggregateOptions): AxeFindings {
   const { cells, config, baseline, baselineFile, pages } = options;
+  // Anchor-relative with forward slashes, so findings.json says the same
+  // thing on every machine that scans the same project.
+  const anchorRelative = (path: string) =>
+    pathWithForwardSlashes(relative(options.anchor, resolve(path))) || ".";
   const okCells = cells.filter((cell) => cell.status === "ok" && cell.result);
   const notOkCells = cells.filter((cell) => cell.status !== "ok");
 
@@ -461,7 +473,7 @@ export function aggregate(options: AggregateOptions): AxeFindings {
     axeVersion: options.axeVersion ??
       okCells[0]?.result?.testEngine?.version ?? null,
     config: {
-      siteDir: config.siteDir,
+      siteDir: anchorRelative(config.siteDir),
       viewports: config.viewports.map((viewport) => viewport.label),
       themes: [...config.themes],
       pages: config.pages ?? null,
@@ -493,7 +505,7 @@ export function aggregate(options: AggregateOptions): AxeFindings {
     })),
     pagesScanned: new Set(okCells.map((cell) => cell.page)).size,
     baseline: {
-      file: baselineFile,
+      file: anchorRelative(baselineFile),
       entries: accepted.size,
       stale: staleEntries(accepted, findings),
     },
