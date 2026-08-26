@@ -14,6 +14,9 @@ import { unitTest } from "../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 import {
   CdpClient,
+  cellName,
+  encodePagePath,
+  pageSlugs,
   redirectTarget,
   scanCell,
 } from "../../src/command/dev-call/axe/scan.ts";
@@ -177,5 +180,45 @@ unitTest(
       `the destination should be named: ${cell.message}`,
     );
     assert(!axeInjected, "axe must not be injected into the destination");
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Cell artifact naming and navigation URLs
+// ---------------------------------------------------------------------------
+
+unitTest(
+  "cell naming - slugs that collide get a hash suffix, others stay pretty",
+  // deno-lint-ignore require-await
+  async () => {
+    // `/` maps to `_`, so these two distinct pages share a raw slug — without
+    // disambiguation the second page's cells silently replace the first's.
+    const collided = pageSlugs(["docs/index.html", "docs_index.html"]);
+    const slugA = collided.get("docs/index.html")!;
+    const slugB = collided.get("docs_index.html")!;
+    assert(slugA !== slugB, `collision survived: ${slugA}`);
+    assert(slugA.startsWith("docs_index-"), slugA);
+    assert(slugB.startsWith("docs_index-"), slugB);
+
+    // No collision: the pretty, hash-free names are kept.
+    const plain = pageSlugs(["index.html", "docs/index.html"]);
+    assertEquals(plain.get("index.html"), "index");
+    assertEquals(plain.get("docs/index.html"), "docs_index");
+
+    assertEquals(cellName("docs_index", "1440x900", "dark"),
+      "docs_index__1440x900__dark");
+  },
+);
+
+unitTest(
+  "navigation - page paths are percent-encoded segment by segment",
+  // deno-lint-ignore require-await
+  async () => {
+    // `#` and `?` would truncate the URL at parse time: the cell would scan
+    // the wrong page and fail on the 404 with a misleading message.
+    assertEquals(encodePagePath("notes#1.html"), "notes%231.html");
+    assertEquals(encodePagePath("a b/q?.html"), "a%20b/q%3F.html");
+    // separators survive; plain paths are untouched
+    assertEquals(encodePagePath("docs/index.html"), "docs/index.html");
   },
 );
