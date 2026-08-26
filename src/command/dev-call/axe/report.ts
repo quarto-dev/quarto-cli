@@ -52,7 +52,13 @@ function findingsTable(findings: AxeFinding[], showWhy: boolean): string[] {
     const last = showWhy
       ? cell(finding.baselineNote ?? "")
       : cell(finding.detail || finding.examples[0] || "");
-    return `| ${code(finding.id)} | ${cell(finding.standard)} | ` +
+    // New findings link to their occurrence section (a `#### <id>` heading,
+    // so GitHub and Pandoc both auto-anchor it); baselined findings have no
+    // occurrence sections to link to.
+    const id = showWhy
+      ? code(finding.id)
+      : `[${code(finding.id)}](#${finding.id})`;
+    return `| ${id} | ${cell(finding.standard)} | ` +
       `${cell(finding.impact)} | ${code(finding.rule)} | ` +
       `${cell(finding.label)} | ${finding.pages.length} | ` +
       `${finding.instances} | ${last} |`;
@@ -61,10 +67,14 @@ function findingsTable(findings: AxeFinding[], showWhy: boolean): string[] {
 }
 
 function occurrenceDetails(finding: AxeFinding): string[] {
-  const summary = `<code>${cell(finding.id)}</code> — ${cell(finding.help)} ` +
+  const summary = `${cell(finding.help)} ` +
     `(${finding.instances} instance${plural(finding.instances)} on ` +
     `${finding.pages.length} page${plural(finding.pages.length)})`;
+  // The heading is what the findings table links to: GitHub and Pandoc both
+  // auto-anchor headings, and the plain id slugs to itself.
   const lines = [
+    `#### ${finding.id}`,
+    ``,
     `<details>`,
     `<summary>${summary}</summary>`,
     ``,
@@ -73,6 +83,13 @@ function occurrenceDetails(finding: AxeFinding): string[] {
     `**Signature:** ${code(finding.signature)}`,
     ``,
   ];
+  if (finding.detail) {
+    // Stated once here; the per-occurrence column below only speaks when an
+    // occurrence diverges from it (measured: 301 of 304 quarto-web findings
+    // have exactly one distinct detail, but the divergent ones matter —
+    // different contrast ratios, "empty title" vs "no title").
+    lines.push(`**Problem:** ${cell(finding.detail)}`, ``);
+  }
   if (finding.helpUrl) {
     lines.push(`Reference: <${finding.helpUrl}>`, ``);
   }
@@ -82,7 +99,7 @@ function occurrenceDetails(finding: AxeFinding): string[] {
     ...finding.occurrences.map((occurrence) =>
       `| ${cell(occurrence.page)} | ${cell(occurrence.cells.join(", "))} | ` +
       `${code(occurrence.target)} | ${code(occurrence.html)} | ` +
-      `${cell(occurrence.detail)} |`
+      `${occurrence.detail === finding.detail ? "" : cell(occurrence.detail)} |`
     ),
     ``,
     `</details>`,
