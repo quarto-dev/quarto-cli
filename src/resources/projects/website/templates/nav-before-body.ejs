@@ -19,7 +19,7 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
     <% } %>
     
     <% if (nav.navbar) { %>  
-    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>" data-bs-theme="dark">
+    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>" data-bs-theme="dark" aria-label="<%- nav.language['navigation-main-label'] %>">
       <div class="navbar-container container-fluid">
       <% partial('navbrand.ejs', {
         navbar: nav.navbar
@@ -61,7 +61,7 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
 
 
 <% if (nav.sidebar && nav.layout) { %>
-  <nav class="quarto-secondary-nav">
+  <nav class="quarto-secondary-nav" aria-label="<%- nav.language['navigation-secondary-label'] %>">
     <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn"
       data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" 

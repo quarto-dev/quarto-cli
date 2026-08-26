@@ -10385,6 +10385,11 @@ var require_yaml_intelligence_resources = __commonJS({
               "search-text-placeholder": "string",
               "search-detached-cancel-button-title": "string",
               "search-submit-button-title": "string",
+              "navigation-main-label": "string",
+              "navigation-section-label": "string",
+              "navigation-secondary-label": "string",
+              "navigation-page-label": "string",
+              "navigation-breadcrumbs-label": "string",
               "crossref-fig-title": "string",
               "crossref-tbl-title": "string",
               "crossref-lst-title": "string",
@@ -25387,12 +25392,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 223031,
+        _internalId: 223771,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 223023,
+            _internalId: 223763,
             type: "enum",
             enum: [
               "png",
@@ -25408,7 +25413,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 223030,
+            _internalId: 223770,
             type: "anyOf",
             anyOf: [
               {

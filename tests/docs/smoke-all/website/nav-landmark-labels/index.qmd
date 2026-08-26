@@ -1,0 +1,22 @@
+---
+title: Home
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'nav.navbar[aria-label="Main"]'
+          - 'nav#quarto-sidebar[aria-label="Section"]'
+          - 'nav.quarto-secondary-nav[aria-label="Secondary"]'
+          - 'nav#TOC[role="doc-toc"][aria-labelledby="toc-title"]'
+        -
+          - 'nav[aria-label="breadcrumb"]'
+---
+
+Every `nav` landmark on a website page gets a distinct, localizable label (#14376).
+The sidebar says "Section" because this site also has a navbar. Labels do not
+include the word "navigation": screen readers announce the role after the label.
+
+## A heading
+
+Content so the TOC renders.

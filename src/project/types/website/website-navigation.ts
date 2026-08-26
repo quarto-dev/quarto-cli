@@ -130,6 +130,7 @@ import {
 import {
   kBackToTop,
   kIncludeInHeader,
+  kNavigationBreadcrumbsLabel,
   kNumberSections,
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
@@ -472,7 +473,7 @@ function navigationHtmlPostprocessor(
     );
     if (secondaryNavTitleEl) {
       if (showBreadCrumbs) {
-        const navEl = makeBreadCrumbs(doc);
+        const navEl = makeBreadCrumbs(doc, language);
         if (secondaryNavTitleEl.parentElement) {
           secondaryNavTitleEl.parentElement.replaceChild(
             navEl,
@@ -506,6 +507,7 @@ function navigationHtmlPostprocessor(
       if (navigation.breadCrumbs && navigation.breadCrumbs.length > 1) {
         const titleBreadCrumbEl = makeBreadCrumbs(
           doc,
+          language,
           ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
         );
         // See if there is deeper target
@@ -907,7 +909,11 @@ async function resolveFooter(
   return footer;
 }
 
-function makeBreadCrumbs(doc: Document, clz?: string[]) {
+function makeBreadCrumbs(
+  doc: Document,
+  language: FormatLanguage,
+  clz?: string[],
+) {
   // Make bootstrap breadcrumbs
   const navEl = doc.createElement("nav");
   navEl.classList.add("quarto-page-breadcrumbs");
@@ -916,7 +922,10 @@ function makeBreadCrumbs(doc: Document, clz?: string[]) {
       navEl.classList.add(cls);
     });
   }
-  navEl.setAttribute("aria-label", "breadcrumb");
+  navEl.setAttribute(
+    "aria-label",
+    language[kNavigationBreadcrumbsLabel] || "Breadcrumbs",
+  );
 
   const olEl = doc.createElement("ol");
   olEl.classList.add("breadcrumb");

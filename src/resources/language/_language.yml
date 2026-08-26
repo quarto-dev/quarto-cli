@@ -82,6 +82,14 @@ toggle-dark-mode: "Toggle dark mode"
 toggle-reader-mode: "Toggle reader mode"
 toggle-navigation: "Toggle navigation"
 
+# Landmark labels: screen readers announce the role after the label, so do not
+# include the word "navigation" (https://www.w3.org/WAI/ARIA/apg/practices/landmark-regions/)
+navigation-main-label: "Main"
+navigation-section-label: "Section"
+navigation-secondary-label: "Secondary"
+navigation-page-label: "Page"
+navigation-breadcrumbs-label: "Breadcrumbs"
+
 crossref-fig-title: "Figure"
 crossref-tbl-title: "Table"
 crossref-lst-title: "Listing"
