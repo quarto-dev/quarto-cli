@@ -20,6 +20,7 @@
 
 import { dirname, join } from "../../../deno_ral/path.ts";
 import { debug } from "../../../deno_ral/log.ts";
+import { md5HashSync } from "../../../core/hash.ts";
 import { sleep } from "../../../core/async.ts";
 import { formatResourcePath } from "../../../core/resources.ts";
 import { getBrowserExecutablePath } from "../../../core/puppeteer.ts";
@@ -764,14 +765,52 @@ export async function scanCell(
   return result;
 }
 
-/** Filesystem-safe cell name, e.g. `docs_index__1440x900__dark`. */
+/**
+ * Filesystem-safe slug per page, for cell artifact names.
+ *
+ * `/` maps to `_`, so `docs/index.html` and `docs_index.html` produce the
+ * same slug — and the second page's cells would silently replace the first's
+ * on disk. Slugs that collide get a short hash of the real path appended;
+ * every other page keeps the pretty name.
+ */
+export function pageSlugs(pages: string[]): Map<string, string> {
+  const rawSlug = (page: string) =>
+    page.replace(/\.html$/, "").replace(/[\/\\]/g, "_") || "index";
+  const counts = new Map<string, number>();
+  for (const page of pages) {
+    const slug = rawSlug(page);
+    counts.set(slug, (counts.get(slug) ?? 0) + 1);
+  }
+  const slugs = new Map<string, string>();
+  for (const page of pages) {
+    const slug = rawSlug(page);
+    slugs.set(
+      page,
+      counts.get(slug)! > 1
+        ? `${slug}-${md5HashSync(page).slice(0, 6)}`
+        : slug,
+    );
+  }
+  return slugs;
+}
+
+/** Cell artifact name, e.g. `docs_index__1440x900__dark`. */
 export function cellName(
-  page: string,
+  slug: string,
   viewport: string,
   mode: string,
 ): string {
-  const slug = page.replace(/\.html$/, "").replace(/[\/\\]/g, "_") || "index";
   return `${slug}__${viewport}__${mode}`;
+}
+
+/**
+ * Percent-encode a site-relative path for navigation, segment by segment. A
+ * file name containing `#` or `?` would otherwise truncate the URL at parse
+ * time: the cell scans the wrong page and fails on the 404 with a message
+ * that points nowhere near the real cause.
+ */
+export function encodePagePath(path: string): string {
+  return path.split("/").map(encodeURIComponent).join("/");
 }
 
 export interface AxeScanResult {
@@ -795,6 +834,7 @@ export async function runAxeScan(
   onCell?: (cell: AxeCell) => void,
 ): Promise<AxeScanResult> {
   const axeSource = Deno.readTextFileSync(vendoredAxePath());
+  const slugs = pageSlugs(pages.map((page) => page.path));
 
   await client.send("Runtime.enable");
   await client.send("Page.enable");
@@ -804,7 +844,7 @@ export async function runAxeScan(
   for (const page of pages) {
     for (const viewport of config.viewports) {
       for (const mode of page.modes) {
-        const url = `${baseUrl}/${page.path}`;
+        const url = `${baseUrl}/${encodePagePath(page.path)}`;
         const cell = await scanCell(
           client,
           axeSource,
@@ -816,7 +856,10 @@ export async function runAxeScan(
         );
         axeVersion = axeVersion ?? cell.result?.testEngine?.version;
         Deno.writeTextFileSync(
-          join(cellsDir, `${cellName(page.path, viewport.label, mode)}.json`),
+          join(
+            cellsDir,
+            `${cellName(slugs.get(page.path)!, viewport.label, mode)}.json`,
+          ),
           JSON.stringify(cell, null, 2),
         );
         cells.push(cell);
