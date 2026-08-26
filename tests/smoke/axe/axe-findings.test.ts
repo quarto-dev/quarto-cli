@@ -162,20 +162,35 @@ const baselineReconciled: Verify = {
 };
 
 const reportIsUsable: Verify = {
-  name: "report.html carries the findings and their briefings",
+  name: "report.md carries the findings; the README carries the how-to",
   verify: (_output: ExecuteOutput[]) => {
-    const html = Deno.readTextFileSync(kReportFile);
+    const report = Deno.readTextFileSync(kReportFile);
     const { findings } = readFindings();
-    // Every finding is reachable in the report, and its AI briefing payload is
-    // embedded rather than looked up at view time.
+    // Every finding is reachable in the report by its stable id.
     for (const finding of findings) {
       assert(
-        html.includes(finding.id),
-        `report.html is missing finding ${finding.id}`,
+        report.includes(finding.id),
+        `report.md is missing finding ${finding.id}`,
       );
     }
-    assert(html.includes('id="axe-ai"'), "missing the briefing payload block");
-    assert(html.includes("Known / baselined"), "missing the baselined section");
+    assert(
+      report.includes("## Baselined (known, accepted)"),
+      "missing the baselined section",
+    );
+    // The AI briefing is gone from v1 on purpose; the README is the enabler.
+    assert(
+      !report.includes("axe-ai"),
+      "the AI briefing payload should be gone",
+    );
+    const readme = Deno.readTextFileSync("_axe-checks/README.md");
+    assert(
+      readme.includes("Accepting a finding"),
+      "README is missing the baseline how-to",
+    );
+    assert(
+      readme.includes("quarto dev-call axe _site"),
+      "README is missing the regenerate command",
+    );
     return Promise.resolve();
   },
 };

@@ -201,7 +201,12 @@ export const axeBaselineEntrySchema = z.object({
   pages: z.array(z.string()),
   /** The impact *at acceptance*: escalation past this re-alerts. */
   impact: axeImpactSchema,
-  note: z.string(),
+  /**
+   * Non-empty on purpose: every acceptance records its why. This is also
+   * what makes a future machine-drafted baseline safe — a generated entry
+   * with an empty note fails validation until a human writes the reason.
+   */
+  note: z.string().min(1, "must say why this finding is accepted"),
   // reviewer context, not read by the scanner
   id: z.string().optional(),
   rule: z.string().optional(),
@@ -236,6 +241,13 @@ export const axeBaselineSchema = z.object({
    * a silent mass-invalidation.
    */
   signatureScheme: z.number().optional(),
+  /**
+   * The entry *shape* version — the findings version, since entries are
+   * projections of findings. Optional for the same reason as above; once
+   * present, a mismatch explains itself instead of surfacing as a pile of
+   * unknown-key/missing-field errors after a breaking shape change.
+   */
+  version: z.number().optional(),
   findings: z.array(axeBaselineEntryReader),
 }).strict();
 
@@ -260,8 +272,10 @@ export type ParsedBaseline =
  * would be noise.
  */
 export function parseBaseline(data: unknown): ParsedBaseline {
-  const scheme = z.object({ signatureScheme: z.number().optional() })
-    .passthrough().safeParse(data);
+  const scheme = z.object({
+    signatureScheme: z.number().optional(),
+    version: z.number().optional(),
+  }).passthrough().safeParse(data);
   if (
     scheme.success && scheme.data.signatureScheme !== undefined &&
     scheme.data.signatureScheme !== kSignatureScheme
@@ -276,6 +290,22 @@ export function parseBaseline(data: unknown): ParsedBaseline {
           `stale. Re-annotate the entries against the new signatures — the raw ` +
           `selectors are unchanged in each finding's occurrences[].target — then ` +
           `set "signatureScheme": ${kSignatureScheme}.`,
+      }],
+    };
+  }
+  if (
+    scheme.success && scheme.data.version !== undefined &&
+    scheme.data.version !== kFindingsVersion
+  ) {
+    return {
+      success: false,
+      issues: [{
+        path: "version",
+        message:
+          `this baseline was written for findings version ${scheme.data.version}, ` +
+          `but this build reads version ${kFindingsVersion}. Entry fields may have ` +
+          `changed shape — compare the entries against the baseline section of ` +
+          `_axe-checks/README.md, update them, then set "version": ${kFindingsVersion}.`,
       }],
     };
   }
