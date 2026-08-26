@@ -22,10 +22,13 @@ const kCandidateSelector =
   "div.sourceCode, pre, .cell-output-display:not(.no-overflow-x)";
 
 // Mirrors axe's pass condition (and Chrome's native heuristic): a region with
-// focusable content is already keyboard-reachable, and adding tabindex would
-// create a double tab stop.
+// keyboard-focusable content is already reachable, and adding tabindex would
+// create a double tab stop. tabindex="-1" removes an element from the tab
+// order, so Pandoc's per-line anchors (`a[href][tabindex="-1"]`) don't count.
 const kFocusableSelector =
-  'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  'a[href]:not([tabindex="-1"]), button:not([tabindex="-1"]), ' +
+  'input:not([tabindex="-1"]), select:not([tabindex="-1"]), ' +
+  'textarea:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])';
 
 const kDefaultLabels = {
   code: "Scrollable code",
@@ -44,12 +47,18 @@ export function resolveLabels(labels) {
   return resolved;
 }
 
-// A region scrolls when its content overflows its box in either axis; the 1px
-// tolerance absorbs subpixel rounding. Pure over the four metrics so it works
-// on hand-built geometry as well as elements.
-export function isScrollable(el) {
+// A region scrolls when it is a scroll container (computed overflow auto or
+// scroll — axe's own condition) whose content overflows its box on that axis;
+// the 1px tolerance absorbs subpixel rounding. Without the overflow check, a
+// child that merely bleeds outside a scrolling parent (pre.sourceCode inside
+// div.sourceCode has overflow visible but the same scrollWidth) would become
+// a second, useless tab stop. Pure over hand-built geometry and style.
+export function isScrollable(el, style) {
+  const scrollsX = style.overflowX === "auto" || style.overflowX === "scroll";
+  const scrollsY = style.overflowY === "auto" || style.overflowY === "scroll";
   return (
-    el.scrollWidth - el.clientWidth > 1 || el.scrollHeight - el.clientHeight > 1
+    (scrollsX && el.scrollWidth - el.clientWidth > 1) ||
+    (scrollsY && el.scrollHeight - el.clientHeight > 1)
   );
 }
 
@@ -76,13 +85,16 @@ export function syncScrollableRegions(labels) {
       ) {
         continue;
       }
-      if (isScrollable(el)) {
+      if (isScrollable(el, getComputedStyle(el))) {
         el.setAttribute("tabindex", "0");
         el.setAttribute("role", "group");
         el.setAttribute("aria-label", labelFor(el, labels));
         el.setAttribute(kMarker, "");
       }
-    } else if (!isScrollable(el) && el !== document.activeElement) {
+    } else if (
+      !isScrollable(el, getComputedStyle(el)) &&
+      el !== document.activeElement
+    ) {
       el.removeAttribute("tabindex");
       el.removeAttribute("role");
       el.removeAttribute("aria-label");
