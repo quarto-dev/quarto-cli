@@ -99,9 +99,10 @@ is how it stays true.
 
 Fixes belong in the Quarto **source** — a \`.qmd\`, \`_quarto.yml\`,
 \`_brand.yml\`, or a theme \`.scss\` — never in the rendered site directory,
-which is overwritten on every render. A *systemic* finding often comes from
-Quarto's own templates (navbar, footer, listings) and may warrant an upstream
-\`quarto-dev/quarto-cli\` issue rather than a local change.
+which is overwritten on every render. A finding that repeats across many
+pages usually comes from Quarto's own templates (navbar, footer, listings)
+and may warrant an upstream \`quarto-dev/quarto-cli\` issue rather than a
+local change.
 
 ## Working with findings.json
 
@@ -113,9 +114,8 @@ Each entry in \`findings[]\` is one root cause, not one element:
   join key.
 - \`baselined\` — the switch: act on \`false\`.
 - \`impact\`, \`conformance\`, \`helpUrl\` — severity and the WCAG label.
-- \`label\` — \`systemic\` (shared source: fix once, fixes many) vs
-  \`localized\` (one-off, likely authored content).
-- \`pages\`, \`instances\` — reach; \`occurrences[]\` — real examples, each
+- \`pages\`, \`instances\` — reach (many pages usually means a shared
+  source: one fix clears them all); \`occurrences[]\` — real examples, each
   with a CSS \`target\`, an \`html\` excerpt, and the matrix cells it
   reproduced in.
 

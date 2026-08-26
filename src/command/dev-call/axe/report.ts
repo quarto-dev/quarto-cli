@@ -47,9 +47,9 @@ function plural(count: number, singular = "", many = "s"): string {
 // wrappable id column to a sliver).
 function findingsTable(findings: AxeFinding[], showWhy: boolean): string[] {
   const head = showWhy
-    ? "| id | standard | impact | scope | pages | instances | why accepted |"
-    : "| id | standard | impact | scope | pages | instances | detail |";
-  const separator = "|---|---|---|---|---:|---:|---|";
+    ? "| id | standard | impact | pages | instances | why accepted |"
+    : "| id | standard | impact | pages | instances | detail |";
+  const separator = "|---|---|---|---:|---:|---|";
   const rows = findings.map((finding) => {
     const last = showWhy
       ? cell(finding.baselineNote ?? "")
@@ -61,8 +61,7 @@ function findingsTable(findings: AxeFinding[], showWhy: boolean): string[] {
       ? code(finding.id)
       : `[${code(finding.id)}](#${finding.id})`;
     return `| ${id} | ${cell(finding.standard)} | ` +
-      `${cell(finding.impact)} | ` +
-      `${cell(finding.label)} | ${finding.pages.length} | ` +
+      `${cell(finding.impact)} | ${finding.pages.length} | ` +
       `${finding.instances} | ${last} |`;
   });
   return [head, separator, ...rows];
@@ -86,22 +85,20 @@ function occurrenceDetails(finding: AxeFinding): string[] {
     ``,
   ];
   if (finding.detail) {
-    // Stated once here; the per-occurrence column below only speaks when an
-    // occurrence diverges from it (measured: 301 of 304 quarto-web findings
-    // have exactly one distinct detail, but the divergent ones matter —
-    // different contrast ratios, "empty title" vs "no title").
     lines.push(`**Problem:** ${cell(finding.detail)}`, ``);
   }
   if (finding.helpUrl) {
     lines.push(`Reference: <${finding.helpUrl}>`, ``);
   }
+  // No per-occurrence detail column: measured across full-site scans it is
+  // almost always identical to the finding-level Problem line above, and the
+  // rare divergent values remain in findings.json.
   lines.push(
-    `| page | cells (width·mode) | selector | element | detail |`,
-    `|---|---|---|---|---|`,
+    `| page | cells (width·mode) | selector | element |`,
+    `|---|---|---|---|`,
     ...finding.occurrences.map((occurrence) =>
       `| ${cell(occurrence.page)} | ${cell(occurrence.cells.join(", "))} | ` +
-      `${code(occurrence.target)} | ${code(occurrence.html)} | ` +
-      `${occurrence.detail === finding.detail ? "" : cell(occurrence.detail)} |`
+      `${code(occurrence.target)} | ${code(occurrence.html)} |`
     ),
     ``,
     `</details>`,
@@ -140,7 +137,7 @@ export function renderReport(results: AxeFindings): string {
     lines.push(
       `> **Partial scan** (${filters.join(", ")}) — counts describe this ` +
         `subset, not the whole site. A one-page rescan proves an instance ` +
-        `is gone, not a systemic finding.`,
+        `is gone, not that the finding is fixed on other pages.`,
       ``,
     );
   }
@@ -150,9 +147,9 @@ export function renderReport(results: AxeFindings): string {
       (baselined.length
         ? ` · ${baselined.length} baselined (known, listed at the end)`
         : "") +
-      `. *systemic* = repeats from a shared source (fix once, fixes many); ` +
-      `*localized* = one-off. To accept a finding, see \`README.md\` in ` +
-      `this directory.`,
+      `. A finding on many pages usually repeats from a shared source — ` +
+      `fixing it once fixes them all. To accept a finding, see ` +
+      `\`README.md\` in this directory.`,
     ``,
   );
 

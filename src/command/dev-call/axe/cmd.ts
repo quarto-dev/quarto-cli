@@ -122,10 +122,9 @@ function summaryTable(results: AxeFindings): string[] {
     finding.standard,
     String(finding.instances),
     String(finding.pages.length),
-    finding.label,
     finding.baselined ? "known" : "new",
   ]);
-  const header = ["ID", "IMPACT", "STANDARD", "N", "PAGES", "SCOPE", "STATUS"];
+  const header = ["ID", "IMPACT", "STANDARD", "N", "PAGES", "STATUS"];
   const widths = header.map((cell, column) =>
     Math.max(cell.length, ...rows.map((row) => row[column].length))
   );

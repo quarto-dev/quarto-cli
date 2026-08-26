@@ -16,8 +16,15 @@
 
 import { z } from "zod";
 
-/** Bump in step with any breaking change to `findings.json`'s field shape. */
-export const kFindingsVersion = 1;
+/**
+ * Bump in step with any breaking change to `findings.json`'s field shape.
+ *
+ * 2 — the `label` field (`systemic`/`localized`) removed: display-only, a
+ *     threshold over the adjacent `pages`/`instances` numbers, and misleading
+ *     on subset scans and splintered signatures (decided 2026-08-26).
+ * 1 — initial shape.
+ */
+export const kFindingsVersion = 2;
 
 /**
  * Which signature-normalization scheme produced the signatures in this file.
@@ -84,7 +91,6 @@ export const axeFindingSchema = z.object({
    * accepted at minor, and it's now serious" is the useful bit.
    */
   baselineNote: z.string().nullable(),
-  label: z.enum(["systemic", "localized"]),
   /** Distinct DOM elements affected. */
   instances: z.number(),
   /** Every page it occurred on. */
