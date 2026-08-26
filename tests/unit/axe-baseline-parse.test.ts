@@ -18,6 +18,7 @@
 import { unitTest } from "../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 import {
+  kFindingsVersion,
   kSignatureScheme,
   parseBaseline,
 } from "../../src/command/dev-call/axe/schemas.ts";
@@ -219,6 +220,42 @@ unitTest(
     assert(
       issues.some((issue) => issue.startsWith("findings")),
       JSON.stringify(issues),
+    );
+  },
+);
+
+unitTest(
+  "parseBaseline - an empty note is an error, not a silent acceptance",
+  // deno-lint-ignore require-await
+  async () => {
+    // Every acceptance records its why. This is also what keeps a future
+    // machine-drafted baseline honest: generated entries with empty notes
+    // fail until a human writes the reason.
+    const issues = issuesFor({
+      findings: [{ ...kTrimmedEntry, note: "" }],
+    });
+    assert(
+      issues.some((issue) => issue.includes("why this finding is accepted")),
+      issues.join("\n"),
+    );
+  },
+);
+
+unitTest(
+  "parseBaseline - a findings-version mismatch explains itself",
+  // deno-lint-ignore require-await
+  async () => {
+    const issues = issuesFor({
+      version: kFindingsVersion + 1,
+      findings: [kTrimmedEntry],
+    });
+    assertEquals(issues.length, 1);
+    assert(issues[0].startsWith("version:"), issues[0]);
+    assert(issues[0].includes("README.md"), issues[0]);
+    // matching or absent version parses normally
+    assert(
+      parseBaseline({ version: kFindingsVersion, findings: [kTrimmedEntry] })
+        .success,
     );
   },
 );

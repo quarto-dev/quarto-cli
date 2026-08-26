@@ -37,6 +37,7 @@ import {
 import { AxeCell, launchScanBrowser, runAxeScan } from "./scan.ts";
 import { aggregate } from "./aggregate.ts";
 import { renderReport } from "./report.ts";
+import { renderReadme } from "./readme.ts";
 import { AxeBaseline, AxeFindings, parseBaseline } from "./schemas.ts";
 
 /** Scan complete: every cell produced an axe payload. */
@@ -176,8 +177,10 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   const baselineFile = join(anchor, kAxeBaselineFile);
   ensureDirSync(cellsDir);
   // A previous run's summary artifacts must not survive an aborted scan to be
-  // read as current; per-cell payloads accumulate by name as before.
-  for (const staleFile of ["findings.json", "report.html"]) {
+  // read as current; per-cell payloads accumulate by name as before, and the
+  // README stays (its provenance block says which scan wrote it).
+  // report.html is the pre-markdown format, cleaned up wherever it lingers.
+  for (const staleFile of ["findings.json", "report.md", "report.html"]) {
     const path = join(outputDir, staleFile);
     if (existsSync(path)) {
       Deno.removeSync(path);
@@ -289,9 +292,17 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     });
 
     const findingsFile = join(outputDir, "findings.json");
-    const reportFile = join(outputDir, "report.html");
+    // --report chooses where the markdown report lands (resolved against the
+    // working directory, like any user-supplied path); the default sits with
+    // the other artifacts.
+    const reportFile = config.report
+      ? resolve(config.report)
+      : join(outputDir, "report.md");
+    const readmeFile = join(outputDir, "README.md");
     Deno.writeTextFileSync(findingsFile, JSON.stringify(results, null, 2));
+    ensureDirSync(dirname(reportFile));
     Deno.writeTextFileSync(reportFile, renderReport(results));
+    Deno.writeTextFileSync(readmeFile, renderReadme(results));
 
     info("");
     for (const row of summaryTable(results)) {
@@ -305,6 +316,7 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     );
     info(`  findings: ${findingsFile}`);
     info(`  report:   ${reportFile}`);
+    info(`  readme:   ${readmeFile}`);
     info(`  cells:    ${cellsDir}`);
     info(
       `  baseline: ${baselineFile} (${results.baseline.entries} entr` +
@@ -357,8 +369,8 @@ export const axeCommand = new Command()
       "Prototype: scans every page in <site-dir> across the viewport x mode " +
       "matrix (modes discovered per page from its HTML), groups violations " +
       "by root-cause signature, reconciles " +
-      `${kAxeBaselineFile}, and writes findings.json plus report.html to ` +
-      `${kAxeOutputDir}/. Both sit at the project root (the nearest ` +
+      `${kAxeBaselineFile}, and writes findings.json, report.md and a ` +
+      `README to ${kAxeOutputDir}/ at the project root (the nearest ` +
       `_quarto.yml at or above <site-dir>), or the working directory if ` +
       `there is no project.`,
   )
@@ -396,6 +408,12 @@ export const axeCommand = new Command()
     "Extra delay in milliseconds after the page reports ready (webfonts " +
       "loaded, layout painted), before axe runs.",
     { default: kDefaultSettle },
+  )
+  .option(
+    "--report <path:string>",
+    "Where to write report.md (default: " +
+      `${kAxeOutputDir}/report.md at the project root). Use a path inside ` +
+      "your site source to render the report with the site.",
   )
   .example(
     "Scan a rendered site",

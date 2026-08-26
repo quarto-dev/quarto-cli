@@ -26,7 +26,8 @@ import {
 } from "../../../src/command/dev-call/axe/schemas.ts";
 
 export const kFindingsFile = "_axe-checks/findings.json";
-export const kReportFile = "_axe-checks/report.html";
+export const kReportFile = "_axe-checks/report.md";
+export const kReadmeFile = "_axe-checks/README.md";
 export const kCellsDir = "_axe-checks/cells";
 
 /** `findings.json`, parsed and checked against its own published schema. */
@@ -143,6 +144,7 @@ export function axeSmokeTest(
     [
       fileExists(kFindingsFile),
       fileExists(kReportFile),
+      fileExists(kReadmeFile),
       validJsonWithFields(kFindingsFile, {
         version: kFindingsVersion,
         signatureScheme: kSignatureScheme,

@@ -1,0 +1,200 @@
+/*
+ * axe-report-readme.test.ts
+ *
+ * The two rendered artifacts of `quarto dev-call axe`: report.md (report.ts)
+ * and the generated _axe-checks/README.md (readme.ts). Both are dumb views
+ * over findings.json, so these tests aggregate the captured per-cell fixtures
+ * (tests/docs/axe-scan/cells) exactly as the aggregate tests do, then assert
+ * on projections of the rendered markdown — never a golden file.
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+
+import { unitTest } from "../test.ts";
+import { assert, assertEquals } from "testing/asserts";
+import { join } from "../../src/deno_ral/path.ts";
+import { docs } from "../utils.ts";
+import { aggregate } from "../../src/command/dev-call/axe/aggregate.ts";
+import { renderReport } from "../../src/command/dev-call/axe/report.ts";
+import {
+  renderReadme,
+  scanCommand,
+} from "../../src/command/dev-call/axe/readme.ts";
+import { AxeScanConfig } from "../../src/command/dev-call/axe/config.ts";
+import { AxeCell } from "../../src/command/dev-call/axe/scan.ts";
+import {
+  AxeBaseline,
+  kFindingsVersion,
+  kSignatureScheme,
+} from "../../src/command/dev-call/axe/schemas.ts";
+
+const kCells = [
+  "about__1440x900__light",
+  "index__1440x900__light",
+  "index__1440x900__dark",
+];
+
+function capturedCells(): AxeCell[] {
+  return kCells.map((name) =>
+    JSON.parse(
+      Deno.readTextFileSync(
+        join(docs("axe-scan/cells/findings"), `${name}.json`),
+      ),
+    ) as AxeCell
+  );
+}
+
+const kConfig: AxeScanConfig = {
+  siteDir: "_site",
+  viewports: [{ width: 1440, height: 900, label: "1440x900" }],
+  themes: ["light", "dark"],
+  timeout: 30000,
+  settle: 50,
+};
+
+function results(overrides: {
+  config?: Partial<AxeScanConfig>;
+  baseline?: AxeBaseline;
+  cells?: AxeCell[];
+}) {
+  const cells = overrides.cells ?? capturedCells();
+  const pages = [...new Set(cells.map((cell) => cell.page))].sort();
+  return aggregate({
+    cells,
+    config: { ...kConfig, ...overrides.config },
+    baseline: overrides.baseline ?? { findings: [] },
+    baselineFile: "_axe-baseline.json",
+    pages: pages.map((path) => ({
+      path,
+      modes: ["light", "dark"],
+      darkColoured: false,
+    })),
+    redirects: [{ path: "old.html", to: "new.html" }],
+  });
+}
+
+unitTest(
+  "report.md - findings are reachable by id, markdown structure intact",
+  // deno-lint-ignore require-await
+  async () => {
+    const findings = results({});
+    const report = renderReport(findings);
+    for (const finding of findings.findings) {
+      assert(
+        report.includes(finding.id),
+        `report is missing finding ${finding.id}`,
+      );
+    }
+    // every table row stays one line: pipes and newlines inside selectors and
+    // html excerpts must be neutralized, or GitHub renders garbage
+    for (const line of report.split("\n")) {
+      if (line.startsWith("|")) {
+        assert(
+          line.endsWith("|"),
+          `table row broken by unescaped content: ${line.slice(0, 80)}`,
+        );
+      }
+    }
+    // redirect stubs are recorded, not red
+    assert(report.includes("Redirect stubs"), "missing redirects section");
+    assert(report.includes("old.html"), "missing the recorded stub");
+    // full scan: no partial banner
+    assert(!report.includes("Partial scan"), "full scan must not say partial");
+  },
+);
+
+unitTest(
+  "report.md - a subset scan says so, loudly",
+  // deno-lint-ignore require-await
+  async () => {
+    const report = renderReport(
+      results({ config: { pages: ["docs/**"], maxPages: 5 } }),
+    );
+    assert(report.includes("**Partial scan**"), "missing the partial banner");
+    assert(report.includes("--pages docs/**"), "banner must name the filter");
+    assert(report.includes("--max-pages 5"), "banner must name the cap");
+  },
+);
+
+unitTest(
+  "report.md - baselined findings are listed with their why",
+  // deno-lint-ignore require-await
+  async () => {
+    const findings = results({
+      baseline: {
+        findings: [{
+          signature: "image-alt :: img",
+          pages: [],
+          impact: "critical",
+          note: "planted fixture defect, accepted for this test",
+        }],
+      },
+    });
+    const baselined = findings.findings.filter((f) => f.baselined);
+    assertEquals(baselined.length, 1);
+    const report = renderReport(findings);
+    assert(
+      report.includes("## Baselined (known, accepted)"),
+      "missing the baselined section",
+    );
+    assert(
+      report.includes("planted fixture defect"),
+      "the why-accepted note must surface",
+    );
+  },
+);
+
+unitTest(
+  "README - regenerate command reconstructs exactly the scan's flags",
+  // deno-lint-ignore require-await
+  async () => {
+    assertEquals(
+      scanCommand(results({})),
+      // non-default viewports and settle are echoed; defaults are not
+      "quarto dev-call axe _site --viewports 1440x900",
+    );
+    assertEquals(
+      scanCommand(
+        results({
+          config: { pages: ["docs/**"], exclude: ["slides/**"], timeout: 5000 },
+        }),
+      ),
+      'quarto dev-call axe _site --pages "docs/**" --exclude "slides/**" ' +
+        "--viewports 1440x900 --timeout 5000",
+    );
+  },
+);
+
+unitTest(
+  "README - carries the baseline how-to, versions, and the partial warning",
+  // deno-lint-ignore require-await
+  async () => {
+    const readme = renderReadme(results({ config: { pages: ["docs/**"] } }));
+    assert(
+      readme.includes("regenerated on every scan"),
+      "must declare itself generated",
+    );
+    assert(
+      readme.includes(`signature scheme ${kSignatureScheme}`) &&
+        readme.includes(`version ${kFindingsVersion}`),
+      "missing the provenance versions",
+    );
+    assert(
+      readme.includes("Accepting a finding"),
+      "missing the baseline how-to",
+    );
+    assert(
+      readme.includes(`"note"`) && readme.includes(`"pages": []`),
+      "the how-to must show the entry shape inline",
+    );
+    assert(
+      readme.includes("This was a partial scan"),
+      "a subset scan's README must say so",
+    );
+    const full = renderReadme(results({}));
+    assert(
+      !full.includes("This was a partial scan"),
+      "a full scan's README must not claim partiality",
+    );
+  },
+);
