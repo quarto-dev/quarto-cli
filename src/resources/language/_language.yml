@@ -58,6 +58,9 @@ code-lines: "Lines"
 copy-button-tooltip: "Copy to Clipboard"
 copy-button-tooltip-success: "Copied!"
 
+scrollable-code-label: "Scrollable code"
+scrollable-output-label: "Scrollable output"
+
 repo-action-links-edit: "Edit this page"
 repo-action-links-source: "View source"
 repo-action-links-issue: "Report an issue"
