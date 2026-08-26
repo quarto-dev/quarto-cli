@@ -26,9 +26,6 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
       }) %>
       <% if (nav.navbar.left || nav.navbar.right) { %>  
         <% if (nav.navbar.collapse) { %>
-          <% if (nav.navbar.search) { %>
-            <% partial('navsearch.ejs',  { classes: '', language: nav.language }) %>
-          <% } %>
           <% partial('navtoggle.ejs', { language: nav.language }) %>
           <% partial('navcollapse.ejs') %>
             <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left, draftMode: nav.draftMode}) %>
@@ -39,6 +36,9 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
           </div> <!-- /navcollapse -->
           <% if (!nav.navbar["tools-collapse"]) { %> 
             <% partial('navtools.ejs', { align: 'none', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
+          <% } %>
+          <% if (nav.navbar.search) { %>
+            <% partial('navsearch.ejs',  { classes: '', language: nav.language }) %>
           <% } %>
         <% } else { %>
           <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left, draftMode: nav.draftMode}) %>
