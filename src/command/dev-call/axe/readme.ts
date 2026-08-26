@@ -95,6 +95,7 @@ is how it stays true.
 | \`findings.json\` | The machine-readable contract: every finding, grouped by root-cause signature, reconciled against the baseline. |
 | \`report.md\` | The human summary of the same data. |
 | \`cells/*.json\` | Raw axe output per page × viewport × mode cell. Cells accumulate across scans by name — only the most recent **full** scan is a coherent set. |
+| \`.gitignore\` | Written by the scanner (\`*\`): this whole directory is a disposable artifact, never committed. |
 | \`../${kAxeBaselineFile}\` | The **hand-written, committed** ledger of accepted findings. Lives beside this directory, never inside it: this directory is disposable, the ledger is not. |
 
 Fixes belong in the Quarto **source** — a \`.qmd\`, \`_quarto.yml\`,

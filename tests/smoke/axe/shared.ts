@@ -145,6 +145,8 @@ export function axeSmokeTest(
       fileExists(kFindingsFile),
       fileExists(kReportFile),
       fileExists(kReadmeFile),
+      // the artifact dir self-ignores, so it can't be committed by accident
+      fileExists("_axe-checks/.gitignore"),
       validJsonWithFields(kFindingsFile, {
         version: kFindingsVersion,
         signatureScheme: kSignatureScheme,

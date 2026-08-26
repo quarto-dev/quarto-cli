@@ -175,6 +175,17 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   const cellsDir = join(outputDir, "cells");
   const baselineFile = join(anchor, kAxeBaselineFile);
   ensureDirSync(cellsDir);
+  // The artifact dir must not be committed: a --pages subset scan overwrites
+  // findings.json with a subset snapshot, so a committed copy diffs as if
+  // findings were fixed. Making the commit impossible beats documenting it —
+  // the committed contract is the baseline, which lives beside this dir.
+  const gitignoreFile = join(outputDir, ".gitignore");
+  if (!existsSync(gitignoreFile)) {
+    Deno.writeTextFileSync(
+      gitignoreFile,
+      "# Written by quarto dev-call axe: everything here is a scan artifact.\n*\n",
+    );
+  }
   // A previous run's summary artifacts must not survive an aborted scan to be
   // read as current; per-cell payloads accumulate by name as before, and the
   // README stays (its provenance block says which scan wrote it).
