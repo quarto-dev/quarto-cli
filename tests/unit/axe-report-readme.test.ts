@@ -80,10 +80,25 @@ unitTest(
     const findings = results({});
     const report = renderReport(findings);
     for (const finding of findings.findings) {
+      // linked from the table, anchored by its occurrence heading
       assert(
-        report.includes(finding.id),
-        `report is missing finding ${finding.id}`,
+        report.includes(`](#${finding.id})`),
+        `table row for ${finding.id} is not linked`,
       );
+      assert(
+        report.includes(`#### ${finding.id}`),
+        `no occurrence anchor for ${finding.id}`,
+      );
+      // the finding-level detail is stated once, not repeated per occurrence
+      if (finding.detail) {
+        const uniform = finding.occurrences.every((occurrence) =>
+          occurrence.detail === finding.detail
+        );
+        if (uniform && finding.occurrences.length > 1) {
+          const mentions = report.split(`**Problem:** `).length - 1;
+          assert(mentions >= 1, "missing the Problem line");
+        }
+      }
     }
     // every table row stays one line: pipes and newlines inside selectors and
     // html excerpts must be neutralized, or GitHub renders garbage
