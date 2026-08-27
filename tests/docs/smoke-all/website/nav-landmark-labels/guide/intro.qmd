@@ -1,0 +1,19 @@
+---
+title: Intro
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'nav.quarto-page-breadcrumbs[aria-label="Breadcrumbs"]'
+          - 'nav.quarto-title-breadcrumbs[aria-label="Breadcrumbs"]'
+          - 'nav.page-navigation[aria-label="Page"]'
+        -
+          - 'nav[aria-label="breadcrumb"]'
+---
+
+A page inside a section, so both breadcrumb navs and the prev/next page nav render.
+
+## A heading
+
+Content so the TOC renders.

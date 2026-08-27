@@ -705,6 +705,11 @@ export type FormatLanguage = {
   "search-text-placeholder"?: string;
   "search-detached-cancel-button-title"?: string;
   "search-submit-button-title"?: string;
+  "navigation-main-label"?: string;
+  "navigation-section-label"?: string;
+  "navigation-secondary-label"?: string;
+  "navigation-page-label"?: string;
+  "navigation-breadcrumbs-label"?: string;
   "crossref-fig-title"?: string;
   "crossref-tbl-title"?: string;
   "crossref-lst-title"?: string;

@@ -1,0 +1,23 @@
+---
+title: Override
+language:
+  navigation-main-label: "Navigation principale"
+  navigation-section-label: "Navigation de section"
+  navigation-secondary-label: "Navigation secondaire"
+  navigation-page-label: "Navigation de page"
+  navigation-breadcrumbs-label: "Fil d'Ariane"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'nav.navbar[aria-label="Navigation principale"]'
+          - 'nav#quarto-sidebar[aria-label="Navigation de section"]'
+          - 'nav.quarto-secondary-nav[aria-label="Navigation secondaire"]'
+          - 'nav.page-navigation[aria-label="Navigation de page"]'
+          - 'nav.quarto-page-breadcrumbs[aria-label="Fil d''Ariane"]'
+        -
+          - 'nav[aria-label="Main"]'
+---
+
+Authors can override every navigation label with `language:` metadata.

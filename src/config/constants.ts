@@ -305,6 +305,12 @@ export const kToggleDarkMode = "toggle-dark-mode";
 export const kToggleReaderMode = "toggle-reader-mode";
 export const kToggleNavigation = "toggle-navigation";
 
+export const kNavigationMainLabel = "navigation-main-label";
+export const kNavigationSectionLabel = "navigation-section-label";
+export const kNavigationSecondaryLabel = "navigation-secondary-label";
+export const kNavigationPageLabel = "navigation-page-label";
+export const kNavigationBreadcrumbsLabel = "navigation-breadcrumbs-label";
+
 export const kCopyButtonTooltip = "copy-button-tooltip";
 export const kCopyButtonTooltipSuccess = "copy-button-tooltip-success";
 export const kBackToTop = "back-to-top";
@@ -433,6 +439,11 @@ export const kLanguageDefaultsKeys = [
   kToggleReaderMode,
   kToggleSidebar,
   kToggleSection,
+  kNavigationMainLabel,
+  kNavigationSectionLabel,
+  kNavigationSecondaryLabel,
+  kNavigationPageLabel,
+  kNavigationBreadcrumbsLabel,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,

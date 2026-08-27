@@ -1,0 +1,15 @@
+---
+title: No Navbar
+navbar: false
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'nav#quarto-sidebar[aria-label="Main"]'
+        -
+          - 'nav.navbar'
+          - 'nav[aria-label="Section"]'
+---
+
+With the navbar disabled, the sidebar is the main navigation and its label adapts.
