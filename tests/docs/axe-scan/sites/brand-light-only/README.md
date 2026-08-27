@@ -59,7 +59,7 @@ Recorded from a full scan: 2/2 cells ok (one page, two viewports, one mode),
 |---|---|---|---|---|---|---|
 | `button-name :: button` | critical | localized | 1 | index.html | both | default |
 
-The cells are `index__1440x900__default` and `index__390x844__default` —
+The cells are `index__1440x900__default` and `index__320x568__default` —
 no light/dark pair, and no `darkColoured` annotation (the links measure
 light).
 <!-- OBSERVED-END -->

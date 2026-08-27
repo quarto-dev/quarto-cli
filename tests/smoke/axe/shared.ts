@@ -45,7 +45,7 @@ export function readFindings() {
 
 /**
  * One raw per-cell payload, by its artifact name — `index__1440x900__dark`,
- * `static_legacy__390x844__light`.
+ * `static_legacy__320x568__light`.
  */
 export function readCell(name: string): AxeCell {
   return JSON.parse(

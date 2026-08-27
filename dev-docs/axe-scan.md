@@ -83,12 +83,16 @@ template, the theme, Quarto's own chrome — and one fix clears them all.
 | `--pages <globs>` | all `*.html` | comma-separated site-relative globs |
 | `--exclude <globs>` | — | skip globs, applied after `--pages` |
 | `--max-pages <n>` | ∞ | deterministic cap (sorted, first n) |
-| `--viewports <WxH,...>` | `1440x900,390x844` | |
+| `--viewports <WxH,...>` | `1440x900,320x568` | |
 | `--themes <light,dark>` | `light,dark` | filters two-mode pages; one-mode pages always scan once |
 | `--timeout <ms>` | `30000` | per-cell budget |
 | `--settle <ms>` | `50` | extra delay after the page reports ready |
 | `--fail-on <impact>` | off | exit 1 on new findings at/above `minor`/`moderate`/`serious`/`critical` |
 | `--report <path>` | `_axe-checks/report.md` | put the report elsewhere, e.g. inside your site source |
+
+The narrow default viewport is 320 CSS px — the width WCAG's reflow
+criterion (SC 1.4.10) names, equivalent to 400% zoom on a 1280 px window —
+so every rule runs against the reflowed mobile layout.
 
 A subset scan (`--pages`, `--exclude`, `--max-pages`) says so loudly in
 every artifact: its counts describe the subset, not the site.

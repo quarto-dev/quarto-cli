@@ -14,7 +14,12 @@ import { AxeImpact, axeImpactSchema } from "./schemas.ts";
 export const kAxeOutputDir = "_axe-checks";
 export const kAxeBaselineFile = "_axe-baseline.json";
 
-export const kDefaultViewports = "1440x900,390x844";
+// The narrow default is 320 CSS px — the one viewport width WCAG names
+// (SC 1.4.10 Reflow: no 2-D scrolling at 320, the 400%-zoom equivalent of a
+// 1280 window). axe cannot detect reflow itself, but every rule runs
+// against the reflowed layout, and 320 sits in the same Bootstrap
+// breakpoint regime as any phone width, so the mobile chrome still renders.
+export const kDefaultViewports = "1440x900,320x568";
 export const kDefaultThemes = "light,dark";
 export const kDefaultTimeout = 30000;
 // An additive floor on top of the readiness probe (fonts + double rAF in

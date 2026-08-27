@@ -25,10 +25,10 @@ const matrixEarnsItsCost: Verify = {
     // reached by emulating prefers-color-scheme: author CSS media query
     const darkOnly = find(findings, "color-contrast :: #555555 on #333333");
     assertEquals(darkOnly.themes, ["dark"]);
-    assertEquals(darkOnly.viewports, ["1440x900", "390x844"]);
+    assertEquals(darkOnly.viewports, ["1440x900", "320x568"]);
 
     const mobileOnly = find(findings, "color-contrast :: #f8f8f8 on #f0f0f0");
-    assertEquals(mobileOnly.viewports, ["390x844"]);
+    assertEquals(mobileOnly.viewports, ["320x568"]);
     assertEquals(mobileOnly.themes, ["dark", "light"]);
 
     return Promise.resolve();

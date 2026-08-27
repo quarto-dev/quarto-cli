@@ -50,6 +50,18 @@ from: axe is injected at scan time (`formatResourcePath("html",
 "axe/axe.min.js")`), not by a render-time hook. Any rendered site scans
 as-is, offline, on one known axe version.
 
+**Default viewports** (`kDefaultViewports`, config.ts): `1440x900` renders
+the desktop chrome (full navbar, sidebar, margin TOC); `320x568` renders
+the reflowed mobile chrome (hamburger, off-canvas). The narrow width is the
+one viewport WCAG names — SC 1.4.10 Reflow forbids 2-D scrolling at 320 CSS
+px, the 400%-zoom equivalent of a 1280 window. axe has no automated reflow
+rule; the point is that the *whole ruleset* runs against the reflowed
+layout, and overflow the reflow failure creates surfaces indirectly (e.g.
+`scrollable-region-focusable`). The pair is one viewport per chrome regime,
+not device fidelity — any width in the same Bootstrap breakpoint band
+exercises nearly identical markup. (The narrow default was `390x844`, the
+iPhone 12-14 logical size inherited from the harness, until 2026-08-28.)
+
 ## Discovery: the matrix is known before the browser launches
 
 `discoverPages` walks `<site-dir>` for `*.html` (skipping `_axe-checks` and
