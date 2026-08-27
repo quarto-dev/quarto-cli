@@ -228,6 +228,16 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     onListen: () => {},
   });
   const baseUrl = `http://127.0.0.1:${sitePort}`;
+  // Deno.serve tears down asynchronously after stop() aborts it. Exiting the
+  // process mid-teardown intermittently segfaults Deno 2.7 (SIGSEGV on a
+  // tokio-runtime-worker, observed three times on macOS with identical
+  // stacks; "segfault at exit" is a known upstream bug family). Awaiting the
+  // server's own finished promise before returning toward Deno.exit closes
+  // the widest of those races.
+  const stopServer = async () => {
+    server.stop();
+    await server.server.finished.catch(() => {});
+  };
 
   // The matrix is known before the browser launches: modes were discovered
   // from each page's rendered HTML, so print what will run — not a guess.
@@ -275,7 +285,7 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
         e instanceof Error ? e.message : String(e)
       }`,
     );
-    server.stop();
+    await stopServer();
     return kExitIncomplete;
   }
 
@@ -391,7 +401,7 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     return kExitIncomplete;
   } finally {
     await browser.close();
-    server.stop();
+    await stopServer();
   }
 }
 
