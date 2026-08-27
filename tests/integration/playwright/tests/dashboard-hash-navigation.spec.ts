@@ -65,7 +65,18 @@ test('landing on a page hash starts tabbing at the top of the document', async (
   expect(firstStop.isBody).toBe(false);
   expect(firstStop.insideAPage).toBe(false);
 
-  // the navbar tab for the current page is reachable by tabbing forward
-  await page.keyboard.press(tabKey);
-  await expect(page.locator('#tab-cool')).toBeFocused();
+  // the navbar tab for the current page is reachable by tabbing forward.
+  // the exact number of stops before it depends on what else the format
+  // puts at the top of the body, so tab forward a bounded number of times
+  // rather than assuming a fixed position.
+  let reachedNavbarTab = false;
+  for (let i = 0; i < 5 && !reachedNavbarTab; i++) {
+    reachedNavbarTab = await page.evaluate(
+      () => document.activeElement?.id === 'tab-cool'
+    );
+    if (!reachedNavbarTab) {
+      await page.keyboard.press(tabKey);
+    }
+  }
+  expect(reachedNavbarTab).toBe(true);
 });
