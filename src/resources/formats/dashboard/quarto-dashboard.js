@@ -112,6 +112,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const hash = window.decodeURIComponent(window.location.hash);
   if (QuartoDashboardUtils.isPage(hash)) {
     QuartoDashboardUtils.showPage(hash, () => {
+      // a page hash selects a page, it is not a position within one, so undo
+      // the browser's fragment behaviour of starting sequential focus inside
+      // the target. Without this, tabbing from a shared "...#page" URL starts
+      // inside the page content and never reaches the navbar.
+      QuartoDashboardUtils.resetFocusToDocumentStart();
       window.document.documentElement.classList.remove("hidden");
     });
   } else {
@@ -231,6 +236,26 @@ window.QuartoDashboardUtils = {
     setTimeout(function () {
       window.scrollTo(0, 0);
     }, 10);
+  },
+  resetFocusToDocumentStart: function () {
+    // focusing the body moves the sequential focus navigation starting point
+    // back to the top of the document; the tabindex only needs to exist for
+    // the focus() call, so it is removed again immediately.
+    // this has to run after the browser has applied its own fragment
+    // behaviour, which happens after DOMContentLoaded, hence the deferral
+    const reset = function () {
+      const bodyEl = document.body;
+      bodyEl.setAttribute("tabindex", "-1");
+      bodyEl.focus();
+      bodyEl.removeAttribute("tabindex");
+    };
+    if (document.readyState === "complete") {
+      window.setTimeout(reset, 0);
+    } else {
+      window.addEventListener("load", function () {
+        window.setTimeout(reset, 0);
+      });
+    }
   },
   isPage: function (hash) {
     // use getElementById rather than building a selector: the hash comes from

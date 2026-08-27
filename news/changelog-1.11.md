@@ -9,6 +9,7 @@ All changes included in 1.11:
 ### `dashboard`
 
 - ([#14818](https://github.com/quarto-dev/quarto-cli/issues/14818)): Fix a dashboard with more than one page going blank when the URL hash does not name a page, such as a footnote link or a cross-reference. Such a hash is now left alone, so the current page stays visible.
+- ([#14819](https://github.com/quarto-dev/quarto-cli/issues/14819)): Fix keyboard focus starting inside the page content when a dashboard opens at a page hash, such as `dashboard.html#sales`. Tabbing forward could not reach the navbar. Focus now starts at the top of the document.
 
 ## Engines
 
