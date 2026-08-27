@@ -153,6 +153,11 @@ test.describe("scrollable regions at a mobile viewport", () => {
     page,
     browserName,
   }) => {
+    // Folded code is not special-cased. Opening the element makes the page
+    // taller, which trips the body ResizeObserver that drives every re-sync —
+    // the same path that covers collapsed callouts and tab panes of differing
+    // heights. A reveal that leaves the page the same size (two tab panes of
+    // equal height, say) is not picked up; see the limitation in the PR.
     await page.locator("#folded summary").click();
 
     const block = page.locator("#folded div.sourceCode");
