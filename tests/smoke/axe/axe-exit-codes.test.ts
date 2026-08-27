@@ -17,6 +17,7 @@
  */
 
 import { assert, assertEquals } from "testing/asserts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { execProcess } from "../../../src/core/process.ts";
@@ -119,5 +120,52 @@ axeExitTest(
       results.notOkCells.every((cell) => cell.status === "timeout"),
       JSON.stringify(results.notOkCells),
     );
+  },
+);
+
+unitTest(
+  "axe exit codes - a browser that cannot start exits 2, leaving no stale summary",
+  async () => {
+    // QUARTO_CHROMIUM pointing at a file that exists but is not a browser
+    // wins discovery, then the spawn fails — the closest forcible stand-in
+    // for "no usable Chrome" on machines that have one installed.
+    const notABrowser = join(workingDir, "not-a-browser");
+    Deno.writeTextFileSync(notABrowser, "");
+    // a previous scan's summary must not survive to be read as current
+    const artifacts = join(workingDir, "_axe-checks");
+    Deno.mkdirSync(artifacts, { recursive: true });
+    const staleFindings = join(artifacts, "findings.json");
+    Deno.writeTextFileSync(staleFindings, `{"stale": true}`);
+
+    const result = await execProcess({
+      cmd: quartoBin(),
+      args: ["call", "axe", "site"],
+      cwd: workingDir,
+      env: { QUARTO_CHROMIUM: notABrowser },
+      stdout: "piped",
+      stderr: "piped",
+    });
+    assertEquals(
+      result.code,
+      2,
+      `expected exit 2\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
+    );
+    assert(
+      (result.stderr ?? "").includes("Could not start headless Chrome"),
+      `stderr must name the launch failure:\n${result.stderr}`,
+    );
+    assert(
+      !existsSync(staleFindings),
+      "a failed launch must not leave a stale findings.json reading as current",
+    );
+  },
+  {
+    teardown: () => {
+      const artifacts = join(workingDir, "_axe-checks");
+      if (existsSync(artifacts)) {
+        Deno.removeSync(artifacts, { recursive: true });
+      }
+      return Promise.resolve();
+    },
   },
 );
