@@ -1,7 +1,7 @@
 /*
  * tar.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2026 Posit Software, PBC
  */
 
 import { info } from "../../../src/deno_ral/log.ts";
