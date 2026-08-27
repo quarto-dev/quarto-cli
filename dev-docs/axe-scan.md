@@ -73,6 +73,26 @@ template, the theme, Quarto's own chrome — and one fix clears them all.
 A subset scan (`--pages`, `--exclude`, `--max-pages`) says so loudly in
 every artifact: its counts describe the subset, not the site.
 
+## Running it as a post-render step
+
+The command works as a project `post-render` script, so a full render scans
+itself:
+
+```yaml
+project:
+  type: website
+  post-render:
+    - quarto call axe _site/
+```
+
+The script runs from the project directory after the outputs are written,
+so the relative site dir and the artifact anchor resolve exactly as they do
+on the command line. Exit codes propagate: without `--fail-on`, findings
+never fail the render; with `--fail-on`, a new finding at the threshold —
+or an incomplete scan — fails `quarto render` itself, with the scan's error
+line in the render output. This runs on every full render of the project,
+which adds the scan's runtime to each render.
+
 ## The baseline workflow
 
 The first scan of a real site reports findings you will not fix today:
@@ -114,24 +134,21 @@ A minimal GitHub Actions gate:
 ```
 
 `report.md` is GitHub-flavored markdown, so posting it as a PR comment is
-workflow configuration, not tooling:
+workflow configuration, not tooling. A sticky comment beats a plain one:
+it updates in place on each push instead of stacking a new comment per run:
 
 ```yaml
-- if: failure()
-  uses: actions/github-script@v7
+- if: always()
+  uses: marocchino/sticky-pull-request-comment@v2
   with:
-    script: |
-      const fs = require("fs");
-      const body = fs.readFileSync("_axe-checks/report.md", "utf8");
-      await github.rest.issues.createComment({
-        ...context.repo,
-        issue_number: context.issue.number,
-        body: body.slice(0, 65536),
-      });
+    header: axe
+    path: _axe-checks/report.md
 ```
 
-(GitHub caps comment bodies at 65,536 characters; a whole-site report on a
-large site can exceed it — trim or attach as an artifact instead.)
+(`if: always()` keeps the comment current when `--fail-on` fails the job;
+`header` keys the comment so other sticky comments are untouched. GitHub
+caps comment bodies at 65,536 characters; a whole-site report on a large
+site can exceed it — trim or attach as an artifact instead.)
 
 ## Reading the output as an agent
 
