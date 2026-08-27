@@ -697,14 +697,14 @@ export interface FormatLanguage {
   [kSearchNoResultsText]?: string;
   [kCopyButtonTooltip]?: string;
   [kCopyButtonTooltipSuccess]?: string;
-  [kScrollableCodeLabel]?: string;
-  [kScrollableOutputLabel]?: string;
   [kBackToTop]?: string;
   [kToggleDarkMode]?: string;
   [kToggleNavigation]?: string;
   [kToggleReaderMode]?: string;
   [kToggleSection]?: string;
   [kToggleSidebar]?: string;
+  [kScrollableCodeLabel]?: string;
+  [kScrollableOutputLabel]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchMoreMatchText]?: string;

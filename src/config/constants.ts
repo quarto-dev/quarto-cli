@@ -304,11 +304,11 @@ export const kToggleSidebar = "toggle-sidebar";
 export const kToggleDarkMode = "toggle-dark-mode";
 export const kToggleReaderMode = "toggle-reader-mode";
 export const kToggleNavigation = "toggle-navigation";
+export const kScrollableCodeLabel = "scrollable-code-label";
+export const kScrollableOutputLabel = "scrollable-output-label";
 
 export const kCopyButtonTooltip = "copy-button-tooltip";
 export const kCopyButtonTooltipSuccess = "copy-button-tooltip-success";
-export const kScrollableCodeLabel = "scrollable-code-label";
-export const kScrollableOutputLabel = "scrollable-output-label";
 export const kBackToTop = "back-to-top";
 export const kRepoActionLinksEdit = "repo-action-links-edit";
 export const kRepoActionLinksSource = "repo-action-links-source";
@@ -435,10 +435,10 @@ export const kLanguageDefaultsKeys = [
   kToggleReaderMode,
   kToggleSidebar,
   kToggleSection,
-  kCopyButtonTooltip,
-  kCopyButtonTooltipSuccess,
   kScrollableCodeLabel,
   kScrollableOutputLabel,
+  kCopyButtonTooltip,
+  kCopyButtonTooltipSuccess,
   kBackToTop,
   kRepoActionLinksEdit,
   kRepoActionLinksSource,
