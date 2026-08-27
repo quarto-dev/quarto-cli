@@ -1,7 +1,7 @@
 /*
  * cmd.ts
  *
- * `quarto dev-call axe` — hidden prototype accessibility scanner. Serves an
+ * `quarto call axe` — hidden prototype accessibility scanner. Serves an
  * already-rendered site, discovers each page's colour modes from its HTML,
  * drives headless Chrome over the page x viewport x mode matrix with
  * quarto-cli's vendored axe-core, aggregates by root-cause signature, and
@@ -194,7 +194,7 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   if (!existsSync(gitignoreFile)) {
     Deno.writeTextFileSync(
       gitignoreFile,
-      "# Written by quarto dev-call axe: everything here is a scan artifact.\n*\n",
+      "# Written by quarto call axe: everything here is a scan artifact.\n*\n",
     );
   }
   // A previous run's summary artifacts must not survive an aborted scan to be
@@ -469,11 +469,11 @@ export const axeCommand = new Command()
   )
   .example(
     "Scan a rendered site",
-    "quarto dev-call axe _site",
+    "quarto call axe _site",
   )
   .example(
     "Scan two pages, desktop light only",
-    "quarto dev-call axe _site --pages index.html,about.html " +
+    "quarto call axe _site --pages index.html,about.html " +
       "--viewports 1440x900 --themes light",
   )
   // deno-lint-ignore no-explicit-any

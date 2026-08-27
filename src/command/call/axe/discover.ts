@@ -1,7 +1,7 @@
 /*
  * discover.ts
  *
- * Page discovery for `quarto dev-call axe`: which pages to scan, and — per
+ * Page discovery for `quarto call axe`: which pages to scan, and — per
  * page — which colour modes exist to scan them in.
  *
  * Modes are discovered from the rendered HTML, never probed at runtime. A page

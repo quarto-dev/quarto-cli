@@ -1,7 +1,7 @@
 /*
  * axe-report-readme.test.ts
  *
- * The two rendered artifacts of `quarto dev-call axe`: report.md (report.ts)
+ * The two rendered artifacts of `quarto call axe`: report.md (report.ts)
  * and the generated _axe-checks/README.md (readme.ts). Both are dumb views
  * over findings.json, so these tests aggregate the captured per-cell fixtures
  * (tests/docs/axe-scan/cells) exactly as the aggregate tests do, then assert
@@ -14,19 +14,19 @@ import { unitTest } from "../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { join } from "../../src/deno_ral/path.ts";
 import { docs } from "../utils.ts";
-import { aggregate } from "../../src/command/dev-call/axe/aggregate.ts";
-import { renderReport } from "../../src/command/dev-call/axe/report.ts";
+import { aggregate } from "../../src/command/call/axe/aggregate.ts";
+import { renderReport } from "../../src/command/call/axe/report.ts";
 import {
   renderReadme,
   scanCommand,
-} from "../../src/command/dev-call/axe/readme.ts";
-import { AxeScanConfig } from "../../src/command/dev-call/axe/config.ts";
-import { AxeCell } from "../../src/command/dev-call/axe/scan.ts";
+} from "../../src/command/call/axe/readme.ts";
+import { AxeScanConfig } from "../../src/command/call/axe/config.ts";
+import { AxeCell } from "../../src/command/call/axe/scan.ts";
 import {
   AxeBaseline,
   kFindingsVersion,
   kSignatureScheme,
-} from "../../src/command/dev-call/axe/schemas.ts";
+} from "../../src/command/call/axe/schemas.ts";
 
 const kCells = [
   "about__1440x900__light",
@@ -167,7 +167,7 @@ unitTest(
     assertEquals(
       scanCommand(results({})),
       // non-default viewports and settle are echoed; defaults are not
-      "quarto dev-call axe _site --viewports 1440x900",
+      "quarto call axe _site --viewports 1440x900",
     );
     assertEquals(
       scanCommand(
@@ -175,7 +175,7 @@ unitTest(
           config: { pages: ["docs/**"], exclude: ["slides/**"], timeout: 5000 },
         }),
       ),
-      'quarto dev-call axe _site --pages "docs/**" --exclude "slides/**" ' +
+      'quarto call axe _site --pages "docs/**" --exclude "slides/**" ' +
         "--viewports 1440x900 --timeout 5000",
     );
   },

@@ -1,7 +1,7 @@
 /*
  * axe-matrix.test.ts
  *
- * `quarto dev-call axe` against tests/docs/axe-scan/sites/matrix: the two axes
+ * `quarto call axe` against tests/docs/axe-scan/sites/matrix: the two axes
  * that justify scanning every page four times.
  *
  * Every planted failure on that site is conditional, and each is reachable by
@@ -73,6 +73,6 @@ const everyPageDiscoversTwoModes: Verify = {
 
 axeSmokeTest(
   "matrix",
-  "quarto dev-call axe (matrix: viewport and theme axes)",
+  "quarto call axe (matrix: viewport and theme axes)",
   [matrixEarnsItsCost, quartoDarkThemeIsReached, everyPageDiscoversTwoModes],
 );

@@ -1,7 +1,7 @@
 /*
  * schemas.ts
  *
- * The two contracts `quarto dev-call axe` publishes: `findings.json` (what the
+ * The two contracts `quarto call axe` publishes: `findings.json` (what the
  * aggregate stage writes, and what the report, agents and the eventual public
  * command read) and `_axe-baseline.json` (the hand-written ledger of accepted
  * findings).

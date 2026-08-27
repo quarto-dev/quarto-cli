@@ -6,7 +6,7 @@
  *
  * There are two implementations on purpose. `axe-check.js` runs in the browser
  * and cannot be imported into the CLI bundle without dragging the whole overlay
- * and its page globals along (see src/command/dev-call/axe/conformance.ts), so
+ * and its page globals along (see src/command/call/axe/conformance.ts), so
  * the scanner mirrors its three pure labellers in TypeScript.
  *
  * That duplication is only safe while something notices a divergence. This is
@@ -25,7 +25,7 @@ import {
   axeConformanceLevel as tsConformanceLevel,
   impactRank as tsImpactRank,
   standardRank as tsStandardRank,
-} from "../../src/command/dev-call/axe/conformance.ts";
+} from "../../src/command/call/axe/conformance.ts";
 import {
   axeConformanceLevel as jsConformanceLevel,
   impactRank as jsImpactRank,

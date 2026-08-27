@@ -1,7 +1,7 @@
 /*
  * axe-aggregate.test.ts
  *
- * Tests the aggregate stage of `quarto dev-call axe` against real captured axe
+ * Tests the aggregate stage of `quarto call axe` against real captured axe
  * payloads: grouping, matrix coverage, and the
  * `findings.json` contract.
  *
@@ -29,15 +29,15 @@ import { join } from "../../src/deno_ral/path.ts";
 import {
   aggregate,
   failingFindings,
-} from "../../src/command/dev-call/axe/aggregate.ts";
-import { AxeCell } from "../../src/command/dev-call/axe/scan.ts";
-import { AxeMode, AxePage } from "../../src/command/dev-call/axe/discover.ts";
+} from "../../src/command/call/axe/aggregate.ts";
+import { AxeCell } from "../../src/command/call/axe/scan.ts";
+import { AxeMode, AxePage } from "../../src/command/call/axe/discover.ts";
 import {
   axeFindingsSchema,
   kFindingsVersion,
   kSignatureScheme,
-} from "../../src/command/dev-call/axe/schemas.ts";
-import { AxeScanConfig } from "../../src/command/dev-call/axe/config.ts";
+} from "../../src/command/call/axe/schemas.ts";
+import { AxeScanConfig } from "../../src/command/call/axe/config.ts";
 import { docs } from "../utils.ts";
 
 /** Captures from the `findings` site: grouping, scope and the raw-HTML page. */

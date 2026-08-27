@@ -2,27 +2,28 @@
 main_commit: abc6a78ed
 analyzed_date: 2026-08-27
 key_files:
-  - src/command/dev-call/axe/cmd.ts
-  - src/command/dev-call/axe/config.ts
-  - src/command/dev-call/axe/discover.ts
-  - src/command/dev-call/axe/scan.ts
-  - src/command/dev-call/axe/aggregate.ts
-  - src/command/dev-call/axe/schemas.ts
-  - src/command/dev-call/axe/conformance.ts
-  - src/command/dev-call/axe/report.ts
-  - src/command/dev-call/axe/readme.ts
+  - src/command/call/axe/cmd.ts
+  - src/command/call/axe/config.ts
+  - src/command/call/axe/discover.ts
+  - src/command/call/axe/scan.ts
+  - src/command/call/axe/aggregate.ts
+  - src/command/call/axe/schemas.ts
+  - src/command/call/axe/conformance.ts
+  - src/command/call/axe/report.ts
+  - src/command/call/axe/readme.ts
 ---
 
-# Axe Scan Architecture (`quarto dev-call axe`)
+# Axe Scan Architecture (`quarto call axe`)
 
-`quarto dev-call axe <site-dir>` scans an already-rendered site for
+`quarto call axe <site-dir>` scans an already-rendered site for
 accessibility violations. It serves the site dir locally, drives headless
 Chrome over raw CDP, and runs quarto-cli's vendored axe-core against every
 page × viewport × colour-mode cell. It groups violations by root-cause
 signature, reconciles them against a hand-written baseline, and writes
 `findings.json`, `report.md`, and a generated `README.md`.
 
-The command is a hidden prototype under `dev-call`. It validates the
+The command is a hidden prototype under `call` (hidden while experimental —
+it does not show in `quarto call` help). It validates the
 semantics for a future public `quarto axe` command. How to *use* it is in
 `dev-docs/axe-scan.md`; this document explains how it works and why.
 

@@ -1,12 +1,12 @@
 ---
 paths:
-  - "src/command/dev-call/axe/**"
+  - "src/command/call/axe/**"
   - "tests/unit/axe-*.test.ts"
   - "tests/smoke/axe/**"
   - "tests/docs/axe-scan/**"
 ---
 
-# Axe Scan Command (`quarto dev-call axe`)
+# Axe Scan Command (`quarto call axe`)
 
 For the scanner's architecture — pipeline, mode discovery, signatures,
 baseline semantics, exit codes, and the rationale behind each — see

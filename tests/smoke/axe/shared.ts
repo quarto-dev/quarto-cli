@@ -17,13 +17,13 @@ import { ExecuteOutput, testQuartoCmd, Verify } from "../../test.ts";
 import { fileExists, validJsonWithFields } from "../../verify.ts";
 import { docs } from "../../utils.ts";
 import { quarto } from "../../../src/quarto.ts";
-import { AxeCell } from "../../../src/command/dev-call/axe/scan.ts";
+import { AxeCell } from "../../../src/command/call/axe/scan.ts";
 import {
   AxeFinding,
   axeFindingsSchema,
   kFindingsVersion,
   kSignatureScheme,
-} from "../../../src/command/dev-call/axe/schemas.ts";
+} from "../../../src/command/call/axe/schemas.ts";
 
 export const kFindingsFile = "_axe-checks/findings.json";
 export const kReportFile = "_axe-checks/report.md";
@@ -139,7 +139,7 @@ export function axeSmokeTest(
 ) {
   const siteDir = docs(`axe-scan/sites/${site}`);
   testQuartoCmd(
-    "dev-call",
+    "call",
     ["axe", "_site"],
     [
       fileExists(kFindingsFile),

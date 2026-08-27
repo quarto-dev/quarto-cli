@@ -1,7 +1,7 @@
 /*
  * axe-darkly.test.ts
  *
- * `quarto dev-call axe` against tests/docs/axe-scan/sites/darkly: a site whose
+ * `quarto call axe` against tests/docs/axe-scan/sites/darkly: a site whose
  * only theme is dark-coloured.
  *
  * `theme: darkly` ships one presentation, so discovery must give each page one
@@ -64,6 +64,6 @@ const defaultCellStillReports: Verify = {
 
 axeSmokeTest(
   "darkly",
-  "quarto dev-call axe (darkly: a dark-coloured single theme)",
+  "quarto call axe (darkly: a dark-coloured single theme)",
   [oneDarkColouredMode, defaultCellStillReports],
 );

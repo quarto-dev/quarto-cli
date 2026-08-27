@@ -1,7 +1,7 @@
 /*
  * scan.ts
  *
- * The scan stage of `quarto dev-call axe`: drives headless Chrome over raw CDP
+ * The scan stage of `quarto call axe`: drives headless Chrome over raw CDP
  * and runs quarto-cli's vendored axe-core against every page x viewport x mode
  * cell of an already-rendered site. The mode axis is discovered per page before
  * the browser launches (see discover.ts); this stage only *selects* each cell's

@@ -2,7 +2,7 @@
  * axe-baseline-parse.test.ts
  *
  * Tests reading a hand-edited `_axe-baseline.json`: `parseBaseline` in
- * src/command/dev-call/axe/schemas.ts.
+ * src/command/call/axe/schemas.ts.
  *
  * The baseline is the one file in this feature a human writes by hand, so its
  * failure modes are ergonomics, not just correctness. Two behaviours are chosen
@@ -21,7 +21,7 @@ import {
   kFindingsVersion,
   kSignatureScheme,
   parseBaseline,
-} from "../../src/command/dev-call/axe/schemas.ts";
+} from "../../src/command/call/axe/schemas.ts";
 
 const kTrimmedEntry = {
   signature: "aria-allowed-role :: .navbar-toggler",

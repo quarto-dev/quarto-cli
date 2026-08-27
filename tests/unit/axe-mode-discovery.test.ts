@@ -1,7 +1,7 @@
 /*
  * axe-mode-discovery.test.ts
  *
- * Tests how `quarto dev-call axe` discovers a page's colour modes from its
+ * Tests how `quarto call axe` discovers a page's colour modes from its
  * rendered HTML, and how `--themes` filters the discovered matrix.
  *
  * The HTML snippets here are distillations of what Quarto really emits — the
@@ -22,8 +22,8 @@ import {
   discoverPages,
   sniffModes,
   sniffRedirectStub,
-} from "../../src/command/dev-call/axe/discover.ts";
-import { axeScanConfig } from "../../src/command/dev-call/axe/config.ts";
+} from "../../src/command/call/axe/discover.ts";
+import { axeScanConfig } from "../../src/command/call/axe/config.ts";
 import { withTempDir } from "../utils.ts";
 
 // The inline before-body script, boiled down to its marker. Quarto emits it

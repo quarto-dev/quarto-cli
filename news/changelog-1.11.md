@@ -2,9 +2,9 @@ All changes included in 1.11:
 
 ## Commands
 
-### `dev-call`
+### `call`
 
-- ([#XXXXX](https://github.com/quarto-dev/quarto-cli/pull/XXXXX)): Add `quarto dev-call axe`, a hidden experimental command that scans a rendered site for accessibility violations with axe-core across a page × viewport × color-mode matrix, groups them by root-cause signature, reconciles a committed baseline, and can gate CI with `--fail-on`. See `dev-docs/axe-scan.md`.
+- ([#XXXXX](https://github.com/quarto-dev/quarto-cli/pull/XXXXX)): Add `quarto call axe`, a hidden experimental command that scans a rendered site for accessibility violations with axe-core across a page × viewport × color-mode matrix, groups them by root-cause signature, reconciles a committed baseline, and can gate CI with `--fail-on`. See `dev-docs/axe-scan.md`.
 
 ## Engines
 

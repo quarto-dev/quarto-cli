@@ -20,14 +20,14 @@
 
 import { unitTest } from "../test.ts";
 import { assert, assertEquals } from "testing/asserts";
-import { aggregate } from "../../src/command/dev-call/axe/aggregate.ts";
-import { AxeCell } from "../../src/command/dev-call/axe/scan.ts";
+import { aggregate } from "../../src/command/call/axe/aggregate.ts";
+import { AxeCell } from "../../src/command/call/axe/scan.ts";
 import {
   AxeBaseline,
   AxeFindings,
   AxeImpact,
-} from "../../src/command/dev-call/axe/schemas.ts";
-import { AxeScanConfig } from "../../src/command/dev-call/axe/config.ts";
+} from "../../src/command/call/axe/schemas.ts";
+import { AxeScanConfig } from "../../src/command/call/axe/config.ts";
 
 const kConfig: AxeScanConfig = {
   siteDir: "_site",
