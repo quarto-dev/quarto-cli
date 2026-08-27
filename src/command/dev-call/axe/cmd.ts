@@ -4,8 +4,9 @@
  * `quarto dev-call axe` — hidden prototype accessibility scanner. Serves an
  * already-rendered site, discovers each page's colour modes from its HTML,
  * drives headless Chrome over the page x viewport x mode matrix with
- * quarto-cli's vendored axe-core, and writes the raw per-cell payloads.
- * Aggregation and the HTML report come next.
+ * quarto-cli's vendored axe-core, aggregates by root-cause signature, and
+ * reconciles a hand-written baseline. Architecture and rationale:
+ * llm-docs/axe-scan-architecture.md; usage: dev-docs/axe-scan.md.
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
@@ -79,7 +80,7 @@ function cellLine(cell: AxeCell): string {
  * would be published. The cheap `_quarto.yml` check agrees with a real
  * `ProjectContext.dir` wherever a project config exists; reading the project's
  * own `output-dir` is what would need `projectContext()`, and that is deferred
- * (see the design note's cut list).
+ * (llm-docs/axe-scan-architecture.md, "Artifacts and the anchor").
  */
 export function resolveAnchor(siteDir: string): string {
   let dir = resolve(siteDir);

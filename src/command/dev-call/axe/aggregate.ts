@@ -10,8 +10,8 @@
  * with a multiplicity count.
  *
  * Ported from the quarto-web harness (`_tools/axe/aggregate.mjs`) with the
- * signature and baseline semantics settled in
- * `aggregate-signature-breadth-investigation.md`: attribute values are kept
+ * signature and baseline semantics settled by the breadth investigation
+ * (recorded in llm-docs/axe-scan-architecture.md): attribute values are kept
  * with digit runs wildcarded (not stripped), and a baseline entry carries a
  * `pages` scope. `--update-baseline` is gone: every entry exists because
  * someone wrote it.
