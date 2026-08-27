@@ -8,7 +8,7 @@
  * and an accessible name, and keeps the attributes in sync so a region that
  * stops overflowing stops being a tab stop.
  *
- * Copyright (C) 2020-2026 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  */
 
 // Marker for attributes we added, so removal never touches author markup.
@@ -62,6 +62,15 @@ export function isScrollable(el, style) {
   );
 }
 
+// A region needs a usable size before a user can scroll it. Closed <details>
+// and inactive tab panes report 0. Visually-hidden alternatives are clipped to
+// 1px (`.visually-hidden` sets width 1px and overflow hidden; CSS then computes
+// the other axis to auto), so their full content height reads as overflow —
+// marking one would add an invisible tab stop.
+export function hasUsableSize(el) {
+  return el.clientWidth > 1 && el.clientHeight > 1;
+}
+
 function labelFor(el, labels) {
   if (el.matches(".cell-output-display") || el.closest(".cell-output")) {
     return labels.output;
@@ -72,8 +81,7 @@ function labelFor(el, labels) {
 export function syncScrollableRegions(labels) {
   labels = resolveLabels(labels || window.quartoScrollableRegionsLabels);
   for (const el of document.querySelectorAll(kCandidateSelector)) {
-    // hidden (closed <details>, inactive tab pane): geometry reads 0, leave as is
-    if (el.clientWidth === 0) {
+    if (!hasUsableSize(el)) {
       continue;
     }
     if (!el.hasAttribute(kMarker)) {

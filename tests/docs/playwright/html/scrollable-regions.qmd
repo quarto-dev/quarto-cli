@@ -42,6 +42,19 @@ folded_code = "an_unbroken_token_that_cannot_wrap_and_overflows_mobile"
 
 </details>
 
+## Visually hidden alternative {#visually-hidden}
+
+Mirrors the quarto-web get-started markup: a `visually-hidden` code
+alternative for screen readers. It is clipped to 1px, so its content height
+reads as overflow. It must not become an invisible tab stop.
+
+```{=html}
+<div class="sourceCode" id="cb-vh"><pre class="sourceCode yaml visually-hidden code-with-copy"><code class="sourceCode yaml">project:
+  type: website
+  output-dir: _site
+  an_unbroken_token_that_cannot_wrap_and_overflows_the_container_width_easily</code></pre></div>
+```
+
 ## Tabset {#tabset}
 
 ::: {.panel-tabset}

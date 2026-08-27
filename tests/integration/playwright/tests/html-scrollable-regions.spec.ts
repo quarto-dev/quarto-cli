@@ -61,6 +61,18 @@ test.describe("scrollable regions at a mobile viewport", () => {
     await expect(output).toHaveAttribute("aria-label", "Scrollable output");
   });
 
+  test("visually-hidden code alternative does not become an invisible tab stop", async ({
+    page,
+  }) => {
+    // Clipped to 1px with overflow hidden on one axis, so CSS computes the
+    // other to auto and the content height reads as overflow. No user can
+    // scroll a 1px box, so marking it would add a tab stop nobody can see.
+    const hidden = page.locator("#visually-hidden pre.visually-hidden");
+    await expect(hidden).toHaveCount(1);
+    await expect(hidden).not.toHaveAttribute("tabindex");
+    await expect(hidden).not.toHaveAttribute("data-quarto-scrollable");
+  });
+
   test("content in a hidden tab pane is left alone", async ({ page }) => {
     // The inactive pane has no geometry (display: none), so its code block
     // must not become a (useless) tab stop.

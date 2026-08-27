@@ -9,12 +9,13 @@
  * label config, so these tests need no DOM: each case hand-constructs the
  * geometry, style, or config and asserts the result.
  *
- * Copyright (C) 2020-2026 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { unitTest } from "../test.ts";
 import { assertEquals } from "testing/asserts";
 import {
+  hasUsableSize,
   isScrollable,
   resolveLabels,
 } from "../../src/resources/formats/html/scrollable-regions/scrollable-regions.js";
@@ -113,6 +114,34 @@ unitTest(
       ),
       false,
     );
+  },
+);
+
+unitTest(
+  "hasUsableSize - a laid-out region has a usable size",
+  // deno-lint-ignore require-await
+  async () => {
+    assertEquals(hasUsableSize({ clientWidth: 337, clientHeight: 40 }), true);
+  },
+);
+
+unitTest(
+  "hasUsableSize - a hidden region reports zero",
+  // deno-lint-ignore require-await
+  async () => {
+    // Closed <details> and inactive tab panes.
+    assertEquals(hasUsableSize({ clientWidth: 0, clientHeight: 0 }), false);
+  },
+);
+
+unitTest(
+  "hasUsableSize - a visually-hidden region clipped to 1px is not usable",
+  // deno-lint-ignore require-await
+  async () => {
+    // `.visually-hidden` clips to 1px and sets overflow hidden on one axis;
+    // CSS computes the other to auto, so the full content height reads as
+    // overflow. Marking it would add an invisible tab stop.
+    assertEquals(hasUsableSize({ clientWidth: 1, clientHeight: 1 }), false);
   },
 );
 
