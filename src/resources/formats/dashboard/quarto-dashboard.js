@@ -106,9 +106,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   }
 
-  // Try to process the hash and activate a tab
+  // Try to process the hash and activate a tab. A hash that does not name a
+  // page (an in-page anchor, a footnote link, a cross-reference) is left
+  // alone, so the browser can scroll to it and the current page stays visible.
   const hash = window.decodeURIComponent(window.location.hash);
-  if (hash.length > 0) {
+  if (QuartoDashboardUtils.isPage(hash)) {
     QuartoDashboardUtils.showPage(hash, () => {
       window.document.documentElement.classList.remove("hidden");
     });
@@ -119,7 +121,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // navigate to a tab when the history changes
   window.addEventListener("popstate", function (e) {
     const hash = window.decodeURIComponent(window.location.hash);
-    QuartoDashboardUtils.showPage(hash);
+    // only switch pages for a hash that names one; any other hash change
+    // must leave the pages alone, otherwise showPage hides all of them
+    if (hash.length === 0 || QuartoDashboardUtils.isPage(hash)) {
+      QuartoDashboardUtils.showPage(hash);
+    }
   });
 
   // Hook tabs and use that to update history / active tabs
@@ -227,8 +233,19 @@ window.QuartoDashboardUtils = {
     }, 10);
   },
   isPage: function (hash) {
-    const tabPaneEl = document.querySelector(`.dashboard-page.tab-pane${hash}`);
-    return tabPaneEl !== null;
+    // use getElementById rather than building a selector: the hash comes from
+    // the URL and may not be a valid CSS selector (`#`, `#1foo` and `#a:b` all
+    // throw a SyntaxError in querySelector)
+    const id = hash.startsWith("#") ? hash.substring(1) : hash;
+    if (id === "") {
+      return false;
+    }
+    const tabPaneEl = document.getElementById(id);
+    return (
+      tabPaneEl !== null &&
+      tabPaneEl.classList.contains("dashboard-page") &&
+      tabPaneEl.classList.contains("tab-pane")
+    );
   },
   showPage: function (hash, fnCallback) {
     // If the hash is empty, just select the first tab and activate that
