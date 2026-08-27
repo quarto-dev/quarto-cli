@@ -17,9 +17,10 @@
 import { AxeFinding, AxeFindings } from "./schemas.ts";
 
 /**
- * Make arbitrary text safe inside a markdown table cell: HTML-escape (the
- * snippets are raw HTML), then neutralize the two characters that break
- * table structure — pipes and newlines.
+ * Make arbitrary prose safe inside a markdown table cell or `<summary>`:
+ * HTML-escape, then neutralize the two characters that break table
+ * structure — pipes and newlines. Code-like content (selectors, HTML
+ * excerpts) goes through `code`/`codeCell` instead.
  */
 function cell(value: unknown): string {
   return String(value ?? "")
@@ -31,10 +32,36 @@ function cell(value: unknown): string {
     .trim();
 }
 
-/** A code-styled table cell; `<code>` survives inside GFM tables. */
+/**
+ * A markdown code span — backticks, not `<code>` raw HTML, on purpose:
+ * Pandoc parses the text between `<code>` tags as markdown, so an excerpt
+ * from a page that *documents* fenced divs put literal `:::` strings into
+ * the AST and Quarto's fenced-div check (astpipeline.lua) warned on every
+ * render of the report. A backtick span parses as a Code inline, which that
+ * check ignores. The fence grows past any backtick run in the content, and
+ * a space pads content that starts or ends with a backtick.
+ */
 function code(value: unknown): string {
-  const escaped = cell(value);
-  return escaped ? `<code>${escaped}</code>` : "";
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  if (!text) {
+    return "";
+  }
+  const runs = text.match(/`+/g) ?? [];
+  const fence = "`".repeat(
+    Math.max(0, ...runs.map((run) => run.length)) + 1,
+  );
+  const pad = text.startsWith("`") || text.endsWith("`") ? " " : "";
+  return `${fence}${pad}${text}${pad}${fence}`;
+}
+
+/**
+ * A code span safe inside a pipe-table cell: `\|` is the one pipe escape
+ * both GitHub and Pandoc honor at the cell boundary even inside a code
+ * span. (GitHub strips the backslash; Pandoc renders it — a cosmetic wart
+ * on the rare selector that carries a pipe, never a broken row.)
+ */
+function codeCell(value: unknown): string {
+  return code(String(value ?? "").replace(/\|/g, "\\|"));
 }
 
 function plural(count: number, singular = "", many = "s"): string {
@@ -58,8 +85,8 @@ function findingsTable(findings: AxeFinding[], showWhy: boolean): string[] {
     // so GitHub and Pandoc both auto-anchor it); baselined findings have no
     // occurrence sections to link to.
     const id = showWhy
-      ? code(finding.id)
-      : `[${code(finding.id)}](#${finding.id})`;
+      ? codeCell(finding.id)
+      : `[${codeCell(finding.id)}](#${finding.id})`;
     return `| ${id} | ${cell(finding.standard)} | ` +
       `${cell(finding.impact)} | ${finding.pages.length} | ` +
       `${finding.instances} | ${last} |`;
@@ -98,7 +125,7 @@ function occurrenceDetails(finding: AxeFinding): string[] {
     `|---|---|---|---|`,
     ...finding.occurrences.map((occurrence) =>
       `| ${cell(occurrence.page)} | ${cell(occurrence.cells.join(", "))} | ` +
-      `${code(occurrence.target)} | ${code(occurrence.html)} |`
+      `${codeCell(occurrence.target)} | ${codeCell(occurrence.html)} |`
     ),
     ``,
     `</details>`,
