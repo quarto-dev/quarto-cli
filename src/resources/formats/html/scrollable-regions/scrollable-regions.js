@@ -30,6 +30,27 @@ const kFocusableSelector =
   'input:not([tabindex="-1"]), select:not([tabindex="-1"]), ' +
   'textarea:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])';
 
+// Pandoc emits one fragment link per numbered line, as the first child of the
+// line's span. They are real, focusable links and stay that way on purpose
+// (#14655), but every one sits at the start of its line, so they can never
+// scroll the region horizontally. A numbered block therefore satisfies axe
+// while its clipped content stays unreachable — so they don't count as
+// focusable content here, and a numbered block gets a region tab stop of its
+// own in addition to its per-line links.
+const kLineNumberAnchorSelector = "code > span > a:first-child";
+
+// True when the region holds focusable content that already makes it
+// reachable and scrollable — in which case adding tabindex would only create
+// a redundant tab stop.
+export function hasFocusableContent(el) {
+  for (const candidate of el.querySelectorAll(kFocusableSelector)) {
+    if (!candidate.matches(kLineNumberAnchorSelector)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const kDefaultLabels = {
   code: "Scrollable code",
   output: "Scrollable output",
@@ -89,7 +110,7 @@ export function syncScrollableRegions(labels) {
       if (
         el.hasAttribute("tabindex") ||
         el.hasAttribute("aria-label") ||
-        el.querySelector(kFocusableSelector)
+        hasFocusableContent(el)
       ) {
         continue;
       }

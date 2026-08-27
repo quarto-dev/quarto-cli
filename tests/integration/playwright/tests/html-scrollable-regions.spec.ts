@@ -61,6 +61,28 @@ test.describe("scrollable regions at a mobile viewport", () => {
     await expect(output).toHaveAttribute("aria-label", "Scrollable output");
   });
 
+  test("numbered code block gets its own region tab stop", async ({ page }) => {
+    // Its per-line fragment links are focusable (#14655 keeps them so) but
+    // all sit at the start of a line, so they never scroll the block
+    // horizontally. Without a region tab stop the clipped content is
+    // unreachable, even though axe is satisfied.
+    const block = page.locator("#numbered div.sourceCode");
+    await expect(block.locator("code > span > a").first()).toBeAttached();
+    await expect(block).toHaveAttribute("tabindex", "0");
+    await expect(block).toHaveAttribute("aria-label", "Scrollable code");
+    await expect(block).toHaveAttribute("data-quarto-scrollable", "");
+  });
+
+  test("a region containing a real focusable element is left alone", async ({
+    page,
+  }) => {
+    // A link the user can tab to already makes the region reachable, and the
+    // browser scrolls it into view, so a second tab stop would be redundant.
+    const withLink = page.locator("#has-link .cell-output-display");
+    await expect(withLink.locator("a[href]")).toHaveCount(1);
+    await expect(withLink).not.toHaveAttribute("data-quarto-scrollable");
+  });
+
   test("visually-hidden code alternative does not become an invisible tab stop", async ({
     page,
   }) => {

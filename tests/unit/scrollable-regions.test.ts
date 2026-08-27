@@ -15,6 +15,7 @@
 import { unitTest } from "../test.ts";
 import { assertEquals } from "testing/asserts";
 import {
+  hasFocusableContent,
   hasUsableSize,
   isScrollable,
   resolveLabels,
@@ -142,6 +143,39 @@ unitTest(
     // CSS computes the other to auto, so the full content height reads as
     // overflow. Marking it would add an invisible tab stop.
     assertEquals(hasUsableSize({ clientWidth: 1, clientHeight: 1 }), false);
+  },
+);
+
+// Minimal stand-ins for the two DOM methods hasFocusableContent uses: the
+// element yields its focusable descendants, and each descendant reports
+// whether it is a Pandoc line-number anchor.
+const fakeRegion = (...isLineAnchor: boolean[]) => ({
+  querySelectorAll: () => isLineAnchor.map((v) => ({ matches: () => v })),
+});
+
+unitTest(
+  "hasFocusableContent - a region with no focusable descendants has none",
+  // deno-lint-ignore require-await
+  async () => {
+    assertEquals(hasFocusableContent(fakeRegion()), false);
+  },
+);
+
+unitTest(
+  "hasFocusableContent - line-number anchors alone do not count",
+  // deno-lint-ignore require-await
+  async () => {
+    // They are focusable, but each sits at the start of its line and cannot
+    // scroll the region, so a numbered block still needs its own tab stop.
+    assertEquals(hasFocusableContent(fakeRegion(true, true, true)), false);
+  },
+);
+
+unitTest(
+  "hasFocusableContent - a real focusable descendant counts",
+  // deno-lint-ignore require-await
+  async () => {
+    assertEquals(hasFocusableContent(fakeRegion(true, false, true)), true);
   },
 );
 
