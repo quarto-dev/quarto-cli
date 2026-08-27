@@ -47,8 +47,13 @@ the site dir):
 snapshot, not a thing to commit.
 
 A finding is one *root cause*, not one element: an alt-less image in a
-shared include is one finding with an instance count, however many pages
-repeat it. Findings on many pages usually come from a shared source — a
+shared include shows up as one finding with an instance count, not once per
+page. Grouping keys on axe's element selector (normalized), so this holds
+when the pages describe the element the same way — reliably true for
+Quarto's own chrome and for repeated template output, and occasionally
+wrong for an anonymous element whose surrounding DOM differs page to page
+(axe then picks different selectors, and one cause splits into two
+findings). Findings on many pages usually come from a shared source — a
 template, the theme, Quarto's own chrome — and one fix clears them all.
 
 ## Flags

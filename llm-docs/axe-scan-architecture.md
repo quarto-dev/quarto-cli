@@ -126,7 +126,14 @@ segment before navigation.
 
 `aggregate.ts` turns ok cells into findings grouped by **root-cause
 signature**, so one defect repeated by shared or generated code is one
-finding with a multiplicity count.
+finding with a multiplicity count. Across pages this is a same-root-cause
+*heuristic*: axe picks a minimal unique selector per page, so an anonymous
+element in different DOM contexts can normalize to different signatures and
+split one cause into two findings (fixture-verified for the collapse case:
+the shared include in `sites/findings` yields `img` on both pages). The
+baseline's `pages` scoping exists because the heuristic can also be wrong
+the other way — identical signatures on different pages that are unrelated
+elements.
 
 The signature is hybrid (`signatureOf`): for `color-contrast` it is the
 colour pair (`color-contrast :: #767676 on #ffffff`) — the root cause lives
