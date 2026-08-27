@@ -1,0 +1,23 @@
+---
+title: "Index"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['button.sidebar-item-text.sidebar-item-toggle[data-bs-toggle="collapse"][data-bs-target="#quarto-sidebar-section-1"][aria-controls="quarto-sidebar-section-1"][aria-expanded="false"]',
+           'button.sidebar-item-text.sidebar-item-toggle span.menu-text#quarto-sidebar-section-1-label',
+           'ul#quarto-sidebar-section-1[aria-labelledby="quarto-sidebar-section-1-label"]',
+           'button.sidebar-item-text.sidebar-item-toggle[data-bs-target="#quarto-sidebar-section-2"][aria-expanded="false"]',
+           'ul#quarto-sidebar-section-2[aria-labelledby="quarto-sidebar-section-2-label"]',
+           'a.sidebar-item-text[href="./section.html"] span.menu-text#quarto-sidebar-section-3-label',
+           'button.sidebar-item-toggle[aria-label="Toggle section: section"][aria-expanded="false"][aria-controls="quarto-sidebar-section-3"]',
+           'ul#quarto-sidebar-section-3[aria-labelledby="quarto-sidebar-section-3-label"]']
+        - ['#quarto-sidebar a.sidebar-item-toggle',
+           '#quarto-sidebar a[data-bs-toggle="collapse"]',
+           '#quarto-sidebar a[role="navigation"]',
+           '#quarto-sidebar a[aria-expanded]']
+---
+
+Every sidebar section toggle is a `<button>` with `aria-expanded`, and every
+disclosed list is named by its own section label. See quarto-cli#12116 and
+quarto-cli#4935.
