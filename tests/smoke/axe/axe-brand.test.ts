@@ -1,7 +1,7 @@
 /*
  * axe-brand.test.ts
  *
- * `quarto dev-call axe` against tests/docs/axe-scan/sites/brand-light-only: a
+ * `quarto call axe` against tests/docs/axe-scan/sites/brand-light-only: a
  * real `_brand.yml` with light values only.
  *
  * Quarto answers such a brand with `quarto-color-scheme` links tagged
@@ -78,6 +78,6 @@ const defaultCellStillReports: Verify = {
 
 axeSmokeTest(
   "brand-light-only",
-  "quarto dev-call axe (light-only _brand.yml)",
+  "quarto call axe (light-only _brand.yml)",
   [lightOnlyBrandIsOneMode, defaultCellStillReports],
 );

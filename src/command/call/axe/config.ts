@@ -1,7 +1,7 @@
 /*
  * config.ts
  *
- * Command-surface types and flag parsing for `quarto dev-call axe`.
+ * Command-surface types and flag parsing for `quarto call axe`.
  *
  * Copyright (C) 2026 Posit Software, PBC
  */

@@ -1,7 +1,7 @@
 /*
  * axe-exit-codes.test.ts
  *
- * End-to-end exit codes for `quarto dev-call axe`, in a real subprocess.
+ * End-to-end exit codes for `quarto call axe`, in a real subprocess.
  *
  * Subprocess on purpose: testQuartoCmd runs quarto() in-process, and the axe
  * action leaves through exitWithCleanup on any non-zero code — an in-process
@@ -22,7 +22,7 @@ import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { execProcess } from "../../../src/core/process.ts";
 import { unitTest } from "../../test.ts";
 import { quartoDevCmd } from "../../utils.ts";
-import { AxeFindings } from "../../../src/command/dev-call/axe/schemas.ts";
+import { AxeFindings } from "../../../src/command/call/axe/schemas.ts";
 
 // Under run-tests.sh/.ps1 the dev binary's dir is exported; resolve it
 // explicitly so the subprocess never falls through to a release quarto that
@@ -60,7 +60,7 @@ function axeExitTest(
   unitTest(name, async () => {
     const result = await execProcess({
       cmd: quartoBin(),
-      args: ["dev-call", "axe", "site", ...args],
+      args: ["call", "axe", "site", ...args],
       cwd: workingDir,
       stdout: "piped",
       stderr: "piped",

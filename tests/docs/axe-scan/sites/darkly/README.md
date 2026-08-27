@@ -44,7 +44,7 @@ dark-coloured note for `index.html`.
 ```bash
 cd tests/docs/axe-scan/sites/darkly
 quarto render
-quarto dev-call axe _site          # writes _axe-checks/ next to _quarto.yml
+quarto call axe _site          # writes _axe-checks/ next to _quarto.yml
 ```
 
 Both `_site/` and `_axe-checks/` are throwaway. The smoke test removes them.

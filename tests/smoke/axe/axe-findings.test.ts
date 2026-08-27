@@ -1,7 +1,7 @@
 /*
  * axe-findings.test.ts
  *
- * `quarto dev-call axe` against tests/docs/axe-scan/sites/findings: grouping,
+ * `quarto call axe` against tests/docs/axe-scan/sites/findings: grouping,
  * the impact spread, baseline reconciliation and
  * the report.
  *
@@ -185,7 +185,7 @@ const reportIsUsable: Verify = {
       "README is missing the baseline how-to",
     );
     assert(
-      readme.includes("quarto dev-call axe _site"),
+      readme.includes("quarto call axe _site"),
       "README is missing the regenerate command",
     );
     return Promise.resolve();
@@ -212,7 +212,7 @@ const rawCellsKept: Verify = {
 
 axeSmokeTest(
   "findings",
-  "quarto dev-call axe (findings: grouping, baseline, report)",
+  "quarto call axe (findings: grouping, baseline, report)",
   [
     plantedFindings,
     nonQuartoPageScans,

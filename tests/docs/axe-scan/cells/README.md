@@ -47,7 +47,7 @@ Re-scan the site, then copy the matching files out of its `_axe-checks/cells/`:
 ```bash
 cd tests/docs/axe-scan/sites/findings
 quarto render
-quarto dev-call axe _site
+quarto call axe _site
 cp _axe-checks/cells/index__1440x900__light.json ../../cells/findings/
 ```
 

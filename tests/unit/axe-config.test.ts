@@ -1,7 +1,7 @@
 /*
  * axe-config.test.ts
  *
- * Flag parsing for `quarto dev-call axe` (config.ts): the defaults, the list
+ * Flag parsing for `quarto call axe` (config.ts): the defaults, the list
  * splitting, and — above all — that a malformed flag is a named error rather
  * than a silently absorbed value. The parsers are private on purpose;
  * everything goes through `axeScanConfig`, exactly as the command does.
@@ -17,7 +17,7 @@ import {
   kDefaultThemes,
   kDefaultTimeout,
   kDefaultViewports,
-} from "../../src/command/dev-call/axe/config.ts";
+} from "../../src/command/call/axe/config.ts";
 
 // deno-lint-ignore no-explicit-any
 const config = (options: any = {}) => axeScanConfig(options, "_site");

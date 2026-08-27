@@ -1,4 +1,4 @@
-# Fixtures for `quarto dev-call axe`
+# Fixtures for `quarto call axe`
 
 Deliberately inaccessible sites. Every violation is planted on purpose, so the
 scanner's grouping, matrix and baseline behaviour can be asserted against known
@@ -44,7 +44,7 @@ discovered, not decreed.
 ```bash
 cd tests/docs/axe-scan/sites/<site>
 quarto render
-quarto dev-call axe _site          # writes _axe-checks/ next to _quarto.yml
+quarto call axe _site          # writes _axe-checks/ next to _quarto.yml
 ```
 
 Then update the table from `_axe-checks/findings.json`, and read the diff. A

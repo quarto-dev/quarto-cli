@@ -1,7 +1,7 @@
 /*
  * axe-scan-cell.test.ts
  *
- * The transport half of fail-closed in `quarto dev-call axe`'s scanCell: a
+ * The transport half of fail-closed in `quarto call axe`'s scanCell: a
  * rejected CDP send — crashed tab, dropped WebSocket, protocol error — must
  * fail that one cell, never abort the scan. In-page failures (an axe error,
  * a mode mismatch) are covered end-to-end by the smoke tests; these tests
@@ -19,9 +19,9 @@ import {
   pageSlugs,
   redirectTarget,
   scanCell,
-} from "../../src/command/dev-call/axe/scan.ts";
-import { axeScanConfig } from "../../src/command/dev-call/axe/config.ts";
-import { AxePage } from "../../src/command/dev-call/axe/discover.ts";
+} from "../../src/command/call/axe/scan.ts";
+import { axeScanConfig } from "../../src/command/call/axe/config.ts";
+import { AxePage } from "../../src/command/call/axe/discover.ts";
 
 const kPage: AxePage = {
   path: "index.html",

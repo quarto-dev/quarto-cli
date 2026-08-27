@@ -1,9 +1,9 @@
 /*
  * axe-signature.test.ts
  *
- * Tests the root-cause signature that `quarto dev-call axe` groups and
+ * Tests the root-cause signature that `quarto call axe` groups and
  * baselines on: `normalizeSelector` and `signatureOf` in
- * src/command/dev-call/axe/aggregate.ts.
+ * src/command/call/axe/aggregate.ts.
  *
  * These are the most consequential lines in the scanner. A signature that is
  * too broad makes one accepted defect suppress unrelated conformance failures
@@ -20,8 +20,8 @@ import { assert, assertEquals, assertNotEquals } from "testing/asserts";
 import {
   normalizeSelector,
   signatureOf,
-} from "../../src/command/dev-call/axe/aggregate.ts";
-import { AxeViolationNode } from "../../src/command/dev-call/axe/scan.ts";
+} from "../../src/command/call/axe/aggregate.ts";
+import { AxeViolationNode } from "../../src/command/call/axe/scan.ts";
 
 function node(target: string[] | string): AxeViolationNode {
   return {

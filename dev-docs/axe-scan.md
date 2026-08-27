@@ -1,16 +1,16 @@
-# Scanning a site with `quarto dev-call axe`
+# Scanning a site with `quarto call axe`
 
-`quarto dev-call axe` scans a rendered Quarto site for accessibility
+`quarto call axe` scans a rendered Quarto site for accessibility
 violations with axe-core. It drives headless Chrome over every page, at
 desktop and mobile widths, in each colour mode the page ships. It groups
 violations by root cause, compares them against a committed baseline, and
 writes a report you can read, commit review comments from, or gate CI on.
 
-**Status: experimental.** The command is hidden under `dev-call` and makes
-no stability promise — flags, artifact shapes, and semantics can change
-between prereleases. This page is contributor-facing documentation; it
-graduates to quarto.org when the command sheds `dev-call` (the same path the
-`axe:` render option's docs took).
+**Status: experimental.** The command is hidden (it does not show in
+`quarto call` help) and makes no stability promise — flags, artifact shapes,
+and semantics can change between prereleases. This page is contributor-facing
+documentation; it graduates to quarto.org when the command is unhidden (the
+same path the `axe:` render option's docs took).
 
 Prerequisite: a Chromium the scanner can find. `quarto install
 chrome-headless-shell` is the reliable route; an installed system Chrome or
@@ -28,7 +28,7 @@ through.
 
 ```sh
 quarto render
-quarto dev-call axe _site
+quarto call axe _site
 ```
 
 The scan prints its matrix up front (`43 pages (40 light+dark, 3 default) ×
@@ -105,7 +105,7 @@ A minimal GitHub Actions gate:
 - uses: quarto-dev/quarto-actions/setup@v2
 - run: quarto install chrome-headless-shell --no-prompt
 - run: quarto render
-- run: quarto dev-call axe _site --fail-on serious
+- run: quarto call axe _site --fail-on serious
 ```
 
 `report.md` is GitHub-flavored markdown, so posting it as a PR comment is
