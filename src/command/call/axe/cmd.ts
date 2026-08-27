@@ -414,7 +414,9 @@ export const axeCommand = new Command()
   .arguments("<site-dir:string>")
   .description(
     "Scan a rendered site for accessibility violations with axe-core.\n\n" +
-      "Prototype: scans every page in <site-dir> across the viewport x mode " +
+      "EXPERIMENTAL: flags, artifacts and semantics can change between " +
+      "prereleases (see dev-docs/axe-scan.md in the quarto-cli repo).\n\n" +
+      "Scans every page in <site-dir> across the viewport x mode " +
       "matrix (modes discovered per page from its HTML), groups violations " +
       "by root-cause signature, reconciles " +
       `${kAxeBaselineFile}, and writes findings.json, report.md and a ` +
