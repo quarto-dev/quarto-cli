@@ -26,7 +26,10 @@
 import { unitTest } from "../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { join } from "../../src/deno_ral/path.ts";
-import { aggregate } from "../../src/command/dev-call/axe/aggregate.ts";
+import {
+  aggregate,
+  failingFindings,
+} from "../../src/command/dev-call/axe/aggregate.ts";
 import { AxeCell } from "../../src/command/dev-call/axe/scan.ts";
 import { AxeMode, AxePage } from "../../src/command/dev-call/axe/discover.ts";
 import {
@@ -477,5 +480,49 @@ unitTest(
       pages: pagesOf(cells),
     });
     assertEquals(atAnchor.config.siteDir, ".");
+  },
+);
+
+unitTest(
+  "aggregate - failingFindings applies --fail-on to new findings only",
+  // deno-lint-ignore require-await
+  async () => {
+    const results = aggregateFindings();
+    // no baseline: everything is new, so `minor` catches every finding
+    assertEquals(
+      failingFindings(results.findings, "minor").length,
+      results.counts.new,
+    );
+    const critical = failingFindings(results.findings, "critical");
+    assert(critical.length >= 1, "the fixture plants a critical image-alt");
+    assert(critical.every((f) => f.impact === "critical"));
+    const serious = failingFindings(results.findings, "serious");
+    assert(serious.length > critical.length, "serious widens the net");
+    assert(
+      serious.every((f) => ["critical", "serious"].includes(f.impact)),
+    );
+
+    // A baselined finding never trips the threshold — that is the ledger's
+    // whole point.
+    const cells = capturedCells("findings", kFindingsCells);
+    const baselined = aggregate({
+      cells,
+      config: kConfig,
+      baseline: {
+        findings: [{
+          signature: "image-alt :: img",
+          pages: [],
+          impact: "critical",
+          note: "accepted for this test",
+        }],
+      },
+      baselineFile: "_axe-baseline.json",
+      anchor: Deno.cwd(),
+      pages: pagesOf(cells),
+    });
+    assert(
+      !failingFindings(baselined.findings, "critical")
+        .some((f) => f.signature === "image-alt :: img"),
+    );
   },
 );

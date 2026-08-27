@@ -374,6 +374,21 @@ export function staleEntries(
   return stale.sort((a, b) => a.signature.localeCompare(b.signature));
 }
 
+/**
+ * The findings that trip `--fail-on <impact>`: NEW (non-baselined) findings
+ * at or above the threshold. Baselined findings never fail the command —
+ * that is the point of the ledger — and an incomplete scan exits 2 before
+ * this is consulted (see cmd.ts).
+ */
+export function failingFindings(
+  findings: AxeFinding[],
+  failOn: AxeImpact,
+): AxeFinding[] {
+  return findings.filter((finding) =>
+    !finding.baselined && impactRank(finding.impact) <= impactRank(failOn)
+  );
+}
+
 // ---------------------------------------------------------------------------
 // findings.json
 // ---------------------------------------------------------------------------
@@ -481,6 +496,7 @@ export function aggregate(options: AggregateOptions): AxeFindings {
       maxPages: config.maxPages ?? null,
       timeout: config.timeout,
       settle: config.settle,
+      failOn: config.failOn ?? null,
     },
     // `modes` are the modes this scan covered for the page (post `--themes`),
     // so a CI consumer can tell "no dark mode" from "a cell went missing".

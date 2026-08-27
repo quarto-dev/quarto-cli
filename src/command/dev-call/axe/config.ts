@@ -7,6 +7,7 @@
  */
 
 import { ErrorEx } from "../../../core/lib/error.ts";
+import { AxeImpact, axeImpactSchema } from "./schemas.ts";
 
 // Fixed in v1: this prototype deliberately has no knobs for the output dir,
 // the baseline path or whether the report is written.
@@ -43,6 +44,9 @@ export interface AxeScanConfig {
   themes: AxeTheme[];
   timeout: number;
   settle: number;
+  // exit 1 when a complete scan has NEW (non-baselined) findings at or above
+  // this impact; undefined means findings never fail the command
+  failOn?: AxeImpact;
 }
 
 function optionError(message: string): ErrorEx {
@@ -113,6 +117,17 @@ function parseNonNegativeInt(value: unknown, flag: string): number {
   return parsed;
 }
 
+function parseFailOn(value: unknown): AxeImpact {
+  const parsed = axeImpactSchema.safeParse(String(value).toLowerCase());
+  if (!parsed.success) {
+    throw optionError(
+      `Invalid --fail-on '${value}': expected minor, moderate, serious or ` +
+        `critical.`,
+    );
+  }
+  return parsed.data;
+}
+
 // deno-lint-ignore no-explicit-any
 export function axeScanConfig(options: any, siteDir: string): AxeScanConfig {
   return {
@@ -127,5 +142,8 @@ export function axeScanConfig(options: any, siteDir: string): AxeScanConfig {
     themes: parseThemes(options.themes ?? kDefaultThemes),
     timeout: parsePositiveInt(options.timeout ?? kDefaultTimeout, "--timeout"),
     settle: parseNonNegativeInt(options.settle ?? kDefaultSettle, "--settle"),
+    failOn: options.failOn === undefined
+      ? undefined
+      : parseFailOn(options.failOn),
   };
 }

@@ -36,16 +36,25 @@ import {
   discoverPages,
 } from "./discover.ts";
 import { AxeCell, launchScanBrowser, runAxeScan } from "./scan.ts";
-import { aggregate } from "./aggregate.ts";
+import { aggregate, failingFindings } from "./aggregate.ts";
 import { renderReport } from "./report.ts";
 import { renderReadme } from "./readme.ts";
 import { AxeBaseline, AxeFindings, parseBaseline } from "./schemas.ts";
 
-/** Scan complete: every cell produced an axe payload. */
+/**
+ * Scan complete: every cell produced an axe payload — and, when `--fail-on`
+ * was given, no new finding reached its threshold.
+ */
 const kExitComplete = 0;
 /**
- * Scan incomplete: a not-ok cell, no browser, or nothing to scan. There is
- * deliberately no exit 1 in v1 — findings never fail the command.
+ * A complete scan found NEW (non-baselined) findings at or above `--fail-on`
+ * — the CI regression signal. Never used unless `--fail-on` was given:
+ * findings alone don't fail the command.
+ */
+const kExitNewFindings = 1;
+/**
+ * Scan incomplete: a not-ok cell, no browser, or nothing to scan. Takes
+ * precedence over exit 1 — an incomplete scan never reads as a pass.
  */
 const kExitIncomplete = 2;
 
@@ -355,6 +364,20 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
       }
       return kExitIncomplete;
     }
+    // Only a complete scan can fail on findings: the incomplete return above
+    // is what gives exit 2 precedence over exit 1.
+    if (config.failOn) {
+      const failing = failingFindings(results.findings, config.failOn);
+      if (failing.length) {
+        error(
+          `  ${failing.length} new finding${
+            failing.length === 1 ? "" : "s"
+          } at or above --fail-on ${config.failOn}: ` +
+            failing.map((finding) => finding.id).join(", "),
+        );
+        return kExitNewFindings;
+      }
+    }
     return kExitComplete;
   } catch (e) {
     // scanCell fails its own cell closed; this catches what it can't — the
@@ -420,6 +443,12 @@ export const axeCommand = new Command()
     "Extra delay in milliseconds after the page reports ready (webfonts " +
       "loaded, layout painted), before axe runs.",
     { default: kDefaultSettle },
+  )
+  .option(
+    "--fail-on <impact:string>",
+    "Exit 1 when a complete scan has new (non-baselined) findings at or " +
+      "above this impact: minor, moderate, serious or critical. An " +
+      "incomplete scan still exits 2 — it never reads as a pass.",
   )
   .option(
     "--report <path:string>",
