@@ -46,6 +46,26 @@ the site dir):
 `_axe-checks/` ignores itself (`.gitignore` with `*`): it is a disposable
 snapshot, not a thing to commit.
 
+### Reading report.md
+
+The report is GitHub-flavored markdown, made to be read where markdown
+already renders: your editor's preview, GitHub, or the sticky PR comment
+from the CI recipe below. Rendering it is optional. For a standalone HTML
+view:
+
+```sh
+quarto render _axe-checks/report.md
+```
+
+then open `_axe-checks/report.html` in your browser. The output lands
+beside the report, inside the self-ignoring artifact directory.
+
+`quarto preview _axe-checks/report.md` does **not** work from inside a
+project: `_`-prefixed directories are not project inputs, so preview stops
+with `No output created by quarto render report.md`. Use render-then-open,
+or pass `--report` a path inside your site source (see the flags table) to
+render and preview the report as part of the site.
+
 A finding is one *root cause*, not one element: an alt-less image in a
 shared include shows up as one finding with an instance count, not once per
 page. Grouping keys on axe's element selector (normalized), so this holds
