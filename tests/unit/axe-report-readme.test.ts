@@ -214,3 +214,67 @@ unitTest(
     );
   },
 );
+
+unitTest(
+  "report.md - code content renders as backtick spans that survive rendering",
+  // deno-lint-ignore require-await
+  async () => {
+    // A page that *documents* fenced divs puts `:::` into its excerpts.
+    // Emitted as <code> raw HTML, Pandoc parsed the inner text as markdown
+    // and Quarto's fenced-div check warned on every render of the report;
+    // a backtick span parses as a Code inline, which that check ignores.
+    const divsPage: AxeCell = {
+      page: "docs/divs.html",
+      viewport: "1440x900",
+      theme: "light",
+      url: "http://127.0.0.1/docs/divs.html",
+      status: "ok",
+      elapsed: 10,
+      result: {
+        violations: [{
+          id: "heading-order",
+          impact: "moderate",
+          tags: ["best-practice"],
+          description: "Headings should not skip levels",
+          help: "Heading levels should only increase by one",
+          helpUrl: "https://dequeuniversity.com/rules/axe/4.10/heading-order",
+          nodes: [{
+            html:
+              `<pre><code>::: {.callout-note}\nlook\n:::</code></pre>` +
+              "with a `tick` and a | pipe",
+            target: ['pre[class|="sourceCode"] > h6'],
+            failureSummary: "Fix any of the following:\n  Heading order invalid",
+          }],
+        }],
+        testEngine: { name: "axe-core", version: "4.10.3" },
+      },
+    };
+    const report = renderReport(results({ cells: [divsPage] }));
+
+    // the selector renders as a backtick span, not <code> raw HTML (the
+    // excerpt itself contains literal "<pre><code>" text, so assert on the
+    // markup around the content rather than on the string "<code>")
+    assert(
+      report.includes('`pre[class\\|="sourceCode"] > h6`'),
+      "the selector must render as a backtick span with an escaped pipe",
+    );
+    // the excerpt's ::: lives inside a backtick span (one line, one cell)
+    const row = report.split("\n").find((line) =>
+      line.includes("::: {.callout-note}")
+    );
+    assert(row, "the excerpt row went missing");
+    assert(
+      /`[^`]*::: \{\.callout-note\}/.test(row!),
+      `::: must sit inside a code span: ${row}`,
+    );
+    // pipes inside table code spans escape as \| so the row stays intact
+    assert(row!.includes("\\|"), `pipes must be escaped in table cells: ${row}`);
+    const columns = row!.split(/(?<!\\)\|/).length - 2;
+    assertEquals(columns, 4, `occurrence row must keep 4 cells: ${row}`);
+    // content containing backticks gets a longer, padded fence
+    assert(
+      row!.includes("`` "),
+      `a backticked excerpt needs a widened fence: ${row}`,
+    );
+  },
+);
