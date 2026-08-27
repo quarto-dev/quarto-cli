@@ -76,7 +76,7 @@ scheme 1.
 | `link-name :: a` | serious | localized | 2 | static/legacy.html | both | default | new |
 | `link-name :: p > a` | serious | localized | 1 | index.html | both | both | known |
 | `heading-order :: h4` | moderate | localized | 1 | index.html | both | both | new |
-| `aria-allowed-role :: .navbar-toggler` | minor | systemic | 3 | about.html, examples.html, index.html | 390x844 | both | new |
+| `aria-allowed-role :: .navbar-toggler` | minor | systemic | 3 | about.html, examples.html, index.html | 320x568 | both | new |
 
 Stale baseline entries: `region-fixture0`.
 <!-- OBSERVED-END -->

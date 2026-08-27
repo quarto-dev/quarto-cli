@@ -200,7 +200,7 @@ const rawCellsKept: Verify = {
     for (
       const cell of [
         "_axe-checks/cells/index__1440x900__light.json",
-        "_axe-checks/cells/about__390x844__dark.json",
+        "_axe-checks/cells/about__320x568__dark.json",
         "_axe-checks/cells/static_legacy__1440x900__default.json",
       ]
     ) {

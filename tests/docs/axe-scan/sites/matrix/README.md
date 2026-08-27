@@ -57,9 +57,9 @@ axe-core 4.10.3, signature scheme 1.
 | signature | impact | scope | n | pages | viewports | themes |
 |---|---|---|---|---|---|---|
 | `color-contrast :: #555555 on #333333` | serious | localized | 1 | media.html | both | dark |
-| `color-contrast :: #f8f8f8 on #f0f0f0` | serious | localized | 1 | media.html | 390x844 | both |
+| `color-contrast :: #f8f8f8 on #f0f0f0` | serious | localized | 1 | media.html | 320x568 | both |
 | `color-contrast :: #6c757d on #222222` | serious | localized | 1 | theme.html | both | dark |
-| `aria-allowed-role :: .navbar-toggler` | minor | systemic | 3 | index.html, media.html, theme.html | 390x844 | both |
+| `aria-allowed-role :: .navbar-toggler` | minor | systemic | 3 | index.html, media.html, theme.html | 320x568 | both |
 <!-- OBSERVED-END -->
 
 `aria-allowed-role :: .navbar-toggler` comes from Quarto's own navbar, not from

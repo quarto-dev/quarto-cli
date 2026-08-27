@@ -33,7 +33,7 @@ const oneDarkColouredMode: Verify = {
       cellNames(),
       [
         "index__1440x900__default",
-        "index__390x844__default",
+        "index__320x568__default",
       ].sort(),
     );
 
