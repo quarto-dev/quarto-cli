@@ -112,7 +112,9 @@ interface CdpMessage {
 /**
  * Minimal Chrome DevTools Protocol client: send a command, await its result,
  * and wait for a named event. Everything the scanner needs is six methods, so
- * there is deliberately no wrapper library here (see the design note).
+ * there is deliberately no wrapper library here — and src/core/cri/cri.ts
+ * was read and declined: no emulation, no awaitPromise, no per-command
+ * timeout (llm-docs/axe-scan-architecture.md, "The scan stage").
  */
 export class CdpClient {
   private nextId = 0;
