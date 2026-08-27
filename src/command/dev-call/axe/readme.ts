@@ -51,6 +51,9 @@ export function scanCommand(results: AxeFindings): string {
   if (config.settle !== kDefaultSettle) {
     parts.push(`--settle ${config.settle}`);
   }
+  if (config.failOn) {
+    parts.push(`--fail-on ${config.failOn}`);
+  }
   return parts.join(" ");
 }
 

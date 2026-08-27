@@ -138,6 +138,9 @@ export const axeFindingsSchema = z.object({
     maxPages: z.number().nullable(),
     timeout: z.number(),
     settle: z.number(),
+    // nullish like `exclude`: added after version 1 shipped (additive field,
+    // no bump)
+    failOn: z.string().nullish(),
   }),
   /**
    * The pages scanned, as output paths. v1 has no `input`/`title`: source
