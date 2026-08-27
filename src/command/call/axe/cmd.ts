@@ -281,10 +281,12 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   try {
     browser = await launchScanBrowser(findOpenPort(9222));
   } catch (e) {
+    // "Chrome not found" throws an empty Error AFTER core has already
+    // printed its own explanation and the install suggestion — don't dangle
+    // an empty colon after it.
+    const detail = e instanceof Error ? e.message : String(e);
     error(
-      `Could not start headless Chrome: ${
-        e instanceof Error ? e.message : String(e)
-      }`,
+      `Could not start headless Chrome${detail ? `: ${detail}` : "."}`,
     );
     await stopServer();
     return kExitIncomplete;
