@@ -35,12 +35,28 @@ source tests/.venv/Scripts/activate
 ./package/dist/bin/quarto.cmd preview <file-or-dir> --no-browser --port 4444
 ```
 
-Use `--no-browser` to control browser connection. Use `--port` for a predictable URL.
+```powershell
+# Windows (native PowerShell)
+tests\.venv\Scripts\Activate.ps1
+.\package\dist\bin\quarto.cmd preview <file-or-dir> --no-browser --port 4444
+```
+
+Use `--no-browser` to control browser connection. `--port` is a *suggestion*: if it's already
+taken, `quarto preview` silently picks a random open port between 3000–8000 instead of erroring
+(`src/core/port.ts`). Don't assume the requested port bound — read the actual URL from the
+`Browse at <url>` line the process prints on startup (see Startup Readiness below) before
+pointing `/agent-browser` at it.
 
 ### With debug logging
 
 ```bash
+# Linux/macOS or Windows Git Bash
 ./package/dist/bin/quarto preview <file> --no-browser --port 4444 --log-level debug 2>&1 | tee preview.log
+```
+
+```powershell
+# Windows (native PowerShell)
+.\package\dist\bin\quarto.cmd preview <file> --no-browser --port 4444 --log-level debug 2>&1 | Tee-Object preview.log
 ```
 
 ### In background
@@ -59,16 +75,38 @@ PREVIEW_PID=$!
 kill $PREVIEW_PID
 ```
 
+```powershell
+# Windows (native PowerShell)
+$proc = Start-Process -FilePath ".\package\dist\bin\quarto.cmd" `
+  -ArgumentList "preview","<file>","--no-browser","--port","4444" `
+  -RedirectStandardOutput preview.log -PassThru
+# ... run verification ...
+Stop-Process -Id $proc.Id -Force   # target the captured PID only, never by process name
+```
+
+### Startup readiness
+
+Don't gate the first browser check on a fixed sleep. Tail the log (or poll `preview.log`) until
+the `Browse at` line appears — that's the process's own readiness signal, and it also carries
+the actual bound port when the requested one was occupied:
+
+```bash
+timeout 30 bash -c 'until grep -q "Browse at" preview.log 2>/dev/null; do sleep 0.5; done'
+grep -o 'Browse at .*' preview.log
+```
+
 ## Edit-Verify Cycle
 
 The core test pattern:
 
-1. Start preview with `--no-browser --port 4444`
-2. Use `/agent-browser` to navigate to `http://localhost:4444/` and verify content
+1. Start preview with `--no-browser --port 4444`, capturing its PID and log path
+2. Wait for the `Browse at` line (Startup Readiness above), then use `/agent-browser` to
+   navigate to that URL and verify content
 3. Edit source file, wait 3-5 seconds for re-render
 4. Verify content updated in browser
-5. Check filesystem for unexpected artifacts
-6. Stop preview, verify cleanup
+5. Check filesystem for unexpected artifacts (see below)
+6. Stop preview by PID (never by process name — see `Stop-Process`/`kill` above), then verify
+   cleanup
 
 ## What to Verify
 
@@ -76,11 +114,18 @@ The core test pattern:
 
 **In terminal/logs**: No `BadResource` errors, no crashes, preview stays responsive.
 
-**On filesystem**: No orphaned temp files, cleanup happens on exit.
+**On filesystem**: No orphaned `quarto-session*` temp directories left under the OS temp dir
+(`src/core/temp.ts`) after the process exits — list the temp dir before starting and diff it
+after stopping, rather than assuming cleanup ran.
 
 ## Windows Limitations
 
-On Windows, `kill` from Git Bash does not trigger Quarto's `onCleanup` handler (SIGINT doesn't propagate to Windows processes the same way). Cleanup-on-exit verification requires an interactive terminal with Ctrl+C. For automated testing, verify artifacts *during* preview instead.
+On Windows, `kill`/`Stop-Process` against a backgrounded PID does not trigger Quarto's
+`onCleanup` handler — Deno only wires `SIGINT` to a console control handler for interactive
+Ctrl+C (`src/core/main.ts`), and a background kill terminates the process directly without
+going through that handler. Cleanup-on-exit verification requires an interactive terminal with
+Ctrl+C. For automated testing, verify artifacts *during* preview instead (see filesystem check
+above), and treat a background stop as "process gone" verification only, not "cleanup ran".
 
 ## Context Types
 

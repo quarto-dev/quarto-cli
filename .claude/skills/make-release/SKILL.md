@@ -62,7 +62,7 @@ Ordering matters: e.g. quarto-cli's release build must fully publish before quar
 
 **No local quarto-web clone:** if a step needs local content edits to quarto-web (e.g. the `docs/prerelease/<version>/` highlights `.qmd` files, or `_quarto.yml` edits) and no local quarto-web clone is present, stop and ask the user for the clone path or to make the edit themselves. Do not attempt the edit through the GitHub API and do not silently skip the step.
 
-**Release announcement:** the announcement post is published on the Posit Open Source site (opensource.posit.co), not via a quarto-web blog PR (blog migrated June 2026). Point the user there; do not name any internal publishing tool.
+**Release announcement:** the matching checklist step already documents where and how it's published. Follow that step rather than restating the mechanism yourself.
 
 ## 5. When the checklist doesn't match reality
 
