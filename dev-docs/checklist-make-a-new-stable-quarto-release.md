@@ -36,7 +36,7 @@
   - Got to <https://github.com/quarto-dev/quarto-release-bundles/actions/workflows/build-and-publish-choco.yaml>
   - In the "Build Choco package & Publish" workflow, click "Run Workflow" and be sure to check the "Whether to publish or not the package on chocolatey" checkbox
   - Wait for @cderv to receive email confirmation, no action needed.
-- [ ] Update the stable changelog by moving entries to the "in previous release". Use "[release checklist]" in the commit message to make it easier to spot if a new release is needed next month.
+- [ ] Update the stable changelog `news/changelog-1.x.md` by moving entries from `# v1.(x+1) backports` > `## In this release` down to `## In previous releases` — they've now shipped in this patch. Use "[release checklist]" in the commit message to make it easier to spot if a new release is needed next month.
 
 - Others installers
   - Cloudsmith: Automatically published by Build Installers workflow. No action needed.
