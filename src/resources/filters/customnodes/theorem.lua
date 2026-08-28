@@ -47,8 +47,18 @@ theorem_types = {
   },
   alg = {
     env = "algorithm",
-    style = "plain",
+    style = "definition",
     title = "Algorithm"
+  },
+  axm = {
+    env = "axiom",
+    style = "definition",
+    title = "Axiom"
+  },
+  asm = {
+    env = "assumption",
+    style = "definition",
+    title = "Assumption"
   },
 }
 
@@ -105,7 +115,8 @@ end
 -- Color mapping for clouds/rainbow themes (per theorem type)
 local theme_colors = {
   thm = "red", lem = "teal", cor = "navy", prp = "blue",
-  cnj = "navy", def = "olive", exm = "green", exr = "purple", alg = "maroon"
+  cnj = "navy", def = "olive", exm = "green", exr = "purple", alg = "maroon",
+  axm = "orange", asm = "fuchsia"
 }
 
 local included_typst_theorems = false

@@ -332,6 +332,9 @@ export const kCrossrefCnjTitle = "crossref-cnj-title";
 export const kCrossrefDefTitle = "crossref-def-title";
 export const kCrossrefExmTitle = "crossref-exm-title";
 export const kCrossrefExrTitle = "crossref-exr-title";
+export const kCrossrefAlgTitle = "crossref-alg-title";
+export const kCrossrefAxmTitle = "crossref-axm-title";
+export const kCrossrefAsmTitle = "crossref-asm-title";
 export const kCrossrefFigPrefix = "crossref-fig-prefix";
 export const kCrossrefTblPrefix = "crossref-tbl-prefix";
 export const kCrossrefLstPrefix = "crossref-lst-prefix";
@@ -347,6 +350,9 @@ export const kCrossrefCnjPrefix = "crossref-cnj-prefix";
 export const kCrossrefDefPrefix = "crossref-def-prefix";
 export const kCrossrefExmPrefix = "crossref-exm-prefix";
 export const kCrossrefExrPrefix = "crossref-exr-prefix";
+export const kCrossrefAlgPrefix = "crossref-alg-prefix";
+export const kCrossrefAxmPrefix = "crossref-axm-prefix";
+export const kCrossrefAsmPrefix = "crossref-asm-prefix";
 export const kCrossrefLofTitle = "crossref-lof-title";
 export const kCrossrefLotTitle = "crossref-lot-title";
 export const kCrossrefLolTitle = "crossref-lol-title";
@@ -459,6 +465,9 @@ export const kLanguageDefaultsKeys = [
   kCrossrefDefTitle,
   kCrossrefExmTitle,
   kCrossrefExrTitle,
+  kCrossrefAlgTitle,
+  kCrossrefAxmTitle,
+  kCrossrefAsmTitle,
   kCrossrefFigPrefix,
   kCrossrefTblPrefix,
   kCrossrefLstPrefix,
@@ -474,6 +483,9 @@ export const kLanguageDefaultsKeys = [
   kCrossrefDefPrefix,
   kCrossrefExmPrefix,
   kCrossrefExrPrefix,
+  kCrossrefAlgPrefix,
+  kCrossrefAxmPrefix,
+  kCrossrefAsmPrefix,
   kCrossrefLofTitle,
   kCrossrefLotTitle,
   kCrossrefLolTitle,
