@@ -457,9 +457,27 @@ end, function(float)
               "triggered this error.")
               return {}
             end
-            -- Strip Pandoc 3.8+ LTcaptype definition since we're adding our own caption
-            -- Keep the { } wrapper (harmless) to avoid orphan braces
-            longtable_preamble = longtable_preamble:gsub("\\def\\LTcaptype{none}[^\n]*\n?", "")
+            -- Pandoc 3.8.1+ wraps a captionless table in a brace group that only
+            -- scopes `\def\LTcaptype{none}`. We supply our own \caption and drop that
+            -- definition, so the group is now pointless - and not inert: it breaks
+            -- packages that move the environment out of the text flow (endfloat's
+            -- \DeclareDelayedFloatFlavor*{longtable}{table}, #14741). Drop the braces
+            -- with the definition, but only when provably Pandoc's own wrapper:
+            -- preamble is just the brace + def, postamble is just the brace, and the
+            -- block holds a single longtable. Otherwise strip the definition alone.
+            local preamble_without_group, opened = longtable_preamble:gsub(
+              "^(%s*){%s*\\def\\LTcaptype{none}[^\n]*\n(%s*)$", "%1%2")
+            local postamble_without_group, closed = longtable_postamble:gsub(
+              "^(%s*)}(%s*)$", "%1%2")
+            local single_longtable =
+              longtable_content:find("\\begin{longtable}", 1, true) == nil
+            if opened > 0 and closed > 0 and single_longtable then
+              longtable_preamble = preamble_without_group
+              longtable_postamble = postamble_without_group
+            else
+              longtable_preamble =
+                longtable_preamble:gsub("\\def\\LTcaptype{none}[^\n]*\n?", "")
+            end
             -- split the content into params and actual content
             -- params are everything in the first line of longtable_content
             -- actual content is everything else
