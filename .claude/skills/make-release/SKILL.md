@@ -6,9 +6,9 @@ description: Drive a Quarto release end-to-end from the dev-docs release checkli
 
 # Make Release
 
-Command-only helper that drives an existing release checklist. This skill does not restate the release steps; the checklists below are the source of truth. Your job is to read the right one and drive it with real-state verification and confirmation gates.
+Command-only helper that follows an existing release checklist. This skill does not restate the release steps; the checklists below are the source of truth. Read the applicable checklist, verify the current state, and request confirmation at the required points.
 
-## 1. Detect which checklist applies (verify, don't trust self-report)
+## 1. Determine which checklist applies
 
 There are three release types, each with its own checklist. Branch-existence alone doesn't distinguish all three — a routine prerelease and a first-stable-of-cycle release can both start with no `v1.x` branch yet — so first establish intent, then verify with git where that disambiguates:
 
@@ -19,27 +19,38 @@ There are three release types, each with its own checklist. Branch-existence alo
 - **Patch release on an already-cut stable branch** (e.g. another `v1.9.x`) → drive
   `dev-docs/checklist-make-a-new-stable-quarto-release.md`
 
-If the user's request doesn't already make the type unambiguous, ask. Once it's a stable release (first or patch), confirm which with real state, don't trust self-report:
+If the user's request doesn't make the type unambiguous, ask. For a stable release, use the
+repository state to determine whether it is the first release in the cycle or a patch release:
 
 ```bash
 git ls-remote --heads origin v1.x   # substitute the target major.minor, e.g. v1.10
 ```
 
-Branch absent → first stable of the cycle; branch present → patch release.
+An absent branch indicates the first stable release of the cycle. An existing branch indicates
+a patch release.
 
-Out of scope: backporting an individual merged PR to a stable branch is a different task, not a release cut — see `dev-docs/checklist-backport-a-pr.md` directly, this skill doesn't drive it.
+Backporting an individual merged PR to a stable branch is outside this skill's scope. Follow
+`dev-docs/checklist-backport-a-pr.md` directly instead.
 
-**Always confirm before driving anything** — even when the type seems obvious from the request. State it plainly, e.g. "I will follow this checklist: `dev-docs/checklist-make-a-new-quarto-release.md`", and wait for the user's go-ahead before starting step 1. This is the one point where a wrong detection would send the whole run down the wrong checklist, so confirm every time, not just when ambiguous.
+**Always confirm the selected checklist before starting**, even when the release type appears
+obvious. State it plainly, e.g. "I will follow this checklist:
+`dev-docs/checklist-make-a-new-quarto-release.md`", and wait for the user's confirmation.
 
 ## 2. Drive the checklist top to bottom, verifying real state, narrating as you go
 
-Read the matching checklist and work it in order. Before each step (not just the hard-confirm gates in section 3), state in one line what you're about to do and why, so the user can stop you early if something looks wrong — don't silently chain multiple steps together without narrating between them.
+Read the matching checklist and follow it in order. Before each step, not only the confirmation
+gates in section 3, state in one line what you are about to do and why. Allow the user to
+review each step before proceeding to the next.
 
-At each step, confirm the real state with `git`/`gh` rather than trusting the checklist text or the user's word that something happened — e.g. that a branch/tag exists, a workflow run actually succeeded (`gh run view <id>`), a release's flags are set, a version field is what it should be. A step isn't done until real state confirms it.
+At each step, use `git` or `gh` to verify that the expected action occurred. For example,
+confirm that a branch or tag exists, a workflow run succeeded (`gh run view <id>`), a release
+has the expected flags, or a version field has the expected value. A step is complete only
+after this verification.
 
 ## 3. Hard-confirm gates (stop and get explicit human OK before running)
 
-Never fire these on your own — state exactly what you're about to do, to which repo, and wait for an explicit go:
+Do not perform these actions without confirmation. State the exact action and target
+repository, then wait for explicit approval:
 
 - Pushing the new stable branch (`git push origin v1.x`)
 - Pushing version-bump / release-checklist commits to `main`
@@ -66,7 +77,10 @@ Ordering matters: e.g. quarto-cli's release build must fully publish before quar
 
 ## 5. When the checklist doesn't match reality
 
-If a step's described state doesn't match what you find (stale path, wrong ordering, already done, renamed workflow), surface the discrepancy and get a human decision. Don't silently work around it, and don't edit the checklist mid-release — suggest a follow-up doc-fix PR instead.
+If the state described by a step does not match the current state (for example, a stale path,
+incorrect ordering, completed step, or renamed workflow), report the discrepancy and ask the
+user how to proceed. Do not work around it silently or edit the checklist during the release;
+suggest a follow-up documentation PR instead.
 
 ## 6. Non-blocking gaps found along the way
 

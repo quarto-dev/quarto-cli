@@ -46,10 +46,9 @@ it: omit it and `quarto preview` silently picks a random open port between 3000�
 (`findOpenPort` in `src/core/port.ts`); pass an explicit `--port` that's already occupied and it
 polls for up to 5 seconds, then **throws** `Requested port <n> is already in use` and exits
 (`resolvePreviewOptions` in `src/command/preview/preview.ts`) — it does not fall back to another
-port. If you need a guaranteed-free port, omit `--port` rather than guessing one. Either way,
-read the actual URL from the `Browse at <url>` line the process prints on startup (see Startup
-Readiness below) rather than assuming it — cheap insurance even when you passed `--port`
-yourself.
+port. To use an available port automatically, omit `--port`. In either case, read the actual
+URL from the `Browse at <url>` line that the process prints on startup (see Startup Readiness
+below), even when you passed `--port`.
 
 ### With debug logging
 
@@ -65,9 +64,9 @@ yourself.
 
 ### In background
 
-Quarto's logger (including the `Browse at` readiness line) writes to **stderr**, not stdout
-(`StdErrOutputHandler` in `src/core/log.ts`) — redirect both streams or the log file used for
-readiness polling below will stay empty:
+Quarto's logger, including the `Browse at` readiness line, writes to **stderr**, not stdout
+(`StdErrOutputHandler` in `src/core/log.ts`). Redirect both streams so the log file used for
+readiness polling below receives this line:
 
 ```bash
 # Linux/macOS (after venv activation)
@@ -79,8 +78,8 @@ kill $PREVIEW_PID
 
 On Windows, use the native PowerShell block below instead of Git Bash for backgrounded runs:
 `quarto.cmd` is a `cmd.exe` wrapper around Deno, so Git Bash's `kill $PID` only stops that
-wrapper — the actual Deno preview server (and the port it holds) keeps running. PowerShell's
-tree-kill below reaches the real process.
+wrapper, leaving the Deno preview server and its port active. The PowerShell command below
+stops the entire process tree.
 
 ```powershell
 # Windows (native PowerShell)
@@ -91,16 +90,16 @@ $proc = Start-Process -FilePath ".\package\dist\bin\quarto.cmd" `
   -RedirectStandardOutput preview.out.log -RedirectStandardError preview.log -PassThru
 # ... run verification — poll preview.log for "Browse at" (Startup Readiness below) ...
 # quarto.cmd is a batch wrapper: $proc.Id is the cmd.exe host, and Deno runs as its CHILD, so
-# Stop-Process on that PID alone leaves the actual preview server (and its port) running.
-# Kill the whole tree instead:
+# Stop-Process on that PID alone leaves the actual preview server and its port active.
+# Stop the whole tree instead:
 taskkill /PID $($proc.Id) /T /F
 ```
 
 ### Startup readiness
 
 Don't gate the first browser check on a fixed sleep. Tail the log (or poll `preview.log`) until
-the `Browse at` line appears — that's the process's own readiness signal, and (when `--port` was
-omitted) it also carries the port that got picked:
+the `Browse at` line appears. This line signals that the process is ready and, when `--port`
+was omitted, reports the selected port:
 
 ```bash
 timeout 30 bash -c 'until grep -q "Browse at" preview.log 2>/dev/null; do sleep 0.5; done'
@@ -129,21 +128,21 @@ The core test pattern:
 
 **On filesystem, for a graceful (interactive Ctrl+C) shutdown only**: no orphaned
 `quarto-session*` temp directories left under the OS temp dir (`src/core/temp.ts`) after the
-process exits — list the temp dir before starting and diff it after stopping, rather than
-assuming cleanup ran. For an automated/backgrounded stop, see Windows Limitations — don't apply
-this check there, it will always "fail".
+process exits. List the temp directory before starting and compare it after stopping instead
+of assuming cleanup ran. Do not apply this check after an automated background stop; see
+Windows Limitations.
 
 ## Windows Limitations
 
 On Windows, `kill`/`Stop-Process`/`taskkill` against a backgrounded PID does not trigger
 Quarto's `onCleanup` handler — Deno only wires `SIGINT` to a console control handler for
 interactive Ctrl+C (`src/core/main.ts`), and a background kill terminates the process directly
-without going through that handler. So a forced/automated stop is expected to leave its
-`quarto-session*` temp directory behind — that's not a bug to chase, it's what a hard kill does.
+without going through that handler. A forced or automated stop is therefore expected to leave
+its `quarto-session*` temp directory behind.
 Cleanup-on-exit verification requires an interactive terminal with Ctrl+C; for automated
 testing, verify artifacts *during* preview instead (confirm the session directory exists and
-looks right while the process is up), and treat an automated stop as "process gone" evidence
-only, not "cleanup ran" evidence.
+has the expected contents while the process is running). An automated stop confirms only that
+the process ended, not that cleanup ran.
 
 ## Context Types
 

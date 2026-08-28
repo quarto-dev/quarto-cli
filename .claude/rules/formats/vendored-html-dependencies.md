@@ -11,14 +11,14 @@ Files under `src/resources/formats/html/*/` (e.g. `axe`, `anchor`, `popper`, `cl
 
 ## Verify provenance before trusting a change
 
-Reviewing a change to one of these files: fetch the same version from upstream and compare
-hashes rather than trusting the diff — `curl -sL <upstream-url> | sha256sum` against the
-committed file. These same-origin vendored files don't need SRI (`integrity=`); that only
-protects cross-origin CDN loads, which is what vendoring replaces.
+When reviewing a change to one of these files, fetch the same version from upstream and compare
+its hash with the committed file using `curl -sL <upstream-url> | sha256sum`. Do not rely on
+the diff alone. These same-origin vendored files don't need SRI (`integrity=`), which protects
+cross-origin CDN loads rather than vendored files.
 
 Note: `anchor`, `popper`, `clipboard`, `tippy`, and `fuse` have their `sourceMappingURL`
 comment stripped by the updater (`cleanSourceMap()` in `update-html-dependencies.ts`) before
-being committed, so a raw hash against upstream will mismatch on that one line even for a
-correctly generated file — strip the same comment before comparing, or re-run the updater and
-diff its output instead of hand-hashing. `axe` and `glightbox` aren't post-processed this way
-and hash directly against upstream.
+being committed. As a result, a raw hash against upstream will differ by that line even for a
+correctly generated file. Strip the same comment before comparing, or rerun the updater and
+diff its output instead of calculating the hash manually. `axe` and `glightbox` aren't
+post-processed this way and hash directly against upstream.

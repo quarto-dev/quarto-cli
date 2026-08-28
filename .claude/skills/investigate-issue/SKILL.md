@@ -1,16 +1,16 @@
 ---
 name: investigate-issue
-description: Investigate a suspected quarto-cli bug — a document that renders wrong, an unexpected error, or behavior that changed between versions. Reproduces it with a real minimal document, isolates the root cause across the TypeScript/Lua/Pandoc/output-engine stack, and lands a failing regression test before any fix. Not for "how does X work" or general architecture questions.
+description: Investigate a suspected quarto-cli bug — a document that renders incorrectly, an unexpected error, or behavior that changed between versions. Reproduces it with a real minimal document, isolates the root cause across the TypeScript/Lua/Pandoc/output-engine stack, and adds a failing regression test before any fix. Not for "how does X work" or general architecture questions.
 ---
 
 # Investigate a Quarto Bug
 
-Evidence before fixes: reproduce, isolate root cause, encode it as a failing test — only then
-write the fix.
+Gather evidence before writing a fix: reproduce the bug, isolate its root cause, and encode it
+as a failing test.
 
 ## Phase 1: reproduce and document (no fix code yet)
 
-1. **Triage** — check related issues/PRs/discussions before assuming this is a fresh bug;
+1. **Triage** — check related issues/PRs/discussions before assuming this is a new bug;
    someone may already have found the cause or a workaround.
 2. **Reproduce** with a real minimal `.qmd` document run through the dev build
    (`./package/dist/bin/quarto[.cmd]`), not a synthetic or contrived one. Capture actual vs.
@@ -25,8 +25,7 @@ explicitly to find *and fix* the bug, continue straight into Phase 2 instead of 
 
 ## Phase 2: fix
 
-5. Design the fix — worth a short discussion of approach for anything beyond a truly obvious
-   one-liner.
+5. Design the fix. Discuss the approach briefly unless it is an obvious one-line change.
 6. Implement. The failing test from Phase 1 must go green.
 7. Add coverage for edge cases the original test doesn't reach.
 
@@ -56,8 +55,8 @@ git log v1.8.27..v1.9.0 -- src/path/to/suspect-file.ts   # commits that touched 
 git diff v1.8.27..v1.9.0 -- src/path/to/suspect-file.ts  # what changed
 ```
 
-Finding the exact commit is helpful but not required — code exploration that reveals the
-problem, verified by reproduction, is enough.
+Finding the exact commit is helpful but not required. It is enough to identify the problem
+through code exploration and verify it by reproducing the behavior.
 
 **Code path comparison.** Grep for the mechanism named in an error or debug log
 (`grep -r "safeExec\|safe-exec" src/`), then `git log --all -- <file>` /
@@ -110,4 +109,4 @@ Confirm by rendering a real document, not just by reading code:
 ./package/dist/bin/quarto.cmd render minimal-repro.qmd --log-level debug
 ```
 
-A hypothesis that only holds up on paper isn't confirmed yet.
+Code inspection alone does not confirm a hypothesis.
