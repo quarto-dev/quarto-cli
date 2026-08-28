@@ -1,6 +1,6 @@
 ---
 name: investigate-issue
-description: Investigate a suspected quarto-cli bug — a document that renders incorrectly, an unexpected error, or behavior that changed between versions. Reproduces it with a real minimal document, isolates the root cause across the TypeScript/Lua/Pandoc/output-engine stack, and adds a failing regression test before any fix. Not for "how does X work" or general architecture questions.
+description: Use when investigating a suspected quarto-cli bug — a document that renders incorrectly, an unexpected error, or behavior that changed between versions. Not for "how does X work" or general architecture questions.
 ---
 
 # Investigate a Quarto Bug
@@ -20,8 +20,17 @@ as a failing test.
    Confirm it fails. The failing test is Phase 1's deliverable.
 4. **Write down the root cause** — which layer, which code path, why — before moving on.
 
-Stop here by default once you have a documented root cause and a red test. If the request was
-explicitly to find *and fix* the bug, continue straight into Phase 2 instead of stopping.
+**STOP after step 4** once you have a documented root cause and a red test. Continue straight
+into Phase 2 only if the request explicitly asked to find *and fix* the bug — otherwise stop,
+full stop.
+
+None of these justify continuing anyway:
+- "The fix looks obvious" — obvious fixes still need the red test as evidence the diagnosis is
+  right, not just plausible.
+- "I'm confident in the root cause" — confidence isn't verification. The test is the evidence;
+  without it you have a hypothesis, not a finding.
+- "Stopping here feels like unnecessary ceremony" — it's the checkpoint before writing code, not
+  busywork. The pause is what lets the root cause get reviewed before anything is built on it.
 
 ## Phase 2: fix
 
