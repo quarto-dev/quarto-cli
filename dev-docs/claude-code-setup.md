@@ -103,21 +103,13 @@ Edit the relevant file in `.claude/rules/`. The path scoping ensures changes onl
 ## What's NOT Committed
 
 Two personal files are common enough to every contributor's setup that they're listed in the
-tracked `.gitignore`: `CLAUDE.local.md` and `.claude/settings.local.json`. Everything else
-personal — because it varies per contributor (which slash commands, which repo-local skills) —
-is kept out of git via each developer's own `.git/info/exclude` instead, which is itself
-personal and never committed.
+tracked `.gitignore`: `CLAUDE.local.md` and `.claude/settings.local.json`.
 
-A typical personal exclude list covers:
-
-```
-.claude/commands/*           # Personal slash commands — everything here is personal
-.claude/skills/start-issue/  # A personal, repo-local skill (see above)
-.claude/docs/                # Personal documentation
-```
-
-These stay personal to each developer; only `.claude/skills/<name>/SKILL.md` files not listed
-in a contributor's own exclude file are shared and committed.
+Everything else personal — your own slash commands under `.claude/commands/`, a repo-local
+personal skill like `.claude/skills/start-issue/`, personal notes under `.claude/docs/` — is
+simply not committed: it's on you to keep it out of git, however you prefer to do that
+locally. Only `.claude/skills/<name>/SKILL.md` files a contributor actually stages and commits
+are shared.
 
 Avoid committing API keys, tokens, or credentials in any `.claude/` or `llm-docs/` file. Use environment variables or `.env` (also gitignored) for sensitive values.
 
