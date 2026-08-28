@@ -1,4 +1,4 @@
-> A Claude Code skill can drive this checklist interactively: run `/make-release` (see `.claude/commands/make-release/`). It reads this file, verifies real `git`/`gh` state at each step, and pauses for confirmation before irreversible actions. This checklist stays the source of truth — the skill just follows it.
+> A Claude Code skill can drive this checklist interactively: run `/make-release` (see `.claude/skills/make-release/`). It reads this file, verifies real `git`/`gh` state at each step, and pauses for confirmation before irreversible actions. This checklist stays the source of truth — the skill just follows it.
 
 - [ ] ensure your git repo is up to date with `main`
 - [ ] ensure CI is green for `main`
