@@ -75,20 +75,21 @@ readiness polling below will stay empty:
 PREVIEW_PID=$!
 # ... run verification ...
 kill $PREVIEW_PID
-
-# Windows (Git Bash, after venv activation)
-./package/dist/bin/quarto.cmd preview <file> --no-browser --port 4444 > preview.log 2>&1 &
-PREVIEW_PID=$!
-# ... run verification ...
-kill $PREVIEW_PID
 ```
+
+On Windows, use the native PowerShell block below instead of Git Bash for backgrounded runs:
+`quarto.cmd` is a `cmd.exe` wrapper around Deno, so Git Bash's `kill $PID` only stops that
+wrapper — the actual Deno preview server (and the port it holds) keeps running. PowerShell's
+tree-kill below reaches the real process.
 
 ```powershell
 # Windows (native PowerShell)
+# -RedirectStandardOutput and -RedirectStandardError must be different files — PowerShell
+# rejects Start-Process if both point at the same path.
 $proc = Start-Process -FilePath ".\package\dist\bin\quarto.cmd" `
   -ArgumentList "preview","<file>","--no-browser","--port","4444" `
-  -RedirectStandardOutput preview.log -RedirectStandardError preview.log -PassThru
-# ... run verification ...
+  -RedirectStandardOutput preview.out.log -RedirectStandardError preview.log -PassThru
+# ... run verification — poll preview.log for "Browse at" (Startup Readiness below) ...
 # quarto.cmd is a batch wrapper: $proc.Id is the cmd.exe host, and Deno runs as its CHILD, so
 # Stop-Process on that PID alone leaves the actual preview server (and its port) running.
 # Kill the whole tree instead:
