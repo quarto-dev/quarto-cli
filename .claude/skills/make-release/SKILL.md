@@ -1,11 +1,12 @@
 ---
 name: make-release
-description: Drive a Quarto release end-to-end from the dev-docs release checklists. Invoke explicitly with /make-release — do not auto-invoke from ambient conversation, a release cut is high-stakes. Handles three release types — a routine dev prerelease off main, the first stable release of a new major.minor cycle, or a patch release on an existing stable branch — by asking which one applies (or reading it from an unambiguous request), then follows the matching checklist, verifying real git/gh state at each step and pausing for explicit human confirmation before every irreversible or externally-visible action.
+disable-model-invocation: true
+description: Drive a Quarto release end-to-end from the dev-docs release checklists. Handles three release types — a routine dev prerelease off main, the first stable release of a new major.minor cycle, or a patch release on an existing stable branch — by asking which one applies (or reading it from an unambiguous request), then follows the matching checklist, verifying real git/gh state at each step and pausing for explicit human confirmation before every irreversible or externally-visible action.
 ---
 
 # Make Release
 
-Command-only helper that drives an existing release checklist. **Do not auto-invoke** — only run when the user explicitly asks (e.g. `/make-release`). This skill does not restate the release steps; the checklists below are the source of truth. Your job is to read the right one and drive it with real-state verification and confirmation gates.
+Command-only helper that drives an existing release checklist. This skill does not restate the release steps; the checklists below are the source of truth. Your job is to read the right one and drive it with real-state verification and confirmation gates.
 
 ## 1. Detect which checklist applies (verify, don't trust self-report)
 
