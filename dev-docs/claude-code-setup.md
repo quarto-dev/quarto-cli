@@ -40,6 +40,38 @@ Architectural deep-dive documentation for AI assistants. These are NOT auto-load
 
 Each llm-doc has staleness metadata in its frontmatter so Claude Code can check if the documented code has changed since the analysis was done.
 
+### `.claude/skills/<name>/SKILL.md`
+
+Shared, tracked project skills — procedures and decision logic (not facts) for a task Claude
+Code should follow, e.g. "make a release" or "investigate a rendering bug". A skill is a
+directory containing at least `SKILL.md`; it can also hold `references/` (material to load only
+when needed), `scripts/`, and `assets/`. Every skill under this directory is model-invocable by
+default — Claude Code can decide to use it from the conversation, not just when a contributor
+types its slash form. Add `disable-model-invocation: true` to a skill's frontmatter for
+anything task-like and consequential enough that it should only run when explicitly invoked
+(e.g. cutting a release).
+
+A shared skill must be usable by any contributor with just `git` and `gh` — it must not assume
+personal tooling (a particular browser-automation CLI, a personal issue tracker, etc.) without
+documenting a fallback.
+
+`.claude/skills/` is not exclusively shared, though: a contributor's personal, repository-local
+skill can live there too, excluded from git the same way personal commands are (see
+"What's Not Committed" below) — `.claude/skills/start-issue/` is one such example in this repo.
+**Never give a personal skill the same name as a shared one** — the personal copy overrides the
+shared skill on that machine, and behavior then depends on which one a session happens to load.
+
+### Where information belongs
+
+Four homes, by how often it changes and how it's used:
+
+- **`.claude/CLAUDE.md`** — short, always-loaded facts (architecture overview, setup, build
+  commands).
+- **`.claude/rules/**`** — path-scoped conventions, loaded only when matching files are touched.
+- **`llm-docs/**`** — subsystem architecture, read on demand.
+- **`.claude/skills/**`** — procedures and decision logic for a task, not facts about the
+  codebase.
+
 ## Personal Overrides
 
 Create `CLAUDE.local.md` at the repository root for personal overrides. This file is gitignored and won't be committed. Use it for:
@@ -70,16 +102,22 @@ Edit the relevant file in `.claude/rules/`. The path scoping ensures changes onl
 
 ## What's NOT Committed
 
-The `.gitignore` excludes personal Claude Code files:
+Two personal files are common enough to every contributor's setup that they're listed in the
+tracked `.gitignore`: `CLAUDE.local.md` and `.claude/settings.local.json`. Everything else
+personal — because it varies per contributor (which slash commands, which repo-local skills) —
+is kept out of git via each developer's own `.git/info/exclude` instead, which is itself
+personal and never committed.
+
+A typical personal exclude list covers:
 
 ```
-CLAUDE.local.md           # Personal overrides
-.claude/commands/         # Personal slash commands
-.claude/docs/             # Personal documentation
-.claude/settings.local.json  # Local settings
+.claude/commands/*           # Personal slash commands — everything here is personal
+.claude/skills/start-issue/  # A personal, repo-local skill (see above)
+.claude/docs/                # Personal documentation
 ```
 
-These stay personal to each developer.
+These stay personal to each developer; only `.claude/skills/<name>/SKILL.md` files not listed
+in a contributor's own exclude file are shared and committed.
 
 Avoid committing API keys, tokens, or credentials in any `.claude/` or `llm-docs/` file. Use environment variables or `.env` (also gitignored) for sensitive values.
 
