@@ -41,11 +41,15 @@ tests\.venv\Scripts\Activate.ps1
 .\package\dist\bin\quarto.cmd preview <file-or-dir> --no-browser --port 4444
 ```
 
-Use `--no-browser` to control browser connection. `--port` is a *suggestion*: if it's already
-taken, `quarto preview` silently picks a random open port between 3000–8000 instead of erroring
-(`src/core/port.ts`). Don't assume the requested port bound — read the actual URL from the
-`Browse at <url>` line the process prints on startup (see Startup Readiness below) before
-pointing `/agent-browser` at it.
+Use `--no-browser` to control browser connection. `--port` behavior depends on whether you pass
+it: omit it and `quarto preview` silently picks a random open port between 3000–8000
+(`findOpenPort` in `src/core/port.ts`); pass an explicit `--port` that's already occupied and it
+polls for up to 5 seconds, then **throws** `Requested port <n> is already in use` and exits
+(`resolvePreviewOptions` in `src/command/preview/preview.ts`) — it does not fall back to another
+port. If you need a guaranteed-free port, omit `--port` rather than guessing one. Either way,
+read the actual URL from the `Browse at <url>` line the process prints on startup (see Startup
+Readiness below) rather than assuming it — cheap insurance even when you passed `--port`
+yourself.
 
 ### With debug logging
 
@@ -61,15 +65,19 @@ pointing `/agent-browser` at it.
 
 ### In background
 
+Quarto's logger (including the `Browse at` readiness line) writes to **stderr**, not stdout
+(`StdErrOutputHandler` in `src/core/log.ts`) — redirect both streams or the log file used for
+readiness polling below will stay empty:
+
 ```bash
 # Linux/macOS (after venv activation)
-./package/dist/bin/quarto preview <file> --no-browser --port 4444 &
+./package/dist/bin/quarto preview <file> --no-browser --port 4444 > preview.log 2>&1 &
 PREVIEW_PID=$!
 # ... run verification ...
 kill $PREVIEW_PID
 
 # Windows (Git Bash, after venv activation)
-./package/dist/bin/quarto.cmd preview <file> --no-browser --port 4444 &
+./package/dist/bin/quarto.cmd preview <file> --no-browser --port 4444 > preview.log 2>&1 &
 PREVIEW_PID=$!
 # ... run verification ...
 kill $PREVIEW_PID
@@ -79,16 +87,19 @@ kill $PREVIEW_PID
 # Windows (native PowerShell)
 $proc = Start-Process -FilePath ".\package\dist\bin\quarto.cmd" `
   -ArgumentList "preview","<file>","--no-browser","--port","4444" `
-  -RedirectStandardOutput preview.log -PassThru
+  -RedirectStandardOutput preview.log -RedirectStandardError preview.log -PassThru
 # ... run verification ...
-Stop-Process -Id $proc.Id -Force   # target the captured PID only, never by process name
+# quarto.cmd is a batch wrapper: $proc.Id is the cmd.exe host, and Deno runs as its CHILD, so
+# Stop-Process on that PID alone leaves the actual preview server (and its port) running.
+# Kill the whole tree instead:
+taskkill /PID $($proc.Id) /T /F
 ```
 
 ### Startup readiness
 
 Don't gate the first browser check on a fixed sleep. Tail the log (or poll `preview.log`) until
-the `Browse at` line appears — that's the process's own readiness signal, and it also carries
-the actual bound port when the requested one was occupied:
+the `Browse at` line appears — that's the process's own readiness signal, and (when `--port` was
+omitted) it also carries the port that got picked:
 
 ```bash
 timeout 30 bash -c 'until grep -q "Browse at" preview.log 2>/dev/null; do sleep 0.5; done'
@@ -105,8 +116,9 @@ The core test pattern:
 3. Edit source file, wait 3-5 seconds for re-render
 4. Verify content updated in browser
 5. Check filesystem for unexpected artifacts (see below)
-6. Stop preview by PID (never by process name — see `Stop-Process`/`kill` above), then verify
-   cleanup
+6. Stop preview (see the PID-based stop commands above — never by process name), then verify
+   cleanup *if the stop was graceful* (see Windows Limitations below for the automated/Windows
+   case)
 
 ## What to Verify
 
@@ -114,18 +126,23 @@ The core test pattern:
 
 **In terminal/logs**: No `BadResource` errors, no crashes, preview stays responsive.
 
-**On filesystem**: No orphaned `quarto-session*` temp directories left under the OS temp dir
-(`src/core/temp.ts`) after the process exits — list the temp dir before starting and diff it
-after stopping, rather than assuming cleanup ran.
+**On filesystem, for a graceful (interactive Ctrl+C) shutdown only**: no orphaned
+`quarto-session*` temp directories left under the OS temp dir (`src/core/temp.ts`) after the
+process exits — list the temp dir before starting and diff it after stopping, rather than
+assuming cleanup ran. For an automated/backgrounded stop, see Windows Limitations — don't apply
+this check there, it will always "fail".
 
 ## Windows Limitations
 
-On Windows, `kill`/`Stop-Process` against a backgrounded PID does not trigger Quarto's
-`onCleanup` handler — Deno only wires `SIGINT` to a console control handler for interactive
-Ctrl+C (`src/core/main.ts`), and a background kill terminates the process directly without
-going through that handler. Cleanup-on-exit verification requires an interactive terminal with
-Ctrl+C. For automated testing, verify artifacts *during* preview instead (see filesystem check
-above), and treat a background stop as "process gone" verification only, not "cleanup ran".
+On Windows, `kill`/`Stop-Process`/`taskkill` against a backgrounded PID does not trigger
+Quarto's `onCleanup` handler — Deno only wires `SIGINT` to a console control handler for
+interactive Ctrl+C (`src/core/main.ts`), and a background kill terminates the process directly
+without going through that handler. So a forced/automated stop is expected to leave its
+`quarto-session*` temp directory behind — that's not a bug to chase, it's what a hard kill does.
+Cleanup-on-exit verification requires an interactive terminal with Ctrl+C; for automated
+testing, verify artifacts *during* preview instead (confirm the session directory exists and
+looks right while the process is up), and treat an automated stop as "process gone" evidence
+only, not "cleanup ran" evidence.
 
 ## Context Types
 

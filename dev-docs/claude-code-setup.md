@@ -58,8 +58,11 @@ documenting a fallback.
 `.claude/skills/` is not exclusively shared, though: a contributor's personal, repository-local
 skill can live there too, excluded from git the same way personal commands are (see
 "What's Not Committed" below) — `.claude/skills/start-issue/` is one such example in this repo.
-**Never give a personal skill the same name as a shared one** — the personal copy overrides the
-shared skill on that machine, and behavior then depends on which one a session happens to load.
+**Never give a personal repo-local skill the same name as a tracked shared skill** — an
+untracked local file at the same path a shared skill later gets committed to is a git
+checkout/tracking conflict (Git refuses to overwrite an untracked file with an incoming tracked
+one, or your local changes end up shadowing the tracked file), not a clean "one wins" precedence
+rule. Keep personal skill names unique to sidestep this entirely.
 
 ### Where information belongs
 
@@ -108,8 +111,8 @@ tracked `.gitignore`: `CLAUDE.local.md` and `.claude/settings.local.json`.
 Everything else personal — your own slash commands under `.claude/commands/`, a repo-local
 personal skill like `.claude/skills/start-issue/`, personal notes under `.claude/docs/` — is
 simply not committed: it's on you to keep it out of git, however you prefer to do that
-locally. Only `.claude/skills/<name>/SKILL.md` files a contributor actually stages and commits
-are shared.
+locally. Only `.claude/skills/<name>/` directories a contributor actually stages and commits —
+`SKILL.md` plus any `references/`, `scripts/`, or `assets/` it depends on — are shared.
 
 Avoid committing API keys, tokens, or credentials in any `.claude/` or `llm-docs/` file. Use environment variables or `.env` (also gitignored) for sensitive values.
 
