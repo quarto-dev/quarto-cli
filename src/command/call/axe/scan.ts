@@ -18,15 +18,12 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import { dirname, join } from "../../../deno_ral/path.ts";
+import { join } from "../../../deno_ral/path.ts";
 import { debug } from "../../../deno_ral/log.ts";
 import { md5HashSync } from "../../../core/hash.ts";
 import { sleep } from "../../../core/async.ts";
 import { formatResourcePath } from "../../../core/resources.ts";
-import { getBrowserExecutablePath } from "../../../core/puppeteer.ts";
-import { onCleanup } from "../../../core/cleanup.ts";
-import { getenv } from "../../../core/env.ts";
-import { safeRemoveDirSync } from "../../../deno_ral/fs.ts";
+import { launchChrome } from "../../../core/cri/launch.ts";
 import { AxeScanConfig, AxeViewport } from "./config.ts";
 import { AxeMode, AxePage } from "./discover.ts";
 
@@ -306,78 +303,27 @@ async function waitForCdp(
 
 /**
  * Launch headless Chrome on its own CDP port and connect to its page target.
- * The browser gets a throwaway user-data-dir so it can't attach to (or be
- * short-circuited by) a Chrome the user already has running.
+ * The process itself is the shared launcher's job (src/core/cri/launch.ts);
+ * what is scanner-specific is the isolated profile, so the scan cannot attach
+ * to a Chrome the user already has running, and hiding scrollbars, which are
+ * browser chrome rather than page content and eat viewport width at 320px.
  */
 export async function launchScanBrowser(port: number): Promise<ScanBrowser> {
-  const executable = await getBrowserExecutablePath();
-  const userDataDir = Deno.makeTempDirSync({ prefix: "quarto-axe-chrome" });
-
-  // Same headless-mode escape hatch as src/core/cri/cri.ts.
-  const headlessMode = getenv("QUARTO_CHROMIUM_HEADLESS_MODE", "none");
-  const command = new Deno.Command(executable, {
-    args: [
-      `--headless${headlessMode === "none" ? "" : "=" + headlessMode}`,
-      "--no-sandbox",
-      "--disable-gpu",
-      "--hide-scrollbars",
-      `--user-data-dir=${userDataDir}`,
-      `--remote-debugging-port=${port}`,
-      "about:blank",
-    ],
-    stdout: "null",
-    stderr: "piped",
+  const browser = await launchChrome({
+    port,
+    args: ["--hide-scrollbars"],
+    url: "about:blank",
+    isolatedProfile: true,
+    logPrefix: "axe chrome",
   });
-  const process = command.spawn();
-
-  // Chrome is chatty on stderr, and an unread pipe eventually blocks it. Drain
-  // it to the debug log, keeping the tail around to explain a failed launch.
-  let stderrTail = "";
-  const draining = (async () => {
-    const stream = process.stderr.pipeThrough(new TextDecoderStream());
-    for await (const chunk of stream) {
-      debug(`[axe chrome] ${chunk.trimEnd()}`);
-      stderrTail = (stderrTail + chunk).slice(-2000);
-    }
-  })();
-
-  let killed = false;
-  const kill = () => {
-    if (killed) {
-      return;
-    }
-    killed = true;
-    try {
-      process.kill();
-    } catch (_e) {
-      // already gone
-    }
-  };
-  // Chrome will not terminate on its own, and Ctrl-C must not orphan it. The
-  // profile dir is left behind on that path: removing it means waiting for the
-  // process to exit, and cleanup handlers are synchronous.
-  onCleanup(kill);
-
-  // Chrome rewrites its profile as it shuts down, so the dir can only be
-  // removed once the process is really gone.
-  const shutdown = async () => {
-    kill();
-    await process.status;
-    await draining.catch(() => {});
-    try {
-      safeRemoveDirSync(userDataDir, dirname(userDataDir));
-    } catch (_e) {
-      // a leftover temp dir is not worth failing the scan over
-    }
-  };
 
   let client: CdpClient;
   try {
-    const wsUrl = await waitForCdp(port, 15000);
+    const wsUrl = await waitForCdp(browser.port, 15000);
     client = await CdpClient.connect(wsUrl);
   } catch (e) {
-    await shutdown();
-    const detail = stderrTail.trim();
+    await browser.close();
+    const detail = browser.stderrTail().trim();
     throw new Error(
       (e instanceof Error ? e.message : String(e)) +
         (detail ? `\nChrome said: ${detail}` : ""),
@@ -388,7 +334,7 @@ export async function launchScanBrowser(port: number): Promise<ScanBrowser> {
     client,
     close: async () => {
       client.close();
-      await shutdown();
+      await browser.close();
     },
   };
 }
