@@ -1,7 +1,7 @@
 /*
  * launch.ts
  *
- * The one place quarto starts headless Chrome.
+ * The one place quarto's CDP drivers start headless Chrome.
  *
  * Two subsystems drive Chrome over CDP: `criClient` (src/core/cri/cri.ts,
  * which renders mermaid diagrams) and the axe scanner
@@ -9,6 +9,11 @@
  * they start the browser the same way — and the launch half is where the
  * hard-won detail lives: which headless mode, how to tell the CDP endpoint is
  * up, and how not to orphan a process that never exits on its own.
+ *
+ * Not to be confused with the launch path in src/core/puppeteer.ts
+ * (`withHeadlessBrowser`, reached through `withPuppeteerBrowserAndPage` and
+ * `inPuppeteer`), which starts Chrome through puppeteer rather than over CDP.
+ * Nothing outside that file enters it today, but it is a second launch path.
  *
  * Everything the two callers genuinely disagree about is passed in
  * (`--renderer-process-limit=1` for mermaid; `--hide-scrollbars` and a

@@ -1,6 +1,6 @@
 ---
 main_commit: abc6a78ed
-analyzed_date: 2026-08-27
+analyzed_date: 2026-08-31
 key_files:
   - src/command/call/axe/cmd.ts
   - src/command/call/axe/config.ts
@@ -11,6 +11,7 @@ key_files:
   - src/command/call/axe/conformance.ts
   - src/command/call/axe/report.ts
   - src/command/call/axe/readme.ts
+  - src/core/cri/launch.ts
 ---
 
 # Axe Scan Architecture (`quarto call axe`)
@@ -97,29 +98,49 @@ scan.
 
 ## The scan stage: raw CDP, fail-closed cells
 
-The driver is a ~150-line generic CDP client (`CdpClient` in `scan.ts`)
-with three capabilities: send a command and await its result, wait
-(cancellably) for one event, close. It is transport, not scan logic — the
-scanning is six CDP *commands* that `scanCell` sends through it (navigate,
-viewport override, media emulation, evaluate-with-`awaitPromise`, an
-on-new-document script, the load event), and those stay the scanner's
-responsibility under any refactor. Because the command surface is that
-small, there is no wrapper library; puppeteer-core is the named fallback if
-raw CDP gets painful.
+Think of a Chrome driver as three layers — launcher, transport, task logic —
+because the answer to "why not reuse quarto's existing one?" is different at
+each. The launcher and the transport are now shared with `src/core/cri/cri.ts`,
+which drives Chrome for mermaid. The task logic never will be: mermaid's
+commands and the scanner's commands are different jobs.
 
-quarto-cli's existing wrapper (`src/core/cri/cri.ts`, which drives Chrome
-for mermaid) was read and declined — but be precise about which part: its
-*facade* exposes mermaid's commands only (navigate/query/screenshot — no
-emulation, no `awaitPromise`, no per-command timeout, so a hung `axe.run()`
-would hang forever). Underneath that facade sits the vendored `deno-cri`
-library, itself a generic send-any-command client; retargeting `CdpClient`'s
-internals onto it (keeping the interface the tests stub) is the plausible
-future unification of the *transport*. The more valuable near-term share is
-the *launcher*: two exist in the tree (`launchScanBrowser` here,
-`criClient`'s spawn half there), `cri.ts` cross-refers here, and extracting
-one shared launcher is tracked follow-up work. Browser discovery is already
-shared: `getBrowserExecutablePath()` (`src/core/puppeteer.ts`) encodes
-`QUARTO_CHROMIUM` → installed `chrome-headless-shell` → system Chrome/Edge.
+**Launcher.** `launchChrome()` (`src/core/cri/launch.ts`) is the one place
+quarto's CDP drivers start headless Chrome — this scanner and cri.ts.
+(`src/core/puppeteer.ts` keeps a separate `puppeteer.launch()` path —
+`withHeadlessBrowser`, reached through `withPuppeteerBrowserAndPage` and
+`inPuppeteer` — which nothing outside that file enters today.) It owns the
+flag set, the
+`QUARTO_CHROMIUM_HEADLESS_MODE` escape hatch, stderr draining, exit cleanup,
+and the wait for the CDP endpoint; callers pass in only what they genuinely
+disagree about — `--hide-scrollbars` and a throwaway profile dir here (so a
+scan cannot attach to, or be short-circuited by, a Chrome the user already has
+running), `--renderer-process-limit=1` for mermaid. Browser *discovery* is
+shared a level up again: `getBrowserExecutablePath()`
+(`src/core/puppeteer.ts`) encodes `QUARTO_CHROMIUM` → installed
+`chrome-headless-shell` → system Chrome/Edge.
+
+**Transport.** `CdpClient` in `scan.ts` has three capabilities: send a command
+and await its result, wait (cancellably) for one event, close. The socket
+under it is the vendored `deno-cri` (`src/core/cri/deno-cri/`), the same
+generic send-any-command client cri.ts connects with. `CdpClient` is the typed
+layer over it, and what it adds is the behaviour fail-closed cells depend on
+and `deno-cri` does not have: a dropped connection rejects every command still
+in flight, so a crashed tab fails one cell inside `--timeout` rather than
+hanging the scan. Because the command surface is so small there is no wrapper
+library on top; puppeteer-core is the named fallback if raw CDP gets painful.
+
+What is still *not* reused is cri.ts's **facade**, and it is worth being
+precise about why: it exposes mermaid's commands only
+(navigate/query/screenshot — no emulation, no `awaitPromise`, no per-command
+timeout, so a hung `axe.run()` would hang forever). The cleaner end state,
+where cri.ts *exports* a typed transport as a core surface and the scanner
+consumes it, waits on the scanner's own needs settling — concurrent tabs in
+particular.
+
+**Task logic** is the six CDP *commands* `scanCell` sends through the
+transport: navigate, viewport override, media emulation,
+evaluate-with-`awaitPromise`, an on-new-document script, the load event.
+Those stay the scanner's responsibility under any refactor.
 
 **Cells fail closed.** A timeout, an evaluation error, a payload that is not
 an axe result, or a page that moved is an infrastructure failure in the
