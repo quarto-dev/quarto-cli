@@ -19,11 +19,11 @@
  */
 
 import { join } from "../../../deno_ral/path.ts";
-import { debug } from "../../../deno_ral/log.ts";
 import { md5HashSync } from "../../../core/hash.ts";
 import { sleep } from "../../../core/async.ts";
 import { formatResourcePath } from "../../../core/resources.ts";
 import { launchChrome } from "../../../core/cri/launch.ts";
+import cdp from "../../../core/cri/deno-cri/index.js";
 import { AxeScanConfig, AxeViewport } from "./config.ts";
 import { AxeMode, AxePage } from "./discover.ts";
 
@@ -98,55 +98,75 @@ export interface AxeCell {
 // CDP client
 // ---------------------------------------------------------------------------
 
-interface CdpMessage {
-  id?: number;
-  method?: string;
-  params?: Record<string, unknown>;
-  result?: unknown;
-  error?: { code: number; message: string };
+/**
+ * The slice of the vendored deno-cri client this file uses, written down:
+ * deno-cri is untyped JavaScript (src/core/cri/deno-cri/), so this interface
+ * is the contract, not a re-export of one.
+ */
+type CdpEventHandler = (params?: Record<string, unknown>) => void;
+
+interface DenoCriConnection {
+  send(method: string, params?: Record<string, unknown>): Promise<unknown>;
+  on(event: string, handler: CdpEventHandler): void;
+  off(event: string, handler: CdpEventHandler): void;
+  close(): Promise<void>;
+}
+
+const connectDenoCri = cdp as (
+  options: { port: number },
+) => Promise<DenoCriConnection>;
+
+/** The one message for "this connection is gone", wherever that is noticed. */
+const kConnectionClosed = "CDP connection closed";
+
+function asError(e: unknown): Error {
+  return e instanceof Error ? e : new Error(String(e));
 }
 
 /**
- * Minimal Chrome DevTools Protocol client: send a command, await its result,
- * and wait for a named event. Everything the scanner needs is six methods, so
- * there is deliberately no wrapper library here — and src/core/cri/cri.ts
- * was read and declined: no emulation, no awaitPromise, no per-command
- * timeout (llm-docs/axe-scan-architecture.md, "The scan stage").
+ * Minimal Chrome DevTools Protocol client: send a command and await its
+ * result, wait (cancellably) for one event, close. Three capabilities, because
+ * three is what the scanner needs — the scan logic is the CDP *commands* that
+ * scanCell sends through here, and those are not shared with anything.
+ *
+ * The socket underneath is the vendored deno-cri client, the same one
+ * src/core/cri/cri.ts drives mermaid with. What this adds is the part
+ * fail-closed cells depend on and deno-cri does not have: a lost connection
+ * rejects every command still in flight, so a crashed tab fails one cell
+ * instead of hanging the scan (llm-docs/axe-scan-architecture.md, "The scan
+ * stage"). cri.ts's *facade* is still no use here — it exposes
+ * navigate/query/screenshot only, with no emulation and no awaitPromise.
  */
 export class CdpClient {
-  private nextId = 0;
-  private pending = new Map<
-    number,
-    { resolve: (result: unknown) => void; reject: (err: Error) => void }
-  >();
-  private listeners = new Map<
-    string,
-    Set<(params: Record<string, unknown>) => void>
-  >();
+  private pending = new Set<(err: Error) => void>();
   private closed = false;
 
-  private constructor(private readonly ws: WebSocket) {
-    ws.addEventListener("message", (ev: MessageEvent) => {
-      this.onMessage(ev.data as string);
-    });
-    ws.addEventListener("close", () => {
-      this.closed = true;
-      this.rejectPending(new Error("CDP connection closed"));
-    });
+  private constructor(private readonly connection: DenoCriConnection) {
+    // deno-cri notices the socket going away, but leaves the commands that
+    // were in flight when it went unsettled forever.
+    connection.on("disconnect", () => this.abandonPending());
   }
 
-  static connect(wsUrl: string): Promise<CdpClient> {
-    return new Promise((resolve, reject) => {
-      const ws = new WebSocket(wsUrl);
-      ws.addEventListener("open", () => resolve(new CdpClient(ws)), {
-        once: true,
-      });
-      ws.addEventListener(
-        "error",
-        () => reject(new Error(`Failed to connect to CDP at ${wsUrl}`)),
-        { once: true },
-      );
-    });
+  /**
+   * Connect to the page target on `port`. Connecting the instant the CDP
+   * endpoint answers is racy: cri.ts measured the failure rate against the
+   * gap between tries (see criClient.open) and settled on 100ms, which is
+   * what this retries with.
+   */
+  static async connect(port: number): Promise<CdpClient> {
+    const maxTries = 5;
+    for (let attempt = 1;; ++attempt) {
+      try {
+        return new CdpClient(await connectDenoCri({ port }));
+      } catch (e) {
+        if (attempt === maxTries) {
+          throw new Error(
+            `Failed to connect to CDP on port ${port}: ${asError(e).message}`,
+          );
+        }
+        await sleep(100);
+      }
+    }
   }
 
   send<T = unknown>(
@@ -154,15 +174,22 @@ export class CdpClient {
     params: Record<string, unknown> = {},
   ): Promise<T> {
     if (this.closed) {
-      return Promise.reject(new Error("CDP connection closed"));
+      return Promise.reject(new Error(kConnectionClosed));
     }
-    const id = ++this.nextId;
     return new Promise<T>((resolve, reject) => {
-      this.pending.set(id, {
-        resolve: resolve as (result: unknown) => void,
-        reject,
-      });
-      this.ws.send(JSON.stringify({ id, method, params }));
+      // Tracked so close() — or a dropped socket — can reject it. Settling a
+      // promise twice is a no-op, so a late reply after that is harmless.
+      this.pending.add(reject);
+      this.connection.send(method, params).then(
+        (result) => {
+          this.pending.delete(reject);
+          resolve(result as T);
+        },
+        (e) => {
+          this.pending.delete(reject);
+          reject(asError(e));
+        },
+      );
     });
   }
 
@@ -174,82 +201,35 @@ export class CdpClient {
   once(
     method: string,
   ): { event: Promise<Record<string, unknown>>; cancel: () => void } {
-    let handler: (params: Record<string, unknown>) => void = () => {};
+    let handler: CdpEventHandler = () => {};
     const event = new Promise<Record<string, unknown>>((resolve) => {
       handler = (params) => {
-        this.off(method, handler);
-        resolve(params);
+        this.connection.off(method, handler);
+        resolve(params ?? {});
       };
-      this.on(method, handler);
+      this.connection.on(method, handler);
     });
-    return { event, cancel: () => this.off(method, handler) };
+    return { event, cancel: () => this.connection.off(method, handler) };
   }
 
   close() {
-    if (!this.closed) {
-      this.closed = true;
-      try {
-        this.ws.close();
-      } catch (_e) {
-        // the socket is going away regardless
-      }
-      this.rejectPending(new Error("CDP connection closed"));
-    }
-  }
-
-  private on(
-    method: string,
-    handler: (params: Record<string, unknown>) => void,
-  ) {
-    let handlers = this.listeners.get(method);
-    if (!handlers) {
-      handlers = new Set();
-      this.listeners.set(method, handlers);
-    }
-    handlers.add(handler);
-  }
-
-  private off(
-    method: string,
-    handler: (params: Record<string, unknown>) => void,
-  ) {
-    this.listeners.get(method)?.delete(handler);
-  }
-
-  private onMessage(data: string) {
-    let msg: CdpMessage;
-    try {
-      msg = JSON.parse(data);
-    } catch (_e) {
-      debug(`[axe] unparseable CDP message: ${data.slice(0, 200)}`);
+    if (this.closed) {
       return;
     }
-    if (msg.id !== undefined) {
-      const entry = this.pending.get(msg.id);
-      if (entry) {
-        this.pending.delete(msg.id);
-        if (msg.error) {
-          entry.reject(
-            new Error(`CDP error ${msg.error.code}: ${msg.error.message}`),
-          );
-        } else {
-          entry.resolve(msg.result);
-        }
-      }
-      return;
-    }
-    if (msg.method) {
-      for (const handler of this.listeners.get(msg.method) ?? []) {
-        handler(msg.params ?? {});
-      }
-    }
+    this.abandonPending();
+    // deno-cri's close() resolves on the socket's close event. Don't wait for
+    // it: the caller kills the browser next, and teardown must not be able to
+    // hang on a connection that is already the problem.
+    this.connection.close().catch(() => {});
   }
 
-  private rejectPending(err: Error) {
-    for (const entry of this.pending.values()) {
-      entry.reject(err);
-    }
+  private abandonPending() {
+    this.closed = true;
+    const pending = [...this.pending];
     this.pending.clear();
+    for (const reject of pending) {
+      reject(new Error(kConnectionClosed));
+    }
   }
 }
 
@@ -260,45 +240,6 @@ export class CdpClient {
 export interface ScanBrowser {
   client: CdpClient;
   close: () => Promise<void>;
-}
-
-interface CdpTarget {
-  type: string;
-  webSocketDebuggerUrl?: string;
-}
-
-async function waitForCdp(
-  port: number,
-  timeout: number,
-): Promise<string> {
-  const interval = 50;
-  let waited = 0;
-  let lastError = "no CDP page target";
-  while (waited < timeout) {
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/json/list`);
-      if (response.ok) {
-        const targets = (await response.json()) as CdpTarget[];
-        const page = targets.find((target) =>
-          target.type === "page" && target.webSocketDebuggerUrl
-        );
-        if (page?.webSocketDebuggerUrl) {
-          return page.webSocketDebuggerUrl;
-        }
-      } else {
-        // drain the body so the connection can be reused
-        await response.body?.cancel();
-        lastError = `CDP endpoint returned ${response.status}`;
-      }
-    } catch (e) {
-      lastError = e instanceof Error ? e.message : String(e);
-    }
-    await sleep(interval);
-    waited += interval;
-  }
-  throw new Error(
-    `Timed out waiting for headless Chrome on port ${port} (${lastError}).`,
-  );
 }
 
 /**
@@ -319,14 +260,12 @@ export async function launchScanBrowser(port: number): Promise<ScanBrowser> {
 
   let client: CdpClient;
   try {
-    const wsUrl = await waitForCdp(browser.port, 15000);
-    client = await CdpClient.connect(wsUrl);
+    client = await CdpClient.connect(browser.port);
   } catch (e) {
     await browser.close();
     const detail = browser.stderrTail().trim();
     throw new Error(
-      (e instanceof Error ? e.message : String(e)) +
-        (detail ? `\nChrome said: ${detail}` : ""),
+      asError(e).message + (detail ? `\nChrome said: ${detail}` : ""),
     );
   }
 
