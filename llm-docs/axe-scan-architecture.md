@@ -303,6 +303,10 @@ change the render path every `axe:` user hits.
   page selection.
 - `tests/unit/axe-scan-cell.test.ts` — transport fail-closed with a stubbed
   CDP client; slugs; URL encoding.
+- `tests/smoke/axe/axe-transport-failclosed.test.ts` — the other half, against
+  a real browser: that a real `CdpClient` rejects at all when the connection
+  goes, on both the close and the dropped-socket paths. Every wait has a
+  deadline, because a hang is the failure being guarded against.
 - `tests/unit/axe-config.test.ts` — flag parsing and its errors.
 - `tests/unit/axe-report-readme.test.ts`, `axe-conformance-parity.test.ts` —
   the views and the mirrored labellers.
