@@ -97,15 +97,27 @@ scan.
 
 ## The scan stage: raw CDP, fail-closed cells
 
-The driver is a ~150-line CDP client (`CdpClient` in `scan.ts`): send a
-command, await its result, wait for one event. The scanner needs six CDP
-methods, so there is no wrapper library. Puppeteer-core is the named
-fallback if raw CDP gets painful. quarto-cli's existing wrapper
-(`src/core/cri/cri.ts`, which drives Chrome for mermaid) was read and
-declined: it exposes navigate/query/screenshot only — no emulation, no
-`awaitPromise`, no per-command timeout, and a hung `axe.run()` would hang
-forever. That leaves two Chrome launchers in the tree; `cri.ts` cross-refers
-here, and unifying them is tracked as follow-up work. Browser discovery is
+The driver is a ~150-line generic CDP client (`CdpClient` in `scan.ts`)
+with three capabilities: send a command and await its result, wait
+(cancellably) for one event, close. It is transport, not scan logic — the
+scanning is six CDP *commands* that `scanCell` sends through it (navigate,
+viewport override, media emulation, evaluate-with-`awaitPromise`, an
+on-new-document script, the load event), and those stay the scanner's
+responsibility under any refactor. Because the command surface is that
+small, there is no wrapper library; puppeteer-core is the named fallback if
+raw CDP gets painful.
+
+quarto-cli's existing wrapper (`src/core/cri/cri.ts`, which drives Chrome
+for mermaid) was read and declined — but be precise about which part: its
+*facade* exposes mermaid's commands only (navigate/query/screenshot — no
+emulation, no `awaitPromise`, no per-command timeout, so a hung `axe.run()`
+would hang forever). Underneath that facade sits the vendored `deno-cri`
+library, itself a generic send-any-command client; retargeting `CdpClient`'s
+internals onto it (keeping the interface the tests stub) is the plausible
+future unification of the *transport*. The more valuable near-term share is
+the *launcher*: two exist in the tree (`launchScanBrowser` here,
+`criClient`'s spawn half there), `cri.ts` cross-refers here, and extracting
+one shared launcher is tracked follow-up work. Browser discovery is already
 shared: `getBrowserExecutablePath()` (`src/core/puppeteer.ts`) encodes
 `QUARTO_CHROMIUM` → installed `chrome-headless-shell` → system Chrome/Edge.
 
