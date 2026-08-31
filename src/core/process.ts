@@ -14,6 +14,12 @@ let processCount = 0;
 let cleanupRegistered = false;
 
 export function registerForExitCleanup(process: Deno.ChildProcess) {
+  // The registry is only killed by a handler that execProcess used to be the
+  // sole installer of, so registering a process was not on its own enough to
+  // have it cleaned up. Install it here too: a command that spawns a browser
+  // and never shells out (`quarto call axe`) must still not orphan it on
+  // Ctrl-C.
+  ensureCleanup();
   const thisProcessId = ++processCount; // don't risk repeated PIDs
   processList.set(thisProcessId, process);
   return thisProcessId;
