@@ -1,0 +1,95 @@
+---
+title: Scrollable regions
+format: html
+---
+
+Fixture for #14378: the scrollable-regions runtime makes code blocks and
+cell output keyboard-focusable (`tabindex`/`role`/`aria-label`) only while
+they actually overflow. Every wide element below overflows a 390px viewport
+and fits a 1440px one.
+
+## Wide code block {#wide-code}
+
+```python
+wide_code = "an_unbroken_token_that_cannot_wrap_and_overflows_mobile"
+```
+
+## Wide table output {#wide-table}
+
+<!-- This is equivalent to intermediate markdown from a `knitr::kable()` output with `echo: false` -->
+
+:::: {.cell}
+::: {.cell-output-display}
+
+| Sepal.Length | Sepal.Width | Petal.Length | Petal.Width | Species | Observer | Site |
+|-------------:|------------:|-------------:|------------:|:--------|:---------|:-----|
+|          5.1 |         3.5 |          1.4 |         0.2 | setosa  | RAF      | A    |
+|          4.9 |         3.0 |          1.4 |         0.2 | setosa  | RAF      | B    |
+
+:::
+::::
+
+## Folded code {#folded}
+
+<!-- This is equivalent to rendered `code-fold: true` output -->
+
+<details class="code-fold">
+<summary>Code</summary>
+
+```python
+folded_code = "an_unbroken_token_that_cannot_wrap_and_overflows_mobile"
+```
+
+</details>
+
+## Output containing a link {#has-link}
+
+A region the user can already tab into must not gain a second tab stop.
+
+:::: {.cell}
+::: {.cell-output-display}
+
+| Sepal.Length | Sepal.Width | Petal.Length | Petal.Width | Species | Observer | Source |
+|-------------:|------------:|-------------:|------------:|:--------|:---------|:-------|
+|          5.1 |         3.5 |          1.4 |         0.2 | setosa  | RAF      | [ref](https://example.com) |
+
+:::
+::::
+
+## Numbered code block {#numbered}
+
+Pandoc emits a focusable fragment link per numbered line. Those links cannot
+scroll the block sideways, so it still needs a region tab stop of its own.
+
+```{.python code-line-numbers="true"}
+numbered_code = "an_unbroken_token_that_cannot_wrap_and_overflows_mobile"
+```
+
+## Visually hidden alternative {#visually-hidden}
+
+Mirrors the quarto-web get-started markup: a `visually-hidden` code
+alternative for screen readers. It is clipped to 1px, so its content height
+reads as overflow. It must not become an invisible tab stop.
+
+```{=html}
+<div class="sourceCode" id="cb-vh"><pre class="sourceCode yaml visually-hidden code-with-copy"><code class="sourceCode yaml">project:
+  type: website
+  output-dir: _site
+  an_unbroken_token_that_cannot_wrap_and_overflows_the_container_width_easily</code></pre></div>
+```
+
+## Tabset {#tabset}
+
+::: {.panel-tabset}
+
+### First
+
+Short text, nothing scrolls here.
+
+### Second
+
+```python
+tab_code = "an_unbroken_token_that_cannot_wrap_and_overflows_mobile"
+```
+
+:::

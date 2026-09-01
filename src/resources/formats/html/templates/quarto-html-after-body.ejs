@@ -678,7 +678,15 @@
     <% } %>
   
   });
-  
+
   </script>
   <% } %>
+<% if (scrollableRegions) { %>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = <%= JSON.stringify({
+    code: language['scrollable-code-label'],
+    output: language['scrollable-output-label']
+  }) %>;
+  </script>
+<% } %>
   

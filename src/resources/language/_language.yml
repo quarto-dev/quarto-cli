@@ -82,6 +82,10 @@ toggle-dark-mode: "Toggle dark mode"
 toggle-reader-mode: "Toggle reader mode"
 toggle-navigation: "Toggle navigation"
 
+# Accessible names for scrollable regions (never shown as visible text)
+scrollable-code-label: "Scrollable code"
+scrollable-output-label: "Scrollable output"
+
 crossref-fig-title: "Figure"
 crossref-tbl-title: "Table"
 crossref-lst-title: "Listing"

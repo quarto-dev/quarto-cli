@@ -10373,6 +10373,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "search-no-results-text": "string",
               "copy-button-tooltip": "string",
               "copy-button-tooltip-success": "string",
+              "scrollable-code-label": "string",
+              "scrollable-output-label": "string",
               "repo-action-links-edit": "string",
               "repo-action-links-source": "string",
               "repo-action-links-issue": "string",
@@ -25387,12 +25389,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 223031,
+        _internalId: 223759,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 223023,
+            _internalId: 223751,
             type: "enum",
             enum: [
               "png",
@@ -25408,7 +25410,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 223030,
+            _internalId: 223758,
             type: "anyOf",
             anyOf: [
               {

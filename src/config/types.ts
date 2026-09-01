@@ -189,6 +189,8 @@ import {
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
   kResourcePath,
+  kScrollableCodeLabel,
+  kScrollableOutputLabel,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
   kSearchDetatchedCancelButtonTitle,
@@ -701,6 +703,8 @@ export interface FormatLanguage {
   [kToggleReaderMode]?: string;
   [kToggleSection]?: string;
   [kToggleSidebar]?: string;
+  [kScrollableCodeLabel]?: string;
+  [kScrollableOutputLabel]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchMoreMatchText]?: string;
