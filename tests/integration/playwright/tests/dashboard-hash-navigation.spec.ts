@@ -29,6 +29,14 @@ test.describe('a hash that names no page leaves the pages alone', () => {
     await expect(page.locator('html')).not.toHaveClass(/hidden/);
     await expect(heatPane(page)).toHaveClass(/active/);
   });
+
+  // decodeURIComponent throws for malformed percent-encoding, which aborted
+  // the DOMContentLoaded handler before the hidden class was removed
+  test('when the hash is malformed percent-encoding', async ({ page }) => {
+    await page.goto(`${dashboard}#%`);
+    await expect(page.locator('html')).not.toHaveClass(/hidden/);
+    await expect(heatPane(page)).toHaveClass(/active/);
+  });
 });
 
 test('page navigation and history still work', async ({ page }) => {

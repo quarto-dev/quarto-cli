@@ -106,10 +106,21 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   }
 
+  // decodeURIComponent throws for malformed percent-encoding (e.g. "#%"); in
+  // that case the raw hash is kept, which isPage() safely treats as a
+  // non-page hash rather than leaving the dashboard hidden.
+  const decodeHash = function (rawHash) {
+    try {
+      return window.decodeURIComponent(rawHash);
+    } catch (_e) {
+      return rawHash;
+    }
+  };
+
   // Try to process the hash and activate a tab. A hash that does not name a
   // page (an in-page anchor, a footnote link, a cross-reference) is left
   // alone, so the browser can scroll to it and the current page stays visible.
-  const hash = window.decodeURIComponent(window.location.hash);
+  const hash = decodeHash(window.location.hash);
   if (QuartoDashboardUtils.isPage(hash)) {
     QuartoDashboardUtils.showPage(hash, () => {
       // a page hash selects a page, it is not a position within one, so undo
@@ -125,7 +136,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   // navigate to a tab when the history changes
   window.addEventListener("popstate", function (e) {
-    const hash = window.decodeURIComponent(window.location.hash);
+    const hash = decodeHash(window.location.hash);
     // only switch pages for a hash that names one; any other hash change
     // must leave the pages alone, otherwise showPage hides all of them
     if (hash.length === 0 || QuartoDashboardUtils.isPage(hash)) {
