@@ -11,6 +11,7 @@ website:
         text: Home
     tools:
       - icon: github
+        text: Quarto on GitHub
         href: https://github.com/quarto-dev/quarto-cli
 
 format:
