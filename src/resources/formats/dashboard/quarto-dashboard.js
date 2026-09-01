@@ -106,10 +106,28 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   }
 
-  // Try to process the hash and activate a tab
-  const hash = window.decodeURIComponent(window.location.hash);
-  if (hash.length > 0) {
+  // decodeURIComponent throws for malformed percent-encoding (e.g. "#%"); in
+  // that case the raw hash is kept, which isPage() safely treats as a
+  // non-page hash rather than leaving the dashboard hidden.
+  const decodeHash = function (rawHash) {
+    try {
+      return window.decodeURIComponent(rawHash);
+    } catch (_e) {
+      return rawHash;
+    }
+  };
+
+  // Try to process the hash and activate a tab. A hash that does not name a
+  // page (an in-page anchor, a footnote link, a cross-reference) is left
+  // alone, so the browser can scroll to it and the current page stays visible.
+  const hash = decodeHash(window.location.hash);
+  if (QuartoDashboardUtils.isPage(hash)) {
     QuartoDashboardUtils.showPage(hash, () => {
+      // a page hash selects a page, it is not a position within one, so undo
+      // the browser's fragment behaviour of starting sequential focus inside
+      // the target. Without this, tabbing from a shared "...#page" URL starts
+      // inside the page content and never reaches the navbar.
+      QuartoDashboardUtils.resetFocusToDocumentStart();
       window.document.documentElement.classList.remove("hidden");
     });
   } else {
@@ -118,8 +136,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   // navigate to a tab when the history changes
   window.addEventListener("popstate", function (e) {
-    const hash = window.decodeURIComponent(window.location.hash);
-    QuartoDashboardUtils.showPage(hash);
+    const hash = decodeHash(window.location.hash);
+    // only switch pages for a hash that names one; any other hash change
+    // must leave the pages alone, otherwise showPage hides all of them
+    if (hash.length === 0 || QuartoDashboardUtils.isPage(hash)) {
+      QuartoDashboardUtils.showPage(hash);
+    }
   });
 
   // Hook tabs and use that to update history / active tabs
@@ -226,9 +248,40 @@ window.QuartoDashboardUtils = {
       window.scrollTo(0, 0);
     }, 10);
   },
+  resetFocusToDocumentStart: function () {
+    // focusing the body moves the sequential focus navigation starting point
+    // back to the top of the document; the tabindex only needs to exist for
+    // the focus() call, so it is removed again immediately.
+    // this has to run after the browser has applied its own fragment
+    // behaviour, which happens after DOMContentLoaded, hence the deferral
+    const reset = function () {
+      const bodyEl = document.body;
+      bodyEl.setAttribute("tabindex", "-1");
+      bodyEl.focus();
+      bodyEl.removeAttribute("tabindex");
+    };
+    if (document.readyState === "complete") {
+      window.setTimeout(reset, 0);
+    } else {
+      window.addEventListener("load", function () {
+        window.setTimeout(reset, 0);
+      });
+    }
+  },
   isPage: function (hash) {
-    const tabPaneEl = document.querySelector(`.dashboard-page.tab-pane${hash}`);
-    return tabPaneEl !== null;
+    // use getElementById rather than building a selector: the hash comes from
+    // the URL and may not be a valid CSS selector (`#`, `#1foo` and `#a:b` all
+    // throw a SyntaxError in querySelector)
+    const id = hash.startsWith("#") ? hash.substring(1) : hash;
+    if (id === "") {
+      return false;
+    }
+    const tabPaneEl = document.getElementById(id);
+    return (
+      tabPaneEl !== null &&
+      tabPaneEl.classList.contains("dashboard-page") &&
+      tabPaneEl.classList.contains("tab-pane")
+    );
   },
   showPage: function (hash, fnCallback) {
     // If the hash is empty, just select the first tab and activate that

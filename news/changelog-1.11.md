@@ -9,6 +9,13 @@ All changes included in 1.11:
 - ([#14615](https://github.com/quarto-dev/quarto-cli/issues/14615)): Fix invalid `role="menu"` on the website navbar's collapse toggle button, flagged by axe-core (`aria-allowed-role`) and WAVE (`aria_menu_broken`) when the navbar collapses to the hamburger at narrow viewports.
 - ([#12116](https://github.com/quarto-dev/quarto-cli/issues/12116), [#4935](https://github.com/quarto-dev/quarto-cli/issues/4935)): Website sidebar section toggles are now `<button>` elements, so the keyboard can reach them and `Enter` or `Space` can operate them. Each toggle carries `aria-expanded`, and `aria-labelledby` names each disclosed list after its own section. The toggles no longer carry `role="navigation"`, which removed a spurious navigation landmark from every section.
 
+## Formats
+
+### `dashboard`
+
+- ([#14818](https://github.com/quarto-dev/quarto-cli/issues/14818)): Fix a dashboard with more than one page going blank when the URL hash does not name a page, such as a footnote link or a cross-reference. Such a hash is now left alone, so the current page stays visible.
+- ([#14819](https://github.com/quarto-dev/quarto-cli/issues/14819)): Fix keyboard focus starting inside the page content when a dashboard opens at a page hash, such as `dashboard.html#sales`. Tabbing forward could not reach the navbar. Focus now starts at the top of the document.
+
 ## Engines
 
 ### `knitr`
