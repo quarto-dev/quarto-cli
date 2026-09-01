@@ -20,7 +20,7 @@
       <div class="sidebar-item-container"> 
           <% if (item.href) { %>
             <a href="<%- item.href %>" class="sidebar-item-text sidebar-link<%- item.active ? " active" : "" %>"<%= item.rel ? ` rel="${item.rel}"` : "" %><%= item.target ? ` target="${item.target}"` : "" %>><% partial('navicon.ejs', { item }) %> <span class="menu-text"<%= sectionId ? ` id="${sectionId}-label"` : "" %>><%= item.text %></span></a>
-            <button type="button" class="sidebar-item-toggle text-start<%- isCollapsed ?  " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>"<%= sectionId ? ` aria-controls="${sectionId}"` : "" %> aria-expanded="<%- isCollapsed ? "false" : "true" %>" aria-label="<%- language['toggle-section'] %>: <%- item.text %>">
+            <button type="button" class="sidebar-item-toggle text-start<%- isCollapsed ?  " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>"<%= sectionId ? ` aria-controls="${sectionId}"` : "" %> aria-expanded="<%- isCollapsed ? "false" : "true" %>" aria-label="<%- language['toggle-section'] %>: <%- item.plainText || item.text %>">
               <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
             </button> 
           <% } else { %> 
