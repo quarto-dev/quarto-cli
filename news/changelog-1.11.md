@@ -16,6 +16,10 @@ All changes included in 1.11:
 - ([#14818](https://github.com/quarto-dev/quarto-cli/issues/14818)): Fix a dashboard with more than one page going blank when the URL hash does not name a page, such as a footnote link or a cross-reference. Such a hash is now left alone, so the current page stays visible.
 - ([#14819](https://github.com/quarto-dev/quarto-cli/issues/14819)): Fix keyboard focus starting inside the page content when a dashboard opens at a page hash, such as `dashboard.html#sales`. Tabbing forward could not reach the navbar. Focus now starts at the top of the document.
 
+### `html`
+
+- ([#14684](https://github.com/quarto-dev/quarto-cli/issues/14684)): Add a "Skip to main content" link to Bootstrap-themed HTML output (documents, websites, books, dashboards) so keyboard users can bypass navigation blocks (WCAG 2.4.1). The link is the first tab stop on every page, visually hidden until focused, and its text is customizable via the `language` key `skip-to-content`. Dashboards additionally mark their content container as the `main` landmark.
+
 ## Engines
 
 ### `knitr`

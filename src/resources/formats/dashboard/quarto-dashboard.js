@@ -144,6 +144,25 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   });
 
+  // Move focus for the skip-to-content link without changing the hash.
+  // A plain anchor jump pushes a history entry that names no page, so Back
+  // would land on a dead step: the URL changes but the page does not, and
+  // the reader has to press Back twice. Without JS the link still works as
+  // an ordinary in-page anchor.
+  const skipLinkEl = document.getElementById("quarto-skip-link");
+  if (skipLinkEl) {
+    skipLinkEl.addEventListener("click", function (e) {
+      const targetId = QuartoDashboardUtils.urlHash(
+        skipLinkEl.getAttribute("href") || ""
+      ).substring(1);
+      const targetEl = targetId ? document.getElementById(targetId) : null;
+      if (targetEl) {
+        e.preventDefault();
+        targetEl.focus();
+      }
+    });
+  }
+
   // Hook tabs and use that to update history / active tabs
   const navItems = document.querySelectorAll(".navbar .nav-item .nav-link");
   for (const navItem of navItems) {
