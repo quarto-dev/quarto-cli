@@ -1,0 +1,13 @@
+---
+title: "Fallback color-scheme toggle with an existing banner (#13463)"
+title-block-banner: true
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+---
+
+`title-block-banner` makes the title block a page level `banner`, so the
+floating color-scheme toggle must go into a named region instead of a second
+banner.

@@ -1703,6 +1703,13 @@ div.callout.callout-style-default > .callout-header {
 }
 
 // dark mode
+button.quarto-color-scheme-toggle {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
 .quarto-reader-toggle .bi::before,
 .quarto-color-scheme-toggle .bi::before {
   display: inline-block;
