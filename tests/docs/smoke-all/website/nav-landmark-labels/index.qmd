@@ -5,9 +5,9 @@ _quarto:
     html:
       ensureHtmlElements:
         -
-          - 'nav.navbar[aria-label="Main"]'
+          - 'nav.navbar[aria-label="Site"]'
           - 'nav#quarto-sidebar[aria-label="Section"]'
-          - 'nav.quarto-secondary-nav[aria-label="Secondary"]'
+          - 'nav.quarto-secondary-nav[aria-label="Toolbar"]'
           - 'nav#TOC[role="doc-toc"][aria-labelledby="toc-title"]'
         -
           - 'nav[aria-label="breadcrumb"]'

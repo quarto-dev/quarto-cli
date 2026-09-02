@@ -158,9 +158,9 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNavigationBreadcrumbsLabel,
-  kNavigationMainLabel,
+  kNavigationSiteLabel,
   kNavigationPageLabel,
-  kNavigationSecondaryLabel,
+  kNavigationToolbarLabel,
   kNavigationSectionLabel,
   kNotebookLinks,
   kNotebookPreserveCells,
@@ -706,9 +706,9 @@ export interface FormatLanguage {
   [kToggleReaderMode]?: string;
   [kToggleSection]?: string;
   [kToggleSidebar]?: string;
-  [kNavigationMainLabel]?: string;
+  [kNavigationSiteLabel]?: string;
   [kNavigationSectionLabel]?: string;
-  [kNavigationSecondaryLabel]?: string;
+  [kNavigationToolbarLabel]?: string;
   [kNavigationPageLabel]?: string;
   [kNavigationBreadcrumbsLabel]?: string;
   [kSearchMatchingDocumentsText]?: string;

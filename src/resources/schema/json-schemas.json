@@ -1764,13 +1764,13 @@
           "search-submit-button-title": {
             "type": "string"
           },
-          "navigation-main-label": {
+          "navigation-site-label": {
             "type": "string"
           },
           "navigation-section-label": {
             "type": "string"
           },
-          "navigation-secondary-label": {
+          "navigation-toolbar-label": {
             "type": "string"
           },
           "navigation-page-label": {
