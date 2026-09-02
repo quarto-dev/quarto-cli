@@ -354,6 +354,21 @@ function bootstrapHtmlPostprocessor(
         // Leave it where it is in the document, and just mutate it
         const clonedToc = toc.cloneNode(true) as Element;
         clonedToc.id = "TOC-body";
+
+        // Ids must be unique, so the clone can't keep the originals: suffix
+        // every id it carries, and repoint its aria-labelledby at the renamed
+        // heading. Nothing outside the nav references these ids, and the
+        // originals stay on `toc`, so existing lookups resolve as before.
+        const clonedLabelId = clonedToc.getAttribute("aria-labelledby");
+        const clonedIdEls = clonedToc.querySelectorAll("[id]");
+        for (let i = 0; i < clonedIdEls.length; i++) {
+          const clonedIdEl = clonedIdEls[i] as Element;
+          clonedIdEl.id = `${clonedIdEl.id}-body`;
+        }
+        if (clonedLabelId) {
+          clonedToc.setAttribute("aria-labelledby", `${clonedLabelId}-body`);
+        }
+
         const tocActionsEl = clonedToc.querySelector(".toc-actions");
         if (tocActionsEl) {
           tocActionsEl.remove();

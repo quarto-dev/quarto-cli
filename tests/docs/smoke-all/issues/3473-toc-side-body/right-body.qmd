@@ -13,7 +13,16 @@ _quarto:
       ensureHtmlElements:
         -
           - "nav#TOC.toc-active"
+          - "nav#TOC h2#toc-title"
+          - 'nav#TOC[aria-labelledby="toc-title"]'
           - "nav#TOC-body"
+          - "nav#TOC-body h2#toc-title-body"
+          - 'nav#TOC-body[aria-labelledby="toc-title-body"]'
+          - "nav#TOC-body a#toc-section-1-body"
+        -
+          - "nav#TOC-body h2#toc-title"
+          - 'nav#TOC-body[aria-labelledby="toc-title"]'
+          - "nav#TOC-body a#toc-section-1"
 ---
 
 # Section 1
