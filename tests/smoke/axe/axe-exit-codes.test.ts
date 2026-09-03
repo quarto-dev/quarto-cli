@@ -57,12 +57,14 @@ function axeExitTest(
   args: string[],
   expectedCode: number,
   verify?: () => void,
+  env?: Record<string, string>,
 ) {
   unitTest(name, async () => {
     const result = await execProcess({
       cmd: quartoBin(),
       args: ["call", "axe", "site", ...args],
       cwd: workingDir,
+      env,
       stdout: "piped",
       stderr: "piped",
     });
@@ -121,6 +123,23 @@ axeExitTest(
       JSON.stringify(results.notOkCells),
     );
   },
+);
+
+axeExitTest(
+  "axe exit codes - an incremental project render skips, exiting 0",
+  // --fail-on minor would exit 1 on the planted violation if the scan ran, so
+  // a 0 here can only mean the gate fired before any of it happened
+  ["--fail-on", "minor"],
+  0,
+  () => {
+    assert(
+      !existsSync(join(workingDir, "_axe-checks")),
+      "a skipped scan must not write artifacts",
+    );
+  },
+  // what quarto gives a post-render script when the render was incremental:
+  // OUTPUT_DIR present, RENDER_ALL absent
+  { QUARTO_PROJECT_OUTPUT_DIR: join(workingDir, "site") },
 );
 
 // Usage errors: exit 3, and never 1 — which would be indistinguishable from

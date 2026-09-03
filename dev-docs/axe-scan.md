@@ -114,8 +114,12 @@ so the relative site dir and the artifact anchor resolve exactly as they do
 on the command line. Exit codes propagate: without `--fail-on`, findings
 never fail the render; with `--fail-on`, a new finding at the threshold —
 or an incomplete scan — fails `quarto render` itself, with the scan's error
-line in the render output. This runs on every full render of the project,
-which adds the scan's runtime to each render.
+line in the render output. This adds the scan's runtime to each full render.
+
+Only *full* renders scan. Quarto runs post-render scripts on incremental
+renders and on preview reloads too, and the scan skips both with a note and
+exit 0 — a partly-rebuilt site would mix this render's output with the last
+one's. Run `quarto render` with no file argument to scan.
 
 ## The baseline workflow
 
