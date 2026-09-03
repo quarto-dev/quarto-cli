@@ -273,6 +273,55 @@ export type ParsedBaseline =
   | { success: false; issues: AxeBaselineIssue[] };
 
 /**
+ * Entries that share a signature, one issue per repeat.
+ *
+ * Two entries for one signature are rejected rather than merged. Merging was
+ * defined — union the pages, take the most severe accepted impact — but it
+ * resolved a real disagreement in the lenient direction: a `minor` acceptance
+ * on one page beside a `critical` one on another became "critical, everywhere",
+ * so the stricter page inherited the looser page's tolerance in both scope and
+ * impact, and a genuinely worse violation there stopped re-alerting.
+ *
+ * Entries can disagree for honest reasons, which is why this can't be waved off
+ * as a copy-paste slip: axe assigns impact per *check*, not per rule (an invalid
+ * `role` is critical where an abstract one is serious), and a finding's impact
+ * is the worst across the occurrences in *that* scan — so a subset scan and a
+ * full scan can report the same signature at different impacts. One entry, one
+ * decision.
+ *
+ * Read from the raw data rather than the parsed result so a file with a typo
+ * *and* a duplicate reports both in one pass — the same reason the entry schema
+ * is `.strict()` rather than a `superRefine`.
+ */
+function duplicateSignatureIssues(data: unknown): AxeBaselineIssue[] {
+  const findings = (data as { findings?: unknown })?.findings;
+  if (!Array.isArray(findings)) {
+    return [];
+  }
+  const firstSeen = new Map<string, number>();
+  const issues: AxeBaselineIssue[] = [];
+  findings.forEach((entry, index) => {
+    const signature = (entry as { signature?: unknown })?.signature;
+    if (typeof signature !== "string") {
+      return;
+    }
+    const first = firstSeen.get(signature);
+    if (first === undefined) {
+      firstSeen.set(signature, index);
+      return;
+    }
+    issues.push({
+      path: `findings.${index}.signature`,
+      message:
+        `'${signature}' is already accepted by entry ${first}. One entry per ` +
+        `signature: combine them into a single entry whose 'pages' lists ` +
+        `every page you are accepting it on, at the impact you are accepting.`,
+    });
+  });
+  return issues;
+}
+
+/**
  * Validate a hand-edited baseline.
  *
  * The scheme check is separate from the schema because it needs to explain
@@ -319,14 +368,18 @@ export function parseBaseline(data: unknown): ParsedBaseline {
     };
   }
 
+  const duplicates = duplicateSignatureIssues(data);
   const result = axeBaselineSchema.safeParse(data);
-  if (!result.success) {
+  if (!result.success || duplicates.length) {
     return {
       success: false,
-      issues: result.error.issues.map((issue) => ({
-        path: issue.path.join(".") || "(root)",
-        message: issue.message,
-      })),
+      issues: [
+        ...duplicates,
+        ...(result.success ? [] : result.error.issues.map((issue) => ({
+          path: issue.path.join(".") || "(root)",
+          message: issue.message,
+        }))),
+      ],
     };
   }
   return { success: true, baseline: result.data };
