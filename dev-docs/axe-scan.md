@@ -147,6 +147,7 @@ someone wrote it and said why.
 | `0` | scan complete; no new findings at/above `--fail-on` (when given) |
 | `1` | complete scan, new findings at/above the `--fail-on` threshold |
 | `2` | scan incomplete — a cell timed out or errored, no browser, nothing to scan. Takes precedence over 1: an incomplete scan never reads as a pass |
+| `3` | usage error — a flag value the command can't accept (`--fail-on serius`), or a filter that matches nothing (`--themes dark` on a site with no dark mode). A typo is not a result, so it gets its own code |
 
 A minimal GitHub Actions gate:
 

@@ -17,8 +17,12 @@
 import { globToRegExp, join, relative } from "../../../deno_ral/path.ts";
 import { walkSync } from "../../../deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
-import { ErrorEx } from "../../../core/lib/error.ts";
-import { AxeScanConfig, AxeTheme, kAxeOutputDir } from "./config.ts";
+import {
+  AxeScanConfig,
+  AxeTheme,
+  kAxeOutputDir,
+  optionError,
+} from "./config.ts";
 
 /**
  * The colour mode of one cell. `light` and `dark` are the author's two slots
@@ -239,13 +243,10 @@ export function applyThemesFilter(
       page.modes.some((mode) => mode !== "default" && themes.includes(mode))
     );
     if (!matched) {
-      throw new ErrorEx(
-        "AxeOptionError",
+      throw optionError(
         `--themes ${themes.join(",")} matched no cells: no page here has a ` +
           `light/dark mode pair, so every page scans once as 'default'. ` +
           `Drop --themes.`,
-        false,
-        false,
       );
     }
   }
