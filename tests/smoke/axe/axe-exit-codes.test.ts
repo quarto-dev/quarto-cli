@@ -123,6 +123,24 @@ axeExitTest(
   },
 );
 
+// Usage errors: exit 3, and never 1 — which would be indistinguishable from
+// "--fail-on found something". Both throw sites are covered: axeScanConfig
+// (before the action calls axeScan) and applyThemesFilter (inside it).
+// Neither reaches a browser launch, so these cost nothing.
+axeExitTest(
+  "axe exit codes - a bad flag value exits 3, not 1",
+  ["--fail-on", "serius"],
+  3,
+);
+
+axeExitTest(
+  "axe exit codes - a filter that matches nothing exits 3, not 2",
+  // the fixture is a static page with no colour-scheme script, so every page
+  // is one-mode: asking for dark alone can never match a cell
+  ["--themes", "dark"],
+  3,
+);
+
 unitTest(
   "axe exit codes - a browser that cannot start exits 2, leaving no stale summary",
   async () => {

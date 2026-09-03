@@ -29,6 +29,7 @@ import {
   kDefaultThemes,
   kDefaultTimeout,
   kDefaultViewports,
+  isAxeOptionError,
 } from "./config.ts";
 import {
   applyThemesFilter,
@@ -58,6 +59,15 @@ const kExitNewFindings = 1;
  * precedence over exit 1 — an incomplete scan never reads as a pass.
  */
 const kExitIncomplete = 2;
+/**
+ * A flag was wrong: a bad value, or a filter that can't match anything.
+ *
+ * Its own code because 1 and 2 are already spoken for by results, and a typo
+ * is not a result. `quarto`'s root handler exits 1 for any error it catches,
+ * which is right everywhere else but collides here with "new findings at the
+ * --fail-on threshold" — so option errors are caught before they reach it.
+ */
+const kExitUsage = 3;
 
 function cellLine(cell: AxeCell): string {
   const name = `${cell.page} ${cell.viewport} ${cell.theme}`;
@@ -178,7 +188,8 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     pages = applyThemesFilter(pages, config.themes);
   } catch (e) {
     error(e instanceof Error ? e.message : String(e));
-    return kExitIncomplete;
+    // --themes matching nothing is the user's mistake, not an incomplete scan
+    return isAxeOptionError(e) ? kExitUsage : kExitIncomplete;
   }
 
   const anchor = resolveAnchor(config.siteDir);
@@ -483,7 +494,21 @@ export const axeCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, siteDir: string) => {
-    const code = await axeScan(axeScanConfig(options, siteDir));
+    // Flag parsing happens here rather than inside axeScan so a bad value is
+    // reported as a usage error. Left to quarto's root handler it would exit
+    // 1 — the code this command reserves for "new findings at --fail-on".
+    let config: AxeScanConfig;
+    try {
+      config = axeScanConfig(options, siteDir);
+    } catch (e) {
+      if (!isAxeOptionError(e)) {
+        throw e;
+      }
+      error(e instanceof Error ? e.message : String(e));
+      exitWithCleanup(kExitUsage);
+      return;
+    }
+    const code = await axeScan(config);
     if (code !== kExitComplete) {
       exitWithCleanup(code);
     }
