@@ -157,9 +157,9 @@ A minimal GitHub Actions gate:
 - run: quarto call axe _site --fail-on serious
 ```
 
-`report.md` is GitHub-flavored markdown, so posting it as a PR comment is
-workflow configuration, not tooling. A sticky comment beats a plain one:
-it updates in place on each push instead of stacking a new comment per run:
+`report.md` is GitHub-flavored markdown, so a workflow can post it straight
+into the PR — no Quarto-side tooling needed. Use a sticky comment, which
+updates in place on each push rather than adding one comment per run:
 
 ```yaml
 - if: always()
