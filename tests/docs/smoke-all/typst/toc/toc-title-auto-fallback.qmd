@@ -24,7 +24,7 @@ _quarto:
 ---
 
 Quarto fills `toc-title` with a localized default before Pandoc runs, so the
-Typst `article()` function normally always receives a `toc_title` argument.
-A user Lua `Meta` filter that removes the key is the one path that reaches the
-function's own `toc_title: none` default, which is where `outline(title: auto)`
-has to take over so the table of contents still gets a heading.
+Typst `article()` function normally receives a `toc_title` argument. This test
+uses a Lua `Meta` filter to remove the key and reach the function's own
+`toc_title: none` default. In that case, `outline(title: auto)` provides the
+table of contents heading.
