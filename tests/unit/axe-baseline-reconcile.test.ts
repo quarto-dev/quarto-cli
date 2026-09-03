@@ -327,24 +327,24 @@ unitTest(
 );
 
 unitTest(
-  "reconcile - duplicate entries for one signature merge their scope",
+  "reconcile - one entry per signature, and duplicates never merge",
   // deno-lint-ignore require-await
   async () => {
-    // One entry per signature is the intended shape, but two must not silently
-    // pick a winner: the scopes union, so the acceptance covers both pages.
-    // (The command warns about this; the merge is defined, not preferred.)
+    // Two entries for one signature used to merge — union the pages, take the
+    // most severe accepted impact — which quietly loosened the stricter entry.
+    // acceptances() now assumes parseBaseline rejected them (see
+    // "baseline parse - two entries for one signature are rejected"), so a
+    // single entry listing both pages is the only way to accept both.
     const results = run(
       [cell("index.html", "a", "serious"), cell("about.html", "a", "serious")],
       {
         findings: [
-          entry({ pages: ["index.html"], note: "first" }),
-          entry({ pages: ["about.html"], note: "second" }),
+          entry({ pages: ["index.html", "about.html"], note: "both pages" }),
         ],
       },
     );
     const finding = onlyFinding(results);
     assertEquals(finding.baselined, true);
-    assert(finding.baselineNote!.includes("first"), finding.baselineNote!);
-    assert(finding.baselineNote!.includes("second"), finding.baselineNote!);
+    assertEquals(finding.baselineNote, "both pages");
   },
 );

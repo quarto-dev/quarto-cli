@@ -19,8 +19,8 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import { warning } from "../../../deno_ral/log.ts";
 import { relative, resolve } from "../../../deno_ral/path.ts";
+import { InternalError } from "../../../core/lib/error.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
 import { md5HashSync } from "../../../core/hash.ts";
@@ -264,42 +264,34 @@ interface Acceptance {
   pages: Set<string>;
   /** Impact at acceptance: escalation past this re-alerts. */
   impact: AxeImpact;
-  notes: string[];
-  entryIds: (string | undefined)[];
-  rules: (string | undefined)[];
+  note: string;
+  entryId?: string;
+  rule?: string;
 }
 
+/**
+ * One acceptance per signature, keyed by it.
+ *
+ * `parseBaseline` rejects a ledger with two entries for one signature, so the
+ * map is built straight — there is no merge, and no winner to pick.
+ */
 export function acceptances(baseline: AxeBaseline): Map<string, Acceptance> {
   const accepted = new Map<string, Acceptance>();
   for (const entry of baseline.findings) {
-    const existing = accepted.get(entry.signature);
-    if (existing) {
-      // One entry per signature is the intended shape. Merging is defined
-      // (union the scope, take the most severe accepted impact) but ambiguous
-      // enough to be worth saying out loud rather than resolving silently.
-      warning(
-        `axe baseline: duplicate entries for signature '${entry.signature}' — ` +
-          `merging their pages and taking the most severe accepted impact. ` +
-          `Consider combining them into one entry.`,
+    if (accepted.has(entry.signature)) {
+      throw new InternalError(
+        `axe baseline: duplicate entries for signature '${entry.signature}' ` +
+          `reached acceptances() — parseBaseline should have rejected them.`,
       );
-      existing.siteWide = existing.siteWide || entry.pages.length === 0;
-      for (const page of entry.pages) {
-        existing.pages.add(page);
-      }
-      existing.impact = worstImpact(existing.impact, entry.impact);
-      existing.notes.push(entry.note);
-      existing.entryIds.push(entry.id);
-      existing.rules.push(entry.rule);
-    } else {
-      accepted.set(entry.signature, {
-        siteWide: entry.pages.length === 0,
-        pages: new Set(entry.pages),
-        impact: entry.impact,
-        notes: [entry.note],
-        entryIds: [entry.id],
-        rules: [entry.rule],
-      });
     }
+    accepted.set(entry.signature, {
+      siteWide: entry.pages.length === 0,
+      pages: new Set(entry.pages),
+      impact: entry.impact,
+      note: entry.note,
+      entryId: entry.id,
+      rule: entry.rule,
+    });
   }
   return accepted;
 }
@@ -317,7 +309,7 @@ export function reconcile(
   if (!acceptance) {
     return { baselined: false, baselineNote: null };
   }
-  const note = acceptance.notes.filter(Boolean).join(" · ") || null;
+  const note = acceptance.note || null;
 
   // Escalation past the accepted impact re-alerts rather than hiding behind an
   // old acceptance.
@@ -364,10 +356,10 @@ export function staleEntries(
     if (!wasSeen) {
       stale.push({
         signature,
-        id: acceptance.entryIds.find(Boolean) ?? null,
-        rule: acceptance.rules.find(Boolean) ?? null,
+        id: acceptance.entryId ?? null,
+        rule: acceptance.rule ?? null,
         pages: [...acceptance.pages].sort(),
-        note: acceptance.notes.filter(Boolean).join(" · "),
+        note: acceptance.note,
       });
     }
   }
