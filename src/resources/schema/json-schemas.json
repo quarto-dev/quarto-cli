@@ -1728,6 +1728,9 @@
           "copy-button-tooltip-success": {
             "type": "string"
           },
+          "skip-to-content": {
+            "type": "string"
+          },
           "repo-action-links-edit": {
             "type": "string"
           },

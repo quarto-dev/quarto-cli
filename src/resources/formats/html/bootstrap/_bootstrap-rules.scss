@@ -23,6 +23,29 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
   margin-top: 1rem;
 }
 
+// skip-to-content link (WCAG 2.4.1 Bypass Blocks); visually hidden via
+// Bootstrap's .visually-hidden-focusable helper until it receives focus
+#quarto-skip-link:focus {
+  position: fixed;
+  top: $spacer * 0.5;
+  inset-inline-start: $spacer * 0.5;
+  z-index: $zindex-skip-link;
+  padding: $spacer * 0.5 $spacer;
+  background-color: $body-bg;
+  color: $link-color;
+  text-decoration: none;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
+}
+
+// the skip-link target receives programmatic focus (tabindex="-1"); don't
+// draw a focus ring around the entire content area
+#quarto-document-content:focus,
+#quarto-content:focus {
+  outline: none;
+}
+
 // Grid layout
 body {
   margin: 0;
@@ -1038,6 +1061,16 @@ td code:not(.sourceCode) {
   padding: 0.7rem;
 }
 
+// These buttons are bare .btn elements (no btn-* variant class), so
+// Bootstrap's .btn:focus-visible leaves them with no focus indicator.
+// Restore the browser's ring; unlike box-shadow it survives forced colors.
+// See https://github.com/quarto-dev/quarto-cli/issues/14774
+.quarto-btn-toggle:focus-visible,
+.quarto-search-button:focus-visible,
+.code-tools-button:focus-visible {
+  outline: revert;
+}
+
 .code-tools-button {
   font-size: 1rem;
   padding: 0.15rem 0.15rem;
@@ -1680,6 +1713,13 @@ div.callout.callout-style-default > .callout-header {
 }
 
 // dark mode
+button.quarto-color-scheme-toggle {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
 .quarto-reader-toggle .bi::before,
 .quarto-color-scheme-toggle .bi::before {
   display: inline-block;
