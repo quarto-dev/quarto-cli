@@ -82,7 +82,7 @@ template, the theme, Quarto's own chrome — and one fix clears them all.
 |---|---|---|
 | `--pages <globs>` | all `*.html` | comma-separated site-relative globs |
 | `--exclude <globs>` | — | skip globs, applied after `--pages` |
-| `--max-pages <n>` | ∞ | deterministic cap (sorted, first n) |
+| `--max-pages <n>` | ∞ | deterministic cap (sorted, first n scannable pages — redirect stubs don't use up the cap) |
 | `--viewports <WxH,...>` | `1440x900,320x568` | |
 | `--themes <light,dark>` | `light,dark` | filters two-mode pages; one-mode pages always scan once |
 | `--timeout <ms>` | `30000` | per-cell budget |
