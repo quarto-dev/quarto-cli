@@ -157,9 +157,47 @@ function summaryTable(results: AxeFindings): string[] {
 }
 
 /**
+ * Are we a project script running on a render that didn't rebuild everything?
+ *
+ * Scanning a partly-rebuilt site is worse than not scanning: the findings
+ * describe a mixture of this render's output and the last one's. Quarto runs
+ * post-render scripts on incremental renders too — the comment at
+ * `src/command/render/project.ts:830` says otherwise, but the only guard there
+ * is `if (!projResults.error)`.
+ *
+ * The signal is an inference, not a contract. `QUARTO_PROJECT_RENDER_ALL` is
+ * documented as set only for a full render — unset for an incremental render
+ * *or a preview*, so previews skip too, which is what you want when it reloads
+ * on every keystroke. But "unset" is also true at a plain command line, so a
+ * second variable has to say "I am a project script at all". Quarto exposes no
+ * such flag; `QUARTO_PROJECT_OUTPUT_DIR` is the closest thing, being the one
+ * variable present for both pre- and post-render scripts and absent otherwise.
+ * `QUARTO_PROJECT_OUTPUT_FILES` would be the precise post-only marker, but it
+ * goes missing when `QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES` is in play
+ * (project.ts:842-852, for environments that cap env-var length).
+ *
+ * Takes its reader so tests don't have to mutate the process environment.
+ */
+export function isIncrementalProjectRender(
+  env: (key: string) => string | undefined = (key) => Deno.env.get(key),
+): boolean {
+  return env("QUARTO_PROJECT_OUTPUT_DIR") !== undefined &&
+    env("QUARTO_PROJECT_RENDER_ALL") === undefined;
+}
+
+/**
  * Run the scan stage against `config.siteDir` and return the process exit code.
  */
 export async function axeScan(config: AxeScanConfig): Promise<number> {
+  if (isIncrementalProjectRender()) {
+    // Expected, and not a failure: exit 0 so an incremental render succeeds.
+    info(
+      "note: skipping the accessibility scan — this render rebuilt only some " +
+        "of the site, so a scan would mix this render's output with the " +
+        "last one's. A full `quarto render` scans.",
+    );
+    return kExitComplete;
+  }
   if (!existsSync(config.siteDir)) {
     error(`Site directory not found: ${config.siteDir}`);
     return kExitIncomplete;
