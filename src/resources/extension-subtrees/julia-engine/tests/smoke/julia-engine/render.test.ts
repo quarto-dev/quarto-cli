@@ -44,6 +44,40 @@ Deno.test("source ranges with includes", async () => {
   try { Deno.removeSync(outputFile); } catch { /* ok */ }
 });
 
+Deno.test("keep-ipynb", async () => {
+  const dir = docs("julia-engine/keep-ipynb");
+  const input = join(dir, "keep-ipynb.qmd");
+  renderQmd(input, ["--to", "html"]);
+
+  const outputHtml = join(dir, "keep-ipynb.html");
+  assert(existsSync(outputHtml), `Output file ${outputHtml} should exist`);
+
+  const ipynbFile = join(dir, "keep-ipynb.ipynb");
+  assert(existsSync(ipynbFile), `keep-ipynb file ${ipynbFile} should exist`);
+
+  const content = await Deno.readTextFile(ipynbFile);
+  const nb = JSON.parse(content);
+  assert(nb.cells, "Notebook should have cells");
+  assert(nb.metadata, "Notebook should have metadata");
+
+  try { Deno.removeSync(outputHtml); } catch { /* ok */ }
+  try { Deno.removeSync(ipynbFile); } catch { /* ok */ }
+});
+
+Deno.test("no keep-ipynb by default", () => {
+  const dir = docs("julia-engine/keep-ipynb");
+  const input = join(dir, "no-keep-ipynb.qmd");
+  renderQmd(input, ["--to", "html"]);
+
+  const outputHtml = join(dir, "no-keep-ipynb.html");
+  assert(existsSync(outputHtml), `Output file ${outputHtml} should exist`);
+
+  const ipynbFile = join(dir, "no-keep-ipynb.ipynb");
+  assert(!existsSync(ipynbFile), `ipynb file ${ipynbFile} should NOT exist without keep-ipynb`);
+
+  try { Deno.removeSync(outputHtml); } catch { /* ok */ }
+});
+
 Deno.test("engine reordering", () => {
   const dir = docs("julia-engine/engine-reordering");
   renderQmd("notebook.qmd", ["--to", "html"], dir);
@@ -52,4 +86,29 @@ Deno.test("engine reordering", () => {
   assert(existsSync(outputFile), `Output file ${outputFile} should exist`);
 
   try { Deno.removeSync(outputFile); } catch { /* ok */ }
+});
+
+Deno.test("large payload exceeding the socket send buffer", () => {
+  const dir = docs("julia-engine/large-payload");
+  const input = join(dir, "large-payload.qmd");
+
+  const line =
+    '<span class="x">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span>';
+  const body = new Array(25000).fill(line).join("\n");
+  Deno.mkdirSync(dir, { recursive: true });
+  Deno.writeTextFileSync(
+    input,
+    "---\ntitle: large payload\nformat: markdown\nengine: julia\n---\n\n" +
+      '```{julia}\n#| echo: false\n"marker-" * string(1 + 1)\n```\n\n' +
+      "```{=html}\n" + body + "\n```\n",
+  );
+
+  renderQmd(input, ["--to", "markdown"]);
+
+  const outputFile = join(dir, "large-payload.md");
+  assert(existsSync(outputFile), `Output file ${outputFile} should exist`);
+  assertMatch(Deno.readTextFileSync(outputFile), /marker-2/);
+
+  try { Deno.removeSync(outputFile); } catch { /* ok */ }
+  try { Deno.removeSync(input); } catch { /* ok */ }
 });
