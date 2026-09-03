@@ -263,6 +263,31 @@ unitTest(
   },
 );
 
+unitTest(
+  "page discovery - redirect stubs don't use up --max-pages",
+  async () => {
+    await withTempDir((dir) => {
+      // The stub sorts first, so a cap applied to raw file paths would spend
+      // itself on a page that is never scanned: --max-pages 1 would discover
+      // nothing and the scan would exit 2 with real pages sitting right there.
+      Deno.writeTextFileSync(join(dir, "aliased.html"), kAliasStub);
+      writeSite(dir, ["index.html", "zzz.html"]);
+
+      const capped = discoverPages(axeScanConfig({ maxPages: 1 }, dir));
+      assertEquals(capped.pages.map((page) => page.path), ["index.html"]);
+      // walked past on the way to the cap, so still recorded as unverified
+      assertEquals(capped.redirects.map((stub) => stub.path), ["aliased.html"]);
+
+      // and the walk stops at the cap: zzz.html is never read or classified
+      const all = discoverPages(axeScanConfig({}, dir));
+      assertEquals(all.pages.map((page) => page.path), [
+        "index.html",
+        "zzz.html",
+      ]);
+    });
+  },
+);
+
 // ---------------------------------------------------------------------------
 // --themes as a filter over the discovered matrix
 // ---------------------------------------------------------------------------

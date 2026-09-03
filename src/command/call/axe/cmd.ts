@@ -435,7 +435,8 @@ export const axeCommand = new Command()
   )
   .option(
     "--max-pages <count:number>",
-    "Cap the number of pages scanned (sorted, first n).",
+    "Cap the number of pages scanned (sorted, first n). Counts scannable " +
+      "pages: redirect stubs don't use up the cap.",
   )
   .option(
     "--viewports <viewports:string>",
