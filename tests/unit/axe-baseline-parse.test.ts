@@ -96,6 +96,55 @@ unitTest(
 );
 
 unitTest(
+  "parseBaseline - two entries for one signature are rejected, not merged",
+  // deno-lint-ignore require-await
+  async () => {
+    // Merging took the most severe accepted impact and the union of the pages,
+    // so this pair used to become "critical, everywhere" — index.html silently
+    // inheriting about.html's tolerance, and a critical violation there no
+    // longer re-alerting.
+    const issues = issuesFor({
+      findings: [
+        { ...kTrimmedEntry, pages: ["index.html"], impact: "minor" },
+        { ...kTrimmedEntry, pages: ["about.html"], impact: "critical" },
+      ],
+    });
+    assertEquals(issues.length, 1, JSON.stringify(issues));
+    assert(
+      issues[0].startsWith("findings.1.signature"),
+      `the repeat should be named, not the original: ${issues[0]}`,
+    );
+    assert(
+      issues[0].includes("already accepted by entry 0"),
+      `the message should point at the first entry: ${issues[0]}`,
+    );
+  },
+);
+
+unitTest(
+  "parseBaseline - a duplicate and a typo are reported in the same pass",
+  // deno-lint-ignore require-await
+  async () => {
+    // The duplicate check reads the raw data, so it survives a failed schema
+    // parse: one run tells you everything wrong with the file.
+    const issues = issuesFor({
+      findings: [
+        kTrimmedEntry,
+        { ...kTrimmedEntry, impcat: "minor", impact: undefined },
+      ],
+    });
+    assert(
+      issues.some((issue) => issue.startsWith("findings.1.signature")),
+      `expected the duplicate: ${JSON.stringify(issues)}`,
+    );
+    assert(
+      issues.some((issue) => issue.includes("impcat")),
+      `expected the typo: ${JSON.stringify(issues)}`,
+    );
+  },
+);
+
+unitTest(
   "parseBaseline - a misspelled field is an error, next to the field it broke",
   // deno-lint-ignore require-await
   async () => {

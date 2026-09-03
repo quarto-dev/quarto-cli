@@ -17,8 +17,12 @@
 import { globToRegExp, join, relative } from "../../../deno_ral/path.ts";
 import { walkSync } from "../../../deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
-import { ErrorEx } from "../../../core/lib/error.ts";
-import { AxeScanConfig, AxeTheme, kAxeOutputDir } from "./config.ts";
+import {
+  AxeScanConfig,
+  AxeTheme,
+  kAxeOutputDir,
+  optionError,
+} from "./config.ts";
 
 /**
  * The colour mode of one cell. `light` and `dark` are the author's two slots
@@ -150,12 +154,18 @@ export interface DiscoveredPages {
 
 /**
  * Every `*.html` under `siteDir`, as sorted site-relative forward-slash paths
- * (minus `kSkippedDirs`), narrowed by `--pages`, pruned by `--exclude` and
- * capped by `--max-pages` — sorting before the cap is what makes `--max-pages`
- * deterministic — then each surviving page read once, classified as a
- * redirect stub or a page, and (for pages) its modes discovered. Stubs are
- * classified after the cap, so a capped scan may cover fewer than
- * `--max-pages` real pages.
+ * (minus `kSkippedDirs`), narrowed by `--pages` and pruned by `--exclude`,
+ * then each surviving path read once, classified as a redirect stub or a
+ * page, and (for pages) its modes discovered. Sorting before the walk is what
+ * makes `--max-pages` deterministic.
+ *
+ * `--max-pages` counts *scannable* pages, so the walk stops once that many
+ * real pages are in hand. Counting raw files instead would let a stub-heavy
+ * prefix consume the whole cap — `--max-pages 1` on a site whose first
+ * `*.html` is a redirect stub would discover nothing and exit 2. The cost is
+ * that a capped scan's stub ledger only covers the paths walked before the
+ * cap filled, which is consistent with the rest of a subset scan: its counts
+ * describe the subset, not the site.
  */
 export function discoverPages(config: AxeScanConfig): DiscoveredPages {
   const paths: string[] = [];
@@ -193,13 +203,12 @@ export function discoverPages(config: AxeScanConfig): DiscoveredPages {
       !patterns.some((pattern) => pattern.test(path))
     );
   }
-  if (config.maxPages !== undefined) {
-    selected = selected.slice(0, config.maxPages);
-  }
-
   const pages: AxePage[] = [];
   const redirects: AxeRedirectStub[] = [];
   for (const path of selected) {
+    if (config.maxPages !== undefined && pages.length === config.maxPages) {
+      break;
+    }
     const html = Deno.readTextFileSync(join(config.siteDir, path));
     const stub = sniffRedirectStub(html);
     if (stub) {
@@ -234,13 +243,10 @@ export function applyThemesFilter(
       page.modes.some((mode) => mode !== "default" && themes.includes(mode))
     );
     if (!matched) {
-      throw new ErrorEx(
-        "AxeOptionError",
+      throw optionError(
         `--themes ${themes.join(",")} matched no cells: no page here has a ` +
           `light/dark mode pair, so every page scans once as 'default'. ` +
           `Drop --themes.`,
-        false,
-        false,
       );
     }
   }

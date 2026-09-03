@@ -54,8 +54,22 @@ export interface AxeScanConfig {
   failOn?: AxeImpact;
 }
 
-function optionError(message: string): ErrorEx {
-  return new ErrorEx("AxeOptionError", message, false, false);
+/**
+ * A flag the user got wrong — a bad value, or a filter that can't match.
+ *
+ * Named so both throw sites (`axeScanConfig` here, `applyThemesFilter` in
+ * discover.ts) can be recognized and mapped to the usage exit code. Without
+ * that, a typo lands on whichever code happens to be nearby, and the command's
+ * own 0/1/2 contract loses the meaning it defined.
+ */
+const kAxeOptionError = "AxeOptionError";
+
+export function isAxeOptionError(e: unknown): boolean {
+  return e instanceof Error && e.name === kAxeOptionError;
+}
+
+export function optionError(message: string): ErrorEx {
+  return new ErrorEx(kAxeOptionError, message, false, false);
 }
 
 function splitList(value: string): string[] {

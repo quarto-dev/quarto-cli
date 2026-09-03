@@ -1,0 +1,11 @@
+---
+title: "Fallback color-scheme toggle without a banner (#13463)"
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+---
+
+This document has no page level banner, so the floating color-scheme toggle
+gets a `header` of its own to sit in.

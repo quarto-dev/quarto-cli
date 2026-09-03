@@ -424,6 +424,35 @@ function evaluateError(response: RuntimeEvaluateResult): string | undefined {
   return details.exception?.description ?? details.text ?? "evaluation failed";
 }
 
+/**
+ * How long the recovery after a timed-out cell may take, per step.
+ *
+ * Small and fixed rather than derived from `--timeout`: recovery runs *because*
+ * the budget is already spent, and a `--timeout 60000` scan should not spend
+ * another minute per cell tidying up.
+ */
+const kRecoveryBudget = 1000;
+
+/**
+ * A command that gives up, and never rejects.
+ *
+ * The recovery path after a timeout is the one place a `client.send` cannot be
+ * allowed to hang: if the transport itself is what wedged, an unbounded send
+ * there never returns and the scan stops finishing cells — which is the whole
+ * property `--timeout` exists to guarantee. A failure here is not worth
+ * reporting either; the next cell hits the same dead connection and says so.
+ */
+function sendWithin(
+  client: CdpClient,
+  method: string,
+  params: Record<string, unknown> = {},
+): Promise<void> {
+  return Promise.race([
+    client.send(method, params).then(() => {}, () => {}),
+    sleep(kRecoveryBudget).then(() => {}),
+  ]);
+}
+
 /** Exported for unit tests; runAxeScan is the real caller. */
 export async function scanCell(
   client: CdpClient,
@@ -453,6 +482,25 @@ export async function scanCell(
   // timeout path, so a stale seed can't run under a later cell's navigation.
   let seedId: string | undefined;
 
+  // Set when --timeout fires. `run` is only *abandoned* at that point, not
+  // stopped — it sits on whatever round-trip it was awaiting, and its next
+  // step would otherwise run against the following cell's page: a stale
+  // Runtime.evaluate injecting axe and starting a second scan under the next
+  // navigation. The wrapper below stops it at its next step instead; the cell
+  // it eventually returns is discarded either way.
+  let abandoned = false;
+  const send = <T = unknown>(
+    method: string,
+    params: Record<string, unknown> = {},
+  ): Promise<T> => {
+    if (abandoned) {
+      return Promise.reject(
+        new Error(`cell abandoned after --timeout of ${config.timeout}ms`),
+      );
+    }
+    return client.send<T>(method, params);
+  };
+
   const load = client.once("Page.loadEventFired");
   // The try/catch is the transport half of fail-closed: an in-page failure is
   // handled per step below, but a rejected send — a crashed tab, a dropped
@@ -461,7 +509,7 @@ export async function scanCell(
   // and the exit code says incomplete; the cells scanned so far stay reported.
   const run = (async (): Promise<AxeCell> => {
     try {
-      await client.send("Emulation.setDeviceMetricsOverride", {
+      await send("Emulation.setDeviceMetricsOverride", {
         width: viewport.width,
         height: viewport.height,
         deviceScaleFactor: 1,
@@ -471,21 +519,21 @@ export async function scanCell(
       // prefers-color-scheme CSS. It cannot select a Quarto mode — the themes
       // ignore it unless respect-user-color-scheme is set — and where it could
       // (respect-user-color-scheme: true), the seeded stored value wins anyway.
-      await client.send("Emulation.setEmulatedMedia", {
+      await send("Emulation.setEmulatedMedia", {
         features: [{
           name: "prefers-color-scheme",
           value: mode === "dark" ? "dark" : "light",
         }],
       });
       if (mode !== "default") {
-        const seeded = await client.send<{ identifier?: string }>(
+        const seeded = await send<{ identifier?: string }>(
           "Page.addScriptToEvaluateOnNewDocument",
           { source: colorSchemeSeedSource(mode) },
         );
         seedId = seeded.identifier;
       }
 
-      const navigation = await client.send<{ errorText?: string }>(
+      const navigation = await send<{ errorText?: string }>(
         "Page.navigate",
         { url },
       );
@@ -502,7 +550,7 @@ export async function scanCell(
       // names it), or the page's JS is pathological — either way, fall back
       // to the old fixed delay rather than scanning mid-layout.
       try {
-        const ready = await client.send<RuntimeEvaluateResult>(
+        const ready = await send<RuntimeEvaluateResult>(
           "Runtime.evaluate",
           {
             expression: kReadinessProbe,
@@ -521,7 +569,7 @@ export async function scanCell(
       // The document must still be the page we asked for: a redirect fires
       // during the settle window, and axe would otherwise audit the
       // destination under this page's name. Fail closed at the site boundary.
-      const located = await client.send<RuntimeEvaluateResult>(
+      const located = await send<RuntimeEvaluateResult>(
         "Runtime.evaluate",
         { expression: kLocationProbe, returnByValue: true },
       );
@@ -550,7 +598,7 @@ export async function scanCell(
       // is an infrastructure failure: the cell would really be the other mode,
       // and fail-closed beats miscounted coverage.
       if (mode !== "default") {
-        const probed = await client.send<RuntimeEvaluateResult>(
+        const probed = await send<RuntimeEvaluateResult>(
           "Runtime.evaluate",
           { expression: kBodyModeProbe, returnByValue: true },
         );
@@ -562,7 +610,7 @@ export async function scanCell(
         }
       }
 
-      const injected = await client.send<RuntimeEvaluateResult>(
+      const injected = await send<RuntimeEvaluateResult>(
         "Runtime.evaluate",
         { expression: axeSource, returnByValue: false },
       );
@@ -573,7 +621,7 @@ export async function scanCell(
         });
       }
 
-      const evaluated = await client.send<RuntimeEvaluateResult>(
+      const evaluated = await send<RuntimeEvaluateResult>(
         "Runtime.evaluate",
         {
           expression: kAxeRunExpression,
@@ -620,20 +668,17 @@ export async function scanCell(
   if (outcome !== timedOut) {
     result = outcome as AxeCell;
   } else {
-    // Stop caring about this cell's load event, and take the page down so a
-    // hung axe.run() can't bleed into the next cell.
+    // Stop caring about this cell's load event, stop the abandoned run at its
+    // next step, and take the page down so a hung axe.run() can't bleed into
+    // the next cell.
+    abandoned = true;
     load.cancel();
     const reset = client.once("Page.loadEventFired");
-    try {
-      await client.send("Page.navigate", { url: "about:blank" });
-      // Absorb the reset's own load event here (capped — the tab may be truly
-      // wedged): the next cell registers its waiter before it navigates, and
-      // an in-flight about:blank load would resolve that waiter early,
-      // probing the next page mid-load.
-      await Promise.race([reset.event, sleep(1000)]);
-    } catch (_e) {
-      // if even that fails the next cell will report the real problem
-    }
+    await sendWithin(client, "Page.navigate", { url: "about:blank" });
+    // Absorb the reset's own load event here: the next cell registers its
+    // waiter before it navigates, and an in-flight about:blank load would
+    // resolve that waiter early, probing the next page mid-load.
+    await Promise.race([reset.event, sleep(kRecoveryBudget)]);
     reset.cancel();
     result = cell("timeout", {
       message: `cell exceeded --timeout of ${config.timeout}ms`,
@@ -641,13 +686,11 @@ export async function scanCell(
   }
 
   if (seedId) {
-    try {
-      await client.send("Page.removeScriptToEvaluateOnNewDocument", {
-        identifier: seedId,
-      });
-    } catch (_e) {
-      // a stale seed runs before the next cell's own, which then overwrites it
-    }
+    // Left in place, a stale seed runs before the next cell's own — which then
+    // overwrites it, so a failure here costs nothing.
+    await sendWithin(client, "Page.removeScriptToEvaluateOnNewDocument", {
+      identifier: seedId,
+    });
   }
   return result;
 }

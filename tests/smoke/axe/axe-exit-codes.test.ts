@@ -57,12 +57,14 @@ function axeExitTest(
   args: string[],
   expectedCode: number,
   verify?: () => void,
+  env?: Record<string, string>,
 ) {
   unitTest(name, async () => {
     const result = await execProcess({
       cmd: quartoBin(),
       args: ["call", "axe", "site", ...args],
       cwd: workingDir,
+      env,
       stdout: "piped",
       stderr: "piped",
     });
@@ -121,6 +123,41 @@ axeExitTest(
       JSON.stringify(results.notOkCells),
     );
   },
+);
+
+axeExitTest(
+  "axe exit codes - an incremental project render skips, exiting 0",
+  // --fail-on minor would exit 1 on the planted violation if the scan ran, so
+  // a 0 here can only mean the gate fired before any of it happened
+  ["--fail-on", "minor"],
+  0,
+  () => {
+    assert(
+      !existsSync(join(workingDir, "_axe-checks")),
+      "a skipped scan must not write artifacts",
+    );
+  },
+  // what quarto gives a post-render script when the render was incremental:
+  // OUTPUT_DIR present, RENDER_ALL absent
+  { QUARTO_PROJECT_OUTPUT_DIR: join(workingDir, "site") },
+);
+
+// Usage errors: exit 3, and never 1 — which would be indistinguishable from
+// "--fail-on found something". Both throw sites are covered: axeScanConfig
+// (before the action calls axeScan) and applyThemesFilter (inside it).
+// Neither reaches a browser launch, so these cost nothing.
+axeExitTest(
+  "axe exit codes - a bad flag value exits 3, not 1",
+  ["--fail-on", "serius"],
+  3,
+);
+
+axeExitTest(
+  "axe exit codes - a filter that matches nothing exits 3, not 2",
+  // the fixture is a static page with no colour-scheme script, so every page
+  // is one-mode: asking for dark alone can never match a cell
+  ["--themes", "dark"],
+  3,
 );
 
 unitTest(

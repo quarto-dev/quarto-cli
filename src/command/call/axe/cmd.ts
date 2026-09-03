@@ -29,6 +29,7 @@ import {
   kDefaultThemes,
   kDefaultTimeout,
   kDefaultViewports,
+  isAxeOptionError,
 } from "./config.ts";
 import {
   applyThemesFilter,
@@ -58,6 +59,15 @@ const kExitNewFindings = 1;
  * precedence over exit 1 — an incomplete scan never reads as a pass.
  */
 const kExitIncomplete = 2;
+/**
+ * A flag was wrong: a bad value, or a filter that can't match anything.
+ *
+ * Its own code because 1 and 2 are already spoken for by results, and a typo
+ * is not a result. `quarto`'s root handler exits 1 for any error it catches,
+ * which is right everywhere else but collides here with "new findings at the
+ * --fail-on threshold" — so option errors are caught before they reach it.
+ */
+const kExitUsage = 3;
 
 function cellLine(cell: AxeCell): string {
   const name = `${cell.page} ${cell.viewport} ${cell.theme}`;
@@ -147,9 +157,47 @@ function summaryTable(results: AxeFindings): string[] {
 }
 
 /**
+ * Are we a project script running on a render that didn't rebuild everything?
+ *
+ * Scanning a partly-rebuilt site is worse than not scanning: the findings
+ * describe a mixture of this render's output and the last one's. Quarto runs
+ * post-render scripts on incremental renders too — the comment at
+ * `src/command/render/project.ts:830` says otherwise, but the only guard there
+ * is `if (!projResults.error)`.
+ *
+ * The signal is an inference, not a contract. `QUARTO_PROJECT_RENDER_ALL` is
+ * documented as set only for a full render — unset for an incremental render
+ * *or a preview*, so previews skip too, which is what you want when it reloads
+ * on every keystroke. But "unset" is also true at a plain command line, so a
+ * second variable has to say "I am a project script at all". Quarto exposes no
+ * such flag; `QUARTO_PROJECT_OUTPUT_DIR` is the closest thing, being the one
+ * variable present for both pre- and post-render scripts and absent otherwise.
+ * `QUARTO_PROJECT_OUTPUT_FILES` would be the precise post-only marker, but it
+ * goes missing when `QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES` is in play
+ * (project.ts:842-852, for environments that cap env-var length).
+ *
+ * Takes its reader so tests don't have to mutate the process environment.
+ */
+export function isIncrementalProjectRender(
+  env: (key: string) => string | undefined = (key) => Deno.env.get(key),
+): boolean {
+  return env("QUARTO_PROJECT_OUTPUT_DIR") !== undefined &&
+    env("QUARTO_PROJECT_RENDER_ALL") === undefined;
+}
+
+/**
  * Run the scan stage against `config.siteDir` and return the process exit code.
  */
 export async function axeScan(config: AxeScanConfig): Promise<number> {
+  if (isIncrementalProjectRender()) {
+    // Expected, and not a failure: exit 0 so an incremental render succeeds.
+    info(
+      "note: skipping the accessibility scan — this render rebuilt only some " +
+        "of the site, so a scan would mix this render's output with the " +
+        "last one's. A full `quarto render` scans.",
+    );
+    return kExitComplete;
+  }
   if (!existsSync(config.siteDir)) {
     error(`Site directory not found: ${config.siteDir}`);
     return kExitIncomplete;
@@ -178,7 +226,8 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     pages = applyThemesFilter(pages, config.themes);
   } catch (e) {
     error(e instanceof Error ? e.message : String(e));
-    return kExitIncomplete;
+    // --themes matching nothing is the user's mistake, not an incomplete scan
+    return isAxeOptionError(e) ? kExitUsage : kExitIncomplete;
   }
 
   const anchor = resolveAnchor(config.siteDir);
@@ -415,7 +464,7 @@ export const axeCommand = new Command()
   .description(
     "Scan a rendered site for accessibility violations with axe-core.\n\n" +
       "EXPERIMENTAL: flags, artifacts and semantics can change between " +
-      "prereleases (see dev-docs/axe-scan.md in the quarto-cli repo).\n\n" +
+      "prereleases.\n\n" +
       "Scans every page in <site-dir> across the viewport x mode " +
       "matrix (modes discovered per page from its HTML), groups violations " +
       "by root-cause signature, reconciles " +
@@ -435,7 +484,8 @@ export const axeCommand = new Command()
   )
   .option(
     "--max-pages <count:number>",
-    "Cap the number of pages scanned (sorted, first n).",
+    "Cap the number of pages scanned (sorted, first n). Counts scannable " +
+      "pages: redirect stubs don't use up the cap.",
   )
   .option(
     "--viewports <viewports:string>",
@@ -482,7 +532,21 @@ export const axeCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, siteDir: string) => {
-    const code = await axeScan(axeScanConfig(options, siteDir));
+    // Flag parsing happens here rather than inside axeScan so a bad value is
+    // reported as a usage error. Left to quarto's root handler it would exit
+    // 1 — the code this command reserves for "new findings at --fail-on".
+    let config: AxeScanConfig;
+    try {
+      config = axeScanConfig(options, siteDir);
+    } catch (e) {
+      if (!isAxeOptionError(e)) {
+        throw e;
+      }
+      error(e instanceof Error ? e.message : String(e));
+      exitWithCleanup(kExitUsage);
+      return;
+    }
+    const code = await axeScan(config);
     if (code !== kExitComplete) {
       exitWithCleanup(code);
     }

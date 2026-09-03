@@ -103,6 +103,64 @@ unitTest(
   },
 );
 
+unitTest(
+  "scanCell - a wedged transport still finishes the cell",
+  async () => {
+    // The harder case behind the one above: not a slow page, but a connection
+    // where nothing comes back — including the recovery navigation. Left
+    // unbounded that send never returns, and the scan stops finishing cells
+    // altogether, which is the one thing --timeout exists to prevent.
+    const client = stubClient(() => new Promise(() => {}));
+    const started = Date.now();
+    const cell = await scanCell(
+      client,
+      "/* axe source */",
+      axeScanConfig({ timeout: 200 }, "_site"),
+      kPage,
+      kViewport,
+      "default",
+      "http://127.0.0.1:9999/index.html",
+    );
+    const elapsed = Date.now() - started;
+    assertEquals(cell.status, "timeout");
+    // --timeout, then the capped recovery: bounded, not merely "eventually"
+    assert(elapsed < 5000, `recovery was not bounded: ${elapsed}ms`);
+  },
+);
+
+unitTest(
+  "scanCell - an abandoned cell stops sending instead of running on",
+  async () => {
+    // A timed-out cell is abandoned, not stopped: whatever round-trip it was
+    // awaiting still completes, and its next step would run against the page
+    // the *following* cell just navigated to — a stale Runtime.evaluate
+    // injecting axe and starting a second scan underneath it.
+    const sent: string[] = [];
+    const client = stubClient((method) => {
+      sent.push(method);
+      return new Promise((resolve) => setTimeout(() => resolve({}), 100));
+    }, true);
+    const cell = await scanCell(
+      client,
+      "/* axe source */",
+      // 250ms leaves the cell mid-chain when the budget runs out
+      axeScanConfig({ timeout: 250 }, "_site"),
+      kPage,
+      kViewport,
+      "default",
+      "http://127.0.0.1:9999/index.html",
+    );
+    assertEquals(cell.status, "timeout");
+    // long enough for the abandoned run's in-flight send to land and its next
+    // step to be attempted
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    assert(
+      !sent.includes("Runtime.evaluate"),
+      `the abandoned run kept going: ${sent.join(", ")}`,
+    );
+  },
+);
+
 // ---------------------------------------------------------------------------
 // The redirect guard: axe must run on the page we asked for
 // ---------------------------------------------------------------------------

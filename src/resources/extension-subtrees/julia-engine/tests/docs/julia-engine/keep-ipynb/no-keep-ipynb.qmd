@@ -1,0 +1,9 @@
+---
+title: no keep-ipynb test
+engine: julia
+format: html
+---
+
+```{julia}
+1 + 1
+```

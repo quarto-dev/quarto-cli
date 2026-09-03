@@ -82,7 +82,7 @@ template, the theme, Quarto's own chrome — and one fix clears them all.
 |---|---|---|
 | `--pages <globs>` | all `*.html` | comma-separated site-relative globs |
 | `--exclude <globs>` | — | skip globs, applied after `--pages` |
-| `--max-pages <n>` | ∞ | deterministic cap (sorted, first n) |
+| `--max-pages <n>` | ∞ | deterministic cap (sorted, first n scannable pages — redirect stubs don't use up the cap) |
 | `--viewports <WxH,...>` | `1440x900,320x568` | |
 | `--themes <light,dark>` | `light,dark` | filters two-mode pages; one-mode pages always scan once |
 | `--timeout <ms>` | `30000` | per-cell budget |
@@ -114,8 +114,12 @@ so the relative site dir and the artifact anchor resolve exactly as they do
 on the command line. Exit codes propagate: without `--fail-on`, findings
 never fail the render; with `--fail-on`, a new finding at the threshold —
 or an incomplete scan — fails `quarto render` itself, with the scan's error
-line in the render output. This runs on every full render of the project,
-which adds the scan's runtime to each render.
+line in the render output. This adds the scan's runtime to each full render.
+
+Only *full* renders scan. Quarto runs post-render scripts on incremental
+renders and on preview reloads too, and the scan skips both with a note and
+exit 0 — a partly-rebuilt site would mix this render's output with the last
+one's. Run `quarto render` with no file argument to scan.
 
 ## The baseline workflow
 
@@ -147,6 +151,7 @@ someone wrote it and said why.
 | `0` | scan complete; no new findings at/above `--fail-on` (when given) |
 | `1` | complete scan, new findings at/above the `--fail-on` threshold |
 | `2` | scan incomplete — a cell timed out or errored, no browser, nothing to scan. Takes precedence over 1: an incomplete scan never reads as a pass |
+| `3` | usage error — a flag value the command can't accept (`--fail-on serius`), or a filter that matches nothing (`--themes dark` on a site with no dark mode). A typo is not a result, so it gets its own code |
 
 A minimal GitHub Actions gate:
 
@@ -157,9 +162,9 @@ A minimal GitHub Actions gate:
 - run: quarto call axe _site --fail-on serious
 ```
 
-`report.md` is GitHub-flavored markdown, so posting it as a PR comment is
-workflow configuration, not tooling. A sticky comment beats a plain one:
-it updates in place on each push instead of stacking a new comment per run:
+`report.md` is GitHub-flavored markdown, so a workflow can post it straight
+into the PR — no Quarto-side tooling needed. Use a sticky comment, which
+updates in place on each push rather than adding one comment per run:
 
 ```yaml
 - if: always()

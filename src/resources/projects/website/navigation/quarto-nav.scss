@@ -375,6 +375,48 @@ $sidebar-section-bottom-margin: 0.2em;
   cursor: pointer;
 }
 
+// Section disclosure controls are <button> elements so that they are reachable
+// by keyboard and expose the button role (quarto-cli#12116, quarto-cli#4935).
+// Strip the browser's default button styling so they still look like the
+// sidebar links beside them.
+.sidebar-item .sidebar-item-toggle,
+.sidebar-item button.sidebar-item-text {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+}
+
+// In a section without its own page, the label and the chevron are one control,
+// so that button has to lay out its own children instead of relying on the
+// flex container. `margin-left: auto` keeps the chevron hard right whether or
+// not the item also has a navicon.
+//
+// `align-items: baseline` is deliberate, not a typo for `center`: it reproduces
+// the line box of the inline `<a>` this button replaced, so row heights and the
+// chevron position are unchanged from 1.10. `center` renders 1-2px shorter per
+// section, which shifts every row below it.
+.sidebar-item button.sidebar-item-text {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+}
+
+.sidebar-item button.sidebar-item-text > .bi-chevron-right {
+  margin-left: auto;
+  padding-left: 0.5rem;
+}
+
+// A bare button gets no focus ring from Bootstrap's reboot, so state one
+// explicitly rather than depend on the UA default (quarto-cli#14774).
+.sidebar-item .sidebar-item-toggle:focus-visible,
+.sidebar-item button.sidebar-item-text:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 .sidebar-item .sidebar-item-toggle .bi {
   // The dongle for opening and closing sections
   font-size: 0.7rem;

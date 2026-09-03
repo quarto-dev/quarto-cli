@@ -160,7 +160,11 @@ decided it and wrote down why. To accept a finding:
 
 Extra fields pasted from the finding are tolerated; misspelled fields are
 errors (the ledger is validated on read — trust its messages, they explain
-migrations too). Which ledger a problem belongs in: if the author *chose*
+migrations too). One entry per signature: a second entry for a signature you
+already accepted is an error, not a merge — to accept it on more pages, add
+them to that entry's \`pages\`.
+
+Which ledger a problem belongs in: if the author *chose*
 the inaccessibility as part of a lesson, that is a future exclude-in-source
 case; if someone should eventually fix it — including upstream library
 defects — it belongs here, with the tracking link in the \`note\`.
