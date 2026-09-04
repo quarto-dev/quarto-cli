@@ -1,0 +1,13 @@
+project:
+  type: website
+
+website:
+  title: "axe darkly fixture"
+
+# A single dark-coloured theme, and no light slot. Mode discovery must call
+# this page one mode ('default') — the machinery still calls darkly the light
+# slot, and there is no second presentation to scan — while the dark colour is
+# surfaced as an annotation, in the cell payload and on the console.
+format:
+  html:
+    theme: darkly

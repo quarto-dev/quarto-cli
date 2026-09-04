@@ -1,0 +1,6 @@
+<!-- Included by every content page, so its single defect aggregates into one
+     systemic finding rather than several localized ones.
+
+     PLANTED: image-alt (critical). Do not add alt text — this is test data. -->
+
+![](dot.png){width=48}

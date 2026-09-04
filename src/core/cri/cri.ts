@@ -79,6 +79,12 @@ export function withCriClient<T>(
   });
 }
 
+// NOTE: this is not the only Chrome launcher in the tree. The axe scanner
+// (src/command/call/axe/scan.ts, launchScanBrowser) launches its own,
+// because this wrapper exposes navigate/query/screenshot only — no
+// emulation, no awaitPromise, no per-command timeout. If you change launch
+// flags or discovery here, check whether scan.ts needs the same change;
+// extracting a shared launcher is tracked follow-up work.
 export async function criClient(appPath?: string, port?: number) {
   if (port === undefined) {
     port = findOpenPort(9222);
