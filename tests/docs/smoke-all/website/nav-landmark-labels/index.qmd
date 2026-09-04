@@ -8,6 +8,7 @@ _quarto:
           - 'nav.navbar[aria-label="Site"]'
           - 'nav#quarto-sidebar[aria-label="Section"]'
           - 'nav.quarto-secondary-nav[aria-label="Toolbar"]'
+          - 'nav.page-navigation[aria-label="Page"]'
           - 'nav#TOC[role="doc-toc"][aria-labelledby="toc-title"]'
         -
           - 'nav[aria-label="breadcrumb"]'

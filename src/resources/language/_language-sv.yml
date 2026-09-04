@@ -79,6 +79,17 @@ toggle-dark-mode: "Skifta mörkt läge"
 toggle-reader-mode: "Skifta läsläge"
 toggle-navigation: "Skifta navigering"
 
+# Landmark labels. Two rules for translators:
+# 1. Do not include the word "navigation". Screen readers announce the role after
+#    the label (https://www.w3.org/WAI/ARIA/apg/practices/landmark-regions/).
+# 2. Use a noun, not a bare adjective. In several languages the adjective cannot
+#    stand alone without the noun it agrees with.
+navigation-site-label: "Webbplats"        # wikidata Q35127
+navigation-section-label: "Område"        # libreoffice sw
+navigation-toolbar-label: "Verktygsfält"  # wikidata Q371434
+navigation-page-label: "Sida"             # libreoffice sw
+navigation-breadcrumbs-label: "Länkstig"  # wikidata Q846205
+
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabell"
 crossref-lst-title: "Lista"

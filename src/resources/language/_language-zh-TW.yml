@@ -79,6 +79,17 @@ toggle-dark-mode: "切換深色模式"
 toggle-reader-mode: "切換閱讀器模式"
 toggle-navigation: "切換導航列"
 
+# Landmark labels. Two rules for translators:
+# 1. Do not include the word "navigation". Screen readers announce the role after
+#    the label (https://www.w3.org/WAI/ARIA/apg/practices/landmark-regions/).
+# 2. Use a noun, not a bare adjective. In several languages the adjective cannot
+#    stand alone without the noun it agrees with.
+navigation-site-label: "網站"         # wikidata Q35127
+navigation-section-label: "區段"      # libreoffice sw
+navigation-toolbar-label: "工具列"     # libreoffice sfx2 zh-TW 'Show Toolbar'
+navigation-page-label: "頁面"         # mediawiki zh-tw 'pageinfo-toolboxlink' 頁面資訊; LibreOffice gives 頁 — adapted, needs review
+navigation-breadcrumbs-label: "路徑"  # libreoffice sw zh-TW 'Path'; attested term is simplified and holds 導航 — adapted, needs review
+
 crossref-fig-title: "圖"
 crossref-tbl-title: "表"
 crossref-lst-title: "列表"
