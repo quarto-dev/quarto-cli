@@ -8,39 +8,13 @@
 
 import { decodeBase64 as decode } from "encoding/base64";
 import cdp from "./deno-cri/index.js";
-import { getBrowserExecutablePath } from "../puppeteer.ts";
+import { launchChrome } from "./launch.ts";
 import { Semaphore } from "../lib/semaphore.ts";
 import { findOpenPort } from "../port.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 import { sleep } from "../async.ts";
 import { InternalError } from "../lib/error.ts";
-import { getenv } from "../env.ts";
 import { kRenderFileLifetime } from "../../config/constants.ts";
-import { debug } from "../../deno_ral/log.ts";
-import {
-  registerForExitCleanup,
-  unregisterForExitCleanup,
-} from "../process.ts";
-import { assert } from "testing/asserts";
-
-async function waitForServer(port: number, timeout = 3000) {
-  const interval = 50;
-  let soFar = 0;
-
-  do {
-    try {
-      const response = await fetch(`http://localhost:${port}/json/list`);
-      if (response.status !== 200) {
-        throw new Error("");
-      }
-      return true;
-    } catch (_e) {
-      soFar += interval;
-      await new Promise((resolve) => setTimeout(resolve, interval));
-    }
-  } while (soFar < timeout);
-  return false;
-}
 
 const criSemaphore = new Semaphore(1);
 
@@ -79,65 +53,21 @@ export function withCriClient<T>(
   });
 }
 
-// NOTE: this is not the only Chrome launcher in the tree. The axe scanner
-// (src/command/call/axe/scan.ts, launchScanBrowser) launches its own,
-// because this wrapper exposes navigate/query/screenshot only — no
-// emulation, no awaitPromise, no per-command timeout. If you change launch
-// flags or discovery here, check whether scan.ts needs the same change;
-// extracting a shared launcher is tracked follow-up work.
+// This is the mermaid half of quarto's Chrome use: the facade below exposes
+// navigate / querySelector / screenshot, and nothing else. The axe scanner
+// (src/command/call/axe/scan.ts) drives Chrome with a different command set
+// through a client of its own. What the two share is the launcher —
+// launchChrome() in ./launch.ts — so launch flags and discovery only ever
+// change in one place.
 export async function criClient(appPath?: string, port?: number) {
-  if (port === undefined) {
-    port = findOpenPort(9222);
-  }
-  const app: string = appPath || await getBrowserExecutablePath();
-
-  // Allow to adapt the headless mode depending on the Chrome version
-  const headlessMode = getenv("QUARTO_CHROMIUM_HEADLESS_MODE", "none");
-
-  const args = [
-    // TODO: Chrome v128 changed the default from --headless=old to --headless=new
-    // in 2024-08. Old headless mode was effectively a separate browser render,
-    // and while more performant did not share the same browser implementation as
-    // headful Chrome. New headless mode will likely be useful to some, but in Quarto use cases
-    // like printing to PDF or screenshoting, we need more work to
-    // move to the new mode. We'll use `--headless=old` as the default for now
-    // until the new mode is more stable, or until we really pin a version as default to be used.
-    // This is also impacting in chromote and pagedown R packages and we could keep syncing with them.
-    // EDIT: 17/01/2025 - old mode is gone in Chrome 132. Let's default to new mode to unbreak things.
-    // Best course of action is to pin a version of Chrome and use the chrome-headless-shell more adapted to our need.
-    // ref: https://developer.chrome.com/blog/chrome-headless-shell
-    `--headless${headlessMode == "none" ? "" : "=" + headlessMode}`,
-    "--no-sandbox",
-    "--disable-gpu",
-    "--renderer-process-limit=1",
-    `--remote-debugging-port=${port}`,
-  ];
-  const browser = new Deno.Command(app, {
-    args,
-    stdout: "piped",
-    stderr: "piped",
+  const browser = await launchChrome({
+    appPath,
+    port,
+    // One diagram is rendered at a time, so a renderer per tab buys nothing.
+    args: ["--renderer-process-limit=1"],
+    logPrefix: "CHROMIUM",
   });
-
-  const cmd = browser.spawn();
-  // Register for cleanup inside exitWithCleanup() in case something goes wrong
-  const thisProcessId = registerForExitCleanup(cmd);
-
-  if (!(await waitForServer(port as number))) {
-    let msg = "Couldn't find open server.";
-    // Printing more error information if chrome process errored
-    if (!(await cmd.status).success) {
-      debug(`[CHROMIUM path]   : ${app}`);
-      debug(`[CHROMIUM cmd]   : ${cmd}`);
-      const rawError = await cmd.stderr;
-      const reader = rawError.getReader();
-      const readerResult = await reader.read();
-      assert(readerResult.done);
-      const errorString = new TextDecoder().decode(readerResult.value!);
-      msg = msg + "\n" + `Chrome process error: ${errorString}`;
-    }
-
-    throw new Error(msg);
-  }
+  port = browser.port;
 
   // deno-lint-ignore no-explicit-any
   let client: any;
@@ -149,8 +79,7 @@ export async function criClient(appPath?: string, port?: number) {
       // We have a bug where `client.close()` doesn't return properly and we don't go below
       // meaning the `browser` process is not killed here, and it will be handled in exitWithCleanup().
 
-      cmd.kill(); // Chromium headless won't terminate on its own, so we need to send kill signal
-      unregisterForExitCleanup(thisProcessId); // All went well so not need to cleanup on quarto exit
+      await browser.close();
     },
 
     rawClient: () => client,
