@@ -1,0 +1,15 @@
+---
+title: "Listing Example"
+listing:
+  contents: posts
+  sort: "date desc"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - '\<img src="posts[/|\\]post-with-code[/|\\]image.jpg'
+          - '\<img src="posts[/|\\]welcome[/|\\]thumbnail.jpg'
+        - []
+---

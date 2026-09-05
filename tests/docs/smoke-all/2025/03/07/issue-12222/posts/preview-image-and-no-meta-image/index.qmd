@@ -1,0 +1,17 @@
+---
+date: '2025-03-06T14:38:55+09:00'
+title: "This has no meta image"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - '\<meta name="twitter:image" content="../..[/|\\]posts/post-with-code/image.jpg'
+          - '\<meta property="og:image" content="../..[/|\\]posts/post-with-code/image.jpg'
+        - []
+---
+
+Testing images.
+
+![](/posts/post-with-code/image.jpg)
