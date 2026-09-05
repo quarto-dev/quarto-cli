@@ -1,6 +1,8 @@
 Change version numbers in `./configuration` to correspond to new versions.
 
-Update hardcoded version strings in `src/command/check/check.ts` (`versionConstraints` array, ~line 249) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment.
+Update hardcoded version strings in `src/command/check/check.ts` (`versionConstraints` array, ~line 249) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment. This constraint tracks the bundled version exactly (verified via history: `3.8.3` → `3.10.0` for Pandoc alongside the same PR's Dart Sass/Typst bumps), not a looser minimum floor.
+
+**Pandoc specifically** has its own checklist: [update-pandoc-checklist.md](update-pandoc-checklist.md) - template resync (with a naming gotcha that's easy to miss), schema/lua-types checks, and a `QUARTO_PANDOC`-based CI path for smoke-testing a version before it's archived to S3.
 
 ## Verify installer signing & notarization before merging (bundled binaries)
 
