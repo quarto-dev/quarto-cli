@@ -7,6 +7,7 @@ This directory includes a set of built-in translations, including:
 | File                  | Language                     |
 | --------------------- | ---------------------------- |
 | `_language.yml`       | English (default)            |
+| `_language-ar.yml`    | Arabic                       |
 | `_language-eu.yml`    | Basque                       |
 | `_language-ca.yml`    | Catalan                      |
 | `_language-zh.yml`    | Chinese                      |
