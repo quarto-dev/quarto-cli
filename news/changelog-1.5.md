@@ -128,6 +128,10 @@ All changes included in 1.5:
 - ([#5413](https://github.com/quarto-dev/quarto-cli/issues/5413)): Fix issue with Jupyter engine cells and images with captions containing newlines.
 - ([#9896](https://github.com/quarto-dev/quarto-cli/issues/9896)): Fix an issue with executing notebook with no kernelspec metadata yet.
 
+## Knitr
+
+- ([#7843](https://github.com/quarto-dev/quarto-cli/issues/7843)): fix an issue with Quarto figure specific css rules applying inside HTML widgets output.
+
 ## Website Listings
 
 - ([#8147](https://github.com/quarto-dev/quarto-cli/issues/8147)): Ensure that listings don't include the contents of the output directory
