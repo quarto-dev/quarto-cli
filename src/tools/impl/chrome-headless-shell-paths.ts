@@ -11,10 +11,7 @@
 import { join } from "../../deno_ral/path.ts";
 import { existsSync } from "../../deno_ral/fs.ts";
 import { quartoDataDir } from "../../core/appdirs.ts";
-import {
-  findChromeExecutable,
-  isPlaywrightCdnPlatform,
-} from "./chrome-for-testing.ts";
+import { findChromeExecutable } from "./chrome-for-testing.ts";
 
 const kVersionFileName = "version";
 
@@ -24,16 +21,13 @@ export function chromeHeadlessShellInstallDir(): string {
 }
 
 /**
- * The executable name for chrome-headless-shell on the current platform.
- * CfT builds use "chrome-headless-shell", Playwright arm64 builds use "headless_shell".
- * Returns the CfT name if platform detection fails (unsupported platform).
+ * The executable name for chrome-headless-shell.
+ * The Playwright CDN arm64 mirror redirects to the same chrome-for-testing-public
+ * bucket used for every other platform, so it shares the "chrome-headless-shell"
+ * binary name too.
  */
 export function chromeHeadlessShellBinaryName(): string {
-  try {
-    return isPlaywrightCdnPlatform() ? "headless_shell" : "chrome-headless-shell";
-  } catch {
-    return "chrome-headless-shell";
-  }
+  return "chrome-headless-shell";
 }
 
 /**

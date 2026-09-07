@@ -13,6 +13,7 @@ import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
 import {
   detectChromePlatform,
+  downloadAndExtractChrome,
   fetchPlaywrightBrowsersJson,
   findChromeExecutable,
   isPlaywrightCdnPlatform,
@@ -100,8 +101,7 @@ unitTest("isInstalled - returns false when only binary exists (no version file)"
   try {
     const { platform } = detectChromePlatform();
     const binName = chromeHeadlessShellBinaryName();
-    // CfT layout: chrome-headless-shell-{platform}/binary
-    // Playwright arm64 layout: chrome-linux/binary (found via walkSync fallback)
+    // CfT layout (all platforms, including Playwright CDN arm64): chrome-headless-shell-{platform}/binary
     const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
     const target = isWindows ? `${binName}.exe` : binName;
@@ -167,6 +167,39 @@ unitTest("Playwright CDN - browsers.json and URL construction", async () => {
     url.includes("linux-arm64"),
     "URL should be for linux-arm64",
   );
+}, { ignore: runningInCI() });
+
+// The Playwright CDN arm64 archive redirects to the same chrome-for-testing-public
+// bucket used for every other platform, so it shares that layout: a
+// chrome-headless-shell-linux-arm64/chrome-headless-shell binary, not Playwright's
+// older chrome-linux/headless_shell layout. This downloads the real archive to
+// guard against CfT (or Playwright's mirror of it) changing that layout again.
+// Checked with existsSync against the literal extracted path rather than
+// findChromeExecutable(), which appends ".exe" whenever the *host* is Windows —
+// irrelevant here since the archive itself is always a Linux arm64 build,
+// regardless of what platform runs this test.
+unitTest("Playwright CDN arm64 archive uses chrome-headless-shell binary name, not headless_shell", async () => {
+  const entry = await fetchPlaywrightBrowsersJson();
+  const url = playwrightCdnDownloadUrl(entry.browserVersion);
+  const tempDir = Deno.makeTempDirSync();
+  try {
+    await downloadAndExtractChrome(
+      "Chrome Headless Shell (arm64)",
+      url,
+      tempDir,
+      createMockContext(tempDir),
+    );
+    assert(
+      existsSync(join(tempDir, "chrome-headless-shell-linux-arm64", "chrome-headless-shell")),
+      "arm64 archive should contain chrome-headless-shell-linux-arm64/chrome-headless-shell",
+    );
+    assert(
+      !existsSync(join(tempDir, "chrome-linux", "headless_shell")),
+      "arm64 archive should not use Playwright's old chrome-linux/headless_shell layout",
+    );
+  } finally {
+    safeRemoveSync(tempDir, { recursive: true });
+  }
 }, { ignore: runningInCI() });
 
 // -- Step 5: preparePackage() (downloads ~50MB, skip on CI) --
