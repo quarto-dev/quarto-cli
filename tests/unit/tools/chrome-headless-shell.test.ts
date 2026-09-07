@@ -5,6 +5,7 @@
  */
 
 import { unitTest } from "../../test.ts";
+import { withTempDir } from "../../utils.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
@@ -169,67 +170,62 @@ function writeCftFixture(dir: string): string {
   return path;
 }
 
-unitTest("findChromeHeadlessShellExecutable - finds legacy Playwright arm64 layout", async () => {
-  const tempDir = Deno.makeTempDirSync();
-  try {
-    const legacyPath = writeLegacyPlaywrightFixture(tempDir);
+unitTest(
+  "findChromeHeadlessShellExecutable - finds legacy Playwright arm64 layout",
+  () =>
+    withTempDir((tempDir) => {
+      const legacyPath = writeLegacyPlaywrightFixture(tempDir);
 
-    // Sanity check: the current binary name genuinely cannot see the legacy
-    // file, since findChromeExecutable matches on exact basename.
-    assertEquals(
-      findChromeExecutable(tempDir, chromeHeadlessShellBinaryName()),
-      undefined,
-      "sanity check: current binary name must not match headless_shell",
-    );
+      // Sanity check: the current binary name genuinely cannot see the legacy
+      // file, since findChromeExecutable matches on exact basename.
+      assertEquals(
+        findChromeExecutable(tempDir, chromeHeadlessShellBinaryName()),
+        undefined,
+        "sanity check: current binary name must not match headless_shell",
+      );
 
-    const found = findChromeHeadlessShellExecutable(tempDir, true);
-    assertEquals(found, legacyPath);
-  } finally {
-    safeRemoveSync(tempDir, { recursive: true });
-  }
-});
+      const found = findChromeHeadlessShellExecutable(tempDir, true);
+      assertEquals(found, legacyPath);
+    }),
+);
 
-unitTest("findChromeHeadlessShellExecutable - ignores legacy layout when legacy lookup is off", async () => {
-  const tempDir = Deno.makeTempDirSync();
-  try {
-    writeLegacyPlaywrightFixture(tempDir);
-    assertEquals(findChromeHeadlessShellExecutable(tempDir, false), undefined);
-  } finally {
-    safeRemoveSync(tempDir, { recursive: true });
-  }
-});
+unitTest(
+  "findChromeHeadlessShellExecutable - ignores legacy layout when legacy lookup is off",
+  () =>
+    withTempDir((tempDir) => {
+      writeLegacyPlaywrightFixture(tempDir);
+      assertEquals(findChromeHeadlessShellExecutable(tempDir, false), undefined);
+    }),
+);
 
-unitTest("findChromeHeadlessShellExecutable - prefers current CfT layout over legacy", async () => {
-  const tempDir = Deno.makeTempDirSync();
-  try {
-    const cftPath = writeCftFixture(tempDir);
-    writeLegacyPlaywrightFixture(tempDir);
-    assertEquals(findChromeHeadlessShellExecutable(tempDir, true), cftPath);
-  } finally {
-    safeRemoveSync(tempDir, { recursive: true });
-  }
-});
+unitTest(
+  "findChromeHeadlessShellExecutable - prefers current CfT layout over legacy",
+  () =>
+    withTempDir((tempDir) => {
+      const cftPath = writeCftFixture(tempDir);
+      writeLegacyPlaywrightFixture(tempDir);
+      assertEquals(findChromeHeadlessShellExecutable(tempDir, true), cftPath);
+    }),
+);
 
-unitTest("isInstalled - returns true for legacy Playwright arm64 layout", async () => {
-  const tempDir = Deno.makeTempDirSync();
-  try {
-    noteInstalledVersion(tempDir, "140.0.7259.2");
-    writeLegacyPlaywrightFixture(tempDir);
-    assertEquals(isInstalled(tempDir, true), true);
-  } finally {
-    safeRemoveSync(tempDir, { recursive: true });
-  }
-});
+unitTest(
+  "isInstalled - returns true for legacy Playwright arm64 layout",
+  () =>
+    withTempDir((tempDir) => {
+      noteInstalledVersion(tempDir, "140.0.7259.2");
+      writeLegacyPlaywrightFixture(tempDir);
+      assertEquals(isInstalled(tempDir, true), true);
+    }),
+);
 
-unitTest("isInstalled - returns false for legacy layout with no version file", async () => {
-  const tempDir = Deno.makeTempDirSync();
-  try {
-    writeLegacyPlaywrightFixture(tempDir);
-    assertEquals(isInstalled(tempDir, true), false);
-  } finally {
-    safeRemoveSync(tempDir, { recursive: true });
-  }
-});
+unitTest(
+  "isInstalled - returns false for legacy layout with no version file",
+  () =>
+    withTempDir((tempDir) => {
+      writeLegacyPlaywrightFixture(tempDir);
+      assertEquals(isInstalled(tempDir, true), false);
+    }),
+);
 
 // -- Step 4: latestRelease() (external HTTP call, skip on CI) --
 
