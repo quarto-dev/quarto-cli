@@ -61,6 +61,26 @@ async function writeFakeChromeExecutable(
   return shPath;
 }
 
+// Polls until the fake Chrome's port stops answering, i.e. the process has
+// actually exited. Waiting on this (rather than a fixed delay after the
+// /shutdown request) avoids removing the temp dir while the still-running
+// process holds its script file open, which fails with "file in use" on
+// Windows.
+async function waitForPortClosed(
+  port: number,
+  timeoutMs = 2000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      await fetch(`http://localhost:${port}/json/list`);
+    } catch {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
 unitTest(
   "chrome-launch-flags - headless mode and required flags",
   async () => {
@@ -87,7 +107,6 @@ unitTest(
         : `--headless=${ambientHeadlessMode}`;
 
       await criClient(fakeChrome, port);
-      await fetch(`http://localhost:${port}/shutdown`);
 
       const argv = JSON.parse(
         await Deno.readTextFile(argvOutPath),
@@ -105,7 +124,9 @@ unitTest(
         `expected no --user-data-dir in ${JSON.stringify(argv)}`,
       );
     } finally {
-      await Deno.remove(dir, { recursive: true });
+      await fetch(`http://localhost:${port}/shutdown`).catch(() => {});
+      await waitForPortClosed(port);
+      await Deno.remove(dir, { recursive: true }).catch(() => {});
     }
   },
 );
