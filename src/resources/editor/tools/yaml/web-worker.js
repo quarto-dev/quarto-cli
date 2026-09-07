@@ -10357,6 +10357,66 @@ try {
                 "toc-title-website": "string",
                 "related-formats-title": "string",
                 "related-notebooks-title": "string",
+                "source-notebooks-prefix": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "other-links-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "code-links-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "launch-dev-container-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "launch-binder-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "article-notebook-label": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "notebook-preview-download": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "notebook-preview-download-src": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "notebook-preview-back": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "manuscript-meca-bundle": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "callout-tip-title": "string",
                 "callout-note-title": "string",
                 "callout-warning-title": "string",
@@ -10365,12 +10425,126 @@ try {
                 "section-title-abstract": "string",
                 "section-title-footnotes": "string",
                 "section-title-appendices": "string",
+                "section-title-references": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "section-title-reuse": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "section-title-copyright": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "section-title-citation": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "appendix-attribution-cite-as": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "appendix-attribution-bibtex": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "appendix-view-license": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-author-single": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-author-plural": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-affiliation-single": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-affiliation-plural": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-published": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-modified": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-keywords": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "code-summary": "string",
                 "code-tools-menu-caption": "string",
                 "code-tools-show-all-code": "string",
                 "code-tools-hide-all-code": "string",
                 "code-tools-view-source": "string",
                 "code-tools-source-code": "string",
+                "tools-share": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "tools-download": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "code-line": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "code-lines": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "back-to-top": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "search-no-results-text": "string",
                 "copy-button-tooltip": "string",
                 "copy-button-tooltip-success": "string",
@@ -10387,6 +10561,42 @@ try {
                 "search-text-placeholder": "string",
                 "search-detached-cancel-button-title": "string",
                 "search-submit-button-title": "string",
+                "search-label": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-section": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-sidebar": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-dark-mode": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-reader-mode": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-navigation": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "crossref-fig-title": "string",
                 "crossref-tbl-title": "string",
                 "crossref-lst-title": "string",
@@ -10415,7 +10625,157 @@ try {
                 "crossref-exr-prefix": "string",
                 "crossref-lof-title": "string",
                 "crossref-lot-title": "string",
-                "crossref-lol-title": "string"
+                "crossref-lol-title": "string",
+                "environment-proof-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "environment-remark-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "environment-solution-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-default": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-date-asc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-date-desc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-number-desc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-number-asc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-date": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-description": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-author": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-filename": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-filemodified": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-subtitle": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-readingtime": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-wordcount": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-categories": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-minutes-compact": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-category-all": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-no-matches": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-words": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-filter": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                draft: {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                }
               },
               errorDescription: "be a format language description object"
             }
@@ -25525,12 +25885,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 218170,
+          _internalId: 218590,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 218162,
+              _internalId: 218582,
               type: "enum",
               enum: [
                 "png",
@@ -25546,7 +25906,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 218169,
+              _internalId: 218589,
               type: "anyOf",
               anyOf: [
                 {
