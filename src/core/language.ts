@@ -114,7 +114,12 @@ export async function readLanguageTranslations(
     // );
     Object.keys(translations).forEach((key) => {
       // top level entries use the variation key
-      if (kLanguageDefaultsKeys.includes(key)) {
+      // (known keys, and any other non-object scalar, which is a user or
+      // extension defined string; nested objects are handled below instead)
+      if (
+        kLanguageDefaultsKeys.includes(key) ||
+        typeof translations[key] !== "object"
+      ) {
         language[variation] = language[variation] || {};
         (language[variation] as FormatLanguage)[key] = translations[key];
         // objects use variation key + subkey
