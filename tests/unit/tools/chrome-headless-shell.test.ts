@@ -24,6 +24,7 @@ import {
   chromeHeadlessShellBinaryName,
   chromeHeadlessShellInstallDir,
   chromeHeadlessShellExecutablePath,
+  findChromeHeadlessShellExecutable,
   isInstalled,
   noteInstalledVersion,
   readInstalledVersion,
@@ -124,6 +125,107 @@ unitTest("isInstalled - returns true when version file and binary exist", async 
     Deno.writeTextFileSync(join(subdir, target), "fake");
 
     assertEquals(isInstalled(tempDir), true);
+  } finally {
+    safeRemoveSync(tempDir, { recursive: true });
+  }
+});
+
+// -- Step 3b: legacy Playwright arm64 layout (backward compatibility) --
+//
+// Linux arm64 installs made before Playwright's CDN moved to the
+// browserVersion-keyed builds/cft/ path (roughly 2026-04 through 2026-08-31)
+// extracted Playwright's own package layout: chrome-linux/headless_shell.
+// Current installs use the CfT layout chrome-headless-shell-linux-arm64/
+// chrome-headless-shell. Detection has to keep recognising the old layout,
+// otherwise a machine with a perfectly good binary on disk falls through to
+// system-Chrome detection and every Chrome-backed render dies with
+// "Chrome not found".
+//
+// allowLegacyPlaywrightLayout is passed explicitly in these tests because the
+// default is derived from isPlaywrightCdnPlatform(), which auto-detects the
+// *host* platform — so the arm64 branch is otherwise unreachable here.
+
+// Legacy fixture: chrome-linux/headless_shell. findChromeExecutable appends
+// ".exe" whenever the host is Windows, so the fixture matches that to exercise
+// the same code path off-Linux.
+function writeLegacyPlaywrightFixture(dir: string): string {
+  const legacyDir = join(dir, "chrome-linux");
+  Deno.mkdirSync(legacyDir, { recursive: true });
+  const target = isWindows ? "headless_shell.exe" : "headless_shell";
+  const path = join(legacyDir, target);
+  Deno.writeTextFileSync(path, "fake");
+  return path;
+}
+
+// Current CfT fixture: chrome-headless-shell-{platform}/chrome-headless-shell.
+function writeCftFixture(dir: string): string {
+  const { platform } = detectChromePlatform();
+  const binName = chromeHeadlessShellBinaryName();
+  const subdir = join(dir, `chrome-headless-shell-${platform}`);
+  Deno.mkdirSync(subdir, { recursive: true });
+  const target = isWindows ? `${binName}.exe` : binName;
+  const path = join(subdir, target);
+  Deno.writeTextFileSync(path, "fake");
+  return path;
+}
+
+unitTest("findChromeHeadlessShellExecutable - finds legacy Playwright arm64 layout", async () => {
+  const tempDir = Deno.makeTempDirSync();
+  try {
+    const legacyPath = writeLegacyPlaywrightFixture(tempDir);
+
+    // Sanity check: the current binary name genuinely cannot see the legacy
+    // file, since findChromeExecutable matches on exact basename.
+    assertEquals(
+      findChromeExecutable(tempDir, chromeHeadlessShellBinaryName()),
+      undefined,
+      "sanity check: current binary name must not match headless_shell",
+    );
+
+    const found = findChromeHeadlessShellExecutable(tempDir, true);
+    assertEquals(found, legacyPath);
+  } finally {
+    safeRemoveSync(tempDir, { recursive: true });
+  }
+});
+
+unitTest("findChromeHeadlessShellExecutable - ignores legacy layout when legacy lookup is off", async () => {
+  const tempDir = Deno.makeTempDirSync();
+  try {
+    writeLegacyPlaywrightFixture(tempDir);
+    assertEquals(findChromeHeadlessShellExecutable(tempDir, false), undefined);
+  } finally {
+    safeRemoveSync(tempDir, { recursive: true });
+  }
+});
+
+unitTest("findChromeHeadlessShellExecutable - prefers current CfT layout over legacy", async () => {
+  const tempDir = Deno.makeTempDirSync();
+  try {
+    const cftPath = writeCftFixture(tempDir);
+    writeLegacyPlaywrightFixture(tempDir);
+    assertEquals(findChromeHeadlessShellExecutable(tempDir, true), cftPath);
+  } finally {
+    safeRemoveSync(tempDir, { recursive: true });
+  }
+});
+
+unitTest("isInstalled - returns true for legacy Playwright arm64 layout", async () => {
+  const tempDir = Deno.makeTempDirSync();
+  try {
+    noteInstalledVersion(tempDir, "140.0.7259.2");
+    writeLegacyPlaywrightFixture(tempDir);
+    assertEquals(isInstalled(tempDir, true), true);
+  } finally {
+    safeRemoveSync(tempDir, { recursive: true });
+  }
+});
+
+unitTest("isInstalled - returns false for legacy layout with no version file", async () => {
+  const tempDir = Deno.makeTempDirSync();
+  try {
+    writeLegacyPlaywrightFixture(tempDir);
+    assertEquals(isInstalled(tempDir, true), false);
   } finally {
     safeRemoveSync(tempDir, { recursive: true });
   }
