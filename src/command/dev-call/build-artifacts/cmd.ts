@@ -163,10 +163,10 @@ export const buildJsCommand = new Command()
     "Builds all the javascript assets necessary for IDE support.\n\n",
   )
   .action(async () => {
-    // No initYamlIntelligenceResourcesFromFilesystem() here: it would seed
-    // the schema registry from the (possibly stale) on-disk JSON before
-    // buildAssets() re-reads schema/*.yml fresh, and registration is
-    // once-only per schema id.
+    // buildAssets() must see schemas read fresh from disk: setSchemaDefinition()
+    // registers each $id once and silently ignores later calls, so pre-seeding
+    // the registry from the generated JSON would pin stale definitions.
+    // Mirrors package/src/common/prepare-dist.ts.
     await initTreeSitter();
     await buildAssets();
   });
