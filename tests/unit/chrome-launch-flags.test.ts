@@ -65,20 +65,22 @@ async function writeFakeChromeExecutable(
 // actually exited. Waiting on this (rather than a fixed delay after the
 // /shutdown request) avoids removing the temp dir while the still-running
 // process holds its script file open, which fails with "file in use" on
-// Windows.
+// Windows. Returns whether the port actually closed, so a stuck process
+// can be reported instead of failing silently.
 async function waitForPortClosed(
   port: number,
   timeoutMs = 2000,
-): Promise<void> {
+): Promise<boolean> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
       await fetch(`http://localhost:${port}/json/list`);
     } catch {
-      return;
+      return true;
     }
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
+  return false;
 }
 
 unitTest(
@@ -125,8 +127,16 @@ unitTest(
       );
     } finally {
       await fetch(`http://localhost:${port}/shutdown`).catch(() => {});
-      await waitForPortClosed(port);
-      await Deno.remove(dir, { recursive: true }).catch(() => {});
+      const closed = await waitForPortClosed(port);
+      if (!closed) {
+        console.error(
+          `chrome-launch-flags: fake Chrome on port ${port} did not shut down; leaving ${dir} in place`,
+        );
+      } else {
+        await Deno.remove(dir, { recursive: true }).catch((e) => {
+          console.error(`chrome-launch-flags: failed to remove ${dir}: ${e}`);
+        });
+      }
     }
   },
 );
