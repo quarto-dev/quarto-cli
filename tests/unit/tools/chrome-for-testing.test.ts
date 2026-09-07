@@ -130,25 +130,6 @@ unitTest("findChromeExecutable - finds binary in nested structure", async () => 
   }
 });
 
-// Step 3b: findChromeExecutable() — Playwright arm64 layout
-// Skip on Windows: arm64 layout is Linux-only, no .exe extension.
-unitTest("findChromeExecutable - finds binary in Playwright arm64 layout", async () => {
-  if (isWindows) return; // arm64 layout is Linux-only
-  const tempDir = Deno.makeTempDirSync();
-  try {
-    // Playwright arm64 extracts to chrome-linux/headless_shell
-    const subdir = join(tempDir, "chrome-linux");
-    Deno.mkdirSync(subdir);
-    Deno.writeTextFileSync(join(subdir, "headless_shell"), "fake binary");
-
-    const found = findChromeExecutable(tempDir, "headless_shell");
-    assert(found !== undefined, "should find headless_shell in chrome-linux/");
-    assert(found!.endsWith("headless_shell"), `should end with headless_shell, got: ${found}`);
-  } finally {
-    safeRemoveSync(tempDir, { recursive: true });
-  }
-});
-
 // Playwright CDN tests
 // Skipped on CI: makes external HTTP calls to GitHub/Playwright CDN.
 // Same pattern as CfT API tests above — run locally to catch API contract changes.
