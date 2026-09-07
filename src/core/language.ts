@@ -118,6 +118,7 @@ export async function readLanguageTranslations(
       // extension defined string; nested objects are handled below instead)
       if (
         kLanguageDefaultsKeys.includes(key) ||
+        translations[key] === null ||
         typeof translations[key] !== "object"
       ) {
         language[variation] = language[variation] || {};
@@ -174,6 +175,7 @@ export function translationsForLang(language: FormatLanguage, lang: string) {
       kLanguageDefaultsKeys.includes(key) ||
       key.match(/^crossref-.*-title$/) ||
       key.match(/^crossref-.*-prefix$/) ||
+      language[key] === null ||
       typeof language[key] !== "object"
     ) {
       translations[key] = language[key];
