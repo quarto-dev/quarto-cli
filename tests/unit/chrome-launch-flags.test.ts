@@ -14,8 +14,9 @@ import { unitTest } from "../test.ts";
 // Windows, a shebang script on Unix) that re-invokes the currently running
 // deno binary to run a small script. That script records its own argv --
 // exactly what criClient passed as Chrome's command line -- to a JSON file,
-// then serves /json/list so criClient's readiness check resolves. It
-// self-exits shortly after so no process lingers past the test.
+// then serves /json/list so criClient's readiness check resolves. A
+// /shutdown route lets the test terminate it deterministically instead of
+// guessing at a lifetime.
 async function writeFakeChromeExecutable(
   dir: string,
   argvOutPath: string,
@@ -33,10 +34,12 @@ async function writeFakeChromeExecutable(
       "  const url = new URL(req.url);",
       '  if (url.pathname === "/json/list") {',
       '    return new Response("[]", { status: 200 });',
+      '  } else if (url.pathname === "/shutdown") {',
+      "    setTimeout(() => Deno.exit(0), 50);",
+      '    return new Response("", { status: 200 });',
       "  }",
       '  return new Response("", { status: 404 });',
       "});",
-      "setTimeout(() => Deno.exit(0), 2000);",
     ].join("\n"),
   );
 
@@ -63,34 +66,46 @@ unitTest(
   async () => {
     const port = findOpenPort();
     const dir = await Deno.makeTempDir({ prefix: "chrome-launch-flags-" });
-    const argvOutPath = join(dir, "argv.json");
-    const fakeChrome = await writeFakeChromeExecutable(dir, argvOutPath, port);
+    try {
+      const argvOutPath = join(dir, "argv.json");
+      const fakeChrome = await writeFakeChromeExecutable(
+        dir,
+        argvOutPath,
+        port,
+      );
 
-    // Read-only: never set/delete Deno.env in this suite. Test files share
-    // Deno.env under the default parallel runner, and save/restore doesn't
-    // help (see llm-docs/testing-patterns.md, "Environment Variable Testing
-    // Pitfalls"). Mirror criClient's own default-substitution logic against
-    // whatever value is actually ambient, rather than forcing a specific one.
-    const ambientHeadlessMode =
-      Deno.env.get("QUARTO_CHROMIUM_HEADLESS_MODE") ?? "none";
-    const expectedHeadlessFlag = ambientHeadlessMode === "none"
-      ? "--headless"
-      : `--headless=${ambientHeadlessMode}`;
+      // Read-only: never set/delete Deno.env in this suite. Test files
+      // share Deno.env under the default parallel runner, and save/restore
+      // doesn't help (see llm-docs/testing-patterns.md, "Environment
+      // Variable Testing Pitfalls"). Mirror criClient's own
+      // default-substitution logic against whatever value is actually
+      // ambient, rather than forcing a specific one.
+      const ambientHeadlessMode =
+        Deno.env.get("QUARTO_CHROMIUM_HEADLESS_MODE") ?? "none";
+      const expectedHeadlessFlag = ambientHeadlessMode === "none"
+        ? "--headless"
+        : `--headless=${ambientHeadlessMode}`;
 
-    await criClient(fakeChrome, port);
+      await criClient(fakeChrome, port);
+      await fetch(`http://localhost:${port}/shutdown`);
 
-    const argv = JSON.parse(await Deno.readTextFile(argvOutPath)) as string[];
-    assert(
-      argv.includes(expectedHeadlessFlag),
-      `expected ${expectedHeadlessFlag} in ${JSON.stringify(argv)}`,
-    );
-    assert(argv.includes("--no-sandbox"));
-    assert(argv.includes("--disable-gpu"));
-    assert(argv.includes("--renderer-process-limit=1"));
-    assert(argv.includes(`--remote-debugging-port=${port}`));
-    assert(
-      !argv.some((a) => a.startsWith("--user-data-dir")),
-      `expected no --user-data-dir in ${JSON.stringify(argv)}`,
-    );
+      const argv = JSON.parse(
+        await Deno.readTextFile(argvOutPath),
+      ) as string[];
+      assert(
+        argv.includes(expectedHeadlessFlag),
+        `expected ${expectedHeadlessFlag} in ${JSON.stringify(argv)}`,
+      );
+      assert(argv.includes("--no-sandbox"));
+      assert(argv.includes("--disable-gpu"));
+      assert(argv.includes("--renderer-process-limit=1"));
+      assert(argv.includes(`--remote-debugging-port=${port}`));
+      assert(
+        !argv.some((a) => a.startsWith("--user-data-dir")),
+        `expected no --user-data-dir in ${JSON.stringify(argv)}`,
+      );
+    } finally {
+      await Deno.remove(dir, { recursive: true });
+    }
   },
 );
