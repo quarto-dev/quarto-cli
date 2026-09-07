@@ -139,10 +139,9 @@ unitTest("latestRelease - returns valid RemotePackageInfo", async () => {
     `version format wrong: ${release.version}`,
   );
   assert(release.url.startsWith("https://"), `URL should be https: ${release.url}`);
-  // CfT URLs contain the version; Playwright CDN URLs contain a revision number instead
-  if (!isPlaywrightCdnPlatform()) {
-    assert(release.url.includes(release.version), "CfT URL should contain version");
-  } else {
+  // Both CfT and Playwright CDN URLs contain the browserVersion
+  assert(release.url.includes(release.version), "URL should contain version");
+  if (isPlaywrightCdnPlatform()) {
     assert(release.url.includes("cdn.playwright.dev"), "arm64 URL should use Playwright CDN");
   }
   assert(release.assets.length > 0, "should have at least one asset");
@@ -155,14 +154,14 @@ unitTest("latestRelease - returns valid RemotePackageInfo", async () => {
 
 unitTest("Playwright CDN - browsers.json and URL construction", async () => {
   const entry = await fetchPlaywrightBrowsersJson();
-  const url = playwrightCdnDownloadUrl(entry.revision);
+  const url = playwrightCdnDownloadUrl(entry.browserVersion);
   assert(
     /^\d+\.\d+\.\d+\.\d+$/.test(entry.browserVersion),
     `browserVersion format wrong: ${entry.browserVersion}`,
   );
   assert(
-    url.includes(entry.revision),
-    `URL should contain revision ${entry.revision}`,
+    url.includes(entry.browserVersion),
+    `URL should contain browserVersion ${entry.browserVersion}`,
   );
   assert(
     url.includes("linux-arm64"),
