@@ -396,7 +396,11 @@ jobs:
           cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
           cp package/launcher/target/release/quarto.exe package/pkg-working/bin/quarto.exe
 
+      # Scheduled runs never publish, so they skip DigiCert signing. Gated on
+      # `schedule` and not `publish-release`: those dispatches are the pre-merge
+      # check for bundled-binary bumps and must keep signing.
       - name: Sign files before making ZIP and MSI installer
+        if: ${{ github.event_name != 'schedule' }}
         id: sign-files
         uses: ./.github/workflows/actions/sign-files
         with:
@@ -425,6 +429,7 @@ jobs:
           popd
 
       - name: Sign MSI installer
+        if: ${{ github.event_name != 'schedule' }}
         uses: ./.github/workflows/actions/sign-files
         with:
           paths: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi

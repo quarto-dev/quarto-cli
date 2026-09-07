@@ -1,0 +1,13 @@
+---
+title: "Fallback color-scheme toggle with a custom page layout (#13463)"
+page-layout: custom
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+---
+
+`page-layout: custom` wraps the title block header in a plain `div`, which does
+not strip its implicit `banner` role. The page therefore already has a banner,
+even though the header is not a child of `body`.
