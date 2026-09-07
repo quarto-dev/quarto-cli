@@ -35,6 +35,11 @@ on:
         required: false
         type: string
         default: ""
+      pandoc-override-version:
+        description: "Pandoc release tag to download from GitHub and use via QUARTO_PANDOC instead of the archived/configured version (e.g. 3.10.1) - for smoke-testing a version before it has been archived to S3. Leave empty for normal behavior."
+        required: false
+        type: string
+        default: ""
   schedule:
     - cron: "0 6 * * *"
 
@@ -251,6 +256,10 @@ jobs:
           uv sync --frozen
 
       - uses: ./.github/workflows/actions/quarto-dev
+
+      - uses: ./.github/workflows/actions/pandoc-override
+        with:
+          pandoc-version: ${{ inputs.pandoc-override-version }}
 
       - name: Install Tinytex
         env:
