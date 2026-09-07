@@ -16,7 +16,7 @@ import { formatResourcePath, resourcePath } from "../../../core/resources.ts";
 import { simple } from "acorn/walk";
 import { Parser } from "acorn/acorn";
 import classFields from "acorn-class-fields";
-import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
+import { initTreeSitter } from "../../../core/schema/deno-init-tree-sitter.ts";
 
 // initialize language handlers
 import "../../../core/handlers/handlers.ts";
@@ -163,6 +163,10 @@ export const buildJsCommand = new Command()
     "Builds all the javascript assets necessary for IDE support.\n\n",
   )
   .action(async () => {
-    await initYamlIntelligenceResourcesFromFilesystem();
+    // No initYamlIntelligenceResourcesFromFilesystem() here: it would seed
+    // the schema registry from the (possibly stale) on-disk JSON before
+    // buildAssets() re-reads schema/*.yml fresh, and registration is
+    // once-only per schema id.
+    await initTreeSitter();
     await buildAssets();
   });
