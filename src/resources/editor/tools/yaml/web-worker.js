@@ -13314,6 +13314,55 @@ try {
             }
           }
         ],
+        "schema/document-a11y.yml": [
+          {
+            name: "axe",
+            tags: {
+              formats: [
+                "$html-files"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  object: {
+                    properties: {
+                      output: {
+                        enum: [
+                          "json",
+                          "console",
+                          "document"
+                        ],
+                        description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                      },
+                      standard: {
+                        enum: [
+                          "wcag2a",
+                          "wcag2aa",
+                          "wcag2aaa",
+                          "wcag21a",
+                          "wcag21aa",
+                          "wcag21aaa",
+                          "wcag22a",
+                          "wcag22aa",
+                          "wcag22aaa"
+                        ],
+                        description: "Only check the rules for this WCAG conformance level, named as version then level (e.g. `wcag21aa` for WCAG 2.1 AA). Each level includes the levels and versions it builds on, and may check rules axe-core disables by default (such as AAA color contrast). Axe's best-practice rules are excluded unless `best-practice: true` is also set."
+                      },
+                      "best-practice": {
+                        boolean: {
+                          description: "Whether to check axe-core's best-practice rules (checks recommended by axe that aren't required by any WCAG success criterion). Checked by default when `standard` is unset; excluded by default when `standard` is set."
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            description: "When defined, run axe-core accessibility tests on the document."
+          }
+        ],
         "schema/document-about.yml": [
           {
             name: "about",
@@ -14535,6 +14584,26 @@ try {
               ]
             },
             description: "Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or\nmore Zotero group libraries to use with the document.\n"
+          }
+        ],
+        "schema/document-email.yml": [
+          {
+            name: "email-version",
+            tags: {
+              formats: [
+                "email"
+              ]
+            },
+            schema: {
+              enum: [
+                1,
+                2
+              ]
+            },
+            description: {
+              short: "Email format version",
+              long: "Specifies which email format version to use.\n\n- `1`: Legacy email format with document-level metadata (compatible with older Connect versions)\n- `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)\n"
+            }
           }
         ],
         "schema/document-epub.yml": [
@@ -20291,6 +20360,73 @@ try {
             description: "Print a list of tables in the document."
           }
         ],
+        "schema/document-typst.yml": [
+          {
+            name: "logo",
+            schema: {
+              ref: "logo-light-dark-specifier-path-optional"
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: "The logo image."
+          },
+          {
+            name: "margin-geometry",
+            schema: {
+              object: {
+                closed: true,
+                properties: {
+                  inner: {
+                    ref: "marginalia-side-geometry",
+                    description: "Inner (left) margin geometry."
+                  },
+                  outer: {
+                    ref: "marginalia-side-geometry",
+                    description: "Outer (right) margin geometry."
+                  },
+                  clearance: {
+                    string: {
+                      description: "Minimum vertical spacing between margin notes (default: 8pt)."
+                    }
+                  }
+                }
+              }
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: {
+              short: "Advanced geometry settings for Typst margin layout.",
+              long: "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
+            }
+          },
+          {
+            name: "theorem-appearance",
+            schema: {
+              enum: [
+                "simple",
+                "fancy",
+                "clouds",
+                "rainbow"
+              ]
+            },
+            default: "simple",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: {
+              short: "Visual style for theorem environments in Typst output.",
+              long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+            }
+          }
+        ],
         "schema/document-website.yml": [
           {
             name: "search",
@@ -23230,6 +23366,10 @@ try {
           "Attribute(s) for message output",
           "Class name(s) for error output",
           "Attribute(s) for error output",
+          "When defined, run axe-core accessibility tests on the document.",
+          "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+          "Only check the rules for this WCAG conformance level, named as\nversion then level (e.g.&nbsp;<code>wcag21aa</code> for WCAG 2.1 AA). Each\nlevel includes the levels and versions it builds on, and may check rules\naxe-core disables by default (such as AAA color contrast). Axe\u2019s\nbest-practice rules are excluded unless <code>best-practice: true</code>\nis also set.",
+          "Whether to check axe-core\u2019s best-practice rules (checks recommended\nby axe that aren\u2019t required by any WCAG success criterion). Checked by\ndefault when <code>standard</code> is unset; excluded by default when\n<code>standard</code> is set.",
           {
             short: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.",
             long: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.\nThe allowed values are either:"
@@ -23420,6 +23560,10 @@ try {
           },
           "Determines where chunk output is shown in the editor.",
           "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
+          {
+            short: "Email format version",
+            long: "Specifies which email format version to use."
+          },
           "The identifier for this publication.",
           "The identifier value.",
           "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
@@ -24411,6 +24555,18 @@ try {
           "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
           "Print a list of figures in the document.",
           "Print a list of tables in the document.",
+          "The logo image.",
+          {
+            short: "Advanced geometry settings for Typst margin layout.",
+            long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+          },
+          "Inner (left) margin geometry.",
+          "Outer (right) margin geometry.",
+          "Minimum vertical spacing between margin notes (default: 8pt).",
+          {
+            short: "Visual style for theorem environments in Typst output.",
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered:"
+          },
           "Setting this to false prevents this document from being included in\nsearches.",
           "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
           {
@@ -24786,26 +24942,6 @@ try {
           "Manuscript configuration",
           "internal-schema-hack",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-          "When defined, run axe-core accessibility tests on the document.",
-          "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
-          "Only check the rules for this WCAG conformance level, named as\nversion then level (e.g.&nbsp;<code>wcag21aa</code> for WCAG 2.1 AA). Each\nlevel includes the levels and versions it builds on, and may check rules\naxe-core disables by default (such as AAA color contrast). Axe\u2019s\nbest-practice rules are excluded unless <code>best-practice: true</code>\nis also set.",
-          "Whether to check axe-core\u2019s best-practice rules (checks recommended\nby axe that aren\u2019t required by any WCAG success criterion). Checked by\ndefault when <code>standard</code> is unset; excluded by default when\n<code>standard</code> is set.",
-          "The logo image.",
-          {
-            short: "Advanced geometry settings for Typst margin layout.",
-            long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
-          },
-          "Inner (left) margin geometry.",
-          "Outer (right) margin geometry.",
-          "Minimum vertical spacing between margin notes (default: 8pt).",
-          {
-            short: "Visual style for theorem environments in Typst output.",
-            long: "Controls how theorems, lemmas, definitions, etc. are rendered:"
-          },
-          {
-            short: "Email format version",
-            long: "Specifies which email format version to use."
-          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -25389,12 +25525,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 223755,
+          _internalId: 218170,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 223747,
+              _internalId: 218162,
               type: "enum",
               enum: [
                 "png",
@@ -25410,7 +25546,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 223754,
+              _internalId: 218169,
               type: "anyOf",
               anyOf: [
                 {
@@ -25450,143 +25586,7 @@ try {
             "case-detection": true
           },
           $id: "handlers/mermaid"
-        },
-        "schema/document-a11y.yml": [
-          {
-            name: "axe",
-            tags: {
-              formats: [
-                "$html-files"
-              ]
-            },
-            schema: {
-              anyOf: [
-                "boolean",
-                {
-                  object: {
-                    properties: {
-                      output: {
-                        enum: [
-                          "json",
-                          "console",
-                          "document"
-                        ],
-                        description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
-                      },
-                      standard: {
-                        enum: [
-                          "wcag2a",
-                          "wcag2aa",
-                          "wcag2aaa",
-                          "wcag21a",
-                          "wcag21aa",
-                          "wcag21aaa",
-                          "wcag22a",
-                          "wcag22aa",
-                          "wcag22aaa"
-                        ],
-                        description: "Only check the rules for this WCAG conformance level, named as version then level (e.g. `wcag21aa` for WCAG 2.1 AA). Each level includes the levels and versions it builds on, and may check rules axe-core disables by default (such as AAA color contrast). Axe's best-practice rules are excluded unless `best-practice: true` is also set."
-                      },
-                      "best-practice": {
-                        boolean: {
-                          description: "Whether to check axe-core's best-practice rules (checks recommended by axe that aren't required by any WCAG success criterion). Checked by default when `standard` is unset; excluded by default when `standard` is set."
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            },
-            description: "When defined, run axe-core accessibility tests on the document."
-          }
-        ],
-        "schema/document-typst.yml": [
-          {
-            name: "logo",
-            schema: {
-              ref: "logo-light-dark-specifier-path-optional"
-            },
-            tags: {
-              formats: [
-                "typst"
-              ]
-            },
-            description: "The logo image."
-          },
-          {
-            name: "margin-geometry",
-            schema: {
-              object: {
-                closed: true,
-                properties: {
-                  inner: {
-                    ref: "marginalia-side-geometry",
-                    description: "Inner (left) margin geometry."
-                  },
-                  outer: {
-                    ref: "marginalia-side-geometry",
-                    description: "Outer (right) margin geometry."
-                  },
-                  clearance: {
-                    string: {
-                      description: "Minimum vertical spacing between margin notes (default: 8pt)."
-                    }
-                  }
-                }
-              }
-            },
-            tags: {
-              formats: [
-                "typst"
-              ]
-            },
-            description: {
-              short: "Advanced geometry settings for Typst margin layout.",
-              long: "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
-            }
-          },
-          {
-            name: "theorem-appearance",
-            schema: {
-              enum: [
-                "simple",
-                "fancy",
-                "clouds",
-                "rainbow"
-              ]
-            },
-            default: "simple",
-            tags: {
-              formats: [
-                "typst"
-              ]
-            },
-            description: {
-              short: "Visual style for theorem environments in Typst output.",
-              long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
-            }
-          }
-        ],
-        "schema/document-email.yml": [
-          {
-            name: "email-version",
-            tags: {
-              formats: [
-                "email"
-              ]
-            },
-            schema: {
-              enum: [
-                1,
-                2
-              ]
-            },
-            description: {
-              short: "Email format version",
-              long: "Specifies which email format version to use.\n\n- `1`: Legacy email format with document-level metadata (compatible with older Connect versions)\n- `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)\n"
-            }
-          }
-        ]
+        }
       };
     }
   });
