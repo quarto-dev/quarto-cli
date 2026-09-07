@@ -88,6 +88,7 @@ unitTest(
   async () => {
     const port = findOpenPort();
     const dir = await Deno.makeTempDir({ prefix: "chrome-launch-flags-" });
+    let primaryError: unknown;
     try {
       const argvOutPath = join(dir, "argv.json");
       const fakeChrome = await writeFakeChromeExecutable(
@@ -125,18 +126,43 @@ unitTest(
         !argv.some((a) => a.startsWith("--user-data-dir")),
         `expected no --user-data-dir in ${JSON.stringify(argv)}`,
       );
-    } finally {
-      await fetch(`http://localhost:${port}/shutdown`).catch(() => {});
-      const closed = await waitForPortClosed(port);
-      if (!closed) {
-        console.error(
-          `chrome-launch-flags: fake Chrome on port ${port} did not shut down; leaving ${dir} in place`,
-        );
-      } else {
-        await Deno.remove(dir, { recursive: true }).catch((e) => {
-          console.error(`chrome-launch-flags: failed to remove ${dir}: ${e}`);
-        });
-      }
+    } catch (e) {
+      primaryError = e;
+    }
+
+    // Cleanup runs unconditionally, but a failure here must not silently
+    // hide a genuine assertion failure above (or vice versa) -- combine
+    // both into an AggregateError rather than letting one overwrite the
+    // other, which is what a second throw from a finally block would do.
+    const cleanupErrors: unknown[] = [];
+    await fetch(`http://localhost:${port}/shutdown`).catch(() => {});
+    const closed = await waitForPortClosed(port);
+    if (!closed) {
+      cleanupErrors.push(
+        new Error(
+          `fake Chrome on port ${port} did not shut down; left ${dir} in place`,
+        ),
+      );
+    } else {
+      await Deno.remove(dir, { recursive: true }).catch((e) => {
+        cleanupErrors.push(new Error(`failed to remove ${dir}: ${e}`));
+      });
+    }
+
+    if (primaryError !== undefined && cleanupErrors.length > 0) {
+      throw new AggregateError(
+        [primaryError, ...cleanupErrors],
+        "chrome-launch-flags test failed and cleanup also failed",
+      );
+    }
+    if (primaryError !== undefined) {
+      throw primaryError;
+    }
+    if (cleanupErrors.length > 0) {
+      throw new AggregateError(
+        cleanupErrors,
+        "chrome-launch-flags cleanup failed",
+      );
     }
   },
 );
