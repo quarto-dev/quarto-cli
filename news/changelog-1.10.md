@@ -3,6 +3,7 @@
 ## In this release
 
 - ([#14741](https://github.com/quarto-dev/quarto-cli/issues/14741)): Don't wrap the `longtable` environment of a cross-referenceable table in a `{ ... }` group. Pandoc emits that group to scope its `\def\LTcaptype{none}`, which Quarto removes when adding its own `\caption`; keeping the now-pointless group broke packages that move the environment out of the text flow, such as `endfloat` with `\DeclareDelayedFloatFlavor*{longtable}{table}`.
+- ([#14857](https://github.com/quarto-dev/quarto-cli/issues/14857)): Fix `quarto install chrome-headless-shell` (and `quarto install chromium`) failing with a 404 on Linux arm64 due to a stale Playwright CDN URL.
 
 ## In previous releases
 
