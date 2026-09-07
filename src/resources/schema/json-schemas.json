@@ -1677,6 +1677,36 @@
           "related-notebooks-title": {
             "type": "string"
           },
+          "source-notebooks-prefix": {
+            "type": "string"
+          },
+          "other-links-title": {
+            "type": "string"
+          },
+          "code-links-title": {
+            "type": "string"
+          },
+          "launch-dev-container-title": {
+            "type": "string"
+          },
+          "launch-binder-title": {
+            "type": "string"
+          },
+          "article-notebook-label": {
+            "type": "string"
+          },
+          "notebook-preview-download": {
+            "type": "string"
+          },
+          "notebook-preview-download-src": {
+            "type": "string"
+          },
+          "notebook-preview-back": {
+            "type": "string"
+          },
+          "manuscript-meca-bundle": {
+            "type": "string"
+          },
           "callout-tip-title": {
             "type": "string"
           },
@@ -1701,6 +1731,48 @@
           "section-title-appendices": {
             "type": "string"
           },
+          "section-title-references": {
+            "type": "string"
+          },
+          "section-title-reuse": {
+            "type": "string"
+          },
+          "section-title-copyright": {
+            "type": "string"
+          },
+          "section-title-citation": {
+            "type": "string"
+          },
+          "appendix-attribution-cite-as": {
+            "type": "string"
+          },
+          "appendix-attribution-bibtex": {
+            "type": "string"
+          },
+          "appendix-view-license": {
+            "type": "string"
+          },
+          "title-block-author-single": {
+            "type": "string"
+          },
+          "title-block-author-plural": {
+            "type": "string"
+          },
+          "title-block-affiliation-single": {
+            "type": "string"
+          },
+          "title-block-affiliation-plural": {
+            "type": "string"
+          },
+          "title-block-published": {
+            "type": "string"
+          },
+          "title-block-modified": {
+            "type": "string"
+          },
+          "title-block-keywords": {
+            "type": "string"
+          },
           "code-summary": {
             "type": "string"
           },
@@ -1717,6 +1789,21 @@
             "type": "string"
           },
           "code-tools-source-code": {
+            "type": "string"
+          },
+          "tools-share": {
+            "type": "string"
+          },
+          "tools-download": {
+            "type": "string"
+          },
+          "code-line": {
+            "type": "string"
+          },
+          "code-lines": {
+            "type": "string"
+          },
+          "back-to-top": {
             "type": "string"
           },
           "search-no-results-text": {
@@ -1762,6 +1849,24 @@
             "type": "string"
           },
           "search-submit-button-title": {
+            "type": "string"
+          },
+          "search-label": {
+            "type": "string"
+          },
+          "toggle-section": {
+            "type": "string"
+          },
+          "toggle-sidebar": {
+            "type": "string"
+          },
+          "toggle-dark-mode": {
+            "type": "string"
+          },
+          "toggle-reader-mode": {
+            "type": "string"
+          },
+          "toggle-navigation": {
             "type": "string"
           },
           "crossref-fig-title": {
@@ -1849,6 +1954,81 @@
             "type": "string"
           },
           "crossref-lol-title": {
+            "type": "string"
+          },
+          "environment-proof-title": {
+            "type": "string"
+          },
+          "environment-remark-title": {
+            "type": "string"
+          },
+          "environment-solution-title": {
+            "type": "string"
+          },
+          "listing-page-order-by": {
+            "type": "string"
+          },
+          "listing-page-order-by-default": {
+            "type": "string"
+          },
+          "listing-page-order-by-date-asc": {
+            "type": "string"
+          },
+          "listing-page-order-by-date-desc": {
+            "type": "string"
+          },
+          "listing-page-order-by-number-desc": {
+            "type": "string"
+          },
+          "listing-page-order-by-number-asc": {
+            "type": "string"
+          },
+          "listing-page-field-date": {
+            "type": "string"
+          },
+          "listing-page-field-title": {
+            "type": "string"
+          },
+          "listing-page-field-description": {
+            "type": "string"
+          },
+          "listing-page-field-author": {
+            "type": "string"
+          },
+          "listing-page-field-filename": {
+            "type": "string"
+          },
+          "listing-page-field-filemodified": {
+            "type": "string"
+          },
+          "listing-page-field-subtitle": {
+            "type": "string"
+          },
+          "listing-page-field-readingtime": {
+            "type": "string"
+          },
+          "listing-page-field-wordcount": {
+            "type": "string"
+          },
+          "listing-page-field-categories": {
+            "type": "string"
+          },
+          "listing-page-minutes-compact": {
+            "type": "string"
+          },
+          "listing-page-category-all": {
+            "type": "string"
+          },
+          "listing-page-no-matches": {
+            "type": "string"
+          },
+          "listing-page-words": {
+            "type": "string"
+          },
+          "listing-page-filter": {
+            "type": "string"
+          },
+          "draft": {
             "type": "string"
           }
         }
