@@ -1678,34 +1678,124 @@
             "type": "string"
           },
           "source-notebooks-prefix": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "other-links-title": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "code-links-title": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "launch-dev-container-title": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "launch-binder-title": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "article-notebook-label": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "notebook-preview-download": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "notebook-preview-download-src": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "notebook-preview-back": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "manuscript-meca-bundle": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "callout-tip-title": {
             "type": "string"
@@ -1732,46 +1822,172 @@
             "type": "string"
           },
           "section-title-references": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "section-title-reuse": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "section-title-copyright": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "section-title-citation": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "appendix-attribution-cite-as": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "appendix-attribution-bibtex": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "appendix-view-license": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "title-block-author-single": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "title-block-author-plural": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "title-block-affiliation-single": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "title-block-affiliation-plural": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "title-block-published": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "title-block-modified": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "title-block-keywords": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "code-summary": {
             "type": "string"
@@ -1792,19 +2008,64 @@
             "type": "string"
           },
           "tools-share": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "tools-download": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "code-line": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "code-lines": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "back-to-top": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "search-no-results-text": {
             "type": "string"
@@ -1852,22 +2113,76 @@
             "type": "string"
           },
           "search-label": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "toggle-section": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "toggle-sidebar": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "toggle-dark-mode": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "toggle-reader-mode": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "toggle-navigation": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "crossref-fig-title": {
             "type": "string"
@@ -1957,79 +2272,304 @@
             "type": "string"
           },
           "environment-proof-title": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "environment-remark-title": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "environment-solution-title": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-order-by": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-order-by-default": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-order-by-date-asc": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-order-by-date-desc": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-order-by-number-desc": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-order-by-number-asc": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-date": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-title": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-description": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-author": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-filename": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-filemodified": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-subtitle": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-readingtime": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-wordcount": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-field-categories": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-minutes-compact": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-category-all": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-no-matches": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-words": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "listing-page-filter": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           },
           "draft": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           }
         }
       }

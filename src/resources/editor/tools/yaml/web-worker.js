@@ -10357,16 +10357,66 @@ try {
                 "toc-title-website": "string",
                 "related-formats-title": "string",
                 "related-notebooks-title": "string",
-                "source-notebooks-prefix": "string",
-                "other-links-title": "string",
-                "code-links-title": "string",
-                "launch-dev-container-title": "string",
-                "launch-binder-title": "string",
-                "article-notebook-label": "string",
-                "notebook-preview-download": "string",
-                "notebook-preview-download-src": "string",
-                "notebook-preview-back": "string",
-                "manuscript-meca-bundle": "string",
+                "source-notebooks-prefix": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "other-links-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "code-links-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "launch-dev-container-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "launch-binder-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "article-notebook-label": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "notebook-preview-download": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "notebook-preview-download-src": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "notebook-preview-back": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "manuscript-meca-bundle": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "callout-tip-title": "string",
                 "callout-note-title": "string",
                 "callout-warning-title": "string",
@@ -10375,31 +10425,126 @@ try {
                 "section-title-abstract": "string",
                 "section-title-footnotes": "string",
                 "section-title-appendices": "string",
-                "section-title-references": "string",
-                "section-title-reuse": "string",
-                "section-title-copyright": "string",
-                "section-title-citation": "string",
-                "appendix-attribution-cite-as": "string",
-                "appendix-attribution-bibtex": "string",
-                "appendix-view-license": "string",
-                "title-block-author-single": "string",
-                "title-block-author-plural": "string",
-                "title-block-affiliation-single": "string",
-                "title-block-affiliation-plural": "string",
-                "title-block-published": "string",
-                "title-block-modified": "string",
-                "title-block-keywords": "string",
+                "section-title-references": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "section-title-reuse": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "section-title-copyright": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "section-title-citation": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "appendix-attribution-cite-as": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "appendix-attribution-bibtex": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "appendix-view-license": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-author-single": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-author-plural": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-affiliation-single": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-affiliation-plural": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-published": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-modified": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-keywords": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "code-summary": "string",
                 "code-tools-menu-caption": "string",
                 "code-tools-show-all-code": "string",
                 "code-tools-hide-all-code": "string",
                 "code-tools-view-source": "string",
                 "code-tools-source-code": "string",
-                "tools-share": "string",
-                "tools-download": "string",
-                "code-line": "string",
-                "code-lines": "string",
-                "back-to-top": "string",
+                "tools-share": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "tools-download": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "code-line": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "code-lines": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "back-to-top": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "search-no-results-text": "string",
                 "copy-button-tooltip": "string",
                 "copy-button-tooltip-success": "string",
@@ -10415,12 +10560,42 @@ try {
                 "search-text-placeholder": "string",
                 "search-detached-cancel-button-title": "string",
                 "search-submit-button-title": "string",
-                "search-label": "string",
-                "toggle-section": "string",
-                "toggle-sidebar": "string",
-                "toggle-dark-mode": "string",
-                "toggle-reader-mode": "string",
-                "toggle-navigation": "string",
+                "search-label": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-section": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-sidebar": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-dark-mode": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-reader-mode": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-navigation": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "crossref-fig-title": "string",
                 "crossref-tbl-title": "string",
                 "crossref-lst-title": "string",
@@ -10450,31 +10625,156 @@ try {
                 "crossref-lof-title": "string",
                 "crossref-lot-title": "string",
                 "crossref-lol-title": "string",
-                "environment-proof-title": "string",
-                "environment-remark-title": "string",
-                "environment-solution-title": "string",
-                "listing-page-order-by": "string",
-                "listing-page-order-by-default": "string",
-                "listing-page-order-by-date-asc": "string",
-                "listing-page-order-by-date-desc": "string",
-                "listing-page-order-by-number-desc": "string",
-                "listing-page-order-by-number-asc": "string",
-                "listing-page-field-date": "string",
-                "listing-page-field-title": "string",
-                "listing-page-field-description": "string",
-                "listing-page-field-author": "string",
-                "listing-page-field-filename": "string",
-                "listing-page-field-filemodified": "string",
-                "listing-page-field-subtitle": "string",
-                "listing-page-field-readingtime": "string",
-                "listing-page-field-wordcount": "string",
-                "listing-page-field-categories": "string",
-                "listing-page-minutes-compact": "string",
-                "listing-page-category-all": "string",
-                "listing-page-no-matches": "string",
-                "listing-page-words": "string",
-                "listing-page-filter": "string",
-                draft: "string"
+                "environment-proof-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "environment-remark-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "environment-solution-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-default": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-date-asc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-date-desc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-number-desc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-number-asc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-date": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-description": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-author": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-filename": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-filemodified": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-subtitle": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-readingtime": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-wordcount": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-categories": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-minutes-compact": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-category-all": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-no-matches": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-words": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-filter": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                draft: {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                }
               },
               errorDescription: "be a format language description object"
             }
@@ -25448,12 +25748,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 223991,
+          _internalId: 224291,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 223983,
+              _internalId: 224283,
               type: "enum",
               enum: [
                 "png",
@@ -25469,7 +25769,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 223990,
+              _internalId: 224290,
               type: "anyOf",
               anyOf: [
                 {
