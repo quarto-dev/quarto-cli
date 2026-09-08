@@ -409,14 +409,6 @@ $sidebar-section-bottom-margin: 0.2em;
   padding-left: 0.5rem;
 }
 
-// A bare button gets no focus ring from Bootstrap's reboot, so state one
-// explicitly rather than depend on the UA default (quarto-cli#14774).
-.sidebar-item .sidebar-item-toggle:focus-visible,
-.sidebar-item button.sidebar-item-text:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-
 .sidebar-item .sidebar-item-toggle .bi {
   // The dongle for opening and closing sections
   font-size: 0.7rem;

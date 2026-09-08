@@ -1,13 +1,21 @@
 import { expect, Locator, Page, test } from "@playwright/test";
 import { getUrl } from "../src/utils";
 
-// Regression tests for #14774. Quarto emits three buttons that carry the
-// Bootstrap `btn` class with no `btn-*` variant class: the code tools
-// button, the sidebar toggle, and the sidebar search button. Bootstrap's
-// .btn:focus-visible removes the native focus ring (outline: 0) and
-// substitutes a box-shadow that only the variant classes define, so these
-// buttons took keyboard focus with no visible indicator. Quarto restores
-// the browser's native ring with `outline: revert`.
+// Every Quarto control must show a visible indicator on keyboard focus
+// (WCAG 2.2 SC 2.4.7). Quarto's convention is to use the browser's own
+// ring and never author one, so these tests assert only that an outline
+// is drawn — not which outline. See `.claude/rules/formats/sass-theming.md`.
+//
+// Three buttons carry the Bootstrap `btn` class with no `btn-*` variant
+// class: the code tools button, the sidebar toggle, and the sidebar search
+// button. Bootstrap's .btn:focus-visible removes the native ring
+// (outline: 0) and substitutes a box-shadow that only the variant classes
+// define, so these took keyboard focus with no indicator at all. Quarto
+// restores the browser's ring with `outline: revert` (#14774).
+//
+// The sidebar section toggles are bare `<button>` elements with no `btn`
+// class, so nothing suppresses their ring and Quarto writes no rule for
+// them (#14826).
 
 // Move focus with real Tab presses so the button matches :focus-visible —
 // the fix only applies to keyboard focus, and programmatic locator.focus()
@@ -73,4 +81,27 @@ test.describe("website secondary nav buttons", () => {
       await expect(button).not.toHaveCSS("outline-style", "none");
     });
   }
+});
+
+test.describe("website sidebar section toggle", () => {
+  // The left sidebar is display: none below the lg breakpoint (992px), so
+  // its section toggles are only focusable at full width.
+  test.use({ viewport: { width: 1400, height: 900 } });
+
+  test("shows a focus indicator on keyboard focus", async ({
+    page,
+    browserName,
+  }) => {
+    await page.goto(getUrl("website/bare-btn-focus/_site/index.html"), {
+      waitUntil: "load",
+    });
+
+    const button = page.locator(
+      "#quarto-sidebar button.sidebar-item-toggle",
+    ).first();
+    await expect(button).toBeVisible();
+    expect(await tabUntilFocused(page, browserName, button)).toBe(true);
+
+    await expect(button).not.toHaveCSS("outline-style", "none");
+  });
 });
