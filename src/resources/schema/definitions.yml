@@ -1546,26 +1546,11 @@
         anyOf:
           - string
           - null
-      navigation-site-label:
-        anyOf:
-          - string
-          - null
-      navigation-section-label:
-        anyOf:
-          - string
-          - null
-      navigation-toolbar-label:
-        anyOf:
-          - string
-          - null
-      navigation-page-label:
-        anyOf:
-          - string
-          - null
-      navigation-breadcrumbs-label:
-        anyOf:
-          - string
-          - null
+      navigation-site-label: string
+      navigation-section-label: string
+      navigation-toolbar-label: string
+      navigation-page-label: string
+      navigation-breadcrumbs-label: string
       crossref-fig-title: string
       crossref-tbl-title: string
       crossref-lst-title: string

@@ -2188,64 +2188,19 @@
             ]
           },
           "navigation-site-label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "navigation-section-label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "navigation-toolbar-label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "navigation-page-label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "navigation-breadcrumbs-label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "crossref-fig-title": {
             "type": "string"
