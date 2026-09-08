@@ -198,6 +198,24 @@ Deno.test("julia engine", async (t) => {
     assertStderrIncludes(render_output, "File was force-closed during run");
   });
 
+  await t.step("failed one-shot run closes its worker", () => {
+    const render_output = new Deno.Command(
+      quartoCmd(),
+      {
+        args: ["render", "error.qmd", "--execute-daemon", "0"],
+        cwd: docs("julia-engine/error"),
+      },
+    ).outputSync();
+    assert(!render_output.success);
+
+    const status_output = new Deno.Command(
+      quartoCmd(),
+      { args: ["call", "engine", "julia", "status"], cwd: juliaTestDir },
+    ).outputSync();
+    assertSuccess(status_output);
+    assertStdoutIncludes(status_output, "workers active: 0");
+  });
+
   await t.step("log exists", () => {
     const log_output = new Deno.Command(
       quartoCmd(),
