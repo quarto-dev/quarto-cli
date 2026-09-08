@@ -64,6 +64,10 @@ export async function criClient(appPath?: string, port?: number) {
     port,
     // One diagram is rendered at a time, so a renderer per tab buys nothing.
     args: ["--renderer-process-limit=1"],
+    // connectCdp() below faces the same page-target race the axe scanner
+    // does (see ChromeLaunchOptions.awaitPageTarget) — neither caller passes
+    // deno-cri a target, so both rely on its default target creation.
+    awaitPageTarget: true,
     logPrefix: "CHROMIUM",
   });
   port = browser.port;

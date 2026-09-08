@@ -55,11 +55,14 @@ export interface ChromeLaunchOptions {
    */
   isolatedProfile?: boolean;
   /**
-   * Wait for an actual page target (one with `webSocketDebuggerUrl`), not
-   * just an HTTP 200 from `/json/list`. deno-cri's default target creates a
-   * page itself when connecting with a string or object target, but the axe
-   * scanner connects with a bare function target, which skips that — so it
-   * needs the launcher to guarantee a target exists first.
+   * Wait for an actual page target, not just an HTTP 200 from `/json/list`.
+   * Neither caller passes deno-cri a `target`, so both fall through to its
+   * own `defaultTarget` (deno-cri/chrome.js), which creates a page itself
+   * when the target list it fetches is empty — but that creation races
+   * Chrome's own startup the same way the CDP endpoint's availability does.
+   * This makes the launcher wait until a page target already exists before
+   * either caller's connect-retry even starts, rather than leaning on that
+   * retry to absorb the race on every launch.
    */
   awaitPageTarget?: boolean;
   /** How long to wait for the CDP endpoint, in ms. */
@@ -83,11 +86,28 @@ const kDefaultLaunchTimeout = 15000;
 /** How long a single readiness fetch gets before it's treated as a failed attempt. */
 const kProbeAttemptTimeout = 1000;
 
-function hasPageTarget(list: unknown): boolean {
-  return Array.isArray(list) && list.some((t) =>
-    typeof (t as { webSocketDebuggerUrl?: unknown })?.webSocketDebuggerUrl ===
-      "string"
-  );
+/**
+ * How long the next readiness fetch may run: never past `kProbeAttemptTimeout`,
+ * and never past what's left before `deadline` either, so a probe that starts
+ * near the end of the launch timeout can't itself blow past it by up to a
+ * full `kProbeAttemptTimeout`.
+ */
+export function probeTimeoutMs(remainingMs: number): number {
+  return Math.max(0, Math.min(kProbeAttemptTimeout, remainingMs));
+}
+
+/**
+ * `type === "page"` matches deno-cri's own `defaultTarget` filter
+ * (deno-cri/chrome.js) -- a target with a `webSocketDebuggerUrl` but a
+ * different type (e.g. a service worker) is connectable but isn't the page
+ * the caller is waiting for.
+ */
+export function hasPageTarget(list: unknown): boolean {
+  return Array.isArray(list) && list.some((t) => {
+    const target = t as { type?: unknown; webSocketDebuggerUrl?: unknown };
+    return target?.type === "page" &&
+      typeof target?.webSocketDebuggerUrl === "string";
+  });
 }
 
 /**
@@ -99,7 +119,9 @@ function hasPageTarget(list: unknown): boolean {
  * The deadline is tracked in wall-clock time, not iterations — a `fetch()`
  * against a port nothing is listening on can itself take far longer than one
  * `interval`, and an iteration count would let that alone blow the budget.
- * Each attempt is capped at `kProbeAttemptTimeout` for the same reason.
+ * Each attempt is capped by `probeTimeoutMs` — at `kProbeAttemptTimeout`, or
+ * at what's left before `deadline` if that's shorter, so a slow attempt late
+ * in the budget can't itself run past it.
  *
  * `localhost` rather than `127.0.0.1` because that is what deno-cri connects
  * to afterwards (its `defaults.HOST`) — a launcher that accepts a host the
@@ -126,7 +148,7 @@ async function waitForCdpEndpoint(
     }
     try {
       const response = await fetch(`http://localhost:${port}/json/list`, {
-        signal: AbortSignal.timeout(kProbeAttemptTimeout),
+        signal: AbortSignal.timeout(probeTimeoutMs(deadline - Date.now())),
       });
       const body = await response.json().catch(() => undefined);
       if (response.ok && isReady(body)) {

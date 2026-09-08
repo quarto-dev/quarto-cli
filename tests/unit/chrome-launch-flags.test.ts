@@ -33,7 +33,13 @@ async function writeFakeChromeExecutable(
       `Deno.serve({ port: ${port}, onListen: () => {} }, (req) => {`,
       "  const url = new URL(req.url);",
       '  if (url.pathname === "/json/list") {',
-      '    return new Response("[]", { status: 200 });',
+      // criClient now waits for a real page target (awaitPageTarget), so
+      // this must look like deno-cri's own defaultTarget expects, not just
+      // any 200.
+      "    return new Response(",
+      `      JSON.stringify([{ type: "page", webSocketDebuggerUrl: "ws://localhost:${port}/devtools/page/1" }]),`,
+      "      { status: 200 },",
+      "    );",
       '  } else if (url.pathname === "/shutdown") {',
       "    setTimeout(() => Deno.exit(0), 50);",
       '    return new Response("", { status: 200 });',
