@@ -41,6 +41,7 @@ All changes included in 1.11:
 
 - ([#14834](https://github.com/quarto-dev/quarto-cli/issues/14834)): Fix `ERROR: Internal Error` when rendering documents whose payload exceeds the Julia server's socket send buffer.
 - ([PumasAI/quarto-julia-engine#8](https://github.com/PumasAI/quarto-julia-engine/pull/8)): Support `keep-ipynb`, which writes the executed notebook to `<stem>.ipynb` alongside the source file.
+- ([PumasAI/quarto-julia-engine#14](https://github.com/PumasAI/quarto-julia-engine/pull/14)): Fix the Julia worker process being left running after a failed render without an execution daemon.
 - ([PumasAI/quarto-julia-engine#13](https://github.com/PumasAI/quarto-julia-engine/pull/13)): Shell (`;`), help (`?`), and Pkg (`]`) mode cells now work when the cell has `#|` options.
 - ([PumasAI/quarto-julia-engine#11](https://github.com/PumasAI/quarto-julia-engine/pull/11)): Support `fig-format: retina`, normalized to `png` with doubled `fig-dpi` as in the `jupyter` and `knitr` engines.
 - ([PumasAI/quarto-julia-engine#7](https://github.com/PumasAI/quarto-julia-engine/pull/7)): Support `execute-dir`, shared worker processes across notebooks with matching configs (`share_worker_process: true`).
