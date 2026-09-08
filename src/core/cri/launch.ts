@@ -54,6 +54,14 @@ export interface ChromeLaunchOptions {
    * Chrome the user already has running.
    */
   isolatedProfile?: boolean;
+  /**
+   * Wait for an actual page target (one with `webSocketDebuggerUrl`), not
+   * just an HTTP 200 from `/json/list`. deno-cri's default target creates a
+   * page itself when connecting with a string or object target, but the axe
+   * scanner connects with a bare function target, which skips that — so it
+   * needs the launcher to guarantee a target exists first.
+   */
+  awaitPageTarget?: boolean;
   /** How long to wait for the CDP endpoint, in ms. */
   timeout?: number;
   /** Tag for Chrome's stderr in the debug log. */
@@ -72,36 +80,67 @@ export interface LaunchedChrome {
 /** How long the CDP endpoint gets to come up, when the caller doesn't say. */
 const kDefaultLaunchTimeout = 15000;
 
+/** How long a single readiness fetch gets before it's treated as a failed attempt. */
+const kProbeAttemptTimeout = 1000;
+
+function hasPageTarget(list: unknown): boolean {
+  return Array.isArray(list) && list.some((t) =>
+    typeof (t as { webSocketDebuggerUrl?: unknown })?.webSocketDebuggerUrl ===
+      "string"
+  );
+}
+
 /**
- * Poll the CDP endpoint until it answers. `localhost` rather than
- * `127.0.0.1` because that is what deno-cri connects to afterwards (its
- * `defaults.HOST`) — a launcher that accepts a host the client can't reach
- * would report ready too early.
+ * Poll the CDP endpoint until it answers `isReady`, and race that against
+ * `exited`: a Chrome that has already died is never going to open the
+ * endpoint no matter how long is left on the clock, so this reports the
+ * moment it exits rather than waiting out the full timeout.
+ *
+ * The deadline is tracked in wall-clock time, not iterations — a `fetch()`
+ * against a port nothing is listening on can itself take far longer than one
+ * `interval`, and an iteration count would let that alone blow the budget.
+ * Each attempt is capped at `kProbeAttemptTimeout` for the same reason.
+ *
+ * `localhost` rather than `127.0.0.1` because that is what deno-cri connects
+ * to afterwards (its `defaults.HOST`) — a launcher that accepts a host the
+ * client can't reach would report ready too early.
  */
 async function waitForCdpEndpoint(
   port: number,
   timeout: number,
+  exited: Promise<Deno.CommandStatus>,
+  isReady: (list: unknown) => boolean,
 ): Promise<string | undefined> {
   const interval = 50;
-  let waited = 0;
+  const deadline = Date.now() + timeout;
+  let dead: Deno.CommandStatus | undefined;
+  exited.then((status) => {
+    dead = status;
+  }).catch(() => {});
+
   let lastError = "no response";
-  while (waited < timeout) {
+  while (Date.now() < deadline) {
+    if (dead) {
+      return `Chrome exited (code ${dead.code}) before its CDP endpoint ` +
+        `on port ${port} became ready`;
+    }
     try {
-      const response = await fetch(`http://localhost:${port}/json/list`);
-      // drain the body either way: nothing here reads it, and an unread body
-      // holds the connection open
-      await response.body?.cancel();
-      if (response.ok) {
+      const response = await fetch(`http://localhost:${port}/json/list`, {
+        signal: AbortSignal.timeout(kProbeAttemptTimeout),
+      });
+      const body = await response.json().catch(() => undefined);
+      if (response.ok && isReady(body)) {
         return undefined;
       }
-      lastError = `CDP endpoint returned ${response.status}`;
+      lastError = response.ok
+        ? "CDP endpoint has no ready page target yet"
+        : `CDP endpoint returned ${response.status}`;
     } catch (e) {
       lastError = e instanceof Error ? e.message : String(e);
     }
     await sleep(interval);
-    waited += interval;
   }
-  return lastError;
+  return `Timed out waiting for headless Chrome on port ${port} (${lastError})`;
 }
 
 /**
@@ -249,16 +288,15 @@ export async function launchChrome(
   const failure = await waitForCdpEndpoint(
     port,
     options.timeout ?? kDefaultLaunchTimeout,
+    process.status,
+    options.awaitPageTarget ? hasPageTarget : Array.isArray,
   );
   if (failure !== undefined) {
     debug(`[${prefix} path] : ${app}`);
     debug(`[${prefix} args] : ${args.join(" ")}`);
     await close();
     const detail = stderrTail.trim();
-    throw new Error(
-      `Timed out waiting for headless Chrome on port ${port} (${failure}).` +
-        (detail ? `\nChrome said: ${detail}` : ""),
-    );
+    throw new Error(failure + (detail ? `\nChrome said: ${detail}` : ""));
   }
 
   return {

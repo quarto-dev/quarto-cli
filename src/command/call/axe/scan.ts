@@ -240,6 +240,7 @@ export async function launchScanBrowser(port: number): Promise<ScanBrowser> {
     args: ["--hide-scrollbars"],
     url: "about:blank",
     isolatedProfile: true,
+    awaitPageTarget: true,
     logPrefix: "axe chrome",
   });
 
