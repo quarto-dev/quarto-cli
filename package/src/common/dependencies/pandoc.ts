@@ -70,7 +70,7 @@ export function pandoc(version: string): Dependency {
           }
         } else {
           // verify that the binary is on PATH, but otherwise don't do anything
-          if (which(pandocBinary) === undefined) {
+          if ((await which(pandocBinary)) === undefined) {
             throw new Error(
               `${pandocBinary} is not on PATH. Please install it and add it to PATH.`,
             );
