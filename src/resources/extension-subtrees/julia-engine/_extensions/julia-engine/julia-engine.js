@@ -1113,23 +1113,41 @@ async function executeJulia(options) {
     }
   }
   const sourceRanges = buildSourceRanges(options.target.markdown);
-  const response = await writeJuliaCommand(conn, {
-    type: "run",
-    content: {
-      file,
-      options,
-      sourceRanges
+  let response;
+  try {
+    response = await writeJuliaCommand(conn, {
+      type: "run",
+      content: {
+        file,
+        options,
+        sourceRanges
+      }
+    }, transportOptions.key, options, (update) => {
+      const n = update.nChunks.toString();
+      const i = update.chunkIndex.toString();
+      const i_padded = `${" ".repeat(n.length - i.length)}${i}`;
+      const ncols = getConsoleColumns() ?? 80;
+      const firstPart = `Running [${i_padded}/${n}] at line ${update.line}:  `;
+      const firstPartLength = firstPart.length;
+      const sigLine = firstSignificantLine(update.source, Math.max(0, ncols - firstPartLength));
+      quarto.console.info(`${firstPart}${sigLine}`);
+    });
+  } catch (e) {
+    if (options.oneShot) {
+      try {
+        await writeJuliaCommand(conn, {
+          type: "close",
+          content: {
+            file
+          }
+        }, transportOptions.key, options);
+      } catch (closeError) {
+        quarto.console.warning(`Could not close the julia worker after the failed run, it may stay open until the server exits:
+${closeError}`);
+      }
     }
-  }, transportOptions.key, options, (update) => {
-    const n = update.nChunks.toString();
-    const i = update.chunkIndex.toString();
-    const i_padded = `${" ".repeat(n.length - i.length)}${i}`;
-    const ncols = getConsoleColumns() ?? 80;
-    const firstPart = `Running [${i_padded}/${n}] at line ${update.line}:  `;
-    const firstPartLength = firstPart.length;
-    const sigLine = firstSignificantLine(update.source, Math.max(0, ncols - firstPartLength));
-    quarto.console.info(`${firstPart}${sigLine}`);
-  });
+    throw e;
+  }
   if (options.oneShot) {
     await writeJuliaCommand(conn, {
       type: "close",
