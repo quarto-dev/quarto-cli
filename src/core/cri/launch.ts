@@ -113,8 +113,9 @@ export function hasPageTarget(list: unknown): boolean {
 /**
  * Poll the CDP endpoint until it answers `isReady`, and race that against
  * `exited`: a Chrome that has already died is never going to open the
- * endpoint no matter how long is left on the clock, so this reports the
- * moment it exits rather than waiting out the full timeout.
+ * endpoint no matter how long is left on the clock, so this aborts whichever
+ * probe is currently in flight and reports the moment it exits, rather than
+ * waiting out that probe's own timeout first.
  *
  * The deadline is tracked in wall-clock time, not iterations — a `fetch()`
  * against a port nothing is listening on can itself take far longer than one
@@ -136,19 +137,38 @@ async function waitForCdpEndpoint(
   const interval = 50;
   const deadline = Date.now() + timeout;
   let dead: Deno.CommandStatus | undefined;
+  // TS narrows a captured variable to `undefined` after the first `if
+  // (getDead())` returns and never widens it back across the `await`
+  // below, even though the `.then()` reassigns it concurrently -- reading
+  // through a function call sidesteps that, since each call site gets its
+  // own fresh local binding to narrow.
+  const getDead = () => dead;
+  const exitedMessage = (status: Deno.CommandStatus) =>
+    `Chrome exited (code ${status.code}) before its CDP endpoint on port ` +
+    `${port} became ready`;
+  let abortInFlightProbe: (() => void) | undefined;
   exited.then((status) => {
     dead = status;
+    // Abort whichever probe is currently in flight -- an exited Chrome
+    // will never answer, so there's no reason to wait out its timeout.
+    abortInFlightProbe?.();
   }).catch(() => {});
 
   let lastError = "no response";
   while (Date.now() < deadline) {
-    if (dead) {
-      return `Chrome exited (code ${dead.code}) before its CDP endpoint ` +
-        `on port ${port} became ready`;
+    const deadBeforeProbe = getDead();
+    if (deadBeforeProbe) {
+      return exitedMessage(deadBeforeProbe);
     }
+    const controller = new AbortController();
+    abortInFlightProbe = () => controller.abort();
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      probeTimeoutMs(deadline - Date.now()),
+    );
     try {
       const response = await fetch(`http://localhost:${port}/json/list`, {
-        signal: AbortSignal.timeout(probeTimeoutMs(deadline - Date.now())),
+        signal: controller.signal,
       });
       const body = await response.json().catch(() => undefined);
       if (response.ok && isReady(body)) {
@@ -158,7 +178,14 @@ async function waitForCdpEndpoint(
         ? "CDP endpoint has no ready page target yet"
         : `CDP endpoint returned ${response.status}`;
     } catch (e) {
+      const deadAfterProbe = getDead();
+      if (deadAfterProbe) {
+        return exitedMessage(deadAfterProbe);
+      }
       lastError = e instanceof Error ? e.message : String(e);
+    } finally {
+      clearTimeout(timeoutId);
+      abortInFlightProbe = undefined;
     }
     await sleep(interval);
   }

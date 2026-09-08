@@ -67,6 +67,11 @@ export async function criClient(appPath?: string, port?: number) {
     // connectCdp() below faces the same page-target race the axe scanner
     // does (see ChromeLaunchOptions.awaitPageTarget) — neither caller passes
     // deno-cri a target, so both rely on its default target creation.
+    // awaitPageTarget needs an actual target to wait for, though: verified
+    // against the real chrome-headless-shell binary that with no url to
+    // open, it launches with zero targets at all -- open()'s own
+    // Page.navigate() below replaces this placeholder immediately.
+    url: "about:blank",
     awaitPageTarget: true,
     logPrefix: "CHROMIUM",
   });
