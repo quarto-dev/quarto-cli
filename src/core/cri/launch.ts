@@ -92,7 +92,7 @@ const kProbeAttemptTimeout = 1000;
  * near the end of the launch timeout can't itself blow past it by up to a
  * full `kProbeAttemptTimeout`.
  */
-export function probeTimeoutMs(remainingMs: number): number {
+function probeTimeoutMs(remainingMs: number): number {
   return Math.max(0, Math.min(kProbeAttemptTimeout, remainingMs));
 }
 
