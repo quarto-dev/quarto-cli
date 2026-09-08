@@ -22,7 +22,7 @@ import { join } from "../../../deno_ral/path.ts";
 import { md5HashSync } from "../../../core/hash.ts";
 import { sleep } from "../../../core/async.ts";
 import { formatResourcePath } from "../../../core/resources.ts";
-import { launchChrome } from "../../../core/cri/launch.ts";
+import { connectCdp, launchChrome } from "../../../core/cri/launch.ts";
 import cdp from "../../../core/cri/deno-cri/index.js";
 import { AxeScanConfig, AxeViewport } from "./config.ts";
 import { AxeMode, AxePage } from "./discover.ts";
@@ -147,26 +147,11 @@ export class CdpClient {
     connection.on("disconnect", () => this.abandonPending());
   }
 
-  /**
-   * Connect to the page target on `port`. Connecting the instant the CDP
-   * endpoint answers is racy: cri.ts measured the failure rate against the
-   * gap between tries (see criClient.open) and settled on 100ms, which is
-   * what this retries with.
-   */
+  /** Connect to the page target on `port`, retrying via the shared launcher's helper. */
   static async connect(port: number): Promise<CdpClient> {
-    const maxTries = 5;
-    for (let attempt = 1;; ++attempt) {
-      try {
-        return new CdpClient(await connectDenoCri({ port }));
-      } catch (e) {
-        if (attempt === maxTries) {
-          throw new Error(
-            `Failed to connect to CDP on port ${port}: ${asError(e).message}`,
-          );
-        }
-        await sleep(100);
-      }
-    }
+    return new CdpClient(
+      await connectCdp(port, (p) => connectDenoCri({ port: p })),
+    );
   }
 
   send<T = unknown>(

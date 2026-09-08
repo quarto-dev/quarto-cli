@@ -105,6 +105,56 @@ async function waitForCdpEndpoint(
 }
 
 /**
+ * Retry connecting a CDP client against `port`. Connecting the instant the
+ * CDP endpoint answers is racy — cri.ts measured the failure rate against
+ * the gap between tries and settled on 100ms, which is what this retries
+ * with:
+ *
+ * sleep(0) caused 42/100 crashes
+ * sleep(1) caused 42/100 crashes
+ * sleep(2) caused 15/100 crashes
+ * sleep(3) caused 13/100 crashes
+ * sleep(4) caused 8/100 crashes
+ * sleep(5) caused 1/100 crashes
+ * sleep(6) caused 1/100 crashes
+ * sleep(7) caused 1/100 crashes
+ * sleep(8) caused 1/100 crashes
+ * sleep(9) caused 0/100 crashes
+ * sleep(10) caused 0/100 crashes
+ * sleep(11) caused 0/100 crashes
+ * sleep(12) caused 0/100 crashes
+ * sleep(13) caused 1/100 crashes
+ * sleep(14) caused 1/100 crashes
+ * sleep(15) caused 0/100 crashes
+ * sleep(16) caused 0/100 crashes
+ * sleep(17) caused 0/100 crashes
+ *
+ * https://carlos-scheidegger.quarto.pub/failure-rates-in-cri-initialization/
+ * suggests that 44ms is a good value. We use 100ms to try and account for
+ * slower machines.
+ */
+export async function connectCdp<T>(
+  port: number,
+  connect: (port: number) => Promise<T>,
+): Promise<T> {
+  const maxTries = 5;
+  for (let attempt = 1;; ++attempt) {
+    try {
+      return await connect(port);
+    } catch (e) {
+      if (attempt === maxTries) {
+        throw new Error(
+          `Failed to connect to CDP on port ${port}: ${
+            e instanceof Error ? e.message : String(e)
+          }`,
+        );
+      }
+      await sleep(100);
+    }
+  }
+}
+
+/**
  * Launch headless Chrome with its CDP endpoint open on `port`, and return once
  * that endpoint answers. The caller connects a protocol client of its own —
  * this owns the process, not the conversation.
