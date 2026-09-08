@@ -40,6 +40,7 @@ async function writeSilentChromeExecutable(
   port: number,
   stderrText: string,
   selfDestructMs: number = kSelfDestructMs,
+  exitTimestampPath?: string,
 ): Promise<string> {
   const scriptPath = join(dir, "silent-chrome.js");
   await Deno.writeTextFile(
@@ -56,23 +57,38 @@ async function writeSilentChromeExecutable(
           JSON.stringify(stderrText)
         }));`
         : "",
-      `setTimeout(() => Deno.exit(1), ${selfDestructMs});`,
+      `setTimeout(() => {`,
+      // Recorded synchronously, right at the moment of exit, so the test
+      // can measure launchChrome's detection latency against the process's
+      // own clock instead of wall time from before it was even spawned --
+      // subprocess startup (a second or more on a loaded Windows host) would
+      // otherwise swamp the narrow window this is meant to verify.
+      exitTimestampPath
+        ? `  Deno.writeTextFileSync(${
+          JSON.stringify(exitTimestampPath)
+        }, String(Date.now()));`
+        : "",
+      `  Deno.exit(1);`,
+      `}, ${selfDestructMs});`,
     ].join("\n"),
   );
 
   const deno = Deno.execPath();
+  const allowWrite = exitTimestampPath
+    ? ` --allow-write="${exitTimestampPath}"`
+    : "";
   if (Deno.build.os === "windows") {
     const cmdPath = join(dir, "silent-chrome.cmd");
     await Deno.writeTextFile(
       cmdPath,
-      `@echo off\r\n"${deno}" run --allow-net "${scriptPath}" %*\r\n`,
+      `@echo off\r\n"${deno}" run --allow-net${allowWrite} "${scriptPath}" %*\r\n`,
     );
     return cmdPath;
   }
   const shPath = join(dir, "silent-chrome.sh");
   await Deno.writeTextFile(
     shPath,
-    `#!/bin/sh\n"${deno}" run --allow-net "${scriptPath}" "$@"\n`,
+    `#!/bin/sh\n"${deno}" run --allow-net${allowWrite} "${scriptPath}" "$@"\n`,
   );
   await Deno.chmod(shPath, 0o755);
   return shPath;
@@ -151,26 +167,34 @@ unitTest(
       // against this genuinely silent port could run for up to a full
       // probeTimeoutMs (up to 1000ms) after the exit before it's noticed.
       const selfDestructMs = 200;
+      const exitTimestampPath = join(dir, "exit-timestamp.txt");
       const fakeChrome = await writeSilentChromeExecutable(
         dir,
         port,
         "",
         selfDestructMs,
+        exitTimestampPath,
       );
-      const start = Date.now();
       const err = await assertRejects(
         () => launchChrome({ appPath: fakeChrome, port, timeout: 5000 }),
         Error,
       );
-      const elapsed = Date.now() - start;
+      // Measured from the child's own exit, not from before it was spawned --
+      // subprocess startup time is irrelevant noise for what this test
+      // verifies (that an in-flight probe is aborted promptly on exit,
+      // rather than waiting out its own timeout).
+      const exitTimestamp = Number(
+        await Deno.readTextFile(exitTimestampPath),
+      );
+      const detectionLatency = Date.now() - exitTimestamp;
       assert(
         err.message.includes("Chrome exited"),
         `expected an exit message, got: ${err.message}`,
       );
       assert(
-        elapsed < selfDestructMs + 500,
-        `expected exit to be reported well under a probe timeout after ` +
-          `it happened (${selfDestructMs}ms + margin), took ${elapsed}ms`,
+        detectionLatency < 500,
+        `expected the exit to be detected within 500ms of the process ` +
+          `actually exiting, took ${detectionLatency}ms`,
       );
     } finally {
       await Deno.remove(dir, { recursive: true }).catch(() => {});
