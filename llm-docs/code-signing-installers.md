@@ -1,6 +1,6 @@
 ---
-main_commit: a8d0dcfee
-analyzed_date: 2026-05-19
+main_commit: abc6a78ed
+analyzed_date: 2026-08-11
 key_files:
   - package/src/macos/installer.ts
   - package/src/windows/installer.ts
@@ -15,7 +15,7 @@ key_files:
 
 How release installers get signed and (on macOS) notarized in the `Build Installers` workflow. Covers macOS first, then Windows. Both pipelines run from `create-release.yml`.
 
-Signing happens only on official releases — local `quarto-bld` builds skip it when the relevant env vars / secrets are absent (macOS prints `warning: Missing Application Developer Id, not signing`; Windows step is gated by repo secrets that only the Apple keychain action and DigiCert smctl can resolve).
+Signing happens only on dispatched runs of that workflow — the daily scheduled build skips Windows signing outright (see "Signing volume" under Windows), and local `quarto-bld` builds skip signing when the relevant env vars / secrets are absent (macOS prints `warning: Missing Application Developer Id, not signing`; Windows step is gated by repo secrets that only the Apple keychain action and DigiCert smctl can resolve).
 
 ## Why sign?
 
@@ -170,42 +170,56 @@ Prevention: dispatch `create-release.yml` (publish-release=false) on the branch 
 
 ### Cert provider
 
-Posit signs via **DigiCert ONE / KeyLocker** (cloud-held EV cert). Local CLI is `smctl` (Software Trust Manager CLI) plus the standard `signtool.exe` from the Windows 10 SDK / App Certification Kit. The private key never leaves DigiCert's HSM — `smctl windows certsync` syncs the public cert into the local Windows cert store so `signtool` can reference it by thumbprint.
+Posit signs via **DigiCert ONE / Software Trust Manager (STM)** (cloud-held EV cert). Local CLI is `smctl` (Software Trust Manager CLI). The private key never leaves DigiCert's HSM — `smctl sign --keypair-alias` talks to DigiCert directly to sign, with no local Windows cert-store sync needed.
+
+> **2026 credential rotation:** the cert active through mid-2026 used a SHA-1 fingerprint (`SM_CLIENT_CERT_FINGERPRINT` / `CERT_FINGERPRINT`) with `smctl windows certsync` + `signtool.exe`. The cert renewed for 2026 uses a keypair-alias model instead (`SM_KEYPAIR_ALIAS_2026` / `KEYPAIR_ALIAS`), signing directly via `smctl sign` with no `signtool.exe` invocation and no cert-store sync step. Secrets for the new cert carry a `_2026` suffix; the job's `env:` block maps them to the unsuffixed names below. Expect a similar suffix bump on each future annual renewal.
 
 ### Secrets → env vars → purpose
 
-| Secret                       | Env var on sign step      | Used for                                                                          |
-| ---------------------------- | ------------------------- | --------------------------------------------------------------------------------- |
-| `SM_HOST`                    | `SM_HOST`                 | DigiCert tenant host URL                                                          |
-| `SM_API_KEY`                 | `SM_API_KEY`              | DigiCert API auth                                                                 |
-| `SM_CLIENT_CERT_FILE_B64`    | `SM_CLIENT_CERT_FILE_B64` | Base64 of client auth PFX (decoded to `.build\certificates\codesign.pfx`)         |
-| `SM_CLIENT_CERT_PASSWORD`    | `SM_CLIENT_CERT_PASSWORD` | PFX password                                                                      |
-| `SM_CLIENT_CERT_FINGERPRINT` | `CERT_FINGERPRINT`        | SHA-1 thumbprint passed to `signtool /sha1` to select the cert in the local store |
+| Secret (env var maps `_2026`-suffixed secret → unsuffixed name below) | Env var on sign step | Used for |
+| --- | --- | --- |
+| `SM_HOST_2026` | `SM_HOST` | DigiCert tenant host URL |
+| `SM_API_KEY_2026` | `SM_API_KEY` | DigiCert API auth |
+| `SM_CLIENT_CERT_FILE_B64_2026` | `SM_CLIENT_CERT_FILE_B64` | Base64 of client auth PFX (decoded to `.build\certificates\codesign.pfx`) |
+| `SM_CLIENT_CERT_PASSWORD_2026` | `SM_CLIENT_CERT_PASSWORD` | PFX password |
+| `SM_KEYPAIR_ALIAS_2026` | `KEYPAIR_ALIAS` | Keypair alias passed to `smctl sign --keypair-alias`, replaces the old cert-fingerprint selection |
 
 ### Signing flow — `.github/workflows/actions/sign-files`
 
-Composite action invoked **twice** per release in `make-installer-win`:
+Composite action invoked **twice** in `make-installer-win` — but only on `workflow_dispatch`. Both sign steps carry `if: ${{ github.event_name != 'schedule' }}`, so the daily scheduled build produces **unsigned** Windows artifacts (see "Signing volume" below). The two invocations:
 
 1. **Before MSI build** — sign every binary that will be bundled by WiX:
    `quarto.exe` (launcher), `deno.exe`, `esbuild.exe`, `dart.exe`, `deno_dom/plugin.dll`, `typst-gather.exe`, `pandoc.exe`, plus the `quarto.js` bundle.
-2. **After MSI build** — sign the resulting `quarto-<v>-win.msi`, passing `signtools-extra-args: /d "Quarto CLI"` so the SmartScreen / UAC prompt shows a friendly description.
+2. **After MSI build** — sign the resulting `quarto-<v>-win.msi`. `smctl sign` has no equivalent to signtool's `/d` description flag, so the MSI's SmartScreen / UAC description is whatever the MSI's own metadata provides, not an explicit signing-time string.
 
 Each invocation runs these steps (`.github/workflows/actions/sign-files/action.yml`):
 
 1. **Setup client cert** — fail-fast if `SM_CLIENT_CERT_FILE_B64` missing; base64-decode into `.build\certificates\codesign.pfx` (cached across the second invocation).
-2. **Install smctl** if absent — downloads `smtools-windows-x64.msi` from `rstudio-buildtools.s3.amazonaws.com` with retry-on-failure (transient S3 failures previously caused silent install failures); runs `msiexec /qn /log`; verifies `smctl.exe` is on disk; adds DigiCert install dir + Windows Kits App Certification Kit (signtool) to `PATH`.
+2. **Install smctl** if absent — downloads `smtools-windows-x64.msi` from `rstudio-buildtools.s3.amazonaws.com` with retry-on-failure (transient S3 failures previously caused silent install failures); runs `msiexec /qn /log`; verifies `smctl.exe` is on disk. Also adds the Windows Kits App Certification Kit (`signtool.exe`) to `PATH` if missing — `smctl sign` delegates the actual Windows signing operation to `signtool.exe` under the hood, so this stays required even though nothing in the workflow invokes `signtool.exe` directly.
 3. **Verify all required env vars** are set, else fail with `::error`.
-4. **`smctl windows certsync`** — pull the EV cert from DigiCert into the local Windows cert store.
-5. **For each path** in the multi-line `paths:` input:
+4. **For each path** in the multi-line `paths:` input:
    ```
-   signtool.exe sign /sha1 $CERT_FINGERPRINT \
-     /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 \
-     <extra-args> <path>
-   signtool.exe verify /v /pa <path>
+   smctl sign --keypair-alias $KEYPAIR_ALIAS --input <path> \
+     --digalg SHA256 --sigalg SHA256 --timestamp=true
+   smctl sign verify --input <path>
    ```
-   `/tr` adds an RFC 3161 timestamp (signature stays valid after cert expiry); `/fd SHA256` uses SHA-256 file digest; `/pa` verifies against the default authentication policy (the one SmartScreen uses).
+   `--digalg`/`--sigalg` are pinned explicitly because DigiCert's docs say they otherwise default to "whatever the underlying signing tool supports" rather than a fixed value. `--timestamp=true` keeps the signature valid after cert expiry (RFC 3161-style); DigiCert's own timestamp authority is used, without an explicit `--tsa-url` pin — that flag only records the TSA URL in signature metadata, it doesn't select which server is used.
+
+   `smctl sign verify` shells out to `signtool verify /pa` internally (confirmed from live CI job logs, not just docs) — a verify failure surfaces as a `signtool` error, same as before the migration.
 
 Any single signing or verify failure fails the whole step.
+
+**On the dropped `/d` description flag:** checked the pre-migration MSI (built with `signtool /d "Quarto CLI"`) via `certutil -dump`, `signtool verify /v /pa`, and Explorer's Digital Signatures > Details > Additional Information dialog — none of them surfaced the description text even though the flag was set. Removing it during the migration has no observed user-facing effect, since the field wasn't visibly rendering when present either.
+
+### Signing volume, and why the nightly build is exempt
+
+`create-release.yml` is the only workflow that touches DigiCert. Measured over the 12 months to 2026-08-11: 512 runs (366 `schedule`, 146 `workflow_dispatch`), of which 505 ran `make-installer-win` and 491 succeeded — about **4,420 signature operations a year** at 9 per build, against only ~74 published releases in the same window. Nightly verification builds and `publish-release=false` test builds accounted for the rest.
+
+Both sign steps are now gated on `github.event_name != 'schedule'`, which removes ~3,300 of those (366 nightlies × 9) and leaves ~1,100/year.
+
+Why this is safe to skip on Windows but **not** on macOS: the only regression nightly signing could have caught here is a credential/`smctl`/reachability failure, and a manual dispatch (which still signs) surfaces those within days. It could never catch the #14664-class regression — a bundled binary missing from the `paths:` list — because `sign-files` signs exactly the paths it is handed and Windows has no notary to reject the bundle. That binary ships unsigned whether or not the nightly runs. macOS is the opposite: Apple's notary inspects the whole payload and fails the build, so nightly macOS signing + notarization stays in place as a genuine early warning.
+
+The gate is on `schedule`, not on `publish-release`, because `publish-release=false` dispatches are the documented pre-merge verification for bundled-binary bumps (`dev-docs/upgrade-dependencies.md`) and must keep signing. Nothing downstream of the nightly needs a signature: `test-zip-win` only runs `quarto check` / `--paths` / `--version`, and a scheduled run cannot publish because every publish path is gated on `inputs.publish-release`, which is unset on `schedule`.
 
 ### Windows launcher
 
@@ -230,5 +244,6 @@ Re-analyze when any of these change:
 - Apple migrates off `notarytool` (rare).
 - A new binary is added to the Mac bundle and needs a `signWithEntitlements` / `signWithoutEntitlements` entry in `package/src/macos/installer.ts`.
 - A new binary is added to the Windows bundle and needs an entry in the `paths:` block of the `Sign files before making ZIP and MSI installer` step in `create-release.yml`.
+- A sign step is added to `make-installer-win` (it needs the same `github.event_name != 'schedule'` gate), or the schedule exemption itself is changed.
 - DigiCert KeyLocker is replaced (e.g. switch back to a local HSM or a different signing-as-a-service provider) — `sign-files/action.yml` and the `SM_*` secret set would change.
 - `entitlements.plist` gains/loses entitlements (e.g. a new JIT-using tool, hardened-runtime exception).

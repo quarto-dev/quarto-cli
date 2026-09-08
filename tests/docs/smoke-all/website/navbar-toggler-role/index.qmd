@@ -1,0 +1,15 @@
+---
+title: "Home"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'button.navbar-toggler[aria-expanded][aria-controls][aria-label]'
+        -
+          - 'button.navbar-toggler[role]'
+---
+
+The navbar's collapse toggle button must keep its native button semantics:
+no `role` override (`role="menu"` is invalid on a button — #14615), with
+`aria-expanded`, `aria-controls`, and `aria-label` intact.

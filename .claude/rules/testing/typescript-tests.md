@@ -118,3 +118,5 @@ Several subsystems use context interfaces passed to functions. For unit tests, c
 |---------|-----------|-----------------|
 | `ProjectContext` | `src/project/types.ts` | `tests/unit/project/utils.ts` → `createMockProjectContext()` |
 | `InstallContext` | `src/tools/types.ts` | `tests/unit/tools/chrome-headless-shell.test.ts` → `createMockContext()` |
+| `Format` | `src/config/types.ts` | `tests/unit/format-utils.ts` → `createMockFormat()` (wraps the real `createFormat()` from `src/format/formats-shared.ts` — no hand-rolled cast) |
+| `TempContext` | `src/core/temp-types.ts` | No mock needed — use the real `createTempContext()` from `src/core/temp.ts` directly (see `tests/unit/sass-cache.test.ts`, `tests/unit/ral/safe-remove-dir.test.ts`) |

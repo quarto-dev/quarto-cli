@@ -29,6 +29,7 @@ import {
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
   kSectionDivs,
+  kSkipToContent,
   kTocDepth,
   kTocExpand,
   kTocLocation,
@@ -526,6 +527,10 @@ function bootstrapHtmlPostprocessor(
       doc.body.insertBefore(beforeBodyScript, doc.body.firstChild);
     }
 
+    // add a skip-to-content link as the first element of the body so that
+    // keyboard users can bypass navigation (WCAG 2.4.1 Bypass Blocks)
+    injectSkipLink(doc, format);
+
     // Process the elements of this document into an appendix
     if (
       format.metadata[kAppendixStyle] !== false &&
@@ -543,6 +548,37 @@ function bootstrapHtmlPostprocessor(
     // no resource refs
     return Promise.resolve({ resources, supporting });
   };
+}
+
+function injectSkipLink(doc: Document, format: Format) {
+  // resolve the link target, from most to least specific: the article-layout
+  // main content element, a hand-authored main, the custom-layout container
+  // (standalone custom layouts and dashboards), or the website custom-layout
+  // content container
+  const target = doc.querySelector("#quarto-document-content") ||
+    doc.querySelector("main") ||
+    doc.querySelector("div.page-layout-custom") ||
+    doc.querySelector("#quarto-content");
+  if (!target) {
+    return;
+  }
+  if (!target.id) {
+    target.id = "quarto-document-content";
+  }
+  // tabindex=-1 so that activating the link moves keyboard focus into the
+  // content (not just scroll position) across browsers and assistive tech
+  target.setAttribute("tabindex", "-1");
+
+  const skipLink = doc.createElement("a");
+  skipLink.id = "quarto-skip-link";
+  skipLink.classList.add("visually-hidden-focusable");
+  skipLink.setAttribute("href", `#${target.id}`);
+  skipLink.appendChild(
+    doc.createTextNode(
+      format.language[kSkipToContent] || "Skip to main content",
+    ),
+  );
+  doc.body.insertBefore(skipLink, doc.body.firstChild);
 }
 
 function createLinkChild(formatLink: AlternateLink, doc: Document) {

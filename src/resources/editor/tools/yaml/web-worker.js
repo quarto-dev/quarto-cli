@@ -6998,7 +6998,11 @@ try {
   var __getProtoOf = Object.getPrototypeOf;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __commonJS = (cb, mod) => function __require() {
-    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+    try {
+      return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+    } catch (e) {
+      throw mod = 0, e;
+    }
   };
   var __copyProps = (to, from, except, desc) => {
     if (from && typeof from === "object" || typeof from === "function") {
@@ -7120,7 +7124,14 @@ try {
             tags: {
               engine: "knitr"
             },
-            schema: "string",
+            schema: {
+              anyOf: [
+                {
+                  maybeArrayOf: "string"
+                },
+                "boolean"
+              ]
+            },
             description: {
               short: "Variables names that are not created from the current chunk",
               long: "Variables names that are not created from the current chunk.\n\nThis option is mainly for `autodep: true` to work more precisely---a chunk\n`B` depends on chunk `A` when any of `B`'s global variables are `A`'s local \nvariables. In case the automatic detection of global variables in a chunk \nfails, you may manually specify the names of global variables via this option.\nIn addition, `cache-globals: false` means detecting all variables in a code\nchunk, no matter if they are global or local variables.\n"
@@ -10346,6 +10357,66 @@ try {
                 "toc-title-website": "string",
                 "related-formats-title": "string",
                 "related-notebooks-title": "string",
+                "source-notebooks-prefix": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "other-links-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "code-links-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "launch-dev-container-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "launch-binder-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "article-notebook-label": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "notebook-preview-download": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "notebook-preview-download-src": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "notebook-preview-back": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "manuscript-meca-bundle": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "callout-tip-title": "string",
                 "callout-note-title": "string",
                 "callout-warning-title": "string",
@@ -10354,15 +10425,130 @@ try {
                 "section-title-abstract": "string",
                 "section-title-footnotes": "string",
                 "section-title-appendices": "string",
+                "section-title-references": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "section-title-reuse": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "section-title-copyright": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "section-title-citation": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "appendix-attribution-cite-as": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "appendix-attribution-bibtex": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "appendix-view-license": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-author-single": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-author-plural": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-affiliation-single": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-affiliation-plural": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-published": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-modified": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "title-block-keywords": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "code-summary": "string",
                 "code-tools-menu-caption": "string",
                 "code-tools-show-all-code": "string",
                 "code-tools-hide-all-code": "string",
                 "code-tools-view-source": "string",
                 "code-tools-source-code": "string",
+                "tools-share": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "tools-download": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "code-line": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "code-lines": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "back-to-top": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "search-no-results-text": "string",
                 "copy-button-tooltip": "string",
                 "copy-button-tooltip-success": "string",
+                "skip-to-content": "string",
                 "repo-action-links-edit": "string",
                 "repo-action-links-source": "string",
                 "repo-action-links-issue": "string",
@@ -10375,6 +10561,42 @@ try {
                 "search-text-placeholder": "string",
                 "search-detached-cancel-button-title": "string",
                 "search-submit-button-title": "string",
+                "search-label": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-section": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-sidebar": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-dark-mode": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-reader-mode": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "toggle-navigation": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
                 "crossref-fig-title": "string",
                 "crossref-tbl-title": "string",
                 "crossref-lst-title": "string",
@@ -10403,7 +10625,157 @@ try {
                 "crossref-exr-prefix": "string",
                 "crossref-lof-title": "string",
                 "crossref-lot-title": "string",
-                "crossref-lol-title": "string"
+                "crossref-lol-title": "string",
+                "environment-proof-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "environment-remark-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "environment-solution-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-default": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-date-asc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-date-desc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-number-desc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-order-by-number-asc": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-date": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-title": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-description": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-author": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-filename": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-filemodified": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-subtitle": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-readingtime": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-wordcount": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-field-categories": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-minutes-compact": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-category-all": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-no-matches": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-words": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                "listing-page-filter": {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                },
+                draft: {
+                  anyOf: [
+                    "string",
+                    null
+                  ]
+                }
               },
               errorDescription: "be a format language description object"
             }
@@ -13302,6 +13674,55 @@ try {
             }
           }
         ],
+        "schema/document-a11y.yml": [
+          {
+            name: "axe",
+            tags: {
+              formats: [
+                "$html-files"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  object: {
+                    properties: {
+                      output: {
+                        enum: [
+                          "json",
+                          "console",
+                          "document"
+                        ],
+                        description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                      },
+                      standard: {
+                        enum: [
+                          "wcag2a",
+                          "wcag2aa",
+                          "wcag2aaa",
+                          "wcag21a",
+                          "wcag21aa",
+                          "wcag21aaa",
+                          "wcag22a",
+                          "wcag22aa",
+                          "wcag22aaa"
+                        ],
+                        description: "Only check the rules for this WCAG conformance level, named as version then level (e.g. `wcag21aa` for WCAG 2.1 AA). Each level includes the levels and versions it builds on, and may check rules axe-core disables by default (such as AAA color contrast). Axe's best-practice rules are excluded unless `best-practice: true` is also set."
+                      },
+                      "best-practice": {
+                        boolean: {
+                          description: "Whether to check axe-core's best-practice rules (checks recommended by axe that aren't required by any WCAG success criterion). Checked by default when `standard` is unset; excluded by default when `standard` is set."
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            description: "When defined, run axe-core accessibility tests on the document."
+          }
+        ],
         "schema/document-about.yml": [
           {
             name: "about",
@@ -14523,6 +14944,26 @@ try {
               ]
             },
             description: "Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or\nmore Zotero group libraries to use with the document.\n"
+          }
+        ],
+        "schema/document-email.yml": [
+          {
+            name: "email-version",
+            tags: {
+              formats: [
+                "email"
+              ]
+            },
+            schema: {
+              enum: [
+                1,
+                2
+              ]
+            },
+            description: {
+              short: "Email format version",
+              long: "Specifies which email format version to use.\n\n- `1`: Legacy email format with document-level metadata (compatible with older Connect versions)\n- `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)\n"
+            }
           }
         ],
         "schema/document-epub.yml": [
@@ -20279,6 +20720,73 @@ try {
             description: "Print a list of tables in the document."
           }
         ],
+        "schema/document-typst.yml": [
+          {
+            name: "logo",
+            schema: {
+              ref: "logo-light-dark-specifier-path-optional"
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: "The logo image."
+          },
+          {
+            name: "margin-geometry",
+            schema: {
+              object: {
+                closed: true,
+                properties: {
+                  inner: {
+                    ref: "marginalia-side-geometry",
+                    description: "Inner (left) margin geometry."
+                  },
+                  outer: {
+                    ref: "marginalia-side-geometry",
+                    description: "Outer (right) margin geometry."
+                  },
+                  clearance: {
+                    string: {
+                      description: "Minimum vertical spacing between margin notes (default: 8pt)."
+                    }
+                  }
+                }
+              }
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: {
+              short: "Advanced geometry settings for Typst margin layout.",
+              long: "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
+            }
+          },
+          {
+            name: "theorem-appearance",
+            schema: {
+              enum: [
+                "simple",
+                "fancy",
+                "clouds",
+                "rainbow"
+              ]
+            },
+            default: "simple",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: {
+              short: "Visual style for theorem environments in Typst output.",
+              long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+            }
+          }
+        ],
         "schema/document-website.yml": [
           {
             name: "search",
@@ -23218,6 +23726,10 @@ try {
           "Attribute(s) for message output",
           "Class name(s) for error output",
           "Attribute(s) for error output",
+          "When defined, run axe-core accessibility tests on the document.",
+          "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+          "Only check the rules for this WCAG conformance level, named as\nversion then level (e.g.&nbsp;<code>wcag21aa</code> for WCAG 2.1 AA). Each\nlevel includes the levels and versions it builds on, and may check rules\naxe-core disables by default (such as AAA color contrast). Axe\u2019s\nbest-practice rules are excluded unless <code>best-practice: true</code>\nis also set.",
+          "Whether to check axe-core\u2019s best-practice rules (checks recommended\nby axe that aren\u2019t required by any WCAG success criterion). Checked by\ndefault when <code>standard</code> is unset; excluded by default when\n<code>standard</code> is set.",
           {
             short: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.",
             long: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.\nThe allowed values are either:"
@@ -23408,6 +23920,10 @@ try {
           },
           "Determines where chunk output is shown in the editor.",
           "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
+          {
+            short: "Email format version",
+            long: "Specifies which email format version to use."
+          },
           "The identifier for this publication.",
           "The identifier value.",
           "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
@@ -24399,6 +24915,18 @@ try {
           "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
           "Print a list of figures in the document.",
           "Print a list of tables in the document.",
+          "The logo image.",
+          {
+            short: "Advanced geometry settings for Typst margin layout.",
+            long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+          },
+          "Inner (left) margin geometry.",
+          "Outer (right) margin geometry.",
+          "Minimum vertical spacing between margin notes (default: 8pt).",
+          {
+            short: "Visual style for theorem environments in Typst output.",
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered:"
+          },
           "Setting this to false prevents this document from being included in\nsearches.",
           "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
           {
@@ -24774,26 +25302,6 @@ try {
           "Manuscript configuration",
           "internal-schema-hack",
           "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
-          "When defined, run axe-core accessibility tests on the document.",
-          "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
-          "Only check the rules for this WCAG conformance level, named as\nversion then level (e.g.&nbsp;<code>wcag21aa</code> for WCAG 2.1 AA). Each\nlevel includes the levels and versions it builds on, and may check rules\naxe-core disables by default (such as AAA color contrast). Axe\u2019s\nbest-practice rules are excluded unless <code>best-practice: true</code>\nis also set.",
-          "Whether to check axe-core\u2019s best-practice rules (checks recommended\nby axe that aren\u2019t required by any WCAG success criterion). Checked by\ndefault when <code>standard</code> is unset; excluded by default when\n<code>standard</code> is set.",
-          "The logo image.",
-          {
-            short: "Advanced geometry settings for Typst margin layout.",
-            long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
-          },
-          "Inner (left) margin geometry.",
-          "Outer (right) margin geometry.",
-          "Minimum vertical spacing between margin notes (default: 8pt).",
-          {
-            short: "Visual style for theorem environments in Typst output.",
-            long: "Controls how theorems, lemmas, definitions, etc. are rendered:"
-          },
-          {
-            short: "Email format version",
-            long: "Specifies which email format version to use."
-          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -25377,12 +25885,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 223022,
+          _internalId: 218590,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 223014,
+              _internalId: 218582,
               type: "enum",
               enum: [
                 "png",
@@ -25398,7 +25906,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 223021,
+              _internalId: 218589,
               type: "anyOf",
               anyOf: [
                 {
@@ -25438,143 +25946,7 @@ try {
             "case-detection": true
           },
           $id: "handlers/mermaid"
-        },
-        "schema/document-a11y.yml": [
-          {
-            name: "axe",
-            tags: {
-              formats: [
-                "$html-files"
-              ]
-            },
-            schema: {
-              anyOf: [
-                "boolean",
-                {
-                  object: {
-                    properties: {
-                      output: {
-                        enum: [
-                          "json",
-                          "console",
-                          "document"
-                        ],
-                        description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
-                      },
-                      standard: {
-                        enum: [
-                          "wcag2a",
-                          "wcag2aa",
-                          "wcag2aaa",
-                          "wcag21a",
-                          "wcag21aa",
-                          "wcag21aaa",
-                          "wcag22a",
-                          "wcag22aa",
-                          "wcag22aaa"
-                        ],
-                        description: "Only check the rules for this WCAG conformance level, named as version then level (e.g. `wcag21aa` for WCAG 2.1 AA). Each level includes the levels and versions it builds on, and may check rules axe-core disables by default (such as AAA color contrast). Axe's best-practice rules are excluded unless `best-practice: true` is also set."
-                      },
-                      "best-practice": {
-                        boolean: {
-                          description: "Whether to check axe-core's best-practice rules (checks recommended by axe that aren't required by any WCAG success criterion). Checked by default when `standard` is unset; excluded by default when `standard` is set."
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            },
-            description: "When defined, run axe-core accessibility tests on the document."
-          }
-        ],
-        "schema/document-typst.yml": [
-          {
-            name: "logo",
-            schema: {
-              ref: "logo-light-dark-specifier-path-optional"
-            },
-            tags: {
-              formats: [
-                "typst"
-              ]
-            },
-            description: "The logo image."
-          },
-          {
-            name: "margin-geometry",
-            schema: {
-              object: {
-                closed: true,
-                properties: {
-                  inner: {
-                    ref: "marginalia-side-geometry",
-                    description: "Inner (left) margin geometry."
-                  },
-                  outer: {
-                    ref: "marginalia-side-geometry",
-                    description: "Outer (right) margin geometry."
-                  },
-                  clearance: {
-                    string: {
-                      description: "Minimum vertical spacing between margin notes (default: 8pt)."
-                    }
-                  }
-                }
-              }
-            },
-            tags: {
-              formats: [
-                "typst"
-              ]
-            },
-            description: {
-              short: "Advanced geometry settings for Typst margin layout.",
-              long: "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
-            }
-          },
-          {
-            name: "theorem-appearance",
-            schema: {
-              enum: [
-                "simple",
-                "fancy",
-                "clouds",
-                "rainbow"
-              ]
-            },
-            default: "simple",
-            tags: {
-              formats: [
-                "typst"
-              ]
-            },
-            description: {
-              short: "Visual style for theorem environments in Typst output.",
-              long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
-            }
-          }
-        ],
-        "schema/document-email.yml": [
-          {
-            name: "email-version",
-            tags: {
-              formats: [
-                "email"
-              ]
-            },
-            schema: {
-              enum: [
-                1,
-                2
-              ]
-            },
-            description: {
-              short: "Email format version",
-              long: "Specifies which email format version to use.\n\n- `1`: Legacy email format with document-level metadata (compatible with older Connect versions)\n- `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)\n"
-            }
-          }
-        ]
+        }
       };
     }
   });
@@ -25794,13 +26166,13 @@ ${heading}`;
     const pad = " ".repeat(lineWidth);
     const ls = lines(text);
     const result = [];
-    for (let i = firstLine; i <= lastLine; ++i) {
-      const numberStr = `${pad}${i + 1}: `.slice(-(lineWidth + 2));
-      const lineStr = ls[i];
+    for (let i2 = firstLine; i2 <= lastLine; ++i2) {
+      const numberStr = `${pad}${i2 + 1}: `.slice(-(lineWidth + 2));
+      const lineStr = ls[i2];
       result.push({
-        lineNumber: i,
+        lineNumber: i2,
         content: numberStr + quotedStringColor(lineStr),
-        rawLine: ls[i]
+        rawLine: ls[i2]
       });
     }
     return {
@@ -25835,19 +26207,19 @@ ${heading}`;
     const s1 = w1.length + 1;
     const s2 = w2.length + 1;
     const v = new Int32Array(s1 * s2);
-    for (let i = 0; i < s1; ++i) {
+    for (let i2 = 0; i2 < s1; ++i2) {
       for (let j = 0; j < s2; ++j) {
-        if (i === 0 && j === 0) {
+        if (i2 === 0 && j === 0) {
           continue;
-        } else if (i === 0) {
-          v[i * s2 + j] = v[i * s2 + (j - 1)] + cost(w2[j - 1]);
+        } else if (i2 === 0) {
+          v[i2 * s2 + j] = v[i2 * s2 + (j - 1)] + cost(w2[j - 1]);
         } else if (j === 0) {
-          v[i * s2 + j] = v[(i - 1) * s2 + j] + cost(w1[i - 1]);
+          v[i2 * s2 + j] = v[(i2 - 1) * s2 + j] + cost(w1[i2 - 1]);
         } else {
-          v[i * s2 + j] = Math.min(
-            v[(i - 1) * s2 + (j - 1)] + cost2(w1[i - 1], w2[j - 1]),
-            v[i * s2 + (j - 1)] + cost(w2[j - 1]),
-            v[(i - 1) * s2 + j] + cost(w1[i - 1])
+          v[i2 * s2 + j] = Math.min(
+            v[(i2 - 1) * s2 + (j - 1)] + cost2(w1[i2 - 1], w2[j - 1]),
+            v[i2 * s2 + (j - 1)] + cost(w2[j - 1]),
+            v[(i2 - 1) * s2 + j] + cost(w1[i2 - 1])
           );
         }
       }
@@ -26223,26 +26595,26 @@ ${heading}`;
     const indents = [];
     let indentation = -1;
     let prevPredecessor = -1;
-    for (let i = 0; i < ls.length; ++i) {
-      const line = ls[i];
+    for (let i2 = 0; i2 < ls.length; ++i2) {
+      const line = ls[i2];
       const lineIndent = getIndent(line);
       indents.push(lineIndent);
       if (lineIndent > indentation) {
-        predecessor[i] = prevPredecessor;
-        prevPredecessor = i;
+        predecessor[i2] = prevPredecessor;
+        prevPredecessor = i2;
         indentation = lineIndent;
       } else if (line.trim().length === 0) {
-        predecessor[i] = predecessor[prevPredecessor];
+        predecessor[i2] = predecessor[prevPredecessor];
       } else if (lineIndent === indentation) {
-        predecessor[i] = predecessor[prevPredecessor];
-        prevPredecessor = i;
+        predecessor[i2] = predecessor[prevPredecessor];
+        prevPredecessor = i2;
       } else if (lineIndent < indentation) {
         let v = prevPredecessor;
         while (v >= 0 && indents[v] >= lineIndent) {
           v = predecessor[v];
         }
-        predecessor[i] = v;
-        prevPredecessor = i;
+        predecessor[i2] = v;
+        prevPredecessor = i2;
         indentation = lineIndent;
       } else {
         throw new UnreachableError();
@@ -26420,22 +26792,22 @@ ${heading}`;
       }
     }
     if (foundLineNo < 0) foundLineNo = lineStarts.length - 1;
-    var result = "", i, line;
+    var result = "", i2, line;
     var lineNoLength = Math.min(
       mark.line + options.linesAfter,
       lineEnds.length
     ).toString().length;
     var maxLineLength = options.maxLength - (options.indent + lineNoLength + 3);
-    for (i = 1; i <= options.linesBefore; i++) {
-      if (foundLineNo - i < 0) break;
+    for (i2 = 1; i2 <= options.linesBefore; i2++) {
+      if (foundLineNo - i2 < 0) break;
       line = getLine(
         mark.buffer,
-        lineStarts[foundLineNo - i],
-        lineEnds[foundLineNo - i],
-        mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i]),
+        lineStarts[foundLineNo - i2],
+        lineEnds[foundLineNo - i2],
+        mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i2]),
         maxLineLength
       );
-      result = common.repeat(" ", options.indent) + padStart((mark.line - i + 1).toString(), lineNoLength) + " | " + line.str + "\n" + result;
+      result = common.repeat(" ", options.indent) + padStart((mark.line - i2 + 1).toString(), lineNoLength) + " | " + line.str + "\n" + result;
     }
     line = getLine(
       mark.buffer,
@@ -26446,16 +26818,16 @@ ${heading}`;
     );
     result += common.repeat(" ", options.indent) + padStart((mark.line + 1).toString(), lineNoLength) + " | " + line.str + "\n";
     result += common.repeat("-", options.indent + lineNoLength + 3 + line.pos) + "^\n";
-    for (i = 1; i <= options.linesAfter; i++) {
-      if (foundLineNo + i >= lineEnds.length) break;
+    for (i2 = 1; i2 <= options.linesAfter; i2++) {
+      if (foundLineNo + i2 >= lineEnds.length) break;
       line = getLine(
         mark.buffer,
-        lineStarts[foundLineNo + i],
-        lineEnds[foundLineNo + i],
-        mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i]),
+        lineStarts[foundLineNo + i2],
+        lineEnds[foundLineNo + i2],
+        mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i2]),
         maxLineLength
       );
-      result += common.repeat(" ", options.indent) + padStart((mark.line + i + 1).toString(), lineNoLength) + " | " + line.str + "\n";
+      result += common.repeat(" ", options.indent) + padStart((mark.line + i2 + 1).toString(), lineNoLength) + " | " + line.str + "\n";
     }
     return result.replace(/\n$/, "");
   }
@@ -28579,7 +28951,7 @@ ${heading}`;
   var STYLE_FOLDED = 4;
   var STYLE_DOUBLE = 5;
   function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, testAmbiguousType, quotingType, forceQuotes, inblock) {
-    var i;
+    var i2;
     var char = 0;
     var prevChar = null;
     var hasLineBreak = false;
@@ -28588,8 +28960,8 @@ ${heading}`;
     var previousLineBreak = -1;
     var plain = isPlainSafeFirst(codePointAt(string, 0)) && isPlainSafeLast(codePointAt(string, string.length - 1));
     if (singleLineOnly || forceQuotes) {
-      for (i = 0; i < string.length; char >= 65536 ? i += 2 : i++) {
-        char = codePointAt(string, i);
+      for (i2 = 0; i2 < string.length; char >= 65536 ? i2 += 2 : i2++) {
+        char = codePointAt(string, i2);
         if (!isPrintable(char)) {
           return STYLE_DOUBLE;
         }
@@ -28597,13 +28969,13 @@ ${heading}`;
         prevChar = char;
       }
     } else {
-      for (i = 0; i < string.length; char >= 65536 ? i += 2 : i++) {
-        char = codePointAt(string, i);
+      for (i2 = 0; i2 < string.length; char >= 65536 ? i2 += 2 : i2++) {
+        char = codePointAt(string, i2);
         if (char === CHAR_LINE_FEED) {
           hasLineBreak = true;
           if (shouldTrackWidth) {
-            hasFoldableLine = hasFoldableLine || i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
-            previousLineBreak = i;
+            hasFoldableLine = hasFoldableLine || i2 - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+            previousLineBreak = i2;
           }
         } else if (!isPrintable(char)) {
           return STYLE_DOUBLE;
@@ -28611,7 +28983,7 @@ ${heading}`;
         plain = plain && isPlainSafe(char, prevChar, inblock);
         prevChar = char;
       }
-      hasFoldableLine = hasFoldableLine || shouldTrackWidth && i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+      hasFoldableLine = hasFoldableLine || shouldTrackWidth && i2 - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
     }
     if (!hasLineBreak && !hasFoldableLine) {
       if (plain && !forceQuotes && !testAmbiguousType(string)) {
@@ -28724,12 +29096,12 @@ ${heading}`;
     var result = "";
     var char = 0;
     var escapeSeq;
-    for (var i = 0; i < string.length; char >= 65536 ? i += 2 : i++) {
-      char = codePointAt(string, i);
+    for (var i2 = 0; i2 < string.length; char >= 65536 ? i2 += 2 : i2++) {
+      char = codePointAt(string, i2);
       escapeSeq = ESCAPE_SEQUENCES[char];
       if (!escapeSeq && isPrintable(char)) {
-        result += string[i];
-        if (char >= 65536) result += string[i + 1];
+        result += string[i2];
+        if (char >= 65536) result += string[i2 + 1];
       } else {
         result += escapeSeq || encodeHex(char);
       }
@@ -29130,8 +29502,8 @@ ${heading}`;
     const aliases = defs;
     const result = [];
     lst = lst.slice();
-    for (let i = 0; i < lst.length; ++i) {
-      const el = lst[i];
+    for (let i2 = 0; i2 < lst.length; ++i2) {
+      const el = lst[i2];
       if (el.startsWith("$")) {
         const v = aliases[el.slice(1)];
         if (v === void 0) {
@@ -29246,15 +29618,15 @@ ${heading}`;
     return restoreRanges("53 0 g9 33 o 0 70 4 7e 18 2 0 2 1 2 1 2 0 21 a 1d u 7 0 2u 6 3 5 3 1 2 3 3 9 o 0 v q 2k a g 9 y 8 a 0 p 3 2 8 2 2 2 4 18 2 3c e 2 w 1j 2 2 h 2 6 b 1 3 9 i 2 1l 0 2 6 3 1 3 2 a 0 b 1 3 9 f 0 3 2 1l 0 2 4 5 1 3 2 4 0 l b 4 0 c 2 1l 0 2 7 2 2 2 2 l 1 3 9 b 5 2 2 1l 0 2 6 3 1 3 2 8 2 b 1 3 9 j 0 1o 4 4 2 2 3 a 0 f 9 h 4 1m 6 2 2 2 3 8 1 c 1 3 9 i 2 1l 0 2 6 2 2 2 3 8 1 c 1 3 9 h 3 1k 1 2 6 2 2 2 3 a 0 b 1 3 9 i 2 1z 0 5 5 2 0 2 7 7 9 3 1 1q 0 3 6 d 7 2 9 2g 0 3 8 c 5 3 9 1r 1 7 9 c 0 2 0 2 0 5 1 1e j 2 1 6 a 2 z a 0 2t j 2 9 d 3 5 2 2 2 3 6 4 3 e b 2 e jk 2 a 8 pt 2 u 2 u 1 v 1 1t v a 0 3 9 y 2 3 9 40 0 3b b 5 b b 9 3l a 1p 4 1m 9 2 s 3 a 7 9 n d 2 1 1s 4 1c g c 9 i 8 d 2 v c 3 9 19 d 1d j 9 9 7 9 3b 2 2 k 5 0 7 0 3 2 5j 1l 2 4 g0 1 k 0 3g c 5 0 4 b 2db 2 3y 0 2p v ff 5 2y 1 n7q 9 1y 0 5 9 x 1 29 1 7l 0 4 0 5 0 o 4 5 0 2c 1 1f h b 9 7 h e a t 7 q c 19 3 1c d g 9 c 0 b 9 1c d d 0 9 1 3 9 y 2 1f 0 2 2 3 1 6 1 2 0 16 4 6 1 6l 7 2 1 3 9 fmt 0 ki f h f 4 1 p 2 5d 9 12 0 ji 0 6b 0 46 4 86 9 120 2 2 1 6 3 15 2 5 0 4m 1 fy 3 9 9 aa 1 4a a 4w 2 1i e w 9 g 3 1a a 1i 9 7 2 11 d 2 9 6 1 19 0 d 2 1d d 9 3 2 b 2b b 7 0 4h b 6 9 7 3 1k 1 2 6 3 1 3 2 a 0 b 1 3 6 4 4 5d h a 9 5 0 2a j d 9 5y 6 3 8 s 1 2b g g 9 2a c 9 9 2c e 5 9 6r e 4m 9 1z 5 2 1 3 3 2 0 2 1 d 9 3c 6 3 6 4 0 t 9 15 6 2 3 9 0 a a 1b f ba 7 2 7 h 9 1l l 2 d 3f 5 4 0 2 1 2 6 2 0 9 9 1d 4 2 1 2 4 9 9 96 3 ewa 9 3r 4 1o 6 q 9 s6 0 2 1i 8 3 2a 0 c 1 f58 1 43r 4 4 5 9 7 3 6 v 3 45 2 13e 1d e9 1i 5 1d 9 0 f 0 n 4 2 e 11t 6 2 g 3 6 2 1 2 4 7a 6 a 9 bn d 15j 6 32 6 6 9 3o7 9 gvt3 6n");
   }
   function isInRange(cp, ranges) {
-    let l = 0, r = ranges.length / 2 | 0, i = 0, min = 0, max = 0;
+    let l = 0, r = ranges.length / 2 | 0, i2 = 0, min = 0, max = 0;
     while (l < r) {
-      i = (l + r) / 2 | 0;
-      min = ranges[2 * i];
-      max = ranges[2 * i + 1];
+      i2 = (l + r) / 2 | 0;
+      min = ranges[2 * i2];
+      max = ranges[2 * i2 + 1];
       if (cp < min) {
-        r = i;
+        r = i2;
       } else if (cp > max) {
-        l = i + 1;
+        l = i2 + 1;
       } else {
         return true;
       }
@@ -29406,16 +29778,16 @@ ${heading}`;
     return (lead - 55296) * 1024 + (trail - 56320) + 65536;
   }
   var legacyImpl = {
-    at(s, end, i) {
-      return i < end ? s.charCodeAt(i) : -1;
+    at(s, end, i2) {
+      return i2 < end ? s.charCodeAt(i2) : -1;
     },
     width(c) {
       return 1;
     }
   };
   var unicodeImpl = {
-    at(s, end, i) {
-      return i < end ? s.codePointAt(i) : -1;
+    at(s, end, i2) {
+      return i2 < end ? s.codePointAt(i2) : -1;
     },
     width(c) {
       return c > 65535 ? 2 : 1;
@@ -29578,10 +29950,10 @@ ${heading}`;
       let unicode = false;
       let dotAll = false;
       let hasIndices = false;
-      for (let i = start; i < end; ++i) {
-        const flag = source.charCodeAt(i);
+      for (let i2 = start; i2 < end; ++i2) {
+        const flag = source.charCodeAt(i2);
         if (existingFlags.has(flag)) {
-          this.raise(`Duplicated flag '${source[i]}'`);
+          this.raise(`Duplicated flag '${source[i2]}'`);
         }
         existingFlags.add(flag);
         if (flag === LatinSmallLetterG) {
@@ -29599,7 +29971,7 @@ ${heading}`;
         } else if (flag === LatinSmallLetterD && this.ecmaVersion >= 2022) {
           hasIndices = true;
         } else {
-          this.raise(`Invalid flag '${source[i]}'`);
+          this.raise(`Invalid flag '${source[i2]}'`);
         }
       }
       this.onFlags(start, end, global, ignoreCase, multiline, unicode, sticky, dotAll, hasIndices);
@@ -29868,10 +30240,10 @@ ${heading}`;
     }
     consumeDisjunction() {
       const start = this.index;
-      let i = 0;
+      let i2 = 0;
       this.onDisjunctionEnter(start);
       do {
-        this.consumeAlternative(i++);
+        this.consumeAlternative(i2++);
       } while (this.eat(VerticalLine));
       if (this.consumeQuantifier(true)) {
         this.raise("Nothing to repeat");
@@ -29881,12 +30253,12 @@ ${heading}`;
       }
       this.onDisjunctionLeave(start, this.index);
     }
-    consumeAlternative(i) {
+    consumeAlternative(i2) {
       const start = this.index;
-      this.onAlternativeEnter(start, i);
+      this.onAlternativeEnter(start, i2);
       while (this.currentCodePoint !== -1 && this.consumeTerm()) {
       }
-      this.onAlternativeLeave(start, this.index, i);
+      this.onAlternativeLeave(start, this.index, i2);
     }
     consumeTerm() {
       if (this._uFlag || this.strict) {
@@ -30559,7 +30931,7 @@ ${heading}`;
     eatFixedHexDigits(length) {
       const start = this.index;
       this._lastIntValue = 0;
-      for (let i = 0; i < length; ++i) {
+      for (let i2 = 0; i2 < length; ++i2) {
         const cp = this.currentCodePoint;
         if (!isHexDigit(cp)) {
           this.rewind(start);
@@ -30960,12 +31332,12 @@ ${heading}`;
       return `(${alternatives.join("|")})`;
     } else if (parse.type === "Alternative") {
       const result = [];
-      for (let i = 0; i < parse.elements.length; ++i) {
+      for (let i2 = 0; i2 < parse.elements.length; ++i2) {
         const thisRe = [];
-        for (let j = 0; j < i; ++j) {
+        for (let j = 0; j < i2; ++j) {
           thisRe.push(parse.elements[j].raw);
         }
-        thisRe.push(prefixesFromParse(parse.elements[i]));
+        thisRe.push(prefixesFromParse(parse.elements[i2]));
         result.push(thisRe.join(""));
       }
       return `(${result.join("|")})`;
@@ -31396,7 +31768,7 @@ ${heading}`;
     if (schemaPath.length !== strs.length) {
       return false;
     }
-    return strs.every((str2, i) => str2 === schemaPath[i]);
+    return strs.every((str2, i2) => str2 === schemaPath[i2]);
   }
   function getBadKey(error) {
     if (error.schemaPath.indexOf("propertyNames") === -1 && error.schemaPath.indexOf("closed") === -1) {
@@ -31424,13 +31796,13 @@ ${heading}`;
       const { components } = annotation;
       const searchKey = path[pathIndex];
       const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
-      for (let i = lastKeyIndex; i >= 0; i -= 2) {
-        const key = components[i].result;
+      for (let i2 = lastKeyIndex; i2 >= 0; i2 -= 2) {
+        const key = components[i2].result;
         if (key === searchKey) {
           if (returnKey && pathIndex === path.length - 1) {
-            return navigate(path, components[i], returnKey, pathIndex + 1);
+            return navigate(path, components[i2], returnKey, pathIndex + 1);
           } else {
-            return navigate(path, components[i + 1], returnKey, pathIndex + 1);
+            return navigate(path, components[i2 + 1], returnKey, pathIndex + 1);
           }
         }
       }
@@ -32290,8 +32662,8 @@ ${tidyverseInfo(
       },
       "block_sequence": (node) => {
         const result2 = [], components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
+        for (let i2 = 0; i2 < node.childCount; ++i2) {
+          const child = node.child(i2);
           if (child.type !== "block_sequence_item") {
             continue;
           }
@@ -32310,8 +32682,8 @@ ${tidyverseInfo(
       },
       "flow_sequence": (node) => {
         const result2 = [], components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
+        for (let i2 = 0; i2 < node.childCount; ++i2) {
+          const child = node.child(i2);
           if (child.type !== "flow_node") {
             continue;
           }
@@ -32323,8 +32695,8 @@ ${tidyverseInfo(
       },
       "block_mapping": (node) => {
         const result2 = {}, components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
+        for (let i2 = 0; i2 < node.childCount; ++i2) {
+          const child = node.child(i2);
           let component;
           if (child.type === "ERROR") {
             result2[child.text] = "<<ERROR>>";
@@ -32348,8 +32720,8 @@ ${tidyverseInfo(
       "flow_pair": buildPair,
       "flow_mapping": (node) => {
         const result2 = {}, components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
+        for (let i2 = 0; i2 < node.childCount; ++i2) {
+          const child = node.child(i2);
           if (child.type === "flow_node") {
             continue;
           }
@@ -32384,8 +32756,8 @@ ${tidyverseInfo(
     const kInternalLocateError = "Cursor outside bounds in sequence locate";
     function locate(node) {
       if (node.kind === "block_mapping" || node.kind === "flow_mapping" || node.kind === "mapping") {
-        for (let i = 0; i < node.components.length; i += 2) {
-          const keyC = node.components[i], valueC = node.components[i + 1];
+        for (let i2 = 0; i2 < node.components.length; i2 += 2) {
+          const keyC = node.components[i2], valueC = node.components[i2 + 1];
           if (keyC.start <= position && position <= keyC.end) {
             innermostAnnotation = keyC;
             result.push(keyC.result);
@@ -32400,18 +32772,18 @@ ${tidyverseInfo(
         failedLast = true;
         return;
       } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
-        for (let i = 0; i < node.components.length; ++i) {
-          const valueC = node.components[i];
+        for (let i2 = 0; i2 < node.components.length; ++i2) {
+          const valueC = node.components[i2];
           if (valueC.start <= position && position <= valueC.end) {
-            result.push(i);
+            result.push(i2);
             innermostAnnotation = valueC;
             return locate(valueC);
           }
           if (valueC.start > position) {
-            if (i === 0) {
+            if (i2 === 0) {
               return;
             } else {
-              result.push(i - 1);
+              result.push(i2 - 1);
               return;
             }
           }
@@ -32448,8 +32820,8 @@ ${tidyverseInfo(
   function locateAnnotation(annotation, position, kind) {
     const originalSource = annotation.source;
     kind = kind || "value";
-    for (let i = 0; i < position.length; ++i) {
-      const value = position[i];
+    for (let i2 = 0; i2 < position.length; ++i2) {
+      const value = position[i2];
       if (typeof value === "number") {
         const inner = annotation.components[value];
         if (inner === void 0) {
@@ -32463,7 +32835,7 @@ ${tidyverseInfo(
             annotation.components[j].start,
             annotation.components[j].end
           ).trim() === value) {
-            if (i === position.length - 1) {
+            if (i2 === position.length - 1) {
               if (kind === "key") {
                 annotation = annotation.components[j];
               } else {
@@ -32711,11 +33083,11 @@ ${tidyverseInfo(
             return 1;
           };
           const errorComparator = (a, b) => {
-            for (let i = 0; i < a.length; ++i) {
-              if (a[i] < b[i]) {
+            for (let i2 = 0; i2 < a.length; ++i2) {
+              if (a[i2] < b[i2]) {
                 return -1;
               }
-              if (a[i] > b[i]) {
+              if (a[i2] > b[i2]) {
                 return 1;
               }
             }
@@ -32911,9 +33283,9 @@ ${tidyverseInfo(
   }
   function validateAnyOf(value, schema2, context) {
     let passingSchemas = 0;
-    for (let i = 0; i < schema2.anyOf.length; ++i) {
-      const subSchema = schema2.anyOf[i];
-      context.withSchemaPath(i, () => {
+    for (let i2 = 0; i2 < schema2.anyOf.length; ++i2) {
+      const subSchema = schema2.anyOf[i2];
+      context.withSchemaPath(i2, () => {
         if (validateGeneric(value, subSchema, context)) {
           passingSchemas++;
           return true;
@@ -32925,9 +33297,9 @@ ${tidyverseInfo(
   }
   function validateAllOf(value, schema2, context) {
     let passingSchemas = 0;
-    for (let i = 0; i < schema2.allOf.length; ++i) {
-      const subSchema = schema2.allOf[i];
-      context.withSchemaPath(i, () => {
+    for (let i2 = 0; i2 < schema2.allOf.length; ++i2) {
+      const subSchema = schema2.allOf[i2];
+      context.withSchemaPath(i2, () => {
         if (validateGeneric(value, subSchema, context)) {
           passingSchemas++;
           return true;
@@ -32974,9 +33346,9 @@ ${tidyverseInfo(
     if (schema2.items !== void 0) {
       result = context.withSchemaPath("items", () => {
         let result2 = true;
-        for (let i = 0; i < value.components.length; ++i) {
-          context.pushInstance(i);
-          result2 = validateGeneric(value.components[i], schema2.items, context) && result2;
+        for (let i2 = 0; i2 < value.components.length; ++i2) {
+          context.pushInstance(i2);
+          result2 = validateGeneric(value.components[i2], schema2.items, context) && result2;
           context.popInstance();
         }
         return result2;
@@ -32995,12 +33367,12 @@ ${tidyverseInfo(
     );
     const objResult = value.result;
     const locate = (key, keyOrValue = "value") => {
-      for (let i = 0; i < value.components.length; i += 2) {
-        if (String(value.components[i].result) === key) {
+      for (let i2 = 0; i2 < value.components.length; i2 += 2) {
+        if (String(value.components[i2].result) === key) {
           if (keyOrValue === "value") {
-            return value.components[i + 1];
+            return value.components[i2 + 1];
           } else {
-            return value.components[i];
+            return value.components[i2];
           }
         }
       }
@@ -33646,39 +34018,39 @@ ${tidyverseInfo(
       let inRange = false;
       let inEscape = false;
       let endsWithSep = false;
-      let i = j;
-      for (; i < glob.length && !seps.includes(glob[i]); i++) {
+      let i2 = j;
+      for (; i2 < glob.length && !seps.includes(glob[i2]); i2++) {
         if (inEscape) {
           inEscape = false;
           const escapeChars = inRange ? rangeEscapeChars : regExpEscapeChars;
-          segment += escapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
+          segment += escapeChars.includes(glob[i2]) ? `\\${glob[i2]}` : glob[i2];
           continue;
         }
-        if (glob[i] == escapePrefix) {
+        if (glob[i2] == escapePrefix) {
           inEscape = true;
           continue;
         }
-        if (glob[i] == "[") {
+        if (glob[i2] == "[") {
           if (!inRange) {
             inRange = true;
             segment += "[";
-            if (glob[i + 1] == "!") {
-              i++;
+            if (glob[i2 + 1] == "!") {
+              i2++;
               segment += "^";
-            } else if (glob[i + 1] == "^") {
-              i++;
+            } else if (glob[i2 + 1] == "^") {
+              i2++;
               segment += "\\^";
             }
             continue;
-          } else if (glob[i + 1] == ":") {
-            let k = i + 1;
+          } else if (glob[i2 + 1] == ":") {
+            let k = i2 + 1;
             let value = "";
             while (glob[k + 1] != null && glob[k + 1] != ":") {
               value += glob[k + 1];
               k++;
             }
             if (glob[k + 1] == ":" && glob[k + 2] == "]") {
-              i = k + 2;
+              i2 = k + 2;
               if (value == "alnum") segment += "\\dA-Za-z";
               else if (value == "alpha") segment += "A-Za-z";
               else if (value == "ascii") segment += "\0-\x7F";
@@ -33698,20 +34070,20 @@ ${tidyverseInfo(
             }
           }
         }
-        if (glob[i] == "]" && inRange) {
+        if (glob[i2] == "]" && inRange) {
           inRange = false;
           segment += "]";
           continue;
         }
         if (inRange) {
-          if (glob[i] == "\\") {
+          if (glob[i2] == "\\") {
             segment += `\\\\`;
           } else {
-            segment += glob[i];
+            segment += glob[i2];
           }
           continue;
         }
-        if (glob[i] == ")" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
+        if (glob[i2] == ")" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
           segment += ")";
           const type2 = groupStack.pop();
           if (type2 == "!") {
@@ -33721,25 +34093,25 @@ ${tidyverseInfo(
           }
           continue;
         }
-        if (glob[i] == "|" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
+        if (glob[i2] == "|" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
           segment += "|";
           continue;
         }
-        if (glob[i] == "+" && extended && glob[i + 1] == "(") {
-          i++;
+        if (glob[i2] == "+" && extended && glob[i2 + 1] == "(") {
+          i2++;
           groupStack.push("+");
           segment += "(?:";
           continue;
         }
-        if (glob[i] == "@" && extended && glob[i + 1] == "(") {
-          i++;
+        if (glob[i2] == "@" && extended && glob[i2 + 1] == "(") {
+          i2++;
           groupStack.push("@");
           segment += "(?:";
           continue;
         }
-        if (glob[i] == "?") {
-          if (extended && glob[i + 1] == "(") {
-            i++;
+        if (glob[i2] == "?") {
+          if (extended && glob[i2 + 1] == "(") {
+            i2++;
             groupStack.push("?");
             segment += "(?:";
           } else {
@@ -33747,39 +34119,39 @@ ${tidyverseInfo(
           }
           continue;
         }
-        if (glob[i] == "!" && extended && glob[i + 1] == "(") {
-          i++;
+        if (glob[i2] == "!" && extended && glob[i2 + 1] == "(") {
+          i2++;
           groupStack.push("!");
           segment += "(?!";
           continue;
         }
-        if (glob[i] == "{") {
+        if (glob[i2] == "{") {
           groupStack.push("BRACE");
           segment += "(?:";
           continue;
         }
-        if (glob[i] == "}" && groupStack[groupStack.length - 1] == "BRACE") {
+        if (glob[i2] == "}" && groupStack[groupStack.length - 1] == "BRACE") {
           groupStack.pop();
           segment += ")";
           continue;
         }
-        if (glob[i] == "," && groupStack[groupStack.length - 1] == "BRACE") {
+        if (glob[i2] == "," && groupStack[groupStack.length - 1] == "BRACE") {
           segment += "|";
           continue;
         }
-        if (glob[i] == "*") {
-          if (extended && glob[i + 1] == "(") {
-            i++;
+        if (glob[i2] == "*") {
+          if (extended && glob[i2 + 1] == "(") {
+            i2++;
             groupStack.push("*");
             segment += "(?:";
           } else {
-            const prevChar = glob[i - 1];
+            const prevChar = glob[i2 - 1];
             let numStars = 1;
-            while (glob[i + 1] == "*") {
-              i++;
+            while (glob[i2 + 1] == "*") {
+              i2++;
               numStars++;
             }
-            const nextChar = glob[i + 1];
+            const nextChar = glob[i2 + 1];
             if (globstarOption && numStars == 2 && [...seps, void 0].includes(prevChar) && [...seps, void 0].includes(nextChar)) {
               segment += globstar;
               endsWithSep = true;
@@ -33789,25 +34161,25 @@ ${tidyverseInfo(
           }
           continue;
         }
-        segment += regExpEscapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
+        segment += regExpEscapeChars.includes(glob[i2]) ? `\\${glob[i2]}` : glob[i2];
       }
       if (groupStack.length > 0 || inRange || inEscape) {
         segment = "";
-        for (const c of glob.slice(j, i)) {
+        for (const c of glob.slice(j, i2)) {
           segment += regExpEscapeChars.includes(c) ? `\\${c}` : c;
           endsWithSep = false;
         }
       }
       regExpString += segment;
       if (!endsWithSep) {
-        regExpString += i < glob.length ? sep : sepMaybe;
+        regExpString += i2 < glob.length ? sep : sepMaybe;
         endsWithSep = true;
       }
-      while (seps.includes(glob[i])) i++;
-      if (!(i > j)) {
+      while (seps.includes(glob[i2])) i2++;
+      if (!(i2 > j)) {
         throw new Error("Assertion failure: i > j (potential infinite loop)");
       }
-      j = i;
+      j = i2;
     }
     regExpString = `^${regExpString}$`;
     return new RegExp(regExpString, caseInsensitive ? "i" : "");
@@ -34915,28 +35287,28 @@ ${tidyverseInfo(
       return true;
     };
     const srcLines = rangedLines(src.value, true);
-    for (let i = 0; i < srcLines.length; ++i) {
-      const line = srcLines[i];
+    for (let i2 = 0; i2 < srcLines.length; ++i2) {
+      const line = srcLines[i2];
       const directiveMatch = isBlockShortcode(line.substring, true);
-      if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
+      if (isYamlDelimiter(line.substring, i2, !inYaml) && !inCodeCell && !inCode) {
         if (inYaml) {
           lineBuffer.push(line);
-          await flushLineBuffer("raw", i);
+          await flushLineBuffer("raw", i2);
           inYaml = false;
         } else {
-          await flushLineBuffer("markdown", i);
+          await flushLineBuffer("markdown", i2);
           lineBuffer.push(line);
           inYaml = true;
         }
       } else if (inPlainText() && directiveMatch) {
-        await flushLineBuffer("markdown", i);
+        await flushLineBuffer("markdown", i2);
         directiveParams = directiveMatch;
         lineBuffer.push(line);
-        await flushLineBuffer("directive", i);
+        await flushLineBuffer("directive", i2);
       } else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
         const m = line.substring.match(startCodeCellRegEx);
         language = m[2];
-        await flushLineBuffer("markdown", i);
+        await flushLineBuffer("markdown", i2);
         inCodeCell = true;
         inCode = m[1].length;
         codeStartRange = line;
@@ -34945,7 +35317,7 @@ ${tidyverseInfo(
           codeEndRange = line;
           inCodeCell = false;
           inCode = 0;
-          await flushLineBuffer("code", i);
+          await flushLineBuffer("code", i2);
         } else {
           inCode = 0;
           lineBuffer.push(line);

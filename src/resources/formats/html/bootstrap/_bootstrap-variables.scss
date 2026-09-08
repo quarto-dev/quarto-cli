@@ -191,6 +191,9 @@ $enable-cssgrid: true;
 
 $zindex-pagelayout: 998;
 
+// above the fixed/headroom navbar ($zindex-fixed: 1030)
+$zindex-skip-link: 1070 !default;
+
 $popover-bg: if(variable-exists(body-bg), $body-bg, null) !default;
 $input-bg: if(variable-exists(body-bg), $body-bg, null) !default;
 

@@ -102,7 +102,9 @@ export async function rBinaryPath(
   const quartoR = Deno.env.get("QUARTO_R");
   debug(`Looking for '${binary}' in QUARTO_R: ${quartoR}`);
   if (quartoR) {
-    if (existsSync(quartoR)) {
+    // Use safeExistsSync: a malformed QUARTO_R (e.g. invalid path syntax)
+    // makes the raw existsSync throw instead of returning false.
+    if (safeExistsSync(quartoR)) {
       const rBinDir = Deno.statSync(quartoR).isDirectory
         ? quartoR
         : dirname(quartoR);
