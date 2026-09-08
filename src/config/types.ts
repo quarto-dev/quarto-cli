@@ -216,6 +216,7 @@ import {
   kSelfContainedMath,
   kShiftHeadingLevelBy,
   kShortcodes,
+  kSkipToContent,
   kSlideLevel,
   kSourceNotebookPrefix,
   kStandalone,
@@ -701,6 +702,7 @@ export interface FormatLanguage {
   [kCopyButtonTooltip]?: string;
   [kCopyButtonTooltipSuccess]?: string;
   [kBackToTop]?: string;
+  [kSkipToContent]?: string;
   [kToggleDarkMode]?: string;
   [kToggleNavigation]?: string;
   [kToggleReaderMode]?: string;

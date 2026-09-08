@@ -1,0 +1,7 @@
+---
+engine: julia
+---
+
+```{julia}
+error("intentional failure")
+```

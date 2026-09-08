@@ -7,7 +7,7 @@ REM    using ! ! instead of % %. However, this only allows one level of expansio
 REM    try to create a variable that derives from a derived variable. It will be empty.
 
 call package\src\store_win_configuration.bat
-call win_configuration.bat
+call .\win_configuration.bat
 
 if NOT DEFINED QUARTO_VENDOR_BINARIES (
   set "QUARTO_VENDOR_BINARIES=true"
@@ -89,7 +89,7 @@ IF NOT DEFINED QUARTO_DENO_DIR (
 
 PUSHD !QUARTO_PACKAGE_PATH!\src
 ECHO Configuring Quarto from !cd!
-CALL quarto-bld.cmd configure --log-level info
+CALL .\quarto-bld.cmd configure --log-level info
 echo Configuration done
 
 POPD

@@ -1,0 +1,25 @@
+---
+title: "Dashboard color-scheme toggle is a named switch (#13463)"
+format:
+  dashboard:
+    theme:
+      light: flatly
+      dark: darkly
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'button.quarto-color-scheme-toggle[type="button"][role="switch"][aria-checked="false"][aria-label="Toggle dark mode"]'
+        -
+          - 'a.quarto-color-scheme-toggle'
+---
+
+# Page A
+
+Multi-page so `processPages()` injects the navbar toggle (single-page
+dashboards get the JS-injected fallback toggle instead).
+
+# Page B
+
+Second page.
