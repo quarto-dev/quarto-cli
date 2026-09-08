@@ -49,3 +49,4 @@ All changes included in 1.11:
 ## Other fixes and improvements
 
 - ([#14775](https://github.com/quarto-dev/quarto-cli/issues/14775)): Fix a crash when the `QUARTO_R` environment variable is set to a malformed path. Quarto now warns and falls back to other R lookup methods.
+- ([#14865](https://github.com/quarto-dev/quarto-cli/issues/14865)): Fix internal links in a preview being treated as external when the preview is reached through a proxy, such as on Posit Workbench. Links are now classified against the origin the browser sees.
