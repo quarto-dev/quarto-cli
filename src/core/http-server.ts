@@ -9,6 +9,9 @@ export function handleHttpRequests(
     port?: number;
     hostname?: string;
     handler: (req: Request) => Promise<Response>;
+    // Deno.serve logs "Listening on ..." unless a callback is supplied; pass a
+    // no-op to serve quietly.
+    onListen?: (params: { hostname: string; port: number }) => void;
   },
 ) {
   const abortController = new AbortController();

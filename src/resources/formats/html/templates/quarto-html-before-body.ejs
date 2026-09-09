@@ -181,6 +181,9 @@
     let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
 
     // Dark / light mode switch
+    <% /* The axe scanner sniffs this definition to classify a page as
+          two-mode (src/command/call/axe/discover.ts, kTwoModeMarker) —
+          update the sniffer if this assignment is renamed or reshaped. */ %>
     window.quartoToggleColorScheme = () => {
       // Read the current dark / light value
       let toAlternate = !hasAlternateSentinel();
