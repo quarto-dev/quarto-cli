@@ -17,6 +17,7 @@ website:
           - guide/advanced.qmd
       - override.qmd
       - no-navbar.qmd
+      - lang-de.qmd
 
 format:
   html:

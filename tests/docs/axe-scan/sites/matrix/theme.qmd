@@ -1,0 +1,27 @@
+---
+title: Theme
+---
+
+This page's planted failure lives in the **Quarto dark theme**, not in a
+`prefers-color-scheme` media query — which is the distinction that matters.
+
+Quarto ignores `prefers-color-scheme` unless `respect-user-color-scheme` is set,
+so emulating a dark preference does not select the dark theme. The only route in
+is the localStorage key Quarto's own colour-scheme script reads. Before the
+scanner seeded that key, this failure was invisible: the dark cells rendered the
+light theme.
+
+```{=html}
+<style>
+/* PLANTED: color-contrast (serious), Quarto dark theme only.
+   #6c757d on darkly's #222 is about 3.5:1. The same colour on the light
+   theme's white passes, so the finding appears only once the dark theme is
+   actually selected. Keep this paragraph free of links and inline code, whose
+   own colours would add unplanned findings. */
+.axe-fixture-theme-only { color: #6c757d; }
+</style>
+```
+
+::: {.axe-fixture-theme-only}
+This paragraph fails colour contrast only when Quarto's dark theme is selected.
+:::

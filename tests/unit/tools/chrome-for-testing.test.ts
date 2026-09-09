@@ -130,35 +130,11 @@ unitTest("findChromeExecutable - finds binary in nested structure", async () => 
   }
 });
 
-// Step 3b: findChromeExecutable() — Playwright arm64 layout
-// Skip on Windows: arm64 layout is Linux-only, no .exe extension.
-unitTest("findChromeExecutable - finds binary in Playwright arm64 layout", async () => {
-  if (isWindows) return; // arm64 layout is Linux-only
-  const tempDir = Deno.makeTempDirSync();
-  try {
-    // Playwright arm64 extracts to chrome-linux/headless_shell
-    const subdir = join(tempDir, "chrome-linux");
-    Deno.mkdirSync(subdir);
-    Deno.writeTextFileSync(join(subdir, "headless_shell"), "fake binary");
-
-    const found = findChromeExecutable(tempDir, "headless_shell");
-    assert(found !== undefined, "should find headless_shell in chrome-linux/");
-    assert(found!.endsWith("headless_shell"), `should end with headless_shell, got: ${found}`);
-  } finally {
-    safeRemoveSync(tempDir, { recursive: true });
-  }
-});
-
 // Playwright CDN tests
 // Skipped on CI: makes external HTTP calls to GitHub/Playwright CDN.
 // Same pattern as CfT API tests above — run locally to catch API contract changes.
 unitTest("fetchPlaywrightBrowsersJson - returns chromium-headless-shell entry", async () => {
   const entry = await fetchPlaywrightBrowsersJson();
-  assert(entry.revision, "revision should be non-empty");
-  assert(
-    /^\d+$/.test(entry.revision),
-    `revision should be numeric, got: ${entry.revision}`,
-  );
   assert(entry.browserVersion, "browserVersion should be non-empty");
   assert(
     /^\d+\.\d+\.\d+\.\d+$/.test(entry.browserVersion),
@@ -167,17 +143,17 @@ unitTest("fetchPlaywrightBrowsersJson - returns chromium-headless-shell entry", 
 }, { ignore: runningInCI() });
 
 unitTest("playwrightCdnDownloadUrl - constructs correct arm64 URL", async () => {
-  const url = playwrightCdnDownloadUrl("1219");
+  const url = playwrightCdnDownloadUrl("121.0.6167.85");
   assert(
     url.startsWith("https://cdn.playwright.dev/"),
     `URL should start with cdn.playwright.dev, got: ${url}`,
   );
   assert(
-    url.includes("/builds/chromium/1219/"),
-    `URL should contain revision path, got: ${url}`,
+    url.includes("/builds/cft/121.0.6167.85/linux-arm64/"),
+    `URL should contain browserVersion path, got: ${url}`,
   );
   assert(
-    url.endsWith("chromium-headless-shell-linux-arm64.zip"),
+    url.endsWith("chrome-headless-shell-linux-arm64.zip"),
     `URL should end with arm64 zip name, got: ${url}`,
   );
 });

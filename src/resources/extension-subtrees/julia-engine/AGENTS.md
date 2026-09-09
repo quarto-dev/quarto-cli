@@ -50,6 +50,17 @@ quarto render scratch/test.qmd
 
 Since this directory is a quarto project with the extension in `_extensions/`, quarto discovers and uses the engine from here.
 
+### Do not use a checkout under a dot-directory
+
+Quarto skips every path containing a dot-directory when collecting project input
+files (`kSkipHidden` in quarto-cli's `src/core/path.ts`, matched against absolute
+paths). A checkout under e.g. `.claude/worktrees/` therefore has no project input
+files at all, so each render falls back to the single-file path, which looks for
+extensions starting at the document's own directory. It finds quarto's bundled
+subtree copy of this engine instead of `_extensions/` here, and renders and tests
+then exercise the shipped engine rather than the working tree, without any
+warning. Work in a checkout whose absolute path contains no dot-directory.
+
 ## CI
 
 CI runs on all three platforms (Linux, macOS, Windows) against a pinned quarto-cli revision (see `QUARTO_CLI_REV` in `.github/workflows/ci.yml`). It:
@@ -59,3 +70,7 @@ CI runs on all three platforms (Linux, macOS, Windows) against a pinned quarto-c
 3. Runs the full test suite
 
 When bumping `QUARTO_CLI_REV`, use the full commit hash annotated with the version tag for clarity (e.g. `abc123 # v1.9.35`).
+
+## Changelog
+
+Every PR with user-facing or otherwise meaningful changes must include an update to `CHANGELOG.md` (enforced by CI). Add entries under the `## Unreleased` section. Use the `skip-changelog` label to bypass the check for PRs that don't need an entry (e.g. internal cleanups, CI, or docs changes).

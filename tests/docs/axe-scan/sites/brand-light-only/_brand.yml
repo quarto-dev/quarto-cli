@@ -1,0 +1,16 @@
+# A brand with light values only — no `color.dark`, no dark palette. This is
+# the whole fixture: Quarto responds by emitting `quarto-color-scheme` links
+# tagged `data-mode="light"` (one of them a `quarto-color-alternate` pointing
+# at a dark Bootstrap build) but no before-body script, because there is no
+# dark mode behind them. Mode discovery must give each page one `default`
+# cell rather than scan a light/dark pair for nothing.
+#
+# Do not add dark values here. That would make this site an ordinary two-theme
+# site and delete the regression it guards.
+color:
+  palette:
+    ink: "#1a1a1a"
+    paper: "#ffffff"
+  foreground: ink
+  background: paper
+  primary: "#2b6cb0"

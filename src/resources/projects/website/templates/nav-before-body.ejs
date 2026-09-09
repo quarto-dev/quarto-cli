@@ -19,7 +19,7 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
     <% } %>
     
     <% if (nav.navbar) { %>  
-    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>" data-bs-theme="dark" aria-label="<%- nav.language['navigation-main-label'] %>">
+    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>" data-bs-theme="dark" aria-label="<%- nav.language['navigation-site-label'] %>">
       <div class="navbar-container container-fluid">
       <% partial('navbrand.ejs', {
         navbar: nav.navbar
@@ -61,7 +61,7 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
 
 
 <% if (nav.sidebar && nav.layout) { %>
-  <nav class="quarto-secondary-nav" aria-label="<%- nav.language['navigation-secondary-label'] %>">
+  <nav class="quarto-secondary-nav" aria-label="<%- nav.language['navigation-toolbar-label'] %>">
     <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn"
       data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" 
@@ -71,13 +71,11 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
       </button>
       <% if (nav.showBreadCrumbs) { %>
         <h1 class="quarto-secondary-nav-title no-breadcrumbs"></h1>
-        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" role="link"
-        aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
+        <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"
         onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <% } else { %>
-        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" role="link"
-        aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
+        <a class="flex-grow-1 no-decor" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"
         onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
           <h1 class="quarto-secondary-nav-title"></h1>
         </a>     
@@ -130,7 +128,6 @@ if (nav.layout === "article" || nav.layout === "full") {
 <% } %>
 
 <% } %>
-
 
 
 

@@ -79,6 +79,17 @@ toggle-dark-mode: "Přepnout tmavý režim"
 toggle-reader-mode: "Přepnout režim čtečky"
 toggle-navigation: "Přepnout navigaci"
 
+# Landmark labels. Two rules for translators:
+# 1. Do not include the word "navigation". Screen readers announce the role after
+#    the label (https://www.w3.org/WAI/ARIA/apg/practices/landmark-regions/).
+# 2. Use a noun, not a bare adjective. In several languages the adjective cannot
+#    stand alone without the noun it agrees with.
+navigation-site-label: "Web"                # Q35127 'webové stránky' collides with Page 'Stránka' — adapted, needs review
+navigation-section-label: "Sekce"           # libreoffice sw
+navigation-toolbar-label: "Panel nástrojů"  # wikidata Q371434
+navigation-page-label: "Stránka"            # libreoffice sw
+navigation-breadcrumbs-label: "Cesta"       # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
+
 crossref-fig-title: "Obrázek"
 crossref-tbl-title: "Tabulka"
 crossref-lst-title: "Výpis"

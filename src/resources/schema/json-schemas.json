@@ -1677,6 +1677,126 @@
           "related-notebooks-title": {
             "type": "string"
           },
+          "source-notebooks-prefix": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "other-links-title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "code-links-title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "launch-dev-container-title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "launch-binder-title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "article-notebook-label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "notebook-preview-download": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "notebook-preview-download-src": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "notebook-preview-back": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "manuscript-meca-bundle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
           "callout-tip-title": {
             "type": "string"
           },
@@ -1701,6 +1821,174 @@
           "section-title-appendices": {
             "type": "string"
           },
+          "section-title-references": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "section-title-reuse": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "section-title-copyright": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "section-title-citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "appendix-attribution-cite-as": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "appendix-attribution-bibtex": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "appendix-view-license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "title-block-author-single": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "title-block-author-plural": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "title-block-affiliation-single": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "title-block-affiliation-plural": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "title-block-published": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "title-block-modified": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "title-block-keywords": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
           "code-summary": {
             "type": "string"
           },
@@ -1719,6 +2007,66 @@
           "code-tools-source-code": {
             "type": "string"
           },
+          "tools-share": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "tools-download": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "code-line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "code-lines": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "back-to-top": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
           "search-no-results-text": {
             "type": "string"
           },
@@ -1726,6 +2074,9 @@
             "type": "string"
           },
           "copy-button-tooltip-success": {
+            "type": "string"
+          },
+          "skip-to-content": {
             "type": "string"
           },
           "repo-action-links-edit": {
@@ -1764,13 +2115,85 @@
           "search-submit-button-title": {
             "type": "string"
           },
-          "navigation-main-label": {
+          "search-label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "toggle-section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "toggle-sidebar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "toggle-dark-mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "toggle-reader-mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "toggle-navigation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "navigation-site-label": {
             "type": "string"
           },
           "navigation-section-label": {
             "type": "string"
           },
-          "navigation-secondary-label": {
+          "navigation-toolbar-label": {
             "type": "string"
           },
           "navigation-page-label": {
@@ -1865,6 +2288,306 @@
           },
           "crossref-lol-title": {
             "type": "string"
+          },
+          "environment-proof-title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "environment-remark-title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "environment-solution-title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-order-by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-order-by-default": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-order-by-date-asc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-order-by-date-desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-order-by-number-desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-order-by-number-asc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-filemodified": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-subtitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-readingtime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-wordcount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-field-categories": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-minutes-compact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-category-all": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-no-matches": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-words": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "listing-page-filter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "draft": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ]
+              }
+            ]
           }
         }
       }

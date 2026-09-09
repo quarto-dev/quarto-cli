@@ -15,6 +15,7 @@ on:
     paths-ignore:
       - "news/**"
       - "src/resources/language/**"
+      - ".claude/**"
       - ".github/workflows/create-release.yml"
       - ".github/workflows/performance-check.yml"
       - ".github/workflows/stale-needs-repro.yml"
@@ -28,6 +29,7 @@ on:
     paths-ignore:
       - "news/**"
       - "src/resources/language/**"
+      - ".claude/**"
       - ".github/workflows/create-release.yml"
       - ".github/workflows/performance-check.yml"
       - ".github/workflows/stale-needs-repro.yml"
