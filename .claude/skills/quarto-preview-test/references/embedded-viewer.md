@@ -46,14 +46,18 @@ The iframe's marked request must be the first request the server injects into:
 
 - Do not use a rendered `.qmd` parent. Its unmarked load reaches the render/inject pipeline first
   and disables option injection for later requests.
-- Do not send a preflight `curl` or readiness request to an unmarked rendered path. Wait for the
-  `Listening on` line in the preview output instead.
+- Send no unmarked request of any kind before the iframe's, with one exception: a path that is
+  already on disk as a declared static resource. A 404 is not safe either — the `on404` handler
+  calls `injectClient`, so a single unmarked request to a missing path consumes the detection.
+- For readiness, wait for the `Browse at` / `Listening on` lines in the preview output (both go to
+  stderr) rather than polling an HTTP path. Polling is what produces the unmarked request above,
+  and before the first render finishes even the parent page's own path still 404s.
 - Start preview with `--no-browser`, otherwise the auto-opened browser requests `/` unmarked.
 - Use a genuinely static resource for the parent page: declare it under `project.resources:` in
   `_quarto.yml`. Preview copies project resources to the output directory itself, so no separate
-  `quarto render` is needed. A static resource has no corresponding input file, and the server only
-  injects the client script into output files that map back to an input, so serving the parent page
-  does not consume the detection.
+  `quarto render` is needed. Such a file has no corresponding input file, and the server injects the
+  client script only into output files that map back to an input, so serving the parent page does
+  not consume the detection.
 - If `QuartoPreview.getOptions()` returns `origin: ""` and `search: ""`, restart the preview
   process. The client cannot reset the memoized state.
 
