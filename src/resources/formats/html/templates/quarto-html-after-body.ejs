@@ -55,7 +55,7 @@
       }
       container.classList.add('quarto-color-scheme-toggle-container');
       container.appendChild(toggle);
-      window.document.body.appendChild(container);
+      window.document.body.prepend(container);
     }
     setColorSchemeToggle(hasAlternateSentinel())
 
@@ -716,4 +716,3 @@
   
   </script>
   <% } %>
-  

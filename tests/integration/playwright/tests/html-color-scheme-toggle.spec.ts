@@ -20,6 +20,9 @@ test("fallback color-scheme toggle sits in a header landmark", async ({
     "body > header.quarto-color-scheme-toggle-container",
   );
   await expect(container).toHaveCount(1);
+  await expect(page.locator("body > :first-child")).toHaveClass(
+    /quarto-color-scheme-toggle-container/,
+  );
   await expect(
     container.locator("button.quarto-color-scheme-toggle"),
   ).toHaveCount(1);
@@ -75,7 +78,9 @@ test("fallback color-scheme toggle sees a banner that is not a child of body", a
     page.locator("body > div > header#title-block-header"),
   ).toHaveCount(1);
   await expect(
-    page.locator('body > div.quarto-color-scheme-toggle-container[role="region"]'),
+    page.locator(
+      'body > div.quarto-color-scheme-toggle-container[role="region"]',
+    ),
   ).toHaveCount(1);
   await expect(page.getByRole("banner")).toHaveCount(1);
 });
