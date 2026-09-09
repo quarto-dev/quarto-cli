@@ -88,7 +88,7 @@ template, the theme, Quarto's own chrome — and one fix clears them all.
 | `--timeout <ms>` | `30000` | per-cell budget |
 | `--settle <ms>` | `50` | extra delay after the page reports ready |
 | `--fail-on <impact>` | off | exit 1 on new findings at/above `minor`/`moderate`/`serious`/`critical` |
-| `--report <path>` | `_axe-checks/report.md` | put the report elsewhere, e.g. inside your site source |
+| `--report <path>` | `_axe-checks/report.md` | put the report elsewhere, e.g. inside your site source — can't name the baseline, `findings.json`, `README.md`, `.gitignore`, or anything inside `cells/` |
 
 The narrow default viewport is 320 CSS px — the width WCAG's reflow
 criterion (SC 1.4.10) names, equivalent to 400% zoom on a 1280 px window —

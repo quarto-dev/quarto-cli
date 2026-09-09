@@ -14,7 +14,15 @@
 import { Command } from "cliffy/command/mod.ts";
 import { debug, error, info } from "../../../deno_ral/log.ts";
 import { ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
-import { dirname, join, resolve } from "../../../deno_ral/path.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+  SEP,
+} from "../../../deno_ral/path.ts";
+import { isMac, isWindows } from "../../../deno_ral/platform.ts";
 import { exitWithCleanup } from "../../../core/cleanup.ts";
 import { findOpenPort } from "../../../core/port.ts";
 import { httpFileRequestHandler } from "../../../core/http.ts";
@@ -170,21 +178,85 @@ export function effectiveReportFile(
 }
 
 /**
+ * Canonicalizes a path for the collision check. On Windows and macOS's
+ * default volume format, the filesystem is case-insensitive but
+ * case-preserving, so two differently-cased strings can still name one file.
+ * `Deno.realPathSync` was tried here first and dropped: Win32's
+ * `GetFinalPathNameByHandle` is documented to sometimes return the queried
+ * case rather than the on-disk one, so it corrected `_AXE-BASELINE.JSON` to
+ * `_axe-baseline.json` in one temp directory and left it untouched in
+ * another, in the same test run on the same machine — not something to
+ * compare a destructive check against. Folding by platform default instead
+ * doesn't depend on the file existing or on that inconsistency.
+ */
+function pathIdentity(path: string): string {
+  const resolved = resolve(path);
+  return isWindows || isMac ? resolved.toLowerCase() : resolved;
+}
+
+function sameFile(a: string, b: string): boolean {
+  return pathIdentity(a) === pathIdentity(b);
+}
+
+/**
+ * Whether `path` is `dir` or sits anywhere beneath it. Containment rather
+ * than a parent comparison: `cells/` is flat today, but the contract the docs
+ * state is that nothing inside it is a report destination, and
+ * `ensureDirSync` would happily create `cells/archive/` on the way to writing
+ * one there.
+ */
+function withinDir(path: string, dir: string): boolean {
+  const rel = relative(pathIdentity(dir), pathIdentity(path));
+  return !isAbsolute(rel) && rel !== ".." && !rel.startsWith(`..${SEP}`);
+}
+
+/**
  * Why `--report` can't write here, or undefined when it can.
  *
- * Cleanup removes the report destination before scanning, and `Deno.removeSync`
- * deletes an empty directory outright while throwing on a non-empty one — so a
- * directory here would either be silently replaced by the report file or kill
- * the command with an uncaught error. A directory is a flag mistake, so say so
- * and exit as a usage error instead of removing anything.
+ * The report write (`ensureDirSync(dirname(reportFile))` then
+ * `Deno.writeTextFileSync(reportFile, ...)`) throws on a directory, and it
+ * happens at the end of an otherwise complete scan, so a directory here is
+ * caught up front as a usage error instead of crashing after all the work is
+ * done. A directory is a flag mistake, so say so and exit as a usage error
+ * instead of removing anything.
  */
 export function reportDestinationError(
   reportFile: string,
+  reserved: string[] = [],
+  cellsDir?: string,
 ): string | undefined {
+  if (reserved.some((path) => sameFile(reportFile, path))) {
+    return `--report ${reportFile} is a file quarto call axe writes to ` +
+      `itself; choose a different destination.`;
+  }
+  if (cellsDir && withinDir(reportFile, cellsDir)) {
+    return `--report ${reportFile} is inside the axe-managed cells ` +
+      `directory; choose a different destination.`;
+  }
   if (!existsSync(reportFile) || !Deno.statSync(reportFile).isDirectory) {
     return undefined;
   }
   return `--report ${reportFile} is a directory; give it a file path.`;
+}
+
+/**
+ * The paths `quarto call axe` writes to on its own: the hand-written ledger,
+ * which the report write would overwrite at the end of a scan that had
+ * already read it, and the artifacts a scan produces with real content of
+ * their own (`findings.json`, `README.md`) or manages unconditionally
+ * (`.gitignore`). None of these is a `--report` destination a scan can
+ * safely share.
+ */
+export function reservedArtifacts(
+  outputDir: string,
+  baselineFile: string,
+): string[] {
+  return [
+    baselineFile,
+    join(outputDir, "findings.json"),
+    join(outputDir, "README.md"),
+    join(outputDir, ".gitignore"),
+  ];
 }
 
 /**
@@ -194,22 +266,18 @@ export function reportDestinationError(
  * says which scan wrote it. `report.html` is the pre-markdown format, cleaned
  * up wherever it lingers.
  *
- * Both report locations are always listed: the default one because a previous
- * run without `--report` wrote there, and the effective one because this run
- * is about to claim it. Missing either leaves a stale report on disk that
- * reads as this scan's.
+ * These three are cleared because the scanner owns them, whatever `--report`
+ * says: naming one of them as the destination changes nothing here. A
+ * destination anywhere else is not on this list, because the run overwrites
+ * it at write time and deleting a path the user named outside this directory
+ * is not the command's to do. The residual case — an aborted run leaving a
+ * previous report at such a path — is the user's file to manage.
  */
-export function staleArtifacts(
-  outputDir: string,
-  reportFile: string,
-): string[] {
+export function staleArtifacts(outputDir: string): string[] {
   return [
-    ...new Set([
-      join(outputDir, "findings.json"),
-      join(outputDir, "report.html"),
-      join(outputDir, "report.md"),
-      reportFile,
-    ]),
+    join(outputDir, "findings.json"),
+    join(outputDir, "report.html"),
+    join(outputDir, "report.md"),
   ];
 }
 
@@ -304,12 +372,16 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     );
   }
   const reportFile = effectiveReportFile(outputDir, config.report);
-  const reportError = reportDestinationError(reportFile);
+  const reportError = reportDestinationError(
+    reportFile,
+    reservedArtifacts(outputDir, baselineFile),
+    cellsDir,
+  );
   if (reportError) {
     error(reportError);
     return kExitUsage;
   }
-  for (const path of staleArtifacts(outputDir, reportFile)) {
+  for (const path of staleArtifacts(outputDir)) {
     // Regular files only: a directory at any of these paths is not this
     // command's to delete.
     if (existsSync(path) && Deno.statSync(path).isFile) {

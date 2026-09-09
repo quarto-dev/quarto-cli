@@ -235,10 +235,21 @@ overwrites `findings.json` with a subset snapshot, so a committed copy would
 diff as if findings were fixed. The committed contract is the baseline,
 which lives beside the directory. Summary artifacts (`findings.json`,
 `report.md`) are deleted up front so an aborted scan cannot leave stale ones
-reading as current; per-cell payloads accumulate by name. `--report` moves
-the report, so the cleanup covers both its destination and the default one
-(`staleArtifacts`, cmd.ts) — the destination is also echoed into
-`findings.json`, or the README's regenerate command would silently revert it.
+reading as current; per-cell payloads accumulate by name. Cleanup only
+covers the artifacts the scanner owns inside the output dir
+(`staleArtifacts`, cmd.ts); a `--report` destination is never deleted — it
+is a user-chosen path, overwritten at write time — and the destination is
+echoed into `findings.json`, or the README's regenerate command would
+silently revert it. `--report` is rejected outright when it names a path
+the scan owns — the baseline itself, `findings.json`, `README.md`,
+`.gitignore` (`reservedArtifacts`), or anything inside `cells/` — because
+the report write at the end of a run overwrites whatever it lands on. The
+collision
+check folds case on Windows and macOS's default filesystem (case-insensitive
+but case-preserving there), by platform rather than by asking
+`Deno.realPathSync` to canonicalize: that API is documented to sometimes
+return the queried case instead of correcting it, observed to disagree with
+itself between two temp directories in the same run.
 
 Three human/agent surfaces, one data source:
 
