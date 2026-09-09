@@ -9,22 +9,20 @@ import { join } from "path";
 import { criClient } from "../../src/core/cri/cri.ts";
 import { findOpenPort } from "../../src/core/port.ts";
 import { unitTest } from "../test.ts";
+import { writeFakeExecutable } from "./chrome-launch-fixtures.ts";
 
-// Generates a fake Chrome executable: a platform-native wrapper (.cmd on
-// Windows, a shebang script on Unix) that re-invokes the currently running
-// deno binary to run a small script. That script records its own argv --
-// exactly what criClient passed as Chrome's command line -- to a JSON file,
-// then serves /json/list so criClient's readiness check resolves. A
-// /shutdown route lets the test terminate it deterministically instead of
-// guessing at a lifetime.
+// A fake Chrome that records its own argv -- exactly what criClient passed
+// as Chrome's command line -- to a JSON file, then serves /json/list so
+// criClient's readiness check resolves. A /shutdown route lets the test
+// terminate it deterministically instead of guessing at a lifetime.
 async function writeFakeChromeExecutable(
   dir: string,
   argvOutPath: string,
   port: number,
 ): Promise<string> {
-  const scriptPath = join(dir, "fake-chrome.js");
-  await Deno.writeTextFile(
-    scriptPath,
+  return writeFakeExecutable(
+    dir,
+    "fake-chrome",
     [
       "const args = Deno.args;",
       `await Deno.writeTextFile(${
@@ -33,32 +31,22 @@ async function writeFakeChromeExecutable(
       `Deno.serve({ port: ${port}, onListen: () => {} }, (req) => {`,
       "  const url = new URL(req.url);",
       '  if (url.pathname === "/json/list") {',
-      '    return new Response("[]", { status: 200 });',
+      // criClient now waits for a real page target (awaitPageTarget), so
+      // this must look like deno-cri's own defaultTarget expects, not just
+      // any 200.
+      "    return new Response(",
+      `      JSON.stringify([{ type: "page", webSocketDebuggerUrl: "ws://localhost:${port}/devtools/page/1" }]),`,
+      "      { status: 200 },",
+      "    );",
       '  } else if (url.pathname === "/shutdown") {',
       "    setTimeout(() => Deno.exit(0), 50);",
       '    return new Response("", { status: 200 });',
       "  }",
       '  return new Response("", { status: 404 });',
       "});",
-    ].join("\n"),
+    ],
+    argvOutPath,
   );
-
-  const deno = Deno.execPath();
-  if (Deno.build.os === "windows") {
-    const cmdPath = join(dir, "fake-chrome.cmd");
-    await Deno.writeTextFile(
-      cmdPath,
-      `@echo off\r\n"${deno}" run --allow-net --allow-write="${argvOutPath}" "${scriptPath}" %*\r\n`,
-    );
-    return cmdPath;
-  }
-  const shPath = join(dir, "fake-chrome.sh");
-  await Deno.writeTextFile(
-    shPath,
-    `#!/bin/sh\n"${deno}" run --allow-net --allow-write="${argvOutPath}" "${scriptPath}" "$@"\n`,
-  );
-  await Deno.chmod(shPath, 0o755);
-  return shPath;
 }
 
 // Polls until the fake Chrome's port stops answering, i.e. the process has
@@ -125,6 +113,14 @@ unitTest(
       assert(
         !argv.some((a) => a.startsWith("--user-data-dir")),
         `expected no --user-data-dir in ${JSON.stringify(argv)}`,
+      );
+      // criClient passes url: "about:blank" so chrome-headless-shell creates
+      // a page target on its own during startup -- without it, a Chrome
+      // launched with no positional URL reports zero targets at all, and
+      // criClient's awaitPageTarget wait never succeeds.
+      assert(
+        argv.includes("about:blank"),
+        `expected about:blank in ${JSON.stringify(argv)}`,
       );
     } catch (e) {
       primaryError = e;
