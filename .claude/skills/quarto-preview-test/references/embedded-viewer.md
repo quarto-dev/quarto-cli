@@ -42,15 +42,18 @@ Read results with `agent-browser eval`, e.g.:
 
 ### First-request constraint
 
-The iframe's marked request must be the server's first HTML request:
+The iframe's marked request must be the first request the server injects into:
 
 - Do not use a rendered `.qmd` parent. Its unmarked load reaches the render/inject pipeline first
   and disables option injection for later requests.
-- Do not send a preflight `curl` or readiness request to an unmarked path.
-- Use a genuinely static resource for the parent page instead: add it to
-  `project.resources:` in `_quarto.yml`, then run a **one-time `quarto render`** before starting
-  `quarto preview`. Preview alone does not perform the initial static-resource copy. Quarto
-  excludes resource filenames beginning with `_`, so do not give the parent a leading underscore.
+- Do not send a preflight `curl` or readiness request to an unmarked rendered path. Wait for the
+  `Listening on` line in the preview output instead.
+- Start preview with `--no-browser`, otherwise the auto-opened browser requests `/` unmarked.
+- Use a genuinely static resource for the parent page: declare it under `project.resources:` in
+  `_quarto.yml`. Preview copies project resources to the output directory itself, so no separate
+  `quarto render` is needed. A static resource has no corresponding input file, and the server only
+  injects the client script into output files that map back to an input, so serving the parent page
+  does not consume the detection.
 - If `QuartoPreview.getOptions()` returns `origin: ""` and `search: ""`, restart the preview
   process. The client cannot reset the memoized state.
 
