@@ -81,6 +81,17 @@ toggle-dark-mode: "切换深色模式"
 toggle-reader-mode: "切换阅读器模式"
 toggle-navigation: "展开或折叠导航栏"
 
+# Landmark labels. Two rules for translators:
+# 1. Do not include the word "navigation". Screen readers announce the role after
+#    the label (https://www.w3.org/WAI/ARIA/apg/practices/landmark-regions/).
+# 2. Use a noun, not a bare adjective. In several languages the adjective cannot
+#    stand alone without the noun it agrees with.
+navigation-site-label: "网站"         # Q35127 label is 網站 (traditional); simplified form for _language-zh.yml — adapted, needs review
+navigation-section-label: "区域"      # libreoffice sw
+navigation-toolbar-label: "工具栏"     # wikidata Q371434
+navigation-page-label: "页面"         # libreoffice sw
+navigation-breadcrumbs-label: "路径"  # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
+
 crossref-fig-title: "图"
 crossref-tbl-title: "表"
 crossref-lst-title: "列表"

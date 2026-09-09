@@ -157,6 +157,11 @@ import {
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
+  kNavigationBreadcrumbsLabel,
+  kNavigationSiteLabel,
+  kNavigationPageLabel,
+  kNavigationToolbarLabel,
+  kNavigationSectionLabel,
   kNotebookLinks,
   kNotebookPreserveCells,
   kNotebookPreviewBack,
@@ -703,6 +708,11 @@ export interface FormatLanguage {
   [kToggleReaderMode]?: string;
   [kToggleSection]?: string;
   [kToggleSidebar]?: string;
+  [kNavigationSiteLabel]?: string;
+  [kNavigationSectionLabel]?: string;
+  [kNavigationToolbarLabel]?: string;
+  [kNavigationPageLabel]?: string;
+  [kNavigationBreadcrumbsLabel]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchMoreMatchText]?: string;

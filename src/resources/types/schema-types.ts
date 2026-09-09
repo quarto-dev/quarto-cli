@@ -741,6 +741,11 @@ export type FormatLanguage = {
   "toggle-dark-mode"?: string | null;
   "toggle-reader-mode"?: string | null;
   "toggle-navigation"?: string | null;
+  "navigation-site-label"?: string;
+  "navigation-section-label"?: string;
+  "navigation-toolbar-label"?: string;
+  "navigation-page-label"?: string;
+  "navigation-breadcrumbs-label"?: string;
   "crossref-fig-title"?: string;
   "crossref-tbl-title"?: string;
   "crossref-lst-title"?: string;

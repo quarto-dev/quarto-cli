@@ -10597,6 +10597,11 @@ try {
                     null
                   ]
                 },
+                "navigation-site-label": "string",
+                "navigation-section-label": "string",
+                "navigation-toolbar-label": "string",
+                "navigation-page-label": "string",
+                "navigation-breadcrumbs-label": "string",
                 "crossref-fig-title": "string",
                 "crossref-tbl-title": "string",
                 "crossref-lst-title": "string",
@@ -25885,12 +25890,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 218590,
+          _internalId: 218600,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 218582,
+              _internalId: 218592,
               type: "enum",
               enum: [
                 "png",
@@ -25906,7 +25911,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 218589,
+              _internalId: 218599,
               type: "anyOf",
               anyOf: [
                 {

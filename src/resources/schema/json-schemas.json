@@ -2187,6 +2187,21 @@
               }
             ]
           },
+          "navigation-site-label": {
+            "type": "string"
+          },
+          "navigation-section-label": {
+            "type": "string"
+          },
+          "navigation-toolbar-label": {
+            "type": "string"
+          },
+          "navigation-page-label": {
+            "type": "string"
+          },
+          "navigation-breadcrumbs-label": {
+            "type": "string"
+          },
           "crossref-fig-title": {
             "type": "string"
           },
