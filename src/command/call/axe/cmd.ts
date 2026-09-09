@@ -30,6 +30,7 @@ import {
   kDefaultTimeout,
   kDefaultViewports,
   isAxeOptionError,
+  staleIsConclusive,
 } from "./config.ts";
 import {
   applyThemesFilter,
@@ -157,6 +158,62 @@ function summaryTable(results: AxeFindings): string[] {
 }
 
 /**
+ * Where the markdown report lands. `--report` is resolved against the working
+ * directory, like any user-supplied path; the default sits with the other
+ * artifacts.
+ */
+export function effectiveReportFile(
+  outputDir: string,
+  report: string | undefined,
+): string {
+  return report ? resolve(report) : join(outputDir, "report.md");
+}
+
+/**
+ * Why `--report` can't write here, or undefined when it can.
+ *
+ * Cleanup removes the report destination before scanning, and `Deno.removeSync`
+ * deletes an empty directory outright while throwing on a non-empty one — so a
+ * directory here would either be silently replaced by the report file or kill
+ * the command with an uncaught error. A directory is a flag mistake, so say so
+ * and exit as a usage error instead of removing anything.
+ */
+export function reportDestinationError(
+  reportFile: string,
+): string | undefined {
+  if (!existsSync(reportFile) || !Deno.statSync(reportFile).isDirectory) {
+    return undefined;
+  }
+  return `--report ${reportFile} is a directory; give it a file path.`;
+}
+
+/**
+ * The summary artifacts a run clears before scanning, so a previous run's
+ * output can't survive an abort and be read as current. Per-cell payloads
+ * accumulate by name as before, and the README stays — its provenance block
+ * says which scan wrote it. `report.html` is the pre-markdown format, cleaned
+ * up wherever it lingers.
+ *
+ * Both report locations are always listed: the default one because a previous
+ * run without `--report` wrote there, and the effective one because this run
+ * is about to claim it. Missing either leaves a stale report on disk that
+ * reads as this scan's.
+ */
+export function staleArtifacts(
+  outputDir: string,
+  reportFile: string,
+): string[] {
+  return [
+    ...new Set([
+      join(outputDir, "findings.json"),
+      join(outputDir, "report.html"),
+      join(outputDir, "report.md"),
+      reportFile,
+    ]),
+  ];
+}
+
+/**
  * Are we a project script running on a render that didn't rebuild everything?
  *
  * Scanning a partly-rebuilt site is worse than not scanning: the findings
@@ -246,13 +303,16 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
       "# Written by quarto call axe: everything here is a scan artifact.\n*\n",
     );
   }
-  // A previous run's summary artifacts must not survive an aborted scan to be
-  // read as current; per-cell payloads accumulate by name as before, and the
-  // README stays (its provenance block says which scan wrote it).
-  // report.html is the pre-markdown format, cleaned up wherever it lingers.
-  for (const staleFile of ["findings.json", "report.md", "report.html"]) {
-    const path = join(outputDir, staleFile);
-    if (existsSync(path)) {
+  const reportFile = effectiveReportFile(outputDir, config.report);
+  const reportError = reportDestinationError(reportFile);
+  if (reportError) {
+    error(reportError);
+    return kExitUsage;
+  }
+  for (const path of staleArtifacts(outputDir, reportFile)) {
+    // Regular files only: a directory at any of these paths is not this
+    // command's to delete.
+    if (existsSync(path) && Deno.statSync(path).isFile) {
       Deno.removeSync(path);
     }
   }
@@ -375,12 +435,6 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     });
 
     const findingsFile = join(outputDir, "findings.json");
-    // --report chooses where the markdown report lands (resolved against the
-    // working directory, like any user-supplied path); the default sits with
-    // the other artifacts.
-    const reportFile = config.report
-      ? resolve(config.report)
-      : join(outputDir, "report.md");
     const readmeFile = join(outputDir, "README.md");
     Deno.writeTextFileSync(findingsFile, JSON.stringify(results, null, 2));
     ensureDirSync(dirname(reportFile));
@@ -407,13 +461,16 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
         `${existsSync(baselineFile) ? "" : ", not present"})`,
     );
     if (results.baseline.stale.length) {
+      const ids = results.baseline.stale
+        .map((entry) => entry.id ?? entry.signature).join(", ");
       info(
         `  ${results.baseline.stale.length} baseline entr${
           results.baseline.stale.length === 1 ? "y" : "ies"
-        } not seen this scan — prune by hand after a full-site scan: ${
-          results.baseline.stale.map((entry) => entry.id ?? entry.signature)
-            .join(", ")
-        }`,
+        } not seen this scan — ${
+          staleIsConclusive(results)
+            ? "resolved, prune by hand"
+            : "prune by hand only after a full-site scan with every cell ok"
+        }: ${ids}`,
       );
     }
 

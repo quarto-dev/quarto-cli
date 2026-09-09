@@ -114,6 +114,17 @@ unitTest(
 
     assertThrows(() => config({ timeout: 0 }), Error, "Invalid --timeout");
 
+    // Cliffy's `<count:number>` hands over a real number, so a fractional
+    // value arrives intact. --max-pages is compared with === against a page
+    // count, so 1.5 would never match and the cap would silently never apply.
+    assertThrows(
+      () => config({ maxPages: 1.5 }),
+      Error,
+      "Invalid --max-pages",
+    );
+    assertThrows(() => config({ timeout: 1.5 }), Error, "Invalid --timeout");
+    assertThrows(() => config({ settle: 0.5 }), Error, "Invalid --settle");
+
     // zero is meaningful for --settle: "trust the readiness probe"
     assertEquals(config({ settle: 0 }).settle, 0);
     assertThrows(() => config({ settle: -1 }), Error, "Invalid --settle");

@@ -52,6 +52,17 @@ const kConfig: AxeScanConfig = {
   settle: 50,
 };
 
+// kConfig scans one viewport, which is already narrower than the default
+// matrix. Claims that depend on the scan having looked everywhere need the
+// full default set.
+const kFullMatrix: Partial<AxeScanConfig> = {
+  viewports: [
+    { width: 1440, height: 900, label: "1440x900" },
+    { width: 320, height: 568, label: "320x568" },
+  ],
+  themes: ["light", "dark"],
+};
+
 function results(overrides: {
   config?: Partial<AxeScanConfig>;
   baseline?: AxeBaseline;
@@ -161,6 +172,173 @@ unitTest(
 );
 
 unitTest(
+  "report.md - a stale entry is only called resolved when every cell completed",
+  // deno-lint-ignore require-await
+  async () => {
+    // A signature the fixture cells never produce, accepted in the baseline:
+    // it reads as stale in every scan below. What changes is whether the scan
+    // is entitled to call it resolved.
+    const baseline: AxeBaseline = {
+      findings: [{
+        signature: "region :: body",
+        pages: [],
+        impact: "moderate",
+        note: "accepted so this scan reports it as stale",
+      }],
+    };
+
+    // Only a scan that ran the whole default matrix over every page, with no
+    // cell lost, is entitled to call an unseen entry resolved.
+    const full = renderReport(results({ baseline, config: kFullMatrix }));
+    assert(full.includes("region :: body"), "the stale entry must be listed");
+    assert(
+      full.includes("can be pruned"),
+      "a full, complete scan should invite pruning",
+    );
+
+    // --themes light never runs a dark cell, so a dark-only finding reads as
+    // unseen without anything having looked for it.
+    const lightOnly = renderReport(results({
+      baseline,
+      config: { ...kFullMatrix, themes: ["light"] },
+    }));
+    assert(
+      !lightOnly.includes("can be pruned"),
+      "a theme-narrowed scan must not invite pruning a stale entry",
+    );
+    assert(
+      lightOnly.includes("themes"),
+      "the caveat must name the narrowed theme set",
+    );
+
+    // Same hole on the viewport axis: the default matrix carries a 320px
+    // reflow width, and dropping it hides anything that only breaks there.
+    const wideOnly = renderReport(results({
+      baseline,
+      config: { ...kFullMatrix, viewports: kConfig.viewports },
+    }));
+    assert(
+      !wideOnly.includes("can be pruned"),
+      "a viewport-narrowed scan must not invite pruning a stale entry",
+    );
+    assert(
+      wideOnly.includes("viewports"),
+      "the caveat must name the narrowed viewport set",
+    );
+
+    // Same full-site flags, but one cell failed closed. The finding could
+    // still live on the page-mode that cell never scanned, so "not seen" is
+    // not "resolved" and the report must not invite a prune.
+    const withFailure = renderReport(results({
+      baseline,
+      config: kFullMatrix,
+      cells: [
+        ...capturedCells(),
+        {
+          page: "contact.html",
+          viewport: "1440x900",
+          theme: "light",
+          url: "http://127.0.0.1/contact.html",
+          status: "timeout",
+          message: "cell timed out",
+          elapsed: 30000,
+        },
+      ],
+    }));
+    assert(
+      withFailure.includes("region :: body"),
+      "the stale entry must still be listed when a cell failed",
+    );
+    assert(
+      !withFailure.includes("can be pruned"),
+      "an incomplete scan must not invite pruning a stale entry",
+    );
+    assert(
+      withFailure.includes("1 cell did not complete"),
+      "the report must say why staleness is inconclusive",
+    );
+
+    // A subset scan was already inconclusive, and stays so.
+    const subset = renderReport(
+      results({ baseline, config: { ...kFullMatrix, pages: ["*.html"] } }),
+    );
+    assert(
+      !subset.includes("can be pruned"),
+      "a subset scan must not invite pruning a stale entry",
+    );
+  },
+);
+
+unitTest(
+  "report.md - a duplicated axis value doesn't count as the full matrix",
+  // deno-lint-ignore require-await
+  async () => {
+    // A signature the fixture cells never produce, accepted in the baseline:
+    // it reads as stale in every scan below.
+    const baseline: AxeBaseline = {
+      findings: [{
+        signature: "region :: body",
+        pages: [],
+        impact: "moderate",
+        note: "accepted so this scan reports it as stale",
+      }],
+    };
+
+    // --themes light,light: two entries, but neither is "dark". A scan run
+    // this way never scans a dark cell — applyThemesFilter (discover.ts)
+    // drops every mode not literally named — so this is exactly as narrow as
+    // --themes light. Matching the default set's *size* isn't matching its
+    // *members*.
+    const duplicateTheme = renderReport(results({
+      baseline,
+      config: { ...kFullMatrix, themes: ["light", "light"] },
+    }));
+    assert(
+      !duplicateTheme.includes("can be pruned"),
+      "a duplicated theme must not read as the full light+dark set",
+    );
+
+    // Same failure mode on viewports: two entries naming the same desktop
+    // width never run the 320px reflow cell (scan.ts iterates config.viewports
+    // verbatim, duplicates and all).
+    const duplicateViewport = renderReport(results({
+      baseline,
+      config: {
+        ...kFullMatrix,
+        viewports: [
+          { width: 1440, height: 900, label: "1440x900" },
+          { width: 1440, height: 900, label: "1440x900" },
+        ],
+      },
+    }));
+    assert(
+      !duplicateViewport.includes("can be pruned"),
+      "a duplicated viewport must not read as the full viewport set",
+    );
+
+    // The other direction: --viewports takes arbitrary WxH values, so a scan
+    // can name both defaults and a third. That covers every cell the default
+    // matrix would and then some, so reading a superset as a narrowing would
+    // withhold a prune the scan has earned.
+    const extraViewport = renderReport(results({
+      baseline,
+      config: {
+        ...kFullMatrix,
+        viewports: [
+          { width: 1440, height: 900, label: "1440x900" },
+          { width: 320, height: 568, label: "320x568" },
+          { width: 768, height: 1024, label: "768x1024" },
+        ],
+      },
+    }));
+    assert(
+      extraViewport.includes("can be pruned"),
+      "a superset of the default viewports must still be conclusive",
+    );
+  },
+);
+
+unitTest(
   "README - regenerate command reconstructs exactly the scan's flags",
   // deno-lint-ignore require-await
   async () => {
@@ -177,6 +355,13 @@ unitTest(
       ),
       'quarto call axe _site --pages "docs/**" --exclude "slides/**" ' +
         "--viewports 1440x900 --timeout 5000",
+    );
+    // --report changed where the report landed, so a rerun of the echoed
+    // command has to land it there too — omitting it silently reverts the
+    // destination to the artifact dir.
+    assertEquals(
+      scanCommand(results({ config: { report: "docs/a11y.md" } })),
+      'quarto call axe _site --viewports 1440x900 --report "docs/a11y.md"',
     );
   },
 );

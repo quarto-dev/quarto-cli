@@ -327,8 +327,9 @@ export function reconcile(
  * Baseline entries not seen in this scan: site-wide entries whose signature
  * didn't occur at all, and page-scoped entries whose signature didn't occur on
  * any listed page. Reported, never auto-pruned — "resolved" is only confirmable
- * on a full-site scan, since on a subset scan an entry may live on an unscanned
- * page.
+ * from a scan that both covered the whole site and completed every cell
+ * (`staleIsConclusive`), since otherwise an entry may live on a page-mode this
+ * scan never looked at.
  */
 export function staleEntries(
   accepted: Map<string, Acceptance>,
@@ -489,6 +490,7 @@ export function aggregate(options: AggregateOptions): AxeFindings {
       timeout: config.timeout,
       settle: config.settle,
       failOn: config.failOn ?? null,
+      report: config.report ? anchorRelative(config.report) : null,
     },
     // `modes` are the modes this scan covered for the page (post `--themes`),
     // so a CI consumer can tell "no dark mode" from "a cell went missing".

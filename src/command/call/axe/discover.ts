@@ -107,8 +107,15 @@ export interface AxeRedirectStub {
  * scan-time redirect guard (scan.ts) remains the fail-closed net for
  * redirects this sniff can't see.
  *
- * The near-empty-body requirement keeps documentation *about* redirects out:
- * a real content page carries navigation chrome; a stub's body is bytes.
+ * Two requirements keep documentation *about* redirects out, since a page
+ * quoting either shape in a code block carries the same bytes. First, the
+ * markers have to sit where a redirect lives: the script pattern matches
+ * inside `<script>` elements, not in page text, and an escaped `&lt;meta&gt;`
+ * in a code block can't match the raw-tag pattern. Any `<script>` body counts
+ * here, `type` and all, which the near-empty body requirement makes moot.
+ * Second, the body has to be near-empty — a real content page
+ * carries navigation chrome where a stub's body is bytes — which also rules
+ * out a content page that happens to ship a redirect script of its own.
  */
 export function sniffRedirectStub(
   html: string,
@@ -122,18 +129,28 @@ export function sniffRedirectStub(
     const target = meta[0].match(/url\s*=\s*["']?([^"'>;]+)/i);
     return { to: target ? target[1].trim() : null };
   }
-  if (html.includes("window.location.replace")) {
-    const map = html.match(/var redirects = (\{[^;]*\});/);
-    if (map) {
-      try {
-        const redirects = JSON.parse(map[1]) as Record<string, string>;
-        return { to: redirects[""] ?? Object.values(redirects)[0] ?? null };
-      } catch (_e) {
-        return { to: null };
-      }
+  for (const script of scriptSources(html)) {
+    if (!script.includes("window.location.replace")) {
+      continue;
+    }
+    const map = script.match(/var redirects = (\{[^;]*\});/);
+    if (!map) {
+      continue;
+    }
+    try {
+      const redirects = JSON.parse(map[1]) as Record<string, string>;
+      return { to: redirects[""] ?? Object.values(redirects)[0] ?? null };
+    } catch (_e) {
+      return { to: null };
     }
   }
   return undefined;
+}
+
+/** The bodies of a document's inline `<script>` elements. */
+function scriptSources(html: string): string[] {
+  return [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
+    .map((match) => match[1]);
 }
 
 /**

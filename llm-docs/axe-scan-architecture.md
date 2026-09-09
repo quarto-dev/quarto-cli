@@ -205,8 +205,14 @@ projection of a finding; the scanner reads three fields:
 - `impact` — the impact *at acceptance*. Escalation past it re-alerts
   instead of hiding behind an old acceptance.
 
-Stale entries (not seen this scan) are reported, never auto-pruned: on a
-subset scan an entry may live on an unscanned page. The ledger is validated
+Stale entries (not seen this scan) are reported, never auto-pruned, and
+"resolved" is only claimed when the scan is entitled to claim it
+(`staleIsConclusive`, config.ts). The matrix is pages × viewports × modes and
+every axis is a way to not look: `--pages`, `--viewports` and `--themes` each
+shrink it (`narrowedAxes`), so a light-only or wide-only scan can report a
+finding unseen without anything having looked for it. A cell that failed
+closed is the same hole inside an otherwise full run. `report.md` and the
+console summary name which applies. The ledger is validated
 on read with a strict Zod schema — a typo'd field is a named error, and
 scheme/version mismatches produce migration instructions rather than a pile
 of unknown-key errors. Signature-scheme semantics and the residual warts are
@@ -229,7 +235,10 @@ overwrites `findings.json` with a subset snapshot, so a committed copy would
 diff as if findings were fixed. The committed contract is the baseline,
 which lives beside the directory. Summary artifacts (`findings.json`,
 `report.md`) are deleted up front so an aborted scan cannot leave stale ones
-reading as current; per-cell payloads accumulate by name.
+reading as current; per-cell payloads accumulate by name. `--report` moves
+the report, so the cleanup covers both its destination and the default one
+(`staleArtifacts`, cmd.ts) — the destination is also echoed into
+`findings.json`, or the README's regenerate command would silently revert it.
 
 Three human/agent surfaces, one data source:
 

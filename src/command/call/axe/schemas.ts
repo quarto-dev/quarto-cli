@@ -141,6 +141,11 @@ export const axeFindingsSchema = z.object({
     // nullish like `exclude`: added after version 1 shipped (additive field,
     // no bump)
     failOn: z.string().nullish(),
+    // Where --report sent the markdown report, anchor-relative; null means the
+    // default beside the other artifacts. Recorded so the README's regenerate
+    // command reproduces the destination instead of silently reverting to the
+    // default. Nullish: additive field, no bump.
+    report: z.string().nullish(),
   }),
   /**
    * The pages scanned, as output paths. v1 has no `input`/`title`: source

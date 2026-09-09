@@ -7,7 +7,7 @@
  */
 
 import { ErrorEx } from "../../../core/lib/error.ts";
-import { AxeImpact, axeImpactSchema } from "./schemas.ts";
+import { AxeFindings, AxeImpact, axeImpactSchema } from "./schemas.ts";
 
 // Fixed in v1: this prototype deliberately has no knobs for the output dir,
 // the baseline path or whether the report is written.
@@ -114,9 +114,13 @@ function parseThemes(value: string): AxeTheme[] {
   return themes;
 }
 
+// Cliffy's `<n:number>` hands over a real number, so a fractional value
+// arrives intact rather than truncated the way a string would be. --max-pages
+// is then compared with `===` against a running page count (discover.ts), so
+// 1.5 would silently never match and the cap would never apply.
 function parsePositiveInt(value: unknown, flag: string): number {
   const parsed = typeof value === "number" ? value : parseInt(`${value}`, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
+  if (!Number.isInteger(parsed) || parsed <= 0) {
     throw optionError(
       `Invalid ${flag} '${value}': expected a positive integer.`,
     );
@@ -128,7 +132,7 @@ function parsePositiveInt(value: unknown, flag: string): number {
 // readiness probe, and "no extra delay" is the natural way to trust the probe.
 function parseNonNegativeInt(value: unknown, flag: string): number {
   const parsed = typeof value === "number" ? value : parseInt(`${value}`, 10);
-  if (!Number.isFinite(parsed) || parsed < 0) {
+  if (!Number.isInteger(parsed) || parsed < 0) {
     throw optionError(
       `Invalid ${flag} '${value}': expected a non-negative integer.`,
     );
@@ -165,4 +169,60 @@ export function axeScanConfig(options: any, siteDir: string): AxeScanConfig {
       ? undefined
       : parseFailOn(options.failOn),
   };
+}
+
+/** Whether `--pages`/`--exclude`/`--max-pages` narrowed the scan's page set. */
+export function scanWasFiltered(results: AxeFindings): boolean {
+  return (results.config.pages ?? null) !== null ||
+    (results.config.exclude ?? null) !== null ||
+    results.config.maxPages !== null;
+}
+
+/**
+ * Whether an axis still covers every default value, which is the only thing
+ * staleness depends on: what the scan didn't look at.
+ *
+ * Membership, not count. `--themes dark,light` is the default set reordered
+ * and covers it; `--themes light,light` does not, because parsing accepts a
+ * repeated value and a duplicate would otherwise stand in for the member it
+ * is missing. A superset covers it too: `--viewports` takes arbitrary `WxH`
+ * values, so naming the two defaults and a third scans strictly more, and
+ * reading that as a narrowing would withhold a prune the scan has earned.
+ */
+function coversDefaults(values: string[], defaults: string): boolean {
+  const got = new Set(values);
+  return splitList(defaults).every((value) => got.has(value));
+}
+
+/**
+ * The matrix axes this scan narrowed, named for a reader. The scan covers
+ * pages × viewports × modes, and every axis is a way to not look somewhere:
+ * `--pages`, `--viewports` and `--themes` each shrink it.
+ */
+export function narrowedAxes(results: AxeFindings): string[] {
+  const axes: string[] = [];
+  if (scanWasFiltered(results)) {
+    axes.push("pages");
+  }
+  if (!coversDefaults(results.config.viewports, kDefaultViewports)) {
+    axes.push("viewports");
+  }
+  if (!coversDefaults(results.config.themes, kDefaultThemes)) {
+    axes.push("themes");
+  }
+  return axes;
+}
+
+/**
+ * Whether "not seen in this scan" is safe to read as "resolved" — the one
+ * question a stale baseline entry raises. Every way of not looking at a cell
+ * has to be ruled out: a flag that shrank the matrix (`narrowedAxes`), or a
+ * cell that failed closed inside an otherwise full run. A light-only scan
+ * never runs a dark cell and a wide-only scan never runs the 320px one, so
+ * either can report a finding as unseen without anything having looked for
+ * it. In all those cases the entry may still be there, and the reader must
+ * not be invited to prune it.
+ */
+export function staleIsConclusive(results: AxeFindings): boolean {
+  return narrowedAxes(results).length === 0 && results.cells.notOk === 0;
 }

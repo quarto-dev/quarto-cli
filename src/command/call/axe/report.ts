@@ -15,6 +15,24 @@
  */
 
 import { AxeFinding, AxeFindings } from "./schemas.ts";
+import { narrowedAxes, staleIsConclusive } from "./config.ts";
+
+/** Why this scan can't call an unseen baseline entry resolved. */
+function staleCaveat(results: AxeFindings): string {
+  const reasons: string[] = [];
+  const axes = narrowedAxes(results);
+  if (axes.length) {
+    reasons.push(`the flags narrowed the ${axes.join(", ")} it covered`);
+  }
+  if (results.cells.notOk > 0) {
+    reasons.push(
+      `${results.cells.notOk} cell${
+        results.cells.notOk === 1 ? " did" : "s did"
+      } not complete`,
+    );
+  }
+  return reasons.join(" and ");
+}
 
 /**
  * Make arbitrary prose safe inside a markdown table cell or `<summary>`:
@@ -196,14 +214,19 @@ export function renderReport(results: AxeFindings): string {
   }
 
   if (results.baseline.stale.length) {
+    const ids = results.baseline.stale.map((entry) =>
+      `\`${entry.id ?? entry.signature}\``
+    ).join(", ");
+    const count = `${results.baseline.stale.length} baseline entr` +
+      `${results.baseline.stale.length === 1 ? "y" : "ies"}`;
     lines.push(
-      `> ${results.baseline.stale.length} baseline entr` +
-        `${results.baseline.stale.length === 1 ? "y" : "ies"} not seen in ` +
-        `this scan — if this was a full-site scan they are resolved and can ` +
-        `be pruned by hand: ` +
-        results.baseline.stale.map((entry) =>
-          `\`${entry.id ?? entry.signature}\``
-        ).join(", "),
+      staleIsConclusive(results)
+        ? `> ${count} not seen in this scan, which covered the whole site ` +
+          `and completed every cell — resolved, and can be pruned by hand: ` +
+          `${ids}`
+        : `> ${count} not seen in this scan — which cannot tell "fixed" from ` +
+          `"not scanned", because ${staleCaveat(results)}. Prune only after ` +
+          `a scan of the full matrix with every cell ok: ${ids}`,
       ``,
     );
   }

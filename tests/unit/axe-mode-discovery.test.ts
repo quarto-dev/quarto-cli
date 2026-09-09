@@ -214,6 +214,35 @@ ${
 );
 
 unitTest(
+  "page discovery - a short page quoting the redirect script is not a stub",
+  // deno-lint-ignore require-await
+  async () => {
+    // Body length can't carry this on its own: a terse page — a note, a
+    // snippet index — quoting the same script stays well under the near-empty
+    // threshold. What separates a stub from a page about stubs is that the
+    // stub *runs* the redirect, so the markers only count inside a <script>.
+    const shortDocsPage = `<html><head><title>Aliases</title></head><body>
+<p>Quarto writes this:</p>
+<pre><code>var redirects = {"":"download.html"};
+window.location.replace(redirects[""]);</code></pre>
+</body></html>`;
+    assertEquals(sniffRedirectStub(shortDocsPage), undefined);
+
+    // Same for a meta refresh shown as an example rather than emitted.
+    const shortMetaDocsPage = `<html><head><title>Refresh</title></head><body>
+<pre><code>&lt;meta http-equiv="refresh" content="0; url=/moved/"&gt;</code></pre>
+</body></html>`;
+    assertEquals(sniffRedirectStub(shortMetaDocsPage), undefined);
+
+    // and the real stubs still classify, with their destinations intact
+    assertEquals(sniffRedirectStub(kAliasStub), { to: "download.html" });
+    assertEquals(sniffRedirectStub(kMetaRefreshStub), {
+      to: "https://example.com/moved/",
+    });
+  },
+);
+
+unitTest(
   "page discovery - --pages narrows, --exclude prunes, --max-pages caps",
   async () => {
     await withTempDir((dir) => {

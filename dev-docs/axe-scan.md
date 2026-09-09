@@ -139,7 +139,11 @@ at the project root, beside (not inside) `_axe-checks/`.
 From then on, reports separate **new** findings from **baselined** ones,
 and only new findings can fail CI. A baselined finding that escalates in
 impact, or shows up on a page outside its scope, re-alerts as new. Entries
-a full-site scan no longer sees are reported as stale — prune them by hand.
+a scan no longer sees are reported as stale — prune them by hand, but only
+after a scan of the full matrix (every page, viewport and mode) in which
+every cell completed. Narrowing any axis with `--pages`, `--viewports` or
+`--themes` means the scan can't tell "fixed" from "not scanned", and neither
+can a full scan that lost a cell; the report says which applies to it.
 
 There is deliberately no `--update-baseline`: every entry exists because
 someone wrote it and said why.
