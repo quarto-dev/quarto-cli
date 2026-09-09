@@ -1678,124 +1678,34 @@
             "type": "string"
           },
           "source-notebooks-prefix": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "other-links-title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "code-links-title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "launch-dev-container-title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "launch-binder-title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "article-notebook-label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "notebook-preview-download": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "notebook-preview-download-src": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "notebook-preview-back": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "manuscript-meca-bundle": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "callout-tip-title": {
             "type": "string"
@@ -1822,172 +1732,46 @@
             "type": "string"
           },
           "section-title-references": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "section-title-reuse": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "section-title-copyright": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "section-title-citation": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "appendix-attribution-cite-as": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "appendix-attribution-bibtex": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "appendix-view-license": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "title-block-author-single": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "title-block-author-plural": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "title-block-affiliation-single": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "title-block-affiliation-plural": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "title-block-published": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "title-block-modified": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "title-block-keywords": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "code-summary": {
             "type": "string"
@@ -2008,64 +1792,19 @@
             "type": "string"
           },
           "tools-share": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "tools-download": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "code-line": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "code-lines": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "back-to-top": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "search-no-results-text": {
             "type": "string"
@@ -2116,76 +1855,22 @@
             "type": "string"
           },
           "search-label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "toggle-section": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "toggle-sidebar": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "toggle-dark-mode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "toggle-reader-mode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "toggle-navigation": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "navigation-site-label": {
             "type": "string"
@@ -2290,304 +1975,79 @@
             "type": "string"
           },
           "environment-proof-title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "environment-remark-title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "environment-solution-title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-order-by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-order-by-default": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-order-by-date-asc": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-order-by-date-desc": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-order-by-number-desc": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-order-by-number-asc": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-date": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-author": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-filemodified": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-subtitle": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-readingtime": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-wordcount": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-field-categories": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-minutes-compact": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-category-all": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-no-matches": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-words": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "listing-page-filter": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           },
           "draft": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "enum": [
-                  null
-                ]
-              }
-            ]
+            "type": "string"
           }
         }
       }
