@@ -15,6 +15,7 @@ All changes included in 1.11:
 - ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Add a distinct, localizable `aria-label` to each navigation landmark of websites and books: the navbar (`Site`), the sidebar (`Section`, or `Site` when there is no navbar), the narrow-viewport toolbar (`Toolbar`), the previous/next page navigation (`Page`), and the breadcrumbs (`Breadcrumbs`) (previously hardcoded English `breadcrumb`). The new `navigation-*-label` language keys can be overridden with `language:` metadata.
 - ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Translate the new `navigation-*-label` keys in all 33 built-in language files. The values are drawn from existing human-translated interface strings (LibreOffice, GNOME, Wikidata) and each one carries a comment naming its source; values that were adapted rather than used verbatim are marked `needs review`.
 - ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Label the table of contents `<nav>` with its localized title (`aria-labelledby`), in `html` and `revealjs` output, so assistive technology can tell it apart from other navigation landmarks.
+- ([#14844](https://github.com/quarto-dev/quarto-cli/issues/14844)): With `toc-location: left-body` or `right-body`, give the ids in the cloned body table of contents a `-body` suffix. The clone previously repeated every id from the sidebar copy, including the `toc-title` heading that `aria-labelledby` now points at.
 
 ## Formats
 
@@ -40,12 +41,6 @@ All changes included in 1.11:
 ### `call`
 
 - ([#14815](https://github.com/quarto-dev/quarto-cli/pull/14815)): Add `quarto call axe`, a hidden experimental command that scans a rendered site for accessibility violations with axe-core across a page × viewport × color-mode matrix, groups them by root-cause signature, reconciles a committed baseline, and can gate CI with `--fail-on`. See [dev-docs/axe-scan.md](https://github.com/quarto-dev/quarto-cli/blob/main/dev-docs/axe-scan.md).
-
-## Accessibility
-
-- ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Add a distinct, localizable `aria-label` to each navigation landmark of websites and books: the navbar, the sidebar, the mobile secondary nav, the previous/next page navigation, and the breadcrumbs (previously hardcoded English `breadcrumb`). The new `navigation-*-label` language keys can be overridden with `language:` metadata.
-- ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Label the table of contents `<nav>` with its localized title (`aria-labelledby`), in `html` and `revealjs` output, so assistive technology can tell it apart from other navigation landmarks.
-- ([#14844](https://github.com/quarto-dev/quarto-cli/issues/14844)): With `toc-location: left-body` or `right-body`, give the ids in the cloned body table of contents a `-body` suffix. The clone previously repeated every id from the sidebar copy, including the `toc-title` heading that `aria-labelledby` now points at.
 
 ## Engines
 
