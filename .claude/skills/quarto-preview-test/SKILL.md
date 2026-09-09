@@ -169,6 +169,13 @@ Invoked with test IDs (e.g. `/quarto-preview-test T17 T18`) or a topic descripti
 matching tests from `tests/docs/manual/preview/README.md`. Invoked without IDs or a topic, use
 the Edit-Verify Cycle above instead — the test matrix is for targeted regression testing.
 
+## Embedded Viewer (iframe / postMessage)
+
+When testing link classification, viewer `postMessage` events, or code in
+`src/webui/quarto-preview/src/frame/`, use the iframe and proxy harness in
+`references/embedded-viewer.md`. It covers the first-request constraint and the required
+precondition; a top-level preview does not exercise this code.
+
 ## Baseline Comparison
 
 Compare dev build against installed release to distinguish regressions:
