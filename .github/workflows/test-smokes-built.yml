@@ -122,8 +122,10 @@ jobs:
       - name: Resolve version
         id: r
         shell: bash
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
         run: |
-          input="${{ github.event.inputs.version }}"
+          input="$VERSION_INPUT"
           case "$input" in
             pre-release | prerelease | "")
               version="$(curl -fsSL https://quarto.org/docs/download/_prerelease.json | jq -r '.version')"
@@ -149,11 +151,15 @@ jobs:
           VERSION: ${{ steps.r.outputs.version }}
         # Older tags do not contain the binary-mode test harness.
         run: |
-          if ! gh api "repos/${GITHUB_REPOSITORY}/contents/tests/quarto-cmd.ts?ref=refs/tags/v${VERSION}" --silent 2>/dev/null; then
+          if output="$(gh api "repos/${GITHUB_REPOSITORY}/contents/tests/quarto-cmd.ts?ref=refs/tags/v${VERSION}" --silent 2>&1)"; then
+            echo "refs/tags/v${VERSION} has binary-mode harness support"
+          elif echo "$output" | grep -q 'HTTP 404'; then
             echo "::error::tests/quarto-cmd.ts not found at refs/tags/v${VERSION}: either the tag does not exist or the release predates binary-mode harness support - it cannot be tested in release mode"
             exit 1
+          else
+            echo "::error::gh api failed while checking refs/tags/v${VERSION}: $output"
+            exit 1
           fi
-          echo "refs/tags/v${VERSION} has binary-mode harness support"
 
   run-smokes-release:
     name: Smoke tests against published release
@@ -214,7 +220,7 @@ jobs:
           run_id="${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || github.event.inputs.run-id }}"
           if [ -z "$run_id" ]; then
             run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow create-release.yml \
-              --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+              --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
           fi
           if [ -z "$run_id" ]; then
             echo "::error::no successful create-release run found to take artifacts from"

@@ -235,6 +235,8 @@ jobs:
 
       - name: Install missing system deps (macOS)
         if: runner.os == 'macOS'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
         # PDF tests need poppler and librsvg beyond the preinstalled tools.
         run: |
           brew install poppler librsvg
@@ -375,6 +377,8 @@ jobs:
       - name: Pin and verify test target
         if: inputs.quarto-install != 'dev' && inputs.quarto-install != ''
         shell: bash
+        env:
+          QUARTO_VERSION_INPUT: ${{ inputs.quarto-version }}
         run: |
           v="$(quarto --version)"
           echo "quarto under test: $v ($(command -v quarto))"
@@ -401,10 +405,10 @@ jobs:
           fi
           echo "QUARTO_TEST_BIN=$bin" >> "$GITHUB_ENV"
           # Verify every spawn when the caller requested a concrete version.
-          if [ -n "${{ inputs.quarto-version }}" ] \
-            && [ "${{ inputs.quarto-version }}" != "pre-release" ] \
-            && [ "${{ inputs.quarto-version }}" != "release" ]; then
-            echo "QUARTO_TEST_EXPECTED_VERSION=${{ inputs.quarto-version }}" >> "$GITHUB_ENV"
+          if [ -n "$QUARTO_VERSION_INPUT" ] \
+            && [ "$QUARTO_VERSION_INPUT" != "pre-release" ] \
+            && [ "$QUARTO_VERSION_INPUT" != "release" ]; then
+            echo "QUARTO_TEST_EXPECTED_VERSION=$QUARTO_VERSION_INPUT" >> "$GITHUB_ENV"
           fi
 
       - name: Install Tinytex
