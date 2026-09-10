@@ -318,8 +318,32 @@ jobs:
           run-id: ${{ inputs.quarto-artifact-run-id }}
           github-token: ${{ github.token }}
 
+      - name: Install built quarto outside the checkout (Windows)
+        if: inputs.quarto-install == 'artifact' && runner.os == 'Windows'
+        shell: pwsh
+        # Git for Windows' bash ships GNU tar, which cannot read a zip archive,
+        # and the Windows artifact is always a zip - so this step runs under
+        # pwsh instead, where Expand-Archive handles it natively.
+        run: |
+          $zips = Get-ChildItem -Path "$env:RUNNER_TEMP/quarto-artifact" -Filter *.zip
+          if ($zips.Count -ne 1) {
+            Write-Host "::error::expected exactly one .zip in the quarto artifact, found: $($zips.Name -join ', ')"
+            exit 1
+          }
+          $dest = "$env:RUNNER_TEMP/quarto-under-test"
+          Expand-Archive -Path $zips[0].FullName -DestinationPath $dest -Force
+          if (-not (Test-Path "$dest/bin")) {
+            $tops = Get-ChildItem -Path $dest -Force -Directory
+            if ($tops.Count -ne 1 -or -not (Test-Path (Join-Path $tops[0].FullName "bin"))) {
+              Write-Host "::error::could not locate bin/ in the extracted quarto artifact"
+              exit 1
+            }
+            Get-ChildItem -Path $tops[0].FullName -Force | Move-Item -Destination $dest
+          }
+          Add-Content $env:GITHUB_PATH "$dest/bin"
+
       - name: Install built quarto outside the checkout
-        if: inputs.quarto-install == 'artifact'
+        if: inputs.quarto-install == 'artifact' && runner.os != 'Windows'
         shell: bash
         # An in-checkout distribution would launch the dev sources.
         run: |
@@ -330,14 +354,20 @@ jobs:
             echo "::error::expected exactly one .tar.gz or .zip in the quarto artifact, found: ${artifacts[*]:-none}"
             exit 1
           fi
-          # Linux has a top directory; macOS and Windows archives are flat.
+          # Linux has a top directory; macOS archives are flat.
           tar -xf "${artifacts[0]}" -C "$RUNNER_TEMP/quarto-under-test"
           if [ ! -d "$RUNNER_TEMP/quarto-under-test/bin" ]; then
-            top="$(find "$RUNNER_TEMP/quarto-under-test" -mindepth 1 -maxdepth 1 -type d | head -1)"
-            if [ -z "$top" ] || [ ! -d "$top/bin" ]; then
+            tops=("$RUNNER_TEMP"/quarto-under-test/*/)
+            if [ "${#tops[@]}" -ne 1 ]; then
+              echo "::error::expected exactly one directory in the extracted quarto artifact, found: ${#tops[@]}"
+              exit 1
+            fi
+            top="${tops[0]%/}"
+            if [ ! -d "$top/bin" ]; then
               echo "::error::could not locate bin/ in the extracted quarto artifact"
               exit 1
             fi
+            shopt -s dotglob
             mv "$top"/* "$RUNNER_TEMP/quarto-under-test"/
           fi
           echo "$RUNNER_TEMP/quarto-under-test/bin" >> "$GITHUB_PATH"
