@@ -59,10 +59,7 @@ const verify: Verify = {
 };
 const context: TestContext = {
   teardown: () => {
-    // safeRemoveSync tolerates a missing path: when a render fails, noErrors
-    // fails first and these outputs never exist. Raw Deno.removeSync would then
-    // throw NotFound from this finally-phase teardown and mask the noErrors
-    // report with an unhelpful ENOENT.
+    // Missing outputs must not let teardown mask the render failure.
     safeRemoveSync(imgQmd.output.outputPath);
     safeRemoveSync(imgQmd.output.supportPath, { recursive: true });
 
@@ -75,9 +72,7 @@ const testDesc: TestDescriptor = { // FIXME: why is this test flaky now? Ask @dr
   name: "test html produced by different figure syntax",
   context,
   execute: async (logFile?: string) => {
-    // render failures land in the log as ERROR records; noErrors below
-    // surfaces them (otherwise the comparison verify would just hit an
-    // unhelpful ENOENT on the missing output file)
+    // Report render errors before comparing output files.
     await runQuarto(["render", imgQmd.input], {
       logFile,
       throwOnFailure: false,

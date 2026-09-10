@@ -10,8 +10,7 @@ import { test } from "../../test.ts";
 import { assertEquals } from "testing/asserts";
 
 async function runEditorSupportCrossref(doc: string) {
-  // pinned to the locally-built dev CLI (not PATH quarto) as before the
-  // binary-mode migration; resolves to QUARTO_TEST_BIN in binary mode
+  // Use the built test binary in binary mode; otherwise pin the local CLI.
   const cmd = new Deno.Command(quartoDevBinCmd(), {
     args: ["editor-support", "crossref"],
     stdin: "piped",
@@ -25,11 +24,7 @@ async function runEditorSupportCrossref(doc: string) {
     Deno.readTextFileSync(doc),
   );
   await writer.write(buf);
-  // close() flushes the write and closes the stream (sends EOF to the child);
-  // it does not release the writer's lock, but nothing reuses the stream so
-  // the held lock is inert and leaks no resource. Do NOT releaseLock() first —
-  // that detaches the writer and makes close() throw "A writable stream is not
-  // associated with the writer".
+  // close() sends EOF; releaseLock() would detach the writer before close().
   await writer.close();
   const outputBuf = await child.output();
   const status = await child.status;
@@ -39,9 +34,7 @@ async function runEditorSupportCrossref(doc: string) {
   return json;
 }
 
-// The harness swallows errors thrown from execute() (they become log
-// records nothing here reads), so the spawn + assertions must live in a
-// verifier for these tests to be able to fail at all.
+// Run assertions in verifiers so failures propagate through the harness.
 test({
   name: "editor-support:crossref:smoke-1",
   context: {},

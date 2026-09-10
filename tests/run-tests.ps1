@@ -66,21 +66,14 @@ If ($null -eq $Env:QUARTO_DENO_DIR) {
   $Env:DENO_DIR = $Env:QUARTO_DENO_DIR
 }
 
-# BINARY MODE: when QUARTO_TEST_BIN is set, tests run against a built quarto
-# (an installed distribution extracted OUTSIDE this checkout). The harness
-# itself still runs from the dev tree — the dev env vars above stay — and
-# tests/quarto-cmd.ts dispatches quarto invocations to the binary, stripping
-# the dev env from the child process. See
-# llm-docs/built-version-testing-architecture.md.
+# QUARTO_TEST_BIN selects an installed Quarto outside this checkout.
+# The harness still uses the dev runtime configured above.
 If ($null -ne $Env:QUARTO_TEST_BIN) {
   If (-not (Test-Path $Env:QUARTO_TEST_BIN)) {
     Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) does not exist"
     Exit 1
   }
-  # Probe with the dev-tree env stripped (same list as tests/quarto-cmd.ts):
-  # the installed launcher keeps an inherited QUARTO_SHARE_PATH, and the dev
-  # exports above would make a healthy built quarto read the dev tree's
-  # (nonexistent) src/resources/version and report an EMPTY version.
+  # Strip dev paths while probing the installed binary.
   $probeStrip = @(
     "QUARTO_SHARE_PATH", "QUARTO_BIN_PATH", "QUARTO_DEBUG", "DENO_DIR",
     "QUARTO_DENO", "QUARTO_DENO_DOM", "QUARTO_ROOT", "QUARTO_SRC_PATH",
@@ -209,11 +202,7 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   $TESTS_TO_RUN=$customArgs
 }
 
-# Binary-mode default selection: smoke tests only. tests/unit/ exercises
-# quarto internals in-process (dev-only by definition);
-# tests/integration/playwright-tests.test.ts IS binary-compatible but needs
-# the playwright toolchain, so it only runs when asked for explicitly (CI
-# runs it as its own leg in test-smokes-built.yml).
+# Binary mode defaults to smoke tests; other compatible suites are explicit.
 If ($null -ne $Env:QUARTO_TEST_BIN -and $TESTS_TO_RUN.count -eq 0 -and $customArgs.count -eq 0) {
   $TESTS_TO_RUN = @("smoke/")
   Write-Host "> BINARY MODE: defaulting to smoke/ tests (pass a path explicitly to run others, e.g. integration/playwright-tests.test.ts)"

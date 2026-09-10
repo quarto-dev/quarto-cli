@@ -7,10 +7,7 @@ import { execProcess } from "../../../src/core/process.ts";
 import { quartoDevBinCmd, quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { noErrors } from "../../verify.ts";
 
-// The cached typst/ dirs are gitignored and SURVIVE across local runs - a
-// stale cache would keep the existence verifiers green even if typst-gather
-// broke entirely. Each test removes its cache first so verification is
-// always against a fresh gather.
+// Remove persistent, gitignored caches before verifying generated content.
 const freshCache = (cacheDir: string) => async () => {
   if (existsSync(cacheDir)) {
     Deno.removeSync(cacheDir, { recursive: true });
@@ -261,8 +258,7 @@ const verifyNoPackagesStaged: Verify = {
 testQuartoCmd(
   "render",
   [join(noPackagesProjectDir, "index.qmd"), "--to", "typst"],
-  // noErrors: a render failing before staging would trivially satisfy the
-  // purely-negative "nothing staged" assertions
+  // Require a successful render before checking that nothing was staged.
   [noErrors, verifyNoPackagesStaged],
   {
     teardown: async () => {
@@ -286,16 +282,13 @@ async function runQuarto(
   env?: Record<string, string>,
 ): Promise<{ success: boolean; stdout: string; stderr: string }> {
   const result = await execProcess({
-    // pinned to the locally-built dev CLI (not PATH quarto) as before the
-    // binary-mode migration; resolves to QUARTO_TEST_BIN in binary mode
+    // Use the built test binary in binary mode; otherwise pin the local CLI.
     cmd: quartoDevBinCmd(),
     args,
     cwd,
     stdout: "piped",
     stderr: "piped",
-    // dev mode: overlay merges into the inherited ambient env (same child
-    // env as the previous explicit { ...Deno.env.toObject(), ...env });
-    // binary mode: sanitized ambient env + overlay with clearEnv
+    // Binary mode strips dev-tree variables before applying the overlay.
     ...quartoSpawnEnvOptions(env),
   });
   return {

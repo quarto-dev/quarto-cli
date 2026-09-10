@@ -63,9 +63,7 @@ testQuartoCmd(
 testQuartoCmd(
   "render",
   [docs("project/prepost/extension")],
-  // assertions live in verify (teardown assertions skip cleanup on failure);
-  // noErrors keeps the purely-negative i-exist check from passing vacuously
-  // on a failed render
+  // Verify success before checking the negative path condition.
   [noErrors, {
     name: "prepost extension file effects",
     verify: async () => {
@@ -74,9 +72,7 @@ testQuartoCmd(
     }
   }],
   {
-    // remove artifacts a prior crashed run may have left behind, so verifyPath
-    // proves this render created i-was-created.txt (not a stale copy) and
-    // pre-render's i-exist.txt guard starts from a clean slate
+    // Remove stale artifacts so verification covers this render.
     setup: async () => {
       safeRemoveIfExists(join(docs("project/prepost/extension"), "i-was-created.txt"));
       safeRemoveIfExists(join(docs("project/prepost/extension"), "i-exist.txt"));
@@ -93,8 +89,6 @@ testQuartoCmd(
   testQuartoCmd(
     "render",
     [docs("project/prepost/issue-10828")],
-    // assertions live in verify, not teardown (an empty verify list
-    // asserted nothing about the render itself)
     [noErrors, {
       name: "project input/output files written",
       verify: async () => {
@@ -107,8 +101,7 @@ testQuartoCmd(
         "QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES": normalizePath(docs("project/prepost/issue-10828/input-files.txt")),
         "QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES": normalizePath(docs("project/prepost/issue-10828/output-files.txt"))
       },
-      // remove artifacts a prior crashed run may have left behind, so verifyPath
-      // proves this render wrote input-files.txt/output-files.txt, not a stale copy
+      // Remove stale artifacts so verification covers this render.
       setup: async () => {
         safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/input-files.txt")));
         safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/output-files.txt")));

@@ -73,10 +73,7 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
     // mediabag inspection if we don't wait all renders
     // individually. This is very slow..
     console.log(`Rendering ${input}...`);
-    // quartoSpawnEnvOptions: in binary mode the built quarto must not
-    // inherit the dev-tree env (QUARTO_SHARE_PATH etc.) exported by
-    // run-tests.[sh|ps1] for the harness — it would silently render with
-    // dev-tree resources instead of the packaged ones
+    // Prevent a built Quarto from inheriting dev-tree paths.
     const result = await execProcess({
       cmd: quartoDevCmd(),
       args: ["render", input, ...options],
@@ -98,10 +95,7 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
 
 Deno.test({
   name: "Playwright tests are passing",
-  // browser assertions are skipped on Windows CI (the renders above still
-  // run); Linux and macOS run them. This gate is why built-version CI
-  // (test-smokes-built.yml) has no windows playwright leg - rework it AND
-  // the report-upload gate in test-smokes.yml before adding one.
+  // Windows CI renders the inputs but does not run browser assertions.
   ignore: gha.isGitHubActions() && isWindows,
   fn: async () => {
     try {

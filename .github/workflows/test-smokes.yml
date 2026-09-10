@@ -45,7 +45,7 @@ on:
         type: string
         default: ""
       runners:
-        description: "JSON list of runner labels for the OS matrix. Policy: macos-latest is reserved for scheduled/built-version runs (test-smokes-built.yml nightly mode) - do NOT add it to per-commit callers (test-smokes-parallel.yml), which must stay fast."
+        description: "JSON runner matrix. macos-latest is reserved for scheduled built-version runs, not per-commit callers."
         required: false
         type: string
         default: '["ubuntu-latest", "windows-latest"]'
@@ -81,7 +81,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # inputs is empty on workflow_dispatch/schedule triggers; fall back to the historical default
+        # Non-call triggers use the default runner matrix.
         os: ${{ fromJSON(inputs.runners || '["ubuntu-latest", "windows-latest"]') }}
         time-test:
           - ${{ inputs.time-test }}
@@ -120,12 +120,7 @@ jobs:
         with:
           node-version: 22
 
-      # Playwright setup is only needed when this job can actually run the
-      # playwright suite: a bucket containing playwright-tests.test.ts, or a
-      # full run (empty buckets, which includes integration/). Windows never
-      # needs it: the suite is ignored on Windows CI (playwright-tests.test.ts,
-      # `ignore: gha.isGitHubActions() && isWindows`).
-      # Binary/release full runs default to smoke/ and never run playwright.
+      # Provision Playwright only for jobs that can run its assertions.
       - name: Cache multiplex server node_modules
         if: >-
           runner.os != 'Windows'
@@ -240,9 +235,7 @@ jobs:
 
       - name: Install missing system deps (macOS)
         if: runner.os == 'macOS'
-        # macos runners preinstall most toolchain deps; poppler (pdftotext/
-        # pdftoppm) and librsvg (rsvg-convert) are the ones PDF tests need.
-        # Tests requiring other optional tools prereq-skip gracefully.
+        # PDF tests need poppler and librsvg beyond the preinstalled tools.
         run: |
           brew install poppler librsvg
 
@@ -300,9 +293,7 @@ jobs:
         run: |
           uv sync --frozen
 
-      # ALWAYS runs, in every quarto-install mode: it provisions the Deno runtime,
-      # deno_cache and dev tree that the test harness itself needs. In non-dev modes
-      # the quarto under test is layered on top via a PATH prepend + QUARTO_TEST_BIN.
+      # The harness needs the dev runtime even when testing another binary.
       - uses: ./.github/workflows/actions/quarto-dev
 
       - name: Set up release quarto
@@ -330,8 +321,7 @@ jobs:
       - name: Install built quarto outside the checkout
         if: inputs.quarto-install == 'artifact'
         shell: bash
-        # extraction must happen OUTSIDE the git checkout: the launcher detects a
-        # sibling src/quarto.ts and would silently run dev mode (dev-mode trap)
+        # An in-checkout distribution would launch the dev sources.
         run: |
           mkdir -p "$RUNNER_TEMP/quarto-under-test"
           shopt -s nullglob
@@ -340,10 +330,7 @@ jobs:
             echo "::error::expected exactly one .tar.gz or .zip in the quarto artifact, found: ${artifacts[*]:-none}"
             exit 1
           fi
-          # layouts differ per artifact: the linux tarball has a
-          # quarto-<version>/ top dir; the Mac tarball and Windows Zip are flat
-          # ({bin,share} at the archive root). Extract, then flatten if needed.
-          # bsdtar (windows/mac runners) also handles .zip via tar -xf.
+          # Linux has a top directory; macOS and Windows archives are flat.
           tar -xf "${artifacts[0]}" -C "$RUNNER_TEMP/quarto-under-test"
           if [ ! -d "$RUNNER_TEMP/quarto-under-test/bin" ]; then
             top="$(find "$RUNNER_TEMP/quarto-under-test" -mindepth 1 -maxdepth 1 -type d | head -1)"
@@ -365,23 +352,17 @@ jobs:
             echo "::error::quarto on PATH reports the dev sentinel version 99.9.9 - the built/released quarto was not picked up (dev-mode trap)"
             exit 1
           fi
-          # version-marker guard: version must be plain semver, optionally with build
-          # metadata (+...). A '-prerelease' suffix or a 4th component would fail
-          # every 'quarto-required' range check in the corpus (semver range gates).
+          # Only build metadata preserves quarto-required range semantics.
           if ! echo "$v" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(\+[0-9A-Za-z.-]+)?$'; then
             echo "::error::quarto version '$v' is not range-transparent semver (only build metadata '+...' is allowed; never a '-suffix' or a 4th component)"
             exit 1
           fi
-          # preflight: the checked-out harness must support binary mode; older tags
-          # (before tests/quarto-cmd.ts existed) cannot be tested in this mode
+          # Older tags do not contain the binary-mode harness.
           if [ ! -f tests/quarto-cmd.ts ]; then
             echo "::error::this checkout's test harness lacks binary-mode support (tests/quarto-cmd.ts is missing); release/artifact mode only works for refs that include the QUARTO_TEST_BIN harness support"
             exit 1
           fi
-          # resolve the executable path in a form Deno.Command can spawn:
-          # on Windows, `command -v quarto` yields an extensionless bash-style
-          # path (/c/...) that neither Test-Path nor Deno.Command can use —
-          # prefer the real .exe/.cmd and convert to a native Windows path
+          # Convert the executable to a native Windows path for Deno.Command.
           if [ "$RUNNER_OS" = "Windows" ]; then
             bin="$(command -v quarto.exe || command -v quarto.cmd || command -v quarto)"
             bin="$(cygpath -w "$bin")"
@@ -389,8 +370,7 @@ jobs:
             bin="$(command -v quarto)"
           fi
           echo "QUARTO_TEST_BIN=$bin" >> "$GITHUB_ENV"
-          # when the caller pinned a concrete version, have the harness verify
-          # every spawn targets exactly that version
+          # Verify every spawn when the caller requested a concrete version.
           if [ -n "${{ inputs.quarto-version }}" ] \
             && [ "${{ inputs.quarto-version }}" != "pre-release" ] \
             && [ "${{ inputs.quarto-version }}" != "release" ]; then
@@ -573,11 +553,7 @@ jobs:
           key: ${{ steps.cache-renv-packages-restore.outputs.cache-primary-key }}
 
       - uses: actions/upload-artifact@v7
-        # Upload playwright test report if it exists (the browser assertions
-        # are ignored on Windows CI - see playwright-tests.test.ts). The name
-        # includes the runner OS: several calls of this workflow can share one
-        # workflow run (e.g. the per-OS playwright legs of
-        # test-smokes-built.yml) and duplicate artifact names fail the upload.
+        # Include the OS because sibling jobs share the workflow run.
         if: ${{ !cancelled() && runner.os != 'Windows' && hashFiles('tests/integration/playwright/playwright-report/**/*') != '' }}
         with:
           name: playwright-report-${{ runner.os }}

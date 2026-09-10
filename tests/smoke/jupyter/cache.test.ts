@@ -18,8 +18,7 @@ test({
   name: "Jupyter cache is working",
   execute: async (logFile?: string) => {
     // https://github.com/quarto-dev/quarto-cli/issues/9618
-    // repeated executions to trigger jupyter cache; failures reach the
-    // verifiers as log records, mirroring testQuartoCmd
+    // Render twice to exercise the cache.
     await runQuarto(["render", testInput.input, "--to", "html", "--no-execute-daemon"], {
       logFile,
       throwOnFailure: false,
@@ -61,8 +60,7 @@ test({
   name: "Jupyter cache folder can be change",
   execute: async (logFile?: string) => {
     // https://github.com/quarto-dev/quarto-cli/issues/9618
-    // repeated executions to trigger jupyter cache; failures reach the
-    // verifiers as log records, mirroring testQuartoCmd
+    // Render twice to exercise the cache.
     await runQuarto(["render", testInput2.input, "--to", "html", "--no-execute-daemon"], {
       logFile,
       throwOnFailure: false,

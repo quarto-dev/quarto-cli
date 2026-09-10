@@ -139,10 +139,7 @@ function testLogDirectly(options: {
         }
 
         
-        // If JSON format is specified, verify the log file parses and the
-        // record levels match expectations. NOTE: keep the parse try/catch
-        // NARROW - a previous version wrapped the level assertions in a
-        // catch-all that silently swallowed every failure.
+        // Catch parsing errors only; assertion failures must propagate.
         if (logFile && options.format === "json-stream") {
           assert(existsSync(logFile), "Log file should exist");
           let outputs;
