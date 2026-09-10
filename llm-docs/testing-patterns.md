@@ -37,8 +37,7 @@ Consequences for writing smoke tests:
 
 - Do **not** import `src/quarto.ts` (or call `quarto()`) directly from `tests/smoke/` — route invocations through `testQuartoCmd`/`runQuarto` so the test works in both modes.
 - Tests that spawn a quarto subprocess themselves should resolve the executable via `quartoDevCmd()` (`tests/utils.ts`, honors `QUARTO_TEST_BIN`) and pass `quartoSpawnEnvOptions()` from `tests/quarto-cmd.ts` as spawn env options.
-- A test that genuinely exercises quarto internals in-process can set `TestContext.requiresDevQuarto: true`; it is ignored in binary mode.
-  Use sparingly — most such code belongs in `tests/unit/` instead.
+- A test that would need to exercise quarto internals in-process belongs in `tests/unit/` instead.
 
 ## Common Test Patterns
 
