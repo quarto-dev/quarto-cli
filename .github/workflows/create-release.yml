@@ -35,8 +35,7 @@ env:
 
 concurrency:
   # make publishing release concurrent (but others trigger not)
-  # smoke-artifacts-only runs never publish, so they must not queue in the
-  # shared 'prerelease' group behind/ahead of a real release
+  # Partial test builds must not queue with releases.
   group: building-releases-${{ inputs.publish-release && !inputs.smoke-artifacts-only && 'prerelease' || github.run_id }}
 
 jobs:
@@ -52,10 +51,7 @@ jobs:
       tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
-      # publish-release defaults to TRUE, so checking only the
-      # smoke-artifacts-only box would otherwise reach the version
-      # commit+tag step below and push an orphan tag (the publish-release
-      # job itself is guarded, but the tag push lives in this job)
+      # Prevent a partial build from reaching the version commit and tag.
       - name: Fail on publish-release + smoke-artifacts-only
         if: ${{ inputs.publish-release && inputs.smoke-artifacts-only }}
         run: |
@@ -380,9 +376,7 @@ jobs:
           cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
           cp package/launcher/target/release/quarto.exe package/pkg-working/bin/quarto.exe
 
-      # Scheduled runs never publish, so they skip DigiCert signing. Gated on
-      # `schedule` and not `publish-release`: those dispatches are the pre-merge
-      # check for bundled-binary bumps and must keep signing.
+      # Scheduled builds skip signing; dispatched no-publish builds keep it.
       - name: Sign files before making ZIP and MSI installer
         if: ${{ github.event_name != 'schedule' }}
         id: sign-files

@@ -14,12 +14,8 @@ import {
 } from "../../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 
-// Test: standalone file inspect with RStudio override should NOT emit project.
-// Dev mode uses _setIsRStudioForTest to avoid Deno.env.set() race conditions
-// in parallel tests (see #14218, PR #12621). In binary mode the in-process
-// hook cannot reach the spawned quarto, so RSTUDIO=1 is passed via the
-// test's env instead (isRStudio() checks the env var; buildBinaryEnv strips
-// ambient RSTUDIO so the companion "not RStudio" test below stays clean).
+// Dev mode uses the test hook to avoid process-global environment races.
+// Binary mode passes RSTUDIO=1 to the spawned Quarto.
 (() => {
   const input = "docs/inspect/standalone-hello.qmd";
   const output = "docs/inspect/standalone-hello.json";

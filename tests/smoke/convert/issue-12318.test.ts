@@ -45,9 +45,7 @@ import { noErrors } from "../../verify.ts";
       });
     },
 
-    // The harness catches execute() errors and turns them into log records,
-    // so assertions must live in verifiers (an empty verify list would pass
-    // silently on failure) - noErrors surfaces convert failures first.
+    // Run assertions in verifiers so failures propagate through the harness.
     verify: [
       noErrors,
       {

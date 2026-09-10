@@ -64,11 +64,8 @@ for (const type of Object.keys(kCreateTypes)) {
         assert(process.success, process.stderr);
       });
 
-      // Verify all created files are user-writable.
-      // NOTE: In dev environments, resource files are already writable (0o644),
-      // so this test passes even without ensureUserWritable. It guards against
-      // regressions; the unit test in file-permissions.test.ts covers the
-      // read-only → writable transition directly.
+      // The unit test covers the read-only-to-writable transition directly.
+      // This smoke test checks the permissions of the created project.
       await t.step({
         name: `> check writable ${type} ${template}`,
         ignore: Deno.build.os === "windows",

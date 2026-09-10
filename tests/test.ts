@@ -36,8 +36,7 @@ export interface TestDescriptor {
   // Sets up the test
   context: TestContext;
 
-  // Executes the test. In binary mode (QUARTO_TEST_BIN) the harness passes
-  // the json-stream log file path so the spawned quarto can write it.
+  // Binary mode passes the child log target.
   execute: (logFile?: string) => Promise<void>;
 
   // Used to verify the outcome of the test
@@ -92,10 +91,7 @@ export interface TestContext {
   // (e.g. a render that must not regress into a hang).
   timeout?: number;
 
-  // Marks a test that exercises quarto internals in-process and therefore
-  // cannot run against an external built binary. Such tests are ignored
-  // when QUARTO_TEST_BIN is set. Use sparingly — most tests should go
-  // through testQuartoCmd/runQuarto and work in both modes.
+  // Ignore this test in binary mode because it requires in-process internals.
   requiresDevQuarto?: boolean;
 }
 
@@ -134,7 +130,6 @@ export function mergeTestContexts(baseContext: TestContext, additionalContext?: 
     },
     // override ignore if provided
     ignore: additionalContext.ignore ?? baseContext.ignore,
-    // override requiresDevQuarto if provided
     requiresDevQuarto: additionalContext.requiresDevQuarto ??
       baseContext.requiresDevQuarto,
     // merge env with additional context taking precedence
@@ -164,8 +159,7 @@ export function testQuartoCmd(
         logLevel: logConfig?.level,
         logFormat: logConfig?.format,
         timeoutMs: context?.timeout,
-        // failures must reach the verifiers as log records, not exceptions
-        // (mirrors the historical catch-and-log behavior in test())
+        // Let verifiers report failures from the log.
         throwOnFailure: false,
       });
     },
@@ -241,10 +235,7 @@ export function test(test: TestDescriptor) {
           await test.context.setup();
         }
 
-        // In binary mode the spawned quarto owns the log file; the harness
-        // must not initialize (or later destroy) its own logger for
-        // capture — cleanupLogger() would permanently tear down the
-        // default handlers for subsequent tests in this process.
+        // The child owns log capture in binary mode.
         const binMode = isBinaryMode();
 
         let cleanedup = false;
@@ -280,9 +271,7 @@ export function test(test: TestDescriptor) {
             await test.execute(logTarget);
           } catch (e) {
             if (binMode) {
-              // no harness logger in binary mode — append the failure to
-              // the log file directly so verifiers (and the failure
-              // report) still see it
+              // Append directly because binary mode has no harness logger.
               const message = e instanceof Error
                 ? `${e.message}\n${e.stack ?? ""}`
                 : String(e);
@@ -299,11 +288,7 @@ export function test(test: TestDescriptor) {
             flushLoggers(handlers);
           }
 
-          // Read the output. Verifiers must read logTarget - the harness
-          // logger and the binary-mode child both write there; reading the
-          // temp file would hand every log verifier an empty array whenever
-          // logConfig.log is set. And a missing log is a FAILURE - skipping
-          // verification would pass the test without checking anything.
+          // Both logging modes write to logTarget; a missing log is a failure.
           const testOutput = logOutput(logTarget);
           if (testOutput === undefined) {
             fail(`test log file is missing: ${logTarget}`);
@@ -355,8 +340,7 @@ export function test(test: TestDescriptor) {
             ? colors.brightGreen(verifyFailed)
             : verifyFailed;
 
-          // guarded: a corrupt/unparseable log must not clobber the
-          // assembled failure report with a secondary parse error
+          // Preserve the primary failure if the log is malformed.
           let logMessages: ExecuteOutput[] | undefined;
           try {
             logMessages = logOutput(logTarget);
@@ -425,10 +409,7 @@ export function test(test: TestDescriptor) {
   Deno.test(args);
 }
 
-// Strict on purpose: a JSON.parse throw is how log-level-and-formats.test.ts
-// detects that quarto emitted malformed JSON-stream output. A timeout-killed
-// built quarto can leave a torn final line, but that is stripped at the source
-// in mergeChildLog (tests/quarto-cmd.ts) so the merged log stays valid here.
+// Keep parsing strict; mergeChildLog() removes timeout-torn trailing records.
 export function readExecuteOutput(log: string) {
   const jsonStream = Deno.readTextFileSync(log);
   const lines = jsonStream.split("\n").filter((line) => !!line);

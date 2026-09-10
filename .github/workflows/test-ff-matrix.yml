@@ -1,13 +1,6 @@
 name: Feature-Format Tests
 on:
-  # Reusable interface: lets test-smokes-built.yml run the feature-format
-  # corpus against a BUILT quarto (its ff-matrix legs) while this workflow
-  # stays the single owner of the ff-matrix bucket glob. All inputs are
-  # forwarded to test-smokes.yml; their defaults preserve today's dev
-  # behavior, and the `inputs.x || default` fallbacks in the job keep the
-  # schedule/push/PR triggers (where inputs.* is empty) on those defaults.
-  # Nesting: test-smokes-built.yml -> this -> test-smokes.yml = 3 levels,
-  # well within GitHub's reusable-workflow nesting limit.
+  # Reusable so built-version CI can invoke the same bucket definition.
   workflow_call:
     inputs:
       extra-r-packages:
@@ -87,14 +80,8 @@ on:
       - ".github/workflows/update-test-timing.yml"
 
 concurrency:
-  # The suffix matters under workflow_call (the built-version ff-matrix
-  # legs): a called workflow's top-level concurrency evaluates in the
-  # CALLER's context (github.workflow/ref/run_id are the caller run's), so
-  # without a per-call component every ff-matrix leg of one
-  # test-smokes-built.yml run would share a single cancel-in-progress group
-  # and could cancel a sibling leg. inputs.runners is only ever set on
-  # workflow_call, and differs per leg; dev triggers (inputs empty) get the
-  # constant '-dev' suffix, keeping today's dedup groups.
+  # Reusable workflows evaluate concurrency in the caller's context, so each
+  # call needs a distinct suffix.
   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}-${{ inputs.runners && format('call-{0}-{1}', github.run_id, inputs.runners) || 'dev' }}
   cancel-in-progress: true
 
@@ -103,13 +90,10 @@ jobs:
     name: Run feature-format matrix
     uses: ./.github/workflows/test-smokes.yml
     with:
-      # the ff-matrix bucket glob is defined ONLY here (DRY) - built-version
-      # callers reuse it through the workflow_call interface above
+      # Keep the feature-format glob owned by this workflow.
       buckets: '[ "../dev-docs/feature-format-matrix/qmd-files/**/*.qmd" ]'
       extra-r-packages: ${{ inputs.extra-r-packages }}
-      # inputs.* is empty on schedule/push/PR triggers; the fallbacks keep
-      # those paths on today's dev defaults (test-smokes.yml is also
-      # empty-string robust for the inputs passed through without fallback)
+      # Non-call triggers have empty inputs and use dev defaults.
       quarto-install: ${{ inputs.quarto-install || 'dev' }}
       quarto-version: ${{ inputs.quarto-version }}
       quarto-artifact-name: ${{ inputs.quarto-artifact-name }}

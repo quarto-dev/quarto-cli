@@ -3,15 +3,8 @@
 *
 * Single dispatch point for invoking the quarto under test.
 *
-* By default (dev mode) quarto runs in-process by calling the `quarto()`
-* entry point imported from ../src/quarto.ts, exactly as the harness always
-* has. When QUARTO_TEST_BIN points at an installed quarto (a built
-* distribution extracted OUTSIDE this checkout — the launcher enters dev
-* mode when it finds a sibling src/quarto.ts), quarto is spawned as a
-* subprocess instead, with `--log <file> --log-format json-stream` so the
-* existing log-record verifiers keep working unchanged.
-*
-* See llm-docs/built-version-testing-architecture.md for the design and rationale.
+* Runs the dev sources in-process or QUARTO_TEST_BIN as a subprocess.
+* See llm-docs/built-version-testing-architecture.md.
 *
 * Copyright (C) 2020-2026 Posit Software, PBC
 *
@@ -21,14 +14,8 @@ import { kLocalDevelopment } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
 import { join } from "../src/deno_ral/path.ts";
 
-// Env vars that identify the dev tree (or stale per-render state) and must
-// never leak into the spawned binary: the installed launchers inherit
-// QUARTO_SHARE_PATH / QUARTO_DEBUG / QUARTO_DENO / QUARTO_DENO_DOM when
-// already set, and never reset DENO_DIR outside dev mode. Logging vars are
-// stripped because the seam owns logging via explicit CLI flags. Everything
-// else in the ambient environment (PATH, HOME, toolchain locations like
-// QUARTO_PYTHON/QUARTO_R, platform system vars) is inherited; per-test env
-// is overlaid last so tests can deliberately set any of these.
+// Strip dev-tree and logging state from built-binary spawns. Other ambient
+// variables are inherited, then the per-test environment is applied.
 const kStripEnvVars = [
   "QUARTO_SHARE_PATH",
   "QUARTO_BIN_PATH",
@@ -48,8 +35,7 @@ const kStripEnvVars = [
   "RSTUDIO",
 ];
 
-// json-stream ERROR record shape expected by readExecuteOutput/verify.ts
-// (level 40 == std/log LogLevels.ERROR)
+// std/log LogLevels.ERROR, as expected by readExecuteOutput().
 const kErrorLevel = 40;
 
 // Default per-invocation render timeout (dev and binary mode alike).
@@ -61,16 +47,12 @@ export function quartoTestBin(): string | undefined {
   return bin && bin.length > 0 ? bin : undefined;
 }
 
-// True when tests target an external built quarto (QUARTO_TEST_BIN) instead
-// of the in-process dev sources.
+// True when tests target an external built Quarto.
 export function isBinaryMode(): boolean {
   return quartoTestBin() !== undefined;
 }
 
-// Path to the quarto executable for tests that historically pinned the
-// locally-built dev CLI (package/dist/bin/quarto) rather than PATH quarto —
-// keeps them testing the dev tree in local runs where PATH may hold a stale
-// system quarto. QUARTO_BIN_PATH is exported by run-tests.sh/.ps1.
+// Use QUARTO_TEST_BIN in binary mode; otherwise pin the local dev CLI.
 export function quartoDevBinCmd(): string {
   const bin = quartoTestBin();
   if (bin) {
@@ -91,15 +73,8 @@ export function buildBinaryEnv(
   return { ...env, ...(overlay ?? {}) };
 }
 
-// Env/clearEnv spawn options for tests that launch the quarto under test
-// themselves (via execProcess or Deno.Command with quartoDevCmd()) instead
-// of going through runQuarto. In binary mode: full ambient env with the
-// dev-tree vars stripped (kStripEnvVars) and the per-test overlay merged
-// last, plus clearEnv so the sanitized env is authoritative — otherwise the
-// installed launcher would inherit QUARTO_SHARE_PATH/QUARTO_DEBUG/DENO_DIR
-// from the harness (run-tests.sh exports them) and silently use dev-tree
-// resources. In dev mode: today's behavior exactly — the overlay (if any)
-// merges into the inherited ambient env.
+// Sanitize direct subprocess spawns in binary mode. Dev-mode spawns inherit
+// the ambient environment and apply only the requested overlay.
 export function quartoSpawnEnvOptions(
   overlay?: Record<string, string>,
 ): { env?: Record<string, string>; clearEnv?: boolean } {
@@ -127,11 +102,8 @@ export function appendLogError(logFile: string, msg: string) {
   Deno.writeTextFileSync(logFile, existing + sep + record + "\n");
 }
 
-// A timeout kill can interrupt the child mid-write, leaving a torn (partial)
-// final JSON line. Drop a trailing unparseable line so the merged log stays
-// valid json-stream — readExecuteOutput is deliberately strict (a parse throw
-// is how the logging tests detect malformed output), so the torn line must be
-// removed at the source rather than tolerated by every reader.
+// A timeout can interrupt a log write. Remove only the torn trailing record
+// so readExecuteOutput() can remain strict.
 function stripTornTrailingLine(content: string): string {
   const lines = content.split("\n");
   let i = lines.length - 1;
@@ -168,19 +140,13 @@ function hasErrorRecordText(content: string): boolean {
   return false;
 }
 
-// QUARTO_TEST_BIN must point at an installed layout, not the dev tree: the
-// installed launcher enters dev mode (runs the TS sources) whenever a
-// sibling src/quarto.ts exists, and reports the 99.9.9 dev sentinel. Fail
-// loudly rather than silently testing the wrong thing.
+// Reject an in-checkout launcher, which reports the 99.9.9 dev sentinel.
 let checkedBinary: string | undefined;
 export function assertTestBinary(bin: string) {
   if (checkedBinary === bin) {
     return;
   }
-  // Probe with the sanitized env used for test spawns: the installed
-  // launcher keeps an inherited QUARTO_SHARE_PATH (exported by
-  // run-tests.[sh|ps1] for the harness), under which --version reads the
-  // dev tree's nonexistent src/resources/version and reports empty.
+  // Probe with the same sanitized environment used by test spawns.
   const result = new Deno.Command(bin, {
     args: ["--version"],
     stdout: "piped",
@@ -220,18 +186,12 @@ export function assertTestBinary(bin: string) {
   checkedBinary = bin;
 }
 
-// QUARTO_TEST_BIN is a launcher that spawns deno and waits (it does not
-// exec), so killing the direct child would orphan the actual renderer —
-// which also still holds the --log file at its own offset. Kill the whole
-// tree, deepest first. (Best effort: children spawned between collection
-// and kill can escape.)
+// The launcher waits on Deno, so kill the process tree deepest first.
 async function killProcessTree(pid: number) {
   if (isWindows) {
     let killed = false;
     try {
-      // a nonzero exit does not throw, so the code must be inspected: taskkill
-      // reports failure (rather than raising) when the pid is already gone or
-      // the tree cannot be touched
+      // taskkill reports failure through its exit code.
       const result = await new Deno.Command("taskkill", {
         args: ["/PID", String(pid), "/T", "/F"],
         stdout: "null",
@@ -239,13 +199,10 @@ async function killProcessTree(pid: number) {
       }).output();
       killed = result.code === 0;
     } catch {
-      // taskkill unavailable (should not happen on a real Windows runner)
+      // Fall through to a direct kill.
     }
     if (!killed) {
-      // Fall back to killing the direct child so the awaited child.output()
-      // can resolve instead of blocking on a still-live launcher; this cannot
-      // reach an orphaned grandchild renderer, but is strictly better than
-      // killing nothing.
+      // Ensure child.output() can resolve even if the tree kill failed.
       try {
         Deno.kill(pid, "SIGKILL");
       } catch {
@@ -260,8 +217,7 @@ async function killProcessTree(pid: number) {
     const current = stack.pop()!;
     pids.push(current);
     try {
-      // pgrep -P is portable across Linux and macOS/BSD (unlike the
-      // procps-only `ps --ppid` long option)
+      // pgrep -P works on Linux and macOS/BSD.
       const result = new Deno.Command("pgrep", {
         args: ["-P", String(current)],
         stdout: "piped",
@@ -287,23 +243,17 @@ async function killProcessTree(pid: number) {
 }
 
 export interface RunQuartoOptions {
-  // per-test environment overlay (TestContext.env)
+  // Per-test environment overlay.
   env?: Record<string, string>;
-  // working directory for the spawned binary (binary mode only; dev mode
-  // call sites manage cwd via Deno.chdir as they always have)
+  // Binary-mode working directory.
   cwd?: string;
-  // json-stream log target; when set (binary mode), --log/--log-format/
-  // --log-level flags are appended so verifiers can read the records
+  // Binary-mode log target and options.
   logFile?: string;
   logLevel?: string;
   logFormat?: string;
   timeoutMs?: number;
-  // Binary mode only: throw when the child exits non-zero or times out.
-  // Defaults to TRUE so direct call sites (module-level project
-  // pre-renders, context.setup pre-renders) keep today's fail-loudly
-  // semantics. testQuartoCmd passes false and relies on the log records
-  // (including the synthetic one below) reaching the verifiers.
-  // In dev mode failures always propagate as exceptions, exactly as today.
+  // Binary mode only. Defaults to true; testQuartoCmd disables it so
+  // verifiers receive failures through log records.
   throwOnFailure?: boolean;
 }
 
@@ -313,9 +263,7 @@ export interface RunQuartoResult {
   stderrTail?: string;
 }
 
-// Dispatches to the in-process dev sources or, when QUARTO_TEST_BIN is set,
-// the built binary. The two modes have distinct process/logging/timeout
-// mechanics, so each lives in its own helper below.
+// Dispatch to the in-process dev sources or the configured built binary.
 export async function runQuarto(
   args: string[],
   options: RunQuartoOptions = {},
@@ -326,8 +274,7 @@ export async function runQuarto(
     : runDevQuarto(args, options);
 }
 
-// dev mode: in-process call, preserving existing semantics exactly
-// (a timeout rejects but does not kill the in-process render)
+// A dev-mode timeout rejects but cannot stop the in-process render.
 async function runDevQuarto(
   args: string[],
   options: RunQuartoOptions,
@@ -347,9 +294,7 @@ async function runDevQuarto(
   return { code: 0, timedOut: false };
 }
 
-// binary mode: spawn the built quarto, enforce the timeout by killing the
-// process tree, reconcile the child's log into the caller's, and apply the
-// failure policy.
+// Spawn the built binary and enforce timeout, logging, and failure policy.
 async function runBinaryQuarto(
   bin: string,
   args: string[],
@@ -359,10 +304,8 @@ async function runBinaryQuarto(
   const timeoutMs = options.timeoutMs ?? kDefaultRenderTimeoutMs;
   const throwOnFailure = options.throwOnFailure ?? true;
 
-  // The binary's LogFileHandler opens --log in truncate mode, so two
-  // invocations sharing one log file would erase the first invocation's
-  // records (including any synthetic ERROR). Give each child its own temp
-  // log and merge it into the caller's log file after exit.
+  // LogFileHandler truncates its target, so each child writes a temporary
+  // log that is merged into the test log after exit.
   const spawnArgs = [...args];
   let childLog: string | undefined;
   if (options.logFile) {
@@ -392,14 +335,11 @@ async function runBinaryQuarto(
   let timedOut = false;
   const timer = setTimeout(() => {
     timedOut = true;
-    // fire-and-forget: child.output() below resolves once the kill lands.
-    // Swallow any rejection so it never surfaces as an unhandled rejection.
+    // child.output() resolves after the kill; avoid an unhandled rejection.
     killProcessTree(child.pid).catch(() => {});
   }, timeoutMs);
 
-  // output() drains both streams (undrained pipes deadlock at the 64KiB
-  // buffer on verbose renders) and resolves once the process exits —
-  // including after a kill
+  // Drain both streams to avoid pipe-buffer deadlocks.
   const output = await child.output();
   clearTimeout(timer);
 
@@ -428,9 +368,7 @@ async function runBinaryQuarto(
   return { code: output.code, timedOut, stderrTail };
 }
 
-// Merges a binary invocation's temp log into the caller's log file and
-// synthesizes an ERROR record when the child failed without logging one, so
-// log-reading verifiers can see the failure. Deletes the temp log.
+// Merge the child log and synthesize an ERROR when a failed child logged none.
 function mergeChildLog(
   logFile: string,
   childLog: string,
@@ -457,10 +395,7 @@ function mergeChildLog(
   if (outcome.timedOut) {
     childContent = stripTornTrailingLine(childContent);
   }
-  // Always ensure logFile exists, even when the child logged nothing on a
-  // successful run: test.ts treats a MISSING logTarget as a hard failure
-  // ("test log file is missing"). A quiet successful command must leave an
-  // empty log (which verifiers read as an empty record array), not no file.
+  // A quiet successful command still needs an empty log for its verifiers.
   let existing = "";
   try {
     existing = Deno.readTextFileSync(logFile);
@@ -479,11 +414,7 @@ function mergeChildLog(
       `${outcome.commandLine} timed out after ${outcome.timeoutMs}ms and was killed`,
     );
   } else if (outcome.code !== 0 && !hasErrorRecordText(childContent)) {
-    // A child can exit non-zero without any ERROR record: failures
-    // before logger init (deno startup, bundle load, missing share) and
-    // commandFailed paths (quarto add/remove). Without this synthetic
-    // record, log-only verifiers (noErrorsOrWarnings — the default
-    // smoke-all spec) would pass vacuously against an empty log.
+    // Startup and commandFailed paths can exit without logging an error.
     appendLogError(
       logFile,
       `${outcome.commandLine} exited with code ${outcome.code} without logging an error\n` +

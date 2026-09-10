@@ -62,24 +62,14 @@ export QUARTO_DEBUG=true
 
 QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --no-lock --allow-all"
 
-# BINARY MODE: when QUARTO_TEST_BIN is set, tests run against a built quarto
-# (an installed distribution extracted OUTSIDE this checkout). The harness
-# itself still runs from the dev tree — the dev env exports above stay — and
-# tests/quarto-cmd.ts dispatches quarto invocations to the binary, stripping
-# the dev env from the child process. See
-# llm-docs/built-version-testing-architecture.md.
+# QUARTO_TEST_BIN selects an installed Quarto outside this checkout.
+# The harness still uses the dev runtime configured above.
 if [[ -n "$QUARTO_TEST_BIN" ]]; then
   if [[ ! -x "$QUARTO_TEST_BIN" ]]; then
     echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) does not exist or is not executable"
     exit 1
   fi
-  # Probe with the dev-tree env stripped. This is the subset of
-  # tests/quarto-cmd.ts's kStripEnvVars that affects `--version` resolution
-  # (share/root/deno paths) — the logging/profile vars in the full list don't
-  # change --version output, so they're omitted here. The installed launcher
-  # keeps an inherited QUARTO_SHARE_PATH, and the dev exports above would make
-  # a healthy built quarto read the dev tree's (nonexistent)
-  # src/resources/version and report an EMPTY version.
+  # Strip dev paths while probing the installed binary.
   QUARTO_TEST_BIN_VERSION="$(env -u QUARTO_SHARE_PATH -u QUARTO_BIN_PATH \
     -u QUARTO_DEBUG -u DENO_DIR -u QUARTO_DENO -u QUARTO_DENO_DOM \
     -u QUARTO_ROOT -u QUARTO_SRC_PATH -u QUARTO_FORCE_VERSION \
@@ -196,11 +186,7 @@ else
       TESTS_TO_RUN=("${SMOKE_ALL_TEST_FILE}" "--" "${SMOKE_ALL_FILES[@]}")
     fi
   fi
-  # Binary-mode default selection: smoke tests only. tests/unit/ exercises
-  # quarto internals in-process (dev-only by definition);
-  # tests/integration/playwright-tests.test.ts IS binary-compatible but needs
-  # the playwright toolchain, so it only runs when asked for explicitly (CI
-  # runs it as its own leg in test-smokes-built.yml).
+  # Binary mode defaults to smoke tests; other compatible suites are explicit.
   if [[ -n "$QUARTO_TEST_BIN" && "${#TESTS_TO_RUN[@]}" -eq 0 && -z "$*" ]]; then
     TESTS_TO_RUN=("smoke/")
     echo "> BINARY MODE: defaulting to smoke/ tests (pass a path explicitly to run others, e.g. integration/playwright-tests.test.ts)"

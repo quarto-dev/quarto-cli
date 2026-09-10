@@ -16,13 +16,8 @@ const renderDir = docs("websites/drafts/drafts-env");
 const dir = join(Deno.cwd(), renderDir);
 const outDir = join(dir, "_site");
 
-// The process-global set is required in dev (in-process) mode:
-// src/project/project-profile.ts caches the base profile from the env on the
-// FIRST render in the process (`baseQuartoProfile`), so a per-render env
-// override is ignored whenever another test rendered first. Setting it at
-// module load (before any test runs) preserves the pre-existing behavior.
-// The context.env below is what reaches the spawned binary in binary mode
-// (a fresh process per render, so the cache concern doesn't apply there).
+// Dev mode caches the base profile on first render, so set it before tests.
+// Binary mode receives the same value through context.env.
 Deno.env.set("QUARTO_PROFILE", "drafts");
 
 testQuartoCmd(

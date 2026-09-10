@@ -42,10 +42,7 @@ async function assertThrowsWithPattern(
   );
 }
 
-// Test: Render fixture and run assertions. The assertions live in a
-// verifier (not teardown): teardown assertions skip cleanup on failure,
-// leaving a stale fixture.pdf that would satisfy the next run even if its
-// render failed. setup also removes any stale pdf from a crashed run.
+// Remove stale output in setup and run assertions before teardown cleanup.
 testQuartoCmd("render", [fixtureQmd, "--to", "typst"], [
   noErrors,
   {

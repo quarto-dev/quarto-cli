@@ -9,12 +9,8 @@ if (Deno.build.os !== "windows") {
         Deno.copyFileSync("smoke/issues/9133/jl", "smoke/issues/9133/oh'\"no/jl.qmd");
         Deno.copyFileSync("smoke/issues/9133/py", "smoke/issues/9133/oh'\"no/py.qmd");
 
-        // concurrent renders reproduce the original intra-process race;
-        // in binary mode each render is a separate process, so the race
-        // may not reproduce there. runQuarto supplies the 10-minute
-        // timeout the explicit Promise.race used to provide, and failures
-        // throw (no logFile: two concurrent children would interleave a
-        // shared log file).
+        // Binary mode uses separate processes, so the in-process race may not
+        // reproduce there. Avoid a shared log for concurrent children.
         await Promise.all([
           runQuarto(["render", "smoke/issues/9133/oh'\"no/jl.qmd"]),
           runQuarto(["render", "smoke/issues/9133/oh'\"no/py.qmd"]),

@@ -1,62 +1,9 @@
-# Runs the test suites against a BUILT quarto instead of the dev source tree.
-# Three sources for the quarto under test:
-#   - nightly (the workflow_run path - runs after every nightly create-release
-#     build; also dispatchable): reuse the artifacts of a completed
-#     create-release run (its nightly schedule builds without publishing) -
-#     the linux 'Deb Zip' tarball, the 'Windows Zip' (the real quarto.exe,
-#     not the dev .cmd shim), AND the signed+notarized 'Mac Zip' - and run
-#     the smokes at that run's commit. No duplicate build, three-OS coverage
-#     for free (the ONLY macOS smoke coverage in CI). Windows code signing is
-#     the one thing a SCHEDULED create-release skips (it gates DigiCert on
-#     `github.event_name != 'schedule'`), so the daily run exercises an
-#     UNSIGNED quarto.exe; a create-release dispatch signs, and workflow_run
-#     tests that build too. Each OS leg is gated on its
-#     artifact existing in the run, so a smoke-artifacts-only build (no Mac
-#     Zip) gets linux+windows tested instead of a red mac job. To test a
-#     signed build of a specific commit on demand: dispatch create-release
-#     with publish-release=false (+ smoke-artifacts-only for a cheaper
-#     linux+windows build) - the workflow_run trigger then tests it
-#     automatically; dispatching this workflow with source=nightly and a
-#     run-id is only needed to re-test an older run.
-#   - build (dispatch default): build a linux-amd64 dist from THIS ref with the
-#     same recipe as create-release (shared build-dist-tarball action) and test
-#     it. The only mode that works for arbitrary refs/PR branches and on forks
-#     (no signing secrets or create-release runs required).
-#   - release: install a published (pre-)release with quarto-actions/setup and
-#     run the smokes at the matching refs/tags/v<version>.
-# nightly/release only work when the target commit's harness has binary-mode
-# support (tests/quarto-cmd.ts) - see llm-docs/built-version-testing-architecture.md (D10).
-#
-# Mode resolution (repeated in each job's `if`): workflow_run => nightly;
-# dispatch => the source input (default build).
-#
-# THREE TEST LEGS per source mode, each an independent caller job so one red
-# suite never cancels the others:
-#   - smoke leg: the run-smokes-* jobs below. Doubles as the general bucket
-#     runner - its bucket is the `buckets` dispatch input (empty = the
-#     binary-mode default, smoke/).
-#   - playwright leg: bucket ["integration/playwright-tests.test.ts"] -
-#     renders the playwright corpus with the built quarto, then runs browser
-#     assertions over the served output. Linux in every mode, plus macOS on
-#     nightly; NEVER windows: the browser assertions are hard-ignored on
-#     Windows CI (playwright-tests.test.ts `ignore:` gate), so a windows leg
-#     would render-then-skip and report a misleading green. Revisit the gate
-#     before adding windows here.
-#   - ff-matrix leg: calls the reusable test-ff-matrix.yml, which owns the
-#     feature-format bucket glob. Linux in every mode, plus windows on
-#     nightly/release (matching the dev ff-matrix OS scope); no macOS - its
-#     Julia/TeX toolchain there is unproven.
-# When the `buckets` dispatch input is set, only the smoke-slot leg runs
-# (with that bucket); playwright + ff-matrix legs skip. Per-leg OS scope is
-# tuned HERE (the runners inputs below), in one place.
+# Runs smoke, Playwright, and feature-format tests against a built Quarto.
+# Sources: a build of the selected ref, artifacts from create-release, or a
+# published release. See llm-docs/built-version-testing-architecture.md.
 name: Smoke Tests (Built Version)
 on:
-  # Fires on EVERY completed create-release run - the nightly schedule
-  # (daily built-version testing, right after each build, no stale-artifact
-  # risk) but also manual create-release dispatches, whose builds get tested
-  # too (partial smoke-artifacts-only builds only run the legs whose
-  # artifacts exist). The workflow file must be on the default branch for
-  # workflow_run to fire; the triggering build may be on any branch.
+  # Test scheduled and manually dispatched create-release builds.
   workflow_run:
     workflows: ["Build Installers"]
     types: [completed]
@@ -93,7 +40,7 @@ permissions:
   contents: read
 
 jobs:
-  # source: build (dispatch default) - build from THIS ref
+  # Build the selected ref (the dispatch default).
   build-artifact:
     name: Build quarto dist (linux-amd64)
     if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
@@ -112,10 +59,7 @@ jobs:
       - name: Compute version marker
         id: version
         shell: bash
-        # BUILD METADATA version marker (+test.<date>): semver-valid and
-        # range-transparent for every 'quarto-required' gate, while still
-        # distinguishable from the dev sentinel 99.9.9. NEVER use a '-suffix'
-        # (prereleases fail plain ranges) or a 4th dot component (not semver).
+        # Build metadata keeps quarto-required range checks valid.
         run: echo "version=$(cat version.txt)+test.$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
 
       - name: Build dist tarball
@@ -125,8 +69,7 @@ jobs:
           arch: amd64
           tarball-name: built-quarto-linux-amd64.tar.gz
           artifact-name: built-quarto-linux-amd64
-          # intra-run transport only: the smoke/playwright/ff-matrix legs of
-          # this run download it minutes later; nothing reads it afterward
+          # Consumed only by this workflow run.
           retention-days: 1
 
   run-smokes-artifact:
@@ -135,7 +78,6 @@ jobs:
     needs: [build-artifact]
     uses: ./.github/workflows/test-smokes.yml
     with:
-      # harness commit == binary commit: no version skew by construction
       ref: ${{ needs.build-artifact.outputs.sha }}
       quarto-install: artifact
       quarto-artifact-name: built-quarto-linux-amd64
@@ -169,7 +111,7 @@ jobs:
       quarto-artifact-name: built-quarto-linux-amd64
       runners: '["ubuntu-latest"]'
 
-  # source: release (workflow_dispatch only)
+  # Test an existing published release.
   resolve-release:
     name: Resolve release version
     if: github.event.inputs.source == 'release'
@@ -205,9 +147,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.r.outputs.version }}
-        # releases cut before the QUARTO_TEST_BIN harness support merged cannot be
-        # tested in this mode (the harness at the tag lacks tests/quarto-cmd.ts);
-        # test-smokes.yml's "Pin and verify" step re-checks this in the checkout.
+        # Older tags do not contain the binary-mode test harness.
         run: |
           if ! gh api "repos/${GITHUB_REPOSITORY}/contents/tests/quarto-cmd.ts?ref=refs/tags/v${VERSION}" --silent 2>/dev/null; then
             echo "::error::tests/quarto-cmd.ts not found at refs/tags/v${VERSION}: either the tag does not exist or the release predates binary-mode harness support - it cannot be tested in release mode"
@@ -236,7 +176,6 @@ jobs:
       ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
       quarto-install: release
       quarto-version: ${{ needs.resolve-release.outputs.version }}
-      # linux only: browser assertions are ignored on Windows CI (see header)
       runners: '["ubuntu-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
 
@@ -249,17 +188,12 @@ jobs:
       ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
       quarto-install: release
       quarto-version: ${{ needs.resolve-release.outputs.version }}
-      # ubuntu + windows, matching the dev ff-matrix scope
       runners: '["ubuntu-latest", "windows-latest"]'
 
-  # source: nightly (the workflow_run path, daily after each build; also
-  # dispatchable) - reuse the artifacts of a completed no-publish
-  # create-release run (linux tarball + unsigned Windows zip + signed+
-  # notarized Mac zip; a create-release DISPATCH signs Windows too - D11)
+  # Reuse artifacts from a completed create-release run.
   resolve-nightly:
     name: Resolve create-release run
-    # on workflow_run: only test successful builds (a skipped day is visible,
-    # a stale artifact is not)
+    # Only successful workflow_run builds are testable.
     if: >-
       (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
       && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
@@ -277,7 +211,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # workflow_run: the triggering build IS the run to test
           run_id="${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || github.event.inputs.run-id }}"
           if [ -z "$run_id" ]; then
             run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow create-release.yml \
@@ -292,13 +225,7 @@ jobs:
             echo "::error::could not resolve head_sha for run ${run_id}"
             exit 1
           fi
-          # A smoke-artifacts-only build has no 'Mac Zip' (and workflow_run
-          # fires on EVERY completed create-release run, not only nightly
-          # schedules) - gate each OS leg on its artifact actually existing
-          # instead of failing red at download time.
-          # exclude expired artifacts: a source=nightly re-test dispatch of an
-          # old run-id would otherwise pass the has-* gates and fail at
-          # download time
+          # Run only legs whose artifacts still exist.
           names="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
             --paginate --jq '.artifacts[] | select(.expired | not) | .name')"
           has() { grep -Fxq "$1" <<<"$names" && echo true || echo false; }
@@ -324,9 +251,7 @@ jobs:
     needs: [resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
-      # the run's head commit - what create-release built from, except on a
-      # publish run, which packages an extra "Update version.txt" commit on
-      # top (version.txt + changelog only, so no source skew for the harness)
+      # Publish runs add only a version/changelog commit after this SHA.
       ref: ${{ needs.resolve-nightly.outputs.sha }}
       quarto-install: artifact
       quarto-artifact-name: Deb Zip
@@ -344,9 +269,7 @@ jobs:
     with:
       ref: ${{ needs.resolve-nightly.outputs.sha }}
       quarto-install: artifact
-      # the real Windows layout (quarto.exe, not the dev .cmd shim) produced
-      # by make-installer-win - unsigned on a scheduled build, signed on a
-      # create-release dispatch (D11)
+      # Scheduled builds leave quarto.exe unsigned; dispatch builds sign it.
       quarto-artifact-name: Windows Zip
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["windows-latest"]'
@@ -362,17 +285,13 @@ jobs:
     with:
       ref: ${{ needs.resolve-nightly.outputs.sha }}
       quarto-install: artifact
-      # the SIGNED + notarized Mac layout produced by make-installer-mac -
-      # the only macOS smoke coverage in CI
+      # Signed and notarized; also provides the only macOS smoke coverage.
       quarto-artifact-name: Mac Zip
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["macos-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
 
-  # playwright + ff-matrix nightly legs: each OS is its own caller job (a
-  # workflow_call passes ONE artifact name, and the signed nightly artifacts
-  # are per-OS downloads), gated on the same has-* flags as the smoke legs so
-  # a partial smoke-artifacts-only build skips instead of failing red.
+  # Each caller job accepts one OS-specific artifact.
   run-playwright-nightly-linux:
     name: Playwright tests against nightly build (linux)
     if: >-
@@ -405,8 +324,7 @@ jobs:
       runners: '["macos-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
 
-  # no windows playwright leg: browser assertions are ignored on Windows CI
-  # (see header) - a leg here would be a misleading green
+  # Playwright browser assertions are ignored on Windows CI.
 
   run-ff-matrix-nightly-linux:
     name: Feature-format matrix against nightly build (linux)
@@ -438,5 +356,4 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["windows-latest"]'
 
-  # no macOS ff-matrix leg: the dev ff-matrix has never run on macOS (its
-  # Julia/TeX toolchain there is unproven) - one-line add here once proven
+  # The feature-format toolchain is not validated on macOS.

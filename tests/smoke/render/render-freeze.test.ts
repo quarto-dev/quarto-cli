@@ -68,8 +68,6 @@ const ignoreFrozen = {
 const projectOutputExists: Verify = {
   name: "Make sure project output exists",
   verify: (output: ExecuteOutput[]) => {
-    // delegate to outputCreated's verify - a previous version constructed
-    // the Verify and discarded it, asserting nothing
     return outputCreated(path, "html").verify(output);
   },
 };
