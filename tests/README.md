@@ -502,6 +502,7 @@ In binary mode:
   ```
 
 - The test environment is configured as usual; set `QUARTO_TESTS_NO_CONFIG` to skip that step as in dev mode.
+- Tests with `requiresDevQuarto: true` in their `TestContext` are ignored (rare escape hatch for tests that must exercise quarto internals in-process).
 
 Authoring rules that keep tests working in both modes:
 

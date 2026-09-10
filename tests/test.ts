@@ -90,6 +90,9 @@ export interface TestContext {
   // Defaults to 600000 (10 minutes). Lower it to assert a performance budget
   // (e.g. a render that must not regress into a hang).
   timeout?: number;
+
+  // Ignore this test in binary mode because it requires in-process internals.
+  requiresDevQuarto?: boolean;
 }
 
 // Allow to merge test contexts in Tests helpers
@@ -127,6 +130,8 @@ export function mergeTestContexts(baseContext: TestContext, additionalContext?: 
     },
     // override ignore if provided
     ignore: additionalContext.ignore ?? baseContext.ignore,
+    requiresDevQuarto: additionalContext.requiresDevQuarto ??
+      baseContext.requiresDevQuarto,
     // merge env with additional context taking precedence
     env: { ...baseContext.env, ...additionalContext.env },
     // override timeout if provided
@@ -210,7 +215,9 @@ export function test(test: TestDescriptor) {
   const sanitizeResources = test.context.sanitize?.resources;
   const sanitizeOps = test.context.sanitize?.ops;
   const sanitizeExit = test.context.sanitize?.exit;
-  const ignore = test.context.ignore;
+  // dev-only tests are ignored when targeting an external built binary
+  const ignore = test.context.ignore ||
+    (isBinaryMode() && test.context.requiresDevQuarto);
   const userSession = !runningInCI();
 
   const args: Deno.TestDefinition = {
