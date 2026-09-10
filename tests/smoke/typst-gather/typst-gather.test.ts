@@ -276,7 +276,7 @@ testQuartoCmd(
 );
 
 // Helper to run quarto as an external process and capture exit code
-async function runQuarto(
+async function execTypstGather(
   args: string[],
   cwd: string,
   env?: Record<string, string>,
@@ -307,7 +307,7 @@ unitTest(
     const configPath = join(cwd, "typst-gather.toml");
     try {
       Deno.writeTextFileSync(configPath, "# existing config\n");
-      const result = await runQuarto(
+      const result = await execTypstGather(
         ["call", "typst-gather", "--init-config"],
         cwd,
       );
@@ -327,7 +327,7 @@ unitTest(
   "typst-gather --init-config errors with no extension directory",
   async () => {
     const cwd = join(Deno.cwd(), "smoke/typst-gather/no-extension");
-    const result = await runQuarto(
+    const result = await execTypstGather(
       ["call", "typst-gather", "--init-config"],
       cwd,
     );
@@ -346,7 +346,7 @@ unitTest(
   "typst-gather --init-config warns with empty extension (no typst entries)",
   async () => {
     const cwd = join(Deno.cwd(), "smoke/typst-gather/empty-extension");
-    const result = await runQuarto(
+    const result = await execTypstGather(
       ["call", "typst-gather", "--init-config"],
       cwd,
     );
@@ -444,7 +444,7 @@ unitTest(
       Deno.cwd(),
       "docs/smoke-all/typst/marginalia-only-project",
     );
-    const result = await runQuarto(
+    const result = await execTypstGather(
       ["render", "index.qmd", "--to", "typst"],
       projectDir,
       { QUARTO_TYPST_GATHER: "/nonexistent/typst-gather-binary" },
@@ -476,7 +476,7 @@ unitTest(
       Deno.cwd(),
       "docs/smoke-all/typst/marginalia-only-project",
     );
-    const result = await runQuarto(
+    const result = await execTypstGather(
       ["render", "index.qmd", "--to", "typst"],
       projectDir,
       { QUARTO_TYPST_GATHER: falseCmd },

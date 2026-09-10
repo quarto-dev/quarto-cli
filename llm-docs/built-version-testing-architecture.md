@@ -297,7 +297,7 @@ Known cost blind spot, accepted: the `workflow_run` trigger fires on EVERY compl
 Release mode checks out the tag, so the harness at that tag must already contain `tests/quarto-cmd.ts` — a preflight fails clearly for older releases.
 True backfill (main-branch harness testing an older binary) would require harness/binary decoupling (plan §6 Phase 4, not implemented).
 
-The same skew applies per-suite: nightly/release legs run the harness at the *target* ref, so a ref that has `tests/quarto-cmd.ts` but predates the `quartoSpawnEnvOptions()` render fix in `playwright-tests.test.ts` (2026-07-20) runs the old env-leaking wrapper — its playwright leg renders with dev-tree resources and its result (green or red) is not meaningful.
+The same skew applies per-suite: nightly/release legs run the harness at the *target* ref, so a ref that has `tests/quarto-cmd.ts` but predates the `quartoSpawnEnvOptions()` render fix in `playwright-tests.test.ts` (#14706) runs the old env-leaking wrapper — its playwright leg renders with dev-tree resources and its result (green or red) is not meaningful.
 The existence preflight cannot detect this.
 Affected window: releases and nightly build shas cut between the harness-support merge and the multi-leg merge, including the first post-merge `workflow_run` firings on pre-merge build commits.
 The smoke and ff-matrix legs are unaffected (their spawns go through `runQuarto`, whose env sanitization is as old as `quarto-cmd.ts`).

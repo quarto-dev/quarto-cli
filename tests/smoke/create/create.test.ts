@@ -64,8 +64,11 @@ for (const type of Object.keys(kCreateTypes)) {
         assert(process.success, process.stderr);
       });
 
-      // The unit test covers the read-only-to-writable transition directly.
-      // This smoke test checks the permissions of the created project.
+      // In dev environments resource files are already writable (0o644), so
+      // this passes even without ensureUserWritable; it guards against
+      // regressions. The unit test covers the read-only-to-writable
+      // transition directly. This smoke test checks the permissions of the
+      // created project.
       await t.step({
         name: `> check writable ${type} ${template}`,
         ignore: Deno.build.os === "windows",
