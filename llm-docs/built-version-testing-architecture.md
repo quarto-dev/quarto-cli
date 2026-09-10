@@ -43,7 +43,7 @@ ever see log records and rendered outputs. CI-side, the reusable
 `test-smokes.yml` gained `quarto-install: dev | release | artifact` inputs
 (dev callers are untouched), and `test-smokes-built.yml` orchestrates three
 sources for the binary under test: `build` (build from this ref, dispatch
-only), `nightly` (reuse the signed artifacts of a nightly `create-release`
+only), `nightly` (reuse the packaged artifacts of a nightly `create-release`
 build — fires automatically via `workflow_run` after each one), and
 `release` (install a published (pre-)release at its tag) — fanning each
 source out to three test legs: smoke, playwright, and the feature-format
@@ -54,7 +54,7 @@ matrix (see "Built-mode test legs").
 | Mode | Quarto under test | Trigger | Suites (legs) | Question answered |
 |---|---|---|---|---|
 | dev (`test-smokes.yml`) | in-process TS sources (99.9.9) | every PR/push + daily cron | everything (sharded per-commit; ff-matrix via its own cron/push/PR) | did this code change break behavior? |
-| nightly | signed nightly artifacts (Linux tarball, signed `quarto.exe`, notarized Mac zip) | automatic, after each nightly build | smoke (linux+windows+mac) + playwright (linux+mac) + ff-matrix (linux+windows) | does what we *ship* work? (bundling/packaging/launcher bugs; only macOS smoke coverage in CI) |
+| nightly | packaged nightly artifacts (Linux tarball, real `quarto.exe`, notarized Mac zip); Windows signing is skipped on the *scheduled* build, see D11 | automatic, after each nightly build | smoke (linux+windows+mac) + playwright (linux+mac) + ff-matrix (linux+windows) | does what we *ship* work? (bundling/packaging/launcher bugs; only macOS smoke coverage in CI) |
 | build | fresh linux-amd64 dist from the current ref (unsigned) | manual dispatch | smoke + playwright + ff-matrix (all linux) | will *this branch* survive packaging? (works on forks/PR branches) |
 | release | published (pre-)release via quarto-actions/setup, harness at its `v` tag | manual dispatch | smoke (linux+windows) + playwright (linux) + ff-matrix (linux+windows) | is the version users download healthy? (curative, post-publish) |
 
@@ -71,9 +71,10 @@ no longer dev-only either: every built-mode source runs three suites
 In practice:
 
 - **Mostly, trigger nothing.** `nightly` fires itself after each nightly
-  build and is the preventive workhorse: it tests the exact signed
-  binaries the release pipeline produces, on all three OSes, *before*
-  anything is published. Red here means we caught it before users did.
+  build and is the preventive workhorse: it tests the exact binaries the
+  release pipeline packages, on all three OSes, *before* anything is
+  published. Red here means we caught it before users did. (Windows code
+  signing is the one step a scheduled build skips — D11.)
 - **Dispatch `build`** when a branch touches packaging or the harness
   itself (`prepare-dist`, `configure`, `tests/quarto-cmd.ts`, ...) and you
   want built-version feedback on *that ref* now. Trades coverage
@@ -335,3 +336,23 @@ nightly build shas cut between the harness-support merge and the multi-leg
 merge, including the first post-merge `workflow_run` firings on pre-merge
 build commits. The smoke and ff-matrix legs are unaffected (their spawns go
 through `runQuarto`, whose env sanitization is as old as `quarto-cmd.ts`).
+
+### D11. The automatic nightly leg tests an *unsigned* `quarto.exe`
+
+`create-release.yml` gates both DigiCert steps ("Sign files before making
+ZIP and MSI installer", "Sign MSI installer") on
+`github.event_name != 'schedule'`, so the daily scheduled build — the one
+`workflow_run` fires on every night — packages an unsigned `quarto.exe`
+into `Windows Zip`. macOS is unaffected: `make-installer-mac` signs and
+notarizes on every event.
+
+That is deliberate and adequate: what binary mode is here to catch is
+bundling/packaging/launcher behavior, and the daily run still exercises the
+real launcher (`package/launcher` `quarto.exe`) rather than the dev `.cmd`
+shim. Signing changes the bytes, not the launcher's argument handling or
+resource resolution.
+
+Signed Windows coverage therefore comes from `create-release`
+*dispatches*, which sign and which `workflow_run` also tests (see D7) —
+the intended pre-merge check for bundled-binary bumps. Don't claim the
+scheduled path validates signing.
