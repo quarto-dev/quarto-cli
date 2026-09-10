@@ -10,8 +10,13 @@ paths:
 
 # Built-Version CI Workflows
 
-Before changing these files, read `llm-docs/built-version-testing-architecture.md`.
-It records the resolver and scheduler design, test legs, OS policy, and reusable workflow interfaces.
+`llm-docs/built-version-testing-architecture.md` is the deep dive. Read only what the edit needs:
+
+- OS lists, bucket globs, concurrency-group suffixes, `runners:` inputs → "Built-mode test legs" (scheduler layout).
+- Adding/reordering a leg, changing `quarto-install` resolution or artifact plumbing → "Flow diagrams" + "Built-mode test legs".
+- Removing, inverting, or "simplifying" an existing mechanism → "Design decisions" (D1-D11) first — each records why the obvious alternative was rejected.
+
+Trivial one-line YAML edits: the invariants below plus the doc's "Document map" intro paragraph are enough.
 
 Invariants when editing:
 

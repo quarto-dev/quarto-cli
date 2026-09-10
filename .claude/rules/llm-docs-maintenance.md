@@ -63,3 +63,5 @@ So a relevant deep-dive actually gets read when a matching task comes up, each `
 Granularity rule: the pointer inherits its host rule's `paths:`, so it must live in a rule scoped **no broader than the doc's topic** — otherwise it loads on unrelated work (a reveal.js pointer does not belong in a rule scoped to all of `src/format/**`). If the best existing rule is too generic, create a small dedicated rule scoped to that doc's source instead.
 
 **When adding a new `llm-docs/*.md`:** add its discovery pointer to a matching path-scoped rule, or create a narrowly-scoped rule for it.
+
+**When renaming an `##`/`###` heading:** discovery pointers may quote that heading text to route readers to a specific section (e.g. `built-version-ci.md` → `"Design decisions"`). Grep `.claude/rules/` for the old heading text and update any matching pointer — a stale quote fails loudly (grep/search finds nothing) but still needs fixing.
