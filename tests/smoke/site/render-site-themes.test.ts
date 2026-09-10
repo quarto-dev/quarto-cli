@@ -5,7 +5,7 @@
 *
 */
 
-import { copySync } from "../../../src/deno_ral/fs.ts";
+import { copySync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
 import { docs } from "../../utils.ts";
@@ -75,8 +75,8 @@ try {
           return Promise.resolve();
         },
         teardown: () => {
-          // clean output
-          Deno.removeSync(path, { recursive: true });
+          // clean output (setup may have failed before copying the fixture)
+          safeRemoveSync(path, { recursive: true });
           return Promise.resolve();
         },
       },

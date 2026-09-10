@@ -68,7 +68,7 @@ If ($null -eq $Env:QUARTO_DENO_DIR) {
 
 # QUARTO_TEST_BIN selects an installed Quarto outside this checkout.
 # The harness still uses the dev runtime configured above.
-If ($null -ne $Env:QUARTO_TEST_BIN) {
+If (-not [string]::IsNullOrEmpty($Env:QUARTO_TEST_BIN)) {
   If (-not (Test-Path $Env:QUARTO_TEST_BIN)) {
     Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) does not exist"
     Exit 1
@@ -86,12 +86,17 @@ If ($null -ne $Env:QUARTO_TEST_BIN) {
   }
   Try {
     $QUARTO_TEST_BIN_VERSION = & $Env:QUARTO_TEST_BIN --version
+    $QUARTO_TEST_BIN_PROBE_EXIT = $LASTEXITCODE
   } Finally {
     ForEach ($name in $probeStrip) {
       If ($null -ne $probeSaved[$name]) {
         [Environment]::SetEnvironmentVariable($name, $probeSaved[$name])
       }
     }
+  }
+  If ($QUARTO_TEST_BIN_PROBE_EXIT -ne 0) {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) exited with code $QUARTO_TEST_BIN_PROBE_EXIT while reporting its version."
+    Exit 1
   }
   If ([string]::IsNullOrWhiteSpace($QUARTO_TEST_BIN_VERSION)) {
     Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) did not report a version."
@@ -203,7 +208,7 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
 }
 
 # Binary mode defaults to smoke tests; other compatible suites are explicit.
-If ($null -ne $Env:QUARTO_TEST_BIN -and $TESTS_TO_RUN.count -eq 0 -and $customArgs.count -eq 0) {
+If (-not [string]::IsNullOrEmpty($Env:QUARTO_TEST_BIN) -and $TESTS_TO_RUN.count -eq 0 -and $customArgs.count -eq 0) {
   $TESTS_TO_RUN = @("smoke/")
   Write-Host "> BINARY MODE: defaulting to smoke/ tests (pass a path explicitly to run others, e.g. integration/playwright-tests.test.ts)"
 }

@@ -74,6 +74,11 @@ if [[ -n "$QUARTO_TEST_BIN" ]]; then
     -u QUARTO_DEBUG -u DENO_DIR -u QUARTO_DENO -u QUARTO_DENO_DOM \
     -u QUARTO_ROOT -u QUARTO_SRC_PATH -u QUARTO_FORCE_VERSION \
     "$QUARTO_TEST_BIN" --version 2>/dev/null)"
+  QUARTO_TEST_BIN_PROBE_EXIT=$?
+  if [[ $QUARTO_TEST_BIN_PROBE_EXIT -ne 0 ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) exited with code $QUARTO_TEST_BIN_PROBE_EXIT while reporting its version."
+    exit 1
+  fi
   if [[ -z "$QUARTO_TEST_BIN_VERSION" ]]; then
     echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) did not report a version."
     echo "The distribution is likely incomplete (missing share/version)."
