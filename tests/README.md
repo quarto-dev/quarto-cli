@@ -541,7 +541,7 @@ flowchart LR
     subgraph built ["Binary mode: quarto = built distribution (QUARTO_TEST_BIN)"]
         TSB["test-smokes-built.yml<br>runs after every nightly build<br>(workflow_run) + manual dispatch<br>3 legs per source mode:<br>smoke + playwright + ff-matrix"]
         BUILDM["source: build (dispatch default)<br>build linux-amd64 dist from this ref<br>(any ref, works on forks)"]
-        NIGHTM["source: nightly (daily via workflow_run)<br>reuse SIGNED artifacts of a create-release run:<br>linux + windows quarto.exe + macOS<br>(the only macOS smoke coverage)"]
+        NIGHTM["source: nightly (daily via workflow_run)<br>reuse PACKAGED artifacts of a create-release run:<br>linux + windows quarto.exe + signed macOS<br>(the only macOS smoke coverage)"]
         RELM["source: release<br>install published (pre-)release,<br>checkout its v-tag"]
         TSB -->|"dispatch"| BUILDM
         TSB -->|"after each nightly build<br>+ dispatch"| NIGHTM
@@ -680,7 +680,7 @@ Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tes
 
   | Mode | Trigger | Use it to answer |
   |---|---|---|
-  | `nightly` | automatic (after each completed create-release run, scheduled or dispatched); dispatchable with a `run-id` to re-test an older run | does what we ship work? Signed artifacts from a create-release run — Linux, Windows (`quarto.exe`), macOS (the only macOS smoke coverage in CI); each OS leg runs only if its artifact exists in the run |
+  | `nightly` | automatic (after each completed create-release run, scheduled or dispatched); dispatchable with a `run-id` to re-test an older run | does what we ship work? Packaged artifacts from a create-release run — Linux, Windows (the real `quarto.exe`, unsigned on the scheduled build), signed+notarized macOS (the only macOS smoke coverage in CI); each OS leg runs only if its artifact exists in the run |
   | `build` | dispatch (default) | will *this ref* survive packaging? Builds a linux-amd64 dist from the checkout via the shared `.github/actions/build-dist-tarball` action (also used by `create-release.yml`); the only mode that works on forks/PR branches |
   | `release` | dispatch | is the *published* (pre-)release healthy? Post-publish verification; only works for releases whose tag contains the binary-mode harness |
 

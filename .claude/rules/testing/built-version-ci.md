@@ -8,7 +8,7 @@ paths:
 
 # Built-Version CI Workflows
 
-Before changing these workflows, read `llm-docs/built-version-testing-architecture.md` — the decision record (D1–D10) for the resolver + scheduler topology, the three test legs (smoke / playwright / ff-matrix), per-leg OS policy, and the reusable `test-ff-matrix.yml` interface. Settled trade-offs (no windows playwright leg, per-OS `playwright-report-*` artifact names, `workflow_run` wiring, the ff-matrix concurrency-group suffix) are recorded there — don't relitigate them by accident.
+Before changing these workflows, read `llm-docs/built-version-testing-architecture.md` — the decision record (D1–D11) for the resolver + scheduler topology, the three test legs (smoke / playwright / ff-matrix), per-leg OS policy, and the reusable `test-ff-matrix.yml` interface. Settled trade-offs (no windows playwright leg, per-OS `playwright-report-*` artifact names, `workflow_run` wiring, the ff-matrix concurrency-group suffix) are recorded there — don't relitigate them by accident.
 
 Invariants when editing:
 

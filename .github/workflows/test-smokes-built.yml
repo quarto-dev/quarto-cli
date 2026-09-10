@@ -1,12 +1,16 @@
 # Runs the test suites against a BUILT quarto instead of the dev source tree.
 # Three sources for the quarto under test:
 #   - nightly (the workflow_run path - runs after every nightly create-release
-#     build; also dispatchable): reuse the SIGNED artifacts of a completed
+#     build; also dispatchable): reuse the artifacts of a completed
 #     create-release run (its nightly schedule builds without publishing) -
-#     the linux 'Deb Zip' tarball, the signed 'Windows Zip' (the real
-#     quarto.exe), AND the signed+notarized 'Mac Zip' - and run the smokes at
-#     that run's commit. No duplicate build, three-OS coverage for free
-#     (the ONLY macOS smoke coverage in CI). Each OS leg is gated on its
+#     the linux 'Deb Zip' tarball, the 'Windows Zip' (the real quarto.exe,
+#     not the dev .cmd shim), AND the signed+notarized 'Mac Zip' - and run
+#     the smokes at that run's commit. No duplicate build, three-OS coverage
+#     for free (the ONLY macOS smoke coverage in CI). Windows code signing is
+#     the one thing a SCHEDULED create-release skips (it gates DigiCert on
+#     `github.event_name != 'schedule'`), so the daily run exercises an
+#     UNSIGNED quarto.exe; a create-release dispatch signs, and workflow_run
+#     tests that build too. Each OS leg is gated on its
 #     artifact existing in the run, so a smoke-artifacts-only build (no Mac
 #     Zip) gets linux+windows tested instead of a red mac job. To test a
 #     signed build of a specific commit on demand: dispatch create-release
@@ -249,8 +253,9 @@ jobs:
       runners: '["ubuntu-latest", "windows-latest"]'
 
   # source: nightly (the workflow_run path, daily after each build; also
-  # dispatchable) - reuse the signed artifacts of a completed no-publish
-  # create-release run (linux tarball + signed Windows zip + notarized Mac zip)
+  # dispatchable) - reuse the artifacts of a completed no-publish
+  # create-release run (linux tarball + unsigned Windows zip + signed+
+  # notarized Mac zip; a create-release DISPATCH signs Windows too - D11)
   resolve-nightly:
     name: Resolve create-release run
     # on workflow_run: only test successful builds (a skipped day is visible,
@@ -319,7 +324,9 @@ jobs:
     needs: [resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
-      # harness commit == the commit create-release built from
+      # the run's head commit - what create-release built from, except on a
+      # publish run, which packages an extra "Update version.txt" commit on
+      # top (version.txt + changelog only, so no source skew for the harness)
       ref: ${{ needs.resolve-nightly.outputs.sha }}
       quarto-install: artifact
       quarto-artifact-name: Deb Zip
@@ -337,7 +344,9 @@ jobs:
     with:
       ref: ${{ needs.resolve-nightly.outputs.sha }}
       quarto-install: artifact
-      # the SIGNED Windows layout (quarto.exe) produced by make-installer-win
+      # the real Windows layout (quarto.exe, not the dev .cmd shim) produced
+      # by make-installer-win - unsigned on a scheduled build, signed on a
+      # create-release dispatch (D11)
       quarto-artifact-name: Windows Zip
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["windows-latest"]'
