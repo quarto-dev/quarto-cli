@@ -9,7 +9,7 @@ import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { assert } from "testing/asserts";
 
 import { Metadata } from "../../../src/config/types.ts";
-import { removeIfEmptyDir } from "../../../src/core/path.ts";
+import { removeIfEmptyDir, safeRemoveIfExists } from "../../../src/core/path.ts";
 import { runQuarto } from "../../quarto-cmd.ts";
 import { ExecuteOutput, Verify } from "../../test.ts";
 import { noErrors, outputCreated } from "../../verify.ts";
@@ -113,9 +113,9 @@ function testFileContext(
       await Deno.remove(path);
       await Deno.remove(quartoProj);
 
-      // Get rid of the freezer
+      // Get rid of the freezer (a failed render never creates it)
       const freezerDir = join(dirname(path), "_freeze");
-      Deno.removeSync(join(freezerDir, testFileName), { recursive: true });
+      safeRemoveIfExists(join(freezerDir, testFileName));
 
       // Maybe clean up empty freeze dir
       removeIfEmptyDir(freezerDir);

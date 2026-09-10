@@ -258,7 +258,9 @@ export interface RunQuartoOptions {
 }
 
 export interface RunQuartoResult {
-  code: number;
+  // Present only for binary-mode spawns. Dev mode has no exit code - it
+  // reports failure by rejecting instead (see runDevQuarto).
+  code?: number;
   timedOut: boolean;
   stderrTail?: string;
 }
@@ -291,7 +293,10 @@ async function runDevQuarto(
       clearTimeout(timer);
     }
   }
-  return { code: 0, timedOut: false };
+  // quarto() either resolves or rejects: on CommandError or commandFailed()
+  // it calls exitWithCleanup(1), which Deno.exits the whole test process
+  // before this function could return a failure code anyway.
+  return { timedOut: false };
 }
 
 // Spawn the built binary and enforce timeout, logging, and failure policy.

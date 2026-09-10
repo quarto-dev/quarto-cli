@@ -227,13 +227,6 @@ export function test(test: TestDescriptor) {
       const runTest = !test.context.prereq || await test.context.prereq();
       if (runTest) {
         const wd = Deno.cwd();
-        if (test.context?.cwd) {
-          Deno.chdir(test.context.cwd());
-        }
-
-        if (test.context.setup) {
-          await test.context.setup();
-        }
 
         // The child owns log capture in binary mode.
         const binMode = isBinaryMode();
@@ -266,6 +259,16 @@ export function test(test: TestDescriptor) {
         let lastVerify;
 
         try {
+          // Inside the try so a throwing setup or chdir still reaches the
+          // teardown and cwd restore below, instead of skipping them and
+          // leaking the process cwd into every later test in the file.
+          if (test.context?.cwd) {
+            Deno.chdir(test.context.cwd());
+          }
+
+          if (test.context.setup) {
+            await test.context.setup();
+          }
 
           try {
             await test.execute(logTarget);
