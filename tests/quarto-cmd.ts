@@ -227,18 +227,25 @@ export function assertTestBinary(bin: string) {
 // and kill can escape.)
 async function killProcessTree(pid: number) {
   if (isWindows) {
+    let killed = false;
     try {
-      await new Deno.Command("taskkill", {
+      // a nonzero exit does not throw, so the code must be inspected: taskkill
+      // reports failure (rather than raising) when the pid is already gone or
+      // the tree cannot be touched
+      const result = await new Deno.Command("taskkill", {
         args: ["/PID", String(pid), "/T", "/F"],
         stdout: "null",
         stderr: "null",
       }).output();
+      killed = result.code === 0;
     } catch {
-      // taskkill unavailable (should not happen on a real Windows runner) or
-      // the tree already exited. Fall back to killing the direct child so the
-      // awaited child.output() can resolve instead of blocking on a still-live
-      // launcher; this cannot reach an orphaned grandchild renderer, but is
-      // strictly better than killing nothing.
+      // taskkill unavailable (should not happen on a real Windows runner)
+    }
+    if (!killed) {
+      // Fall back to killing the direct child so the awaited child.output()
+      // can resolve instead of blocking on a still-live launcher; this cannot
+      // reach an orphaned grandchild renderer, but is strictly better than
+      // killing nothing.
       try {
         Deno.kill(pid, "SIGKILL");
       } catch {
