@@ -490,6 +490,7 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUCKETS_JSON: ${{ inputs.buckets }}
         run: |
           haserror=0
           failed_tests=()
@@ -498,7 +499,7 @@ jobs:
           my_array=()
           while IFS= read -r bucket; do
             my_array+=("$bucket")
-          done < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
+          done < <(echo "$BUCKETS_JSON" | jq -rc '.[]')
           for file in "${my_array[@]}"; do
             echo "::group::Testing ${file}"
             echo ">>> ./run-tests.sh ${file}"
@@ -533,10 +534,11 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUCKETS_JSON: ${{ inputs.buckets }}
         run: |
           $haserror=$false
           $failed_tests=@()
-          foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
+          foreach ($file in ($env:BUCKETS_JSON | ConvertFrom-Json)) {
             Write-Host "::group::Testing ${file}"
             Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file

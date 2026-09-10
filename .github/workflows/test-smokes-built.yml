@@ -216,8 +216,9 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID_INPUT: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || github.event.inputs.run-id }}
         run: |
-          run_id="${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || github.event.inputs.run-id }}"
+          run_id="$RUN_ID_INPUT"
           if [ -z "$run_id" ]; then
             run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow create-release.yml \
               --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
