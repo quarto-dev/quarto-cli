@@ -31,7 +31,6 @@ Smoke tests must work with either the dev sources or `QUARTO_TEST_BIN`:
 
 - Never `import { quarto } from "../../src/quarto.ts"` in tests — invoke quarto via `testQuartoCmd()`/`runQuarto()`.
 - For subprocesses, use `quartoDevCmd()` or `quartoDevBinCmd()` and pass `quartoSpawnEnvOptions()`.
-- `TestContext.requiresDevQuarto: true` ignores a test in binary mode — rare escape hatch for tests exercising quarto internals in-process.
 
 ### Search for an existing verifier before writing one
 
