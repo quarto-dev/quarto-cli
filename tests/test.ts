@@ -380,12 +380,16 @@ export function test(test: TestDescriptor) {
         } finally {
           safeRemoveSync(log);
           await cleanupLogOnce();
-          if (test.context.teardown) {
-            await test.context.teardown();
-          }
-
-          if (test.context?.cwd) {
-            Deno.chdir(wd);
+          // A throwing teardown still fails the test, but only after the cwd
+          // is restored - otherwise it leaks into every later test in the file.
+          try {
+            if (test.context.teardown) {
+              await test.context.teardown();
+            }
+          } finally {
+            if (test.context?.cwd) {
+              Deno.chdir(wd);
+            }
           }
         }
       } else {
