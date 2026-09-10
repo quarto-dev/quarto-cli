@@ -25,7 +25,7 @@ on:
           - macos
         default: all
       smoke-artifacts-only:
-        description: "Build only the artifacts consumed by Smoke Tests (Built Version) nightly mode: the linux amd64 tarball and the signed Windows zip. Skips source/arm64 tarballs, deb/rpm installers, and the macOS build. For cheap signed builds of a branch (dispatch with publish-release=false); incompatible with publishing."
+        description: "Build only the artifacts consumed by Smoke Tests (Built Version) nightly mode: the linux amd64 tarball and the signed Windows zip. Skips source/arm64 tarballs, deb/rpm installers, and the macOS build; the linux and Windows installer-verification jobs still run since they validate the artifacts this mode builds. For cheap signed builds of a branch (dispatch with publish-release=false); incompatible with publishing."
         required: false
         type: boolean
         default: false
