@@ -34,6 +34,7 @@ function testLogDirectly(options: {
   logFile?: string,
   fileToRender?: string,
   quiet?: boolean,
+  env?: Record<string, string>,
   expectedOutputs?: {
     // To test log output for document with errors
     shouldSucceed?: boolean
@@ -90,7 +91,8 @@ function testLogDirectly(options: {
           cmd: quartoDevCmd(),
           args: args,
           stdout: "piped",
-          stderr: "piped"
+          stderr: "piped",
+          env: options.env,
         });
         
         // Get stdout/stderr with fallback to empty string
@@ -219,7 +221,7 @@ testLogDirectly({
   format: "plain",
   fileToRender: testDocWithError,
   expectedOutputs: {
-    shouldContain: ["WARN:", "ERROR:"],
+    shouldContain: ["ERROR:"],
     shouldNotContain: [debugHintText, infoHintText(testDocWithError)],
     shouldSucceed: false
   }
@@ -233,6 +235,18 @@ testLogDirectly({
   expectedOutputs: {
     shouldContain: ["ERROR:"],
     shouldNotContain: [debugHintText, infoHintText(testDocWithError), "WARN:"],
+    shouldSucceed: false
+  }
+});
+
+testLogDirectly({
+  testName: "Plain format - ERROR level should report a real error without QUARTO_DEBUG",
+  level: "error",
+  format: "plain",
+  fileToRender: testDocWithError,
+  env: { QUARTO_DEBUG: "false" },
+  expectedOutputs: {
+    shouldContain: ["ERROR:", "error-filter.lua"],
     shouldSucceed: false
   }
 });
@@ -268,7 +282,7 @@ testLogDirectly({
   fileToRender: testDocWithError,
   expectedOutputs: {
     shouldSucceed: false,
-    shouldContainLevel: ["WARN", "ERROR"],
+    shouldContainLevel: ["ERROR"],
     shouldNotContainLevel: ["INFO", "DEBUG"],
   }
 });
@@ -331,7 +345,7 @@ testLogDirectly({
   fileToRender: testDocWithError,
   expectedOutputs: {
     shouldSucceed: false,
-    shouldContainLevel: ["DEBUG", "INFO", "WARN", "ERROR"]
+    shouldContainLevel: ["DEBUG", "INFO", "ERROR"]
   }
 });
 
@@ -354,7 +368,7 @@ testLogDirectly({
   format: "plain",
   fileToRender: testDocWithError,
   expectedOutputs: {
-    shouldContain: ["WARN:", "ERROR:"],
+    shouldContain: ["ERROR:"],
     shouldNotContain: [debugHintText, infoHintText(testDocWithError)],
     shouldSucceed: false
   }

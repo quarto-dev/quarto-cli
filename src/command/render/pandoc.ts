@@ -12,7 +12,7 @@ import {
   resolve,
 } from "../../deno_ral/path.ts";
 
-import { info, warning } from "../../deno_ral/log.ts";
+import { error, info, warning } from "../../deno_ral/log.ts";
 
 import { ensureDir, existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
 
@@ -25,6 +25,7 @@ import * as ld from "../../core/lodash.ts";
 import { Document } from "../../core/deno-dom.ts";
 
 import { execProcess } from "../../core/process.ts";
+import { ErrorEx } from "../../core/lib/error.ts";
 import { dirAndStem, normalizePath } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { isExternalPath } from "../../core/url.ts";
@@ -319,7 +320,7 @@ function captureRenderCommand(
 export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
-): Promise<RunPandocResult | null> {
+): Promise<RunPandocResult> {
   const beforePandocHooks: (() => unknown)[] = [];
   const afterPandocHooks: (() => unknown)[] = [];
   const setupPandocHooks = (
@@ -1435,7 +1436,16 @@ export async function runPandoc(
       clearCodePageCache();
     }
 
-    return null;
+    const stderr = result.stderr?.trim();
+    if (stderr) {
+      error(stderr);
+    }
+    throw new ErrorEx(
+      "Error",
+      `Pandoc conversion failed (exit code ${result.code})`,
+      false,
+      false,
+    );
   }
 }
 
