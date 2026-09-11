@@ -32,6 +32,22 @@ export async function withTempDir<T>(
   }
 }
 
+// Runs fn with the process cwd changed to dir, restoring the original cwd
+// even if fn throws. Bare Deno.chdir(dir) ... Deno.chdir(wd) leaks the cwd
+// into later tests when fn rejects.
+export async function withCwd<T>(
+  dir: string,
+  fn: () => T | Promise<T>,
+): Promise<T> {
+  const wd = Deno.cwd();
+  Deno.chdir(dir);
+  try {
+    return await fn();
+  } finally {
+    Deno.chdir(wd);
+  }
+}
+
 // Find a _quarto.yaml file in the directory hierarchy of the input file
 export function findProjectDir(input: string, until?: RegExp | undefined): string | undefined {
   let dir = dirname(input);
@@ -240,8 +256,15 @@ export function fileLoader(...path: string[]) {
   };
 }
 
+// Resolves the quarto executable for tests that spawn a real subprocess.
+// Honors QUARTO_TEST_BIN (binary mode) so these tests target the built
+// quarto under test; otherwise the dev quarto from PATH.
 // On Windows, `quarto.cmd` needs to be explicit in `execProcess()`
 export function quartoDevCmd(): string {
+  const bin = Deno.env.get("QUARTO_TEST_BIN");
+  if (bin && bin.length > 0) {
+    return bin;
+  }
   return isWindows ? "quarto.cmd" : "quarto";
 }
 

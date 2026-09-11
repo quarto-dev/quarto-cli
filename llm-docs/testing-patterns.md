@@ -1,3 +1,13 @@
+---
+main_commit: e5850df75
+analyzed_date: 2026-09-10
+key_files:
+  - tests/test.ts
+  - tests/quarto-cmd.ts
+  - tests/verify.ts
+  - tests/utils.ts
+---
+
 # Quarto Test Patterns
 
 This document describes the standard patterns for writing smoke tests in the Quarto CLI test suite.
@@ -7,8 +17,28 @@ This document describes the standard patterns for writing smoke tests in the Qua
 Quarto uses Deno for testing with custom verification helpers located in:
 
 - `tests/test.ts` - Core test runner (`testQuartoCmd`)
+- `tests/quarto-cmd.ts` - Quarto invocation dispatch (`runQuarto`: in-process dev quarto vs built binary)
 - `tests/verify.ts` - Verification helpers (`fileExists`, `pathDoNotExists`, etc.)
 - `tests/utils.ts` - Utility functions (`docs()`, `outputForInput()`, etc.)
+
+### Dev Mode vs Binary Mode
+
+`testQuartoCmd` does not call quarto directly — it goes through `runQuarto()` in `tests/quarto-cmd.ts`, the single dispatch point for invoking the quarto under test:
+
+- **Dev mode (default):** Quarto runs in-process via the `quarto()` entry point imported from `src/quarto.ts`.
+- **Binary mode:** when `QUARTO_TEST_BIN` points at an installed quarto (a built distribution extracted *outside* this checkout), quarto is spawned as a subprocess with `--log <file> --log-format json-stream`, so the log-record verifiers work unchanged.
+  Dev-tree env vars (`QUARTO_SHARE_PATH`, `QUARTO_DEBUG`, `DENO_DIR`, ...)
+  are stripped from the child.
+  `run-tests.sh`/`.ps1` refuse a binary reporting the `99.9.9` dev sentinel and default the selection to `smoke/` (`unit/` is dev-only; the playwright suite and ff-matrix corpus are binary-compatible and run when passed explicitly).
+  Exercised by `.github/workflows/test-smokes-built.yml`, which runs smoke + playwright + ff-matrix legs per source mode.
+  Architecture and design decisions: `llm-docs/built-version-testing-architecture.md`.
+
+Consequences for writing smoke tests:
+
+- Do **not** import `src/quarto.ts` (or call `quarto()`) directly from `tests/smoke/` — route invocations through `testQuartoCmd`/`runQuarto` so the test works in both modes.
+- Tests that spawn a quarto subprocess themselves should resolve the executable via `quartoDevCmd()` (`tests/utils.ts`, honors `QUARTO_TEST_BIN`) and pass `quartoSpawnEnvOptions()` from `tests/quarto-cmd.ts` as spawn env options.
+- A test that genuinely exercises quarto internals in-process can set `TestContext.requiresDevQuarto: true`; it is ignored in binary mode.
+  Use sparingly — most such code belongs in `tests/unit/` instead.
 
 ## Common Test Patterns
 
@@ -91,7 +121,8 @@ testQuartoCmd(
 
 ### Performance Budget (Render Timeout)
 
-`testQuartoCmd` runs the render under a default 10-minute timeout. For a test guarding a *performance* regression — a render that must not hang — set a tight budget via `TestContext.timeout` (milliseconds) so a regression fails fast instead of riding the 10-minute default:
+`testQuartoCmd` runs the render under a default 10-minute timeout.
+For a test guarding a *performance* regression — a render that must not hang — set a tight budget via `TestContext.timeout` (milliseconds) so a regression fails fast instead of riding the 10-minute default:
 
 ```typescript
 testQuartoCmd("render", [projectDir], [noErrors /*, ... */], {
@@ -109,8 +140,10 @@ testQuartoCmd("render", [projectDir], [noErrors /*, ... */], {
 
 **Key points:**
 
-- The budget is machine-dependent (post-fix render time must sit well under it, pre-fix hang well over it), so it is defense-in-depth. Pair it with a deterministic unit test on the actual fix mechanism as the primary guard.
-- A timed-out render subprocess is not killed by the harness, so on Windows it may still hold the output directory; use `safeRemoveSync` in teardown and treat cleanup as best-effort.
+- The budget is machine-dependent (post-fix render time must sit well under it, pre-fix hang well over it), so it is defense-in-depth.
+  Pair it with a deterministic unit test on the actual fix mechanism as the primary guard.
+- In dev (in-process) mode a timed-out render is not killed by the harness (the timeout only rejects), so on Windows it may still hold the output directory; use `safeRemoveSync` in teardown and treat cleanup as best-effort.
+  In binary mode (`QUARTO_TEST_BIN`) the spawned process tree *is* killed on timeout, but the kill is best-effort — keep the same defensive teardown.
 
 ### Extension Template Tests
 
@@ -171,11 +204,9 @@ testQuartoCmd(
 
 ### Working-Directory-Sensitive Tests
 
-Some tests need to run from a specific directory (e.g. reproducing a bug that
-depends on the process cwd). **Do not `Deno.chdir()` inside the test body** —
-it mutates process-global cwd and can leak into other tests in the same
-process. Use the `TestContext` options instead; the harness changes the cwd
-before the test and restores it afterward:
+Some tests need to run from a specific directory (e.g. reproducing a bug that depends on the process cwd).
+**Do not `Deno.chdir()` inside the test body** — it mutates process-global cwd and can leak into other tests in the same process.
+Use the `TestContext` options instead; the harness changes the cwd before the test and restores it afterward:
 
 ```typescript
 const workingDir = Deno.makeTempDirSync();
@@ -191,17 +222,11 @@ unitTest("runs from workingDir", async () => {
 
 **Key points:**
 
-- The harness calls `cwd()` **before** `setup()`, so the directory must already
-  exist when `cwd()` runs — create it at module scope, not in `setup`.
-- `teardown` runs **before** the harness restores the cwd, so on Windows the
-  temp dir may still be the cwd and resist removal. Wrap the removal in
-  try/catch (best-effort) — see `tests/smoke/use/template.test.ts` and
-  `tests/unit/dotenv-config.test.ts`.
-- For a temp directory you don't need to run *from*, prefer `withTempDir`
-  (`tests/utils.ts`), which creates and recursively removes it in a `finally`.
-- A test that only needs a **relative** input (not a specific cwd) can pass a
-  path relative to the current cwd (`relative(Deno.cwd(), absFile)`) without
-  changing directories at all.
+- The harness calls `cwd()` **before** `setup()`, so the directory must already exist when `cwd()` runs — create it at module scope, not in `setup`.
+- `teardown` runs **before** the harness restores the cwd, so on Windows the temp dir may still be the cwd and resist removal.
+  Wrap the removal in try/catch (best-effort) — see `tests/smoke/use/template.test.ts` and `tests/unit/dotenv-config.test.ts`.
+- For a temp directory you don't need to run *from*, prefer `withTempDir` (`tests/utils.ts`), which creates and recursively removes it in a `finally`.
+- A test that only needs a **relative** input (not a specific cwd) can pass a path relative to the current cwd (`relative(Deno.cwd(), absFile)`) without changing directories at all.
 
 ## Verification Helpers
 
@@ -356,7 +381,8 @@ See `tests/smoke/use/template.test.ts` for extension template patterns.
 - **Python**: `tests/.venv/` (managed by uv/pyproject.toml)
 - **R**: `tests/renv/` + `tests/renv.lock`
 
-The `configure-test-env` scripts ONLY manage these main environments. CI builds depend on this structure.
+The `configure-test-env` scripts ONLY manage these main environments.
+CI builds depend on this structure.
 
 **Do NOT create language environment files in test subdirectories:**
 
@@ -395,42 +421,34 @@ cd tests
 Rscript -e "renv::install(); renv::snapshot()"
 ```
 
-**Note:** While Quarto supports local Project.toml files in document directories for production use, the quarto-cli test infrastructure specifically does NOT support this pattern. All test dependencies must be in the main `tests/` environment.
+**Note:** While Quarto supports local Project.toml files in document directories for production use, the quarto-cli test infrastructure specifically does NOT support this pattern.
+All test dependencies must be in the main `tests/` environment.
 
 ### R Tests That Change Working Directory
 
-R resolves `.Rprofile` from the **exact** process cwd (no parent-directory
-search). On CI, rmarkdown/knitr live only in `tests/renv`'s project library,
-activated when cwd is `tests/` (via `tests/.Rprofile` sourcing
-`renv/activate.R`). Most knitr tests never leave `tests/` — they pass paths
-relative to the current cwd instead of changing directories — so activation
-happens automatically.
+R resolves `.Rprofile` from the **exact** process cwd (no parent-directory search).
+On CI, rmarkdown/knitr live only in `tests/renv`'s project library, activated when cwd is `tests/` (via `tests/.Rprofile` sourcing `renv/activate.R`).
+Most knitr tests never leave `tests/` — they pass paths relative to the current cwd instead of changing directories — so activation happens automatically.
 
-A test that must run with cwd set elsewhere (a scratch temp dir, via
-`TestContext.cwd()` — see "Working-Directory-Sensitive Tests" above) loses
-that activation: the R subprocess starts outside `tests/`, renv never
-activates, and package loads fail with `there is no package called
-'rmarkdown'`. This is CI-only — a developer machine with rmarkdown on the
-default `.libPaths()` masks it entirely. The render pipeline also tends to
-swallow the underlying subprocess error, so the failure can be silent beyond
-the bare package-load message.
+A test that must run with cwd set elsewhere (a scratch temp dir, via `TestContext.cwd()` — see "Working-Directory-Sensitive Tests" above) loses that activation: the R subprocess starts outside `tests/`, renv never activates, and package loads fail with `there is no package called
+'rmarkdown'`.
+This is CI-only — a developer machine with rmarkdown on the default `.libPaths()` masks it entirely.
+The render pipeline also tends to swallow the underlying subprocess error, so the failure can be silent beyond the bare package-load message.
 
-**Fix:** in the fixture's cwd, write a `.Rprofile` that re-points renv at the
-real project, regardless of where the test's cwd actually is:
+**Fix:** in the fixture's cwd, write a `.Rprofile` that re-points renv at the real project, regardless of where the test's cwd actually is:
 
 ```r
 Sys.setenv(RENV_PROJECT = "<absolute path to tests/>")
 source("<absolute path to tests/>/renv/activate.R")
 ```
 
-`renv/activate.R` reads `RENV_PROJECT` to determine the project root if set,
-falling back to `getwd()` otherwise — setting it explicitly decouples renv
-activation from the test's cwd.
+`renv/activate.R` reads `RENV_PROJECT` to determine the project root if set, falling back to `getwd()` otherwise — setting it explicitly decouples renv activation from the test's cwd.
 
 ## Best Practices
 
 1. **Always clean up**: Use teardown to remove generated files
-2. **Use helpers**: Leverage `docs()`, `fileExists()`, etc. instead of manual checks
+2. **Use helpers**: Leverage `docs()`, `fileExists()`, etc.
+   instead of manual checks
 3. **Absolute paths**: Use `join()` for all path construction to handle platform differences
 4. **Test isolation**: Use temp directories for tests that create files
 5. **Clear names**: Use descriptive variable names like `projectDir`, `outputDir`, `templateFolder`
@@ -439,23 +457,21 @@ activation from the test's cwd.
 
 ## Environment Variable Testing Pitfalls
 
-`Deno.env.set()` modifies process-global state. Deno runs test files in parallel by default (same OS process), so concurrent tests can see modified values. Save/restore patterns don't help - other tests see the modified value during the test window.
+`Deno.env.set()` modifies process-global state.
+Deno runs test files in parallel by default (same OS process), so concurrent tests can see modified values.
+Save/restore patterns don't help - other tests see the modified value during the test window.
 
 | Execution Mode             | Risk               | Why                                     |
 | -------------------------- | ------------------ | --------------------------------------- |
 | `./run-tests.sh` (default) | **Race condition** | Files run in parallel, share `Deno.env` |
 | `./run-parallel-tests.sh`  | **None**           | Separate OS processes                   |
 
-**Existing bad pattern** - `tests/smoke/website/drafts-env.test.ts`:
+**Preferred channel:** pass per-test env via `TestContext.env` — it reaches the in-process `quarto()` call in dev mode and the spawned binary in binary mode (`QUARTO_TEST_BIN`), without mutating process-global state.
 
-```typescript
-// BAD: Sets env var, never restores it
-// Only "works" because no other test reads QUARTO_PROFILE
-Deno.env.set("QUARTO_PROFILE", "drafts");
-testQuartoCmd("render", [renderDir], [...]);
-```
+**Known justified exception** - `tests/smoke/website/drafts-env.test.ts` still sets `QUARTO_PROFILE` at module load *in addition to* `context.env`: `src/project/project-profile.ts` caches the base profile from the env on the first render in the process (`baseQuartoProfile`), so in dev (in-process) mode a per-render env override is ignored whenever another test rendered first.
+The module-load set runs before any test and keeps the cache correct; the `context.env` copy is what the spawned binary sees in binary mode.
 
-**Alternatives:** Unit test the env var reader, refactor code to accept parameters, or use subprocess isolation.
+**Alternatives for new tests:** Unit test the env var reader, refactor code to accept parameters, or use subprocess isolation.
 
 ## Testing File Exclusion
 
@@ -479,7 +495,8 @@ Run test **without fix** first to verify it fails, then verify it passes with fi
 
 ## Smoke-All Tests (YAML-Based)
 
-Smoke-all tests embed test specifications directly in `.qmd` files using `_quarto.tests` metadata. See `.claude/rules/testing/smoke-all-tests.md` for full documentation.
+Smoke-all tests embed test specifications directly in `.qmd` files using `_quarto.tests` metadata.
+See `.claude/rules/testing/smoke-all-tests.md` for full documentation.
 
 ### YAML String Escaping for Regex
 
@@ -511,33 +528,25 @@ _quarto:
 
 ### Probe enough keys to surface the bug
 
-A precedence test where the template reads only the one key being
-overridden can pass under a deep-merge bug. The dropped sibling keys
-never resolve, but no assertion notices.
+A precedence test where the template reads only the one key being overridden can pass under a deep-merge bug.
+The dropped sibling keys never resolve, but no assertion notices.
 
-Example: the merge of user-supplied `variables.quarto.language.crossref-ch-prefix: Bouquin`
-onto Quarto's built `format.language` table under
-`variables.quarto.language`. Under a shallow spread (`{ ...a, ...b }`),
-`b.language` replaces the entire localized map — all other
-`$quarto.language.<key>$` resolutions silently return empty. A template
-that reads only `$quarto.language.crossref-ch-prefix$` still asserts
-"Bouquin", so the regression test passes.
+Example: the merge of user-supplied `variables.quarto.language.crossref-ch-prefix: Bouquin` onto Quarto's built `format.language` table under `variables.quarto.language`.
+Under a shallow spread (`{ ...a, ...b }`), `b.language` replaces the entire localized map — all other `$quarto.language.<key>$` resolutions silently return empty.
+A template that reads only `$quarto.language.crossref-ch-prefix$` still asserts "Bouquin", so the regression test passes.
 
-The fix is to probe at least one non-overridden sibling key in the same
-template. Concretely, the regression guard
-`tests/docs/smoke-all/markdown/lang-fr-user-override-deep-merge.qmd`
-uses the template
+The fix is to probe at least one non-overridden sibling key in the same template.
+Concretely, the regression guard `tests/docs/smoke-all/markdown/lang-fr-user-override-deep-merge.qmd` uses the template
 
 ```
 $quarto.language.crossref-ch-prefix$|$quarto.language.toc-title-document$
 ```
 
-and asserts the full string `^Bouquin\|Table des matières\s*$`. Pre-fix
-the output was `Bouquin|`; post-fix it is `Bouquin|Table des matières`.
+and asserts the full string `^Bouquin\|Table des matières\s*$`.
+Pre-fix the output was `Bouquin|`; post-fix it is `Bouquin|Table des matières`.
 
-Heuristic: when writing a precedence smoke test for any merge between
-two structured config trees, ensure the assertion exercises at least
-one path the user did NOT override. Otherwise the test only proves
-"the overridden value wins" — not "the rest survives".
+Heuristic: when writing a precedence smoke test for any merge between two structured config trees, ensure the assertion exercises at least one path the user did NOT override.
+Otherwise the test only proves "the overridden value wins" — not "the rest survives".
 
-**Recommendation:** Use single-quoted strings. They're simpler - only `'` itself needs escaping (as `''`).
+**Recommendation:** Use single-quoted strings.
+They're simpler - only `'` itself needs escaping (as `''`).

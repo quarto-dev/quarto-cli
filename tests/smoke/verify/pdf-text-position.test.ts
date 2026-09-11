@@ -8,6 +8,7 @@
  */
 
 import { testQuartoCmd } from "../../test.ts";
+import { noErrors } from "../../verify.ts";
 import { ensurePdfTextPositions, PdfTextPositionAssertion } from "../../verify-pdf-text-position.ts";
 import { assert, AssertionError } from "testing/asserts";
 import { join } from "../../../src/deno_ral/path.ts";
@@ -41,21 +42,30 @@ async function assertThrowsWithPattern(
   );
 }
 
-// Test: Render fixture and run assertions
-testQuartoCmd("render", [fixtureQmd, "--to", "typst"], [], {
+// Remove stale output in setup and run assertions before teardown cleanup.
+testQuartoCmd("render", [fixtureQmd, "--to", "typst"], [
+  noErrors,
+  {
+    name: "pdf text position assertions (positive + expected failures)",
+    verify: async () => {
+      await runPositiveTests();
+      await runExpectedFailureTests();
+      await runSemanticTagTests();
+      await runPageRoleTests();
+      await runEdgeOverrideTests();
+      await runDistanceConstraintTests();
+      await runDistanceConstraintErrorTests();
+      await runPageRoleWithEdgeTests();
+      await runCenterEdgeTests();
+    },
+  },
+], {
+  setup: async () => {
+    if (safeExistsSync(fixturePdf)) {
+      safeRemoveSync(fixturePdf);
+    }
+  },
   teardown: async () => {
-    // Run the test assertions after render completes
-    await runPositiveTests();
-    await runExpectedFailureTests();
-    await runSemanticTagTests();
-    await runPageRoleTests();
-    await runEdgeOverrideTests();
-    await runDistanceConstraintTests();
-    await runDistanceConstraintErrorTests();
-    await runPageRoleWithEdgeTests();
-    await runCenterEdgeTests();
-
-    // Cleanup
     if (safeExistsSync(fixturePdf)) {
       safeRemoveSync(fixturePdf);
     }

@@ -7,15 +7,15 @@
 
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { _setIsRStudioForTest } from "../../../src/core/platform.ts";
+import { isBinaryMode } from "../../quarto-cmd.ts";
 import {
   ExecuteOutput,
   testQuartoCmd,
 } from "../../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 
-// Test: standalone file inspect with RStudio override should NOT emit project.
-// Uses _setIsRStudioForTest to avoid Deno.env.set() race conditions in
-// parallel tests (see #14218, PR #12621).
+// Dev mode uses the test hook to avoid process-global environment races.
+// Binary mode passes RSTUDIO=1 to the spawned Quarto.
 (() => {
   const input = "docs/inspect/standalone-hello.qmd";
   const output = "docs/inspect/standalone-hello.json";
@@ -34,11 +34,16 @@ import { assert, assertEquals } from "testing/asserts";
       }
     ],
     {
+      env: isBinaryMode() ? { RSTUDIO: "1" } : undefined,
       setup: async () => {
-        _setIsRStudioForTest(true);
+        if (!isBinaryMode()) {
+          _setIsRStudioForTest(true);
+        }
       },
       teardown: async () => {
-        _setIsRStudioForTest(undefined);
+        if (!isBinaryMode()) {
+          _setIsRStudioForTest(undefined);
+        }
         if (existsSync(output)) {
           Deno.removeSync(output);
         }

@@ -1,12 +1,13 @@
 ---
 paths:
-  - "tests/smoke/**/*.test.ts"
-  - "tests/unit/**/*.test.ts"
+  - tests/smoke/**/*.test.ts
+  - tests/unit/**/*.test.ts
 ---
 
 # TypeScript Tests
 
-TypeScript-based tests using Deno. Smoke tests render documents; unit tests verify isolated functionality.
+TypeScript-based tests using Deno.
+Smoke tests render documents; unit tests verify isolated functionality.
 
 ## Running Tests
 
@@ -22,17 +23,22 @@ TypeScript-based tests using Deno. Smoke tests render documents; unit tests veri
 
 ## Core Infrastructure
 
-Core test files (`test.ts`, `verify.ts`, `utils.ts`) are described in `.claude/rules/testing/overview.md` § Core Files.
+Core test files (`test.ts`, `quarto-cmd.ts`, `verify.ts`, `utils.ts`) are described in `.claude/rules/testing/overview.md` § Core Files.
+
+### Binary mode compatibility
+
+Smoke tests must work with either the dev sources or `QUARTO_TEST_BIN`:
+
+- Never `import { quarto } from "../../src/quarto.ts"` in tests — invoke quarto via `testQuartoCmd()`/`runQuarto()`.
+- For subprocesses, use `quartoDevCmd()` or `quartoDevBinCmd()` and pass `quartoSpawnEnvOptions()`.
+- `TestContext.requiresDevQuarto: true` ignores a test in binary mode — rare escape hatch for tests exercising quarto internals in-process.
 
 ### Search for an existing verifier before writing one
 
-`verify.ts` already covers many output shapes — including parsed-content
-verifiers, not just raw-text regex (e.g. `ensureIpynbCellMatches` JSON-parses a
-notebook and matches against joined cell source; `ensureHtmlElements` /
-`ensureHtmlSelectorSatisfies` parse the DOM). Before adding a new `Verify`,
-grep `verify.ts` for the format or assertion you need. Reuse or extend the
-existing helper rather than hand-rolling a near-duplicate. Same applies to
-mock-context and fixture helpers in `tests/unit/**` and `tests/utils.ts`.
+`verify.ts` already covers many output shapes — including parsed-content verifiers, not just raw-text regex (e.g. `ensureIpynbCellMatches` JSON-parses a notebook and matches against joined cell source; `ensureHtmlElements` / `ensureHtmlSelectorSatisfies` parse the DOM).
+Before adding a new `Verify`, grep `verify.ts` for the format or assertion you need.
+Reuse or extend the existing helper rather than hand-rolling a near-duplicate.
+Same applies to mock-context and fixture helpers in `tests/unit/**` and `tests/utils.ts`.
 
 ## Smoke Tests (`tests/smoke/`)
 
@@ -112,11 +118,14 @@ const markdownWithContent = asMappedString("# Title\nSome content");
 
 **Mock Contexts:**
 
-Several subsystems use context interfaces passed to functions. For unit tests, create `createMock*()` helpers with no-op stubs. Key pattern: async callbacks (like `withSpinner`) should just `await op()` so errors propagate normally. Check existing test files for helpers before writing new ones.
+Several subsystems use context interfaces passed to functions.
+For unit tests, create `createMock*()` helpers with no-op stubs.
+Key pattern: async callbacks (like `withSpinner`) should just `await op()` so errors propagate normally.
+Check existing test files for helpers before writing new ones.
 
-| Context | Interface | Existing helpers |
-|---------|-----------|-----------------|
-| `ProjectContext` | `src/project/types.ts` | `tests/unit/project/utils.ts` → `createMockProjectContext()` |
-| `InstallContext` | `src/tools/types.ts` | `tests/unit/tools/chrome-headless-shell.test.ts` → `createMockContext()` |
-| `Format` | `src/config/types.ts` | `tests/unit/format-utils.ts` → `createMockFormat()` (wraps the real `createFormat()` from `src/format/formats-shared.ts` — no hand-rolled cast) |
-| `TempContext` | `src/core/temp-types.ts` | No mock needed — use the real `createTempContext()` from `src/core/temp.ts` directly (see `tests/unit/sass-cache.test.ts`, `tests/unit/ral/safe-remove-dir.test.ts`) |
+| Context          | Interface                | Existing helpers                                                                                                                                                     |
+| ---------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ProjectContext` | `src/project/types.ts`   | `tests/unit/project/utils.ts` → `createMockProjectContext()`                                                                                                         |
+| `InstallContext` | `src/tools/types.ts`     | `tests/unit/tools/chrome-headless-shell.test.ts` → `createMockContext()`                                                                                             |
+| `Format`         | `src/config/types.ts`    | `tests/unit/format-utils.ts` → `createMockFormat()` (wraps the real `createFormat()` from `src/format/formats-shared.ts` — no hand-rolled cast)                      |
+| `TempContext`    | `src/core/temp-types.ts` | No mock needed — use the real `createTempContext()` from `src/core/temp.ts` directly (see `tests/unit/sass-cache.test.ts`, `tests/unit/ral/safe-remove-dir.test.ts`) |

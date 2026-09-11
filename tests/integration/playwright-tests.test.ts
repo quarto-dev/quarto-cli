@@ -1,5 +1,5 @@
 /*
- * smoke-all.test.ts
+ * playwright-tests.test.ts
  *
  * Copyright (C) 2022 Posit Software, PBC
  *
@@ -13,6 +13,7 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 import { cleanoutput } from "../smoke/render/render.ts";
 import { execProcess } from "../../src/core/process.ts";
+import { quartoSpawnEnvOptions } from "../quarto-cmd.ts";
 import { quartoDevCmd } from "../utils.ts";
 import { fail } from "testing/asserts";
 import { isWindows } from "../../src/deno_ral/platform.ts";
@@ -72,11 +73,13 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
     // mediabag inspection if we don't wait all renders
     // individually. This is very slow..
     console.log(`Rendering ${input}...`);
+    // Prevent a built Quarto from inheriting dev-tree paths.
     const result = await execProcess({
       cmd: quartoDevCmd(),
       args: ["render", input, ...options],
       stdout: "piped",
       stderr: "piped",
+      ...quartoSpawnEnvOptions(),
     });
 
     if (!result.success) {
@@ -91,8 +94,8 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
 }
 
 Deno.test({
-  name: "Playwright tests are passing", 
-  // currently we run playwright tests only on Linux
+  name: "Playwright tests are passing",
+  // Windows CI renders the inputs but does not run browser assertions.
   ignore: gha.isGitHubActions() && isWindows,
   fn: async () => {
     try {

@@ -8,6 +8,7 @@
  */
 
 import { testQuartoCmd } from "../../test.ts";
+import { noErrors } from "../../verify.ts";
 import { ensurePdfMetadata } from "../../verify-pdf-metadata.ts";
 import { assert } from "testing/asserts";
 import { join } from "../../../src/deno_ral/path.ts";
@@ -41,14 +42,23 @@ async function assertThrowsWithPattern(
   );
 }
 
-// Test: Render fixture and run assertions
-testQuartoCmd("render", [fixtureQmd, "--to", "typst"], [], {
+// Remove stale output in setup and run assertions before teardown cleanup.
+testQuartoCmd("render", [fixtureQmd, "--to", "typst"], [
+  noErrors,
+  {
+    name: "pdf metadata assertions (positive + expected failures)",
+    verify: async () => {
+      await runPositiveTests();
+      await runExpectedFailureTests();
+    },
+  },
+], {
+  setup: async () => {
+    if (safeExistsSync(fixturePdf)) {
+      safeRemoveSync(fixturePdf);
+    }
+  },
   teardown: async () => {
-    // Run the test assertions after render completes
-    await runPositiveTests();
-    await runExpectedFailureTests();
-
-    // Cleanup
     if (safeExistsSync(fixturePdf)) {
       safeRemoveSync(fixturePdf);
     }

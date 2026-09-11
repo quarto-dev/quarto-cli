@@ -1,0 +1,366 @@
+# Runs smoke, Playwright, and feature-format tests against a built Quarto.
+# Sources: a build of the selected ref, artifacts from create-release, or a
+# published release. See llm-docs/built-version-testing-architecture.md.
+name: Smoke Tests (Built Version)
+on:
+  # Test scheduled and manually dispatched create-release builds.
+  workflow_run:
+    workflows: ["Build Installers"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Where the quarto under test comes from: build = build from this ref now; nightly = artifacts of a create-release run; release = published (pre-)release. The workflow_run trigger (after each nightly build) always uses nightly."
+        required: false
+        type: choice
+        options:
+          - build
+          - nightly
+          - release
+        default: build
+      buckets:
+        description: "Optional JSON list of test buckets/globs for a partial smoke run (e.g. [\"integration/playwright-tests.test.ts\"]); empty runs the full smoke suite plus the separate ff-matrix and Playwright legs"
+        required: false
+        type: string
+        default: ""
+      version:
+        description: "For source=release: 'pre-release' (latest prerelease), 'release' (latest stable), or a literal version like 1.9.10"
+        required: false
+        type: string
+        default: "pre-release"
+      run-id:
+        description: "For source=nightly: create-release run id to take artifacts from (empty = latest successful run)"
+        required: false
+        type: string
+        default: ""
+
+# required by the called test-smokes.yml (julia cache cleanup)
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  # Build the selected ref (the dispatch default).
+  build-artifact:
+    name: Build quarto dist (linux-amd64)
+    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.rec.outputs.sha }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - name: Record commit under test
+        id: rec
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Compute version marker
+        id: version
+        shell: bash
+        # Build metadata keeps quarto-required range checks valid.
+        run: echo "version=$(cat version.txt)+test.$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Build dist tarball
+        uses: ./.github/actions/build-dist-tarball
+        with:
+          version: ${{ steps.version.outputs.version }}
+          arch: amd64
+          tarball-name: built-quarto-linux-amd64.tar.gz
+          artifact-name: built-quarto-linux-amd64
+          # Consumed only by this workflow run.
+          retention-days: 1
+
+  run-smokes-artifact:
+    name: Smoke tests against built artifact
+    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
+    needs: [build-artifact]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: ${{ needs.build-artifact.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: built-quarto-linux-amd64
+      runners: '["ubuntu-latest"]'
+      buckets: ${{ github.event.inputs.buckets }} # empty = full run
+
+  run-playwright-artifact:
+    name: Playwright tests against built artifact
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
+      && github.event.inputs.buckets == ''
+    needs: [build-artifact]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: ${{ needs.build-artifact.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: built-quarto-linux-amd64
+      runners: '["ubuntu-latest"]'
+      buckets: '["integration/playwright-tests.test.ts"]'
+
+  run-ff-matrix-artifact:
+    name: Feature-format matrix against built artifact
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
+      && github.event.inputs.buckets == ''
+    needs: [build-artifact]
+    uses: ./.github/workflows/test-ff-matrix.yml
+    with:
+      ref: ${{ needs.build-artifact.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: built-quarto-linux-amd64
+      runners: '["ubuntu-latest"]'
+
+  # Test an existing published release.
+  resolve-release:
+    name: Resolve release version
+    if: github.event.inputs.source == 'release'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.r.outputs.version }}
+    steps:
+      - name: Resolve version
+        id: r
+        shell: bash
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+        run: |
+          input="$VERSION_INPUT"
+          case "$input" in
+            pre-release | prerelease | "")
+              version="$(curl -fsSL https://quarto.org/docs/download/_prerelease.json | jq -r '.version')"
+              ;;
+            release)
+              version="$(curl -fsSL https://quarto.org/docs/download/_download.json | jq -r '.version')"
+              ;;
+            *)
+              version="$input"
+              ;;
+          esac
+          if [ -z "$version" ] || [ "$version" = "null" ]; then
+            echo "::error::could not resolve a quarto version from input '$input'"
+            exit 1
+          fi
+          echo "Resolved version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Preflight - tag must have binary-mode harness support
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.r.outputs.version }}
+        # Older tags do not contain the binary-mode test harness.
+        run: |
+          if output="$(gh api "repos/${GITHUB_REPOSITORY}/contents/tests/quarto-cmd.ts?ref=refs/tags/v${VERSION}" --silent 2>&1)"; then
+            echo "refs/tags/v${VERSION} has binary-mode harness support"
+          elif echo "$output" | grep -q 'HTTP 404'; then
+            echo "::error::tests/quarto-cmd.ts not found at refs/tags/v${VERSION}: either the tag does not exist or the release predates binary-mode harness support - it cannot be tested in release mode"
+            exit 1
+          else
+            echo "::error::gh api failed while checking refs/tags/v${VERSION}: $output"
+            exit 1
+          fi
+
+  run-smokes-release:
+    name: Smoke tests against published release
+    if: github.event.inputs.source == 'release'
+    needs: [resolve-release]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
+      quarto-install: release
+      quarto-version: ${{ needs.resolve-release.outputs.version }}
+      runners: '["ubuntu-latest", "windows-latest"]'
+      buckets: ${{ github.event.inputs.buckets }} # empty = full run
+
+  run-playwright-release:
+    name: Playwright tests against published release
+    if: github.event.inputs.source == 'release' && github.event.inputs.buckets == ''
+    needs: [resolve-release]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
+      quarto-install: release
+      quarto-version: ${{ needs.resolve-release.outputs.version }}
+      runners: '["ubuntu-latest"]'
+      buckets: '["integration/playwright-tests.test.ts"]'
+
+  run-ff-matrix-release:
+    name: Feature-format matrix against published release
+    if: github.event.inputs.source == 'release' && github.event.inputs.buckets == ''
+    needs: [resolve-release]
+    uses: ./.github/workflows/test-ff-matrix.yml
+    with:
+      ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
+      quarto-install: release
+      quarto-version: ${{ needs.resolve-release.outputs.version }}
+      runners: '["ubuntu-latest", "windows-latest"]'
+
+  # Reuse artifacts from a completed create-release run.
+  resolve-nightly:
+    name: Resolve create-release run
+    # Only successful workflow_run builds are testable.
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    outputs:
+      run-id: ${{ steps.r.outputs.run-id }}
+      sha: ${{ steps.r.outputs.sha }}
+      has-linux: ${{ steps.r.outputs.has-linux }}
+      has-windows: ${{ steps.r.outputs.has-windows }}
+      has-mac: ${{ steps.r.outputs.has-mac }}
+    steps:
+      - name: Resolve run id, commit and artifacts
+        id: r
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID_INPUT: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || github.event.inputs.run-id }}
+        run: |
+          run_id="$RUN_ID_INPUT"
+          if [ -z "$run_id" ]; then
+            run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow create-release.yml \
+              --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          fi
+          if [ -z "$run_id" ]; then
+            echo "::error::no successful create-release run found to take artifacts from"
+            exit 1
+          fi
+          sha="$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json headSha --jq '.headSha // empty')"
+          if [ -z "$sha" ]; then
+            echo "::error::could not resolve head_sha for run ${run_id}"
+            exit 1
+          fi
+          # Run only legs whose artifacts still exist.
+          names="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
+            --paginate --jq '.artifacts[] | select(.expired | not) | .name')"
+          has() { grep -Fxq "$1" <<<"$names" && echo true || echo false; }
+          has_linux="$(has 'Deb Zip')"
+          has_windows="$(has 'Windows Zip')"
+          has_mac="$(has 'Mac Zip')"
+          if [ "$has_linux" = false ] && [ "$has_windows" = false ] && [ "$has_mac" = false ]; then
+            echo "::error::run ${run_id} produced none of the expected artifacts (Deb Zip / Windows Zip / Mac Zip)"
+            exit 1
+          fi
+          echo "Using create-release run ${run_id} at commit ${sha} (linux=${has_linux} windows=${has_windows} mac=${has_mac})"
+          echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "has-linux=$has_linux" >> "$GITHUB_OUTPUT"
+          echo "has-windows=$has_windows" >> "$GITHUB_OUTPUT"
+          echo "has-mac=$has_mac" >> "$GITHUB_OUTPUT"
+
+  run-smokes-nightly-linux:
+    name: Smoke tests against nightly build (linux)
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-linux == 'true'
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      # Publish runs add only a version/changelog commit after this SHA.
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: Deb Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["ubuntu-latest"]'
+      buckets: ${{ github.event.inputs.buckets }} # empty = full run
+
+  run-smokes-nightly-windows:
+    name: Smoke tests against nightly build (windows)
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-windows == 'true'
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      # Scheduled builds leave quarto.exe unsigned; dispatch builds sign it.
+      quarto-artifact-name: Windows Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["windows-latest"]'
+      buckets: ${{ github.event.inputs.buckets }} # empty = full run
+
+  run-smokes-nightly-mac:
+    name: Smoke tests against nightly build (macOS)
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-mac == 'true'
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      # Signed and notarized; also provides the only macOS smoke coverage.
+      quarto-artifact-name: Mac Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["macos-latest"]'
+      buckets: ${{ github.event.inputs.buckets }} # empty = full run
+
+  # Each caller job accepts one OS-specific artifact.
+  run-playwright-nightly-linux:
+    name: Playwright tests against nightly build (linux)
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-linux == 'true'
+      && github.event.inputs.buckets == ''
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: Deb Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["ubuntu-latest"]'
+      buckets: '["integration/playwright-tests.test.ts"]'
+
+  run-playwright-nightly-mac:
+    name: Playwright tests against nightly build (macOS)
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-mac == 'true'
+      && github.event.inputs.buckets == ''
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: Mac Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["macos-latest"]'
+      buckets: '["integration/playwright-tests.test.ts"]'
+
+  # Playwright browser assertions are ignored on Windows CI.
+
+  run-ff-matrix-nightly-linux:
+    name: Feature-format matrix against nightly build (linux)
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-linux == 'true'
+      && github.event.inputs.buckets == ''
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-ff-matrix.yml
+    with:
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: Deb Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["ubuntu-latest"]'
+
+  run-ff-matrix-nightly-windows:
+    name: Feature-format matrix against nightly build (windows)
+    if: >-
+      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      && needs.resolve-nightly.outputs.has-windows == 'true'
+      && github.event.inputs.buckets == ''
+    needs: [resolve-nightly]
+    uses: ./.github/workflows/test-ff-matrix.yml
+    with:
+      ref: ${{ needs.resolve-nightly.outputs.sha }}
+      quarto-install: artifact
+      quarto-artifact-name: Windows Zip
+      quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
+      runners: '["windows-latest"]'
+
+  # The feature-format toolchain is not validated on macOS.

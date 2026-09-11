@@ -9,10 +9,10 @@ import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { assert } from "testing/asserts";
 
 import { Metadata } from "../../../src/config/types.ts";
-import { removeIfEmptyDir } from "../../../src/core/path.ts";
-import { quarto } from "../../../src/quarto.ts";
+import { removeIfEmptyDir, safeRemoveIfExists } from "../../../src/core/path.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
 import { ExecuteOutput, Verify } from "../../test.ts";
-import { outputCreated } from "../../verify.ts";
+import { noErrors, outputCreated } from "../../verify.ts";
 import { testRender } from "./render.ts";
 
 const regex = /output file: .*\.knit\.md/m;
@@ -67,9 +67,8 @@ const ignoreFrozen = {
 
 const projectOutputExists: Verify = {
   name: "Make sure project output exists",
-  verify: (_output: ExecuteOutput[]) => {
-    outputCreated(path, "html");
-    return Promise.resolve();
+  verify: (output: ExecuteOutput[]) => {
+    return outputCreated(path, "html").verify(output);
   },
 };
 
@@ -107,16 +106,16 @@ function testFileContext(
         markdown,
       );
 
-      await quarto(["render", path]);
+      await runQuarto(["render", path]);
     },
     teardown: async () => {
       // Clean up the test file
       await Deno.remove(path);
       await Deno.remove(quartoProj);
 
-      // Get rid of the freezer
+      // Get rid of the freezer (a failed render never creates it)
       const freezerDir = join(dirname(path), "_freeze");
-      Deno.removeSync(join(freezerDir, testFileName), { recursive: true });
+      safeRemoveIfExists(join(freezerDir, testFileName));
 
       // Maybe clean up empty freeze dir
       removeIfEmptyDir(freezerDir);
@@ -130,7 +129,7 @@ testRender(
   dirname(path) + "/",
   "html",
   false,
-  [projectOutputExists, useFrozen],
+  [noErrors, projectOutputExists, useFrozen],
   {
     name: "clean fzr - auto",
     ...testContext,
@@ -142,7 +141,7 @@ testRender(
   dirname(path) + "/",
   "html",
   false,
-  [projectOutputExists, ignoreFrozen],
+  [noErrors, projectOutputExists, ignoreFrozen],
   {
     name: "dirty fzr - auto",
     setup: async () => {
@@ -167,7 +166,7 @@ testRender(
   dirname(path) + "/",
   "html",
   false,
-  [projectOutputExists, useFrozen],
+  [noErrors, projectOutputExists, useFrozen],
   {
     name: "dirty fzr - freeze",
     setup: async () => {

@@ -5,20 +5,18 @@
  */
 
 import { docs } from "../../utils.ts";
+import { quartoDevBinCmd, quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { test } from "../../test.ts";
 import { assertEquals } from "testing/asserts";
-import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 async function runEditorSupportCrossref(doc: string) {
-  const cmdLine: string = isWindows ?
-    "../package/dist/bin/quarto.cmd" :
-    "../package/dist/bin/quarto";
-
-  const cmd = new Deno.Command(cmdLine, {
+  // Use the built test binary in binary mode; otherwise pin the local CLI.
+  const cmd = new Deno.Command(quartoDevBinCmd(), {
     args: ["editor-support", "crossref"],
     stdin: "piped",
     stdout: "piped",
     stderr: "piped",
+    ...quartoSpawnEnvOptions(),
   });
   const child = cmd.spawn();
   const writer = child.stdin.getWriter();
@@ -26,7 +24,7 @@ async function runEditorSupportCrossref(doc: string) {
     Deno.readTextFileSync(doc),
   );
   await writer.write(buf);
-  writer.releaseLock();
+  // close() sends EOF; releaseLock() would detach the writer before close().
   await writer.close();
   const outputBuf = await child.output();
   const status = await child.status;
@@ -36,15 +34,21 @@ async function runEditorSupportCrossref(doc: string) {
   return json;
 }
 
+// Run assertions in verifiers so failures propagate through the harness.
 test({
   name: "editor-support:crossref:smoke-1",
   context: {},
-  execute: async () => {
-    const json = await runEditorSupportCrossref(docs("crossrefs/sections.qmd"));
-    assertEquals(json.entries[0].key, "sec-introduction");
-    assertEquals(json.entries[0].caption, "Introduction");
-  },
-  verify: [],
+  execute: async () => {},
+  verify: [{
+    name: "editor-support crossref output",
+    verify: async (_outputs) => {
+      const json = await runEditorSupportCrossref(
+        docs("crossrefs/sections.qmd"),
+      );
+      assertEquals(json.entries[0].key, "sec-introduction");
+      assertEquals(json.entries[0].caption, "Introduction");
+    },
+  }],
   type: "smoke",
 });
 
@@ -52,10 +56,13 @@ function smokeTestCrossref(name: string, doc: string) {
   test({
     name,
     context: {},
-    execute: async () => {
-      await runEditorSupportCrossref(doc);
-    },
-    verify: [],
+    execute: async () => {},
+    verify: [{
+      name: "editor-support crossref runs cleanly",
+      verify: async (_outputs) => {
+        await runEditorSupportCrossref(doc);
+      },
+    }],
     type: "smoke",
   });
 }

@@ -62,6 +62,36 @@ export QUARTO_DEBUG=true
 
 QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --no-lock --allow-all"
 
+# QUARTO_TEST_BIN selects an installed Quarto outside this checkout.
+# The harness still uses the dev runtime configured above.
+if [[ -n "$QUARTO_TEST_BIN" ]]; then
+  if [[ ! -x "$QUARTO_TEST_BIN" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) does not exist or is not executable"
+    exit 1
+  fi
+  # Strip dev paths while probing the installed binary.
+  QUARTO_TEST_BIN_VERSION="$(env -u QUARTO_SHARE_PATH -u QUARTO_BIN_PATH \
+    -u QUARTO_DEBUG -u DENO_DIR -u QUARTO_DENO -u QUARTO_DENO_DOM \
+    -u QUARTO_ROOT -u QUARTO_SRC_PATH -u QUARTO_FORCE_VERSION \
+    "$QUARTO_TEST_BIN" --version 2>/dev/null)"
+  QUARTO_TEST_BIN_PROBE_EXIT=$?
+  if [[ $QUARTO_TEST_BIN_PROBE_EXIT -ne 0 ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) exited with code $QUARTO_TEST_BIN_PROBE_EXIT while reporting its version."
+    exit 1
+  fi
+  if [[ -z "$QUARTO_TEST_BIN_VERSION" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) did not report a version."
+    echo "The distribution is likely incomplete (missing share/version)."
+    exit 1
+  fi
+  if [[ "$QUARTO_TEST_BIN_VERSION" == "99.9.9" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
+    echo "It resolves to a dev-mode quarto: the launcher runs the TS sources whenever a sibling src/quarto.ts exists."
+    echo "Point QUARTO_TEST_BIN at a built distribution extracted outside the git checkout."
+    exit 1
+  fi
+  echo "> BINARY MODE: testing built quarto ${QUARTO_TEST_BIN_VERSION} at ${QUARTO_TEST_BIN}"
+fi
 
 if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
 then
@@ -160,6 +190,11 @@ else
       fi
       TESTS_TO_RUN=("${SMOKE_ALL_TEST_FILE}" "--" "${SMOKE_ALL_FILES[@]}")
     fi
+  fi
+  # Binary mode defaults to smoke tests; other compatible suites are explicit.
+  if [[ -n "$QUARTO_TEST_BIN" && "${#TESTS_TO_RUN[@]}" -eq 0 && -z "$*" ]]; then
+    TESTS_TO_RUN=("smoke/")
+    echo "> BINARY MODE: defaulting to smoke/ tests (pass a path explicitly to run others, e.g. integration/playwright-tests.test.ts)"
   fi
   # TESTS_TO_RUN is an array and quoted here on purpose: a bucket can be a
   # literal, unexpanded ** glob pattern (e.g. from the ff-matrix CI bucket),

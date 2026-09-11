@@ -12,7 +12,8 @@ Tests are run in our CI workflow on GHA at each commit, and for each PR.
 
 ## How the tests are created and organized ?
 
-Tests are running through `Deno.test()` framework, adapted for our Quarto project and all written in Typescript. Infrastructure are in `tests.ts`, `tests.deps.ts` `verify.ts` and `utils.ts` which contains the helper functions that can be used.
+Tests are running through `Deno.test()` framework, adapted for our Quarto project and all written in Typescript.
+Infrastructure are in `test.ts`, `test-deps.ts`, `quarto-cmd.ts`, `verify.ts` and `utils.ts` which contains the helper functions that can be used.
 
 - `unit/` and `integration/`, `smoke/`contain some `.ts` script representing each tests.
 - `docs/` is a special folder containing of the necessary files and projects used for the tests.
@@ -23,21 +24,27 @@ Tests are running through `Deno.test()` framework, adapted for our Quarto projec
 
 Here are what is expected in the environment for the tests :
 
-- R should be installed and in PATH - [**rig**](https://github.com/r-lib/rig) is a good tool to manage R versions. e.g `rig install 4.4.2` and `rig default 4.4.2` to install and set the version to 4.4.2
+- R should be installed and in PATH - [**rig**](https://github.com/r-lib/rig) is a good tool to manage R versions.
+  e.g `rig install 4.4.2` and `rig default 4.4.2` to install and set the version to 4.4.2
   - On Windows, Rtools should be too (for source package installation)
 - Python should be installed and in PATH - [**pyenv**](https://github.com/pyenv/pyenv) is a good option to manage Python versions.
-  - On Windows, it will be [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/) to manage versions. Otherwise or install from https://www.python.org/ manually or using `winget`.
+  - On Windows, it will be [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/) to manage versions.
+    Otherwise or install from https://www.python.org/ manually or using `winget`.
 - Julia should be installed and in PATH - [**juliaup**](https://github.com/JuliaLang/juliaup) is a good option to manage Julia versions.
   - On Windows, one way is using `winget install julia -s msstore` and then add `%LOCALAPPDATA%/Programs/Julia/bin` to PATH
 
 Running tests require to have a local environment setup with Quarto development, TinyTeX, R, Python and Julia.
 
-To help with this configuration, the `tests/` folder contains `configure-test-env.sh` and `configure-test-env.ps1`. It will check for the tools and update the dependencies to what is used by Quarto tests.
-Running the script at least one will insure you are correctly setup. Then, it is run as part of running the tests so that dependencies are always updated. Set `QUARTO_TESTS_NO_CONFIG` to skip this step when running tests.
+To help with this configuration, the `tests/` folder contains `configure-test-env.sh` and `configure-test-env.ps1`.
+It will check for the tools and update the dependencies to what is used by Quarto tests.
+Running the script at least one will insure you are correctly setup.
+Then, it is run as part of running the tests so that dependencies are always updated.
+Set `QUARTO_TESTS_NO_CONFIG` to skip this step when running tests.
 
 #### Optional test dependencies
 
-The configure scripts also check for optional tools that some tests require. Tests will gracefully skip when these tools are not available, but having them installed enables full test coverage:
+The configure scripts also check for optional tools that some tests require.
+Tests will gracefully skip when these tools are not available, but having them installed enables full test coverage:
 
 **Java** (version 8, 11, 17, or 21)
 
@@ -77,11 +84,15 @@ Dependencies are managed using the following tools:
 
 #### R
 
-We use [**renv**](https://rstudio.github.io/renv/). `renv.lock` and `renv/` folders are the files used to recreate the environment for R.
+We use [**renv**](https://rstudio.github.io/renv/).
+`renv.lock` and `renv/` folders are the files used to recreate the environment for R.
 
-Updating `renv.lock` is done using `renv::snapshot()`. File shouldn't be modified manually.
+Updating `renv.lock` is done using `renv::snapshot()`.
+File shouldn't be modified manually.
 
-Our project is using [explicit dependencies discovery](https://rstudio.github.io/renv/reference/dependencies.html?q=dependen#explicit-dependencies) through a `DESCRIPTION` file. This is to avoid a costly scanning of all files in `tests/` to guess R dependencies. This means that if you need to add a test with a new R package dependencies:
+Our project is using [explicit dependencies discovery](https://rstudio.github.io/renv/reference/dependencies.html?q=dependen#explicit-dependencies) through a `DESCRIPTION` file.
+This is to avoid a costly scanning of all files in `tests/` to guess R dependencies.
+This means that if you need to add a test with a new R package dependencies:
 
 - Add package(s) to `DESCRIPTION` in `tests/`
 - `renv::install()` the package into the project library
@@ -91,26 +102,36 @@ Our project is using [explicit dependencies discovery](https://rstudio.github.io
 
 See [documentation](https://rstudio.github.io/renv/) if you need to tweak the R environment.
 
-After a dependency update, you can run `configure-test-env.sh` or `configure-test-env.ps1` to update the environment, or manually run `renv::restore()` to recreate the environment with new versions. Be sure to update your R version if needed.
+After a dependency update, you can run `configure-test-env.sh` or `configure-test-env.ps1` to update the environment, or manually run `renv::restore()` to recreate the environment with new versions.
+Be sure to update your R version if needed.
 
 #### Python
 
-We now use [**uv**](https://docs.astral.sh/uv) (previously, it was [**pipenv**](https://pipenv.pypa.io/en/latest/)) to manage dependencies and recreate easily on all OS. `uv` will **not** be installed as part of the configuration - so it needs to be installed manually - see various way at: https://docs.astral.sh/uv/getting-started/installation/
+We now use [**uv**](https://docs.astral.sh/uv) (previously, it was [**pipenv**](https://pipenv.pypa.io/en/latest/)) to manage dependencies and recreate easily on all OS.
+`uv` will **not** be installed as part of the configuration - so it needs to be installed manually - see various way at: https://docs.astral.sh/uv/getting-started/installation/
 
-**uv** will handle the python versions, including its installation, based on the `.python-version` we have in `tests/` folder. It will also manage the virtual environment in `.venv` folder.
+**uv** will handle the python versions, including its installation, based on the `.python-version` we have in `tests/` folder.
+It will also manage the virtual environment in `.venv` folder.
 
-A virtual environment will be created locally in `.venv` folder (ignored on git) and activated when running tests. `uv run` can help activating the environment outside of running tests to run a command in the environment.
+A virtual environment will be created locally in `.venv` folder (ignored on git) and activated when running tests.
+`uv run` can help activating the environment outside of running tests to run a command in the environment.
 
-`pyproject.toml` contains our dependencies requirement for the tests project. It can be manually updated but it is best to just use `uv` commands. For instance, adding a new dependency can be done with `uv add plotly` and it will update the file, update the `uv.lock` and install in the virtual environment. `uv.lock` should never be updated manually, and it is tracked by git, as it allows to recreate the exact environment on different environment (Linux, Mac, Windows, locally and on CI).
+`pyproject.toml` contains our dependencies requirement for the tests project.
+It can be manually updated but it is best to just use `uv` commands.
+For instance, adding a new dependency can be done with `uv add plotly` and it will update the file, update the `uv.lock` and install in the virtual environment.
+`uv.lock` should never be updated manually, and it is tracked by git, as it allows to recreate the exact environment on different environment (Linux, Mac, Windows, locally and on CI).
 
 See other [`uv` command](https://docs.astral.sh/uv/getting-started/features/) if you need to do more.
 
-For a change of python versionn, `.python-version` needs to be updated, and then `uv` will take care of the rest. `configure-test-env` script will check for `uv` and if installed, it will called `uv sync` to make sure the project virtual environment is up to date with the lockfile.
+For a change of python versionn, `.python-version` needs to be updated, and then `uv` will take care of the rest.
+`configure-test-env` script will check for `uv` and if installed, it will called `uv sync` to make sure the project virtual environment is up to date with the lockfile.
 
 Note that `./run-test.ps1` and `.run-tests.sh` :
 
 - run `configure-test-env` script by default, unless `QUARTO_TESTS_NO_CONFIG` environment variable is set to a non-empty value.
-- Activate the local virtualenv espected in `.venv`. Set `QUARTO_TESTS_FORCE_NO_VENV` to a non-empty value to prevent this behavior. (It replaces `QUARTO_TESTS_FORCE_NO_PIPENV` which still is considered for backward compatibility but deprecated)
+- Activate the local virtualenv espected in `.venv`.
+  Set `QUARTO_TESTS_FORCE_NO_VENV` to a non-empty value to prevent this behavior.
+  (It replaces `QUARTO_TESTS_FORCE_NO_PIPENV` which still is considered for backward compatibility but deprecated)
 
 #### Julia
 
@@ -118,7 +139,8 @@ Julia uses built-in package manager [**Pkg.jl**](https://pkgdocs.julialang.org/v
 
 `Project.toml` contains our direct dependency and `Manifest.toml` is the lock file that will be created (`Pkg.resolve()`).
 
-**Important:** All test dependencies must be in the main `tests/` environment. Julia searches UP the directory tree for `Project.toml` starting from the document being rendered.
+**Important:** All test dependencies must be in the main `tests/` environment.
+Julia searches UP the directory tree for `Project.toml` starting from the document being rendered.
 
 **Adding a new package dependency:**
 
@@ -128,9 +150,13 @@ julia --project=. -e 'using Pkg; Pkg.add("PackageName")'
 ./configure-test-env.sh   # or .ps1 on Windows
 ```
 
-**Do NOT create** local `Project.toml` files in test subdirectories (e.g., `tests/docs/*/Project.toml`). Julia will use that environment instead of the main `tests/` environment. The `configure-test-env` scripts only manage the main environment, so tests with local environments will fail in CI even if they work locally.
+**Do NOT create** local `Project.toml` files in test subdirectories (e.g., `tests/docs/*/Project.toml`).
+Julia will use that environment instead of the main `tests/` environment.
+The `configure-test-env` scripts only manage the main environment, so tests with local environments will fail in CI even if they work locally.
 
-**Note:** This applies to ALL engines (Julia, Python, R). Python and R will also use local `.venv/` or `renv.lock` if present. The quarto-cli test infrastructure uses a single managed environment per language at `tests/`, and CI only configures these main environments.
+**Note:** This applies to ALL engines (Julia, Python, R).
+Python and R will also use local `.venv/` or `renv.lock` if present.
+The quarto-cli test infrastructure uses a single managed environment per language at `tests/`, and CI only configures these main environments.
 
 See [documentation](https://pkgdocs.julialang.org/v1/managing-packages/) on how to add, remove, update if you need to tweak the Julia environment.
 
@@ -198,7 +224,8 @@ For convenience, `run-fast-tests.sh` and `run-fast-tests.ps1` are provided to sk
 ./run-fast-tests.ps1
 ```
 
-These scripts set `QUARTO_TESTS_NO_CONFIG` automatically. Use after running `configure-test-env` at least once.
+These scripts set `QUARTO_TESTS_NO_CONFIG` automatically.
+Use after running `configure-test-env` at least once.
 
 **QUARTO_TEST_KEEP_OUTPUTS** (or use `--keep-outputs`/`-k` flag)
 - Keep test output artifacts instead of cleaning them up
@@ -230,7 +257,9 @@ $env:QUARTO_TEST_KEEP_OUTPUTS="true"
 
 #### About smoke-all tests
 
-`docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd`, `.md` or `.ipynb` files (but files starting with `_` will be ignored). They are run through the `smoke/smoke-all.tests.ts` script. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd`, `.md` or `.ipynb` file, not starting with `_`.
+`docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd`, `.md` or `.ipynb` files (but files starting with `_` will be ignored).
+They are run through the `smoke/smoke-all.tests.ts` script.
+To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd`, `.md` or `.ipynb` file, not starting with `_`.
 
 ```bash
 # run tests for all documents in docs/smoke-all/
@@ -406,9 +435,12 @@ When a snapshot test fails:
 
 ### Limitations
 
-- `smoke-all.test.ts` accept only one argument. You need to use glob pattern to run several smoke-all test documents.
+- `smoke-all.test.ts` accept only one argument.
+  You need to use glob pattern to run several smoke-all test documents.
 
-- Individual `smoke-all` tests and other test can't be run at the same time with `run-test.[sh|ps1]`. This is because `smoke-all.test.ts` requires arguments. If a smoke-all document and another smoke-test are passed as argument, the smoke-all test will be prioritize and other will be ignored (with a warning).
+- Individual `smoke-all` tests and other test can't be run at the same time with `run-test.[sh|ps1]`.
+  This is because `smoke-all.test.ts` requires arguments.
+  If a smoke-all document and another smoke-test are passed as argument, the smoke-all test will be prioritize and other will be ignored (with a warning).
 
 Example with Linux:
 
@@ -430,9 +462,59 @@ Don't do
 ./run-tests.sh smoke/extensions/extension-render-doc.test.ts smoke/smoke-all.test.ts -- ./docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
 
+### Binary mode (`QUARTO_TEST_BIN`)
+
+Tests normally run Quarto in-process from the dev sources.
+Set `QUARTO_TEST_BIN` to an installed Quarto to run commands against that binary instead.
+See [Built-Version Testing Architecture](../llm-docs/built-version-testing-architecture.md) for the harness and CI design.
+
+To run in binary mode locally:
+
+```bash
+# 1. Build a distribution (after ./configure.sh)
+cd package/src
+./quarto-bld prepare-dist --set-version "$(cat ../../version.txt)+test.$(date +%Y%m%d)"
+cd ../..
+
+# 2. Copy the built dist OUTSIDE the git checkout. An in-repo quarto
+#    (e.g. package/dist/bin/quarto) resolves to dev mode — the launcher runs
+#    the TS sources when it finds a sibling src/quarto.ts — and must NOT be
+#    used: run-tests.[sh|ps1] refuses a binary reporting the 99.9.9 dev
+#    version sentinel.
+cp -r package/pkg-working ~/quarto-under-test
+
+# 3. Run the tests against it
+cd tests
+QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh
+```
+
+In binary mode:
+
+- With no arguments, `run-tests.[sh|ps1]` runs `smoke/`.
+  Unit tests remain dev-only.
+  Playwright and feature-format tests support binary mode but must be passed explicitly:
+
+  ```bash
+  # playwright suite against a built quarto
+  QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh integration/playwright-tests.test.ts
+  # feature-format matrix against a built quarto
+  QUARTO_TEST_BIN=~/quarto-under-test/bin/quarto ./run-tests.sh "../dev-docs/feature-format-matrix/qmd-files/**/*.qmd"
+  ```
+
+- The test environment is configured as usual; set `QUARTO_TESTS_NO_CONFIG` to skip that step as in dev mode.
+- Tests with `requiresDevQuarto: true` in their `TestContext` are ignored (rare escape hatch for tests that must exercise quarto internals in-process).
+
+Authoring rules that keep tests working in both modes:
+
+- Never `import { quarto } from "../src/quarto.ts"` in tests — invoke quarto through `testQuartoCmd()` (`tests/test.ts`) or `runQuarto()` (`tests/quarto-cmd.ts`).
+- Tests that spawn quarto as a subprocess themselves should resolve the executable with `quartoDevCmd()` (`tests/utils.ts`, honors `QUARTO_TEST_BIN`) — or `quartoDevBinCmd()` (`tests/quarto-cmd.ts`) when the test must pin the locally-built dev CLI — and pass `quartoSpawnEnvOptions()` as spawn env options so the dev-tree env vars don't leak into the built quarto.
+
+Harness and CI flow diagrams are in the architecture document linked above.
+
 ## Debugging within tests
 
-`.vscode/launch.json` has a `Run Quarto test` configuration that can be used to debug when running tests. One need to modify the `program` and `args` fields to match the test to run.
+`.vscode/launch.json` has a `Run Quarto test` configuration that can be used to debug when running tests.
+One need to modify the `program` and `args` fields to match the test to run.
 
 Example:
 
@@ -451,7 +533,8 @@ This lives in `run-parallel-tests.ts` and called through `run-parallel-tests.sh`
 
 ### How does is works ?
 
-- It requires a text file with tested timed and following a specific format. (Default is `timing.txt` and here is an example [in our repo](./timing.txt))
+- It requires a text file with tested timed and following a specific format.
+  (Default is `timing.txt` and here is an example [in our repo](./timing.txt))
 - Based on this file, the tests will be split in buckets to minimize the tests time (buckets are filled by their minimum overall time).
 - Then `./run-tests.sh` will be run for each bucket from deno using `Promise.all()` and `run-tests.sh` on the whole bucket's test files, so that the buckets are ran in parallel.
 
@@ -468,9 +551,11 @@ QUARTO_TEST_TIMING='timing.txt' ./run-tests.sh
 When this is done, any other argument will be ignored, and the following happens
 
 - All the `*.test.ts` file are found and run individually using `/usr/bin/time` to store timing in the file
-- When `smoke-all.test.ts` is found, all the `*.qmd`, `*.md` and `*.ipynb` in `docs/smoke-all/` not starting with `_` are found and run individually using same logic. This means each `smoke-all` test is timed.
+- When `smoke-all.test.ts` is found, all the `*.qmd`, `*.md` and `*.ipynb` in `docs/smoke-all/` not starting with `_` are found and run individually using same logic.
+  This means each `smoke-all` test is timed.
 
-The results is written in the `$QUARTO_TEST_TIMING` file. Here is an example:
+The results is written in the `$QUARTO_TEST_TIMING` file.
+Here is an example:
 
 ```
 ./smoke/directives/include-fixups.test.ts
@@ -491,7 +576,8 @@ This will be read by `run-parallel-tests.ts` to get the `real` value and fill th
 
 #### Specific behavior for `smoke-all.test.ts`
 
-`smoke-all` tests are special because they are in the form of individual `.qmd` or `.ipynb` document that needs to be run using `smoke-all.test.ts` script, with arguments. Unfortunately, this prevent running individual `smoke-all` documents in same buclets as other individual smoke test (which are their own `.test.ts` file).
+`smoke-all` tests are special because they are in the form of individual `.qmd` or `.ipynb` document that needs to be run using `smoke-all.test.ts` script, with arguments.
+Unfortunately, this prevent running individual `smoke-all` documents in same buclets as other individual smoke test (which are their own `.test.ts` file).
 
 So, if the timed file contains some individual timing for `smoke-all` documents like this
 
@@ -499,16 +585,26 @@ So, if the timed file contains some individual timing for `smoke-all` documents 
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/12/12/code-annotation.qmd
 ```
 
-then they are ignored and `.smoke-all.test.ts` will be run in its own bucket. It will usually be the longest test run.
+then they are ignored and `.smoke-all.test.ts` will be run in its own bucket.
+It will usually be the longest test run.
 
-Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tests on GHA CI as the buckets are split into their own runners and each test in a bucket if run using `run-test.sh`. This allows a bucket to contains some `*.test.ts` but also some document `*.qmd` or `*.ipynb`. More details in [test-smoke.yml](.github/workflows/test-smokes.yml) and [test-smokes-parallel.yml](.github/workflows/test-smokes-parallel.yml)
+Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tests on GHA CI as the buckets are split into their own runners and each test in a bucket if run using `run-test.sh`.
+This allows a bucket to contains some `*.test.ts` but also some document `*.qmd` or `*.ipynb`.
+More details in [test-smoke.yml](.github/workflows/test-smokes.yml) and [test-smokes-parallel.yml](.github/workflows/test-smokes-parallel.yml)
 
 ### Arguments that control behavior
 
-- `-n=`: Number of buckets to create to run in parallel. `run-parallel-tests.sh -n=5` split tests in 5 buckets and run them at the same time. For local run, `n` should be a number of core. For CI run, `n` will be the number of runners to use at the same time (mulplied by 2 because Linux and Windows are ran on CI).
-- `--verbose`: show some verbosity. Otherwise, no specific logging in console in done.
-- `--dry-run`: show the buckets of tests, but do not run. Otherwise, they are run.
-- `--timing-file=`: Which file to use as timed tests information to creates the buckets. (default to `timing.txt` ). `run-parallel-tests.sh --timing-file='timing2.txt'` will use `timing2.txt` to run the file.
+- `-n=`: Number of buckets to create to run in parallel.
+  `run-parallel-tests.sh -n=5` split tests in 5 buckets and run them at the same time.
+  For local run, `n` should be a number of core.
+  For CI run, `n` will be the number of runners to use at the same time (mulplied by 2 because Linux and Windows are ran on CI).
+- `--verbose`: show some verbosity.
+  Otherwise, no specific logging in console in done.
+- `--dry-run`: show the buckets of tests, but do not run.
+  Otherwise, they are run.
+- `--timing-file=`: Which file to use as timed tests information to creates the buckets.
+  (default to `timing.txt` ).
+  `run-parallel-tests.sh --timing-file='timing2.txt'` will use `timing2.txt` to run the file.
 - `--json-for-ci`: Special flag to trigger splitting tests in buckets for the parallel run on CI and that makes `run-parallel-tests.sh` outputs JSON string specifically formatted for GHA processing.
 
 ### About tests in CI with GHA
@@ -519,3 +615,15 @@ Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tes
 - `test-smokes.yml` is the main CI workflow which configure the environment, and run the tests on Ubuntu and Windows.
   - If it was triggerred by `workflow_call`, then it will run each test in using `run-tests.[sh|ps1]` in a for-loop.
   - Scheduled tests are still run daily in their sequential version.
+  - It is parameterized (`quarto-install`, `quarto-version`, `quarto-artifact-name`, `ref`, `runners`, ...) so callers can run the suite against a built quarto instead of the dev source tree: the workflow installs the quarto under test outside the checkout and exports `QUARTO_TEST_BIN` (see "Binary mode" above).
+- `test-smokes-built.yml` runs smoke, Playwright, and feature-format legs
+  against a built Quarto. It runs after nightly builds and supports manual
+  dispatches:
+
+  | Mode | Trigger | Use it to answer |
+  |---|---|---|
+  | `nightly` | automatic after create-release; dispatch with `run-id` to retest an older run | does the packaged nightly build pass on each available OS? |
+  | `build` | dispatch (default) | does this ref work when packaged as a linux-amd64 distribution? |
+  | `release` | dispatch | does the published release pass? |
+
+  Full rationale and design decisions: `llm-docs/built-version-testing-architecture.md`.

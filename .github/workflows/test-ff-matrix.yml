@@ -1,5 +1,43 @@
 name: Feature-Format Tests
 on:
+  # Reusable so built-version CI can invoke the same bucket definition.
+  workflow_call:
+    inputs:
+      extra-r-packages:
+        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        required: false
+        type: string
+        default: ""
+      quarto-install:
+        description: "Which quarto to test (forwarded to test-smokes.yml): 'dev' (source tree, default), 'release', or 'artifact'"
+        required: false
+        type: string
+        default: "dev"
+      quarto-version:
+        description: "Version to install when quarto-install is 'release' (forwarded to test-smokes.yml)"
+        required: false
+        type: string
+        default: ""
+      quarto-artifact-name:
+        description: "Workflow artifact name containing the built quarto tarball/zip when quarto-install is 'artifact' (forwarded to test-smokes.yml)"
+        required: false
+        type: string
+        default: ""
+      quarto-artifact-run-id:
+        description: "Workflow run id to download the artifact from (forwarded to test-smokes.yml; empty = the current run)"
+        required: false
+        type: string
+        default: ""
+      ref:
+        description: "Git ref to check out (forwarded to test-smokes.yml; empty means the default checkout behavior)"
+        required: false
+        type: string
+        default: ""
+      runners:
+        description: "JSON list of runner labels for the OS matrix (forwarded to test-smokes.yml)"
+        required: false
+        type: string
+        default: '["ubuntu-latest", "windows-latest"]'
   workflow_dispatch:
     inputs:
       extra-r-packages:
@@ -20,6 +58,7 @@ on:
       - ".github/workflows/performance-check.yml"
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
+      - ".github/workflows/test-smokes-built.yml"
       - ".github/workflows/test-smokes-parallel.yml"
       - ".github/workflows/test-install.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
@@ -35,12 +74,15 @@ on:
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
       - ".github/workflows/test-install.yml"
+      - ".github/workflows/test-smokes-built.yml"
       - ".github/workflows/test-smokes-parallel.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
       - ".github/workflows/update-test-timing.yml"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}
+  # Reusable workflows evaluate concurrency in the caller's context, so each
+  # call needs a distinct suffix.
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}-${{ inputs.runners && format('call-{0}-{1}', github.run_id, inputs.runners) || 'dev' }}
   cancel-in-progress: true
 
 jobs:
@@ -48,5 +90,13 @@ jobs:
     name: Run feature-format matrix
     uses: ./.github/workflows/test-smokes.yml
     with:
+      # Keep the feature-format glob owned by this workflow.
       buckets: '[ "../dev-docs/feature-format-matrix/qmd-files/**/*.qmd" ]'
       extra-r-packages: ${{ inputs.extra-r-packages }}
+      # Non-call triggers have empty inputs and use dev defaults.
+      quarto-install: ${{ inputs.quarto-install || 'dev' }}
+      quarto-version: ${{ inputs.quarto-version }}
+      quarto-artifact-name: ${{ inputs.quarto-artifact-name }}
+      quarto-artifact-run-id: ${{ inputs.quarto-artifact-run-id }}
+      ref: ${{ inputs.ref }}
+      runners: ${{ inputs.runners || '["ubuntu-latest", "windows-latest"]' }}

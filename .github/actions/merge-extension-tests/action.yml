@@ -11,6 +11,12 @@ runs:
     - name: Merge julia-engine tests
       shell: bash
       run: |
+        # The upstream tests do not sanitize the environment passed to quarto.
+        # Skip them until PumasAI/quarto-julia-engine strips the dev-tree vars.
+        if [[ -n "$QUARTO_TEST_BIN" ]]; then
+          echo "::notice title=julia-engine tests skipped in binary mode::subtree tests do not sanitize their quarto spawn env yet (see llm-docs/built-version-testing-architecture.md)"
+          exit 0
+        fi
         SUBTREE=src/resources/extension-subtrees/julia-engine/tests
         cp -r "$SUBTREE/docs/julia-engine" tests/docs/julia-engine
         cp -r "$SUBTREE/smoke/julia-engine" tests/smoke/julia-engine
