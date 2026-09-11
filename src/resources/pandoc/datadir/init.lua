@@ -677,11 +677,21 @@ end
 
 local function version()
    local versionString = param('quarto-version', 'unknown')
-   local success, versionObject = pcall(pandoc.types.Version, versionString)
+   -- pandoc.types.Version's dotted-integer parser rejects semver build
+   -- metadata (e.g. "1.9.13+test.20260910") and any string without a
+   -- leading digit. Extract the leading dot-separated numeric component so
+   -- that construction always succeeds and this always returns a Version
+   -- object -- callers (e.g. table.concat(quarto.version, '.')) must not
+   -- have to handle a plain string fallback.
+   local numericVersion = versionString:match('^(%d+%.%d+%.%d+)')
+      or versionString:match('^(%d+%.%d+)')
+      or versionString:match('^(%d+)')
+      or '0'
+   local success, versionObject = pcall(pandoc.types.Version, numericVersion)
    if success then
       return versionObject
    else
-      return versionString
+      return pandoc.types.Version('0')
    end
 end
 
