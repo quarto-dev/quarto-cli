@@ -1,0 +1,13 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'script[async][src="https://plausible.io/js/pa-BOOKFILE99.js"]'
+---
+
+# Preface {.unnumbered}
+
+Plausible Analytics configured under the `book` key must be applied to the
+rendered book website, the same way `google-analytics` is.

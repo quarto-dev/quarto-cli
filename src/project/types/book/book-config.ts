@@ -37,11 +37,15 @@ import {
 import { kProjectRender, ProjectConfig } from "../../types.ts";
 
 import {
+  kAnnouncement,
+  kBackToTopNavigation,
   kBodyFooter,
   kBodyHeader,
   kBreadCrumbNavigation,
   kContents,
   kImage,
+  kImageAlt,
+  kLlmsTxt,
   kMarginFooter,
   kMarginHeader,
   kOpenGraph,
@@ -114,6 +118,7 @@ import {
 import {
   kCookieConsent,
   kGoogleAnalytics,
+  kPlausibleAnalytics,
 } from "../website/website-analytics.ts";
 import { RenderFlags } from "../../../command/render/types.ts";
 import { formatLanguage } from "../../../core/language.ts";
@@ -162,6 +167,7 @@ export async function bookProjectConfig(
     site[kOpenGraph] = book[kOpenGraph];
     site[kTwitterCard] = book[kTwitterCard];
     site[kImage] = book[kImage];
+    site[kImageAlt] = book[kImageAlt];
     site[kMarginHeader] = book[kMarginHeader];
     site[kMarginFooter] = book[kMarginFooter];
     site[kBodyHeader] = book[kBodyHeader];
@@ -169,7 +175,11 @@ export async function bookProjectConfig(
     site[kBookSearch] = book[kBookSearch];
     site[kSiteReaderMode] = book[kSiteReaderMode];
     site[kGoogleAnalytics] = book[kGoogleAnalytics];
+    site[kPlausibleAnalytics] = book[kPlausibleAnalytics];
     site[kCookieConsent] = book[kCookieConsent];
+    site[kAnnouncement] = book[kAnnouncement];
+    site[kBackToTopNavigation] = book[kBackToTopNavigation];
+    site[kLlmsTxt] = book[kLlmsTxt];
     site[kComments] = book[kComments];
     site[kBreadCrumbNavigation] = book[kBreadCrumbNavigation];
     site[kOtherLinks] = book[kOtherLinks];
