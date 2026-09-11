@@ -42,8 +42,8 @@ def check_placeholders(base, target):
         target_val = target.get(key)
         if not isinstance(base_val, str) or not isinstance(target_val, str):
             continue
-        base_ph = sorted(set(PLACEHOLDER_RE.findall(base_val)))
-        target_ph = sorted(set(PLACEHOLDER_RE.findall(target_val)))
+        base_ph = sorted(PLACEHOLDER_RE.findall(base_val))
+        target_ph = sorted(PLACEHOLDER_RE.findall(target_val))
         if base_ph != target_ph:
             problems.append((key, base_ph, target_ph))
     if problems:
@@ -57,13 +57,14 @@ def check_placeholders(base, target):
 def check_whitespace_and_empty(base, target):
     problems = []
     for key, val in target.items():
-        if not isinstance(val, str):
-            continue
-        if val != val.strip():
-            problems.append((key, "leading/trailing whitespace in value"))
         base_val = base.get(key)
-        if val.strip() == "" and isinstance(base_val, str) and base_val.strip() != "":
-            problems.append((key, "empty value but base has content"))
+        if isinstance(val, str):
+            if val != val.strip():
+                problems.append((key, "leading/trailing whitespace in value"))
+            if val.strip() == "" and isinstance(base_val, str) and base_val.strip() != "":
+                problems.append((key, "empty value but base has content"))
+        elif isinstance(base_val, str) and base_val.strip() != "":
+            problems.append((key, f"null/non-string value ({val!r}) but base has content"))
     if problems:
         print(f"WHITESPACE/EMPTY ISSUES ({len(problems)}):")
         for key, issue in problems:
@@ -88,6 +89,20 @@ def check_raw_line_trailing_whitespace(path):
         print("Raw line trailing-whitespace check OK")
 
 
+def _meaningful_words(text):
+    """Words worth comparing. ASCII words shorter than 5 chars are dropped as
+    likely function words (the/of/in/...). Non-ASCII words are kept at any
+    length: unspaced scripts (CJK) tokenize a whole phrase as one run, and
+    many languages' words for "navigation" are short (e.g. 2 Hangul/Hanzi
+    characters), so the ASCII stopword heuristic doesn't transfer."""
+    words = set()
+    for w in WORD_RE.findall(text):
+        if w.isascii() and len(w) < 5:
+            continue
+        words.add(w.lower())
+    return words
+
+
 def check_navigation_landmark_rule(target):
     """Language-agnostic heuristic for quarto's accessibility rule: values for
     navigation-*-label keys must not contain the language's word for
@@ -100,14 +115,21 @@ def check_navigation_landmark_rule(target):
     if not isinstance(reference, str):
         print("Navigation-landmark check skipped: no `toggle-navigation` key found")
         return
-    reference_words = {w.lower() for w in WORD_RE.findall(reference) if len(w) >= 5}
+    reference_words = _meaningful_words(reference)
+    if not reference_words:
+        print("Navigation-landmark check skipped: no meaningful words found in `toggle-navigation` value")
+        return
     label_keys = [k for k in target if re.match(r"^navigation-.*-label$", k)]
     flagged = []
+    skipped = []
     for key in label_keys:
         val = target.get(key)
         if not isinstance(val, str):
             continue
-        val_words = {w.lower() for w in WORD_RE.findall(val) if len(w) >= 5}
+        val_words = _meaningful_words(val)
+        if not val_words:
+            skipped.append(key)
+            continue
         shared = {
             w
             for w in val_words
@@ -122,7 +144,10 @@ def check_navigation_landmark_rule(target):
             print(f"  {key} = {val!r} shares {shared} with toggle-navigation = {reference!r}")
         print("  (heuristic, not certain — confirm against the accessibility rule comment in _language.yml)")
     else:
-        print(f"Navigation-landmark check OK ({len(label_keys)} label keys checked)")
+        checked = len(label_keys) - len(skipped)
+        print(f"Navigation-landmark check OK ({checked} label keys checked)")
+    if skipped:
+        print(f"  Skipped {len(skipped)} label(s) with no meaningful words to compare: {skipped}")
 
 
 def main():

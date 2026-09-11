@@ -4,7 +4,7 @@ Only relevant if a translation MCP (e.g. `mcp__lara-translate__translate`) is co
 
 ## Running it
 
-Batch the changed strings both directions in one call each — `source→target` (back-translation, checked against the base English meaning) and `target→source` (forward, checked against the contributor's actual value). Always set the `context` parameter to describe the domain, e.g.:
+Batch the changed strings both directions in one call each — `source→target` (forward translation, checked against the contributor's actual value) and `target→source` (back-translation, checked against the base English meaning). Always set the `context` parameter to describe the domain, e.g.:
 
 > "Short UI labels from a documentation/publishing software's interface (button labels, navigation landmarks, tooltips, accessibility labels)"
 
