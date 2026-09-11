@@ -125,6 +125,7 @@ def check_navigation_landmark_rule(target):
     for key in label_keys:
         val = target.get(key)
         if not isinstance(val, str):
+            skipped.append(key)
             continue
         val_words = _meaningful_words(val)
         if not val_words:
