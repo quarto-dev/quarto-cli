@@ -1,0 +1,14 @@
+project:
+  type: book
+
+book:
+  title: "Announcement Book"
+  announcement:
+    content: "Some information you should pay attention to"
+    type: primary
+  chapters:
+    - index.qmd
+
+format:
+  html:
+    theme: cosmo

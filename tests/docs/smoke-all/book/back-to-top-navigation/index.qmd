@@ -1,0 +1,13 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'a#quarto-back-to-top[role="button"]'
+---
+
+# Preface {.unnumbered}
+
+`back-to-top-navigation` under the `book` key must add the back to top control
+to the book website output.
