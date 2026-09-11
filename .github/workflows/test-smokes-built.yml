@@ -19,7 +19,7 @@ on:
           - release
         default: build
       buckets:
-        description: "Optional JSON list of test buckets/globs for a partial run (e.g. the ff-matrix bucket); empty = full smoke run"
+        description: "Optional JSON list of test buckets/globs for a partial smoke run (e.g. [\"integration/playwright-tests.test.ts\"]); empty runs the full smoke suite plus the separate ff-matrix and Playwright legs"
         required: false
         type: string
         default: ""
