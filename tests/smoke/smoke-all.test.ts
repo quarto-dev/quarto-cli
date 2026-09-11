@@ -393,6 +393,22 @@ const renderedProjects: Set<string> = new Set();
 // To store information of all the project we render so that we can cleanup after testing
 const testedProjects: Set<string> = new Set();
 
+// Website listing pages re-render whenever a sibling content file renders (see
+// listingSupplementalFiles in website-listing.ts), reading that sibling's
+// already-rendered HTML to resolve description/preview-image placeholders.
+// Deleting a file's own output immediately after its own test would race that
+// cross-file read for any sibling tested later in the same project. So for
+// files inside a project, cleanup is deferred (per (input, format) entry
+// below) until every file in that project has finished testing, instead of
+// running right after each file's own test.
+const projectCleanupEntries: Map<
+  string,
+  Array<{ input: string; format: string; metadata: Record<string, any> }>
+> = new Map();
+// The promise for each file's tests, grouped by the project it belongs to, so
+// we know when a given project's own files are all done (see above).
+const projectFilePromises: Map<string, Promise<void>[]> = new Map();
+
 // Create an array to hold all the promises for the tests of files
 let testFilesPromises = [];
 
@@ -438,7 +454,7 @@ for (const { path: fileName } of files) {
       renderedProjects.add(projectPath);
     }
 
-  testFilesPromises.push(new Promise<void>(async (resolve, reject) => {
+  const fileTestsPromise = new Promise<void>(async (resolve, reject) => {
     try {
 
       // Create an array to hold all the promises for the testSpecs
@@ -469,7 +485,18 @@ for (const { path: fileName } of files) {
                   return Promise.resolve(true);
                 },
                 teardown: () => {
-                  cleanoutput(input, format, undefined, undefined, metadata);
+                  // Standalone files (no project) have no sibling that could
+                  // need this output later, so clean up immediately. Project
+                  // files are cleaned once the whole project is done testing
+                  // (see projectCleanupEntries above).
+                  if (projectPath) {
+                    if (!projectCleanupEntries.has(projectPath)) {
+                      projectCleanupEntries.set(projectPath, []);
+                    }
+                    projectCleanupEntries.get(projectPath)!.push({ input, format, metadata });
+                  } else {
+                    cleanoutput(input, format, undefined, undefined, metadata);
+                  }
                   postRenderCleanup()
                   testSpecResolve(); // Resolve the promise for the testSpec
                   return Promise.resolve();
@@ -492,17 +519,28 @@ for (const { path: fileName } of files) {
     } catch (error) {
       reject(error);
     }
-  }));
+  });
+  testFilesPromises.push(fileTestsPromise);
+  if (projectPath) {
+    if (!projectFilePromises.has(projectPath)) {
+      projectFilePromises.set(projectPath, []);
+    }
+    projectFilePromises.get(projectPath)!.push(fileTestsPromise);
+  }
 }
 
-// Wait for all the promises to resolve
-// Meaning all the files have been tested and we can clean
-Promise.all(testFilesPromises).then(() => {
-  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
-    return;
-  }
-  // Clean up any projects that were tested
-  for (const project of testedProjects) {
+// For each tested project, wait only for that project's own files to finish
+// testing (not the whole smoke-all suite) before cleaning it up: run the
+// deferred per-file cleanoutput calls, then remove the project's output
+// directory and hidden .quarto scratch, same as before.
+for (const project of testedProjects) {
+  Promise.all(projectFilePromises.get(project) ?? []).then(() => {
+    if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+      return;
+    }
+    for (const entry of projectCleanupEntries.get(project) ?? []) {
+      cleanoutput(entry.input, entry.format, undefined, undefined, entry.metadata);
+    }
     // Clean project output directory
     const projectOutDir = join(project, findProjectOutputDir(project));
     if (projectOutDir !== project && safeExistsSync(projectOutDir)) {
@@ -513,8 +551,8 @@ Promise.all(testFilesPromises).then(() => {
     if (safeExistsSync(hiddenQuarto)) {
       safeRemoveSync(hiddenQuarto, { recursive: true });
     }
-  }
-}).catch((_error) => {});
+  }).catch((_error) => {});
+}
 
 function findRootTestsProjectDir(input: string) {
   const smokeAllRootDir = 'smoke-all$'
