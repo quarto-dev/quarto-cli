@@ -26,14 +26,26 @@ local lu = require('luaunit')
 
 TestQuartoVersionRepr = {}
 
+-- Optional: when the `expected-version` filter param is set, assert the
+-- concatenated value exactly, not just that concat() didn't crash. Catches
+-- silent truncation (e.g. a fixed-arity extraction pattern dropping a 4th
+-- dotted component) that a crash-only check would miss.
+local expectedVersion = param('expected-version', nil)
+
 function TestQuartoVersionRepr:testVersionConcatWorks()
-  local ok, err = pcall(table.concat, quarto.version, '.')
-  lu.assertTrue(ok, 'table.concat(quarto.version, ".") failed: ' .. tostring(err))
+  local ok, result = pcall(table.concat, quarto.version, '.')
+  lu.assertTrue(ok, 'table.concat(quarto.version, ".") failed: ' .. tostring(result))
+  if expectedVersion then
+    lu.assertEquals(result, expectedVersion)
+  end
 end
 
 function TestQuartoVersionRepr:testConfigVersionConcatWorks()
-  local ok, err = pcall(table.concat, quarto.config.version(), '.')
-  lu.assertTrue(ok, 'table.concat(quarto.config.version(), ".") failed: ' .. tostring(err))
+  local ok, result = pcall(table.concat, quarto.config.version(), '.')
+  lu.assertTrue(ok, 'table.concat(quarto.config.version(), ".") failed: ' .. tostring(result))
+  if expectedVersion then
+    lu.assertEquals(result, expectedVersion)
+  end
 end
 
 function Pandoc(doc)

@@ -35,20 +35,33 @@ const LUA_PATH = [join(unitLuaDir, "?.lua"), ""].join(";") + ";";
 
 // A plain dotted-integer version parses fine under pandoc.types.Version --
 // this case must keep working (regression guard for the normal case). The
-// other two are strings pandoc.types.Version's parser rejects: a
-// build-metadata suffix (as CI's test-smokes-built.yml stamps via
-// QUARTO_FORCE_VERSION, and as a distro packager might append) and a
-// version with no leading digit at all.
-const VERSION_STRINGS: Record<string, string> = {
-  "plain numeric version": "1.9.13",
-  "build-metadata suffixed version": "1.9.13+test.20260910",
-  "non-numeric version": "unknown",
+// four-component case guards against a fixed-arity extraction silently
+// truncating a version with more components than it hard-codes. The other
+// two are strings pandoc.types.Version's parser rejects: a build-metadata
+// suffix (as CI's test-smokes-built.yml stamps via QUARTO_FORCE_VERSION, and
+// as a distro packager might append) and a version with no leading digit at
+// all.
+const VERSION_CASES: Record<string, { input: string; expected: string }> = {
+  "plain numeric version": { input: "1.9.13", expected: "1.9.13" },
+  "four-component version": { input: "1.2.3.4", expected: "1.2.3.4" },
+  "build-metadata suffixed version": {
+    input: "1.9.13+test.20260910",
+    expected: "1.9.13",
+  },
+  "non-numeric version": { input: "unknown", expected: "0" },
 };
 
-for (const [label, versionString] of Object.entries(VERSION_STRINGS)) {
+for (
+  const [label, { input: versionString, expected }] of Object.entries(
+    VERSION_CASES,
+  )
+) {
   unitTest(`quarto-version-repr > ${label}`, async () => {
     const filterParams = encodeBase64(
-      JSON.stringify({ "quarto-version": versionString }),
+      JSON.stringify({
+        "quarto-version": versionString,
+        "expected-version": expected,
+      }),
     );
     const result = await execProcess(
       {

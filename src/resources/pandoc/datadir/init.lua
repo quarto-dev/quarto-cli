@@ -675,6 +675,32 @@ local function outputFile()
    end
 end
 
+-- Walks `s` from the start, collecting dot-separated runs of digits (e.g.
+-- "1.9.13" out of "1.9.13+test.20260910", or "1.2.3.4" unchanged). Lua
+-- patterns can't express "one or more repeated groups", so this is done by
+-- hand rather than a fixed-arity chain of %d+%.%d+... alternatives, which
+-- would silently truncate any version with more components than the chain
+-- hard-codes.
+local function leadingDottedNumber(s)
+   local parts = {}
+   local i = 1
+   while true do
+      local numStart, numEnd = s:find('^%d+', i)
+      if not numStart then break end
+      table.insert(parts, s:sub(numStart, numEnd))
+      i = numEnd + 1
+      if s:sub(i, i) == '.' then
+         i = i + 1
+      else
+         break
+      end
+   end
+   if #parts == 0 then
+      return nil
+   end
+   return table.concat(parts, '.')
+end
+
 local function version()
    local versionString = param('quarto-version', 'unknown')
    -- pandoc.types.Version's dotted-integer parser rejects semver build
@@ -683,10 +709,7 @@ local function version()
    -- that construction always succeeds and this always returns a Version
    -- object -- callers (e.g. table.concat(quarto.version, '.')) must not
    -- have to handle a plain string fallback.
-   local numericVersion = versionString:match('^(%d+%.%d+%.%d+)')
-      or versionString:match('^(%d+%.%d+)')
-      or versionString:match('^(%d+)')
-      or '0'
+   local numericVersion = leadingDottedNumber(versionString) or '0'
    local success, versionObject = pcall(pandoc.types.Version, numericVersion)
    if success then
       return versionObject
