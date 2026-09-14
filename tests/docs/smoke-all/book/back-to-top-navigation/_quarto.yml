@@ -1,0 +1,12 @@
+project:
+  type: book
+
+book:
+  title: "Back To Top Book"
+  back-to-top-navigation: true
+  chapters:
+    - index.qmd
+
+format:
+  html:
+    theme: cosmo
