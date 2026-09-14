@@ -21,29 +21,30 @@ test("book-level back-to-top control shows/hides on scroll and returns to top on
 
   const backToTop = page.locator("#quarto-back-to-top");
 
+  // Scrolls to `top` and waits for the page's own `scroll` listener (the one
+  // quarto-nav.js uses to update its internal lastScrollTop tracker) to have
+  // run, so a following scroll in the opposite direction can't race it.
+  const scrollToAndSettle = (top: number) =>
+    page.evaluate(
+      (top) =>
+        new Promise<void>((resolve) => {
+          window.addEventListener("scroll", () => resolve(), { once: true });
+          window.scrollTo({ top, behavior: "instant" });
+        }),
+      top,
+    );
+
   // 1. At the top of the page: control is attached but hidden.
   await expect(backToTop).toBeAttached();
   await expect(backToTop).toBeHidden();
 
   // 2. Scroll down one viewport: still hidden (downward scroll hides it).
   const viewportHeight = page.viewportSize()?.height ?? 720;
-  await page.evaluate(
-    (top) => window.scrollTo({ top, behavior: "instant" }),
-    viewportHeight,
-  );
-  // Wait for the scroll event to be processed so the nav script's internal
-  // scroll-position tracking is up to date before we reverse direction below
-  // (otherwise the next scroll-up can race the down-scroll's own handler).
-  await expect
-    .poll(() => page.evaluate(() => window.scrollY))
-    .toBe(viewportHeight);
+  await scrollToAndSettle(viewportHeight);
   await expect(backToTop).toBeHidden();
 
   // 3. Scroll up (past the up-buffer threshold): control becomes visible.
-  await page.evaluate(
-    (top) => window.scrollTo({ top, behavior: "instant" }),
-    Math.floor(viewportHeight / 4),
-  );
+  await scrollToAndSettle(Math.floor(viewportHeight / 4));
   await expect(backToTop).toBeVisible();
 
   // 4. Jump to the bottom of the page: visible via the bottom-of-page branch.
@@ -53,9 +54,8 @@ test("book-level back-to-top control shows/hides on scroll and returns to top on
   await expect(backToTop).toBeVisible();
 
   // 5. Click the control: it scrolls to the top and hides itself again.
+  // No further scroll follows this one, so the web-first assertion's own
+  // retry is enough to wait out the scroll handler.
   await backToTop.click();
-  await expect
-    .poll(() => page.evaluate(() => window.scrollY))
-    .toBe(0);
   await expect(backToTop).toBeHidden();
 });

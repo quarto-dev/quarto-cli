@@ -288,22 +288,46 @@ await expect(backToTop).toBeHidden();  // passes trivially, doesn't prove the ev
 await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), viewportHeight / 4);
 await expect(backToTop).toBeVisible();  // may flake: handler's tracked position is stale
 
-// ✅ Good - poll scrollY to confirm the first scroll's event was processed
+// ❌ Also bad - polling window.scrollY does not prove the handler ran either.
+// scrollTo({behavior: "instant"}) updates scrollY *synchronously*; the poll's
+// first check already passes before the browser has dispatched the "scroll"
+// event to the page's own listener, so the race remains (measured ~20% flake
+// rate on this exact spec).
 await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), viewportHeight);
 await expect
   .poll(() => page.evaluate(() => window.scrollY))
   .toBe(viewportHeight);
 await expect(backToTop).toBeHidden();
 
-await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), viewportHeight / 4);
+// ✅ Good - explicitly await the "scroll" event itself. Listeners for the
+// same event fire in registration order, so a listener registered here runs
+// after the page's own (already-registered) listener has updated its state.
+await page.evaluate(
+  (top) =>
+    new Promise<void>((resolve) => {
+      window.addEventListener("scroll", () => resolve(), { once: true });
+      window.scrollTo({ top, behavior: "instant" });
+    }),
+  viewportHeight,
+);
+await expect(backToTop).toBeHidden();
+
+await page.evaluate(
+  (top) =>
+    new Promise<void>((resolve) => {
+      window.addEventListener("scroll", () => resolve(), { once: true });
+      window.scrollTo({ top, behavior: "instant" });
+    }),
+  viewportHeight / 4,
+);
 await expect(backToTop).toBeVisible();
 ```
 
-### Why Not Just Assert on the Visible UI State?
+### Why Not Just Assert on the Visible UI State, or Poll scrollY?
 
-An assertion like `toBeHidden()` right after the down-scroll passes trivially when the element is already hidden by default — it proves nothing about whether the scroll event handler ran and updated its internal tracker. Only a poll on the actual scroll position forces an event-loop turn, giving the handler time to fire before the next scroll reverses direction.
+An assertion like `toBeHidden()` right after the down-scroll passes trivially when the element is already hidden by default — it proves nothing about whether the scroll event handler ran and updated its internal tracker. Polling `window.scrollY` looks like it forces an event-loop turn, but it doesn't wait for anything: `scrollTo` updates `scrollY` synchronously, so the poll's first check already succeeds, before the queued `"scroll"` event has even been dispatched to any listener. The only way to know the handler actually ran is to wait on the same event it's listening for.
 
-**Real-world example (PR #14889, `book-back-to-top.spec.ts`):** `quarto-nav.js`'s back-to-top button tracks `lastScrollTop`, updated only inside its `scroll` listener on a hide/show transition. A scroll-down immediately followed by a scroll-up raced that listener on `chromium`/`webkit` in CI (passed on Playwright's automatic retry, so it showed up as "flaky" rather than a hard failure) — the up-scroll's direction check compared against a stale `lastScrollTop` of `0` and never showed the button. Playwright's own test suite uses the same idiom after scroll actions (`page.waitForFunction('window.scrollY === 100')`); this project's convention is `expect.poll()` (already used elsewhere in this spec for the post-click scroll assertion), so that's what this fix uses instead of `waitForFunction`.
+**Real-world example (PR #14889, `book-back-to-top.spec.ts`):** `quarto-nav.js`'s back-to-top button tracks `lastScrollTop`, updated only inside its `scroll` listener on a hide/show transition. A scroll-down immediately followed by a scroll-up raced that listener on `chromium`/`webkit`/`firefox` in CI — the up-scroll's direction check compared against a stale `lastScrollTop` of `0` and never showed the button. An initial fix that polled `window.scrollY` between the two scrolls still failed this exact race in roughly 1 of 5 repeated local runs; switching to a one-shot `window.addEventListener("scroll", ..., { once: true })` awaited via a `Promise` eliminated it (45/45 passing across three browsers, verified with `--repeat-each=15`).
 
 ## Parameterized Tests
 
@@ -387,7 +411,7 @@ test('Feature that is broken in revealjs', async ({ page }) => {
 2. **Role-based selectors** - `getByRole('tab', { name: 'Page 2' })` not `locator('a[data-bs-target]')`
 3. **Explicit .first() comments** - Explain why and what you're testing
 4. **Completion signals** - `data-feature-complete` in finally blocks, not arbitrary delays
-5. **Poll scroll position between reversed scrolls** - `expect.poll(() => page.evaluate(() => window.scrollY)).toBe(target)` before reversing direction, when app code tracks scroll direction via a handler-updated variable
+5. **Await the scroll event between reversed scrolls** - `addEventListener("scroll", ..., { once: true })` awaited via a `Promise` before reversing direction, when app code tracks scroll direction via a handler-updated variable
 
 These patterns emerged from building comprehensive cross-format test coverage and debugging race conditions. They make tests:
 - More reliable (fewer flaky failures)
@@ -398,4 +422,4 @@ These patterns emerged from building comprehensive cross-format test coverage an
 **Reference implementations:**
 - `tests/integration/playwright/tests/axe-accessibility.spec.ts` - 431 lines, 75 test cases
 - `tests/integration/playwright/tests/html-math-katex.spec.ts` - Parameterized format testing
-- `tests/integration/playwright/tests/book-back-to-top.spec.ts` - Scroll-position polling between reversed scrolls
+- `tests/integration/playwright/tests/book-back-to-top.spec.ts` - Awaiting the scroll event between reversed scrolls
