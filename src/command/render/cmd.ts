@@ -37,7 +37,7 @@ export const renderCommand = new Command()
   )
   .option(
     "--output-dir",
-    "Write output to DIR (path is input/project relative)",
+    "Write output to DIR, which is first deleted (path is input/project relative)",
   )
   .option(
     "-M, --metadata",
@@ -89,7 +89,7 @@ export const renderCommand = new Command()
   )
   .option(
     "--no-clean",
-    "Do not clean project output-dir prior to render",
+    "Do not delete output-dir prior to render",
   )
   .option(
     "--debug",
