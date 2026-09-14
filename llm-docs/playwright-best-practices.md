@@ -288,38 +288,23 @@ await expect(backToTop).toBeHidden();  // passes trivially, doesn't prove the ev
 await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), viewportHeight / 4);
 await expect(backToTop).toBeVisible();  // may flake: handler's tracked position is stale
 
-// ❌ Also bad - polling window.scrollY does not prove the handler ran either.
-// scrollTo({behavior: "instant"}) updates scrollY *synchronously*; the poll's
-// first check already passes before the browser has dispatched the "scroll"
-// event to the page's own listener, so the race remains (measured ~20% flake
-// rate on this exact spec).
+// ❌ Also bad - polling window.scrollY doesn't prove the handler ran.
+// scrollTo({behavior: "instant"}) updates scrollY synchronously, before the
+// "scroll" event even dispatches, so the poll's first check passes for free.
 await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), viewportHeight);
 await expect
   .poll(() => page.evaluate(() => window.scrollY))
   .toBe(viewportHeight);
 await expect(backToTop).toBeHidden();
 
-// ✅ Good - explicitly await the "scroll" event itself. Listeners for the
-// same event fire in registration order, so a listener registered here runs
-// after the page's own (already-registered) listener has updated its state.
-await page.evaluate(
-  (top) =>
-    new Promise<void>((resolve) => {
-      window.addEventListener("scroll", () => resolve(), { once: true });
-      window.scrollTo({ top, behavior: "instant" });
-    }),
-  viewportHeight,
-);
+// ✅ Good - await the "scroll" event itself via a small helper (see
+// `scrollToAndSettle` in book-back-to-top.spec.ts). Listeners for the same
+// event fire in registration order, so a listener registered here always
+// runs after the page's own already-registered listener.
+await scrollToAndSettle(viewportHeight);
 await expect(backToTop).toBeHidden();
 
-await page.evaluate(
-  (top) =>
-    new Promise<void>((resolve) => {
-      window.addEventListener("scroll", () => resolve(), { once: true });
-      window.scrollTo({ top, behavior: "instant" });
-    }),
-  viewportHeight / 4,
-);
+await scrollToAndSettle(viewportHeight / 4);
 await expect(backToTop).toBeVisible();
 ```
 
