@@ -1,0 +1,22 @@
+.sc-carret {
+  font-family: "Courier New", Courier, monospace;
+  opacity: 0.7;
+  float: right;
+  cursor: pointer;
+  transform: rotate(-90deg);
+  transition: transform 0.15s ease;
+  user-select: none;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &.closed {
+    transform: rotate(0deg);
+  }
+}
+
+/* section:not(.cell-output):has(h1, h2, h3, h4, h5, h6 > div.sc-carret.closed) > :not(:first-child) */
+section:not(.cell-output):has(> :is(h1,h2,h3,h4,h5,h6) > div.sc-carret.closed)> :not(:first-child) {
+  display: none;
+}

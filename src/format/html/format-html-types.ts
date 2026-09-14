@@ -15,6 +15,7 @@ export interface HtmlFormatFeatureDefaults {
   figResponsive?: boolean;
   codeAnnotations?: boolean;
   hoverXrefs?: boolean;
+  sectionCollapse?: boolean | 'closed';
 }
 
 export interface HtmlFormatTippyOptions {

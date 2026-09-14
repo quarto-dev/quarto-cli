@@ -87,6 +87,7 @@ import {
   kXrefsHover,
   quartoBaseLayer,
   quartoGlobalCssVariableRules,
+  kSectionCollapse,
 } from "./format-html-shared.ts";
 import {
   kSiteUrl,
@@ -327,6 +328,13 @@ export async function htmlFormatExtras(
     options.hoverFootnotes = format.metadata[kFootnotesHover] || false;
   }
 
+  if (featureDefaults.sectionCollapse) {
+    options.sectionCollapse = format.metadata[kSectionCollapse] !== false;
+  } else {
+    options.sectionCollapse = format.metadata[kSectionCollapse] || false;
+  }
+  options.sectionCollapseClosed = format.metadata[kSectionCollapse] === 'closed';
+
   // Books don't currently support hover xrefs (since the content to preview in the xref
   // is likely to be on another page and we don't want to do a full fetch of that page
   // to get the preview)
@@ -411,6 +419,14 @@ export async function htmlFormatExtras(
       name: "popper.min.js",
       path: formatResourcePath("html", join("popper", "popper.min.js")),
     });
+  }
+
+  // sectionCollapse if required
+  if (options.sectionCollapse) {
+    stylesheets.push({
+      name: "sectionCollapse.css",
+      path: formatResourcePath("html", "sectionCollapse.css"),
+    })
   }
 
   // tippy if required
