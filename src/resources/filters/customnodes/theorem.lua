@@ -50,6 +50,16 @@ theorem_types = {
     style = "plain",
     title = "Algorithm"
   },
+  axm = {
+    env = "axiom",
+    style = "definition",
+    title = "Axiom"
+  },
+  asp = {
+    env = "assumption",
+    style = "definition",
+    title = "Assumption"
+  },
 }
 
 function has_theorem_ref(el)
