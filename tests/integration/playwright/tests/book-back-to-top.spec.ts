@@ -31,6 +31,12 @@ test("book-level back-to-top control shows/hides on scroll and returns to top on
     (top) => window.scrollTo({ top, behavior: "instant" }),
     viewportHeight,
   );
+  // Wait for the scroll event to be processed so the nav script's internal
+  // scroll-position tracking is up to date before we reverse direction below
+  // (otherwise the next scroll-up can race the down-scroll's own handler).
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBe(viewportHeight);
   await expect(backToTop).toBeHidden();
 
   // 3. Scroll up (past the up-buffer threshold): control becomes visible.
