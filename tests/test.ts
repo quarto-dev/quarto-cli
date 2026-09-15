@@ -26,20 +26,22 @@ import { isWindows } from "../src/deno_ral/platform.ts";
 import {
   AnnotationBudget,
   annotationBody,
+  appendStepSummaryBounded,
+  appendStepSummaryFirstFit,
   excerptSignature,
   type FailureCluster,
   failureLabel,
   error as ghError,
   harnessOwnsStep,
   isGitHubActions,
-  kStepSummaryBudgetBytes,
-  stepSummary,
-  stepSummarySize,
+  kExcerptMaxBytes,
   stripAnsi,
   summaryClusterBlock,
   summaryTableHeader,
   summaryTableRow,
   summaryTableRowNameOnly,
+  type SummaryRowOutcome,
+  truncateUtf8Bytes,
 } from "../src/tools/github.ts";
 import {
   closeTestFileGroup,
@@ -57,6 +59,10 @@ import {
 // per-STEP (the annotation budget) is coordinated through a sidecar file
 // inside AnnotationBudget instead of module state.
 const kExcerptLines = 20;
+// Lines reserved after a capped primary message when a teardown/cleanup
+// failure will also be reported: the blank separator, the banner, and at
+// least the first line of the secondary message (see reportFailure).
+const kFinallyReservedLines = 3;
 const annotationBudget = new AnnotationBudget();
 // Per-file header flag: each failing test file starts its own summary table.
 let summaryHeaderEmitted = false;
@@ -86,11 +92,12 @@ if (isGitHubActions()) {
     // unless the harness owns the step.
     closeTestFileGroup();
     // Flush this file's clustered detail blocks after its row table (one
-    // block per signature), stopping if the shared summary file crosses the
-    // size budget.
+    // block per signature), stopping the moment one no longer fits — a
+    // cluster queued while writing rows can still be dropped here if later
+    // files' content used up the shared budget in between; that case is not
+    // knowable at queue time (see the `SummaryRowOutcome` doc).
     for (const cluster of pendingClusters.values()) {
-      if (stepSummarySize() > kStepSummaryBudgetBytes) break;
-      stepSummary(summaryClusterBlock(cluster));
+      if (!appendStepSummaryBounded(summaryClusterBlock(cluster))) break;
     }
   });
 }
@@ -130,7 +137,8 @@ export interface TestContext {
 
   // Checks that prereqs for the test are met (async conditional skip)
   // - Returns false: Test is SKIPPED with warning message (not failed)
-  // - Throws/rejects: Test is SKIPPED (initialization failed gracefully)
+  // - Throws/rejects: Test FAILS (propagates to the outer catch as the
+  //   primary failure, same as any other lifecycle error)
   // Use cases:
   //   - Tool availability checks (e.g., which("rsvg-convert"))
   //   - Initialization that might fail (e.g., schema loading)
@@ -300,13 +308,30 @@ export function unitTest(
 // (fromFileUrl on Windows, URL pathname elsewhere) and the tests-relative path
 // (run-tests.sh runs from tests/). Used both to open the per-file GitHub
 // Actions group at the start of fn and to build the repro command on failure.
-function testFileFromOrigin(origin: string): {
+//
+// The tests-relative path is anchored on QUARTO_BIN_PATH, which run-tests.sh
+// and run-tests.ps1 always set - but a bare `deno test` invocation (e.g. a CI
+// job that skips those wrappers) leaves it unset, and resolveBinPath() throws.
+// This now runs at test registration (module-eval) time, not just on
+// failure, so that throw can't be allowed to take down the whole file's
+// registration: fall back to a path relative to the current directory, which
+// is `tests/` for every supported invocation. resolveBinPath is a parameter
+// (not called directly) so the fallback is unit-testable without an env var.
+export function testFileFromOrigin(
+  origin: string,
+  resolveBinPath: () => string = quartoConfig.binPath,
+): {
   absPath: string;
   relPath: string;
 } {
   const absPath = isWindows ? fromFileUrl(origin) : (new URL(origin)).pathname;
-  const quartoRoot = join(quartoConfig.binPath(), "..", "..", "..");
-  const relPath = relative(join(quartoRoot, "tests"), absPath);
+  let relPath: string;
+  try {
+    const quartoRoot = join(resolveBinPath(), "..", "..", "..");
+    relPath = relative(join(quartoRoot, "tests"), absPath);
+  } catch {
+    relPath = relative(Deno.cwd(), absPath);
+  }
   return { absPath, relPath };
 }
 
@@ -314,14 +339,265 @@ function testFileFromOrigin(origin: string): {
 // there is no context.origin yet, by walking the current call stack (Phase
 // 2.1). testFileUrlFromStack picks the first `.test.ts` frame — the file whose
 // top-level test() call is running — and testFileFromOrigin turns that URL into
-// the tests-relative forward-slash path. Returns undefined when the stack
-// cannot be parsed; the body-time enterTestFileGroup(origin) then opens (or
-// transitions to) the correct group, so a missed guess is only a lost early
-// open, never a wrong or duplicated group.
+// the tests-relative forward-slash path. A stack-parse failure (undefined) is
+// only a lost early open: the body-time enterTestFileGroup(origin) still opens
+// (or transitions to) the correct group from the authoritative context.origin.
+// A stack-parse success that resolves to the wrong `.test.ts` frame (e.g. a
+// helper module coincidentally named with that suffix) opens the group under
+// the wrong title until that same body-time enter corrects it.
 function testFileFromStack(): string | undefined {
   const url = testFileUrlFromStack(new Error().stack);
   if (url === undefined) return undefined;
   return testFileFromOrigin(url).relPath.replaceAll("\\", "/");
+}
+
+// Separates a teardown failure from the primary failure it landed on top of.
+// Appears in the thrown error's message, in the annotation excerpt and in the
+// step-summary detail block, so all three name both failures.
+const kTeardownBanner = "TEARDOWN ALSO FAILED:";
+
+// A log-file removal or logger-cleanup error must not be reported as
+// "teardown also failed" - that would send the reader to the wrong code.
+// Distinct banner, same shape.
+const kCleanupBanner = "CLEANUP ALSO FAILED:";
+
+function bannerFor(phase: "teardown" | "cleanup"): string {
+  return phase === "teardown" ? kTeardownBanner : kCleanupBanner;
+}
+
+// Normalize an arbitrary thrown value - a test can throw a string or a plain
+// object - into the message/stack pair every reporting path needs. Same shape
+// the binary-mode execute handler already uses.
+function describeThrow(value: unknown): { message: string; stack: string } {
+  if (value instanceof Error) {
+    return { message: value.message, stack: value.stack ?? "" };
+  }
+  return { message: String(value), stack: "" };
+}
+
+// A captured throw, boxed so a thrown `undefined` is still a failure. `phase`
+// records whether it came from teardown or from one of the cleanup steps
+// (safeRemoveSync/cleanupLogOnce) that run just before it, so callers can
+// report the right banner for each.
+interface Thrown {
+  value: unknown;
+  phase: "teardown" | "cleanup";
+}
+
+// The primary failure plus whatever the execute/verify path captured for it.
+// A lifecycle failure (initDenoDom, prereq, logger init) has the error only.
+interface PrimaryFailure {
+  value: unknown;
+  message: string;
+  stack: string;
+  logMessages?: ExecuteOutput[];
+}
+
+// Everything reportFailure needs that is not an error.
+interface FailureContext {
+  // Deno test name: the annotation title and the summary row's Test cell.
+  testName: string;
+  // Deno's per-test declaring-file URL, resolved to the repro/annotation path.
+  origin: string;
+  // performance.now() at the start of the test body.
+  testStart: number;
+}
+
+// Emit this failure's GitHub Actions records: the step-summary row (all CI
+// modes) and, when the harness owns the step, the ::error annotation. Called
+// exactly once per failing test, from the outer catch - the one place every
+// failure passes through - and only after teardown, so a teardown failure is
+// part of the same record. No-op off CI.
+//
+// Best-effort by construction: an exception is already in flight whenever
+// this runs, so nothing in here may replace it.
+function reportFailure(
+  primary: PrimaryFailure | undefined,
+  finallyFailure: Thrown | undefined,
+  ctx: FailureContext,
+): void {
+  if (!isGitHubActions()) return;
+  try {
+    const fwd = (p: string) => p.replaceAll("\\", "/");
+    const { absPath, relPath } = testFileFromOrigin(ctx.origin);
+    const command = isWindows ? "./run-tests.ps1" : "./run-tests.sh";
+    // The repro path is tests-relative (run-tests.sh runs from
+    // tests/); the annotation file= is repo-relative with forward
+    // slashes. For smoke-all doc tests the navigable file is the
+    // rendered document (embedded in the test name by
+    // smoke-all.test.ts), not the harness .test.ts file.
+    let reproPath = fwd(relPath);
+    if (fwd(absPath).endsWith("/smoke/smoke-all.test.ts")) {
+      const m = fwd(ctx.testName).match(
+        /(\S+\.(?:qmd|ipynb|md))(?=\s|$)/,
+      );
+      if (m) {
+        reproPath = m[1];
+      }
+    }
+    const annotationFile = `tests/${reproPath}`;
+    const repro = `${command} ${reproPath}`;
+
+    const rawExcerpt: string[] = [];
+    if (primary) {
+      // When a teardown/cleanup failure will also be reported, reserve
+      // headroom for it in the primary message, by LINES as well as by
+      // BYTES: an unbounded primary message (a base64 data URI, a
+      // serialized document, a long JSON payload) would otherwise push the
+      // banner below out of both the 20-line excerpt and the 5-line
+      // annotation body before the overall byte cap below even runs — but a
+      // primary message with many SHORT lines (each well under the byte
+      // cap) can just as easily push the banner out of the excerpt via the
+      // later line slice alone, without ever tripping the byte cap. The byte
+      // cap runs FIRST, and the line cap runs on its result, because
+      // truncateUtf8Bytes can itself append a "…[truncated]" marker line -
+      // if the line cap ran first, that marker would land on top of the
+      // reserved lines instead of counting against them, one line over
+      // budget. Capping the (already byte-bounded) primary to
+      // kExcerptLines - kFinallyReservedLines lines here reserves room for
+      // the blank separator, the banner, and at least the first line of the
+      // secondary message. This does not protect against the secondary
+      // message ALSO being pathologically huge (in bytes or in lines) -
+      // only the primary one.
+      rawExcerpt.push(
+        finallyFailure
+          ? truncateUtf8Bytes(primary.message, kExcerptMaxBytes / 2)
+            .split("\n")
+            .slice(0, kExcerptLines - kFinallyReservedLines)
+            .join("\n")
+          : primary.message,
+      );
+    }
+    if (finallyFailure) {
+      // Immediately after the primary message, ahead of the stack, so both
+      // the 20-line excerpt and the 5-line annotation body name it.
+      if (rawExcerpt.length > 0) {
+        rawExcerpt.push("");
+      }
+      rawExcerpt.push(
+        bannerFor(finallyFailure.phase),
+        describeThrow(finallyFailure.value).message,
+      );
+    }
+    if (primary?.stack) {
+      rawExcerpt.push(primary.stack);
+    }
+    const logMessages = primary?.logMessages;
+    if (logMessages && logMessages.length > 0) {
+      rawExcerpt.push("OUTPUT:");
+      for (const out of logMessages) {
+        for (const part of out.msg.split("\n")) {
+          rawExcerpt.push("    " + part);
+        }
+      }
+    }
+    // kExcerptLines bounds line COUNT; a single line can still run to
+    // hundreds of KB, so also bound bytes (kExcerptMaxBytes) - otherwise one
+    // failure's excerpt could dominate the shared step-summary budget below.
+    const excerpt = truncateUtf8Bytes(
+      stripAnsi(rawExcerpt.join("\n"))
+        .split("\n")
+        .slice(0, kExcerptLines)
+        .join("\n"),
+      kExcerptMaxBytes,
+    );
+
+    // Record the failure step-wide (sidecar counter) to get its
+    // ordinal, then build the navigation label. This runs for EVERY
+    // CI failure — including orchestrated bucket legs, whose rows
+    // need labels too — because the counter write is a file, not
+    // stdout, so orchestrated stdout stays byte-identical. Only the
+    // emit decisions below are gated on the harness owning the step.
+    const decision = annotationBudget.recordFailure();
+    const label = failureLabel(
+      decision.ordinal,
+      Deno.env.get("RUNNER_OS") ?? "",
+      Deno.env.get("QUARTO_TESTS_GHA_LABEL_TAG") ?? "",
+    );
+
+    // Step-summary row — attempted in ALL modes. Within a test file, its
+    // rows take precedence over its detail blocks
+    // (dev-docs/ci-test-log-grouping-design.md invariant 4), which is why
+    // the row streams here and the blocks wait for unload: try the full row
+    // first, and only degrade to name-only once it no longer fits. appendStepSummaryFirstFit tries both candidates before
+    // deciding whether the truncation notice is warranted — trying the full
+    // row and emitting the notice on refusal (the old sequence) would
+    // consume the notice's reserved headroom before the smaller name-only
+    // candidate got its turn, so a row that would have fit before the
+    // notice could be refused after it.
+    if (!summaryHeaderEmitted) {
+      appendStepSummaryBounded(summaryTableHeader());
+      summaryHeaderEmitted = true;
+    }
+    const durationMs = Math.round(performance.now() - ctx.testStart);
+    const rowIndex = appendStepSummaryFirstFit([
+      summaryTableRow(label, annotationFile, ctx.testName, durationMs),
+      summaryTableRowNameOnly(label, annotationFile, ctx.testName),
+    ]);
+    const rowOutcome: SummaryRowOutcome = rowIndex === 0
+      ? "detail"
+      : rowIndex === 1
+      ? "name-only"
+      : "none";
+    if (rowOutcome === "detail") {
+      // Cluster the detail block by excerpt signature: identical
+      // errors share ONE block, anchored by (and headed with) the
+      // FIRST member's label. Each row keeps its OWN unique label
+      // (matching its annotation title); a non-first member's second
+      // navigation hit is its `- L-Fn ·` line in the cluster's
+      // member list, not a heading. The row already streamed above,
+      // so a mid-file crash still leaves the complete record.
+      const signature = excerptSignature(excerpt);
+      const member = {
+        label,
+        file: annotationFile,
+        testName: ctx.testName,
+        repro,
+      };
+      const existing = pendingClusters.get(signature);
+      if (existing) {
+        existing.members.push(member);
+      } else {
+        pendingClusters.set(signature, {
+          label,
+          members: [member],
+          excerpt,
+        });
+      }
+    }
+    // "name-only": the full row was over budget and the harness degraded to
+    // name-only - no cluster is queued, so this failure's annotation (below)
+    // must not promise a detail block that will never exist.
+    // "none": neither candidate fit - no row at all was recorded, so the
+    // annotation must not name the label as a summary target either.
+
+    // Failure annotation — navigation only, and only when the
+    // harness owns the step. The budget is step-wide (sidecar
+    // counter file — module state is per test FILE, see the scope
+    // warning at the top); the failure that crosses the cap emits
+    // the single aggregate as the step's 10th and last annotation.
+    // The message is trimmed (the full output is in the summary on
+    // the same page) and the title carries the label so annotations
+    // cross-reference their summary entry.
+    if (harnessOwnsStep()) {
+      if (decision.emitAnnotation) {
+        ghError(annotationBody(repro, excerpt, label, rowOutcome), {
+          file: annotationFile,
+          title: `${label} · ${ctx.testName}`,
+        });
+      } else if (decision.emitAggregate) {
+        ghError(
+          "Further test failures are not annotated (GitHub caps " +
+            "annotations per step) — see the step log for " +
+            "the complete list",
+          { title: "More test failures" },
+        );
+      }
+    }
+  } catch {
+    // Reporting is diagnostics. A failing counter or summary write must
+    // never stand in for the failure being reported.
+  }
 }
 
 export function test(test: TestDescriptor) {
@@ -362,8 +638,16 @@ export function test(test: TestDescriptor) {
           testFileFromOrigin(context.origin).relPath.replaceAll("\\", "/"),
         );
       }
+      // Taken before anything can throw, so a lifecycle failure still has a
+      // duration to report.
+      const testStart = performance.now();
+      // Failure state for the whole body: collected here, reported once from
+      // the outer catch, after teardown.
+      let primary: PrimaryFailure | undefined;
+      // Set from either the cleanup steps below or teardown - whichever
+      // throws first - so both still leave exactly one record.
+      let finallyFailure: Thrown | undefined;
       try {
-        const testStart = performance.now();
         await initDenoDom();
         const runTest = !test.context.prereq || await test.context.prereq();
         if (runTest) {
@@ -394,6 +678,9 @@ export function test(test: TestDescriptor) {
             }
           };
           let lastVerify;
+          // The decorated console block for a failure in this scope; thrown
+          // by fail() once teardown has run.
+          let failureOutput: string | undefined;
 
           try {
             // Keep setup and cwd changes inside the cleanup scope.
@@ -453,14 +740,14 @@ export function test(test: TestDescriptor) {
               }
             }
           } catch (ex) {
-            if (!(ex instanceof Error)) throw ex;
-
-            // Pop out of the per-file group BEFORE emitting the ::error
-            // annotation and throwing, so the annotation, the FAILED result
-            // line, and the end-of-run failure detail all land outside any
-            // collapsed group (Phase 2, spike-verified). The next test re-opens
-            // a group with the same file title.
+            // Pop out of the per-file group BEFORE teardown runs and before
+            // the ::error annotation, so teardown output, the annotation, the
+            // FAILED result line, and the end-of-run failure detail all land
+            // outside any collapsed group (Phase 2, spike-verified). The next
+            // test re-opens a group with the same file title.
             closeTestFileGroup();
+
+            const { message, stack } = describeThrow(ex);
 
             const border = "-".repeat(80);
             const coloredName = userSession
@@ -471,8 +758,10 @@ export function test(test: TestDescriptor) {
             const offset = testName.indexOf(">");
 
             // Form the test runner command
-            const { absPath, relPath } = testFileFromOrigin(context.origin);
-            const command = isWindows ? "./run-tests.ps1" : "./run-tests.sh";
+            const { relPath } = testFileFromOrigin(context.origin);
+            const command = isWindows
+              ? "./run-tests.ps1"
+              : "./run-tests.sh";
             const testCommand = `${
               offset > 0 ? " ".repeat(offset + 2) : ""
             }${command} ${relPath}`;
@@ -512,8 +801,8 @@ export function test(test: TestDescriptor) {
               "",
               coloredVerify,
               "",
-              ex.message,
-              ex.stack ?? "",
+              message,
+              stack,
               "",
             ];
 
@@ -527,135 +816,60 @@ export function test(test: TestDescriptor) {
               });
             }
 
-            // GitHub Actions: a failure annotation (navigation) and a
-            // step-summary row (the complete failure record). No-op off CI.
-            if (isGitHubActions()) {
-              const fwd = (p: string) => p.replaceAll("\\", "/");
-              // The repro path is tests-relative (run-tests.sh runs from
-              // tests/); the annotation file= is repo-relative with forward
-              // slashes. For smoke-all doc tests the navigable file is the
-              // rendered document (embedded in the test name by
-              // smoke-all.test.ts), not the harness .test.ts file.
-              let reproPath = fwd(relPath);
-              if (fwd(absPath).endsWith("/smoke/smoke-all.test.ts")) {
-                const m = fwd(testName).match(
-                  /(\S+\.(?:qmd|ipynb|md))(?=\s|$)/,
-                );
-                if (m) {
-                  reproPath = m[1];
-                }
-              }
-              const annotationFile = `tests/${reproPath}`;
-              const repro = `${command} ${reproPath}`;
-
-              const rawExcerpt: string[] = [ex.message];
-              if (ex.stack) {
-                rawExcerpt.push(ex.stack);
-              }
-              if (logMessages && logMessages.length > 0) {
-                rawExcerpt.push("OUTPUT:");
-                for (const out of logMessages) {
-                  for (const part of out.msg.split("\n")) {
-                    rawExcerpt.push("    " + part);
-                  }
-                }
-              }
-              const excerpt = stripAnsi(rawExcerpt.join("\n"))
-                .split("\n")
-                .slice(0, kExcerptLines)
-                .join("\n");
-
-              // Record the failure step-wide (sidecar counter) to get its
-              // ordinal, then build the navigation label. This runs for EVERY
-              // CI failure — including orchestrated bucket legs, whose rows
-              // need labels too — because the counter write is a file, not
-              // stdout, so orchestrated stdout stays byte-identical. Only the
-              // emit decisions below are gated on the harness owning the step.
-              const decision = annotationBudget.recordFailure();
-              const label = failureLabel(
-                decision.ordinal,
-                Deno.env.get("RUNNER_OS") ?? "",
-              );
-
-              // Step-summary row — emitted in ALL modes (cap-free, size-
-              // coordinated via the file). Degrade to name-only once the
-              // shared file is over budget.
-              const overBudget = stepSummarySize() > kStepSummaryBudgetBytes;
-              if (!summaryHeaderEmitted) {
-                stepSummary(summaryTableHeader());
-                summaryHeaderEmitted = true;
-              }
-              if (overBudget) {
-                stepSummary(
-                  summaryTableRowNameOnly(label, annotationFile, testName),
-                );
-              } else {
-                const durationMs = Math.round(performance.now() - testStart);
-                stepSummary(
-                  summaryTableRow(label, annotationFile, testName, durationMs),
-                );
-                // Cluster the detail block by excerpt signature: identical
-                // errors share ONE block, anchored by (and headed with) the
-                // FIRST member's label. Each row keeps its OWN unique label
-                // (matching its annotation title); a non-first member's second
-                // navigation hit is its `- L-Fn ·` line in the cluster's
-                // member list, not a heading. The row already streamed above,
-                // so a mid-file crash still leaves the complete record.
-                const signature = excerptSignature(excerpt);
-                const member = { label, file: annotationFile, testName, repro };
-                const existing = pendingClusters.get(signature);
-                if (existing) {
-                  existing.members.push(member);
-                } else {
-                  pendingClusters.set(signature, {
-                    label,
-                    members: [member],
-                    excerpt,
-                  });
-                }
-              }
-
-              // Failure annotation — navigation only, and only when the
-              // harness owns the step. The budget is step-wide (sidecar
-              // counter file — module state is per test FILE, see the scope
-              // warning at the top); the failure that crosses the cap emits
-              // the single aggregate as the step's 10th and last annotation.
-              // The message is trimmed (the full output is in the summary on
-              // the same page) and the title carries the label so annotations
-              // cross-reference their summary entry.
-              if (harnessOwnsStep()) {
-                if (decision.emitAnnotation) {
-                  ghError(annotationBody(repro, excerpt, label), {
-                    file: annotationFile,
-                    title: `${label} · ${testName}`,
-                  });
-                } else if (decision.emitAggregate) {
-                  ghError(
-                    "Further test failures are not annotated (GitHub caps " +
-                      "annotations per step) — see the step summary for " +
-                      "the complete list",
-                    { title: "More test failures" },
-                  );
-                }
-              }
-            }
-
-            fail(output.join("\n"));
+            primary = { value: ex, message, stack, logMessages };
+            failureOutput = output.join("\n");
           } finally {
-            if (log) {
-              safeRemoveSync(log);
+            // Guarded rather than bare: safeRemoveSync/cleanupLogOnce can
+            // throw (a still-present file after a failed remove; a throwing
+            // logger handler destroy), and a finally step that throws skips
+            // everything after it - teardown would never run, and the cwd
+            // restore below would never run either, leaking the process cwd
+            // into every later test in the file. Captured rather than
+            // propagated for the same reason a teardown throw is: it must
+            // not REPLACE the failure already in flight. First failure in
+            // this block wins the single report slot.
+            try {
+              if (log) {
+                safeRemoveSync(log);
+              }
+            } catch (e) {
+              finallyFailure ??= { value: e, phase: "cleanup" };
             }
-            await cleanupLogOnce();
+            try {
+              await cleanupLogOnce();
+            } catch (e) {
+              finallyFailure ??= { value: e, phase: "cleanup" };
+            }
             // Restore the cwd even when teardown fails.
             try {
               if (test.context.teardown) {
                 await test.context.teardown();
               }
+            } catch (e) {
+              finallyFailure ??= { value: e, phase: "teardown" };
             } finally {
               if (test.context?.cwd) {
                 Deno.chdir(wd);
               }
             }
+          }
+
+          if (failureOutput !== undefined && finallyFailure === undefined) {
+            fail(failureOutput);
+          }
+          if (finallyFailure !== undefined) {
+            if (failureOutput === undefined) {
+              throw finallyFailure.value;
+            }
+            // Both failures as ONE error, so Deno's output, the ::error
+            // annotation and the step-summary row name the same two things.
+            const combined = new AssertionError(
+              `${failureOutput}\n\n${bannerFor(finallyFailure.phase)}\n${
+                describeThrow(finallyFailure.value).message
+              }`,
+            );
+            combined.cause = finallyFailure.value;
+            throw combined;
           }
         } else {
           warning(`Skipped - ${test.name}`);
@@ -667,6 +881,18 @@ export function test(test: TestDescriptor) {
         // would otherwise leave the FAILED result line inside a collapsed
         // group until the unload handler runs.
         closeTestFileGroup();
+        if (primary === undefined && finallyFailure === undefined) {
+          // A lifecycle failure (initDenoDom, prereq, logger init) never
+          // reached the execute/verify catch, so it carries no captured
+          // output.
+          const { message, stack } = describeThrow(e);
+          primary = { value: e, message, stack };
+        }
+        reportFailure(primary, finallyFailure, {
+          testName,
+          origin: context.origin,
+          testStart,
+        });
         throw e;
       }
     },

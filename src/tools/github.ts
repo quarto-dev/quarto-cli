@@ -207,6 +207,11 @@ export interface AnnotationDecision {
 // at the REAL step counter, found by trial run cderv/quarto-cli#29767179626.
 export class AnnotationBudget {
   private localCount = 0;
+  // Set once a persisted write throws, so readCount() stops re-reading the
+  // stale (or absent) file: without this, every subsequent recordFailure()
+  // sees the same value again, repeating the ordinal and never crossing
+  // `max` to fire the aggregate.
+  private persistenceFailed = false;
   private readonly counterPath: string | null;
   constructor(
     private readonly max = 9,
@@ -218,7 +223,9 @@ export class AnnotationBudget {
   }
 
   private readCount(): number {
-    if (this.counterPath === null) return this.localCount;
+    if (this.counterPath === null || this.persistenceFailed) {
+      return this.localCount;
+    }
     try {
       return parseInt(Deno.readTextFileSync(this.counterPath), 10) || 0;
     } catch {
@@ -227,11 +234,36 @@ export class AnnotationBudget {
   }
 
   private writeCount(n: number): void {
+    // Kept in step regardless of persistence outcome, so the moment a write
+    // fails, localCount already holds the last-known-good value to resume
+    // counting from.
+    this.localCount = n;
     if (this.counterPath === null) {
-      this.localCount = n;
       return;
     }
-    Deno.writeTextFileSync(this.counterPath, String(n));
+    try {
+      Deno.writeTextFileSync(this.counterPath, String(n));
+    } catch {
+      // Best-effort, like readCount: recordFailure() runs while a test
+      // failure is already in flight, so a counter-file error must not
+      // replace it. A lost write can only repeat an ordinal, so degrade to
+      // counting in this instance from here on. That restores monotonicity
+      // only WITHIN one instance: Deno gives each test file its own module
+      // graph, so the harness builds one budget per FILE and the sidecar is
+      // the only thing that ties them into a step-wide count (see the
+      // per-file module instance note in the design doc). Once it is
+      // unwritable there is no shared channel left FROM THIS INSTANCE
+      // ONWARD — but a fresh instance in the next test file starts with
+      // persistenceFailed=false and still calls readCount(), which still
+      // reads the sidecar. If that file is unwritable but readable and
+      // holds a stale nonzero count, the next file resumes from that value,
+      // not from 1. Only a missing, unreadable, or zero-valued sidecar
+      // makes a file resume from 1. Either way, ordinals may repeat or
+      // collide across files and the step can exceed `max`; the runner caps
+      // annotations per step regardless, so the excess is dropped by GitHub
+      // rather than by us.
+      this.persistenceFailed = true;
+    }
   }
 
   // Record one failure and decide what to emit for it. Returns the step-wide
@@ -269,7 +301,13 @@ export function stepSummary(
 ): void {
   const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
   if (!p) return;
-  Deno.writeTextFileSync(p, markdown, { append: true });
+  try {
+    Deno.writeTextFileSync(p, markdown, { append: true });
+  } catch {
+    // Best-effort: callers append while a test failure is already in flight
+    // (and from the unload handler, after the run), so a summary write error
+    // must not replace the failure being reported. A lost append costs a row.
+  }
 }
 
 // Current size of the step-summary file (0 when unset/missing). Callers
@@ -287,6 +325,159 @@ export function stepSummarySize(
   }
 }
 
+// Byte cap for a single excerpt embedded in the step summary or an
+// annotation. kExcerptLines (tests/test.ts) bounds excerpt LINE COUNT but
+// not LINE LENGTH — a single line can run to hundreds of KB when an
+// assertion message carries a base64 data URI, a serialized document, or a
+// long JSON payload. Kept well under kStepSummaryBudgetBytes so one
+// failure's excerpt cannot dominate the shared step-summary budget on its
+// own.
+export const kExcerptMaxBytes = 8 * 1024;
+
+// UTF-8 byte length of a string, matching how Deno.statSync (and therefore
+// stepSummarySize) measures the summary file.
+function utf8ByteLength(s: string): number {
+  return new TextEncoder().encode(s).length;
+}
+
+// Decode a UTF-8 byte slice with the default (non-fatal) TextDecoder, which
+// turns a multi-byte sequence split by the cut into U+FFFD instead of
+// throwing, and drop any trailing replacement character so it doesn't sit
+// right before whatever follows.
+function decodeUtf8Prefix(encoded: Uint8Array): string {
+  return new TextDecoder().decode(encoded).replace(/�+$/, "");
+}
+
+// Truncate `s` to at most `maxBytes` UTF-8 bytes. Cuts on the encoded byte
+// array, never on a JS string index (which does not correspond to bytes for
+// non-ASCII content).
+export function truncateUtf8Bytes(s: string, maxBytes: number): string {
+  const encoded = new TextEncoder().encode(s);
+  if (encoded.length <= maxBytes) return s;
+  const marker = "\n…[truncated]";
+  const markerBytes = utf8ByteLength(marker);
+  if (maxBytes <= markerBytes) {
+    // No production caller passes a budget this small — every real call
+    // site's maxBytes is a multi-KB constant. The clamp exists so "at most
+    // maxBytes bytes" stays true unconditionally, even here: without it the
+    // budget below would go negative, clamp to 0, and the full marker would
+    // be returned regardless of maxBytes.
+    return decodeUtf8Prefix(
+      new TextEncoder().encode(marker).subarray(0, Math.max(0, maxBytes)),
+    );
+  }
+  const budget = maxBytes - markerBytes;
+  return decodeUtf8Prefix(encoded.subarray(0, budget)) + marker;
+}
+
+// Emitted into the step summary at most once, in place of content that no
+// longer fits (see appendStepSummaryBounded). Points at the step LOG, which
+// carries the complete record: Deno's own ERRORS/FAILURES sections list
+// every failure in full and are deliberately kept outside collapsed groups
+// (dev-docs/ci-test-log-grouping-design.md invariant 3 and 4).
+export const kStepSummaryTruncationNotice =
+  "\n**Step summary truncated — remaining failure detail was not recorded here. See this step's log (the ERRORS/FAILURES sections) for the complete record.**\n";
+
+// Content budget: kStepSummaryBudgetBytes minus headroom for one truncation
+// notice, so a content write that gets refused still leaves room to append
+// that notice.
+const kStepSummaryContentBudgetBytes = kStepSummaryBudgetBytes -
+  utf8ByteLength(kStepSummaryTruncationNotice);
+
+function fitsInStepSummary(
+  markdown: string,
+  limitBytes: number,
+  path: string,
+): boolean {
+  return stepSummarySize(path) + utf8ByteLength(markdown) <= limitBytes;
+}
+
+// Append markdown to the step summary only if the running total stays
+// within budget. Replaces the old sample-then-append pattern, where both
+// call sites stat the file BEFORE appending content of unaccounted length —
+// a threshold, not a cap, so content near GitHub's 1 MiB step-summary limit
+// can be silently discarded (actions/runner#4337). Every step-summary write
+// goes through here.
+//
+// The FIRST write this refuses triggers the truncation notice, appended in
+// its place; idempotent by checking the file's own content for the notice
+// text, so the notice survives being called from many failing tests across
+// many test-file module instances (see the SCOPE WARNING at the top of
+// tests/test.ts) without duplicating.
+export function appendStepSummaryBounded(
+  markdown: string,
+  path?: string | null,
+): boolean {
+  const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
+  if (!p) return false;
+  if (appendIfFits(markdown, p)) return true;
+  emitTruncationNotice(p);
+  return false;
+}
+
+// Write `markdown` if it fits within the content budget (which already
+// reserves headroom for one truncation notice), returning whether it did.
+function appendIfFits(markdown: string, path: string): boolean {
+  if (!fitsInStepSummary(markdown, kStepSummaryContentBudgetBytes, path)) {
+    return false;
+  }
+  stepSummary(markdown, path);
+  return true;
+}
+
+// Append the truncation notice in place of content that no longer fits.
+// Idempotent by checking the file's own content for the notice text, so the
+// notice survives being called from many failing tests across many
+// test-file module instances (see the SCOPE WARNING at the top of
+// tests/test.ts) without duplicating.
+function emitTruncationNotice(path: string): void {
+  let existing = "";
+  try {
+    existing = Deno.readTextFileSync(path);
+  } catch {
+    // Not yet created, or unreadable — treat as "notice not yet emitted"
+    // and fall through to the write attempt below.
+  }
+  if (
+    !existing.includes(kStepSummaryTruncationNotice) &&
+    fitsInStepSummary(
+      kStepSummaryTruncationNotice,
+      kStepSummaryBudgetBytes,
+      path,
+    )
+  ) {
+    stepSummary(kStepSummaryTruncationNotice, path);
+  }
+}
+
+// Try each candidate in order and write the first that fits, returning its
+// index (or -1 if none fit). Exists because appendStepSummaryBounded alone
+// pushed callers toward a bug: trying a full-size write, and on refusal
+// immediately emitting the truncation notice, consumes the very headroom
+// that a smaller fallback candidate (e.g. a name-only row) needed — so a
+// fallback that would have fit BEFORE the notice was written gets refused
+// AFTER it. Deferring the notice until every candidate has been tried keeps
+// the content budget available to the smaller candidates first, and the
+// notice is only emitted once it is known that nothing else will fit either
+// (or that the preferred candidate was dropped in favor of a smaller one).
+export function appendStepSummaryFirstFit(
+  candidates: string[],
+  path?: string | null,
+): number {
+  const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
+  if (!p) return -1;
+  for (let i = 0; i < candidates.length; i++) {
+    if (appendIfFits(candidates[i], p)) {
+      // A non-first candidate means the preferred (larger) one was dropped;
+      // say so before recording the fallback that was actually written.
+      if (i > 0) emitTruncationNotice(p);
+      return i;
+    }
+  }
+  emitTruncationNotice(p);
+  return -1;
+}
+
 function htmlEscape(s: string): string {
   return s
     .replaceAll("&", "&amp;")
@@ -295,22 +486,55 @@ function htmlEscape(s: string): string {
 }
 
 // A table cell must not contain a raw `|` (column separator) or newline (row
-// terminator); HTML-escape the rest so angle brackets in test names render.
+// terminator); HTML-escape the rest so angle brackets in test names render,
+// then backslash-escape the characters that trigger GFM code-span/emphasis
+// parsing so a stray backtick, underscore or asterisk in a test name can't
+// open a code span or emphasis run and corrupt the table's rendering. The
+// pre-existing backslash escape must run FIRST: escaping `_`/`` ` ``/`*`
+// before a name's own literal backslash would let the freshly-added escape
+// backslash pair with that pre-existing one into `\\`, leaving the character
+// after it unescaped and live again.
 function summaryCell(s: string): string {
-  return htmlEscape(s).replaceAll("|", "\\|").replace(/\r?\n/g, " ");
+  return htmlEscape(s)
+    .replaceAll("\\", "\\\\")
+    .replaceAll("`", "\\`")
+    .replaceAll("_", "\\_")
+    .replaceAll("*", "\\*")
+    .replaceAll("|", "\\|")
+    .replace(/\r?\n/g, " ");
 }
 
 function formatDuration(ms: number): string {
   return `${(ms / 1000).toFixed(2)}s`;
 }
 
-// A failure's navigation label: the step-wide ordinal prefixed with the
-// runner OS (RUNNER_OS: "Linux"/"Windows"/"macOS"; anything else → X). The
-// run summary page concatenates every job's summary, so the prefix keeps the
-// label unambiguous across jobs — it is the Ctrl+F target that ties a table
+// Longest job tag kept in a label: the label leads a summary table column, a
+// `####` heading and an annotation title, so it has to stay short. Callers
+// must therefore be distinct within this budget.
+const kMaxLabelTagChars = 8;
+
+// A failure's navigation label: the step-wide ordinal, prefixed with the
+// runner OS (RUNNER_OS: "Linux"/"Windows"/"macOS"; anything else → X) and a
+// job tag supplied by the workflow. It is the Ctrl+F target that ties a table
 // row to its detail block (step-summary heading anchors do not resolve, so
 // there is no link; the shared ASCII label is the navigation).
-export function failureLabel(ordinal: number, runnerOs: string): string {
+//
+// The run summary page concatenates every job's summary and the ordinal
+// restarts at 1 in each job, so the OS prefix alone is NOT enough: a bucketed
+// run is ~20 ubuntu jobs and would print `L-F1` ~20 times on one page. The
+// discriminator has to come from the workflow (`label-tag` →
+// QUARTO_TESTS_GHA_LABEL_TAG) because no ambient variable is unique per
+// matrix leg — GITHUB_JOB is the YAML job key, shared by every leg, and
+// GITHUB_RUN_ID/GITHUB_RUN_ATTEMPT are run-wide. Non-alphanumerics are
+// dropped rather than escaped so the label survives the summary cell, the
+// HTML-escaped heading and the annotation title unchanged. With no tag the
+// label falls back to `<prefix>-F<ordinal>`, which does not distinguish two
+// jobs on the same OS.
+export function failureLabel(
+  ordinal: number,
+  runnerOs: string,
+  tag = "",
+): string {
   const os = runnerOs.toLowerCase();
   const prefix = os.startsWith("linux")
     ? "L"
@@ -319,7 +543,8 @@ export function failureLabel(ordinal: number, runnerOs: string): string {
     : os.startsWith("macos")
     ? "M"
     : "X";
-  return `${prefix}-F${ordinal}`;
+  const jobTag = tag.replace(/[^A-Za-z0-9]/g, "").slice(0, kMaxLabelTagChars);
+  return `${prefix}${jobTag}-F${ordinal}`;
 }
 
 // The clustering key for a failure: the first three non-empty lines of the
@@ -403,21 +628,54 @@ export function summaryClusterBlock(cluster: FailureCluster): string {
   return `\n#### ${cluster.label}\n\n<details><summary>${summaryLabel}</summary>\n${memberList}\n<pre>\n${body}\n</pre>\n</details>\n\n`;
 }
 
+// What the step summary holds for this failure at annotation-emit time. See
+// dev-docs/ci-test-log-grouping-design.md invariant 4.
+//  - "detail": the full row AND a detail-block cluster were queued, but
+//    whether the cluster survives the end-of-file flush (bounded by the same
+//    shared budget) is not knowable here — a later file's content could still
+//    exhaust the budget first — so the wording stays honest and unconditional
+//    rather than promising a detail block a later flush might drop.
+//  - "name-only": the full row was over budget and the harness degraded to a
+//    name-only row; no cluster was queued. Known synchronously, so the
+//    pointer names the row only and makes no promise about detail.
+//  - "none": neither row fit — nothing was recorded under this label in the
+//    step summary at all. The pointer must not name the label as a summary
+//    target or claim any row exists; it can only point at the step log.
+export type SummaryRowOutcome = "detail" | "name-only" | "none";
+
 // Trimmed annotation message: the repro, a blank line, the first `maxLines`
-// non-empty excerpt lines, an ellipsis, then a pointer at the step-summary
-// entry (by label). The full repro+excerpt already lives in the summary on the
-// same page, so the annotation only needs enough to identify the failure.
+// non-empty excerpt lines (byte-capped defensively, in case a caller passes
+// an excerpt it did not already bound), an ellipsis, then a pointer whose
+// wording depends on `outcome` (see SummaryRowOutcome).
 export function annotationBody(
   repro: string,
   excerpt: string,
   label: string,
+  outcome: SummaryRowOutcome,
   maxLines = 5,
 ): string {
-  const lines = stripAnsi(excerpt)
+  const allLines = stripAnsi(truncateUtf8Bytes(excerpt, kExcerptMaxBytes))
     .split("\n")
-    .filter((line) => line.trim().length > 0)
-    .slice(0, maxLines);
-  return `${repro}\n\n${lines.join("\n")}\n…\nFull output: step summary → ${label}`;
+    .filter((line) => line.trim().length > 0);
+  const truncated = allLines.length > maxLines;
+  const lines = allLines.slice(0, maxLines);
+  let pointer: string;
+  switch (outcome) {
+    case "detail":
+      pointer =
+        `Failure row: step summary → ${label} — details may be truncated; the step log has the complete record`;
+      break;
+    case "name-only":
+      pointer =
+        `Failure row (name only): step summary → ${label} — no detail block was recorded; see the step log for the complete record`;
+      break;
+    case "none":
+      pointer =
+        `Not recorded in the step summary (over budget) — see the step log for the complete record`;
+      break;
+  }
+  const ellipsis = truncated ? "\n…" : "";
+  return `${repro}\n\n${lines.join("\n")}${ellipsis}\n${pointer}`;
 }
 
 // GitHub API
