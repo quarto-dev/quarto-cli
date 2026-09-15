@@ -39,7 +39,7 @@ on:
         type: string
         default: '["ubuntu-latest", "windows-latest"]'
       label-tag:
-        description: "Short alphanumeric tag identifying this call in CI failure labels (forwarded to test-smokes.yml; empty means the standalone dev default)"
+        description: "Short alphanumeric tag for distinguishing same-OS jobs in failure summaries"
         required: false
         type: string
         default: ""

@@ -2,30 +2,17 @@
 /*
  * check-gha-log.ts
  *
- * Dev-only regression guard for the harness's GitHub Actions log grouping
- * (Phase 2 of dev-docs/ci-test-log-grouping-design.md). Reads a captured run
- * log and mechanically asserts invariants 1–3:
+ * Checks captured GitHub Actions logs for harness grouping violations:
  *
- *   1. No nesting — every `::group::` is closed (`::endgroup::`) before the
- *      next one opens; no group is left open at end of log.
- *   2. Group markers start at column 0 (the runner only parses them there).
- *   3. No HARNESS test's `... FAILED` result line, and no `ERRORS`/`FAILURES`
- *      section header, sits between a `::group::` and its `::endgroup::`
- *      (failure detail must land outside collapsed groups). Non-harness
- *      (direct `Deno.test`) FAILED lines are exempt — invariant 3 is scoped to
- *      harness-registered tests under the lazy-closure policy.
- *
- * A stray `::endgroup::` with no open group is harmless (design invariant 2)
- * and is NOT flagged.
+ *   1. Groups are balanced and do not nest.
+ *   2. Workflow command markers start at column 0.
+ *   3. Harness `FAILED` lines and final failure sections remain ungrouped.
  *
  * Usage:
  *   GITHUB_ACTIONS=true ./run-tests.sh <subset> | tee log.txt
  *   deno run --allow-read tests/tools/check-gha-log.ts log.txt
  *
- * Re-run on every Deno version bump: the reporter's output framing is
- * version-sensitive (see "Spike results" / "Caveat" in the design doc).
- *
- * Copyright (C) 2020-2026 Posit Software, PBC
+ * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { stripAnsi } from "../../src/tools/github.ts";
@@ -57,13 +44,10 @@ export function checkLog(content: string): Violation[] {
     const line = stripAnsi(raw).replace(/\r$/, "");
 
     const isGroupOpen = line.startsWith(kGroupOpen);
-    // The runner parses a close marker with trailing whitespace the same as
-    // an exact one, so trim before comparing (mirrors the trim already done
-    // for kSectionHeader below).
+    // The runner accepts trailing whitespace on a close marker.
     const isGroupClose = line.trimEnd() === kGroupClose;
 
-    // Invariant 2: markers must start at column 0. A marker substring anywhere
-    // but the start of the line means the runner would not parse it.
+    // Indented markers are visible text, not workflow commands.
     if (!isGroupOpen && !isGroupClose && kMarkerAnywhere.test(line)) {
       violations.push({
         line: n,
@@ -74,12 +58,10 @@ export function checkLog(content: string): Violation[] {
     }
 
     if (isGroupOpen) {
-      // Invariant 1: no nesting — a group must not open while one is open.
       if (depth > 0) {
         violations.push({
           line: n,
-          message:
-            `nested ::group:: — group opened at line ${openGroupLine} ` +
+          message: `nested ::group:: — group opened at line ${openGroupLine} ` +
             `(${openGroupTitle}) was not closed first`,
           text: raw,
         });
@@ -91,13 +73,11 @@ export function checkLog(content: string): Violation[] {
     }
 
     if (isGroupClose) {
-      // A stray ::endgroup:: at depth 0 is harmless (invariant 2) — don't go
-      // negative, don't flag.
+      // A stray close marker is harmless.
       if (depth > 0) depth--;
       return;
     }
 
-    // Invariant 3: failure detail must land outside groups.
     if (depth > 0) {
       if (kHarnessFailed.test(line)) {
         violations.push({
@@ -119,12 +99,10 @@ export function checkLog(content: string): Violation[] {
     }
   });
 
-  // Invariant 1: no group left open at end of log (unload must close it).
   if (depth > 0) {
     violations.push({
       line: lines.length,
-      message:
-        `group left open at end of log: ${openGroupTitle} ` +
+      message: `group left open at end of log: ${openGroupTitle} ` +
         `(opened at line ${openGroupLine})`,
       text: "",
     });
@@ -142,15 +120,11 @@ if (import.meta.main) {
   const content = Deno.readTextFileSync(path);
   const violations = checkLog(content);
   if (violations.length === 0) {
-    console.log(
-      `OK: ${path} — grouping invariants hold ` +
-        "(no nesting, markers at column 0, no harness FAILED / ERRORS / " +
-        "FAILURES inside a group).",
-    );
+    console.log(`OK: ${path} has valid GitHub Actions grouping.`);
     Deno.exit(0);
   }
   console.error(
-    `FAIL: ${path} — ${violations.length} grouping violation(s):`,
+    `FAIL: ${path} has ${violations.length} grouping violation(s):`,
   );
   for (const v of violations) {
     console.error(`  line ${v.line}: ${v.message}`);
