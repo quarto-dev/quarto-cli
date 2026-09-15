@@ -24,3 +24,4 @@ Invariants when editing:
 - `test-ff-matrix.yml` owns the ff-matrix bucket glob.
 - Scheduler jobs in `test-smokes-built.yml` set per-leg OS scope through their `runners:` inputs.
 - Keep the per-call suffix in `test-ff-matrix.yml`'s concurrency group so sibling calls cannot cancel one another.
+- Every `test-smokes.yml` / `test-ff-matrix.yml` call site passes a `label-tag`: it is what keeps CI failure labels distinct between same-OS jobs in a run's concatenated step summary. Tags need only differ among call sites that can land on the same OS — the per-OS nightly legs share one tag deliberately, since the label already carries an OS prefix.

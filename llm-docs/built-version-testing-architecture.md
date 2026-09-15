@@ -188,7 +188,8 @@ Key points:
 
 The feature-format bucket glob (`../dev-docs/feature-format-matrix/qmd-files/**/*.qmd`) is defined only in `test-ff-matrix.yml`.
 Built-mode callers use its `workflow_call` trigger, while its existing dev triggers remain.
-The workflow forwards install, artifact, ref, runner, and R-package inputs to `test-smokes.yml`, with dev defaults for non-call triggers.
+The workflow forwards install, artifact, ref, runner, R-package, and `label-tag` inputs to `test-smokes.yml`, with dev defaults for non-call triggers.
+The tag defaults to `ffdev` for standalone dev triggers and distinguishes same-OS jobs in the shared failure summary.
 
 Reusable-workflow concurrency is evaluated in the caller's context. The group therefore includes a suffix based on `inputs.runners` and `github.run_id`, preventing sibling feature-format legs from canceling one another.
 Dev triggers use a constant `-dev` suffix.
