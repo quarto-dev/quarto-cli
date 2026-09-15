@@ -363,6 +363,29 @@ unitTest("harness-reporting - a primary message that trips both the line and byt
   );
 });
 
+unitTest("harness-reporting - a huge single-line primary message still leaves room for the teardown banner and message in the annotation", async () => {
+  const run = await gha();
+  const annotations = annotationsFor(
+    run.stdout,
+    "huge single-line message and teardown also throws",
+  );
+  assertEquals(annotations.length, 1);
+  assert(
+    !annotations[0].includes("y".repeat(300 * 1024)),
+    "the huge primary line must still be bounded, not embedded whole, in the annotation",
+  );
+  assert(
+    annotations[0].includes("TEARDOWN ALSO FAILED:"),
+    `the annotation's byte cap must not cut into the joined excerpt before the banner; annotation was:\n${
+      annotations[0]
+    }`,
+  );
+  assert(
+    annotations[0].includes("FIXTURE_HUGELINE_TEARDOWN_BOOM"),
+    "the annotation must also name the teardown failure, not just the summary",
+  );
+});
+
 unitTest("harness-reporting - a passing test produces no row and no annotation", async () => {
   const run = await gha();
   assertEquals(summaryRowsFor(run.summary, "fixture passes").length, 0);
