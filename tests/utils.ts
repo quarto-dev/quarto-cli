@@ -32,6 +32,20 @@ export async function withTempDir<T>(
   }
 }
 
+// Run fn from dir and restore the process cwd afterward.
+export async function withCwd<T>(
+  dir: string,
+  fn: () => T | Promise<T>,
+): Promise<T> {
+  const wd = Deno.cwd();
+  Deno.chdir(dir);
+  try {
+    return await fn();
+  } finally {
+    Deno.chdir(wd);
+  }
+}
+
 // Find a _quarto.yaml file in the directory hierarchy of the input file
 export function findProjectDir(input: string, until?: RegExp | undefined): string | undefined {
   let dir = dirname(input);
@@ -240,8 +254,13 @@ export function fileLoader(...path: string[]) {
   };
 }
 
+// Resolve the configured test binary or the dev Quarto on PATH.
 // On Windows, `quarto.cmd` needs to be explicit in `execProcess()`
 export function quartoDevCmd(): string {
+  const bin = Deno.env.get("QUARTO_TEST_BIN");
+  if (bin && bin.length > 0) {
+    return bin;
+  }
   return isWindows ? "quarto.cmd" : "quarto";
 }
 

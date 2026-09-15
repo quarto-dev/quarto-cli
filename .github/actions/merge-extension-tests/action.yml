@@ -11,6 +11,11 @@ runs:
     - name: Merge julia-engine tests
       shell: bash
       run: |
+        # The upstream tests do not yet sanitize Quarto subprocess environments.
+        if [[ -n "$QUARTO_TEST_BIN" ]]; then
+          echo "::notice title=julia-engine tests skipped::The subtree tests do not support binary mode yet"
+          exit 0
+        fi
         SUBTREE=src/resources/extension-subtrees/julia-engine/tests
         cp -r "$SUBTREE/docs/julia-engine" tests/docs/julia-engine
         cp -r "$SUBTREE/smoke/julia-engine" tests/smoke/julia-engine

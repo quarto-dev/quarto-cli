@@ -16,7 +16,7 @@ import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { ExecuteOutput, testQuartoCmd, Verify } from "../../test.ts";
 import { fileExists, validJsonWithFields } from "../../verify.ts";
 import { docs } from "../../utils.ts";
-import { quarto } from "../../../src/quarto.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
 import { AxeCell } from "../../../src/command/call/axe/scan.ts";
 import {
   AxeFinding,
@@ -158,7 +158,7 @@ export function axeSmokeTest(
     {
       cwd: () => siteDir,
       setup: async () => {
-        await quarto(["render"]);
+        await runQuarto(["render"]);
       },
       teardown: () => {
         for (const dir of ["_site", "_axe-checks"]) {
