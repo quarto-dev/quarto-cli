@@ -238,18 +238,12 @@ export function test(test: TestDescriptor) {
           }
         };
 
-        // Capture the output
-        const log = Deno.makeTempFileSync({ suffix: ".json" });
-        const logTarget = test.logConfig?.log || log;
-        const handlers = binMode ? undefined : await initializeLogger({
-          log: logTarget,
-          level: test.logConfig?.level || "INFO",
-          format: test.logConfig?.format || "json-stream",
-          quiet: true,
-        });
+        let log: string | undefined;
+        let logTarget: string | undefined;
+        let handlers: Awaited<ReturnType<typeof initializeLogger>> | undefined;
 
-        const logOutput = (path: string) => {
-          if (existsSync(path)) {
+        const logOutput = (path?: string) => {
+          if (path && existsSync(path)) {
             return readExecuteOutput(path);
           } else {
             return undefined;
@@ -266,6 +260,18 @@ export function test(test: TestDescriptor) {
           if (test.context.setup) {
             await test.context.setup();
           }
+
+          // Capture the output. Started only after setup, so a setup that
+          // renders its own baseline (e.g. building a freeze cache) doesn't
+          // attribute its output to the execute() run that verify() inspects.
+          log = Deno.makeTempFileSync({ suffix: ".json" });
+          logTarget = test.logConfig?.log || log;
+          handlers = binMode ? undefined : await initializeLogger({
+            log: logTarget,
+            level: test.logConfig?.level || "INFO",
+            format: test.logConfig?.format || "json-stream",
+            quiet: true,
+          });
 
           try {
             await test.execute(logTarget);
@@ -382,7 +388,9 @@ export function test(test: TestDescriptor) {
 
           fail(output.join("\n"));
         } finally {
-          safeRemoveSync(log);
+          if (log) {
+            safeRemoveSync(log);
+          }
           await cleanupLogOnce();
           // Restore the cwd even when teardown fails.
           try {
