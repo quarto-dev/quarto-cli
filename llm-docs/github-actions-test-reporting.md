@@ -16,18 +16,24 @@ key_files:
 
 Quarto's test harness groups full-run logs by test file and reports failures
 through annotations and the GitHub Actions step summary. Bucketed workflows
-already group and annotate each file in their shell loops, so the two paths must
-not emit competing workflow commands.
+already group each bucket and emit bucket-level annotations in their shell
+loops, so the harness must not emit competing workflow commands.
 
 ## Ownership
 
 There are two execution paths:
 
-- **Harness-owned:** A full run invokes one `deno test` process. The harness
-  emits groups, annotations, and step-summary entries.
-- **Orchestrated:** A workflow loop invokes `run-tests` once per file and sets
-  `QUARTO_TESTS_GHA_ORCHESTRATED=1`. The loop owns groups and annotations; the
-  harness emits only step-summary entries.
+- **Harness-owned:** `QUARTO_TESTS_GHA_ORCHESTRATED` is unset. The harness
+  emits groups, annotations, and step-summary entries. This does not imply a
+  single `deno test` process: `run-tests.sh`'s timing mode (`QUARTO_TEST_TIMING`,
+  used by `test-smokes.yml`) invokes separate `deno test` processes for test
+  files, and invokes `smoke-all.test.ts` separately for each smoke-all document.
+  It leaves the flag unset, so each invocation is independently harness-owned.
+- **Orchestrated:** A workflow loop invokes `run-tests` once per file (or
+  bucket of files) and sets `QUARTO_TESTS_GHA_ORCHESTRATED=1`. The loop owns
+  groups and bucket-level annotations; the harness emits only step-summary
+  entries. A direct test runner can still emit its own file-specific
+  annotations.
 
 `harnessOwnsStep()` in `src/tools/github.ts` implements this distinction.
 Workflow commands are otherwise gated by `GITHUB_ACTIONS`.
@@ -79,7 +85,9 @@ Each failure contributes:
 Rows are written immediately. Detail blocks are buffered until the file's
 `unload` event because GitHub-flavored Markdown ends a table at the first
 non-row line. Failures with the same first three non-empty excerpt lines share
-one detail block.
+one detail block. `pendingClusters` is a module-level map, and Deno gives each
+test-file execution its own module graph, so this clustering only merges
+failures within one module instance, not across the step.
 
 Summary writes are best-effort and limited to 512 KiB, leaving margin below
 GitHub's 1 MiB per-step limit. Full rows degrade to name-only rows when
@@ -141,5 +149,12 @@ GITHUB_ACTIONS=true ./run-tests.sh <subset> | tee log.txt
 deno run --allow-read tests/tools/check-gha-log.ts log.txt
 ```
 
-Direct `Deno.test` files that bypass the Quarto harness do not receive harness
-groups, annotations, or summary entries. Their output remains ungrouped.
+Direct `Deno.test` files that bypass the Quarto harness (e.g.
+`playwright-tests.test.ts`) receive none of the harness's own grouping,
+annotation, or summary logic. They can still use file-specific reporting or be
+wrapped by workflow-level reporting. On GitHub Actions,
+`tests/integration/playwright-tests.test.ts` emits its own annotations; when a
+bucket loop owns the step, it calls `gha.error` directly instead of using the
+step-wide annotation budget. Bucket loops in `test-smokes.yml` also wrap each
+bucket in their own `::group::`/`::endgroup::` pair and emit a bucket-level
+failure annotation regardless of which files the bucket runs.
