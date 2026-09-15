@@ -34,6 +34,7 @@ import {
   error as ghError,
   harnessOwnsStep,
   isGitHubActions,
+  kAnnotationExcerptLines,
   kExcerptMaxBytes,
   stripAnsi,
   summaryClusterBlock,
@@ -63,6 +64,11 @@ const kExcerptLines = 20;
 // failure will also be reported: the blank separator, the banner, and at
 // least the first line of the secondary message (see reportFailure).
 const kFinallyReservedLines = 3;
+// Same reservation, but sized for annotationBody's much smaller
+// kAnnotationExcerptLines window rather than kExcerptLines: the banner and
+// the first line of the secondary message, with no separator line (the
+// annotation excerpt is built fresh, not sliced from the primary excerpt).
+const kFinallyAnnotationReservedLines = 2;
 const annotationBudget = new AnnotationBudget();
 // Per-file header flag: each failing test file starts its own summary table.
 let summaryHeaderEmitted = false;
@@ -508,6 +514,26 @@ function reportFailure(
       kExcerptMaxBytes,
     );
 
+    // annotationBody keeps only its first kAnnotationExcerptLines NON-EMPTY
+    // lines of whatever excerpt it's given - a much smaller window than the
+    // kExcerptLines the primary message above was reserved against. A
+    // primary message with as few as kAnnotationExcerptLines non-empty lines
+    // already fills that window, silently dropping the teardown banner and
+    // message from the annotation even though both still fit in the fuller
+    // step-summary excerpt. Build the annotation body from a dedicated,
+    // reserved excerpt instead of reusing `excerpt` when a teardown/cleanup
+    // failure rides along; otherwise reuse `excerpt` unchanged.
+    const annotationExcerpt = finallyFailure
+      ? [
+        ...stripAnsi(primary?.message ?? "")
+          .split("\n")
+          .filter((line) => line.trim().length > 0)
+          .slice(0, kAnnotationExcerptLines - kFinallyAnnotationReservedLines),
+        bannerFor(finallyFailure.phase),
+        describeThrow(finallyFailure.value).message,
+      ].join("\n")
+      : excerpt;
+
     // Record the failure step-wide (sidecar counter) to get its
     // ordinal, then build the navigation label. This runs for EVERY
     // CI failure — including orchestrated bucket legs, whose rows
@@ -587,7 +613,7 @@ function reportFailure(
     // cross-reference their summary entry.
     if (harnessOwnsStep()) {
       if (decision.emitAnnotation) {
-        ghError(annotationBody(repro, excerpt, label, rowOutcome), {
+        ghError(annotationBody(repro, annotationExcerpt, label, rowOutcome), {
           file: annotationFile,
           title: `${label} · ${ctx.testName}`,
         });

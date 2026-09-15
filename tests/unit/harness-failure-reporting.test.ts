@@ -310,6 +310,21 @@ unitTest("harness-reporting - a many-line primary message still leaves room for 
     run.summary.includes("FIXTURE_MULTILINE_TEARDOWN_BOOM"),
     "the teardown failure message must survive too",
   );
+  const annotations = annotationsFor(
+    run.stdout,
+    "fixture throws a multi-line message and teardown also throws",
+  );
+  assertEquals(annotations.length, 1);
+  assert(
+    annotations[0].includes("TEARDOWN ALSO FAILED:"),
+    `the annotation's own 5-line window must also survive the many-line primary; annotation was:\n${
+      annotations[0]
+    }`,
+  );
+  assert(
+    annotations[0].includes("FIXTURE_MULTILINE_TEARDOWN_BOOM"),
+    "the annotation must also name the teardown failure, not just the summary",
+  );
 });
 
 unitTest("harness-reporting - a primary message that trips both the line and byte caps still leaves room for the teardown banner and message", async () => {
@@ -328,6 +343,23 @@ unitTest("harness-reporting - a primary message that trips both the line and byt
   assert(
     run.summary.includes("FIXTURE_BOTHCAPS_TEARDOWN_BOOM"),
     "the teardown failure message must survive too",
+  );
+  // escapeProperty encodes "," to "%2C" in the annotation title, so match on
+  // a comma-free slice of the fixture name rather than the literal string.
+  const annotations = annotationsFor(
+    run.stdout,
+    "with teardown throwing too",
+  );
+  assertEquals(annotations.length, 1);
+  assert(
+    annotations[0].includes("TEARDOWN ALSO FAILED:"),
+    `the annotation's own 5-line window must also survive both caps; annotation was:\n${
+      annotations[0]
+    }`,
+  );
+  assert(
+    annotations[0].includes("FIXTURE_BOTHCAPS_TEARDOWN_BOOM"),
+    "the annotation must also name the teardown failure, not just the summary",
   );
 });
 

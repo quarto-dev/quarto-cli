@@ -646,6 +646,12 @@ export function summaryClusterBlock(cluster: FailureCluster): string {
 //    target or claim any row exists; it can only point at the step log.
 export type SummaryRowOutcome = "detail" | "name-only" | "none";
 
+// Non-empty excerpt lines annotationBody keeps by default. Exported so
+// callers building the excerpt (tests/test.ts) can reserve room within this
+// same budget for content that must survive alongside the excerpt, such as a
+// teardown-failure banner.
+export const kAnnotationExcerptLines = 5;
+
 // Trimmed annotation message: the repro, a blank line, the first `maxLines`
 // non-empty excerpt lines (byte-capped defensively, in case a caller passes
 // an excerpt it did not already bound), an ellipsis, then a pointer whose
@@ -655,7 +661,7 @@ export function annotationBody(
   excerpt: string,
   label: string,
   outcome: SummaryRowOutcome,
-  maxLines = 5,
+  maxLines = kAnnotationExcerptLines,
 ): string {
   const allLines = stripAnsi(truncateUtf8Bytes(excerpt, kExcerptMaxBytes))
     .split("\n")
