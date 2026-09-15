@@ -113,7 +113,7 @@ function testFileContext(
       await Deno.remove(path);
       await Deno.remove(quartoProj);
 
-      // Get rid of the freezer (a failed render never creates it)
+      // Remove freeze output if the render created it.
       const freezerDir = join(dirname(path), "_freeze");
       safeRemoveIfExists(join(freezerDir, testFileName));
 

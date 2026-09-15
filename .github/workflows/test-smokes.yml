@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       buckets:
-        description: "JSON string for buckets of tests to run in loop. Array of grouped tests. Empty means a full run."
+        description: "JSON array of test buckets. Empty runs the full suite."
         required: false
         type: string
         default: ""
@@ -20,32 +20,32 @@ on:
         type: string
         default: ""
       quarto-install:
-        description: "Which quarto to test: 'dev' (source tree, default), 'release' (published release via quarto-actions/setup), or 'artifact' (built tarball from a workflow artifact)"
+        description: "Quarto source: dev tree, published release, or workflow artifact"
         required: false
         type: string
         default: "dev"
       quarto-version:
-        description: "Version to install when quarto-install is 'release' (passed to quarto-dev/quarto-actions/setup)"
+        description: "Version to install when quarto-install is release"
         required: false
         type: string
         default: ""
       quarto-artifact-name:
-        description: "Workflow artifact name containing the built quarto tarball/zip when quarto-install is 'artifact'"
+        description: "Artifact containing the Quarto tarball or zip"
         required: false
         type: string
         default: ""
       quarto-artifact-run-id:
-        description: "Workflow run id to download the artifact from (empty = the current run); lets a caller test artifacts built by another workflow run, e.g. a no-publish create-release build"
+        description: "Run ID containing the artifact; empty uses the current run"
         required: false
         type: string
         default: ""
       ref:
-        description: "Git ref to check out (empty means the default checkout behavior)"
+        description: "Git ref to check out; empty uses the default"
         required: false
         type: string
         default: ""
       runners:
-        description: "JSON runner matrix. macos-latest is reserved for scheduled built-version runs, not per-commit callers."
+        description: "JSON array of runner labels; macos-latest is reserved for scheduled built-version runs"
         required: false
         type: string
         default: '["ubuntu-latest", "windows-latest"]'
@@ -96,7 +96,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v6
         with:
-          # empty (the default) keeps the standard checkout behavior
+          # Empty keeps the standard checkout behavior.
           ref: ${{ inputs.ref }}
 
       - name: Fix temp dir to use runner one (windows)
@@ -383,17 +383,17 @@ jobs:
           v="$(quarto --version)"
           echo "quarto under test: $v ($(command -v quarto))"
           if [ "$v" = "99.9.9" ]; then
-            echo "::error::quarto on PATH reports the dev sentinel version 99.9.9 - the built/released quarto was not picked up (dev-mode trap)"
+            echo "::error::Quarto on PATH reports the dev version 99.9.9. The selected built or released Quarto was not installed."
             exit 1
           fi
           # Only build metadata preserves quarto-required range semantics.
           if ! echo "$v" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(\+[0-9A-Za-z.-]+)?$'; then
-            echo "::error::quarto version '$v' is not range-transparent semver (only build metadata '+...' is allowed; never a '-suffix' or a 4th component)"
+            echo "::error::Quarto version '$v' is invalid for built-version tests. Use X.Y.Z or X.Y.Z+build metadata."
             exit 1
           fi
           # Older tags do not contain the binary-mode harness.
           if [ ! -f tests/quarto-cmd.ts ]; then
-            echo "::error::this checkout's test harness lacks binary-mode support (tests/quarto-cmd.ts is missing); release/artifact mode only works for refs that include the QUARTO_TEST_BIN harness support"
+            echo "::error::This checkout lacks tests/quarto-cmd.ts. Use a ref with binary-mode harness support."
             exit 1
           fi
           # Convert the executable to a native Windows path for Deno.Command.
@@ -494,17 +494,13 @@ jobs:
         run: |
           haserror=0
           failed_tests=()
-          # jq -e fails (nonzero exit) both on malformed JSON and on a
-          # syntactically valid but empty array, so either case is caught
-          # here instead of silently running zero buckets and reporting
-          # success.
+          # Reject malformed and empty arrays instead of running zero buckets.
           if ! bucket_list=$(printf '%s' "$BUCKETS_JSON" | jq -e -rc '.[]' 2>&1); then
             echo "::error::BUCKETS_JSON is not a valid non-empty JSON array: $BUCKETS_JSON"
             echo "$bucket_list"
             exit 1
           fi
-          # while-read, not `readarray`: this step also runs on macOS, whose
-          # only bash is 3.2 (no mapfile/readarray builtin).
+          # macOS Bash 3.2 does not provide readarray.
           my_array=()
           while IFS= read -r bucket; do
             my_array+=("$bucket")

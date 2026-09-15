@@ -64,4 +64,4 @@ Granularity rule: the pointer inherits its host rule's `paths:`, so it must live
 
 **When adding a new `llm-docs/*.md`:** add its discovery pointer to a matching path-scoped rule, or create a narrowly-scoped rule for it.
 
-**When renaming an `##`/`###` heading:** discovery pointers may quote that heading text to route readers to a specific section (e.g. `built-version-ci.md` → `"Design decisions"`). Grep `.claude/rules/` for the old heading text and update any matching pointer — a stale quote fails loudly (grep/search finds nothing) but still needs fixing.
+**When renaming an `##`/`###` heading:** search `.claude/rules/` for pointers that quote the old heading and update them. Otherwise, a reader following the pointer will not find the named section.

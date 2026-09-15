@@ -45,7 +45,6 @@ import { noErrors } from "../../verify.ts";
       });
     },
 
-    // Run assertions in verifiers so failures propagate through the harness.
     verify: [
       noErrors,
       {

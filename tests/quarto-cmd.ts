@@ -1,14 +1,13 @@
 /*
-* quarto-cmd.ts
-*
-* Single dispatch point for invoking the quarto under test.
-*
-* Runs the dev sources in-process or QUARTO_TEST_BIN as a subprocess.
-* See llm-docs/built-version-testing-architecture.md.
-*
-* Copyright (C) 2020-2026 Posit Software, PBC
-*
-*/
+ * quarto-cmd.ts
+ *
+ * Single dispatch point for invoking the quarto under test.
+ *
+ * Runs the dev sources in-process or QUARTO_TEST_BIN as a subprocess.
+ * See llm-docs/built-version-testing-architecture.md.
+ *
+ * Copyright (C) 2020-2026 Posit Software, PBC
+ */
 import { quarto } from "../src/quarto.ts";
 import { kLocalDevelopment } from "../src/core/quarto.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
@@ -41,13 +40,11 @@ const kErrorLevel = 40;
 // Default per-invocation render timeout (dev and binary mode alike).
 const kDefaultRenderTimeoutMs = 600000;
 
-// Path of the built quarto under test, when binary mode is active.
 export function quartoTestBin(): string | undefined {
   const bin = Deno.env.get("QUARTO_TEST_BIN");
   return bin && bin.length > 0 ? bin : undefined;
 }
 
-// True when tests target an external built Quarto.
 export function isBinaryMode(): boolean {
   return quartoTestBin() !== undefined;
 }

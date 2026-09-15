@@ -1,10 +1,7 @@
 name: "Build Quarto dist tarball"
 description: |
-  Builds a Quarto distribution tarball from the current checkout:
-  configure.sh, quarto-bld prepare-dist --set-version, then a tar.gz of
-  package/pkg-working (top-level directory quarto-<version>) uploaded as a
-  workflow artifact. Shared by create-release.yml (make-tarball /
-  make-arm64-tarball) and test-smokes-built.yml.
+  Builds and uploads a versioned Quarto distribution tarball from the current
+  checkout.
 inputs:
   version:
     description: "Version to stamp into the distribution (--set-version)"
@@ -20,7 +17,7 @@ inputs:
     description: "Workflow artifact name to upload the tarball as"
     required: true
   retention-days:
-    description: "Artifact retention in days (empty = repo default; upload-artifact ignores an empty value)"
+    description: "Artifact retention in days; empty uses the repository default"
     required: false
     default: ""
 runs:
@@ -56,5 +53,5 @@ runs:
         name: ${{ inputs.artifact-name }}
         path: ./package/${{ inputs.tarball-name }}
         retention-days: ${{ inputs.retention-days }}
-        # the tarball is already gzipped - re-compressing wastes CPU
+        # The tarball is already compressed.
         compression-level: 0

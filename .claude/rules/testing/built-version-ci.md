@@ -10,13 +10,13 @@ paths:
 
 # Built-Version CI Workflows
 
-`llm-docs/built-version-testing-architecture.md` is the deep dive. Read only what the edit needs:
+Use `llm-docs/built-version-testing-architecture.md` for detailed context. Read only the sections relevant to the edit:
 
 - OS lists, bucket globs, concurrency-group suffixes, `runners:` inputs → "Built-mode test legs" (scheduler layout).
 - Adding/reordering a leg, changing `quarto-install` resolution or artifact plumbing → "Flow diagrams" + "Built-mode test legs".
-- Removing, inverting, or "simplifying" an existing mechanism → "Design decisions" (D1-D11) first — each records why the obvious alternative was rejected.
+- Removing, inverting, or simplifying an existing mechanism → "Design decisions" (D1-D11) first.
 
-Trivial one-line YAML edits: the invariants below plus the doc's "Document map" intro paragraph are enough.
+For a one-line YAML edit, the invariants below and the document map are enough.
 
 Invariants when editing:
 

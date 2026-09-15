@@ -4,37 +4,37 @@ on:
   workflow_call:
     inputs:
       extra-r-packages:
-        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        description: "Comma-separated R packages to pass to renv::install"
         required: false
         type: string
         default: ""
       quarto-install:
-        description: "Which quarto to test (forwarded to test-smokes.yml): 'dev' (source tree, default), 'release', or 'artifact'"
+        description: "Quarto source: dev tree, published release, or workflow artifact"
         required: false
         type: string
         default: "dev"
       quarto-version:
-        description: "Version to install when quarto-install is 'release' (forwarded to test-smokes.yml)"
+        description: "Version to install when quarto-install is release"
         required: false
         type: string
         default: ""
       quarto-artifact-name:
-        description: "Workflow artifact name containing the built quarto tarball/zip when quarto-install is 'artifact' (forwarded to test-smokes.yml)"
+        description: "Artifact containing the Quarto tarball or zip"
         required: false
         type: string
         default: ""
       quarto-artifact-run-id:
-        description: "Workflow run id to download the artifact from (forwarded to test-smokes.yml; empty = the current run)"
+        description: "Run ID containing the artifact; empty uses the current run"
         required: false
         type: string
         default: ""
       ref:
-        description: "Git ref to check out (forwarded to test-smokes.yml; empty means the default checkout behavior)"
+        description: "Git ref to check out; empty uses the default"
         required: false
         type: string
         default: ""
       runners:
-        description: "JSON list of runner labels for the OS matrix (forwarded to test-smokes.yml)"
+        description: "JSON array of runner labels"
         required: false
         type: string
         default: '["ubuntu-latest", "windows-latest"]'

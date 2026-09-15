@@ -75,7 +75,7 @@ try {
           return Promise.resolve();
         },
         teardown: () => {
-          // clean output (setup may have failed before copying the fixture)
+          // Remove output if setup copied the fixture.
           safeRemoveSync(path, { recursive: true });
           return Promise.resolve();
         },
