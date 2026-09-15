@@ -426,6 +426,21 @@ unitTest("gha-reporting - appendStepSummaryBounded no-ops when the path is unset
   assertEquals(appendStepSummaryBounded("ignored", ""), false);
 });
 
+// deno-lint-ignore require-await
+unitTest("gha-reporting - appendStepSummaryBounded reports failure when the write itself fails, not just when the budget check refuses", async () => {
+  // A small candidate can pass the size-budget check (stepSummarySize reads
+  // 0 on an unreadable path) and then fail the actual write. The return
+  // value must reflect the write, or a caller mistakes a lost row for a
+  // recorded one.
+  const dir = Deno.makeTempDirSync({ prefix: "quarto-summary" });
+  try {
+    const unwritable = join(dir, "no-such-dir", "summary.md");
+    assertEquals(appendStepSummaryBounded("| row |\n", unwritable), false);
+  } finally {
+    Deno.removeSync(dir, { recursive: true });
+  }
+});
+
 // appendStepSummaryFirstFit exists because trying a full-size candidate and
 // emitting the truncation notice on refusal (as appendStepSummaryBounded
 // does) consumes the notice's reserved headroom before a smaller fallback

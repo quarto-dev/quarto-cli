@@ -462,14 +462,17 @@ are ASCII by construction while file/test names keep going through
    unit-test fixtures, never against a real CI log, and a cascade bug in its
    own logic was found and fixed as recently as commit 396c6e2e7. Gating this
    PR's own CI on an unproven checker risks either false failures (hard gate)
-   or noise (report-only). Revisit once the pre-ready trial run (item 3
-   below) produces real CI logs to validate the checker against.
+   or noise (report-only). The item-3 trial below validated Phases 1–2
+   against real CI logs, but predates the reporting-hardening commits made
+   since; revisit once a fresh CI run — the still-pending run against the
+   PR once it leaves draft — produces logs to validate the checker against.
 2. **Unit tests** for the new pure logic: annotation cap counter, the
    orchestrated-mode gate (no annotations/groups when
    `QUARTO_TESTS_GHA_ORCHESTRATED` is set), ANSI stripping, the stat-based
    summary size budget (including the degrade-to-name-only path), escaping.
-3. **Trial CI runs** on a fork via `workflow_dispatch`, with one deliberately
-   failing test committed temporarily, covering all four cells:
+3. **Trial CI runs** (done — see status above) on a fork via
+   `workflow_dispatch`, with one deliberately failing test committed
+   temporarily, covering all four cells:
    {bucketed, default} × {Linux, Windows} — plus one bucket run with **more
    than 10 failing files**, to observe GitHub's silent annotation dropping
    and confirm the step summary still lists every failure. Check in the real

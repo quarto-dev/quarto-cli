@@ -294,19 +294,23 @@ export const kStepSummaryBudgetBytes = 512 * 1024;
 // $GITHUB_STEP_SUMMARY; `null` (or "") → guaranteed no-op. Tests must pass
 // `null` or a temp path, never an explicit `undefined` — that triggers the
 // default parameter and, on CI, writes to the REAL step summary (found by
-// trial run cderv/quarto-cli#29767179626).
+// trial run cderv/quarto-cli#29767179626). Returns whether the write actually
+// happened, so a caller deciding what got recorded doesn't have to guess.
 export function stepSummary(
   markdown: string,
   path?: string | null,
-): void {
+): boolean {
   const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
-  if (!p) return;
+  if (!p) return false;
   try {
     Deno.writeTextFileSync(p, markdown, { append: true });
+    return true;
   } catch {
     // Best-effort: callers append while a test failure is already in flight
     // (and from the unload handler, after the run), so a summary write error
-    // must not replace the failure being reported. A lost append costs a row.
+    // must not replace the failure being reported. A lost append costs a row,
+    // which the returned `false` lets the caller account for.
+    return false;
   }
 }
 
@@ -421,8 +425,7 @@ function appendIfFits(markdown: string, path: string): boolean {
   if (!fitsInStepSummary(markdown, kStepSummaryContentBudgetBytes, path)) {
     return false;
   }
-  stepSummary(markdown, path);
-  return true;
+  return stepSummary(markdown, path);
 }
 
 // Append the truncation notice in place of content that no longer fits.
