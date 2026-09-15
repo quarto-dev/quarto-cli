@@ -494,12 +494,21 @@ jobs:
         run: |
           haserror=0
           failed_tests=()
+          # jq -e fails (nonzero exit) both on malformed JSON and on a
+          # syntactically valid but empty array, so either case is caught
+          # here instead of silently running zero buckets and reporting
+          # success.
+          if ! bucket_list=$(printf '%s' "$BUCKETS_JSON" | jq -e -rc '.[]' 2>&1); then
+            echo "::error::BUCKETS_JSON is not a valid non-empty JSON array: $BUCKETS_JSON"
+            echo "$bucket_list"
+            exit 1
+          fi
           # while-read, not `readarray`: this step also runs on macOS, whose
           # only bash is 3.2 (no mapfile/readarray builtin).
           my_array=()
           while IFS= read -r bucket; do
             my_array+=("$bucket")
-          done < <(echo "$BUCKETS_JSON" | jq -rc '.[]')
+          done <<< "$bucket_list"
           for file in "${my_array[@]}"; do
             echo "::group::Testing ${file}"
             echo ">>> ./run-tests.sh ${file}"
@@ -538,7 +547,12 @@ jobs:
         run: |
           $haserror=$false
           $failed_tests=@()
-          foreach ($file in ($env:BUCKETS_JSON | ConvertFrom-Json)) {
+          $buckets=@($env:BUCKETS_JSON | ConvertFrom-Json)
+          if ($buckets.Count -eq 0) {
+            Write-Host "::error::BUCKETS_JSON resolved to zero test buckets: $env:BUCKETS_JSON"
+            Exit 1
+          }
+          foreach ($file in $buckets) {
             Write-Host "::group::Testing ${file}"
             Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file
