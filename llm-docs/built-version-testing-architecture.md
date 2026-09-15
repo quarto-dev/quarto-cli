@@ -222,11 +222,15 @@ A dispatch can opt out per-run via `skip-auto-smoke` (see D7.1) when it does not
 
 ### D2. Version stamp: the plain three-component version (`X.Y.Z`)
 
-Built test distributions use `$(cat version.txt)`, a plain `X.Y.Z`.
-The earlier `+test.YYYYMMDD` build-metadata marker was valid semver but could not be parsed by Pandoc's `Version` type, causing `quarto.version` to become a string and breaking version-dependent smoke tests.
-The plain version remains compatible with `quarto-required` ranges and represents a release build accurately.
-Do not use a prerelease suffix, which fails plain `>=X.Y` ranges, or a fourth numeric component, which is invalid semver.
-Trial builds are identified by workflow, ref, and SHA rather than by the version string.
+Built test distributions use `$(cat version.txt)`, a plain `X.Y.Z`. Pandoc's
+`Version` type, used by the `version` shortcode, cannot parse semver build
+metadata such as `+test.YYYYMMDD`; a plain version also matches a release
+artifact more closely. The `99.9.9` sentinel still distinguishes dev mode.
+
+Do not use a prerelease suffix: prerelease versions fail ordinary `>=X.Y`
+`quarto-required` ranges. Do not add a fourth numeric component: it is not
+valid semver. Identify trial builds by workflow, ref, and SHA instead of the
+version string.
 
 ### D3. Dist outside the checkout + `99.9.9` sentinel refusal
 
