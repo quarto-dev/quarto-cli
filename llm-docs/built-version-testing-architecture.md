@@ -188,7 +188,8 @@ Key points:
 
 The feature-format bucket glob (`../dev-docs/feature-format-matrix/qmd-files/**/*.qmd`) is defined only in `test-ff-matrix.yml`.
 Built-mode callers use its `workflow_call` trigger, while its existing dev triggers remain.
-The workflow forwards install, artifact, ref, runner, and R-package inputs to `test-smokes.yml`, with dev defaults for non-call triggers.
+The workflow forwards install, artifact, ref, runner, R-package, and `label-tag` inputs to `test-smokes.yml`, with dev defaults for non-call triggers.
+The tag defaults to `ffdev` for standalone dev triggers and distinguishes same-OS jobs in the shared failure summary.
 
 Reusable-workflow concurrency is evaluated in the caller's context. The group therefore includes a suffix based on `inputs.runners` and `github.run_id`, preventing sibling feature-format legs from canceling one another.
 Dev triggers use a constant `-dev` suffix.
@@ -216,11 +217,17 @@ The trigger fires after every completed create-release run, including manual and
 
 **Revisit when:** maintainers want a single nightly build-and-test status and are willing to couple the workflows.
 
-### D2. Version marker: semver *build metadata* (`X.Y.Z+test.YYYYMMDD`)
+### D2. Version stamp: the plain three-component version (`X.Y.Z`)
 
-Built test distributions use `$(cat version.txt)+test.$(date +%Y%m%d)`.
-Do not use a prerelease suffix, which fails plain `>=X.Y` `quarto-required` ranges, or a fourth numeric component, which is invalid semver.
-Build metadata preserves range comparisons while distinguishing the build from the `99.9.9` dev version.
+Built test distributions use `$(cat version.txt)`, a plain `X.Y.Z`. Pandoc's
+`Version` type, used by the `version` shortcode, cannot parse semver build
+metadata such as `+test.YYYYMMDD`; a plain version also matches a release
+artifact more closely. The `99.9.9` sentinel still distinguishes dev mode.
+
+Do not use a prerelease suffix: prerelease versions fail ordinary `>=X.Y`
+`quarto-required` ranges. Do not add a fourth numeric component: it is not
+valid semver. Identify trial builds by workflow, ref, and SHA instead of the
+version string.
 
 ### D3. Dist outside the checkout + `99.9.9` sentinel refusal
 
