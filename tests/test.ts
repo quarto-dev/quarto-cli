@@ -515,17 +515,26 @@ function reportFailure(
     );
 
     // annotationBody keeps only its first kAnnotationExcerptLines NON-EMPTY
-    // lines of whatever excerpt it's given - a much smaller window than the
-    // kExcerptLines the primary message above was reserved against. A
-    // primary message with as few as kAnnotationExcerptLines non-empty lines
-    // already fills that window, silently dropping the teardown banner and
-    // message from the annotation even though both still fit in the fuller
-    // step-summary excerpt. Build the annotation body from a dedicated,
-    // reserved excerpt instead of reusing `excerpt` when a teardown/cleanup
-    // failure rides along; otherwise reuse `excerpt` unchanged.
+    // lines of whatever excerpt it's given, after its own defensive
+    // truncateUtf8Bytes(excerpt, kExcerptMaxBytes) - a much smaller line
+    // window than kExcerptLines, and a byte cap the primary message above
+    // was never bounded against for THIS excerpt. A primary message with as
+    // few as kAnnotationExcerptLines non-empty lines, or with a single line
+    // that alone approaches kExcerptMaxBytes, already fills that window,
+    // silently dropping the teardown banner and message from the annotation
+    // even though both still fit in the fuller step-summary excerpt. Build
+    // the annotation body from a dedicated, reserved excerpt instead of
+    // reusing `excerpt` when a teardown/cleanup failure rides along -
+    // capping the primary portion's bytes BEFORE appending the banner and
+    // message, so annotationBody's own byte truncation lands after them
+    // instead of cutting into the primary and consuming them too; otherwise
+    // reuse `excerpt` unchanged.
     const annotationExcerpt = finallyFailure
       ? [
-        ...stripAnsi(primary?.message ?? "")
+        ...truncateUtf8Bytes(
+          stripAnsi(primary?.message ?? ""),
+          kExcerptMaxBytes / 2,
+        )
           .split("\n")
           .filter((line) => line.trim().length > 0)
           .slice(0, kAnnotationExcerptLines - kFinallyAnnotationReservedLines),
