@@ -38,6 +38,11 @@ on:
         required: false
         type: string
         default: '["ubuntu-latest", "windows-latest"]'
+      label-tag:
+        description: "Short alphanumeric tag identifying this call in CI failure labels (forwarded to test-smokes.yml; empty means the standalone dev default)"
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       extra-r-packages:
@@ -100,3 +105,4 @@ jobs:
       quarto-artifact-run-id: ${{ inputs.quarto-artifact-run-id }}
       ref: ${{ inputs.ref }}
       runners: ${{ inputs.runners || '["ubuntu-latest", "windows-latest"]' }}
+      label-tag: ${{ inputs.label-tag || 'ffdev' }}

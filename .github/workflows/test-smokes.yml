@@ -49,6 +49,11 @@ on:
         required: false
         type: string
         default: '["ubuntu-latest", "windows-latest"]'
+      label-tag:
+        description: "Short alphanumeric tag identifying this call in CI failure labels (src/tools/github.ts failureLabel). Several jobs of one run share an OS and the label is the Ctrl+F navigation target in the concatenated run summary, so every caller must pass a value. Empty means labels are not unique across same-OS jobs."
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       buckets:
@@ -91,6 +96,9 @@ jobs:
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
       RUST_BACKTRACE: ${{ startsWith(matrix.os, 'macos') && 'full' || '' }}
+      # Read by the test harness to keep this call's failure labels distinct
+      # from sibling jobs on the same OS in the concatenated run summary.
+      QUARTO_TESTS_GHA_LABEL_TAG: ${{ inputs.label-tag }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6

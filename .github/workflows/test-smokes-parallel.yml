@@ -104,3 +104,6 @@ jobs:
     with:
       buckets: ${{ matrix.buckets.files }}
       extra-r-packages: ${{ inputs.extra-r-packages }}
+      # `num` is the zero-padded bucket index built in jobs-matrix, the only
+      # thing that differs between these ~20 same-OS legs.
+      label-tag: b${{ matrix.buckets.num }}

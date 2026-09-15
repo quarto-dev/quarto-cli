@@ -119,6 +119,7 @@ jobs:
       quarto-artifact-name: built-quarto-linux-amd64
       runners: '["ubuntu-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: bldsmk
 
   run-playwright-artifact:
     name: Playwright tests against built artifact
@@ -133,6 +134,7 @@ jobs:
       quarto-artifact-name: built-quarto-linux-amd64
       runners: '["ubuntu-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
+      label-tag: bldpw
 
   run-ff-matrix-artifact:
     name: Feature-format matrix against built artifact
@@ -146,6 +148,7 @@ jobs:
       quarto-install: artifact
       quarto-artifact-name: built-quarto-linux-amd64
       runners: '["ubuntu-latest"]'
+      label-tag: bldff
 
   # Test an existing published release.
   resolve-release:
@@ -209,6 +212,7 @@ jobs:
       quarto-version: ${{ needs.resolve-release.outputs.version }}
       runners: '["ubuntu-latest", "windows-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: relsmk
 
   run-playwright-release:
     name: Playwright tests against published release
@@ -223,6 +227,7 @@ jobs:
       quarto-version: ${{ needs.resolve-release.outputs.version }}
       runners: '["ubuntu-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
+      label-tag: relpw
 
   run-ff-matrix-release:
     name: Feature-format matrix against published release
@@ -236,6 +241,7 @@ jobs:
       quarto-install: release
       quarto-version: ${{ needs.resolve-release.outputs.version }}
       runners: '["ubuntu-latest", "windows-latest"]'
+      label-tag: relff
 
   # Reuse artifacts from a completed create-release run.
   resolve-nightly:
@@ -332,6 +338,7 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["ubuntu-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: ngtsmk
 
   run-smokes-nightly-windows:
     name: Smoke tests against nightly build (windows)
@@ -348,6 +355,7 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["windows-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: ngtsmk
 
   run-smokes-nightly-mac:
     name: Smoke tests against nightly build (macOS)
@@ -364,6 +372,7 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["macos-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: ngtsmk
 
   # Each caller job accepts one OS-specific artifact.
   run-playwright-nightly-linux:
@@ -381,6 +390,7 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["ubuntu-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
+      label-tag: ngtpw
 
   run-playwright-nightly-mac:
     name: Playwright tests against nightly build (macOS)
@@ -397,6 +407,7 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["macos-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
+      label-tag: ngtpw
 
   run-ff-matrix-nightly-linux:
     name: Feature-format matrix against nightly build (linux)
@@ -412,6 +423,7 @@ jobs:
       quarto-artifact-name: Deb Zip
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["ubuntu-latest"]'
+      label-tag: ngtff
 
   run-ff-matrix-nightly-windows:
     name: Feature-format matrix against nightly build (windows)
@@ -427,3 +439,4 @@ jobs:
       quarto-artifact-name: Windows Zip
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["windows-latest"]'
+      label-tag: ngtff
