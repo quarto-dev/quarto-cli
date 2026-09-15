@@ -102,3 +102,17 @@ unitTest("fixture throws a primary message that trips both the line and byte cap
     throw new Error("FIXTURE_BOTHCAPS_TEARDOWN_BOOM");
   },
 });
+
+// A single retained primary line that alone exceeds the annotation's own
+// byte cap, paired with a throwing teardown: the annotation excerpt's byte
+// truncation (applied AFTER the primary/banner/message are joined) must not
+// cut into the joined string before the banner and message, or they're
+// dropped from the annotation even though the step summary still shows them.
+// deno-lint-ignore require-await
+unitTest("fixture throws a huge single-line message and teardown also throws", async () => {
+  throw new Error("FIXTURE_HUGELINE_PRIMARY_" + "y".repeat(300 * 1024));
+}, {
+  teardown: () => {
+    throw new Error("FIXTURE_HUGELINE_TEARDOWN_BOOM");
+  },
+});
