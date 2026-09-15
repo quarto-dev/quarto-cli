@@ -42,7 +42,6 @@ async function assertThrowsWithPattern(
   );
 }
 
-// Remove stale output in setup and run assertions before teardown cleanup.
 testQuartoCmd("render", [fixtureQmd, "--to", "typst"], [
   noErrors,
   {

@@ -86,7 +86,7 @@ if [[ -n "$QUARTO_TEST_BIN" ]]; then
   fi
   if [[ "$QUARTO_TEST_BIN_VERSION" == "99.9.9" ]]; then
     echo "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
-    echo "It resolves to a dev-mode quarto: the launcher runs the TS sources whenever a sibling src/quarto.ts exists."
+    echo "The selected launcher runs the dev sources because it has a sibling src/quarto.ts."
     echo "Point QUARTO_TEST_BIN at a built distribution extracted outside the git checkout."
     exit 1
   fi

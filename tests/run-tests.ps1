@@ -105,7 +105,7 @@ If (-not [string]::IsNullOrEmpty($Env:QUARTO_TEST_BIN)) {
   }
   If ($QUARTO_TEST_BIN_VERSION -eq "99.9.9") {
     Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
-    Write-Host -ForegroundColor red "It resolves to a dev-mode quarto: the launcher runs the TS sources whenever a sibling src/quarto.ts exists."
+    Write-Host -ForegroundColor red "The selected launcher runs the dev sources because it has a sibling src/quarto.ts."
     Write-Host -ForegroundColor red "Point QUARTO_TEST_BIN at a built distribution extracted outside the git checkout."
     Exit 1
   }

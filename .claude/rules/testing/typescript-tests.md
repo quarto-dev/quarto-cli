@@ -29,9 +29,9 @@ Core test files (`test.ts`, `quarto-cmd.ts`, `verify.ts`, `utils.ts`) are descri
 
 Smoke tests must work with either the dev sources or `QUARTO_TEST_BIN`:
 
-- Never `import { quarto } from "../../src/quarto.ts"` in tests — invoke quarto via `testQuartoCmd()`/`runQuarto()`.
+- Do not import `quarto` from `src/quarto.ts`. Invoke Quarto through `testQuartoCmd()` or `runQuarto()`.
 - For subprocesses, use `quartoDevCmd()` or `quartoDevBinCmd()` and pass `quartoSpawnEnvOptions()`.
-- `TestContext.requiresDevQuarto: true` ignores a test in binary mode — rare escape hatch for tests exercising quarto internals in-process.
+- Set `TestContext.requiresDevQuarto: true` only for tests that require in-process Quarto internals. Binary mode ignores these tests.
 
 ### Search for an existing verifier before writing one
 

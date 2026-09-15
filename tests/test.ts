@@ -215,7 +215,6 @@ export function test(test: TestDescriptor) {
   const sanitizeResources = test.context.sanitize?.resources;
   const sanitizeOps = test.context.sanitize?.ops;
   const sanitizeExit = test.context.sanitize?.exit;
-  // dev-only tests are ignored when targeting an external built binary
   const ignore = test.context.ignore ||
     (isBinaryMode() && test.context.requiresDevQuarto);
   const userSession = !runningInCI();
@@ -259,9 +258,7 @@ export function test(test: TestDescriptor) {
         let lastVerify;
 
         try {
-          // Inside the try so a throwing setup or chdir still reaches the
-          // teardown and cwd restore below, instead of skipping them and
-          // leaking the process cwd into every later test in the file.
+          // Keep setup and cwd changes inside the cleanup scope.
           if (test.context?.cwd) {
             Deno.chdir(test.context.cwd());
           }
@@ -387,8 +384,7 @@ export function test(test: TestDescriptor) {
         } finally {
           safeRemoveSync(log);
           await cleanupLogOnce();
-          // A throwing teardown still fails the test, but only after the cwd
-          // is restored - otherwise it leaks into every later test in the file.
+          // Restore the cwd even when teardown fails.
           try {
             if (test.context.teardown) {
               await test.context.teardown();

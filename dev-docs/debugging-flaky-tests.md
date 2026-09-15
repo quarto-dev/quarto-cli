@@ -190,10 +190,9 @@ done
 QUARTO_TEST_BIN=/path/to/installed/quarto ./run-tests.sh path/to/test.ts
 ```
 
-By default the harness invokes quarto in-process; with `QUARTO_TEST_BIN` set,
-each invocation is spawned as a subprocess of a built distribution. A flake
-that disappears in binary mode points at in-process state pollution in the
-dev harness rather than a product bug.
+By default, the harness invokes Quarto in-process. With `QUARTO_TEST_BIN` set,
+each invocation runs in a subprocess. A flake that disappears in binary mode
+may indicate shared state in the dev harness.
 
 ### Package/Dependency Comparison
 

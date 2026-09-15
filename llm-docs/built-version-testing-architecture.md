@@ -27,10 +27,12 @@ Document map:
 
 ## Architecture in one paragraph
 
-Every `testQuartoCmd()`-based test invokes quarto through a single dispatch point, `runQuarto()` in `tests/quarto-cmd.ts`.
-In **dev mode** (default) it calls the in-process `quarto()` entry point from `src/quarto.ts`.
-In **binary mode** (`QUARTO_TEST_BIN` set to a built quarto extracted *outside* the checkout) it spawns that binary as a subprocess with `--log <file> --log-format json-stream`, merges the child's log into the test's log file, and the verifiers run unchanged — they only ever see log records and rendered outputs.
-CI-side, the reusable `test-smokes.yml` gained `quarto-install: dev | release | artifact` inputs (dev callers are untouched), and `test-smokes-built.yml` orchestrates three sources for the binary under test: `build` (build from this ref, dispatch only), `nightly` (reuse the packaged artifacts of a nightly `create-release` build — fires automatically via `workflow_run` after each one), and `release` (install a published (pre-)release at its tag) — fanning each source out to three test legs: smoke, playwright, and the feature-format matrix (see "Built-mode test legs").
+Every `testQuartoCmd()` test invokes Quarto through `runQuarto()` in `tests/quarto-cmd.ts`.
+Dev mode calls the in-process `quarto()` entry point from `src/quarto.ts`.
+Binary mode spawns the executable in `QUARTO_TEST_BIN`, merges its JSON-stream log into the test log, and uses the same verifiers.
+
+In CI, `test-smokes.yml` accepts dev, release, or artifact install sources.
+`test-smokes-built.yml` resolves build, nightly, and release sources, then schedules smoke, Playwright, and feature-format legs.
 
 ## Flow diagrams
 
@@ -150,25 +152,23 @@ flowchart TB
 | build                   | fresh linux-amd64 dist from the current ref (unsigned)                                                                                         | manual dispatch                     | smoke + playwright + ff-matrix (all linux)                                     | does this ref work when packaged? (works on forks/PR branches)                                |
 | release                 | published (pre-)release via quarto-actions/setup, harness at its `v` tag                                                                       | manual dispatch                     | smoke (linux+windows) + playwright (linux) + ff-matrix (linux+windows)         | does the published version pass?                                                              |
 
-Dev mode and built modes are complementary, not redundant: dev uniquely covers `unit/`, `QUARTO_DEBUG` paths, the `quarto check` dev branch, and in-process races; built modes cover the packaged product dev mode never executes.
-The playwright suite (`integration/playwright-tests.test.ts`) is no longer dev-only either: every built-mode source runs three suites ("legs") — smoke, playwright, and the feature-format matrix — see "Built-mode test legs" below.
-The two other `tests/integration/` tests (`guess-chunk-options-format-document.test.ts`, `mermaid/github-issue-1340.test.ts`) still run only in the dev shards.
+Dev mode covers unit tests, dev-only paths, and in-process behavior. Built modes cover the packaged product.
+The non-Playwright integration tests remain in the dev shards.
 
 In practice:
 
-- **Normally, no manual trigger is needed.** `nightly` runs after each nightly build and tests the packaged binaries on all three operating systems before publication.
+- `nightly` runs automatically after each nightly build and tests the available packaged binaries.
   Scheduled builds skip Windows signing (D11).
-- **Dispatch `build`** when a branch touches packaging or the harness itself (`prepare-dist`, `configure`, `tests/quarto-cmd.ts`, ...)
-  and you want built-version feedback on *that ref* now.
-  Trades coverage (linux-only, unsigned) for immediacy and fork-friendliness.
-  To get *signed* Windows binaries for a branch instead, dispatch `create-release` with `publish-release=false` + `smoke-artifacts-only=true` — the `workflow_run` trigger then tests the build automatically (only the legs whose artifacts exist); a manual `source=nightly` dispatch with a `run-id` is just for re-testing an older run (see D7).
-- **Dispatch `release`** after publishing for post-publish verification, e.g. the optional step in `dev-docs/checklist-make-a-new-quarto-prerelease.md`.
+- Dispatch `build` for immediate Linux feedback on packaging or harness changes.
+- For signed Windows artifacts from a branch, dispatch `create-release` with `publish-release=false` and `smoke-artifacts-only=true`. The resulting workflow run starts the available test legs automatically (D7).
+- Dispatch `nightly` with a `run-id` to retest an earlier `create-release` run.
+- Dispatch `release` for post-publish verification, such as the optional prerelease checklist step.
   It works only for releases cut after the harness support merged (D10).
 
 ## Built-mode test legs (scheduler layout)
 
 `test-smokes-built.yml` = the mode **resolvers** (build-artifact / resolve-nightly / resolve-release, unchanged) + a **scheduler**: per-leg caller jobs fanning out to the reusable workflows.
-Three legs per source mode, each an independent job (one red suite never cancels the others):
+Each source mode schedules three independent legs:
 
 | leg        | goes through                    | bucket                                                  | OS scope                                                                             |
 | ---------- | ------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
@@ -178,37 +178,21 @@ Three legs per source mode, each an independent job (one red suite never cancels
 
 Key points:
 
-- **The smoke leg doubles as the general bucket runner.** A manual dispatch
-  with the `buckets` input set runs only the smoke-slot jobs with that
-  bucket; the playwright + ff-matrix legs carry
-  `github.event.inputs.buckets == ''` in their `if:` and skip.
-- **No windows playwright leg, deliberately.** The browser assertions are
-  hard-ignored on Windows CI (`playwright-tests.test.ts`
-  `ignore: gha.isGitHubActions() && isWindows`) — a windows leg would render
-  the corpus, skip every assertion, and report a misleading green. Rework
-  that gate (plus the `runner.os != 'Windows'` report-upload gate in
-  `test-smokes.yml`) before adding windows to the leg.
-- **The playwright render wrapper needs the sanitized spawn env.**
-  `playwright-tests.test.ts` renders via `execProcess` +
-  `quartoDevCmd()` and MUST pass `quartoSpawnEnvOptions()`: without it the
-  built quarto inherits the dev-tree env (`QUARTO_SHARE_PATH`, ...) exported
-  by `run-tests.[sh|ps1]` for the harness and silently renders with
-  dev-tree resources (the D3/D4 dev-mode trap).
-- **Playwright report artifacts are named per OS**
-  (`playwright-report-${{ runner.os }}`): several `test-smokes.yml` calls
-  share one workflow run in the fan-out, and duplicate artifact names make
-  `upload-artifact` fail even on green tests.
-- **Per-leg OS scope is tuned in one place** — the `runners` inputs on the
-  scheduler jobs in `test-smokes-built.yml`.
+- **Smoke is also the general bucket runner.** When a manual dispatch sets `buckets`, only smoke jobs run. The Playwright and feature-format jobs require an empty `buckets` input.
+- **Windows has no Playwright leg.** `playwright-tests.test.ts` ignores browser assertions on Windows CI. Before adding this leg, update that gate and the report-upload gate in `test-smokes.yml`.
+- **Playwright renders need a sanitized environment.** Calls through `execProcess` and `quartoDevCmd()` must pass `quartoSpawnEnvOptions()` so built Quarto does not inherit dev-tree paths.
+- **Playwright reports include the OS in their artifact names.** Sibling jobs share a workflow run and cannot upload artifacts with the same name.
+- **Scheduler jobs own OS scope.** Set it through their `runners` inputs.
 
 ### `test-ff-matrix.yml` is reusable (`workflow_call`)
 
-The ff-matrix bucket glob (`../dev-docs/feature-format-matrix/qmd-files/**/*.qmd`) is defined **only** in `test-ff-matrix.yml`; built-mode callers reuse it through its `workflow_call` trigger, which coexists with the dev triggers (cron/push/PR/dispatch).
-Inputs `quarto-install`, `quarto-version`, `quarto-artifact-name`, `quarto-artifact-run-id`, `ref`, `runners`, `extra-r-packages` are forwarded verbatim to `test-smokes.yml`; the job uses `${{ inputs.x || <dev default> }}` fallbacks so non-call triggers use the dev defaults.
-Nesting depth `test-smokes-built.yml → test-ff-matrix.yml → test-smokes.yml` is 3, well within GitHub's reusable-workflow nesting limit.
-A called workflow's top-level `concurrency` evaluates in the caller's context (`github.workflow`/`ref`/`run_id` are the caller run's), so the group carries a per-call suffix derived from `inputs.runners` + `github.run_id` — without it, every ff-matrix leg of one `test-smokes-built.yml` run would share a single cancel-in-progress group and could cancel a sibling leg.
-Dev triggers get a constant `-dev` suffix (dedup semantics unchanged).
-`test-ff-matrix.yml` declares no `permissions`, so the caller's `actions: write` (julia cache cleanup) flows through.
+The feature-format bucket glob (`../dev-docs/feature-format-matrix/qmd-files/**/*.qmd`) is defined only in `test-ff-matrix.yml`.
+Built-mode callers use its `workflow_call` trigger, while its existing dev triggers remain.
+The workflow forwards install, artifact, ref, runner, and R-package inputs to `test-smokes.yml`, with dev defaults for non-call triggers.
+
+Reusable-workflow concurrency is evaluated in the caller's context. The group therefore includes a suffix based on `inputs.runners` and `github.run_id`, preventing sibling feature-format legs from canceling one another.
+Dev triggers use a constant `-dev` suffix.
+The workflow does not declare `permissions`, so it inherits the caller's `actions: write` permission for Julia cache cleanup.
 
 ## Design decisions
 
@@ -221,26 +205,22 @@ The release pipeline is not modified for testing purposes.
 
 **Alternatives considered (2026-07, maintainer question):**
 
-- *create-release dispatches the test workflow at the end* — `workflow_run` hand-rolled: needs `actions: write` + `gh workflow run` code inside the release workflow, same default-branch constraint.
-  Strictly dominated.
-- *create-release `workflow_call`s `test-smokes.yml` after building* — same-run artifacts (no run-id resolution) and an explicit DAG, but smoke results would redden `Build Installers` runs including real publishes; gating to schedule-only moves testing configuration (buckets, runner policy) into the release workflow permanently.
-- *Inversion: `test-smokes-built` owns the daily schedule and calls `create-release` via `workflow_call`* — feasible (create-release uses the `inputs.` context exclusively, which works under `workflow_call`; its `github.event_name == 'schedule'` guard still behaves because a called workflow sees the caller's event).
-  Rejected because: (a) `smoke-artifacts-only` skips `make-installer-mac`, so the daily run would need the full build anyway — zero compute saved (there is no double build today: one nightly build, one test pass reusing its artifacts);
-  (b) it reverses the dependency — the nightly build is also a
-  release-pipeline canary (signing certs, notarization, installer tooling) and must not die when the test workflow is broken or paused; (c) nightly builds would disappear from the "Build Installers" run history.
+- *Dispatch tests from create-release* — adds permissions and dispatch code to the release workflow without avoiding the default-branch constraint.
+- *Call `test-smokes.yml` from create-release* — simplifies artifact access, but test failures would mark release builds as failed and test configuration would move into the release workflow.
+- *Let `test-smokes-built` call create-release* — still requires the full daily build, couples nightly builds to test-workflow availability, and moves them out of the "Build Installers" history.
 
-**Why `workflow_run` wins:** zero risk to the most sensitive workflow in the repo, and clean failure attribution — "Build Installers" red = the pipeline broke; "Smoke Tests (Built Version)" red = the product broke.
+**Rationale:** `workflow_run` keeps release and test status separate without adding test orchestration to the release workflow.
 
-**Known weaknesses (accepted):** the trigger couples on the workflow *display name* string (`workflows: ["Build Installers"]`; renaming create-release's `name:` silently stops the trigger), and "trigger never fired" is silent (mitigated by daily cadence — an absent run is visible).
-Note the trigger fires on EVERY completed create-release run, not only nightly schedules — manual dispatches (including partial `smoke-artifacts-only` builds) get tested too, which is why each nightly OS leg is gated on its artifact actually existing in the resolved run.
+**Known weaknesses:** the trigger depends on the workflow display name (`workflows: ["Build Installers"]`), so renaming the workflow stops the trigger. GitHub does not report a missing trigger as a failure.
+The trigger fires after every completed create-release run, including manual and partial builds. Each OS leg therefore checks that its artifact exists.
 
-**Revisit when:** the system has a green track record and maintainers want one atomic nightly build-and-test signal — then the inversion is the principled consolidation, done as a deliberate follow-up.
+**Revisit when:** maintainers want a single nightly build-and-test status and are willing to couple the workflows.
 
 ### D2. Version marker: semver *build metadata* (`X.Y.Z+test.YYYYMMDD`)
 
-Built test dists are stamped `$(cat version.txt)+test.$(date +%Y%m%d)`.
-Never a `-suffix` (prerelease versions fail every plain `>=X.Y` `quarto-required` range — the vendored semver has no `includePrerelease` anywhere) and never a 4th dot component (not semver; the vendored `deno.land/x/semver@1.4.0` throws).
-Build metadata is range-transparent for every gate while still distinguishable from the `99.9.9` dev sentinel.
+Built test distributions use `$(cat version.txt)+test.$(date +%Y%m%d)`.
+Do not use a prerelease suffix, which fails plain `>=X.Y` `quarto-required` ranges, or a fourth numeric component, which is invalid semver.
+Build metadata preserves range comparisons while distinguishing the build from the `99.9.9` dev version.
 
 ### D3. Dist outside the checkout + `99.9.9` sentinel refusal
 
@@ -251,25 +231,25 @@ CI extracts artifacts to `RUNNER_TEMP`.
 ### D4. Child env: inherit ambient + strip dev vars (not clearEnv+allowlist)
 
 Binary-mode spawns inherit the ambient environment minus a strip list (`QUARTO_SHARE_PATH`, `QUARTO_BIN_PATH`, `DENO_DIR`, `QUARTO_DEBUG`, `QUARTO_FORCE_VERSION`, ...), with `TestContext.env` overlaid last.
-A clearEnv+allowlist was rejected: the Windows system-variable surface (`SystemRoot`, `PATHEXT`, ...)
-is unenumerable in practice.
+A `clearEnv` allowlist was rejected because the required Windows system variables (`SystemRoot`, `PATHEXT`, and others) are difficult to maintain reliably.
 The dev-tree exports in `run-tests.[sh|ps1]` are kept in all modes — the *harness* process still needs them; only the *child* is sanitized.
 
 ### D5. Silent-green guard: synthetic ERROR records
 
-"Non-zero exit ⇒ ERROR record in the log" is NOT an invariant (pre-logger-init failures, `quarto add/remove` commandFailed, pandoc/typst passthroughs), and ~23% of smoke-all docs are verified only via the log.
-So `runQuarto()` appends a synthetic `{level: 40}` record (exit code + stderr tail) when a non-zero exit leaves the child log record-free, and a timeout record when the process-tree kill fires (`pgrep -P` walk on POSIX — portable to macOS, unlike `ps --ppid`; `taskkill /T` on Windows).
+Some failures exit without an error log record, including pre-logger failures and command passthroughs. Many smoke-all documents rely only on log verification.
+When a failed child has no error record, `runQuarto()` appends one with the exit code and stderr tail. It also records timeouts after killing the process tree.
 
 ### D6. `QUARTO_TEST_BIN` is set at runtime, never declared statically
 
 The "Pin and verify test target" step in `test-smokes.yml` resolves the installed binary, verifies it (sentinel refusal, semver shape, optional `QUARTO_TEST_EXPECTED_VERSION` match), and exports it via `$GITHUB_ENV` so every later step — including the unchanged `run-tests.sh` invocation — sees it.
-With `quarto-install: dev` (all pre-existing callers) these steps are skipped and nothing changes.
+These steps are skipped when `quarto-install` is `dev`.
 
-### D7. `smoke-artifacts-only` is for cheap *branch* builds, not the daily path
+### D7. `smoke-artifacts-only` is for partial branch builds
 
-The `create-release.yml` input skips source/arm64 tarballs and the Mac installer, yielding a fast signed Linux+Windows build for on-demand testing of a branch: dispatch create-release with `publish-release=false` + `smoke-artifacts-only=true` and the `workflow_run` trigger tests the build automatically (mac leg skipped via the artifact-existence gate — one dispatch total).
-Guards: `configure` fails fast if `publish-release` (which defaults to true) is combined with `smoke-artifacts-only` — otherwise the version commit+tag step would push an orphan tag — and such runs use a per-run concurrency group so they never queue in the shared `prerelease` group against a real release.
-It deliberately does NOT feed the daily path: the daily needs the full build (Mac Zip = the only macOS smoke coverage).
+This `create-release.yml` input omits source and arm64 tarballs, Linux installers, and the Mac build.
+For a branch build, dispatch create-release with `publish-release=false` and `smoke-artifacts-only=true`; the `workflow_run` trigger tests the artifacts.
+The configure job rejects this mode when publishing is enabled, and partial builds use a per-run concurrency group.
+The daily path still uses the full build because the Mac zip provides macOS smoke coverage.
 
 ### D8. macOS runners: scheduled/built runs only, never per-commit
 
@@ -279,28 +259,24 @@ Encoded in the `runners` input description in `test-smokes.yml`.
 
 ### D9. Built mode runs smoke + playwright + ff-matrix daily; the dev crons stay
 
-**Revised 2026-07-20** (originally: `integration/` stays dev-only with a future dev daily job — that deferral is resolved the other way).
-
-Built mode is not smoke-only: the nightly path (and every other source mode) runs three legs — smoke, playwright (`integration/playwright-tests.test.ts`), and the feature-format matrix — so packaging/launcher/signing regressions surface in browser behavior and the full ff corpus too, not just the smoke suite (see "Built-mode test legs").
-Both suites were only ever excluded from binary mode by the `run-tests.[sh|ps1]` default, never hard-blocked; the harness prerequisites (the `quartoSpawnEnvOptions()` render-env fix, playwright provisioning in non-dev CI modes) are in place.
+Built mode runs smoke, Playwright (`integration/playwright-tests.test.ts`), and the feature-format matrix.
+The test-script default previously excluded the latter two; the harness now supports both.
 
 What stays dev-only: `unit/` (in-process by definition), the non-playwright `integration/` tests (`guess-chunk-options-format-document.test.ts`, `mermaid/github-issue-1340.test.ts` — dev shards only), `QUARTO_DEBUG` paths, the `quarto check` dev branch, and in-process races.
-Also *temporarily* dev-only: the julia-engine subtree tests (`smoke/julia-engine/`, copied in by `merge-extension-tests`) — their raw `Deno.Command("quarto")` spawns inherit the harness dev env (the D3/D4 trap: `QUARTO_DEBUG` crashes the built quarto in `checkReconfiguration`), so the merge action skips them when `QUARTO_TEST_BIN` is set until the spawns are sanitized in `PumasAI/quarto-julia-engine`.
-Residual gaps no suite exercises against the built quarto (not covered anywhere in CI today, recorded so they read as known boundaries rather than oversights): `quarto preview`/serve interactive paths (the playwright render glob excludes `docs/playwright/(serve|shiny)`), `quarto publish` flows (credentials), the actual installer packages (`.deb`/`.msi`/`.pkg` — the legs test the tarball/zip layouts, never install-time behavior like PATH or registry), the linux-arm64 tarball, and playwright visual snapshots (`--ignore-snapshots`).
-Windows browser behavior and macOS ff-matrix are also uncovered but deliberate, with revisit conditions in "Built-mode test legs".
-The daily dev crons also stay — dev ff-matrix catches source regressions, built ff-matrix catches packaging regressions; complementary, not redundant.
-Nothing is throttled initially (all legs daily): per-leg OS scope lives in the scheduler jobs as the tuning knob once real CI spend is observed.
-Known cost blind spot, accepted: the `workflow_run` trigger fires on EVERY completed create-release run (D1), so manual builds also get the full fan-out; gate the heavy legs on `github.event.workflow_run.event == 'schedule'` if that ever needs trimming.
+The julia-engine subtree tests are temporarily dev-only. Their direct Quarto subprocesses inherit dev-tree variables, so `merge-extension-tests` skips them in binary mode until the upstream spawns are sanitized.
+
+Remaining built-mode gaps are preview and serve paths, publishing, installer behavior, Linux arm64, and Playwright visual snapshots.
+Windows browser behavior and macOS feature-format coverage are also excluded as described in "Built-mode test legs".
+Dev schedules remain because they test source behavior, while built schedules test packaged behavior.
+All built legs currently run after every completed `create-release` run. If CI cost becomes excessive, gate heavy legs on scheduled runs.
 
 ### D10. Release mode only works for post-harness tags
 
 Release mode checks out the tag, so the harness at that tag must already contain `tests/quarto-cmd.ts` — a preflight fails clearly for older releases.
-True backfill (main-branch harness testing an older binary) would require harness/binary decoupling (plan §6 Phase 4, not implemented).
+Testing an older binary with the current harness would require decoupling the harness from the target ref.
 
-The same skew applies per-suite: nightly/release legs run the harness at the *target* ref, so a ref that has `tests/quarto-cmd.ts` but predates the `quartoSpawnEnvOptions()` render fix in `playwright-tests.test.ts` (#14706) runs the old env-leaking wrapper — its playwright leg renders with dev-tree resources and its result (green or red) is not meaningful.
-The existence preflight cannot detect this.
-Affected window: releases and nightly build shas cut between the harness-support merge and the multi-leg merge, including the first post-merge `workflow_run` firings on pre-merge build commits.
-The smoke and ff-matrix legs are unaffected (their spawns go through `runQuarto`, whose env sanitization is as old as `quarto-cmd.ts`).
+Nightly and release legs use the harness from the target ref. Refs that contain `tests/quarto-cmd.ts` but predate the `quartoSpawnEnvOptions()` fix in `playwright-tests.test.ts` (#14706) run Playwright with dev-tree resources.
+The preflight cannot detect this window. Smoke and feature-format legs are unaffected because their subprocesses use `runQuarto()`.
 
 ### D11. The automatic nightly leg tests an *unsigned* `quarto.exe`
 
@@ -311,5 +287,4 @@ This is sufficient for the packaging and launcher checks in binary mode.
 The daily run exercises the real launcher (`package/launcher` `quarto.exe`) rather than the dev `.cmd` shim.
 Signing changes the bytes, not the launcher's argument handling or resource resolution.
 
-Signed Windows coverage therefore comes from `create-release` *dispatches*, which sign and which `workflow_run` also tests (see D7) — the intended pre-merge check for bundled-binary bumps.
-The scheduled path does not validate signing.
+Signed Windows coverage comes from dispatched `create-release` runs, which `workflow_run` also tests (D7). The scheduled path does not validate signing.

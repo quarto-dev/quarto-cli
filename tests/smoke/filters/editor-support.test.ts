@@ -10,7 +10,6 @@ import { test } from "../../test.ts";
 import { assertEquals } from "testing/asserts";
 
 async function runEditorSupportCrossref(doc: string) {
-  // Use the built test binary in binary mode; otherwise pin the local CLI.
   const cmd = new Deno.Command(quartoDevBinCmd(), {
     args: ["editor-support", "crossref"],
     stdin: "piped",
@@ -34,7 +33,6 @@ async function runEditorSupportCrossref(doc: string) {
   return json;
 }
 
-// Run assertions in verifiers so failures propagate through the harness.
 test({
   name: "editor-support:crossref:smoke-1",
   context: {},

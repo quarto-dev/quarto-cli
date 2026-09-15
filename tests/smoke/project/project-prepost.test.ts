@@ -63,7 +63,6 @@ testQuartoCmd(
 testQuartoCmd(
   "render",
   [docs("project/prepost/extension")],
-  // Verify success before checking the negative path condition.
   [noErrors, {
     name: "prepost extension file effects",
     verify: async () => {
@@ -72,7 +71,7 @@ testQuartoCmd(
     }
   }],
   {
-    // Remove stale artifacts so verification covers this render.
+    // Ensure verification covers files created by this render.
     setup: async () => {
       safeRemoveIfExists(join(docs("project/prepost/extension"), "i-was-created.txt"));
       safeRemoveIfExists(join(docs("project/prepost/extension"), "i-exist.txt"));
@@ -101,7 +100,7 @@ testQuartoCmd(
         "QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES": normalizePath(docs("project/prepost/issue-10828/input-files.txt")),
         "QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES": normalizePath(docs("project/prepost/issue-10828/output-files.txt"))
       },
-      // Remove stale artifacts so verification covers this render.
+      // Ensure verification covers files created by this render.
       setup: async () => {
         safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/input-files.txt")));
         safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/output-files.txt")));

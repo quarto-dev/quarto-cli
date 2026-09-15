@@ -23,22 +23,19 @@ Quarto uses Deno for testing with custom verification helpers located in:
 
 ### Dev Mode vs Binary Mode
 
-`testQuartoCmd` does not call quarto directly — it goes through `runQuarto()` in `tests/quarto-cmd.ts`, the single dispatch point for invoking the quarto under test:
+`testQuartoCmd` invokes Quarto through `runQuarto()` in `tests/quarto-cmd.ts`:
 
 - **Dev mode (default):** Quarto runs in-process via the `quarto()` entry point imported from `src/quarto.ts`.
-- **Binary mode:** when `QUARTO_TEST_BIN` points at an installed quarto (a built distribution extracted *outside* this checkout), quarto is spawned as a subprocess with `--log <file> --log-format json-stream`, so the log-record verifiers work unchanged.
-  Dev-tree env vars (`QUARTO_SHARE_PATH`, `QUARTO_DEBUG`, `DENO_DIR`, ...)
-  are stripped from the child.
-  `run-tests.sh`/`.ps1` refuse a binary reporting the `99.9.9` dev sentinel and default the selection to `smoke/` (`unit/` is dev-only; the playwright suite and ff-matrix corpus are binary-compatible and run when passed explicitly).
-  Exercised by `.github/workflows/test-smokes-built.yml`, which runs smoke + playwright + ff-matrix legs per source mode.
-  Architecture and design decisions: `llm-docs/built-version-testing-architecture.md`.
+- **Binary mode:** `QUARTO_TEST_BIN` points to an installed Quarto outside the checkout. `runQuarto()` spawns it with JSON-stream logging and removes dev-tree variables from its environment.
+
+The test scripts reject binaries that report the `99.9.9` dev version and default binary-mode runs to `smoke/`.
+See `llm-docs/built-version-testing-architecture.md` for CI behavior and design decisions.
 
 Consequences for writing smoke tests:
 
-- Do **not** import `src/quarto.ts` (or call `quarto()`) directly from `tests/smoke/` — route invocations through `testQuartoCmd`/`runQuarto` so the test works in both modes.
-- Tests that spawn a quarto subprocess themselves should resolve the executable via `quartoDevCmd()` (`tests/utils.ts`, honors `QUARTO_TEST_BIN`) and pass `quartoSpawnEnvOptions()` from `tests/quarto-cmd.ts` as spawn env options.
-- A test that genuinely exercises quarto internals in-process can set `TestContext.requiresDevQuarto: true`; it is ignored in binary mode.
-  Use sparingly — most such code belongs in `tests/unit/` instead.
+- Invoke Quarto through `testQuartoCmd()` or `runQuarto()`; do not import it from `src/quarto.ts`.
+- For direct subprocesses, resolve the executable with `quartoDevCmd()` and pass `quartoSpawnEnvOptions()`.
+- Set `TestContext.requiresDevQuarto: true` only for tests that require in-process internals. Prefer a unit test when possible.
 
 ## Common Test Patterns
 
@@ -140,8 +137,7 @@ testQuartoCmd("render", [projectDir], [noErrors /*, ... */], {
 
 **Key points:**
 
-- The budget is machine-dependent (post-fix render time must sit well under it, pre-fix hang well over it), so it is defense-in-depth.
-  Pair it with a deterministic unit test on the actual fix mechanism as the primary guard.
+- Allow enough margin for slower machines. Pair the timeout with a deterministic unit test of the underlying fix.
 - In dev (in-process) mode a timed-out render is not killed by the harness (the timeout only rejects), so on Windows it may still hold the output directory; use `safeRemoveSync` in teardown and treat cleanup as best-effort.
   In binary mode (`QUARTO_TEST_BIN`) the spawned process tree *is* killed on timeout, but the kill is best-effort — keep the same defensive teardown.
 
@@ -430,19 +426,17 @@ R resolves `.Rprofile` from the **exact** process cwd (no parent-directory searc
 On CI, rmarkdown/knitr live only in `tests/renv`'s project library, activated when cwd is `tests/` (via `tests/.Rprofile` sourcing `renv/activate.R`).
 Most knitr tests never leave `tests/` — they pass paths relative to the current cwd instead of changing directories — so activation happens automatically.
 
-A test that must run with cwd set elsewhere (a scratch temp dir, via `TestContext.cwd()` — see "Working-Directory-Sensitive Tests" above) loses that activation: the R subprocess starts outside `tests/`, renv never activates, and package loads fail with `there is no package called
-'rmarkdown'`.
-This is CI-only — a developer machine with rmarkdown on the default `.libPaths()` masks it entirely.
-The render pipeline also tends to swallow the underlying subprocess error, so the failure can be silent beyond the bare package-load message.
+A test that changes cwd through `TestContext.cwd()` loses that activation. The R subprocess starts outside `tests/`, and package loads may fail with `there is no package called 'rmarkdown'`.
+A developer machine with rmarkdown on the default `.libPaths()` may mask this CI failure.
 
-**Fix:** in the fixture's cwd, write a `.Rprofile` that re-points renv at the real project, regardless of where the test's cwd actually is:
+**Fix:** write a `.Rprofile` in the fixture cwd that points renv to the test project:
 
 ```r
 Sys.setenv(RENV_PROJECT = "<absolute path to tests/>")
 source("<absolute path to tests/>/renv/activate.R")
 ```
 
-`renv/activate.R` reads `RENV_PROJECT` to determine the project root if set, falling back to `getwd()` otherwise — setting it explicitly decouples renv activation from the test's cwd.
+`renv/activate.R` uses `RENV_PROJECT` as the project root instead of the current directory.
 
 ## Best Practices
 
@@ -466,10 +460,10 @@ Save/restore patterns don't help - other tests see the modified value during the
 | `./run-tests.sh` (default) | **Race condition** | Files run in parallel, share `Deno.env` |
 | `./run-parallel-tests.sh`  | **None**           | Separate OS processes                   |
 
-**Preferred channel:** pass per-test env via `TestContext.env` — it reaches the in-process `quarto()` call in dev mode and the spawned binary in binary mode (`QUARTO_TEST_BIN`), without mutating process-global state.
+**Preferred approach:** pass per-test variables through `TestContext.env`. This works in both modes without mutating process-global state.
 
-**Known justified exception** - `tests/smoke/website/drafts-env.test.ts` still sets `QUARTO_PROFILE` at module load *in addition to* `context.env`: `src/project/project-profile.ts` caches the base profile from the env on the first render in the process (`baseQuartoProfile`), so in dev (in-process) mode a per-render env override is ignored whenever another test rendered first.
-The module-load set runs before any test and keeps the cache correct; the `context.env` copy is what the spawned binary sees in binary mode.
+**Exception:** `tests/smoke/website/drafts-env.test.ts` sets `QUARTO_PROFILE` at module load and in `context.env`.
+Dev mode reads the module-level value when caching the base profile; binary mode receives the context value.
 
 **Alternatives for new tests:** Unit test the env var reader, refactor code to accept parameters, or use subprocess isolation.
 
