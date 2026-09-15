@@ -481,6 +481,12 @@ function reportFailure(
     }
     if (primary?.stack) {
       rawExcerpt.push(primary.stack);
+    } else if (finallyFailure) {
+      // A teardown-only failure has no primary, so its own stack is the
+      // only pointer to where it threw - without it the banner above names
+      // the failure but not its location.
+      const stack = describeThrow(finallyFailure.value).stack;
+      if (stack) rawExcerpt.push(stack);
     }
     const logMessages = primary?.logMessages;
     if (logMessages && logMessages.length > 0) {
