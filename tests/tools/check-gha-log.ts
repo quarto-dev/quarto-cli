@@ -57,7 +57,10 @@ export function checkLog(content: string): Violation[] {
     const line = stripAnsi(raw).replace(/\r$/, "");
 
     const isGroupOpen = line.startsWith(kGroupOpen);
-    const isGroupClose = line === kGroupClose;
+    // The runner parses a close marker with trailing whitespace the same as
+    // an exact one, so trim before comparing (mirrors the trim already done
+    // for kSectionHeader below).
+    const isGroupClose = line.trimEnd() === kGroupClose;
 
     // Invariant 2: markers must start at column 0. A marker substring anywhere
     // but the start of the line means the runner would not parse it.

@@ -21,6 +21,39 @@ import { join, relative } from "../../src/deno_ral/path.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
 import * as gha from "../../src/tools/github.ts";
 
+// This file's failure annotations consume slots against the step-wide
+// ::error budget only when the harness owns the step (see harnessOwnsStep()).
+// Off that path — local runs, and the orchestrated bucket legs every
+// per-commit and built-version workflow routes this file through — they stay
+// unconditional, matching the original ungated gha.error calls, so the
+// annotation survives everywhere it exists today. The harness-owned branch is
+// still reachable: only the bucket steps set QUARTO_TESTS_GHA_ORCHESTRATED, so
+// a run with an empty `buckets` input (a bare test-smokes.yml dispatch, or
+// update-test-timing.yml, whose timing mode runs every discovered test file)
+// owns its own step and must not silently displace the aggregate annotation.
+const annotationBudget = new gha.AnnotationBudget();
+
+function reportFailure(
+  message: string,
+  properties?: gha.AnnotationProperties,
+) {
+  if (!gha.harnessOwnsStep()) {
+    gha.error(message, properties);
+    return;
+  }
+  const decision = annotationBudget.recordFailure();
+  if (decision.emitAnnotation) {
+    gha.error(message, properties);
+  } else if (decision.emitAggregate) {
+    gha.error(
+      "Further test failures are not annotated (GitHub caps " +
+        "annotations per step) — see the step log for " +
+        "the complete list",
+      { title: "More test failures" },
+    );
+  }
+}
+
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
 }
@@ -83,7 +116,7 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
     });
 
     if (!result.success) {
-      gha.error(`Failed to render ${input}`)
+      reportFailure(`Failed to render ${input}`)
       if (result.stdout) console.log(result.stdout);
       if (result.stderr) console.error(result.stderr);
       throw new Error(`Render failed with code ${result.code}`);
@@ -113,7 +146,7 @@ Deno.test({
       if (!res.success) {
         if (gha.isGitHubActions() && Deno.env.get("GITHUB_REPOSITORY") && Deno.env.get("GITHUB_RUN_ID")) {
           const runUrl = `https://github.com/${Deno.env.get("GITHUB_REPOSITORY")}/actions/runs/${Deno.env.get("GITHUB_RUN_ID")}`;
-          gha.error(
+          reportFailure(
             `Some tests failed. Download report uploaded as artifact at ${runUrl}`,
             {
               file: "playwright-tests.test.ts",

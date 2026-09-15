@@ -73,20 +73,16 @@ export function testFileUrlFromStack(
   stack: string | undefined,
 ): string | undefined {
   if (stack === undefined) return undefined;
-  try {
-    // A V8 frame is `    at <fn> (file:///…:line:col)` or the bare
-    // `    at file:///…:line:col`. The lazy `\S*?` stops at the first
-    // `.test.ts`, so the trailing `:line:column` (and any closing paren) stay
-    // out of the captured URL; `\S` never crosses a newline, so the match is
-    // confined to one frame. On Windows the drive-letter colon sits inside the
-    // URL and is preserved. match() scans top-down, so the innermost (first)
-    // `.test.ts` frame — the registering test file — wins; harness frames
-    // (test.ts, gha-grouping.ts) never contain `.test.ts` and are skipped.
-    const match = stack.match(/file:\/\/\/?\S*?\.test\.ts/);
-    return match?.[0];
-  } catch {
-    return undefined;
-  }
+  // A V8 frame is `    at <fn> (file:///…:line:col)` or the bare
+  // `    at file:///…:line:col`. The lazy `\S*?` stops at the first
+  // `.test.ts`, so the trailing `:line:column` (and any closing paren) stay
+  // out of the captured URL; `\S` never crosses a newline, so the match is
+  // confined to one frame. On Windows the drive-letter colon sits inside the
+  // URL and is preserved. match() scans top-down, so the innermost (first)
+  // `.test.ts` frame — the registering test file — wins; harness frames
+  // (test.ts, gha-grouping.ts) never contain `.test.ts` and are skipped.
+  const match = stack.match(/file:\/\/\/?\S*?\.test\.ts/);
+  return match?.[0];
 }
 
 // Module singleton wired to the real workflow-command emitters and gated on
