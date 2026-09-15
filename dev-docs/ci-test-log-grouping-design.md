@@ -166,7 +166,13 @@ helpers (gated on `isGitHubActions()`, so local runs are byte-identical):
      per file and `unload` fires once per file), so the count is coordinated
      through a sidecar counter file derived from `GITHUB_STEP_SUMMARY`
      (unique per step, runner-writable; no locking needed — files run
-     sequentially without `--parallel`). Stop at 9; the failure that crosses
+     sequentially without `--parallel`). This relies on an undocumented
+     assumption about the runner: it only reads the specific file paths it
+     itself created under its internal file-commands directory, rather than
+     enumerating that directory's contents. True of the runner today, but not
+     a documented contract — worth recording so a future breakage here (a
+     runner version that starts enumerating the directory and misreads the
+     sidecar file) is diagnosable rather than mysterious. Stop at 9; the failure that crosses
      the cap emits the single aggregate `::error` inline as the step's 10th
      and last annotation (no cross-file end-of-run hook exists to emit it
      later).
@@ -227,6 +233,23 @@ does.**
     execute/verify path (init, prereq, setup, teardown — review #1991) must
     also close the group before propagating to Deno: an outer catch around
     the whole test body closes-and-rethrows, idempotently;
+  - A related but distinct tradeoff, in `tests/test.ts`'s own error handling
+    rather than the grouping/annotation logic above (raised in the same
+    review pass, recorded here since it has no other home): the inner
+    `finally` block's failure-capture slot is single-valued and first-write-
+    wins (`??=`) across the cleanup steps and `teardown()`. If a cleanup step
+    (e.g. `safeRemoveSync`) throws AND `teardown()` also throws, only the
+    first error is recorded and reported — the second is silently discarded.
+    Strictly better than the prior behavior (a cleanup throw meant teardown
+    never ran at all), but still lossy: two distinct post-test failures
+    collapse into one reported failure, and when no primary test failure
+    accompanies them (`throw finallyFailure.value` at the un-combined path)
+    the discarded second error is not visible anywhere — not in Deno's
+    `ERRORS` output, not in the annotation, not in the step summary; only the
+    first-recorded failure is ever thrown or reported. Decided: leave as-is —
+    no known occurrence, low priority. If it ever matters, the fix is to
+    widen the slot to a list and report every recorded failure instead of
+    just the first;
   - `globalThis.addEventListener("unload", ...)`: fires once per test FILE
     and closes that file's group — this is what actually ends a passing
     file's group before the next file's header, and keeps the terminal
@@ -277,18 +300,30 @@ first `test(...)` call runs — so those reporter lines land inside the group.
   no-`--parallel` assumption Phase 2 already carries (see the interleaved
   parallel-output hard constraint and the `deno test --parallel` non-goal). If
   `--parallel` is ever adopted, this moves with the rest of the grouping.
+- **Accepted tradeoff: an all-skipped test file still emits a group.** The
+  group opens at registration time, before any test's `ignore`/`prereq`
+  gating is evaluated, so a file whose every test is skipped still produces a
+  `::group::`/`::endgroup::` pair containing only Deno's skip announcement
+  lines — no failures, no real test output. Raised in review and deliberately
+  declined as a fix: deferring the open to the first non-skipped test would
+  defeat the point of Phase 2.1, which is to get Deno's "running N tests
+  from ..." header and announcement lines inside the group in the first
+  place. The group is not truly empty either — it holds those
+  announcement/skip lines. Decided: keep as-is.
 
 #### Phase 2.2 — navigable, clustered step summaries + trimmed annotations
 
 Phases 1–2 emit one step-summary row and one `<details>` block per failure
 plus a per-failure `::error`. On a real 36-failures-per-job run
-(cderv/quarto-cli run 29841891595) three problems showed: (a) the table had
+(quarto-dev/quarto-cli run 29841891595; logs expire around 2026-10-19 under
+the default 90-day retention) three problems showed: (a) the table had
 no navigation to its detail blocks; (b) 28 of 36 failures shared ONE identical
 error yet produced 28 duplicate blocks, wasting the 512 KiB budget and the
 reader's time; (c) annotations duplicated the full repro+excerpt already on the
-same page. Phase 2.2 addresses all three, in one commit, touching only
-`src/tools/github.ts` + `tests/test.ts` (+ unit tests). No workflow or checker
-changes; all Phase 1–2 invariants still hold.
+same page. Phase 2.2 addresses all three, touching `src/tools/github.ts` +
+`tests/test.ts` (+ unit tests) plus one workflow change: the `label-tag` input
+every caller supplies (see **Job tags** below). All Phase 1–2 invariants still
+hold.
 
 - **Step-wide failure ordinal.** `AnnotationBudget.recordFailure()` already
   counts failures once per step via its sidecar file; it now also returns that
@@ -298,13 +333,28 @@ changes; all Phase 1–2 invariants still hold.
   `emitAnnotation`/`emitAggregate` decisions are still consumed only inside the
   gate, and the counter write is a file (not stdout), so orchestrated stdout
   stays byte-identical.
-- **Failure labels.** Pure `failureLabel(ordinal, runnerOs)` → `L-F7` / `W-F7`
-  / `M-F7` (Linux/Windows/macOS; unknown → `X`). `RUNNER_OS` is read once in
-  the gated failure path and passed in; the helper reads no env. The OS prefix
-  is required because the run summary page concatenates every job's summary —
-  an unprefixed label would collide across Linux/Windows sections. The label
-  leads the summary table's new `#` column and precedes each detail block as a
-  label-only `#### L-F7` heading.
+- **Failure labels.** Pure `failureLabel(ordinal, runnerOs, tag)` →
+  `Lb07-F7` / `Wrelsmk-F12` (OS prefix + job tag + ordinal; Linux/Windows/macOS,
+  unknown → `X`). With no tag it falls back to `L-F7` / `W-F7` / `M-F7`.
+  `RUNNER_OS` and `QUARTO_TESTS_GHA_LABEL_TAG` are read once in the failure
+  path and passed in; the helper reads no env. A prefix is required because the
+  run summary page concatenates every job's summary, and the OS alone does not
+  discriminate — a bucketed run is ~20 same-OS jobs, each restarting its
+  ordinal at 1. The label leads the summary table's `#` column and precedes
+  each detail block as a label-only `#### Lb07-F7` heading.
+- **Job tags.** The discriminator has to come from the workflow: no ambient
+  variable is unique per matrix leg (`GITHUB_JOB` is the YAML job key, shared
+  by every leg of that job; `GITHUB_RUN_ID`/`GITHUB_RUN_ATTEMPT` are run-wide).
+  `test-smokes.yml` and `test-ff-matrix.yml` therefore take a `label-tag`
+  `workflow_call` input, and `test-smokes.yml` exposes it to the harness as the
+  job-level `QUARTO_TESTS_GHA_LABEL_TAG` env var. `failureLabel` strips
+  non-alphanumerics (rather than escaping them) and truncates to
+  `kMaxLabelTagChars`, so the tag survives the summary cell, the HTML-escaped
+  heading and the annotation title unchanged. Bucketed legs derive their tag
+  from the bucket index (`b07`); every other caller passes a literal. Tags need
+  only be distinct among call sites that can land on the **same OS** in one
+  run, since the OS prefix already separates the rest — which is why the
+  per-OS nightly legs deliberately share one tag.
 - **No link syntax — plain-text labels (VERIFY-FIRST outcome).** The original
   design linked table rows to detail blocks via `[L-F7](#l-f7)` fragment links
   against the `#### L-F7` headings. A verification probe settled that this does
@@ -315,8 +365,8 @@ changes; all Phase 1–2 invariants still hold.
   renderer omits the heading-slug/anchor post-processing that README/issue
   rendering applies. So labels are emitted as **plain text** in every row and
   heading (no `[…](#…)`); Ctrl+F on a label gives exact two-hit navigation (row
-  ↔ heading). The OS prefix stays — it keeps that Ctrl+F hit unambiguous across
-  the concatenated per-job summaries. (This also constrains the future
+  ↔ heading). The OS prefix and job tag stay — together they keep that Ctrl+F
+  hit unambiguous across the concatenated per-job summaries. (This also constrains the future
   `ci-run` helper's `verdict`: in-summary deep links are impossible, so
   navigation there must be API-based.)
 - **Cluster identical errors.** The per-file `pendingSummaryDetails: string[]`
@@ -378,7 +428,17 @@ are ASCII by construction while file/test names keep going through
    then ≤ 9 + 1 aggregate per step — enforced across per-file module
    instances via the sidecar counter file, NOT module state; ≤ 50
    annotations total per job including the YAML bucket loop's own. The step
-   summary is the complete failure record in every mode.
+   summary is bounded and best-effort, not a guarantee: every write is
+   subject to a byte cap, and space is reserved for exactly one truncation
+   notice once content no longer fits. WITHIN a test file, its own table
+   rows take precedence over its own detail blocks — rows stream as each
+   failure happens, and that file's detail blocks only flush afterward, at
+   its `unload`. This is not a step-wide ordering: an earlier file's detail
+   blocks can still crowd out a later file's rows, since both draw from the
+   same shared step-summary budget. The step LOG is the complete failure
+   record in every mode — Deno's own `ERRORS`/`FAILURES` sections list every
+   failure in full and are deliberately kept outside collapsed groups
+   (invariant 3), which is what the truncation notice points the reader to.
 5. Everything is a no-op unless `GITHUB_ACTIONS == "true"`: local output is
    byte-identical.
 6. No change to which tests run, their order, or exit codes.
@@ -397,6 +457,13 @@ are ASCII by construction while file/test names keep going through
    redirect at the shell level — `pwsh -Command '... run-tests.ps1 <files>
    *> log'` feeds the `*>` into the script's own arg parsing, blanking the
    file arguments and silently running the full suite.
+   Decided 2026-09-15: the checker is not wired into any CI leg — neither as
+   a hard gate nor as report-only. It has only run against synthetic and
+   unit-test fixtures, never against a real CI log, and a cascade bug in its
+   own logic was found and fixed as recently as commit 396c6e2e7. Gating this
+   PR's own CI on an unproven checker risks either false failures (hard gate)
+   or noise (report-only). Revisit once the pre-ready trial run (item 3
+   below) produces real CI logs to validate the checker against.
 2. **Unit tests** for the new pure logic: annotation cap counter, the
    orchestrated-mode gate (no annotations/groups when
    `QUARTO_TESTS_GHA_ORCHESTRATED` is set), ANSI stripping, the stat-based
@@ -422,15 +489,36 @@ are ASCII by construction while file/test names keep going through
 
 Phases 1–2 hook the harness (`testQuartoCmd`/`unitTest`/`test`), so they only
 cover tests registered through it. Tests that call `Deno.test` directly get
-neither groups nor failure annotations. Today that is chiefly the
-extension-subtree tests copied into the tree by
+neither groups nor failure annotations. Three first-party files do this today.
+`tests/smoke/create/create.test.ts` loops over `kCreateTypes` (4 project
+templates and 9 extension templates) and calls `Deno.test` once per entry,
+generating 13 tests; `tests/smoke/logging/log-level-and-formats.test.ts` wraps
+`Deno.test` in a local `testLogDirectly()` helper (the file carries a comment
+explaining why it bypasses the harness) called 14 times. Both live under
+`smoke/`, so both are in the default built smoke leg, and together they are the
+real first-party gap: 27 generated tests with no groups, annotations, or
+summary rows. `tests/integration/playwright-tests.test.ts` also calls
+`Deno.test` directly. On every bucketed path it is a separate orchestrated
+leg that already gets YAML-level grouping and emits its own annotation, so
+there it is not the same omission as the two smoke files. It is not always
+bucketed, though, and two harness-owned paths reach it by different routes.
+A bare `workflow_dispatch` of `test-smokes.yml` leaves `buckets` empty and
+`time-test` false, so `run-tests.sh` takes its generic case and passes no
+path to `deno test` (the `smoke/`-only default applies to binary mode only)
+— Deno discovers `integration/` and the file runs ungrouped like the two
+smoke files. `update-test-timing.yml` instead sets `time-test: true`, and
+timing mode discovers every `*.test.ts` with `find` and runs each in its own
+`deno test` invocation; that per-file loop emits no `::group::` markers of
+its own, so the file is ungrouped there too.
+
+Beyond these, the extension-subtree tests copied into the tree by
 `.github/actions/merge-extension-tests` (`smoke/julia-engine/*.test.ts` from
 the `PumasAI/quarto-julia-engine` subtree — self-contained, `jsr:` imports
-only, raw `Deno.Command("quarto")` spawns). Those spawns also leak the
-harness dev env into the built quarto, so the merge action currently skips
-them in binary mode entirely; the un-gating plan (upstream env
-sanitization) is `dev-docs/ci-julia-engine-binary-mode-followup.md` — in
-dev shards they still run, ungrouped.
+only, raw `Deno.Command("quarto")` spawns) are ungrouped for the same reason.
+Those spawns also leak the harness dev env into the built quarto, so the merge
+action currently skips them in binary mode entirely; the un-gating plan
+(upstream env sanitization) is `dev-docs/ci-julia-engine-binary-mode-followup.md`
+— in dev shards they still run, ungrouped.
 
 Group placement for such files (updated after the per-file-instance
 correction): each harness file's group is closed by that file's own `unload`
