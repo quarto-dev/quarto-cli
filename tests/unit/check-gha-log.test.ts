@@ -1,11 +1,7 @@
 /*
  * check-gha-log.test.ts
  *
- * Tests for the CI log-grouping regression guard (tests/tools/check-gha-log.ts).
- * Covers tolerance of a trailing-whitespace `::endgroup::` — the runner still
- * parses such a line as a valid close, so the checker must treat it as one
- * too, rather than misreporting it as a marker not at column 0 and then
- * cascading false "nested group" violations for everything that follows.
+ * Tests for the GitHub Actions log-grouping checker.
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
@@ -50,10 +46,6 @@ unitTest(
       "  ::endgroup::",
     ].join("\n");
     const violations = checkLog(log);
-    // Unaffected by the trailing-whitespace fix: a leading-whitespace marker
-    // never matches isGroupClose, so it still falls into the column-0 branch
-    // and (since that branch returns without decrementing depth) still
-    // cascades into a "group left open at end of log" violation too.
     assertEquals(violations.length, 2);
     assertEquals(violations[0].message, "group marker not at column 0");
   },
