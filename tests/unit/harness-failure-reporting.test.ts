@@ -153,6 +153,10 @@ unitTest("harness-reporting - a throwing teardown on a passing test is reported"
     run.summary.includes("FIXTURE_TEARDOWN_BOOM"),
     "the teardown error text reaches the summary",
   );
+  assert(
+    run.summary.includes("harness-reporting-fixture.ts:34"),
+    `a teardown-only failure (no primary) must still carry its stack, so the reader can find where the teardown itself threw; summary was:\n${run.summary}`,
+  );
 });
 
 unitTest("harness-reporting - a lifecycle failure is reported", async () => {
