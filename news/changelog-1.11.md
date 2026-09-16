@@ -64,6 +64,10 @@ All changes included in 1.11:
 - ([PumasAI/quarto-julia-engine#11](https://github.com/PumasAI/quarto-julia-engine/pull/11)): Support `fig-format: retina`, normalized to `png` with doubled `fig-dpi` as in the `jupyter` and `knitr` engines.
 - ([PumasAI/quarto-julia-engine#7](https://github.com/PumasAI/quarto-julia-engine/pull/7)): Support `execute-dir`, shared worker processes across notebooks with matching configs (`share_worker_process: true`).
 
+## Lua API
+
+- ([#14894](https://github.com/quarto-dev/quarto-cli/pull/14894)): Fix `quarto.version` and `quarto.config.version()` crashing filters with `table expected, got string` when the version string contains semver build metadata (such as a distro packager's revision suffix) or otherwise does not start with a digit.
+
 ## Other fixes and improvements
 
 - ([#14775](https://github.com/quarto-dev/quarto-cli/issues/14775)): Fix a crash when the `QUARTO_R` environment variable is set to a malformed path. Quarto now warns and falls back to other R lookup methods.
