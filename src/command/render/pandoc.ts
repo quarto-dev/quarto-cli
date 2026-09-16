@@ -58,7 +58,11 @@ import {
   isQuartoMetadata,
   metadataGetDeep,
 } from "../../config/metadata.ts";
-import { pandocBinaryPath, resourcePath } from "../../core/resources.ts";
+import {
+  pandocBinaryPath,
+  pandocDataDirArgs,
+  resourcePath,
+} from "../../core/resources.ts";
 import { getAvailableTypstFonts } from "../../core/typst.ts";
 import { filterBundledSubtreeEngines } from "../../extension/extension.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
@@ -1071,7 +1075,7 @@ export async function runPandoc(
     pandocArgs,
     dataDirArgs,
   );
-  pandocArgs.push("--data-dir", resourcePath("pandoc/datadir"));
+  pandocArgs.push(...pandocDataDirArgs());
 
   // add any built-in syntax definition files
   allDefaults[kSyntaxDefinitions] = allDefaults[kSyntaxDefinitions] || [];

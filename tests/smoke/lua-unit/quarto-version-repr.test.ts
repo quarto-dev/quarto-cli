@@ -13,7 +13,7 @@
  * `quarto run` -- that invokes pandoc without --data-dir, so init.lua from
  * src/resources/pandoc/datadir/ (which defines quarto.version /
  * quarto.config.version()) never loads. Instead this invokes pandoc
- * directly with --data-dir pointing at that directory, forcing the
+ * directly with pandocDataDirArgs() pointing at that directory, forcing the
  * quarto-version filter param via QUARTO_FILTER_PARAMS -- the same
  * mechanism a real quarto render uses (src/command/render/filters.ts,
  * src/command/render/pandoc.ts).
@@ -23,7 +23,11 @@ import { encodeBase64 } from "encoding/base64";
 import { fromFileUrl, join } from "../../../src/deno_ral/path.ts";
 import { assert } from "testing/asserts";
 import { execProcess } from "../../../src/core/process.ts";
-import { pandocBinaryPath, resourcePath } from "../../../src/core/resources.ts";
+import {
+  pandocBinaryPath,
+  pandocDataDirArgs,
+  resourcePath,
+} from "../../../src/core/resources.ts";
 import { unitTest } from "../../test.ts";
 
 const testsDir = fromFileUrl(new URL("../../", import.meta.url));
@@ -67,8 +71,7 @@ for (
       {
         cmd: pandocBinaryPath(),
         args: [
-          "--data-dir",
-          resourcePath("pandoc/datadir"),
+          ...pandocDataDirArgs(),
           "--from",
           "markdown",
           "--to",
