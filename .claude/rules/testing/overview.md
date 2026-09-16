@@ -9,31 +9,19 @@ Quarto's test suite lives in `tests/`. For comprehensive documentation, see `tes
 
 ## Running Tests
 
+Use `--agent` — collapses a green run to a dot per test plus a tally line; failures keep assertion message, source frame, stack, exit code.
+
 ```bash
 cd tests
 
 # Linux/macOS
-./run-tests.sh                              # All tests
-./run-tests.sh smoke/render/render.test.ts  # Specific test
-./run-tests.sh docs/smoke-all/path/test.qmd # Smoke-all document
+QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh --agent unit/my-test.test.ts
 
 # Windows (PowerShell 7+)
-.\run-tests.ps1
-.\run-tests.ps1 smoke/render/render.test.ts
+$env:QUARTO_TESTS_NO_CONFIG="true"; .\run-tests.ps1 --agent unit/my-test.test.ts
 ```
 
-**Skip dependency configuration:**
-```bash
-QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh test.ts    # Linux/macOS
-$env:QUARTO_TESTS_NO_CONFIG=$true; .\run-tests.ps1      # Windows
-```
-
-**Low-noise output for agent sessions:**
-```bash
-./run-tests.sh --agent unit/my-test.test.ts       # Linux/macOS
-.\run-tests.ps1 --agent unit/my-test.test.ts      # Windows
-```
-Collapses a green run to a dot per test plus a tally line; failures keep their assertion message, source frame, stack, and exit code. See `tests/README.md` for the fallback rerun workflow and the bash-only reporter-collision caveat.
+Plain form (no `--agent`), full flag list, rerun-on-failure workflow, bash-only reporter-collision caveat: `tests/README.md`.
 
 ## Test Types
 
