@@ -41,6 +41,11 @@ function testLogDirectly(options: {
     // For plain format, we can check for specific text in the output
     shouldContain?: string[],
     shouldNotContain?: string[],
+    // Exact number of non-overlapping occurrences of a substring in stdout+stderr.
+    // Needed to pin intentional duplication: at INFO level pandoc's stderr is
+    // printed twice (streamed live by execProcess, then re-logged as the ERROR
+    // record), and shouldContain can only prove presence, not count.
+    shouldContainCount?: Record<string, number>,
     // For JSON format, we can also check for specific log levels
     shouldContainLevel?: string[],
     shouldNotContainLevel?: string[],
@@ -130,6 +135,17 @@ function testLogDirectly(options: {
           }
         }
         
+        // Check for an exact number of occurrences
+        if (options.expectedOutputs?.shouldContainCount) {
+          for (const [text, expected] of Object.entries(options.expectedOutputs.shouldContainCount)) {
+            const actual = allOutput.split(text).length - 1;
+            assert(
+              actual === expected,
+              `Output should contain '${text}' exactly ${expected} time(s) but found ${actual}.\nOutput: ${allOutput}`
+            );
+          }
+        }
+
         // For quiet mode, verify no output
         if (options.quiet) {
           assert(
@@ -192,6 +208,15 @@ const infoHintText = function(testDoc: string) {
   return `Output created: ${basename(testDoc, extname(testDoc))}.html`;
 };
 
+// The lua filter used by testDocWithError (docs/logging/error-filter.lua) calls
+// an undefined global, which pandoc reports as this exact Lua runtime error
+// once, followed by two "stack traceback:" blocks (pandoc's own duplication of
+// the traceback, unrelated to quarto's log level handling). This substring
+// appears exactly once per emission of pandoc's stderr, which makes it safe
+// to count for pinning quarto's own double-print at INFO level.
+const pandocStderrMarker =
+  "attempt to call a nil value (global 'internal_error')";
+
 testLogDirectly({
   testName: "Plain format - DEBUG level should show all log messages",
   level: "debug",
@@ -215,6 +240,24 @@ testLogDirectly({
   }
 });
 
+// Characterization test for the accepted tradeoff of the pandoc-failure ERROR
+// record: at INFO level (the CLI default) pandoc's stderr reaches the console
+// twice - once streamed live as INFO records by execProcess/processOutput, once
+// as the single ERROR record logged by runPandoc. This test pins that count so a
+// future change to it is a deliberate decision, not a silent regression.
+testLogDirectly({
+  testName: "Plain format - INFO level prints pandoc stderr twice on failure (streamed + ERROR record)",
+  level: "info",
+  format: "plain",
+  fileToRender: testDocWithError,
+  expectedOutputs: {
+    shouldSucceed: false,
+    shouldContain: ["ERROR:", pandocStderrMarker],
+    shouldNotContain: [debugHintText, infoHintText(testDocWithError)],
+    shouldContainCount: { [pandocStderrMarker]: 2 },
+  }
+});
+
 testLogDirectly({
   testName: "Plain format - WARN level should not show INFO or DEBUG messages",
   level: "warn",
@@ -235,6 +278,7 @@ testLogDirectly({
   expectedOutputs: {
     shouldContain: ["ERROR:"],
     shouldNotContain: [debugHintText, infoHintText(testDocWithError), "WARN:"],
+    shouldContainCount: { [pandocStderrMarker]: 1 },
     shouldSucceed: false
   }
 });
