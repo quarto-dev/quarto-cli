@@ -675,12 +675,8 @@ local function outputFile()
    end
 end
 
--- Walks `s` from the start, collecting dot-separated runs of digits (e.g.
--- "1.9.13" out of "1.9.13+test.20260910", or "1.2.3.4" unchanged). Lua
--- patterns can't express "one or more repeated groups", so this is done by
--- hand rather than a fixed-arity chain of %d+%.%d+... alternatives, which
--- would silently truncate any version with more components than the chain
--- hard-codes.
+-- Returns the leading sequence of dot-separated numeric components.
+-- Lua patterns cannot match an arbitrary number of repeated groups.
 local function leadingDottedNumber(s)
    local parts = {}
    local i = 1

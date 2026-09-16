@@ -1,12 +1,12 @@
 /*
  * quarto-version-repr.test.ts
  *
- * Regression test for quarto.version / quarto.config.version() always being
- * a pandoc Version object (table), even when the `quarto-version` filter
- * param carries semver build metadata or a prerelease suffix that pandoc's
- * dotted-integer Version parser rejects (e.g. "1.9.13+test.20260910" or
- * "1.9.13-1"). Such strings reach quarto-version via QUARTO_FORCE_VERSION,
- * a packager-appended revision suffix, or CI build-metadata stamping
+ * Regression test ensuring that quarto.version / quarto.config.version()
+ * always return a pandoc Version object, even when the `quarto-version`
+ * filter parameter contains semver build metadata or does not begin with a
+ * digit. Pandoc's dotted-integer Version parser rejects both forms. Such
+ * strings can reach quarto-version via QUARTO_FORCE_VERSION, a
+ * packager-appended revision suffix, or CI build-metadata stamping
  * (test-smokes-built.yml).
  *
  * Unlike tests/smoke/lua-unit/lua-unit.test.ts, this does not go through
@@ -85,7 +85,7 @@ for (
       "test\n",
       undefined,
       undefined,
-      true, // capture stdout/stderr
+      true, // forward child output directly to stdout/stderr
     );
     assert(
       result.success,
