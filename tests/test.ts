@@ -304,7 +304,7 @@ export function test(test: TestDescriptor) {
             absPath,
           );
           const command = isWindows
-            ? "run-tests.ps1"
+            ? "./run-tests.ps1"
             : "./run-tests.sh";
           const testCommand = `${
             offset > 0 ? " ".repeat(offset + 2) : ""

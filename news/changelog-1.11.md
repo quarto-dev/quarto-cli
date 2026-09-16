@@ -35,9 +35,13 @@ All changes included in 1.11:
 
 - ([#14847](https://github.com/quarto-dev/quarto-cli/pull/14847)): Fix `toc_title` auto-fallback in typst outline template that was ignoring the computed fallback value when `toc_title` is `none`.
 
-## Lua API
+## Projects
 
-- ([#14894](https://github.com/quarto-dev/quarto-cli/pull/14894)): Fix `quarto.version` and `quarto.config.version()` crashing filters with `table expected, got string` when the version string contains semver build metadata (such as a distro packager's revision suffix) or otherwise does not start with a digit.
+### Books
+
+- ([#10114](https://github.com/quarto-dev/quarto-cli/issues/10114)): Support `announcement` under the `book` key, which previously had no effect.
+- ([#14276](https://github.com/quarto-dev/quarto-cli/issues/14276)): Support `llms-txt` under the `book` key, which previously had no effect.
+- ([#14879](https://github.com/quarto-dev/quarto-cli/issues/14879)): Support `plausible-analytics`, `back-to-top-navigation`, and `image-alt` under the `book` key, which previously had no effect.
 
 ## Commands
 
@@ -60,7 +64,12 @@ All changes included in 1.11:
 - ([PumasAI/quarto-julia-engine#11](https://github.com/PumasAI/quarto-julia-engine/pull/11)): Support `fig-format: retina`, normalized to `png` with doubled `fig-dpi` as in the `jupyter` and `knitr` engines.
 - ([PumasAI/quarto-julia-engine#7](https://github.com/PumasAI/quarto-julia-engine/pull/7)): Support `execute-dir`, shared worker processes across notebooks with matching configs (`share_worker_process: true`).
 
+## Lua API
+
+- ([#14894](https://github.com/quarto-dev/quarto-cli/pull/14894)): Fix `quarto.version` and `quarto.config.version()` crashing filters with `table expected, got string` when the version string contains semver build metadata (such as a distro packager's revision suffix) or otherwise does not start with a digit.
+
 ## Other fixes and improvements
 
 - ([#14775](https://github.com/quarto-dev/quarto-cli/issues/14775)): Fix a crash when the `QUARTO_R` environment variable is set to a malformed path. Quarto now warns and falls back to other R lookup methods.
 - ([#14865](https://github.com/quarto-dev/quarto-cli/issues/14865)): Fix internal links in a preview being treated as external when the preview is reached through a proxy, such as on Posit Workbench. Links are now classified against the origin the browser sees.
+- ([#14878](https://github.com/quarto-dev/quarto-cli/pull/14878)): Add `az` (Azerbaijani) language translation. (author: @abdanar)
