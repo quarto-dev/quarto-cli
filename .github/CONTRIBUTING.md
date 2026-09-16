@@ -26,6 +26,7 @@ Please use the destination that matches your need so we can respond quickly.
 | Ask for help or ask a usage question about Quarto 1.                  | [Q&A (Q1) discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1).                   |
 | Ask for help or ask a usage question about Quarto 2 (experimental).   | [Q&A (Q2) discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).                   |
 | Share what you built with Quarto.                                     | [Show and Tell discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/show-and-tell).       |
+| Give feedback on the Quarto Hub preview.                              | [Preview (QH) discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/preview-qh).           |
 
 Some issues belong to other repositories:
 
@@ -58,6 +59,8 @@ Before starting one, please search [existing discussions](https://github.com/qua
 - [Q&A (Q2)](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2): ask for help with Quarto 2, ideally with a complete self-contained reproducible example.
   Quarto 2 is experimental and it is not ready for production use.
 - [Show and Tell](https://github.com/quarto-dev/quarto-cli/discussions/categories/show-and-tell): share a project, a tip, or a use case.
+- [Preview (QH)](https://github.com/quarto-dev/quarto-cli/discussions/categories/preview-qh): give feedback, ask questions, and send reports about Quarto Hub.
+  Quarto Hub is in preview and it is not ready for production use.
 
 ## Using AI tools to investigate
 

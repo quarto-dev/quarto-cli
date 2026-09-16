@@ -8,6 +8,7 @@ body:
         We are always happy to hear feedback from our users.
 
         This category is for feedback, questions, and reports about the **Quarto Hub preview**. (The preview is not public yet. Stay tuned, though!)
+        Quarto Hub is in preview and it is not ready for production use.
 
         - If you want to ask for a general Quarto feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
         - If you want to ask for help with Quarto 1, the `quarto` command-line program, please use the [Q&A (Q1) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1).
