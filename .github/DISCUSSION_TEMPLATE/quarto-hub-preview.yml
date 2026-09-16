@@ -1,0 +1,37 @@
+title: "The Quarto Hub preview topic you want to discuss"
+labels: ["quarto-hub-conf-preview"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome to the Quarto Hub preview discussions!
+        We are always happy to hear feedback from our users.
+
+        This category is for feedback, questions, and reports about the **Quarto Hub preview**. (The preview is not public yet. Stay tuned, though!)
+
+        - If you want to ask for a general Quarto feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
+        - If you want to ask for help with the `quarto` command-line program, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
+
+        First, please check the existing [Quarto Hub Preview discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/quarto-hub-preview) to see if your topic has already been discussed.
+        If it has, please consider adding a comment to the existing discussion instead of creating a new one.
+
+        Finally, try to describe the best you can what you are trying to do, what you expected, and what happened instead.
+        This will help us to understand your feedback and act on it.
+
+        _Thank you for trying out the Quarto Hub preview!_
+  - type: textarea
+    attributes:
+      label: Description
+      description: Start your discussion
+      placeholder: |
+        ### Additional information that can help us to help you
+
+        - What operating system/browser are you on?
+        - What's the content of the document? (Please don't share your "share" link here, since that would allow other users to edit your document!)
+
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        _Thank you for trying out the Quarto Hub preview!_
