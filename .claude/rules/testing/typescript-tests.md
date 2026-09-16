@@ -20,6 +20,8 @@ TypeScript-based tests using Deno. Smoke tests render documents; unit tests veri
 .\run-tests.ps1 smoke/render/render.test.ts
 ```
 
+Add `--agent` for low-noise output — see `.claude/rules/testing/overview.md` § Running Tests.
+
 ## Core Infrastructure
 
 Core test files (`test.ts`, `verify.ts`, `utils.ts`) are described in `.claude/rules/testing/overview.md` § Core Files.

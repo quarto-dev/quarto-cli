@@ -22,6 +22,8 @@ Document-based tests using YAML metadata for verification. Tests live in `tests/
 .\run-tests.ps1 docs/smoke-all/path/to/test.qmd
 ```
 
+Add `--agent` for low-noise output — see `.claude/rules/testing/overview.md` § Running Tests.
+
 ## Test Structure
 
 Tests are defined in `_quarto.tests` YAML metadata:
