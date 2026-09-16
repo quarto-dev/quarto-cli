@@ -226,9 +226,10 @@ $env:QUARTO_TEST_KEEP_OUTPUTS="true"
 
 **--agent flag**
 - Switches deno's reporter to `--reporter=dot`, collapsing a green run's output to roughly two bytes per test plus deno's tally line
-- Failures keep what identifies them: assertion message, source frame, stack, exit code, and the harness-assembled rerun command (see below) all survive. What's dropped is captured console output (progress prints outside the assertion message) for every test, passing or failing - a handful of places relied on that as their only diagnostic (a snapshot mismatch, a few test files that print then assert generically); those are tracked as follow-up work, not blockers for this flag
+- Failures keep what identifies them: assertion message, source frame, stack, exit code, and the harness-assembled rerun command (see below) all survive
+- What's dropped is captured console output (progress prints outside the assertion message), for every test, passing or failing - a few places rely on that as their only diagnostic, notably a snapshot mismatch, whose unified diff is printed rather than thrown (the `.diff` file is still written to disk)
 - Explicit opt-in only - no environment or TTY detection, so a human and an agent running the same command see the same output unless this flag is passed
-- Not a general "quiet" flag: deno's own `-q`/`--quiet` is never forwarded (it's a no-op under `--reporter=dot` and its semantics caused a prior log-marker suppression incident)
+- Not a general "quiet" flag: deno's own `-q`/`--quiet` is never forwarded (it's a no-op under `--reporter=dot`)
 
 ```bash
 ./run-tests.sh --agent unit/my-test.test.ts
