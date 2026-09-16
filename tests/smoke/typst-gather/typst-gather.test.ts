@@ -258,6 +258,7 @@ const verifyNoPackagesStaged: Verify = {
 testQuartoCmd(
   "render",
   [join(noPackagesProjectDir, "index.qmd"), "--to", "typst"],
+  // Require a successful render before checking that nothing was staged.
   [noErrors, verifyNoPackagesStaged],
   {
     teardown: async () => {
@@ -281,11 +282,13 @@ async function execTypstGather(
   env?: Record<string, string>,
 ): Promise<{ success: boolean; stdout: string; stderr: string }> {
   const result = await execProcess({
+    // Use the built test binary in binary mode; otherwise pin the local CLI.
     cmd: quartoDevBinCmd(),
     args,
     cwd,
     stdout: "piped",
     stderr: "piped",
+    // Binary mode strips dev-tree variables before applying the overlay.
     ...quartoSpawnEnvOptions(env),
   });
   return {
