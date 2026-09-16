@@ -234,7 +234,10 @@ collision_exit=$?
 # satisfy it.
 echo "$collision_output" | grep -qi "reporter" || fail "expected a reporter-related diagnostic, got: $collision_output"
 echo "$collision_output" | grep -qi "multiple times" || fail "expected the duplicate-reporter diagnostic to mention 'multiple times', got: $collision_output"
-echo "PASS: real deno 2.7.14 exits non-zero with the duplicate-reporter diagnostic on duplicate --reporter tokens"
+# Report the version actually exercised. Nothing here asserts a version, so a
+# literal one would silently misreport the moment the bundled deno is bumped.
+deno_version="$("$DENO_BIN" --version 2>/dev/null | awk 'NR==1{print $2}')"
+echo "PASS: real deno ${deno_version:-(version unknown)} exits non-zero with the duplicate-reporter diagnostic on duplicate --reporter tokens"
 
 # The two checks above prove deno's own parser rejects a duplicate --reporter,
 # and (the argv half above) prove the wrapper constructs both tokens into
