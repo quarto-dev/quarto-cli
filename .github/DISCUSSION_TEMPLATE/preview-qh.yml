@@ -11,7 +11,7 @@ body:
 
         - If you want to ask for a general Quarto feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
         - If you want to ask for help with Quarto 1, the `quarto` command-line program, please use the [Q&A (Q1) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1).
-        - If you want to ask for help with Quarto 2, the `q2` command-line program, please use the [Q&A (Q2) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).
+        - If you want to ask for help with Quarto 2, the experimental `q2` command-line program, please use the [Q&A (Q2) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).
 
         First, please check the existing [Preview (QH) discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/preview-qh) to see if your topic has already been discussed.
         If it has, please consider adding a comment to the existing discussion instead of creating a new one.

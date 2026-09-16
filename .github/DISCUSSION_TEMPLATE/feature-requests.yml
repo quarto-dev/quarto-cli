@@ -13,7 +13,7 @@ body:
         - If you're reporting an issue inside **RStudio**, please visit https://github.com/rstudio/rstudio
         - If you're reporting an issue inside **Positron**, please visit https://github.com/posit-dev/positron
         - If you want to ask for help with Quarto 1, please use the [Q&A (Q1) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1).
-        - If you want to ask for help with Quarto 2, please use the [Q&A (Q2) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).
+        - If you want to ask for help with Quarto 2, which is experimental and not ready for production use, please use the [Q&A (Q2) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).
 
         First, please check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests) to see if your feature request has already been discussed.
         If it has, please consider adding a comment to the existing discussion instead of creating a new one.
