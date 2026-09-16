@@ -224,6 +224,28 @@ $env:QUARTO_TEST_KEEP_OUTPUTS="true"
 ./run-tests.ps1
 ```
 
+**--agent flag**
+- Switches deno's reporter to `--reporter=dot`, collapsing a green run's output to roughly two bytes per test plus deno's tally line
+- Failures keep what identifies them: assertion message, source frame, stack, exit code, and the harness-assembled rerun command (see below) all survive. What's dropped is captured console output (progress prints outside the assertion message) for every test, passing or failing - a handful of places relied on that as their only diagnostic (a snapshot mismatch, a few test files that print then assert generically); those are tracked as follow-up work, not blockers for this flag
+- Explicit opt-in only - no environment or TTY detection, so a human and an agent running the same command see the same output unless this flag is passed
+- Not a general "quiet" flag: deno's own `-q`/`--quiet` is never forwarded (it's a no-op under `--reporter=dot` and its semantics caused a prior log-marker suppression incident)
+
+```bash
+./run-tests.sh --agent unit/my-test.test.ts
+```
+
+```powershell
+./run-tests.ps1 --agent unit/my-test.test.ts
+```
+
+*Recovering from a failure under `--agent`:* the failure message the harness prints already contains a ready-to-run rerun command for most test failures (tests registered through `unitTest`/`testQuartoCmd`, failing inside the render/verify step). A few cases don't get that assembled command and need a fallback:
+- A **smoke-all** document failure: the printed command reruns the whole `smoke-all.test.ts` corpus rather than just the failing document - use the document path shown in the test name instead.
+- A few files register directly with `Deno.test` rather than through the harness (`smoke/create/create.test.ts`, `smoke/logging/log-level-and-formats.test.ts`, `integration/playwright-tests.test.ts`) - for these the reported source location is the actual test file, but deno prints it as `path/to/file.test.ts:line:column`; strip the `:line:column` suffix before passing it back to the runner, since the runner's file-type check only accepts a path ending in `.ts`/`.qmd`/`.md`/`.ipynb` and rejects the location as printed.
+- For anything else (a setup/teardown failure, or any failure that isn't Error-shaped), rerun the original command with `--agent` removed - this always works and needs no output parsing.
+- Do **not** use the location in the `FAILURES` summary section as a rerun target for harness-registered tests - it resolves to `test.ts`'s own `Deno.test` call site, which registers no tests of its own and would rerun nothing.
+
+*Reporter collision (bash only):* passing `--agent` together with a reporter already set via `QUARTO_DENO_EXTRA_OPTIONS` is unsupported - deno rejects duplicate `--reporter` arguments and exits non-zero. This combination is not detected or blocked by the wrapper; it surfaces as a deno error. (On PowerShell this combination cannot occur: `QUARTO_DENO_EXTRA_OPTIONS` isn't currently honored there at all.)
+
 **Other environment variables**
 - `QUARTO_TEST_VERBOSE` - Enable verbose test output
 - `QUARTO_TESTS_NO_CHECK` - Not currently used (legacy variable)

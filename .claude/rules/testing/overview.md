@@ -28,6 +28,13 @@ QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh test.ts    # Linux/macOS
 $env:QUARTO_TESTS_NO_CONFIG=$true; .\run-tests.ps1      # Windows
 ```
 
+**Low-noise output for agent sessions:**
+```bash
+./run-tests.sh --agent unit/my-test.test.ts       # Linux/macOS
+.\run-tests.ps1 --agent unit/my-test.test.ts      # Windows
+```
+Collapses a green run to a dot per test plus a tally line; failures keep their assertion message, source frame, stack, and exit code. See `tests/README.md` for the fallback rerun workflow and the bash-only reporter-collision caveat.
+
 ## Test Types
 
 | Type | Location | File Pattern | Details |
