@@ -13,7 +13,8 @@ body:
 
         If you want to report a bug, please use the [Bug Reports GitHub Issues](https://github.com/quarto-dev/quarto-cli/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml).
         If you want to ask for a feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
-        If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
+        If you want to ask for help with Quarto 1, please use the [Q&A (Q1) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1).
+        If you want to ask for help with Quarto 2, please use the [Q&A (Q2) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).
 
         Thank you for using Quarto!
 

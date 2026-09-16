@@ -6,14 +6,15 @@ body:
         Welcome to the Quarto CLI GitHub repository!
         We are always happy to hear feedback from our users.
 
-        This is the repository for the command-line program `quarto`:
+        This category is for questions about **Quarto 1**, version 1 of the `quarto` command-line program:
 
+        - If your question is about **Quarto 2**, version 2 of Quarto, please use the [Q&A (Q2) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).
         - If you're reporting an issue with the **Visual Editor** or with the **Visual Studio Code / Positron extension**, please visit https://github.com/quarto-dev/quarto
         - If you're reporting an issue inside **RStudio**, please visit https://github.com/rstudio/rstudio
         - If you're reporting an issue inside **Positron**, please visit https://github.com/posit-dev/positron
         - If you want to ask for a feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
 
-        First, please check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a) to see if your question has already been asked.
+        First, please check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Q&A (Q1) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1) to see if your question has already been asked.
         If it has, please consider adding a comment to the existing discussion instead of creating a new one.
 
         After checking, if you are not sure if your question has already been asked, please create a new discussion.

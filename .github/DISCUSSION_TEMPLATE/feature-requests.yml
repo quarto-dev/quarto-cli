@@ -12,7 +12,8 @@ body:
         - If you're reporting an issue with the **Visual Editor** or with the **Visual Studio Code / Positron extension**, please visit https://github.com/quarto-dev/quarto
         - If you're reporting an issue inside **RStudio**, please visit https://github.com/rstudio/rstudio
         - If you're reporting an issue inside **Positron**, please visit https://github.com/posit-dev/positron
-        - If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
+        - If you want to ask for help with Quarto 1, please use the [Q&A (Q1) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1).
+        - If you want to ask for help with Quarto 2, please use the [Q&A (Q2) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).
 
         First, please check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests) to see if your feature request has already been discussed.
         If it has, please consider adding a comment to the existing discussion instead of creating a new one.
@@ -20,7 +21,7 @@ body:
         After checking, if you are not sure if your feature request has already been discussed, please create a new discussion.
         We look forward to hearing from you.
 
-        If you want to ask for help, please consider using the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a), as it is better suited for answering your question.
+        If you want to ask for help, please consider using the [Q&A (Q1)](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1) or [Q&A (Q2)](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2) GitHub Discussions, as they are better suited for answering your question.
 
         Finally, try to describe the best you can what you want to achieve and why you think it is important.
         This will help us to understand your request and prioritise it.

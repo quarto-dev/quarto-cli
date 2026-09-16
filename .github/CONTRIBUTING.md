@@ -23,7 +23,8 @@ Please use the destination that matches your need so we can respond quickly.
 | Report a bug or unexpected behaviour.                                 | [Bug report issue form](https://github.com/quarto-dev/quarto-cli/issues/new?template=bug_report.yml).             |
 | Report an issue on quarto.org or suggest a documentation improvement. | [Documentation issue form](https://github.com/quarto-dev/quarto-cli/issues/new?template=documentation.yml).       |
 | Suggest a new or missing feature.                                     | [Feature Requests discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests). |
-| Ask for help or ask a usage question.                                 | [Q&A discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).                           |
+| Ask for help or ask a usage question about Quarto 1.                  | [Q&A (Q1) discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1).                   |
+| Ask for help or ask a usage question about Quarto 2.                  | [Q&A (Q2) discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).                   |
 | Share what you built with Quarto.                                     | [Show and Tell discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/show-and-tell).       |
 
 Some issues belong to other repositories:
@@ -53,7 +54,8 @@ Discussions are the right place for ideas, questions, and showcases.
 Before starting one, please search [existing discussions](https://github.com/quarto-dev/quarto-cli/discussions) and add to an existing thread when one already covers your topic.
 
 - [Feature Requests](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests): describe what you want to achieve and why it matters, so we can understand and prioritise it.
-- [Q&A](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a): ask for help, ideally with a complete self-contained reproducible example.
+- [Q&A (Q1)](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1): ask for help with Quarto 1, ideally with a complete self-contained reproducible example.
+- [Q&A (Q2)](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2): ask for help with Quarto 2, ideally with a complete self-contained reproducible example.
 - [Show and Tell](https://github.com/quarto-dev/quarto-cli/discussions/categories/show-and-tell): share a project, a tip, or a use case.
 
 ## Using AI tools to investigate
