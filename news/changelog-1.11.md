@@ -35,6 +35,10 @@ All changes included in 1.11:
 
 - ([#14847](https://github.com/quarto-dev/quarto-cli/pull/14847)): Fix `toc_title` auto-fallback in typst outline template that was ignoring the computed fallback value when `toc_title` is `none`.
 
+## Lua API
+
+- ([#14894](https://github.com/quarto-dev/quarto-cli/pull/14894)): Fix `quarto.version` and `quarto.config.version()` crashing filters with `table expected, got string` when the version string contains semver build metadata (such as a distro packager's revision suffix) or otherwise does not start with a digit.
+
 ## Commands
 
 ### `call`
