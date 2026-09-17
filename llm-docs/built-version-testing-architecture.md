@@ -221,6 +221,8 @@ The trigger fires after every completed create-release run, including manual and
 Built test distributions use `$(cat version.txt)+test.$(date +%Y%m%d)`.
 Do not use a prerelease suffix, which fails plain `>=X.Y` `quarto-required` ranges, or a fourth numeric component, which is invalid semver.
 Build metadata preserves range comparisons while distinguishing the build from the `99.9.9` dev version.
+Lua filters see the marker stripped: `init.lua` normalizes the `quarto-version` param to its leading dotted-numeric component, so `quarto.version` is `X.Y.Z` while `quarto --version` reports the full stamp.
+The marker is therefore observable through the CLI, not through `quarto.version`.
 
 ### D3. Dist outside the checkout + `99.9.9` sentinel refusal
 
