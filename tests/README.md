@@ -491,7 +491,7 @@ To run in binary mode locally:
 ```bash
 # 1. Build a distribution (after ./configure.sh)
 cd package/src
-./quarto-bld prepare-dist --set-version "$(cat ../../version.txt)"
+./quarto-bld prepare-dist --set-version "$(cat ../../version.txt)+test.$(date +%Y%m%d)"
 cd ../..
 
 # 2. Copy the distribution outside the checkout. An in-repo launcher uses
