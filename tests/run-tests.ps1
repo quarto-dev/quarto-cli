@@ -106,12 +106,15 @@ if ( $MyInvocation.Line -eq "" ) {
   $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()
 }
 
-# Check if keep-outputs mode is enabled and filter it from arguments
+# Check if keep-outputs mode or agent mode is enabled and filter it from arguments
 $KEEP_OUTPUTS = $false
+$AGENT_MODE = $false
 $FILTERED_CUSTOM_ARGS = @()
 foreach ($arg in $customArgs) {
   if ($arg -eq "--keep-outputs" -or $arg -eq "-k") {
     $KEEP_OUTPUTS = $true
+  } elseif ($arg -eq "--agent") {
+    $AGENT_MODE = $true
   } else {
     $FILTERED_CUSTOM_ARGS += $arg
   }
@@ -171,6 +174,9 @@ If ($QUARTO_DENO_EXTRA_OPTIONS -ne $null) {
   $DENO_ARGS += -split $QUARTO_DENO_EXTRA_OPTIONS
 }
 $DENO_ARGS += -split $QUARTO_IMPORT_MAP_ARG
+If ($AGENT_MODE) {
+  $DENO_ARGS += "--reporter=dot"
+}
 $DENO_ARGS += $TESTS_TO_RUN
 
 # Activate python virtualenv

@@ -15,13 +15,17 @@ if [[ "$RUNNER_DEBUG" == "1" ]] || [[ "$QUARTO_TEST_VERBOSE" == "true" ]]; then
   VERBOSE_MODE=true
 fi
 
-# Check if keep-outputs mode is enabled
+# Check if keep-outputs mode or agent mode is enabled
 KEEP_OUTPUTS=false
+AGENT_MODE=false
 FILTERED_ARGS=()
 for arg in "$@"; do
   case $arg in
     --keep-outputs|-k)
       KEEP_OUTPUTS=true
+      ;;
+    --agent)
+      AGENT_MODE=true
       ;;
     *)
       FILTERED_ARGS+=("$arg")
@@ -33,6 +37,11 @@ set -- "${FILTERED_ARGS[@]}"
 if [[ "$KEEP_OUTPUTS" == "true" ]]; then
   export QUARTO_TEST_KEEP_OUTPUTS=true
   echo "> Keep outputs mode enabled - test artifacts will not be deleted"
+fi
+
+AGENT_REPORTER_ARGS=()
+if [[ "$AGENT_MODE" == "true" ]]; then
+  AGENT_REPORTER_ARGS=(--reporter=dot)
 fi
 
 source $SCRIPT_PATH/../package/scripts/common/utils.sh
@@ -114,13 +123,13 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
       SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -regextype "posix-extended" -regex ".*/[^_][^/]*[.]qmd" -o -regex ".*/[^_][^/]*[.]md" -o -regex ".*/[^_][^/]*[.]ipynb"`
       for j in $SMOKE_ALL_FILES; do
         echo "${SMOKE_ALL_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
-        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" ${SMOKE_ALL_TEST_FILE} -- ${j}
+        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" ${SMOKE_ALL_TEST_FILE} -- ${j}
       done
       continue
     fi
     # Otherwise we time the individual test.ts test
     echo $i >> "$QUARTO_TEST_TIMING"
-    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $i
+    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" $i
   done
   # exit the script with an error code if the timing file shows error
   grep -q 'Command exited with non-zero status' $QUARTO_TEST_TIMING && SUCCESS=1 || SUCCESS=0
@@ -166,7 +175,7 @@ else
   # and smoke-all.test.ts expands it itself via expandGlobSync. Expanding it
   # here instead would depend on bash's own (non-recursive by default) glob
   # semantics and could silently drop deeply nested matches.
-  "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${TESTS_TO_RUN[@]}"
+  "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" "${TESTS_TO_RUN[@]}"
   SUCCESS=$?
 fi
 
