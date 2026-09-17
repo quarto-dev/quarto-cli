@@ -1,5 +1,5 @@
 return {
   ['version'] = function(args, kwargs, meta)
-    return tostring(quarto.version)
+    return table.concat(quarto.version, '.')
   end
 }
