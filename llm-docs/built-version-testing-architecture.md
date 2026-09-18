@@ -1,6 +1,6 @@
 ---
-main_commit: e5850df75
-analyzed_date: 2026-09-10
+main_commit: 76d3a1e5f
+analyzed_date: 2026-09-18
 key_files:
   - tests/quarto-cmd.ts
   - tests/test.ts
@@ -214,6 +214,8 @@ The release pipeline is not modified for testing purposes.
 **Known weaknesses:** the trigger depends on the workflow display name (`workflows: ["Build Installers"]`), so renaming the workflow stops the trigger. GitHub does not report a missing trigger as a failure.
 The trigger fires after every completed create-release run, including manual and partial builds. Each OS leg therefore checks that its artifact exists.
 
+A dispatch can opt out per-run via `skip-auto-smoke` (see D7.1) when it does not need the downstream suite.
+
 **Revisit when:** maintainers want a single nightly build-and-test status and are willing to couple the workflows.
 
 ### D2. Version marker: semver *build metadata* (`X.Y.Z+test.YYYYMMDD`)
@@ -253,6 +255,22 @@ For a branch build, dispatch create-release with `publish-release=false` and `sm
 The configure job rejects this mode when publishing is enabled, and partial builds use a per-run concurrency group.
 The daily path still uses the full build because the Mac zip provides macOS smoke coverage.
 
+### D7.1 `skip-auto-smoke` opts a dispatch out of the auto-triggered suite
+
+`create-release.yml`'s `workflow_dispatch` has a `skip-auto-smoke` boolean input (default `false`). The Runs API does not expose `workflow_dispatch` inputs on a completed run (verified live via `gh api repos/quarto-dev/quarto-cli/actions/runs/RUNID` — no `inputs` field), so `test-smokes-built.yml`'s `resolve-nightly` job cannot read the flag off `github.event.workflow_run` directly.
+
+**Mechanism: the run title.** `create-release.yml` sets `run-name: "Build Installers${{ inputs.skip-auto-smoke && ' [skip-auto-smoke]' || '' }}"`. GitHub evaluates `run-name` from the dispatch inputs when the run is created, and the `completed` `workflow_run` payload carries the result as `github.event.workflow_run.display_title`. `resolve-nightly` reads it through a `SKIP_AUTO_SMOKE` env expression — no extra API call — and forces `has-linux`/`has-windows`/`has-mac` to `false`. Every nightly leg (smoke, Playwright, ff-matrix, all OSes) then no-ops through its existing `has-* == 'true'` gate, without an error. The build itself is unaffected: this only silences the downstream test fan-out, unlike `smoke-artifacts-only` (D7), which trims what gets built.
+
+Use `inputs.skip-auto-smoke`, not `github.event.inputs.skip-auto-smoke` — the latter yields the string `"false"`, which is truthy. For `schedule` runs `inputs` is empty, so the expression renders the plain `Build Installers` title, byte-identical to the pre-change default.
+
+**Why not a marker artifact.** Uploading an empty `skip-smoke` artifact also works and was implemented first, but it costs an upload step on every skipped build and leaves a stray artifact for the full retention period — which would also suppress a later *manual* `source=nightly` dispatch aimed at that run id, silently. The title is metadata-to-metadata and scoped to the event.
+
+**Scope: only the automatic path.** `SKIP_AUTO_SMOKE` is gated on `github.event_name == 'workflow_run'`, so a manual `test-smokes-built.yml` dispatch with `source=nightly` and an explicit `run-id` still tests that build. An explicit request to test a run outranks the upstream dispatcher's "do not auto-test me".
+
+**Why this does not break the `workflow_run` trigger.** The `workflows: ["Build Installers"]` filter matches the workflow's `name:`, not its `run-name`; the two are separate objects in the payload (`workflow.name` vs `workflow_run.name`). Verified against the reproduction repo for actions/runner#4141, where a workflow carrying a custom `run-name` still fires its `workflow_run` listener on both `requested` and `completed`. Related open bug worth knowing: actions/runner#4141 reports that on `completed`, `workflow_run.name` is *also* overwritten with the run-name. We key on `display_title`, which is the field GitHub documents for this purpose and which the proposed fix preserves. Note also that at `types: [requested]` the payload's `display_title` is the workflow name, not the run-name — harmless here because this trigger uses `types: [completed]`, and the check fails open (tests run) if that ever changes.
+
+Independent of a separately-tracked `branches:[main]` filter on the same `workflow_run` trigger: that gate narrows by branch, this narrows by explicit per-dispatch choice, regardless of branch.
+
 ### D8. macOS runners: scheduled/built runs only, never per-commit
 
 `test-smokes-parallel.yml` (per-commit) must stay fast, so it never passes `runners` and keeps the `ubuntu-latest`/`windows-latest` default.
@@ -270,7 +288,7 @@ The julia-engine subtree tests are temporarily dev-only. Their direct Quarto sub
 Remaining built-mode gaps are preview and serve paths, publishing, installer behavior, Linux arm64, and Playwright visual snapshots.
 Windows browser behavior and macOS feature-format coverage are also excluded as described in "Built-mode test legs".
 Dev schedules remain because they test source behavior, while built schedules test packaged behavior.
-All built legs currently run after every completed `create-release` run. If CI cost becomes excessive, gate heavy legs on scheduled runs.
+All built legs currently run after every completed `create-release` run, unless the triggering dispatch set `skip-auto-smoke` (D7.1). If CI cost becomes excessive, gate heavy legs on scheduled runs.
 
 ### D10. Release mode only works for post-harness tags
 

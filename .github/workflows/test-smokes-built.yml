@@ -215,6 +215,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_ID_INPUT: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || github.event.inputs.run-id }}
+          # create-release.yml encodes its skip-auto-smoke dispatch input in its run-name,
+          # which the completed workflow_run payload carries as display_title (D7.1).
+          # Deliberately false for a manual dispatch: an explicit run-id still gets tested.
+          SKIP_AUTO_SMOKE: ${{ github.event_name == 'workflow_run' && contains(github.event.workflow_run.display_title, '[skip-auto-smoke]') }}
         run: |
           run_id="$RUN_ID_INPUT"
           if [ -z "$run_id" ]; then
@@ -230,16 +234,24 @@ jobs:
             echo "::error::Could not resolve the head SHA for create-release run ${run_id}"
             exit 1
           fi
-          # Run only legs whose artifacts still exist.
-          names="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
-            --paginate --jq '.artifacts[] | select(.expired | not) | .name')"
-          has() { grep -Fxq "$1" <<<"$names" && echo true || echo false; }
-          has_linux="$(has 'Deb Zip')"
-          has_windows="$(has 'Windows Zip')"
-          has_mac="$(has 'Mac Zip')"
-          if [ "$has_linux" = false ] && [ "$has_windows" = false ] && [ "$has_mac" = false ]; then
-            echo "::error::run ${run_id} produced none of the expected artifacts (Deb Zip / Windows Zip / Mac Zip)"
-            exit 1
+          # A create-release dispatch that set skip-auto-smoke short-circuits every nightly leg.
+          if [ "$SKIP_AUTO_SMOKE" = true ]; then
+            echo "create-release run ${run_id} was dispatched with skip-auto-smoke; skipping all nightly legs"
+            has_linux=false
+            has_windows=false
+            has_mac=false
+          else
+            # Run only legs whose artifacts still exist.
+            names="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
+              --paginate --jq '.artifacts[] | select(.expired | not) | .name')"
+            has() { grep -Fxq "$1" <<<"$names" && echo true || echo false; }
+            has_linux="$(has 'Deb Zip')"
+            has_windows="$(has 'Windows Zip')"
+            has_mac="$(has 'Mac Zip')"
+            if [ "$has_linux" = false ] && [ "$has_windows" = false ] && [ "$has_mac" = false ]; then
+              echo "::error::run ${run_id} produced none of the expected artifacts (Deb Zip / Windows Zip / Mac Zip)"
+              exit 1
+            fi
           fi
           echo "Using create-release run ${run_id} at commit ${sha} (linux=${has_linux} windows=${has_windows} mac=${has_mac})"
           echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
