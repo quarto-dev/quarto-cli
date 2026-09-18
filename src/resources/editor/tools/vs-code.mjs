@@ -14215,11 +14215,7 @@ var require_yaml_intelligence_resources = __commonJS({
                         "external"
                       ],
                       default: "quarto",
-                      description: `Who assigns cross-reference numbers. "quarto" (the default) numbers
-cross-references in Quarto's own filters. "external" skips Quarto's
-numbering, index, and @ref-resolution passes and renders the numbers
-already present on the nodes \u2014 for front ends that compute their own.
-`
+                      description: 'Who assigns cross-reference numbers. "quarto" (the default) numbers\ncross-references in Quarto\'s own filters. "external" skips Quarto\'s\nnumbering, index, and @ref-resolution passes and renders the numbers\nalready present on the nodes \u2014 for front ends that compute their own.\nCurrently only supported for `docx`, `odt`, and `pptx` output; LaTeX\n(`latex`/`pdf`/`beamer`) and `typst` output raise an error.\n'
                     },
                     "title-delim": {
                       string: {
@@ -23567,7 +23563,7 @@ already present on the nodes \u2014 for front ends that compute their own.
         "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
         "The location of the caption relative to the crossreferenceable\ncontent.",
         "Use top level sections (H1) in this document as chapters.",
-        'Who assigns cross-reference numbers. \u201Cquarto\u201D (the default) numbers\ncross-references in Quarto\u2019s own filters. \u201Cexternal\u201D skips Quarto\u2019s\nnumbering, index, and <span class="citation" data-cites="ref-resolution">@ref-resolution</span> passes and renders\nthe numbers already present on the nodes \u2014 for front ends that compute\ntheir own.',
+        'Who assigns cross-reference numbers. \u201Cquarto\u201D (the default) numbers\ncross-references in Quarto\u2019s own filters. \u201Cexternal\u201D skips Quarto\u2019s\nnumbering, index, and <span class="citation" data-cites="ref-resolution">@ref-resolution</span> passes and renders\nthe numbers already present on the nodes \u2014 for front ends that compute\ntheir own. Currently only supported for <code>docx</code>,\n<code>odt</code>, and <code>pptx</code> output; LaTeX\n(<code>latex</code>/<code>pdf</code>/<code>beamer</code>) and\n<code>typst</code> output raise an error.',
         "The delimiter used between the prefix and the caption.",
         "The title prefix used for figure captions.",
         "The title prefix used for table captions.",

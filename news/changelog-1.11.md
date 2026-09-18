@@ -16,6 +16,10 @@ All changes included in 1.11:
 - ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Translate the new `navigation-*-label` keys in all 33 built-in language files. The values are drawn from existing human-translated interface strings (LibreOffice, GNOME, Wikidata) and each one carries a comment naming its source; values that were adapted rather than used verbatim are marked `needs review`.
 - ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Label the table of contents `<nav>` with its localized title (`aria-labelledby`), in `html` and `revealjs` output, so assistive technology can tell it apart from other navigation landmarks.
 
+## Crossrefs
+
+- ([commit](https://github.com/quarto-dev/quarto-cli/commit/c4d6d3bba92abff4a1171affc3ba3e6a49f2ed91)): Add `crossref: numbering: external`, which skips Quarto's own numbering, index, and `@ref`-resolution passes and renders the numbers already present on the nodes, for front ends that compute their own cross-reference numbers. Currently supported for `docx`, `odt`, and `pptx` output only; `latex`/`pdf`/`beamer` and `typst` output raise an error.
+
 ## Formats
 
 ### All Formats
@@ -67,6 +71,7 @@ All changes included in 1.11:
 ## Lua API
 
 - ([#14894](https://github.com/quarto-dev/quarto-cli/pull/14894)): Fix `quarto.version` and `quarto.config.version()` crashing filters with `table expected, got string` when the version string contains semver build metadata (such as a distro packager's revision suffix) or otherwise does not start with a digit.
+- ([commit](https://github.com/quarto-dev/quarto-cli/commit/0c497cd6dc6d12ffaf073cc3cbfedadbd3113cdf)): Add `quarto.doc.crossref.subrefNumber`, `refPrefix`, `refDelim`, `refHyperlink`, `refNumberOption`, `crossrefOption`, `renderEquation`, and `quarto.utils.nbspString`, sanctioning functions that were previously called as undefended bare globals by external front ends that reconstruct Quarto custom nodes outside the filter pipeline.
 
 ## Other fixes and improvements
 

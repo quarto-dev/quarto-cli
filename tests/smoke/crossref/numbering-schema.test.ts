@@ -15,7 +15,7 @@ import { docs } from "../../utils.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { printsMessage } from "../../verify.ts";
 
-const validInput = docs("crossrefs/numbering-external.qmd");
+const validInput = docs("crossrefs/numbering-valid.qmd");
 const bogusInput = docs("crossrefs/numbering-bogus.qmd");
 
 testQuartoCmd(

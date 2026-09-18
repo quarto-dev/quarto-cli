@@ -42,10 +42,11 @@ local common_pandoc_path = repo_root .. "src/resources/filters/common/pandoc.lua
 -- Mocks for filter-runtime globals -------------------------------------------
 
 function param(_name, default) return default end
+function readOption(_options, _name, default) return default end
 
 _quarto = { modules = {}, ast = {}, format = {} }
 quarto = { log = { debug = false }, utils = {}, doc = { crossref = {} } }
-crossref = { categories = { by_ref_type = {} } }
+crossref = { categories = { by_ref_type = {} }, options = {} }
 
 local lu = require('luaunit')
 
@@ -79,6 +80,17 @@ end
 
 function TestCrossrefExports:testRefNumberOption()
   lu.assertNotNil(quarto.doc.crossref.refNumberOption)
+end
+
+-- crossref.startAppendix is nil under `crossref-numbering: external` (it is
+-- only ever assigned inside the group that mode skips). A caller invoking
+-- this export directly, bypassing the full render pipeline, must not crash
+-- with a nil-arithmetic error on an appendix section entry.
+function TestCrossrefExports:testRefNumberOptionAppendixWithNilStartAppendix()
+  crossref.startAppendix = nil
+  local entry = { appendix = true, order = { section = { 1 } } }
+  local ok, result = pcall(quarto.doc.crossref.refNumberOption, "sec", entry)
+  lu.assertTrue(ok, "refNumberOption threw with nil crossref.startAppendix: " .. tostring(result))
 end
 
 function TestCrossrefExports:testCrossrefOption()

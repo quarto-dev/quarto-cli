@@ -52,8 +52,8 @@ function subrefNumber(order)
   return numberOption("subref", order,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
 end
 
--- we need to expose this function for use in Q2's Route-N Lua shim, which
--- reconstructs Q1 custom nodes outside the normal filter pipeline
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
 quarto.doc.crossref.subrefNumber = subrefNumber
 
 function prependSubrefNumber(captionContent, order)
@@ -99,24 +99,24 @@ function refPrefix(type, upper)
   return prefix
 end
 
--- we need to expose this function for use in Q2's Route-N Lua shim, which
--- reconstructs Q1 custom nodes outside the normal filter pipeline
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
 quarto.doc.crossref.refPrefix = refPrefix
 
 function refDelim()
   return crossrefOption("ref-delim", stringToInlines(","))
 end
 
--- we need to expose this function for use in Q2's Route-N Lua shim, which
--- reconstructs Q1 custom nodes outside the normal filter pipeline
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
 quarto.doc.crossref.refDelim = refDelim
 
 function refHyperlink()
   return crossrefOption("ref-hyperlink", true)
 end
 
--- we need to expose this function for use in Q2's Route-N Lua shim, which
--- reconstructs Q1 custom nodes outside the normal filter pipeline
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
 quarto.doc.crossref.refHyperlink = refHyperlink
 
 function refNumberOption(type, entry)
@@ -124,7 +124,7 @@ function refNumberOption(type, entry)
   -- for sections just return the section levels
   if type == "sec" then
     local num = nil
-    if entry.appendix then
+    if entry.appendix and crossref.startAppendix ~= nil then
       num = string.char(64 + entry.order.section[1] - crossref.startAppendix + 1)
     elseif crossrefOption("chapters", false) then
       num = tostring(entry.order.section[1])
@@ -136,8 +136,8 @@ function refNumberOption(type, entry)
   return formatNumberOption(type, entry.order)
 end
 
--- we need to expose this function for use in Q2's Route-N Lua shim, which
--- reconstructs Q1 custom nodes outside the normal filter pipeline
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
 quarto.doc.crossref.refNumberOption = refNumberOption
 
 

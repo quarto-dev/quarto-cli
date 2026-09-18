@@ -57,6 +57,8 @@
                 cross-references in Quarto's own filters. "external" skips Quarto's
                 numbering, index, and @ref-resolution passes and renders the numbers
                 already present on the nodes — for front ends that compute their own.
+                Currently only supported for `docx`, `odt`, and `pptx` output; LaTeX
+                (`latex`/`pdf`/`beamer`) and `typst` output raise an error.
             title-delim:
               string:
                 description: The delimiter used between the prefix and the caption.

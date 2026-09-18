@@ -25,6 +25,7 @@
  */
 
 import { join } from "../../../src/deno_ral/path.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { decodeBase64, encodeBase64 } from "../../../src/deno_ral/encoding.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { execProcess } from "../../../src/core/process.ts";
@@ -56,7 +57,7 @@ unitTest(
 
       const capturedPath = join(captureDir, "render-command.json");
       assert(
-        existsSyncOrFail(capturedPath),
+        existsSync(capturedPath),
         `QUARTO_CAPTURE_RENDER_COMMAND did not write ${capturedPath}`,
       );
       // deno-lint-ignore no-explicit-any
@@ -136,12 +137,3 @@ unitTest(
     }
   },
 );
-
-function existsSyncOrFail(path: string): boolean {
-  try {
-    Deno.statSync(path);
-    return true;
-  } catch {
-    return false;
-  }
-}

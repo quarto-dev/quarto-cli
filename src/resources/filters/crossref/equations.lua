@@ -146,8 +146,8 @@ function renderEquation(eq, label, alt, order)
   return result
 end
 
--- we need to expose this function for use in Q2's Route-N Lua shim, which
--- reconstructs Q1 custom nodes outside the normal filter pipeline
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
 quarto.doc.crossref.renderEquation = renderEquation
 
 function eqTag(eq)

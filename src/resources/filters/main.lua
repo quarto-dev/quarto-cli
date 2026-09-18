@@ -716,6 +716,19 @@ table.insert(quarto_filter_list, { name = "post-ast", filter = {} }) -- entry po
 
 table.insert(quarto_filter_list, { name = "pre-quarto", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_pre_filters)
+if not _quarto.modules.crossref_numbering.assign_crossref_numbers() and
+   _quarto.modules.crossref_numbering.crossref_present() and
+   (_quarto.format.isLatexOutput() or _quarto.format.isTypstOutput()) then
+  -- `crossref-numbering: external` skips crossrefMetaInject() (LaTeX
+  -- preamble for codelisting/theorem environments) and resolveRefs()
+  -- (which is what stops Typst's native `@id` citation syntax from
+  -- colliding with quarto's `@id` crossref syntax). Both failures only
+  -- surface deep inside the LaTeX/Typst compiler, so fail fast here
+  -- instead of emitting output that won't compile.
+  fail("crossref-numbering: external is not currently supported for " .. FORMAT ..
+    " output (only docx, odt, and pptx are supported); rendering would produce " ..
+    "malformed LaTeX/Typst output.")
+end
 if _quarto.modules.crossref_numbering.assign_crossref_numbers() then
   tappend(quarto_filter_list, quarto_crossref_filters)
 end
