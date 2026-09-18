@@ -236,7 +236,7 @@ jobs:
           fi
           # A create-release dispatch that set skip-auto-smoke short-circuits every nightly leg.
           if [ "$SKIP_AUTO_SMOKE" = true ]; then
-            echo "create-release run ${run_id} was dispatched with skip-auto-smoke; skipping all nightly legs"
+            echo "::notice::create-release run ${run_id} was dispatched with skip-auto-smoke; skipping all nightly legs"
             has_linux=false
             has_windows=false
             has_mac=false
