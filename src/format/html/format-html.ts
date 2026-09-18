@@ -1042,10 +1042,12 @@ function processCodeBlockAnnotation(
     const parentDL = annoteEl.parentElement?.parentElement;
     const codeParentDivId = parentCodeBlock?.parentElement?.parentElement?.id;
     if (
-      parentDL && codeParentDivId &&
-      !Object.keys(definitionLists).includes(codeParentDivId)
+      parentDL && !Object.values(definitionLists).includes(parentDL)
     ) {
-      definitionLists[codeParentDivId] = parentDL;
+      definitionLists[
+        codeParentDivId ??
+          `definition-list-${Object.keys(definitionLists).length}`
+      ] = parentDL;
     }
 
     if (annoteEl.parentElement && processDt) {
