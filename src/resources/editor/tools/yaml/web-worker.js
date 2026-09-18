@@ -14210,6 +14210,18 @@ try {
                           default: false
                         }
                       },
+                      numbering: {
+                        enum: [
+                          "quarto",
+                          "external"
+                        ],
+                        default: "quarto",
+                        description: `Who assigns cross-reference numbers. "quarto" (the default) numbers
+cross-references in Quarto's own filters. "external" skips Quarto's
+numbering, index, and @ref-resolution passes and renders the numbers
+already present on the nodes \u2014 for front ends that compute their own.
+`
+                      },
                       "title-delim": {
                         string: {
                           description: "The delimiter used between the prefix and the caption."
@@ -23556,6 +23568,7 @@ try {
           "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
           "The location of the caption relative to the crossreferenceable\ncontent.",
           "Use top level sections (H1) in this document as chapters.",
+          'Who assigns cross-reference numbers. \u201Cquarto\u201D (the default) numbers\ncross-references in Quarto\u2019s own filters. \u201Cexternal\u201D skips Quarto\u2019s\nnumbering, index, and <span class="citation" data-cites="ref-resolution">@ref-resolution</span> passes and renders\nthe numbers already present on the nodes \u2014 for front ends that compute\ntheir own.',
           "The delimiter used between the prefix and the caption.",
           "The title prefix used for figure captions.",
           "The title prefix used for table captions.",
@@ -25590,12 +25603,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 218300,
+          _internalId: 218540,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 218292,
+              _internalId: 218532,
               type: "enum",
               enum: [
                 "png",
@@ -25611,7 +25624,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 218299,
+              _internalId: 218539,
               type: "anyOf",
               anyOf: [
                 {

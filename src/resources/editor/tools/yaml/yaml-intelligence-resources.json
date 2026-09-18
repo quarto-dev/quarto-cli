@@ -7177,6 +7177,14 @@
                     "default": false
                   }
                 },
+                "numbering": {
+                  "enum": [
+                    "quarto",
+                    "external"
+                  ],
+                  "default": "quarto",
+                  "description": "Who assigns cross-reference numbers. \"quarto\" (the default) numbers\ncross-references in Quarto's own filters. \"external\" skips Quarto's\nnumbering, index, and @ref-resolution passes and renders the numbers\nalready present on the nodes — for front ends that compute their own.\n"
+                },
                 "title-delim": {
                   "string": {
                     "description": "The delimiter used between the prefix and the caption."
@@ -16523,6 +16531,7 @@
     "The description of the crossreferenceable object to be used in the\ntitle of the “list of” command. If omitted, the field\n<code>reference-prefix</code> is used.",
     "The location of the caption relative to the crossreferenceable\ncontent.",
     "Use top level sections (H1) in this document as chapters.",
+    "Who assigns cross-reference numbers. “quarto” (the default) numbers\ncross-references in Quarto’s own filters. “external” skips Quarto’s\nnumbering, index, and <span class=\"citation\" data-cites=\"ref-resolution\">@ref-resolution</span> passes and renders\nthe numbers already present on the nodes — for front ends that compute\ntheir own.",
     "The delimiter used between the prefix and the caption.",
     "The title prefix used for figure captions.",
     "The title prefix used for table captions.",
@@ -18557,12 +18566,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 218300,
+    "_internalId": 218540,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 218292,
+        "_internalId": 218532,
         "type": "enum",
         "enum": [
           "png",
@@ -18578,7 +18587,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 218299,
+        "_internalId": 218539,
         "type": "anyOf",
         "anyOf": [
           {
