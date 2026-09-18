@@ -235,8 +235,15 @@ jobs:
             exit 1
           fi
           # A create-release dispatch that set skip-auto-smoke short-circuits every nightly leg.
+          run_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${run_id}"
           if [ "$SKIP_AUTO_SMOKE" = true ]; then
-            echo "::notice::create-release run ${run_id} was dispatched with skip-auto-smoke; skipping all nightly legs"
+            echo "::notice title=Nightly source::create-release run ${run_id} was dispatched with skip-auto-smoke; skipping all nightly legs"
+            {
+              echo "### Nightly source"
+              echo
+              echo "- create-release run: [${run_id}](${run_url})"
+              echo "- skip-auto-smoke: all nightly legs skipped"
+            } >> "$GITHUB_STEP_SUMMARY"
             has_linux=false
             has_windows=false
             has_mac=false
@@ -252,8 +259,14 @@ jobs:
               echo "::error::run ${run_id} produced none of the expected artifacts (Deb Zip / Windows Zip / Mac Zip)"
               exit 1
             fi
+            echo "::notice title=Nightly source::create-release run ${run_id} @ ${sha} (linux=${has_linux} windows=${has_windows} mac=${has_mac})"
+            {
+              echo "### Nightly source"
+              echo
+              echo "- create-release run: [${run_id}](${run_url}) @ \`${sha}\`"
+              echo "- artifacts tested: linux=${has_linux} windows=${has_windows} mac=${has_mac}"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo "Using create-release run ${run_id} at commit ${sha} (linux=${has_linux} windows=${has_windows} mac=${has_mac})"
           echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "has-linux=$has_linux" >> "$GITHUB_OUTPUT"
