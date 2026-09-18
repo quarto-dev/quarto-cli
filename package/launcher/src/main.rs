@@ -24,7 +24,6 @@ fn main() {
 
     // some other file paths
     let js_file = bin_dir.join(Path::new("quarto.js"));
-    let importmap_file = bin_dir.join("vendor").join("import_map.json");
 
     // get command line args (skip first which is the program)
     let args: Vec<OsString> = env::args_os().skip(1).collect();
@@ -82,14 +81,15 @@ fn main() {
 
     // Define the base deno options
     let mut deno_options: Vec<String> = vec![
-        String::from("--unstable-kv"),
         String::from("--unstable-ffi"),
+        String::from("--unstable-kv"),
         String::from("--no-config"),
-        String::from("--cached-only"),
         String::from("--no-lock"),
+        String::from("--cached-only"),
         // Using --allow-all as there is otherwise an issue in Deno 1.46.3 with --allow-read and --allow-write with network drives
         // https://github.com/quarto-dev/quarto-cli/issues/11332
         String::from("--allow-all"),    
+        String::from("--no-check"),    
     ];
 
     // # --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
@@ -107,8 +107,6 @@ fn main() {
     let mut child = Command::new(&deno_file)
         .arg("run")
         .args(deno_options)
-        .arg("--importmap")
-        .arg(importmap_file)
         .arg(js_file)
         .args(args)
         .spawn()

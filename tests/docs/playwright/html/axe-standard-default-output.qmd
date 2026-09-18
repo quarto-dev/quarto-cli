@@ -1,0 +1,21 @@
+---
+format:
+  html:
+    axe:
+      standard: wcag2a
+---
+
+## Standard scoping
+
+This document violates one rule per scope: `image-alt` (WCAG 2.0 A),
+`color-contrast` (WCAG 2.0 AA), and `heading-order` (axe best practice).
+With `standard: wcag2a` and no `output`, results default to the browser
+console and only `image-alt` should be reported.
+
+This text violates contrast rules: [insufficient contrast.]{style="color: #eee; background: #fff;"}.
+
+<img src="placeholder.png" class="axe-test-img">
+
+#### Skipped heading level
+
+Jumping from h2 to h4 violates axe's best-practice `heading-order` rule.

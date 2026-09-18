@@ -1,0 +1,20 @@
+---
+title: Claude Test
+engine: knitr
+---
+
+A knitr document in a project subdirectory. Previewing it from this `labs/`
+directory with a bare filename (`quarto preview doc.qmd`) is the shape
+RStudio's Render button uses, and is what regressed in #14683.
+
+```{r}
+1 + 1
+```
+
+The rendered output must show `[1] 2` above (the R engine executed), and
+`QUARTO_DOCUMENT_PATH` below must be this file's absolute directory (ending in
+`labs`), not `.` or the project root (#12401).
+
+```{r}
+cat("QUARTO_DOCUMENT_PATH:", Sys.getenv("QUARTO_DOCUMENT_PATH"))
+```

@@ -1,0 +1,6 @@
+---
+title: Testing monochrome code highlight
+syntax-highlighting: monochrome
+---
+
+{{< include _body.md >}}

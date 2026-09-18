@@ -1,0 +1,27 @@
+---
+title: Engine Class Override Priority Test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "#bar-engine-marker"
+          - ".bar-engine-output"
+        - []
+      ensureFileRegexMatches:
+        -
+          - "BAR ENGINE PROCESSED THIS BLOCK"
+        - []
+---
+
+This document tests that `{python .foo}` blocks are processed by bar-engine
+(priority 3) instead of foo-engine (priority 2), verifying that higher
+priority numbers win.
+
+```{python .foo}
+x = 1 + 1
+print(x)
+```
+
+The block above should show "BAR ENGINE PROCESSED THIS BLOCK" because
+bar-engine claims with priority 3, which is higher than foo-engine's priority 2.

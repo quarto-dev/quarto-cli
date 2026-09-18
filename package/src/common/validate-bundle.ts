@@ -32,7 +32,8 @@ export async function validateBundle(
     // NPM Install
     info("Installing Dependencies");
     const npm = await execProcess({
-      cmd: ["npm", "install"],
+      cmd: "npm",
+      args: ["install"],
       stderr: "piped"
     }); 
     if (!npm.success) {
@@ -53,7 +54,8 @@ export async function validateBundle(
     // Test the bundled output
     info("Testing Bundled output");
     const npx = await execProcess({
-      cmd: ["npx", "eslint", "bundle.js"],
+      cmd: "npx",
+      args: ["eslint", "bundle.js"],
       stderr: "piped"
 
     });
@@ -64,8 +66,15 @@ export async function validateBundle(
   } finally {
     const cleanupFiles = [moveScriptDest, outFile, "package-lock.json", "node_modules"];
     cleanupFiles.forEach((file) => {
-      Deno.removeSync(file, {recursive: true});
+      try {
+        Deno.removeSync(file, {recursive: true});
+      } catch (e) {
+        if (e instanceof Deno.errors.NotFound) {
+          // File may not exist if validation failed early
+        } else {
+          info(`Failed to remove cleanup file '${file}': ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
     })
-
   }
 }

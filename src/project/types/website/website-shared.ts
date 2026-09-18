@@ -16,12 +16,14 @@ import {
   ProjectContext,
 } from "../../types.ts";
 import {
+  kLogoAlt,
   Navbar,
   NavigationFooter,
   NavItem,
   Sidebar,
   SidebarItem,
 } from "../../types.ts";
+import {} from "../../../resources/types/schema-types.ts";
 import {
   kAnnouncement,
   kBodyFooter,
@@ -45,6 +47,10 @@ import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
 import { md5HashAsync } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
+import {
+  logoAddLeadingSlashes,
+  resolveLogo,
+} from "../../../core/brand/brand.ts";
 
 export interface Navigation {
   navbar?: Navbar;
@@ -125,6 +131,23 @@ export async function websiteNavigationConfig(project: ProjectContext) {
     navbar = undefined;
   }
 
+  // note no document-level customization of brand logo #11309
+  const projectBrand = await project.resolveBrand();
+  if (navbar && navbar.logo !== false) {
+    let navLogo = navbar.logo;
+    if (navbar[kLogoAlt]) {
+      if (typeof navLogo === "string") {
+        navLogo = { path: navLogo, alt: navbar[kLogoAlt] };
+      }
+    }
+    let logo = resolveLogo(projectBrand, navLogo, [
+      "small",
+      "medium",
+      "large",
+    ]);
+    logo = logoAddLeadingSlashes(logo, projectBrand, undefined);
+    navbar.logo = logo;
+  }
   // read sidebar
   const sidebar = websiteConfig(kSiteSidebar, project.config);
   const sidebars =
@@ -148,6 +171,28 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       sidebars[0].tools = [];
     }
 
+    for (let i = 0; i < sidebars.length; i++) {
+      const sb = sidebars[i];
+      // Secondary sidebars without explicit logo inherit from the first via propagation
+      if (i > 0 && sb.logo === undefined) continue;
+      let sideLogo = sb.logo;
+      if (sideLogo !== false) { // don't do anything logo processing when sidebar logo is opt-out
+        if (sideLogo && sb[kLogoAlt]) {
+          const alt = sb[kLogoAlt];
+          if (typeof sideLogo === "string") {
+            sideLogo = { path: sideLogo, alt };
+          }
+        }
+        let logo = resolveLogo(projectBrand, sideLogo, [
+          "medium",
+          "small",
+          "large",
+        ]);
+        logo = logoAddLeadingSlashes(logo, projectBrand, undefined);
+        sb.logo = logo;
+      }
+    }
+
     // convert contents: auto into items
     for (const sb of sidebars) {
       if (sb.contents && !Array.isArray(sb.contents)) {
@@ -161,33 +206,6 @@ export async function websiteNavigationConfig(project: ProjectContext) {
           sb.contents = [sb.contents as SidebarItem];
         }
       }
-    }
-  }
-
-  const projectBrand = await project.resolveBrand();
-  if (
-    projectBrand?.processedData.logo && sidebars?.[0]
-  ) {
-    if (sidebars[0].logo === undefined) {
-      const logo = projectBrand.processedData.logo.medium ??
-        projectBrand.processedData.logo.small ??
-        projectBrand.processedData.logo.large;
-      if (logo) {
-        sidebars[0].logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
-        sidebars[0]["logo-alt"] = logo.light.alt;
-      }
-    }
-  }
-
-  if (
-    projectBrand?.processedData && navbar
-  ) {
-    const logo = projectBrand.processedData.logo.small ??
-      projectBrand.processedData.logo.medium ??
-      projectBrand.processedData.logo.large;
-    if (logo) {
-      navbar.logo = logo.light.path; // TODO: This needs smarts to work on light+dark themes
-      navbar["logo-alt"] = logo.light.alt;
     }
   }
 
@@ -456,5 +474,5 @@ export function containsHref(href: string, items: SidebarItem[]) {
 
 export function itemHasNavTarget(item: SidebarItem, href: string) {
   return item.href === href ||
-    item.href === href.replace(/\/index\.html/, "/");
+    item.href === href.replace(/\/index\.html(?=[?#]|$)/, "/");
 }

@@ -107,6 +107,55 @@ const resolvingMatchers = [
   },
 ];
 
+// Finds PDF/UA accessibility warnings from tagpdf and DocumentMetadata
+export interface PdfAccessibilityWarnings {
+  missingAltText: string[]; // filenames of images missing alt text
+  missingLanguage: boolean; // document language not set
+  otherWarnings: string[]; // other tagpdf warnings
+}
+
+export function findPdfAccessibilityWarnings(
+  logText: string,
+): PdfAccessibilityWarnings {
+  const result: PdfAccessibilityWarnings = {
+    missingAltText: [],
+    missingLanguage: false,
+    otherWarnings: [],
+  };
+
+  // Match: Package tagpdf Warning: Alternative text for graphic is missing.
+  //        (tagpdf)                Using 'filename' instead.
+  // Note: tagpdf wraps long filenames across multiple (tagpdf) continuation
+  // lines, so we allow optional line breaks with (tagpdf) prefixes.
+  const altTextRegex =
+    /Package tagpdf Warning: Alternative text for graphic is missing\.\s*\n\(tagpdf\)\s*Using ['`]([^'`]+)['`]\s*(?:\n\(tagpdf\)\s*)?instead\./g;
+  let match;
+  while ((match = altTextRegex.exec(logText)) !== null) {
+    result.missingAltText.push(match[1]);
+  }
+
+  // Match: LaTeX DocumentMetadata Warning: The language has not been set in
+  if (
+    /LaTeX DocumentMetadata Warning: The language has not been set in/.test(
+      logText,
+    )
+  ) {
+    result.missingLanguage = true;
+  }
+
+  // Capture any other tagpdf warnings we haven't specifically handled
+  const otherTagpdfRegex = /Package tagpdf Warning: ([^\n]+)/g;
+  while ((match = otherTagpdfRegex.exec(logText)) !== null) {
+    const warning = match[1];
+    // Skip the alt text warning we already handle specifically
+    if (!warning.startsWith("Alternative text for graphic is missing")) {
+      result.otherWarnings.push(warning);
+    }
+  }
+
+  return result;
+}
+
 // Finds missing hyphenation files (these appear as warnings in the log file)
 export function findMissingHyphenationFiles(logText: string) {
   //ngerman gets special cased
@@ -133,7 +182,7 @@ export function findMissingHyphenationFiles(logText: string) {
   const babelWarningRegex = /^Package babel Warning:/m;
   const hasWarning = logText.match(babelWarningRegex);
   if (hasWarning) {
-    const languageRegex = /^\(babel\).* language `(\S+)'.*$/m;
+    const languageRegex = /^\(babel\).* language [`'](\S+)[`'].*$/m;
     const languageMatch = logText.match(languageRegex);
     if (languageMatch) {
       return filterLang(languageMatch[1]);
@@ -156,10 +205,24 @@ export function findMissingHyphenationFiles(logText: string) {
 const kErrorRegex = /^\!\s([\s\S]+)?Here is how much/m;
 const kEmptyRegex = /(No pages of output)\./;
 
+// luaotfload's font-fallback resolver crashes on recent TeX Live (luaotfload
+// v3.29): when a fallback is set (mainfontfallback / monofontfallback / ...),
+// define_font of the internal `<font>;-fallback` name returns nil and
+// luaotfload-fallback.lua dereferences it. The crash is a Lua runtime error
+// with no `! ...Here is how much` block, so the generic extraction below finds
+// nothing — detect it directly and give actionable guidance.
+// Upstream: https://github.com/latex3/luaotfload/issues/331
+const kLuaotfloadFallbackCrash =
+  /luaotfload-fallback\.lua:\d+: attempt to index a nil value/;
+
 export function findLatexError(
   logText: string,
   stderr?: string,
 ): string | undefined {
+  if (kLuaotfloadFallbackCrash.test(logText)) {
+    return "A font fallback (e.g. 'mainfontfallback' or 'monofontfallback') triggered a known luaotfload bug on this TeX Live version, which crashes LuaLaTeX before a PDF is produced. Until it is fixed upstream, set a single font that covers the required glyphs (e.g. 'monofont: JuliaMono') instead of a fallback list. See https://github.com/latex3/luaotfload/issues/331";
+  }
+
   const errors: string[] = [];
 
   const match = logText.match(kErrorRegex);
@@ -209,8 +272,19 @@ function findMissingFonts(dir: string): string[] {
 }
 
 const formatFontFilter = (match: string, _text: string) => {
-  const base = basename(match);
-  return fontSearchTerm(base);
+  // Remove special prefix / suffix e.g. 'file:HaranoAjiMincho-Regular.otf:-kern;jfm=ujis'
+  // https://github.com/quarto-dev/quarto-cli/issues/12194
+  const base = basename(match).replace(/^.*?:|:.*$/g, "");
+  // return found file directly if it has an extension
+  return /[.]/.test(base) ? base : fontSearchTerm(base);
+};
+
+// luaotfload appends ';-fallback' internally to each fallback-chain entry
+// (registered via monofontfallback / luaotfload.add_fallback) to prevent
+// recursive fallback resolution. Strip it before building the search term.
+// https://github.com/quarto-dev/quarto-cli/issues/14558
+const luaotfloadFontFilter = (match: string, text: string) => {
+  return formatFontFilter(match.replace(/;-fallback$/, ""), text);
 };
 
 const estoPdfFilter = (_match: string, _text: string) => {
@@ -232,21 +306,27 @@ const packageMatchers = [
     filter: formatFontFilter,
   },
   {
+    regex: /.*Unable to find TFM file "([^"]+)".*/g,
+    filter: formatFontFilter,
+  },
+  {
+    regex: /.*\(fontspec\)\s+The font "([^"]+)" cannot be.*/g,
+    filter: formatFontFilter,
+  },
+  {
+    // luaotfload fallback-chain font (monofontfallback) missing. fontspec does
+    // not fire its own error in this path, so this is the only signal.
+    // https://github.com/quarto-dev/quarto-cli/issues/14558
+    regex: /.*luaotfload.*reason: Font "([^"]+)" not found.*/g,
+    filter: luaotfloadFontFilter,
+  },
+  {
     regex: /.*Package widetext error: Install the ([^ ]+) package.*/g,
     filter: (match: string, _text: string) => {
       return `${match}.sty`;
     },
   },
-  {
-    regex: /.*Unable to find TFM file "([^"]+)".*/g,
-    filter: formatFontFilter,
-  },
-  {
-    regex:
-      /.*! Package fontspec Error:\s+\(fontspec\)\s+The font "([^"]+)" cannot be\s+\(fontspec\)\s+found;+/g,
-    filter: formatFontFilter,
-  },
-  { regex: /.* File `(.+eps-converted-to.pdf)'.*/g, filter: estoPdfFilter },
+  { regex: /.* File [`'](.+eps-converted-to.pdf)'.*/g, filter: estoPdfFilter },
   { regex: /.*xdvipdfmx:fatal: pdf_ref_obj.*/g, filter: estoPdfFilter },
 
   {
@@ -265,19 +345,51 @@ const packageMatchers = [
       return "lua-uni-algos.lua";
     },
   },
+  {
+    regex: /.* Package pdfx Error: No color profile ([^\s]*).*/g,
+    filter: (_match: string, _text: string) => {
+      return "colorprofiles.sty";
+    },
+  },
+  {
+    regex: /.*No support files for \\DocumentMetadata found.*/g,
+    filter: (_match: string, _text: string) => {
+      return "latex-lab";
+    },
+  },
+  {
+    // PDF/A requires embedded color profiles - pdfmanagement-testphase needs colorprofiles
+    regex: /.*\(pdf backend\): cannot open file for embedding.*/g,
+    filter: (_match: string, _text: string) => {
+      return "colorprofiles";
+    },
+  },
+  {
+    regex: /.*No file ([^`'. ]+[.]fd)[.].*/g,
+    filter: (match: string, _text: string) => {
+      return match.toLowerCase();
+    },
+  },
   { regex: /.* Loading '([^']+)' aborted!.*/g },
-  { regex: /.*! LaTeX Error: File `([^']+)' not found.*/g },
-  { regex: /.* file ['`]?([^' ]+)'? not found.*/g },
-  { regex: /.*the language definition file ([^ ]+) .*/g },
+  { regex: /.*! LaTeX Error: File [`']([^']+)' not found.*/g },
+  { regex: /.* [fF]ile ['`]?([^' ]+)'? not found.*/g },
+  { regex: /.*the language definition file ([^\s]*).*/g },
+  {
+    regex: /.*! Package babel Error: Unknown option [`']([^'`]+)'[.].*/g,
+    filter: (match: string, _text: string) => {
+      return `${match}.ldf`;
+    },
+  },
   { regex: /.* \\(file ([^)]+)\\): cannot open .*/g },
-  { regex: /.*file `([^']+)' .*is missing.*/g },
-  { regex: /.*! CTeX fontset `([^']+)' is unavailable.*/g },
+  { regex: /.*file [`']([^']+)' .*is missing.*/g },
+  { regex: /.*! CTeX fontset [`']([^']+)' is unavailable.*/g },
   { regex: /.*: ([^:]+): command not found.*/g },
-  { regex: /.*! I can't find file `([^']+)'.*/g },
+  { regex: /.*! I can't find file [`']([^']+)'.*/g },
 ];
 
 function fontSearchTerm(font: string): string {
-  return `${font}(-(Bold|Italic|Regular).*)?[.](tfm|afm|mf|otf|ttf)`;
+  const fontPattern = font.replace(/\s+/g, "\\s*");
+  return `${fontPattern}(-(Bold|Italic|Regular).*)?[.](tfm|afm|mf|otf|ttf)`;
 }
 
 function findMissingPackages(logFileText: string): string[] {
@@ -303,7 +415,7 @@ function findMissingPackages(logFileText: string): string[] {
     packageMatcher.regex.lastIndex = 0;
   });
 
-  // dedpulicated list of packages to attempt to install
+  // dedulicated list of packages to attempt to install
   return ld.uniq(toInstall);
 }
 

@@ -1,0 +1,13 @@
+---
+format:
+  html:
+    embed-resources: true
+---
+
+# Test Document
+
+This tests rendering via symlinked directory with embed-resources.
+
+```{r}
+plot(1:10)
+```

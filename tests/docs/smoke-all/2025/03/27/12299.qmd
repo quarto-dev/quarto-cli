@@ -1,0 +1,11 @@
+---
+title: testing Lua API value for latex
+format:
+  latex:
+    pdf-engine: xelatex
+    cite-method: natbib
+filters:
+  - 12299.lua
+---
+
+

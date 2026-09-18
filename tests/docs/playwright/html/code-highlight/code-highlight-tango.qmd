@@ -1,0 +1,6 @@
+---
+title: Testing tango code highlight
+syntax-highlighting: tango
+---
+
+{{< include _body.md >}}

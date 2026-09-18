@@ -1,0 +1,15 @@
+---
+title: "Issue 14468 - axe defaults still work without brand"
+format:
+  html:
+    axe: true
+_quarto:
+  tests:
+    html:
+      ensureCssRegexMatches:
+        - ['--bs-body-bg:\s*#fff', '\.quarto-axe-report']
+---
+
+## Section
+
+Some [link](http://example.org) text.

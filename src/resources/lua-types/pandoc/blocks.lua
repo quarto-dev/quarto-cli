@@ -33,7 +33,7 @@ pandoc.Blocks = {}
 Create a blocks list 
 ]]
 ---@param blocks pandoc.Block|pandoc.List Block or list of blocks
----@return pandoc.List 
+---@return pandoc.Blocks 
 function pandoc.Blocks(blocks) end
 
 
@@ -211,9 +211,9 @@ function pandoc.Div:walk(lua_filter) end
 Header element
 ]]
 ---@class pandoc.Header : pandoc.Block
----@field level integer Header level
----@field content pandoc.List Header content (list of inlines)
----@field attr pandoc.Attr Header attributes
+---@field level integer Heading level
+---@field content pandoc.Inlines Inline content
+---@field attr pandoc.Attr Element attributes
 ---@field identifier string Alias for `attr.identifier`
 ---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
@@ -224,9 +224,9 @@ pandoc.Header = {}
 --[[
 Creates a header element
 ]]
----@param level integer Header level
----@param content inlines_content Header content (list of inlines)
----@param attr? pandoc.Attr Header attributes
+---@param level integer Heading level
+---@param content pandoc.Inlines Inline content
+---@param attr? pandoc.Attr Element attributes
 ---@return pandoc.Header
 function pandoc.Header(level, content, attr) end
 
@@ -312,7 +312,7 @@ function pandoc.LineBlock:walk(lua_filter) end
 An ordered list.
 ]]
 ---@class pandoc.OrderedList : pandoc.Block
----@field content pandoc.List List of items (blocks)
+---@field content pandoc.Blocks List items
 ---@field listAttributes pandoc.ListAttributes List parameters
 ---@field start integer Alias for `listAttributes.start`
 ---@field style list_style Alias for `listAttributes.style`
@@ -324,7 +324,7 @@ pandoc.OrderedList = {}
 --[[
 Create an ordered list
 ]]
----@param items blocks_content Block or list of blocks
+---@param items pandoc.Blocks List items
 ---@param listAttributes? pandoc.ListAttributes List parameters
 ---@return pandoc.OrderedList
 function pandoc.OrderedList(items, listAttributes) end
@@ -350,7 +350,7 @@ function pandoc.OrderedList:walk(lua_filter) end
 A paragraph
 ]]
 ---@class pandoc.Para : pandoc.Block
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content
 ---@field t "Para"
 ---@field tag "Para"
 pandoc.Para = {}
@@ -358,7 +358,7 @@ pandoc.Para = {}
 --[[
 Creates a paragraph element
 ]]
----@param content inlines_content Inline content (list of inlines)
+---@param content pandoc.Inlines Inline content
 ---@return pandoc.Para
 function pandoc.Para(content) end
 
@@ -381,7 +381,7 @@ function pandoc.Para:walk(lua_filter) end
 Plain text, not a paragarph
 ]]
 ---@class pandoc.Plain : pandoc.Block
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content
 ---@field t "Plain"
 ---@field tag "Plain"
 pandoc.Plain = {}
@@ -389,7 +389,7 @@ pandoc.Plain = {}
 --[[
 Creates a plain element
 ]]
----@param content inlines_content Inline content (list of inlines)
+---@param content pandoc.Inlines Inline content
 ---@return pandoc.Plain
 function pandoc.Plain(content) end
 

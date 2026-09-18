@@ -6,8 +6,6 @@
 -- restructured into the standard has
 -- format
 
-local constants = require("modules/constants")
-
 local function processTypedId(el) 
   if pandoc.utils.type(el) == "Inlines" then
     return { value = el }
@@ -36,23 +34,23 @@ end
 
 function processCitationMeta(meta)
   if meta then
-    local citationMeta = meta[constants.kCitation]
+    local citationMeta = meta[_quarto.modules.constants.kCitation]
     if citationMeta and type(citationMeta) == "object" then
-      local containerIds = citationMeta[constants.kContainerId]
+      local containerIds = citationMeta[_quarto.modules.constants.kContainerId]
       if containerIds ~= nil then
-        meta[constants.kCitation][constants.kContainerId] = normalizeTypedId(containerIds)
+        meta[_quarto.modules.constants.kCitation][_quarto.modules.constants.kContainerId] = normalizeTypedId(containerIds)
       end
 
-      local articleIds = citationMeta[constants.kArticleId]
+      local articleIds = citationMeta[_quarto.modules.constants.kArticleId]
       if articleIds ~= nil then
-        meta[constants.kCitation][constants.kArticleId] = normalizeTypedId(articleIds)
+        meta[_quarto.modules.constants.kCitation][_quarto.modules.constants.kArticleId] = normalizeTypedId(articleIds)
       end
 
-      if citationMeta[constants.kPage] and citationMeta[constants.kPageFirst] == nil and citationMeta[constants.kPageLast] == nil then
-        local pagerange = split(pandoc.utils.stringify(citationMeta[constants.kPage]), '-')
-        meta[constants.kCitation][constants.kPageFirst] = pandoc.Inlines(pagerange[1])
+      if citationMeta[_quarto.modules.constants.kPage] and citationMeta[_quarto.modules.constants.kPageFirst] == nil and citationMeta[_quarto.modules.constants.kPageLast] == nil then
+        local pagerange = split(pandoc.utils.stringify(citationMeta[_quarto.modules.constants.kPage]), '-')
+        meta[_quarto.modules.constants.kCitation][_quarto.modules.constants.kPageFirst] = pandoc.Inlines(pagerange[1])
         if pagerange[2] then
-          meta[constants.kCitation][constants.kPageLast] = pandoc.Inlines(pagerange[2])
+          meta[_quarto.modules.constants.kCitation][_quarto.modules.constants.kPageLast] = pandoc.Inlines(pagerange[2])
         end
       end
     end

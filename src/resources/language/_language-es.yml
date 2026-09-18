@@ -32,7 +32,7 @@ title-block-author-plural: "Autores/as"
 title-block-affiliation-single: "Afiliación"
 title-block-affiliation-plural: "Afiliaciones"
 title-block-published: "Fecha de publicación"
-title-block-modified: "Fecha de modificación"
+title-block-modified: "Fecha de última modificación"
 title-block-keywords: "Palabras clave"
 
 callout-tip-title: "Tip"
@@ -60,11 +60,13 @@ copy-button-tooltip-success: "Copiado"
 
 repo-action-links-edit: "Editar esta página"
 repo-action-links-source: "Ver el código"
-repo-action-links-issue: "Informar de un problema"
+repo-action-links-issue: "Informar sobre problema"
 
 back-to-top: "Volver arriba"
 
-search-no-results-text: "Sin resultados"
+skip-to-content: "Saltar al contenido principal"
+
+search-no-results-text: "No se han encontrado resultados"
 search-matching-documents-text: "documentos encontrados"
 search-copy-link-title: "Copiar el enlace en la búsqueda"
 search-hide-matches-text: "Ocultar resultados adicionales"
@@ -81,6 +83,17 @@ toggle-sidebar: "Alternar barra lateral"
 toggle-dark-mode: "Alternar modo oscuro"
 toggle-reader-mode: "Alternar modo lector"
 toggle-navigation: "Navegación de palanca"
+
+# Landmark labels. Two rules for translators:
+# 1. Do not include the word "navigation". Screen readers announce the role after
+#    the label (https://www.w3.org/WAI/ARIA/apg/practices/landmark-regions/).
+# 2. Use a noun, not a bare adjective. In several languages the adjective cannot
+#    stand alone without the noun it agrees with.
+navigation-site-label: "Sitio web"                 # wikidata Q35127
+navigation-section-label: "Sección"                # libreoffice sw
+navigation-toolbar-label: "Barra de herramientas"  # wikidata Q371434
+navigation-page-label: "Página"                    # libreoffice sw
+navigation-breadcrumbs-label: "Hilo de Ariadna"    # wikidata Q846205
 
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabla"
@@ -101,13 +114,13 @@ crossref-lof-title: "Listado de Figuras"
 crossref-lot-title: "Listado de Tablas"
 crossref-lol-title: "Listado de Listados"
 
-environment-proof-title: "Prueba"
+environment-proof-title: "Demostración"
 environment-remark-title: "Observación"
 environment-solution-title: "Solución"
 
 listing-page-order-by: "Ordenar por"
 listing-page-order-by-default: "Por defecto"
-listing-page-order-by-date-asc: "Menos reciente"
+listing-page-order-by-date-asc: "Más antiguo"
 listing-page-order-by-date-desc: "Más reciente"
 listing-page-order-by-number-desc: "De mayor a menor"
 listing-page-order-by-number-asc: "De menor a mayor"
@@ -115,8 +128,8 @@ listing-page-field-date: "Fecha"
 listing-page-field-title: "Título"
 listing-page-field-description: "Descripción"
 listing-page-field-author: "Autor/a"
-listing-page-field-filename: "Nombre de archivo"
-listing-page-field-filemodified: "Fecha de modificación"
+listing-page-field-filename: "Nombre del archivo"
+listing-page-field-filemodified: "Última modificación"
 listing-page-field-subtitle: "Subtítulo"
 listing-page-field-readingtime: "Tiempo de lectura"
 listing-page-field-categories: "Categorías"

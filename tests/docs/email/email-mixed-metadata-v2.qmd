@@ -1,0 +1,29 @@
+---
+title: Mixed Metadata V2 Test Document
+author: Jules Walzer-Goldfeld
+format: email
+---
+
+The report content. Anything that is here is not part of the email message.
+
+::: {.email}
+
+::: {.subject}
+First Email Custom Subject
+:::
+
+First email HTML content.
+
+:::
+
+::: {.email}
+
+::: {.email-text}
+Text version of second email (no subject).
+:::
+
+Second email HTML content without its own subject.
+
+:::
+
+Any additional report content not part of the email message.

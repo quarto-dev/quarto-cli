@@ -1,0 +1,39 @@
+---
+title: "UA figure missing alt text"
+lang: en
+format:
+  pdf:
+    pdf-standard: ua-2
+    keep-tex: true
+  typst:
+    pdf-standard: ua-1
+    keep-typ: true
+_quarto:
+  tests:
+    run:
+      # verapdf validation not available on Windows CI
+      not_os: windows
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        # LaTeX generates a proper \begin{figure} environment
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-2\}', 'tagging=on', '\\begin\{figure\}']
+        - []
+      # NOTE: verapdf passes because LaTeX's tagging=on doesn't create proper
+      # Figure structure elements in the PDF. This is a LaTeX limitation.
+    typst:
+      # Typst correctly errors at compile time for missing alt text
+      shouldError: default
+      printsMessage:
+        level: ERROR
+        regex: "missing alt text"
+---
+
+# Test Document
+
+This is a proper figure with a cross-reference label but no alt text.
+
+- **Typst**: Correctly errors at compile time ("PDF/UA-1 error: missing alt text")
+- **LaTeX**: tagging=on doesn't create proper Figure structure elements
+
+![](penrose.svg){#fig-test}

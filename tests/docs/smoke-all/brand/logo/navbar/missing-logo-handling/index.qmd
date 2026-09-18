@@ -1,0 +1,19 @@
+---
+title: Navbar Missing Logo Handling - Direct Paths
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # Non-existent logo files should still generate img tags with proper src attributes
+          - 'img[class*="light-content"][src="./nonexistent-light.png"]'
+          - 'img[class*="dark-content"][src="./nonexistent-dark.png"]'
+        - []
+---
+
+This test verifies how the navbar handles missing logo files:
+
+1. When logo paths point to non-existent files:
+   - The img tags should still be generated
+   - The src attributes should use the specified paths
+   - The page should render without breaking

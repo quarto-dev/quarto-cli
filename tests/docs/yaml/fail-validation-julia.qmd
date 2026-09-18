@@ -1,0 +1,9 @@
+---
+title: "YAML intelligence should fail with knitr engine"
+engine: julia
+---
+
+```{julia}
+#| echo: 123
+1 + 1
+```

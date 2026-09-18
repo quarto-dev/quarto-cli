@@ -1,0 +1,24 @@
+$--
+$-- Babel language support
+$--
+$if(lang)$
+\ifLuaTeX
+\usepackage[bidi=basic$if(shorthands)$$else$,shorthands=off$endif$$for(babeloptions)$,$babeloptions$$endfor$]{babel}
+\else
+\usepackage[bidi=default$if(shorthands)$$else$,shorthands=off$endif$$for(babeloptions)$,$babeloptions$$endfor$]{babel}
+\fi
+$if(babel-lang)$
+$if(mainfont)$
+\ifPDFTeX
+\else
+\babelfont{rm}[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$$if(mainfontfallback)$,RawFeature={fallback=mainfontfallback}$endif$]{$mainfont$}
+\fi
+$endif$
+$endif$
+$for(babelfonts/pairs)$
+\babelfont[$babelfonts.key$]{rm}{$babelfonts.value$}
+$endfor$
+\ifLuaTeX
+  \usepackage{selnolig} % disable illegal ligatures
+\fi
+$endif$

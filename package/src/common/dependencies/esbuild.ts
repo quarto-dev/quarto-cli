@@ -56,7 +56,7 @@ export function esBuild(version: string): Dependency {
           }
         } else {
           // verify that the binary is on PATH, but otherwise don't do anything
-          if (which(file) === undefined) {
+          if ((await which(file)) === undefined) {
             throw new Error(
               `${file} is not on PATH. Please install it and add it to PATH.`,
             );
@@ -67,7 +67,7 @@ export function esBuild(version: string): Dependency {
   };
 
   return {
-    name: "esbuild javscript bundler",
+    name: "esbuild javascript bundler",
     bucket: "esbuild",
     version,
     architectureDependencies: {

@@ -13,6 +13,7 @@ import {
   kFilterParams,
   kIncludeAfterBody,
   kIpynbShellInteractivity,
+  kLogo,
   kPlotlyConnected,
   kTemplate,
   kTheme,
@@ -22,20 +23,23 @@ import {
   DependencyHtmlFile,
   Format,
   FormatExtras,
+  FormatLanguage,
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
   Metadata,
 } from "../../config/types.ts";
+import { LogoLightDarkSpecifier } from "../../resources/types/zod/schema-types.ts";
 import { PandocFlags } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kLogoAlt, ProjectContext } from "../../project/types.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
+import { kDTTableSentinel } from "./format-dashboard-shared.ts";
 
 import { join } from "../../deno_ral/path.ts";
 import {
@@ -63,6 +67,7 @@ import { processToolbars } from "./format-dashboard-toolbar.ts";
 import { processDatatables } from "./format-dashboard-tables.ts";
 import { assert } from "testing/asserts";
 import { brandBootstrapSassBundles } from "../../core/sass/brand.ts";
+import { logoAddLeadingSlashes, resolveLogo } from "../../core/brand/brand.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -118,6 +123,22 @@ export function dashboardFormat() {
           }
         }
 
+        const brand = format.render.brand;
+        let logoSpec = format.metadata[kLogo] as LogoLightDarkSpecifier;
+        if (typeof logoSpec === "string" && format.metadata[kLogoAlt]) {
+          logoSpec = {
+            path: logoSpec,
+            alt: format.metadata[kLogoAlt] as string,
+          };
+        }
+        let logo = resolveLogo(brand, logoSpec, [
+          "small",
+          "medium",
+          "large",
+        ]);
+        logo = logoAddLeadingSlashes(logo, brand, input);
+
+        format.metadata[kLogo] = logo;
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,
           markdown,
@@ -134,7 +155,7 @@ export function dashboardFormat() {
         extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
           [];
         extras.html[kHtmlPostprocessors].push(
-          dashboardHtmlPostProcessor(dashboard),
+          dashboardHtmlPostProcessor(dashboard, format.language),
         );
 
         extras.metadata = extras.metadata || {};
@@ -199,7 +220,7 @@ export function dashboardFormat() {
             join("js", "dt", "datatables.min.js"),
           ),
           attribs: {
-            kDTTableSentinel: "true",
+            [kDTTableSentinel]: "true",
           },
         });
         stylesheets.push({
@@ -209,7 +230,7 @@ export function dashboardFormat() {
             join("js", "dt", "datatables.min.css"),
           ),
           attribs: {
-            kDTTableSentinel: "true",
+            [kDTTableSentinel]: "true",
           },
         });
         scripts.push({
@@ -219,7 +240,7 @@ export function dashboardFormat() {
             join("js", "dt", "pdfmake.min.js"),
           ),
           attribs: {
-            kDTTableSentinel: "true",
+            [kDTTableSentinel]: "true",
           },
         });
         scripts.push({
@@ -229,7 +250,7 @@ export function dashboardFormat() {
             join("js", "dt", "vfs_fonts.js"),
           ),
           attribs: {
-            kDTTableSentinel: "true",
+            [kDTTableSentinel]: "true",
           },
         });
 
@@ -297,6 +318,7 @@ registerWriterFormatHandler((format) => {
 
 function dashboardHtmlPostProcessor(
   dashboardMeta: DashboardMeta,
+  language: FormatLanguage,
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     const result: HtmlPostProcessResult = {
@@ -315,6 +337,9 @@ function dashboardHtmlPostProcessor(
     // Mark the page container with layout instructions
     const containerEl = doc.querySelector("div.page-layout-custom");
     if (containerEl) {
+      // dashboards have no <main> element, so mark the content container
+      // as the main landmark for assistive technology
+      containerEl.setAttribute("role", "main");
       const containerClz = [
         "quarto-dashboard-content",
         "bslib-gap-spacing",
@@ -371,7 +396,7 @@ function dashboardHtmlPostProcessor(
     processNavigation(doc);
 
     // Process pages that may be present in the document
-    processPages(doc, dashboardMeta);
+    processPages(doc, dashboardMeta, language);
 
     // Process Navbar buttons
     processNavButtons(doc, dashboardMeta);

@@ -12,6 +12,7 @@ import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
+import { isExternalPath } from "../../../core/url.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId } from "../../../core/html.ts";
@@ -77,6 +78,9 @@ import {
   SidebarTool,
 } from "../../types.ts";
 import {
+  NormalizedLogoLightDarkSpecifier,
+} from "../../../resources/types/schema-types.ts";
+import {
   normalizeSidebarItem,
   resolveHrefAttribute,
   sidebarContext,
@@ -126,6 +130,7 @@ import {
 import {
   kBackToTop,
   kIncludeInHeader,
+  kNavigationBreadcrumbsLabel,
   kNumberSections,
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
@@ -468,7 +473,7 @@ function navigationHtmlPostprocessor(
     );
     if (secondaryNavTitleEl) {
       if (showBreadCrumbs) {
-        const navEl = makeBreadCrumbs(doc);
+        const navEl = makeBreadCrumbs(doc, language);
         if (secondaryNavTitleEl.parentElement) {
           secondaryNavTitleEl.parentElement.replaceChild(
             navEl,
@@ -502,6 +507,7 @@ function navigationHtmlPostprocessor(
       if (navigation.breadCrumbs && navigation.breadCrumbs.length > 1) {
         const titleBreadCrumbEl = makeBreadCrumbs(
           doc,
+          language,
           ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
         );
         // See if there is deeper target
@@ -556,7 +562,8 @@ function navigationHtmlPostprocessor(
       const navLinkHref = navLink.getAttribute("href");
 
       const sidebarLink = doc.querySelector(
-        '.sidebar-navigation a[href="' + navLinkHref + '"]',
+        '.sidebar-navigation a[href="' + navLinkHref +
+          '"]:not(.sidebar-logo-link)',
       );
       // if the link is either for the current window href or appears on the
       // sidebar then set it to active
@@ -902,7 +909,11 @@ async function resolveFooter(
   return footer;
 }
 
-function makeBreadCrumbs(doc: Document, clz?: string[]) {
+function makeBreadCrumbs(
+  doc: Document,
+  language: FormatLanguage,
+  clz?: string[],
+) {
   // Make bootstrap breadcrumbs
   const navEl = doc.createElement("nav");
   navEl.classList.add("quarto-page-breadcrumbs");
@@ -911,7 +922,7 @@ function makeBreadCrumbs(doc: Document, clz?: string[]) {
       navEl.classList.add(cls);
     });
   }
-  navEl.setAttribute("aria-label", "breadcrumb");
+  navEl.setAttribute("aria-label", language[kNavigationBreadcrumbsLabel]!);
 
   const olEl = doc.createElement("ol");
   olEl.classList.add("breadcrumb");
@@ -1012,8 +1023,6 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = await sidebarTitle(sidebar, project) as string | undefined;
-  sidebar.logo = resolveLogo(sidebar.logo);
-
   const searchOpts = await searchOptions(project);
   sidebar.search = sidebar.search !== undefined
     ? sidebar.search
@@ -1202,7 +1211,7 @@ function nextAndPrevious(
       (sidebarItem: SidebarItem) => {
         return sidebarItem.href || Math.random().toString();
       },
-    );
+    ) as SidebarItem[];
 
     const index = sidebarItemsUniq.findIndex((item) => item.href === href);
     const nextPage = index > -1 && index < sidebarItemsUniq.length - 1 &&
@@ -1238,7 +1247,7 @@ async function navbarEjsData(
       ? searchOpts.type
       : false,
     background: navbar.background || "primary",
-    logo: resolveLogo(navbar.logo),
+    logo: ld.cloneDeep(navbar.logo),
     [kLogoAlt]: navbar[kLogoAlt],
     [kLogoHref]: navbar[kLogoHref],
     collapse,
@@ -1247,7 +1256,6 @@ async function navbarEjsData(
       : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
-
   // if there is no navbar title and it hasn't been set to 'false'
   // then use the site title
   if (!data.title && data.title !== false) {
@@ -1495,14 +1503,6 @@ async function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
   }
 }
 
-function resolveLogo(logo?: string) {
-  if (logo && !isExternalPath(logo) && !logo.startsWith("/")) {
-    return "/" + logo;
-  } else {
-    return logo;
-  }
-}
-
 async function websiteHeadroom(project: ProjectContext) {
   const { navbar, sidebars } = await websiteNavigationConfig(project);
   if (navbar || sidebars?.length) {
@@ -1545,10 +1545,6 @@ function navigationDependency(resource: string) {
     name: basename(resource),
     path: resourcePath(`projects/website/navigation/${resource}`),
   };
-}
-
-function isExternalPath(path: string) {
-  return /^\w+:/.test(path);
 }
 
 function resolveNavReferences(

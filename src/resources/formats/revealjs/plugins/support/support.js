@@ -281,34 +281,47 @@ window.QuartoSupport = function () {
     }
   }
 
+  // dispatch for htmlwidgets
+  // they use slideenter event to trigger resize
+  const fireSlideEnter = () => {
+    const event = window.document.createEvent("Event");
+    event.initEvent("slideenter", true, true);
+    window.document.dispatchEvent(event);
+  };
+
+  // dispatch for shiny
+  // they use BS shown and hidden events to trigger rendering
+  const distpatchShinyEvents = (previous, current) => {
+    if (window.jQuery) {
+      if (previous) {
+        window.jQuery(previous).trigger("hidden");
+      }
+      if (current) {
+        window.jQuery(current).trigger("shown");
+      }
+    }
+  };
+
   function handleSlideChanges(deck) {
-    // dispatch for htmlwidgets
-    const fireSlideEnter = () => {
-      const event = window.document.createEvent("Event");
-      event.initEvent("slideenter", true, true);
-      window.document.dispatchEvent(event);
-    };
 
     const fireSlideChanged = (previousSlide, currentSlide) => {
       fireSlideEnter();
-
-      // dispatch for shiny
-      if (window.jQuery) {
-        if (previousSlide) {
-          window.jQuery(previousSlide).trigger("hidden");
-        }
-        if (currentSlide) {
-          window.jQuery(currentSlide).trigger("shown");
-        }
-      }
+      distpatchShinyEvents(previousSlide, currentSlide);
     };
-
-    // fire slideEnter for tabby tab activations (for htmlwidget resize behavior)
-    document.addEventListener("tabby", fireSlideEnter, false);
 
     deck.on("slidechanged", function (event) {
       fireSlideChanged(event.previousSlide, event.currentSlide);
     });
+  }
+
+  function handleTabbyChanges() {
+    const fireTabChanged = (previousTab, currentTab) => {
+      fireSlideEnter()
+      distpatchShinyEvents(previousTab, currentTab);
+    };
+    document.addEventListener("tabby", function(event) {
+      fireTabChanged(event.detail.previousTab, event.detail.tab);
+    }, false);
   }
 
   function workaroundMermaidDistance(deck) {
@@ -390,6 +403,7 @@ window.QuartoSupport = function () {
       addFooter(deck);
       addChalkboardButtons(deck);
       handleTabbyClicks();
+      handleTabbyChanges();
       handleSlideChanges(deck);
       workaroundMermaidDistance(deck);
       handleWhiteSpaceInColumns(deck);

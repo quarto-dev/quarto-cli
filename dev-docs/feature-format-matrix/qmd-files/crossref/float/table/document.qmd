@@ -9,10 +9,13 @@ format:
     comment: Missing implementation
   pdf: *tested
   typst:
-    output-ext: typ # for the test below
+    keep-typ: true
     quality: 2
   docusaurus-md: *tested
-  revealjs: *tested
+  revealjs: 
+    quality: 2
+    auto-stretch: false
+    slide-level: 3
   beamer: 
     output-ext: tex
     quality: 2
@@ -26,46 +29,90 @@ _quarto:
         - 
           - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl img"
+          - "div#tbl-3.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-4.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-5.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-6.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-3.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-4.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-5.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-6.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "a[href=\"#tbl-1\"].quarto-xref"
           - "a[href=\"#tbl-2\"].quarto-xref"
+          - "a[href=\"#tbl-3\"].quarto-xref"
+          - "a[href=\"#tbl-4\"].quarto-xref"
+          - "a[href=\"#tbl-5\"].quarto-xref"
+          - "a[href=\"#tbl-6\"].quarto-xref"
     dashboard: *dom-tests
-    revealjs: # reveal resolves anchors differently, using the section headings instead of the float ids
+    revealjs:
       ensureHtmlElements:
         - 
           - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl img"
+          - "div#tbl-3.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-4.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-5.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-6.quarto-float figure.quarto-float.quarto-float-tbl table"
           - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
           - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
-          - "a[href=\"#crossreferenceable-tables\"].quarto-xref"
-          - "a[href=\"#as-images\"].quarto-xref"
+          - "div#tbl-3.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-4.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-5.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-6.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "a[href=\"#/tbl-1\"].quarto-xref"
+          - "a[href=\"#/tbl-2\"].quarto-xref"
+          - "a[href=\"#/tbl-3\"].quarto-xref"
+          - "a[href=\"#/tbl-4\"].quarto-xref"
+          - "a[href=\"#/tbl-5\"].quarto-xref"
+          - "a[href=\"#/tbl-6\"].quarto-xref"
     latex: &latex-tests
       ensureFileRegexMatches:
         - 
-          - "\\\\ref\\{tbl-1\\}"
-          - "\\\\ref\\{tbl-2\\}"
-          - "\\\\label\\{tbl-1\\}"
-          - "\\\\label\\{tbl-2\\}"
-          - "\\\\begin\\{longtable\\}"
-          - "\\\\includegraphics.*media.*table\\.jpg"
+          - '\\ref\{tbl-1\}'
+          - '\\ref\{tbl-2\}'
+          - '\\ref\{tbl-3\}'
+          - '\\ref\{tbl-4\}'
+          - '\\ref\{tbl-5\}'
+          - '\\ref\{tbl-6\}'
+          - '\label\{tbl-1\}'
+          - '\label\{tbl-2\}'
+          - '\label\{tbl-3\}'
+          - '\label\{tbl-4\}'
+          - '\label\{tbl-5\}'
+          - '\label\{tbl-6\}'
+          - '\\begin\{longtable\}'
+          - '\\includegraphics.*media.*table\.jpg'
     beamer: *latex-tests
     typst:
-      ensureFileRegexMatches:
+      ensureTypstFileRegexMatches:
         - 
-          - "\\<tbl-1\\>"
-          - "\\<tbl-2\\>"
-          - "@tbl-1"
-          - "@tbl-2"
+          - '\<tbl-1\>'
+          - '\<tbl-2\>'
+          - '\<tbl-3\>'
+          - '\<tbl-4\>'
+          - '\<tbl-5\>'
+          - '\<tbl-6\>'
+          - '#ref\(\<tbl-1\>, supplement: \[Table\]\)'
+          - '#ref\(\<tbl-2\>, supplement: \[Table\]\)'
+          - '#ref\(\<tbl-3\>, supplement: \[Table\]\)'
+          - '#ref\(\<tbl-4\>, supplement: \[Table\]\)'
+          - '#ref\(\<tbl-5\>, supplement: \[Table\]\)'
+          - '#ref\(\<tbl-6\>, supplement: \[Table\]\)'
     docusaurus-md:
       ensureFileRegexMatches:
         -
-          - "\\<div id=\"tbl-1\"\\>"
-          - "\\<div id=\"tbl-2\"\\>"
-          - "text-align: left.*Left"
-          - "text-align: right.*Right"
-          - "text-align: center.*Center"
-          - "\\!\\[\\]\\(.*media.*table\\.jpg\\)"
+          - '\<div id="tbl-1"\>'
+          - '\<div id="tbl-2"\>'
+          - '\<div id="tbl-3"\>'
+          - '\<div id="tbl-4"\>'
+          - '\<div id="tbl-5"\>'
+          - '\<div id="tbl-6"\>'
+          - 'text-align: left.*Left'
+          - 'text-align: right.*Right'
+          - 'text-align: center.*Center'
+          - '\!\[\]\(.*media.*table\.jpg\)'
 ---
 
 ## Crossreferenceable "Table"s
@@ -93,3 +140,73 @@ This is the caption for the table rendered as an image.
 :::
 
 See @tbl-2.
+
+## Markdown syntax
+
+The crossref Div syntax can also be used to insert a markdown table
+
+- either using Quarto Caption syntax (paragraph below the table) - See @tbl-3
+- either using the Pandoc Table Caption syntax - See @tbl-4
+- either using `tbl-cap` attributes when this is an output of computations - See @tbl-5
+- either using `tbl-cap` attributes on Crossref Div - See @tbl-6
+
+### Quarto Syntax in Div {#quarto-in-div}
+
+::: {#tbl-3}
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+This is the caption for the table
+:::
+
+### Pandoc Table Caption Syntax {#pandoc-in-div}
+
+::: {#tbl-4}
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: This is the caption for the table
+
+:::
+
+### Using Div attribute on .cell div {#div-attr}
+
+When using something like 
+
+```{{r}}
+#| tbl-cap: "My caption could run over several lines, if the world is round"
+#| label: tbl-my_cap
+
+knitr::kable(iris[1:6,])
+```
+
+::: {#tbl-5 .cell tbl-cap='This is the caption for the table'}
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+:::
+
+
+### Using Div attribute on Cross ref div
+
+::: {#tbl-6 tbl-cap='This is the caption for the table'}
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+:::

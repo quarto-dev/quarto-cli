@@ -1,0 +1,21 @@
+---
+title: LaTeX Idiomatic Highlighting
+format: pdf
+keep-tex: true
+syntax-highlighting: idiomatic
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        # idiomatic = LaTeX listings package
+        - ["\\\\begin\\{lstlisting\\}", "\\\\usepackage\\{listings\\}"]
+        # Should NOT have fancyvrb/Shaded (skylighting output)
+        - ["fancyvrb", "Shaded"]
+---
+
+Test that `syntax-highlighting: idiomatic` produces LaTeX listings highlighting.
+
+```python
+def hello():
+    print("world")
+```

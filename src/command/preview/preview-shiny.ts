@@ -33,18 +33,16 @@ import {
 } from "../../core/http.ts";
 import { findOpenPort } from "../../core/port.ts";
 import { handleHttpRequests } from "../../core/http-server.ts";
-import { kLocalhost } from "../../core/port-consts.ts";
-import { normalizePath } from "../../core/path.ts";
+import { pathsEqual } from "../../core/path.ts";
 import { previewMonitorResources } from "../../core/quarto.ts";
 import { renderServices } from "../render/render-services.ts";
 import { RenderFlags } from "../render/types.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
-import { isIpynbOutput } from "../../config/format.ts";
 
 export interface PreviewShinyOptions extends RunOptions {
   pandocArgs: string[];
   watchInputs: boolean;
-  project?: ProjectContext;
+  project: ProjectContext;
 }
 
 export async function previewShiny(options: PreviewShinyOptions) {
@@ -125,11 +123,11 @@ function runPreviewControlService(
   // helper to check whether a render request is compatible
   // with the original render
   const isCompatibleRequest = async (prevReq: PreviewRenderRequest) => {
-    return normalizePath(options.input) === normalizePath(prevReq.path) &&
+    return pathsEqual(options.input, prevReq.path) &&
       await previewRenderRequestIsCompatible(
         prevReq,
-        options.format,
         options.project,
+        options.format,
       );
   };
 
@@ -159,13 +157,6 @@ function runPreviewControlService(
 
   const port = findOpenPort();
 
-  const controlListener = Deno.listen({ port, hostname: kLocalhost });
-  onCleanup(() => controlListener.close());
-
-  handleHttpRequests(controlListener, handler).then(() => {
-    // terminanted
-  }).catch((_error) => {
-    // ignore errors
-  });
+  onCleanup(handleHttpRequests({ ...handlerOptions, handler }).stop);
   info(`Preview service running (${port})`);
 }

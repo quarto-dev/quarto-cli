@@ -23,7 +23,7 @@ _quarto:
 ```{r}
 #| label: fig-1
 #| fig-cap: "Charts"
-#| fig-subcap: 
+#| fig-subcap:
 #|   - "Cars"
 #|   - "Pressure"
 #| layout: "[1, 1]"
@@ -47,7 +47,7 @@ See @fig-2, @fig-2-1, @fig-2-2.
 
 ```{r}
 #| label: fig-3
-#| fig-subcap: 
+#| fig-subcap:
 #|   - "Cars"
 #|   - "Pressure"
 #| layout: "[1, 1]"
@@ -72,7 +72,7 @@ See @fig-4, @fig-4-1, @fig-4-1.
 ```{r}
 #| label: fig-5
 #| fig-cap: "Charts"
-#| fig-subcap: 
+#| fig-subcap:
 #|   - "Cars"
 #|   - "Pressure"
 #|   - "Mtcars"

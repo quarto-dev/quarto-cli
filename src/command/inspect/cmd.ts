@@ -11,7 +11,7 @@ import {
   setInitializer,
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
-import { inspectConfig } from "../../quarto-core/inspect.ts";
+import { inspectConfig } from "../../inspect/inspect.ts";
 
 export const inspectCommand = new Command()
   .name("inspect")

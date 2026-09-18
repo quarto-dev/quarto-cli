@@ -3,10 +3,8 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { base } from "acorn/walk";
 import { decodeBase64, encodeBase64 } from "encoding/base64";
 import { Document, Element, Node } from "./deno-dom.ts";
-import { decode } from "https://deno.land/std@0.93.0/encoding/base64.ts";
 
 export interface PipelineMarkdown {
   blocks?: Record<string, string>;
@@ -118,7 +116,7 @@ const markdownEnvelopeWriter = (envelopeId: string) => {
       renderList.push(hiddenSpan(id, value));
     },
     toMarkdown: () => {
-      const contents = renderList.join("\n");
+      const contents = renderList.join("\n\n");
       return `\n:::{#${envelopeId} .hidden}\n${contents}\n:::\n`;
     },
   };

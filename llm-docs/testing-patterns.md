@@ -1,0 +1,546 @@
+---
+main_commit: e5850df75
+analyzed_date: 2026-09-10
+key_files:
+  - tests/test.ts
+  - tests/quarto-cmd.ts
+  - tests/verify.ts
+  - tests/utils.ts
+---
+
+# Quarto Test Patterns
+
+This document describes the standard patterns for writing smoke tests in the Quarto CLI test suite.
+
+## Test Structure Overview
+
+Quarto uses Deno for testing with custom verification helpers located in:
+
+- `tests/test.ts` - Core test runner (`testQuartoCmd`)
+- `tests/quarto-cmd.ts` - Quarto invocation dispatch (`runQuarto`: in-process dev quarto vs built binary)
+- `tests/verify.ts` - Verification helpers (`fileExists`, `pathDoNotExists`, etc.)
+- `tests/utils.ts` - Utility functions (`docs()`, `outputForInput()`, etc.)
+
+### Dev Mode vs Binary Mode
+
+`testQuartoCmd` invokes Quarto through `runQuarto()` in `tests/quarto-cmd.ts`:
+
+- **Dev mode (default):** Quarto runs in-process via the `quarto()` entry point imported from `src/quarto.ts`.
+- **Binary mode:** `QUARTO_TEST_BIN` points to an installed Quarto outside the checkout. `runQuarto()` spawns it with JSON-stream logging and removes dev-tree variables from its environment.
+
+The test scripts reject binaries that report the `99.9.9` dev version and default binary-mode runs to `smoke/`.
+See `llm-docs/built-version-testing-architecture.md` for CI behavior and design decisions.
+
+Consequences for writing smoke tests:
+
+- Invoke Quarto through `testQuartoCmd()` or `runQuarto()`; do not import it from `src/quarto.ts`.
+- For direct subprocesses, resolve the executable with `quartoDevCmd()` and pass `quartoSpawnEnvOptions()`.
+- Set `TestContext.requiresDevQuarto: true` only for tests that require in-process internals. Prefer a unit test when possible.
+
+## Common Test Patterns
+
+### Simple Render Tests
+
+For testing single document rendering with automatic cleanup:
+
+```typescript
+import { docs } from "../../utils.ts";
+import { testRender } from "./render.ts";
+
+// Simplest form - just render and verify output created
+testRender(docs("test-plain.md"), "html", false);
+```
+
+**With additional verifiers:**
+
+```typescript
+import { docs, outputForInput } from "../../utils.ts";
+import { testRender } from "./render.ts";
+import { ensureHtmlElements } from "../../verify.ts";
+
+const input = docs("minimal.qmd");
+const output = outputForInput(input, "html");
+
+testRender(input, "html", true, [
+  ensureHtmlElements(output.outputPath, [], ["script#quarto-html-after-body"]),
+]);
+```
+
+**Key points:**
+
+- `testRender()` automatically handles output verification and cleanup
+- Respects `QUARTO_TEST_KEEP_OUTPUTS` env var for debugging
+- Set `noSupporting` parameter based on expected output:
+  - `true` - For truly self-contained HTML (no `_files/` directory, inline everything)
+  - `false` - For HTML with supporting files directory (OJS runtime, widget dependencies, plots, etc.)
+  - Most HTML outputs should use `false` (only use `true` for formats like `html` with `self-contained: true`)
+- Pass additional verifiers in the array parameter (optional)
+- Cleanup happens automatically via `cleanoutput()` in teardown
+
+### Project Rendering Tests
+
+For testing project rendering (especially website projects):
+
+```typescript
+import { docs } from "../../utils.ts";
+import { join } from "../../../src/deno_ral/path.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
+import { testQuartoCmd } from "../../test.ts";
+import { fileExists, pathDoNotExists, noErrors } from "../../verify.ts";
+
+const projectDir = docs("project/my-test"); // Relative path via docs()
+const outputDir = join(projectDir, "_site"); // Append output dir for websites
+
+testQuartoCmd(
+  "render",
+  [projectDir],
+  [
+    noErrors, // Check for no errors
+    fileExists(join(outputDir, "index.html")), // Verify expected file exists
+    pathDoNotExists(join(outputDir, "ignored.html")), // Verify file doesn't exist
+  ],
+  {
+    teardown: async () => {
+      if (existsSync(outputDir)) {
+        await Deno.remove(outputDir, { recursive: true });
+      }
+    },
+  },
+);
+```
+
+**Key points:**
+
+- Use `docs()` helper to create relative paths from `tests/docs/`
+- For website projects, output goes to `_site` subdirectory
+- Use absolute paths with `join()` for file verification
+- Clean up output directories in teardown
+
+### Performance Budget (Render Timeout)
+
+`testQuartoCmd` runs the render under a default 10-minute timeout.
+For a test guarding a *performance* regression — a render that must not hang — set a tight budget via `TestContext.timeout` (milliseconds) so a regression fails fast instead of riding the 10-minute default:
+
+```typescript
+testQuartoCmd("render", [projectDir], [noErrors /*, ... */], {
+  timeout: 120000, // healthy render is well under this; a hang trips it
+  setup: () => {
+    writeProject(); // generate the fixture project in a temp dir
+    return Promise.resolve();
+  },
+  teardown: () => {
+    safeRemoveSync(projectDir, { recursive: true });
+    return Promise.resolve();
+  },
+});
+```
+
+**Key points:**
+
+- Allow enough margin for slower machines. Pair the timeout with a deterministic unit test of the underlying fix.
+- In dev (in-process) mode a timed-out render is not killed by the harness (the timeout only rejects), so on Windows it may still hold the output directory; use `safeRemoveSync` in teardown and treat cleanup as best-effort.
+  In binary mode (`QUARTO_TEST_BIN`) the spawned process tree *is* killed on timeout, but the kill is best-effort — keep the same defensive teardown.
+
+### Extension Template Tests
+
+For testing `quarto use template`:
+
+```typescript
+import { testQuartoCmd } from "../../test.ts";
+import {
+  fileExists,
+  noErrorsOrWarnings,
+  pathDoNotExists,
+} from "../../verify.ts";
+import { join } from "../../../src/deno_ral/path.ts";
+import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
+
+const tempDir = Deno.makeTempDirSync();
+
+// Create mock template source
+const templateSourceDir = join(tempDir, "template-source");
+ensureDirSync(templateSourceDir);
+Deno.writeTextFileSync(join(templateSourceDir, "template.qmd"), "...");
+Deno.writeTextFileSync(join(templateSourceDir, "config.yml"), "...");
+
+const templateFolder = "my-test-template";
+const workingDir = join(tempDir, templateFolder);
+ensureDirSync(workingDir);
+
+testQuartoCmd(
+  "use",
+  ["template", templateSourceDir, "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    fileExists(`${templateFolder}.qmd`), // Relative - template file renamed to folder name
+    pathDoNotExists(join(workingDir, "README.md")), // Absolute - excluded file
+  ],
+  {
+    cwd: () => workingDir, // Set working directory
+    teardown: () => {
+      try {
+        Deno.removeSync(tempDir, { recursive: true });
+      } catch {
+        // Ignore cleanup errors
+      }
+      return Promise.resolve();
+    },
+  },
+);
+```
+
+**Key points:**
+
+- Use `Deno.makeTempDirSync()` for isolated test environment
+- Create mock template source with test files
+- Template files get renamed to match target directory name
+- Use `cwd()` function to set working directory for command execution
+- Clean up entire temp directory including source files
+- File verification uses relative paths when checking files in `cwd()`
+
+### Working-Directory-Sensitive Tests
+
+Some tests need to run from a specific directory (e.g. reproducing a bug that depends on the process cwd).
+**Do not `Deno.chdir()` inside the test body** — it mutates process-global cwd and can leak into other tests in the same process.
+Use the `TestContext` options instead; the harness changes the cwd before the test and restores it afterward:
+
+```typescript
+const workingDir = Deno.makeTempDirSync();
+
+unitTest("runs from workingDir", async () => {
+  // cwd is workingDir here (set by the harness)
+}, {
+  setup: () => { Deno.writeTextFileSync(".env.example", "..."); return Promise.resolve(); },
+  cwd: () => workingDir,
+  teardown: () => { try { Deno.removeSync(workingDir, { recursive: true }); } catch { /* best-effort */ } return Promise.resolve(); },
+});
+```
+
+**Key points:**
+
+- The harness calls `cwd()` **before** `setup()`, so the directory must already exist when `cwd()` runs — create it at module scope, not in `setup`.
+- `teardown` runs **before** the harness restores the cwd, so on Windows the temp dir may still be the cwd and resist removal.
+  Wrap the removal in try/catch (best-effort) — see `tests/smoke/use/template.test.ts` and `tests/unit/dotenv-config.test.ts`.
+- For a temp directory you don't need to run *from*, prefer `withTempDir` (`tests/utils.ts`), which creates and recursively removes it in a `finally`.
+- A test that only needs a **relative** input (not a specific cwd) can pass a path relative to the current cwd (`relative(Deno.cwd(), absFile)`) without changing directories at all.
+
+## Verification Helpers
+
+### Core Verifiers
+
+```typescript
+// No errors in output
+noErrors
+
+// No errors or warnings
+noErrorsOrWarnings
+
+// File exists at path
+fileExists(path: string)
+
+// Path does not exist
+pathDoNotExists(path: string)
+
+// Folder exists at path
+folderExists(path: string)
+
+// Directory contains only allowed paths
+directoryEmptyButFor(dir: string, allowedFiles: string[])
+```
+
+### Path Helpers
+
+```typescript
+// Create relative path from tests/docs/
+docs(path: string): string
+// Example: docs("project/site") → "tests/docs/project/site"
+
+// Get expected output for input file
+outputForInput(input: string, to: string, projectOutDir?: string, projectRoot?: string)
+
+// Find project directory
+findProjectDir(input: string, until?: RegExp)
+
+// Find project output directory (_site, _book, etc.)
+findProjectOutputDir(projectdir: string)
+```
+
+## Output Directory Patterns
+
+Different project types use different output directories:
+
+```typescript
+// Website project
+const outputDir = join(projectDir, "_site");
+
+// Book project
+const outputDir = join(projectDir, "_book");
+
+// Manuscript project
+const outputDir = join(projectDir, "_manuscript");
+
+// Plain project (no type specified)
+// Output goes directly in project directory
+const outputDir = projectDir;
+```
+
+## Test File Organization
+
+Tests follow this directory structure:
+
+```
+tests/
+├── docs/                          # Test fixtures
+│   └── project/
+│       └── my-test/
+│           ├── _quarto.yml
+│           ├── index.qmd
+│           └── other-files.qmd
+├── smoke/                         # Smoke tests
+│   ├── project/
+│   │   └── project-my-test.test.ts
+│   ├── render/
+│   ├── use/
+│   └── ...
+├── test.ts                        # Test runner
+├── verify.ts                      # Verification helpers
+└── utils.ts                       # Utility functions
+```
+
+## Common Patterns
+
+### Cleanup Pattern
+
+Always clean up generated files in teardown:
+
+```typescript
+teardown: async () => {
+  if (existsSync(outputPath)) {
+    await Deno.remove(outputPath, { recursive: true });
+  }
+};
+```
+
+### Multiple Test Cases
+
+When testing multiple scenarios, declare constants at module level:
+
+```typescript
+const tempDir = Deno.makeTempDirSync();
+
+// Test case 1
+const folder1 = "test-case-1";
+const workingDir1 = join(tempDir, folder1);
+ensureDirSync(workingDir1);
+testQuartoCmd(...);
+
+// Test case 2
+const folder2 = "test-case-2";
+const workingDir2 = join(tempDir, folder2);
+ensureDirSync(workingDir2);
+testQuartoCmd(...);
+```
+
+### Path Construction
+
+- **Absolute paths**: Use `join()` for all path operations
+- **Relative to docs**: Use `docs()` helper
+- **Relative to cwd**: Use plain strings or template literals in template tests
+
+## Examples from Codebase
+
+### Simple Render Test
+
+See `tests/smoke/render/render-plain.test.ts` for the simplest render tests (no additional verifiers).
+
+See `tests/smoke/render/render-minimal.test.ts` for render test with custom HTML element verification.
+
+### Project Ignore Test
+
+See `tests/smoke/project/project-ignore-dirs.test.ts` for testing directory exclusion patterns.
+
+### Website Rendering Test
+
+See `tests/smoke/project/project-website.test.ts` for website project rendering patterns.
+
+### Template Usage Test
+
+See `tests/smoke/use/template.test.ts` for extension template patterns.
+
+## Engine-Specific Test Considerations
+
+### Shared Test Environments (Critical for quarto-cli Testing)
+
+**Quarto-cli test infrastructure uses a SINGLE managed environment for all tests:**
+
+- **Julia**: `tests/Project.toml` + `tests/Manifest.toml`
+- **Python**: `tests/.venv/` (managed by uv/pyproject.toml)
+- **R**: `tests/renv/` + `tests/renv.lock`
+
+The `configure-test-env` scripts ONLY manage these main environments.
+CI builds depend on this structure.
+
+**Do NOT create language environment files in test subdirectories:**
+
+```
+tests/docs/my-test/
+├── Project.toml        # ❌ WRONG - breaks test infrastructure
+├── .venv/              # ❌ WRONG - breaks test infrastructure
+├── renv.lock           # ❌ WRONG - breaks test infrastructure
+└── test.qmd
+```
+
+**Why this fails:**
+
+- Julia searches UP for `Project.toml` and uses the first one found
+- Python/R will use local environments if present
+- CI scripts won't configure these local environments
+- Tests will fail in CI even if they work locally
+
+**Adding new package dependencies:**
+
+For ANY engine (Julia, Python, R), add dependencies to the main `tests/` environment:
+
+```bash
+# Julia: Use Pkg from tests/ directory
+cd tests
+julia --project=. -e 'using Pkg; Pkg.add("PackageName")'
+# Then run configure to update environment
+./configure-test-env.sh   # or .ps1 on Windows
+
+# Python: Use uv from tests/ directory
+cd tests
+uv add packagename
+
+# R: Edit tests/DESCRIPTION, then
+cd tests
+Rscript -e "renv::install(); renv::snapshot()"
+```
+
+**Note:** While Quarto supports local Project.toml files in document directories for production use, the quarto-cli test infrastructure specifically does NOT support this pattern.
+All test dependencies must be in the main `tests/` environment.
+
+### R Tests That Change Working Directory
+
+R resolves `.Rprofile` from the **exact** process cwd (no parent-directory search).
+On CI, rmarkdown/knitr live only in `tests/renv`'s project library, activated when cwd is `tests/` (via `tests/.Rprofile` sourcing `renv/activate.R`).
+Most knitr tests never leave `tests/` — they pass paths relative to the current cwd instead of changing directories — so activation happens automatically.
+
+A test that changes cwd through `TestContext.cwd()` loses that activation. The R subprocess starts outside `tests/`, and package loads may fail with `there is no package called 'rmarkdown'`.
+A developer machine with rmarkdown on the default `.libPaths()` may mask this CI failure.
+
+**Fix:** write a `.Rprofile` in the fixture cwd that points renv to the test project:
+
+```r
+Sys.setenv(RENV_PROJECT = "<absolute path to tests/>")
+source("<absolute path to tests/>/renv/activate.R")
+```
+
+`renv/activate.R` uses `RENV_PROJECT` as the project root instead of the current directory.
+
+## Best Practices
+
+1. **Always clean up**: Use teardown to remove generated files
+2. **Use helpers**: Leverage `docs()`, `fileExists()`, etc.
+   instead of manual checks
+3. **Absolute paths**: Use `join()` for all path construction to handle platform differences
+4. **Test isolation**: Use temp directories for tests that create files
+5. **Clear names**: Use descriptive variable names like `projectDir`, `outputDir`, `templateFolder`
+6. **Comment intent**: Add comments explaining what should/shouldn't happen
+7. **Handle errors**: Wrap cleanup in try-catch to avoid test suite failures from cleanup issues
+
+## Environment Variable Testing Pitfalls
+
+`Deno.env.set()` modifies process-global state.
+Deno runs test files in parallel by default (same OS process), so concurrent tests can see modified values.
+Save/restore patterns don't help - other tests see the modified value during the test window.
+
+| Execution Mode             | Risk               | Why                                     |
+| -------------------------- | ------------------ | --------------------------------------- |
+| `./run-tests.sh` (default) | **Race condition** | Files run in parallel, share `Deno.env` |
+| `./run-parallel-tests.sh`  | **None**           | Separate OS processes                   |
+
+**Preferred approach:** pass per-test variables through `TestContext.env`. This works in both modes without mutating process-global state.
+
+**Exception:** `tests/smoke/website/drafts-env.test.ts` sets `QUARTO_PROFILE` at module load and in `context.env`.
+Dev mode reads the module-level value when caching the base profile; binary mode receives the context value.
+
+**Alternatives for new tests:** Unit test the env var reader, refactor code to accept parameters, or use subprocess isolation.
+
+## Testing File Exclusion
+
+When testing that files are excluded (like AI config files):
+
+```typescript
+// Test that files are NOT rendered
+testQuartoCmd(
+  "render",
+  [projectDir],
+  [
+    noErrors,
+    fileExists(join(outputDir, "expected.html")), // Should exist
+    pathDoNotExists(join(outputDir, "excluded.html")), // Should NOT exist
+  ],
+  // ...
+);
+```
+
+Run test **without fix** first to verify it fails, then verify it passes with fix.
+
+## Smoke-All Tests (YAML-Based)
+
+Smoke-all tests embed test specifications directly in `.qmd` files using `_quarto.tests` metadata.
+See `.claude/rules/testing/smoke-all-tests.md` for full documentation.
+
+### YAML String Escaping for Regex
+
+**Critical rule:** In YAML single-quoted strings, `'\('` and `"\\("` are equivalent - both produce a literal `\(` in the regex.
+
+**Common mistake:** Over-escaping with `'\\('` produces `\\(` (two backslashes), causing regex to fail.
+
+```yaml
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        # CORRECT - single backslash in YAML single quotes
+        - ['\(1\)', '\\circled\{1\}', "Variable assignment"]
+        - ['\\CommentTok', '\\begin\{Shaded\}']
+
+        # WRONG - over-escaped (produces \\( in regex)
+        - ['\\(1\\)', '\\\\circled\\{1\\}']
+```
+
+**YAML escaping cheat sheet:**
+
+| To match in file | In single quotes `'...'` | In double quotes `"..."` |
+| ---------------- | ------------------------ | ------------------------ |
+| `\(`             | `'\('`                   | `"\\("`                  |
+| `\begin{`        | `'\\begin\{'`            | `"\\\\begin\\{"`         |
+| `\\` (literal)   | `'\\\\'`                 | `"\\\\\\\\"`             |
+| `[` (regex)      | `'\['`                   | `"\\["`                  |
+
+### Probe enough keys to surface the bug
+
+A precedence test where the template reads only the one key being overridden can pass under a deep-merge bug.
+The dropped sibling keys never resolve, but no assertion notices.
+
+Example: the merge of user-supplied `variables.quarto.language.crossref-ch-prefix: Bouquin` onto Quarto's built `format.language` table under `variables.quarto.language`.
+Under a shallow spread (`{ ...a, ...b }`), `b.language` replaces the entire localized map — all other `$quarto.language.<key>$` resolutions silently return empty.
+A template that reads only `$quarto.language.crossref-ch-prefix$` still asserts "Bouquin", so the regression test passes.
+
+The fix is to probe at least one non-overridden sibling key in the same template.
+Concretely, the regression guard `tests/docs/smoke-all/markdown/lang-fr-user-override-deep-merge.qmd` uses the template
+
+```
+$quarto.language.crossref-ch-prefix$|$quarto.language.toc-title-document$
+```
+
+and asserts the full string `^Bouquin\|Table des matières\s*$`.
+Pre-fix the output was `Bouquin|`; post-fix it is `Bouquin|Table des matières`.
+
+Heuristic: when writing a precedence smoke test for any merge between two structured config trees, ensure the assertion exercises at least one path the user did NOT override.
+Otherwise the test only proves "the overridden value wins" — not "the rest survives".
+
+**Recommendation:** Use single-quoted strings.
+They're simpler - only `'` itself needs escaping (as `''`).

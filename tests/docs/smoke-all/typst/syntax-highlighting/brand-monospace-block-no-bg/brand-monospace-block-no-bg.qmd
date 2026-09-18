@@ -1,0 +1,33 @@
+---
+title: Brand Monospace Block without Background Color
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Skylighting is active (default)
+          - "#Skylighting"
+          - "#KeywordTok"
+          # Brand monospace-block text properties emitted as show rules
+          - '^#show raw\.where\(block: true\): set text\(weight: 500, size: 10pt, fill: rgb\("#2d3748"\), \)$'
+          - '^#show raw\.where\(block: true\): set par\(leading: 0\.75em\)$'
+          # Even without brand bg, Skylighting override uses theme bgcolor
+          # so that width/inset/radius are applied
+          - 'let bgcolor = rgb\("#f1f3f5"\)'
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+        # No brand background-color show rule (not configured)
+        - ['^#show raw\.where\(block: true\): set block\(fill:']
+---
+
+Brand sets monospace-block color, weight, size, and line-height but NOT
+background-color. The Skylighting override should still be emitted using
+the theme's background color so that code blocks get proper width/inset/radius.
+
+```python
+def hello():
+    x = 1 + 2
+    print(f"result: {x}")
+```

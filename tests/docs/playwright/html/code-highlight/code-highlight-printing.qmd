@@ -1,0 +1,6 @@
+---
+title: Testing printing code highlight
+syntax-highlighting: printing
+---
+
+{{< include _body.md >}}

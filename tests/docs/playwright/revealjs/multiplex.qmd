@@ -1,0 +1,34 @@
+---
+title: "Multiplex Test Presentation"
+format:
+  revealjs:
+    multiplex:
+      url: "http://127.0.0.1:1948/"
+      # setting secret and id is required to avoid having multiplex server running at render time
+      secret: "c04998070a4ec17940ab3c52101daefd"
+      id: "52d3aedefbff55dbe54e1fa5229df99b849a33951c7c09afb6bcf7e6f33233c7"
+---
+
+## Slide 1 {#slide-1}
+
+This is the first slide.
+
+## Slide 2 {#slide-2}
+
+This is the second slide with some content.
+
+## Slide 3 {#slide-3}
+
+### Fragment Test
+
+::: {.fragment}
+Fragment 1
+:::
+
+::: {.fragment}
+Fragment 2
+:::
+
+## Slide 4 {#slide-4}
+
+Final slide with more content.

@@ -7,6 +7,10 @@ crossref:
       reference-prefix: Diagram
 format:
   docusaurus-md: {}
+_quarto:
+  tests:
+    run:
+      not_os: [linux] 
 ---
 
 ::: {#dia-1}

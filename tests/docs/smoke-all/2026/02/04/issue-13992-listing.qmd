@@ -1,0 +1,32 @@
+---
+title: "Conditional visibility with listing (#13992)"
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['Listing content visible', 'lst-cond', '\\begin{codelisting}', 'Listing~\\ref\{lst-cond\}']
+        - []
+    html:
+      ensureHtmlElements:
+        - []
+        - ['#lst-cond']
+      ensureFileRegexMatches:
+        - []
+        - ['Listing content visible']
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['Listing content visible', '#ref\(<lst-cond>']
+        - []
+    native: default
+---
+
+See @lst-cond for conditional listing.
+
+::: {#lst-cond .content-visible unless-format="html"}
+```python
+# Listing content visible
+print("hello")
+```
+:::

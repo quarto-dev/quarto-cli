@@ -1,0 +1,17 @@
+project:
+  type: website
+theme:
+  light: brand
+  dark: [brand, dark-fixups.scss]
+website:
+  navbar:
+    style: "docked"
+    # Test scenario 1: both light and dark logos point to non-existent files
+    logo:
+      light: nonexistent-light.png
+      dark: nonexistent-dark.png
+    search: true
+    contents:
+      - index.qmd
+      - nonexistent-resource.qmd
+      - navbar-logo-omitted.qmd

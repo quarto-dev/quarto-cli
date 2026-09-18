@@ -14,7 +14,7 @@ import {
 } from "../../config/types.ts";
 import {
   ExecuteResult,
-  ExecutionEngine,
+  ExecutionEngineInstance,
   ExecutionTarget,
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
@@ -56,11 +56,14 @@ export interface RenderServiceWithLifetime extends RenderServices {
 export interface RenderContext {
   target: ExecutionTarget;
   options: RenderOptions;
-  engine: ExecutionEngine;
+  engine: ExecutionEngineInstance;
   format: Format;
   libDir: string;
   project: ProjectContext;
   active: boolean;
+  // projected output paths of the input's other formats; keep-md intermediate
+  // handling must not write to or delete paths a format owns (#14669)
+  siblingFormatOutputs?: string[];
 }
 
 export interface RunPandocResult {

@@ -1,0 +1,21 @@
+---
+title: Empty Para inlines guard
+format: html
+filters:
+  - at: pre-ast
+    path: empty-para-inlines-filter.lua
+_quarto:
+  tests:
+    html:
+      noErrors: default
+---
+
+## Figure div with content replaced by empty Para
+
+::: {#fig-empty-para}
+![Normal image](img/surus.jpg)
+
+Normal caption
+:::
+
+See @fig-empty-para.

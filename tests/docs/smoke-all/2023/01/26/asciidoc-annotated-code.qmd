@@ -4,8 +4,13 @@ format:
   asciidoc: default
 _quarto:
   tests:
-    asciidoc: default
+    asciidoc: 
+      ensureFileRegexMatches:
+        - ['\<1\> First set', 'plt\.show\(\) \<3\>']
+        - ['\+\+\<\+\+1\+\+\>\+\+']
 ---
+
+This also covers https://github.com/quarto-dev/quarto-cli/issues/12441
 
 ## Annotated Code
 

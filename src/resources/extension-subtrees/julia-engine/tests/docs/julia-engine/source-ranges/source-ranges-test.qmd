@@ -1,0 +1,11 @@
+---
+title: "Test Julia source ranges with includes"
+format: markdown
+engine: julia
+---
+
+{{< include _included.qmd >}}
+
+```{julia}
+"$(@__FILE__):$(@__LINE__)"
+```

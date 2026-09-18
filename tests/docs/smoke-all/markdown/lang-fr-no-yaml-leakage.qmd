@@ -1,0 +1,21 @@
+---
+title: Test
+lang: fr
+format: markdown
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+        -
+          - "^lang: fr$"
+        -
+          - "crossref-ch-prefix"
+          - "crossref-lof-title"
+          - "crossref-lot-title"
+          - "crossref-fig-title"
+          - "toc-title-document"
+---
+
+# Section
+
+A paragraph in French (`lang: fr`).

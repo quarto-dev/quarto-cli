@@ -1,0 +1,8 @@
+---
+title: "Output Dir Dot Test"
+format: html
+---
+
+# Test Document
+
+This document tests that `output-dir: .` works correctly.

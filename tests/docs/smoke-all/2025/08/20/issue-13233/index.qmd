@@ -1,0 +1,21 @@
+---
+title: "mysite"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['href=""']
+---
+
+::: {.panel-tabset}
+
+## First tab
+
+1. Press Tab. "First tab" should be focused.
+2. Press Right Arrow. "Second tab" should now be active and focused.
+
+## Second tab
+
+Other text might go here
+
+:::

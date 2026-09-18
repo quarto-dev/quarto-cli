@@ -8,11 +8,12 @@ import { which } from "./path.ts";
 import { execProcess } from "./process.ts";
 import SemVer from "semver/mod.ts";
 
-export async function gitCmds(dir: string, cmds: Array<string[]>) {
-  for (const cmd of cmds) {
+export async function gitCmds(dir: string, argsArray: Array<string[]>) {
+  for (const args of argsArray) {
     if (
       !(await execProcess({
-        cmd: ["git", ...cmd],
+        cmd: "git",
+        args,
         cwd: dir,
       })).success
     ) {
@@ -24,7 +25,8 @@ export async function gitCmds(dir: string, cmds: Array<string[]>) {
 export async function gitVersion(): Promise<SemVer> {
   const result = await execProcess(
     {
-      cmd: ["git", "--version"],
+      cmd: "git",
+      args: ["--version"],
       stdout: "piped",
     },
   );
@@ -49,7 +51,8 @@ export async function lsFiles(
 ): Promise<string[] | undefined> {
   if (await which("git")) {
     const result = await execProcess({
-      cmd: ["git", "ls-files", ...(args || [])],
+      cmd: "git",
+      args: ["ls-files", ...(args || [])],
       cwd,
       stdout: "piped",
       stderr: "piped",
@@ -71,7 +74,8 @@ export async function gitBranchExists(
 ): Promise<boolean | undefined> {
   if (await which("git")) {
     const result = await execProcess({
-      cmd: ["git", "show-ref", "--verify", "--quiet", `refs/heads/${branch}`],
+      cmd: "git",
+      args: ["show-ref", "--verify", "--quiet", `refs/heads/${branch}`],
       cwd,
       stdout: "piped",
       stderr: "piped",
@@ -81,4 +85,54 @@ export async function gitBranchExists(
   }
 
   return Promise.resolve(undefined);
+}
+
+export async function gitUserIdentityConfigured(
+  dir: string,
+): Promise<boolean> {
+  const name = await execProcess({
+    cmd: "git",
+    args: ["config", "user.name"],
+    cwd: dir,
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const email = await execProcess({
+    cmd: "git",
+    args: ["config", "user.email"],
+    cwd: dir,
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  const hasName = (name.success && (name.stdout?.trim().length ?? 0) > 0) ||
+    (Deno.env.get("GIT_AUTHOR_NAME")?.trim().length ?? 0) > 0 ||
+    (Deno.env.get("GIT_COMMITTER_NAME")?.trim().length ?? 0) > 0;
+
+  const hasEmail = (email.success && (email.stdout?.trim().length ?? 0) > 0) ||
+    (Deno.env.get("GIT_AUTHOR_EMAIL")?.trim().length ?? 0) > 0 ||
+    (Deno.env.get("GIT_COMMITTER_EMAIL")?.trim().length ?? 0) > 0;
+
+  return hasName && hasEmail;
+}
+
+export async function gitCmdOutput(
+  dir: string,
+  args: string[],
+): Promise<string> {
+  const result = await execProcess({
+    cmd: "git",
+    args,
+    cwd: dir,
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Git command failed: git ${args.join(" ")}\n${result.stderr || ""}`,
+    );
+  }
+
+  return result.stdout?.trim() || "";
 }

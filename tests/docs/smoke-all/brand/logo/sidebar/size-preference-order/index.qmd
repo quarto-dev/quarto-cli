@@ -1,0 +1,20 @@
+---
+title: Sidebar Logo Size Preference
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # Sidebar should prefer medium for light mode
+          # and should use small for dark mode since medium.dark doesn't exist
+          # (not large.dark, because sidebar preference order is medium -> small -> large)
+          - 'img[class*="light-content"][src="./medium-logo.png"][alt="medium logo"]'
+          - 'img[class*="dark-content"][src="./small-logo.png"][alt="small logo"]'
+        - []
+---
+
+This test verifies that sidebar logos follow the size preference order:
+medium → small → large.
+
+Since medium.dark is missing but small.dark exists, it should select small.dark
+despite large.dark also being defined.

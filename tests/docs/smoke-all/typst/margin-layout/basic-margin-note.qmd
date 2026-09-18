@@ -1,0 +1,26 @@
+---
+title: "Typst Margin Layout Foundation Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['@preview/marginalia:0\.3\.1', 'marginalia\.setup\.with\(']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "This triggers"
+            relation: rightOf
+            object: "Main content"
+        - []
+      noErrors: default
+---
+
+::: {.column-margin}
+This triggers margin layout.
+:::
+
+Main content here.

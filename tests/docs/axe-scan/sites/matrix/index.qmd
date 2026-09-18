@@ -1,0 +1,11 @@
+---
+title: Home
+---
+
+A clean page. Every planted failure on this site is conditional — on the
+viewport, on the preferred colour scheme, or on the selected Quarto theme — so
+this page exists to show what an unconditional cell looks like, and to give the
+website project a landing page.
+
+Keep it free of images, links and inline code: an unconditional finding here
+would appear in all four cells of every comparison this site is here to make.

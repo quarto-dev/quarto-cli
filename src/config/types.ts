@@ -58,6 +58,7 @@ import {
   kCrossrefThmTitle,
   kCss,
   kCssPropertyProcessing,
+  kDark,
   kDfPrint,
   kDisplayName,
   kDownloadUrl,
@@ -92,6 +93,7 @@ import {
   kFreeze,
   kGladtex,
   kHighlightStyle,
+  kSyntaxHighlighting,
   kHtmlMathMethod,
   kHtmlPreTagProcessing,
   kHtmlTableProcessing,
@@ -123,6 +125,7 @@ import {
   kLatexTlmgrOpts,
   kLaunchBinderTitle,
   kLaunchDevContainerTitle,
+  kLight,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
@@ -154,6 +157,11 @@ import {
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
+  kNavigationBreadcrumbsLabel,
+  kNavigationSiteLabel,
+  kNavigationPageLabel,
+  kNavigationToolbarLabel,
+  kNavigationSectionLabel,
   kNotebookLinks,
   kNotebookPreserveCells,
   kNotebookPreviewBack,
@@ -174,6 +182,7 @@ import {
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
+  kPdfStandard,
   kPlotlyConnected,
   kPreferHtml,
   kPreserveYaml,
@@ -207,6 +216,7 @@ import {
   kSelfContainedMath,
   kShiftHeadingLevelBy,
   kShortcodes,
+  kSkipToContent,
   kSlideLevel,
   kSourceNotebookPrefix,
   kStandalone,
@@ -453,6 +463,11 @@ export interface Format {
   extensions?: Record<string, unknown>;
 }
 
+export interface LightDarkBrand {
+  [kLight]?: Brand;
+  [kDark]?: Brand;
+}
+
 export interface FormatRender {
   [kKeepTex]?: boolean;
   [kKeepTyp]?: boolean;
@@ -485,6 +500,7 @@ export interface FormatRender {
   [kLatexMinRuns]?: number;
   [kLatexMaxRuns]?: number;
   [kLatexClean]?: boolean;
+  [kPdfStandard]?: string | string[];
   [kLatexInputPaths]?: string[];
   [kLatexMakeIndex]?: string;
   [kLatexMakeIndexOpts]?: string[];
@@ -514,7 +530,7 @@ export interface FormatRender {
   [kValidateYaml]?: boolean;
   [kCanonicalUrl]?: boolean | string;
   [kBodyClasses]?: string;
-  [kBrand]?: Brand;
+  [kBrand]?: LightDarkBrand;
 }
 
 export interface FormatExecute {
@@ -585,6 +601,7 @@ export interface FormatPandoc {
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
   [kHighlightStyle]?: string | Record<string, string> | null;
+  [kSyntaxHighlighting]?: string | Record<string, string> | null;
   [kSectionDivs]?: boolean;
   [kHtmlMathMethod]?: string | { method: string; url: string };
   [kTopLevelDivision]?: string;
@@ -685,11 +702,17 @@ export interface FormatLanguage {
   [kCopyButtonTooltip]?: string;
   [kCopyButtonTooltipSuccess]?: string;
   [kBackToTop]?: string;
+  [kSkipToContent]?: string;
   [kToggleDarkMode]?: string;
   [kToggleNavigation]?: string;
   [kToggleReaderMode]?: string;
   [kToggleSection]?: string;
   [kToggleSidebar]?: string;
+  [kNavigationSiteLabel]?: string;
+  [kNavigationSectionLabel]?: string;
+  [kNavigationToolbarLabel]?: string;
+  [kNavigationPageLabel]?: string;
+  [kNavigationBreadcrumbsLabel]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchMoreMatchText]?: string;

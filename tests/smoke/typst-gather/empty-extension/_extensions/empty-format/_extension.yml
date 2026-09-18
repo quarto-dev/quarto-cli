@@ -1,0 +1,8 @@
+title: Empty Format
+author: Test
+version: 1.0.0
+quarto-required: ">=1.6.0"
+contributes:
+  formats:
+    html:
+      theme: default

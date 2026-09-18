@@ -1,0 +1,28 @@
+---
+title: Get SVG from matplotlib
+format:
+  html:
+    fig-format: svg
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['figure.figure img[src$=".svg"]']
+        - ['figure.figure img[src$=".png"]']
+---
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+fig, ax = plt.subplots()
+
+x = np.linspace(0, 4 * np.pi, 100)
+y1 = np.sin(x)
+y2 = np.cos(x)
+
+ax.set_title("Sine and Cosine")
+ax.plot(x, y1)
+ax.plot(x, y2)
+ax.legend(["Sine", "Cosine"])
+```

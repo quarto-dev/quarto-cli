@@ -1,0 +1,201 @@
+---
+title: "jupyter dark mode - matplotlib"
+engine: jupyter
+brand:
+  dark: slate-brand.yml
+  light: united-brand.yml
+keep-md: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'body.quarto-dark'
+          - 'div.cell div.light-content'
+          - 'div.cell div.dark-content'
+          - 'div.cell div.cell-code pre.code-with-copy'
+        - []
+---
+
+```{python}
+#| echo: false
+import yaml
+import tempfile
+import os
+
+def apply_mpl_colors(bgcolor, fgcolor, primarycolor):
+    fd, name = tempfile.mkstemp("mplstyle")
+    os.close(fd)
+    with open(name, "w") as out:
+        out.write("axes.facecolor: \"%s\"\n" % bgcolor)
+        out.write("axes.edgecolor: \"%s\"\n" % fgcolor)
+        out.write("axes.labelcolor: \"%s\"\n" % fgcolor)
+        out.write("axes.titlecolor: \"%s\"\n" % fgcolor)
+        out.write("figure.facecolor: \"%s\"\n" % bgcolor)
+        out.write("figure.edgecolor: \"%s\"\n" % fgcolor)
+        out.write("text.color: \"%s\"\n" % fgcolor)
+        out.write("xtick.color: \"%s\"\n" % fgcolor)
+        out.write("ytick.color: \"%s\"\n" % fgcolor)
+        # seems to require named color, is there a better way?
+        out.write("axes.prop_cycle: cycler('color', ['%s'])" % primarycolor)
+    plt.style.use(name)
+    os.unlink(name)
+
+def apply_brand_colors(filename):
+  with open(filename) as brand_file:
+    brand = yaml.safe_load(brand_file.read())
+  def apply():
+    apply_mpl_colors(brand["color"]["background"], brand["color"]["foreground"], brand["color"]["primary"])
+  return apply
+
+united_colors = apply_brand_colors("united-brand.yml")
+slate_colors = apply_brand_colors("slate-brand.yml")
+```
+
+### No crossref or caption
+```{python}
+#| echo: false
+#| renderings: [light, dark]
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters for the normal distribution
+mean = 0
+std_dev = 1
+
+# Generate data
+x = np.linspace(mean - 4*std_dev, mean + 4*std_dev, 1000)
+y = (1/(std_dev * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - mean) / std_dev)**2)
+
+# Plotting
+united_colors()
+plt.figure(figsize=(8, 5))
+plt.plot(x, y, label='Normal Distribution')
+plt.title('Normal Distribution Curve')
+plt.xlabel('X-axis')
+plt.ylabel('Probability Density')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+slate_colors()
+plt.figure(figsize=(8, 5))
+plt.plot(x, y, label='Normal Distribution')
+plt.title('Normal Distribution Curve')
+plt.xlabel('X-axis')
+plt.ylabel('Probability Density')
+plt.legend()
+plt.grid(True)
+plt.show()
+```
+
+### With crossref but no caption
+
+And `echo: true`
+
+::: {#fig-matplotlib-line}
+```{python}
+#| echo: true
+#| renderings: [light, dark]
+import matplotlib.pyplot as plt
+
+united_colors()
+plt.title("Hello")
+plt.plot([1,2,3])
+plt.grid(True)
+plt.show(block=False)
+
+slate_colors()
+plt.figure()
+plt.title("Hello")
+plt.plot([1,2,3])
+plt.grid(True)
+plt.show(block=False)
+```
+:::
+
+### With caption but no crossref
+
+::: {}
+```{python}
+#| echo: false
+#| renderings: [light, dark]
+
+# author: "anthropic claude-3-5-sonnet-20240620"
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate data points
+x = np.linspace(0, 2 * np.pi, 100)
+y = np.sin(x)
+
+united_colors()
+plt.figure(figsize=(10, 6))
+plt.plot(x, y)
+plt.title('Sine Wave')
+plt.xlabel('x')
+plt.ylabel('sin(x)')
+plt.grid(True)
+plt.axhline(y=0, color='k', linestyle='--')
+plt.axvline(x=0, color='k', linestyle='--')
+plt.show()
+
+slate_colors()
+plt.figure(figsize=(10, 6))
+plt.plot(x, y)
+plt.title('Sine Wave')
+plt.xlabel('x')
+plt.ylabel('sin(x)')
+plt.grid(True)
+plt.axhline(y=0, color='k', linestyle='--')
+plt.axvline(x=0, color='k', linestyle='--')
+plt.show()
+```
+matplotlib sine wave
+
+:::
+
+### With crossref and caption
+
+::: {#fig-matplotlib-cosine}
+```{python}
+#| echo: false
+#| renderings: [dark, light]
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate data points
+x = np.linspace(0, 2 * np.pi, 100)
+y = np.cos(x)
+
+# Create the plot
+slate_colors()
+plt.figure(figsize=(10, 6))
+plt.plot(x, y)
+plt.title('Cosine Wave')
+plt.xlabel('x')
+plt.ylabel('cos(x)')
+plt.grid(True)
+plt.axhline(y=0, color='k', linestyle='--')
+plt.axvline(x=0, color='k', linestyle='--')
+plt.show()
+
+united_colors()
+plt.figure(figsize=(10, 6))
+plt.plot(x, y)
+plt.title('Cosine Wave')
+plt.xlabel('x')
+plt.ylabel('cos(x)')
+plt.grid(True)
+plt.axhline(y=0, color='k', linestyle='--')
+plt.axvline(x=0, color='k', linestyle='--')
+plt.show()
+```
+
+matplotlib cosine wave
+:::
+
+Here's a [link](https://example.com).
+
+
+{{< lipsum 3 >}}

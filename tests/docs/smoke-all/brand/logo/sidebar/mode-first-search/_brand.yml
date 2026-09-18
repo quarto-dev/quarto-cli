@@ -1,0 +1,26 @@
+color:
+  background:
+    light: "#fff"
+    dark: "#111"
+  foreground:
+    light: "#111"
+    dark: "#fff"
+logo:
+  images:
+    light-small:
+      path: light-small.png
+      alt: light small logo
+    light-medium:
+      path: light-medium.png
+      alt: light medium logo
+    dark-large:
+      path: dark-large.png
+      alt: dark large logo
+  # Create specific case to test mode-first search algorithm
+  # Define light variants for small and medium, dark variant only for large
+  small:
+    light: light-small
+  medium:
+    light: light-medium
+  large:
+    dark: dark-large

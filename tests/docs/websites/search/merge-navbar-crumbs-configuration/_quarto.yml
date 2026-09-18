@@ -1,0 +1,25 @@
+project:
+  type: website
+
+website:
+  title: "merge-navbar-crumbs-configuration"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+  sidebar:
+    - contents:
+        - section: "Level 1"
+          contents:
+            - text: "Level 2"
+              href: index.qmd
+  search:
+    merge-navbar-crumbs: false
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+    toc: true

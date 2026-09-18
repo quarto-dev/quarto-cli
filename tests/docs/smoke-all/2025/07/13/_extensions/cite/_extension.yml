@@ -1,0 +1,7 @@
+title: Cite
+author: Mickaël Canouil
+version: 1.0.0
+quarto-required: ">=1.8.0"
+contributes:
+  filters:
+    - cite.lua

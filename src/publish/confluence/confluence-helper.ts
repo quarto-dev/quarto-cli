@@ -301,8 +301,8 @@ export const findPagesToDelete = (
     if (
       !fileMetadataList.find(
         (file) =>
-          pathWithForwardSlashes(file.fileName) === page?.metadata?.fileName ??
-            "",
+          pathWithForwardSlashes(file.fileName) ===
+            (page?.metadata?.fileName ?? ""),
       ) &&
       !isActiveParent(page.id)
     ) {
@@ -844,8 +844,10 @@ export const findAttachments = (
   const pathList = filePath.split("/");
   const parentPath = pathList.slice(0, pathList.length - 1).join("/");
 
-  const imageFinderMatches:RegExpMatchArray | null = bodyValue.match(ATTACHMENT_FINDER);
-  let uniqueFoundImages:string[] = [...new Set(imageFinderMatches)];
+  const imageFinderMatches: RegExpMatchArray | null = bodyValue.match(
+    ATTACHMENT_FINDER,
+  );
+  let uniqueFoundImages: string[] = [...new Set(imageFinderMatches)];
 
   if (publishFiles.length > 0) {
     uniqueFoundImages = uniqueFoundImages.map((assetFileName: string) => {

@@ -1,0 +1,14 @@
+---
+title: kbd plain mode test
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['data-mode="plain"', 'Shift-Ctrl-K', 'Command-Shift-K']
+        - []
+---
+
+{{< kbd Shift-Ctrl-K mode=plain >}}
+
+{{< kbd Command-Shift-K mode=plain >}}

@@ -38,7 +38,8 @@ export async function readRegistryKey(
     safeArgs.args,
     (cmd: string[]) => {
       return execProcess({
-        cmd,
+        cmd: cmd[0],
+        args: cmd.slice(1),
         stdout: "piped",
         stderr: "piped",
       });
@@ -155,7 +156,7 @@ export async function safeWindowsExec(
   try {
     Deno.writeTextFileSync(
       tempFile,
-      ["@echo off", [program, ...args].join(" ")].join("\n"),
+      ["@echo off", "chcp 65001 >nul", [program, ...args].join(" ")].join("\r\n"),
     );
     return await fnExec(["cmd", "/c", tempFile]);
   } finally {

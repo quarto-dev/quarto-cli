@@ -1,0 +1,57 @@
+---
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        -
+          - '\\caption\{\\label\{tbl-kable\}'
+          - '\\caption\{\\label\{tbl-kable-latex\}'
+        -
+          # no `{ ... }` group around either longtable environment
+          - '\{\s*\\begin\{longtable\}'
+          - '\\end\{longtable\}\s*\}'
+          - '\\def\\LTcaptype'
+---
+
+The knitr version of `14741.qmd`, mirroring the reprex in the issue. See that
+document for why the `{ ... }` group Pandoc puts around a captionless table
+must not survive into the output.
+
+Under Quarto, `knitr::kable()` defaults to the pipe format, so the first cell
+emits a markdown table — `longtable = TRUE` is a no-op there — and Pandoc's
+writer produces the longtable. That is the path which gained the stray group.
+
+The second cell passes `format = "latex"`, so knitr emits the longtable itself
+as raw LaTeX and Pandoc's table writer never runs. That table carries no group
+at all — knitr's output has an empty preamble and postamble — so it only checks
+that the fixup introduces nothing there. `14741-raw-latex.qmd` is the document
+that exercises raw LaTeX which does carry braces.
+
+```{r}
+#| label: tbl-kable
+results <- data.frame(
+  treatment = c("Control", "Treatment A", "Treatment B"),
+  sample_size = c(20, 20, 20),
+  mean_response = c(12.3, 15.8, 14.6)
+)
+knitr::kable(
+  results,
+  longtable = TRUE,
+  booktabs = FALSE,
+  caption = "A table generated from an R data frame using knitr::kable().",
+  col.names = c("Treatment", "Sample size", "Mean response")
+)
+```
+
+```{r}
+#| label: tbl-kable-latex
+knitr::kable(
+  results,
+  format = "latex",
+  longtable = TRUE,
+  booktabs = FALSE,
+  caption = "The same table, emitted as raw LaTeX by knitr.",
+  col.names = c("Treatment", "Sample size", "Mean response")
+)
+```

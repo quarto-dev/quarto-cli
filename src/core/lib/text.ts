@@ -9,7 +9,7 @@ import { InternalError } from "./error.ts";
 import { quotedStringColor } from "./errors.ts";
 
 export function lines(text: string): string[] {
-  return text.split(/\r?\n/);
+  return text.split(/\r\n?|\n/);
 }
 
 export function normalizeNewlines(text: string) {
@@ -62,13 +62,13 @@ export function* matchAll(text: string, regexp: RegExp) {
 
 export function* lineOffsets(text: string) {
   yield 0;
-  for (const match of matchAll(text, /\r?\n/g)) {
+  for (const match of matchAll(text, /\r\n?|\n/g)) {
     yield match.index + match[0].length;
   }
 }
 
 export function* lineBreakPositions(text: string) {
-  for (const match of matchAll(text, /\r?\n/g)) {
+  for (const match of matchAll(text, /\r\n?|\n/g)) {
     yield match.index;
   }
 }
@@ -315,3 +315,25 @@ export function normalizeCaseConvention(str: string): CaseConvention {
   }
   return result;
 }
+
+export const getEndingNewlineCount = (lines: string[]) => {
+  let count = 0;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].match(/^\n+$/)) { // only newlines
+      count += lines[i].length;
+      continue;
+    }
+    const m = lines[i].match(/\n+$/);
+    if (m) {
+      // newlines + other content
+      count += m[0].length;
+      break;
+    }
+    if (lines[i].length) {
+      // non-newline content
+      break;
+    }
+    // otherwise, continue
+  }
+  return count;
+};

@@ -1,0 +1,10 @@
+---
+title: "Lua Error Test"
+format: html
+filters:
+  - error-filter.lua
+---
+
+## Test Content
+
+This document will trigger a Lua filter error because the error-filter.lua purposely generates an error.

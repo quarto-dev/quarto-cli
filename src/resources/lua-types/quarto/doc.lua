@@ -48,7 +48,25 @@ which must be copied into the LaTeX output directory.
 function quarto.doc.add_format_resource(file) end
 
 --[[
-Include text at the specified location (`in-header`, `before-body`, or `after-body`). 
+Add a resource file to the document. The file will be copied to the same
+relative location in the output directory.
+
+The path should be relative to the Lua script calling this function.
+]]
+---@param path string Resource file path (relative to Lua script)
+function quarto.doc.add_resource(path) end
+
+--[[
+Add a supporting file to the document. Supporting files are moved to the
+output directory and may be cleaned up after rendering.
+
+The path should be relative to the Lua script calling this function.
+]]
+---@param path string Supporting file path (relative to Lua script)
+function quarto.doc.add_supporting(path) end
+
+--[[
+Include text at the specified location (`in-header`, `before-body`, or `after-body`).
 ]]
 ---@param location 'in-header'|'before-body'|'after-body' Location for include
 ---@param text string Text to include
@@ -102,8 +120,62 @@ Does the current output format include Bootstrap themed HTML
 function quarto.doc.has_bootstrap() end
 
 --[[
+Check whether a specific internal Quarto filter is currently active.
+]]
+---@param filter string Filter name to check
+---@return boolean
+function quarto.doc.is_filter_active(filter) end
+
+--[[
 Provides the project relative path to the current input
 if this render is in the context of a project (otherwise `nil`)
 ]]
 ---@return string|nil
 function quarto.doc.project_output_file() end
+
+--[[
+Returns the current file metadata state for book projects.
+
+This provides access to book-specific information like the current file's
+role in the book structure. The returned table contains:
+- `file`: Table with `bookItemType` ("chapter", "part", "appendix"),
+  `bookItemNumber`, `bookItemDepth`, and `appendix` (boolean)
+- `appendix`: Boolean indicating if currently in appendix section
+- `include_directory`: Directory for includes
+
+Note: This function requires `quarto.utils.file_metadata_filter()` to be
+combined with your filter using `quarto.utils.combineFilters()` for the
+metadata to be properly populated during traversal.
+]]
+---@return table|nil File metadata state or nil if not in a book context
+function quarto.doc.file_metadata() end
+
+--[[
+Language settings for the current document.
+
+Provides access to localized strings for document elements like section titles.
+For example, `quarto.doc.language["section-title-appendices"]` returns the
+localized title for the appendices section (e.g., "Appendices" in English).
+
+Returns `nil` if no language settings are available.
+]]
+---@type table|nil
+quarto.doc.language = nil
+
+--[[
+Cross-reference category definitions.
+
+Provides access to all crossref categories including built-in types (figures,
+tables, equations) and custom types defined by the document. Each category
+includes properties like `ref_type`, `kind` ("float" or "Block"), and `name`.
+
+Use `quarto.doc.crossref.categories.all` to iterate over all categories.
+
+This is useful for extensions that need to generate counter resets or
+other category-specific code dynamically.
+]]
+---@type table
+quarto.doc.crossref = {}
+
+---@type table[]
+quarto.doc.crossref.categories = {}

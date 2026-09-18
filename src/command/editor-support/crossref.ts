@@ -12,7 +12,11 @@ import { encodeBase64 } from "../../deno_ral/encoding.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { execProcess } from "../../core/process.ts";
-import { pandocBinaryPath, resourcePath } from "../../core/resources.ts";
+import {
+  pandocBinaryPath,
+  pandocDataDirArgs,
+  resourcePath,
+} from "../../core/resources.ts";
 import { globalTempContext } from "../../core/temp.ts";
 
 function parseCrossrefFlags(options: any, args: string[]): {
@@ -92,14 +96,14 @@ const makeCrossrefCommand = () => {
       Deno.env.set("QUARTO_CROSSREF_INPUT_TYPE", "qmd");
 
       // build command
-      const cmd = [pandocBinaryPath(), "+RTS", "-K512m", "-RTS"];
-      cmd.push(...[
+      const cmd = pandocBinaryPath();
+      const cmdArgs = ["+RTS", "-K512m", "-RTS"];
+      cmdArgs.push(...[
         "--from",
         resourcePath("filters/qmd-reader.lua"),
         "--to",
         "native",
-        "--data-dir",
-        resourcePath("pandoc/datadir"),
+        ...pandocDataDirArgs(),
         "--lua-filter",
         resourcePath("filters/quarto-init/quarto-init.lua"),
         "--lua-filter",
@@ -118,6 +122,7 @@ const makeCrossrefCommand = () => {
       const result = await execProcess(
         {
           cmd,
+          args: cmdArgs,
           cwd: indexingDir,
           env: {
             "QUARTO_FILTER_PARAMS": filterParams,

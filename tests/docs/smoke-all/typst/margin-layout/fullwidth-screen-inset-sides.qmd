@@ -1,0 +1,39 @@
+---
+title: "Column Screen Inset Left/Right Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # column-screen-inset-left/right should use column-screen-inset with inner/outer
+        - ['#column-screen-inset\(side: "inner"\)', '#column-screen-inset\(side: "outer"\)']
+        - []
+      ensurePdfRegexMatches:
+        - ['INSET-LEFT-CONTENT', 'INSET-RIGHT-CONTENT']
+        - []
+      noErrors: default
+---
+
+## Column Screen Inset Left
+
+The `.column-screen-inset-left` class extends content toward the left with a small inset from the edge.
+
+::: {.column-screen-inset-left}
+INSET-LEFT-CONTENT: This content extends toward the left edge but maintains a small inset. The right edge stays aligned with the text column.
+:::
+
+Regular text here.
+
+## Column Screen Inset Right
+
+The `.column-screen-inset-right` class extends content toward the right with a small inset from the edge.
+
+::: {.column-screen-inset-right}
+INSET-RIGHT-CONTENT: This content extends toward the right edge but maintains a small inset. The left edge stays aligned with the text column.
+:::
+
+Regular text continues.

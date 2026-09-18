@@ -1,4 +1,5 @@
-\documentclass[journal=$journal$,manuscript=$type$]{achemso}
+\documentclass[journal=$journal.id$,manuscript=$journal.type$$if(journal.layout)$,layout=$journal.layout$$endif$$if(journal.hide-email)$,email=false$endif$]{achemso}
 \usepackage[version=3]{mhchem}
-\usepackage{amsmath}
 \newcommand*\mycommand[1]{\texttt{\emph{#1}}}
+
+

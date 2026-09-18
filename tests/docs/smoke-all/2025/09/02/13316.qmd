@@ -1,0 +1,27 @@
+---
+title: highlight first line
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['pre.sourceCode.number-lines']
+        - ['#cb1[data-code-line-numbers="1"]']
+    revealjs:
+      ensureHtmlElements:
+        - ['#cb1[data-code-line-numbers="1"]', 'pre.sourceCode.number-lines']
+        - []
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ['[`]{3}r \{1\} showLineNumbers']
+        - []
+execute: 
+  echo: true
+---
+
+```{r}
+#| code-line-numbers: "1"
+mean(
+  c(1, 2, 3, 4, 5)
+)
+```

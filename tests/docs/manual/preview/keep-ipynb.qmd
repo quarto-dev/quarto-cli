@@ -1,0 +1,15 @@
+---
+title: "Keep ipynb Test"
+execute:
+  keep-ipynb: true
+---
+
+## T7: keep-ipynb: true
+
+File should persist after preview exit. No _1 variants during preview.
+
+```{python}
+print("keep-ipynb test")
+```
+
+Edit counter: 0

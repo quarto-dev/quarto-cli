@@ -59,11 +59,13 @@ import {
 } from "../../core/language.ts";
 import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
+import {
+  ExecutionEngineInstance,
+  ExecutionTarget,
+} from "../../execute/types.ts";
 import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
-  projectTypeIsWebsite,
   toInputRelativePaths,
 } from "../../project/project-shared.ts";
 import {
@@ -71,8 +73,6 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
-import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
-import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
@@ -88,22 +88,9 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
+import { darkModeDefaultMetadata } from "../../format/html/format-html-info.ts";
 
-// we can't naively ld.cloneDeep everything
-// because that destroys class instances
-// with private members
-//
-// Currently, that's ProjectContext.
-//
-// TODO: Ideally, we shouldn't be copying the RenderContext at all.
-export function copyRenderContext(
-  context: RenderContext,
-): RenderContext {
-  return {
-    ...ld.cloneDeep(context),
-    project: context.project,
-  };
-}
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
   input: string,
@@ -230,7 +217,7 @@ export async function renderContexts(
     // we make it optional because some of the callers have
     // actually just cloned it themselves and don't need to preserve
     // the original
-    options = ld.cloneDeep(options) as RenderOptions;
+    options = safeCloneDeep(options);
   }
 
   const { engine, target } = await fileExecutionEngineAndTarget(
@@ -357,11 +344,16 @@ function mergeQuartoConfigs(
   ...configs: Array<Metadata>
 ): Metadata {
   // copy all configs so we don't mutate them
-  config = ld.cloneDeep(config);
-  configs = ld.cloneDeep(configs);
+  config = safeCloneDeep(config);
+  configs = safeCloneDeep(configs);
 
   // bibliography needs to always be an array so it can be merged
   const fixupMergeableScalars = (metadata: Metadata) => {
+    // see https://github.com/quarto-dev/quarto-cli/pull/12372
+    // and https://github.com/quarto-dev/quarto-cli/pull/12369
+    // for more details on why we need this check, as a consequence of an unintuitive
+    // ordering of YAML validation operations
+    if (metadata === null) return metadata;
     [
       kBibliography,
       kCss,
@@ -405,7 +397,7 @@ function mergeQuartoConfigs(
 async function resolveFormats(
   file: RenderFile,
   target: ExecutionTarget,
-  engine: ExecutionEngine,
+  engine: ExecutionEngineInstance,
   options: RenderOptions,
   _notebookContext: NotebookContext,
   project: ProjectContext,
@@ -460,7 +452,7 @@ async function resolveFormats(
 
     // Remove any 'to' information that will force the
     // rendering to a particular format
-    options = ld.cloneDeep(options);
+    options = safeCloneDeep(options);
     delete options.flags?.to;
   }
 
@@ -513,39 +505,6 @@ async function resolveFormats(
     const projFormat = projFormats[format].format;
     const directoryFormat = directoryFormats[format].format;
     const inputFormat = inputFormats[format].format;
-
-    // resolve theme (project-level bootstrap theme always wins for web drived output)
-    if (
-      project &&
-      (isHtmlOutput(format, true) || isHtmlDashboardOutput(format)) &&
-      formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
-    ) {
-      // if (formatHasBootstrap(inputFormat)) {
-      //   if (
-      //     inputFormat.metadata[kTheme] !== undefined &&
-      //     !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
-      //   ) {
-      //     warnOnce(
-      //       `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
-      //     );
-      //   }
-      //   delete inputFormat.metadata[kTheme];
-      // }
-      // if (formatHasBootstrap(directoryFormat)) {
-      //   if (
-      //     directoryFormat.metadata[kTheme] !== undefined &&
-      //     !ld.isEqual(
-      //       directoryFormat.metadata[kTheme],
-      //       projFormat.metadata[kTheme],
-      //     )
-      //   ) {
-      //     warnOnce(
-      //       `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
-      //     );
-      //   }
-      //   delete directoryFormat.metadata[kTheme];
-      // }
-    }
 
     // combine user formats
     const userFormat = mergeFormatMetadata(
@@ -614,11 +573,19 @@ async function resolveFormats(
 
     // resolve brand in project and forward it to format
     const brand = await project.resolveBrand(target.source);
-    mergedFormats[format].render.brand = brand;
-
+    if (brand) {
+      mergedFormats[format].render.brand = {
+        light: brand.light,
+        dark: (brand.enablesDarkMode ||
+            darkModeDefaultMetadata(mergedFormats[format].metadata) !==
+              undefined)
+          ? brand.dark
+          : undefined,
+      };
+    }
     // apply defaults from brand yaml under the metadata of the current format
     const brandFormatDefaults: Metadata =
-      (brand?.data?.defaults?.quarto as unknown as Record<
+      (brand?.light?.data?.defaults?.quarto as unknown as Record<
         string,
         Record<string, Metadata>
       >)?.format
@@ -709,14 +676,33 @@ const readExtensionFormat = async (
   extensionContext: ExtensionContext,
   project?: ProjectContext,
 ) => {
+  // Determine effective extension - use default for certain project/format combinations
+  let effectiveExtension = formatDesc.extension;
+  let preferLocal = false;
+
+  if (
+    formatDesc.baseFormat === "typst" &&
+    project?.config?.project?.[kProjectType] === "book"
+  ) {
+    if (effectiveExtension) {
+      // User explicitly named a typst book extension (e.g. format: orange-book-typst),
+      // prefer a locally installed copy over the built-in so customizations take effect
+      preferLocal = true;
+    } else {
+      // No explicit extension - use orange-book as the default typst book template
+      effectiveExtension = "orange-book";
+    }
+  }
+
   // Read the format file and populate this
-  if (formatDesc.extension) {
+  if (effectiveExtension) {
     // Find the yaml file
     const extension = await extensionContext.extension(
-      formatDesc.extension,
+      effectiveExtension,
       file,
       project?.config,
       project?.dir,
+      preferLocal,
     );
 
     // Read the yaml file and resolve / bucketize
@@ -729,7 +715,7 @@ const readExtensionFormat = async (
         (extensionFormat[fmtTarget] || extensionFormat[formatDesc.baseFormat] ||
           {}) as Metadata;
       extensionMetadata[kExtensionName] = extensionMetadata[kExtensionName] ||
-        formatDesc.extension;
+        effectiveExtension;
 
       const formats = await resolveFormatsFromMetadata(
         extensionMetadata,
@@ -740,7 +726,7 @@ const readExtensionFormat = async (
       return formats;
     } else {
       throw new Error(
-        `No valid format ${formatDesc.baseFormat} is provided by the extension ${formatDesc.extension}`,
+        `No valid format ${formatDesc.baseFormat} is provided by the extension ${effectiveExtension}`,
       );
     }
   } else {
@@ -763,10 +749,10 @@ export async function projectMetadataForInputFile(
       projectType(project.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
-      ld.cloneDeep(project.config),
+      safeCloneDeep(project.config),
     ) as Metadata;
   } else {
     // Just return the config or empty metadata
-    return ld.cloneDeep(project.config) || {};
+    return safeCloneDeep(project.config) || {};
   }
 }

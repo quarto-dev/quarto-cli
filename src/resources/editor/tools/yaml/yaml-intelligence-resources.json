@@ -14,6 +14,13 @@
       "description": "Classes to apply to cell container"
     },
     {
+      "name": "renderings",
+      "schema": {
+        "arrayOf": "string"
+      },
+      "description": "Array of rendering names, e.g. `[light, dark]`"
+    },
+    {
       "name": "tags",
       "tags": {
         "engine": "jupyter"
@@ -84,7 +91,14 @@
       "tags": {
         "engine": "knitr"
       },
-      "schema": "string",
+      "schema": {
+        "anyOf": [
+          {
+            "maybeArrayOf": "string"
+          },
+          "boolean"
+        ]
+      },
       "description": {
         "short": "Variables names that are not created from the current chunk",
         "long": "Variables names that are not created from the current chunk.\n\nThis option is mainly for `autodep: true` to work more precisely---a chunk\n`B` depends on chunk `A` when any of `B`'s global variables are `A`'s local \nvariables. In case the automatic detection of global variables in a chunk \nfails, you may manually specify the names of global variables via this option.\nIn addition, `cache-globals: false` means detecting all variables in a code\nchunk, no matter if they are global or local variables.\n"
@@ -301,7 +315,7 @@
       "default": true,
       "description": {
         "short": "Evaluate code cells (if `false` just echos the code into output).",
-        "long": "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+        "long": "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative numbers to selectively include or exclude expressions \n  (explicit inclusion/exclusion of expressions is available only when using the knitr engine)\n"
       }
     },
     {
@@ -967,7 +981,8 @@
         ],
         "formats": [
           "$html-files",
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "schema": {
@@ -989,7 +1004,8 @@
         ],
         "formats": [
           "$html-files",
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "schema": {
@@ -1011,7 +1027,8 @@
         ],
         "formats": [
           "$html-files",
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "schema": {
@@ -1337,6 +1354,10 @@
       ]
     },
     {
+      "id": "date-format",
+      "schema": "string"
+    },
+    {
       "id": "math-methods",
       "enum": {
         "values": [
@@ -1373,6 +1394,19 @@
       ]
     },
     {
+      "id": "filter-entry-point",
+      "enum": [
+        "pre-ast",
+        "post-ast",
+        "pre-quarto",
+        "post-quarto",
+        "pre-render",
+        "post-render",
+        "pre-finalize",
+        "post-finalize"
+      ]
+    },
+    {
       "id": "pandoc-format-filters",
       "arrayOf": {
         "anyOf": [
@@ -1394,14 +1428,7 @@
                 "type": "string",
                 "path": "path",
                 "at": {
-                  "enum": [
-                    "pre-ast",
-                    "post-ast",
-                    "pre-quarto",
-                    "post-quarto",
-                    "pre-render",
-                    "post-render"
-                  ]
+                  "ref": "filter-entry-point"
                 }
               },
               "required": [
@@ -1501,8 +1528,8 @@
           "icon": {
             "string": {
               "description": {
-                "short": "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                "long": "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                "short": "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)",
+                "long": "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
               }
             }
           },
@@ -1519,7 +1546,7 @@
           },
           "text": {
             "string": {
-              "description": "Text to display for item (defaults to the\ndocument title if not provided)\n"
+              "description": "Text to display for item (defaults to the\ndocument title if not provided). Supports markdown formatting.\n"
             }
           },
           "url": {
@@ -1565,7 +1592,147 @@
       }
     },
     {
-      "id": "comments",
+      "id": "giscus-configuration",
+      "object": {
+        "closed": true,
+        "properties": {
+          "repo": {
+            "string": {
+              "description": {
+                "short": "The Github repo that will be used to store comments.",
+                "long": "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
+              }
+            }
+          },
+          "repo-id": {
+            "string": {
+              "description": {
+                "short": "The Github repository identifier.",
+                "long": "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+              }
+            }
+          },
+          "category": {
+            "string": {
+              "description": {
+                "short": "The discussion category where new discussions will be created.",
+                "long": "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
+              }
+            }
+          },
+          "category-id": {
+            "string": {
+              "description": {
+                "short": "The Github category identifier.",
+                "long": "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+              }
+            }
+          },
+          "mapping": {
+            "schema": {
+              "anyOf": [
+                "string",
+                "number"
+              ]
+            },
+            "completions": [
+              "pathname",
+              "url",
+              "title",
+              "og:title"
+            ],
+            "description": {
+              "short": "The mapping between the page and the embedded discussion.",
+              "long": "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
+            }
+          },
+          "reactions-enabled": {
+            "boolean": {
+              "description": "Display reactions for the discussion's main post before the comments."
+            }
+          },
+          "loading": {
+            "enum": [
+              "lazy"
+            ],
+            "description": "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
+          },
+          "input-position": {
+            "enum": [
+              "top",
+              "bottom"
+            ],
+            "description": "Place the comment input box above or below the comments."
+          },
+          "theme": {
+            "anyOf": [
+              "string",
+              {
+                "ref": "giscus-themes"
+              },
+              {
+                "object": {
+                  "closed": true,
+                  "properties": {
+                    "light": {
+                      "anyOf": [
+                        "string",
+                        {
+                          "ref": "giscus-themes"
+                        }
+                      ],
+                      "description": "The light theme name."
+                    },
+                    "dark": {
+                      "anyOf": [
+                        "string",
+                        {
+                          "ref": "giscus-themes"
+                        }
+                      ],
+                      "description": "The dark theme name."
+                    }
+                  }
+                }
+              }
+            ],
+            "description": {
+              "short": "The giscus theme to use when displaying comments.",
+              "long": "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+            }
+          },
+          "language": {
+            "string": {
+              "description": "The language that should be used when displaying the commenting interface."
+            }
+          }
+        },
+        "required": [
+          "repo"
+        ]
+      }
+    },
+    {
+      "id": "external-engine",
+      "schema": {
+        "object": {
+          "closed": true,
+          "properties": {
+            "path": {
+              "path": {
+                "description": "Path to the TypeScript module for the execution engine"
+              }
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "description": "An execution engine not pre-loaded in Quarto"
+      }
+    },
+    {
+      "id": "document-comments-configuration",
       "anyOf": [
         {
           "enum": [
@@ -1629,123 +1796,7 @@
                 }
               },
               "giscus": {
-                "object": {
-                  "closed": true,
-                  "properties": {
-                    "repo": {
-                      "string": {
-                        "description": {
-                          "short": "The Github repo that will be used to store comments.",
-                          "long": "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
-                        }
-                      }
-                    },
-                    "repo-id": {
-                      "string": {
-                        "description": {
-                          "short": "The Github repository identifier.",
-                          "long": "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                        }
-                      }
-                    },
-                    "category": {
-                      "string": {
-                        "description": {
-                          "short": "The discussion category where new discussions will be created.",
-                          "long": "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
-                        }
-                      }
-                    },
-                    "category-id": {
-                      "string": {
-                        "description": {
-                          "short": "The Github category identifier.",
-                          "long": "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                        }
-                      }
-                    },
-                    "mapping": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "pathname",
-                            "url",
-                            "title",
-                            "og:title"
-                          ]
-                        },
-                        "string"
-                      ],
-                      "description": {
-                        "short": "The mapping between the page and the embedded discussion.",
-                        "long": "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
-                      }
-                    },
-                    "reactions-enabled": {
-                      "boolean": {
-                        "description": "Display reactions for the discussion's main post before the comments."
-                      }
-                    },
-                    "loading": {
-                      "enum": [
-                        "lazy"
-                      ],
-                      "description": "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
-                    },
-                    "input-position": {
-                      "enum": [
-                        "top",
-                        "bottom"
-                      ],
-                      "description": "Place the comment input box above or below the comments."
-                    },
-                    "theme": {
-                      "anyOf": [
-                        "string",
-                        {
-                          "ref": "giscus-themes"
-                        },
-                        {
-                          "object": {
-                            "closed": true,
-                            "properties": {
-                              "light": {
-                                "anyOf": [
-                                  "string",
-                                  {
-                                    "ref": "giscus-themes"
-                                  }
-                                ],
-                                "description": "The light theme name."
-                              },
-                              "dark": {
-                                "anyOf": [
-                                  "string",
-                                  {
-                                    "ref": "giscus-themes"
-                                  }
-                                ],
-                                "description": "The dark theme name."
-                              }
-                            }
-                          }
-                        }
-                      ],
-                      "description": {
-                        "short": "The giscus theme to use when displaying comments.",
-                        "long": "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
-                      }
-                    },
-                    "language": {
-                      "string": {
-                        "description": "The language that should be used when displaying the commenting interface."
-                      }
-                    }
-                  },
-                  "required": [
-                    "repo"
-                  ]
-                }
+                "ref": "giscus-configuration"
               },
               "hypothesis": {
                 "anyOf": [
@@ -2232,15 +2283,15 @@
         "properties": {
           "left": {
             "ref": "page-footer-region",
-            "description": "Footer left content"
+            "description": "Footer left content. Supports markdown formatting."
           },
           "right": {
             "ref": "page-footer-region",
-            "description": "Footer right content"
+            "description": "Footer right content. Supports markdown formatting."
           },
           "center": {
             "ref": "page-footer-region",
-            "description": "Footer center content"
+            "description": "Footer center content. Supports markdown formatting."
           },
           "border": {
             "anyOf": [
@@ -2340,6 +2391,11 @@
               "description": "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
             }
           },
+          "llms-txt": {
+            "boolean": {
+              "description": "Generate llms.txt and .llms.md files for LLM-friendly content consumption.\n"
+            }
+          },
           "google-analytics": {
             "anyOf": [
               "string",
@@ -2383,6 +2439,30 @@
             ],
             "description": "Enable Google Analytics for this website"
           },
+          "plausible-analytics": {
+            "anyOf": [
+              "string",
+              {
+                "object": {
+                  "closed": true,
+                  "properties": {
+                    "path": {
+                      "path": {
+                        "description": "Path to a file containing the Plausible Analytics script snippet"
+                      }
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ],
+            "description": {
+              "short": "Enable Plausible Analytics for this website by providing a script snippet or path to snippet file",
+              "long": "Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,\nor by providing a path to a file containing the snippet.\n\nPlausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.\n\n**Option 1: Inline snippet**\n\n```yaml\nwebsite:\n  plausible-analytics: |\n    <script async src=\"https://plausible.io/js/script.js\"></script>\n```\n\n**Option 2: File path**\n\n```yaml\nwebsite:\n  plausible-analytics:\n    path: _plausible_snippet.html\n```\n\nTo get your script snippet:\n\n1. Log into your Plausible account at <https://plausible.io>\n2. Go to your site settings\n3. Copy the JavaScript snippet provided\n4. Either paste it directly in your configuration or save it to a file\n\nFor more information, see <https://plausible.io/docs/plausible-script>\n"
+            }
+          },
           "announcement": {
             "anyOf": [
               "string",
@@ -2391,7 +2471,7 @@
                   "properties": {
                     "content": {
                       "schema": "string",
-                      "description": "The content of the announcement"
+                      "description": "The content of the announcement. Supports markdown formatting."
                     },
                     "dismissable": {
                       "schema": "boolean",
@@ -2454,12 +2534,12 @@
                   "properties": {
                     "type": {
                       "enum": [
-                        "implied",
-                        "express"
+                        "express",
+                        "implied"
                       ],
                       "description": {
                         "short": "The type of consent that should be requested",
-                        "long": "The type of consent that should be requested, using one of these two values:\n\n- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).\n"
+                        "long": "The type of consent that should be requested, using one of these two values:\n\n- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).\n\n- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n"
                       }
                     },
                     "style": {
@@ -2538,6 +2618,11 @@
                     "copy-button": {
                       "schema": "boolean",
                       "description": "Provide button for copying search link"
+                    },
+                    "merge-navbar-crumbs": {
+                      "schema": "boolean",
+                      "default": true,
+                      "description": "When false, do not merge navbar crumbs into the crumbs in `search.json`."
                     },
                     "keyboard-shortcut": {
                       "maybeArrayOf": {
@@ -2637,12 +2722,11 @@
                         "string",
                         "boolean"
                       ],
-                      "description": "The navbar title. Uses the project title if none is specified."
+                      "description": "The navbar title. Uses the project title if none is specified. Supports markdown formatting."
                     },
                     "logo": {
-                      "path": {
-                        "description": "Path to a logo image that will be displayed to the left of the title."
-                      }
+                      "ref": "logo-light-dark-specifier",
+                      "description": "Specification of image that will be displayed to the left of the title."
                     },
                     "logo-alt": {
                       "string": {
@@ -2655,40 +2739,34 @@
                       }
                     },
                     "background": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        "string"
-                      ],
-                      "description": "The navbar's background color (named or hex color)."
+                      "string": {
+                        "description": "The navbar's background color (named or hex color).",
+                        "completions": [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark"
+                        ]
+                      }
                     },
                     "foreground": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        "string"
-                      ],
-                      "description": "The navbar's foreground color (named or hex color)."
+                      "string": {
+                        "description": "The navbar's foreground color (named or hex color).",
+                        "completions": [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark"
+                        ]
+                      }
                     },
                     "search": {
                       "boolean": {
@@ -2769,12 +2847,11 @@
                           "string",
                           "boolean"
                         ],
-                        "description": "The sidebar title. Uses the project title if none is specified."
+                        "description": "The sidebar title. Uses the project title if none is specified. Supports markdown formatting."
                       },
                       "logo": {
-                        "path": {
-                          "description": "Path to a logo image that will be displayed in the sidebar."
-                        }
+                        "ref": "logo-light-dark-specifier",
+                        "description": "Specification of image that will be displayed in the sidebar."
                       },
                       "logo-alt": {
                         "string": {
@@ -2810,38 +2887,30 @@
                         "default": "floating"
                       },
                       "background": {
-                        "anyOf": [
-                          {
-                            "enum": [
-                              "primary",
-                              "secondary",
-                              "success",
-                              "danger",
-                              "warning",
-                              "info",
-                              "light",
-                              "dark"
-                            ]
-                          },
-                          "string"
+                        "schema": "string",
+                        "completions": [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark"
                         ],
                         "description": "The sidebar's background color (named or hex color)."
                       },
                       "foreground": {
-                        "anyOf": [
-                          {
-                            "enum": [
-                              "primary",
-                              "secondary",
-                              "success",
-                              "danger",
-                              "warning",
-                              "info",
-                              "light",
-                              "dark"
-                            ]
-                          },
-                          "string"
+                        "schema": "string",
+                        "completions": [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark"
                         ],
                         "description": "The sidebar's foreground color (named or hex color)."
                       },
@@ -2938,7 +3007,7 @@
           },
           "comments": {
             "schema": {
-              "ref": "comments"
+              "ref": "document-comments-configuration"
             }
           },
           "open-graph": {
@@ -3077,7 +3146,7 @@
             },
             "output-file": {
               "path": {
-                "description": "Base name for single-file output (e.g. PDF, ePub)"
+                "description": "Base name for single-file output (e.g. PDF, ePub, docx)"
               }
             },
             "cover-image": {
@@ -3255,6 +3324,16 @@
           "toc-title-website": "string",
           "related-formats-title": "string",
           "related-notebooks-title": "string",
+          "source-notebooks-prefix": "string",
+          "other-links-title": "string",
+          "code-links-title": "string",
+          "launch-dev-container-title": "string",
+          "launch-binder-title": "string",
+          "article-notebook-label": "string",
+          "notebook-preview-download": "string",
+          "notebook-preview-download-src": "string",
+          "notebook-preview-back": "string",
+          "manuscript-meca-bundle": "string",
           "callout-tip-title": "string",
           "callout-note-title": "string",
           "callout-warning-title": "string",
@@ -3263,15 +3342,35 @@
           "section-title-abstract": "string",
           "section-title-footnotes": "string",
           "section-title-appendices": "string",
+          "section-title-references": "string",
+          "section-title-reuse": "string",
+          "section-title-copyright": "string",
+          "section-title-citation": "string",
+          "appendix-attribution-cite-as": "string",
+          "appendix-attribution-bibtex": "string",
+          "appendix-view-license": "string",
+          "title-block-author-single": "string",
+          "title-block-author-plural": "string",
+          "title-block-affiliation-single": "string",
+          "title-block-affiliation-plural": "string",
+          "title-block-published": "string",
+          "title-block-modified": "string",
+          "title-block-keywords": "string",
           "code-summary": "string",
           "code-tools-menu-caption": "string",
           "code-tools-show-all-code": "string",
           "code-tools-hide-all-code": "string",
           "code-tools-view-source": "string",
           "code-tools-source-code": "string",
+          "tools-share": "string",
+          "tools-download": "string",
+          "code-line": "string",
+          "code-lines": "string",
+          "back-to-top": "string",
           "search-no-results-text": "string",
           "copy-button-tooltip": "string",
           "copy-button-tooltip-success": "string",
+          "skip-to-content": "string",
           "repo-action-links-edit": "string",
           "repo-action-links-source": "string",
           "repo-action-links-issue": "string",
@@ -3284,6 +3383,17 @@
           "search-text-placeholder": "string",
           "search-detached-cancel-button-title": "string",
           "search-submit-button-title": "string",
+          "search-label": "string",
+          "toggle-section": "string",
+          "toggle-sidebar": "string",
+          "toggle-dark-mode": "string",
+          "toggle-reader-mode": "string",
+          "toggle-navigation": "string",
+          "navigation-site-label": "string",
+          "navigation-section-label": "string",
+          "navigation-toolbar-label": "string",
+          "navigation-page-label": "string",
+          "navigation-breadcrumbs-label": "string",
           "crossref-fig-title": "string",
           "crossref-tbl-title": "string",
           "crossref-lst-title": "string",
@@ -3312,7 +3422,32 @@
           "crossref-exr-prefix": "string",
           "crossref-lof-title": "string",
           "crossref-lot-title": "string",
-          "crossref-lol-title": "string"
+          "crossref-lol-title": "string",
+          "environment-proof-title": "string",
+          "environment-remark-title": "string",
+          "environment-solution-title": "string",
+          "listing-page-order-by": "string",
+          "listing-page-order-by-default": "string",
+          "listing-page-order-by-date-asc": "string",
+          "listing-page-order-by-date-desc": "string",
+          "listing-page-order-by-number-desc": "string",
+          "listing-page-order-by-number-asc": "string",
+          "listing-page-field-date": "string",
+          "listing-page-field-title": "string",
+          "listing-page-field-description": "string",
+          "listing-page-field-author": "string",
+          "listing-page-field-filename": "string",
+          "listing-page-field-filemodified": "string",
+          "listing-page-field-subtitle": "string",
+          "listing-page-field-readingtime": "string",
+          "listing-page-field-wordcount": "string",
+          "listing-page-field-categories": "string",
+          "listing-page-minutes-compact": "string",
+          "listing-page-category-all": "string",
+          "listing-page-no-matches": "string",
+          "listing-page-words": "string",
+          "listing-page-filter": "string",
+          "draft": "string"
         },
         "errorDescription": "be a format language description object"
       }
@@ -3571,7 +3706,7 @@
             "string": {
               "description": {
                 "short": "The date format to use when displaying dates (e.g. d-M-yyy).",
-                "long": "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).\n"
+                "long": "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html).\n"
               }
             }
           },
@@ -4618,7 +4753,74 @@
               "object": {
                 "properties": {
                   "trace-filters": "string",
-                  "tests": "object"
+                  "tests": {
+                    "object": {
+                      "properties": {
+                        "run": {
+                          "object": {
+                            "description": "Control when tests should run",
+                            "properties": {
+                              "ci": {
+                                "boolean": {
+                                  "description": "Run tests on CI (true = run, false = skip)",
+                                  "default": true
+                                }
+                              },
+                              "skip": {
+                                "description": "Skip test unconditionally (true = skip with default message, string = skip with custom message)",
+                                "anyOf": [
+                                  "boolean",
+                                  "string"
+                                ]
+                              },
+                              "os": {
+                                "description": "Run tests ONLY on these platforms (whitelist)",
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  },
+                                  {
+                                    "arrayOf": {
+                                      "enum": [
+                                        "linux",
+                                        "darwin",
+                                        "windows"
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              "not_os": {
+                                "description": "Don't run tests on these platforms (blacklist)",
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  },
+                                  {
+                                    "arrayOf": {
+                                      "enum": [
+                                        "linux",
+                                        "darwin",
+                                        "windows"
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -4892,7 +5094,40 @@
       ]
     },
     {
-      "id": "brand-logo",
+      "id": "brand-logo-single",
+      "description": "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+      "object": {
+        "closed": true,
+        "properties": {
+          "images": {
+            "description": "A dictionary of named logo resources.",
+            "schema": {
+              "object": {
+                "additionalProperties": {
+                  "schema": {
+                    "ref": "brand-logo-resource"
+                  }
+                }
+              }
+            }
+          },
+          "small": {
+            "description": "A link or path to the brand's small-sized logo or icon.\n",
+            "schema": "string"
+          },
+          "medium": {
+            "description": "A link or path to the brand's medium-sized logo.\n",
+            "schema": "string"
+          },
+          "large": {
+            "description": "A link or path to the brand's large- or full-sized logo.\n",
+            "schema": "string"
+          }
+        }
+      }
+    },
+    {
+      "id": "brand-logo-unified",
       "description": "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
       "object": {
         "closed": true,
@@ -4940,11 +5175,155 @@
       ]
     },
     {
+      "id": "logo-options",
+      "object": {
+        "closed": false,
+        "properties": {
+          "path": {
+            "schema": "path",
+            "description": "Path or brand.yml logo resource name.\n"
+          },
+          "alt": {
+            "schema": "string",
+            "description": "Alternative text for the logo, used for accessibility.\n"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "id": "logo-specifier",
+      "anyOf": [
+        "string",
+        {
+          "schema": {
+            "ref": "logo-options"
+          }
+        }
+      ]
+    },
+    {
+      "id": "logo-options-path-optional",
+      "object": {
+        "closed": false,
+        "properties": {
+          "path": {
+            "schema": "path",
+            "description": "Path or brand.yml logo resource name.\n"
+          },
+          "alt": {
+            "schema": "string",
+            "description": "Alternative text for the logo, used for accessibility.\n"
+          }
+        }
+      }
+    },
+    {
+      "id": "logo-specifier-path-optional",
+      "anyOf": [
+        "string",
+        {
+          "schema": {
+            "ref": "logo-options-path-optional"
+          }
+        }
+      ]
+    },
+    {
+      "id": "logo-light-dark-specifier",
+      "description": "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
+      "anyOf": [
+        {
+          "enum": [
+            false
+          ]
+        },
+        {
+          "ref": "logo-specifier"
+        },
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "light": {
+                "schema": {
+                  "ref": "logo-specifier"
+                },
+                "description": "Specification of a light logo\n"
+              },
+              "dark": {
+                "schema": {
+                  "ref": "logo-specifier"
+                },
+                "description": "Specification of a dark logo\n"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "logo-light-dark-specifier-path-optional",
+      "description": "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
+      "anyOf": [
+        {
+          "enum": [
+            false
+          ]
+        },
+        {
+          "ref": "logo-specifier-path-optional"
+        },
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "light": {
+                "schema": {
+                  "ref": "logo-specifier-path-optional"
+                },
+                "description": "Specification of a light logo\n"
+              },
+              "dark": {
+                "schema": {
+                  "ref": "logo-specifier-path-optional"
+                },
+                "description": "Specification of a dark logo\n"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "normalized-logo-light-dark-specifier",
+      "description": "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+      "object": {
+        "closed": true,
+        "properties": {
+          "light": {
+            "schema": {
+              "ref": "logo-options"
+            },
+            "description": "Options for a light logo\n"
+          },
+          "dark": {
+            "schema": {
+              "ref": "logo-options"
+            },
+            "description": "Options for a dark logo\n"
+          }
+        }
+      }
+    },
+    {
       "id": "brand-color-value",
       "schema": "string"
     },
     {
-      "id": "brand-color",
+      "id": "brand-color-single",
       "description": "The brand's custom color palette and theme.\n",
       "object": {
         "closed": true,
@@ -5037,6 +5416,126 @@
       }
     },
     {
+      "id": "brand-color-light-dark",
+      "anyOf": [
+        {
+          "ref": "brand-color-value"
+        },
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "light": {
+                "schema": {
+                  "ref": "brand-color-value"
+                },
+                "description": "A link or path to the brand's light-colored logo or icon.\n"
+              },
+              "dark": {
+                "schema": {
+                  "ref": "brand-color-value"
+                },
+                "description": "A link or path to the brand's dark-colored logo or icon.\n"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "brand-color-unified",
+      "description": "The brand's custom color palette and theme.\n",
+      "object": {
+        "closed": true,
+        "properties": {
+          "palette": {
+            "description": "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
+            "object": {
+              "additionalProperties": {
+                "schema": {
+                  "ref": "brand-color-value"
+                }
+              }
+            }
+          },
+          "foreground": {
+            "description": "The foreground color, used for text.",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            },
+            "default": "black"
+          },
+          "background": {
+            "description": "The background color, used for the page background.",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            },
+            "default": "white"
+          },
+          "primary": {
+            "description": "The primary accent color, i.e. the main theme color. Typically used for hyperlinks, active states, primary action buttons, etc.\n",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          },
+          "secondary": {
+            "description": "The secondary accent color. Typically used for lighter text or disabled states.\n",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          },
+          "tertiary": {
+            "description": "The tertiary accent color. Typically an even lighter color, used for hover states, accents, and wells.\n",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          },
+          "success": {
+            "description": "The color used for positive or successful actions and information.",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          },
+          "info": {
+            "description": "The color used for neutral or informational actions and information.",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          },
+          "warning": {
+            "description": "The color used for warning or cautionary actions and information.",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          },
+          "danger": {
+            "description": "The color used for errors, dangerous actions, or negative information.",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          },
+          "light": {
+            "description": "A bright color, used as a high-contrast foreground color on dark elements or low-contrast background color on light elements.\n",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          },
+          "dark": {
+            "description": "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          },
+          "link": {
+            "description": "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
+            "schema": {
+              "ref": "brand-color-light-dark"
+            }
+          }
+        }
+      }
+    },
+    {
       "id": "brand-maybe-named-color",
       "description": "A color, which may be a named brand color.\n",
       "anyOf": [
@@ -5045,6 +5544,33 @@
         },
         {
           "schema": "string"
+        }
+      ]
+    },
+    {
+      "id": "brand-maybe-named-color-light-dark",
+      "anyOf": [
+        {
+          "ref": "brand-maybe-named-color"
+        },
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "light": {
+                "schema": {
+                  "ref": "brand-maybe-named-color"
+                },
+                "description": "A link or path to the brand's light-colored logo or icon.\n"
+              },
+              "dark": {
+                "schema": {
+                  "ref": "brand-maybe-named-color"
+                },
+                "description": "A link or path to the brand's dark-colored logo or icon.\n"
+              }
+            }
+          }
         }
       ]
     },
@@ -5067,7 +5593,7 @@
       ]
     },
     {
-      "id": "brand-typography",
+      "id": "brand-typography-single",
       "description": "Typography definitions for the brand.",
       "object": {
         "closed": true,
@@ -5084,23 +5610,62 @@
           },
           "headings": {
             "description": "Settings for headings, or a string specifying the font family only.",
-            "ref": "brand-typography-options-headings"
+            "ref": "brand-typography-options-headings-single"
           },
           "monospace": {
             "description": "Settings for monospace text, or a string specifying the font family only.",
-            "ref": "brand-typography-options-monospace"
+            "ref": "brand-typography-options-monospace-single"
           },
           "monospace-inline": {
             "description": "Settings for inline code, or a string specifying the font family only.",
-            "ref": "brand-typography-options-monospace-inline"
+            "ref": "brand-typography-options-monospace-inline-single"
           },
           "monospace-block": {
             "description": "Settings for code blocks, or a string specifying the font family only.",
-            "ref": "brand-typography-options-monospace-block"
+            "ref": "brand-typography-options-monospace-block-single"
           },
           "link": {
             "description": "Settings for links.",
-            "ref": "brand-typography-options-link"
+            "ref": "brand-typography-options-link-single"
+          }
+        }
+      }
+    },
+    {
+      "id": "brand-typography-unified",
+      "description": "Typography definitions for the brand.",
+      "object": {
+        "closed": true,
+        "properties": {
+          "fonts": {
+            "description": "Font files and definitions for the brand.",
+            "arrayOf": {
+              "ref": "brand-font"
+            }
+          },
+          "base": {
+            "description": "The base font settings for the brand. These are used as the default for all text.\n",
+            "ref": "brand-typography-options-base"
+          },
+          "headings": {
+            "description": "Settings for headings, or a string specifying the font family only.",
+            "ref": "brand-typography-options-headings-unified"
+          },
+          "monospace": {
+            "description": "Settings for monospace text, or a string specifying the font family only.",
+            "ref": "brand-typography-options-monospace-unified"
+          },
+          "monospace-inline": {
+            "description": "Settings for inline code, or a string specifying the font family only.",
+            "ref": "brand-typography-options-monospace-inline-unified"
+          },
+          "monospace-block": {
+            "description": "Settings for code blocks, or a string specifying the font family only.",
+            "ref": "brand-typography-options-monospace-block-unified"
+          },
+          "link": {
+            "description": "Settings for links.",
+            "ref": "brand-typography-options-link-unified"
           }
         }
       }
@@ -5128,7 +5693,7 @@
       ]
     },
     {
-      "id": "brand-typography-options-headings",
+      "id": "brand-typography-options-headings-single",
       "description": "Typographic options for headings.",
       "anyOf": [
         "string",
@@ -5155,7 +5720,34 @@
       ]
     },
     {
-      "id": "brand-typography-options-monospace",
+      "id": "brand-typography-options-headings-unified",
+      "description": "Typographic options for headings.",
+      "anyOf": [
+        "string",
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "family": "string",
+              "weight": {
+                "ref": "brand-font-weight"
+              },
+              "style": {
+                "ref": "brand-font-style"
+              },
+              "color": {
+                "ref": "brand-maybe-named-color-light-dark"
+              },
+              "line-height": {
+                "ref": "line-height-number-string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "brand-typography-options-monospace-single",
       "description": "Typographic options for monospace elements.",
       "anyOf": [
         "string",
@@ -5180,7 +5772,32 @@
       ]
     },
     {
-      "id": "brand-typography-options-monospace-inline",
+      "id": "brand-typography-options-monospace-unified",
+      "description": "Typographic options for monospace elements.",
+      "anyOf": [
+        "string",
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "family": "string",
+              "size": "string",
+              "weight": {
+                "ref": "brand-font-weight"
+              },
+              "color": {
+                "ref": "brand-maybe-named-color-light-dark"
+              },
+              "background-color": {
+                "ref": "brand-maybe-named-color-light-dark"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "brand-typography-options-monospace-inline-single",
       "description": "Typographic options for inline monospace elements.",
       "anyOf": [
         "string",
@@ -5205,6 +5822,31 @@
       ]
     },
     {
+      "id": "brand-typography-options-monospace-inline-unified",
+      "description": "Typographic options for inline monospace elements.",
+      "anyOf": [
+        "string",
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "family": "string",
+              "size": "string",
+              "weight": {
+                "ref": "brand-font-weight"
+              },
+              "color": {
+                "ref": "brand-maybe-named-color-light-dark"
+              },
+              "background-color": {
+                "ref": "brand-maybe-named-color-light-dark"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
       "id": "line-height-number-string",
       "description": "Line height",
       "anyOf": [
@@ -5213,7 +5855,7 @@
       ]
     },
     {
-      "id": "brand-typography-options-monospace-block",
+      "id": "brand-typography-options-monospace-block-single",
       "description": "Typographic options for block monospace elements.",
       "anyOf": [
         "string",
@@ -5241,7 +5883,35 @@
       ]
     },
     {
-      "id": "brand-typography-options-link",
+      "id": "brand-typography-options-monospace-block-unified",
+      "description": "Typographic options for block monospace elements.",
+      "anyOf": [
+        "string",
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "family": "string",
+              "size": "string",
+              "weight": {
+                "ref": "brand-font-weight"
+              },
+              "color": {
+                "ref": "brand-maybe-named-color-light-dark"
+              },
+              "background-color": {
+                "ref": "brand-maybe-named-color-light-dark"
+              },
+              "line-height": {
+                "ref": "line-height-number-string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "brand-typography-options-link-single",
       "description": "Typographic options for inline monospace elements.",
       "anyOf": [
         "string",
@@ -5265,12 +5935,39 @@
       ]
     },
     {
-      "id": "brand-named-font",
-      "description": "Names of customizeable fonts",
+      "id": "brand-typography-options-link-unified",
+      "description": "Typographic options for inline monospace elements.",
+      "anyOf": [
+        "string",
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "weight": {
+                "ref": "brand-font-weight"
+              },
+              "color": {
+                "ref": "brand-maybe-named-color-light-dark"
+              },
+              "background-color": {
+                "ref": "brand-maybe-named-color-light-dark"
+              },
+              "decoration": "string"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "brand-named-typography-elements",
+      "description": "Names of customizeable typography elements",
       "enum": [
         "base",
         "headings",
-        "monospace"
+        "monospace",
+        "monospace-inline",
+        "monospace-block",
+        "link"
       ]
     },
     {
@@ -5288,9 +5985,6 @@
         },
         {
           "ref": "brand-font-system"
-        },
-        {
-          "ref": "brand-font-common"
         }
       ]
     },
@@ -5392,7 +6086,10 @@
               "system"
             ]
           }
-        }
+        },
+        "required": [
+          "source"
+        ]
       }
     },
     {
@@ -5409,7 +6106,10 @@
               "google"
             ]
           }
-        }
+        },
+        "required": [
+          "source"
+        ]
       }
     },
     {
@@ -5426,7 +6126,10 @@
               "bunny"
             ]
           }
-        }
+        },
+        "required": [
+          "source"
+        ]
       }
     },
     {
@@ -5487,7 +6190,7 @@
       "schema": "string"
     },
     {
-      "id": "brand",
+      "id": "brand-single",
       "object": {
         "closed": true,
         "properties": {
@@ -5495,19 +6198,94 @@
             "ref": "brand-meta"
           },
           "logo": {
-            "ref": "brand-logo"
+            "ref": "brand-logo-single"
           },
           "color": {
-            "ref": "brand-color"
+            "ref": "brand-color-single"
           },
           "typography": {
-            "ref": "brand-typography"
+            "ref": "brand-typography-single"
           },
           "defaults": {
             "ref": "brand-defaults"
           }
         }
       }
+    },
+    {
+      "id": "brand-unified",
+      "object": {
+        "closed": true,
+        "properties": {
+          "meta": {
+            "ref": "brand-meta"
+          },
+          "logo": {
+            "ref": "brand-logo-unified"
+          },
+          "color": {
+            "ref": "brand-color-unified"
+          },
+          "typography": {
+            "ref": "brand-typography-unified"
+          },
+          "defaults": {
+            "ref": "brand-defaults"
+          }
+        }
+      }
+    },
+    {
+      "id": "brand-path-only-light-dark",
+      "anyOf": [
+        "string",
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "light": "string",
+              "dark": "string"
+            }
+          }
+        }
+      ],
+      "description": "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
+    },
+    {
+      "id": "brand-path-bool-light-dark",
+      "anyOf": [
+        "string",
+        "boolean",
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "light": {
+                "anyOf": [
+                  "string",
+                  {
+                    "ref": "brand-single"
+                  }
+                ],
+                "description": "The path to a light brand file or an inline light brand definition.\n"
+              },
+              "dark": {
+                "anyOf": [
+                  "string",
+                  {
+                    "ref": "brand-single"
+                  }
+                ],
+                "description": "The path to a dark brand file or an inline dark brand definition.\n"
+              }
+            }
+          }
+        },
+        {
+          "ref": "brand-unified"
+        }
+      ],
+      "description": "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline (unified) brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
     },
     {
       "id": "brand-defaults",
@@ -5543,6 +6321,78 @@
           }
         }
       }
+    },
+    {
+      "id": "marginalia-side-geometry",
+      "object": {
+        "closed": true,
+        "properties": {
+          "far": {
+            "string": {
+              "description": "Distance from page edge to wideblock boundary."
+            }
+          },
+          "width": {
+            "string": {
+              "description": "Width of the margin note column."
+            }
+          },
+          "separation": {
+            "string": {
+              "description": "Gap between margin column and body text."
+            }
+          }
+        }
+      }
+    }
+  ],
+  "schema/document-a11y.yml": [
+    {
+      "name": "axe",
+      "tags": {
+        "formats": [
+          "$html-files"
+        ]
+      },
+      "schema": {
+        "anyOf": [
+          "boolean",
+          {
+            "object": {
+              "properties": {
+                "output": {
+                  "enum": [
+                    "json",
+                    "console",
+                    "document"
+                  ],
+                  "description": "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                },
+                "standard": {
+                  "enum": [
+                    "wcag2a",
+                    "wcag2aa",
+                    "wcag2aaa",
+                    "wcag21a",
+                    "wcag21aa",
+                    "wcag21aaa",
+                    "wcag22a",
+                    "wcag22aa",
+                    "wcag22aaa"
+                  ],
+                  "description": "Only check the rules for this WCAG conformance level, named as version then level (e.g. `wcag21aa` for WCAG 2.1 AA). Each level includes the levels and versions it builds on, and may check rules axe-core disables by default (such as AAA color contrast). Axe's best-practice rules are excluded unless `best-practice: true` is also set."
+                },
+                "best-practice": {
+                  "boolean": {
+                    "description": "Whether to check axe-core's best-practice rules (checks recommended by axe that aren't required by any WCAG success criterion). Checked by default when `standard` is unset; excluded by default when `standard` is set."
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "description": "When defined, run axe-core accessibility tests on the document."
     }
   ],
   "schema/document-about.yml": [
@@ -5602,6 +6452,13 @@
         "ref": "date"
       },
       "description": "Document date"
+    },
+    {
+      "name": "date-format",
+      "schema": {
+        "ref": "date-format"
+      },
+      "description": "Date format for the document"
     },
     {
       "name": "date-modified",
@@ -5772,7 +6629,8 @@
       "schema": "string",
       "tags": {
         "formats": [
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "description": "The contents of an acknowledgments footnote after the document title."
@@ -5932,13 +6790,14 @@
       }
     },
     {
-      "name": "highlight-style",
+      "name": "syntax-highlighting",
       "tags": {
         "formats": [
           "$html-all",
           "docx",
           "ms",
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "schema": {
@@ -5955,29 +6814,32 @@
           {
             "string": {
               "completions": [
-                "pygments",
-                "tango",
-                "espresso",
-                "zenburn",
-                "kate",
-                "monochrome",
-                "breezedark",
-                "haddock",
+                "a11y",
                 "arrow",
                 "atom-one",
                 "ayu",
                 "ayu-mirage",
                 "breeze",
+                "breezedark",
                 "dracula",
+                "espresso",
                 "github",
                 "gruvbox",
-                "mokokai",
+                "haddock",
+                "idiomatic",
+                "kate",
+                "monochrome",
+                "monokai",
+                "none",
                 "nord",
                 "oblivion",
                 "printing",
+                "pygments",
                 "radical",
                 "solarized",
-                "vim-dark"
+                "tango",
+                "vim-dark",
+                "zenburn"
               ]
             }
           }
@@ -5985,7 +6847,38 @@
       },
       "description": {
         "short": "Specifies the coloring style to be used in highlighted source code.",
-        "long": "Specifies the coloring style to be used in highlighted source code.\n\nInstead of a *STYLE* name, a JSON file with extension\n` .theme` may be supplied.  This will be parsed as a KDE\nsyntax highlighting theme and (if valid) used as the\nhighlighting style.\n"
+        "long": "Specifies the coloring style to be used in highlighted source code.\n\nValid values:\n\n- `none`: Disables syntax highlighting for code blocks.\n- `idiomatic`: Uses the format's native syntax highlighter\n  (e.g., Typst's built-in highlighting, LaTeX `listings` package,\n  or reveal.js highlight.js plugin).\n- A style name (e.g., `pygments`, `tango`, `github`): Uses\n  Pandoc's skylighting with the specified theme.\n- A path to a `.theme` file: Uses a custom KDE syntax\n  highlighting theme.\n\nFor adaptive light/dark themes, specify an object with `light`\nand `dark` properties pointing to theme files.\n"
+      }
+    },
+    {
+      "name": "highlight-style",
+      "hidden": true,
+      "tags": {
+        "formats": [
+          "$html-all",
+          "docx",
+          "ms",
+          "$pdf-all",
+          "typst"
+        ]
+      },
+      "schema": {
+        "anyOf": [
+          {
+            "object": {
+              "closed": true,
+              "properties": {
+                "light": "path",
+                "dark": "path"
+              }
+            }
+          },
+          "string"
+        ]
+      },
+      "description": {
+        "short": "Deprecated: use `syntax-highlighting` instead.",
+        "long": "Deprecated: use `syntax-highlighting` instead.\n\nSpecifies the coloring style to be used in highlighted source code.\n"
       }
     },
     {
@@ -5995,7 +6888,8 @@
           "$html-all",
           "docx",
           "ms",
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "schema": "path",
@@ -6009,7 +6903,8 @@
           "$html-all",
           "docx",
           "ms",
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "schema": {
@@ -6064,12 +6959,13 @@
         "formats": [
           "$html-doc",
           "context",
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "description": {
         "short": "Sets the color of hyperlinks in the document.",
-        "long": "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n"
+        "long": "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n\nFor Typst output, sets the color of internal hyperlinks using Typst color syntax.\n"
       }
     },
     {
@@ -6103,12 +6999,13 @@
       "schema": "string",
       "tags": {
         "formats": [
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "description": {
-        "short": "The color used for external links using color options allowed by `xcolor`",
-        "long": "The color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
+        "short": "The color used for external links.",
+        "long": "For LaTeX output, the color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor Typst output, sets the color of external file links using Typst color syntax.\n"
       }
     },
     {
@@ -6116,12 +7013,13 @@
       "schema": "string",
       "tags": {
         "formats": [
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "description": {
-        "short": "The color used for citation links using color options allowed by `xcolor`",
-        "long": "The color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
+        "short": "The color used for citation links.",
+        "long": "For LaTeX output, the color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor Typst output, sets the color of citation links using Typst color syntax.\n"
       }
     },
     {
@@ -6184,7 +7082,7 @@
         ]
       },
       "schema": {
-        "ref": "comments"
+        "ref": "document-comments-configuration"
       },
       "description": "Configuration for document commenting."
     }
@@ -6526,8 +7424,10 @@
           "dashboard"
         ]
       },
-      "schema": "path",
-      "description": "Logo image (placed on the left side of the navigation bar)"
+      "schema": {
+        "ref": "logo-light-dark-specifier"
+      },
+      "description": "Logo image(s) (placed on the left side of the navigation bar)"
     },
     {
       "name": "orientation",
@@ -6686,6 +7586,26 @@
       "description": "Visual editor configuration"
     },
     {
+      "name": "editor_options",
+      "schema": {
+        "object": {
+          "properties": {
+            "chunk_output_type": {
+              "enum": [
+                "inline",
+                "console"
+              ],
+              "description": "Determines where chunk output is shown in the editor."
+            }
+          }
+        }
+      },
+      "description": {
+        "short": "Editor-specific options (used by RStudio and Positron).",
+        "long": "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure\nper-document editor settings.\n"
+      }
+    },
+    {
       "name": "zotero",
       "schema": {
         "anyOf": [
@@ -6696,6 +7616,26 @@
         ]
       },
       "description": "Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or\nmore Zotero group libraries to use with the document.\n"
+    }
+  ],
+  "schema/document-email.yml": [
+    {
+      "name": "email-version",
+      "tags": {
+        "formats": [
+          "email"
+        ]
+      },
+      "schema": {
+        "enum": [
+          1,
+          2
+        ]
+      },
+      "description": {
+        "short": "Email format version",
+        "long": "Specifies which email format version to use.\n\n- `1`: Legacy email format with document-level metadata (compatible with older Connect versions)\n- `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)\n"
+      }
     }
   ],
   "schema/document-epub.yml": [
@@ -6768,42 +7708,6 @@
         "ref": "epub-contributor"
       },
       "description": "Contributors to this publication."
-    },
-    {
-      "name": "subject",
-      "tags": {
-        "formats": [
-          "$epub-all"
-        ]
-      },
-      "schema": {
-        "anyOf": [
-          "string",
-          {
-            "object": {
-              "closed": true,
-              "properties": {
-                "text": {
-                  "string": {
-                    "description": "The subject text."
-                  }
-                },
-                "authority": {
-                  "string": {
-                    "description": "An EPUB reserved authority value."
-                  }
-                },
-                "term": {
-                  "string": {
-                    "description": "The subject term (defined by the schema)."
-                  }
-                }
-              }
-            }
-          }
-        ]
-      },
-      "description": "The subject of the publication."
     },
     {
       "name": "type",
@@ -7014,7 +7918,8 @@
         "string": {
           "completions": [
             "jupyter",
-            "knitr"
+            "knitr",
+            "julia"
           ]
         }
       },
@@ -7321,6 +8226,19 @@
       }
     },
     {
+      "name": "codefont",
+      "schema": "string",
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
+      "description": {
+        "short": "Sets the font used for code in Typst output.",
+        "long": "For Typst output, sets the font used for displaying code. Takes\nthe name of any font available to Typst (system fonts or fonts in\ndirectories specified by `font-paths`).\n"
+      }
+    },
+    {
       "name": "fontsize",
       "schema": "string",
       "tags": {
@@ -7398,12 +8316,13 @@
       "schema": "string",
       "tags": {
         "formats": [
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "description": {
-        "short": "The math font family for use with `xelatex` or `lualatex`.",
-        "long": "The math font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n"
+        "short": "The math font family for use with `xelatex`, `lualatex`, or Typst.",
+        "long": "For LaTeX output, the math font family for use with `xelatex` or\n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n\nFor Typst output, sets the font used for mathematical content.\n"
       }
     },
     {
@@ -7556,12 +8475,13 @@
         "formats": [
           "$html-doc",
           "context",
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "description": {
         "short": "Sets the line height or spacing for text in the document.",
-        "long": "For HTML output sets the CSS `line-height` property on the html \nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the \n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n"
+        "long": "For HTML output sets the CSS `line-height` property on the html\nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the\n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n\nFor Typst output, adjusts the spacing between lines of text.\n"
       }
     },
     {
@@ -7642,7 +8562,8 @@
           "$markdown-all",
           "muse",
           "$html-files",
-          "pdf"
+          "pdf",
+          "typst"
         ]
       },
       "schema": {
@@ -8323,6 +9244,21 @@
       "description": "YAML file containing custom language translations"
     },
     {
+      "name": "shorthands",
+      "tags": {
+        "formats": [
+          "pdf",
+          "beamer"
+        ]
+      },
+      "schema": "boolean",
+      "default": false,
+      "description": {
+        "short": "Enable babel language-specific shorthands in LaTeX output.",
+        "long": "Enable babel language-specific shorthands in LaTeX output. When `true`,\nbabel's language shortcuts are enabled (e.g., French `<<`/`>>` for guillemets,\nGerman `\"` shortcuts, proper spacing around French punctuation).\n\nDefault is `false` because language shorthands can interfere with code blocks\nand other content. Only enable if you need specific typographic features\nfor your language.\n"
+      }
+    },
+    {
       "name": "dir",
       "schema": {
         "enum": [
@@ -8546,6 +9482,23 @@
       "description": "The paper size for the document.\n"
     },
     {
+      "name": "brand-mode",
+      "schema": {
+        "enum": [
+          "light",
+          "dark"
+        ]
+      },
+      "default": "light",
+      "tags": {
+        "formats": [
+          "typst",
+          "revealjs"
+        ]
+      },
+      "description": "The brand mode to use for rendering the document, `light` or `dark`.\n"
+    },
+    {
       "name": "layout",
       "schema": {
         "maybeArrayOf": "string"
@@ -8593,6 +9546,12 @@
     },
     {
       "name": "grid",
+      "tags": {
+        "formats": [
+          "$html-doc",
+          "typst"
+        ]
+      },
       "schema": {
         "object": {
           "closed": true,
@@ -8613,24 +9572,24 @@
             },
             "margin-width": {
               "string": {
-                "description": "The base width of the margin (right) column in an HTML page."
+                "description": "The base width of the margin (right) column. For Typst, this controls the width of the margin note column."
               }
             },
             "body-width": {
               "string": {
-                "description": "The base width of the body (center) column in an HTML page."
+                "description": "The base width of the body (center) column. For Typst, this is computed as the remainder after other columns."
               }
             },
             "gutter-width": {
               "string": {
-                "description": "The width of the gutter that appears between columns in an HTML page."
+                "description": "The width of the gutter that appears between columns. For Typst, this is the gap between the text column and margin notes."
               }
             }
           }
         }
       },
       "description": {
-        "short": "Properties of the grid system used to layout Quarto HTML pages."
+        "short": "Properties of the grid system used to layout Quarto HTML and Typst pages."
       }
     },
     {
@@ -8819,6 +9778,62 @@
       "description": {
         "short": "Sets the bottom margin of the document.",
         "long": "For HTML output, sets the `margin-bottom` property on the Body element.\n\nFor LaTeX output, sets the bottom margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the bottom margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the bottom page margin.\n"
+      }
+    },
+    {
+      "name": "margin",
+      "tags": {
+        "formats": [
+          "revealjs",
+          "typst"
+        ]
+      },
+      "schema": {
+        "anyOf": [
+          "number",
+          {
+            "object": {
+              "closed": true,
+              "properties": {
+                "x": {
+                  "string": {
+                    "description": "Horizontal margin (e.g. 1.5in)"
+                  }
+                },
+                "y": {
+                  "string": {
+                    "description": "Vertical margin (e.g. 1.5in)"
+                  }
+                },
+                "top": {
+                  "string": {
+                    "description": "Top margin (e.g. 1.5in)"
+                  }
+                },
+                "bottom": {
+                  "string": {
+                    "description": "Bottom margin (e.g. 1.5in)"
+                  }
+                },
+                "left": {
+                  "string": {
+                    "description": "Left margin (e.g. 1.5in)"
+                  }
+                },
+                "right": {
+                  "string": {
+                    "description": "Right margin (e.g. 1.5in)"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "default": 0.1,
+      "description": {
+        "short": "Margin settings for Reveal.js or Typst output.",
+        "long": "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary specifying page margins. Use `x` and `y` for symmetric\nhorizontal/vertical margins, or `top`, `bottom`, `left`, `right` for\nindividual sides. Values should include units (e.g. `1.5in`, `2cm`).\n"
       }
     },
     {
@@ -9031,7 +10046,7 @@
       "schema": "string",
       "description": {
         "short": "A regular expression that can be used to determine whether a link is an internal link.",
-        "long": "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+        "long": "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
       }
     },
     {
@@ -9337,12 +10352,39 @@
     },
     {
       "name": "subject",
-      "schema": "string",
+      "schema": {
+        "anyOf": [
+          "string",
+          {
+            "object": {
+              "closed": true,
+              "properties": {
+                "text": {
+                  "string": {
+                    "description": "The subject text."
+                  }
+                },
+                "authority": {
+                  "string": {
+                    "description": "An EPUB reserved authority value."
+                  }
+                },
+                "term": {
+                  "string": {
+                    "description": "The subject term (defined by the schema)."
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
       "tags": {
         "formats": [
           "$pdf-all",
           "$office-all",
-          "odt"
+          "odt",
+          "$epub-all"
         ]
       },
       "description": "The document subject"
@@ -9554,6 +10596,11 @@
     },
     {
       "name": "number-offset",
+      "tags": {
+        "formats": [
+          "$html-all"
+        ]
+      },
       "schema": {
         "maybeArrayOf": "number"
       },
@@ -9586,6 +10633,24 @@
       "description": {
         "short": "Shift heading levels by a positive or negative integer. For example, with \n`shift-heading-level-by: -1`, level 2 headings become level 1 headings.\n",
         "long": "Shift heading levels by a positive or negative integer.\nFor example, with `shift-heading-level-by: -1`, level 2\nheadings become level 1 headings, and level 3 headings\nbecome level 2 headings.  Headings cannot have a level\nless than 1, so a heading that would be shifted below level 1\nbecomes a regular paragraph.  Exception: with a shift of -N,\na level-N heading at the beginning of the document\nreplaces the metadata title.\n"
+      }
+    },
+    {
+      "name": "page-numbering",
+      "schema": {
+        "anyOf": [
+          "boolean",
+          "string"
+        ]
+      },
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
+      "description": {
+        "short": "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n",
+        "long": "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
       }
     },
     {
@@ -9654,15 +10719,9 @@
     {
       "name": "brand",
       "schema": {
-        "anyOf": [
-          "string",
-          "boolean",
-          {
-            "ref": "brand"
-          }
-        ]
+        "ref": "brand-path-bool-light-dark"
       },
-      "description": "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition.\n"
+      "description": "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
     },
     {
       "name": "theme",
@@ -9784,6 +10843,20 @@
       "description": "Enables smooth scrolling within the page."
     },
     {
+      "name": "respect-user-color-scheme",
+      "schema": "boolean",
+      "default": false,
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "description": {
+        "short": "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+        "long": "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
+      }
+    },
+    {
       "name": "html-math-method",
       "tags": {
         "formats": [
@@ -9902,7 +10975,7 @@
       },
       "description": {
         "short": "Use the specified engine when producing PDF output.",
-        "long": "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
+        "long": "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `lualatex` (other options: `pdflatex`, `xelatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
       }
     },
     {
@@ -10035,7 +11108,19 @@
           "beamer"
         ]
       },
-      "description": "The Beamer color theme for this presentation."
+      "description": "The Beamer color theme for this presentation, passed to `\\usecolortheme`."
+    },
+    {
+      "name": "colorthemeoptions",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
+      "tags": {
+        "formats": [
+          "beamer"
+        ]
+      },
+      "description": "The Beamer color theme options for this presentation, passed to `\\usecolortheme`."
     },
     {
       "name": "fonttheme",
@@ -10045,7 +11130,19 @@
           "beamer"
         ]
       },
-      "description": "The Beamer font theme for this presentation."
+      "description": "The Beamer font theme for this presentation, passed to `\\usefonttheme`."
+    },
+    {
+      "name": "fontthemeoptions",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
+      "tags": {
+        "formats": [
+          "beamer"
+        ]
+      },
+      "description": "The Beamer font theme options for this presentation, passed to `\\usefonttheme`."
     },
     {
       "name": "innertheme",
@@ -10055,7 +11152,19 @@
           "beamer"
         ]
       },
-      "description": "The Beamer inner theme for this presentation."
+      "description": "The Beamer inner theme for this presentation, passed to `\\useinnertheme`."
+    },
+    {
+      "name": "innerthemeoptions",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
+      "tags": {
+        "formats": [
+          "beamer"
+        ]
+      },
+      "description": "The Beamer inner theme options for this presentation, passed to `\\useinnertheme`."
     },
     {
       "name": "outertheme",
@@ -10065,7 +11174,19 @@
           "beamer"
         ]
       },
-      "description": "The Beamer outer theme for this presentation."
+      "description": "The Beamer outer theme for this presentation, passed to `\\useoutertheme`."
+    },
+    {
+      "name": "outerthemeoptions",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
+      "tags": {
+        "formats": [
+          "beamer"
+        ]
+      },
+      "description": "The Beamer outer theme options for this presentation, passed to `\\useoutertheme`."
     },
     {
       "name": "themeoptions",
@@ -10077,7 +11198,7 @@
           "beamer"
         ]
       },
-      "description": "Options passed to LaTeX Beamer themes."
+      "description": "Options passed to LaTeX Beamer themes inside `\\usetheme`."
     },
     {
       "name": "section",
@@ -10205,6 +11326,51 @@
         "short": "When used in conjunction with `pdfa`, specifies the output intent for the colors.",
         "long": "When used in conjunction with `pdfa`, specifies the output intent for\nthe colors, for example `ISO coated v2 300\\letterpercent\\space (ECI)`\n\nIf left unspecified, `sRGB IEC61966-2.1` is used as default.\n"
       }
+    },
+    {
+      "name": "pdf-standard",
+      "schema": {
+        "maybeArrayOf": {
+          "enum": [
+            "1.4",
+            "1.5",
+            "1.6",
+            "1.7",
+            "2.0",
+            "a-1b",
+            "a-2a",
+            "a-2b",
+            "a-2u",
+            "a-3a",
+            "a-3b",
+            "a-3u",
+            "a-4",
+            "a-4f",
+            "a-1a",
+            "a-4e",
+            "ua-1",
+            "ua-2",
+            "x-4",
+            "x-4p",
+            "x-5g",
+            "x-5n",
+            "x-5pg",
+            "x-6",
+            "x-6n",
+            "x-6p"
+          ]
+        }
+      },
+      "tags": {
+        "formats": [
+          "$pdf-all",
+          "typst"
+        ]
+      },
+      "description": {
+        "short": "PDF conformance standard (e.g., ua-2, a-2b,  1.7)",
+        "long": "Specifies PDF conformance standards and/or version for the output.\n\nAccepts a single value or array of values:\n\n**PDF versions** (both Typst and LaTeX):\n`1.4`, `1.5`, `1.6`, `1.7`, `2.0`\n\n**PDF/A standards** (both engines):\n`a-1b`, `a-2a`, `a-2b`, `a-2u`, `a-3a`, `a-3b`, `a-3u`, `a-4`, `a-4f`\n\n**PDF/A standards** (Typst only):\n`a-1a`, `a-4e`\n\n**PDF/UA standards**:\n`ua-1` (Typst), `ua-2` (LaTeX)\n\n**PDF/X standards** (LaTeX only):\n`x-4`, `x-4p`, `x-5g`, `x-5n`, `x-5pg`, `x-6`, `x-6n`, `x-6p`\n\nExample: `pdf-standard: [a-2b, ua-2]` for accessible archival PDF.\n"
+      }
     }
   ],
   "schema/document-references.yml": [
@@ -10241,7 +11407,8 @@
       },
       "tags": {
         "formats": [
-          "$html-doc"
+          "$html-doc",
+          "typst"
         ]
       },
       "default": "document",
@@ -10678,15 +11845,11 @@
       "name": "logo",
       "tags": {
         "formats": [
-          "revealjs",
-          "typst"
+          "revealjs"
         ]
       },
       "schema": {
-        "anyOf": [
-          "string",
-          "object"
-        ]
+        "ref": "logo-light-dark-specifier"
       },
       "description": "Logo image (placed in bottom right corner of slides)"
     },
@@ -10828,59 +11991,6 @@
         "short": "The 'normal' height of the presentation",
         "long": "The \"normal\" height of the presentation, aspect ratio will\nbe preserved when the presentation is scaled to fit different\nresolutions. Can be specified using percentage units.\n"
       }
-    },
-    {
-      "name": "margin",
-      "tags": {
-        "formats": [
-          "revealjs",
-          "typst"
-        ]
-      },
-      "schema": {
-        "anyOf": [
-          "number",
-          {
-            "object": {
-              "closed": true,
-              "properties": {
-                "x": {
-                  "string": {
-                    "description": "Horizontal margin (e.g. 5cm)"
-                  }
-                },
-                "y": {
-                  "string": {
-                    "description": "Vertical margin (e.g. 5cm)"
-                  }
-                },
-                "top": {
-                  "string": {
-                    "description": "Top margin (e.g. 5cm)"
-                  }
-                },
-                "bottom": {
-                  "string": {
-                    "description": "Bottom margin (e.g. 5cm)"
-                  }
-                },
-                "left": {
-                  "string": {
-                    "description": "Left margin (e.g. 5cm)"
-                  }
-                },
-                "right": {
-                  "string": {
-                    "description": "Right margin (e.g. 5cm)"
-                  }
-                }
-              }
-            }
-          }
-        ]
-      },
-      "default": 0.1,
-      "description": "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n"
     },
     {
       "name": "min-scale",
@@ -11591,7 +12701,7 @@
               "properties": {
                 "url": {
                   "string": {
-                    "default": "https://reveal-multiplex.glitch.me/",
+                    "default": "https://multiplex.up.railway.app/",
                     "description": "Multiplex token server (defaults to Reveal-hosted server)\n"
                   }
                 },
@@ -12263,7 +13373,8 @@
       "default": false,
       "tags": {
         "formats": [
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "description": "Print a list of figures in the document."
@@ -12274,10 +13385,78 @@
       "default": false,
       "tags": {
         "formats": [
-          "$pdf-all"
+          "$pdf-all",
+          "typst"
         ]
       },
       "description": "Print a list of tables in the document."
+    }
+  ],
+  "schema/document-typst.yml": [
+    {
+      "name": "logo",
+      "schema": {
+        "ref": "logo-light-dark-specifier-path-optional"
+      },
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
+      "description": "The logo image."
+    },
+    {
+      "name": "margin-geometry",
+      "schema": {
+        "object": {
+          "closed": true,
+          "properties": {
+            "inner": {
+              "ref": "marginalia-side-geometry",
+              "description": "Inner (left) margin geometry."
+            },
+            "outer": {
+              "ref": "marginalia-side-geometry",
+              "description": "Outer (right) margin geometry."
+            },
+            "clearance": {
+              "string": {
+                "description": "Minimum vertical spacing between margin notes (default: 8pt)."
+              }
+            }
+          }
+        }
+      },
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
+      "description": {
+        "short": "Advanced geometry settings for Typst margin layout.",
+        "long": "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
+      }
+    },
+    {
+      "name": "theorem-appearance",
+      "schema": {
+        "enum": [
+          "simple",
+          "fancy",
+          "clouds",
+          "rainbow"
+        ]
+      },
+      "default": "simple",
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
+      "description": {
+        "short": "Visual style for theorem environments in Typst output.",
+        "long": "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+      }
     }
   ],
   "schema/document-website.yml": [
@@ -12318,7 +13497,7 @@
           "$html-doc"
         ]
       },
-      "description": "Setting this to false prevents the `repo-actions` from appearing on this page."
+      "description": "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
     },
     {
       "name": "aliases",
@@ -12427,10 +13606,39 @@
               "arrayOf": "path"
             },
             "filters": {
-              "arrayOf": "path"
+              "arrayOf": {
+                "anyOf": [
+                  "path",
+                  {
+                    "object": {
+                      "properties": {
+                        "path": {
+                          "schema": "path"
+                        },
+                        "at": {
+                          "ref": "filter-entry-point"
+                        }
+                      },
+                      "required": [
+                        "path"
+                      ]
+                    }
+                  }
+                ]
+              }
             },
             "formats": {
               "schema": "object"
+            },
+            "engines": {
+              "arrayOf": {
+                "anyOf": [
+                  "string",
+                  {
+                    "ref": "external-engine"
+                  }
+                ]
+              }
             }
           }
         }
@@ -12616,6 +13824,9 @@
       "dashboard": {
         "title": "Dashboard"
       },
+      "typst": {
+        "title": "Typst"
+      },
       "options": {
         "title": "Format Options"
       },
@@ -12704,6 +13915,9 @@
       "comments": {
         "title": "Comments"
       },
+      "a11y": {
+        "title": "Accessibility"
+      },
       "includes": {
         "title": "Includes"
       },
@@ -12788,6 +14002,12 @@
                 "description": "Additional file resources to be copied to output directory"
               }
             },
+            "brand": {
+              "schema": {
+                "ref": "brand-path-only-light-dark"
+              },
+              "description": "Path to brand.yml or object with light and dark paths to brand.yml\n"
+            },
             "preview": {
               "description": "Options for `quarto preview`",
               "schema": {
@@ -12859,6 +14079,20 @@
       },
       "errorMessage": "type key not supported at project type-level. Use `project: type: ...` instead.",
       "description": "internal-schema-hack"
+    },
+    {
+      "name": "engines",
+      "schema": {
+        "arrayOf": {
+          "anyOf": [
+            "string",
+            {
+              "ref": "external-engine"
+            }
+          ]
+        }
+      },
+      "description": "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
     }
   ],
   "schema/schema.yml": [
@@ -13547,6 +14781,12 @@
     "asciidoc",
     "asciidoc_legacy",
     "asciidoctor",
+    "bbcode",
+    "bbcode_fluxbb",
+    "bbcode_hubzilla",
+    "bbcode_phpbb",
+    "bbcode_steam",
+    "bbcode_xenforo",
     "beamer",
     "biblatex",
     "bibtex",
@@ -13608,6 +14848,8 @@
     "texinfo",
     "textile",
     "typst",
+    "vimdoc",
+    "xml",
     "xwiki",
     "zimwiki"
   ],
@@ -13620,23 +14862,13 @@
     "Alias for href",
     "Link to file contained with the project or external URL",
     {
-      "short": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-      "long": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href=\"https://icons.getbootstrap.com/\" class=\"uri\">https://icons.getbootstrap.com/</a> for a list of available\nicons"
+      "short": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
+      "long": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href=\"https://icons.getbootstrap.com/\" class=\"uri\">https://icons.getbootstrap.com/</a> for a list of available\nicons"
     },
-    "Text to display for item (defaults to the document title if not\nprovided)",
+    "Text to display for item (defaults to the document title if not\nprovided). Supports markdown formatting.",
     "Alias for href",
     "Value for rel attribute. Multiple space-separated values are\npermitted. See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel\" class=\"uri\">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.",
     "Value for target attribute. See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target\" class=\"uri\">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.",
-    "The Github repo that will be used to store comments.",
-    "The label that will be assigned to issues created by Utterances.",
-    {
-      "short": "The Github theme that should be used for Utterances.",
-      "long": "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-    },
-    {
-      "short": "How posts should be mapped to Github issues",
-      "long": "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-    },
     {
       "short": "The Github repo that will be used to store comments.",
       "long": "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
@@ -13667,6 +14899,18 @@
     "The light theme name.",
     "The dark theme name.",
     "The language that should be used when displaying the commenting\ninterface.",
+    "An execution engine not pre-loaded in Quarto",
+    "Path to the TypeScript module for the execution engine",
+    "The Github repo that will be used to store comments.",
+    "The label that will be assigned to issues created by Utterances.",
+    {
+      "short": "The Github theme that should be used for Utterances.",
+      "long": "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+    },
+    {
+      "short": "How posts should be mapped to Github issues",
+      "long": "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+    },
     "Override the default hypothesis client url with a custom client\nurl.",
     "Controls whether the sidebar opens automatically on startup.",
     "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -13775,9 +15019,9 @@
       "short": "Name that should be displayed for the overall site",
       "long": "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
     },
-    "Footer left content",
-    "Footer right content",
-    "Footer center content",
+    "Footer left content. Supports markdown formatting.",
+    "Footer right content. Supports markdown formatting.",
+    "Footer center content. Supports markdown formatting.",
     "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
     "Footer background color",
     "Footer foreground color",
@@ -13801,6 +15045,7 @@
       "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
     },
     "Displays a ‘reader-mode’ tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+    "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
     "Enable Google Analytics for this website",
     "The Google tracking Id or measurement Id of this website.",
     {
@@ -13815,8 +15060,13 @@
       "short": "The version number of Google Analytics to use.",
       "long": "The version number of Google Analytics to use."
     },
+    {
+      "short": "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+      "long": "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+    },
+    "Path to a file containing the Plausible Analytics script snippet",
     "Provides an announcement displayed at the top of the page.",
-    "The content of the announcement",
+    "The content of the announcement. Supports markdown formatting.",
     "Whether this announcement may be dismissed by the user.",
     {
       "short": "The icon to display in the announcement",
@@ -13858,6 +15108,7 @@
     "Number of matches to display (defaults to 20)",
     "Matches after which to collapse additional results",
     "Provide button for copying search link",
+    "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
     "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -13873,8 +15124,8 @@
     "Field that contains the section of index entries",
     "Additional parameters to pass when executing a search",
     "Top navigation options",
-    "The navbar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed to the left of the\ntitle.",
+    "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed to the left of the\ntitle.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "The navbar’s background color (named or hex color).",
@@ -13889,8 +15140,8 @@
     "Collapse tools into the navbar menu when the display becomes\nnarrow.",
     "Side navigation options",
     "The identifier for this sidebar.",
-    "The sidebar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed in the sidebar.",
+    "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed in the sidebar.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "Include a search control in the sidebar.",
@@ -13906,8 +15157,8 @@
     "Markdown to place above sidebar content (text or file path)",
     "Markdown to place below sidebar content (text or file path)",
     "The identifier for this sidebar.",
-    "The sidebar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed in the sidebar.",
+    "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed in the sidebar.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "Include a search control in the sidebar.",
@@ -13961,6 +15212,7 @@
       "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
     },
     "Displays a ‘reader-mode’ tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+    "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
     "Enable Google Analytics for this website",
     "The Google tracking Id or measurement Id of this website.",
     {
@@ -13975,8 +15227,13 @@
       "short": "The version number of Google Analytics to use.",
       "long": "The version number of Google Analytics to use."
     },
+    {
+      "short": "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+      "long": "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+    },
+    "Path to a file containing the Plausible Analytics script snippet",
     "Provides an announcement displayed at the top of the page.",
-    "The content of the announcement",
+    "The content of the announcement. Supports markdown formatting.",
     "Whether this announcement may be dismissed by the user.",
     {
       "short": "The icon to display in the announcement",
@@ -14018,6 +15275,7 @@
     "Number of matches to display (defaults to 20)",
     "Matches after which to collapse additional results",
     "Provide button for copying search link",
+    "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
     "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -14033,8 +15291,8 @@
     "Field that contains the section of index entries",
     "Additional parameters to pass when executing a search",
     "Top navigation options",
-    "The navbar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed to the left of the\ntitle.",
+    "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed to the left of the\ntitle.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "The navbar’s background color (named or hex color).",
@@ -14049,8 +15307,8 @@
     "Collapse tools into the navbar menu when the display becomes\nnarrow.",
     "Side navigation options",
     "The identifier for this sidebar.",
-    "The sidebar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed in the sidebar.",
+    "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed in the sidebar.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "Include a search control in the sidebar.",
@@ -14066,8 +15324,8 @@
     "Markdown to place above sidebar content (text or file path)",
     "Markdown to place below sidebar content (text or file path)",
     "The identifier for this sidebar.",
-    "The sidebar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed in the sidebar.",
+    "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed in the sidebar.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "Include a search control in the sidebar.",
@@ -14110,7 +15368,7 @@
     "Book part and chapter files",
     "Book appendix files",
     "Book references file",
-    "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+    "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
     "Cover image (used in HTML and ePub formats)",
     "Alternative text for cover image (used in HTML format)",
     "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -14214,7 +15472,7 @@
     "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
     {
       "short": "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
-      "long": "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href=\"https://deno.land/std@0.125.0/datetime\">here</a>."
+      "long": "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href=\"https://quarto.org/docs/reference/dates.html\">here</a>."
     },
     {
       "short": "The maximum length (in characters) of the description displayed in\nthe listing.",
@@ -14623,7 +15881,7 @@
     "Short/abbreviated form of container-title;",
     "A minor contributor to the item; typically cited using “with” before\nthe name when listed in a bibliography.",
     "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-    "Physical (e.g.&nbsp;size) or temporal (e.g.��running time) dimensions of\nthe item.",
+    "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
     "Director (e.g.&nbsp;of a film).",
     "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
     "(Container) edition holding the item (e.g.&nbsp;“3” when citing a chapter\nin the third edition of a book).",
@@ -14766,6 +16024,11 @@
     "Specify a default profile and profile groups",
     "Default profile to apply if QUARTO_PROFILE is not defined.",
     "Define a profile group for which at least one profile is always\nactive.",
+    "Control when tests should run",
+    "Run tests on CI (true = run, false = skip)",
+    "Skip test unconditionally (true = skip with default message, string =\nskip with custom message)",
+    "Run tests ONLY on these platforms (whitelist)",
+    "Don’t run tests on these platforms (blacklist)",
     "The path to the locally referenced notebook.",
     "The title of the notebook when viewed.",
     "The url to use when viewing this notebook.",
@@ -14805,10 +16068,44 @@
     "Alternative text for the logo, used for accessibility.",
     "Provide definitions and defaults for brand’s logo in various formats\nand sizes.",
     "A dictionary of named logo resources.",
+    "A link or path to the brand’s small-sized logo or icon.",
+    "A link or path to the brand’s medium-sized logo.",
+    "A link or path to the brand’s large- or full-sized logo.",
+    "Provide definitions and defaults for brand’s logo in various formats\nand sizes.",
+    "A dictionary of named logo resources.",
     "A link or path to the brand’s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
     "A link or path to the brand’s medium-sized logo, or a link or path to\nboth the light and dark versions.",
     "A link or path to the brand’s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
     "Names of customizeable logos",
+    "Path or brand.yml logo resource name.",
+    "Alternative text for the logo, used for accessibility.",
+    "Path or brand.yml logo resource name.",
+    "Alternative text for the logo, used for accessibility.",
+    "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
+    "Specification of a light logo",
+    "Specification of a dark logo",
+    "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
+    "Specification of a light logo",
+    "Specification of a dark logo",
+    "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+    "Options for a light logo",
+    "Options for a dark logo",
+    "The brand’s custom color palette and theme.",
+    "The brand’s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
+    "The foreground color, used for text.",
+    "The background color, used for the page background.",
+    "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
+    "The secondary accent color. Typically used for lighter text or\ndisabled states.",
+    "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
+    "The color used for positive or successful actions and\ninformation.",
+    "The color used for neutral or informational actions and\ninformation.",
+    "The color used for warning or cautionary actions and information.",
+    "The color used for errors, dangerous actions, or negative\ninformation.",
+    "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
+    "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+    "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
+    "A link or path to the brand’s light-colored logo or icon.",
+    "A link or path to the brand’s dark-colored logo or icon.",
     "The brand’s custom color palette and theme.",
     "The brand’s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
     "The foreground color, used for text.",
@@ -14824,7 +16121,17 @@
     "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
     "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
     "A color, which may be a named brand color.",
+    "A link or path to the brand’s light-colored logo or icon.",
+    "A link or path to the brand’s dark-colored logo or icon.",
     "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
+    "Typography definitions for the brand.",
+    "Font files and definitions for the brand.",
+    "The base font settings for the brand. These are used as the default\nfor all text.",
+    "Settings for headings, or a string specifying the font family\nonly.",
+    "Settings for monospace text, or a string specifying the font family\nonly.",
+    "Settings for inline code, or a string specifying the font family\nonly.",
+    "Settings for code blocks, or a string specifying the font family\nonly.",
+    "Settings for links.",
     "Typography definitions for the brand.",
     "Font files and definitions for the brand.",
     "The base font settings for the brand. These are used as the default\nfor all text.",
@@ -14835,12 +16142,17 @@
     "Settings for links.",
     "Base typographic options.",
     "Typographic options for headings.",
+    "Typographic options for headings.",
     "Typographic options for monospace elements.",
+    "Typographic options for monospace elements.",
+    "Typographic options for inline monospace elements.",
     "Typographic options for inline monospace elements.",
     "Line height",
     "Typographic options for block monospace elements.",
+    "Typographic options for block monospace elements.",
     "Typographic options for inline monospace elements.",
-    "Names of customizeable fonts",
+    "Typographic options for inline monospace elements.",
+    "Names of customizeable typography elements",
     "Font files and definitions for the brand.",
     "A font weight.",
     "A font style.",
@@ -14868,11 +16180,19 @@
     "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
     "The path to the font file. This can be a local path or a URL.",
     "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+    "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
+    "Branding information to use for this document. If a string, the path\nto a brand file. If false, don’t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
+    "The path to a light brand file or an inline light brand\ndefinition.",
+    "The path to a dark brand file or an inline dark brand definition.",
+    "Distance from page edge to wideblock boundary.",
+    "Width of the margin note column.",
+    "Gap between margin column and body text.",
     {
       "short": "Unique label for code cell",
       "long": "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
     },
     "Classes to apply to cell container",
+    "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
     "Array of tags for notebook cell",
     {
       "short": "Notebook cell identifier",
@@ -15078,6 +16398,10 @@
     "Attribute(s) for message output",
     "Class name(s) for error output",
     "Attribute(s) for error output",
+    "When defined, run axe-core accessibility tests on the document.",
+    "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+    "Only check the rules for this WCAG conformance level, named as\nversion then level (e.g.&nbsp;<code>wcag21aa</code> for WCAG 2.1 AA). Each\nlevel includes the levels and versions it builds on, and may check rules\naxe-core disables by default (such as AAA color contrast). Axe’s\nbest-practice rules are excluded unless <code>best-practice: true</code>\nis also set.",
+    "Whether to check axe-core’s best-practice rules (checks recommended\nby axe that aren’t required by any WCAG success criterion). Checked by\ndefault when <code>standard</code> is unset; excluded by default when\n<code>standard</code> is set.",
     {
       "short": "Specifies that the page is an ‘about’ page and which template to use\nwhen laying out the page.",
       "long": "Specifies that the page is an ‘about’ page and which template to use\nwhen laying out the page.\nThe allowed values are either:"
@@ -15085,6 +16409,7 @@
     "Document title",
     "Identifies the subtitle of the document.",
     "Document date",
+    "Date format for the document",
     "Document date modified",
     "Author or authors of the document",
     {
@@ -15141,7 +16466,11 @@
     },
     {
       "short": "Specifies the coloring style to be used in highlighted source\ncode.",
-      "long": "Specifies the coloring style to be used in highlighted source\ncode.\nInstead of a <em>STYLE</em> name, a JSON file with extension\n<code>.theme</code> may be supplied. This will be parsed as a KDE syntax\nhighlighting theme and (if valid) used as the highlighting style."
+      "long": "Specifies the coloring style to be used in highlighted source\ncode.\nValid values:"
+    },
+    {
+      "short": "Deprecated: use <code>syntax-highlighting</code> instead.",
+      "long": "Deprecated: use <code>syntax-highlighting</code> instead.\nSpecifies the coloring style to be used in highlighted source\ncode."
     },
     "KDE language syntax definition file (XML)",
     "KDE language syntax definition files (XML)",
@@ -15153,17 +16482,17 @@
     "Sets the CSS <code>color</code> property.",
     {
       "short": "Sets the color of hyperlinks in the document.",
-      "long": "For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document."
+      "long": "For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.\nFor Typst output, sets the color of internal hyperlinks using Typst\ncolor syntax."
     },
     "Sets the CSS <code>background-color</code> property on code elements\nand adds extra padding.",
     "Sets the CSS <code>background-color</code> property on the html\nelement.",
     {
-      "short": "The color used for external links using color options allowed by\n<code>xcolor</code>",
-      "long": "The color used for external links using color options allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists."
+      "short": "The color used for external links.",
+      "long": "For LaTeX output, the color used for external links using color\noptions allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of external file links using Typst\ncolor syntax."
     },
     {
-      "short": "The color used for citation links using color options allowed by\n<code>xcolor</code>",
-      "long": "The color used for citation links using color options allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists."
+      "short": "The color used for citation links.",
+      "long": "For LaTeX output, the color used for citation links using color\noptions allowed by <a href=\"https://ctan.org/pkg/xcolor\"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of citation links using Typst color\nsyntax."
     },
     {
       "short": "The color used for linked URLs using color options allowed by\n<code>xcolor</code>",
@@ -15242,7 +16571,7 @@
     "The title used for appendix.",
     "The delimiter beween appendix number and title.",
     "Enables a hover popup for cross references that shows the item being\nreferenced.",
-    "Logo image (placed on the left side of the navigation bar)",
+    "Logo image(s) (placed on the left side of the navigation bar)",
     "Default orientation for dashboard content (default\n<code>rows</code>)",
     "Use scrolling rather than fill layout (default:\n<code>false</code>)",
     "Make card content expandable (default: <code>true</code>)",
@@ -15257,16 +16586,21 @@
     "Write markdown links as references rather than inline.",
     "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
     "Automatically re-render for preview whenever document is saved (note\nthat this requires a preview for the saved document be already running).\nThis option currently works only within VS Code.",
+    {
+      "short": "Editor-specific options (used by RStudio and Positron).",
+      "long": "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
+    },
+    "Determines where chunk output is shown in the editor.",
     "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
+    {
+      "short": "Email format version",
+      "long": "Specifies which email format version to use."
+    },
     "The identifier for this publication.",
     "The identifier value.",
     "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
     "Creators of this publication.",
     "Contributors to this publication.",
-    "The subject of the publication.",
-    "The subject text.",
-    "An EPUB reserved authority value.",
-    "The subject term (defined by the schema).",
     {
       "short": "Text describing the specialized type of this publication.",
       "long": "Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href=\"https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry\">TypesRegistry</a>,\nbut Authors may use any text string as a value."
@@ -15355,6 +16689,10 @@
       "long": "For HTML output, sets the CSS font-family property on code\nelements.\nFor PowerPoint output, sets the font used for code.\nFor LaTeX output, the monospace font family for use with\n<code>xelatex</code> or <code>lualatex</code>: take the name of any\nsystem font, using the <a href=\"https://ctan.org/pkg/fontspec\"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the monspace font family. Use the name of any\nsystem font. See <a href=\"https://wiki.contextgarden.net/Fonts\">ConTeXt\nFonts</a> for more information."
     },
     {
+      "short": "Sets the font used for code in Typst output.",
+      "long": "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
+    },
+    {
       "short": "Sets the main font size for the document.",
       "long": "For HTML output, sets the base CSS <code>font-size</code>\nproperty.\nFor LaTeX and ConTeXt output, sets the font size for the document\nbody text."
     },
@@ -15375,8 +16713,8 @@
       "long": "The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href=\"https://ctan.org/pkg/fontspec\"><code>fontspec</code></a>\npackage."
     },
     {
-      "short": "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-      "long": "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href=\"https://ctan.org/pkg/fontspec\"><code>fontspec</code></a>\npackage."
+      "short": "The math font family for use with <code>xelatex</code>,\n<code>lualatex</code>, or Typst.",
+      "long": "For LaTeX output, the math font family for use with\n<code>xelatex</code> or <code>lualatex</code>. Takes the name of any\nsystem font, using the <a href=\"https://ctan.org/pkg/fontspec\"><code>fontspec</code></a>\npackage.\nFor Typst output, sets the font used for mathematical content."
     },
     {
       "short": "The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -15414,7 +16752,7 @@
     "The line height, for example, <code>12p</code>.",
     {
       "short": "Sets the line height or spacing for text in the document.",
-      "long": "For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href=\"https://ctan.org/pkg/setspace\">setspace</a> package, e.g.&nbsp;1.25,\n1.5."
+      "long": "For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href=\"https://ctan.org/pkg/setspace\">setspace</a> package, e.g.&nbsp;1.25,\n1.5.\nFor Typst output, adjusts the spacing between lines of text."
     },
     "Adjusts line spacing using the <code>\\setupinterlinespace</code>\ncommand.",
     "The typeface style for links in the document.",
@@ -15628,6 +16966,10 @@
     },
     "YAML file containing custom language translations",
     {
+      "short": "Enable babel language-specific shorthands in LaTeX output.",
+      "long": "Enable babel language-specific shorthands in LaTeX output. When\n<code>true</code>, babel’s language shortcuts are enabled (e.g., French\n<code>&lt;&lt;</code>/<code>&gt;&gt;</code> for guillemets, German\n<code>\"</code> shortcuts, proper spacing around French punctuation).\nDefault is <code>false</code> because language shorthands can\ninterfere with code blocks and other content. Only enable if you need\nspecific typographic features for your language."
+    },
+    {
       "short": "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).",
       "long": "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute can be used to\noverride the base direction in some output formats. This may not always\nbe necessary if the final renderer (e.g.&nbsp;the browser, when generating\nHTML) supports the [Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>)."
     },
@@ -15652,6 +16994,7 @@
     },
     "Control the <code>\\pagestyle{}</code> for the document.",
     "The paper size for the document.",
+    "The brand mode to use for rendering the document, <code>light</code>\nor <code>dark</code>.",
     {
       "short": "The options for margins and text layout for this document.",
       "long": "The options for margins and text layout for this document.\nSee <a href=\"https://wiki.contextgarden.net/Layout\">ConTeXt\nLayout</a> for additional information."
@@ -15662,14 +17005,14 @@
       "long": "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
     },
     {
-      "short": "Properties of the grid system used to layout Quarto HTML pages.",
+      "short": "Properties of the grid system used to layout Quarto HTML and Typst\npages.",
       "long": ""
     },
     "Defines whether to use the standard, slim, or full content grid or to\nautomatically select the most appropriate content grid.",
     "The base width of the sidebar (left) column in an HTML page.",
-    "The base width of the margin (right) column in an HTML page.",
-    "The base width of the body (center) column in an HTML page.",
-    "The width of the gutter that appears between columns in an HTML\npage.",
+    "The base width of the margin (right) column. For Typst, this controls\nthe width of the margin note column.",
+    "The base width of the body (center) column. For Typst, this is\ncomputed as the remainder after other columns.",
+    "The width of the gutter that appears between columns. For Typst, this\nis the gap between the text column and margin notes.",
     {
       "short": "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
       "long": "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
@@ -15712,6 +17055,16 @@
       "long": "For HTML output, sets the <code>margin-bottom</code> property on the\nBody element.\nFor LaTeX output, sets the bottom margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the bottom margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the bottom page margin."
     },
     {
+      "short": "Margin settings for Reveal.js or Typst output.",
+      "long": "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary specifying page margins. Use\n<code>x</code> and <code>y</code> for symmetric horizontal/vertical\nmargins, or <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code> for individual sides. Values should include units\n(e.g.&nbsp;<code>1.5in</code>, <code>2cm</code>)."
+    },
+    "Horizontal margin (e.g.&nbsp;1.5in)",
+    "Vertical margin (e.g.&nbsp;1.5in)",
+    "Top margin (e.g.&nbsp;1.5in)",
+    "Bottom margin (e.g.&nbsp;1.5in)",
+    "Left margin (e.g.&nbsp;1.5in)",
+    "Right margin (e.g.&nbsp;1.5in)",
+    {
       "short": "Options for the geometry package.",
       "long": "Options for the <a href=\"https://ctan.org/pkg/geometry\">geometry</a>\npackage. For example:"
     },
@@ -15744,7 +17097,7 @@
     "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
     {
       "short": "A regular expression that can be used to determine whether a link is\nan internal link.",
-      "long": "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+      "long": "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
     },
     {
       "short": "Controls whether links to other rendered formats are displayed in\nHTML output.",
@@ -15785,6 +17138,9 @@
     "The mermaid built-in theme to use.",
     "List of keywords to be included in the document metadata.",
     "The document subject",
+    "The subject text.",
+    "An EPUB reserved authority value.",
+    "The subject term (defined by the schema).",
     "The document description. Some applications show this as\n<code>Comments</code> metadata.",
     "The document category.",
     "The copyright for this document, if any.",
@@ -15828,6 +17184,10 @@
       "long": "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
     },
     {
+      "short": "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+      "long": "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href=\"https://typst.app/docs/reference/model/numbering/\">Typst\nNumbering</a> for additional information."
+    },
+    {
       "short": "Sets the page numbering style and location for the document.",
       "long": "Sets the page numbering style and location for the document using the\n<code>\\setuppagenumbering</code> command.\nSee <a href=\"https://wiki.contextgarden.net/Command/setuppagenumbering\">ConTeXt\nPage Numbering</a> for additional information."
     },
@@ -15837,7 +17197,7 @@
     },
     "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
     "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
-    "Branding information to use for this document. If a string, the path\nto a brand file. If false, don’t use branding on this document. If an\nobject, an inline brand definition.",
+    "Branding information to use for this document. If a string, the path\nto a brand file. If false, don’t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
     "Theme name, theme scss file, or a mix of both.",
     "The light theme name, theme scss file, or a mix of both.",
     "The light theme name, theme scss file, or a mix of both.",
@@ -15850,6 +17210,10 @@
     "Enables hover over a section title to see an anchor link.",
     "Enables tabsets to present content.",
     "Enables smooth scrolling within the page.",
+    {
+      "short": "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+      "long": "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
+    },
     {
       "short": "Method use to render math in HTML output",
       "long": "Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href=\"https://pandoc.org/MANUAL.html#math-rendering-in-html\">Math\nRendering in HTML</a> for additional details."
@@ -15883,11 +17247,15 @@
     "The image for the title slide.",
     "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
     "Whether to enable title pages for new sections.",
-    "The Beamer color theme for this presentation.",
-    "The Beamer font theme for this presentation.",
-    "The Beamer inner theme for this presentation.",
-    "The Beamer outer theme for this presentation.",
-    "Options passed to LaTeX Beamer themes.",
+    "The Beamer color theme for this presentation, passed to\n<code>\\usecolortheme</code>.",
+    "The Beamer color theme options for this presentation, passed to\n<code>\\usecolortheme</code>.",
+    "The Beamer font theme for this presentation, passed to\n<code>\\usefonttheme</code>.",
+    "The Beamer font theme options for this presentation, passed to\n<code>\\usefonttheme</code>.",
+    "The Beamer inner theme for this presentation, passed to\n<code>\\useinnertheme</code>.",
+    "The Beamer inner theme options for this presentation, passed to\n<code>\\useinnertheme</code>.",
+    "The Beamer outer theme for this presentation, passed to\n<code>\\useoutertheme</code>.",
+    "The Beamer outer theme options for this presentation, passed to\n<code>\\useoutertheme</code>.",
+    "Options passed to LaTeX Beamer themes inside\n<code>\\usetheme</code>.",
     "The section number in man pages.",
     "Enable and disable extensions for markdown output (e.g.&nbsp;“+emoji”)",
     "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
@@ -15914,6 +17282,10 @@
     {
       "short": "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors.",
       "long": "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors, for example\n<code>ISO coated v2 300\\letterpercent\\space (ECI)</code>\nIf left unspecified, <code>sRGB IEC61966-2.1</code> is used as\ndefault."
+    },
+    {
+      "short": "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
+      "long": "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
     },
     "Document bibliography (BibTeX or CSL). May be a single file or a list\nof files",
     "Citation Style Language file to use for formatting references.",
@@ -16028,13 +17400,6 @@
       "short": "The ‘normal’ height of the presentation",
       "long": "The “normal” height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
     },
-    "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary with the fields defined in the\nTypst documentation: <code>x</code>, <code>y</code>, <code>top</code>,\n<code>bottom</code>, <code>left</code>, <code>right</code> (margins are\nspecified in <code>cm</code> units, e.g.&nbsp;<code>5cm</code>).",
-    "Horizontal margin (e.g.&nbsp;5cm)",
-    "Vertical margin (e.g.&nbsp;5cm)",
-    "Top margin (e.g.&nbsp;5cm)",
-    "Bottom margin (e.g.&nbsp;5cm)",
-    "Left margin (e.g.&nbsp;5cm)",
-    "Right margin (e.g.&nbsp;5cm)",
     "Bounds for smallest possible scale to apply to content",
     "Bounds for largest possible scale to apply to content",
     "Vertical centering of slides",
@@ -16222,8 +17587,20 @@
     "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
     "Print a list of figures in the document.",
     "Print a list of tables in the document.",
+    "The logo image.",
+    {
+      "short": "Advanced geometry settings for Typst margin layout.",
+      "long": "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+    },
+    "Inner (left) margin geometry.",
+    "Outer (right) margin geometry.",
+    "Minimum vertical spacing between margin notes (default: 8pt).",
+    {
+      "short": "Visual style for theorem environments in Typst output.",
+      "long": "Controls how theorems, lemmas, definitions, etc. are rendered:"
+    },
     "Setting this to false prevents this document from being included in\nsearches.",
-    "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+    "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
     {
       "short": "Links to source repository actions",
       "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -16255,6 +17632,7 @@
     "HTML library (JS/CSS/etc.) directory",
     "Additional file resources to be copied to output directory",
     "Additional file resources to be copied to output directory",
+    "Path to brand.yml or object with light and dark paths to\nbrand.yml",
     "Options for <code>quarto preview</code>",
     "Scripts to run as a pre-render step",
     "Scripts to run as a post-render step",
@@ -16281,6 +17659,7 @@
       "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
     },
     "Displays a ‘reader-mode’ tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+    "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
     "Enable Google Analytics for this website",
     "The Google tracking Id or measurement Id of this website.",
     {
@@ -16295,8 +17674,13 @@
       "short": "The version number of Google Analytics to use.",
       "long": "The version number of Google Analytics to use."
     },
+    {
+      "short": "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+      "long": "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+    },
+    "Path to a file containing the Plausible Analytics script snippet",
     "Provides an announcement displayed at the top of the page.",
-    "The content of the announcement",
+    "The content of the announcement. Supports markdown formatting.",
     "Whether this announcement may be dismissed by the user.",
     {
       "short": "The icon to display in the announcement",
@@ -16338,6 +17722,7 @@
     "Number of matches to display (defaults to 20)",
     "Matches after which to collapse additional results",
     "Provide button for copying search link",
+    "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
     "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -16353,8 +17738,8 @@
     "Field that contains the section of index entries",
     "Additional parameters to pass when executing a search",
     "Top navigation options",
-    "The navbar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed to the left of the\ntitle.",
+    "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed to the left of the\ntitle.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "The navbar’s background color (named or hex color).",
@@ -16369,8 +17754,8 @@
     "Collapse tools into the navbar menu when the display becomes\nnarrow.",
     "Side navigation options",
     "The identifier for this sidebar.",
-    "The sidebar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed in the sidebar.",
+    "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed in the sidebar.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "Include a search control in the sidebar.",
@@ -16386,8 +17771,8 @@
     "Markdown to place above sidebar content (text or file path)",
     "Markdown to place below sidebar content (text or file path)",
     "The identifier for this sidebar.",
-    "The sidebar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed in the sidebar.",
+    "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed in the sidebar.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "Include a search control in the sidebar.",
@@ -16430,7 +17815,7 @@
     "Book part and chapter files",
     "Book appendix files",
     "Book references file",
-    "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+    "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
     "Cover image (used in HTML and ePub formats)",
     "Alternative text for cover image (used in HTML format)",
     "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -16588,14 +17973,7 @@
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
     "internal-schema-hack",
-    {
-      "short": "Include an automatically generated table of contents",
-      "long": ""
-    },
-    {
-      "short": "Use smart quotes in document output. Defaults to true.",
-      "long": ""
-    },
+    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’.",
     "Project configuration.",
     "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
     "Files to render (defaults to all files)",
@@ -16607,6 +17985,7 @@
     "HTML library (JS/CSS/etc.) directory",
     "Additional file resources to be copied to output directory",
     "Additional file resources to be copied to output directory",
+    "Path to brand.yml or object with light and dark paths to\nbrand.yml",
     "Options for <code>quarto preview</code>",
     "Scripts to run as a pre-render step",
     "Scripts to run as a post-render step",
@@ -16633,6 +18012,7 @@
       "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
     },
     "Displays a ‘reader-mode’ tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+    "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
     "Enable Google Analytics for this website",
     "The Google tracking Id or measurement Id of this website.",
     {
@@ -16647,8 +18027,13 @@
       "short": "The version number of Google Analytics to use.",
       "long": "The version number of Google Analytics to use."
     },
+    {
+      "short": "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+      "long": "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+    },
+    "Path to a file containing the Plausible Analytics script snippet",
     "Provides an announcement displayed at the top of the page.",
-    "The content of the announcement",
+    "The content of the announcement. Supports markdown formatting.",
     "Whether this announcement may be dismissed by the user.",
     {
       "short": "The icon to display in the announcement",
@@ -16690,6 +18075,7 @@
     "Number of matches to display (defaults to 20)",
     "Matches after which to collapse additional results",
     "Provide button for copying search link",
+    "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
     "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -16705,8 +18091,8 @@
     "Field that contains the section of index entries",
     "Additional parameters to pass when executing a search",
     "Top navigation options",
-    "The navbar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed to the left of the\ntitle.",
+    "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed to the left of the\ntitle.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "The navbar’s background color (named or hex color).",
@@ -16721,8 +18107,8 @@
     "Collapse tools into the navbar menu when the display becomes\nnarrow.",
     "Side navigation options",
     "The identifier for this sidebar.",
-    "The sidebar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed in the sidebar.",
+    "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed in the sidebar.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "Include a search control in the sidebar.",
@@ -16738,8 +18124,8 @@
     "Markdown to place above sidebar content (text or file path)",
     "Markdown to place below sidebar content (text or file path)",
     "The identifier for this sidebar.",
-    "The sidebar title. Uses the project title if none is specified.",
-    "Path to a logo image that will be displayed in the sidebar.",
+    "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+    "Specification of image that will be displayed in the sidebar.",
     "Alternate text for the logo image.",
     "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
     "Include a search control in the sidebar.",
@@ -16782,7 +18168,7 @@
     "Book part and chapter files",
     "Book appendix files",
     "Book references file",
-    "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+    "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
     "Cover image (used in HTML and ePub formats)",
     "Alternative text for cover image (used in HTML format)",
     "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -16939,7 +18325,8 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
-    "internal-schema-hack"
+    "internal-schema-hack",
+    "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto’s default order\nis ‘knitr’, ‘jupyter’, ‘markdown’, ‘julia’."
   ],
   "schema/external-schemas.yml": [
     {
@@ -17143,6 +18530,7 @@
     "stata": "*",
     "java": "//",
     "groovy": "//",
+    "kotlin": "//",
     "sed": "#",
     "perl": "#",
     "prql": "#",
@@ -17164,16 +18552,17 @@
       "(*",
       "*)"
     ],
+    "q": "/",
     "rust": "//",
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 194269,
+    "_internalId": 218300,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 194261,
+        "_internalId": 218292,
         "type": "enum",
         "enum": [
           "png",
@@ -17189,7 +18578,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 194268,
+        "_internalId": 218299,
         "type": "anyOf",
         "anyOf": [
           {
@@ -17229,40 +18618,5 @@
       "case-detection": true
     },
     "$id": "handlers/mermaid"
-  },
-  "schema/document-typst.yml": [
-    {
-      "name": "page-numbering",
-      "tags": {
-        "formats": [
-          "typst"
-        ]
-      },
-      "schema": {
-        "anyOf": [
-          "string",
-          {
-            "enum": [
-              false
-            ]
-          }
-        ]
-      },
-      "description": {
-        "short": "Include an automatically generated table of contents"
-      }
-    },
-    {
-      "name": "smart",
-      "tags": {
-        "formats": [
-          "typst"
-        ]
-      },
-      "schema": "boolean",
-      "description": {
-        "short": "Use smart quotes in document output. Defaults to true."
-      }
-    }
-  ]
+  }
 }

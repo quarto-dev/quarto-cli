@@ -1,0 +1,97 @@
+---
+title: "Full Width Figure Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#wideblock\(side: "outer"\)', '#wideblock\(side: "both"\)']
+        - []
+      ensurePdfRegexMatches:
+        # Verify figure captions appear at the figures
+        - - 'Figure 1: CAPWIDE1'
+          - 'Figure 2: CAPFULL2'
+        # Verify cross-references resolve correctly (allow whitespace/newlines)
+          - 'XREF1\s+Figure 1'
+          - 'XREF2\s+Figure 2'
+        - []
+      ensurePdfTextPositions:
+        - # Aside text is in margin (rightOf body text)
+          - subject: "column-page-right"
+            relation: rightOf
+            object: "Page Right"
+          # Aside is rightOf fullwidth caption (aside in far margin, caption spans body)
+          - subject: "column-page-right"
+            relation: rightOf
+            object: "CAPWIDE1"
+        - # Negative: fullwidth caption NOT rightOf aside (caption not in far margin)
+          - subject: "CAPWIDE1"
+            relation: rightOf
+            object: "column-page-right"
+      noErrors: default
+---
+
+```{r}
+#| label: setup
+#| echo: false
+library(ggplot2)
+```
+
+## Full Width Figure (Page Right)
+[The `.column-page-right` class extends the figure into the right margin while keeping the left edge aligned with the text column.]{.aside}
+
+This figure extends into the right margin. Compare with XREF2 @fig-full-page below.
+[Wave 1 uses the base frequency, Wave 2 doubles it, and Wave 3 halves it with a phase offset.]{.aside}
+
+```{r}
+#| label: fig-wide-right
+#| echo: false
+#| fig-cap: "CAPWIDE1"
+#| column: page-right
+#| out-width: 100%
+
+x <- seq(0, 4 * pi, length.out = 200)
+df <- data.frame(
+  x = rep(x, 3),
+  y = c(sin(x), sin(2 * x) * 0.7 + 0.5, sin(0.5 * x + 1) * 0.8 - 0.3),
+  wave = rep(c("Wave 1", "Wave 2", "Wave 3"), each = 200)
+)
+ggplot(df, aes(x, y, color = wave)) +
+  geom_line(linewidth = 1) +
+  theme_minimal() +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "bottom")
+```
+
+## Full Width Figure (Full Page)
+[The `.column-page` class spans the entire page width, extending into both margins.]{.aside}
+
+This figure spans the full page. Unlike XREF1 @fig-wide-right above, it extends into both margins.
+[Full-width figures are ideal for time series, wide tables, or any content where horizontal space improves readability.]{.aside}
+
+```{r}
+#| label: fig-full-page
+#| echo: false
+#| fig-cap: "CAPFULL2"
+#| column: page
+#| out-width: 100%
+
+ggplot(df, aes(x, y, color = wave)) +
+  geom_line(linewidth = 1.2) +
+  theme_minimal() +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "bottom")
+```
+
+## Summary
+[Margin layouts in Typst use the marginalia package under the hood.]{.aside}
+
+These examples demonstrate how Quarto's column classes translate to Typst's margin layout system. The margin notes you see alongside this text provide additional context without interrupting the main narrative flow.
+[This approach follows Edward Tufte's principles of information design, keeping supplementary details accessible but unobtrusive.]{.aside}
+
+When combining full-width figures with margin notes, the layout engine automatically handles the spacing and positioning to prevent overlaps.
+[The `papersize` option must be set for margin layouts to calculate geometry correctly.]{.aside}

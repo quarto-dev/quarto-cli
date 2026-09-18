@@ -1,0 +1,17 @@
+---
+title: "Unicode SCSS Test"
+format:
+  html:
+    theme:
+      - default
+      - custom-14065.scss
+_quarto:
+  tests:
+    html:
+      ensureCssRegexMatches:
+        - ['#présentation p', '--quarto-scss-export-']
+---
+
+## Présentation
+
+Unicode characters in headings become CSS selectors.

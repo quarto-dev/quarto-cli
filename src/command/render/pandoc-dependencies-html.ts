@@ -35,6 +35,7 @@ import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { insecureHash } from "../../core/hash.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 export async function writeDependencies(
   dependenciesFile: string,
@@ -146,7 +147,7 @@ export function resolveDependencies(
   project?: ProjectContext,
 ) {
   // deep copy to not mutate caller's object
-  extras = ld.cloneDeep(extras);
+  extras = safeCloneDeep(extras);
 
   const lines: string[] = [];
   const afterBodyLines: string[] = [];

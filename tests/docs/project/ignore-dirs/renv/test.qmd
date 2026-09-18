@@ -1,0 +1,5 @@
+---
+title: "Renv Test"
+---
+
+This file should NOT be rendered (renv is a Knitr ignore directory).

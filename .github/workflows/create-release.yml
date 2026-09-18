@@ -14,10 +14,29 @@ on:
         required: false
         type: boolean
         default: true
+      os:
+        description: "Which OS builds to run"
+        required: false
+        type: choice
+        options:
+          - all
+          - linux
+          - windows
+          - macos
+        default: all
+      smoke-artifacts-only:
+        description: "Build only the Linux amd64 tarball and signed Windows zip used by built-version tests. For unpublished branch builds; requires publish-release=false."
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NFPM_VERSION: "2.43.1"
 
 concurrency:
   # make publishing release concurrent (but others trigger not)
-  group: building-releases-${{ inputs.publish-release && 'prerelease' || github.run_id }}
+  # Partial test builds must not queue with releases.
+  group: building-releases-${{ inputs.publish-release && !inputs.smoke-artifacts-only && 'prerelease' || github.run_id }}
 
 jobs:
   configure:
@@ -28,12 +47,35 @@ jobs:
       tag_name: v${{ steps.read-version.outputs.version_full }}
       version_commit: ${{ steps.version_commit.outputs.commit_long_sha }}
       pushed: ${{ steps.version_commit.outputs.pushed }}
+      tagged: ${{ steps.version_commit.outputs.tagged }}
       tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
-      - uses: actions/checkout@v4
+      # Prevent a partial build from reaching the version commit and tag.
+      - name: Fail on publish-release + smoke-artifacts-only
+        if: ${{ inputs.publish-release && inputs.smoke-artifacts-only }}
+        run: |
+          echo "::error::smoke-artifacts-only builds cannot publish - re-dispatch with publish-release=false"
+          exit 1
+
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
+
+      - name: Guard against partial-platform release publish
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish-release && inputs.os != 'all' }}
+        run: |
+          echo "::error::Cannot publish a release when os is not 'all' (got '${{ inputs.os }}'). Set publish-release=false for a single-platform test run, or os=all to publish a full release."
+          exit 1
+
+      # we _also_ need npm, specifically for webui/preview
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
 
       - name: Get previous version
         id: read-version
@@ -65,7 +107,7 @@ jobs:
           # echo -e "Due to an issue with upstream dependency, the RHEL build may not included in this release." >> "release_note.md"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: News
           path: |
@@ -76,7 +118,7 @@ jobs:
         run: |
           echo ${{ steps.read-version.outputs.version_full }} > version.txt
 
-      - uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5
+      - uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321
         if: ${{ inputs.publish-release }}
         id: version_commit
         with:
@@ -87,19 +129,24 @@ jobs:
           default_author: github_actions
 
   make-source-tarball:
+    if: ${{ !inputs.smoke-artifacts-only }}
     runs-on: ubuntu-latest
     needs: [configure]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
 
       - name: Make Tarball
         run: |
           tar --owner=root --group=root -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Source
           path: ./quarto-${{needs.configure.outputs.version}}.tar.gz
@@ -107,76 +154,58 @@ jobs:
   make-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'linux' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
-      - name: Configure
-        run: |
-          ./configure.sh
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
 
-      - name: Prepare Distribution
-        run: |
-          pushd package/src/
-          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
-          popd
-
-      - name: Make Tarball
-        run: |
-          pushd package/
-          mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
-          gzip quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
-          mv quarto-${{needs.configure.outputs.version}} pkg-working
-          popd
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Build dist tarball
+        uses: ./.github/actions/build-dist-tarball
         with:
-          name: Deb Zip
-          path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+          version: ${{ needs.configure.outputs.version }}
+          arch: amd64
+          tarball-name: quarto-${{ needs.configure.outputs.version }}-linux-amd64.tar.gz
+          artifact-name: Deb Zip
 
   make-arm64-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
+    if: ${{ !inputs.smoke-artifacts-only && (github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'linux') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
-      - name: Configure
-        run: |
-          ./configure.sh
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
 
-      - name: Prepare Distribution
-        run: |
-          pushd package/src/
-          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
-          popd
-
-      - name: Make Tarball
-        run: |
-          pushd package/
-          mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-arm64.tar quarto-${{needs.configure.outputs.version}}
-          gzip quarto-${{needs.configure.outputs.version}}-linux-arm64.tar
-          mv quarto-${{needs.configure.outputs.version}} pkg-working
-          popd
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Build dist tarball
+        uses: ./.github/actions/build-dist-tarball
         with:
-          name: Deb Arm64 Zip
-          path: ./package/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+          version: ${{ needs.configure.outputs.version }}
+          arch: arm64
+          tarball-name: quarto-${{ needs.configure.outputs.version }}-linux-arm64.tar.gz
+          artifact-name: Deb Arm64 Zip
 
   make-tarball-rhel:
     runs-on: ubuntu-latest
+    # temporarily disable due to unavailability of latest deno in conda-forge
+    if: false
     needs: [configure]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
 
       - name: Configure
         run: |
@@ -193,10 +222,10 @@ jobs:
 
           source ./configuration
 
-          echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
-          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-hcab8b69_0.conda --output deno.conda
+          echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files h6046fbb_0
+          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-h6046fbb_0.conda --output deno.conda
           unzip deno.conda
-          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-hcab8b69_0.tar.zst
+          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-h6046fbb_0.tar.zst
           cp bin/deno package/pkg-working/bin/tools/x86_64/deno
 
       - name: Make Tarball
@@ -209,82 +238,107 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RHEL Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
 
-  make-installer-arm64-deb:
+  make-installer-linux:
     runs-on: ubuntu-latest
     needs: [configure]
+    if: ${{ !inputs.smoke-artifacts-only && (github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'linux') }}
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+        format: [deb, rpm]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
 
       - name: Configure
         run: |
           ./configure.sh
 
+      - name: Install nfpm
+        run: |
+          wget -q https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz
+          tar -xzf nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz
+          sudo mv nfpm /usr/local/bin/
+          nfpm --version
+
       - name: Prepare Distribution
         run: |
           pushd package/src/
-          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
+          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} ${{ matrix.arch == 'aarch64' && '--arch aarch64' || '' }} --log-level info
           popd
 
       - name: Make Installer
         run: |
           pushd package/src/
-          ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
+          ./quarto-bld make-installer-${{ matrix.format }} --set-version ${{needs.configure.outputs.version}} ${{ matrix.arch == 'aarch64' && '--arch aarch64' || '' }} --log-level info
           popd
+
+      - name: Set package architecture name
+        id: pkg_arch
+        run: |
+          if [ "${{ matrix.format }}" == "deb" ]; then
+            if [ "${{ matrix.arch }}" == "x86_64" ]; then
+              echo "arch_name=amd64" >> $GITHUB_OUTPUT
+            else
+              echo "arch_name=arm64" >> $GITHUB_OUTPUT
+            fi
+          else
+            if [ "${{ matrix.arch }}" == "x86_64" ]; then
+              echo "arch_name=x86_64" >> $GITHUB_OUTPUT
+            else
+              echo "arch_name=aarch64" >> $GITHUB_OUTPUT
+            fi
+          fi
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: Deb Arm64 Installer
-          path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
-
-  make-installer-deb:
-    runs-on: ubuntu-latest
-    needs: [configure]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.configure.outputs.version_commit }}
-
-      - name: Configure
-        run: |
-          ./configure.sh
-
-      - name: Prepare Distribution
-        run: |
-          pushd package/src/
-          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
-          popd
-
-      - name: Make Installer
-        run: |
-          pushd package/src/
-          ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --log-level info
-          popd
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Deb Installer
-          path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+          name: Linux-${{ matrix.format }}-${{ matrix.arch }}-Installer
+          path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-${{ steps.pkg_arch.outputs.arch_name }}.${{ matrix.format }}
 
   test-tarball-linux:
     runs-on: ubuntu-latest
     needs: [configure, make-tarball]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'linux' }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
+          sparse-checkout: |
+            .github
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
+
+      - uses: actions/download-artifact@v8
         with:
           name: Deb Zip
           path: .
       - run: |
           tar -zxf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           echo "$GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}/bin" >> $GITHUB_PATH
+
+      # Check for share/preview/quarto-preview.js
+      - name: Ensure share/preview/quarto-preview.js exists
+        shell: bash
+        run: |
+          if [ ! -f "share/preview/quarto-preview.js" ]; then
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the linux build Prepare Distribution step."
+            exit 1
+          fi
+        working-directory: ${{ github.workspace }}/quarto-${{needs.configure.outputs.version}}
+
       - run: |
           tar -tzvf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz | head
           ls -lR
@@ -296,16 +350,16 @@ jobs:
   make-installer-win:
     runs-on: windows-latest
     needs: [configure]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'windows' }}
 
     steps:
-      - name: Configure Rust Tools
-        run: |
-          rustup.exe toolchain install 1.63.0 --component rustfmt --component clippy --no-self-update
-          rustup.exe default 1.63.0
-
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
 
       - name: Configure
         run: |
@@ -322,7 +376,9 @@ jobs:
           cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
           cp package/launcher/target/release/quarto.exe package/pkg-working/bin/quarto.exe
 
+      # Scheduled builds skip signing; dispatched no-publish builds keep it.
       - name: Sign files before making ZIP and MSI installer
+        if: ${{ github.event_name != 'schedule' }}
         id: sign-files
         uses: ./.github/workflows/actions/sign-files
         with:
@@ -332,15 +388,16 @@ jobs:
             ./package/pkg-working/bin/tools/x86_64/esbuild.exe
             ./package/pkg-working/bin/tools/x86_64/dart-sass/src/dart.exe
             ./package/pkg-working/bin/tools/x86_64/deno_dom/plugin.dll
+            ./package/pkg-working/bin/tools/x86_64/typst-gather.exe
             ./package/pkg-working/bin/tools/pandoc.exe
             ./package/pkg-working/bin/quarto.js
         env:
-          # those environment variables are required to sign with signtool
-          SM_HOST: ${{ secrets.SM_HOST }}
-          SM_API_KEY: ${{ secrets.SM_API_KEY }}
-          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
-          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
-          CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
+          # DigiCert STM 2026 credential set (signed via smctl sign --keypair-alias)
+          SM_HOST: ${{ secrets.SM_HOST_2026 }}
+          SM_API_KEY: ${{ secrets.SM_API_KEY_2026 }}
+          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64_2026 }}
+          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD_2026 }}
+          KEYPAIR_ALIAS: ${{ secrets.SM_KEYPAIR_ALIAS_2026 }}
 
       - name: Make Installer
         run: |
@@ -350,26 +407,26 @@ jobs:
           popd
 
       - name: Sign MSI installer
+        if: ${{ github.event_name != 'schedule' }}
         uses: ./.github/workflows/actions/sign-files
         with:
           paths: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
-          signtools-extra-args: /d "Quarto CLI"
         env:
-          # those environment variables are required to sign with signtool
-          SM_HOST: ${{ secrets.SM_HOST }}
-          SM_API_KEY: ${{ secrets.SM_API_KEY }}
-          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
-          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
-          CERT_FINGERPRINT: ${{ secrets.SM_CLIENT_CERT_FINGERPRINT }}
+          # DigiCert STM 2026 credential set (signed via smctl sign --keypair-alias)
+          SM_HOST: ${{ secrets.SM_HOST_2026 }}
+          SM_API_KEY: ${{ secrets.SM_API_KEY_2026 }}
+          SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64_2026 }}
+          SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD_2026 }}
+          KEYPAIR_ALIAS: ${{ secrets.SM_KEYPAIR_ALIAS_2026 }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Windows Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Windows Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip
@@ -377,15 +434,48 @@ jobs:
   test-zip-win:
     runs-on: windows-latest
     needs: [configure, make-installer-win]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'windows' }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
+          sparse-checkout: |
+            .github
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
+
+      - name: "Download Windows Zip"
+        uses: actions/download-artifact@v8
         with:
           name: Windows Zip
           path: .
-      - run: |
+
+      - name: "Extract Windows Zip"
+        run: |
           tar -xf quarto-${{needs.configure.outputs.version}}-win.zip
-      - run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\bin"
-      - run: |
+
+      # Check for share/preview/quarto-preview.js
+      - name: Ensure share/preview/quarto-preview.js exists
+        shell: bash
+        run: |
+          if [ ! -f "share/preview/quarto-preview.js" ]; then
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build Prepare Distribution step."
+            exit 1
+          fi
+
+      - name: "Add bin to PATH"
+        run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\bin"
+
+      - name: "Show Directory Listing and PATH"
+        run: |
+          ls -lR
+          echo $PATH
+        shell: bash
+
+      - name: "Run Quarto Commands"
+        run: |
           quarto check
           quarto --paths
           quarto --version
@@ -393,10 +483,15 @@ jobs:
   make-installer-mac:
     runs-on: macos-latest
     needs: [configure]
+    if: ${{ !inputs.smoke-artifacts-only && (github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'macos') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
 
       - name: Configure
         run: |
@@ -439,13 +534,13 @@ jobs:
           QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Mac Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Mac Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
@@ -458,14 +553,35 @@ jobs:
   test-zip-mac:
     runs-on: macos-latest
     needs: [configure, make-installer-mac]
+    if: ${{ !inputs.smoke-artifacts-only && (github.event_name != 'workflow_dispatch' || inputs.os == 'all' || inputs.os == 'macos') }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
+          sparse-checkout: |
+            .github
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
+
+      - uses: actions/download-artifact@v8
         with:
           name: Mac Zip
           path: .
       - run: |
           tar -zxf quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+
+      # Check for share/preview/quarto-preview.js
+      - name: Ensure share/preview/quarto-preview.js exists
+        shell: bash
+        run: |
+          if [ ! -f "share/preview/quarto-preview.js" ]; then
+            echo "::error file=share/preview/quarto-preview.js::Required file share/preview/quarto-preview.js not found. Check the windows build configure step."
+            exit 1
+          fi
+
       - run: tar -tzvf quarto-${{needs.configure.outputs.version}}-macos.tar.gz | head
       - run: ls -lR
       - run: echo $PATH
@@ -475,12 +591,12 @@ jobs:
           quarto --version
 
   publish-release:
-    if: ${{ inputs.publish-release }}
+    # Never publish from a partial build.
+    if: ${{ inputs.publish-release && !inputs.smoke-artifacts-only }}
     runs-on: ubuntu-latest
     needs: [
         configure,
-        make-installer-deb,
-        make-installer-arm64-deb,
+        make-installer-linux,
         make-installer-win,
         make-installer-mac,
         # optional in release to not be blocked by RHEL build depending on conda-forge deno dependency
@@ -494,8 +610,19 @@ jobs:
       ]
 
     steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
+          path: quarto-cli
+          sparse-checkout: |
+            .github
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./quarto-cli/.github/workflows/actions/prevent-rerun
+
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Rename news
         run: |
@@ -535,13 +662,21 @@ jobs:
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
-          pushd Deb\ Installer
+          pushd Linux-deb-x86_64-Installer
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
-          pushd Deb\ Arm64\ Installer
+          pushd Linux-deb-aarch64-Installer
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd          
+          popd
+
+          pushd Linux-rpm-x86_64-Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-x86_64.rpm >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+
+          pushd Linux-rpm-aarch64-Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-aarch64.rpm >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
 
           pushd Source
           sha256sum quarto-${{needs.configure.outputs.version}}.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
@@ -549,9 +684,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@4634c16e79c963813287e889244c50009e7f0981
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
         with:
           tag_name: ${{needs.configure.outputs.tag_name}}
           target_commitish: ${{ needs.configure.outputs.version_commit }}
@@ -565,8 +698,10 @@ jobs:
             ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
             ./Deb Arm64 Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
             ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
-            ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
-            ./Deb Arm64 Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+            ./Linux-deb-x86_64-Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+            ./Linux-deb-aarch64-Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+            ./Linux-rpm-x86_64-Installer/quarto-${{needs.configure.outputs.version}}-linux-x86_64.rpm
+            ./Linux-rpm-aarch64-Installer/quarto-${{needs.configure.outputs.version}}-linux-aarch64.rpm
             ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
             ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
             ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
@@ -578,8 +713,7 @@ jobs:
     if: ${{ (failure() || cancelled()) && inputs.publish-release }}
     needs: [
         configure,
-        make-installer-deb,
-        make-installer-arm64-deb,
+        make-installer-linux,
         make-installer-win,
         make-installer-mac,
         # optional in release to not be blocked by RHEL build depending on conda-forge deno dependency
@@ -594,7 +728,11 @@ jobs:
       ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
 
       - name: Revert commit of version.txt
         if: ${{ needs.configure.outputs.pushed }}
@@ -609,7 +747,7 @@ jobs:
           git push origin $GITHUB_REF_NAME
 
       - name: Deleted created tag
-        if: ${{ needs.configure.outputs.tag_pushed }}
+        if: ${{ needs.configure.outputs.tagged && needs.configure.outputs.tag_pushed }}
         run: |
           git push --delete origin ${{ needs.configure.outputs.tag_name }}
 
@@ -618,15 +756,34 @@ jobs:
     runs-on: ubuntu-latest
     needs: [configure, publish-release]
     steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-
-      - uses: quarto-dev/quarto-cli/.github/actions/docker@main
+      - uses: actions/checkout@v6
         with:
-          source: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+          sparse-checkout: |
+            .github
+
+      - name: Prevent Re-run
+        if: ${{ inputs.publish-release }}
+        uses: ./.github/workflows/actions/prevent-rerun
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8
+
+      - uses: ./.github/actions/docker
+        with:
+          source: ./Linux-deb-x86_64-Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
           version: ${{needs.configure.outputs.version}}
           token: ${{ secrets.GITHUB_TOKEN }}
           username: ${{ github.actor }}
           org: ${{ github.repository_owner }}
           name: quarto
           daily: ${{ inputs.pre-release }}
+
+  call-cloudsmith-publish:
+    if: ${{ inputs.publish-release && ! (inputs.pre-release == true) }}
+    needs: [configure, publish-release]
+    uses: ./.github/workflows/publish-cloudsmith.yml
+    with:
+      version: ${{ needs.configure.outputs.tag_name }}
+      dry-run: false
+    secrets:
+      CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}

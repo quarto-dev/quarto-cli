@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { dirname, join, relative } from "../../deno_ral/path.ts";
+import { join, relative } from "../../deno_ral/path.ts";
 import { warning } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -25,12 +25,14 @@ import {
   kFilterParams,
   kHeaderIncludes,
   kIncludeAfterBody,
+  kIncludeBeforeBody,
   kIncludeInHeader,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kNotebookLinks,
   kNotebookViewStyle,
+  kRespectUserColorScheme,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -66,6 +68,7 @@ import {
   clipboardDependency,
   createCodeCopyButton,
   kAnchorSections,
+  kAxe,
   kBootstrapDependencyName,
   kCitationsHover,
   kCodeAnnotations,
@@ -114,8 +117,9 @@ import {
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { brandSassFormatExtras } from "../../core/sass/brand.ts";
-import { ESBuildAnalysis, esbuildAnalyze } from "../../core/esbuild.ts";
+import { ESBuildAnalysis } from "../../core/esbuild.ts";
 import { assert } from "testing/asserts";
+import { axeFormatDependencies } from "./format-html-axe.ts";
 
 let esbuildAnalysisCache: Record<string, ESBuildAnalysis> | undefined;
 export function esbuildCachedAnalysis(
@@ -243,6 +247,10 @@ export async function htmlFormatExtras(
   tippyOptions?: HtmlFormatTippyOptions,
   scssOptions?: HtmlFormatScssOptions,
 ): Promise<FormatExtras> {
+  const configurableExtras: FormatExtras[] = [
+    axeFormatDependencies(format, format.metadata[kAxe]),
+  ];
+
   // note whether we are targeting bootstrap
   const bootstrap = formatHasBootstrap(format);
 
@@ -341,7 +349,9 @@ export async function htmlFormatExtras(
   options.zenscroll = format.metadata[kSmoothScroll];
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
-  options.darkModeDefault = darkModeDefault(format.metadata);
+  options.darkModeDefault = darkModeDefault(format);
+  options.respectUserColorScheme = format.metadata[kRespectUserColorScheme] ||
+    false;
   options.linkExternalIcon = format.render[kLinkExternalIcon];
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
   options.linkExternalFilter = format.render[kLinkExternalFilter];
@@ -506,7 +516,8 @@ export async function htmlFormatExtras(
     includeInHeader.push(hypothesisHeader);
   }
 
-  // after body
+  // before and after body
+  const includeBeforeBody: string[] = [];
   const includeAfterBody: string[] = [];
 
   // add main orchestion script if we have any options enabled
@@ -514,15 +525,21 @@ export async function htmlFormatExtras(
     !!options[option]
   );
   if (quartoHtmlRequired) {
-    // html orchestration script
-    const quartoHtmlScript = temp.createFile();
-    const renderedHtml = renderEjs(
-      formatResourcePath("html", join("templates", "quarto-html.ejs")),
-      options,
-    );
-    if (renderedHtml.trim() !== "") {
-      Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
-      includeAfterBody.push(quartoHtmlScript);
+    for (
+      const { dest, ejsfile } of [
+        { dest: includeBeforeBody, ejsfile: "quarto-html-before-body.ejs" },
+        { dest: includeAfterBody, ejsfile: "quarto-html-after-body.ejs" },
+      ]
+    ) {
+      const quartoHtmlScript = temp.createFile();
+      const renderedHtml = renderEjs(
+        formatResourcePath("html", join("templates", ejsfile)),
+        options,
+      );
+      if (renderedHtml.trim() !== "") {
+        Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
+        dest.push(quartoHtmlScript);
+      }
     }
   }
 
@@ -598,7 +615,7 @@ export async function htmlFormatExtras(
       giscusAfterBody,
       renderEjs(
         formatResourcePath("html", join("giscus", "giscus.ejs")),
-        { giscus },
+        { giscus, darkMode: options.darkMode },
       ),
     );
     includeAfterBody.push(giscusAfterBody);
@@ -634,8 +651,9 @@ export async function htmlFormatExtras(
   }
 
   const metadata: Metadata = {};
-  return {
+  const result: FormatExtras = {
     [kIncludeInHeader]: includeInHeader,
+    [kIncludeBeforeBody]: includeBeforeBody,
     [kIncludeAfterBody]: includeAfterBody,
     metadata,
     templateContext,
@@ -645,6 +663,11 @@ export async function htmlFormatExtras(
       [kHtmlPostprocessors]: htmlPostProcessors,
     },
   };
+
+  return mergeConfigs(
+    result,
+    ...configurableExtras,
+  ) as FormatExtras;
 }
 
 const kFormatHasBootstrap = "has-bootstrap";
@@ -709,6 +732,40 @@ function htmlFormatPostprocessor(
     for (let i = 0; i < codeBlocks.length; i++) {
       const code = codeBlocks[i] as Element;
 
+      // Give each line-number anchor an accessible name (#14655). Skylighting
+      // emits an empty <a href="#cbN-n"></a> as the first child of every line
+      // span and draws the visible number purely via a CSS counter on
+      // ::before, so axe-core reports these focusable links as having no
+      // discernible text (WCAG 2.4.4/4.1.2). Set aria-label to the visible
+      // line number. aria-hidden is not an option here: these anchors are
+      // focusable fragment links, and aria-hidden on a focusable element is
+      // itself an accessibility violation.
+      if (code.classList.contains("numberSource")) {
+        const codeEl = code.querySelector("code");
+        // Custom start numbers surface as `counter-reset: source-line N` on
+        // the <code>; the first visible line is then N + 1. Default is 0.
+        let startZero = 0;
+        // Signed digits: startFrom="0" emits `counter-reset: source-line -1`,
+        // and negative starts are possible — a bare \d+ would drop the sign and
+        // mislabel. skylighting emits exactly one well-formed declaration, so
+        // multiple/malformed counter-reset is not a real input.
+        const counterMatch = codeEl?.getAttribute("style")?.match(
+          /counter-reset:\s*source-line\s+(-?\d+)/,
+        );
+        if (counterMatch) {
+          startZero = parseInt(counterMatch[1], 10);
+        }
+        const lineAnchors = code.querySelectorAll(
+          "code > span > a:first-child",
+        );
+        for (let j = 0; j < lineAnchors.length; j++) {
+          const anchor = lineAnchors[j] as Element;
+          if (!anchor.hasAttribute("aria-label")) {
+            anchor.setAttribute("aria-label", String(startZero + j + 1));
+          }
+        }
+      }
+
       // hoist hidden and cell-code to parent div
       const parentHoist = (clz: string) => {
         if (code.classList.contains(clz)) {
@@ -727,12 +784,25 @@ function htmlFormatPostprocessor(
 
       // insert code copy button (with specfic attribute when inside a modal)
       if (codeCopy) {
-        code.classList.add("code-with-copy");
+        // the interaction of code copy button fixed position
+        // and scrolling overflow behavior requires a scaffold div to be inserted
+        // as a parent of the code block and the copy button both
+        // (see #13009, #5538, and #12787)
+        const outerScaffold = doc.createElement("div");
+        outerScaffold.classList.add("code-copy-outer-scaffold");
+
         const copyButton = createCodeCopyButton(doc, format);
         if (EmbedSourceModal && EmbedSourceModal.contains(code)) {
           copyButton.setAttribute("data-in-quarto-modal", "");
         }
-        code.appendChild(copyButton);
+        code.classList.add("code-with-copy");
+
+        const sourceCodeDiv = code.parentElement!;
+        const sourceCodeDivParent = code.parentElement?.parentElement;
+        sourceCodeDivParent!.replaceChild(outerScaffold, sourceCodeDiv);
+
+        outerScaffold.appendChild(sourceCodeDiv);
+        outerScaffold.appendChild(copyButton);
       }
 
       // insert example iframe
@@ -794,15 +864,15 @@ function htmlFormatPostprocessor(
 
     // Process tables to restore th-vs-td markers
     const tables = doc.querySelectorAll(
-      'table[data-quarto-postprocess-tables="true"]',
+      'table[data-quarto-postprocess="true"]',
     );
-
     for (let i = 0; i < tables.length; ++i) {
       const table = tables[i] as Element;
-      if (table.getAttribute("data-quarto-disable-processing")) {
+      if (table.getAttribute("data-quarto-disable-processing") === "true") {
         continue;
       }
-      table.removeAttribute("data-quarto-postprocess-tables");
+      table.removeAttribute("data-quarto-postprocess");
+      table.removeAttribute("data-quarto-disable-processing");
       table.querySelectorAll("tr").forEach((tr) => {
         const { children } = tr as Element;
         for (let j = 0; j < children.length; ++j) {

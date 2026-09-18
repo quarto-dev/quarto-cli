@@ -5,7 +5,8 @@
  */
 
 import { error, info } from "../deno_ral/log.ts";
-import { basename } from "../deno_ral/path.ts";
+import { basename, join } from "../deno_ral/path.ts";
+import { existsSync } from "../deno_ral/fs.ts";
 import * as colors from "fmt/colors";
 
 import { satisfies } from "semver/mod.ts";
@@ -13,13 +14,15 @@ import { satisfies } from "semver/mod.ts";
 import { execProcess } from "./process.ts";
 import { architectureToolsPath } from "./resources.ts";
 import { resourcePath } from "./resources.ts";
+import { md5HashSync } from "./hash.ts";
+import { projectScratchPath } from "../project/project-scratch.ts";
 
 export function typstBinaryPath() {
   return Deno.env.get("QUARTO_TYPST") ||
     architectureToolsPath("typst");
 }
 
-function fontPathsArgs(fontPaths?: string[]) {
+export function fontPathsArgs(fontPaths?: string[]) {
   // orders matter and fontPathsQuarto should be first for our template to work
   const fontPathsQuarto = ["--font-path", resourcePath("formats/typst/fonts")];
   const fontPathsEnv = Deno.env.get("TYPST_FONT_PATHS");
@@ -35,10 +38,94 @@ function fontPathsArgs(fontPaths?: string[]) {
   return fontPathsQuarto.concat(fontExtrasArgs);
 }
 
+export function parseTypstFontsOutput(output: string): string[] {
+  return output
+    .split(/\r?\n/)
+    .map((line) => line.trim().toLowerCase())
+    .filter((line) => line.length > 0);
+}
+
+const availableFontsMemoryCache = new Map<string, string[]>();
+
+export async function getAvailableTypstFonts(
+  fontPaths: string[],
+  projectDir?: string,
+): Promise<string[]> {
+  const cacheKey = md5HashSync(
+    [...fontPaths].sort().join("\n"),
+  );
+
+  // Check in-memory cache
+  const memoryCached = availableFontsMemoryCache.get(cacheKey);
+  if (memoryCached) {
+    return memoryCached;
+  }
+
+  // Check disk cache if project context
+  if (projectDir) {
+    try {
+      const cachePath = projectScratchPath(
+        projectDir,
+        "typst/available-fonts.json",
+      );
+      const cacheContent = Deno.readTextFileSync(cachePath);
+      const cached = JSON.parse(cacheContent) as {
+        fontPathsHash: string;
+        fonts: string[];
+      };
+      if (cached.fontPathsHash === cacheKey) {
+        availableFontsMemoryCache.set(cacheKey, cached.fonts);
+        return cached.fonts;
+      }
+    } catch {
+      // Cache miss or invalid — will re-query
+    }
+  }
+
+  // Query typst fonts
+  const cmd = [typstBinaryPath(), "fonts"];
+  cmd.push(...fontPathsArgs(fontPaths));
+
+  const result = await execProcess({
+    cmd: cmd[0],
+    args: cmd.slice(1),
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  if (!result.success || !result.stdout) {
+    return [];
+  }
+
+  const fonts = parseTypstFontsOutput(result.stdout);
+
+  // Populate caches
+  availableFontsMemoryCache.set(cacheKey, fonts);
+
+  if (projectDir) {
+    try {
+      const cachePath = projectScratchPath(
+        projectDir,
+        "typst/available-fonts.json",
+      );
+      Deno.writeTextFileSync(
+        cachePath,
+        JSON.stringify({ fontPathsHash: cacheKey, fonts }),
+      );
+    } catch {
+      // Non-fatal — in-memory cache still works
+    }
+  }
+
+  return fonts;
+}
+
 export type TypstCompileOptions = {
   quiet?: boolean;
   fontPaths?: string[];
   rootDir?: string;
+  packagePath?: string;
+  pdfStandard?: string[];
 };
 
 export async function typstCompile(
@@ -58,12 +145,27 @@ export async function typstCompile(
   if (options.rootDir) {
     cmd.push("--root", options.rootDir);
   }
+  if (options.packagePath) {
+    // Only set --package-path if local/ subdirectory exists (for @local packages)
+    const localDir = join(options.packagePath, "local");
+    if (existsSync(localDir)) {
+      cmd.push("--package-path", options.packagePath);
+    }
+    // Only set --package-cache-path if preview/ subdirectory exists (for @preview packages)
+    const previewDir = join(options.packagePath, "preview");
+    if (existsSync(previewDir)) {
+      cmd.push("--package-cache-path", options.packagePath);
+    }
+  }
+  if (options.pdfStandard && options.pdfStandard.length > 0) {
+    cmd.push("--pdf-standard", options.pdfStandard.join(","));
+  }
   cmd.push(
     input,
     ...fontPathsArgs(fontPaths),
     output,
   );
-  const result = await execProcess({ cmd });
+  const result = await execProcess({ cmd: cmd[0], args: cmd.slice(1) });
   if (!quiet && result.success) {
     typstProgressDone();
   }
@@ -73,7 +175,12 @@ export async function typstCompile(
 export async function typstVersion() {
   const cmd = [typstBinaryPath(), "--version"];
   try {
-    const result = await execProcess({ cmd, stdout: "piped", stderr: "piped" });
+    const result = await execProcess({
+      cmd: cmd[0],
+      args: cmd.slice(1),
+      stdout: "piped",
+      stderr: "piped",
+    });
     if (result.success && result.stdout) {
       const match = result.stdout.trim().match(/^typst (\d+\.\d+\.\d+)/);
       if (match) {

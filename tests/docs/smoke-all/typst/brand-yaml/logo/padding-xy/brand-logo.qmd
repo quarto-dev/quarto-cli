@@ -10,7 +10,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
       -
-        - '#set page\(background: align\(center\+top, box\(inset: \(x: 2in, y: 1\in\), image\("quarto.png", width: 225pt\)\)\)\)'
+        - '#set page\(background: align\(center\+top, box\(inset: \(x: 2in, y: 1\in\), image\("/quarto.png", width: 225pt\)\)\)\)'
       - []
 ---
 

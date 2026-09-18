@@ -1,0 +1,33 @@
+---
+title: "Python syntax error with caret (#13667)"
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\\textasciicircum\{\}']
+        - ['\\textasciicaret\{\}']
+---
+
+::: {.cell execution_count=1}
+``` {.python .cell-code}
+def my_func(a=10, b):
+    print(a)
+    print(b)
+
+my_func(5)
+```
+
+::: {.cell-output .cell-output-error}
+```
+SyntaxError: parameter without a default follows parameter with a default (1331601683.py, line 1)
+  [36mCell[39m[36m [39m[32mIn[2][39m[32m, line 1[39m
+[31m    [39m[31mdef my_func(a=10, b):[39m
+                      ^
+[31mSyntaxError[39m[31m:[39m parameter without a default follows parameter with a default
+```
+:::
+:::
+
+

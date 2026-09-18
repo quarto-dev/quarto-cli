@@ -75,6 +75,7 @@ export function notebookContext(): NotebookContext {
     const nb: Notebook = notebooks[nbAbsPath] || emptyNotebook(nbAbsPath);
     nb[renderType] = output;
     notebooks[nbAbsPath] = nb;
+    needRewrite = true;
 
     if (context) {
       const contrib = contributor(renderType);
@@ -191,9 +192,28 @@ export function notebookContext(): NotebookContext {
     }
   }
 
+  let allNotebooksTempFilename: string | undefined;
+  let needRewrite = true;
+
   return {
-    all: () => {
-      return Object.values(notebooks);
+    all: (context: ProjectContext) => {
+      if (!allNotebooksTempFilename) {
+        allNotebooksTempFilename = context.temp.createFile({
+          suffix: ".json",
+        });
+      }
+      if (needRewrite) {
+        debug(
+          `[NotebookContext]: Writing all notebooks to ${allNotebooksTempFilename}`,
+        );
+        const objs = Object.values(notebooks);
+        Deno.writeTextFileSync(
+          allNotebooksTempFilename,
+          JSON.stringify(objs),
+        );
+        needRewrite = false;
+      }
+      return allNotebooksTempFilename;
     },
     get: (nbAbsPath: string, context?: ProjectContext) => {
       debug(`[NotebookContext]: Get Notebook:${nbAbsPath}`);

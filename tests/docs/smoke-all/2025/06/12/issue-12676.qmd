@@ -1,0 +1,12 @@
+---
+format: hugo-md
+---
+
+::: {layout-ncol="2"}
+
+Hello.
+
+Hello.
+
+:::
+

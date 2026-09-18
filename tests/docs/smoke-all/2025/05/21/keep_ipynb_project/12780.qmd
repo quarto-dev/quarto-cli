@@ -1,0 +1,15 @@
+---
+format: html
+keep-ipynb: true
+_quarto:
+  tests:
+    html:
+      fileExists:
+        outputPath: 12780.quarto_ipynb
+      postRenderCleanup:
+        - ${input_stem}.quarto_ipynb
+---
+
+```{python}
+1 + 1
+```

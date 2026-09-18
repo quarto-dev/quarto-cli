@@ -1,0 +1,17 @@
+---
+title: Callout with no icon
+format:
+  html:
+    quality: 0
+    comment: Title is a offset a little too far down
+  typst:
+    quality: 1
+---
+
+::: {.callout-note icon="false"}
+
+## Title
+
+{{< lipsum 1 >}}
+
+:::

@@ -6,12 +6,11 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - 
-          - "<fig-foo>"
-          - "<tbl-foo>"
-          - "@fig-foo"
-          - "@tbl-foo"
-          - "#link\\(\"https://www.example.com/\"\\)\\[#.*image\\(\"img/surus.jpg\"\\)\\)"
+        -
+          - "#ref\\(<tbl-foo>, supplement: \\[Table\\]\\)"
+          - "#ref\\(<fig-foo>, supplement: \\[Figure\\]\\)"
+          # Images with captions now include alt text for accessibility
+          - '#link\("https://www\.example\.com/"\)\[#box\(image\("img/surus\.jpg", alt:'
 ---
 
 This tests:

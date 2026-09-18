@@ -37,11 +37,15 @@ import {
 import { kProjectRender, ProjectConfig } from "../../types.ts";
 
 import {
+  kAnnouncement,
+  kBackToTopNavigation,
   kBodyFooter,
   kBodyHeader,
   kBreadCrumbNavigation,
   kContents,
   kImage,
+  kImageAlt,
+  kLlmsTxt,
   kMarginFooter,
   kMarginHeader,
   kOpenGraph,
@@ -82,6 +86,7 @@ import {
 import {
   repoUrlIcon,
   websiteConfigActions,
+  websiteConfigString,
   websiteProjectConfig,
 } from "../website/website-config.ts";
 
@@ -113,18 +118,18 @@ import {
 import {
   kCookieConsent,
   kGoogleAnalytics,
+  kPlausibleAnalytics,
 } from "../website/website-analytics.ts";
 import { RenderFlags } from "../../../command/render/types.ts";
 import { formatLanguage } from "../../../core/language.ts";
 import { kComments } from "../../../format/html/format-html-shared.ts";
 import { resolvePageFooter } from "../website/website-shared.ts";
-import {
-  NavigationItemObject,
-  PageFooterRegion,
-} from "../../../resources/types/schema-types.ts";
+import { Zod } from "../../../resources/types/zod/schema-types.ts";
+import { PageFooterRegion } from "../../../resources/types/schema-types.ts";
 import { projectType } from "../project-types.ts";
 import { BookRenderItem, BookRenderItemType } from "./book-types.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
+import { getFavicon } from "../../../core/brand/brand.ts";
 
 export async function bookProjectConfig(
   project: ProjectContext,
@@ -141,6 +146,12 @@ export async function bookProjectConfig(
   if (book) {
     site[kSiteTitle] = book[kSiteTitle];
     site[kSiteFavicon] = book[kSiteFavicon];
+    if (!site[kSiteFavicon]) {
+      const brand = await project.resolveBrand();
+      if (brand?.light) {
+        site[kSiteFavicon] = getFavicon(brand.light); //
+      }
+    }
     site[kSiteUrl] = book[kSiteUrl];
     site[kSitePath] = book[kSitePath];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];
@@ -156,6 +167,7 @@ export async function bookProjectConfig(
     site[kOpenGraph] = book[kOpenGraph];
     site[kTwitterCard] = book[kTwitterCard];
     site[kImage] = book[kImage];
+    site[kImageAlt] = book[kImageAlt];
     site[kMarginHeader] = book[kMarginHeader];
     site[kMarginFooter] = book[kMarginFooter];
     site[kBodyHeader] = book[kBodyHeader];
@@ -163,7 +175,11 @@ export async function bookProjectConfig(
     site[kBookSearch] = book[kBookSearch];
     site[kSiteReaderMode] = book[kSiteReaderMode];
     site[kGoogleAnalytics] = book[kGoogleAnalytics];
+    site[kPlausibleAnalytics] = book[kPlausibleAnalytics];
     site[kCookieConsent] = book[kCookieConsent];
+    site[kAnnouncement] = book[kAnnouncement];
+    site[kBackToTopNavigation] = book[kBackToTopNavigation];
+    site[kLlmsTxt] = book[kLlmsTxt];
     site[kComments] = book[kComments];
     site[kBreadCrumbNavigation] = book[kBreadCrumbNavigation];
     site[kOtherLinks] = book[kOtherLinks];
@@ -186,7 +202,7 @@ export async function bookProjectConfig(
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
   siteSidebar[kSiteTitle] = siteSidebar[kSiteTitle] || book?.[kSiteTitle];
-  siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] || book?.[kSidebarLogo];
+  siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] ?? book?.[kSidebarLogo];
   siteSidebar[kSidebarLogoHref] = siteSidebar[kSidebarLogoHref] ||
     book?.[kSidebarLogoHref];
   siteSidebar[kSidebarLogoAlt] = siteSidebar[kSidebarLogoAlt] ||
@@ -224,11 +240,25 @@ export async function bookProjectConfig(
   if (site[kSiteRepoUrl]) {
     const repoUrl = siteRepoUrl(site);
     const icon = repoUrlIcon(repoUrl);
-    tools.push({
+    const tool = {
       text: language[kCodeToolsSourceCode] || "Source Code",
       icon,
       href: repoUrl,
-    });
+    } as Record<string, unknown>;
+
+    // Apply repo-link-target if configured
+    const linkTarget = websiteConfigString(kSiteRepoLinkTarget, config);
+    if (linkTarget) {
+      tool.target = linkTarget;
+    }
+
+    // Apply repo-link-rel if configured
+    const linkRel = websiteConfigString(kSiteRepoLinkRel, config);
+    if (linkRel) {
+      tool.rel = linkRel;
+    }
+
+    tools.push(tool);
   }
   tools.push(...(downloadTools(projectDir, config, language) || []));
   tools.push(...(sharingTools(config, language) || []));
@@ -252,14 +282,11 @@ export async function bookProjectConfig(
   const footerFiles: string[] = [];
   const pageFooter = resolvePageFooter(config);
   const addFooterItems = (region?: PageFooterRegion) => {
-    if (region) {
-      for (const item of region) {
-        if (typeof item !== "string") {
-          const navItem = item as NavigationItemObject;
-          if (navItem.href && !isAbsoluteRef(navItem.href)) {
-            footerFiles.push(navItem.href);
-          }
-        }
+    if (!region || typeof region === "string") return;
+    for (const item of region) {
+      const navItem = Zod.NavigationItemObject.parse(item);
+      if (navItem.href && !isAbsoluteRef(navItem.href)) {
+        footerFiles.push(navItem.href);
       }
     }
   };

@@ -10,7 +10,7 @@ import { mainRunner } from "../../src/core/main.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
 import { updateHtmlDependencies } from "./common/update-html-dependencies.ts";
-import { makeInstallerDeb } from "./linux/installer.ts";
+import { makeInstallerDeb, makeInstallerRpm } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
 import {
   compileQuartoLatexmkCommand,
@@ -61,57 +61,51 @@ function getCommands() {
   // deno-lint-ignore no-explicit-any
   const commands: Command<any>[] = [];
   commands.push(
-    packageCommand(configure)
-      .name("configure")
+    packageCommand(configure, "configure")
       .description(
         "Configures this machine for running developer version of Quarto",
       ),
   );
   commands.push(
-    packageCommand(updateHtmlDependencies)
-      .name("update-html-dependencies")
+    packageCommand(updateHtmlDependencies, "update-html-dependencies")
       .description(
         "Updates Bootstrap, themes, and JS/CSS dependencies based upon the version in configuration",
       ),
   );
   commands.push(
-    packageCommand(archiveBinaryDependencies)
-      .name("archive-bin-deps")
+    packageCommand(archiveBinaryDependencies, "archive-bin-deps")
       .description("Downloads and archives our binary dependencies."),
   );
   commands.push(
-    packageCommand(checkBinaryDependencies)
-      .name("check-bin-deps")
+    packageCommand(checkBinaryDependencies, "check-bin-deps")
       .description("Checks the paths and URLs of our binary dependencies."),
   );
   commands.push(
-    packageCommand(prepareDist)
-      .name("prepare-dist")
+    packageCommand(prepareDist, "prepare-dist")
       .description("Prepares the distribution directory for packaging."),
   );
   commands.push(
-    packageCommand(validateBundle)
-      .name("validate-bundle")
+    packageCommand(validateBundle, "validate-bundle")
       .description("Validate a JS bundle built using prepare-dist")
   );
   commands.push(
-    packageCommand(makeInstallerMac)
-      .name("make-installer-mac")
+    packageCommand(makeInstallerMac, "make-installer-mac")
       .description("Builds Mac OS installer"),
   );
   commands.push(
-    packageCommand(makeInstallerDeb)
-      .name("make-installer-deb")
+    packageCommand(makeInstallerDeb, "make-installer-deb")
       .description("Builds Linux deb installer"),
   );
   commands.push(
-    packageCommand(makeInstallerWindows)
-      .name("make-installer-win")
+    packageCommand(makeInstallerRpm, "make-installer-rpm")
+      .description("Builds Linux rpm installer"),
+  );
+  commands.push(
+    packageCommand(makeInstallerWindows, "make-installer-win")
       .description("Builds Windows installer"),
   );
   commands.push(
-    packageCommand(makeInstallerExternal)
-      .name("make-installer-dir")
+    packageCommand(makeInstallerExternal, "make-installer-dir")
       .description("Copies Quarto-only files, omitting dependencies, to specified location (for use in third party packaging)"),
   );
   commands.push(

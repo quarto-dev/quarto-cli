@@ -1,0 +1,15 @@
+color:
+  background:
+    light: "#fff"
+    dark: "#111"
+  foreground:
+    light: "#111"
+    dark: "#fff"
+logo:
+  images:
+    fallback-logo:
+      path: fallback.png
+      alt: Fallback logo
+  # Only define small.light and leave other sizes/modes empty
+  small:
+    light: fallback-logo

@@ -3,10 +3,10 @@
 ---@module 'pandoc'
 pandoc = {}
 
----@type table<string,boolean>
+---@type table<string,string>
 pandoc.readers = {}
 
----@type table<string,boolean>
+---@type table<string,string>
 pandoc.writers = {}
 
 --[[
@@ -16,15 +16,15 @@ Values of this type can be created with the`pandoc.Pandoc` constructor. Pandoc v
 equal in Lua if and only if they are equal in Haskell.
 ]]
 ---@class pandoc.Pandoc
----@field blocks pandoc.List Document content 
----@field meta pandoc.Meta Meta information
+---@field blocks pandoc.Blocks document contents 
+---@field meta pandoc.Meta document metadata
 pandoc.Pandoc = {}
 
 --[[
 Create a complete pandoc document
 ]]
----@param blocks pandoc.Block|pandoc.List Document content 
----@param meta? pandoc.Meta Meta information
+---@param blocks pandoc.Blocks document contents 
+---@param meta? pandoc.Meta document metadata
 ---@return pandoc.Pandoc
 function pandoc.Pandoc(blocks, meta) end
 
@@ -34,6 +34,13 @@ Make a clone
 ---@return pandoc.Pandoc
 function pandoc.Pandoc:clone() end
 
+--[[
+Perform a normalization of Pandoc documents. E.g., multiple
+successive spaces are collapsed, and tables are normalized, so
+that all rows and columns contain the same number of cells.
+]]
+---@return pandoc.Pandoc # Cloned and normalized document
+function pandoc.Pandoc:normalize() end
 
 --[[
 Applies a Lua filter to the Pandoc element. Just as for

@@ -32,6 +32,7 @@ import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
 
 import {
+  kFilterParams,
   kIncludeInHeader,
   kPageTitle,
   kTitle,
@@ -51,11 +52,13 @@ import { updateSearchIndex } from "./website-search.ts";
 import {
   kDraftMode,
   kDrafts,
+  kLlmsTxt,
   kSiteFavicon,
   kWebsite,
 } from "./website-constants.ts";
 import {
   websiteConfigArray,
+  websiteConfigBoolean,
   websiteConfigString,
   websiteMetadataFields,
   websiteProjectConfig,
@@ -86,10 +89,12 @@ import { formatDate } from "../../../core/date.ts";
 import { projectExtensionPathResolver } from "../../../extension/extension.ts";
 import { websiteDraftPostProcessor } from "./website-draft.ts";
 import { projectDraftMode } from "./website-utils.ts";
+import { llmsHtmlFinalizer, updateLlmsTxt } from "./website-llms.ts";
 import { kFieldCategories } from "./listing/website-listing-shared.ts";
 import { pandocNativeStr } from "../../../core/pandoc/codegen.ts";
 import { asArray } from "../../../core/array.ts";
 import { canonicalizeTitlePostprocessor } from "../../../format/html/format-html-title.ts";
+import { getFavicon } from "../../../core/brand/brand.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -178,7 +183,13 @@ export const websiteProjectType: ProjectType = {
     }
 
     // dependency for favicon if we have one
-    const favicon = websiteConfigString(kSiteFavicon, project.config);
+    let favicon = websiteConfigString(kSiteFavicon, project.config);
+    if (!favicon) {
+      const brand = await project.resolveBrand();
+      if (brand?.light) {
+        favicon = getFavicon(brand.light);
+      }
+    }
     if (favicon) {
       const offset = projectOffset(project, source);
       extras.html = extras.html || {};
@@ -346,6 +357,15 @@ export const websiteProjectType: ProjectType = {
       extras.html[kHtmlPostprocessors].push(cookieDep.htmlPostProcessor);
     }
 
+    // Add llms.txt finalizer if enabled
+    if (websiteConfigBoolean(kLlmsTxt, false, project.config)) {
+      extras[kFilterParams] = extras[kFilterParams] || {};
+      extras[kFilterParams]["llms-txt"] = true;
+      extras.html[kHtmlFinalizers]?.push(
+        llmsHtmlFinalizer(source, project, format),
+      );
+    }
+
     return Promise.resolve(extras);
   },
 
@@ -418,6 +438,9 @@ export async function websitePostRender(
   // generate any page aliases
   await updateAliases(context, outputFiles, incremental);
 
+  // generate llms.txt index
+  await updateLlmsTxt(context, outputFiles, incremental);
+
   // write redirecting index.html if there is none
   await ensureIndexPage(context);
 }
@@ -465,7 +488,7 @@ function websiteTemplate(
           noEngineContent: true,
           title,
           yaml:
-            'listing:\n  contents: posts\n  sort: "date desc"\n  type: default\n  categories: true\n  sort-ui: false\n  filter-ui: false\npage-layout: full\ntitle-block-banner: true',
+            'listing:\n  contents: posts\n  feed: true\n  sort: "date desc"\n  type: default\n  categories: true\n  sort-ui: false\n  filter-ui: false\npage-layout: full\ntitle-block-banner: true',
         },
         {
           name: "index",
@@ -496,7 +519,7 @@ function websiteTemplate(
           title: "About",
           content: "About this blog",
           yaml:
-            `image: profile.jpg\nabout:\n  template: jolla\n  links:\n    - icon: twitter\n      text: Twitter\n      href: https://twitter.com\n    - icon: linkedin\n      text: LinkedIn\n      href: https://linkedin.com\n    - icon: github\n      text: Github\n      href: https://github.com\n`,
+            `image: profile.jpg\nabout:\n  template: jolla\n  links:\n    - icon: bluesky\n      text: Bluesky\n      href: https://bsky.app/\n    - icon: linkedin\n      text: LinkedIn\n      href: https://linkedin.com\n    - icon: github\n      text: Github\n      href: https://github.com\n`,
           supporting: [
             join(resourceDir, "templates", "blog", "profile.jpg"),
           ],

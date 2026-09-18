@@ -1,0 +1,24 @@
+---
+format: 
+  html: default
+  latex: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['a.quarto-xref[href~="#eq-x"]']
+        - []
+      ensureFileRegexMatches:
+        - ['x \+ z \\tag\{1\}'] 
+        - ['x \+ y']
+    latex:
+      ensureFileRegexMatches:
+        - ['Equation\~\\ref\{eq-x\}', '\\label\{eq-x\}\{x \+ z\}']
+        - ['x + y']
+filters:
+  - eq.lua
+---
+
+$$x + y$$ {#eq-x}
+
+See @eq-x. 

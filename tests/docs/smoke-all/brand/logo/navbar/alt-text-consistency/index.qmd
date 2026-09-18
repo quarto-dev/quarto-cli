@@ -1,0 +1,21 @@
+---
+title: Navbar Logo Alt Text Consistency
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # Logo should have alt text from brand definition
+          - 'img[class*="light-content"][src="./logo.png"][alt="Logo with alt text"]'
+          # Missing resource should have empty alt text
+          - 'img[class*="dark-content"][src="./missing-alt"][alt=""]'
+        - []
+---
+
+This test verifies alt text consistency for navbar logos:
+
+1. When a logo has alt text defined in the brand, it should be used correctly
+2. When a logo reference doesn't exist in brand, empty alt text is used
+
+This ensures that accessibility attributes are properly handled across
+light and dark logo variants.

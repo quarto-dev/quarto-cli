@@ -1,0 +1,34 @@
+---
+title: Brand Monospace Block with Skylighting
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Skylighting is active (default)
+          - "#Skylighting"
+          - "#KeywordTok"
+          # Brand monospace-block properties are emitted as show rules
+          # (still useful for idiomatic mode fallback)
+          - '^#show raw\.where\(block: true\): set text\(weight: 400, size: 10pt, fill: rgb\("#cdd6f4"\), \)$'
+          - '^#show raw\.where\(block: true\): set block\(fill: rgb\("#1e1e2e"\)\)$'
+          - '^#show raw\.where\(block: true\): set par\(leading: 0\.85em\)$'
+          # Quarto-generated Skylighting override with brand bg and proper block styling
+          - 'let bgcolor = rgb\("#1e1e2e"\)'
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+        # Should NOT have raw fenced blocks
+        - ["```python"]
+---
+
+Brand monospace-block options should apply to Skylighting code blocks.
+
+```python
+def hello():
+    x = 1 + 2
+    print(f"result: {x}")
+```
+
+Inline code like `hello()`{.python} should NOT get monospace-block styling.

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info, warning } from "../../deno_ral/log.ts";
+import { debug, info, warning } from "../../deno_ral/log.ts";
 import {
   basename,
   dirname,
@@ -72,23 +72,21 @@ import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import {
   normalizePath,
+  pathsEqual,
   pathWithForwardSlashes,
   safeExistsSync,
 } from "../../core/path.ts";
 import {
+  isPositWorkbench,
   isRStudio,
-  isRStudioWorkbench,
   isServerSession,
   isVSCodeServer,
   vsCodeServerProxyUri,
 } from "../../core/platform.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
-import {
-  previewEnsureResources,
-  previewMonitorResources,
-} from "../../core/quarto.ts";
-import { exitWithCleanup } from "../../core/cleanup.ts";
+import { previewMonitorResources } from "../../core/quarto.ts";
+import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import {
   extensionFilesFromDirs,
   inputExtensionDirs,
@@ -146,19 +144,41 @@ interface PreviewOptions {
   presentation: boolean;
 }
 
+export function previewInitialPath(
+  outputFile: string,
+  project: ProjectContext | undefined,
+): string {
+  if (isPdfContent(outputFile)) {
+    return kPdfJsInitialPath;
+  }
+  if (project && !project.isSingleFile) {
+    return pathWithForwardSlashes(
+      relative(projectOutputDir(project), outputFile),
+    );
+  }
+  return "";
+}
+
 export async function preview(
   file: string,
   flags: RenderFlags,
   pandocArgs: string[],
   options: PreviewOptions,
+  pProject?: ProjectContext,
 ) {
-  const nbContext = notebookContext();
-  // see if this is project file
-  const project = await projectContext(file, nbContext);
+  // Reuse the project context from cmd.ts if provided, avoiding redundant
+  // context creation and transient notebook file duplication (#14281).
+  const nbContext = pProject?.notebookContext ?? notebookContext();
+  const project = pProject ??
+    (await projectContext(file, nbContext)) ??
+    (await singleFileProjectContext(file, nbContext));
+  onCleanup(() => {
+    project.cleanup();
+  });
 
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
-  const format = await previewFormat(file, flags.to, undefined, project);
+  const format = await previewFormat(file, project, flags.to, undefined);
   setPreviewFormat(format, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
@@ -195,12 +215,10 @@ export async function preview(
     ...(await resolvePreviewOptions(options)),
   };
 
+  const ac = new AbortController();
   // create listener and callback to stop the server
-  const listener = Deno.listen({ port: options.port!, hostname: options.host });
-  const stopServer = () => listener.close();
-
-  // ensure resources
-  previewEnsureResources(stopServer);
+  // const listener = Deno.listen({ port: options.port!, hostname: options.host });
+  const stopServer = () => ac.abort();
 
   // create client reloader
   const reloader = httpDevServer(
@@ -229,8 +247,9 @@ export async function preview(
       options.port!,
       reloader,
       changeHandler.render,
+      project,
     )
-    : project
+    : project && !project.isSingleFile
     ? projectHtmlFileRequestHandler(
       project,
       normalizePath(file),
@@ -246,16 +265,11 @@ export async function preview(
       result.format,
       reloader,
       changeHandler.render,
+      project,
     );
 
   // open browser if this is a browseable format
-  const initialPath = isPdfContent(result.outputFile)
-    ? kPdfJsInitialPath
-    : project
-    ? pathWithForwardSlashes(
-      relative(projectOutputDir(project), result.outputFile),
-    )
-    : "";
+  const initialPath = previewInitialPath(result.outputFile, project);
   if (
     options.browser &&
     !isServerSession() &&
@@ -271,23 +285,22 @@ export async function preview(
   previewMonitorResources(stopServer);
 
   // serve project
-  for await (const conn of listener) {
-    (async () => {
+  const server = Deno.serve(
+    { signal: ac.signal, port: options.port!, hostname: options.host },
+    async (req: Request) => {
       try {
-        for await (const { request, respondWith } of Deno.serveHttp(conn)) {
-          await respondWith(handler(request));
-        }
+        return await handler(req);
       } catch (err) {
-        warning(err.message);
-        try {
-          conn.close();
-        } catch {
-          //
+        if (err instanceof Error) {
+          warning(err.message);
         }
+        throw err;
       }
-    })();
-  }
+    },
+  );
+  await server.finished;
 }
+
 export interface PreviewRenderRequest {
   version: 1 | 2;
   path: string;
@@ -346,17 +359,38 @@ export function previewRenderRequest(
 
 export async function previewRenderRequestIsCompatible(
   request: PreviewRenderRequest,
+  project: ProjectContext,
   format?: string,
-  project?: ProjectContext,
 ) {
   if (request.version === 1) {
     return true; // rstudio manages its own request compatibility state
   } else {
+    // When the caller does not pin a format, the compatibility check
+    // resolves the format from the file via renderFormats, which consults
+    // fileInformationCache. The cache may carry frontmatter from a prior
+    // render; invalidate it here so a format edit since the last render
+    // is detected on this request (#14533).
+    //
+    // Skip the invalidation while a render is in flight. invalidateForFile
+    // removes the transient .quarto_ipynb that the in-flight render is
+    // writing or reading, which would either throw from safeRemoveSync
+    // (Windows file lock) or orphan the inode (Linux). The in-flight
+    // render's own renderForPreview already invalidates and repopulates
+    // the cache at its start, so the cache reflects the in-flight render's
+    // view until it completes. A frontmatter edit made during the
+    // in-flight window is picked up on the next compatibility check after
+    // the render finishes.
+    if (
+      request.format === undefined &&
+      !HttpDevServerRenderMonitor.isRendering()
+    ) {
+      project.fileInformationCache?.invalidateForFile(request.path);
+    }
     const reqFormat = await previewFormat(
       request.path,
+      project,
       request.format,
       undefined,
-      project,
     );
     return reqFormat === format;
   }
@@ -365,20 +399,20 @@ export async function previewRenderRequestIsCompatible(
 // determine the format to preview
 export async function previewFormat(
   file: string,
+  project: ProjectContext,
   format?: string,
   formats?: Record<string, Format>,
-  project?: ProjectContext,
 ) {
   if (format) {
     return format;
   }
-  const nbContext = notebookContext();
-  project = project || (await singleFileProjectContext(file, nbContext));
+  // const nbContext = notebookContext();
+  // project = project || (await singleFileProjectContext(file, nbContext));
   formats = formats ||
     await withRenderServices(
-      nbContext,
+      project.notebookContext,
       (services: RenderServices) =>
-        renderFormats(file, services, "all", project!),
+        renderFormats(file, services, "all", project),
     );
   format = Object.keys(formats)[0] || "html";
   return format;
@@ -424,6 +458,15 @@ export async function renderForPreview(
   pandocArgs: string[],
   project?: ProjectContext,
 ): Promise<RenderForPreviewResult> {
+  // Invalidate file cache for the file being rendered so changes are picked up.
+  // The project context persists across re-renders in preview mode, but the
+  // fileInformationCache contains file content that needs to be refreshed.
+  // Uses invalidateForFile() to also clean up transient notebook files
+  // (.quarto_ipynb) from disk before removing the cache entry (#14281).
+  if (project?.fileInformationCache) {
+    project.fileInformationCache.invalidateForFile(file);
+  }
+
   // render
   const renderResult = await render(file, {
     services,
@@ -431,7 +474,7 @@ export async function renderForPreview(
     pandocArgs: pandocArgs,
     previewServer: true,
     setProjectDir: project !== undefined,
-  });
+  }, project);
   if (renderResult.error) {
     throw renderResult.error;
   }
@@ -485,8 +528,6 @@ export async function renderForPreview(
     [],
   ));
 
-  renderResult.context.cleanup();
-
   return {
     file,
     format: renderResult.files[0].format,
@@ -530,7 +571,7 @@ export function createChangeHandler(
 
       return result;
     } catch (e) {
-      if (e.message) {
+      if (e instanceof Error && e.message) {
         // jupyter notebooks being edited in juptyerlab sometimes get an
         // "Unexpected end of JSON input" error that remedies itself (so we ignore).
         // this may be a result of an intermediate save result?
@@ -694,6 +735,7 @@ function htmlFileRequestHandler(
   format: Format,
   reloader: HttpDevServer,
   renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
+  context: ProjectContext,
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
@@ -704,6 +746,7 @@ function htmlFileRequestHandler(
       format,
       reloader,
       renderHandler,
+      context,
     ),
   );
 }
@@ -716,7 +759,7 @@ function htmlFileRequestHandlerOptions(
   format: Format,
   devserver: HttpDevServer,
   renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
-  project?: ProjectContext,
+  project: ProjectContext,
 ): HttpFileRequestOptions {
   // if we an alternate format on the fly we need to do a full re-render
   // to get the correct state back. this flag will be set whenever
@@ -746,8 +789,8 @@ function htmlFileRequestHandlerOptions(
           !invalidateDevServerReRender &&
           prevReq &&
           existsSync(prevReq.path) &&
-          normalizePath(prevReq.path) === normalizePath(inputFile) &&
-          await previewRenderRequestIsCompatible(prevReq, flags.to)
+          pathsEqual(prevReq.path, inputFile) &&
+          await previewRenderRequestIsCompatible(prevReq, project, flags.to)
         ) {
           // don't wait for the promise so the
           // caller gets an immediate reply
@@ -858,6 +901,7 @@ function pdfFileRequestHandler(
   port: number,
   reloader: HttpDevServer,
   renderHandler: () => Promise<RenderForPreviewResult | undefined>,
+  project: ProjectContext,
 ) {
   // start w/ the html handler (as we still need it's http reload injection)
   const pdfOptions = htmlFileRequestHandlerOptions(
@@ -868,6 +912,7 @@ function pdfFileRequestHandler(
     format,
     reloader,
     renderHandler,
+    project,
   );
 
   // pdf customizations
@@ -878,7 +923,7 @@ function pdfFileRequestHandler(
     const onRequest = pdfOptions.onRequest;
     pdfOptions.onRequest = async (req: Request) => {
       if (new URL(req.url).pathname === "/") {
-        const url = isRStudioWorkbench()
+        const url = isPositWorkbench()
           ? await rswURL(port, kPdfJsInitialPath)
           : isVSCodeServer()
           ? vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +

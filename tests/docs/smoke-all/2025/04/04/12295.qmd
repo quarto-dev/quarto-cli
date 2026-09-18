@@ -1,0 +1,28 @@
+---
+title: DOCTYPE is not lost when using embed-resources
+embed-resources: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - []
+      ensureFileRegexMatches:
+        - ['\<\!DOCTYPE html\>'] 
+        - []
+    revealjs:
+      ensureHtmlElements:
+        - []
+        - []
+      ensureFileRegexMatches:
+        - ['\<\!DOCTYPE html\>'] 
+        - []
+---
+
+Example from https://github.com/quarto-dev/quarto-cli/issues/12295: Not having DOCTYPE lead to browser using a Quirk mode for CSS, and not applying the standard HTML5. 
+
+## Header
+
+```bash
+quarto render --help
+```

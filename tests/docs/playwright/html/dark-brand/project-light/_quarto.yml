@@ -1,0 +1,5 @@
+project:
+  type: default
+brand:
+  light: blue-background.yml
+  dark: red-background.yml

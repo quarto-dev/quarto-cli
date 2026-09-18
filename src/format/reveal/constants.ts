@@ -31,3 +31,4 @@ export const kScrollProgress = "scrollProgress";
 export const kScrollSnap = "scrollSnap";
 export const kScrollActivationWidth = "scrollActivationWidth";
 export const kScrollLayout = "scrollLayout";
+export const kScrollProgressAuto = "scrollProgressAuto";

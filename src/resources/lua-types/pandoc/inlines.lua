@@ -38,7 +38,7 @@ function pandoc.Inlines(inlines) end
 Citation
 ]]
 ---@class pandoc.Cite : pandoc.Inline
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines
 ---@field citations pandoc.List Citation entries (list of `Citation`)
 ---@field t "Cite"
 ---@field tag "Cite"
@@ -47,7 +47,7 @@ pandoc.Cite = {}
 --[[
 Creates a Cite inline element
 ]]
----@param content inlines_content List of inlines
+---@param content pandoc.Inlines List of inlines
 ---@param citations pandoc.List List of `Citation`
 ---@return pandoc.Cite
 function pandoc.Cite(content, citations) end
@@ -118,10 +118,10 @@ function pandoc.Emph:clone() end
 Image: alt text (list of inlines), target
 ]]
 ---@class pandoc.Image : pandoc.Inline
----@field caption pandoc.List List of inlines
+---@field caption pandoc.Inlines Text used to describe the image
 ---@field src string Path to the image
 ---@field title string Brief image description
----@field attr pandoc.Attr Attributes
+---@field attr pandoc.Attr Image attributes
 ---@field identifier string Alias for `attr.identifier`
 ---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
@@ -132,7 +132,7 @@ pandoc.Image = {}
 --[[
 Creates an Image inline element
 ]]
----@param caption inlines_content List of inlines
+---@param caption pandoc.Inlines List of inlines
 ---@param src string Path to the image
 ---@param title? string Brief image description
 ---@param attr? pandoc.Attr Attributes
@@ -188,7 +188,7 @@ pandoc.Link = {}
 --[[
 Creates a Link inline element
 ]]
----@param content inlines_content Text for this link (list of inlines)
+---@param content pandoc.Inlines Text for this link
 ---@param target string The link target
 ---@param title? string Brief link description
 ---@param attr? pandoc.Attr Attributes
@@ -236,7 +236,7 @@ function pandoc.Math:clone() end
 Footnote or endnote
 ]]
 ---@class pandoc.Note : pandoc.Inline
----@field content pandoc.List Note content (list of blocks)
+---@field content pandoc.Blocks Footnote block content
 ---@field t "Note"
 ---@field tag "Note"
 pandoc.Note = {}
@@ -261,7 +261,7 @@ Quoted text
 ]]
 ---@class pandoc.Quoted : pandoc.Inline
 ---@field quotetype quote_type Type of quotes to be used; one of SingleQuote or DoubleQuote
----@field content pandoc.List Quoted text (list of inlines)
+---@field content pandoc.Inlines Inlines in quotes
 ---@field t "Quoted"
 ---@field tag "Quoted"
 pandoc.Quoted = {}
@@ -270,7 +270,7 @@ pandoc.Quoted = {}
 Creates quoted text
 ]]
 ---@param quotetype string|quote_type Type of quotes to be used; one of SingleQuote or DoubleQuote
----@param content inlines_content Quoted text (list of inlines)
+---@param content pandoc.Inlines Quoted text (list of inlines)
 ---@return pandoc.Quoted
 function pandoc.Quoted(quotetype, content) end
 
@@ -315,7 +315,7 @@ function pandoc.RawInline:clone() end
 Small caps text
 ]]
 ---@class pandoc.SmallCaps : pandoc.Inline
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content
 ---@field t "SmallCaps"
 ---@field tag "SmallCaps"
 pandoc.SmallCaps = {}
@@ -323,7 +323,7 @@ pandoc.SmallCaps = {}
 --[[
 Creates text rendered in small caps
 ]]
----@param content inlines_content List of inlines
+---@param content pandoc.Inlines List of inlines
 ---@return pandoc.SmallCaps
 function pandoc.SmallCaps(content) end
 
@@ -384,7 +384,7 @@ function pandoc.Space:clone() end
 Generic inline container with attributes
 ]]
 ---@class pandoc.Span : pandoc.Inline
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content
 ---@field attr pandoc.Attr Inline attributes
 ---@field identifier string Alias for `attr.identifier`
 ---@field classes pandoc.List Alias for `attr.classes`
@@ -396,7 +396,7 @@ pandoc.Span = {}
 --[[
 Creates a Span inline element
 ]]
----@param content inlines_content Span content (list of inlines)
+---@param content pandoc.Inlines Span content (list of inlines)
 ---@param attr? pandoc.Attr Span attributes
 ---@return pandoc.Span
 function pandoc.Span(content, attr) end
@@ -439,7 +439,7 @@ function pandoc.Str:clone() end
 Strikeout text
 ]]
 ---@class pandoc.Strikeout : pandoc.Inline
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content
 ---@field t "Strikeout"
 ---@field tag "Strikeout"
 pandoc.Strikeout = {}
@@ -447,7 +447,7 @@ pandoc.Strikeout = {}
 --[[
 Creates text which is struck out.
 ]]
----@param content inlines_content List of inlines
+---@param content pandoc.Inlines List of inlines
 ---@return pandoc.Strikeout
 function pandoc.Strikeout(content) end
 
@@ -463,7 +463,7 @@ function pandoc.Strikeout:clone() end
 Strongly emphasized text
 ]]
 ---@class pandoc.Strong : pandoc.Inline
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content
 ---@field t "Strong"
 ---@field tag "Strong"
 pandoc.Strong = {}
@@ -471,7 +471,7 @@ pandoc.Strong = {}
 --[[
 Creates a Strong element, whose text is usually displayed in a bold font.
 ]]
----@param content inlines_content List of inlines
+---@param content pandoc.Inlines List of inlines
 ---@return pandoc.Strong
 function pandoc.Strong(content) end
 
@@ -487,7 +487,7 @@ function pandoc.Strong:clone() end
 Subscripted text
 ]]
 ---@class pandoc.Subscript : pandoc.Inline
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content
 ---@field t "Subscript"
 ---@field tag "Subscript"
 pandoc.Subscript = {}
@@ -495,7 +495,7 @@ pandoc.Subscript = {}
 --[[
 Creates a Subscript inline element
 ]]
----@param content inlines_content List of inlines
+---@param content pandoc.Inlines List of inlines
 ---@return pandoc.Subscript
 function pandoc.Subscript(content) end
 
@@ -511,7 +511,7 @@ function pandoc.Subscript:clone() end
 Superscripted text
 ]]
 ---@class pandoc.Superscript : pandoc.Inline
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content
 ---@field t "Superscript"
 ---@field tag "Superscript"
 pandoc.Superscript = {}
@@ -519,7 +519,7 @@ pandoc.Superscript = {}
 --[[
 Creates a Superscript inline element
 ]]
----@param content inlines_content List of inlines
+---@param content pandoc.Inlines List of inlines
 ---@return pandoc.Superscript
 function pandoc.Superscript(content) end
 
@@ -536,7 +536,7 @@ function pandoc.Superscript:clone() end
 Underlined text
 ]]
 ---@class pandoc.Underline : pandoc.Inline
----@field content pandoc.List Inline content (list of inlines)
+---@field content pandoc.Inlines Inline content
 ---@field t "Underline"
 ---@field tag "Underline"
 pandoc.Underline = {}
@@ -544,7 +544,7 @@ pandoc.Underline = {}
 --[[
 Creates an Underline inline element
 ]]
----@param content inlines_content List of inlines
+---@param content pandoc.Inlines List of inlines
 ---@return pandoc.Underline
 function pandoc.Underline(content) end
 

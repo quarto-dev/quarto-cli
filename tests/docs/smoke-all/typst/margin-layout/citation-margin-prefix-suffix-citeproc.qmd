@@ -1,0 +1,46 @@
+---
+title: "Margin Citation with Prefix and Suffix (Citeproc)"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+citeproc: true
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # With citeproc, margin notes contain pre-rendered bibliography text (not #cite calls)
+        - ['#note\(', 'Borges']
+        - ['#cite\(<[^>]+>, form: "full"\)']  # Should NOT have native Typst cite calls
+      ensurePdfRegexMatches:
+        # Citeproc preserves prefix/suffix inline (unlike native Typst which drops prefixes)
+        - - 'PREFIX-MARKER'
+          - 'SUFFIX-MARKER'
+          - 'Borges'
+          # Prefixes appear inline with author-date citation
+          - 'see Borges 1941'       # prefix "see" preserved
+          - 'cf\. Eco'              # prefix "cf." preserved
+          - 'see also'              # complex prefix preserved
+          # Suffix appears inline (may be hyphenated across lines)
+          - 'phasis added'          # "em-phasis added" hyphenated
+          - 'contrasting'
+        - []
+      ensurePdfTextPositions:
+        - # Full citation in margin - "Bifurcan" is unique (citeproc uses title case)
+          - subject: "Bifurcan"
+            relation: rightOf
+            object: "PREFIX-MARKER"
+        - []
+      noErrors: default
+---
+
+# Testing Citation Prefix and Suffix in Margins
+
+PREFIX-MARKER: As noted by several scholars [see @borges1941library], the Library concept is profound.
+
+SUFFIX-MARKER: The story was revolutionary [@borges1944ficciones, emphasis added].
+
+COMPLEX-MARKER: For background [cf. @eco1980name; but see also @calvino1979winter for a contrasting view].

@@ -11,7 +11,7 @@ title: boo
 library(tidyverse)
 library(kableExtra)
 
-mtcars %>% 
-  kableExtra::kbl(longtable = T) %>% 
+mtcars %>%
+  kableExtra::kbl(longtable = T) %>%
   column_spec(column = 1:2, width = "4cm")
 ```

@@ -476,7 +476,7 @@ plot(pressure)
 
 ```{r}
 #| layout-ncol: 2
-#| fig-cap: 
+#| fig-cap:
 #|   - "Speed and Stopping Distances of Cars"
 #|   - "Vapor Pressure of Mercury as a Function of Temperature"
 
@@ -507,7 +507,7 @@ plot(pressure)
 ```{r}
 #| label: fig-charts
 #| fig-cap: Charts
-#| fig-subcap: 
+#| fig-subcap:
 #|   - "Cars"
 #|   - "Pressure"
 #| layout-ncol: 2

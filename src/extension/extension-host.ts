@@ -62,6 +62,9 @@ export async function extensionSource(
         };
       }
     } catch (err) {
+      if (!(err instanceof Error)) {
+        throw err;
+      }
       err.message =
         `A network error occurred when attempting to inspect the extension '${target}'. Please try again.\n\n` +
         err.message;

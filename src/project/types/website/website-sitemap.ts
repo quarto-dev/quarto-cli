@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { existsSync, safeRemoveDirSync, safeRemoveSync } from "../../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../../deno_ral/path.ts";
 
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";
@@ -57,7 +57,10 @@ export async function updateSitemap(
   const robotsTxtPath = join(context.dir, "robots.txt");
   const srcRobotsTxt = existsSync(robotsTxtPath) ? robotsTxtPath : undefined;
   const destRobotsTxt = join(outputDir, "robots.txt");
-  if (srcRobotsTxt) {
+  if (srcRobotsTxt && destRobotsTxt !== srcRobotsTxt) {
+    if (existsSync(destRobotsTxt)) {
+      safeRemoveSync(destRobotsTxt);
+    }
     copyTo(srcRobotsTxt, destRobotsTxt);
   }
 

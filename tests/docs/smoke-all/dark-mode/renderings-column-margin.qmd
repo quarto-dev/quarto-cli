@@ -1,0 +1,27 @@
+---
+title: "renderings with column-margin"
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'div.cell div.column-margin div.cell-output-display.light-content'
+          - 'div.cell div.column-margin div.cell-output-display.dark-content'
+        - []
+---
+
+This tests that `column: margin` works together with `renderings: [light, dark]`.
+The column-margin class should be preserved when creating light/dark content divs.
+
+```{r}
+#| column: margin
+#| renderings: [light, dark]
+
+knitr::kable(data.frame(x = "Light mode", y = 1))
+knitr::kable(data.frame(x = "Dark mode", y = 2))
+```

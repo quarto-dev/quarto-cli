@@ -9,22 +9,98 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
+# Check if verbose mode is enabled (GitHub Actions debug mode or explicit flag)
+VERBOSE_MODE=false
+if [[ "$RUNNER_DEBUG" == "1" ]] || [[ "$QUARTO_TEST_VERBOSE" == "true" ]]; then
+  VERBOSE_MODE=true
+fi
+
+# Check if keep-outputs mode or agent mode is enabled
+KEEP_OUTPUTS=false
+AGENT_MODE=false
+FILTERED_ARGS=()
+for arg in "$@"; do
+  case $arg in
+    --keep-outputs|-k)
+      KEEP_OUTPUTS=true
+      ;;
+    --agent)
+      AGENT_MODE=true
+      ;;
+    *)
+      FILTERED_ARGS+=("$arg")
+      ;;
+  esac
+done
+set -- "${FILTERED_ARGS[@]}"
+
+if [[ "$KEEP_OUTPUTS" == "true" ]]; then
+  export QUARTO_TEST_KEEP_OUTPUTS=true
+  echo "> Keep outputs mode enabled - test artifacts will not be deleted"
+fi
+
+AGENT_REPORTER_ARGS=()
+if [[ "$AGENT_MODE" == "true" ]]; then
+  AGENT_REPORTER_ARGS=(--reporter=dot)
+fi
+
 source $SCRIPT_PATH/../package/scripts/common/utils.sh
 
-export QUARTO_ROOT="`cd "$SCRIPT_PATH/.." > /dev/null 2>&1 && pwd`"
+export QUARTO_ROOT="$(cd "$SCRIPT_PATH/.." > /dev/null 2>&1 && pwd)"
 QUARTO_SRC_DIR="$QUARTO_ROOT/src"
+
+# Architecture detection (preserve original DENO_DIR from environment)
 DENO_ARCH_DIR=$DENO_DIR
-DENO_DIR="$QUARTO_ROOT/package/dist/bin/"
+
+# Set bin path explicitly (not derived from DENO_DIR)
+QUARTO_BIN_PATH="$QUARTO_ROOT/package/dist/bin"
+
+# Set DENO_DIR to cache location (respects QUARTO_DENO_DIR override)
+if [ "$QUARTO_DENO_DIR" == "" ]; then
+  export DENO_DIR="$QUARTO_BIN_PATH/deno_cache"
+else
+  export DENO_DIR="$QUARTO_DENO_DIR"
+fi
 
 # Local import map
 QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_DIR/import_map.json
 
-export QUARTO_BIN_PATH=$DENO_DIR
+export QUARTO_BIN_PATH
 export QUARTO_SHARE_PATH="`cd "$QUARTO_ROOT/src/resources/";pwd`"
 export QUARTO_DEBUG=true
 
 QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --no-lock --allow-all"
 
+# QUARTO_TEST_BIN selects an installed Quarto outside this checkout.
+# The harness still uses the dev runtime configured above.
+if [[ -n "$QUARTO_TEST_BIN" ]]; then
+  if [[ ! -x "$QUARTO_TEST_BIN" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) does not exist or is not executable"
+    exit 1
+  fi
+  # Strip dev paths while probing the installed binary.
+  QUARTO_TEST_BIN_VERSION="$(env -u QUARTO_SHARE_PATH -u QUARTO_BIN_PATH \
+    -u QUARTO_DEBUG -u DENO_DIR -u QUARTO_DENO -u QUARTO_DENO_DOM \
+    -u QUARTO_ROOT -u QUARTO_SRC_PATH -u QUARTO_FORCE_VERSION \
+    "$QUARTO_TEST_BIN" --version 2>/dev/null)"
+  QUARTO_TEST_BIN_PROBE_EXIT=$?
+  if [[ $QUARTO_TEST_BIN_PROBE_EXIT -ne 0 ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) exited with code $QUARTO_TEST_BIN_PROBE_EXIT while reporting its version."
+    exit 1
+  fi
+  if [[ -z "$QUARTO_TEST_BIN_VERSION" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) did not report a version."
+    echo "The distribution is likely incomplete (missing share/version)."
+    exit 1
+  fi
+  if [[ "$QUARTO_TEST_BIN_VERSION" == "99.9.9" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
+    echo "The selected launcher runs the dev sources because it has a sibling src/quarto.ts."
+    echo "Point QUARTO_TEST_BIN at a built distribution extracted outside the git checkout."
+    exit 1
+  fi
+  echo "> BINARY MODE: testing built quarto ${QUARTO_TEST_BIN_VERSION} at ${QUARTO_TEST_BIN}"
+fi
 
 if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
 then
@@ -42,10 +118,14 @@ if [[ -z $QUARTO_TESTS_FORCE_NO_VENV ]]
 then
   # Save possible activated virtualenv for later restauration
   OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-  echo "> Activating virtualenv from .venv for Python tests in Quarto"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Activating virtualenv from .venv for Python tests in Quarto"
+  fi
   source "${QUARTO_ROOT}/tests/.venv/bin/activate"
-  echo "> Using Python from $(which python)"
-  echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using Python from $(which python)"
+    echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  fi
   quarto_venv_activated="true"
 fi
 
@@ -73,13 +153,13 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
       SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -regextype "posix-extended" -regex ".*/[^_][^/]*[.]qmd" -o -regex ".*/[^_][^/]*[.]md" -o -regex ".*/[^_][^/]*[.]ipynb"`
       for j in $SMOKE_ALL_FILES; do
         echo "${SMOKE_ALL_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
-        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" ${SMOKE_ALL_TEST_FILE} -- ${j}
+        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" ${SMOKE_ALL_TEST_FILE} -- ${j}
       done
       continue
     fi
     # Otherwise we time the individual test.ts test
     echo $i >> "$QUARTO_TEST_TIMING"
-    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $i
+    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" $i
   done
   # exit the script with an error code if the timing file shows error
   grep -q 'Command exited with non-zero status' $QUARTO_TEST_TIMING && SUCCESS=1 || SUCCESS=0
@@ -89,21 +169,19 @@ else
   ## Short version syntax to run smoke-all.test.ts
   ## Only use if different than ./run-test.sh ./smoke/smoke-all.test.ts
   if [[ "$1" =~ smoke-all\.test\.ts ]]; then
-    TESTS_TO_RUN=$@
+    TESTS_TO_RUN=("$@")
   else
     # Check file argument
-    SMOKE_ALL_FILES=""
-    TESTS_TO_RUN=""
+    SMOKE_ALL_FILES=()
+    TESTS_TO_RUN=()
     if [[ ! -z "$*" ]]; then
-      for file in "$*"; do
-        echo $file
+      for file in "$@"; do
         filename=$(basename "$file")
         # smoke-all.test.ts works with .qmd, .md and .ipynb but  will ignored file starting with _
         if [[ $filename =~ ^[^_].*[.]qmd$ ]] || [[ $filename =~ ^[^_].*[.]ipynb$ ]] || [[ $filename =~ ^[^_].*[.]md$ ]]; then
-          SMOKE_ALL_FILES="${SMOKE_ALL_FILES} ${file}"
+          SMOKE_ALL_FILES+=("${file}")
         elif [[ $file =~ .*[.]ts$ ]]; then
-          TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
-          echo $TESTS_TO_RUN
+          TESTS_TO_RUN+=("${file}")
         else
           echo "#### WARNING"
           echo "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)."
@@ -112,34 +190,52 @@ else
         fi
       done
     fi
-    if [ "$SMOKE_ALL_FILES" != "" ]; then
-      if [ "$TESTS_TO_RUN" != "" ]; then
+    if [ "${#SMOKE_ALL_FILES[@]}" -ne 0 ]; then
+      if [ "${#TESTS_TO_RUN[@]}" -ne 0 ]; then
         echo "#### WARNING"
         echo "When passing .qmd, .md and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
-        echo "Ignoring ${TESTS_TO_RUN}."
+        echo "Ignoring ${TESTS_TO_RUN[*]}."
         echo "####"
       fi
-      TESTS_TO_RUN="${SMOKE_ALL_TEST_FILE} -- ${SMOKE_ALL_FILES}"
+      TESTS_TO_RUN=("${SMOKE_ALL_TEST_FILE}" "--" "${SMOKE_ALL_FILES[@]}")
     fi
   fi
-  "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $TESTS_TO_RUN
+  # Binary mode defaults to smoke tests; other compatible suites are explicit.
+  if [[ -n "$QUARTO_TEST_BIN" && "${#TESTS_TO_RUN[@]}" -eq 0 && -z "$*" ]]; then
+    TESTS_TO_RUN=("smoke/")
+    echo "> BINARY MODE: defaulting to smoke/ tests (pass a path explicitly to run others, e.g. integration/playwright-tests.test.ts)"
+  fi
+  # TESTS_TO_RUN is an array and quoted here on purpose: a bucket can be a
+  # literal, unexpanded ** glob pattern (e.g. from the ff-matrix CI bucket),
+  # and smoke-all.test.ts expands it itself via expandGlobSync. Expanding it
+  # here instead would depend on bash's own (non-recursive by default) glob
+  # semantics and could silently drop deeply nested matches.
+  "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" "${TESTS_TO_RUN[@]}"
   SUCCESS=$?
 fi
 
-if [[ $quarto_venv_activated == "true" ]] 
+if [[ $quarto_venv_activated == "true" ]]
 then
-  echo "> Exiting virtualenv activated for tests"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Exiting virtualenv activated for tests"
+  fi
   deactivate
-  echo "> Using Python from $(which python)"
-  echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using Python from $(which python)"
+    echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  fi
   unset quarto_venv_activated
 fi
 if [[ -n $OLD_VIRTUAL_ENV ]]
 then
-  echo "> Reactivating original virtualenv"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Reactivating original virtualenv"
+  fi
   source $OLD_VIRTUAL_ENV/bin/activate
-  echo "> Using Python from $(which python)"
-  echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using Python from $(which python)"
+    echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
+  fi
   unset OLD_VIRTUAL_ENV
 fi
 
@@ -150,7 +246,7 @@ if [[ $@ == *"--coverage"* ]]; then
   [[ $@ =~ .*--coverage=(.+) ]] && export COV="${BASH_REMATCH[1]}"
 
   echo Generating coverage report...
-  ${DENO_DIR}/deno coverage --unstable-kv --unstable-ffi ${COV} --lcov > ${COV}.lcov
+  ${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno coverage --unstable-kv --unstable-ffi ${COV} --lcov > ${COV}.lcov
   genhtml -o ${COV}/html ${COV}.lcov
   open ${COV}/html/index.html
 fi

@@ -140,7 +140,8 @@ You can use the `kable()` function from the **knitr** package to format tables t
 ```{r}
 #| tbl-cap-location: margin
 knitr::kable(
-  mtcars[1:6, 1:6], caption = 'A subset of mtcars.'
+  mtcars[1:6, 1:6],
+  caption = "A subset of mtcars."
 )
 ```
 
@@ -188,7 +189,7 @@ Then two plots from the same code chunk placed in different figure environments:
 
 ```{r}
 #| echo: false
-knitr::kable(head(iris[,c(1,2,3,4)], 15))
+knitr::kable(head(iris[, c(1, 2, 3, 4)], 15))
 ```
 
 ```{r}
@@ -205,7 +206,7 @@ plot(iris)
 
 ```{r}
 #| echo: false
-knitr::kable(head(iris[,c(1,2,3,4)], 12))
+knitr::kable(head(iris[, c(1, 2, 3, 4)], 12))
 ```
 
 We blended some tables in the above code chunk only as _placeholders_ to make sure there is enough vertical space among the margin figures, otherwise they will be stacked tightly together. For a practical document, you should not insert too many margin figures consecutively and make the margin crowded.

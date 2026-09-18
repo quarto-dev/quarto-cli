@@ -1,10 +1,10 @@
 ---
 title: Callouts
 format:
-  docusaurus-md:
-    quality: 1
   html: 
     quality: 2
+  docusaurus-md:
+    quality: 1
   dashboard:
     quality: 0
     comment: "Bug: Callout icons show on a separate line from the title."
@@ -53,3 +53,34 @@ You should note that this is a note.
 A callout does not need a title.
 
 :::
+
+::: {.callout-note}
+
+## A callout does not need content
+
+:::
+
+::: {.callout-note}
+
+:::
+
+::: {.callout-note collapse="true" appearance="minimal"}
+
+## A small note
+
+You should note that this is a note.
+
+:::
+
+::: {.callout}
+
+:::
+
+::: {.callout}
+
+## Title
+
+Content
+
+:::
+

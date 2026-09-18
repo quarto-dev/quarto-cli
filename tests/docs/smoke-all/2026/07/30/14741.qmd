@@ -1,0 +1,61 @@
+---
+format: latex
+include-in-header:
+  text: |
+    \usepackage[nomarkers,nolists]{endfloat}
+    \DeclareDelayedFloatFlavor*{longtable}{table}
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        -
+          - '\\begin\{longtable\}'
+          - '\\caption\{\\label\{tbl-kable\}'
+          - '\\end\{longtable\}'
+        -
+          # no `{ ... }` group around the longtable environment
+          - '\{\s*\\begin\{longtable\}'
+          - '\\end\{longtable\}\s*\}'
+          # and Pandoc's definition, which the group scoped, is gone with it
+          - '\\def\\LTcaptype'
+---
+
+Pandoc 3.8.1+ wraps a captionless table in `{\def\LTcaptype{none} ... }` so it
+does not step the table counter. Quarto lifts the caption off a
+cross-referenceable table before Pandoc writes it, so every such table takes
+that path; Quarto then supplies its own `\caption` and drops the definition,
+which leaves the group scoping nothing.
+
+That leftover group is not inert. `endfloat`'s
+`\DeclareDelayedFloatFlavor*{longtable}{table}` reads the environment into the
+`.ttt` file and terminates it with `\end{efloat@float}`, so the
+`env/longtable/after` hook installed by `footnotehyper`'s
+`\makesavenoteenv{longtable}` never fires and its `\savenotes` `\begingroup`
+stays open. The trailing `}` is then the first token to meet that open group,
+and LaTeX fails with `Extra }, or forgotten \endgroup`.
+
+The assertions above check the generated `.tex`, not a compile: reproducing the
+failure needs `footnotehyper`, and TinyTeX ships `footnote.sty` instead — the
+template picks between them with `\IfFileExists`, which never errors, so nothing
+installs `footnotehyper` on CI and a compiling test would pass either way. The
+`endfloat` preamble above is therefore inert here; it is kept so this document
+is one metadata switch away from being the real reproduction.
+
+The Div below is the shape knitr/Jupyter produce for a markdown table emitted
+by a code cell. `knitr::kable()` defaults to the pipe format under Quarto, so
+this is what the issue's `kable(longtable = TRUE)` reprex produces; see
+`14741-knitr.qmd` for the engine version.
+
+::: {#tbl-kable .cell}
+::: {.cell-output-display}
+
+Table: A table generated from an R data frame using knitr::kable().
+
+|Treatment   | Sample size| Mean response|
+|:-----------|-----------:|-------------:|
+|Control     |          20|          12.3|
+|Treatment A |          20|          15.8|
+|Treatment B |          20|          14.6|
+
+:::
+:::

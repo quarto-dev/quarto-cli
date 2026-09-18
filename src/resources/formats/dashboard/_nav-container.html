@@ -1,6 +1,7 @@
 
-    <div class="navbar-brand-container">       
-$if(logo)$    <a href="#"><img src="$logo$" alt="$logo-alt$" class="navbar-logo d-inline-block"></a>$endif$
+    <div class="navbar-brand-container">
+$if(logo.light)$    <a href="#"><img src="$logo.light.path$" alt="$logo.light.alt$" class="navbar-logo light-content d-inline-block"></a>$endif$
+$if(logo.dark)$    <a href="#"><img src="$logo.dark.path$" alt="$logo.dark.alt$" class="navbar-logo dark-content d-inline-block"></a>$endif$
       <div class="navbar-title">
         $if(title)$<div class="navbar-title-text"><a href="#">$title$</a></div>$endif$
         $if(subtitle)$<div class="navbar-subtitle">$subtitle$</div>$endif$

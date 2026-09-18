@@ -29,15 +29,13 @@ import {
   NotebookMetadata,
   NotebookOutput,
 } from "./notebook-types.ts";
-
-import * as ld from "../../core/lodash.ts";
-
 import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
 import { dirname, join, relative } from "../../deno_ral/path.ts";
+import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 export const qmdNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
@@ -86,7 +84,7 @@ function resolveOutputNotebook(
   executedFile: ExecutedFile,
   _notebookMetadata?: NotebookMetadata,
 ) {
-  const resolved = ld.cloneDeep(executedFile);
+  const resolved = safeCloneDeep(executedFile);
   resolved.recipe.format.pandoc[kOutputFile] = ipynbOutputFile(nbAbsPath);
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 

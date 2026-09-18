@@ -1,0 +1,6 @@
+---
+title: Testing oblivion code highlight
+syntax-highlighting: oblivion
+---
+
+{{< include _body.md >}}

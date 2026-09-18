@@ -4,7 +4,7 @@ kSideCaptionEnv = 'sidecaption'
 
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isLatexOutput()
-end, function(layout)
+end, function (layout)
   local rendered_panel = latexPanel(layout)
   local preamble = layout.preamble
   if preamble == nil then
@@ -18,9 +18,41 @@ end, function(layout)
   return result
 end)
 
+_quarto.ast.add_renderer("PanelLayout", function(_)
+  return _quarto.format.isBeamerOutput()
+end, function(panel)
+  local result = pandoc.Blocks({})
+  if panel.preamble then
+    panel_insert_preamble(result, panel.preamble)
+  end
+
+  for i, row in ipairs(panel.layout) do
+    local beamer_cols = pandoc.Div({}, pandoc.Attr("", { "columns" }))
+    for j, cell in ipairs(row) do
+      local attrs = {}
+      local align = nil
+      -- NB: column "align" in beamer is "valign" in our layouts
+      if cell.attributes["valign"] then
+        align = cell.attributes["valign"]
+      end
+      if cell.attributes["width"] then
+        attrs.width = cell.attributes["width"]
+      end
+      if align then
+        attrs.align = align
+      end
+      local beamer_col = pandoc.Div({}, pandoc.Attr(cell.identifier, { "column" }, attrs))
+      beamer_col.content:extend(cell.content)
+      beamer_cols.content:insert(beamer_col)
+    end
+    result:insert(beamer_cols)
+  end
+
+  return result
+end)
+
 -- function latexPanel(divEl, layout, caption)
 function latexPanel(layout)
-  
   -- begin container
   local env, pos = latexPanelEnv(layout)
   local panel_node, panel = quarto.LatexEnvironment({
@@ -35,9 +67,14 @@ function latexPanel(layout)
   end
   local caption = create_latex_caption(layout)
   
-   -- read vertical alignment and strip attribute
-  local vAlign = validatedVAlign(layout.attributes[kLayoutVAlign])
-  layout.attributes[kLayoutVAlign] = nil
+  -- convert valign_class to latex notation, read vertical alignment and strip attribute
+  local vAlign = "top"
+  if layout.valign_class ~= nil then
+    local vAlignClass = layout.valign_class
+    vAlign = vAlignClass:gsub("quarto%-layout%-valign%-","")
+  end
+  
+  vAlign = validatedVAlign(vAlign)
 
   for i, row in ipairs(layout.rows.content) do
     
@@ -626,7 +663,7 @@ end
 function latexImageFigure(image)
 
   return renderLatexFigure(image, function(figure)
-    
+
     -- make a copy of the caption and clear it
     local caption = image.caption:clone()
     tclear(image.caption)

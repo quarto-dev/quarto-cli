@@ -37,6 +37,7 @@ import { kLangCommentChars } from "../lib/partition-cell-options.ts";
 import { generateTypesFromSchemas } from "./types-from-schema.ts";
 import { generateJsonSchemasFromSchemas } from "./json-schema-from-schema.ts";
 import { InternalError } from "../lib/error.ts";
+import { generateZodTypesFromSchemas } from "./zod-types-from-schema.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -86,10 +87,25 @@ export async function buildIntelligenceResources() {
   );
   Deno.writeTextFileSync(yamlResourcesPath, yamlResources);
 
+  // we also need to write the schema definitions to a file
+  // it doesn't go on yaml-intelligence-resources.json because
+  // it's a larger file and we don't want to bundle it
+  // unnecessarily with web-worker.js
+
+  const definitions = getSchemaDefinitionsObject();
+  const definitionsPath = resourcePath(
+    "editor/tools/yaml/all-schema-definitions.json",
+  );
+  Deno.writeTextFileSync(
+    definitionsPath,
+    JSON.stringify(definitions),
+  );
+
   const path = resourcePath();
   await Promise.all([
     generateTypesFromSchemas(path),
     generateJsonSchemasFromSchemas(path),
+    generateZodTypesFromSchemas(path),
   ]);
 }
 
@@ -136,7 +152,7 @@ async function createHtmlDescriptions(): Promise<
   const cmd = [pandocBinaryPath(), "--to", "html"];
 
   const pandocResult = await execProcess(
-    { stdout: "piped", cmd },
+    { stdout: "piped", cmd: cmd[0], args: cmd.slice(1) },
     markdownDescriptions,
   );
 

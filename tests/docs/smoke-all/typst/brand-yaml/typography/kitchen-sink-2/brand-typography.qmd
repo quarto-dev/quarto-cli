@@ -30,13 +30,15 @@ _quarto:
         - 'heading-style: "normal",$'
         - 'heading-color: rgb\("#042f02"\),$'
         - 'heading-line-height: 0\.25em,$'
-        - '^#show heading: set text\(font: "Raleway", weight: 500, style: "normal", fill: rgb\("#042f02"\), \)$'
+        - '^#show heading: set text\(font: \("Raleway",\), weight: 500, style: "normal", fill: rgb\("#042f02"\), \)$'
         - '^#show heading: set par\(leading: 0.25em\)$'
 
-        - '^#show raw.where\(block: false\): set text\(font: "Space Mono", weight: 400, size: 0.75\*12pt, fill: rgb\(8, 111, 15\), \)$'
+        - 'codefont: \("Space Mono",\),$'
+        - 'show raw: set text\(font: codefont\) if codefont != none'
+        - '^#show raw.where\(block: false\): set text\(weight: 400, size: 0.75\*12pt, fill: rgb\(8, 111, 15\), \)$'
         - '^#show raw.where\(block: false\): content => highlight\(fill: rgb\(255, 250, 224\), content\)$'
 
-        - '^#show raw.where\(block: true\): set text\(font: "Space Mono", weight: 400, size: 0.75\*12pt, fill: rgb\("#eee"\), \)$'
+        - '^#show raw.where\(block: true\): set text\(weight: 400, size: 0.75\*12pt, fill: rgb\("#eee"\), \)$'
         - '^#show raw.where\(block: true\): set block\(fill: rgb\("#0a3c07"\)\)$'
 
         - '^#show link: set text\(weight: 200, fill: maroon, \)$'

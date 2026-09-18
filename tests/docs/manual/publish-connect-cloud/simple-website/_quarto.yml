@@ -1,0 +1,15 @@
+project:
+  type: website
+
+website:
+  title: "Connect Cloud Test Site"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: about.qmd
+        text: About
+
+format:
+  html:
+    theme: default

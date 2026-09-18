@@ -1,0 +1,42 @@
+---
+title: Translate brand named color references from CSS to Typst
+format:
+  typst:
+    keep-typ: true
+    brand-mode: light
+brand:
+  light:
+    color:
+      palette:
+        light-grey: "#444"
+        blue: "#82aeef"
+  dark:
+    color:
+      palette:
+        dark-grey: "#222"
+        blue: "#415777"
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'blue: rgb\("#82aeef"\)'
+          - 'light-grey: rgb\("#444"\)'
+          - '#set text\(fill: brand-color\.blue\);'
+        -
+      printsMessage:
+        level: INFO
+        regex: 'unknown brand color dark-grey'
+---
+
+
+```{=typst}
+// stopgap to make this look ok
+#set block(inset: 6pt)
+```
+
+:::{style="background-color: var(--brand-dark-grey); color: var(--brand-blue)"}
+This div is blue on dark grey.
+:::
+
+{{< lipsum 2 >}}

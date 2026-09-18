@@ -1,0 +1,47 @@
+---
+title: test
+format: html
+execute:
+  error: true
+_quarto:
+  tests:
+    html:
+      shouldError: default
+      postRenderCleanup:
+        - '${input_stem}.quarto_ipynb'
+---
+
+With `error: true`, and `error: false` at cell level, this document should error at rendering.
+
+By default `nbconvert` does not throw exception for error thrown by IPython display, on purpose as document output is still valid as there are other representation. 
+
+```{python}
+class BuggyDisplay:
+    def __init__(self):
+        self.data = "This works fine"
+    
+    def _repr_html_(self):
+        # HTML representation used for `format: html`
+        return "<b>HTML fallback:</b> " + self.data
+
+    def _repr_markdown_(self):
+        # This error happens during display, not execution
+        # even if the markdown reprensentation is not used
+        raise ValueError("Display phase error for Markdown!")
+    
+    def __repr__(self):
+        # This ensures the object has a string representation
+        return self.data
+
+# Create the object
+buggy = BuggyDisplay()
+```
+
+```{python}
+#| error: false
+buggy
+```
+
+```{python}
+print("Execution continued despite display error")
+```

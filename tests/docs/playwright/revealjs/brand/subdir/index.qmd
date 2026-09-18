@@ -1,0 +1,14 @@
+---
+title: test
+format: 
+  revealjs:
+    theme: [custom.scss, brand]
+brand:
+  color:
+    palette:
+      dark-teal: "#005E5E"
+---
+
+# content
+
+content

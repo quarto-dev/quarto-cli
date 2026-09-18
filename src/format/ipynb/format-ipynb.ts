@@ -81,10 +81,10 @@ export function ipynbFormat(): Format {
           // read notebook
           const nb = jupyterFromFile(output);
 
-          // We 'hide' widget metafrom the YAML by encoding it to
+          // We 'hide' widget metadata from the YAML by encoding it to
           // prevent the YAML representation from mangling it. Restore
           // it here if it is so hidden
-          const widgets = nb.metadata.widgets;
+          const widgets = nb.metadata.widgets as unknown;
           if (widgets && typeof widgets === "string") {
             nb.metadata.widgets = JSON.parse(
               new TextDecoder().decode(base64decode(widgets)),

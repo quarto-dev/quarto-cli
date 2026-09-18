@@ -1,0 +1,18 @@
+\documentclass[
+$if(fontsize)$
+  $fontsize$,
+$endif$
+  ignorenonframetext,
+$if(handout)$
+  handout,
+$endif$
+$if(aspectratio)$
+  aspectratio=$aspectratio$,
+$endif$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}

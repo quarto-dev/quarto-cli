@@ -18,9 +18,9 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - "#align\\(right\\)\\[(\r\n?|\n)#box"
+          - '#align\(right\)\[(\r\n?|\n)?#box'
         -
-          - "#block\\[(\r\n?|\n)#align\\(right\\)\\["
+          - '#block\[(\r\n?|\n)?#align\(right\)\['
 ---
 
 ![](100.png){fig-align="right"}

@@ -7,13 +7,18 @@
 import { join } from "../../deno_ral/path.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { BookExtension } from "../../project/types/book/book-shared.ts";
 import {
+  kBrand,
   kCiteproc,
   kColumns,
   kDefaultImageExtension,
   kFigFormat,
   kFigHeight,
   kFigWidth,
+  kLight,
+  kLogo,
   kNumberSections,
   kSectionNumbering,
   kShiftHeadingLevelBy,
@@ -24,12 +29,28 @@ import {
   Format,
   FormatExtras,
   FormatPandoc,
+  LightDarkBrand,
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 import { hasLevelOneHeadings as hasL1Headings } from "../../core/lib/markdown-analysis/level-one-headings.ts";
+import {
+  BrandNamedLogo,
+  LogoLightDarkSpecifier,
+} from "../../resources/types/schema-types.ts";
+import {
+  brandWithAbsoluteLogoPaths,
+  fillLogoPaths,
+  resolveLogo,
+} from "../../core/brand/brand.ts";
+import { LogoLightDarkSpecifierPathOptional } from "../../resources/types/zod/schema-types.ts";
+
+const typstBookExtension: BookExtension = {
+  selfContainedOutput: true,
+  // multiFile defaults to false (single-file book)
+};
 
 export function typstFormat(): Format {
   return createFormat("Typst", "pdf", {
@@ -44,6 +65,9 @@ export function typstFormat(): Format {
       [kWrap]: "none",
       [kCiteproc]: false,
     },
+    extensions: {
+      book: typstBookExtension,
+    },
     resolveFormat: typstResolveFormat,
     formatExtras: async (
       _input: string,
@@ -52,6 +76,8 @@ export function typstFormat(): Format {
       format: Format,
       _libDir: string,
       _services: RenderServices,
+      _offset?: string,
+      _project?: ProjectContext,
     ): Promise<FormatExtras> => {
       const pandoc: FormatPandoc = {};
       const metadata: Metadata = {};
@@ -78,6 +104,23 @@ export function typstFormat(): Format {
         pandoc[kShiftHeadingLevelBy] = -1;
       }
 
+      const brand = format.render.brand;
+      // For Typst, convert brand logo paths to project-absolute (with /)
+      // before merging with document logo metadata. Typst resolves / paths
+      // via --root which points to the project directory.
+      const typstBrand = brandWithAbsoluteLogoPaths(brand);
+      const logoSpec = format
+        .metadata[kLogo] as LogoLightDarkSpecifierPathOptional;
+      const sizeOrder: BrandNamedLogo[] = [
+        "small",
+        "medium",
+        "large",
+      ];
+      // temporary: if document logo has object or light/dark objects
+      // without path, do our own findLogo to add the path
+      // typst is the exception not needing path but we'll probably deprecate this
+      const logo = fillLogoPaths(typstBrand, logoSpec, sizeOrder);
+      format.metadata[kLogo] = resolveLogo(typstBrand, logo, sizeOrder);
       // force columns to wrap and move any 'columns' setting to metadata
       const columns = format.pandoc[kColumns];
       if (columns) {
@@ -86,25 +129,100 @@ export function typstFormat(): Format {
       }
 
       // Provide a template and partials
+      // For Typst books, a book extension overrides these partials
       const templateDir = formatResourcePath("typst", join("pandoc", "quarto"));
+
       const templateContext = {
         template: join(templateDir, "template.typ"),
         partials: [
+          "numbering.typ",
           "definitions.typ",
           "typst-template.typ",
+          "page.typ",
           "typst-show.typ",
           "notes.typ",
           "biblio.typ",
         ].map((partial) => join(templateDir, partial)),
       };
 
+      // Postprocessor to fix Skylighting code block styling (issue #14126).
+      // Pandoc's generated Skylighting function uses block(fill: bgcolor, blocks)
+      // which lacks width, inset, and radius. We surgically fix this in the .typ
+      // output. If brand monospace-block has a background-color, we also override
+      // the bgcolor value.
+      const brandData = (format.render[kBrand] as LightDarkBrand | undefined)
+        ?.[kLight];
+      const monospaceBlock = brandData?.processedData?.typography?.[
+        "monospace-block"
+      ];
+      let brandBgColor = (monospaceBlock && typeof monospaceBlock !== "string")
+        ? monospaceBlock["background-color"] as string | undefined
+        : undefined;
+      // Resolve palette color names (e.g. "code-bg" → "#1e1e2e")
+      if (brandBgColor && brandData?.data?.color?.palette) {
+        const palette = brandData.data.color.palette as Record<string, string>;
+        let resolved = brandBgColor;
+        while (palette[resolved]) {
+          resolved = palette[resolved];
+        }
+        brandBgColor = resolved;
+      }
+
       return {
         pandoc,
         metadata,
         templateContext,
+        postprocessors: [
+          skylightingPostProcessor(brandBgColor),
+        ],
       };
     },
   });
+}
+
+// Fix Skylighting code block styling in .typ output (issue #14126).
+// The Pandoc-generated Skylighting function uses block(fill: bgcolor, blocks)
+// which lacks width, inset, and radius. This postprocessor matches the entire
+// Skylighting function by its distinctive signature and patches only within it.
+// When brand provides a monospace-block background-color, also overrides the
+// bgcolor value. This is a temporary workaround until the fix is upstreamed
+// to the Skylighting library.
+function skylightingPostProcessor(brandBgColor?: string) {
+  // Match the entire #let Skylighting(...) = { ... } function.
+  // The signature is stable and generated by Skylighting's Typst backend.
+  const skylightingFnRe =
+    /(#let Skylighting\(fill: none, number: false, start: 1, sourcelines\) = \{[\s\S]*?\n\})/;
+
+  return async (output: string) => {
+    const content = Deno.readTextFileSync(output);
+
+    const match = skylightingFnRe.exec(content);
+    if (!match) {
+      // No Skylighting function found — document may not have code blocks,
+      // or upstream changed the function signature. Nothing to patch.
+      return;
+    }
+
+    let fn = match[1];
+
+    // Fix block() call: add width, inset, radius
+    fn = fn.replace(
+      "block(fill: bgcolor, blocks)",
+      "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks)",
+    );
+
+    // Override bgcolor with brand monospace-block background-color
+    if (brandBgColor) {
+      fn = fn.replace(
+        /let bgcolor = rgb\("[^"]*"\)/,
+        `let bgcolor = rgb("${brandBgColor}")`,
+      );
+    }
+
+    if (fn !== match[1]) {
+      Deno.writeTextFileSync(output, content.replace(match[1], fn));
+    }
+  };
 }
 
 function typstResolveFormat(format: Format) {

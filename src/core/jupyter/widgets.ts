@@ -101,10 +101,10 @@ export function includesForJupyterWidgetDependencies(
   const head: string[] = [];
   if (haveJavascriptWidgets || haveJupyterWidgets) {
     head.push(
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>',
+      '<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>',
     );
     head.push(
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous" data-relocate-top="true"></script>',
+      '<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous" data-relocate-top="true"></script>',
     );
     head.push(
       "<script type=\"application/javascript\">define('jquery', [],function() {return window.jQuery;})</script>",
@@ -117,7 +117,7 @@ export function includesForJupyterWidgetDependencies(
   // jupyter widget runtime
   if (haveJupyterWidgets) {
     head.push(
-      '<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>',
+      '<script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>',
     );
   }
 
@@ -190,9 +190,29 @@ function isWidgetIncludeHtml(html: string) {
 }
 
 function isPlotlyLibrary(html: string) {
-  return /^\s*<script type="text\/javascript">/.test(html) &&
+  // Plotly before version 6 used require.js to load the library
+  const hasRequireScript = (
+    html: string,
+  ) => (/^\s*<script type="text\/javascript">/.test(html) &&
     (/require\.undef\(["']plotly["']\)/.test(html) ||
-      /define\('plotly'/.test(html));
+      /define\('plotly'/.test(html)));
+  // Plotly 6+ uses the new module syntax
+  const hasModuleScript = (html: string) =>
+    /\s*<script type=\"module\">import .*plotly.*<\/script>/.test(html);
+  // notebook mode non connected embed plotly.js scripts like this:
+  //  * plotly.js v3.0.1
+  //  * Copyright 2012-2025, Plotly, Inc.
+  //  * All rights reserved.
+  //  * Licensed under the MIT license
+  const hasEmbedScript = (
+    html: string,
+  ) => (/\* plotly\.js v\d+\.\d+\.\d+\s*\n\s*\* Copyright \d{4}-\d{4}, Plotly, Inc\.\s*\n\s*\* All rights reserved\.\s*\n\s*\* Licensed under the MIT license/
+    .test(html));
+  return hasRequireScript(html) ||
+    // also handle new module syntax from plotly.py 6+
+    hasModuleScript(html) ||
+    // detect plotly by its copyright header
+    hasEmbedScript(html);
 }
 
 function htmlLibrariesText(htmlText: string) {

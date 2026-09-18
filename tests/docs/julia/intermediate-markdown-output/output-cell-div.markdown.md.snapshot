@@ -1,0 +1,24 @@
+---
+title: "Untitled"
+format: markdown
+keep-md: true
+engine: julia
+---
+
+This does it:
+
+::: {.cell execution_count=1}
+``` {.julia .cell-code}
+1 + 1
+```
+
+::: {.cell-output .cell-output-display execution_count=1}
+```
+2
+```
+:::
+:::
+
+
+Other content
+

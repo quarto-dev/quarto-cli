@@ -1,0 +1,20 @@
+project:
+  type: website
+theme:
+  light: brand
+  dark: [brand, dark-fixups.scss]
+website:
+  sidebar:
+    id: sidebar-id
+    style: "docked"
+    logo:
+      light:
+        path: sun
+        alt: "SUN FACE"
+      dark:
+        path: moon
+        alt: "MOON FACE"
+    search: true
+    contents:
+      - index.qmd
+      - conclusion.qmd

@@ -78,6 +78,12 @@ export async function updateHtmlDependencies(config: Configuration) {
   );
   cleanSourceMap(anchorJs);
 
+  // Axe (LICENSE files must ship alongside the MPL-2.0 axe.min.js)
+  const axeDir = join(formatDir, "axe");
+  for (const file of ["axe.min.js", "LICENSE", "LICENSE-3RD-PARTY.txt"]) {
+    await updateUnpkgDependency("AXE_JS", "axe-core", file, join(axeDir, file));
+  }
+
   // Poppper
   const popperJs = join(formatDir, "popper", "popper.min.js");
   await updateUnpkgDependency(
@@ -820,47 +826,47 @@ async function updateBootstrapFromBslib(
       for (let line of varContents) {
         line = line.replaceAll(
           "var(--#{$prefix}font-sans-serif)",
-          "$font-family-sans-serif"
+          "$$font-family-sans-serif"
         );
         line = line.replaceAll(
           "var(--#{$prefix}font-monospace)",
-          "$font-family-monospace"
+          "$$font-family-monospace"
         );
         line = line.replaceAll(
           "var(--#{$prefix}success-rgb)",
-          "$success"
+          "$$success"
         );
         line = line.replaceAll(
           "var(--#{$prefix}danger-rgb)",
-          "$danger"
+          "$$danger"
         );
         line = line.replaceAll(
           "var(--#{$prefix}body-color-rgb)",
-          "$body-color"
+          "$$body-color"
         );
         line = line.replaceAll(
           "var(--#{$prefix}body-bg-rgb)",
-          "$body-bg"
+          "$$body-bg"
         );
         line = line.replaceAll(
           "var(--#{$prefix}emphasis-color-rgb)",
-          "$body-emphasis-color"
+          "$$body-emphasis-color"
         );
         line = line.replaceAll(
           /RGBA?\(var\(--#\{\$prefix\}emphasis-color-rgb,(.*?)\).*?\)/gm,
-          "$body-emphasis-color"
+          "$$body-emphasis-color"
         );        
         line = line.replaceAll(
           "var(--#{$prefix}secondary-color)",
-          "$body-secondary-color"
+          "$$body-secondary-color"
         );
         line = line.replaceAll(
           "var(--#{$prefix}secondary-bg)",
-          "$body-secondary-bg"
+          "$$body-secondary-bg"
         );
         line = line.replaceAll(
           "var(--#{$prefix}tertiary-bg)",
-          "$body-tertiary-bg"
+          "$$body-tertiary-bg"
         );
         line = line.replaceAll(
           "var(--#{$prefix}tertiary-color)",
@@ -868,15 +874,15 @@ async function updateBootstrapFromBslib(
         );
         line = line.replaceAll(
           "var(--#{$prefix}emphasis-bg)",
-          "$body-emphasis-bg"
+          "$$body-emphasis-bg"
         );
         line = line.replaceAll(
           "var(--#{$prefix}emphasis-color)",
-          "$body-emphasis-color"
+          "$$body-emphasis-color"
         );
         line = line.replaceAll(
           "$emphasis-color-rgb", 
-          "$body-emphasis-color"
+          "$$body-emphasis-color"
         );
 
         line = line.replaceAll(/var\(--#\{\$prefix\}(.*?)\)/gm, "$$$1");

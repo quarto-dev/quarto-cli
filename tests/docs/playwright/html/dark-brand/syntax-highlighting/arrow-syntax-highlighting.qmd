@@ -1,0 +1,57 @@
+---
+format: html
+title: arrow syntax highlighting
+theme:
+  light: united
+  dark: slate
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["link[href*=\"-dark-\"]"]
+---
+
+### Inline code
+
+* No syntax highlighting: `foo(bar)`
+* Python: `def identity(x): return x`{.python}
+* R: `identity <- function(x) x`{.r}
+
+### Code blocks
+
+```markdown
+![asdf](asd.png)
+```
+
+```python
+#| label: fig-polar
+#| fig-cap: "A line plot on a polar axis"
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(
+  subplot_kw = {'projection': 'polar'} 
+)
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+```r
+nycflights13::flights %>% 
+  mutate(
+    cancelled = is.na(dep_time),
+    sched_hour = sched_dep_time %/% 100,
+    sched_min = sched_dep_time %% 100,
+    sched_dep_time = sched_hour + sched_min / 60
+  ) %>% 
+  ggplot(mapping = aes(sched_dep_time)) + 
+    geom_freqpoly(mapping = aes(colour = cancelled), binwidth = 1/4) +
+    labs (x = "Scheduled Departure Time")
+```
+

@@ -87,7 +87,7 @@ export function httpFileRequestHandler(
         printUrl(url, false);
       }
       return Promise.resolve(
-        new Response(handle404.response.body, {
+        new Response(handle404.response.body as BodyInit, {
           status: 404,
           headers: {
             "Content-Type": kTextHtml,
@@ -150,6 +150,7 @@ export function httpFileRequestHandler(
         }
       }
     } catch (e) {
+      if (!(e instanceof Error)) throw e;
       // it's possible for an exception to occur before we've normalized the path
       // so we need to renormalize it here
       if (fsPath) {
@@ -179,7 +180,7 @@ export function httpContentResponse(
     headers.set("Content-Type", contentType);
   }
   headers.set("Cache-Control", "no-store, max-age=0");
-  return new Response(content, {
+  return new Response(content as BodyInit, {
     status: 200,
     headers,
   });

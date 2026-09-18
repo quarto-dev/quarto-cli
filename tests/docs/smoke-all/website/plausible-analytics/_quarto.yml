@@ -1,0 +1,11 @@
+project:
+  type: website
+
+website:
+  title: "Plausible Custom Script Test"
+  plausible-analytics: |
+    <script async src="https://plausible.io/js/pa-TESTCODE123.js"></script>
+    <script>
+      window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};
+      plausible.init()
+    </script>

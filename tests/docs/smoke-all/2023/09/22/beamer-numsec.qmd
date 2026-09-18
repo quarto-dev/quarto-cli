@@ -3,11 +3,11 @@ title: Number Sections
 format: 
   beamer:
     number-sections: true
-    output-ext: tex
+keep-tex: true
 _quarto:
   tests:
     beamer:
-      ensureFileRegexMatches:
+      ensureLatexFileRegexMatches:
         - ['\{1 Section\}', '\{1[.]1 Subsection\}']
         - []
 ---

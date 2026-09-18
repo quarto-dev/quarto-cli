@@ -37,13 +37,9 @@ make_wrapped_user_filters = function(filterListName)
 end
 
 inject_user_filters_at_entry_points = function(filter_list)
-  local function find_index_of_entry_point(entry_point)
-    for i, filter in ipairs(filter_list) do
-      if filter.name == entry_point then
-        return i
-      end
-    end
-    return nil
+  local find_index_of_entry_point = function (entry_point)
+    return select(2, pandoc.List.find_if(filter_list,
+      function (f) return f.name == entry_point end))
   end
   local entry_point_counts = {}
   for _, v in ipairs(param("quarto-filters").entryPoints) do
@@ -66,6 +62,7 @@ inject_user_filters_at_entry_points = function(filter_list)
         return
       end
     end
+
     local filter = {
       name = entry_point .. "-user-" .. tostring(entry_point_counts[entry_point]),
       -- The filter might not work as expected when doing a non-lazy jog, so

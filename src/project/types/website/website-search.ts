@@ -117,6 +117,7 @@ const kTitle = "title";
 const kText = "text";
 const kAnalyticsEvents = "analytics-events";
 const kShowLogo = "show-logo";
+const kCookieConsentEnabled = "cookie-consent-enabled";
 
 interface SearchOptionsAlgolia {
   [kSearchOnlyApiKey]?: string;
@@ -131,6 +132,7 @@ interface SearchOptionsAlgolia {
   [kSearchParams]?: Record<string, unknown>;
   [kAnalyticsEvents]?: boolean;
   [kShowLogo]?: boolean;
+  [kCookieConsentEnabled]?: boolean;
 }
 
 export type SearchInputLocation = "navbar" | "sidebar";
@@ -252,7 +254,13 @@ export async function updateSearchIndex(
       // link that points to this page / sidebar. If so, inject that level
       // into the crumbs as well. An attempt at improving #7803 and providing
       // better crumbs
-      if (crumbs && sidebar) {
+      // deno-lint-ignore no-explicit-any
+      const mergeNavBarSearchCrumbs = (outputFile.format.metadata as any)
+        ?.website?.search?.["merge-navbar-crumbs"];
+      if (
+        mergeNavBarSearchCrumbs !== false &&
+        crumbs && sidebar
+      ) {
         const navItem = navbarItemForSidebar(sidebar, outputFile.format);
         if (navItem) {
           if (typeof navItem === "object") {
@@ -609,19 +617,27 @@ export async function websiteSearchIncludeInHeader(
     }
   });
 
-  const searchOptionsJson = JSON.stringify(options, null, 2);
-  const searchOptionsScript =
-    `<script id="quarto-search-options" type="application/json">${searchOptionsJson}</script>`;
-  const includes = [searchOptionsScript];
+  const includes: string[] = [];
 
+  // Process all Algolia configuration and scripts
   if (options[kAlgolia]) {
     includes.push(kAlogioSearchApiScript);
-    if (options[kAlgolia]?.[kAnalyticsEvents]) {
+    if (options[kAlgolia][kAnalyticsEvents]) {
       const cookieConsent = cookieConsentEnabled(project);
+      // Set cookie consent flag for JavaScript configuration
+      options[kAlgolia][kCookieConsentEnabled] = cookieConsent;
+      // Add Algolia Insights scripts with proper consent handling
       includes.push(algoliaSearchInsightsScript(cookieConsent));
       includes.push(autocompleteInsightsPluginScript(cookieConsent));
     }
   }
+
+  // Serialize search options to JSON after all modifications
+  const searchOptionsJson = JSON.stringify(options, null, 2);
+  const searchOptionsScript =
+    `<script id="quarto-search-options" type="application/json">${searchOptionsJson}</script>`;
+  // Prepend search options script to beginning of includes
+  includes.unshift(searchOptionsScript);
 
   Deno.writeTextFileSync(websiteSearchScript, includes.join("\n"));
   return websiteSearchScript;

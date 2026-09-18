@@ -1,0 +1,6 @@
+---
+title: Testing a11y code highlight
+syntax-highlighting: a11y
+---
+
+{{< include _body.md >}}

@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+format: markdown
+keep-md: true
+---
+
+This does it:
+
+::: {.cell}
+
+```{.r .cell-code}
+1 + 1
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+[1] 2
+```
+
+
+:::
+:::
+
+Other content

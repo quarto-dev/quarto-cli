@@ -1,0 +1,17 @@
+---
+title: "No Axe - HTML"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ['script[src*="axe-check"]', '#quarto-axe-checker-options']
+      ensureFileRegexMatches:
+        - []
+        - ['axe-check\.js', 'quarto-axe-checker-options']
+---
+
+## HTML Document
+
+Render without axe config — no axe dependencies should be present.

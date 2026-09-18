@@ -5,3 +5,7 @@ shortcodes:
 ---
 
 {{< shorty _bringit_ >}}
+
+{{< shorty error >}}
+
+{{< shorty error_args >}}

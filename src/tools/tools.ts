@@ -18,17 +18,31 @@ import {
 } from "./types.ts";
 import { tinyTexInstallable } from "./impl/tinytex.ts";
 import { chromiumInstallable } from "./impl/chromium.ts";
+import { chromeHeadlessShellInstallable } from "./impl/chrome-headless-shell.ts";
+import { verapdfInstallable } from "./impl/verapdf.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { isWSL } from "../core/platform.ts";
-import { safeRemoveSync } from "../deno_ral/fs.ts";
+import { ensureDirSync, existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import { join } from "../deno_ral/path.ts";
+import { expandPath, suggestUserBinPaths } from "../core/path.ts";
+import { isWindows } from "../deno_ral/platform.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
   tinytex: tinyTexInstallable,
   // temporarily disabled until deno 1.28.* gets puppeteer support
   chromium: chromiumInstallable,
+  "chrome-headless-shell": chromeHeadlessShellInstallable,
+  verapdf: verapdfInstallable,
 };
+
+// Tools deprecated in v1.10, to be removed from the registry in v1.11
+const kDeprecatedTools = new Set(["chromium"]);
+
+export function isDeprecatedTool(key: string): boolean {
+  return kDeprecatedTools.has(key);
+}
 
 export async function allTools(): Promise<{
   installed: InstallableTool[];
@@ -43,7 +57,7 @@ export async function allTools(): Promise<{
     const isInstalled = await tool.installed();
     if (isInstalled) {
       installed.push(tool);
-    } else {
+    } else if (!isDeprecatedTool(name)) {
       notInstalled.push(tool);
     }
   }
@@ -54,12 +68,11 @@ export async function allTools(): Promise<{
 }
 
 export function installableTools(): string[] {
-  const tools: string[] = [];
-  Object.keys(kInstallableTools).forEach((key) => {
-    const tool = kInstallableTools[key];
-    tools.push(tool.name.toLowerCase());
-  });
-  return tools;
+  return Object.keys(kInstallableTools);
+}
+
+export function installableToolNames(): string[] {
+  return Object.values(kInstallableTools).map((tool) => tool.name);
 }
 
 export async function printToolInfo(name: string) {
@@ -96,6 +109,11 @@ export function checkToolRequirement(name: string) {
       "- See https://github.com/quarto-dev/quarto-cli/issues/1822 for more context.",
     ].join("\n"));
     return false;
+  } else if (name.toLowerCase() === "chrome-headless-shell" && isWSL()) {
+    info(
+      "Note: chrome-headless-shell is a headless-only binary and should work on WSL without additional system dependencies.",
+    );
+    return true;
   } else {
     return true;
   }
@@ -103,6 +121,16 @@ export function checkToolRequirement(name: string) {
 
 export async function installTool(name: string, updatePath?: boolean) {
   name = name || "";
+
+  // Deprecation: redirect chromium → chrome-headless-shell
+  if (name.toLowerCase() === "chromium") {
+    warning(
+      "'chromium' is deprecated. Installing 'chrome-headless-shell' instead.\n" +
+        "Please update your scripts to use 'quarto install chrome-headless-shell'.",
+    );
+    return installTool("chrome-headless-shell", updatePath);
+  }
+
   // Run the install
   const tool = installableTool(name);
   if (tool) {
@@ -120,7 +148,7 @@ export async function installTool(name: string, updatePath?: boolean) {
         if (alreadyInstalled) {
           // Already installed, do nothing
           context.error(`Install canceled - ${name} is already installed.`);
-          return Promise.reject();
+          Deno.exit(1);
         } else {
           // Prereqs for this platform
           const platformPrereqs = tool.prereqs.filter((prereq) =>
@@ -131,8 +159,11 @@ export async function installTool(name: string, updatePath?: boolean) {
           for (const prereq of platformPrereqs) {
             const met = await prereq.check(context);
             if (!met) {
-              context.error(prereq.message);
-              return Promise.reject();
+              const message = typeof prereq.message === "function"
+                ? await prereq.message(context)
+                : prereq.message;
+              context.error(message);
+              Deno.exit(1);
             }
           }
 
@@ -297,10 +328,14 @@ const installContext = (
       try {
         await downloadWithProgress(url, `Downloading ${name}`, target);
       } catch (error) {
+        // shouldn't happen, but this appeases the typechecker
+        if (!(error instanceof Error)) {
+          throw error;
+        }
         installMessaging.error(
           error.message,
         );
-        return Promise.reject();
+        Deno.exit(1);
       }
     },
     workingDir,
@@ -311,3 +346,76 @@ const installContext = (
     },
   };
 };
+
+// Shared utility functions for --update-path functionality
+
+/**
+ * Creates a symlink for a tool binary in a user bin directory.
+ * Returns true if successful, false otherwise.
+ */
+export async function createToolSymlink(
+  binaryPath: string,
+  symlinkName: string,
+  context: InstallContext,
+): Promise<boolean> {
+  if (isWindows) {
+    context.info(
+      `Add the tool's directory to your PATH to use ${symlinkName} from anywhere.`,
+    );
+    return false;
+  }
+
+  const binPaths = suggestUserBinPaths();
+  if (binPaths.length === 0) {
+    context.info(
+      `No suitable bin directory found in PATH. Add the tool's directory to your PATH manually.`,
+    );
+    return false;
+  }
+
+  for (const binPath of binPaths) {
+    const expandedBinPath = expandPath(binPath);
+    ensureDirSync(expandedBinPath);
+    const symlinkPath = join(expandedBinPath, symlinkName);
+
+    try {
+      // Remove existing symlink if present
+      if (existsSync(symlinkPath)) {
+        await Deno.remove(symlinkPath);
+      }
+      // Create new symlink
+      await Deno.symlink(binaryPath, symlinkPath);
+      return true;
+    } catch {
+      // Try next path
+      continue;
+    }
+  }
+
+  context.info(
+    `Could not create symlink. Add the tool's directory to your PATH manually.`,
+  );
+  return false;
+}
+
+/**
+ * Removes a tool's symlink from user bin directories.
+ */
+export async function removeToolSymlink(symlinkName: string): Promise<void> {
+  if (isWindows) {
+    return;
+  }
+
+  const binPaths = suggestUserBinPaths();
+  for (const binPath of binPaths) {
+    const symlinkPath = join(expandPath(binPath), symlinkName);
+    try {
+      const stat = await Deno.lstat(symlinkPath);
+      if (stat.isSymlink) {
+        await Deno.remove(symlinkPath);
+      }
+    } catch {
+      // Symlink doesn't exist, continue
+    }
+  }
+}

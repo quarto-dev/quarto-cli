@@ -1,0 +1,25 @@
+---
+title: "mwe"
+---
+
+## Quarto
+
+From https://github.com/quarto-dev/quarto-cli/issues/1456
+
+```{python}
+from IPython.display import display, Markdown
+import matplotlib.pyplot as plt
+```
+
+::: {.panel-tabset}
+
+```{python}
+#| output: asis
+for i in ["tab1 inside for loop", "tab2 inside for loop"]:
+    display(Markdown(f"\n# {i}:\n"))
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plt.show()
+```
+
+:::

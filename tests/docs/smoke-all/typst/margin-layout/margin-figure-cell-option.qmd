@@ -1,0 +1,46 @@
+---
+title: "Margin Figure Cell Option Test"
+papersize: us-letter
+grid:
+  margin-width: 3.5in
+  gutter-width: 0.25in
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Cell option should produce same output as fenced div: #notefigure
+        - ['#notefigure\(', 'kind: "quarto-float-fig"']
+        - []
+      ensurePdfRegexMatches:
+        - ['Figure 1', 'Scatter Plot']
+        - []
+      ensurePdfTextPositions:
+        - # Figure in margin, right of body text
+          - subject: "Scatter Plot"
+            relation: rightOf
+            object: "This tests"
+        - []
+      noErrors: default
+---
+
+This tests an R ggplot figure placed in the margin using the `column: margin` cell option.
+
+```{r}
+#| column: margin
+#| label: fig-scatter
+#| fig-cap: "Scatter Plot in Margin"
+#| echo: false
+
+library(ggplot2)
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point() +
+  theme_minimal()
+```
+
+As shown in @fig-scatter, the figure should appear entirely in the margin (both plot and caption).
+
+More text in the main column to demonstrate the layout.

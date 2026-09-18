@@ -10,4 +10,4 @@ We vendor all external dependencies to avoid downloads during the execution of q
 
 - If the dependency is meant to be exposed to quarto typescript script (through `quarto run`), then add the import to `package/scripts/deno_std/deno_std.ts` as well (notice the slightly different syntax there, and adapt accordingly).
 
-Then, run the `./package/scripts/vendoring/vendor.sh` scripts to update the vendored dependencies. This script will update `src/dev_import_map.json`, as well as files in `src/vendor`, `src/resources/deno_std`, and `src/resources/vendor`. Check those changes in version control.
+Then, rerun `./configure.sh`, which calls the `./package/scripts/vendoring/vendor.sh` scripts to update the deno cache with the downloaded dependencies. 

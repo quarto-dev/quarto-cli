@@ -1,0 +1,21 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - table
+          - em
+---
+
+```{=pandoc-reader-markdown}
++-------+--------+
+| col1  | col2   |
++-------+--------+
+| row   | value  |
++-------+--------+
+```
+
+```{=pandoc-reader-latex}
+\emph{emphasis}
+```

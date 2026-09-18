@@ -1,0 +1,12 @@
+color:
+  background: "#282B30"
+  foreground: "#aaaaaa"
+  primary: white
+typography:
+  fonts:
+    - family: "Montserrat"
+      source: google
+  base:
+    family: "Montserrat"
+  monospace-block:
+    background-color: "#435"

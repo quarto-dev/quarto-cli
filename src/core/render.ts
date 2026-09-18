@@ -7,8 +7,8 @@
 import { kOutputExt, kOutputFile, kServer } from "../config/constants.ts";
 import { Format, Metadata } from "../config/types.ts";
 import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
-import { dirAndStem } from "./path.ts";
-import { extname } from "../deno_ral/path.ts";
+import { dirAndStem, pathsEqual } from "./path.ts";
+import { dirname, extname, join } from "../deno_ral/path.ts";
 
 export function inputFilesDir(input: string) {
   const [_, stem] = dirAndStem(input);
@@ -42,6 +42,32 @@ export function isServerShinyKnitr(
   engine: string | undefined,
 ) {
   return isServerShiny(format) && engine === kKnitrEngine;
+}
+
+// the path a format's rendered output is written to before any project
+// output-dir relocation: an explicit output-file (with the format's extension
+// appended by formatOutputFile when it differs), else <input-stem>.<output-ext>.
+// used to detect collisions between declared outputs and the keep-md
+// intermediate naming convention (#14669); doesn't cover recipe special cases
+// (--output flag, md-to-md rename, stdout) which can't produce colliding names
+export function projectedOutputFile(input: string, format: Format): string {
+  const outputFile = formatOutputFile(format);
+  if (outputFile) {
+    return join(dirname(input), outputFile);
+  }
+  const [dir, stem] = dirAndStem(input);
+  return join(dir, `${stem}.${format.render[kOutputExt] || "html"}`);
+}
+
+// true when the keep-md intermediate location is a path another declared
+// format owns, so it must not be written to or cleaned up (#14669)
+export function keepMdCollidesWithFormatOutput(
+  keepMd: string | undefined,
+  siblingFormatOutputs: string[] | undefined,
+): boolean {
+  return keepMd !== undefined &&
+    (siblingFormatOutputs?.some((output) => pathsEqual(output, keepMd)) ??
+      false);
 }
 
 export function formatOutputFile(format: Format) {

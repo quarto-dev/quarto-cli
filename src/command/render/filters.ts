@@ -9,6 +9,7 @@ import { existsSync } from "../../deno_ral/fs.ts";
 import {
   kBibliography,
   kBrand,
+  kBrandMode,
   kCitationLocation,
   kCiteMethod,
   kClearCellOptions,
@@ -84,7 +85,7 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { relative } from "../../deno_ral/path.ts";
+import { basename, relative } from "../../deno_ral/path.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "../../deno_ral/log.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
@@ -94,6 +95,7 @@ import { pythonExec } from "../../core/jupyter/exec.ts";
 import { kTocIndent } from "../../config/constants.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { tinyTexBinDir } from "../../tools/impl/tinytex-info.ts";
+import { typstBinaryPath } from "../../core/typst.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -203,6 +205,7 @@ async function quartoEnvironmentParams(_options: PandocOptions) {
     "paths": {
       "Rscript": await rBinaryPath("Rscript"),
       "TinyTexBinDir": tinyTexBinDir(), // will be undefined if no tinytex found and quarto will look in PATH
+      "Typst": typstBinaryPath(),
     },
   };
 }
@@ -459,7 +462,7 @@ function referenceLocationArg(args: string[]) {
   }
 }
 
-function languageFilterParams(format: Format) {
+export function languageFilterParams(format: Format) {
   const language = format.language;
   const params: Metadata = {
     [kCodeSummary]: format.metadata[kCodeSummary] || language[kCodeSummary],
@@ -548,7 +551,7 @@ function jatsFilterParams(options: PandocOptions) {
 
 function notebookContextFilterParams(options: PandocOptions) {
   const nbContext = options.services.notebook;
-  const notebooks = nbContext.all();
+  const notebooks = nbContext.all(options.project);
   if (notebooks.length > 0) {
     return {
       "notebook-context": notebooks,
@@ -657,7 +660,11 @@ async function quartoFilterParams(
   params[kHasResourcePath] = hasResourcePath;
 
   // The source document
-  params[kQuartoSource] = options.source;
+  if (options.project.isSingleFile) {
+    params[kQuartoSource] = basename(options.source);
+  } else {
+    params[kQuartoSource] = options.source;
+  }
 
   // profile as an array
   params[kQuartoProfile.toLowerCase()] = activeProfiles();
@@ -838,7 +845,7 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
 
 function pdfEngine(options: PandocOptions): string {
   const pdfEngine = options.flags?.pdfEngine ||
-    options.metadata?.[kPdfEngine] as string ||
+    options.format.pandoc?.[kPdfEngine] as string ||
     "pdflatex";
   return pdfEngine;
 }
@@ -850,19 +857,30 @@ async function resolveFilterExtension(
   // Resolve any filters that are provided by an extension
   const results: (QuartoFilter | QuartoFilter[])[] = [];
   const getFilter = async (filter: QuartoFilter) => {
-    // Look for extension names in the filter list and result them
+    // Look for extension names in the filter list and resolve them
     // into the filters provided by the extension
-    if (
-      filter !== kQuartoFilterMarker && filter !== kQuartoCiteProcMarker &&
-      typeof filter === "string"
-    ) {
+    if (filter === kQuartoFilterMarker || filter === kQuartoCiteProcMarker) {
+      return filter;
+    }
+
+    let pathToResolve: string | null = null;
+
+    if (typeof filter === "string") {
+      pathToResolve = filter;
+    } else if (typeof filter === "object" && filter.path) {
+      pathToResolve = filter.path;
+    }
+
+    if (pathToResolve) {
       // The filter string points to an executable file which exists
-      if (existsSync(filter) && !Deno.statSync(filter).isDirectory) {
+      if (
+        existsSync(pathToResolve) && !Deno.statSync(pathToResolve).isDirectory
+      ) {
         return filter;
       }
 
       const extensions = await options.services.extension?.find(
-        filter,
+        pathToResolve,
         options.source,
         "filters",
         options.project?.config,
@@ -872,15 +890,37 @@ async function resolveFilterExtension(
       // Filter this list of extensions
       const filteredExtensions = filterExtensions(
         extensions || [],
-        filter,
+        pathToResolve,
         "filter",
       );
       // Return any contributed plugins
       if (filteredExtensions.length > 0) {
         // This matches an extension, use the contributed filters
-        const filters = extensions[0].contributes.filters;
-        if (filters) {
-          return filters;
+        const extensionFilters = extensions[0].contributes.filters;
+        if (extensionFilters) {
+          // After "path" resolution, "at" needs to be preserved
+          if (typeof filter === "string") {
+            return extensionFilters;
+          } else if (isFilterEntryPoint(filter)) {
+            return extensionFilters.map((extFilter) => {
+              if (typeof extFilter === "string") {
+                return {
+                  type: extFilter.endsWith(".lua")
+                    ? "lua"
+                    : "json" as "lua" | "json",
+                  path: extFilter,
+                  at: filter.at,
+                };
+              } else {
+                return {
+                  ...extFilter,
+                  at: filter.at,
+                };
+              }
+            });
+          } else {
+            return extensionFilters;
+          }
         } else {
           return filter;
         }
@@ -909,6 +949,7 @@ const extractTypstFilterParams = (format: Format) => {
     [kTocIndent]: format.metadata[kTocIndent],
     [kLogo]: format.metadata[kLogo],
     [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
+    [kBrandMode]: format.metadata[kBrandMode],
     [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
   };
 };

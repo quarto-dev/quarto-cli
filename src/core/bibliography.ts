@@ -41,7 +41,7 @@ export async function renderHtml(entry: CSL, csl?: string) {
 
   const cslStr = JSON.stringify([entry], undefined, 2);
   const result = await execProcess(
-    { cmd, stdout: "piped", stderr: "piped" },
+    { cmd: cmd[0], args: cmd.slice(1), stdout: "piped", stderr: "piped" },
     cslStr,
   );
   if (result.success) {
@@ -63,7 +63,7 @@ export async function renderBibTex(entry: CSL) {
 
   const cslStr = JSON.stringify([entry], undefined, 2);
   const result = await execProcess(
-    { cmd, stdout: "piped", stderr: "piped" },
+    { cmd: cmd[0], args: cmd.slice(1), stdout: "piped", stderr: "piped" },
     cslStr,
   );
   if (result.success) {
@@ -93,7 +93,13 @@ export async function renderToCSLJSON(
     cmd.push("--citeproc");
 
     const result = await execProcess(
-      { cmd, stdout: "piped", stderr: "piped", cwd: dir },
+      {
+        cmd: cmd[0],
+        args: cmd.slice(1),
+        stdout: "piped",
+        stderr: "piped",
+        cwd: dir,
+      },
     );
     if (result.success) {
       if (result.stdout) {

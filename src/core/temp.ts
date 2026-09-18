@@ -27,6 +27,7 @@ export function initSessionTempDir() {
         ensureDirSync(tmpEnv);
       }
     } catch (err) {
+      if (!(err instanceof Error)) throw err;
       if (err.message) {
         debug("Error attempting to create TMPDIR: " + err.message);
       }
@@ -55,15 +56,23 @@ export function globalTempContext() {
 }
 
 export function createTempContext(options?: Deno.MakeTempOptions): TempContext {
+  if (options?.dir) {
+    ensureDirSync(options?.dir);
+  }
   let dir: string | undefined = Deno.makeTempDirSync({
-    ...options,
     dir: tempDir,
+    ...options,
   });
 
   const tempContextCleanupHandlers: VoidFunction[] = [];
 
-  return {
+  const result: TempContext = {
     baseDir: dir,
+    createFileFromString: (content: string, options?: Deno.MakeTempOptions) => {
+      const file = result.createFile(options);
+      Deno.writeTextFileSync(file, content);
+      return file;
+    },
     createFile: (options?: Deno.MakeTempOptions) => {
       return Deno.makeTempFileSync({ ...options, dir });
     },
@@ -89,6 +98,7 @@ export function createTempContext(options?: Deno.MakeTempOptions): TempContext {
       tempContextCleanupHandlers.push(handler);
     },
   };
+  return result;
 }
 
 export function systemTempDir(name: string) {

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
 import {
   dirname,
   isAbsolute,
@@ -22,6 +22,7 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import {
   FileInclusion,
   FileInformation,
+  FileInformationCache,
   kProjectOutputDir,
   kProjectType,
   ProjectConfig,
@@ -37,8 +38,8 @@ import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { createTempContext } from "../core/temp.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
-import { ExecutionEngine } from "../execute/types.ts";
-import { InspectedMdCell } from "../quarto-core/inspect-types.ts";
+import { ExecutionEngineInstance } from "../execute/types.ts";
+import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
 import { parse } from "../core/yaml.ts";
@@ -47,10 +48,15 @@ import { normalizeNewlines } from "../core/lib/text.ts";
 import { DirectiveCell } from "../core/lib/break-quarto-md-types.ts";
 import { QuartoJSONSchema, readYamlFromMarkdown } from "../core/yaml.ts";
 import { refSchema } from "../core/lib/yaml-schema/common.ts";
-import { Brand as BrandJson } from "../resources/types/schema-types.ts";
-import { Brand } from "../core/brand/brand.ts";
-import { warnOnce } from "../core/log.ts";
+import { Zod } from "../resources/types/zod/schema-types.ts";
+import {
+  Brand,
+  LightDarkBrand,
+  LightDarkBrandDarkFlag,
+  splitUnifiedBrand,
+} from "../core/brand/brand.ts";
 import { assert } from "testing/asserts";
+import { Cloneable, safeCloneDeep } from "../core/safe-clone-deep.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -351,7 +357,7 @@ export async function directoryMetadataForInputFile(
 
 const mdForFile = async (
   _project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
 ): Promise<MappedString> => {
   if (engine) {
@@ -364,7 +370,7 @@ const mdForFile = async (
 
 export async function projectResolveCodeCellsForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
@@ -456,13 +462,41 @@ export async function projectFileMetadata(
 
 export async function projectResolveFullMarkdownForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
 ): Promise<MappedString> {
   const cache = ensureFileInformationCache(project, file);
-  if (!force && cache.fullMarkdown) {
+
+  // Source-mtime + size guard: in preview mode the persistent project
+  // context (and its fileInformationCache) is reused across renders. If
+  // the source file was edited since the cache entry was populated, the
+  // cached expanded markdown is stale (#10392). Re-read in that case.
+  // Size is checked alongside mtime to catch the edge case where an
+  // edit lands within a single mtime tick on a coarse-resolution
+  // filesystem but changes the byte count.
+  let currentMtime: number | undefined;
+  let currentSize: number | undefined;
+  try {
+    const stat = Deno.statSync(file);
+    currentMtime = stat.mtime?.getTime();
+    currentSize = stat.size;
+  } catch {
+    currentMtime = undefined;
+    currentSize = undefined;
+  }
+
+  if (
+    !force &&
+    cache.fullMarkdown &&
+    cache.sourceMtime !== undefined &&
+    cache.sourceSize !== undefined &&
+    currentMtime !== undefined &&
+    currentSize !== undefined &&
+    cache.sourceMtime === currentMtime &&
+    cache.sourceSize === currentSize
+  ) {
     return cache.fullMarkdown;
   }
 
@@ -489,6 +523,8 @@ export async function projectResolveFullMarkdownForFile(
   try {
     const result = await expandIncludes(markdown, options, file);
     cache.fullMarkdown = result;
+    cache.sourceMtime = currentMtime;
+    cache.sourceSize = currentSize;
     cache.includeMap = options.state?.include.includes as FileInclusion[];
     return result;
   } finally {
@@ -501,8 +537,12 @@ export const ensureFileInformationCache = (
   file: string,
 ) => {
   if (!project.fileInformationCache) {
-    project.fileInformationCache = new Map();
+    project.fileInformationCache = new FileInformationCacheMap();
   }
+  assert(
+    project.fileInformationCache instanceof Map,
+    JSON.stringify(project.fileInformationCache),
+  );
   if (!project.fileInformationCache.has(file)) {
     project.fileInformationCache.set(file, {} as FileInformation);
   }
@@ -512,73 +552,236 @@ export const ensureFileInformationCache = (
 export async function projectResolveBrand(
   project: ProjectContext,
   fileName?: string,
-) {
+): Promise<LightDarkBrandDarkFlag | undefined> {
+  async function loadSingleBrand(brandPath: string): Promise<Brand> {
+    const brand = await readAndValidateYamlFromFile(
+      brandPath,
+      refSchema("brand-single", "Format-independent brand configuration."),
+      "Brand validation failed for " + brandPath + ".",
+    );
+    return new Brand(brand, dirname(brandPath), project.dir);
+  }
+  async function loadUnifiedBrand(
+    brandPath: string,
+  ): Promise<LightDarkBrandDarkFlag> {
+    const brand = await readAndValidateYamlFromFile(
+      brandPath,
+      refSchema("brand-unified", "Format-independent brand configuration."),
+      "Brand validation failed for " + brandPath + ".",
+    );
+    return splitUnifiedBrand(brand, dirname(brandPath), project.dir);
+  }
+  function resolveBrandPath(
+    brandPath: string,
+    dir: string = dirname(fileName!),
+  ): string {
+    let resolved: string = "";
+    if (brandPath.startsWith("/")) {
+      resolved = join(project.dir, brandPath);
+    } else {
+      resolved = join(dir, brandPath);
+    }
+    return resolved;
+  }
+  // A token over the candidate brand files' existence + mtime + size, so the
+  // long-lived preview brandCache is reused only while the on-disk brand state
+  // is unchanged. Mirrors the fullMarkdown mtime+size guard above.
+  function brandSourceState(paths: string[]): string {
+    return paths.map((path) => {
+      try {
+        const stat = Deno.statSync(path);
+        return `${path}:${stat.mtime?.getTime()}:${stat.size}`;
+      } catch {
+        return `${path}:absent`;
+      }
+    }).join("|");
+  }
   if (fileName === undefined) {
-    if (project.brandCache) {
+    const brand = (project?.config?.brand ??
+      project?.config?.project.brand) as
+        | boolean
+        | string
+        | {
+          light?: string;
+          dark?: string;
+        };
+
+    // Determine the candidate brand files this resolve will consult, so the
+    // staleness token below covers exactly the paths that affect the result.
+    let candidatePaths: string[];
+    if (
+      typeof brand === "object" && brand &&
+      ("light" in brand || "dark" in brand)
+    ) {
+      candidatePaths = [
+        brand.light ? resolveBrandPath(brand.light, project.dir) : undefined,
+        brand.dark ? resolveBrandPath(brand.dark, project.dir) : undefined,
+      ].filter((path): path is string => path !== undefined);
+    } else if (typeof brand === "string") {
+      candidatePaths = [join(project.dir, brand)];
+    } else {
+      candidatePaths = [
+        "_brand.yml",
+        "_brand.yaml",
+        "_brand/_brand.yml",
+        "_brand/_brand.yaml",
+      ].map((file) => join(project.dir, file));
+    }
+
+    // In preview mode the project context is long-lived and brandCache is
+    // reused across re-renders. Reuse the cached brand only when the on-disk
+    // state of the candidate files is unchanged; otherwise re-resolve so a
+    // _brand.yml added, removed, or edited mid-session takes effect (#14593).
+    const sourceState = brandSourceState(candidatePaths);
+    if (project.brandCache && project.brandCache.sourceState === sourceState) {
       return project.brandCache.brand;
     }
-    project.brandCache = {};
-    let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
-      join(project.dir, file)
-    );
-    if (project?.config?.brand === false) {
+    project.brandCache = { sourceState };
+
+    if (brand === false) {
       project.brandCache.brand = undefined;
       return project.brandCache.brand;
     }
-    if (typeof project?.config?.brand === "string") {
-      fileNames = [join(project.dir, project.config.brand)];
+    if (
+      typeof brand === "object" && brand &&
+      ("light" in brand || "dark" in brand)
+    ) {
+      project.brandCache.brand = {
+        light: brand.light
+          ? await loadSingleBrand(resolveBrandPath(brand.light, project.dir))
+          : undefined,
+        dark: brand.dark
+          ? await loadSingleBrand(resolveBrandPath(brand.dark, project.dir))
+          : undefined,
+        enablesDarkMode: !!brand.dark,
+      };
+      return project.brandCache.brand;
     }
 
-    for (const brandPath of fileNames) {
+    for (const brandPath of candidatePaths) {
       if (!existsSync(brandPath)) {
         continue;
       }
-      const brand = await readAndValidateYamlFromFile(
-        brandPath,
-        refSchema("brand", "Format-independent brand configuration."),
-        "Brand validation failed for " + brandPath + ".",
-      ) as BrandJson;
-      project.brandCache.brand = new Brand(
-        brand,
-        dirname(brandPath),
-        project.dir,
-      );
+      project.brandCache.brand = await loadUnifiedBrand(brandPath);
     }
     return project.brandCache.brand;
   } else {
     const metadata = await project.fileMetadata(fileName);
-    if (metadata.brand === false) {
+    if (metadata.brand === undefined) {
+      return project.resolveBrand();
+    }
+    const brand = Zod.BrandPathBoolLightDark.parse(metadata.brand);
+    if (brand === false) {
       return undefined;
     }
-    if (metadata.brand === true || metadata.brand === undefined) {
+    if (brand === true) {
       return project.resolveBrand();
     }
     const fileInformation = ensureFileInformationCache(project, fileName);
     if (fileInformation.brand) {
       return fileInformation.brand;
     }
-    if (typeof metadata.brand === "string") {
-      let brandPath: string = "";
-      if (brandPath.startsWith("/")) {
-        brandPath = join(project.dir, metadata.brand);
-      } else {
-        brandPath = join(dirname(fileName), metadata.brand);
-      }
-      const brand = await readAndValidateYamlFromFile(
-        brandPath,
-        refSchema("brand", "Format-independent brand configuration."),
-        "Brand validation failed for " + brandPath + ".",
-      ) as BrandJson;
-      fileInformation.brand = new Brand(brand, dirname(brandPath), project.dir);
+    if (typeof brand === "string") {
+      fileInformation.brand = await loadUnifiedBrand(resolveBrandPath(brand));
       return fileInformation.brand;
     } else {
-      assert(typeof metadata.brand === "object");
-      fileInformation.brand = new Brand(
-        metadata.brand as BrandJson,
-        dirname(fileName),
-        project.dir,
-      );
+      assert(typeof brand === "object");
+      if ("light" in brand || "dark" in brand) {
+        let light, dark;
+        if (typeof brand.light === "string") {
+          light = await loadSingleBrand(resolveBrandPath(brand.light));
+        } else if (brand.light) {
+          light = new Brand(
+            brand.light,
+            dirname(fileName),
+            project.dir,
+          );
+        }
+        if (typeof brand.dark === "string") {
+          dark = await loadSingleBrand(resolveBrandPath(brand.dark));
+        } else if (brand.dark) {
+          dark = new Brand(
+            brand.dark,
+            dirname(fileName),
+            project.dir,
+          );
+        }
+        fileInformation.brand = { light, dark, enablesDarkMode: !!dark };
+      } else {
+        fileInformation.brand = splitUnifiedBrand(
+          brand,
+          dirname(fileName),
+          project.dir,
+        );
+      }
       return fileInformation.brand;
     }
+  }
+}
+
+// A Map that normalizes path keys for cross-platform consistency.
+// All path operations normalize keys (forward slashes, lowercase on Windows).
+// Implements Cloneable but shares state intentionally - in preview mode,
+// the project context is reused across renders and cache state must persist.
+export class FileInformationCacheMap extends Map<string, FileInformation>
+  implements FileInformationCache, Cloneable<Map<string, FileInformation>> {
+  override get(key: string): FileInformation | undefined {
+    return super.get(normalizePath(key));
+  }
+
+  override has(key: string): boolean {
+    return super.has(normalizePath(key));
+  }
+
+  override set(key: string, value: FileInformation): this {
+    return super.set(normalizePath(key), value);
+  }
+
+  override delete(key: string): boolean {
+    return super.delete(normalizePath(key));
+  }
+
+  // Note: Iterator methods (keys(), entries(), forEach(), [Symbol.iterator])
+  // return normalized keys as stored. Code iterating over the cache sees
+  // normalized paths, which is consistent with how keys are stored.
+
+  // Removes a cache entry and cleans up any associated transient files.
+  // In preview mode, this should be used instead of delete() to ensure
+  // transient notebooks (.quarto_ipynb) are removed from disk before the
+  // cache entry is dropped. Without this, the collision-avoidance logic
+  // in jupyter.ts target() creates numbered variants on each re-render.
+  invalidateForFile(key: string): void {
+    const existing = this.get(key);
+    if (existing?.target?.data) {
+      const data = existing.target.data as { transient?: boolean };
+      if (data.transient && existing.target.input) {
+        safeRemoveSync(existing.target.input);
+      }
+    }
+    this.delete(key);
+  }
+
+  // Returns this instance (shared reference) rather than a copy.
+  // This is intentional: in preview mode, project context is cloned for
+  // each render but the cache must be shared so invalidations persist.
+  clone(): Map<string, FileInformation> {
+    return this;
+  }
+}
+
+export function cleanupFileInformationCache(project: ProjectContext) {
+  for (const key of [...project.fileInformationCache.keys()]) {
+    project.fileInformationCache.invalidateForFile(key);
+  }
+}
+
+export async function withProjectCleanup<T>(
+  project: ProjectContext,
+  fn: (project: ProjectContext) => Promise<T>,
+): Promise<T> {
+  try {
+    return await fn(project);
+  } finally {
+    project.cleanup();
   }
 }

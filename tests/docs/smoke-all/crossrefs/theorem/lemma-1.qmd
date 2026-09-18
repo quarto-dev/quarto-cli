@@ -18,10 +18,9 @@ _quarto:
         - []
     typst:
       ensureTypstFileRegexMatches:
-        - 
-          - "<lem-line>"
-          - "@lem-line"
-          - "#lemma\\(\"Line\"\\)"
+        -
+          - "#ref\\(<lem-line>, supplement: \\[Lemma\\]\\)"
+          - "#lemma\\(title: \\[Line\\]\\)"
         - []
     markdown:
       ensureFileRegexMatches:

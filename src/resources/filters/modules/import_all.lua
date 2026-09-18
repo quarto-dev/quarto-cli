@@ -16,9 +16,14 @@ _quarto.modules = {
   lightbox = require("modules/lightbox"),
   mediabag = require("modules/mediabag"),
   openxml = require("modules/openxml"),
+  path = require("modules/path"),
   patterns = require("modules/patterns"),
   scope = require("modules/scope"),
   string = require("modules/string"),
   tablecolwidths = require("modules/tablecolwidths"),
-  typst = require("modules/typst")
+  typst = require("modules/typst"),
+  listtable = require("modules/listtable"),
+  tableutils = require("modules/tableutils"),
 }
+
+quarto.brand = _quarto.modules.brand

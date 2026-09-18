@@ -61,7 +61,6 @@ import("../quarto-init/resourcerefs.lua")
 
 import("../normalize/flags.lua")
 import("../normalize/normalize.lua")
-import("../normalize/parsehtml.lua")
 import("../normalize/extractquartodom.lua")
 import("../normalize/astpipeline.lua")
 import("../normalize/capturereaderstate.lua")

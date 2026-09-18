@@ -1,0 +1,16 @@
+project:
+  type: website
+theme:
+  light: brand
+  dark: [brand, dark-fixups.scss]
+website:
+  sidebar:
+    id: sidebar-id
+    style: "docked"
+    logo:
+      light: moon
+      dark: sun
+    search: true
+    contents:
+      - index.qmd
+      - conclusion.qmd

@@ -1,0 +1,28 @@
+---
+title: "Typst fig-alt propagation for computed figures"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        - # Patterns that MUST be found - fig-alt propagated to image(alt: ...)
+          - 'image\("typst-fig-alt-propagation_files/figure-typst/fig-test-plot-1\.svg",\s*alt:\s*"Scatter plot showing speed versus stopping distance from the cars dataset"'
+        - # Patterns that must NOT be found
+          []
+---
+
+## Computed figure with fig-alt
+
+This tests that `fig-alt` on code chunks is propagated to Typst's `image(alt: ...)` parameter.
+
+```{r}
+#| label: fig-test-plot
+#| fig-cap: "A plot of the cars dataset"
+#| fig-alt: "Scatter plot showing speed versus stopping distance from the cars dataset"
+plot(cars)
+```
+
+See @fig-test-plot.

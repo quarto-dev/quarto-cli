@@ -1,0 +1,17 @@
+---
+title: "LaTeX unsupported standard warning"
+format: pdf
+pdf-standard: a-1a
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      printsMessage:
+        level: WARN
+        regex: "PDF standard 'a-1a' is not supported by LaTeX"
+---
+
+# Test Document
+
+This tests that PDF/A-1a (Typst-only) produces a warning with LaTeX.

@@ -67,7 +67,8 @@ export async function touch(path: string) {
     await Deno.writeFileSync(path, contents);
   } else {
     await execProcess({
-      cmd: ["touch", path],
+      cmd: "touch",
+      args: [path],
     });
   }
 }

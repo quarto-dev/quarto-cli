@@ -5,8 +5,8 @@ _quarto:
   tests:
     pptx:
       printsMessage:
-        - INFO
-        - 'WARNING.*FloatRefTargets require'
+        level: INFO
+        regex: 'WARNING.*FloatRefTargets require'
       ensurePptxXpath:
       - 
         - 2

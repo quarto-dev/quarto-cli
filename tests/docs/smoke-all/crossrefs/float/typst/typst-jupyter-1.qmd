@@ -7,8 +7,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - "<fig-plot>"
-          - "@fig-plot"
+          - "#ref\\(<fig-plot>, supplement: \\[Figure\\]\\)"
           - "Plot"
           - "#.*image\\(\"typst-jupyter-1_files/figure-typst/fig-plot-output-1.svg\"\\)"
         - []

@@ -7,9 +7,11 @@
 
 import { execProcess } from "../../../src/core/process.ts";
 import { join } from "../../../src/deno_ral/path.ts";
+import { walkSync } from "../../../src/deno_ral/fs.ts";
 import { CreateResult } from "../../../src/command/create/cmd-types.ts";
 import { assert } from "testing/asserts";
 import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 
 const kCreateTypes: Record<string, string[]> = {
   "project": ["website", "default", "book", "website:blog"],
@@ -22,6 +24,7 @@ const kCreateTypes: Record<string, string[]> = {
     "format:pdf",
     "format:docx",
     "format:revealjs",
+    "engine",
   ],
 };
 
@@ -48,15 +51,38 @@ for (const type of Object.keys(kCreateTypes)) {
         const cmd = [quartoDevCmd(), "create", "--json"];
         const stdIn = JSON.stringify(createDirective);
         const process = await execProcess({
-          cmd,
+          cmd: cmd[0],
+          args: cmd.slice(1),
           stdout: "piped",
           stderr: "piped",
+          ...quartoSpawnEnvOptions(),
         }, stdIn);
         assert(process.success, process.stderr);
         if (process.stdout) {
           result = JSON.parse(process.stdout) as CreateResult;
         }
         assert(process.success, process.stderr);
+      });
+
+      // In dev environments resource files are already writable (0o644), so
+      // this passes even without ensureUserWritable; it guards against
+      // regressions. The unit test covers the read-only-to-writable
+      // transition directly. This smoke test checks the permissions of the
+      // created project.
+      await t.step({
+        name: `> check writable ${type} ${template}`,
+        ignore: Deno.build.os === "windows",
+        fn: () => {
+          for (const entry of walkSync(artifactPath)) {
+            if (entry.isFile) {
+              const stat = Deno.statSync(entry.path);
+              assert(
+                stat.mode !== null && (stat.mode! & 0o200) !== 0,
+                `File ${entry.path} is not user-writable (mode: ${stat.mode?.toString(8)})`,
+              );
+            }
+          }
+        },
       });
 
       // Render the artifact
@@ -68,15 +94,31 @@ for (const type of Object.keys(kCreateTypes)) {
           `Artifact ${type} ${template} failed to produce any files to open.`,
         );
 
+        // Build engine extensions before rendering
+        if (template === "engine") {
+          const buildCmd = [quartoDevCmd(), "call", "build-ts-extension"];
+          const buildProcess = await execProcess({
+            cmd: buildCmd[0],
+            args: buildCmd.slice(1),
+            cwd: path,
+            stdout: "piped",
+            stderr: "piped",
+            ...quartoSpawnEnvOptions(),
+          });
+          assert(buildProcess.success, buildProcess.stderr);
+        }
+
         for (const file of openfiles) {
           if (file.endsWith(".qmd")) {
             // provide a step name and function
             const cmd = [quartoDevCmd(), "render", file];
             const process = await execProcess({
-              cmd,
+              cmd: cmd[0],
+              args: cmd.slice(1),
               cwd: path,
               stdout: "piped",
               stderr: "piped",
+              ...quartoSpawnEnvOptions(),
             });
             assert(process.success, process.stderr);
           }

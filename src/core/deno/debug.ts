@@ -6,7 +6,7 @@
  * Debugging utilities.
  */
 
-import * as colors from "colors";
+import * as colors from "fmt/colors";
 
 type StackEntry = {
   pos: string;

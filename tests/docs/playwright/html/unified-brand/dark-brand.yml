@@ -1,0 +1,9 @@
+color:
+  foreground: "#eee"
+  background: "#222"
+typography:
+  monospace:
+    background-color: "#321"
+  link:
+    background-color: "#421"
+    color: "#c3a"

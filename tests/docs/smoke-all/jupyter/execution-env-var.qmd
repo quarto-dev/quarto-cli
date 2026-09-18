@@ -1,0 +1,32 @@
+---
+title: "Testing env var available in execution in single file project context"
+format: markdown
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+      -   
+        - 'QUARTO_PROJECT_ROOT: \S+[\\/]smoke-all[\\/]jupyter'
+        - 'QUARTO_DOCUMENT_PATH: \S+[\\/]smoke-all[\\/]jupyter'
+        - 'QUARTO_DOCUMENT_FILE: execution-env-var.qmd'
+      - ['UNDEFINED']
+---
+
+#### Show execution env var
+
+```{python}
+#| echo: false
+#| output: asis
+import os
+from IPython.display import Markdown
+
+env_vars = (
+    "```{=markdown}\n"
+    f"QUARTO_PROJECT_ROOT: {os.environ.get('QUARTO_PROJECT_ROOT', 'UNDEFINED')}\n"
+    f"QUARTO_DOCUMENT_PATH: {os.environ.get('QUARTO_DOCUMENT_PATH', 'UNDEFINED')}\n"
+    f"QUARTO_DOCUMENT_FILE: {os.environ.get('QUARTO_DOCUMENT_FILE', 'UNDEFINED')}\n"
+    "```\n"
+)
+
+Markdown(env_vars)
+```

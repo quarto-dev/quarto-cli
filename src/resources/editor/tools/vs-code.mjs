@@ -6997,7 +6997,11 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -7040,6 +7044,13 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "classes",
           schema: "string",
           description: "Classes to apply to cell container"
+        },
+        {
+          name: "renderings",
+          schema: {
+            arrayOf: "string"
+          },
+          description: "Array of rendering names, e.g. `[light, dark]`"
         },
         {
           name: "tags",
@@ -7112,7 +7123,14 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             engine: "knitr"
           },
-          schema: "string",
+          schema: {
+            anyOf: [
+              {
+                maybeArrayOf: "string"
+              },
+              "boolean"
+            ]
+          },
           description: {
             short: "Variables names that are not created from the current chunk",
             long: "Variables names that are not created from the current chunk.\n\nThis option is mainly for `autodep: true` to work more precisely---a chunk\n`B` depends on chunk `A` when any of `B`'s global variables are `A`'s local \nvariables. In case the automatic detection of global variables in a chunk \nfails, you may manually specify the names of global variables via this option.\nIn addition, `cache-globals: false` means detecting all variables in a code\nchunk, no matter if they are global or local variables.\n"
@@ -7329,7 +7347,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: true,
           description: {
             short: "Evaluate code cells (if `false` just echos the code into output).",
-            long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+            long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative numbers to selectively include or exclude expressions \n  (explicit inclusion/exclusion of expressions is available only when using the knitr engine)\n"
           }
         },
         {
@@ -7995,7 +8013,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8017,7 +8036,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8039,7 +8059,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-files",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -8365,6 +8386,10 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "date-format",
+          schema: "string"
+        },
+        {
           id: "math-methods",
           enum: {
             values: [
@@ -8401,6 +8426,19 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "filter-entry-point",
+          enum: [
+            "pre-ast",
+            "post-ast",
+            "pre-quarto",
+            "post-quarto",
+            "pre-render",
+            "post-render",
+            "pre-finalize",
+            "post-finalize"
+          ]
+        },
+        {
           id: "pandoc-format-filters",
           arrayOf: {
             anyOf: [
@@ -8422,14 +8460,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     type: "string",
                     path: "path",
                     at: {
-                      enum: [
-                        "pre-ast",
-                        "post-ast",
-                        "pre-quarto",
-                        "post-quarto",
-                        "pre-render",
-                        "post-render"
-                      ]
+                      ref: "filter-entry-point"
                     }
                   },
                   required: [
@@ -8529,8 +8560,8 @@ var require_yaml_intelligence_resources = __commonJS({
               icon: {
                 string: {
                   description: {
-                    short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                    long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                    short: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)",
+                    long: "Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
                   }
                 }
               },
@@ -8547,7 +8578,7 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               text: {
                 string: {
-                  description: "Text to display for item (defaults to the\ndocument title if not provided)\n"
+                  description: "Text to display for item (defaults to the\ndocument title if not provided). Supports markdown formatting.\n"
                 }
               },
               url: {
@@ -8593,7 +8624,147 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          id: "comments",
+          id: "giscus-configuration",
+          object: {
+            closed: true,
+            properties: {
+              repo: {
+                string: {
+                  description: {
+                    short: "The Github repo that will be used to store comments.",
+                    long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
+                  }
+                }
+              },
+              "repo-id": {
+                string: {
+                  description: {
+                    short: "The Github repository identifier.",
+                    long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                  }
+                }
+              },
+              category: {
+                string: {
+                  description: {
+                    short: "The discussion category where new discussions will be created.",
+                    long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
+                  }
+                }
+              },
+              "category-id": {
+                string: {
+                  description: {
+                    short: "The Github category identifier.",
+                    long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                  }
+                }
+              },
+              mapping: {
+                schema: {
+                  anyOf: [
+                    "string",
+                    "number"
+                  ]
+                },
+                completions: [
+                  "pathname",
+                  "url",
+                  "title",
+                  "og:title"
+                ],
+                description: {
+                  short: "The mapping between the page and the embedded discussion.",
+                  long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
+                }
+              },
+              "reactions-enabled": {
+                boolean: {
+                  description: "Display reactions for the discussion's main post before the comments."
+                }
+              },
+              loading: {
+                enum: [
+                  "lazy"
+                ],
+                description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
+              },
+              "input-position": {
+                enum: [
+                  "top",
+                  "bottom"
+                ],
+                description: "Place the comment input box above or below the comments."
+              },
+              theme: {
+                anyOf: [
+                  "string",
+                  {
+                    ref: "giscus-themes"
+                  },
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        light: {
+                          anyOf: [
+                            "string",
+                            {
+                              ref: "giscus-themes"
+                            }
+                          ],
+                          description: "The light theme name."
+                        },
+                        dark: {
+                          anyOf: [
+                            "string",
+                            {
+                              ref: "giscus-themes"
+                            }
+                          ],
+                          description: "The dark theme name."
+                        }
+                      }
+                    }
+                  }
+                ],
+                description: {
+                  short: "The giscus theme to use when displaying comments.",
+                  long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                }
+              },
+              language: {
+                string: {
+                  description: "The language that should be used when displaying the commenting interface."
+                }
+              }
+            },
+            required: [
+              "repo"
+            ]
+          }
+        },
+        {
+          id: "external-engine",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                path: {
+                  path: {
+                    description: "Path to the TypeScript module for the execution engine"
+                  }
+                }
+              },
+              required: [
+                "path"
+              ]
+            },
+            description: "An execution engine not pre-loaded in Quarto"
+          }
+        },
+        {
+          id: "document-comments-configuration",
           anyOf: [
             {
               enum: [
@@ -8657,123 +8828,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     }
                   },
                   giscus: {
-                    object: {
-                      closed: true,
-                      properties: {
-                        repo: {
-                          string: {
-                            description: {
-                              short: "The Github repo that will be used to store comments.",
-                              long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
-                            }
-                          }
-                        },
-                        "repo-id": {
-                          string: {
-                            description: {
-                              short: "The Github repository identifier.",
-                              long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                            }
-                          }
-                        },
-                        category: {
-                          string: {
-                            description: {
-                              short: "The discussion category where new discussions will be created.",
-                              long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
-                            }
-                          }
-                        },
-                        "category-id": {
-                          string: {
-                            description: {
-                              short: "The Github category identifier.",
-                              long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                            }
-                          }
-                        },
-                        mapping: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "pathname",
-                                "url",
-                                "title",
-                                "og:title"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: {
-                            short: "The mapping between the page and the embedded discussion.",
-                            long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
-                          }
-                        },
-                        "reactions-enabled": {
-                          boolean: {
-                            description: "Display reactions for the discussion's main post before the comments."
-                          }
-                        },
-                        loading: {
-                          enum: [
-                            "lazy"
-                          ],
-                          description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
-                        },
-                        "input-position": {
-                          enum: [
-                            "top",
-                            "bottom"
-                          ],
-                          description: "Place the comment input box above or below the comments."
-                        },
-                        theme: {
-                          anyOf: [
-                            "string",
-                            {
-                              ref: "giscus-themes"
-                            },
-                            {
-                              object: {
-                                closed: true,
-                                properties: {
-                                  light: {
-                                    anyOf: [
-                                      "string",
-                                      {
-                                        ref: "giscus-themes"
-                                      }
-                                    ],
-                                    description: "The light theme name."
-                                  },
-                                  dark: {
-                                    anyOf: [
-                                      "string",
-                                      {
-                                        ref: "giscus-themes"
-                                      }
-                                    ],
-                                    description: "The dark theme name."
-                                  }
-                                }
-                              }
-                            }
-                          ],
-                          description: {
-                            short: "The giscus theme to use when displaying comments.",
-                            long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      theme:\n        light: light # giscus theme used for light website theme\n        dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
-                          }
-                        },
-                        language: {
-                          string: {
-                            description: "The language that should be used when displaying the commenting interface."
-                          }
-                        }
-                      },
-                      required: [
-                        "repo"
-                      ]
-                    }
+                    ref: "giscus-configuration"
                   },
                   hypothesis: {
                     anyOf: [
@@ -9260,15 +9315,15 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               left: {
                 ref: "page-footer-region",
-                description: "Footer left content"
+                description: "Footer left content. Supports markdown formatting."
               },
               right: {
                 ref: "page-footer-region",
-                description: "Footer right content"
+                description: "Footer right content. Supports markdown formatting."
               },
               center: {
                 ref: "page-footer-region",
-                description: "Footer center content"
+                description: "Footer center content. Supports markdown formatting."
               },
               border: {
                 anyOf: [
@@ -9368,6 +9423,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
                 }
               },
+              "llms-txt": {
+                boolean: {
+                  description: "Generate llms.txt and .llms.md files for LLM-friendly content consumption.\n"
+                }
+              },
               "google-analytics": {
                 anyOf: [
                   "string",
@@ -9411,6 +9471,30 @@ var require_yaml_intelligence_resources = __commonJS({
                 ],
                 description: "Enable Google Analytics for this website"
               },
+              "plausible-analytics": {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        path: {
+                          path: {
+                            description: "Path to a file containing the Plausible Analytics script snippet"
+                          }
+                        }
+                      },
+                      required: [
+                        "path"
+                      ]
+                    }
+                  }
+                ],
+                description: {
+                  short: "Enable Plausible Analytics for this website by providing a script snippet or path to snippet file",
+                  long: 'Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,\nor by providing a path to a file containing the snippet.\n\nPlausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.\n\n**Option 1: Inline snippet**\n\n```yaml\nwebsite:\n  plausible-analytics: |\n    <script async src="https://plausible.io/js/script.js"><\/script>\n```\n\n**Option 2: File path**\n\n```yaml\nwebsite:\n  plausible-analytics:\n    path: _plausible_snippet.html\n```\n\nTo get your script snippet:\n\n1. Log into your Plausible account at <https://plausible.io>\n2. Go to your site settings\n3. Copy the JavaScript snippet provided\n4. Either paste it directly in your configuration or save it to a file\n\nFor more information, see <https://plausible.io/docs/plausible-script>\n'
+                }
+              },
               announcement: {
                 anyOf: [
                   "string",
@@ -9419,7 +9503,7 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         content: {
                           schema: "string",
-                          description: "The content of the announcement"
+                          description: "The content of the announcement. Supports markdown formatting."
                         },
                         dismissable: {
                           schema: "boolean",
@@ -9482,12 +9566,12 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         type: {
                           enum: [
-                            "implied",
-                            "express"
+                            "express",
+                            "implied"
                           ],
                           description: {
                             short: "The type of consent that should be requested",
-                            long: "The type of consent that should be requested, using one of these two values:\n\n- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n"
+                            long: "The type of consent that should be requested, using one of these two values:\n\n- `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n\n- `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n"
                           }
                         },
                         style: {
@@ -9566,6 +9650,11 @@ var require_yaml_intelligence_resources = __commonJS({
                         "copy-button": {
                           schema: "boolean",
                           description: "Provide button for copying search link"
+                        },
+                        "merge-navbar-crumbs": {
+                          schema: "boolean",
+                          default: true,
+                          description: "When false, do not merge navbar crumbs into the crumbs in `search.json`."
                         },
                         "keyboard-shortcut": {
                           maybeArrayOf: {
@@ -9665,12 +9754,11 @@ var require_yaml_intelligence_resources = __commonJS({
                             "string",
                             "boolean"
                           ],
-                          description: "The navbar title. Uses the project title if none is specified."
+                          description: "The navbar title. Uses the project title if none is specified. Supports markdown formatting."
                         },
                         logo: {
-                          path: {
-                            description: "Path to a logo image that will be displayed to the left of the title."
-                          }
+                          ref: "logo-light-dark-specifier",
+                          description: "Specification of image that will be displayed to the left of the title."
                         },
                         "logo-alt": {
                           string: {
@@ -9683,40 +9771,34 @@ var require_yaml_intelligence_resources = __commonJS({
                           }
                         },
                         background: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's background color (named or hex color)."
+                          string: {
+                            description: "The navbar's background color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         foreground: {
-                          anyOf: [
-                            {
-                              enum: [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            "string"
-                          ],
-                          description: "The navbar's foreground color (named or hex color)."
+                          string: {
+                            description: "The navbar's foreground color (named or hex color).",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          }
                         },
                         search: {
                           boolean: {
@@ -9797,12 +9879,11 @@ var require_yaml_intelligence_resources = __commonJS({
                               "string",
                               "boolean"
                             ],
-                            description: "The sidebar title. Uses the project title if none is specified."
+                            description: "The sidebar title. Uses the project title if none is specified. Supports markdown formatting."
                           },
                           logo: {
-                            path: {
-                              description: "Path to a logo image that will be displayed in the sidebar."
-                            }
+                            ref: "logo-light-dark-specifier",
+                            description: "Specification of image that will be displayed in the sidebar."
                           },
                           "logo-alt": {
                             string: {
@@ -9838,38 +9919,30 @@ var require_yaml_intelligence_resources = __commonJS({
                             default: "floating"
                           },
                           background: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's background color (named or hex color)."
                           },
                           foreground: {
-                            anyOf: [
-                              {
-                                enum: [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              "string"
+                            schema: "string",
+                            completions: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
                             ],
                             description: "The sidebar's foreground color (named or hex color)."
                           },
@@ -9966,7 +10039,7 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               comments: {
                 schema: {
-                  ref: "comments"
+                  ref: "document-comments-configuration"
                 }
               },
               "open-graph": {
@@ -10105,7 +10178,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 "output-file": {
                   path: {
-                    description: "Base name for single-file output (e.g. PDF, ePub)"
+                    description: "Base name for single-file output (e.g. PDF, ePub, docx)"
                   }
                 },
                 "cover-image": {
@@ -10283,6 +10356,16 @@ var require_yaml_intelligence_resources = __commonJS({
               "toc-title-website": "string",
               "related-formats-title": "string",
               "related-notebooks-title": "string",
+              "source-notebooks-prefix": "string",
+              "other-links-title": "string",
+              "code-links-title": "string",
+              "launch-dev-container-title": "string",
+              "launch-binder-title": "string",
+              "article-notebook-label": "string",
+              "notebook-preview-download": "string",
+              "notebook-preview-download-src": "string",
+              "notebook-preview-back": "string",
+              "manuscript-meca-bundle": "string",
               "callout-tip-title": "string",
               "callout-note-title": "string",
               "callout-warning-title": "string",
@@ -10291,15 +10374,35 @@ var require_yaml_intelligence_resources = __commonJS({
               "section-title-abstract": "string",
               "section-title-footnotes": "string",
               "section-title-appendices": "string",
+              "section-title-references": "string",
+              "section-title-reuse": "string",
+              "section-title-copyright": "string",
+              "section-title-citation": "string",
+              "appendix-attribution-cite-as": "string",
+              "appendix-attribution-bibtex": "string",
+              "appendix-view-license": "string",
+              "title-block-author-single": "string",
+              "title-block-author-plural": "string",
+              "title-block-affiliation-single": "string",
+              "title-block-affiliation-plural": "string",
+              "title-block-published": "string",
+              "title-block-modified": "string",
+              "title-block-keywords": "string",
               "code-summary": "string",
               "code-tools-menu-caption": "string",
               "code-tools-show-all-code": "string",
               "code-tools-hide-all-code": "string",
               "code-tools-view-source": "string",
               "code-tools-source-code": "string",
+              "tools-share": "string",
+              "tools-download": "string",
+              "code-line": "string",
+              "code-lines": "string",
+              "back-to-top": "string",
               "search-no-results-text": "string",
               "copy-button-tooltip": "string",
               "copy-button-tooltip-success": "string",
+              "skip-to-content": "string",
               "repo-action-links-edit": "string",
               "repo-action-links-source": "string",
               "repo-action-links-issue": "string",
@@ -10312,6 +10415,17 @@ var require_yaml_intelligence_resources = __commonJS({
               "search-text-placeholder": "string",
               "search-detached-cancel-button-title": "string",
               "search-submit-button-title": "string",
+              "search-label": "string",
+              "toggle-section": "string",
+              "toggle-sidebar": "string",
+              "toggle-dark-mode": "string",
+              "toggle-reader-mode": "string",
+              "toggle-navigation": "string",
+              "navigation-site-label": "string",
+              "navigation-section-label": "string",
+              "navigation-toolbar-label": "string",
+              "navigation-page-label": "string",
+              "navigation-breadcrumbs-label": "string",
               "crossref-fig-title": "string",
               "crossref-tbl-title": "string",
               "crossref-lst-title": "string",
@@ -10340,7 +10454,32 @@ var require_yaml_intelligence_resources = __commonJS({
               "crossref-exr-prefix": "string",
               "crossref-lof-title": "string",
               "crossref-lot-title": "string",
-              "crossref-lol-title": "string"
+              "crossref-lol-title": "string",
+              "environment-proof-title": "string",
+              "environment-remark-title": "string",
+              "environment-solution-title": "string",
+              "listing-page-order-by": "string",
+              "listing-page-order-by-default": "string",
+              "listing-page-order-by-date-asc": "string",
+              "listing-page-order-by-date-desc": "string",
+              "listing-page-order-by-number-desc": "string",
+              "listing-page-order-by-number-asc": "string",
+              "listing-page-field-date": "string",
+              "listing-page-field-title": "string",
+              "listing-page-field-description": "string",
+              "listing-page-field-author": "string",
+              "listing-page-field-filename": "string",
+              "listing-page-field-filemodified": "string",
+              "listing-page-field-subtitle": "string",
+              "listing-page-field-readingtime": "string",
+              "listing-page-field-wordcount": "string",
+              "listing-page-field-categories": "string",
+              "listing-page-minutes-compact": "string",
+              "listing-page-category-all": "string",
+              "listing-page-no-matches": "string",
+              "listing-page-words": "string",
+              "listing-page-filter": "string",
+              draft: "string"
             },
             errorDescription: "be a format language description object"
           }
@@ -10599,7 +10738,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: {
                     short: "The date format to use when displaying dates (e.g. d-M-yyy).",
-                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).\n"
+                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html).\n"
                   }
                 }
               },
@@ -11646,7 +11785,74 @@ var require_yaml_intelligence_resources = __commonJS({
                   object: {
                     properties: {
                       "trace-filters": "string",
-                      tests: "object"
+                      tests: {
+                        object: {
+                          properties: {
+                            run: {
+                              object: {
+                                description: "Control when tests should run",
+                                properties: {
+                                  ci: {
+                                    boolean: {
+                                      description: "Run tests on CI (true = run, false = skip)",
+                                      default: true
+                                    }
+                                  },
+                                  skip: {
+                                    description: "Skip test unconditionally (true = skip with default message, string = skip with custom message)",
+                                    anyOf: [
+                                      "boolean",
+                                      "string"
+                                    ]
+                                  },
+                                  os: {
+                                    description: "Run tests ONLY on these platforms (whitelist)",
+                                    anyOf: [
+                                      {
+                                        enum: [
+                                          "linux",
+                                          "darwin",
+                                          "windows"
+                                        ]
+                                      },
+                                      {
+                                        arrayOf: {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  not_os: {
+                                    description: "Don't run tests on these platforms (blacklist)",
+                                    anyOf: [
+                                      {
+                                        enum: [
+                                          "linux",
+                                          "darwin",
+                                          "windows"
+                                        ]
+                                      },
+                                      {
+                                        arrayOf: {
+                                          enum: [
+                                            "linux",
+                                            "darwin",
+                                            "windows"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -11920,7 +12126,40 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-logo",
+          id: "brand-logo-single",
+          description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
+          object: {
+            closed: true,
+            properties: {
+              images: {
+                description: "A dictionary of named logo resources.",
+                schema: {
+                  object: {
+                    additionalProperties: {
+                      schema: {
+                        ref: "brand-logo-resource"
+                      }
+                    }
+                  }
+                }
+              },
+              small: {
+                description: "A link or path to the brand's small-sized logo or icon.\n",
+                schema: "string"
+              },
+              medium: {
+                description: "A link or path to the brand's medium-sized logo.\n",
+                schema: "string"
+              },
+              large: {
+                description: "A link or path to the brand's large- or full-sized logo.\n",
+                schema: "string"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-logo-unified",
           description: "Provide definitions and defaults for brand's logo in various formats and sizes.\n",
           object: {
             closed: true,
@@ -11968,11 +12207,155 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "logo-options",
+          object: {
+            closed: false,
+            properties: {
+              path: {
+                schema: "path",
+                description: "Path or brand.yml logo resource name.\n"
+              },
+              alt: {
+                schema: "string",
+                description: "Alternative text for the logo, used for accessibility.\n"
+              }
+            },
+            required: [
+              "path"
+            ]
+          }
+        },
+        {
+          id: "logo-specifier",
+          anyOf: [
+            "string",
+            {
+              schema: {
+                ref: "logo-options"
+              }
+            }
+          ]
+        },
+        {
+          id: "logo-options-path-optional",
+          object: {
+            closed: false,
+            properties: {
+              path: {
+                schema: "path",
+                description: "Path or brand.yml logo resource name.\n"
+              },
+              alt: {
+                schema: "string",
+                description: "Alternative text for the logo, used for accessibility.\n"
+              }
+            }
+          }
+        },
+        {
+          id: "logo-specifier-path-optional",
+          anyOf: [
+            "string",
+            {
+              schema: {
+                ref: "logo-options-path-optional"
+              }
+            }
+          ]
+        },
+        {
+          id: "logo-light-dark-specifier",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
+          anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
+            {
+              ref: "logo-specifier"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "logo-specifier"
+                    },
+                    description: "Specification of a light logo\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "logo-specifier"
+                    },
+                    description: "Specification of a dark logo\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "logo-light-dark-specifier-path-optional",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object. Use `false` to explicitly disable the logo.\n",
+          anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
+            {
+              ref: "logo-specifier-path-optional"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a light logo\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "logo-specifier-path-optional"
+                    },
+                    description: "Specification of a dark logo\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "normalized-logo-light-dark-specifier",
+          description: "Any of the ways a logo can be specified: string, object, or light/dark object of string or object\n",
+          object: {
+            closed: true,
+            properties: {
+              light: {
+                schema: {
+                  ref: "logo-options"
+                },
+                description: "Options for a light logo\n"
+              },
+              dark: {
+                schema: {
+                  ref: "logo-options"
+                },
+                description: "Options for a dark logo\n"
+              }
+            }
+          }
+        },
+        {
           id: "brand-color-value",
           schema: "string"
         },
         {
-          id: "brand-color",
+          id: "brand-color-single",
           description: "The brand's custom color palette and theme.\n",
           object: {
             closed: true,
@@ -12065,6 +12448,126 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "brand-color-light-dark",
+          anyOf: [
+            {
+              ref: "brand-color-value"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "brand-color-value"
+                    },
+                    description: "A link or path to the brand's light-colored logo or icon.\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "brand-color-value"
+                    },
+                    description: "A link or path to the brand's dark-colored logo or icon.\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-color-unified",
+          description: "The brand's custom color palette and theme.\n",
+          object: {
+            closed: true,
+            properties: {
+              palette: {
+                description: "The brand's custom color palette. Any number of colors can be defined, each color having a custom name.\n",
+                object: {
+                  additionalProperties: {
+                    schema: {
+                      ref: "brand-color-value"
+                    }
+                  }
+                }
+              },
+              foreground: {
+                description: "The foreground color, used for text.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                },
+                default: "black"
+              },
+              background: {
+                description: "The background color, used for the page background.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                },
+                default: "white"
+              },
+              primary: {
+                description: "The primary accent color, i.e. the main theme color. Typically used for hyperlinks, active states, primary action buttons, etc.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              secondary: {
+                description: "The secondary accent color. Typically used for lighter text or disabled states.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              tertiary: {
+                description: "The tertiary accent color. Typically an even lighter color, used for hover states, accents, and wells.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              success: {
+                description: "The color used for positive or successful actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              info: {
+                description: "The color used for neutral or informational actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              warning: {
+                description: "The color used for warning or cautionary actions and information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              danger: {
+                description: "The color used for errors, dangerous actions, or negative information.",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              light: {
+                description: "A bright color, used as a high-contrast foreground color on dark elements or low-contrast background color on light elements.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              dark: {
+                description: "A dark color, used as a high-contrast foreground color on light elements or high-contrast background color on light elements.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              },
+              link: {
+                description: "The color used for hyperlinks. If not defined, the `primary` color is used.\n",
+                schema: {
+                  ref: "brand-color-light-dark"
+                }
+              }
+            }
+          }
+        },
+        {
           id: "brand-maybe-named-color",
           description: "A color, which may be a named brand color.\n",
           anyOf: [
@@ -12073,6 +12576,33 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               schema: "string"
+            }
+          ]
+        },
+        {
+          id: "brand-maybe-named-color-light-dark",
+          anyOf: [
+            {
+              ref: "brand-maybe-named-color"
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    schema: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    description: "A link or path to the brand's light-colored logo or icon.\n"
+                  },
+                  dark: {
+                    schema: {
+                      ref: "brand-maybe-named-color"
+                    },
+                    description: "A link or path to the brand's dark-colored logo or icon.\n"
+                  }
+                }
+              }
             }
           ]
         },
@@ -12095,7 +12625,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography",
+          id: "brand-typography-single",
           description: "Typography definitions for the brand.",
           object: {
             closed: true,
@@ -12112,23 +12642,62 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               headings: {
                 description: "Settings for headings, or a string specifying the font family only.",
-                ref: "brand-typography-options-headings"
+                ref: "brand-typography-options-headings-single"
               },
               monospace: {
                 description: "Settings for monospace text, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace"
+                ref: "brand-typography-options-monospace-single"
               },
               "monospace-inline": {
                 description: "Settings for inline code, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace-inline"
+                ref: "brand-typography-options-monospace-inline-single"
               },
               "monospace-block": {
                 description: "Settings for code blocks, or a string specifying the font family only.",
-                ref: "brand-typography-options-monospace-block"
+                ref: "brand-typography-options-monospace-block-single"
               },
               link: {
                 description: "Settings for links.",
-                ref: "brand-typography-options-link"
+                ref: "brand-typography-options-link-single"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-typography-unified",
+          description: "Typography definitions for the brand.",
+          object: {
+            closed: true,
+            properties: {
+              fonts: {
+                description: "Font files and definitions for the brand.",
+                arrayOf: {
+                  ref: "brand-font"
+                }
+              },
+              base: {
+                description: "The base font settings for the brand. These are used as the default for all text.\n",
+                ref: "brand-typography-options-base"
+              },
+              headings: {
+                description: "Settings for headings, or a string specifying the font family only.",
+                ref: "brand-typography-options-headings-unified"
+              },
+              monospace: {
+                description: "Settings for monospace text, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-unified"
+              },
+              "monospace-inline": {
+                description: "Settings for inline code, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-inline-unified"
+              },
+              "monospace-block": {
+                description: "Settings for code blocks, or a string specifying the font family only.",
+                ref: "brand-typography-options-monospace-block-unified"
+              },
+              link: {
+                description: "Settings for links.",
+                ref: "brand-typography-options-link-unified"
               }
             }
           }
@@ -12156,7 +12725,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-headings",
+          id: "brand-typography-options-headings-single",
           description: "Typographic options for headings.",
           anyOf: [
             "string",
@@ -12183,7 +12752,34 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace",
+          id: "brand-typography-options-headings-unified",
+          description: "Typographic options for headings.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  style: {
+                    ref: "brand-font-style"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-single",
           description: "Typographic options for monospace elements.",
           anyOf: [
             "string",
@@ -12208,7 +12804,32 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace-inline",
+          id: "brand-typography-options-monospace-unified",
+          description: "Typographic options for monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-monospace-inline-single",
           description: "Typographic options for inline monospace elements.",
           anyOf: [
             "string",
@@ -12233,6 +12854,31 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
+          id: "brand-typography-options-monospace-inline-unified",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
           id: "line-height-number-string",
           description: "Line height",
           anyOf: [
@@ -12241,7 +12887,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-monospace-block",
+          id: "brand-typography-options-monospace-block-single",
           description: "Typographic options for block monospace elements.",
           anyOf: [
             "string",
@@ -12269,7 +12915,35 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-typography-options-link",
+          id: "brand-typography-options-monospace-block-unified",
+          description: "Typographic options for block monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  family: "string",
+                  size: "string",
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "line-height": {
+                    ref: "line-height-number-string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-typography-options-link-single",
           description: "Typographic options for inline monospace elements.",
           anyOf: [
             "string",
@@ -12293,12 +12967,39 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "brand-named-font",
-          description: "Names of customizeable fonts",
+          id: "brand-typography-options-link-unified",
+          description: "Typographic options for inline monospace elements.",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  weight: {
+                    ref: "brand-font-weight"
+                  },
+                  color: {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  "background-color": {
+                    ref: "brand-maybe-named-color-light-dark"
+                  },
+                  decoration: "string"
+                }
+              }
+            }
+          ]
+        },
+        {
+          id: "brand-named-typography-elements",
+          description: "Names of customizeable typography elements",
           enum: [
             "base",
             "headings",
-            "monospace"
+            "monospace",
+            "monospace-inline",
+            "monospace-block",
+            "link"
           ]
         },
         {
@@ -12316,9 +13017,6 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               ref: "brand-font-system"
-            },
-            {
-              ref: "brand-font-common"
             }
           ]
         },
@@ -12420,7 +13118,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "system"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12437,7 +13138,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "google"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12454,7 +13158,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   "bunny"
                 ]
               }
-            }
+            },
+            required: [
+              "source"
+            ]
           }
         },
         {
@@ -12515,7 +13222,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string"
         },
         {
-          id: "brand",
+          id: "brand-single",
           object: {
             closed: true,
             properties: {
@@ -12523,19 +13230,94 @@ var require_yaml_intelligence_resources = __commonJS({
                 ref: "brand-meta"
               },
               logo: {
-                ref: "brand-logo"
+                ref: "brand-logo-single"
               },
               color: {
-                ref: "brand-color"
+                ref: "brand-color-single"
               },
               typography: {
-                ref: "brand-typography"
+                ref: "brand-typography-single"
               },
               defaults: {
                 ref: "brand-defaults"
               }
             }
           }
+        },
+        {
+          id: "brand-unified",
+          object: {
+            closed: true,
+            properties: {
+              meta: {
+                ref: "brand-meta"
+              },
+              logo: {
+                ref: "brand-logo-unified"
+              },
+              color: {
+                ref: "brand-color-unified"
+              },
+              typography: {
+                ref: "brand-typography-unified"
+              },
+              defaults: {
+                ref: "brand-defaults"
+              }
+            }
+          }
+        },
+        {
+          id: "brand-path-only-light-dark",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: "string",
+                  dark: "string"
+                }
+              }
+            }
+          ],
+          description: "A path to a brand.yml file, or an object with light and dark paths to brand.yml\n"
+        },
+        {
+          id: "brand-path-bool-light-dark",
+          anyOf: [
+            "string",
+            "boolean",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  light: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "brand-single"
+                      }
+                    ],
+                    description: "The path to a light brand file or an inline light brand definition.\n"
+                  },
+                  dark: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "brand-single"
+                      }
+                    ],
+                    description: "The path to a dark brand file or an inline dark brand definition.\n"
+                  }
+                }
+              }
+            },
+            {
+              ref: "brand-unified"
+            }
+          ],
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline (unified) brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
         },
         {
           id: "brand-defaults",
@@ -12571,6 +13353,78 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        },
+        {
+          id: "marginalia-side-geometry",
+          object: {
+            closed: true,
+            properties: {
+              far: {
+                string: {
+                  description: "Distance from page edge to wideblock boundary."
+                }
+              },
+              width: {
+                string: {
+                  description: "Width of the margin note column."
+                }
+              },
+              separation: {
+                string: {
+                  description: "Gap between margin column and body text."
+                }
+              }
+            }
+          }
+        }
+      ],
+      "schema/document-a11y.yml": [
+        {
+          name: "axe",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                object: {
+                  properties: {
+                    output: {
+                      enum: [
+                        "json",
+                        "console",
+                        "document"
+                      ],
+                      description: "If set, output axe-core results on console. `json`: produce structured output; `console`: print output to javascript console; `document`: produce a visual report of violations in the document itself."
+                    },
+                    standard: {
+                      enum: [
+                        "wcag2a",
+                        "wcag2aa",
+                        "wcag2aaa",
+                        "wcag21a",
+                        "wcag21aa",
+                        "wcag21aaa",
+                        "wcag22a",
+                        "wcag22aa",
+                        "wcag22aaa"
+                      ],
+                      description: "Only check the rules for this WCAG conformance level, named as version then level (e.g. `wcag21aa` for WCAG 2.1 AA). Each level includes the levels and versions it builds on, and may check rules axe-core disables by default (such as AAA color contrast). Axe's best-practice rules are excluded unless `best-practice: true` is also set."
+                    },
+                    "best-practice": {
+                      boolean: {
+                        description: "Whether to check axe-core's best-practice rules (checks recommended by axe that aren't required by any WCAG success criterion). Checked by default when `standard` is unset; excluded by default when `standard` is set."
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          description: "When defined, run axe-core accessibility tests on the document."
         }
       ],
       "schema/document-about.yml": [
@@ -12630,6 +13484,13 @@ var require_yaml_intelligence_resources = __commonJS({
             ref: "date"
           },
           description: "Document date"
+        },
+        {
+          name: "date-format",
+          schema: {
+            ref: "date-format"
+          },
+          description: "Date format for the document"
         },
         {
           name: "date-modified",
@@ -12800,7 +13661,8 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: "The contents of an acknowledgments footnote after the document title."
@@ -12960,13 +13822,14 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "highlight-style",
+          name: "syntax-highlighting",
           tags: {
             formats: [
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -12983,29 +13846,32 @@ var require_yaml_intelligence_resources = __commonJS({
               {
                 string: {
                   completions: [
-                    "pygments",
-                    "tango",
-                    "espresso",
-                    "zenburn",
-                    "kate",
-                    "monochrome",
-                    "breezedark",
-                    "haddock",
+                    "a11y",
                     "arrow",
                     "atom-one",
                     "ayu",
                     "ayu-mirage",
                     "breeze",
+                    "breezedark",
                     "dracula",
+                    "espresso",
                     "github",
                     "gruvbox",
-                    "mokokai",
+                    "haddock",
+                    "idiomatic",
+                    "kate",
+                    "monochrome",
+                    "monokai",
+                    "none",
                     "nord",
                     "oblivion",
                     "printing",
+                    "pygments",
                     "radical",
                     "solarized",
-                    "vim-dark"
+                    "tango",
+                    "vim-dark",
+                    "zenburn"
                   ]
                 }
               }
@@ -13013,7 +13879,38 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Specifies the coloring style to be used in highlighted source code.",
-            long: "Specifies the coloring style to be used in highlighted source code.\n\nInstead of a *STYLE* name, a JSON file with extension\n` .theme` may be supplied.  This will be parsed as a KDE\nsyntax highlighting theme and (if valid) used as the\nhighlighting style.\n"
+            long: "Specifies the coloring style to be used in highlighted source code.\n\nValid values:\n\n- `none`: Disables syntax highlighting for code blocks.\n- `idiomatic`: Uses the format's native syntax highlighter\n  (e.g., Typst's built-in highlighting, LaTeX `listings` package,\n  or reveal.js highlight.js plugin).\n- A style name (e.g., `pygments`, `tango`, `github`): Uses\n  Pandoc's skylighting with the specified theme.\n- A path to a `.theme` file: Uses a custom KDE syntax\n  highlighting theme.\n\nFor adaptive light/dark themes, specify an object with `light`\nand `dark` properties pointing to theme files.\n"
+          }
+        },
+        {
+          name: "highlight-style",
+          hidden: true,
+          tags: {
+            formats: [
+              "$html-all",
+              "docx",
+              "ms",
+              "$pdf-all",
+              "typst"
+            ]
+          },
+          schema: {
+            anyOf: [
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    light: "path",
+                    dark: "path"
+                  }
+                }
+              },
+              "string"
+            ]
+          },
+          description: {
+            short: "Deprecated: use `syntax-highlighting` instead.",
+            long: "Deprecated: use `syntax-highlighting` instead.\n\nSpecifies the coloring style to be used in highlighted source code.\n"
           }
         },
         {
@@ -13023,7 +13920,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: "path",
@@ -13037,7 +13935,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "docx",
               "ms",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
@@ -13092,12 +13991,13 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "context",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
             short: "Sets the color of hyperlinks in the document.",
-            long: "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n"
+            long: "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n\nFor Typst output, sets the color of internal hyperlinks using Typst color syntax.\n"
           }
         },
         {
@@ -13131,12 +14031,13 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
-            short: "The color used for external links using color options allowed by `xcolor`",
-            long: "The color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
+            short: "The color used for external links.",
+            long: "For LaTeX output, the color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor Typst output, sets the color of external file links using Typst color syntax.\n"
           }
         },
         {
@@ -13144,12 +14045,13 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
-            short: "The color used for citation links using color options allowed by `xcolor`",
-            long: "The color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
+            short: "The color used for citation links.",
+            long: "For LaTeX output, the color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor),\nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor Typst output, sets the color of citation links using Typst color syntax.\n"
           }
         },
         {
@@ -13212,7 +14114,7 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            ref: "comments"
+            ref: "document-comments-configuration"
           },
           description: "Configuration for document commenting."
         }
@@ -13554,8 +14456,10 @@ var require_yaml_intelligence_resources = __commonJS({
               "dashboard"
             ]
           },
-          schema: "path",
-          description: "Logo image (placed on the left side of the navigation bar)"
+          schema: {
+            ref: "logo-light-dark-specifier"
+          },
+          description: "Logo image(s) (placed on the left side of the navigation bar)"
         },
         {
           name: "orientation",
@@ -13714,6 +14618,26 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Visual editor configuration"
         },
         {
+          name: "editor_options",
+          schema: {
+            object: {
+              properties: {
+                chunk_output_type: {
+                  enum: [
+                    "inline",
+                    "console"
+                  ],
+                  description: "Determines where chunk output is shown in the editor."
+                }
+              }
+            }
+          },
+          description: {
+            short: "Editor-specific options (used by RStudio and Positron).",
+            long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure\nper-document editor settings.\n"
+          }
+        },
+        {
           name: "zotero",
           schema: {
             anyOf: [
@@ -13724,6 +14648,26 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or\nmore Zotero group libraries to use with the document.\n"
+        }
+      ],
+      "schema/document-email.yml": [
+        {
+          name: "email-version",
+          tags: {
+            formats: [
+              "email"
+            ]
+          },
+          schema: {
+            enum: [
+              1,
+              2
+            ]
+          },
+          description: {
+            short: "Email format version",
+            long: "Specifies which email format version to use.\n\n- `1`: Legacy email format with document-level metadata (compatible with older Connect versions)\n- `2`: New email format with multiple individual emails and v2 markers (requires Posit Connect 2026.03 or later)\n"
+          }
         }
       ],
       "schema/document-epub.yml": [
@@ -13796,42 +14740,6 @@ var require_yaml_intelligence_resources = __commonJS({
             ref: "epub-contributor"
           },
           description: "Contributors to this publication."
-        },
-        {
-          name: "subject",
-          tags: {
-            formats: [
-              "$epub-all"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              {
-                object: {
-                  closed: true,
-                  properties: {
-                    text: {
-                      string: {
-                        description: "The subject text."
-                      }
-                    },
-                    authority: {
-                      string: {
-                        description: "An EPUB reserved authority value."
-                      }
-                    },
-                    term: {
-                      string: {
-                        description: "The subject term (defined by the schema)."
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          description: "The subject of the publication."
         },
         {
           name: "type",
@@ -14042,7 +14950,8 @@ var require_yaml_intelligence_resources = __commonJS({
             string: {
               completions: [
                 "jupyter",
-                "knitr"
+                "knitr",
+                "julia"
               ]
             }
           },
@@ -14349,6 +15258,19 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "codefont",
+          schema: "string",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Sets the font used for code in Typst output.",
+            long: "For Typst output, sets the font used for displaying code. Takes\nthe name of any font available to Typst (system fonts or fonts in\ndirectories specified by `font-paths`).\n"
+          }
+        },
+        {
           name: "fontsize",
           schema: "string",
           tags: {
@@ -14426,12 +15348,13 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
-            short: "The math font family for use with `xelatex` or `lualatex`.",
-            long: "The math font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n"
+            short: "The math font family for use with `xelatex`, `lualatex`, or Typst.",
+            long: "For LaTeX output, the math font family for use with `xelatex` or\n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n\nFor Typst output, sets the font used for mathematical content.\n"
           }
         },
         {
@@ -14584,12 +15507,13 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "context",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
             short: "Sets the line height or spacing for text in the document.",
-            long: "For HTML output sets the CSS `line-height` property on the html \nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the \n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n"
+            long: "For HTML output sets the CSS `line-height` property on the html\nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the\n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n\nFor Typst output, adjusts the spacing between lines of text.\n"
           }
         },
         {
@@ -14670,7 +15594,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$markdown-all",
               "muse",
               "$html-files",
-              "pdf"
+              "pdf",
+              "typst"
             ]
           },
           schema: {
@@ -15351,6 +16276,21 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "YAML file containing custom language translations"
         },
         {
+          name: "shorthands",
+          tags: {
+            formats: [
+              "pdf",
+              "beamer"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: {
+            short: "Enable babel language-specific shorthands in LaTeX output.",
+            long: "Enable babel language-specific shorthands in LaTeX output. When `true`,\nbabel's language shortcuts are enabled (e.g., French `<<`/`>>` for guillemets,\nGerman `\"` shortcuts, proper spacing around French punctuation).\n\nDefault is `false` because language shorthands can interfere with code blocks\nand other content. Only enable if you need specific typographic features\nfor your language.\n"
+          }
+        },
+        {
           name: "dir",
           schema: {
             enum: [
@@ -15574,6 +16514,23 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The paper size for the document.\n"
         },
         {
+          name: "brand-mode",
+          schema: {
+            enum: [
+              "light",
+              "dark"
+            ]
+          },
+          default: "light",
+          tags: {
+            formats: [
+              "typst",
+              "revealjs"
+            ]
+          },
+          description: "The brand mode to use for rendering the document, `light` or `dark`.\n"
+        },
+        {
           name: "layout",
           schema: {
             maybeArrayOf: "string"
@@ -15621,6 +16578,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "grid",
+          tags: {
+            formats: [
+              "$html-doc",
+              "typst"
+            ]
+          },
           schema: {
             object: {
               closed: true,
@@ -15641,24 +16604,24 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 "margin-width": {
                   string: {
-                    description: "The base width of the margin (right) column in an HTML page."
+                    description: "The base width of the margin (right) column. For Typst, this controls the width of the margin note column."
                   }
                 },
                 "body-width": {
                   string: {
-                    description: "The base width of the body (center) column in an HTML page."
+                    description: "The base width of the body (center) column. For Typst, this is computed as the remainder after other columns."
                   }
                 },
                 "gutter-width": {
                   string: {
-                    description: "The width of the gutter that appears between columns in an HTML page."
+                    description: "The width of the gutter that appears between columns. For Typst, this is the gap between the text column and margin notes."
                   }
                 }
               }
             }
           },
           description: {
-            short: "Properties of the grid system used to layout Quarto HTML pages."
+            short: "Properties of the grid system used to layout Quarto HTML and Typst pages."
           }
         },
         {
@@ -15847,6 +16810,62 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Sets the bottom margin of the document.",
             long: "For HTML output, sets the `margin-bottom` property on the Body element.\n\nFor LaTeX output, sets the bottom margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the bottom margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the bottom page margin.\n"
+          }
+        },
+        {
+          name: "margin",
+          tags: {
+            formats: [
+              "revealjs",
+              "typst"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "number",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    x: {
+                      string: {
+                        description: "Horizontal margin (e.g. 1.5in)"
+                      }
+                    },
+                    y: {
+                      string: {
+                        description: "Vertical margin (e.g. 1.5in)"
+                      }
+                    },
+                    top: {
+                      string: {
+                        description: "Top margin (e.g. 1.5in)"
+                      }
+                    },
+                    bottom: {
+                      string: {
+                        description: "Bottom margin (e.g. 1.5in)"
+                      }
+                    },
+                    left: {
+                      string: {
+                        description: "Left margin (e.g. 1.5in)"
+                      }
+                    },
+                    right: {
+                      string: {
+                        description: "Right margin (e.g. 1.5in)"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          default: 0.1,
+          description: {
+            short: "Margin settings for Reveal.js or Typst output.",
+            long: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary specifying page margins. Use `x` and `y` for symmetric\nhorizontal/vertical margins, or `top`, `bottom`, `left`, `right` for\nindividual sides. Values should include units (e.g. `1.5in`, `2cm`).\n"
           }
         },
         {
@@ -16059,7 +17078,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           description: {
             short: "A regular expression that can be used to determine whether a link is an internal link.",
-            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with `http://www.quarto.org/custom` or `https://www.quarto.org/custom`\nas internal links (and others will be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
           }
         },
         {
@@ -16365,12 +17384,39 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "subject",
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    text: {
+                      string: {
+                        description: "The subject text."
+                      }
+                    },
+                    authority: {
+                      string: {
+                        description: "An EPUB reserved authority value."
+                      }
+                    },
+                    term: {
+                      string: {
+                        description: "The subject term (defined by the schema)."
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
           tags: {
             formats: [
               "$pdf-all",
               "$office-all",
-              "odt"
+              "odt",
+              "$epub-all"
             ]
           },
           description: "The document subject"
@@ -16582,6 +17628,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "number-offset",
+          tags: {
+            formats: [
+              "$html-all"
+            ]
+          },
           schema: {
             maybeArrayOf: "number"
           },
@@ -16614,6 +17665,24 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Shift heading levels by a positive or negative integer. For example, with \n`shift-heading-level-by: -1`, level 2 headings become level 1 headings.\n",
             long: "Shift heading levels by a positive or negative integer.\nFor example, with `shift-heading-level-by: -1`, level 2\nheadings become level 1 headings, and level 3 headings\nbecome level 2 headings.  Headings cannot have a level\nless than 1, so a heading that would be shifted below level 1\nbecomes a regular paragraph.  Exception: with a shift of -N,\na level-N heading at the beginning of the document\nreplaces the metadata title.\n"
+          }
+        },
+        {
+          name: "page-numbering",
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n",
+            long: "Schema to use for numbering pages, e.g. `1` or `i`, or `false` to omit page numbering.\n\nSee [Typst Numbering](https://typst.app/docs/reference/model/numbering/) \nfor additional information.\n"
           }
         },
         {
@@ -16682,15 +17751,9 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "brand",
           schema: {
-            anyOf: [
-              "string",
-              "boolean",
-              {
-                ref: "brand"
-              }
-            ]
+            ref: "brand-path-bool-light-dark"
           },
-          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition.\n"
+          description: "Branding information to use for this document. If a string, the path to a brand file.\nIf false, don't use branding on this document. If an object, an inline brand\ndefinition, or an object with light and dark brand paths or definitions.\n"
         },
         {
           name: "theme",
@@ -16812,6 +17875,20 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Enables smooth scrolling within the page."
         },
         {
+          name: "respect-user-color-scheme",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "Enables setting dark mode based on the `prefers-color-scheme` media query.",
+            long: "If set, Quarto reads the `prefers-color-scheme` media query to determine whether to show\nthe user a dark or light page. Otherwise the author-preferred color scheme is shown.\n"
+          }
+        },
+        {
           name: "html-math-method",
           tags: {
             formats: [
@@ -16930,7 +18007,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Use the specified engine when producing PDF output.",
-            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
+            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `lualatex` (other options: `pdflatex`, `xelatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
           }
         },
         {
@@ -17063,7 +18140,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer color theme for this presentation."
+          description: "The Beamer color theme for this presentation, passed to `\\usecolortheme`."
+        },
+        {
+          name: "colorthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer color theme options for this presentation, passed to `\\usecolortheme`."
         },
         {
           name: "fonttheme",
@@ -17073,7 +18162,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer font theme for this presentation."
+          description: "The Beamer font theme for this presentation, passed to `\\usefonttheme`."
+        },
+        {
+          name: "fontthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer font theme options for this presentation, passed to `\\usefonttheme`."
         },
         {
           name: "innertheme",
@@ -17083,7 +18184,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer inner theme for this presentation."
+          description: "The Beamer inner theme for this presentation, passed to `\\useinnertheme`."
+        },
+        {
+          name: "innerthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer inner theme options for this presentation, passed to `\\useinnertheme`."
         },
         {
           name: "outertheme",
@@ -17093,7 +18206,19 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The Beamer outer theme for this presentation."
+          description: "The Beamer outer theme for this presentation, passed to `\\useoutertheme`."
+        },
+        {
+          name: "outerthemeoptions",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer outer theme options for this presentation, passed to `\\useoutertheme`."
         },
         {
           name: "themeoptions",
@@ -17105,7 +18230,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "Options passed to LaTeX Beamer themes."
+          description: "Options passed to LaTeX Beamer themes inside `\\usetheme`."
         },
         {
           name: "section",
@@ -17233,6 +18358,51 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "When used in conjunction with `pdfa`, specifies the output intent for the colors.",
             long: "When used in conjunction with `pdfa`, specifies the output intent for\nthe colors, for example `ISO coated v2 300\\letterpercent\\space (ECI)`\n\nIf left unspecified, `sRGB IEC61966-2.1` is used as default.\n"
           }
+        },
+        {
+          name: "pdf-standard",
+          schema: {
+            maybeArrayOf: {
+              enum: [
+                "1.4",
+                "1.5",
+                "1.6",
+                "1.7",
+                "2.0",
+                "a-1b",
+                "a-2a",
+                "a-2b",
+                "a-2u",
+                "a-3a",
+                "a-3b",
+                "a-3u",
+                "a-4",
+                "a-4f",
+                "a-1a",
+                "a-4e",
+                "ua-1",
+                "ua-2",
+                "x-4",
+                "x-4p",
+                "x-5g",
+                "x-5n",
+                "x-5pg",
+                "x-6",
+                "x-6n",
+                "x-6p"
+              ]
+            }
+          },
+          tags: {
+            formats: [
+              "$pdf-all",
+              "typst"
+            ]
+          },
+          description: {
+            short: "PDF conformance standard (e.g., ua-2, a-2b,  1.7)",
+            long: "Specifies PDF conformance standards and/or version for the output.\n\nAccepts a single value or array of values:\n\n**PDF versions** (both Typst and LaTeX):\n`1.4`, `1.5`, `1.6`, `1.7`, `2.0`\n\n**PDF/A standards** (both engines):\n`a-1b`, `a-2a`, `a-2b`, `a-2u`, `a-3a`, `a-3b`, `a-3u`, `a-4`, `a-4f`\n\n**PDF/A standards** (Typst only):\n`a-1a`, `a-4e`\n\n**PDF/UA standards**:\n`ua-1` (Typst), `ua-2` (LaTeX)\n\n**PDF/X standards** (LaTeX only):\n`x-4`, `x-4p`, `x-5g`, `x-5n`, `x-5pg`, `x-6`, `x-6n`, `x-6p`\n\nExample: `pdf-standard: [a-2b, ua-2]` for accessible archival PDF.\n"
+          }
         }
       ],
       "schema/document-references.yml": [
@@ -17269,7 +18439,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           tags: {
             formats: [
-              "$html-doc"
+              "$html-doc",
+              "typst"
             ]
           },
           default: "document",
@@ -17706,15 +18877,11 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "logo",
           tags: {
             formats: [
-              "revealjs",
-              "typst"
+              "revealjs"
             ]
           },
           schema: {
-            anyOf: [
-              "string",
-              "object"
-            ]
+            ref: "logo-light-dark-specifier"
           },
           description: "Logo image (placed in bottom right corner of slides)"
         },
@@ -17856,59 +19023,6 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "The 'normal' height of the presentation",
             long: 'The "normal" height of the presentation, aspect ratio will\nbe preserved when the presentation is scaled to fit different\nresolutions. Can be specified using percentage units.\n'
           }
-        },
-        {
-          name: "margin",
-          tags: {
-            formats: [
-              "revealjs",
-              "typst"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "number",
-              {
-                object: {
-                  closed: true,
-                  properties: {
-                    x: {
-                      string: {
-                        description: "Horizontal margin (e.g. 5cm)"
-                      }
-                    },
-                    y: {
-                      string: {
-                        description: "Vertical margin (e.g. 5cm)"
-                      }
-                    },
-                    top: {
-                      string: {
-                        description: "Top margin (e.g. 5cm)"
-                      }
-                    },
-                    bottom: {
-                      string: {
-                        description: "Bottom margin (e.g. 5cm)"
-                      }
-                    },
-                    left: {
-                      string: {
-                        description: "Left margin (e.g. 5cm)"
-                      }
-                    },
-                    right: {
-                      string: {
-                        description: "Right margin (e.g. 5cm)"
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          default: 0.1,
-          description: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n"
         },
         {
           name: "min-scale",
@@ -18619,7 +19733,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     url: {
                       string: {
-                        default: "https://reveal-multiplex.glitch.me/",
+                        default: "https://multiplex.up.railway.app/",
                         description: "Multiplex token server (defaults to Reveal-hosted server)\n"
                       }
                     },
@@ -19291,7 +20405,8 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: "Print a list of figures in the document."
@@ -19302,10 +20417,78 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: "Print a list of tables in the document."
+        }
+      ],
+      "schema/document-typst.yml": [
+        {
+          name: "logo",
+          schema: {
+            ref: "logo-light-dark-specifier-path-optional"
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: "The logo image."
+        },
+        {
+          name: "margin-geometry",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                inner: {
+                  ref: "marginalia-side-geometry",
+                  description: "Inner (left) margin geometry."
+                },
+                outer: {
+                  ref: "marginalia-side-geometry",
+                  description: "Outer (right) margin geometry."
+                },
+                clearance: {
+                  string: {
+                    description: "Minimum vertical spacing between margin notes (default: 8pt)."
+                  }
+                }
+              }
+            }
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Advanced geometry settings for Typst margin layout.",
+            long: "Fine-grained control over marginalia package geometry. Most users should\nuse `margin` and `grid` options instead; these values are computed automatically.\n\nUser-specified values override the computed defaults.\n"
+          }
+        },
+        {
+          name: "theorem-appearance",
+          schema: {
+            enum: [
+              "simple",
+              "fancy",
+              "clouds",
+              "rainbow"
+            ]
+          },
+          default: "simple",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Visual style for theorem environments in Typst output.",
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+          }
         }
       ],
       "schema/document-website.yml": [
@@ -19346,7 +20529,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
         },
         {
           name: "aliases",
@@ -19455,10 +20638,39 @@ var require_yaml_intelligence_resources = __commonJS({
                   arrayOf: "path"
                 },
                 filters: {
-                  arrayOf: "path"
+                  arrayOf: {
+                    anyOf: [
+                      "path",
+                      {
+                        object: {
+                          properties: {
+                            path: {
+                              schema: "path"
+                            },
+                            at: {
+                              ref: "filter-entry-point"
+                            }
+                          },
+                          required: [
+                            "path"
+                          ]
+                        }
+                      }
+                    ]
+                  }
                 },
                 formats: {
                   schema: "object"
+                },
+                engines: {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "external-engine"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -19644,6 +20856,9 @@ var require_yaml_intelligence_resources = __commonJS({
           dashboard: {
             title: "Dashboard"
           },
+          typst: {
+            title: "Typst"
+          },
           options: {
             title: "Format Options"
           },
@@ -19732,6 +20947,9 @@ var require_yaml_intelligence_resources = __commonJS({
           comments: {
             title: "Comments"
           },
+          a11y: {
+            title: "Accessibility"
+          },
           includes: {
             title: "Includes"
           },
@@ -19816,6 +21034,12 @@ var require_yaml_intelligence_resources = __commonJS({
                     description: "Additional file resources to be copied to output directory"
                   }
                 },
+                brand: {
+                  schema: {
+                    ref: "brand-path-only-light-dark"
+                  },
+                  description: "Path to brand.yml or object with light and dark paths to brand.yml\n"
+                },
                 preview: {
                   description: "Options for `quarto preview`",
                   schema: {
@@ -19887,6 +21111,20 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead.",
           description: "internal-schema-hack"
+        },
+        {
+          name: "engines",
+          schema: {
+            arrayOf: {
+              anyOf: [
+                "string",
+                {
+                  ref: "external-engine"
+                }
+              ]
+            }
+          },
+          description: "List execution engines you want to give priority when determining which engine should render a notebook. If two engines have support for a notebook, the one listed earlier will be chosen. Quarto's default order is 'knitr', 'jupyter', 'markdown', 'julia'."
         }
       ],
       "schema/schema.yml": [
@@ -20575,6 +21813,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "asciidoc",
         "asciidoc_legacy",
         "asciidoctor",
+        "bbcode",
+        "bbcode_fluxbb",
+        "bbcode_hubzilla",
+        "bbcode_phpbb",
+        "bbcode_steam",
+        "bbcode_xenforo",
         "beamer",
         "biblatex",
         "bibtex",
@@ -20636,6 +21880,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "texinfo",
         "textile",
         "typst",
+        "vimdoc",
+        "xml",
         "xwiki",
         "zimwiki"
       ],
@@ -20648,23 +21894,13 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alias for href",
         "Link to file contained with the project or external URL",
         {
-          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>)",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>bluesky</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
         },
-        "Text to display for item (defaults to the document title if not\nprovided)",
+        "Text to display for item (defaults to the document title if not\nprovided). Supports markdown formatting.",
         "Alias for href",
         'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
         'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
-        "The Github repo that will be used to store comments.",
-        "The label that will be assigned to issues created by Utterances.",
-        {
-          short: "The Github theme that should be used for Utterances.",
-          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
-        },
-        {
-          short: "How posts should be mapped to Github issues",
-          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
-        },
         {
           short: "The Github repo that will be used to store comments.",
           long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
@@ -20695,6 +21931,18 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "An execution engine not pre-loaded in Quarto",
+        "Path to the TypeScript module for the execution engine",
+        "The Github repo that will be used to store comments.",
+        "The label that will be assigned to issues created by Utterances.",
+        {
+          short: "The Github theme that should be used for Utterances.",
+          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+        },
+        {
+          short: "How posts should be mapped to Github issues",
+          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+        },
         "Override the default hypothesis client url with a custom client\nurl.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -20803,9 +22051,9 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Name that should be displayed for the overall site",
           long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
         },
-        "Footer left content",
-        "Footer right content",
-        "Footer center content",
+        "Footer left content. Supports markdown formatting.",
+        "Footer right content. Supports markdown formatting.",
+        "Footer center content. Supports markdown formatting.",
         "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
         "Footer background color",
         "Footer foreground color",
@@ -20829,6 +22077,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -20843,8 +22092,13 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
-        "The content of the announcement",
+        "The content of the announcement. Supports markdown formatting.",
         "Whether this announcement may be dismissed by the user.",
         {
           short: "The icon to display in the announcement",
@@ -20886,6 +22140,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -20901,8 +22156,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Field that contains the section of index entries",
         "Additional parameters to pass when executing a search",
         "Top navigation options",
-        "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -20917,8 +22172,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -20934,8 +22189,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above sidebar content (text or file path)",
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -20989,6 +22244,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -21003,8 +22259,13 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
-        "The content of the announcement",
+        "The content of the announcement. Supports markdown formatting.",
         "Whether this announcement may be dismissed by the user.",
         {
           short: "The icon to display in the announcement",
@@ -21046,6 +22307,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -21061,8 +22323,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Field that contains the section of index entries",
         "Additional parameters to pass when executing a search",
         "Top navigation options",
-        "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -21077,8 +22339,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -21094,8 +22356,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above sidebar content (text or file path)",
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -21138,7 +22400,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book part and chapter files",
         "Book appendix files",
         "Book references file",
-        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -21242,7 +22504,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
         {
           short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
-          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
+          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://quarto.org/docs/reference/dates.html">here</a>.'
         },
         {
           short: "The maximum length (in characters) of the description displayed in\nthe listing.",
@@ -21651,7 +22913,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Short/abbreviated form of container-title;",
         "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
         "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
-        "Physical (e.g.&nbsp;size) or temporal (e.g.\uFFFD\uFFFDrunning time) dimensions of\nthe item.",
+        "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
         "Director (e.g.&nbsp;of a film).",
         "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
         "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
@@ -21794,6 +23056,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "Control when tests should run",
+        "Run tests on CI (true = run, false = skip)",
+        "Skip test unconditionally (true = skip with default message, string =\nskip with custom message)",
+        "Run tests ONLY on these platforms (whitelist)",
+        "Don\u2019t run tests on these platforms (blacklist)",
         "The path to the locally referenced notebook.",
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
@@ -21833,10 +23100,44 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alternative text for the logo, used for accessibility.",
         "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
         "A dictionary of named logo resources.",
+        "A link or path to the brand\u2019s small-sized logo or icon.",
+        "A link or path to the brand\u2019s medium-sized logo.",
+        "A link or path to the brand\u2019s large- or full-sized logo.",
+        "Provide definitions and defaults for brand\u2019s logo in various formats\nand sizes.",
+        "A dictionary of named logo resources.",
         "A link or path to the brand\u2019s small-sized logo or icon, or a link or\npath to both the light and dark versions.",
         "A link or path to the brand\u2019s medium-sized logo, or a link or path to\nboth the light and dark versions.",
         "A link or path to the brand\u2019s large- or full-sized logo, or a link or\npath to both the light and dark versions.",
         "Names of customizeable logos",
+        "Path or brand.yml logo resource name.",
+        "Alternative text for the logo, used for accessibility.",
+        "Path or brand.yml logo resource name.",
+        "Alternative text for the logo, used for accessibility.",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
+        "Specification of a light logo",
+        "Specification of a dark logo",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object. Use <code>false</code> to\nexplicitly disable the logo.",
+        "Specification of a light logo",
+        "Specification of a dark logo",
+        "Any of the ways a logo can be specified: string, object, or\nlight/dark object of string or object",
+        "Options for a light logo",
+        "Options for a dark logo",
+        "The brand\u2019s custom color palette and theme.",
+        "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
+        "The foreground color, used for text.",
+        "The background color, used for the page background.",
+        "The primary accent color, i.e.&nbsp;the main theme color. Typically used\nfor hyperlinks, active states, primary action buttons, etc.",
+        "The secondary accent color. Typically used for lighter text or\ndisabled states.",
+        "The tertiary accent color. Typically an even lighter color, used for\nhover states, accents, and wells.",
+        "The color used for positive or successful actions and\ninformation.",
+        "The color used for neutral or informational actions and\ninformation.",
+        "The color used for warning or cautionary actions and information.",
+        "The color used for errors, dangerous actions, or negative\ninformation.",
+        "A bright color, used as a high-contrast foreground color on dark\nelements or low-contrast background color on light elements.",
+        "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
+        "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
+        "A link or path to the brand\u2019s light-colored logo or icon.",
+        "A link or path to the brand\u2019s dark-colored logo or icon.",
         "The brand\u2019s custom color palette and theme.",
         "The brand\u2019s custom color palette. Any number of colors can be\ndefined, each color having a custom name.",
         "The foreground color, used for text.",
@@ -21852,7 +23153,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "A dark color, used as a high-contrast foreground color on light\nelements or high-contrast background color on light elements.",
         "The color used for hyperlinks. If not defined, the\n<code>primary</code> color is used.",
         "A color, which may be a named brand color.",
+        "A link or path to the brand\u2019s light-colored logo or icon.",
+        "A link or path to the brand\u2019s dark-colored logo or icon.",
         "A named brand color, taken either from <code>color.theme</code> or\n<code>color.palette</code> (in that order).",
+        "Typography definitions for the brand.",
+        "Font files and definitions for the brand.",
+        "The base font settings for the brand. These are used as the default\nfor all text.",
+        "Settings for headings, or a string specifying the font family\nonly.",
+        "Settings for monospace text, or a string specifying the font family\nonly.",
+        "Settings for inline code, or a string specifying the font family\nonly.",
+        "Settings for code blocks, or a string specifying the font family\nonly.",
+        "Settings for links.",
         "Typography definitions for the brand.",
         "Font files and definitions for the brand.",
         "The base font settings for the brand. These are used as the default\nfor all text.",
@@ -21863,12 +23174,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "Settings for links.",
         "Base typographic options.",
         "Typographic options for headings.",
+        "Typographic options for headings.",
         "Typographic options for monospace elements.",
+        "Typographic options for monospace elements.",
+        "Typographic options for inline monospace elements.",
         "Typographic options for inline monospace elements.",
         "Line height",
         "Typographic options for block monospace elements.",
+        "Typographic options for block monospace elements.",
         "Typographic options for inline monospace elements.",
-        "Names of customizeable fonts",
+        "Typographic options for inline monospace elements.",
+        "Names of customizeable typography elements",
         "Font files and definitions for the brand.",
         "A font weight.",
         "A font style.",
@@ -21896,11 +23212,19 @@ var require_yaml_intelligence_resources = __commonJS({
         "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
         "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
+        "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
+        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline (unified) brand definition, or an object with light\nand dark brand paths or definitions.",
+        "The path to a light brand file or an inline light brand\ndefinition.",
+        "The path to a dark brand file or an inline dark brand definition.",
+        "Distance from page edge to wideblock boundary.",
+        "Width of the margin note column.",
+        "Gap between margin column and body text.",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
         },
         "Classes to apply to cell container",
+        "Array of rendering names, e.g.&nbsp;<code>[light, dark]</code>",
         "Array of tags for notebook cell",
         {
           short: "Notebook cell identifier",
@@ -22106,6 +23430,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Attribute(s) for message output",
         "Class name(s) for error output",
         "Attribute(s) for error output",
+        "When defined, run axe-core accessibility tests on the document.",
+        "If set, output axe-core results on console. <code>json</code>:\nproduce structured output; <code>console</code>: print output to\njavascript console; <code>document</code>: produce a visual report of\nviolations in the document itself.",
+        "Only check the rules for this WCAG conformance level, named as\nversion then level (e.g.&nbsp;<code>wcag21aa</code> for WCAG 2.1 AA). Each\nlevel includes the levels and versions it builds on, and may check rules\naxe-core disables by default (such as AAA color contrast). Axe\u2019s\nbest-practice rules are excluded unless <code>best-practice: true</code>\nis also set.",
+        "Whether to check axe-core\u2019s best-practice rules (checks recommended\nby axe that aren\u2019t required by any WCAG success criterion). Checked by\ndefault when <code>standard</code> is unset; excluded by default when\n<code>standard</code> is set.",
         {
           short: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.",
           long: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.\nThe allowed values are either:"
@@ -22113,6 +23441,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Document title",
         "Identifies the subtitle of the document.",
         "Document date",
+        "Date format for the document",
         "Document date modified",
         "Author or authors of the document",
         {
@@ -22169,7 +23498,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Specifies the coloring style to be used in highlighted source\ncode.",
-          long: "Specifies the coloring style to be used in highlighted source\ncode.\nInstead of a <em>STYLE</em> name, a JSON file with extension\n<code>.theme</code> may be supplied. This will be parsed as a KDE syntax\nhighlighting theme and (if valid) used as the highlighting style."
+          long: "Specifies the coloring style to be used in highlighted source\ncode.\nValid values:"
+        },
+        {
+          short: "Deprecated: use <code>syntax-highlighting</code> instead.",
+          long: "Deprecated: use <code>syntax-highlighting</code> instead.\nSpecifies the coloring style to be used in highlighted source\ncode."
         },
         "KDE language syntax definition file (XML)",
         "KDE language syntax definition files (XML)",
@@ -22181,17 +23514,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "Sets the CSS <code>color</code> property.",
         {
           short: "Sets the color of hyperlinks in the document.",
-          long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.'
+          long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.\nFor Typst output, sets the color of internal hyperlinks using Typst\ncolor syntax.'
         },
         "Sets the CSS <code>background-color</code> property on code elements\nand adds extra padding.",
         "Sets the CSS <code>background-color</code> property on the html\nelement.",
         {
-          short: "The color used for external links using color options allowed by\n<code>xcolor</code>",
-          long: 'The color used for external links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short: "The color used for external links.",
+          long: 'For LaTeX output, the color used for external links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of external file links using Typst\ncolor syntax.'
         },
         {
-          short: "The color used for citation links using color options allowed by\n<code>xcolor</code>",
-          long: 'The color used for citation links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short: "The color used for citation links.",
+          long: 'For LaTeX output, the color used for citation links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor Typst output, sets the color of citation links using Typst color\nsyntax.'
         },
         {
           short: "The color used for linked URLs using color options allowed by\n<code>xcolor</code>",
@@ -22270,7 +23603,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The title used for appendix.",
         "The delimiter beween appendix number and title.",
         "Enables a hover popup for cross references that shows the item being\nreferenced.",
-        "Logo image (placed on the left side of the navigation bar)",
+        "Logo image(s) (placed on the left side of the navigation bar)",
         "Default orientation for dashboard content (default\n<code>rows</code>)",
         "Use scrolling rather than fill layout (default:\n<code>false</code>)",
         "Make card content expandable (default: <code>true</code>)",
@@ -22285,16 +23618,21 @@ var require_yaml_intelligence_resources = __commonJS({
         "Write markdown links as references rather than inline.",
         "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
         "Automatically re-render for preview whenever document is saved (note\nthat this requires a preview for the saved document be already running).\nThis option currently works only within VS Code.",
+        {
+          short: "Editor-specific options (used by RStudio and Positron).",
+          long: "Editor-specific options that control IDE behavior for this document.\nThese options are used by RStudio and Positron to configure per-document\neditor settings."
+        },
+        "Determines where chunk output is shown in the editor.",
         "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
+        {
+          short: "Email format version",
+          long: "Specifies which email format version to use."
+        },
         "The identifier for this publication.",
         "The identifier value.",
         "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
         "Creators of this publication.",
         "Contributors to this publication.",
-        "The subject of the publication.",
-        "The subject text.",
-        "An EPUB reserved authority value.",
-        "The subject term (defined by the schema).",
         {
           short: "Text describing the specialized type of this publication.",
           long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
@@ -22383,6 +23721,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'For HTML output, sets the CSS font-family property on code\nelements.\nFor PowerPoint output, sets the font used for code.\nFor LaTeX output, the monospace font family for use with\n<code>xelatex</code> or <code>lualatex</code>: take the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the monspace font family. Use the name of any\nsystem font. See <a href="https://wiki.contextgarden.net/Fonts">ConTeXt\nFonts</a> for more information.'
         },
         {
+          short: "Sets the font used for code in Typst output.",
+          long: "For Typst output, sets the font used for displaying code. Takes the\nname of any font available to Typst (system fonts or fonts in\ndirectories specified by <code>font-paths</code>)."
+        },
+        {
           short: "Sets the main font size for the document.",
           long: "For HTML output, sets the base CSS <code>font-size</code>\nproperty.\nFor LaTeX and ConTeXt output, sets the font size for the document\nbody text."
         },
@@ -22403,8 +23745,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
         },
         {
-          short: "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
+          short: "The math font family for use with <code>xelatex</code>,\n<code>lualatex</code>, or Typst.",
+          long: 'For LaTeX output, the math font family for use with\n<code>xelatex</code> or <code>lualatex</code>. Takes the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor Typst output, sets the font used for mathematical content.'
         },
         {
           short: "The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -22442,7 +23784,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The line height, for example, <code>12p</code>.",
         {
           short: "Sets the line height or spacing for text in the document.",
-          long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.'
+          long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.\nFor Typst output, adjusts the spacing between lines of text.'
         },
         "Adjusts line spacing using the <code>\\setupinterlinespace</code>\ncommand.",
         "The typeface style for links in the document.",
@@ -22656,6 +23998,10 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "YAML file containing custom language translations",
         {
+          short: "Enable babel language-specific shorthands in LaTeX output.",
+          long: 'Enable babel language-specific shorthands in LaTeX output. When\n<code>true</code>, babel\u2019s language shortcuts are enabled (e.g., French\n<code>&lt;&lt;</code>/<code>&gt;&gt;</code> for guillemets, German\n<code>"</code> shortcuts, proper spacing around French punctuation).\nDefault is <code>false</code> because language shorthands can\ninterfere with code blocks and other content. Only enable if you need\nspecific typographic features for your language.'
+        },
+        {
           short: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).",
           long: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute can be used to\noverride the base direction in some output formats. This may not always\nbe necessary if the final renderer (e.g.&nbsp;the browser, when generating\nHTML) supports the [Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>)."
         },
@@ -22680,6 +24026,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Control the <code>\\pagestyle{}</code> for the document.",
         "The paper size for the document.",
+        "The brand mode to use for rendering the document, <code>light</code>\nor <code>dark</code>.",
         {
           short: "The options for margins and text layout for this document.",
           long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
@@ -22690,14 +24037,14 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Target body page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt (8.5 inches with 1 inch for\neach margins)."
         },
         {
-          short: "Properties of the grid system used to layout Quarto HTML pages.",
+          short: "Properties of the grid system used to layout Quarto HTML and Typst\npages.",
           long: ""
         },
         "Defines whether to use the standard, slim, or full content grid or to\nautomatically select the most appropriate content grid.",
         "The base width of the sidebar (left) column in an HTML page.",
-        "The base width of the margin (right) column in an HTML page.",
-        "The base width of the body (center) column in an HTML page.",
-        "The width of the gutter that appears between columns in an HTML\npage.",
+        "The base width of the margin (right) column. For Typst, this controls\nthe width of the margin note column.",
+        "The base width of the body (center) column. For Typst, this is\ncomputed as the remainder after other columns.",
+        "The width of the gutter that appears between columns. For Typst, this\nis the gap between the text column and margin notes.",
         {
           short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
           long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
@@ -22740,6 +24087,16 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "For HTML output, sets the <code>margin-bottom</code> property on the\nBody element.\nFor LaTeX output, sets the bottom margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the bottom margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the bottom page margin."
         },
         {
+          short: "Margin settings for Reveal.js or Typst output.",
+          long: "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary specifying page margins. Use\n<code>x</code> and <code>y</code> for symmetric horizontal/vertical\nmargins, or <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code> for individual sides. Values should include units\n(e.g.&nbsp;<code>1.5in</code>, <code>2cm</code>)."
+        },
+        "Horizontal margin (e.g.&nbsp;1.5in)",
+        "Vertical margin (e.g.&nbsp;1.5in)",
+        "Top margin (e.g.&nbsp;1.5in)",
+        "Bottom margin (e.g.&nbsp;1.5in)",
+        "Left margin (e.g.&nbsp;1.5in)",
+        "Right margin (e.g.&nbsp;1.5in)",
+        {
           short: "Options for the geometry package.",
           long: 'Options for the <a href="https://ctan.org/pkg/geometry">geometry</a>\npackage. For example:'
         },
@@ -22772,7 +24129,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
           short: "A regular expression that can be used to determine whether a link is\nan internal link.",
-          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith <code>http://www.quarto.org/custom</code> or\n<code>https://www.quarto.org/custom</code> as internal links (and others\nwill be considered external):"
         },
         {
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
@@ -22813,6 +24170,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "The mermaid built-in theme to use.",
         "List of keywords to be included in the document metadata.",
         "The document subject",
+        "The subject text.",
+        "An EPUB reserved authority value.",
+        "The subject term (defined by the schema).",
         "The document description. Some applications show this as\n<code>Comments</code> metadata.",
         "The document category.",
         "The copyright for this document, if any.",
@@ -22856,6 +24216,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
         },
         {
+          short: "Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.",
+          long: 'Schema to use for numbering pages, e.g.&nbsp;<code>1</code> or\n<code>i</code>, or <code>false</code> to omit page numbering.\nSee <a href="https://typst.app/docs/reference/model/numbering/">Typst\nNumbering</a> for additional information.'
+        },
+        {
           short: "Sets the page numbering style and location for the document.",
           long: 'Sets the page numbering style and location for the document using the\n<code>\\setuppagenumbering</code> command.\nSee <a href="https://wiki.contextgarden.net/Command/setuppagenumbering">ConTeXt\nPage Numbering</a> for additional information.'
         },
@@ -22865,7 +24229,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
         "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
-        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition.",
+        "Branding information to use for this document. If a string, the path\nto a brand file. If false, don\u2019t use branding on this document. If an\nobject, an inline brand definition, or an object with light and dark\nbrand paths or definitions.",
         "Theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
@@ -22878,6 +24242,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Enables hover over a section title to see an anchor link.",
         "Enables tabsets to present content.",
         "Enables smooth scrolling within the page.",
+        {
+          short: "Enables setting dark mode based on the\n<code>prefers-color-scheme</code> media query.",
+          long: "If set, Quarto reads the <code>prefers-color-scheme</code> media\nquery to determine whether to show the user a dark or light page.\nOtherwise the author-preferred color scheme is shown."
+        },
         {
           short: "Method use to render math in HTML output",
           long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
@@ -22911,11 +24279,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "The image for the title slide.",
         "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
         "Whether to enable title pages for new sections.",
-        "The Beamer color theme for this presentation.",
-        "The Beamer font theme for this presentation.",
-        "The Beamer inner theme for this presentation.",
-        "The Beamer outer theme for this presentation.",
-        "Options passed to LaTeX Beamer themes.",
+        "The Beamer color theme for this presentation, passed to\n<code>\\usecolortheme</code>.",
+        "The Beamer color theme options for this presentation, passed to\n<code>\\usecolortheme</code>.",
+        "The Beamer font theme for this presentation, passed to\n<code>\\usefonttheme</code>.",
+        "The Beamer font theme options for this presentation, passed to\n<code>\\usefonttheme</code>.",
+        "The Beamer inner theme for this presentation, passed to\n<code>\\useinnertheme</code>.",
+        "The Beamer inner theme options for this presentation, passed to\n<code>\\useinnertheme</code>.",
+        "The Beamer outer theme for this presentation, passed to\n<code>\\useoutertheme</code>.",
+        "The Beamer outer theme options for this presentation, passed to\n<code>\\useoutertheme</code>.",
+        "Options passed to LaTeX Beamer themes inside\n<code>\\usetheme</code>.",
         "The section number in man pages.",
         "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
         "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
@@ -22942,6 +24314,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors.",
           long: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors, for example\n<code>ISO coated v2 300\\letterpercent\\space (ECI)</code>\nIf left unspecified, <code>sRGB IEC61966-2.1</code> is used as\ndefault."
+        },
+        {
+          short: "PDF conformance standard (e.g., ua-2, a-2b, 1.7)",
+          long: "Specifies PDF conformance standards and/or version for the\noutput.\nAccepts a single value or array of values:\n<strong>PDF versions</strong> (both Typst and LaTeX):\n<code>1.4</code>, <code>1.5</code>, <code>1.6</code>, <code>1.7</code>,\n<code>2.0</code>\n<strong>PDF/A standards</strong> (both engines): <code>a-1b</code>,\n<code>a-2a</code>, <code>a-2b</code>, <code>a-2u</code>,\n<code>a-3a</code>, <code>a-3b</code>, <code>a-3u</code>,\n<code>a-4</code>, <code>a-4f</code>\n<strong>PDF/A standards</strong> (Typst only): <code>a-1a</code>,\n<code>a-4e</code>\n<strong>PDF/UA standards</strong>: <code>ua-1</code> (Typst),\n<code>ua-2</code> (LaTeX)\n<strong>PDF/X standards</strong> (LaTeX only): <code>x-4</code>,\n<code>x-4p</code>, <code>x-5g</code>, <code>x-5n</code>,\n<code>x-5pg</code>, <code>x-6</code>, <code>x-6n</code>,\n<code>x-6p</code>\nExample: <code>pdf-standard: [a-2b, ua-2]</code> for accessible\narchival PDF."
         },
         "Document bibliography (BibTeX or CSL). May be a single file or a list\nof files",
         "Citation Style Language file to use for formatting references.",
@@ -23056,13 +24432,6 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The \u2018normal\u2019 height of the presentation",
           long: "The \u201Cnormal\u201D height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
         },
-        "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary with the fields defined in the\nTypst documentation: <code>x</code>, <code>y</code>, <code>top</code>,\n<code>bottom</code>, <code>left</code>, <code>right</code> (margins are\nspecified in <code>cm</code> units, e.g.&nbsp;<code>5cm</code>).",
-        "Horizontal margin (e.g.&nbsp;5cm)",
-        "Vertical margin (e.g.&nbsp;5cm)",
-        "Top margin (e.g.&nbsp;5cm)",
-        "Bottom margin (e.g.&nbsp;5cm)",
-        "Left margin (e.g.&nbsp;5cm)",
-        "Right margin (e.g.&nbsp;5cm)",
         "Bounds for smallest possible scale to apply to content",
         "Bounds for largest possible scale to apply to content",
         "Vertical centering of slides",
@@ -23250,8 +24619,20 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
+        "The logo image.",
+        {
+          short: "Advanced geometry settings for Typst margin layout.",
+          long: "Fine-grained control over marginalia package geometry. Most users\nshould use <code>margin</code> and <code>grid</code> options instead;\nthese values are computed automatically.\nUser-specified values override the computed defaults."
+        },
+        "Inner (left) margin geometry.",
+        "Outer (right) margin geometry.",
+        "Minimum vertical spacing between margin notes (default: 8pt).",
+        {
+          short: "Visual style for theorem environments in Typst output.",
+          long: "Controls how theorems, lemmas, definitions, etc. are rendered:"
+        },
         "Setting this to false prevents this document from being included in\nsearches.",
-        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page. Other possible values are <code>none</code> or\none or more of <code>edit</code>, <code>source</code>, and\n<code>issue</code>, <em>e.g.</em>\n<code>[edit, source, issue]</code>.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -23283,6 +24664,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -23309,6 +24691,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -23323,8 +24706,13 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
-        "The content of the announcement",
+        "The content of the announcement. Supports markdown formatting.",
         "Whether this announcement may be dismissed by the user.",
         {
           short: "The icon to display in the announcement",
@@ -23366,6 +24754,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23381,8 +24770,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Field that contains the section of index entries",
         "Additional parameters to pass when executing a search",
         "Top navigation options",
-        "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -23397,8 +24786,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23414,8 +24803,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above sidebar content (text or file path)",
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23458,7 +24847,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book part and chapter files",
         "Book appendix files",
         "Book references file",
-        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -23616,14 +25005,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        {
-          short: "Include an automatically generated table of contents",
-          long: ""
-        },
-        {
-          short: "Use smart quotes in document output. Defaults to true.",
-          long: ""
-        },
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -23635,6 +25017,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Path to brand.yml or object with light and dark paths to\nbrand.yml",
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
@@ -23661,6 +25044,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Generate llms.txt and .llms.md files for LLM-friendly content\nconsumption.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
@@ -23675,8 +25059,13 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        {
+          short: "Enable Plausible Analytics for this website by providing a script\nsnippet or path to snippet file",
+          long: "Enable Plausible Analytics for this website by pasting the script\nsnippet from your Plausible dashboard, or by providing a path to a file\ncontaining the snippet.\nPlausible is a privacy-friendly, GDPR-compliant web analytics service\nthat does not use cookies and does not require cookie consent.\n<strong>Option 1: Inline snippet</strong>"
+        },
+        "Path to a file containing the Plausible Analytics script snippet",
         "Provides an announcement displayed at the top of the page.",
-        "The content of the announcement",
+        "The content of the announcement. Supports markdown formatting.",
         "Whether this announcement may be dismissed by the user.",
         {
           short: "The icon to display in the announcement",
@@ -23718,6 +25107,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "When false, do not merge navbar crumbs into the crumbs in\n<code>search.json</code>.",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Whether to include search result parents when displaying items in\nsearch results (when possible).",
@@ -23733,8 +25123,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Field that contains the section of index entries",
         "Additional parameters to pass when executing a search",
         "Top navigation options",
-        "The navbar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "The navbar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed to the left of the\ntitle.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "The navbar\u2019s background color (named or hex color).",
@@ -23749,8 +25139,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23766,8 +25156,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above sidebar content (text or file path)",
         "Markdown to place below sidebar content (text or file path)",
         "The identifier for this sidebar.",
-        "The sidebar title. Uses the project title if none is specified.",
-        "Path to a logo image that will be displayed in the sidebar.",
+        "The sidebar title. Uses the project title if none is specified.\nSupports markdown formatting.",
+        "Specification of image that will be displayed in the sidebar.",
         "Alternate text for the logo image.",
         "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
         "Include a search control in the sidebar.",
@@ -23810,7 +25200,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book part and chapter files",
         "Book appendix files",
         "Book references file",
-        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub, docx)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -23967,7 +25357,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "List execution engines you want to give priority when determining\nwhich engine should render a notebook. If two engines have support for a\nnotebook, the one listed earlier will be chosen. Quarto\u2019s default order\nis \u2018knitr\u2019, \u2018jupyter\u2019, \u2018markdown\u2019, \u2018julia\u2019."
       ],
       "schema/external-schemas.yml": [
         {
@@ -24171,6 +25562,7 @@ var require_yaml_intelligence_resources = __commonJS({
         stata: "*",
         java: "//",
         groovy: "//",
+        kotlin: "//",
         sed: "#",
         perl: "#",
         prql: "#",
@@ -24192,16 +25584,17 @@ var require_yaml_intelligence_resources = __commonJS({
           "(*",
           "*)"
         ],
+        q: "/",
         rust: "//",
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 194269,
+        _internalId: 218300,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 194261,
+            _internalId: 218292,
             type: "enum",
             enum: [
               "png",
@@ -24217,7 +25610,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 194268,
+            _internalId: 218299,
             type: "anyOf",
             anyOf: [
               {
@@ -24257,42 +25650,7 @@ var require_yaml_intelligence_resources = __commonJS({
           "case-detection": true
         },
         $id: "handlers/mermaid"
-      },
-      "schema/document-typst.yml": [
-        {
-          name: "page-numbering",
-          tags: {
-            formats: [
-              "typst"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              {
-                enum: [
-                  false
-                ]
-              }
-            ]
-          },
-          description: {
-            short: "Include an automatically generated table of contents"
-          }
-        },
-        {
-          name: "smart",
-          tags: {
-            formats: [
-              "typst"
-            ]
-          },
-          schema: "boolean",
-          description: {
-            short: "Use smart quotes in document output. Defaults to true."
-          }
-        }
-      ]
+      }
     };
   }
 });
@@ -24452,7 +25810,7 @@ function locationString(loc) {
 
 // ../text.ts
 function lines(text) {
-  return text.split(/\r?\n/);
+  return text.split(/\r\n?|\n/);
 }
 function* matchAll(text, regexp) {
   if (!regexp.global) {
@@ -24465,7 +25823,7 @@ function* matchAll(text, regexp) {
 }
 function* lineOffsets(text) {
   yield 0;
-  for (const match of matchAll(text, /\r?\n/g)) {
+  for (const match of matchAll(text, /\r\n?|\n/g)) {
     yield match.index + match[0].length;
   }
 }
@@ -24499,13 +25857,13 @@ function formatLineRange(text, firstLine, lastLine) {
   const pad = " ".repeat(lineWidth);
   const ls = lines(text);
   const result = [];
-  for (let i = firstLine; i <= lastLine; ++i) {
-    const numberStr = `${pad}${i + 1}: `.slice(-(lineWidth + 2));
-    const lineStr = ls[i];
+  for (let i2 = firstLine; i2 <= lastLine; ++i2) {
+    const numberStr = `${pad}${i2 + 1}: `.slice(-(lineWidth + 2));
+    const lineStr = ls[i2];
     result.push({
-      lineNumber: i,
+      lineNumber: i2,
       content: numberStr + quotedStringColor(lineStr),
-      rawLine: ls[i]
+      rawLine: ls[i2]
     });
   }
   return {
@@ -24540,19 +25898,19 @@ function editDistance(w1, w2) {
   const s1 = w1.length + 1;
   const s2 = w2.length + 1;
   const v = new Int32Array(s1 * s2);
-  for (let i = 0; i < s1; ++i) {
+  for (let i2 = 0; i2 < s1; ++i2) {
     for (let j = 0; j < s2; ++j) {
-      if (i === 0 && j === 0) {
+      if (i2 === 0 && j === 0) {
         continue;
-      } else if (i === 0) {
-        v[i * s2 + j] = v[i * s2 + (j - 1)] + cost(w2[j - 1]);
+      } else if (i2 === 0) {
+        v[i2 * s2 + j] = v[i2 * s2 + (j - 1)] + cost(w2[j - 1]);
       } else if (j === 0) {
-        v[i * s2 + j] = v[(i - 1) * s2 + j] + cost(w1[i - 1]);
+        v[i2 * s2 + j] = v[(i2 - 1) * s2 + j] + cost(w1[i2 - 1]);
       } else {
-        v[i * s2 + j] = Math.min(
-          v[(i - 1) * s2 + (j - 1)] + cost2(w1[i - 1], w2[j - 1]),
-          v[i * s2 + (j - 1)] + cost(w2[j - 1]),
-          v[(i - 1) * s2 + j] + cost(w1[i - 1])
+        v[i2 * s2 + j] = Math.min(
+          v[(i2 - 1) * s2 + (j - 1)] + cost2(w1[i2 - 1], w2[j - 1]),
+          v[i2 * s2 + (j - 1)] + cost(w2[j - 1]),
+          v[(i2 - 1) * s2 + j] + cost(w1[i2 - 1])
         );
       }
     }
@@ -24651,7 +26009,7 @@ function matchAll2(str2, regex) {
   return result;
 }
 function rangedLines(text, includeNewLines = false) {
-  const regex = /\r?\n/g;
+  const regex = /\r\n?|\n/g;
   const result = [];
   let startOffset = 0;
   if (!includeNewLines) {
@@ -24777,8 +26135,7 @@ function mappedConcat(strings) {
   const mappedStrings = strings.map((s) => {
     if (typeof s === "string") {
       return asMappedString(s);
-    } else
-      return s;
+    } else return s;
   });
   let currentOffset = 0;
   const offsets = [0];
@@ -24817,8 +26174,8 @@ function mappedIndexToLineCol(eitherText) {
   };
 }
 function mappedLines(str2, keepNewLines = false) {
-  const lines3 = rangedLines(str2.value, keepNewLines);
-  return lines3.map((v) => mappedString(str2, [v.range]));
+  const lines2 = rangedLines(str2.value, keepNewLines);
+  return lines2.map((v) => mappedString(str2, [v.range]));
 }
 
 // parsing.ts
@@ -24929,26 +26286,26 @@ function getYamlIndentTree(code2) {
   const indents = [];
   let indentation = -1;
   let prevPredecessor = -1;
-  for (let i = 0; i < ls.length; ++i) {
-    const line = ls[i];
+  for (let i2 = 0; i2 < ls.length; ++i2) {
+    const line = ls[i2];
     const lineIndent = getIndent(line);
     indents.push(lineIndent);
     if (lineIndent > indentation) {
-      predecessor[i] = prevPredecessor;
-      prevPredecessor = i;
+      predecessor[i2] = prevPredecessor;
+      prevPredecessor = i2;
       indentation = lineIndent;
     } else if (line.trim().length === 0) {
-      predecessor[i] = predecessor[prevPredecessor];
+      predecessor[i2] = predecessor[prevPredecessor];
     } else if (lineIndent === indentation) {
-      predecessor[i] = predecessor[prevPredecessor];
-      prevPredecessor = i;
+      predecessor[i2] = predecessor[prevPredecessor];
+      prevPredecessor = i2;
     } else if (lineIndent < indentation) {
       let v = prevPredecessor;
       while (v >= 0 && indents[v] >= lineIndent) {
         v = predecessor[v];
       }
-      predecessor[i] = v;
-      prevPredecessor = i;
+      predecessor[i2] = v;
+      prevPredecessor = i2;
       indentation = lineIndent;
     } else {
       throw new UnreachableError();
@@ -25017,10 +26374,8 @@ function isObject(subject) {
   return typeof subject === "object" && subject !== null;
 }
 function toArray(sequence) {
-  if (Array.isArray(sequence))
-    return sequence;
-  else if (isNothing(sequence))
-    return [];
+  if (Array.isArray(sequence)) return sequence;
+  else if (isNothing(sequence)) return [];
   return [sequence];
 }
 function extend(target, source) {
@@ -25060,8 +26415,7 @@ var common = {
 };
 function formatError(exception2, compact) {
   var where = "", message = exception2.reason || "(unknown reason)";
-  if (!exception2.mark)
-    return message;
+  if (!exception2.mark) return message;
   if (exception2.mark.name) {
     where += 'in "' + exception2.mark.name + '" ';
   }
@@ -25111,16 +26465,11 @@ function padStart(string, max) {
 }
 function makeSnippet(mark, options) {
   options = Object.create(options || null);
-  if (!mark.buffer)
-    return null;
-  if (!options.maxLength)
-    options.maxLength = 79;
-  if (typeof options.indent !== "number")
-    options.indent = 1;
-  if (typeof options.linesBefore !== "number")
-    options.linesBefore = 3;
-  if (typeof options.linesAfter !== "number")
-    options.linesAfter = 2;
+  if (!mark.buffer) return null;
+  if (!options.maxLength) options.maxLength = 79;
+  if (typeof options.indent !== "number") options.indent = 1;
+  if (typeof options.linesBefore !== "number") options.linesBefore = 3;
+  if (typeof options.linesAfter !== "number") options.linesAfter = 2;
   var re = /\r?\n|\r|\0/g;
   var lineStarts = [0];
   var lineEnds = [];
@@ -25133,25 +26482,23 @@ function makeSnippet(mark, options) {
       foundLineNo = lineStarts.length - 2;
     }
   }
-  if (foundLineNo < 0)
-    foundLineNo = lineStarts.length - 1;
-  var result = "", i, line;
+  if (foundLineNo < 0) foundLineNo = lineStarts.length - 1;
+  var result = "", i2, line;
   var lineNoLength = Math.min(
     mark.line + options.linesAfter,
     lineEnds.length
   ).toString().length;
   var maxLineLength = options.maxLength - (options.indent + lineNoLength + 3);
-  for (i = 1; i <= options.linesBefore; i++) {
-    if (foundLineNo - i < 0)
-      break;
+  for (i2 = 1; i2 <= options.linesBefore; i2++) {
+    if (foundLineNo - i2 < 0) break;
     line = getLine(
       mark.buffer,
-      lineStarts[foundLineNo - i],
-      lineEnds[foundLineNo - i],
-      mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i]),
+      lineStarts[foundLineNo - i2],
+      lineEnds[foundLineNo - i2],
+      mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i2]),
       maxLineLength
     );
-    result = common.repeat(" ", options.indent) + padStart((mark.line - i + 1).toString(), lineNoLength) + " | " + line.str + "\n" + result;
+    result = common.repeat(" ", options.indent) + padStart((mark.line - i2 + 1).toString(), lineNoLength) + " | " + line.str + "\n" + result;
   }
   line = getLine(
     mark.buffer,
@@ -25162,17 +26509,16 @@ function makeSnippet(mark, options) {
   );
   result += common.repeat(" ", options.indent) + padStart((mark.line + 1).toString(), lineNoLength) + " | " + line.str + "\n";
   result += common.repeat("-", options.indent + lineNoLength + 3 + line.pos) + "^\n";
-  for (i = 1; i <= options.linesAfter; i++) {
-    if (foundLineNo + i >= lineEnds.length)
-      break;
+  for (i2 = 1; i2 <= options.linesAfter; i2++) {
+    if (foundLineNo + i2 >= lineEnds.length) break;
     line = getLine(
       mark.buffer,
-      lineStarts[foundLineNo + i],
-      lineEnds[foundLineNo + i],
-      mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i]),
+      lineStarts[foundLineNo + i2],
+      lineEnds[foundLineNo + i2],
+      mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i2]),
       maxLineLength
     );
-    result += common.repeat(" ", options.indent) + padStart((mark.line + i + 1).toString(), lineNoLength) + " | " + line.str + "\n";
+    result += common.repeat(" ", options.indent) + padStart((mark.line + i2 + 1).toString(), lineNoLength) + " | " + line.str + "\n";
   }
   return result.replace(/\n$/, "");
 }
@@ -25283,10 +26629,8 @@ Schema$1.prototype.extend = function extend2(definition) {
   } else if (Array.isArray(definition)) {
     explicit = explicit.concat(definition);
   } else if (definition && (Array.isArray(definition.implicit) || Array.isArray(definition.explicit))) {
-    if (definition.implicit)
-      implicit = implicit.concat(definition.implicit);
-    if (definition.explicit)
-      explicit = explicit.concat(definition.explicit);
+    if (definition.implicit) implicit = implicit.concat(definition.implicit);
+    if (definition.explicit) explicit = explicit.concat(definition.explicit);
   } else {
     throw new exception(
       "Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })"
@@ -25350,8 +26694,7 @@ var failsafe = new schema({
   explicit: [str, seq, map]
 });
 function resolveYamlNull(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var max = data.length;
   return max === 1 && data === "~" || max === 4 && (data === "null" || data === "Null" || data === "NULL");
 }
@@ -25386,8 +26729,7 @@ var _null = new type("tag:yaml.org,2002:null", {
   defaultStyle: "lowercase"
 });
 function resolveYamlBoolean(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   var max = data.length;
   return max === 4 && (data === "true" || data === "True" || data === "TRUE") || max === 5 && (data === "false" || data === "False" || data === "FALSE");
 }
@@ -25425,27 +26767,22 @@ function isDecCode(c) {
   return 48 <= c && c <= 57;
 }
 function resolveYamlInteger(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   var max = data.length, index = 0, hasDigits = false, ch;
-  if (!max)
-    return false;
+  if (!max) return false;
   ch = data[index];
   if (ch === "-" || ch === "+") {
     ch = data[++index];
   }
   if (ch === "0") {
-    if (index + 1 === max)
-      return true;
+    if (index + 1 === max) return true;
     ch = data[++index];
     if (ch === "b") {
       index++;
       for (; index < max; index++) {
         ch = data[index];
-        if (ch === "_")
-          continue;
-        if (ch !== "0" && ch !== "1")
-          return false;
+        if (ch === "_") continue;
+        if (ch !== "0" && ch !== "1") return false;
         hasDigits = true;
       }
       return hasDigits && ch !== "_";
@@ -25454,10 +26791,8 @@ function resolveYamlInteger(data) {
       index++;
       for (; index < max; index++) {
         ch = data[index];
-        if (ch === "_")
-          continue;
-        if (!isHexCode(data.charCodeAt(index)))
-          return false;
+        if (ch === "_") continue;
+        if (!isHexCode(data.charCodeAt(index))) return false;
         hasDigits = true;
       }
       return hasDigits && ch !== "_";
@@ -25466,28 +26801,23 @@ function resolveYamlInteger(data) {
       index++;
       for (; index < max; index++) {
         ch = data[index];
-        if (ch === "_")
-          continue;
-        if (!isOctCode(data.charCodeAt(index)))
-          return false;
+        if (ch === "_") continue;
+        if (!isOctCode(data.charCodeAt(index))) return false;
         hasDigits = true;
       }
       return hasDigits && ch !== "_";
     }
   }
-  if (ch === "_")
-    return false;
+  if (ch === "_") return false;
   for (; index < max; index++) {
     ch = data[index];
-    if (ch === "_")
-      continue;
+    if (ch === "_") continue;
     if (!isDecCode(data.charCodeAt(index))) {
       return false;
     }
     hasDigits = true;
   }
-  if (!hasDigits || ch === "_")
-    return false;
+  if (!hasDigits || ch === "_") return false;
   return true;
 }
 function constructYamlInteger(data) {
@@ -25497,20 +26827,15 @@ function constructYamlInteger(data) {
   }
   ch = value[0];
   if (ch === "-" || ch === "+") {
-    if (ch === "-")
-      sign = -1;
+    if (ch === "-") sign = -1;
     value = value.slice(1);
     ch = value[0];
   }
-  if (value === "0")
-    return 0;
+  if (value === "0") return 0;
   if (ch === "0") {
-    if (value[1] === "b")
-      return sign * parseInt(value.slice(2), 2);
-    if (value[1] === "x")
-      return sign * parseInt(value.slice(2), 16);
-    if (value[1] === "o")
-      return sign * parseInt(value.slice(2), 8);
+    if (value[1] === "b") return sign * parseInt(value.slice(2), 2);
+    if (value[1] === "x") return sign * parseInt(value.slice(2), 16);
+    if (value[1] === "o") return sign * parseInt(value.slice(2), 8);
   }
   return sign * parseInt(value, 10);
 }
@@ -25548,8 +26873,7 @@ var YAML_FLOAT_PATTERN = new RegExp(
   "^(?:[-+]?(?:[0-9][0-9_]*)(?:\\.[0-9_]*)?(?:[eE][-+]?[0-9]+)?|\\.[0-9_]+(?:[eE][-+]?[0-9]+)?|[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$"
 );
 function resolveYamlFloat(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   if (!YAML_FLOAT_PATTERN.test(data) || data[data.length - 1] === "_") {
     return false;
   }
@@ -25627,21 +26951,16 @@ var YAML_TIMESTAMP_REGEXP = new RegExp(
   "^([0-9][0-9][0-9][0-9])-([0-9][0-9]?)-([0-9][0-9]?)(?:[Tt]|[ \\t]+)([0-9][0-9]?):([0-9][0-9]):([0-9][0-9])(?:\\.([0-9]*))?(?:[ \\t]*(Z|([-+])([0-9][0-9]?)(?::([0-9][0-9]))?))?$"
 );
 function resolveYamlTimestamp(data) {
-  if (data === null)
-    return false;
-  if (YAML_DATE_REGEXP.exec(data) !== null)
-    return true;
-  if (YAML_TIMESTAMP_REGEXP.exec(data) !== null)
-    return true;
+  if (data === null) return false;
+  if (YAML_DATE_REGEXP.exec(data) !== null) return true;
+  if (YAML_TIMESTAMP_REGEXP.exec(data) !== null) return true;
   return false;
 }
 function constructYamlTimestamp(data) {
   var match, year, month, day, hour, minute, second, fraction = 0, delta = null, tz_hour, tz_minute, date;
   match = YAML_DATE_REGEXP.exec(data);
-  if (match === null)
-    match = YAML_TIMESTAMP_REGEXP.exec(data);
-  if (match === null)
-    throw new Error("Date resolve error");
+  if (match === null) match = YAML_TIMESTAMP_REGEXP.exec(data);
+  if (match === null) throw new Error("Date resolve error");
   year = +match[1];
   month = +match[2] - 1;
   day = +match[3];
@@ -25662,12 +26981,10 @@ function constructYamlTimestamp(data) {
     tz_hour = +match[10];
     tz_minute = +(match[11] || 0);
     delta = (tz_hour * 60 + tz_minute) * 6e4;
-    if (match[9] === "-")
-      delta = -delta;
+    if (match[9] === "-") delta = -delta;
   }
   date = new Date(Date.UTC(year, month, day, hour, minute, second, fraction));
-  if (delta)
-    date.setTime(date.getTime() - delta);
+  if (delta) date.setTime(date.getTime() - delta);
   return date;
 }
 function representYamlTimestamp(object) {
@@ -25689,15 +27006,12 @@ var merge = new type("tag:yaml.org,2002:merge", {
 });
 var BASE64_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r";
 function resolveYamlBinary(data) {
-  if (data === null)
-    return false;
+  if (data === null) return false;
   var code2, idx, bitlen = 0, max = data.length, map2 = BASE64_MAP;
   for (idx = 0; idx < max; idx++) {
     code2 = map2.indexOf(data.charAt(idx));
-    if (code2 > 64)
-      continue;
-    if (code2 < 0)
-      return false;
+    if (code2 > 64) continue;
+    if (code2 < 0) return false;
     bitlen += 6;
   }
   return bitlen % 8 === 0;
@@ -25768,28 +27082,21 @@ var binary = new type("tag:yaml.org,2002:binary", {
 var _hasOwnProperty$3 = Object.prototype.hasOwnProperty;
 var _toString$2 = Object.prototype.toString;
 function resolveYamlOmap(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var objectKeys = [], index, length, pair, pairKey, pairHasKey, object = data;
   for (index = 0, length = object.length; index < length; index += 1) {
     pair = object[index];
     pairHasKey = false;
-    if (_toString$2.call(pair) !== "[object Object]")
-      return false;
+    if (_toString$2.call(pair) !== "[object Object]") return false;
     for (pairKey in pair) {
       if (_hasOwnProperty$3.call(pair, pairKey)) {
-        if (!pairHasKey)
-          pairHasKey = true;
-        else
-          return false;
+        if (!pairHasKey) pairHasKey = true;
+        else return false;
       }
     }
-    if (!pairHasKey)
-      return false;
-    if (objectKeys.indexOf(pairKey) === -1)
-      objectKeys.push(pairKey);
-    else
-      return false;
+    if (!pairHasKey) return false;
+    if (objectKeys.indexOf(pairKey) === -1) objectKeys.push(pairKey);
+    else return false;
   }
   return true;
 }
@@ -25803,24 +27110,20 @@ var omap = new type("tag:yaml.org,2002:omap", {
 });
 var _toString$1 = Object.prototype.toString;
 function resolveYamlPairs(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var index, length, pair, keys, result, object = data;
   result = new Array(object.length);
   for (index = 0, length = object.length; index < length; index += 1) {
     pair = object[index];
-    if (_toString$1.call(pair) !== "[object Object]")
-      return false;
+    if (_toString$1.call(pair) !== "[object Object]") return false;
     keys = Object.keys(pair);
-    if (keys.length !== 1)
-      return false;
+    if (keys.length !== 1) return false;
     result[index] = [keys[0], pair[keys[0]]];
   }
   return true;
 }
 function constructYamlPairs(data) {
-  if (data === null)
-    return [];
+  if (data === null) return [];
   var index, length, pair, keys, result, object = data;
   result = new Array(object.length);
   for (index = 0, length = object.length; index < length; index += 1) {
@@ -25837,13 +27140,11 @@ var pairs = new type("tag:yaml.org,2002:pairs", {
 });
 var _hasOwnProperty$2 = Object.prototype.hasOwnProperty;
 function resolveYamlSet(data) {
-  if (data === null)
-    return true;
+  if (data === null) return true;
   var key, object = data;
   for (key in object) {
     if (_hasOwnProperty$2.call(object, key)) {
-      if (object[key] !== null)
-        return false;
+      if (object[key] !== null) return false;
     }
   }
   return true;
@@ -26553,8 +27854,7 @@ function readBlockScalar(state, nodeIndent) {
 }
 function readBlockSequence(state, nodeIndent) {
   var _line, _tag = state.tag, _anchor = state.anchor, _result = [], following, detected = false, ch;
-  if (state.firstTabInLine !== -1)
-    return false;
+  if (state.firstTabInLine !== -1) return false;
   if (state.anchor !== null) {
     state.anchorMap[state.anchor] = _result;
   }
@@ -26602,8 +27902,7 @@ function readBlockSequence(state, nodeIndent) {
 }
 function readBlockMapping(state, nodeIndent, flowIndent) {
   var following, allowCompact, _line, _keyLine, _keyLineStart, _keyPos, _tag = state.tag, _anchor = state.anchor, _result = {}, overridableKeys = /* @__PURE__ */ Object.create(null), keyTag = null, keyNode = null, valueNode = null, atExplicitKey = false, detected = false, ch;
-  if (state.firstTabInLine !== -1)
-    return false;
+  if (state.firstTabInLine !== -1) return false;
   if (state.anchor !== null) {
     state.anchorMap[state.anchor] = _result;
   }
@@ -26765,8 +28064,7 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
 function readTagProperty(state) {
   var _position, isVerbatim = false, isNamed = false, tagHandle, tagName, ch;
   ch = state.input.charCodeAt(state.position);
-  if (ch !== 33)
-    return false;
+  if (ch !== 33) return false;
   if (state.tag !== null) {
     throwError(state, "duplication of a tag property");
   }
@@ -26840,8 +28138,7 @@ function readTagProperty(state) {
 function readAnchorProperty(state) {
   var _position, ch;
   ch = state.input.charCodeAt(state.position);
-  if (ch !== 38)
-    return false;
+  if (ch !== 38) return false;
   if (state.anchor !== null) {
     throwError(state, "duplication of an anchor property");
   }
@@ -26862,8 +28159,7 @@ function readAnchorProperty(state) {
 function readAlias(state) {
   var _position, alias, ch;
   ch = state.input.charCodeAt(state.position);
-  if (ch !== 42)
-    return false;
+  if (ch !== 42) return false;
   ch = state.input.charCodeAt(++state.position);
   _position = state.position;
   while (ch !== 0 && !is_WS_OR_EOL(ch) && !is_FLOW_INDICATOR(ch)) {
@@ -27054,16 +28350,14 @@ function readDocument(state) {
         } while (ch !== 0 && !is_EOL(ch));
         break;
       }
-      if (is_EOL(ch))
-        break;
+      if (is_EOL(ch)) break;
       _position = state.position;
       while (ch !== 0 && !is_WS_OR_EOL(ch)) {
         ch = state.input.charCodeAt(++state.position);
       }
       directiveArgs.push(state.input.slice(_position, state.position));
     }
-    if (ch !== 0)
-      readLineBreak(state);
+    if (ch !== 0) readLineBreak(state);
     if (_hasOwnProperty$1.call(directiveHandlers, directiveName)) {
       directiveHandlers[directiveName](state, directiveName, directiveArgs);
     } else {
@@ -27219,8 +28513,7 @@ var DEPRECATED_BOOLEANS_SYNTAX = [
 var DEPRECATED_BASE60_SYNTAX = /^[-+]?[0-9_]+(?::[0-9_]+)+(?:\.[0-9_]*)?$/;
 function compileStyleMap(schema2, map2) {
   var result, keys, index, length, tag, style, type2;
-  if (map2 === null)
-    return {};
+  if (map2 === null) return {};
   result = {};
   keys = Object.keys(map2);
   for (index = 0, length = keys.length; index < length; index += 1) {
@@ -27291,8 +28584,7 @@ function indentString(string, spaces) {
       line = string.slice(position, next + 1);
       position = next + 1;
     }
-    if (line.length && line !== "\n")
-      result += ind;
+    if (line.length && line !== "\n") result += ind;
     result += line;
   }
   return result;
@@ -27350,7 +28642,7 @@ var STYLE_LITERAL = 3;
 var STYLE_FOLDED = 4;
 var STYLE_DOUBLE = 5;
 function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, testAmbiguousType, quotingType, forceQuotes, inblock) {
-  var i;
+  var i2;
   var char = 0;
   var prevChar = null;
   var hasLineBreak = false;
@@ -27359,8 +28651,8 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   var previousLineBreak = -1;
   var plain = isPlainSafeFirst(codePointAt(string, 0)) && isPlainSafeLast(codePointAt(string, string.length - 1));
   if (singleLineOnly || forceQuotes) {
-    for (i = 0; i < string.length; char >= 65536 ? i += 2 : i++) {
-      char = codePointAt(string, i);
+    for (i2 = 0; i2 < string.length; char >= 65536 ? i2 += 2 : i2++) {
+      char = codePointAt(string, i2);
       if (!isPrintable(char)) {
         return STYLE_DOUBLE;
       }
@@ -27368,13 +28660,13 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
       prevChar = char;
     }
   } else {
-    for (i = 0; i < string.length; char >= 65536 ? i += 2 : i++) {
-      char = codePointAt(string, i);
+    for (i2 = 0; i2 < string.length; char >= 65536 ? i2 += 2 : i2++) {
+      char = codePointAt(string, i2);
       if (char === CHAR_LINE_FEED) {
         hasLineBreak = true;
         if (shouldTrackWidth) {
-          hasFoldableLine = hasFoldableLine || i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
-          previousLineBreak = i;
+          hasFoldableLine = hasFoldableLine || i2 - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+          previousLineBreak = i2;
         }
       } else if (!isPrintable(char)) {
         return STYLE_DOUBLE;
@@ -27382,7 +28674,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
       plain = plain && isPlainSafe(char, prevChar, inblock);
       prevChar = char;
     }
-    hasFoldableLine = hasFoldableLine || shouldTrackWidth && i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+    hasFoldableLine = hasFoldableLine || shouldTrackWidth && i2 - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
   }
   if (!hasLineBreak && !hasFoldableLine) {
     if (plain && !forceQuotes && !testAmbiguousType(string)) {
@@ -27399,7 +28691,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = function() {
+  state.dump = (function() {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -27437,7 +28729,7 @@ function writeScalar(state, string, level, iskey, inblock) {
       default:
         throw new exception("impossible error: invalid scalar style");
     }
-  }();
+  })();
 }
 function blockHeader(string, indentPerLevel) {
   var indentIndicator = needIndentIndicator(string) ? String(indentPerLevel) : "";
@@ -27451,12 +28743,12 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = function() {
+  var result = (function() {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
     return foldLine(string.slice(0, nextLF), width);
-  }();
+  })();
   var prevMoreIndented = string[0] === "\n" || string[0] === " ";
   var moreIndented;
   var match;
@@ -27469,8 +28761,7 @@ function foldString(string, width) {
   return result;
 }
 function foldLine(line, width) {
-  if (line === "" || line[0] === " ")
-    return line;
+  if (line === "" || line[0] === " ") return line;
   var breakRe = / [^ ]/g;
   var match;
   var start = 0, end, curr = 0, next = 0;
@@ -27496,13 +28787,12 @@ function escapeString(string) {
   var result = "";
   var char = 0;
   var escapeSeq;
-  for (var i = 0; i < string.length; char >= 65536 ? i += 2 : i++) {
-    char = codePointAt(string, i);
+  for (var i2 = 0; i2 < string.length; char >= 65536 ? i2 += 2 : i2++) {
+    char = codePointAt(string, i2);
     escapeSeq = ESCAPE_SEQUENCES[char];
     if (!escapeSeq && isPrintable(char)) {
-      result += string[i];
-      if (char >= 65536)
-        result += string[i + 1];
+      result += string[i2];
+      if (char >= 65536) result += string[i2 + 1];
     } else {
       result += escapeSeq || encodeHex(char);
     }
@@ -27517,8 +28807,7 @@ function writeFlowSequence(state, level, object) {
       value = state.replacer.call(object, String(index), value);
     }
     if (writeNode(state, level, value, false, false) || typeof value === "undefined" && writeNode(state, level, null, false, false)) {
-      if (_result !== "")
-        _result += "," + (!state.condenseFlow ? " " : "");
+      if (_result !== "") _result += "," + (!state.condenseFlow ? " " : "");
       _result += state.dump;
     }
   }
@@ -27551,10 +28840,8 @@ function writeFlowMapping(state, level, object) {
   var _result = "", _tag = state.tag, objectKeyList = Object.keys(object), index, length, objectKey, objectValue, pairBuffer;
   for (index = 0, length = objectKeyList.length; index < length; index += 1) {
     pairBuffer = "";
-    if (_result !== "")
-      pairBuffer += ", ";
-    if (state.condenseFlow)
-      pairBuffer += '"';
+    if (_result !== "") pairBuffer += ", ";
+    if (state.condenseFlow) pairBuffer += '"';
     objectKey = objectKeyList[index];
     objectValue = object[objectKey];
     if (state.replacer) {
@@ -27563,8 +28850,7 @@ function writeFlowMapping(state, level, object) {
     if (!writeNode(state, level, objectKey, false, false)) {
       continue;
     }
-    if (state.dump.length > 1024)
-      pairBuffer += "? ";
+    if (state.dump.length > 1024) pairBuffer += "? ";
     pairBuffer += state.dump + (state.condenseFlow ? '"' : "") + ":" + (state.condenseFlow ? "" : " ");
     if (!writeNode(state, level, objectValue, false, false)) {
       continue;
@@ -27717,8 +29003,7 @@ function writeNode(state, level, object, block, compact, iskey, isblockseq) {
     } else if (type2 === "[object Undefined]") {
       return false;
     } else {
-      if (state.skipInvalid)
-        return false;
+      if (state.skipInvalid) return false;
       throw new exception("unacceptable kind of an object to dump " + type2);
     }
     if (state.tag !== null && state.tag !== "?") {
@@ -27771,14 +29056,12 @@ function inspectNode(object, objects, duplicatesIndexes) {
 function dump$1(input, options) {
   options = options || {};
   var state = new State(options);
-  if (!state.noRefs)
-    getDuplicateReferences(input, state);
+  if (!state.noRefs) getDuplicateReferences(input, state);
   var value = input;
   if (state.replacer) {
     value = state.replacer.call({ "": value }, "", value);
   }
-  if (writeNode(state, 0, value, true, true))
-    return state.dump + "\n";
+  if (writeNode(state, 0, value, true, true)) return state.dump + "\n";
   return "";
 }
 var dump_1 = dump$1;
@@ -27910,8 +29193,8 @@ function expandAliasesFrom(lst, defs) {
   const aliases = defs;
   const result = [];
   lst = lst.slice();
-  for (let i = 0; i < lst.length; ++i) {
-    const el = lst[i];
+  for (let i2 = 0; i2 < lst.length; ++i2) {
+    const el = lst[i2];
     if (el.startsWith("$")) {
       const v = aliases[el.slice(1)];
       if (v === void 0) {
@@ -28026,15 +29309,15 @@ function initLargeIdContinueRanges() {
   return restoreRanges("53 0 g9 33 o 0 70 4 7e 18 2 0 2 1 2 1 2 0 21 a 1d u 7 0 2u 6 3 5 3 1 2 3 3 9 o 0 v q 2k a g 9 y 8 a 0 p 3 2 8 2 2 2 4 18 2 3c e 2 w 1j 2 2 h 2 6 b 1 3 9 i 2 1l 0 2 6 3 1 3 2 a 0 b 1 3 9 f 0 3 2 1l 0 2 4 5 1 3 2 4 0 l b 4 0 c 2 1l 0 2 7 2 2 2 2 l 1 3 9 b 5 2 2 1l 0 2 6 3 1 3 2 8 2 b 1 3 9 j 0 1o 4 4 2 2 3 a 0 f 9 h 4 1m 6 2 2 2 3 8 1 c 1 3 9 i 2 1l 0 2 6 2 2 2 3 8 1 c 1 3 9 h 3 1k 1 2 6 2 2 2 3 a 0 b 1 3 9 i 2 1z 0 5 5 2 0 2 7 7 9 3 1 1q 0 3 6 d 7 2 9 2g 0 3 8 c 5 3 9 1r 1 7 9 c 0 2 0 2 0 5 1 1e j 2 1 6 a 2 z a 0 2t j 2 9 d 3 5 2 2 2 3 6 4 3 e b 2 e jk 2 a 8 pt 2 u 2 u 1 v 1 1t v a 0 3 9 y 2 3 9 40 0 3b b 5 b b 9 3l a 1p 4 1m 9 2 s 3 a 7 9 n d 2 1 1s 4 1c g c 9 i 8 d 2 v c 3 9 19 d 1d j 9 9 7 9 3b 2 2 k 5 0 7 0 3 2 5j 1l 2 4 g0 1 k 0 3g c 5 0 4 b 2db 2 3y 0 2p v ff 5 2y 1 n7q 9 1y 0 5 9 x 1 29 1 7l 0 4 0 5 0 o 4 5 0 2c 1 1f h b 9 7 h e a t 7 q c 19 3 1c d g 9 c 0 b 9 1c d d 0 9 1 3 9 y 2 1f 0 2 2 3 1 6 1 2 0 16 4 6 1 6l 7 2 1 3 9 fmt 0 ki f h f 4 1 p 2 5d 9 12 0 ji 0 6b 0 46 4 86 9 120 2 2 1 6 3 15 2 5 0 4m 1 fy 3 9 9 aa 1 4a a 4w 2 1i e w 9 g 3 1a a 1i 9 7 2 11 d 2 9 6 1 19 0 d 2 1d d 9 3 2 b 2b b 7 0 4h b 6 9 7 3 1k 1 2 6 3 1 3 2 a 0 b 1 3 6 4 4 5d h a 9 5 0 2a j d 9 5y 6 3 8 s 1 2b g g 9 2a c 9 9 2c e 5 9 6r e 4m 9 1z 5 2 1 3 3 2 0 2 1 d 9 3c 6 3 6 4 0 t 9 15 6 2 3 9 0 a a 1b f ba 7 2 7 h 9 1l l 2 d 3f 5 4 0 2 1 2 6 2 0 9 9 1d 4 2 1 2 4 9 9 96 3 ewa 9 3r 4 1o 6 q 9 s6 0 2 1i 8 3 2a 0 c 1 f58 1 43r 4 4 5 9 7 3 6 v 3 45 2 13e 1d e9 1i 5 1d 9 0 f 0 n 4 2 e 11t 6 2 g 3 6 2 1 2 4 7a 6 a 9 bn d 15j 6 32 6 6 9 3o7 9 gvt3 6n");
 }
 function isInRange(cp, ranges) {
-  let l = 0, r = ranges.length / 2 | 0, i = 0, min = 0, max = 0;
+  let l = 0, r = ranges.length / 2 | 0, i2 = 0, min = 0, max = 0;
   while (l < r) {
-    i = (l + r) / 2 | 0;
-    min = ranges[2 * i];
-    max = ranges[2 * i + 1];
+    i2 = (l + r) / 2 | 0;
+    min = ranges[2 * i2];
+    max = ranges[2 * i2 + 1];
     if (cp < min) {
-      r = i;
+      r = i2;
     } else if (cp > max) {
-      l = i + 1;
+      l = i2 + 1;
     } else {
       return true;
     }
@@ -28186,16 +29469,16 @@ function combineSurrogatePair(lead, trail) {
   return (lead - 55296) * 1024 + (trail - 56320) + 65536;
 }
 var legacyImpl = {
-  at(s, end, i) {
-    return i < end ? s.charCodeAt(i) : -1;
+  at(s, end, i2) {
+    return i2 < end ? s.charCodeAt(i2) : -1;
   },
   width(c) {
     return 1;
   }
 };
 var unicodeImpl = {
-  at(s, end, i) {
-    return i < end ? s.codePointAt(i) : -1;
+  at(s, end, i2) {
+    return i2 < end ? s.codePointAt(i2) : -1;
   },
   width(c) {
     return c > 65535 ? 2 : 1;
@@ -28358,10 +29641,10 @@ var RegExpValidator = class {
     let unicode = false;
     let dotAll = false;
     let hasIndices = false;
-    for (let i = start; i < end; ++i) {
-      const flag = source.charCodeAt(i);
+    for (let i2 = start; i2 < end; ++i2) {
+      const flag = source.charCodeAt(i2);
       if (existingFlags.has(flag)) {
-        this.raise(`Duplicated flag '${source[i]}'`);
+        this.raise(`Duplicated flag '${source[i2]}'`);
       }
       existingFlags.add(flag);
       if (flag === LatinSmallLetterG) {
@@ -28379,7 +29662,7 @@ var RegExpValidator = class {
       } else if (flag === LatinSmallLetterD && this.ecmaVersion >= 2022) {
         hasIndices = true;
       } else {
-        this.raise(`Invalid flag '${source[i]}'`);
+        this.raise(`Invalid flag '${source[i2]}'`);
       }
     }
     this.onFlags(start, end, global, ignoreCase, multiline, unicode, sticky, dotAll, hasIndices);
@@ -28648,10 +29931,10 @@ var RegExpValidator = class {
   }
   consumeDisjunction() {
     const start = this.index;
-    let i = 0;
+    let i2 = 0;
     this.onDisjunctionEnter(start);
     do {
-      this.consumeAlternative(i++);
+      this.consumeAlternative(i2++);
     } while (this.eat(VerticalLine));
     if (this.consumeQuantifier(true)) {
       this.raise("Nothing to repeat");
@@ -28661,12 +29944,12 @@ var RegExpValidator = class {
     }
     this.onDisjunctionLeave(start, this.index);
   }
-  consumeAlternative(i) {
+  consumeAlternative(i2) {
     const start = this.index;
-    this.onAlternativeEnter(start, i);
+    this.onAlternativeEnter(start, i2);
     while (this.currentCodePoint !== -1 && this.consumeTerm()) {
     }
-    this.onAlternativeLeave(start, this.index, i);
+    this.onAlternativeLeave(start, this.index, i2);
   }
   consumeTerm() {
     if (this._uFlag || this.strict) {
@@ -29339,7 +30622,7 @@ var RegExpValidator = class {
   eatFixedHexDigits(length) {
     const start = this.index;
     this._lastIntValue = 0;
-    for (let i = 0; i < length; ++i) {
+    for (let i2 = 0; i2 < length; ++i2) {
       const cp = this.currentCodePoint;
       if (!isHexDigit(cp)) {
         this.rewind(start);
@@ -29740,12 +31023,12 @@ function prefixesFromParse(parse) {
     return `(${alternatives.join("|")})`;
   } else if (parse.type === "Alternative") {
     const result = [];
-    for (let i = 0; i < parse.elements.length; ++i) {
+    for (let i2 = 0; i2 < parse.elements.length; ++i2) {
       const thisRe = [];
-      for (let j = 0; j < i; ++j) {
+      for (let j = 0; j < i2; ++j) {
         thisRe.push(parse.elements[j].raw);
       }
-      thisRe.push(prefixesFromParse(parse.elements[i]));
+      thisRe.push(prefixesFromParse(parse.elements[i2]));
       result.push(thisRe.join(""));
     }
     return `(${result.join("|")})`;
@@ -30176,7 +31459,7 @@ function schemaPathMatches(error, strs) {
   if (schemaPath.length !== strs.length) {
     return false;
   }
-  return strs.every((str2, i) => str2 === schemaPath[i]);
+  return strs.every((str2, i2) => str2 === schemaPath[i2]);
 }
 function getBadKey(error) {
   if (error.schemaPath.indexOf("propertyNames") === -1 && error.schemaPath.indexOf("closed") === -1) {
@@ -30204,13 +31487,13 @@ function navigate(path, annotation, returnKey = false, pathIndex = 0) {
     const { components } = annotation;
     const searchKey = path[pathIndex];
     const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
-    for (let i = lastKeyIndex; i >= 0; i -= 2) {
-      const key = components[i].result;
+    for (let i2 = lastKeyIndex; i2 >= 0; i2 -= 2) {
+      const key = components[i2].result;
       if (key === searchKey) {
         if (returnKey && pathIndex === path.length - 1) {
-          return navigate(path, components[i], returnKey, pathIndex + 1);
+          return navigate(path, components[i2], returnKey, pathIndex + 1);
         } else {
-          return navigate(path, components[i + 1], returnKey, pathIndex + 1);
+          return navigate(path, components[i2 + 1], returnKey, pathIndex + 1);
         }
       }
     }
@@ -30795,6 +32078,27 @@ function createLocalizedError(obj) {
   };
 }
 
+// ../is-circular.ts
+var isCircular = (obj) => {
+  const objectSet = /* @__PURE__ */ new WeakSet();
+  const detect = (obj2) => {
+    if (obj2 && typeof obj2 === "object") {
+      if (objectSet.has(obj2)) {
+        return true;
+      }
+      objectSet.add(obj2);
+      for (const key in obj2) {
+        if (Object.hasOwn(obj2, key) && detect(obj2[key])) {
+          return true;
+        }
+      }
+      objectSet.delete(obj2);
+    }
+    return false;
+  };
+  return detect(obj);
+};
+
 // annotated-yaml.ts
 function postProcessAnnotation(parse) {
   if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
@@ -30945,16 +32249,10 @@ function buildJsYamlAnnotation(mappedYaml) {
       `Expected a single result, got ${results.length} instead`
     );
   }
-  try {
-    JSON.stringify(results[0]);
-  } catch (e) {
-    if (e.message.match("invalid string length")) {
-    } else if (e.message.match(/circular structure/)) {
-      throw new InternalError(
-        `Circular structure detected in parsed yaml: ${e.message}`
-      );
-    } else {
-    }
+  if (isCircular(results[0])) {
+    throw new InternalError(
+      `Circular structure detected in yaml`
+    );
   }
   return postProcessAnnotation(results[0]);
 }
@@ -31055,8 +32353,8 @@ function buildTreeSitterAnnotation(tree, mappedSource2) {
     },
     "block_sequence": (node) => {
       const result2 = [], components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
+      for (let i2 = 0; i2 < node.childCount; ++i2) {
+        const child = node.child(i2);
         if (child.type !== "block_sequence_item") {
           continue;
         }
@@ -31075,8 +32373,8 @@ function buildTreeSitterAnnotation(tree, mappedSource2) {
     },
     "flow_sequence": (node) => {
       const result2 = [], components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
+      for (let i2 = 0; i2 < node.childCount; ++i2) {
+        const child = node.child(i2);
         if (child.type !== "flow_node") {
           continue;
         }
@@ -31088,8 +32386,8 @@ function buildTreeSitterAnnotation(tree, mappedSource2) {
     },
     "block_mapping": (node) => {
       const result2 = {}, components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
+      for (let i2 = 0; i2 < node.childCount; ++i2) {
+        const child = node.child(i2);
         let component;
         if (child.type === "ERROR") {
           result2[child.text] = "<<ERROR>>";
@@ -31113,8 +32411,8 @@ function buildTreeSitterAnnotation(tree, mappedSource2) {
     "flow_pair": buildPair,
     "flow_mapping": (node) => {
       const result2 = {}, components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
+      for (let i2 = 0; i2 < node.childCount; ++i2) {
+        const child = node.child(i2);
         if (child.type === "flow_node") {
           continue;
         }
@@ -31149,8 +32447,8 @@ function locateCursor(annotation, position) {
   const kInternalLocateError = "Cursor outside bounds in sequence locate";
   function locate(node) {
     if (node.kind === "block_mapping" || node.kind === "flow_mapping" || node.kind === "mapping") {
-      for (let i = 0; i < node.components.length; i += 2) {
-        const keyC = node.components[i], valueC = node.components[i + 1];
+      for (let i2 = 0; i2 < node.components.length; i2 += 2) {
+        const keyC = node.components[i2], valueC = node.components[i2 + 1];
         if (keyC.start <= position && position <= keyC.end) {
           innermostAnnotation = keyC;
           result.push(keyC.result);
@@ -31165,18 +32463,18 @@ function locateCursor(annotation, position) {
       failedLast = true;
       return;
     } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
-      for (let i = 0; i < node.components.length; ++i) {
-        const valueC = node.components[i];
+      for (let i2 = 0; i2 < node.components.length; ++i2) {
+        const valueC = node.components[i2];
         if (valueC.start <= position && position <= valueC.end) {
-          result.push(i);
+          result.push(i2);
           innermostAnnotation = valueC;
           return locate(valueC);
         }
         if (valueC.start > position) {
-          if (i === 0) {
+          if (i2 === 0) {
             return;
           } else {
-            result.push(i - 1);
+            result.push(i2 - 1);
             return;
           }
         }
@@ -31200,6 +32498,7 @@ function locateCursor(annotation, position) {
       annotation: innermostAnnotation
     };
   } catch (e) {
+    if (!(e instanceof Error)) throw e;
     if (e.message === kInternalLocateError) {
       return {
         withError: true
@@ -31212,8 +32511,8 @@ function locateCursor(annotation, position) {
 function locateAnnotation(annotation, position, kind) {
   const originalSource = annotation.source;
   kind = kind || "value";
-  for (let i = 0; i < position.length; ++i) {
-    const value = position[i];
+  for (let i2 = 0; i2 < position.length; ++i2) {
+    const value = position[i2];
     if (typeof value === "number") {
       const inner = annotation.components[value];
       if (inner === void 0) {
@@ -31227,7 +32526,7 @@ function locateAnnotation(annotation, position, kind) {
           annotation.components[j].start,
           annotation.components[j].end
         ).trim() === value) {
-          if (i === position.length - 1) {
+          if (i2 === position.length - 1) {
             if (kind === "key") {
               annotation = annotation.components[j];
             } else {
@@ -31332,6 +32631,51 @@ function guessChunkOptionsFormat(options) {
 }
 
 // ../yaml-validation/validator.ts
+function createNiceError(obj) {
+  const {
+    violatingObject,
+    source,
+    message
+  } = obj;
+  const locF = mappedIndexToLineCol(source);
+  let location;
+  try {
+    location = {
+      start: locF(violatingObject.start),
+      end: locF(violatingObject.end)
+    };
+  } catch (_e) {
+    location = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 }
+    };
+  }
+  const mapResult = source.map(violatingObject.start);
+  const fileName = mapResult ? mapResult.originalString.fileName : void 0;
+  return {
+    heading: message,
+    error: [],
+    info: {},
+    fileName,
+    location,
+    sourceContext: createSourceContext(violatingObject.source, {
+      start: violatingObject.start,
+      end: violatingObject.end
+    })
+  };
+}
+var NoExprTag = class extends Error {
+  constructor(violatingObject, source) {
+    super(`Unexpected !expr tag`);
+    this.name = "NoExprTag";
+    this.niceError = createNiceError({
+      violatingObject,
+      source,
+      message: "!expr tags are not allowed in Quarto outside of knitr code cells."
+    });
+  }
+  niceError;
+};
 var ValidationContext = class {
   instancePath;
   root;
@@ -31430,11 +32774,11 @@ var ValidationContext = class {
           return 1;
         };
         const errorComparator = (a, b) => {
-          for (let i = 0; i < a.length; ++i) {
-            if (a[i] < b[i]) {
+          for (let i2 = 0; i2 < a.length; ++i2) {
+            if (a[i2] < b[i2]) {
               return -1;
             }
-            if (a[i] > b[i]) {
+            if (a[i2] > b[i2]) {
               return 1;
             }
           }
@@ -31491,8 +32835,8 @@ function validateGeneric(value, s, context) {
     "boolean": (schema2) => validateBoolean(value, schema2, context),
     "number": (schema2) => validateNumber(value, schema2, context),
     "string": (schema2) => validateString(value, schema2, context),
-    "null": (schema2) => validateNull(value, schema2, context),
-    "enum": (schema2) => validateEnum(value, schema2, context),
+    "null": ((schema2) => validateNull(value, schema2, context)),
+    "enum": ((schema2) => validateEnum(value, schema2, context)),
     "anyOf": (schema2) => validateAnyOf(value, schema2, context),
     "allOf": (schema2) => validateAllOf(value, schema2, context),
     "array": (schema2) => validateArray(value, schema2, context),
@@ -31630,9 +32974,9 @@ function validateEnum(value, schema2, context) {
 }
 function validateAnyOf(value, schema2, context) {
   let passingSchemas = 0;
-  for (let i = 0; i < schema2.anyOf.length; ++i) {
-    const subSchema = schema2.anyOf[i];
-    context.withSchemaPath(i, () => {
+  for (let i2 = 0; i2 < schema2.anyOf.length; ++i2) {
+    const subSchema = schema2.anyOf[i2];
+    context.withSchemaPath(i2, () => {
       if (validateGeneric(value, subSchema, context)) {
         passingSchemas++;
         return true;
@@ -31644,9 +32988,9 @@ function validateAnyOf(value, schema2, context) {
 }
 function validateAllOf(value, schema2, context) {
   let passingSchemas = 0;
-  for (let i = 0; i < schema2.allOf.length; ++i) {
-    const subSchema = schema2.allOf[i];
-    context.withSchemaPath(i, () => {
+  for (let i2 = 0; i2 < schema2.allOf.length; ++i2) {
+    const subSchema = schema2.allOf[i2];
+    context.withSchemaPath(i2, () => {
       if (validateGeneric(value, subSchema, context)) {
         passingSchemas++;
         return true;
@@ -31693,9 +33037,9 @@ function validateArray(value, schema2, context) {
   if (schema2.items !== void 0) {
     result = context.withSchemaPath("items", () => {
       let result2 = true;
-      for (let i = 0; i < value.components.length; ++i) {
-        context.pushInstance(i);
-        result2 = validateGeneric(value.components[i], schema2.items, context) && result2;
+      for (let i2 = 0; i2 < value.components.length; ++i2) {
+        context.pushInstance(i2);
+        result2 = validateGeneric(value.components[i2], schema2.items, context) && result2;
         context.popInstance();
       }
       return result2;
@@ -31714,14 +33058,17 @@ function validateObject(value, schema2, context) {
   );
   const objResult = value.result;
   const locate = (key, keyOrValue = "value") => {
-    for (let i = 0; i < value.components.length; i += 2) {
-      if (String(value.components[i].result) === key) {
+    for (let i2 = 0; i2 < value.components.length; i2 += 2) {
+      if (String(value.components[i2].result) === key) {
         if (keyOrValue === "value") {
-          return value.components[i + 1];
+          return value.components[i2 + 1];
         } else {
-          return value.components[i];
+          return value.components[i2];
         }
       }
+    }
+    if (value.result && typeof value.result === "object" && !Array.isArray(value.result) && value.result.tag === "!expr") {
+      throw new NoExprTag(value, value.source);
     }
     throw new InternalError(`Couldn't locate key ${key}`);
   };
@@ -32153,7 +33500,7 @@ function objectSchema(params = {}) {
       );
       console.error("This is a bug in quarto's schemas.");
       console.error(
-        "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid."
+        "Note that we don't throw in order to allow build-artifacts to finish, but the generated schemas will be invalid."
       );
     }
     result.properties = Object.assign(
@@ -32183,10 +33530,8 @@ function objectSchema(params = {}) {
       result.additionalProperties = allOfSchema(...additionalPropArray);
     }
     const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => {
-      if (typeof s !== "object")
-        return true;
-      if (s.tags === void 0)
-        return true;
+      if (typeof s !== "object") return true;
+      if (s.tags === void 0) return true;
       if (s.tags["case-detection"] === true) {
         return false;
       }
@@ -32355,8 +33700,7 @@ function globToRegExp(glob, {
   const wildcard = "[^/]*";
   const escapePrefix = "\\";
   let newLength = glob.length;
-  for (; newLength > 1 && seps.includes(glob[newLength - 1]); newLength--)
-    ;
+  for (; newLength > 1 && seps.includes(glob[newLength - 1]); newLength--) ;
   glob = glob.slice(0, newLength);
   let regExpString = "";
   for (let j = 0; j < glob.length; ) {
@@ -32365,85 +33709,72 @@ function globToRegExp(glob, {
     let inRange = false;
     let inEscape = false;
     let endsWithSep = false;
-    let i = j;
-    for (; i < glob.length && !seps.includes(glob[i]); i++) {
+    let i2 = j;
+    for (; i2 < glob.length && !seps.includes(glob[i2]); i2++) {
       if (inEscape) {
         inEscape = false;
         const escapeChars = inRange ? rangeEscapeChars : regExpEscapeChars;
-        segment += escapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
+        segment += escapeChars.includes(glob[i2]) ? `\\${glob[i2]}` : glob[i2];
         continue;
       }
-      if (glob[i] == escapePrefix) {
+      if (glob[i2] == escapePrefix) {
         inEscape = true;
         continue;
       }
-      if (glob[i] == "[") {
+      if (glob[i2] == "[") {
         if (!inRange) {
           inRange = true;
           segment += "[";
-          if (glob[i + 1] == "!") {
-            i++;
+          if (glob[i2 + 1] == "!") {
+            i2++;
             segment += "^";
-          } else if (glob[i + 1] == "^") {
-            i++;
+          } else if (glob[i2 + 1] == "^") {
+            i2++;
             segment += "\\^";
           }
           continue;
-        } else if (glob[i + 1] == ":") {
-          let k = i + 1;
+        } else if (glob[i2 + 1] == ":") {
+          let k = i2 + 1;
           let value = "";
           while (glob[k + 1] != null && glob[k + 1] != ":") {
             value += glob[k + 1];
             k++;
           }
           if (glob[k + 1] == ":" && glob[k + 2] == "]") {
-            i = k + 2;
-            if (value == "alnum")
-              segment += "\\dA-Za-z";
-            else if (value == "alpha")
-              segment += "A-Za-z";
-            else if (value == "ascii")
-              segment += "\0-\x7F";
-            else if (value == "blank")
-              segment += "	 ";
-            else if (value == "cntrl")
-              segment += "\0-\x7F";
-            else if (value == "digit")
-              segment += "\\d";
-            else if (value == "graph")
-              segment += "!-~";
-            else if (value == "lower")
-              segment += "a-z";
-            else if (value == "print")
-              segment += " -~";
+            i2 = k + 2;
+            if (value == "alnum") segment += "\\dA-Za-z";
+            else if (value == "alpha") segment += "A-Za-z";
+            else if (value == "ascii") segment += "\0-\x7F";
+            else if (value == "blank") segment += "	 ";
+            else if (value == "cntrl") segment += "\0-\x7F";
+            else if (value == "digit") segment += "\\d";
+            else if (value == "graph") segment += "!-~";
+            else if (value == "lower") segment += "a-z";
+            else if (value == "print") segment += " -~";
             else if (value == "punct") {
               segment += `!"#$%&'()*+,\\-./:;<=>?@[\\\\\\]^_\u2018{|}~`;
-            } else if (value == "space")
-              segment += "\\s\v";
-            else if (value == "upper")
-              segment += "A-Z";
-            else if (value == "word")
-              segment += "\\w";
-            else if (value == "xdigit")
-              segment += "\\dA-Fa-f";
+            } else if (value == "space") segment += "\\s\v";
+            else if (value == "upper") segment += "A-Z";
+            else if (value == "word") segment += "\\w";
+            else if (value == "xdigit") segment += "\\dA-Fa-f";
             continue;
           }
         }
       }
-      if (glob[i] == "]" && inRange) {
+      if (glob[i2] == "]" && inRange) {
         inRange = false;
         segment += "]";
         continue;
       }
       if (inRange) {
-        if (glob[i] == "\\") {
+        if (glob[i2] == "\\") {
           segment += `\\\\`;
         } else {
-          segment += glob[i];
+          segment += glob[i2];
         }
         continue;
       }
-      if (glob[i] == ")" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
+      if (glob[i2] == ")" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
         segment += ")";
         const type2 = groupStack.pop();
         if (type2 == "!") {
@@ -32453,25 +33784,25 @@ function globToRegExp(glob, {
         }
         continue;
       }
-      if (glob[i] == "|" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
+      if (glob[i2] == "|" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
         segment += "|";
         continue;
       }
-      if (glob[i] == "+" && extended && glob[i + 1] == "(") {
-        i++;
+      if (glob[i2] == "+" && extended && glob[i2 + 1] == "(") {
+        i2++;
         groupStack.push("+");
         segment += "(?:";
         continue;
       }
-      if (glob[i] == "@" && extended && glob[i + 1] == "(") {
-        i++;
+      if (glob[i2] == "@" && extended && glob[i2 + 1] == "(") {
+        i2++;
         groupStack.push("@");
         segment += "(?:";
         continue;
       }
-      if (glob[i] == "?") {
-        if (extended && glob[i + 1] == "(") {
-          i++;
+      if (glob[i2] == "?") {
+        if (extended && glob[i2 + 1] == "(") {
+          i2++;
           groupStack.push("?");
           segment += "(?:";
         } else {
@@ -32479,39 +33810,39 @@ function globToRegExp(glob, {
         }
         continue;
       }
-      if (glob[i] == "!" && extended && glob[i + 1] == "(") {
-        i++;
+      if (glob[i2] == "!" && extended && glob[i2 + 1] == "(") {
+        i2++;
         groupStack.push("!");
         segment += "(?!";
         continue;
       }
-      if (glob[i] == "{") {
+      if (glob[i2] == "{") {
         groupStack.push("BRACE");
         segment += "(?:";
         continue;
       }
-      if (glob[i] == "}" && groupStack[groupStack.length - 1] == "BRACE") {
+      if (glob[i2] == "}" && groupStack[groupStack.length - 1] == "BRACE") {
         groupStack.pop();
         segment += ")";
         continue;
       }
-      if (glob[i] == "," && groupStack[groupStack.length - 1] == "BRACE") {
+      if (glob[i2] == "," && groupStack[groupStack.length - 1] == "BRACE") {
         segment += "|";
         continue;
       }
-      if (glob[i] == "*") {
-        if (extended && glob[i + 1] == "(") {
-          i++;
+      if (glob[i2] == "*") {
+        if (extended && glob[i2 + 1] == "(") {
+          i2++;
           groupStack.push("*");
           segment += "(?:";
         } else {
-          const prevChar = glob[i - 1];
+          const prevChar = glob[i2 - 1];
           let numStars = 1;
-          while (glob[i + 1] == "*") {
-            i++;
+          while (glob[i2 + 1] == "*") {
+            i2++;
             numStars++;
           }
-          const nextChar = glob[i + 1];
+          const nextChar = glob[i2 + 1];
           if (globstarOption && numStars == 2 && [...seps, void 0].includes(prevChar) && [...seps, void 0].includes(nextChar)) {
             segment += globstar;
             endsWithSep = true;
@@ -32521,26 +33852,25 @@ function globToRegExp(glob, {
         }
         continue;
       }
-      segment += regExpEscapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
+      segment += regExpEscapeChars.includes(glob[i2]) ? `\\${glob[i2]}` : glob[i2];
     }
     if (groupStack.length > 0 || inRange || inEscape) {
       segment = "";
-      for (const c of glob.slice(j, i)) {
+      for (const c of glob.slice(j, i2)) {
         segment += regExpEscapeChars.includes(c) ? `\\${c}` : c;
         endsWithSep = false;
       }
     }
     regExpString += segment;
     if (!endsWithSep) {
-      regExpString += i < glob.length ? sep : sepMaybe;
+      regExpString += i2 < glob.length ? sep : sepMaybe;
       endsWithSep = true;
     }
-    while (seps.includes(glob[i]))
-      i++;
-    if (!(i > j)) {
+    while (seps.includes(glob[i2])) i2++;
+    if (!(i2 > j)) {
       throw new Error("Assertion failure: i > j (potential infinite loop)");
     }
-    j = i;
+    j = i2;
   }
   regExpString = `^${regExpString}$`;
   return new RegExp(regExpString, caseInsensitive ? "i" : "");
@@ -33238,11 +34568,22 @@ var jupyterEngineSchema = defineCached(
   },
   "engine-jupyter"
 );
+var juliaEnginesSchema = defineCached(
+  // deno-lint-ignore require-await
+  async () => {
+    return {
+      schema: makeEngineSchema("julia"),
+      errorHandlers: []
+    };
+  },
+  "engine-julia"
+);
 async function getEngineOptionsSchema() {
   const obj = {
     markdown: await markdownEngineSchema(),
     knitr: await knitrEngineSchema(),
-    jupyter: await jupyterEngineSchema()
+    jupyter: await jupyterEngineSchema(),
+    julia: await juliaEnginesSchema()
   };
   return obj;
 }
@@ -33427,6 +34768,7 @@ var kLangCommentChars = {
   stata: "*",
   java: "//",
   groovy: "//",
+  kotlin: "//",
   sed: "#",
   perl: "#",
   prql: "#",
@@ -33445,6 +34787,7 @@ var kLangCommentChars = {
   ojs: "//",
   apl: "\u235D",
   ocaml: ["(*", "*)"],
+  q: "/",
   rust: "//"
 };
 function escapeRegExp(str2) {
@@ -33530,7 +34873,7 @@ function parseShortcode(shortCodeCapture) {
 }
 
 // ../break-quarto-md.ts
-async function breakQuartoMd(src, validate2 = false, lenient = false) {
+async function breakQuartoMd(src, validate2 = false, lenient = false, startCodeCellRegex) {
   if (typeof src === "string") {
     src = asMappedString(src);
   }
@@ -33539,8 +34882,8 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
     cells: []
   };
   const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = new RegExp(
-    "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
+  const startCodeCellRegEx = startCodeCellRegex || new RegExp(
+    "^\\s*(```+)\\s*\\{([=A-Za-z][=A-Za-z0-9._]*)( *[ ,].*)?\\}\\s*$"
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*(```+)\s*$/;
@@ -33635,28 +34978,28 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
     return true;
   };
   const srcLines = rangedLines(src.value, true);
-  for (let i = 0; i < srcLines.length; ++i) {
-    const line = srcLines[i];
+  for (let i2 = 0; i2 < srcLines.length; ++i2) {
+    const line = srcLines[i2];
     const directiveMatch = isBlockShortcode(line.substring, true);
-    if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
+    if (isYamlDelimiter(line.substring, i2, !inYaml) && !inCodeCell && !inCode) {
       if (inYaml) {
         lineBuffer.push(line);
-        await flushLineBuffer("raw", i);
+        await flushLineBuffer("raw", i2);
         inYaml = false;
       } else {
-        await flushLineBuffer("markdown", i);
+        await flushLineBuffer("markdown", i2);
         lineBuffer.push(line);
         inYaml = true;
       }
     } else if (inPlainText() && directiveMatch) {
-      await flushLineBuffer("markdown", i);
+      await flushLineBuffer("markdown", i2);
       directiveParams = directiveMatch;
       lineBuffer.push(line);
-      await flushLineBuffer("directive", i);
+      await flushLineBuffer("directive", i2);
     } else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
       const m = line.substring.match(startCodeCellRegEx);
       language = m[2];
-      await flushLineBuffer("markdown", i);
+      await flushLineBuffer("markdown", i2);
       inCodeCell = true;
       inCode = m[1].length;
       codeStartRange = line;
@@ -33665,7 +35008,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
         codeEndRange = line;
         inCodeCell = false;
         inCode = 0;
-        await flushLineBuffer("code", i);
+        await flushLineBuffer("code", i2);
       } else {
         inCode = 0;
         lineBuffer.push(line);
@@ -33985,13 +35328,13 @@ function buildLineMap(annotation, document) {
     }
     const { annotation: annotation2, path } = s;
     const isMapping = ["block_mapping", "flow_mapping", "mapping"].indexOf(annotation2.kind) !== -1;
-    for (let i = 0; i < annotation2.components.length; ++i) {
-      const child = annotation2.components[i];
-      const keyOrValue = isMapping && (i & 1) === 0 ? "key" : "value";
+    for (let i2 = 0; i2 < annotation2.components.length; ++i2) {
+      const child = annotation2.components[i2];
+      const keyOrValue = isMapping && (i2 & 1) === 0 ? "key" : "value";
       if (isMapping) {
-        path.push(annotation2.components[i & ~1].result);
+        path.push(annotation2.components[i2 & ~1].result);
       } else {
-        path.push(i);
+        path.push(i2);
       }
       walk({ annotation: child, position: keyOrValue, path }, f2);
       path.pop();

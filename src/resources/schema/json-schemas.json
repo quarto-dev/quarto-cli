@@ -20,6 +20,9 @@
         }
       ]
     },
+    "DateFormat": {
+      "type": "string"
+    },
     "MathMethods": {
       "enum": {
         "values": [
@@ -56,6 +59,18 @@
         }
       ]
     },
+    "FilterEntryPoint": {
+      "enum": [
+        "pre-ast",
+        "post-ast",
+        "pre-quarto",
+        "post-quarto",
+        "pre-render",
+        "post-render",
+        "pre-finalize",
+        "post-finalize"
+      ]
+    },
     "PandocFormatFilters": {
       "type": "array",
       "items": {
@@ -85,14 +100,7 @@
                   "type": "string"
                 },
                 "at": {
-                  "enum": [
-                    "pre-ast",
-                    "post-ast",
-                    "pre-quarto",
-                    "post-quarto",
-                    "pre-render",
-                    "post-render"
-                  ]
+                  "$ref": "#/$defs/FilterEntryPoint"
                 }
               }
             }
@@ -240,7 +248,97 @@
         ]
       }
     },
-    "Comments": {
+    "GiscusConfiguration": {
+      "object": {
+        "properties": {
+          "repo": {
+            "type": "string"
+          },
+          "repo-id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "category-id": {
+            "type": "string"
+          },
+          "mapping": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "reactions-enabled": {
+            "type": "boolean"
+          },
+          "loading": {
+            "enum": [
+              "lazy"
+            ]
+          },
+          "input-position": {
+            "enum": [
+              "top",
+              "bottom"
+            ]
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/GiscusThemes"
+              },
+              {
+                "object": {
+                  "properties": {
+                    "light": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/$defs/GiscusThemes"
+                        }
+                      ]
+                    },
+                    "dark": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/$defs/GiscusThemes"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "language": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ExternalEngine": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "DocumentCommentsConfiguration": {
       "anyOf": [
         {
           "enum": [
@@ -269,90 +367,7 @@
                 }
               },
               "giscus": {
-                "object": {
-                  "properties": {
-                    "repo": {
-                      "type": "string"
-                    },
-                    "repo-id": {
-                      "type": "string"
-                    },
-                    "category": {
-                      "type": "string"
-                    },
-                    "category-id": {
-                      "type": "string"
-                    },
-                    "mapping": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "pathname",
-                            "url",
-                            "title",
-                            "og:title"
-                          ]
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "reactions-enabled": {
-                      "type": "boolean"
-                    },
-                    "loading": {
-                      "enum": [
-                        "lazy"
-                      ]
-                    },
-                    "input-position": {
-                      "enum": [
-                        "top",
-                        "bottom"
-                      ]
-                    },
-                    "theme": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "$ref": "#/$defs/GiscusThemes"
-                        },
-                        {
-                          "object": {
-                            "properties": {
-                              "light": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "$ref": "#/$defs/GiscusThemes"
-                                  }
-                                ]
-                              },
-                              "dark": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "$ref": "#/$defs/GiscusThemes"
-                                  }
-                                ]
-                              }
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "language": {
-                      "type": "string"
-                    }
-                  }
-                }
+                "$ref": "#/$defs/GiscusConfiguration"
               },
               "hypothesis": {
                 "anyOf": [
@@ -787,6 +802,9 @@
           "reader-mode": {
             "type": "boolean"
           },
+          "llms-txt": {
+            "type": "boolean"
+          },
           "google-analytics": {
             "anyOf": [
               {
@@ -812,6 +830,22 @@
                         3,
                         4
                       ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "plausible-analytics": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "object": {
+                  "properties": {
+                    "path": {
+                      "type": "string"
                     }
                   }
                 }
@@ -874,8 +908,8 @@
                   "properties": {
                     "type": {
                       "enum": [
-                        "implied",
-                        "express"
+                        "express",
+                        "implied"
                       ]
                     },
                     "style": {
@@ -933,6 +967,9 @@
                       "type": "number"
                     },
                     "copy-button": {
+                      "type": "boolean"
+                    },
+                    "merge-navbar-crumbs": {
                       "type": "boolean"
                     },
                     "keyboard-shortcut": {
@@ -1030,7 +1067,7 @@
                       ]
                     },
                     "logo": {
-                      "type": "string"
+                      "$ref": "#/$defs/LogoLightDarkSpecifier"
                     },
                     "logo-alt": {
                       "type": "string"
@@ -1039,42 +1076,10 @@
                       "type": "string"
                     },
                     "background": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ]
+                      "type": "string"
                     },
                     "foreground": {
-                      "anyOf": [
-                        {
-                          "enum": [
-                            "primary",
-                            "secondary",
-                            "success",
-                            "danger",
-                            "warning",
-                            "info",
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ]
+                      "type": "string"
                     },
                     "search": {
                       "type": "boolean"
@@ -1146,7 +1151,7 @@
                             ]
                           },
                           "logo": {
-                            "type": "string"
+                            "$ref": "#/$defs/LogoLightDarkSpecifier"
                           },
                           "logo-alt": {
                             "type": "string"
@@ -1173,42 +1178,10 @@
                             ]
                           },
                           "background": {
-                            "anyOf": [
-                              {
-                                "enum": [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              {
-                                "type": "string"
-                              }
-                            ]
+                            "type": "string"
                           },
                           "foreground": {
-                            "anyOf": [
-                              {
-                                "enum": [
-                                  "primary",
-                                  "secondary",
-                                  "success",
-                                  "danger",
-                                  "warning",
-                                  "info",
-                                  "light",
-                                  "dark"
-                                ]
-                              },
-                              {
-                                "type": "string"
-                              }
-                            ]
+                            "type": "string"
                           },
                           "border": {
                             "type": "boolean"
@@ -1273,7 +1246,7 @@
                           ]
                         },
                         "logo": {
-                          "type": "string"
+                          "$ref": "#/$defs/LogoLightDarkSpecifier"
                         },
                         "logo-alt": {
                           "type": "string"
@@ -1300,42 +1273,10 @@
                           ]
                         },
                         "background": {
-                          "anyOf": [
-                            {
-                              "enum": [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            {
-                              "type": "string"
-                            }
-                          ]
+                          "type": "string"
                         },
                         "foreground": {
-                          "anyOf": [
-                            {
-                              "enum": [
-                                "primary",
-                                "secondary",
-                                "success",
-                                "danger",
-                                "warning",
-                                "info",
-                                "light",
-                                "dark"
-                              ]
-                            },
-                            {
-                              "type": "string"
-                            }
-                          ]
+                          "type": "string"
                         },
                         "border": {
                           "type": "boolean"
@@ -1444,7 +1385,7 @@
             "type": "string"
           },
           "comments": {
-            "$ref": "#/$defs/Comments"
+            "$ref": "#/$defs/DocumentCommentsConfiguration"
           },
           "open-graph": {
             "anyOf": [
@@ -1736,6 +1677,36 @@
           "related-notebooks-title": {
             "type": "string"
           },
+          "source-notebooks-prefix": {
+            "type": "string"
+          },
+          "other-links-title": {
+            "type": "string"
+          },
+          "code-links-title": {
+            "type": "string"
+          },
+          "launch-dev-container-title": {
+            "type": "string"
+          },
+          "launch-binder-title": {
+            "type": "string"
+          },
+          "article-notebook-label": {
+            "type": "string"
+          },
+          "notebook-preview-download": {
+            "type": "string"
+          },
+          "notebook-preview-download-src": {
+            "type": "string"
+          },
+          "notebook-preview-back": {
+            "type": "string"
+          },
+          "manuscript-meca-bundle": {
+            "type": "string"
+          },
           "callout-tip-title": {
             "type": "string"
           },
@@ -1760,6 +1731,48 @@
           "section-title-appendices": {
             "type": "string"
           },
+          "section-title-references": {
+            "type": "string"
+          },
+          "section-title-reuse": {
+            "type": "string"
+          },
+          "section-title-copyright": {
+            "type": "string"
+          },
+          "section-title-citation": {
+            "type": "string"
+          },
+          "appendix-attribution-cite-as": {
+            "type": "string"
+          },
+          "appendix-attribution-bibtex": {
+            "type": "string"
+          },
+          "appendix-view-license": {
+            "type": "string"
+          },
+          "title-block-author-single": {
+            "type": "string"
+          },
+          "title-block-author-plural": {
+            "type": "string"
+          },
+          "title-block-affiliation-single": {
+            "type": "string"
+          },
+          "title-block-affiliation-plural": {
+            "type": "string"
+          },
+          "title-block-published": {
+            "type": "string"
+          },
+          "title-block-modified": {
+            "type": "string"
+          },
+          "title-block-keywords": {
+            "type": "string"
+          },
           "code-summary": {
             "type": "string"
           },
@@ -1778,6 +1791,21 @@
           "code-tools-source-code": {
             "type": "string"
           },
+          "tools-share": {
+            "type": "string"
+          },
+          "tools-download": {
+            "type": "string"
+          },
+          "code-line": {
+            "type": "string"
+          },
+          "code-lines": {
+            "type": "string"
+          },
+          "back-to-top": {
+            "type": "string"
+          },
           "search-no-results-text": {
             "type": "string"
           },
@@ -1785,6 +1813,9 @@
             "type": "string"
           },
           "copy-button-tooltip-success": {
+            "type": "string"
+          },
+          "skip-to-content": {
             "type": "string"
           },
           "repo-action-links-edit": {
@@ -1821,6 +1852,39 @@
             "type": "string"
           },
           "search-submit-button-title": {
+            "type": "string"
+          },
+          "search-label": {
+            "type": "string"
+          },
+          "toggle-section": {
+            "type": "string"
+          },
+          "toggle-sidebar": {
+            "type": "string"
+          },
+          "toggle-dark-mode": {
+            "type": "string"
+          },
+          "toggle-reader-mode": {
+            "type": "string"
+          },
+          "toggle-navigation": {
+            "type": "string"
+          },
+          "navigation-site-label": {
+            "type": "string"
+          },
+          "navigation-section-label": {
+            "type": "string"
+          },
+          "navigation-toolbar-label": {
+            "type": "string"
+          },
+          "navigation-page-label": {
+            "type": "string"
+          },
+          "navigation-breadcrumbs-label": {
             "type": "string"
           },
           "crossref-fig-title": {
@@ -1908,6 +1972,81 @@
             "type": "string"
           },
           "crossref-lol-title": {
+            "type": "string"
+          },
+          "environment-proof-title": {
+            "type": "string"
+          },
+          "environment-remark-title": {
+            "type": "string"
+          },
+          "environment-solution-title": {
+            "type": "string"
+          },
+          "listing-page-order-by": {
+            "type": "string"
+          },
+          "listing-page-order-by-default": {
+            "type": "string"
+          },
+          "listing-page-order-by-date-asc": {
+            "type": "string"
+          },
+          "listing-page-order-by-date-desc": {
+            "type": "string"
+          },
+          "listing-page-order-by-number-desc": {
+            "type": "string"
+          },
+          "listing-page-order-by-number-asc": {
+            "type": "string"
+          },
+          "listing-page-field-date": {
+            "type": "string"
+          },
+          "listing-page-field-title": {
+            "type": "string"
+          },
+          "listing-page-field-description": {
+            "type": "string"
+          },
+          "listing-page-field-author": {
+            "type": "string"
+          },
+          "listing-page-field-filename": {
+            "type": "string"
+          },
+          "listing-page-field-filemodified": {
+            "type": "string"
+          },
+          "listing-page-field-subtitle": {
+            "type": "string"
+          },
+          "listing-page-field-readingtime": {
+            "type": "string"
+          },
+          "listing-page-field-wordcount": {
+            "type": "string"
+          },
+          "listing-page-field-categories": {
+            "type": "string"
+          },
+          "listing-page-minutes-compact": {
+            "type": "string"
+          },
+          "listing-page-category-all": {
+            "type": "string"
+          },
+          "listing-page-no-matches": {
+            "type": "string"
+          },
+          "listing-page-words": {
+            "type": "string"
+          },
+          "listing-page-filter": {
+            "type": "string"
+          },
+          "draft": {
             "type": "string"
           }
         }
@@ -2994,7 +3133,71 @@
                   "type": "string"
                 },
                 "tests": {
-                  "type": "object"
+                  "object": {
+                    "properties": {
+                      "run": {
+                        "object": {
+                          "properties": {
+                            "ci": {
+                              "type": "boolean"
+                            },
+                            "skip": {
+                              "anyOf": [
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            "os": {
+                              "anyOf": [
+                                {
+                                  "enum": [
+                                    "linux",
+                                    "darwin",
+                                    "windows"
+                                  ]
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  }
+                                }
+                              ]
+                            },
+                            "not_os": {
+                              "anyOf": [
+                                {
+                                  "enum": [
+                                    "linux",
+                                    "darwin",
+                                    "windows"
+                                  ]
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "enum": [
+                                      "linux",
+                                      "darwin",
+                                      "windows"
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -3269,7 +3472,27 @@
         }
       ]
     },
-    "BrandLogo": {
+    "BrandLogoSingle": {
+      "object": {
+        "properties": {
+          "images": {
+            "object": {
+              "properties": {}
+            }
+          },
+          "small": {
+            "type": "string"
+          },
+          "medium": {
+            "type": "string"
+          },
+          "large": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "BrandLogoUnified": {
       "object": {
         "properties": {
           "images": {
@@ -3296,10 +3519,114 @@
         "large"
       ]
     },
+    "LogoOptions": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "LogoSpecifier": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/LogoOptions"
+        }
+      ]
+    },
+    "LogoOptionsPathOptional": {
+      "object": {
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "LogoSpecifierPathOptional": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/LogoOptionsPathOptional"
+        }
+      ]
+    },
+    "LogoLightDarkSpecifier": {
+      "anyOf": [
+        {
+          "enum": [
+            false
+          ]
+        },
+        {
+          "$ref": "#/$defs/LogoSpecifier"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "$ref": "#/$defs/LogoSpecifier"
+              },
+              "dark": {
+                "$ref": "#/$defs/LogoSpecifier"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "LogoLightDarkSpecifierPathOptional": {
+      "anyOf": [
+        {
+          "enum": [
+            false
+          ]
+        },
+        {
+          "$ref": "#/$defs/LogoSpecifierPathOptional"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "$ref": "#/$defs/LogoSpecifierPathOptional"
+              },
+              "dark": {
+                "$ref": "#/$defs/LogoSpecifierPathOptional"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "NormalizedLogoLightDarkSpecifier": {
+      "object": {
+        "properties": {
+          "light": {
+            "$ref": "#/$defs/LogoOptions"
+          },
+          "dark": {
+            "$ref": "#/$defs/LogoOptions"
+          }
+        }
+      }
+    },
     "BrandColorValue": {
       "type": "string"
     },
-    "BrandColor": {
+    "BrandColorSingle": {
       "object": {
         "properties": {
           "palette": {
@@ -3346,6 +3673,72 @@
         }
       }
     },
+    "BrandColorLightDark": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BrandColorValue"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "$ref": "#/$defs/BrandColorValue"
+              },
+              "dark": {
+                "$ref": "#/$defs/BrandColorValue"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandColorUnified": {
+      "object": {
+        "properties": {
+          "palette": {
+            "object": {
+              "properties": {}
+            }
+          },
+          "foreground": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "background": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "primary": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "secondary": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "tertiary": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "success": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "info": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "warning": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "danger": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "light": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "dark": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          },
+          "link": {
+            "$ref": "#/$defs/BrandColorLightDark"
+          }
+        }
+      }
+    },
     "BrandMaybeNamedColor": {
       "anyOf": [
         {
@@ -3353,6 +3746,25 @@
         },
         {
           "type": "string"
+        }
+      ]
+    },
+    "BrandMaybeNamedColorLightDark": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BrandMaybeNamedColor"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              },
+              "dark": {
+                "$ref": "#/$defs/BrandMaybeNamedColor"
+              }
+            }
+          }
         }
       ]
     },
@@ -3372,7 +3784,7 @@
         "link"
       ]
     },
-    "BrandTypography": {
+    "BrandTypographySingle": {
       "object": {
         "properties": {
           "fonts": {
@@ -3385,19 +3797,49 @@
             "$ref": "#/$defs/BrandTypographyOptionsBase"
           },
           "headings": {
-            "$ref": "#/$defs/BrandTypographyOptionsHeadings"
+            "$ref": "#/$defs/BrandTypographyOptionsHeadingsSingle"
           },
           "monospace": {
-            "$ref": "#/$defs/BrandTypographyOptionsMonospace"
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceSingle"
           },
           "monospace-inline": {
-            "$ref": "#/$defs/BrandTypographyOptionsMonospaceInline"
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceInlineSingle"
           },
           "monospace-block": {
-            "$ref": "#/$defs/BrandTypographyOptionsMonospaceBlock"
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceBlockSingle"
           },
           "link": {
-            "$ref": "#/$defs/BrandTypographyOptionsLink"
+            "$ref": "#/$defs/BrandTypographyOptionsLinkSingle"
+          }
+        }
+      }
+    },
+    "BrandTypographyUnified": {
+      "object": {
+        "properties": {
+          "fonts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/BrandFont"
+            }
+          },
+          "base": {
+            "$ref": "#/$defs/BrandTypographyOptionsBase"
+          },
+          "headings": {
+            "$ref": "#/$defs/BrandTypographyOptionsHeadingsUnified"
+          },
+          "monospace": {
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceUnified"
+          },
+          "monospace-inline": {
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceInlineUnified"
+          },
+          "monospace-block": {
+            "$ref": "#/$defs/BrandTypographyOptionsMonospaceBlockUnified"
+          },
+          "link": {
+            "$ref": "#/$defs/BrandTypographyOptionsLinkUnified"
           }
         }
       }
@@ -3427,7 +3869,7 @@
         }
       ]
     },
-    "BrandTypographyOptionsHeadings": {
+    "BrandTypographyOptionsHeadingsSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3455,7 +3897,35 @@
         }
       ]
     },
-    "BrandTypographyOptionsMonospace": {
+    "BrandTypographyOptionsHeadingsUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "style": {
+                "$ref": "#/$defs/BrandFontStyle"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "line-height": {
+                "$ref": "#/$defs/LineHeightNumberString"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandTypographyOptionsMonospaceSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3483,7 +3953,35 @@
         }
       ]
     },
-    "BrandTypographyOptionsMonospaceInline": {
+    "BrandTypographyOptionsMonospaceUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandTypographyOptionsMonospaceInlineSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3505,6 +4003,34 @@
               },
               "background-color": {
                 "$ref": "#/$defs/BrandMaybeNamedColor"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandTypographyOptionsMonospaceInlineUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
               }
             }
           }
@@ -3521,7 +4047,7 @@
         }
       ]
     },
-    "BrandTypographyOptionsMonospaceBlock": {
+    "BrandTypographyOptionsMonospaceBlockSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3552,7 +4078,38 @@
         }
       ]
     },
-    "BrandTypographyOptionsLink": {
+    "BrandTypographyOptionsMonospaceBlockUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "family": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "line-height": {
+                "$ref": "#/$defs/LineHeightNumberString"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandTypographyOptionsLinkSingle": {
       "anyOf": [
         {
           "type": "string"
@@ -3577,11 +4134,39 @@
         }
       ]
     },
-    "BrandNamedFont": {
+    "BrandTypographyOptionsLinkUnified": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "weight": {
+                "$ref": "#/$defs/BrandFontWeight"
+              },
+              "color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "background-color": {
+                "$ref": "#/$defs/BrandMaybeNamedColorLightDark"
+              },
+              "decoration": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandNamedTypographyElements": {
       "enum": [
         "base",
         "headings",
-        "monospace"
+        "monospace",
+        "monospace-inline",
+        "monospace-block",
+        "link"
       ]
     },
     "BrandFont": {
@@ -3597,9 +4182,6 @@
         },
         {
           "$ref": "#/$defs/BrandFontSystem"
-        },
-        {
-          "$ref": "#/$defs/BrandFontCommon"
         }
       ]
     },
@@ -3755,26 +4337,105 @@
     "BrandFontFamily": {
       "type": "string"
     },
-    "Brand": {
+    "BrandSingle": {
       "object": {
         "properties": {
           "meta": {
             "$ref": "#/$defs/BrandMeta"
           },
           "logo": {
-            "$ref": "#/$defs/BrandLogo"
+            "$ref": "#/$defs/BrandLogoSingle"
           },
           "color": {
-            "$ref": "#/$defs/BrandColor"
+            "$ref": "#/$defs/BrandColorSingle"
           },
           "typography": {
-            "$ref": "#/$defs/BrandTypography"
+            "$ref": "#/$defs/BrandTypographySingle"
           },
           "defaults": {
             "$ref": "#/$defs/BrandDefaults"
           }
         }
       }
+    },
+    "BrandUnified": {
+      "object": {
+        "properties": {
+          "meta": {
+            "$ref": "#/$defs/BrandMeta"
+          },
+          "logo": {
+            "$ref": "#/$defs/BrandLogoUnified"
+          },
+          "color": {
+            "$ref": "#/$defs/BrandColorUnified"
+          },
+          "typography": {
+            "$ref": "#/$defs/BrandTypographyUnified"
+          },
+          "defaults": {
+            "$ref": "#/$defs/BrandDefaults"
+          }
+        }
+      }
+    },
+    "BrandPathOnlyLightDark": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "type": "string"
+              },
+              "dark": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BrandPathBoolLightDark": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "object": {
+            "properties": {
+              "light": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/BrandSingle"
+                  }
+                ]
+              },
+              "dark": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/BrandSingle"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/BrandUnified"
+        }
+      ]
     },
     "BrandDefaults": {
       "object": {
@@ -3795,6 +4456,21 @@
             "object": {
               "properties": {}
             }
+          }
+        }
+      }
+    },
+    "MarginaliaSideGeometry": {
+      "object": {
+        "properties": {
+          "far": {
+            "type": "string"
+          },
+          "width": {
+            "type": "string"
+          },
+          "separation": {
+            "type": "string"
           }
         }
       }
@@ -3838,6 +4514,9 @@
                 "type": "string"
               }
             ]
+          },
+          "brand": {
+            "$ref": "#/$defs/BrandPathOnlyLightDark"
           },
           "preview": {
             "$ref": "#/$defs/ProjectPreview"

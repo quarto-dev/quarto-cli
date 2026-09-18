@@ -1,0 +1,44 @@
+---
+title: explicit dark and light logo paths
+format:
+  dashboard: default
+  revealjs: default
+  typst:
+    output-ext: typ
+brand:
+  logo:
+    images:
+      quarto:
+        path: quarto.png
+        alt: quarto logo
+      posit:
+        path: posit-logo-2024.svg
+        alt: posit logo
+logo:
+  light:
+    path: custom-light.png
+    alt: custom light logo
+  dark:
+    path: custom-dark.png
+    alt: custom dark logo
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'img[src="custom-light.png"][alt="custom light logo"][class="navbar-logo light-content d-inline-block"]'
+          - 'img[src="custom-dark.png"][alt="custom dark logo"][class="navbar-logo dark-content d-inline-block"]'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'img[src="custom-light.png"][alt="custom light logo"]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("custom-light.png", width: 1\.5in, alt: "custom light logo"\)\)'
+        - []
+---
+
+{{< lipsum 4 >}}

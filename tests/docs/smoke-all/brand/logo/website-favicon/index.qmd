@@ -1,0 +1,13 @@
+---
+title: "test-brand-favicon"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<link href="./logos/small.png" rel="icon" type="image/png">']
+        - []
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.

@@ -1,0 +1,26 @@
+---
+title: your brand extension
+---
+
+# brand.yml extension
+
+Here is some inline code: `def foo(x): return x`{.python} and `y`{.python} and `z`{.python}.
+
+Here is [a link](https://example.com).
+
+Here is a code block:
+
+```{.r}
+# | echo: true
+fibonacci <- function(n) {
+  if (n <= 0) {
+    return(NULL)
+  } else if (n == 1) {
+    return(0)
+  } else if (n == 2) {
+    return(1)
+  } else {
+    return(fibonacci(n - 1) + fibonacci(n - 2))
+  }
+}
+```

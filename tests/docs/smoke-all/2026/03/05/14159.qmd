@@ -1,0 +1,20 @@
+---
+format: html
+my-value: Release Candidate
+include-after-body:
+  text: |
+    <script>window["test-include"] = '{{< meta my-value >}}';</script>
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - "test-include.*Release Candidate"
+          - "test-rawblock.*Release Candidate"
+---
+
+Inline: {{< meta my-value >}}
+
+```{=html}
+<script>window["test-rawblock"] = '{{< meta my-value >}}';</script>
+```

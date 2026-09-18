@@ -1,0 +1,9 @@
+title: Font Provider Extension
+author: Test
+version: 1.0.0
+quarto-required: ">=1.9"
+contributes:
+  formats:
+    typst:
+      font-paths:
+        - fonts

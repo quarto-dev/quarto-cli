@@ -17,7 +17,6 @@ import { outputTools } from "../../tools/tools-console.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const listCommand = new Command()
-  .hidden()
   .name("list")
   .arguments("<type:string>")
   .description(

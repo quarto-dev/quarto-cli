@@ -34,7 +34,17 @@ export const denoRunHandler: RunHandler = {
       },
     };
 
-    const importMap = normalize(join(denoDir, "../run_import_map.json"));
+    // Choose import map based on --dev flag
+    let importMap: string;
+    if (options?.dev) {
+      // Use main dev import map for internal development tools
+      const srcDir = Deno.env.get("QUARTO_SRC_PATH") ||
+        join(quartoConfig.sharePath(), "../../src");
+      importMap = normalize(join(srcDir, "import_map.json"));
+    } else {
+      // Use user-facing run import map
+      importMap = normalize(join(denoDir, "../run_import_map.json"));
+    }
 
     const noNet = Deno.env.get("QUARTO_RUN_NO_NETWORK") === "true";
 
@@ -43,8 +53,8 @@ export const denoRunHandler: RunHandler = {
 
     return await execProcess(
       {
-        cmd: [
-          architectureToolsPath("deno"),
+        cmd: architectureToolsPath("deno"),
+        args: [
           "run",
           "--import-map",
           importMap,

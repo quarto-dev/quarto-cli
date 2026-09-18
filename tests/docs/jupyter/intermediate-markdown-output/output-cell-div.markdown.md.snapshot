@@ -1,0 +1,23 @@
+---
+title: "Untitled"
+format: markdown
+keep-md: true
+---
+
+This does it:
+
+::: {.cell execution_count=1}
+``` {.python .cell-code}
+1 + 1
+```
+
+::: {.cell-output .cell-output-display execution_count=1}
+```
+2
+```
+:::
+:::
+
+
+Other content
+

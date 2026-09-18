@@ -19,7 +19,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '\[#set text\(fill: rgb\(94%, 42%, 0%, 37.5%\)\); B\]'
+          - '\[#set text\(fill: rgb\(94%, 42%, 0%, 37.5%\)\);\s*B\]'
         - []
 ---
 

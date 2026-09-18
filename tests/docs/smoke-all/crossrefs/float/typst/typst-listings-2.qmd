@@ -1,0 +1,28 @@
+---
+title: Listings Test
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Listings now use a show rule for alignment instead of inline #set align
+          - '#show figure\.where\(kind: "quarto-float-lst"\): set align\(start\)'
+          - '#figure\(\[\s*\n#Skylighting'
+          - 'kind: "quarto-float-lst"'
+          - '#ref\(<lst-customers>, supplement: \[Listing\]\)'
+          - 'Customers Query'
+        - []
+---
+
+::: {#lst-customers}
+
+```{.sql}
+SELECT * FROM Customers
+```
+Customers Query
+
+:::
+
+Then we query the customers database (@lst-customers).

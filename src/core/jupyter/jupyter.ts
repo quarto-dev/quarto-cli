@@ -61,7 +61,10 @@ import {
   isCaptionableData,
   isDisplayData,
 } from "./display-data.ts";
-import { extractJupyterWidgetDependencies } from "./widgets.ts";
+import {
+  extractJupyterWidgetDependencies,
+  includesForJupyterWidgetDependencies,
+} from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
@@ -112,6 +115,8 @@ import {
   kFigCapLoc,
   kHtmlTableProcessing,
   kInclude,
+  kIncludeAfterBody,
+  kIncludeInHeader,
   kLayout,
   kLayoutAlign,
   kLayoutNcol,
@@ -142,19 +147,21 @@ import {
   JupyterOutputStream,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
+  JupyterWidgetDependencies,
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines, trimEmptyLines } from "../lib/text.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
-import { languagesInMarkdown } from "../../execute/engine-shared.ts";
+import { languagesInMarkdown } from "../pandoc/pandoc-partition.ts";
 import {
   normalizePath,
   pathWithForwardSlashes,
   removeIfEmptyDir,
 } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { kProjectType, ProjectContext } from "../../project/types.ts";
+import { EngineProjectContext, kProjectType } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
+import type { PandocIncludes } from "../../execute/types.ts";
 import { encodeBase64 } from "encoding/base64";
 import {
   isHtmlOutput,
@@ -174,6 +181,8 @@ import {
   jupyterCellSrcAsLines,
   jupyterCellSrcAsStr,
 } from "./jupyter-shared.ts";
+import { error } from "../../deno_ral/log.ts";
+import { valid } from "semver/mod.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -288,7 +297,7 @@ const ticksForCode = (code: string[]) => {
 export async function quartoMdToJupyter(
   markdown: string,
   includeIds: boolean,
-  project?: ProjectContext,
+  project?: EngineProjectContext,
 ): Promise<JupyterNotebook> {
   const [kernelspec, metadata] = await jupyterKernelspecFromMarkdown(
     markdown,
@@ -498,7 +507,7 @@ export async function quartoMdToJupyter(
 
 export async function jupyterKernelspecFromMarkdown(
   markdown: string,
-  project?: ProjectContext,
+  project?: EngineProjectContext,
 ): Promise<[JupyterKernelspec, Metadata]> {
   const config = project?.config;
   const yaml = config
@@ -921,8 +930,44 @@ export function jupyterCellWithOptions(
     }
   };
 
+  const validMetadata: Record<
+    string,
+    string | number | boolean | null | Array<unknown>
+  > = {};
+  for (const key of Object.keys(cell.metadata)) {
+    const value = cell.metadata[key];
+    let jsonEncodedKeyIndex = 0;
+    if (value !== undefined) {
+      if (!value && typeof value === "object") {
+        validMetadata[key] = null;
+      } else if (value && typeof value === "object" && !Array.isArray(value)) {
+        // https://github.com/quarto-dev/quarto-cli/issues/9089
+        // we need to json-encode this and signal the encoding in the key
+        // we can't use the key as is since it may contain invalid characters
+        // and modifying the key might introduce collisions
+        // we ensure the key is unique with a counter, and assume
+        // "quarto-private-*" to be a private namespace for quarto.
+        // we'd prefer to use _quarto-* instead, but Pandoc doesn't allow keys to start
+        // with an underscore.
+        validMetadata[
+          `quarto-private-${++jsonEncodedKeyIndex}`
+        ] = JSON.stringify({ key, value });
+      } else if (
+        typeof value === "string" || typeof value === "number" ||
+        typeof value === "boolean" || Array.isArray(value)
+      ) {
+        validMetadata[key] = value;
+      } else {
+        error(
+          `Invalid metadata type for key ${key}: ${typeof value}. Entry will not be serialized.`,
+        );
+      }
+    }
+  }
+
   return {
     ...cell,
+    metadata: validMetadata,
     id: cellId(cell),
     source,
     optionsSource,
@@ -992,7 +1037,7 @@ export function mdFromContentCell(
             : data as string;
           // base 64 decode if its not svg
           if (!imageText.trimStart().startsWith("<svg")) {
-            const imageData = base64decode(imageText);
+            const imageData = base64decode(imageText.replaceAll("\n", ""));
             Deno.writeFileSync(outputFile, imageData);
           } else {
             Deno.writeTextFileSync(outputFile, imageText);
@@ -1001,7 +1046,7 @@ export function mdFromContentCell(
           for (let i = 0; i < source.length; i++) {
             source[i] = source[i].replaceAll(
               `attachment:${file}`,
-              imageFile,
+              () => imageFile,
             );
           }
           // only process one supported mime type
@@ -1188,6 +1233,7 @@ const kLangCommentChars: Record<string, string | string[]> = {
   stata: "*",
   java: "//",
   groovy: "//",
+  kotlin: "//",
   sed: "#",
   perl: "#",
   ruby: "#",
@@ -1204,6 +1250,7 @@ const kLangCommentChars: Record<string, string | string[]> = {
   mermaid: "%%",
   apl: "⍝",
   ocaml: ["(*", "*)"],
+  q: "/",
   rust: "//",
 };
 
@@ -1629,7 +1676,7 @@ async function mdFromCodeCell(
           }
           md.push(text.join(""));
         } else {
-          md.push(mdOutputStream(stream));
+          md.push(await mdOutputStream(stream, options));
         }
       } else if (output.output_type === "error") {
         md.push(await mdOutputError(output as JupyterOutputError, options));
@@ -1710,7 +1757,7 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscardableTextExecuteResult(
+export function isDiscardableTextExecuteResult(
   output: JupyterOutput,
   haveImage: boolean,
 ) {
@@ -1719,8 +1766,23 @@ function isDiscardableTextExecuteResult(
     if (Object.keys(data).length === 1) {
       const textPlain = data?.[kTextPlain] as string[] | undefined;
       if (textPlain && textPlain.length) {
-        if (haveImage && textPlain.length === 1) {
-          return /^([<(\[]).*?([>)\]])$/.test(textPlain[0].trim());
+        if (haveImage) {
+          if (textPlain.length === 1) {
+            // single-line object reprs echoed next to the figure: <...>/(...)/[...]
+            // wrappers (Axes, Line2D, tuples) plus matplotlib Text from
+            // title()/xlabel()/ylabel()/set_title() — whose repr leads with a
+            // numeric coordinate (Text(0.5, ...)), unlike other libraries' Text
+            const first = textPlain[0].trim();
+            return /^([<(\[]).*?([>)\]])$/.test(first) ||
+              /^Text\([-\d]/.test(first) ||
+              (first.startsWith("{") && first.includes("<matplotlib."));
+          } else {
+            // multi-line reprs that are collections of matplotlib artists, e.g.
+            // the dict of Line2D returned by boxplot(). Only suppress when a
+            // matplotlib object is referenced, leaving ordinary multi-line
+            // output (lists, tuples, custom reprs) untouched
+            return textPlain.some((line) => line.includes("<matplotlib."));
+          }
         } else {
           return [
             "[<matplotlib",
@@ -1766,7 +1828,10 @@ function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }
 
-function mdOutputStream(output: JupyterOutputStream) {
+async function mdOutputStream(
+  output: JupyterOutputStream,
+  options: JupyterToMarkdownOptions,
+) {
   let text: string[] = [];
   if (typeof output.text === "string") {
     text = [output.text];
@@ -1781,14 +1846,23 @@ function mdOutputStream(output: JupyterOutputStream) {
         /<ipython-input.*?>:\d+:\s+/,
         "",
       );
-      return mdCodeOutput(
-        [firstLine, ...text.slice(1)].map(colors.stripColor),
-      );
+      text = [firstLine, ...text.slice(1)];
     }
   }
 
-  // normal default handling
-  return mdCodeOutput(text.map(colors.stripColor));
+  if (options.toHtml && text.some(hasAnsiEscapeCodes)) {
+    const linesHTML = await convertToHtmlSpans(text.join("\n"));
+    return mdMarkdownOutput(
+      [
+        "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
+        linesHTML,
+        "</pre>\n```\n:::\n",
+      ],
+    );
+  } else {
+    // normal default behavior
+    return mdCodeOutput(text.map(colors.stripAnsiCode));
+  }
 }
 
 async function mdOutputError(
@@ -1864,8 +1938,11 @@ async function mdOutputDisplayData(
       // if output is invalid, warn and emit empty
       const data = output.data[mimeType] as unknown;
       if (!Array.isArray(data) || data.some((s) => typeof s !== "string")) {
-        return mdWarningOutput(`Unable to process text plain output data 
-which does not appear to be plain text: ${JSON.stringify(data)}`);
+        return await mdWarningOutput(
+          `Unable to process text plain output data 
+which does not appear to be plain text: ${JSON.stringify(data)}`,
+          options,
+        );
       }
       const lines = data as string[];
       // pandas inexplicably outputs html tables as text/plain with an enclosing single-quote
@@ -1893,16 +1970,17 @@ which does not appear to be plain text: ${JSON.stringify(data)}`);
             return mdCodeOutput(lines);
           }
         } else {
-          return mdCodeOutput(lines.map(colors.stripColor));
+          return mdCodeOutput(lines.map(colors.stripAnsiCode));
         }
       }
     }
   }
 
   // no type match found
-  return mdWarningOutput(
+  return await mdWarningOutput(
     "Unable to display output for mime type(s): " +
       Object.keys(output.data).join(", "),
+    options,
   );
 }
 
@@ -1937,7 +2015,7 @@ function mdImageOutput(
   // get the data
   const imageText = Array.isArray(data)
     ? (data as string[]).join("")
-    : data as string;
+    : (data as string).trim();
 
   const outputFile = join(options.assets.base_dir, imageFile);
   if (
@@ -1948,7 +2026,9 @@ function mdImageOutput(
     // https://github.com/quarto-dev/quarto-cli/issues/9793
     !/<svg/.test(imageText)
   ) {
-    const imageData = base64decode(imageText);
+    // we need to remove the newlines from the base64 encoded data
+    // because base64decode doesn't like the multiline-encoded style
+    const imageData = base64decode(imageText.replaceAll("\n", ""));
 
     // if we are in retina mode, then derive width and height from the image
     if (
@@ -2061,12 +2141,12 @@ function mdEnclosedOutput(begin: string, text: string[], end: string) {
   return md.join("");
 }
 
-function mdWarningOutput(msg: string) {
-  return mdOutputStream({
+async function mdWarningOutput(msg: string, options: JupyterToMarkdownOptions) {
+  return await mdOutputStream({
     output_type: "stream",
     name: "stderr",
     text: [msg],
-  });
+  }, options);
 }
 
 function isWarningOutput(output: JupyterOutput) {
@@ -2083,4 +2163,38 @@ function outputTypeCssClass(output_type: string) {
     output_type = "display";
   }
   return `cell-output-${output_type}`;
+}
+
+// Engine helper functions for processing execute results
+// These are used by multiple engines (Jupyter, etc.) to handle widget dependencies
+export function executeResultIncludes(
+  tempDir: string,
+  widgetDependencies?: JupyterWidgetDependencies,
+): PandocIncludes | undefined {
+  if (widgetDependencies) {
+    const includes: PandocIncludes = {};
+    const includeFiles = includesForJupyterWidgetDependencies(
+      [widgetDependencies],
+      tempDir,
+    );
+    if (includeFiles.inHeader) {
+      includes[kIncludeInHeader] = [includeFiles.inHeader];
+    }
+    if (includeFiles.afterBody) {
+      includes[kIncludeAfterBody] = [includeFiles.afterBody];
+    }
+    return includes;
+  } else {
+    return undefined;
+  }
+}
+
+export function executeResultEngineDependencies(
+  widgetDependencies?: JupyterWidgetDependencies,
+): Array<unknown> | undefined {
+  if (widgetDependencies) {
+    return [widgetDependencies];
+  } else {
+    return undefined;
+  }
 }

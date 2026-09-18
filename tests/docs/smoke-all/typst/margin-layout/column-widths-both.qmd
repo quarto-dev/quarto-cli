@@ -1,0 +1,71 @@
+---
+title: "Column Widths Both Sides Test"
+papersize: us-letter
+format:
+  html:
+    include-in-header:
+      text: |
+        <style>body { text-align: justify; }</style>
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#column-body-outset', '#column-page-inset']
+        - []
+      ensurePdfRegexMatches:
+        - ['BODY-B', 'OUTSET-B', 'PINSET-B', 'PAGE-B']
+        - []
+      ensurePdfTextPositions:
+        # Test width progression on left side (left edge moves leftward)
+        - - subject: {text: "OUTSET-B", edge: "left"}
+            relation: leftOf
+            object: {text: "BODY-B", edge: "left"}
+            byMin: 1
+          - subject: {text: "PINSET-B", edge: "left"}
+            relation: leftOf
+            object: {text: "OUTSET-B", edge: "left"}
+            byMin: 1
+          - subject: {text: "PAGE-B", edge: "left"}
+            relation: leftOf
+            object: {text: "PINSET-B", edge: "left"}
+            byMin: 1
+          # Test width progression on right side (right edge moves rightward)
+          - subject: {text: "OUTSET-B", edge: "right"}
+            relation: rightOf
+            object: {text: "BODY-B", edge: "right"}
+            byMin: 1
+          - subject: {text: "PINSET-B", edge: "right"}
+            relation: rightOf
+            object: {text: "OUTSET-B", edge: "right"}
+            byMin: 1
+          - subject: {text: "PAGE-B", edge: "right"}
+            relation: rightOf
+            object: {text: "PINSET-B", edge: "right"}
+            byMin: 1
+        - []
+      noErrors: default
+---
+
+## Column Widths Both Sides Test
+
+Tests the width progression of symmetric column classes: body < body-outset < page-inset < page.
+
+::: {.column-body}
+BODY-B: Standard body column width. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+:::
+
+::: {.column-body-outset}
+OUTSET-B: Body outset extends slightly into both margins. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+:::
+
+::: {.column-page-inset}
+PINSET-B: Page inset extends further into both margins than body-outset. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+:::
+
+::: {.column-page}
+PAGE-B: Full page width extends to both page edges. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+:::
+
+Regular text for comparison.

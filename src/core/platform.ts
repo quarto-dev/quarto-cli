@@ -14,7 +14,15 @@ export function isWSL() {
   return !!Deno.env.get("WSL_DISTRO_NAME");
 }
 
+// Test override for isRStudio — avoids Deno.env.set() race conditions
+// in parallel tests. See quarto-dev/quarto-cli#14218 and PR #12621.
+let _isRStudioOverride: boolean | undefined;
+export function _setIsRStudioForTest(value: boolean | undefined) {
+  _isRStudioOverride = value;
+}
+
 export function isRStudio() {
+  if (_isRStudioOverride !== undefined) return _isRStudioOverride;
   return !!Deno.env.get("RSTUDIO");
 }
 
@@ -34,7 +42,7 @@ export function isVSCodeServer() {
   return !!vsCodeServerProxyUri();
 }
 
-export function isRStudioWorkbench() {
+export function isPositWorkbench() {
   // RS_SERVER_URL e.g. https://daily-rsw.soleng.rstudioservices.com/
   // RS_SESSION_URL e.g. /s/eae053c9ab5a71168ee19/
   return !!Deno.env.get("RS_SERVER_URL") && !!Deno.env.get("RS_SESSION_URL");
@@ -50,7 +58,7 @@ export function isPositronTerminal() {
 }
 
 export function isServerSession() {
-  return isRStudioServer() || isRStudioWorkbench() || isJupyterServer() ||
+  return isRStudioServer() || isPositWorkbench() || isJupyterServer() ||
     isJupyterHubServer() || isVSCodeServer();
 }
 
@@ -92,10 +100,6 @@ export function isInteractiveTerminal() {
 
 export function isInteractiveSession() {
   return isRStudio() || isInteractiveTerminal() || isVSCodeOutputChannel();
-}
-
-export function isGithubAction() {
-  return Deno.env.get("GITHUB_ACTIONS") === "true";
 }
 
 export function nullDevice() {

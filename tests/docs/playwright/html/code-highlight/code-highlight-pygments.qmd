@@ -1,0 +1,6 @@
+---
+title: Testing pygments code highlight
+syntax-highlighting: pygments
+---
+
+{{< include _body.md >}}

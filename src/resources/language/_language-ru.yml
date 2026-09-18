@@ -79,6 +79,17 @@ toggle-dark-mode: "Переключить темный режим"
 toggle-reader-mode: "Переключить режим чтения"
 toggle-navigation: "Переключить навигацию"
 
+# Landmark labels. Two rules for translators:
+# 1. Do not include the word "navigation". Screen readers announce the role after
+#    the label (https://www.w3.org/WAI/ARIA/apg/practices/landmark-regions/).
+# 2. Use a noun, not a bare adjective. In several languages the adjective cannot
+#    stand alone without the noun it agrees with.
+navigation-site-label: "Сайт"                    # wikidata Q35127
+navigation-section-label: "Раздел"               # libreoffice sw
+navigation-toolbar-label: "Панель инструментов"  # wikidata Q371434
+navigation-page-label: "Страница"                # libreoffice sw
+navigation-breadcrumbs-label: "Путь"             # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
+
 crossref-fig-title: "Рисунок"
 crossref-tbl-title: "Таблица"
 crossref-lst-title: "Список"

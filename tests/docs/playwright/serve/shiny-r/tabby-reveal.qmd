@@ -1,0 +1,44 @@
+---
+title: "Title"
+format: revealjs
+server: shiny
+_quarto:
+  playwright-test: serve/shiny-r/shiny-tabby-reveal.spec.ts
+---
+
+```{r}
+#| context: server
+output$text1 <- renderText({
+  "hi, it's tab 1"
+})
+output$text2 <- renderText({
+  "hi, it's tab 2"
+})
+output$text3 <- renderText({
+  "hi, it's tab 3"
+})
+```
+
+## Slide
+
+::: {.panel-tabset}
+
+### tab1
+
+```{r}
+textOutput("text1")
+```
+
+### tab2
+
+```{r}
+textOutput("text2")
+```
+
+### tab3
+
+```{r}
+textOutput("text3")
+```
+
+:::

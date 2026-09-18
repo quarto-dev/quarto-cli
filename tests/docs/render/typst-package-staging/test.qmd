@@ -1,0 +1,27 @@
+---
+title: "Typst Package Staging Test"
+papersize: us-letter
+format: test-ext-typst
+keep-typ: true
+---
+
+This tests that typst packages from extensions are staged to `.quarto/typst-packages/`.
+
+::: {.column-margin}
+This margin note triggers the marginalia package.
+
+| 3 | 1 | 4 |
+|---|---|---|
+| 1 | 5 | 9 |
+| 2 | 6 | 5 |
+
+: Numbers 1-9 (some repeated)
+:::
+
+The extension's template imports `@preview/hello:0.1.0` and `@local/confetti` which are bundled in the extension's `typst/packages/` directory.
+
+```{=typst}
+#greet("World")
+
+#celebrate("Airgap rendering works!")
+```

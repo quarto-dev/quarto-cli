@@ -1,0 +1,8 @@
+---
+title: "Output Dir Subdir Test"
+format: html
+---
+
+# Test Document
+
+This document tests that `output-dir: _output` creates output in subdirectory.

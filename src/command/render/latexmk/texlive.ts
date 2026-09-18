@@ -6,12 +6,14 @@
 import * as ld from "../../../core/lodash.ts";
 
 import { execProcess } from "../../../core/process.ts";
+import { ProcessResult } from "../../../core/process-types.ts";
 import { lines } from "../../../core/text.ts";
 import { requireQuoting, safeWindowsExec } from "../../../core/windows.ts";
 import { hasTinyTex, tinyTexBinDir } from "../../../tools/impl/tinytex-info.ts";
 import { join } from "../../../deno_ral/path.ts";
 import { logProgress } from "../../../core/log.ts";
 import { isWindows } from "../../../deno_ral/platform.ts";
+import { warning } from "../../../deno_ral/log.ts";
 
 export interface TexLiveContext {
   preferTinyTex: boolean;
@@ -86,10 +88,11 @@ export async function findPackages(
         `finding package for ${searchTerm}`,
       );
     }
-    // Special case for a known package
+    // Special cases for known packages where tlmgr file search doesn't work
     // https://github.com/rstudio/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L470
-    if (searchTerm === "fandol") {
-      results.push("fandol");
+    const knownPackages = ["fandol", "latex-lab", "colorprofiles"];
+    if (knownPackages.includes(searchTerm)) {
+      results.push(searchTerm);
     } else {
       const result = await tlmgrCommand(
         "search",
@@ -238,15 +241,15 @@ async function installPackage(
       quiet,
     );
     if (updateResult.code !== 0) {
-      return Promise.reject("Problem running `tlgmr update`.");
+      return Promise.reject("Problem running `tlmgr update`.");
     }
 
-    // Rebuild format tree
+    // Rebuild format tree (best-effort; failure is non-fatal — see
+    // fmtutilFailureMessage doc).
     const fmtutilResult = await fmtutilCommand(context);
-    if (fmtutilResult.code !== 0) {
-      return Promise.reject(
-        "Problem running `fmtutil-sys --all` to rebuild format tree.",
-      );
+    const fmtutilWarn = fmtutilFailureMessage(fmtutilResult);
+    if (fmtutilWarn) {
+      warning(fmtutilWarn);
     }
   }
 
@@ -277,15 +280,15 @@ async function installPackage(
       quiet,
     );
     if (updateResult.code !== 0) {
-      return Promise.reject("Problem running `tlgmr update`.");
+      return Promise.reject("Problem running `tlmgr update`.");
     }
 
-    // Rebuild format tree
+    // Rebuild format tree (best-effort; failure is non-fatal — see
+    // fmtutilFailureMessage doc).
     const fmtutilResult = await fmtutilCommand(context);
-    if (fmtutilResult.code !== 0) {
-      return Promise.reject(
-        "Problem running `fmtutil-sys --all` to rebuild format tree.",
-      );
+    const fmtutilWarn = fmtutilFailureMessage(fmtutilResult);
+    if (fmtutilWarn) {
+      warning(fmtutilWarn);
     }
 
     // Rerun the install command
@@ -427,7 +430,8 @@ function tlmgrCommand(
   const execTlmgr = (tlmgrCmd: string[]) => {
     return execProcess(
       {
-        cmd: tlmgrCmd,
+        cmd: tlmgrCmd[0],
+        args: tlmgrCmd.slice(1),
         stdout: "piped",
         stderr: "piped",
       },
@@ -451,15 +455,50 @@ function tlmgrCommand(
   }
 }
 
+// Returns a warning message when `fmtutil-sys --all` failed, or `undefined`
+// when it succeeded. fmtutil failure is treated as non-fatal: package install
+// already succeeded by the time we reach the recovery branches in
+// `installPackage`, and the format-tree rebuild is best-effort housekeeping
+// to mitigate l3kernel version-mismatch issues (#7252).
+//
+// Upstream tinytex R package follows the same pattern (R/tlmgr.R discards
+// the `system2('fmtutil', ...)` exit code).
+export function fmtutilFailureMessage(
+  result: ProcessResult,
+): string | undefined {
+  if (result.code === 0) {
+    return undefined;
+  }
+  const stderr = result.stderr?.trim() ?? "";
+  const detail = stderr.length > 0 ? `\n${stderr}` : "";
+  return `Failed to rebuild format tree (\`fmtutil-sys --all\` exited ${result.code}). This is non-fatal — package installation will continue.${detail}`;
+}
+
 // Execute fmtutil
 // https://tug.org/texlive/doc/fmtutil.html
+//
+// On Windows, route through `safeWindowsExec` (mirrors `tlmgrCommand`).
+// This wraps the call in a temp `.bat` invoked via `cmd /c`, which
+// avoids 8.3 short-path resolution failures inside TeX Live's
+// `runscript.tlu` (rstudio/tinytex#427).
 function fmtutilCommand(context: TexLiveContext) {
   const fmtutil = texLiveCmd("fmtutil-sys", context);
-  return execProcess(
-    {
-      cmd: [fmtutil.fullPath, "--all"],
+  const execFmtutil = (cmd: string[]) => {
+    return execProcess({
+      cmd: cmd[0],
+      args: cmd.slice(1),
       stdout: "piped",
       stderr: "piped",
-    },
-  );
+    });
+  };
+  if (isWindows) {
+    // Quote both program and args before handing them to `safeWindowsExec`
+    // — `safeWindowsExec` joins them into a `.bat` line with a literal space
+    // separator, so paths containing spaces (e.g. `C:\Users\Jane Doe\...`)
+    // would otherwise be tokenized incorrectly. See issue #13997 and the
+    // `safeWindowsExec - handles program path with spaces` unit test.
+    const quoted = requireQuoting([fmtutil.fullPath, "--all"]);
+    return safeWindowsExec(quoted.args[0], quoted.args.slice(1), execFmtutil);
+  }
+  return execFmtutil([fmtutil.fullPath, "--all"]);
 }

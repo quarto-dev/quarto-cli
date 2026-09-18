@@ -7,6 +7,7 @@ import { join } from "../../deno_ral/path.ts";
 
 import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 import {
+  kBrandMode,
   kCodeLineNumbers,
   kFrom,
   kHtmlMathMethod,
@@ -25,6 +26,8 @@ import {
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
+import { BrandNamedLogo, Zod } from "../../resources/types/zod/schema-types.ts";
+
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { renderEjs } from "../../core/ejs.ts";
@@ -65,6 +68,7 @@ import {
   kScrollActivationWidth,
   kScrollLayout,
   kScrollProgress,
+  kScrollProgressAuto,
   kScrollSnap,
   kScrollView,
   kSlideFooter,
@@ -76,6 +80,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { titleSlidePartial } from "./format-reveal-title.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
+import { logoAddLeadingSlashes, resolveLogo } from "../../core/brand/brand.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -114,6 +119,21 @@ export function revealResolveFormat(format: Format) {
   }
   // remove scroll-view from metadata
   delete format.metadata[kScrollView];
+
+  // Handle scrollProgress "auto" for the template.
+  // Pandoc templates render BoolVal as true/false literals, but "auto" needs
+  // to be a quoted string. A helper variable scrollProgressAuto handles this.
+  // When no scrollProgress is specified and view is "scroll", default to "auto"
+  // (RevealJS default) rather than Pandoc's defField default of true.
+  if (format.metadata[kView] === "scroll") {
+    if (
+      format.metadata[kScrollProgress] === "auto" ||
+      format.metadata[kScrollProgress] === undefined
+    ) {
+      format.metadata[kScrollProgressAuto] = true;
+      delete format.metadata[kScrollProgress];
+    }
+  }
 }
 
 export function revealjsFormat() {
@@ -124,7 +144,7 @@ export function revealjsFormat() {
         [kHtmlMathMethod]: {
           method: "mathjax",
           url:
-            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
+            "https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS_HTML-full",
         },
         [kSlideLevel]: 2,
       },
@@ -189,23 +209,9 @@ export function revealjsFormat() {
             format.metadata[kPdfMaxPagesPerSlide];
         }
 
-        // pass scroll view settings as they are not yet in revealjs template
-        if (format.metadata[kView]) {
-          extraConfig[kView] = format.metadata[kView];
-        }
-        if (format.metadata[kScrollProgress] !== undefined) {
-          extraConfig[kScrollProgress] = format.metadata[kScrollProgress];
-        }
-        if (format.metadata[kScrollSnap] !== undefined) {
-          extraConfig[kScrollSnap] = format.metadata[kScrollSnap];
-        }
-        if (format.metadata[kScrollLayout] !== undefined) {
-          extraConfig[kScrollLayout] = format.metadata[kScrollLayout];
-        }
-        if (format.metadata[kScrollActivationWidth] !== undefined) {
-          extraConfig[kScrollActivationWidth] =
-            format.metadata[kScrollActivationWidth];
-        }
+        // Scroll view settings (view, scrollProgress, scrollSnap, scrollLayout,
+        // scrollActivationWidth) are rendered by the template via metadata
+        // variables set in revealResolveFormat().
 
         // get theme info (including text highlighing mode)
         const theme = await revealTheme(
@@ -295,7 +301,7 @@ export function revealjsFormat() {
                   theme["text-highlighting-mode"],
                 ),
               ],
-              [kMarkdownAfterBody]: [revealMarkdownAfterBody(format)],
+              [kMarkdownAfterBody]: [revealMarkdownAfterBody(format, input)],
             },
           },
         );
@@ -355,6 +361,18 @@ export function revealjsFormat() {
           };
         }
 
+        // Scroll-view defaults (only when view is "scroll").
+        // Set explicitly so the template $if/$else$ type guards always have
+        // values and don't depend on Pandoc's defField.
+        if (format.metadata[kView] === "scroll") {
+          extras.metadata = {
+            ...extras.metadata,
+            [kScrollSnap]: "mandatory",
+            [kScrollLayout]: "full",
+            [kScrollActivationWidth]: 0,
+          };
+        }
+
         // hash-type: number (as shorthand for -auto_identifiers)
         if (format.metadata[kHashType] === "number") {
           extras.pandoc = {
@@ -374,51 +392,26 @@ export function revealjsFormat() {
   );
 }
 
-const determineRevealLogo = (format: Format): string | undefined => {
-  const brandData = format.render.brand?.processedData;
-  if (brandData?.logo) {
-    const keys: ("medium" | "small" | "large")[] = ["medium", "small", "large"];
-    // add slide logo if we have one
-    for (const size of keys) {
-      const logoInfo = brandData.logo[size];
-      if (!logoInfo) {
-        continue;
-      }
-      if (typeof logoInfo === "string") {
-        return logoInfo;
-      } else {
-        // what to do about light vs dark?
-        return logoInfo?.light.path ?? logoInfo?.dark.path;
-      }
-    }
+function revealMarkdownAfterBody(format: Format, input: string) {
+  let brandMode: "light" | "dark" = "light";
+  if (format.metadata[kBrandMode] === "dark") {
+    brandMode = "dark";
   }
-};
-
-function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
   lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
-  let revealLogo = format
+  const revealLogo = format
     .metadata[kSlideLogo] as (string | { path: string } | undefined);
-  if (revealLogo) {
-    if (typeof revealLogo === "object") {
-      revealLogo = revealLogo.path;
-    }
-    if (["small", "medium", "large"].includes(revealLogo)) {
-      const brandData = format.render.brand?.processedData;
-      const logoInfo = brandData?.logo
-        ?.[revealLogo as ("medium" | "small" | "large")];
-      if (typeof logoInfo === "string") {
-        revealLogo = logoInfo;
-      } else {
-        revealLogo = logoInfo?.light.path ?? logoInfo?.dark.path;
-      }
-    }
-  } else {
-    revealLogo = determineRevealLogo(format);
-  }
-  if (revealLogo) {
+  let logo = resolveLogo(format.render.brand, revealLogo, [
+    "small",
+    "medium",
+    "large",
+  ]);
+  if (logo && logo[brandMode]) {
+    logo = logoAddLeadingSlashes(logo, format.render.brand, input);
+    const modeLogo = logo![brandMode]!;
+    const altText = modeLogo.alt ? `alt="${modeLogo.alt}" ` : "";
     lines.push(
-      `<img src="${revealLogo}" class="slide-logo" />`,
+      `<img src="${modeLogo.path}" ${altText}class="slide-logo" />`,
     );
     lines.push("\n");
   }

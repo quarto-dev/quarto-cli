@@ -1,0 +1,54 @@
+---
+title: "Test"
+format: 
+  beamer:
+    variant: -smart
+    # this is is needed to not triggered pdf recipe
+    output-ext: tex
+  beamer+without: 
+    # this is is needed to not triggered pdf recipe
+    output-ext: tex
+  beamer-smart: 
+    # this is is needed to not triggered pdf recipe
+    output-ext: tex
+_quarto:
+  tests:
+    beamer:
+      ensureFileRegexMatches:
+        - []
+        - 
+          # beamer should be detected and not trigger colorlinks by default
+          - 'linkcolor=\{blue\}'
+          - "``marks''"
+          - "`here'"
+      printsMessage:
+        level: INFO
+        regex: "to: beamer-smart\n" 
+    beamer-smart:
+      ensureFileRegexMatches:
+        - []
+        - 
+          # beamer should be detected and not trigger colorlinks by default
+          - 'linkcolor=\{blue\}'
+          # setting extensions to format works
+          - "``marks''"
+          - "`here'"
+      printsMessage:
+        level: INFO
+        regex: "to: beamer-smart\n"  
+    beamer+without:
+      ensureFileRegexMatches:
+        - 
+          - "``marks''"
+          - "`here'"
+        - 
+          - 'linkcolor=\{blue\}'
+      printsMessage:
+        level: INFO
+        regex: "to: beamer\n"
+---
+
+## Quarto
+
+
+Test the quotation "marks" here and 'here'.

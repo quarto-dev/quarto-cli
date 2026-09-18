@@ -1,9 +1,6 @@
 -- lightbox.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local lightbox_module = require("modules/lightbox")
-
-
 -- attributes to forward from the image to the newly created link
 local kDescription = "description"
 local kForwardedAttr = {
@@ -178,7 +175,7 @@ function lightbox()
 
       Meta = function(meta)
         -- Set auto lightbox mode, if need be
-        auto = lightbox_module.automatic(meta) == true
+        auto = _quarto.modules.lightbox.automatic(meta) == true
         imgCount = 0
       end,
       -- Find images that are already within links

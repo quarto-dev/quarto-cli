@@ -1,0 +1,16 @@
+[package]
+name = "orange-book"
+version = "0.7.1"
+compiler = "0.14.0"
+entrypoint = "lib.typ"
+repository = "https://github.com/flavio20002/typst-orange-template"
+authors = ["Flavio Barisi"]
+license = "MIT-0"
+description = "A book template inspired by The Legrand Orange Book of Mathias Legrand and Vel"
+keywords = ["book"]
+categories = ["book"]
+
+[template]
+path = "template"
+entrypoint = "main.typ"
+thumbnail = "thumbnail.png"

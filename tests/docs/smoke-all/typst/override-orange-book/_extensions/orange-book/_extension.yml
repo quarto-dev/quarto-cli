@@ -1,0 +1,8 @@
+title: Override Test
+author: Test
+version: 0.1.0
+contributes:
+  formats:
+    typst:
+      template-partials:
+        - typst-show.typ

@@ -1,0 +1,6 @@
+---
+title: Testing monokai code highlight
+syntax-highlighting: monokai
+---
+
+{{< include _body.md >}}

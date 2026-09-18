@@ -14,5 +14,5 @@ const input = docs("yaml/bad-config-yaml/subfolder/bad-config-yaml.qmd");
 testQuartoCmd(
   "render",
   [input],
-  [printsMessage("ERROR", /bad-config-yaml[\/\\]+_quarto[.]yml validation failed/)]
+  [printsMessage({level: "ERROR", regex: /bad-config-yaml[\/\\]+_quarto[.]yml validation failed/})]
 );

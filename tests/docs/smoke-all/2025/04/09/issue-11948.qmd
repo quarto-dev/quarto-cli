@@ -1,0 +1,17 @@
+---
+format: epub
+_quarto:
+  tests:
+    epub:
+      ensureEpubFileRegexMatches:
+        - path: EPUB/nav.xhtml
+          regexes:
+            - []
+            - ["max-width", "max-height"]
+---
+
+## Hello
+
+Amazon epub doesn't allow some CSS attributes, so we remove them from the epub-specific styles we produce.
+
+See https://kdp.amazon.com/en_US/help/topic/GG5R7N649LECKP7U#css_support

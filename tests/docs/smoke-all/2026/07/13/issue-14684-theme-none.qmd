@@ -1,0 +1,23 @@
+---
+title: No skip link without bootstrap
+toc: true
+format:
+  html:
+    theme: none
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        -
+          # the skip link is only injected for bootstrap-themed output
+          - 'a#quarto-skip-link'
+---
+
+The skip-to-content link is injected by the bootstrap HTML postprocessor,
+so `theme: none` output should not contain it (there is also no theme CSS
+to style it) (<https://github.com/quarto-dev/quarto-cli/issues/14684>).
+
+## Section One
+
+Text.

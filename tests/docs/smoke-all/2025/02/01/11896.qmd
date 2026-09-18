@@ -1,0 +1,19 @@
+---
+format: pptx
+_quarto:
+  tests:
+    pptx:
+      ensurePptxMaxSlides:
+        - 1
+      ensurePptxRegexMatches:
+        - ['<a:t>Before<\/a:t><\/a:r><\/a:p><a:p><a:pPr lvl="0" indent="0" marL="0"><a:buNone \/><\/a:pPr><a:r><a:rPr \/><a:t>After<\/a:t>']
+        - 1
+---
+
+## Slide 
+
+Before
+
+{{< pagebreak >}}
+
+After

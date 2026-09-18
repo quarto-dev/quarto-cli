@@ -7,7 +7,7 @@ defaults:
     format:
       typst:
         logo:
-          src: large
+          path: large
           location: center-top
           width: 300px
           padding: 1in

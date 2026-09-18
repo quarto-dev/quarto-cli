@@ -1,0 +1,8 @@
+title: My Brand
+author: Quarto
+version: 1.0.0
+quarto-required: ">=1.9"
+contributes:
+  metadata:
+    project:
+      brand: mybrand.yml

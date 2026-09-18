@@ -9,7 +9,7 @@ library(kableExtra)
 
 ```{r}
 #| label: tbl-sad-broken
-#| tbl-cap: "This table is cross-referenceable but no longer breaks across pages because it's inside `\\centering{}`" 
+#| tbl-cap: "This table is cross-referenceable but no longer breaks across pages because it's inside `\\centering{}`"
 rbind(mtcars, mtcars) |>
   kbl(longtable = TRUE, booktabs = TRUE) |>
   kable_styling()

@@ -1,0 +1,12 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      fileNotExists:
+        outputPath: 14359.quarto_ipynb
+---
+
+```{python}
+1 + 1
+```

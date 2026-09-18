@@ -1,0 +1,8 @@
+project:
+  type: default
+format:
+  dashboard:
+    theme:
+      light: default
+      dark: darkly # Explicitly enable dark mode
+brand: logo-light-only.yml

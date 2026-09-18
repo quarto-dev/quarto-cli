@@ -26,6 +26,7 @@ temps %>%
     columns = vars(month.abb),
     colors = scales::col_numeric(
       colorspace::diverge_hcl(n = 9, palette = "Blue-Red 3"),
-      domain = range(nottem))
+      domain = range(nottem)
+    )
   )
 ```

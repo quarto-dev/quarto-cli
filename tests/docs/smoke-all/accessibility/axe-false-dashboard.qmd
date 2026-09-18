@@ -1,0 +1,25 @@
+---
+title: "Axe False - Dashboard"
+format:
+  dashboard:
+    axe: false
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        - []
+        - ['script[src*="axe-check"]', '#quarto-axe-checker-options']
+      ensureFileRegexMatches:
+        - []
+        - ['axe-check\.js', 'quarto-axe-checker-options']
+---
+
+## Row
+
+### Column
+
+::: {.card title="Test Card"}
+Render with axe: false — no axe dependencies should be present.
+
+This document verifies that axe can be explicitly disabled for Dashboard format.
+:::

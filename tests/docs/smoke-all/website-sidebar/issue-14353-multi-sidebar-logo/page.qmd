@@ -1,0 +1,12 @@
+---
+title: "Group 2 Page"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'a.sidebar-logo-link img[src$="logo-b.png"][class*="sidebar-logo"]'
+        - []
+---
+
+This page belongs to the second sidebar entry. Its logo (logo-b.png) should render.

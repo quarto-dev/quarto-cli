@@ -11,7 +11,6 @@ distinction is made between input and output; an extension can
 have an effect when reading a format but not when writing it, or
 *vice versa*.
 ]]
-
 ---@param format string Format name
 ---@return pandoc.FormatExtensions
 function pandoc.format.all_extensions(format) end

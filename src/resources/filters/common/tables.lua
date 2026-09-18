@@ -1,8 +1,6 @@
 -- tables.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local patterns = require("modules/patterns")
-
 function anonymousTblId()
   return "tbl-anonymous-" .. tostring(math.random(10000000))
 end
@@ -106,7 +104,7 @@ end
 
 function hasGtHtmlTable(raw)
   if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
-    return raw.text:match(patterns.html_gt_table)
+    return raw.text:match(_quarto.modules.patterns.html_gt_table)
   else
     return false
   end
@@ -114,7 +112,7 @@ end
 
 function hasPagedHtmlTable(raw)
   if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
-    return raw.text:match(patterns.html_paged_table)
+    return raw.text:match(_quarto.modules.patterns.html_paged_table)
   else
     return false
   end
@@ -122,7 +120,7 @@ end
 
 function hasRawHtmlTable(raw)
   if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
-    return raw.text:match(patterns.html_table)
+    return raw.text:match(_quarto.modules.patterns.html_table)
   else
     return false
   end

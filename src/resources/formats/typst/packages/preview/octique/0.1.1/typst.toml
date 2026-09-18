@@ -1,0 +1,10 @@
+[package]
+name = "octique"
+version = "0.1.1"
+entrypoint = "octique.typ"
+authors = ["0x6b", "python33r"]
+license = "MIT"
+description = "GitHub Octicons for Typst."
+repository = "https://github.com/0x6b/typst-octique"
+keywords = ["icon", "github", "octicons"]
+exclude = ["sample"]

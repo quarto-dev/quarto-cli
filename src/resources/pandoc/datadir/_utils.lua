@@ -97,7 +97,7 @@ function tdump (tbl, raw)
     for k, v in pairsByKeys(tbl, typesThenValues) do
       if shouldPrint(k, v, tbl) then
         empty = false
-        formatting = indentStr .. "  " .. k .. ": "
+        local formatting = indentStr .. "  " .. k .. ": "
         v = asLua(v)
         if type(v) == "table" or type(v) == "userdata" and v.is_emulated then
           printInner(formatting)
@@ -592,7 +592,7 @@ local function is_empty_node (node)
     return not next(node.caption)
   elseif node.text then
     -- looks like a code node or text node
-    return node.text ~= ''
+    return node.text == ''
   else
     -- Not sure what this is, but it's probably not empty.
     return false
@@ -607,6 +607,28 @@ local function walk(node, filter)
   return node:walk(filter)
 end
 
+--- Rewrites a Meta scalar or list value so every entry becomes a `RawInline`
+-- in the given format, verbatim -- bypassing that format's writer-side string
+-- escaping entirely. Preserves the scalar-vs-list shape of the input.
+-- Useful for metadata values (paths, etc.) that a pandoc writer's own
+-- escaping would otherwise corrupt. `format` defaults to the current output
+-- format (pandoc's `FORMAT` global) when omitted.
+local function as_raw_metadata(value, format)
+  format = format or FORMAT
+  local function raw(str)
+    return pandoc.MetaInlines({ pandoc.RawInline(format, str) })
+  end
+  if get_type(value) == "List" then
+    local result = pandoc.List()
+    for _, item in ipairs(value) do
+      result:insert(raw(pandoc.utils.stringify(item)))
+    end
+    return result
+  else
+    return raw(pandoc.utils.stringify(value))
+  end
+end
+
 return {
   dump = dump,
   type = get_type,
@@ -617,6 +639,7 @@ return {
   },
   as_inlines = as_inlines,
   as_blocks = as_blocks,
+  as_raw_metadata = as_raw_metadata,
   is_empty_node = is_empty_node,
   match = match,
   walk = walk,

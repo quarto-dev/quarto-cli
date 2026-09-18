@@ -13,6 +13,11 @@
     ref: date
   description: "Document date"
 
+- name: date-format
+  schema:
+    ref: date-format
+  description: "Date format for the document"
+
 - name: date-modified
   tags:
     formats: [$html-doc]
@@ -139,7 +144,7 @@
 - name: thanks
   schema: string
   tags:
-    formats: [$pdf-all]
+    formats: [$pdf-all, typst]
   description: The contents of an acknowledgments footnote after the document title.
 
 - name: order

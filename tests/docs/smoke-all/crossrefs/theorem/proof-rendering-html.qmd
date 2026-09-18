@@ -1,0 +1,35 @@
+---
+title: Proof rendering (HTML)
+format: html
+_quarto:
+  tests:
+    html:
+      noErrors: default
+      ensureHtmlElements:
+        -
+          - 'div.proof'
+          - '.proof-title'
+---
+
+## Proof with content
+
+::: {.proof}
+This is a proof with content.
+:::
+
+## Named proof
+
+::: {.proof name="Of the main theorem"}
+Named proof body.
+:::
+
+## Empty proof
+
+::: {.proof}
+:::
+
+## Remark
+
+::: {.remark}
+This is a remark.
+:::

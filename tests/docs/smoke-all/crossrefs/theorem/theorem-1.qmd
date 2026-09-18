@@ -19,11 +19,14 @@ _quarto:
         - []
     typst:
       ensureTypstFileRegexMatches:
-        - 
-          - "<thm-line>"
-          - "@thm-line"
-          - "#theorem\\(\"Line\"\\)"
-        - []
+        -
+          - "#ref\\(<thm-line>, supplement: \\[Theorem\\]\\)"
+          - "#theorem\\(title: \\[Line\\]\\)"
+          - "#import \"@preview/theorion:0\\.4\\.1\": make-frame"
+          - "simple-theorem-render"
+        -
+          - "cosmos"
+          - "fancy-box"
     markdown:
       ensureFileRegexMatches:
         -

@@ -1,0 +1,6 @@
+---
+title: Testing ayu-mirage code highlight
+syntax-highlighting: ayu-mirage
+---
+
+{{< include _body.md >}}

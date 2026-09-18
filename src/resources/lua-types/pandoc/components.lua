@@ -67,7 +67,7 @@ A table cell.
 ---@field contents pandoc.List Cell contents (list of blocks)
 ---@field row_span integer Number of rows occupied by the call
 ---@field col_span integer Number of columns spanned by the cell
-pandonc.Cell = {}
+pandoc.Cell = {}
 
 --[[
 Create a new table cell
@@ -199,6 +199,16 @@ pandoc.TableBody = {}
 
 
 --[[
+Creates a table body
+]]
+---@param body? pandoc.List List of `Row`
+---@param head? pandoc.List Intermediate head (list of `Row`)
+---@param row_head_columns? integer Number of columns taken up by the row head of each row of a `TableBody`
+---@param attr? pandoc.Attr Table body attributes
+---@return pandoc.TableBody
+function pandoc.TableBody(body, head, row_head_columns, attr) end
+
+--[[
 Make a clone
 ]]
 ---@return pandoc.TableBody
@@ -229,8 +239,6 @@ Make a clone
 ]]
 ---@return pandoc.TableFoot
 function pandoc.TableFoot:clone() end
-
-
 
 --[[
 The head of a table

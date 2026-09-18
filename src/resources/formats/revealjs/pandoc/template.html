@@ -31,6 +31,9 @@ $if(theme)$
 $else$
   <link rel="stylesheet" href="$revealjs-url$/dist/theme/black.css">
 $endif$
+$if(highlight-js)$
+  <link rel="stylesheet" href="$revealjs-url$/plugin/highlight/$highlightjs-theme$.css">
+$endif$
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$
@@ -70,6 +73,9 @@ $body$
   <script src="$revealjs-url$/plugin/zoom/zoom.js"></script>
 $if(mathjax)$
   <script src="$revealjs-url$/plugin/math/math.js"></script>
+$endif$
+$if(highlight-js)$
+  <script src="$revealjs-url$/plugin/highlight/highlight.js"></script>
 $endif$
   <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
 
@@ -217,6 +223,27 @@ $endif$
         // devices. It is advisable to set this to a lower number than
         // viewDistance in order to save resources.
         mobileViewDistance: $mobileViewDistance$,
+$-- Scroll view: differs from Pandoc's revealjs.template to fix JS type issues.
+$-- See jgm/pandoc#11486 and llm-docs/revealjs-format-architecture.md
+$if(view)$
+
+        // Enable scroll view
+        view: '$view/nowrap$',
+$if(scrollProgressAuto)$
+        scrollProgress: 'auto',
+$elseif(scrollProgress)$
+        scrollProgress: $scrollProgress$,
+$else$
+        scrollProgress: false,
+$endif$
+        scrollActivationWidth: $scrollActivationWidth$,
+$if(scrollSnap)$
+        scrollSnap: '$scrollSnap/nowrap$',
+$else$
+        scrollSnap: false,
+$endif$
+        scrollLayout: '$scrollLayout/nowrap$',
+$endif$
 $if(parallaxBackgroundImage)$
 
         // Parallax background image
@@ -292,6 +319,9 @@ $endif$
         plugins: [
 $if(mathjax)$
           RevealMath,
+$endif$
+$if(highlight-js)$
+          RevealHighlight,
 $endif$
           RevealNotes,
           RevealSearch,

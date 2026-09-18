@@ -1,0 +1,40 @@
+---
+format:
+  typst:
+    keep-typ: true
+    theorem-appearance: clouds
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#import \"@preview/theorion:0\\.4\\.1\": make-frame"
+          - "clouds-render"
+          - "red\\.lighten\\(85%\\)"
+          - "teal\\.lighten\\(85%\\)"
+          - "olive\\.lighten\\(85%\\)"
+        -
+          - "fancy-box"
+          - "rainbow-render"
+          - "simple-theorem-render"
+          - "cosmos\\.fancy"
+---
+
+# Theorem Test - Clouds Theme
+
+::: {#thm-test}
+## Test Theorem
+Theorems get red background.
+:::
+
+::: {#lem-test}
+## Test Lemma
+Lemmas get teal background.
+:::
+
+::: {#def-test}
+## Test Definition
+Definitions get olive background.
+:::
+
+See @thm-test, @lem-test, and @def-test.

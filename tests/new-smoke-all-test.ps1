@@ -62,7 +62,7 @@ _quarto:
       ensureDocxRegexMatches:
         - []
         - []
-      ensureDocxXPath:
+      ensureDocxXpath:
         - []
         - []
     pptx:

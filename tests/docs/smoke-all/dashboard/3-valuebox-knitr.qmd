@@ -57,9 +57,9 @@ if (currentVal < 100) {
 }
 
 list(
-  value=currentVal,
-  color=color,
-  icon=icon
+  value = currentVal,
+  color = color,
+  icon = icon
 )
 ```
 
@@ -78,9 +78,9 @@ if (currentVal < 100) {
 }
 
 list(
-  value=currentVal,
-  color=color,
-  icon=icon
+  value = currentVal,
+  color = color,
+  icon = icon
 )
 ```
 
@@ -88,8 +88,8 @@ list(
 #| component: valuebox
 #| title: Cool things
 #| icon: facebook
-foo = 45
-bar = 3
+foo <- 45
+bar <- 3
 foo * bar
 ```
 

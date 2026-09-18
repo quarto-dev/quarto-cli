@@ -133,3 +133,19 @@ And what about this?
   const cells = (await breakQuartoMd(qmd, false)).cells;
   assert(cells.length <= 2 || cells[2].cell_type === "markdown");
 });
+
+unitTest("break-quarto-md - dot-joined language", async () => {
+  await initYamlIntelligenceResourcesFromFilesystem();
+  const qmd = `\`\`\`{python.marimo}
+x = 1
+\`\`\`
+`;
+  const cells = (await breakQuartoMd(qmd, false)).cells;
+  // First cell should be the code cell with language "python.marimo"
+  assert(cells.length >= 1, "Should have at least one cell");
+  assert(typeof cells[0].cell_type === "object", "First cell should be a code cell");
+  assert(
+    (cells[0].cell_type as { language: string }).language === "python.marimo",
+    "Language should be 'python.marimo'",
+  );
+});

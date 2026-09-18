@@ -1,3 +1,5 @@
+$numbering.typ()$
+
 $definitions.typ()$
 
 $typst-template.typ()$
@@ -5,6 +7,8 @@ $typst-template.typ()$
 $for(header-includes)$
 $header-includes$
 $endfor$
+
+$page.typ()$
 
 $typst-show.typ()$
 

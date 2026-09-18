@@ -1,0 +1,10 @@
+---
+title: "YAML intelligence should fail with knitr engine"
+---
+
+This code cell has more than default 3 backticks
+
+````{r}
+#| echo: 123
+1 + 1
+````

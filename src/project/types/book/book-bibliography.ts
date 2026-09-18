@@ -269,7 +269,7 @@ export async function generateBibliography(
   // make the aggregated bibliography
   const yaml: Metadata = {
     [kBibliography]: biblioPaths.map(pathWithForwardSlashes),
-    [kNoCite]: ld.uniq(citeIds).map((id) => "@" + id).join(", "),
+    [kNoCite]: ld.uniq(citeIds).map((id: string) => "@" + id).join(", "),
   };
   if (csl) {
     yaml[kCsl] = isAbsolute(csl)
@@ -278,8 +278,8 @@ export async function generateBibliography(
   }
   const frontMatter = `---\n${stringify(yaml, { indent: 2 })}\n---\n`;
   const result = await execProcess({
-    cmd: [
-      pandocBinaryPath(),
+    cmd: pandocBinaryPath(),
+    args: [
       "--from",
       "markdown",
       "--to",

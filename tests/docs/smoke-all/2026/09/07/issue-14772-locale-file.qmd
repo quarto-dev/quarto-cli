@@ -1,0 +1,32 @@
+---
+title: "Custom key in a locale-variation language file reaches templates (#14772)"
+lang: fr
+language: some-language.yml
+format:
+  typst:
+    template-partials:
+      - typst-show.typ
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'custom key: `Valeur personnalisee`'
+        -
+          - 'custom key: ``'
+      noErrors: true
+---
+
+Regression test for #14772. `readLanguageTranslations` reads the base
+`language:` file and any sibling `_<file>-<lang>.yml` locale-variation
+files, but its per-key gate only accepted keys already known to Quarto
+(`kLanguageDefaultsKeys`) or object values (nested locale sub-blocks). A
+custom scalar key shipped in the locale-variation file — the extension
+author's motivating use case for PR #14773 — was silently dropped before
+it ever reached `translationsForLang`.
+
+`some-language.yml` is the base file (empty; no built-in overrides).
+`some-language-fr.yml` is the French variation and carries `custom-key`.
+
+The end.

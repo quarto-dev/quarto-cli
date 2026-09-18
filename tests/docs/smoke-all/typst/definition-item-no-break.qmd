@@ -1,0 +1,24 @@
+---
+title: "Definition Item No Break Test"
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfTextPositions:
+        - # Term and description must be on the same page (fails if on different pages)
+          - subject: "Generate HTML"
+            relation: below
+            object: "Multi-format"
+        - # Description should be indented (NOT left-aligned with term)
+          - subject: "Generate HTML"
+            relation: leftAligned
+            object: "Multi-format"
+      noErrors: default
+---
+
+## Introduction
+
+{{< lipsum 4 >}}
+
+Multi-format
+: Generate HTML, PDF, Word, ePub, and more from one source.

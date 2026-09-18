@@ -40,6 +40,9 @@ export function safeRemoveIfExists(file: string) {
   try {
     removeIfExists(file);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
     warning(`Error removing file ${file}: ${error.message}`);
   }
 }
@@ -82,11 +85,17 @@ export function isModifiedAfter(file: string, otherFile: string) {
   }
 }
 
-export function dirAndStem(file: string) {
+export function dirAndStem(file: string): [string, string] {
   return [
     dirname(file),
     basename(file, extname(file)),
   ];
+}
+
+export function isQmdFile(file: string) {
+  const ext = extname(file).toLowerCase();
+  const kQmdExtensions = [".qmd"];
+  return kQmdExtensions.includes(ext);
 }
 
 export function expandPath(path: string) {
@@ -108,7 +117,7 @@ export function safeExistsSync(path: string) {
 export async function which(cmd: string) {
   const args = isWindows ? ["CMD", "/C", "where", cmd] : ["which", cmd];
   const result = await execProcess(
-    { cmd: args, stderr: "piped", stdout: "piped" },
+    { cmd: args[0], args: args.slice(1), stderr: "piped", stdout: "piped" },
   );
   if (result.code === 0) {
     return isWindows
@@ -163,13 +172,23 @@ export function resolvePathGlobs(
   const expandGlobs = (targetGlobs: string[]) => {
     const expanded: string[] = [];
     for (const glob of targetGlobs) {
-      for (
-        const file of expandGlobSync(
-          glob,
-          { root, exclude, includeDirs: true, extended: true, globstar: true },
-        )
-      ) {
-        expanded.push(file.path);
+      try {
+        for (
+          const file of expandGlobSync(
+            glob,
+            { root, exclude, includeDirs: true, extended: true, globstar: true },
+          )
+        ) {
+          expanded.push(file.path);
+        }
+      } catch (e) {
+        // expandGlobSync can throw NotFound if a file is deleted between
+        // directory listing and stat (TOCTOU race). This is expected during
+        // preview when the IDE or other processes modify the project
+        // directory concurrently.
+        if (!(e instanceof Deno.errors.NotFound)) {
+          throw e;
+        }
       }
     }
     return ld.uniq(expanded);
@@ -192,6 +211,14 @@ export function ensureTrailingSlash(path: string) {
 export function removeTrailingSlash(path: string) {
   if (path && path.endsWith("/")) {
     return path.slice(0, path.length - 1);
+  } else {
+    return path;
+  }
+}
+
+export function ensureLeadingSlash(path: string) {
+  if (path && !path.startsWith("/")) {
+    return "/" + path;
   } else {
     return path;
   }
@@ -297,7 +324,15 @@ export function normalizePath(path: string | URL): string {
   file = normalize(file);
   // some runtimes (e.g. nodejs) create paths w/ lowercase drive
   // letters, make those uppercase
-  return file.replace(/^\w:\\/, (m) => m[0].toUpperCase() + ":\\");
+  return file.replace(/^\w:\\/, (m: string) => m[0].toUpperCase() + ":\\");
+}
+
+// Compares two filesystem paths for equality in a separator-agnostic way by
+// normalizing both sides first. Use this instead of comparing raw path strings:
+// engines (notably knitr) can report paths with forward slashes on Windows even
+// when other paths use the platform separator, so a raw === comparison fails.
+export function pathsEqual(a: string, b: string): boolean {
+  return normalizePath(a) === normalizePath(b);
 }
 
 // Moved here from env.ts to avoid circular dependency

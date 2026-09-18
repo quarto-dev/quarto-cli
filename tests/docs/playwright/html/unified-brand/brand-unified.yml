@@ -1,0 +1,17 @@
+color:
+  foreground:
+    light: "#222"
+    dark: "#eee"
+  background:
+    light: "#eee"
+    dark: "#222"
+typography:
+  monospace:
+    background-color:
+      dark: "#321"
+  link:
+    background-color:
+      light: "#efe"
+      dark: "#421"
+    color:
+      dark: "#c3a"

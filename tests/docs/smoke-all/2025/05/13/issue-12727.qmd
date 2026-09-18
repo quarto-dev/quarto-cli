@@ -1,0 +1,35 @@
+---
+title: "Geographic data analysis in R and Python: comparing code and outputs for vector data"
+---
+
+::: {.panel-tabset group="language"}
+
+## Python
+
+```python
+print("ok")
+```
+
+## R
+
+```r
+print("hello")
+```
+
+:::
+
+::: {.panel-tabset group="language"}
+
+## Python
+
+```python
+print("Missing the headers here but we shouldn't crash")
+```
+
+## R
+
+```r
+cat("hello")
+```
+
+:::

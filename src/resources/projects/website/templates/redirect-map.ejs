@@ -7,6 +7,10 @@
     var hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
     var redirect = redirects[hash] || redirects[""] || "/";
     window.document.title = 'Redirect to  ' +  redirect;
+    if (!redirects[hash]) {
+      redirect = redirect + window.location.hash;
+    }
+    redirect = redirect + window.location.search;
     window.location.replace(redirect);
   </script>
 </head>

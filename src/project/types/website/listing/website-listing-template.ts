@@ -6,7 +6,7 @@
 *
 */
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { cloneDeep, escape } from "../../../../core/lodash.ts";
+import { escape } from "../../../../core/lodash.ts";
 import {
   kListingPageMinutesCompact,
   kListingPageOrderByDateAsc,
@@ -447,6 +447,7 @@ export function reshapeListing(
     listingId: string,
     itemNumber: number,
     itemPath: string,
+    lazy?: boolean,
   ) => {
     const pageSize = listing[kPageSize];
     return imagePlaceholder(
@@ -454,6 +455,7 @@ export function reshapeListing(
       itemPath,
       itemNumber > pageSize,
       listing[kImageHeight] as string,
+      lazy,
     );
   };
 

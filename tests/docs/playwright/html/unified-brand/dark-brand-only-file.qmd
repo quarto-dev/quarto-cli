@@ -1,0 +1,21 @@
+---
+format: html
+title: dark brand in file
+brand: 
+  dark: dark-brand.yml
+---
+
+Quarto creates a default light mode if only dark mode is specified.
+
+```{r}
+#| lst-label: lst-fibonacci
+#| lst-cap: A naive algorithm for computing Fibonacci numbers.
+fib <- function(x) {
+  if (x < 2) 1 else fib(x - 1) + fib(x - 2)
+}
+```
+
+Here is [a link](https://example.com).
+
+{{< lipsum 2 >}}
+

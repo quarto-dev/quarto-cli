@@ -12,7 +12,21 @@ import { safeWindowsExec } from "./windows.ts";
 export function unzip(file: string, dir?: string) {
   if (!dir) dir = dirname(file);
 
-  if (file.endsWith("zip")) {
+  if (isWindows && file.endsWith(".exe")) {
+    // Self-extracting 7z archive (e.g., TinyTeX-windows.exe)
+    return safeWindowsExec(
+      file,
+      ["-y"],
+      (cmd: string[]) => {
+        return execProcess({
+          cmd: cmd[0],
+          args: cmd.slice(1),
+          cwd: dir,
+          stdout: "piped",
+        });
+      },
+    );
+  } else if (file.endsWith("zip")) {
     // It's a zip file
     if (isWindows) {
       const args = [
@@ -25,7 +39,8 @@ export function unzip(file: string, dir?: string) {
         (cmd: string[]) => {
           return execProcess(
             {
-              cmd: cmd,
+              cmd: cmd[0],
+              args: cmd.slice(1),
               stdout: "piped",
             },
           );
@@ -34,13 +49,23 @@ export function unzip(file: string, dir?: string) {
     } else {
       // Use the built in unzip command
       return execProcess(
-        { cmd: ["unzip", "-o", file], cwd: dir, stdout: "piped" },
+        { cmd: "unzip", args: ["-o", file], cwd: dir, stdout: "piped" },
       );
     }
   } else {
     // use the tar command to untar this
+    // On Windows, prefer System32 tar to avoid Git Bash tar path issues
+    let tarCmd = "tar";
+    if (isWindows) {
+      const systemRoot = Deno.env.get("SystemRoot") || "C:\\Windows";
+      const system32Tar = `${systemRoot}\\System32\\tar.exe`;
+      if (existsSync(system32Tar)) {
+        tarCmd = system32Tar;
+      }
+      // Otherwise fall back to "tar" in PATH
+    }
     return execProcess(
-      { cmd: ["tar", "xfz", file], cwd: dir, stdout: "piped" },
+      { cmd: tarCmd, args: ["xf", file], cwd: dir, stdout: "piped" },
     );
   }
 }
@@ -79,8 +104,11 @@ export function zip(
       ];
     }
   };
+
+  const cmd = zipCmd();
   return execProcess({
-    cmd: zipCmd(),
+    cmd: cmd[0],
+    args: cmd.slice(1),
     cwd: options?.cwd,
     stdout: "piped",
     stderr: "piped",

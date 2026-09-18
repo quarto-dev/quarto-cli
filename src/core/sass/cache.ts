@@ -14,10 +14,15 @@ import { TempContext } from "../temp.ts";
 import { safeRemoveIfExists } from "../path.ts";
 import * as log from "../../deno_ral/log.ts";
 import { onCleanup } from "../cleanup.ts";
+import { Cloneable } from "../safe-clone-deep.ts";
 
-class SassCache {
+class SassCache implements Cloneable<SassCache> {
   kv: Deno.Kv;
   path: string;
+
+  clone() {
+    return this;
+  }
 
   constructor(kv: Deno.Kv, path: string) {
     this.kv = kv;
@@ -140,7 +145,9 @@ class SassCache {
   // add a cleanup method to register a cleanup handler
   cleanup(temp: TempContext | undefined) {
     const registerCleanup = temp ? temp.onCleanup : onCleanup;
+    const cachePath = this.path;
     registerCleanup(() => {
+      log.debug(`SassCache cleanup executing for ${cachePath}`);
       try {
         this.kv.close();
         if (temp) safeRemoveIfExists(this.path);
@@ -148,6 +155,10 @@ class SassCache {
         log.info(
           `Error occurred during sass cache cleanup for ${this.path}: ${error}`,
         );
+      } finally {
+        // Drop the registry entry so a later resolve of the same path opens a
+        // fresh KV handle instead of reusing this now-closed one (#14594, #13955).
+        delete _sassCache[cachePath];
       }
     });
   }

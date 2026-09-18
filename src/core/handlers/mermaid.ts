@@ -39,7 +39,7 @@ import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
 import { readYamlFromString } from "../yaml.ts";
 import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 import { LocalizedError } from "../lib/located-error.ts";
-import { warning } from "../../deno_ral/log.ts";
+import { info, warning } from "../../deno_ral/log.ts";
 import { FormatDependency } from "../../config/types.ts";
 import { mappedDiff } from "../mapped-text.ts";
 import { escape } from "../../core/lodash.ts";
@@ -228,7 +228,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       ?.[kFigResponsive];
 
     const makeSvg = async () => {
-      setupMermaidSvgJsRuntime();
+      // Extract and process SVG
       let svg = asMappedString(
         (await handlerContext.extractHtml({
           html: content,
@@ -258,7 +258,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         const oldId = svg.getAttribute("id") as string;
         svg.setAttribute("id", newMermaidId);
         const style = svg.querySelector("style")!;
-        style.innerHTML = style.innerHTML.replaceAll(oldId, newMermaidId);
+        style.innerHTML = style.innerHTML.replaceAll(oldId, () => newMermaidId);
 
         for (const defNode of svg.querySelectorAll("defs")) {
           const defEl = defNode as Element;
@@ -296,17 +296,39 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           // this string substitution is fraught, but I don't know how else to fix the problem.
           oldSvgSrc = oldSvgSrc.replaceAll(
             `"${idToPatch}"`,
-            `"${to}"`,
+            () => `"${to}"`,
           );
           oldSvgSrc = oldSvgSrc.replaceAll(
             `#${idToPatch}`,
-            `#${to}`,
+            () => `#${to}`,
           );
         }
         svg = mappedDiff(svg, oldSvgSrc);
       }
 
-      if (isMarkdownOutput(handlerContext.options.format, ["gfm"])) {
+      // For formats that don't support JavaScript runtime (LaTeX/PDF, DOCX, Typst, etc.),
+      // write SVG file directly without postprocess script. This avoids LaTeX compilation
+      // errors from HTML script tags but may result in text clipping in diagrams with
+      // multi-line labels (see https://github.com/quarto-dev/quarto-cli/issues/1622).
+      if (
+        isMarkdownOutput(handlerContext.options.format, ["gfm"]) ||
+        !isJavascriptCompatible(handlerContext.options.format)
+      ) {
+        // Emit info message for non-JS formats (excluding GFM which doesn't have the issue)
+        if (!isMarkdownOutput(handlerContext.options.format, ["gfm"])) {
+          let warning = `Using mermaid-format: svg with ${
+            handlerContext.options.format.pandoc.to ?? "non-HTML"
+          } format. Note: diagrams with multi-line text labels may experience clipping`;
+
+          // LaTeX-based formats also require external tooling
+          if (isLatexOutput(handlerContext.options.format.pandoc)) {
+            warning += " and requires external tooling (rsvg-convert or Inkscape)";
+          }
+
+          warning += ". Consider using mermaid-format: png if issues occur.";
+
+          info(warning);
+        }
         const { sourceName, fullName } = handlerContext
           .uniqueFigureName(
             "mermaid-figure-",
@@ -323,13 +345,15 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           makeFigLink(sourceName, widthInInches, heightInInches, true),
         );
       } else {
+        // For JavaScript-compatible formats, use runtime postprocessing
+        setupMermaidSvgJsRuntime();
         return this.build(
           handlerContext,
           cell,
           svg,
           options,
           undefined,
-          new Set(["fig-width", "fig-height", "mermaid-format"]),
+          new Set([kFigWidth, kFigHeight, kMermaidFormat]),
         );
       }
     };
@@ -370,7 +394,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           )),
           options,
           undefined,
-          new Set(["fig-width", "fig-height", "mermaid-format"]),
+          new Set([kFigWidth, kFigHeight, kMermaidFormat]),
         );
       }
     };
@@ -414,7 +438,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         ]),
         options,
         attrs,
-        new Set(["mermaid-format"]),
+        new Set([kMermaidFormat]),
       );
     };
 

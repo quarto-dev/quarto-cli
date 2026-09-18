@@ -30,6 +30,8 @@ import {
   jupyterCellSrcAsLines,
   jupyterCellSrcAsStr,
 } from "../../core/jupyter/jupyter-shared.ts";
+import { assert } from "testing/asserts";
+import { getEndingNewlineCount } from "../../core/lib/text.ts";
 
 export async function markdownToJupyterNotebook(
   file: string,
@@ -46,7 +48,23 @@ export async function jupyterNotebookToMarkdown(
 ) {
   // read notebook & alias kernelspec
   const notebook = fixupFrontMatter(jupyterFromFile(file));
-  const kernelspec = notebook.metadata.kernelspec;
+  let kernelspec = notebook.metadata.kernelspec;
+
+  // https://github.com/quarto-dev/quarto-cli/issues/12374
+  // narrow fix for .ipynbs that have a language_info field but no kernelspec.language
+  if (
+    kernelspec.language === undefined && notebook.metadata.language_info?.name
+  ) {
+    kernelspec = {
+      ...kernelspec,
+      language: notebook.metadata.language_info?.name,
+    };
+  }
+  if (kernelspec.language === undefined) {
+    throw new Error(
+      "No language found in kernelspec for notebook " + file,
+    );
+  }
 
   // generate markdown
   const md: string[] = [];
@@ -63,19 +81,31 @@ export async function jupyterNotebookToMarkdown(
         cell,
       );
 
+      const endingNewLineCount = getEndingNewlineCount(md);
+      if (i > 0 && endingNewLineCount < 2) {
+        md.push("\n\n");
+      }
+
       // write markdown
       switch (cell.cell_type) {
         case "markdown":
+          // does the previous line have enough newlines?
+          // if not, add sufficient newlines so we have at least two
+          // between the last cell and this one
           md.push(...mdFromContentCell(cellWithOptions));
           break;
         case "raw":
           // see if this is the front matter
           if (frontMatter === undefined) {
-            frontMatter = partitionYamlFrontMatter(
-              jupyterCellSrcAsStr(cell),
-            )?.yaml;
-            if (!frontMatter) {
-              md.push(...mdFromRawCell(cellWithOptions));
+            const { yaml: cellYaml, markdown: cellMarkdown } =
+              partitionYamlFrontMatter(
+                jupyterCellSrcAsStr(cell),
+              ) || {};
+            if (cellYaml) {
+              frontMatter = cellYaml;
+            }
+            if (cellMarkdown) {
+              md.push(cellMarkdown);
             }
           } else {
             md.push(...mdFromRawCell(cellWithOptions));
@@ -130,6 +160,14 @@ export async function jupyterNotebookToMarkdown(
     }
   }
 
+  // if we found front matter, then the markdown source will start with enough
+  // newlines for the front matter to have been detected in the first place.
+  // So we only need to add newlines if there was no front matter.
+  //
+  // If this invariant breaks, we have a bug of some kind, so let's just assert it
+  assert(frontMatter || !mdSource.match(/^\n\n/));
+  const maybeYamlMdBreak = frontMatter ? "" : "\n\n";
+
   // return yaml + markdown
   const yamlText = stringify(yaml, {
     indent: 2,
@@ -137,7 +175,7 @@ export async function jupyterNotebookToMarkdown(
     sortKeys: false,
     skipInvalid: true,
   });
-  return `---\n${yamlText}---\n\n${mdSource}`;
+  return `---\n${yamlText}---${maybeYamlMdBreak}${mdSource}`;
 }
 
 async function mdFromCodeCell(

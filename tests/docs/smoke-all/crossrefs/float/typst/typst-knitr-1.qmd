@@ -8,8 +8,7 @@ _quarto:
       ensureTypstFileRegexMatches:
         - 
           - "Plot"
-          - "<fig-plot>"
-          - "@fig-plot"
+          - "#ref\\(<fig-plot>, supplement: \\[Figure\\]\\)"
 ---
 
 ## Knitr Crossref Figure

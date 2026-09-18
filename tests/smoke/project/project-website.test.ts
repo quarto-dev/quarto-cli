@@ -1,15 +1,14 @@
 /*
-* project-website.test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-website.test.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 
 import { Metadata } from "../../../src/config/types.ts";
 
-import { testQuartoCmd, Verify } from "../../test.ts";
+import { ExecuteOutput, testQuartoCmd, Verify } from "../../test.ts";
 import { docs } from "../../utils.ts";
 import {
   directoryEmptyButFor,
@@ -22,6 +21,7 @@ import {
   kProjectWorkingDir,
   kQuartoProjectFile,
 } from "./common.ts";
+import { assert } from "testing/asserts";
 
 // A website project
 testQuartoCmd(
@@ -32,7 +32,7 @@ testQuartoCmd(
     fileExists(join(kProjectWorkingDir, "index.qmd")),
     verifyYamlFile(
       kQuartoProjectFile,
-      ((yaml: unknown) => {
+      (yaml: unknown) => {
         // Make sure there is a project yaml section
         const metadata = yaml as Metadata;
         if (
@@ -43,7 +43,7 @@ testQuartoCmd(
         } else {
           return false;
         }
-      }),
+      },
     ),
   ],
   {
@@ -82,6 +82,42 @@ testQuartoCmd(
     teardown: async () => {
       if (existsSync(siteOutDir)) {
         await Deno.remove(siteOutDir, { recursive: true });
+      }
+    },
+  },
+);
+
+const mergeNavbarCrumbsConfigSite = docs(
+  "websites/search/merge-navbar-crumbs-configuration",
+);
+const mergeNavbarCrumbsConfigSiteOutDir = join(mergeNavbarCrumbsConfigSite, outDir);
+testQuartoCmd(
+  "render",
+  [mergeNavbarCrumbsConfigSite],
+  [
+    {
+      name: "verify-no-navbar-crumbs-in-searchjson",
+      verify: async (outputs: ExecuteOutput[]) => {
+        // Verify that the search.json file does not contain any navbar breadcrumbs
+        const searchJson = join(mergeNavbarCrumbsConfigSite, "_site", "search.json");
+        const searchJsonExists = existsSync(searchJson);
+        if (!searchJsonExists) {
+          throw new Error(`File ${searchJson} does not exist`);
+        }
+        const searchJsonContent = await Deno.readTextFile(searchJson);
+        const json = JSON.parse(searchJsonContent);
+        for (const entry of json) {
+          if (entry.crumbs) {
+            assert(entry.crumbs[0] !== "Home");
+          }
+        }
+      },
+    },
+  ],
+  {
+    teardown: async () => {
+      if (existsSync(mergeNavbarCrumbsConfigSiteOutDir)) {
+        await Deno.remove(mergeNavbarCrumbsConfigSiteOutDir, { recursive: true });
       }
     },
   },

@@ -23,7 +23,7 @@ Creates a value to be used as a MetaBlocks value in meta
 data; creates a copy of the input list via `pandoc.Blocks`,
 discarding all non-list keys.
 ]]
----@param blocks pandoc.List
+---@param blocks pandoc.Blocks
 ---@return pandoc.MetaBlocks
 function pandoc.MetaBlocks(blocks) end
 
@@ -32,7 +32,7 @@ Creates a value to be used as a MetaInlines value in meta
 data; creates a copy of the input list via `pandoc.Inlines`,
 discarding all non-list keys.
 ]]
----@param inlines pandoc.List
+---@param inlines pandoc.Inlines
 ---@return pandoc.MetaInlines
 function pandoc.MetaInlines(inlines) end
 

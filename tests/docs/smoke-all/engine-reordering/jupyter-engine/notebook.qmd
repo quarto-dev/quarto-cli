@@ -1,0 +1,10 @@
+```{julia}
+using Test
+@test haskey(
+  Base.loaded_modules,
+  Base.PkgId(
+    Base.UUID("7073ff75-c697-5162-941a-fcdaad2a7d2a"),
+    "IJulia",
+  )
+)
+```

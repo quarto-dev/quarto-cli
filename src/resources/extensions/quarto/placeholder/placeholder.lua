@@ -25,21 +25,33 @@ return {
     if output_format == "svg" then
       result = svg64
     else
-      local pcallresult, mt, contents = pcall(function()
-        local mt, contents = pandoc.mediabag.fetch("https://svg2png.deno.dev/" .. svg64)
-        return mt, contents
+      local ok, contents = pcall(function()
+        return pandoc.system.with_temporary_directory('placeholder', function(tmpdir)
+          local svg_in = pandoc.path.join({tmpdir, 'in.svg'})
+          local typ_in = pandoc.path.join({tmpdir, 'in.typ'})
+          local png_out = pandoc.path.join({tmpdir, 'out.png'})
+          local sf = assert(io.open(svg_in, 'wb'))
+          sf:write(svg)
+          sf:close()
+          local tf = assert(io.open(typ_in, 'wb'))
+          tf:write('#set page(width: auto, height: auto, margin: 0pt)\n#image("in.svg")\n')
+          tf:close()
+          pandoc.pipe(quarto.paths.typst(), {
+            'compile', '--root', tmpdir, '--format', 'png', '--ppi', '96',
+            '--ignore-system-fonts', typ_in, png_out
+          }, '')
+          local pf = assert(io.open(png_out, 'rb'))
+          local data = pf:read('*a')
+          pf:close()
+          return data
+        end)
       end)
-      if not pcallresult then
-        error("Error rendering placeholder")
-        error(contents)
-        return pandoc.Str("Error rendering placeholder")
+      if not ok or contents == nil or contents == '' then
+        -- Local, offline rasterization: a failure is a real bug, not a flake. Fail loudly.
+        -- Do NOT substitute other content (that silent substitution was the original bug).
+        fatal('placeholder: failed to rasterize SVG to PNG via typst (' .. tostring(contents) .. ')')
       end
-      if mt ~= "image/png" then
-        error("Expected image/png but got " .. mt)
-        error(contents)
-        return pandoc.Str("Error rendering placeholder")
-      end
-      result = "data:" .. mt .. ";base64," .. quarto.base64.encode(contents)
+      result = 'data:image/png;base64,' .. quarto.base64.encode(contents)
     end
 
     if context == "text" then

@@ -1,0 +1,20 @@
+---
+format: 
+  typst: default
+  html: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['div#lst-1.listing', 'div#lst-2.listing']
+        - ['div#lst-1.sourceCode', 'div#lst-2.sourceCode']
+---
+
+```{#lst-1 .r filename="asdfoasdf.R" lst-cap="A listing." my-key="value"}
+print("Hello, world!")
+```
+
+
+```{#lst-2 .r lst-cap="A listing." my-key="value"}
+print("Hello, world!")
+```

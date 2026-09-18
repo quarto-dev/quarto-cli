@@ -20,7 +20,7 @@ _quarto:
       ensureTypstFileRegexMatches:
         -
           # note the input is invalid, there is no "int alpha" input for rgb() in css
-          - '\[#set text\(fill: rgb\(70, 130, 180, 50%\)\); B\]'
+          - '\[#set text\(fill: rgb\(70, 130, 180, 50%\)\);\s*B\]'
         - []
 ---
 

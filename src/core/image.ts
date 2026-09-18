@@ -20,6 +20,7 @@ export function imageSize(path: string) {
             width: png.width,
           };
         } catch (error) {
+          if (!(error instanceof Error)) throw error;
           throw new Error(`Error reading file ${path}\n${error.message}`);
         }
       }

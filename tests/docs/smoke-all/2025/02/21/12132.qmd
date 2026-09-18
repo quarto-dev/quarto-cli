@@ -1,0 +1,18 @@
+---
+engine: julia
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.cell-output-stdout div.ansi-escaped-output pre span.ansi-red-fg.ansi-bold"]
+        - ["div.cell-output-stdout div.ansi-escaped-output pre span.ansi-red-cyan-bold"]
+---
+
+```{julia}
+printstyled("red"; color = :red, bold = true)
+```
+
+```{julia}
+@info "logging"
+```
