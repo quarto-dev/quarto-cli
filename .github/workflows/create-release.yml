@@ -1,4 +1,10 @@
 name: Build Installers
+# The `workflows: ["Build Installers"]` filter in test-smokes-built.yml matches the
+# `name:` above, NOT this run-name. The [skip-auto-smoke] suffix is how that workflow
+# reads this dispatch input, since the Runs API does not expose workflow_dispatch
+# inputs on a completed run. Do not reword it casually -- see D7.1 in
+# llm-docs/built-version-testing-architecture.md.
+run-name: "Build Installers${{ inputs.skip-auto-smoke && ' [skip-auto-smoke]' || '' }}"
 on:
   schedule:
     - cron: "0 4 * * *"
@@ -26,6 +32,11 @@ on:
         default: all
       smoke-artifacts-only:
         description: "Build only the Linux amd64 tarball and signed Windows zip used by built-version tests. For unpublished branch builds; requires publish-release=false."
+        required: false
+        type: boolean
+        default: false
+      skip-auto-smoke:
+        description: "Skip the built-version smoke suite that test-smokes-built.yml normally auto-triggers via workflow_run on this run's completion. Build still runs normally."
         required: false
         type: boolean
         default: false
