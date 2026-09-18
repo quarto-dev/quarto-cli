@@ -223,8 +223,9 @@ initCrossrefIndex()
 
 initShortcodeHandlers()
 
--- see whether the cross ref filter is enabled
-local enableCrossRef = param("enable-crossref", true)
+-- whether crossref numbers are presented, and whether quarto itself
+-- assigns them, are now separate questions: see
+-- _quarto.modules.crossref_numbering (crossref_present / assign_crossref_numbers)
 
 local quarto_init_filters = {
   { name = "init-quarto-meta-init", filter = quarto_meta_init() },
@@ -715,7 +716,7 @@ table.insert(quarto_filter_list, { name = "post-ast", filter = {} }) -- entry po
 
 table.insert(quarto_filter_list, { name = "pre-quarto", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_pre_filters)
-if enableCrossRef then
+if _quarto.modules.crossref_numbering.assign_crossref_numbers() then
   tappend(quarto_filter_list, quarto_crossref_filters)
 end
 table.insert(quarto_filter_list, { name = "post-quarto", filter = file_metadata() }) -- entry point for user filters
