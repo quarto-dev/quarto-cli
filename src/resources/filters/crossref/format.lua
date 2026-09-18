@@ -52,6 +52,10 @@ function subrefNumber(order)
   return numberOption("subref", order,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
 end
 
+-- we need to expose this function for use in Q2's Route-N Lua shim, which
+-- reconstructs Q1 custom nodes outside the normal filter pipeline
+quarto.doc.crossref.subrefNumber = subrefNumber
+
 function prependSubrefNumber(captionContent, order)
   if not _quarto.format.isLatexOutput() and not _quarto.format.isAsciiDocOutput() then
     if #inlinesToString(captionContent) > 0 then
@@ -95,13 +99,25 @@ function refPrefix(type, upper)
   return prefix
 end
 
+-- we need to expose this function for use in Q2's Route-N Lua shim, which
+-- reconstructs Q1 custom nodes outside the normal filter pipeline
+quarto.doc.crossref.refPrefix = refPrefix
+
 function refDelim()
   return crossrefOption("ref-delim", stringToInlines(","))
 end
 
+-- we need to expose this function for use in Q2's Route-N Lua shim, which
+-- reconstructs Q1 custom nodes outside the normal filter pipeline
+quarto.doc.crossref.refDelim = refDelim
+
 function refHyperlink()
   return crossrefOption("ref-hyperlink", true)
 end
+
+-- we need to expose this function for use in Q2's Route-N Lua shim, which
+-- reconstructs Q1 custom nodes outside the normal filter pipeline
+quarto.doc.crossref.refHyperlink = refHyperlink
 
 function refNumberOption(type, entry)
 
@@ -119,6 +135,10 @@ function refNumberOption(type, entry)
   -- handle other ref types
   return formatNumberOption(type, entry.order)
 end
+
+-- we need to expose this function for use in Q2's Route-N Lua shim, which
+-- reconstructs Q1 custom nodes outside the normal filter pipeline
+quarto.doc.crossref.refNumberOption = refNumberOption
 
 
 function numberOption(type, order, default)

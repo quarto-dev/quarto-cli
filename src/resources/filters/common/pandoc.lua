@@ -126,6 +126,10 @@ function nbspString()
   return pandoc.Str '\u{a0}'
 end
 
+-- we need to expose this function for use in Q2's Route-N Lua shim, which
+-- reconstructs Q1 custom nodes outside the normal filter pipeline
+quarto.utils.nbspString = nbspString
+
 -- the first heading in a div is sometimes the caption
 function resolveHeadingCaption(div) 
   local capEl = div.content[1]
