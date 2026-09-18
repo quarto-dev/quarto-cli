@@ -49,6 +49,11 @@ on:
         required: false
         type: string
         default: '["ubuntu-latest", "windows-latest"]'
+      label-tag:
+        description: "Short alphanumeric tag for distinguishing same-OS jobs in failure summaries"
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       buckets:
@@ -92,6 +97,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
+      # Distinguishes this call from other jobs on the same OS.
+      QUARTO_TESTS_GHA_LABEL_TAG: ${{ inputs.label-tag }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
@@ -492,6 +499,8 @@ jobs:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUCKETS_JSON: ${{ inputs.buckets }}
+          # Prevent the harness from duplicating this loop's workflow commands.
+          QUARTO_TESTS_GHA_ORCHESTRATED: "1"
         run: |
           haserror=0
           failed_tests=()
@@ -541,6 +550,8 @@ jobs:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUCKETS_JSON: ${{ inputs.buckets }}
+          # Prevent the harness from duplicating this loop's workflow commands.
+          QUARTO_TESTS_GHA_ORCHESTRATED: "1"
         run: |
           $haserror=$false
           $failed_tests=@()
