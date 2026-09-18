@@ -271,16 +271,20 @@ function captureRenderCommand(
       // we need to correct the defaults YML because it contains a reference to a template in a temp directory
       const ymlDefaults = Deno.readTextFileSync(arg);
       const defaults = parseYml(ymlDefaults);
-      const templateDirectory = dirname(defaults.template);
-      const newTemplateDirectory = join(
-        outputDir,
-        basename(templateDirectory),
-      );
-      copyTo(templateDirectory, newTemplateDirectory);
-      defaults.template = join(
-        newTemplateDirectory,
-        basename(defaults.template),
-      );
+      // Not every format's defaults YAML references a template (e.g. docx),
+      // so only rewrite the template path when one is present.
+      if (defaults.template) {
+        const templateDirectory = dirname(defaults.template);
+        const newTemplateDirectory = join(
+          outputDir,
+          basename(templateDirectory),
+        );
+        copyTo(templateDirectory, newTemplateDirectory);
+        defaults.template = join(
+          newTemplateDirectory,
+          basename(defaults.template),
+        );
+      }
       const defaultsOutputFile = join(outputDir, basename(arg));
       Deno.writeTextFileSync(defaultsOutputFile, stringify(defaults));
       return defaultsOutputFile;

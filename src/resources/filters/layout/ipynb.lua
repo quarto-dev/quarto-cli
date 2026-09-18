@@ -117,6 +117,11 @@ local function render_ipynb_layout(layout)
   return pandoc.Div(panel_content, attr)
 end
 
+-- Deliberately left reading the enable-crossref param directly rather than
+-- calling _quarto.modules.crossref_numbering.crossref_present(): both predicates
+-- below dispatch to the same render_ipynb_layout callback, so this pair is a
+-- verified no-op regardless of which flag it reads and is intentionally not
+-- converted.
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isIpynbOutput() and param("enable-crossref", true)
 end, render_ipynb_layout)

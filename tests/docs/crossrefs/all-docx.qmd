@@ -65,6 +65,18 @@ See @tbl-panel for details, especially @tbl-second.
 
 -->
 
+## Callout
+
+::: {#nte-setup .callout-note}
+
+## Setup
+
+Some setup callout content.
+
+:::
+
+See @nte-setup.
+
 ## Math
 
 ::: {#thm-line}
