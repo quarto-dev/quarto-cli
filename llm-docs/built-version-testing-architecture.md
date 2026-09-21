@@ -1,6 +1,6 @@
 ---
-main_commit: 76d3a1e5f
-analyzed_date: 2026-09-18
+main_commit: 97f222ff3
+analyzed_date: 2026-09-21
 key_files:
   - tests/quarto-cmd.ts
   - tests/test.ts
@@ -96,7 +96,7 @@ sequenceDiagram
 flowchart LR
     subgraph dev ["Dev mode: quarto = in-process TS sources"]
         PR["PR / push"] --> TSP["test-smokes-parallel.yml<br>sharded buckets"]
-        DAILY["daily schedule"] --> TSfull["full run"]
+        WEEKLY["weekly schedule<br>(update-test-timing.yml)"] --> TSfull["full run"]
     end
     subgraph built ["Binary mode: quarto = built distribution (QUARTO_TEST_BIN)"]
         TSB["test-smokes-built.yml<br>after every nightly build + manual dispatch<br>smoke + playwright + ff-matrix"]
@@ -113,7 +113,7 @@ flowchart LR
     FFM["test-ff-matrix.yml (reusable)<br>owns the feature-format bucket"]
     TS["test-smokes.yml (reusable)<br>inputs: install source, ref, runners,<br>buckets, artifact"]
     TSP --> TS
-    DAILY --> TS
+    WEEKLY --> TS
     FFM --> TS
     BUILDM -->|"smoke + playwright"| TS
     NIGHTM -->|"smoke + playwright"| TS
@@ -147,7 +147,7 @@ flowchart TB
 
 | Mode                    | Quarto under test                                                                                                                              | Trigger                             | Suites (legs)                                                                  | Question answered                                                                             |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| dev (`test-smokes.yml`) | in-process TS sources (99.9.9)                                                                                                                 | every PR/push + daily cron          | everything (sharded per-commit; ff-matrix via its own cron/push/PR)            | did this code change break behavior?                                                          |
+| dev (`test-smokes.yml`) | in-process TS sources (99.9.9)                                                                                                                 | every PR/push (sharded); weekly cron via `update-test-timing.yml` (full run, timing file only) | everything (sharded per-commit; ff-matrix via its own cron/push/PR)            | did this code change break behavior?                                                          |
 | nightly                 | packaged nightly artifacts (Linux tarball, real `quarto.exe`, notarized Mac zip); Windows signing is skipped on the *scheduled* build, see D11 | automatic, after each nightly build | smoke (linux+windows+mac) + playwright (linux+mac) + ff-matrix (linux+windows) | does what we *ship* work? (bundling/packaging/launcher bugs; only macOS smoke coverage in CI) |
 | build                   | fresh linux-amd64 dist from the current ref (unsigned)                                                                                         | manual dispatch                     | smoke + playwright + ff-matrix (all linux)                                     | does this ref work when packaged? (works on forks/PR branches)                                |
 | release                 | published (pre-)release via quarto-actions/setup, harness at its `v` tag                                                                       | manual dispatch                     | smoke (linux+windows) + playwright (linux) + ff-matrix (linux+windows)         | does the published version pass?                                                              |
