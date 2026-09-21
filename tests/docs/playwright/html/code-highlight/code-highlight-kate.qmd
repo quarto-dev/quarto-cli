@@ -1,6 +1,6 @@
 ---
 title: Testing kate code highlight
-highlight-style: kate
+syntax-highlighting: kate
 ---
 
 {{< include _body.md >}}

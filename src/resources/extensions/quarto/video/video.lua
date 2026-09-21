@@ -66,6 +66,7 @@ local replaceCommonAttributes = function(snippet, params)
     height = params.height and ' height="' .. params.height .. '"' or '',
     width = params.width and ' width="' .. params.width .. '"' or '',
     title = params.title or '',
+    ariaLabel = params.ariaLabel and ' aria-label="' .. params.ariaLabel .. '"' or '',
   }
   return result
 end
@@ -89,7 +90,7 @@ local youTubeBuilder = function(params)
   local YOUTUBE_EMBED = 'https://www.youtube.com/embed/'
   params.src = YOUTUBE_EMBED .. match
 
-  local SNIPPET = [[<iframe data-external="1" src="{src}{start}"{width}{height} title="{title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}{start}"{width}{height} title="{title}"{ariaLabel} frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>]]
   snippet = replaceCommonAttributes(SNIPPET, params)
 
   local result = {}
@@ -116,7 +117,7 @@ local brightcoveBuilder = function(params)
 
   local result = {}
 
-  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} allowfullscreen="" title="{title}" allow="encrypted-media"></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} allowfullscreen="" title="{title}"{ariaLabel} allow="encrypted-media"></iframe>]]
   result.snippet = replaceCommonAttributes(SNIPPET, params)
   result.type = VIDEO_TYPES.BRIGHTCOVE
   result.src = params.src
@@ -143,7 +144,7 @@ local vimeoBuilder = function(params)
   end
 
 
-  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} frameborder="0" title="{title}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} frameborder="0" title="{title}"{ariaLabel} allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>]]
 
   local result = {}
 
@@ -160,7 +161,7 @@ local videoJSBuilder = function(params)
   VIDEO_SHORTCODE_NUM_VIDEOJS = VIDEO_SHORTCODE_NUM_VIDEOJS + 1
   local id = "video_shortcode_videojs_video" .. VIDEO_SHORTCODE_NUM_VIDEOJS
 
-  local SNIPPET = [[<video id="{id}"{width}{height} class="video-js vjs-default-skin {fluid}" controls preload="auto" data-setup='{}' title="{title}"><source src="{src}"></video>]]
+  local SNIPPET = [[<video id="{id}"{width}{height} class="video-js vjs-default-skin vjs-big-play-centered {fluid}" controls preload="auto" data-setup='{}' title="{title}"{ariaLabel}><source src="{src}"></video>]]
   local snippet = params.snippet or SNIPPET
   snippet = replaceCommonAttributes(snippet, params)
   snippet = interpolate {
@@ -176,14 +177,14 @@ local videoJSBuilder = function(params)
   result.id = id
   return result
 end
-local getSnippetFromBuilders = function(src, height, width, title, start)
+local getSnippetFromBuilders = function(src, height, width, title, start, ariaLabel)
   local builderList = {
     youTubeBuilder,
     brightcoveBuilder,
     vimeoBuilder,
     videoJSBuilder}
 
-  local params = { src = src, height = height, width = width, title = title, start = start }
+  local params = { src = src, height = height, width = width, title = title, start = start, ariaLabel = ariaLabel }
 
   for i = 1, #builderList do
     local builtSnippet = builderList[i](params)
@@ -211,12 +212,12 @@ function formatAsciiDocVideo(src, type)
   return  'video::' .. src .. '[' .. type .. ']'
 end
 
-local function asciidocVideo(src, height, width, title, start, _aspectRatio)
+local function asciidocVideo(src, height, width, title, start, _aspectRatio, ariaLabel)
   local asciiDocVideoRawBlock = function(src, type)
     return pandoc.RawBlock("asciidoc", formatAsciiDocVideo(src, type) .. '\n\n')
   end
 
-  local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)
+  local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start, ariaLabel)
   if videoSnippetAndType.type == VIDEO_TYPES.YOUTUBE then
     -- Use the video id to form an asciidoc video
     if videoSnippetAndType.videoId ~= nil then
@@ -233,13 +234,13 @@ local function asciidocVideo(src, height, width, title, start, _aspectRatio)
 
 end
 
-function htmlVideo(src, height, width, title, start, aspectRatio)
+function htmlVideo(src, height, width, title, start, aspectRatio, ariaLabel)
 
   -- https://github.com/quarto-dev/quarto-cli/issues/6833
   -- handle partially-specified width, height, and aspectRatio
   if aspectRatio then
     -- https://github.com/quarto-dev/quarto-cli/issues/11699#issuecomment-2549219533
-    -- we remove quotes as a 
+    -- we remove quotes as a
     -- local workaround for inconsistent shortcode argument parsing on our end.
     --
     -- removing quotes in general is not a good idea, but the
@@ -256,7 +257,7 @@ function htmlVideo(src, height, width, title, start, aspectRatio)
     end
   end
 
-  local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)
+  local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start, ariaLabel)
   local videoSnippet
 
   videoSnippet = videoSnippetAndType.snippet
@@ -326,6 +327,7 @@ return {
     local heightValue = checkArg(kwargs, 'height')
     local widthValue = checkArg(kwargs, 'width')
     local aspectRatio = checkArg(kwargs, 'aspectRatio')
+    local ariaLabelValue = checkArg(kwargs, 'aria-label')
 
     if isEmpty(aspectRatio) then
       aspectRatio = checkArg(kwargs, 'aspect-ratio')
@@ -343,9 +345,9 @@ return {
     end
 
     if quarto.doc.is_format("html:js") then
-      return htmlVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
+      return htmlVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio, ariaLabelValue)
     elseif quarto.doc.is_format("asciidoc") then
-      return asciidocVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
+      return asciidocVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio, ariaLabelValue)
     elseif quarto.doc.is_format("markdown") then
       if srcValue:sub(1, 4) == "http" then
         -- For remote videos, we can emit a link

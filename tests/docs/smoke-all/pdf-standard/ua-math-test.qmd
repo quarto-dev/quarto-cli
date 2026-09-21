@@ -1,0 +1,41 @@
+---
+title: "UA math without alt text"
+lang: en
+format:
+  pdf:
+    pdf-standard: ua-2
+    keep-tex: true
+  typst:
+    pdf-standard: ua-1
+    keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      # LaTeX with tagging=on + unicode-math auto-generates MathML for accessibility
+      noErrors: default
+    typst:
+      # Typst requires explicit alt text for math in PDF/UA-1
+      shouldError: default
+      printsMessage:
+        level: ERROR
+        regex: "missing alt text"
+---
+
+# Math Without Alt Text in PDF/UA
+
+PDF/UA requires alternative text for Formula elements.
+
+- **LaTeX**: Auto-generates MathML via `tagging=on` + `unicode-math` (LuaLaTeX)
+- **Typst**: Requires explicit alt text - errors at compile time
+
+Note: PR #13872 adds `alt` attribute support for equations in Quarto.
+
+## Inline Math
+
+The equation $E = mc^2$ is inline.
+
+## Display Math
+
+$$
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$

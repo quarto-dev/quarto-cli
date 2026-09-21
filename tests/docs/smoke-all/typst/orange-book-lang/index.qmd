@@ -1,0 +1,16 @@
+---
+keep-typ: true
+_quarto:
+  render-project: true
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'supplement-chapter: "Chapitre"'
+          - 'list-of-figure-title: "Liste des Figures"'
+          - 'list-of-table-title: "Liste des Tables"'
+---
+
+# Préface {.unnumbered}
+
+Préface du livre de test.

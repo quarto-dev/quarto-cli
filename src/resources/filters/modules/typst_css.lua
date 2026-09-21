@@ -191,14 +191,18 @@ local function parse_opacity(opacity)
       value = 100
     }
   elseif opacity:find '%%$' then
+    local n = tonumber(opacity:sub(1, -2), 10)
+    if not n then return nil end
     return {
       unit = 'percent',
-      value = tonumber(opacity:sub(1, -2), 10)
+      value = n
     }
   else
+    local n = tonumber(opacity)
+    if not n then return nil end
     return {
       unit = 'fraction',
-      value = math.min(1.0, tonumber(opacity))
+      value = math.min(1.0, n)
     }
   end
 end
@@ -280,7 +284,14 @@ end
 local function parse_color(color, warnings)
   if color:sub(1, 1) == '#' then
     local value = color:sub(2)
-    local short = value:len() < 5
+    local len = value:len()
+    -- valid CSS hex colors are exactly 3, 4, 6, or 8 hex digits
+    if (len ~= 3 and len ~= 4 and len ~= 6 and len ~= 8)
+       or value:match('[^0-9a-fA-F]') then
+      output_warning(warnings, 'invalid hex color ' .. color)
+      return nil
+    end
+    local short = len <= 4
     local comps = {}
     if short then
       for c in value:gmatch '.' do
@@ -305,12 +316,14 @@ local function parse_color(color, warnings)
   elseif color:find '^rgb%(' or color:find '^rgba%(' then
     return parse_rgb(color)
   elseif color:find '^var%(%-%-brand%-' then
-    local colorName = color:match '^var%(%-%-brand%-([%a--]*)%)'
+    -- [%w-] (alphanumerics + hyphen) so names like `red-50` parse. Bare
+    -- [%a--] excluded digits, breaking any brand name with a number.
+    local colorName = color:match '^var%(%-%-brand%-([%w-]*)%)'
     if not colorName then
-      output_warning(warnings, 'invalid brand color reference ' .. v)
-      return null
+      output_warning(warnings, 'invalid brand color reference ' .. color)
+      return nil
     end
-    return colorName and {
+    return {
       type = 'brand',
       value = colorName
     }
@@ -332,7 +345,7 @@ local function output_color(color, opacity, warnings)
   quarto.log.debug('output_color input', color, opacity)
   if opacity then
     if not color then
-      zero = {
+      local zero = {
         unit = 'int',
         value = 0
       }
@@ -355,7 +368,7 @@ local function output_color(color, opacity, warnings)
       end
       color = _quarto.format.typst.css.parse_color(cssColor)
     end
-    local mult = 1
+    local mult
     if opacity.unit == 'int' then
       mult = opacity.value / 255.9999
     elseif opacity.unit == 'percent' then
@@ -450,7 +463,7 @@ local length_units = {
   -- viewport-relative
   'vw', 'svw', 'lvw', 'dvw', 'vh', 'svh', 'lvh', 'dvh',
   'vi', 'svi', 'lvi', 'dvi', 'vb', 'svb', 'lvb', 'dvb',
-  'vmin', 'svmin', 'lvmin', 'dvmin ', 'vmax', 'svmax', 'lvmax', 'dvmax',
+  'vmin', 'svmin', 'lvmin', 'dvmin', 'vmax', 'svmax', 'lvmax', 'dvmax',
   -- absolute
   'cm', 'mm', 'Q', 'in', 'pt', 'pc', 'px',
   -- not really a length unit, but used for font-size
@@ -551,7 +564,7 @@ local function output_length(length, warnings)
   if not csf then
     output_warning(warnings, 'unit ' .. length.unit .. ' is not supported in ' .. length.csslen )
     return nil
-  end 
+  end
   return csf(length.value, length.unit, length.csslen, warnings)
 end
 
@@ -565,7 +578,7 @@ local border_styles = {
   'none', 'hidden', 'dotted', 'dashed', 'solid', 'double', 'groove', 'ridge', 'inset', 'outset', 'inherit', 'initial', 'revert', 'revert-layer', 'unset'
 }
 
-function parse_multiple(s, limit, callback)
+local function parse_multiple(s, limit, callback)
   local start = 0
   local count = 0
   repeat
@@ -589,10 +602,6 @@ local function translate_border_width(v, warnings)
   v = border_width_keywords[v] or v
   local thickness = translate_length(v, warnings)
   return thickness == '0pt' and 'delete' or thickness
-end
-
-local function quote(s)
-  return '"' .. s .. '"'
 end
 
 local same_weights = {
@@ -623,14 +632,18 @@ local function translate_font_weight(w, warnings)
   if num and 1 <= num and num <= 1000 then
     return num
   end
+  -- CSS keywords are case-insensitive; lower-case before lookup.
+  if type(w) == 'string' then
+    w = w:lower()
+  end
   w = weight_synonyms[w] or w
   if tcontains(same_weights, w) then
     return w
   end
-  if tcontains(dashed_weights, w) then  
+  if tcontains(dashed_weights, w) then
     return w:gsub('-', '')
   else
-    output_warning(null, 'invalid font weight ' .. tostring(w))
+    output_warning(warnings, 'invalid font weight ' .. tostring(w))
     return nil
   end
 end
@@ -643,22 +656,56 @@ local function quote(s)
   return '"' .. s .. '"'
 end
 
+local _available_fonts = nil
+local _fonts_initialized = false
+local _generic_families = {
+  ["serif"] = true, ["sans-serif"] = true, ["monospace"] = true,
+  ["cursive"] = true, ["fantasy"] = true, ["math"] = true,
+}
+
+local function init_available_fonts(list)
+  _fonts_initialized = true
+  if list == nil then
+    _available_fonts = nil
+    return
+  end
+  _available_fonts = {}
+  for _, f in ipairs(list) do
+    local name = type(f) == 'string' and f or pandoc.utils.stringify(f)
+    _available_fonts[name:lower()] = true
+  end
+end
+
+local function ensure_available_fonts()
+  if _fonts_initialized then return end
+  init_available_fonts(param('typst-available-fonts'))
+end
+
 local function translate_font_family_list(sl)
   if sl == nil then
     return '()'
   end
-  local strings = {}
+  ensure_available_fonts()
+  local all_strings = {}
+  local filtered = {}
   for s in sl:gmatch('([^,]+)') do
-    s = s:gsub('^%s+', '')
-    table.insert(strings, quote(dequote(s)))
+    s = s:gsub('^%s+', ''):gsub('%s+$', '')
+    if s ~= '' then
+      local cleaned = dequote(s)
+      local quoted = quote(cleaned)
+      table.insert(all_strings, quoted)
+      if not _available_fonts or _available_fonts[cleaned:lower()] or _generic_families[cleaned:lower()] then
+        table.insert(filtered, quoted)
+      end
+    end
   end
-  local trailcomma = #strings == 1 and ',' or ''
-  return '(' .. table.concat(strings, ', ') .. trailcomma .. ')'
+  local result = #filtered > 0 and filtered or all_strings
+  local trailcomma = #result == 1 and ',' or ''
+  return '(' .. table.concat(result, ', ') .. trailcomma .. ')'
 end
 
 
 local function translate_border_style(v, _warnings)
-  local dash
   if v == 'none' then
     return 'delete'
   elseif tcontains({'dotted', 'dashed'}, v) then
@@ -679,7 +726,9 @@ local function translate_border(v, warnings)
   local style = 'solid' -- css specifies none
   local paint = 'black' -- css specifies currentcolor
   parse_multiple(v, 3, function(s, start)
-    local fbeg, fend = s:find('%w+%b()', start)
+    -- '^' anchors the match at `start` so a width/style token (e.g. "0px",
+    -- "solid") preceding an rgb()/rgba() color is not skipped. See #14460.
+    local fbeg, fend = s:find('^%w+%b()', start)
     if fbeg then
       local paint2 = translate_border_color(s:sub(fbeg, fend), warnings)
       if paint2 then
@@ -714,21 +763,23 @@ local function translate_border(v, warnings)
 end
 
 local function consume_width(s, start, warnings)
-    fbeg, fend = s:find('%S+', start)
-    local term = s:sub(fbeg, fend)
-    local thickness = translate_border_width(term, warnings)
-    return thickness, fend + 1
+  local fbeg, fend = s:find('%S+', start)
+  local term = s:sub(fbeg, fend)
+  local thickness = translate_border_width(term, warnings)
+  return thickness, fend + 1
 end
 
 local function consume_style(s, start, warnings)
-  fbeg, fend = s:find('%S+', start)
+  local fbeg, fend = s:find('%S+', start)
   local term = s:sub(fbeg, fend)
   local dash = translate_border_style(term, warnings)
   return dash, fend + 1
 end
 
 local function consume_color(s, start, warnings)
-  local fbeg, fend = s:find('%w+%b()', start)
+  -- '^' anchors at `start` so we consume the token AT start instead of
+  -- skipping ahead to a later rgb()/rgba(). See #14460.
+  local fbeg, fend = s:find('^%w+%b()', start)
   if not fbeg then
     fbeg, fend = s:find('%S+', start)
   end
@@ -771,7 +822,6 @@ end
 return {
   quote = quote,
   dequote = dequote,
-  set_brand_mode = set_brand_mode,
   parse_color = parse_color,
   parse_opacity = parse_opacity,
   output_color = output_color,
@@ -787,6 +837,7 @@ return {
   translate_border_color = translate_border_color,
   translate_font_weight = translate_font_weight,
   translate_font_family_list = translate_font_family_list,
+  init_available_fonts = init_available_fonts,
   consume_width = consume_width,
   consume_style = consume_style,
   consume_color = consume_color

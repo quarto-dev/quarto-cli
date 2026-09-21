@@ -26,7 +26,7 @@ export async function withRetry<T = void>(
   let attempt = 0;
   while (true) {
     try {
-      return fn();
+      return await fn();
     } catch (err) {
       if (!(err instanceof Error)) throw err;
       if ((attempt++ >= attempts) || (retry && !retry(err))) {

@@ -11,9 +11,9 @@ import * as ld from "../../core/lodash.ts";
 
 import {
   normalizePath,
+  pathsEqual,
   removeIfEmptyDir,
   removeIfExists,
-  safeRemoveSync,
 } from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
@@ -74,7 +74,7 @@ export function renderCleanup(
         filesDir = normalizePath(filesDir);
       }
       supporting = supporting.map((supportingDir) => {
-        if (filesDir === supportingDir) {
+        if (pathsEqual(filesDir, supportingDir)) {
           return join(filesDir, figuresDir(figureFormat));
         } else {
           return supportingDir;
@@ -90,7 +90,7 @@ export function renderCleanup(
     }
 
     // clean supporting
-    ld.uniq(supporting).forEach((path) => {
+    ld.uniq(supporting).forEach((path: string) => {
       if (existsSync(path)) {
         safeRemoveDirSync(path, project.dir);
       }

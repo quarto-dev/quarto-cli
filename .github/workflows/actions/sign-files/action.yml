@@ -4,8 +4,6 @@ inputs:
   paths:
     description: "Paths to sign"
     required: true
-  signtools-extra-args:
-    description: "Additionnal arguments to pass to signtool"
 outputs:
   cert_path:
     description: "certificate path"
@@ -44,9 +42,43 @@ runs:
       run: |
         Write-Output "::group::Install smctl if needed"
         if (!(Get-Command smctl -ErrorAction SilentlyContinue)) {
-          curl -o smtools-windows-x64.msi "https://rstudio-buildtools.s3.amazonaws.com/posit-dev/smtools-windows-x64.msi"
-          msiexec /i smtools-windows-x64.msi /quiet /qn /log smtools-windows-x64.log
-          "C:/Program Files/DigiCert/DigiCert One Signing Manager Tools" | Out-File -FilePath $env:GITHUB_PATH -Append
+          # Download with retry (transient S3 failures cause silent install failures)
+          $maxRetries = 3
+          $downloaded = $false
+          for ($i = 1; $i -le $maxRetries; $i++) {
+            Write-Output "Downloading smtools MSI (attempt $i/$maxRetries)..."
+            curl -o smtools-windows-x64.msi "https://rstudio-buildtools.s3.amazonaws.com/posit-dev/smtools-windows-x64.msi"
+            if ($LASTEXITCODE -ne 0) {
+              Write-Output "::warning::curl failed with exit code $LASTEXITCODE"
+              continue
+            }
+            $fileSize = (Get-Item smtools-windows-x64.msi).Length
+            if ($fileSize -lt 1MB) {
+              Write-Output "::warning::Downloaded file is only $fileSize bytes, expected ~90MB"
+              continue
+            }
+            $downloaded = $true
+            Write-Output "Download successful ($fileSize bytes)"
+            break
+          }
+          if (-not $downloaded) {
+            Write-Output "::error title=Download Error::Failed to download smtools MSI after $maxRetries attempts"
+            exit 1
+          }
+          # Install synchronously (msiexec can return before install completes without -Wait)
+          $process = Start-Process msiexec -ArgumentList '/i', 'smtools-windows-x64.msi', '/quiet', '/qn', '/log', 'smtools-windows-x64.log' -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            Write-Output "::error title=Install Error::msiexec failed with exit code $($process.ExitCode)"
+            if (Test-Path smtools-windows-x64.log) { Get-Content smtools-windows-x64.log -Tail 50 }
+            exit 1
+          }
+          # Verify smctl is actually on disk before declaring success
+          $smctlPath = "C:/Program Files/DigiCert/DigiCert One Signing Manager Tools"
+          if (!(Test-Path "$smctlPath/smctl.exe")) {
+            Write-Output "::error title=Install Error::smctl.exe not found at $smctlPath after install"
+            exit 1
+          }
+          $smctlPath | Out-File -FilePath $env:GITHUB_PATH -Append
           Write-Output "SMCTL installed and added on PATH"
         } else {
           Write-Output "SMCTL already installed and on PATH"
@@ -61,13 +93,13 @@ runs:
         }
         Write-Output "::endgroup::"
 
-    - name: Sign files with signtool
+    - name: Sign files with smctl
       shell: pwsh
       env:
         SM_CLIENT_CERT_FILE: ${{ steps.setup-cert.outputs.SM_CLIENT_CERT_FILE }}
       run: |
         Write-Output "::group::Check for required environment variables"
-        $requiredEnvVars = @('SM_HOST', 'SM_API_KEY', 'SM_CLIENT_CERT_FILE', 'SM_CLIENT_CERT_PASSWORD', 'CERT_FINGERPRINT')
+        $requiredEnvVars = @('SM_HOST', 'SM_API_KEY', 'SM_CLIENT_CERT_FILE', 'SM_CLIENT_CERT_PASSWORD', 'KEYPAIR_ALIAS')
         foreach ($envVar in $requiredEnvVars) {
           if (-not $(Get-Item -Path "Env:$envVar" -ErrorAction SilentlyContinue)) {
             Write-Output "::error title=Missing environment variable::Environment variable $envVar is not set."
@@ -76,19 +108,16 @@ runs:
           Write-Output "All env var correctly set."
         }
         Write-Output "::endgroup::"
-        Write-Output "::group::Sync certificates"
-        smctl windows certsync
-        Write-Output "::endgroup::"
         # Sign each file that will be bundled in the installer
         $paths = "${{ inputs.paths }}" -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
         foreach ($path in $paths) {
           Write-Output "::group::Signing ${path}"
-          signtool.exe sign /sha1 $env:CERT_FINGERPRINT /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 ${{ inputs.signtools-extra-args }} $path
+          smctl sign --keypair-alias $env:KEYPAIR_ALIAS --input $path --digalg SHA256 --sigalg SHA256 --timestamp=true
           if ($LASTEXITCODE -ne 0) {
             Write-Output "::error title=Signing error::Error while signing ${path}"
             exit 1
           }
-          signtool.exe verify /v /pa $path
+          smctl sign verify --input $path
           if ($LASTEXITCODE -ne 0) {
             Write-Output "::error title=Verify signature error::Error while verifying ${path}"
             exit 1

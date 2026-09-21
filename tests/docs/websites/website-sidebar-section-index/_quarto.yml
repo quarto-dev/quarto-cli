@@ -1,0 +1,14 @@
+project:
+  type: website
+
+website:
+  title: "Sidebar Auto Test"
+  sidebar:
+    contents:
+      - index.qmd
+      - section: "Subdir Section"
+        contents: subdir/*
+
+format:
+  html:
+    theme: default

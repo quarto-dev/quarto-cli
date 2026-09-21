@@ -1,0 +1,77 @@
+---
+title: "Custom Geometry: Asymmetric Page Margins"
+papersize: us-letter
+margin:
+  left: 0.75in
+  right: 0.5in
+grid:
+  margin-width: 2.5in
+  gutter-width: 0.4in
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # inner block contains sep: 0.750in (the left margin)
+        # outer block contains far: 0.500in, width: 2.500in, sep: 0.400in
+        - ['inner:', 'sep: 0.750in', 'outer:', 'far: 0.500in', 'width: 2.500in', 'sep: 0.400in']
+        - []
+      ensurePdfRegexMatches:
+        - - 'Figure 1'
+          - 'asymmetric'
+          - 'tight\s+right\s+padding'
+        - []
+      ensurePdfTextPositions:
+        - # Margin notes are in margin (rightOf body text) with asymmetric geometry
+          - subject: "asymmetric layout"
+            relation: rightOf
+            object: "Asymmetric Page Layout"
+          - subject: "asymmetric layout"
+            relation: above
+            object: "pushes the text"
+        - []
+      noErrors: default
+---
+
+```{r}
+#| label: setup
+#| echo: false
+library(ggplot2)
+```
+
+## Asymmetric Page Layout Test
+
+This document tests asymmetric page margins: 0.75in left margin and 0.5in right padding.
+[Combined with a 2.5in margin column, this creates an asymmetric layout with tight right padding.]{.aside}
+
+The left page margin is slightly smaller than default (0.75in vs 1in), and the right edge padding is tighter (0.5in).
+[This layout pushes the text toward the left and gives more room for margin notes.]{.aside}
+
+```{r}
+#| label: fig-asymmetric
+#| echo: false
+#| fig-cap: "Phase-shifted waves (seed 2024)"
+
+set.seed(2024)
+x <- seq(0, 4 * pi, length.out = 200)
+df <- data.frame(
+  x = rep(x, 4),
+  y = c(sin(x),
+        sin(x + pi/4) * 0.9 + rnorm(200, 0, 0.02),
+        sin(x + pi/2) * 0.8 + rnorm(200, 0, 0.02),
+        sin(x + 3*pi/4) * 0.7 + rnorm(200, 0, 0.02)),
+  wave = rep(c("0 deg", "45 deg", "90 deg", "135 deg"), each = 200)
+)
+ggplot(df, aes(x, y, color = wave)) +
+  geom_line(linewidth = 1) +
+  theme_minimal() +
+  labs(x = NULL, y = NULL, title = "Phase Shifts") +
+  theme(legend.position = "bottom")
+```
+
+[Asymmetric layouts can be useful for binding or visual balance.]{.aside}
+
+The grid options (margin-width, gutter-width) control the internal column layout, while margin options (left, right) control the page boundaries.

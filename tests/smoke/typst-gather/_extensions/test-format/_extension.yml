@@ -1,0 +1,10 @@
+title: Test Typst Format
+author: Quarto Dev Team
+version: 1.0.0
+quarto-required: ">=1.6.0"
+contributes:
+  formats:
+    typst:
+      template: template.typ
+      template-partials:
+        - typst-show.typ

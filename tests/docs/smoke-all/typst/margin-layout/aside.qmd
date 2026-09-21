@@ -1,0 +1,26 @@
+---
+title: "Aside Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#note\(alignment: "baseline"']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "This aside"
+            relation: rightOf
+            object: "Main content"
+        - []
+      noErrors: default
+---
+
+::: {.aside}
+This aside should appear in the margin.
+:::
+
+Main content here.

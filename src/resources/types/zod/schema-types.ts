@@ -38,6 +38,19 @@ export const ZodPandocFormatRequestHeaders = z.array(z.array(z.string()));
 
 export const ZodPandocFormatOutputFile = z.union([z.string(), z.literal(null)]);
 
+export const ZodFilterEntryPoint = z.enum(
+  [
+    "pre-ast",
+    "post-ast",
+    "pre-quarto",
+    "post-quarto",
+    "pre-render",
+    "post-render",
+    "pre-finalize",
+    "post-finalize",
+  ] as const,
+);
+
 export const ZodPandocFormatFilters = z.array(
   z.union([
     z.string(),
@@ -46,16 +59,7 @@ export const ZodPandocFormatFilters = z.array(
     z.object({
       type: z.string(),
       path: z.string(),
-      at: z.enum(
-        [
-          "pre-ast",
-          "post-ast",
-          "pre-quarto",
-          "post-quarto",
-          "pre-render",
-          "post-render",
-        ] as const,
-      ),
+      at: z.lazy(() => ZodFilterEntryPoint),
     }).passthrough().partial().required({ path: true, at: true }),
     z.object({ type: z.enum(["citeproc"] as const) }).strict(),
   ]),
@@ -134,6 +138,9 @@ export const ZodGiscusConfiguration = z.object({
   ]),
   language: z.string(),
 }).strict().partial().required({ repo: true });
+
+export const ZodExternalEngine = z.object({ path: z.string() }).strict()
+  .partial().required({ path: true });
 
 export const ZodDocumentCommentsConfiguration = z.union([
   z.literal(false),
@@ -290,6 +297,7 @@ export const ZodBaseWebsite = z.object({
     z.array(z.enum(["none", "edit", "source", "issue"] as const)),
   ]),
   "reader-mode": z.boolean(),
+  "llms-txt": z.boolean(),
   "google-analytics": z.union([
     z.string(),
     z.object({
@@ -298,6 +306,10 @@ export const ZodBaseWebsite = z.object({
       "anonymize-ip": z.boolean(),
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
+  ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
   ]),
   announcement: z.union([
     z.string(),
@@ -324,7 +336,7 @@ export const ZodBaseWebsite = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
@@ -464,6 +476,7 @@ export const ZodBookSchema = z.object({
     z.array(z.enum(["none", "edit", "source", "issue"] as const)),
   ]),
   "reader-mode": z.boolean(),
+  "llms-txt": z.boolean(),
   "google-analytics": z.union([
     z.string(),
     z.object({
@@ -472,6 +485,10 @@ export const ZodBookSchema = z.object({
       "anonymize-ip": z.boolean(),
       version: z.union([z.literal(3), z.literal(4)]),
     }).passthrough().partial(),
+  ]),
+  "plausible-analytics": z.union([
+    z.string(),
+    z.object({ path: z.string() }).strict().partial().required({ path: true }),
   ]),
   announcement: z.union([
     z.string(),
@@ -498,7 +515,7 @@ export const ZodBookSchema = z.object({
     z.enum(["express", "implied"] as const),
     z.boolean(),
     z.object({
-      type: z.enum(["implied", "express"] as const),
+      type: z.enum(["express", "implied"] as const),
       style: z.enum(
         ["simple", "headline", "interstitial", "standalone"] as const,
       ),
@@ -684,6 +701,16 @@ export const ZodFormatLanguage = z.object({
   "toc-title-website": z.string(),
   "related-formats-title": z.string(),
   "related-notebooks-title": z.string(),
+  "source-notebooks-prefix": z.string(),
+  "other-links-title": z.string(),
+  "code-links-title": z.string(),
+  "launch-dev-container-title": z.string(),
+  "launch-binder-title": z.string(),
+  "article-notebook-label": z.string(),
+  "notebook-preview-download": z.string(),
+  "notebook-preview-download-src": z.string(),
+  "notebook-preview-back": z.string(),
+  "manuscript-meca-bundle": z.string(),
   "callout-tip-title": z.string(),
   "callout-note-title": z.string(),
   "callout-warning-title": z.string(),
@@ -692,15 +719,35 @@ export const ZodFormatLanguage = z.object({
   "section-title-abstract": z.string(),
   "section-title-footnotes": z.string(),
   "section-title-appendices": z.string(),
+  "section-title-references": z.string(),
+  "section-title-reuse": z.string(),
+  "section-title-copyright": z.string(),
+  "section-title-citation": z.string(),
+  "appendix-attribution-cite-as": z.string(),
+  "appendix-attribution-bibtex": z.string(),
+  "appendix-view-license": z.string(),
+  "title-block-author-single": z.string(),
+  "title-block-author-plural": z.string(),
+  "title-block-affiliation-single": z.string(),
+  "title-block-affiliation-plural": z.string(),
+  "title-block-published": z.string(),
+  "title-block-modified": z.string(),
+  "title-block-keywords": z.string(),
   "code-summary": z.string(),
   "code-tools-menu-caption": z.string(),
   "code-tools-show-all-code": z.string(),
   "code-tools-hide-all-code": z.string(),
   "code-tools-view-source": z.string(),
   "code-tools-source-code": z.string(),
+  "tools-share": z.string(),
+  "tools-download": z.string(),
+  "code-line": z.string(),
+  "code-lines": z.string(),
+  "back-to-top": z.string(),
   "search-no-results-text": z.string(),
   "copy-button-tooltip": z.string(),
   "copy-button-tooltip-success": z.string(),
+  "skip-to-content": z.string(),
   "repo-action-links-edit": z.string(),
   "repo-action-links-source": z.string(),
   "repo-action-links-issue": z.string(),
@@ -713,6 +760,17 @@ export const ZodFormatLanguage = z.object({
   "search-text-placeholder": z.string(),
   "search-detached-cancel-button-title": z.string(),
   "search-submit-button-title": z.string(),
+  "search-label": z.string(),
+  "toggle-section": z.string(),
+  "toggle-sidebar": z.string(),
+  "toggle-dark-mode": z.string(),
+  "toggle-reader-mode": z.string(),
+  "toggle-navigation": z.string(),
+  "navigation-site-label": z.string(),
+  "navigation-section-label": z.string(),
+  "navigation-toolbar-label": z.string(),
+  "navigation-page-label": z.string(),
+  "navigation-breadcrumbs-label": z.string(),
   "crossref-fig-title": z.string(),
   "crossref-tbl-title": z.string(),
   "crossref-lst-title": z.string(),
@@ -742,6 +800,31 @@ export const ZodFormatLanguage = z.object({
   "crossref-lof-title": z.string(),
   "crossref-lot-title": z.string(),
   "crossref-lol-title": z.string(),
+  "environment-proof-title": z.string(),
+  "environment-remark-title": z.string(),
+  "environment-solution-title": z.string(),
+  "listing-page-order-by": z.string(),
+  "listing-page-order-by-default": z.string(),
+  "listing-page-order-by-date-asc": z.string(),
+  "listing-page-order-by-date-desc": z.string(),
+  "listing-page-order-by-number-desc": z.string(),
+  "listing-page-order-by-number-asc": z.string(),
+  "listing-page-field-date": z.string(),
+  "listing-page-field-title": z.string(),
+  "listing-page-field-description": z.string(),
+  "listing-page-field-author": z.string(),
+  "listing-page-field-filename": z.string(),
+  "listing-page-field-filemodified": z.string(),
+  "listing-page-field-subtitle": z.string(),
+  "listing-page-field-readingtime": z.string(),
+  "listing-page-field-wordcount": z.string(),
+  "listing-page-field-categories": z.string(),
+  "listing-page-minutes-compact": z.string(),
+  "listing-page-category-all": z.string(),
+  "listing-page-no-matches": z.string(),
+  "listing-page-words": z.string(),
+  "listing-page-filter": z.string(),
+  draft: z.string(),
 }).passthrough().partial();
 
 export const ZodWebsiteAbout = z.object({
@@ -1238,7 +1321,20 @@ export const ZodBadParseSchema = z.object({}).passthrough().partial();
 export const ZodQuartoDevSchema = z.object({
   _quarto: z.object({
     "trace-filters": z.string(),
-    tests: z.object({}).passthrough(),
+    tests: z.object({
+      run: z.object({
+        ci: z.boolean(),
+        skip: z.union([z.boolean(), z.string()]),
+        os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+        not_os: z.union([
+          z.enum(["linux", "darwin", "windows"] as const),
+          z.array(z.enum(["linux", "darwin", "windows"] as const)),
+        ]),
+      }).passthrough().partial(),
+    }).passthrough().partial(),
   }).passthrough().partial(),
 }).passthrough().partial();
 
@@ -1362,6 +1458,7 @@ export const ZodLogoSpecifierPathOptional = z.union([
 ]);
 
 export const ZodLogoLightDarkSpecifier = z.union([
+  z.literal(false),
   z.lazy(() => ZodLogoSpecifier),
   z.object({
     light: z.lazy(() => ZodLogoSpecifier),
@@ -1370,6 +1467,7 @@ export const ZodLogoLightDarkSpecifier = z.union([
 ]);
 
 export const ZodLogoLightDarkSpecifierPathOptional = z.union([
+  z.literal(false),
   z.lazy(() => ZodLogoSpecifierPathOptional),
   z.object({
     light: z.lazy(() => ZodLogoSpecifierPathOptional),
@@ -1624,7 +1722,6 @@ export const ZodBrandFont = z.union([
   z.lazy(() => ZodBrandFontBunny),
   z.lazy(() => ZodBrandFontFile),
   z.lazy(() => ZodBrandFontSystem),
-  z.lazy(() => ZodBrandFontCommon),
 ]);
 
 export const ZodBrandFontWeight = z.union([
@@ -1685,7 +1782,7 @@ export const ZodBrandFontSystem = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["system"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontGoogle = z.object({
   family: z.string(),
@@ -1699,7 +1796,7 @@ export const ZodBrandFontGoogle = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["google"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontBunny = z.object({
   family: z.string(),
@@ -1713,7 +1810,7 @@ export const ZodBrandFontBunny = z.object({
   ]),
   display: z.enum(["auto", "block", "swap", "fallback", "optional"] as const),
   source: z.enum(["bunny"] as const),
-}).strict().partial();
+}).strict().partial().required({ source: true });
 
 export const ZodBrandFontFile = z.object({
   source: z.enum(["file"] as const),
@@ -1774,6 +1871,12 @@ export const ZodBrandDefaultsBootstrap = z.object({
   ),
 }).passthrough().partial();
 
+export const ZodMarginaliaSideGeometry = z.object({
+  far: z.string(),
+  width: z.string(),
+  separation: z.string(),
+}).strict().partial();
+
 export const ZodProjectConfig = z.object({
   title: z.string(),
   type: z.string(),
@@ -1803,6 +1906,8 @@ export type PandocFormatRequestHeaders = z.infer<
 
 export type PandocFormatOutputFile = z.infer<typeof ZodPandocFormatOutputFile>;
 
+export type FilterEntryPoint = z.infer<typeof ZodFilterEntryPoint>;
+
 export type PandocFormatFilters = z.infer<typeof ZodPandocFormatFilters>;
 
 export type PandocShortcodes = z.infer<typeof ZodPandocShortcodes>;
@@ -1818,6 +1923,8 @@ export type ContentsAuto = z.infer<typeof ZodContentsAuto>;
 export type GiscusThemes = z.infer<typeof ZodGiscusThemes>;
 
 export type GiscusConfiguration = z.infer<typeof ZodGiscusConfiguration>;
+
+export type ExternalEngine = z.infer<typeof ZodExternalEngine>;
 
 export type DocumentCommentsConfiguration = z.infer<
   typeof ZodDocumentCommentsConfiguration
@@ -2035,6 +2142,8 @@ export type BrandDefaults = z.infer<typeof ZodBrandDefaults>;
 
 export type BrandDefaultsBootstrap = z.infer<typeof ZodBrandDefaultsBootstrap>;
 
+export type MarginaliaSideGeometry = z.infer<typeof ZodMarginaliaSideGeometry>;
+
 export type ProjectConfig = z.infer<typeof ZodProjectConfig>;
 
 export type BookProject = z.infer<typeof ZodBookProject>;
@@ -2045,6 +2154,7 @@ export const Zod = {
   MathMethods: ZodMathMethods,
   PandocFormatRequestHeaders: ZodPandocFormatRequestHeaders,
   PandocFormatOutputFile: ZodPandocFormatOutputFile,
+  FilterEntryPoint: ZodFilterEntryPoint,
   PandocFormatFilters: ZodPandocFormatFilters,
   PandocShortcodes: ZodPandocShortcodes,
   PageColumn: ZodPageColumn,
@@ -2053,6 +2163,7 @@ export const Zod = {
   NavigationItemObject: ZodNavigationItemObject,
   GiscusThemes: ZodGiscusThemes,
   GiscusConfiguration: ZodGiscusConfiguration,
+  ExternalEngine: ZodExternalEngine,
   DocumentCommentsConfiguration: ZodDocumentCommentsConfiguration,
   SocialMetadata: ZodSocialMetadata,
   PageFooterRegion: ZodPageFooterRegion,
@@ -2148,6 +2259,7 @@ export const Zod = {
   BrandPathBoolLightDark: ZodBrandPathBoolLightDark,
   BrandDefaults: ZodBrandDefaults,
   BrandDefaultsBootstrap: ZodBrandDefaultsBootstrap,
+  MarginaliaSideGeometry: ZodMarginaliaSideGeometry,
   ProjectConfig: ZodProjectConfig,
   BookProject: ZodBookProject,
 };

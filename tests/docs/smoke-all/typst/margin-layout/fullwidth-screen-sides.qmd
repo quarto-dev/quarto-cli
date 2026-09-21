@@ -1,0 +1,39 @@
+---
+title: "Column Screen Left/Right Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # column-screen-left maps to inner, column-screen-right maps to outer
+        - ['#wideblock\(side: "inner"\)', '#wideblock\(side: "outer"\)']
+        - []
+      ensurePdfRegexMatches:
+        - ['SCREEN-LEFT-CONTENT', 'SCREEN-RIGHT-CONTENT']
+        - []
+      noErrors: default
+---
+
+## Column Screen Left
+
+The `.column-screen-left` class extends content to the left edge of the screen/page.
+
+::: {.column-screen-left}
+SCREEN-LEFT-CONTENT: This content extends all the way to the left edge of the page, leaving the right side aligned with the text column.
+:::
+
+Regular text here.
+
+## Column Screen Right
+
+The `.column-screen-right` class extends content to the right edge of the screen/page.
+
+::: {.column-screen-right}
+SCREEN-RIGHT-CONTENT: This content extends all the way to the right edge of the page, leaving the left side aligned with the text column.
+:::
+
+Regular text continues.

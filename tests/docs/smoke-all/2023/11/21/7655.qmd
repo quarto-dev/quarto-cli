@@ -1,6 +1,27 @@
 ---
 title: "Untitled"
 format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        -
+          # Verify longtable with multiline column specifications
+          - '\\begin\{longtable\}\[\]\{@\{\}[\s\S]*>\{[^}]+\}p\{[^}]+\}[\s\S]*@\{\}\}'
+          # Verify caption with label
+          - '\\caption\{\\label\{tbl-t-quantile\}The Student.*Distribution\}'
+          # Verify table structure elements
+          - '\\toprule\\noalign\{\}'
+          - '\\midrule\\noalign\{\}'
+          - '\\endhead'
+          - '\\bottomrule\\noalign\{\}'
+          - '\\endlastfoot'
+          # Verify minipage column headers
+          - '\\begin\{minipage\}\[b\]\{\\linewidth\}\\raggedleft[\s\S]*0\.75[\s\S]*\\end\{minipage\}'
+          # Verify document ends properly (no compilation error)
+          - '\\end\{document\}'
+        - []
 ---
 
 ```{r}

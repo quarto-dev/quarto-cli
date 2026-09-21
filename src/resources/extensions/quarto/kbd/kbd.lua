@@ -4,14 +4,40 @@ return {
     local function get_osname(v)
       if v == "win" then return "windows" end
       if v == "mac" then return "mac" end
-      if v == "linux" then return "linux" end       
+      if v == "linux" then return "linux" end
     end
+
+    -- Extract and validate mode kwarg
+    local mode = kwargs["mode"]
+    if mode ~= nil then
+      mode = pandoc.utils.stringify(mode)
+      kwargs["mode"] = nil
+      if mode == "" then
+        mode = nil
+      elseif mode ~= "plain" then
+        return quarto.shortcode.error_output("kbd", "unknown mode: " .. mode .. ", supported modes are: plain", "inline")
+      else
+        -- plain mode requires a positional argument
+        if #args == 0 then
+          return quarto.shortcode.error_output("kbd", "plain mode requires a positional argument", "inline")
+        end
+        -- plain mode doesn't accept OS kwargs
+        for k, _ in pairs(kwargs) do
+          return quarto.shortcode.error_output("kbd", "plain mode does not accept OS-specific arguments", "inline")
+        end
+      end
+    end
+
     if quarto.doc.is_format("html:js") then
       quarto.doc.add_html_dependency({
         name = 'kbd',
         scripts = { 'resources/kbd.js' },
         stylesheets = { 'resources/kbd.css' }
       })
+      if mode == "plain" then
+        local text = pandoc.utils.stringify(args[1])
+        return pandoc.RawInline('html', '<kbd data-mode="plain" class="kbd">' .. text .. '</kbd>')
+      end
       local kwargs_strs = {}
       local title_strs = {}
       for k, v in pairs(kwargs) do
@@ -73,6 +99,9 @@ return {
       -- {{< kbd Shift-Ctrl-P >}}
       -- {{< kbd Shift-Ctrl-P mac=Shift-Command-P >}}
       -- {{< kbd mac=Shift-Command-P win=Shift-Control-S linux=Shift-Ctrl-S >}}
+      if mode == "plain" then
+        return pandoc.Code(pandoc.utils.stringify(args[1]))
+      end
       local result = {};
       local n_kwargs = 0
       for k, v in pairs(kwargs) do

@@ -1,0 +1,41 @@
+
+\begin{frontmatter}
+\title{$title$$if(subtitle)$ \\\large{$subtitle$} $endif$}
+$for(by-author)$\author[$for(by-author.affiliations)$$it.number$$sep$,$endfor$]{$by-author.name.literal$%
+$if(by-author.attributes.corresponding)$\corref{cor1}$endif$%
+$if(by-author.note.text)$\fnref{fn$by-author.note.number$}$endif$}
+$if(by-author.email)$ \ead{$by-author.email$} $endif$
+$endfor$
+$for(by-affiliation)$
+\affiliation[$it.number$]{organization={$it.name$$if(it.department)$, $it.department$$endif$},$if(it.address)$addressline={$it.address$}$endif$$if(it.city)$$if(it.address)$,$endif$city={$it.city$}$endif$$if(it.country)$$if(it.city)$,$elseif(it.address)$,$endif$country={$it.country$},countrysep={,}$endif$$if(it.postal-code)$$if(it.country)$,$elseif(it.city)$,$elseif(it.address)$,$endif$postcode={$it.postal-code$}$endif$,postcodesep={}}
+$endfor$
+
+\cortext[cor1]{Corresponding author}
+$for(by-author)$
+$if(by-author.note.text)$\fntext[fn$by-author.note.number$]{$by-author.note.text$}$endif$
+$endfor$
+        
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+
+$if(journal.graphical-abstract)$\begin{graphicalabstract}
+$journal.graphical-abstract$
+\end{graphicalabstract}
+$endif$
+
+$if(journal.highlights)$\begin{highlights}
+$for(journal.highlights)$\item $it$$endfor$
+\end{highlights}
+$endif$
+
+$if(keywords)$
+\begin{keyword}
+    $for(keywords/allbutlast)$$keywords$ \sep $endfor$
+    $for(keywords/last)$$keywords$$endfor$
+\end{keyword}
+$endif$
+\end{frontmatter}
+    

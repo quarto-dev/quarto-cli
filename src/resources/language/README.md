@@ -7,6 +7,7 @@ This directory includes a set of built-in translations, including:
 | File                  | Language                     |
 | --------------------- | ---------------------------- |
 | `_language.yml`       | English (default)            |
+| `_language-az.yml`    | Azerbaijani                  |
 | `_language-eu.yml`    | Basque                       |
 | `_language-ca.yml`    | Catalan                      |
 | `_language-zh.yml`    | Chinese                      |
@@ -46,4 +47,4 @@ We welcome contributions of additional languages! To contribute a localization:
 
 2.  Translate the English strings therein to the target language.
 
-3.  Submit a [pull request](https://help.github.com/articles/using-pull-requests) with your new language translation. Before doing this please ensure that you have signed the [individual](https://posit.co/wp-content/uploads/2023/04/2023-03-13_TC_Indiv_contrib_agreement.pdf) or [corporate](https://posit.co/wp-content/uploads/2023/04/2023-03-13_TC_Corp_contrib_agreement.pdf) contributor agreement as appropriate. You can send the signed copy to [jj\@rstudio.com](mailto:jj@rstudio.com).
+3.  Submit a [pull request](https://help.github.com/articles/using-pull-requests) with your new language translation.

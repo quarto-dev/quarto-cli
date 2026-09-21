@@ -27,7 +27,7 @@ async function installDir() {
 }
 
 export const chromiumInstallable: InstallableTool = {
-  name: "Chromium",
+  name: "Chromium (deprecated)",
   prereqs: [],
   installed,
   installedVersion,

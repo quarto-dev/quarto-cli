@@ -1,6 +1,6 @@
 ---
 title: Testing gruvbox code highlight
-highlight-style: gruvbox
+syntax-highlighting: gruvbox
 ---
 
 {{< include _body.md >}}

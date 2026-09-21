@@ -1,0 +1,15 @@
+---
+title: No Navbar
+navbar: false
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'nav#quarto-sidebar[aria-label="Site"]'
+        -
+          - 'nav.navbar'
+          - 'nav[aria-label="Section"]'
+---
+
+With the navbar disabled, the sidebar carries the site-level navigation and its label adapts.

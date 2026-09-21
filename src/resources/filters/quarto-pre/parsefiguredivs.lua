@@ -1,8 +1,6 @@
 -- parsefiguredivs.lua
 -- Copyright (C) 2023 Posit Software, PBC
 
-local patterns = require("modules/patterns")
-
 local attributes_to_not_merge = pandoc.List({
   "width", "height"
 })
@@ -88,14 +86,14 @@ local function kable_raw_latex_fixups(content, identifier)
       if not _quarto.format.isRawLatex(raw) then
         return nil
       end
-      if raw.text:match(patterns.latex_long_table) == nil then
+      if raw.text:match(_quarto.modules.patterns.latex_long_table) == nil then
         return nil
       end
-      local b, e, match1, label_identifier = raw.text:find(patterns.latex_label)
+      local b, e, match1, label_identifier = raw.text:find(_quarto.modules.patterns.latex_label)
       if b ~= nil then
         raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
       end
-      local b, e, match2, caption_content = raw.text:find(patterns.latex_caption)
+      local b, e, match2, caption_content = raw.text:find(_quarto.modules.patterns.latex_caption)
       if b ~= nil then
         raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
       end
@@ -257,7 +255,18 @@ function parse_floatreftargets()
     elseif div.attributes[caption_attr_key] ~= nil then
       caption = pandoc.Plain(string_to_quarto_ast_inlines(div.attributes[caption_attr_key]))
       div.attributes[caption_attr_key] = nil
-    else
+    elseif ref == "lst" then
+      -- For listings from cell options, the caption may be on a nested CodeBlock
+      _quarto.ast.walk(content, {
+        CodeBlock = function(code)
+          if code.attr.attributes[caption_attr_key] then
+            caption = pandoc.Plain(string_to_quarto_ast_inlines(code.attr.attributes[caption_attr_key]))
+            code.attr.attributes[caption_attr_key] = nil
+          end
+        end
+      })
+    end
+    if caption == nil then
       -- it's possible that the content of this div includes a table with a caption
       -- so we'll go root around for that.
       local found_caption = false
@@ -294,11 +303,9 @@ function parse_floatreftargets()
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
     assert(content)
-    if (#content == 1 and content[1].t == "Para" and
-        content[1].content[1].t == "Image") then
-      -- if the div contains a single image, then we simply use the image as
-      -- the content
-      content = content[1].content[1]
+    local single_image = quarto.utils.match("[1]/Para/[1]/Image")(content)
+    if #content == 1 and single_image then
+      content = single_image
 
       -- don't merge classes because they often have CSS consequences 
       -- but merge attributes because they're needed to correctly resolve
@@ -331,26 +338,46 @@ function parse_floatreftargets()
       local layout_classes = attr.classes:filter(
         function(c) return c:match("^column-") end
       )
-      if #layout_classes then
-        attr.classes = attr.classes:filter(
-          function(c) return not layout_classes:includes(c) end)
-        div.classes = div.classes:filter(
-          function(c) return not layout_classes:includes(c) end)
-        -- if the div is a cell, then all layout attributes need to be
-        -- forwarded to the cell .cell-output-display content divs
-        content = _quarto.ast.walk(content, {
-          Div = function(div)
-            if div.classes:includes("cell-output-display") then
-              div.classes:extend(layout_classes)
-              return _quarto.ast.walk(div, {
-                Table = function(tbl)
-                  tbl.classes:insert("do-not-create-environment")
-                  return tbl
-                end
-              })
+      if #layout_classes > 0 then
+        -- Check if there are cell-output-display divs to forward to
+        local has_cell_output_display = false
+        _quarto.ast.walk(content, {
+          Div = function(subdiv)
+            if subdiv.classes:includes("cell-output-display") then
+              has_cell_output_display = true
             end
           end
-        })  
+        })
+
+        if has_cell_output_display then
+          -- Forward layout classes to cell-output-display divs
+          content = _quarto.ast.walk(content, {
+            Div = function(subdiv)
+              if subdiv.classes:includes("cell-output-display") then
+                subdiv.classes:extend(layout_classes)
+                return _quarto.ast.walk(subdiv, {
+                  Table = function(tbl)
+                    tbl.classes:insert("do-not-create-environment")
+                    return tbl
+                  end
+                })
+              end
+            end
+          })
+          -- Remove layout classes from div
+          div.classes = div.classes:filter(
+            function(c) return not layout_classes:includes(c) end)
+          -- Strip fullwidth layout classes from attr (columns.lua handles wideblock wrapping)
+          -- but keep margin classes so FloatRefTarget can use notefigure
+          attr.classes = attr.classes:filter(function(c)
+            if c == "column-margin" or c == "aside" then
+              return true  -- keep margin classes
+            end
+            return not layout_classes:includes(c)  -- strip other layout classes
+          end)
+        end
+        -- If no cell-output-display (e.g., listings with echo:true eval:false),
+        -- keep layout_classes on attr so the FloatRefTarget inherits them
       end
     end
 
@@ -455,7 +482,7 @@ function parse_floatreftargets()
       if category == nil then
         return nil
       end
-      if #fig.content ~= 1 and fig.content[1].t ~= "Plain" then
+      if #fig.content ~= 1 or fig.content[1].t ~= "Plain" then
         -- we don't know how to parse this pandoc 3 figure
         -- just return as is
         return nil
@@ -709,31 +736,31 @@ function parse_floatreftargets()
       -- first we check if all of the expected bits are present
 
       -- check for {#...} or \label{...}
-      if rawText:find(patterns.latex_label) == nil and 
-         rawText:find(patterns.attr_identifier) == nil then
+      if rawText:find(_quarto.modules.patterns.latex_label) == nil and 
+         rawText:find(_quarto.modules.patterns.attr_identifier) == nil then
         return nil
       end
 
       -- check for \caption{...}
-      if rawText:find(patterns.latex_caption) == nil then
+      if rawText:find(_quarto.modules.patterns.latex_caption) == nil then
         return nil
       end
 
       -- check for tabular or longtable
-      if rawText:find(patterns.latex_long_table) == nil and
-         rawText:find(patterns.latex_tabular) == nil then
+      if rawText:find(_quarto.modules.patterns.latex_long_table) == nil and
+         rawText:find(_quarto.modules.patterns.latex_tabular) == nil then
         return nil
       end
       
       -- if we're here, then we're going to parse this as a FloatRefTarget
       -- and we need to remove the label and caption from the raw block
       local identifier = ""
-      local b, e, _ , label_identifier = rawText:find(patterns.latex_label)
+      local b, e, _ , label_identifier = rawText:find(_quarto.modules.patterns.latex_label)
       if b ~= nil then
         rawText = rawText:sub(1, b - 1) .. rawText:sub(e + 1)
         identifier = label_identifier
       else
-        local b, e, _ , attr_identifier = rawText:find(patterns.attr_identifier)
+        local b, e, _ , attr_identifier = rawText:find(_quarto.modules.patterns.attr_identifier)
         if b ~= nil then
           rawText = rawText:sub(1, b - 1) .. rawText:sub(e + 1)
           identifier = attr_identifier
@@ -753,7 +780,7 @@ function parse_floatreftargets()
       end
 
       local caption
-      local b, e, _, caption_content = rawText:find(patterns.latex_caption)
+      local b, e, _, caption_content = rawText:find(_quarto.modules.patterns.latex_caption)
       if b ~= nil then
         rawText = rawText:sub(1, b - 1) .. rawText:sub(e + 1)
         caption = pandoc.RawBlock("latex", caption_content)

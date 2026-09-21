@@ -1,0 +1,59 @@
+---
+title: "Margin Caption Listing Test"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Listing with margin caption uses show rule approach
+        - ['#show figure.caption:', 'note\(', 'kind: "quarto-float-lst"']
+        - []
+      ensurePdfRegexMatches:
+        - ['Listing 1', 'MARGINCAPSQL', 'Listing 2', 'MARGINCAPPYTHON']
+        - []
+      ensurePdfTextPositions:
+        - - subject: "MARGINCAPSQL"
+            relation: rightOf
+            object: "SELECT"
+          - subject: "MARGINCAPPYTHON"
+            relation: rightOf
+            object: "calculate_statistics"
+          - subject: "MARGINCAPSQL"
+            relation: above
+            object: "MARGINCAPPYTHON"
+        - []
+      noErrors: default
+---
+
+This tests code listings with captions placed in the margin.
+
+## SQL Query with Margin Caption
+
+```{#lst-margincap-sql .sql lst-cap="MARGINCAPSQL" .margin-caption}
+SELECT customers.id, customers.name, orders.total
+FROM customers
+INNER JOIN orders ON customers.id = orders.customer_id
+WHERE orders.status = 'completed'
+ORDER BY orders.total DESC
+LIMIT 10;
+```
+
+See @lst-margincap-sql for the SQL query with its caption in the margin.
+
+## Python Function with Margin Caption
+
+```{#lst-margincap-python .python lst-cap="MARGINCAPPYTHON" .margin-caption}
+def calculate_statistics(data):
+    """Calculate basic statistics."""
+    mean = sum(data) / len(data)
+    variance = sum((x - mean) ** 2 for x in data) / len(data)
+    return {"mean": mean, "std": variance ** 0.5}
+```
+
+See @lst-margincap-python for the Python function with margin caption.
+
+The code blocks stay in the main column while their captions appear in the margin.

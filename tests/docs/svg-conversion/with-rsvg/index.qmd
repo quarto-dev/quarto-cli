@@ -1,0 +1,12 @@
+---
+title: "SVG to PDF with rsvg-convert"
+format:
+  pdf:
+    keep-tex: true
+---
+
+This test verifies that SVG images are correctly converted to PDF when rsvg-convert is available.
+
+The intermediate .tex file should show the converted PDF being included (not raw SVG).
+
+![Test SVG image](simple-svg.svg)

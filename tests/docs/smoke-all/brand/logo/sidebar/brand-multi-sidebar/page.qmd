@@ -1,0 +1,13 @@
+---
+title: "Group 2 Page"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'img[class*="light-content"][src="./sun-face.png"]'
+          - 'img[class*="dark-content"][src="./moon-face.png"]'
+        - []
+---
+
+Second sidebar with no explicit logo. Brand logo should be inherited from sidebar 1.

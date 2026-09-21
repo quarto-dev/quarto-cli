@@ -18,15 +18,20 @@ IF NOT DEFINED DENO_DIR (
 
 ECHO Revendoring quarto dependencies
 
-REM remove deno_cache directory first
+REM remove deno_cache directory first, unless explicitly told to preserve
+REM (CI sets QUARTO_SKIP_DENO_CACHE_WIPE=1 so a restored cache survives vendor.cmd)
 IF EXIST "!DENO_DIR!" (
-  RMDIR /S /Q "!DENO_DIR!"
+  IF NOT "!QUARTO_SKIP_DENO_CACHE_WIPE!"=="1" (
+    RMDIR /S /Q "!DENO_DIR!"
+  )
 )
 
 PUSHD "!QUARTO_SRC_PATH!"
 
 FOR %%E IN (quarto.ts vendor_deps.ts ..\tests\test-deps.ts ..\package\scripts\deno_std\deno_std.ts) DO (
-  CALL !DENO_BIN_PATH! install --allow-all --no-config --entrypoint %%E --importmap="!QUARTO_SRC_PATH!\import_map.json"
+  CALL !DENO_BIN_PATH! install --allow-all --no-config --entrypoint %%E --importmap="!QUARTO_SRC_PATH!\import_map.json" || (
+    ECHO Warning: Failed to vendor %%E, continuing...
+  )
 )
 
 REM Return to the original directory

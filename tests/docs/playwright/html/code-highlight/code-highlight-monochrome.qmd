@@ -1,6 +1,6 @@
 ---
 title: Testing monochrome code highlight
-highlight-style: monochrome
+syntax-highlighting: monochrome
 ---
 
 {{< include _body.md >}}

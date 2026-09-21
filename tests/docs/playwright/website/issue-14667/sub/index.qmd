@@ -1,0 +1,5 @@
+---
+title: Sub page
+---
+
+Target page for the clean-URL link on the home page.

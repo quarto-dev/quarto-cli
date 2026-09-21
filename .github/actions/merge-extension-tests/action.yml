@@ -1,0 +1,21 @@
+name: "Merge extension tests into test tree"
+description: >
+  Copies test files from extension subtrees into the main test directories
+  so they are discovered by the test runner and bucket creation.
+  Extension tests live in their own repos (single source of truth) and are
+  pulled in via git subtree — this step avoids duplicating them.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Merge julia-engine tests
+      shell: bash
+      run: |
+        # The upstream tests do not yet sanitize Quarto subprocess environments.
+        if [[ -n "$QUARTO_TEST_BIN" ]]; then
+          echo "::notice title=julia-engine tests skipped::The subtree tests do not support binary mode yet"
+          exit 0
+        fi
+        SUBTREE=src/resources/extension-subtrees/julia-engine/tests
+        cp -r "$SUBTREE/docs/julia-engine" tests/docs/julia-engine
+        cp -r "$SUBTREE/smoke/julia-engine" tests/smoke/julia-engine

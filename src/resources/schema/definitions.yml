@@ -27,6 +27,19 @@
         values: [null]
         hidden: true
 
+- id: filter-entry-point
+  enum:
+    [
+      pre-ast,
+      post-ast,
+      pre-quarto,
+      post-quarto,
+      pre-render,
+      post-render,
+      pre-finalize,
+      post-finalize,
+    ]
+
 - id: pandoc-format-filters
   arrayOf:
     anyOf:
@@ -41,15 +54,7 @@
             type: string
             path: path
             at:
-              enum:
-                [
-                  pre-ast,
-                  post-ast,
-                  pre-quarto,
-                  post-quarto,
-                  pre-render,
-                  post-render,
-                ]
+              ref: filter-entry-point
           required: [path, at]
       - record:
           type:
@@ -123,9 +128,9 @@
       icon:
         string:
           description:
-            short: Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+            short: Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)
             long: |
-              Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+              Name of bootstrap icon (e.g. `github`, `bluesky`, `share`)
               See <https://icons.getbootstrap.com/> for a list of available icons
       id:
         # "core identification"
@@ -140,7 +145,7 @@
         string:
           description: |
             Text to display for item (defaults to the
-            document title if not provided)
+            document title if not provided). Supports markdown formatting.
       url:
         hidden: true
         string:
@@ -286,6 +291,17 @@
         string:
           description: The language that should be used when displaying the commenting interface.
     required: [repo]
+
+- id: external-engine
+  schema:
+    object:
+      closed: true
+      properties:
+        path:
+          path:
+            description: Path to the TypeScript module for the execution engine
+      required: [path]
+    description: An execution engine not pre-loaded in Quarto
 
 - id: document-comments-configuration
   anyOf:
@@ -644,13 +660,13 @@
     properties:
       left:
         ref: page-footer-region
-        description: "Footer left content"
+        description: "Footer left content. Supports markdown formatting."
       right:
         ref: page-footer-region
-        description: "Footer right content"
+        description: "Footer right content. Supports markdown formatting."
       center:
         ref: page-footer-region
-        description: "Footer center content"
+        description: "Footer center content. Supports markdown formatting."
       border:
         anyOf:
           - boolean
@@ -712,6 +728,10 @@
         boolean:
           description: |
             Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.
+      llms-txt:
+        boolean:
+          description: |
+            Generate llms.txt and .llms.md files for LLM-friendly content consumption.
       google-analytics:
         anyOf:
           - string
@@ -751,6 +771,48 @@
 
                       This is automatically detected based upon the `tracking-id`, but you may specify it.
         description: "Enable Google Analytics for this website"
+      plausible-analytics:
+        anyOf:
+          - string
+          - object:
+              closed: true
+              properties:
+                path:
+                  path:
+                    description: "Path to a file containing the Plausible Analytics script snippet"
+              required: [path]
+        description:
+          short: "Enable Plausible Analytics for this website by providing a script snippet or path to snippet file"
+          long: |
+            Enable Plausible Analytics for this website by pasting the script snippet from your Plausible dashboard,
+            or by providing a path to a file containing the snippet.
+
+            Plausible is a privacy-friendly, GDPR-compliant web analytics service that does not use cookies and does not require cookie consent.
+
+            **Option 1: Inline snippet**
+
+            ```yaml
+            website:
+              plausible-analytics: |
+                <script async src="https://plausible.io/js/script.js"></script>
+            ```
+
+            **Option 2: File path**
+
+            ```yaml
+            website:
+              plausible-analytics:
+                path: _plausible_snippet.html
+            ```
+
+            To get your script snippet:
+
+            1. Log into your Plausible account at <https://plausible.io>
+            2. Go to your site settings
+            3. Copy the JavaScript snippet provided
+            4. Either paste it directly in your configuration or save it to a file
+
+            For more information, see <https://plausible.io/docs/plausible-script>
       announcement:
         anyOf:
           - string
@@ -758,7 +820,7 @@
               properties:
                 content:
                   schema: string
-                  description: "The content of the announcement"
+                  description: "The content of the announcement. Supports markdown formatting."
                 dismissable:
                   schema: boolean
                   description: "Whether this announcement may be dismissed by the user."
@@ -803,15 +865,16 @@
           - object:
               properties:
                 type:
-                  enum: [implied, express]
+                  enum: [express, implied]
                   description:
                     short: "The type of consent that should be requested"
                     long: |
                       The type of consent that should be requested, using one of these two values:
 
-                      - `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+                      - `express` (default): This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
 
-                      - `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
+                      - `implied`: This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+
                 style:
                   enum: [simple, headline, interstitial, standalone]
                   description:
@@ -935,7 +998,7 @@
                   anyOf:
                     - string
                     - boolean
-                  description: "The navbar title. Uses the project title if none is specified."
+                  description: "The navbar title. Uses the project title if none is specified. Supports markdown formatting."
                 logo:
                   ref: logo-light-dark-specifier
                   description: "Specification of image that will be displayed to the left of the title."
@@ -1017,7 +1080,7 @@
                     anyOf:
                       - string
                       - boolean
-                    description: "The sidebar title. Uses the project title if none is specified."
+                    description: "The sidebar title. Uses the project title if none is specified. Supports markdown formatting."
                   logo:
                     ref: logo-light-dark-specifier
                     description: "Specification of image that will be displayed in the sidebar."
@@ -1313,6 +1376,16 @@
       toc-title-website: string
       related-formats-title: string
       related-notebooks-title: string
+      source-notebooks-prefix: string
+      other-links-title: string
+      code-links-title: string
+      launch-dev-container-title: string
+      launch-binder-title: string
+      article-notebook-label: string
+      notebook-preview-download: string
+      notebook-preview-download-src: string
+      notebook-preview-back: string
+      manuscript-meca-bundle: string
       callout-tip-title: string
       callout-note-title: string
       callout-warning-title: string
@@ -1321,15 +1394,35 @@
       section-title-abstract: string
       section-title-footnotes: string
       section-title-appendices: string
+      section-title-references: string
+      section-title-reuse: string
+      section-title-copyright: string
+      section-title-citation: string
+      appendix-attribution-cite-as: string
+      appendix-attribution-bibtex: string
+      appendix-view-license: string
+      title-block-author-single: string
+      title-block-author-plural: string
+      title-block-affiliation-single: string
+      title-block-affiliation-plural: string
+      title-block-published: string
+      title-block-modified: string
+      title-block-keywords: string
       code-summary: string
       code-tools-menu-caption: string
       code-tools-show-all-code: string
       code-tools-hide-all-code: string
       code-tools-view-source: string
       code-tools-source-code: string
+      tools-share: string
+      tools-download: string
+      code-line: string
+      code-lines: string
+      back-to-top: string
       search-no-results-text: string
       copy-button-tooltip: string
       copy-button-tooltip-success: string
+      skip-to-content: string
       repo-action-links-edit: string
       repo-action-links-source: string
       repo-action-links-issue: string
@@ -1342,6 +1435,17 @@
       search-text-placeholder: string
       search-detached-cancel-button-title: string
       search-submit-button-title: string
+      search-label: string
+      toggle-section: string
+      toggle-sidebar: string
+      toggle-dark-mode: string
+      toggle-reader-mode: string
+      toggle-navigation: string
+      navigation-site-label: string
+      navigation-section-label: string
+      navigation-toolbar-label: string
+      navigation-page-label: string
+      navigation-breadcrumbs-label: string
       crossref-fig-title: string
       crossref-tbl-title: string
       crossref-lst-title: string
@@ -1371,6 +1475,34 @@
       crossref-lof-title: string
       crossref-lot-title: string
       crossref-lol-title: string
+      environment-proof-title: string
+      environment-remark-title: string
+      environment-solution-title: string
+      listing-page-order-by: string
+      listing-page-order-by-default: string
+      listing-page-order-by-date-asc: string
+      listing-page-order-by-date-desc: string
+      listing-page-order-by-number-desc: string
+      listing-page-order-by-number-asc: string
+      listing-page-field-date: string
+      listing-page-field-title: string
+      listing-page-field-description: string
+      listing-page-field-author: string
+      listing-page-field-filename: string
+      listing-page-field-filemodified: string
+      listing-page-field-subtitle: string
+      listing-page-field-readingtime: string
+      listing-page-field-wordcount: string
+      listing-page-field-categories: string
+      listing-page-minutes-compact: string
+      listing-page-category-all: string
+      listing-page-no-matches: string
+      listing-page-words: string
+      listing-page-filter: string
+      draft: string
+    # Deliberately left open (no `closed: true`): custom/extension keys
+    # under `language:` must pass through so they can reach templates via
+    # $quarto.language.<key>$ (see #14772, #14773).
     errorDescription: "be a format language description object"
 
 - id: website-about
@@ -1585,7 +1717,7 @@
             short: "The date format to use when displaying dates (e.g. d-M-yyy)."
             long: |
               The date format to use when displaying dates (e.g. d-M-yyy). 
-              Learn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).
+              Learn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html).
       max-description-length:
         number:
           description:
@@ -2378,7 +2510,34 @@
           object:
             properties:
               trace-filters: string
-              tests: object
+              tests:
+                object:
+                  properties:
+                    run:
+                      object:
+                        description: "Control when tests should run"
+                        properties:
+                          ci:
+                            boolean:
+                              description: "Run tests on CI (true = run, false = skip)"
+                              default: true
+                          skip:
+                            description: "Skip test unconditionally (true = skip with default message, string = skip with custom message)"
+                            anyOf:
+                              - boolean
+                              - string
+                          os:
+                            description: "Run tests ONLY on these platforms (whitelist)"
+                            anyOf:
+                              - enum: [linux, darwin, windows]
+                              - arrayOf:
+                                  enum: [linux, darwin, windows]
+                          not_os:
+                            description: "Don't run tests on these platforms (blacklist)"
+                            anyOf:
+                              - enum: [linux, darwin, windows]
+                              - arrayOf:
+                                  enum: [linux, darwin, windows]
 
 - id: notebook-view-schema
   schema:
@@ -2641,8 +2800,9 @@
 - id: logo-light-dark-specifier
   description: >
     Any of the ways a logo can be specified: string, object, or light/dark object of
-    string or object
+    string or object. Use `false` to explicitly disable the logo.
   anyOf:
+    - enum: [false]
     - ref: logo-specifier
     - object:
         closed: true
@@ -2661,8 +2821,9 @@
 - id: logo-light-dark-specifier-path-optional
   description: >
     Any of the ways a logo can be specified: string, object, or light/dark object of
-    string or object
+    string or object. Use `false` to explicitly disable the logo.
   anyOf:
+    - enum: [false]
     - ref: logo-specifier-path-optional
     - object:
         closed: true
@@ -3168,7 +3329,7 @@
     #
     # in Quarto, the default source for typst is `google`
     # and the default source for html formats is `bunny`
-    - ref: brand-font-common
+
 - id: brand-font-weight
   description: A font weight.
   enum:
@@ -3237,6 +3398,7 @@
     properties:
       source:
         enum: [system]
+    required: [source]
 
 - id: brand-font-google
   description: A font definition from Google Fonts.
@@ -3247,6 +3409,7 @@
     properties:
       source:
         enum: [google]
+    required: [source]
 
 - id: brand-font-bunny
   description: A font definition from fonts.bunny.net.
@@ -3257,6 +3420,7 @@
     properties:
       source:
         enum: [bunny]
+    required: [source]
 
 - id: brand-font-file
   description: A method for providing font files directly, either locally or from an online location.
@@ -3399,4 +3563,18 @@
                   - string
                   - boolean
                   - number
+- id: marginalia-side-geometry
+  object:
+    closed: true
+    properties:
+      far:
+        string:
+          description: "Distance from page edge to wideblock boundary."
+      width:
+        string:
+          description: "Width of the margin note column."
+      separation:
+        string:
+          description: "Gap between margin column and body text."
+
 # - id: quarto-extension

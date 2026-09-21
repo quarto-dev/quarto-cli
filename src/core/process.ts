@@ -14,6 +14,12 @@ let processCount = 0;
 let cleanupRegistered = false;
 
 export function registerForExitCleanup(process: Deno.ChildProcess) {
+  // The registry is only killed by a handler that execProcess used to be the
+  // sole installer of, so registering a process was not on its own enough to
+  // have it cleaned up. Install it here too: a command that spawns a browser
+  // and never shells out (`quarto call axe`) must still not orphan it on
+  // Ctrl-C.
+  ensureCleanup();
   const thisProcessId = ++processCount; // don't risk repeated PIDs
   processList.set(thisProcessId, process);
   return thisProcessId;
@@ -94,7 +100,17 @@ export async function execProcess(
         offset += window.byteLength;
       }
       stdinWriter.releaseLock();
-      process.stdin.close();
+      try {
+        await process.stdin.close();
+      } catch (e) {
+        // The child may have closed its read end of the pipe before our
+        // close() completed (e.g. exited fast, failed to spawn). The
+        // resulting "Writable stream is closed or errored." is not a
+        // failure of execProcess — the child's exit status reflects any
+        // real problem. Swallow it so it doesn't escape as an unhandled
+        // rejection that aborts the process. See #14445.
+        debug(`[execProcess] stdin.close() rejected: ${e}`);
+      }
     }
 
     let stdoutText = "";

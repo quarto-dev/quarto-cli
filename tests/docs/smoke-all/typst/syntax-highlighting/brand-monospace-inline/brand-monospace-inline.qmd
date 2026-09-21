@@ -1,0 +1,28 @@
+---
+title: Brand Monospace Inline with Skylighting
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Skylighting is active for code blocks
+          - "#Skylighting"
+          # Brand monospace-inline properties are emitted
+          - '^#show raw\.where\(block: false\): set text\(weight: 600, size: 0\.85em, fill: rgb\("#664d03"\), \)$'
+          - '^#show raw\.where\(block: false\): content => highlight\(fill: rgb\("#fff3cd"\), content\)$'
+        # No monospace-block show rules (not configured)
+        - ['^#show raw\.where\(block: true\): set block\(fill:']
+---
+
+Inline code like `hello()`{.python} and `x + y`{.r} should get brand monospace-inline styling
+(background highlight, custom color, weight, size).
+
+```python
+def hello():
+    print("world")
+```
+
+Code blocks use Skylighting and should not be affected by monospace-inline settings.

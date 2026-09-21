@@ -1,0 +1,16 @@
+---
+title: "Logo from _brand.yml in subdirectory"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      -
+        - 'image\("(/|\\\\)images(/|\\\\)logo\.svg"'
+      -
+        - 'image\("\.\.(/|\\\\)images(/|\\\\)logo\.svg"'
+---
+
+Hello world.

@@ -1,0 +1,119 @@
+---
+_quarto:
+  tests:
+    run:
+      skip: "Book chapter - only renders as part of full book"
+---
+
+# Methods {#sec-methods}
+
+This is the second chapter of the book. As discussed in @sec-intro, we now present our methods. The relational model described by @codd1970 informs our approach.
+
+The fundamental problem with any bureaucratic methodology is that it must, by its very nature, assume that the person filling out the forms is lying. This is not because bureaucrats are inherently suspicious people, but because the forms themselves were designed by committees who assumed that clarity was a luxury that could not be afforded in these troubled times.
+
+Consider, for example, the simple act of changing one's address. One might naively suppose that this would involve telling the relevant authorities where one now lives. In practice, it requires filling out seventeen forms, each of which asks for one's previous address in a slightly different format, and all of which must be submitted to different departments who do not, under any circumstances, communicate with each other.
+
+The postal service, meanwhile, continues to deliver mail to addresses that have not existed for thirty years, on the grounds that someone might still be expecting it. This is considered efficiency.
+
+## Tables {#sec-tables}
+
+Some content in @sec-tables. See @tbl-data for sample data.
+
+| Column A | Column B | Column C |
+|----------|----------|----------|
+| 1        | 2        | 3        |
+| 4        | 5        | 6        |
+
+: Sample data table {#tbl-data}
+
+## Cross-references {#sec-cross-references}
+
+Some content in @sec-cross-references. Refer back to @fig-cars and @tbl-data. As @breiman2001b observed, there are two cultures in statistical modeling.
+
+## Sub-figures {#sec-sub-figures}
+
+See @fig-panel for a panel of sub-figures, or @fig-panel-a and @fig-panel-b individually. Local regression techniques are explored in @cleveland1988.
+
+::: {#fig-panel layout-ncol=2}
+
+![First panel](chapter1_files/figure-typst/fig-cars-1.svg){#fig-panel-a}
+
+![Second panel](chapter1_files/figure-typst/fig-cars-1.svg){#fig-panel-b}
+
+A panel with two sub-figures showing the same plot.
+:::
+
+## More Callouts {#sec-more-callouts}
+
+Before we continue, recall the important tea-related warning from @sec-intro: see @wrn-tea.
+
+::: {#tip-towel .callout-tip}
+## Whose Towel Is This?
+A towel is about the most massively useful thing an interstellar hitchhiker can have. See @tip-towel to reference this tip.
+:::
+
+::: {.callout-caution}
+Don't Panic. Under no circumstances should you allow yourself to panic, even if you find yourself in the path of a Vogon constructor fleet. This is an unlabeled caution callout.
+:::
+
+::: {#nte-vogon .callout-note}
+## A Note About Vogon Poetry
+Vogon poetry is of course, the third worst in the universe. See @nte-vogon to reference this note.
+:::
+
+## More Dinosaurs {#sec-more-dinosaurs}
+
+@sec-more-dinosaurs tests that custom cross-reference counters reset at chapter boundaries. The first dinosaur here should be Dinosaur 2.1, not Dinosaur 1.3.
+
+::: {#dino-raptor}
+**Velociraptor**
+
+This dinosaur demonstrates clever pack hunting behavior, reminiscent of @hoare1978's communicating processes. See @dino-raptor to self-reference.
+:::
+
+We can also reference dinosaurs from the previous chapter: see @dino-steg and @dino-trex from @sec-intro.
+
+## More Equations {#sec-more-equations}
+
+The quadratic formula:
+
+$$
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$ {#eq-quadratic}
+
+Use @eq-quadratic to solve quadratic equations. This should be Equation 2.1. The resampling elegance here echoes @efron1979's bootstrap methods.
+
+Cross-chapter reference: Recall @eq-einstein from @sec-intro and @eq-newton.
+
+## More Theorems {#sec-more-theorems}
+
+::: {#thm-calculus}
+## Fundamental Theorem of Calculus
+If $F$ is an antiderivative of $f$ on $[a,b]$, then: $\int_a^b f(x)\,dx = F(b) - F(a)$
+:::
+
+See @thm-calculus. This should be Theorem 2.1. Recall @thm-pythagorean and @lem-triangle from @sec-intro.
+
+::: {#def-continuous}
+## Continuous Function
+A function $f$ is continuous at $c$ if $\lim_{x \to c} f(x) = f(c)$.
+:::
+
+See @def-continuous for the definition.
+
+## More Code Listings {#sec-more-code-listings}
+
+```{#lst-quicksort .python lst-cap="Quicksort Algorithm"}
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quicksort(left) + middle + quicksort(right)
+```
+
+See @lst-quicksort for an efficient sorting algorithm. This should be Listing 2.1. Modern implementations benefit from regularization insights in @tibshirani1996.
+
+Cross-chapter references: See @lst-hello and @lst-fibonacci from @sec-intro.

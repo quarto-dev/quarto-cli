@@ -1,0 +1,55 @@
+---
+title: "Margin Table flextable Cross-ref Test"
+papersize: us-letter
+grid:
+  margin-width: 3.5in
+  gutter-width: 0.25in
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Cell option should produce #notefigure (entire figure in margin)
+        - ['#notefigure\(', '<tbl-iris-flex>']
+        - []
+      ensurePdfRegexMatches:
+        - ['Table 1', 'Iris']
+        - []
+      ensurePdfTextPositions:
+        - # Table caption in margin, right of body text
+          - subject: "Iris Dataset"
+            relation: rightOf
+            object: "This tests"
+        - []
+      noErrors: default
+---
+
+This tests cross-references to margin tables using flextable.
+
+```{r}
+#| column: margin
+#| classes: plain
+#| echo: false
+#| label: tbl-iris-flex
+#| tbl-cap: "Iris Dataset"
+
+library(flextable)
+
+iris_mini <- head(iris[, 1:4], 6)
+
+flextable(iris_mini) |>
+  set_header_labels(
+    Sepal.Length = "Sep.L",
+    Sepal.Width = "Sep.W",
+    Petal.Length = "Pet.L",
+    Petal.Width = "Pet.W"
+  ) |>
+  autofit()
+```
+
+As shown in @tbl-iris-flex, the table appears in the margin with a working cross-reference.
+
+The reference should show "Table 1" or similar.

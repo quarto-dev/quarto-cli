@@ -35,10 +35,12 @@ _quarto:
         - '^#show heading: set text\(font: \("Montserrat",\), weight: 800, style: "normal", fill: rgb\("#0b8005"\), \)$'
         - '^#show heading: set par\(leading: 0.25em\)$'
 
-        - '^#show raw.where\(block: false\): set text\(font: \("Inconsolata",\), weight: 600, size: 0.57\*14pt, fill: rgb\(8, 111, 15\), \)$'
+        - 'codefont: \("Inconsolata",\),$'
+        - 'show raw: set text\(font: codefont\) if codefont != none'
+        - '^#show raw.where\(block: false\): set text\(weight: 600, size: 0.57\*14pt, fill: rgb\(8, 111, 15\), \)$'
         - '^#show raw.where\(block: false\): content => highlight\(fill: rgb\(255, 250, 224\), content\)$'
 
-        - '^#show raw.where\(block: true\): set text\(font: \("Inconsolata",\), size: 18pt, fill: rgb\(245, 255, 250\), \)$'
+        - '^#show raw.where\(block: true\): set text\(size: 18pt, fill: rgb\(245, 255, 250\), \)$'
         - '^#show raw.where\(block: true\): set block\(fill: rgb\("#77aae1"\)\)$'
         - '^#show raw.where\(block: true\): set par\(leading: 1\.25em\)$'
 

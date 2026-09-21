@@ -1,0 +1,17 @@
+---
+title: "Typst unsupported standard warning"
+format: typst
+pdf-standard: x-4
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      printsMessage:
+        level: WARN
+        regex: "PDF standard 'x-4' is not supported by Typst"
+---
+
+# Test Document
+
+This tests that PDF/X-4 (LaTeX-only) produces a warning with Typst.

@@ -1,0 +1,34 @@
+---
+title: "Margin Citation with Suppress Bibliography"
+papersize: us-letter
+citation-location: margin
+bibliography: borges-refs.bib
+suppress-bibliography: true
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Margin citations emit note() with cite(form: "full") directly
+        - ['#note\(', 'form: "full"']
+        - []
+      ensurePdfRegexMatches:
+        # Citations should appear but NO bibliography section at end
+        - ['SUPPRESS-TEST', 'Borges']
+        # Should NOT have a References/Bibliography heading
+        - ['References\s*$', 'Bibliography\s*$']
+      noErrors: default
+---
+
+# Testing Suppress Bibliography with Margin Citations
+
+SUPPRESS-TEST: When using margin citations, the full citation appears in the margin [@borges1941library].
+
+Since `suppress-bibliography: true` is set, there should be no bibliography section at the end of the document [@eco1980name].
+
+This is the expected behavior because full citations already appear in the margins [@calvino1979winter].
+
+The document should end here with no bibliography listing.

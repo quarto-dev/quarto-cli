@@ -1,0 +1,15 @@
+---
+title: "Home"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureLlmsTxtExists: true
+      ensureLlmsTxtRegexMatches:
+        - ["^# Site Title Resolved"]
+        - ["\\{\\{< env"]
+---
+
+## Test Content
+
+This tests that shortcodes in website.title are resolved in llms.txt.

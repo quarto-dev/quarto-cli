@@ -1,0 +1,10 @@
+---
+title: "{{< meta custom-title-about >}} Page"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+      - ['<title>YOLO Page – shortcode in title</title>']
+---
+
+This page should have shortcode in title resolved from the `_quarto.yml` metadata.

@@ -42,6 +42,8 @@ $endif$
 $if(title)$
 $if(brand.typography.headings.family)$
   heading-family: $brand.typography.headings.family$,
+$elseif(mainfont)$
+  heading-family: ("$mainfont$",),
 $endif$
 $if(brand.typography.headings.weight)$
   heading-weight: $brand.typography.headings.weight$,
@@ -59,6 +61,32 @@ $endif$
 $if(section-numbering)$
   sectionnumbering: "$section-numbering$",
 $endif$
+$if(mathfont)$
+  mathfont: ($for(mathfont)$"$mathfont$",$endfor$),
+$endif$
+$if(codefont)$
+  codefont: ($for(codefont)$"$codefont$",$endfor$),
+$elseif(brand.typography.monospace.family)$
+  codefont: $brand.typography.monospace.family$,
+$endif$
+$if(linestretch)$
+  linestretch: $linestretch$,
+$endif$
+$if(thanks)$
+  thanks: [$thanks$],
+$endif$
+$if(linkcolor)$
+  linkcolor: [$linkcolor$],
+$endif$
+$if(citecolor)$
+  citecolor: [$citecolor$],
+$endif$
+$if(filecolor)$
+  filecolor: [$filecolor$],
+$endif$
+$if(keywords)$
+  keywords: ($for(keywords)$"$keywords$",$endfor$),
+$endif$
 $if(toc)$
   toc: $toc$,
 $endif$
@@ -69,6 +97,5 @@ $if(toc-indent)$
   toc_indent: $toc-indent$,
 $endif$
   toc_depth: $toc-depth$,
-  cols: $if(columns)$$columns$$else$1$endif$,
   doc,
 )

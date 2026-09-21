@@ -1,0 +1,38 @@
+---
+title: Brand Monospace with Idiomatic Highlighting
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: idiomatic
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Idiomatic = native typst highlighting = raw fenced code blocks
+          - "```python"
+          # Brand monospace-block properties (these target raw.where(block: true)
+          # which DOES match native/idiomatic code blocks)
+          - '^#show raw\.where\(block: true\): set text\(weight: 400, size: 11pt, fill: rgb\("#1a365d"\), \)$'
+          - '^#show raw\.where\(block: true\): set block\(fill: rgb\("#f0f4f8"\)\)$'
+          - '^#show raw\.where\(block: true\): set par\(leading: 0\.75em\)$'
+          # Brand monospace-inline properties
+          - '^#show raw\.where\(block: false\): set text\(weight: 600, size: 0\.9em, fill: rgb\("#9b2c2c"\), \)$'
+          - '^#show raw\.where\(block: false\): content => highlight\(fill: rgb\("#fed7d7"\), content\)$'
+        # Should NOT have Skylighting tokens
+        - ["#Skylighting", "#KeywordTok"]
+---
+
+With idiomatic highlighting, brand monospace-block properties apply directly
+to `raw.where(block: true)` which matches native Typst code blocks.
+This is the baseline that "just works."
+
+Here's `x <- 1`{.r} with brand styling.
+
+```python
+def hello():
+    x = 1 + 2
+    print(f"result: {x}")
+```
+
+Both inline and block code should reflect brand styling.

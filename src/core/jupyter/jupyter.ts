@@ -61,7 +61,10 @@ import {
   isCaptionableData,
   isDisplayData,
 } from "./display-data.ts";
-import { extractJupyterWidgetDependencies } from "./widgets.ts";
+import {
+  extractJupyterWidgetDependencies,
+  includesForJupyterWidgetDependencies,
+} from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
@@ -112,6 +115,8 @@ import {
   kFigCapLoc,
   kHtmlTableProcessing,
   kInclude,
+  kIncludeAfterBody,
+  kIncludeInHeader,
   kLayout,
   kLayoutAlign,
   kLayoutNcol,
@@ -142,19 +147,21 @@ import {
   JupyterOutputStream,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
+  JupyterWidgetDependencies,
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines, trimEmptyLines } from "../lib/text.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
-import { languagesInMarkdown } from "../../execute/engine-shared.ts";
+import { languagesInMarkdown } from "../pandoc/pandoc-partition.ts";
 import {
   normalizePath,
   pathWithForwardSlashes,
   removeIfEmptyDir,
 } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { kProjectType, ProjectContext } from "../../project/types.ts";
+import { EngineProjectContext, kProjectType } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
+import type { PandocIncludes } from "../../execute/types.ts";
 import { encodeBase64 } from "encoding/base64";
 import {
   isHtmlOutput,
@@ -290,7 +297,7 @@ const ticksForCode = (code: string[]) => {
 export async function quartoMdToJupyter(
   markdown: string,
   includeIds: boolean,
-  project?: ProjectContext,
+  project?: EngineProjectContext,
 ): Promise<JupyterNotebook> {
   const [kernelspec, metadata] = await jupyterKernelspecFromMarkdown(
     markdown,
@@ -500,7 +507,7 @@ export async function quartoMdToJupyter(
 
 export async function jupyterKernelspecFromMarkdown(
   markdown: string,
-  project?: ProjectContext,
+  project?: EngineProjectContext,
 ): Promise<[JupyterKernelspec, Metadata]> {
   const config = project?.config;
   const yaml = config
@@ -1226,6 +1233,7 @@ const kLangCommentChars: Record<string, string | string[]> = {
   stata: "*",
   java: "//",
   groovy: "//",
+  kotlin: "//",
   sed: "#",
   perl: "#",
   ruby: "#",
@@ -1242,6 +1250,7 @@ const kLangCommentChars: Record<string, string | string[]> = {
   mermaid: "%%",
   apl: "⍝",
   ocaml: ["(*", "*)"],
+  q: "/",
   rust: "//",
 };
 
@@ -1748,7 +1757,7 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscardableTextExecuteResult(
+export function isDiscardableTextExecuteResult(
   output: JupyterOutput,
   haveImage: boolean,
 ) {
@@ -1757,8 +1766,23 @@ function isDiscardableTextExecuteResult(
     if (Object.keys(data).length === 1) {
       const textPlain = data?.[kTextPlain] as string[] | undefined;
       if (textPlain && textPlain.length) {
-        if (haveImage && textPlain.length === 1) {
-          return /^([<(\[]).*?([>)\]])$/.test(textPlain[0].trim());
+        if (haveImage) {
+          if (textPlain.length === 1) {
+            // single-line object reprs echoed next to the figure: <...>/(...)/[...]
+            // wrappers (Axes, Line2D, tuples) plus matplotlib Text from
+            // title()/xlabel()/ylabel()/set_title() — whose repr leads with a
+            // numeric coordinate (Text(0.5, ...)), unlike other libraries' Text
+            const first = textPlain[0].trim();
+            return /^([<(\[]).*?([>)\]])$/.test(first) ||
+              /^Text\([-\d]/.test(first) ||
+              (first.startsWith("{") && first.includes("<matplotlib."));
+          } else {
+            // multi-line reprs that are collections of matplotlib artists, e.g.
+            // the dict of Line2D returned by boxplot(). Only suppress when a
+            // matplotlib object is referenced, leaving ordinary multi-line
+            // output (lists, tuples, custom reprs) untouched
+            return textPlain.some((line) => line.includes("<matplotlib."));
+          }
         } else {
           return [
             "[<matplotlib",
@@ -2139,4 +2163,38 @@ function outputTypeCssClass(output_type: string) {
     output_type = "display";
   }
   return `cell-output-${output_type}`;
+}
+
+// Engine helper functions for processing execute results
+// These are used by multiple engines (Jupyter, etc.) to handle widget dependencies
+export function executeResultIncludes(
+  tempDir: string,
+  widgetDependencies?: JupyterWidgetDependencies,
+): PandocIncludes | undefined {
+  if (widgetDependencies) {
+    const includes: PandocIncludes = {};
+    const includeFiles = includesForJupyterWidgetDependencies(
+      [widgetDependencies],
+      tempDir,
+    );
+    if (includeFiles.inHeader) {
+      includes[kIncludeInHeader] = [includeFiles.inHeader];
+    }
+    if (includeFiles.afterBody) {
+      includes[kIncludeAfterBody] = [includeFiles.afterBody];
+    }
+    return includes;
+  } else {
+    return undefined;
+  }
+}
+
+export function executeResultEngineDependencies(
+  widgetDependencies?: JupyterWidgetDependencies,
+): Array<unknown> | undefined {
+  if (widgetDependencies) {
+    return [widgetDependencies];
+  } else {
+    return undefined;
+  }
 }

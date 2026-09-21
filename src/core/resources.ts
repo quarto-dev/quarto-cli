@@ -80,6 +80,14 @@ export function pandocBinaryPath(): string {
   return isWindows ? toolsPath("pandoc") : architectureToolsPath("pandoc");
 }
 
+// Args selecting Quarto's own pandoc data-dir (init.lua and friends under
+// src/resources/pandoc/datadir), never the user's default pandoc data
+// directory. Not every pandoc invocation uses these -- e.g. `quarto run`
+// (src/core/run/lua.ts) intentionally omits --data-dir.
+export function pandocDataDirArgs(): string[] {
+  return ["--data-dir", resourcePath("pandoc/datadir")];
+}
+
 const _r_binary_path: Map<string, string> = new Map();
 export async function rBinaryPath(
   binary: string,
@@ -102,7 +110,9 @@ export async function rBinaryPath(
   const quartoR = Deno.env.get("QUARTO_R");
   debug(`Looking for '${binary}' in QUARTO_R: ${quartoR}`);
   if (quartoR) {
-    if (existsSync(quartoR)) {
+    // Use safeExistsSync: a malformed QUARTO_R (e.g. invalid path syntax)
+    // makes the raw existsSync throw instead of returning false.
+    if (safeExistsSync(quartoR)) {
       const rBinDir = Deno.statSync(quartoR).isDirectory
         ? quartoR
         : dirname(quartoR);

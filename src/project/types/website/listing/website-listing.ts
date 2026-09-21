@@ -110,7 +110,7 @@ export function listingSupplementalFiles(
         return !inputs.find((inp) => {
           return inp.path === file;
         }) && existsSync(file);
-      }));
+      })) as string[];
 
       const onRenderComplete = async (
         project: ProjectContext,

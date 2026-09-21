@@ -1,0 +1,13 @@
+project:
+  type: book
+
+book:
+  title: "llms-txt Book"
+  site-url: "https://example.com"
+  llms-txt: true
+  chapters:
+    - index.qmd
+
+format:
+  html:
+    theme: cosmo

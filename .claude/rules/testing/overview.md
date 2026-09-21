@@ -1,0 +1,73 @@
+---
+paths:
+  - tests/**
+---
+
+# Test Infrastructure
+
+Quarto's test suite lives in `tests/`.
+For comprehensive documentation, see `tests/README.md`.
+
+## Running Tests
+
+Use `--agent` — collapses a green run to a dot per test plus a tally line; failures keep assertion message, source frame, stack, exit code.
+
+```bash
+cd tests
+
+# Linux/macOS
+QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh --agent unit/my-test.test.ts
+
+# Windows (PowerShell 7+)
+$env:QUARTO_TESTS_NO_CONFIG="true"; .\run-tests.ps1 --agent unit/my-test.test.ts
+```
+
+Plain form (no `--agent`), full flag list, rerun-on-failure workflow, bash-only reporter-collision caveat: `tests/README.md`.
+
+**Binary mode:** set `QUARTO_TEST_BIN` to an installed Quarto outside the checkout.
+With no test arguments, binary mode runs `smoke/`; pass Playwright or feature-format targets explicitly.
+See `tests/README.md` and `llm-docs/built-version-testing-architecture.md`.
+
+## Test Types
+
+| Type       | Location                        | File Pattern | Details                                     |
+| ---------- | ------------------------------- | ------------ | ------------------------------------------- |
+| Unit       | `tests/unit/`                   | `*.test.ts`  | `.claude/rules/testing/typescript-tests.md` |
+| Smoke      | `tests/smoke/`                  | `*.test.ts`  | `.claude/rules/testing/typescript-tests.md` |
+| Smoke-all  | `tests/docs/smoke-all/`         | `*.qmd`      | `.claude/rules/testing/smoke-all-tests.md`  |
+| Playwright | `tests/integration/playwright/` | `*.spec.ts`  | `.claude/rules/testing/playwright-tests.md` |
+
+## Dependencies
+
+Tests require R, Python, and Julia.
+Run configuration script to set up:
+
+```bash
+# Linux/macOS
+./configure-test-env.sh
+
+# Windows
+.\configure-test-env.ps1
+```
+
+Managed via:
+- **R**: renv (`renv.lock`)
+- **Python**: uv (`pyproject.toml`, `uv.lock`)
+- **Julia**: Pkg.jl (`Project.toml`, `Manifest.toml`)
+
+## Core Files
+
+| File            | Purpose                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| `test.ts`       | Test infrastructure (`testQuartoCmd`, `unitTest`)                                         |
+| `quarto-cmd.ts` | Quarto invocation dispatch (`runQuarto`; in-process dev vs `QUARTO_TEST_BIN` binary mode) |
+| `verify.ts`     | Verification functions                                                                    |
+| `utils.ts`      | Path utilities (`docs()`, `outputForInput()`)                                             |
+| `README.md`     | Comprehensive documentation                                                               |
+
+## Debugging
+
+1. Run single test to isolate failures
+2. Check render output - tests capture stdout/stderr
+3. VSCode debugging via `.vscode/launch.json`
+4. Flaky test methodology: [dev-docs/debugging-flaky-tests.md](../../../dev-docs/debugging-flaky-tests.md)

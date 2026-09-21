@@ -4,7 +4,8 @@ body:
     attributes:
       value: |
         If you want to ask for a feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
-        If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
+        If you want to ask for help with Quarto 1, please use the [Q&A (Q1) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1).
+        If you want to ask for help with Quarto 2, which is experimental and not ready for production use, please use the [Q&A (Q2) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).
   - type: textarea
     attributes:
       label: Description

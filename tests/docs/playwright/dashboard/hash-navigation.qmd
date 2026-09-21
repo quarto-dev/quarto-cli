@@ -1,0 +1,31 @@
+---
+title: "Hash navigation"
+format: dashboard
+---
+
+# Heat
+
+## Row
+
+::: {.card title="Heat content"}
+Content for the Heat page, with a footnote[^1] whose link is an in-page
+anchor that names no page.
+
+[^1]: The footnote target is `#fn1`, not a dashboard page.
+
+```{=html}
+<button id="heat-button">Heat button</button>
+```
+:::
+
+# Cool
+
+## Row
+
+::: {.card title="Cool content"}
+Content for the Cool page.
+
+```{=html}
+<button id="cool-button">Cool button</button>
+```
+:::

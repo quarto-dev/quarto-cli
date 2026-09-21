@@ -1,0 +1,31 @@
+---
+title: "Conditional visibility with figure (#13992)"
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['Figure content visible', 'fig-cond', '\\begin{figure}', 'Figure~\\ref\{fig-cond\}']
+        - []
+    html:
+      ensureHtmlElements:
+        - []
+        - ['#fig-cond']
+      ensureFileRegexMatches:
+        - []
+        - ['Figure content visible']
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#figure', 'Figure content visible', '#ref\(<fig-cond>']
+        - []
+    native: default
+---
+
+See @fig-cond for conditional figure.
+
+::: {#fig-cond .content-visible unless-format="html"}
+![]({{< placeholder 300 >}})
+
+Figure content visible
+:::

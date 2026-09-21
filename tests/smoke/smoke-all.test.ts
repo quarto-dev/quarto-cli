@@ -11,23 +11,30 @@ import {
   initState,
   setInitializer,
 } from "../../src/core/lib/yaml-validation/state.ts";
+import { os } from "../../src/deno_ral/platform.ts";
+import { asArray } from "../../src/core/array.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "../../src/core/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
+  ensureCssRegexMatches,
   ensureEpubFileRegexMatches,
   ensureDocxRegexMatches,
   ensureDocxXpath,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  ensureIpynbCellMatches,
   ensurePdfRegexMatches,
+  ensurePdfTextPositions,
+  ensurePdfMetadata,
   ensureJatsXpath,
   ensureOdtXpath,
   ensurePptxRegexMatches,
   ensureTypstFileRegexMatches,
   ensureSnapshotMatches,
   fileExists,
+  fileNotExists,
   noErrors,
   noErrorsOrWarnings,
   ensurePptxXpath,
@@ -38,13 +45,19 @@ import {
   shouldError,
   ensureHtmlElementContents,
   ensureHtmlElementCount,
+  ensureLlmsMdRegexMatches,
+  ensureLlmsMdExists,
+  ensureLlmsMdDoesNotExist,
+  ensureLlmsTxtRegexMatches,
+  ensureLlmsTxtExists,
+  ensureLlmsTxtDoesNotExist,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { WalkEntry } from "../../src/deno_ral/fs.ts";
-import { quarto } from "../../src/quarto.ts";
+import { runQuarto } from "../quarto-cmd.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 import { runningInCI } from "../../src/core/ci-info.ts";
 
@@ -91,17 +104,53 @@ async function guessFormat(fileName: string): Promise<string[]> {
   return Array.from(formats);
 }
 
-function skipTestOnCi(metadata: Record<string, any>): boolean {
-  return runningInCI() && metadata["_quarto"]?.["tests-on-ci"] === false;
+function skipTest(metadata: Record<string, any>): string | undefined {
+  // deno-lint-ignore no-explicit-any
+  const quartoMeta = metadata["_quarto"] as any;
+  const runConfig = quartoMeta?.tests?.run;
+
+  // No run config means run everywhere
+  if (!runConfig) {
+    return undefined;
+  }
+
+  // Check explicit skip with message
+  if (runConfig.skip) {
+    return typeof runConfig.skip === "string" ? runConfig.skip : "tests.run.skip is true";
+  }
+
+  // Check CI
+  if (runningInCI() && runConfig.ci === false) {
+    return "tests.run.ci is false";
+  }
+
+  // Check OS blacklist (not_os)
+  const notOs = runConfig.not_os;
+  if (notOs !== undefined && asArray(notOs).includes(os)) {
+    return `tests.run.not_os includes ${os}`;
+  }
+
+  // Check OS whitelist (os) - if specified, must match
+  const onlyOs = runConfig.os;
+  if (onlyOs !== undefined && !asArray(onlyOs).includes(os)) {
+    return `tests.run.os does not include ${os}`;
+  }
+
+  return undefined;
 }
 
 //deno-lint-ignore no-explicit-any
 function hasTestSpecs(metadata: any, input: string): boolean {
-  const hasTestSpecs = metadata?.["_quarto"]?.["tests"] != undefined
-  if (!hasTestSpecs && metadata?.["_quarto"]?.["test"] != undefined) {
+  const tests = metadata?.["_quarto"]?.["tests"];
+  if (!tests && metadata?.["_quarto"]?.["test"] != undefined) {
     throw new Error(`Test is ${input} is using 'test' in metadata instead of 'tests'. This is probably a typo.`);
   }
-  return hasTestSpecs
+  // Check if tests has any format specs (keys other than 'run')
+  if (tests && typeof tests === "object") {
+    const formatKeys = Object.keys(tests).filter(key => key !== "run");
+    return formatKeys.length > 0;
+  }
+  return false;
 }
 
 interface QuartoInlineTestSpec {
@@ -109,16 +158,24 @@ interface QuartoInlineTestSpec {
   verifyFns: Verify[];
 }
 
-// Functions to cleanup leftover testing
+// Functions to cleanup leftover testing.
+// postRenderCleanupFiles is a module-global list swept by EVERY render
+// teardown, so a registered entry only logs/removes at the teardowns where the
+// file actually exists (its owning document), not on every subsequent teardown.
 const postRenderCleanupFiles: string[] = [];
 function registerPostRenderCleanupFile(file: string): void {
   postRenderCleanupFiles.push(file);
 }
 const postRenderCleanup = () => {
+  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+    return;
+  }
   for (const file of postRenderCleanupFiles) {
-    console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
     if (safeExistsSync(file)) {
-      Deno.removeSync(file);
+      console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
+      // recursive so a registered entry can be a directory (e.g. an embedded
+      // notebook's `*_files` support dir), not just a single file
+      safeRemoveSync(file, { recursive: true });
     }
   }
 }
@@ -133,11 +190,13 @@ function resolveTestSpecs(
   const result = [];
   // deno-lint-ignore no-explicit-any
   const verifyMap: Record<string, any> = {
+    ensureCssRegexMatches,
     ensureEpubFileRegexMatches,
     ensureHtmlElements,
     ensureHtmlElementContents,
     ensureHtmlElementCount,
     ensureFileRegexMatches,
+    ensureIpynbCellMatches,
     ensureLatexFileRegexMatches,
     ensureTypstFileRegexMatches,
     ensureDocxRegexMatches,
@@ -145,15 +204,27 @@ function resolveTestSpecs(
     ensureOdtXpath,
     ensureJatsXpath,
     ensurePdfRegexMatches,
+    ensurePdfTextPositions,
+    ensurePdfMetadata,
     ensurePptxRegexMatches,
     ensurePptxXpath,
     ensurePptxLayout,
     ensurePptxMaxSlides,
     ensureSnapshotMatches,
-    printsMessage
+    printsMessage,
+    ensureLlmsMdRegexMatches,
+    ensureLlmsMdExists,
+    ensureLlmsMdDoesNotExist,
+    ensureLlmsTxtRegexMatches,
+    ensureLlmsTxtExists,
+    ensureLlmsTxtDoesNotExist,
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
+    // Skip the 'run' key - it's not a format
+    if (format === "run") {
+      continue;
+    }
     let checkWarnings = true;
     const verifyFns: Verify[] = [];
     if (testObj && typeof testObj === "object") {
@@ -204,6 +275,22 @@ function resolveTestSpecs(
                 );
               }
             }
+          } else if (key === "fileNotExists") {
+            for (
+              const [path, file] of Object.entries(
+                value as Record<string, string>,
+              )
+            ) {
+              if (path === "outputPath") {
+                verifyFns.push(
+                  fileNotExists(join(dirname(outputFile.outputPath), file)),
+                );
+              } else if (path === "supportPath") {
+                verifyFns.push(
+                  fileNotExists(join(outputFile.supportPath, file)),
+                );
+              }
+            }
           } else if (["ensurePptxLayout", "ensurePptxXpath"].includes(key)) {
             if (Array.isArray(value) && Array.isArray(value[0])) {
               // several slides to check
@@ -214,7 +301,11 @@ function resolveTestSpecs(
               verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
             }
           } else if (key === "printsMessage") {
-            verifyFns.push(verifyMap[key](value));
+            // Support both single object and array of printsMessage checks
+            const messages = Array.isArray(value) ? value : [value];
+            for (const msg of messages) {
+              verifyFns.push(verifyMap[key](msg));
+            }
           } else if (key === "ensureEpubFileRegexMatches") {
             // this ensure function is special because it takes an array of path + regex specifiers,
             // so we should never use the spread operator
@@ -230,12 +321,31 @@ function resolveTestSpecs(
                 throw new Error(`Using ensureLatexFileRegexMatches requires setting 'keep-tex: true' in file ${input}`);
               }
             }
-            
+
+            // keep-typ/keep-tex files are alongside source, so pass input path
+            // But output-ext: typ puts files in output directory, so don't pass input path
+            const usesKeepTyp = key === "ensureTypstFileRegexMatches" &&
+              (metadata.format?.typst?.['keep-typ'] || metadata['keep-typ']) &&
+              !(metadata.format?.typst?.['output-ext'] === 'typ' || metadata['output-ext'] === 'typ');
+            const usesKeepTex = key === "ensureLatexFileRegexMatches" &&
+              (metadata.format?.pdf?.['keep-tex'] || metadata['keep-tex']);
+            const needsInputPath = usesKeepTyp || usesKeepTex;
+
+            // For book projects, use intermediateTypstPath (index.typ at project root)
+            // instead of the output path (which would be _book/BookTitle.typ)
+            let targetPath = outputFile.outputPath;
+            if (key === "ensureTypstFileRegexMatches" && outputFile.intermediateTypstPath) {
+              targetPath = outputFile.intermediateTypstPath;
+            }
+
             if (typeof value === "object" && Array.isArray(value)) {
-              // Only use spread operator for arrays
-              verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+              // value is [matches, noMatches?] - ensure inputFile goes in the right position
+              const matches = value[0];
+              const noMatches = value[1];
+              const inputFile = needsInputPath ? input : undefined;
+              verifyFns.push(verifyMap[key](targetPath, matches, noMatches, inputFile));
             } else {
-              verifyFns.push(verifyMap[key](outputFile.outputPath, value));
+              verifyFns.push(verifyMap[key](targetPath, value, undefined, needsInputPath ? input : undefined));
             }
           } else {
             throw new Error(`Unknown verify function used: ${key} in file ${input} for format ${format}`) ;
@@ -283,6 +393,22 @@ const renderedProjects: Set<string> = new Set();
 // To store information of all the project we render so that we can cleanup after testing
 const testedProjects: Set<string> = new Set();
 
+// Website listing pages re-render whenever a sibling content file renders (see
+// listingSupplementalFiles in website-listing.ts), reading that sibling's
+// already-rendered HTML to resolve description/preview-image placeholders.
+// Deleting a file's own output immediately after its own test would race that
+// cross-file read for any sibling tested later in the same project. So for
+// files inside a project, cleanup is deferred (per (input, format) entry
+// below) until every file in that project has finished testing, instead of
+// running right after each file's own test.
+const projectCleanupEntries: Map<
+  string,
+  Array<{ input: string; format: string; metadata: Record<string, any> }>
+> = new Map();
+// The promise for each file's tests, grouped by the project it belongs to, so
+// we know when a given project's own files are all done (see above).
+const projectFilePromises: Map<string, Promise<void>[]> = new Map();
+
 // Create an array to hold all the promises for the tests of files
 let testFilesPromises = [];
 
@@ -293,8 +419,9 @@ for (const { path: fileName } of files) {
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
 
-  if (skipTestOnCi(metadata) === true) {
-    console.log(`Skipping tests for ${input} as tests-on-ci is false in metadata`);
+  const skipReason = skipTest(metadata);
+  if (skipReason !== undefined) {
+    console.log(`Skipping tests for ${input}: ${skipReason}`);
     continue;
   }
 
@@ -323,11 +450,13 @@ for (const { path: fileName } of files) {
     projectPath && 
     !renderedProjects.has(projectPath)
   ) {
-      await quarto(["render", projectPath]);
+      // fail-loudly pre-render (throwOnFailure defaults to true);
+      // dispatches to the built binary when QUARTO_TEST_BIN is set
+      await runQuarto(["render", projectPath]);
       renderedProjects.add(projectPath);
     }
 
-  testFilesPromises.push(new Promise<void>(async (resolve, reject) => {
+  const fileTestsPromise = new Promise<void>(async (resolve, reject) => {
     try {
 
       // Create an array to hold all the promises for the testSpecs
@@ -358,7 +487,18 @@ for (const { path: fileName } of files) {
                   return Promise.resolve(true);
                 },
                 teardown: () => {
-                  cleanoutput(input, format, undefined, undefined, metadata);
+                  // Standalone files (no project) have no sibling that could
+                  // need this output later, so clean up immediately. Project
+                  // files are cleaned once the whole project is done testing
+                  // (see projectCleanupEntries above).
+                  if (projectPath) {
+                    if (!projectCleanupEntries.has(projectPath)) {
+                      projectCleanupEntries.set(projectPath, []);
+                    }
+                    projectCleanupEntries.get(projectPath)!.push({ input, format, metadata });
+                  } else {
+                    cleanoutput(input, format, undefined, undefined, metadata);
+                  }
                   postRenderCleanup()
                   testSpecResolve(); // Resolve the promise for the testSpec
                   return Promise.resolve();
@@ -381,14 +521,28 @@ for (const { path: fileName } of files) {
     } catch (error) {
       reject(error);
     }
-  }));
+  });
+  testFilesPromises.push(fileTestsPromise);
+  if (projectPath) {
+    if (!projectFilePromises.has(projectPath)) {
+      projectFilePromises.set(projectPath, []);
+    }
+    projectFilePromises.get(projectPath)!.push(fileTestsPromise);
+  }
 }
 
-// Wait for all the promises to resolve
-// Meaning all the files have been tested and we can clean
-Promise.all(testFilesPromises).then(() => {
-  // Clean up any projects that were tested
-  for (const project of testedProjects) {
+// For each tested project, wait only for that project's own files to finish
+// testing (not the whole smoke-all suite) before cleaning it up: run the
+// deferred per-file cleanoutput calls, then remove the project's output
+// directory and hidden .quarto scratch, same as before.
+for (const project of testedProjects) {
+  Promise.all(projectFilePromises.get(project) ?? []).then(() => {
+    if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+      return;
+    }
+    for (const entry of projectCleanupEntries.get(project) ?? []) {
+      cleanoutput(entry.input, entry.format, undefined, undefined, entry.metadata);
+    }
     // Clean project output directory
     const projectOutDir = join(project, findProjectOutputDir(project));
     if (projectOutDir !== project && safeExistsSync(projectOutDir)) {
@@ -399,8 +553,8 @@ Promise.all(testFilesPromises).then(() => {
     if (safeExistsSync(hiddenQuarto)) {
       safeRemoveSync(hiddenQuarto, { recursive: true });
     }
-  }
-}).catch((_error) => {});
+  }).catch((_error) => {});
+}
 
 function findRootTestsProjectDir(input: string) {
   const smokeAllRootDir = 'smoke-all$'

@@ -6,13 +6,22 @@ format:
 bibliography: refs.bib
 citeproc: true
 _quarto:
-  tests: 
+  tests:
     typst:
       ensureTypstFileRegexMatches:
       - ['<refs>', '<ref-Cronbach_1951>']
       - ['\#bibliography\([^)]*\)']
+      ensurePdfRegexMatches:
+      # Locators appear inline after author-date (citeproc drops "p." prefix)
+      - ['\(Cronbach 1951a, 42\)', '\(1951b, 100']
+      - []
+      noErrors: default
 ---
 
 Hello [@Cronbach_1951, @Cronbach_1952]
+
+With locator: [@Cronbach_1951, p. 42]
+
+Bare with locator: @Cronbach_1952[pp. 100-115]
 
 # References

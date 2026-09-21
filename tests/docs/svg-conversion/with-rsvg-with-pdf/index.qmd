@@ -1,0 +1,11 @@
+---
+title: "SVG to PDF without rsvg-convert (pre-converted PDF exists)"
+format: pdf
+keep-tex: true
+---
+
+This test verifies that rendering works when rsvg-convert is disabled but a pre-converted PDF exists.
+
+The filter should use the existing simple-svg.pdf file without conversion or warnings.
+
+![Test SVG image with pre-converted PDF](simple-svg.svg)

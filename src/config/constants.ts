@@ -86,6 +86,17 @@ export const kShortcodes = "shortcodes";
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
 export const kKeepTyp = "keep-typ";
+export const kPdfStandard = "pdf-standard";
+export const kPdfStandardApplied = "pdf-standard-applied";
+
+/** Read QUARTO_PDF_STANDARD env var as a fallback for pdf-standard option. */
+export function pdfStandardEnv(): string[] | undefined {
+  const val = Deno.env.get("QUARTO_PDF_STANDARD");
+  if (val) {
+    return val.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+  }
+  return undefined;
+}
 export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
@@ -219,6 +230,7 @@ export const kRenderDefaultsKeys = [
   kLatexTlmgrOpts,
   kLatexOutputDir,
   kLatexTinyTex,
+  kPdfStandard,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kLinkExternalFilter,
@@ -293,9 +305,16 @@ export const kToggleDarkMode = "toggle-dark-mode";
 export const kToggleReaderMode = "toggle-reader-mode";
 export const kToggleNavigation = "toggle-navigation";
 
+export const kNavigationSiteLabel = "navigation-site-label";
+export const kNavigationSectionLabel = "navigation-section-label";
+export const kNavigationToolbarLabel = "navigation-toolbar-label";
+export const kNavigationPageLabel = "navigation-page-label";
+export const kNavigationBreadcrumbsLabel = "navigation-breadcrumbs-label";
+
 export const kCopyButtonTooltip = "copy-button-tooltip";
 export const kCopyButtonTooltipSuccess = "copy-button-tooltip-success";
 export const kBackToTop = "back-to-top";
+export const kSkipToContent = "skip-to-content";
 export const kRepoActionLinksEdit = "repo-action-links-edit";
 export const kRepoActionLinksSource = "repo-action-links-source";
 export const kRepoActionLinksIssue = "repo-action-links-issue";
@@ -421,9 +440,15 @@ export const kLanguageDefaultsKeys = [
   kToggleReaderMode,
   kToggleSidebar,
   kToggleSection,
+  kNavigationSiteLabel,
+  kNavigationSectionLabel,
+  kNavigationToolbarLabel,
+  kNavigationPageLabel,
+  kNavigationBreadcrumbsLabel,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,
+  kSkipToContent,
   kRepoActionLinksEdit,
   kRepoActionLinksSource,
   kRepoActionLinksIssue,
@@ -540,7 +565,10 @@ export const kNumberDepth = "number-depth";
 export const kTopLevelDivision = "top-level-division";
 export const kPaperSize = "papersize";
 export const kLogFile = "log-file";
+// TODO: Deprecate kHighlightStyle in favor of kSyntaxHighlighting
+// Kept for backward compatibility with older documents using highlight-style
 export const kHighlightStyle = "highlight-style";
+export const kSyntaxHighlighting = "syntax-highlighting";
 export const kDefaultImageExtension = "default-image-extension";
 export const kLogo = "logo";
 export const kLinkColor = "linkcolor";
@@ -686,6 +714,7 @@ export const kPandocDefaultsKeys = [
   kPdfEngine,
   kPdfEngineOpts,
   kPdfEngineOpt,
+  kPdfStandard,
   kWrap,
   kColumns,
   "dpi",
@@ -705,6 +734,7 @@ export const kPandocDefaultsKeys = [
   "ascii",
   kDefaultImageExtension,
   kHighlightStyle,
+  kSyntaxHighlighting,
   kSyntaxDefinitions,
   kSyntaxDefinition,
   kListings,

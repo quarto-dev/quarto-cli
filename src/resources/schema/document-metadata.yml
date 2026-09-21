@@ -6,9 +6,23 @@
   description: "List of keywords to be included in the document metadata."
 
 - name: subject
-  schema: string
+  schema:
+    anyOf:
+      - string
+      - object:
+          closed: true
+          properties:
+            text:
+              string:
+                description: The subject text.
+            authority:
+              string:
+                description: An EPUB reserved authority value.
+            term:
+              string:
+                description: The subject term (defined by the schema).
   tags:
-    formats: [$pdf-all, $office-all, odt]
+    formats: [$pdf-all, $office-all, odt, $epub-all]
   description: "The document subject"
 
 - name: description

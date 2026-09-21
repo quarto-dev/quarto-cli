@@ -4,6 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+// Must be FIRST to save original Deno.realPathSync before monkey-patching
+import "./deno_ral/original-real-path.ts";
 import "./core/deno/monkey-patch.ts";
 
 import {
@@ -49,6 +51,9 @@ import "./project/types/register.ts";
 
 // ensures writer formats are registered
 import "./format/imports.ts";
+
+// ensures API namespaces are registered
+import "./core/api/register.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";
@@ -191,13 +196,6 @@ export async function quarto(
 
   try {
     await promise;
-    for (const [key, value] of Object.entries(oldEnv)) {
-      if (value === undefined) {
-        Deno.env.delete(key);
-      } else {
-        Deno.env.set(key, value);
-      }
-    }
     if (commandFailed()) {
       exitWithCleanup(1);
     }
@@ -207,6 +205,14 @@ export async function quarto(
       exitWithCleanup(1);
     } else {
       throw e;
+    }
+  } finally {
+    for (const [key, value] of Object.entries(oldEnv)) {
+      if (value === undefined) {
+        Deno.env.delete(key);
+      } else {
+        Deno.env.set(key, value);
+      }
     }
   }
 }

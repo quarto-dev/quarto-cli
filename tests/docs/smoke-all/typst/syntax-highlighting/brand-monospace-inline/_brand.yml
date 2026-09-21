@@ -1,0 +1,11 @@
+color:
+  palette:
+    inline-bg: "#fff3cd"
+    inline-fg: "#664d03"
+
+typography:
+  monospace-inline:
+    color: inline-fg
+    background-color: inline-bg
+    weight: 600
+    size: 0.85rem

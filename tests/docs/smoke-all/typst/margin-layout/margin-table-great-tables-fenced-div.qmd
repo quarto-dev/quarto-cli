@@ -1,0 +1,55 @@
+---
+title: "Margin Table with great_tables (Fenced Div)"
+papersize: us-letter
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # GT tables in margin divs use #note( wrapping #figure(
+        - ['#note\(', 'kind: "quarto-float-tbl"']
+        - []
+      ensurePdfTextPositions:
+        - # Table in margin, right of body text
+          - subject: "Large Landmasses"
+            relation: rightOf
+            object: "This tests"
+          - subject: "Borneo"
+            relation: rightOf
+            object: "This tests"
+          # Caption above table content (default for tables)
+          - subject: "Large Landmasses"
+            relation: above
+            object: "Borneo"
+        - []
+      noErrors: default
+---
+
+This tests a great_tables table placed in the margin using a fenced div (`.column-margin`).
+This approach wraps `#figure` inside `#note` which differs from the cell option approach.
+
+::: {.column-margin}
+
+```{python}
+#| classes: plain
+#| echo: false
+#| label: tbl-islands
+#| tbl-cap: "Large Landmasses"
+
+from great_tables import GT
+from great_tables.data import islands
+
+(
+    GT(islands.head(20), rowname_col="name")
+    .fmt_integer(columns="size")
+)
+```
+
+:::
+
+See @tbl-islands for the table in the margin.
+
+More text in the main column to show the layout.

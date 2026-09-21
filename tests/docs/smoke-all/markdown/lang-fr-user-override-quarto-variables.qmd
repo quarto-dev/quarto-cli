@@ -1,0 +1,24 @@
+---
+lang: fr
+format:
+  plain:
+    template: lang-fr-template-resolve.template.txt
+    output-ext: txt
+    variables:
+      quarto:
+        language:
+          crossref-ch-prefix: "Bouquin"
+_quarto:
+  tests:
+    plain:
+      ensureFileRegexMatches:
+        -
+          - "^Bouquin\\s*$"
+        -
+          - "Chapitre"
+---
+
+Guard: when a user explicitly sets `variables.quarto.language.<key>` (an
+internal namespace, but a valid escape hatch), their value must win over
+the Quarto-resolved localization. With `lang: fr` the default would be
+"Chapitre"; the user override should resolve to "Bouquin".

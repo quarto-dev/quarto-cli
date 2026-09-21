@@ -133,7 +133,7 @@ export async function websiteNavigationConfig(project: ProjectContext) {
 
   // note no document-level customization of brand logo #11309
   const projectBrand = await project.resolveBrand();
-  if (navbar) {
+  if (navbar && navbar.logo !== false) {
     let navLogo = navbar.logo;
     if (navbar[kLogoAlt]) {
       if (typeof navLogo === "string") {
@@ -171,41 +171,27 @@ export async function websiteNavigationConfig(project: ProjectContext) {
       sidebars[0].tools = [];
     }
 
-    let sideLogo = sidebars[0].logo;
-    if (sideLogo) {
-      if (sidebars[0][kLogoAlt]) {
-        const alt = sidebars[0][kLogoAlt];
-        if (typeof sideLogo === "string") {
-          sideLogo = { path: sideLogo, alt };
+    for (let i = 0; i < sidebars.length; i++) {
+      const sb = sidebars[i];
+      // Secondary sidebars without explicit logo inherit from the first via propagation
+      if (i > 0 && sb.logo === undefined) continue;
+      let sideLogo = sb.logo;
+      if (sideLogo !== false) { // don't do anything logo processing when sidebar logo is opt-out
+        if (sideLogo && sb[kLogoAlt]) {
+          const alt = sb[kLogoAlt];
+          if (typeof sideLogo === "string") {
+            sideLogo = { path: sideLogo, alt };
+          }
         }
-        // possible but absurd
-        // else if ("path" in sideLogo) {
-        //   sideLogo = { ...sideLogo, alt };
-        // } else {
-        //   sideLogo = {
-        //     light: !sideLogo.light ? undefined : typeof sideLogo.light === "string"
-        //       ? {
-        //         path: sideLogo.light,
-        //         alt,
-        //       }
-        //       : { ...sideLogo.light, alt },
-        //     dark: !sideLogo.dark ? undefined : typeof sideLogo.dark === "string"
-        //       ? {
-        //         path: sideLogo.dark,
-        //         alt,
-        //       }
-        //       : { ...sideLogo.dark, alt },
-        //   };
-        // }
+        let logo = resolveLogo(projectBrand, sideLogo, [
+          "medium",
+          "small",
+          "large",
+        ]);
+        logo = logoAddLeadingSlashes(logo, projectBrand, undefined);
+        sb.logo = logo;
       }
     }
-    let logo = resolveLogo(projectBrand, sideLogo, [
-      "medium",
-      "small",
-      "large",
-    ]);
-    logo = logoAddLeadingSlashes(logo, projectBrand, undefined);
-    sidebars[0].logo = logo;
 
     // convert contents: auto into items
     for (const sb of sidebars) {
@@ -488,5 +474,5 @@ export function containsHref(href: string, items: SidebarItem[]) {
 
 export function itemHasNavTarget(item: SidebarItem, href: string) {
   return item.href === href ||
-    item.href === href.replace(/\/index\.html/, "/");
+    item.href === href.replace(/\/index\.html(?=[?#]|$)/, "/");
 }

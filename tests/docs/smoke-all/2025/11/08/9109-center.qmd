@@ -1,0 +1,30 @@
+---
+title: "Untitled"
+format:
+  pdf:
+    keep-tex: true
+execute:
+  warning: false
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\\begin\{minipage\}\[c\]\{0\.50\\linewidth\}']
+        - []
+---
+
+```{r}
+#| label: tbl-tables
+#| tbl-cap: "Tables"
+#| tbl-subcap:
+#|   - cars
+#|   - pressure
+#| layout-ncol: 2
+#| layout-valign: center
+
+library(knitr)
+kable(head(cars))
+kable(head(pressure))
+```
+
+See @tbl-tables for examples. In particular, @tbl-tables-2.

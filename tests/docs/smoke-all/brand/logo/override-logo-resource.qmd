@@ -33,7 +33,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'background: align\(left\+top, box\(inset: 0.75in, image\("posit-logo-2024.svg", width: 1\.5in, alt: "posit logo"\)\)'
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("/posit-logo-2024.svg", width: 1\.5in, alt: "posit logo"\)\)'
         - []
 ---
 

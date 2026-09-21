@@ -29,7 +29,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
       - 
-        - '#set page\(background: align\(left\+top, box\(inset: 18pt, image\("quarto(/|\\\\)quarto.png", width: 187.5pt\)\)\)\)'
+        - '#set page\(background: align\(left\+top, box\(inset: 18pt, image\("/quarto(/|\\\\)quarto.png", width: 187.5pt\)\)\)\)'
       - []
 ---
 

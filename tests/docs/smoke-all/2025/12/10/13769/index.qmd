@@ -1,0 +1,13 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['a[rel="noreferrer"][target="_blank"][href="https://github.com/quarto-dev/quarto-cli"][class~="quarto-navigation-tool"]']
+---
+
+# Preface
+
+This is a Quarto book.
+
+To learn more about Quarto books visit <https://quarto.org/docs/books>.

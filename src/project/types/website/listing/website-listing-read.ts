@@ -393,14 +393,16 @@ export function completeListingItems(
         debug(`[listing] Processing image match`);
         const progressive = imgMatch[1] === "true";
         const imgHeight = imgMatch[2];
-        const listingId = imgMatch[3];
-        const docRelativePath = imgMatch[4];
+        const lazy = imgMatch[3] !== "false";
+        const listingId = imgMatch[4];
+        const docRelativePath = imgMatch[5];
         const docAbsPath = join(projectOutputDir(context), docRelativePath);
         const imgPlaceholder = imagePlaceholder(
           listingId,
           docRelativePath,
           progressive,
           imgHeight,
+          lazy,
         );
         debug(`[listing] ${docAbsPath}`);
         debug(`[listing] ${imgPlaceholder}`);
@@ -435,6 +437,7 @@ export function completeListingItems(
               },
               progressive,
               imgHeight,
+              lazy,
             );
 
             debug(`[listing] replacing: ${docAbsPath}`);
@@ -454,7 +457,7 @@ export function completeListingItems(
             };
             fileContents = fileContents.replace(
               imgPlaceholder,
-              imageSrc(imagePreview, progressive, imgHeight),
+              imageSrc(imagePreview, progressive, imgHeight, lazy),
             );
           } else {
             debug(`[listing] using empty div: ${docAbsPath}`);
@@ -501,11 +504,14 @@ export function imagePlaceholder(
   file: string,
   progressive: boolean,
   height?: string,
+  lazy?: boolean,
 ): string {
   return file
     ? `<!-- img(9CEB782EFEE6)[progressive=${
       progressive ? "true" : "false"
-    }, height=${height ? height : ""}]:${id}:${file} -->`
+    }, height=${height ? height : ""}, lazy=${
+      lazy === false ? "false" : "true"
+    }]:${id}:${file} -->`
     : "";
 }
 
@@ -517,7 +523,7 @@ const descriptionPlaceholderRegex =
   /<!-- desc\(5A0113B34292\)\[max\=(.*)\]:(.*) -->/;
 
 const imagePlaceholderRegex =
-  /<!-- img\(9CEB782EFEE6\)\[progressive\=(.*), height\=(.*)\]:(.*):(.*) -->/;
+  /<!-- img\(9CEB782EFEE6\)\[progressive\=(.*), height\=(.*), lazy\=(.*)\]:(.*):(.*) -->/;
 
 function hydrateListing(
   format: Format,
@@ -1202,8 +1208,14 @@ async function listItemFromFile(
   }
 }
 
-function imageSrc(image: PreviewImage, progressive: boolean, height?: string) {
-  return `<p class="card-img-top"><img ${
+function imageSrc(
+  image: PreviewImage,
+  progressive: boolean,
+  height?: string,
+  lazy?: boolean,
+) {
+  const lazyAttr = lazy === false ? "" : "loading='lazy' ";
+  return `<p class="card-img-top"><img ${lazyAttr}${
     progressive ? "data-src" : "src"
   }="${image.src}" ${image.alt ? `alt="${image.alt}" ` : ""}${
     height ? `style="height: ${height};" ` : ""

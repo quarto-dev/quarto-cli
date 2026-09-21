@@ -23,12 +23,14 @@ on:
       # are not relevant to the tested features
       - "src/resources/language/**"
       - "dev-docs/**"
+      - ".claude/**"
       # don't run on PR working on other workflows
       - ".github/workflows/create-release.yml"
       - ".github/workflows/performance-check.yml"
       - ".github/workflows/stale-needs-repro.yml"
       - ".github/workflows/test-bundle.yml"
       - ".github/workflows/test-ff-matrix.yml"
+      - ".github/workflows/test-install.yml"
       - ".github/workflows/test-quarto-latexmk.yml"
       - ".github/workflows/update-test-timing.yml"
   push:
@@ -38,6 +40,7 @@ on:
       - "v[1-9].[0-9]+" # run also on released version branch (for patch releases)
     paths-ignore:
       - "news/**"
+      - ".claude/**"
 
 concurrency:
   # Use github.run_id on main branch
@@ -53,12 +56,14 @@ jobs:
       BUCKETS: ${{ steps.tests-buckets.outputs.BUCKETS }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: ${{ github.ref == 'refs/heads/main' && 'pre-release' || 'release' }}
+
+      - uses: ./.github/actions/merge-extension-tests
 
       - name: Create Job for tests
         id: tests-buckets

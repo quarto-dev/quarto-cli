@@ -1,0 +1,6 @@
+rootdir = "_extensions/transitive-format"
+destination = "typst/packages"
+discover = ["_extensions/transitive-format/typst-template.typ"]
+
+[local]
+dep-pkg = "local-packages/dep-pkg/0.1.0"

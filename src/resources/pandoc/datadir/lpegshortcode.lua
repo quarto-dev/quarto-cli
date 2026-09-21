@@ -313,11 +313,63 @@ local function wrap_lpeg_match(pattern, txt)
   return txt
 end
 
+-- Convert a string to its hexadecimal representation
+local function string_to_hex(str)
+    return (str:gsub('.', function(c)
+        return string.format('%02X', string.byte(c))
+    end))
+end
+
+local md_shortcode_2_uuid         = "b58fc729-690b-4000-b19f-365a4093b2ff"
+local md_shortcode_2_uuid_pattern = "b58fc729%-690b%-4000%-b19f%-365a4093b2ff;"
+local function md_escaped_shortcode_2_fun(s)
+  return table.concat({
+    md_shortcode_2_uuid,
+    ";",
+    string_to_hex("{{{<" .. s .. ">}}}"),
+    ";"
+  })
+end
+
+local function md_shortcode_2_fun(open, space, lst, close)
+  local raw = open .. space
+  for i = 1, #lst do
+    local un = unshortcode:match(lst[i]) 
+    raw = raw .. (un or lst[i])
+  end
+  raw = raw .. close
+  return table.concat({
+    md_shortcode_2_uuid,
+    ";",
+    string_to_hex(raw),
+    ";"
+  });
+end
+
+-- This new transformation into a plain UUID-guarded string,
+-- is designed to survive the pandoc markdown reader barrier under Pandoc 3.7 and later.
+-- we still need the first shortcode transformation to actually convert
+-- to a span when it's safe to do so, but this transformation
+-- is safe to use in all contexts (including link and image targets).
+local md_shortcode_2 = make_shortcode_parser({
+  escaped = md_escaped_shortcode_2_fun,
+  string = md_string_param,
+  keyvalue = md_keyvalue_param,
+  shortcode = md_shortcode_2_fun,
+  ignore_pattern = lpeg.P("{.hidden .quarto-markdown-envelope-contents render-id=\"") * (lpeg.P(1) - lpeg.P("\"}"))^1 * lpeg.P("\"}")
+})
+
 return {
   lpegs = {
     md_shortcode = md_shortcode,
+    md_shortcode_2 = md_shortcode_2,
+    md_shortcode_2_uuid = md_shortcode_2_uuid_pattern,
     unshortcode = unshortcode -- for undoing shortcodes in non-markdown contexts
   },
+
+  parse_md_shortcode_2 = function(txt)
+    return wrap_lpeg_match(md_shortcode_2, txt)
+  end,
 
   parse_md_shortcode = function(txt)
     return wrap_lpeg_match(md_shortcode, txt)

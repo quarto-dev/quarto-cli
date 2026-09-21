@@ -274,10 +274,11 @@ export const previewCommand = new Command()
     // and convert the render to a project one
     let touchPath: string | undefined;
     let projectTarget: string | ProjectContext = file;
+    let project: ProjectContext | undefined;
     if (Deno.statSync(file).isFile) {
       // get project and preview format
       const nbContext = notebookContext();
-      const project = (await projectContext(dirname(file), nbContext)) ||
+      project = (await projectContext(dirname(file), nbContext)) ||
         (await singleFileProjectContext(file, nbContext));
       const formats = await (async () => {
         const services = renderServices(nbContext);
@@ -292,7 +293,7 @@ export const previewCommand = new Command()
           services.cleanup();
         }
       })();
-      const format = await previewFormat(file, flags.to, formats, project);
+      const format = await previewFormat(file, project, flags.to, formats);
 
       // see if this is server: shiny document and if it is then forward to previewShiny
       if (isHtmlOutput(parseFormatString(format).baseFormat)) {
@@ -314,6 +315,7 @@ export const previewCommand = new Command()
               format,
               pandocArgs: args,
               watchInputs: options.watchInputs!,
+              project,
             });
             exitWithCleanup(result.code);
             throw new Error(); // unreachable
@@ -430,6 +432,6 @@ export const previewCommand = new Command()
         [kProjectWatchInputs]: options.watchInputs,
         timeout: options.timeout,
         presentation: options.presentation,
-      });
+      }, project);
     }
   });

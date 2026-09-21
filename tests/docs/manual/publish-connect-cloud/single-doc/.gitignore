@@ -1,0 +1,5 @@
+/.quarto/
+_publish.yml
+*.html
+*_files/
+**/*.quarto_ipynb

@@ -223,12 +223,14 @@ const createPostBuild = (
     postBuildScript.push(msg("Installed TinyTex"));
   }
 
-  // Maybe install Chromium
+  // Maybe install Chrome Headless Shell for mermaid/graphviz rendering.
+  // Note: quartoConfig.chromium comes from QuartoTool type which uses "chromium"
+  // as a generic signal meaning "needs a headless browser", not the install command.
   if (quartoConfig.chromium) {
-    postBuildScript.push(msg("Installing Chromium"));
-    postBuildScript.push("# install chromium");
-    postBuildScript.push("quarto install chromium --no-prompt");
-    postBuildScript.push(msg("Installed Chromium"));
+    postBuildScript.push(msg("Installing Chrome Headless Shell"));
+    postBuildScript.push("# install chrome-headless-shell");
+    postBuildScript.push("quarto install chrome-headless-shell --no-prompt");
+    postBuildScript.push(msg("Installed Chrome Headless Shell"));
   }
 
   if (vscodeConfig.version) {

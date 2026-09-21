@@ -1,0 +1,14 @@
+---
+title: Code tools focus indicator
+format: html
+code-tools: true
+---
+
+Regression test for #14774: the Code button is a bare Bootstrap `.btn`
+(no `btn-*` variant class), so Bootstrap's `outline: 0` left it with no
+keyboard focus indicator. Quarto restores the native ring with
+`outline: revert`.
+
+```r
+1 + 1
+```

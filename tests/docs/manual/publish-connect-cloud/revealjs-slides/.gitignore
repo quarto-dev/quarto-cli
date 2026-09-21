@@ -1,0 +1,5 @@
+/.quarto/
+_publish.yml
+slides.html
+slides_files/
+*_files/

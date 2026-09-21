@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { inputTargetIndexCacheMetrics } from "../../project/project-index.ts";
+import { inputTargetIndexCacheMetrics } from "../../project/target-index-cache-metrics.ts";
 import { functionTimes } from "./function-times.ts";
 import { Stats } from "./stats.ts";
 

@@ -1,0 +1,18 @@
+---
+title: "LaTeX PDF/A-2a standard (accessible)"
+format: pdf
+pdf-standard: a-2a
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        # a-2a is "accessible" level - REQUIRES tagging
+        - ['\\DocumentMetadata\{', 'pdfstandard=\{a-2a\}', 'tagging=on']
+        - []
+---
+
+# Test Document
+
+This tests PDF/A-2a output with LaTeX. The "a" (accessible) level requires tagging.

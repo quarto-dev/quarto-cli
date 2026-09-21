@@ -1,0 +1,30 @@
+---
+title: "TOC title auto fallback"
+lang: en
+toc: true
+format:
+  typst:
+    keep-typ: true
+    filters:
+      - strip-toc-title.lua
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - # Patterns that MUST be found
+          # The outline is emitted, so the `if toc` branch of article() ran
+          - '#outline\('
+        - # Patterns that must NOT be found
+          # No toc_title argument in the article() call: the filter removed the
+          # metadata, so article() falls back to its own `toc_title: none` default
+          - 'toc_title: \['
+      ensurePdfRegexMatches:
+        - # Typst's `auto` outline title for lang: en
+          - 'Contents'
+---
+
+Quarto fills `toc-title` with a localized default before Pandoc runs, so the
+Typst `article()` function normally receives a `toc_title` argument. This test
+uses a Lua `Meta` filter to remove the key and reach the function's own
+`toc_title: none` default. In that case, `outline(title: auto)` provides the
+table of contents heading.

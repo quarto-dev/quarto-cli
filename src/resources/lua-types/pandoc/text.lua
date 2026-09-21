@@ -77,13 +77,30 @@ other platforms it will try to guess the file system's encoding.
 The set of known encodings is system dependent, but includes at
 least `UTF-8`, `UTF-16BE`, `UTF-16LE`, `UTF-32BE`, and `UTF-32LE`.
 Note that the default code page on Windows is available through
-`CP0`.  
+`CP0`.
 ]]
 ---@param s string string to convert
 ---@param encoding string Encoding of the input string
 ---@return string
 function pandoc.text.toencoding(s, encoding) end
 
+--[[
+Tries to convert the string into a Unicode subscript version.
+Returns nil if not all characters can be mapped to subscript.
+Supported characters include numbers, parentheses, and plus/minus.
+]]
+---@param input string String to convert to subscript
+---@return string|nil # Subscript version or nil if conversion not possible
+function pandoc.text.subscript(input) end
+
+--[[
+Tries to convert the string into a Unicode superscript version.
+Returns nil if not all characters can be mapped to superscript.
+Supported characters include numbers, parentheses, and plus/minus.
+]]
+---@param input string String to convert to superscript
+---@return string|nil # Superscript version or nil if conversion not possible
+function pandoc.text.superscript(input) end
 
 
 return pandoc.text

@@ -1,0 +1,82 @@
+---
+title: "Interleaved Margin Figure Cross-ref Test"
+papersize: us-letter
+format:
+  typst:
+    keep-typ: true
+  html: default
+  pdf: default
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['#notefigure\(', '<fig-alpha>', '<fig-beta>', '<fig-gamma>', '<fig-delta>']
+        - []
+      ensurePdfRegexMatches:
+        - - 'REF-ALPHA pointing to Figure 1'
+          - 'REF-BETA pointing to Figure 2'
+          - 'REF-GAMMA pointing to Figure 3'
+          - 'REF-DELTA pointing to Figure 4'
+          - 'Figure 1: CAP-ALPHA'
+          - 'Figure 2: CAP-BETA'
+          - 'Figure 3: CAP-GAMMA'
+          - 'Figure 4: CAP-DELTA'
+        - []
+      ensurePdfTextPositions:
+        - # Margin figure captions right of body
+          - subject: "CAP-ALPHA"
+            relation: rightOf
+            object: "Here is text"
+          - subject: "CAP-GAMMA"
+            relation: rightOf
+            object: "Another margin"
+          # Vertical ordering of margin figures
+          - subject: "CAP-ALPHA"
+            relation: above
+            object: "CAP-GAMMA"
+        - []
+      noErrors: default
+---
+
+This document tests cross-references between margin figures and main-column figures.
+
+## First Section
+
+Here is text before the first figure.
+
+![CAP-ALPHA in margin](test-plot.svg){#fig-alpha .column-margin width=100%}
+
+Text with REF-ALPHA pointing to @fig-alpha.
+
+## Second Section
+
+Now a regular main-column figure.
+
+![CAP-BETA in main](test-plot.svg){#fig-beta width=50%}
+
+Text with REF-BETA pointing to @fig-beta.
+
+## Third Section
+
+Another margin figure to test sequencing.
+
+![CAP-GAMMA in margin](test-plot.svg){#fig-gamma .column-margin width=100%}
+
+Text with REF-GAMMA pointing to @fig-gamma.
+
+## Fourth Section
+
+Final main-column figure.
+
+![CAP-DELTA in main](test-plot.svg){#fig-delta width=50%}
+
+Text with REF-DELTA pointing to @fig-delta.
+
+## Summary
+
+All figures numbered sequentially:
+
+- @fig-alpha should be Figure 1 (margin)
+- @fig-beta should be Figure 2 (main)
+- @fig-gamma should be Figure 3 (margin)
+- @fig-delta should be Figure 4 (main)

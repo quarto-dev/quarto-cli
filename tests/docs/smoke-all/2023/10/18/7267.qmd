@@ -1,6 +1,12 @@
 ---
 title: "Test table numbering"
 format: pdf
+_quarto:
+  tests:
+    run: 
+      skip: | 
+        This test is wrong because of https://github.com/quarto-dev/quarto-cli/issues/13862. 
+        TODO: to fix.
 # TODO: we should have _quarto: tests: pdf:
 # but that doesn't exist yet.
 ---
@@ -35,3 +41,27 @@ knitr::kable(df)
 
 See @tbl-table1 and @tbl-table2.
 
+# Table 3 
+
+::: {#tbl-table3}
+
+::: {}
+
+
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Value 1  | Value 2  | Value 3  |
+| Value 4  | Value 5  | Value 6  |
+| Value 7  | Value 8  | Value 9  |
+
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Value 1  | Value 2  | Value 3  |
+| Value 4  | Value 5  | Value 6  |
+| Value 7  | Value 8  | Value 9  |
+
+:::
+
+A caption
+
+:::

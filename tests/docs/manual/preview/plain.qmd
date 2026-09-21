@@ -1,0 +1,9 @@
+---
+title: "Plain QMD Test"
+---
+
+## T9: No code cells
+
+No .quarto_ipynb should ever be created.
+
+Edit counter: 0

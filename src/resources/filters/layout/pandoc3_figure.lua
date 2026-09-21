@@ -5,20 +5,12 @@
 -- never cross-referenceable but they need to be rendered as 
 -- if they were.
 
-local scope_utils = require("modules/scope")
-
 function render_pandoc3_figure()
   local function html_handle_linked_image(figure)
     local div = pandoc.Div({})
     div.identifier = "fig-yesiamafigure" -- this is a bad hack to make discoverLinkedFigureDiv work
-    local link = nil
-    if figure.content[1].t == "Plain" then
-      local plain = figure.content[1]
-      if plain.content[1].t == "Link" then
-        link = plain.content[1]
-      end
-    end
-    if link == nil then
+    local link = quarto.utils.match("[1]/Plain/[1]/Link")(figure)
+    if not link then
       return nil
     end
     div.content:insert(pandoc.Para({link}))
@@ -146,11 +138,18 @@ function render_pandoc3_figure()
       for k, v in pairs(figure.attributes) do
         image.attributes[k] = v
       end
+      -- Convert fig-alt to alt for LaTeX \includegraphics[alt=...]
+      if image.attributes[kFigAlt] then
+        if not image.attributes["alt"] then
+          image.attributes["alt"] = image.attributes[kFigAlt]
+        end
+        image.attributes[kFigAlt] = nil
+      end
       if subfig then
         image.attributes['quarto-caption-env'] = 'subcaption'
       end
       image.classes:extend(figure.classes)
-      if scope_utils.lookup_class(scope, "column-margin") then
+      if _quarto.modules.scope.lookup_class(scope, "column-margin") then
         image.classes:insert("column-margin")
       end
       return latexImageFigure(image)
@@ -170,6 +169,29 @@ function render_pandoc3_figure()
     return {
       traverse = "topdown",
       Figure = function(figure)
+        -- For figure images: prevent caption-as-alt fallback when caption IS the
+        -- visible figure caption (not an explicit alt override via {alt="..."}).
+        -- In Pandoc 3, {alt="text"} replaces image.caption with the alt value,
+        -- so image.caption != figure.caption means an explicit alt was provided.
+        -- Also propagate fig-alt from figure to image for accessibility.
+        local figure_caption_text = pandoc.utils.stringify(figure.caption.long)
+        local fig_alt = figure.attributes[kFigAlt]
+        for _, block in ipairs(figure.content) do
+          if block.t == "Plain" or block.t == "Para" then
+            for _, inline in ipairs(block.content) do
+              if inline.t == "Image" then
+                if fig_alt then
+                  inline.attributes[kFigAlt] = fig_alt
+                elseif pandoc.utils.stringify(inline.caption) == figure_caption_text then
+                  inline.attributes["_quarto_no_caption_alt"] = "true"
+                end
+              end
+            end
+          end
+        end
+        if #figure.content == 0 then
+          return nil
+        end
         return make_typst_figure({
           content = figure.content[1],
           caption = figure.caption.long[1],

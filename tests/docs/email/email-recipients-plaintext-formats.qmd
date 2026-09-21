@@ -1,0 +1,122 @@
+---
+title: Email Recipients Formats Test Document
+author: Jules Walzer-Goldfeld
+format:
+    email:
+        email-version: 2
+---
+
+Test document for various recipient input formats.
+
+::: {.email}
+
+::: {.subject}
+Line-Separated Recipients
+:::
+
+::: {.recipients}
+alice@example.com
+bob@example.com
+charlie@example.com
+:::
+
+::: {.email-text}
+Email with line-separated recipients (plain text, one per line).
+:::
+
+First email with line-separated recipients.
+
+:::
+
+::: {.email}
+
+::: {.subject}
+Comma-Separated Recipients
+:::
+
+::: {.recipients}
+alice@example.com, bob@example.com, charlie@example.com
+:::
+
+::: {.email-text}
+Email with comma-separated recipients (plain text).
+:::
+
+Second email with comma-separated recipients.
+
+:::
+
+::: {.email}
+
+::: {.subject}
+Funky Email Formats - Dots and Hyphens
+:::
+
+::: {.recipients}
+first.last@example.com, john-doe@test-domain.org, user_name@example.co.uk
+:::
+
+::: {.email-text}
+Email with dots, hyphens, and underscores in addresses.
+:::
+
+Third email with funky formats.
+
+:::
+
+::: {.email}
+
+::: {.subject}
+Funky Email Formats - Plus Signs
+:::
+
+::: {.recipients}
+user+tag@example.com, test+filter@domain.org, admin+reports@company.com
+:::
+
+::: {.email-text}
+Email with plus signs in addresses.
+:::
+
+Fourth email with plus signs.
+
+:::
+
+::: {.email}
+
+::: {.subject}
+Mixed Separators and Quotes
+:::
+
+::: {.recipients}
+"user1@example.com" 'user2@example.com' user3@example.com, user4@example.com
+user5@example.com
+:::
+
+::: {.email-text}
+Email with mixed quotes, commas, spaces, and newlines.
+:::
+
+Fifth email with mixed separators.
+
+:::
+
+::: {.email}
+
+::: {.subject}
+Complex Local Parts
+:::
+
+::: {.recipients}
+first.middle.last@example.com, user+tag1+tag2@domain.org, test_user-name.v2@example.co.uk
+:::
+
+::: {.email-text}
+Email with complex combinations in local parts.
+:::
+
+Sixth email with complex local parts.
+
+:::
+
+Done with test emails.

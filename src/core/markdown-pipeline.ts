@@ -116,7 +116,7 @@ const markdownEnvelopeWriter = (envelopeId: string) => {
       renderList.push(hiddenSpan(id, value));
     },
     toMarkdown: () => {
-      const contents = renderList.join("\n");
+      const contents = renderList.join("\n\n");
       return `\n:::{#${envelopeId} .hidden}\n${contents}\n:::\n`;
     },
   };

@@ -67,9 +67,14 @@ function latexPanel(layout)
   end
   local caption = create_latex_caption(layout)
   
-   -- read vertical alignment and strip attribute
-  local vAlign = validatedVAlign(layout.attributes[kLayoutVAlign])
-  layout.attributes[kLayoutVAlign] = nil
+  -- convert valign_class to latex notation, read vertical alignment and strip attribute
+  local vAlign = "top"
+  if layout.valign_class ~= nil then
+    local vAlignClass = layout.valign_class
+    vAlign = vAlignClass:gsub("quarto%-layout%-valign%-","")
+  end
+  
+  vAlign = validatedVAlign(vAlign)
 
   for i, row in ipairs(layout.rows.content) do
     
@@ -658,7 +663,7 @@ end
 function latexImageFigure(image)
 
   return renderLatexFigure(image, function(figure)
-    
+
     -- make a copy of the caption and clear it
     local caption = image.caption:clone()
     tclear(image.caption)

@@ -4,13 +4,15 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 import * as colors from "fmt/colors";
-import { Confirm, Select } from "cliffy/prompt/mod.ts";
+import { Confirm, prompt, Select } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { info, warning } from "../deno_ral/log.ts";
 
 import {
-  allTools,
+  installableTool,
+  installableTools,
   installTool,
+  isDeprecatedTool,
   toolSummary,
   uninstallTool,
   updateTool,
@@ -24,6 +26,7 @@ import {
 } from "../tools/types.ts";
 
 interface ToolInfo {
+  key: string;
   tool: InstallableTool;
   installed: boolean;
   version?: string;
@@ -51,18 +54,16 @@ export async function outputTools() {
     }
   };
 
-  // The column widths for output (in chars)
   const tools = await loadTools();
   for (const tool of tools) {
-    const summary = await toolSummary(tool.tool.name);
+    const summary = await toolSummary(tool.key);
     if (summary) {
-      const toolDetails = [
-        tool.tool.name.toLowerCase(),
+      toolRows.push([
+        tool.key,
         installStatus(summary),
         summary.installedVersion || "---",
         summary.latestRelease.version,
-      ];
-      toolRows.push(toolDetails);
+      ]);
 
       if (summary.configuration.status !== "ok") {
         statusMsgs.push(
@@ -73,7 +74,6 @@ export async function outputTools() {
   }
 
   info("");
-  // Write the output
   const table = new Table().header([
     colors.bold("Tool"),
     colors.bold("Status"),
@@ -91,27 +91,14 @@ export async function outputTools() {
 export async function loadTools(): Promise<ToolInfo[]> {
   let sorted: ToolInfo[] = [];
   await withSpinner({ message: "Inspecting tools" }, async () => {
-    const all = await allTools();
-    const toolsWithInstall = [{
-      tools: all.installed,
-      installed: true,
-    }, {
-      tools: all.notInstalled,
-      installed: false,
-    }];
-
     const toolInfos = [];
-    for (const toolWithInstall of toolsWithInstall) {
-      for (const tool of toolWithInstall.tools) {
-        const version = await tool.installedVersion();
-        const latest = await tool.latestRelease();
-        toolInfos.push({
-          tool,
-          version,
-          installed: toolWithInstall.installed,
-          latest,
-        });
-      }
+    for (const key of installableTools()) {
+      const tool = installableTool(key);
+      const installed = await tool.installed();
+      if (!installed && isDeprecatedTool(key)) continue;
+      const version = await tool.installedVersion();
+      const latest = await tool.latestRelease();
+      toolInfos.push({ key, tool, version, installed, latest });
     }
 
     sorted = toolInfos.sort((tool1, tool2) => {
@@ -164,6 +151,27 @@ export async function updateOrInstallTool(
   prompt?: boolean,
   updatePath?: boolean,
 ) {
+  // Deprecation: redirect chromium → chrome-headless-shell
+  if (tool.toLowerCase() === "chromium") {
+    warning(
+      "'chromium' is deprecated. Installing 'chrome-headless-shell' instead.\n" +
+        "Please update your scripts to use 'quarto install chrome-headless-shell'.",
+    );
+    if (action === "update") {
+      // Check if chrome-headless-shell is already present to pick the right action
+      const chsSummary = await toolSummary("chrome-headless-shell");
+      const redirectAction = chsSummary?.installed ? "update" : "install";
+      // Uninstall legacy chromium before delegating to chrome-headless-shell.
+      // We can't do this after because installTool/updateTool call Deno.exit.
+      const legacyTool = installableTool("chromium");
+      if (legacyTool && await legacyTool.installed()) {
+        await uninstallTool("chromium");
+      }
+      return updateOrInstallTool("chrome-headless-shell", redirectAction, prompt, updatePath);
+    }
+    return updateOrInstallTool("chrome-headless-shell", "install", prompt, updatePath);
+  }
+
   const summary = await toolSummary(tool);
 
   if (action === "update") {
@@ -237,17 +245,19 @@ export async function selectTool(
     }
   };
 
-  const toolTarget: string = (await Select.prompt({
+  const result = await prompt([{
+    name: "tool",
     message: `Select a tool to ${action}`,
     options: toolsInfo.map((toolInfo) => {
       return {
         name: name(toolInfo),
-        value: toolInfo.tool.name.toLowerCase(),
+        value: toolInfo.key,
         disabled: action === "install"
           ? toolInfo.installed
           : !toolInfo.installed,
       };
     }),
-  })).value;
-  return toolTarget;
+    type: Select,
+  }]);
+  return result.tool;
 }

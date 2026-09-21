@@ -22,6 +22,7 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import {
   FileInclusion,
   FileInformation,
+  FileInformationCache,
   kProjectOutputDir,
   kProjectType,
   ProjectConfig,
@@ -37,7 +38,7 @@ import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { createTempContext } from "../core/temp.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
-import { ExecutionEngine } from "../execute/types.ts";
+import { ExecutionEngineInstance } from "../execute/types.ts";
 import { InspectedMdCell } from "../inspect/inspect-types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../core/lib/break-quarto-md.ts";
 import { partitionCellOptionsText } from "../core/lib/partition-cell-options.ts";
@@ -356,7 +357,7 @@ export async function directoryMetadataForInputFile(
 
 const mdForFile = async (
   _project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
 ): Promise<MappedString> => {
   if (engine) {
@@ -369,7 +370,7 @@ const mdForFile = async (
 
 export async function projectResolveCodeCellsForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
@@ -461,13 +462,41 @@ export async function projectFileMetadata(
 
 export async function projectResolveFullMarkdownForFile(
   project: ProjectContext,
-  engine: ExecutionEngine | undefined,
+  engine: ExecutionEngineInstance | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
 ): Promise<MappedString> {
   const cache = ensureFileInformationCache(project, file);
-  if (!force && cache.fullMarkdown) {
+
+  // Source-mtime + size guard: in preview mode the persistent project
+  // context (and its fileInformationCache) is reused across renders. If
+  // the source file was edited since the cache entry was populated, the
+  // cached expanded markdown is stale (#10392). Re-read in that case.
+  // Size is checked alongside mtime to catch the edge case where an
+  // edit lands within a single mtime tick on a coarse-resolution
+  // filesystem but changes the byte count.
+  let currentMtime: number | undefined;
+  let currentSize: number | undefined;
+  try {
+    const stat = Deno.statSync(file);
+    currentMtime = stat.mtime?.getTime();
+    currentSize = stat.size;
+  } catch {
+    currentMtime = undefined;
+    currentSize = undefined;
+  }
+
+  if (
+    !force &&
+    cache.fullMarkdown &&
+    cache.sourceMtime !== undefined &&
+    cache.sourceSize !== undefined &&
+    currentMtime !== undefined &&
+    currentSize !== undefined &&
+    cache.sourceMtime === currentMtime &&
+    cache.sourceSize === currentSize
+  ) {
     return cache.fullMarkdown;
   }
 
@@ -494,6 +523,8 @@ export async function projectResolveFullMarkdownForFile(
   try {
     const result = await expandIncludes(markdown, options, file);
     cache.fullMarkdown = result;
+    cache.sourceMtime = currentMtime;
+    cache.sourceSize = currentSize;
     cache.includeMap = options.state?.include.includes as FileInclusion[];
     return result;
   } finally {
@@ -506,7 +537,7 @@ export const ensureFileInformationCache = (
   file: string,
 ) => {
   if (!project.fileInformationCache) {
-    project.fileInformationCache = new Map();
+    project.fileInformationCache = new FileInformationCacheMap();
   }
   assert(
     project.fileInformationCache instanceof Map,
@@ -552,14 +583,20 @@ export async function projectResolveBrand(
     }
     return resolved;
   }
+  // A token over the candidate brand files' existence + mtime + size, so the
+  // long-lived preview brandCache is reused only while the on-disk brand state
+  // is unchanged. Mirrors the fullMarkdown mtime+size guard above.
+  function brandSourceState(paths: string[]): string {
+    return paths.map((path) => {
+      try {
+        const stat = Deno.statSync(path);
+        return `${path}:${stat.mtime?.getTime()}:${stat.size}`;
+      } catch {
+        return `${path}:absent`;
+      }
+    }).join("|");
+  }
   if (fileName === undefined) {
-    if (project.brandCache) {
-      return project.brandCache.brand;
-    }
-    project.brandCache = {};
-    let fileNames = ["_brand.yml", "_brand.yaml"].map((file) =>
-      join(project.dir, file)
-    );
     const brand = (project?.config?.brand ??
       project?.config?.project.brand) as
         | boolean
@@ -568,6 +605,39 @@ export async function projectResolveBrand(
           light?: string;
           dark?: string;
         };
+
+    // Determine the candidate brand files this resolve will consult, so the
+    // staleness token below covers exactly the paths that affect the result.
+    let candidatePaths: string[];
+    if (
+      typeof brand === "object" && brand &&
+      ("light" in brand || "dark" in brand)
+    ) {
+      candidatePaths = [
+        brand.light ? resolveBrandPath(brand.light, project.dir) : undefined,
+        brand.dark ? resolveBrandPath(brand.dark, project.dir) : undefined,
+      ].filter((path): path is string => path !== undefined);
+    } else if (typeof brand === "string") {
+      candidatePaths = [join(project.dir, brand)];
+    } else {
+      candidatePaths = [
+        "_brand.yml",
+        "_brand.yaml",
+        "_brand/_brand.yml",
+        "_brand/_brand.yaml",
+      ].map((file) => join(project.dir, file));
+    }
+
+    // In preview mode the project context is long-lived and brandCache is
+    // reused across re-renders. Reuse the cached brand only when the on-disk
+    // state of the candidate files is unchanged; otherwise re-resolve so a
+    // _brand.yml added, removed, or edited mid-session takes effect (#14593).
+    const sourceState = brandSourceState(candidatePaths);
+    if (project.brandCache && project.brandCache.sourceState === sourceState) {
+      return project.brandCache.brand;
+    }
+    project.brandCache = { sourceState };
+
     if (brand === false) {
       project.brandCache.brand = undefined;
       return project.brandCache.brand;
@@ -587,11 +657,8 @@ export async function projectResolveBrand(
       };
       return project.brandCache.brand;
     }
-    if (typeof brand === "string") {
-      fileNames = [join(project.dir, brand)];
-    }
 
-    for (const brandPath of fileNames) {
+    for (const brandPath of candidatePaths) {
       if (!existsSync(brandPath)) {
         continue;
       }
@@ -652,26 +719,60 @@ export async function projectResolveBrand(
   }
 }
 
-// Create a class that extends Map and implements Cloneable
+// A Map that normalizes path keys for cross-platform consistency.
+// All path operations normalize keys (forward slashes, lowercase on Windows).
+// Implements Cloneable but shares state intentionally - in preview mode,
+// the project context is reused across renders and cache state must persist.
 export class FileInformationCacheMap extends Map<string, FileInformation>
-  implements Cloneable<Map<string, FileInformation>> {
+  implements FileInformationCache, Cloneable<Map<string, FileInformation>> {
+  override get(key: string): FileInformation | undefined {
+    return super.get(normalizePath(key));
+  }
+
+  override has(key: string): boolean {
+    return super.has(normalizePath(key));
+  }
+
+  override set(key: string, value: FileInformation): this {
+    return super.set(normalizePath(key), value);
+  }
+
+  override delete(key: string): boolean {
+    return super.delete(normalizePath(key));
+  }
+
+  // Note: Iterator methods (keys(), entries(), forEach(), [Symbol.iterator])
+  // return normalized keys as stored. Code iterating over the cache sees
+  // normalized paths, which is consistent with how keys are stored.
+
+  // Removes a cache entry and cleans up any associated transient files.
+  // In preview mode, this should be used instead of delete() to ensure
+  // transient notebooks (.quarto_ipynb) are removed from disk before the
+  // cache entry is dropped. Without this, the collision-avoidance logic
+  // in jupyter.ts target() creates numbered variants on each re-render.
+  invalidateForFile(key: string): void {
+    const existing = this.get(key);
+    if (existing?.target?.data) {
+      const data = existing.target.data as { transient?: boolean };
+      if (data.transient && existing.target.input) {
+        safeRemoveSync(existing.target.input);
+      }
+    }
+    this.delete(key);
+  }
+
+  // Returns this instance (shared reference) rather than a copy.
+  // This is intentional: in preview mode, project context is cloned for
+  // each render but the cache must be shared so invalidations persist.
   clone(): Map<string, FileInformation> {
-    // Return the same instance (reference) instead of creating a clone
     return this;
   }
 }
 
 export function cleanupFileInformationCache(project: ProjectContext) {
-  project.fileInformationCache.forEach((entry) => {
-    if (entry?.target?.data) {
-      const data = entry.target.data as {
-        transient?: boolean;
-      };
-      if (data.transient && entry.target?.input) {
-        safeRemoveSync(entry.target?.input);
-      }
-    }
-  });
+  for (const key of [...project.fileInformationCache.keys()]) {
+    project.fileInformationCache.invalidateForFile(key);
+  }
 }
 
 export async function withProjectCleanup<T>(

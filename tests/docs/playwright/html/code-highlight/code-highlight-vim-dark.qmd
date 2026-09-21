@@ -1,6 +1,6 @@
 ---
 title: Testing vim-dark code highlight
-highlight-style: vim-dark
+syntax-highlighting: vim-dark
 ---
 
 {{< include _body.md >}}

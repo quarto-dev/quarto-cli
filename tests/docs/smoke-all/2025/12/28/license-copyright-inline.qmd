@@ -1,0 +1,16 @@
+---
+format: html
+license: "Whatever"
+copyright: "2024 My Company"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - "License: Whatever"
+          - "Copyright: 2024 My Company"
+---
+
+License: {{< meta license.text >}}
+
+Copyright: {{< meta copyright.statement >}}

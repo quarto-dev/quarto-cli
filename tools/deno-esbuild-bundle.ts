@@ -1,4 +1,4 @@
-import * as esbuild from "npm:esbuild@0.20.2";
+import * as esbuild from "npm:esbuild@0.27.1";
 // Import the Wasm build on platforms where running subprocesses is not
 // permitted, such as Deno Deploy, or when running without `--allow-run`.
 // import * as esbuild from "https://deno.land/x/esbuild@0.20.2/wasm.js";

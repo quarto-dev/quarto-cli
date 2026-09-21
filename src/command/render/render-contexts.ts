@@ -59,7 +59,10 @@ import {
 } from "../../core/language.ts";
 import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
+import {
+  ExecutionEngineInstance,
+  ExecutionTarget,
+} from "../../execute/types.ts";
 import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
@@ -296,7 +299,7 @@ export async function renderContexts(
 
     // if this isn't for execute then cleanup context
     if (!forExecute && engine.executeTargetSkipped) {
-      engine.executeTargetSkipped(target, formats[formatKey].format, project);
+      engine.executeTargetSkipped(target, formats[formatKey].format);
     }
   }
   return contexts;
@@ -394,7 +397,7 @@ function mergeQuartoConfigs(
 async function resolveFormats(
   file: RenderFile,
   target: ExecutionTarget,
-  engine: ExecutionEngine,
+  engine: ExecutionEngineInstance,
   options: RenderOptions,
   _notebookContext: NotebookContext,
   project: ProjectContext,
@@ -673,14 +676,33 @@ const readExtensionFormat = async (
   extensionContext: ExtensionContext,
   project?: ProjectContext,
 ) => {
+  // Determine effective extension - use default for certain project/format combinations
+  let effectiveExtension = formatDesc.extension;
+  let preferLocal = false;
+
+  if (
+    formatDesc.baseFormat === "typst" &&
+    project?.config?.project?.[kProjectType] === "book"
+  ) {
+    if (effectiveExtension) {
+      // User explicitly named a typst book extension (e.g. format: orange-book-typst),
+      // prefer a locally installed copy over the built-in so customizations take effect
+      preferLocal = true;
+    } else {
+      // No explicit extension - use orange-book as the default typst book template
+      effectiveExtension = "orange-book";
+    }
+  }
+
   // Read the format file and populate this
-  if (formatDesc.extension) {
+  if (effectiveExtension) {
     // Find the yaml file
     const extension = await extensionContext.extension(
-      formatDesc.extension,
+      effectiveExtension,
       file,
       project?.config,
       project?.dir,
+      preferLocal,
     );
 
     // Read the yaml file and resolve / bucketize
@@ -693,7 +715,7 @@ const readExtensionFormat = async (
         (extensionFormat[fmtTarget] || extensionFormat[formatDesc.baseFormat] ||
           {}) as Metadata;
       extensionMetadata[kExtensionName] = extensionMetadata[kExtensionName] ||
-        formatDesc.extension;
+        effectiveExtension;
 
       const formats = await resolveFormatsFromMetadata(
         extensionMetadata,
@@ -704,7 +726,7 @@ const readExtensionFormat = async (
       return formats;
     } else {
       throw new Error(
-        `No valid format ${formatDesc.baseFormat} is provided by the extension ${formatDesc.extension}`,
+        `No valid format ${formatDesc.baseFormat} is provided by the extension ${effectiveExtension}`,
       );
     }
   } else {

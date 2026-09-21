@@ -49,6 +49,7 @@ import {
 import { validateDocumentFromSource } from "../core/schema/validate-document.ts";
 import { error } from "../deno_ral/log.ts";
 import { ProjectContext } from "../project/types.ts";
+import { isRStudio } from "../core/platform.ts";
 
 export function isProjectConfig(
   config: InspectedConfig,
@@ -139,11 +140,13 @@ const populateFileInformation = async (
   }
   await projectResolveCodeCellsForFile(context, engine, file);
   await projectFileMetadata(context, file);
-  fileInformation[file] = {
-    includeMap: context.fileInformationCache.get(file)?.includeMap ??
-      [],
-    codeCells: context.fileInformationCache.get(file)?.codeCells ?? [],
-    metadata: context.fileInformationCache.get(file)?.metadata ?? {},
+  const cacheEntry = context.fileInformationCache.get(file);
+  // Output key: project-relative for portability
+  const outputKey = relative(context.dir, normalizePath(file));
+  fileInformation[outputKey] = {
+    includeMap: cacheEntry?.includeMap ?? [],
+    codeCells: cacheEntry?.codeCells ?? [],
+    metadata: cacheEntry?.metadata ?? {},
   };
 };
 
@@ -236,7 +239,9 @@ const inspectDocumentConfig = async (path: string) => {
     };
 
     // if there is a project then add it
-    if (context?.config) {
+    // Suppress project for standalone files in RStudio: current releases
+    // assume project.dir implies _quarto.yml exists (rstudio/rstudio#17333)
+    if (context?.config && !(context.isSingleFile && isRStudio())) {
       config.project = await inspectProjectConfig(context);
     }
     return config;

@@ -6,55 +6,47 @@
 
 import { kBaseFormat, kPreferHtml } from "../config/constants.ts";
 import { Format, FormatPandoc } from "./types.ts";
+import { parseFormatString } from "../core/pandoc/pandoc-formats.ts";
 
 export function isPdfOutput(format: string): boolean;
 export function isPdfOutput(format: FormatPandoc): boolean;
 export function isPdfOutput(format: string | FormatPandoc): boolean {
-  if (typeof (format) !== "string") {
-    format = format?.to || "html";
-  }
-  return format === "pdf" || format === "beamer";
+  return isFormatTo(format, "pdf") || isFormatTo(format, "beamer");
 }
 
 export function isLatexOutput(format: FormatPandoc) {
-  return ["pdf", "latex", "beamer"].includes(format.to || "");
+  return ["pdf", "latex", "beamer"].some((fmt) => isFormatTo(format, fmt));
 }
 
 export function isTypstOutput(format: string): boolean;
 export function isTypstOutput(format: FormatPandoc): boolean;
 export function isTypstOutput(format: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
-    format = format?.to || "html";
-  }
-  return format === "typst";
+  return isFormatTo(format, "typst");
 }
 
 export function isBeamerOutput(format: FormatPandoc) {
-  return ["beamer"].includes(format.to || "");
+  return isFormatTo(format, "beamer");
 }
 
 export function isEpubOutput(format: string): boolean;
 export function isEpubOutput(format: FormatPandoc): boolean;
 export function isEpubOutput(format: string | FormatPandoc): boolean {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to || "html";
   }
-  return ["epub", "epub2", "epub3"].includes(format || "");
+  return ["epub", "epub2", "epub3"].some((fmt) => isFormatTo(format, fmt));
 }
 
 export function isDocxOutput(format: string): boolean;
 export function isDocxOutput(format: FormatPandoc): boolean;
 export function isDocxOutput(format: string | FormatPandoc): boolean {
-  if (typeof (format) !== "string") {
-    format = format?.to || "html";
-  }
-  return format === "docx";
+  return isFormatTo(format, "docx");
 }
 
 export function isHtmlFileOutput(format: string): boolean;
 export function isHtmlFileOutput(format: FormatPandoc): boolean;
 export function isHtmlFileOutput(format?: string | FormatPandoc): boolean {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to || "html";
   }
   return isHtmlDocOutput(format) || isHtmlSlideOutput(format);
@@ -66,7 +58,7 @@ export function isHtmlOutput(
   format?: string | FormatPandoc,
   strict?: boolean,
 ): boolean {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to;
   }
   format = format || "html";
@@ -81,47 +73,45 @@ export function isHtmlOutput(
   }
 }
 
-export function isHtmlDocOutput(format?: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
-    format = format?.to || "html";
-  }
-  return [
-    "html",
-    "html4",
-    "html5",
-  ].includes(format);
+export function isHtmlDocOutput(format: string | FormatPandoc) {
+  return ["html", "html4", "html5"].some((fmt) => isFormatTo(format, fmt));
 }
 
-export function isHtmlSlideOutput(format?: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
-    format = format?.to || "html";
-  }
+export function isHtmlSlideOutput(format: string | FormatPandoc) {
   return [
     "s5",
     "dzslides",
     "slidy",
     "slideous",
     "revealjs",
-  ].includes(format);
+  ].some((fmt) => isFormatTo(format, fmt));
 }
 
+// Dashboard uses pandoc.to="html", so pass format.identifier["base-format"]
+// (not format.pandoc.to) when checking from a Format object.
 export function isHtmlDashboardOutput(format?: string) {
   return format === "dashboard" || format?.endsWith("-dashboard");
 }
 
 export function isJatsOutput(format?: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to || "html";
   }
 
-  return [
+  const jatsFormats = [
     "jats",
     "jats_archiving",
     "jats_articleauthoring",
     "jats_publishing",
-  ].find((formatStr) => {
-    return (format as string).startsWith(formatStr);
-  }) !== undefined;
+  ];
+  const formatStr = format as string;
+  if (jatsFormats.some((f) => formatStr.startsWith(f))) return true;
+  try {
+    const base = parseFormatString(formatStr).baseFormat;
+    return jatsFormats.some((f) => base.startsWith(f));
+  } catch {
+    return false;
+  }
 }
 
 export function isPresentationOutput(format: FormatPandoc) {
@@ -136,11 +126,16 @@ export function isPresentationOutput(format: FormatPandoc) {
 export function isRevealjsOutput(format: string): boolean;
 export function isRevealjsOutput(format: FormatPandoc): boolean;
 export function isRevealjsOutput(format?: string | FormatPandoc) {
-  if (typeof (format) !== "string") {
+  if (typeof format !== "string") {
     format = format?.to;
   }
   format = format || "html";
-  return format.startsWith("revealjs");
+  if (format.startsWith("revealjs")) return true;
+  try {
+    return parseFormatString(format).baseFormat.startsWith("revealjs");
+  } catch {
+    return false;
+  }
 }
 
 export function isNativeOutput(format: FormatPandoc) {
@@ -159,8 +154,16 @@ export function isIpynbOutput(format: FormatPandoc) {
   return isFormatTo(format, "ipynb");
 }
 
-function isFormatTo(format: FormatPandoc, to: string) {
-  return !!format.to && format.to.startsWith(to);
+function isFormatTo(format: string | FormatPandoc, to: string) {
+  const formatStr = typeof format === "string"
+    ? format
+    : (format?.to || "html");
+  if (formatStr.startsWith(to)) return true;
+  try {
+    return parseFormatString(formatStr).baseFormat.startsWith(to);
+  } catch {
+    return false;
+  }
 }
 
 export function isMarkdownOutput(

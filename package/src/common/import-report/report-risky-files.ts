@@ -45,10 +45,13 @@ function filesInCycles(
 if (import.meta.main) {
   if (Deno.args.length === 0) {
     console.log(
-      `report-dangerous-files.ts
+      `report-risky-files.ts: Report files that are in import cycles and export constants
 
 Usage:
-  $ quarto run report-dangerous-files.ts`,
+  $ quarto run --dev report-risky-files.ts <entry-point.ts>
+
+Example:
+  $ quarto run --dev package/src/common/import-report/report-risky-files.ts src/quarto.ts`,
     );
     Deno.exit(1);
   }

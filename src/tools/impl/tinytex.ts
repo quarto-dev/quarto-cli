@@ -33,6 +33,7 @@ import { suggestUserBinPaths } from "../../core/path.ts";
 
 import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
 import {
+  arch,
   isLinux,
   isMac,
   isWindows,
@@ -40,11 +41,14 @@ import {
 } from "../../deno_ral/platform.ts";
 
 // This the https texlive repo that we use by default
-const kDefaultRepos = [
+export const kDefaultRepos = [
   "https://mirrors.rit.edu/CTAN/systems/texlive/tlnet/",
   "https://ctan.math.illinois.edu/systems/texlive/tlnet/",
   "https://mirror.las.iastate.edu/tex-archive/systems/texlive/tlnet/",
 ];
+
+// CDN-backed TinyTeX mirror (https://yihui.org/en/2026/03/tinytex-ctan-mirror/).
+export const kTlnetMirror = "https://tlnet.yihui.org";
 
 // Different packages
 const kTinyTexRepo = "rstudio/tinytex-releases";
@@ -65,15 +69,6 @@ export const tinyTexInstallable: InstallableTool = {
     },
     os: ["darwin"],
     message: "The directory /usr/local/bin is not writable.",
-  }, {
-    check: () => {
-      // Can't be a linux non-x86 platform
-      const needsSource = needsSourceInstall();
-      return Promise.resolve(!needsSource);
-    },
-    os: ["linux"],
-    message:
-      "This platform doesn't support installation at this time. Please install manually instead. See https://yihui.org/tinytex/#installation.",
   }],
   installed,
   installDir,
@@ -161,17 +156,17 @@ async function preparePackage(
   const version = pkgInfo.version;
 
   // target package information
-  const pkgName = tinyTexPkgName(kPackageMaximal, version);
-  const filePath = join(context.workingDir, pkgName);
-
-  // Download the package
-  const url = tinyTexUrl(pkgName, pkgInfo);
-  if (url) {
-    // Download the package
-    await context.download(`TinyTex ${version}`, url, filePath);
+  const candidates = tinyTexPkgName(kPackageMaximal, version);
+  const result = tinyTexUrl(candidates, pkgInfo);
+  if (result) {
+    const filePath = join(context.workingDir, result.name);
+    await context.download(`TinyTex ${version}`, result.url, filePath);
     return { filePath, version };
   } else {
-    context.error("Couldn't determine what URL to use to download");
+    context.error(
+      `Couldn't determine what URL to use to download TinyTeX. ` +
+        `Tried: ${candidates.join(", ")}`,
+    );
     return Promise.reject();
   }
 }
@@ -198,7 +193,15 @@ async function install(
       await context.withSpinner(
         { message: `Unzipping ${basename(pkgInfo.filePath)}` },
         async () => {
-          await unzip(pkgInfo.filePath);
+          const result = await unzip(pkgInfo.filePath);
+          if (!result.success) {
+            const hint = pkgInfo.filePath.endsWith(".tar.xz") && isLinux
+              ? "\nYou may need to install xz-utils (e.g., apt install xz-utils)."
+              : "";
+            throw new Error(
+              `Failed to extract ${basename(pkgInfo.filePath)}.${hint}\n${result.stderr}`,
+            );
+          }
         },
       );
 
@@ -333,9 +336,15 @@ async function afterInstall(context: InstallContext) {
       },
     );
 
-    // Set the default repo to an https repo
+    // Set the default repo to an https repo.
+    // Allow override via QUARTO_TINYTEX_REPOSITORY, or CTAN_REPO (honored for
+    // parity with the R tinytex package, which reads it during install-tl).
     let restartRequired = false;
-    const defaultRepo = await textLiveRepo();
+    // Use `||` (not `??`) so an explicit empty `QUARTO_TINYTEX_REPOSITORY=""`
+    // falls through to `CTAN_REPO` rather than masking it.
+    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY") ||
+      Deno.env.get("CTAN_REPO");
+    const defaultRepo = await resolveTinytexRepo(envRepo);
     await context.withSpinner(
       {
         message: `Setting default repository`,
@@ -482,7 +491,9 @@ function exec(path: string, cmd: string[]) {
 
 const kTlMgrKey = "tlmgr";
 
-async function textLiveRepo() {
+async function textLiveRepoFallback(
+  fetchFn: typeof fetch = fetch,
+) {
   // We don't set the default to `ctan` because one caveat of mirror.ctan.org
   // is that it resolves to many different hosts, and they are not perfectly synchronized;
   // Recommendation is to update only daily (at most), and not more often, which we don't want.
@@ -492,7 +503,7 @@ async function textLiveRepo() {
   let autoUrl;
   try {
     const url = "https://mirror.ctan.org/systems/texlive/tlnet";
-    const response = await fetch(url, { redirect: "follow" });
+    const response = await fetchFn(url, { redirect: "follow" });
     autoUrl = response.url;
   } catch (_e) {}
   if (!autoUrl) {
@@ -502,22 +513,107 @@ async function textLiveRepo() {
   return autoUrl;
 }
 
-function tinyTexPkgName(base?: string, ver?: string) {
-  const ext = isWindows ? "zip" : isLinux ? "tar.gz" : "tgz";
-
-  base = base || "TinyTeX";
-  if (ver) {
-    return `${base}-${ver}.${ext}`;
-  } else {
-    return `${base}.${ext}`;
+export async function isTlnet(
+  url: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<boolean> {
+  // Probe the TLPDB file inside the mirror, not the URL root: a valid mirror
+  // root commonly serves an HTML directory index, while a misconfigured
+  // Cloudflare catch-all returns text/html for every path including the TLPDB.
+  // Combining a deep-file probe with the text/html guard rejects both
+  // unreachable and catch-all-misconfigured deployments. Matches R tinytex's
+  // is_tlnet() at R/install.R.
+  const probeUrl = `${url.replace(/\/$/, "")}/tlpkg/texlive.tlpdb`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const response = await fetchFn(probeUrl, {
+      method: "HEAD",
+      signal: controller.signal,
+      redirect: "follow",
+    });
+    if (response.status >= 400) {
+      debug(`isTlnet probe ${probeUrl} rejected: status ${response.status}`);
+      return false;
+    }
+    const contentType = response.headers.get("Content-Type") ?? "";
+    if (contentType.toLowerCase().includes("text/html")) {
+      debug(
+        `isTlnet probe ${probeUrl} rejected: Content-Type ${contentType} (catch-all html)`,
+      );
+      return false;
+    }
+    return true;
+  } catch (e) {
+    debug(`isTlnet probe ${probeUrl} rejected: fetch error ${e}`);
+    return false;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
-function tinyTexUrl(pkg: string, remotePkgInfo: RemotePackageInfo) {
-  const asset = remotePkgInfo.assets.find((asset) => {
-    return asset.name === pkg;
-  });
-  return asset?.url;
+export async function resolveTinytexRepo(
+  envOverride?: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<string> {
+  if (envOverride) {
+    return envOverride;
+  }
+  if (await isTlnet(kTlnetMirror, fetchFn)) {
+    return kTlnetMirror;
+  }
+  return textLiveRepoFallback(fetchFn);
+}
+
+export function tinyTexPkgName(
+  base?: string,
+  ver?: string,
+  options?: { os?: string; arch?: string },
+): string[] {
+  const effectiveOs = options?.os ??
+    (isWindows ? "windows" : isLinux ? "linux" : "darwin");
+  const effectiveArch = options?.arch ?? arch;
+
+  base = base || "TinyTeX";
+
+  if (!ver) {
+    const ext = effectiveOs === "windows"
+      ? "zip"
+      : effectiveOs === "linux"
+      ? "tar.gz"
+      : "tgz";
+    return [`${base}.${ext}`];
+  }
+
+  const candidates: string[] = [];
+
+  if (effectiveOs === "windows") {
+    candidates.push(`${base}-windows-${ver}.exe`);
+    candidates.push(`${base}-${ver}.zip`);
+  } else if (effectiveOs === "linux") {
+    if (effectiveArch === "aarch64") {
+      candidates.push(`${base}-linux-arm64-${ver}.tar.xz`);
+      candidates.push(`${base}-arm64-${ver}.tar.gz`);
+    } else {
+      candidates.push(`${base}-linux-x86_64-${ver}.tar.xz`);
+      candidates.push(`${base}-${ver}.tar.gz`);
+    }
+  } else {
+    candidates.push(`${base}-darwin-${ver}.tar.xz`);
+    candidates.push(`${base}-${ver}.tgz`);
+  }
+
+  return candidates;
+}
+
+function tinyTexUrl(candidates: string[], remotePkgInfo: RemotePackageInfo) {
+  for (const pkg of candidates) {
+    const asset = remotePkgInfo.assets.find((asset) => asset.name === pkg);
+    if (asset) {
+      return { url: asset.url, name: pkg };
+    }
+  }
+  return undefined;
 }
 
 async function remotePackageInfo(): Promise<RemotePackageInfo> {
@@ -535,14 +631,6 @@ async function isWritable(path: string) {
   const desc = { name: "write", path } as const;
   const status = await Deno.permissions.query(desc);
   return status.state === "granted";
-}
-
-function needsSourceInstall() {
-  if (isLinux && Deno.build.arch !== "x86_64") {
-    return true;
-  } else {
-    return false;
-  }
 }
 
 async function isTinyTex() {

@@ -7,18 +7,20 @@
 - name: linkcolor
   schema: string
   tags:
-    formats: [$html-doc, context, $pdf-all]
+    formats: [$html-doc, context, $pdf-all, typst]
   description:
     short: Sets the color of hyperlinks in the document.
     long: |
       For HTML output, sets the CSS `color` property on all links.
 
       For LaTeX output, The color used for internal links using color options
-      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor),
       including the `dvipsnames`, `svgnames`, and
       `x11names` lists.
 
       For ConTeXt output, sets the color for both external links and links within the document.
+
+      For Typst output, sets the color of internal hyperlinks using Typst color syntax.
 
 - name: monobackgroundcolor
   schema: string
@@ -36,26 +38,30 @@
 - name: filecolor
   schema: string
   tags:
-    formats: [$pdf-all]
+    formats: [$pdf-all, typst]
   description:
-    short: The color used for external links using color options allowed by `xcolor`
+    short: The color used for external links.
     long: |
-      The color used for external links using color options
-      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      For LaTeX output, the color used for external links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor),
       including the `dvipsnames`, `svgnames`, and
       `x11names` lists.
+
+      For Typst output, sets the color of external file links using Typst color syntax.
 
 - name: citecolor
   schema: string
   tags:
-    formats: [$pdf-all]
+    formats: [$pdf-all, typst]
   description:
-    short: The color used for citation links using color options allowed by `xcolor`
+    short: The color used for citation links.
     long: |
-      The color used for citation links using color options
-      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      For LaTeX output, the color used for citation links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor),
       including the `dvipsnames`, `svgnames`, and
       `x11names` lists.
+
+      For Typst output, sets the color of citation links using Typst color syntax.
 
 - name: urlcolor
   schema: string

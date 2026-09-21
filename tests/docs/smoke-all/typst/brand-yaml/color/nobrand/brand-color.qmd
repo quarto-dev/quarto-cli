@@ -7,9 +7,9 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        - []
         -
-          - 'brand-color'
+          - '#let brand-color = \(:\)'
+          - '#let brand-color-background = \(:\)'
 ---
 
 ::: {.callout-note}

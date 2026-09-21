@@ -139,6 +139,15 @@ function TestYouTubeBuilder:testHeightWidth()
   checkYouTubeBuilder(params, expected)
 end
 
+function TestYouTubeBuilder:testAriaLabel()
+  local params = {
+    src = 'https://www.youtube.com/embed/wo9vZccmqwc',
+    ariaLabel = 'Video demonstration of features',
+  }
+  local expected = {snippet = '<iframe data-external="1" src="https://www.youtube.com/embed/wo9vZccmqwc" title="" aria-label="Video demonstration of features" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.YOUTUBE, src='https://www.youtube.com/embed/wo9vZccmqwc', videoId = 'wo9vZccmqwc'}
+  checkYouTubeBuilder(params, expected)
+end
+
 TestBrightcoveBuilder = {}
 local checkBrightcoveBuilder = function(params, expected)
   result = helpers.brightcoveBuilder(params)
@@ -203,6 +212,15 @@ function TestBrightcoveBuilder:testHeightWidth()
     width = 200,
   }
   local expected = {snippet = '<iframe data-external="1" src="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001" width="200" height="100" allowfullscreen="" title="" allow="encrypted-media"></iframe>', type = VIDEO_TYPES.BRIGHTCOVE, src='https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001' }
+  checkBrightcoveBuilder(params, expected)
+end
+
+function TestBrightcoveBuilder:testAriaLabel()
+  local params = {
+    src = 'https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001',
+    ariaLabel = 'Video demonstration of features',
+  }
+  local expected = {snippet = '<iframe data-external="1" src="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001" allowfullscreen="" title="" aria-label="Video demonstration of features" allow="encrypted-media"></iframe>', type = VIDEO_TYPES.BRIGHTCOVE, src='https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001' }
   checkBrightcoveBuilder(params, expected)
 end
 
@@ -288,6 +306,15 @@ function TestVimeoBuilder:testHeightWidth()
   checkVimeoBuilder(params, expected)
 end
 
+function TestVimeoBuilder:testAriaLabel()
+  local params = {
+    src = 'https://vimeo.com/548291210',
+    ariaLabel = 'Video demonstration of features',
+  }
+  local expected = {snippet = '<iframe data-external="1" src="https://player.vimeo.com/video/548291210" frameborder="0" title="" aria-label="Video demonstration of features" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210', videoId = '548291210' }
+  checkVimeoBuilder(params, expected)
+end
+
 TestVideoJSBuilder = {}
 local checkVideoJSBuilder = function(params, expected)
   VIDEO_SHORTCODE_NUM_VIDEOJS = 0 -- Reset Counter
@@ -365,6 +392,20 @@ function TestVideoJSBuilder:testHeightWidth()
     src="./intro-cern.mp4"
   }
 
+  checkVideoJSBuilder(params, expected)
+end
+
+function TestVideoJSBuilder:testAriaLabel()
+  local params = {
+    ariaLabel = 'Video demonstration of features',
+    src = './intro-cern.mp4'
+  }
+  local expected = {
+    snippet="<video id=\"video_shortcode_videojs_video1\" class=\"video-js vjs-default-skin vjs-big-play-centered vjs-fluid\" controls preload=\"auto\" data-setup='{}' title=\"\" aria-label=\"Video demonstration of features\"><source src=\"./intro-cern.mp4\"></video>",
+    type="VIDEOJS",
+    src='./intro-cern.mp4',
+    id="video_shortcode_videojs_video1"
+  }
   checkVideoJSBuilder(params, expected)
 end
 

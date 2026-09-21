@@ -39,7 +39,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'background: align\(left\+top, box\(inset: 0.75in, image\("sun-face\.png", width: 1\.5in, alt: "sun face"\)\)'
+          - 'background: align\(left\+top, box\(inset: 0.75in, image\("/sun-face\.png", width: 1\.5in, alt: "sun face"\)\)'
         -
           - 'background.*moon-face\.png'
 ---

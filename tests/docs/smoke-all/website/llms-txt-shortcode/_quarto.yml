@@ -1,0 +1,15 @@
+project:
+  type: website
+  output-dir: .
+
+website:
+  title: "Site Title {{< env LLMS_TEST_VAR >}}"
+  llms-txt: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+
+format:
+  html:
+    theme: cosmo

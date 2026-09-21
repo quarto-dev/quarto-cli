@@ -1,0 +1,24 @@
+---
+title: "Scroll view snap proximity"
+format:
+  revealjs:
+    scroll-view:
+      activate: true
+      snap: proximity
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - 'view: ''scroll'','
+          - 'scrollSnap: ''proximity'','
+        - []
+---
+
+## test
+
+Content
+
+## test
+
+Content

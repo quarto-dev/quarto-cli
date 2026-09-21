@@ -27,6 +27,15 @@ export const makeParserModule = (
         "$1$2 /* empty rule */ $3",
       );
 
+      // https://github.com/quarto-dev/quarto-cli/issues/11703
+      // It also doesn't like consecutive semicolons inside a block
+      // (an empty statement, valid CSS/SCSS), even across lines,
+      // e.g. `a { b: 1;; }`. Collapse each run of semicolons into one.
+      contents = contents.replaceAll(
+        /;[\s;]*;/g,
+        ";",
+      );
+
       // it also really doesn't like statements that don't end in a semicolon
       // so, in case you are reading this code to understand why the parser is failing,
       // ensure that your SCSS has semicolons at the end of every statement.
@@ -39,6 +48,28 @@ export const makeParserModule = (
       contents = contents.replaceAll(
         /(^\s*[A-Za-z0-9-]+):([^ \n])/mg,
         "$1: $2",
+      );
+      // https://github.com/quarto-dev/quarto-cli/issues/14687
+      // ... and the same when the declaration doesn't start a line but
+      // follows `{` or `;`, e.g. `.example {width:100px;}`
+      contents = contents.replaceAll(
+        /([{;]\s*[A-Za-z0-9-]+):([^ \n])/g,
+        "$1: $2",
+      );
+
+      // scss-parser's tokenizer only handles ASCII identifier characters.
+      // Non-ASCII codepoints are valid in both CSS and SCSS identifiers:
+      // - CSS Syntax L3 §4.2 defines "ident code point" as including any
+      //   codepoint >= U+0080 (https://www.w3.org/TR/css-syntax-3/#ident-code-point)
+      // - CSS2 grammar includes `nonascii` in `nmstart`/`nmchar` productions
+      //   (https://www.w3.org/TR/CSS2/grammar.html#scanner)
+      // - Sass inherits CSS's <ident-token> grammar for identifiers
+      //   (https://github.com/sass/sass/blob/main/spec/syntax.md)
+      // Dart Sass handles them correctly, so we encode here as ASCII
+      // placeholders for analysis only, then decode in add-css-vars.ts.
+      contents = contents.replaceAll(
+        /[^\x00-\x7F]/g,
+        (ch) => `_u${ch.codePointAt(0)!.toString(16)}_`,
       );
 
       // This is relatively painful, because unfortunately the error message of scss-parser

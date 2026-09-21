@@ -16,7 +16,7 @@ contributes:
     pdf:
       shift-heading-level-by: -1
       tbl-cap-location: bottom
-      highlight-style: none
+      syntax-highlighting: none
       include-in-header:
         text: |
           \usepackage{orcidlink,thumbpdf,lmodern}

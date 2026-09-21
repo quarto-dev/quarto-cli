@@ -87,7 +87,7 @@ export function httpFileRequestHandler(
         printUrl(url, false);
       }
       return Promise.resolve(
-        new Response(handle404.response.body, {
+        new Response(handle404.response.body as BodyInit, {
           status: 404,
           headers: {
             "Content-Type": kTextHtml,
@@ -180,7 +180,7 @@ export function httpContentResponse(
     headers.set("Content-Type", contentType);
   }
   headers.set("Cache-Control", "no-store, max-age=0");
-  return new Response(content, {
+  return new Response(content as BodyInit, {
     status: 200,
     headers,
   });

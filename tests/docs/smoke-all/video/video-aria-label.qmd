@@ -1,0 +1,45 @@
+---
+title: "Video Shortcode aria-label Support (Issue #13508)"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - '#youtube-aria-label-test iframe[aria-label="Video demonstration of Positron features"]'
+
+          - '#vimeo-aria-label-test iframe[aria-label="Accessible Vimeo video description"]'
+
+          - '#video-js-aria-label-test video[aria-label="Local video with custom label"]'
+
+          - '#brightcove-aria-label-test iframe[aria-label="Brightcove video accessible label"]'
+---
+
+Test for aria-label support in video shortcode for improved accessibility.
+
+::: {#youtube-aria-label-test}
+
+{{< video https://www.youtube.com/embed/wo9vZccmqwc
+  aria-label="Video demonstration of Positron features" >}}
+
+:::
+
+::: {#vimeo-aria-label-test}
+
+{{< video https://vimeo.com/548291297
+  aria-label="Accessible Vimeo video description" >}}
+
+:::
+
+::: {#video-js-aria-label-test}
+
+{{< video local-video.mp4
+  aria-label="Local video with custom label" >}}
+
+:::
+
+::: {#brightcove-aria-label-test}
+
+{{< video https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001
+  aria-label="Brightcove video accessible label" >}}
+
+:::

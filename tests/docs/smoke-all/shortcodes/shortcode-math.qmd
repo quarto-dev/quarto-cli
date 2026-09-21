@@ -1,0 +1,17 @@
+---
+title: Shortcode in Math
+format: html
+five: 5
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['5 \+ 5']
+        - ['b58fc729|7B7B3C']
+---
+
+Inline: $5 + {{< meta five >}}$
+
+Display: $$5 + {{< meta five >}}$$
+
+Plain: {{< meta five >}}

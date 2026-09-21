@@ -1,0 +1,6 @@
+project:
+  type: default
+
+format:
+  typst:
+    keep-typ: true

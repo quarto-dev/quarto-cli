@@ -68,6 +68,7 @@ import {
   kScrollActivationWidth,
   kScrollLayout,
   kScrollProgress,
+  kScrollProgressAuto,
   kScrollSnap,
   kScrollView,
   kSlideFooter,
@@ -118,6 +119,21 @@ export function revealResolveFormat(format: Format) {
   }
   // remove scroll-view from metadata
   delete format.metadata[kScrollView];
+
+  // Handle scrollProgress "auto" for the template.
+  // Pandoc templates render BoolVal as true/false literals, but "auto" needs
+  // to be a quoted string. A helper variable scrollProgressAuto handles this.
+  // When no scrollProgress is specified and view is "scroll", default to "auto"
+  // (RevealJS default) rather than Pandoc's defField default of true.
+  if (format.metadata[kView] === "scroll") {
+    if (
+      format.metadata[kScrollProgress] === "auto" ||
+      format.metadata[kScrollProgress] === undefined
+    ) {
+      format.metadata[kScrollProgressAuto] = true;
+      delete format.metadata[kScrollProgress];
+    }
+  }
 }
 
 export function revealjsFormat() {
@@ -193,23 +209,9 @@ export function revealjsFormat() {
             format.metadata[kPdfMaxPagesPerSlide];
         }
 
-        // pass scroll view settings as they are not yet in revealjs template
-        if (format.metadata[kView]) {
-          extraConfig[kView] = format.metadata[kView];
-        }
-        if (format.metadata[kScrollProgress] !== undefined) {
-          extraConfig[kScrollProgress] = format.metadata[kScrollProgress];
-        }
-        if (format.metadata[kScrollSnap] !== undefined) {
-          extraConfig[kScrollSnap] = format.metadata[kScrollSnap];
-        }
-        if (format.metadata[kScrollLayout] !== undefined) {
-          extraConfig[kScrollLayout] = format.metadata[kScrollLayout];
-        }
-        if (format.metadata[kScrollActivationWidth] !== undefined) {
-          extraConfig[kScrollActivationWidth] =
-            format.metadata[kScrollActivationWidth];
-        }
+        // Scroll view settings (view, scrollProgress, scrollSnap, scrollLayout,
+        // scrollActivationWidth) are rendered by the template via metadata
+        // variables set in revealResolveFormat().
 
         // get theme info (including text highlighing mode)
         const theme = await revealTheme(
@@ -356,6 +358,18 @@ export function revealjsFormat() {
               backgroundTransition: "none",
               pdfSeparateFragments: false,
             }),
+          };
+        }
+
+        // Scroll-view defaults (only when view is "scroll").
+        // Set explicitly so the template $if/$else$ type guards always have
+        // values and don't depend on Pandoc's defField.
+        if (format.metadata[kView] === "scroll") {
+          extras.metadata = {
+            ...extras.metadata,
+            [kScrollSnap]: "mandatory",
+            [kScrollLayout]: "full",
+            [kScrollActivationWidth]: 0,
           };
         }
 

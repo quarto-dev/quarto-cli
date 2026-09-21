@@ -1,0 +1,45 @@
+---
+title: TITLE_UNIQUE_TEXT
+format: typst
+header-includes: |
+  #set page(
+    header: [PAGEHEADER_UNIQUE_TEXT],
+    footer: [PAGEFOOTER_UNIQUE_TEXT]
+  )
+_quarto:
+  tests:
+    typst:
+      ensurePdfTextPositions:
+        - # Vertical ordering: header < title < h1 < body < footer (y increases downward)
+          - subject:
+              text: "PAGEHEADER_UNIQUE_TEXT"
+              role: "Decoration"
+            relation: above
+            object: "TITLE_UNIQUE_TEXT"
+          - subject: "TITLE_UNIQUE_TEXT"
+            relation: above
+            object: "H1_UNIQUE_TEXT"
+          - subject: "H1_UNIQUE_TEXT"
+            relation: above
+            object: "BODY_UNIQUE_TEXT"
+          - subject: "BODY_UNIQUE_TEXT"
+            relation: above
+            object:
+              text: "PAGEFOOTER_UNIQUE_TEXT"
+              role: "Decoration"
+          # Margin content should be to the right of body and on the same row
+          - subject: "MARGIN_UNIQUE_TEXT"
+            relation: rightOf
+            object: "BODY_UNIQUE_TEXT"
+          - subject: "MARGIN_UNIQUE_TEXT"
+            relation: topAligned
+            object: "BODY_UNIQUE_TEXT"
+---
+
+# H1_UNIQUE_TEXT
+
+::: {.column-margin}
+MARGIN_UNIQUE_TEXT
+:::
+
+BODY_UNIQUE_TEXT is the main paragraph content positioned in the body column.

@@ -12,6 +12,7 @@ import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
+import { isExternalPath } from "../../../core/url.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId } from "../../../core/html.ts";
@@ -129,6 +130,7 @@ import {
 import {
   kBackToTop,
   kIncludeInHeader,
+  kNavigationBreadcrumbsLabel,
   kNumberSections,
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
@@ -471,7 +473,7 @@ function navigationHtmlPostprocessor(
     );
     if (secondaryNavTitleEl) {
       if (showBreadCrumbs) {
-        const navEl = makeBreadCrumbs(doc);
+        const navEl = makeBreadCrumbs(doc, language);
         if (secondaryNavTitleEl.parentElement) {
           secondaryNavTitleEl.parentElement.replaceChild(
             navEl,
@@ -505,6 +507,7 @@ function navigationHtmlPostprocessor(
       if (navigation.breadCrumbs && navigation.breadCrumbs.length > 1) {
         const titleBreadCrumbEl = makeBreadCrumbs(
           doc,
+          language,
           ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
         );
         // See if there is deeper target
@@ -559,7 +562,8 @@ function navigationHtmlPostprocessor(
       const navLinkHref = navLink.getAttribute("href");
 
       const sidebarLink = doc.querySelector(
-        '.sidebar-navigation a[href="' + navLinkHref + '"]',
+        '.sidebar-navigation a[href="' + navLinkHref +
+          '"]:not(.sidebar-logo-link)',
       );
       // if the link is either for the current window href or appears on the
       // sidebar then set it to active
@@ -905,7 +909,11 @@ async function resolveFooter(
   return footer;
 }
 
-function makeBreadCrumbs(doc: Document, clz?: string[]) {
+function makeBreadCrumbs(
+  doc: Document,
+  language: FormatLanguage,
+  clz?: string[],
+) {
   // Make bootstrap breadcrumbs
   const navEl = doc.createElement("nav");
   navEl.classList.add("quarto-page-breadcrumbs");
@@ -914,7 +922,7 @@ function makeBreadCrumbs(doc: Document, clz?: string[]) {
       navEl.classList.add(cls);
     });
   }
-  navEl.setAttribute("aria-label", "breadcrumb");
+  navEl.setAttribute("aria-label", language[kNavigationBreadcrumbsLabel]!);
 
   const olEl = doc.createElement("ol");
   olEl.classList.add("breadcrumb");
@@ -1203,7 +1211,7 @@ function nextAndPrevious(
       (sidebarItem: SidebarItem) => {
         return sidebarItem.href || Math.random().toString();
       },
-    );
+    ) as SidebarItem[];
 
     const index = sidebarItemsUniq.findIndex((item) => item.href === href);
     const nextPage = index > -1 && index < sidebarItemsUniq.length - 1 &&
@@ -1537,10 +1545,6 @@ function navigationDependency(resource: string) {
     name: basename(resource),
     path: resourcePath(`projects/website/navigation/${resource}`),
   };
-}
-
-function isExternalPath(path: string) {
-  return /^\w+:/.test(path);
 }
 
 function resolveNavReferences(

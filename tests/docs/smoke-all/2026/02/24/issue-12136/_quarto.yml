@@ -1,0 +1,16 @@
+project:
+  type: book
+
+book:
+  title: "Test Issue 12136"
+  navbar:
+    right:
+      - icon: mastodon
+        href: https://mastodon.online/@testuser
+  chapters:
+    - index.qmd
+
+bibliography: references.bib
+
+format:
+  html: default

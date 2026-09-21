@@ -1,3 +1,5 @@
+> A Claude Code skill can drive this checklist interactively: run `/make-release` (see `.claude/skills/make-release/`). It reads this file, verifies real `git`/`gh` state at each step, and pauses for confirmation before irreversible actions. This checklist stays the source of truth — the skill just follows it.
+
 - [ ] ensure tests pass on stable branch
   - Actions -> Parallel Smokes Tests -> Run Workflow ->
     - Select the current stable branch in the "Use workflow from... v1.x" dropdown
@@ -34,13 +36,15 @@
   - Got to <https://github.com/quarto-dev/quarto-release-bundles/actions/workflows/build-and-publish-choco.yaml>
   - In the "Build Choco package & Publish" workflow, click "Run Workflow" and be sure to check the "Whether to publish or not the package on chocolatey" checkbox
   - Wait for @cderv to receive email confirmation, no action needed.
-- [ ] Update the stable changelog by moving entries to the "in previous release". Use "[release checklist]" in the commit message to make it easier to spot if a new release is needed next month.
+- [ ] Update the stable changelog `news/changelog-1.x.md` by moving entries from `# v1.(x+1) backports` > `## In this release` down to `## In previous releases` — they've now shipped in this patch. Use "[release checklist]" in the commit message to make it easier to spot if a new release is needed next month.
 
 - Others installers
+  - Cloudsmith: Automatically published by Build Installers workflow. No action needed.
+    - See [cloudsmith-publishing.md](cloudsmith-publishing.md) for manual republishing if needed.
   - conda-forge: An automated PR will be created to update the package version in the feedstock <github.com/conda-forge/quarto-feedstock>
     - This is community maintained, so no action is needed from us - except maybe helping if there are issues with the PR. We are assigned as reviewers to the PR.
-    - Winget: An automated PR will be created by a winget bot in <github.com/microsoft/winget-pkgs/>.
-      - This is community maintained, so no action is needed from us.
-    - Scoop: This will be updated automatically in the manifests repo. No action is needed from us. Maintained as personal project by @cderv.
-    - Homebrew: This is automated through an homebrew bot to update the cask <https://github.com/Homebrew/homebrew-cask>
-      - Manisfest: <https://github.com/Homebrew/homebrew-cask/blob/master/Casks/q/quarto.rb>
+  - Winget: An automated PR will be created by a winget bot in <github.com/microsoft/winget-pkgs/>.
+    - This is community maintained, so no action is needed from us.
+  - Scoop: This will be updated automatically in the manifests repo. No action is needed from us. Maintained as personal project by @cderv.
+  - Homebrew: This is automated through an homebrew bot to update the cask <https://github.com/Homebrew/homebrew-cask>
+    - Manisfest: <https://github.com/Homebrew/homebrew-cask/blob/master/Casks/q/quarto.rb>

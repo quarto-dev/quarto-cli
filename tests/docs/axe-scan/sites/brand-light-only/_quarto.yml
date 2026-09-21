@@ -1,0 +1,11 @@
+project:
+  type: website
+
+website:
+  title: "axe light-only brand fixture"
+
+# No `theme:` key at all. The colour-scheme markup this site is here to test
+# comes from _brand.yml, which is the point: a brand with no dark values still
+# makes Quarto emit the colour-scheme link machinery.
+format:
+  html: default

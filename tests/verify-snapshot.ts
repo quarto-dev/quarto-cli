@@ -7,6 +7,7 @@
 import { extname } from "../src/deno_ral/path.ts";
 import { normalizeNewlines } from "../src/core/text.ts";
 import { withDocxContent } from "./verify.ts";
+import { createPatch, diffWordsWithSpace, diffChars } from "../src/core/lib/external/diff.js";
 
 import * as slimdom from "slimdom";
 import xpath from "fontoxpath";
@@ -56,4 +57,32 @@ export const checkSnapshot = async (file: string) => {
   const outputCanonical = await canonicalizeSnapshot(file);
   const snapshotCanonical = await canonicalizeSnapshot(file + ".snapshot");
   return outputCanonical === snapshotCanonical;
+}
+
+export const generateSnapshotDiff = async (file: string): Promise<string> => {
+  const outputCanonical = await canonicalizeSnapshot(file);
+  const snapshotCanonical = await canonicalizeSnapshot(file + ".snapshot");
+  return createPatch(
+    file + ".snapshot",
+    snapshotCanonical,
+    outputCanonical,
+    "expected",
+    "actual"
+  );
+}
+
+export type WordDiffPart = { value: string; added?: boolean; removed?: boolean };
+
+export const generateInlineDiff = async (file: string): Promise<WordDiffPart[]> => {
+  const outputCanonical = await canonicalizeSnapshot(file);
+  const snapshotCanonical = await canonicalizeSnapshot(file + ".snapshot");
+
+  const stripWhitespace = (s: string) => s.replace(/\s+/g, "");
+  const isWhitespaceOnlyChange = stripWhitespace(outputCanonical) === stripWhitespace(snapshotCanonical);
+
+  if (isWhitespaceOnlyChange) {
+    return diffChars(snapshotCanonical, outputCanonical);
+  }
+
+  return diffWordsWithSpace(snapshotCanonical, outputCanonical);
 }

@@ -6,7 +6,7 @@
 
 import { unitTest } from "../../../test.ts";
 import { assertEquals } from "testing/asserts";
-import { getEndingNewlineCount } from "../../../../src/core/lib/text.ts";
+import { getEndingNewlineCount, lines } from "../../../../src/core/lib/text.ts";
 
 unitTest("core/lib/text.ts - getEndingNewlineCount", async () => {
   // Test case 1: No trailing newlines
@@ -63,4 +63,35 @@ unitTest("core/lib/text.ts - getEndingNewlineCount", async () => {
     ]),
     3,
   );
+});
+
+// Test for lines() function with different line endings
+// See: https://github.com/quarto-dev/quarto-cli/issues/13998
+unitTest("core/lib/text.ts - lines() with different line endings", async () => {
+  // LF (Unix/Linux)
+  assertEquals(lines("a\nb\nc"), ["a", "b", "c"]);
+
+  // CRLF (Windows)
+  assertEquals(lines("a\r\nb\r\nc"), ["a", "b", "c"]);
+
+  // CR-only (old Mac) - the fix for #13998
+  assertEquals(lines("a\rb\rc"), ["a", "b", "c"]);
+
+  // Mixed endings
+  assertEquals(lines("a\rb\nc\r\nd"), ["a", "b", "c", "d"]);
+
+  // YAML front matter with CR-only
+  const yaml = "---\rtitle: \"Test\"\r---";
+  assertEquals(lines(yaml), ["---", "title: \"Test\"", "---"]);
+
+  // Empty string
+  assertEquals(lines(""), [""]);
+
+  // Single line without newline
+  assertEquals(lines("single"), ["single"]);
+
+  // Trailing newlines
+  assertEquals(lines("a\n"), ["a", ""]);
+  assertEquals(lines("a\r"), ["a", ""]);
+  assertEquals(lines("a\r\n"), ["a", ""]);
 });

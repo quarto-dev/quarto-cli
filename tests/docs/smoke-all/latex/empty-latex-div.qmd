@@ -1,0 +1,26 @@
+---
+title: Empty LaTeX div
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        -
+          - '\\begin\{center\}'
+          - '\\end\{center\}'
+          - '\\begin\{flushright\}'
+          - '\\end\{flushright\}'
+---
+
+## Non-empty LaTeX div
+
+::: {.center latex="true"}
+Some centered content.
+:::
+
+## Empty LaTeX div
+
+::: {.flushright latex="true"}
+:::

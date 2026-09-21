@@ -675,13 +675,42 @@ local function outputFile()
    end
 end
 
+-- Returns the leading sequence of dot-separated numeric components.
+-- Lua patterns cannot match an arbitrary number of repeated groups.
+local function leadingDottedNumber(s)
+   local parts = {}
+   local i = 1
+   while true do
+      local numStart, numEnd = s:find('^%d+', i)
+      if not numStart then break end
+      table.insert(parts, s:sub(numStart, numEnd))
+      i = numEnd + 1
+      if s:sub(i, i) == '.' then
+         i = i + 1
+      else
+         break
+      end
+   end
+   if #parts == 0 then
+      return nil
+   end
+   return table.concat(parts, '.')
+end
+
 local function version()
    local versionString = param('quarto-version', 'unknown')
-   local success, versionObject = pcall(pandoc.types.Version, versionString)
+   -- pandoc.types.Version's dotted-integer parser rejects semver build
+   -- metadata (e.g. "1.9.13+test.20260910") and any string without a
+   -- leading digit. Extract the leading dot-separated numeric component so
+   -- that construction always succeeds and this always returns a Version
+   -- object -- callers (e.g. table.concat(quarto.version, '.')) must not
+   -- have to handle a plain string fallback.
+   local numericVersion = leadingDottedNumber(versionString) or '0'
+   local success, versionObject = pcall(pandoc.types.Version, numericVersion)
    if success then
       return versionObject
    else
-      return versionString
+      return pandoc.types.Version('0')
    end
 end
 
@@ -914,11 +943,6 @@ quarto = {
       writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
     end,
 
-    -- could be add_metadata(namespace, {stuff})
-    add_typst_font_path = function(path)
-      writeToDependencyFile(dependency("typst-font-path", {path = path}))
-    end,
-
     add_format_resource = function(path)
       writeToDependencyFile(dependency("format-resources", { file = resolvePathExt(path)}))
     end,
@@ -959,7 +983,8 @@ quarto = {
 
     output_file = outputFile(),
     input_file = inputFile(),
-    crossref = {}
+    crossref = {},
+    language = param("language", nil)
   },
   project = {
     directory = projectDirectory(),
@@ -975,6 +1000,7 @@ quarto = {
     resolve_path_relative_to_document = resolvePath,
     as_inlines = utils.as_inlines,
     as_blocks = utils.as_blocks,
+    as_raw_metadata = utils.as_raw_metadata,
     is_empty_node = utils.is_empty_node,
     string_to_blocks = utils.string_to_blocks,
     string_to_inlines = utils.string_to_inlines,
@@ -989,6 +1015,9 @@ quarto = {
     end,
     tinytex_bin_dir = function()
       return param('quarto-environment', nil).paths.TinyTexBinDir
+    end,
+    typst = function()
+      return param('quarto-environment', nil).paths.Typst
     end,
   },
   json = json,

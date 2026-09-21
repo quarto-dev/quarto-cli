@@ -6,13 +6,22 @@ format:
 bibliography: refs.bib
 bibliographystyle: "chicago-author-date"
 _quarto:
-  tests: 
+  tests:
     typst:
       ensureTypstFileRegexMatches:
       - ['\#set bibliography\(style\: [^)]*\)', '\#bibliography\([^)]*\)', '\#cite\([^)]*\)']
       - ['<refs>', '<ref-Cronbach_1951>']
+      ensurePdfRegexMatches:
+      # Locators appear inline after author-date: (Author Year, locator)
+      - ['\(Cronbach 1951a, p\. 42\)', '\(1951b, pp\. 100']
+      - []
+      noErrors: default
 ---
 
 Hello @Cronbach_1951
 
 Hello [@Cronbach_1951; @Cronbach_1952]
+
+With locator: [@Cronbach_1951, p. 42]
+
+Bare with locator: @Cronbach_1952[pp. 100-115]

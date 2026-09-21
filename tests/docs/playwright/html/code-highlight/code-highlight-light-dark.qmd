@@ -1,7 +1,7 @@
 ---
 format:
   html:
-    highlight-style:
+    syntax-highlighting:
         light: pygments
         dark: kate
 ---

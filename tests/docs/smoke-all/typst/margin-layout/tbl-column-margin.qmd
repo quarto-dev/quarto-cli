@@ -1,0 +1,49 @@
+---
+title: "Tbl-Column Margin Test"
+papersize: us-letter
+tbl-column: margin
+format:
+  html: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Table should use notefigure for margin placement
+        - ['#notefigure\(', 'kind: "quarto-float-tbl"']
+        - []
+      ensurePdfRegexMatches:
+        - ['Table 1', 'TblColMarginCap', 'Alpha']
+        - []
+      ensurePdfTextPositions:
+        - # Table text should be in the margin, right of body text
+          - subject: "Alpha"
+            relation: rightOf
+            object: "BODYTEXT"
+        - []
+      noErrors: default
+---
+
+BODYTEXT: This tests the document-level `tbl-column: margin` option. Tables should go to the margin; figures should stay in the body.
+
+```{r}
+#| label: fig-tc-test
+#| fig-cap: "FigBodyCap"
+#| echo: false
+library(ggplot2)
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point() +
+  theme_minimal()
+```
+
+```{r}
+#| label: tbl-tc-test
+#| tbl-cap: "TblColMarginCap"
+#| echo: false
+knitr::kable(
+  data.frame(Item = c("Alpha", "Beta"), Value = c(10, 20))
+)
+```
+
+The table should be in the margin and the figure in the body.

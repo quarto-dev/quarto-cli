@@ -35,10 +35,10 @@ export async function jupyterCreateVenv(dir: string, packages?: string[]) {
       kEnvDir,
       isWindows ? "Scripts\\pip.exe" : "bin/pip3",
     );
-    packages = ld.uniq(["jupyter"].concat(packages || []));
+    const pkgList = ld.uniq(["jupyter"].concat(packages || [])) as string[];
     const installResult = await execProcess({
       cmd: pip3,
-      args: ["install", ...packages],
+      args: ["install", ...pkgList],
       cwd: dir,
     });
     if (!installResult.success) {
@@ -55,10 +55,10 @@ export async function jupyterCreateCondaenv(dir: string, packages?: string[]) {
   const conda = await which("conda");
   if (conda) {
     info(`Using conda at ${conda}`);
-    packages = ld.uniq(["jupyter"].concat(packages || []));
+    const pkgList = ld.uniq(["jupyter"].concat(packages || [])) as string[];
     const installResult = await execProcess({
       cmd: "conda",
-      args: ["create", "--yes", "--prefix", "env", ...packages],
+      args: ["create", "--yes", "--prefix", "env", ...pkgList],
       cwd: dir,
     });
     if (!installResult.success) {

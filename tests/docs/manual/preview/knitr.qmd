@@ -1,0 +1,14 @@
+---
+title: "Knitr Test"
+engine: knitr
+---
+
+## T10: R/knitr engine
+
+No .quarto_ipynb should be created. Knitr does not use Jupyter.
+
+```{r}
+print("Hello from R")
+```
+
+Edit counter: 0

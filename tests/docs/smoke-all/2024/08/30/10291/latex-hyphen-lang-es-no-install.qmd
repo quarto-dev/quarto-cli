@@ -1,16 +1,23 @@
 ---
 format: pdf
-# new babel support in Pandoc 3.6.3 solves missing package when specific lang is used.
 lang: es
 latex-auto-install: false
 _quarto:
   tests:
-    pdf: default
+    run:
+      ci: false
+    pdf:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: "Possibly missing hyphenation"
 ---
+
+** This test is to be run manually as we don't want to uninstall and reinstall package in CI**
 
 ```{r}
 #| include: false
-
+#| messages: 'NA'
 # Remove the hyphen package for spanish so that the test is meaningful
 if (tinytex::check_installed("hyphen-spanish")) {
   message("Removing 'hyphen-spanish' package for the render")

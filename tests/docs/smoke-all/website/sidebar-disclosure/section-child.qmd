@@ -1,0 +1,5 @@
+---
+title: "section-child"
+---
+
+Page section-child.

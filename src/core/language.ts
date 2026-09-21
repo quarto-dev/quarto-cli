@@ -114,7 +114,13 @@ export async function readLanguageTranslations(
     // );
     Object.keys(translations).forEach((key) => {
       // top level entries use the variation key
-      if (kLanguageDefaultsKeys.includes(key)) {
+      // (known keys, and any other non-object scalar, which is a user or
+      // extension defined string; nested objects are handled below instead)
+      if (
+        kLanguageDefaultsKeys.includes(key) ||
+        translations[key] === null ||
+        typeof translations[key] !== "object"
+      ) {
         language[variation] = language[variation] || {};
         (language[variation] as FormatLanguage)[key] = translations[key];
         // objects use variation key + subkey
@@ -163,10 +169,14 @@ export function translationsForLang(language: FormatLanguage, lang: string) {
   let translations = {} as FormatLanguage;
   Object.keys(language).forEach((key) => {
     // crossrefs can be custom, so be more lenient
+    // any other non-object value is a user or extension defined string,
+    // objects are locale variations and are merged below instead
     if (
       kLanguageDefaultsKeys.includes(key) ||
       key.match(/^crossref-.*-title$/) ||
-      key.match(/^crossref-.*-prefix$/)
+      key.match(/^crossref-.*-prefix$/) ||
+      language[key] === null ||
+      typeof language[key] !== "object"
     ) {
       translations[key] = language[key];
     }

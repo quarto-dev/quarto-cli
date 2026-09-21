@@ -1,0 +1,14 @@
+/*-- scss:defaults --*/
+$issue-11703-color: #00ff00;
+
+/*-- scss:rules --*/
+
+/* A double semicolon (an empty statement, valid CSS/SCSS) used to break the
+   SCSS analyzer (https://github.com/quarto-dev/quarto-cli/issues/11703). */
+.hanged {
+  max-height: 100% !important;;
+}
+
+#test-11703 {
+  background-color: $issue-11703-color;
+}

@@ -9,7 +9,7 @@ import { docs } from "../../utils.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { testQuartoCmd } from "../../test.ts";
-import { fileExists, noErrors, printsMessage, verifyNoPath, verifyPath } from "../../verify.ts";
+import { fileExists, noErrors, printsMessage, validJsonWithFields, verifyNoPath, verifyPath } from "../../verify.ts";
 import { normalizePath, safeRemoveIfExists } from "../../../src/core/path.ts";
 
 const renderDir = docs("project/prepost/mutate-render-list");
@@ -63,37 +63,82 @@ testQuartoCmd(
 testQuartoCmd(
   "render",
   [docs("project/prepost/extension")],
-  [{
-    name: "i-exist.txt exists",
+  [noErrors, {
+    name: "prepost extension file effects",
     verify: async () => {
-      const path = join(docs("project/prepost/extension"), "i-exist.txt");
-      verifyNoPath(path);
+      verifyNoPath(join(docs("project/prepost/extension"), "i-exist.txt"));
+      verifyPath(join(docs("project/prepost/extension"), "i-was-created.txt"));
     }
   }],
   {
+    // Ensure verification covers files created by this render.
+    setup: async () => {
+      safeRemoveIfExists(join(docs("project/prepost/extension"), "i-was-created.txt"));
+      safeRemoveIfExists(join(docs("project/prepost/extension"), "i-exist.txt"));
+    },
     teardown: async () => {
-      const path = join(docs("project/prepost/extension"), "i-was-created.txt");
-      verifyPath(path);
-      safeRemoveIfExists(path);
+      safeRemoveIfExists(join(docs("project/prepost/extension"), "i-was-created.txt"));
+      const siteDir = join(docs("project/prepost/extension"), "_site");
+      if (existsSync(siteDir)) {
+        await Deno.remove(siteDir, { recursive: true });
+      }
     }
   });
 
   testQuartoCmd(
     "render",
     [docs("project/prepost/issue-10828")],
-    [],
+    [noErrors, {
+      name: "project input/output files written",
+      verify: async () => {
+        verifyPath(normalizePath(docs("project/prepost/issue-10828/input-files.txt")));
+        verifyPath(normalizePath(docs("project/prepost/issue-10828/output-files.txt")));
+      }
+    }],
     {
       env: {
         "QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES": normalizePath(docs("project/prepost/issue-10828/input-files.txt")),
         "QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES": normalizePath(docs("project/prepost/issue-10828/output-files.txt"))
       },
+      // Ensure verification covers files created by this render.
+      setup: async () => {
+        safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/input-files.txt")));
+        safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/output-files.txt")));
+      },
       teardown: async () => {
-        const inputPath = normalizePath(docs("project/prepost/issue-10828/input-files.txt"));
-        const outputPath = normalizePath(docs("project/prepost/issue-10828/output-files.txt"));
-        verifyPath(inputPath);
-        safeRemoveIfExists(inputPath);
-        verifyPath(outputPath);
-        safeRemoveIfExists(outputPath);
+        safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/input-files.txt")));
+        safeRemoveIfExists(normalizePath(docs("project/prepost/issue-10828/output-files.txt")));
+        const siteDir = join(docs("project/prepost/issue-10828"), "_site");
+        if (existsSync(siteDir)) {
+          await Deno.remove(siteDir, { recursive: true });
+        }
       }
     }
   )
+
+// Verify that pre-render scripts receive QUARTO_PROJECT_SCRIPT_PROGRESS
+// and QUARTO_PROJECT_SCRIPT_QUIET environment variables
+const scriptEnvDir = docs("project/prepost/script-env-vars");
+const scriptEnvDirAbs = join(Deno.cwd(), scriptEnvDir);
+const envDumpPath = join(scriptEnvDirAbs, "env-dump.json");
+const scriptEnvOutDir = join(scriptEnvDirAbs, "_site");
+
+testQuartoCmd(
+  "render",
+  [scriptEnvDir],
+  [
+    noErrors,
+    validJsonWithFields(envDumpPath, {
+      progress: "1",
+      quiet: "0",
+    }),
+  ],
+  {
+    teardown: async () => {
+      safeRemoveIfExists(envDumpPath);
+      if (existsSync(scriptEnvOutDir)) {
+        await Deno.remove(scriptEnvOutDir, { recursive: true });
+      }
+    },
+  },
+);

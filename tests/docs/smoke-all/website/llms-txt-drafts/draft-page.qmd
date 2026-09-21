@@ -1,0 +1,10 @@
+---
+title: "Draft Page"
+_quarto:
+  tests:
+    html:
+      # Draft pages should NOT generate .llms.md files
+      ensureLlmsMdDoesNotExist: true
+---
+
+This is a draft page that should be excluded from llms.txt output.

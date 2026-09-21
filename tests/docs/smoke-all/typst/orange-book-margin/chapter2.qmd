@@ -1,0 +1,187 @@
+---
+_quarto:
+  tests:
+    run:
+      skip: "Book chapter - only renders as part of full book"
+---
+
+# Methods {#sec-methods}
+
+This is the second chapter of the book. Previousia foundations from @sec-intro inform our methodology.
+
+The fundamental problem with any bureaucratic methodology is that it must, by its very nature, assume that the person filling out the forms is lying. This is not because bureaucrats are inherently suspicious people, but because the forms themselves were designed by committees who assumed that clarity was a luxury that could not be afforded in these troubled times.
+
+Consider, for example, the simple act of changing one's address. One might naively suppose that this would involve telling the relevant authorities where one now lives. In practice, it requires filling out seventeen forms, each of which asks for one's previous address in a slightly different format, and all of which must be submitted to different departments who do not, under any circumstances, communicate with each other.
+
+The postal service, meanwhile, continues to deliver mail to addresses that have not existed for thirty years, on the grounds that someone might still be expecting it. This is considered efficiency.
+
+## Tables {#sec-tables}
+
+Informatica theory from @shannon1948 provides foundations. Tabulara @tbl-data presents the structured dataset.
+
+| Column A | Column B | Column C |
+|----------|----------|----------|
+| 1        | 2        | 3        |
+| 4        | 5        | 6        |
+
+: Sample data table {#tbl-data}
+
+## Margin Tables {#sec-margin-tables}
+
+Periodicus orbital tabulation is discussed in the body text.
+
+::: {.column-margin}
+| Planet | Period |
+|--------|--------|
+| Mercury | 88d |
+| Venus | 225d |
+| Earth | 365d |
+| Mars | 687d |
+
+: Orbitperioda periods {#tbl-margin-planets}
+:::
+
+Celestia periods listed in @tbl-margin-planets demonstrate margin table placement.
+
+## Margin Caption Tables {#sec-margin-caption-tables}
+
+Spectralis body text introduces stellar spectroscopy.
+
+| Element | Symbol | Wavelength |
+|---------|--------|------------|
+| Hydrogen | H | 656.3nm |
+| Helium | He | 587.6nm |
+| Carbon | C | 247.9nm |
+
+: Elementica stellar caption {#tbl-margincap-elements .margin-caption}
+
+Absorptia lines documented in @tbl-margincap-elements reveal stellar composition.
+
+## Cross-references {#sec-cross-references}
+
+Retrospecta analysis continues. Kinematica data from @fig-cars and tabulara structure from @tbl-data provide foundations.
+
+## Sub-figures {#sec-sub-figures}
+
+Compositia panels follow. See @fig-panel for combined visualization, with @fig-panel-a and @fig-panel-b as components.
+
+::: {#fig-panel layout-ncol=2}
+
+![First panel](logo.svg){#fig-panel-a}
+
+![Second panel](logo.svg){#fig-panel-b}
+
+A panel with two sub-figures showing the same plot.
+:::
+
+## Margin Subfigures {#sec-margin-subfigures}
+
+Chromatus body text introduces the spectral analysis.
+
+::: {#fig-margin-panel .column-margin layout-ncol=1}
+![Waveluma alpha](logo.svg){#fig-margin-panel-a}
+
+![Wavelumb beta](logo.svg){#fig-margin-panel-b}
+
+Wavelengthra panel
+:::
+
+Diffractionica analysis in @fig-margin-panel shows margin subfigure placement with @fig-margin-panel-a and @fig-margin-panel-b.
+
+## Margin Citations {#sec-margin-citations}
+
+Newtoniana reference body discusses classical mechanics. Newton established the laws of motion [@newton1687], which were later refined by Einstein [@einstein1905]. Bibliographica marginalia should appear in the margin for these citations.
+
+Literatica programming discussed by @knuth84 informs our approach.
+
+## More Callouts {#sec-more-callouts}
+
+Beveragia warning from @sec-intro applies: see @wrn-tea for safety protocols.
+
+Hermeneutica body text interprets the hitchhiker's wisdom.
+
+::: {#tip-towel .callout-tip .column-margin}
+## Whose Towel Is This?
+Prolegomena: A towel is about the most massively useful thing an interstellar hitchhiker can have. Fabricata utility documented in @tip-towel.
+:::
+
+::: {.callout-caution .column-margin}
+## Paniculus
+Don't Panic. Under no circumstances should you allow yourself to panic.
+:::
+
+Philologica body text analyzes alien verse forms.
+
+::: {#nte-vogon .callout-note .column-margin}
+## A Note About Vogon Poetry
+Scholiasta: Vogon poetry is of course, the third worst in the universe. Poetica horrors catalogued in @nte-vogon.
+:::
+
+## More Dinosaurs {#sec-more-dinosaurs}
+
+Taxonomica counter reset testing. @sec-more-dinosaurs validates chapter-boundary behavior.
+
+::: {#dino-raptor}
+**Velociraptor**
+
+Dromaeosaura hunting behavior documented here. See @dino-raptor for pack dynamics.
+:::
+
+Comparativa analysis: @dino-steg and @dino-trex from @sec-intro establish baseline taxonomy.
+
+## More Equations {#sec-more-equations}
+
+Formulix body text introduces the quadratic formula.
+
+::: {.column-margin}
+$$
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$ {#eq-quadratic}
+
+Quadratica root formula.
+:::
+
+Algebraica roots computed via @eq-quadratic.
+
+Retrospectiva: @eq-einstein from @sec-intro and @eq-newton provide foundational physics.
+
+## More Theorems {#sec-more-theorems}
+
+::: {#thm-calculus}
+## Fundamental Theorem of Calculus
+If $F$ is an antiderivative of $f$ on $[a,b]$, then: $\int_a^b f(x)\,dx = F(b) - F(a)$
+:::
+
+Integrala foundations established in @thm-calculus.
+
+Continua body text introduces the continuity definition.
+
+::: {.column-margin}
+::: {#def-continuous}
+## Continuous Function
+Limitica: A function $f$ is continuous at $c$ if $\lim_{x \to c} f(x) = f(c)$.
+:::
+:::
+
+Epsilondelta defined in @def-continuous demonstrates margin definition placement.
+
+Retrospectiva: @thm-pythagorean and @lem-triangle from @sec-intro provide geometric foundations.
+
+## More Code Listings {#sec-more-code-listings}
+
+Algorithmix body text introduces the sorting algorithm.
+
+::: {.column-margin}
+```{#lst-quicksort .python lst-cap="Quicksortix"}
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    return quicksort(left) + [pivot] + quicksort([x for x in arr if x > pivot])
+```
+:::
+
+Sortiva efficiency demonstrated in @lst-quicksort.
+
+Retrospectiva: @lst-hello and @lst-fibonacci from @sec-intro provide programming foundations.

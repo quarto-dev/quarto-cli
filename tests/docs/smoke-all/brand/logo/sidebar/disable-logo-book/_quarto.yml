@@ -1,0 +1,16 @@
+project:
+  type: book
+
+book:
+  title: "Disable Sidebar Logo Test"
+  chapters:
+    - index.qmd
+    - chapter.qmd
+  sidebar:
+    logo: false
+
+format:
+  html:
+    theme:
+      light: [cosmo, brand]
+      dark: [darkly, brand]

@@ -1,0 +1,10 @@
+---
+title: "shortcode in title"
+_quarto:
+  tests: 
+    html:
+     ensureFileRegexMatches:
+     - ['<title>shortcode in title</title>']
+---
+
+Title is same as website title, and should not be repeated.

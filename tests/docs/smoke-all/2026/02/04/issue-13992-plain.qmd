@@ -1,0 +1,25 @@
+---
+title: "Conditional visibility with plain div (#13992)"
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['Plain div content visible']
+        - []
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ['Plain div content visible']
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['Plain div content visible']
+        - []
+---
+
+This tests the baseline case of a plain div with `.content-visible`.
+
+::: {.content-visible unless-format="html"}
+Plain div content visible.
+:::

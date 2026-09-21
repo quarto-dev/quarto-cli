@@ -1,0 +1,22 @@
+---
+title: Custom Theme File
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: custom-theme.theme
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Custom theme has KeywordTok color from custom-theme.theme
+        - ["#Skylighting", "#KeywordTok", 'rgb\("#008000"\)']
+        # Should NOT have default arrow color or raw fenced blocks
+        - ['rgb\("#003b4f"\)', "```python"]
+---
+
+Test that `syntax-highlighting` works with a custom `.theme` file.
+
+```python
+def hello():
+    print("world")
+```

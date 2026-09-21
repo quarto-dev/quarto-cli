@@ -1,0 +1,332 @@
+---
+title: "Cross-Reference Grand Finale"
+papersize: us-letter
+grid:
+  margin-width: 2in
+  gutter-width: 0.25in
+format:
+  html: default
+  typst:
+    keep-typ: true
+    include-in-header:
+      text: |
+        #show figure: set block(breakable: true)
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        # Should have notefigure for margin content and regular figures for main
+        - ['#notefigure\(', '#figure\(']
+        - []
+      ensurePdfRegexMatches:
+        # Verify sequential numbering throughout document
+        # Figures: 1-6
+        - - 'Figure 1'
+          - 'FIG-MARGIN-ALPHA'
+          - 'Figure 2'
+          - 'FIG-MAIN-BETA'
+          - 'Figure 3'
+          - 'FIG-MARGINCAP-GAMMA'
+          - 'Figure 4'
+          - 'FIG-MARGIN-DELTA'
+          - 'Figure 5'
+          - 'FIG-MAIN-EPSILON'
+          - 'Figure 6'
+          - 'FIG-MARGINCAP-ZETA'
+        # Tables: 1-6
+          - 'Table 1'
+          - 'TBL-MARGIN-ALPHA'
+          - 'Table 2'
+          - 'TBL-MAIN-BETA'
+          - 'Table 3'
+          - 'TBL-MARGINCAP-GAMMA'
+          - 'Table 4'
+          - 'TBL-MARGIN-DELTA'
+          - 'Table 5'
+          - 'TBL-MAIN-EPSILON'
+          - 'Table 6'
+          - 'TBL-MARGINCAP-ZETA'
+        # Listings: 1-6
+          - 'Listing 1'
+          - 'LST-MARGIN-ALPHA'
+          - 'Listing 2'
+          - 'LST-MAIN-BETA'
+          - 'Listing 3'
+          - 'LST-MARGINCAP-GAMMA'
+          - 'Listing 4'
+          - 'LST-MARGIN-DELTA'
+          - 'Listing 5'
+          - 'LST-MAIN-EPSILON'
+          - 'Listing 6'
+          - 'LST-MARGINCAP-ZETA'
+        # Equations: 1-6
+          - 'Equation 1'
+          - 'Equation 2'
+          - 'Equation 3'
+          - 'Equation 4'
+          - 'Equation 5'
+          - 'Equation 6'
+        - []
+      ensurePdfTextPositions:
+        - # Margin figure caption in margin (rightOf body text) - "Figure 1:" unique to caption
+          - subject: "Figure 1:"
+            relation: rightOf
+            object: "Round 1"
+          # Margin table caption in margin
+          - subject: "Table 1:"
+            relation: rightOf
+            object: "Round 1"
+          # Margin listing caption in margin
+          - subject: "Listing 1:"
+            relation: rightOf
+            object: "Round 1"
+          # Margin caption figure in margin
+          - subject: "Figure 3:"
+            relation: rightOf
+            object: "Round 3"
+        - []
+      noErrors: default
+---
+
+This comprehensive test verifies cross-reference numbering across figures, tables, listings, and equations placed in different layout positions.
+
+## Round 1: Margin Placement
+
+### Figure in Margin
+
+::: {.column-margin}
+![FIG-MARGIN-ALPHA](https://placehold.co/150x100/blue/white?text=Fig1){#fig-margin-alpha}
+:::
+
+Reference to @fig-margin-alpha (Figure 1, caption FIG-MARGIN-ALPHA).
+
+### Table in Margin
+
+::: {.column-margin}
+
+| X | Y |
+|---|---|
+| 1 | 2 |
+
+: TBL-MARGIN-ALPHA {#tbl-margin-alpha}
+
+:::
+
+Reference to @tbl-margin-alpha (Table 1, caption TBL-MARGIN-ALPHA).
+
+### Listing in Margin
+
+::: {.column-margin}
+
+```{#lst-margin-alpha .python lst-cap="LST-MARGIN-ALPHA"}
+x = 1  # margin listing 1
+```
+
+:::
+
+Reference to @lst-margin-alpha (Listing 1, caption LST-MARGIN-ALPHA).
+
+### Equation in Margin
+
+::: {.column-margin}
+$$
+\alpha = 1
+$$ {#eq-margin-alpha}
+:::
+
+Reference to @eq-margin-alpha (Equation 1).
+
+## Round 2: Main Column Placement
+
+### Figure in Main
+
+![FIG-MAIN-BETA](https://placehold.co/400x200/green/white?text=Fig2){#fig-main-beta}
+
+Reference to @fig-main-beta (Figure 2, caption FIG-MAIN-BETA).
+
+### Table in Main
+
+| A | B | C |
+|---|---|---|
+| 1 | 2 | 3 |
+| 4 | 5 | 6 |
+
+: TBL-MAIN-BETA {#tbl-main-beta}
+
+Reference to @tbl-main-beta (Table 2, caption TBL-MAIN-BETA).
+
+### Listing in Main
+
+```{#lst-main-beta .python lst-cap="LST-MAIN-BETA"}
+y = 2  # main listing 2
+```
+
+Reference to @lst-main-beta (Listing 2, caption LST-MAIN-BETA).
+
+### Equation in Main
+
+$$
+\beta = 2
+$$ {#eq-main-beta}
+
+Reference to @eq-main-beta (Equation 2).
+
+## Round 3: Main Content with Margin Caption
+
+### Figure with Margin Caption
+
+![FIG-MARGINCAP-GAMMA](https://placehold.co/400x200/red/white?text=Fig3){#fig-margincap-gamma .margin-caption}
+
+Reference to @fig-margincap-gamma (Figure 3, caption FIG-MARGINCAP-GAMMA in margin).
+
+### Table with Margin Caption
+
+| P | Q | R |
+|---|---|---|
+| a | b | c |
+
+: TBL-MARGINCAP-GAMMA {#tbl-margincap-gamma .margin-caption}
+
+Reference to @tbl-margincap-gamma (Table 3, caption TBL-MARGINCAP-GAMMA in margin).
+
+### Listing with Margin Caption
+
+```{#lst-margincap-gamma .python lst-cap="LST-MARGINCAP-GAMMA" .margin-caption}
+z = 3  # main listing with margin caption
+```
+
+Reference to @lst-margincap-gamma (Listing 3, caption LST-MARGINCAP-GAMMA in margin).
+
+### Equation in Main (equations don't have separate captions)
+
+$$
+\gamma = 3
+$$ {#eq-main-gamma}
+
+Reference to @eq-main-gamma (Equation 3).
+
+## Round 4: More Margin Placement
+
+### Figure in Margin
+
+::: {.column-margin}
+![FIG-MARGIN-DELTA](https://placehold.co/150x100/purple/white?text=Fig4){#fig-margin-delta}
+:::
+
+Reference to @fig-margin-delta (Figure 4, caption FIG-MARGIN-DELTA).
+
+### Table in Margin
+
+::: {.column-margin}
+
+| M | N |
+|---|---|
+| 7 | 8 |
+
+: TBL-MARGIN-DELTA {#tbl-margin-delta}
+
+:::
+
+Reference to @tbl-margin-delta (Table 4, caption TBL-MARGIN-DELTA).
+
+### Listing in Margin
+
+::: {.column-margin}
+
+```{#lst-margin-delta .python lst-cap="LST-MARGIN-DELTA"}
+a = 4  # margin listing 4
+```
+
+:::
+
+Reference to @lst-margin-delta (Listing 4, caption LST-MARGIN-DELTA).
+
+### Equation in Margin
+
+::: {.column-margin}
+$$
+\delta = 4
+$$ {#eq-margin-delta}
+:::
+
+Reference to @eq-margin-delta (Equation 4).
+
+## Round 5: More Main Column
+
+### Figure in Main
+
+![FIG-MAIN-EPSILON](https://placehold.co/400x200/orange/white?text=Fig5){#fig-main-epsilon}
+
+Reference to @fig-main-epsilon (Figure 5, caption FIG-MAIN-EPSILON).
+
+### Table in Main
+
+| D | E | F |
+|---|---|---|
+| 9 | 0 | 1 |
+
+: TBL-MAIN-EPSILON {#tbl-main-epsilon}
+
+Reference to @tbl-main-epsilon (Table 5, caption TBL-MAIN-EPSILON).
+
+### Listing in Main
+
+```{#lst-main-epsilon .python lst-cap="LST-MAIN-EPSILON"}
+b = 5  # main listing 5
+```
+
+Reference to @lst-main-epsilon (Listing 5, caption LST-MAIN-EPSILON).
+
+### Equation in Main
+
+$$
+\epsilon = 5
+$$ {#eq-main-epsilon}
+
+Reference to @eq-main-epsilon (Equation 5).
+
+## Round 6: More Margin Caption
+
+### Figure with Margin Caption
+
+![FIG-MARGINCAP-ZETA](https://placehold.co/400x200/teal/white?text=Fig6){#fig-margincap-zeta .margin-caption}
+
+Reference to @fig-margincap-zeta (Figure 6, caption FIG-MARGINCAP-ZETA in margin).
+
+### Table with Margin Caption
+
+| G | H | I |
+|---|---|---|
+| x | y | z |
+
+: TBL-MARGINCAP-ZETA {#tbl-margincap-zeta .margin-caption}
+
+Reference to @tbl-margincap-zeta (Table 6, caption TBL-MARGINCAP-ZETA in margin).
+
+### Listing with Margin Caption
+
+```{#lst-margincap-zeta .python lst-cap="LST-MARGINCAP-ZETA" .margin-caption}
+c = 6  # main listing with margin caption 6
+```
+
+Reference to @lst-margincap-zeta (Listing 6, caption LST-MARGINCAP-ZETA in margin).
+
+### Equation in Main
+
+$$
+\zeta = 6
+$$ {#eq-main-zeta}
+
+Reference to @eq-main-zeta (Equation 6).
+
+## Summary of Cross-References
+
+All references should show correct sequential numbering:
+
+**Figures:** @fig-margin-alpha, @fig-main-beta, @fig-margincap-gamma, @fig-margin-delta, @fig-main-epsilon, @fig-margincap-zeta
+
+**Tables:** @tbl-margin-alpha, @tbl-main-beta, @tbl-margincap-gamma, @tbl-margin-delta, @tbl-main-epsilon, @tbl-margincap-zeta
+
+**Listings:** @lst-margin-alpha, @lst-main-beta, @lst-margincap-gamma, @lst-margin-delta, @lst-main-epsilon, @lst-margincap-zeta
+
+**Equations:** @eq-margin-alpha, @eq-main-beta, @eq-main-gamma, @eq-margin-delta, @eq-main-epsilon, @eq-main-zeta

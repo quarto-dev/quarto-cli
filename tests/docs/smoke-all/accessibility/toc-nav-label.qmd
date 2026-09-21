@@ -1,0 +1,34 @@
+---
+title: "TOC nav label"
+toc: true
+toc-title: "Contents"
+format:
+  html: default
+  revealjs: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'nav#TOC[role="doc-toc"][aria-labelledby="toc-title"]'
+          - 'nav#TOC h2#toc-title'
+        - []
+      ensureFileRegexMatches:
+        - ['id="toc-title"[^>]*>Contents<']
+        - []
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'nav[role="doc-toc"][aria-labelledby="toc-title"]'
+          - 'nav[role="doc-toc"] h2#toc-title'
+        - []
+      ensureFileRegexMatches:
+        - ['id="toc-title"[^>]*>Contents<']
+        - []
+---
+
+The TOC `nav` is labelled by its (customizable) title via `aria-labelledby` (#14376).
+
+## A heading
+
+Content so the TOC renders.

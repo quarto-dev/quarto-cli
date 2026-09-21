@@ -1,0 +1,22 @@
+---
+title: Code tools toggle with code-copy
+format: html
+code-fold: true
+code-tools: true
+code-copy: true
+keep-hidden: true
+---
+
+Regression test for #13583: with `code-copy` enabled (the default), each code
+block is wrapped in `div.code-copy-outer-scaffold`. The "Show All Code" /
+"Hide All Code" items in the `code-tools` menu must still open/close every
+folded `<details>` and reveal/hide the `echo: false` cell's source.
+
+```{ojs}
+x = 5
+```
+
+```{ojs}
+//| echo: false
+y = 10
+```
