@@ -1,0 +1,106 @@
+title: "Your question in one sentence (e.g., How do I preview documents with Quarto?)"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome to the Quarto CLI GitHub repository!
+        We are always happy to hear feedback from our users.
+
+        This category is for questions about **Quarto 1**, version 1 of the `quarto` command-line program:
+
+        - If your question is about **Quarto 2**, version 2 of Quarto, which is experimental and not ready for production use, please use the [Q&A (Q2) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q2).
+        - If you're reporting an issue with the **Visual Editor** or with the **Visual Studio Code / Positron extension**, please visit https://github.com/quarto-dev/quarto
+        - If you're reporting an issue inside **RStudio**, please visit https://github.com/rstudio/rstudio
+        - If you're reporting an issue inside **Positron**, please visit https://github.com/posit-dev/positron
+        - If you want to ask for a feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
+
+        First, please check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Q&A (Q1) GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a-q1) to see if your question has already been asked.
+        If it has, please consider adding a comment to the existing discussion instead of creating a new one.
+
+        After checking, if you are not sure if your question has already been asked, please create a new discussion.
+        We look forward to hearing from you.
+
+        Finally, try to describe the best you can what you want to achieve or what is your issue, especially by providing a complete self-contained reproducible example (consider reading our ["Bug Reports" guide](https://quarto.org/bug-reports.html)).
+        This will help us to understand your question and answer it.
+
+        `````md
+        ````qmd
+        ---
+        title: "Reproducible Quarto Document"
+        format: html
+        engine: jupyter
+        ---
+
+        This is a reproducible Quarto document using `format: html`.
+        It is written in Markdown and contains embedded Python code.
+        When you run the code, it will produce a message.
+
+        ```{python}
+        print("Hello, world!")
+        ```
+
+        ![An image]({{< placeholder 600 400 >}}){#fig-placeholder}
+
+        {{< lipsum 1 >}}
+
+        A reference to @fig-placeholder.
+
+        The end.
+        ````
+        `````
+
+        You can add some additional information that can help us to help you:
+
+        - What Quarto version are you using?  
+          You can find the version of Quarto you used by running `quarto --version` in your terminal.
+        - What operating system are you using?  
+          Linux Ubuntu 20.04, macOS 11.2.3, Windows 10, _etc._
+
+        _Thank you for opening this discussion either to ask for help or to report a possible bug!_
+  - type: textarea
+    attributes:
+      label: Description
+      description: Start your question/report!
+      placeholder: |
+        You can include Quarto document code which includes code blocks like this:
+
+        `````md
+        ````qmd
+        ---
+        title: "Reproducible Quarto Document"
+        format: html
+        engine: jupyter
+        ---
+
+        This is a reproducible Quarto document using `format: html`.
+        It is written in Markdown and contains embedded Python code.
+        When you run the code, it will produce a message.
+
+        ```{python}
+        print("Hello, world!")
+        ```
+
+        ![An image]({{< placeholder 600 400 >}}){#fig-placeholder}
+
+        {{< lipsum 1 >}}
+
+        A reference to @fig-placeholder.
+
+        The end.
+        ````
+        `````
+
+        ---
+
+        ### Additional information that can help us to help you
+
+        - What Quarto version are you using?  
+          You can find the version of Quarto you used by running `quarto --version` in your terminal.
+        - What operating system are you using?  
+          Linux Ubuntu 20.04, macOS 11.2.3, Windows 10, _etc._
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        _Thank you for opening this discussion either to ask for help or to report a possible bug!_

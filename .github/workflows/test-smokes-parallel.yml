@@ -23,6 +23,7 @@ on:
       # are not relevant to the tested features
       - "src/resources/language/**"
       - "dev-docs/**"
+      - ".claude/**"
       # don't run on PR working on other workflows
       - ".github/workflows/create-release.yml"
       - ".github/workflows/performance-check.yml"
@@ -39,6 +40,7 @@ on:
       - "v[1-9].[0-9]+" # run also on released version branch (for patch releases)
     paths-ignore:
       - "news/**"
+      - ".claude/**"
 
 concurrency:
   # Use github.run_id on main branch

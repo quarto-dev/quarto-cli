@@ -157,6 +157,11 @@ import {
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
+  kNavigationBreadcrumbsLabel,
+  kNavigationSiteLabel,
+  kNavigationPageLabel,
+  kNavigationToolbarLabel,
+  kNavigationSectionLabel,
   kNotebookLinks,
   kNotebookPreserveCells,
   kNotebookPreviewBack,
@@ -213,6 +218,7 @@ import {
   kSelfContainedMath,
   kShiftHeadingLevelBy,
   kShortcodes,
+  kSkipToContent,
   kSlideLevel,
   kSourceNotebookPrefix,
   kStandalone,
@@ -698,11 +704,17 @@ export interface FormatLanguage {
   [kCopyButtonTooltip]?: string;
   [kCopyButtonTooltipSuccess]?: string;
   [kBackToTop]?: string;
+  [kSkipToContent]?: string;
   [kToggleDarkMode]?: string;
   [kToggleNavigation]?: string;
   [kToggleReaderMode]?: string;
   [kToggleSection]?: string;
   [kToggleSidebar]?: string;
+  [kNavigationSiteLabel]?: string;
+  [kNavigationSectionLabel]?: string;
+  [kNavigationToolbarLabel]?: string;
+  [kNavigationPageLabel]?: string;
+  [kNavigationBreadcrumbsLabel]?: string;
   [kScrollableCodeLabel]?: string;
   [kScrollableOutputLabel]?: string;
   [kSearchMatchingDocumentsText]?: string;

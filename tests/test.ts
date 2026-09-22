@@ -10,7 +10,7 @@ import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
 import { cleanupLogger, initializeLogger, flushLoggers, logError, LogLevel, LogFormat } from "../src/core/log.ts";
-import { quarto } from "../src/quarto.ts";
+import { appendLogError, isBinaryMode, runQuarto } from "./quarto-cmd.ts";
 import { join } from "../src/deno_ral/path.ts";
 import * as colors from "fmt/colors";
 import { runningInCI } from "../src/core/ci-info.ts";
@@ -36,8 +36,8 @@ export interface TestDescriptor {
   // Sets up the test
   context: TestContext;
 
-  // Executes the test
-  execute: () => Promise<void>;
+  // Binary mode passes the child log target.
+  execute: (logFile?: string) => Promise<void>;
 
   // Used to verify the outcome of the test
   verify: Verify[];
@@ -90,6 +90,9 @@ export interface TestContext {
   // Defaults to 600000 (10 minutes). Lower it to assert a performance budget
   // (e.g. a render that must not regress into a hang).
   timeout?: number;
+
+  // Ignore this test in binary mode because it requires in-process internals.
+  requiresDevQuarto?: boolean;
 }
 
 // Allow to merge test contexts in Tests helpers
@@ -127,6 +130,8 @@ export function mergeTestContexts(baseContext: TestContext, additionalContext?: 
     },
     // override ignore if provided
     ignore: additionalContext.ignore ?? baseContext.ignore,
+    requiresDevQuarto: additionalContext.requiresDevQuarto ??
+      baseContext.requiresDevQuarto,
     // merge env with additional context taking precedence
     env: { ...baseContext.env, ...additionalContext.env },
     // override timeout if provided
@@ -147,19 +152,16 @@ export function testQuartoCmd(
   }
   test({
     name,
-    execute: async () => {
-      const timeoutMs = context?.timeout ?? 600000;
-      const timeout = new Promise((_resolve, reject) => {
-        setTimeout(
-          reject,
-          timeoutMs,
-          `timed out after ${timeoutMs}ms`,
-        );
+    execute: async (logFile?: string) => {
+      await runQuarto([cmd, ...args], {
+        env: context?.env,
+        logFile,
+        logLevel: logConfig?.level,
+        logFormat: logConfig?.format,
+        timeoutMs: context?.timeout,
+        // Let verifiers report failures from the log.
+        throwOnFailure: false,
       });
-      await Promise.race([
-        quarto([cmd, ...args], undefined, context?.env),
-        timeout,
-      ]);
     },
     verify,
     context: context || {},
@@ -213,7 +215,8 @@ export function test(test: TestDescriptor) {
   const sanitizeResources = test.context.sanitize?.resources;
   const sanitizeOps = test.context.sanitize?.ops;
   const sanitizeExit = test.context.sanitize?.exit;
-  const ignore = test.context.ignore;
+  const ignore = test.context.ignore ||
+    (isBinaryMode() && test.context.requiresDevQuarto);
   const userSession = !runningInCI();
 
   const args: Deno.TestDefinition = {
@@ -223,33 +226,24 @@ export function test(test: TestDescriptor) {
       const runTest = !test.context.prereq || await test.context.prereq();
       if (runTest) {
         const wd = Deno.cwd();
-        if (test.context?.cwd) {
-          Deno.chdir(test.context.cwd());
-        }
 
-        if (test.context.setup) {
-          await test.context.setup();
-        }
+        // The child owns log capture in binary mode.
+        const binMode = isBinaryMode();
 
         let cleanedup = false;
         const cleanupLogOnce = async () => {
-          if (!cleanedup) {
+          if (!cleanedup && !binMode) {
             await cleanupLogger();
             cleanedup = true;
           }
         };
 
-        // Capture the output
-        const log = Deno.makeTempFileSync({ suffix: ".json" });
-        const handlers = await initializeLogger({
-          log: test.logConfig?.log || log,
-          level: test.logConfig?.level || "INFO",
-          format: test.logConfig?.format || "json-stream",
-          quiet: true,
-        });
+        let log: string | undefined;
+        let logTarget: string | undefined;
+        let handlers: Awaited<ReturnType<typeof initializeLogger>> | undefined;
 
-        const logOutput = (path: string) => {
-          if (existsSync(path)) {
+        const logOutput = (path?: string) => {
+          if (path && existsSync(path)) {
             return readExecuteOutput(path);
           } else {
             return undefined;
@@ -258,21 +252,53 @@ export function test(test: TestDescriptor) {
         let lastVerify;
 
         try {
+          // Keep setup and cwd changes inside the cleanup scope.
+          if (test.context?.cwd) {
+            Deno.chdir(test.context.cwd());
+          }
+
+          if (test.context.setup) {
+            await test.context.setup();
+          }
+
+          // Capture the output. Started only after setup, so a setup that
+          // renders its own baseline (e.g. building a freeze cache) doesn't
+          // attribute its output to the execute() run that verify() inspects.
+          log = Deno.makeTempFileSync({ suffix: ".json" });
+          logTarget = test.logConfig?.log || log;
+          handlers = binMode ? undefined : await initializeLogger({
+            log: logTarget,
+            level: test.logConfig?.level || "INFO",
+            format: test.logConfig?.format || "json-stream",
+            quiet: true,
+          });
 
           try {
-            await test.execute();
+            await test.execute(logTarget);
           } catch (e) {
-            logError(e);
+            if (binMode) {
+              // Append directly because binary mode has no harness logger.
+              const message = e instanceof Error
+                ? `${e.message}\n${e.stack ?? ""}`
+                : String(e);
+              appendLogError(logTarget, message);
+            } else {
+              logError(e);
+            }
           }
 
           // Cleanup the output logging
           await cleanupLogOnce();
 
-          flushLoggers(handlers);
+          if (handlers) {
+            flushLoggers(handlers);
+          }
 
-          // Read the output
-          const testOutput = logOutput(log);
-          if (testOutput) {
+          // Both logging modes write to logTarget; a missing log is a failure.
+          const testOutput = logOutput(logTarget);
+          if (testOutput === undefined) {
+            fail(`test log file is missing: ${logTarget}`);
+          } else {
             for (const ver of test.verify) {
               lastVerify = ver;
               if (userSession) {
@@ -304,7 +330,7 @@ export function test(test: TestDescriptor) {
             absPath,
           );
           const command = isWindows
-            ? "run-tests.ps1"
+            ? "./run-tests.ps1"
             : "./run-tests.sh";
           const testCommand = `${
             offset > 0 ? " ".repeat(offset + 2) : ""
@@ -320,7 +346,13 @@ export function test(test: TestDescriptor) {
             ? colors.brightGreen(verifyFailed)
             : verifyFailed;
 
-          const logMessages = logOutput(log);
+          // Preserve the primary failure if the log is malformed.
+          let logMessages: ExecuteOutput[] | undefined;
+          try {
+            logMessages = logOutput(logTarget);
+          } catch {
+            logMessages = undefined;
+          }
 
           // Create distinctive failure marker for easy log navigation
           // This helps users find the failure when clicking GitHub Actions annotations
@@ -356,14 +388,19 @@ export function test(test: TestDescriptor) {
 
           fail(output.join("\n"));
         } finally {
-          safeRemoveSync(log);
-          await cleanupLogOnce();
-          if (test.context.teardown) {
-            await test.context.teardown();
+          if (log) {
+            safeRemoveSync(log);
           }
-
-          if (test.context?.cwd) {
-            Deno.chdir(wd);
+          await cleanupLogOnce();
+          // Restore the cwd even when teardown fails.
+          try {
+            if (test.context.teardown) {
+              await test.context.teardown();
+            }
+          } finally {
+            if (test.context?.cwd) {
+              Deno.chdir(wd);
+            }
           }
         }
       } else {
@@ -383,6 +420,7 @@ export function test(test: TestDescriptor) {
   Deno.test(args);
 }
 
+// Keep parsing strict; mergeChildLog() removes timeout-torn trailing records.
 export function readExecuteOutput(log: string) {
   const jsonStream = Deno.readTextFileSync(log);
   const lines = jsonStream.split("\n").filter((line) => !!line);

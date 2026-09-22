@@ -18,22 +18,63 @@ import {
 
 const kVersionFileName = "version";
 
+/**
+ * Binary name used by the Playwright-hosted arm64 archives that predate
+ * Playwright's move to the browserVersion-keyed builds/cft/ CDN path. Those
+ * archives shipped Playwright's own package layout — chrome-linux/headless_shell
+ * — instead of the CfT layout every platform (arm64 included) gets today.
+ * Installs made in that window are still on disk and must stay detectable.
+ */
+const kLegacyPlaywrightBinaryName = "headless_shell";
+
+/**
+ * Whether the legacy Playwright arm64 layout is worth probing for on this host.
+ * isPlaywrightCdnPlatform() throws on unsupported os/arch combinations, in which
+ * case no Quarto-installed arm64 binary can exist here anyway.
+ */
+function hostMayHaveLegacyPlaywrightLayout(): boolean {
+  try {
+    return isPlaywrightCdnPlatform();
+  } catch {
+    return false;
+  }
+}
+
 /** Return the chrome-headless-shell install directory under quartoDataDir. */
 export function chromeHeadlessShellInstallDir(): string {
   return quartoDataDir("chrome-headless-shell");
 }
 
 /**
- * The executable name for chrome-headless-shell on the current platform.
- * CfT builds use "chrome-headless-shell", Playwright arm64 builds use "headless_shell".
- * Returns the CfT name if platform detection fails (unsupported platform).
+ * The executable name for chrome-headless-shell.
+ * The Playwright CDN arm64 mirror redirects to the same chrome-for-testing-public
+ * bucket used for every other platform, so it shares the "chrome-headless-shell"
+ * binary name too.
  */
 export function chromeHeadlessShellBinaryName(): string {
-  try {
-    return isPlaywrightCdnPlatform() ? "headless_shell" : "chrome-headless-shell";
-  } catch {
-    return "chrome-headless-shell";
+  return "chrome-headless-shell";
+}
+
+/**
+ * Locate the chrome-headless-shell binary inside an install directory.
+ * Prefers the current CfT layout; on arm64 Linux also accepts the legacy
+ * Playwright layout left behind by pre-CDN-migration installs.
+ *
+ * allowLegacyPlaywrightLayout defaults to host detection and exists as an
+ * explicit parameter so the arm64 branch is reachable from tests on any host.
+ */
+export function findChromeHeadlessShellExecutable(
+  dir: string,
+  allowLegacyPlaywrightLayout: boolean = hostMayHaveLegacyPlaywrightLayout(),
+): string | undefined {
+  const found = findChromeExecutable(dir, chromeHeadlessShellBinaryName());
+  if (found !== undefined) {
+    return found;
   }
+  if (allowLegacyPlaywrightLayout) {
+    return findChromeExecutable(dir, kLegacyPlaywrightBinaryName);
+  }
+  return undefined;
 }
 
 /**
@@ -45,7 +86,7 @@ export function chromeHeadlessShellExecutablePath(): string | undefined {
   if (!existsSync(dir)) {
     return undefined;
   }
-  return findChromeExecutable(dir, chromeHeadlessShellBinaryName());
+  return findChromeHeadlessShellExecutable(dir);
 }
 
 /** Record the installed version as a plain text file. */
@@ -64,7 +105,11 @@ export function readInstalledVersion(dir: string): string | undefined {
 }
 
 /** Check if chrome-headless-shell is installed in the given directory. */
-export function isInstalled(dir: string): boolean {
+export function isInstalled(
+  dir: string,
+  allowLegacyPlaywrightLayout?: boolean,
+): boolean {
   return existsSync(join(dir, kVersionFileName)) &&
-    findChromeExecutable(dir, chromeHeadlessShellBinaryName()) !== undefined;
+    findChromeHeadlessShellExecutable(dir, allowLegacyPlaywrightLayout) !==
+      undefined;
 }

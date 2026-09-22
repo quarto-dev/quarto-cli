@@ -66,6 +66,52 @@ If ($null -eq $Env:QUARTO_DENO_DIR) {
   $Env:DENO_DIR = $Env:QUARTO_DENO_DIR
 }
 
+# QUARTO_TEST_BIN selects an installed Quarto outside this checkout.
+# The harness still uses the dev runtime configured above.
+If (-not [string]::IsNullOrEmpty($Env:QUARTO_TEST_BIN)) {
+  If (-not (Test-Path $Env:QUARTO_TEST_BIN)) {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) does not exist"
+    Exit 1
+  }
+  # Strip dev paths while probing the installed binary.
+  $probeStrip = @(
+    "QUARTO_SHARE_PATH", "QUARTO_BIN_PATH", "QUARTO_DEBUG", "DENO_DIR",
+    "QUARTO_DENO", "QUARTO_DENO_DOM", "QUARTO_ROOT", "QUARTO_SRC_PATH",
+    "QUARTO_FORCE_VERSION"
+  )
+  $probeSaved = @{}
+  ForEach ($name in $probeStrip) {
+    $probeSaved[$name] = [Environment]::GetEnvironmentVariable($name)
+    Remove-Item "Env:$name" -ErrorAction SilentlyContinue
+  }
+  Try {
+    $QUARTO_TEST_BIN_VERSION = & $Env:QUARTO_TEST_BIN --version
+    $QUARTO_TEST_BIN_PROBE_EXIT = $LASTEXITCODE
+  } Finally {
+    ForEach ($name in $probeStrip) {
+      If ($null -ne $probeSaved[$name]) {
+        [Environment]::SetEnvironmentVariable($name, $probeSaved[$name])
+      }
+    }
+  }
+  If ($QUARTO_TEST_BIN_PROBE_EXIT -ne 0) {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) exited with code $QUARTO_TEST_BIN_PROBE_EXIT while reporting its version."
+    Exit 1
+  }
+  If ([string]::IsNullOrWhiteSpace($QUARTO_TEST_BIN_VERSION)) {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) did not report a version."
+    Write-Host -ForegroundColor red "The distribution is likely incomplete (missing share/version)."
+    Exit 1
+  }
+  If ($QUARTO_TEST_BIN_VERSION -eq "99.9.9") {
+    Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
+    Write-Host -ForegroundColor red "The selected launcher runs the dev sources because it has a sibling src/quarto.ts."
+    Write-Host -ForegroundColor red "Point QUARTO_TEST_BIN at a built distribution extracted outside the git checkout."
+    Exit 1
+  }
+  Write-Host "> BINARY MODE: testing built quarto $QUARTO_TEST_BIN_VERSION at $($Env:QUARTO_TEST_BIN)"
+}
+
 # Preparing running Deno with default arguments
 
 $QUARTO_IMPORT_MAP_ARG="--importmap=$(Join-Path $QUARTO_SRC_DIR "import_map.json")"
@@ -106,12 +152,15 @@ if ( $MyInvocation.Line -eq "" ) {
   $customArgs = $argList ? @(Invoke-Expression "Write-Output -- $argList") : @()
 }
 
-# Check if keep-outputs mode is enabled and filter it from arguments
+# Check if keep-outputs mode or agent mode is enabled and filter it from arguments
 $KEEP_OUTPUTS = $false
+$AGENT_MODE = $false
 $FILTERED_CUSTOM_ARGS = @()
 foreach ($arg in $customArgs) {
   if ($arg -eq "--keep-outputs" -or $arg -eq "-k") {
     $KEEP_OUTPUTS = $true
+  } elseif ($arg -eq "--agent") {
+    $AGENT_MODE = $true
   } else {
     $FILTERED_CUSTOM_ARGS += $arg
   }
@@ -161,6 +210,12 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   $TESTS_TO_RUN=$customArgs
 }
 
+# Binary mode defaults to smoke tests; other compatible suites are explicit.
+If (-not [string]::IsNullOrEmpty($Env:QUARTO_TEST_BIN) -and $TESTS_TO_RUN.count -eq 0 -and $customArgs.count -eq 0) {
+  $TESTS_TO_RUN = @("smoke/")
+  Write-Host "> BINARY MODE: defaulting to smoke/ tests (pass a path explicitly to run others, e.g. integration/playwright-tests.test.ts)"
+}
+
 # ---- Running tests with Deno -------
 
 $DENO_ARGS = @()
@@ -171,6 +226,9 @@ If ($QUARTO_DENO_EXTRA_OPTIONS -ne $null) {
   $DENO_ARGS += -split $QUARTO_DENO_EXTRA_OPTIONS
 }
 $DENO_ARGS += -split $QUARTO_IMPORT_MAP_ARG
+If ($AGENT_MODE) {
+  $DENO_ARGS += "--reporter=dot"
+}
 $DENO_ARGS += $TESTS_TO_RUN
 
 # Activate python virtualenv

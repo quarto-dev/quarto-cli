@@ -206,13 +206,22 @@ export async function getCSSProperty(loc: Locator, variable: string, asNumber = 
   }
 }
 
+// Different browser engines resolve compounding relative-unit (em/rem)
+// font-size cascades with slightly different subpixel rounding, so an
+// exact/decimal-precision comparison is too strict across Chromium/Firefox/WebKit.
+// Use a small fixed absolute tolerance instead — mirrors Playwright's own
+// pattern for cross-engine CSS/DIP rounding drift.
+export function expectCloseTo(actual: number, expected: number, tolerance: number = 0.1) {
+  expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance);
+}
+
 export async function checkCSSproperty(loc1: Locator, loc2: Locator, property: string, asNumber: false | true, checkType: 'identical' | 'similar', factor: number = 1) {
   let loc1Property = await getCSSProperty(loc1, property, asNumber);
   let loc2Property = await getCSSProperty(loc2, property, asNumber);
   if (checkType === 'identical') {
     await expect(loc2).toHaveCSS(property, loc1Property as string);
   } else {
-    await expect(loc1Property).toBeCloseTo(loc2Property as number * factor);
+    expectCloseTo(loc1Property as number, loc2Property as number * factor);
   }
 }
 

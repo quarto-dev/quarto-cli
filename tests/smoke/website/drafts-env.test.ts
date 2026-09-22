@@ -16,6 +16,8 @@ const renderDir = docs("websites/drafts/drafts-env");
 const dir = join(Deno.cwd(), renderDir);
 const outDir = join(dir, "_site");
 
+// Dev mode caches the base profile on first render, so set it before tests.
+// Binary mode receives the same value through context.env.
 Deno.env.set("QUARTO_PROFILE", "drafts");
 
 testQuartoCmd(
@@ -23,6 +25,7 @@ testQuartoCmd(
   [renderDir],
   [noErrorsOrWarnings, ...[doesntHaveContentLinksToDrafts, doesntHaveEnvelopeLinksToDrafts, draftPostIsEmpty, searchDoesntHaveDraft, siteMapDoesntHaveDraft].map((ver) => { return ver(outDir)})],
   {
+    env: { QUARTO_PROFILE: "drafts" },
     teardown: async () => {
       if (existsSync(outDir)) {
         await Deno.remove(outDir, { recursive: true });

@@ -675,13 +675,42 @@ local function outputFile()
    end
 end
 
+-- Returns the leading sequence of dot-separated numeric components.
+-- Lua patterns cannot match an arbitrary number of repeated groups.
+local function leadingDottedNumber(s)
+   local parts = {}
+   local i = 1
+   while true do
+      local numStart, numEnd = s:find('^%d+', i)
+      if not numStart then break end
+      table.insert(parts, s:sub(numStart, numEnd))
+      i = numEnd + 1
+      if s:sub(i, i) == '.' then
+         i = i + 1
+      else
+         break
+      end
+   end
+   if #parts == 0 then
+      return nil
+   end
+   return table.concat(parts, '.')
+end
+
 local function version()
    local versionString = param('quarto-version', 'unknown')
-   local success, versionObject = pcall(pandoc.types.Version, versionString)
+   -- pandoc.types.Version's dotted-integer parser rejects semver build
+   -- metadata (e.g. "1.9.13+test.20260910") and any string without a
+   -- leading digit. Extract the leading dot-separated numeric component so
+   -- that construction always succeeds and this always returns a Version
+   -- object -- callers (e.g. table.concat(quarto.version, '.')) must not
+   -- have to handle a plain string fallback.
+   local numericVersion = leadingDottedNumber(versionString) or '0'
+   local success, versionObject = pcall(pandoc.types.Version, numericVersion)
    if success then
       return versionObject
    else
-      return versionString
+      return pandoc.types.Version('0')
    end
 end
 

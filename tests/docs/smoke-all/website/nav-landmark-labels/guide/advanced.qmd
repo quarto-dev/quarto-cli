@@ -1,0 +1,5 @@
+---
+title: Advanced
+---
+
+Here so `guide/intro.qmd` has a next page.

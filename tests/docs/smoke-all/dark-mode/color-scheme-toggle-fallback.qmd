@@ -1,0 +1,33 @@
+---
+title: "Fallback color-scheme toggle is a named switch (#13463)"
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - "createElement\\('button'\\)"
+          - 'setAttribute\("role", "switch"\)'
+          - 'setAttribute\("aria-label"'
+          - 'setAttribute\("aria-checked", alternate'
+          - 'createElement\(hasBanner \? "div" : "header"\)'
+          - 'setAttribute\("role", "region"\)'
+        -
+          - 'a\.href = ""'
+          - 'body\.appendChild\(toggle\)'
+---
+
+The toggle on a plain document (no navbar) is injected by the after-body
+script at `DOMContentLoaded`, so these assertions check the script text: the
+fallback creates a `button` switch with a name, `setColorSchemeToggle()` keeps
+`aria-checked` in sync, the toggle goes into a container rather than straight
+onto `body`, and the old nameless-anchor creation is gone.
+
+Which landmark that container is, and the selector used to find an existing
+banner, are deliberately not asserted here: those are structural claims about
+the rendered DOM, and `html-color-scheme-toggle.spec.ts` checks them through
+the computed role instead.

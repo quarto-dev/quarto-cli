@@ -1,0 +1,7 @@
+# Why Free Self-Hosted MT (LibreTranslate/Argos) Doesn't Work Here
+
+Tested against quarto-cli PR #14878 (Azerbaijani localization). Self-hosted LibreTranslate (`uvx libretranslate --load-only en,az`, no Docker needed — the Docker image crashed silently and repeatedly for unrelated reasons) mode-collapsed on short, context-free strings: unrelated single Azerbaijani words all translated to the identical wrong output. Confirmed it wasn't a usage bug by bypassing LibreTranslate's HTTP layer entirely and calling the underlying Argos Translate library directly — same collapse.
+
+Root cause is structural, not a configuration mistake: Argos's models are trained mostly on full-sentence parallel corpora and have no way to disambiguate a bare single word with no surrounding context, and low-resource language pairs (fewer than a widely-spoken pair like French or Spanish) make it worse. Longer, sentence-length strings translated reasonably; most quarto UI-label keys are exactly the short, context-free shape this fails on.
+
+If no context-aware/LLM-assisted translation MCP is available in a session, don't fall back to a plain free MT API expecting it to work on this content — it demonstrably doesn't, for this specific and common shape of string. Structural checks (Step 1 in `SKILL.md`) still catch real issues without needing any translation quality tool at all; rely on those and skip the MT step rather than trust a plain MT engine's short-string output.

@@ -500,50 +500,63 @@ function withinActiveRenv() {
   }
 }
 
-async function printCallRDiagnostics() {
-  const rBin = await checkRBinary();
-  if (rBin === undefined) {
-    info("");
-    info(rInstallationMessage());
-    info("");
-  } else {
-    const caps = await knitrCapabilities(rBin);
-    if (caps === undefined) {
-      info(
-        `Problem with running R found at ${rBin} to check environment configurations.`,
-      );
-      info("Please check your installation of R.");
+export async function printCallRDiagnostics(
+  checkRBinaryImpl: () => Promise<string | undefined> = checkRBinary,
+) {
+  // This re-enters R discovery to explain a callR failure. A throw here
+  // (e.g. from checkRBinaryImpl/rBinaryPath) must never replace the
+  // original callR error the caller is already reporting.
+  try {
+    const rBin = await checkRBinaryImpl();
+    if (rBin === undefined) {
+      info("");
+      info(rInstallationMessage());
       info("");
     } else {
-      if (
-        !caps?.packages.rmarkdown || !caps?.packages.knitr ||
-        !caps?.packages.knitrVersOk || !caps?.packages.rmarkdownVersOk
-      ) {
-        info("R installation:");
-        info(knitrCapabilitiesMessage(caps, "  "));
-        if (!!!caps?.packages.knitr || !caps?.packages.knitrVersOk) {
-          info("");
-          info(
-            knitrInstallationMessage(
-              "",
-              "knitr",
-              !!caps.packages.knitr && !caps.packages.knitrVersOk,
-            ),
-          );
-        }
-        if (!!!caps?.packages.rmarkdown || !caps?.packages.rmarkdownVersOk) {
-          info("");
-          info(
-            knitrInstallationMessage(
-              "",
-              "rmarkdown",
-              !!caps?.packages.rmarkdown && !caps?.packages.rmarkdownVersOk,
-            ),
-          );
-        }
+      const caps = await knitrCapabilities(rBin);
+      if (caps === undefined) {
+        info(
+          `Problem with running R found at ${rBin} to check environment configurations.`,
+        );
+        info("Please check your installation of R.");
         info("");
+      } else {
+        if (
+          !caps?.packages.rmarkdown || !caps?.packages.knitr ||
+          !caps?.packages.knitrVersOk || !caps?.packages.rmarkdownVersOk
+        ) {
+          info("R installation:");
+          info(knitrCapabilitiesMessage(caps, "  "));
+          if (!!!caps?.packages.knitr || !caps?.packages.knitrVersOk) {
+            info("");
+            info(
+              knitrInstallationMessage(
+                "",
+                "knitr",
+                !!caps.packages.knitr && !caps.packages.knitrVersOk,
+              ),
+            );
+          }
+          if (!!!caps?.packages.rmarkdown || !caps?.packages.rmarkdownVersOk) {
+            info("");
+            info(
+              knitrInstallationMessage(
+                "",
+                "rmarkdown",
+                !!caps?.packages.rmarkdown && !caps?.packages.rmarkdownVersOk,
+              ),
+            );
+          }
+          info("");
+        }
       }
     }
+  } catch (e) {
+    warning(
+      `Unable to gather R diagnostics: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+    );
   }
 }
 

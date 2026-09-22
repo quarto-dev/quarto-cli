@@ -307,9 +307,16 @@ export const kToggleNavigation = "toggle-navigation";
 export const kScrollableCodeLabel = "scrollable-code-label";
 export const kScrollableOutputLabel = "scrollable-output-label";
 
+export const kNavigationSiteLabel = "navigation-site-label";
+export const kNavigationSectionLabel = "navigation-section-label";
+export const kNavigationToolbarLabel = "navigation-toolbar-label";
+export const kNavigationPageLabel = "navigation-page-label";
+export const kNavigationBreadcrumbsLabel = "navigation-breadcrumbs-label";
+
 export const kCopyButtonTooltip = "copy-button-tooltip";
 export const kCopyButtonTooltipSuccess = "copy-button-tooltip-success";
 export const kBackToTop = "back-to-top";
+export const kSkipToContent = "skip-to-content";
 export const kRepoActionLinksEdit = "repo-action-links-edit";
 export const kRepoActionLinksSource = "repo-action-links-source";
 export const kRepoActionLinksIssue = "repo-action-links-issue";
@@ -435,11 +442,17 @@ export const kLanguageDefaultsKeys = [
   kToggleReaderMode,
   kToggleSidebar,
   kToggleSection,
+  kNavigationSiteLabel,
+  kNavigationSectionLabel,
+  kNavigationToolbarLabel,
+  kNavigationPageLabel,
+  kNavigationBreadcrumbsLabel,
   kScrollableCodeLabel,
   kScrollableOutputLabel,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,
+  kSkipToContent,
   kRepoActionLinksEdit,
   kRepoActionLinksSource,
   kRepoActionLinksIssue,

@@ -37,8 +37,12 @@ export function typstGatherBinaryPath(): string {
 
   if (!existsSync(binary)) {
     throw new Error(
-      `typst-gather binary not found.\n` +
-        `Run ./configure.sh to build and install it.`,
+      `typst-gather binary not found at ${binary}.\n` +
+        (Deno.env.get("QUARTO_TYPST_GATHER")
+          ? `QUARTO_TYPST_GATHER is set but does not point to an existing file.`
+          : `Reinstall Quarto to restore the bundled binary, or set ` +
+            `QUARTO_TYPST_GATHER to the path of a typst-gather binary.\n` +
+            `In a Quarto source checkout, run ./configure.sh to download it.`),
     );
   }
 

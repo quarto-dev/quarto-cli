@@ -1,0 +1,7 @@
+---
+title: "Home"
+---
+
+Regression test for #14774: below 992px the secondary nav shows the
+sidebar toggle and sidebar search buttons. Both are bare Bootstrap
+`.btn` elements and must keep a visible keyboard focus indicator.

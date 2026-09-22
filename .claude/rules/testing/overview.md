@@ -1,45 +1,46 @@
 ---
 paths:
-  - "tests/**"
+  - tests/**
 ---
 
 # Test Infrastructure
 
-Quarto's test suite lives in `tests/`. For comprehensive documentation, see `tests/README.md`.
+Quarto's test suite lives in `tests/`.
+For comprehensive documentation, see `tests/README.md`.
 
 ## Running Tests
+
+Use `--agent` — collapses a green run to a dot per test plus a tally line; failures keep assertion message, source frame, stack, exit code.
 
 ```bash
 cd tests
 
 # Linux/macOS
-./run-tests.sh                              # All tests
-./run-tests.sh smoke/render/render.test.ts  # Specific test
-./run-tests.sh docs/smoke-all/path/test.qmd # Smoke-all document
+QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh --agent unit/my-test.test.ts
 
 # Windows (PowerShell 7+)
-.\run-tests.ps1
-.\run-tests.ps1 smoke/render/render.test.ts
+$env:QUARTO_TESTS_NO_CONFIG="true"; .\run-tests.ps1 --agent unit/my-test.test.ts
 ```
 
-**Skip dependency configuration:**
-```bash
-QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh test.ts    # Linux/macOS
-$env:QUARTO_TESTS_NO_CONFIG=$true; .\run-tests.ps1      # Windows
-```
+Plain form (no `--agent`), full flag list, rerun-on-failure workflow, bash-only reporter-collision caveat: `tests/README.md`.
+
+**Binary mode:** set `QUARTO_TEST_BIN` to an installed Quarto outside the checkout.
+With no test arguments, binary mode runs `smoke/`; pass Playwright or feature-format targets explicitly.
+See `tests/README.md` and `llm-docs/built-version-testing-architecture.md`.
 
 ## Test Types
 
-| Type | Location | File Pattern | Details |
-|------|----------|--------------|---------|
-| Unit | `tests/unit/` | `*.test.ts` | `.claude/rules/testing/typescript-tests.md` |
-| Smoke | `tests/smoke/` | `*.test.ts` | `.claude/rules/testing/typescript-tests.md` |
-| Smoke-all | `tests/docs/smoke-all/` | `*.qmd` | `.claude/rules/testing/smoke-all-tests.md` |
-| Playwright | `tests/integration/playwright/` | `*.spec.ts` | `.claude/rules/testing/playwright-tests.md` |
+| Type       | Location                        | File Pattern | Details                                     |
+| ---------- | ------------------------------- | ------------ | ------------------------------------------- |
+| Unit       | `tests/unit/`                   | `*.test.ts`  | `.claude/rules/testing/typescript-tests.md` |
+| Smoke      | `tests/smoke/`                  | `*.test.ts`  | `.claude/rules/testing/typescript-tests.md` |
+| Smoke-all  | `tests/docs/smoke-all/`         | `*.qmd`      | `.claude/rules/testing/smoke-all-tests.md`  |
+| Playwright | `tests/integration/playwright/` | `*.spec.ts`  | `.claude/rules/testing/playwright-tests.md` |
 
 ## Dependencies
 
-Tests require R, Python, and Julia. Run configuration script to set up:
+Tests require R, Python, and Julia.
+Run configuration script to set up:
 
 ```bash
 # Linux/macOS
@@ -56,12 +57,13 @@ Managed via:
 
 ## Core Files
 
-| File | Purpose |
-|------|---------|
-| `test.ts` | Test infrastructure (`testQuartoCmd`, `unitTest`) |
-| `verify.ts` | Verification functions |
-| `utils.ts` | Path utilities (`docs()`, `outputForInput()`) |
-| `README.md` | Comprehensive documentation |
+| File            | Purpose                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| `test.ts`       | Test infrastructure (`testQuartoCmd`, `unitTest`)                                         |
+| `quarto-cmd.ts` | Quarto invocation dispatch (`runQuarto`; in-process dev vs `QUARTO_TEST_BIN` binary mode) |
+| `verify.ts`     | Verification functions                                                                    |
+| `utils.ts`      | Path utilities (`docs()`, `outputForInput()`)                                             |
+| `README.md`     | Comprehensive documentation                                                               |
 
 ## Debugging
 
