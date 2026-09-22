@@ -1,10 +1,13 @@
 name: Smoke Tests (Built Version)
 run-name: "Smoke Tests (Built Version) - ${{ (github.event_name == 'workflow_run' && 'nightly') || github.event.inputs.source || 'build' }}"
 on:
-  # Test scheduled and manually dispatched create-release builds.
+  # Test scheduled and manually dispatched create-release builds from main.
+  # Branch dispatches must not fan out; to test one, dispatch this workflow with
+  # source=nightly and that run's id.
   workflow_run:
     workflows: ["Build Installers"]
     types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       source:
