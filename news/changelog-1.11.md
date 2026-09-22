@@ -73,3 +73,4 @@ All changes included in 1.11:
 - ([#14775](https://github.com/quarto-dev/quarto-cli/issues/14775)): Fix a crash when the `QUARTO_R` environment variable is set to a malformed path. Quarto now warns and falls back to other R lookup methods.
 - ([#14865](https://github.com/quarto-dev/quarto-cli/issues/14865)): Fix internal links in a preview being treated as external when the preview is reached through a proxy, such as on Posit Workbench. Links are now classified against the origin the browser sees.
 - ([#14878](https://github.com/quarto-dev/quarto-cli/pull/14878)): Add `az` (Azerbaijani) language translation. (author: @abdanar)
+- ([#13353](https://github.com/quarto-dev/quarto-cli/pull/13353)): Fix metadata that both `_quarto.yml` and a document's front matter define being replaced by the document's value instead of merged before it reaches Pandoc templates. (author: @jkrumbiegel)
