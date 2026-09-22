@@ -73,12 +73,24 @@ If (-not [string]::IsNullOrEmpty($Env:QUARTO_TEST_BIN)) {
     Write-Host -ForegroundColor red "ERROR: QUARTO_TEST_BIN ($($Env:QUARTO_TEST_BIN)) does not exist"
     Exit 1
   }
-  # Strip dev paths while probing the installed binary.
-  $probeStrip = @(
-    "QUARTO_SHARE_PATH", "QUARTO_BIN_PATH", "QUARTO_DEBUG", "DENO_DIR",
-    "QUARTO_DENO", "QUARTO_DENO_DOM", "QUARTO_ROOT", "QUARTO_SRC_PATH",
-    "QUARTO_FORCE_VERSION"
-  )
+  # Strip dev paths while probing the installed binary. Shared list, see
+  # tests/binary-mode-strip-env.txt (also read by quarto-cmd.ts and run-tests.sh).
+  $stripEnvFile = Join-Path $SCRIPT_PATH "binary-mode-strip-env.txt"
+  If (-not (Test-Path $stripEnvFile)) {
+    Write-Host -ForegroundColor red "ERROR: strip-env list file not found: $stripEnvFile"
+    Exit 1
+  }
+  $probeStrip = @(Get-Content $stripEnvFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" -and -not $_.StartsWith("#") })
+  If ($probeStrip.Count -eq 0) {
+    Write-Host -ForegroundColor red "ERROR: strip-env list file yielded no variable names: $stripEnvFile"
+    Exit 1
+  }
+  ForEach ($name in $probeStrip) {
+    If ($name -notmatch "^[A-Za-z_][A-Za-z0-9_]*$") {
+      Write-Host -ForegroundColor red "ERROR: strip-env list file contains an invalid variable name: $name"
+      Exit 1
+    }
+  }
   $probeSaved = @{}
   ForEach ($name in $probeStrip) {
     $probeSaved[$name] = [Environment]::GetEnvironmentVariable($name)
