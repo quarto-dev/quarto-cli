@@ -1,0 +1,22 @@
+---
+brand:
+  color:
+    background:
+      light: "#fff"
+      dark: "#111"
+    foreground:
+      light: "#111"
+      dark: "#fff"
+  logo:
+    small:
+      light: sun-face.png
+      dark: moon-face.png
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'link[rel="icon"][href="./sun-face.png"][media="(prefers-color-scheme:light)"]'
+          - 'link[rel="icon"][href="./moon-face.png"][media="(prefers-color-scheme:dark)"]'
+        - []
+---
