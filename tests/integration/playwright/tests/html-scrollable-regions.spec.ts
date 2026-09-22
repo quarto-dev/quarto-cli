@@ -95,6 +95,15 @@ test.describe("scrollable regions at a mobile viewport", () => {
     await expect(disabled).toHaveAttribute("aria-label", "Scrollable output");
   });
 
+  test("a region with an author-set role is left alone", async ({ page }) => {
+    // Cleanup removes role outright, so a region that already had one is
+    // never marked in the first place.
+    const authored = page.locator("#author-role-pre");
+    await expect(authored).toHaveAttribute("role", "log");
+    await expect(authored).not.toHaveAttribute("tabindex");
+    await expect(authored).not.toHaveAttribute("data-quarto-scrollable");
+  });
+
   test("visually-hidden code alternative does not become an invisible tab stop", async ({
     page,
   }) => {
@@ -193,5 +202,11 @@ test.describe("scrollable regions at a desktop viewport", () => {
     // while a region overflows, which nothing does at this width.
     await expect(page.locator("[data-quarto-scrollable]")).toHaveCount(0);
     await expect(page.locator("div.sourceCode[tabindex]")).toHaveCount(0);
+
+    // Author markup survives a width where nothing is marked.
+    await expect(page.locator("#author-role-pre")).toHaveAttribute(
+      "role",
+      "log",
+    );
   });
 });

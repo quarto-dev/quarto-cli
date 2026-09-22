@@ -113,9 +113,12 @@ export function syncScrollableRegions(labels) {
       continue;
     }
     if (!el.hasAttribute(kMarker)) {
-      // respect author markup and regions with their own tab stops
+      // Respect author markup and regions with their own tab stops. `role`
+      // counts: cleanup removes the three attributes outright, so marking an
+      // element that already had one would let a later re-sync strip it.
       if (
         el.hasAttribute("tabindex") ||
+        el.hasAttribute("role") ||
         el.hasAttribute("aria-label") ||
         hasFocusableContent(el)
       ) {

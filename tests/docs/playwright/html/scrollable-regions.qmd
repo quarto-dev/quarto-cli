@@ -71,6 +71,15 @@ reachable and the region still needs a tab stop of its own.
 :::
 ::::
 
+## Author-set role {#author-role}
+
+Author markup wins. The runtime must not overwrite a `role` it did not set,
+nor strip it once the region stops overflowing.
+
+```{=html}
+<pre role="log" id="author-role-pre">an_unbroken_token_that_cannot_wrap_and_overflows_the_mobile_viewport</pre>
+```
+
 ## Numbered code block {#numbered}
 
 Pandoc emits a focusable fragment link per numbered line. Those links cannot
