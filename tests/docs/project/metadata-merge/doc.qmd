@@ -1,0 +1,22 @@
+---
+title: Metadata merge
+format:
+  html:
+    template: template.html
+keywords:
+  - '`{r} paste0("evaluated", "-keyword")`'
+  - shared-keyword
+colliding:
+  - '`{r} paste0("al", "ice")`'
+custom:
+  from-document: document-value
+  shared: document-value
+  list:
+    - '`{r} paste0("evaluated", "-item")`'
+  evaluated: '`{r} paste0("evaluated", "-scalar")`'
+---
+
+```{r}
+#| echo: false
+invisible(1)
+```
