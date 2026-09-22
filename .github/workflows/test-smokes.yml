@@ -66,8 +66,6 @@ on:
         required: false
         type: string
         default: ""
-  schedule:
-    - cron: "0 6 * * *"
 
 # this is required to cleanup julia cache
 permissions:
