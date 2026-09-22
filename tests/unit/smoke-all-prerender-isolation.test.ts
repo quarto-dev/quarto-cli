@@ -75,9 +75,9 @@ unitTest(
           "    - broken-b.qmd\n    - broken-c.qmd\n",
       );
 
-      // This unannotated file sorts before the annotated files but is excluded
-      // from project.render. Pinning it to HTML defines the cleanup paths for
-      // a skipped file.
+      // This file does not request a project pre-render. It sorts before files
+      // that do, but project.render excludes it. Its HTML test spec registers
+      // cleanup paths for a skipped file.
       Deno.writeTextFileSync(
         join(projectDir, "broken-a.qmd"),
         [
@@ -107,7 +107,7 @@ unitTest(
         "sentinel\n",
       );
 
-      // This annotated file causes the project pre-render to fail.
+      // This file requests the project pre-render and makes it fail.
       Deno.writeTextFileSync(
         join(projectDir, "broken-b.qmd"),
         [
@@ -123,8 +123,8 @@ unitTest(
           "",
         ].join("\n"),
       );
-      // A second annotated file verifies that the pre-render runs once per
-      // project.
+      // A second file requests the same project pre-render, verifying that it
+      // runs once per project.
       Deno.writeTextFileSync(
         join(projectDir, "broken-c.qmd"),
         [
@@ -192,7 +192,6 @@ unitTest(
       const junitXml = Deno.readTextFileSync(junitPath);
       const { total, failures, cases } = parseJUnit(junitXml);
 
-      // The trailing healthy control file must still be registered and pass.
       const healthyCase = cases.find((c) => c.name.includes("healthy-canary"));
       assert(
         healthyCase !== undefined,
@@ -202,8 +201,8 @@ unitTest(
       );
       assertEquals(healthyCase!.failed, false);
 
-      // Exactly one synthetic failure for the broken project, despite two
-      // annotated files (catches a retry-per-annotation implementation).
+      // Exactly one synthetic failure is reported for the broken project,
+      // even though two files request its pre-render.
       const projectFailures = cases.filter((c) =>
         /_prerender-crash/.test(c.name) && c.failed
       );
@@ -215,9 +214,8 @@ unitTest(
         }`,
       );
 
-      // No test registered for any file of the broken project, including
-      // the unannotated one that precedes it in argument order (catches a
-      // one-pass implementation).
+      // No test is registered for any file in the broken project, including
+      // the file encountered before any file requests a project pre-render.
       for (const fileName of ["broken-a.qmd", "broken-b.qmd", "broken-c.qmd"]) {
         const registered = cases.some((c) => c.name.includes(fileName));
         assert(

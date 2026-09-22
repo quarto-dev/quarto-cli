@@ -388,8 +388,8 @@ async function runDevQuarto(
       new QuartoTimeoutError(
         `timed out after ${timeoutMs}ms`,
         timeoutMs,
-        // Dev mode never attempts a kill: it can never cancel an
-        // in-process render, only lose the race below.
+        // Dev mode cannot stop an in-process render. A timeout rejects the
+        // caller, but the render continues.
         false,
       ),
     );

@@ -168,13 +168,12 @@ const postRenderCleanupFiles: Array<{ file: string; input: string }> = [];
 function registerPostRenderCleanupFile(file: string, input: string): void {
   postRenderCleanupFiles.push({ file, input });
 }
-// With no `onlyForInputs`, sweeps every currently-registered path -- safe at
-// a normal teardown because the suite runs one file at a time, so nothing
-// else has created a matching artifact yet. A skipped file's own teardown
-// never runs, so the pass-2 skip branch instead scopes the sweep to just
-// that file's own input: by the time it runs, every project's pass-1.5
-// pre-render has already completed, so an unscoped sweep here could delete
-// another (healthy) project's not-yet-verified artifact.
+// Without `onlyForInputs`, this sweeps every registered path. That is safe
+// during normal teardown because the suite runs one file at a time and no
+// other test has created a matching artifact. A skipped file never runs
+// teardown, so the pass-2 branch scopes the sweep to that file's input. All
+// project pre-renders have finished by then; an unscoped sweep could delete
+// another project's artifact before verification.
 const postRenderCleanup = (onlyForInputs?: Set<string>) => {
   if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
     return;
@@ -424,7 +423,6 @@ const projectFilePromises: Map<string, Promise<void>[]> = new Map();
 // Create an array to hold all the promises for the tests of files
 let testFilesPromises = [];
 
-// Pre-render failures keyed by project path.
 const failedProjectPreRenders: Map<string, Error> = new Map();
 
 interface DiscoveredFile {
@@ -508,7 +506,6 @@ for (const projectPath of projectsNeedingPreRender) {
   }
 }
 
-// Register one synthetic failing test per failed project.
 for (const [projectPath, error] of failedProjectPreRenders) {
   unitTest(`smoke-all project pre-render failed: ${projectPath}`, async () => {
     throw error;
@@ -540,11 +537,9 @@ for (const entry of discovered) {
         metadata,
       });
     }
-    // Skipped files do not run teardown, so sweep this file's own custom
-    // cleanup paths registered during discovery. Scoped to just this input:
-    // every project's pass-1.5 pre-render has already run by this point, so
-    // an unscoped sweep could delete another (healthy) project's artifact
-    // before that project's own tests get to verify it.
+    // Skipped files do not run teardown. Sweep only the custom cleanup paths
+    // registered for this input; an unscoped sweep could delete another
+    // project's artifact before its tests verify it.
     postRenderCleanup(new Set([input]));
     continue;
   }
