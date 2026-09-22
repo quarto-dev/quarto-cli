@@ -821,6 +821,14 @@ function htmlFormatPostprocessor(
         code.parentElement.removeAttribute(
           "data-code-preview",
         );
+        // the iframe's accessible name (#14770)
+        const codeExampleTitle = code.parentElement.getAttribute(
+          "data-code-preview-title",
+        );
+        if (codeExampleTitle) {
+          codeExample.setAttribute("title", codeExampleTitle);
+        }
+        code.parentElement.removeAttribute("data-code-preview-title");
         code.parentElement.appendChild(codeExample);
       }
     }
