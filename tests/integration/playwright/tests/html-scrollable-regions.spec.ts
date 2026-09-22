@@ -255,3 +255,34 @@ test.describe("scrollable regions at a desktop viewport", () => {
     );
   });
 });
+
+test.describe("scrollable region labels", () => {
+  test.use({ viewport: { width: 390, height: 700 } });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto(getUrl("html/scrollable-regions-labels.html"), {
+      waitUntil: "networkidle",
+    });
+  });
+
+  test("a non-English lang reaches the aria-label", async ({ page }) => {
+    await expect(page.locator("#wide-code div.sourceCode")).toHaveAttribute(
+      "aria-label",
+      "Code défilable",
+    );
+  });
+
+  test("a language override holding </script> reaches the aria-label intact", async ({
+    page,
+  }) => {
+    // Unescaped, the override would close the label script early: the global
+    // would never be set and the trailing markup would render as an element.
+    await expect(page.locator("#injected")).toHaveCount(0);
+    await expect(
+      page.locator("#wide-table .cell-output-display"),
+    ).toHaveAttribute(
+      "aria-label",
+      "Sortie </script><b id='injected'>x</b> défilable",
+    );
+  });
+});
