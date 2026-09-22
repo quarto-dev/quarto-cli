@@ -104,7 +104,7 @@ export function reportWindowsArmX64RError(
   }
 
   reportedWindowsArmX64RErrors.add(armError.message);
-  armError.diagnosticLines.forEach(errorImpl);
+  armError.diagnosticLines.forEach((line) => errorImpl(line));
   return true;
 }
 
