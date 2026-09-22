@@ -1,0 +1,15 @@
+project:
+  type: default
+
+keywords:
+  - project-keyword
+  - shared-keyword
+
+colliding:
+  - alice
+
+custom:
+  from-project: project-value
+  shared: project-value
+  list:
+    - project-item
