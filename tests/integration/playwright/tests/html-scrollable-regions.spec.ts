@@ -170,6 +170,29 @@ test.describe("scrollable regions at a mobile viewport", () => {
     );
   });
 
+  test("the final size of a burst of resizes is synced", async ({ page }) => {
+    await expect(
+      page.locator("#wide-code div.sourceCode[data-quarto-scrollable]"),
+    ).toHaveCount(1);
+
+    // Two body resizes two frames apart (~33ms), inside the 50ms throttle
+    // window, as happens on every frame of a window-edge drag. The first
+    // still overflows; only the second makes everything fit. The re-sync must
+    // reflect the second, not just the first.
+    await page.evaluate(async () => {
+      const frame = () => new Promise((r) => requestAnimationFrame(r));
+      document.body.style.paddingRight = "1px";
+      await frame();
+      await frame();
+      document.body.style.width = "3000px";
+      await frame();
+    });
+    // Only #wide-code: in Firefox another block stays narrow (and genuinely
+    // overflowing) however wide the body gets.
+    await expect(page.locator("#wide-code div.sourceCode")).not
+      .toHaveAttribute("data-quarto-scrollable");
+  });
+
   test("attributes are removed once focus leaves a region that stopped overflowing", async ({
     page,
     browserName,

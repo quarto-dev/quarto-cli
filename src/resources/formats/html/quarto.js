@@ -35,7 +35,9 @@ const layoutMarginEls = () => {
 };
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
-  // Recompute the position of margin elements anytime the body size changes
+  // Recompute the position of margin elements and re-sync scrollable regions
+  // anytime the body size changes. Trailing, so a resize that ends inside the
+  // wait is still handled rather than left at a size the page no longer has.
   if (window.ResizeObserver) {
     const resizeObserver = new window.ResizeObserver(
       throttle(() => {
@@ -47,7 +49,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         ) {
           quartoToggleReader();
         }
-      }, 50)
+      }, 50, true)
     );
     resizeObserver.observe(window.document.body);
   }
@@ -830,16 +832,31 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
 tabsets.init();
 
-function throttle(func, wait) {
+// With `trailing`, a call dropped during the wait runs once the wait ends, so
+// the last event of a burst is never lost.
+function throttle(func, wait, trailing = false) {
   let waiting = false;
-  return function () {
-    if (!waiting) {
-      func.apply(this, arguments);
-      waiting = true;
-      setTimeout(function () {
-        waiting = false;
-      }, wait);
+  let pending = null;
+  const release = function () {
+    if (pending) {
+      const [context, args] = pending;
+      pending = null;
+      func.apply(context, args);
+      setTimeout(release, wait);
+    } else {
+      waiting = false;
     }
+  };
+  return function () {
+    if (waiting) {
+      if (trailing) {
+        pending = [this, arguments];
+      }
+      return;
+    }
+    func.apply(this, arguments);
+    waiting = true;
+    setTimeout(release, wait);
   };
 }
 
