@@ -174,10 +174,8 @@ export async function knitrCapabilities(rBin: string | undefined) {
       return undefined;
     }
   } catch (e) {
-    // Log x64-on-ARM errors once, then return undefined like other errors
     if (e instanceof WindowsArmX64RError) {
-      reportWindowsArmX64RError(e);
-      return undefined;
+      throw e;
     }
     debug(
       `\n++ Error while running 'capabilities/knitr.R' ${

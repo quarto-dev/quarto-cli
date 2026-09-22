@@ -16,6 +16,7 @@ import {
   throwIfX64ROnArm,
   WindowsArmX64RError,
 } from "../../src/core/knitr.ts";
+import { checkKnitrInstallation } from "../../src/execute/rmd.ts";
 import { unitTest } from "../test.ts";
 
 const kNativeArmCrash = -1073741569;
@@ -77,3 +78,34 @@ unitTest(
     assertEquals(records.length, armError.diagnosticLines.length);
   },
 );
+
+unitTest("Windows ARM x64 R is preserved in check JSON", async () => {
+  const armError = new WindowsArmX64RError(kArmVmCrash);
+  const jsonResult: Record<string, unknown> = {
+    tools: {},
+    render: {},
+  };
+
+  await checkKnitrInstallation(
+    {
+      strict: false,
+      target: "knitr",
+      output: "check.json",
+      services: undefined!,
+      jsonResult,
+    },
+    {
+      checkRBinary: async () => "Rscript",
+      knitrCapabilities: async () => {
+        throw armError;
+      },
+    },
+  );
+
+  const knitr = (jsonResult.tools as Record<string, unknown>).knitr as Record<
+    string,
+    unknown
+  >;
+  assertEquals(knitr.installed, false);
+  assertEquals(knitr.error, armError.message);
+});
