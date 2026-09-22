@@ -167,7 +167,7 @@ In practice:
 
 ## Built-mode test legs (scheduler layout)
 
-`test-smokes-built.yml` = the mode **resolvers** (build-artifact / resolve-nightly / resolve-release, unchanged) + a **scheduler**: per-leg caller jobs fanning out to the reusable workflows.
+`test-smokes-built.yml` = a `resolve-mode` job computing the source mode once (`needs.resolve-mode.outputs.mode`, gating all other jobs) + the mode **resolvers** (build-artifact / resolve-nightly / resolve-release) + a **scheduler**: per-leg caller jobs fanning out to the reusable workflows.
 Each source mode schedules three independent legs:
 
 | leg        | goes through                    | bucket                                                  | OS scope                                                                             |
