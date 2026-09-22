@@ -162,20 +162,32 @@ interface QuartoInlineTestSpec {
 // postRenderCleanupFiles is a module-global list swept by EVERY render
 // teardown, so a registered entry only logs/removes at the teardowns where the
 // file actually exists (its owning document), not on every subsequent teardown.
-const postRenderCleanupFiles: string[] = [];
-function registerPostRenderCleanupFile(file: string): void {
-  postRenderCleanupFiles.push(file);
+// Each entry records which input file registered it, so a sweep can be
+// scoped to just that file's own entries (see postRenderCleanup below).
+const postRenderCleanupFiles: Array<{ file: string; input: string }> = [];
+function registerPostRenderCleanupFile(file: string, input: string): void {
+  postRenderCleanupFiles.push({ file, input });
 }
-const postRenderCleanup = () => {
+// With no `onlyForInputs`, sweeps every currently-registered path -- safe at
+// a normal teardown because the suite runs one file at a time, so nothing
+// else has created a matching artifact yet. A skipped file's own teardown
+// never runs, so the pass-2 skip branch instead scopes the sweep to just
+// that file's own input: by the time it runs, every project's pass-1.5
+// pre-render has already completed, so an unscoped sweep here could delete
+// another (healthy) project's not-yet-verified artifact.
+const postRenderCleanup = (onlyForInputs?: Set<string>) => {
   if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
     return;
   }
-  for (const file of postRenderCleanupFiles) {
-    if (safeExistsSync(file)) {
-      console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
+  for (const entry of postRenderCleanupFiles) {
+    if (onlyForInputs && !onlyForInputs.has(entry.input)) {
+      continue;
+    }
+    if (safeExistsSync(entry.file)) {
+      console.log(`Cleaning up ${entry.file} in ${Deno.cwd()}`);
       // recursive so a registered entry can be a directory (e.g. an embedded
       // notebook's `*_files` support dir), not just a single file
-      safeRemoveSync(file, { recursive: true });
+      safeRemoveSync(entry.file, { recursive: true });
     }
   }
 }
@@ -243,7 +255,7 @@ function resolveTestSpecs(
               file = file.replace("${input_stem}", inputStem);
             }
             // file is registered for cleanup in testQuartoCmd teardown step
-            registerPostRenderCleanupFile(join(dirname(input), file));
+            registerPostRenderCleanupFile(join(dirname(input), file), input);
           }
         } else if (key == "shouldError") {
           checkWarnings = false;
@@ -528,9 +540,12 @@ for (const entry of discovered) {
         metadata,
       });
     }
-    // Skipped files do not run teardown, so sweep any custom cleanup paths
-    // registered during discovery.
-    postRenderCleanup();
+    // Skipped files do not run teardown, so sweep this file's own custom
+    // cleanup paths registered during discovery. Scoped to just this input:
+    // every project's pass-1.5 pre-render has already run by this point, so
+    // an unscoped sweep could delete another (healthy) project's artifact
+    // before that project's own tests get to verify it.
+    postRenderCleanup(new Set([input]));
     continue;
   }
 
