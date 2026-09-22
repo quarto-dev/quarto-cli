@@ -412,8 +412,7 @@ const projectFilePromises: Map<string, Promise<void>[]> = new Map();
 // Create an array to hold all the promises for the tests of files
 let testFilesPromises = [];
 
-// Records, keyed by project path, of a project whose pre-render failed
-// (populated in the pre-render pass below).
+// Pre-render failures keyed by project path.
 const failedProjectPreRenders: Map<string, Error> = new Map();
 
 interface DiscoveredFile {
@@ -424,11 +423,9 @@ interface DiscoveredFile {
   projectPath: string | undefined;
 }
 
-// Pass 1 (discovery, no registration). render-project is per-file front
-// matter, not a project-level setting, so a project can mix annotated and
-// unannotated files with the unannotated ones sorting first -- collecting
-// every file before registering (or pre-rendering) any of them is what
-// makes "skip every file of a failed project" achievable at all.
+// Pass 1: discover all files before registering tests. Because render-project
+// is per-file metadata, discovery must finish before all files belonging to a
+// failed project can be skipped.
 const discovered: DiscoveredFile[] = [];
 for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
@@ -465,8 +462,8 @@ for (const { path: fileName } of files) {
   discovered.push({ input, metadata, testSpecs, projectPath });
 }
 
-// Pass 1.5 (pre-render). One attempt per distinct project that any
-// collected file marks render-project, ahead of any registration below.
+// Pass 1.5: pre-render each project requested by any discovered file before
+// registering tests.
 const projectsNeedingPreRender = new Set<string>();
 for (const entry of discovered) {
   if ((entry.metadata["_quarto"] as any)?.["render-project"] && entry.projectPath) {
@@ -475,17 +472,13 @@ for (const entry of discovered) {
 }
 for (const projectPath of projectsNeedingPreRender) {
   try {
-    // dispatches to the built binary when QUARTO_TEST_BIN is set; a
-    // failure here isolates this project's files (see
-    // failedProjectPreRenders below) rather than aborting the whole file.
+    // Use the built binary when QUARTO_TEST_BIN is set. A failure skips this
+    // project's tests instead of aborting module evaluation.
     await runQuarto(["render", projectPath]);
     renderedProjects.add(projectPath);
   } catch (err) {
-    // A timeout whose render was not confirmably stopped is fatal: an
-    // uncancelled dev-mode render, or a binary-mode process tree that
-    // could not be confirmed killed, could keep writing into this
-    // project's directory while the rest of the suite -- and the cleanup
-    // block below -- run alongside it.
+    // Abort if the timed-out render may still be running. It could keep
+    // writing while the remaining tests and cleanup run.
     if (isQuartoTimeoutError(err) && !err.renderCancelled) {
       console.error(
         `[smoke-all] project pre-render for ${projectPath} timed out after ` +
@@ -503,9 +496,7 @@ for (const projectPath of projectsNeedingPreRender) {
   }
 }
 
-// One synthetic failing test per failed project (not per skipped file):
-// one clearly named failure pointing at the cause, rather than N red lines
-// for one root cause.
+// Register one synthetic failing test per failed project.
 for (const [projectPath, error] of failedProjectPreRenders) {
   unitTest(`smoke-all project pre-render failed: ${projectPath}`, async () => {
     throw error;
@@ -520,13 +511,10 @@ for (const entry of discovered) {
     console.log(
       `Skipping tests for ${input}: its project's pre-render failed (${projectPath})`,
     );
-    // Mirror exactly what this file's own teardown would have pushed to
-    // projectCleanupEntries, so a skipped file lands at exact parity with
-    // a registered one. Only specs that would take the normal `render`
-    // branch push an entry -- the editor-support-crossref branch's
-    // teardown pushes none (it only removes its own temp file), and
-    // synthesizing one would reduce through parseFormatString to base
-    // editor and delete an unrelated html support directory.
+    // Add the cleanup entries that this file's teardown would have added.
+    // editor-support-crossref creates no project cleanup entry; adding one
+    // would resolve its base format to editor and could delete an unrelated
+    // HTML support directory.
     for (const testSpec of testSpecs) {
       if (testSpec.format === "editor-support-crossref") {
         continue;
@@ -540,6 +528,9 @@ for (const entry of discovered) {
         metadata,
       });
     }
+    // Skipped files do not run teardown, so sweep any custom cleanup paths
+    // registered during discovery.
+    postRenderCleanup();
     continue;
   }
 

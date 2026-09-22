@@ -183,12 +183,10 @@ export function assertTestBinary(bin: string) {
   checkedBinary = bin;
 }
 
-// Outcome of a process-tree kill attempt. `cancelled` is true only when
-// every signalled node was positively enumerated: any spawn throw, a
-// non-zero/unparseable pgrep result, a non-zero taskkill exit, or a
-// Deno.kill failure other than NotFound leaves it false. This fail-safe
-// default is the point: an implementer who forgets a branch gets "fatal",
-// not "silently continue beside a possible orphan".
+// Result of attempting to stop a process tree. `cancelled` is true only when
+// tree enumeration and termination are confirmed. Enumeration, command, or
+// kill errors leave it false so callers do not continue while descendants
+// may still be running.
 interface KillOutcome {
   cancelled: boolean;
   detail: string;
@@ -198,9 +196,8 @@ interface KillOutcome {
 async function killProcessTree(pid: number): Promise<KillOutcome> {
   if (isWindows) {
     try {
-      // taskkill reports failure through its exit code; outputSync-style
-      // Deno.Command does not throw on a non-zero exit, only on a spawn
-      // failure, so the exit code is the only reliable signal here.
+      // `Deno.Command.output()` returns non-zero exit codes without throwing.
+      // Only a spawn failure throws, so check the exit code explicitly.
       const result = await new Deno.Command("taskkill", {
         args: ["/PID", String(pid), "/T", "/F"],
         stdout: "null",
@@ -239,13 +236,13 @@ async function killProcessTree(pid: number): Promise<KillOutcome> {
     }
   }
 
-  // Unix: enumerate with pgrep -P (Linux and macOS/BSD), classifying each
-  // invocation by exit code rather than by whether it threw -- outputSync()
-  // does not throw on a non-zero exit. Exit 0 with parseable stdout or
-  // exit 1 (a genuine childless leaf) are the only enumerated outcomes; a
-  // spawn throw, any other exit code, or unparseable stdout forces the
-  // aggregate `cancelled` to false without aborting the walk (still signal
-  // every pid already collected).
+  // On Unix, enumerate descendants with pgrep -P. Exit 0 must have parseable
+  // output, while exit 1 means no children. Any other result leaves
+  // cancellation unconfirmed, but all collected pids are still signalled.
+  //
+  // This confirms only descendants found during the pgrep walk. A process
+  // spawned or reparented before termination may not be included. Avoiding
+  // this race would require process-group support.
   const pids: number[] = [];
   const stack = [pid];
   let confirmed = true;
@@ -492,10 +489,8 @@ async function runBinaryQuarto(
     });
   }
 
-  // throwOnFailure: false callers (e.g. testQuartoCmd) get the one
-  // diagnostic for an unconfirmed kill; throwing callers get no log here
-  // (see the QuartoTimeoutError branch below) since a confirmed kill on
-  // this path has no orphan to warn about.
+  // Warn non-throwing callers when cancellation is unconfirmed. Throwing
+  // callers receive the same detail in QuartoTimeoutError below.
   if (timedOut && !killOutcome.cancelled && !throwOnFailure) {
     console.error(
       `[binary mode] process-tree kill UNCONFIRMED: ${commandLine} ` +

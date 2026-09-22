@@ -75,11 +75,9 @@ unitTest(
           "    - broken-b.qmd\n    - broken-c.qmd\n",
       );
 
-      // Unannotated, excluded from project.render (so the pre-render never
-      // visits it), and pinned to html so the cleanup entry synthesized for
-      // a skipped file resolves to exactly broken-a.html / broken-a_files.
-      // Sorts first alphabetically, so a one-pass implementation would
-      // register it before the pre-render below ever runs.
+      // This unannotated file sorts before the annotated files but is excluded
+      // from project.render. Pinning it to HTML defines the cleanup paths for
+      // a skipped file.
       Deno.writeTextFileSync(
         join(projectDir, "broken-a.qmd"),
         [
@@ -96,10 +94,8 @@ unitTest(
           "",
         ].join("\n"),
       );
-      // Sentinels, pre-created so their post-run absence is attributable
-      // only to the cleanup entry synthesized for the skipped file, never
-      // to render ordering: the pre-render's project.render list excludes
-      // broken-a.qmd, so nothing else in the run can touch these paths.
+      // Pre-create outputs for broken-a.qmd. Because project.render excludes
+      // the file, their removal verifies cleanup for a skipped file.
       Deno.writeTextFileSync(
         join(projectDir, "broken-a.html"),
         "<html><body>sentinel</body></html>\n",
@@ -111,7 +107,7 @@ unitTest(
         "sentinel\n",
       );
 
-      // Annotated: the file whose render fails the project pre-render.
+      // This annotated file causes the project pre-render to fail.
       Deno.writeTextFileSync(
         join(projectDir, "broken-b.qmd"),
         [
@@ -127,9 +123,8 @@ unitTest(
           "",
         ].join("\n"),
       );
-      // A second annotated file: with only one, "exactly one synthetic
-      // failure" would be trivially satisfied by an implementation that
-      // retries the pre-render once per annotation.
+      // A second annotated file verifies that the pre-render runs once per
+      // project.
       Deno.writeTextFileSync(
         join(projectDir, "broken-c.qmd"),
         [
@@ -144,8 +139,8 @@ unitTest(
         ].join("\n"),
       );
 
-      // Coverage-loss canary: must still be registered and run despite
-      // sorting after the broken project in the explicit file-argument list.
+      // This healthy control file sorts after the broken project and must
+      // still run.
       Deno.writeTextFileSync(
         join(smokeAllDir, "healthy-canary.qmd"),
         ["---", "title: healthy", "---", "", "# healthy", ""].join("\n"),
@@ -197,8 +192,7 @@ unitTest(
       const junitXml = Deno.readTextFileSync(junitPath);
       const { total, failures, cases } = parseJUnit(junitXml);
 
-      // Coverage-loss canary: the trailing healthy file must still be
-      // registered and pass.
+      // The trailing healthy control file must still be registered and pass.
       const healthyCase = cases.find((c) => c.name.includes("healthy-canary"));
       assert(
         healthyCase !== undefined,
@@ -234,9 +228,7 @@ unitTest(
         );
       }
 
-      // Exactly two testcases total: the healthy canary and the one
-      // synthetic failure. Nothing from the broken project is silently
-      // dropped from the count either.
+      // Expect only the healthy control and one synthetic project failure.
       assertEquals(
         total,
         2,
