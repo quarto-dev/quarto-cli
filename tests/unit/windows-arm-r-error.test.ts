@@ -41,9 +41,13 @@ unitTest(
     const records: string[] = [];
     const armError = new WindowsArmX64RError(kNativeArmCrash);
 
-    assert(
-      reportWindowsArmX64RError(armError, (message) => records.push(message)),
-    );
+    assert(reportWindowsArmX64RError(
+      armError,
+      (...args: [string, ...unknown[]]) => {
+        assertEquals(args.length, 1);
+        records.push(args[0]);
+      },
+    ));
 
     const message = armError.message;
     assertStringIncludes(
