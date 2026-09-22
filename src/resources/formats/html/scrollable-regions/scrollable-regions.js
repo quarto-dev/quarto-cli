@@ -23,12 +23,19 @@ const kCandidateSelector =
 
 // Mirrors axe's pass condition (and Chrome's native heuristic): a region with
 // keyboard-focusable content is already reachable, and adding tabindex would
-// create a double tab stop. tabindex="-1" removes an element from the tab
-// order, so Pandoc's per-line anchors (`a[href][tabindex="-1"]`) don't count.
+// create a double tab stop. Two kinds of element look focusable but are not:
+// tabindex="-1" removes an element from the tab order, so Pandoc's per-line
+// anchors (`a[href][tabindex="-1"]`) don't count, and a disabled control is
+// unreachable whatever its tabindex. `:disabled` matches only form controls
+// (including every control inside a disabled fieldset), so it is inert on the
+// generic `[tabindex]` arm and harmless there.
 const kFocusableSelector =
-  'a[href]:not([tabindex="-1"]), button:not([tabindex="-1"]), ' +
-  'input:not([tabindex="-1"]), select:not([tabindex="-1"]), ' +
-  'textarea:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])';
+  'a[href]:not([tabindex="-1"]), ' +
+  'button:not([tabindex="-1"]):not(:disabled), ' +
+  'input:not([tabindex="-1"]):not(:disabled), ' +
+  'select:not([tabindex="-1"]):not(:disabled), ' +
+  'textarea:not([tabindex="-1"]):not(:disabled), ' +
+  '[tabindex]:not([tabindex="-1"]):not(:disabled)';
 
 // Pandoc emits one fragment link per numbered line, as the first child of the
 // line's span. They are real, focusable links and stay that way on purpose

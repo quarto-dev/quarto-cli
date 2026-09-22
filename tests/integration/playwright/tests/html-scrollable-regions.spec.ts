@@ -83,6 +83,18 @@ test.describe("scrollable regions at a mobile viewport", () => {
     await expect(withLink).not.toHaveAttribute("data-quarto-scrollable");
   });
 
+  test("a region whose only control is disabled still gets a tab stop", async ({
+    page,
+  }) => {
+    // A disabled button is not in the tab order, so nothing else makes this
+    // region reachable — it must not be mistaken for a region the user can
+    // already tab into.
+    const disabled = page.locator("#disabled-control .cell-output-display");
+    await expect(disabled.locator("button[disabled]")).toHaveCount(1);
+    await expect(disabled).toHaveAttribute("tabindex", "0");
+    await expect(disabled).toHaveAttribute("aria-label", "Scrollable output");
+  });
+
   test("visually-hidden code alternative does not become an invisible tab stop", async ({
     page,
   }) => {

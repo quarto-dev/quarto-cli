@@ -56,6 +56,21 @@ A region the user can already tab into must not gain a second tab stop.
 :::
 ::::
 
+## Output whose only control is disabled {#disabled-control}
+
+A disabled control is not in the tab order, so it cannot make the region
+reachable and the region still needs a tab stop of its own.
+
+:::: {.cell}
+::: {.cell-output-display}
+
+| Sepal.Length | Sepal.Width | Petal.Length | Petal.Width | Species | Observer | Action |
+|-------------:|------------:|-------------:|------------:|:--------|:---------|:-------|
+|          5.1 |         3.5 |          1.4 |         0.2 | setosa  | RAF      | <button disabled>Edit</button> |
+
+:::
+::::
+
 ## Numbered code block {#numbered}
 
 Pandoc emits a focusable fragment link per numbered line. Those links cannot
