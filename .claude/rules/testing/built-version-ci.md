@@ -20,7 +20,7 @@ For a one-line YAML edit, the invariants below and the document map are enough.
 
 Invariants when editing:
 
-- Playwright and ff-matrix legs in `test-smokes-built.yml` must check both the source mode and `github.event.inputs.buckets == ''`.
+- Playwright and ff-matrix legs in `test-smokes-built.yml` must check both `needs.resolve-mode.outputs.mode` and `github.event.inputs.buckets == ''`.
 - `test-ff-matrix.yml` owns the ff-matrix bucket glob.
 - Scheduler jobs in `test-smokes-built.yml` set per-leg OS scope through their `runners:` inputs.
 - Keep the per-call suffix in `test-ff-matrix.yml`'s concurrency group so sibling calls cannot cancel one another.
