@@ -183,60 +183,140 @@ export function assertTestBinary(bin: string) {
   checkedBinary = bin;
 }
 
+// Outcome of a process-tree kill attempt. `cancelled` is true only when
+// every signalled node was positively enumerated: any spawn throw, a
+// non-zero/unparseable pgrep result, a non-zero taskkill exit, or a
+// Deno.kill failure other than NotFound leaves it false. This fail-safe
+// default is the point: an implementer who forgets a branch gets "fatal",
+// not "silently continue beside a possible orphan".
+interface KillOutcome {
+  cancelled: boolean;
+  detail: string;
+}
+
 // The launcher waits on Deno, so kill the process tree deepest first.
-async function killProcessTree(pid: number) {
+async function killProcessTree(pid: number): Promise<KillOutcome> {
   if (isWindows) {
-    let killed = false;
     try {
-      // taskkill reports failure through its exit code.
+      // taskkill reports failure through its exit code; outputSync-style
+      // Deno.Command does not throw on a non-zero exit, only on a spawn
+      // failure, so the exit code is the only reliable signal here.
       const result = await new Deno.Command("taskkill", {
         args: ["/PID", String(pid), "/T", "/F"],
         stdout: "null",
-        stderr: "null",
+        stderr: "piped",
       }).output();
-      killed = result.code === 0;
-    } catch {
-      // Fall through to a direct kill.
-    }
-    if (!killed) {
-      // Ensure child.output() can resolve even if the tree kill failed.
+      if (result.code === 0) {
+        return {
+          cancelled: true,
+          detail: `taskkill /T /F pid ${pid} exited 0`,
+        };
+      }
+      // taskkill did not confirm the tree. Still attempt to unblock
+      // child.output() by killing the launcher directly, but this reaches
+      // only the launcher, not its descendants, so the outcome stays
+      // unconfirmed regardless of whether this fallback succeeds.
       try {
         Deno.kill(pid, "SIGKILL");
       } catch {
         // already exited
       }
+      const stderrText = new TextDecoder().decode(result.stderr).trim();
+      return {
+        cancelled: false,
+        detail: `taskkill /T /F pid ${pid} exited ${result.code}: ${stderrText}`,
+      };
+    } catch (e) {
+      try {
+        Deno.kill(pid, "SIGKILL");
+      } catch {
+        // already exited
+      }
+      return {
+        cancelled: false,
+        detail: `taskkill /T /F pid ${pid} failed to spawn: ${String(e)}`,
+      };
     }
-    return;
   }
+
+  // Unix: enumerate with pgrep -P (Linux and macOS/BSD), classifying each
+  // invocation by exit code rather than by whether it threw -- outputSync()
+  // does not throw on a non-zero exit. Exit 0 with parseable stdout or
+  // exit 1 (a genuine childless leaf) are the only enumerated outcomes; a
+  // spawn throw, any other exit code, or unparseable stdout forces the
+  // aggregate `cancelled` to false without aborting the walk (still signal
+  // every pid already collected).
   const pids: number[] = [];
   const stack = [pid];
+  let confirmed = true;
+  let unconfirmedDetail = "";
   while (stack.length > 0) {
     const current = stack.pop()!;
     pids.push(current);
+
+    let spawnFailed = false;
+    let code = -1;
+    let stdoutText = "";
+    let stderrText = "";
     try {
-      // pgrep -P works on Linux and macOS/BSD.
       const result = new Deno.Command("pgrep", {
         args: ["-P", String(current)],
         stdout: "piped",
-        stderr: "null",
+        stderr: "piped",
       }).outputSync();
-      const children = new TextDecoder()
-        .decode(result.stdout)
-        .split("\n")
-        .map((line) => parseInt(line.trim(), 10))
-        .filter((child) => !isNaN(child));
-      stack.push(...children);
-    } catch {
-      // pgrep unavailable; fall back to killing what we have
+      code = result.code;
+      stdoutText = new TextDecoder().decode(result.stdout);
+      stderrText = new TextDecoder().decode(result.stderr);
+    } catch (e) {
+      spawnFailed = true;
+      stderrText = String(e);
     }
+
+    if (spawnFailed) {
+      confirmed = false;
+      unconfirmedDetail = `pgrep -P ${current} failed to spawn: ${stderrText}`;
+      continue;
+    }
+    if (code === 1) {
+      // No children matched: a genuine leaf, nothing to push.
+      continue;
+    }
+    if (code !== 0) {
+      // Usage (2) or internal (3) error: enumeration unreliable.
+      confirmed = false;
+      unconfirmedDetail = `pgrep -P ${current} exited ${code}: ${stderrText.trim()}`;
+      continue;
+    }
+    const lines = stdoutText.split("\n").map((line) => line.trim()).filter((
+      line,
+    ) => line.length > 0);
+    const children = lines.map((line) => parseInt(line, 10));
+    if (children.some((child) => isNaN(child))) {
+      confirmed = false;
+      unconfirmedDetail =
+        `pgrep -P ${current} produced unparseable output: ${stdoutText.trim()}`;
+    }
+    stack.push(...children.filter((child) => !isNaN(child)));
   }
+
+  let signalled = 0;
   for (const target of pids.reverse()) {
     try {
       Deno.kill(target, "SIGKILL");
-    } catch {
-      // already exited
+      signalled++;
+    } catch (e) {
+      if (!(e instanceof Deno.errors.NotFound)) {
+        confirmed = false;
+        unconfirmedDetail = `kill pid ${target} failed: ${String(e)}`;
+      }
     }
   }
+  return {
+    cancelled: confirmed,
+    detail: confirmed
+      ? `signalled ${signalled} pid(s) from root ${pid}`
+      : (unconfirmedDetail || `could not confirm process tree from root ${pid}`),
+  };
 }
 
 export interface RunQuartoOptions {
@@ -262,6 +342,30 @@ export interface RunQuartoResult {
   stderrTail?: string;
 }
 
+// A render timeout, discriminated from a plain failure so a caller can tell
+// whether the render is known to have been stopped.
+export class QuartoTimeoutError extends Error {
+  constructor(
+    message: string,
+    readonly timeoutMs: number,
+    // True only when the render is known to have been stopped. Dev mode
+    // races a timer against an in-process render it cannot cancel, so it is
+    // always false there; binary mode sets it from the process-tree kill
+    // outcome.
+    readonly renderCancelled: boolean,
+    // Platform detail of the kill attempt, including the child pid.
+    // Undefined in dev mode, which attempts no kill.
+    readonly killDetail?: string,
+  ) {
+    super(message);
+    this.name = "QuartoTimeoutError";
+  }
+}
+
+export function isQuartoTimeoutError(e: unknown): e is QuartoTimeoutError {
+  return e instanceof QuartoTimeoutError;
+}
+
 // Dispatch to the in-process dev sources or the configured built binary.
 export async function runQuarto(
   args: string[],
@@ -281,7 +385,17 @@ async function runDevQuarto(
   const timeoutMs = options.timeoutMs ?? kDefaultRenderTimeoutMs;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_resolve, reject) => {
-    timer = setTimeout(reject, timeoutMs, `timed out after ${timeoutMs}ms`);
+    timer = setTimeout(
+      reject,
+      timeoutMs,
+      new QuartoTimeoutError(
+        `timed out after ${timeoutMs}ms`,
+        timeoutMs,
+        // Dev mode never attempts a kill: it can never cancel an
+        // in-process render, only lose the race below.
+        false,
+      ),
+    );
   });
   try {
     await Promise.race([quarto(args, undefined, options.env), timeout]);
@@ -290,9 +404,10 @@ async function runDevQuarto(
       clearTimeout(timer);
     }
   }
-  // quarto() either resolves or rejects: on CommandError or commandFailed()
-  // it calls exitWithCleanup(1), which Deno.exits the whole test process
-  // before this function could return a failure code anyway.
+  // quarto() calls exitWithCleanup(1), which Deno.exits the whole test
+  // process, only for a CommandError (Cliffy argument parsing) or
+  // commandFailed() (set only by the add/remove commands, never render).
+  // A render failure is neither, so it rejects out of quarto() instead.
   return { timedOut: false };
 }
 
@@ -335,15 +450,33 @@ async function runBinaryQuarto(
   }).spawn();
 
   let timedOut = false;
+  let killPromise: Promise<KillOutcome> | undefined;
   const timer = setTimeout(() => {
     timedOut = true;
-    // child.output() resolves after the kill; avoid an unhandled rejection.
-    killProcessTree(child.pid).catch(() => {});
+    killPromise = killProcessTree(child.pid);
   }, timeoutMs);
 
   // Drain both streams to avoid pipe-buffer deadlocks.
   const output = await child.output();
   clearTimeout(timer);
+
+  // The direct child is known dead at this point (child.output() above
+  // already resolved), but the deno/pandoc descendants it spawned are only
+  // known dead if killOutcome.cancelled is true.
+  let killOutcome: KillOutcome = {
+    cancelled: false,
+    detail: "no timeout occurred",
+  };
+  if (timedOut && killPromise !== undefined) {
+    try {
+      killOutcome = await killPromise;
+    } catch (e) {
+      killOutcome = {
+        cancelled: false,
+        detail: `killProcessTree rejected: ${String(e)}`,
+      };
+    }
+  }
 
   const stderrText = new TextDecoder().decode(output.stderr);
   const stderrTail = stderrText.split("\n").slice(-25).join("\n").trim();
@@ -359,11 +492,36 @@ async function runBinaryQuarto(
     });
   }
 
+  // throwOnFailure: false callers (e.g. testQuartoCmd) get the one
+  // diagnostic for an unconfirmed kill; throwing callers get no log here
+  // (see the QuartoTimeoutError branch below) since a confirmed kill on
+  // this path has no orphan to warn about.
+  if (timedOut && !killOutcome.cancelled && !throwOnFailure) {
+    console.error(
+      `[binary mode] process-tree kill UNCONFIRMED: ${commandLine} ` +
+        `(pid ${child.pid}) timed out after ${timeoutMs}ms; ${killOutcome.detail}. ` +
+        `Descendant quarto/pandoc processes may still be running and writing, ` +
+        `and the caller is continuing anyway, so later failures in this run ` +
+        `may be corruption from the orphan rather than genuine.`,
+    );
+  }
+
   if ((output.code !== 0 || timedOut) && throwOnFailure) {
+    if (timedOut) {
+      const base =
+        `${commandLine} (pid ${child.pid}) timed out after ${timeoutMs}ms`;
+      const message = killOutcome.cancelled
+        ? base
+        : `${base}; process-tree kill UNCONFIRMED: ${killOutcome.detail}`;
+      throw new QuartoTimeoutError(
+        message,
+        timeoutMs,
+        killOutcome.cancelled,
+        killOutcome.detail,
+      );
+    }
     throw new Error(
-      timedOut
-        ? `${commandLine} timed out after ${timeoutMs}ms`
-        : `${commandLine} exited with code ${output.code}\nstderr (tail):\n${stderrTail}`,
+      `${commandLine} exited with code ${output.code}\nstderr (tail):\n${stderrTail}`,
     );
   }
 

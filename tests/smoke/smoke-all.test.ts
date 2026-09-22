@@ -5,7 +5,7 @@
  */
 
 import { expandGlobSync } from "../../src/core/deno/expand-glob.ts";
-import { testQuartoCmd, Verify } from "../test.ts";
+import { testQuartoCmd, unitTest, Verify } from "../test.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 import {
   initState,
@@ -57,7 +57,7 @@ import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.t
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { WalkEntry } from "../../src/deno_ral/fs.ts";
-import { runQuarto } from "../quarto-cmd.ts";
+import { isQuartoTimeoutError, runQuarto } from "../quarto-cmd.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 import { runningInCI } from "../../src/core/ci-info.ts";
 
@@ -412,9 +412,27 @@ const projectFilePromises: Map<string, Promise<void>[]> = new Map();
 // Create an array to hold all the promises for the tests of files
 let testFilesPromises = [];
 
+// Records, keyed by project path, of a project whose pre-render failed
+// (populated in the pre-render pass below).
+const failedProjectPreRenders: Map<string, Error> = new Map();
+
+interface DiscoveredFile {
+  input: string;
+  // deno-lint-ignore no-explicit-any
+  metadata: Record<string, any>;
+  testSpecs: QuartoInlineTestSpec[];
+  projectPath: string | undefined;
+}
+
+// Pass 1 (discovery, no registration). render-project is per-file front
+// matter, not a project-level setting, so a project can mix annotated and
+// unannotated files with the unannotated ones sorting first -- collecting
+// every file before registering (or pre-rendering) any of them is what
+// makes "skip every file of a failed project" achievable at all.
+const discovered: DiscoveredFile[] = [];
 for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
-  
+
   const metadata = input.endsWith("md") // qmd or md
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
@@ -444,24 +462,93 @@ for (const { path: fileName } of files) {
   const projectPath = findRootTestsProjectDir(input);
   if (projectPath) testedProjects.add(projectPath);
 
-  // Render project before testing individual document if required
-  if (
-    (metadata["_quarto"] as any)?.["render-project"] && 
-    projectPath && 
-    !renderedProjects.has(projectPath)
-  ) {
-      // fail-loudly pre-render (throwOnFailure defaults to true);
-      // dispatches to the built binary when QUARTO_TEST_BIN is set
-      await runQuarto(["render", projectPath]);
-      renderedProjects.add(projectPath);
+  discovered.push({ input, metadata, testSpecs, projectPath });
+}
+
+// Pass 1.5 (pre-render). One attempt per distinct project that any
+// collected file marks render-project, ahead of any registration below.
+const projectsNeedingPreRender = new Set<string>();
+for (const entry of discovered) {
+  if ((entry.metadata["_quarto"] as any)?.["render-project"] && entry.projectPath) {
+    projectsNeedingPreRender.add(entry.projectPath);
+  }
+}
+for (const projectPath of projectsNeedingPreRender) {
+  try {
+    // dispatches to the built binary when QUARTO_TEST_BIN is set; a
+    // failure here isolates this project's files (see
+    // failedProjectPreRenders below) rather than aborting the whole file.
+    await runQuarto(["render", projectPath]);
+    renderedProjects.add(projectPath);
+  } catch (err) {
+    // A timeout whose render was not confirmably stopped is fatal: an
+    // uncancelled dev-mode render, or a binary-mode process tree that
+    // could not be confirmed killed, could keep writing into this
+    // project's directory while the rest of the suite -- and the cleanup
+    // block below -- run alongside it.
+    if (isQuartoTimeoutError(err) && !err.renderCancelled) {
+      console.error(
+        `[smoke-all] project pre-render for ${projectPath} timed out after ` +
+          `${err.timeoutMs}ms and the render could not be confirmed stopped` +
+          (err.killDetail ? ` (${err.killDetail})` : "") +
+          `; aborting rather than let a still-running render race the rest ` +
+          `of the suite.`,
+      );
+      throw err;
     }
+    failedProjectPreRenders.set(
+      projectPath,
+      err instanceof Error ? err : new Error(String(err)),
+    );
+  }
+}
+
+// One synthetic failing test per failed project (not per skipped file):
+// one clearly named failure pointing at the cause, rather than N red lines
+// for one root cause.
+for (const [projectPath, error] of failedProjectPreRenders) {
+  unitTest(`smoke-all project pre-render failed: ${projectPath}`, async () => {
+    throw error;
+  });
+}
+
+// Pass 2 (registration).
+for (const entry of discovered) {
+  const { input, metadata, testSpecs, projectPath } = entry;
+
+  if (projectPath && failedProjectPreRenders.has(projectPath)) {
+    console.log(
+      `Skipping tests for ${input}: its project's pre-render failed (${projectPath})`,
+    );
+    // Mirror exactly what this file's own teardown would have pushed to
+    // projectCleanupEntries, so a skipped file lands at exact parity with
+    // a registered one. Only specs that would take the normal `render`
+    // branch push an entry -- the editor-support-crossref branch's
+    // teardown pushes none (it only removes its own temp file), and
+    // synthesizing one would reduce through parseFormatString to base
+    // editor and delete an unrelated html support directory.
+    for (const testSpec of testSpecs) {
+      if (testSpec.format === "editor-support-crossref") {
+        continue;
+      }
+      if (!projectCleanupEntries.has(projectPath)) {
+        projectCleanupEntries.set(projectPath, []);
+      }
+      projectCleanupEntries.get(projectPath)!.push({
+        input,
+        format: testSpec.format,
+        metadata,
+      });
+    }
+    continue;
+  }
 
   const fileTestsPromise = new Promise<void>(async (resolve, reject) => {
     try {
 
       // Create an array to hold all the promises for the testSpecs
       let testSpecPromises = [];
-      
+
       for (const testSpec of testSpecs) {
         const {
           format,
@@ -509,7 +596,7 @@ for (const { path: fileName } of files) {
             testSpecReject(error);
           }
         }));
-          
+
       }
 
       // Wait for all the promises to resolve
