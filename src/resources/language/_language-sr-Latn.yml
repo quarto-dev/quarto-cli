@@ -87,6 +87,12 @@ navigation-toolbar-label: "Traka alata"  # gnome gtk sr@latin
 navigation-page-label: "Stranica"        # libreoffice sw
 navigation-breadcrumbs-label: "Putanja"  # libreoffice sw 'Path' (no attested term) — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+# No attested "scrollable" here; uses "sa pomeranjem" (with scrolling).
+scrollable-code-label: "Kod sa pomeranjem"      # derived + code-summary — assembled, needs review
+scrollable-output-label: "Izlaz sa pomeranjem"  # derived + gnome control-center — assembled, needs review
+
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabela"
 crossref-lst-title: "Lista"

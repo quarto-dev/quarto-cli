@@ -90,6 +90,11 @@ navigation-toolbar-label: "Pasek narzędzi"       # wikidata Q371434
 navigation-page-label: "Strona"                  # libreoffice sw
 navigation-breadcrumbs-label: "Okruszki chleba"  # wikidata Q846205
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Przewijany kod"        # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Przewijane wyjście"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Rysunek"
 crossref-tbl-title: "Tabela"
 crossref-lst-title: "Wykaz"

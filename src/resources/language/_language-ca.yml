@@ -90,6 +90,11 @@ navigation-toolbar-label: "Barra d'eines"  # wikidata Q371434
 navigation-page-label: "Pàgina"            # libreoffice sw
 navigation-breadcrumbs-label: "Camí"       # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Codi desplaçable"       # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Sortida desplaçable"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Taula"
 crossref-lst-title: "Llistat"
