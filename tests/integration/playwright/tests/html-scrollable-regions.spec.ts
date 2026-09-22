@@ -170,6 +170,28 @@ test.describe("scrollable regions at a mobile viewport", () => {
     );
   });
 
+  test("attributes are removed once focus leaves a region that stopped overflowing", async ({
+    page,
+    browserName,
+  }) => {
+    const block = page.locator("#wide-code div.sourceCode");
+    expect(await tabUntilFocused(page, browserName, block)).toBe(true);
+
+    // Widening clears every other region, but cleanup deliberately skips the
+    // focused one rather than pulling tabindex out mid-interaction.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(page.locator("[data-quarto-scrollable]")).toHaveCount(1);
+    await expect(block).toHaveAttribute("tabindex", "0");
+
+    // Focus leaving is what releases it; without the focusout re-sync the
+    // attributes would sit stale until some later, unrelated resize.
+    await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
+    await expect(page.locator("[data-quarto-scrollable]")).toHaveCount(0);
+    await expect(block).not.toHaveAttribute("tabindex");
+    await expect(block).not.toHaveAttribute("role");
+    await expect(block).not.toHaveAttribute("aria-label");
+  });
+
   test("code block inside <details> is focusable once opened", async ({
     page,
     browserName,

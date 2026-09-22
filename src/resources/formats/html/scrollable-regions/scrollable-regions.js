@@ -99,6 +99,29 @@ export function hasUsableSize(el) {
   return el.clientWidth > 1 && el.clientHeight > 1;
 }
 
+// Cleanup is skipped while a region has focus, so attributes never come out
+// from under the user mid-interaction. Nothing else would rerun it afterwards
+// though, so a region that stopped overflowing while focused would stay a tab
+// stop until the next unrelated resize. A one-shot `focusout` listener closes
+// that gap, and the set keeps repeated syncs from stacking listeners on the
+// same element.
+const kPendingFocusOut = new WeakSet();
+
+function resyncWhenFocusLeaves(el, labels) {
+  if (kPendingFocusOut.has(el)) {
+    return;
+  }
+  kPendingFocusOut.add(el);
+  el.addEventListener(
+    "focusout",
+    () => {
+      kPendingFocusOut.delete(el);
+      syncScrollableRegions(labels);
+    },
+    { once: true }
+  );
+}
+
 function labelFor(el, labels) {
   if (el.matches(".cell-output-display") || el.closest(".cell-output")) {
     return labels.output;
@@ -130,10 +153,11 @@ export function syncScrollableRegions(labels) {
         el.setAttribute("aria-label", labelFor(el, labels));
         el.setAttribute(kMarker, "");
       }
-    } else if (
-      !isScrollable(el, getComputedStyle(el)) &&
-      el !== document.activeElement
-    ) {
+    } else if (!isScrollable(el, getComputedStyle(el))) {
+      if (el === document.activeElement) {
+        resyncWhenFocusLeaves(el, labels);
+        continue;
+      }
       el.removeAttribute("tabindex");
       el.removeAttribute("role");
       el.removeAttribute("aria-label");
