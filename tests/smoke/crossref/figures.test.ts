@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { isMac } from "../../../src/deno_ral/platform.ts";
 import { ensureFileRegexMatches, ensureHtmlElements } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
 import { crossref } from "./utils.ts";
@@ -62,6 +63,10 @@ testRender(pythonSubfigQmd.input, "html", false, [
   ]),
 ]);
 
+// GR launches its gksqt GUI from julia-engine workers on macOS, which hangs
+// or crashes Plots renders on headless CI runners.
+const juliaPlotsContext = { ignore: isMac };
+
 for (const file of ["julia.qmd", "julianative.qmd"]) {
   const juliaQmd = crossref(file, "html");
   testRender(juliaQmd.input, "html", false, [
@@ -75,7 +80,7 @@ for (const file of ["julia.qmd", "julianative.qmd"]) {
     ], [
       /\?@fig-/,
     ]),
-  ]);
+  ], juliaPlotsContext);
 }
 
 for (const file of ["julia-subfig.qmd", "julianative-subfig.qmd"]) {
@@ -94,7 +99,7 @@ for (const file of ["julia-subfig.qmd", "julianative-subfig.qmd"]) {
     ], [
       /\?@fig-/,
     ]),
-  ]);
+  ], juliaPlotsContext);
 }
 
 const knitrQmd = crossref("knitr.qmd", "html");
