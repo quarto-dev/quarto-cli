@@ -78,11 +78,27 @@ if [[ -n "$QUARTO_TEST_BIN" ]]; then
     echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) does not exist or is not executable"
     exit 1
   fi
-  # Strip dev paths while probing the installed binary.
-  QUARTO_TEST_BIN_VERSION="$(env -u QUARTO_SHARE_PATH -u QUARTO_BIN_PATH \
-    -u QUARTO_DEBUG -u DENO_DIR -u QUARTO_DENO -u QUARTO_DENO_DOM \
-    -u QUARTO_ROOT -u QUARTO_SRC_PATH -u QUARTO_FORCE_VERSION \
-    "$QUARTO_TEST_BIN" --version 2>/dev/null)"
+  # Strip dev paths while probing the installed binary. Shared list, see
+  # tests/binary-mode-strip-env.txt (also read by quarto-cmd.ts and run-tests.ps1).
+  strip_env_file="$SCRIPT_PATH/binary-mode-strip-env.txt"
+  if [[ ! -f "$strip_env_file" ]]; then
+    echo "ERROR: strip-env list file not found: $strip_env_file"
+    exit 1
+  fi
+  strip_args=()
+  while IFS=$' \t\r' read -r name || [[ -n "$name" ]]; do
+    [[ -z "$name" || "$name" == \#* ]] && continue
+    if [[ ! "$name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+      echo "ERROR: strip-env list file contains an invalid variable name: $name"
+      exit 1
+    fi
+    strip_args+=(-u "$name")
+  done < "$strip_env_file"
+  if [[ "${#strip_args[@]}" -eq 0 ]]; then
+    echo "ERROR: strip-env list file yielded no variable names: $strip_env_file"
+    exit 1
+  fi
+  QUARTO_TEST_BIN_VERSION="$(env "${strip_args[@]}" "$QUARTO_TEST_BIN" --version 2>/dev/null)"
   QUARTO_TEST_BIN_PROBE_EXIT=$?
   if [[ $QUARTO_TEST_BIN_PROBE_EXIT -ne 0 ]]; then
     echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) exited with code $QUARTO_TEST_BIN_PROBE_EXIT while reporting its version."

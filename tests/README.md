@@ -484,6 +484,7 @@ Don't do
 Tests normally run Quarto in-process from the dev sources.
 Set `QUARTO_TEST_BIN` to an installed Quarto to run commands against that binary instead.
 See [Built-Version Testing Architecture](../llm-docs/built-version-testing-architecture.md) for the harness and CI design.
+The environment variables stripped from a binary-mode spawn are tracked in `binary-mode-strip-env.txt`, one name per line — shared by `quarto-cmd.ts` and both `run-tests.[sh|ps1]` preflight probes.
 
 To run in binary mode locally:
 

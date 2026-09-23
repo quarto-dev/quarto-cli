@@ -15,24 +15,31 @@ import { join } from "../src/deno_ral/path.ts";
 
 // Strip dev-tree and logging state from built-binary spawns. Other ambient
 // variables are inherited, then the per-test environment is applied.
-const kStripEnvVars = [
-  "QUARTO_SHARE_PATH",
-  "QUARTO_BIN_PATH",
-  "QUARTO_DEBUG",
-  "DENO_DIR",
-  "QUARTO_DENO",
-  "QUARTO_DENO_DOM",
-  "QUARTO_ROOT",
-  "QUARTO_SRC_PATH",
-  "QUARTO_FORCE_VERSION",
-  "QUARTO_VERSION_REQUIREMENT",
-  "QUARTO_PROJECT_DIR",
-  "QUARTO_PROFILE",
-  "QUARTO_LOG",
-  "QUARTO_LOG_LEVEL",
-  "QUARTO_LOG_FORMAT",
-  "RSTUDIO",
-];
+// The list lives in tests/binary-mode-strip-env.txt, shared with the
+// QUARTO_TEST_BIN preflight probe in run-tests.sh and run-tests.ps1.
+const kNameRe = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+function parseStripEnvVars(text: string, path: string): string[] {
+  const names = text
+    .split("\n")
+    .map((line) => line.replace(/\r$/, "").trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
+  if (names.length === 0) {
+    throw new Error(`${path} yielded no variable names`);
+  }
+  for (const name of names) {
+    if (!kNameRe.test(name)) {
+      throw new Error(`${path} contains an invalid variable name: ${name}`);
+    }
+  }
+  return names;
+}
+
+const kStripEnvVarsUrl = new URL("binary-mode-strip-env.txt", import.meta.url);
+export const stripEnvVars = parseStripEnvVars(
+  Deno.readTextFileSync(kStripEnvVarsUrl),
+  kStripEnvVarsUrl.pathname,
+);
 
 // std/log LogLevels.ERROR, as expected by readExecuteOutput().
 const kErrorLevel = 40;
@@ -60,14 +67,24 @@ export function quartoDevBinCmd(): string {
   return join(binPath, isWindows ? "quarto.cmd" : "quarto");
 }
 
-export function buildBinaryEnv(
+// Pure core of buildBinaryEnv(): clones ambient/overlay before mutating,
+// so neither input is modified. Names on the strip list are removed first;
+// overlay is applied afterwards and may reintroduce a stripped name.
+export function sanitizeBinaryEnv(
+  ambient: Record<string, string>,
   overlay?: Record<string, string>,
 ): Record<string, string> {
-  const env = Deno.env.toObject();
-  for (const name of kStripEnvVars) {
+  const env = { ...ambient };
+  for (const name of stripEnvVars) {
     delete env[name];
   }
   return { ...env, ...(overlay ?? {}) };
+}
+
+export function buildBinaryEnv(
+  overlay?: Record<string, string>,
+): Record<string, string> {
+  return sanitizeBinaryEnv(Deno.env.toObject(), overlay);
 }
 
 // Sanitize direct subprocess spawns in binary mode. Dev-mode spawns inherit

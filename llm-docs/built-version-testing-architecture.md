@@ -1,8 +1,9 @@
 ---
-main_commit: 97f222ff3
-analyzed_date: 2026-09-21
+main_commit: 3d32aedb1
+analyzed_date: 2026-09-23
 key_files:
   - tests/quarto-cmd.ts
+  - tests/binary-mode-strip-env.txt
   - tests/test.ts
   - tests/run-tests.sh
   - tests/run-tests.ps1
@@ -234,9 +235,12 @@ CI extracts artifacts to `RUNNER_TEMP`.
 
 ### D4. Child env: inherit ambient + strip dev vars (not clearEnv+allowlist)
 
-Binary-mode spawns inherit the ambient environment minus a strip list (`QUARTO_SHARE_PATH`, `QUARTO_BIN_PATH`, `DENO_DIR`, `QUARTO_DEBUG`, `QUARTO_FORCE_VERSION`, ...), with `TestContext.env` overlaid last.
+Binary-mode spawns inherit the ambient environment minus a strip list, with `TestContext.env` overlaid last.
+The list (16 names, `QUARTO_SHARE_PATH`, `QUARTO_BIN_PATH`, `DENO_DIR`, `QUARTO_DEBUG`, `QUARTO_FORCE_VERSION`, ...) lives in one tracked file, `tests/binary-mode-strip-env.txt`, read at runtime by `quarto-cmd.ts`'s `buildBinaryEnv()`/`sanitizeBinaryEnv()` and by the `QUARTO_TEST_BIN` preflight probe in both `run-tests.sh` and `run-tests.ps1` — a single source of truth for what must not leak into a built-binary spawn, at either the probe or every subsequent test command.
 A `clearEnv` allowlist was rejected because the required Windows system variables (`SystemRoot`, `PATHEXT`, and others) are difficult to maintain reliably.
 The dev-tree exports in `run-tests.[sh|ps1]` are kept in all modes — the *harness* process still needs them; only the *child* is sanitized.
+All three readers fail closed (missing/unreadable/empty file, or a malformed entry) rather than silently stripping nothing.
+No CI check exercises the strip list's actual *effect*: the `--version` probe in `run-tests.[sh|ps1]` and `assertTestBinary()` is served by a launcher-level shortcut (`package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`) that prints the version and exits without invoking Deno at all, so no environment variable — including `QUARTO_VERSION_REQUIREMENT` — can ever change that probe's outcome. A CI guard built on setting `QUARTO_VERSION_REQUIREMENT` and expecting the probe to fail (or keep succeeding) was considered and dropped for this reason; it would have been dead code regardless of whether a reader correctly stripped the variable.
 
 ### D5. Silent-green guard: synthetic ERROR records
 
