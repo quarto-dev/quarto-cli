@@ -416,6 +416,26 @@ const projectCleanupEntries: Map<
   string,
   Array<{ input: string; format: string; metadata: Record<string, any> }>
 > = new Map();
+
+function addProjectCleanupEntry(
+  projectPath: string,
+  input: string,
+  format: string,
+  // deno-lint-ignore no-explicit-any
+  metadata: Record<string, any>,
+) {
+  // editor-support-crossref creates no project cleanup entry; adding one
+  // would resolve its base format to editor and could delete an unrelated
+  // HTML support directory.
+  if (format === "editor-support-crossref") {
+    return;
+  }
+  if (!projectCleanupEntries.has(projectPath)) {
+    projectCleanupEntries.set(projectPath, []);
+  }
+  projectCleanupEntries.get(projectPath)!.push({ input, format, metadata });
+}
+
 // The promise for each file's tests, grouped by the project it belongs to, so
 // we know when a given project's own files are all done (see above).
 const projectFilePromises: Map<string, Promise<void>[]> = new Map();
@@ -521,21 +541,8 @@ for (const entry of discovered) {
       `Skipping tests for ${input}: its project's pre-render failed (${projectPath})`,
     );
     // Add the cleanup entries that this file's teardown would have added.
-    // editor-support-crossref creates no project cleanup entry; adding one
-    // would resolve its base format to editor and could delete an unrelated
-    // HTML support directory.
     for (const testSpec of testSpecs) {
-      if (testSpec.format === "editor-support-crossref") {
-        continue;
-      }
-      if (!projectCleanupEntries.has(projectPath)) {
-        projectCleanupEntries.set(projectPath, []);
-      }
-      projectCleanupEntries.get(projectPath)!.push({
-        input,
-        format: testSpec.format,
-        metadata,
-      });
+      addProjectCleanupEntry(projectPath, input, testSpec.format, metadata);
     }
     // Skipped files do not run teardown. Sweep only the custom cleanup paths
     // registered for this input; an unscoped sweep could delete another
@@ -580,10 +587,7 @@ for (const entry of discovered) {
                   // files are cleaned once the whole project is done testing
                   // (see projectCleanupEntries above).
                   if (projectPath) {
-                    if (!projectCleanupEntries.has(projectPath)) {
-                      projectCleanupEntries.set(projectPath, []);
-                    }
-                    projectCleanupEntries.get(projectPath)!.push({ input, format, metadata });
+                    addProjectCleanupEntry(projectPath, input, format, metadata);
                   } else {
                     cleanoutput(input, format, undefined, undefined, metadata);
                   }
