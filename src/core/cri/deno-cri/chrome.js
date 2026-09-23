@@ -286,6 +286,10 @@ export default class Chrome extends EventEmitter {
 
   // handle the messages read from the WebSocket
   _handleMessage(message) {
+    // a dropped connection can deliver a null/empty frame; ignore it
+    if (!message || typeof message !== "object") {
+      return;
+    }
     // command response
     if (message.id) {
       const callback = this._callbacks[message.id];
