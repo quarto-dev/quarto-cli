@@ -97,6 +97,15 @@ jobs:
           # Empty keeps the standard checkout behavior.
           ref: ${{ inputs.ref }}
 
+      # macOS runners boot with an unresolvable `.local` hostname, so any process
+      # resolving its own hostname stalls ~35s (actions/runner-images#14568).
+      - name: Set a resolvable hostname (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          sudo scutil --set HostName gha-runner
+          echo "127.0.0.1 gha-runner" | sudo tee -a /etc/hosts
+
       - name: Fix temp dir to use runner one (windows)
         if: runner.os == 'Windows'
         run: |
