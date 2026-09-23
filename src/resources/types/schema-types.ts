@@ -159,8 +159,68 @@ website:
 };
 
 export type ExternalEngine = {
+  "file-extensions"?:
+    (string)[] /* The file extensions this engine can handle (e.g. `.jl`).
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, where it is a per-engine declaration used to resolve
+input files to engines without loading the engine module. */;
+  "claims-files"?: ((string | {
+    extension: string;
+    processor?: string | {
+      comment?: string;
+      language?: string;
+      name: string;
+    }; /* The content processor that sniffs and converts files
+matching this claim, given either as a bare processor
+name (e.g. `spin`) or as `{ name, language?, comment? }`
+with parameters (e.g.
+`{ name: percent, language: julia }`; `comment`
+defaults to `#`).
+
+Quarto 1 accepts and ignores this property. It is
+reserved for Quarto 2, which runs the named processor
+natively to claim and convert input files without
+loading the engine module. */
+  }))[] /* The files this engine claims, by extension (either a bare
+extension string or `{ extension: <ext> }`, optionally with a
+`processor` naming the content processor that sniffs and
+converts matching files).
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, which uses it to resolve input files to engines
+without loading the engine module. */;
+  claims?: (string)[] | {
+    [key: string]:
+      | ExternalEngineLanguageClaim
+      | (ExternalEngineLanguageClaim)[];
+  } /* The languages this engine claims, keyed by language name
+(e.g. `julia: { kind: primary, priority: 1 }`). The special key
+`fallback` declares a fallback claim for otherwise-unclaimed
+languages. An array of strings (e.g. `claims: [julia]`) is
+shorthand for a primary claim on each.
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, which uses it to resolve code cells to engines without
+loading the engine module. */;
+  name?: string /* Name of the execution engine (e.g. `julia`).
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, which uses it to resolve the engine by name (for
+example from `engine: julia` in document front matter) without
+loading the engine module. */;
   path: string; /* Path to the TypeScript module for the execution engine */
 }; /* An execution engine not pre-loaded in Quarto */
+
+export type ExternalEngineLanguageClaim =
+  | boolean
+  | number
+  | ("primary" | "interop" | "fallback")
+  | {
+    kind?: "primary" | "interop" | "fallback";
+    priority?: number;
+    whenClass?: string;
+  };
 
 export type DocumentCommentsConfiguration = false | {
   giscus?: GiscusConfiguration;
