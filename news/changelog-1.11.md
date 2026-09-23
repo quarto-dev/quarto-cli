@@ -31,6 +31,7 @@ All changes included in 1.11:
 ### `html`
 
 - ([#14684](https://github.com/quarto-dev/quarto-cli/issues/14684)): Add a "Skip to main content" link to Bootstrap-themed HTML output (documents, websites, books, dashboards) so keyboard users can bypass the navbar and sidebars.
+- ([#14939](https://github.com/quarto-dev/quarto-cli/issues/14939)): Fix Plotly figures in a tab that is hidden on page load rendering at Plotly's default width instead of filling the tab when it is shown.
 
 ### `typst`
 

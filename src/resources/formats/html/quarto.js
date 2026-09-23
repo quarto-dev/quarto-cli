@@ -66,12 +66,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   };
 
-  // dispatch for htmlwidgets
-  // they use slideenter event to trigger resize
+  // dispatch for htmlwidgets and other resizable content (e.g. plotly)
+  // htmlwidgets use slideenter event to trigger resize, while plotly listens
+  // for window resize to fit figures drawn while their tab was hidden
   function fireSlideEnter() {
     const event = window.document.createEvent("Event");
     event.initEvent("slideenter", true, true);
     window.document.dispatchEvent(event);
+    window.dispatchEvent(new Event("resize"));
   }
 
   const tabs = window.document.querySelectorAll('a[data-bs-toggle="tab"]');
