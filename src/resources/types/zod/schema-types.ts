@@ -139,8 +139,43 @@ export const ZodGiscusConfiguration = z.object({
   language: z.string(),
 }).strict().partial().required({ repo: true });
 
-export const ZodExternalEngine = z.object({ path: z.string() }).strict()
-  .partial().required({ path: true });
+export const ZodExternalEngine = z.object({
+  path: z.string(),
+  name: z.string(),
+  claims: z.union([
+    z.array(z.string()),
+    z.record(z.union([
+      z.lazy(() => ZodExternalEngineLanguageClaim),
+      z.array(z.lazy(() => ZodExternalEngineLanguageClaim)),
+    ])).and(z.object({}).passthrough().partial()),
+  ]),
+  "file-extensions": z.array(z.string()),
+  "claims-files": z.array(z.union([
+    z.string(),
+    z.object({
+      extension: z.string(),
+      processor: z.union([
+        z.string(),
+        z.object({
+          name: z.string(),
+          language: z.string(),
+          comment: z.string(),
+        }).strict().partial().required({ name: true }),
+      ]),
+    }).strict().partial().required({ extension: true }),
+  ])),
+}).strict().partial().required({ path: true });
+
+export const ZodExternalEngineLanguageClaim = z.union([
+  z.boolean(),
+  z.number(),
+  z.enum(["primary", "interop", "fallback"] as const),
+  z.object({
+    kind: z.enum(["primary", "interop", "fallback"] as const),
+    priority: z.number(),
+    whenClass: z.string(),
+  }).strict().partial(),
+]);
 
 export const ZodDocumentCommentsConfiguration = z.union([
   z.literal(false),
@@ -1926,6 +1961,10 @@ export type GiscusConfiguration = z.infer<typeof ZodGiscusConfiguration>;
 
 export type ExternalEngine = z.infer<typeof ZodExternalEngine>;
 
+export type ExternalEngineLanguageClaim = z.infer<
+  typeof ZodExternalEngineLanguageClaim
+>;
+
 export type DocumentCommentsConfiguration = z.infer<
   typeof ZodDocumentCommentsConfiguration
 >;
@@ -2164,6 +2203,7 @@ export const Zod = {
   GiscusThemes: ZodGiscusThemes,
   GiscusConfiguration: ZodGiscusConfiguration,
   ExternalEngine: ZodExternalEngine,
+  ExternalEngineLanguageClaim: ZodExternalEngineLanguageClaim,
   DocumentCommentsConfiguration: ZodDocumentCommentsConfiguration,
   SocialMetadata: ZodSocialMetadata,
   PageFooterRegion: ZodPageFooterRegion,

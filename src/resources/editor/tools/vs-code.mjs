@@ -8754,6 +8754,92 @@ var require_yaml_intelligence_resources = __commonJS({
                   path: {
                     description: "Path to the TypeScript module for the execution engine"
                   }
+                },
+                name: {
+                  string: {
+                    description: {
+                      short: "Name of the execution engine (accepted and ignored by Quarto 1).",
+                      long: "Name of the execution engine (e.g. `julia`).\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, which uses it to resolve the engine by name (for\nexample from `engine: julia` in document front matter) without\nloading the engine module.\n"
+                    }
+                  }
+                },
+                claims: {
+                  anyOf: [
+                    {
+                      arrayOf: "string"
+                    },
+                    {
+                      object: {
+                        additionalProperties: {
+                          anyOf: [
+                            {
+                              ref: "external-engine-language-claim"
+                            },
+                            {
+                              arrayOf: {
+                                ref: "external-engine-language-claim"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ],
+                  description: {
+                    short: "Languages this engine claims (accepted and ignored by Quarto 1).",
+                    long: "The languages this engine claims, keyed by language name\n(e.g. `julia: { kind: primary, priority: 1 }`). The special key\n`fallback` declares a fallback claim for otherwise-unclaimed\nlanguages. An array of strings (e.g. `claims: [julia]`) is\nshorthand for a primary claim on each.\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, which uses it to resolve code cells to engines without\nloading the engine module.\n"
+                  }
+                },
+                "file-extensions": {
+                  arrayOf: "string",
+                  description: {
+                    short: "File extensions this engine can handle (accepted and ignored by Quarto 1).",
+                    long: "The file extensions this engine can handle (e.g. `.jl`).\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, where it is a per-engine declaration used to resolve\ninput files to engines without loading the engine module.\n"
+                  }
+                },
+                "claims-files": {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        object: {
+                          closed: true,
+                          properties: {
+                            extension: "string",
+                            processor: {
+                              anyOf: [
+                                "string",
+                                {
+                                  object: {
+                                    closed: true,
+                                    properties: {
+                                      name: "string",
+                                      language: "string",
+                                      comment: "string"
+                                    },
+                                    required: [
+                                      "name"
+                                    ]
+                                  }
+                                }
+                              ],
+                              description: {
+                                short: "Content processor for this file claim (accepted and ignored by Quarto 1).",
+                                long: "The content processor that sniffs and converts files\nmatching this claim, given either as a bare processor\nname (e.g. `spin`) or as `{ name, language?, comment? }`\nwith parameters (e.g.\n`{ name: percent, language: julia }`; `comment`\ndefaults to `#`).\n\nQuarto 1 accepts and ignores this property. It is\nreserved for Quarto 2, which runs the named processor\nnatively to claim and convert input files without\nloading the engine module.\n"
+                              }
+                            }
+                          },
+                          required: [
+                            "extension"
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  description: {
+                    short: "Files this engine claims (accepted and ignored by Quarto 1).",
+                    long: "The files this engine claims, by extension (either a bare\nextension string or `{ extension: <ext> }`, optionally with a\n`processor` naming the content processor that sniffs and\nconverts matching files).\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, which uses it to resolve input files to engines\nwithout loading the engine module.\n"
+                  }
                 }
               },
               required: [
@@ -8762,6 +8848,36 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             description: "An execution engine not pre-loaded in Quarto"
           }
+        },
+        {
+          id: "external-engine-language-claim",
+          anyOf: [
+            "boolean",
+            "number",
+            {
+              enum: [
+                "primary",
+                "interop",
+                "fallback"
+              ]
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  kind: {
+                    enum: [
+                      "primary",
+                      "interop",
+                      "fallback"
+                    ]
+                  },
+                  priority: "number",
+                  whenClass: "string"
+                }
+              }
+            }
+          ]
         },
         {
           id: "document-comments-configuration",
@@ -21933,6 +22049,26 @@ var require_yaml_intelligence_resources = __commonJS({
         "The language that should be used when displaying the commenting\ninterface.",
         "An execution engine not pre-loaded in Quarto",
         "Path to the TypeScript module for the execution engine",
+        {
+          short: "Name of the execution engine (accepted and ignored by Quarto 1).",
+          long: "Name of the execution engine (e.g.&nbsp;<code>julia</code>).\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, which uses it to resolve the engine by name (for example from\n<code>engine: julia</code> in document front matter) without loading the\nengine module."
+        },
+        {
+          short: "Languages this engine claims (accepted and ignored by Quarto 1).",
+          long: "The languages this engine claims, keyed by language name\n(e.g.&nbsp;<code>julia: { kind: primary, priority: 1 }</code>). The special\nkey <code>fallback</code> declares a fallback claim for\notherwise-unclaimed languages. An array of strings\n(e.g.&nbsp;<code>claims: [julia]</code>) is shorthand for a primary claim on\neach.\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, which uses it to resolve code cells to engines without loading the\nengine module."
+        },
+        {
+          short: "File extensions this engine can handle (accepted and ignored by\nQuarto 1).",
+          long: "The file extensions this engine can handle\n(e.g.&nbsp;<code>.jl</code>).\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, where it is a per-engine declaration used to resolve input files to\nengines without loading the engine module."
+        },
+        {
+          short: "Files this engine claims (accepted and ignored by Quarto 1).",
+          long: "The files this engine claims, by extension (either a bare extension\nstring or <code>{ extension: &lt;ext&gt; }</code>, optionally with a\n<code>processor</code> naming the content processor that sniffs and\nconverts matching files).\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, which uses it to resolve input files to engines without loading the\nengine module."
+        },
+        {
+          short: "Content processor for this file claim (accepted and ignored by Quarto\n1).",
+          long: "The content processor that sniffs and converts files matching this\nclaim, given either as a bare processor name (e.g.&nbsp;<code>spin</code>) or\nas <code>{ name, language?, comment? }</code> with parameters (e.g.\n<code>{ name: percent, language: julia }</code>; <code>comment</code>\ndefaults to <code>#</code>).\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, which runs the named processor natively to claim and convert input\nfiles without loading the engine module."
+        },
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -25589,12 +25725,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 218300,
+        _internalId: 218377,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 218292,
+            _internalId: 218369,
             type: "enum",
             enum: [
               "png",
@@ -25610,7 +25746,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 218299,
+            _internalId: 218376,
             type: "anyOf",
             anyOf: [
               {
