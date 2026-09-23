@@ -1715,6 +1715,92 @@
               "path": {
                 "description": "Path to the TypeScript module for the execution engine"
               }
+            },
+            "name": {
+              "string": {
+                "description": {
+                  "short": "Name of the execution engine (accepted and ignored by Quarto 1).",
+                  "long": "Name of the execution engine (e.g. `julia`).\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, which uses it to resolve the engine by name (for\nexample from `engine: julia` in document front matter) without\nloading the engine module.\n"
+                }
+              }
+            },
+            "claims": {
+              "anyOf": [
+                {
+                  "arrayOf": "string"
+                },
+                {
+                  "object": {
+                    "additionalProperties": {
+                      "anyOf": [
+                        {
+                          "ref": "external-engine-language-claim"
+                        },
+                        {
+                          "arrayOf": {
+                            "ref": "external-engine-language-claim"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
+              "description": {
+                "short": "Languages this engine claims (accepted and ignored by Quarto 1).",
+                "long": "The languages this engine claims, keyed by language name\n(e.g. `julia: { kind: primary, priority: 1 }`). The special key\n`fallback` declares a fallback claim for otherwise-unclaimed\nlanguages. An array of strings (e.g. `claims: [julia]`) is\nshorthand for a primary claim on each.\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, which uses it to resolve code cells to engines without\nloading the engine module.\n"
+              }
+            },
+            "file-extensions": {
+              "arrayOf": "string",
+              "description": {
+                "short": "File extensions this engine can handle (accepted and ignored by Quarto 1).",
+                "long": "The file extensions this engine can handle (e.g. `.jl`).\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, where it is a per-engine declaration used to resolve\ninput files to engines without loading the engine module.\n"
+              }
+            },
+            "claims-files": {
+              "arrayOf": {
+                "anyOf": [
+                  "string",
+                  {
+                    "object": {
+                      "closed": true,
+                      "properties": {
+                        "extension": "string",
+                        "processor": {
+                          "anyOf": [
+                            "string",
+                            {
+                              "object": {
+                                "closed": true,
+                                "properties": {
+                                  "name": "string",
+                                  "language": "string",
+                                  "comment": "string"
+                                },
+                                "required": [
+                                  "name"
+                                ]
+                              }
+                            }
+                          ],
+                          "description": {
+                            "short": "Content processor for this file claim (accepted and ignored by Quarto 1).",
+                            "long": "The content processor that sniffs and converts files\nmatching this claim, given either as a bare processor\nname (e.g. `spin`) or as `{ name, language?, comment? }`\nwith parameters (e.g.\n`{ name: percent, language: julia }`; `comment`\ndefaults to `#`).\n\nQuarto 1 accepts and ignores this property. It is\nreserved for Quarto 2, which runs the named processor\nnatively to claim and convert input files without\nloading the engine module.\n"
+                          }
+                        }
+                      },
+                      "required": [
+                        "extension"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "description": {
+                "short": "Files this engine claims (accepted and ignored by Quarto 1).",
+                "long": "The files this engine claims, by extension (either a bare\nextension string or `{ extension: <ext> }`, optionally with a\n`processor` naming the content processor that sniffs and\nconverts matching files).\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, which uses it to resolve input files to engines\nwithout loading the engine module.\n"
+              }
             }
           },
           "required": [
@@ -1723,6 +1809,36 @@
         },
         "description": "An execution engine not pre-loaded in Quarto"
       }
+    },
+    {
+      "id": "external-engine-language-claim",
+      "anyOf": [
+        "boolean",
+        "number",
+        {
+          "enum": [
+            "primary",
+            "interop",
+            "fallback"
+          ]
+        },
+        {
+          "object": {
+            "closed": true,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "primary",
+                  "interop",
+                  "fallback"
+                ]
+              },
+              "priority": "number",
+              "whenClass": "string"
+            }
+          }
+        }
+      ]
     },
     {
       "id": "document-comments-configuration",
@@ -18348,12 +18464,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 223022,
+    "_internalId": 223099,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 223014,
+        "_internalId": 223091,
         "type": "enum",
         "enum": [
           "png",
@@ -18369,7 +18485,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 223021,
+        "_internalId": 223098,
         "type": "anyOf",
         "anyOf": [
           {
