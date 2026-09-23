@@ -417,7 +417,7 @@ jobs:
           quarto install tinytex
 
       - name: Install veraPDF for PDF standard validation
-        if: runner.os == 'Linux' && (format('{0}', inputs.buckets) == '' || contains(inputs.buckets, 'pdf-standard'))
+        if: runner.os != 'Windows' && (format('{0}', inputs.buckets) == '' || contains(inputs.buckets, 'pdf-standard'))
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
