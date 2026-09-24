@@ -130,19 +130,22 @@ fi
 if [[ -z $QUARTO_TESTS_FORCE_NO_VENV && -n $QUARTO_TESTS_FORCE_NO_PIPENV ]]; then
   export QUARTO_TESTS_FORCE_NO_VENV=$QUARTO_TESTS_FORCE_NO_PIPENV
 fi
-if [[ -z $QUARTO_TESTS_FORCE_NO_VENV ]]
+QUARTO_VENV_ACTIVATE="${QUARTO_ROOT}/tests/.venv/bin/activate"
+if [[ -z $QUARTO_TESTS_FORCE_NO_VENV && -f $QUARTO_VENV_ACTIVATE ]]
 then
   # Save possible activated virtualenv for later restauration
   OLD_VIRTUAL_ENV=$VIRTUAL_ENV
   if [[ "$VERBOSE_MODE" == "true" ]]; then
     echo "> Activating virtualenv from .venv for Python tests in Quarto"
   fi
-  source "${QUARTO_ROOT}/tests/.venv/bin/activate"
+  source "$QUARTO_VENV_ACTIVATE"
   if [[ "$VERBOSE_MODE" == "true" ]]; then
     echo "> Using Python from $(which python)"
     echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
   fi
   quarto_venv_activated="true"
+elif [[ -z $QUARTO_TESTS_FORCE_NO_VENV && "$VERBOSE_MODE" == "true" ]]; then
+  echo "> No virtualenv found at ${QUARTO_VENV_ACTIVATE}, using Python from PATH"
 fi
 
 SMOKE_ALL_TEST_FILE="./smoke/smoke-all.test.ts"

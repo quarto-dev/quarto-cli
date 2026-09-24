@@ -249,18 +249,21 @@ $DENO_ARGS += $TESTS_TO_RUN
 If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV -and $null -ne $Env:QUARTO_TESTS_FORCE_NO_PIPENV) {
   $Env:QUARTO_TESTS_FORCE_NO_VENV = $Env:QUARTO_TESTS_FORCE_NO_PIPENV
 }
-If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV) {
+$QUARTO_VENV_ACTIVATE = Join-Path $QUARTO_ROOT "tests" ".venv/Scripts/activate.ps1"
+If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV -and (Test-Path $QUARTO_VENV_ACTIVATE)) {
   # Save possible activated virtualenv for later restauration
   $OLD_VIRTUAL_ENV=$VIRTUAL_ENV
   if ($VERBOSE_MODE) {
     Write-Host "> Activating virtualenv from .venv for Python tests in Quarto"
   }
-  . $(Join-Path $QUARTO_ROOT "tests" ".venv/Scripts/activate.ps1")
+  . $QUARTO_VENV_ACTIVATE
   if ($VERBOSE_MODE) {
     Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
     Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
   }
   $quarto_venv_activated = $true
+} elseif ($null -eq $Env:QUARTO_TESTS_FORCE_NO_VENV -and $VERBOSE_MODE) {
+  Write-Host "> No virtualenv found at $QUARTO_VENV_ACTIVATE, using Python from PATH"
 }
 
 
