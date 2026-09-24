@@ -277,9 +277,9 @@ jobs:
               echo "::error::No successful create-release run was found. Provide a run ID or complete a create-release run first."
               exit 1
             fi
-            age_days=$(( ( $(date +%s) - $(date -d "$created_at" +%s) ) / 86400 ))
-            if [ "$age_days" -gt 3 ]; then
-              echo "::error::Latest successful create-release run ${run_id} is ${age_days} days old (${created_at}); the runs listing may be outdated. Provide a run ID explicitly."
+            age_seconds=$(( $(date +%s) - $(date -d "$created_at" +%s) ))
+            if [ "$age_seconds" -gt $(( 3 * 86400 )) ]; then
+              echo "::error::Latest successful create-release run ${run_id} is $(( age_seconds / 86400 )) days old (${created_at}); the runs listing may be outdated. Provide a run ID explicitly."
               exit 1
             fi
           fi
