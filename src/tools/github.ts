@@ -460,6 +460,7 @@ export function summaryClusterBlock(cluster: FailureCluster): string {
   }${count}`;
   let memberList = "";
   if (n > 1) {
+    // Members match only on the signature lines, so later output can differ.
     memberList = "\n" + cluster.members
       .map((m) =>
         `- ${m.label} · <code>${htmlEscape(m.file)}</code> (<code>${
@@ -467,7 +468,7 @@ export function summaryClusterBlock(cluster: FailureCluster): string {
         }</code>)`
       )
       .join("\n") +
-      "\n";
+      `\n\nExcerpt from ${first.label}. Other tests share only its first lines; see the step log for each failure.\n`;
   }
   const body = htmlEscape(`${first.repro}\n\n${cluster.excerpt}`);
   return `\n#### ${cluster.label}\n\n<details><summary>${summaryLabel}</summary>\n${memberList}\n<pre>\n${body}\n</pre>\n</details>\n\n`;

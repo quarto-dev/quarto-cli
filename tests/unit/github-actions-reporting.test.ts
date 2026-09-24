@@ -780,6 +780,40 @@ unitTest(
 );
 
 // deno-lint-ignore require-await
+unitTest(
+  "gha-reporting - multi-member cluster discloses whose excerpt is shown",
+  async () => {
+    const member = (label: string, file: string) => ({
+      label,
+      file,
+      testName: file,
+      repro: `./run-tests.sh ${file}`,
+    });
+    const multi = summaryClusterBlock({
+      label: "L-F3",
+      members: [member("L-F3", "a.qmd"), member("L-F9", "b.qmd")],
+      excerpt: "shared boom",
+    });
+    assert(
+      multi.includes(
+        "Excerpt from L-F3. Other tests share only its first lines; " +
+          "see the step log for each failure.",
+      ),
+      "multi-member block names the excerpt's source and points to the log",
+    );
+    const single = summaryClusterBlock({
+      label: "L-F1",
+      members: [member("L-F1", "a.qmd")],
+      excerpt: "boom",
+    });
+    assert(
+      !single.includes("Excerpt from"),
+      "single-member block has no disclosure",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
 unitTest("gha-reporting - escaping of hostile test names", async () => {
   assertEquals(escapeData("a%b\nc\rd"), "a%25b%0Ac%0Dd");
   assertEquals(escapeProperty("a%b:c,d\ne"), "a%25b%3Ac%2Cd%0Ae");

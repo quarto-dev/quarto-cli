@@ -85,7 +85,9 @@ Each failure contributes:
 Rows are written immediately. Detail blocks are buffered until the file's
 `unload` event because GitHub-flavored Markdown ends a table at the first
 non-row line. Failures with the same first three non-empty excerpt lines share
-one detail block. `pendingClusters` is a module-level map, and Deno gives each
+one detail block. The block renders only the first member's excerpt and says
+so, because later lines (for `noErrorsOrWarnings`, the stack and any further
+messages) can differ; the step log stays the complete record. `pendingClusters` is a module-level map, and Deno gives each
 test-file execution its own module graph, so this clustering only merges
 failures within one module instance, not across the step.
 
