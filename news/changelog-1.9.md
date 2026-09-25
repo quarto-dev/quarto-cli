@@ -178,7 +178,7 @@ All changes included in 1.9:
 
 ### `call build-ts-extension`
 
-- (): New `quarto call build-ts-extension` command builds a TypeScript extension, such as an engine extension, and places the artifacts in the `_extensions` directory. See the [engine extension pre-release documentation](https://prerelease.quarto.org/docs/extensions/engine.html) for details.
+- ([#13718](https://github.com/quarto-dev/quarto-cli/pull/13718)): New `quarto call build-ts-extension` command builds a TypeScript extension, such as an engine extension, and places the artifacts in the `_extensions` directory. See the [engine extension pre-release documentation](https://prerelease.quarto.org/docs/extensions/engine.html) for details.
 
 ### `install`
 
