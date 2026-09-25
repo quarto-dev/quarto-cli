@@ -179,3 +179,63 @@ quarto.doc.crossref = {}
 
 ---@type table[]
 quarto.doc.crossref.categories = {}
+
+--[[
+Format the sub-reference number (e.g. `(a)`) for a multi-part figure or table entry.
+]]
+---@param order table Order table for the entry (as recorded in the crossref index)
+---@return pandoc.Inlines
+function quarto.doc.crossref.subrefNumber(order) end
+
+--[[
+Read a crossref option (e.g. `fig-prefix`), falling back to the given default.
+
+Equivalent to `readOption()` scoped to the document's `crossref` metadata.
+]]
+---@param name string Option name (without the `crossref` prefix)
+---@param default any Default value if the option is not set
+---@return any
+function quarto.doc.crossref.crossrefOption(name, default) end
+
+--[[
+Compute the reference prefix (e.g. `Figure`) for a crossref type.
+]]
+---@param type string Crossref type key (e.g. `fig`, `tbl`, `eq`)
+---@param upper? boolean Capitalize the first letter of the prefix
+---@return pandoc.Inlines
+function quarto.doc.crossref.refPrefix(type, upper) end
+
+--[[
+The delimiter used between multiple cross-references in a single `@ref` (e.g. `,`).
+]]
+---@return pandoc.Inlines
+function quarto.doc.crossref.refDelim() end
+
+--[[
+Whether cross references should be rendered as hyperlinks (the `ref-hyperlink` option).
+]]
+---@return boolean
+function quarto.doc.crossref.refHyperlink() end
+
+--[[
+Format the number (or letter) displayed for a cross-referenced entry.
+
+For `type == "sec"`, returns the section number, accounting for appendix
+lettering when the entry's section falls in the appendix range.
+]]
+---@param type string Crossref type key (e.g. `sec`, `fig`, `tbl`)
+---@param entry table Crossref index entry (carries `order` and, for sections, `appendix`)
+---@return pandoc.Inlines
+function quarto.doc.crossref.refNumberOption(type, entry) end
+
+--[[
+Render a cross-referenced equation (`eq`) for the current output format.
+
+The `alt` parameter is only used for Typst output (accessibility).
+]]
+---@param eq pandoc.Math Equation node
+---@param label string Element id/label to attach
+---@param alt string|nil Accessible alt text (Typst only)
+---@param order table Order table for the entry (as recorded in the crossref index)
+---@return pandoc.Inlines
+function quarto.doc.crossref.renderEquation(eq, label, alt, order) end

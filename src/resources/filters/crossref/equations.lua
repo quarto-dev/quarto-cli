@@ -146,6 +146,10 @@ function renderEquation(eq, label, alt, order)
   return result
 end
 
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
+quarto.doc.crossref.renderEquation = renderEquation
+
 function eqTag(eq)
   return "\\tag{" .. eq .. "}"
 end

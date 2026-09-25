@@ -52,6 +52,10 @@ function subrefNumber(order)
   return numberOption("subref", order,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
 end
 
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
+quarto.doc.crossref.subrefNumber = subrefNumber
+
 function prependSubrefNumber(captionContent, order)
   if not _quarto.format.isLatexOutput() and not _quarto.format.isAsciiDocOutput() then
     if #inlinesToString(captionContent) > 0 then
@@ -95,20 +99,32 @@ function refPrefix(type, upper)
   return prefix
 end
 
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
+quarto.doc.crossref.refPrefix = refPrefix
+
 function refDelim()
   return crossrefOption("ref-delim", stringToInlines(","))
 end
 
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
+quarto.doc.crossref.refDelim = refDelim
+
 function refHyperlink()
   return crossrefOption("ref-hyperlink", true)
 end
+
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
+quarto.doc.crossref.refHyperlink = refHyperlink
 
 function refNumberOption(type, entry)
 
   -- for sections just return the section levels
   if type == "sec" then
     local num = nil
-    if entry.appendix then
+    if entry.appendix and crossref.startAppendix ~= nil then
       num = string.char(64 + entry.order.section[1] - crossref.startAppendix + 1)
     elseif crossrefOption("chapters", false) then
       num = tostring(entry.order.section[1])
@@ -119,6 +135,10 @@ function refNumberOption(type, entry)
   -- handle other ref types
   return formatNumberOption(type, entry.order)
 end
+
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
+quarto.doc.crossref.refNumberOption = refNumberOption
 
 
 function numberOption(type, order, default)

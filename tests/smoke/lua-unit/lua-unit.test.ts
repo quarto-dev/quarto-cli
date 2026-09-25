@@ -26,6 +26,8 @@ import { unitTest } from "../../test.ts";
 
 // Explicit list, relative to tests/unit-lua/. Keep alphabetized.
 const LUA_TESTS: string[] = [
+  "crossref-exports.test.lua",
+  "crossref-numbering.test.lua",
   "mediabag.test.lua",
   "path.test.lua",
   "typst-css.test.lua",
@@ -36,12 +38,16 @@ const repoRoot = fromFileUrl(new URL("../../../", import.meta.url));
 const unitLuaDir = join(testsDir, "unit-lua");
 const filtersDir = join(repoRoot, "src", "resources", "filters");
 const filterModulesDir = join(filtersDir, "modules");
+const filterCrossrefDir = join(filtersDir, "crossref");
+const pandocDatadirDir = join(repoRoot, "src", "resources", "pandoc", "datadir");
 
 // Pandoc honors LUA_PATH for `require()` resolution in lua filters.
 // The `;;` at the end preserves the default search path.
 const LUA_PATH = [
   join(unitLuaDir, "?.lua"),
   join(filterModulesDir, "?.lua"),
+  join(filterCrossrefDir, "?.lua"),
+  join(pandocDatadirDir, "?.lua"),
   join(filtersDir, "?.lua"),
   "",
 ].join(";") + ";";

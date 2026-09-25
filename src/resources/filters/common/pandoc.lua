@@ -126,6 +126,10 @@ function nbspString()
   return pandoc.Str '\u{a0}'
 end
 
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
+quarto.utils.nbspString = nbspString
+
 -- the first heading in a div is sometimes the caption
 function resolveHeadingCaption(div) 
   local capEl = div.content[1]

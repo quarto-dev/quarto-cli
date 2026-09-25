@@ -1,0 +1,12 @@
+---
+title: Callout order guard fixture
+format: docx
+---
+
+::: {#nte-setup .callout-note}
+
+## Setup
+
+Some setup callout content.
+
+:::
