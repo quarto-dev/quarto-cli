@@ -1,0 +1,36 @@
+---
+title: "Typst image attributes: sizes, alt text precedence, inline box"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - '#box\(image\("penrose\.svg", width: 1\.0416\d*in\)\)'
+          - '#box\(image\("penrose\.svg"(?=[^)]*alt: "Unitless alt")(?=[^)]*width: 1\.0416\d*in)'
+          - '#box\(image\("penrose\.svg", height: 0\.20833\d*in\)\)'
+          - '#box\(image\("penrose\.svg"(?=[^)]*alt: "Percent alt")(?=[^)]*width: 10(\.0)?%)'
+          - '#box\(image\("penrose\.svg"(?=[^)]*alt: "Fig-alt wins")'
+          - '#box\(image\("penrose\.svg"(?=[^)]*alt: "Empty alt caption")'
+          - '#box\(image\("penrose\.svg"\)\)'
+        -
+          - 'Alt loses'
+          - 'fig-alt'
+---
+
+Unitless no alt: ![](penrose.svg){width="100"}
+
+Unitless with alt: ![](penrose.svg){width="100" alt="Unitless alt"}
+
+Px no alt: ![](penrose.svg){height="20px"}
+
+Percent with alt: ![](penrose.svg){width="10%" alt="Percent alt"}
+
+Fig-alt over alt: ![](penrose.svg){fig-alt="Fig-alt wins" alt="Alt loses"}
+
+Empty alt with caption: text ![Empty alt caption](penrose.svg){alt=""} text
+
+Empty alt no caption: ![](penrose.svg){alt=""}

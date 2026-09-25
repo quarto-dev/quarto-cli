@@ -11,7 +11,7 @@ _quarto:
         - # Patterns that MUST be found - alt text in image() calls
           - 'image\("tc2-inline\.svg",\s*alt:\s*"TC2 inline image'
           - 'image\("tc3-explicit\.svg",\s*alt:\s*"TC3 explicit alt attribute'
-          - 'image\("tc4-dimensions\.svg",\s*alt:\s*"TC4 with dimensions",\s*height:\s*1in,\s*width:\s*1in'
+          - 'image\("tc4-dimensions\.svg"(?=[^)]*alt:\s*"TC4 with dimensions")(?=[^)]*height:\s*1in)(?=[^)]*width:\s*1in)'
           - 'image\("tc5-quotes\.svg",\s*alt:\s*"TC5 with \\"escaped\\" quotes'
           - 'image\("tc6-backslash\.svg",\s*alt:\s*"TC6 backslash C:\\\\path'
           # TC7 should have the image but without alt parameter
