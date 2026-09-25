@@ -6,32 +6,40 @@ format:
 _quarto:
   tests:
     typst:
+      # All image variants, including those without alt, must compile.
       noErrors: default
       ensureTypstFileRegexMatches:
-        - # Patterns that MUST be found - alt text in image() calls
-          - 'image\("tc2-inline\.svg",\s*alt:\s*"TC2 inline image'
-          - 'image\("tc3-explicit\.svg",\s*alt:\s*"TC3 explicit alt attribute'
+        -
+          # TC1's caption-only figure must still be emitted.
+          - 'image\("tc1-figure\.svg"[^)]*\)'
+          # TC2's inline caption supplies the image alt text.
+          - 'image\("tc2-inline\.svg",\s*alt:\s*"TC2 inline image"'
+          # TC3's explicit alt takes precedence over its visible caption.
+          - 'image\("tc3-explicit\.svg",\s*alt:\s*"TC3 explicit alt attribute"'
+          # TC4 keeps both inch dimensions and alt regardless of argument order.
           - 'image\("tc4-dimensions\.svg"(?=[^)]*alt:\s*"TC4 with dimensions")(?=[^)]*height:\s*1in)(?=[^)]*width:\s*1in)'
-          - 'image\("tc5-quotes\.svg",\s*alt:\s*"TC5 with \\"escaped\\" quotes'
-          - 'image\("tc6-backslash\.svg",\s*alt:\s*"TC6 backslash C:\\\\path'
-          # TC7 should have the image but without alt parameter
-          - 'image\("tc7-no-alt\.svg"\)'
-          # TC8: Explicit fig-alt should produce alt text
-          - 'image\("tc8-fig-alt\.svg",\s*alt:\s*"TC8 explicit fig-alt'
-        - # Patterns that must NOT be found
-          # TC1 figure caption should NOT be used as alt text
-          - 'tc1-figure\.svg.*alt:.*TC1 figure caption'
-          # TC7 with no caption/alt should NOT have alt parameter
-          - 'tc7-no-alt\.svg.*alt:'
+          # TC5 preserves escaped quotes in the complete alt value.
+          - 'image\("tc5-quotes\.svg",\s*alt:\s*"TC5 with \\"escaped\\" quotes"'
+          # TC6 preserves both escaped backslashes through the final file.
+          - 'image\("tc6-backslash\.svg",\s*alt:\s*"TC6 backslash C:\\\\path\\\\file"'
+          # TC7's no-alt image must be present even without named arguments.
+          - 'image\("tc7-no-alt\.svg"[^)]*\)'
+          # TC8's figure fig-alt becomes the complete alt value.
+          - 'image\("tc8-fig-alt\.svg",\s*alt:\s*"TC8 explicit fig-alt description"'
+        -
+          # TC1's visible figure caption must not become image alt text.
+          - 'image\("tc1-figure\.svg"[^)]*alt:'
+          # TC7 has neither a caption nor an alt attribute.
+          - 'image\("tc7-no-alt\.svg"[^)]*alt:'
 ---
 
 # Test Document: Typst Image Alt Text
 
 This tests that Quarto passes alt text to Typst's `image()` function for PDF/UA accessibility.
 
-## TC1: Figure with alt text from caption
+## TC1: Figure caption must not become alt text
 
-![TC1 figure caption as alt text](tc1-figure.svg)
+![TC1 visible figure caption](tc1-figure.svg)
 
 ## TC2: Inline image with alt text
 
