@@ -66,17 +66,42 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   };
 
-  // dispatch for htmlwidgets
-  // they use slideenter event to trigger resize
+  // dispatch for htmlwidgets and other resizable content
+  // htmlwidgets use slideenter event to trigger resize, while other libraries
+  // (e.g. plotly) listen for window resize
   function fireSlideEnter() {
     const event = window.document.createEvent("Event");
     event.initEvent("slideenter", true, true);
     window.document.dispatchEvent(event);
+    window.dispatchEvent(new Event("resize"));
+  }
+
+  // plotly figures drawn while their tab was hidden get plotly's default width,
+  // and plotly waits before handling window resize, so redraw them straight
+  // away to avoid showing them at the wrong size first
+  function resizePlotlyFigures(pane) {
+    if (!pane || !window.Plotly) {
+      return;
+    }
+    pane.querySelectorAll(".js-plotly-plot").forEach((plot) => {
+      // figures with a fixed size don't need resizing
+      const layout = plot.layout;
+      if (!layout || (layout.width && layout.height)) {
+        return;
+      }
+      window.Plotly.relayout(plot, { autosize: true });
+    });
   }
 
   const tabs = window.document.querySelectorAll('a[data-bs-toggle="tab"]');
   tabs.forEach((tab) => {
-    tab.addEventListener("shown.bs.tab", fireSlideEnter);
+    tab.addEventListener("shown.bs.tab", (event) => {
+      const target = event.target.getAttribute("data-bs-target");
+      if (target && target.startsWith("#")) {
+        resizePlotlyFigures(window.document.getElementById(target.slice(1)));
+      }
+      fireSlideEnter();
+    });
   });
 
   // dispatch for shiny
@@ -96,6 +121,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   document.addEventListener(
     "tabby",
     function (event) {
+      resizePlotlyFigures(event.detail.content);
       fireSlideEnter();
       distpatchShinyEvents(event.detail.previousTab, event.detail.tab);
     },
