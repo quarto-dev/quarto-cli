@@ -90,6 +90,11 @@ navigation-toolbar-label: "Panel nástrojov"  # gnome gtk sk
 navigation-page-label: "Strana"              # libreoffice sw
 navigation-breadcrumbs-label: "Cesta"        # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Rolovateľný kód"       # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Rolovateľný výstup"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Obrázok"
 crossref-tbl-title: "Tabuľka"
 crossref-lst-title: "Výpis"

@@ -748,6 +748,8 @@ export const ZodFormatLanguage = z.object({
   "copy-button-tooltip": z.string(),
   "copy-button-tooltip-success": z.string(),
   "skip-to-content": z.string(),
+  "scrollable-code-label": z.string(),
+  "scrollable-output-label": z.string(),
   "repo-action-links-edit": z.string(),
   "repo-action-links-source": z.string(),
   "repo-action-links-issue": z.string(),

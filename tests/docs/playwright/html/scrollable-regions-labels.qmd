@@ -1,0 +1,33 @@
+---
+title: Scrollable region labels
+format: html
+lang: fr
+language:
+  scrollable-output-label: "Sortie </script><b id='injected'>x</b> défilable"
+---
+
+Fixture for #14378: the scrollable-region labels travel from the language
+files through the after-body template to the page. `lang: fr` picks the code
+label from `_language-fr.yml`. The `language:` override for the output label
+holds `</script>`, which must not close the template's script element early.
+
+## Wide code block {#wide-code}
+
+```python
+wide_code = "an_unbroken_token_that_cannot_wrap_and_overflows_mobile"
+```
+
+## Wide table output {#wide-table}
+
+<!-- This is equivalent to intermediate markdown from a `knitr::kable()` output with `echo: false` -->
+
+:::: {.cell}
+::: {.cell-output-display}
+
+| Sepal.Length | Sepal.Width | Petal.Length | Petal.Width | Species | Observer | Site |
+|-------------:|------------:|-------------:|------------:|:--------|:---------|:-----|
+|          5.1 |         3.5 |          1.4 |         0.2 | setosa  | RAF      | A    |
+|          4.9 |         3.0 |          1.4 |         0.2 | setosa  | RAF      | B    |
+
+:::
+::::

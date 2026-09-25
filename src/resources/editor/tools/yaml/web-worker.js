@@ -10404,6 +10404,8 @@ try {
                 "copy-button-tooltip": "string",
                 "copy-button-tooltip-success": "string",
                 "skip-to-content": "string",
+                "scrollable-code-label": "string",
+                "scrollable-output-label": "string",
                 "repo-action-links-edit": "string",
                 "repo-action-links-source": "string",
                 "repo-action-links-issue": "string",
@@ -25590,12 +25592,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 218300,
+          _internalId: 218304,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 218292,
+              _internalId: 218296,
               type: "enum",
               enum: [
                 "png",
@@ -25611,7 +25613,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 218299,
+              _internalId: 218303,
               type: "anyOf",
               anyOf: [
                 {

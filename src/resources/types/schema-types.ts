@@ -723,6 +723,8 @@ export type FormatLanguage = {
   "copy-button-tooltip"?: string;
   "copy-button-tooltip-success"?: string;
   "skip-to-content"?: string;
+  "scrollable-code-label"?: string;
+  "scrollable-output-label"?: string;
   "repo-action-links-edit"?: string;
   "repo-action-links-source"?: string;
   "repo-action-links-issue"?: string;

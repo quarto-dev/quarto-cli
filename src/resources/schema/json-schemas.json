@@ -1818,6 +1818,12 @@
           "skip-to-content": {
             "type": "string"
           },
+          "scrollable-code-label": {
+            "type": "string"
+          },
+          "scrollable-output-label": {
+            "type": "string"
+          },
           "repo-action-links-edit": {
             "type": "string"
           },

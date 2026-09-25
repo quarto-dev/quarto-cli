@@ -90,6 +90,12 @@ navigation-toolbar-label: "Työkalupalkki"    # gnome gtk fi
 navigation-page-label: "Sivu"                # libreoffice sw
 navigation-breadcrumbs-label: "Linkkipolku"  # wikidata Q846205
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+# No attested "scrollable" here; from "vierittää" (to scroll).
+scrollable-code-label: "Vieritettävä koodi"      # derived + code-summary — assembled, needs review
+scrollable-output-label: "Vieritettävä tuloste"  # derived + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Kuva"
 crossref-tbl-title: "Taulukko"
 crossref-lst-title: "Listaus"

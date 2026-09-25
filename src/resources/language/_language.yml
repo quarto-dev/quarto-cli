@@ -95,6 +95,12 @@ navigation-toolbar-label: "Toolbar"
 navigation-page-label: "Page"
 navigation-breadcrumbs-label: "Breadcrumbs"
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+# It is the only thing that sets one of these apart from every other block.
+scrollable-code-label: "Scrollable code"
+scrollable-output-label: "Scrollable output"
+
 crossref-fig-title: "Figure"
 crossref-tbl-title: "Table"
 crossref-lst-title: "Listing"

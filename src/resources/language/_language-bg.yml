@@ -93,6 +93,11 @@ navigation-toolbar-label: "Лента с инструменти"  # gnome gtk bg
 navigation-page-label: "Страница"                # libreoffice sw
 navigation-breadcrumbs-label: "Път"              # libreoffice sw 'Path' (no attested term) — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Код с прелистване"         # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Резултат с прелистване"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Фигура"
 crossref-tbl-title: "Таблица"
 crossref-lst-title: "Изброяване"

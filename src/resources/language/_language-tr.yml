@@ -90,6 +90,11 @@ navigation-toolbar-label: "Araç çubuğu"   # gnome gtk tr
 navigation-page-label: "Sayfa"            # libreoffice sw
 navigation-breadcrumbs-label: "Yol"       # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Kaydırılabilir kod"      # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Kaydırılabilir çıktı"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Şekil"
 crossref-tbl-title: "Tablo"
 crossref-lst-title: "Listeleme"

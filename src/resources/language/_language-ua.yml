@@ -90,6 +90,11 @@ navigation-toolbar-label: "Панель інструментів"  # wikidata Q3
 navigation-page-label: "Сторінка"                # libreoffice sw
 navigation-breadcrumbs-label: "Шлях"             # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Код, що прокручується"      # firefox devtools (uk) + code-summary — assembled, needs review
+scrollable-output-label: "Вивід, що прокручується"  # firefox devtools (uk) + libreoffice dbaccess (uk) — assembled, needs review
+
 crossref-fig-title: "Рисунок"
 crossref-tbl-title: "Таблиця"
 crossref-lst-title: "Список"
