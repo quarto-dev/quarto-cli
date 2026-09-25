@@ -1,0 +1,37 @@
+schema:
+  ref: external-engine
+value:
+  path: engine.js
+  name: myengine
+  claims:
+    mylang:
+      kind: primary
+      priority: 1
+    interoplang: interop
+    booleanlang: true
+    numberlang: 2
+    condlang:
+      kind: primary
+      whenClass: someclass
+    multilang:
+      - primary
+      - kind: interop
+        priority: 3
+    fallback:
+      priority: 0
+  file-extensions:
+    - .ml
+  claims-files:
+    - .mlx
+    - extension: .mlz
+    - extension: .ml
+      processor: spin
+    - extension: .mlp
+      processor:
+        name: percent
+        language: mylang
+    - extension: .mlq
+      processor:
+        name: percent
+        language: q
+        comment: /
