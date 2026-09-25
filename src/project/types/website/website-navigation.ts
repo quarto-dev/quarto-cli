@@ -922,7 +922,10 @@ function makeBreadCrumbs(
       navEl.classList.add(cls);
     });
   }
-  navEl.setAttribute("aria-label", language[kNavigationBreadcrumbsLabel]!);
+  navEl.setAttribute(
+    "aria-label",
+    language[kNavigationBreadcrumbsLabel] || "Breadcrumbs",
+  );
 
   const olEl = doc.createElement("ol");
   olEl.classList.add("breadcrumb");
