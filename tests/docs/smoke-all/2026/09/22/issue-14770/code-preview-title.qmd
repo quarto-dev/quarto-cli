@@ -1,0 +1,26 @@
+---
+title: "code-preview-title sets the iframe title"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'div.sourceCode > iframe[src="with-title.html"][title="Example presentation with smaller text"]'
+          - 'div.sourceCode > iframe[src="without-title.html"]:not([title])'
+        -
+          - '[data-code-preview]'
+          - '[data-code-preview-title]'
+---
+
+```{.yaml code-preview="with-title.qmd" code-preview-title="Example presentation with smaller text"}
+format:
+  revealjs:
+    smaller: true
+```
+
+```{.yaml code-preview="without-title.qmd"}
+format:
+  revealjs:
+    smaller: true
+```
