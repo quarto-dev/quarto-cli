@@ -15,5 +15,8 @@ website:
     contents:
       - index.qmd
       - about.qmd
+      - section: "Group"
+        contents:
+          - about.qmd
 
 format: html
