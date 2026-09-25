@@ -213,70 +213,29 @@ function render_typst_fixups()
     traverse = "topdown",
     Image = function(image)
       image = _quarto.modules.mediabag.resolve_image_from_url(image) or image
-      -- REMINDME 2024-09-01
-      -- work around until https://github.com/jgm/pandoc/issues/9945 is fixed
-      local height_as_number = tonumber(image.attributes["height"])
-      local width_as_number = tonumber(image.attributes["width"])
-      if image.attributes["height"] ~= nil and type(height_as_number) == "number" then
-        image.attributes["height"] = tostring(image.attributes["height"] / PANDOC_WRITER_OPTIONS.dpi) .. "in"
-      end
-      if image.attributes["width"] ~= nil and type(width_as_number) == "number" then
-        image.attributes["width"] = tostring(image.attributes["width"] / PANDOC_WRITER_OPTIONS.dpi) .. "in"
-      end
 
-      -- Workaround for Pandoc not passing alt text to Typst image() calls
-      -- See: https://github.com/jgm/pandoc/pull/11394
-      -- Check fig-alt first (Quarto's custom alt text override), then alt, then caption
-      local alt_text = image.attributes[kFigAlt] or image.attributes["alt"]
-      if alt_text then
+      -- Pandoc's Typst writer emits alt: from the alt attribute, falling back
+      -- to the image caption. fig-alt is Quarto's alt text override.
+      local fig_alt = image.attributes[kFigAlt]
+      if fig_alt then
+        image.attributes["alt"] = fig_alt
         image.attributes[kFigAlt] = nil
       end
-      -- Use caption as alt only for inline images (not figures)
-      -- Figure images are marked with _quarto_no_caption_alt by layout filters
+
       local no_caption_alt = image.attributes["_quarto_no_caption_alt"]
       image.attributes["_quarto_no_caption_alt"] = nil
-      if (alt_text == nil or alt_text == "") and #image.caption > 0 and not no_caption_alt then
-        alt_text = pandoc.utils.stringify(image.caption)
-      end
 
-      if alt_text and #alt_text > 0 then
-        -- When returning RawInline instead of Image, Pandoc won't write mediabag
-        -- entries to disk, so we must do it explicitly
-        local src = image.src
-        local mediabagPath = _quarto.modules.mediabag.write_mediabag_entry(src)
-        if mediabagPath then
-          src = mediabagPath
-        end
-
-        -- Build image() parameters
-        local params = {}
-
-        -- Typst 0.15+ rejects backslash path separators in image() calls.
-        src = _quarto.modules.path.to_forward_slashes(src)
-        table.insert(params, '"' .. src .. '"')
-
-        -- Alt text second (escape backslashes and quotes)
-        local escaped_alt = alt_text:gsub('\\', '\\\\'):gsub('"', '\\"')
-        table.insert(params, 'alt: "' .. escaped_alt .. '"')
-
-        -- Height if present
-        if image.attributes["height"] then
-          table.insert(params, 'height: ' .. image.attributes["height"])
-        end
-
-        -- Width if present
-        if image.attributes["width"] then
-          table.insert(params, 'width: ' .. image.attributes["width"])
-        end
-
-        -- Use #box() wrapper for inline compatibility
-        return pandoc.RawInline("typst", "#box(image(" .. table.concat(params, ", ") .. "))")
+      -- An empty alt on an image with a caption uses the caption as alt text.
+      -- Pandoc treats alt="" as decorative, so drop the attribute to get its
+      -- caption fallback.
+      if image.attributes["alt"] == "" and #image.caption > 0 and not no_caption_alt then
+        image.attributes["alt"] = nil
       end
 
       -- When caption-as-alt is deliberately suppressed (this Image is the
       -- sole content of a Figure whose caption is rendered separately, see
       -- layout/pandoc3_figure.lua) and no other alt text applies, clear the
-      -- caption before returning the bare Image. Otherwise Pandoc's own
+      -- caption before returning the Image. Otherwise Pandoc's own
       -- Typst writer independently re-derives alt: from the Image's
       -- caption, reintroducing the leak this suppression exists to prevent.
       if no_caption_alt then
@@ -284,8 +243,7 @@ function render_typst_fixups()
       end
 
       -- Typst 0.15+ rejects backslash path separators in image() calls, and
-      -- this bare-Image path (no alt text) is handed to Pandoc's own Typst
-      -- writer, which emits image.src verbatim.
+      -- Pandoc's Typst writer emits image.src verbatim.
       image.src = _quarto.modules.path.to_forward_slashes(image.src)
 
       return image

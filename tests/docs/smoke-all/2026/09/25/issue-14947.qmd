@@ -1,0 +1,37 @@
+---
+title: "Typst: px image sizes are converted when the image has alt text"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Inline fig-alt")(?=[^)]*height: 0\.20833\d*in)'
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Inline alt")(?=[^)]*width: 0\.3125\d*in)'
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Caption as alt")(?=[^)]*height: 0\.20833\d*in)'
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Figure fig-alt")(?=[^)]*height: 0\.20833\d*in)'
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Crossref fig-alt")(?=[^)]*height: 0\.20833\d*in)'
+          - 'image\("my image\.svg"(?=[^)]*alt: "Encoded path")'
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Unknown unit")'
+        -
+          - 'image\([^)]*\d+px'
+          - 'my%20image'
+          - '3vw'
+---
+
+Inline with fig-alt: ![](penrose.svg){height="20px" fig-alt="Inline fig-alt"}
+
+Inline with alt: ![](penrose.svg){width="30px" alt="Inline alt"}
+
+Inline with caption: text ![Caption as alt](penrose.svg){height="20px"} text
+
+Encoded path: ![](my%20image.svg){alt="Encoded path"}
+
+Unknown unit: ![](penrose.svg){width="3vw" alt="Unknown unit"}
+
+![Figure caption](penrose.svg){height="20px" fig-alt="Figure fig-alt"}
+
+![Crossref caption](penrose.svg){#fig-penrose height="20px" fig-alt="Crossref fig-alt"}
