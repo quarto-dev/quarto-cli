@@ -267,12 +267,21 @@ jobs:
         run: |
           run_id="$RUN_ID_INPUT"
           if [ -z "$run_id" ]; then
-            run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow create-release.yml \
-              --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
-          fi
-          if [ -z "$run_id" ]; then
-            echo "::error::No successful create-release run was found. Provide a run ID or complete a create-release run first."
-            exit 1
+            # The runs listing intermittently returns an outdated result set when
+            # filtered by branch or status, so filter and sort client-side.
+            latest="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow create-release.yml \
+              --limit 30 --json databaseId,createdAt,headBranch,conclusion \
+              --jq '[.[] | select(.headBranch == "main" and .conclusion == "success")] | sort_by(.createdAt) | last // empty | "\(.databaseId) \(.createdAt)"')"
+            read -r run_id created_at <<<"$latest"
+            if [ -z "$run_id" ]; then
+              echo "::error::No successful create-release run was found. Provide a run ID or complete a create-release run first."
+              exit 1
+            fi
+            age_seconds=$(( $(date +%s) - $(date -d "$created_at" +%s) ))
+            if [ "$age_seconds" -gt $(( 3 * 86400 )) ]; then
+              echo "::error::Latest successful create-release run ${run_id} is $(( age_seconds / 86400 )) days old (${created_at}); the runs listing may be outdated. Provide a run ID explicitly."
+              exit 1
+            fi
           fi
           sha="$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json headSha --jq '.headSha // empty')"
           if [ -z "$sha" ]; then
