@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Simplified Penrose-style kite and dart pattern -->
+  <defs>
+    <polygon id="kite" points="50,0 95,35 50,100 5,35" fill="#4a90d9" stroke="#1a365d" stroke-width="1"/>
+    <polygon id="dart" points="50,0 80,50 50,35 20,50" fill="#f0c040" stroke="#8b6914" stroke-width="1"/>
+  </defs>
+  <g transform="translate(0,0) scale(0.5)">
+    <use href="#kite" transform="translate(0,0)"/>
+    <use href="#dart" transform="translate(50,0) rotate(36,50,50)"/>
+    <use href="#kite" transform="translate(100,0) rotate(72,50,50)"/>
+  </g>
+  <g transform="translate(25,50) scale(0.5)">
+    <use href="#dart" transform="translate(0,0) rotate(-36,50,50)"/>
+    <use href="#kite" transform="translate(50,0)"/>
+  </g>
+</svg>
