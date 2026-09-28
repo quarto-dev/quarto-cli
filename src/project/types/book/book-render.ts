@@ -14,6 +14,7 @@ import {
   parsePandocTitle,
   partitionMarkdown,
 } from "../../../core/pandoc/pandoc-partition.ts";
+import { pandocQuotedAttrValue } from "../../../core/pandoc/pandoc-attr.ts";
 
 import {
   kAbstract,
@@ -469,35 +470,10 @@ async function mergeExecutedFiles(
             return createMarkdownTitle(titleText, titleAttr);
           };
 
-          // If there is front matter for this chapter, this will generate a code
-          // cell that will be rendered a LUA filter (the code cell will provide the
-          // path to the template that should be used as well as the front matter
-          // to use when rendering)
-          const resolveTitleBlockMarkdown = (yaml?: Metadata) => {
-            if (yaml) {
-              const titleBlockPath = resourcePath(
-                "projects/book/pandoc/title-block.md",
-              );
-
-              const titleAttr = `template='${titleBlockPath}'`;
-              const frontMatter = `---\n${
-                stringify(yaml, { indent: 2 })
-              }\n---\n`;
-
-              const titleBlockMd = "```````{.quarto-title-block " +
-                titleAttr + "}\n" +
-                frontMatter +
-                "\n```````\n\n";
-
-              return titleBlockMd;
-            } else {
-              return "";
-            }
-          };
-
           // Compose the markdown for this chapter
           const titleMarkdown = resolveTitleMarkdown(partitioned);
-          const titleBlockMarkdown = resolveTitleBlockMarkdown(
+          const titleBlockMarkdown = bookTitleBlockMarkdown(
+            resourcePath("projects/book/pandoc/title-block.md"),
             partitioned.yaml,
           );
           const bodyMarkdown = partitioned.yaml?.title
@@ -690,6 +666,26 @@ function cleanupExecutedFile(
     file.executeResult.supporting,
     executionEngineKeepMd(file.context),
   );
+}
+
+// If there is front matter for a chapter, this generates a code cell that will
+// be rendered by a LUA filter (the code cell provides the path to the template
+// that should be used as well as the front matter to use when rendering)
+export function bookTitleBlockMarkdown(
+  templatePath: string,
+  yaml?: Metadata,
+) {
+  if (yaml) {
+    const titleAttr = `template=${pandocQuotedAttrValue(templatePath)}`;
+    const frontMatter = `---\n${stringify(yaml, { indent: 2 })}\n---\n`;
+
+    return "```````{.quarto-title-block " +
+      titleAttr + "}\n" +
+      frontMatter +
+      "\n```````\n\n";
+  } else {
+    return "";
+  }
 }
 
 function bookItemMetadata(

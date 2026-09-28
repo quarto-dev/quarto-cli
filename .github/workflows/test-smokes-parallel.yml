@@ -104,3 +104,5 @@ jobs:
     with:
       buckets: ${{ matrix.buckets.files }}
       extra-r-packages: ${{ inputs.extra-r-packages }}
+      # The bucket index distinguishes same-OS matrix jobs.
+      label-tag: b${{ matrix.buckets.num }}

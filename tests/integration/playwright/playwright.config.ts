@@ -97,10 +97,12 @@ export default defineConfig({
   webServer: [
     {
       // HTTP server for rendered HTML files
-      command: 'uv run python -m http.server 8080',
+      command: 'uv run python -m http.server 8080 --bind 127.0.0.1',
       url: 'http://127.0.0.1:8080',
       reuseExistingServer: !isCI,
       cwd: '../../docs/playwright',
+      // http.server does a reverse DNS lookup before listening, slow on some hosts
+      timeout: 120000,
       stderr: 'ignore',  // Suppress verbose HTTP request logs
     },
     {

@@ -363,6 +363,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     # fmt: skip
     other_opts <- c(
       "eval", "yaml.code", "code", "file", "params.src", "original.params.src",
+      "original.code",
       "fenced.echo", "chunk.echo", "lang", "out.width.px", "out.height.px",
       "indent", "class.source", "class.output", "class.message",
       "class.warning", "class.error", "attr.source", "attr.output",

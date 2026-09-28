@@ -49,6 +49,11 @@ on:
         required: false
         type: string
         default: '["ubuntu-latest", "windows-latest"]'
+      label-tag:
+        description: "Short alphanumeric tag for distinguishing same-OS jobs in failure summaries"
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       buckets:
@@ -90,12 +95,24 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
+      RUST_BACKTRACE: ${{ startsWith(matrix.os, 'macos') && 'full' || '' }}
+      # Distinguishes this call from other jobs on the same OS.
+      QUARTO_TESTS_GHA_LABEL_TAG: ${{ inputs.label-tag }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
         with:
           # Empty keeps the standard checkout behavior.
           ref: ${{ inputs.ref }}
+
+      # macOS runners boot with an unresolvable `.local` hostname, so any process
+      # resolving its own hostname stalls ~35s (actions/runner-images#14568).
+      - name: Set a resolvable hostname (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          sudo scutil --set HostName gha-runner
+          echo "127.0.0.1 gha-runner" | sudo tee -a /etc/hosts
 
       - name: Fix temp dir to use runner one (windows)
         if: runner.os == 'Windows'
@@ -417,7 +434,7 @@ jobs:
           quarto install tinytex
 
       - name: Install veraPDF for PDF standard validation
-        if: runner.os == 'Linux' && (format('{0}', inputs.buckets) == '' || contains(inputs.buckets, 'pdf-standard'))
+        if: runner.os != 'Windows' && (format('{0}', inputs.buckets) == '' || contains(inputs.buckets, 'pdf-standard'))
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -490,6 +507,8 @@ jobs:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUCKETS_JSON: ${{ inputs.buckets }}
+          # Prevent the harness from duplicating this loop's workflow commands.
+          QUARTO_TESTS_GHA_ORCHESTRATED: "1"
         run: |
           haserror=0
           failed_tests=()
@@ -539,6 +558,8 @@ jobs:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUCKETS_JSON: ${{ inputs.buckets }}
+          # Prevent the harness from duplicating this loop's workflow commands.
+          QUARTO_TESTS_GHA_ORCHESTRATED: "1"
         run: |
           $haserror=$false
           $failed_tests=@()
@@ -579,6 +600,17 @@ jobs:
         with:
           name: timed test file
           path: tests/timing-for-ci.txt
+
+      # A Deno segfault prints no stack; macOS writes one to a crash report.
+      - name: Upload crash reports (macOS)
+        if: ${{ failure() && runner.os == 'macOS' }}
+        uses: actions/upload-artifact@v7
+        with:
+          # Smoke and Playwright macOS legs share the run, and reruns reuse it.
+          name: crash-reports-${{ runner.os }}-${{ format('{0}', inputs.buckets) == '' && 'full' || 'buckets' }}-attempt-${{ github.run_attempt }}
+          path: ~/Library/Logs/DiagnosticReports/*.ips
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Save Typst cache
         if: always() && steps.cache-typst.outputs.cache-hit != 'true'
