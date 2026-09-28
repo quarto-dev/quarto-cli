@@ -1,0 +1,44 @@
+---
+title: "ANSI-escaped stream output keeps single newlines"
+format: html
+engine: jupyter
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "div.cell-output-stdout div.ansi-escaped-output pre span.ansi-red-fg"
+          - "div.cell-output-stderr div.ansi-escaped-output pre span.ansi-red-fg"
+      ensureFileRegexMatches:
+        -
+          - 'line one(\r\n?|\n)<span class="ansi-red-fg">line two</span>(\r\n?|\n)line three'
+          - '<span class="ansi-red-fg">first write</span>second write'
+          - '<span class="ansi-red-fg">stderr one</span>(\r\n?|\n)stderr two'
+        -
+          - 'line one(\r\n?|\n){2}'   # blank line after the first line
+          - 'line two</span>(\r\n?|\n){2}'   # blank line after the colored line
+          - 'first write</span>(\r\n?|\n)second write'   # newline inserted between two writes
+          - 'stderr one</span>(\r\n?|\n){2}'   # blank line in stderr
+---
+
+Stdout containing ANSI escape codes is converted to HTML spans inside `div.ansi-escaped-output`. In the notebook, stream `text` is stored as a list of lines that each keep their trailing newline, so the lines must be concatenated as-is. Joining them with an extra newline shows a blank line between every output line (#13966).
+
+```{python}
+print("line one\n\033[31mline two\033[0m\nline three")
+```
+
+Consecutive writes to the same stream are merged into one output, so a write without a trailing newline must stay on the same line as the next one.
+
+```{python}
+import sys
+print("\033[31mfirst write\033[0m", end="")
+sys.stdout.flush()
+print("second write")
+```
+
+The same applies to stderr.
+
+```{python}
+import sys
+print("\033[31mstderr one\033[0m\nstderr two", file=sys.stderr)
+```
