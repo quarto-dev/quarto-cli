@@ -11,6 +11,7 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  kBaseFormat,
   kClearCellOptions,
   kClearHiddenClasses,
   kDisableArticleLayout,
@@ -24,6 +25,7 @@ import {
   kNotebookViewStyle,
   kOutputFile,
   kRemoveHidden,
+  kTargetFormat,
   kTemplate,
   kTheme,
   kTo,
@@ -31,6 +33,7 @@ import {
   kTocLocation,
   kUnrollMarkdownCells,
 } from "../../config/constants.ts";
+import { isHtmlDocOutput } from "../../config/format.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
@@ -151,9 +154,17 @@ async function renderHtmlNotebook(
     join("embed", "template.html"),
   );
 
+  // Previews are always html documents. An html-based host format (e.g. an
+  // extension format like `acme-html`) is kept so its project options apply.
+  const hostFormat = format.identifier[kTargetFormat];
+  const previewFormat =
+    hostFormat && isHtmlDocOutput(format.identifier[kBaseFormat] ?? "")
+      ? hostFormat
+      : "html";
+
   // Render the notebook and update the path
   const rendered = await renderFile(
-    { path: nbPath, formats: ["html"] },
+    { path: nbPath, formats: [previewFormat] },
     {
       services,
       flags: {

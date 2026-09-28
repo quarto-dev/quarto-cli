@@ -14,6 +14,7 @@ import {
   noErrorsOrWarnings,
 } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
+import { testQuartoCmd } from "../../test.ts";
 
 const format = "html";
 const input = docs("embed/embed-qmd.qmd");
@@ -131,6 +132,65 @@ testRender(docInput, "html", false, [
     cleanup.forEach((path) => {
       safeRemoveSync(join(dir, path), {recursive: true});
     })
+    return Promise.resolve();
+  },
+});
+
+// Notebook previews use the host's extension format options (#14954)
+const extFormatDir = docs("embed/extension-format");
+const extFormatMeta = /<meta name="from-extension-format" content="yes">/;
+testQuartoCmd("render", [extFormatDir], [
+  noErrorsOrWarnings,
+  ensureFileRegexMatches(join(extFormatDir, "index.html"), [extFormatMeta]),
+  ensureFileRegexMatches(join(extFormatDir, "notebook.html"), [extFormatMeta]),
+  ensureFileRegexMatches(
+    join(extFormatDir, "notebook-preview.html"),
+    [extFormatMeta],
+  ),
+], {
+  teardown: () => {
+    const cleanup = [
+      "index.html",
+      "index_files",
+      "notebook.html",
+      "notebook_files",
+      "notebook-preview.html",
+      "notebook.out.ipynb",
+      ".quarto",
+    ];
+    cleanup.forEach((path) => {
+      safeRemoveSync(join(extFormatDir, path), { recursive: true });
+    });
+    return Promise.resolve();
+  },
+});
+
+// Notebook previews stay plain html when the host is not an html document
+const dashboardHostDir = docs("embed/dashboard-host");
+testQuartoCmd("render", [dashboardHostDir], [
+  noErrorsOrWarnings,
+  ensureFileRegexMatches(join(dashboardHostDir, "index.html"), [
+    /quarto-dashboard/,
+  ]),
+  ensureFileRegexMatches(
+    join(dashboardHostDir, "notebook-preview.html"),
+    [],
+    [/quarto-dashboard/],
+  ),
+], {
+  teardown: () => {
+    const cleanup = [
+      "index.html",
+      "index_files",
+      "notebook.html",
+      "notebook-preview.html",
+      "notebook_files",
+      "notebook.out.ipynb",
+      ".quarto",
+    ];
+    cleanup.forEach((path) => {
+      safeRemoveSync(join(dashboardHostDir, path), { recursive: true });
+    });
     return Promise.resolve();
   },
 });

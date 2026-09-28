@@ -1,0 +1,5 @@
+---
+title: "Host page"
+---
+
+{{< embed notebook.ipynb#cell-hello >}}

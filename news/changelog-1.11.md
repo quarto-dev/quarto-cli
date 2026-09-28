@@ -32,6 +32,7 @@ All changes included in 1.11:
 ### `html`
 
 - ([#14684](https://github.com/quarto-dev/quarto-cli/issues/14684)): Add a "Skip to main content" link to Bootstrap-themed HTML output (documents, websites, books, dashboards) so keyboard users can bypass the navbar and sidebars.
+- ([#14954](https://github.com/quarto-dev/quarto-cli/issues/14954)): Fix notebook preview pages created for `{{< embed >}}` ignoring the options of a custom HTML format from an extension (e.g. `format: acme-html` in `_quarto.yml`).
 
 ### `typst`
 

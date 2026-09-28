@@ -1,0 +1,8 @@
+title: My Format
+author: Quarto Dev Team
+version: 1.0.0
+contributes:
+  formats:
+    html:
+      include-in-header:
+        text: '<meta name="from-extension-format" content="yes">'
