@@ -193,7 +193,7 @@ function is_unlabeled_float(float)
 end
 
 function decorate_caption_with_crossref(float)
-  if not param("enable-crossref", true) then
+  if not _quarto.modules.crossref_numbering.crossref_present() then
     -- don't decorate captions with crossrefs information if crossrefs are disabled
     return float
   end
@@ -239,7 +239,7 @@ end
 quarto.doc.crossref.decorate_caption_with_crossref = decorate_caption_with_crossref
 
 function full_caption_prefix(float, subfloat)
-  if not param("enable-crossref", true) then
+  if not _quarto.modules.crossref_numbering.crossref_present() then
     -- don't decorate captions with crossrefs information if crossrefs are disabled
     return {}
   end
@@ -962,7 +962,7 @@ end, function(float)
 end)
 
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
-  return _quarto.format.isIpynbOutput() and param("enable-crossref", true)
+  return _quarto.format.isIpynbOutput() and _quarto.modules.crossref_numbering.crossref_present()
 end, function(float)
   decorate_caption_with_crossref(float)
   if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
@@ -979,7 +979,7 @@ end)
 
 -- this should really be "_quarto.format.isEmbedIpynb()" or something like that..
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
-  return _quarto.format.isIpynbOutput() and not param("enable-crossref", true)
+  return _quarto.format.isIpynbOutput() and not _quarto.modules.crossref_numbering.crossref_present()
 end, function(float)
   if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
     local imgEl = float.content.content[1]

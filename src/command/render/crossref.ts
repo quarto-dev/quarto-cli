@@ -5,6 +5,7 @@
  */
 
 import {
+  kCrossrefNumbering,
   kListings,
   kNumberDepth,
   kNumberOffset,
@@ -64,6 +65,12 @@ export function crossrefFilterParams(
 
   // Read the number depth
   params[kNumberDepth] = metadata?.[kNumberDepth];
+
+  // crossref.numbering: who assigns numbers (see document-crossref.yml)
+  const crossrefMeta = metadata?.crossref as Metadata | undefined;
+  if (crossrefMeta?.numbering !== undefined) {
+    params[kCrossrefNumbering] = crossrefMeta.numbering;
+  }
 
   // always create crossref index for projects
   if (!options.project?.isSingleFile) {

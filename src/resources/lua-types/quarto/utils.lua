@@ -186,3 +186,9 @@ return quarto.utils.combineFilters({
 ---@param filters table[] Array of Pandoc filter tables to combine
 ---@return table Combined Pandoc filter table
 function quarto.utils.combineFilters(filters) end
+
+--[[
+Return a non-breaking space (`\u{a0}`) as a `pandoc.Str`.
+]]
+---@return pandoc.Str
+function quarto.utils.nbspString() end

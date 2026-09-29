@@ -8,6 +8,7 @@ _quarto.modules = {
   callouts = require("modules/callouts"),
   classpredicates = require("modules/classpredicates"),
   constants = require("modules/constants"),
+  crossref_numbering = require("modules/crossref_numbering"),
   dashboard = require("modules/dashboard"),
   filenames = require("modules/filenames"),
   filters = require("modules/filters"),

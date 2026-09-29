@@ -1,0 +1,10 @@
+---
+title: "Numbering Bogus"
+crossref:
+  numbering: bogus
+---
+
+# Introduction
+
+Body content is irrelevant -- this fixture exists to fail schema validation
+on the `crossref.numbering` enum before render ever begins.

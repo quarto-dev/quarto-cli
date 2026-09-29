@@ -6,6 +6,7 @@
 */
 import { docs } from "../../utils.ts";
 import { testManuscriptRender } from "./manuscript.ts";
+import { ensureIpynbCellMatches, printsMessage } from "../../verify.ts";
 
 const article = docs("manuscript/base/index.qmd");
 testManuscriptRender(
@@ -49,11 +50,31 @@ const ipynbFullOutputs = [
   "notebooks/visualization-figure-creation-seaborn-preview.html",
   "notebooks/visualization-figure-creation-seaborn.out.ipynb",
 ];
+// notebooks/seismic-monitoring-stations.qmd is a supporting notebook (not the
+// article itself), so it is the one fixture that renders with
+// enable-crossref: false (src/command/render/filters.ts:534). Pin its
+// #fig-stations image to stay undecorated (no crossref number, identifier and
+// caption preserved directly on the image) so a regression that routes it
+// through the generic placeholder renderer instead (which drops both) is caught.
+const seismicStationsOutIpynb = docs(
+  "manuscript/ipynb-full/_manuscript/notebooks/seismic-monitoring-stations.out.ipynb",
+);
 testManuscriptRender(
   ipynbFullArticle,
   "all",
   ["html", "jats", "docx", "pdf"],
   ipynbFullOutputs,
+  [
+    printsMessage({
+      level: "INFO",
+      regex: /Emitting a placeholder FloatRefTarget/,
+      negate: true,
+    }),
+    ensureIpynbCellMatches(seismicStationsOutIpynb, {
+      cellType: "markdown",
+      matches: [/!\[Locations of monitoring stations[^\]]*\]\([^)]*\)\{#fig-stations/],
+    }),
+  ],
 );
 
 const qmdSingleArticle = docs("manuscript/qmd-single/index.qmd");

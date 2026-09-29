@@ -337,6 +337,7 @@ export const kCrossrefCorTitle = "crossref-cor-title";
 export const kCrossrefPrfTitle = "crossref-prp-title";
 export const kCrossrefCnjTitle = "crossref-cnj-title";
 export const kCrossrefDefTitle = "crossref-def-title";
+export const kCrossrefNumbering = "crossref-numbering";
 export const kCrossrefExmTitle = "crossref-exm-title";
 export const kCrossrefExrTitle = "crossref-exr-title";
 export const kCrossrefFigPrefix = "crossref-fig-prefix";

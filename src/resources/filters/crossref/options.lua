@@ -18,5 +18,9 @@ function crossrefOption(name, default)
   return readOption(crossref.options, name, default)
 end
 
+-- exposed for external front ends that reconstruct Quarto custom nodes
+-- outside the filter pipeline
+quarto.doc.crossref.crossrefOption = crossrefOption
+
 
 

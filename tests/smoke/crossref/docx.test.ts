@@ -5,7 +5,7 @@
 *
 */
 
-import { ensureDocxRegexMatches } from "../../verify.ts";
+import { ensureDocxRegexMatches, printsMessage } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
 import { crossref } from "./utils.ts";
 
@@ -53,6 +53,17 @@ const mathRegexes = [
   anchor("thm-line"),
 ];
 
+// T3.6: regression guard for A7's backward compatibility. Every labeled
+// callout upstream has an order assigned by quarto's own numbering group,
+// so callout_title_prefix's order-nil guard (modules/callouts.lua) is
+// unreachable here -- this prefix must render exactly as before A7 was
+// added, and no "field 'order' is missing from callout" warning should
+// appear (see the printsMessage verifier below).
+const calloutRegexes = [
+  anchor("nte-setup"),
+  text("Note\\u00A01: Setup"),
+];
+
 const _subTableRegexes = [
   bookmarkStart("tbl-first"),
   bookmarkStart("tbl-second"),
@@ -80,7 +91,13 @@ testRender(allQmd.input, "docx", true, [
     ...simpleFigRegexes,
     ...tableRegexes,
     ...mathRegexes,
+    ...calloutRegexes,
     //    ...subFigRegexes,
     //    ...subTableRegexes,
   ]),
+  printsMessage({
+    level: "INFO",
+    regex: "field 'order' is missing from callout",
+    negate: true,
+  }),
 ]);

@@ -1,0 +1,11 @@
+---
+title: "Numbering External"
+crossref:
+  numbering: external
+---
+
+# Introduction
+
+![Elephant](img/painter.jpg){#fig-elephant}
+
+See @fig-elephant for an illustration.
