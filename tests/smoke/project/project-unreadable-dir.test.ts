@@ -38,8 +38,12 @@ function registerUnreadableDirTest(
   cmd: string,
   name: string,
   verify: (root: string, locked: string) => Verify,
+  quartoYml?: string,
 ) {
   const root = normalizePath(tempProject("quarto-unreadable-project"));
+  if (quartoYml) {
+    Deno.writeTextFileSync(join(root, "_quarto.yml"), quartoYml);
+  }
   const locked = join(root, "locked");
   Deno.mkdirSync(locked);
   Deno.writeTextFileSync(join(locked, "doc.qmd"), "# Locked\n");
@@ -57,35 +61,45 @@ function registerUnreadableDirTest(
   }, name);
 }
 
+const framedError = (root: string, locked: string): Verify => ({
+  name: "framed permission error",
+  verify: (outputs) => {
+    const errors = errorMessages(outputs);
+    assertEquals(errors.length, 1, `expected one error, got ${errors}`);
+    const lines = plainLines(errors[0]);
+    assertEquals(lines.length, 5, `unexpected message:\n${errors[0]}`);
+    assertEquals(
+      lines[0],
+      "Could not read a directory while looking for project input files.",
+    );
+    assert(
+      lines[1].endsWith(`readdir '${locked}'`),
+      `expected the Deno readdir message, got: ${lines[1]}`,
+    );
+    assertEquals(lines.slice(2), [
+      `Project root: ${root}`,
+      `Set by: ${join(root, "_quarto.yml")}`,
+      "If this _quarto.yml was created by accident, remove it. Otherwise make the directory readable.",
+    ]);
+    return Promise.resolve();
+  },
+});
+
 // Not registered when the dir can't be made unreadable: an ignored test never
 // runs its teardown, so its fixture would be left behind.
 if (canMakeUnreadableDir) {
   registerUnreadableDirTest(
     "render",
     "render-in-project-with-unreadable-dir",
-    (root, locked) => ({
-      name: "framed permission error",
-      verify: (outputs) => {
-        const errors = errorMessages(outputs);
-        assertEquals(errors.length, 1, `expected one error, got ${errors}`);
-        const lines = plainLines(errors[0]);
-        assertEquals(lines.length, 5, `unexpected message:\n${errors[0]}`);
-        assertEquals(
-          lines[0],
-          "Could not read a directory while looking for project input files.",
-        );
-        assert(
-          lines[1].endsWith(`readdir '${locked}'`),
-          `expected the Deno readdir message, got: ${lines[1]}`,
-        );
-        assertEquals(lines.slice(2), [
-          `Project root: ${root}`,
-          `Set by: ${join(root, "_quarto.yml")}`,
-          "If this _quarto.yml was created by accident, remove it. Otherwise make the directory readable.",
-        ]);
-        return Promise.resolve();
-      },
-    }),
+    framedError,
+  );
+
+  // project.render globs expand through their own directory traversal
+  registerUnreadableDirTest(
+    "render",
+    "render-glob-in-project-with-unreadable-dir",
+    framedError,
+    'project:\n  type: website\n  render:\n    - "**/*.qmd"\n',
   );
 
   registerUnreadableDirTest(

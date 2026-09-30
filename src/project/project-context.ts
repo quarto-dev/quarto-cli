@@ -1057,6 +1057,12 @@ async function projectInputFilesInternal(
       engineIntermediates: engineIntermediates,
     }];
   };
+  // directory traversals (walk, render globs) tag their PermissionDenied
+  const tagInputWalkError = (e: unknown) => {
+    if (e instanceof Deno.errors.PermissionDenied) {
+      (e as InputWalkError)[kInputWalkProject] = { dir: project.dir };
+    }
+  };
   const addDir = async (dir: string): Promise<FileInclusion[]> => {
     const promises: Promise<FileInclusion[]>[] = [];
     try {
@@ -1083,9 +1089,7 @@ async function projectInputFilesInternal(
         promises.push(addFile(walkEntry.path));
       }
     } catch (e) {
-      if (e instanceof Deno.errors.PermissionDenied) {
-        (e as InputWalkError)[kInputWalkProject] = { dir: project.dir };
-      }
+      tagInputWalkError(e);
       throw e;
     }
     const inclusions = await Promise.all(promises);
@@ -1103,9 +1107,15 @@ async function projectInputFilesInternal(
   let inclusions: FileInclusion[];
   if (renderFiles) {
     const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
-    const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
-      mode: "auto",
-    });
+    let resolved;
+    try {
+      resolved = resolvePathGlobs(dir, renderFiles, exclude, {
+        mode: "auto",
+      });
+    } catch (e) {
+      tagInputWalkError(e);
+      throw e;
+    }
     const toInclude = ld.difference(
       resolved.include,
       resolved.exclude,

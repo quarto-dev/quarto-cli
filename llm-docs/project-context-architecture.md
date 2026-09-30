@@ -113,8 +113,9 @@ So `_site`, `_freeze`, `_extensions` and any `_dir` are read in full. std
 `walk` has no error hook: an unreadable dir anywhere under the root throws
 `Deno.errors.PermissionDenied` out of `projectContext()`.
 
-`addDir` tags that `PermissionDenied` (the same error object, message and
-stack untouched) with the project dir; `projectContext()` adds the
+Both directory traversals, the `addDir` walk and the `project.render` glob
+expansion (`resolvePathGlobs`), tag that `PermissionDenied` (the same error
+object, message and stack untouched) with the project dir; `projectContext()` adds the
 `configFile` from `resolveProjectConfig()` on its throw path. The forced
 synthetic branch leaves `configFile` unset. `frameInputWalkError()` turns a
 tagged error with a `configFile` into one `ErrorEx` without stack: the Deno
