@@ -1,0 +1,4 @@
+project:
+  type: default
+engines:
+  - path: probe-engine.js
