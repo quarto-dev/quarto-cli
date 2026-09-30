@@ -442,7 +442,7 @@ export interface ProjectConfigResolution {
 // configuration, without walking the project input files.
 export async function resolveProjectConfig(
   dir: string,
-  extensionContext: ExtensionContext,
+  extensionContext: ExtensionContext = createExtensionContext(),
   flags?: RenderFlags,
 ): Promise<ProjectConfigResolution | undefined> {
   const originalDir = dir;

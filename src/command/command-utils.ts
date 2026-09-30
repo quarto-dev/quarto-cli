@@ -6,7 +6,6 @@
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/utils.ts";
 import { resolveProjectConfig } from "../project/project-context.ts";
-import { createExtensionContext } from "../extension/extension.ts";
 import { resolveEngines } from "../execute/engine.ts";
 import { normalizePath } from "../core/path.ts";
 import type { ProjectContext } from "../project/types.ts";
@@ -65,10 +64,7 @@ export async function initializeProjectContextAndEngines(
 
   // Use the project config if we're in a project directory, or create a
   // zero-file context to load bundled engines when no project exists
-  const resolved = await resolveProjectConfig(
-    normalizePath(dir || Deno.cwd()),
-    createExtensionContext(),
-  );
+  const resolved = await resolveProjectConfig(normalizePath(dir || Deno.cwd()));
   const context = resolved
     ? { dir: resolved.dir, config: resolved.config } as ProjectContext
     : await zeroFileProjectContext(dir);

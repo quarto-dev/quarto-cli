@@ -19,7 +19,7 @@ and `projectContext()` (config + `ProjectContext` + input walk), both in
 
 ## Root discovery
 
-`resolveProjectConfig(dir, extensionContext, flags?)` runs two resolver
+`resolveProjectConfig(dir, extensionContext?, flags?)` runs two resolver
 passes, each walking upward from `dir` (`dir = dirname(dir)`) until it
 matches or hits the filesystem root:
 
