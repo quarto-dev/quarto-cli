@@ -264,3 +264,31 @@ export function quartoDevCmd(): string {
   return isWindows ? "quarto.cmd" : "quarto";
 }
 
+
+// Running as root bypasses chmod, so an unreadable dir cannot be made.
+export const canMakeUnreadableDir = isWindows || Deno.uid() !== 0;
+
+// Denies listing `dir` to the current user (icacls on Windows, chmod 000
+// elsewhere). Returns a function restoring access, to call before removal.
+export function makeUnreadableDir(dir: string): () => void {
+  if (isWindows) {
+    const user = Deno.env.get("USERNAME")!;
+    const icacls = (...args: string[]) => {
+      const result = new Deno.Command("icacls", { args: [dir, ...args] })
+        .outputSync();
+      if (!result.success) {
+        throw new Error(
+          `icacls ${args.join(" ")} failed: ${
+            new TextDecoder().decode(result.stderr)
+          }`,
+        );
+      }
+    };
+    icacls("/deny", `${user}:(RD)`);
+    return () => icacls("/remove:d", user);
+  } else {
+    const mode = Deno.statSync(dir).mode!;
+    Deno.chmodSync(dir, 0o000);
+    return () => Deno.chmodSync(dir, mode & 0o7777);
+  }
+}

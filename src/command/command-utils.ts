@@ -5,9 +5,10 @@
  */
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/utils.ts";
-import { projectContext } from "../project/project-context.ts";
-import { notebookContext } from "../render/notebook/notebook-context.ts";
+import { resolveProjectConfig } from "../project/project-context.ts";
+import { createExtensionContext } from "../extension/extension.ts";
 import { resolveEngines } from "../execute/engine.ts";
+import { normalizePath } from "../core/path.ts";
 import type { ProjectContext } from "../project/types.ts";
 
 /**
@@ -44,11 +45,11 @@ async function zeroFileProjectContext(dir?: string): Promise<ProjectContext> {
 }
 
 /**
- * Initialize project context and register external engines from project config.
+ * Initialize project configuration and register external engines from it.
  *
  * This consolidates the common pattern of:
  * 1. Loading YAML intelligence resources
- * 2. Creating project context
+ * 2. Resolving the project configuration (without walking project input files)
  * 3. Registering external engines via reorderEngines()
  *
  * If no project is found, a zero-file context is created to load bundled engine
@@ -59,13 +60,18 @@ async function zeroFileProjectContext(dir?: string): Promise<ProjectContext> {
 export async function initializeProjectContextAndEngines(
   dir?: string,
 ): Promise<void> {
-  // Initialize YAML intelligence resources (required for project context)
+  // Initialize YAML intelligence resources (required for project config)
   await initYamlIntelligenceResourcesFromFilesystem();
 
-  // Load project context if we're in a project directory, or create a zero-file
-  // context to load bundled engines when no project exists
-  const context = await projectContext(dir || Deno.cwd(), notebookContext()) ||
-    await zeroFileProjectContext(dir);
+  // Use the project config if we're in a project directory, or create a
+  // zero-file context to load bundled engines when no project exists
+  const resolved = await resolveProjectConfig(
+    normalizePath(dir || Deno.cwd()),
+    createExtensionContext(),
+  );
+  const context = resolved
+    ? { dir: resolved.dir, config: resolved.config } as ProjectContext
+    : await zeroFileProjectContext(dir);
 
   // Register external engines from project config
   await resolveEngines(context);
