@@ -116,6 +116,40 @@ function assertProjectShape(project: any, root: string) {
   );
 })();
 
+// A file inside the project dir but excluded from the project inputs is
+// inspected as a standalone file: _quarto.yml does not apply to it.
+(() => {
+  const input = docs("inspect/project-basic/_drafts/draft.qmd");
+  const output = docs("inspect/project-basic-draft.json");
+  testQuartoCmd(
+    "inspect",
+    [input, output],
+    [
+      {
+        name: "inspect-file-outside-project-inputs",
+        verify: async (_outputs: ExecuteOutput[]) => {
+          assert(existsSync(output));
+          const json = JSON.parse(Deno.readTextFileSync(output));
+          assertEquals(json.engines, ["markdown"]);
+          assertEquals(Object.keys(json.fileInformation), [input]);
+          assertEquals(json.project.dir, join(projectDir, "_drafts"));
+          assertEquals(json.project.files, { input: [] });
+          assertEquals(json.project.config.project, {});
+          assertEquals(json.project.engines, []);
+          assertEquals(json.project.fileInformation, {});
+        },
+      },
+    ],
+    {
+      teardown: async () => {
+        if (existsSync(output)) {
+          Deno.removeSync(output);
+        }
+      },
+    },
+  );
+})();
+
 (() => {
   const input = docs("inspect/not-a-project");
   const output = docs("inspect/not-a-project.json");
