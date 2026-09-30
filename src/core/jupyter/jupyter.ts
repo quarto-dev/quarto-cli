@@ -1851,7 +1851,7 @@ async function mdOutputStream(
   }
 
   if (options.toHtml && text.some(hasAnsiEscapeCodes)) {
-    const linesHTML = await convertToHtmlSpans(text.join("\n"));
+    const linesHTML = await convertToHtmlSpans(text.join(""));
     return mdMarkdownOutput(
       [
         "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",

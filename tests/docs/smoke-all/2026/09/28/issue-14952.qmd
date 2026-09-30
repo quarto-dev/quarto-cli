@@ -1,0 +1,17 @@
+---
+title: "Revealjs viewport allows zoom"
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ['meta[name="viewport"][content="width=device-width, initial-scale=1.0"]']
+        - []
+      ensureFileRegexMatches:
+        - []
+        - ['user-scalable', 'maximum-scale']
+---
+
+## Slide
+
+Some text.

@@ -16,6 +16,7 @@ All changes included in 1.11:
 - ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Add a distinct, localizable `aria-label` to each navigation landmark of websites and books: the navbar (`Site`), the sidebar (`Section`, or `Site` when there is no navbar), the narrow-viewport toolbar (`Toolbar`), the previous/next page navigation (`Page`), and the breadcrumbs (`Breadcrumbs`) (previously hardcoded English `breadcrumb`). The new `navigation-*-label` language keys can be overridden with `language:` metadata.
 - ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Translate the new `navigation-*-label` keys in all 33 built-in language files. The values are drawn from existing human-translated interface strings (LibreOffice, GNOME, Wikidata) and each one carries a comment naming its source; values that were adapted rather than used verbatim are marked `needs review`.
 - ([#14376](https://github.com/quarto-dev/quarto-cli/issues/14376)): Label the table of contents `<nav>` with its localized title (`aria-labelledby`), in `html` and `revealjs` output, so assistive technology can tell it apart from other navigation landmarks.
+- ([#14952](https://github.com/quarto-dev/quarto-cli/issues/14952)): Fix `revealjs` presentations disabling pinch-zoom on touch devices. The viewport `<meta>` tag no longer sets `maximum-scale=1.0` and `user-scalable=no`, which axe-core flagged (`meta-viewport`).
 
 ## Formats
 
@@ -35,6 +36,7 @@ All changes included in 1.11:
 ### `typst`
 
 - ([#14847](https://github.com/quarto-dev/quarto-cli/pull/14847)): Fix `toc_title` auto-fallback in typst outline template that was ignoring the computed fallback value when `toc_title` is `none`.
+- ([#14947](https://github.com/quarto-dev/quarto-cli/issues/14947)): Fix Typst compilation failing with `invalid number suffix: px` when an image with alt text (`fig-alt`, `alt`, or an inline image caption) has its `width` or `height` in pixels. These images are now written by Pandoc's Typst writer like other images, which also fixes URL-encoded image paths and unsupported size units for them.
 
 ## Projects
 
@@ -51,6 +53,10 @@ All changes included in 1.11:
 
 - ([#14815](https://github.com/quarto-dev/quarto-cli/pull/14815)): Add `quarto call axe`, a hidden experimental command that scans a rendered site for accessibility violations with axe-core across a page × viewport × color-mode matrix, groups them by root-cause signature, reconciles a committed baseline, and can gate CI with `--fail-on`. See [dev-docs/axe-scan.md](https://github.com/quarto-dev/quarto-cli/blob/main/dev-docs/axe-scan.md).
 
+## Extensions
+
+- ([#14936](https://github.com/quarto-dev/quarto-cli/pull/14936)): Accept and ignore static engine declaration keys (`name`, `claims`, `file-extensions`, `claims-files` — including an optional `processor` on `claims-files` entries) in the `external-engine` schema, so extensions can declare them for Quarto 2's engine resolution without breaking Quarto 1 validation. No Quarto 1 behavior change. (author: @gordonwoodhull)
+
 ## Engines
 
 ### `knitr`
@@ -65,6 +71,10 @@ All changes included in 1.11:
 - ([PumasAI/quarto-julia-engine#13](https://github.com/PumasAI/quarto-julia-engine/pull/13)): Shell (`;`), help (`?`), and Pkg (`]`) mode cells now work when the cell has `#|` options.
 - ([PumasAI/quarto-julia-engine#11](https://github.com/PumasAI/quarto-julia-engine/pull/11)): Support `fig-format: retina`, normalized to `png` with doubled `fig-dpi` as in the `jupyter` and `knitr` engines.
 - ([PumasAI/quarto-julia-engine#7](https://github.com/PumasAI/quarto-julia-engine/pull/7)): Support `execute-dir`, shared worker processes across notebooks with matching configs (`share_worker_process: true`).
+
+### `jupyter`
+
+- ([#13966](https://github.com/quarto-dev/quarto-cli/issues/13966)): Fix doubled newlines in HTML output of stdout and stderr containing ANSI escape codes.
 
 ## Lua API
 
