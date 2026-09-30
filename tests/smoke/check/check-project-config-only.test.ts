@@ -30,7 +30,9 @@ function removeProject(dir: string) {
   return Promise.resolve();
 }
 
-(() => {
+// Not registered when the dir can't be made unreadable: an ignored test never
+// runs its teardown, so its fixture would be left behind.
+if (canMakeUnreadableDir) {
   const projectDir = tempProject();
   const locked = join(projectDir, "locked");
   Deno.mkdirSync(locked);
@@ -46,7 +48,6 @@ function removeProject(dir: string) {
       assertEquals(json.strict, true);
     },
     {
-      ignore: !canMakeUnreadableDir,
       cwd: () => join(projectDir, "sub"),
       setup: () => {
         restore = makeUnreadableDir(locked);
@@ -58,7 +59,7 @@ function removeProject(dir: string) {
       },
     },
   );
-})();
+}
 
 (() => {
   const projectDir = tempProject();
