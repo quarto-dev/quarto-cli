@@ -113,6 +113,18 @@ So `_site`, `_freeze`, `_extensions` and any `_dir` are read in full. std
 `walk` has no error hook: an unreadable dir anywhere under the root throws
 `Deno.errors.PermissionDenied` out of `projectContext()`.
 
+`addDir` tags that `PermissionDenied` (the same error object, message and
+stack untouched) with the project dir; `projectContext()` adds the
+`configFile` from `resolveProjectConfig()` on its throw path. The forced
+synthetic branch leaves `configFile` unset. `frameInputWalkError()` turns a
+tagged error with a `configFile` into one `ErrorEx` without stack: the Deno
+message (it carries the `readdir '<path>'`, reused verbatim), the project
+root, the `_quarto.yml` that set it, and a hint that the file may be
+accidental. Any other error is returned unchanged. Only `quarto render` and
+`quarto preview` frame, by wrapping their actions in
+`withInputWalkErrorFraming()` (`src/command/command-utils.ts`); `inspect` and
+other walkers still report the raw error.
+
 ### File-membership fallback
 
 When `path` is a file and not in the walked inputs (e.g. `_partial.qmd`, or
@@ -126,6 +138,11 @@ Each built context opens a `Deno.Kv` disk cache via `createProjectCache()`
 (`src/core/cache/cache.ts`) under `<dir>/.quarto` (synthetic: under the temp
 dir) and a temp context. `returnResult()` registers `context.cleanup` with
 `onCleanup()`, which closes the cache at process exit.
+
+If anything throws after the context is built (`type.config()`, the input
+walk, `mergeExtensionMetadata()`), each branch calls `context.cleanup()`
+before rethrowing, so the cache is closed and the temp dir removed right
+away.
 
 The membership fallback returns `undefined` **after** creating the cache,
 without calling cleanup: the handle stays open for the process lifetime

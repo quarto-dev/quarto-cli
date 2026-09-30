@@ -8,32 +8,20 @@
  */
 
 import { existsSync } from "../../../src/deno_ral/fs.ts";
-import { dirname, join } from "../../../src/deno_ral/path.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { testQuartoCmdJson } from "../../test.ts";
-import { canMakeUnreadableDir, makeUnreadableDir } from "../../utils.ts";
+import {
+  canMakeUnreadableDir,
+  makeUnreadableDir,
+  removeProject,
+  tempProject,
+} from "../../utils.ts";
 import { assert, assertEquals } from "testing/asserts";
-
-// The tree must exist at registration: the harness enters `cwd` before setup.
-function tempProject(): string {
-  const dir = Deno.makeTempDirSync({ prefix: "quarto-check-project" });
-  Deno.writeTextFileSync(join(dir, "_quarto.yml"), "project:\n  type: website\n");
-  Deno.mkdirSync(join(dir, "sub"));
-  Deno.writeTextFileSync(join(dir, "sub", "index.qmd"), "# Hello\n");
-  return dir;
-}
-
-// Teardown runs before the harness restores cwd, and Windows cannot remove
-// the process cwd, so leave the project first.
-function removeProject(dir: string) {
-  Deno.chdir(dirname(dir));
-  Deno.removeSync(dir, { recursive: true });
-  return Promise.resolve();
-}
 
 // Not registered when the dir can't be made unreadable: an ignored test never
 // runs its teardown, so its fixture would be left behind.
 if (canMakeUnreadableDir) {
-  const projectDir = tempProject();
+  const projectDir = tempProject("quarto-check-project");
   const locked = join(projectDir, "locked");
   Deno.mkdirSync(locked);
   Deno.writeTextFileSync(join(locked, "doc.qmd"), "# Locked\n");
@@ -62,7 +50,7 @@ if (canMakeUnreadableDir) {
 }
 
 (() => {
-  const projectDir = tempProject();
+  const projectDir = tempProject("quarto-check-project");
   const output = join(projectDir, "check-info.json");
   testQuartoCmdJson(
     "check",

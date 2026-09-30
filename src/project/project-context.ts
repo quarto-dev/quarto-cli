@@ -111,6 +111,8 @@ import { createProjectCache } from "../core/cache/cache.ts";
 import { createTempContext } from "../core/temp.ts";
 
 import { onCleanup } from "../core/cleanup.ts";
+import { ErrorEx } from "../core/lib/error.ts";
+import { tidyverseError, tidyverseInfo } from "../core/lib/errors.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 
@@ -248,41 +250,47 @@ export async function projectContext(
         },
       };
 
-      // see if the project [kProjectType] wants to filter the project config
-      if (type.config) {
-        result.config = await type.config(
+      try {
+        // see if the project [kProjectType] wants to filter the project config
+        if (type.config) {
+          result.config = await type.config(
+            result,
+            projectConfig,
+            flags,
+          );
+        }
+        const { files, engines } = await projectInputFiles(
           result,
           projectConfig,
-          flags,
         );
-      }
-      const { files, engines } = await projectInputFiles(
-        result,
-        projectConfig,
-      );
-      // if we are attemping to get the projectConext for a file and the
-      // file isn't in list of input files then return a single-file project
-      const fullPath = normalizePath(path);
-      if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
-        return undefined;
-      }
+        // if we are attemping to get the projectConext for a file and the
+        // file isn't in list of input files then return a single-file project
+        const fullPath = normalizePath(path);
+        if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
+          return undefined;
+        }
 
-      if (type.formatExtras) {
-        result.formatExtras = async (
-          source: string,
-          flags: PandocFlags,
-          format: Format,
-          services: RenderServices,
-        ) => type.formatExtras!(result, source, flags, format, services);
+        if (type.formatExtras) {
+          result.formatExtras = async (
+            source: string,
+            flags: PandocFlags,
+            format: Format,
+            services: RenderServices,
+          ) => type.formatExtras!(result, source, flags, format, services);
+        }
+        result.engines = engines;
+        result.files = {
+          input: files,
+          resources: projectResourceFiles(dir, projectConfig),
+          config: configFiles,
+          configResources: projectConfigResources(dir, projectConfig, type),
+        };
+        return await returnResult(result);
+      } catch (e) {
+        result.cleanup();
+        tagInputWalkConfigFile(e, resolved.configFile);
+        throw e;
       }
-      result.engines = engines;
-      result.files = {
-        input: files,
-        resources: projectResourceFiles(dir, projectConfig),
-        config: configFiles,
-        configResources: projectConfigResources(dir, projectConfig, type),
-      };
-      return await returnResult(result);
     } else {
       const temp = createTempContext({
         dir: join(dir, ".quarto"),
@@ -339,18 +347,24 @@ export async function projectContext(
           temp.cleanup();
         },
       };
-      const { files, engines } = await projectInputFiles(
-        result,
-        projectConfig,
-      );
-      result.engines = engines;
-      result.files = {
-        input: files,
-        resources: projectResourceFiles(dir, projectConfig),
-        config: configFiles,
-        configResources: projectConfigResources(dir, projectConfig),
-      };
-      return await returnResult(result);
+      try {
+        const { files, engines } = await projectInputFiles(
+          result,
+          projectConfig,
+        );
+        result.engines = engines;
+        result.files = {
+          input: files,
+          resources: projectResourceFiles(dir, projectConfig),
+          config: configFiles,
+          configResources: projectConfigResources(dir, projectConfig),
+        };
+        return await returnResult(result);
+      } catch (e) {
+        result.cleanup();
+        tagInputWalkConfigFile(e, resolved.configFile);
+        throw e;
+      }
     }
   } else if (force) {
     const temp = createTempContext({
@@ -412,17 +426,22 @@ export async function projectContext(
         temp.cleanup();
       },
     };
-    if (Deno.statSync(path).isDirectory) {
-      const { files, engines } = await projectInputFiles(context);
-      context.engines = engines;
-      context.files.input = files;
-    } else {
-      const input = normalizePath(path);
-      const engine = await fileExecutionEngine(input, undefined, context);
-      context.engines = [engine?.name ?? kMarkdownEngine];
-      context.files.input = [input];
+    try {
+      if (Deno.statSync(path).isDirectory) {
+        const { files, engines } = await projectInputFiles(context);
+        context.engines = engines;
+        context.files.input = files;
+      } else {
+        const input = normalizePath(path);
+        const engine = await fileExecutionEngine(input, undefined, context);
+        context.engines = [engine?.name ?? kMarkdownEngine];
+        context.files.input = [input];
+      }
+      return await returnResult(context);
+    } catch (e) {
+      context.cleanup();
+      throw e;
     }
-    return await returnResult(context);
   } else {
     return undefined;
   }
@@ -931,6 +950,54 @@ function projectHiddenIgnoreGlob(dir: string) {
     .concat(["**/*.llms.md"]); // llms.txt companion markdown files
 }
 
+// Set on the PermissionDenied thrown by the input walk: the project whose
+// inputs were being listed, and the _quarto.yml that made it a project
+// (null for an extension-detected root, unset outside a resolved project).
+const kInputWalkProject = Symbol("input-walk-project");
+type InputWalkError = Deno.errors.PermissionDenied & {
+  [kInputWalkProject]?: { dir: string; configFile?: string | null };
+};
+
+function tagInputWalkConfigFile(e: unknown, configFile: string | null) {
+  const project = (e as InputWalkError)?.[kInputWalkProject];
+  if (project) {
+    project.configFile = configFile;
+  }
+}
+
+// Returns a framed error for a PermissionDenied from a project input walk,
+// or `e` unchanged for any other error.
+export function frameInputWalkError(e: unknown): unknown {
+  const project = (e as InputWalkError)?.[kInputWalkProject];
+  if (!project || project.configFile === undefined) {
+    return e;
+  }
+  const { dir, configFile } = project;
+  const lines = [
+    "Could not read a directory while looking for project input files.",
+    tidyverseError((e as Error).message),
+  ];
+  if (configFile) {
+    lines.push(
+      tidyverseInfo(`Project root: ${dir}`),
+      tidyverseInfo(`Set by: ${configFile}`),
+      tidyverseInfo(
+        "If this _quarto.yml was created by accident, remove it. Otherwise make the directory readable.",
+      ),
+    );
+  } else {
+    lines.push(
+      tidyverseInfo(
+        `Project root: ${dir} (detected by an extension project type, no _quarto.yml)`,
+      ),
+      tidyverseInfo(
+        "If this directory is not meant to be a Quarto project, remove the files that mark it as one. Otherwise make the directory readable.",
+      ),
+    );
+  }
+  return new ErrorEx("Error", lines.join("\n"), false, false);
+}
+
 export const projectInputFiles = makeTimedFunctionAsync(
   "projectInputFiles",
   projectInputFilesInternal,
@@ -992,27 +1059,34 @@ async function projectInputFilesInternal(
   };
   const addDir = async (dir: string): Promise<FileInclusion[]> => {
     const promises: Promise<FileInclusion[]>[] = [];
-    for await (
-      const walkEntry of walk(dir, {
-        includeDirs: false,
-        // this was done b/c some directories e.g. renv/packrat and potentially python
-        // virtualenvs include symblinks to R or Python libraries that are in turn
-        // circular. much safer to not follow symlinks!
-        followSymlinks: false,
-        skip: [kSkipHidden].concat(
-          engineIgnoreDirs().map((ignore) =>
-            globToRegExp(join(dir, ignore) + SEP)
+    try {
+      for await (
+        const walkEntry of walk(dir, {
+          includeDirs: false,
+          // this was done b/c some directories e.g. renv/packrat and potentially python
+          // virtualenvs include symblinks to R or Python libraries that are in turn
+          // circular. much safer to not follow symlinks!
+          followSymlinks: false,
+          skip: [kSkipHidden].concat(
+            engineIgnoreDirs().map((ignore) =>
+              globToRegExp(join(dir, ignore) + SEP)
+            ),
           ),
-        ),
-      })
-    ) {
-      const pathRelative = pathWithForwardSlashes(
-        relative(dir, walkEntry.path),
-      );
-      if (projectIgnores.some((regex) => regex.test(pathRelative))) {
-        continue;
+        })
+      ) {
+        const pathRelative = pathWithForwardSlashes(
+          relative(dir, walkEntry.path),
+        );
+        if (projectIgnores.some((regex) => regex.test(pathRelative))) {
+          continue;
+        }
+        promises.push(addFile(walkEntry.path));
       }
-      promises.push(addFile(walkEntry.path));
+    } catch (e) {
+      if (e instanceof Deno.errors.PermissionDenied) {
+        (e as InputWalkError)[kInputWalkProject] = { dir: project.dir };
+      }
+      throw e;
     }
     const inclusions = await Promise.all(promises);
     return inclusions.flat();

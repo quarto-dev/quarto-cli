@@ -6,6 +6,7 @@
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/utils.ts";
 import {
+  frameInputWalkError,
   type ProjectConfigResolution,
   resolveProjectConfig,
 } from "../project/project-context.ts";
@@ -77,4 +78,20 @@ export async function initializeProjectContextAndEngines(
   await resolveEngines(context);
 
   return resolved;
+}
+
+/**
+ * Wraps a command action so a permission error from the project input walk
+ * is reported as a framed error naming the project and its _quarto.yml.
+ */
+export function withInputWalkErrorFraming<A extends unknown[]>(
+  action: (...args: A) => Promise<void>,
+): (...args: A) => Promise<void> {
+  return async (...args: A) => {
+    try {
+      await action(...args);
+    } catch (e) {
+      throw frameInputWalkError(e);
+    }
+  };
 }

@@ -292,3 +292,21 @@ export function makeUnreadableDir(dir: string): () => void {
     return () => Deno.chmodSync(dir, mode & 0o7777);
   }
 }
+
+// Temp project (website) with `sub/index.qmd`. The tree must exist at test
+// registration: the harness enters `cwd` before setup.
+export function tempProject(prefix: string): string {
+  const dir = Deno.makeTempDirSync({ prefix });
+  Deno.writeTextFileSync(join(dir, "_quarto.yml"), "project:\n  type: website\n");
+  Deno.mkdirSync(join(dir, "sub"));
+  Deno.writeTextFileSync(join(dir, "sub", "index.qmd"), "# Hello\n");
+  return dir;
+}
+
+// Teardown runs before the harness restores cwd, and Windows cannot remove
+// the process cwd, so leave the project first.
+export function removeProject(dir: string) {
+  Deno.chdir(dirname(dir));
+  Deno.removeSync(dir, { recursive: true });
+  return Promise.resolve();
+}
