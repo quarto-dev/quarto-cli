@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { existsSync, safeRemoveSync } from "../src/deno_ral/fs.ts";
-import { AssertionError, fail } from "testing/asserts";
+import { assert, AssertionError, fail } from "testing/asserts";
 import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
@@ -229,6 +229,41 @@ export function testQuartoCmd(
     type: "smoke",
     logConfig, // Pass log config to test
   });
+}
+
+// Runs a quarto command that writes JSON to `output`, passes the parsed JSON
+// to `check`, and removes `output` after the test.
+export function testQuartoCmdJson(
+  cmd: string,
+  args: string[],
+  output: string,
+  name: string,
+  // deno-lint-ignore no-explicit-any
+  check: (json: any) => void | Promise<void>,
+  context?: TestContext,
+) {
+  testQuartoCmd(
+    cmd,
+    args,
+    [
+      {
+        name,
+        verify: async (_outputs: ExecuteOutput[]) => {
+          assert(existsSync(output), `${output} was not written`);
+          await check(JSON.parse(Deno.readTextFileSync(output)));
+        },
+      },
+    ],
+    {
+      ...context,
+      teardown: async () => {
+        await context?.teardown?.();
+        if (existsSync(output)) {
+          Deno.removeSync(output);
+        }
+      },
+    },
+  );
 }
 
 export interface Verify {

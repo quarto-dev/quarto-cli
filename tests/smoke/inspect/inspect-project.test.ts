@@ -10,7 +10,7 @@
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join, relative, resolve } from "../../../src/deno_ral/path.ts";
 import { normalizePath } from "../../../src/core/path.ts";
-import { ExecuteOutput, testQuartoCmd } from "../../test.ts";
+import { ExecuteOutput, testQuartoCmd, testQuartoCmdJson } from "../../test.ts";
 import { docs } from "../../utils.ts";
 import { printsMessage } from "../../verify.ts";
 import { assert, assertEquals } from "testing/asserts";
@@ -53,25 +53,13 @@ function assertProjectShape(project: any, root: string) {
 
 (() => {
   const output = docs("inspect/project-basic.json");
-  testQuartoCmd(
+  testQuartoCmdJson(
     "inspect",
     [projectDir, output],
-    [
-      {
-        name: "inspect-project-dir",
-        verify: async (_outputs: ExecuteOutput[]) => {
-          assert(existsSync(output));
-          const json = JSON.parse(Deno.readTextFileSync(output));
-          assertProjectShape(json, projectDir);
-        },
-      },
-    ],
-    {
-      teardown: async () => {
-        if (existsSync(output)) {
-          Deno.removeSync(output);
-        }
-      },
+    output,
+    "inspect-project-dir",
+    (json) => {
+      assertProjectShape(json, projectDir);
     },
   );
 })();
@@ -79,40 +67,28 @@ function assertProjectShape(project: any, root: string) {
 (() => {
   const output = resolve(docs("inspect/project-basic-file.json"));
   const input = "page.qmd";
-  testQuartoCmd(
+  testQuartoCmdJson(
     "inspect",
     [input, output],
-    [
-      {
-        name: "inspect-file-in-project",
-        verify: async (_outputs: ExecuteOutput[]) => {
-          assert(existsSync(output));
-          const json = JSON.parse(Deno.readTextFileSync(output));
-          assertEquals(
-            Object.keys(json).sort(),
-            [
-              "engines",
-              "fileInformation",
-              "formats",
-              "project",
-              "quarto",
-              "resources",
-            ],
-          );
-          assertEquals(json.engines, ["markdown"]);
-          assertEquals(Object.keys(json.fileInformation), [input]);
-          assertProjectShape(json.project, projectDir);
-        },
-      },
-    ],
-    {
-      cwd: () => join(projectDir, "sub"),
-      teardown: async () => {
-        if (existsSync(output)) {
-          Deno.removeSync(output);
-        }
-      },
+    output,
+    "inspect-file-in-project",
+    (json) => {
+      assertEquals(
+        Object.keys(json).sort(),
+        [
+          "engines",
+          "fileInformation",
+          "formats",
+          "project",
+          "quarto",
+          "resources",
+        ],
+      );
+      assertEquals(json.engines, ["markdown"]);
+      assertEquals(Object.keys(json.fileInformation), [input]);
+      assertProjectShape(json.project, projectDir);
     },
+    { cwd: () => join(projectDir, "sub") },
   );
 })();
 
@@ -121,31 +97,19 @@ function assertProjectShape(project: any, root: string) {
 (() => {
   const input = docs("inspect/project-basic/_drafts/draft.qmd");
   const output = docs("inspect/project-basic-draft.json");
-  testQuartoCmd(
+  testQuartoCmdJson(
     "inspect",
     [input, output],
-    [
-      {
-        name: "inspect-file-outside-project-inputs",
-        verify: async (_outputs: ExecuteOutput[]) => {
-          assert(existsSync(output));
-          const json = JSON.parse(Deno.readTextFileSync(output));
-          assertEquals(json.engines, ["markdown"]);
-          assertEquals(Object.keys(json.fileInformation), [input]);
-          assertEquals(json.project.dir, join(projectDir, "_drafts"));
-          assertEquals(json.project.files, { input: [] });
-          assertEquals(json.project.config.project, {});
-          assertEquals(json.project.engines, []);
-          assertEquals(json.project.fileInformation, {});
-        },
-      },
-    ],
-    {
-      teardown: async () => {
-        if (existsSync(output)) {
-          Deno.removeSync(output);
-        }
-      },
+    output,
+    "inspect-file-outside-project-inputs",
+    (json) => {
+      assertEquals(json.engines, ["markdown"]);
+      assertEquals(Object.keys(json.fileInformation), [input]);
+      assertEquals(json.project.dir, join(projectDir, "_drafts"));
+      assertEquals(json.project.files, { input: [] });
+      assertEquals(json.project.config.project, {});
+      assertEquals(json.project.engines, []);
+      assertEquals(json.project.fileInformation, {});
     },
   );
 })();

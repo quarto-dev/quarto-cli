@@ -7,9 +7,8 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join, resolve } from "../../../src/deno_ral/path.ts";
-import { ExecuteOutput, testQuartoCmd } from "../../test.ts";
+import { testQuartoCmdJson } from "../../test.ts";
 import { docs } from "../../utils.ts";
 import { assert, assertEquals } from "testing/asserts";
 
@@ -18,53 +17,31 @@ const cwd = () => join(projectDir, "sub");
 
 (() => {
   const output = join(projectDir, "check-info.json");
-  testQuartoCmd(
+  testQuartoCmdJson(
     "check",
     ["info", "--output", output],
-    [
-      {
-        name: "check-info-json-in-project",
-        verify: async (_outputs: ExecuteOutput[]) => {
-          const json = JSON.parse(Deno.readTextFileSync(output));
-          assertEquals(Object.keys(json).sort(), ["info", "strict", "version"]);
-          assertEquals(json.strict, true);
-          assertEquals(Object.keys(json.info), ["cacheDir"]);
-          assert(typeof json.info.cacheDir === "string");
-        },
-      },
-    ],
-    {
-      cwd,
-      teardown: async () => {
-        if (existsSync(output)) {
-          Deno.removeSync(output);
-        }
-      },
+    output,
+    "check-info-json-in-project",
+    (json) => {
+      assertEquals(Object.keys(json).sort(), ["info", "strict", "version"]);
+      assertEquals(json.strict, true);
+      assertEquals(Object.keys(json.info), ["cacheDir"]);
+      assert(typeof json.info.cacheDir === "string");
     },
+    { cwd },
   );
 })();
 
 (() => {
   const output = join(projectDir, "check-probe.json");
-  testQuartoCmd(
+  testQuartoCmdJson(
     "check",
     ["check-probe", "--output", output],
-    [
-      {
-        name: "check-discovers-project-external-engine",
-        verify: async (_outputs: ExecuteOutput[]) => {
-          const json = JSON.parse(Deno.readTextFileSync(output));
-          assertEquals(json["check-probe"], { discovered: true });
-        },
-      },
-    ],
-    {
-      cwd,
-      teardown: async () => {
-        if (existsSync(output)) {
-          Deno.removeSync(output);
-        }
-      },
+    output,
+    "check-discovers-project-external-engine",
+    (json) => {
+      assertEquals(json["check-probe"], { discovered: true });
     },
+    { cwd },
   );
 })();
