@@ -225,8 +225,8 @@ A dispatch can opt out per-run via `skip-auto-smoke` (see D7.1) when it does not
 Built test distributions use `$(cat version.txt)+test.$(date +%Y%m%d)`.
 Do not use a prerelease suffix, which fails plain `>=X.Y` `quarto-required` ranges, or a fourth numeric component, which is invalid semver.
 Build metadata preserves range comparisons while distinguishing the build from the `99.9.9` dev version.
-Lua filters see the marker stripped: `init.lua` normalizes the `quarto-version` param to its leading dotted-numeric component, so `quarto.version` is `X.Y.Z` while `quarto --version` reports the full stamp.
-The marker is therefore observable through the CLI, not through `quarto.version`.
+Lua filters can read the full marker through `param('quarto-version')`, and `quarto --version` reports the full stamp.
+`init.lua` uses the leading dotted-numeric component when constructing `quarto.version` and `quarto.config.version()`, so those values expose `X.Y.Z`.
 
 ### D3. Dist outside the checkout + `99.9.9` sentinel refusal
 
