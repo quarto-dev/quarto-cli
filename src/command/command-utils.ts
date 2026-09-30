@@ -5,7 +5,10 @@
  */
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/utils.ts";
-import { resolveProjectConfig } from "../project/project-context.ts";
+import {
+  type ProjectConfigResolution,
+  resolveProjectConfig,
+} from "../project/project-context.ts";
 import { resolveEngines } from "../execute/engine.ts";
 import { normalizePath } from "../core/path.ts";
 import type { ProjectContext } from "../project/types.ts";
@@ -55,10 +58,11 @@ async function zeroFileProjectContext(dir?: string): Promise<ProjectContext> {
  * extensions (like Julia), ensuring they're available for commands like `quarto check julia`.
  *
  * @param dir - Optional directory path (defaults to current working directory)
+ * @returns The resolved project configuration, or undefined when no project is found
  */
 export async function initializeProjectContextAndEngines(
   dir?: string,
-): Promise<void> {
+): Promise<ProjectConfigResolution | undefined> {
   // Initialize YAML intelligence resources (required for project config)
   await initYamlIntelligenceResourcesFromFilesystem();
 
@@ -71,4 +75,6 @@ export async function initializeProjectContextAndEngines(
 
   // Register external engines from project config
   await resolveEngines(context);
+
+  return resolved;
 }

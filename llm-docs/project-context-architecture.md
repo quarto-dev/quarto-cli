@@ -5,6 +5,7 @@ key_files:
   - src/project/project-context.ts
   - src/command/command-utils.ts
   - src/command/check/cmd.ts
+  - src/command/check/check.ts
   - src/execute/engine.ts
   - src/core/cache/cache.ts
   - src/project/types/single-file/single-file.ts
@@ -68,7 +69,11 @@ they need a `ProjectContext` and may read project files. None of them touch
   `quarto call engine`. Only needs `config.engines` for `resolveEngines()`
   (`src/execute/engine.ts`), so it wraps the result as a minimal
   `{ dir, config }` context, or falls back to `zeroFileProjectContext()`
-  (bundled engine extensions only) when no project is found.
+  (bundled engine extensions only) when no project is found. It returns the
+  `ProjectConfigResolution` (or `undefined`); `quarto check` passes it into
+  `check()`, and `check info` reports `dir`/`configFile` (JSON
+  `info.project`, `null` outside a project) and warns when the root is the
+  home dir or a filesystem root. The other callers ignore it.
 
 ## `projectContext()` — full context and input walk
 
