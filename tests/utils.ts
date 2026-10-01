@@ -294,9 +294,11 @@ export function makeUnreadableDir(dir: string): () => void {
 }
 
 // Temp project (website) with `sub/index.qmd`. The tree must exist at test
-// registration: the harness enters `cwd` before setup.
+// registration: the harness enters `cwd` before setup. Real path: quarto
+// resolves the project root from the process cwd, which is a real path (macOS
+// temp dirs live under the /var -> /private/var symlink).
 export function tempProject(prefix: string): string {
-  const dir = Deno.makeTempDirSync({ prefix });
+  const dir = Deno.realPathSync(Deno.makeTempDirSync({ prefix }));
   Deno.writeTextFileSync(join(dir, "_quarto.yml"), "project:\n  type: website\n");
   Deno.mkdirSync(join(dir, "sub"));
   Deno.writeTextFileSync(join(dir, "sub", "index.qmd"), "# Hello\n");
