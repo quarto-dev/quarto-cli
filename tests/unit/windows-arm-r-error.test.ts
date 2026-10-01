@@ -97,6 +97,7 @@ unitTest("Windows ARM x64 R is preserved in check JSON", async () => {
       output: "check.json",
       services: undefined!,
       jsonResult,
+      project: undefined,
     },
     {
       checkRBinary: async () => "Rscript",

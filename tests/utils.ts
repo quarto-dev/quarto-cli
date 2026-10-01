@@ -11,6 +11,7 @@ import { kMetadataFormat, kOutputExt, kOutputFile } from "../src/config/constant
 import { pathWithForwardSlashes, safeExistsSync } from "../src/core/path.ts";
 import { readYaml } from "../src/core/yaml.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
+import { originalRealPathSync } from "../src/deno_ral/original-real-path.ts";
 import { bookOutputStem } from "../src/project/types/book/book-shared.ts";
 import { ProjectConfig } from "../src/project/types.ts";
 
@@ -264,3 +265,51 @@ export function quartoDevCmd(): string {
   return isWindows ? "quarto.cmd" : "quarto";
 }
 
+
+// Running as root bypasses chmod, so an unreadable dir cannot be made.
+export const canMakeUnreadableDir = isWindows || Deno.uid() !== 0;
+
+// Denies listing `dir` to the current user (icacls on Windows, chmod 000
+// elsewhere). Returns a function restoring access, to call before removal.
+export function makeUnreadableDir(dir: string): () => void {
+  if (isWindows) {
+    const user = Deno.env.get("USERNAME")!;
+    const icacls = (...args: string[]) => {
+      const result = new Deno.Command("icacls", { args: [dir, ...args] })
+        .outputSync();
+      if (!result.success) {
+        throw new Error(
+          `icacls ${args.join(" ")} failed: ${
+            new TextDecoder().decode(result.stderr)
+          }`,
+        );
+      }
+    };
+    icacls("/deny", `${user}:(RD)`);
+    return () => icacls("/remove:d", user);
+  } else {
+    const mode = Deno.statSync(dir).mode!;
+    Deno.chmodSync(dir, 0o000);
+    return () => Deno.chmodSync(dir, mode & 0o7777);
+  }
+}
+
+// Temp project (website) with `sub/index.qmd`. The tree must exist at test
+// registration: the harness enters `cwd` before setup. Real path: quarto
+// resolves the project root from the process cwd, which is a real path (macOS
+// temp dirs live under the /var -> /private/var symlink).
+export function tempProject(prefix: string): string {
+  const dir = originalRealPathSync(Deno.makeTempDirSync({ prefix }));
+  Deno.writeTextFileSync(join(dir, "_quarto.yml"), "project:\n  type: website\n");
+  Deno.mkdirSync(join(dir, "sub"));
+  Deno.writeTextFileSync(join(dir, "sub", "index.qmd"), "# Hello\n");
+  return dir;
+}
+
+// Teardown runs before the harness restores cwd, and Windows cannot remove
+// the process cwd, so leave the project first.
+export function removeProject(dir: string) {
+  Deno.chdir(dirname(dir));
+  Deno.removeSync(dir, { recursive: true });
+  return Promise.resolve();
+}

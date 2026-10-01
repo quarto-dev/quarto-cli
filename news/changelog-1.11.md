@@ -53,6 +53,10 @@ All changes included in 1.11:
 
 - ([#14815](https://github.com/quarto-dev/quarto-cli/pull/14815)): Add `quarto call axe`, a hidden experimental command that scans a rendered site for accessibility violations with axe-core across a page × viewport × color-mode matrix, groups them by root-cause signature, reconciles a committed baseline, and can gate CI with `--fail-on`. See [dev-docs/axe-scan.md](https://github.com/quarto-dev/quarto-cli/blob/main/dev-docs/axe-scan.md).
 
+### `check`
+
+- ([#14960](https://github.com/quarto-dev/quarto-cli/issues/14960)): Fix `quarto check` failing when the project contains a directory it cannot read, for example when a stray `_quarto.yml` in the home directory makes the home directory a project. `quarto check` now reads only the project configuration, without scanning input files or creating a `.quarto` directory in the project root. `quarto check info` reports the project root and the `_quarto.yml` that set it (`info.project` in `--output` JSON), and warns when the project root is the home directory or a filesystem root. `quarto render` and `quarto preview` now report an unreadable directory in the project as one error naming the directory, the project root and its `_quarto.yml`, instead of a raw `readdir` error with a stack trace.
+
 ## Extensions
 
 - ([#14936](https://github.com/quarto-dev/quarto-cli/pull/14936)): Accept and ignore static engine declaration keys (`name`, `claims`, `file-extensions`, `claims-files` — including an optional `processor` on `claims-files` entries) in the `external-engine` schema, so extensions can declare them for Quarto 2's engine resolution without breaking Quarto 1 validation. No Quarto 1 behavior change. (author: @gordonwoodhull)

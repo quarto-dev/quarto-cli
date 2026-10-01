@@ -25,7 +25,7 @@ const cwd = () => join(projectDir, "sub");
     (json) => {
       assertEquals(Object.keys(json).sort(), ["info", "strict", "version"]);
       assertEquals(json.strict, true);
-      assertEquals(Object.keys(json.info), ["cacheDir"]);
+      assertEquals(Object.keys(json.info), ["cacheDir", "project"]);
       assert(typeof json.info.cacheDir === "string");
     },
     { cwd },
