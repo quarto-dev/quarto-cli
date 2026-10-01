@@ -131,8 +131,15 @@ wrap_asis_output <- function(options, x) {
     x <- paste0("`````{=html}\n", x, "\n`````")
   }
 
-  # If asis output, don't include the output div
-  if (identical(options[["results"]], "asis")) {
+  # If asis output, don't include the output div,
+  # unless a feature requiring it is used
+  # if there additional classes, some added attr,
+  # then the user is deemed to have implicitly overridden results = "asis"
+  # (as those features don't work w/o an enclosing div)
+  needCell <- length(strsplit(classes, "\\s+")[[1]]) > 1 || # nolint: object_name_linter, line_length_linter.
+    isTRUE(nzchar(attrs))
+
+  if (identical(options[["results"]], "asis") && !needCell) {
     return(x)
   }
 
@@ -173,6 +180,13 @@ if (utils::packageVersion("knitr") >= "1.32.8") {
       } else {
         knitr:::sew.knit_asis(x, options, ...)
       }
+      ## START knitr hack: 
+      ## catch knit_asis output from save output hook state
+      asis_output <- .getFromQuartoToolsEnv("cell_options")$asis_output # nolint: object_usage_linter, line_length_linter
+      if (isTRUE(asis_output)) {
+        options[["results"]] <- "asis"
+      }
+      ## END
 
       # if it's an html widget then it was already wrapped
       # by add_html_caption
