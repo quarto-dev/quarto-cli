@@ -5,39 +5,22 @@
 *
 */
 import { assertObjectMatch } from "https://deno.land/std@0.93.0/assert/assert_object_match.ts";
-import { existsSync } from "../../../src/deno_ral/fs.ts";
-import {
-  ExecuteOutput,
-  testQuartoCmd,
-} from "../../test.ts";
-import { assert } from "testing/asserts";
+import { testQuartoCmdJson } from "../../test.ts";
 
 (() => {
   const input = "docs/inspect/foo.qmd";
   const output = "docs/inspect/foo.json";
-  testQuartoCmd(
+  testQuartoCmdJson(
     "inspect",
     [input, output],
-    [
+    output,
+    "inspect-include",
+    (json) => {
+      assertObjectMatch(json.fileInformation["docs/inspect/foo.qmd"].includeMap[0],
       {
-        name: "inspect-include",
-        verify: async (outputs: ExecuteOutput[]) => {
-          assert(existsSync("docs/inspect/foo.json"));
-          const json = JSON.parse(Deno.readTextFileSync("docs/inspect/foo.json"));
-          assertObjectMatch(json.fileInformation["docs/inspect/foo.qmd"].includeMap[0],
-          {
-            source: input,
-            target: "_bar.qmd"
-          });
-        }
-      }
-    ],
-    {
-      teardown: async () => {
-        if (existsSync("docs/inspect/foo.json")) {
-          Deno.removeSync("docs/inspect/foo.json");
-        }
-      }
+        source: input,
+        target: "_bar.qmd"
+      });
     },
   );
 })();
