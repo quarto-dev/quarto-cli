@@ -11,6 +11,7 @@
 import { dirname, join, resolve } from "../../../src/deno_ral/path.ts";
 import { execProcess } from "../../../src/core/process.ts";
 import { originalRealPathSync } from "../../../src/deno_ral/original-real-path.ts";
+import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { testQuartoCmd, testQuartoCmdJson, unitTest } from "../../test.ts";
 import { noErrors, printsMessage } from "../../verify.ts";
 import {
@@ -127,32 +128,54 @@ function removeDir(dir: string) {
 
 // Runs quarto as a subprocess: the home dir comes from the environment, and
 // changing it in-process would leak into concurrently running tests.
+async function assertHomeWarning(project: string, home: string) {
+  const output = join(project, "check-info.json");
+  const result = await execProcess({
+    // The dev launcher path is relative to tests/, the child runs elsewhere.
+    cmd: isBinaryMode() ? quartoDevBinCmd() : resolve(quartoDevBinCmd()),
+    args: ["check", "info", "--output", output],
+    cwd: join(project, "sub"),
+    stdout: "piped",
+    stderr: "piped",
+    ...quartoSpawnEnvOptions({ HOME: home, USERPROFILE: home }),
+  });
+  assert(result.success, `quarto check failed: ${result.stderr}`);
+  const stderr = result.stderr ?? "";
+  assert(
+    stderr.includes(
+      `Project root is your home directory (${project}), set by ${
+        join(project, "_quarto.yml")
+      }.`,
+    ),
+    `Missing home directory warning in stderr:\n${stderr}`,
+  );
+  const json = JSON.parse(Deno.readTextFileSync(output));
+  assertEquals(json.info.project.dir, project);
+}
+
 unitTest("check-info-warns-when-project-root-is-home", async () => {
   const home = tempProject();
   try {
-    const output = join(home, "check-info.json");
-    const result = await execProcess({
-      // The dev launcher path is relative to tests/, the child runs elsewhere.
-      cmd: isBinaryMode() ? quartoDevBinCmd() : resolve(quartoDevBinCmd()),
-      args: ["check", "info", "--output", output],
-      cwd: join(home, "sub"),
-      stdout: "piped",
-      stderr: "piped",
-      ...quartoSpawnEnvOptions({ HOME: home, USERPROFILE: home }),
-    });
-    assert(result.success, `quarto check failed: ${result.stderr}`);
-    const stderr = result.stderr ?? "";
-    assert(
-      stderr.includes(
-        `Project root is your home directory (${home}), set by ${
-          join(home, "_quarto.yml")
-        }.`,
-      ),
-      `Missing home directory warning in stderr:\n${stderr}`,
-    );
-    const json = JSON.parse(Deno.readTextFileSync(output));
-    assertEquals(json.info.project.dir, home);
+    await assertHomeWarning(home, home);
   } finally {
     Deno.removeSync(home, { recursive: true });
   }
 });
+
+// HOME is a symlink to the project root, which quarto sees as a real path.
+// Creating directory symlinks on Windows needs Developer Mode or admin rights.
+unitTest(
+  "check-info-warns-when-symlinked-home-is-project-root",
+  async () => {
+    const project = tempProject();
+    const alias = `${project}-home`;
+    Deno.symlinkSync(project, alias, { type: "dir" });
+    try {
+      await assertHomeWarning(project, alias);
+    } finally {
+      Deno.removeSync(alias);
+      Deno.removeSync(project, { recursive: true });
+    }
+  },
+  { ignore: isWindows },
+);
