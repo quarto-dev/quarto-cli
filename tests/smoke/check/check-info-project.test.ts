@@ -10,6 +10,7 @@
 
 import { dirname, join, resolve } from "../../../src/deno_ral/path.ts";
 import { execProcess } from "../../../src/core/process.ts";
+import { originalRealPathSync } from "../../../src/deno_ral/original-real-path.ts";
 import { testQuartoCmd, testQuartoCmdJson, unitTest } from "../../test.ts";
 import { noErrors, printsMessage } from "../../verify.ts";
 import {
@@ -22,7 +23,7 @@ import { assert, assertEquals } from "testing/asserts";
 // Real path: the project root is resolved from the process cwd, which is a
 // real path (macOS temp dirs live under the /var -> /private/var symlink).
 function tempDir(prefix: string): string {
-  return Deno.realPathSync(Deno.makeTempDirSync({ prefix }));
+  return originalRealPathSync(Deno.makeTempDirSync({ prefix }));
 }
 
 // The tree must exist at registration: the harness enters `cwd` before setup.

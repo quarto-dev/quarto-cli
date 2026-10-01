@@ -30,6 +30,7 @@ import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { typstBinaryPath } from "../../core/typst.ts";
 import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
+import { originalRealPathSync } from "../../deno_ral/original-real-path.ts";
 import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
 import { detectBrowser } from "../../core/puppeteer.ts";
 import { executionEngines } from "../../execute/engine.ts";
@@ -189,7 +190,7 @@ function userHomeDir(): string | undefined {
   }
   // The project root is a real path (resolved from the process cwd).
   try {
-    return Deno.realPathSync(home);
+    return originalRealPathSync(home);
   } catch {
     return home;
   }

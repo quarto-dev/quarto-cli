@@ -11,6 +11,7 @@ import { kMetadataFormat, kOutputExt, kOutputFile } from "../src/config/constant
 import { pathWithForwardSlashes, safeExistsSync } from "../src/core/path.ts";
 import { readYaml } from "../src/core/yaml.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
+import { originalRealPathSync } from "../src/deno_ral/original-real-path.ts";
 import { bookOutputStem } from "../src/project/types/book/book-shared.ts";
 import { ProjectConfig } from "../src/project/types.ts";
 
@@ -298,7 +299,7 @@ export function makeUnreadableDir(dir: string): () => void {
 // resolves the project root from the process cwd, which is a real path (macOS
 // temp dirs live under the /var -> /private/var symlink).
 export function tempProject(prefix: string): string {
-  const dir = Deno.realPathSync(Deno.makeTempDirSync({ prefix }));
+  const dir = originalRealPathSync(Deno.makeTempDirSync({ prefix }));
   Deno.writeTextFileSync(join(dir, "_quarto.yml"), "project:\n  type: website\n");
   Deno.mkdirSync(join(dir, "sub"));
   Deno.writeTextFileSync(join(dir, "sub", "index.qmd"), "# Hello\n");
