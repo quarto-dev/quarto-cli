@@ -35,6 +35,7 @@ import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
 import { detectBrowser } from "../../core/puppeteer.ts";
 import { executionEngines } from "../../execute/engine.ts";
 import type { ProjectConfigResolution } from "../../project/project-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export function getTargets(): readonly string[] {
   const checkableEngineNames = executionEngines()
@@ -553,10 +554,12 @@ title: "Title"
 ## Header
 `,
     );
-    const result = await render(mdPath, {
-      services,
-      flags: { quiet: true },
-    });
+    const options = { services, flags: { quiet: true } };
+    const result = await render(
+      mdPath,
+      options,
+      await singleFileProjectContext(mdPath, notebookContext(), options),
+    );
     if (result.error) {
       if (!conf.jsonResult) {
         throw result.error;
