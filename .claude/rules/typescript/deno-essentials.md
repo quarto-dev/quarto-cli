@@ -30,6 +30,10 @@ import { debug } from "../../deno_ral/log.ts";
 import { debug } from "../../deno_ral/log";
 ```
 
+### Break Import Cycles by Extraction
+
+When a new import creates a cycle, move the pure utilities both sides need into a small module of their own and have both import from it (e.g. `src/tools/impl/chrome-headless-shell-paths.ts`). A dynamic `await import()` only hides the cycle.
+
 ## Deno RAL (Runtime Abstraction Layer)
 
 Import from `src/deno_ral/` instead of standard library directly. See `.claude/rules/typescript/deno-ral.md` for the full module reference, safe file operations, and internals.
