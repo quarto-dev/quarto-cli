@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
-import { basename, join, relative } from "../../../deno_ral/path.ts";
+import { basename, join, relative, resolve } from "../../../deno_ral/path.ts";
 import { existsSync } from "../../../deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 
@@ -13,7 +13,7 @@ import { execProcess } from "../../../core/process.ts";
 import { pandocBinaryPath, resourcePath } from "../../../core/resources.ts";
 
 import { kProject404File, ProjectContext } from "../../types.ts";
-import { projectOutputDir } from "../../project-shared.ts";
+import { projectIsBook, projectOutputDir } from "../../project-shared.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import { kLlmsTxt } from "./website-constants.ts";
@@ -64,6 +64,9 @@ export function llmsHtmlFinalizer(
       return;
     }
 
+    // Drop any page held from an earlier render of this source
+    bookLlmsPages.delete(bookLlmsPageKey(source));
+
     // Check draft status via multiple mechanisms
     const draftMode = projectDraftMode(project);
 
@@ -85,16 +88,35 @@ export function llmsHtmlFinalizer(
     // Extract main content from HTML
     const htmlContent = extractMainContent(doc);
 
-    // Compute the output file path and derive the .llms.md path
-    const outputFile = computeOutputFilePath(source, project);
-    const llmsOutputPath = outputFile.replace(/\.html$/, ".llms.md");
+    if (projectIsBook(project)) {
+      // book post-render converts it once cross-references are resolved
+      bookLlmsPages.set(bookLlmsPageKey(source), htmlContent);
+    } else {
+      // Compute the output file path and derive the .llms.md path
+      const outputFile = computeOutputFilePath(source, project);
+      const llmsOutputPath = outputFile.replace(/\.html$/, ".llms.md");
 
-    // Convert HTML to markdown using Pandoc with the llms.lua filter
-    await convertHtmlToLlmsMarkdown(htmlContent, llmsOutputPath);
+      // Convert HTML to markdown using Pandoc with the llms.lua filter
+      await convertHtmlToLlmsMarkdown(htmlContent, llmsOutputPath);
+    }
 
     // Clean up conditional content markers from the original HTML doc
     cleanupConditionalContent(doc);
   };
+}
+
+// llms HTML of book pages from their latest render, keyed by absolute source path
+const bookLlmsPages = new Map<string, string>();
+
+function bookLlmsPageKey(source: string) {
+  return pathWithForwardSlashes(resolve(source));
+}
+
+/**
+ * The llms HTML held for a book page by the HTML finalizer, if any.
+ */
+export function bookLlmsPage(source: string): string | undefined {
+  return bookLlmsPages.get(bookLlmsPageKey(source));
 }
 
 /**
@@ -255,7 +277,7 @@ function preprocessAnnotatedCodeBlocks(
 /**
  * Convert HTML content to markdown using Pandoc with the llms.lua filter.
  */
-async function convertHtmlToLlmsMarkdown(
+export async function convertHtmlToLlmsMarkdown(
   htmlContent: string,
   outputPath: string,
 ): Promise<void> {

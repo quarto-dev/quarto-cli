@@ -59,7 +59,18 @@ import { ProjectOutputFile } from "../types.ts";
 
 import { executionEngineKeepMd } from "../../../execute/engine.ts";
 
-import { websiteOutputFiles, websitePostRender } from "../website/website.ts";
+import {
+  websiteOutputFiles,
+  websitePostRender,
+  WebsiteProjectOutputFile,
+} from "../website/website.ts";
+import {
+  bookLlmsPage,
+  convertHtmlToLlmsMarkdown,
+} from "../website/website-llms.ts";
+import { websiteConfigBoolean } from "../website/website-config.ts";
+import { kLlmsTxt } from "../website/website-constants.ts";
+import { parseHtml } from "../../../core/deno-dom.ts";
 
 import {
   onSingleFileBookPostRender,
@@ -84,7 +95,10 @@ import {
   kBookCoverImage,
   kBookCoverImageAlt,
 } from "./book-shared.ts";
-import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
+import {
+  bookCrossrefsPostRender,
+  bookCrossrefsResolver,
+} from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
 import { partitionYamlFrontMatter } from "../../../core/yaml.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
@@ -594,6 +608,7 @@ export async function bookPostRender(
     // fixup crossrefs and bibliography for web output
     await bookBibliographyPostRender(context, incremental, websiteFiles);
     await bookCrossrefsPostRender(context, websiteFiles);
+    await bookLlmsPostRender(context, websiteFiles);
 
     // website files are now already written on a per-file basis
     // websiteFiles.forEach((websiteFile) => {
@@ -625,6 +640,29 @@ export async function bookPostRender(
         outputFiles,
       );
     }
+  }
+}
+
+async function bookLlmsPostRender(
+  context: ProjectContext,
+  websiteFiles: WebsiteProjectOutputFile[],
+) {
+  if (!websiteConfigBoolean(kLlmsTxt, false, context.config)) {
+    return;
+  }
+  const resolveCrossrefs = await bookCrossrefsResolver(context);
+  for (const file of websiteFiles) {
+    // undefined for pages the finalizer skipped (hidden drafts)
+    const html = bookLlmsPage(file.input);
+    if (html === undefined) {
+      continue;
+    }
+    const doc = await parseHtml(html);
+    resolveCrossrefs(file.file, file.format, doc);
+    await convertHtmlToLlmsMarkdown(
+      "<!DOCTYPE html>\n" + doc.documentElement!.outerHTML,
+      file.file.replace(/\.html$/, ".llms.md"),
+    );
   }
 }
 
