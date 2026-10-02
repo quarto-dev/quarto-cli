@@ -30,7 +30,8 @@ import {
   projectDraftMode,
 } from "./website-utils.ts";
 import { resolveInputTargetForOutputFile } from "../../project-index.ts";
-import { Format, Metadata } from "../../../config/types.ts";
+import { Metadata } from "../../../config/types.ts";
+import { MathMethods } from "../../../resources/types/schema-types.ts";
 import { kWebsite } from "./website-constants.ts";
 
 /**
@@ -56,7 +57,7 @@ function computeOutputFilePath(
 export function llmsHtmlFinalizer(
   source: string,
   project: ProjectContext,
-  _format: Format,
+  mathMethod: MathMethods | undefined,
 ) {
   return async (doc: Document): Promise<void> => {
     // Check if llms-txt is enabled
@@ -83,7 +84,7 @@ export function llmsHtmlFinalizer(
     }
 
     // Extract main content from HTML
-    const htmlContent = extractMainContent(doc);
+    const htmlContent = extractMainContent(doc, mathMethod);
 
     // Compute the output file path and derive the .llms.md path
     const outputFile = computeOutputFilePath(source, project);
@@ -136,7 +137,10 @@ function cleanupConditionalContent(doc: Document): void {
  * Extract the main content from an HTML document, removing navigation,
  * sidebars, footers, scripts, and styles.
  */
-function extractMainContent(doc: Document): string {
+function extractMainContent(
+  doc: Document,
+  mathMethod: MathMethods | undefined,
+): string {
   // Clone the document to avoid mutating the original
   const clone = doc.cloneNode(true) as Document;
 
@@ -177,8 +181,9 @@ function extractMainContent(doc: Document): string {
     return "";
   }
 
-  // Preprocess annotated code blocks before converting to markdown
+  // Preprocess annotated code blocks and math before converting to markdown
   preprocessAnnotatedCodeBlocks(clone, main as Element);
+  preprocessMath(clone, main as Element, mathMethod);
 
   // Return a minimal HTML document with just the content
   return `<!DOCTYPE html>
@@ -253,6 +258,51 @@ function preprocessAnnotatedCodeBlocks(
 }
 
 /**
+ * Convert math to `<script type="math/tex">`, which Pandoc's HTML reader
+ * reads back as math. Pandoc's HTML writer emits MathJax and KaTeX math as
+ * TeX text in `span.math` and webtex math as `img.math` (TeX in `alt`); read
+ * as plain text instead, the gfm writer mangles the backslashes.
+ * `span.math` from the plain method holds rendered text, not TeX, and is
+ * left as is.
+ */
+function preprocessMath(
+  doc: Document,
+  container: Element,
+  mathMethod: MathMethods | undefined,
+): void {
+  const mathElements = container.querySelectorAll(
+    "span.math.inline, span.math.display, img.math.inline, img.math.display",
+  );
+  for (const node of mathElements) {
+    const el = node as Element;
+    const display = el.classList.contains("display");
+    let tex: string | null = null;
+    if (el.tagName === "IMG") {
+      tex = el.getAttribute("alt");
+    } else if (mathMethod === "katex") {
+      tex = el.textContent;
+    } else if (mathMethod === undefined || mathMethod === "mathjax") {
+      // MathJax (the html default when no method is set) wraps the TeX in
+      // \( \) or \[ \]
+      const text = el.textContent;
+      const delimited = display
+        ? text.match(/^\s*\\\[([\s\S]*)\\\]\s*$/)
+        : text.match(/^\s*\\\(([\s\S]*)\\\)\s*$/);
+      tex = delimited ? delimited[1] : null;
+    }
+    // script text can't hold "</script", so such math is left as is
+    if (tex === null || /<\/script/i.test(tex)) continue;
+    const script = doc.createElement("script");
+    script.setAttribute(
+      "type",
+      display ? "math/tex; mode=display" : "math/tex",
+    );
+    script.textContent = tex.trim();
+    el.replaceWith(script);
+  }
+}
+
+/**
  * Convert HTML content to markdown using Pandoc with the llms.lua filter.
  */
 async function convertHtmlToLlmsMarkdown(
@@ -271,12 +321,13 @@ async function convertHtmlToLlmsMarkdown(
     // Use gfm-raw_html for clean markdown output:
     // - gfm gives us proper table and code block handling
     // - -raw_html strips remaining HTML tags, converting figures to markdown images
+    // - -tex_math_gfm writes math as $...$ / $$...$$ instead of GitHub's $`...`$
     // Note: We use plain "html" input format (not html-native_divs-native_spans)
     // because native_divs interferes with the Lua filter's callout processing
     const cmd = [pandocBinaryPath()];
     cmd.push(tempHtml);
     cmd.push("-f", "html");
-    cmd.push("-t", "gfm-raw_html");
+    cmd.push("-t", "gfm-raw_html-tex_math_gfm");
     cmd.push("--lua-filter", filterPath);
     cmd.push("-o", outputPath);
     cmd.push("--wrap=none");
