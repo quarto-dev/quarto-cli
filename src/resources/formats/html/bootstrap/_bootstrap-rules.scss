@@ -1479,7 +1479,8 @@ kbd,
   border-bottom-right-radius: add($border-radius, -1px);
 }
 
-.callout > .callout-header.collapsed {
+// Bootstrap toggles `collapsed` on the trigger (the button), not the header
+.callout > .callout-header:has(> .callout-toggle-btn.collapsed) {
   border-bottom-right-radius: add($border-radius, -1px);
 }
 
@@ -1510,14 +1511,28 @@ kbd,
   margin-top: 0;
 }
 
-.callout > div.callout-header[data-bs-toggle="collapse"] {
+// the header of a collapsible callout is a native button (#4934);
+// reset its UA styles so it looks like the header it replaced
+.callout .callout-toggle-btn {
+  all: unset;
+  box-sizing: border-box;
   cursor: pointer;
+  font: inherit;
+  color: inherit;
 }
 
-.callout.callout-style-default .callout-header[aria-expanded="false"],
-.callout.callout-style-default .callout-header[aria-expanded="true"] {
+.callout .callout-toggle-btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.callout.callout-style-default .callout-header.callout-collapsible {
   padding-top: 0px;
   margin-bottom: 0px;
+  align-items: center;
+}
+
+.callout.callout-style-default .callout-toggle-btn {
   align-items: center;
 }
 
@@ -1572,36 +1587,36 @@ $code-block-border-left-color: $table-border-color !default;
   transition: transform 0.2s linear;
 }
 
-.callout .callout-header[aria-expanded="false"] .callout-toggle::before {
+.callout .callout-toggle-btn[aria-expanded="false"] .callout-toggle::before {
   transform: rotate(-90deg);
 }
 
-.callout .callout-header[aria-expanded="true"] .callout-toggle::before {
+.callout .callout-toggle-btn[aria-expanded="true"] .callout-toggle::before {
   transform: none;
 }
 
-.callout.callout-style-simple:not(.no-icon) div.callout-icon-container {
+.callout.callout-style-simple:not(.no-icon) .callout-icon-container {
   padding-top: 0.2em;
   padding-right: 0.55em;
 }
 
-.callout.callout-style-default:not(.no-icon) div.callout-icon-container {
+.callout.callout-style-default:not(.no-icon) .callout-icon-container {
   padding-top: 0.1em;
   padding-right: 0.35em;
 }
 
-.callout.callout-style-default:not(.no-icon) div.callout-title-container {
+.callout.callout-style-default:not(.no-icon) .callout-title-container {
   margin-top: -1px;
 }
 
 .callout.callout-style-default.callout-caution:not(.no-icon)
-  div.callout-icon-container {
+  .callout-icon-container {
   padding-top: 0.3em;
   padding-right: 0.35em;
 }
 
 .callout > .callout-body > .callout-icon-container > .no-icon,
-.callout > .callout-header > .callout-icon-container > .no-icon {
+.callout > .callout-header .callout-icon-container > .no-icon {
   display: none;
 }
 

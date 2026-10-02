@@ -1,0 +1,16 @@
+---
+title: Collapsible callout keyboard toggle
+format: html
+---
+
+::: {#collapsed .callout-note collapse="true"}
+## Starts collapsed
+
+Collapsed body.
+:::
+
+::: {#expanded .callout-tip collapse="false"}
+## Starts expanded
+
+Expanded body.
+:::
