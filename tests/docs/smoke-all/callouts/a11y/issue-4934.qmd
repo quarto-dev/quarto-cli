@@ -1,0 +1,28 @@
+---
+format: html
+title: Collapsible callout toggle is an accessible control
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['div.callout-header > button.callout-toggle-btn[type="button"][aria-expanded="false"][aria-controls="callout-1"][data-bs-target=".callout-1-contents"]',
+           'div.callout-header > button.callout-toggle-btn[aria-expanded="true"][aria-controls="callout-2"]',
+           'button.callout-toggle-btn > span.callout-title-container > span.screen-reader-only',
+           '#callout-1.callout-1-contents.collapse:not(.show)',
+           '#callout-2.callout-2-contents.collapse.show']
+        - ['div.callout-header[aria-expanded]', 'div.callout-header[aria-label]', 'div.callout-header[data-bs-toggle]',
+           'button.callout-toggle-btn[aria-label]', 'button.callout-toggle-btn div',
+           'div.callout-header.collapsed']
+---
+
+::: {.callout-note collapse="true"}
+## Expand to learn more
+
+Hidden content.
+:::
+
+::: {.callout-tip collapse="false"}
+## Already open
+
+Visible content.
+:::
