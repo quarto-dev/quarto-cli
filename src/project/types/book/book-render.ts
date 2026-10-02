@@ -66,6 +66,7 @@ import {
 } from "../website/website.ts";
 import {
   bookLlmsPage,
+  computeOutputFilePath,
   convertHtmlToLlmsMarkdown,
 } from "../website/website-llms.ts";
 import { websiteConfigBoolean } from "../website/website-config.ts";
@@ -661,7 +662,10 @@ async function bookLlmsPostRender(
     resolveCrossrefs(file.file, file.format, doc);
     await convertHtmlToLlmsMarkdown(
       "<!DOCTYPE html>\n" + doc.documentElement!.outerHTML,
-      file.file.replace(/\.html$/, ".llms.md"),
+      computeOutputFilePath(file.input, context).replace(
+        /\.html$/,
+        ".llms.md",
+      ),
     );
   }
 }

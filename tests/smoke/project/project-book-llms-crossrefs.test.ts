@@ -77,6 +77,40 @@ testQuartoCmd(
   "book .llms.md resolves cross-references (full render)",
 );
 
+// A copy of the fixture whose chapters are written as .htm
+const htmProjectDir = join(Deno.makeTempDirSync({ prefix: "llmsbk" }), "book");
+const htmOutDir = join(htmProjectDir, "_book");
+
+testQuartoCmd(
+  "render",
+  [htmProjectDir],
+  [
+    noErrorsOrWarnings,
+    ensureHtmlElements(join(htmOutDir, "second.htm"), ["h1"]),
+    ensureFileRegexMatches(
+      join(htmOutDir, "second.llms.md"),
+      [/\[Equation\s1\.1\]\(#eq-one\)/],
+    ),
+  ],
+  {
+    setup: async () => {
+      await Deno.mkdir(htmProjectDir, { recursive: true });
+      for (const name of ["_quarto.yml", "index.qmd", "second.qmd", "third.qmd"]) {
+        await Deno.copyFile(join(projectDir, name), join(htmProjectDir, name));
+      }
+      await Deno.writeTextFile(
+        join(htmProjectDir, "_quarto.yml"),
+        Deno.readTextFileSync(join(projectDir, "_quarto.yml")) +
+          "\nformat:\n  html:\n    output-ext: htm\n",
+      );
+    },
+    teardown: async () => {
+      await Deno.remove(join(htmProjectDir, ".."), { recursive: true });
+    },
+  },
+  "book .llms.md leaves chapter output untouched with a custom output-ext",
+);
+
 testQuartoCmd(
   "render",
   [join(projectDir, "second.qmd")],

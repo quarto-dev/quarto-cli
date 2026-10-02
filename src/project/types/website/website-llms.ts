@@ -38,7 +38,7 @@ import { kWebsite } from "./website-constants.ts";
  * Uses inputFileHref to convert the relative source path to an HTML href,
  * then joins with the output directory.
  */
-function computeOutputFilePath(
+export function computeOutputFilePath(
   source: string,
   project: ProjectContext,
 ): string {
