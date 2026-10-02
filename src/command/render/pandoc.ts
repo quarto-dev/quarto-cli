@@ -189,7 +189,10 @@ import { logLevel } from "../../core/log.ts";
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
 import { resolveAndFormatDate, resolveDate } from "../../core/date.ts";
-import { katexPostProcessor } from "../../format/html/format-html-math.ts";
+import {
+  katexPostProcessor,
+  resolveHtmlMathMethod,
+} from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,
   writeDependencies,
@@ -606,8 +609,8 @@ export async function runPandoc(
 
       // katex post-processor
       if (
-        options.flags?.katex ||
-        options.format.pandoc[kHtmlMathMethod] === "katex"
+        resolveHtmlMathMethod(options.format, options.flags)?.method ===
+          "katex"
       ) {
         htmlPostprocessors.push(katexPostProcessor());
       }

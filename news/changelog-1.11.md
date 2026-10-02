@@ -32,6 +32,7 @@ All changes included in 1.11:
 ### `html`
 
 - ([#14684](https://github.com/quarto-dev/quarto-cli/issues/14684)): Add a "Skip to main content" link to Bootstrap-themed HTML output (documents, websites, books, dashboards) so keyboard users can bypass the navbar and sidebars.
+- ([#14976](https://github.com/quarto-dev/quarto-cli/pull/14976)): Fix KaTeX math not rendering on pages with Jupyter widgets when `html-math-method` is set with the object form (`method: katex` and `url`).
 
 ### `typst`
 
