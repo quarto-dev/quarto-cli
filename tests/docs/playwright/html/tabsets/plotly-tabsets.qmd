@@ -1,0 +1,25 @@
+---
+title: "Plotly figures in tabsets"
+format:
+  html:
+    page-layout: full
+engine: jupyter
+---
+
+::: {.panel-tabset}
+
+## Tab 1
+
+From https://github.com/quarto-dev/quarto-cli/issues/14939
+
+The Plotly figure in Tab 2 is drawn while its tab is hidden.
+
+## Tab 2
+
+```{python}
+import plotly.graph_objects as go
+
+go.Figure(go.Scatter(x=[1, 2, 3], y=[1, 3, 2]))
+```
+
+:::
