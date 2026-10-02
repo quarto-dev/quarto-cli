@@ -5,29 +5,15 @@
 *
 */
 
-import { existsSync } from "../../../src/deno_ral/fs.ts";
-import { ExecuteOutput, testQuartoCmd } from "../../test.ts";
+import { testQuartoCmdJson } from "../../test.ts";
 
 (() => {
   const output = "docs/check.json";
-  testQuartoCmd(
+  testQuartoCmdJson(
     "check",
     ["--output", output],
-    [
-      {
-        name: "check-json",
-        verify: async (_outputs: ExecuteOutput[]) => {
-          const txt = Deno.readTextFileSync(output);
-          const json = JSON.parse(txt);
-        }
-      }
-    ],
-    {
-      teardown: async () => {
-        if (existsSync(output)) {
-          Deno.removeSync(output);
-        }
-      }
-    },
+    output,
+    "check-json",
+    (_json) => {},
   );
 })();

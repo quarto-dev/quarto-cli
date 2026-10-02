@@ -334,6 +334,35 @@ regression guide that path can't cover.
 - **Expected**: Normal HTML preview with live-reload. No PDF.js viewer.
 - **Catches**: Fix doesn't accidentally enable PDF mode for non-PDF extension formats.
 
+## Test Matrix: Book `.llms.md` Cross-References (#14975)
+
+Book chapters resolve cross-references in project post-render, and their
+`.llms.md` files are converted after that resolution. Verify that a
+preview re-render keeps this: the edited chapter's `.llms.md` is
+regenerated with resolved numbers and cross-chapter links, and the served
+HTML still has no `llms-txt`-only content. Fixture:
+`book-llms-crossrefs-14975/` (three-chapter book, `llms-txt: true`).
+Rendered-output coverage lives in
+`tests/smoke/project/project-book-llms-crossrefs.test.ts`.
+
+### P1: Critical
+
+#### T37: Book preview — chapter edit regenerates resolved `.llms.md`
+
+- **Setup**: `book-llms-crossrefs-14975/` book, no prior `.quarto/` or `_book/`
+- **Steps**: From the fixture dir, `quarto preview --no-browser`; after the first render, check `_book/second.llms.md`. Append the line `PREVIEWEDIT see @tbl-three.` to `second.qmd`, save, and wait for the reload. Check `_book/second.llms.md` again.
+- **Expected**: Before and after the edit, `second.llms.md` has `[Equation 1.1](#eq-one)` and `[Table 2.1](third.llms.md#tbl-three)` (with a no-break space after the prefix). After the edit, it has the `PREVIEWEDIT` line, with its reference resolved to `Table 2.1`.
+- **Catches**: The preview re-render path skipping the book post-render step that converts held `.llms.md` pages, or not holding them, so `.llms.md` goes stale or unresolved.
+
+### Regression Guard
+
+#### T38: Book preview — served HTML has no `llms-txt`-only content after a re-render
+
+- **Setup**: Same fixture, preview from T37 still running
+- **Steps**: Edit `third.qmd` (append a sentence), save, wait for reload, then fetch the served page: `curl -s http://localhost:<port>/third.html`.
+- **Expected**: The response contains `HTMLONLYCHAPTERTEXT`. It contains neither `LLMSONLYCHAPTERTEXT` nor the classes `llms-conditional-content` / `llms-hidden-content`. `_book/third.llms.md` contains `LLMSONLYCHAPTERTEXT`.
+- **Catches**: Conditional-content cleanup of the HTML being skipped or delayed for books.
+
 ## Test File Templates
 
 **Minimal Python .qmd:**

@@ -1,10 +1,13 @@
 name: Smoke Tests (Built Version)
 run-name: "Smoke Tests (Built Version) - ${{ (github.event_name == 'workflow_run' && 'nightly') || github.event.inputs.source || 'build' }}"
 on:
-  # Test scheduled and manually dispatched create-release builds.
+  # Test scheduled and manually dispatched create-release builds from main.
+  # Branch dispatches must not fan out; to test one, dispatch this workflow with
+  # source=nightly and that run's id.
   workflow_run:
     workflows: ["Build Installers"]
     types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       source:
@@ -38,10 +41,46 @@ permissions:
   contents: read
 
 jobs:
+  # Single source of truth for the source mode; every job below gates on its output.
+  # The same expression appears in `run-name` above, where job outputs are not in scope.
+  resolve-mode:
+    name: Resolve source mode
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      mode: ${{ steps.m.outputs.mode }}
+    steps:
+      - name: Resolve mode
+        id: m
+        shell: bash
+        env:
+          MODE_INPUT: ${{ (github.event_name == 'workflow_run' && 'nightly') || github.event.inputs.source || 'build' }}
+          UPSTREAM_RUN_ID: ${{ github.event.workflow_run.id }}
+          UPSTREAM_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          case "$MODE_INPUT" in
+            build | nightly | release) ;;
+            *)
+              echo "::error::Unexpected source mode '${MODE_INPUT}'. Expected build, nightly, or release."
+              exit 1
+              ;;
+          esac
+          # Records which upstream run triggered this one; the API exposes no such pointer.
+          # The marker token is assembled from a variable so the copy of this script that
+          # GitHub prints in the step's "Run" group cannot itself satisfy the pattern the
+          # post-merge trigger reader matches on - the same reason `grep '[f]oo'` does not
+          # match its own command line.
+          marker="QUARTO-TRIGGER"
+          printf '%s event=%s upstream-run-id=%s upstream-conclusion=%s\n' \
+            "$marker" "$GITHUB_EVENT_NAME" "${UPSTREAM_RUN_ID:-none}" "${UPSTREAM_CONCLUSION:-none}"
+          echo "Resolved source mode: $MODE_INPUT"
+          echo "mode=$MODE_INPUT" >> "$GITHUB_OUTPUT"
+
   # Build the selected ref (the dispatch default).
   build-artifact:
     name: Build quarto dist (linux-amd64)
-    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
+    if: needs.resolve-mode.outputs.mode == 'build'
+    needs: [resolve-mode]
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.rec.outputs.sha }}
@@ -72,8 +111,8 @@ jobs:
 
   run-smokes-artifact:
     name: Smoke tests against built artifact
-    if: (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
-    needs: [build-artifact]
+    if: needs.resolve-mode.outputs.mode == 'build'
+    needs: [resolve-mode, build-artifact]
     uses: ./.github/workflows/test-smokes.yml
     with:
       ref: ${{ needs.build-artifact.outputs.sha }}
@@ -81,13 +120,14 @@ jobs:
       quarto-artifact-name: built-quarto-linux-amd64
       runners: '["ubuntu-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: bldsmk
 
   run-playwright-artifact:
     name: Playwright tests against built artifact
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
+      needs.resolve-mode.outputs.mode == 'build'
       && github.event.inputs.buckets == ''
-    needs: [build-artifact]
+    needs: [resolve-mode, build-artifact]
     uses: ./.github/workflows/test-smokes.yml
     with:
       ref: ${{ needs.build-artifact.outputs.sha }}
@@ -95,24 +135,27 @@ jobs:
       quarto-artifact-name: built-quarto-linux-amd64
       runners: '["ubuntu-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
+      label-tag: bldpw
 
   run-ff-matrix-artifact:
     name: Feature-format matrix against built artifact
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'build'
+      needs.resolve-mode.outputs.mode == 'build'
       && github.event.inputs.buckets == ''
-    needs: [build-artifact]
+    needs: [resolve-mode, build-artifact]
     uses: ./.github/workflows/test-ff-matrix.yml
     with:
       ref: ${{ needs.build-artifact.outputs.sha }}
       quarto-install: artifact
       quarto-artifact-name: built-quarto-linux-amd64
       runners: '["ubuntu-latest"]'
+      label-tag: bldff
 
   # Test an existing published release.
   resolve-release:
     name: Resolve release version
-    if: github.event.inputs.source == 'release'
+    if: needs.resolve-mode.outputs.mode == 'release'
+    needs: [resolve-mode]
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.r.outputs.version }}
@@ -161,8 +204,8 @@ jobs:
 
   run-smokes-release:
     name: Smoke tests against published release
-    if: github.event.inputs.source == 'release'
-    needs: [resolve-release]
+    if: needs.resolve-mode.outputs.mode == 'release'
+    needs: [resolve-mode, resolve-release]
     uses: ./.github/workflows/test-smokes.yml
     with:
       ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
@@ -170,11 +213,14 @@ jobs:
       quarto-version: ${{ needs.resolve-release.outputs.version }}
       runners: '["ubuntu-latest", "windows-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: relsmk
 
   run-playwright-release:
     name: Playwright tests against published release
-    if: github.event.inputs.source == 'release' && github.event.inputs.buckets == ''
-    needs: [resolve-release]
+    if: >-
+      needs.resolve-mode.outputs.mode == 'release'
+      && github.event.inputs.buckets == ''
+    needs: [resolve-mode, resolve-release]
     uses: ./.github/workflows/test-smokes.yml
     with:
       ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
@@ -182,25 +228,30 @@ jobs:
       quarto-version: ${{ needs.resolve-release.outputs.version }}
       runners: '["ubuntu-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
+      label-tag: relpw
 
   run-ff-matrix-release:
     name: Feature-format matrix against published release
-    if: github.event.inputs.source == 'release' && github.event.inputs.buckets == ''
-    needs: [resolve-release]
+    if: >-
+      needs.resolve-mode.outputs.mode == 'release'
+      && github.event.inputs.buckets == ''
+    needs: [resolve-mode, resolve-release]
     uses: ./.github/workflows/test-ff-matrix.yml
     with:
       ref: refs/tags/v${{ needs.resolve-release.outputs.version }}
       quarto-install: release
       quarto-version: ${{ needs.resolve-release.outputs.version }}
       runners: '["ubuntu-latest", "windows-latest"]'
+      label-tag: relff
 
   # Reuse artifacts from a completed create-release run.
   resolve-nightly:
     name: Resolve create-release run
     # Only successful workflow_run builds are testable.
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      needs.resolve-mode.outputs.mode == 'nightly'
       && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    needs: [resolve-mode]
     runs-on: ubuntu-latest
     outputs:
       run-id: ${{ steps.r.outputs.run-id }}
@@ -222,12 +273,21 @@ jobs:
         run: |
           run_id="$RUN_ID_INPUT"
           if [ -z "$run_id" ]; then
-            run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow create-release.yml \
-              --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
-          fi
-          if [ -z "$run_id" ]; then
-            echo "::error::No successful create-release run was found. Provide a run ID or complete a create-release run first."
-            exit 1
+            # The runs listing intermittently returns an outdated result set when
+            # filtered by branch or status, so filter and sort client-side.
+            latest="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow create-release.yml \
+              --limit 30 --json databaseId,createdAt,headBranch,conclusion \
+              --jq '[.[] | select(.headBranch == "main" and .conclusion == "success")] | sort_by(.createdAt) | last // empty | "\(.databaseId) \(.createdAt)"')"
+            read -r run_id created_at <<<"$latest"
+            if [ -z "$run_id" ]; then
+              echo "::error::No successful create-release run was found. Provide a run ID or complete a create-release run first."
+              exit 1
+            fi
+            age_seconds=$(( $(date +%s) - $(date -d "$created_at" +%s) ))
+            if [ "$age_seconds" -gt $(( 3 * 86400 )) ]; then
+              echo "::error::Latest successful create-release run ${run_id} is $(( age_seconds / 86400 )) days old (${created_at}); the runs listing may be outdated. Provide a run ID explicitly."
+              exit 1
+            fi
           fi
           sha="$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json headSha --jq '.headSha // empty')"
           if [ -z "$sha" ]; then
@@ -276,9 +336,9 @@ jobs:
   run-smokes-nightly-linux:
     name: Smoke tests against nightly build (linux)
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      needs.resolve-mode.outputs.mode == 'nightly'
       && needs.resolve-nightly.outputs.has-linux == 'true'
-    needs: [resolve-nightly]
+    needs: [resolve-mode, resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
       # Publish runs add only a version/changelog commit after this SHA.
@@ -288,13 +348,14 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["ubuntu-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: ngtsmk
 
   run-smokes-nightly-windows:
     name: Smoke tests against nightly build (windows)
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      needs.resolve-mode.outputs.mode == 'nightly'
       && needs.resolve-nightly.outputs.has-windows == 'true'
-    needs: [resolve-nightly]
+    needs: [resolve-mode, resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
       ref: ${{ needs.resolve-nightly.outputs.sha }}
@@ -304,13 +365,14 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["windows-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: ngtsmk
 
   run-smokes-nightly-mac:
     name: Smoke tests against nightly build (macOS)
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      needs.resolve-mode.outputs.mode == 'nightly'
       && needs.resolve-nightly.outputs.has-mac == 'true'
-    needs: [resolve-nightly]
+    needs: [resolve-mode, resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
       ref: ${{ needs.resolve-nightly.outputs.sha }}
@@ -320,15 +382,16 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["macos-latest"]'
       buckets: ${{ github.event.inputs.buckets }} # empty = full run
+      label-tag: ngtsmk
 
   # Each caller job accepts one OS-specific artifact.
   run-playwright-nightly-linux:
     name: Playwright tests against nightly build (linux)
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      needs.resolve-mode.outputs.mode == 'nightly'
       && needs.resolve-nightly.outputs.has-linux == 'true'
       && github.event.inputs.buckets == ''
-    needs: [resolve-nightly]
+    needs: [resolve-mode, resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
       ref: ${{ needs.resolve-nightly.outputs.sha }}
@@ -337,14 +400,15 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["ubuntu-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
+      label-tag: ngtpw
 
   run-playwright-nightly-mac:
     name: Playwright tests against nightly build (macOS)
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      needs.resolve-mode.outputs.mode == 'nightly'
       && needs.resolve-nightly.outputs.has-mac == 'true'
       && github.event.inputs.buckets == ''
-    needs: [resolve-nightly]
+    needs: [resolve-mode, resolve-nightly]
     uses: ./.github/workflows/test-smokes.yml
     with:
       ref: ${{ needs.resolve-nightly.outputs.sha }}
@@ -353,14 +417,15 @@ jobs:
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["macos-latest"]'
       buckets: '["integration/playwright-tests.test.ts"]'
+      label-tag: ngtpw
 
   run-ff-matrix-nightly-linux:
     name: Feature-format matrix against nightly build (linux)
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      needs.resolve-mode.outputs.mode == 'nightly'
       && needs.resolve-nightly.outputs.has-linux == 'true'
       && github.event.inputs.buckets == ''
-    needs: [resolve-nightly]
+    needs: [resolve-mode, resolve-nightly]
     uses: ./.github/workflows/test-ff-matrix.yml
     with:
       ref: ${{ needs.resolve-nightly.outputs.sha }}
@@ -368,14 +433,15 @@ jobs:
       quarto-artifact-name: Deb Zip
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["ubuntu-latest"]'
+      label-tag: ngtff
 
   run-ff-matrix-nightly-windows:
     name: Feature-format matrix against nightly build (windows)
     if: >-
-      (github.event_name == 'workflow_run' && 'nightly' || github.event.inputs.source || 'build') == 'nightly'
+      needs.resolve-mode.outputs.mode == 'nightly'
       && needs.resolve-nightly.outputs.has-windows == 'true'
       && github.event.inputs.buckets == ''
-    needs: [resolve-nightly]
+    needs: [resolve-mode, resolve-nightly]
     uses: ./.github/workflows/test-ff-matrix.yml
     with:
       ref: ${{ needs.resolve-nightly.outputs.sha }}
@@ -383,3 +449,4 @@ jobs:
       quarto-artifact-name: Windows Zip
       quarto-artifact-run-id: ${{ needs.resolve-nightly.outputs.run-id }}
       runners: '["windows-latest"]'
+      label-tag: ngtff
