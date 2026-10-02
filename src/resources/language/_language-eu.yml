@@ -93,6 +93,11 @@ navigation-toolbar-label: "Lanabes-barra"  # wikidata Q371434
 navigation-page-label: "Orrialdea"         # libreoffice sw
 navigation-breadcrumbs-label: "Bidea"      # LibreOffice 'Bide-izena' is 'path name'; head noun taken — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Korritu daitekeen kodea"      # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Korritu daitekeen irteera"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Irudia"
 crossref-tbl-title: "Taula"
 crossref-lst-title: "Zerrendatua"

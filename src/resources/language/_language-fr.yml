@@ -92,6 +92,11 @@ navigation-toolbar-label: "Barre d'outils"    # wikidata Q371434
 navigation-page-label: "Page"                 # libreoffice sw
 navigation-breadcrumbs-label: "Fil d'Ariane"  # wikidata Q846205
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Code défilable"      # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Sortie défilable"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Figure"
 crossref-tbl-title: "Table"
 crossref-lst-title: "Listing"

@@ -713,7 +713,17 @@
     <% } %>
   
   });
-  
+
   </script>
   <% } %>
+<% if (scrollableRegions) { %>
+  <script type="application/javascript">
+  <% /* The labels are author-supplied, so `<` is escaped: a value holding
+        `</script>` would otherwise close this element early. */ %>
+  window.quartoScrollableRegionsLabels = <%= JSON.stringify({
+    code: language['scrollable-code-label'],
+    output: language['scrollable-output-label']
+  }).replace(/</g, '\\u003c') %>;
+  </script>
+<% } %>
   

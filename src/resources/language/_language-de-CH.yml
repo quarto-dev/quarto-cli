@@ -90,6 +90,11 @@ navigation-toolbar-label: "Symbolleiste"  # wikidata Q371434
 navigation-page-label: "Seite"            # libreoffice sw
 navigation-breadcrumbs-label: "Pfad"      # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Scrollbarer Code"      # firefox devtools (de) + code-summary — assembled, needs review
+scrollable-output-label: "Scrollbare Ausgabe"  # firefox devtools (de) + libreoffice dbaccess (de) — assembled, needs review
+
 crossref-fig-title: "Abbildung"
 crossref-tbl-title: "Tabelle"
 crossref-lst-title: "Listing"

@@ -92,6 +92,11 @@ navigation-toolbar-label: "ツールバー"        # wikidata Q371434
 navigation-page-label: "ページ"             # libreoffice sw
 navigation-breadcrumbs-label: "パンくずリスト"  # wikidata Q846205
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "スクロール可能なコード"   # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "スクロール可能な出力"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "図"
 crossref-tbl-title: "表"
 crossref-lst-title: "コード"

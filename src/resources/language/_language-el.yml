@@ -90,6 +90,11 @@ navigation-toolbar-label: "Γραμμή εργαλείων"  # libreoffice sfx2 
 navigation-page-label: "Σελίδα"               # libreoffice sw
 navigation-breadcrumbs-label: "Διαδρομή"      # libreoffice sw 'Path' (no attested term) — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Κώδικας με δυνατότητα κύλισης"   # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Έξοδος με δυνατότητα κύλισης"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Σχήμα"
 crossref-tbl-title: "Πίνακας"
 crossref-lst-title: "Κατάλογος"

@@ -90,6 +90,11 @@ navigation-toolbar-label: "Verktygsfält"  # wikidata Q371434
 navigation-page-label: "Sida"             # libreoffice sw
 navigation-breadcrumbs-label: "Länkstig"  # wikidata Q846205
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Rullbar kod"        # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Rullbara utdata"  # firefox devtools + libreoffice sw — assembled, needs review
+
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabell"
 crossref-lst-title: "Lista"
