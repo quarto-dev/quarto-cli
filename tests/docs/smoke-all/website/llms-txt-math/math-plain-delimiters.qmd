@@ -1,0 +1,44 @@
+---
+title: "Math with plain, rendered text shaped like MathJax delimiters"
+format:
+  html:
+    html-math-method: plain
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureLlmsMdRegexMatches:
+        - ['\*ρ\*', '\*Δx\*', '\*α\*₁² here', '^Plain delimiters .*hello.* end\.$']
+        - ['\$ρ', '\$α', '\$hello\$', '\$\$\s*world', 'math/tex']
+---
+
+Plain delimiters $\text{\textbackslash (hello\textbackslash )}$ end.
+
+Display $$\text{\textbackslash [world\textbackslash ]}$$ end.
+
+Inline math $\rho\,\Delta\theta = \Delta x$ and $a < b$ and $f'(x)$.
+
+$$
+\sigma = E\varepsilon
+$$ {#eq-hooke}
+
+See @eq-hooke. Literal price $5.
+
+$$
+\begin{aligned}
+a &= b \\
+c &= d
+\end{aligned}
+$$
+
+::: {.callout-note}
+Callout math $\alpha_1^2$ here.
+
+$$
+\int_0^1 f(x)\,dx
+$$
+:::
+
+| Col | Math |
+|-----|------|
+| a   | $\beta\,\gamma$ |

@@ -1,0 +1,42 @@
+---
+title: "Math with katex (object form)"
+format:
+  html:
+    html-math-method:
+      method: katex
+      url: "https://cdn.jsdelivr.net/npm/katex@latest/dist/"
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureLlmsMdRegexMatches:
+        - ['\$\\rho\\,\\Delta\\theta = \\Delta x\$', '\$a < b\$', '\$f''\(x\)\$', '\$\$\s*\\sigma = E\\varepsilon', '\\tag\{1\}\$\$', '^a &= b \\\\$', '> Callout math \$\\alpha_1\^2\$ here\.', '\$\$\s*(> )?\\int_0\^1 f\(x\)\\,dx', '\| \$\\beta\\,\\gamma\$ \|', 'Literal price \\\$5\.']
+        - ['\\\\\\', '\$`', 'math/tex']
+---
+
+Inline math $\rho\,\Delta\theta = \Delta x$ and $a < b$ and $f'(x)$.
+
+$$
+\sigma = E\varepsilon
+$$ {#eq-hooke}
+
+See @eq-hooke. Literal price $5.
+
+$$
+\begin{aligned}
+a &= b \\
+c &= d
+\end{aligned}
+$$
+
+::: {.callout-note}
+Callout math $\alpha_1^2$ here.
+
+$$
+\int_0^1 f(x)\,dx
+$$
+:::
+
+| Col | Math |
+|-----|------|
+| a   | $\beta\,\gamma$ |
