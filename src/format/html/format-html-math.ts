@@ -7,6 +7,45 @@
 
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 import { Document } from "../../core/deno-dom.ts";
+import { kHtmlMathMethod } from "../../config/constants.ts";
+import { Format, PandocFlags } from "../../config/types.ts";
+import { MathMethods } from "../../resources/types/schema-types.ts";
+
+export interface HtmlMathMethod {
+  method: MathMethods;
+  url?: string;
+  // true when a command line flag (--katex, --mathjax, ...) chose the method
+  fromFlag: boolean;
+}
+
+const kMathFlags = ["mathjax", "katex", "mathml", "webtex", "gladtex"] as const;
+
+/**
+ * The math method Pandoc uses for HTML output. A command line flag wins over
+ * `html-math-method`, which is either a method name or `{ method, url }`.
+ * Undefined when neither is set.
+ */
+export function resolveHtmlMathMethod(
+  format: Format,
+  flags?: PandocFlags,
+): HtmlMathMethod | undefined {
+  const flagMethod = kMathFlags.find((method) => flags?.[method]);
+  if (flagMethod) {
+    return { method: flagMethod, fromFlag: true };
+  }
+  const math = format.pandoc[kHtmlMathMethod];
+  if (typeof math === "string") {
+    return { method: math as MathMethods, fromFlag: false };
+  }
+  if (math && typeof math.method === "string") {
+    return {
+      method: math.method as MathMethods,
+      url: math.url,
+      fromFlag: false,
+    };
+  }
+  return undefined;
+}
 
 export function katexPostProcessor() {
   return (doc: Document) => {
