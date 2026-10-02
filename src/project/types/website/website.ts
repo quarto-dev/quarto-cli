@@ -39,7 +39,6 @@ import {
   kTitlePrefix,
 } from "../../../config/constants.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-info.ts";
-import { resolveHtmlMathMethod } from "../../../format/html/format-html-math.ts";
 
 import {
   ensureIndexPage,
@@ -363,11 +362,7 @@ export const websiteProjectType: ProjectType = {
       extras[kFilterParams] = extras[kFilterParams] || {};
       extras[kFilterParams]["llms-txt"] = true;
       extras.html[kHtmlFinalizers]?.push(
-        llmsHtmlFinalizer(
-          source,
-          project,
-          resolveHtmlMathMethod(format, flags)?.method,
-        ),
+        llmsHtmlFinalizer(source, project, format, flags),
       );
     }
 

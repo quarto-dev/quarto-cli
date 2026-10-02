@@ -30,8 +30,9 @@ import {
   projectDraftMode,
 } from "./website-utils.ts";
 import { resolveInputTargetForOutputFile } from "../../project-index.ts";
-import { Metadata } from "../../../config/types.ts";
+import { Format, Metadata, PandocFlags } from "../../../config/types.ts";
 import { MathMethods } from "../../../resources/types/schema-types.ts";
+import { resolveHtmlMathMethod } from "../../../format/html/format-html-math.ts";
 import { kWebsite } from "./website-constants.ts";
 
 /**
@@ -57,8 +58,10 @@ function computeOutputFilePath(
 export function llmsHtmlFinalizer(
   source: string,
   project: ProjectContext,
-  mathMethod: MathMethods | undefined,
+  format: Format,
+  flags: PandocFlags,
 ) {
+  const mathMethod = resolveHtmlMathMethod(format, flags)?.method;
   return async (doc: Document): Promise<void> => {
     // Check if llms-txt is enabled
     if (!websiteConfigBoolean(kLlmsTxt, false, project.config)) {
