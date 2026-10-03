@@ -16,14 +16,10 @@ import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { projectContext } from "../../../src/project/project-context.ts";
 import { notebookContext } from "../../../src/render/notebook/notebook-context.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
-import {
-  canMakeUnreadableDir,
-  makeUnreadableDir,
-  withTempDir,
-} from "../../utils.ts";
+import { withTempDir } from "../../utils.ts";
 
-// `<root>/config/` and `<root>/content/`, plus `<root>/work/doc.qmd` with no
-// _quarto.yml anywhere, so only the Hugo detectors can claim `<root>`.
+// `config/` and `content/` at the root and `work/doc.qmd` below it, with no
+// _quarto.yml, so only the Hugo detectors can claim the root.
 function hugoLikeTree(tmp: string, configToml: boolean) {
   const root = normalizePath(tmp);
   Deno.mkdirSync(join(root, "config", "_default"), { recursive: true });
@@ -50,70 +46,43 @@ async function projectRoot(dir: string) {
   }
 }
 
-// Not registered when the dir can't be made unreadable (root on Unix).
-if (canMakeUnreadableDir) {
-  unitTest(
-    "detection ignores Hugo markers below a config/ that can't be read",
-    async () => {
-      await initYamlIntelligenceResourcesFromFilesystem();
-      await withTempDir(async (tmp) => {
-        const root = hugoLikeTree(tmp, false);
-        const restore = makeUnreadableDir(join(root, "config"));
-        try {
-          assertEquals(
-            await projectRoot(join(root, "work")),
-            undefined,
-          );
-        } finally {
-          restore();
-        }
-      }, "quarto-detect-denied");
-    },
-  );
+// Mode bits only: on Windows, denying a directory listing doesn't stop a stat
+// of a path below it, and root bypasses mode bits.
+const ignore = isWindows || Deno.uid() === 0;
+
+for (
+  const [label, configToml, locked, mode, detected] of [
+    ["ignores a config/ that can't be read", false, "config", 0o000, false],
+    ["ignores a config/ that can't be searched", false, "config", 0o644, false],
+    [
+      "keeps a site whose config file can't be read",
+      true,
+      "config/_default/config.toml",
+      0o000,
+      true,
+    ],
+  ] as const
+) {
+  unitTest(`project detection - ${label}`, async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+    await withTempDir(async (tmp) => {
+      const root = hugoLikeTree(tmp, configToml);
+      const path = join(root, locked);
+      const original = Deno.statSync(path).mode! & 0o7777;
+      Deno.chmodSync(path, mode);
+      try {
+        assertEquals(
+          await projectRoot(join(root, "work")),
+          detected ? root : undefined,
+        );
+      } finally {
+        Deno.chmodSync(path, original);
+      }
+    }, "quarto-detect-denied");
+  }, { ignore });
 }
 
-// Mode 644 lets config/ be listed but not searched, which Windows can't
-// express with icacls deny on listing.
-if (!isWindows && Deno.uid() !== 0) {
-  unitTest(
-    "detection ignores Hugo markers below a config/ that can't be searched",
-    async () => {
-      await initYamlIntelligenceResourcesFromFilesystem();
-      await withTempDir(async (tmp) => {
-        const root = hugoLikeTree(tmp, false);
-        const config = join(root, "config");
-        Deno.chmodSync(config, 0o644);
-        try {
-          assertEquals(
-            await projectRoot(join(root, "work")),
-            undefined,
-          );
-        } finally {
-          Deno.chmodSync(config, 0o755);
-        }
-      }, "quarto-detect-denied");
-    },
-  );
-
-  unitTest(
-    "detection keeps a Hugo site whose config file can't be read",
-    async () => {
-      await initYamlIntelligenceResourcesFromFilesystem();
-      await withTempDir(async (tmp) => {
-        const root = hugoLikeTree(tmp, true);
-        const configToml = join(root, "config", "_default", "config.toml");
-        Deno.chmodSync(configToml, 0o000);
-        try {
-          assertEquals(await projectRoot(join(root, "work")), root);
-        } finally {
-          Deno.chmodSync(configToml, 0o644);
-        }
-      }, "quarto-detect-denied");
-    },
-  );
-}
-
-unitTest("detection keeps a readable Hugo site", async () => {
+unitTest("project detection - keeps a readable Hugo site", async () => {
   await initYamlIntelligenceResourcesFromFilesystem();
   await withTempDir(async (tmp) => {
     const root = hugoLikeTree(tmp, true);
