@@ -1,0 +1,7 @@
+typography:
+  base:
+    family: serif
+  headings:
+    family: sans-serif
+  monospace:
+    family: monospace
