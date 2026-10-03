@@ -1,0 +1,28 @@
+---
+title: "Generic Font Families"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'font: \("[^"]+"'
+          - 'codefont: \("[^"]+"'
+        -
+          - '(font|codefont): \([^)]*"(serif|sans-serif|monospace)"'
+---
+
+```{=typst}
+#set text(fallback: false)
+```
+
+The brand sets `serif`, `sans-serif` and `monospace` as the base, heading and
+code families. With `fallback: false` a missing family would show up as
+missing glyphs, so each keyword must resolve to a concrete installed font. The
+font picked differs per machine; only the absence of keywords is asserted.
+
+# Heading
+
+Body text with `inline code`.
