@@ -132,6 +132,8 @@ Avoid patterns that match template boilerplate instead of document content:
 
 **Line breaks:** `(\r\n?|\n)` for exact line breaks; `\s*` or `\s+` for flexible whitespace.
 
+**Several sibling elements in one document** (e.g. multiple `.card` divs, each exercising one case): an `ensureHtmlElements` selector passes when *any* element matches, so a generic `.card-header > code` lets a passing card mask a regression in another. Give each element its own class (`.test-attr-code`, `.test-combined`) or use a marker it already carries (executable cells have `.cell`), and prefix every selector for that element with it. To check the scoping, revert the fix and confirm the failure lands on the intended element. Example: `tests/docs/smoke-all/2026/07/03/issue-14646.qmd`.
+
 **Examples:** `tests/docs/smoke-all/typst/`, `tests/docs/smoke-all/crossrefs/`
 
 ## Documenting Test Intent
