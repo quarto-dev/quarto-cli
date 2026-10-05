@@ -1,0 +1,12 @@
+project:
+  type: book
+
+book:
+  title: "Metadata merge book"
+  chapters:
+    - index.qmd
+    - chapter.qmd
+
+format:
+  html:
+    number-sections: true

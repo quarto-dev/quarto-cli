@@ -1,0 +1,16 @@
+---
+title: A post
+categories:
+  - from-document
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - 'class="quarto-category">from-project<'
+          - 'class="quarto-category">from-directory<'
+          - 'class="quarto-category">from-document<'
+        - []
+---
+
+In a website, `categories` from `_quarto.yml`, the directory `_metadata.yml` and the document front matter are all shown on the page.
