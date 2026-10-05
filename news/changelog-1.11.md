@@ -34,6 +34,10 @@ All changes included in 1.11:
 - ([#14684](https://github.com/quarto-dev/quarto-cli/issues/14684)): Add a "Skip to main content" link to Bootstrap-themed HTML output (documents, websites, books, dashboards) so keyboard users can bypass the navbar and sidebars.
 - ([#14976](https://github.com/quarto-dev/quarto-cli/pull/14976)): Fix KaTeX math not rendering on pages with Jupyter widgets when `html-math-method` is set with the object form (`method: katex` and `url`).
 
+### `pdf`
+
+- ([#14982](https://github.com/quarto-dev/quarto-cli/issues/14982)): Fix a footnote in document metadata, such as `title` or `author`, making PDF and Typst output shift heading levels, which turned the first level-1 heading into the document title.
+
 ### `typst`
 
 - ([#14847](https://github.com/quarto-dev/quarto-cli/pull/14847)): Fix `toc_title` auto-fallback in typst outline template that was ignoring the computed fallback value when `toc_title` is `none`.
