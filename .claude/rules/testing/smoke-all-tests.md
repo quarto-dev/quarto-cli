@@ -155,6 +155,10 @@ Keep the `_quarto: tests:` block assertion-focused, but inline `#` comments labe
 
 Every non-`_`-prefixed `.qmd` under `smoke-all/` is globbed and rendered as its own test target. When a test needs many fixture files (e.g. dozens of pages to reproduce a project-level bug), each stored page becomes a redundant per-file render — plus repo bloat — on top of the project render. Generate the project in a temp directory from a TypeScript `tests/smoke/<feature>/` test instead (`testQuartoCmd("render", [tempDir], ...)` with `setup`/`teardown`). See the "Project Rendering Tests" and "Performance Budget" patterns in `llm-docs/testing-patterns.md`.
 
+### Same-directory documents share `.quarto/`
+
+A smoke-all document renders as a single file whose project dir is its own directory, so every document in that directory shares one `.quarto/` scratch dir (brand font downloads in `.quarto/typst/fonts`, `typst/available-fonts.json`, other caches) and state from one test can leak into the next. CI buckets run their files in a fixed order, each as a separate process, so a test that passes alone but fails in CI may depend on which sibling rendered first: check the `buckets:` list near the top of the job log, e.g. `font-list.qmd` failing after `title-inherit-base-family.qmd` in `docs/smoke-all/typst/brand-yaml/typography/` (#14993). To reproduce locally, render the sibling first in the same directory without deleting `.quarto` in between.
+
 ## Creating New Tests
 
 ```bash
