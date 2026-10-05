@@ -1177,9 +1177,10 @@ export async function runPandoc(
       if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
         continue;
       }
-      // - controls and previewLinks are replaced for revealjs when set to 'auto', which is not a valid reveal.js value
+      // - controls and previewLinks are replaced for revealjs when not a boolean (e.g. 'auto'), which is not a valid reveal.js value
       if (
         (key === "controls" || key === "previewLinks") &&
+        typeof engineMetadata[key] !== "boolean" &&
         isRevealjsOutput(options.format.pandoc)
       ) {
         continue;
