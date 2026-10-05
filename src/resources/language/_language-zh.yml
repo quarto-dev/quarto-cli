@@ -92,6 +92,11 @@ navigation-toolbar-label: "工具栏"     # wikidata Q371434
 navigation-page-label: "页面"         # libreoffice sw
 navigation-breadcrumbs-label: "路径"  # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "可滚动的代码"    # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "可滚动的输出"  # firefox devtools + gnome control-center — assembled, needs review
+
 crossref-fig-title: "图"
 crossref-tbl-title: "表"
 crossref-lst-title: "列表"

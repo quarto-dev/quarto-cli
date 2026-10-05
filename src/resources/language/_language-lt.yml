@@ -90,6 +90,11 @@ navigation-toolbar-label: "Įrankių juosta"     # gnome gtk lt
 navigation-page-label: "Puslapis"              # libreoffice sw
 navigation-breadcrumbs-label: "Kelias"         # gnome gtk lt; LibreOffice has 'Failo adresas' (file address)
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Slenkamas kodas"      # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Slenkama išvestis"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Paveikslas"
 crossref-tbl-title: "Lentelė"
 crossref-lst-title: "Sąrašas"

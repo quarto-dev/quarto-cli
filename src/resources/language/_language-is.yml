@@ -93,6 +93,12 @@ navigation-toolbar-label: "Verkfærastika"      # gnome gtk is
 navigation-page-label: "Síða"                  # libreoffice sw
 navigation-breadcrumbs-label: "Brauðmolaslóð"  # wikidata Q846205
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+# No attested "scrollable" here; from "skruna" (to scroll).
+scrollable-code-label: "Skrunanlegur kóði"     # derived + code-summary — assembled, needs review
+scrollable-output-label: "Skrunanlegt frálag"  # derived + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Mynd"
 crossref-tbl-title: "Tafla"
 crossref-lst-title: "Listun"

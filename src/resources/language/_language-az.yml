@@ -95,6 +95,12 @@ navigation-toolbar-label: "Alət paneli"
 navigation-page-label: "Səhifə"
 navigation-breadcrumbs-label: "Səhifə yolu"
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+# No attested "scrollable" or "output" here; from "sürüşdürmək" and "çıxış".
+scrollable-code-label: "Sürüşdürülə bilən kod"      # derived + code-summary — assembled, needs review
+scrollable-output-label: "Sürüşdürülə bilən çıxış"  # derived + derived — assembled, needs review
+
 crossref-fig-title: "Şəkil"
 crossref-tbl-title: "Cədvəl"
 crossref-lst-title: "Listinq"

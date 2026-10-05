@@ -92,6 +92,11 @@ navigation-toolbar-label: "Werkbalk"  # wikidata Q371434
 navigation-page-label: "Pagina"       # libreoffice sw
 navigation-breadcrumbs-label: "Pad"   # libreoffice sw 'Path' (attested term holds the word for 'navigation') — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Scrollbare code"       # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Scrollbare uitvoer"  # firefox devtools + gnome control-center — assembled, needs review
+
 crossref-fig-title: "Figuur"
 crossref-tbl-title: "Tabel"
 crossref-lst-title: "Listing"
