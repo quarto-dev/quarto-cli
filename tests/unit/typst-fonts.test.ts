@@ -8,8 +8,7 @@
 
 import { unitTest } from "../test.ts";
 import { assert, assertEquals } from "testing/asserts";
-import { join } from "../../src/deno_ral/path.ts";
-import { isWindows } from "../../src/deno_ral/platform.ts";
+import { DELIMITER, join } from "../../src/deno_ral/path.ts";
 import {
   availableFontsCacheKey,
   getAvailableTypstFonts,
@@ -185,7 +184,7 @@ unitTest(
       );
       const getEnv = (name: string) =>
         name === "TYPST_FONT_PATHS"
-          ? `${envA}${isWindows ? ";" : ":"}${envB}`
+          ? `${envA}${DELIMITER}${envB}`
           : undefined;
 
       const before = availableFontsCacheKey([], getEnv);

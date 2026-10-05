@@ -5,9 +5,8 @@
  */
 
 import { error, info } from "../deno_ral/log.ts";
-import { basename, join, relative } from "../deno_ral/path.ts";
+import { basename, DELIMITER, join, relative } from "../deno_ral/path.ts";
 import { existsSync, walkSync } from "../deno_ral/fs.ts";
-import { isWindows } from "../deno_ral/platform.ts";
 import * as colors from "fmt/colors";
 
 import { satisfies } from "semver/mod.ts";
@@ -57,11 +56,10 @@ function fontPathDirs(
   getEnv: (name: string) => string | undefined,
 ): string[] {
   const args = fontPathsArgs(fontPaths, getEnv);
-  const delimiter = isWindows ? ";" : ":";
   const dirs: string[] = [];
   args.forEach((arg, i) => {
     if (i > 0 && args[i - 1] === "--font-path") {
-      dirs.push(...arg.split(delimiter).filter((d) => d.length > 0));
+      dirs.push(...arg.split(DELIMITER).filter((d) => d.length > 0));
     }
   });
   return dirs.sort();
