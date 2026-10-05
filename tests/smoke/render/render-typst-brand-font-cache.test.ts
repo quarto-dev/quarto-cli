@@ -6,7 +6,7 @@
 
 import { join } from "../../../src/deno_ral/path.ts";
 import { test } from "../../test.ts";
-import { runQuarto } from "../../quarto-cmd.ts";
+import { quarto } from "../../../src/quarto.ts";
 import { ensureFileRegexMatches, noErrors } from "../../verify.ts";
 
 const dir = Deno.makeTempDirSync({ prefix: "quarto-14993-" });
@@ -47,15 +47,9 @@ test({
       }
     },
   },
-  execute: async (logFile?: string) => {
-    await runQuarto(["render", join(dir, "first.qmd")], {
-      logFile,
-      throwOnFailure: false,
-    });
-    await runQuarto(["render", join(dir, "second.qmd")], {
-      logFile,
-      throwOnFailure: false,
-    });
+  execute: async () => {
+    await quarto(["render", join(dir, "first.qmd")]);
+    await quarto(["render", join(dir, "second.qmd")]);
   },
   verify: [
     noErrors,
