@@ -1,12 +1,19 @@
 project:
   type: default
 
+format:
+  html:
+    template: template.html
+
 keywords:
   - project-keyword
   - shared-keyword
 
-colliding:
-  - alice
+tags:
+  - project-tag
+
+params:
+  from-project: project-value
 
 custom:
   from-project: project-value

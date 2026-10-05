@@ -1177,15 +1177,30 @@ export async function runPandoc(
       if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
         continue;
       }
+      // - controls and previewLinks are replaced for revealjs when set to 'auto', which is not a valid reveal.js value
+      if (
+        (key === "controls" || key === "previewLinks") &&
+        isRevealjsOutput(options.format.pandoc)
+      ) {
+        continue;
+      }
       // - categories are handled specifically already for website projects with a metadata override and should not be overridden by user input
       if (key === kFieldCategories && projectIsWebsite(options.project)) {
         continue;
       }
-      pandocMetadata[key] = withExecutedValues(
-        pandocMetadata[key],
-        options.unexecutedMetadata?.[key],
-        engineMetadata[key],
-      );
+      // a key that execution left unchanged keeps what other sources merged
+      // into it, with the document's own values on top; a key holding inline
+      // expressions takes the executed value as a whole
+      if (ld.isEqual(options.unexecutedMetadata?.[key], engineMetadata[key])) {
+        // wrapped so that arrays and scalars are concatenated or replaced,
+        // not merged by index
+        pandocMetadata[key] = mergeConfigs(
+          { value: pandocMetadata[key] },
+          { value: options.unexecutedMetadata?.[key] },
+        ).value;
+      } else {
+        pandocMetadata[key] = engineMetadata[key];
+      }
     }
   }
 
@@ -1884,51 +1899,4 @@ function escapeAtInMetadata(value: any): any {
     return result;
   }
   return value;
-}
-
-// options.format.metadata already merged the project's and the document's
-// values for this key; engineMetadata only re-resolved the leaves that held
-// inline expressions. Swap in exactly those leaves so the merge survives,
-// rather than replacing the whole key with the document's own values.
-function withExecutedValues(
-  resolved: unknown,
-  unexecuted: unknown,
-  executed: unknown,
-): unknown {
-  if (ld.isEqual(unexecuted, executed)) {
-    return resolved;
-  }
-
-  if (
-    ld.isPlainObject(resolved) && ld.isPlainObject(unexecuted) &&
-    ld.isPlainObject(executed)
-  ) {
-    const result = { ...(resolved as Metadata) };
-    for (const key of Object.keys(executed as Metadata)) {
-      result[key] = withExecutedValues(
-        result[key],
-        (unexecuted as Metadata)[key],
-        (executed as Metadata)[key],
-      );
-    }
-    return result;
-  }
-
-  // execution rewrites array entries in place, so an entry still matching the
-  // front matter as written maps to the entry at that position in the executed
-  // array; a differing length means that correspondence no longer holds
-  if (
-    Array.isArray(resolved) && Array.isArray(unexecuted) &&
-    Array.isArray(executed) && unexecuted.length === executed.length
-  ) {
-    const substituted = resolved.map((item) => {
-      const index = unexecuted.findIndex((value) => ld.isEqual(value, item));
-      return index === -1 ? item : executed[index];
-    });
-    // an expression can evaluate to a value the project already contributed,
-    // so dedupe as the merge that produced `resolved` would have
-    return ld.uniqBy(substituted, (value: unknown) => JSON.stringify(value));
-  }
-
-  return executed;
 }

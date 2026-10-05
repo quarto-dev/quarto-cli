@@ -1,8 +1,9 @@
 KEYWORDS: [$for(keywords)$$it$$sep$, $endfor$]
-CUSTOM-LIST: [$for(custom.list)$$it$$sep$, $endfor$]
+TAGS: [$for(tags)$$it$$sep$, $endfor$]
+PARAMS: [$params.from-project$] [$params.from-document$]
 FROM-PROJECT: [$custom.from-project$]
 SHARED: [$custom.shared$]
 FROM-DOCUMENT: [$custom.from-document$]
-EVALUATED: [$custom.evaluated$]
-COLLIDING: [$for(colliding)$$it$$sep$, $endfor$]
+CUSTOM-LIST: [$for(custom.list)$$it$$sep$, $endfor$]
+EVALUATED: [$evaluated$]
 $body$
