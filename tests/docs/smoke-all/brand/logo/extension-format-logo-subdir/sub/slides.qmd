@@ -1,0 +1,14 @@
+---
+title: "Extension logo in subdirectory"
+format: repro-revealjs
+_quarto:
+  tests:
+    repro-revealjs:
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.\.(/|\\)site_libs(/|\\)quarto-contrib(/|\\)quarto-project(/|\\)repro(/|\\)logo\.png" class="slide-logo"'
+        -
+          - '_extensions(/|\\)repro'
+---
+
+## Slide

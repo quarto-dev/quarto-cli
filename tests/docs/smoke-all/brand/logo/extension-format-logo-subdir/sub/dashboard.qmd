@@ -1,0 +1,16 @@
+---
+title: "Extension logo in subdirectory"
+format: repro-dashboard
+_quarto:
+  tests:
+    repro-dashboard:
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.\.(/|\\)site_libs(/|\\)quarto-contrib(/|\\)quarto-project(/|\\)repro(/|\\)logo\.png"'
+        -
+          - '_extensions(/|\\)repro'
+---
+
+## Row
+
+Content.

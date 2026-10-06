@@ -29,7 +29,14 @@ import {
 } from "../../resources/types/zod/schema-types.ts";
 import { InternalError } from "../lib/error.ts";
 
-import { dirname, join, relative, resolve } from "../../deno_ral/path.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+} from "../../deno_ral/path.ts";
+import { existsSync } from "../../deno_ral/fs.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
 import { isExternalPath } from "../url.ts";
@@ -440,6 +447,66 @@ export function logoAddLeadingSlashes(
 export function brandWithAbsoluteLogoPaths(
   brand: LightDarkBrand | undefined,
 ): LightDarkBrand | undefined {
+  return brandWithLogoPaths(brand, ensureLeadingSlashIfNotExternal);
+}
+
+// Resolve the logo of an HTML document so that every path is relative to the
+// input document. Brand logo paths are project-relative and get rebased onto
+// the input directory before merging with the document logo, whose paths
+// (front matter, _quarto.yml, _metadata.yml, extensions) are already relative
+// to the input.
+export function resolveInputRelativeLogo(
+  brand: LightDarkBrand | undefined,
+  spec: LogoLightDarkSpecifier | undefined,
+  order: BrandNamedLogo[],
+  input: string,
+  isWebsite: boolean,
+): NormalizedLogoLightDarkSpecifier | undefined {
+  const inputDir = dirname(resolve(input));
+  const inputRelativeBrand = brandWithLogoPaths(
+    brand,
+    (path, projectDir) =>
+      isExternalPath(path)
+        ? path
+        : pathWithForwardSlashes(relative(inputDir, join(projectDir, path))),
+  );
+  const logo = resolveLogo(inputRelativeBrand, spec, order);
+  const projectDir = brand?.light?.projectDir;
+  if (!logo || !projectDir || !isWebsite) {
+    return logo;
+  }
+  // Document logo paths that only exist relative to the project directory
+  // are deprecated: in a website with an active brand they still resolve,
+  // with a warning.
+  const projectRelativeFallback = (options: LogoOptions | undefined) => {
+    if (
+      !options || isExternalPath(options.path) || isAbsolute(options.path) ||
+      existsSync(join(inputDir, options.path))
+    ) {
+      return options;
+    }
+    const projectPath = join(projectDir, options.path);
+    if (!existsSync(projectPath)) {
+      return options;
+    }
+    const path = pathWithForwardSlashes(relative(inputDir, projectPath));
+    warnOnce(
+      `Logo path '${options.path}' for ${
+        pathWithForwardSlashes(relative(projectDir, input))
+      } was resolved relative to the project directory. This is deprecated: logo paths are relative to the document, use '${path}' instead.`,
+    );
+    return { ...options, path };
+  };
+  return {
+    light: projectRelativeFallback(logo.light),
+    dark: projectRelativeFallback(logo.dark),
+  };
+}
+
+function brandWithLogoPaths(
+  brand: LightDarkBrand | undefined,
+  transformPath: (path: string, projectDir: string) => string,
+): LightDarkBrand | undefined {
   if (!brand) {
     return brand;
   }
@@ -451,14 +518,14 @@ export function brandWithAbsoluteLogoPaths(
       if (oldLogo[size]) {
         logo[size] = {
           ...oldLogo[size],
-          path: ensureLeadingSlashIfNotExternal(oldLogo[size]!.path),
+          path: transformPath(oldLogo[size]!.path, b.projectDir),
         };
       }
     }
     for (const [key, value] of Object.entries(oldLogo.images)) {
       logo.images[key] = {
         ...value,
-        path: ensureLeadingSlashIfNotExternal(value.path),
+        path: transformPath(value.path, b.projectDir),
       };
     }
     const copy = Object.create(b) as Brand;
