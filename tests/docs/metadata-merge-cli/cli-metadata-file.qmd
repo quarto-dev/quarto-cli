@@ -1,0 +1,25 @@
+---
+title: Front matter and --metadata-file
+shared: document-value
+custom:
+  shared: document-value
+  from-document: document-value
+keywords:
+  - document-keyword
+---
+
+::: {#shared}
+{{< meta shared >}}
+:::
+
+::: {#custom-shared}
+{{< meta custom.shared >}}
+:::
+
+::: {#custom-from-document}
+{{< meta custom.from-document >}}
+:::
+
+::: {#custom-from-metadata-file}
+{{< meta custom.from-metadata-file >}}
+:::
