@@ -36,7 +36,6 @@ import {
   relative,
   resolve,
 } from "../../deno_ral/path.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
 import { isExternalPath, tryDecodeURI } from "../url.ts";
@@ -46,7 +45,11 @@ import {
   LogoSpecifier,
   LogoSpecifierPathOptional,
 } from "../../resources/types/schema-types.ts";
-import { ensureLeadingSlash, pathWithForwardSlashes } from "../path.ts";
+import {
+  ensureLeadingSlash,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../path.ts";
 
 type ProcessedBrandData = {
   color: Record<string, string>;
@@ -490,8 +493,8 @@ export function resolveInputRelativeLogo(
     const [, urlPath, suffix] = options.path.match(/^([^?#]*)(.*)$/)!;
     const filePath = tryDecodeURI(urlPath) ?? urlPath;
     if (
-      existsSync(join(inputDir, filePath)) ||
-      !existsSync(join(projectDir, filePath))
+      safeExistsSync(join(inputDir, filePath)) ||
+      !safeExistsSync(join(projectDir, filePath))
     ) {
       return options;
     }
