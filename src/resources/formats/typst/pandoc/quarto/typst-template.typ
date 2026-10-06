@@ -31,6 +31,10 @@
   toc_title: none,
   toc_depth: none,
   toc_indent: 1.5em,
+  lof: false,
+  lof-title: none,
+  lot: false,
+  lot-title: none,
   doc,
 ) = {
   // Set document metadata for PDF accessibility
@@ -132,6 +136,18 @@
       depth: toc_depth,
       indent: toc_indent
     );
+    ]
+  }
+
+  if lof {
+    block(above: 0em, below: 2em)[
+    #outline(title: lof-title, target: figure.where(kind: "quarto-float-fig"));
+    ]
+  }
+
+  if lot {
+    block(above: 0em, below: 2em)[
+    #outline(title: lot-title, target: figure.where(kind: "quarto-float-tbl"));
     ]
   }
 

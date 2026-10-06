@@ -1,0 +1,35 @@
+---
+title: "Localised list titles"
+lang: fr
+lof: true
+lot: true
+crossref:
+  lot-title: "Mes tableaux"
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - # French default title for figures, crossref override for tables
+          - 'Liste des Figures[\s\S]*Une figure[\s\S]*Mes tableaux[\s\S]*Un tableau'
+        - - 'List of Figures'   # English default must not leak through
+          - 'Liste des Tables'  # crossref lot-title must win over the language title
+---
+
+# Introduction
+
+With `lang: fr`, the figure list takes its title from the French language file, while `crossref: lot-title` replaces the language title of the table list.
+
+::: {#fig-one}
+
+CONTENU
+
+Une figure
+
+:::
+
+| a | b |
+|---|---|
+| 1 | 2 |
+
+: Un tableau {#tbl-one}

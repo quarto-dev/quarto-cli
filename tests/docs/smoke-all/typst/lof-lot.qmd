@@ -1,0 +1,30 @@
+---
+title: "List of figures and tables"
+lof: true
+lot: true
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - # Both lists are rendered with their entries, before the body
+          - 'List of Figures[\s\S]*A figure caption[\s\S]*List of Tables[\s\S]*A table caption[\s\S]*Introduction'
+---
+
+# Introduction
+
+With `lof: true` and `lot: true`, a list of figures and a list of tables are printed after the title block and before this heading, as in LaTeX output (#14081).
+
+::: {#fig-one}
+
+CONTENT
+
+A figure caption
+
+:::
+
+| a | b |
+|---|---|
+| 1 | 2 |
+
+: A table caption {#tbl-one}

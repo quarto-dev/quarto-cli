@@ -1,0 +1,30 @@
+---
+title: "No lists without lof and lot"
+toc: true
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - - 'Table of contents'
+        - - 'List of Figures'
+          - 'List of Tables'
+---
+
+# Introduction
+
+Without `lof` or `lot`, no list of figures or tables is printed, even though the document has a figure, a table and a table of contents.
+
+::: {#fig-one}
+
+CONTENT
+
+A figure caption
+
+:::
+
+| a | b |
+|---|---|
+| 1 | 2 |
+
+: A table caption {#tbl-one}
