@@ -485,8 +485,10 @@ export function resolveInputRelativeLogo(
       return options;
     }
     // Logo paths are URLs; check the files they point to, as HTML resource
-    // processing does, but keep the path encoded in the output.
-    const filePath = tryDecodeURI(options.path) ?? options.path;
+    // processing does, but keep the path encoded in the output. A query or
+    // fragment is not part of the file name.
+    const [, urlPath, suffix] = options.path.match(/^([^?#]*)(.*)$/)!;
+    const filePath = tryDecodeURI(urlPath) ?? urlPath;
     if (
       existsSync(join(inputDir, filePath)) ||
       !existsSync(join(projectDir, filePath))
@@ -494,8 +496,8 @@ export function resolveInputRelativeLogo(
       return options;
     }
     const path = pathWithForwardSlashes(
-      relative(inputDir, join(projectDir, options.path)),
-    );
+      relative(inputDir, join(projectDir, urlPath)),
+    ) + suffix;
     warnOnce(
       `Logo path '${options.path}' for ${
         pathWithForwardSlashes(relative(projectDir, input))
