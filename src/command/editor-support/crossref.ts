@@ -12,7 +12,11 @@ import { encodeBase64 } from "../../deno_ral/encoding.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { execProcess } from "../../core/process.ts";
-import { pandocBinaryPath, resourcePath } from "../../core/resources.ts";
+import {
+  pandocBinaryPath,
+  pandocDataDirArgs,
+  resourcePath,
+} from "../../core/resources.ts";
 import { globalTempContext } from "../../core/temp.ts";
 
 function parseCrossrefFlags(options: any, args: string[]): {
@@ -99,8 +103,7 @@ const makeCrossrefCommand = () => {
         resourcePath("filters/qmd-reader.lua"),
         "--to",
         "native",
-        "--data-dir",
-        resourcePath("pandoc/datadir"),
+        ...pandocDataDirArgs(),
         "--lua-filter",
         resourcePath("filters/quarto-init/quarto-init.lua"),
         "--lua-filter",

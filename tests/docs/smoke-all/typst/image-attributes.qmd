@@ -1,0 +1,46 @@
+---
+title: "Typst image attributes: sizes, alt text precedence, inline box"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      # All preserved image variants must compile, not just match text.
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          # Unitless width without alt is converted from 100px at 96 dpi.
+          - '#box\(image\("penrose\.svg", width: 1\.0416\d*in\)\)'
+          # Unitless width with alt gets the same conversion and inline box.
+          - '#box\(image\("penrose\.svg"(?=[^)]*alt: "Unitless alt")(?=[^)]*width: 1\.0416\d*in)'
+          # A px-sized image without alt still converts and stays inline.
+          - '#box\(image\("penrose\.svg", height: 0\.20833\d*in\)\)'
+          # Percent width with alt keeps its value, allowing Pandoc's 10.0%.
+          - '#box\(image\("penrose\.svg"(?=[^)]*alt: "Percent alt")(?=[^)]*width: 10(\.0)?%)'
+          # Quarto's fig-alt overrides an ordinary alt attribute.
+          - '#box\(image\("penrose\.svg"(?=[^)]*alt: "Fig-alt wins")'
+          # Preserve the current empty-alt caption fallback pending a separate fix.
+          - '#box\(image\("penrose\.svg"(?=[^)]*alt: "Empty alt caption")'
+          # Empty alt without a caption currently emits no alt parameter.
+          - '#box\(image\("penrose\.svg"\)\)'
+        -
+          # The overridden alt text must not leak into the Typst file.
+          - 'Alt loses'
+          # Quarto's custom fig-alt key must not leak into Typst.
+          - 'fig-alt'
+---
+
+Unitless no alt: ![](penrose.svg){width="100"}
+
+Unitless with alt: ![](penrose.svg){width="100" alt="Unitless alt"}
+
+Px no alt: ![](penrose.svg){height="20px"}
+
+Percent with alt: ![](penrose.svg){width="10%" alt="Percent alt"}
+
+Fig-alt over alt: ![](penrose.svg){fig-alt="Fig-alt wins" alt="Alt loses"}
+
+Empty alt with caption: text ![Empty alt caption](penrose.svg){alt=""} text
+
+Empty alt no caption: ![](penrose.svg){alt=""}

@@ -42,7 +42,7 @@ import { Format } from "../../config/types.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { kStdOut, replacePandocOutputArg } from "./flags.ts";
-import { OutputRecipe, RenderOptions } from "./types.ts";
+import { OutputRecipe, PandocOptions, RenderOptions } from "./types.ts";
 import { normalizeOutputPath } from "./output-shared.ts";
 import {
   typstCompile,
@@ -62,7 +62,7 @@ export interface NeededPackage {
 
 // Collect all package source directories (built-in + extensions)
 async function collectPackageSources(
-  input: string,
+  inputDir: string,
   projectDir: string,
 ): Promise<string[]> {
   const sources: string[] = [];
@@ -74,7 +74,7 @@ async function collectPackageSources(
   }
 
   // 2. Extension packages
-  const extensionDirs = inputExtensionDirs(input, projectDir);
+  const extensionDirs = inputExtensionDirs(inputDir, projectDir);
   const subtreePath = builtinSubtreeExtensions();
   for (const extDir of extensionDirs) {
     const extensions = extDir === subtreePath
@@ -119,9 +119,12 @@ async function analyzeNeededPackages(
       name,
       version,
     }));
-  } catch {
+  } catch (e) {
     // Fallback: if analyze fails, stage everything (current behavior)
-    warning("typst-gather analyze failed; staging all packages as fallback");
+    const detail = e instanceof Error ? e.message : String(e);
+    warning(
+      `typst-gather analyze failed; staging all packages as fallback: ${detail}`,
+    );
     return null;
   }
 }
@@ -173,7 +176,7 @@ export function stageAllPackages(sources: string[], cacheDir: string): void {
 // Stage typst packages to .quarto/typst-packages/
 // First stages built-in packages, then extension packages (which can override)
 async function stageTypstPackages(
-  input: string,
+  inputDir: string,
   typstInput: string,
   projectDir?: string,
 ): Promise<string | undefined> {
@@ -181,7 +184,7 @@ async function stageTypstPackages(
     return undefined;
   }
 
-  const packageSources = await collectPackageSources(input, projectDir);
+  const packageSources = await collectPackageSources(inputDir, projectDir);
   if (packageSources.length === 0) {
     return undefined;
   }
@@ -225,7 +228,14 @@ export function typstPdfOutputRecipe(
 
   // when pandoc is done, we need to run the pdf generator and then copy the
   // output to the user's requested destination
-  const complete = async () => {
+  //
+  // Read format state from `pandocOptions.format` rather than the captured
+  // `format` parameter: for book projects, `withBookTitleMetadata` deep-clones
+  // the recipe's format between recipe construction and `renderPandoc`, so the
+  // captured reference becomes stale and never observes mutations applied by
+  // `resolveExtras` (e.g. brand font paths). See #14511.
+  const complete = async (pandocOptions: PandocOptions) => {
+    const liveFormat = pandocOptions.format;
     // input file is pandoc's output
     const typstInput = join(inputDir, output);
 
@@ -234,12 +244,13 @@ export function typstPdfOutputRecipe(
     const pdfOutput = join(inputDir, inputStem + ".pdf");
     const typstOptions: TypstCompileOptions = {
       quiet: options.flags?.quiet,
-      fontPaths: (asArray(format.metadata?.[kFontPaths]) as string[]).map(
+      fontPaths: (asArray(liveFormat.metadata?.[kFontPaths]) as string[]).map(
         (p) => isAbsolute(p) ? p : resolve(inputDir, p),
       ),
       pdfStandard: normalizePdfStandardForTypst(
         asArray(
-          format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard] ??
+          liveFormat.render?.[kPdfStandard] ??
+            liveFormat.metadata?.[kPdfStandard] ??
             pdfStandardEnv(),
         ),
       ),
@@ -249,7 +260,7 @@ export function typstPdfOutputRecipe(
 
       // Stage extension typst packages
       const packagePath = await stageTypstPackages(
-        input,
+        inputDir,
         typstInput,
         project.dir,
       );
@@ -271,7 +282,8 @@ export function typstPdfOutputRecipe(
 
     // Validate PDF against specified standards using verapdf (if available)
     const pdfStandards = asArray(
-      format.render?.[kPdfStandard] ?? format.metadata?.[kPdfStandard] ??
+      liveFormat.render?.[kPdfStandard] ??
+        liveFormat.metadata?.[kPdfStandard] ??
         pdfStandardEnv(),
     ) as string[];
     if (pdfStandards.length > 0) {
@@ -281,7 +293,7 @@ export function typstPdfOutputRecipe(
     }
 
     // keep typ if requested
-    if (!format.render[kKeepTyp]) {
+    if (!liveFormat.render[kKeepTyp]) {
       safeRemoveSync(typstInput);
     }
 
@@ -326,6 +338,14 @@ export function typstPdfOutputRecipe(
 
   // if we have some variant declared, resolve it
   // (use for opt-out citations extension)
+  //
+  // Note: this block reads from the captured `format` parameter (the
+  // construction-time snapshot). That is safe today because it runs
+  // synchronously before `renderPandoc`, i.e. before any post-construction
+  // reassignment of `recipe.format` (such as `withBookTitleMetadata`'s deep
+  // clone — see #14511). Any future code reading format state from this
+  // recipe AFTER `renderPandoc` has started must use `pandocOptions.format`
+  // / `recipe.format` (live), not the captured parameter.
   if (format.render?.[kVariant]) {
     const to = format.pandoc.to;
     const variant = format.render[kVariant];

@@ -1,0 +1,12 @@
+project:
+  type: book
+
+book:
+  title: "Bug reproduction"
+  chapters:
+    - index.qmd
+    - chapter1.qmd
+
+format:
+  dummy-extension-pdf: default
+  dummy-extension-html: default

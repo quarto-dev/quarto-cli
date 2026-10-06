@@ -83,7 +83,11 @@ export function appendLogOptions(cmd: Command<any>): Command<any> {
   // to the outer command
   //
   // Fixes https://github.com/quarto-dev/quarto-cli/issues/8438
-  const subCommands = cmd.getCommands();
+  //
+  // Include hidden subcommands (e.g. `quarto call axe`, which is `.hidden()`
+  // while experimental): `.hidden()` only affects `--help` visibility, not
+  // whether the subcommand should accept forwarded log options.
+  const subCommands = cmd.getCommands(true);
   if (subCommands.length > 0) {
     subCommands.forEach((command) => {
       addLogOptions(command);

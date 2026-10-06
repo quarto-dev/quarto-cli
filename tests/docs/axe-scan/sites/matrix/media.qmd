@@ -1,0 +1,35 @@
+---
+title: Media
+---
+
+```{=html}
+<style>
+/* PLANTED: color-contrast (serious), dark cells only. The light rule passes
+   comfortably; the dark one is 1.7:1. Proves the theme axis of the scan matrix
+   finds something the default cell cannot. */
+.axe-fixture-dark-only { background: #ffffff; color: #1a1a1a; }
+@media (prefers-color-scheme: dark) {
+  .axe-fixture-dark-only { background: #333333; color: #555555; }
+}
+
+/* PLANTED: color-contrast (serious), narrow viewports only. Same idea on the
+   other axis: passes at 1440x900, fails at 390x844. */
+.axe-fixture-mobile-only { background: #ffffff; color: #1a1a1a; }
+@media (max-width: 500px) {
+  .axe-fixture-mobile-only { background: #f0f0f0; color: #f8f8f8; }
+}
+</style>
+```
+
+Keep the two paragraphs below free of inline code, links and any other element
+that carries its own colour: a nested colour would add a second, unplanned
+contrast failure and make the fixture depend on the theme's palette.
+
+::: {.axe-fixture-dark-only}
+This paragraph fails colour contrast only when the preferred colour scheme is
+dark.
+:::
+
+::: {.axe-fixture-mobile-only}
+This paragraph fails colour contrast only at a narrow viewport.
+:::

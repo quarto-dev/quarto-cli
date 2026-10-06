@@ -13,8 +13,10 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        # This is the 600 x 400 cropped because bbox_inches="tight"
-        - ['img[width="537"][height="373"]']
+        # This is the 600 x 400 cropped because bbox_inches="tight".
+        # Exact pixel width is sensitive to matplotlib's text/legend
+        # metrics and may shift by a pixel or two across matplotlib versions.
+        - ['img[width="538"][height="373"]']
 ---
 
 ```{python}

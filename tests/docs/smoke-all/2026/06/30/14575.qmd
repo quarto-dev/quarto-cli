@@ -1,0 +1,84 @@
+---
+# Issue #14575 — markdown-only cases (CI-safe, no engine needed).
+# See the body below for what each case exercises.
+format: pdf
+tbl-cap-location: bottom
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        -
+          - '\\end\{document\}'
+          - '\\caption\{[\s\S]{0,60}CAP1 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          - '\\caption\{[\s\S]{0,60}CAP2 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          - '\\caption\{[\s\S]{0,60}CAP3 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          - '\\caption\{[\s\S]{0,60}CAP4 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          - '\\caption\{[\s\S]{0,60}CAP5 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+          - '\\caption\{[\s\S]{0,60}CAP6 caption[\s\S]{0,60}\\tabularnewline\s*\\endlastfoot'
+---
+
+With `tbl-cap-location: bottom`, a cross-referenceable table's bottom caption
+must land in the longtable foot — `\caption{...}\tabularnewline` immediately
+before `\endlastfoot` — not after the data rows inside the table body. Each
+`CAPn caption` assertion above checks that placement for one input shape.
+
+Cases 1–4 already rendered correctly before the fix and act as regression
+guards. Cases 5–6 wrap the table in a `.cell-output-display` Div (the shape
+Quarto produces for knitr/Jupyter output); these triggered the bug and pass
+only after the fix.
+
+# Case 1: markdown table, caption syntax, no id
+
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+
+: CAP1 caption
+
+# Case 2: markdown table, caption syntax, with id
+
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+
+: CAP2 caption {#tbl-c2}
+
+# Case 3: div float, bare table, trailing caption paragraph
+
+::: {#tbl-c3}
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+
+CAP3 caption
+:::
+
+# Case 4: div float, tbl-cap attribute, bare table
+
+::: {#tbl-c4 tbl-cap='CAP4 caption'}
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+:::
+
+# Case 5: div float, tbl-cap attribute, .cell-output-display wrapper
+
+::: {#tbl-c5 tbl-cap='CAP5 caption'}
+::: {.cell-output-display}
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+:::
+:::
+
+# Case 6: .cell + .cell-output-display (mcanouil reprex)
+
+::: {#tbl-c6 .cell tbl-cap='CAP6 caption'}
+::: {.cell-output-display}
+| speed| dist|
+|-----:|----:|
+|     4|    2|
+:::
+:::

@@ -1,18 +1,16 @@
 -- figures.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local constants = require("modules/constants")
-
 function preventExtendedFigure(el)
-  el.attr.attributes[constants.kFigExtended] = "false"
+  el.attr.attributes[_quarto.modules.constants.kFigExtended] = "false"
 end
 
 function forceExtendedFigure(el) 
-  el.attr.attributes[constants.kFigExtended] = "true"
+  el.attr.attributes[_quarto.modules.constants.kFigExtended] = "true"
 end
 
 function shouldHandleExtended(el)
-  return el.attr.attributes[constants.kFigExtended] ~= "false"
+  return el.attr.attributes[_quarto.modules.constants.kFigExtended] ~= "false"
 end
 
 -- By default, images without captions should be
@@ -38,7 +36,7 @@ function shouldHandleExtendedImage(el)
   end
 
   -- handle extended if it was explicitly enabled
-  if el.attr.attributes[constants.kFigExtended] == "true" then
+  if el.attr.attributes[_quarto.modules.constants.kFigExtended] == "true" then
     return true
   end
 

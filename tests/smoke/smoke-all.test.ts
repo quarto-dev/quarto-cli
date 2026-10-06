@@ -5,7 +5,7 @@
  */
 
 import { expandGlobSync } from "../../src/core/deno/expand-glob.ts";
-import { testQuartoCmd, Verify } from "../test.ts";
+import { testQuartoCmd, unitTest, Verify } from "../test.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 import {
   initState,
@@ -34,6 +34,7 @@ import {
   ensureTypstFileRegexMatches,
   ensureSnapshotMatches,
   fileExists,
+  fileNotExists,
   noErrors,
   noErrorsOrWarnings,
   ensurePptxXpath,
@@ -56,7 +57,7 @@ import { findProjectDir, findProjectOutputDir, outputForInput } from "../utils.t
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { WalkEntry } from "../../src/deno_ral/fs.ts";
-import { quarto } from "../../src/quarto.ts";
+import { isQuartoTimeoutError, runQuarto } from "../quarto-cmd.ts";
 import { safeExistsSync, safeRemoveSync } from "../../src/core/path.ts";
 import { runningInCI } from "../../src/core/ci-info.ts";
 
@@ -157,19 +158,35 @@ interface QuartoInlineTestSpec {
   verifyFns: Verify[];
 }
 
-// Functions to cleanup leftover testing
-const postRenderCleanupFiles: string[] = [];
-function registerPostRenderCleanupFile(file: string): void {
-  postRenderCleanupFiles.push(file);
+// Functions to cleanup leftover testing.
+// postRenderCleanupFiles is a module-global list swept by EVERY render
+// teardown, so a registered entry only logs/removes at the teardowns where the
+// file actually exists (its owning document), not on every subsequent teardown.
+// Each entry records which input file registered it, so a sweep can be
+// scoped to just that file's own entries (see postRenderCleanup below).
+const postRenderCleanupFiles: Array<{ file: string; input: string }> = [];
+function registerPostRenderCleanupFile(file: string, input: string): void {
+  postRenderCleanupFiles.push({ file, input });
 }
-const postRenderCleanup = () => {
+// Without `onlyForInputs`, this sweeps every registered path. That is safe
+// during normal teardown because the suite runs one file at a time and no
+// other test has created a matching artifact. A skipped file never runs
+// teardown, so the pass-2 branch scopes the sweep to that file's input. All
+// project pre-renders have finished by then; an unscoped sweep could delete
+// another project's artifact before verification.
+const postRenderCleanup = (onlyForInputs?: Set<string>) => {
   if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
     return;
   }
-  for (const file of postRenderCleanupFiles) {
-    console.log(`Cleaning up ${file} in ${Deno.cwd()}`);
-    if (safeExistsSync(file)) {
-      Deno.removeSync(file);
+  for (const entry of postRenderCleanupFiles) {
+    if (onlyForInputs && !onlyForInputs.has(entry.input)) {
+      continue;
+    }
+    if (safeExistsSync(entry.file)) {
+      console.log(`Cleaning up ${entry.file} in ${Deno.cwd()}`);
+      // recursive so a registered entry can be a directory (e.g. an embedded
+      // notebook's `*_files` support dir), not just a single file
+      safeRemoveSync(entry.file, { recursive: true });
     }
   }
 }
@@ -237,7 +254,7 @@ function resolveTestSpecs(
               file = file.replace("${input_stem}", inputStem);
             }
             // file is registered for cleanup in testQuartoCmd teardown step
-            registerPostRenderCleanupFile(join(dirname(input), file));
+            registerPostRenderCleanupFile(join(dirname(input), file), input);
           }
         } else if (key == "shouldError") {
           checkWarnings = false;
@@ -266,6 +283,22 @@ function resolveTestSpecs(
               } else if (path === "supportPath") {
                 verifyFns.push(
                   fileExists(join(outputFile.supportPath, file)),
+                );
+              }
+            }
+          } else if (key === "fileNotExists") {
+            for (
+              const [path, file] of Object.entries(
+                value as Record<string, string>,
+              )
+            ) {
+              if (path === "outputPath") {
+                verifyFns.push(
+                  fileNotExists(join(dirname(outputFile.outputPath), file)),
+                );
+              } else if (path === "supportPath") {
+                verifyFns.push(
+                  fileNotExists(join(outputFile.supportPath, file)),
                 );
               }
             }
@@ -371,12 +404,62 @@ const renderedProjects: Set<string> = new Set();
 // To store information of all the project we render so that we can cleanup after testing
 const testedProjects: Set<string> = new Set();
 
+// Website listing pages re-render whenever a sibling content file renders (see
+// listingSupplementalFiles in website-listing.ts), reading that sibling's
+// already-rendered HTML to resolve description/preview-image placeholders.
+// Deleting a file's own output immediately after its own test would race that
+// cross-file read for any sibling tested later in the same project. So for
+// files inside a project, cleanup is deferred (per (input, format) entry
+// below) until every file in that project has finished testing, instead of
+// running right after each file's own test.
+const projectCleanupEntries: Map<
+  string,
+  Array<{ input: string; format: string; metadata: Record<string, any> }>
+> = new Map();
+
+function addProjectCleanupEntry(
+  projectPath: string,
+  input: string,
+  format: string,
+  // deno-lint-ignore no-explicit-any
+  metadata: Record<string, any>,
+) {
+  // editor-support-crossref creates no project cleanup entry; adding one
+  // would resolve its base format to editor and could delete an unrelated
+  // HTML support directory.
+  if (format === "editor-support-crossref") {
+    return;
+  }
+  if (!projectCleanupEntries.has(projectPath)) {
+    projectCleanupEntries.set(projectPath, []);
+  }
+  projectCleanupEntries.get(projectPath)!.push({ input, format, metadata });
+}
+
+// The promise for each file's tests, grouped by the project it belongs to, so
+// we know when a given project's own files are all done (see above).
+const projectFilePromises: Map<string, Promise<void>[]> = new Map();
+
 // Create an array to hold all the promises for the tests of files
 let testFilesPromises = [];
 
+const failedProjectPreRenders: Map<string, Error> = new Map();
+
+interface DiscoveredFile {
+  input: string;
+  // deno-lint-ignore no-explicit-any
+  metadata: Record<string, any>;
+  testSpecs: QuartoInlineTestSpec[];
+  projectPath: string | undefined;
+}
+
+// Pass 1: discover all files before registering tests. Because render-project
+// is per-file metadata, discovery must finish before all files belonging to a
+// failed project can be skipped.
+const discovered: DiscoveredFile[] = [];
 for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
-  
+
   const metadata = input.endsWith("md") // qmd or md
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
@@ -406,22 +489,74 @@ for (const { path: fileName } of files) {
   const projectPath = findRootTestsProjectDir(input);
   if (projectPath) testedProjects.add(projectPath);
 
-  // Render project before testing individual document if required
-  if (
-    (metadata["_quarto"] as any)?.["render-project"] && 
-    projectPath && 
-    !renderedProjects.has(projectPath)
-  ) {
-      await quarto(["render", projectPath]);
-      renderedProjects.add(projectPath);
-    }
+  discovered.push({ input, metadata, testSpecs, projectPath });
+}
 
-  testFilesPromises.push(new Promise<void>(async (resolve, reject) => {
+// Pass 1.5: pre-render each project requested by any discovered file before
+// registering tests.
+const projectsNeedingPreRender = new Set<string>();
+for (const entry of discovered) {
+  if ((entry.metadata["_quarto"] as any)?.["render-project"] && entry.projectPath) {
+    projectsNeedingPreRender.add(entry.projectPath);
+  }
+}
+for (const projectPath of projectsNeedingPreRender) {
+  try {
+    // Use the built binary when QUARTO_TEST_BIN is set. A failure skips this
+    // project's tests instead of aborting module evaluation.
+    await runQuarto(["render", projectPath]);
+    renderedProjects.add(projectPath);
+  } catch (err) {
+    // Abort if the timed-out render may still be running. It could keep
+    // writing while the remaining tests and cleanup run.
+    if (isQuartoTimeoutError(err) && !err.renderCancelled) {
+      console.error(
+        `[smoke-all] project pre-render for ${projectPath} timed out after ` +
+          `${err.timeoutMs}ms and the render could not be confirmed stopped` +
+          (err.killDetail ? ` (${err.killDetail})` : "") +
+          `; aborting rather than let a still-running render race the rest ` +
+          `of the suite.`,
+      );
+      throw err;
+    }
+    failedProjectPreRenders.set(
+      projectPath,
+      err instanceof Error ? err : new Error(String(err)),
+    );
+  }
+}
+
+for (const [projectPath, error] of failedProjectPreRenders) {
+  unitTest(`smoke-all project pre-render failed: ${projectPath}`, async () => {
+    throw error;
+  });
+}
+
+// Pass 2 (registration).
+for (const entry of discovered) {
+  const { input, metadata, testSpecs, projectPath } = entry;
+
+  if (projectPath && failedProjectPreRenders.has(projectPath)) {
+    console.log(
+      `Skipping tests for ${input}: its project's pre-render failed (${projectPath})`,
+    );
+    // Add the cleanup entries that this file's teardown would have added.
+    for (const testSpec of testSpecs) {
+      addProjectCleanupEntry(projectPath, input, testSpec.format, metadata);
+    }
+    // Skipped files do not run teardown. Sweep only the custom cleanup paths
+    // registered for this input; an unscoped sweep could delete another
+    // project's artifact before its tests verify it.
+    postRenderCleanup(new Set([input]));
+    continue;
+  }
+
+  const fileTestsPromise = new Promise<void>(async (resolve, reject) => {
     try {
 
       // Create an array to hold all the promises for the testSpecs
       let testSpecPromises = [];
-      
+
       for (const testSpec of testSpecs) {
         const {
           format,
@@ -447,7 +582,15 @@ for (const { path: fileName } of files) {
                   return Promise.resolve(true);
                 },
                 teardown: () => {
-                  cleanoutput(input, format, undefined, undefined, metadata);
+                  // Standalone files (no project) have no sibling that could
+                  // need this output later, so clean up immediately. Project
+                  // files are cleaned once the whole project is done testing
+                  // (see projectCleanupEntries above).
+                  if (projectPath) {
+                    addProjectCleanupEntry(projectPath, input, format, metadata);
+                  } else {
+                    cleanoutput(input, format, undefined, undefined, metadata);
+                  }
                   postRenderCleanup()
                   testSpecResolve(); // Resolve the promise for the testSpec
                   return Promise.resolve();
@@ -458,7 +601,7 @@ for (const { path: fileName } of files) {
             testSpecReject(error);
           }
         }));
-          
+
       }
 
       // Wait for all the promises to resolve
@@ -470,17 +613,28 @@ for (const { path: fileName } of files) {
     } catch (error) {
       reject(error);
     }
-  }));
+  });
+  testFilesPromises.push(fileTestsPromise);
+  if (projectPath) {
+    if (!projectFilePromises.has(projectPath)) {
+      projectFilePromises.set(projectPath, []);
+    }
+    projectFilePromises.get(projectPath)!.push(fileTestsPromise);
+  }
 }
 
-// Wait for all the promises to resolve
-// Meaning all the files have been tested and we can clean
-Promise.all(testFilesPromises).then(() => {
-  if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
-    return;
-  }
-  // Clean up any projects that were tested
-  for (const project of testedProjects) {
+// For each tested project, wait only for that project's own files to finish
+// testing (not the whole smoke-all suite) before cleaning it up: run the
+// deferred per-file cleanoutput calls, then remove the project's output
+// directory and hidden .quarto scratch, same as before.
+for (const project of testedProjects) {
+  Promise.all(projectFilePromises.get(project) ?? []).then(() => {
+    if (Deno.env.get("QUARTO_TEST_KEEP_OUTPUTS")) {
+      return;
+    }
+    for (const entry of projectCleanupEntries.get(project) ?? []) {
+      cleanoutput(entry.input, entry.format, undefined, undefined, entry.metadata);
+    }
     // Clean project output directory
     const projectOutDir = join(project, findProjectOutputDir(project));
     if (projectOutDir !== project && safeExistsSync(projectOutDir)) {
@@ -491,8 +645,8 @@ Promise.all(testFilesPromises).then(() => {
     if (safeExistsSync(hiddenQuarto)) {
       safeRemoveSync(hiddenQuarto, { recursive: true });
     }
-  }
-}).catch((_error) => {});
+  }).catch((_error) => {});
+}
 
 function findRootTestsProjectDir(input: string) {
   const smokeAllRootDir = 'smoke-all$'

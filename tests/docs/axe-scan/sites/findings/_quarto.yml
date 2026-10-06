@@ -1,0 +1,24 @@
+project:
+  type: website
+  resources:
+    # hand-written page, copied through unrendered
+    - static/
+
+website:
+  title: "axe findings fixture"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: about.qmd
+        text: About
+      - href: examples.qmd
+        text: Examples
+
+# Two themes, so a page that discovers the light/dark mode pair can be told
+# apart from one that does not — static/legacy.html is the one that does not.
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly

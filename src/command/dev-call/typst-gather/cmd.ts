@@ -40,10 +40,17 @@ export const typstGatherCommand = new Command()
     const typstGatherBinary = Deno.env.get("QUARTO_TYPST_GATHER") ||
       architectureToolsPath(binaryName);
     if (!existsSync(typstGatherBinary)) {
-      error(
-        `typst-gather binary not found.\n` +
-          "Run ./configure.sh to build and install it.",
-      );
+      error(`typst-gather binary not found at ${typstGatherBinary}.`);
+      if (Deno.env.get("QUARTO_TYPST_GATHER")) {
+        error(
+          "QUARTO_TYPST_GATHER is set but does not point to an existing file.",
+        );
+      } else {
+        error(
+          "Run ./configure.sh to download it, or set QUARTO_TYPST_GATHER to " +
+            "the path of a typst-gather binary.",
+        );
+      }
       Deno.exit(1);
     }
 

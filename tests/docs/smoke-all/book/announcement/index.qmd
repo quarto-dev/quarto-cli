@@ -1,0 +1,13 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'div#quarto-announcement.alert-primary div.quarto-announcement-content'
+---
+
+# Preface {.unnumbered}
+
+An announcement configured under the `book` key must render the announcement
+bar in the book website output.

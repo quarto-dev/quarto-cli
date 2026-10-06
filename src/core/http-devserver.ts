@@ -211,26 +211,103 @@ export interface RenderMonitor {
 
 export class HttpDevServerRenderMonitor {
   public static onRenderStart() {
-    this.renderStart_ = Date.now();
+    this.incrementInFlight();
     this.handlers_.forEach((handler) =>
       handler.onRenderStart(this.lastRenderTime_)
     );
   }
 
   public static onRenderStop(success: boolean) {
-    if (this.renderStart_) {
-      this.lastRenderTime_ = Date.now() - this.renderStart_;
-      this.renderStart_ = undefined;
-    }
+    this.decrementInFlight();
     this.handlers_.forEach((handler) => handler.onRenderStop(success));
   }
 
-  public static monitor(handler: RenderMonitor) {
+  // Wraps a render promise so the in-flight counter is decremented
+  // exactly once when the promise settles, regardless of what callers
+  // do with the resolved value. The single timestamp/counter state stays
+  // consistent even if post-render processing throws between submission
+  // and any explicit onRenderResult / onRenderError call.
+  //
+  // Render flows can fulfill with a RenderResult carrying `.error`
+  // instead of rejecting (see render-files.ts), so `successFromValue`
+  // lets callers compute the stop-success signal from the resolved
+  // value. Defaults to `true` on fulfillment, `false` on rejection.
+  public static trackInFlight<T>(
+    promise: Promise<T>,
+    successFromValue: (value: T) => boolean = () => true,
+  ): Promise<T> {
+    this.incrementInFlight();
+    this.handlers_.forEach((handler) =>
+      handler.onRenderStart(this.lastRenderTime_)
+    );
+    return promise.then(
+      (value) => {
+        // A throwing predicate must not strand the counter; the whole
+        // point of trackInFlight is that settlement always decrements.
+        // Track throw state separately so `throw undefined` is still
+        // rethrown (undefined-as-sentinel would swallow it).
+        let success = false;
+        let predicateThrew = false;
+        let predicateError: unknown;
+        try {
+          success = successFromValue(value);
+        } catch (e) {
+          predicateThrew = true;
+          predicateError = e;
+        }
+        this.decrementInFlight();
+        this.handlers_.forEach((handler) => handler.onRenderStop(success));
+        if (predicateThrew) throw predicateError;
+        return value;
+      },
+      (error) => {
+        this.decrementInFlight();
+        this.handlers_.forEach((handler) => handler.onRenderStop(false));
+        throw error;
+      },
+    );
+  }
+
+  public static monitor(handler: RenderMonitor): () => void {
     this.handlers_.push(handler);
+    return () => {
+      const idx = this.handlers_.indexOf(handler);
+      if (idx >= 0) this.handlers_.splice(idx, 1);
+    };
+  }
+
+  // True while any render is in flight. Used by the preview
+  // compatibility check to defer destructive cache invalidation that
+  // would race with an in-flight render's transient .quarto_ipynb.
+  //
+  // Counter-based so overlapping submits stay correct: onRenderStart
+  // fires on submitRender (synchronous), onRenderStop fires when the
+  // outer promise resolves. With a single timestamp, render A's stop
+  // could clear the flag while render B was still queued or running.
+  public static isRendering(): boolean {
+    return this.inFlight_ > 0;
+  }
+
+  private static incrementInFlight() {
+    if (this.inFlight_ === 0) {
+      this.renderStart_ = Date.now();
+    }
+    this.inFlight_++;
+  }
+
+  private static decrementInFlight() {
+    if (this.inFlight_ > 0) {
+      this.inFlight_--;
+    }
+    if (this.inFlight_ === 0 && this.renderStart_ !== undefined) {
+      this.lastRenderTime_ = Date.now() - this.renderStart_;
+      this.renderStart_ = undefined;
+    }
   }
 
   private static handlers_ = new Array<RenderMonitor>();
 
+  private static inFlight_ = 0;
   private static renderStart_: number | undefined;
   private static lastRenderTime_: number | undefined;
 }

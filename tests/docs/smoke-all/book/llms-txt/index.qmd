@@ -1,0 +1,16 @@
+---
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureLlmsTxtExists: true
+      ensureLlmsMdExists: true
+      ensureLlmsTxtRegexMatches:
+        - ['^# llms-txt Book', '^## Pages', '\[.*\]\(.*\.llms\.md\)']
+        - []
+---
+
+# Preface {.unnumbered}
+
+`llms-txt` set under the `book` key must generate the llms.txt index, the same
+way it does under `website`.

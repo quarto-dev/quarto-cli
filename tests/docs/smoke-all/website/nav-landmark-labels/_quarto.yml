@@ -1,0 +1,24 @@
+project:
+  type: website
+
+website:
+  title: "Nav Landmark Labels"
+  page-navigation: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+  sidebar:
+    contents:
+      - index.qmd
+      - section: Guide
+        contents:
+          - guide/intro.qmd
+          - guide/advanced.qmd
+      - override.qmd
+      - no-navbar.qmd
+      - lang-de.qmd
+
+format:
+  html:
+    toc: true

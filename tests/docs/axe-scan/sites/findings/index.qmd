@@ -1,0 +1,20 @@
+---
+title: Home
+---
+
+The image below comes from `_systemic.qmd`, included by every content page.
+
+{{< include _systemic.qmd >}}
+
+## Planted here only
+
+PLANTED: link-name (serious). A link whose only content is an empty span, so it
+has no accessible name.
+
+<a href="about.html"><span></span></a>
+
+#### Planted here only: a skipped heading level
+
+PLANTED: heading-order (moderate). The heading above jumps from h2 to h4.
+
+Some ordinary prose, so the page is not just violations.

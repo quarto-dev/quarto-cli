@@ -149,6 +149,7 @@ import("./quarto-pre/code-filename.lua")
 import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
 import("./quarto-pre/figures.lua")
+import("./quarto-pre/font.lua")
 import("./quarto-pre/hidden.lua")
 import("./quarto-pre/include-paths.lua")
 import("./quarto-pre/input-traits.lua")
@@ -409,6 +410,11 @@ local quarto_pre_filters = {
     traverser = 'jog',
   },
 
+  { name = "pre-font-fallback",
+    filter = normalize_font_fallbacks(),
+    flags = { "has_font_fallback" },
+    traverser = 'jog',
+  },
   { name = "pre-quarto-pre-meta-inject",
     filter = quarto_pre_meta_inject(),
     traverser = 'jog',

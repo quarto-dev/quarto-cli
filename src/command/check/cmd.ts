@@ -29,7 +29,7 @@ export const checkCommand = new Command()
     targetStr = targetStr || "all";
 
     // Initialize project context and register external engines
-    await initializeProjectContextAndEngines();
+    const project = await initializeProjectContextAndEngines();
 
     // Validate target (now that all engines including external ones are loaded)
     const target = enforceTargetType(targetStr);
@@ -38,5 +38,6 @@ export const checkCommand = new Command()
       target,
       options.strict,
       options.output,
+      project,
     );
   });

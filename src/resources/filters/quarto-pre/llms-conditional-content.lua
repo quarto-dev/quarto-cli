@@ -44,10 +44,20 @@ function llms_resolve_conditional_content()
       local html_visible = is_visible(tbl)  -- from content-hidden.lua
       if llms_visible == html_visible then return nil end  -- no intervention needed
 
-      local div = tbl.original_node:clone()
+      local div
       if llms_visible then
+        -- Case A: shown only for llms. The live slot was cleared at parse time
+        -- (content-hidden.lua, issue #4867), so the parse-time snapshot is the
+        -- only surviving copy and its shortcodes were never expanded (the main
+        -- shortcode pass never saw this hidden content). Expand them now on the
+        -- resurrected subtree.
+        div = tbl.original_node:clone()
+        div = process_shortcodes(div)
         div.classes:insert("llms-conditional-content")
       else
+        -- Case B: shown in HTML, hidden for llms. The live slot already holds
+        -- fully-processed content; use it instead of the stale snapshot.
+        div = tbl.node:clone()
         div.classes:insert("llms-hidden-content")
       end
       return div

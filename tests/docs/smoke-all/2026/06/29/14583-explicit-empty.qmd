@@ -1,0 +1,30 @@
+---
+title: default-image-extension explicitly empty
+logo: assets/diagram.png
+default-image-extension: ""
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          # With an empty default, Pandoc appends nothing, so the fix is a no-op
+          # and a local file without extension stays extensionless (user's choice)
+          - 'src="images/screenshot"'
+          # Shortcode resolves to its own value untouched
+          - 'src="assets/diagram\.png"'
+          # URL stays exactly as authored
+          - 'src="https://example\.com/"'
+        -
+          # No extension was appended, so none should appear
+          - 'src="images/screenshot\.'
+          - 'diagram\.png\.png'
+---
+
+User explicitly disables the default extension. Behavior must be unchanged.
+
+![shortcode]({{< meta logo >}})
+
+![local](images/screenshot)
+
+![empty url](https://example.com/)

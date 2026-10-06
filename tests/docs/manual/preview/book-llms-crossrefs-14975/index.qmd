@@ -1,0 +1,3 @@
+# Preface {.unnumbered}
+
+Fixture for book `.llms.md` cross-references.

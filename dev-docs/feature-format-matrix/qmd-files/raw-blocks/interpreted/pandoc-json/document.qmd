@@ -27,7 +27,7 @@ _quarto:
         - ["–"]
     typst:
       ensureTypstFileRegexMatches:
-        - ["--"]
+        - ['do-\\-not-\\-escape-\\-this'] # each hyphen pair is now escaped individually; still renders as literal -- (verified via pdftotext), not en dash
         - ["–"]
     latex:
       ensureFileRegexMatches:

@@ -7,6 +7,15 @@
 
 import { PandocAttr } from "./types.ts";
 
+// Pandoc's markdown reader resolves backslash escapes inside a quoted
+// attribute value, so a value written into an attribute list has to escape
+// backslashes and the quote character to survive being read back. Windows
+// paths are the case that bites: a directory whose name starts with
+// punctuation (D:\a\_temp) otherwise loses its separator.
+export function pandocQuotedAttrValue(value: string): string {
+  return `'${value.replaceAll(/['\\]/g, "\\$&")}'`;
+}
+
 export function pandocAttrParseText(attr: string): PandocAttr | null {
   attr = attr.trim();
 

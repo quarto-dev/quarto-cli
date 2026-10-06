@@ -12,7 +12,7 @@ import {
   resolve,
 } from "../../deno_ral/path.ts";
 
-import { info, warning } from "../../deno_ral/log.ts";
+import { error, info, warning } from "../../deno_ral/log.ts";
 
 import { ensureDir, existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
 
@@ -25,6 +25,7 @@ import * as ld from "../../core/lodash.ts";
 import { Document } from "../../core/deno-dom.ts";
 
 import { execProcess } from "../../core/process.ts";
+import { ErrorEx } from "../../core/lib/error.ts";
 import { dirAndStem, normalizePath } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { isExternalPath } from "../../core/url.ts";
@@ -58,7 +59,13 @@ import {
   isQuartoMetadata,
   metadataGetDeep,
 } from "../../config/metadata.ts";
-import { pandocBinaryPath, resourcePath } from "../../core/resources.ts";
+import {
+  pandocBinaryPath,
+  pandocDataDirArgs,
+  resourcePath,
+} from "../../core/resources.ts";
+import { getAvailableTypstFonts } from "../../core/typst.ts";
+import { filterBundledSubtreeEngines } from "../../extension/extension.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import {
   partitionYamlFrontMatter,
@@ -182,7 +189,10 @@ import { logLevel } from "../../core/log.ts";
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
 import { resolveAndFormatDate, resolveDate } from "../../core/date.ts";
-import { katexPostProcessor } from "../../format/html/format-html-math.ts";
+import {
+  katexPostProcessor,
+  resolveHtmlMathMethod,
+} from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,
   writeDependencies,
@@ -317,7 +327,7 @@ function captureRenderCommand(
 export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
-): Promise<RunPandocResult | null> {
+): Promise<RunPandocResult> {
   const beforePandocHooks: (() => unknown)[] = [];
   const afterPandocHooks: (() => unknown)[] = [];
   const setupPandocHooks = (
@@ -439,15 +449,9 @@ export async function runPandoc(
     // This can cause issue on regex test for printed output
     cleanQuartoTestsMetadata(metadata);
 
-    // Filter out bundled engines from the engines array
+    // Filter out bundled engines from the engines array (#14529)
     if (Array.isArray(metadata.engines)) {
-      const filteredEngines = metadata.engines.filter((engine) => {
-        const enginePath = typeof engine === "string" ? engine : engine.path;
-        // Keep user engines, filter out bundled ones
-        return !enginePath?.replace(/\\/g, "/").includes(
-          "resources/extension-subtrees/",
-        );
-      });
+      const filteredEngines = filterBundledSubtreeEngines(metadata.engines);
 
       // Remove the engines key entirely if empty, otherwise assign filtered array
       if (filteredEngines.length === 0) {
@@ -605,8 +609,8 @@ export async function runPandoc(
 
       // katex post-processor
       if (
-        options.flags?.katex ||
-        options.format.pandoc[kHtmlMathMethod] === "katex"
+        resolveHtmlMathMethod(options.format, options.flags)?.method ===
+          "katex"
       ) {
         htmlPostprocessors.push(katexPostProcessor());
       }
@@ -1075,7 +1079,7 @@ export async function runPandoc(
     pandocArgs,
     dataDirArgs,
   );
-  pandocArgs.push("--data-dir", resourcePath("pandoc/datadir"));
+  pandocArgs.push(...pandocDataDirArgs());
 
   // add any built-in syntax definition files
   allDefaults[kSyntaxDefinitions] = allDefaults[kSyntaxDefinitions] || [];
@@ -1323,15 +1327,11 @@ export async function runPandoc(
   // and it breaks ensureFileRegexMatches
   cleanQuartoTestsMetadata(pandocPassedMetadata);
 
-  // Filter out bundled engines from metadata passed to Pandoc
+  // Filter out bundled engines from metadata passed to Pandoc (#14529)
   if (Array.isArray(pandocPassedMetadata.engines)) {
-    const filteredEngines = pandocPassedMetadata.engines.filter((engine) => {
-      const enginePath = typeof engine === "string" ? engine : engine.path;
-      if (!enginePath) return true;
-      return !enginePath.replace(/\\/g, "/").includes(
-        "resources/extension-subtrees/",
-      );
-    });
+    const filteredEngines = filterBundledSubtreeEngines(
+      pandocPassedMetadata.engines,
+    );
 
     if (filteredEngines.length === 0) {
       delete pandocPassedMetadata.engines;
@@ -1443,7 +1443,16 @@ export async function runPandoc(
       clearCodePageCache();
     }
 
-    return null;
+    const stderr = result.stderr?.trim();
+    if (stderr) {
+      error(stderr);
+    }
+    throw new ErrorEx(
+      "Error",
+      `Pandoc conversion failed (exit code ${result.code})`,
+      false,
+      false,
+    );
   }
 }
 
@@ -1672,6 +1681,20 @@ async function resolveExtras(
     );
     fontPaths.push(...fontdirs);
     format.metadata[kFontPaths] = fontPaths;
+
+    // Enumerate available fonts for CSS fallback list filtering (#12556)
+    // Resolve relative paths to absolute, matching compilation in output-typst.ts
+    const resolvedFontPaths = fontPaths.map((p: string) =>
+      isAbsolute(p) ? p : resolve(inputDir, p)
+    );
+    const availableTypstFonts = await getAvailableTypstFonts(
+      resolvedFontPaths,
+      project?.dir,
+    );
+    if (availableTypstFonts.length > 0) {
+      extras[kFilterParams] = extras[kFilterParams] || {};
+      extras[kFilterParams]["typst-available-fonts"] = availableTypstFonts;
+    }
   }
 
   // Process format resources

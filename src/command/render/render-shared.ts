@@ -49,10 +49,15 @@ export async function render(
   // determine target context/files
   let context = pContext || (await projectContext(path, nbContext, options));
 
-  // Create a synthetic project when --output-dir is used without a project file
-  // This creates a temporary .quarto directory to manage the render, which must
-  // be fully cleaned up afterward to avoid leaving debris (see #9745)
-  if (!context && options.flags?.outputDir) {
+  // Create a synthetic project when --output-dir is used without a real project.
+  // Triggers in two situations:
+  //   1. No context yet (render path: no _quarto.yml found above)
+  //   2. pContext is a single-file context (preview pre-creates one in
+  //      preview.ts before calling render(), which would otherwise bypass
+  //      synthetic-project creation — regression behind #14489)
+  // The synthetic project provides a temporary .quarto directory so output-dir
+  // handling works the same as for real projects (see #9745, #13625).
+  if (options.flags?.outputDir && (!context || context.isSingleFile)) {
     context = await projectContextForDirectory(path, nbContext, options);
 
     // forceClean signals this is a synthetic project that needs full cleanup

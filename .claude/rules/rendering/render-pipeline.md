@@ -86,6 +86,8 @@ if (context?.config && isProjectInputFile(path, context)) {
 }
 ```
 
+For the full synthetic project mechanism (`projectContextForDirectory()`) and why two single-file code paths exist, see `llm-docs/synthetic-project-context.md`.
+
 ## Format Resolution
 
 Metadata merges in this order (later overrides earlier):

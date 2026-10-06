@@ -1,0 +1,18 @@
+---
+title: Examples
+---
+
+A page of deliberate teaching examples: markup shown *because* it is wrong.
+
+{{< include _systemic.qmd >}}
+
+The image below is marked with the exclude class from the full design
+(`.a11y-accepted-example`). v1 has no exclude-in-source support, so the
+committed baseline absorbs it instead. When exclude-in-source ships, this
+becomes its fixture and the baseline entry should turn stale.
+
+::: {.a11y-accepted-example}
+![](dot.png){width=32}
+:::
+
+Some ordinary prose.

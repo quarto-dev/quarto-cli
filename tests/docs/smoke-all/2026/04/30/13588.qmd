@@ -1,0 +1,22 @@
+---
+title: footnote and fig-cap with reference-location margin in PDF (#13588)
+format: pdf
+reference-location: margin
+_quarto:
+  tests:
+    pdf: null
+    latex:
+      ensureFileRegexMatches:
+        - ['This is a footnote']
+        - []
+---
+
+A footnote[^1] and a figure.
+
+[^1]: This is a footnote.
+
+```{r}
+#| fig-cap: Some figure
+
+plot(1:10, 1:10)
+```

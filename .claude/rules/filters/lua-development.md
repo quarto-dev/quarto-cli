@@ -1,11 +1,23 @@
 ---
 paths:
   - "src/resources/filters/**/*.lua"
+  - "src/resources/pandoc/datadir/*.lua"
 ---
 
 # Lua Filter Development Conventions
 
 Guidance for developing Lua filters in Quarto's filter system.
+
+## The qmd Custom Reader Is a Special Case
+
+`src/resources/pandoc/datadir/readqmd.lua` (and `filters/qmd-reader.lua`) is the custom
+Pandoc reader, not a filter. It runs **before** parsing, in a **separate Lua context**
+from the filter chain — filter globals (e.g. `crossref.categories`) do not exist there,
+and it communicates with filters via document metadata and `param(...)`. The conventions
+below target the filter pipeline; the reader follows its own patterns (raw-text
+escape-then-restore). See
+[llm-docs/qmd-reader-architecture.md](../../../llm-docs/qmd-reader-architecture.md)
+before changing reader-stage code.
 
 ## Module Loading
 
@@ -29,6 +41,20 @@ local md = require("modules/md")
 -- ❌ Wrong - using import for modules
 import("./modules/patterns.lua")
 ```
+
+### In `import()`ed Files, Prefer the `_quarto.modules` Registry Over a Fresh `require()`
+
+Files loaded via `import()` are textually concatenated into one shared Lua chunk for
+the packaged distribution build, so every top-level `local` they declare — including
+`local x = require("modules/y")` — competes for Lua's hard 200-local-per-function
+limit across *all* inlined files combined. Most `modules/*` are already registered
+in `_quarto.modules` by `modules/import_all.lua` (a single global table assignment,
+so it costs zero additional locals). In an `import()`ed file, reference
+`_quarto.modules.<name>.<fn>(...)` directly instead of adding a new top-level
+`local <name> = require("modules/<name>")`. This doesn't apply inside files loaded
+via `require()` themselves — those get their own independent chunk and aren't
+affected. See [llm-docs/lua-filter-bundle-local-limit.md](../../../llm-docs/lua-filter-bundle-local-limit.md)
+for the full mechanism and why this keeps recurring.
 
 ## Custom Node Patterns
 
@@ -66,6 +92,38 @@ if node.is_custom_node then
   -- It's some custom node type
 end
 ```
+
+### AST Pattern Matching with `quarto.utils.match`
+
+Use `quarto.utils.match()` for safe structural checks on AST nodes. It handles nil/empty content internally — no manual length or nil guards needed. Defined in `src/resources/pandoc/datadir/_utils.lua`.
+
+```lua
+-- ✅ Correct - safe, handles empty content
+if quarto.utils.match("[1]/BulletList")(b) then ...
+
+-- ❌ Wrong - crashes on empty content (0 is truthy in Lua)
+if #b.content and b.content[1].t == "BulletList" then ...
+
+-- ❌ Fragile - manual nil guard, verbose
+if #b.content > 0 and b.content[1].t == "BulletList" then ...
+```
+
+Selector syntax supports `/` child traversal, `[n]` nth-child, `{Type}` capture, `:child`/`:descendant` search, and CSS-like class matching:
+
+```lua
+-- Check nested structure
+quarto.utils.match("Figure/[1]/Plain/[1]/Image")(fig)
+
+-- Capture matched nodes (returned in a list)
+quarto.utils.match("[1]/{Plain}")(content)
+
+-- Search direct children for class
+quarto.utils.match(".cell-output-display/:child/{Para}")(div)
+```
+
+**Return value:** `match()` returns the matched node on success, `false` (not `nil`) on no-match. As a boolean guard this is fine (`false` is falsy). But when using the result as an element, check `if not result` — never `if result == nil`, which lets `false` through to Pandoc constructors ("Inline-ish expected, got boolean").
+
+Prefer `match()` over manual `.content[1].t ==` checks — it's nil-safe, readable, and already used in 20+ filter callsites.
 
 ### Slot Assignment
 
@@ -105,6 +163,14 @@ if _quarto.format.isRevealJsOutput() then ... end
 -- Dashboard format
 if _quarto.format.isDashboardOutput() then ... end
 ```
+
+### Gate format checks at execution time, not construction time
+
+`main.lua` builds its filter tables by calling the constructor (`filter = my_filter()`) at load time, **before** the output format is resolved. A format gate placed at the top of the constructor (`if not _quarto.format.isLatexOutput() then return {} end`) therefore evaluates too early, returns an empty filter, and the filter silently never runs for any document. Put the `_quarto.format.*` check **inside** the returned element function (`Meta`, `Div`, ...) so it runs when the format is known. Reference: `quarto-pre/font.lua`.
+
+## Metadata Values
+
+Pandoc Lua metadata values are **not** tagged with a `.t` field (`val.t` is `nil`), so `val.t == "MetaList"` never matches. Detect the shape with `quarto.utils.type(val)` — the in-tree, custom-node-aware superset of `pandoc.utils.type` — which returns `"List"` for a YAML list (iterate with `ipairs`), `"string"` for a plain scalar, and `"Inlines"` for an inline-formatted scalar. Rebuild as a `pandoc.MetaList` of `pandoc.MetaString`; `pandoc.utils.stringify` flattens any scalar to text. Reference: `quarto-post/email.lua` (meta-list iteration).
 
 ## Options and Parameters
 
@@ -242,6 +308,8 @@ When adding filters to `main.lua`:
 -- Filters in same stage run in order defined
 ```
 
+A filter entry can carry `flags = { "has_x" }`; `ast/runemulation.lua` skips the entire filter pass when none of the listed flags are set. Compute the flag in `normalize/flags.lua`'s `compute_flags` (its second returned table holds a `Meta` handler for metadata-derived flags). Use this to skip a whole tree traversal for documents that don't need the filter, rather than relying on an early-return inside the function. Examples: `has_notes`, `has_hidden`, `has_font_fallback`.
+
 ## API Reference
 
 Consult `src/resources/lua-types/` for available methods, properties, and function signatures:
@@ -260,3 +328,7 @@ These type definition files document the complete API surface.
 5. **Use `_quarto.format`** - For format detection
 6. **Return `nil` to continue** - Return value replaces element
 7. **`warn()` = INFO level** - On TypeScript side
+8. **Gate format inside element fns** - Constructor runs before format is resolved
+9. **Detect meta shape with `quarto.utils.type`** - Meta values have no `.t` tag
+10. **Gate expensive filters with `flags`** - Skips the whole pass when unneeded
+11. **Use `quarto.utils.match()` for content checks** - Nil-safe, prefer over manual `.content[1].t`

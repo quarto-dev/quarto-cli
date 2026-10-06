@@ -5,8 +5,6 @@
 -- wrapped in a div so they can carry parent information and so that
 -- we can create a hyperef target for latex)
 
-local patterns = require("modules/patterns")
-
 function preprocessRawTableBlock(rawEl, parentId)
   
   local function divWrap(el, label, caption)
@@ -21,7 +19,7 @@ function preprocessRawTableBlock(rawEl, parentId)
   end
   
   if _quarto.format.isRawHtml(rawEl) and _quarto.format.isHtmlOutput() then
-    local captionPattern = patterns.html_table_caption
+    local captionPattern = _quarto.modules.patterns.html_table_caption
     local _, caption, _ = string.match(rawEl.text, captionPattern) 
     if caption then
       -- extract id if there is one
@@ -165,7 +163,7 @@ function processRawTable(divEl)
       local label = divEl.attr.identifier
       -- html table
       if _quarto.format.isRawHtml(rawEl) then
-        local captionPattern = patterns.html_table_caption
+        local captionPattern = _quarto.modules.patterns.html_table_caption
         local _, caption, _ = string.match(rawEl.text, captionPattern)
         if caption then
           

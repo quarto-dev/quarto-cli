@@ -102,6 +102,7 @@ local kLangCommentChars = {
   js = {"//"},
   json = {"//"},
   julia = {"#"},
+  kotlin = {"//"},
   latex = {"%"},
   lua = {"--"},
   markdown = {"<!--", "-->"},

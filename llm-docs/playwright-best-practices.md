@@ -1,9 +1,10 @@
 ---
 main_commit: ee0f68be1
-analyzed_date: 2026-02-27
+analyzed_date: 2026-09-14
 key_files:
   - tests/integration/playwright/tests/axe-accessibility.spec.ts
   - tests/integration/playwright/tests/html-math-katex.spec.ts
+  - tests/integration/playwright/tests/book-back-to-top.spec.ts
 ---
 
 # Playwright Testing Best Practices
@@ -273,6 +274,46 @@ async function rescan() {
 
 **From PR #14125 dashboard rescan:** Users can switch tabs/pages faster than axe scans complete. Generation counters ensure old scans don't overwrite newer results.
 
+## Scroll-State Race in Direction-Tracking Handlers
+
+When application code tracks scroll *direction* (not just position) via a variable updated inside a `scroll` event handler, back-to-back `page.evaluate(() => window.scrollTo(...))` calls can race that handler: the second scroll can fire before the first scroll's event has been dispatched and processed, so the handler's internal state is stale when the direction check runs.
+
+### Pattern
+
+```typescript
+// ❌ Bad - second scrollTo can race the first scroll event's handler
+await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), viewportHeight);
+await expect(backToTop).toBeHidden();  // passes trivially, doesn't prove the event ran
+
+await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), viewportHeight / 4);
+await expect(backToTop).toBeVisible();  // may flake: handler's tracked position is stale
+
+// ❌ Also bad - polling window.scrollY doesn't prove the handler ran.
+// scrollTo({behavior: "instant"}) updates scrollY synchronously, before the
+// "scroll" event even dispatches, so the poll's first check passes for free.
+await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), viewportHeight);
+await expect
+  .poll(() => page.evaluate(() => window.scrollY))
+  .toBe(viewportHeight);
+await expect(backToTop).toBeHidden();
+
+// ✅ Good - await the "scroll" event itself via a small helper (see
+// `scrollToAndSettle` in book-back-to-top.spec.ts). Listeners for the same
+// event fire in registration order, so a listener registered here always
+// runs after the page's own already-registered listener.
+await scrollToAndSettle(viewportHeight);
+await expect(backToTop).toBeHidden();
+
+await scrollToAndSettle(viewportHeight / 4);
+await expect(backToTop).toBeVisible();
+```
+
+### Why Not Just Assert on the Visible UI State, or Poll scrollY?
+
+An assertion like `toBeHidden()` right after the down-scroll passes trivially when the element is already hidden by default — it proves nothing about whether the scroll event handler ran and updated its internal tracker. Polling `window.scrollY` looks like it forces an event-loop turn, but it doesn't wait for anything: `scrollTo` updates `scrollY` synchronously, so the poll's first check already succeeds, before the queued `"scroll"` event has even been dispatched to any listener. The only way to know the handler actually ran is to wait on the same event it's listening for.
+
+**Real-world example (PR #14889, `book-back-to-top.spec.ts`):** `quarto-nav.js`'s back-to-top button tracks `lastScrollTop`, updated only inside its `scroll` listener on a hide/show transition. A scroll-down immediately followed by a scroll-up raced that listener on `chromium`/`webkit`/`firefox` in CI — the up-scroll's direction check compared against a stale `lastScrollTop` of `0` and never showed the button. An initial fix that polled `window.scrollY` between the two scrolls still failed this exact race in roughly 1 of 5 repeated local runs; switching to a one-shot `window.addEventListener("scroll", ..., { once: true })` awaited via a `Promise` eliminated it (45/45 passing across three browsers, verified with `--repeat-each=15`).
+
 ## Parameterized Tests
 
 When testing the same behavior across multiple formats or configurations, use `test.describe` with a test cases array instead of separate spec files.
@@ -349,12 +390,13 @@ test('Feature that is broken in revealjs', async ({ page }) => {
 
 ## Summary
 
-**Four key patterns for reliable Playwright tests:**
+**Five key patterns for reliable Playwright tests:**
 
 1. **Web-first assertions** - `expect(el).toContainText()` not `expect(await el.textContent())`
 2. **Role-based selectors** - `getByRole('tab', { name: 'Page 2' })` not `locator('a[data-bs-target]')`
 3. **Explicit .first() comments** - Explain why and what you're testing
 4. **Completion signals** - `data-feature-complete` in finally blocks, not arbitrary delays
+5. **Await the scroll event between reversed scrolls** - `addEventListener("scroll", ..., { once: true })` awaited via a `Promise` before reversing direction, when app code tracks scroll direction via a handler-updated variable
 
 These patterns emerged from building comprehensive cross-format test coverage and debugging race conditions. They make tests:
 - More reliable (fewer flaky failures)
@@ -365,3 +407,4 @@ These patterns emerged from building comprehensive cross-format test coverage an
 **Reference implementations:**
 - `tests/integration/playwright/tests/axe-accessibility.spec.ts` - 431 lines, 75 test cases
 - `tests/integration/playwright/tests/html-math-katex.spec.ts` - Parameterized format testing
+- `tests/integration/playwright/tests/book-back-to-top.spec.ts` - Awaiting the scroll event between reversed scrolls

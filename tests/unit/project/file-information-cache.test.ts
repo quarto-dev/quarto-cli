@@ -15,6 +15,7 @@ import { join, relative } from "../../../src/deno_ral/path.ts";
 import {
   ensureFileInformationCache,
   FileInformationCacheMap,
+  projectResolveFullMarkdownForFile,
 } from "../../../src/project/project-shared.ts";
 import { createMockProjectContext } from "./utils.ts";
 
@@ -244,5 +245,91 @@ unitTest(
       project.fileInformationCache.size === 0,
       "Cache should remain empty",
     );
+  },
+);
+
+unitTest(
+  "projectResolveFullMarkdownForFile - re-reads when source file mtime changes",
+  async () => {
+    const project = createMockProjectContext();
+    const file = join(project.dir, "doc.qmd");
+
+    // First read populates the cache.
+    Deno.writeTextFileSync(file, "# v1\n");
+    const result1 = await projectResolveFullMarkdownForFile(
+      project,
+      undefined,
+      file,
+    );
+    assert(
+      result1.value.includes("v1"),
+      `Expected v1 in first read, got: ${result1.value}`,
+    );
+
+    // Modify content and force mtime strictly forward via utimeSync.
+    // writeTextFileSync alone may collide with the prior write's mtime
+    // on coarse-resolution filesystems (FAT32 ~2 s, some network
+    // mounts), so utimeSync is mandatory here — removing it would let
+    // this test pass vacuously on a fast filesystem and silently
+    // regress the guard.
+    Deno.writeTextFileSync(file, "# v2\n");
+    const future = new Date(Date.now() + 2000);
+    Deno.utimeSync(file, future, future);
+
+    // Second read must re-fetch from disk via the mtime guard, otherwise
+    // the project preview path serves stale rendered output (#10392).
+    const result2 = await projectResolveFullMarkdownForFile(
+      project,
+      undefined,
+      file,
+    );
+    assert(
+      result2.value.includes("v2"),
+      `Expected v2 after mtime change, got: ${result2.value}`,
+    );
+
+    project.cleanup();
+  },
+);
+
+unitTest(
+  "projectResolveFullMarkdownForFile - re-reads when size changes but mtime is preserved",
+  async () => {
+    const project = createMockProjectContext();
+    const file = join(project.dir, "doc.qmd");
+
+    // First read populates the cache with mtime + size of v1.
+    Deno.writeTextFileSync(file, "# v1\n");
+    const mtimeV1 = Deno.statSync(file).mtime!;
+    const result1 = await projectResolveFullMarkdownForFile(
+      project,
+      undefined,
+      file,
+    );
+    assert(
+      result1.value.includes("v1"),
+      `Expected v1 in first read, got: ${result1.value}`,
+    );
+
+    // Overwrite content with a different size, then restore the original
+    // mtime. This simulates the edge case where an edit lands within a
+    // single mtime tick on a coarse-resolution filesystem: mtime is
+    // unchanged but content (and therefore size) differs.
+    Deno.writeTextFileSync(file, "# v2 with extra bytes to change size\n");
+    Deno.utimeSync(file, mtimeV1, mtimeV1);
+
+    // Second read must re-fetch via the size guard, since the mtime
+    // alone would not detect the change.
+    const result2 = await projectResolveFullMarkdownForFile(
+      project,
+      undefined,
+      file,
+    );
+    assert(
+      result2.value.includes("v2"),
+      `Expected v2 after size change, got: ${result2.value}`,
+    );
+
+    project.cleanup();
   },
 );

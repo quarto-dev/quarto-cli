@@ -4,6 +4,16 @@ import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { execProcess } from "../../../src/core/process.ts";
 
+import { quartoDevBinCmd, quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
+import { noErrors } from "../../verify.ts";
+
+// Remove persistent, gitignored caches before verifying generated content.
+const freshCache = (cacheDir: string) => async () => {
+  if (existsSync(cacheDir)) {
+    Deno.removeSync(cacheDir, { recursive: true });
+  }
+};
+
 // Test 1: Auto-detection from _extension.yml
 const verifyPackagesCreated: Verify = {
   name: "Verify typst/packages directory was created",
@@ -38,9 +48,10 @@ const verifyExamplePackageCached: Verify = {
 testQuartoCmd(
   "call",
   ["typst-gather"],
-  [verifyPackagesCreated, verifyExamplePackageCached],
+  [noErrors, verifyPackagesCreated, verifyExamplePackageCached],
   {
     cwd: () => "smoke/typst-gather",
+    setup: freshCache("_extensions/test-format/typst"),
   },
   "typst-gather caches preview packages from extension templates",
 );
@@ -78,9 +89,10 @@ const verifyConfigExamplePackageCached: Verify = {
 testQuartoCmd(
   "call",
   ["typst-gather"],
-  [verifyConfigPackagesCreated, verifyConfigExamplePackageCached],
+  [noErrors, verifyConfigPackagesCreated, verifyConfigExamplePackageCached],
   {
     cwd: () => "smoke/typst-gather/with-config",
+    setup: freshCache("_extensions/config-format/typst"),
   },
   "typst-gather uses rootdir from config file",
 );
@@ -246,7 +258,8 @@ const verifyNoPackagesStaged: Verify = {
 testQuartoCmd(
   "render",
   [join(noPackagesProjectDir, "index.qmd"), "--to", "typst"],
-  [verifyNoPackagesStaged],
+  // Require a successful render before checking that nothing was staged.
+  [noErrors, verifyNoPackagesStaged],
   {
     teardown: async () => {
       try {
@@ -263,25 +276,20 @@ testQuartoCmd(
 );
 
 // Helper to run quarto as an external process and capture exit code
-async function runQuarto(
+async function execTypstGather(
   args: string[],
   cwd: string,
   env?: Record<string, string>,
 ): Promise<{ success: boolean; stdout: string; stderr: string }> {
-  const quartoCmd = Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
-  const quartoPath = join(
-    Deno.cwd(),
-    "..",
-    "package/dist/bin",
-    quartoCmd,
-  );
   const result = await execProcess({
-    cmd: quartoPath,
+    // Use the built test binary in binary mode; otherwise pin the local CLI.
+    cmd: quartoDevBinCmd(),
     args,
     cwd,
     stdout: "piped",
     stderr: "piped",
-    env: env ? { ...Deno.env.toObject(), ...env } : undefined,
+    // Binary mode strips dev-tree variables before applying the overlay.
+    ...quartoSpawnEnvOptions(env),
   });
   return {
     success: result.success,
@@ -299,7 +307,7 @@ unitTest(
     const configPath = join(cwd, "typst-gather.toml");
     try {
       Deno.writeTextFileSync(configPath, "# existing config\n");
-      const result = await runQuarto(
+      const result = await execTypstGather(
         ["call", "typst-gather", "--init-config"],
         cwd,
       );
@@ -319,7 +327,7 @@ unitTest(
   "typst-gather --init-config errors with no extension directory",
   async () => {
     const cwd = join(Deno.cwd(), "smoke/typst-gather/no-extension");
-    const result = await runQuarto(
+    const result = await execTypstGather(
       ["call", "typst-gather", "--init-config"],
       cwd,
     );
@@ -338,7 +346,7 @@ unitTest(
   "typst-gather --init-config warns with empty extension (no typst entries)",
   async () => {
     const cwd = join(Deno.cwd(), "smoke/typst-gather/empty-extension");
-    const result = await runQuarto(
+    const result = await execTypstGather(
       ["call", "typst-gather", "--init-config"],
       cwd,
     );
@@ -436,7 +444,7 @@ unitTest(
       Deno.cwd(),
       "docs/smoke-all/typst/marginalia-only-project",
     );
-    const result = await runQuarto(
+    const result = await execTypstGather(
       ["render", "index.qmd", "--to", "typst"],
       projectDir,
       { QUARTO_TYPST_GATHER: "/nonexistent/typst-gather-binary" },
@@ -468,7 +476,7 @@ unitTest(
       Deno.cwd(),
       "docs/smoke-all/typst/marginalia-only-project",
     );
-    const result = await runQuarto(
+    const result = await execTypstGather(
       ["render", "index.qmd", "--to", "typst"],
       projectDir,
       { QUARTO_TYPST_GATHER: falseCmd },

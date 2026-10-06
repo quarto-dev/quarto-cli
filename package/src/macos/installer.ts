@@ -18,6 +18,8 @@ import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 import { getEnv } from "../util/utils.ts";
 import { makeTarball } from "../util/tar.ts";
+import { withRetry } from "../../../src/core/retry.ts";
+import { parseNotarizationResult } from "./notarize-status.ts";
 
 // Packaging specific configuration
 // (Some things are global others may be platform specific)
@@ -102,6 +104,11 @@ export async function makeInstallerMac(config: Configuration) {
         "dart",
       ));
       signWithoutEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "dart-sass", "sass"));
+      // Dart Sass 1.101.0 ships src/sass.snapshot as a Mach-O binary that
+      // Apple's notary service requires signed; the dart VM that loads it
+      // carries the runtime entitlements, so the snapshot itself needs only a
+      // valid Developer ID signature + secure timestamp.
+      signWithoutEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "dart-sass", "src", "sass.snapshot"));
 
       signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "esbuild"));
       signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "pandoc"));
@@ -253,13 +260,12 @@ export async function makeInstallerMac(config: Configuration) {
     const password = getEnv("QUARTO_APPLE_CONNECT_PW", "");
     const teamId = getEnv("QUARTO_APPLE_CONNECT_TEAMID", "");
     if (username.length > 0 && password.length > 0) {
-      const requestId = await notarizeAndWait(
+      await notarizeAndWait(
         packagePath,
         username,
         password,
-        teamId
+        teamId,
       );
-
 
       // Staple the notary to the package
       await stapleNotary(packagePath);
@@ -344,16 +350,66 @@ async function notarizeAndWait(
     ],
   );
 
-  if (result.status.success) {
-    const match = result.stdout.match(/id: (.*)/);
-    if (match) {
-      const id = match[1];
-      return id;
-    } else {
-      throw new Error("Notarization Failed to return an Id:\n" + result.stdout);
+  // Always surface notarytool's own output (submission id + terminal status).
+  // runCmd only logs stdout at debug level, so without this the Accepted /
+  // Invalid verdict never appears in CI logs.
+  info(result.stdout);
+
+  if (!result.status.success) {
+    throw new Error("Notarization Failed\n" + result.stdout + result.stderr);
+  }
+
+  const { id, status } = parseNotarizationResult(result.stdout);
+  if (!id) {
+    throw new Error("Notarization Failed to return an Id:\n" + result.stdout);
+  }
+
+  // `notarytool submit --wait` can exit 0 even when the service rejects the
+  // submission; the trustworthy signal is the terminal status. Only a genuinely
+  // notarized package should reach the (offline-only) stapling step below.
+  if (status !== "Accepted") {
+    await dumpNotarizationLog(id, username, password, teamId);
+    throw new Error(
+      `Notarization was not accepted (status: ${status ?? "unknown"}) for ${input}`,
+    );
+  }
+
+  return id;
+}
+
+// Best-effort dump of the full developer log for a submission, so a rejected
+// notarization shows its reasons in CI. Never masks the caller's own error.
+async function dumpNotarizationLog(
+  id: string,
+  username: string,
+  password: string,
+  teamId: string,
+) {
+  try {
+    const log = await runCmd(
+      "xcrun",
+      [
+        "notarytool",
+        "log",
+        id,
+        "--apple-id",
+        username,
+        "--password",
+        password,
+        "--team-id",
+        teamId,
+      ],
+    );
+    info(log.stdout);
+    if (log.stderr) {
+      error(log.stderr);
     }
-  } else {
-    throw new Error("Notarization Failed\n" + result.stderr);
+  } catch (err) {
+    warning(
+      `Could not fetch notarization log for ${id}: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
   }
 }
 
@@ -419,9 +475,32 @@ async function waitForNotaryStatus(
   return notaryResult;
 }
 
+// Once notarizeAndWait confirms the submission is Accepted, the ticket exists
+// and stapling normally succeeds immediately. Rarely, the ticket can take a
+// moment to become queryable in Apple's CloudKit-backed notary database, so an
+// immediate staple fails with:
+//   CloudKit query for ... failed due to "Record not found".
+//   Could not find base64 encoded ticket in response for ...
+// A short bounded retry absorbs that rare timing gap. Anything else - or a
+// persistent "Record not found" that outlasts the retry - is a real problem and
+// must fail the build (a rejected submission never reaches here; its status is
+// verified in notarizeAndWait).
+const isCloudKitPropagation = (err: Error) =>
+  err.message.includes("CloudKit") &&
+  err.message.includes("Record not found");
+
 async function stapleNotary(input: string) {
-  await runCmd(
-    "xcrun",
-    ["stapler", "staple", input],
-  );
+  await withRetry(async () => {
+    await runCmd(
+      "xcrun",
+      ["stapler", "staple", input],
+    );
+  }, {
+    // withRetry's `attempts` counts retries after the first call (see
+    // src/core/retry.ts), so 3 here yields 4 total staple invocations.
+    attempts: 3,
+    minWait: 20000,
+    maxWait: 30000,
+    retry: isCloudKitPropagation,
+  });
 }

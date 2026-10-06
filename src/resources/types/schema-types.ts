@@ -92,7 +92,7 @@ See <https://icons.getbootstrap.com/> for a list of available icons */;
 See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
 for a details. */;
   text?: string /* Text to display for item (defaults to the
-document title if not provided) */;
+document title if not provided). Supports markdown formatting. */;
   target?: string /* Value for target attribute.
 See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
 for details. */;
@@ -159,8 +159,68 @@ website:
 };
 
 export type ExternalEngine = {
+  "file-extensions"?:
+    (string)[] /* The file extensions this engine can handle (e.g. `.jl`).
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, where it is a per-engine declaration used to resolve
+input files to engines without loading the engine module. */;
+  "claims-files"?: ((string | {
+    extension: string;
+    processor?: string | {
+      comment?: string;
+      language?: string;
+      name: string;
+    }; /* The content processor that sniffs and converts files
+matching this claim, given either as a bare processor
+name (e.g. `spin`) or as `{ name, language?, comment? }`
+with parameters (e.g.
+`{ name: percent, language: julia }`; `comment`
+defaults to `#`).
+
+Quarto 1 accepts and ignores this property. It is
+reserved for Quarto 2, which runs the named processor
+natively to claim and convert input files without
+loading the engine module. */
+  }))[] /* The files this engine claims, by extension (either a bare
+extension string or `{ extension: <ext> }`, optionally with a
+`processor` naming the content processor that sniffs and
+converts matching files).
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, which uses it to resolve input files to engines
+without loading the engine module. */;
+  claims?: (string)[] | {
+    [key: string]:
+      | ExternalEngineLanguageClaim
+      | (ExternalEngineLanguageClaim)[];
+  } /* The languages this engine claims, keyed by language name
+(e.g. `julia: { kind: primary, priority: 1 }`). The special key
+`fallback` declares a fallback claim for otherwise-unclaimed
+languages. An array of strings (e.g. `claims: [julia]`) is
+shorthand for a primary claim on each.
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, which uses it to resolve code cells to engines without
+loading the engine module. */;
+  name?: string /* Name of the execution engine (e.g. `julia`).
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, which uses it to resolve the engine by name (for
+example from `engine: julia` in document front matter) without
+loading the engine module. */;
   path: string; /* Path to the TypeScript module for the execution engine */
 }; /* An execution engine not pre-loaded in Quarto */
+
+export type ExternalEngineLanguageClaim =
+  | boolean
+  | number
+  | ("primary" | "interop" | "fallback")
+  | {
+    kind?: "primary" | "interop" | "fallback";
+    priority?: number;
+    whenClass?: string;
+  };
 
 export type DocumentCommentsConfiguration = false | {
   giscus?: GiscusConfiguration;
@@ -523,7 +583,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     search?: boolean /* Include a search box in the navbar. */;
     title?:
       | string
-      | boolean; /* The navbar title. Uses the project title if none is specified. */
+      | boolean; /* The navbar title. Uses the project title if none is specified. Supports markdown formatting. */
   } /* Top navigation options */;
   search?: boolean | {
     "collapse-after"?: number;
@@ -592,7 +652,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
           | "floating" /* The style of sidebar (`docked` or `floating`). */;
         title?:
           | string
-          | boolean /* The sidebar title. Uses the project title if none is specified. */;
+          | boolean /* The sidebar title. Uses the project title if none is specified. Supports markdown formatting. */;
         tools?: (NavigationItemObject)[]; /* List of sidebar tools */
       }
     > /* Side navigation options */;
@@ -676,6 +736,16 @@ export type FormatLanguage = {
   "toc-title-website"?: string;
   "related-formats-title"?: string;
   "related-notebooks-title"?: string;
+  "source-notebooks-prefix"?: string;
+  "other-links-title"?: string;
+  "code-links-title"?: string;
+  "launch-dev-container-title"?: string;
+  "launch-binder-title"?: string;
+  "article-notebook-label"?: string;
+  "notebook-preview-download"?: string;
+  "notebook-preview-download-src"?: string;
+  "notebook-preview-back"?: string;
+  "manuscript-meca-bundle"?: string;
   "callout-tip-title"?: string;
   "callout-note-title"?: string;
   "callout-warning-title"?: string;
@@ -684,15 +754,37 @@ export type FormatLanguage = {
   "section-title-abstract"?: string;
   "section-title-footnotes"?: string;
   "section-title-appendices"?: string;
+  "section-title-references"?: string;
+  "section-title-reuse"?: string;
+  "section-title-copyright"?: string;
+  "section-title-citation"?: string;
+  "appendix-attribution-cite-as"?: string;
+  "appendix-attribution-bibtex"?: string;
+  "appendix-view-license"?: string;
+  "title-block-author-single"?: string;
+  "title-block-author-plural"?: string;
+  "title-block-affiliation-single"?: string;
+  "title-block-affiliation-plural"?: string;
+  "title-block-published"?: string;
+  "title-block-modified"?: string;
+  "title-block-keywords"?: string;
   "code-summary"?: string;
   "code-tools-menu-caption"?: string;
   "code-tools-show-all-code"?: string;
   "code-tools-hide-all-code"?: string;
   "code-tools-view-source"?: string;
   "code-tools-source-code"?: string;
+  "tools-share"?: string;
+  "tools-download"?: string;
+  "code-line"?: string;
+  "code-lines"?: string;
+  "back-to-top"?: string;
   "search-no-results-text"?: string;
   "copy-button-tooltip"?: string;
   "copy-button-tooltip-success"?: string;
+  "skip-to-content"?: string;
+  "scrollable-code-label"?: string;
+  "scrollable-output-label"?: string;
   "repo-action-links-edit"?: string;
   "repo-action-links-source"?: string;
   "repo-action-links-issue"?: string;
@@ -705,6 +797,17 @@ export type FormatLanguage = {
   "search-text-placeholder"?: string;
   "search-detached-cancel-button-title"?: string;
   "search-submit-button-title"?: string;
+  "search-label"?: string;
+  "toggle-section"?: string;
+  "toggle-sidebar"?: string;
+  "toggle-dark-mode"?: string;
+  "toggle-reader-mode"?: string;
+  "toggle-navigation"?: string;
+  "navigation-site-label"?: string;
+  "navigation-section-label"?: string;
+  "navigation-toolbar-label"?: string;
+  "navigation-page-label"?: string;
+  "navigation-breadcrumbs-label"?: string;
   "crossref-fig-title"?: string;
   "crossref-tbl-title"?: string;
   "crossref-lst-title"?: string;
@@ -734,6 +837,31 @@ export type FormatLanguage = {
   "crossref-lof-title"?: string;
   "crossref-lot-title"?: string;
   "crossref-lol-title"?: string;
+  "environment-proof-title"?: string;
+  "environment-remark-title"?: string;
+  "environment-solution-title"?: string;
+  "listing-page-order-by"?: string;
+  "listing-page-order-by-default"?: string;
+  "listing-page-order-by-date-asc"?: string;
+  "listing-page-order-by-date-desc"?: string;
+  "listing-page-order-by-number-desc"?: string;
+  "listing-page-order-by-number-asc"?: string;
+  "listing-page-field-date"?: string;
+  "listing-page-field-title"?: string;
+  "listing-page-field-description"?: string;
+  "listing-page-field-author"?: string;
+  "listing-page-field-filename"?: string;
+  "listing-page-field-filemodified"?: string;
+  "listing-page-field-subtitle"?: string;
+  "listing-page-field-readingtime"?: string;
+  "listing-page-field-wordcount"?: string;
+  "listing-page-field-categories"?: string;
+  "listing-page-minutes-compact"?: string;
+  "listing-page-category-all"?: string;
+  "listing-page-no-matches"?: string;
+  "listing-page-words"?: string;
+  "listing-page-filter"?: string;
+  draft?: string;
 };
 
 export type WebsiteAbout = {

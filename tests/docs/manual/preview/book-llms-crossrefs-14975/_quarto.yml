@@ -1,0 +1,10 @@
+project:
+  type: book
+
+book:
+  title: "llms-txt Book Crossrefs"
+  llms-txt: true
+  chapters:
+    - index.qmd
+    - second.qmd
+    - third.qmd

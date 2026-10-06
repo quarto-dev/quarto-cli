@@ -353,7 +353,7 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
 
   // if we have requested toggle, make sure there are things to toggle
   if (codeToolsResolved.toggle) {
-    const codeDetails = doc.querySelector(".cell > details > .sourceCode");
+    const codeDetails = doc.querySelector(".cell details.code-fold");
 
     // we don't OJS hidden cells in this check, since when echo: false, we emit them hidden
     const codeHidden = doc.querySelector(

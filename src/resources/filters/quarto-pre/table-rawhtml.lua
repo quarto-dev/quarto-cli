@@ -5,8 +5,6 @@
 -- back together here so they can be processed by our raw table
 -- caption handling
 
-local patterns = require("modules/patterns")
-
 function table_merge_raw_html()
   if not _quarto.format.isHtmlOutput() then
     return {}
@@ -18,7 +16,7 @@ function table_merge_raw_html()
       local next_element_idx = 1
       for _, el in ipairs(blocks) do
         if _quarto.format.isRawHtml(el) and
-           el.text:find(patterns.html_table_tag_name) then
+           el.text:find(_quarto.modules.patterns.html_table_tag_name) then
           pending_raw:insert(el.text)
         else
           if next(pending_raw) then

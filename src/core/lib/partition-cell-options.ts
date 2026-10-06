@@ -335,6 +335,7 @@ export const kLangCommentChars: Record<string, string | [string, string]> = {
   stata: "*",
   java: "//",
   groovy: "//",
+  kotlin: "//",
   sed: "#",
   perl: "#",
   prql: "#",

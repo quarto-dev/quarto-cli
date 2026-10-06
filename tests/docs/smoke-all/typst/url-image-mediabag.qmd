@@ -6,9 +6,9 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-        # Image should be extracted to mediabag, not remain as URL
-        - ['image\("url-image-mediabag_files(/|\\\\)mediabag(/|\\\\)400']
-        # Should NOT contain the raw URL - it must be extracted to mediabag
+        # The downloaded image must use mediabag and retain its alt text.
+        - ['image\("url-image-mediabag_files(/|\\\\)mediabag(/|\\\\)400[^"]*",\s*alt:\s*"A 400x400 placeholder image"']
+        # The original remote URL must not remain in Typst output.
         - ['https://placehold\.co/400']
 ---
 
@@ -16,6 +16,6 @@ _quarto:
 
 This tests that URL images are correctly extracted to the mediabag
 when rendering to Typst format. The image below should be fetched
-from the URL and stored locally, not left as a raw URL.
+from the URL and stored locally with its alt text, not left as a raw URL.
 
 ![Placeholder image from URL](https://placehold.co/400){alt="A 400x400 placeholder image"}

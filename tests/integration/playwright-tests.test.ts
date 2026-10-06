@@ -1,8 +1,7 @@
 /*
- * smoke-all.test.ts
+ * playwright-tests.test.ts
  *
  * Copyright (C) 2022 Posit Software, PBC
- *
  */
 
 import { expandGlobSync } from "../../src/core/deno/expand-glob.ts";
@@ -13,12 +12,36 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 import { cleanoutput } from "../smoke/render/render.ts";
 import { execProcess } from "../../src/core/process.ts";
+import { quartoSpawnEnvOptions } from "../quarto-cmd.ts";
 import { quartoDevCmd } from "../utils.ts";
 import { fail } from "testing/asserts";
 import { isWindows } from "../../src/deno_ral/platform.ts";
 import { join, relative } from "../../src/deno_ral/path.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
 import * as gha from "../../src/tools/github.ts";
+
+// Share the step-wide annotation budget when the harness owns this step.
+const annotationBudget = new gha.AnnotationBudget();
+
+function reportFailure(
+  message: string,
+  properties?: gha.AnnotationProperties,
+) {
+  if (!gha.harnessOwnsStep()) {
+    gha.error(message, properties);
+    return;
+  }
+  const decision = annotationBudget.recordFailure();
+  if (decision.emitAnnotation) {
+    gha.error(message, properties);
+  } else if (decision.emitAggregate) {
+    gha.error(
+      "Additional failures were not annotated because GitHub limits " +
+        "annotations per step. See the step log for all failures.",
+      { title: "More test failures" },
+    );
+  }
+}
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -56,8 +79,8 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
     {
       pathSuffix: "docs/playwright/embed-resources/issue-11860/main.qmd",
       options: ["--output-dir=inner"],
-    }
-  ]
+    },
+  ];
 
   for (const { path: fileName } of globOutput) {
     const input = relative(Deno.cwd(), fileName);
@@ -72,15 +95,17 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
     // mediabag inspection if we don't wait all renders
     // individually. This is very slow..
     console.log(`Rendering ${input}...`);
+    // Prevent a built Quarto from inheriting dev-tree paths.
     const result = await execProcess({
       cmd: quartoDevCmd(),
       args: ["render", input, ...options],
       stdout: "piped",
       stderr: "piped",
+      ...quartoSpawnEnvOptions(),
     });
 
     if (!result.success) {
-      gha.error(`Failed to render ${input}`)
+      reportFailure(`Failed to render ${input}`);
       if (result.stdout) console.log(result.stdout);
       if (result.stderr) console.error(result.stderr);
       throw new Error(`Render failed with code ${result.code}`);
@@ -91,44 +116,55 @@ if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
 }
 
 Deno.test({
-  name: "Playwright tests are passing", 
-  // currently we run playwright tests only on Linux
+  name: "Playwright tests are passing",
+  // Windows CI renders the inputs but does not run browser assertions.
   ignore: gha.isGitHubActions() && isWindows,
   fn: async () => {
     try {
       // run playwright
-      const res = await execProcess({
-        cmd: isWindows ? "npx.cmd" : "npx",
-        args: ["playwright", "test", "--ignore-snapshots"],
-        cwd: "integration/playwright",
-      },
-      undefined, // stdin
-      undefined, // mergeOutput
-      undefined, // stderrFilter
-      true       // respectStreams - write directly to stderr/stdout
+      const res = await execProcess(
+        {
+          cmd: isWindows ? "npx.cmd" : "npx",
+          args: ["playwright", "test", "--ignore-snapshots"],
+          cwd: "integration/playwright",
+        },
+        undefined, // stdin
+        undefined, // mergeOutput
+        undefined, // stderrFilter
+        true, // respectStreams - write directly to stderr/stdout
       );
       if (!res.success) {
-        if (gha.isGitHubActions() && Deno.env.get("GITHUB_REPOSITORY") && Deno.env.get("GITHUB_RUN_ID")) {
-          const runUrl = `https://github.com/${Deno.env.get("GITHUB_REPOSITORY")}/actions/runs/${Deno.env.get("GITHUB_RUN_ID")}`;
-          gha.error(
+        if (
+          gha.isGitHubActions() && Deno.env.get("GITHUB_REPOSITORY") &&
+          Deno.env.get("GITHUB_RUN_ID")
+        ) {
+          const runUrl = `https://github.com/${
+            Deno.env.get("GITHUB_REPOSITORY")
+          }/actions/runs/${Deno.env.get("GITHUB_RUN_ID")}`;
+          reportFailure(
             `Some tests failed. Download report uploaded as artifact at ${runUrl}`,
             {
               file: "playwright-tests.test.ts",
-              title: "Playwright tests"
-            }
+              title: "Playwright tests",
+            },
           );
         }
-        fail("Failed tests with playwright. Look at playwright report for more details.")
+        fail(
+          "Failed tests with playwright. Look at playwright report for more details.",
+        );
       }
-
     } finally {
       // skip cleanoutput if requested
-      if (Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_CLEANOUTPUT") === "true" || Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true") {
+      if (
+        Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_CLEANOUTPUT") === "true" ||
+        Deno.env.get("QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER") === "true"
+      ) {
         console.log("Skipping cleanoutput of test documents.");
-      } else 
+      } else {
         for (const fileName of fileNames) {
           cleanoutput(fileName, "html");
         }
+      }
     }
-  }
+  },
 });

@@ -1,0 +1,57 @@
+---
+title: "Intermediate matplotlib output shown in dashboard (#11150)"
+format:
+  html: default
+  dashboard: default
+engine: jupyter
+echo: true
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        - ['img']                       # the matplotlib figure is still rendered
+      ensureHtmlElementCount:
+        selectors: ['table', '.plotly-graph-div', '.cell-output-display pre']
+        counts: [1, 1, 0]               # table + graph both survive in one card (all); zero spurious text-output reprs
+    html:
+      ensureHtmlElements:
+        - ['img']                       # the matplotlib figure is still rendered
+      ensureHtmlElementCount:
+        selectors: ['table', '.plotly-graph-div', '.cell-output-display pre']
+        counts: [0, 1, 0]               # last_expr drops the table; one graph; zero spurious text-output reprs
+---
+
+Dashboard format runs the Jupyter kernel with
+`ipynb-shell-interactivity: all`, so every top-level expression statement in a
+cell echoes its value, not just the last one. matplotlib/pandas/seaborn
+plotting calls return objects (`plt.title()` returns a `Text`, `plt.boxplot()`
+returns a dict of `Line2D`), and those object reprs leaked into the rendered
+output as spurious intermediate text next to the figure — the difference from
+HTML that #11150 reported. HTML is affected too, just less: under the default
+`last_expr` it only echoes the final expression's repr (`Text(...)`).
+
+The first cell exercises the bug: it must render the figure but must not show
+the `Text(...)` or boxplot-dict reprs, in either format. The second cell guards
+the intentional multi-output capability that `shell-interactivity: all` gives
+dashboards. In a dashboard one cell becomes one card, so composing a card that
+holds both a summary table and a plot requires emitting both from a single
+cell. Under `all` both survive in that one card; under HTML's `last_expr` only
+the last expression (the graph) is kept and the table is dropped.
+
+```{python}
+#| title: plot with a title
+import matplotlib.pyplot as plt
+x = [1, 2, 3, 4, 5, 10]
+plt.boxplot(x)
+plt.title("Test")
+```
+
+```{python}
+#| title: table and graph in one card
+#| echo: false
+#| layout-ncol: 2
+import plotly.express as px
+df = px.data.tips()
+df.groupby("day", observed=True)["total_bill"].mean().reset_index()
+px.box(df, x="day", y="total_bill")
+```

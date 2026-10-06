@@ -1,0 +1,15 @@
+---
+title: "No color-scheme toggle without a dark theme"
+format:
+  html:
+    theme: flatly
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        -
+          - 'quarto-color-scheme-toggle'
+---
+
+A light-only document must not emit any toggle markup or toggle script.

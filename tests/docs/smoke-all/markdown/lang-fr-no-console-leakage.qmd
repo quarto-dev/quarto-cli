@@ -1,0 +1,21 @@
+---
+title: Test
+lang: fr
+format: markdown
+_quarto:
+  tests:
+    markdown:
+      printsMessage:
+        - level: INFO
+          regex: "toc-title-document"
+          negate: true
+        - level: INFO
+          regex: "crossref-ch-prefix"
+          negate: true
+---
+
+# Section
+
+A paragraph in French (`lang: fr`). The internal `quarto.*` template
+variable namespace must not flood the rendered pandoc defaults message
+printed to the console.

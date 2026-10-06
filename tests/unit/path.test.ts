@@ -11,6 +11,7 @@ import { join, resolve } from "../../src/deno_ral/path.ts";
 import { isWindows } from "../../src/deno_ral/platform.ts";
 import {
   dirAndStem,
+  pathsEqual,
   removeIfEmptyDir,
   removeIfExists,
   resolvePathGlobs,
@@ -88,6 +89,29 @@ unitTest("path - dirAndStem", async () => {
     assert(dir === dirStem.dir, `Invalid directory ${dir} from dirAndStem`);
     assert(stem === dirStem.stem, `Invalid stem ${stem} from dirAndStem`);
   });
+});
+
+// Path equality must be separator-agnostic: the knitr engine reports paths
+// with forward slashes on Windows while other paths are normalized to the
+// platform separator. Comparing the raw strings then fails on Windows (#14613).
+// deno-lint-ignore require-await
+unitTest("path - pathsEqual is separator-agnostic (#14613)", async () => {
+  const dir = Deno.makeTempDirSync({ prefix: "quarto-pathsequal-test" });
+  try {
+    const filesDir = join(dir, "index_files");
+    const forwardSlash = filesDir.replaceAll("\\", "/");
+
+    assert(
+      pathsEqual(filesDir, forwardSlash),
+      "same path with different separators must compare equal",
+    );
+    assert(
+      !pathsEqual(filesDir, join(dir, "other_files")),
+      "different paths must not compare equal",
+    );
+  } finally {
+    Deno.removeSync(dir, { recursive: true });
+  }
 });
 
 interface GlobTest {

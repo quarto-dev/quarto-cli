@@ -5,7 +5,7 @@
 *
 */
 
-import { findMissingFontsAndPackages, findMissingHyphenationFiles } from "../../../src/command/render/latexmk/parse-error.ts"
+import { findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles } from "../../../src/command/render/latexmk/parse-error.ts"
 import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts";
 
@@ -35,6 +35,9 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound('! Font \\JY3/mc/m/n/10=file:HaranoAjiMincho-Regular.otf:-kern;jfm=ujis at 9.24713pt not loadable: metric data not found or bad.', "HaranoAjiMincho-Regular.otf");
   assertFound('! The font "Noto Emoji" cannot be found.', fontSearchTerm("Noto Emoji"));
   assertFound('! Package fontspec Error: The font "DejaVu Sans" cannot be found.', fontSearchTerm("DejaVu Sans"));
+  // luaotfload fallback-chain font (monofontfallback) - https://github.com/quarto-dev/quarto-cli/issues/14558
+  // luaotfload appends ;-fallback internally; it must be stripped before building the search term
+  assertFound('luaotfload | db : Reload initiated (formats: otf,ttf,ttc); reason: Font "DejaVu Sans Mono;-fallback" not found.', fontSearchTerm("DejaVu Sans Mono"));
   assertFound("! LaTeX Error: File `framed.sty' not found.", "framed.sty");
   assertFound("! LaTeX Error: File 'framed.sty' not found.", "framed.sty");
   assertFound("/usr/local/bin/mktexpk: line 123: mf: command not found", "mf");
@@ -76,6 +79,32 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
   assertFound("! Package pdfx Error: No color profile sRGB_IEC61966-2-1_black_scaled.icc found", "colorprofiles.sty");
   assertFound("No file LGRcmr.fd. ! LaTeX Error: This NFSS system isn't set up properly.", "lgrcmr.fd");
 },{
+  cwd: () => "unit/latexmk/"
+})
+
+// deno-lint-ignore require-await
+unitTest("Detect luaotfload font fallback crash and surface an actionable hint", async () => {
+  // The luaotfload font-fallback resolver crashes on recent TeX Live when a
+  // fallback font is set (mainfontfallback/monofontfallback): define_font of the
+  // internal `<font>;-fallback` name returns nil and luaotfload-fallback.lua
+  // dereferences it. There is no `! ...Here is how much` block, so the generic
+  // error extraction finds nothing — we want a specific, actionable message.
+  // Upstream: https://github.com/latex3/luaotfload/issues/331
+  const fallbackCrashLog =
+    `luaotfload | db : Reload initiated (formats: otf,ttf,ttc); reason: Font "Latin Modern Roman;-fallback" not found.
+luaotfload | resolve : sequence of 3 lookups yielded nothing appropriate....texmf-dist/tex/luatex/luaotfload/luaotfload-fallback.lua:50: attempt to index a nil value (local 'f').
+!  ==> Fatal error occurred, no output PDF file produced!`;
+
+  const message = findLatexError(fallbackCrashLog) ?? "";
+  assert(
+    message.includes("font fallback"),
+    `Expected a font-fallback hint, got: "${message}"`,
+  );
+  assert(
+    message.includes("luaotfload/issues/331"),
+    `Expected the upstream issue link, got: "${message}"`,
+  );
+}, {
   cwd: () => "unit/latexmk/"
 })
 

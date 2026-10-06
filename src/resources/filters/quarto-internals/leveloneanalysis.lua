@@ -14,5 +14,7 @@ function Pandoc(doc)
       pandoc.Str("false")
     })
   end
+  -- the markdown writer emits notes collected from metadata after the body
+  doc.meta = pandoc.Meta({})
   return doc
 end

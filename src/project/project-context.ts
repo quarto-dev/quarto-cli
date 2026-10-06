@@ -81,7 +81,11 @@ import {
   projectResolveFullMarkdownForFile,
   projectVarsFile,
 } from "./project-shared.ts";
-import { RenderOptions, RenderServices } from "../command/render/types.ts";
+import {
+  RenderFlags,
+  RenderOptions,
+  RenderServices,
+} from "../command/render/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -107,6 +111,8 @@ import { createProjectCache } from "../core/cache/cache.ts";
 import { createTempContext } from "../core/temp.ts";
 
 import { onCleanup } from "../core/cleanup.ts";
+import { ErrorEx } from "../core/lib/error.ts";
+import { tidyverseError, tidyverseInfo } from "../core/lib/errors.ts";
 import { Zod } from "../resources/types/zod/schema-types.ts";
 import { ExternalEngine } from "../resources/types/schema-types.ts";
 
@@ -143,21 +149,13 @@ export async function projectContext(
   force = false,
 ): Promise<ProjectContext | undefined> {
   const flags = renderOptions?.flags;
-  let dir = normalizePath(
+  const originalDir = normalizePath(
     Deno.statSync(path).isDirectory ? path : dirname(path),
   );
-  const originalDir = dir;
 
   // create an extension context if one doesn't exist
   const extensionContext = renderOptions?.services.extension ||
     createExtensionContext();
-
-  // first pass uses the config file resolve
-  const configSchema = await getProjectConfigSchema();
-  const configResolvers = [
-    quartoYamlProjectConfigResolver(configSchema),
-    await projectExtensionsConfigResolver(extensionContext, dir),
-  ];
 
   // Compute this on demand and only a single time per
   // project context
@@ -182,6 +180,299 @@ export async function projectContext(
     onCleanup(context.cleanup);
     return context;
   };
+
+  const resolved = await resolveProjectConfig(
+    originalDir,
+    extensionContext,
+    flags,
+  );
+  if (resolved) {
+    const dir = resolved.dir;
+    const projectConfig = resolved.config;
+    const configFiles = resolved.configFiles;
+    if (projectConfig?.project) {
+      const type = projectType(projectConfig.project?.[kProjectType]);
+      const temp = createTempContext({
+        dir: join(dir, ".quarto"),
+        prefix: "quarto-session-temp",
+      });
+      const fileInformationCache = new FileInformationCacheMap();
+      const result: ProjectContext = {
+        clone: () => result,
+        resolveBrand: async (fileName?: string) =>
+          projectResolveBrand(result, fileName),
+        resolveFullMarkdownForFile: (
+          engine: ExecutionEngineInstance | undefined,
+          file: string,
+          markdown?: MappedString,
+          force?: boolean,
+        ) => {
+          return projectResolveFullMarkdownForFile(
+            result,
+            engine,
+            file,
+            markdown,
+            force,
+          );
+        },
+        dir,
+        engines: [],
+        fileInformationCache,
+        files: {
+          input: [],
+        },
+        config: projectConfig,
+        // this is a relatively ugly hack to avoid a circular import chain
+        // that causes a deno bundler bug;
+        renderFormats,
+        environment: () => environment(result),
+        notebookContext,
+        fileExecutionEngineAndTarget: (
+          file: string,
+        ) => {
+          return fileExecutionEngineAndTarget(
+            file,
+            flags,
+            result,
+          );
+        },
+        fileMetadata: async (file: string, force?: boolean) => {
+          return projectFileMetadata(result, file, force);
+        },
+        isSingleFile: false,
+        previewServer: renderOptions?.previewServer,
+        diskCache: await createProjectCache(join(dir, ".quarto")),
+        temp,
+        cleanup: () => {
+          cleanupFileInformationCache(result);
+          result.diskCache.close();
+          temp.cleanup();
+        },
+      };
+
+      try {
+        // see if the project [kProjectType] wants to filter the project config
+        if (type.config) {
+          result.config = await type.config(
+            result,
+            projectConfig,
+            flags,
+          );
+        }
+        const { files, engines } = await projectInputFiles(
+          result,
+          projectConfig,
+        );
+        // if we are attemping to get the projectConext for a file and the
+        // file isn't in list of input files then return a single-file project
+        const fullPath = normalizePath(path);
+        if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
+          return undefined;
+        }
+
+        if (type.formatExtras) {
+          result.formatExtras = async (
+            source: string,
+            flags: PandocFlags,
+            format: Format,
+            services: RenderServices,
+          ) => type.formatExtras!(result, source, flags, format, services);
+        }
+        result.engines = engines;
+        result.files = {
+          input: files,
+          resources: projectResourceFiles(dir, projectConfig),
+          config: configFiles,
+          configResources: projectConfigResources(dir, projectConfig, type),
+        };
+        return await returnResult(result);
+      } catch (e) {
+        result.cleanup();
+        tagInputWalkConfigFile(e, resolved.configFile);
+        throw e;
+      }
+    } else {
+      const temp = createTempContext({
+        dir: join(dir, ".quarto"),
+        prefix: "quarto-session-temp",
+      });
+      const fileInformationCache = new FileInformationCacheMap();
+      const result: ProjectContext = {
+        clone: () => result,
+        resolveBrand: async (fileName?: string) =>
+          projectResolveBrand(result, fileName),
+        resolveFullMarkdownForFile: (
+          engine: ExecutionEngineInstance | undefined,
+          file: string,
+          markdown?: MappedString,
+          force?: boolean,
+        ) => {
+          return projectResolveFullMarkdownForFile(
+            result,
+            engine,
+            file,
+            markdown,
+            force,
+          );
+        },
+        dir,
+        config: projectConfig,
+        engines: [],
+        fileInformationCache,
+        files: {
+          input: [],
+        },
+        renderFormats,
+        environment: () => environment(result),
+        fileExecutionEngineAndTarget: (
+          file: string,
+        ) => {
+          return fileExecutionEngineAndTarget(
+            file,
+            flags,
+            result,
+          );
+        },
+        fileMetadata: async (file: string, force?: boolean) => {
+          return projectFileMetadata(result, file, force);
+        },
+        notebookContext,
+        isSingleFile: false,
+        previewServer: renderOptions?.previewServer,
+        diskCache: await createProjectCache(join(dir, ".quarto")),
+        temp,
+        cleanup: () => {
+          cleanupFileInformationCache(result);
+          result.diskCache.close();
+          temp.cleanup();
+        },
+      };
+      try {
+        const { files, engines } = await projectInputFiles(
+          result,
+          projectConfig,
+        );
+        result.engines = engines;
+        result.files = {
+          input: files,
+          resources: projectResourceFiles(dir, projectConfig),
+          config: configFiles,
+          configResources: projectConfigResources(dir, projectConfig),
+        };
+        return await returnResult(result);
+      } catch (e) {
+        result.cleanup();
+        tagInputWalkConfigFile(e, resolved.configFile);
+        throw e;
+      }
+    }
+  } else if (force) {
+    const temp = createTempContext({
+      dir: join(originalDir, ".quarto"),
+      prefix: "quarto-session-temp",
+    });
+    const fileInformationCache = new FileInformationCacheMap();
+    const context: ProjectContext = {
+      clone: () => context,
+      resolveBrand: async (fileName?: string) =>
+        projectResolveBrand(context, fileName),
+      resolveFullMarkdownForFile: (
+        engine: ExecutionEngineInstance | undefined,
+        file: string,
+        markdown?: MappedString,
+        force?: boolean,
+      ) => {
+        return projectResolveFullMarkdownForFile(
+          context,
+          engine,
+          file,
+          markdown,
+          force,
+        );
+      },
+      dir: originalDir,
+      engines: [],
+      config: {
+        project: {
+          [kProjectOutputDir]: flags?.outputDir,
+        },
+      },
+      fileInformationCache,
+      files: {
+        input: [],
+      },
+      renderFormats,
+      environment: () => environment(context),
+      notebookContext,
+      fileExecutionEngineAndTarget: (
+        file: string,
+      ) => {
+        return fileExecutionEngineAndTarget(
+          file,
+          flags,
+          context,
+        );
+      },
+      fileMetadata: async (file: string, force?: boolean) => {
+        return projectFileMetadata(context, file, force);
+      },
+      isSingleFile: false,
+      previewServer: renderOptions?.previewServer,
+      diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
+      temp,
+      cleanup: () => {
+        cleanupFileInformationCache(context);
+        context.diskCache.close();
+        temp.cleanup();
+      },
+    };
+    try {
+      if (Deno.statSync(path).isDirectory) {
+        const { files, engines } = await projectInputFiles(context);
+        context.engines = engines;
+        context.files.input = files;
+      } else {
+        const input = normalizePath(path);
+        const engine = await fileExecutionEngine(input, undefined, context);
+        context.engines = [engine?.name ?? kMarkdownEngine];
+        context.files.input = [input];
+      }
+      return await returnResult(context);
+    } catch (e) {
+      context.cleanup();
+      throw e;
+    }
+  } else {
+    return undefined;
+  }
+}
+
+export interface ProjectConfigResolution {
+  dir: string;
+  config: ProjectConfig;
+  // the _quarto.yml that set the project root, or null when the root came
+  // from an extension project-type detector
+  configFile: string | null;
+  configFiles: string[];
+}
+
+// Finds the project enclosing `dir` (nearest _quarto.yml upward, else nearest
+// dir matched by an extension project-type detector) and resolves its full
+// configuration, without walking the project input files.
+export async function resolveProjectConfig(
+  dir: string,
+  extensionContext: ExtensionContext = createExtensionContext(),
+  flags?: RenderFlags,
+): Promise<ProjectConfigResolution | undefined> {
+  const originalDir = dir;
+
+  // first pass uses the config file resolve
+  const configSchema = await getProjectConfigSchema();
+  const quartoYamlResolver = quartoYamlProjectConfigResolver(configSchema);
+  const configResolvers = [
+    quartoYamlResolver,
+    await projectExtensionsConfigResolver(extensionContext, dir),
+  ];
 
   while (true) {
     // use the current resolver
@@ -321,169 +612,14 @@ export async function projectContext(
             projOutputDir,
           );
         }
-
-        const temp = createTempContext({
-          dir: join(dir, ".quarto"),
-          prefix: "quarto-session-temp",
-        });
-        const fileInformationCache = new FileInformationCacheMap();
-        const result: ProjectContext = {
-          clone: () => result,
-          resolveBrand: async (fileName?: string) =>
-            projectResolveBrand(result, fileName),
-          resolveFullMarkdownForFile: (
-            engine: ExecutionEngineInstance | undefined,
-            file: string,
-            markdown?: MappedString,
-            force?: boolean,
-          ) => {
-            return projectResolveFullMarkdownForFile(
-              result,
-              engine,
-              file,
-              markdown,
-              force,
-            );
-          },
-          dir,
-          engines: [],
-          fileInformationCache,
-          files: {
-            input: [],
-          },
-          config: projectConfig,
-          // this is a relatively ugly hack to avoid a circular import chain
-          // that causes a deno bundler bug;
-          renderFormats,
-          environment: () => environment(result),
-          notebookContext,
-          fileExecutionEngineAndTarget: (
-            file: string,
-          ) => {
-            return fileExecutionEngineAndTarget(
-              file,
-              flags,
-              result,
-            );
-          },
-          fileMetadata: async (file: string, force?: boolean) => {
-            return projectFileMetadata(result, file, force);
-          },
-          isSingleFile: false,
-          previewServer: renderOptions?.previewServer,
-          diskCache: await createProjectCache(join(dir, ".quarto")),
-          temp,
-          cleanup: () => {
-            cleanupFileInformationCache(result);
-            result.diskCache.close();
-            temp.cleanup();
-          },
-        };
-
-        // see if the project [kProjectType] wants to filter the project config
-        if (type.config) {
-          result.config = await type.config(
-            result,
-            projectConfig,
-            flags,
-          );
-        }
-        const { files, engines } = await projectInputFiles(
-          result,
-          projectConfig,
-        );
-        // if we are attemping to get the projectConext for a file and the
-        // file isn't in list of input files then return a single-file project
-        const fullPath = normalizePath(path);
-        if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
-          return undefined;
-        }
-
-        if (type.formatExtras) {
-          result.formatExtras = async (
-            source: string,
-            flags: PandocFlags,
-            format: Format,
-            services: RenderServices,
-          ) => type.formatExtras!(result, source, flags, format, services);
-        }
-        result.engines = engines;
-        result.files = {
-          input: files,
-          resources: projectResourceFiles(dir, projectConfig),
-          config: configFiles,
-          configResources: projectConfigResources(dir, projectConfig, type),
-        };
-        return await returnResult(result);
-      } else {
-        const temp = createTempContext({
-          dir: join(dir, ".quarto"),
-          prefix: "quarto-session-temp",
-        });
-        const fileInformationCache = new FileInformationCacheMap();
-        const result: ProjectContext = {
-          clone: () => result,
-          resolveBrand: async (fileName?: string) =>
-            projectResolveBrand(result, fileName),
-          resolveFullMarkdownForFile: (
-            engine: ExecutionEngineInstance | undefined,
-            file: string,
-            markdown?: MappedString,
-            force?: boolean,
-          ) => {
-            return projectResolveFullMarkdownForFile(
-              result,
-              engine,
-              file,
-              markdown,
-              force,
-            );
-          },
-          dir,
-          config: projectConfig,
-          engines: [],
-          fileInformationCache,
-          files: {
-            input: [],
-          },
-          renderFormats,
-          environment: () => environment(result),
-          fileExecutionEngineAndTarget: (
-            file: string,
-          ) => {
-            return fileExecutionEngineAndTarget(
-              file,
-              flags,
-              result,
-            );
-          },
-          fileMetadata: async (file: string, force?: boolean) => {
-            return projectFileMetadata(result, file, force);
-          },
-          notebookContext,
-          isSingleFile: false,
-          previewServer: renderOptions?.previewServer,
-          diskCache: await createProjectCache(join(dir, ".quarto")),
-          temp,
-          cleanup: () => {
-            cleanupFileInformationCache(result);
-            result.diskCache.close();
-            temp.cleanup();
-          },
-        };
-        const { files, engines } = await projectInputFiles(
-          result,
-          projectConfig,
-        );
-        result.engines = engines;
-        result.files = {
-          input: files,
-          resources: projectResourceFiles(dir, projectConfig),
-          config: configFiles,
-          configResources: projectConfigResources(dir, projectConfig),
-        };
-        return await returnResult(result);
       }
+
+      return {
+        dir,
+        config: projectConfig,
+        configFile: resolver === quartoYamlResolver ? configFiles[0] : null,
+        configFiles,
+      };
     } else {
       const nextDir = dirname(dir);
       if (nextDir === dir) {
@@ -491,77 +627,6 @@ export async function projectContext(
           // reset dir and proceed to next resolver
           dir = originalDir;
           configResolvers.shift();
-        } else if (force) {
-          const temp = createTempContext({
-            dir: join(originalDir, ".quarto"),
-            prefix: "quarto-session-temp",
-          });
-          const fileInformationCache = new FileInformationCacheMap();
-          const context: ProjectContext = {
-            clone: () => context,
-            resolveBrand: async (fileName?: string) =>
-              projectResolveBrand(context, fileName),
-            resolveFullMarkdownForFile: (
-              engine: ExecutionEngineInstance | undefined,
-              file: string,
-              markdown?: MappedString,
-              force?: boolean,
-            ) => {
-              return projectResolveFullMarkdownForFile(
-                context,
-                engine,
-                file,
-                markdown,
-                force,
-              );
-            },
-            dir: originalDir,
-            engines: [],
-            config: {
-              project: {
-                [kProjectOutputDir]: flags?.outputDir,
-              },
-            },
-            fileInformationCache,
-            files: {
-              input: [],
-            },
-            renderFormats,
-            environment: () => environment(context),
-            notebookContext,
-            fileExecutionEngineAndTarget: (
-              file: string,
-            ) => {
-              return fileExecutionEngineAndTarget(
-                file,
-                flags,
-                context,
-              );
-            },
-            fileMetadata: async (file: string, force?: boolean) => {
-              return projectFileMetadata(context, file, force);
-            },
-            isSingleFile: false,
-            previewServer: renderOptions?.previewServer,
-            diskCache: await createProjectCache(join(temp.baseDir, ".quarto")),
-            temp,
-            cleanup: () => {
-              cleanupFileInformationCache(context);
-              context.diskCache.close();
-              temp.cleanup();
-            },
-          };
-          if (Deno.statSync(path).isDirectory) {
-            const { files, engines } = await projectInputFiles(context);
-            context.engines = engines;
-            context.files.input = files;
-          } else {
-            const input = normalizePath(path);
-            const engine = await fileExecutionEngine(input, undefined, context);
-            context.engines = [engine?.name ?? kMarkdownEngine];
-            context.files.input = [input];
-          }
-          return await returnResult(context);
         } else {
           return undefined;
         }
@@ -885,6 +950,54 @@ function projectHiddenIgnoreGlob(dir: string) {
     .concat(["**/*.llms.md"]); // llms.txt companion markdown files
 }
 
+// Set on the PermissionDenied thrown by the input walk: the project whose
+// inputs were being listed, and the _quarto.yml that made it a project
+// (null for an extension-detected root, unset outside a resolved project).
+const kInputWalkProject = Symbol("input-walk-project");
+type InputWalkError = Deno.errors.PermissionDenied & {
+  [kInputWalkProject]?: { dir: string; configFile?: string | null };
+};
+
+function tagInputWalkConfigFile(e: unknown, configFile: string | null) {
+  const project = (e as InputWalkError)?.[kInputWalkProject];
+  if (project) {
+    project.configFile = configFile;
+  }
+}
+
+// Returns a framed error for a PermissionDenied from a project input walk,
+// or `e` unchanged for any other error.
+export function frameInputWalkError(e: unknown): unknown {
+  const project = (e as InputWalkError)?.[kInputWalkProject];
+  if (!project || project.configFile === undefined) {
+    return e;
+  }
+  const { dir, configFile } = project;
+  const lines = [
+    "Could not read a directory while looking for project input files.",
+    tidyverseError((e as Error).message),
+  ];
+  if (configFile) {
+    lines.push(
+      tidyverseInfo(`Project root: ${dir}`),
+      tidyverseInfo(`Set by: ${configFile}`),
+      tidyverseInfo(
+        "If this _quarto.yml was created by accident, remove it. Otherwise make the directory readable.",
+      ),
+    );
+  } else {
+    lines.push(
+      tidyverseInfo(
+        `Project root: ${dir} (detected by an extension project type, no _quarto.yml)`,
+      ),
+      tidyverseInfo(
+        "If this directory is not meant to be a Quarto project, remove the files that mark it as one. Otherwise make the directory readable.",
+      ),
+    );
+  }
+  return new ErrorEx("Error", lines.join("\n"), false, false);
+}
+
 export const projectInputFiles = makeTimedFunctionAsync(
   "projectInputFiles",
   projectInputFilesInternal,
@@ -944,29 +1057,40 @@ async function projectInputFilesInternal(
       engineIntermediates: engineIntermediates,
     }];
   };
+  // directory traversals (walk, render globs) tag their PermissionDenied
+  const tagInputWalkError = (e: unknown) => {
+    if (e instanceof Deno.errors.PermissionDenied) {
+      (e as InputWalkError)[kInputWalkProject] = { dir: project.dir };
+    }
+  };
   const addDir = async (dir: string): Promise<FileInclusion[]> => {
     const promises: Promise<FileInclusion[]>[] = [];
-    for await (
-      const walkEntry of walk(dir, {
-        includeDirs: false,
-        // this was done b/c some directories e.g. renv/packrat and potentially python
-        // virtualenvs include symblinks to R or Python libraries that are in turn
-        // circular. much safer to not follow symlinks!
-        followSymlinks: false,
-        skip: [kSkipHidden].concat(
-          engineIgnoreDirs().map((ignore) =>
-            globToRegExp(join(dir, ignore) + SEP)
+    try {
+      for await (
+        const walkEntry of walk(dir, {
+          includeDirs: false,
+          // this was done b/c some directories e.g. renv/packrat and potentially python
+          // virtualenvs include symblinks to R or Python libraries that are in turn
+          // circular. much safer to not follow symlinks!
+          followSymlinks: false,
+          skip: [kSkipHidden].concat(
+            engineIgnoreDirs().map((ignore) =>
+              globToRegExp(join(dir, ignore) + SEP)
+            ),
           ),
-        ),
-      })
-    ) {
-      const pathRelative = pathWithForwardSlashes(
-        relative(dir, walkEntry.path),
-      );
-      if (projectIgnores.some((regex) => regex.test(pathRelative))) {
-        continue;
+        })
+      ) {
+        const pathRelative = pathWithForwardSlashes(
+          relative(dir, walkEntry.path),
+        );
+        if (projectIgnores.some((regex) => regex.test(pathRelative))) {
+          continue;
+        }
+        promises.push(addFile(walkEntry.path));
       }
-      promises.push(addFile(walkEntry.path));
+    } catch (e) {
+      tagInputWalkError(e);
+      throw e;
     }
     const inclusions = await Promise.all(promises);
     return inclusions.flat();
@@ -983,9 +1107,15 @@ async function projectInputFilesInternal(
   let inclusions: FileInclusion[];
   if (renderFiles) {
     const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
-    const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
-      mode: "auto",
-    });
+    let resolved;
+    try {
+      resolved = resolvePathGlobs(dir, renderFiles, exclude, {
+        mode: "auto",
+      });
+    } catch (e) {
+      tagInputWalkError(e);
+      throw e;
+    }
     const toInclude = ld.difference(
       resolved.include,
       resolved.exclude,

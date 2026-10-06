@@ -1,0 +1,20 @@
+---
+title: "CSS Generic Font Family Test"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # CSS generic families (sans-serif, monospace) preserved alongside real fonts
+          - 'font: \("Roboto", "sans-serif"\),'
+          - 'codefont: \("Inconsolata", "monospace"\),'
+        - []
+---
+
+Verifies that CSS generic font family names (sans-serif, monospace, serif,
+cursive, fantasy, math) are preserved during font availability filtering,
+since they are valid fallback specifiers even though they don't appear in
+`typst fonts` output.

@@ -58,7 +58,7 @@ async function latestRelease(): Promise<RemotePackageInfo> {
   if (isPlaywrightCdnPlatform(platformInfo)) {
     // arm64 Linux: use Playwright CDN
     const entry = await fetchPlaywrightBrowsersJson();
-    const url = playwrightCdnDownloadUrl(entry.revision);
+    const url = playwrightCdnDownloadUrl(entry.browserVersion);
     return {
       url,
       version: entry.browserVersion,

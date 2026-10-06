@@ -1,0 +1,34 @@
+---
+title: "Header test"
+author: "Jane Doe^[A footnote in the author field.]"
+format:
+  pdf:
+    number-sections: true
+  typst: default
+keep-tex: true
+keep-typ: true
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\\section\{Introduction\}', '\\subsection\{First Hypothesis\}', '\\section\{Conclusion\}']
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['^  title: \[Header test', '^= Introduction', '^== First Hypothesis', '^= Conclusion']
+        - ['^  title: \[Introduction\]']
+---
+
+A footnote in `author` must not hide the level-1 headings from the detector that decides whether to shift heading levels. PDF only shifts with `number-sections`, while Typst shifts without it, so Typst is rendered unnumbered here.
+
+# Introduction
+
+Body.
+
+## First Hypothesis
+
+Body.
+
+# Conclusion
+
+Body.

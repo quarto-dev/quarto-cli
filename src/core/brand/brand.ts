@@ -39,7 +39,7 @@ import {
   LogoSpecifier,
   LogoSpecifierPathOptional,
 } from "../../resources/types/schema-types.ts";
-import { ensureLeadingSlash } from "../path.ts";
+import { ensureLeadingSlash, pathWithForwardSlashes } from "../path.ts";
 
 type ProcessedBrandData = {
   color: Record<string, string>;
@@ -246,14 +246,21 @@ export class Brand {
 
   resolvePath(entry: BrandLogoResource) {
     const pathPrefix = relative(this.projectDir, this.brandDir);
+    // Always use forward slashes: this path can flow into writers (e.g.
+    // Typst 0.15+) that reject backslash path separators, while forward
+    // slashes work fine for the actual file resolution on Windows too.
     if (typeof entry === "string") {
-      return { path: isExternalPath(entry) ? entry : join(pathPrefix, entry) };
+      return {
+        path: isExternalPath(entry)
+          ? entry
+          : pathWithForwardSlashes(join(pathPrefix, entry)),
+      };
     }
     return {
       ...entry,
       path: isExternalPath(entry.path)
         ? entry.path
-        : join(pathPrefix, entry.path),
+        : pathWithForwardSlashes(join(pathPrefix, entry.path)),
     };
   }
 

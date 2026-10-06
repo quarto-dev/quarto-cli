@@ -1,0 +1,17 @@
+---
+title: "One-line SCSS rule with no space after colon"
+format:
+  html:
+    theme:
+      - default
+      - custom-14687.scss
+_quarto:
+  tests:
+    html:
+      ensureCssRegexMatches:
+        - ['--quarto-scss-export-issue-14687-color', '\.example']
+---
+
+A theme rule like `.example {width:100px;}` (declaration on the same line as
+the opening brace, no space after the colon) must not break the SCSS color
+variable export.

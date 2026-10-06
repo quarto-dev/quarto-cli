@@ -1,0 +1,17 @@
+project:
+  type: book
+
+book:
+  title: "Livre Test"
+  author: "Auteur Test"
+  chapters:
+    - index.qmd
+    - chapter1.qmd
+
+lang: fr
+
+format:
+  typst:
+    keep-typ: true
+    lof: true
+    lot: true

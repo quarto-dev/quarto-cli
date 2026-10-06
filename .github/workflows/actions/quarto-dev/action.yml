@@ -12,9 +12,19 @@ runs:
         restore-keys: |
           ${{ runner.os }}-deno_std-2-
 
+    - name: Cache Deno development cache
+      uses: actions/cache@v5
+      with:
+        path: ./package/dist/bin/deno_cache
+        key: ${{ runner.os }}-${{ runner.arch }}-deno-cache-v1-${{ hashFiles('configuration', 'src/import_map.json', 'src/vendor_deps.ts', 'tests/test-deps.ts', 'package/scripts/deno_std/deno_std.ts') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ runner.arch }}-deno-cache-v1-
+
     - name: Configure Quarto (.sh)
       if: runner.os != 'Windows'
       shell: bash
+      env:
+        QUARTO_SKIP_DENO_CACHE_WIPE: "1"
       run: |
         # install with symlink in /usr/local/bin which in PATH on CI
         ./configure.sh
@@ -22,6 +32,8 @@ runs:
     - name: Configure Quarto (.ps1)
       if: runner.os == 'Windows'
       shell: pwsh
+      env:
+        QUARTO_SKIP_DENO_CACHE_WIPE: "1"
       run: |
         ./configure.cmd
         "$(Get-ChildItem -Path ./package/dist/bin/quarto.cmd | %{ $_.FullName } | Split-Path)" >> $env:GITHUB_PATH

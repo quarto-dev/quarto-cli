@@ -1,0 +1,25 @@
+---
+title: Empty Figure content guard
+format: pdf
+keep-tex: true
+filters:
+  - at: pre-ast
+    path: empty-figure-content-filter.lua
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        -
+          - '\\begin\{figure\}'
+---
+
+## Normal figure
+
+![A caption](img/surus.jpg){#fig-normal}
+
+See @fig-normal.
+
+## Figure with content stripped by filter
+
+![Emptied caption](img/surus.jpg){#fig-emptied}

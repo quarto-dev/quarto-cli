@@ -128,7 +128,7 @@
     }
     block(above: 0em, below: 2em)[
     #outline(
-      title: toc_title,
+      title: title,
       depth: toc_depth,
       indent: toc_indent
     );

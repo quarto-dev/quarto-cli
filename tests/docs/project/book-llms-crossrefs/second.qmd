@@ -1,0 +1,13 @@
+# Second {#sec-second}
+
+$$
+a = b
+$$ {#eq-one}
+
+::: {#fig-one}
+FIGURECONTENT
+
+A caption
+:::
+
+See @eq-one and @fig-one. Also @tbl-three and @sec-third.

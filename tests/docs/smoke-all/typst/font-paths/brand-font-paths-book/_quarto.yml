@@ -1,0 +1,12 @@
+project:
+  type: book
+
+brand: branding/brand.yml
+
+book:
+  title: "Brand font-paths in a Typst book"
+  author: "Quarto Test"
+  chapters:
+    - index.qmd
+
+format: typst

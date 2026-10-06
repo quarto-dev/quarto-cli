@@ -1,0 +1,25 @@
+---
+title: "Issue 14468 - axe must not clobber brand colors (dashboard)"
+format:
+  dashboard:
+    axe: 
+      output: document
+brand:
+  color:
+    background: "#5e1717"
+  typography:
+    link:
+      color: "#18a918"
+_quarto:
+  tests:
+    dashboard:
+      ensureCssRegexMatches:
+        - ['--bs-body-bg:\s*#5e1717', '--bs-link-color:\s*#18a918', 'quarto-axe-offcanvas\s*\{[^}]*--bs-offcanvas-bg:\s*#fff']
+        - ['--bs-body-bg:\s*#fff[\s;]']
+---
+
+## Row
+
+Content for accessibility checking.
+
+[example](http://example.org)

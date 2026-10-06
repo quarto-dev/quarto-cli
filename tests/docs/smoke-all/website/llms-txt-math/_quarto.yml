@@ -1,0 +1,7 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "llms-txt Math Test Site"
+  llms-txt: true

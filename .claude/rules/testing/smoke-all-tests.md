@@ -22,6 +22,8 @@ Document-based tests using YAML metadata for verification. Tests live in `tests/
 .\run-tests.ps1 docs/smoke-all/path/to/test.qmd
 ```
 
+Add `--agent` for low-noise output — see `.claude/rules/testing/overview.md` § Running Tests.
+
 ## Test Structure
 
 Tests are defined in `_quarto.tests` YAML metadata:
@@ -62,6 +64,8 @@ _quarto:
       ensureLatexFileRegexMatches:     # Requires keep-tex: true
         - ['\\begin\{figure\}']
 ```
+
+**Details:** `llm-docs/ensure-pdf-text-positions.md` — the `ensurePdfTextPositions` verification function for asserting spatial text-position relationships in tagged PDFs (Typst only; LaTeX not yet supported).
 
 ### Regex Match Array Format
 
@@ -128,7 +132,15 @@ Avoid patterns that match template boilerplate instead of document content:
 
 **Line breaks:** `(\r\n?|\n)` for exact line breaks; `\s*` or `\s+` for flexible whitespace.
 
+**Several sibling elements in one document** (e.g. multiple `.card` divs, each exercising one case): an `ensureHtmlElements` selector passes when *any* element matches, so a generic `.card-header > code` lets a passing card mask a regression in another. Give each element its own class (`.test-attr-code`, `.test-combined`) or use a marker it already carries (executable cells have `.cell`), and prefix every selector for that element with it. To check the scoping, revert the fix and confirm the failure lands on the intended element. Example: `tests/docs/smoke-all/2026/07/03/issue-14646.qmd`.
+
 **Examples:** `tests/docs/smoke-all/typst/`, `tests/docs/smoke-all/crossrefs/`
+
+## Documenting Test Intent
+
+Put scenario explanation — what the document tests, why the bug existed, what each case exercises — in the document **body** as prose, not in YAML frontmatter comments. This is the de-facto pattern for issue-regression tests (see `tests/docs/smoke-all/2025/01/23/issue-13603.qmd`, `tests/docs/smoke-all/2025/04/04/12295.qmd`).
+
+Keep the `_quarto: tests:` block assertion-focused, but inline `#` comments labeling individual non-obvious regex/selector strings are fine and encouraged — especially in long or negative-match arrays where the target is otherwise opaque (see `tests/docs/smoke-all/2023/11/02/7262.qmd`). The two locations are complementary: body prose explains the scenario; inline comments label what a specific assertion checks. Avoid top-of-block narrative comment paragraphs — those belong in the body.
 
 ## YAML String Escaping for Regex
 
@@ -140,6 +152,14 @@ Avoid patterns that match template boilerplate instead of document content:
 
 **Issue-based:** `tests/docs/smoke-all/YYYY/MM/DD/<issue>.qmd`
 **Feature-based:** `tests/docs/smoke-all/<feature>/`
+
+### Many fixtures: prefer a dynamic smoke test
+
+Every non-`_`-prefixed `.qmd` under `smoke-all/` is globbed and rendered as its own test target. When a test needs many fixture files (e.g. dozens of pages to reproduce a project-level bug), each stored page becomes a redundant per-file render — plus repo bloat — on top of the project render. Generate the project in a temp directory from a TypeScript `tests/smoke/<feature>/` test instead (`testQuartoCmd("render", [tempDir], ...)` with `setup`/`teardown`). See the "Project Rendering Tests" and "Performance Budget" patterns in `llm-docs/testing-patterns.md`.
+
+### Same-directory documents share `.quarto/`
+
+A smoke-all document renders as a single file whose project dir is its own directory, so every document in that directory shares one `.quarto/` scratch dir (brand font downloads in `.quarto/typst/fonts`, `typst/available-fonts.json`, other caches) and state from one test can leak into the next. CI buckets run their files in a fixed order, each as a separate process, so a test that passes alone but fails in CI may depend on which sibling rendered first: check the `buckets:` list near the top of the job log, e.g. `font-list.qmd` failing after `title-inherit-base-family.qmd` in `docs/smoke-all/typst/brand-yaml/typography/` (#14993). To reproduce locally, render the sibling first in the same directory without deleting `.quarto` in between.
 
 ## Creating New Tests
 

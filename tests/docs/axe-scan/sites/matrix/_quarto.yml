@@ -1,0 +1,22 @@
+project:
+  type: website
+
+website:
+  title: "axe matrix fixture"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: media.qmd
+        text: Media
+      - href: theme.qmd
+        text: Theme
+
+# A light and a dark theme, because the theme axis is what this site measures.
+# darkly is not decoration: theme.qmd's planted failure is in darkly's own
+# palette, and is reachable only by driving Quarto's colour-scheme toggle.
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly

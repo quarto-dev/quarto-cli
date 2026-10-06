@@ -1,20 +1,18 @@
 -- line-numbers.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local constants = require("modules/constants")
-
 function line_numbers()
   return {
     CodeBlock = function(el)
       if #el.attr.classes > 0 then
         local lineNumbers = lineNumbersAttribute(el)
-        el.attr.attributes[constants.kCodeLineNumbers] = nil
+        el.attr.attributes[_quarto.modules.constants.kCodeLineNumbers] = nil
         if lineNumbers ~= false then
           -- use the pandoc line numbering class
           el.attr.classes:insert("number-lines")
           -- remove for all formats except reveal and docusaurus
           if type(lineNumbers) == "string" and (_quarto.format.isRevealJsOutput() or _quarto.format.isDocusaurusOutput()) then
-            el.attr.attributes[constants.kCodeLineNumbers] = lineNumbers
+            el.attr.attributes[_quarto.modules.constants.kCodeLineNumbers] = lineNumbers
           end
         end
         return el
@@ -24,8 +22,8 @@ function line_numbers()
 end
 
 function lineNumbersAttribute(el)
-  local default = param(constants.kCodeLineNumbers, false)
-  local lineNumbers = attribute(el, constants.kCodeLineNumbers, default)
+  local default = param(_quarto.modules.constants.kCodeLineNumbers, false)
+  local lineNumbers = attribute(el, _quarto.modules.constants.kCodeLineNumbers, default)
   -- format that do accept string for this attributes. "1" and "0" should not be parsed as TRUE / FALSE
   local acceptStrings = _quarto.format.isRevealJsOutput() or _quarto.format.isDocusaurusOutput()
   if lineNumbers == true or lineNumbers == "true" or (lineNumbers == "1" and not acceptStrings) then

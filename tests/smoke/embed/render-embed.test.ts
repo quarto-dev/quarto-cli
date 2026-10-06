@@ -5,6 +5,7 @@
 *
 */
 import { dirname, extname, join } from "../../../src/deno_ral/path.ts";
+import { safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { docs, outputForInput } from "../../utils.ts";
 import {
   ensureFileRegexMatches,
@@ -42,8 +43,8 @@ testRender(input, format, false, [
 ], {
   teardown: () => {
     // clean up the notebook that is referenced by `embed-qmd-qmd`
-    Deno.removeSync(nbOutput);
-    Deno.removeSync(nbSupporting, { recursive: true });
+    safeRemoveSync(nbOutput);
+    safeRemoveSync(nbSupporting, { recursive: true });
 
     return Promise.resolve();
   },
@@ -95,9 +96,9 @@ testRender(ipynbInput, format, false, [
 ], {
   teardown: () => {
     // clean up the notebook that is referenced by `embed-qmd-qmd`
-    Deno.removeSync(ipynbPreviewNb);
-    Deno.removeSync(ipynbPreviewSupporting, { recursive: true });
-    Deno.removeSync(ipynbPreviewRendered);
+    safeRemoveSync(ipynbPreviewNb);
+    safeRemoveSync(ipynbPreviewSupporting, { recursive: true });
+    safeRemoveSync(ipynbPreviewRendered);
 
     return Promise.resolve();
   },
@@ -128,7 +129,7 @@ testRender(docInput, "html", false, [
 
     const cleanup = ["notebook.embed_files", "notebook.embed-preview.html", "notebook2.embed_files", "notebook2.embed-preview.html"];
     cleanup.forEach((path) => {
-      Deno.removeSync(join(dir, path), {recursive: true});
+      safeRemoveSync(join(dir, path), {recursive: true});
     })
     return Promise.resolve();
   },

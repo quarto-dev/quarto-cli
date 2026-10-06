@@ -79,7 +79,7 @@ import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "../../deno_ral/log.ts";
 import { withCriClient } from "../cri/cri.ts";
-import { normalizePath } from "../path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../path.ts";
 import {
   InvalidShortcodeError,
   isBlockShortcode,
@@ -247,7 +247,10 @@ function makeHandlerContext(
       const pngName = `${prefix}${globalFigureCounter[prefix]}${extension}`;
       const tempName = join(context.figuresDir(), pngName);
       const baseDir = dirname(options.context.target.source);
-      const mdName = relative(baseDir, tempName);
+      // Always use forward slashes: this path is embedded as an image source
+      // and can flow into writers (e.g. Typst 0.15+) that reject backslash
+      // path separators, while forward slashes work fine on Windows too.
+      const mdName = pathWithForwardSlashes(relative(baseDir, tempName));
 
       this.addSupporting(relative(baseDir, context.figuresDir()));
 

@@ -20,7 +20,9 @@ $endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+$-- Viewport: differs from Pandoc's revealjs.template so readers can zoom (WCAG 1.4.4).
+$-- See llm-docs/revealjs-format-architecture.md
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="$revealjs-url$/dist/reset.css">
   <link rel="stylesheet" href="$revealjs-url$/dist/reveal.css">
   <style>
@@ -30,6 +32,9 @@ $if(theme)$
   <link rel="stylesheet" href="$revealjs-url$/dist/theme/$theme$.css">
 $else$
   <link rel="stylesheet" href="$revealjs-url$/dist/theme/black.css">
+$endif$
+$if(highlight-js)$
+  <link rel="stylesheet" href="$revealjs-url$/plugin/highlight/$highlightjs-theme$.css">
 $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
@@ -70,6 +75,9 @@ $body$
   <script src="$revealjs-url$/plugin/zoom/zoom.js"></script>
 $if(mathjax)$
   <script src="$revealjs-url$/plugin/math/math.js"></script>
+$endif$
+$if(highlight-js)$
+  <script src="$revealjs-url$/plugin/highlight/highlight.js"></script>
 $endif$
   <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
 
@@ -313,6 +321,9 @@ $endif$
         plugins: [
 $if(mathjax)$
           RevealMath,
+$endif$
+$if(highlight-js)$
+          RevealHighlight,
 $endif$
           RevealNotes,
           RevealSearch,

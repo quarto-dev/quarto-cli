@@ -1,0 +1,26 @@
+---
+title: All crossref types
+---
+
+## Introduction {#sec-intro}
+
+See @sec-intro for the overview, @fig-plot for the figure, @tbl-data for the
+table, @eq-var for the equation, and @thm-line for the theorem.
+
+![A simple plot.](plot.png){#fig-plot}
+
+| Column A | Column B |
+|----------|----------|
+| 1        | 2        |
+
+: A small table. {#tbl-data}
+
+$$
+\sigma^2 = \frac{1}{N} \sum_{i=1}^N (x_i - \mu)^2
+$$ {#eq-var}
+
+::: {#thm-line}
+## Line
+
+The equation of a straight line is $y = mx + b$.
+:::

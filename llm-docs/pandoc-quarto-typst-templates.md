@@ -155,6 +155,8 @@ Applies the `article()` function via a show rule, mapping Pandoc metadata and br
 - `brand.typography.headings.color` → `heading-color`
 - `brand.typography.headings.line-height` → `heading-line-height`
 
+**Font availability filtering** (#12556): CSS font-family fallback lists (from brand.yaml or inline CSS) are filtered against fonts available to the Typst compiler before reaching the template. `typst_css.lua:translate_font_family_list()` reads the `typst-available-fonts` filter param (populated by `getAvailableTypstFonts()` in `src/core/typst.ts`) and removes unavailable fonts. If all fonts are filtered out, the original list is preserved. This prevents Typst 1.12+ from emitting "unknown font family" warnings for CSS fallback fonts that aren't installed.
+
 ### notes.typ - Endnotes Section
 
 Renders endnotes when present:

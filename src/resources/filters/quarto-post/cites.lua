@@ -2,12 +2,10 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 local discoveredCites = pandoc.List()
-local constants = require("modules/constants")
-
 function indexCites()   
   return {
     Div = function(el) 
-      local refsIndentifier = param(constants.kRefsIndentifier)
+      local refsIndentifier = param(_quarto.modules.constants.kRefsIndentifier)
       if el.attr.identifier == 'refs' and refsIndentifier then 
         tappend(el.content, {pandoc.Plain(refsIndentifier)})
         return el;

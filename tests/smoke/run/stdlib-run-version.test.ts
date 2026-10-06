@@ -8,15 +8,18 @@
 import { execProcess } from "../../../src/core/process.ts";
 import { assert } from "testing/asserts";
 import { unitTest } from "../../test.ts";
+import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 
 unitTest("stdlib-run-version", async () => {
   const result = await execProcess({
-    cmd: "quarto", 
+    cmd: quartoDevCmd(),
     args: [
       "run",
       "docs/run/test-stdlib.ts",
     ],
+    ...quartoSpawnEnvOptions(),
   });
   console.log({result})
   assert(result.success);

@@ -1,0 +1,17 @@
+# Third {#sec-third}
+
+| a | b |
+|---|---|
+| 1 | 2 |
+
+: A table {#tbl-three}
+
+Back to @fig-one.
+
+::: {.content-visible when-format="llms-txt"}
+LLMSONLYCHAPTERTEXT
+:::
+
+::: {.content-hidden when-format="llms-txt"}
+HTMLONLYCHAPTERTEXT
+:::

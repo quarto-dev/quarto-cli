@@ -1,5 +1,5 @@
 import { test, expect, Locator } from '@playwright/test';
-import { asRGB, checkColor, checkColorIdentical, checkFontSizeSimilar, getCSSProperty, RGBColor } from '../src/utils';
+import { asRGB, checkColor, checkColorIdentical, checkFontSizeSimilar, expectCloseTo, getCSSProperty, RGBColor } from '../src/utils';
 
 async function getRevealMainFontSize(page: any): Promise<number> {
   return await getCSSProperty(page.locator('body'), "--r-main-font-size", true) as number;
@@ -25,9 +25,9 @@ test('Code font size in callouts and smaller slide is scaled down', async ({ pag
   const codeBlockFontSizeDefault = await getCSSProperty(page.locator('#highlighted-cell pre'), "font-size", true) as number;
   const codeInlineFontSizeDefault = await getCSSProperty(page.locator('#no-callout-inline').getByText('testthat::test_that()'), "font-size", true) as number;
   // Font size in callout for inline code should be scaled smaller than default inline code
-  expect(await getCSSProperty(page.locator('#callouts').getByText('testthat::test_that()'), "font-size", true)).toBeCloseTo(codeInlineFontSizeDefault * scaleFactor);
+  expectCloseTo(await getCSSProperty(page.locator('#callouts').getByText('testthat::test_that()'), "font-size", true) as number, codeInlineFontSizeDefault * scaleFactor);
   // Font size for code block in callout should be scaled smaller that default code block
-  expect(await getCSSProperty(page.locator('#callouts .callout pre code'), 'font-size', true)).toBeCloseTo(codeBlockFontSizeDefault * scaleFactor);
+  expectCloseTo(await getCSSProperty(page.locator('#callouts .callout pre code'), 'font-size', true) as number, codeBlockFontSizeDefault * scaleFactor);
   // Font size in callout for inline code should be samely size as text than by default
   const codeInlineFontSize = await getRevealCodeInlineFontSize(page);
   await checkFontSizeSimilar( 
@@ -48,9 +48,9 @@ test('Code font size in smaller slide is scaled down', async ({ page }) => {
   const codeBlockFontSizeDefault = await getCSSProperty(page.locator('#highlighted-cell pre'), "font-size", true) as number;
   const codeInlineFontSizeDefault = await getCSSProperty(page.locator('#no-callout-inline').getByText('testthat::test_that()'), "font-size", true) as number;
   // Font size in callout for inline code should be scaled smaller than default inline code
-  expect(await getCSSProperty(page.locator('#smaller-slide p').filter({ hasText: 'Some inline code' }).getByRole('code'), "font-size", true)).toBeCloseTo(codeInlineFontSizeDefault * scaleFactor);
+  expectCloseTo(await getCSSProperty(page.locator('#smaller-slide p').filter({ hasText: 'Some inline code' }).getByRole('code'), "font-size", true) as number, codeInlineFontSizeDefault * scaleFactor);
   // Font size for code block in callout should be scaled smaller that default code block
-  expect(await getCSSProperty(page.locator('#smaller-slide pre').getByRole('code'), 'font-size', true)).toBeCloseTo(codeBlockFontSizeDefault * scaleFactor);
+  expectCloseTo(await getCSSProperty(page.locator('#smaller-slide pre').getByRole('code'), 'font-size', true) as number, codeBlockFontSizeDefault * scaleFactor);
   // Font size in callout for inline code should be samely size as text than by default
   const codeInlineFontSize = await getRevealCodeInlineFontSize(page);
   await checkFontSizeSimilar( 

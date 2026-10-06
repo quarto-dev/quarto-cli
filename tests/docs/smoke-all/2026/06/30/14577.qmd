@@ -1,0 +1,29 @@
+---
+title: "Embed code-comment title (issue 14577)"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          # The notebook source link uses the filename as the title
+          - 'Source:\s*notebook\.ipynb'
+        -
+          # The Python comment must never be used as the notebook title
+          - 'Source:\s*(#\s*)?plt\.savefig'
+      postRenderCleanup:
+        - notebook-preview.html
+        - notebook.out.ipynb
+        - notebook_files
+---
+
+The embedded notebook has no markdown heading cells and a code cell whose last
+line is a Python comment (`# plt.savefig(...)`). The notebook markdown a code
+cell carries is its fenced source, and heading extraction is not fence-aware,
+so the `#` comment matched the ATX-heading regex and was promoted to the
+notebook title — surfacing in the "Source" link and sidebar.
+
+The title used for the "Source" link must fall back to the notebook filename,
+not the code comment.
+
+{{< embed notebook.ipynb echo=true >}}

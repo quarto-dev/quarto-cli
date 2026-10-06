@@ -16,6 +16,7 @@ _quarto.modules = {
   lightbox = require("modules/lightbox"),
   mediabag = require("modules/mediabag"),
   openxml = require("modules/openxml"),
+  path = require("modules/path"),
   patterns = require("modules/patterns"),
   scope = require("modules/scope"),
   string = require("modules/string"),

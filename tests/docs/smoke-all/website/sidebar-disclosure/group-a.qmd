@@ -1,0 +1,15 @@
+---
+title: "Group A"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['button.sidebar-item-toggle[data-bs-target="#quarto-sidebar-section-1"][aria-expanded="true"]',
+           'ul#quarto-sidebar-section-1.show[aria-labelledby="quarto-sidebar-section-1-label"]',
+           'button.sidebar-item-toggle[data-bs-target="#quarto-sidebar-section-2"][aria-expanded="false"]']
+        - ['#quarto-sidebar a.sidebar-item-toggle',
+           '#quarto-sidebar a[role="navigation"]']
+---
+
+The section holding the active page reports `aria-expanded="true"`, while a
+nested section that stays closed still reports `false`.

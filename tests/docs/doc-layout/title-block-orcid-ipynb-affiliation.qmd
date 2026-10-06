@@ -1,0 +1,14 @@
+---
+title: "ORCID accessibility in ipynb title-block (with affiliations)"
+author:
+  - name: Norah Jones
+    orcid: 0000-0001-2345-6789
+    affiliations:
+      - name: Carleton University
+      - name: Posit
+format: ipynb
+---
+
+## Section
+
+Content.

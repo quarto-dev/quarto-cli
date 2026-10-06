@@ -4,9 +4,9 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { assert } from "testing/asserts";
+import { assert, assertEquals } from "testing/asserts";
 import { Metadata } from "../../src/config/types.ts";
-import { languagesWithClasses, partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
+import { languagesWithClasses, markdownWithExtractedHeading, partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
 import { unitTest } from "../test.ts";
 
 // deno-lint-ignore require-await
@@ -73,3 +73,149 @@ y = 2
   assert(result.has("python"), "Should have language 'python'");
   assert(result.get("python") === "foo", "python should have class 'foo'");
 });
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - ignores an ATX-heading-like line inside a fenced code block",
+  async () => {
+    const markdown = [
+      "```{python}",
+      "print('hello')",
+      "# plt.savefig('x.svg')",
+      "```",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(
+      result.headingText,
+      undefined,
+      "A comment inside a fenced code block must not be treated as a heading",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - still extracts a real heading after a closed fenced code block",
+  async () => {
+    const markdown = [
+      "```{python}",
+      "print('hello')",
+      "```",
+      "",
+      "# Real Heading",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, "Real Heading");
+    assert(
+      result.contentBeforeHeading,
+      "The fenced block content should still count as content before the heading",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - still promotes a heading that follows a prose paragraph (no fence)",
+  async () => {
+    const markdown = [
+      "Some intro paragraph.",
+      "",
+      "# Real Heading",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(
+      result.headingText,
+      "Real Heading",
+      "Non-fenced prose before a heading must not prevent heading extraction",
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - ignores an ATX-heading-like line inside a tilde-fenced code block",
+  async () => {
+    const markdown = [
+      "~~~python",
+      "# not a heading",
+      "~~~",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, undefined);
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - ignores an ATX-heading-like line inside a fenced code block whose fence markers are indented up to 3 spaces",
+  async () => {
+    const markdown = [
+      "- a list item with a nested code block",
+      "",
+      "  ```python",
+      "# not a heading",
+      "  ```",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, undefined);
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - closes a fence whose closing marker is indented, then extracts the following heading",
+  async () => {
+    const markdown = [
+      "```python",
+      "code",
+      "   ```",
+      "# Real Heading",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, "Real Heading");
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - extracts a setext-style heading",
+  async () => {
+    const markdown = [
+      "Real Heading",
+      "===",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, "Real Heading");
+    assertEquals(result.lines, []);
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - no heading present",
+  async () => {
+    const markdown = [
+      "Just a paragraph.",
+      "",
+      "Another paragraph.",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, undefined);
+    assertEquals(result.lines, markdown.split("\n"));
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "markdownWithExtractedHeading - contentBeforeHeading is false when the heading is the first line",
+  async () => {
+    const markdown = [
+      "# Real Heading",
+      "",
+      "Some body text.",
+    ].join("\n");
+    const result = markdownWithExtractedHeading(markdown);
+    assertEquals(result.headingText, "Real Heading");
+    assertEquals(result.contentBeforeHeading, false);
+  },
+);

@@ -1,0 +1,22 @@
+---
+title: Skip-to-content link (custom page layout)
+format:
+  html:
+    page-layout: custom
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # skip link is the first element of the body
+          - 'body > a#quarto-skip-link:first-child[href="#quarto-document-content"]'
+          # custom layouts have no <main>; the layout container gets the id
+          - 'div.page-layout-custom#quarto-document-content[tabindex="-1"]'
+        - []
+---
+
+Standalone documents with `page-layout: custom` have no `<main>` element;
+the skip link should target the custom layout container instead
+(<https://github.com/quarto-dev/quarto-cli/issues/14684>).
+
+Some custom content.

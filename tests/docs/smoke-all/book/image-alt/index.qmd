@@ -1,0 +1,14 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'meta[property="og:image:alt"][content="A description of the preview image"]'
+          - 'meta[name="twitter:image:alt"][content="A description of the preview image"]'
+---
+
+# Preface {.unnumbered}
+
+`image-alt` under the `book` key must set the alt text on the social metadata
+preview image.

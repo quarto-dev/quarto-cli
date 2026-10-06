@@ -23,6 +23,7 @@ import {
   DependencyHtmlFile,
   Format,
   FormatExtras,
+  FormatLanguage,
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
@@ -154,7 +155,7 @@ export function dashboardFormat() {
         extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
           [];
         extras.html[kHtmlPostprocessors].push(
-          dashboardHtmlPostProcessor(dashboard),
+          dashboardHtmlPostProcessor(dashboard, format.language),
         );
 
         extras.metadata = extras.metadata || {};
@@ -317,6 +318,7 @@ registerWriterFormatHandler((format) => {
 
 function dashboardHtmlPostProcessor(
   dashboardMeta: DashboardMeta,
+  language: FormatLanguage,
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     const result: HtmlPostProcessResult = {
@@ -335,6 +337,9 @@ function dashboardHtmlPostProcessor(
     // Mark the page container with layout instructions
     const containerEl = doc.querySelector("div.page-layout-custom");
     if (containerEl) {
+      // dashboards have no <main> element, so mark the content container
+      // as the main landmark for assistive technology
+      containerEl.setAttribute("role", "main");
       const containerClz = [
         "quarto-dashboard-content",
         "bslib-gap-spacing",
@@ -391,7 +396,7 @@ function dashboardHtmlPostProcessor(
     processNavigation(doc);
 
     // Process pages that may be present in the document
-    processPages(doc, dashboardMeta);
+    processPages(doc, dashboardMeta, language);
 
     // Process Navbar buttons
     processNavButtons(doc, dashboardMeta);

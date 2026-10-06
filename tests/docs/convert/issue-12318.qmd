@@ -1,0 +1,28 @@
+---
+title: Quarto Crossrefs
+format: html
+jupyter: python3
+categories: [plot, python, equation]
+---
+
+## Overview
+
+See @fig-simple in @sec-plot for a demonstration of a simple plot.
+
+See @eq-stddev to better understand standard deviation.
+
+## Plot {#sec-plot}
+
+```{python}
+#| label: fig-simple
+#| fig-cap: "Simple Plot"
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+## Equation {#sec-equation}
+
+$$
+s = \sqrt{\frac{1}{N-1} \sum_{i=1}^N (x_i - \overline{x})^2}
+$$ {#eq-stddev}

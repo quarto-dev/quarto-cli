@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hand-written legacy page</title>
+</head>
+<body>
+<main>
+<h1>Hand-written legacy page</h1>
+
+<p>Not Quarto output. This page exists to prove a rendered site scans as-is
+without depending on Quarto's DOM, and to pin the signature-normalization edge
+cases with exact markup.</p>
+
+<h2>Digit runs inside an attribute value</h2>
+
+<!-- PLANTED: button-name (critical), three instances. axe has no href or class
+     to key on here, so it selects on the attribute, and the normalizer
+     wildcards the digit run: all three collapse to one signature. -->
+<button data-widget-target="#panel-1"></button>
+<button data-widget-target="#panel-2"></button>
+<button data-widget-target="#panel-17"></button>
+
+<!-- PLANTED: button-name (critical), one instance, and it must NOT join the
+     three above. Same generic attribute, different component — if these
+     collapsed, accepting the panels would silence the dialog. -->
+<button data-widget-target="#settings-dialog"></button>
+
+<h2>Volatile attributes</h2>
+
+<!-- PLANTED: image-alt (critical), two instances collapsing to one signature.
+     They differ in id and style, which are both dropped as volatile. -->
+<p><img src="dot.png" id="hero-14" style="width:20px" width="20"></p>
+<p><img src="dot.png" id="hero-15" style="width:24px" width="24"></p>
+
+<h2>href is volatile too</h2>
+
+<!-- PLANTED: link-name (serious), two instances collapsing to one signature.
+     axe keys these on href, which the normalizer drops entirely, so the
+     signature reduces to the bare tag. Recorded because it is the widest
+     collapse the scheme performs: page scoping in the baseline, not the
+     signature, is what keeps such an acceptance honest. -->
+<p><a href="/one.html"><span></span></a></p>
+<p><a href="/two.html"><span></span></a></p>
+</main>
+</body>
+</html>

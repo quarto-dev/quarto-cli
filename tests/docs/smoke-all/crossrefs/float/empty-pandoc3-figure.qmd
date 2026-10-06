@@ -1,0 +1,15 @@
+---
+title: Empty Pandoc 3 Figure content guard
+format: html
+filters:
+  - at: pre-ast
+    path: empty-pandoc3-figure-filter.lua
+_quarto:
+  tests:
+    html:
+      noErrors: default
+---
+
+## Figure without cross-ref identifier
+
+![A plain figure caption](img/surus.jpg)

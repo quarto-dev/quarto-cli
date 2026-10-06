@@ -1,5 +1,3 @@
-local constants = require("modules/constants")
-
 function format_typst_float(x)
   local f = string.format('%.2f', x)
   -- trim zeros after decimal point
@@ -8,7 +6,7 @@ end
 
 function render_typst_css_property_processing()
   if not _quarto.format.isTypstOutput() or
-    param(constants.kCssPropertyProcessing, 'translate') ~= 'translate' then
+    param(_quarto.modules.constants.kCssPropertyProcessing, 'translate') ~= 'translate' then
     return {}
   end
 

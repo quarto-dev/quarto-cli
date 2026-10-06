@@ -1,0 +1,12 @@
+---
+title: "Brand detection during preview"
+format:
+  typst:
+    keep-typ: true
+---
+
+Voir la [documentation](https://example.com).
+
+When a sibling `_brand.yml` sets `primary: imperial-red`, the link above
+turns red in the Typst output. Adding or removing `_brand.yml` while a
+`quarto preview` session is running is the behavior under test.

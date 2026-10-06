@@ -10,6 +10,7 @@ import { execProcess } from "../../../src/core/process.ts";
 import { md5HashSync } from "../../../src/core/hash.ts";
 import { safeRemoveIfExists } from "../../../src/core/path.ts";
 import { quartoDevCmd, outputForInput } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { assert } from "testing/asserts";
 import { LogFormat } from "../../../src/core/log.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
@@ -34,12 +35,18 @@ function testLogDirectly(options: {
   logFile?: string,
   fileToRender?: string,
   quiet?: boolean,
+  env?: Record<string, string>,
   expectedOutputs?: {
     // To test log output for document with errors
     shouldSucceed?: boolean
     // For plain format, we can check for specific text in the output
     shouldContain?: string[],
     shouldNotContain?: string[],
+    // Exact number of non-overlapping occurrences of a substring in stdout+stderr.
+    // Needed to pin intentional duplication: at INFO level pandoc's stderr is
+    // printed twice (streamed live by execProcess, then re-logged as the ERROR
+    // record), and shouldContain can only prove presence, not count.
+    shouldContainCount?: Record<string, number>,
     // For JSON format, we can also check for specific log levels
     shouldContainLevel?: string[],
     shouldNotContainLevel?: string[],
@@ -90,7 +97,8 @@ function testLogDirectly(options: {
           cmd: quartoDevCmd(),
           args: args,
           stdout: "piped",
-          stderr: "piped"
+          stderr: "piped",
+          ...quartoSpawnEnvOptions(options.env),
         });
         
         // Get stdout/stderr with fallback to empty string
@@ -128,6 +136,17 @@ function testLogDirectly(options: {
           }
         }
         
+        // Check for an exact number of occurrences
+        if (options.expectedOutputs?.shouldContainCount) {
+          for (const [text, expected] of Object.entries(options.expectedOutputs.shouldContainCount)) {
+            const actual = allOutput.split(text).length - 1;
+            assert(
+              actual === expected,
+              `Output should contain '${text}' exactly ${expected} time(s) but found ${actual}.\nOutput: ${allOutput}`
+            );
+          }
+        }
+
         // For quiet mode, verify no output
         if (options.quiet) {
           assert(
@@ -137,35 +156,31 @@ function testLogDirectly(options: {
         }
 
         
-        // If JSON format is specified, verify the output is valid JSON
+        // Catch parsing errors only; assertion failures must propagate.
         if (logFile && options.format === "json-stream") {
           assert(existsSync(logFile), "Log file should exist");
-          let foundValidJson = false;
+          let outputs;
           try {
-            const outputs = readExecuteOutput(logFile);
-            foundValidJson = true;
-            outputs.filter((out) => out.msg !== "" && options.expectedOutputs?.shouldNotContainLevel?.includes(out.levelName)).forEach(
-              (out) => {
-                assert(false, `JSON output should not contain level ${out.levelName}, but found: ${out.msg}`);
-              }
+            outputs = readExecuteOutput(logFile);
+          } catch {
+            outputs = undefined;
+          }
+          assert(outputs !== undefined, "JSON format should produce valid JSON output");
+          const records = outputs!.filter((out) => out.msg !== "");
+          const levels = new Set(records.map((out) => out.levelName));
+          for (const lvl of options.expectedOutputs?.shouldNotContainLevel ?? []) {
+            const offending = records.find((out) => out.levelName === lvl);
+            assert(
+              offending === undefined,
+              `JSON log should not contain level ${lvl}, but found: ${offending?.msg}`
             );
-            outputs.filter((out) => out.msg !== "" && options.expectedOutputs?.shouldContainLevel?.includes(out.levelName)).forEach(
-              (out) => {
-                let json = undefined;
-                try {
-                  json = JSON.parse(out.msg);
-                } catch {
-                  assert(false, "Error parsing JSON returned by quarto meta");
-                }
-                assert(
-                  Object.keys(json).length > 0,
-                  "JSON returned by quarto meta seems invalid",
-                );
-              }
+          }
+          for (const lvl of options.expectedOutputs?.shouldContainLevel ?? []) {
+            assert(
+              levels.has(lvl),
+              `JSON log should contain at least one ${lvl} record; found levels: ${[...levels].join(", ") || "(none)"}`
             );
-
-          } catch (e) {}
-          assert(foundValidJson, "JSON format should produce valid JSON output");
+          }
         }
       } finally {
         // Clean up log file if it exists
@@ -190,6 +205,15 @@ const infoHintText = function(testDoc: string) {
   return `Output created: ${basename(testDoc, extname(testDoc))}.html`;
 };
 
+// The lua filter used by testDocWithError (docs/logging/error-filter.lua) calls
+// an undefined global, which pandoc reports as this exact Lua runtime error
+// once, followed by two "stack traceback:" blocks (pandoc's own duplication of
+// the traceback, unrelated to quarto's log level handling). This substring
+// appears exactly once per emission of pandoc's stderr, which makes it safe
+// to count for pinning quarto's own double-print at INFO level.
+const pandocStderrMarker =
+  "attempt to call a nil value (global 'internal_error')";
+
 testLogDirectly({
   testName: "Plain format - DEBUG level should show all log messages",
   level: "debug",
@@ -213,13 +237,31 @@ testLogDirectly({
   }
 });
 
+// Characterization test for the accepted tradeoff of the pandoc-failure ERROR
+// record: at INFO level (the CLI default) pandoc's stderr reaches the console
+// twice - once streamed live as INFO records by execProcess/processOutput, once
+// as the single ERROR record logged by runPandoc. This test pins that count so a
+// future change to it is a deliberate decision, not a silent regression.
+testLogDirectly({
+  testName: "Plain format - INFO level prints pandoc stderr twice on failure (streamed + ERROR record)",
+  level: "info",
+  format: "plain",
+  fileToRender: testDocWithError,
+  expectedOutputs: {
+    shouldSucceed: false,
+    shouldContain: ["ERROR:", pandocStderrMarker],
+    shouldNotContain: [debugHintText, infoHintText(testDocWithError)],
+    shouldContainCount: { [pandocStderrMarker]: 2 },
+  }
+});
+
 testLogDirectly({
   testName: "Plain format - WARN level should not show INFO or DEBUG messages",
   level: "warn",
   format: "plain",
   fileToRender: testDocWithError,
   expectedOutputs: {
-    shouldContain: ["WARN:", "ERROR:"],
+    shouldContain: ["ERROR:"],
     shouldNotContain: [debugHintText, infoHintText(testDocWithError)],
     shouldSucceed: false
   }
@@ -233,6 +275,19 @@ testLogDirectly({
   expectedOutputs: {
     shouldContain: ["ERROR:"],
     shouldNotContain: [debugHintText, infoHintText(testDocWithError), "WARN:"],
+    shouldContainCount: { [pandocStderrMarker]: 1 },
+    shouldSucceed: false
+  }
+});
+
+testLogDirectly({
+  testName: "Plain format - ERROR level should report a real error without QUARTO_DEBUG",
+  level: "error",
+  format: "plain",
+  fileToRender: testDocWithError,
+  env: { QUARTO_DEBUG: "false" },
+  expectedOutputs: {
+    shouldContain: ["ERROR:", "error-filter.lua"],
     shouldSucceed: false
   }
 });
@@ -268,7 +323,7 @@ testLogDirectly({
   fileToRender: testDocWithError,
   expectedOutputs: {
     shouldSucceed: false,
-    shouldContainLevel: ["WARN", "ERROR"],
+    shouldContainLevel: ["ERROR"],
     shouldNotContainLevel: ["INFO", "DEBUG"],
   }
 });
@@ -331,7 +386,7 @@ testLogDirectly({
   fileToRender: testDocWithError,
   expectedOutputs: {
     shouldSucceed: false,
-    shouldContainLevel: ["DEBUG", "INFO", "WARN", "ERROR"]
+    shouldContainLevel: ["DEBUG", "INFO", "ERROR"]
   }
 });
 
@@ -354,7 +409,7 @@ testLogDirectly({
   format: "plain",
   fileToRender: testDocWithError,
   expectedOutputs: {
-    shouldContain: ["WARN:", "ERROR:"],
+    shouldContain: ["ERROR:"],
     shouldNotContain: [debugHintText, infoHintText(testDocWithError)],
     shouldSucceed: false
   }

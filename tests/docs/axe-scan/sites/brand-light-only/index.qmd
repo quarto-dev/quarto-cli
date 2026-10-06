@@ -1,0 +1,18 @@
+---
+title: Home
+---
+
+This site's `_brand.yml` sets light values only, so Quarto emits the
+colour-scheme stylesheet links — all tagged `data-mode="light"` — but no
+before-body script and no colour-scheme toggle: there is one mode.
+
+```{=html}
+<!-- PLANTED: button-name (critical). A bare button, so the page's single
+     'default' cell has one finding to report. An empty result would look
+     identical to a page that was never scanned, so the fixture needs
+     something to find. -->
+<p><button></button></p>
+```
+
+Keep this page's markup minimal. Anything that adds a second, conditional
+finding would blur the one comparison the site exists to make.

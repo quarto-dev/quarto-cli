@@ -1,0 +1,22 @@
+---
+format:
+  html:
+    axe:
+      output: json
+      best-practice: false
+---
+
+## Standard scoping
+
+This document violates one rule per scope: `image-alt` (WCAG 2.0 A),
+`color-contrast` (WCAG 2.0 AA), and `heading-order` (axe best practice).
+With `best-practice: false` and no `standard`, the WCAG violations should be
+reported but not `heading-order`.
+
+This text violates contrast rules: [insufficient contrast.]{style="color: #eee; background: #fff;"}.
+
+<img src="placeholder.png" class="axe-test-img">
+
+#### Skipped heading level
+
+Jumping from h2 to h4 violates axe's best-practice `heading-order` rule.

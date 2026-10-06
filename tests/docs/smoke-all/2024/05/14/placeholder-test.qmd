@@ -1,5 +1,13 @@
 ---
 format: html
+_quarto:
+  tests:
+    html:
+      # The placeholder shortcode must never leak its error string into the
+      # output as image content (regression: svg2png.deno.dev sunset, #14722).
+      ensureFileRegexMatches:
+        - ['data:image/png;base64']          # png placeholders rasterize locally via typst
+        - ['Error rendering placeholder']     # and never leak the error text
 ---
 
 ::: {#fig-placeholder-test}

@@ -15,8 +15,9 @@ fi
 
 echo Revendoring quarto dependencies
 
-# remove deno_cache directory first
-if [ -d "$DENO_DIR" ]; then
+# remove deno_cache directory first, unless explicitly told to preserve
+# (CI sets QUARTO_SKIP_DENO_CACHE_WIPE=1 so a restored cache survives vendor.sh)
+if [ -d "$DENO_DIR" ] && [ "${QUARTO_SKIP_DENO_CACHE_WIPE}" != "1" ]; then
   rm -rf "$DENO_DIR"
 fi
 

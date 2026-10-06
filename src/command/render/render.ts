@@ -12,7 +12,10 @@ import { Document, parseHtml } from "../../core/deno-dom.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { inputFilesDir } from "../../core/render.ts";
+import {
+  inputFilesDir,
+  keepMdCollidesWithFormatOutput,
+} from "../../core/render.ts";
 import {
   normalizePath,
   pathWithForwardSlashes,
@@ -202,9 +205,6 @@ export async function renderPandoc(
 
   // run pandoc conversion (exit on failure)
   const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
-  if (!pandocResult) {
-    return Promise.reject();
-  }
 
   return {
     complete: async (renderedFormats: RenderedFormat[], cleanup?: boolean) => {
@@ -374,6 +374,15 @@ export async function renderPandoc(
       }
 
       if (cleanup !== false) {
+        // the conventional keep-md location can coincide with the declared
+        // output of another format (e.g. output-file: index.html plus a
+        // markdown format yields index.html.md) -- never clean up a path
+        // that a format owns (#14669)
+        const keepMd = executionEngineKeepMd(context);
+        const keepMdIsFormatOutput = keepMdCollidesWithFormatOutput(
+          keepMd,
+          context.siblingFormatOutputs,
+        );
         withTiming("render-cleanup", () =>
           renderCleanup(
             context.target.input,
@@ -381,7 +390,7 @@ export async function renderPandoc(
             format,
             file.context.project,
             cleanupSelfContained,
-            executionEngineKeepMd(context),
+            keepMdIsFormatOutput ? undefined : keepMd,
           ));
       }
 

@@ -5,6 +5,7 @@
  */
 
 import { unitTest } from "../../test.ts";
+import { withTempDir } from "../../utils.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
@@ -13,6 +14,7 @@ import { runningInCI } from "../../../src/core/ci-info.ts";
 import { InstallContext } from "../../../src/tools/types.ts";
 import {
   detectChromePlatform,
+  downloadAndExtractChrome,
   fetchPlaywrightBrowsersJson,
   findChromeExecutable,
   isPlaywrightCdnPlatform,
@@ -23,6 +25,7 @@ import {
   chromeHeadlessShellBinaryName,
   chromeHeadlessShellInstallDir,
   chromeHeadlessShellExecutablePath,
+  findChromeHeadlessShellExecutable,
   isInstalled,
   noteInstalledVersion,
   readInstalledVersion,
@@ -100,8 +103,7 @@ unitTest("isInstalled - returns false when only binary exists (no version file)"
   try {
     const { platform } = detectChromePlatform();
     const binName = chromeHeadlessShellBinaryName();
-    // CfT layout: chrome-headless-shell-{platform}/binary
-    // Playwright arm64 layout: chrome-linux/binary (found via walkSync fallback)
+    // CfT layout (all platforms, including Playwright CDN arm64): chrome-headless-shell-{platform}/binary
     const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
     Deno.mkdirSync(subdir);
     const target = isWindows ? `${binName}.exe` : binName;
@@ -129,6 +131,102 @@ unitTest("isInstalled - returns true when version file and binary exist", async 
   }
 });
 
+// -- Step 3b: legacy Playwright arm64 layout (backward compatibility) --
+//
+// Linux arm64 installs made before Playwright's CDN moved to the
+// browserVersion-keyed builds/cft/ path (roughly 2026-04 through 2026-08-31)
+// extracted Playwright's own package layout: chrome-linux/headless_shell.
+// Current installs use the CfT layout chrome-headless-shell-linux-arm64/
+// chrome-headless-shell. Detection has to keep recognising the old layout,
+// otherwise a machine with a perfectly good binary on disk falls through to
+// system-Chrome detection and every Chrome-backed render dies with
+// "Chrome not found".
+//
+// allowLegacyPlaywrightLayout is passed explicitly in these tests because the
+// default is derived from isPlaywrightCdnPlatform(), which auto-detects the
+// *host* platform — so the arm64 branch is otherwise unreachable here.
+
+// Legacy fixture: chrome-linux/headless_shell. findChromeExecutable appends
+// ".exe" whenever the host is Windows, so the fixture matches that to exercise
+// the same code path off-Linux.
+function writeLegacyPlaywrightFixture(dir: string): string {
+  const legacyDir = join(dir, "chrome-linux");
+  Deno.mkdirSync(legacyDir, { recursive: true });
+  const target = isWindows ? "headless_shell.exe" : "headless_shell";
+  const path = join(legacyDir, target);
+  Deno.writeTextFileSync(path, "fake");
+  return path;
+}
+
+// Current CfT fixture: chrome-headless-shell-{platform}/chrome-headless-shell.
+function writeCftFixture(dir: string): string {
+  const { platform } = detectChromePlatform();
+  const binName = chromeHeadlessShellBinaryName();
+  const subdir = join(dir, `chrome-headless-shell-${platform}`);
+  Deno.mkdirSync(subdir, { recursive: true });
+  const target = isWindows ? `${binName}.exe` : binName;
+  const path = join(subdir, target);
+  Deno.writeTextFileSync(path, "fake");
+  return path;
+}
+
+unitTest(
+  "findChromeHeadlessShellExecutable - finds legacy Playwright arm64 layout",
+  () =>
+    withTempDir((tempDir) => {
+      const legacyPath = writeLegacyPlaywrightFixture(tempDir);
+
+      // Sanity check: the current binary name genuinely cannot see the legacy
+      // file, since findChromeExecutable matches on exact basename.
+      assertEquals(
+        findChromeExecutable(tempDir, chromeHeadlessShellBinaryName()),
+        undefined,
+        "sanity check: current binary name must not match headless_shell",
+      );
+
+      const found = findChromeHeadlessShellExecutable(tempDir, true);
+      assertEquals(found, legacyPath);
+    }),
+);
+
+unitTest(
+  "findChromeHeadlessShellExecutable - ignores legacy layout when legacy lookup is off",
+  () =>
+    withTempDir((tempDir) => {
+      writeLegacyPlaywrightFixture(tempDir);
+      assertEquals(findChromeHeadlessShellExecutable(tempDir, false), undefined);
+    }),
+);
+
+unitTest(
+  "findChromeHeadlessShellExecutable - prefers current CfT layout over legacy",
+  () =>
+    withTempDir((tempDir) => {
+      const cftPath = writeCftFixture(tempDir);
+      writeLegacyPlaywrightFixture(tempDir);
+      assertEquals(findChromeHeadlessShellExecutable(tempDir, true), cftPath);
+    }),
+);
+
+unitTest(
+  "isInstalled - returns true for legacy Playwright arm64 layout",
+  () =>
+    withTempDir((tempDir) => {
+      noteInstalledVersion(tempDir, "140.0.7259.2");
+      writeLegacyPlaywrightFixture(tempDir);
+      assertEquals(isInstalled(tempDir, true), true);
+    }),
+);
+
+unitTest(
+  "isInstalled - returns false for legacy layout with no version file",
+  () =>
+    withTempDir((tempDir) => {
+      writeLegacyPlaywrightFixture(tempDir);
+      assertEquals(isInstalled(tempDir, true), false);
+    }),
+);
+
 // -- Step 4: latestRelease() (external HTTP call, skip on CI) --
 
 unitTest("latestRelease - returns valid RemotePackageInfo", async () => {
@@ -139,10 +237,9 @@ unitTest("latestRelease - returns valid RemotePackageInfo", async () => {
     `version format wrong: ${release.version}`,
   );
   assert(release.url.startsWith("https://"), `URL should be https: ${release.url}`);
-  // CfT URLs contain the version; Playwright CDN URLs contain a revision number instead
-  if (!isPlaywrightCdnPlatform()) {
-    assert(release.url.includes(release.version), "CfT URL should contain version");
-  } else {
+  // Both CfT and Playwright CDN URLs contain the browserVersion
+  assert(release.url.includes(release.version), "URL should contain version");
+  if (isPlaywrightCdnPlatform()) {
     assert(release.url.includes("cdn.playwright.dev"), "arm64 URL should use Playwright CDN");
   }
   assert(release.assets.length > 0, "should have at least one asset");
@@ -155,19 +252,52 @@ unitTest("latestRelease - returns valid RemotePackageInfo", async () => {
 
 unitTest("Playwright CDN - browsers.json and URL construction", async () => {
   const entry = await fetchPlaywrightBrowsersJson();
-  const url = playwrightCdnDownloadUrl(entry.revision);
+  const url = playwrightCdnDownloadUrl(entry.browserVersion);
   assert(
     /^\d+\.\d+\.\d+\.\d+$/.test(entry.browserVersion),
     `browserVersion format wrong: ${entry.browserVersion}`,
   );
   assert(
-    url.includes(entry.revision),
-    `URL should contain revision ${entry.revision}`,
+    url.includes(entry.browserVersion),
+    `URL should contain browserVersion ${entry.browserVersion}`,
   );
   assert(
     url.includes("linux-arm64"),
     "URL should be for linux-arm64",
   );
+}, { ignore: runningInCI() });
+
+// The Playwright CDN arm64 archive redirects to the same chrome-for-testing-public
+// bucket used for every other platform, so it shares that layout: a
+// chrome-headless-shell-linux-arm64/chrome-headless-shell binary, not Playwright's
+// older chrome-linux/headless_shell layout. This downloads the real archive to
+// guard against CfT (or Playwright's mirror of it) changing that layout again.
+// Checked with existsSync against the literal extracted path rather than
+// findChromeExecutable(), which appends ".exe" whenever the *host* is Windows —
+// irrelevant here since the archive itself is always a Linux arm64 build,
+// regardless of what platform runs this test.
+unitTest("Playwright CDN arm64 archive uses chrome-headless-shell binary name, not headless_shell", async () => {
+  const entry = await fetchPlaywrightBrowsersJson();
+  const url = playwrightCdnDownloadUrl(entry.browserVersion);
+  const tempDir = Deno.makeTempDirSync();
+  try {
+    await downloadAndExtractChrome(
+      "Chrome Headless Shell (arm64)",
+      url,
+      tempDir,
+      createMockContext(tempDir),
+    );
+    assert(
+      existsSync(join(tempDir, "chrome-headless-shell-linux-arm64", "chrome-headless-shell")),
+      "arm64 archive should contain chrome-headless-shell-linux-arm64/chrome-headless-shell",
+    );
+    assert(
+      !existsSync(join(tempDir, "chrome-linux", "headless_shell")),
+      "arm64 archive should not use Playwright's old chrome-linux/headless_shell layout",
+    );
+  } finally {
+    safeRemoveSync(tempDir, { recursive: true });
+  }
 }, { ignore: runningInCI() });
 
 // -- Step 5: preparePackage() (downloads ~50MB, skip on CI) --

@@ -1,0 +1,27 @@
+---
+title: Skip-to-content link
+toc: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # skip link is the first element of the body
+          - 'body > a#quarto-skip-link:first-child[href="#quarto-document-content"]'
+          # target is focusable via the link
+          - 'main#quarto-document-content[tabindex="-1"]'
+        - []
+---
+
+HTML documents should include a "Skip to main content" link as the first
+element of the body so that keyboard users can bypass navigation blocks
+such as the TOC (<https://github.com/quarto-dev/quarto-cli/issues/14684>,
+WCAG 2.4.1 Bypass Blocks).
+
+## Section One
+
+Some text with a [link](https://example.com).
+
+## Section Two
+
+More text.
