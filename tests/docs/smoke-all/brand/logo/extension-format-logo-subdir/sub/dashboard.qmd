@@ -4,6 +4,8 @@ format: repro-dashboard
 _quarto:
   tests:
     repro-dashboard:
+      fileExists:
+        outputPath: ../site_libs/quarto-contrib/quarto-project/repro/logo.png
       ensureFileRegexMatches:
         -
           - '<img src="\.\.(/|\\)site_libs(/|\\)quarto-contrib(/|\\)quarto-project(/|\\)repro(/|\\)logo\.png"'

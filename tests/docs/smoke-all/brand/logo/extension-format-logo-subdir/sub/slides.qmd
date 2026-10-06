@@ -4,6 +4,8 @@ format: repro-revealjs
 _quarto:
   tests:
     repro-revealjs:
+      fileExists:
+        outputPath: ../site_libs/quarto-contrib/quarto-project/repro/logo.png
       ensureFileRegexMatches:
         -
           - '<img src="\.\.(/|\\)site_libs(/|\\)quarto-contrib(/|\\)quarto-project(/|\\)repro(/|\\)logo\.png" class="slide-logo"'
