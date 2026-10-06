@@ -1,5 +1,6 @@
 ---
 title: A post
+author: from-document
 categories:
   - from-document
 _quarto:
@@ -10,7 +11,9 @@ _quarto:
           - 'class="quarto-category">from-project<'
           - 'class="quarto-category">from-directory<'
           - 'class="quarto-category">from-document<'
+          - '<meta name="author" content="from-directory">'
+          - '<meta name="author" content="from-document">'
         - []
 ---
 
-In a website, `categories` from `_quarto.yml`, the directory `_metadata.yml` and the document front matter are all shown on the page.
+In a website, `categories` from `_quarto.yml`, the directory `_metadata.yml` and the document front matter are all shown on the page. The `author` from the directory `_metadata.yml` and from the document front matter are both emitted too.
