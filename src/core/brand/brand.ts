@@ -477,7 +477,7 @@ export function resolveInputRelativeLogo(
   }
   // Document logo paths that only exist relative to the project directory
   // are deprecated: in a website with an active brand they still resolve,
-  // with a warning.
+  // with a warning. A file relative to the document always takes precedence.
   const projectRelativeFallback = (options: LogoOptions | undefined) => {
     if (
       !options || isExternalPath(options.path) || isAbsolute(options.path)
