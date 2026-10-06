@@ -39,7 +39,7 @@ import {
 import { existsSync } from "../../deno_ral/fs.ts";
 import { warnOnce } from "../log.ts";
 import { isCssColorName } from "../css/color-names.ts";
-import { isExternalPath } from "../url.ts";
+import { isExternalPath, tryDecodeURI } from "../url.ts";
 import {
   LogoLightDarkSpecifierPathOptional,
   LogoOptionsPathOptional,
@@ -486,7 +486,7 @@ export function resolveInputRelativeLogo(
     }
     // Logo paths are URLs; check the files they point to, as HTML resource
     // processing does, but keep the path encoded in the output.
-    const filePath = decodeUriPath(options.path);
+    const filePath = tryDecodeURI(options.path) ?? options.path;
     if (
       existsSync(join(inputDir, filePath)) ||
       !existsSync(join(projectDir, filePath))
@@ -507,18 +507,6 @@ export function resolveInputRelativeLogo(
     light: projectRelativeFallback(logo.light),
     dark: projectRelativeFallback(logo.dark),
   };
-}
-
-// Malformed escapes are left as-is, like getDecodedAttribute in core/html.ts.
-function decodeUriPath(path: string): string {
-  try {
-    return decodeURI(path);
-  } catch (e) {
-    if (e instanceof URIError) {
-      return path;
-    }
-    throw e;
-  }
 }
 
 function brandWithLogoPaths(
