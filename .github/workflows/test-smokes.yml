@@ -258,6 +258,7 @@ jobs:
           brew install poppler librsvg
 
       - name: Restore R packages
+        id: restore-r-packages
         working-directory: tests
         run: |
           cat("::group::Installing renv if needed\n")
@@ -612,16 +613,19 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
+      # Saving after an interrupted restore would upload a partially extracted
+      # cache under the exact key, which later runs then hit and never replace.
       - name: Save Typst cache
-        if: always() && steps.cache-typst.outputs.cache-hit != 'true'
+        if: ${{ !cancelled() && steps.cache-typst.outcome == 'success' && steps.cache-typst.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v5
         with:
           key: ${{ steps.cache-typst.outputs.cache-primary-key }}
           path: ${{ steps.cache-typst.outputs.cache-path }}
 
       - name: Save Renv package cache
-        # don't save cache if we have extra R packages
-        if: ${{ always() && steps.cache-renv-packages-restore.outputs.cache-hit != 'true' && inputs.extra-r-packages == '' }}
+        # don't save cache if we have extra R packages, or if the cache restore or
+        # renv::restore did not complete (partial library, see Typst cache above)
+        if: ${{ !cancelled() && steps.restore-r-packages.outcome == 'success' && steps.cache-renv-packages-restore.outputs.cache-hit != 'true' && inputs.extra-r-packages == '' }}
         uses: actions/cache/save@v5
         with:
           path: |
