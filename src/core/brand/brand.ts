@@ -471,7 +471,7 @@ export function resolveInputRelativeLogo(
         : pathWithForwardSlashes(relative(inputDir, join(projectDir, path))),
   );
   const logo = resolveLogo(inputRelativeBrand, spec, order);
-  const projectDir = brand?.light?.projectDir;
+  const projectDir = brand?.light?.projectDir ?? brand?.dark?.projectDir;
   if (!logo || !projectDir || !isWebsite) {
     return logo;
   }
@@ -480,16 +480,22 @@ export function resolveInputRelativeLogo(
   // with a warning.
   const projectRelativeFallback = (options: LogoOptions | undefined) => {
     if (
-      !options || isExternalPath(options.path) || isAbsolute(options.path) ||
-      existsSync(join(inputDir, options.path))
+      !options || isExternalPath(options.path) || isAbsolute(options.path)
     ) {
       return options;
     }
-    const projectPath = join(projectDir, options.path);
-    if (!existsSync(projectPath)) {
+    // Logo paths are URLs; check the files they point to, as HTML resource
+    // processing does, but keep the path encoded in the output.
+    const filePath = decodeUriPath(options.path);
+    if (
+      existsSync(join(inputDir, filePath)) ||
+      !existsSync(join(projectDir, filePath))
+    ) {
       return options;
     }
-    const path = pathWithForwardSlashes(relative(inputDir, projectPath));
+    const path = pathWithForwardSlashes(
+      relative(inputDir, join(projectDir, options.path)),
+    );
     warnOnce(
       `Logo path '${options.path}' for ${
         pathWithForwardSlashes(relative(projectDir, input))
@@ -501,6 +507,18 @@ export function resolveInputRelativeLogo(
     light: projectRelativeFallback(logo.light),
     dark: projectRelativeFallback(logo.dark),
   };
+}
+
+// Malformed escapes are left as-is, like getDecodedAttribute in core/html.ts.
+function decodeUriPath(path: string): string {
+  try {
+    return decodeURI(path);
+  } catch (e) {
+    if (e instanceof URIError) {
+      return path;
+    }
+    throw e;
+  }
 }
 
 function brandWithLogoPaths(

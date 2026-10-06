@@ -1,0 +1,4 @@
+project:
+  type: website
+brand:
+  dark: _brand.yml

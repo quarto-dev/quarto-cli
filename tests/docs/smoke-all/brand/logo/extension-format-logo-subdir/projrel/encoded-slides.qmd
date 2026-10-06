@@ -1,0 +1,18 @@
+---
+title: "URL-encoded project-relative logo in subdirectory (deprecated)"
+format: revealjs
+logo: img/my%20logo.png
+_quarto:
+  tests:
+    revealjs:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'img/my%20logo\.png.*project'
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.\.(/|\\)img(/|\\)my( |%20)logo\.png" class="slide-logo"'
+        - []
+---
+
+## Section
