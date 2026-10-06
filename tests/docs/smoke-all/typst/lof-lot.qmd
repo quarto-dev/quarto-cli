@@ -9,11 +9,21 @@ _quarto:
       ensurePdfRegexMatches:
         - # Both lists are rendered with their entries, before the body
           - 'List of Figures[\s\S]*A figure caption[\s\S]*List of Tables[\s\S]*A table caption[\s\S]*Introduction'
+          # The subfigure parent stays in the list
+          - 'List of Figures[\s\S]*Parent with subfigures[\s\S]*List of Tables'
+          # Cross-references to a subfigure keep their sub-numbering
+          - 'See Figure 2a'
+        - # Subfigure captions are not listed between the list title and the body
+          - 'List of Figures[\s\S]*Subcaption A[\s\S]*Introduction'
 ---
 
 # Introduction
 
 With `lof: true` and `lot: true`, a list of figures and a list of tables are printed after the title block and before this heading, as in LaTeX output (#14081).
+
+Subfigures are left out of the list of figures, as in LaTeX: only their parent is listed. A cross-reference to a subfigure still shows its sub-numbering.
+
+See @fig-sub-a.
 
 ::: {#fig-one}
 
@@ -22,6 +32,28 @@ CONTENT
 A figure caption
 
 :::
+
+:::: {#fig-sub layout-ncol=2}
+
+::: {#fig-sub-a}
+
+CONTENT A
+
+Subcaption A
+
+:::
+
+::: {#fig-sub-b}
+
+CONTENT B
+
+Subcaption B
+
+:::
+
+Parent with subfigures
+
+::::
 
 | a | b |
 |---|---|

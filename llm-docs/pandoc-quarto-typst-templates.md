@@ -83,7 +83,7 @@ Combines Pandoc definitions with Quarto-specific functionality:
 - Code block styling (gray background, padding, rounded corners)
 - `block_with_new_content` helper for reconstructing blocks with modified content
 - `empty` function to check if content is empty (handles strings and content nodes)
-- Subfloat support via `quartosubfloatcounter` and `quarto_super` function for nested figures with sub-numbering
+- Subfloat support via `quartosubfloatcounter` and `quarto_super` function for nested figures with sub-numbering; subfloats are `outlined: false`, so only the parent appears in a list of figures
 - Callout figure show rule that transforms callout figures with proper titles and cross-reference numbering
 - `callout` function for rendering callout boxes with customizable colors, icons, and styling
 
