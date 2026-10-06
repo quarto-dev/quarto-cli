@@ -1,0 +1,20 @@
+---
+title: "Color scheme switching keeps the scroll position (#14973)"
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+---
+
+The page is long so that parsing it takes longer than the color scheme
+script's timers, and the browser scrolls to a fragment target before
+the page finishes loading.
+
+{{< lipsum 1000 >}}
+
+## Target {#target}
+
+The page must open here.
+
+{{< lipsum 50 >}}
