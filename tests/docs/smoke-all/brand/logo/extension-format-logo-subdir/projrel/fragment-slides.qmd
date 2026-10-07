@@ -1,0 +1,18 @@
+---
+title: "Project-relative logo with a fragment in subdirectory (deprecated)"
+format: revealjs
+logo: img/top.png#frag
+_quarto:
+  tests:
+    revealjs:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'img/top\.png#frag.*project'
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.\.(/|\\)img(/|\\)top\.png#frag" class="slide-logo"'
+        - []
+---
+
+## Section

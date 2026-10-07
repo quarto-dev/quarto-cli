@@ -1,0 +1,14 @@
+---
+title: "Brand logo in subdirectory of a default project"
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      noErrorsOrWarnings: true
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.\.(/|\\)img(/|\\)top\.png" class="slide-logo"'
+        - []
+---
+
+## Section
