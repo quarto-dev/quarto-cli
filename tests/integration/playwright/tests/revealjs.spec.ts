@@ -317,3 +317,33 @@ test.describe('the slide menu button has an accessible name', () => {
     await expect(button(page)).toHaveAccessibleName('Menu des diapositives');
   });
 });
+
+test.describe('tabset keyboard focus order', () => {
+  // Tabs live on non-present slides, which reveal marks aria-hidden, so they
+  // are located by attribute and text rather than by accessible role.
+  const tab = (page: Page, name: string) =>
+    page.locator('[role="tab"]', { hasText: name });
+
+  const gotoSlide = async (page: Page, hash: string) => {
+    await page.goto(`./revealjs/tabset-focus-order.html${hash}`);
+    await expect(page.locator('.reveal.ready')).toBeAttached();
+    await expect(tab(page, 'Tab A')).toBeAttached();
+  };
+
+  test('first Tab stays on the current slide (#14970)', async ({ page }) => {
+    await gotoSlide(page, '#/slide-1');
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'link on slide 1' })).toBeFocused();
+  });
+
+  test('Tab moves from a tab into its panel content', async ({ page }) => {
+    await gotoSlide(page, '#/slide-3');
+    await tab(page, 'Tab A').focus();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'link in tab A' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(tab(page, 'Tab B')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'link in tab B' })).toBeFocused();
+  });
+});
