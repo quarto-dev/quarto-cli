@@ -41,8 +41,13 @@ All changes included in 1.11:
 
 - ([#14982](https://github.com/quarto-dev/quarto-cli/issues/14982)): Fix a footnote in document metadata, such as `title` or `author`, making PDF and Typst output shift heading levels, which turned the first level-1 heading into the document title.
 
+### `revealjs`
+
+- ([#14996](https://github.com/quarto-dev/quarto-cli/pull/14996)): Fix `controls: auto` and `previewLinks: auto` set at the top level of a revealjs document's front matter producing a presentation that fails to load, because `auto` was written unquoted into the generated JavaScript.
+
 ### `typst`
 
+- ([#11683](https://github.com/quarto-dev/quarto-cli/issues/11683)): Fix `unknown font family` warnings, and wrong fonts, when a `font-family` list or brand typography uses a CSS generic family (`serif`, `sans-serif`, `monospace`, `cursive`, `fantasy`, `math`, `system-ui`, `ui-*`). Typst has no generic families, so each one is now replaced by the first installed font from a list of well-known candidates, and the keyword is no longer passed to Typst. No fonts are bundled.
 - ([#14081](https://github.com/quarto-dev/quarto-cli/issues/14081)): Support `lof` and `lot` in Typst documents, which previously had no effect. The list titles follow `lang` and can be set with `crossref: lof-title` and `lot-title`.
 - ([#14847](https://github.com/quarto-dev/quarto-cli/pull/14847)): Fix `toc_title` auto-fallback in typst outline template that was ignoring the computed fallback value when `toc_title` is `none`.
 - ([#14947](https://github.com/quarto-dev/quarto-cli/issues/14947)): Fix Typst compilation failing with `invalid number suffix: px` when an image with alt text (`fig-alt`, `alt`, or an inline image caption) has its `width` or `height` in pixels. These images are now written by Pandoc's Typst writer like other images, which also fixes URL-encoded image paths and unsupported size units for them.
@@ -60,6 +65,10 @@ All changes included in 1.11:
 ### Websites
 
 - ([#14974](https://github.com/quarto-dev/quarto-cli/issues/14974)): Fix math in `.llms.md` files from `llms-txt` coming out garbled with the default `mathjax` method, and with `katex` and `webtex`. Math is now written as `$...$` and `$$...$$` with the `mathjax`, `katex`, `webtex` and `mathml` methods.
+
+## Lua API
+
+- ([#14894](https://github.com/quarto-dev/quarto-cli/pull/14894)): Fix `quarto.version` and `quarto.config.version()` crashing filters with `table expected, got string` when the version string contains semver build metadata (such as a distro packager's revision suffix) or otherwise does not start with a digit.
 
 ## Commands
 
@@ -94,12 +103,10 @@ All changes included in 1.11:
 
 - ([#13966](https://github.com/quarto-dev/quarto-cli/issues/13966)): Fix doubled newlines in HTML output of stdout and stderr containing ANSI escape codes.
 
-## Lua API
-
-- ([#14894](https://github.com/quarto-dev/quarto-cli/pull/14894)): Fix `quarto.version` and `quarto.config.version()` crashing filters with `table expected, got string` when the version string contains semver build metadata (such as a distro packager's revision suffix) or otherwise does not start with a digit.
-
 ## Other fixes and improvements
 
+- ([#9864](https://github.com/quarto-dev/quarto-cli/issues/9864), [#11139](https://github.com/quarto-dev/quarto-cli/issues/11139)): Fix metadata defined both in a document's front matter and in `_quarto.yml`, a directory `_metadata.yml` or `metadata-files` reaching Pandoc templates and Lua filters with only the document's values. The values are now merged, and the document's values still take precedence for single values. Lists are combined instead of replaced, so a document can no longer drop entries that the project, a directory `_metadata.yml` or `metadata-files` add to a list such as `keywords`. (author: @jkrumbiegel)
 - ([#14775](https://github.com/quarto-dev/quarto-cli/issues/14775)): Fix a crash when the `QUARTO_R` environment variable is set to a malformed path. Quarto now warns and falls back to other R lookup methods.
 - ([#14865](https://github.com/quarto-dev/quarto-cli/issues/14865)): Fix internal links in a preview being treated as external when the preview is reached through a proxy, such as on Posit Workbench. Links are now classified against the origin the browser sees.
 - ([#14878](https://github.com/quarto-dev/quarto-cli/pull/14878)): Add `az` (Azerbaijani) language translation. (author: @abdanar)
+- ([#14983](https://github.com/quarto-dev/quarto-cli/issues/14983)): Fix `quarto render` treating a parent folder as a Hugo project when its `config/` folder can't be entered, which silently wrote `hugo-md` output or failed with a permission error. (author: @pinin4fjords)

@@ -1,0 +1,40 @@
+---
+title: Front matter and metadata-files
+metadata-files:
+  - metadata-files-extra.yml
+shared: document-value
+custom:
+  shared: document-value
+  from-document: document-value
+keywords:
+  - document-keyword
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta name="keywords" content="document-keyword, metadata-file-keyword">'
+          - '<div id="shared">\s*<p>document-value</p>'
+          - '<div id="custom-shared">\s*<p>document-value</p>'
+          - '<div id="custom-from-document">\s*<p>document-value</p>'
+          - '<div id="custom-from-metadata-file">\s*<p>metadata-file-value</p>'
+        - []
+---
+
+The document's front matter wins over its `metadata-files` for a value both define, and what only the metadata file defines is kept, including entries of a list and keys of a mapping the front matter also defines.
+
+::: {#shared}
+{{< meta shared >}}
+:::
+
+::: {#custom-shared}
+{{< meta custom.shared >}}
+:::
+
+::: {#custom-from-document}
+{{< meta custom.from-document >}}
+:::
+
+::: {#custom-from-metadata-file}
+{{< meta custom.from-metadata-file >}}
+:::

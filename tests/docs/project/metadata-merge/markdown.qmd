@@ -1,0 +1,17 @@
+---
+title: Markdown document
+keywords:
+  - document-keyword
+  - shared-keyword
+params:
+  from-document: document-value
+custom:
+  from-document: document-value
+  shared: document-value
+  list:
+    - document-item
+---
+
+::: {#lua-params}
+{{< meta params.from-project >}}
+:::

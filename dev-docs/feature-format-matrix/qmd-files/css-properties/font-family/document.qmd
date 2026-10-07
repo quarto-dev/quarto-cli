@@ -19,8 +19,8 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '#{set text\(font: \("Libertinus Serif", "serif"\)\);\s*table\('
-        - []
+          - '#{set text\(font: \("Libertinus Serif"(, "[^"]+")*,?\)\);\s*table\('
+        - ['font: \([^)]*"serif"']
 ---
 
 ```{=html}

@@ -1,0 +1,26 @@
+---
+title: "system-ui in table styling"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#set text\(font: \("[^"]+"'
+        -
+          - '#set text\(font: \([^)]*"(system-ui|sans-serif)"'
+---
+
+Regression test for [#11683](https://github.com/quarto-dev/quarto-cli/issues/11683):
+a `system-ui` font stack, as emitted by `gt` tables, must resolve to concrete
+families rather than reaching Typst as keywords.
+
+::: {style='font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji"'}
+
+| Col | Num |
+|-----|-----|
+| abc | 123 |
+
+:::
