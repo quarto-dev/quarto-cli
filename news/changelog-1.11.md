@@ -48,6 +48,7 @@ All changes included in 1.11:
 ### `typst`
 
 - ([#11683](https://github.com/quarto-dev/quarto-cli/issues/11683)): Fix `unknown font family` warnings, and wrong fonts, when a `font-family` list or brand typography uses a CSS generic family (`serif`, `sans-serif`, `monospace`, `cursive`, `fantasy`, `math`, `system-ui`, `ui-*`). Typst has no generic families, so each one is now replaced by the first installed font from a list of well-known candidates, and the keyword is no longer passed to Typst. No fonts are bundled.
+- ([#14081](https://github.com/quarto-dev/quarto-cli/issues/14081)): Support `lof` and `lot` in Typst documents, which previously had no effect. The list titles follow `lang` and can be set with `crossref: lof-title` and `lot-title`.
 - ([#14847](https://github.com/quarto-dev/quarto-cli/pull/14847)): Fix `toc_title` auto-fallback in typst outline template that was ignoring the computed fallback value when `toc_title` is `none`.
 - ([#14947](https://github.com/quarto-dev/quarto-cli/issues/14947)): Fix Typst compilation failing with `invalid number suffix: px` when an image with alt text (`fig-alt`, `alt`, or an inline image caption) has its `width` or `height` in pixels. These images are now written by Pandoc's Typst writer like other images, which also fixes URL-encoded image paths and unsupported size units for them.
 
