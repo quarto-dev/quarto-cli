@@ -65,6 +65,7 @@ All changes included in 1.11:
 
 ### Websites
 
+- ([#10756](https://github.com/quarto-dev/quarto-cli/issues/10756)): Fix the notebook preview of an embedded `.qmd` file going missing from the output directory when a project is rendered again, which broke its source notebook link.
 - ([#14974](https://github.com/quarto-dev/quarto-cli/issues/14974)): Fix math in `.llms.md` files from `llms-txt` coming out garbled with the default `mathjax` method, and with `katex` and `webtex`. Math is now written as `$...$` and `$$...$$` with the `mathjax`, `katex`, `webtex` and `mathml` methods.
 
 ## Lua API
