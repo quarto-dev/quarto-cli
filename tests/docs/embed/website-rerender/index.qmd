@@ -1,0 +1,5 @@
+---
+title: "Home"
+---
+
+{{< embed source.qmd#fig-cars >}}
