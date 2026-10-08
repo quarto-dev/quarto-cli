@@ -2,3 +2,4 @@
 /_site/
 
 **/*.quarto_ipynb
+/.Rprofile

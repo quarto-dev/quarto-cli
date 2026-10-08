@@ -4,7 +4,12 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import { join, resolve } from "../../../src/deno_ral/path.ts";
+import {
+  dirname,
+  fromFileUrl,
+  join,
+  resolve,
+} from "../../../src/deno_ral/path.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { Element } from "../../../src/core/deno-dom.ts";
 import { docs } from "../../utils.ts";
@@ -33,6 +38,7 @@ const removeGenerated = () => {
       "source_files",
       "source.embed.ipynb",
       "source.embed-preview.html",
+      ".Rprofile",
     ]
   ) {
     safeRemoveSync(join(projectDir, name), { recursive: true });
@@ -47,6 +53,16 @@ test({
     cwd: () => projectDir,
     setup: () => {
       removeGenerated();
+      // Re-activate renv against the real tests/ project: knitr runs from
+      // the project dir, outside tests/ — see llm-docs/testing-patterns.md
+      // → "R Tests That Change Working Directory"
+      const testsDir = dirname(dirname(dirname(fromFileUrl(import.meta.url))))
+        .replaceAll("\\", "/");
+      Deno.writeTextFileSync(
+        join(projectDir, ".Rprofile"),
+        `Sys.setenv(RENV_PROJECT = "${testsDir}")\n` +
+          `source("${testsDir}/renv/activate.R")\n`,
+      );
       return Promise.resolve();
     },
     teardown: () => {
