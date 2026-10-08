@@ -24,6 +24,14 @@ testSite(
   undefined,
   fileExists(join(siteNotebooks, "computations-preview.html")),
   fileExists(join(siteNotebooks, "computations.out.ipynb")),
+  fileExists(
+    join(
+      siteNotebooks,
+      "computations_files",
+      "figure-html",
+      "fig-visualization-output-1.png",
+    ),
+  ),
 );
 
 // A qmd source embed gets a preview page and a downloadable copy of the source.
