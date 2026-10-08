@@ -70,6 +70,13 @@
       tab.dispatchEvent(event);
     };
 
+    // In revealjs, arrow keys belong to slide navigation: tabs stay in the Tab
+    // order and activate on focus. Elsewhere tabs use a roving tabindex with
+    // arrow key navigation.
+    var isReveal = function () {
+      return window.document.body.classList.contains("reveal-viewport");
+    };
+
     var focusHandler = function (event) {
       toggle(event.target);
     };
@@ -134,11 +141,12 @@
         tab.setAttribute("aria-selected", "true");
       } else {
         tab.setAttribute("aria-selected", "false");
+        if (!isReveal()) tab.setAttribute("tabindex", "-1");
         content.setAttribute("hidden", "hidden");
       }
 
       // add focus event listender
-      tab.addEventListener("focus", focusHandler);
+      if (isReveal()) tab.addEventListener("focus", focusHandler);
     };
 
     /**
@@ -155,6 +163,7 @@
 
       // Hide the tab
       tab.setAttribute("aria-selected", "false");
+      if (!isReveal()) tab.setAttribute("tabindex", "-1");
 
       // Hide the content
       if (!content) return { previousTab: tab };
@@ -174,6 +183,7 @@
      */
     var show = function (tab, content) {
       tab.setAttribute("aria-selected", "true");
+      if (!isReveal()) tab.setAttribute("tabindex", "0");
       content.removeAttribute("hidden");
       tab.focus();
     };
@@ -313,8 +323,7 @@
         tabWrapper.setAttribute("role", "tablist");
 
         // Add roles to tabs. provide dynanmic tab indexes if we are within reveal
-        var contentTabindexes =
-          window.document.body.classList.contains("reveal-viewport");
+        var contentTabindexes = isReveal();
         var nextTabindex = 1;
         Array.prototype.forEach.call(tabs, function (tab) {
           if (contentTabindexes) {
@@ -380,7 +389,26 @@
         if (!tab.matches(selector + ' [role="tab"]')) return;
 
         // Only run for specific keys
-        if (["Home", "End"].indexOf(event.key) < 0) return;
+        var keys = isReveal()
+          ? ["Home", "End"]
+          : [
+              "ArrowUp",
+              "ArrowDown",
+              "ArrowLeft",
+              "ArrowRight",
+              "Up",
+              "Down",
+              "Left",
+              "Right",
+              "Home",
+              "End",
+            ];
+        if (keys.indexOf(event.key) < 0) return;
+
+        // Keep the key from also scrolling the page or, in revealjs, from
+        // changing slide
+        event.preventDefault();
+        event.stopPropagation();
 
         // Switch tabs
         switchTabs(tab, event.key);

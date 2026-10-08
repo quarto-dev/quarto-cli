@@ -83,6 +83,21 @@ test('internal id for links between slides are working', async ({ page }) => {
   await page.waitForURL(/theorem$/);
 });
 
+test('Home and End on a focused tabset tab do not change slide', async ({ page }) => {
+  await page.goto('./revealjs/tabset-focus-order.html#/slide-3');
+  // Located by attribute rather than role: if reveal leaves the slide, it marks
+  // the slide aria-hidden and a role query would fail before the slide check.
+  const tab = (name: string) => page.locator('[role="tab"]', { hasText: name });
+  await expect(tab('Tab A')).toBeAttached();
+  await tab('Tab A').focus();
+  await page.keyboard.press('End');
+  await expect(tab('Tab B')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('section.slide.present')).toHaveId('slide-3');
+  await page.keyboard.press('Home');
+  await expect(tab('Tab A')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('section.slide.present')).toHaveId('slide-3');
+});
+
 // https://github.com/quarto-dev/quarto-cli/issues/14795
 test.describe('slides that are not on screen are out of the tab order', () => {
   const deck = './revealjs/tab-order.html';
