@@ -405,8 +405,10 @@
             ];
         if (keys.indexOf(event.key) < 0) return;
 
-        // Keep the key from also scrolling the page
+        // Keep the key from also scrolling the page or, in revealjs, from
+        // changing slide
         event.preventDefault();
+        event.stopPropagation();
 
         // Switch tabs
         switchTabs(tab, event.key);
