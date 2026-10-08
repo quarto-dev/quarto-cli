@@ -24,3 +24,18 @@ testSite(
   fileExists(join(siteNotebooks, "computations-preview.html")),
   fileExists(join(siteNotebooks, "computations.out.ipynb")),
 );
+
+// A qmd source embed gets a preview page and a downloadable copy of the source.
+const siteQmdEmbed = join(docs("site-qmd-embed"), "_site");
+
+testSite(
+  docs("site-qmd-embed/index.qmd"),
+  docs("site-qmd-embed/index.qmd"),
+  [
+    ".quarto-embed-nb-cell", // Embed is present
+  ],
+  [],
+  undefined,
+  fileExists(join(siteQmdEmbed, "computations.embed-preview.html")),
+  fileExists(join(siteQmdEmbed, "computations.qmd")),
+);
