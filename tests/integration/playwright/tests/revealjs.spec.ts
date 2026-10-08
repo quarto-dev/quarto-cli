@@ -97,3 +97,48 @@ test('Home and End on a focused tabset tab do not change slide', async ({ page }
   await expect(tab('Tab A')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('section.slide.present')).toHaveId('slide-3');
 });
+
+test.describe('off-screen slides are not focusable (#14795)', () => {
+  // Not getByRole: non-present slides carry aria-hidden, which getByRole skips.
+  const slideButton = (page: Page, id: string) =>
+    page.locator('button', { hasText: `Button on ${id}` });
+  const focusOutsideCurrentSlide = (page: Page) =>
+    page.locator('.reveal .slides section:not(.present) :focus');
+  const gotoSlide = async (page: Page, hash: string, query = '') => {
+    await page.goto(`./revealjs/offscreen-slides-focus.html${query}${hash}`);
+    await expect(page.locator('.reveal.ready')).toBeAttached();
+  };
+  const isScrollView = (page: Page) => page.evaluate(() => (window as any).Reveal.isScrollView());
+  const currentSlideId = (page: Page) =>
+    page.evaluate(() => (window as any).Reveal.getCurrentSlide().id);
+
+  test('Tab on a slide reaches only that slide (#14795)', async ({ page }) => {
+    await gotoSlide(page, '#/slide-3');
+    await page.keyboard.press('Tab');
+    await expect(slideButton(page, 'slide-3')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.reveal .slides section :focus')).toHaveCount(0);
+  });
+
+  test('Tab after keyboard navigation stays on the new slide', async ({ page }) => {
+    await gotoSlide(page, '#/slide-2');
+    await page.keyboard.press('ArrowRight');
+    await expect(page).toHaveURL(/#\/slide-3$/);
+    await page.keyboard.press('Tab');
+    await expect(slideButton(page, 'slide-3')).toBeFocused();
+  });
+
+  test('Tab in a vertical stack reaches only the current child', async ({ page }) => {
+    await gotoSlide(page, '#/stack-b');
+    await page.keyboard.press('Tab');
+    await expect(slideButton(page, 'stack-b')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(focusOutsideCurrentSlide(page)).toHaveCount(0);
+  });
+
+  test("slidechanged handler registered before Quarto's can focus the new slide", async ({ page }) => {
+    await gotoSlide(page, '#/slide-5');
+    await page.keyboard.press('ArrowRight');
+    await expect(slideButton(page, 'slide-6')).toBeFocused();
+  });
+});
