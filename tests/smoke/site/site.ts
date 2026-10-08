@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { existsSync } from "../../../src/deno_ral/fs.ts";
-import { dirname } from "../../../src/deno_ral/path.ts";
+import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { testQuartoCmd, Verify, TestContext, mergeTestContexts } from "../../test.ts";
-import { projectOutputForInput } from "../../utils.ts";
+import { findProjectDir, projectOutputForInput } from "../../utils.ts";
 import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
 
 export const testSite = (
@@ -30,6 +30,12 @@ export const testSite = (
       const siteDir = dirname(output.outputPath);
       if (existsSync(siteDir)) {
         await Deno.remove(siteDir, { recursive: true });
+      }
+      // Remove the project scratch so its state can't leak into later renders
+      const projectDir = findProjectDir(input);
+      const hiddenQuarto = projectDir && join(projectDir, ".quarto");
+      if (hiddenQuarto && existsSync(hiddenQuarto)) {
+        await Deno.remove(hiddenQuarto, { recursive: true });
       }
     },
   };

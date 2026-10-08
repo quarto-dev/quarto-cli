@@ -37,7 +37,8 @@ testSite(
 // A qmd source embed gets a preview page and a downloadable copy of the source.
 const siteQmdEmbed = join(docs("site-qmd-embed"), "_site");
 // A cached embed rendering from a previous render changes what is emitted
-// (see #10756), so each run starts and ends without the scratch directory.
+// (see #10756), so each run starts without the scratch directory; testSite
+// removes it on teardown.
 const removeQmdEmbedScratch = () => {
   const scratch = join(docs("site-qmd-embed"), ".quarto");
   if (existsSync(scratch)) {
@@ -53,7 +54,7 @@ testSite(
     ".quarto-embed-nb-cell", // Embed is present
   ],
   [],
-  { setup: removeQmdEmbedScratch, teardown: removeQmdEmbedScratch },
+  { setup: removeQmdEmbedScratch },
   fileExists(join(siteQmdEmbed, "computations.embed-preview.html")),
   fileExists(join(siteQmdEmbed, "computations.qmd")),
 );
