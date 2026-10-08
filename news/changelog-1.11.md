@@ -46,6 +46,7 @@ All changes included in 1.11:
 ### `revealjs`
 
 - ([#14996](https://github.com/quarto-dev/quarto-cli/pull/14996)): Fix `controls: auto` and `previewLinks: auto` set at the top level of a revealjs document's front matter producing a presentation that fails to load, because `auto` was written unquoted into the generated JavaScript.
+- ([#15007](https://github.com/quarto-dev/quarto-cli/pull/15007)): Fix Home/End on a focused tabset tab also jumping to the first or last slide in addition to switching tabs.
 
 ### `typst`
 
