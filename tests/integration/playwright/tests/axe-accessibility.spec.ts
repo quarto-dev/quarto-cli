@@ -222,13 +222,15 @@ test.describe('RevealJS axe — cross-slide scanning and state restoration', () 
     const state = await page.evaluate(() => Reveal.getState());
     expect(state.indexh).toBe(0);
 
-    // Non-present slides must have hidden and aria-hidden restored
+    // Non-present slides must have hidden, aria-hidden and inert restored
     const slideState = await page.evaluate(() => {
       return Reveal.getSlides().map((s: Element) => ({
         id: s.id || s.className.substring(0, 30),
         isPresent: s.classList.contains('present'),
+        isReport: s.classList.contains('quarto-axe-report-slide'),
         hidden: s.hasAttribute('hidden'),
         ariaHidden: s.getAttribute('aria-hidden'),
+        inert: s.hasAttribute('inert'),
       }));
     });
 
@@ -236,9 +238,14 @@ test.describe('RevealJS axe — cross-slide scanning and state restoration', () 
       if (slide.isPresent) {
         expect(slide.hidden, `Present slide "${slide.id}" should not be hidden`).toBe(false);
         expect(slide.ariaHidden, `Present slide "${slide.id}" should not have aria-hidden`).toBeNull();
+        expect(slide.inert, `Present slide "${slide.id}" should not be inert`).toBe(false);
       } else {
         expect(slide.hidden, `Non-present slide "${slide.id}" should be hidden`).toBe(true);
         expect(slide.ariaHidden, `Non-present slide "${slide.id}" should have aria-hidden`).toBe('true');
+        // The report slide is added after the scan, without a slide change
+        if (!slide.isReport) {
+          expect(slide.inert, `Non-present slide "${slide.id}" should be inert`).toBe(true);
+        }
       }
     }
   });

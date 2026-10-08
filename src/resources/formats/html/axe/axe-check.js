@@ -472,8 +472,8 @@ class QuartoAxeChecker {
     this.scanGeneration = 0;
   }
   // In RevealJS, only the current slide is accessible to axe-core because
-  // non-visible slides have hidden and aria-hidden attributes. Temporarily
-  // remove these so axe can check all slides, then restore them.
+  // non-visible slides have hidden, aria-hidden and inert attributes.
+  // Temporarily remove these so axe can check all slides, then restore them.
   revealUnhideSlides() {
     const slides = document.querySelectorAll(".reveal .slides section");
     if (slides.length === 0) return null;
@@ -483,18 +483,21 @@ class QuartoAxeChecker {
         el: s,
         hidden: s.hasAttribute("hidden"),
         ariaHidden: s.getAttribute("aria-hidden"),
+        inert: s.hasAttribute("inert"),
       });
       s.removeAttribute("hidden");
       s.removeAttribute("aria-hidden");
+      s.removeAttribute("inert");
     });
     return saved;
   }
 
   revealRestoreSlides(saved) {
     if (!saved) return;
-    saved.forEach(({ el, hidden, ariaHidden }) => {
+    saved.forEach(({ el, hidden, ariaHidden, inert }) => {
       if (hidden) el.setAttribute("hidden", "");
       if (ariaHidden !== null) el.setAttribute("aria-hidden", ariaHidden);
+      if (inert) el.setAttribute("inert", "");
     });
   }
 
@@ -588,6 +591,14 @@ class QuartoAxeChecker {
         await new Promise((resolve) =>
           window.addEventListener("load", resolve, { once: true })
         );
+      }
+      // RevealJS slides that are not on screen are made inert when the deck
+      // is ready. Wait for it, so that this does not happen mid-scan.
+      if (
+        typeof Reveal !== "undefined" &&
+        !document.querySelector(".reveal.ready")
+      ) {
+        await new Promise((resolve) => Reveal.on("ready", resolve));
       }
       const result = await this.runAxeScan();
       const reporter = new reporters[this.options.output](result, this.options);

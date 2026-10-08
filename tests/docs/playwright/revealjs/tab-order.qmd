@@ -1,0 +1,38 @@
+---
+title: "Tab order across slides"
+format: revealjs
+---
+
+## Slide 1
+
+[Link on slide 1](https://example.com/1)
+
+## Slide 2
+
+[Link on slide 2](https://example.com/2)
+
+## Slide 3
+
+[Link on slide 3](https://example.com/3)
+
+## Slide 4
+
+[Link on slide 4](https://example.com/4)
+
+## Slide 5
+
+[Link on slide 5](https://example.com/5)
+
+## Slide 6
+
+[Link on slide 6](https://example.com/6)
+
+# Stack
+
+## Stacked slide 1
+
+[Link on stacked slide 1](https://example.com/stacked-1)
+
+## Stacked slide 2
+
+[Link on stacked slide 2](https://example.com/stacked-2)

@@ -82,3 +82,122 @@ test('internal id for links between slides are working', async ({ page }) => {
   await page.getByRole('link', { name: 'Theorem' }).click();
   await page.waitForURL(/theorem$/);
 });
+
+// https://github.com/quarto-dev/quarto-cli/issues/14795
+test.describe('slides that are not on screen are out of the tab order', () => {
+  const deck = './revealjs/tab-order.html';
+
+  // WebKit only tabs to links when the Alt modifier is held, which matches
+  // Safari's default "Press Tab to highlight each item on a webpage" setting
+  const tabKeyFor = (browserName: string) =>
+    browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+
+  const inertSlides = (page: Page) =>
+    page.locator('.reveal .slides section[inert]');
+
+  const isScrollView = (page: Page) =>
+    page.evaluate(() => (window as any).Reveal.isScrollView());
+
+  const currentSlideId = (page: Page) =>
+    page.evaluate(() => (window as any).Reveal.getCurrentSlide().id);
+
+  async function gotoSlide(page: Page, id: string) {
+    await page.goto(`${deck}#/${id}`);
+    await expect(page.locator('.reveal')).toHaveClass(/\bready\b/);
+  }
+
+  test('Tab reaches the current slide content first', async ({ page, browserName }) => {
+    // reveal.js keeps the slides within viewDistance displayed, so the links
+    // on slide 2 and slide 3 would otherwise come first
+    await gotoSlide(page, 'slide-4');
+    await page.keyboard.press(tabKeyFor(browserName));
+    await expect(page.getByRole('link', { name: 'Link on slide 4' })).toBeFocused();
+  });
+
+  test('Tab reaches the new slide content after navigating', async ({ page, browserName }) => {
+    await gotoSlide(page, 'slide-4');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press(tabKeyFor(browserName));
+    await expect(page.getByRole('link', { name: 'Link on slide 5' })).toBeFocused();
+  });
+
+  test('Tab reaches the current slide content in a vertical stack', async ({ page, browserName }) => {
+    await gotoSlide(page, 'stacked-slide-2');
+    // the stack holding the current slide stays reachable
+    await expect(page.locator('section.stack')).not.toHaveAttribute('inert');
+    await page.keyboard.press(tabKeyFor(browserName));
+    await expect(page.getByRole('link', { name: 'Link on stacked slide 2' })).toBeFocused();
+  });
+
+  test('a slidechanged listener of an earlier plugin can focus the new slide', async ({ page }) => {
+    // Plugins listed before quarto-support, such as user plugins, add their
+    // listeners first. Adding this one as soon as reveal.js loads puts it
+    // ahead of quarto-support's own.
+    await page.addInitScript(() => {
+      let reveal: any;
+      Object.defineProperty(window, 'Reveal', {
+        configurable: true,
+        get: () => reveal,
+        set: (value) => {
+          reveal = value;
+          value.on('slidechanged', (event: any) =>
+            event.currentSlide.querySelector('a')?.focus());
+        },
+      });
+    });
+    await gotoSlide(page, 'slide-4');
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('link', { name: 'Link on slide 5' })).toBeFocused();
+  });
+
+  test('overview leaves every slide reachable', async ({ page }) => {
+    await gotoSlide(page, 'slide-4');
+    await expect(page.locator('#slide-3')).toHaveAttribute('inert');
+    await page.keyboard.press('o');
+    await expect(page.locator('.reveal')).toHaveClass(/\boverview\b/);
+    await expect(inertSlides(page)).toHaveCount(0);
+    await page.keyboard.press('o');
+    await expect(page.locator('.reveal')).not.toHaveClass(/\boverview\b/);
+    await expect(page.locator('#slide-3')).toHaveAttribute('inert');
+    await expect(page.locator('#slide-4')).not.toHaveAttribute('inert');
+  });
+
+  // Leaving the scroll view, reveal.js restores the slides as they were when
+  // it was entered and dispatches no event. Moving to another slide in
+  // between checks that the restored slides are updated.
+  test('scroll view leaves every slide reachable', async ({ page }) => {
+    await gotoSlide(page, 'slide-4');
+    await expect(page.locator('#slide-5')).toHaveAttribute('inert');
+    await page.keyboard.press('R');
+    expect(await isScrollView(page)).toBe(true);
+    await expect(inertSlides(page)).toHaveCount(0);
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(() => currentSlideId(page)).toBe('slide-5');
+    await page.keyboard.press('R');
+    expect(await isScrollView(page)).toBe(false);
+    await expect(page.locator('#slide-4')).toHaveAttribute('inert');
+    await expect(page.locator('#slide-5')).not.toHaveAttribute('inert');
+  });
+
+  test('scroll view on a narrow window leaves every slide reachable', async ({ page }) => {
+    await gotoSlide(page, 'slide-4');
+    await expect(page.locator('#slide-5')).toHaveAttribute('inert');
+    // reveal.js switches to and from the scroll view on its own across
+    // scrollActivationWidth (435px by default)
+    await page.setViewportSize({ width: 400, height: 720 });
+    await expect.poll(() => isScrollView(page)).toBe(true);
+    await expect(inertSlides(page)).toHaveCount(0);
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(() => currentSlideId(page)).toBe('slide-5');
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await expect.poll(() => isScrollView(page)).toBe(false);
+    await expect(page.locator('#slide-4')).toHaveAttribute('inert');
+    await expect(page.locator('#slide-5')).not.toHaveAttribute('inert');
+  });
+
+  test('print view leaves every slide reachable', async ({ page }) => {
+    await page.goto(`${deck}?print-pdf`);
+    await expect(page.locator('.pdf-page').first()).toBeAttached();
+    await expect(inertSlides(page)).toHaveCount(0);
+  });
+});
