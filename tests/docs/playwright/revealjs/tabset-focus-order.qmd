@@ -1,0 +1,30 @@
+---
+pagetitle: Tabset focus order
+format: revealjs
+---
+
+## Slide 1
+
+A [link on slide 1](https://quarto.org).
+
+## Slide 2
+
+Plain slide.
+
+## Slide 3
+
+::: {.panel-tabset}
+
+### Tab A
+
+Content A with a [link in tab A](https://quarto.org).
+
+### Tab B
+
+Content B with a [link in tab B](https://quarto.org).
+
+:::
+
+## Slide 4
+
+Plain slide after the tabset.
