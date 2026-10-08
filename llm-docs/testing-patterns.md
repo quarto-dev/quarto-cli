@@ -218,6 +218,7 @@ unitTest("runs from workingDir", async () => {
 
 **Key points:**
 
+- A test that runs R/knitr from the new cwd also needs the renv activation described in "R Tests That Change Working Directory" below.
 - The harness calls `cwd()` **before** `setup()`, so the directory must already exist when `cwd()` runs — create it at module scope, not in `setup`.
 - `teardown` runs **before** the harness restores the cwd, so on Windows the temp dir may still be the cwd and resist removal.
   Wrap the removal in try/catch (best-effort) — see `tests/smoke/use/template.test.ts` and `tests/unit/dotenv-config.test.ts`.
