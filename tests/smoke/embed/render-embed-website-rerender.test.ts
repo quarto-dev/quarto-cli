@@ -4,15 +4,10 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import {
-  dirname,
-  fromFileUrl,
-  join,
-  resolve,
-} from "../../../src/deno_ral/path.ts";
+import { join, resolve } from "../../../src/deno_ral/path.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { Element } from "../../../src/core/deno-dom.ts";
-import { docs } from "../../utils.ts";
+import { docs, writeTestsRenvProfile } from "../../utils.ts";
 import {
   ensureHtmlSelectorSatisfies,
   fileExists,
@@ -53,16 +48,8 @@ test({
     cwd: () => projectDir,
     setup: () => {
       removeGenerated();
-      // Re-activate renv against the real tests/ project: knitr runs from
-      // the project dir, outside tests/ — see llm-docs/testing-patterns.md
-      // → "R Tests That Change Working Directory"
-      const testsDir = dirname(dirname(dirname(fromFileUrl(import.meta.url))))
-        .replaceAll("\\", "/");
-      Deno.writeTextFileSync(
-        join(projectDir, ".Rprofile"),
-        `Sys.setenv(RENV_PROJECT = "${testsDir}")\n` +
-          `source("${testsDir}/renv/activate.R")\n`,
-      );
+      // knitr runs from the project dir, outside tests/
+      writeTestsRenvProfile(projectDir);
       return Promise.resolve();
     },
     teardown: () => {

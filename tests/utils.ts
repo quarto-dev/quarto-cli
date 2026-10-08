@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, dirname, extname, join, relative } from "../src/deno_ral/path.ts";
+import { basename, dirname, extname, fromFileUrl, join, relative } from "../src/deno_ral/path.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 import { kMetadataFormat, kOutputExt, kOutputFile } from "../src/config/constants.ts";
 import { pathWithForwardSlashes, safeExistsSync } from "../src/core/path.ts";
@@ -242,6 +242,19 @@ export function projectOutputForInput(input: string) {
 
 export function docs(path: string): string {
   return join("docs", path);
+}
+
+// Write a `.Rprofile` into `dir` that activates the tests/ renv project.
+// R reads `.Rprofile` from the exact cwd only, so an R subprocess started
+// outside tests/ (a test using `TestContext.cwd`) would not see the renv
+// library holding knitr/rmarkdown on CI.
+export function writeTestsRenvProfile(dir: string) {
+  const testsDir = pathWithForwardSlashes(dirname(fromFileUrl(import.meta.url)));
+  Deno.writeTextFileSync(
+    join(dir, ".Rprofile"),
+    `Sys.setenv(RENV_PROJECT = "${testsDir}")\n` +
+      `source("${testsDir}/renv/activate.R")\n`,
+  );
 }
 
 export function fileLoader(...path: string[]) {

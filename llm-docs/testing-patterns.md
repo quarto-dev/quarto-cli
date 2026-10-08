@@ -429,7 +429,7 @@ Most knitr tests never leave `tests/` — they pass paths relative to the curren
 A test that changes cwd through `TestContext.cwd()` loses that activation. The R subprocess starts outside `tests/`, and package loads may fail with `there is no package called 'rmarkdown'`.
 A developer machine with rmarkdown on the default `.libPaths()` may mask this CI failure.
 
-**Fix:** write a `.Rprofile` in the fixture cwd that points renv to the test project:
+**Fix:** call `writeTestsRenvProfile(dir)` (`tests/utils.ts`) in `setup()` to write a `.Rprofile` in the fixture cwd that points renv to the test project. It writes:
 
 ```r
 Sys.setenv(RENV_PROJECT = "<absolute path to tests/>")
