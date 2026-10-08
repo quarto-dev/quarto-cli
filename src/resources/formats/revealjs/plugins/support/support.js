@@ -379,6 +379,14 @@ window.QuartoSupport = function () {
     // Capture phase so the new slide is focusable before other plugins'
     // slidechanged handlers run, since this plugin is registered after them.
     deck.on('slidechanged', update, true);
+    deck.on('overviewshown', update);
+    deck.on('overviewhidden', update);
+    // Leaving scroll view (`reveal-scroll` removed from the viewport) dispatches
+    // no event in reveal.js 5.1.0, and the restored slides carry stale `inert`.
+    new MutationObserver(update).observe(deck.getViewportElement(), {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
   }
 
   // FIXME: Possibly remove this wrapper class when upstream trigger is fixed
