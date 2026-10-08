@@ -2,6 +2,12 @@
 title: "Home"
 ---
 
-Regression test for #14774: below 992px the secondary nav shows the
-sidebar toggle and sidebar search buttons. Both are bare Bootstrap
-`.btn` elements and must keep a visible keyboard focus indicator.
+Regression tests for Quarto's focus-indicator convention.
+
+Below 992px the secondary nav shows the sidebar toggle and sidebar search
+buttons. Both are bare Bootstrap `.btn` elements and must keep a visible
+keyboard focus indicator (#14774).
+
+At full width the sidebar shows a collapsible "Group" section. Its toggle
+is a bare `<button>` with no `.btn` class, and it takes the browser's own
+focus ring with no Quarto rule involved (#14826).
