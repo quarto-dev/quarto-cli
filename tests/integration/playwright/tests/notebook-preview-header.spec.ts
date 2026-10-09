@@ -80,6 +80,14 @@ test.describe("Notebook preview header", () => {
           return cellBox!.y - (headerBox!.y + headerBox!.height);
         }).toBeGreaterThanOrEqual(0);
       });
+
+      // #14968
+      test("controls are in a navigation landmark named after the notebook", async ({ page }) => {
+        const landmark = page.getByRole("navigation", { name: "notebook.ipynb" });
+        await expect(landmark).toHaveCount(1);
+        await expect(landmark.locator(".quarto-back-link")).toBeVisible();
+        await expect(landmark.getByRole("link", { name: "Download Notebook" })).toBeVisible();
+      });
     });
   }
 });
