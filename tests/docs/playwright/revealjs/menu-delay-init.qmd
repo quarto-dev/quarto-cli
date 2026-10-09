@@ -1,0 +1,15 @@
+---
+pagetitle: Slide menu built after load
+format:
+  revealjs:
+    menu:
+      delay-init: true
+---
+
+## Slide 1
+
+The presentation builds the slide menu itself, with `initialiseMenu()`.
+
+## Slide 2
+
+Plain slide.

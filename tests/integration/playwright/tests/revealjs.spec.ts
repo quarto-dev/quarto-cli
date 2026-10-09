@@ -196,3 +196,67 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await expect(page.locator('.reveal .slides section[inert]')).toHaveCount(0);
   });
 });
+
+// https://github.com/quarto-dev/quarto-cli/issues/15011
+test.describe('the closed slide menu is out of the tab order', () => {
+  const deck = './revealjs/menu-focus-order.html';
+
+  // WebKit only tabs to links when the Alt modifier is held, which matches
+  // Safari's default "Press Tab to highlight each item on a webpage" setting
+  const tabKeyFor = (browserName: string) =>
+    browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+
+  const menu = (page: Page) => page.locator('nav.slide-menu');
+
+  test('Tab does not stop in the closed menu', async ({ page, browserName }) => {
+    await page.goto(deck);
+    // Chrome and Firefox make the slide list a Tab stop only while it
+    // scrolls, which is why the deck has more slides than the list shows
+    const slideList = menu(page).locator('.slide-menu-panel.active-menu-panel');
+    expect(
+      await slideList.evaluate((list) => list.scrollHeight > list.clientHeight),
+      'the slide list should scroll',
+    ).toBe(true);
+
+    // The closed menu comes right after its button in the document
+    await page.locator('.slide-menu-button a').focus();
+    for (let i = 0; i < 3; i++) {
+      await page.keyboard.press(tabKeyFor(browserName));
+      await expect(page.locator('nav.slide-menu:focus-within')).toHaveCount(0);
+    }
+  });
+
+  test('the menu works while open and is inert again once closed', async ({ page }) => {
+    await page.goto(deck);
+    const currentSlide = page.locator('section.slide.present');
+    await expect(menu(page)).toHaveAttribute('inert');
+
+    // Opened with M, and the last slide chosen with End and Enter
+    await page.keyboard.press('m');
+    await expect(menu(page)).not.toHaveAttribute('inert');
+    await page.keyboard.press('End');
+    await page.keyboard.press('Enter');
+    await expect(currentSlide).toHaveId('slide-25');
+    await expect(menu(page)).toHaveAttribute('inert');
+
+    // Opened with the button, and a slide chosen with the mouse, which an
+    // inert menu would not let through
+    await page.locator('div.slide-menu-button').click();
+    await expect(menu(page)).not.toHaveAttribute('inert');
+    await menu(page).getByText('Slide 5', { exact: true }).click();
+    await expect(currentSlide).toHaveId('slide-5');
+    await expect(menu(page)).toHaveAttribute('inert');
+  });
+
+  test('a menu built after the presentation loads is inert while closed', async ({ page }) => {
+    await page.goto('./revealjs/menu-delay-init.html');
+    await expect(page.locator('.reveal')).toHaveClass(/\bready\b/);
+    // `delay-init` leaves building the menu to the presentation
+    await expect(menu(page)).toHaveCount(0);
+    await page.evaluate(() => (window as any).Reveal.getPlugin('menu').initialiseMenu());
+
+    await expect(menu(page)).toHaveAttribute('inert');
+    await page.locator('div.slide-menu-button').click();
+    await expect(menu(page)).not.toHaveAttribute('inert');
+  });
+});
