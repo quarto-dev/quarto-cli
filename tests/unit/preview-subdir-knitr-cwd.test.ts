@@ -29,12 +29,8 @@
 
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts";
-import {
-  dirname,
-  fromFileUrl,
-  isAbsolute,
-  join,
-} from "../../src/deno_ral/path.ts";
+import { dirname, isAbsolute, join } from "../../src/deno_ral/path.ts";
+import { writeTestsRenvProfile } from "../utils.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
 import { which } from "../../src/core/path.ts";
 import { projectContext } from "../../src/project/project-context.ts";
@@ -160,13 +156,7 @@ unitTest(
       // Re-activate renv against the real tests/ project, regardless of
       // this fixture's cwd — see llm-docs/testing-patterns.md → "R Tests
       // That Change Working Directory" for why this is needed.
-      const testsDir = dirname(dirname(fromFileUrl(import.meta.url)))
-        .replaceAll("\\", "/");
-      Deno.writeTextFileSync(
-        join(e2eProjDir, ".Rprofile"),
-        `Sys.setenv(RENV_PROJECT = "${testsDir}")\n` +
-          `source("${testsDir}/renv/activate.R")\n`,
-      );
+      writeTestsRenvProfile(e2eProjDir);
 
       Deno.writeTextFileSync(
         join(e2eProjDir, "_quarto.yml"),
