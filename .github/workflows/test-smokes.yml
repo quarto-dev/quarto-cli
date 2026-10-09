@@ -280,6 +280,14 @@ jobs:
           try(install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos'))))
           try(install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos'))))
           cat("::endgroup::\n")
+          # A failed dev install keeps the renv-restored version; flag it instead of failing setup
+          for (pkg in c('rmarkdown', 'knitr')) {
+            repo <- packageDescription(pkg)$Repository
+            if (is.null(repo) || !grepl('r-universe.dev', repo, fixed = TRUE)) {
+              cat(sprintf("::notice::Dev version of %s not installed; tests use %s from %s\n",
+                          pkg, packageVersion(pkg), if (is.null(repo)) "unknown source" else repo))
+            }
+          }
           if ('${{ inputs.extra-r-packages }}' != '') {
             cat(sprintf("::notice::Running with the following extra R packages for renv: %s\n", "${{ inputs.extra-r-packages }}"))
             cat("::group::Installing extra R packages\n")
