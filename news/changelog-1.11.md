@@ -22,6 +22,7 @@ All changes included in 1.11:
 - ([#14378](https://github.com/quarto-dev/quarto-cli/issues/14378)): Make scrollable code blocks and cell output keyboard-focusable in HTML output, so keyboard users can Tab to them and scroll with the arrow keys (axe rule `scrollable-region-focusable`, WCAG 2.1.1). While a region overflows it gets `tabindex="0"`, `role="group"`, and a localized `aria-label` (new `scrollable-code-label` and `scrollable-output-label` language keys, translated in all 34 built-in language files); when it fits again the attributes are removed. Chrome and Firefox already focus such regions natively; this adds Safari coverage and an accessible name.
 - ([#14795](https://github.com/quarto-dev/quarto-cli/issues/14795)): Fix keyboard focus in `revealjs` presentations reaching links and controls on nearby slides that are not shown. Tab now stays on the current slide, except in overview, scroll and print views where all slides are shown.
 - ([#14952](https://github.com/quarto-dev/quarto-cli/issues/14952)): Fix `revealjs` presentations disabling pinch-zoom on touch devices. The viewport `<meta>` tag no longer sets `maximum-scale=1.0` and `user-scalable=no`, which axe-core flagged (`meta-viewport`).
+- ([#14968](https://github.com/quarto-dev/quarto-cli/issues/14968)): The header of notebook preview pages (back link, notebook title, download link) is now a navigation landmark named after the notebook, so it is reachable through landmark navigation and no longer flagged by axe-core (`region`).
 - ([#15011](https://github.com/quarto-dev/quarto-cli/issues/15011)): Fix the slide menu of `revealjs` presentations being read by screen readers while it is closed and off screen, and Tab moving keyboard focus to it once it lists more slides than fit. (author: @jooyoungseo)
 - ([#15015](https://github.com/quarto-dev/quarto-cli/issues/15015)): Fix the "Back to Article" link of notebook previews in website projects not being reachable or usable with the keyboard.
 
@@ -71,6 +72,7 @@ All changes included in 1.11:
 ### Websites
 
 - ([#10756](https://github.com/quarto-dev/quarto-cli/issues/10756)): Fix the notebook preview of an embedded `.qmd` file going missing from the output directory when a project is rendered again, which broke its source notebook link.
+- ([#14972](https://github.com/quarto-dev/quarto-cli/issues/14972)): Fix the website navbar, sidebar toggle bar, or announcement covering the header of notebook preview pages, which hid the back link, notebook title, and download link. The notebook preview header now sits below the site header.
 - ([#14974](https://github.com/quarto-dev/quarto-cli/issues/14974)): Fix math in `.llms.md` files from `llms-txt` coming out garbled with the default `mathjax` method, and with `katex` and `webtex`. Math is now written as `$...$` and `$$...$$` with the `mathjax`, `katex`, `webtex` and `mathml` methods.
 - ([#15004](https://github.com/quarto-dev/quarto-cli/issues/15004)): Fix notebook preview pages and notebook sources missing from the output directory when a website with embedded notebooks is rendered from a directory other than the project directory.
 
