@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { fixtureServerPort, fixtureServerUrl } from './src/utils';
 
 /**
  * Read environment variables from file.
@@ -40,7 +41,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://127.0.0.1:8080',
+    baseURL: fixtureServerUrl,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -97,8 +98,8 @@ export default defineConfig({
   webServer: [
     {
       // HTTP server for rendered HTML files
-      command: 'uv run python -m http.server 8080 --bind 127.0.0.1',
-      url: 'http://127.0.0.1:8080',
+      command: `uv run python -m http.server ${fixtureServerPort} --bind 127.0.0.1`,
+      url: fixtureServerUrl,
       reuseExistingServer: !isCI,
       cwd: '../../docs/playwright',
       // http.server does a reverse DNS lookup before listening, slow on some hosts
