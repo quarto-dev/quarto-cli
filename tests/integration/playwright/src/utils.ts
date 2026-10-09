@@ -1,7 +1,11 @@
 import { expect, Locator, PlaywrightTestOptions } from "@playwright/test";
 
+// Port of the fixture server that playwright.config.ts starts on tests/docs/playwright
+export const fixtureServerPort = process.env.QUARTO_PLAYWRIGHT_PORT ?? "8765";
+export const fixtureServerUrl = `http://127.0.0.1:${fixtureServerPort}`;
+
 export const getUrl = (path: string) => {
-  return `http://127.0.0.1:8080/${path}`;
+  return `${fixtureServerUrl}/${path}`;
 };
 
 // deno-lint-ignore no-explicit-any

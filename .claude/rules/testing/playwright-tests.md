@@ -106,7 +106,7 @@ test('Feature that is known broken', async ({ page }) => {
 ## Configuration
 
 - **Config file:** `playwright.config.ts`
-- **Base URL:** `http://127.0.0.1:8080`
+- **Base URL:** `http://127.0.0.1:8765` (port from `QUARTO_PLAYWRIGHT_PORT`, see `src/utils.ts`)
 - **Test documents:** `tests/docs/playwright/<feature>/`
 - **Test specs:** `tests/integration/playwright/tests/*.spec.ts`
 
@@ -115,9 +115,12 @@ test('Feature that is known broken', async ({ page }) => {
 Playwright starts a Python HTTP server automatically when running tests:
 
 ```bash
-uv run python -m http.server 8080
+uv run python -m http.server 8765
 # Serves from tests/docs/playwright/
 ```
+
+Locally (`reuseExistingServer: !isCI`), Playwright reuses whatever already listens on that port, even another app.
+Every spec then fails with element-not-found errors; set `QUARTO_PLAYWRIGHT_PORT` to a free port.
 
 ## Best Practices
 
@@ -148,3 +151,4 @@ From `src/utils.ts`:
 | ------------------------------------------ | ---------------------------------- |
 | `QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER`      | Skip rendering (use existing HTML) |
 | `QUARTO_PLAYWRIGHT_TESTS_SKIP_CLEANOUTPUT` | Keep rendered files after test     |
+| `QUARTO_PLAYWRIGHT_PORT`                   | Fixture server port (default 8765) |
