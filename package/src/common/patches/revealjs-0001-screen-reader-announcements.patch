@@ -1,0 +1,70 @@
+diff --git a/js/controllers/location.js b/js/controllers/location.js
+index 2299d47..b0dbc01 100644
+--- a/js/controllers/location.js
++++ b/js/controllers/location.js
+@@ -105,8 +105,14 @@ export default class Location {
+ 		const newIndices = this.getIndicesFromHash();
+ 
+ 		if( newIndices ) {
+-			if( ( newIndices.h !== currentIndices.h || newIndices.v !== currentIndices.v || newIndices.f !== undefined ) ) {
+-					this.Reveal.slide( newIndices.h, newIndices.v, newIndices.f );
++			const fragmentInURL = this.Reveal.getConfig().fragmentInURL;
++			const newFragmentIndex = newIndices.f === undefined && fragmentInURL ? -1 : newIndices.f;
++			const fragmentChanged = newFragmentIndex !== undefined && newFragmentIndex !== ( currentIndices.f ?? -1 );
++
++			if( newIndices.h !== currentIndices.h ||
++				( newIndices.v ?? 0 ) !== ( currentIndices.v ?? 0 ) ||
++				fragmentChanged ) {
++				this.Reveal.slide( newIndices.h, newIndices.v, newFragmentIndex );
+ 			}
+ 		}
+ 		// If no new indices are available, we're trying to navigate to
+diff --git a/js/reveal.js b/js/reveal.js
+index 927b0a1..52b19df 100644
+--- a/js/reveal.js
++++ b/js/reveal.js
+@@ -381,7 +381,7 @@ export default function( revealElement, options ) {
+ 	 * that can be announced to a screen reader. Hidden
+ 	 * elements are excluded.
+ 	 */
+-	function getStatusText( node ) {
++	function getStatusText( node, rootNode = node ) {
+ 
+ 		let text = '';
+ 
+@@ -394,10 +394,33 @@ export default function( revealElement, options ) {
+ 
+ 			let isAriaHidden = node.getAttribute( 'aria-hidden' );
+ 			let isDisplayHidden = window.getComputedStyle( node )['display'] === 'none';
+-			if( isAriaHidden !== 'true' && !isDisplayHidden ) {
++			let isFragmentHidden = false;
++
++			// Fragment visibility is class-based since computed styles may still
++			// reflect an in-progress transition when an announcement is made.
++			// The root is exempt so a fragment can announce itself as it changes.
++			if( node !== rootNode && node.classList.contains( 'fragment' ) && !node.classList.contains( 'custom' ) ) {
++				const isVisible = node.classList.contains( 'visible' );
++				const isCurrent = node.classList.contains( 'current-fragment' );
++				const isCurrentOnly = node.classList.contains( 'current-visible' ) || node.classList.contains( 'fade-in-then-out' );
++				const isInitiallyVisible = ['grow', 'shrink', 'strike', 'semi-fade-out'].some( style => node.classList.contains( style ) ) ||
++					Array.from( node.classList ).some( style => /^highlight-(current-)?(red|green|blue)$/.test( style ) );
++
++				if( isCurrentOnly ) {
++					isFragmentHidden = !isCurrent;
++				}
++				else if( node.classList.contains( 'fade-out' ) ) {
++					isFragmentHidden = isVisible;
++				}
++				else {
++					isFragmentHidden = !isVisible && !isInitiallyVisible;
++				}
++			}
++
++			if( isAriaHidden !== 'true' && !isDisplayHidden && !isFragmentHidden ) {
+ 
+ 				Array.from( node.childNodes ).forEach( child => {
+-					text += getStatusText( child );
++					text += getStatusText( child, rootNode );
+ 				} );
+ 
+ 			}
