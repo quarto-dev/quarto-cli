@@ -1,0 +1,26 @@
+---
+pagetitle: Reveal.js announcements
+format:
+  revealjs:
+    history: true
+---
+
+## Intro {#intro}
+
+## Steps {#steps}
+
+Visible lead
+
+<div class="fragment grow">Grow starts visible</div>
+
+<div class="fragment fade-out">Fade out starts visible</div>
+
+<div class="fragment">Outer step <span class="fragment">Nested step</span></div>
+
+Before pause
+
+. . .
+
+After pause
+
+## History target {#history-target}

@@ -304,7 +304,23 @@ export async function updateHtmlDependencies(config: Configuration) {
     "hakimel/reveal.js",
     "REVEAL_JS",
     workingDir,
-    (dir: string, version: string) => {
+    async (dir: string, version: string) => {
+      // Backport hakimel/reveal.js#3945 while Quarto bundles reveal.js 5.1.0.
+      // Remove the source patch and rebuild step when upgrading to a fixed release.
+      const sourceDir = join(dir, `reveal.js-${version}`);
+      await runCmd("git", [
+        "-C", sourceDir, "apply", "--ignore-space-change",
+        join(patchesDir, "revealjs-0001-screen-reader-announcements.patch"),
+      ]);
+      // Skip install scripts: rebuilding the bundles does not need Puppeteer.
+      await runCmd(config.os === "windows" ? "npm.cmd" : "npm", [
+        "--prefix", sourceDir, "ci", "--ignore-scripts",
+      ]);
+      await runCmd("node", [
+        join(sourceDir, "node_modules", "gulp", "bin", "gulp.js"),
+        "--cwd", sourceDir, "js",
+      ]);
+
       // Copy the desired resource files
       info("Copying reveal.js resources' directory");
       if (existsSync(revealJs)) {

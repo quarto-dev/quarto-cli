@@ -11,6 +11,7 @@ All changes included in 1.11:
 
 ## Accessibility
 
+- ([#15019](https://github.com/quarto-dev/quarto-cli/issues/15019)): Fix screen reader announcements in `revealjs` presentations including incremental content before it is revealed and repeating slides and fragments when browser history is enabled.
 - ([#730](https://github.com/quarto-dev/quarto-cli/issues/730)): Fix keyboard navigation of tabsets in HTML documents without Bootstrap (`theme: none`): Tab now moves from the selected tab into its panel instead of selecting the next tab, and the arrow keys switch tabs.
 - ([#13463](https://github.com/quarto-dev/quarto-cli/issues/13463)): The dark/light mode toggle is now a switch (`button` with `role="switch"`, `aria-checked`, and a localized `aria-label`) instead of a link.
 - ([#14615](https://github.com/quarto-dev/quarto-cli/issues/14615)): Fix invalid `role="menu"` on the website navbar's collapse toggle button, flagged by axe-core (`aria-allowed-role`) and WAVE (`aria-role-mismatch`).
