@@ -22,6 +22,7 @@ All changes included in 1.11:
 - ([#14378](https://github.com/quarto-dev/quarto-cli/issues/14378)): Make scrollable code blocks and cell output keyboard-focusable in HTML output, so keyboard users can Tab to them and scroll with the arrow keys (axe rule `scrollable-region-focusable`, WCAG 2.1.1). While a region overflows it gets `tabindex="0"`, `role="group"`, and a localized `aria-label` (new `scrollable-code-label` and `scrollable-output-label` language keys, translated in all 34 built-in language files); when it fits again the attributes are removed. Chrome and Firefox already focus such regions natively; this adds Safari coverage and an accessible name.
 - ([#14795](https://github.com/quarto-dev/quarto-cli/issues/14795)): Fix keyboard focus in `revealjs` presentations reaching links and controls on nearby slides that are not shown. Tab now stays on the current slide, except in overview, scroll and print views where all slides are shown.
 - ([#14952](https://github.com/quarto-dev/quarto-cli/issues/14952)): Fix `revealjs` presentations disabling pinch-zoom on touch devices. The viewport `<meta>` tag no longer sets `maximum-scale=1.0` and `user-scalable=no`, which axe-core flagged (`meta-viewport`).
+- ([#15011](https://github.com/quarto-dev/quarto-cli/issues/15011)): Fix the slide menu of `revealjs` presentations being read by screen readers while it is closed and off screen, and Tab moving keyboard focus to it once it lists more slides than fit. (author: @jooyoungseo)
 
 ## Formats
 
