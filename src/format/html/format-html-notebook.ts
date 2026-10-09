@@ -296,7 +296,9 @@ export async function emplaceNotebookPreviews(
 
       if (nbPath.resources) {
         resources.push(...nbPath.resources.map((file) => {
-          return project ? relative(project?.dir, file) : file;
+          return project && isAbsolute(file)
+            ? relative(project.dir, file)
+            : file;
         }));
       }
 

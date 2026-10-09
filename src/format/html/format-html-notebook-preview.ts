@@ -223,20 +223,20 @@ export const notebookPreviewer = (
           );
         }
 
-        // Forward along resources and supporting files from previews
+        // Forward along resources and supporting files from previews.
+        // Supporting files must be absolute so they resolve regardless of
+        // the cwd; the stored (project-relative) entries are not mutated.
+        const absoluteSupporting = (entries: string[]) =>
+          entries.map((s) =>
+            project && !isAbsolute(s) ? join(project.dir, s) : s
+          );
         const supporting: string[] = [];
         const resources: string[] = [];
         if (renderedNotebook[kRenderedIPynb]) {
           const renderedIpynb = renderedNotebook[kRenderedIPynb];
           if (renderedIpynb) {
-            if (project) {
-              supporting.push(
-                relative(project.dir, renderedIpynb.hrefPath),
-              );
-            } else {
-              supporting.push(renderedIpynb.hrefPath);
-            }
-            supporting.push(...renderedIpynb.supporting);
+            supporting.push(renderedIpynb.hrefPath);
+            supporting.push(...absoluteSupporting(renderedIpynb.supporting));
             resources.push(...renderedIpynb.resourceFiles.files);
           }
         }
@@ -244,12 +244,8 @@ export const notebookPreviewer = (
         if (renderedNotebook[kHtmlPreview]) {
           const htmlPreview = renderedNotebook[kHtmlPreview];
           if (htmlPreview) {
-            if (project) {
-              supporting.push(relative(project.dir, htmlPreview.hrefPath));
-            } else {
-              supporting.push(htmlPreview.hrefPath);
-            }
-            supporting.push(...htmlPreview.supporting);
+            supporting.push(htmlPreview.hrefPath);
+            supporting.push(...absoluteSupporting(htmlPreview.supporting));
             resources.push(...htmlPreview.resourceFiles.files);
           }
         }
