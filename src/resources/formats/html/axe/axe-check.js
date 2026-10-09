@@ -472,8 +472,8 @@ class QuartoAxeChecker {
     this.scanGeneration = 0;
   }
   // In RevealJS, only the current slide is accessible to axe-core because
-  // non-visible slides have hidden and aria-hidden attributes. Temporarily
-  // remove these so axe can check all slides, then restore them.
+  // non-visible slides have hidden, aria-hidden and inert attributes.
+  // Temporarily remove these so axe can check all slides, then restore them.
   revealUnhideSlides() {
     const slides = document.querySelectorAll(".reveal .slides section");
     if (slides.length === 0) return null;
@@ -486,6 +486,7 @@ class QuartoAxeChecker {
       });
       s.removeAttribute("hidden");
       s.removeAttribute("aria-hidden");
+      s.removeAttribute("inert");
     });
     return saved;
   }
@@ -495,6 +496,13 @@ class QuartoAxeChecker {
     saved.forEach(({ el, hidden, ariaHidden }) => {
       if (hidden) el.setAttribute("hidden", "");
       if (ariaHidden !== null) el.setAttribute("aria-hidden", ariaHidden);
+    });
+    // Recompute inert from live state, mirroring reveal.js's own rule (6.0.2+),
+    // so a slide change during the scan cannot leave the current slide inert.
+    const allowAll = Reveal.isOverview() || Reveal.isScrollView() || Reveal.isPrintView();
+    const current = Reveal.getCurrentSlide();
+    saved.forEach(({ el }) => {
+      el.toggleAttribute("inert", !allowAll && el !== current && !el.contains(current));
     });
   }
 
