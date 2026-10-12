@@ -82,6 +82,67 @@ for (const fixture of fixtures) {
   });
 }
 
+
+const nestedFragments = [
+  {
+    slideId: 'nested-fade-out',
+    heading: 'Nested fade out',
+    parent: 'Parent one',
+    child: 'Child fades',
+    childInitiallyVisible: true,
+  },
+  {
+    slideId: 'nested-appear',
+    heading: 'Nested appear',
+    parent: 'Parent two',
+    child: 'Child appears',
+    childInitiallyVisible: false,
+  },
+];
+
+for (const fixture of fixtures) {
+  for (const nested of nestedFragments) {
+    test(
+      fixture.name + ': nested fragment backward visibility (' + nested.slideId + ')',
+      async ({ page }) => {
+        await installAnnouncementObserver(page);
+        await page.goto(fixture.url + '#/' + nested.slideId);
+        await expect(page.locator('.reveal.ready')).toBeAttached();
+        await expect(page.locator('section.present')).toHaveId(nested.slideId);
+
+        const expected = [nested.heading];
+        await expectAnnouncements(page, expected);
+        const parent = page.locator('#' + nested.slideId + ' > .fragment');
+        const child = parent.locator('.fragment');
+        const parentText = nested.childInitiallyVisible
+          ? nested.parent + ' ' + nested.child
+          : nested.parent;
+
+        await page.keyboard.press('Space');
+        await expect(parent).toHaveClass(/current-fragment/);
+        expected.push(parentText);
+        await expectAnnouncements(page, expected);
+
+        await page.keyboard.press('Space');
+        await expect(child).toHaveClass(/current-fragment/);
+        expected.push(nested.child);
+        await expectAnnouncements(page, expected);
+
+        await page.keyboard.press('ArrowLeft');
+        await expect(parent).toHaveClass(/current-fragment/);
+        await expect(child).not.toHaveClass(/visible/);
+        if (nested.childInitiallyVisible) {
+          await expect(child).toBeVisible();
+        } else {
+          await expect(child).toBeHidden();
+        }
+        expected.push(parentText);
+        await expectAnnouncements(page, expected);
+      },
+    );
+  }
+}
+
 test('fragment URL history distinguishes explicit indices from its boundary', async ({ page }) => {
   await installAnnouncementObserver(page);
   await page.goto('./revealjs/announcements-fragment-in-url.html');

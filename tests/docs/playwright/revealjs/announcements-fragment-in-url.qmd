@@ -25,3 +25,11 @@ Before pause
 After pause
 
 ## History target {#history-target}
+
+## Nested fade out {#nested-fade-out}
+
+<div class="fragment">Parent one <span class="fragment fade-out">Child fades</span></div>
+
+## Nested appear {#nested-appear}
+
+<div class="fragment">Parent two <span class="fragment">Child appears</span></div>

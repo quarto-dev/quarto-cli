@@ -305,8 +305,9 @@ export async function updateHtmlDependencies(config: Configuration) {
     "REVEAL_JS",
     workingDir,
     async (dir: string, version: string) => {
-      // Backport hakimel/reveal.js#3945 while Quarto bundles reveal.js 5.1.0.
-      // Remove the source patch and rebuild step when upgrading to a fixed release.
+      // Backport the unmerged PR hakimel/reveal.js#3946 for reveal.js 5.1.0.
+      // Before removing the source patch and rebuild step, check that the PR
+      // has landed in the reveal.js release being bundled.
       const sourceDir = join(dir, `reveal.js-${version}`);
       await runCmd("git", [
         "-C", sourceDir, "apply", "--ignore-space-change",
