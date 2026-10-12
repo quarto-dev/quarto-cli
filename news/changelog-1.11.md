@@ -24,6 +24,7 @@ All changes included in 1.11:
 - ([#14952](https://github.com/quarto-dev/quarto-cli/issues/14952)): Fix `revealjs` presentations disabling pinch-zoom on touch devices. The viewport `<meta>` tag no longer sets `maximum-scale=1.0` and `user-scalable=no`, which axe-core flagged (`meta-viewport`).
 - ([#15011](https://github.com/quarto-dev/quarto-cli/issues/15011)): Fix the slide menu of `revealjs` presentations being read by screen readers while it is closed and off screen, and Tab moving keyboard focus to it once it lists more slides than fit. (author: @jooyoungseo)
 - ([#15015](https://github.com/quarto-dev/quarto-cli/issues/15015)): Fix the "Back to Article" link of notebook previews in website projects not being reachable or usable with the keyboard.
+- ([#15030](https://github.com/quarto-dev/quarto-cli/pull/15030)): Fix `axe` checks in `revealjs` presentations hiding the current slide from screen readers when moving to another slide while the scan runs.
 
 ## Formats
 
