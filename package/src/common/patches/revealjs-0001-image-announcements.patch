@@ -1,0 +1,80 @@
+diff --git a/js/reveal.js b/js/reveal.js
+index 927b0a1..45b18e9 100644
+--- a/js/reveal.js
++++ b/js/reveal.js
+@@ -392,13 +392,32 @@ export default function( revealElement, options ) {
+ 		// Element node
+ 		else if( node.nodeType === 1 ) {
+ 
++			// SVG style and script elements are not necessarily display: none.
++			if( node.localName === 'style' || node.localName === 'script' ) {
++				return '';
++			}
++
+ 			let isAriaHidden = node.getAttribute( 'aria-hidden' );
+ 			let isDisplayHidden = window.getComputedStyle( node )['display'] === 'none';
+ 			if( isAriaHidden !== 'true' && !isDisplayHidden ) {
+ 
+-				Array.from( node.childNodes ).forEach( child => {
+-					text += getStatusText( child );
+-				} );
++				// An image's contents are presentational; announce its name instead.
++				if( ( node.getAttribute( 'role' ) || '' ).trim().split( /\s+/ )[0] === 'img' ) {
++					text += getImageName( node );
++				}
++				else {
++					// Backport native image and video alt text support from reveal.js 6.
++					if( node.tagName === 'IMG' || node.tagName === 'VIDEO' ) {
++						let altText = node.getAttribute( 'alt' );
++						if( altText ) {
++							text += altText + ' ';
++						}
++					}
++
++					Array.from( node.childNodes ).forEach( child => {
++						text += getStatusText( child );
++					} );
++				}
+ 
+ 			}
+ 
+@@ -410,6 +429,39 @@ export default function( revealElement, options ) {
+ 
+ 	}
+ 
++	/**
++	 * Finds the accessible name of an element with role="img".
++	 */
++	function getImageName( node ) {
++
++		let labelledBy = node.getAttribute( 'aria-labelledby' );
++		if( labelledBy ) {
++			let labels = labelledBy.trim().split( /\s+/ )
++				.map( id => node.ownerDocument.getElementById( id ) )
++				.filter( label => label );
++			if( labels.length ) {
++				return labels.map( label => label.textContent.trim() ).join( ' ' );
++			}
++		}
++
++		let label = node.getAttribute( 'aria-label' );
++		if( label && label.trim() ) {
++			return label;
++		}
++
++		if( node.localName === 'svg' ) {
++			let title = Array.from( node.children ).find( child => child.localName === 'title' );
++			return title ? title.textContent : '';
++		}
++
++		if( node.tagName === 'IMG' || node.tagName === 'VIDEO' ) {
++			return node.getAttribute( 'alt' ) || '';
++		}
++
++		return '';
++
++	}
++
+ 	/**
+ 	 * This is an unfortunate necessity. Some actions – such as
+ 	 * an input field being focused in an iframe or using the
