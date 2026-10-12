@@ -156,9 +156,56 @@ export function findPdfAccessibilityWarnings(
   return result;
 }
 
+// Hyphenation pattern names (in language.dat) whose package is not
+// hyphen-<name>, according to `execute AddHyphen` in texlive.tlpdb
+const kHyphenationPackageNames: Record<string, string> = {
+  ngerman: "german",
+  swissgerman: "german",
+  pinyin: "chinese",
+  ukenglish: "english",
+  british: "english",
+  usenglishmax: "english",
+  bokmal: "norwegian",
+  norsk: "norwegian",
+  nynorsk: "norwegian",
+  schoolfinnish: "finnish",
+  monogreek: "greek",
+  ibycus: "ancientgreek",
+  classiclatin: "latin",
+  liturgicallatin: "latin",
+  mongolianlmc: "mongolian",
+  serbianc: "serbian",
+  // older names (synonyms in texlive.tlpdb)
+  amharic: "ethiopic",
+  geez: "ethiopic",
+  persian: "farsi",
+  patois: "french",
+  francais: "french",
+  polygreek: "greek",
+  portuges: "portuguese",
+  slovene: "slovenian",
+  espanol: "spanish",
+  // all of these are in the hyphen-indic package
+  assamese: "indic",
+  bengali: "indic",
+  gujarati: "indic",
+  hindi: "indic",
+  kannada: "indic",
+  malayalam: "indic",
+  marathi: "indic",
+  oriya: "indic",
+  pali: "indic",
+  panjabi: "indic",
+  tamil: "indic",
+  telugu: "indic",
+};
+
 // Maps a babel language name to the TeX Live package providing its
 // hyphenation patterns (undefined when there is no such package)
 function hyphenationPackageForLanguage(lang: string) {
+  // Names in language.dat may be in mixed case (e.g. UKenglish)
+  lang = lang.toLowerCase();
+
   // It seems some languages have no hyphenation files, so we just filter them out
   // e.g. `lang: zh` has no hyphenation files
   // https://github.com/quarto-dev/quarto-cli/issues/10291
@@ -172,7 +219,10 @@ function hyphenationPackageForLanguage(lang: string) {
   // called here german, which is the name in the CLDR and, actually, the most logical.
   //
   // See https://ctan.math.utah.edu/ctan/tex-archive/macros/latex/required/babel/base/babel.pdf
-  const pkg = lang === "ngerman" ? "hyphen-german" : `hyphen-${lang.toLowerCase()}`;
+  const name = Object.hasOwn(kHyphenationPackageNames, lang)
+    ? kHyphenationPackageNames[lang]
+    : lang;
+  const pkg = `hyphen-${name}`;
   // The name comes from the log and is passed to tlmgr (through a .bat file
   // on Windows), so only keep what looks like a package name (all
   // hyphenation names in texlive.tlpdb are lowercase letters, digits and hyphens)

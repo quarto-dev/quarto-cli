@@ -260,3 +260,79 @@ unitTest("Drop hyphenation package names that are not valid package names", asyn
 }, {
   cwd: () => "unit/latexmk/"
 })
+
+unitTest("Map hyphenation language names to their TeX Live package", async () => {
+  // Names whose package is not hyphen-<name>, according to
+  // `execute AddHyphen` (name= and synonyms=) in texlive.tlpdb
+  const expected: Record<string, string> = {
+    ngerman: "hyphen-german",
+    swissgerman: "hyphen-german",
+    pinyin: "hyphen-chinese",
+    ukenglish: "hyphen-english",
+    british: "hyphen-english",
+    usenglishmax: "hyphen-english",
+    bokmal: "hyphen-norwegian",
+    norsk: "hyphen-norwegian",
+    nynorsk: "hyphen-norwegian",
+    schoolfinnish: "hyphen-finnish",
+    monogreek: "hyphen-greek",
+    polygreek: "hyphen-greek",
+    ibycus: "hyphen-ancientgreek",
+    classiclatin: "hyphen-latin",
+    liturgicallatin: "hyphen-latin",
+    mongolianlmc: "hyphen-mongolian",
+    serbianc: "hyphen-serbian",
+    amharic: "hyphen-ethiopic",
+    geez: "hyphen-ethiopic",
+    persian: "hyphen-farsi",
+    patois: "hyphen-french",
+    francais: "hyphen-french",
+    portuges: "hyphen-portuguese",
+    slovene: "hyphen-slovenian",
+    espanol: "hyphen-spanish",
+    assamese: "hyphen-indic",
+    bengali: "hyphen-indic",
+    gujarati: "hyphen-indic",
+    hindi: "hyphen-indic",
+    kannada: "hyphen-indic",
+    malayalam: "hyphen-indic",
+    marathi: "hyphen-indic",
+    oriya: "hyphen-indic",
+    pali: "hyphen-indic",
+    panjabi: "hyphen-indic",
+    tamil: "hyphen-indic",
+    telugu: "hyphen-indic",
+  };
+  for (const [lang, pkg] of Object.entries(expected)) {
+    assertEquals(
+      findMissingHyphenationPackages(
+        `! Package babel Error: You haven't defined the language '${lang}' yet.`,
+      ),
+      [pkg],
+      `Should map '${lang}' to ${pkg} from the babel error`,
+    );
+    assertEquals(
+      findMissingHyphenationFiles(`Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language '${lang}' into the format.`),
+      pkg,
+      `Should map '${lang}' to ${pkg} from the babel warning`,
+    );
+  }
+  // Names in language.dat may be in mixed case
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language 'UKenglish' yet.",
+    ),
+    ["hyphen-english"],
+  );
+  // Several languages from the same package are installed once
+  assertEquals(
+    findMissingHyphenationPackages(
+      `! Package babel Error: You haven't defined the language 'hindi' yet.
+! Package babel Error: You haven't defined the language 'tamil' yet.`,
+    ),
+    ["hyphen-indic"],
+  );
+}, {
+  cwd: () => "unit/latexmk/"
+})
