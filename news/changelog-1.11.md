@@ -45,7 +45,7 @@ All changes included in 1.11:
 ### `pdf`
 
 - ([#14982](https://github.com/quarto-dev/quarto-cli/issues/14982)): Fix a footnote in document metadata, such as `title` or `author`, making PDF and Typst output shift heading levels, which turned the first level-1 heading into the document title.
-- ([rstudio/tinytex#515](https://github.com/rstudio/tinytex/issues/515)): Fix PDF rendering with regional German variants such as `lang: de-CH` failing when German hyphenation patterns are not installed, instead of installing them automatically.
+- ([#15027](https://github.com/quarto-dev/quarto-cli/issues/15027)): Fix PDF rendering with regional German variants such as `lang: de-CH` failing when German hyphenation patterns are not installed, instead of installing them automatically.
 
 ### `revealjs`
 

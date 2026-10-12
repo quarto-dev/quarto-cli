@@ -1,5 +1,5 @@
 ---
-title: "Swiss German hyphenation auto-install (rstudio/tinytex#515)"
+title: "Swiss German hyphenation auto-install (#15027)"
 format: pdf
 lang: de-CH
 _quarto:
@@ -7,8 +7,10 @@ _quarto:
     pdf: null
 ---
 
+**Only remove packages on CI**
+
 ```{r}
-#| eval: !expr isFALSE(as.logical(Sys.getenv("CI", "false")))
+#| eval: !expr isTRUE(as.logical(Sys.getenv("CI", "false")))
 #| include: false
 #| messages: "NA"
 
@@ -23,4 +25,4 @@ for (pkg in c("hyphen-german", "babel-german")) {
 }
 ```
 
-Dieses Dokument prüft, dass Quarto `babel-german` und `hyphen-german` automatisch installiert, wenn `lang: de-CH` verwendet wird.
+Dieses Dokument prüft, dass Quarto `babel-german` und `hyphen-german` automatisch installiert, wenn `lang: de-CH` verwendet wird (siehe auch rstudio/tinytex#515).
