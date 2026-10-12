@@ -25,6 +25,7 @@ All changes included in 1.11:
 - ([#15011](https://github.com/quarto-dev/quarto-cli/issues/15011)): Fix the slide menu of `revealjs` presentations being read by screen readers while it is closed and off screen, and Tab moving keyboard focus to it once it lists more slides than fit. (author: @jooyoungseo)
 - ([#15015](https://github.com/quarto-dev/quarto-cli/issues/15015)): Fix the "Back to Article" link of notebook previews in website projects not being reachable or usable with the keyboard.
 - ([#15019](https://github.com/quarto-dev/quarto-cli/issues/15019)): Fix screen reader announcements in `revealjs` presentations including incremental content before it is revealed and repeating slides and fragments when browser history is enabled. (author: @jooyoungseo)
+- ([#15030](https://github.com/quarto-dev/quarto-cli/pull/15030)): Fix `axe` checks in `revealjs` presentations hiding the current slide from screen readers when moving to another slide while the scan runs.
 
 ## Formats
 
@@ -36,6 +37,7 @@ All changes included in 1.11:
 
 - ([#14818](https://github.com/quarto-dev/quarto-cli/issues/14818)): Fix a dashboard with more than one page going blank when the URL hash does not name a page, such as a footnote link or a cross-reference link.
 - ([#14819](https://github.com/quarto-dev/quarto-cli/issues/14819)): Fix keyboard focus starting inside the page content when a dashboard opens at a page hash, such as `dashboard.html#sales`. Tabbing backward now correctly returns to the page navigation tabs.
+- ([#15023](https://github.com/quarto-dev/quarto-cli/issues/15023)): Fix a dashboard cell's HTML output being moved out of its card when the output contains text such as `bslib` or the word "subslide", and the card being dropped, title included, when the cell shows nothing else. (author: @jooyoungseo)
 
 ### `html`
 
@@ -46,6 +48,7 @@ All changes included in 1.11:
 ### `pdf`
 
 - ([#14982](https://github.com/quarto-dev/quarto-cli/issues/14982)): Fix a footnote in document metadata, such as `title` or `author`, making PDF and Typst output shift heading levels, which turned the first level-1 heading into the document title.
+- ([#15027](https://github.com/quarto-dev/quarto-cli/issues/15027)): Fix PDF rendering with regional German variants such as `lang: de-CH` failing when German hyphenation patterns are not installed, instead of installing them automatically.
 
 ### `revealjs`
 
@@ -74,6 +77,7 @@ All changes included in 1.11:
 - ([#10756](https://github.com/quarto-dev/quarto-cli/issues/10756)): Fix the notebook preview of an embedded `.qmd` file going missing from the output directory when a project is rendered again, which broke its source notebook link.
 - ([#14974](https://github.com/quarto-dev/quarto-cli/issues/14974)): Fix math in `.llms.md` files from `llms-txt` coming out garbled with the default `mathjax` method, and with `katex` and `webtex`. Math is now written as `$...$` and `$$...$$` with the `mathjax`, `katex`, `webtex` and `mathml` methods.
 - ([#15004](https://github.com/quarto-dev/quarto-cli/issues/15004)): Fix notebook preview pages and notebook sources missing from the output directory when a website with embedded notebooks is rendered from a directory other than the project directory.
+- ([#15022](https://github.com/quarto-dev/quarto-cli/issues/15022)): Fix rendering a listing with a `feed` failing on Windows with `os error 123` when a listing item's `image` or the feed `image` is a web URL. The image URL is used as is in the feed and no local size lookup is attempted. (author: @Masad791)
 
 ## Lua API
 

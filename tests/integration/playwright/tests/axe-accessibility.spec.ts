@@ -267,6 +267,32 @@ test.describe('RevealJS axe — cross-slide scanning and state restoration', () 
     await expect(highlightedImg).toBeAttached({ timeout: 3000 });
   });
 
+  test('slide navigated to during the scan stays accessible afterwards', async ({ page }) => {
+    // Navigate as soon as the scan unhides the slides, i.e. while axe.run is pending.
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const observer = new MutationObserver(() => {
+          const slide2 = document.querySelectorAll('.reveal .slides > section')[1];
+          if (slide2 && !slide2.hasAttribute('aria-hidden')) {
+            observer.disconnect();
+            Reveal.slide(1);
+          }
+        });
+        observer.observe(document.body, {
+          subtree: true, attributes: true, attributeFilter: ['aria-hidden'],
+        });
+      });
+    });
+    await page.goto('/revealjs/axe-console.html', { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    expect(await page.evaluate(() => Reveal.getIndices().h)).toBe(1);
+    const current = page.locator('.reveal .slides > section.present');
+    await expect(current).not.toHaveAttribute('hidden');
+    await expect(current).not.toHaveAttribute('aria-hidden');
+    await expect(current).not.toHaveAttribute('inert');
+  });
+
   test('detects image-alt violation on hidden vertical slide', async ({ page }) => {
     await page.goto('/revealjs/axe-accessibility-vertical.html', { waitUntil: 'networkidle' });
     const reportSlide = page.locator('section.quarto-axe-report-slide');
