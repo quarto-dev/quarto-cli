@@ -493,16 +493,18 @@ class QuartoAxeChecker {
 
   revealRestoreSlides(saved) {
     if (!saved) return;
-    saved.forEach(({ el, hidden, ariaHidden }) => {
-      if (hidden) el.setAttribute("hidden", "");
-      if (ariaHidden !== null) el.setAttribute("aria-hidden", ariaHidden);
-    });
-    // Recompute inert from live state, mirroring reveal.js's own rule (6.0.2+),
-    // so a slide change during the scan cannot leave the current slide inert.
+    // Use live state for the current slide, mirroring reveal.js's own inert
+    // rule (6.0.2+), so a slide change during the scan cannot leave the
+    // current slide hidden, aria-hidden or inert.
     const allowAll = Reveal.isOverview() || Reveal.isScrollView() || Reveal.isPrintView();
     const current = Reveal.getCurrentSlide();
-    saved.forEach(({ el }) => {
-      el.toggleAttribute("inert", !allowAll && el !== current && !el.contains(current));
+    saved.forEach(({ el, hidden, ariaHidden }) => {
+      const isCurrent = el === current || el.contains(current);
+      if (!isCurrent) {
+        if (hidden) el.setAttribute("hidden", "");
+        if (ariaHidden !== null) el.setAttribute("aria-hidden", ariaHidden);
+      }
+      el.toggleAttribute("inert", !allowAll && !isCurrent);
     });
   }
 
