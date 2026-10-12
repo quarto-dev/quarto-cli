@@ -230,3 +230,33 @@ Type  H <return>  for immediate help.`;
 }, {
   cwd: () => "unit/latexmk/"
 })
+
+unitTest("Drop hyphenation package names that are not valid package names", async () => {
+  // Language names come from the log and end up as tlmgr arguments, which
+  // go through a .bat file on Windows
+  for (const lang of ['x"&calc', "ngerman;id", "%PATH%", "a|b", "a^b", "--repository=x"]) {
+    assertEquals(
+      findMissingHyphenationPackages(
+        `! Package babel Error: You haven't defined the language '${lang}' yet.`,
+      ),
+      [],
+      `Should drop '${lang}' from the babel error`,
+    );
+    assertEquals(
+      findMissingHyphenationFiles(`Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language '${lang}' into the format.`),
+      undefined,
+      `Should drop '${lang}' from the babel warning`,
+    );
+  }
+  // Valid names are kept
+  assertEquals(
+    findMissingHyphenationPackages(
+      `! Package babel Error: You haven't defined the language 'x"&calc' yet.
+! Package babel Error: You haven't defined the language 'french' yet.`,
+    ),
+    ["hyphen-french"],
+  );
+}, {
+  cwd: () => "unit/latexmk/"
+})

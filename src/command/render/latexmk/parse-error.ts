@@ -172,10 +172,13 @@ function hyphenationPackageForLanguage(lang: string) {
   // called here german, which is the name in the CLDR and, actually, the most logical.
   //
   // See https://ctan.math.utah.edu/ctan/tex-archive/macros/latex/required/babel/base/babel.pdf
-  if (lang === "ngerman") {
-    return "hyphen-german";
+  const pkg = lang === "ngerman" ? "hyphen-german" : `hyphen-${lang.toLowerCase()}`;
+  // The name comes from the log and is passed to tlmgr (through a .bat file
+  // on Windows), so only keep what looks like a package name (all
+  // hyphenation names in texlive.tlpdb are lowercase letters, digits and hyphens)
+  if (/^hyphen-[a-z0-9-]+$/.test(pkg)) {
+    return pkg;
   }
-  return `hyphen-${lang.toLowerCase()}`;
 }
 
 // babel raises a fatal error (rather than the warning handled by
