@@ -68,14 +68,19 @@
     window.document.addEventListener("DOMContentLoaded", function () {
 
       var header = window.document.querySelector("#quarto-embed-header");
-      const titleBannerEl = window.document.querySelector("body > #title-block-header");
-      if (titleBannerEl) {
-        titleBannerEl.style.paddingTop = header.clientHeight + "px";
-      }
-      const contentEl = window.document.getElementById('quarto-content');
-      for (const child of contentEl.children) {
-        child.style.paddingTop = header.clientHeight + "px";
-        child.style.marginTop = "1em";
+      // Inside the site header, the site navigation offsets the content
+      // and manages headroom
+      const inSiteHeader = header.parentElement.id === "quarto-header";
+      if (!inSiteHeader) {
+        const titleBannerEl = window.document.querySelector("body > #title-block-header");
+        if (titleBannerEl) {
+          titleBannerEl.style.paddingTop = header.clientHeight + "px";
+        }
+        const contentEl = window.document.getElementById('quarto-content');
+        for (const child of contentEl.children) {
+          child.style.paddingTop = header.clientHeight + "px";
+          child.style.marginTop = "1em";
+        }
       }
 
       // Use the article root if the `back` call doesn't work. This isn't perfect
@@ -97,14 +102,16 @@ $endif$
         }, 100);
       }
 
-      const headroom = new window.Headroom(header, {
-        tolerance: 5,
-        onPin: function () {
-        },
-        onUnpin: function () {
-        },
-      });
-      headroom.init();
+      if (!inSiteHeader) {
+        const headroom = new window.Headroom(header, {
+          tolerance: 5,
+          onPin: function () {
+          },
+          onUnpin: function () {
+          },
+        });
+        headroom.init();
+      }
     });
     </script>
 
@@ -116,10 +123,10 @@ $endif$
   </head>
 
   <body>
-    <div id="quarto-embed-header" class="headroom fixed-top bg-primary">
-      
+    <nav id="quarto-embed-header" class="headroom fixed-top bg-primary" aria-labelledby="quarto-embed-title">
+
       <a href="$if(nbMeta.backHref)$$nbMeta.backHref$$endif$" onclick="window.quartoBackToArticle(); return false;" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>
-      <h6><i class="bi bi-journal-code"></i> $nbMeta.title$</h6>
+      <h6 id="quarto-embed-title"><i class="bi bi-journal-code"></i> $nbMeta.title$</h6>
 
       $if(nbMeta.downloadHref)$
       <a
@@ -130,7 +137,7 @@ $endif$
         >$nbMeta.downloadLabel$</a
       >
       $endif$
-    </div>
+    </nav>
 
     $for(include-before)$ $include-before$ $endfor$ $if(title)$
     $title-block.html()$ $endif$ $if(toc)$ $toc.html()$ $endif$ $body$

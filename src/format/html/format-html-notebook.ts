@@ -36,6 +36,18 @@ const kQuartoCellDecoratorClass = "cell-decorator";
 export function notebookViewPostProcessor() {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     doc.body.classList.add(kQuartoNbClass);
+
+    // When the page has a site header, the notebook preview header joins it
+    // so the two fixed bars stack instead of overlapping
+    const embedHeaderEl = doc.getElementById("quarto-embed-header");
+    const siteHeaderEl = doc.getElementById("quarto-header");
+    if (embedHeaderEl && siteHeaderEl) {
+      embedHeaderEl.classList.remove("fixed-top");
+      embedHeaderEl.classList.remove("headroom");
+      siteHeaderEl.appendChild(embedHeaderEl);
+    }
+
+
     const cells = doc.querySelectorAll("div.cell");
     let cellCount = 0;
     for (const cell of cells) {
