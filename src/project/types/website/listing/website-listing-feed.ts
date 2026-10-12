@@ -49,6 +49,7 @@ import { ProjectOutputFile } from "../../types.ts";
 import { resolveInputTarget } from "../../../project-index.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { imageContentType, imageSize } from "../../../../core/image.ts";
+import { isAbsoluteRef } from "../../../../core/http.ts";
 import { warnOnce } from "../../../../core/log.ts";
 import { isHtmlOutput } from "../../../../config/format.ts";
 
@@ -174,7 +175,7 @@ export async function createFeed(
       link: link,
       url: absoluteUrl(siteUrl, image),
     };
-    const size = imageSize(image);
+    const size = isAbsoluteRef(image) ? undefined : imageSize(image);
     if (size) {
       const [height, width] = feedImageSize(size.height, size.width);
       feed.image.height = height;
@@ -481,16 +482,19 @@ async function renderFeed(
     }
 
     // Image Data
-    if (item[kFieldImage] && typeof (item[kFieldImage] === "string")) {
+    if (item[kFieldImage] && typeof item[kFieldImage] === "string") {
       const image = item[kFieldImage] as string;
       feedItem.image = absoluteUrl(siteUrl, image);
-      const imagePath = join(project.dir, image);
-      feedItem.imageContentType = imageContentType(imagePath);
-      const size = imageSize(imagePath);
-      if (size) {
-        const [height, width] = feedImageSize(size.height, size.width);
-        feedItem.imageHeight = height;
-        feedItem.imageWidth = width;
+      feedItem.imageContentType = imageContentType(image);
+      // Web images have no local file to read a size from. Joining a URL onto
+      // the project dir makes an invalid path on Windows and `stat` throws.
+      if (!isAbsoluteRef(image)) {
+        const size = imageSize(join(project.dir, image));
+        if (size) {
+          const [height, width] = feedImageSize(size.height, size.width);
+          feedItem.imageHeight = height;
+          feedItem.imageWidth = width;
+        }
       }
     }
     feedItems.push(feedItem);
