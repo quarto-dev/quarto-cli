@@ -5,9 +5,9 @@
 *
 */
 
-import { findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles } from "../../../src/command/render/latexmk/parse-error.ts"
+import { findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles, findMissingHyphenationPackages } from "../../../src/command/render/latexmk/parse-error.ts"
 import { unitTest } from "../../test.ts";
-import { assert } from "testing/asserts";
+import { assert, assertEquals } from "testing/asserts";
 
 function fontSearchTerm(font: string): string {
   const fontPattern = font.replace(/\s+/g, '\\s*');
@@ -161,6 +161,72 @@ unitTest("Detect missing hyphenation with babel warnings", async () => {
     findMissingHyphenationFiles(logNoWarning) === undefined,
     "Should return undefined when no babel warning present"
   );
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Detect missing hyphenation causing a fatal babel error", async () => {
+  // `lang: de-CH` without hyphen-german (https://github.com/rstudio/tinytex/issues/515):
+  // babel-german defines nswissgerman as a dialect of the null language, but then
+  // checks `\iflanguage{ngerman}`, which is a fatal error, so compilation fails.
+  const logSwissGerman = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'German (current orthography), needed by Swiss Standard German (current orthography)' into the format.
+(babel)                Please, configure your TeX system to add them and
+(babel)                rebuild the format. Now I will use the patterns
+(babel)                preloaded for \\language=0 instead on input line 1260.
+
+Package babel Info: Hyphen rules for 'nswissgerman' set to \\l@nil
+(babel)             (\\language5). Reported on input line 1260.
+
+! Package babel Error: You haven't defined the language 'ngerman' yet.
+(babel)                Perhaps you misspelled it or your installation
+(babel)                is not complete.
+
+See the babel package documentation for explanation.
+Type  H <return>  for immediate help.`;
+  assertEquals(
+    findMissingHyphenationPackages(logSwissGerman),
+    ["hyphen-german"],
+    "Should map the undefined ngerman language to hyphen-german",
+  );
+  // The file-based search finds nothing for this error
+  assertEquals(findMissingFontsAndPackages(logSwissGerman, "."), []);
+
+  // Backtick-quote format (older babel)
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language `ngerman' yet.",
+    ),
+    ["hyphen-german"],
+  );
+  // Unquoted format (older babel)
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language ngerman yet.",
+    ),
+    ["hyphen-german"],
+  );
+  // Other languages are lowercased and prefixed
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language 'Spanish' yet.",
+    ),
+    ["hyphen-spanish"],
+  );
+  // Languages without hyphenation package are ignored
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language 'chinese-hans' yet.",
+    ),
+    [],
+  );
+  // Only the fatal error is considered, not babel warnings
+  assertEquals(
+    findMissingHyphenationPackages(`Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'Spanish' into the format.`),
+    [],
+  );
+  assertEquals(findMissingHyphenationPackages("asdf qwer"), []);
 }, {
   cwd: () => "unit/latexmk/"
 })
