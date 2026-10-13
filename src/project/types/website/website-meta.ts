@@ -266,6 +266,21 @@ function opengraphMetadata(
         metadata[key] = openGraph[key];
       }
     });
+
+    // A size declared on the site describes the site image, so it doesn't
+    // apply to an image the page sets without declaring its own size
+    const docOpenGraph = format.metadata[kOpenGraph];
+    const docData = typeof docOpenGraph === "object"
+      ? docOpenGraph as Metadata
+      : {};
+    const pageSetsImage = format.metadata[kImage] !== undefined ||
+      docData[kImage] !== undefined;
+    const pageDeclaresSize = docData[kImageHeight] !== undefined ||
+      docData[kImageWidth] !== undefined;
+    if (pageSetsImage && !pageDeclaresSize) {
+      delete metadata[kImageHeight];
+      delete metadata[kImageWidth];
+    }
   }
   return metadata;
 }
@@ -331,10 +346,11 @@ function resolveImageMetadata(
       project,
     );
 
-    // Update the image information
+    // Update the image information, preferring the size read from the file
+    // over a declared one
     metadata[kImage] = imgMeta.href;
-    metadata[kImageHeight] = imgMeta.height;
-    metadata[kImageWidth] = imgMeta.width;
+    metadata[kImageHeight] = imgMeta.height ?? metadata[kImageHeight];
+    metadata[kImageWidth] = imgMeta.width ?? metadata[kImageWidth];
 
     const altText = format.metadata[kImageAlt];
     if (altText && !metadata[kImageAlt]) {

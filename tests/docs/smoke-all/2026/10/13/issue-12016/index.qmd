@@ -1,0 +1,15 @@
+---
+title: "JPEG open-graph image keeps its declared size"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:image" content="https://example.com/mark.jpg">'
+          - '<meta property="og:image:height" content="892">'
+          - '<meta property="og:image:width" content="1200">'
+        - []
+---
+
+With `site-url` set, the declared `image-width` and `image-height` are kept for an image whose size Quarto cannot read.
