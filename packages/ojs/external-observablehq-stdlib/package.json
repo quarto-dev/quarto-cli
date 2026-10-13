@@ -1,0 +1,47 @@
+{
+  "name": "external-observablehq-stdlib",
+  "version": "5.8.4",
+  "author": {
+    "name": "Quarto authors, RStudio, PBC.",
+    "url": "https://quarto.org"
+  },
+  "license": "ISC",
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "jsdelivr": "dist/stdlib.js",
+  "unpkg": "dist/stdlib.js",
+  "exports": {
+    "umd": "./dist/stdlib.js",
+    "default": "./src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quarto-dev/quarto.git"
+  },
+  "files": [
+    "dist/**/*.js",
+    "src/**/*.js"
+  ],
+  "engines": {
+    "node": ">=14.5.0"
+  },
+  "scripts": {
+    "test": "mocha 'test/**/*-test.js' && eslint src test",
+    "prepublishOnly": "rm -rf dist && rollup -c",
+    "postpublish": "git push && git push --tags"
+  },
+  "dependencies": {
+    "d3-array": "^3.2.0",
+    "d3-dsv": "^3.0.1",
+    "external-d3-d3-require": "*"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "eslint": "^8.27.0",
+    "exceljs": "^4.3.0",
+    "mocha": "^10.1.0",
+    "rollup": "^3.2.5",
+    "rollup-plugin-terser": "^7.0.2"
+  }
+}

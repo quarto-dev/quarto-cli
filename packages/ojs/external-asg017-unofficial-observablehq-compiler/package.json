@@ -1,0 +1,48 @@
+{
+  "name": "external-alex-garcia-unofficial-observablehq-compiler",
+  "version": "0.0.7",
+  "description": "A fork of an unofficial compiler to bind @observablehq/parser and @observablehq/runtime",
+  "main": "dist/index.js",
+  "author": "Carlos Scheidegger <carlos.scheidegger@rstudio.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quarto-dev/external-asg017-unofficial-observablehq-compiler.git"
+  },
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/**/*.js"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "format": "prettier --write src/**/*.js",
+    "test": "npm run build && tape 'test/**/*-test.js' && npm run test-format",
+    "test-format": "prettier --check src/**/*.js",
+    "test-html": "http-server",
+    "prepublishOnly": "npm run build",
+    "postpublish": "git push && git push --tags"
+  },
+  "keywords": [
+    "observable",
+    "observablehq",
+    "observable-notebooks",
+    "notebooks",
+    "parser",
+    "compiler"
+  ],
+  "dependencies": {
+    "@observablehq/parser": "4.2",
+    "acorn-walk": "^7.0.0"
+  },
+  "devDependencies": {
+    "external-observablehq-runtime": "*",
+    "http-server": "^0.11.1",
+    "prettier": "1.19.1",
+    "rollup": "^1.26.4",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "tape": "^4.11.0"
+  }
+}

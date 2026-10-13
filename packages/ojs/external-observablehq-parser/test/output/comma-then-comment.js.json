@@ -1,0 +1,11 @@
+{
+  "error": {
+    "type": "SyntaxError",
+    "message": "Unexpected end of input (2:0)",
+    "pos": 30,
+    "loc": {
+      "line": 2,
+      "column": 0
+    }
+  }
+}

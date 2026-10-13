@@ -1,0 +1,66 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 36,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 35,
+    "body": [
+      {
+        "type": "ExpressionStatement",
+        "start": 4,
+        "end": 18,
+        "expression": {
+          "type": "AwaitExpression",
+          "start": 4,
+          "end": 17,
+          "argument": {
+            "type": "Identifier",
+            "start": 10,
+            "end": 17,
+            "name": "promise"
+          }
+        }
+      },
+      {
+        "type": "ExpressionStatement",
+        "start": 21,
+        "end": 33,
+        "expression": {
+          "type": "YieldExpression",
+          "start": 21,
+          "end": 32,
+          "delegate": false,
+          "argument": {
+            "type": "Identifier",
+            "start": 27,
+            "end": 32,
+            "name": "value"
+          }
+        }
+      }
+    ]
+  },
+  "async": true,
+  "generator": true,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 10,
+      "end": 17,
+      "name": "promise"
+    },
+    {
+      "type": "Identifier",
+      "start": 27,
+      "end": 32,
+      "name": "value"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

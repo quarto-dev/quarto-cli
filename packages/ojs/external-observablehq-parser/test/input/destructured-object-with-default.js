@@ -1,0 +1,1 @@
+function fun({foo = "default"}) {}

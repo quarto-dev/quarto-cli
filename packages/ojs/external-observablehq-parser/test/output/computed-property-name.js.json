@@ -1,0 +1,65 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 28,
+  "id": null,
+  "body": {
+    "type": "ArrowFunctionExpression",
+    "start": 0,
+    "end": 27,
+    "id": null,
+    "expression": true,
+    "generator": false,
+    "async": false,
+    "params": [
+      {
+        "type": "ObjectPattern",
+        "start": 1,
+        "end": 17,
+        "properties": [
+          {
+            "type": "Property",
+            "start": 2,
+            "end": 16,
+            "method": false,
+            "shorthand": false,
+            "computed": true,
+            "key": {
+              "type": "Identifier",
+              "start": 3,
+              "end": 8,
+              "name": "field"
+            },
+            "value": {
+              "type": "Identifier",
+              "start": 11,
+              "end": 16,
+              "name": "value"
+            },
+            "kind": "init"
+          }
+        ]
+      }
+    ],
+    "body": {
+      "type": "Identifier",
+      "start": 22,
+      "end": 27,
+      "name": "value"
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 3,
+      "end": 8,
+      "name": "field"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

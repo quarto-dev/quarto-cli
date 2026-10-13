@@ -1,0 +1,53 @@
+{
+  "name": "external-observablehq-parser",
+  "description": "A fork of ObservableHQ's Acorn parser for Observable JavaScript",
+  "version": "6.0.2",
+  "author": {
+    "name": "quarto-dev (RStudio PBC).",
+    "url": "https://quarto.org"  
+  },
+  "license": "ISC",
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "jsdelivr": "dist/parser.min.js",
+  "unpkg": "dist/parser.min.js",
+  "exports": {
+    "umd": "./dist/parser.min.js",
+    "default": "./src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quarto-dev/quarto/"
+  },
+  "files": [
+    "dist/**/*.js",
+    "src/**/*.js"
+  ],
+  "engines": {
+    "node": ">=14.5.0"
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.debug.js && rollup -c rollup.config.min.js",
+    "test": "mkdir -p test/output && mocha -r module-alias/register 'test/**/*-test.js' && eslint src test",
+    "prepublishOnly": "rm -rf dist && rollup -c rollup.config.debug.js && rollup -c rollup.config.min.js",
+    "postpublish": "git push && git push --tags"
+  },
+  "_moduleAliases": {
+    "external-observablehq-parser": "./src/index.js"
+  },
+  "dependencies": {
+    "acorn": "8.17.0",
+    "acorn-walk": "8.3.5"
+  },
+  "devDependencies": {
+    "eslint": "8",
+    "mocha": "9",
+    "module-alias": "2",
+    "rollup": "2",
+    "rollup-plugin-terser": "7"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
