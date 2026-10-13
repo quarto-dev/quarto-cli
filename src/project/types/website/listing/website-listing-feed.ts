@@ -175,7 +175,10 @@ export async function createFeed(
       link: link,
       url: absoluteUrl(siteUrl, image),
     };
-    const size = isAbsoluteRef(image) ? undefined : imageSize(image);
+    // Read the size from the project file the url points at, not the cwd
+    const size = isAbsoluteRef(image)
+      ? undefined
+      : imageSize(join(project.dir, image));
     if (size) {
       const [height, width] = feedImageSize(size.height, size.width);
       feed.image.height = height;

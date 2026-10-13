@@ -79,6 +79,7 @@ All changes included in 1.11:
 - ([#14974](https://github.com/quarto-dev/quarto-cli/issues/14974)): Fix math in `.llms.md` files from `llms-txt` coming out garbled with the default `mathjax` method, and with `katex` and `webtex`. Math is now written as `$...$` and `$$...$$` with the `mathjax`, `katex`, `webtex` and `mathml` methods.
 - ([#15004](https://github.com/quarto-dev/quarto-cli/issues/15004)): Fix notebook preview pages and notebook sources missing from the output directory when a website with embedded notebooks is rendered from a directory other than the project directory.
 - ([#15022](https://github.com/quarto-dev/quarto-cli/issues/15022)): Fix rendering a listing with a `feed` failing on Windows with `os error 123` when a listing item's `image` or the feed `image` is a web URL. The image URL is used as is in the feed and no local size lookup is attempted. (author: @Masad791)
+- ([#15032](https://github.com/quarto-dev/quarto-cli/pull/15032)): Fix the listing feed `image` missing its height and width when a website is rendered from a directory other than the project directory, or when the image path starts with `/`.
 
 ## Lua API
 

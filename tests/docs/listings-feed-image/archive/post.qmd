@@ -1,0 +1,6 @@
+---
+title: "An archived post"
+date: "2026-10-12"
+---
+
+A post listed by the archive feed.
