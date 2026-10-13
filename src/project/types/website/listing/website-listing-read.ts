@@ -15,7 +15,10 @@ import {
   relative,
 } from "../../../../deno_ral/path.ts";
 import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
-import { existsSync } from "../../../../deno_ral/fs.ts";
+import {
+  existsSync,
+  safeExistsFileSync,
+} from "../../../../deno_ral/fs.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
 import {
@@ -23,7 +26,6 @@ import {
   pathsEqual,
   pathWithForwardSlashes,
   resolvePathGlobs,
-  safeExistsFileSync,
   safeExistsSync,
 } from "../../../../core/path.ts";
 import {

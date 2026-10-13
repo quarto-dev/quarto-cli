@@ -114,14 +114,6 @@ export function safeExistsSync(path: string) {
   }
 }
 
-export function safeExistsFileSync(path: string) {
-  try {
-    return existsSync(path) && Deno.statSync(path).isFile;
-  } catch {
-    return false;
-  }
-}
-
 export async function which(cmd: string) {
   const args = isWindows ? ["CMD", "/C", "where", cmd] : ["which", cmd];
   const result = await execProcess(
