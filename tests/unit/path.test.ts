@@ -15,6 +15,7 @@ import {
   removeIfEmptyDir,
   removeIfExists,
   resolvePathGlobs,
+  safeExistsFileSync,
 } from "../../src/core/path.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
 import { docs } from "../utils.ts";
@@ -219,4 +220,18 @@ unitTest("path - output-dir equivalence with resolve()", async () => {
   );
 
   Deno.removeSync(testDir, { recursive: true });
+});
+
+// deno-lint-ignore require-await
+unitTest("path - safeExistsFileSync", async () => {
+  const dir = Deno.makeTempDirSync({ prefix: "quarto-test" });
+  const file = join(dir, "a.txt");
+  Deno.writeTextFileSync(file, "x");
+  assert(safeExistsFileSync(file), "existing file should be true");
+  assert(!safeExistsFileSync(dir), "directory should be false");
+  assert(
+    !safeExistsFileSync(join(dir, "missing.txt")),
+    "missing path should be false",
+  );
+  Deno.removeSync(dir, { recursive: true });
 });

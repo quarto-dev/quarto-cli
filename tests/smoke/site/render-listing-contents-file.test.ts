@@ -5,7 +5,7 @@
  */
 import { join } from "../../../src/deno_ral/path.ts";
 import { removeIfExists } from "../../../src/core/path.ts";
-import { testQuartoCmd, Verify } from "../../test.ts";
+import { testQuartoCmd } from "../../test.ts";
 import { docs } from "../../utils.ts";
 import { ensureFileRegexMatches, noErrorsOrWarnings } from "../../verify.ts";
 
@@ -15,7 +15,7 @@ import { ensureFileRegexMatches, noErrorsOrWarnings } from "../../verify.ts";
 const projectDir = docs("listings-contents-file");
 const outputDir = join(projectDir, "_site");
 
-const verify: Verify[] = [
+testQuartoCmd("render", [projectDir], [
   noErrorsOrWarnings,
   ensureFileRegexMatches(join(outputDir, "archive", "index.html"), [
     /Post from folder/,
@@ -30,9 +30,7 @@ const verify: Verify[] = [
     [/data-index="0"/],
     [/data-index="1"/],
   ),
-];
-
-testQuartoCmd("render", [projectDir], verify, {
+], {
   name: "Listing contents file next to a folder is read relative to the document",
   teardown: () => {
     removeIfExists(outputDir);

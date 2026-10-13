@@ -23,6 +23,7 @@ import {
   pathsEqual,
   pathWithForwardSlashes,
   resolvePathGlobs,
+  safeExistsFileSync,
   safeExistsSync,
 } from "../../../../core/path.ts";
 import {
@@ -763,17 +764,15 @@ async function readContents(
 
       // If a glob points to a file that exists, go ahead and just include
       // that, even if it isn't a project input
-      const isExistingFile = (path: string) =>
-        safeExistsSync(path) && Deno.statSync(path).isFile;
       for (const glob of finalGlobs) {
         if (glob.startsWith("!")) {
           continue;
         }
         // Relative to the listing document first, then a real absolute path
         const listingRelative = join(dirname(source), glob);
-        const candidate = isExistingFile(listingRelative)
+        const candidate = safeExistsFileSync(listingRelative)
           ? listingRelative
-          : isAbsolute(glob) && isExistingFile(glob)
+          : isAbsolute(glob) && safeExistsFileSync(glob)
           ? glob
           : undefined;
         if (
