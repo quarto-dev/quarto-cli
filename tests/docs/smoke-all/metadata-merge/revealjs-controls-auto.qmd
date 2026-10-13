@@ -1,0 +1,22 @@
+---
+title: Controls and preview links set to auto
+format: revealjs
+controls: auto
+previewLinks: auto
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - 'controls: false,'
+          - "'controlsAuto': true,"
+          - 'previewLinks: false,'
+          - "'previewLinksAuto': true,"
+        -
+          - 'controls: auto,'
+          - 'previewLinks: auto,'
+---
+
+## Slide
+
+`auto` is not a valid reveal.js value: Quarto passes `false` to reveal.js and enables its own automatic behavior instead.

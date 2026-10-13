@@ -4,6 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { kToggleDarkMode } from "../../config/constants.ts";
+import { FormatLanguage } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { recursiveApplyFillClasses } from "./format-dashboard-layout.ts";
 import {
@@ -25,7 +27,11 @@ interface NavItem {
   scrolling: boolean;
 }
 
-export function processPages(doc: Document, dashboardMeta: DashboardMeta) {
+export function processPages(
+  doc: Document,
+  dashboardMeta: DashboardMeta,
+  language: FormatLanguage,
+) {
   // Find the pages, if any
   const pageNodes = doc.querySelectorAll(`.${kPageClass}`);
   if (pageNodes.length === 0) {
@@ -64,10 +70,13 @@ export function processPages(doc: Document, dashboardMeta: DashboardMeta) {
   // Add a dark mode toggle if needed
   // If dark and light themes are provided, inject a toggle into the correct spot
   if (dashboardMeta.hasDarkMode) {
-    const toggleEl = makeEl("a", {
+    const toggleEl = makeEl("button", {
       classes: ["quarto-color-scheme-toggle"],
       attributes: {
-        href: "",
+        type: "button",
+        role: "switch",
+        "aria-checked": "false",
+        "aria-label": language[kToggleDarkMode] || "Toggle dark mode",
         onclick: "window.quartoToggleColorScheme(); return false;",
       },
     }, doc);

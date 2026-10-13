@@ -77,10 +77,11 @@ import {
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { projectIsWebsite } from "../../project/project-shared.ts";
 import { titleSlidePartial } from "./format-reveal-title.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
-import { logoAddLeadingSlashes, resolveLogo } from "../../core/brand/brand.ts";
+import { resolveInputRelativeLogo } from "../../core/brand/brand.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -301,7 +302,9 @@ export function revealjsFormat() {
                   theme["text-highlighting-mode"],
                 ),
               ],
-              [kMarkdownAfterBody]: [revealMarkdownAfterBody(format, input)],
+              [kMarkdownAfterBody]: [
+                revealMarkdownAfterBody(format, input, project),
+              ],
             },
           },
         );
@@ -392,7 +395,11 @@ export function revealjsFormat() {
   );
 }
 
-function revealMarkdownAfterBody(format: Format, input: string) {
+function revealMarkdownAfterBody(
+  format: Format,
+  input: string,
+  project: ProjectContext,
+) {
   let brandMode: "light" | "dark" = "light";
   if (format.metadata[kBrandMode] === "dark") {
     brandMode = "dark";
@@ -401,14 +408,15 @@ function revealMarkdownAfterBody(format: Format, input: string) {
   lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
   const revealLogo = format
     .metadata[kSlideLogo] as (string | { path: string } | undefined);
-  let logo = resolveLogo(format.render.brand, revealLogo, [
-    "small",
-    "medium",
-    "large",
-  ]);
+  const logo = resolveInputRelativeLogo(
+    format.render.brand,
+    revealLogo,
+    ["small", "medium", "large"],
+    input,
+    projectIsWebsite(project),
+  );
   if (logo && logo[brandMode]) {
-    logo = logoAddLeadingSlashes(logo, format.render.brand, input);
-    const modeLogo = logo![brandMode]!;
+    const modeLogo = logo[brandMode]!;
     const altText = modeLogo.alt ? `alt="${modeLogo.alt}" ` : "";
     lines.push(
       `<img src="${modeLogo.path}" ${altText}class="slide-logo" />`,

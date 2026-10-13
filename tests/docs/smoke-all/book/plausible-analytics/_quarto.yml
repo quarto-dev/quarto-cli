@@ -1,0 +1,13 @@
+project:
+  type: book
+
+book:
+  title: "Plausible Analytics Book"
+  chapters:
+    - index.qmd
+  plausible-analytics:
+    path: _plausible_snippet.html
+
+format:
+  html:
+    theme: cosmo

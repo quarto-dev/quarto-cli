@@ -462,7 +462,7 @@ function referenceLocationArg(args: string[]) {
   }
 }
 
-function languageFilterParams(format: Format) {
+export function languageFilterParams(format: Format) {
   const language = format.language;
   const params: Metadata = {
     [kCodeSummary]: format.metadata[kCodeSummary] || language[kCodeSummary],

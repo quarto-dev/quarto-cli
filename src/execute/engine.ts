@@ -210,7 +210,9 @@ export function markdownExecutionEngine(
   return markdownEngineDiscovery.launch(engineProjectContext(project));
 }
 
-export async function resolveEngines(project: ProjectContext) {
+export async function resolveEngines(
+  project: Pick<ProjectContext, "config">,
+) {
   // Register standard engines on first call
   if (!enginesRegistered) {
     enginesRegistered = true;

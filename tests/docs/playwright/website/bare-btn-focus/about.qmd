@@ -1,0 +1,5 @@
+---
+title: "About"
+---
+
+Second page so the sidebar has more than one entry.

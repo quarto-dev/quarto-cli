@@ -1,0 +1,11 @@
+project:
+  type: website
+
+website:
+  title: "navbar-toggler-role"
+  navbar:
+    right:
+      - text: Home
+        href: index.qmd
+      - text: About
+        href: index.qmd

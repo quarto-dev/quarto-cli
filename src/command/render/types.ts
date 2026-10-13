@@ -214,6 +214,9 @@ export interface PandocOptions {
   // extra metadata to merge
   metadata?: Metadata;
 
+  // the input's metadata as written, before execution resolved inline expressions
+  unexecutedMetadata?: Metadata;
+
   // optional execution engine
   executionEngine?: string;
 

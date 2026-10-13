@@ -1,0 +1,6 @@
+---
+title: "A post"
+date: "2026-10-12"
+---
+
+A post listed by the root feed.

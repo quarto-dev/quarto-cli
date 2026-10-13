@@ -920,7 +920,7 @@ kbd {
           > :last-child {
             margin-bottom: var(--r-block-margin);
           }
-          > :last-child:not(div.sourceCode) {
+          > :last-child:not(div.sourceCode, div.code-copy-outer-scaffold) {
             padding-bottom: 0.5rem;
             margin-bottom: 0;
           }
@@ -970,9 +970,11 @@ kbd {
       }
       .callout-body {
         > .callout-content {
-          // Margin needs to be added when last child is div.sourceCode
-          // Other code cell border is mixed with callout border
-          > div.sourceCode:last-child {
+          // Margin needs to be added when the last child is a code block
+          // (div.sourceCode, or the code-copy scaffold wrapping it).
+          // Otherwise the code block border merges with the callout border.
+          > div.sourceCode:last-child,
+          > div.code-copy-outer-scaffold:last-child {
             margin-bottom: 1rem;
           }
           > :first-child {

@@ -5,42 +5,35 @@
 *
 */
 
-import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { _setIsRStudioForTest } from "../../../src/core/platform.ts";
-import {
-  ExecuteOutput,
-  testQuartoCmd,
-} from "../../test.ts";
+import { isBinaryMode } from "../../quarto-cmd.ts";
+import { testQuartoCmdJson } from "../../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 
-// Test: standalone file inspect with RStudio override should NOT emit project.
-// Uses _setIsRStudioForTest to avoid Deno.env.set() race conditions in
-// parallel tests (see #14218, PR #12621).
+// Dev mode uses the test hook to avoid process-global environment races.
+// Binary mode passes RSTUDIO=1 to the spawned Quarto.
 (() => {
   const input = "docs/inspect/standalone-hello.qmd";
   const output = "docs/inspect/standalone-hello.json";
-  testQuartoCmd(
+  testQuartoCmdJson(
     "inspect",
     [input, output],
-    [
-      {
-        name: "inspect-standalone-no-project-in-rstudio",
-        verify: async (_outputs: ExecuteOutput[]) => {
-          assert(existsSync(output));
-          const json = JSON.parse(Deno.readTextFileSync(output));
-          assertEquals(json.project, undefined,
-            "Standalone file inspect should not emit 'project' when in RStudio");
-        }
-      }
-    ],
+    output,
+    "inspect-standalone-no-project-in-rstudio",
+    (json) => {
+      assertEquals(json.project, undefined,
+        "Standalone file inspect should not emit 'project' when in RStudio");
+    },
     {
+      env: isBinaryMode() ? { RSTUDIO: "1" } : undefined,
       setup: async () => {
-        _setIsRStudioForTest(true);
+        if (!isBinaryMode()) {
+          _setIsRStudioForTest(true);
+        }
       },
       teardown: async () => {
-        _setIsRStudioForTest(undefined);
-        if (existsSync(output)) {
-          Deno.removeSync(output);
+        if (!isBinaryMode()) {
+          _setIsRStudioForTest(undefined);
         }
       }
     },
@@ -51,28 +44,16 @@ import { assert, assertEquals } from "testing/asserts";
 (() => {
   const input = "docs/inspect/standalone-hello.qmd";
   const output = "docs/inspect/standalone-hello-nors.json";
-  testQuartoCmd(
+  testQuartoCmdJson(
     "inspect",
     [input, output],
-    [
-      {
-        name: "inspect-standalone-has-project-outside-rstudio",
-        verify: async (_outputs: ExecuteOutput[]) => {
-          assert(existsSync(output));
-          const json = JSON.parse(Deno.readTextFileSync(output));
-          assert(json.project !== undefined,
-            "Standalone file inspect should emit 'project' when not in RStudio");
-          assert(json.project.dir !== undefined,
-            "project.dir should be set");
-        }
-      }
-    ],
-    {
-      teardown: async () => {
-        if (existsSync(output)) {
-          Deno.removeSync(output);
-        }
-      }
+    output,
+    "inspect-standalone-has-project-outside-rstudio",
+    (json) => {
+      assert(json.project !== undefined,
+        "Standalone file inspect should emit 'project' when not in RStudio");
+      assert(json.project.dir !== undefined,
+        "project.dir should be set");
     },
   );
 })();

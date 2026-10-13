@@ -54,6 +54,7 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
+import { withInputWalkErrorFraming } from "../command-utils.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -138,7 +139,7 @@ export const previewCommand = new Command()
     "quarto preview --render html",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, file?: string, ...args: string[]) => {
+  .action(withInputWalkErrorFraming(async (options: any, file?: string, ...args: string[]) => {
     // one-time initialization of yaml validation modules
     setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();
@@ -434,4 +435,4 @@ export const previewCommand = new Command()
         presentation: options.presentation,
       }, project);
     }
-  });
+  }));

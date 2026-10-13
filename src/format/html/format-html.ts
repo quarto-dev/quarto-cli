@@ -462,6 +462,11 @@ export async function htmlFormatExtras(
   // Add localization strings
   options.language = format.language;
 
+  // the scrollable-regions module in quarto.js reads its localized labels
+  // from a global set by the after-body script; quarto.js only ships with
+  // bootstrap formats
+  options.scrollableRegions = bootstrap;
+
   // anchors if required
   if (options.anchors) {
     scripts.push({
@@ -821,6 +826,14 @@ function htmlFormatPostprocessor(
         code.parentElement.removeAttribute(
           "data-code-preview",
         );
+        // the iframe's accessible name (#14770)
+        const codeExampleTitle = code.parentElement.getAttribute(
+          "data-code-preview-title",
+        );
+        if (codeExampleTitle) {
+          codeExample.setAttribute("title", codeExampleTitle);
+        }
+        code.parentElement.removeAttribute("data-code-preview-title");
         code.parentElement.appendChild(codeExample);
       }
     }

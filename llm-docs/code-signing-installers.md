@@ -1,6 +1,6 @@
 ---
-main_commit: c3e0f5cae
-analyzed_date: 2026-07-24
+main_commit: abc6a78ed
+analyzed_date: 2026-08-11
 key_files:
   - package/src/macos/installer.ts
   - package/src/windows/installer.ts
@@ -15,7 +15,7 @@ key_files:
 
 How release installers get signed and (on macOS) notarized in the `Build Installers` workflow. Covers macOS first, then Windows. Both pipelines run from `create-release.yml`.
 
-Signing happens only on official releases — local `quarto-bld` builds skip it when the relevant env vars / secrets are absent (macOS prints `warning: Missing Application Developer Id, not signing`; Windows step is gated by repo secrets that only the Apple keychain action and DigiCert smctl can resolve).
+Signing happens only on dispatched runs of that workflow — the daily scheduled build skips Windows signing outright (see "Signing volume" under Windows), and local `quarto-bld` builds skip signing when the relevant env vars / secrets are absent (macOS prints `warning: Missing Application Developer Id, not signing`; Windows step is gated by repo secrets that only the Apple keychain action and DigiCert smctl can resolve).
 
 ## Why sign?
 
@@ -186,7 +186,7 @@ Posit signs via **DigiCert ONE / Software Trust Manager (STM)** (cloud-held EV c
 
 ### Signing flow — `.github/workflows/actions/sign-files`
 
-Composite action invoked **twice** per release in `make-installer-win`:
+Composite action invoked **twice** in `make-installer-win` — but only on `workflow_dispatch`. Both sign steps carry `if: ${{ github.event_name != 'schedule' }}`, so the daily scheduled build produces **unsigned** Windows artifacts (see "Signing volume" below). The two invocations:
 
 1. **Before MSI build** — sign every binary that will be bundled by WiX:
    `quarto.exe` (launcher), `deno.exe`, `esbuild.exe`, `dart.exe`, `deno_dom/plugin.dll`, `typst-gather.exe`, `pandoc.exe`, plus the `quarto.js` bundle.
@@ -211,6 +211,16 @@ Any single signing or verify failure fails the whole step.
 
 **On the dropped `/d` description flag:** checked the pre-migration MSI (built with `signtool /d "Quarto CLI"`) via `certutil -dump`, `signtool verify /v /pa`, and Explorer's Digital Signatures > Details > Additional Information dialog — none of them surfaced the description text even though the flag was set. Removing it during the migration has no observed user-facing effect, since the field wasn't visibly rendering when present either.
 
+### Signing volume, and why the nightly build is exempt
+
+`create-release.yml` is the only workflow that touches DigiCert. Measured over the 12 months to 2026-08-11: 512 runs (366 `schedule`, 146 `workflow_dispatch`), of which 505 ran `make-installer-win` and 491 succeeded — about **4,420 signature operations a year** at 9 per build, against only ~74 published releases in the same window. Nightly verification builds and `publish-release=false` test builds accounted for the rest.
+
+Both sign steps are now gated on `github.event_name != 'schedule'`, which removes ~3,300 of those (366 nightlies × 9) and leaves ~1,100/year.
+
+Why this is safe to skip on Windows but **not** on macOS: the only regression nightly signing could have caught here is a credential/`smctl`/reachability failure, and a manual dispatch (which still signs) surfaces those within days. It could never catch the #14664-class regression — a bundled binary missing from the `paths:` list — because `sign-files` signs exactly the paths it is handed and Windows has no notary to reject the bundle. That binary ships unsigned whether or not the nightly runs. macOS is the opposite: Apple's notary inspects the whole payload and fails the build, so nightly macOS signing + notarization stays in place as a genuine early warning.
+
+The gate is on `schedule`, not on `publish-release`, because `publish-release=false` dispatches are the documented pre-merge verification for bundled-binary bumps (`dev-docs/upgrade-dependencies.md`) and must keep signing. Nothing downstream of the nightly needs a signature: `test-zip-win` only runs `quarto check` / `--paths` / `--version`, and a scheduled run cannot publish because every publish path is gated on `inputs.publish-release`, which is unset on `schedule`.
+
 ### Windows launcher
 
 `package/launcher/Cargo.toml` builds `quarto.exe` (Rust launcher) just before signing in `make-installer-win`. The Rust launcher is what the user actually runs; the underlying `quarto.cmd` / `deno` executes from inside the install dir. All of `quarto.exe`, `deno.exe`, and the bundled tools get signed individually so SmartScreen accepts the process tree, not just the MSI.
@@ -234,5 +244,6 @@ Re-analyze when any of these change:
 - Apple migrates off `notarytool` (rare).
 - A new binary is added to the Mac bundle and needs a `signWithEntitlements` / `signWithoutEntitlements` entry in `package/src/macos/installer.ts`.
 - A new binary is added to the Windows bundle and needs an entry in the `paths:` block of the `Sign files before making ZIP and MSI installer` step in `create-release.yml`.
+- A sign step is added to `make-installer-win` (it needs the same `github.event_name != 'schedule'` gate), or the schedule exemption itself is changed.
 - DigiCert KeyLocker is replaced (e.g. switch back to a local HSM or a different signing-as-a-service provider) — `sign-files/action.yml` and the `SM_*` secret set would change.
 - `entitlements.plist` gains/loses entitlements (e.g. a new JIT-using tool, hardened-runtime exception).

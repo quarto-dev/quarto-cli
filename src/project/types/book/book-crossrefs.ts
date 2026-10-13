@@ -73,12 +73,25 @@ export async function bookCrossrefsPostRender(
   }
 }
 
+export async function bookCrossrefsResolver(context: ProjectContext) {
+  const projOutput = projectOutputDir(context);
+  const indexes = await bookCrossrefIndexes(context);
+  return (file: string, format: Format, doc: HTMLDocument) => {
+    const fileRelative = relative(projOutput, file);
+    const index = bookCrossrefIndexForOutputFile(fileRelative, indexes);
+    if (index) {
+      resolveCrossrefs(context, fileRelative, format, doc, index, false);
+    }
+  };
+}
+
 function resolveCrossrefs(
   context: ProjectContext,
   file: string,
   format: Format,
   doc: HTMLDocument,
   index: BookCrossrefIndex,
+  warn = true,
 ) {
   // record proj output (all the paths we have are proj output relative)
   const projOutput = projectOutputDir(context);
@@ -128,7 +141,9 @@ function resolveCrossrefs(
       );
       ref.removeAttribute("class");
     } else {
-      warning(`${file}: Unable to resolve crossref @${id}`);
+      if (warn) {
+        warning(`${file}: Unable to resolve crossref @${id}`);
+      }
       // insert error span if not found
       if (parentLink) {
         const parentLinkParent = parentLink.parentElement as Element;

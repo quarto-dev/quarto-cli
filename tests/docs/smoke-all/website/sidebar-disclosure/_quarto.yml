@@ -1,0 +1,25 @@
+project:
+  type: website
+  output-dir: .
+
+website:
+  title: "Sidebar disclosure"
+  sidebar:
+    style: docked
+    collapse-level: 1
+    contents:
+      - index.qmd
+      - section: "Group"
+        contents:
+          - group-a.qmd
+          - group-b.qmd
+          - section: "Nested"
+            contents:
+              - nested.qmd
+      - section: section.qmd
+        contents:
+          - section-child.qmd
+
+format:
+  html:
+    theme: cosmo

@@ -14,7 +14,7 @@
  */
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
-import { quarto } from "../../../src/quarto.ts";
+import { runQuarto } from "../../quarto-cmd.ts";
 import { docs } from "../../utils.ts";
 import { testQuartoCmd } from "../../test.ts";
 import {
@@ -103,7 +103,7 @@ testQuartoCmd(
   {
     setup: async () => {
       await cleanup(defaultDir, [...defaultOutputs, ".quarto"])();
-      await quarto(["render", defaultDir]);
+      await runQuarto(["render", defaultDir]);
     },
     teardown: cleanup(defaultDir, [...defaultOutputs, ".quarto"]),
   },

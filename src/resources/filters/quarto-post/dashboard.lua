@@ -270,7 +270,7 @@ function render_dashboard()
                   end
 
                   if #childDiv.content == 1 and childDiv.content[1].t == "RawBlock" and childDiv.content[1].format == "html" then
-                    if childDiv.content[1].text:match('bslib-') ~= nil then
+                    if childDiv.content[1].text:match('bslib%-') ~= nil then
                       -- capture any raw blocks that we see
                       bslibRawOutputs:insert(childDiv.content[1])
 

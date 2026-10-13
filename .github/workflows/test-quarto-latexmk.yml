@@ -3,8 +3,12 @@ on:
   workflow_dispatch:
   push:
     branches: main
+    paths-ignore:
+      - ".claude/**"
   pull_request:
     branches: main
+    paths-ignore:
+      - ".claude/**"
 name: Test quarto-latexmk
 
 jobs:

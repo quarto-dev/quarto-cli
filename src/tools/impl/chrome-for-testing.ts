@@ -130,19 +130,18 @@ export async function fetchLatestCftRelease(): Promise<CftStableRelease> {
 
 /** Parsed entry from Playwright's browsers.json for chromium-headless-shell. */
 export interface PlaywrightBrowserEntry {
-  revision: string;
   browserVersion: string;
 }
 
 // Source: https://github.com/microsoft/playwright/blob/main/packages/playwright-core/browsers.json
-// This file lists the browser revisions Playwright pins per release, including
+// This file lists the browser versions Playwright pins per release, including
 // chromium-headless-shell builds for linux arm64 that CfT does not provide.
 const kPlaywrightBrowsersJsonUrl =
   "https://raw.githubusercontent.com/microsoft/playwright/main/packages/playwright-core/browsers.json";
 
 /**
  * Fetch Playwright's browsers.json and extract the chromium-headless-shell entry.
- * Used as the version/revision source for arm64 Linux where CfT has no builds.
+ * Used as the version source for arm64 Linux where CfT has no builds.
  */
 export async function fetchPlaywrightBrowsersJson(): Promise<PlaywrightBrowserEntry> {
   let response: Response;
@@ -179,24 +178,26 @@ export async function fetchPlaywrightBrowsersJson(): Promise<PlaywrightBrowserEn
 
   // deno-lint-ignore no-explicit-any
   const entry = browsers.find((b: any) => b.name === "chromium-headless-shell");
-  if (!entry || !entry.revision || !entry.browserVersion) {
+  if (!entry || !entry.browserVersion) {
     throw new Error(
-      "Playwright browsers.json has no 'chromium-headless-shell' entry with revision and browserVersion",
+      "Playwright browsers.json has no 'chromium-headless-shell' entry with browserVersion",
     );
   }
 
   return {
-    revision: entry.revision,
     browserVersion: entry.browserVersion,
   };
 }
 
 /**
  * Construct the Playwright CDN download URL for chrome-headless-shell on linux arm64.
- * Uses the primary CDN mirror (cdn.playwright.dev).
+ * Uses the primary CDN mirror (cdn.playwright.dev). Matches Playwright's own
+ * registry (packages/playwright-core/src/server/registry/index.ts, cftUrl),
+ * which keys builds by browserVersion under the "cft" path, not the legacy
+ * revision-keyed "chromium" path.
  */
-export function playwrightCdnDownloadUrl(revision: string): string {
-  return `https://cdn.playwright.dev/builds/chromium/${revision}/chromium-headless-shell-linux-arm64.zip`;
+export function playwrightCdnDownloadUrl(browserVersion: string): string {
+  return `https://cdn.playwright.dev/builds/cft/${browserVersion}/linux-arm64/chrome-headless-shell-linux-arm64.zip`;
 }
 
 /**

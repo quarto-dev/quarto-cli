@@ -13,6 +13,7 @@ jobs:
     with:
       buckets: ""
       time-test: true
+      label-tag: timing
 
   create-pr:
     name: Create PR with updated timing file

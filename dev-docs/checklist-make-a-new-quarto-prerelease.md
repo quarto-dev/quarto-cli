@@ -1,4 +1,4 @@
-> A Claude Code skill can drive this checklist interactively: run `/make-release` (see `.claude/commands/make-release/`). It reads this file, verifies real `git`/`gh` state at each step, and pauses for confirmation before irreversible actions. This checklist stays the source of truth — the skill just follows it.
+> A Claude Code skill can drive this checklist interactively: run `/make-release` (see `.claude/skills/make-release/`). It reads this file, verifies real `git`/`gh` state at each step, and pauses for confirmation before irreversible actions. This checklist stays the source of truth — the skill just follows it.
 
 - [ ] ensure main is up to date and tests are passing on latest commit.
 - [ ] create new prerelease installers
@@ -13,5 +13,6 @@
   - New release prerelease should be on Github at <https://github.com/quarto-dev/quarto-cli/releases>
   - A new tag should be on main for the new prerelease version
   - `version.txt` on main should have been updated by the workflow to the pre-release version just released: https://github.com/quarto-dev/quarto-cli/blob/main/version.txt
+- Optionally validate the published prerelease: in Actions, run "Smoke Tests (Built Version)" with source `release`. The version defaults to `pre-release`.
 
 Note: Cloudsmith publishing is skipped for prereleases (only runs for stable releases).

@@ -46,7 +46,20 @@ filters/
 7. FINALIZE (quarto-finalize/) - cleanup, dependencies
 ```
 
-User filters run between stages via entry points (`pre-ast`, `post-ast`, `pre-quarto`, etc.).
+### Where User Filters Actually Land
+
+User filters (the `filters` YAML key) are not separate pandoc filter passes — they're
+spliced into `main.lua`'s single filter list, at the entry point named by the marker
+they follow.
+
+- A plain `filters` entry lands at the **`pre-quarto`** entry point: before every
+  Quarto stage (PRE, CROSSREF, LAYOUT, POST).
+- A `quarto` marker in the `filters` list splits the list there: everything after it
+  moves to the **`post-render`** entry point, running after POST but before FINALIZE.
+- Splicing is literal insertion (`table.insert`) at the named entry point's position
+  in the filter list — not a distinct execution mode, just a position in the same list.
+- FINALIZE always runs after both entry points, by construction: it's later in the
+  same list than `post-render`.
 
 This pipeline runs **after** Pandoc has parsed the document into an AST. The stage that
 turns raw `.qmd` text into that AST — Quarto's custom Lua reader, which also does

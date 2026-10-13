@@ -139,8 +139,43 @@ export const ZodGiscusConfiguration = z.object({
   language: z.string(),
 }).strict().partial().required({ repo: true });
 
-export const ZodExternalEngine = z.object({ path: z.string() }).strict()
-  .partial().required({ path: true });
+export const ZodExternalEngine = z.object({
+  path: z.string(),
+  name: z.string(),
+  claims: z.union([
+    z.array(z.string()),
+    z.record(z.union([
+      z.lazy(() => ZodExternalEngineLanguageClaim),
+      z.array(z.lazy(() => ZodExternalEngineLanguageClaim)),
+    ])).and(z.object({}).passthrough().partial()),
+  ]),
+  "file-extensions": z.array(z.string()),
+  "claims-files": z.array(z.union([
+    z.string(),
+    z.object({
+      extension: z.string(),
+      processor: z.union([
+        z.string(),
+        z.object({
+          name: z.string(),
+          language: z.string(),
+          comment: z.string(),
+        }).strict().partial().required({ name: true }),
+      ]),
+    }).strict().partial().required({ extension: true }),
+  ])),
+}).strict().partial().required({ path: true });
+
+export const ZodExternalEngineLanguageClaim = z.union([
+  z.boolean(),
+  z.number(),
+  z.enum(["primary", "interop", "fallback"] as const),
+  z.object({
+    kind: z.enum(["primary", "interop", "fallback"] as const),
+    priority: z.number(),
+    whenClass: z.string(),
+  }).strict().partial(),
+]);
 
 export const ZodDocumentCommentsConfiguration = z.union([
   z.literal(false),
@@ -701,6 +736,16 @@ export const ZodFormatLanguage = z.object({
   "toc-title-website": z.string(),
   "related-formats-title": z.string(),
   "related-notebooks-title": z.string(),
+  "source-notebooks-prefix": z.string(),
+  "other-links-title": z.string(),
+  "code-links-title": z.string(),
+  "launch-dev-container-title": z.string(),
+  "launch-binder-title": z.string(),
+  "article-notebook-label": z.string(),
+  "notebook-preview-download": z.string(),
+  "notebook-preview-download-src": z.string(),
+  "notebook-preview-back": z.string(),
+  "manuscript-meca-bundle": z.string(),
   "callout-tip-title": z.string(),
   "callout-note-title": z.string(),
   "callout-warning-title": z.string(),
@@ -709,15 +754,37 @@ export const ZodFormatLanguage = z.object({
   "section-title-abstract": z.string(),
   "section-title-footnotes": z.string(),
   "section-title-appendices": z.string(),
+  "section-title-references": z.string(),
+  "section-title-reuse": z.string(),
+  "section-title-copyright": z.string(),
+  "section-title-citation": z.string(),
+  "appendix-attribution-cite-as": z.string(),
+  "appendix-attribution-bibtex": z.string(),
+  "appendix-view-license": z.string(),
+  "title-block-author-single": z.string(),
+  "title-block-author-plural": z.string(),
+  "title-block-affiliation-single": z.string(),
+  "title-block-affiliation-plural": z.string(),
+  "title-block-published": z.string(),
+  "title-block-modified": z.string(),
+  "title-block-keywords": z.string(),
   "code-summary": z.string(),
   "code-tools-menu-caption": z.string(),
   "code-tools-show-all-code": z.string(),
   "code-tools-hide-all-code": z.string(),
   "code-tools-view-source": z.string(),
   "code-tools-source-code": z.string(),
+  "tools-share": z.string(),
+  "tools-download": z.string(),
+  "code-line": z.string(),
+  "code-lines": z.string(),
+  "back-to-top": z.string(),
   "search-no-results-text": z.string(),
   "copy-button-tooltip": z.string(),
   "copy-button-tooltip-success": z.string(),
+  "skip-to-content": z.string(),
+  "scrollable-code-label": z.string(),
+  "scrollable-output-label": z.string(),
   "repo-action-links-edit": z.string(),
   "repo-action-links-source": z.string(),
   "repo-action-links-issue": z.string(),
@@ -730,6 +797,17 @@ export const ZodFormatLanguage = z.object({
   "search-text-placeholder": z.string(),
   "search-detached-cancel-button-title": z.string(),
   "search-submit-button-title": z.string(),
+  "search-label": z.string(),
+  "toggle-section": z.string(),
+  "toggle-sidebar": z.string(),
+  "toggle-dark-mode": z.string(),
+  "toggle-reader-mode": z.string(),
+  "toggle-navigation": z.string(),
+  "navigation-site-label": z.string(),
+  "navigation-section-label": z.string(),
+  "navigation-toolbar-label": z.string(),
+  "navigation-page-label": z.string(),
+  "navigation-breadcrumbs-label": z.string(),
   "crossref-fig-title": z.string(),
   "crossref-tbl-title": z.string(),
   "crossref-lst-title": z.string(),
@@ -759,6 +837,31 @@ export const ZodFormatLanguage = z.object({
   "crossref-lof-title": z.string(),
   "crossref-lot-title": z.string(),
   "crossref-lol-title": z.string(),
+  "environment-proof-title": z.string(),
+  "environment-remark-title": z.string(),
+  "environment-solution-title": z.string(),
+  "listing-page-order-by": z.string(),
+  "listing-page-order-by-default": z.string(),
+  "listing-page-order-by-date-asc": z.string(),
+  "listing-page-order-by-date-desc": z.string(),
+  "listing-page-order-by-number-desc": z.string(),
+  "listing-page-order-by-number-asc": z.string(),
+  "listing-page-field-date": z.string(),
+  "listing-page-field-title": z.string(),
+  "listing-page-field-description": z.string(),
+  "listing-page-field-author": z.string(),
+  "listing-page-field-filename": z.string(),
+  "listing-page-field-filemodified": z.string(),
+  "listing-page-field-subtitle": z.string(),
+  "listing-page-field-readingtime": z.string(),
+  "listing-page-field-wordcount": z.string(),
+  "listing-page-field-categories": z.string(),
+  "listing-page-minutes-compact": z.string(),
+  "listing-page-category-all": z.string(),
+  "listing-page-no-matches": z.string(),
+  "listing-page-words": z.string(),
+  "listing-page-filter": z.string(),
+  draft: z.string(),
 }).passthrough().partial();
 
 export const ZodWebsiteAbout = z.object({
@@ -1860,6 +1963,10 @@ export type GiscusConfiguration = z.infer<typeof ZodGiscusConfiguration>;
 
 export type ExternalEngine = z.infer<typeof ZodExternalEngine>;
 
+export type ExternalEngineLanguageClaim = z.infer<
+  typeof ZodExternalEngineLanguageClaim
+>;
+
 export type DocumentCommentsConfiguration = z.infer<
   typeof ZodDocumentCommentsConfiguration
 >;
@@ -2098,6 +2205,7 @@ export const Zod = {
   GiscusThemes: ZodGiscusThemes,
   GiscusConfiguration: ZodGiscusConfiguration,
   ExternalEngine: ZodExternalEngine,
+  ExternalEngineLanguageClaim: ZodExternalEngineLanguageClaim,
   DocumentCommentsConfiguration: ZodDocumentCommentsConfiguration,
   SocialMetadata: ZodSocialMetadata,
   PageFooterRegion: ZodPageFooterRegion,

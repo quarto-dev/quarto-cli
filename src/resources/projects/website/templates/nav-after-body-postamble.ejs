@@ -1,7 +1,7 @@
 <% if (nav.layout) { %>
 
 <% if (nav.prevPage || nav.nextPage) { %> 
-<nav class="page-navigation">
+<nav class="page-navigation" aria-label="<%- nav.language['navigation-page-label'] %>">
   <div class="nav-page nav-page-previous">
     <% if (nav.prevPage) { %>
       <a  href="<%- nav.prevPage.href %>" class="pagination-link" aria-label="<%- nav.prevPage.plainText || nav.prevPage.text %>">

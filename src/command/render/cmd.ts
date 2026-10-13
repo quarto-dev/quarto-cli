@@ -19,6 +19,7 @@ import { RenderResult } from "./types.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { withInputWalkErrorFraming } from "../command-utils.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -126,7 +127,7 @@ export const renderCommand = new Command()
     "quarto render document.qmd --output -",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, input?: string, ...args: string[]) => {
+  .action(withInputWalkErrorFraming(async (options: any, input?: string, ...args: string[]) => {
     // remove implicit clean argument (re-injected based on what the user
     // actually passes in flags.ts)
     if (options === undefined) {
@@ -287,4 +288,4 @@ export const renderCommand = new Command()
     } else {
       throw new Error(`No valid input files passed to render`);
     }
-  });
+  }));

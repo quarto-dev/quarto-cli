@@ -1,0 +1,19 @@
+---
+title: Deutsch
+lang: de
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'nav.navbar[aria-label="Website"]'
+          - 'nav#quarto-sidebar[aria-label="Bereich"]'
+          - 'nav.quarto-secondary-nav[aria-label="Symbolleiste"]'
+          - 'nav.quarto-page-breadcrumbs[aria-label="Pfad"]'
+          - 'nav.page-navigation[aria-label="Seite"]'
+        -
+          - 'nav[aria-label="Site"]'
+          - 'nav[aria-label="Section"]'
+---
+
+Built-in translations resolve for every landmark label.

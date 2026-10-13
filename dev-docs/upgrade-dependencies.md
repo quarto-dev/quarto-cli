@@ -11,6 +11,8 @@ gh workflow run create-release.yml --repo quarto-dev/quarto-cli --ref <branch> -
 # then watch make-installer-mac and make-installer-win in the resulting run
 ```
 
+Do not treat a green nightly build as a substitute: scheduled runs skip Windows code signing entirely (they never publish), so this dispatch is the *only* place the Windows signing path gets exercised before release day. macOS signing + notarization does still run nightly.
+
 Why this bites (real incident, #14664): Dart Sass 1.101.0 changed its macOS AOT snapshot (`dart-sass/src/sass.snapshot`) container from ELF to Mach-O. Apple's notary ignores non-native files but requires every Mach-O signed, so the never-signed snapshot flipped notarization from Accepted to Invalid — invisible to normal CI, only caught at release time. When a bump does require a new signing entry, add it in `package/src/macos/installer.ts` / the Windows `sign-files` paths; see `llm-docs/code-signing-installers.md`.
 
 ## Upgrade deno

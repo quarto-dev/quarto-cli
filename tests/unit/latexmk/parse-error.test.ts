@@ -5,9 +5,9 @@
 *
 */
 
-import { findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles } from "../../../src/command/render/latexmk/parse-error.ts"
+import { findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles, findMissingHyphenationPackages } from "../../../src/command/render/latexmk/parse-error.ts"
 import { unitTest } from "../../test.ts";
-import { assert } from "testing/asserts";
+import { assert, assertEquals } from "testing/asserts";
 
 function fontSearchTerm(font: string): string {
   const fontPattern = font.replace(/\s+/g, '\\s*');
@@ -160,6 +160,178 @@ unitTest("Detect missing hyphenation with babel warnings", async () => {
   assert(
     findMissingHyphenationFiles(logNoWarning) === undefined,
     "Should return undefined when no babel warning present"
+  );
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Detect missing hyphenation causing a fatal babel error", async () => {
+  // `lang: de-CH` without hyphen-german (https://github.com/rstudio/tinytex/issues/515):
+  // babel-german defines nswissgerman as a dialect of the null language, but then
+  // checks `\iflanguage{ngerman}`, which is a fatal error, so compilation fails.
+  const logSwissGerman = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'German (current orthography), needed by Swiss Standard German (current orthography)' into the format.
+(babel)                Please, configure your TeX system to add them and
+(babel)                rebuild the format. Now I will use the patterns
+(babel)                preloaded for \\language=0 instead on input line 1260.
+
+Package babel Info: Hyphen rules for 'nswissgerman' set to \\l@nil
+(babel)             (\\language5). Reported on input line 1260.
+
+! Package babel Error: You haven't defined the language 'ngerman' yet.
+(babel)                Perhaps you misspelled it or your installation
+(babel)                is not complete.
+
+See the babel package documentation for explanation.
+Type  H <return>  for immediate help.`;
+  assertEquals(
+    findMissingHyphenationPackages(logSwissGerman),
+    ["hyphen-german"],
+    "Should map the undefined ngerman language to hyphen-german",
+  );
+  // The file-based search finds nothing for this error
+  assertEquals(findMissingFontsAndPackages(logSwissGerman, "."), []);
+
+  // Backtick-quote format (older babel)
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language `ngerman' yet.",
+    ),
+    ["hyphen-german"],
+  );
+  // Unquoted format (older babel)
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language ngerman yet.",
+    ),
+    ["hyphen-german"],
+  );
+  // Other languages are lowercased and prefixed
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language 'Spanish' yet.",
+    ),
+    ["hyphen-spanish"],
+  );
+  // Languages without hyphenation package are ignored
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language 'chinese-hans' yet.",
+    ),
+    [],
+  );
+  // Only the fatal error is considered, not babel warnings
+  assertEquals(
+    findMissingHyphenationPackages(`Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'Spanish' into the format.`),
+    [],
+  );
+  assertEquals(findMissingHyphenationPackages("asdf qwer"), []);
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Drop hyphenation package names that are not valid package names", async () => {
+  // Language names come from the log and end up as tlmgr arguments, which
+  // go through a .bat file on Windows
+  for (const lang of ['x"&calc', "ngerman;id", "%PATH%", "a|b", "a^b", "--repository=x"]) {
+    assertEquals(
+      findMissingHyphenationPackages(
+        `! Package babel Error: You haven't defined the language '${lang}' yet.`,
+      ),
+      [],
+      `Should drop '${lang}' from the babel error`,
+    );
+    assertEquals(
+      findMissingHyphenationFiles(`Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language '${lang}' into the format.`),
+      undefined,
+      `Should drop '${lang}' from the babel warning`,
+    );
+  }
+  // Valid names are kept
+  assertEquals(
+    findMissingHyphenationPackages(
+      `! Package babel Error: You haven't defined the language 'x"&calc' yet.
+! Package babel Error: You haven't defined the language 'french' yet.`,
+    ),
+    ["hyphen-french"],
+  );
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Map hyphenation language names to their TeX Live package", async () => {
+  // Names whose package is not hyphen-<name>, according to
+  // `execute AddHyphen` (name= and synonyms=) in texlive.tlpdb
+  const expected: Record<string, string> = {
+    ngerman: "hyphen-german",
+    swissgerman: "hyphen-german",
+    pinyin: "hyphen-chinese",
+    ukenglish: "hyphen-english",
+    british: "hyphen-english",
+    usenglishmax: "hyphen-english",
+    bokmal: "hyphen-norwegian",
+    norsk: "hyphen-norwegian",
+    nynorsk: "hyphen-norwegian",
+    schoolfinnish: "hyphen-finnish",
+    monogreek: "hyphen-greek",
+    polygreek: "hyphen-greek",
+    ibycus: "hyphen-ancientgreek",
+    classiclatin: "hyphen-latin",
+    liturgicallatin: "hyphen-latin",
+    mongolianlmc: "hyphen-mongolian",
+    serbianc: "hyphen-serbian",
+    amharic: "hyphen-ethiopic",
+    geez: "hyphen-ethiopic",
+    persian: "hyphen-farsi",
+    patois: "hyphen-french",
+    francais: "hyphen-french",
+    portuges: "hyphen-portuguese",
+    slovene: "hyphen-slovenian",
+    espanol: "hyphen-spanish",
+    assamese: "hyphen-indic",
+    bengali: "hyphen-indic",
+    gujarati: "hyphen-indic",
+    hindi: "hyphen-indic",
+    kannada: "hyphen-indic",
+    malayalam: "hyphen-indic",
+    marathi: "hyphen-indic",
+    oriya: "hyphen-indic",
+    pali: "hyphen-indic",
+    panjabi: "hyphen-indic",
+    tamil: "hyphen-indic",
+    telugu: "hyphen-indic",
+  };
+  for (const [lang, pkg] of Object.entries(expected)) {
+    assertEquals(
+      findMissingHyphenationPackages(
+        `! Package babel Error: You haven't defined the language '${lang}' yet.`,
+      ),
+      [pkg],
+      `Should map '${lang}' to ${pkg} from the babel error`,
+    );
+    assertEquals(
+      findMissingHyphenationFiles(`Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language '${lang}' into the format.`),
+      pkg,
+      `Should map '${lang}' to ${pkg} from the babel warning`,
+    );
+  }
+  // Names in language.dat may be in mixed case
+  assertEquals(
+    findMissingHyphenationPackages(
+      "! Package babel Error: You haven't defined the language 'UKenglish' yet.",
+    ),
+    ["hyphen-english"],
+  );
+  // Several languages from the same package are installed once
+  assertEquals(
+    findMissingHyphenationPackages(
+      `! Package babel Error: You haven't defined the language 'hindi' yet.
+! Package babel Error: You haven't defined the language 'tamil' yet.`,
+    ),
+    ["hyphen-indic"],
   );
 }, {
   cwd: () => "unit/latexmk/"

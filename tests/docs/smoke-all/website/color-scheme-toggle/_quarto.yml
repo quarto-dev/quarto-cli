@@ -1,0 +1,21 @@
+project:
+  type: website
+  output-dir: .
+
+website:
+  title: "Website"
+  reader-mode: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+    tools:
+      - icon: github
+        text: Quarto on GitHub
+        href: https://github.com/quarto-dev/quarto-cli
+
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly

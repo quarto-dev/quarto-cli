@@ -21,6 +21,7 @@ import {
   findLatexError,
   findMissingFontsAndPackages,
   findMissingHyphenationFiles,
+  findMissingHyphenationPackages,
   findPdfAccessibilityWarnings,
   kMissingFontLog,
   needsRecompilation,
@@ -28,6 +29,7 @@ import {
 import { error, info, warning } from "../../../deno_ral/log.ts";
 import { logProgress } from "../../../core/log.ts";
 import { isWindows } from "../../../deno_ral/platform.ts";
+import * as ld from "../../../core/lodash.ts";
 
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {
@@ -470,8 +472,15 @@ async function findAndInstallPackages(
     const logText = Deno.readTextFileSync(logFile);
 
     const searchTerms = findMissingFontsAndPackages(logText, dirname(logFile));
-    if (searchTerms.length > 0) {
-      const packages = await pkgMgr.searchPackages(searchTerms);
+    // Packages known by name (no tlmgr file search needed)
+    const namedPackages = findMissingHyphenationPackages(logText);
+    if (searchTerms.length > 0 || namedPackages.length > 0) {
+      const packages = ld.uniq([
+        ...namedPackages,
+        ...(searchTerms.length > 0
+          ? await pkgMgr.searchPackages(searchTerms)
+          : []),
+      ]);
       if (packages.length > 0) {
         const packagesInstalled = await pkgMgr.installPackages(
           packages,

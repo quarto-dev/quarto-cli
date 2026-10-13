@@ -25,7 +25,9 @@ import {
   knitrCapabilities,
   knitrCapabilitiesMessage,
   knitrInstallationMessage,
+  reportWindowsArmX64RError,
   rInstallationMessage,
+  WindowsArmX64RError,
 } from "../core/knitr.ts";
 import {
   DependenciesOptions,
@@ -86,140 +88,7 @@ export const knitrEngineDiscovery: ExecutionEngineDiscovery = {
     return ["renv", "packrat", "rsconnect"];
   },
 
-  checkInstallation: async (conf: CheckConfiguration) => {
-    const kIndent = "      ";
-
-    // Helper functions (inline)
-    const checkCompleteMessage = (message: string) => {
-      if (!conf.jsonResult) {
-        quarto.console.completeMessage(message);
-      }
-    };
-    const checkInfoMsg = (message: string) => {
-      if (!conf.jsonResult) {
-        info(message);
-      }
-    };
-
-    // Render check helper (inline)
-    const checkKnitrRender = async () => {
-      const json: Record<string, unknown> = {};
-      if (conf.jsonResult) {
-        (conf.jsonResult.render as Record<string, unknown>).knitr = json;
-      }
-
-      const result = await quarto.system.checkRender({
-        content: `
----
-title: "Title"
----
-
-## Header
-
-\`\`\`{r}
-1 + 1
-\`\`\`
-`,
-        language: "r",
-        services: conf.services,
-      });
-
-      if (result.error) {
-        if (!conf.jsonResult) {
-          throw result.error;
-        } else {
-          json["error"] = result.error;
-        }
-      } else {
-        json["ok"] = true;
-      }
-    };
-
-    // Main check logic
-    const kMessage = "Checking R installation...........";
-    let caps: KnitrCapabilities | undefined;
-    let rBin: string | undefined;
-    const json: Record<string, unknown> = {};
-    if (conf.jsonResult) {
-      (conf.jsonResult.tools as Record<string, unknown>).knitr = json;
-    }
-    const knitrCb = async () => {
-      rBin = await checkRBinary();
-      caps = await knitrCapabilities(rBin);
-    };
-    if (conf.jsonResult) {
-      await knitrCb();
-    } else {
-      await quarto.console.withSpinner({
-        message: kMessage,
-        doneMessage: false,
-      }, knitrCb);
-    }
-    if (rBin && caps) {
-      checkCompleteMessage(kMessage + "OK");
-      if (conf.jsonResult) {
-        json["capabilities"] = caps;
-      } else {
-        checkInfoMsg(knitrCapabilitiesMessage(caps, kIndent));
-      }
-      checkInfoMsg("");
-      if (caps.packages.rmarkdownVersOk && caps.packages.knitrVersOk) {
-        const kKnitrMessage = "Checking Knitr engine render......";
-        if (conf.jsonResult) {
-          await checkKnitrRender();
-        } else {
-          await quarto.console.withSpinner({
-            message: kKnitrMessage,
-            doneMessage: kKnitrMessage + "OK\n",
-          }, async () => {
-            await checkKnitrRender();
-          });
-        }
-      } else {
-        // show install message if not available
-        // or update message if not up to date
-        json["installed"] = false;
-        if (!caps.packages.knitr || !caps.packages.knitrVersOk) {
-          const msg = knitrInstallationMessage(
-            kIndent,
-            "knitr",
-            !!caps.packages.knitr && !caps.packages.knitrVersOk,
-          );
-          checkInfoMsg(msg);
-          json["how-to-install-knitr"] = msg;
-        }
-        if (!caps.packages.rmarkdown || !caps.packages.rmarkdownVersOk) {
-          const msg = knitrInstallationMessage(
-            kIndent,
-            "rmarkdown",
-            !!caps.packages.rmarkdown && !caps.packages.rmarkdownVersOk,
-          );
-          checkInfoMsg(msg);
-          json["how-to-install-rmarkdown"] = msg;
-        }
-        checkInfoMsg("");
-      }
-    } else if (rBin === undefined) {
-      checkCompleteMessage(kMessage + "(None)\n");
-      const msg = rInstallationMessage(kIndent);
-      checkInfoMsg(msg);
-      json["installed"] = false;
-      checkInfoMsg("");
-    } else if (caps === undefined) {
-      json["installed"] = false;
-      checkCompleteMessage(kMessage + "(None)\n");
-      const msgs = [
-        `R succesfully found at ${rBin}.`,
-        "However, a problem was encountered when checking configurations of packages.",
-        "Please check your installation of R.",
-      ];
-      msgs.forEach((msg) => {
-        checkInfoMsg(msg);
-      });
-      json["error"] = msgs.join("\n");
-      checkInfoMsg("");
-    }
-  },
+  checkInstallation: checkKnitrInstallation,
 
   // Launch method that returns an instance with context closure
   launch: (context: EngineProjectContext): ExecutionEngineInstance => {
@@ -404,6 +273,166 @@ title: "Title"
   },
 };
 
+export interface KnitrCheckDependencies {
+  checkRBinary: typeof checkRBinary;
+  knitrCapabilities: typeof knitrCapabilities;
+  reportWindowsArmX64RError: typeof reportWindowsArmX64RError;
+}
+
+export async function checkKnitrInstallation(
+  conf: CheckConfiguration,
+  dependencies: Partial<KnitrCheckDependencies> = {},
+) {
+  const checkRBinaryImpl = dependencies.checkRBinary ?? checkRBinary;
+  const knitrCapabilitiesImpl = dependencies.knitrCapabilities ??
+    knitrCapabilities;
+  const reportWindowsArmX64RErrorImpl =
+    dependencies.reportWindowsArmX64RError ?? reportWindowsArmX64RError;
+  const kIndent = "      ";
+
+  const checkCompleteMessage = (message: string) => {
+    if (!conf.jsonResult) {
+      quarto.console.completeMessage(message);
+    }
+  };
+  const checkInfoMsg = (message: string) => {
+    if (!conf.jsonResult) {
+      info(message);
+    }
+  };
+
+  const checkKnitrRender = async () => {
+    const json: Record<string, unknown> = {};
+    if (conf.jsonResult) {
+      (conf.jsonResult.render as Record<string, unknown>).knitr = json;
+    }
+
+    const result = await quarto.system.checkRender({
+      content: `
+---
+title: "Title"
+---
+
+## Header
+
+\`\`\`{r}
+1 + 1
+\`\`\`
+`,
+      language: "r",
+      services: conf.services,
+    });
+
+    if (result.error) {
+      if (!conf.jsonResult) {
+        throw result.error;
+      } else {
+        json["error"] = result.error;
+      }
+    } else {
+      json["ok"] = true;
+    }
+  };
+
+  const kMessage = "Checking R installation...........";
+  let caps: KnitrCapabilities | undefined;
+  let rBin: string | undefined;
+  let windowsArmError: WindowsArmX64RError | undefined;
+  const json: Record<string, unknown> = {};
+  if (conf.jsonResult) {
+    (conf.jsonResult.tools as Record<string, unknown>).knitr = json;
+  }
+  const knitrCb = async () => {
+    rBin = await checkRBinaryImpl();
+    try {
+      caps = await knitrCapabilitiesImpl(rBin);
+    } catch (e) {
+      if (e instanceof WindowsArmX64RError) {
+        windowsArmError = e;
+      } else {
+        throw e;
+      }
+    }
+  };
+  if (conf.jsonResult) {
+    await knitrCb();
+  } else {
+    await quarto.console.withSpinner({
+      message: kMessage,
+      doneMessage: false,
+    }, knitrCb);
+  }
+  if (rBin && caps) {
+    checkCompleteMessage(kMessage + "OK");
+    if (conf.jsonResult) {
+      json["capabilities"] = caps;
+    } else {
+      checkInfoMsg(knitrCapabilitiesMessage(caps, kIndent));
+    }
+    checkInfoMsg("");
+    if (caps.packages.rmarkdownVersOk && caps.packages.knitrVersOk) {
+      const kKnitrMessage = "Checking Knitr engine render......";
+      if (conf.jsonResult) {
+        await checkKnitrRender();
+      } else {
+        await quarto.console.withSpinner({
+          message: kKnitrMessage,
+          doneMessage: kKnitrMessage + "OK\n",
+        }, async () => {
+          await checkKnitrRender();
+        });
+      }
+    } else {
+      json["installed"] = false;
+      if (!caps.packages.knitr || !caps.packages.knitrVersOk) {
+        const msg = knitrInstallationMessage(
+          kIndent,
+          "knitr",
+          !!caps.packages.knitr && !caps.packages.knitrVersOk,
+        );
+        checkInfoMsg(msg);
+        json["how-to-install-knitr"] = msg;
+      }
+      if (!caps.packages.rmarkdown || !caps.packages.rmarkdownVersOk) {
+        const msg = knitrInstallationMessage(
+          kIndent,
+          "rmarkdown",
+          !!caps.packages.rmarkdown && !caps.packages.rmarkdownVersOk,
+        );
+        checkInfoMsg(msg);
+        json["how-to-install-rmarkdown"] = msg;
+      }
+      checkInfoMsg("");
+    }
+  } else if (rBin === undefined) {
+    checkCompleteMessage(kMessage + "(None)\n");
+    const msg = rInstallationMessage(kIndent);
+    checkInfoMsg(msg);
+    json["installed"] = false;
+    checkInfoMsg("");
+  } else if (windowsArmError) {
+    json["installed"] = false;
+    json["error"] = windowsArmError.message;
+    checkCompleteMessage(kMessage + "(None)\n");
+    if (!conf.jsonResult) {
+      reportWindowsArmX64RErrorImpl(windowsArmError);
+    }
+  } else if (caps === undefined) {
+    json["installed"] = false;
+    checkCompleteMessage(kMessage + "(None)\n");
+    const msgs = [
+      `R succesfully found at ${rBin}.`,
+      "However, a problem was encountered when checking configurations of packages.",
+      "Please check your installation of R.",
+    ];
+    msgs.forEach((msg) => {
+      checkInfoMsg(msg);
+    });
+    json["error"] = msgs.join("\n");
+    checkInfoMsg("");
+  }
+}
+
 async function callR<T>(
   action: string,
   params: unknown,
@@ -500,51 +529,84 @@ function withinActiveRenv() {
   }
 }
 
-async function printCallRDiagnostics() {
-  const rBin = await checkRBinary();
-  if (rBin === undefined) {
-    info("");
-    info(rInstallationMessage());
-    info("");
-  } else {
-    const caps = await knitrCapabilities(rBin);
-    if (caps === undefined) {
-      info(
-        `Problem with running R found at ${rBin} to check environment configurations.`,
-      );
-      info("Please check your installation of R.");
-      info("");
+export async function printCallRDiagnostics(
+  dependencies: Partial<PrintCallRDiagnosticsDependencies> = {},
+) {
+  const checkRBinaryImpl = dependencies.checkRBinary ?? checkRBinary;
+  const knitrCapabilitiesImpl = dependencies.knitrCapabilities ??
+    knitrCapabilities;
+  const reportWindowsArmX64RErrorImpl =
+    dependencies.reportWindowsArmX64RError ?? reportWindowsArmX64RError;
+  const infoImpl = dependencies.info ?? info;
+  const warningImpl = dependencies.warning ?? warning;
+
+  // This re-enters R discovery to explain a callR failure. A throw here
+  // (e.g. from checkRBinaryImpl/rBinaryPath) must never replace the
+  // original callR error the caller is already reporting.
+  try {
+    const rBin = await checkRBinaryImpl();
+    if (rBin === undefined) {
+      infoImpl("");
+      infoImpl(rInstallationMessage());
+      infoImpl("");
     } else {
-      if (
-        !caps?.packages.rmarkdown || !caps?.packages.knitr ||
-        !caps?.packages.knitrVersOk || !caps?.packages.rmarkdownVersOk
-      ) {
-        info("R installation:");
-        info(knitrCapabilitiesMessage(caps, "  "));
-        if (!!!caps?.packages.knitr || !caps?.packages.knitrVersOk) {
-          info("");
-          info(
-            knitrInstallationMessage(
-              "",
-              "knitr",
-              !!caps.packages.knitr && !caps.packages.knitrVersOk,
-            ),
-          );
+      const caps = await knitrCapabilitiesImpl(rBin);
+      if (caps === undefined) {
+        infoImpl(
+          `Problem with running R found at ${rBin} to check environment configurations.`,
+        );
+        infoImpl("Please check your installation of R.");
+        infoImpl("");
+      } else {
+        if (
+          !caps?.packages.rmarkdown || !caps?.packages.knitr ||
+          !caps?.packages.knitrVersOk || !caps?.packages.rmarkdownVersOk
+        ) {
+          infoImpl("R installation:");
+          infoImpl(knitrCapabilitiesMessage(caps, "  "));
+          if (!!!caps?.packages.knitr || !caps?.packages.knitrVersOk) {
+            infoImpl("");
+            infoImpl(
+              knitrInstallationMessage(
+                "",
+                "knitr",
+                !!caps.packages.knitr && !caps.packages.knitrVersOk,
+              ),
+            );
+          }
+          if (!!!caps?.packages.rmarkdown || !caps?.packages.rmarkdownVersOk) {
+            infoImpl("");
+            infoImpl(
+              knitrInstallationMessage(
+                "",
+                "rmarkdown",
+                !!caps?.packages.rmarkdown && !caps?.packages.rmarkdownVersOk,
+              ),
+            );
+          }
+          infoImpl("");
         }
-        if (!!!caps?.packages.rmarkdown || !caps?.packages.rmarkdownVersOk) {
-          info("");
-          info(
-            knitrInstallationMessage(
-              "",
-              "rmarkdown",
-              !!caps?.packages.rmarkdown && !caps?.packages.rmarkdownVersOk,
-            ),
-          );
-        }
-        info("");
       }
     }
+  } catch (e) {
+    if (e instanceof WindowsArmX64RError) {
+      reportWindowsArmX64RErrorImpl(e);
+    } else {
+      warningImpl(
+        `Unable to gather R diagnostics: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      );
+    }
   }
+}
+
+export interface PrintCallRDiagnosticsDependencies {
+  checkRBinary: typeof checkRBinary;
+  knitrCapabilities: typeof knitrCapabilities;
+  reportWindowsArmX64RError: typeof reportWindowsArmX64RError;
+  info: (message: string) => void;
+  warning: (message: string) => void;
 }
 
 function filterAlwaysAllowHtml(s: string): string {
