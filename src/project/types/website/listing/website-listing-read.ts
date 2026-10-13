@@ -20,6 +20,7 @@ import { existsSync } from "../../../../deno_ral/fs.ts";
 import { Format, Metadata } from "../../../../config/types.ts";
 import {
   filterPaths,
+  pathsEqual,
   pathWithForwardSlashes,
   resolvePathGlobs,
   safeExistsSync,
@@ -762,11 +763,25 @@ async function readContents(
 
       // If a glob points to a file that exists, go ahead and just include
       // that, even if it isn't a project input
+      const isExistingFile = (path: string) =>
+        safeExistsSync(path) && Deno.statSync(path).isFile;
       for (const glob of finalGlobs) {
-        if (safeExistsSync(glob) && Deno.statSync(glob).isFile) {
-          filtered.include.push(
-            isAbsolute(glob) ? glob : join(Deno.cwd(), glob),
-          );
+        if (glob.startsWith("!")) {
+          continue;
+        }
+        // Relative to the listing document first, then a real absolute path
+        const listingRelative = join(dirname(source), glob);
+        const candidate = isExistingFile(listingRelative)
+          ? listingRelative
+          : isAbsolute(glob) && isExistingFile(glob)
+          ? glob
+          : undefined;
+        if (
+          candidate !== undefined &&
+          !pathsEqual(candidate, source) &&
+          !filtered.include.some((f) => pathsEqual(f, candidate))
+        ) {
+          filtered.include.push(candidate);
         }
       }
 

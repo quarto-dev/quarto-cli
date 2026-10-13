@@ -21,6 +21,15 @@ const verify: Verify[] = [
     /Post from folder/,
     /Item from YAML/,
   ]),
+  ensureFileRegexMatches(join(outputDir, "archive", "anchored.html"), [
+    /Post from folder/,
+    /Item from YAML/,
+  ]),
+  ensureFileRegexMatches(
+    join(outputDir, "archive", "named.html"),
+    [/data-index="0"/],
+    [/data-index="1"/],
+  ),
 ];
 
 testQuartoCmd("render", [projectDir], verify, {
