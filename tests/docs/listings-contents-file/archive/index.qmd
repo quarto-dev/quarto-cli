@@ -1,0 +1,7 @@
+---
+title: Archive
+listing:
+  contents:
+    - posts
+    - items.yml
+---
