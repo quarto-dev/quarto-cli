@@ -1,0 +1,65 @@
+---
+title: Callout ids appear once in revealjs
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - - 'div.callout#titled'
+          - 'section > div.callout#untitled'          # id-only callout: no wrapper
+          - 'div.callout#tip-xref'
+          - 'a.quarto-xref[href="#/tip-xref"]'
+          - 'div.fragment > div.callout#with-fragment'
+          - 'div[data-x="1"] > div.callout#with-attr'
+          - 'div.fragment.test-no-id > div.callout'   # no-id wrapper unchanged
+        - - '[id="titled"] [id="titled"]'
+          - '[id="untitled"] [id="untitled"]'
+          - '[id="tip-xref"] [id="tip-xref"]'
+          - '[id="with-fragment"] [id="with-fragment"]'
+          - '[id="with-attr"] [id="with-attr"]'
+---
+
+The revealjs callout renderer wraps the callout in a div carrying the
+user's leftover attributes (classes such as `.fragment`, extra attributes).
+The identifier must end up on exactly one element, the `.callout` div, and
+an id-only callout needs no wrapper at all. A callout with a leftover
+`data-*` attribute keeps it on the wrapper, and a callout with a fragment
+class but no id keeps its wrapper unchanged.
+
+## Titled callout with an id
+
+::: {#titled .callout-note title="Titled"}
+Body.
+:::
+
+## Untitled callout with an id
+
+::: {#untitled .callout-warning}
+Body.
+:::
+
+## Cross-referenceable callout
+
+::: {#tip-xref .callout-tip title="Xref"}
+Body.
+:::
+
+See @tip-xref.
+
+## Callout with an id and a fragment class
+
+::: {#with-fragment .callout-note .fragment}
+Body.
+:::
+
+## Callout with an id and a data attribute
+
+::: {#with-attr .callout-note data-x="1"}
+Body.
+:::
+
+## Callout with a fragment class and no id
+
+::: {.callout-note .fragment .test-no-id}
+Body.
+:::
