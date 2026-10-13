@@ -83,7 +83,7 @@ All changes included in 1.11:
 - ([#15004](https://github.com/quarto-dev/quarto-cli/issues/15004)): Fix notebook preview pages and notebook sources missing from the output directory when a website with embedded notebooks is rendered from a directory other than the project directory.
 - ([#15022](https://github.com/quarto-dev/quarto-cli/issues/15022)): Fix rendering a listing with a `feed` failing on Windows with `os error 123` when a listing item's `image` or the feed `image` is a web URL. The image URL is used as is in the feed and no local size lookup is attempted. (author: @Masad791)
 - ([#15032](https://github.com/quarto-dev/quarto-cli/pull/15032)): Fix the listing feed `image` missing its height and width when a website is rendered from a directory other than the project directory, or when the image path starts with `/`.
-- ([#<PR>](https://github.com/quarto-dev/quarto-cli/pull/<PR>)): Fix a YAML file listed next to a folder in a listing's `contents` being left out, or another file being used, when a website is rendered from a directory other than the listing page's directory.
+- ([#15044](https://github.com/quarto-dev/quarto-cli/issues/15044)): Fix a YAML file listed next to a folder in a listing's `contents` being left out, or another file being used, when a website is rendered from a directory other than the listing page's directory.
 
 ## Lua API
 
