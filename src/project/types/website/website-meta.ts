@@ -180,9 +180,13 @@ export function metadataHtmlPostProcessor(
 
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
-        const previewImg = findPreviewImg(doc) || websiteImage(project.config);
+        const pagePreviewImg = findPreviewImg(doc);
+        const previewImg = pagePreviewImg || websiteImage(project.config);
         metadata[kImage] = previewImg ? previewImg.src : undefined;
         metadata[kImageAlt] = previewImg ? previewImg.alt : undefined;
+        if (pagePreviewImg && provider.key === kOpenGraph) {
+          usePageDeclaredImageSize(format, metadata);
+        }
       }
 
       // cook up a description if one is not provided
@@ -267,22 +271,27 @@ function opengraphMetadata(
       }
     });
 
-    // A size declared on the site describes the site image, so it doesn't
-    // apply to an image the page sets without declaring its own size
+    // Same predicate as mergedSiteAndDocumentData uses to replace the site image
     const docOpenGraph = format.metadata[kOpenGraph];
-    const docData = typeof docOpenGraph === "object"
-      ? docOpenGraph as Metadata
-      : {};
-    const pageSetsImage = format.metadata[kImage] !== undefined ||
-      docData[kImage] !== undefined;
-    const pageDeclaresSize = docData[kImageHeight] !== undefined ||
-      docData[kImageWidth] !== undefined;
-    if (pageSetsImage && !pageDeclaresSize) {
-      delete metadata[kImageHeight];
-      delete metadata[kImageWidth];
+    const pageSetsImage = !!format.metadata[kImage] ||
+      (typeof docOpenGraph === "object" &&
+        !!(docOpenGraph as Metadata)[kImage]);
+    if (pageSetsImage) {
+      usePageDeclaredImageSize(format, metadata);
     }
   }
   return metadata;
+}
+
+// A size declared on the site describes the site image, so an image the page
+// supplies only gets the dimensions the page itself declares
+function usePageDeclaredImageSize(format: Format, metadata: Metadata) {
+  const docOpenGraph = format.metadata[kOpenGraph];
+  const docData = typeof docOpenGraph === "object"
+    ? docOpenGraph as Metadata
+    : {};
+  metadata[kImageHeight] = docData[kImageHeight];
+  metadata[kImageWidth] = docData[kImageWidth];
 }
 
 function twitterMetadata(format: Format) {
