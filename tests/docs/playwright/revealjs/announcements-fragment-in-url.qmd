@@ -1,0 +1,35 @@
+---
+pagetitle: Reveal.js announcements with fragment URLs
+format:
+  revealjs:
+    history: true
+    fragment-in-url: true
+---
+
+## Intro {#intro}
+
+## Steps {#steps}
+
+Visible lead
+
+<div class="fragment grow">Grow starts visible</div>
+
+<div class="fragment fade-out">Fade out starts visible</div>
+
+<div class="fragment">Outer step <span class="fragment">Nested step</span></div>
+
+Before pause
+
+. . .
+
+After pause
+
+## History target {#history-target}
+
+## Nested fade out {#nested-fade-out}
+
+<div class="fragment">Parent one <span class="fragment fade-out">Child fades</span></div>
+
+## Nested appear {#nested-appear}
+
+<div class="fragment">Parent two <span class="fragment">Child appears</span></div>
