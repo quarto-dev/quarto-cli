@@ -4,6 +4,10 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
+// Marker codes: ITU-T T.81 (JPEG), Annex B, Table B.1
+// https://www.w3.org/Graphics/JPEG/itu-t81.pdf
+
+// Start-of-image marker (FFD8) followed by the start of the next marker
 export function isJpeg(bytes: Uint8Array) {
   return bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
 }
