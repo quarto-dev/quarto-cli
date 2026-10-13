@@ -3,6 +3,7 @@
   "version": "0.0.7",
   "description": "A fork of an unofficial compiler to bind @observablehq/parser and @observablehq/runtime",
   "main": "dist/index.js",
+  "module": "src/index.js",
   "author": "Carlos Scheidegger <carlos.scheidegger@rstudio.com>",
   "repository": {
     "type": "git",
@@ -35,14 +36,5 @@
   "dependencies": {
     "@observablehq/parser": "4.2",
     "acorn-walk": "^7.0.0"
-  },
-  "devDependencies": {
-    "external-observablehq-runtime": "*",
-    "http-server": "^0.11.1",
-    "prettier": "1.19.1",
-    "rollup": "^1.26.4",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "tape": "^4.11.0"
   }
 }

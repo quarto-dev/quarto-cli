@@ -26,12 +26,5 @@
   "_moduleAliases": {
     "d3-require": "./src/index.mjs"
   },
-  "sideEffects": false,
-  "devDependencies": {
-    "eslint": "8",
-    "mocha": "10",
-    "module-alias": "2",
-    "rollup": "2",
-    "rollup-plugin-terser": "7"
-  }
+  "sideEffects": false
 }

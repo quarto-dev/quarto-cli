@@ -1,24 +1,25 @@
 {
   "name": "quarto-ojs-runtime",
-  "version": "0.0.18",
+  "version": "0.0.19",
+  "private": true,
   "description": "A runtime for quarto's support of ObservableHQ's reactive Javascript.",
   "main": "src/index.js",
   "module": "src/index.js",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/quarto-dev/quarto-ojs-runtime.git"
+    "url": "https://github.com/quarto-dev/quarto-cli.git",
+    "directory": "packages/ojs/quarto-ojs-runtime"
   },
   "scripts": {
-    "build": "rollup -c",
-    "prepublishOnly": "rollup -c"
+    "build": "rollup -c"
   },
   "keywords": [
     "quarto",
     "observablehq",
     "javascript"
   ],
-  "author": "RStudio, PBC",
+  "author": "Posit Software, PBC",
   "license": "ISC",
   "dependencies": {
     "@observablehq/inputs": "^0.10.4",
@@ -30,7 +31,6 @@
     "mime": "^4.1.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.0",
     "rollup": "^4.63.5"

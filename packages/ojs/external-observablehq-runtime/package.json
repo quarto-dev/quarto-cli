@@ -35,13 +35,5 @@
   "dependencies": {
     "@observablehq/inspector": "^5.0.0",
     "external-observablehq-stdlib": "*"
-  },
-  "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "eslint": "^8.27.0",
-    "mocha": "^10.1.0",
-    "module-alias": "^2.2.2",
-    "rollup": "^3.2.5",
-    "rollup-plugin-terser": "^7.0.2"
   }
 }
