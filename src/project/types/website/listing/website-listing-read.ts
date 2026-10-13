@@ -767,6 +767,8 @@ async function readContents(
       // If a glob points to a file that exists, go ahead and just include
       // that, even if it isn't a project input
       for (const glob of finalGlobs) {
+        // "!" entries are exclusion globs (like the output-dir one above),
+        // never files to add
         if (glob.startsWith("!")) {
           continue;
         }
