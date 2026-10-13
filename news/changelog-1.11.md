@@ -9,6 +9,10 @@ All changes included in 1.11:
 - ([#14946](https://github.com/quarto-dev/quarto-cli/issues/14946)): Fix `revealjs` and `dashboard` logos resolving to broken paths in documents in a project subdirectory when the project has a brand (regression introduced in v1.8.22). Logo paths are now always relative to the document; a project-relative logo path in a website with a brand still works but prints a deprecation warning.
 - ([#14993](https://github.com/quarto-dev/quarto-cli/issues/14993)): Fix Typst output dropping a brand font from a `font-family` list when another document in the same directory or project was rendered first with different brand fonts.
 
+## Dependencies
+
+- ([#15043](https://github.com/quarto-dev/quarto-cli/issues/15043)): Update the OJS runtime to acorn 8.17, Observable Inspector 5.0.1, and Observable Inputs 0.10.6. `FileAttachment(...).mimeType` now reports `text/javascript` for `.js` files.
+
 ## Accessibility
 
 - ([#730](https://github.com/quarto-dev/quarto-cli/issues/730)): Fix keyboard navigation of tabsets in HTML documents without Bootstrap (`theme: none`): Tab now moves from the selected tab into its panel instead of selecting the next tab, and the arrow keys switch tabs.
