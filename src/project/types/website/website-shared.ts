@@ -116,8 +116,8 @@ export function computePageTitle(
 }
 
 // Gives a project relative href (leading `/`) for a path written in a document
-// in `documentDir` (project relative). URLs and project relative paths are
-// returned as is.
+// in `documentDir` (project relative). Paths that already start with `/` are
+// kept, URLs are returned as is.
 export function projectRelativeHref(href: string, documentDir: string) {
   if (isAbsoluteRef(href)) {
     return href;
