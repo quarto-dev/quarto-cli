@@ -1,0 +1,9 @@
+project:
+  type: website
+
+website:
+  title: "issue-12016-no-site-url"
+  open-graph:
+    image: mark.jpg
+    image-width: 1200
+    image-height: 892

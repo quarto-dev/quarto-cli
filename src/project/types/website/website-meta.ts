@@ -180,9 +180,13 @@ export function metadataHtmlPostProcessor(
 
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
-        const previewImg = findPreviewImg(doc) || websiteImage(project.config);
+        const pagePreviewImg = findPreviewImg(doc);
+        const previewImg = pagePreviewImg || websiteImage(project.config);
         metadata[kImage] = previewImg ? previewImg.src : undefined;
         metadata[kImageAlt] = previewImg ? previewImg.alt : undefined;
+        if (pagePreviewImg && provider.key === kOpenGraph) {
+          usePageDeclaredImageSize(format, metadata);
+        }
       }
 
       // cook up a description if one is not provided
@@ -266,8 +270,28 @@ function opengraphMetadata(
         metadata[key] = openGraph[key];
       }
     });
+
+    // Same predicate as mergedSiteAndDocumentData uses to replace the site image
+    const docOpenGraph = format.metadata[kOpenGraph];
+    const pageSetsImage = !!format.metadata[kImage] ||
+      (typeof docOpenGraph === "object" && docOpenGraph !== null &&
+        !!(docOpenGraph as Metadata)[kImage]);
+    if (pageSetsImage) {
+      usePageDeclaredImageSize(format, metadata);
+    }
   }
   return metadata;
+}
+
+// A size declared on the site describes the site image, so an image the page
+// supplies only gets the dimensions the page itself declares
+function usePageDeclaredImageSize(format: Format, metadata: Metadata) {
+  const docOpenGraph = format.metadata[kOpenGraph];
+  const docData = typeof docOpenGraph === "object" && docOpenGraph !== null
+    ? docOpenGraph as Metadata
+    : {};
+  metadata[kImageHeight] = docData[kImageHeight];
+  metadata[kImageWidth] = docData[kImageWidth];
 }
 
 function twitterMetadata(format: Format) {
@@ -331,10 +355,11 @@ function resolveImageMetadata(
       project,
     );
 
-    // Update the image information
+    // Update the image information, preferring the size read from the file
+    // over a declared one
     metadata[kImage] = imgMeta.href;
-    metadata[kImageHeight] = imgMeta.height;
-    metadata[kImageWidth] = imgMeta.width;
+    metadata[kImageHeight] = imgMeta.height ?? metadata[kImageHeight];
+    metadata[kImageWidth] = imgMeta.width ?? metadata[kImageWidth];
 
     const altText = format.metadata[kImageAlt];
     if (altText && !metadata[kImageAlt]) {
