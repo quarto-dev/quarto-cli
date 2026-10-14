@@ -15,7 +15,7 @@ unitTest("projectRelativeHref - document relative path", async () => {
   assertEquals(projectRelativeHref("thumb.png", "news"), "/news/thumb.png");
   assertEquals(projectRelativeHref("./thumb.png", "news"), "/news/thumb.png");
   assertEquals(projectRelativeHref("img/thumb.png", "."), "/img/thumb.png");
-  assertEquals(projectRelativeHref("..\\thumb.png", "news"), "/thumb.png");
+  assertEquals(projectRelativeHref("../thumb.png", "news"), "/thumb.png");
 });
 
 // deno-lint-ignore require-await
