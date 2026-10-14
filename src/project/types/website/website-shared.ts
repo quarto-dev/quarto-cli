@@ -119,10 +119,12 @@ export function computePageTitle(
 // in `documentDir` (project relative). URLs and project relative paths are
 // returned as is.
 export function projectRelativeHref(href: string, documentDir: string) {
-  if (isAbsoluteRef(href) || href.startsWith("/")) {
+  if (isAbsoluteRef(href)) {
     return href;
   }
-  return pathWithForwardSlashes(join("/", documentDir, href));
+  return pathWithForwardSlashes(
+    href.startsWith("/") ? href : join("/", documentDir, href),
+  );
 }
 
 export function inputFileHref(href: string) {
