@@ -16,7 +16,7 @@ import { quartoConfig } from "../../../../core/quarto.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { ProjectContext } from "../../../types.ts";
 import { kImage } from "../website-constants.ts";
-import { projectRelativeHref } from "../website-shared.ts";
+import { resolveProjectImage } from "../website-shared.ts";
 import {
   websiteBaseurl,
   websiteDescription,
@@ -49,8 +49,7 @@ import {
 import { ProjectOutputFile } from "../../types.ts";
 import { resolveInputTarget } from "../../../project-index.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
-import { imageContentType, imageSize } from "../../../../core/image.ts";
-import { isAbsoluteRef } from "../../../../core/http.ts";
+import { imageContentType } from "../../../../core/image.ts";
 import { warnOnce } from "../../../../core/log.ts";
 import { isHtmlOutput } from "../../../../config/format.ts";
 
@@ -170,24 +169,26 @@ export async function createFeed(
   // Add any image metadata
   // The page image is relative to the listing document, the others to the project
   const pageImage = format.metadata[kImage] as string | undefined;
-  const image = options.image ||
-    (pageImage &&
-      projectRelativeHref(pageImage, dirname(relative(project.dir, source)))) ||
-    websiteImage(project.config)?.src;
+  const [image, imageDir] = options.image
+    ? [options.image, "."]
+    : pageImage
+    ? [pageImage, dirname(relative(project.dir, source))]
+    : [websiteImage(project.config)?.src, "."];
   if (image) {
+    const { href, height, width } = resolveProjectImage(
+      image,
+      project.dir,
+      imageDir,
+    );
     feed.image = {
       title: feedTitle,
       link: link,
-      url: absoluteUrl(siteUrl, image),
+      url: absoluteUrl(siteUrl, href),
     };
-    // Read the size from the project file the url points at, not the cwd
-    const size = isAbsoluteRef(image)
-      ? undefined
-      : imageSize(join(project.dir, image));
-    if (size) {
-      const [height, width] = feedImageSize(size.height, size.width);
-      feed.image.height = height;
-      feed.image.width = width;
+    if (height !== undefined && width !== undefined) {
+      const [feedHeight, feedWidth] = feedImageSize(height, width);
+      feed.image.height = feedHeight;
+      feed.image.width = feedWidth;
     }
   }
 
@@ -492,17 +493,13 @@ async function renderFeed(
     // Image Data
     if (item[kFieldImage] && typeof item[kFieldImage] === "string") {
       const image = item[kFieldImage] as string;
-      feedItem.image = absoluteUrl(siteUrl, image);
+      const { href, height, width } = resolveProjectImage(image, project.dir);
+      feedItem.image = absoluteUrl(siteUrl, href);
       feedItem.imageContentType = imageContentType(image);
-      // Web images have no local file to read a size from. Joining a URL onto
-      // the project dir makes an invalid path on Windows and `stat` throws.
-      if (!isAbsoluteRef(image)) {
-        const size = imageSize(join(project.dir, image));
-        if (size) {
-          const [height, width] = feedImageSize(size.height, size.width);
-          feedItem.imageHeight = height;
-          feedItem.imageWidth = width;
-        }
+      if (height !== undefined && width !== undefined) {
+        const [feedHeight, feedWidth] = feedImageSize(height, width);
+        feedItem.imageHeight = feedHeight;
+        feedItem.imageWidth = feedWidth;
       }
     }
     feedItems.push(feedItem);
