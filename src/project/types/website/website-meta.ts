@@ -6,6 +6,7 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "../../../deno_ral/path.ts";
+import { pathWithForwardSlashes } from "../../../core/path.ts";
 import {
   kAbstract,
   kDescription,
@@ -181,7 +182,14 @@ export function metadataHtmlPostProcessor(
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
         const pagePreviewImg = findPreviewImg(doc);
-        const previewImg = pagePreviewImg || websiteImage(project.config);
+        let previewImg = pagePreviewImg;
+        if (!previewImg) {
+          // The site image is written in _quarto.yml, so it is project relative
+          const siteImg = websiteImage(project.config);
+          previewImg = siteImg && siteMeta?.[kSiteUrl] !== undefined
+            ? { ...siteImg, src: projectImagePath(siteImg.src) }
+            : siteImg;
+        }
         metadata[kImage] = previewImg ? previewImg.src : undefined;
         metadata[kImageAlt] = previewImg ? previewImg.alt : undefined;
         if (pagePreviewImg && provider.key === kOpenGraph) {
@@ -405,6 +413,15 @@ function mergedSiteAndDocumentData(
   }
 }
 
+// An image path written in _quarto.yml is relative to the project: give it
+// the leading-`/` form that `imageMetadata` resolves against the project.
+export function projectImagePath(image: string): string {
+  if (isAbsoluteRef(image) || image.startsWith("/")) {
+    return image;
+  }
+  return pathWithForwardSlashes(join("/", image));
+}
+
 function imageMetadata(
   image: string,
   baseUrl: string,
@@ -424,7 +441,7 @@ function imageMetadata(
     // read the image size
     return {
       path: image,
-      href: `${baseUrl}${image}`,
+      href: joinUrl(baseUrl, image),
       height: size?.height,
       width: size?.width,
     };

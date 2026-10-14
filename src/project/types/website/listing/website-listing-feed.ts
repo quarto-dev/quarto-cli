@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join, relative } from "../../../../deno_ral/path.ts";
+import { dirname, join, relative } from "../../../../deno_ral/path.ts";
 import { warning } from "../../../../deno_ral/log.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 
@@ -42,6 +42,7 @@ import {
 } from "./website-listing-shared.ts";
 import {
   dirAndStem,
+  pathWithForwardSlashes,
   resolvePathGlobs,
   safeRemoveSync,
 } from "../../../../core/path.ts";
@@ -90,6 +91,20 @@ interface FeedItem {
   imageHeight?: number;
   imageWidth?: number;
   imageContentType?: string;
+}
+
+// Turns an image path relative to the document into a project relative one
+function documentImagePath(
+  image: string,
+  project: ProjectContext,
+  source: string,
+) {
+  if (isAbsoluteRef(image) || image.startsWith("/")) {
+    return image;
+  }
+  return pathWithForwardSlashes(
+    join(dirname(relative(project.dir, source)), image),
+  );
 }
 
 export async function createFeed(
@@ -167,7 +182,10 @@ export async function createFeed(
   };
 
   // Add any image metadata
-  const image = options.image || format.metadata[kImage] as string ||
+  // The page image is relative to the listing document, the others to the project
+  const pageImage = format.metadata[kImage] as string | undefined;
+  const image = options.image ||
+    (pageImage && documentImagePath(pageImage, project, source)) ||
     websiteImage(project.config)?.src;
   if (image) {
     feed.image = {
