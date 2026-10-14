@@ -89,6 +89,7 @@ All changes included in 1.11:
 - ([#15039](https://github.com/quarto-dev/quarto-cli/issues/15039)): Fix the open graph and twitter card image of website pages in subdirectories pointing to a missing file when the image comes from a relative `website: image:`, `open-graph: image:` or `twitter-card: image:` under `website:`, and the listing feed image pointing to a missing file when it comes from the `image` of a listing page in a subdirectory. A project relative image path starting with `/` no longer gives a doubled `/` in these URLs when `site-url` ends with `/`.
 - ([#15044](https://github.com/quarto-dev/quarto-cli/issues/15044)): Fix a YAML file listed next to a folder in a listing's `contents` being left out, or another file being used, when a website is rendered from a directory other than the listing page's directory.
 - ([#15050](https://github.com/quarto-dev/quarto-cli/pull/15050)): Support JPEG images when adding image height and width to the listing feed `image`, feed item media, and `og:image` and `twitter:image` metadata. Image files are now detected by content rather than file extension, so an uppercase `.PNG` is measured too.
+- ([#15057](https://github.com/quarto-dev/quarto-cli/pull/15057)): Fix a numeric top-level `image-width` or `image-height` in page front matter failing the render. These options were never used, so they are removed from the schema; declare the preview image size under `open-graph` instead.
 
 ## Lua API
 
