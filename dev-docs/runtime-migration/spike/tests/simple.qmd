@@ -1,0 +1,49 @@
+---
+title: "Node spike document"
+author: "Quarto"
+date: 2026-10-14
+format:
+  html:
+    toc: true
+    code-fold: true
+    theme: cosmo
+bibliography: refs.bib
+---
+
+## Introduction
+
+This document exercises the markdown engine, Sass theming, deno_dom post-processing, callouts, cross references, citations [@knuth1984] and math.
+
+::: {.callout-note}
+A callout box.
+:::
+
+Inline math $e^{i\pi} + 1 = 0$ and display math:
+
+$$
+\int_0^1 x^2 \, dx = \frac{1}{3}
+$$ {#eq-int}
+
+See @eq-int and @fig-plot and @tbl-data.
+
+```python
+#| echo: true
+#| eval: false
+import numpy as np
+print(np.arange(3))
+```
+
+![A placeholder figure](plot.png){#fig-plot width=50%}
+
+| a | b |
+|---|---|
+| 1 | 2 |
+| 3 | 4 |
+
+: Example data {#tbl-data}
+
+## Conclusion
+
+Done.
+
+## References
