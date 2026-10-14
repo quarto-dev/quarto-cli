@@ -119,8 +119,10 @@ uv run python -m http.server 8765
 # Serves from tests/docs/playwright/
 ```
 
-Locally (`reuseExistingServer: !isCI`), Playwright reuses whatever already listens on that port, even another app.
-Every spec then fails with element-not-found errors; set `QUARTO_PLAYWRIGHT_PORT` to a free port.
+The server is never reused (`reuseExistingServer: false`): if another process answers on the port, the run stops with `... is already used`.
+Set `QUARTO_PLAYWRIGHT_PORT` to a free port, e.g. when two worktrees run Playwright at the same time.
+The multiplex server port 1948 is fixed in `tests/docs/playwright/revealjs/multiplex.qmd`, so concurrent runs collide there too.
+A process answering 404 on the port is not detected as busy; the run then times out after 120 s.
 
 ## Best Practices
 

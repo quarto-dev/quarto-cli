@@ -95,12 +95,15 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   /* We use python for this but we could also try using another tool */
+  /* Never reuse a server already on the port: it may be another app, or another
+     checkout serving its own tests/docs/playwright, so tests would run against
+     the wrong HTML. A busy port fails the run instead. */
   webServer: [
     {
       // HTTP server for rendered HTML files
       command: `uv run python -m http.server ${fixtureServerPort} --bind 127.0.0.1`,
       url: fixtureServerUrl,
-      reuseExistingServer: !isCI,
+      reuseExistingServer: false,
       cwd: '../../docs/playwright',
       // http.server does a reverse DNS lookup before listening, slow on some hosts
       timeout: 120000,
@@ -110,7 +113,7 @@ export default defineConfig({
       // Socket.IO multiplex server for RevealJS
       command: 'npm start',
       url: 'http://127.0.0.1:1948',
-      reuseExistingServer: !isCI,
+      reuseExistingServer: false,
       cwd: './multiplex-server',
       timeout: 10000,
       stderr: 'ignore',  // Suppress verbose logs
