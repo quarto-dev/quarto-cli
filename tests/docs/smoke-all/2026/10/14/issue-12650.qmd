@@ -1,0 +1,16 @@
+---
+title: A sound and complete proof system for separation logic (part&nbsp;1)
+author: Hans-Dieter A. Hiep
+date: 2025-04-30
+citation: true
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementContents:
+        - selectors: [".quarto-appendix-citeas"]
+          matches: ["[Pp]art 1"]
+          noMatches: ["&nbsp;"]
+---
+
+The attribution should use a nonbreaking space between “part” and “1”.
