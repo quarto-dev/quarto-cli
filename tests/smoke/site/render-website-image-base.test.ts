@@ -29,6 +29,27 @@ const verify: Verify[] = [
     /<meta property="og:image" content="https:\/\/example\.com\/site\/site\.png">/,
     /<meta property="og:image:height" content="400">/,
   ], noDoubleSlash),
+  // Site `twitter-card` image written `./card.png` in _quarto.yml
+  ensureFileRegexMatches(join(outputDir, "blog", "index.html"), [
+    /<meta name="twitter:image" content="https:\/\/example\.com\/site\/card\.png">/,
+  ], noDoubleSlash),
+  // The page `image` replaces the site twitter image and stays document relative
+  ensureFileRegexMatches(join(outputDir, "news", "index.html"), [
+    /<meta name="twitter:image" content="https:\/\/example\.com\/site\/news\/thumb\.png">/,
+  ]),
+  // Page `open-graph` image stays document relative
+  ensureFileRegexMatches(join(outputDir, "docs", "page.html"), [
+    /<meta property="og:image" content="https:\/\/example\.com\/site\/docs\/local\.png">/,
+  ]),
+  // `image` from `_metadata.yml` stays document relative
+  ensureFileRegexMatches(join(outputDir, "gallery", "page.html"), [
+    /<meta property="og:image" content="https:\/\/example\.com\/site\/gallery\/cover\.png">/,
+  ]),
+  // Listing `feed` image is project relative
+  ensureFileRegexMatches(join(outputDir, "sub", "index.xml"), [
+    /<image>\s*<url>https:\/\/example\.com\/site\/feed-sub\.png<\/url>/,
+    /<height>96<\/height>\s*<width>144<\/width>\s*<\/image>/,
+  ], noDoubleSlash),
   // The site `image` is only used by subdirectory pages and still gets copied
   fileExists(join(outputDir, "site.png")),
   // Page `image` of a listing in a subdirectory, used as the feed image

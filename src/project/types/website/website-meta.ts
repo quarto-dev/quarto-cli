@@ -391,20 +391,29 @@ function mergedSiteAndDocumentData(
     ? format.metadata[key]
     : false;
 
-  if (typeof siteMetadata === "object" && format.metadata[kImage]) {
-    const siteMeta = siteMetadata as Metadata;
-    siteMeta[kImage] = format.metadata[kImage];
+  // Work on a copy: the site metadata is shared by every page
+  let siteObject: Metadata | undefined;
+  if (typeof siteMetadata === "object") {
+    siteObject = { ...(siteMetadata as Metadata) };
+    if (format.metadata[kImage]) {
+      siteObject[kImage] = format.metadata[kImage];
+    } else if (
+      typeof siteObject[kImage] === "string" &&
+      siteData[kSiteUrl] !== undefined
+    ) {
+      // The site image is written in _quarto.yml, so it is project relative
+      siteObject[kImage] = projectImagePath(siteObject[kImage] as string);
+    }
   }
-  if (
-    typeof siteMetadata === "object" &&
-    typeof docMetadata === "object"
-  ) {
+  if (siteObject && typeof docMetadata === "object") {
     return mergeConfigs(
-      siteMetadata,
+      siteObject,
       docMetadata,
     ) as Metadata;
   } else if (docMetadata !== false) {
     return docMetadata as boolean | Metadata;
+  } else if (siteObject) {
+    return siteObject;
   } else if (siteMetadata !== false) {
     return siteMetadata as boolean | Metadata;
   } else {
