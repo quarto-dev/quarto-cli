@@ -20,7 +20,7 @@ import {
   kEIssn,
   kPdfUrl,
 } from "../../core/csl.ts";
-import { Document } from "../../core/deno-dom.ts";
+import { Document, Element } from "../../core/deno-dom.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
 import { kWebsite } from "../../project/types/website/website-constants.ts";
 import {
@@ -65,6 +65,7 @@ export function metadataPostProcessor(
       const referenceMetadata = await googleScholarReferences(
         input,
         options.inputMetadata,
+        doc,
       );
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {
         writeMetaTag(meta.name, meta.content, doc);
@@ -261,15 +262,39 @@ function googleScholarMeta(
   return scholarMeta;
 }
 
-async function googleScholarReferences(input: string, metadata: Metadata) {
+async function googleScholarReferences(
+  input: string,
+  metadata: Metadata,
+  doc: Document,
+) {
   const scholarMeta: MetaTagData[] = [];
   const write = metadataWriter(scholarMeta);
 
-  // Generate the references by reading the bibliography and parsing the html
+  const referenceIds = new Set<string>();
+  // Bibliography entries include works deliberately added with nocite.
+  for (const entry of doc.querySelectorAll('.csl-entry[id^="ref-"]')) {
+    referenceIds.add((entry as Element).id.slice(4));
+  }
+  // Citation IDs remain available when the bibliography is suppressed.
+  for (const citation of doc.querySelectorAll("[data-cites]")) {
+    const cites = (citation as Element).getAttribute("data-cites")!.trim();
+    if (cites) {
+      for (const id of cites.split(/\s+/)) {
+        referenceIds.add(id);
+      }
+    }
+  }
+  if (referenceIds.size === 0) {
+    return scholarMeta;
+  }
+
   const references = await bibliographyCslJson(input, metadata);
 
   if (references) {
     references.forEach((reference) => {
+      if (!reference.id || !referenceIds.has(reference.id)) {
+        return;
+      }
       const refMetas = googleScholarMeta(reference, {});
       const metaStrs = refMetas.map((refMeta) => {
         return `${refMeta.name}=${refMeta.content};`;
