@@ -1,5 +1,5 @@
 ---
-title: "An empty page open-graph entry keeps the site's image and size"
+title: "An empty page open-graph entry keeps the site's image and its measured size"
 open-graph:
 _quarto:
   render-project: true
@@ -8,9 +8,9 @@ _quarto:
       ensureFileRegexMatches:
         -
           - '<meta property="og:image" content="https://example.com/mark.jpg">'
-          - '<meta property="og:image:height" content="892">'
-          - '<meta property="og:image:width" content="1200">'
+          - '<meta property="og:image:height" content="52">'
+          - '<meta property="og:image:width" content="34">'
         - []
 ---
 
-The page declares `open-graph:` with no value, so the site's open-graph image and its declared size are used.
+The page declares `open-graph:` with no value, so the site's open-graph image is used and its size is measured, not declared.

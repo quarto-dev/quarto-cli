@@ -1,5 +1,5 @@
 ---
-title: "JPEG open-graph image keeps its declared size"
+title: "JPEG open-graph image gets its measured size, not the site's declared size"
 _quarto:
   render-project: true
   tests:
@@ -7,9 +7,9 @@ _quarto:
       ensureFileRegexMatches:
         -
           - '<meta property="og:image" content="https://example.com/mark.jpg">'
-          - '<meta property="og:image:height" content="892">'
-          - '<meta property="og:image:width" content="1200">'
+          - '<meta property="og:image:height" content="52">'
+          - '<meta property="og:image:width" content="34">'
         - []
 ---
 
-With `site-url` set, the declared `image-width` and `image-height` are kept for an image whose size Quarto cannot read.
+With `site-url` set, Quarto measures the JPEG and the measured size wins over the site's declared `image-width` and `image-height`.
