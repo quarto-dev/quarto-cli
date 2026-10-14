@@ -1,0 +1,23 @@
+---
+title: "Top-level image size does not override the open-graph size"
+image: square.svg
+image-width: 1200
+image-height: 630
+open-graph:
+  image-width: 10
+  image-height: 10
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:image" content="https://example.com/square.svg">'
+          - '<meta property="og:image:width" content="10">'
+          - '<meta property="og:image:height" content="10">'
+        -
+          - 'og:image:width" content="1200"'
+          - 'og:image:height" content="630"'
+---
+
+Quarto cannot measure an SVG, so the size declared under open-graph is emitted, and the top-level image-width and image-height are ignored.

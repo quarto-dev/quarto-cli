@@ -1,0 +1,18 @@
+---
+title: "Top-level image-width and image-height accept pixel numbers"
+image: square.svg
+image-width: 1200
+image-height: 630
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:image" content="https://example.com/square.svg">'
+        -
+          - 'og:image:width'
+          - 'og:image:height'
+---
+
+Top-level image-width and image-height are not read, so a numeric value must render and no og:image size is emitted.
