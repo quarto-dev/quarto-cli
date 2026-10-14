@@ -37,7 +37,7 @@ import {
   kTwitterSite,
   kWebsite,
 } from "./website-constants.ts";
-import { computePageTitle } from "./website-shared.ts";
+import { computePageTitle, projectRelativeHref } from "./website-shared.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
@@ -180,9 +180,20 @@ export function metadataHtmlPostProcessor(
 
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
-        const previewImg = findPreviewImg(doc) || websiteImage(project.config);
+        const pagePreviewImg = findPreviewImg(doc);
+        let previewImg = pagePreviewImg;
+        if (!previewImg) {
+          // The site image is written in _quarto.yml, so it is project relative
+          const siteImg = websiteImage(project.config);
+          previewImg = siteImg && siteMeta?.[kSiteUrl] !== undefined
+            ? { ...siteImg, src: projectRelativeHref(siteImg.src, ".") }
+            : siteImg;
+        }
         metadata[kImage] = previewImg ? previewImg.src : undefined;
         metadata[kImageAlt] = previewImg ? previewImg.alt : undefined;
+        if (pagePreviewImg && provider.key === kOpenGraph) {
+          usePageDeclaredImageSize(format, metadata);
+        }
       }
 
       // cook up a description if one is not provided
@@ -266,8 +277,28 @@ function opengraphMetadata(
         metadata[key] = openGraph[key];
       }
     });
+
+    // Same predicate as mergedSiteAndDocumentData uses to replace the site image
+    const docOpenGraph = format.metadata[kOpenGraph];
+    const pageSetsImage = !!format.metadata[kImage] ||
+      (typeof docOpenGraph === "object" && docOpenGraph !== null &&
+        !!(docOpenGraph as Metadata)[kImage]);
+    if (pageSetsImage) {
+      usePageDeclaredImageSize(format, metadata);
+    }
   }
   return metadata;
+}
+
+// A size declared on the site describes the site image, so an image the page
+// supplies only gets the dimensions the page itself declares
+function usePageDeclaredImageSize(format: Format, metadata: Metadata) {
+  const docOpenGraph = format.metadata[kOpenGraph];
+  const docData = typeof docOpenGraph === "object" && docOpenGraph !== null
+    ? docOpenGraph as Metadata
+    : {};
+  metadata[kImageHeight] = docData[kImageHeight];
+  metadata[kImageWidth] = docData[kImageWidth];
 }
 
 function twitterMetadata(format: Format) {
@@ -331,10 +362,11 @@ function resolveImageMetadata(
       project,
     );
 
-    // Update the image information
+    // Update the image information, preferring the size read from the file
+    // over a declared one
     metadata[kImage] = imgMeta.href;
-    metadata[kImageHeight] = imgMeta.height;
-    metadata[kImageWidth] = imgMeta.width;
+    metadata[kImageHeight] = imgMeta.height ?? metadata[kImageHeight];
+    metadata[kImageWidth] = imgMeta.width ?? metadata[kImageWidth];
 
     const altText = format.metadata[kImageAlt];
     if (altText && !metadata[kImageAlt]) {
@@ -358,20 +390,32 @@ function mergedSiteAndDocumentData(
     ? format.metadata[key]
     : false;
 
-  if (typeof siteMetadata === "object" && format.metadata[kImage]) {
-    const siteMeta = siteMetadata as Metadata;
-    siteMeta[kImage] = format.metadata[kImage];
+  // Work on a copy: the site metadata is shared by every page
+  let siteObject: Metadata | undefined;
+  if (typeof siteMetadata === "object") {
+    siteObject = { ...(siteMetadata as Metadata) };
+    if (format.metadata[kImage]) {
+      siteObject[kImage] = format.metadata[kImage];
+    } else if (
+      typeof siteObject[kImage] === "string" &&
+      siteData[kSiteUrl] !== undefined
+    ) {
+      // The site image is written in _quarto.yml, so it is project relative
+      siteObject[kImage] = projectRelativeHref(
+        siteObject[kImage] as string,
+        ".",
+      );
+    }
   }
-  if (
-    typeof siteMetadata === "object" &&
-    typeof docMetadata === "object"
-  ) {
+  if (siteObject && typeof docMetadata === "object") {
     return mergeConfigs(
-      siteMetadata,
+      siteObject,
       docMetadata,
     ) as Metadata;
   } else if (docMetadata !== false) {
     return docMetadata as boolean | Metadata;
+  } else if (siteObject) {
+    return siteObject;
   } else if (siteMetadata !== false) {
     return siteMetadata as boolean | Metadata;
   } else {
@@ -399,7 +443,7 @@ function imageMetadata(
     // read the image size
     return {
       path: image,
-      href: `${baseUrl}${image}`,
+      href: joinUrl(baseUrl, image),
       height: size?.height,
       width: size?.width,
     };

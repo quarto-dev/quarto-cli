@@ -305,15 +305,21 @@ export async function updateHtmlDependencies(config: Configuration) {
     "REVEAL_JS",
     workingDir,
     async (dir: string, version: string) => {
-      // Backport image alt text from reveal.js 6 and the unmerged PR
-      // hakimel/reveal.js#3949 to 5.1.0. Before removing this source patch and
-      // rebuild step, verify both fixes are in the reveal.js release we bundle.
+      // Backport the unmerged PRs hakimel/reveal.js#3946 and #3949, plus
+      // native image alt text from reveal.js 6, to 5.1.0. Before removing these
+      // source patches and rebuild step, verify all fixes are in the release
+      // we bundle. The image patch applies after the screen reader patch.
       const sourceDir = join(dir, `reveal.js-${version}`);
-      await runCmd("git", [
-        "-C", sourceDir, "apply", "--ignore-space-change",
-        join(patchesDir, "revealjs-0001-image-announcements.patch"),
-      ]);
-      // Rebuilding the bundles does not need Puppeteer's install scripts.
+      for (const patch of [
+        "revealjs-0001-screen-reader-announcements.patch",
+        "revealjs-0002-image-announcements.patch",
+      ]) {
+        await runCmd("git", [
+          "-C", sourceDir, "apply", "--ignore-space-change",
+          join(patchesDir, patch),
+        ]);
+      }
+      // Skip install scripts: rebuilding the bundles does not need Puppeteer.
       await runCmd(config.os === "windows" ? "npm.cmd" : "npm", [
         "--prefix", sourceDir, "ci", "--ignore-scripts",
       ]);

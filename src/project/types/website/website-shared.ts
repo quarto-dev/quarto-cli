@@ -9,6 +9,7 @@ import { join } from "../../../deno_ral/path.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
+import { isAbsoluteRef } from "../../../core/http.ts";
 
 import {
   NavigationItemObject,
@@ -112,6 +113,18 @@ export function computePageTitle(
   } else {
     return title as string;
   }
+}
+
+// Gives a project relative href (leading `/`) for a path written in a document
+// in `documentDir` (project relative). Paths that already start with `/` are
+// kept, URLs are returned as is.
+export function projectRelativeHref(href: string, documentDir: string) {
+  if (isAbsoluteRef(href)) {
+    return href;
+  }
+  return pathWithForwardSlashes(
+    href.startsWith("/") ? href : join("/", documentDir, href),
+  );
 }
 
 export function inputFileHref(href: string) {

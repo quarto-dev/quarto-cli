@@ -1276,7 +1276,7 @@
       image:
         path:
           description: |
-            Default site thumbnail image for `twitter` /`open-graph`
+            Default site thumbnail image for `twitter` /`open-graph`, relative to the project directory.
       image-alt:
         path:
           description: |
@@ -1787,7 +1787,7 @@
                       long: |
                         The path to an image for this feed. If not specified, the image for the page the listing 
                         appears on will be used, otherwise an image will be used if specified for the site 
-                        in the Quarto project.
+                        in the Quarto project. A relative path set in the listing page front matter is relative to the project directory.
                 description:
                   string:
                     description:

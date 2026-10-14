@@ -1,0 +1,8 @@
+---
+title: "Feed image with a leading slash"
+listing:
+  feed:
+    image: /feed.png
+---
+
+The feed image is given relative to the project root with a leading `/`.

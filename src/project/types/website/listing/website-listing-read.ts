@@ -15,11 +15,15 @@ import {
   relative,
 } from "../../../../deno_ral/path.ts";
 import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
-import { existsSync } from "../../../../deno_ral/fs.ts";
+import {
+  existsSync,
+  safeExistsFileSync,
+} from "../../../../deno_ral/fs.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
 import {
   filterPaths,
+  pathsEqual,
   pathWithForwardSlashes,
   resolvePathGlobs,
   safeExistsSync,
@@ -98,7 +102,7 @@ import {
   kListingPageFieldTitle,
   kListingPageFieldWordCount,
 } from "../../../../config/constants.ts";
-import { isAbsoluteRef } from "../../../../core/http.ts";
+import { projectRelativeHref } from "../website-shared.ts";
 import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
 import { parseAuthor } from "../../../../core/author.ts";
 import { parsePandocDate, resolveDate } from "../../../../core/date.ts";
@@ -763,10 +767,24 @@ async function readContents(
       // If a glob points to a file that exists, go ahead and just include
       // that, even if it isn't a project input
       for (const glob of finalGlobs) {
-        if (safeExistsSync(glob) && Deno.statSync(glob).isFile) {
-          filtered.include.push(
-            isAbsolute(glob) ? glob : join(Deno.cwd(), glob),
-          );
+        // "!" entries are exclusion globs (like the output-dir one above),
+        // never files to add
+        if (glob.startsWith("!")) {
+          continue;
+        }
+        // Relative to the listing document first, then a real absolute path
+        const listingRelative = join(dirname(source), glob);
+        const candidate = safeExistsFileSync(listingRelative)
+          ? listingRelative
+          : isAbsolute(glob) && safeExistsFileSync(glob)
+          ? glob
+          : undefined;
+        if (
+          candidate !== undefined &&
+          !pathsEqual(candidate, source) &&
+          !filtered.include.some((f) => pathsEqual(f, candidate))
+        ) {
+          filtered.include.push(candidate);
         }
       }
 
@@ -1130,9 +1148,7 @@ async function listItemFromFile(
 
     const imageRaw = documentMeta?.image as string | boolean;
     const image = imageRaw !== undefined && typeof imageRaw === "string"
-      ? pathWithForwardSlashes(
-        listingItemHref(imageRaw, dirname(projectRelativePath)),
-      )
+      ? projectRelativeHref(imageRaw, dirname(projectRelativePath))
       : undefined;
 
     const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
@@ -1409,18 +1425,6 @@ function fileModifiedDate(input: string) {
     return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
   } else {
     return undefined;
-  }
-}
-
-function listingItemHref(path: string, projectRelativePath: string) {
-  if (isAbsoluteRef(path) || path.startsWith("/")) {
-    // This is a project relative or absolute href, just
-    // leave it alone
-    return path;
-  } else {
-    // This is a document relative path, need to fix it up
-    // to be project relative
-    return join("/", projectRelativePath, path);
   }
 }
 

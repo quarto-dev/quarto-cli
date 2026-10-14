@@ -78,3 +78,13 @@ flowchart LR
 <div role="img" aria-labelledby="" aria-label="Empty-reference fallback">Ignored contents</div>
 <img role="img" src="quarto.png" alt="Quarto logo">
 ```
+
+## Fragment images
+
+```{=html}
+<div class="fragment" data-fragment-index="0">
+  Parent image
+  <img class="fragment" data-fragment-index="1" src="quarto.png" alt="Nested logo">
+  <div class="fragment fade-out" data-fragment-index="2" role="img" aria-label="Initially visible rating">Ignored stars</div>
+</div>
+```

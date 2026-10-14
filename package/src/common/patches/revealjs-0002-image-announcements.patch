@@ -1,8 +1,8 @@
 diff --git a/js/reveal.js b/js/reveal.js
-index 927b0a1..45b18e9 100644
+index 52b19df..8e5f5ee 100644
 --- a/js/reveal.js
 +++ b/js/reveal.js
-@@ -392,13 +392,32 @@ export default function( revealElement, options ) {
+@@ -392,6 +392,11 @@ export default function( revealElement, options ) {
  		// Element node
  		else if( node.nodeType === 1 ) {
  
@@ -13,10 +13,13 @@ index 927b0a1..45b18e9 100644
 +
  			let isAriaHidden = node.getAttribute( 'aria-hidden' );
  			let isDisplayHidden = window.getComputedStyle( node )['display'] === 'none';
- 			if( isAriaHidden !== 'true' && !isDisplayHidden ) {
+ 			let isFragmentHidden = false;
+@@ -419,9 +424,23 @@ export default function( revealElement, options ) {
+ 
+ 			if( isAriaHidden !== 'true' && !isDisplayHidden && !isFragmentHidden ) {
  
 -				Array.from( node.childNodes ).forEach( child => {
--					text += getStatusText( child );
+-					text += getStatusText( child, rootNode );
 -				} );
 +				// An image's contents are presentational; announce its name instead.
 +				if( ( node.getAttribute( 'role' ) || '' ).trim().split( /\s+/ )[0] === 'img' ) {
@@ -32,13 +35,13 @@ index 927b0a1..45b18e9 100644
 +					}
 +
 +					Array.from( node.childNodes ).forEach( child => {
-+						text += getStatusText( child );
++						text += getStatusText( child, rootNode );
 +					} );
 +				}
  
  			}
  
-@@ -410,6 +429,39 @@ export default function( revealElement, options ) {
+@@ -433,6 +452,39 @@ export default function( revealElement, options ) {
  
  	}
  

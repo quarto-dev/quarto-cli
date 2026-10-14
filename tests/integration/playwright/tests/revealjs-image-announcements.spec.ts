@@ -35,3 +35,25 @@ test.describe('revealjs image announcements (#15033)', () => {
     });
   }
 });
+
+// Exercise both backports together: image names must follow fragment state,
+// including when a nested fade-out fragment becomes visible again on rewind.
+test('image names respect nested fragment visibility', async ({ page }) => {
+  await page.goto('./revealjs/image-announcements.html#/fragment-images');
+  await expect(page.locator('.reveal.ready')).toBeAttached();
+  await expect(page.locator('section.slide.present')).toHaveId('fragment-images');
+  const status = page.locator('.aria-status');
+  await expect(status).toHaveText('Fragment images');
+
+  await page.keyboard.press('Space');
+  await expect(status).toHaveText('Parent image Initially visible rating');
+  await page.keyboard.press('Space');
+  await expect(status).toHaveText('Nested logo');
+  await page.keyboard.press('Space');
+  await expect(status).toHaveText('Initially visible rating');
+
+  await page.keyboard.press('ArrowLeft');
+  await expect(status).toHaveText('Nested logo');
+  await page.keyboard.press('ArrowLeft');
+  await expect(status).toHaveText('Parent image Initially visible rating');
+});

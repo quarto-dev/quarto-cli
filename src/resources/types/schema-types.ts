@@ -554,7 +554,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   description?: string /* Website description */;
   drafts?: MaybeArrayOf<string>;
   favicon?: string /* The path to the favicon for this website */;
-  image?: string /* Default site thumbnail image for `twitter` /`open-graph` */;
+  image?:
+    string /* Default site thumbnail image for `twitter` /`open-graph`, relative to the project directory. */;
   navbar?: boolean | {
     "logo-alt"?: string /* Alternate text for the logo image. */;
     "logo-href"?:
@@ -997,7 +998,7 @@ of the site will be used if specified in the Quarto project. */;
     image?:
       string /* The path to an image for this feed. If not specified, the image for the page the listing
 appears on will be used, otherwise an image will be used if specified for the site
-in the Quarto project. */;
+in the Quarto project. A relative path set in the listing page front matter is relative to the project directory. */;
     language?: string /* The language of the feed. Omitted if not specified.
 See [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)
 for a list of valid language codes. */;

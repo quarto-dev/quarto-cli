@@ -119,8 +119,11 @@ uv run python -m http.server 8765
 # Serves from tests/docs/playwright/
 ```
 
-Locally (`reuseExistingServer: !isCI`), Playwright reuses whatever already listens on that port, even another app.
-Every spec then fails with element-not-found errors; set `QUARTO_PLAYWRIGHT_PORT` to a free port.
+The fixture server is never reused (`reuseExistingServer: false`): if another process answers on the port, the run stops with `http://127.0.0.1:<port> is already used`.
+Each concurrent run (another worktree, a second terminal) needs its own free `QUARTO_PLAYWRIGHT_PORT`; the default 8765 suits only one run at a time.
+A process answering 404 on the port is not detected as busy; the run then times out after 120 s (`Timed out waiting 120000ms from config.webServer`), so pick another port.
+
+The revealjs multiplex server has a fixed port, 1948 (set in `tests/docs/playwright/revealjs/multiplex.qmd`), and is reused locally: concurrent runs share the first run's instance, which serves no test fixtures.
 
 ## Best Practices
 

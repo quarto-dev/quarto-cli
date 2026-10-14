@@ -25,6 +25,7 @@ All changes included in 1.11:
 - ([#14968](https://github.com/quarto-dev/quarto-cli/issues/14968)): The header of notebook preview pages (back link, notebook title, download link) is now a navigation landmark named after the notebook, so it is reachable through landmark navigation and no longer flagged by axe-core (`region`).
 - ([#15011](https://github.com/quarto-dev/quarto-cli/issues/15011)): Fix the slide menu of `revealjs` presentations being read by screen readers while it is closed and off screen, and Tab moving keyboard focus to it once it lists more slides than fit. (author: @jooyoungseo)
 - ([#15015](https://github.com/quarto-dev/quarto-cli/issues/15015)): Fix the "Back to Article" link of notebook previews in website projects not being reachable or usable with the keyboard.
+- ([#15019](https://github.com/quarto-dev/quarto-cli/issues/15019)): Fix screen reader announcements in `revealjs` presentations including incremental content before it is revealed and repeating slides and fragments when browser history is enabled. (author: @jooyoungseo)
 - ([#15030](https://github.com/quarto-dev/quarto-cli/pull/15030)): Fix `axe` checks in `revealjs` presentations hiding the current slide from screen readers when moving to another slide while the scan runs.
 - ([#15033](https://github.com/quarto-dev/quarto-cli/issues/15033)): Fix screen reader announcements in `revealjs` presentations reading the CSS inside Mermaid diagrams, omitting image alternative text, and reading the contents of `role="img"` graphics instead of their accessible names. (author: @jooyoungseo)
 
@@ -45,6 +46,7 @@ All changes included in 1.11:
 - ([#14684](https://github.com/quarto-dev/quarto-cli/issues/14684)): Add a "Skip to main content" link to Bootstrap-themed HTML output (documents, websites, books, dashboards) so keyboard users can bypass the navbar and sidebars.
 - ([#14973](https://github.com/quarto-dev/quarto-cli/issues/14973)): Fix Safari sometimes opening pages with a light and dark theme at the top instead of at the URL fragment target, and toggling the color scheme scrolling back to the top of the page.
 - ([#14976](https://github.com/quarto-dev/quarto-cli/pull/14976)): Fix KaTeX math not rendering on pages with Jupyter widgets when `html-math-method` is set with the object form (`method: katex` and `url`).
+- ([#15051](https://github.com/quarto-dev/quarto-cli/pull/15051)): Fix a callout's `title` option also rendering as an HTML `title` attribute in html, revealjs and epub output, which showed the title as a tooltip over the whole callout.
 
 ### `pdf`
 
@@ -55,6 +57,9 @@ All changes included in 1.11:
 
 - ([#14996](https://github.com/quarto-dev/quarto-cli/pull/14996)): Fix `controls: auto` and `previewLinks: auto` set at the top level of a revealjs document's front matter producing a presentation that fails to load, because `auto` was written unquoted into the generated JavaScript.
 - ([#15007](https://github.com/quarto-dev/quarto-cli/pull/15007)): Fix Home/End on a focused tabset tab also jumping to the first or last slide in addition to switching tabs.
+- ([#15014](https://github.com/quarto-dev/quarto-cli/issues/15014)): Fix code blocks at the end of a callout losing their bottom spacing, which made the code block border touch the callout border in untitled `appearance="simple"` callouts (regression introduced in v1.8.15).
+- ([#15036](https://github.com/quarto-dev/quarto-cli/issues/15036)): Fix callouts with an id rendering that id twice, on the callout and on a wrapper div, in `revealjs` and `epub` output. The id is now only on the `.callout` div, as in `html` output.
+- ([#15037](https://github.com/quarto-dev/quarto-cli/pull/15037)): Fix `dracula` theme coloring a `<b>` in a callout title with the theme's bold color, unlike `<strong>`.
 
 ### `typst`
 
@@ -76,10 +81,15 @@ All changes included in 1.11:
 ### Websites
 
 - ([#10756](https://github.com/quarto-dev/quarto-cli/issues/10756)): Fix the notebook preview of an embedded `.qmd` file going missing from the output directory when a project is rendered again, which broke its source notebook link.
+- ([#12016](https://github.com/quarto-dev/quarto-cli/issues/12016)): Fix `open-graph` `image-width` and `image-height` being dropped when `site-url` is set and Quarto cannot measure the image, such as a remote image. A size declared in the site `open-graph` options no longer applies when a page sets its own `image`, even the same file: declare `image-width` and `image-height` in the page `open-graph` options or in shared metadata such as `_metadata.yml`.
 - ([#14972](https://github.com/quarto-dev/quarto-cli/issues/14972)): Fix the website navbar, sidebar toggle bar, or announcement covering the header of notebook preview pages, which hid the back link, notebook title, and download link. The notebook preview header now sits below the site header.
 - ([#14974](https://github.com/quarto-dev/quarto-cli/issues/14974)): Fix math in `.llms.md` files from `llms-txt` coming out garbled with the default `mathjax` method, and with `katex` and `webtex`. Math is now written as `$...$` and `$$...$$` with the `mathjax`, `katex`, `webtex` and `mathml` methods.
 - ([#15004](https://github.com/quarto-dev/quarto-cli/issues/15004)): Fix notebook preview pages and notebook sources missing from the output directory when a website with embedded notebooks is rendered from a directory other than the project directory.
 - ([#15022](https://github.com/quarto-dev/quarto-cli/issues/15022)): Fix rendering a listing with a `feed` failing on Windows with `os error 123` when a listing item's `image` or the feed `image` is a web URL. The image URL is used as is in the feed and no local size lookup is attempted. (author: @Masad791)
+- ([#15032](https://github.com/quarto-dev/quarto-cli/pull/15032)): Fix the listing feed `image` missing its height and width when a website is rendered from a directory other than the project directory, or when the image path starts with `/`.
+- ([#15039](https://github.com/quarto-dev/quarto-cli/issues/15039)): Fix the open graph and twitter card image of website pages in subdirectories pointing to a missing file when the image comes from a relative `website: image:`, `open-graph: image:` or `twitter-card: image:` under `website:`, and the listing feed image pointing to a missing file when it comes from the `image` of a listing page in a subdirectory. A project relative image path starting with `/` no longer gives a doubled `/` in these URLs when `site-url` ends with `/`.
+- ([#15044](https://github.com/quarto-dev/quarto-cli/issues/15044)): Fix a YAML file listed next to a folder in a listing's `contents` being left out, or another file being used, when a website is rendered from a directory other than the listing page's directory.
+- ([#15050](https://github.com/quarto-dev/quarto-cli/pull/15050)): Support JPEG images when adding image height and width to the listing feed `image`, feed item media, and `og:image` and `twitter:image` metadata. Image files are now detected by content rather than file extension, so an uppercase `.PNG` is measured too.
 
 ## Lua API
 
