@@ -274,7 +274,7 @@ function opengraphMetadata(
     // Same predicate as mergedSiteAndDocumentData uses to replace the site image
     const docOpenGraph = format.metadata[kOpenGraph];
     const pageSetsImage = !!format.metadata[kImage] ||
-      (typeof docOpenGraph === "object" &&
+      (typeof docOpenGraph === "object" && docOpenGraph !== null &&
         !!(docOpenGraph as Metadata)[kImage]);
     if (pageSetsImage) {
       usePageDeclaredImageSize(format, metadata);
@@ -287,7 +287,7 @@ function opengraphMetadata(
 // supplies only gets the dimensions the page itself declares
 function usePageDeclaredImageSize(format: Format, metadata: Metadata) {
   const docOpenGraph = format.metadata[kOpenGraph];
-  const docData = typeof docOpenGraph === "object"
+  const docData = typeof docOpenGraph === "object" && docOpenGraph !== null
     ? docOpenGraph as Metadata
     : {};
   metadata[kImageHeight] = docData[kImageHeight];
