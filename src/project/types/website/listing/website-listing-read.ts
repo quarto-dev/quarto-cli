@@ -102,7 +102,7 @@ import {
   kListingPageFieldTitle,
   kListingPageFieldWordCount,
 } from "../../../../config/constants.ts";
-import { isAbsoluteRef } from "../../../../core/http.ts";
+import { projectRelativeHref } from "../website-shared.ts";
 import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
 import { parseAuthor } from "../../../../core/author.ts";
 import { parsePandocDate, resolveDate } from "../../../../core/date.ts";
@@ -1148,9 +1148,7 @@ async function listItemFromFile(
 
     const imageRaw = documentMeta?.image as string | boolean;
     const image = imageRaw !== undefined && typeof imageRaw === "string"
-      ? pathWithForwardSlashes(
-        listingItemHref(imageRaw, dirname(projectRelativePath)),
-      )
+      ? projectRelativeHref(imageRaw, dirname(projectRelativePath))
       : undefined;
 
     const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
@@ -1427,18 +1425,6 @@ function fileModifiedDate(input: string) {
     return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
   } else {
     return undefined;
-  }
-}
-
-function listingItemHref(path: string, projectRelativePath: string) {
-  if (isAbsoluteRef(path) || path.startsWith("/")) {
-    // This is a project relative or absolute href, just
-    // leave it alone
-    return path;
-  } else {
-    // This is a document relative path, need to fix it up
-    // to be project relative
-    return join("/", projectRelativePath, path);
   }
 }
 

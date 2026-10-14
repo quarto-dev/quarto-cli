@@ -6,7 +6,6 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "../../../deno_ral/path.ts";
-import { pathWithForwardSlashes } from "../../../core/path.ts";
 import {
   kAbstract,
   kDescription,
@@ -38,7 +37,7 @@ import {
   kTwitterSite,
   kWebsite,
 } from "./website-constants.ts";
-import { computePageTitle } from "./website-shared.ts";
+import { computePageTitle, projectRelativeHref } from "./website-shared.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
@@ -187,7 +186,7 @@ export function metadataHtmlPostProcessor(
           // The site image is written in _quarto.yml, so it is project relative
           const siteImg = websiteImage(project.config);
           previewImg = siteImg && siteMeta?.[kSiteUrl] !== undefined
-            ? { ...siteImg, src: projectImagePath(siteImg.src) }
+            ? { ...siteImg, src: projectRelativeHref(siteImg.src, ".") }
             : siteImg;
         }
         metadata[kImage] = previewImg ? previewImg.src : undefined;
@@ -402,7 +401,10 @@ function mergedSiteAndDocumentData(
       siteData[kSiteUrl] !== undefined
     ) {
       // The site image is written in _quarto.yml, so it is project relative
-      siteObject[kImage] = projectImagePath(siteObject[kImage] as string);
+      siteObject[kImage] = projectRelativeHref(
+        siteObject[kImage] as string,
+        ".",
+      );
     }
   }
   if (siteObject && typeof docMetadata === "object") {
@@ -420,15 +422,6 @@ function mergedSiteAndDocumentData(
     // All the metadata are false or undefined, return false
     return false;
   }
-}
-
-// An image path written in _quarto.yml is relative to the project: give it
-// the leading-`/` form that `imageMetadata` resolves against the project.
-export function projectImagePath(image: string): string {
-  if (isAbsoluteRef(image) || image.startsWith("/")) {
-    return image;
-  }
-  return pathWithForwardSlashes(join("/", image));
 }
 
 function imageMetadata(
