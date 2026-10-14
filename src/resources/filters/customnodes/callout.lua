@@ -56,6 +56,7 @@ function _callout_main()
       div.attr.attributes["appearance"] = nil
       div.attr.attributes["collapse"] = nil
       div.attr.attributes["icon"] = nil
+      div.attr.attributes["title"] = nil
       local callout_type = calloutType(div)
       div.attr.classes = div.attr.classes:filter(function(class) return not _quarto.modules.classpredicates.isCallout(class) end)
       return quarto.Callout({
