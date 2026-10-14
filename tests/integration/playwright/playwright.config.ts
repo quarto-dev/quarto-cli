@@ -100,7 +100,10 @@ export default defineConfig({
       // HTTP server for rendered HTML files
       command: `uv run python -m http.server ${fixtureServerPort} --bind 127.0.0.1`,
       url: fixtureServerUrl,
-      reuseExistingServer: !isCI,
+      // Never reuse: a server already on the port may be another app, or another
+      // checkout serving its own tests/docs/playwright, so tests would run
+      // against the wrong HTML. A busy port fails the run instead.
+      reuseExistingServer: false,
       cwd: '../../docs/playwright',
       // http.server does a reverse DNS lookup before listening, slow on some hosts
       timeout: 120000,
@@ -110,6 +113,9 @@ export default defineConfig({
       // Socket.IO multiplex server for RevealJS
       command: 'npm start',
       url: 'http://127.0.0.1:1948',
+      // Reused locally: it relays socket messages and serves no test fixtures,
+      // and its port is fixed in revealjs/multiplex.qmd, so concurrent runs
+      // from several checkouts share one instance.
       reuseExistingServer: !isCI,
       cwd: './multiplex-server',
       timeout: 10000,
