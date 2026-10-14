@@ -12,6 +12,7 @@ import { kBibliography } from "../config/constants.ts";
 import { Metadata } from "../config/types.ts";
 import { asArray } from "./array.ts";
 import { CSL } from "./csl.ts";
+import { decodeHtmlEntities } from "./html.ts";
 
 import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
@@ -39,7 +40,7 @@ export async function renderHtml(entry: CSL, csl?: string) {
     cmd.push(csl);
   }
 
-  const cslStr = JSON.stringify([entry], undefined, 2);
+  const cslStr = await citationJson(entry);
   const result = await execProcess(
     { cmd: cmd[0], args: cmd.slice(1), stdout: "piped", stderr: "piped" },
     cslStr,
@@ -61,7 +62,7 @@ export async function renderBibTex(entry: CSL) {
   cmd.push("biblatex");
   cmd.push("--citeproc");
 
-  const cslStr = JSON.stringify([entry], undefined, 2);
+  const cslStr = await citationJson(entry);
   const result = await execProcess(
     { cmd: cmd[0], args: cmd.slice(1), stdout: "piped", stderr: "piped" },
     cslStr,
@@ -73,6 +74,13 @@ export async function renderBibTex(entry: CSL) {
       `Failed to generate bibtex, rendering failed with code ${result.code}\n${result.stderr}`,
     );
   }
+}
+
+async function citationJson(entry: CSL) {
+  const citation = entry.title
+    ? { ...entry, title: await decodeHtmlEntities(entry.title) }
+    : entry;
+  return JSON.stringify([citation], undefined, 2);
 }
 
 export async function renderToCSLJSON(

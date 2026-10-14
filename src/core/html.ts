@@ -1,11 +1,10 @@
 /*
-* html.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * html.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { Document, Element } from "./deno-dom.ts";
+import { Document, Element, parseHtml } from "./deno-dom.ts";
 
 import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
 import { isFileRef } from "./http.ts";
@@ -46,7 +45,7 @@ const kAttrReplacements: Record<string, string> = {
   "&": "&amp;",
 };
 export function encodeAttributeValue(value: unknown) {
-  if (typeof (value) === "string") {
+  if (typeof value === "string") {
     let result: string = value as string;
     Object.keys(kAttrReplacements).forEach((key) => {
       result = result.replace(key, kAttrReplacements[key]);
@@ -62,6 +61,22 @@ export function encodeHtml(value: string) {
     value = value.replaceAll(key, kTagBrackets[key]);
   });
   return value;
+}
+
+export async function decodeHtmlEntities(value: string) {
+  if (!value.includes("&")) {
+    return value;
+  }
+  // Decode one layer of complete character references without interpreting
+  // inline CSL markup or incomplete references as HTML.
+  const encoded = value
+    .replaceAll(
+      /&(?!(?:#(?:\d+|[xX][\da-fA-F]+)|[a-zA-Z][\da-zA-Z]*);)/g,
+      "&amp;",
+    )
+    .replaceAll('"', "&quot;");
+  const doc = await parseHtml(`<meta content="${encoded}">`);
+  return doc.querySelector("meta")!.getAttribute("content")!;
 }
 
 export function findParent(
