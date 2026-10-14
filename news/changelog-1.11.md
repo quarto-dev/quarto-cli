@@ -84,6 +84,7 @@ All changes included in 1.11:
 - ([#15022](https://github.com/quarto-dev/quarto-cli/issues/15022)): Fix rendering a listing with a `feed` failing on Windows with `os error 123` when a listing item's `image` or the feed `image` is a web URL. The image URL is used as is in the feed and no local size lookup is attempted. (author: @Masad791)
 - ([#15032](https://github.com/quarto-dev/quarto-cli/pull/15032)): Fix the listing feed `image` missing its height and width when a website is rendered from a directory other than the project directory, or when the image path starts with `/`.
 - ([#15044](https://github.com/quarto-dev/quarto-cli/issues/15044)): Fix a YAML file listed next to a folder in a listing's `contents` being left out, or another file being used, when a website is rendered from a directory other than the listing page's directory.
+- ([#15050](https://github.com/quarto-dev/quarto-cli/pull/15050)): Support JPEG images when adding image height and width to the listing feed `image`, feed item media, and `og:image` and `twitter:image` metadata. Image files are now detected by content rather than file extension, so an uppercase `.PNG` is measured too.
 
 ## Lua API
 
