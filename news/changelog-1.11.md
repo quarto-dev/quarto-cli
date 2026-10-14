@@ -56,6 +56,7 @@ All changes included in 1.11:
 - ([#14996](https://github.com/quarto-dev/quarto-cli/pull/14996)): Fix `controls: auto` and `previewLinks: auto` set at the top level of a revealjs document's front matter producing a presentation that fails to load, because `auto` was written unquoted into the generated JavaScript.
 - ([#15007](https://github.com/quarto-dev/quarto-cli/pull/15007)): Fix Home/End on a focused tabset tab also jumping to the first or last slide in addition to switching tabs.
 - ([#15014](https://github.com/quarto-dev/quarto-cli/issues/15014)): Fix code blocks at the end of a callout losing their bottom spacing, which made the code block border touch the callout border in untitled `appearance="simple"` callouts (regression introduced in v1.8.15).
+- ([#15036](https://github.com/quarto-dev/quarto-cli/issues/15036)): Fix callouts with an id rendering that id twice, on the callout and on a wrapper div, in `revealjs` and `epub` output. The id is now only on the `.callout` div, as in `html` output.
 - ([#15037](https://github.com/quarto-dev/quarto-cli/pull/15037)): Fix `dracula` theme coloring a `<b>` in a callout title with the theme's bold color, unlike `<strong>`.
 
 ### `typst`
