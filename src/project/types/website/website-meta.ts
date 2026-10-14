@@ -37,7 +37,7 @@ import {
   kTwitterSite,
   kWebsite,
 } from "./website-constants.ts";
-import { computePageTitle } from "./website-shared.ts";
+import { computePageTitle, projectRelativeHref } from "./website-shared.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
@@ -181,7 +181,14 @@ export function metadataHtmlPostProcessor(
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
         const pagePreviewImg = findPreviewImg(doc);
-        const previewImg = pagePreviewImg || websiteImage(project.config);
+        let previewImg = pagePreviewImg;
+        if (!previewImg) {
+          // The site image is written in _quarto.yml, so it is project relative
+          const siteImg = websiteImage(project.config);
+          previewImg = siteImg && siteMeta?.[kSiteUrl] !== undefined
+            ? { ...siteImg, src: projectRelativeHref(siteImg.src, ".") }
+            : siteImg;
+        }
         metadata[kImage] = previewImg ? previewImg.src : undefined;
         metadata[kImageAlt] = previewImg ? previewImg.alt : undefined;
         if (pagePreviewImg && provider.key === kOpenGraph) {
@@ -383,20 +390,32 @@ function mergedSiteAndDocumentData(
     ? format.metadata[key]
     : false;
 
-  if (typeof siteMetadata === "object" && format.metadata[kImage]) {
-    const siteMeta = siteMetadata as Metadata;
-    siteMeta[kImage] = format.metadata[kImage];
+  // Work on a copy: the site metadata is shared by every page
+  let siteObject: Metadata | undefined;
+  if (typeof siteMetadata === "object") {
+    siteObject = { ...(siteMetadata as Metadata) };
+    if (format.metadata[kImage]) {
+      siteObject[kImage] = format.metadata[kImage];
+    } else if (
+      typeof siteObject[kImage] === "string" &&
+      siteData[kSiteUrl] !== undefined
+    ) {
+      // The site image is written in _quarto.yml, so it is project relative
+      siteObject[kImage] = projectRelativeHref(
+        siteObject[kImage] as string,
+        ".",
+      );
+    }
   }
-  if (
-    typeof siteMetadata === "object" &&
-    typeof docMetadata === "object"
-  ) {
+  if (siteObject && typeof docMetadata === "object") {
     return mergeConfigs(
-      siteMetadata,
+      siteObject,
       docMetadata,
     ) as Metadata;
   } else if (docMetadata !== false) {
     return docMetadata as boolean | Metadata;
+  } else if (siteObject) {
+    return siteObject;
   } else if (siteMetadata !== false) {
     return siteMetadata as boolean | Metadata;
   } else {
@@ -424,7 +443,7 @@ function imageMetadata(
     // read the image size
     return {
       path: image,
-      href: `${baseUrl}${image}`,
+      href: joinUrl(baseUrl, image),
       height: size?.height,
       width: size?.width,
     };

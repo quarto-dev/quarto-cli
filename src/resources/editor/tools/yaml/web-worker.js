@@ -10146,7 +10146,7 @@ try {
                 },
                 image: {
                   path: {
-                    description: "Default site thumbnail image for `twitter` /`open-graph`\n"
+                    description: "Default site thumbnail image for `twitter` /`open-graph`, relative to the project directory.\n"
                   }
                 },
                 "image-alt": {
@@ -10815,7 +10815,7 @@ try {
                             path: {
                               description: {
                                 short: "The path to an image for this feed.",
-                                long: "The path to an image for this feed. If not specified, the image for the page the listing \nappears on will be used, otherwise an image will be used if specified for the site \nin the Quarto project.\n"
+                                long: "The path to an image for this feed. If not specified, the image for the page the listing \nappears on will be used, otherwise an image will be used if specified for the site \nin the Quarto project. A relative path set in the listing page front matter is relative to the project directory.\n"
                               }
                             }
                           },
@@ -22352,7 +22352,7 @@ try {
           "Provide a \u2018back to top\u2019 navigation button",
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>, relative to the project directory.",
           "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
@@ -22519,7 +22519,7 @@ try {
           "Provide a \u2018back to top\u2019 navigation button",
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>, relative to the project directory.",
           "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
@@ -22628,7 +22628,7 @@ try {
           },
           {
             short: "The path to an image for this feed.",
-            long: "The path to an image for this feed. If not specified, the image for\nthe page the listing appears on will be used, otherwise an image will be\nused if specified for the site in the Quarto project."
+            long: "The path to an image for this feed. If not specified, the image for\nthe page the listing appears on will be used, otherwise an image will be\nused if specified for the site in the Quarto project. A relative path\nset in the listing page front matter is relative to the project\ndirectory."
           },
           {
             short: "The description of this feed.",
@@ -24966,7 +24966,7 @@ try {
           "Provide a \u2018back to top\u2019 navigation button",
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>, relative to the project directory.",
           "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
@@ -25319,7 +25319,7 @@ try {
           "Provide a \u2018back to top\u2019 navigation button",
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>, relative to the project directory.",
           "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",

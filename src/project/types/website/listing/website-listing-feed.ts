@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join, relative } from "../../../../deno_ral/path.ts";
+import { dirname, join, relative } from "../../../../deno_ral/path.ts";
 import { warning } from "../../../../deno_ral/log.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 
@@ -16,6 +16,7 @@ import { quartoConfig } from "../../../../core/quarto.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { ProjectContext } from "../../../types.ts";
 import { kImage } from "../website-constants.ts";
+import { projectRelativeHref } from "../website-shared.ts";
 import {
   websiteBaseurl,
   websiteDescription,
@@ -167,7 +168,11 @@ export async function createFeed(
   };
 
   // Add any image metadata
-  const image = options.image || format.metadata[kImage] as string ||
+  // The page image is relative to the listing document, the others to the project
+  const pageImage = format.metadata[kImage] as string | undefined;
+  const image = options.image ||
+    (pageImage &&
+      projectRelativeHref(pageImage, dirname(relative(project.dir, source)))) ||
     websiteImage(project.config)?.src;
   if (image) {
     feed.image = {
