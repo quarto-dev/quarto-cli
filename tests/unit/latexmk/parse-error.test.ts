@@ -115,8 +115,9 @@ unitTest("Detect missing hyphenation with babel warnings", async () => {
 (babel)                Please, configure your TeX system to add them and
 (babel)                rebuild the format. Now I will use the patterns
 (babel)                preloaded for \\language=0 instead on input line 51.`;
-  assert(
-    findMissingHyphenationFiles(logWithBacktick) === "hyphen-spanish",
+  assertEquals(
+    findMissingHyphenationFiles(logWithBacktick),
+    ["hyphen-spanish"],
     "Should detect hyphen-spanish from backtick-quote format"
   );
 
@@ -126,40 +127,45 @@ unitTest("Detect missing hyphenation with babel warnings", async () => {
 (babel)                Please, configure your TeX system to add them and
 (babel)                rebuild the format. Now I will use the patterns
 (babel)                preloaded for \\language=0 instead on input line 51.`;
-  assert(
-    findMissingHyphenationFiles(logWithStraightQuotes) === "hyphen-spanish",
+  assertEquals(
+    findMissingHyphenationFiles(logWithStraightQuotes),
+    ["hyphen-spanish"],
     "Should detect hyphen-spanish from straight-quote format"
   );
 
   // Test ngerman special case (should return hyphen-german, not hyphen-ngerman)
   const logGerman = `Package babel Warning: No hyphenation patterns were preloaded for
 (babel)                the language 'ngerman' into the format.`;
-  assert(
-    findMissingHyphenationFiles(logGerman) === "hyphen-german",
+  assertEquals(
+    findMissingHyphenationFiles(logGerman),
+    ["hyphen-german"],
     "Should map ngerman to hyphen-german"
   );
 
   // Test Chinese - no hyphen package exists
   const logChinese = `Package babel Warning: No hyphenation patterns were preloaded for
 (babel)                the language 'chinese' into the format.`;
-  assert(
-    findMissingHyphenationFiles(logChinese) === undefined,
-    "Should return undefined for Chinese (no hyphen package)"
+  assertEquals(
+    findMissingHyphenationFiles(logChinese),
+    [],
+    "Should return nothing for Chinese (no hyphen package)"
   );
 
   // Test alternative Info pattern (issue #10291)
   const logInfoChinese = `Package babel Info: Hyphen rules for 'chinese-hans' set to \\l@nil
 (babel)             (\\language10). Reported on input line 143.`;
-  assert(
-    findMissingHyphenationFiles(logInfoChinese) === undefined,
-    "Should return undefined for chinese-hans via Info pattern"
+  assertEquals(
+    findMissingHyphenationFiles(logInfoChinese),
+    [],
+    "Should return nothing for chinese-hans via Info pattern"
   );
 
   // Test no warning present
   const logNoWarning = "Some other log text without babel warnings";
-  assert(
-    findMissingHyphenationFiles(logNoWarning) === undefined,
-    "Should return undefined when no babel warning present"
+  assertEquals(
+    findMissingHyphenationFiles(logNoWarning),
+    [],
+    "Should return nothing when no babel warning present"
   );
 }, {
   cwd: () => "unit/latexmk/"
@@ -193,7 +199,7 @@ Type  H <return>  for immediate help.`;
   assertEquals(findMissingFontsAndPackages(logSwissGerman, "."), []);
   // The warning names a description, not a pattern name: the first word is
   // used, not the nswissgerman from the \l@nil line
-  assertEquals(findMissingHyphenationFiles(logSwissGerman), "hyphen-german");
+  assertEquals(findMissingHyphenationFiles(logSwissGerman), ["hyphen-german"]);
 
   // Backtick-quote format (older babel)
   assertEquals(
@@ -248,7 +254,7 @@ unitTest("Drop hyphenation package names that are not valid package names", asyn
     assertEquals(
       findMissingHyphenationFiles(`Package babel Warning: No hyphenation patterns were preloaded for
 (babel)                the language '${lang}' into the format.`),
-      undefined,
+      [],
       `Should drop '${lang}' from the babel warning`,
     );
   }
@@ -322,7 +328,7 @@ unitTest("Map hyphenation language names to their TeX Live package", async () =>
     assertEquals(
       findMissingHyphenationFiles(`Package babel Warning: No hyphenation patterns were preloaded for
 (babel)                the language '${lang}' into the format.`),
-      pkg,
+      [pkg],
       `Should map '${lang}' to ${pkg} from the babel warning`,
     );
   }
@@ -367,14 +373,50 @@ unitTest("Ignore babel info messages naming a language", async () => {
   // message is not a missing-patterns warning
   const info = `Package babel Info: No hyphenation patterns were set for
 (babel)             language 'nohyphenation'. Reported on input line 12.`;
-  assertEquals(findMissingHyphenationFiles(info), undefined);
+  assertEquals(findMissingHyphenationFiles(info), []);
 
   // same with an unrelated warning elsewhere in the log
   const withWarning = `Package babel Warning: Something else
 (babel)                on input line 3.
 
 ${info}`;
-  assertEquals(findMissingHyphenationFiles(withWarning), undefined);
+  assertEquals(findMissingHyphenationFiles(withWarning), []);
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Detect every language missing hyphenation patterns", async () => {
+  // babel warns once per language
+  const babel = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'Spanish' into the format.
+
+Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'Italian' into the format.`;
+  assertEquals(findMissingHyphenationFiles(babel), ["hyphen-spanish", "hyphen-italian"]);
+
+  // polyglossia, real xelatex log with \setotherlanguages{spanish,italian}
+  const polyglossia = `Package polyglossia Warning: No hyphenation patterns were loaded for \`spanish'
+(polyglossia)                I will use \\language=\\l@nohyphenation instead.
+
+Package polyglossia Warning: No hyphenation patterns were loaded for \`italian'
+(polyglossia)                I will use \\language=\\l@nohyphenation instead.`;
+  assertEquals(findMissingHyphenationFiles(polyglossia), ["hyphen-spanish", "hyphen-italian"]);
+
+  // polyglossia also reports some languages by their description
+  assertEquals(
+    findMissingHyphenationFiles("Package polyglossia Warning: No hyphenation patterns were loaded for British English"),
+    ["hyphen-english"],
+  );
+  // the same package is installed once
+  assertEquals(findMissingHyphenationFiles(`${babel}\n\n${polyglossia}`), ["hyphen-spanish", "hyphen-italian"]);
+  // two languages, one package: deduplicated after mapping
+  const indic = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'hindi' into the format.
+
+Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'tamil' into the format.`;
+  assertEquals(findMissingHyphenationFiles(indic), ["hyphen-indic"]);
+  assertEquals(findMissingHyphenationFiles("asdf qwer"), []);
 }, {
   cwd: () => "unit/latexmk/"
 })
@@ -387,7 +429,7 @@ unitTest("Detect missing hyphenation from a language description with spaces", a
 (babel)                Please, configure your TeX system to add them and
 (babel)                rebuild the format. Now I will use the patterns
 (babel)                preloaded for \\language=0 instead on input line 1260.`;
-  assertEquals(findMissingHyphenationFiles(log), "hyphen-german");
+  assertEquals(findMissingHyphenationFiles(log), ["hyphen-german"]);
 }, {
   cwd: () => "unit/latexmk/"
 })

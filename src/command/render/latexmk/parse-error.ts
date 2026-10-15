@@ -284,28 +284,28 @@ export function findMissingHyphenationPackages(logText: string): string[] {
 }
 
 // Finds missing hyphenation files (these appear as warnings in the log file)
-export function findMissingHyphenationFiles(logText: string) {
-  // Same regex as check_babel() in tinytex, on warning blocks only
+export function findMissingHyphenationFiles(logText: string): string[] {
+  // Same regexes as check_babel() and check_polyglossia() in tinytex, on
+  // warning blocks only
   const babelRegex =
-    /^(?:\(babel\).* |Package babel Warning: No hyphenation patterns were preloaded for the )language [`']([^']+)'.*$/m;
-  const languageMatch = latexWarningBlocks(logText).match(babelRegex);
-  if (languageMatch) {
-    const pkg = hyphenationPackagesForLanguages([languageMatch[1]])[0];
-    if (pkg) {
-      return pkg;
-    }
+    /^(?:\(babel\).* |Package babel Warning: No hyphenation patterns were preloaded for the )language [`']([^']+)'.*$/gm;
+  const polyglossiaRegex =
+    /^Package polyglossia Warning: No hyphenation patterns were loaded for ([`'][^']+'|British English).*$/gm;
+  const warnings = latexWarningBlocks(logText);
+  const packages = hyphenationPackagesForLanguages([
+    ...warnings.matchAll(babelRegex),
+    ...warnings.matchAll(polyglossiaRegex),
+  ].map((m) => m[1]));
+  if (packages.length > 0) {
+    return packages;
   }
 
   // Try an alternative way of parsing
   const hyphenRulesRegex =
-    /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/m;
-  const match = logText.match(hyphenRulesRegex);
-  if (match) {
-    const language = match[1];
-    if (language) {
-      return hyphenationPackagesForLanguages([language])[0];
-    }
-  }
+    /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
+  return hyphenationPackagesForLanguages(
+    [...logText.matchAll(hyphenRulesRegex)].map((m) => m[1]),
+  );
 }
 
 // Parse a log file to find latex errors
