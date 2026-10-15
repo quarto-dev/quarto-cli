@@ -82,6 +82,10 @@ jobs:
           # Count patterns and categories
           PATTERN_COUNT=$(jq '[.[] | length] | add' regex.json)
           CATEGORY_COUNT=$(jq 'keys | length' regex.json)
+          # A checked assignment: invalid JSON must fail the step before it is cached
+          if [ -f hyphen.json ]; then
+            HYPHEN_COUNT=$(jq 'length' hyphen.json)
+          fi
 
           # Write GitHub Actions summary
           echo "## TinyTeX Pattern Baseline Established" >> "$GITHUB_STEP_SUMMARY"
@@ -91,7 +95,7 @@ jobs:
           echo "- **Pattern source:** [R/latex.R](https://github.com/rstudio/tinytex/blob/$TINYTEX_COMMIT/R/latex.R)" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Baseline:** $PATTERN_COUNT patterns across $CATEGORY_COUNT categories" >> "$GITHUB_STEP_SUMMARY"
           if [ -f hyphen.json ]; then
-            echo "- **Hyphenation map:** $(jq 'length' hyphen.json) names" >> "$GITHUB_STEP_SUMMARY"
+            echo "- **Hyphenation map:** $HYPHEN_COUNT names" >> "$GITHUB_STEP_SUMMARY"
           fi
           echo "- **Cache key:** tinytex-patterns" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
