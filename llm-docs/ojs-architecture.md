@@ -1,5 +1,5 @@
 ---
-main_commit: fa5267fa0
+main_commit: 8ee034c21
 analyzed_date: 2026-10-15
 key_files:
   - src/execute/ojs/compile.ts
@@ -46,7 +46,7 @@ For each `{ojs}` cell, `ojsCompile()` emits a div with an `ojs-cell-<n>` id and 
 - `<script type="ojs-module-contents">` holding base64-encoded JSON (`{ contents: [{ methodName, source, cellName, ... }] }`). Base64 keeps user code from closing the script tag.
 - A `<script type="module">` that ends with `window._ojs.runtime.interpretFromScriptTags()`, which makes the runtime read every `ojs-module-contents` and `ojs-define` script tag.
 
-Shiny documents (`server: { type: shiny }`) get extra module contents. `server.ojs-export` (default `viewof`, i.e. every `viewof` name; also `all`, explicit names, `~name` exclusions) adds `shinyInput('<name>')` calls. `server.ojs-import` adds `<name> = shinyOutput('<name>')`. Misspelled plural keys (`ojs-exports`, `ojs-imports`) produce a warning.
+Shiny documents (`server: { type: shiny }`) get extra module contents. `server.ojs-export` (default `viewof`, i.e. every `viewof` name; also `all`, explicit names, `~name` exclusions) adds `shinyInput('<name>')` calls. `server.ojs-import` adds `<name> = shinyOutput('<name>')`. Misspelled plural keys (`ojs-exports`, `ojs-imports`) throw an error and abort the render.
 
 ## Runtime Injection
 
@@ -60,7 +60,7 @@ Invariant: the inlined bundle is not escaped, so `quarto-ojs-runtime.js` must ne
 rg -c '</script' src/resources/formats/html/ojs/quarto-ojs-runtime.js   # must print nothing
 ```
 
-Only the unminified `quarto-ojs-runtime.js` is used: it is the linked script, the inlined script, and the only bundle `package/src/common/prepare-dist.ts` copies into the distribution's share directory. `quarto-ojs-runtime.min.js` is built and committed, but nothing in quarto-cli references it.
+Only the unminified `quarto-ojs-runtime.js` is used at render time: it is both the linked and the inlined script. `quarto-ojs-runtime.min.js` is built and committed, and ships in the distribution because `package/src/common/prepare-dist.ts` copies all of `src/resources/`, but nothing in quarto-cli references it.
 
 ## Inline Expressions (Lua)
 
@@ -83,15 +83,15 @@ Other Lua touch points:
 | Jupyter (Python) | `src/resources/jupyter/lang/python/setup.py` |
 | Jupyter (Julia) | `src/resources/jupyter/lang/julia/setup.jl` |
 
-The knitr `ojs_define()` stops with an error in a cached chunk (`cache: false` is required).
+The static knitr `ojs_define()` (`ojs_static.R`) stops with an error in a cached chunk (`cache: false` is required).
 
 `src/core/jupyter/jupyter.ts` keeps outputs whose metadata has `ojs_define` even when the cell has `output: false`.
 
 ## Resource Extraction
 
-`extract-resources.ts` finds files that OJS code references (`FileAttachment(...)`, `import` of local `.js`/`.ojs` modules) by parsing cell sources and following imports recursively. Local ES modules are compiled with the bundled esbuild (`src/core/esbuild.ts`).
+`extract-resources.ts` finds files that OJS code references (`FileAttachment(...)`, `import` of local `.js`/`.ojs` modules) by parsing cell sources and following imports recursively. Local `.js` modules are read as-is; `.ts`/`.tsx` imports are transpiled to `.js` with the bundled esbuild (`src/core/esbuild.ts`).
 
-For self-contained renders, `makeSelfContainedResources()` turns those files into `data:` URLs, with MIME types from the Deno `media_types` `lookup()`.
+For self-contained renders, `makeSelfContainedResources()` turns those files into `data:` URLs: local `.js` imports are bundled into one ES module with esbuild, and attachments get MIME types from the Deno `media_types` `lookup()`.
 
 In the browser, `FileAttachment(...).mimeType` comes from a different source: the bundled `mime` package's `getType()`, called in `fileAttachmentPathResolver` (`packages/ojs/quarto-ojs-runtime/src/quarto-ojs.js`). Upgrading `mime` can therefore change the MIME types users observe.
 
@@ -130,7 +130,7 @@ A change to the runtime bundle needs the Playwright `ojs-*` specs. A change to `
 | File | Purpose |
 |------|---------|
 | `src/execute/ojs/compile.ts` | `ojsCompile()`, `ojsExecuteResult()`, `ojsFormatDependency()`, Shiny export/import |
-| `src/execute/ojs/extract-resources.ts` | Resource discovery, esbuild of local modules, self-contained `data:` URLs |
+| `src/execute/ojs/extract-resources.ts` | Resource discovery, esbuild of TypeScript imports, self-contained `data:` URLs |
 | `src/command/render/pandoc.ts` | `ojs` pseudo-filter → `ojs` filter param |
 | `src/resources/filters/quarto-post/ojs.lua` | Inline `${...}` expressions |
 | `src/resources/rmd/ojs.R`, `ojs_static.R` | `ojs_define()` for knitr |
@@ -138,5 +138,5 @@ A change to the runtime bundle needs the Playwright `ojs-*` specs. A change to `
 | `packages/ojs/` | npm workspace: runtime source and Observable forks |
 | `packages/ojs/quarto-ojs-runtime/src/quarto-ojs.js` | Runtime core: `interpretFromScriptTags()`, `FileAttachment` resolver |
 | `src/resources/formats/html/ojs/` | Committed bundles and `quarto-ojs.css` |
-| `package/src/common/prepare-dist.ts` | Copies `quarto-ojs-runtime.js` into the distribution |
+| `package/src/common/prepare-dist.ts` | Copies `src/resources/` (both bundles) into the distribution |
 | `.github/workflows/test-ojs-runtime.yml` | CI check that committed bundles match a rebuild |

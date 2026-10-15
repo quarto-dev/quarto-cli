@@ -8,8 +8,8 @@ The sources live in [`packages/ojs/`](../packages/ojs/). Its [README](../package
 
 `npm run build` in `packages/ojs` writes two bundles into [`src/resources/formats/html/ojs/`](../src/resources/formats/html/ojs/):
 
-- `quarto-ojs-runtime.js` is the bundle Quarto uses. Renders link it as a module script or inline it when self-contained, and `package/src/common/prepare-dist.ts` copies it into the distribution.
-- `quarto-ojs-runtime.min.js` is built and committed, but nothing in quarto-cli references it.
+- `quarto-ojs-runtime.js` is the bundle Quarto uses. Renders link it as a module script or inline it when self-contained.
+- `quarto-ojs-runtime.min.js` is built, committed, and shipped in the distribution with the rest of `src/resources/`, but nothing in quarto-cli references it.
 
 `quarto-ojs.css` in the same directory is not built. Edit it there directly.
 
@@ -49,7 +49,7 @@ npm workspaces create junctions under `node_modules`. To remove `node_modules` o
   rg -c '</script' src/resources/formats/html/ojs/quarto-ojs-runtime.js   # must print nothing
   ```
 
-- Third-party notices in `quarto-ojs-runtime/src/escodegen.js` (BSD-2-Clause) and `escape.js` (MIT, from escape-html) must still appear in the unminified bundle. The minified bundle strips them.
+- Third-party notices in `quarto-ojs-runtime/src/escodegen.js` (BSD-2-Clause) and `escape.js` (MIT, from escape-html) must still appear in the unminified bundle. The minified bundle keeps only the escape-html notice, which is a `/*!` comment; Terser drops the escodegen one.
 - `git diff --stat` after the build lists only the bundles you expect to change.
 - Run the OJS Playwright specs (render `tests/docs/playwright/ojs/` first; see `.claude/rules/testing/playwright-tests.md`):
 
