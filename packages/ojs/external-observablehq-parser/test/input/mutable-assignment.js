@@ -1,0 +1,3 @@
+{
+  mutable value = 101;
+}

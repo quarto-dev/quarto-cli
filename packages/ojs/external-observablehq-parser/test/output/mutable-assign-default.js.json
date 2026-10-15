@@ -1,0 +1,74 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 44,
+  "id": {
+    "type": "MutableExpression",
+    "start": 0,
+    "end": 13,
+    "id": {
+      "type": "Identifier",
+      "start": 8,
+      "end": 13,
+      "name": "state"
+    }
+  },
+  "body": {
+    "type": "AwaitExpression",
+    "start": 16,
+    "end": 43,
+    "argument": {
+      "type": "CallExpression",
+      "start": 22,
+      "end": 43,
+      "callee": {
+        "type": "MemberExpression",
+        "start": 22,
+        "end": 35,
+        "object": {
+          "type": "Identifier",
+          "start": 22,
+          "end": 29,
+          "name": "Service"
+        },
+        "property": {
+          "type": "Identifier",
+          "start": 30,
+          "end": 35,
+          "name": "fetch"
+        },
+        "computed": false,
+        "optional": false
+      },
+      "arguments": [
+        {
+          "type": "Identifier",
+          "start": 36,
+          "end": 42,
+          "name": "config"
+        }
+      ],
+      "optional": false
+    }
+  },
+  "async": true,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 22,
+      "end": 29,
+      "name": "Service"
+    },
+    {
+      "type": "Identifier",
+      "start": 36,
+      "end": 42,
+      "name": "config"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

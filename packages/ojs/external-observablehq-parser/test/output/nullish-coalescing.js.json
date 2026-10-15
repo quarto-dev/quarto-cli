@@ -1,0 +1,38 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 31,
+  "id": {
+    "type": "Identifier",
+    "start": 0,
+    "end": 3,
+    "name": "foo"
+  },
+  "body": {
+    "type": "LogicalExpression",
+    "start": 6,
+    "end": 30,
+    "left": {
+      "type": "Literal",
+      "start": 6,
+      "end": 10,
+      "value": null,
+      "raw": "null"
+    },
+    "operator": "??",
+    "right": {
+      "type": "Literal",
+      "start": 14,
+      "end": 30,
+      "value": "default string",
+      "raw": "'default string'"
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

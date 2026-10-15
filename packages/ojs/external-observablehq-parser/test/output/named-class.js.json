@@ -1,0 +1,36 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 13,
+  "id": {
+    "type": "Identifier",
+    "start": 6,
+    "end": 9,
+    "name": "Foo"
+  },
+  "body": {
+    "type": "ClassExpression",
+    "start": 0,
+    "end": 12,
+    "id": {
+      "type": "Identifier",
+      "start": 6,
+      "end": 9,
+      "name": "Foo"
+    },
+    "superClass": null,
+    "body": {
+      "type": "ClassBody",
+      "start": 10,
+      "end": 12,
+      "body": []
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

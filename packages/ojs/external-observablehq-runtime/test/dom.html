@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<body class="O--body">
+<div id="fooview"></div>
+<div id="foo"></div>
+<script type=module>
+import {Runtime, Inspector, Library} from "/dist/runtime.js";
+
+var runtime = new Runtime(new Library),
+    module = runtime.module();
+
+module.variable(new Inspector(document.querySelector("#fooview"))).define("viewof foo", ["DOM"], DOM => DOM.range());
+module.variable(new Inspector(document.querySelector("#foo"))).define("foo", ["Generators", "viewof foo"], (Generators, input) => Generators.input(input));
+
+</script>

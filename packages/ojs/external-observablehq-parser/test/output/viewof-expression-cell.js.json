@@ -1,0 +1,56 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 25,
+  "id": {
+    "type": "ViewExpression",
+    "start": 0,
+    "end": 10,
+    "id": {
+      "type": "Identifier",
+      "start": 7,
+      "end": 10,
+      "name": "foo"
+    }
+  },
+  "body": {
+    "type": "CallExpression",
+    "start": 13,
+    "end": 24,
+    "callee": {
+      "type": "MemberExpression",
+      "start": 13,
+      "end": 22,
+      "object": {
+        "type": "Identifier",
+        "start": 13,
+        "end": 16,
+        "name": "DOM"
+      },
+      "property": {
+        "type": "Identifier",
+        "start": 17,
+        "end": 22,
+        "name": "input"
+      },
+      "computed": false,
+      "optional": false
+    },
+    "arguments": [],
+    "optional": false
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 13,
+      "end": 16,
+      "name": "DOM"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

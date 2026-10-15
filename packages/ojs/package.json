@@ -1,0 +1,15 @@
+{
+  "name": "quarto-ojs",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --workspace quarto-ojs-runtime"
+  },
+  "workspaces": [
+    "quarto-ojs-runtime",
+    "external-asg017-unofficial-observablehq-compiler",
+    "external-d3-d3-require",
+    "external-observablehq-parser",
+    "external-observablehq-runtime",
+    "external-observablehq-stdlib"
+  ]
+}

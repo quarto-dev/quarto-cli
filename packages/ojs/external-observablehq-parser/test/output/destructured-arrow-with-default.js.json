@@ -1,0 +1,75 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 32,
+  "id": {
+    "type": "Identifier",
+    "start": 0,
+    "end": 3,
+    "name": "fun"
+  },
+  "body": {
+    "type": "ArrowFunctionExpression",
+    "start": 6,
+    "end": 31,
+    "id": null,
+    "expression": false,
+    "generator": false,
+    "async": false,
+    "params": [
+      {
+        "type": "ObjectPattern",
+        "start": 7,
+        "end": 24,
+        "properties": [
+          {
+            "type": "Property",
+            "start": 8,
+            "end": 23,
+            "method": false,
+            "shorthand": true,
+            "computed": false,
+            "key": {
+              "type": "Identifier",
+              "start": 8,
+              "end": 11,
+              "name": "foo"
+            },
+            "kind": "init",
+            "value": {
+              "type": "AssignmentPattern",
+              "start": 8,
+              "end": 23,
+              "left": {
+                "type": "Identifier",
+                "start": 8,
+                "end": 11,
+                "name": "foo"
+              },
+              "right": {
+                "type": "Literal",
+                "start": 14,
+                "end": 23,
+                "value": "default",
+                "raw": "\"default\""
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "body": {
+      "type": "BlockStatement",
+      "start": 29,
+      "end": 31,
+      "body": []
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}
