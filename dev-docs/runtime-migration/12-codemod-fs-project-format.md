@@ -189,12 +189,12 @@ git commit -m "project: Deno.errors checks through deno_ral/errors predicates"
 
 - [ ] **Step 1: Unit tests that exercise `src/project` and `src/format`**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/ unit/book-title-block-attr.test.ts unit/format-detection.test.ts unit/format-html-math.test.ts unit/giscus.test.ts unit/scrollable-regions.test.ts unit/preview-compatibility.test.ts unit/preview-initial-path.test.ts unit/render-shared-output-dir.test.ts unit/single-file-input-abs-12401.test.ts unit/typst-fonts.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/project/ -name '*.test.ts') unit/book-title-block-attr.test.ts unit/format-detection.test.ts unit/format-html-math.test.ts unit/giscus.test.ts unit/scrollable-regions.test.ts unit/preview-compatibility.test.ts unit/preview-initial-path.test.ts unit/render-shared-output-dir.test.ts unit/single-file-input-abs-12401.test.ts unit/typst-fonts.test.ts`
 Expected: `0 failed`.
 
 - [ ] **Step 2: Smoke tests across project types and formats**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/project/ smoke/site/ smoke/website/ smoke/book/ smoke/manuscript/ smoke/jats/ smoke/search/ smoke/embed/ smoke/scholar/ smoke/render/render-html.test.ts smoke/render/render-docx.test.ts smoke/render/render-reveal.test.ts smoke/render/render-pdf.test.ts smoke/render/render-latex-output.test.ts smoke/render/render-typst-package-staging.test.ts smoke/render/render-page-layout.test.ts smoke/render/render-title-block.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/project/ -name '*.test.ts') $(find smoke/site/ -name '*.test.ts') $(find smoke/website/ -name '*.test.ts') $(find smoke/book/ -name '*.test.ts') $(find smoke/manuscript/ -name '*.test.ts') $(find smoke/jats/ -name '*.test.ts') $(find smoke/search/ -name '*.test.ts') $(find smoke/embed/ -name '*.test.ts') $(find smoke/scholar/ -name '*.test.ts') smoke/render/render-html.test.ts smoke/render/render-docx.test.ts smoke/render/render-reveal.test.ts smoke/render/render-pdf.test.ts smoke/render/render-latex-output.test.ts smoke/render/render-typst-package-staging.test.ts smoke/render/render-page-layout.test.ts smoke/render/render-title-block.test.ts`
 Expected: `0 failed` (PDF/LaTeX tests may skip without TinyTeX; note it in the PR).
 
 - [ ] **Step 3: Ratchet**

@@ -468,7 +468,7 @@ git commit -m "changelog: native deno_dom plugin removed; ratchet baseline"
 
 - Task 1 run green on three OSes with every ratio ≤ 2.0; Task 7 run green with WASM medians within 1.25× of Task 1's.
 - Acceptance greps → as stated.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/deno-dom.test.ts smoke/render/render-html.test.ts smoke/project/ smoke/run/run-script.test.ts unit/harness-failure-reporting.test.ts unit/smoke-all-prerender-isolation.test.ts` → pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/deno-dom.test.ts smoke/render/render-html.test.ts $(find smoke/project/ -name '*.test.ts') smoke/run/run-script.test.ts unit/harness-failure-reporting.test.ts unit/smoke-all-prerender-isolation.test.ts` → pass.
 - `./configure.sh` from a clean clone → succeeds; no `deno_dom` under `package/dist/bin/tools`.
 - CI: `test-bundle.yml` green on three OSes (bundle built without `@denosaurs/plug`, no native-plugin message); `create-release.yml` dispatched without publishing on a branch if the team's process allows, to exercise the Windows signing list and the Rust launcher.
 

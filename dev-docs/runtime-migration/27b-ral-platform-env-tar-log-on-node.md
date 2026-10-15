@@ -105,7 +105,7 @@ export class FileHandler extends BaseHandler {
 
 - `grep -n "Deno" src/deno_ral/platform.ts src/deno_ral/env.ts src/deno_ral/tar.ts src/deno_ral/log.ts | grep -v "^\S*:\s*//\|^\S*:\s*\*"` prints only the `globalThis.Deno` read inside `runtime()` (comments excepted).
 - `grep -n "core/" src/deno_ral/tar.ts` prints nothing.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/ unit/dotenv-config.test.ts unit/environment.test.ts` passes on Deno.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') unit/dotenv-config.test.ts unit/environment.test.ts` passes on Deno.
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/ tests/unit/dotenv-config.test.ts` passes on Linux with no `platform`/`env`/`tar`/`log-file-handler` entry left.
 - In the Node bundle, `runtime().name` is `node`: `tools/node-bundle/quarto-node check 2>&1 | grep -i "node"` shows the Node version on the runtime row (PR 19 prints `runtime().version` there).
 - `node tools/node-bundle/build.mjs --check-shim` → `0 missing`, no `unused` list.
@@ -665,7 +665,7 @@ export class FileHandler extends BaseHandler {
 
 Run:
 ```bash
-cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/log-file-handler.test.ts smoke/logging/ && cd ..
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/log-file-handler.test.ts $(find smoke/logging/ -name '*.test.ts') && cd ..
 node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/log-file-handler.test.ts
 node tools/node-bundle/build.mjs && tools/node-bundle/quarto-node render dev-docs/runtime-migration/spike/tests/simple.qmd --log /tmp/rt27b.log --log-level info && grep -c "Output created" /tmp/rt27b.log
 ```
@@ -702,7 +702,7 @@ git commit -m "node-bundle: drop shim members and known failures fixed by deno_r
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/ unit/environment.test.ts unit/dotenv-config.test.ts unit/binary-mode-strip-env.test.ts smoke/logging/ smoke/env/` → green on Deno.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') unit/environment.test.ts unit/dotenv-config.test.ts unit/binary-mode-strip-env.test.ts $(find smoke/logging/ -name '*.test.ts') $(find smoke/env/ -name '*.test.ts')` → green on Deno.
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/ tests/unit/dotenv-config.test.ts` → `no change`, exit 0.
 - `grep -n "Deno" src/deno_ral/env.ts src/deno_ral/tar.ts src/deno_ral/log.ts src/deno_ral/platform.ts` → comments, plus the `globalThis.Deno` read inside `runtime()`.
 - `quarto run --dev tools/check-runtime-boundary.ts` → zero.

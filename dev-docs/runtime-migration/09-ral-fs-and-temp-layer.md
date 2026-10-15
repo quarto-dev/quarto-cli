@@ -204,7 +204,7 @@ Behaviour (reverse): for each import specifier from a layer module of the select
 
 ### Acceptance criteria
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/` → `ok | 24 passed | 0 failed` (12 fs + 4 errors + 5 temp + the 3 existing cases in `unit/ral/`).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → `ok | 24 passed | 0 failed` (12 fs + 4 errors + 5 temp + the 3 existing cases in `$(find unit/ral/ -name '*.test.ts')`).
 - `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` → `ok | 17 passed | 0 failed`; `run-tests.sh` does not discover it (it lives outside `tests/`).
 - `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dry-run` runs to completion, reports `src/core/deno/monkey-patch.ts` and `src/core/performance/metrics.ts` as skipped (only the first if PR 20b has landed), reports the collisions in `src/core/copy.ts` (`copyFileSync`, local function first referenced at line 60) and `src/core/qualified-path.ts` (`readTextFile` line 69, `readTextFileSync` line 73), never lists a file under `src/core/lib/`, and leaves the tree unchanged (`git status --short src` is empty).
 - `quarto run --dev tools/check-runtime-boundary.ts` passes at the unchanged baseline.
@@ -1189,7 +1189,7 @@ The `originalRealPathSync` import (line 11) stays: `canonicalPathSync` uses it u
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs.test.ts unit/ral/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs.test.ts $(find unit/ral/ -name '*.test.ts')`
 Expected: `ok | 15 passed | 0 failed` (12 new + the 3 existing cases in `unit/ral/safe-*.test.ts`).
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
@@ -2485,7 +2485,7 @@ git commit -m "codemod CI step, backport step, rules docs and changelog for deno
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/` → `ok | 24 passed | 0 failed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → `ok | 24 passed | 0 failed`.
 - `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` → `ok | 17 passed | 0 failed`.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes; `git diff --stat tools/runtime-boundary-baseline.json` is empty (no callers moved; the new tests use the layer, so the `tests` count does not rise).

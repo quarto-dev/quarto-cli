@@ -68,8 +68,8 @@ Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`net.ts`", "`http.ts`", "
 ### Acceptance criteria
 
 - `grep -c "Deno\." src/deno_ral/net.ts src/deno_ral/http.ts src/deno_ral/watch.ts` → `0` each.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/` passes, with the new cases.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts smoke/jupyter/daemon.test.ts unit/preview-initial-path.test.ts unit/preview-external-links.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/axe-postrender.test.ts smoke/jupyter/` passes (PR 14b's preview end-to-end and Jupyter daemon tests included).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` passes, with the new cases.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts smoke/jupyter/daemon.test.ts unit/preview-initial-path.test.ts unit/preview-external-links.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/axe-postrender.test.ts $(find smoke/jupyter/ -name '*.test.ts')` passes (PR 14b's preview end-to-end and Jupyter daemon tests included).
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` passes with no `net`/`http`/`watch` entry left (Linux here, Windows in the `node-unit` job).
 - `node tools/node-bundle/check-deps.mjs` passes with `ws` and `@types/ws` in `dependencies`.
 - The Node job's new step connects a WebSocket client to `quarto-node preview --no-browser` and receives a message.
@@ -292,7 +292,7 @@ export async function findOpenPort(
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts unit/chrome-launch.test.ts smoke/jupyter/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts unit/chrome-launch.test.ts $(find smoke/jupyter/ -name '*.test.ts')`
 Expected: all green (the Jupyter kernel daemon talks to the kernel over `connectTcp`; `chrome-launch` uses `findOpenPort`).
 
 - [ ] **Step 5: Commit**
@@ -988,9 +988,9 @@ git commit -m "node-bundle: preview websocket smoke; drop net/http/watch shim me
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/` → green.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → green.
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` → `no change`, exit 0, no `net`/`http`/`watch` entry left.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts smoke/jupyter/daemon.test.ts smoke/jupyter/ unit/preview-initial-path.test.ts unit/preview-external-links.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/preview-brand-cache.test.ts unit/axe-postrender.test.ts unit/chrome-launch.test.ts` → green.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts smoke/jupyter/daemon.test.ts $(find smoke/jupyter/ -name '*.test.ts') unit/preview-initial-path.test.ts unit/preview-external-links.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/preview-brand-cache.test.ts unit/axe-postrender.test.ts unit/chrome-launch.test.ts` → green.
 - `grep -c "Deno\." src/deno_ral/net.ts src/deno_ral/http.ts src/deno_ral/watch.ts` → `0` each.
 - `node tools/node-bundle/check-deps.mjs` → match; `node tools/node-bundle/build.mjs --check-shim` → `0 missing`.
 - `quarto run --dev tools/check-runtime-boundary.ts` → zero.

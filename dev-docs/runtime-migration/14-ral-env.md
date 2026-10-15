@@ -331,12 +331,12 @@ git commit -m "Alias deno_ral env import in files with a local env binding"
 
 - [ ] **Step 1: Unit tests around environment handling**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/env.test.ts unit/environment.test.ts unit/dotenv-config.test.ts unit/binary-mode-strip-env.test.ts unit/core/ unit/tools/ unit/jupyter/ unit/project/ unit/github-actions-reporting.test.ts unit/chrome-launch.test.ts unit/preview-compatibility.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/env.test.ts unit/environment.test.ts unit/dotenv-config.test.ts unit/binary-mode-strip-env.test.ts $(find unit/core/ -name '*.test.ts') $(find unit/tools/ -name '*.test.ts') $(find unit/jupyter/ -name '*.test.ts') $(find unit/project/ -name '*.test.ts') unit/github-actions-reporting.test.ts unit/chrome-launch.test.ts unit/preview-compatibility.test.ts`
 Expected: `0 failed`.
 
 - [ ] **Step 2: Smoke tests that set or read environment variables (profiles, dotenv files, pre/post render scripts, drafts, check, run)**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/ smoke/website/drafts-env.test.ts smoke/project/project-prepost.test.ts smoke/project/project-simple.test.ts smoke/render/render-html.test.ts smoke/render/render-cli-metadata-file.test.ts smoke/check/ smoke/run/ smoke/jupyter/issue-10097.test.ts smoke/render/render-r.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/env/ -name '*.test.ts') smoke/website/drafts-env.test.ts smoke/project/project-prepost.test.ts smoke/project/project-simple.test.ts smoke/render/render-html.test.ts smoke/render/render-cli-metadata-file.test.ts $(find smoke/check/ -name '*.test.ts') $(find smoke/run/ -name '*.test.ts') smoke/jupyter/issue-10097.test.ts smoke/render/render-r.test.ts`
 Expected: `0 failed` (Jupyter/R tests skip without their prerequisites; note it).
 
 - [ ] **Step 3: Manual dotenv check**

@@ -136,7 +136,7 @@ unitTest("launcher - QUARTO_RUNTIME is no longer read", async () => {
 Run:
 ```bash
 rm -rf package/dist && ./configure.sh > /dev/null && ls package/dist/bin/tools/*/ && ! ls package/dist/bin/tools/*/deno 2>/dev/null
-cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/ smoke/run/ unit/tools/deno-tool.test.ts
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/env/ -name '*.test.ts') $(find smoke/run/ -name '*.test.ts') unit/tools/deno-tool.test.ts
 ```
 Expected: no `deno` in the tools listing; all tests pass (`run-script-node.test.ts`'s `QUARTO_RUN_RUNTIME=deno` case needs a Deno: CI's `test-install.yml` covers it; locally run `package/dist/bin/quarto install deno --no-prompt` first, or expect that one case to fail with the "needs Deno" message).
 
@@ -165,7 +165,7 @@ return nodeFs.readFileSync(path, "utf8");
 return nodeFs.readFileSync(path, "utf8");
 ```
 
-`platform.ts` `runtime()` keeps the `"deno" | "node" | "bun"` union (it describes the process, used by `quarto check`) but its detection branch reads `globalThis.Deno` through `"Deno" in globalThis` without the `Deno.` member syntax. `kv.ts`: the `Deno.openKv` backend goes; the JSON-file backend of PR 30 is the only one (users upgrading from 1.11 keep their `.kv` files unread, which PR 18/30 already handle as a cache miss). Run the layer tests after each file: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/`.
+`platform.ts` `runtime()` keeps the `"deno" | "node" | "bun"` union (it describes the process, used by `quarto check`) but its detection branch reads `globalThis.Deno` through `"Deno" in globalThis` without the `Deno.` member syntax. `kv.ts`: the `Deno.openKv` backend goes; the JSON-file backend of PR 30 is the only one (users upgrading from 1.11 keep their `.kv` files unread, which PR 18/30 already handle as a cache miss). Run the layer tests after each file: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')`.
 
 `src/core/deno/debug.ts:43` comment `export QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=100` -> `export QUARTO_NODE_OPTIONS=--stack-trace-limit=100`; line 51 `is QUARTO_DENO_V8_OPTIONS set with a sufficiently-large stack size?` -> `is QUARTO_NODE_OPTIONS set with a sufficiently-large --stack-trace-limit?`.
 
@@ -236,7 +236,7 @@ In `src/core/run/deno.ts` delete `initDenoCache` and its `copyTo`/`removeIfExist
 
 - [ ] **Step 4: Run and commit**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/run/ unit/` and `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ls ../pkg-working/share | grep -c deno_std` (prints `0`).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/run/ -name '*.test.ts') $(find unit/ -name '*.test.ts')` and `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ls ../pkg-working/share | grep -c deno_std` (prints `0`).
 
 ```bash
 git add -A .gitignore quarto-cli.code-workspace .vscode/settings.json src/core/run/deno.ts package/src/bld.ts
@@ -409,7 +409,7 @@ git commit -m "docs: backport protocol after the runtime migration"
 
 - All acceptance-criteria commands.
 - `./configure.sh` from a clean clone, `package/dist/bin/quarto check`, a render, `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ./quarto-bld validate-bundle`.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ smoke/run/ smoke/check/ smoke/env/ smoke/build-ts-extension/` green locally; the full matrix green on the branch.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts') $(find smoke/run/ -name '*.test.ts') $(find smoke/check/ -name '*.test.ts') $(find smoke/env/ -name '*.test.ts') $(find smoke/build-ts-extension/ -name '*.test.ts')` green locally; the full matrix green on the branch.
 - `quarto run --dev tools/check-runtime-boundary.ts`: zero everywhere.
 - `create-release.yml` dispatched once (`publish-release=false`): green; installers have no `deno`.
 

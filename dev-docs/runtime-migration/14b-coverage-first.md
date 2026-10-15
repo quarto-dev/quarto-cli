@@ -746,7 +746,7 @@ git commit -m "preview rules: name the automated preview test and what it does n
 ## Verification
 
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/process-group.test.ts smoke/preview/preview-reload.test.ts smoke/jupyter/daemon.test.ts smoke/inspect/inspect-pipe.test.ts` → `ok | 6 passed | 0 failed` (Linux/macOS), `ok | 1 passed | 0 failed | 5 ignored` (Windows).
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/jupyter/ smoke/inspect/` → the existing Jupyter and inspect tests still pass next to the new ones.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/jupyter/ -name '*.test.ts') $(find smoke/inspect/ -name '*.test.ts')` → the existing Jupyter and inspect tests still pass next to the new ones.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes; `tests` count unchanged (no `Deno.` in the new files).
 - The four local breaks in Task 6 each make their test fail.
 

@@ -708,9 +708,9 @@ git commit -m "node-bundle: drop the openKv shim and the kv known failures"
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/ unit/sass-cache.test.ts` → green.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') unit/sass-cache.test.ts` → green.
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` → `no change`, exit 0, no `kv` entry left.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/ smoke/project/` → green (project cache and Sass cache in use).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/render/ -name '*.test.ts') $(find smoke/project/ -name '*.test.ts')` → green (project cache and Sass cache in use).
 - `grep -rn "unstable-kv" package/ tests/ src/ | grep -v node_modules` → only `src/core/run/deno.ts`; `grep -c "Deno\." src/deno_ral/kv.ts` → `0`.
 - `quarto run --dev tools/check-runtime-boundary.ts` → zero.
 - Task 3: the `.kv` files a Deno-based release wrote are byte-identical after this build renders, and the release still renders.

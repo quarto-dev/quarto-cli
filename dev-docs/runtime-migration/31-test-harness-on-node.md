@@ -133,7 +133,7 @@ and the header comment's last sentence to: "Assertions come from @std/assert 1.x
 
 - [ ] **Step 3: Run a sample on Deno**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/asserts.test.ts unit/path.test.ts unit/text.test.ts unit/ral/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/asserts.test.ts unit/path.test.ts unit/text.test.ts $(find unit/ral/ -name '*.test.ts')`
 Expected: green.
 
 - [ ] **Step 4: Commit**
@@ -1302,7 +1302,7 @@ git commit -m "ci/docs: harness tests on Node through run-tests-node"
 
 ## Verification
 
-- Deno (unchanged behaviour): `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ smoke/render/render-html.test.ts docs/smoke-all/2023/02/08/4272.qmd` → green.
+- Deno (unchanged behaviour): `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts') smoke/render/render-html.test.ts docs/smoke-all/2023/02/08/4272.qmd` → green.
 - Node: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests-node.sh --agent unit/path.test.ts unit/text.test.ts unit/harness-node.test.ts unit/gha-grouping.test.ts unit/harness-failure-reporting.test.ts unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts` → no failure.
 - Node, layer tests unbundled: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests-node.sh --agent unit/ral/` → failures only among the Linux entries of `tools/node-bundle/known-failures.json`.
 - Node smoke-all: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests-node.sh docs/smoke-all/2023/02/08/4272.qmd` → passes (in-process render on Node).

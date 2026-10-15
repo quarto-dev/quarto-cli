@@ -105,7 +105,7 @@ Error behaviour (note: a `Deno.errors.AlreadyExists` constructed by `@std/fs` ha
 
 - `grep -n "Deno\." src/deno_ral/fs.ts src/deno_ral/temp.ts src/deno_ral/errors.ts` prints nothing except inside `errors.ts`'s guarded `globalThis.Deno` check; `test -e src/deno_ral/original-real-path.ts` fails (PR 25 deleted it; this PR does not recreate it); `grep -c "export function realPathSync" src/deno_ral/fs.ts` → `0`.
 - `grep -n '"fs/' src/deno_ral/fs.ts` prints nothing (no `@std/fs` import).
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/ unit/project/ unit/render/ unit/path.test.ts unit/file-permissions.test.ts smoke/render/` passes.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') $(find unit/project/ -name '*.test.ts') $(find unit/render/ -name '*.test.ts') unit/path.test.ts unit/file-permissions.test.ts $(find smoke/render/ -name '*.test.ts')` passes.
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` passes on Linux with no `fs`/`temp`/`errors`/`fs-walk-glob`/`fs-node-semantics` entry left in the list (the `node-unit` job checks the same on Windows).
 - `quarto run --dev tools/check-runtime-boundary.ts` stays at zero.
 - `node tools/node-bundle/build.mjs --check-shim` prints `0 missing` and no `unused` list, with fewer referenced members than on `main`.
@@ -939,7 +939,7 @@ Keep `fs/walk`, `fs/expand-glob`, `fs/copy`, `fs/move` re-exports for one more c
 
 - [ ] **Step 4: Run the contract tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/ unit/ral/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') $(find unit/ral/ -name '*.test.ts')`
 Expected: all green, including `fs-node-semantics.test.ts` and PR 09's `temp.test.ts` (`makeTempFileSync({ prefix: "a", suffix: ".txt" })` yields `<tmp>/a<hex>.txt`; a missing parent fails at once with NotFound).
 
 - [ ] **Step 5: Commit**
@@ -1629,12 +1629,12 @@ export function moveSync(src: string | URL, dest: string | URL, options: MoveOpt
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/ unit/ral/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') $(find unit/ral/ -name '*.test.ts')`
 Expected: all green.
 
 - [ ] **Step 5: Run the callers that depend on walk/glob**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/ unit/path.test.ts unit/filter-paths.test.ts unit/extension/ smoke/project/ smoke/extensions/ smoke/book/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/project/ -name '*.test.ts') unit/path.test.ts unit/filter-paths.test.ts $(find unit/extension/ -name '*.test.ts') $(find smoke/project/ -name '*.test.ts') $(find smoke/extensions/ -name '*.test.ts') $(find smoke/book/ -name '*.test.ts')`
 Expected: all green (`tests/smoke/extensions/` and `tests/smoke/book/` exist on `main`; `smoke/extensions/install.test.ts` exercises `copy`, `smoke/book/render-book.test.ts` walk/glob over a book).
 
 - [ ] **Step 6: Commit**
@@ -1678,9 +1678,9 @@ git commit -m "node-bundle: drop shim members and known failures made obsolete b
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/` → green (contract tests from PR 09 plus the two new files).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → green (contract tests from PR 09 plus the two new files).
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` → `no change`, exit 0, with no `fs`/`temp`/`errors` entry left for Linux.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ smoke/render/ smoke/project/` → green.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts') $(find smoke/render/ -name '*.test.ts') $(find smoke/project/ -name '*.test.ts')` → green.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/file-permissions.test.ts unit/render-shared-output-dir.test.ts unit/sass-cache.test.ts` → green (chmod, copy, temp dirs).
 - `quarto run --dev tools/check-runtime-boundary.ts` → zero.
 - `grep -c "Deno\." src/deno_ral/fs.ts src/deno_ral/temp.ts` → `0` for each; `grep -c '"fs/' src/deno_ral/fs.ts` → `0`; `ls src/deno_ral/original-real-path.ts` → no such file.
