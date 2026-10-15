@@ -1,821 +1,200 @@
-# PR 07: `deno.land/x/puppeteer` port to npm `puppeteer-core`
+# PR 07: Remove the puppeteer port and the deprecated `chromium` tool; Phase 0 exit cleanup
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace the Deno port of puppeteer 9 (`https://deno.land/x/puppeteer@9.0.2/mod.ts`) with `npm:puppeteer-core@25.14.0` for browser launching, and move the deprecated `chromium` tool off puppeteer's removed `BrowserFetcher` onto plain filesystem code, keeping Quarto's own Chromium download (`chrome-headless-shell`) untouched.
-**Phase:** 0. **Depends on:** none. **Unblocks:** PR 26 (the spike stubbed puppeteer; mermaid, screenshots and `quarto check` tools were not exercised on Node).
-**Branch:** `rt/07-deps-puppeteer-core`.
-**Suggested executor:** Opus. The puppeteer API moved a lot between 9 and 25 (`BrowserFetcher` is gone, headless modes changed) and the only way to see a launch work is with a real Chrome; the executor must read test failures with care.
-**Size:** M (import map, 3 source files, 1 new source file, 2 new unit tests, `src/vendor_deps.ts`).
+**Goal:** Delete the unused puppeteer launch helpers and the `deno.land/x/puppeteer@9.0.2` dependency, delete the deprecated `chromium` tool and its BrowserFetcher layout (keeping the `chromium` → `chrome-headless-shell` redirect and a way to remove an old download), keep every Chrome feature on Quarto's own CDP client (`withCriClient`), and, as the last task of Phase 0, remove every unused `deno.land/std` redirect and every remaining `deno.land`/skypack/jspm reference outside an explicit allow-list.
+**Phase:** 0, lands last. **Depends on:** 02 (ratchet, `tests/asserts.ts`), 00b (frozen `deno.lock`, `update-lock.sh`, bundle gate), 03, 04, 05, 06 (Task 6 removes the redirects and URLs their packages needed; it runs only once they are merged). **Unblocks:** PR 25 (the `Deno.run` puppeteer note in `monkey-patch.ts` is gone), PR 26 (no puppeteer to stub), Phase 1.
+**Branch:** `rt/07-remove-puppeteer-and-chromium-tool`.
+**Suggested executor:** Opus. The deletions are mechanical, but the `chromium` redirect paths, `quarto check` output and the `deno info` usage analysis of Task 6 need judgement when an unexpected importer shows up.
+**Size:** M (about 25 files: `src/core/puppeteer.ts`, `src/tools/impl/chromium.ts` (deleted), new `src/tools/impl/chromium-legacy.ts`, `src/tools/tools.ts`, `src/tools/tools-console.ts`, `src/tools/impl/chrome-headless-shell.ts`, `src/command/check/check.ts`, three comment fixes, `src/import_map.json`, `deno.lock`, `src/vendor_deps.ts` (deleted) and its four references, three dead import-map files, four inspect tests, five dev scripts, two unit tests, the changelog).
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
 
 ### Context
 
-`00-assessment.md` section 3.4 (puppeteer row) and section 10, finding 7. The import map resolves `puppeteer` to `https://deno.land/x/puppeteer@9.0.2/mod.ts` (lucacasonato's port of puppeteer 9, 2021). It is imported by exactly one file, `src/core/puppeteer.ts:14`, and listed in `src/vendor_deps.ts:12` for the dependency cache; three `https://deno.land/std@0.93.0/...` redirect entries in the import map (`:67-69`) exist for the port's own std imports.
+`00-assessment.md` section 3.4 (puppeteer row) and section 10, finding 7; `REVIEW-2026-10-15.md` Phase 0 "07" (blockers: option A pulls `ws` (CommonJS) into the Deno bundle and deleting the `std@0.93.0/` redirect breaks four inspect tests) and decision 8 (option B: delete the unused helpers and the deprecated tool; `puppeteer-core` is not added).
 
-What the port is used for today (verified by reading `src/core/puppeteer.ts` and grepping the callers of its exports):
+What the puppeteer port is used for today (verified with `rg -l "\b<name>\b" src tests package/src tools`):
 
-| API of the port | Where | Callers outside `src/core/puppeteer.ts` |
+| Export of `src/core/puppeteer.ts` | Callers outside the file | After this PR |
 |---|---|---|
-| `puppeteer.launch({ product: "chrome", executablePath })`, `browser.newPage()`, `page.goto()`, `page.setViewport()`, `page.$$()`, `elementHandle.screenshot({ path })`, `page.evaluate(fn, ...params)`, `browser.close()` | `withHeadlessBrowser` (193-210), `withPuppeteerBrowserAndPage` (100-149), `inPuppeteer` (151-191), `extractImagesFromElements` (42-72), `extractHtmlFromElements` (74-86) | **none** (`grep -rn` for each name finds only the comment in `src/core/cri/launch.ts:14-16`). Mermaid rendering and the axe scanner drive Chrome through Quarto's own CDP client (`src/core/cri/`), not puppeteer. These helpers are a second, currently unused, launch path. |
-| `puppeteer.createBrowserFetcher({ path })` → `localRevisions()`, `revisionInfo(rev)` (`.executablePath`, `.url`, `.folderPath`, `.revision`), `download(rev, cb)`, `remove(rev)`; `puppeteer._preferredRevision` (`"869685"` in 9.0.2) | `fetcher()` (386-392), `chromiumInstallDir()` (394-396), the legacy fallback in `getBrowserExecutablePath()` (362-371) | `src/tools/impl/chromium.ts` (the whole file: `installed`, `installedVersion`, `latestRelease`, `preparePackage`, `uninstall`, `supportedRevision`) |
-| nothing else | `findChrome`, `detectBrowser`, `getBrowserExecutablePath` (the shared browser discovery) | `src/command/check/check.ts:35` (`detectBrowser`), `src/core/cri/launch.ts:29` and `tests/smoke/axe/axe-findings.test.ts` (`getBrowserExecutablePath`) |
+| `getPuppeteer` (21-32) | `src/tools/impl/chromium.ts` | deleted with the tool |
+| `extractImagesFromElements` (42-72), `extractHtmlFromElements` (74-86), `PageOptions` (88-99), `withPuppeteerBrowserAndPage` (100-149), `inPuppeteer` (151-191), `withHeadlessBrowser` (193-210) | none (named only in the comment `src/core/cri/launch.ts:13-16`) | deleted |
+| `findChrome`, `BrowserDetection`, `BrowserDetectionResult`, `detectBrowser` (217-346) | `src/command/check/check.ts:35,598` | unchanged |
+| `getBrowserExecutablePath` (348-375) | `src/core/cri/launch.ts:29`, `tests/smoke/axe/axe-findings.test.ts` | unchanged order (`QUARTO_CHROMIUM`, Quarto's `chrome-headless-shell`, system Chrome/Edge); the puppeteer-revision fallback (361-371) is deleted |
+| `fetchBrowser` (377-384), `fetcher` (386-392), `chromiumInstallDir` (394-396) | `src/tools/impl/chromium.ts` | deleted |
 
-`chromium` is a deprecated tool: `src/tools/tools.ts:40-41` ("deprecated in v1.10, to be removed from the registry in v1.11"; `configuration` says `QUARTO_VERSION=1.11`), `installTool("chromium")` redirects to `chrome-headless-shell` (`tools.ts:125-132`, tested by the "Chromium deprecation redirect" job in `.github/workflows/test-install.yml`), and `allTools()` hides it from the not-installed list (`tools.ts:57-60`). What still has to work: `quarto check` and `quarto tools list` show "Chromium (deprecated)" with its revision when an old download exists (`check.ts:421-425` prints the replacement hint), `quarto uninstall chromium` removes it, and `getBrowserExecutablePath()` falls back to an old download when nothing newer is installed. None of that needs puppeteer: the on-disk layout written by puppeteer 9's `BrowserFetcher` (`vendor/puppeteer-core/...`, `src/deno/BrowserFetcher.ts` at tag 9.0.2, read from GitHub) is `<quartoDataDir("chromium")>/<platform>-<revision>/<archive>/<executable>` with `platform` in `linux | mac | win32 | win64` (from `Deno.build.os`/`arch`), `archive` = `chrome-linux` | `chrome-mac` | `chrome-win` (revisions above 591479) and executable `chrome` | `Chromium.app/Contents/MacOS/Chromium` | `chrome.exe`; the download URL is `https://storage.googleapis.com/chromium-browser-snapshots/<Linux_x64|Mac|Win|Win_x64>/<revision>/<archive>.zip`.
+Mermaid diagrams for non-HTML formats, `createPngsFromHtml`/`extractHtml` in the handler context (`src/core/handlers/base.ts:146,180`) and the axe scanner drive Chrome through `withCriClient` and `src/core/cri/` (Quarto's own CDP client); they never touched puppeteer. The comments that say otherwise (`src/core/handlers/types.ts:88,110` "Uses puppeteer", `src/core/cri/launch.ts:13-16`, `src/core/deno/monkey-patch.ts:26-28` "Puppeteer (and only Puppeteer) uses Deno.run") are corrected.
 
-`puppeteer-core` facts (verified in this sandbox, Deno 2.7.14 against the npm registry): latest **25.14.0**, `engines.node >=22.12.0`, dependencies `ws`, `chromium-bidi`, `devtools-protocol`, `@puppeteer/browsers` 3.2.5, `typed-query-selector`, `webdriver-bidi-protocol`. `import puppeteer, { type Browser, type Page, type LaunchOptions } from "npm:puppeteer-core@25.14.0"` type-checks; `puppeteer.launch({ executablePath: "/nonexistent/chrome", headless: true })` rejects with `Browser was not found at the configured executablePath (/nonexistent/chrome)`, so the launch path runs up to the spawn without a browser. API mapping from the port (puppeteer 9) to 25:
+The `chromium` tool: deprecated in v1.10 and scheduled for removal in v1.11 (`src/tools/tools.ts:40-41`; `configuration` says `QUARTO_VERSION=1.11`). `quarto install chromium` and `quarto update tool chromium` already redirect to `chrome-headless-shell` with a deprecation warning (`tools.ts:124-132`, `tools-console.ts:154-174`; tested by the "Chromium deprecation redirect" job of `.github/workflows/test-install.yml:77-195`). What still depends on the tool and on puppeteer 9's `BrowserFetcher`: listing an old download (`allTools`, `loadTools`), the `quarto check` hint (`check.ts:423-427`) and its "Chromium installed by Quarto" detection (`check.ts:609-621`), `quarto uninstall chromium`, removing the old download after installing `chrome-headless-shell` (`chrome-headless-shell.ts:136-147`, `tools-console.ts:164-169`), and the fallback in `getBrowserExecutablePath`. puppeteer 9 stored downloads under `quartoDataDir("chromium")` as `<linux|mac|win32|win64>-<revision>/<archive>/<executable>`. After this PR a small `src/tools/impl/chromium-legacy.ts` only detects and removes that directory; nothing uses the old browser any more (users who have no Chrome and only an old `quarto install chromium` download are told to run `quarto install chrome-headless-shell`, which `quarto check` already recommends).
 
-| puppeteer 9 (port) | puppeteer-core 25 |
-|---|---|
-| `launch({ product: "chrome", executablePath })` | `launch({ executablePath, headless, args })`; `product` is gone (`browser: "chrome"` is the default). `headless: true` passes `--headless=new`, `headless: "shell"` passes `--headless` and is meant for the `chrome-headless-shell` binary that Quarto installs. `args` are appended. |
-| `page.setViewport(v)` (sync-ish) | `await page.setViewport(v)` (async) |
-| `elementHandle.screenshot({ path })` | `path` is typed as `` `${string}.png` `` etc.; use `const png = await handle.screenshot()` (returns `Uint8Array`) and write it with `Deno.writeFileSync`. |
-| `page.$$(sel)`, `page.goto(url)`, `page.evaluate(fn, ...args)`, `browser.newPage()`, `browser.close()` | unchanged |
-| `createBrowserFetcher`, `BrowserFetcher`, `_preferredRevision` | removed in puppeteer 20 (`@puppeteer/browsers` replaced them with a different cache layout). Reimplemented as filesystem helpers (Task 1). |
+The puppeteer port also brought three `https://deno.land/std@0.93.0/...` redirects into `src/import_map.json` and the `src/vendor_deps.ts` entrypoint (`deno.land/x/puppeteer@9.0.2`, `dev.jspm.io/jszip@3.5.0`, `deno.land/std@0.93.0/path`), which also carries a `std@0.196.0/encoding/base64.ts` import that Cliffy rc.3 needed. PRs 04 and 06 no longer remove redirects themselves (their first drafts predicted each other's state and missed users); Task 6 here does it once, after 03–06 have landed, with one `deno info` run over every entrypoint: `src/quarto.ts`, `tests/test-deps.ts`, `package/src/bld.ts`, `package/scripts/deno_std/deno_std.ts`, every `tests/**/*.test.ts` (the four `tests/smoke/inspect/*.test.ts` import `https://deno.land/std@0.93.0/assert/assert_object_match.ts`, resolvable only through the `std@0.93.0/` redirect, so they are rewritten to `tests/asserts.ts` first), every `tools/*.ts`, and the `src/resources/**/*.ts` scripts that run with `src/import_map.json`.
 
-Headless flags: `src/core/cri/launch.ts:261-278` launches Chrome with `--headless` (old mode unless `QUARTO_CHROMIUM_HEADLESS_MODE` says otherwise), `--no-sandbox`, `--disable-gpu`; the puppeteer path mirrors that: `"shell"` for a `chrome-headless-shell*` executable, `true` (new headless) for full Chrome/Edge, plus the two flags.
+Phase 0 exit criterion (Task 6 Step 7): `rg -n 'deno\.land|skypack|jspm' src package tests tools` prints nothing outside this allow-list:
+
+| Allowed path | Why it stays | Owner |
+|---|---|---|
+| `src/resources/deno_std/**`, `package/scripts/deno_std/deno_std.ts` | the `quarto run` stdlib (`run_import_map.json` maps `stdlib/*` to `https://deno.land/std@0.224.0/...` and `cdn.skypack.dev/juice`; `deno_std.lock`; `import_map.json`) shipped to users | PR 35 replaces it, PR 37 deletes it |
+| `src/resources/scripts/**` | `quarto run` fixtures that use the stdlib above (`check-usage.ts` imports `deno.land/std@0.76.0`; `juice.ts` mentions skypack in a comment) | PR 35 |
+| `src/resources/tools/ast-tracing/**`, `tools/sass-variable-explainer/parse-web.ts`, `tests/docs/reveal/actors.js` | browser-side modules (loaded by an HTML page or an OJS cell), never by Deno | not migrated |
+| `tests/integration/playwright/tests/axe-accessibility.spec.ts`, `tests/unit/axe-no-cdn.test.ts` | the string `skypack.dev` in a list of CDNs the output must not reference | not migrated |
+| `tests/docs/manuscript/ipynb-full/**` | data that happens to contain the letters `jspm` (a CSV row, base64 image bytes) | not code |
+| `src/core/deno/debug.ts`, `src/core/jupyter/capabilities.ts`, `src/core/lib/glob.ts`, `src/core/lib/external/colors.ts`, `src/core/lib/external/README.md`, `src/publish/confluence/confluence-helper.ts` | provenance comments (a stack-frame example, the source a function was copied from) | not code |
 
 ### Scope
 
 In:
-- `src/import_map.json`: `puppeteer` → `npm:puppeteer-core@25.14.0`; remove the three `std@0.93.0` redirects if `deno info` proves them unused;
-- `src/core/puppeteer.ts`: launch helpers on puppeteer-core with real types; legacy fallback on the new helpers; `fetcher`/`getPuppeteer`/`chromiumInstallDir` removed;
-- new `src/tools/impl/chromium-legacy-paths.ts` (pure path helpers, no cycle between `tools/impl/chromium.ts` and `core/puppeteer.ts`);
-- `src/tools/impl/chromium.ts` on those helpers; `preparePackage` refuses with a message pointing at `chrome-headless-shell`;
-- `src/vendor_deps.ts`: drop the puppeteer/jszip/std@0.93 lines;
-- unit tests for the helpers and for the launch path.
+- `src/core/puppeteer.ts`: delete the puppeteer import, `getPuppeteer`, the five launch helpers, `PageOptions`, `fetchBrowser`, `fetcher`, `chromiumInstallDir` and the legacy fallback;
+- `src/tools/impl/chromium.ts`: deleted; `src/tools/impl/chromium-legacy.ts`: new (`legacyChromiumDir`, `hasLegacyChromium`, `removeLegacyChromium`);
+- `src/tools/tools.ts`, `src/tools/tools-console.ts`, `src/tools/impl/chrome-headless-shell.ts`, `src/command/check/check.ts`: the redirect stays, `quarto uninstall chromium` removes the old directory, nothing lists or uses the old browser;
+- `src/import_map.json`: the `puppeteer` entry; `deno.lock`;
+- comment fixes in `src/core/handlers/types.ts`, `src/core/cri/launch.ts`, `src/core/deno/monkey-patch.ts`;
+- Task 6 (Phase 0 exit): every unused `https://deno.land/std@...` redirect, `src/vendor_deps.ts` and its references, the dead `src/dev_import_map.json`, `src/import_map_additional_entries.json`, `package/src/common/create-dev-import-map.ts`, the four inspect tests, five dev scripts, the exit-criterion check;
+- unit tests, changelog.
 
 Out:
-- `chrome-headless-shell` and `chrome-for-testing` (unchanged; they are Quarto's own download);
-- `src/core/cri/` (own CDP client; unchanged);
-- deleting the deprecated `chromium` tool or the unused launch helpers (Decisions);
-- renaming `src/core/puppeteer.ts`.
+- `chrome-headless-shell` and `chrome-for-testing` (Quarto's own download; unchanged);
+- `src/core/cri/` (unchanged);
+- renaming `src/core/puppeteer.ts` (Decisions);
+- the `quarto run` stdlib (PR 35).
 
 ### Interfaces
 
-`src/tools/impl/chromium-legacy-paths.ts` (new):
+`src/core/puppeteer.ts` after this PR exports exactly:
 
 ```ts
-/** Chromium snapshot revision pinned by puppeteer 9.0.2 (PUPPETEER_REVISIONS.chromium); the only revision `quarto install chromium` ever downloaded. */
-export const kChromiumRevision = "869685";
-export type ChromiumPlatform = "linux" | "mac" | "win32" | "win64";
-/** Platform key in the legacy cache directory names, derived from the running OS/arch like puppeteer 9 did. */
-export function chromiumPlatform(): ChromiumPlatform;
-/** `quartoDataDir("chromium")`: where `quarto install chromium` used to download. */
-export function chromiumInstallDir(): string;
-/** Revisions present under `dir` for `platform`, newest first. Reads entries named `<platform>-<digits>` that are directories. Returns [] when `dir` does not exist. */
-export function chromiumLocalRevisions(dir: string, platform: ChromiumPlatform): string[];
-/** `<dir>/<platform>-<revision>` */
-export function chromiumRevisionDir(dir: string, platform: ChromiumPlatform, revision: string): string;
-/** The browser executable inside a revision directory, per platform (same layout puppeteer 9 wrote). */
-export function chromiumExecutablePath(dir: string, platform: ChromiumPlatform, revision: string): string;
-/** The snapshot zip URL puppeteer 9 downloaded, for `latestRelease()` reporting. */
-export function chromiumDownloadUrl(platform: ChromiumPlatform, revision: string): string;
-```
-
-`src/core/puppeteer.ts` after this PR:
-
-```ts
-export interface PageOptions { url: string; viewport?: { width: number; height: number; deviceScaleFactor?: number; isMobile?: boolean; hasTouch?: boolean; isLandscape?: boolean } };
-/** Launch the browser at `executablePath` headless (puppeteer-core). Rejects if the executable cannot be started. */
-export function launchHeadlessBrowser(executablePath: string): Promise<Browser>;
-export function withHeadlessBrowser<T>(fn: (browser: Browser) => Promise<T>): Promise<T>;
-export function withPuppeteerBrowserAndPage<T>(url: string | PageOptions, f: (b: Browser, p: Page) => Promise<T>): Promise<T>;
-export function inPuppeteer(url: string, f: (...args: unknown[]) => unknown, ...params: unknown[]): Promise<unknown>;
-export function extractImagesFromElements(urlOrOptions: string | PageOptions, selector: string, filenames: string[]): Promise<string[]>;
-export function extractHtmlFromElements(url: string, selector: string): Promise<string[]>;
 export function findChrome(): Promise<ChromeInfo>;                 // unchanged
-export interface BrowserDetection { ... }; export interface BrowserDetectionResult { ... }   // unchanged
+export interface BrowserDetection { path: string; source: string; label: string; version?: string; displaySource?: string; }   // unchanged
+export interface BrowserDetectionResult { detected?: BrowserDetection; warning?: string; }                                       // unchanged
 export function detectBrowser(): Promise<BrowserDetectionResult>;  // unchanged
-export function getBrowserExecutablePath(): Promise<string>;       // unchanged contract; legacy fallback uses chromiumLocalRevisions/chromiumExecutablePath
-// removed: getPuppeteer, fetcher, chromiumInstallDir (moved to tools/impl/chromium-legacy-paths.ts)
+/** detectBrowser()'s path; logs "Chrome not found" with the install hint and throws when nothing is detected. */
+export function getBrowserExecutablePath(): Promise<string>;
 ```
 
-`src/tools/impl/chromium.ts`: `chromiumInstallable: InstallableTool` keeps its shape (`src/tools/types.ts:12-25`); `preparePackage` rejects with `Error("The 'chromium' tool is deprecated and can no longer be downloaded. Run 'quarto install chrome-headless-shell' instead.")`.
+`src/tools/impl/chromium-legacy.ts` (new):
+
+```ts
+/** Where `quarto install chromium` (Quarto 1.9 and earlier, puppeteer 9's BrowserFetcher) downloaded Chromium:
+ * <userDataDir("quarto")>/chromium. Does not create the directory. */
+export function legacyChromiumDir(): string;
+/** True when `dir` holds at least one `<linux|mac|win32|win64>-<digits>` directory (one downloaded revision). */
+export function hasLegacyChromium(dir?: string): boolean;
+/** Removes `dir` (only inside `boundary`, via safeRemoveDirSync) and returns true when it existed. */
+export function removeLegacyChromium(dir?: string, boundary?: string): boolean;
+```
+
+CLI behaviour after this PR:
+
+| Command | Before | After |
+|---|---|---|
+| `quarto install chromium` | deprecation warning, installs `chrome-headless-shell` | unchanged |
+| `quarto update tool chromium` | warning, removes an old download, installs/updates `chrome-headless-shell` | unchanged (removal through `removeLegacyChromium`) |
+| `quarto uninstall chromium` | removes the old download through BrowserFetcher | removes `legacyChromiumDir()` and prints `Removed the Chromium downloaded by 'quarto install chromium'.`, or prints `No Chromium download from 'quarto install chromium' was found.` |
+| `quarto list tools`, `quarto check` tools section | list "Chromium (deprecated)" when an old download exists | `chromium` is not a tool any more |
+| `quarto check` Chrome section, nothing else installed | "Using: Chromium installed by Quarto" | `Chrome: (not detected)` plus a `NOTE:` naming the old directory and the two commands |
+| rendering with only an old download | used the old Chromium | "Chrome not found" and the `quarto install chrome-headless-shell` hint (as for any machine without Chrome) |
 
 ### Files
 
-- Modify: `src/import_map.json:59` (`puppeteer`), `:67-69` (`std@0.93.0` redirects, if unused)
-- Create: `src/tools/impl/chromium-legacy-paths.ts`
-- Modify: `src/tools/impl/chromium.ts` (whole file)
-- Modify: `src/core/puppeteer.ts` (lines 1-30, 42-210, 348-396)
-- Modify: `src/vendor_deps.ts:10-14`
-- Test: `tests/unit/tools/chromium-legacy-paths.test.ts` (new)
-- Test: `tests/unit/core/puppeteer.test.ts` (new)
-- Modify: `dev-docs/runtime-migration/README.md` (PR 07 row status)
+- Modify: `src/core/puppeteer.ts:7-32,33-210,302-303,348-396`
+- Delete: `src/tools/impl/chromium.ts`
+- Create: `src/tools/impl/chromium-legacy.ts`
+- Modify: `src/tools/tools.ts:20,32-45,57-61,101-112,197-226`
+- Modify: `src/tools/tools-console.ts:11-18,95-99,163-169`
+- Modify: `src/tools/impl/chrome-headless-shell.ts:34,135-148`
+- Modify: `src/command/check/check.ts:25,423-427,609-621`
+- Modify: `src/core/handlers/types.ts:88,110`, `src/core/cri/launch.ts:13-16`, `src/core/deno/monkey-patch.ts:26-28`
+- Modify: `src/import_map.json` (`puppeteer`; Task 6: the `https://deno.land/std@...` keys), `deno.lock`
+- Delete (Task 6): `src/vendor_deps.ts`, `src/dev_import_map.json`, `src/import_map_additional_entries.json`, `package/src/common/create-dev-import-map.ts`
+- Modify (Task 6): `package/scripts/vendoring/vendor.sh`, `vendor.cmd`, `.github/workflows/actions/quarto-dev/action.yml:19`, `dev-docs/ci-deno-caching.md`, `.claude/CLAUDE.md:25`, `tests/README.md:369`
+- Modify (Task 6): `tests/smoke/inspect/inspect-code-cells.test.ts`, `inspect-extensions.test.ts`, `inspect-include.test.ts`, `inspect-recursive-include.test.ts`; `tests/run-parallel-tests.ts:13-17`; `src/resources/tools/ast-diagram/main.ts:3`; `tools/document-generator/main.ts:1`; `tools/run-pandoc-capture.ts:2`; `tools/subcommand-history.ts:46`
+- Test: `tests/unit/core/browser-discovery.test.ts` (new), `tests/unit/tools/chromium-legacy.test.ts` (new)
+- Modify: `tools/runtime-boundary-baseline.json` (`src` and `tests` std-import files fall)
+- Modify: `news/changelog-1.11.md`, `dev-docs/runtime-migration/README.md`
 
 ### Acceptance criteria
 
-- `grep -n 'deno.land/x/puppeteer\|std@0.93.0' src/import_map.json src/vendor_deps.ts` prints nothing (redirects only if the `deno info` script says `UNUSED`).
-- `grep -rn 'createBrowserFetcher\|_preferredRevision\|from "puppeteer"' src --include=*.ts` lists only `src/core/puppeteer.ts` for the import.
-- `package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/quarto.ts` exits 0 with the real `puppeteer-core` types (no `any` left on `Browser`/`Page` parameters).
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/chromium-legacy-paths.test.ts unit/core/puppeteer.test.ts` passes (the browser-dependent tests are skipped when no Chrome is detected and pass when one is).
-- `package/dist/bin/quarto check` prints the `Checking tools` and `Checking Chrome Headless` sections; with an old `~/.local/share/quarto/chromium/linux-869685` (or platform equivalent) directory present it prints `Chromium (deprecated): 869685` and the replacement hint.
-- `package/dist/bin/quarto install chromium --no-prompt` still prints the deprecation warning and installs `chrome-headless-shell` (unchanged code path, re-verified); `package/dist/bin/quarto uninstall chromium` removes the legacy directory.
-- Mermaid smoke documents render (CRI path, shares `getBrowserExecutablePath`); `Bundle Test` is green (puppeteer-core bundles).
+- `rg -n 'puppeteer' src package/src tests tools --type ts -i` lists no import of a puppeteer package (comments naming the old port are gone too; `src/core/puppeteer.ts` keeps its file name).
+- `grep -c 'deno\.land\|skypack\|jspm' src/import_map.json` prints `0`; `src/vendor_deps.ts` does not exist; `configure` does not reference it.
+- The Phase 0 exit command of Task 6 Step 7 prints nothing.
+- `quarto install chromium --no-prompt` and `quarto update tool chromium --no-prompt` still print the deprecation warning and succeed (the `test-install.yml` "Chromium deprecation redirect" job is green on four runners).
+- With a fake old download (`<userDataDir>/quarto/chromium/linux-869685/chrome-linux/`), `quarto check` prints the `NOTE:` and `quarto uninstall chromium` removes the directory.
+- Mermaid to Typst and the axe smoke test render (CDP path, shares `getBrowserExecutablePath`); `Bundle Test` (three OSes) green.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/browser-discovery.test.ts unit/tools/chromium-legacy.test.ts` → `3 passed`.
+- `quarto run --dev tools/check-runtime-boundary.ts` passes after `--update-baseline`: `src` std-import files −1 (`src/vendor_deps.ts`), `tests` std-import files −4 (the inspect tests), `Deno.` counts unchanged (the deleted code had no `Deno.` call; `chromium-legacy.ts` uses `deno_ral`).
 
 ## Plan
 
-### Task 1: Legacy Chromium path helpers
+### Task 1: Delete the puppeteer launch path
 
 **Files:**
-- Create: `src/tools/impl/chromium-legacy-paths.ts`
-- Test: `tests/unit/tools/chromium-legacy-paths.test.ts`
+- Modify: `src/core/puppeteer.ts`, `src/core/handlers/types.ts`, `src/core/cri/launch.ts`, `src/core/deno/monkey-patch.ts`
+- Test: `tests/unit/core/browser-discovery.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `tests/unit/tools/chromium-legacy-paths.test.ts`:
+Create `tests/unit/core/browser-discovery.test.ts`:
 
 ```ts
 /*
- * chromium-legacy-paths.test.ts
+ * browser-discovery.test.ts
  *
- * The deprecated `chromium` tool reads the directory layout puppeteer 9's
- * BrowserFetcher wrote: <dir>/<platform>-<revision>/<archive>/<executable>.
+ * src/core/puppeteer.ts is browser discovery only: Chrome is driven over CDP
+ * by src/core/cri/, the puppeteer launch helpers and the BrowserFetcher
+ * layout are gone (dev-docs/runtime-migration/07-remove-puppeteer-and-chromium-tool.md).
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { unitTest } from "../../test.ts";
-import { assertEquals } from "testing/asserts";
-import { join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
-import { createTempContext } from "../../../src/core/temp.ts";
-import {
-  chromiumDownloadUrl,
-  chromiumExecutablePath,
-  chromiumLocalRevisions,
-  chromiumRevisionDir,
-  kChromiumRevision,
-} from "../../../src/tools/impl/chromium-legacy-paths.ts";
+import { assertEquals } from "../../asserts.ts";
+import * as discovery from "../../../src/core/puppeteer.ts";
 
 // deno-lint-ignore require-await
-unitTest("chromium-legacy-paths - local revisions, newest first, per platform", async () => {
-  const temp = createTempContext();
-  try {
-    const dir = temp.createDir();
-    ensureDirSync(join(dir, "linux-800000", "chrome-linux"));
-    ensureDirSync(join(dir, "linux-869685", "chrome-linux"));
-    ensureDirSync(join(dir, "mac-869685", "chrome-mac"));
-    ensureDirSync(join(dir, "junk"));
-    Deno.writeTextFileSync(join(dir, "linux-1"), "a file, not a directory");
-    assertEquals(chromiumLocalRevisions(dir, "linux"), ["869685", "800000"]);
-    assertEquals(chromiumLocalRevisions(dir, "mac"), ["869685"]);
-    assertEquals(chromiumLocalRevisions(dir, "win64"), []);
-    assertEquals(chromiumLocalRevisions(join(dir, "missing"), "linux"), []);
-  } finally {
-    temp.cleanup();
-  }
-});
-
-// deno-lint-ignore require-await
-unitTest("chromium-legacy-paths - executable path per platform", async () => {
-  const dir = "root";
-  assertEquals(chromiumRevisionDir(dir, "linux", "869685"), join("root", "linux-869685"));
-  assertEquals(
-    chromiumExecutablePath(dir, "linux", "869685"),
-    join("root", "linux-869685", "chrome-linux", "chrome"),
-  );
-  assertEquals(
-    chromiumExecutablePath(dir, "mac", "869685"),
-    join("root", "mac-869685", "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium"),
-  );
-  assertEquals(
-    chromiumExecutablePath(dir, "win64", "869685"),
-    join("root", "win64-869685", "chrome-win", "chrome.exe"),
-  );
-  // archive name changed at r591479
-  assertEquals(
-    chromiumExecutablePath(dir, "win32", "500000"),
-    join("root", "win32-500000", "chrome-win32", "chrome.exe"),
-  );
-});
-
-// deno-lint-ignore require-await
-unitTest("chromium-legacy-paths - download url and pinned revision", async () => {
-  assertEquals(kChromiumRevision, "869685");
-  assertEquals(
-    chromiumDownloadUrl("linux", kChromiumRevision),
-    "https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64/869685/chrome-linux.zip",
-  );
-  assertEquals(
-    chromiumDownloadUrl("mac", kChromiumRevision),
-    "https://storage.googleapis.com/chromium-browser-snapshots/Mac/869685/chrome-mac.zip",
-  );
-  assertEquals(
-    chromiumDownloadUrl("win32", kChromiumRevision),
-    "https://storage.googleapis.com/chromium-browser-snapshots/Win/869685/chrome-win.zip",
-  );
-  assertEquals(
-    chromiumDownloadUrl("win64", kChromiumRevision),
-    "https://storage.googleapis.com/chromium-browser-snapshots/Win_x64/869685/chrome-win.zip",
-  );
+unitTest("browser discovery - exports discovery functions only", async () => {
+  assertEquals(Object.keys(discovery).sort(), [
+    "detectBrowser",
+    "findChrome",
+    "getBrowserExecutablePath",
+  ]);
 });
 ```
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/chromium-legacy-paths.test.ts`
-Expected: FAIL, `Module not found ".../src/tools/impl/chromium-legacy-paths.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/browser-discovery.test.ts`
+Expected: FAIL, `Values are not equal`, the actual list also containing `chromiumInstallDir`, `extractHtmlFromElements`, `extractImagesFromElements`, `fetcher`, `getPuppeteer`, `inPuppeteer`, `withHeadlessBrowser`, `withPuppeteerBrowserAndPage`.
 
-- [ ] **Step 3: Implement**
+- [ ] **Step 3: Delete the helpers**
 
-Create `src/tools/impl/chromium-legacy-paths.ts`:
-
+In `src/core/puppeteer.ts`:
+1. Delete the imports `import { UnreachableError } from "./lib/error.ts";`, `import { quartoDataDir } from "./appdirs.ts";` and `import puppeteer from "puppeteer";`.
+2. Delete everything from the comment `// deno-lint-ignore no-explicit-any` above `// let puppeteerImport: any = undefined;` (line 21) through the closing `}` of `withHeadlessBrowser` (line 210): `getPuppeteer`, `extractImagesFromElements`, `extractHtmlFromElements`, `PageOptions`, `withPuppeteerBrowserAndPage`, `inPuppeteer`, `withHeadlessBrowser`.
+3. In the doc comment of `detectBrowser`, replace
 ```ts
-/*
- * chromium-legacy-paths.ts
- *
- * Path helpers for the deprecated `chromium` tool. `quarto install chromium`
- * (Quarto <= 1.9) used puppeteer 9's BrowserFetcher, which stored a
- * Chromium snapshot at <quartoDataDir("chromium")>/<platform>-<revision>/
- * <archive>/<executable>. The tool now only reads that layout (to report and
- * uninstall old downloads, and to fall back to one when no newer browser is
- * installed); new installs go to chrome-headless-shell.
- *
- * Copyright (C) 2026 Posit Software, PBC
- */
-
-import { join } from "../../deno_ral/path.ts";
-import { existsSync, walkSync } from "../../deno_ral/fs.ts";
-import { arch, isMac, isWindows } from "../../deno_ral/platform.ts";
-import { quartoDataDir } from "../../core/appdirs.ts";
-
-/** Chromium snapshot revision pinned by puppeteer 9.0.2 (PUPPETEER_REVISIONS.chromium). */
-export const kChromiumRevision = "869685";
-
-export type ChromiumPlatform = "linux" | "mac" | "win32" | "win64";
-
-export function chromiumPlatform(): ChromiumPlatform {
-  if (isMac) {
-    return "mac";
-  }
-  if (isWindows) {
-    return arch === "x86_64" ? "win64" : "win32";
-  }
-  return "linux";
-}
-
-export function chromiumInstallDir(): string {
-  return quartoDataDir("chromium");
-}
-
-export function chromiumRevisionDir(
-  dir: string,
-  platform: ChromiumPlatform,
-  revision: string,
-): string {
-  return join(dir, `${platform}-${revision}`);
-}
-
-function archiveName(platform: ChromiumPlatform, revision: string): string {
-  switch (platform) {
-    case "linux":
-      return "chrome-linux";
-    case "mac":
-      return "chrome-mac";
-    case "win32":
-    case "win64":
-      // Windows archive name changed at r591479
-      return parseInt(revision, 10) > 591479 ? "chrome-win" : "chrome-win32";
-  }
-}
-
-export function chromiumExecutablePath(
-  dir: string,
-  platform: ChromiumPlatform,
-  revision: string,
-): string {
-  const archive = join(chromiumRevisionDir(dir, platform, revision), archiveName(platform, revision));
-  switch (platform) {
-    case "linux":
-      return join(archive, "chrome");
-    case "mac":
-      return join(archive, "Chromium.app", "Contents", "MacOS", "Chromium");
-    case "win32":
-    case "win64":
-      return join(archive, "chrome.exe");
-  }
-}
-
-export function chromiumLocalRevisions(
-  dir: string,
-  platform: ChromiumPlatform,
-): string[] {
-  if (!existsSync(dir)) {
-    return [];
-  }
-  const prefix = `${platform}-`;
-  const revisions: string[] = [];
-  // walkSync with maxDepth 1 yields `dir` itself and its direct children;
-  // using it instead of Deno.readDirSync keeps this file inside the runtime
-  // boundary (dev-docs/runtime-migration/02-runtime-boundary-check.md).
-  for (
-    const entry of walkSync(dir, {
-      maxDepth: 1,
-      includeFiles: false,
-      includeDirs: true,
-    })
-  ) {
-    if (entry.path === dir || !entry.name.startsWith(prefix)) {
-      continue;
-    }
-    const revision = entry.name.slice(prefix.length);
-    if (/^\d+$/.test(revision)) {
-      revisions.push(revision);
-    }
-  }
-  return revisions.sort((a, b) => Number(b) - Number(a));
-}
-
-const kSnapshotHost = "https://storage.googleapis.com/chromium-browser-snapshots";
-const kSnapshotDirs: Record<ChromiumPlatform, string> = {
-  linux: "Linux_x64",
-  mac: "Mac",
-  win32: "Win",
-  win64: "Win_x64",
-};
-
-export function chromiumDownloadUrl(
-  platform: ChromiumPlatform,
-  revision: string,
-): string {
-  return `${kSnapshotHost}/${kSnapshotDirs[platform]}/${revision}/${archiveName(platform, revision)}.zip`;
-}
-```
-
-- [ ] **Step 4: Run the test**
-
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/chromium-legacy-paths.test.ts`
-Expected: `3 passed`.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add src/tools/impl/chromium-legacy-paths.ts tests/unit/tools/chromium-legacy-paths.test.ts
-git commit -m "Add filesystem helpers for the legacy chromium tool layout"
-```
-
-### Task 2: `src/tools/impl/chromium.ts` without puppeteer
-
-**Files:**
-- Modify: `src/tools/impl/chromium.ts` (whole file)
-
-- [ ] **Step 1: Rewrite the file**
-
-Replace the whole of `src/tools/impl/chromium.ts` with:
-
-```ts
-/*
- * chromium.ts
- *
- * The deprecated `chromium` tool. New installs are redirected to
- * chrome-headless-shell (src/tools/tools.ts, installTool); this module only
- * reports, falls back to and uninstalls downloads made by Quarto <= 1.9.
- *
- * Copyright (C) 2020-2022 Posit Software, PBC
- */
-
-import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
-import { withSpinner } from "../../core/console.ts";
-import { InstallableTool, InstallContext, PackageInfo } from "../types.ts";
-import {
-  chromiumDownloadUrl,
-  chromiumInstallDir,
-  chromiumLocalRevisions,
-  chromiumPlatform,
-  chromiumRevisionDir,
-  kChromiumRevision,
-} from "./chromium-legacy-paths.ts";
-
-async function installDir() {
-  if (await installed()) {
-    return Promise.resolve(chromiumInstallDir());
-  } else {
-    return Promise.resolve(undefined);
-  }
-}
-
-export const chromiumInstallable: InstallableTool = {
-  name: "Chromium (deprecated)",
-  prereqs: [],
-  installed,
-  installedVersion,
-  latestRelease,
-  preparePackage,
-  install,
-  afterInstall,
-  uninstall,
-  installDir,
-};
-
-export function installed(): Promise<boolean> {
-  const revisions = chromiumLocalRevisions(chromiumInstallDir(), chromiumPlatform());
-  return Promise.resolve(revisions.includes(kChromiumRevision));
-}
-
-function installedVersion(): Promise<string | undefined> {
-  const revisions = chromiumLocalRevisions(chromiumInstallDir(), chromiumPlatform());
-  return Promise.resolve(revisions[0]);
-}
-
-function latestRelease() {
-  return Promise.resolve({
-    url: chromiumDownloadUrl(chromiumPlatform(), kChromiumRevision),
-    version: kChromiumRevision,
-    assets: [{ name: "", url: "" }],
-  });
-}
-
-function preparePackage(_ctx: InstallContext): Promise<PackageInfo> {
-  return Promise.reject(
-    new Error(
-      "The 'chromium' tool is deprecated and can no longer be downloaded. Run 'quarto install chrome-headless-shell' instead.",
-    ),
-  );
-}
-
-function install(_pkg: PackageInfo, _ctx: InstallContext): Promise<void> {
-  return Promise.resolve();
-}
-
-function afterInstall(_ctx: InstallContext): Promise<boolean> {
-  return Promise.resolve(false);
-}
-
-async function uninstall(_ctx: InstallContext): Promise<void> {
-  await withSpinner({
-    message: "Removing Chromium...",
-  }, () => {
-    const dir = chromiumRevisionDir(
-      chromiumInstallDir(),
-      chromiumPlatform(),
-      kChromiumRevision,
-    );
-    if (existsSync(dir)) {
-      safeRemoveSync(dir, { recursive: true });
-    }
-    return Promise.resolve();
-  });
-}
-```
-
-- [ ] **Step 2: Type-check**
-
-Run: `package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/tools/impl/chromium.ts src/tools/tools.ts`
-Expected: exit 0. (The `fetcher`/`getPuppeteer` imports from `core/puppeteer.ts` are gone from this file; `core/puppeteer.ts` still exports them until Task 3, which is fine.)
-
-- [ ] **Step 3: Exercise the tool commands with a fake legacy download**
-
-Run (Linux; on macOS use `mac-869685/chrome-mac/Chromium.app/Contents/MacOS/Chromium`, on Windows `win64-869685\chrome-win\chrome.exe` under `%LOCALAPPDATA%\quarto\chromium`):
-```bash
-printf 'import { chromiumInstallDir } from "%s/src/tools/impl/chromium-legacy-paths.ts";\nconsole.log(chromiumInstallDir());\n' "$PWD" > /tmp/rt07-dir.ts
-LEGACY="$(package/dist/bin/quarto run --dev /tmp/rt07-dir.ts)"
-mkdir -p "$LEGACY/linux-869685/chrome-linux" && touch "$LEGACY/linux-869685/chrome-linux/chrome" && chmod +x "$LEGACY/linux-869685/chrome-linux/chrome"
-package/dist/bin/quarto tools list
-package/dist/bin/quarto check install 2>&1 | grep -A1 'Chromium (deprecated)'
-package/dist/bin/quarto update chromium; echo "exit=$?"
-package/dist/bin/quarto uninstall chromium && ls "$LEGACY"
-package/dist/bin/quarto install chromium --no-prompt 2>&1 | head -3
-```
-Expected: `tools list` prints a `Chromium (deprecated)` row (columns Tool, Status, Installed, Latest) whose Installed and Latest cells are both `869685`; `check install` prints `Chromium (deprecated): 869685` followed by `(Run "quarto install chrome-headless-shell" to replace)`; `update chromium` prints the deprecation error from `preparePackage` and does not crash (`exit=0`, `updateTool` logs the error); `uninstall chromium` prints `Uninstallation successful` and `linux-869685` is gone; `install chromium` prints `'chromium' is deprecated. Installing 'chrome-headless-shell' instead.` (interrupt it with Ctrl-C if you do not want the download, or let it finish). On Windows, write the same two lines to `%TEMP%\rt07-dir.ts` with the repository path spelled out and run `quarto run --dev %TEMP%\rt07-dir.ts`.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/tools/impl/chromium.ts
-git commit -m "Read the legacy chromium download without puppeteer's BrowserFetcher
-
-The deprecated tool only reports, falls back to and uninstalls old
-downloads; preparePackage now refuses with a pointer to
-chrome-headless-shell."
-```
-
-### Task 3: `src/core/puppeteer.ts` on `puppeteer-core`
-
-**Files:**
-- Modify: `src/import_map.json:59`
-- Modify: `src/core/puppeteer.ts`
-- Test: `tests/unit/core/puppeteer.test.ts`
-
-- [ ] **Step 1: Write the failing test**
-
-Create `tests/unit/core/puppeteer.test.ts`:
-
-```ts
-/*
- * puppeteer.test.ts
- *
- * The puppeteer-core launch path in src/core/puppeteer.ts. The first test
- * runs everywhere (puppeteer-core refuses a missing executable before
- * spawning anything); the others need a Chrome and are skipped otherwise.
- *
- * Copyright (C) 2026 Posit Software, PBC
- */
-
-import { unitTest } from "../../test.ts";
-import { assert, assertEquals, assertRejects, assertStringIncludes } from "testing/asserts";
-import { join } from "../../../src/deno_ral/path.ts";
-import { createTempContext } from "../../../src/core/temp.ts";
-import {
-  detectBrowser,
-  extractImagesFromElements,
-  inPuppeteer,
-  launchHeadlessBrowser,
-} from "../../../src/core/puppeteer.ts";
-
-const hasBrowser = async () => (await detectBrowser()).detected !== undefined;
-
-unitTest("puppeteer-core - launching a missing executable rejects", async () => {
-  await assertRejects(
-    () => launchHeadlessBrowser("/nonexistent/chrome"),
-    Error,
-    "Browser was not found",
-  );
-});
-
-unitTest("puppeteer-core - evaluate in a page", async () => {
-  const result = await inPuppeteer("about:blank", () => 1 + 1);
-  assertEquals(result, 2);
-}, { prereq: hasBrowser });
-
-unitTest("puppeteer-core - screenshot an element to a file", async () => {
-  const temp = createTempContext();
-  try {
-    const file = join(temp.createDir(), "box.png");
-    const url =
-      'data:text/html,<div id="box" style="width:40px;height:40px;background:%23ff0000"></div>';
-    const html = await extractImagesFromElements(url, "#box", [file]);
-    assertEquals(html.length, 1);
-    assertStringIncludes(html[0], 'id="box"');
-    const bytes = Deno.readFileSync(file);
-    assert(bytes.length > 8, "png written");
-    assertEquals([...bytes.slice(0, 4)], [0x89, 0x50, 0x4e, 0x47], "PNG signature");
-  } finally {
-    temp.cleanup();
-  }
-}, { prereq: hasBrowser });
-```
-
-- [ ] **Step 2: Run it and see it fail**
-
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/puppeteer.test.ts`
-Expected: FAIL at type-check, `has no exported member 'launchHeadlessBrowser'`.
-
-- [ ] **Step 3: Change the import-map entry**
-
-Replace
-```json
-    "puppeteer": "https://deno.land/x/puppeteer@9.0.2/mod.ts",
+ * Does NOT check legacy fallbacks (puppeteer revisions, chromium tool) —
+ * callers handle those based on their context.
 ```
 with
-```json
-    "puppeteer": "npm:puppeteer-core@25.14.0",
-```
-
-- [ ] **Step 4: Rewrite the launch half of `src/core/puppeteer.ts`**
-
-Replace lines 1-30 (header, imports, `getPuppeteer`) with:
-
 ```ts
-/*
- * puppeteer.ts
- *
- * Browser discovery (findChrome, detectBrowser, getBrowserExecutablePath) and a
- * puppeteer-core launch path (withHeadlessBrowser and the helpers on it).
- * Mermaid and the axe scanner drive Chrome through src/core/cri instead; the
- * discovery functions are shared by both.
- *
- * Copyright (C) 2020-2022 Posit Software, PBC
- */
-
-import { readRegistryKey } from "./windows.ts";
-import { safeExistsSync, which } from "./path.ts";
-import { debug, error, info } from "../deno_ral/log.ts";
-import { existsSync } from "../deno_ral/fs.ts";
-import { basename } from "../deno_ral/path.ts";
-import { UnreachableError } from "./lib/error.ts";
-import { isMac, isWindows } from "../deno_ral/platform.ts";
-import puppeteer, { type Browser, type Page } from "puppeteer";
-import {
-  chromeHeadlessShellExecutablePath,
-  chromeHeadlessShellInstallDir,
-  readInstalledVersion,
-} from "../tools/impl/chrome-headless-shell-paths.ts";
-import {
-  chromiumExecutablePath,
-  chromiumInstallDir,
-  chromiumLocalRevisions,
-  chromiumPlatform,
-} from "../tools/impl/chromium-legacy-paths.ts";
+ * A Chromium downloaded by the removed `chromium` tool is never used
+ * (src/tools/impl/chromium-legacy.ts only detects and removes it).
 ```
-
-Replace lines 42-86 (`extractImagesFromElements`, `extractHtmlFromElements`) with:
-
-```ts
-/**
- * Extracts images and elements from an URL
- *
- * @param urlOrOptions webpage url or page options
- * @param selector css selector
- * @param filenames filenames to write screenshots to
- * @returns html content of selected results
- */
-export async function extractImagesFromElements(
-  urlOrOptions: string | PageOptions,
-  selector: string,
-  filenames: string[],
-): Promise<string[]> {
-  return await withPuppeteerBrowserAndPage(
-    urlOrOptions,
-    async (_browser: Browser, page: Page) => {
-      const elements = await page.$$(selector);
-      if (elements.length !== filenames.length) {
-        throw new Error(
-          `extractImagesFromElements was given ${filenames.length} filenames, but selector yielded ${elements.length} elements.`,
-        );
-      }
-      for (let i = 0; i < elements.length; ++i) {
-        // puppeteer-core types `path` on its extension (`${string}.png` | ...);
-        // callers pass .png files. The library writes the file itself (through
-        // node:fs under Deno), so no Deno.* call is added here.
-        await elements[i].screenshot({
-          path: filenames[i] as `${string}.png`,
-        });
-      }
-
-      const clientSideResult = await page.evaluate((selector: string) => {
-        return Array.from(document.querySelectorAll(selector)).map((n) =>
-          n.outerHTML
-        );
-      }, selector);
-      return clientSideResult;
-    },
-  );
-}
-
-export function extractHtmlFromElements(
-  url: string,
-  selector: string,
-): Promise<string[]> {
-  return inPuppeteer(url, (selector: string) => {
-    return Array.from(document.querySelectorAll(selector)).map((n) =>
-      n.outerHTML
-    );
-  }, selector) as Promise<string[]>;
-}
-```
-
-(`document` inside `page.evaluate` callbacks is typed by puppeteer-core's bundled DOM lib declarations, so the `const document = undefined as any` placeholders go away. If `deno check` complains that `document` is not defined in those callbacks, add `/// <reference lib="dom" />` at the top of the file, which is what puppeteer-core's own typings expect.)
-
-Replace lines 100-210 (`withPuppeteerBrowserAndPage`, `inPuppeteer`, `withHeadlessBrowser`) with:
-
-```ts
-export async function withPuppeteerBrowserAndPage<T>(
-  url: string | PageOptions,
-  f: (b: Browser, p: Page) => Promise<T>,
-): Promise<T> {
-  const allowedErrorMessages = [
-    "Navigation failed because browser has disconnected!",
-    "Navigation timeout of 30000 ms exceeded",
-    "Evaluation failed: undefined",
-  ];
-
-  let attempts = 0;
-  const maxAttempts = 5;
-  while (attempts++ < maxAttempts) {
-    try {
-      let finished = false;
-      let result: T;
-      await withHeadlessBrowser(async (browser: Browser) => {
-        const page = await browser.newPage();
-        if (typeof url === "string") {
-          await page.goto(url);
-        } else {
-          if (url.viewport) {
-            await page.setViewport(url.viewport);
-          }
-          await page.goto(url.url);
-        }
-        result = await f(browser, page);
-        finished = true;
-      });
-      if (finished) {
-        return result!;
-      }
-    } catch (error) {
-      if (!(error instanceof Error)) throw error;
-      if (
-        (allowedErrorMessages.indexOf(error.message) !== -1) &&
-        (attempts < maxAttempts)
-      ) {
-        console.log(
-          `\nEncountered a bad error message from puppeteer: "${error.message}"\n Retrying ${attempts}/${maxAttempts}`,
-        );
-      } else {
-        throw error;
-      }
-    }
-  }
-  throw new UnreachableError();
-}
-
-export async function inPuppeteer(
-  url: string,
-  // deno-lint-ignore no-explicit-any
-  f: (...args: any[]) => unknown,
-  ...params: unknown[]
-): Promise<unknown> {
-  const allowedErrorMessages = [
-    "Navigation failed because browser has disconnected!",
-    "Navigation timeout of 30000 ms exceeded",
-    "Evaluation failed: undefined",
-  ];
-
-  let attempts = 0;
-  const maxAttempts = 5;
-  while (attempts++ < maxAttempts) {
-    try {
-      return await withHeadlessBrowser(async (browser: Browser) => {
-        const page = await browser.newPage();
-        await page.goto(url);
-        const clientSideResult = await page.evaluate(f, ...params);
-        return clientSideResult;
-      });
-    } catch (error) {
-      if (!(error instanceof Error)) throw error;
-      if (
-        (allowedErrorMessages.indexOf(error.message) !== -1) &&
-        (attempts < maxAttempts)
-      ) {
-        console.log(
-          `\nEncountered a bad error message from puppeteer: "${error.message}"\n Retrying ${attempts}/${maxAttempts}`,
-        );
-      } else {
-        throw error;
-      }
-    }
-  }
-  throw new UnreachableError();
-}
-
-/**
- * Launch the browser at `executablePath` headless. chrome-headless-shell is
- * the old headless implementation and takes a bare `--headless` (puppeteer's
- * "shell" mode); full Chrome/Edge get `--headless=new`. The extra flags
- * mirror src/core/cri/launch.ts.
- */
-export async function launchHeadlessBrowser(
-  executablePath: string,
-): Promise<Browser> {
-  const headless = basename(executablePath).startsWith("chrome-headless-shell")
-    ? "shell"
-    : true;
-  return await puppeteer.launch({
-    executablePath,
-    headless,
-    args: ["--no-sandbox", "--disable-gpu"],
-  });
-}
-
-export async function withHeadlessBrowser<T>(
-  fn: (browser: Browser) => Promise<T>,
-): Promise<T> {
-  const browser = await launchHeadlessBrowser(await getBrowserExecutablePath());
-  try {
-    const result = await fn(browser);
-    await browser.close();
-    return result;
-  } catch (e) {
-    await browser.close();
-    throw e;
-  }
-}
-```
-
-Replace lines 348-396 (`getBrowserExecutablePath`, `fetchBrowser`, `fetcher`, `chromiumInstallDir`) with:
-
+4. Replace `getBrowserExecutablePath` and everything after it (lines 348-396) with:
 ```ts
 export async function getBrowserExecutablePath() {
   const detection = await detectBrowser();
 
   if (detection.detected) {
-    debug(`[CHROMIUM] Using ${detection.detected.label}: ${detection.detected.path}`);
+    debug(
+      `[CHROMIUM] Using ${detection.detected.label}: ${detection.detected.path}`,
+    );
     return detection.detected.path;
   }
 
   if (detection.warning) {
-    debug(`[CHROMIUM] ${detection.warning} Searching for another browser.`);
-  }
-
-  // Legacy: Chromium revisions downloaded by `quarto install chromium` (<= 1.9)
-  const platform = chromiumPlatform();
-  const legacyDir = chromiumInstallDir();
-  const availableRevisions = chromiumLocalRevisions(legacyDir, platform);
-  if (availableRevisions.length > 0) {
-    return chromiumExecutablePath(legacyDir, platform, availableRevisions[0]);
+    debug(`[CHROMIUM] ${detection.warning}`);
   }
 
   error("Chrome not found");
@@ -826,88 +205,572 @@ export async function getBrowserExecutablePath() {
 }
 ```
 
-Leave `PageOptions` (88-98), `ChromeInfo`/`findChrome` (212-278), `BrowserDetection`, `BrowserDetectionResult`, `detectBrowser` (280-346) as they are.
+- [ ] **Step 4: Correct the comments that name puppeteer**
 
-- [ ] **Step 5: Type-check, lint, run the unit tests**
+In `src/core/handlers/types.ts` replace `   * Uses puppeteer.` (line 88) with `   * Uses headless Chrome over CDP (src/core/cri/).` and in line 110 replace `Extract HTML elements from an HTML page. Uses puppeteer.` with `Extract HTML elements from an HTML page. Uses headless Chrome over CDP (src/core/cri/).`
 
-Run: `package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/core/puppeteer.ts src/quarto.ts && package/dist/bin/tools/x86_64/deno lint src/core/puppeteer.ts src/tools/impl/`
-Expected: exit 0, lint clean. Deno downloads `puppeteer-core` and its dependencies on first use (about 20 MB in `package/dist/bin/deno_cache`).
+In `src/core/cri/launch.ts` delete lines 13-16:
+```ts
+ * Not to be confused with the launch path in src/core/puppeteer.ts
+ * (`withHeadlessBrowser`, reached through `withPuppeteerBrowserAndPage` and
+ * `inPuppeteer`), which starts Chrome through puppeteer rather than over CDP.
+ * Nothing outside that file enters it today, but it is a second launch path.
+```
+(and the empty ` *` line that follows them, so one blank comment line separates the paragraphs).
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/puppeteer.test.ts`
-Expected: without a browser, 1 passed and 2 skipped (the harness prints the skip); with `package/dist/bin/quarto install chrome-headless-shell --no-prompt` done first, `3 passed`. Run it both ways before the PR: the browser-backed tests are the only proof that `headless: "shell"` and the two flags launch the installed `chrome-headless-shell`.
+In `src/core/deno/monkey-patch.ts` delete lines 26-28:
+```ts
+// TODO:
+// Puppeteer (and only Puppeteer) uses Deno.run, but it still more-or-less exists
+// in the Deno namespace.
+```
 
-- [ ] **Step 6: Run the browser-dependent smoke tests**
+- [ ] **Step 5: Run the test and type-check**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/check/check.test.ts smoke/env/install.test.ts smoke/axe/axe-findings.test.ts`
-Expected: all passed (`check` prints the Chrome section through `detectBrowser`; `install.test.ts` runs `quarto tools list`, which calls the legacy `latestRelease` with no network; `axe-findings` uses `getBrowserExecutablePath` for its prerequisite and launches through CRI).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/browser-discovery.test.ts`
+Expected: `1 passed`.
+Run: `package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/core/puppeteer.ts src/core/cri/launch.ts src/command/check/check.ts`
+Expected: exit 0. (`src/tools/impl/chromium.ts` still imports `getPuppeteer`/`fetcher`/`chromiumInstallDir` and fails to type-check until Task 3 deletes it; check it is the only failure with `deno check --import-map src/import_map.json src/quarto.ts 2>&1 | grep -c 'tools/impl/chromium.ts'` > 0 and no other file named.)
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent docs/smoke-all/2026/02/12/mermaid-typst.qmd docs/smoke-all/2026/02/12/mermaid-multi-diagram.qmd`
-Expected: all passed (mermaid → `withCriClient` → `launchChrome` → `getBrowserExecutablePath`).
+- [ ] **Step 6: Commit (red until Task 3 for `src/quarto.ts`; squash if the project prefers green commits)**
+
+```bash
+git add src/core/puppeteer.ts src/core/handlers/types.ts src/core/cri/launch.ts src/core/deno/monkey-patch.ts tests/unit/core/browser-discovery.test.ts
+git commit -m "Remove the unused puppeteer launch helpers
+
+Chrome is driven over CDP by src/core/cri (mermaid, createPngsFromHtml,
+axe); the puppeteer path had no caller. src/core/puppeteer.ts keeps
+browser discovery only."
+```
+
+### Task 2: Detect and remove an old `quarto install chromium` download
+
+**Files:**
+- Create: `src/tools/impl/chromium-legacy.ts`
+- Test: `tests/unit/tools/chromium-legacy.test.ts`
+
+- [ ] **Step 1: Write the failing test**
+
+Create `tests/unit/tools/chromium-legacy.test.ts`:
+
+```ts
+/*
+ * chromium-legacy.test.ts
+ *
+ * The removed `chromium` tool downloaded into <quarto data dir>/chromium/
+ * <platform>-<revision>/; Quarto only detects and removes that directory now.
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+
+import { unitTest } from "../../test.ts";
+import { assert, assertEquals } from "../../asserts.ts";
+import { join } from "../../../src/deno_ral/path.ts";
+import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
+import { createTempContext } from "../../../src/core/temp.ts";
+import {
+  hasLegacyChromium,
+  legacyChromiumDir,
+  removeLegacyChromium,
+} from "../../../src/tools/impl/chromium-legacy.ts";
+
+// deno-lint-ignore require-await
+unitTest("chromium-legacy - detects a downloaded revision directory only", async () => {
+  const temp = createTempContext();
+  try {
+    const parent = temp.createDir();
+    const dir = join(parent, "chromium");
+    assert(!hasLegacyChromium(dir), "missing directory");
+    ensureDirSync(join(dir, "junk"));
+    assert(!hasLegacyChromium(dir), "no <platform>-<revision> directory");
+    ensureDirSync(join(dir, "linux-869685", "chrome-linux"));
+    assert(hasLegacyChromium(dir), "linux-869685");
+  } finally {
+    temp.cleanup();
+  }
+});
+
+// deno-lint-ignore require-await
+unitTest("chromium-legacy - removes the directory inside the boundary once", async () => {
+  const temp = createTempContext();
+  try {
+    const parent = temp.createDir();
+    const dir = join(parent, "chromium");
+    ensureDirSync(join(dir, "win64-869685", "chrome-win"));
+    assertEquals(removeLegacyChromium(dir, parent), true);
+    assert(!existsSync(dir));
+    assertEquals(removeLegacyChromium(dir, parent), false);
+    assertEquals(legacyChromiumDir().replaceAll("\\", "/").endsWith("quarto/chromium"), true);
+  } finally {
+    temp.cleanup();
+  }
+});
+```
+
+- [ ] **Step 2: Run it and see it fail**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/chromium-legacy.test.ts`
+Expected: FAIL, `Module not found ".../src/tools/impl/chromium-legacy.ts"`.
+
+- [ ] **Step 3: Implement**
+
+Create `src/tools/impl/chromium-legacy.ts`:
+
+```ts
+/*
+ * chromium-legacy.ts
+ *
+ * The `chromium` tool (Quarto 1.9 and earlier) downloaded Chromium with
+ * puppeteer 9's BrowserFetcher into <quarto data dir>/chromium/
+ * <linux|mac|win32|win64>-<revision>/. The tool is removed; Quarto only
+ * detects that directory (to point at the cleanup command) and removes it.
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+
+import { join } from "../../deno_ral/path.ts";
+import {
+  existsSync,
+  safeRemoveDirSync,
+  walkSync,
+} from "../../deno_ral/fs.ts";
+import { userDataDir } from "../../core/appdirs.ts";
+
+const kRevisionDirRe = /^(linux|mac|win32|win64)-\d+$/;
+
+export function legacyChromiumDir(): string {
+  return join(userDataDir("quarto"), "chromium");
+}
+
+export function hasLegacyChromium(dir = legacyChromiumDir()): boolean {
+  if (!existsSync(dir)) {
+    return false;
+  }
+  for (
+    const entry of walkSync(dir, {
+      maxDepth: 1,
+      includeFiles: false,
+      includeDirs: true,
+    })
+  ) {
+    if (entry.path !== dir && kRevisionDirRe.test(entry.name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function removeLegacyChromium(
+  dir = legacyChromiumDir(),
+  boundary = userDataDir("quarto"),
+): boolean {
+  if (!existsSync(dir)) {
+    return false;
+  }
+  safeRemoveDirSync(dir, boundary);
+  return true;
+}
+```
+
+- [ ] **Step 4: Run the test**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/chromium-legacy.test.ts`
+Expected: `2 passed`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/tools/impl/chromium-legacy.ts tests/unit/tools/chromium-legacy.test.ts
+git commit -m "Add detection and removal of an old 'quarto install chromium' download"
+```
+
+### Task 3: Remove the `chromium` tool and the `puppeteer` dependency
+
+**Files:**
+- Delete: `src/tools/impl/chromium.ts`
+- Modify: `src/tools/tools.ts`, `src/tools/tools-console.ts`, `src/tools/impl/chrome-headless-shell.ts`, `src/command/check/check.ts`
+- Modify: `src/import_map.json`, `deno.lock`
+
+- [ ] **Step 1: The tool registry (`src/tools/tools.ts`)**
+
+1. Delete line 20 `import { chromiumInstallable } from "./impl/chromium.ts";` and add `import { hasLegacyChromium, removeLegacyChromium } from "./impl/chromium-legacy.ts";`.
+2. Replace lines 31-45
+```ts
+// The tools that are available to install
+const kInstallableTools: { [key: string]: InstallableTool } = {
+  tinytex: tinyTexInstallable,
+  // temporarily disabled until deno 1.28.* gets puppeteer support
+  chromium: chromiumInstallable,
+  "chrome-headless-shell": chromeHeadlessShellInstallable,
+  verapdf: verapdfInstallable,
+};
+
+// Tools deprecated in v1.10, to be removed from the registry in v1.11
+const kDeprecatedTools = new Set(["chromium"]);
+
+export function isDeprecatedTool(key: string): boolean {
+  return kDeprecatedTools.has(key);
+}
+```
+with
+```ts
+// The tools that are available to install. `chromium` was removed in v1.11;
+// installTool/updateOrInstallTool redirect it to chrome-headless-shell and
+// uninstallTool removes an old download (src/tools/impl/chromium-legacy.ts).
+const kInstallableTools: { [key: string]: InstallableTool } = {
+  tinytex: tinyTexInstallable,
+  "chrome-headless-shell": chromeHeadlessShellInstallable,
+  verapdf: verapdfInstallable,
+};
+```
+3. In `allTools()` replace `} else if (!isDeprecatedTool(name)) {` with `} else {`.
+4. In `checkToolRequirement` delete the `if (name.toLowerCase() === "chromium" && isWSL()) { ... return false; } else ` branch (lines 102-112) so the function starts with `if (name.toLowerCase() === "chrome-headless-shell" && isWSL()) {`; delete the `isWSL` import only if nothing else in the file uses it (`grep -n isWSL src/tools/tools.ts`).
+5. At the start of `uninstallTool` (before `const tool = installableTool(name);`) add:
+```ts
+  // the removed `chromium` tool: delete an old download, if any
+  if (name.toLowerCase() === "chromium") {
+    if (removeLegacyChromium()) {
+      info("Removed the Chromium downloaded by 'quarto install chromium'.");
+    } else {
+      info("No Chromium download from 'quarto install chromium' was found.");
+    }
+    return;
+  }
+```
+and export `hasLegacyChromium` for the console code by adding `export { hasLegacyChromium, removeLegacyChromium } from "./impl/chromium-legacy.ts";` at the end of the import block (so `tools-console.ts` and `check.ts` import from `tools.ts`, as they do for the rest).
+
+- [ ] **Step 2: The console (`src/tools/tools-console.ts`)**
+
+1. In the import from `./tools.ts` (lines 11-18) remove `isDeprecatedTool` and add `removeLegacyChromium`.
+2. In `loadTools` delete the line `      if (!installed && isDeprecatedTool(key)) continue;`.
+3. Replace lines 164-169
+```ts
+      // Uninstall legacy chromium before delegating to chrome-headless-shell.
+      // We can't do this after because installTool/updateTool call Deno.exit.
+      const legacyTool = installableTool("chromium");
+      if (legacyTool && await legacyTool.installed()) {
+        await uninstallTool("chromium");
+      }
+```
+with
+```ts
+      // Remove an old `quarto install chromium` download before delegating to
+      // chrome-headless-shell (installTool/updateTool call Deno.exit).
+      if (removeLegacyChromium()) {
+        info("Removed the Chromium downloaded by 'quarto install chromium'.");
+      }
+```
+
+- [ ] **Step 3: `chrome-headless-shell` after-install (`src/tools/impl/chrome-headless-shell.ts`)**
+
+Replace line 34 `import { chromiumInstallable } from "./chromium.ts";` with `import { hasLegacyChromium, removeLegacyChromium } from "./chromium-legacy.ts";` and the body of `afterInstall` (lines 135-148)
+```ts
+  // Clean up legacy chromium installed by 'quarto install chromium'
+  try {
+    if (await chromiumInstallable.installed()) {
+      ctx.info("Removing legacy Chromium installation...");
+      await chromiumInstallable.uninstall(ctx);
+    }
+  } catch {
+    ctx.info(
+      "Note: Could not remove legacy Chromium. " +
+        "You can remove it manually with 'quarto uninstall chromium'.",
+    );
+  }
+  return false;
+```
+with
+```ts
+  // Clean up an old download from 'quarto install chromium'
+  try {
+    if (hasLegacyChromium()) {
+      ctx.info("Removing legacy Chromium installation...");
+      removeLegacyChromium();
+    }
+  } catch {
+    ctx.info(
+      "Note: Could not remove legacy Chromium. " +
+        "You can remove it manually with 'quarto uninstall chromium'.",
+    );
+  }
+  return false;
+```
+(`afterInstall` is `async function afterInstall(ctx: InstallContext): Promise<boolean>`; only the two calls inside the `try` change, `hasLegacyChromium`/`removeLegacyChromium` being synchronous.)
+
+- [ ] **Step 4: `quarto check` (`src/command/check/check.ts`)**
+
+1. In line 25 replace `import { allTools, installableTool } from "../../tools/tools.ts";` with `import { allTools, hasLegacyChromium } from "../../tools/tools.ts";` and add `import { legacyChromiumDir } from "../../tools/impl/chromium-legacy.ts";`.
+2. Delete lines 423-427:
+```ts
+      if (tool.name === "Chromium (deprecated)") {
+        toolsOutput.push(
+          `${kIndent}      (Run "quarto install chrome-headless-shell" to replace)`,
+        );
+      }
+```
+3. Replace the legacy block of `detectChromeForCheck` (lines 609-621)
+```ts
+  // Legacy: chromium installed by Quarto
+  const chromiumTool = installableTool("chromium");
+  if (chromiumTool && await chromiumTool.installed()) {
+    let path: string | undefined;
+    if (chromiumTool.binDir) {
+      path = await chromiumTool.binDir();
+    }
+    const version = await chromiumTool.installedVersion();
+    result.detected = {
+      label: "Chromium installed by Quarto",
+      path,
+      source: "quarto",
+      version,
+    };
+  }
+```
+with
+```ts
+  // An old `quarto install chromium` download is never used; say how to clean up
+  if (hasLegacyChromium()) {
+    const note =
+      `Chromium downloaded by 'quarto install chromium' was found in ${legacyChromiumDir()}; Quarto no longer uses it. Run 'quarto install chrome-headless-shell', then 'quarto uninstall chromium'.`;
+    result.warning = result.warning ? `${result.warning} ${note}` : note;
+  }
+```
+
+- [ ] **Step 5: Delete the tool and the dependency**
+
+Run: `git rm src/tools/impl/chromium.ts`
+In `src/import_map.json` delete the line
+```json
+    "puppeteer": "https://deno.land/x/puppeteer@9.0.2/mod.ts",
+```
+Run: `package/scripts/vendoring/update-lock.sh`
+Expected: `deno.lock updated; ...` (the `deno.land/x/puppeteer` entries stay until Task 6 deletes `src/vendor_deps.ts`, which still imports the port by URL).
+
+- [ ] **Step 6: Type-check, run the tests, exercise the CLI**
+
+Run: `package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/quarto.ts && rg -n 'chromiumInstallable|isDeprecatedTool|getPuppeteer|from "puppeteer"' src`
+Expected: exit 0; `rg` prints nothing.
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/browser-discovery.test.ts unit/tools/chromium-legacy.test.ts unit/tools/chrome-headless-shell.test.ts unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts $(find smoke/check smoke/env -name '*.test.ts')`
+Expected: all passed.
+
+Run (Linux; on macOS the data dir is `~/Library/Application Support/quarto`, on Windows `%LOCALAPPDATA%\quarto`):
+```bash
+D="${XDG_DATA_HOME:-$HOME/.local/share}/quarto/chromium/linux-869685/chrome-linux"
+mkdir -p "$D"
+QUARTO_CHROMIUM=/nonexistent package/dist/bin/quarto check install 2>&1 | grep -A3 'Checking Chrome Headless'
+package/dist/bin/quarto list tools 2>&1 | grep -ci chromium
+package/dist/bin/quarto uninstall chromium --no-prompt; test ! -e "${D%/linux-869685/chrome-linux}" && echo removed
+package/dist/bin/quarto install chromium --no-prompt 2>&1 | head -2
+```
+Expected: the Chrome section shows the `NOTE:` naming the directory when no other browser is found (if a system Chrome or chrome-headless-shell is installed, `Using: ...` is printed instead and no note, which is also correct); `grep -ci` prints `0`; `Removed the Chromium downloaded by 'quarto install chromium'.` then `removed`; the deprecation warning, then the `chrome-headless-shell` install.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/import_map.json src/core/puppeteer.ts tests/unit/core/puppeteer.test.ts
-git commit -m "Launch browsers with npm:puppeteer-core instead of the deno.land puppeteer 9 port
+git add src/tools/tools.ts src/tools/tools-console.ts src/tools/impl/chrome-headless-shell.ts src/command/check/check.ts src/import_map.json deno.lock
+git commit -m "Remove the deprecated chromium tool and the puppeteer 9 port
 
-The legacy chromium fallback reads the old download directory directly;
-BrowserFetcher no longer exists in puppeteer-core."
+'quarto install chromium' and 'quarto update tool chromium' still redirect
+to chrome-headless-shell; 'quarto uninstall chromium' removes an old
+download, which Quarto no longer uses to render."
 ```
 
-### Task 4: `src/vendor_deps.ts` and the `std@0.93.0` redirects
+### Task 4: Chrome features still work (CDP path)
+
+**Files:** none
+
+- [ ] **Step 1: Mermaid, axe and the bundle**
+
+Run: `package/dist/bin/quarto install chrome-headless-shell --no-prompt` (if `quarto check` reports `Chrome: (not detected)`), then:
+```bash
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/axe/axe-findings.test.ts
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent \
+  docs/smoke-all/2026/02/12/mermaid-typst.qmd docs/smoke-all/2026/02/12/mermaid-multi-diagram.qmd docs/smoke-all/2023/12/11/4376.qmd
+cd package/src && ./quarto-bld prepare-dist --set-version $(cat ../../version.txt) && cd ../..
+package/dist/bin/quarto run --dev tools/check-bundle-externals.ts package/pkg-working/bin/quarto.js
+```
+Expected: all passed (mermaid to Typst renders an image through `withCriClient`); `OK: no external module specifiers ...` (nothing puppeteer-related is left to bundle).
+
+### Task 5: Changelog
 
 **Files:**
-- Modify: `src/vendor_deps.ts:10-14`
-- Modify: `src/import_map.json:67-69`
+- Modify: `news/changelog-1.11.md`
 
-- [ ] **Step 1: Drop the puppeteer lines from the vendoring entrypoint**
+- [ ] **Step 1: Open the PR as a draft and get its number**
 
-In `src/vendor_deps.ts` delete lines 10-14:
+Run: `git push -u origin rt/07-remove-puppeteer-and-chromium-tool && gh pr create --draft --fill && gh pr view --json number -q .number`
+Expected: the PR number (for example `15106`).
 
-```ts
-// for puppeteer
-import { dirname, join, SEP } from "https://deno.land/std@0.93.0/path/mod.ts";
-import puppeteer from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
-import _jszip from "https://dev.jspm.io/jszip@3.5.0";
-// import * as _base64 from "https://deno.land/std@0.93.0/encoding/base64.ts";
+- [ ] **Step 2: Add the entry**
+
+In `news/changelog-1.11.md`, under `## Commands`, add a subsection `### \`install\`` after `### \`check\`` (or add to it if it exists) with:
+```markdown
+- ([#15106](https://github.com/quarto-dev/quarto-cli/pull/15106)): Remove the `chromium` tool, deprecated in 1.10. `quarto install chromium` and `quarto update tool chromium` still install `chrome-headless-shell` with a deprecation warning, and `quarto uninstall chromium` removes a Chromium downloaded by Quarto 1.9 or earlier. Quarto no longer renders with such a download; run `quarto install chrome-headless-shell` if no Chrome or Edge is installed.
 ```
 
-Keep lines 15-17 (the `std@0.196.0/encoding/base64.ts` import belongs to the Cliffy rc.3 graph; PR 06 removes it). `jszip` has no other importer (`grep -rn jszip src package/src tests --include=*.ts` finds only this file and a URL in a comment in `package/src/common/update-html-dependencies.ts:676`).
+- [ ] **Step 3: Commit**
 
-- [ ] **Step 2: Find out whether the `std@0.93.0` redirects are still used**
+```bash
+git add news/changelog-1.11.md
+git commit -m "Changelog: chromium tool removed"
+git push
+```
 
-Run the `deno info` script from `04-deps-deno-land-x-small.md`, Task 7, Step 1.
-Expected: `UNUSED` for `https://deno.land/std@0.93.0/encoding/base64.ts`, `https://deno.land/std@0.93.0/path/mod.ts` and `https://deno.land/std@0.93.0/` (the puppeteer port was their importer). Delete exactly the `UNUSED` keys among those three:
+### Task 6: Phase 0 exit: std redirects, `vendor_deps.ts`, dead import maps, remaining URLs
 
+Run this task only when PRs 03, 04, 05 and 06 are merged and this branch is rebased on them.
+
+**Files:**
+- Modify: `src/import_map.json`, `deno.lock`
+- Modify: `tests/smoke/inspect/inspect-code-cells.test.ts`, `inspect-extensions.test.ts`, `inspect-include.test.ts`, `inspect-recursive-include.test.ts`
+- Delete: `src/vendor_deps.ts`, `src/dev_import_map.json`, `src/import_map_additional_entries.json`, `package/src/common/create-dev-import-map.ts`
+- Modify: `package/scripts/vendoring/vendor.sh`, `package/scripts/vendoring/vendor.cmd`, `.github/workflows/actions/quarto-dev/action.yml`, `dev-docs/ci-deno-caching.md`, `.claude/CLAUDE.md`, `tests/README.md`
+- Modify: `tests/run-parallel-tests.ts`, `src/resources/tools/ast-diagram/main.ts`, `tools/document-generator/main.ts`, `tools/run-pandoc-capture.ts`, `tools/subcommand-history.ts`
+- Modify: `tools/runtime-boundary-baseline.json`
+
+- [ ] **Step 1: Check the prerequisites**
+
+Run: `grep -c 'deno\.land/x\|skypack' src/import_map.json; grep -cE '"(semver|deno_dom/|cliffy/command/mod.ts|yaml)": "(npm|jsr):' src/import_map.json`
+Expected: `0`, then `4` (03 moved `yaml` to npm, 04 `semver`, 05 `deno_dom/`, 06 `cliffy/command/mod.ts`; Task 3 removed `puppeteer`). Any other result means a Phase 0 PR is not merged into this branch yet: stop and rebase.
+
+- [ ] **Step 2: Rewrite the four inspect tests to `tests/asserts.ts`**
+
+In `tests/smoke/inspect/inspect-code-cells.test.ts`, `inspect-include.test.ts` and `inspect-recursive-include.test.ts` replace
+```ts
+import { assertObjectMatch } from "https://deno.land/std@0.93.0/assert/assert_object_match.ts";
+```
+with
+```ts
+import { assertObjectMatch } from "../../asserts.ts";
+```
+In `tests/smoke/inspect/inspect-extensions.test.ts` delete that line and replace `import { assert, assertEquals } from "testing/asserts";` with
+```ts
+import { assert, assertEquals, assertObjectMatch } from "../../asserts.ts";
+```
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/inspect -name '*.test.ts')`
+Expected: all passed.
+
+- [ ] **Step 3: Find which `deno.land/std` redirect keys anything still uses**
+
+Run (from the repository root; `deno info` fetches remote modules, so it needs network):
+```bash
+D=package/dist/bin/tools/$(uname -m | sed 's/arm64/aarch64/')/deno
+T=$(mktemp -d)
+{
+  for f in src/quarto.ts src/vendor_deps.ts tests/test-deps.ts package/src/bld.ts package/scripts/deno_std/deno_std.ts \
+           $(git ls-files 'tests/**/*.test.ts' 'tools/*.ts') \
+           $(git ls-files 'src/resources/**/*.ts' | grep -v -e '\.ejs\.ts$' -e '\.d\.ts$' \
+               -e '^src/resources/extension-subtrees/' -e '^src/resources/scripts/' -e '^src/resources/create/'); do
+    echo "import \"file://$PWD/$f\";"
+  done
+} > "$T/entrypoints.ts"
+"$D" info --json --import-map src/import_map.json "$T/entrypoints.ts" > "$T/info.json"
+"$D" eval --no-config '
+const info = JSON.parse(Deno.readTextFileSync(Deno.args[0]));
+const raw = new Set<string>();
+for (const m of info.modules ?? []) for (const d of m.dependencies ?? []) raw.add(d.specifier);
+const map = JSON.parse(Deno.readTextFileSync("src/import_map.json")).imports;
+for (const key of Object.keys(map)) {
+  if (!key.startsWith("https://deno.land/std")) continue;
+  const used = [...raw].filter((s) => key.endsWith("/") ? s.startsWith(key) : s === key);
+  console.log((used.length ? "USED   " : "UNUSED ") + key + (used.length ? "  <- " + used.slice(0, 3).join(", ") : ""));
+}' "$T/info.json"
+```
+(`src/resources/scripts/` and `src/resources/create/` are left out on purpose: they run with `src/resources/deno_std/run_import_map.json` or are templates, never with `src/import_map.json`; `src/vendor_deps.ts` is still an entrypoint here because Step 5 deletes it.)
+Expected: one line per `https://deno.land/std@...` key of `src/import_map.json`, all `UNUSED` except possibly `https://deno.land/std@0.196.0/encoding/base64.ts` (used by `src/vendor_deps.ts` itself, deleted in Step 5) and `https://deno.land/std@0.93.0/...` keys used by `src/vendor_deps.ts` (same). Any other `USED` line names its importer after `<-`: keep that key, add the importer to the PR description and to the allow-list of Step 7 with its owner, and continue.
+
+- [ ] **Step 4: Delete the unused redirect keys**
+
+In `src/import_map.json` delete every key reported `UNUSED` (and those used only by `src/vendor_deps.ts`). On `main` at `b86f98d` these are the eleven keys
 ```json
+    "https://deno.land/std@0.91.0/path/mod.ts": "jsr:/@std/path@1.0.8",
+    "https://deno.land/std@0.91.0/path/": "jsr:/@std/path@1.0.8/",
+    "https://deno.land/std@0.196.0/console/unicode_width.ts": "https://deno.land/std@0.224.0/console/unicode_width.ts",
+    "https://deno.land/std@0.161.0/": "https://deno.land/std@0.217.0/",
+    "https://deno.land/std@0.101.0/": "https://deno.land/std@0.217.0/",
+    "https://deno.land/std@0.105.0/": "https://deno.land/std@0.217.0/",
     "https://deno.land/std@0.93.0/encoding/base64.ts": "https://deno.land/std@0.196.0/encoding/base64.ts",
     "https://deno.land/std@0.93.0/path/mod.ts": "https://deno.land/std@0.204.0/path/mod.ts",
     "https://deno.land/std@0.93.0/": "https://deno.land/std@0.217.0/",
+    "https://deno.land/std@0.91.0/fs/exists.ts": "https://deno.land/std@0.217.0/fs/exists.ts",
+    "https://deno.land/std@0.91.0/fs/ensure_dir.ts": "https://deno.land/std@0.217.0/fs/ensure_dir.ts"
 ```
+(remove the trailing comma left on the new last entry so the JSON stays valid: `package/dist/bin/tools/x86_64/deno eval 'JSON.parse(Deno.readTextFileSync("src/import_map.json")); console.log("valid")'` prints `valid`).
 
-- [ ] **Step 3: Re-run the script, re-cache, and type-check**
+- [ ] **Step 5: Delete `src/vendor_deps.ts` and its references**
 
-Run: the script again; then `./configure.sh && package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/quarto.ts src/vendor_deps.ts`
-Expected: no `UNUSED` line for the three keys; `configure.sh` succeeds (it runs `deno install --entrypoint src/vendor_deps.ts`, which must still resolve); `deno check` exits 0.
+Run: `git rm src/vendor_deps.ts`
+In `package/scripts/vendoring/vendor.sh` and `vendor.cmd` remove `vendor_deps.ts` from the `--entrypoint` list (PR 00b's single `deno install` call). In `.github/workflows/actions/quarto-dev/action.yml` remove `'src/vendor_deps.ts', ` from the dev-cache `hashFiles(...)`. In `dev-docs/ci-deno-caching.md` delete the `src/vendor_deps.ts` row of the key table and change "six files" to "five files".
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Dead import maps and the remaining URLs**
+
+Run: `git rm src/dev_import_map.json src/import_map_additional_entries.json package/src/common/create-dev-import-map.ts` (none has a reader: `rg -n 'dev_import_map|import_map_additional_entries|create-dev-import-map' --hidden -g '!dev-docs/runtime-migration/**' .` lists only `.claude/CLAUDE.md:25`, `tests/README.md:369` and the files themselves).
+In `.claude/CLAUDE.md` replace
+```markdown
+- `src/import_map.json` / `src/dev_import_map.json` — Deno import mappings (production / development)
+```
+with
+```markdown
+- `src/import_map.json` — Deno import mappings; `deno.lock` pins what they resolve to (update both with `package/scripts/vendoring/update-lock.sh`)
+```
+In `tests/README.md:369` replace `--importmap=C:\Users\chris\Documents\DEV_R\quarto-cli\src\dev_import_map.json` with `--importmap=C:\Users\chris\Documents\DEV_R\quarto-cli\src\import_map.json`.
+
+Pin the five unversioned `deno.land/std` imports of dev scripts and the test runner to JSR (these scripts run with plain `deno run` or `quarto run`, outside `src/import_map.json`):
+- `src/resources/tools/ast-diagram/main.ts:3`: `import { join } from "https://deno.land/std/path/mod.ts";` → `import { join } from "jsr:@std/path@1.0.8";`
+- `tools/run-pandoc-capture.ts:2`: `import { resolve, dirname } from "https://deno.land/std/path/mod.ts";` → `import { resolve, dirname } from "jsr:@std/path@1.0.8";`
+- `tools/subcommand-history.ts:46`: `import { join, relative } from "https://deno.land/std/path/mod.ts";` → `import { join, relative } from "jsr:@std/path@1.0.8";`
+- `tools/document-generator/main.ts:1`: `import * as mod from "https://deno.land/std/yaml/mod.ts";` → `import * as mod from "jsr:@std/yaml@1.0.5";` (`mod.stringify` exists in `@std/yaml` 1.0.5)
+- `tests/run-parallel-tests.ts:13-17` (the fallback when `stdlib/*` does not resolve): `await import("https://deno.land/std/path/mod.ts")` → `await import("jsr:@std/path@0.224.0")`, `await import("https://deno.land/std/fs/mod.ts")` → `await import("jsr:@std/fs@0.224.0")`, `await import("https://deno.land/std/flags/mod.ts")` → `await import("jsr:@std/flags@0.224.0")` (the versions `run_import_map.json` maps `stdlib/path`, `stdlib/fs`, `stdlib/flags` to).
+
+Run: `cd tests && ./run-parallel-tests.sh -n=2 --dry-run | head -5`
+Expected: the bucket listing (the runner still starts).
+
+- [ ] **Step 7: The Phase 0 exit check**
+
+Run:
+```bash
+rg -n 'deno\.land|skypack|jspm' src package tests tools \
+  -g '!src/resources/deno_std/**' -g '!package/scripts/deno_std/deno_std.ts' \
+  -g '!src/resources/scripts/**' \
+  -g '!src/resources/tools/ast-tracing/**' -g '!tools/sass-variable-explainer/parse-web.ts' -g '!tests/docs/reveal/actors.js' \
+  -g '!tests/integration/playwright/tests/axe-accessibility.spec.ts' -g '!tests/unit/axe-no-cdn.test.ts' \
+  -g '!tests/docs/manuscript/ipynb-full/**' \
+  -g '!src/core/deno/debug.ts' -g '!src/core/jupyter/capabilities.ts' -g '!src/core/lib/glob.ts' \
+  -g '!src/core/lib/external/colors.ts' -g '!src/core/lib/external/README.md' -g '!src/publish/confluence/confluence-helper.ts'
+echo "exit=$?"
+```
+Expected: no output and `exit=1` (`rg` exits 1 when nothing matches). Every allow-list entry is in the table of the Context section; add a line to that table (in this plan and in the PR description) for any entry Step 3 kept.
+
+- [ ] **Step 8: Re-vendor, configure from scratch, run the suites, lower the ratchet**
+
+Run:
+```bash
+package/scripts/vendoring/update-lock.sh
+rm -rf package/dist/bin/deno_cache && ./configure.sh && git status --short
+package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/quarto.ts package/src/bld.ts
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/inspect smoke/check -name '*.test.ts') unit/tools/check-runtime-boundary.test.ts
+cd .. && package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline && git diff tools/runtime-boundary-baseline.json
+```
+Expected: `configure` succeeds with the frozen lockfile (it no longer vendors `vendor_deps.ts`, so no `deno.land/x/puppeteer` or `dev.jspm.io` fetch); `git status --short` shows only this task's changes; `deno check` exits 0; tests pass; the baseline diff lowers `src.stdImportFiles` by 1 (`src/vendor_deps.ts`) and `tests.stdImportFiles` by 4 (the inspect tests), nothing else.
+
+- [ ] **Step 9: Commit**
 
 ```bash
-git add src/vendor_deps.ts src/import_map.json
-git commit -m "Drop puppeteer 9 port from the vendoring entrypoint and its std redirects"
+git add -A src/import_map.json deno.lock tests/smoke/inspect package/scripts/vendoring .github/workflows/actions/quarto-dev/action.yml \
+  dev-docs/ci-deno-caching.md .claude/CLAUDE.md tests/README.md tests/run-parallel-tests.ts \
+  src/resources/tools/ast-diagram/main.ts tools/document-generator/main.ts tools/run-pandoc-capture.ts tools/subcommand-history.ts \
+  tools/runtime-boundary-baseline.json
+git commit -m "Phase 0 exit: drop unused deno.land/std redirects, vendor_deps.ts and dead import maps
+
+No module resolved through src/import_map.json comes from deno.land,
+skypack or jspm any more; the remaining references are allow-listed
+(quarto run stdlib, browser-side code, comments)."
 ```
 
-### Task 5: Bundle and status
+### Task 7: Status
 
-**Files:**
-- Modify: `dev-docs/runtime-migration/README.md`
-
-- [ ] **Step 1: Build the release bundle and run `quarto check` from it**
-
-Run: `cd package/src && ./quarto-bld prepare-dist --set-version $(cat ../../version.txt) && ../pkg-working/bin/quarto check`
-Expected: the bundle builds (`puppeteer-core` and its `node:` imports go through `@luca/esbuild-deno-loader`) and `quarto check` prints all sections. If esbuild fails on a `puppeteer-core` internal (`require` of a JSON file, a dynamic import of `./package.json`, or a `node:` builtin the loader marks external in a way the launcher's `deno run` cannot load), capture the error in the PR and apply Decision 1 option B.
-
-- [ ] **Step 2: Set the PR 07 row to `in progress` and commit**
+- [ ] **Step 1: Set the PR 07 row to `in progress` (with the new file name) and commit**
 
 ```bash
 git add dev-docs/runtime-migration/README.md
@@ -917,45 +780,47 @@ git commit -m "runtime-migration: PR 07 in progress"
 ## Verification
 
 ```bash
-rm -rf package/dist/bin/deno_cache && ./configure.sh
-package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/quarto.ts src/vendor_deps.ts
-package/dist/bin/quarto install chrome-headless-shell --no-prompt     # so the browser-backed tests run
-package/dist/bin/quarto check                                          # Chrome Headless section: "Chrome Headless Shell installed by Quarto"
+rm -rf package/dist/bin/deno_cache && ./configure.sh                        # frozen deno.lock, no vendor_deps.ts
+git status --short                                                           # empty
+package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/quarto.ts package/src/bld.ts
+package/dist/bin/quarto install chrome-headless-shell --no-prompt            # so the browser-backed tests run
+package/dist/bin/quarto check                                                # Chrome Headless section: "Chrome Headless Shell installed by Quarto"
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent \
-  unit/tools/chromium-legacy-paths.test.ts unit/core/puppeteer.test.ts \
+  unit/core/browser-discovery.test.ts unit/tools/chromium-legacy.test.ts \
   unit/tools/chrome-headless-shell.test.ts unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts \
-  smoke/check/ smoke/env/ smoke/axe/axe-findings.test.ts
+  $(find smoke/check smoke/env smoke/inspect -name '*.test.ts') smoke/axe/axe-findings.test.ts
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent \
   docs/smoke-all/2026/02/12/mermaid-typst.qmd docs/smoke-all/2026/02/12/mermaid-multi-diagram.qmd \
   docs/smoke-all/2023/12/11/4376.qmd
-package/dist/bin/quarto install chromium --no-prompt 2>&1 | head -2    # deprecation redirect still printed
-quarto run --dev tools/check-runtime-boundary.ts                       # after PR 02: unchanged counts (see the ratchet note)
+package/dist/bin/quarto install chromium --no-prompt 2>&1 | head -2          # deprecation redirect still printed
+package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts            # OK against Task 6's baseline
 ```
+Plus Task 3 Step 6 (the fake old download) and Task 6 Step 7 (exit check).
 
-Ratchet note: this PR adds no `Deno.*` call site in `src/` (the new directory listing uses `walkSync` from `src/deno_ral/fs.ts` and the screenshot is written by puppeteer-core itself) and removes none (`Deno.env.get("QUARTO_CHROMIUM")` in `detectBrowser` stays), so the PR 02 check must report the same `src` numbers as `main`. If it reports a rise, a `Deno.` call crept into `chromium-legacy-paths.ts` or `puppeteer.ts`; move it behind `src/deno_ral/fs.ts` rather than updating the baseline.
-
-On the PR: `Smoke Tests` (both OSes install `chrome-headless-shell` in their setup and run the mermaid corpus), `Bundle Test`, `Test Tool Install` (Linux arm64 and macOS, including the chromium redirect job).
+On the PR: `Smoke Tests`, `Parallel Smokes Tests`, `Bundle Test` (three OSes), `Test Tool Install` (including the "Chromium deprecation redirect" job on four runners), `Runtime Boundary`.
 
 ## Review checklist
 
-- [ ] `src/core/puppeteer.ts` is the only importer of `"puppeteer"`; no `any` remains on `Browser`/`Page` parameters; `document` placeholders are gone.
-- [ ] `launchHeadlessBrowser` picks `"shell"` only for a `chrome-headless-shell*` basename and passes `--no-sandbox --disable-gpu`, matching `src/core/cri/launch.ts:276-278`.
-- [ ] `getBrowserExecutablePath` keeps the three-step order (env var, Quarto's chrome-headless-shell, system Chrome) before the legacy fallback, and the legacy fallback picks the highest revision.
-- [ ] `src/tools/impl/chromium.ts` imports nothing from `core/puppeteer.ts` (no cycle); `chromium-legacy-paths.ts` imports only `deno_ral/*` and `core/appdirs.ts`.
-- [ ] `preparePackage` rejects with the `chrome-headless-shell` message; `installTool("chromium")` still redirects before reaching it.
-- [ ] `src/vendor_deps.ts` has no `deno.land/x/puppeteer`, `dev.jspm.io` or `std@0.93.0` line; the import map has no `std@0.93.0` key the `deno info` script reported `USED`.
-- [ ] The browser-backed unit tests were run with a browser at least once (say so in the PR description, with the platform).
-- [ ] No new `Deno.*` call site in `src/` (`chromiumLocalRevisions` uses `walkSync`; screenshots go through puppeteer-core's `path` option).
+- [ ] `src/core/puppeteer.ts` exports only `findChrome`, `detectBrowser`, `getBrowserExecutablePath` and the two detection interfaces; no puppeteer import; no `quartoDataDir`/`UnreachableError` import left.
+- [ ] `getBrowserExecutablePath` keeps the three-step order and has no legacy fallback.
+- [ ] `src/tools/impl/chromium.ts` is deleted; `chromium-legacy.ts` imports only `deno_ral/*` and `core/appdirs.ts` (no cycle with `tools.ts`) and never creates the directory it inspects.
+- [ ] `quarto install chromium` and `quarto update tool chromium` still redirect with the same deprecation text the `test-install.yml` job greps for (`is deprecated`); `quarto uninstall chromium` removes the old directory.
+- [ ] `quarto check` no longer prints "Chromium (deprecated)" or "Chromium installed by Quarto"; it prints the `NOTE:` only when no browser is found and an old download exists.
+- [ ] The comments in `handlers/types.ts`, `cri/launch.ts`, `deno/monkey-patch.ts` no longer mention puppeteer.
+- [ ] Task 6 ran after 03–06 were merged; its `deno info` output and the Step 7 exit check output are pasted in the PR description; every remaining `deno.land`/skypack/jspm reference is in the allow-list table.
+- [ ] `src/vendor_deps.ts` and the three dead import-map files are gone and nothing references them.
+- [ ] The baseline diff lowers only `src.stdImportFiles` (−1) and `tests.stdImportFiles` (−4).
 
 ## Risks and rollback
 
-- `puppeteer-core` 25 may fail to bundle or to run under Deno's Node compatibility layer (it uses `node:child_process`, `node:net`, `ws`, and reads `package.json` for its version). The launch path has no callers, so a failure here does not break any user feature, but `Bundle Test` would go red. Fallback: Decision 1 option B (delete the dead launch helpers and the dependency), which turns this PR into "chromium tool off puppeteer" only.
-- `headless: "shell"` vs `true` for `chrome-headless-shell`: not verifiable without a browser in the planning sandbox. If the shell binary rejects the flags puppeteer passes, the error surfaces in `tests/unit/core/puppeteer.test.ts` (second and third tests) and the fix is in `launchHeadlessBrowser` only.
-- `quarto update chromium` used to re-download; it now logs the deprecation error. This is the intended end state of a tool scheduled for removal.
-- The legacy fallback in `getBrowserExecutablePath` returns a path without checking that the executable exists (puppeteer 9's `revisionInfo` did not either); `detectBrowser` already prefers every other option.
-- Rollback: revert the commits in reverse order; the `deno.land/x` entry, `vendor_deps.ts` lines and the `std@0.93.0` redirects return.
+- A user without Chrome, Edge or `chrome-headless-shell` who relied on an old `quarto install chromium` download now gets "Chrome not found" for mermaid-to-image, `createPngsFromHtml` and axe; the message and `quarto check` both name `quarto install chrome-headless-shell`. The deprecation in 1.10 announced this; the changelog says it again.
+- Third-party code that imported the puppeteer helpers from Quarto's sources: none is supported (these are internal modules, not the extension API).
+- `src/core/deno/monkey-patch.ts` still patches `Deno.copy`/`Deno.writeAll` "for dependencies not ported to Deno 2"; the puppeteer port was a likely user. PR 25, which removes the monkey-patch, should check with the bundle gate that nothing needs them any more.
+- Task 6 deletes import-map keys: a module the `deno info` sweep could not see (a dynamic import with a computed specifier) would fail with "Module not found" at runtime. The sweep covers every static and string-literal dynamic import of every entrypoint; the bundle gate (empty `DENO_DIR`, renders) and the full suite are the backstop. Rollback for one key: put it back.
+- Rollback: revert the commits in reverse order (each carries its `deno.lock` change); the tool, the port and the redirects return.
 
 ## Decisions needed
 
-1. **Keep the puppeteer launch helpers at all?** `withHeadlessBrowser`, `withPuppeteerBrowserAndPage`, `inPuppeteer`, `extractImagesFromElements`, `extractHtmlFromElements` have had no caller since mermaid moved to the CDP client; porting them (option A, this plan) keeps a second launch path and adds `puppeteer-core` and its dependencies (about 20 MB of sources; what reaches the bundle is smaller but not nothing) to every install. Option B: delete the five helpers, `PageOptions` and the `puppeteer` import-map entry; keep `findChrome`, `detectBrowser`, `getBrowserExecutablePath` and the legacy fallback; `tests/unit/core/puppeteer.test.ts` shrinks to nothing (delete it) and Task 3 becomes a deletion. Recommendation: **B**, unless a product reason to keep a puppeteer path exists (for example a planned screenshot feature); this plan is written for A because the migration assessment asked for the port, and A is a strict superset (B = A minus Task 3's launch code). Decide in the PR description.
-2. **Remove the deprecated `chromium` tool entirely** (`src/tools/tools.ts:35,41,102-110,125-132`, `src/tools/impl/chromium.ts`, the legacy fallback, the `check.ts:421-425` hint, the `test-install.yml` redirect job) instead of porting it. It was scheduled for removal in 1.11 (`tools.ts:40`). Recommendation: do it in a separate, user-visible PR with a changelog entry (`news/changelog-1.11.md`) and documentation update; this PR keeps the behaviour so it stays a dependency change.
+1. **Keep the file name `src/core/puppeteer.ts`?** It no longer has anything to do with puppeteer; renaming it (for example to `src/core/browser.ts`) touches its three importers (`src/command/check/check.ts`, `src/core/cri/launch.ts`, `tests/smoke/axe/axe-findings.test.ts`) and every future plan that cites the path. Recommendation: keep the name in this PR (smaller diff during Phase 0); rename in a one-commit follow-up after Phase 1 if wanted.
+
+Review items closed here: option A's `ws`/CommonJS bundling blocker (puppeteer-core is not added; decision 8), the deprecated tool's BrowserFetcher layout (deleted, only detection and removal remain), the four inspect tests the redirect deletion would have broken (rewritten to `tests/asserts.ts` before the redirects go), the dependency on a PR 06 step that did not exist (`vendor_deps.ts` is deleted here, after 06), the screenshot contradiction (no screenshot code remains), and the Phase 0 exit criterion with its allow-list.
