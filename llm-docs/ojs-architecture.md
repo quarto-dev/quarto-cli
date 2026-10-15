@@ -93,7 +93,7 @@ The static knitr `ojs_define()` (`ojs_static.R`) stops with an error in a cached
 
 For self-contained renders, `makeSelfContainedResources()` turns those files into `data:` URLs: local `.js` imports are bundled into one ES module with esbuild, and attachments get MIME types from the Deno `media_types` `lookup()`.
 
-In the browser, `FileAttachment(...).mimeType` comes from a different source: the bundled `mime` package's `getType()`, called in `fileAttachmentPathResolver` (`packages/ojs/quarto-ojs-runtime/src/quarto-ojs.js`). Upgrading `mime` can therefore change the MIME types users observe.
+In the browser, `fileAttachmentPathResolver` (`packages/ojs/quarto-ojs-runtime/src/quarto-ojs.js`) first checks the local resolver that `compile.ts` fills via `setLocalResolver()` in self-contained renders. A hit returns the `data:` URL string, and `FileAttachment(...).mimeType` is then `undefined`. Other attachments get `mimeType` from the bundled `mime` package's `getType()`, so upgrading `mime` can change the MIME types users observe in non-self-contained renders.
 
 ## Generated vs Hand-Edited
 

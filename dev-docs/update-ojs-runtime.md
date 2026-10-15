@@ -61,6 +61,6 @@ npm workspaces create junctions under `node_modules`. To remove `node_modules` o
 - Run the OJS smoke tests: `tests/smoke/ojs/*.test.ts` and `tests/smoke/render/render-ojs.test.ts`, plus the smoke-all documents with `{ojs}` cells (`rg -l '```\{ojs' tests/docs/smoke-all --glob '*.qmd'`).
 - Render an `{ojs}` document with `embed-resources: true` and open the HTML from disk. This is the inlined-bundle path, which the linked path does not exercise.
 - For changes to `@observablehq/inputs` or the Shiny bridge (`quarto-observable-shiny.js`), check a Shiny document with OJS inputs. Button styling depends on the Inputs form class name.
-- For a `mime` upgrade, compare `FileAttachment(...).mimeType` for common extensions before and after. The runtime reports the bundled `mime` package's type to user code.
+- For a `mime` upgrade, compare `FileAttachment(...).mimeType` for common extensions before and after, in a render without `embed-resources`. The runtime reports the bundled `mime` package's type to user code there; self-contained attachments resolve to `data:` URLs and report no `mimeType`.
 
 The [OJS Runtime Bundle workflow](../.github/workflows/test-ojs-runtime.yml) runs on pull requests that touch `packages/ojs/` or the bundles. It checks that the bundles match a rebuild, not that they work; the Playwright and smoke suites cover behavior.
