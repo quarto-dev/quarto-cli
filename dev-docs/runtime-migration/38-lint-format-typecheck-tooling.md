@@ -568,14 +568,14 @@ git commit -m "editor/docs: dprint and oxlint replace the Deno extension"
 
 - [ ] **Step 1:** Add `"tests/**/*.ts", "package/src/**/*.ts", "tools/**/*.{ts,mjs}"` to `dprint.json` `includes` (excludes: `tests/.venv/`, `tests/integration/playwright/node_modules/`, `tests/docs/`), and `tests package/src tools` to the `lint` script.
 - [ ] **Step 2:** `node tools/lint/migrate-directives.mjs tests package/src tools && npx dprint fmt && npx oxlint -c .oxlintrc.json --report-unused-disable-directives tests package/src tools 2>&1 | tail -1`.
-- [ ] **Step 3: Stop condition:** more than 50 lint findings, or a formatting commit that changes test behaviour (run `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/`). Either way: revert this task's commits (`git reset --hard HEAD~N`), keep Tasks 1-5, and open an issue with the numbers.
+- [ ] **Step 3: Stop condition:** more than 50 lint findings, or a formatting commit that changes test behaviour (run `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts')`). Either way: revert this task's commits (`git reset --hard HEAD~N`), keep Tasks 1-5, and open an issue with the numbers.
 - [ ] **Step 4:** Commit `"style: format and lint tests/, package/src, tools/"` (formatting and directives in separate commits).
 
 ## Verification
 
 - `npm run lint && npm run fmt:check && npm run typecheck`: exit 0.
 - `grep -rn "deno-lint-ignore\|denoland.vscode-deno\|\"deno\.\|@types/deno" src .vscode .claude quarto-cli.code-workspace package.json tsconfig.json`: no output.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/lint-directives-codemod.test.ts unit/`: green; the full matrix green (formatting and directives do not change behaviour).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/lint-directives-codemod.test.ts $(find unit/ -name '*.test.ts')`: green; the full matrix green (formatting and directives do not change behaviour).
 - `lint.yml` green; the scratch `any` commit makes it fail.
 
 ## Review checklist

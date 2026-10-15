@@ -126,7 +126,7 @@ export function runtimeScriptCommand(
 
 - `grep -rn 'Deno\.test(' tests --include=*.ts` prints exactly `tests/harness.ts:<n>:  Deno.test(args);`.
 - `grep -rnE '\bDeno\.' tests --include=*.ts | grep -v '^tests/docs/' | grep -v '^tests/harness.ts' | grep -v '^tests/run-parallel-tests.ts' | grep -v 'tests/unit/chrome-launch'` prints nothing; the two `chrome-launch*.test.ts` files contain only `Deno.` occurrences inside string literals (verify with `grep -n 'Deno\.' tests/unit/chrome-launch*.test.ts`: every hit is on a line starting with a backtick or quote).
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/` and `smoke/` → pass (full suite; CI runs it anyway).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts')` and `$(find smoke/ -name '*.test.ts')` → pass (full suite; CI runs it anyway).
 - `cd tests && ./run-parallel-tests.sh --dry-run` → prints the buckets, with the dev `quarto` on `PATH` and with an installed release `quarto` on `PATH` (the CI path).
 - `grep -rnE 'from "(testing/asserts|fmt/colors|encoding/base64|fs/eol|path)"|deno.land/std' tests --include=*.ts | grep -v '^tests/asserts.ts' | grep -v '^tests/docs/' | grep -v '^tests/run-parallel-tests.ts' | grep -v build-ts-extension` prints nothing.
 - Ratchet: `tests` `Deno.` count = 19 (`harness.ts` 3: `Deno.TestContext`, `Deno.TestDefinition`, `Deno.test`; the chrome-launch script strings 8; `run-parallel-tests.ts` 8); `tests` std-import files = 1 (`run-parallel-tests.ts`); `src/` and `package/src` unchanged; baseline committed.
@@ -792,9 +792,9 @@ Then `tests/test-deps.ts` by hand: line 2 becomes `import * as _asserts from "./
 
 - [ ] **Step 3: Type-check all test files**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts')`
 Expected: every unit test compiles and passes (`--check` is on in `run-tests.sh`).
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/inspect/ smoke/run/run-script.test.ts smoke/lua-unit/ smoke/render/render-html.test.ts smoke/jupyter/cache.test.ts` → pass.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/inspect/ -name '*.test.ts') smoke/run/run-script.test.ts $(find smoke/lua-unit/ -name '*.test.ts') smoke/render/render-html.test.ts smoke/jupyter/cache.test.ts` → pass.
 Run: the std-import acceptance grep → nothing.
 
 - [ ] **Step 4: Commit**
@@ -821,7 +821,7 @@ Expected (after Tasks 1–4): roughly `tests/unit: 330`, `tests/smoke: 320`, `te
 ```bash
 quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp,env,process,platform --dir tests/unit --dry-run | head -50
 quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp,env,process,platform --dir tests/unit
-cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ && cd ..
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts') && cd ..
 grep -rnE '\bDeno\.' tests/unit --include=*.ts | grep -v 'chrome-launch'
 ```
 
@@ -833,7 +833,7 @@ git add tests/unit && git commit -m "tests/unit: codemod Deno.* to deno_ral"
 
 - [ ] **Step 3: `tests/smoke`**
 
-Same three commands with `--dir tests/smoke`, then `./run-tests.sh --agent smoke/` (slow: 30–60 min; run the subset `smoke/render/ smoke/project/ smoke/use/ smoke/check/` locally and let CI run the rest), then the grep over `tests/smoke` must print nothing.
+Same three commands with `--dir tests/smoke`, then `./run-tests.sh --agent $(find smoke/ -name '*.test.ts')` (slow: 30–60 min; run the subset `$(find smoke/render/ -name '*.test.ts') $(find smoke/project/ -name '*.test.ts') $(find smoke/use/ -name '*.test.ts') $(find smoke/check/ -name '*.test.ts')` locally and let CI run the rest), then the grep over `tests/smoke` must print nothing.
 
 ```bash
 git add tests/smoke && git commit -m "tests/smoke: codemod Deno.* to deno_ral"
@@ -849,7 +849,7 @@ quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp,env,process,platform 
 
 The third run is idempotent over the subdirectories already done and rewrites `tests/test.ts`, `tests/utils.ts`, `tests/verify.ts`, `tests/verify-snapshot.ts`, `tests/puppeteer.ts`, `tests/verify-pdf-*.ts`, `tests/quarto-cmd.ts`, `tests/gha-grouping.ts`. It must not touch `tests/docs/**` or `tests/run-parallel-tests.ts` (both are `quarto run` scripts executed by whatever Quarto is installed): pass `--exclude tests/docs --exclude tests/run-parallel-tests.ts` if the tool supports it, otherwise run `git checkout -- tests/docs tests/run-parallel-tests.ts` before committing and say so in the PR.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ smoke/render/render-html.test.ts smoke/check/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts') smoke/render/render-html.test.ts $(find smoke/check/ -name '*.test.ts')`
 Run: `cd tests && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=../src/import_map.json integration/playwright-tests.test.ts tools/check-gha-log.ts`
 Expected: pass / exit 0.
 
@@ -932,8 +932,8 @@ git commit -m "ratchet baseline after the tests codemod; document the harness se
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/` → pass.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/` → pass (CI).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts')` → pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/ -name '*.test.ts')` → pass (CI).
 - `cd tests && ./run-parallel-tests.sh --dry-run` → works with the dev and with an installed `quarto`.
 - Acceptance greps → as stated.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.

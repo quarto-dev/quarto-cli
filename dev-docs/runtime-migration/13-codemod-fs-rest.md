@@ -179,12 +179,12 @@ git commit -m "tools: resolve realPath collision in tinytex.ts"
 
 - [ ] **Step 1: Unit tests that exercise the seven directories**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/ unit/extension/ unit/jupyter/ unit/confluence/ unit/project/ unit/preview-compatibility.test.ts unit/preview-brand-cache.test.ts unit/preview-external-links.test.ts unit/preview-initial-path.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/exec-process-stdin.test.ts unit/render-shared-output-dir.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/tools/ -name '*.test.ts') $(find unit/extension/ -name '*.test.ts') $(find unit/jupyter/ -name '*.test.ts') $(find unit/confluence/ -name '*.test.ts') $(find unit/project/ -name '*.test.ts') unit/preview-compatibility.test.ts unit/preview-brand-cache.test.ts unit/preview-external-links.test.ts unit/preview-initial-path.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/exec-process-stdin.test.ts unit/render-shared-output-dir.test.ts`
 Expected: `0 failed` (`unit/tools/` holds `chrome-for-testing`, `chrome-headless-shell` and `tinytex` tests; `unit/project/` exercises `src/render/notebook` through the project context).
 
 - [ ] **Step 2: Smoke tests across engines, extensions, preview, tools**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/engine/ smoke/jupyter/ smoke/extensions/ smoke/ojs/ smoke/embed/ smoke/env/ smoke/run/ smoke/check/check.test.ts smoke/inspect/inspect-extensions.test.ts smoke/render/render-jupyter.test.ts smoke/render/render-r.test.ts smoke/render/render-ojs.test.ts smoke/render/render-verapdf.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/engine/ -name '*.test.ts') $(find smoke/jupyter/ -name '*.test.ts') $(find smoke/extensions/ -name '*.test.ts') $(find smoke/ojs/ -name '*.test.ts') $(find smoke/embed/ -name '*.test.ts') $(find smoke/env/ -name '*.test.ts') $(find smoke/run/ -name '*.test.ts') smoke/check/check.test.ts smoke/inspect/inspect-extensions.test.ts smoke/render/render-jupyter.test.ts smoke/render/render-r.test.ts smoke/render/render-ojs.test.ts smoke/render/render-verapdf.test.ts`
 Expected: `0 failed` (Jupyter/R/veraPDF tests skip when their prerequisites are missing; note any skip in the PR). Publishing code has no smoke tests (network); `unit/confluence/` is its unit coverage.
 
 - [ ] **Step 3: Document the exclusions**

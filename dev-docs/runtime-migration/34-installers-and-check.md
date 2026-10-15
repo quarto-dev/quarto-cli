@@ -576,7 +576,7 @@ git commit -m "docs: Node signing notes, platform minimums, check JSON key, quar
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/check-pinned-versions.test.ts unit/linux-installer-config.test.ts unit/runtime-env.test.ts smoke/env/ smoke/check/`: all pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/check-pinned-versions.test.ts unit/linux-installer-config.test.ts unit/runtime-env.test.ts $(find smoke/env/ -name '*.test.ts') $(find smoke/check/ -name '*.test.ts')`: all pass.
 - `quarto run --dev tools/check-runtime-boundary.ts`: unchanged counts.
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ./quarto-bld make-installer-deb --set-version 99.9.9 && dpkg-deb -f ../out/quarto-99.9.9-linux-amd64.deb Depends` prints `libc6 (>= 2.28)`.
 - Dispatch `create-release.yml` with `publish-release=false`, `pre-release=true`, `os=all`: all jobs green; `test-smokes-built.yml` on the artifacts green (see `.claude/rules/testing/built-version-ci.md`).

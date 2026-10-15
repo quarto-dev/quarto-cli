@@ -78,7 +78,7 @@ Rewrite tool:
 - `grep -rnE 'from "(fmt/colors|flags|encoding/base64|encoding/hex|semver[^"]*)"' src package/src --include=*.ts | grep -v '^src/deno_ral/' | grep -v extension-subtrees | grep -v 'render/latexmk/quarto-latexmk.ts'` prints nothing.
 - `grep -rn 'from "jsr:\|from "https://deno.land/std' package/src --include=*.ts` prints nothing.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` → exit 0; `package/src/quarto-bld --help` → command list.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ smoke/render/render-html.test.ts` passes.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts') smoke/render/render-html.test.ts` passes.
 - Ratchet: `src` std-import files lower by the number of files whose only std imports were these three (the tool prints it), `package/src` std-import files lower by 3 (`find-bad-imports.ts`, `find-bad-types-constants.ts`, `util/git.ts`); `Deno.` counts unchanged; baseline committed.
 
 ## Plan
@@ -268,7 +268,7 @@ git commit -m "ratchet after the std seams; document which std modules have a se
 
 - Acceptance greps → empty.
 - `deno check` of `src/quarto.ts` and the `package/src` entries → exit 0; `quarto-bld --help` → works.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ smoke/render/render-html.test.ts` → pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts') smoke/render/render-html.test.ts` → pass.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 
 ## Review checklist

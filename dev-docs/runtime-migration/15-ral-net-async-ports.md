@@ -693,7 +693,7 @@ async function tcpConnectToKernel(
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
 Expected: exit 0.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/jupyter/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/jupyter/ -name '*.test.ts')`
 Expected: `ok | N passed | 0 failed`. `daemon.test.ts` (PR 14b) is the one that goes through `executeKernelKeepalive` → `connectToKernel` → `tcpConnectToKernel` (first render starts the daemon, second reuses it over the new transport, the last aborts it through `abortKernel` → `writeKernelCommand`); the other Jupyter tests pass `--no-execute-daemon` and only exercise `abortKernel`'s connect attempt.
 
 - [ ] **Step 6: Commit**
@@ -732,7 +732,7 @@ git commit -m "ratchet baseline after net.ts; document net.ts in deno-ral rules"
 ## Verification
 
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts` → `ok | 5 passed | 0 failed`.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts smoke/axe/axe-transport-failclosed.test.ts smoke/jupyter/ smoke/preview/preview-reload.test.ts` → all pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts smoke/axe/axe-transport-failclosed.test.ts $(find smoke/jupyter/ -name '*.test.ts') smoke/preview/preview-reload.test.ts` → all pass.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - `grep -rn 'Deno\.connect\|Deno\.listen\|Deno\.Conn\b' src --include=*.ts | grep -v '^src/deno_ral/' | grep -v extension-subtrees` → empty.
 - Manual: `package/dist/bin/quarto preview <qmd> --port 4321` twice (second fails with "already in use"); a Shiny document preview with a render token prints `Preview service running (<port>)` and `curl -s http://127.0.0.1:<port>/` answers while `curl -s http://<lan-ip>:<port>/` is refused.

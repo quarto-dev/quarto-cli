@@ -1223,7 +1223,7 @@ In `src/core/run/deno.ts`:
 
 - [ ] **Step 7: Run and commit**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-runtime-select.test.ts smoke/run/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-runtime-select.test.ts $(find smoke/run/ -name '*.test.ts')`
 Expected: all pass (`run-script.test.ts`, `stdlib-run-version.test.ts`, `command-passthrough.test.ts` now on Node; `run-script-node.test.ts` 3 passed). Then `quarto run --dev tools/check-runtime-boundary.ts` prints unchanged counts (on Node). If it fails on a `Deno.` member of the shim or the import-map hook, fix the tool (it is repository code) rather than the shim, and list the fix in the PR.
 
 ```bash
@@ -1364,7 +1364,7 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-stdlib-manifest.test.ts unit/run-compat-hooks.test.ts unit/run-compat-shim.test.ts unit/run-runtime-select.test.ts smoke/run/ smoke/project/project-prepost.test.ts smoke/project/project-script-runtime.test.ts`: all pass on Linux and macOS; on Windows `stdlib-run-version` stays `ignore` as today.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-stdlib-manifest.test.ts unit/run-compat-hooks.test.ts unit/run-compat-shim.test.ts unit/run-runtime-select.test.ts $(find smoke/run/ -name '*.test.ts') smoke/project/project-prepost.test.ts smoke/project/project-script-runtime.test.ts`: all pass on Linux and macOS; on Windows `stdlib-run-version` stays `ignore` as today.
 - `quarto run --dev tools/check-runtime-boundary.ts`: runs on Node, unchanged counts; the ratchet workflow is green on the branch.
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ls ../pkg-working/share/run-stdlib/*.js | wc -l` prints `34`; `ls ../pkg-working/share/run-compat` lists `deno`, `deno-shim.cjs`, `register.cjs`.
 - Installed layout: `cd package/pkg-working/bin && ./quarto run ../../../tests/docs/run/test-stdlib.ts` exits 0.

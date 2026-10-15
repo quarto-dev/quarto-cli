@@ -261,12 +261,12 @@ git commit -m "core: Deno.errors instanceof checks through deno_ral/errors predi
 
 - [ ] **Step 1: Unit tests that exercise `src/core`**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/ unit/paths/ unit/path.test.ts unit/ral/ unit/dotenv-config.test.ts unit/environment.test.ts unit/sass-cache.test.ts unit/exec-process-stdin.test.ts unit/render/cleanup.test.ts unit/file-permissions.test.ts unit/config/ unit/typst-fonts.test.ts unit/dart-sass.test.ts unit/jupyter/ unit/mapped-strings/ unit/break-quarto-md/ unit/schema-validation/ unit/text.test.ts unit/markdown-pipeline.test.ts unit/pandoc.test.ts unit/pandoc-formats.test.ts unit/pandoc-partition.test.ts unit/chrome-launch.test.ts unit/preview-brand-cache.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/core/ -name '*.test.ts') $(find unit/paths/ -name '*.test.ts') unit/path.test.ts $(find unit/ral/ -name '*.test.ts') unit/dotenv-config.test.ts unit/environment.test.ts unit/sass-cache.test.ts unit/exec-process-stdin.test.ts unit/render/cleanup.test.ts unit/file-permissions.test.ts $(find unit/config/ -name '*.test.ts') unit/typst-fonts.test.ts unit/dart-sass.test.ts $(find unit/jupyter/ -name '*.test.ts') $(find unit/mapped-strings/ -name '*.test.ts') $(find unit/break-quarto-md/ -name '*.test.ts') $(find unit/schema-validation/ -name '*.test.ts') unit/text.test.ts unit/markdown-pipeline.test.ts unit/pandoc.test.ts unit/pandoc-formats.test.ts unit/pandoc-partition.test.ts unit/chrome-launch.test.ts unit/preview-brand-cache.test.ts`
 Expected: `0 failed`.
 
 - [ ] **Step 2: Smoke tests that go through the touched code (render pipeline, freezer, caches, http server, temp dirs)**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-minimal.test.ts smoke/render/render-output-dir.test.ts smoke/project/project-simple.test.ts smoke/project/project-prepost.test.ts smoke/site/render-site.test.ts smoke/jupyter/cache.test.ts smoke/logging/ smoke/check/check.test.ts smoke/run/ smoke/env/ smoke/extensions/install.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-minimal.test.ts smoke/render/render-output-dir.test.ts smoke/project/project-simple.test.ts smoke/project/project-prepost.test.ts smoke/site/render-site.test.ts smoke/jupyter/cache.test.ts $(find smoke/logging/ -name '*.test.ts') smoke/check/check.test.ts $(find smoke/run/ -name '*.test.ts') $(find smoke/env/ -name '*.test.ts') smoke/extensions/install.test.ts`
 Expected: `0 failed`.
 
 - [ ] **Step 3: Ratchet**

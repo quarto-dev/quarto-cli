@@ -125,7 +125,7 @@ export function canonicalPathSync(path: string | URL): string;
 - `rg -n 'originalRealPathSync|monkey-patch|original-real-path' src tests package/src .claude -g '!dev-docs/**'` prints nothing; `rg -n 'import \{[^}]*\bcall\b[^}]*\} from "[./]*deno_ral/process.ts"' src -g '*.ts'` prints nothing.
 - The type inventory grep above prints only `tests/test.ts:545` if PR 23 kept it, or nothing.
 - The hidden-dependency inventory (Context) holds; the PR description lists each item with its evidence.
-- Full suite green: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/` locally; `smoke/` in CI on Linux, macOS and Windows.
+- Full suite green: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts')` locally; `$(find smoke/ -name '*.test.ts')` in CI on Linux, macOS and Windows.
 
 ## Plan
 
@@ -267,7 +267,7 @@ git rm src/core/deno/monkey-patch.ts src/deno_ral/original-real-path.ts
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` → exit 0.
 Run: `rg -n 'originalRealPathSync|original-real-path|monkey-patch' src tests package/src .claude` → nothing (Task 8 fixes `.claude/rules/typescript/deno-ral.md` if it is the only hit).
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/ unit/path.test.ts unit/project/ smoke/project/project-detect-denied-config.test.ts smoke/check/check-info-project.test.ts smoke/project/project-prepost.test.ts smoke/render/render-html.test.ts` → pass. (`unit/ral/fs.test.ts` "canonicalPathSync resolves symlinks and throws when missing" and `unit/ral/safe-remove-dir.test.ts` cover the new body; on macOS the temp dir under `/var` resolves to `/private/var`, which is exactly what those tests compare.)
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') unit/path.test.ts $(find unit/project/ -name '*.test.ts') smoke/project/project-detect-denied-config.test.ts smoke/check/check-info-project.test.ts smoke/project/project-prepost.test.ts smoke/render/render-html.test.ts` → pass. (`unit/ral/fs.test.ts` "canonicalPathSync resolves symlinks and throws when missing" and `unit/ral/safe-remove-dir.test.ts` cover the new body; on macOS the temp dir under `/var` resolves to `/private/var`, which is exactly what those tests compare.)
 
 - [ ] **Step 6: Commit**
 
@@ -495,7 +495,7 @@ git commit -m "docs: deno_ral is the only runtime API; Phase 1 complete in the m
 
 - The acceptance `rg` commands → as stated.
 - `quarto run --dev tools/check-runtime-boundary.ts` → exit 0 at zero; the probe in Task 7 step 3 → exit 1.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/` → pass; `smoke/` → pass in CI on Linux, macOS and Windows.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts')` → pass; `$(find smoke/ -name '*.test.ts')` → pass in CI on Linux, macOS and Windows.
 - `package/src/quarto-bld prepare-dist` → succeeds; `grep -c 'Deno.realPathSync = ' package/pkg-working/bin/quarto.js` → `0`.
 - `QUARTO_REPORT_PERFORMANCE_METRICS=fileReads package/dist/bin/quarto render tests/docs/test.qmd` prints a non-empty `fileReads` list (PR 20b's hook still works without the monkey patch).
 - `package/dist/bin/quarto dev-call make-ast-diagram --help` still works (the allow-listed script is untouched).

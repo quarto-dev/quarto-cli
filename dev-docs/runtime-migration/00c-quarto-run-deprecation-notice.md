@@ -84,7 +84,7 @@ WARNING: Set QUARTO_RUN_DENO_NOTICE=0 to hide this notice.
 - `quarto render tests/docs/project/prepost/deno-notice` with `QUARTO_RUN_DENO_NOTICE=1` prints the first notice line exactly once (the project has a pre-render and a post-render `.ts` script) and succeeds.
 - The same render with `QUARTO_RUN_DENO_NOTICE=0` prints no notice line.
 - `quarto run tests/docs/project/prepost/deno-notice/pre.ts` prints the notice once; `quarto run --dev tools/check-runtime-boundary.ts` prints none.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run/deno-notice.test.ts $(find smoke/run -name '*.test.ts') smoke/project/project-prepost.test.ts` → all passed (`smoke/run/` includes the new `run-deno-notice.test.ts`).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run/deno-notice.test.ts $(find smoke/run -name '*.test.ts') smoke/project/project-prepost.test.ts` → all passed (`$(find smoke/run/ -name '*.test.ts')` includes the new `run-deno-notice.test.ts`).
 - `quarto run --dev tools/check-runtime-boundary.ts` → `OK` with unchanged counts (the new module uses `getenv` from `src/core/env.ts`, not `Deno.env`; the new tests and fixtures add no `Deno.` occurrence to a counted scope).
 
 ## Plan

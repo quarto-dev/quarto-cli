@@ -151,7 +151,7 @@ export function handleHttpRequests(options: {
 - `grep -rn 'Deno\.serve\|Deno\.upgradeWebSocket\|Deno\.HttpServer\|Deno\.ServeHandler' src --include=*.ts | grep -v '^src/deno_ral/'` prints nothing (the comment in `axe/cmd.ts` is rewritten too).
 - `grep -n 'Deno\.' tests/unit/ral/http.test.ts` prints nothing.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/http.test.ts` passes.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts unit/preview-brand-cache.test.ts unit/axe-config.test.ts smoke/axe/` passes.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts unit/preview-brand-cache.test.ts unit/axe-config.test.ts $(find smoke/axe/ -name '*.test.ts')` passes.
 - `quarto preview <doc> --no-browser --port 4321 2>/dev/null` prints nothing on stdout about listening, and `2>&1 >/dev/null` shows `Listening on http://127.0.0.1:4321/` (unchanged from Deno's default).
 - `grep -n 'server.listening' src/project/serve/serve.ts src/command/preview/preview-shiny.ts src/command/call/axe/cmd.ts` prints one line per file (the control services report "Preview service running" only after the bind succeeded; the bind-failure path itself is pinned by the unit test "a busy port rejects listening and finished", since the control ports are chosen at random).
 - Baseline count for `src` is lower by 7 (`http-server.ts` 2 including its comment, `http-devserver.ts` 1, `preview.ts` 2 including the dead `Deno.listen` comment at line 220, `axe/cmd.ts` 2 for `Deno.serve` and `Deno.exit` in its comment), committed.
@@ -631,7 +631,7 @@ Expected: exit 0. `serve.ts:775-781` compiles unchanged (`server.finished` exist
 
 - [ ] **Step 6: Run the axe and preview tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/axe-config.test.ts smoke/axe/ smoke/preview/preview-reload.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/axe-config.test.ts $(find smoke/axe/ -name '*.test.ts') smoke/preview/preview-reload.test.ts`
 Expected: `ok | N passed | 0 failed` (Chrome-dependent tests skip with a warning without Chrome).
 
 - [ ] **Step 7: Commit**
@@ -829,7 +829,7 @@ git commit -m "ratchet baseline after http.ts; document http.ts in deno-ral rule
 ## Verification
 
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/http.test.ts` → `ok | 8 passed | 0 failed`.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts unit/preview-brand-cache.test.ts smoke/axe/ unit/axe-config.test.ts` → all pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts unit/preview-brand-cache.test.ts $(find smoke/axe/ -name '*.test.ts') unit/axe-config.test.ts` → all pass.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - `grep -rn 'Deno\.serve\|Deno\.upgradeWebSocket\|Deno\.listen' src --include=*.ts | grep -v '^src/deno_ral/' | grep -v extension-subtrees` → empty.
 - Manual: the stderr/stdout check of Task 3 step 3; the browser reload and timeout exit of Task 4 step 5; `package/dist/bin/quarto preview tests/docs/website-image-base --no-browser` serves the website (through `src/project/serve/serve.ts`, which the automated test does not cover) and reloads on an edit of one of its pages.

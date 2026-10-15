@@ -104,7 +104,7 @@ export function loadDotenv(envPath: string | null): Promise<Record<string, strin
 - `grep -rn 'Deno\.' src --include=*.js --include=*.mjs | grep -v '^src/vendor/' | grep -v '^src/resources/'` prints nothing (`src-js` = 0).
 - `grep -rln 'Deno\.' src/resources --include=*.js --include=*.mjs --include=*.ts | grep -v extension-subtrees | grep -v '^src/resources/types/' | sort` prints exactly the allow-list `src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts`, `src/resources/scripts/check-usage.ts`, `src/resources/scripts/juice.ts`, `src/resources/tools/ast-diagram/main.ts` (plus `src/resources/editor/tools/vs-code.mjs` and `yaml/web-worker.js` only if PR 19 has not landed). `resources` baseline = 5 (`check-usage.ts` 2, `juice.ts` 2, the engine template 1).
 - `grep -rn 'tree-sitter-deno\|from "dotenv"\|log/file-handler\|Deno\.readTextFileSync =' src package/src --include=*.ts` prints nothing.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/tree-sitter-init.test.ts unit/core/graphviz-wasm.test.ts unit/ral/fs-on-file-read.test.ts unit/core/performance-metrics.test.ts unit/ral/log-file-handler.test.ts unit/dotenv-parse.test.ts unit/dotenv-config.test.ts unit/yaml-intelligence/` passes.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/tree-sitter-init.test.ts unit/core/graphviz-wasm.test.ts unit/ral/fs-on-file-read.test.ts unit/core/performance-metrics.test.ts unit/ral/log-file-handler.test.ts unit/dotenv-parse.test.ts unit/dotenv-config.test.ts $(find unit/yaml-intelligence/ -name '*.test.ts')` passes.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/logging/log-level-and-formats.test.ts smoke/render/render-html.test.ts` and `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent docs/smoke-all/2023/02/13/dot-bug.qmd docs/smoke-all/2023/07/10/6153.qmd` pass.
 - After `quarto dev-call build-artifacts`, `git status --short src/resources/editor` is empty (browser bundles unchanged).
 - The bundled CLI renders: the Task 1 step 7 bundle check prints the rendered file.
@@ -277,7 +277,7 @@ Add to the `esbuild.build({ ... })` options, after `format: "esm",`:
 
 - [ ] **Step 6: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/tree-sitter-init.test.ts unit/yaml-intelligence/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/tree-sitter-init.test.ts $(find unit/yaml-intelligence/ -name '*.test.ts')`
 Expected: `ok | N passed | 0 failed` (`yaml-intelligence.test.ts` and `annotated-yaml.test.ts` drive the parser through `initYamlIntelligenceResourcesFromFilesystem`).
 
 Run: `package/dist/bin/quarto render tests/docs/minimal.qmd --to html && package/dist/bin/quarto dev-call build-artifacts && git status --short src/resources/editor`
@@ -1185,7 +1185,7 @@ git commit -m "ratchet: src-js at zero, resources at the user-script allow-list"
 ## Verification
 
 - The test command in Acceptance criteria → pass.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/logging/ smoke/render/render-html.test.ts unit/yaml-intelligence/` → pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/logging/ -name '*.test.ts') smoke/render/render-html.test.ts $(find unit/yaml-intelligence/ -name '*.test.ts')` → pass.
 - Bundle check (Task 1 step 7) → `bundle render exit: 0`.
 - `quarto dev-call build-artifacts && git status --short src/resources/editor` → empty.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baselines.

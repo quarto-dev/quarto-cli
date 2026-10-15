@@ -100,7 +100,7 @@ export function isDirWritable(dir: string): boolean;
 - `grep -rn 'Deno\.\(version\|consoleSize\|inspect\|uid\|noColor\|build\|permissions\)' src tests package/src --include=*.ts | grep -v '^src/deno_ral/platform.ts' | grep -v extension-subtrees | grep -v 'compile-quarto-latexmk.ts'` prints nothing.
 - `grep -rn 'import\.meta\.main' src/quarto.ts src/command package/src --include=*.ts | grep -v 'render/latexmk/quarto-latexmk.ts'` prints nothing.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/platform.test.ts unit/tools/tinytex-writable.test.ts` passes.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/check/ unit/project/project-detect-denied-path.test.ts smoke/project/project-detect-denied-config.test.ts unit/chrome-launch.test.ts smoke/create/create.test.ts` passes.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/check/ -name '*.test.ts') unit/project/project-detect-denied-path.test.ts smoke/project/project-detect-denied-config.test.ts unit/chrome-launch.test.ts smoke/create/create.test.ts` passes.
 - `package/dist/bin/quarto check` still prints `Deno version 2.7.14: OK` (or the version PR 00a pinned); `package/dist/bin/quarto --version` still works (proves `isMainModule` is true for the entry module); `package/src/quarto-bld --help` still lists commands (proves `bld.ts`).
 - `quarto install tinytex` behaviour unchanged: no new exit path; the prerequisite returns `true` (Task 3 step 4).
 - `grep -n 'Deno\.' src/resources/editor/tools/vs-code.mjs src/resources/editor/tools/yaml/web-worker.js` prints nothing after `dev-call build-artifacts`.
@@ -569,7 +569,7 @@ and the prerequisite with:
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/tools/ -name '*.test.ts')`
 Expected: `ok | N passed | 0 failed` (the read-only case is ignored on Windows and as root).
 
 - [ ] **Step 5: Commit**
@@ -719,7 +719,7 @@ git commit -m "ratchet baseline after platform/main; document platform.ts and ma
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/platform.test.ts unit/tools/` → pass (`platform.test.ts`: `ok | 8 passed | 0 failed`).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/platform.test.ts $(find unit/tools/ -name '*.test.ts')` → pass (`platform.test.ts`: `ok | 8 passed | 0 failed`).
 - The Task 6 test command → pass.
 - `package/dist/bin/quarto check` → `Deno version <pinned>: OK` line present.
 - `package/src/quarto-bld --help` → command list.

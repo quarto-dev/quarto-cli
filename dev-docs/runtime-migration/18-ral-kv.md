@@ -95,7 +95,7 @@ Differences from `Deno.Kv` that the two callers absorb: `get` returns the value 
 - `grep -rn 'Deno\.openKv\|Deno\.Kv\b\|Deno\.KV' src tests package --include=*.ts | grep -v '^src/deno_ral/'` prints nothing (comments included).
 - `grep -n 'Deno\.' tests/unit/ral/kv.test.ts tests/unit/ral/kv-writer.ts` prints nothing.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv.test.ts unit/sass-cache.test.ts` passes.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/check/check-project-config-only.test.ts smoke/render/render-html.test.ts smoke/project/` passes (project cache creation, Sass cache hits during HTML render).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/check/check-project-config-only.test.ts smoke/render/render-html.test.ts $(find smoke/project/ -name '*.test.ts')` passes (project cache creation, Sass cache hits during HTML render).
 - After two renders of `tests/docs/website-image-base`, its `.quarto/project-cache/` contains `index.kv`, and the user Sass cache directory (`quartoCacheDir("sass")`; per-OS paths in Task 3 step 6) contains `sass-index.kv` and `<32 hex>-<32 hex>.css` files, with any older `sass.kv`/`<32 hex>.css` untouched.
 - Baseline for `src` lower by 7 (`cache.ts` 2: `Deno.Kv` field, `Deno.openKv`; `sass/cache.ts` 5: the header comment, `Deno.Kv` ×3 in the field, constructor and `checkVersion`, `Deno.openKv`); `tests` lower by 1 (`sass-cache.test.ts:32` comment); `src` std-import files lower by 1 (`cache.ts` no longer imports `testing/asserts`), committed.
 
@@ -795,7 +795,7 @@ git commit -m "ratchet baseline after kv.ts; document kv.ts"
 ## Verification
 
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv.test.ts unit/sass-cache.test.ts` → `ok | 10 passed | 0 failed` (8 + 2).
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/check/check-project-config-only.test.ts smoke/render/render-html.test.ts smoke/project/` → pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/check/check-project-config-only.test.ts smoke/render/render-html.test.ts $(find smoke/project/ -name '*.test.ts')` → pass.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - `grep -rn 'Deno\.openKv\|Deno\.Kv\b\|Deno\.KV' src tests --include=*.ts | grep -v '^src/deno_ral/'` → empty.
 - Manual Sass cache reuse and file layout (Task 3 step 6).

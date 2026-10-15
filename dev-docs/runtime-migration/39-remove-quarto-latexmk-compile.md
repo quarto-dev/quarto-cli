@@ -93,7 +93,7 @@ Run:
 ```bash
 rg -n -i --hidden "tinitex|quarto-latexmk|compileQuartoLatexmk|kExeName" --glob '!.git/**' --glob '!news/**' --glob '!dev-docs/runtime-migration/**' .
 cd package/src && ./quarto-bld --help | grep -c compile-quarto-latexmk
-cd ../../tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/latexmk/ smoke/render/render-pdf.test.ts
+cd ../../tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/latexmk/ -name '*.test.ts') smoke/render/render-pdf.test.ts
 ```
 Expected: no output; `0`; all tests pass (the PDF smoke test needs TinyTeX, as today).
 

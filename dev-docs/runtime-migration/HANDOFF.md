@@ -6,7 +6,7 @@ agent) picks this up in a fresh session.
 ## State
 
 - Branch `runtime-migration-plans` on `cderv/quarto-cli` (fork), based on
-  `main` at `b86f98d`. Seven commits, all pushed. Working tree clean.
+  `main` at `b86f98d`. All commits pushed.
 - Everything durable is in this directory (`dev-docs/runtime-migration/`):
   - `README.md`: entry point, the ordered table of 39 PRs, dependency graph,
     conventions the plans decided, progress metric.
@@ -14,7 +14,7 @@ agent) picks this up in a fresh session.
     results, module-by-module refactoring plan).
   - `_TEMPLATE.md`: plan structure and the normative shared vocabulary for
     `src/deno_ral/` (every plan uses these names).
-  - `01-*.md` to `39-*.md`: one plan per PR.
+  - `00a-*.md` to `39-*.md`: one plan per PR (46 PRs), plus `SPIKES.md`.
   - `spike/`: the Node bundler, shim, launcher and test documents from the
     spike that ran the unmodified CLI on Node 22.
 - The published assessment page (same content as `00-assessment.md` with the
@@ -36,24 +36,26 @@ These were throwaway and are recreated by the plans when needed:
   sandbox's proxy blocked `deno.land`. A normal checkout gets them from
   `./configure.sh`.
 
-## Review (2026-10-15)
+## Review and rework (2026-10-15)
 
-`REVIEW-2026-10-15.md` is a principal-level review of all 39 plans against the
-code: 13 structural findings (S1–S13), per-plan defects with severity, the
-recommended landing strategy, the rework list and the decisions needed. The
-plans are not executable as sequenced; read the review before step 4 below
-and apply section 5 of it to the plans first.
+`REVIEW-2026-10-15.md` is the principal review of the first draft (13
+structural findings, per-plan defects, the landing strategy, the decisions
+taken in its section 6). Every plan was then reworked against it: six new PRs
+(00a, 00b, 00c, 02b, 14b, 20b, 27b), PR 21 folded into 25, PR 07 and PR 39
+rewritten and renamed, `SPIKES.md` added, `_TEMPLATE.md` vocabulary updated,
+`00-assessment.md` given an errata section. `README.md` carries the new
+table, dependency graph, conventions and baseline. The plans are now
+executable in the README order; the first three to run are PR 02, 00a, 00b.
 
 ## How to resume
 
 1. `git fetch origin && git checkout runtime-migration-plans`.
 2. Read `README.md`, then `00-assessment.md` sections 10 and 11, then
    `_TEMPLATE.md`.
-3. Decide the open items listed in `00-assessment.md` section 9 (Node 26 LTS
-   baseline, user-script deprecation policy, test runner choice,
-   `quarto-latexmk` packaging). The plans carry recommendations for each.
-4. Open the plans as PRs against `main` in the README order. Phase 0 plans
-   (01–07) are independent and can run in parallel. Each plan names its
+3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the
+   test runner is decided by Spike V in `SPIKES.md` before PR 31.
+4. Open the plans as PRs against `main` in the README order: PR 02 first, then
+   00a and 00b, then 03–06 in parallel, then 07. Each plan names its
    branch, executor and verification commands.
 5. Keep the README status column current as PRs merge.
 
@@ -82,6 +84,6 @@ marker), so nothing was created. To track the PRs as strands with their
 dependencies: configure a skein (`braid init`, or `braid init --join <doc-id>`
 with an existing one; keep `.braid.toml` out of git), then run
 `dev-docs/runtime-migration/braid-seed.sh` once from the repository root.
-It creates an epic plus 39 `task` strands labelled `runtime-migration`,
+It creates an epic plus 46 `task` strands, two spike strands and one milestone labelled `runtime-migration`,
 `phase-N` and `executor-<model>`, with `blocks` dependencies matching the
 README order, so `braid ready` lists exactly the PRs that can start.

@@ -411,7 +411,7 @@ export type accountSetup = {
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
 Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/confluence/ unit/giscus.test.ts unit/project/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/confluence/ -name '*.test.ts') unit/giscus.test.ts $(find unit/project/ -name '*.test.ts')`
 Expected: `0 failed`.
 
 ```bash
@@ -582,7 +582,7 @@ export class QuartoTimeoutError extends Error {
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
 Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/gha-grouping.test.ts unit/github-actions-reporting.test.ts unit/check-gha-log.test.ts unit/confluence/ unit/axe-config.test.ts unit/axe-scan-cell.test.ts unit/preview-brand-cache.test.ts unit/windows-arm-r-error.test.ts unit/print-call-r-diagnostics.test.ts smoke/use-brand/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/gha-grouping.test.ts unit/github-actions-reporting.test.ts unit/check-gha-log.test.ts $(find unit/confluence/ -name '*.test.ts') unit/axe-config.test.ts unit/axe-scan-cell.test.ts unit/preview-brand-cache.test.ts unit/windows-arm-r-error.test.ts unit/print-call-r-diagnostics.test.ts $(find smoke/use-brand/ -name '*.test.ts')`
 Expected: `0 failed`.
 
 ```bash
@@ -970,7 +970,7 @@ Expected: `Summary: 0 files would change, …`, exit 0 (idempotent).
 
 Run: `node --no-warnings tools/node-bundle/check-ts-syntax.mjs | tail -1` → `ok: …` (the markers are erasable syntax).
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts')`
 Expected: `0 failed` (the runner type-checks every test file with `test-conf.json`, so this also checks `tests/` under `verbatimModuleSyntax`).
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/site/render-site.test.ts smoke/inspect/inspect-project.test.ts smoke/check/check.test.ts`
@@ -1071,7 +1071,7 @@ git commit -m "CI: Node type-stripping syntax check and type-only import guard"
 - `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/codemod-import-type.test.ts` → `ok | 8 passed | 0 failed`.
 - `quarto run --dev tools/codemod-import-type.ts --check src tests package/src` → exit 0.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/` → `0 failed`; `smoke/` in CI on three OSes → green.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts')` → `0 failed`; `$(find smoke/ -name '*.test.ts')` in CI on three OSes → green.
 - `package/src/quarto-bld prepare-dist` → succeeds; `package/dist/bin/quarto render tests/docs/test.qmd` works.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes, baseline unchanged.
 - `node --no-warnings tools/node-bundle/check-ts-syntax.mjs` stays green after a rebase on `main` (the CI workflow runs it on every `.ts` change).

@@ -1281,7 +1281,7 @@ Expected: empty.
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
 Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/path.test.ts unit/environment.test.ts unit/core/append-log-options.test.ts smoke/logging/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/path.test.ts unit/environment.test.ts unit/core/append-log-options.test.ts $(find smoke/logging/ -name '*.test.ts')`
 Expected: `0 failed`.
 
 ```bash
@@ -1358,7 +1358,7 @@ Expected: empty.
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
 Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/create/create.test.ts smoke/inspect/inspect-project.test.ts smoke/check/check.test.ts smoke/build-ts-extension/ smoke/use/template.test.ts smoke/render/render-html.test.ts unit/render/`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/create/create.test.ts smoke/inspect/inspect-project.test.ts smoke/check/check.test.ts $(find smoke/build-ts-extension/ -name '*.test.ts') smoke/use/template.test.ts smoke/render/render-html.test.ts $(find unit/render/ -name '*.test.ts')`
 Expected: `0 failed`.
 
 Manual: `echo '{"type":"project","directive":{"type":"default"},"directory":"'$(mktemp -d)'/p"}' | package/dist/bin/quarto create --json` prints a JSON result (exercises `readStdinLines` and `writeStdoutSync`), and `package/dist/bin/quarto capabilities | head -3` prints JSON.
@@ -1392,7 +1392,7 @@ Expected: empty.
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
 Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/ unit/extension/ unit/tools/ smoke/project/project-simple.test.ts smoke/site/render-site.test.ts smoke/extensions/install.test.ts smoke/render/render-jupyter.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/project/ -name '*.test.ts') $(find unit/extension/ -name '*.test.ts') $(find unit/tools/ -name '*.test.ts') smoke/project/project-simple.test.ts smoke/site/render-site.test.ts smoke/extensions/install.test.ts smoke/render/render-jupyter.test.ts`
 Expected: `0 failed`. (`smoke/render/render-jupyter.test.ts` needs the Python test environment; if it is skipped for prerequisites, run `smoke/jupyter/issue-10097.test.ts` instead.)
 
 ```bash
@@ -1713,8 +1713,8 @@ git commit -m "Changelog, rules doc and lower runtime boundary baseline after pr
 ## Verification
 
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process.test.ts` → `ok | 17 passed | 0 failed`.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/exec-process-stdin.test.ts unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts unit/path.test.ts unit/environment.test.ts unit/project/ unit/render/ unit/tools/ unit/tar-command.test.ts unit/ral/` → `0 failed`.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-typst-package-staging.test.ts smoke/jupyter/issue-10097.test.ts smoke/create/create.test.ts smoke/inspect/ smoke/check/check.test.ts smoke/typst-gather/ smoke/run/ smoke/project/project-simple.test.ts smoke/site/render-site.test.ts smoke/ojs/dependency-traversal.test.ts smoke/build-ts-extension/` → `0 failed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/exec-process-stdin.test.ts unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts unit/path.test.ts unit/environment.test.ts $(find unit/project/ -name '*.test.ts') $(find unit/render/ -name '*.test.ts') $(find unit/tools/ -name '*.test.ts') unit/tar-command.test.ts $(find unit/ral/ -name '*.test.ts')` → `0 failed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-typst-package-staging.test.ts smoke/jupyter/issue-10097.test.ts smoke/create/create.test.ts $(find smoke/inspect/ -name '*.test.ts') smoke/check/check.test.ts $(find smoke/typst-gather/ -name '*.test.ts') $(find smoke/run/ -name '*.test.ts') smoke/project/project-simple.test.ts smoke/site/render-site.test.ts smoke/ojs/dependency-traversal.test.ts $(find smoke/build-ts-extension/ -name '*.test.ts')` → `0 failed`.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The acceptance `rg` → empty.

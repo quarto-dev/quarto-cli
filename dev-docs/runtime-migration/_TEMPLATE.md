@@ -103,7 +103,7 @@ Module paths are under `src/deno_ral/`. Existing modules: `fs.ts`, `path.ts`,
 
 | Tool | Path | Invocation |
 |---|---|---|
-| Boundary ratchet (PR 02) | `tools/check-runtime-boundary.ts`, baseline `tools/runtime-boundary-baseline.json` | `quarto run --dev tools/check-runtime-boundary.ts` (fails if any count exceeds the baseline); `--update-baseline` rewrites the baseline with lower counts only. Scopes: `src` (`.ts` outside `kSrcExclusions`), `src-js` (`.js` under `src/` outside `src/vendor` and `src/resources/extension-subtrees`), `resources` (runtime-loaded `src/resources/**/*.{js,ts}`), `package` (`package/src`), `tests`. The std-import rule matches `jsr:@std`, `https://deno.land/std`, single and double quotes and every import-map std key (`http/` included); `deno.land/x` packages are not std |
+| Boundary ratchet (PR 02) | `tools/check-runtime-boundary.ts`, baseline `tools/runtime-boundary-baseline.json` | `quarto run --dev tools/check-runtime-boundary.ts` (fails if any count exceeds the baseline); `--update-baseline` rewrites the baseline with lower counts only. Scopes: `src` (`.ts` outside `kSrcExclusions`), `src-js` (`.js` under `src/` outside `src/vendor` and `src/resources/extension-subtrees`), `resources` (runtime-loaded `src/resources/**/*.{js,ts}`), `package/src`, `tests` (the `--accept-tests-increase` flag lets a PR that adds tests raise the `tests` count on purpose). `src-js` excludes all of `src/resources`, so it does not overlap `resources`. The std-import rule matches `jsr:@std`, `https://deno.land/std`, single and double quotes and every import-map std key (`http/` included); `deno.land/x` packages are not std |
 | Codemod (PR 09) | `tools/codemod-deno-ral.ts` (ts-morph via `npm:ts-morph`) | `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core` (`--rules` from `fs`, `temp`, `env`, `process`, `platform`; `--dry-run` prints the diff; `--reverse` maps layer calls back to `Deno.*` for backport patches). Idempotent: collision detection is symbol-based (an identifier already imported from `deno_ral/*` is not a collision); import merging preserves aliases and `isTypeOnly`; the skip list mirrors `kSrcExclusions` plus the browser-shared `src/core/lib` |
 | TS syntax check (PR 02b) | `tools/check-ts-syntax.mjs` | `node tools/check-ts-syntax.mjs [dir...]` runs `module.stripTypeScriptTypes` over every `.ts` under `src/` and `tests/`; exit 1 on `enum`, parameter property, runtime `namespace`, `<T>` assertion or any other syntax Node's type stripping rejects. `verbatimModuleSyntax` is on in `deno.jsonc` from PR 02b: type-only imports use `import type` |
 | Node bundle (PR 26) | `tools/node-bundle/build.mjs` (writes `tools/node-bundle/dist/quarto.mjs`, `dist/meta.json`, `dist/resolved.json`), `tools/node-bundle/import-map.mjs` (shared import-map resolver: `applyImportMap`, `resolveBare`, `jsrToNpm`, `npmSpec`, `packageOf`, `dependenciesFromImportMap`, `loadImportMap`), `tools/node-bundle/deno-shim.mjs`, `tools/node-bundle/quarto-node`, `tools/node-bundle/check-deps.mjs`, `tools/node-bundle/check-shim.mjs` (scans the bundle and `src/resources/**/*.js`, including `Deno?.x` and nested members), `tools/node-bundle/build-test.mjs` (bundles one test file for `node:test`), `tools/node-bundle/known-failures.json` (Node-only failures; may only shrink), `tools/node-bundle/normalize-html.mjs`, root `package.json` (no `"type": "module"`; all Node tooling is `.mjs`) | `node tools/node-bundle/build.mjs [--entry src/quarto.ts] [--out tools/node-bundle/dist/quarto.mjs] [--check-shim] && tools/node-bundle/quarto-node render <doc>`; `node tools/node-bundle/check-deps.mjs [--write]` (package.json `dependencies` must mirror `src/import_map.json`); `node tools/node-bundle/normalize-html.mjs <dir>` (hashes, cell ids, timestamps → placeholders before diffing renders) |
@@ -269,7 +269,7 @@ export function upgradeWebSocket(req: Request): { socket: WebSocketLike; respons
 ```ts
 export interface FsEvent { kind: "create" | "modify" | "remove" | "rename" | "other"; paths: string[]; }
 export interface FsWatcher extends AsyncIterable<FsEvent> { close(): void; }
-export function watchFs(paths: string[], options?: { recursive?: boolean }): FsWatcher;
+export function watchFs(paths: string[], options?: { recursive?: boolean; poll?: boolean }): FsWatcher; // `poll` (PR 29): polling fallback; `QUARTO_WATCH_POLLING=1` forces it
 ```
 
 ### `kv.ts` (new in PR 18)
@@ -347,7 +347,7 @@ export { runHarness } from "./utils.ts";              // re-export for PR 31
 ```ts
 /** Runs one test file through the harness in a child process. Deno:
  * `<runtime> test <harness flags> --importmap=… [flags] [--junit-path=<junitPath>] <file> [-- args]`.
- * Node (PR 31): `node --experimental-strip-types --import tools/node-bundle/register-import-map.mjs [flags] --test
+ * Node (PR 31; the runner is decided by Spike V in `SPIKES.md`): `node --import tools/node-bundle/register-import-map.mjs [flags] --test
  * --test-concurrency=1 [--test-reporter=junit --test-reporter-destination=<junitPath>] <file>`, `--no-check`/`--check`
  * dropped from `flags`, `args` passed through QUARTO_TEST_ARGS (newline-separated). `cwd` must be the tests/ directory. */
 export function runHarness(options: {
@@ -363,4 +363,8 @@ export function runHarness(options: {
 export function runtimeScriptCommand(scriptPath: string, options?: { allowWritePath?: string }): { cmd: string; args: string[] };
 ```
 
-`tests/asserts.ts` (PR 02) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError`.
+`tests/asserts.ts` (PR 02) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError`; PR 23 adds `assertFalse`, `assertInstanceOf`, `assertNotEquals`, `assertStrictEquals`.
+
+`tests/harness.ts` also exports `testArgs(): string[]` (the test's own arguments: `Deno.args` after `--` on Deno, `QUARTO_TEST_ARGS` under the Node runner; PR 23/31) and `onProcessExit(fn: () => void): void` (PR 31). Shared helpers for process-level tests live in `tests/process-helpers.ts` (PR 14b: `waitFor`, `collectText`, `processGroupOf`, `isProcessGone`).
+
+`tests/run-tests.sh` accepts files only, never directories: write `$(find unit/ral -name '*.test.ts')`, not `unit/ral/`.

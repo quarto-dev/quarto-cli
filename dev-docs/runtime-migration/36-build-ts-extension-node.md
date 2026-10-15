@@ -858,7 +858,7 @@ In `resolveEngines`, call `warnIfEngineUsesDeno(engine.path);` as the first stat
 
 - [ ] **Step 4: Run and commit**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/engine-deno-detection.test.ts smoke/engine/ smoke/check/check-in-project.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/engine-deno-detection.test.ts $(find smoke/engine/ -name '*.test.ts') smoke/check/check-in-project.test.ts`
 Expected: all pass (`check-in-project` uses `probe-engine.js`, which has no `Deno.`; no warning).
 
 ```bash
@@ -970,7 +970,7 @@ git commit -m "docs: engine runtime contract; build-ts-extension on esbuild"
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/build-ts-extension-args.test.ts unit/engine-deno-detection.test.ts smoke/build-ts-extension/ smoke/create/create.test.ts smoke/engine/ smoke/inspect/inspect-extensions.test.ts unit/extension/filter-bundled-engines.test.ts smoke/check/check-in-project.test.ts`: all pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/build-ts-extension-args.test.ts unit/engine-deno-detection.test.ts $(find smoke/build-ts-extension/ -name '*.test.ts') smoke/create/create.test.ts $(find smoke/engine/ -name '*.test.ts') smoke/inspect/inspect-extensions.test.ts unit/extension/filter-bundled-engines.test.ts smoke/check/check-in-project.test.ts`: all pass.
 - `git diff main -- tests/smoke/build-ts-extension`: empty.
 - `grep -rn "deno bundle\|deno check\|requireDenoToolBinary\|architectureToolsPath(\"deno\")" src/command/call/build-ts-extension` -> no output.
 - Manual: scratch dir, `quarto create extension engine` (name `demo`), `quarto call build-ts-extension`, render the example; then `--init-config && npm install && quarto call build-ts-extension --check`. Legacy: `rm package.json tsconfig.json && printf '{"bundle":{"entryPoint":"src/demo.ts"}}' > deno.json && quarto call build-ts-extension` warns and builds (no `imports` in that deno.json: the build uses no aliases, so the template, which imports only `@quarto/types`, still builds).

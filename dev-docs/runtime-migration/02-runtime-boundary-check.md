@@ -43,7 +43,7 @@ How the numbers relate to the first draft's 992/75, 240/2, 840/161: `Deno.*` cou
 
 Per module, the 62 `src` files split as: `fmt` 26, `encoding` 12, `testing` 9, `io` 6, `flags` 4, `log` 3, `crypto` 2, `async` 2, `dotenv` 2, full `deno.land/std` URL 2, `fs` 1, `datetime` 1, `streams` 1 (a file can import several). `tests`: `testing` 157, `path` 8, `deno.land/std` URL 5, `fmt` 2, `encoding` 1, `fs` 1.
 
-`kSrcExclusions` (unchanged from the first draft; PR 25 relies on the list): `src/deno_ral/` (the layer itself), `src/vendor/`, `src/resources/extension-subtrees/` (subtree of `PumasAI/quarto-julia-engine`, overwritten by `quarto dev-call pull-git-subtree`), `src/resources/scripts/` and `src/resources/create/` (counted by the `resources` scope instead; PR 35 owns them) and `src/webui/quarto-preview/build.ts` (that package's own build script; PR 08 converts it, PR 33 deletes it).
+`kSrcExclusions` (unchanged from the first draft; PR 25 relies on the list): `src/deno_ral/` (the layer itself), `src/vendor/`, `src/resources/extension-subtrees/` (subtree of `PumasAI/quarto-julia-engine`, overwritten by `quarto dev-call pull-git-subtree`), `src/resources/scripts/` and `src/resources/create/` (counted by the `resources` scope instead; PR 35 owns them) and `src/webui/quarto-preview/build.ts` (that package's own build script, run with `--no-config` so it cannot import the layer; allow-listed until PR 33 deletes it).
 
 The `Deno.` rule counts textual occurrences, comments and strings included (as in the first draft; the codemod PRs remove those too). The std-import rule ignores lines that start with `//`, `/*` or `*` (comment lines), so commented-out imports and JSDoc examples do not count.
 
@@ -574,7 +574,7 @@ export const kSrcExclusions: readonly string[] = [
   "src/resources/extension-subtrees", // git subtree of PumasAI/quarto-julia-engine, maintained upstream
   "src/resources/scripts", // `quarto run` fixtures under the user-script runtime (PR 35); counted in `resources`
   "src/resources/create", // .ejs.ts extension templates for users (PR 35); counted in `resources`
-  "src/webui/quarto-preview/build.ts", // that package's own build script (PR 08 converts, PR 33 deletes)
+  "src/webui/quarto-preview/build.ts", // that package's own build script (allow-listed until PR 33 deletes it)
 ];
 
 /** Never counted in the `tests` scope. */

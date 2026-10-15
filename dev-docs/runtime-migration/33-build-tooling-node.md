@@ -2399,7 +2399,7 @@ Append to `.github/workflows/test-install.yml` (and add `"src/core/run/**"` to b
 
 - [ ] **Step 7: Run and commit**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/deno-tool.test.ts smoke/run/ smoke/build-ts-extension/build-ts-extension.test.ts smoke/project/project-prepost.test.ts`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/deno-tool.test.ts $(find smoke/run/ -name '*.test.ts') smoke/build-ts-extension/build-ts-extension.test.ts smoke/project/project-prepost.test.ts`
 Expected: all pass (the scripts and the extension build run on the bundled Deno tool).
 
 ```bash
@@ -2871,7 +2871,7 @@ git commit -m "docs: changelog and upgrade notes for the Node runtime"
 Before opening the PR (Linux or macOS; the three-OS run is CI):
 
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-dependency.test.ts unit/node-bundle-ensure.test.ts unit/runtime-env.test.ts unit/tools/deno-tool.test.ts smoke/env/launcher-env.test.ts`: all pass.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/run/ smoke/project/project-prepost.test.ts smoke/build-ts-extension/build-ts-extension.test.ts smoke/create/create.test.ts smoke/check/`: all pass. `smoke/run/run-script.test.ts` and `stdlib-run-version.test.ts` pass because `quarto run` still uses the Deno tool; that is expected, not evidence that scripts run on Node (PR 35).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/run/ -name '*.test.ts') smoke/project/project-prepost.test.ts smoke/build-ts-extension/build-ts-extension.test.ts smoke/create/create.test.ts $(find smoke/check/ -name '*.test.ts')`: all pass. `smoke/run/run-script.test.ts` and `stdlib-run-version.test.ts` pass because `quarto run` still uses the Deno tool; that is expected, not evidence that scripts run on Node (PR 35).
 - `quarto run --dev tools/check-runtime-boundary.ts`: counts unchanged (the Deno tool runs it).
 - `npm run typecheck`: exit 0.
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ./quarto-bld validate-bundle && (cd ../pkg-working/bin && ./quarto check)`.
