@@ -1,0 +1,25 @@
+---
+title: "Mermaid scale"
+format:
+  typst:
+    keep-typ: true
+    mermaid-format: png
+    mermaid-scale: 50%
+---
+
+```{mermaid}
+%%| mermaid-scale: 100%
+flowchart LR
+  A --> B
+```
+
+```{mermaid}
+flowchart LR
+  A --> B
+```
+
+```{mermaid}
+%%| fig-width: 3
+flowchart LR
+  A --> B
+```
