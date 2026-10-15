@@ -157,78 +157,110 @@ export function findPdfAccessibilityWarnings(
 }
 
 // Hyphenation pattern names (in language.dat) whose package is not
-// hyphen-<name>, according to `execute AddHyphen` in texlive.tlpdb
+// hyphen-<name>, with the package name. Generated in tinytex from
+// `execute AddHyphen` in texlive.tlpdb (R/hyphen.R), and exported as
+// hyphen.json in the daily regex.tar.gz.
 const kHyphenationPackageNames: Record<string, string> = {
-  ngerman: "german",
-  swissgerman: "german",
-  pinyin: "chinese",
-  ukenglish: "english",
-  british: "english",
-  usenglishmax: "english",
-  bokmal: "norwegian",
-  norsk: "norwegian",
-  nynorsk: "norwegian",
-  schoolfinnish: "finnish",
-  monogreek: "greek",
-  ibycus: "ancientgreek",
-  classiclatin: "latin",
-  liturgicallatin: "latin",
-  mongolianlmc: "mongolian",
-  serbianc: "serbian",
+  ngerman: "hyphen-german",
+  swissgerman: "hyphen-german",
+  pinyin: "hyphen-chinese",
+  ukenglish: "hyphen-english",
+  british: "hyphen-english",
+  usenglishmax: "hyphen-english",
+  bokmal: "hyphen-norwegian",
+  norsk: "hyphen-norwegian",
+  nynorsk: "hyphen-norwegian",
+  schoolfinnish: "hyphen-finnish",
+  monogreek: "hyphen-greek",
+  ibycus: "hyphen-ancientgreek",
+  classiclatin: "hyphen-latin",
+  liturgicallatin: "hyphen-latin",
+  mongolianlmc: "hyphen-mongolian",
+  serbianc: "hyphen-serbian",
   // older names (synonyms in texlive.tlpdb)
-  amharic: "ethiopic",
-  geez: "ethiopic",
-  persian: "farsi",
-  patois: "french",
-  francais: "french",
-  polygreek: "greek",
-  portuges: "portuguese",
-  slovene: "slovenian",
-  espanol: "spanish",
+  amharic: "hyphen-ethiopic",
+  geez: "hyphen-ethiopic",
+  persian: "hyphen-farsi",
+  patois: "hyphen-french",
+  francais: "hyphen-french",
+  polygreek: "hyphen-greek",
+  portuges: "hyphen-portuguese",
+  slovene: "hyphen-slovenian",
+  espanol: "hyphen-spanish",
   // all of these are in the hyphen-indic package
-  assamese: "indic",
-  bengali: "indic",
-  gujarati: "indic",
-  hindi: "indic",
-  kannada: "indic",
-  malayalam: "indic",
-  marathi: "indic",
-  oriya: "indic",
-  pali: "indic",
-  panjabi: "indic",
-  tamil: "indic",
-  telugu: "indic",
+  assamese: "hyphen-indic",
+  bengali: "hyphen-indic",
+  gujarati: "hyphen-indic",
+  hindi: "hyphen-indic",
+  kannada: "hyphen-indic",
+  malayalam: "hyphen-indic",
+  marathi: "hyphen-indic",
+  oriya: "hyphen-indic",
+  pali: "hyphen-indic",
+  panjabi: "hyphen-indic",
+  tamil: "hyphen-indic",
+  telugu: "hyphen-indic",
+  // pinned versions of the German patterns
+  "german-x-latest": "dehyph-exptl",
+  "ngerman-x-latest": "dehyph-exptl",
+  "german-x-2024-02-28": "dehyph-exptl",
+  "ngerman-x-2024-02-28": "dehyph-exptl",
 };
 
-// Maps a babel language name to the TeX Live package providing its
-// hyphenation patterns (undefined when there is no such package)
-function hyphenationPackageForLanguage(lang: string) {
-  // Names in language.dat may be in mixed case (e.g. UKenglish)
-  lang = lang.toLowerCase();
+// Maps language names found in a log to the TeX Live packages providing their
+// hyphenation patterns. Follows hyphen_pkgs() in tinytex (R/latex.R).
+function hyphenationPackagesForLanguages(names: string[]): string[] {
+  const packages: string[] = [];
+  for (const raw of names) {
+    // Names in language.dat may be in mixed case (e.g. UKenglish)
+    const lang = raw.replace(/[`']/g, "").toLowerCase()
+      // Some warnings give a description rather than a name
+      // (e.g. `German (current orthography)`): the first word is the language
+      .replace(/\s.*$/s, "");
 
-  // It seems some languages have no hyphenation files, so we just filter them out
-  // e.g. `lang: zh` has no hyphenation files
-  // https://github.com/quarto-dev/quarto-cli/issues/10291
-  const noHyphen = ["chinese-hans", "chinese"];
-  if (noHyphen.includes(lang)) {
-    return;
-  }
+    // The name comes from the log and is passed to tlmgr (through a .bat file
+    // on Windows), so only keep what looks like a package name (all
+    // hyphenation names in texlive.tlpdb are lowercase letters, digits and hyphens)
+    if (!/^[a-z0-9-]+$/.test(lang)) {
+      continue;
+    }
 
-  // NOTE Although the names of the corresponding lfd files match those in this list,
-  // there are some exceptions, particularly in German and Serbian. So, ngerman is
-  // called here german, which is the name in the CLDR and, actually, the most logical.
-  //
-  // See https://ctan.math.utah.edu/ctan/tex-archive/macros/latex/required/babel/base/babel.pdf
-  const name = Object.hasOwn(kHyphenationPackageNames, lang)
-    ? kHyphenationPackageNames[lang]
-    : lang;
-  const pkg = `hyphen-${name}`;
-  // The name comes from the log and is passed to tlmgr (through a .bat file
-  // on Windows), so only keep what looks like a package name (all
-  // hyphenation names in texlive.tlpdb are lowercase letters, digits and hyphens)
-  if (/^hyphen-[a-z0-9-]+$/.test(pkg)) {
-    return pkg;
+    // It seems some languages have no hyphenation files, so we just filter them out
+    // e.g. `lang: zh` has no hyphenation files
+    // https://github.com/quarto-dev/quarto-cli/issues/10291
+    if (lang === "chinese" || lang === "chinese-hans") {
+      continue;
+    }
+
+    // NOTE Although the names of the corresponding lfd files match those in this list,
+    // there are some exceptions, particularly in German and Serbian. So, ngerman is
+    // called here german, which is the name in the CLDR and, actually, the most logical.
+    //
+    // See https://ctan.math.utah.edu/ctan/tex-archive/macros/latex/required/babel/base/babel.pdf
+    packages.push(
+      Object.hasOwn(kHyphenationPackageNames, lang)
+        ? kHyphenationPackageNames[lang]
+        : `hyphen-${lang}`,
+    );
   }
+  return ld.uniq(packages);
+}
+
+// Port of latex_warning() in tinytex (R/latex.R): the lines of every
+// `LaTeX Warning:` / `Package <name> Warning:` block, up to the next blank line
+function latexWarningBlocks(logText: string): string {
+  const logLines = logText.split(/\r?\n/);
+  const kept = new Set<number>();
+  const startRegex = /^(LaTeX|Package [A-Za-z0-9]+) Warning:/;
+  logLines.forEach((line, i) => {
+    if (!startRegex.test(line)) {
+      return;
+    }
+    for (let j = i; j < logLines.length && !/^\s*$/.test(logLines[j]); j++) {
+      kept.add(j);
+    }
+  });
+  return [...kept].sort((a, b) => a - b).map((i) => logLines[i]).join("\n");
 }
 
 // babel raises a fatal error (rather than the warning handled by
@@ -246,25 +278,21 @@ const kBabelUndefinedLanguageRegex =
 // (to be installed directly by name, as opposed to the file search terms
 // returned by findMissingFontsAndPackages)
 export function findMissingHyphenationPackages(logText: string): string[] {
-  const packages: string[] = [];
-  for (const match of logText.matchAll(kBabelUndefinedLanguageRegex)) {
-    const pkg = hyphenationPackageForLanguage(match[1]);
-    if (pkg) {
-      packages.push(pkg);
-    }
-  }
-  return ld.uniq(packages);
+  return hyphenationPackagesForLanguages(
+    [...logText.matchAll(kBabelUndefinedLanguageRegex)].map((m) => m[1]),
+  );
 }
 
 // Finds missing hyphenation files (these appear as warnings in the log file)
 export function findMissingHyphenationFiles(logText: string) {
-  const babelWarningRegex = /^Package babel Warning:/m;
-  const hasWarning = logText.match(babelWarningRegex);
-  if (hasWarning) {
-    const languageRegex = /^\(babel\).* language [`'](\S+)[`'].*$/m;
-    const languageMatch = logText.match(languageRegex);
-    if (languageMatch) {
-      return hyphenationPackageForLanguage(languageMatch[1]);
+  // Same regex as check_babel() in tinytex, on warning blocks only
+  const babelRegex =
+    /^(?:\(babel\).* |Package babel Warning: No hyphenation patterns were preloaded for the )language [`']([^']+)'.*$/m;
+  const languageMatch = latexWarningBlocks(logText).match(babelRegex);
+  if (languageMatch) {
+    const pkg = hyphenationPackagesForLanguages([languageMatch[1]])[0];
+    if (pkg) {
+      return pkg;
     }
   }
 
@@ -275,7 +303,7 @@ export function findMissingHyphenationFiles(logText: string) {
   if (match) {
     const language = match[1];
     if (language) {
-      return hyphenationPackageForLanguage(language);
+      return hyphenationPackagesForLanguages([language])[0];
     }
   }
 }

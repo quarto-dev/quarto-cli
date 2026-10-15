@@ -191,6 +191,9 @@ Type  H <return>  for immediate help.`;
   );
   // The file-based search finds nothing for this error
   assertEquals(findMissingFontsAndPackages(logSwissGerman, "."), []);
+  // The warning names a description, not a pattern name: the first word is
+  // used, not the nswissgerman from the \l@nil line
+  assertEquals(findMissingHyphenationFiles(logSwissGerman), "hyphen-german");
 
   // Backtick-quote format (older babel)
   assertEquals(
@@ -302,6 +305,11 @@ unitTest("Map hyphenation language names to their TeX Live package", async () =>
     panjabi: "hyphen-indic",
     tamil: "hyphen-indic",
     telugu: "hyphen-indic",
+    // pinned German patterns are not in a hyphen-* package
+    "german-x-latest": "dehyph-exptl",
+    "ngerman-x-latest": "dehyph-exptl",
+    "german-x-2024-02-28": "dehyph-exptl",
+    "ngerman-x-2024-02-28": "dehyph-exptl",
   };
   for (const [lang, pkg] of Object.entries(expected)) {
     assertEquals(
@@ -333,6 +341,53 @@ unitTest("Map hyphenation language names to their TeX Live package", async () =>
     ),
     ["hyphen-indic"],
   );
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Detect missing pinned German hyphenation patterns", async () => {
+  // `\begin{hyphenrules}{ngerman-x-latest}` (or `\selectlanguage`) without
+  // dehyph-exptl installed
+  const log = `! Package babel Error: You haven't defined the language 'ngerman-x-latest' yet.
+(babel)                Perhaps you misspelled it or your installation
+(babel)                is not complete.
+
+See the babel package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...
+
+l.185 \\begin{hyphenrules}{ngerman-x-latest}`;
+  assertEquals(findMissingHyphenationPackages(log), ["dehyph-exptl"]);
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Ignore babel info messages naming a language", async () => {
+  // Only warning blocks are searched: the (babel) continuation of an Info
+  // message is not a missing-patterns warning
+  const info = `Package babel Info: No hyphenation patterns were set for
+(babel)             language 'nohyphenation'. Reported on input line 12.`;
+  assertEquals(findMissingHyphenationFiles(info), undefined);
+
+  // same with an unrelated warning elsewhere in the log
+  const withWarning = `Package babel Warning: Something else
+(babel)                on input line 3.
+
+${info}`;
+  assertEquals(findMissingHyphenationFiles(withWarning), undefined);
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Detect missing hyphenation from a language description with spaces", async () => {
+  // babel-german describes the patterns it needs instead of naming them,
+  // e.g. `\@nopatterns{German (current orthography)}` in babel-german.def
+  const log = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'German (current orthography)' into the format.
+(babel)                Please, configure your TeX system to add them and
+(babel)                rebuild the format. Now I will use the patterns
+(babel)                preloaded for \\language=0 instead on input line 1260.`;
+  assertEquals(findMissingHyphenationFiles(log), "hyphen-german");
 }, {
   cwd: () => "unit/latexmk/"
 })
