@@ -79,9 +79,17 @@ Repository conventions that plans must respect (`.claude/CLAUDE.md` and
 - Imports use import-map names and `.ts` extensions; application code imports
   `src/deno_ral/`, never `jsr:`/`npm:` URLs and never `Deno.*` (after Phase 1).
 - New files carry `Copyright (C) 2026 Posit Software, PBC`.
-- Unit tests live in `tests/unit/`, use `unitTest` from `tests/test.ts` and
-  assertions from `testing/asserts` (until PR 22 adds `tests/asserts.ts`), and
-  run with `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/<file>.test.ts`.
+- Unit tests live in `tests/unit/` (runtime-layer tests under the existing
+  `tests/unit/ral/`), use `unitTest` from `tests/test.ts` and assertions from
+  `tests/asserts.ts` (added by PR 02), and run with
+  `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/<file>.test.ts`.
+  The ratchet (PR 02) has a `tests` scope: tests written by PRs 09 and later use
+  `deno_ral` `fs`/`temp`/`process`, never raw `Deno.*`.
+- Landing order inside Phase 1: 08 → 22 → 10–13 → 14. A conflict in a codemod PR
+  is resolved by resetting the file to `main` and re-running the codemod, never
+  by hand (the codemod is idempotent, PR 09).
+- Pins: Deno `v2.9.x` (PR 00a; newest 2.9 at execution), Node `v26.12.0` or
+  newer 26.x, `@cliffy/*` 1.3.1, `@b-fuze/deno-dom` 0.1.56, `ws` 8.22.
 - Dev build: `./configure.sh`, then `package/dist/bin/quarto ...`. Dev scripts
   run with `quarto run --dev <script.ts>` (uses `src/import_map.json`).
 - Changelog entries go in `news/changelog-1.11.md` only for user-visible changes.
@@ -95,11 +103,12 @@ Module paths are under `src/deno_ral/`. Existing modules: `fs.ts`, `path.ts`,
 
 | Tool | Path | Invocation |
 |---|---|---|
-| Boundary ratchet (PR 02) | `tools/check-runtime-boundary.ts`, baseline `tools/runtime-boundary-baseline.json` | `quarto run --dev tools/check-runtime-boundary.ts` (fails if any count exceeds the baseline); `--update-baseline` rewrites the baseline with lower counts only |
-| Codemod (PR 09) | `tools/codemod-deno-ral.ts` (ts-morph via `npm:ts-morph`) | `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core` (`--rules` from `fs`, `temp`, `env`, `process`, `platform`; `--dry-run` prints the diff) |
-| Node bundle (PR 26) | `tools/node-bundle/build.mjs` (writes `tools/node-bundle/dist/quarto.mjs`, `dist/meta.json`, `dist/resolved.json`), `tools/node-bundle/import-map.mjs` (shared import-map resolver: `applyImportMap`, `resolveBare`, `jsrToNpm`, `npmSpec`, `packageOf`, `dependenciesFromImportMap`, `loadImportMap`), `tools/node-bundle/deno-shim.js`, `tools/node-bundle/quarto-node`, `tools/node-bundle/check-deps.mjs`, `tools/node-bundle/normalize-html.mjs`, root `package.json` (no `"type": "module"`; all Node tooling is `.mjs`) | `node tools/node-bundle/build.mjs [--entry src/quarto.ts] [--out tools/node-bundle/dist/quarto.mjs] [--check-shim] && tools/node-bundle/quarto-node render <doc>`; `node tools/node-bundle/check-deps.mjs [--write]` (package.json `dependencies` must mirror `src/import_map.json`); `node tools/node-bundle/normalize-html.mjs <dir>` (hashes, cell ids, timestamps → placeholders before diffing renders) |
+| Boundary ratchet (PR 02) | `tools/check-runtime-boundary.ts`, baseline `tools/runtime-boundary-baseline.json` | `quarto run --dev tools/check-runtime-boundary.ts` (fails if any count exceeds the baseline); `--update-baseline` rewrites the baseline with lower counts only. Scopes: `src` (`.ts` outside `kSrcExclusions`), `src-js` (`.js` under `src/` outside `src/vendor` and `src/resources/extension-subtrees`), `resources` (runtime-loaded `src/resources/**/*.{js,ts}`), `package` (`package/src`), `tests`. The std-import rule matches `jsr:@std`, `https://deno.land/std`, single and double quotes and every import-map std key (`http/` included); `deno.land/x` packages are not std |
+| Codemod (PR 09) | `tools/codemod-deno-ral.ts` (ts-morph via `npm:ts-morph`) | `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core` (`--rules` from `fs`, `temp`, `env`, `process`, `platform`; `--dry-run` prints the diff; `--reverse` maps layer calls back to `Deno.*` for backport patches). Idempotent: collision detection is symbol-based (an identifier already imported from `deno_ral/*` is not a collision); import merging preserves aliases and `isTypeOnly`; the skip list mirrors `kSrcExclusions` plus the browser-shared `src/core/lib` |
+| TS syntax check (PR 02b) | `tools/check-ts-syntax.mjs` | `node tools/check-ts-syntax.mjs [dir...]` runs `module.stripTypeScriptTypes` over every `.ts` under `src/` and `tests/`; exit 1 on `enum`, parameter property, runtime `namespace`, `<T>` assertion or any other syntax Node's type stripping rejects. `verbatimModuleSyntax` is on in `deno.jsonc` from PR 02b: type-only imports use `import type` |
+| Node bundle (PR 26) | `tools/node-bundle/build.mjs` (writes `tools/node-bundle/dist/quarto.mjs`, `dist/meta.json`, `dist/resolved.json`), `tools/node-bundle/import-map.mjs` (shared import-map resolver: `applyImportMap`, `resolveBare`, `jsrToNpm`, `npmSpec`, `packageOf`, `dependenciesFromImportMap`, `loadImportMap`), `tools/node-bundle/deno-shim.mjs`, `tools/node-bundle/quarto-node`, `tools/node-bundle/check-deps.mjs`, `tools/node-bundle/check-shim.mjs` (scans the bundle and `src/resources/**/*.js`, including `Deno?.x` and nested members), `tools/node-bundle/build-test.mjs` (bundles one test file for `node:test`), `tools/node-bundle/known-failures.json` (Node-only failures; may only shrink), `tools/node-bundle/normalize-html.mjs`, root `package.json` (no `"type": "module"`; all Node tooling is `.mjs`) | `node tools/node-bundle/build.mjs [--entry src/quarto.ts] [--out tools/node-bundle/dist/quarto.mjs] [--check-shim] && tools/node-bundle/quarto-node render <doc>`; `node tools/node-bundle/check-deps.mjs [--write]` (package.json `dependencies` must mirror `src/import_map.json`); `node tools/node-bundle/normalize-html.mjs <dir>` (hashes, cell ids, timestamps → placeholders before diffing renders) |
 | Node CI job (PR 26) | `.github/workflows/test-node-bundle.yml` | runs the bundle against `dev-docs/runtime-migration/spike/tests/` and selected smoke tests |
-| Node test loader (PR 31) | `tools/node-bundle/import-map-hook.mjs`, `tools/node-bundle/register-import-map.mjs`, `tools/node-bundle/check-ts-syntax.mjs`, `tests/run-tests-node.sh` | `node --experimental-strip-types --import tools/node-bundle/register-import-map.mjs --test <files>`; `node tools/node-bundle/check-ts-syntax.mjs [dir...]` (exit 1 on `enum`/parameter-property/runtime-`namespace` syntax) |
+| Node test loader (PR 31; runner decided by Spike V in `SPIKES.md`) | `tools/node-bundle/import-map-hook.mjs`, `tools/node-bundle/register-import-map.mjs`, `tests/run-tests-node.sh` | `node --import tools/node-bundle/register-import-map.mjs --test --test-force-exit <files>` (node:test variant) or `vitest run` (Vitest variant) |
 | Bundle freshness (PR 33) | `tools/node-bundle/ensure.mjs` | `node tools/node-bundle/ensure.mjs --entry <file.ts> --outfile <file.js> [--watch-dir <dir>]...` rebuilds through `build.mjs`'s exported `bundle()` when any `*.ts`/`*.js`/`*.json` under the watch dirs (default: the entry's tree, `src/import_map.json`, `package-lock.json`) is newer than `outfile` or `outfile` is missing; prints `bundle up to date` otherwise |
 
 ### `errors.ts` (new in PR 09)
@@ -113,6 +122,8 @@ export function isConnectionRefused(e: unknown): boolean;
 export function isConnectionError(e: unknown): boolean;   // BrokenPipe | NotConnected | ConnectionAborted | ConnectionReset | ConnectionRefused | EPIPE | ENOTCONN | ECONNABORTED | ECONNRESET | ECONNREFUSED (PR 09 addition; PR 27 keeps it here)
 export function errorWithPath(e: Error, path: string): Error; // appends "\nPath: <path>" unless the message already ends with it; returns e (from monkey-patch.ts)
 ```
+The predicates also inspect `e.cause`, so an `exec`/`spawn` failure for a missing
+executable (which carries `code: "ENOENT"`, PR 08) satisfies `isNotFound`.
 
 ### `fs.ts` (extended in PR 09)
 
@@ -157,9 +168,9 @@ export function readDir(path: string | URL): AsyncIterable<DirEntry>;  // sorted
 export function symlinkSync(target: string | URL, path: string | URL, options?: { type?: "file" | "dir" }): void;
 export function symlink(target: string | URL, path: string | URL, options?: { type?: "file" | "dir" }): Promise<void>; // PR 09 addition
 export function readLinkSync(path: string | URL): string;
-export function realPathSync(path: string | URL): string;   // normalizePath semantics (absolute, normalised, upper-cased drive letter, Windows UNC prefix removed, from monkey-patch.ts); does NOT resolve symlinks
-export function realPath(path: string | URL): Promise<string>; // PR 09 addition; resolves symlinks (Deno.realPath), as tinytex.ts relies on today
-export function canonicalPathSync(path: string | URL): string; // PR 25 addition: symlinks resolved, Windows `\\?\` prefix removed; hits the file system and throws when `path` does not exist (Deno.realPathSync; PR 27: fs.realpathSync.native)
+export function realPath(path: string | URL): Promise<string>; // resolves symlinks (Deno.realPath), as tinytex.ts relies on today
+export function canonicalPathSync(path: string | URL): string; // PR 09: symlinks resolved; throws when `path` does not exist (Deno.realPathSync, which already strips the Windows `\\?\` prefix; PR 27: fs.realpathSync.native). The codemod maps `Deno.realPathSync(` here. There is NO normalising `realPathSync` in the layer: `normalizePath` in `core/path.ts` keeps that role
+export function onFileRead(listener: (path: string) => void): () => void; // PR 20b: read-observer hook called by readTextFile[Sync]/readFile[Sync]; returns an unsubscribe function (replaces the metrics.ts monkey patch)
 export function chmodSync(path: string | URL, mode: number): void;
 export function chmod(path: string | URL, mode: number): Promise<void>;  // PR 09 addition
 export function utimeSync(path: string | URL, atime: number | Date, mtime: number | Date): void;
@@ -167,14 +178,16 @@ export function truncateSync(path: string | URL, len?: number): void;
 export function open(path: string | URL, options?: OpenOptions): Promise<FsFile>;   // PR 09 addition
 export function openSync(path: string | URL, options?: OpenOptions): FsFile;        // PR 09 addition
 export function create(path: string | URL): Promise<FsFile>;                        // PR 09 addition
-// walk, walkSync, expandGlob, expandGlobSync, ensureDir(Sync), existsSync, copy(Sync), moveSync, emptyDirSync, EOL: unchanged re-exports until PR 27
+// walk, walkSync, expandGlob, expandGlobSync, ensureDir(Sync), existsSync, copy(Sync), moveSync, emptyDirSync, EOL: unchanged re-exports until PR 27 (which keeps both `copy` and `copySync`)
 ```
+PR 09 also retypes the existing `getFileInfoType(fileInfo: FileInfo)` and
+`safeRemoveSync` to the layer's `FileInfo`.
 
 ### `temp.ts` (new in PR 09)
 
 ```ts
 export interface TempOptions { dir?: string; prefix?: string; suffix?: string; }
-export function makeTempDirSync(options?: TempOptions): string;   // retries 5x on EEXIST (from monkey-patch.ts)
+export function makeTempDirSync(options?: TempOptions): string;   // retries 5x on isAlreadyExists(e) only (from monkey-patch.ts)
 export function makeTempDir(options?: TempOptions): Promise<string>;
 export function makeTempFileSync(options?: TempOptions): string;
 export function makeTempFile(options?: TempOptions): Promise<string>;
@@ -197,7 +210,9 @@ Codemod: `Deno.env.get(` → `env.get(` with `import { env } from "<rel>/deno_ra
 ```ts
 export type StdioOption = "piped" | "inherit" | "null";
 export type Signal = "SIGTERM" | "SIGKILL" | "SIGINT"; // PR 08 addition
-export interface SpawnOptions { args?: string[]; cwd?: string; env?: Record<string, string>; clearEnv?: boolean; stdin?: StdioOption; stdout?: StdioOption; stderr?: StdioOption; signal?: AbortSignal; }
+export interface SpawnOptions { args?: string[]; cwd?: string; env?: Record<string, string>; clearEnv?: boolean; stdin?: StdioOption; stdout?: StdioOption; stderr?: StdioOption; signal?: AbortSignal; detached?: boolean; }
+// `env` is merged over the inherited environment unless `clearEnv` is true (contract test pins it).
+// `detached: true` makes the child a process-group leader (POSIX: `setsid`/`detached`; Windows: CREATE_NEW_PROCESS_GROUP) so `killProcess(-pid)` reaches its children.
 export interface ExitStatus { success: boolean; code: number; signal: string | null; }
 export interface ExecOutput extends ExitStatus { stdout: Uint8Array; stderr: Uint8Array; }
 export interface ChildProcess {
@@ -211,20 +226,20 @@ export interface ChildProcess {
 export function spawn(cmd: string, options?: SpawnOptions): ChildProcess;          // defaults: stdin inherit, stdout/stderr inherit
 export function exec(cmd: string, options?: SpawnOptions): Promise<ExecOutput>;    // defaults: stdin null, stdout/stderr piped
 export function execSync(cmd: string, options?: SpawnOptions): ExecOutput;
-export function exit(code?: number): never;
+export function exit(code?: number): never; // flushes stdout and stderr before exiting (Node: process.exitCode + drain both streams; contract test pipes ≥ 1 MB through `head -c 1` and `wc -c`)
 export function cwd(): string;
 export function chdir(dir: string): void;
 export function args(): string[];
 export function execPath(): string;
 export function pid(): number;
 export function onSignal(signal: "SIGINT" | "SIGTERM", handler: () => void): void;
-export function writeStdoutSync(data: Uint8Array): number;
+export function writeStdoutSync(data: Uint8Array): number; // writes all of `data`; a 0-byte write is not an error
 export function writeStderrSync(data: Uint8Array): number;
 export function isTerminal(stream: "stdin" | "stdout" | "stderr"): boolean;
 // PR 08 additions (PR 28 reimplements them on node:child_process / process.stdin with the same signatures):
-export function killProcess(pid: number, signal?: Signal): void; // Deno.kill(pid, signal); default "SIGTERM"; a negative pid addresses a process group on POSIX
+export function killProcess(pid: number, signal?: Signal): void; // Deno.kill(pid, signal); default "SIGTERM"; a negative pid addresses a process group on POSIX (Windows: taskkill /T from PR 28)
 export function readStdin(): Promise<Uint8Array>;               // read stdin to EOF (replaces readAll(Deno.stdin))
-export function readStdinLines(): AsyncIterable<string>;        // stdin as lines without the trailing "\n" / "\r\n" (replaces readLines(Deno.stdin))
+export function readStdinLines(): AsyncIterable<string>;        // stdin as lines without the trailing "\n" / "\r\n" (replaces readLines(Deno.stdin)); breaking out of the loop releases stdin so the process can exit
 // existing `call(path, opts)` becomes a thin alias of exec and is removed in PR 25
 ```
 `src/core/process.ts` (`execProcess`, `ProcessResult` in `core/process-types.ts`) stays the application-level API; it is reimplemented on `spawn`.
@@ -235,15 +250,16 @@ export function readStdinLines(): AsyncIterable<string>;        // stdin as line
 export interface TcpConnection { read(buf: Uint8Array): Promise<number | null>; write(data: Uint8Array): Promise<number>; close(): void; }
 export function connectTcp(options: { hostname: string; port: number }): Promise<TcpConnection>;
 export function isPortAvailable(port: number, hostname?: string): Promise<boolean>;
-export function findOpenPort(options?: { port?: number; hostname?: string; attempts?: number }): Promise<number>;
+export function findOpenPort(options?: { port?: number; hostname?: string; attempts?: number }): Promise<number>; // attempts defaults to 100
 ```
 
 ### `http.ts` (new in PR 16)
 
 ```ts
 export interface ServeOptions { port: number; hostname?: string; handler: (req: Request, info: { remoteAddr: { hostname: string; port: number } }) => Response | Promise<Response>; signal?: AbortSignal; onListen?: (addr: { hostname: string; port: number }) => void; }
-export interface HttpServer { readonly finished: Promise<void>; readonly addr: { hostname: string; port: number }; shutdown(): Promise<void>; }
-export function serveHttp(options: ServeOptions): HttpServer;
+export interface HttpServer { readonly listening: Promise<void>; readonly finished: Promise<void>; readonly addr: { hostname: string; port: number }; shutdown(): Promise<void>; }
+// `listening` rejects on bind failure (isAddrInUse etc.); callers that do not await `finished` await `listening`.
+export function serveHttp(options: ServeOptions): HttpServer; // default onListen prints `Listening on http://<hostname>:<port>/` to stderr, as Deno.serve does
 export interface WebSocketLike { readonly readyState: number; readonly CLOSED: number; readonly CLOSING: number; send(data: string | Uint8Array): void; close(): void; onmessage: ((ev: { data: string | Uint8Array }) => void) | null; onclose: ((ev: unknown) => void) | null; onerror: ((ev: unknown) => void) | null; }
 export function upgradeWebSocket(req: Request): { socket: WebSocketLike; response: Response };
 ```
@@ -268,14 +284,15 @@ export interface KeyValueStore {
   list<T>(prefix: KvKey): AsyncIterable<KvEntry<T>>;
   close(): void;
 }
-export function openKeyValueStore(path: string): Promise<KeyValueStore>;
+export function openKeyValueStore(dir: string, name: string): Promise<KeyValueStore>; // the backend chooses the file: `<dir>/<name>.kv` (Deno.openKv) or `<dir>/<name>.json` (Node, PR 30), so Quarto versions on different runtimes never share a file
+// Contract (PR 18 tests): a second handle on the same store sees a committed `set`; two processes writing different keys both persist (Node: lock + read-modify-rename).
 ```
 
 ### `platform.ts` (extended in PR 19)
 
 ```ts
 export const isWindows: boolean; export const isMac: boolean; export const isLinux: boolean; export const os: string; export const arch: string; // existing
-export function runtime(): { name: "deno" | "node" | "bun"; version: string };
+export function runtime(): { name: "deno" | "node" | "bun"; version: string }; // real detection from PR 19: Deno when `typeof Deno !== "undefined" && "version" in Deno`, Bun when `process.versions.bun`, else Node
 export function consoleColumns(): number | undefined;
 export function inspect(value: unknown, options?: { depth?: number; colors?: boolean }): string;
 export function isRootUser(): boolean;
@@ -286,9 +303,22 @@ export function noColor(): boolean;
 
 ```ts
 /** Runtime-neutral in PR 19 (no later PR touches it): returns `meta.main` when defined (Deno, Node 24.2+);
- * otherwise compares `fileURLToPath(meta.url)` with `process.argv[1]`, both through `realpath`. */
+ * otherwise compares `fileURLToPath(meta.url)` with `process.argv[1]`, both through `realpath`.
+ * Used by `src/quarto.ts` only. Caveat: in a single-file esbuild bundle every inlined module sees the
+ * bundle's `import.meta`, so this guard is meaningless anywhere but the bundle entry. */
 export function isMainModule(meta: ImportMeta): boolean;
 ```
+
+### `log.ts` (extended in PR 20b)
+
+```ts
+/** Replaces @std/log's FileHandler (which calls Deno.openSync). Same options core/log.ts:221 passes today. */
+export class FileHandler extends BaseHandler { constructor(level: LevelName, options: { filename: string; mode?: "a" | "w"; formatter?: FormatterFunction }); flush(): void; }
+```
+
+### `env.ts` key validation (PR 14 contract)
+
+`env.get` returns `undefined` for a key that is empty or contains `=` or NUL (Node `process.env` semantics; Deno throws, so the Deno implementation guards).
 
 ### Test harness (PR 23, PR 31)
 
@@ -333,4 +363,4 @@ export function runHarness(options: {
 export function runtimeScriptCommand(scriptPath: string, options?: { allowWritePath?: string }): { cmd: string; args: string[] };
 ```
 
-`tests/asserts.ts` (PR 22) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError`.
+`tests/asserts.ts` (PR 02) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError`.
