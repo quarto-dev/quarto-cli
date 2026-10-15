@@ -47,6 +47,15 @@ jobs:
       - name: Compare versions
         id: compare
         run: |
+          # The download step sets PATTERN_FILES only when it extracted the files
+          if [ -z "${PATTERN_FILES:-}" ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "first_run=false" >> $GITHUB_OUTPUT
+            echo "skipped=true" >> $GITHUB_OUTPUT
+            echo "::warning::No pattern files downloaded - comparison skipped"
+            exit 0
+          fi
+
           if [ ! -f .cache/regex.json ]; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "first_run=true" >> $GITHUB_OUTPUT
@@ -110,7 +119,7 @@ jobs:
           echo "✓ Baseline established - cache will be saved"
 
       - name: Exit if unchanged
-        if: steps.compare.outputs.changed == 'false' && steps.compare.outputs.first_run == 'false'
+        if: steps.compare.outputs.changed == 'false' && steps.compare.outputs.first_run == 'false' && steps.compare.outputs.skipped != 'true'
         run: |
           echo "No pattern changes detected. Cache hit - exiting."
           exit 0
@@ -195,7 +204,9 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          if [ "${{ steps.compare.outputs.first_run }}" == "true" ]; then
+          if [ "${{ steps.compare.outputs.skipped }}" == "true" ]; then
+            echo "⚠ Download failed - comparison skipped"
+          elif [ "${{ steps.compare.outputs.first_run }}" == "true" ]; then
             echo "✓ Baseline established - cache created"
           elif [ "${{ steps.compare.outputs.changed }}" == "true" ]; then
             echo "✗ Pattern changes detected - issue created/updated"
