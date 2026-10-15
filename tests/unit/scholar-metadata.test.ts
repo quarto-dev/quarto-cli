@@ -11,6 +11,7 @@ import { parseHtml } from "../../src/core/deno-dom.ts";
 import { join } from "../../src/deno_ral/path.ts";
 import { metadataPostProcessor } from "../../src/format/html/format-html-meta.ts";
 import { unitTest } from "../test.ts";
+import { withTempDir } from "../utils.ts";
 import { createMockFormat } from "./format-utils.ts";
 
 async function scholarMetadata(
@@ -97,8 +98,7 @@ unitTest("Scholar metadata - preserve explicit citation fields", async () => {
 unitTest(
   "Scholar metadata - preserve reference characters after serialization",
   async () => {
-    const dir = Deno.makeTempDirSync();
-    try {
+    await withTempDir(async (dir) => {
       const journal = "Research & Applications";
       Deno.writeTextFileSync(
         join(dir, "references.bib"),
@@ -130,8 +130,6 @@ unitTest(
         `citation_author=Norah ${entry.author![0].family};`,
       );
       assertStringIncludes(reference, `citation_journal_title=${journal};`);
-    } finally {
-      Deno.removeSync(dir, { recursive: true });
-    }
+    });
   },
 );
