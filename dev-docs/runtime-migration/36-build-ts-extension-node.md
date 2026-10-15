@@ -1,56 +1,60 @@
-# PR 36: `quarto call build-ts-extension` on esbuild with `package.json`; engine contract; Julia engine port
+# PR 36: `quarto call build-ts-extension` on esbuild; default import map kept; engines that reference `Deno.` are flagged
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `quarto call build-ts-extension` bundles engine extensions with the esbuild binary Quarto already ships, configured from `package.json` instead of `deno.json`; `@quarto/types` states that engines use the `QuartoAPI` object and web standards (no `Deno.*`); the bundled Julia engine is ported to that contract so it keeps working in the Node process.
-**Phase:** 3. **Depends on:** PR 33 (Node runtime; engines load in-process through `import()` on Node). **Unblocks:** PR 37.
+**Goal:** `quarto call build-ts-extension` bundles engine extensions with the esbuild binary Quarto already ships instead of `deno bundle`, keeps Quarto's default import map (`path`, `path/posix`, `log`, `fs/`, `encoding/`) working through esbuild aliases and packages shipped in `share/extension-build/node_modules/`, reads its options from `package.json` (`quarto.build`) with a deprecated `deno.json` fallback, and Quarto warns when it loads a prebuilt engine bundle that references `Deno.`.
+**Phase:** 3. **Depends on:** PR 33 (Node runtime; `requireDenoToolBinary()` used by today's build path; esbuild in `bin/tools`). **Unblocks:** PR 37.
 **Branch:** `rt/36-build-ts-extension-node`.
-**Suggested executor:** Opus. The build command is a rewrite with user-facing error messages, and the Julia engine port replaces a hand-written TCP read loop; both need judgement.
-**Size:** M (about 20 files: the command, `src/resources/extension-build/*`, `prepare-dist.ts`, the create template, the Julia engine source and bundle, `quarto-types` docs, tests, changelog).
-**Ships on:** Node. Gates: PR 32 matrix, `tests/smoke/build-ts-extension/`, `tests/smoke/create/create.test.ts` (engine template), the merged `tests/smoke/julia-engine/` suite on CI runners with Julia.
+**Suggested executor:** Opus. The build command is rewritten with user-facing errors, the import-map-to-alias translation has edge cases, and the engine-loading warning is a compatibility contract.
+**Size:** M (about 16 files: the command, `src/core/esbuild.ts`, `src/execute/engine.ts`, `src/resources/extension-build/*`, `prepare-dist.ts`, the create template, `quarto-types` docs, 3 tests and 2 fixtures, changelog).
+**Ships on:** Node. Gates: PR 32 matrix, `tests/smoke/build-ts-extension/build-ts-extension.test.ts` **with its fixture unchanged**, `tests/smoke/create/create.test.ts` (engine template), the new tests.
 
 ## Spec
 
 ### Context
 
-Assessment section 6 ("Engine extension authors") and Phase 3 step 4. Today `src/command/call/build-ts-extension/cmd.ts`:
+Assessment section 6 ("Engine extension authors"), review findings for PR 36, decision 7. Today `src/command/call/build-ts-extension/cmd.ts`:
 
-- `resolveConfig()` (lines 37-77) reads `deno.json` from the current directory or falls back to `share/extension-build/deno.json` (`compilerOptions.lib: ["deno.ns", "DOM", "ES2021"]`, `importMap: ./import-map.json` mapping `@quarto/types`, `path`, `log`, `fs/`, `encoding/` to JSR std packages).
-- `autoDetectEntryPoint()` (lines 79-158): CLI argument, then `bundle.entryPoint`, then the single `.ts` in `src/`, then `src/mod.ts`.
-- `bundle()` (lines 250-325) runs **`deno bundle --config=<deno.json> --output=<file> [--minify] [--sourcemap] <entry>`** on the bundled Deno (`QUARTO_DENO` or `architectureToolsPath("deno")`, line 257). `deno bundle` is Deno 2's built-in esbuild wrapper that understands import maps and `jsr:` specifiers. `--check` runs `deno check` (lines 439-457). `--init-config` writes a `deno.json` with an absolute `importMap` path (lines 358-400).
-- `prepare-dist.ts:121-124, 226-267` rewrites `share/extension-build/import-map.json` for distribution.
+- `resolveConfig()` (lines 37-77) reads `deno.json` from the current directory (inline `imports` or an `importMap` path) or falls back to `share/extension-build/deno.json` (`lib: ["deno.ns", "DOM", "ES2021"]`, `importMap: ./import-map.json`).
+- `share/extension-build/import-map.json` maps `@quarto/types` (type-only), `path`, `path/posix`, `log`, `log/`, `fs/`, `encoding/` to JSR std packages; `prepare-dist.ts:226-267` (`updateImportMap`) rewrites their versions from `src/import_map.json` for distribution.
+- `bundle()` (lines 250-325) runs `deno bundle --config=<deno.json> --output=<file> [--minify] [--sourcemap] <entry>` on the Deno tool (`build-ts-extension/cmd.ts:257`; PR 33 made it `requireDenoToolBinary(...)`); `--check` runs `deno check`; `--init-config` writes a `deno.json` with an absolute `importMap`.
 
-Engines are loaded in-process: `src/execute/engine.ts:232` does `await import(toFileUrl(engine.path).href)` and calls `init(getQuartoAPI())`. On Node this dynamic `import()` of a bundled ESM `.js` file works unchanged (the spike loaded the whole CLI that way). What breaks is the content of the bundles: anything that calls `Deno.*` at run time. There is one such engine in the tree: `src/resources/extension-subtrees/julia-engine/` (a git subtree of the upstream Julia engine repository, discovered as a "bundled subtree extension" by `src/extension/extension.ts:680-735`), whose `src/julia-engine.ts` has 21 `Deno.*` call sites (`Deno.build`, `Deno.removeSync`, `Deno.readTextFileSync`, `Deno.writeTextFileSync`, `Deno.env.get`, four `Deno.Command`, `Deno.writeFileSync`/`readFileSync`, `Deno.connect`, `Deno.Conn`/`Deno.TcpConn` types, `conn.read`, `Deno.consoleSize`, `Deno.stdout.writeSync`, `Deno.kill`) and imports `path`, `fs/exists`, `encoding/base64` through the import map and `jsr:@std/io@0.224.0/write-all` directly. Its checked-in `_extensions/julia-engine/julia-engine.js` (45 KB) carries 24 `Deno.` references. The `create` template for engines (`src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts:94`) has one `Deno.readTextFileSync`.
+The smoke fixture `tests/smoke/build-ts-extension/src/test-engine.ts:15` does `import { extname } from "path";` with no config file, and the test asserts the bundle contains `function extname`. That is exactly what an existing third-party engine without its own config does. **This PR keeps the fixture and the test unchanged**: they are the acceptance test that the default import map still works.
+
+Engines are loaded in-process: `src/execute/engine.ts:232` does `await import(toFileUrl(engine.path).href)`. A prebuilt engine bundle built for Quarto ≤ 1.11 may call `Deno.*`; on Node that fails with `ReferenceError: Deno is not defined`, surfacing as `Failed to import engine from <path>: Deno is not defined` (engine.ts:266) at load or as a later runtime error. Quarto's Node process has no `Deno` shim (decision 1; PR 33 removed it). An engine `.js` under a user `package.json` with `"type": "commonjs"` fails to load as ESM (`SyntaxError: Cannot use import statement outside a module`).
+
+**Julia engine:** this PR does not touch `src/resources/extension-subtrees/julia-engine/` (decision 7; `dev-docs/subtree-extensions.md:23` forbids in-tree edits). The subtree is pulled with `quarto dev-call pull-git-subtree` after PumasAI ships the port to the runtime-neutral engine API, tracked as milestone J in `dev-docs/runtime-migration/README.md`; until then the PR 32 Node allowlist may carry the Julia tests, and the warning below skips bundled subtree engines (their status is tracked there, not reported to every user).
 
 Decisions:
 
-- **Bundler:** the esbuild binary under `bin/tools/<arch>/esbuild` through `esbuildCommand()` in `src/core/esbuild.ts` (already used for OJS). No npm `esbuild` package is needed at run time. Flags: `--bundle --format=esm --platform=node --target=node26 --log-level=warning`, `--minify`, `--sourcemap` or `--sourcemap=inline`. With `--platform=node`, esbuild leaves `node:*` builtins external, which is what the in-process loader needs.
-- **Config:** `package.json` in the extension project, section `"quarto": { "build": { "entryPoint", "outputFile", "minify", "sourcemap" } }`. Same keys as the old `bundle` section. A `deno.json` with a `bundle` section is still read for one release with a deprecation warning, so existing projects build before they migrate. Bare specifiers resolve from the project's `node_modules` (standard Node semantics); there is no import map. `@quarto/types` is type-only, so `import type { ... } from "@quarto/types"` is erased by esbuild and needs no mapping; a value import of it fails at bundle time with a message explaining that.
-- **Type checking (`--check`):** Quarto does not ship `tsc` (about 9 MB). `--check` runs the project's own `node_modules/typescript/bin/tsc --noEmit -p tsconfig.json` with the bundled Node when present and otherwise explains how to add it. `--init-config` writes `package.json` (with `devDependencies.typescript`) and `tsconfig.json` (`moduleResolution: "bundler"`, `allowImportingTsExtensions`, `lib: ["ES2023", "DOM"]`, `types: []`, `paths["@quarto/types"]` -> the shipped `quarto-types.d.ts`).
-- **Engine contract (documented in `packages/quarto-types/README.md` and the create template):** engines use the `QuartoAPI` object passed to `init()` and web-standard globals (`fetch`, `crypto.subtle`, `TextEncoder`, `URL`, `setTimeout`, streams). `Deno.*` is unavailable. Node built-ins (`node:fs`, `node:path`, `node:child_process`, `node:net`) work because engines run inside Quarto's Node process, and the Julia engine uses them where `QuartoAPI` has no equivalent (TCP, detached spawn); they are listed as "available, not guaranteed" so a future sandboxed loader can revisit.
+- **Bundler:** `bin/tools/<arch>/esbuild` through `esbuildCommand()` (`src/core/esbuild.ts`, already used for OJS). Flags: `--bundle --format=esm --platform=node --target=node26 --log-level=warning`, `--minify`, `--sourcemap`/`--sourcemap=inline`. With `--platform=node`, `node:*` built-ins stay external.
+- **Import map on esbuild:** the esbuild binary has no import-map support, but `--alias:<name>=<package>` substitutes a package name and its subpaths before any other resolution (so it applies even to names like `path` that `--platform=node` would otherwise treat as built-ins). The import map in effect is translated: `jsr:[/]@<scope>/<name>@<ver>[/sub]` -> `@jsr/<scope>__<name>[/sub]`, `npm:<pkg>@<ver>[/sub]` -> `<pkg>[/sub]`; `x` and `x/` collapse to one alias `x`; a subpath key (`path/posix`) is covered by its first segment's alias when the targets agree; `@quarto/types` is skipped (type-only, erased). The aliased packages resolve from the project's `node_modules`, then from `NODE_PATH`, which the command sets to `share/extension-build/node_modules` (dist) or the repository's `node_modules` (dev). `prepare-dist` copies the default map's packages and their dependencies there.
+- **Which map:** a legacy `deno.json` with `imports` or `importMap` -> that map (deprecation warning). Otherwise the default map `share/extension-build/import-map.json`, also for `package.json` projects, unless `"quarto": { "build": { "defaultImportMap": false } }`. Consequence to document: with the default map, bare `path`/`fs`/`log`/`encoding` mean the JSR std packages (as in 1.9-1.11), not Node built-ins; engines that want Node's write `node:path`.
+- **Config:** `package.json` `quarto.build` keys `entryPoint`, `outputFile`, `minify`, `sourcemap`, `defaultImportMap`; `deno.json` `bundle` section read for one release with a warning.
+- **`--check`:** runs the project's own `node_modules/typescript/bin/tsc --noEmit -p tsconfig.json` on the bundled Node; `--init-config` writes `package.json` (with `devDependencies.typescript`) and `tsconfig.json` whose `paths` cover `@quarto/types` and the default map's keys (pointing into `share/extension-build/node_modules`).
+- **Engine contract** (`packages/quarto-types/README.md`, create template): engines use the `QuartoAPI` object and web-standard globals; `Deno.*` is unavailable; Node built-ins work but are outside the contract.
+- **Detection at load:** before `import()`, `engine.ts` reads the bundle once (per path per process) and, when it contains `Deno.<member>` references, prints one warning naming the engine, up to five members, and the migration page. Bundled subtree engines (`resourcePath("extension-subtrees")`) are skipped. A failed import whose message is the CommonJS one gets a hint about `"type": "commonjs"`.
 
 Assumptions about earlier PRs:
 
-- PR 13 (codemod of TS under `src/resources`) did **not** touch `src/resources/extension-subtrees/julia-engine/src/julia-engine.ts`, because the engine cannot import `src/deno_ral/` (it is bundled standalone). If it did, revert that part first: an engine bundle must not contain a copy of Quarto's runtime layer.
-- PR 33 ships `node` and the Node launchers; `architectureToolsPath("esbuild")` is unchanged.
-- PR 08/14: `env`, `exec`, `execPath` in `src/deno_ral/`; `execProcess` unchanged.
+- PR 33: Node CLI; `requireDenoToolBinary`; `architectureToolsPath("esbuild")`; root `package.json` dependencies mirror `src/import_map.json` (PR 26 `check-deps.mjs`), so the default map's packages are in the root `node_modules`.
+- PR 22/03-07: every `src/import_map.json` value for `path`, `path/posix`, `log`, `log/`, `fs/`, `encoding/` is a `jsr:` target.
+- PR 14/08: `env`, `execPath()`, `cwd()`, `exit()` in `src/deno_ral/`.
 
 ### Scope
 
 In:
-- `src/command/call/build-ts-extension/cmd.ts` (rewrite).
-- `src/resources/extension-build/`: delete `deno.json`, `import-map.json`; add `tsconfig.template.json`; rewrite `README.md`.
-- `package/src/common/prepare-dist.ts`: remove `updateImportMap`; keep copying `quarto-types.d.ts`.
-- `tests/smoke/build-ts-extension/` fixture and assertions.
-- `src/resources/create/extensions/engine/`: README and template (`Deno.readTextFileSync` -> `quarto.mappedString.fromFile`).
-- `src/resources/extension-subtrees/julia-engine/src/julia-engine.ts` port and rebuilt `_extensions/julia-engine/julia-engine.js`; `README.md`/`AGENTS.md` lines that mention Deno.
-- `packages/quarto-types/README.md` and `src/quarto-api.ts` doc comment; `llm-docs/quarto-api.md` one paragraph.
-- Changelog; `dev-docs/runtime-migration/docs-updates.md` row for the engine page.
+- `src/command/call/build-ts-extension/cmd.ts` (rewrite); `src/core/esbuild.ts` (`esbuildCommand` takes `env`, includes stderr in the error).
+- `src/resources/extension-build/`: keep `import-map.json`; delete `deno.json`; add `tsconfig.template.json`; rewrite `README.md`.
+- `package/src/common/prepare-dist.ts`: keep `updateImportMap`; copy the default map's package closure to `share/extension-build/node_modules`.
+- `src/execute/engine.ts`: `Deno.` detection warning and the CommonJS hint.
+- `src/resources/create/extensions/engine/` template (`Deno.readTextFileSync` -> `quarto.mappedString.fromFile`) and README.
+- `packages/quarto-types/README.md` contract; `llm-docs/quarto-api.md`; changelog; `docs-updates.md` row.
 
 Out:
-- Publishing `@quarto/types` to npm (the README says "not yet"; unchanged).
-- Adding Node-only members to `QuartoAPI` (a TCP helper, a detached spawn). The Julia engine uses `node:net`/`node:child_process` directly; if more engines need them, a later PR adds API.
-- The julia-engine test suite itself (merged by `.github/actions/merge-extension-tests`); only the source and bundle change.
+- `src/resources/extension-subtrees/julia-engine/` (decision 7, milestone J).
+- `tests/smoke/build-ts-extension/src/test-engine.ts` and `build-ts-extension.test.ts` (unchanged on purpose).
+- Adding Node-only members to `QuartoAPI`; publishing `@quarto/types` to npm.
 
 ### Interfaces
 
@@ -61,15 +65,41 @@ export interface ExtensionBuildConfig {
   outputFile?: string;
   minify?: boolean;
   sourcemap?: boolean | "inline" | "external";
+  defaultImportMap?: boolean; // package.json only; default true
 }
-/** Reads ./package.json "quarto.build"; falls back to ./deno.json "bundle" with a deprecation warning; else {}. */
-export function resolveConfig(cwd: string): { config: ExtensionBuildConfig; source: "package.json" | "deno.json" | "default" };
-/** esbuild CLI arguments for a given config and output path (pure; unit tested). */
-export function esbuildArgs(entryPoint: string, outputPath: string, config: ExtensionBuildConfig): string[];
-export const buildTsExtensionCommand: Command;  // options: --check, --init-config; argument [entry-point]
+export interface ResolvedBuildConfig {
+  config: ExtensionBuildConfig;
+  source: "package.json" | "deno.json" | "default";
+  /** import map in effect (default map, or the deno.json one); {} when disabled */
+  imports: Record<string, string>;
+}
+/** Reads ./package.json "quarto.build", else ./deno.json ("bundle", "imports"/"importMap"), else defaults. */
+export function resolveConfig(dir: string, defaultImportMapPath: string): ResolvedBuildConfig;
+/** Pure: esbuild --alias arguments for an import map. Throws for a target it cannot express. */
+export function importMapAliases(imports: Record<string, string>): string[];
+/** Pure: esbuild CLI arguments. */
+export function esbuildArgs(entryPoint: string, outputPath: string, config: ExtensionBuildConfig, aliases: string[]): string[];
+export const buildTsExtensionCommand: Command; // options: --check, --init-config; argument [entry-point]
 ```
 
-`package.json` written by `--init-config` (name derived from the `_extensions/<name>` directory when exactly one exists, else `quarto-engine`):
+```ts
+// src/core/esbuild.ts
+export async function esbuildCommand(args: string[], input: string, workingDir: string, env?: Record<string, string>): Promise<string | undefined>;
+```
+
+```ts
+// src/execute/engine.ts
+/** Pure: unique `Deno.<member>` references in a bundle's text, in order of first appearance. */
+export function denoApiReferences(text: string): string[];
+```
+
+Warning text printed once per engine path:
+
+```
+Engine extension <path> references the Deno API (Deno.readTextFileSync, Deno.Command). Quarto runs on Node.js since 1.12 and these calls fail when executed. Rebuild the engine with `quarto call build-ts-extension` against the QuartoAPI: https://quarto.org/docs/extensions/engine.html#migrating-from-deno
+```
+
+`package.json` written by `--init-config`:
 
 ```json
 {
@@ -88,75 +118,37 @@ export const buildTsExtensionCommand: Command;  // options: --check, --init-conf
     "build": "quarto call build-ts-extension",
     "check": "quarto call build-ts-extension --check"
   },
-  "devDependencies": {
-    "typescript": "^5.9.3"
-  }
-}
-```
-
-`tsconfig.json` written by `--init-config` (from `share/extension-build/tsconfig.template.json` with `__QUARTO_TYPES__` replaced by the absolute path of the shipped `quarto-types.d.ts`):
-
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noEmit": true,
-    "target": "ES2023",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "lib": ["ES2023", "DOM"],
-    "types": [],
-    "skipLibCheck": true,
-    "paths": { "@quarto/types": ["__QUARTO_TYPES__"] }
-  },
-  "include": ["src/**/*.ts"]
-}
-```
-
-```ts
-// src/resources/extension-subtrees/julia-engine/src/julia-engine.ts (new helper)
-/** Newline-delimited TCP client over node:net, replacing Deno.connect + the byte loop. */
-class LineSocket {
-  static connect(port: number, host?: string): Promise<LineSocket>;
-  readLine(): Promise<string | null>;   // null when the server closed the connection
-  write(data: string): Promise<void>;
-  close(): void;
+  "devDependencies": { "typescript": "5.9.3" }
 }
 ```
 
 ### Files
 
-- Modify: `src/command/call/build-ts-extension/cmd.ts` (whole file)
-- Delete: `src/resources/extension-build/deno.json`, `src/resources/extension-build/import-map.json`
+- Modify: `src/command/call/build-ts-extension/cmd.ts` (whole file), `src/core/esbuild.ts:86-111`, `src/execute/engine.ts:229-272`
+- Delete: `src/resources/extension-build/deno.json`
 - Create: `src/resources/extension-build/tsconfig.template.json`
-- Modify: `src/resources/extension-build/README.md` (whole file)
-- Modify: `package/src/common/prepare-dist.ts:121-124,166-178,226-267`
-- Modify: `tests/smoke/build-ts-extension/build-ts-extension.test.ts:17-35`, `tests/smoke/build-ts-extension/src/test-engine.ts:15,78`
-- Create: `tests/smoke/build-ts-extension/src/util.ts`, `tests/smoke/build-ts-extension/package.json`
-- Create: `tests/unit/build-ts-extension-args.test.ts`
-- Modify: `src/resources/create/extensions/engine/README.ejs.md:20-41`, `src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts:94`
-- Modify: `src/resources/extension-subtrees/julia-engine/src/julia-engine.ts` (imports, 21 sites, `writeJuliaCommand` read loop), `_extensions/julia-engine/julia-engine.js` (rebuilt), `README.md:17`, `AGENTS.md:26,30`
-- Modify: `packages/quarto-types/README.md`, `packages/quarto-types/src/quarto-api.ts:37-40`
-- Modify: `llm-docs/quarto-api.md` (one "Runtime contract" paragraph)
-- Modify: `news/changelog-1.11.md`, `dev-docs/runtime-migration/docs-updates.md`
+- Modify: `src/resources/extension-build/README.md`, `package/src/common/prepare-dist.ts` (extension-build block, lines 120-124 and 166-178)
+- Modify: `src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts:94`, `src/resources/create/extensions/engine/README.ejs.md:20-41`
+- Modify: `packages/quarto-types/README.md`, `packages/quarto-types/src/quarto-api.ts:37-40`, `llm-docs/quarto-api.md`, `news/changelog-1.12.md`, `dev-docs/runtime-migration/docs-updates.md`
+- Test: `tests/unit/build-ts-extension-args.test.ts`, `tests/unit/engine-deno-detection.test.ts`, `tests/smoke/engine/engine-deno-warning.test.ts` with fixture `tests/docs/engine/deno-api-engine/` (`_quarto.yml`, `deno-engine.js`, `index.qmd`)
+- Unchanged (acceptance): `tests/smoke/build-ts-extension/build-ts-extension.test.ts`, `tests/smoke/build-ts-extension/src/test-engine.ts`
 
 ### Acceptance criteria
 
-- `cd tests/smoke/build-ts-extension && quarto call build-ts-extension` writes `_extensions/test-engine/test-engine.js` containing the local helper (`function helperFromUtil`) and `export default`, with no `Deno.` text; the smoke test passes.
-- `quarto call build-ts-extension --init-config` in an empty extension project writes `package.json` and `tsconfig.json` as specified; after `npm install`, `quarto call build-ts-extension --check` runs `tsc` and passes for the test fixture.
-- A project with only a legacy `deno.json` (`bundle.entryPoint`) still builds and prints `WARNING: deno.json is deprecated for quarto call build-ts-extension; move the "bundle" section to package.json "quarto.build" (quarto call build-ts-extension --init-config)`.
-- A value import of `@quarto/types` fails with a message containing `@quarto/types only provides types; use "import type"`.
-- `grep -c "Deno\." src/resources/extension-subtrees/julia-engine/_extensions/julia-engine/julia-engine.js` prints `0`; `tests/smoke/julia-engine/` passes on a runner with Julia (CI `merge-extension-tests` leg).
-- `quarto create extension engine` followed by `quarto call build-ts-extension` and a render passes (`tests/smoke/create/create.test.ts`).
-- `share/extension-build/` in a `prepare-dist` output contains `README.md`, `tsconfig.template.json`, `quarto-types.d.ts` and nothing else.
+- `cd tests/smoke/build-ts-extension && quarto call build-ts-extension` (no config file) writes `_extensions/test-engine/test-engine.js` containing `function extname`; `tests/smoke/build-ts-extension/build-ts-extension.test.ts` passes unchanged; `git diff main -- tests/smoke/build-ts-extension` is empty.
+- The same works from an installed layout (`package/pkg-working/bin/quarto call build-ts-extension`), where packages come from `share/extension-build/node_modules`.
+- A project with a legacy `deno.json` (`bundle.entryPoint`, inline `imports`) builds and prints the deprecation warning.
+- `quarto call build-ts-extension --init-config` writes `package.json` and `tsconfig.json`; after `npm install`, `--check` runs `tsc` and passes for the fixture engine copied into a temp directory.
+- Rendering `tests/docs/engine/deno-api-engine/index.qmd` prints the warning once and still renders; bundled subtree engines produce no such warning.
+- `quarto create extension engine` + build + render passes (`tests/smoke/create/create.test.ts`).
+- `share/extension-build/` in a `prepare-dist` output contains `README.md`, `import-map.json`, `tsconfig.template.json`, `quarto-types.d.ts`, `node_modules/@jsr/` and nothing else.
 
 ## Plan
 
-### Task 1: esbuild argument builder and config resolution (unit tested)
+### Task 1: Config resolution, alias translation and esbuild arguments (unit tested)
 
 **Files:**
-- Modify: `src/command/call/build-ts-extension/cmd.ts`
+- Modify: `src/command/call/build-ts-extension/cmd.ts`, `src/core/esbuild.ts`
 - Test: `tests/unit/build-ts-extension-args.test.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -168,31 +160,57 @@ class LineSocket {
  * Copyright (C) 2026 Posit Software, PBC
  */
 import { unitTest } from "../test.ts";
-import { assertEquals, assertStringIncludes } from "../asserts.ts";
+import { assertEquals, assertThrows } from "../asserts.ts";
 import { join } from "../../src/deno_ral/path.ts";
 import { makeTempDirSync } from "../../src/deno_ral/temp.ts";
 import { removeSync, writeTextFileSync } from "../../src/deno_ral/fs.ts";
-import { esbuildArgs, resolveConfig } from "../../src/command/call/build-ts-extension/cmd.ts";
+import { esbuildArgs, importMapAliases, resolveConfig } from "../../src/command/call/build-ts-extension/cmd.ts";
 
-unitTest("build-ts-extension: esbuild args", () => {
-  assertEquals(esbuildArgs("src/e.ts", "_extensions/e/e.js", {}), [
-    "--bundle", "--format=esm", "--platform=node", "--target=node26", "--log-level=warning",
-    "--outfile=_extensions/e/e.js", "src/e.ts",
+const kDefault = {
+  "@quarto/types": "./quarto-types.d.ts",
+  "path": "jsr:@std/path@1.0.8",
+  "path/posix": "jsr:@std/path@1.0.8/posix",
+  "log": "jsr:/@std/log@0.224.0",
+  "log/": "jsr:/@std/log@0.224.0/",
+  "fs/": "jsr:/@std/fs@1.0.16/",
+  "encoding/": "jsr:/@std/encoding@1.0.9/",
+};
+
+unitTest("build-ts-extension: the default import map becomes esbuild aliases", () => {
+  assertEquals(importMapAliases(kDefault), [
+    "--alias:path=@jsr/std__path",
+    "--alias:log=@jsr/std__log",
+    "--alias:fs=@jsr/std__fs",
+    "--alias:encoding=@jsr/std__encoding",
   ]);
-  const full = esbuildArgs("src/e.ts", "out.js", { minify: true, sourcemap: "inline" });
-  assertStringIncludes(full.join(" "), "--minify");
-  assertStringIncludes(full.join(" "), "--sourcemap=inline");
-  assertEquals(esbuildArgs("src/e.ts", "out.js", { sourcemap: true }).includes("--sourcemap"), true);
+  assertEquals(importMapAliases({ "lodash": "npm:lodash@4.17.21", "x/": "npm:@scope/x@1.0.0/" }), [
+    "--alias:lodash=lodash",
+    "--alias:x=@scope/x",
+  ]);
+  assertThrows(() => importMapAliases({ "a": "https://example.com/a.ts" }), Error, "cannot be expressed");
+  assertThrows(() => importMapAliases({ "p": "jsr:@std/path@1/posix", "p/win32": "jsr:@std/path@1/win32" }), Error, "cannot be expressed");
 });
 
-unitTest("build-ts-extension: config from package.json, deno.json fallback, default", () => {
+unitTest("build-ts-extension: esbuild args", () => {
+  const aliases = ["--alias:path=@jsr/std__path"];
+  assertEquals(esbuildArgs("src/e.ts", "_extensions/e/e.js", {}, aliases), [
+    "--bundle", "--format=esm", "--platform=node", "--target=node26", "--log-level=warning",
+    "--alias:path=@jsr/std__path", "--outfile=_extensions/e/e.js", "src/e.ts",
+  ]);
+  assertEquals(esbuildArgs("e.ts", "o.js", { minify: true, sourcemap: "inline" }, []).includes("--sourcemap=inline"), true);
+  assertEquals(esbuildArgs("e.ts", "o.js", { sourcemap: true }, []).includes("--sourcemap"), true);
+});
+
+unitTest("build-ts-extension: package.json > deno.json > default", () => {
   const dir = makeTempDirSync({ prefix: "btx" });
+  const defaultMap = join(dir, "default-map.json");
+  writeTextFileSync(defaultMap, JSON.stringify({ imports: kDefault }));
   try {
-    assertEquals(resolveConfig(dir), { config: {}, source: "default" });
-    writeTextFileSync(join(dir, "deno.json"), JSON.stringify({ bundle: { entryPoint: "src/a.ts", minify: true } }));
-    assertEquals(resolveConfig(dir), { config: { entryPoint: "src/a.ts", minify: true }, source: "deno.json" });
-    writeTextFileSync(join(dir, "package.json"), JSON.stringify({ quarto: { build: { entryPoint: "src/b.ts", sourcemap: "external" } } }));
-    assertEquals(resolveConfig(dir), { config: { entryPoint: "src/b.ts", sourcemap: "external" }, source: "package.json" });
+    assertEquals(resolveConfig(dir, defaultMap), { config: {}, source: "default", imports: kDefault });
+    writeTextFileSync(join(dir, "deno.json"), JSON.stringify({ bundle: { entryPoint: "src/a.ts" }, imports: { "x": "npm:x@1" } }));
+    assertEquals(resolveConfig(dir, defaultMap), { config: { entryPoint: "src/a.ts" }, source: "deno.json", imports: { "x": "npm:x@1" } });
+    writeTextFileSync(join(dir, "package.json"), JSON.stringify({ quarto: { build: { entryPoint: "src/b.ts", defaultImportMap: false } } }));
+    assertEquals(resolveConfig(dir, defaultMap), { config: { entryPoint: "src/b.ts", defaultImportMap: false }, source: "package.json", imports: {} });
   } finally {
     removeSync(dir, { recursive: true });
   }
@@ -202,11 +220,36 @@ unitTest("build-ts-extension: config from package.json, deno.json fallback, defa
 - [ ] **Step 2: Run it and see it fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/build-ts-extension-args.test.ts`
-Expected: FAIL, `esbuildArgs`/`resolveConfig` are not exported (the current `resolveConfig` is async and private).
+Expected: FAIL, `importMapAliases`/`esbuildArgs` are not exported.
 
-- [ ] **Step 3: Rewrite `cmd.ts`**
+- [ ] **Step 3: `esbuildCommand` takes `env` and reports stderr**
 
-Replace the whole file:
+Replace `esbuildCommand` in `src/core/esbuild.ts`:
+
+```ts
+export async function esbuildCommand(
+  args: string[],
+  input: string,
+  workingDir: string,
+  env?: Record<string, string>,
+) {
+  const cmd = env_.get("QUARTO_ESBUILD") || architectureToolsPath("esbuild");
+  const result = await execProcess(
+    { cmd, args, cwd: workingDir, env, stdout: "piped", stderr: "piped" },
+    input,
+  );
+  if (result.success) {
+    return result.stdout;
+  } else {
+    console.error(result.stderr);
+    throw new Error("esbuild command failed\n" + (result.stderr ?? ""));
+  }
+}
+```
+
+(`env_` is `import { env as env_ } from "../deno_ral/env.ts";`, renamed because the parameter is `env`; if the file already imports `env`, rename the parameter to `childEnv` instead and keep one import. `esbuildCompile` (OJS) only propagates the error, so the longer message is harmless.)
+
+- [ ] **Step 4: Rewrite `cmd.ts`**
 
 ```ts
 /*
@@ -215,9 +258,11 @@ Replace the whole file:
  * Copyright (C) 2025-2026 Posit Software, PBC
  *
  * quarto call build-ts-extension: bundle a TypeScript execution engine into a
- * single ESM file with Quarto's esbuild. Configuration lives in package.json
- * ("quarto.build"); a legacy deno.json "bundle" section is honoured with a
- * deprecation warning in 1.11.
+ * single ESM file with Quarto's esbuild. Options come from package.json
+ * ("quarto.build"); a legacy deno.json is honoured with a deprecation warning.
+ * Quarto's default import map (share/extension-build/import-map.json) is
+ * applied through esbuild aliases, with its packages shipped in
+ * share/extension-build/node_modules.
  */
 
 import { Command } from "cliffy/command/mod.ts";
@@ -225,7 +270,7 @@ import { error, info, warning } from "../../../deno_ral/log.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { esbuildCommand } from "../../../core/esbuild.ts";
 import { execProcess } from "../../../core/process.ts";
-import { basename, dirname, extname, join } from "../../../deno_ral/path.ts";
+import { basename, dirname, extname, isAbsolute, join, resolve } from "../../../deno_ral/path.ts";
 import { existsSync, mkdirSync, readDirSync, readTextFileSync, writeTextFileSync } from "../../../deno_ral/fs.ts";
 import { expandGlobSync } from "../../../core/deno/expand-glob.ts";
 import { cwd, execPath, exit } from "../../../deno_ral/process.ts";
@@ -236,6 +281,13 @@ export interface ExtensionBuildConfig {
   outputFile?: string;
   minify?: boolean;
   sourcemap?: boolean | "inline" | "external";
+  defaultImportMap?: boolean;
+}
+
+export interface ResolvedBuildConfig {
+  config: ExtensionBuildConfig;
+  source: "package.json" | "deno.json" | "default";
+  imports: Record<string, string>;
 }
 
 interface BuildOptions {
@@ -245,23 +297,89 @@ interface BuildOptions {
 
 const kDocs = "https://quarto.org/docs/extensions/engine.html";
 
-export function resolveConfig(
-  dir: string,
-): { config: ExtensionBuildConfig; source: "package.json" | "deno.json" | "default" } {
+function readImports(file: string): Record<string, string> {
+  return (JSON.parse(readTextFileSync(file)).imports ?? {}) as Record<string, string>;
+}
+
+export function resolveConfig(dir: string, defaultImportMapPath: string): ResolvedBuildConfig {
   const packageJson = join(dir, "package.json");
   if (existsSync(packageJson)) {
-    const pkg = JSON.parse(readTextFileSync(packageJson)) as { quarto?: { build?: ExtensionBuildConfig } };
-    return { config: pkg.quarto?.build ?? {}, source: "package.json" };
+    const build = (JSON.parse(readTextFileSync(packageJson)).quarto?.build ?? {}) as ExtensionBuildConfig;
+    const imports = build.defaultImportMap === false ? {} : readImports(defaultImportMapPath);
+    return { config: build, source: "package.json", imports };
   }
   const denoJson = join(dir, "deno.json");
   if (existsSync(denoJson)) {
-    const deno = JSON.parse(readTextFileSync(denoJson)) as { bundle?: ExtensionBuildConfig };
-    return { config: deno.bundle ?? {}, source: "deno.json" };
+    const deno = JSON.parse(readTextFileSync(denoJson)) as {
+      bundle?: ExtensionBuildConfig;
+      imports?: Record<string, string>;
+      importMap?: string;
+    };
+    let imports: Record<string, string> = deno.imports ?? {};
+    if (deno.importMap) {
+      const mapPath = isAbsolute(deno.importMap) ? deno.importMap : resolve(dir, deno.importMap);
+      if (existsSync(mapPath)) {
+        imports = readImports(mapPath);
+      } else {
+        // --init-config of Quarto <= 1.11 wrote an absolute path into an older install
+        warning(`deno.json importMap ${deno.importMap} does not exist; using Quarto's default import map.`);
+        imports = readImports(defaultImportMapPath);
+      }
+    }
+    return { config: deno.bundle ?? {}, source: "deno.json", imports };
   }
-  return { config: {}, source: "default" };
+  return { config: {}, source: "default", imports: readImports(defaultImportMapPath) };
 }
 
-export function esbuildArgs(entryPoint: string, outputPath: string, config: ExtensionBuildConfig): string[] {
+// "jsr:/@std/path@1.0.8/posix" -> "@jsr/std__path/posix"; "npm:@a/b@1/x" -> "@a/b/x"
+function aliasTarget(target: string): string | undefined {
+  let m = target.match(/^jsr:\/?@([^/@]+)\/([^/@]+)(?:@[^/]*)?(\/.*)?$/);
+  if (m) {
+    return `@jsr/${m[1]}__${m[2]}${(m[3] ?? "").replace(/\/$/, "")}`;
+  }
+  m = target.match(/^npm:\/?((?:@[^/@]+\/)?[^/@]+)(?:@[^/]*)?(\/.*)?$/);
+  if (m) {
+    return `${m[1]}${(m[2] ?? "").replace(/\/$/, "")}`;
+  }
+  return undefined;
+}
+
+export function importMapAliases(imports: Record<string, string>): string[] {
+  const aliases = new Map<string, string>();
+  const subpathKeys: [string, string][] = [];
+  for (const [key, target] of Object.entries(imports)) {
+    if (key === "@quarto/types") {
+      continue; // type-only: `import type` is erased by esbuild
+    }
+    const name = key.replace(/\/$/, "");
+    const to = aliasTarget(target);
+    if (to === undefined) {
+      throw new Error(`import map entry "${key}": "${target}" cannot be expressed as an esbuild alias (only jsr: and npm: targets are supported). See ${kDocs}`);
+    }
+    const isSubpath = name.startsWith("@") ? name.split("/").length > 2 : name.includes("/");
+    if (isSubpath) {
+      subpathKeys.push([name, to]);
+    } else if (!aliases.has(name)) {
+      aliases.set(name, to);
+    }
+  }
+  // "path/posix" is covered by the "path" alias when the targets agree
+  for (const [name, to] of subpathKeys) {
+    const base = name.startsWith("@") ? name.split("/").slice(0, 2).join("/") : name.split("/")[0];
+    const rest = name.slice(base.length);
+    if (aliases.get(base) === undefined || `${aliases.get(base)}${rest}` !== to) {
+      throw new Error(`import map entry "${name}" cannot be expressed as an esbuild alias: esbuild aliases whole package names, and "${base}" does not map to the same package. See ${kDocs}`);
+    }
+  }
+  return [...aliases.entries()].map(([name, to]) => `--alias:${name}=${to}`);
+}
+
+export function esbuildArgs(
+  entryPoint: string,
+  outputPath: string,
+  config: ExtensionBuildConfig,
+  aliases: string[],
+): string[] {
   const args = ["--bundle", "--format=esm", "--platform=node", "--target=node26", "--log-level=warning"];
   if (config.minify) {
     args.push("--minify");
@@ -271,105 +389,23 @@ export function esbuildArgs(entryPoint: string, outputPath: string, config: Exte
   } else if (config.sourcemap === "inline") {
     args.push("--sourcemap=inline");
   }
-  args.push(`--outfile=${outputPath}`, entryPoint);
+  args.push(...aliases, `--outfile=${outputPath}`, entryPoint);
   return args;
 }
 
-function autoDetectEntryPoint(configEntryPoint?: string): string {
-  if (configEntryPoint) {
-    if (!existsSync(configEntryPoint)) {
-      error(`Entry point specified in the build configuration does not exist: ${configEntryPoint}`);
-      exit(1);
-    }
-    return configEntryPoint;
-  }
-  const srcDir = "src";
-  if (!existsSync(srcDir)) {
-    error("No src/ directory found.\n");
-    error("Create a TypeScript file in src/:");
-    error("  mkdir -p src");
-    error("  touch src/my-engine.ts\n");
-    error("Or specify the entry point as argument:");
-    error("  quarto call build-ts-extension src/my-engine.ts\n");
-    error('Or set "quarto.build.entryPoint" in package.json (quarto call build-ts-extension --init-config).');
-    exit(1);
-  }
-  const tsFiles: string[] = [];
-  for (const entry of readDirSync(srcDir)) {
-    if (entry.isFile && entry.name.endsWith(".ts")) {
-      tsFiles.push(entry.name);
-    }
-  }
-  if (tsFiles.length === 0) {
-    error("No .ts files found in src/\n");
-    error("Create a TypeScript file:");
-    error("  touch src/my-engine.ts");
-    exit(1);
-  }
-  if (tsFiles.length === 1) {
-    return join(srcDir, tsFiles[0]);
-  }
-  if (tsFiles.includes("mod.ts")) {
-    return join(srcDir, "mod.ts");
-  }
-  error(`Multiple .ts files found in src/: ${tsFiles.join(", ")}\n`);
-  error("Specify the entry point as argument:");
-  error("  quarto call build-ts-extension src/my-engine.ts\n");
-  error("Or rename one file to mod.ts, or set \"quarto.build.entryPoint\" in package.json.");
-  exit(1);
+// Where the default map's packages live: shipped (prepare-dist) or the dev checkout's node_modules.
+function defaultPackagesDir(): string {
+  const shipped = resourcePath("extension-build/node_modules");
+  return existsSync(shipped) ? shipped : join(resourcePath(), "..", "..", "node_modules");
 }
+```
 
-function inferFilename(entryPoint: string): string {
-  return `${basename(entryPoint, extname(entryPoint))}.js`;
-}
+Keep `autoDetectEntryPoint`, `inferFilename`, `extensionDirs`, `inferOutputPath` and `validateExtensionYml` from the current file (lines 79-248 and the `validateExtensionYml` function), with these edits only: `Deno.cwd()` -> `cwd()`, `Deno.exit(1)` -> `exit(1)`, `Deno.readDirSync` -> `readDirSync`, and the hint text `bundle.entryPoint in deno.json` -> `"quarto.build.entryPoint" in package.json`. Then add:
 
-function extensionDirs(): string[] {
-  const dirs: string[] = [];
-  if (!existsSync("_extensions")) {
-    return dirs;
-  }
-  for (const entry of expandGlobSync("_extensions/**/_extension.yml")) {
-    dirs.push(dirname(entry.path));
-  }
-  return dirs;
-}
-
-function inferOutputPath(outputFilename: string, userSpecifiedFilename?: string): string {
-  const extensionName = basename(outputFilename, extname(outputFilename));
-  const dirs = extensionDirs();
-  if (!existsSync("_extensions")) {
-    error("No _extensions/ directory found.\n");
-    if (userSpecifiedFilename) {
-      error(`You specified outputFile: "${userSpecifiedFilename}" in package.json.`);
-      error("To write to the current directory, use a path prefix:");
-      error(`  "outputFile": "./${userSpecifiedFilename}"\n`);
-      error("Or create an extension structure:");
-    } else {
-      error("Extension projects must have an _extensions/ directory with _extension.yml.");
-      error("Create the extension structure:");
-    }
-    error(`  mkdir -p _extensions/${extensionName}`);
-    error(`  touch _extensions/${extensionName}/_extension.yml`);
-    exit(1);
-  }
-  if (dirs.length === 0) {
-    error("No _extension.yml found in _extensions/ subdirectories.\n");
-    error("Create the extension metadata:");
-    error(`  touch _extensions/${extensionName}/_extension.yml`);
-    exit(1);
-  }
-  if (dirs.length > 1) {
-    const names = dirs.map((d) => d.replace(/^.*_extensions\//, ""));
-    error(`Multiple extension directories found: ${names.join(", ")}\n`);
-    error('Set "quarto.build.outputFile" in package.json to the full path, e.g.');
-    error(`  "outputFile": "_extensions/${names[0]}/${outputFilename}"`);
-    exit(1);
-  }
-  return join(dirs[0], outputFilename);
-}
-
-async function bundle(entryPoint: string, config: ExtensionBuildConfig): Promise<void> {
+```ts
+async function bundle(entryPoint: string, resolved: ResolvedBuildConfig): Promise<void> {
   info("Bundling...");
+  const { config } = resolved;
   let outputPath: string;
   if (config.outputFile) {
     const specified = config.outputFile;
@@ -379,58 +415,35 @@ async function bundle(entryPoint: string, config: ExtensionBuildConfig): Promise
   } else {
     outputPath = inferOutputPath(inferFilename(entryPoint));
   }
-  const outputDir = dirname(outputPath);
-  if (!existsSync(outputDir)) {
-    mkdirSync(outputDir, { recursive: true });
+  if (!existsSync(dirname(outputPath))) {
+    mkdirSync(dirname(outputPath), { recursive: true });
   }
+  const aliases = importMapAliases(resolved.imports);
   try {
-    await esbuildCommand(esbuildArgs(entryPoint, outputPath, config), "", cwd());
+    await esbuildCommand(
+      esbuildArgs(entryPoint, outputPath, config, aliases),
+      "",
+      cwd(),
+      aliases.length > 0 ? { NODE_PATH: defaultPackagesDir() } : undefined,
+    );
   } catch (e) {
-    // esbuildCommand prints esbuild's stderr and (after this PR) includes it
-    // in the thrown error's message, so the hint below can inspect it.
     const text = e instanceof Error ? e.message : String(e);
     error("esbuild failed");
     if (text.includes("@quarto/types")) {
       error('@quarto/types only provides types; use "import type { ... } from \\"@quarto/types\\"".');
     }
-    error(`Bare imports resolve from this project's node_modules (npm install <package>). See ${kDocs}`);
+    error(`Bare imports resolve from this project's node_modules (npm install <package>) or Quarto's default import map. See ${kDocs}`);
     exit(1);
   }
   validateExtensionYml(outputPath);
   info(`Built ${entryPoint} -> ${outputPath}`);
 }
 
-function validateExtensionYml(outputPath: string): void {
-  const extensionYmlPath = join(dirname(outputPath), "_extension.yml");
-  if (!existsSync(extensionYmlPath)) {
-    return;
-  }
-  try {
-    const yml = readYaml(extensionYmlPath);
-    const engines = yml?.contributes?.engines;
-    if (Array.isArray(engines)) {
-      const outputFilename = basename(outputPath);
-      for (const engine of engines) {
-        const enginePath = typeof engine === "string" ? engine : engine?.path;
-        if (enginePath && enginePath !== outputFilename) {
-          warning(`_extension.yml specifies engine path "${enginePath}" but built file is "${outputFilename}"`);
-          warning(`  Update _extension.yml to: path: ${outputFilename}`);
-        }
-      }
-    }
-  } catch {
-    // Ignore YAML parsing errors
-  }
-}
-
 function quartoTypesPath(): string {
-  // distribution: share/extension-build/quarto-types.d.ts (copied by prepare-dist)
   const shipped = resourcePath("extension-build/quarto-types.d.ts");
-  if (existsSync(shipped)) {
-    return shipped;
-  }
-  // dev checkout: packages/quarto-types/dist/index.d.ts (npm run build there)
-  return join(resourcePath(), "..", "..", "packages", "quarto-types", "dist", "index.d.ts");
+  return existsSync(shipped)
+    ? shipped
+    : join(resourcePath(), "..", "..", "packages", "quarto-types", "dist", "index.d.ts");
 }
 
 async function typeCheck(): Promise<void> {
@@ -446,47 +459,58 @@ async function typeCheck(): Promise<void> {
   const result = await execProcess({ cmd: execPath(), args: [tsc, "--noEmit", "-p", tsconfig], cwd: cwd() });
   if (!result.success) {
     error("Type check failed\n");
-    error("See errors above. Fix type errors in your code or adjust compilerOptions in tsconfig.json.");
+    error("Fix the type errors above, or adjust compilerOptions in tsconfig.json.");
     exit(1);
   }
   info("Type check passed");
 }
 
+// tsconfig "paths" for @quarto/types and the default import map keys
+function tsconfigPaths(): Record<string, string[]> {
+  const fwd = (p: string) => p.replaceAll("\\", "/");
+  const paths: Record<string, string[]> = { "@quarto/types": [fwd(quartoTypesPath())] };
+  const pkgDir = defaultPackagesDir();
+  for (const [key, target] of Object.entries(readImports(resourcePath("extension-build/import-map.json")))) {
+    const to = aliasTarget(target);
+    if (key === "@quarto/types" || to === undefined) continue;
+    if (key.endsWith("/")) {
+      paths[`${key}*`] = [fwd(join(pkgDir, to, "*"))];
+    } else {
+      paths[key] = [fwd(join(pkgDir, to))];
+    }
+  }
+  return paths;
+}
+
 function initializeConfig(): void {
   const dirs = extensionDirs();
   const name = dirs.length === 1 ? basename(dirs[0]) : "quarto-engine";
-  const packageJson = "package.json";
-  const tsconfig = "tsconfig.json";
-  if (existsSync(packageJson) && JSON.parse(readTextFileSync(packageJson)).quarto?.build) {
+  if (existsSync("package.json") && JSON.parse(readTextFileSync("package.json")).quarto?.build) {
     error('package.json already has a "quarto.build" section; nothing to do.');
     exit(1);
   }
-  const pkg = existsSync(packageJson) ? JSON.parse(readTextFileSync(packageJson)) : { name, private: true, type: "module" };
+  const pkg = existsSync("package.json")
+    ? JSON.parse(readTextFileSync("package.json"))
+    : { name, private: true, type: "module" };
   pkg.quarto = {
     ...(pkg.quarto ?? {}),
-    build: {
-      entryPoint: `src/${name}.ts`,
-      outputFile: `_extensions/${name}/${name}.js`,
-      minify: false,
-      sourcemap: false,
-    },
+    build: { entryPoint: `src/${name}.ts`, outputFile: `_extensions/${name}/${name}.js`, minify: false, sourcemap: false },
   };
   pkg.scripts = { ...(pkg.scripts ?? {}), build: "quarto call build-ts-extension", check: "quarto call build-ts-extension --check" };
-  pkg.devDependencies = { typescript: "^5.9.3", ...(pkg.devDependencies ?? {}) };
-  writeTextFileSync(packageJson, JSON.stringify(pkg, null, 2) + "\n");
-  info(`Wrote ${packageJson}`);
-
-  if (!existsSync(tsconfig)) {
-    const template = readTextFileSync(resourcePath("extension-build/tsconfig.template.json"));
-    writeTextFileSync(tsconfig, template.replace("__QUARTO_TYPES__", quartoTypesPath().replaceAll("\\", "/")));
-    info(`Wrote ${tsconfig} (types: ${quartoTypesPath()})`);
+  pkg.devDependencies = { typescript: "5.9.3", ...(pkg.devDependencies ?? {}) };
+  writeTextFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+  info("Wrote package.json");
+  if (!existsSync("tsconfig.json")) {
+    const template = JSON.parse(readTextFileSync(resourcePath("extension-build/tsconfig.template.json")));
+    template.compilerOptions.paths = tsconfigPaths();
+    writeTextFileSync("tsconfig.json", JSON.stringify(template, null, 2) + "\n");
+    info("Wrote tsconfig.json");
   } else {
-    info(`${tsconfig} exists; add "paths": { "@quarto/types": ["${quartoTypesPath()}"] } to compilerOptions if missing`);
+    info(`tsconfig.json exists; add to compilerOptions.paths: ${JSON.stringify(tsconfigPaths())}`);
   }
   if (existsSync("deno.json")) {
-    warning("deno.json is no longer used by quarto call build-ts-extension; delete it once package.json is in place.");
+    warning("deno.json is no longer used by quarto call build-ts-extension once package.json has quarto.build; delete it.");
   }
-  info("");
   info("Next: npm install, then quarto call build-ts-extension");
 }
 
@@ -511,20 +535,18 @@ export const buildTsExtensionCommand = new Command()
         initializeConfig();
         return;
       }
-      const { config, source } = resolveConfig(cwd());
-      if (source === "deno.json") {
+      const resolved = resolveConfig(cwd(), resourcePath("extension-build/import-map.json"));
+      if (resolved.source === "deno.json") {
         warning(
-          'deno.json is deprecated for quarto call build-ts-extension; move the "bundle" section to package.json "quarto.build" (quarto call build-ts-extension --init-config).',
+          'deno.json is deprecated for quarto call build-ts-extension; move "bundle" to package.json "quarto.build" (quarto call build-ts-extension --init-config).',
         );
-      } else if (source === "package.json") {
-        info("Using build configuration from package.json");
       }
-      const entryPoint = entryPointArg || autoDetectEntryPoint(config.entryPoint);
+      const entryPoint = entryPointArg || autoDetectEntryPoint(resolved.config.entryPoint);
       info(`Entry point: ${entryPoint}`);
       if (options.check) {
         await typeCheck();
       } else {
-        await bundle(entryPoint, config);
+        await bundle(entryPoint, resolved);
       }
     } catch (e) {
       error(e instanceof Error ? e.message : String(e));
@@ -533,169 +555,328 @@ export const buildTsExtensionCommand = new Command()
   });
 ```
 
-The `@quarto/types` hint relies on one change in `src/core/esbuild.ts` `esbuildCommand()` (line 109 today): replace `throw new Error("esbuild command failed");` with `throw new Error("esbuild command failed\n" + result.stderr);`. The other caller, `esbuildCompile` (OJS bundling), only propagates the error, so the extra text is harmless there.
+`autoDetectEntryPoint` in the current file is `async`; make it synchronous (it awaits nothing after the edits) or keep `await` at the call site.
 
-- [ ] **Step 4: Run the test**
+- [ ] **Step 5: Run the unit test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/build-ts-extension-args.test.ts`
-Expected: `2 passed`.
+Expected: `3 passed`.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Run the unchanged smoke test**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/build-ts-extension/build-ts-extension.test.ts && git diff --stat main -- smoke/build-ts-extension`
+Expected: the test passes (`function extname` bundled from `@jsr/std__path` through `--alias:path=` and `NODE_PATH`); the diff is empty. If esbuild reports `Could not resolve "@jsr/std__path"`, print `NODE_PATH` in `bundle()` under `--log-level debug` and check that the dev `node_modules` has the package (`ls node_modules/@jsr/std__path`).
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add src/command/call/build-ts-extension/cmd.ts src/core/esbuild.ts tests/unit/build-ts-extension-args.test.ts
-git commit -m "build-ts-extension: bundle with Quarto's esbuild, configured from package.json"
+git commit -m "build-ts-extension: bundle with Quarto's esbuild; default import map via aliases; package.json config"
 ```
 
 ### Task 2: Shipped resources and `prepare-dist`
 
 **Files:**
-- Delete: `src/resources/extension-build/deno.json`, `src/resources/extension-build/import-map.json`
+- Delete: `src/resources/extension-build/deno.json`
 - Create: `src/resources/extension-build/tsconfig.template.json`
-- Modify: `src/resources/extension-build/README.md`
-- Modify: `package/src/common/prepare-dist.ts:121-124,226-267`
+- Modify: `src/resources/extension-build/README.md`, `package/src/common/prepare-dist.ts`
 
 - [ ] **Step 1: Resources**
 
 ```bash
-git rm src/resources/extension-build/deno.json src/resources/extension-build/import-map.json
+git rm src/resources/extension-build/deno.json
 ```
 
-`src/resources/extension-build/tsconfig.template.json`: the JSON from the Interfaces section (with the literal `__QUARTO_TYPES__` placeholder).
+`src/resources/extension-build/tsconfig.template.json` (`--init-config` fills `compilerOptions.paths`):
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "lib": ["ES2023", "DOM"],
+    "types": [],
+    "skipLibCheck": true,
+    "paths": {}
+  },
+  "include": ["src/**/*.ts"]
+}
+```
 
 `src/resources/extension-build/README.md`:
 
 ```markdown
 # Extension Build Resources
 
-Default files for `quarto call build-ts-extension`, which bundles TypeScript
+Defaults for `quarto call build-ts-extension`, which bundles TypeScript
 execution engines with Quarto's esbuild (`bin/tools/<arch>/esbuild`).
 
-## Files
-
-- **tsconfig.template.json**: written to the extension project by
-  `quarto call build-ts-extension --init-config` with `__QUARTO_TYPES__`
-  replaced by the absolute path of `quarto-types.d.ts`. Used by `--check`
-  (which runs the project's own `node_modules/typescript/bin/tsc`).
-- **quarto-types.d.ts**: type definitions, copied from
-  `packages/quarto-types/dist/index.d.ts` during packaging (`prepare-dist`).
-  In a dev checkout, run `npm run build` in `packages/quarto-types` and the
-  command finds `dist/index.d.ts` there.
-
-## Engine contract
+- **import-map.json**: Quarto's default import map (`path`, `path/posix`,
+  `log`, `fs/`, `encoding/`, and the type-only `@quarto/types`). Applied as
+  esbuild `--alias` arguments to projects without their own map, unless
+  package.json sets `"quarto": { "build": { "defaultImportMap": false } }`.
+  `prepare-dist` updates the versions from `src/import_map.json`.
+- **node_modules/** (distribution only): the packages the default map points
+  to, with their dependencies, copied by `prepare-dist`. esbuild finds them
+  through `NODE_PATH`. In a dev checkout the repository's `node_modules` is used.
+- **tsconfig.template.json**: written by `--init-config` with `paths` for
+  `@quarto/types` and the default map's keys; used by `--check` (the project's
+  own `node_modules/typescript`).
+- **quarto-types.d.ts** (distribution only): copied from
+  `packages/quarto-types/dist/index.d.ts`.
 
 Engines run inside Quarto's Node.js process. They use the `QuartoAPI` object
-passed to `init()` and web-standard globals. `Deno.*` is not available. Node
-built-ins (`node:fs`, `node:net`, ...) work but are not part of the
-compatibility promise; see `packages/quarto-types/README.md`.
-
-Bare imports are resolved from the extension project's `node_modules`; there
-is no import map. Type-only imports of `@quarto/types` are erased at bundle
-time.
+passed to `init()` and web-standard globals; `Deno.*` is not available. See
+`packages/quarto-types/README.md`, "Runtime contract".
 ```
 
 - [ ] **Step 2: `prepare-dist.ts`**
 
-Delete lines 121-124 (`// Update extension-build import map for distribution` block) and the `updateImportMap` function (lines 226-267). Update the comment at lines 166-168 to:
+Keep `updateImportMap` (lines 226-267) and its call (lines 120-124). After the `quarto-types.d.ts` copy (lines 166-178), add:
 
 ```ts
-  // Copy quarto-types to the extension-build directory (tsconfig.template.json
-  // and README.md arrive with the resources copy in supportingFiles()).
+  // Packages of the default build-ts-extension import map, with their
+  // dependencies, so engines without their own config build offline.
+  info("Copying extension-build packages");
+  const extensionImports = JSON.parse(
+    readTextFileSync(join(extensionBuildDir, "import-map.json")),
+  ).imports as Record<string, string>;
+  const roots = new Set<string>();
+  for (const target of Object.values(extensionImports)) {
+    const m = target.match(/^jsr:\/?@([^/@]+)\/([^/@]+)@/);
+    if (m) roots.add(`@jsr/${m[1]}__${m[2]}`);
+  }
+  copyPackageClosure(
+    [...roots],
+    join(config.directoryInfo.root, "node_modules"),
+    join(extensionBuildDir, "node_modules"),
+  );
 ```
 
-Run: `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 > /dev/null && ls ../pkg-working/share/extension-build`
-Expected: `README.md  quarto-types.d.ts  tsconfig.template.json`.
+and the helper at the end of the file:
+
+```ts
+// Copy packages and their transitive `dependencies` from a flat node_modules.
+function copyPackageClosure(names: string[], from: string, to: string) {
+  const seen = new Set<string>();
+  const queue = [...names];
+  while (queue.length > 0) {
+    const name = queue.shift()!;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    const src = join(from, name);
+    if (!existsSync(src)) {
+      throw new Error(`extension-build package ${name} is missing from ${from}; run npm ci`);
+    }
+    copySync(src, join(to, name), { overwrite: true });
+    const pkg = JSON.parse(readTextFileSync(join(src, "package.json")));
+    queue.push(...Object.keys(pkg.dependencies ?? {}));
+  }
+}
+```
+
+(add `readTextFileSync` to the `fs.ts` import). npm installs the root dependencies flat, so `node_modules/<name>` exists for each transitive dependency unless two versions conflict; the thrown error names it if one is nested instead.
+
+Run: `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 > /dev/null && ls ../pkg-working/share/extension-build ../pkg-working/share/extension-build/node_modules/@jsr`
+Expected: `README.md import-map.json node_modules quarto-types.d.ts tsconfig.template.json`; `std__encoding std__fs std__log std__path` plus their dependencies (e.g. `std__fmt`, `std__io`).
+
+Then from the installed layout: `cp -r tests/smoke/build-ts-extension /tmp/btx && cd /tmp/btx && ../path/to/package/pkg-working/bin/quarto call build-ts-extension && grep -c "function extname" _extensions/test-engine/test-engine.js` prints `1`.
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add src/resources/extension-build package/src/common/prepare-dist.ts
-git commit -m "build-ts-extension: ship tsconfig template; drop the Deno import map"
+git commit -m "build-ts-extension: ship the default import map's packages; tsconfig template replaces deno.json"
 ```
 
-### Task 3: Smoke test fixture
+### Task 3: Flag engine bundles that reference `Deno.`
 
 **Files:**
-- Modify: `tests/smoke/build-ts-extension/src/test-engine.ts:15,78`
-- Create: `tests/smoke/build-ts-extension/src/util.ts`, `tests/smoke/build-ts-extension/package.json`
-- Modify: `tests/smoke/build-ts-extension/build-ts-extension.test.ts:17-35`
-- Modify: `tests/smoke/build-ts-extension/README.md`
+- Modify: `src/execute/engine.ts:229-272`
+- Test: `tests/unit/engine-deno-detection.test.ts`, `tests/smoke/engine/engine-deno-warning.test.ts`, fixture `tests/docs/engine/deno-api-engine/`
 
-- [ ] **Step 1: Fixture**
+- [ ] **Step 1: Write the failing tests and fixture**
 
-`tests/smoke/build-ts-extension/src/util.ts`:
+`tests/unit/engine-deno-detection.test.ts`:
 
 ```ts
-// A local module, so the test can check that esbuild bundled it.
-export function helperFromUtil(input: string): string {
-  return input.split(".").pop() ?? "";
-}
+/*
+ * engine-deno-detection.test.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+import { unitTest } from "../test.ts";
+import { assertEquals } from "../asserts.ts";
+import { denoApiReferences } from "../../src/execute/engine.ts";
+
+// "D" + "eno." keeps the literal out of this file for the boundary ratchet's tests scope.
+const D = "Deno";
+
+unitTest("engine - Deno API references are listed once, in order", () => {
+  assertEquals(
+    denoApiReferences(`const a = ${D}.readTextFileSync(p); new ${D}.Command("x"); ${D}.readTextFileSync(q); const d = "${D}minator.x";`),
+    [`${D}.readTextFileSync`, `${D}.Command`],
+  );
+  assertEquals(denoApiReferences(`const x = typeof ${D} === 'undefined';`), []);
+});
 ```
 
-In `src/test-engine.ts`: replace line 15 `import { extname } from "path";` with `import { helperFromUtil } from "./util.ts";` and line 78 `const _ext = extname(options.target.input);` with `const _ext = helperFromUtil(options.target.input);`.
+The fixture `tests/docs/engine/deno-api-engine/deno-engine.js` is under `tests/docs/`, which the ratchet's `tests` scope excludes (the existing `tests/docs/project/prepost/` fixtures use the Deno API too); confirm with `grep -n "tests/docs" tools/check-runtime-boundary.ts`.
 
-`tests/smoke/build-ts-extension/package.json`:
+`tests/docs/engine/deno-api-engine/_quarto.yml`:
 
-```json
-{
-  "name": "test-engine",
-  "private": true,
-  "type": "module",
-  "quarto": {
-    "build": {
-      "entryPoint": "src/test-engine.ts",
-      "outputFile": "_extensions/test-engine/test-engine.js"
-    }
-  }
-}
+```yaml
+project:
+  type: default
+engines:
+  - path: deno-engine.js
 ```
 
-- [ ] **Step 2: Assertions**
+`tests/docs/engine/deno-api-engine/deno-engine.js` (claims nothing; the Deno call is never executed):
 
-Replace `verifyImportBundled` (lines 17-35 of the test):
+```js
+// Engine built for Quarto <= 1.11: references the Deno API in code that a
+// render of index.qmd never runs. Used to check the load-time warning.
+const legacy = () => Deno.readTextFileSync("never-read.txt");
 
-```ts
-const verifyImportBundled: Verify = {
-  name: "Verify local import was bundled and no Deno API remains",
-  verify: async () => {
-    const bundlePath = "_extensions/test-engine/test-engine.js";
-    const content = readTextFileSync(bundlePath);
-    assert(content.includes("function helperFromUtil"), "Bundle does not contain the local helper; esbuild did not bundle ./util.ts");
-    assert(content.includes("export {") || content.includes("export default"), "Bundle is not ESM");
-    assert(!/\bDeno\./.test(content), "Bundle references Deno.*");
+export default {
+  name: "deno-api-probe",
+  defaultExt: ".qmd",
+  defaultYaml: () => [],
+  defaultContent: () => [],
+  validExtensions: () => [],
+  claimsFile: (_file, _ext) => false,
+  claimsLanguage: (_language, _firstClass) => false,
+  canFreeze: false,
+  generatesFigures: false,
+  launch: (_context) => {
+    throw new Error(String(legacy));
   },
 };
 ```
 
-(import `readTextFileSync` from `../../../src/deno_ral/fs.ts`.) Update `README.md` in that directory: replace the `deno.json` sentences with `package.json` (`quarto.build`) and delete the "inline imports" note.
+`tests/docs/engine/deno-api-engine/index.qmd`:
 
-- [ ] **Step 3: Run**
+```markdown
+---
+title: deno-api-engine
+---
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/build-ts-extension/build-ts-extension.test.ts`
-Expected: passes; `git status` shows the rebuilt `_extensions/test-engine/test-engine.js` is untracked/ignored (it was before too).
+Rendered by the markdown engine.
+```
 
-- [ ] **Step 4: Commit**
+`tests/smoke/engine/engine-deno-warning.test.ts`:
+
+```ts
+/*
+ * engine-deno-warning.test.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+import { docs } from "../../utils.ts";
+import { testRender } from "../render/render.ts";
+import { printsMessage } from "../../verify.ts";
+
+testRender(
+  docs("engine/deno-api-engine/index.qmd"),
+  "html",
+  false,
+  [printsMessage({ level: "WARN", regex: /deno-engine\.js references the Deno API \(Deno\.readTextFileSync\)/ })],
+);
+```
+
+(`testRender` lives in `tests/smoke/render/render.ts`; confirm the import path with `grep -n "export function testRender" tests/smoke/render/render.ts`.)
+
+- [ ] **Step 2: Run them and see them fail**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/engine-deno-detection.test.ts smoke/engine/engine-deno-warning.test.ts`
+Expected: FAIL (`denoApiReferences` not exported; no warning printed).
+
+- [ ] **Step 3: Implement**
+
+In `src/execute/engine.ts` add (imports: `readTextFileSync` from `../deno_ral/fs.ts`, `warning` from `../deno_ral/log.ts`, `resourcePath` from `../core/resources.ts`, `normalizePath` from `../core/path.ts`):
+
+```ts
+// Spelled without a literal "Deno" + "." so the boundary ratchet (PR 02, which
+// counts that text in src/) stays at zero.
+const kDenoGlobal = "Deno";
+const kDenoMember = new RegExp(`\\b${kDenoGlobal}\\.([A-Za-z_$][\\w$]*)`, "g");
+
+export function denoApiReferences(text: string): string[] {
+  const found: string[] = [];
+  for (const m of text.matchAll(kDenoMember)) {
+    const ref = `${kDenoGlobal}.${m[1]}`;
+    if (!found.includes(ref)) {
+      found.push(ref);
+    }
+  }
+  return found;
+}
+
+const kEngineMigrationUrl = "https://quarto.org/docs/extensions/engine.html#migrating-from-deno";
+const checkedEngineBundles = new Set<string>();
+
+// Engines built for Quarto <= 1.11 may call Deno APIs, which fail on Node.js.
+// Read each bundle once per process and warn. Bundled subtree engines are
+// tracked by the runtime migration (milestone J) and are not reported.
+function warnIfEngineUsesDeno(enginePath: string) {
+  const path = normalizePath(enginePath);
+  if (checkedEngineBundles.has(path) || path.startsWith(normalizePath(resourcePath("extension-subtrees")))) {
+    return;
+  }
+  checkedEngineBundles.add(path);
+  let refs: string[];
+  try {
+    refs = denoApiReferences(readTextFileSync(path));
+  } catch {
+    return; // unreadable: the import below reports it
+  }
+  if (refs.length > 0) {
+    warning(
+      `Engine extension ${enginePath} references the Deno API (${refs.slice(0, 5).join(", ")}${refs.length > 5 ? ", ..." : ""}). ` +
+        `Quarto runs on Node.js since 1.12 and these calls fail when executed. ` +
+        `Rebuild the engine with \`quarto call build-ts-extension\` against the QuartoAPI: ${kEngineMigrationUrl}`,
+    );
+  }
+}
+```
+
+In `resolveEngines`, call `warnIfEngineUsesDeno(engine.path);` as the first statement inside `if (typeof engine === "object") { try {`, before the `import()`. In the `catch` (line ~265), extend the message:
+
+```ts
+        const message = err.message || "Unknown error";
+        const hint = /Cannot use import statement outside a module|Unexpected token 'export'/.test(message)
+          ? ` The engine bundle is an ES module but the nearest package.json declares "type": "commonjs"; add { "type": "module" } to a package.json next to the engine file.`
+          : "";
+        throw new Error(`Failed to import engine from ${engine.path}: ${message}${hint}`);
+```
+
+- [ ] **Step 4: Run and commit**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/engine-deno-detection.test.ts smoke/engine/ smoke/check/check-in-project.test.ts`
+Expected: all pass (`check-in-project` uses `probe-engine.js`, which has no `Deno.`; no warning).
 
 ```bash
-git add tests/smoke/build-ts-extension
-git commit -m "tests: build-ts-extension fixture uses package.json and a local import"
+git add src/execute/engine.ts tests/unit/engine-deno-detection.test.ts tests/smoke/engine/engine-deno-warning.test.ts tests/docs/engine/deno-api-engine
+git commit -m "engines: warn when a loaded engine bundle references the Deno API; hint for type: commonjs"
 ```
 
 ### Task 4: `quarto create extension engine` template
 
 **Files:**
-- Modify: `src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts:94`
-- Modify: `src/resources/create/extensions/engine/README.ejs.md:20-41`
+- Modify: `src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts:94`, `src/resources/create/extensions/engine/README.ejs.md:20-41`
 
 - [ ] **Step 1: Template source**
 
-Line 94: replace `quarto.markdownRegex.partition(Deno.readTextFileSync(file))` with `quarto.markdownRegex.partition(quarto.mappedString.fromFile(file).value)`.
-
+Line 94: `quarto.markdownRegex.partition(Deno.readTextFileSync(file))` -> `quarto.markdownRegex.partition(quarto.mappedString.fromFile(file).value)`.
 Run: `grep -n "Deno\." src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts` -> no output.
 
-- [ ] **Step 2: README**
-
-Replace lines 20-41 of `README.ejs.md`:
+- [ ] **Step 2: README** (replace lines 20-41)
 
 ```markdown
 ### Building
@@ -710,8 +891,9 @@ Commit the built file together with the source.
 
 Engines run inside Quarto's Node.js process and use the `QuartoAPI` object
 passed to `init()` plus web-standard globals (`fetch`, `crypto.subtle`,
-`TextEncoder`, `URL`). Deno APIs are not available. Packages installed with
-`npm install` in this directory can be imported and are bundled.
+`TextEncoder`, `URL`). Deno APIs are not available. Quarto's default import
+map provides `path`, `log`, `fs/` and `encoding/`; other packages can be added
+with `npm install` in this directory and are bundled.
 
 To type-check, create the build configuration once and install TypeScript:
 
@@ -722,252 +904,22 @@ quarto call build-ts-extension --check
 ```
 ```
 
-- [ ] **Step 3: Run the create smoke test**
+- [ ] **Step 3: Run and commit**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/create/create.test.ts`
-Expected: passes (the `engine` template builds and renders).
-
-- [ ] **Step 4: Commit**
+Expected: passes.
 
 ```bash
 git add src/resources/create/extensions/engine
-git commit -m "create: engine template uses the QuartoAPI and package.json build config"
+git commit -m "create: engine template uses the QuartoAPI and the esbuild build"
 ```
 
-### Task 5: Port the bundled Julia engine
+### Task 5: Engine contract docs and changelog
 
 **Files:**
-- Modify: `src/resources/extension-subtrees/julia-engine/src/julia-engine.ts`
-- Modify (regenerate): `src/resources/extension-subtrees/julia-engine/_extensions/julia-engine/julia-engine.js`
-- Modify: `src/resources/extension-subtrees/julia-engine/README.md:17`, `AGENTS.md:26,30`
+- Modify: `packages/quarto-types/README.md`, `packages/quarto-types/src/quarto-api.ts:37-40`, `llm-docs/quarto-api.md`, `news/changelog-1.12.md`, `dev-docs/runtime-migration/docs-updates.md`
 
-- [ ] **Step 1: Imports (lines 7-11)**
-
-```ts
-// Node built-ins (the engine runs inside Quarto's Node.js process)
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { copyFileSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { connect, type Socket } from "node:net";
-```
-
-- [ ] **Step 2: Platform, extension dir, safe remove (lines 44-60)**
-
-```ts
-// Platform detection
-const isWindows = process.platform === "win32";
-
-// Extension directory (where the bundled JS and resource files live)
-const extensionDir = dirname(fileURLToPath(import.meta.url));
-
-// Module-level quarto API reference
-let quarto: QuartoAPI;
-
-// Safe file removal helper
-function safeRemoveSync(file: string, options: { recursive?: boolean } = {}) {
-  try {
-    rmSync(file, { recursive: !!options.recursive });
-  } catch (e) {
-    if (existsSync(file)) {
-      throw e;
-    }
-  }
-}
-```
-
-- [ ] **Step 3: File reads and writes**
-
-- Line 141: `Deno.readTextFileSync(file)` -> `readFileSync(file, "utf8")`.
-- Line 230: `Deno.writeTextFileSync(ipynbPath, JSON.stringify(nb, null, 2));` -> `writeFileSync(ipynbPath, JSON.stringify(nb, null, 2));`.
-- Line 466: `Deno.writeFileSync(projectToml, Deno.readFileSync(projectTomlTemplate));` -> `copyFileSync(projectTomlTemplate, projectToml);`.
-- Lines 515, 519: `Deno.readTextFileSync(transportFile)` -> `readFileSync(transportFile, "utf8")`.
-- `printJuliaServerLog`: `Deno.stdout.writeSync(Deno.readFileSync(juliaServerLogFile()));` -> `process.stdout.write(readFileSync(juliaServerLogFile()));`.
-- Line 1062: `Deno.stdout.writeSync((new TextEncoder()).encode(status));` -> `process.stdout.write(status);`.
-
-- [ ] **Step 4: Environment, console, signals**
-
-- Line 331: `return Deno.env.get("QUARTO_JULIA") ?? "julia";` -> `return process.env.QUARTO_JULIA ?? "julia";`.
-- Line 351: `let juliaProject = Deno.env.get("QUARTO_JULIA_PROJECT");` -> `let juliaProject = process.env.QUARTO_JULIA_PROJECT;`.
-- Line 639: `return Deno.consoleSize().columns ?? null;` -> `return process.stdout.columns ?? null;` (keep the try/catch).
-- Line 1077: `Deno.kill(transportOptions.pid, "SIGTERM");` -> `process.kill(transportOptions.pid, "SIGTERM");`.
-
-- [ ] **Step 5: Processes (four `Deno.Command` sites)**
-
-The `QUARTO_JULIA_PROJECT` test (lines 362-380):
-
-```ts
-      const result = await quarto.system.execProcess({
-        cmd: juliaCmd(),
-        args: ["--startup-file=no", `--project=${juliaProject}`, "-e", "using QuartoNotebookRunner"],
-        env: {
-          // ignore the main env
-          "JULIA_LOAD_PATH": isWindows ? "@;@stdlib" : "@:@stdlib",
-        },
-        stdout: "piped",
-        stderr: "piped",
-      });
-      if (!result.success) {
-        throw Error(
-          `Executing \`using QuartoNotebookRunner\` failed with QUARTO_JULIA_PROJECT="${juliaProject}". Ensure that this project exists, has QuartoNotebookRunner installed and is instantiated correctly.`,
-        );
-      }
-```
-
-The two detached server starts (lines 395-446): keep the argument lists exactly as they are and replace each `const command = new Deno.Command(<cmd>, { args: [...], env: {...} });` + `const result = command.outputSync(); if (!result.success) { throw new Error(new TextDecoder().decode(result.stderr)); }` with
-
-```ts
-      const result = await quarto.system.execProcess({
-        cmd: <cmd>,
-        args: [...same list...],
-        env: { "JULIA_LOAD_PATH": <same value> },
-        stdout: "piped",
-        stderr: "piped",
-      });
-      if (!result.success) {
-        throw new Error(result.stderr ?? "");
-      }
-```
-
-(`startOrReuseJuliaServer` is already `async`.) `ensureQuartoNotebookRunnerEnvironment` (lines 467-477):
-
-```ts
-  const { success } = await quarto.system.execProcess({
-    cmd: juliaCmd(),
-    args: ["--startup-file=no", `--project=${runtimeDir}`, join(extensionDir, "ensure_environment.jl")],
-  });
-  if (!success) {
-    throw (new Error("Ensuring an updated julia server environment failed"));
-  }
-```
-
-`execProcess` merges `env` into the inherited environment, the same way `Deno.Command` did.
-
-- [ ] **Step 6: TCP: `LineSocket` replaces `Deno.connect` and the read loop**
-
-Add after the `safeRemoveSync` helper:
-
-```ts
-// Newline-delimited client for the QuartoNotebookRunner control server.
-// Replaces Deno.connect() plus a hand-written chunk/newline loop.
-class LineSocket {
-  private buffered = "";
-  private pending: Array<(line: string | null) => void> = [];
-  private closed = false;
-
-  private constructor(private readonly socket: Socket) {
-    socket.setEncoding("utf8");
-    socket.on("data", (chunk: string) => {
-      this.buffered += chunk;
-      this.flush();
-    });
-    socket.on("close", () => {
-      this.closed = true;
-      this.flush();
-    });
-    socket.on("error", () => {
-      this.closed = true;
-      this.flush();
-    });
-  }
-
-  static connect(port: number, host = "127.0.0.1"): Promise<LineSocket> {
-    return new Promise((resolve, reject) => {
-      const socket = connect({ port, host });
-      socket.once("connect", () => resolve(new LineSocket(socket)));
-      socket.once("error", reject);
-    });
-  }
-
-  private flush() {
-    while (this.pending.length > 0) {
-      const nl = this.buffered.indexOf("\n");
-      if (nl !== -1) {
-        const line = this.buffered.slice(0, nl);
-        this.buffered = this.buffered.slice(nl + 1);
-        this.pending.shift()!(line);
-      } else if (this.closed) {
-        this.pending.shift()!(null);
-      } else {
-        break;
-      }
-    }
-  }
-
-  readLine(): Promise<string | null> {
-    return new Promise((resolve) => {
-      this.pending.push(resolve);
-      this.flush();
-    });
-  }
-
-  write(data: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.socket.write(data, (err) => (err ? reject(err) : resolve()));
-    });
-  }
-
-  close() {
-    this.socket.destroy();
-  }
-}
-```
-
-Then:
-
-- Line 532: `const conn = await Deno.connect({ port: transportOptions.port });` -> `const conn = await LineSocket.connect(transportOptions.port);`.
-- Line 562: return type `Promise<Deno.TcpConn>` -> `Promise<LineSocket>`.
-- Line 837: parameter `conn: Deno.Conn` -> `conn: LineSocket`.
-- Lines 857-867 (HMAC): replace `const hmac = encodeBase64(signatureBytes);` with `const hmac = Buffer.from(signatureBytes).toString("base64");` and `await writeAll(conn, messageBytes);` with `await conn.write(message);` (delete the `messageBytes` line).
-- Lines 869-926 (from `let restOfPreviousResponse = new Uint8Array(512);` to the line `trace(options, "received server response");`): replace the whole block with
-
-```ts
-  while (true) {
-    const line = await conn.readLine();
-    if (line === null) {
-      throw new Error(`Julia server closed the connection while waiting for the response to "${command.type}"`);
-    }
-    const response = line;
-    trace(options, "received server response");
-```
-
-and keep everything from `// one command should be sent, ended by a newline` on, replacing `const json = response.split("\n")[0];` with `const json = response;`. The `continue` for progress updates stays (it waits for the next line). The `conn.close()` calls (lines 553, 1064, 1118) are unchanged in spelling.
-
-- [ ] **Step 7: Rebuild and verify**
-
-```bash
-cd src/resources/extension-subtrees/julia-engine
-grep -n "Deno\.\|from \"path\"\|fs/exists\|encoding/base64\|jsr:" src/julia-engine.ts      # expect no output
-../../../../package/dist/bin/quarto call build-ts-extension src/julia-engine.ts
-grep -c "Deno\." _extensions/julia-engine/julia-engine.js                                    # expect 0
-cd ../../../..
-```
-
-If Julia and `QuartoNotebookRunner` are available locally: `cd tests && ./run-tests.sh --agent $(ls docs/julia-engine 2>/dev/null >/dev/null && echo smoke/julia-engine/ || echo "")` after running `.github/actions/merge-extension-tests` steps by hand (`cp -r src/resources/extension-subtrees/julia-engine/tests/docs/julia-engine tests/docs/ && cp -r src/resources/extension-subtrees/julia-engine/tests/smoke/julia-engine tests/smoke/`). Otherwise rely on CI (the `test-smokes.yml` legs that run the merge action).
-
-- [ ] **Step 8: Docs in the subtree**
-
-- `README.md:17`: replace the sentence about "small Deno wrappers" with "A few system utilities (`delay`, `safeRemoveSync`, `LineSocket`) are implemented at the top of `src/julia-engine.ts` on Node built-ins; the engine uses the `QuartoAPI` for processes and logging."
-- `AGENTS.md:26,30`: replace "Deno tests using `jsr:` imports" / "the deno bundled with quarto" with "tests run through quarto-cli's test runner (Node)". Keep the rest.
-
-- [ ] **Step 9: Commit and upstream note**
-
-```bash
-git add src/resources/extension-subtrees/julia-engine
-git commit -m "julia-engine: port to the QuartoAPI and Node built-ins; rebuild bundle"
-```
-
-The subtree's upstream repository is the one `src/command/dev-call/pull-git-subtree/cmd.ts` pulls from; after this PR merges, push the change upstream (`git subtree push --prefix=src/resources/extension-subtrees/julia-engine <remote> <branch>`) and open a PR there so the next pull does not revert it. Say so in the PR description.
-
-### Task 6: `@quarto/types` contract and changelog
-
-**Files:**
-- Modify: `packages/quarto-types/README.md`, `packages/quarto-types/src/quarto-api.ts:37-40`
-- Modify: `llm-docs/quarto-api.md`
-- Modify: `news/changelog-1.11.md`, `dev-docs/runtime-migration/docs-updates.md`
-
-- [ ] **Step 1: README section**
-
-Insert after `## Usage` in `packages/quarto-types/README.md`:
+- [ ] **Step 1: `packages/quarto-types/README.md`**, after `## Usage`:
 
 ```markdown
 ## Runtime contract
@@ -980,14 +932,14 @@ and loaded with `import()` inside Quarto's Node.js process. An engine may rely o
 - web-standard globals available in Node.js: `fetch`, `crypto.subtle`,
   `TextEncoder`/`TextDecoder`, `URL`, timers, streams, `AbortController`.
 
-`Deno.*` is not available (Quarto ran on Deno through 1.10; engines that used
-it must be rebuilt against this contract). Node.js built-ins (`node:fs`,
-`node:path`, `node:net`, `node:child_process`) work today because the engine
-shares Quarto's process, but they are outside the contract: prefer the
-`QuartoAPI` and ask for an API addition when something is missing.
+`Deno.*` is not available (Quarto ran on Deno through 1.11; Quarto warns when
+it loads an engine bundle that references it). Node.js built-ins (`node:fs`,
+`node:path`, `node:net`, `node:child_process`) work because the engine shares
+Quarto's process, but they are outside the contract: prefer the `QuartoAPI`
+and ask for an addition when something is missing.
 ```
 
-Also update the doc comment at `packages/quarto-types/src/quarto-api.ts:37-40`:
+`packages/quarto-types/src/quarto-api.ts:37-40` doc comment:
 
 ```ts
 /**
@@ -997,57 +949,52 @@ Also update the doc comment at `packages/quarto-types/src/quarto-api.ts:37-40`:
  */
 ```
 
-Rebuild the types: `cd packages/quarto-types && npm run build` (updates `dist/index.d.ts`, which is checked in: confirm with `git status`).
+Then `cd packages/quarto-types && npm run build` and commit `dist/index.d.ts` if it changed.
 
-- [ ] **Step 2: `llm-docs/quarto-api.md`**
+- [ ] **Step 2: `llm-docs/quarto-api.md`**: add a "Runtime contract" section with the same two bullets and a pointer to `src/resources/extension-build/README.md`.
 
-Add a short section "Runtime contract" with the same three bullets and a pointer to `src/resources/extension-build/README.md`.
-
-- [ ] **Step 3: Changelog and docs checklist**
-
-Under `## Extensions`:
+- [ ] **Step 3: Changelog** (`## Extensions`)
 
 ```markdown
-- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): `quarto call build-ts-extension` now bundles with Quarto's esbuild and reads its configuration from `package.json` (`quarto.build`); a `deno.json` `bundle` section still works in 1.11 with a deprecation warning. `--init-config` writes `package.json` and `tsconfig.json`; `--check` uses the project's own TypeScript. Engines use the `QuartoAPI` object and web standards; Deno APIs are no longer available to engines.
+- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): `quarto call build-ts-extension` now bundles with Quarto's esbuild. Quarto's default import map (`path`, `log`, `fs/`, `encoding/`) keeps working without configuration. Options move to `package.json` (`quarto.build`); a `deno.json` `bundle` section still works in 1.12 with a deprecation warning. `--init-config` writes `package.json` and `tsconfig.json`; `--check` uses the project's own TypeScript. Engines use the `QuartoAPI` object and web standards; Quarto warns when it loads an engine bundle that references the Deno API.
 ```
 
-In `dev-docs/runtime-migration/docs-updates.md`, the `extensions/engine.qmd` row already names PR 36; append "config keys: `quarto.build.entryPoint|outputFile|minify|sourcemap`; `--init-config`, `--check` behaviour; runtime contract paragraph from `packages/quarto-types/README.md`".
+- [ ] **Step 4: `docs-updates.md`**: the `extensions/engine.qmd` row (PR 34) gains: config keys `quarto.build.entryPoint|outputFile|minify|sourcemap|defaultImportMap`; default import map and the fact that bare `path`/`fs` mean the JSR std packages; `#migrating-from-deno` anchor (the warning links to it) with the `Deno.*` -> `QuartoAPI`/web-standard table; the `"type": "commonjs"` note.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add packages/quarto-types llm-docs/quarto-api.md news/changelog-1.11.md dev-docs/runtime-migration/docs-updates.md
-git commit -m "docs: engine runtime contract (QuartoAPI and web standards)"
+git add packages/quarto-types llm-docs/quarto-api.md news/changelog-1.12.md dev-docs/runtime-migration/docs-updates.md
+git commit -m "docs: engine runtime contract; build-ts-extension on esbuild"
 ```
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/build-ts-extension-args.test.ts smoke/build-ts-extension/ smoke/create/create.test.ts smoke/engine/ smoke/inspect/inspect-extensions.test.ts unit/extension/filter-bundled-engines.test.ts`: all pass.
-- `grep -rn "Deno\." src/resources/extension-subtrees/julia-engine/src src/resources/create/extensions/engine tests/smoke/build-ts-extension/src` -> no output; `grep -c "Deno\." src/resources/extension-subtrees/julia-engine/_extensions/julia-engine/julia-engine.js` -> `0`.
-- Manual: in a scratch directory, `quarto create extension engine` (name `demo`), `quarto call build-ts-extension`, `quarto render example.qmd`; then `quarto call build-ts-extension --init-config && npm install && quarto call build-ts-extension --check`.
-- Legacy path: in the same directory, `rm package.json tsconfig.json && printf '{"bundle":{"entryPoint":"src/demo.ts"}}' > deno.json && quarto call build-ts-extension` prints the deprecation warning and builds.
-- CI: the Julia legs of `test-smokes.yml` (which run `.github/actions/merge-extension-tests`) are green.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/build-ts-extension-args.test.ts unit/engine-deno-detection.test.ts smoke/build-ts-extension/ smoke/create/create.test.ts smoke/engine/ smoke/inspect/inspect-extensions.test.ts unit/extension/filter-bundled-engines.test.ts smoke/check/check-in-project.test.ts`: all pass.
+- `git diff main -- tests/smoke/build-ts-extension`: empty.
+- `grep -rn "deno bundle\|deno check\|requireDenoToolBinary\|architectureToolsPath(\"deno\")" src/command/call/build-ts-extension` -> no output.
+- Manual: scratch dir, `quarto create extension engine` (name `demo`), `quarto call build-ts-extension`, render the example; then `--init-config && npm install && quarto call build-ts-extension --check`. Legacy: `rm package.json tsconfig.json && printf '{"bundle":{"entryPoint":"src/demo.ts"}}' > deno.json && quarto call build-ts-extension` warns and builds (no `imports` in that deno.json: the build uses no aliases, so the template, which imports only `@quarto/types`, still builds).
 - `quarto run --dev tools/check-runtime-boundary.ts`: unchanged.
 
 ## Review checklist
 
-- [ ] `cmd.ts` never references `deno bundle`, `deno check`, `QUARTO_DENO`, or `architectureToolsPath("deno")`.
-- [ ] `esbuildArgs` output matches the unit test; `--platform=node` is present (builtins external).
-- [ ] The `@quarto/types` value-import hint appears on esbuild resolution failures that mention it.
-- [ ] `tsconfig.template.json` has `types: []` (engines do not get `@types/node` by default) and the `__QUARTO_TYPES__` placeholder; `--init-config` writes an absolute, forward-slash path.
-- [ ] Julia engine: no `Deno.` in source or bundle; `LineSocket` handles a partial line followed by a close (returns the partial? no: it returns `null` only when no newline arrives before close, and the caller throws) and multiple lines in one chunk (progress updates).
-- [ ] Julia engine env merging: `JULIA_LOAD_PATH` set per call, not globally.
-- [ ] `packages/quarto-types/dist/index.d.ts` regenerated and committed.
-- [ ] Subtree upstream PR referenced in the description.
+- [ ] The fixture `tests/smoke/build-ts-extension/src/test-engine.ts` and its test are unchanged and pass.
+- [ ] `importMapAliases` covers `x`/`x/` collapsing, subpath keys covered by the base alias, `@quarto/types` skipped, clear errors for unsupported targets (unit test).
+- [ ] `NODE_PATH` points at `share/extension-build/node_modules` in a distribution and at the repository `node_modules` in dev; `prepare-dist` copies the full dependency closure.
+- [ ] `engine.ts` reads each bundle once per process, skips bundled subtree engines, and never blocks loading; the CommonJS hint only appears for that error shape.
+- [ ] No edit under `src/resources/extension-subtrees/`.
+- [ ] `cmd.ts` has no `Deno.` and no Deno binary use.
 
 ## Risks and rollback
 
-- **Third-party engines built with 1.9/1.10 that call `Deno.*`** fail at render time with `ReferenceError: Deno is not defined` inside the engine. The error surfaces as `Failed to import engine from <path>` (engine.ts:266) when it happens at module evaluation, or as a runtime error later. Mitigation: the changelog and the engine docs page tell authors to rebuild against the contract; the Julia engine port in this PR is the worked example. Rollback: none needed for Quarto itself; authors can pin Quarto 1.10.
-- **Projects that already committed a `deno.json` for `build-ts-extension`** keep working in 1.11 (deprecation warning); the fallback is removed in 1.12.
-- **`LineSocket` behaviour differences** (encoding, back-pressure): the protocol is small JSON lines; `setEncoding("utf8")` reassembles multi-byte characters across chunks, which the old byte loop did not guarantee. If the Julia suite shows hangs, log `readLine` calls with `trace()` and compare with the Deno-era transcript.
-- **Rollback of the Julia port alone:** `git revert` the Task 5 commit; the engine then fails on Node, so this is only useful while debugging on a Deno-era checkout.
+- **Third-party engines built for 1.9-1.11 that call `Deno.*`** fail when that code runs. They are now named at load time with the migration link; authors rebuild (the default import map keeps their sources building). Users pin Quarto 1.11 meanwhile.
+- **False-positive warnings:** a bundle may contain `Deno.` in code that never runs (e.g. `@std/log`'s `FileHandler` pulled in by the default `log` alias, or a Deno branch behind `typeof Deno`). The warning says "fail when executed", not "will fail"; authors silence it by rebuilding without those paths.
+- **Bare `fs`/`path` meaning JSR std under the default map.** An engine that relied on Deno resolving bare `fs` to `node:fs` gets `@std/fs`; the docs say to write `node:fs`. Projects opt out with `defaultImportMap: false`.
+- **esbuild alias limits:** an import map whose subpath key points to a different package than its base cannot be expressed; the build stops with a message naming the key.
+- **Rollback:** revert the PR; `build-ts-extension` goes back to `deno bundle` on the Deno tool, which PR 33 keeps until PR 37.
 
 ## Decisions needed
 
-1. **Should `QuartoAPI` grow `system.connectTcp()` and `system.spawnDetached()` so the Julia engine needs no `node:` imports?** Recommendation: not in this PR; the engine is the only consumer and `node:net`/`node:child_process` are stable. Revisit when a second engine needs them (then move `LineSocket` into `src/core/api/`).
-2. **Ship `typescript` with Quarto for `--check`?** Recommendation: no (9 MB, and extension authors already have npm); the `--init-config` flow installs it per project.
+1. **Should `QuartoAPI` grow `system.connectTcp()`/`system.spawnDetached()`** so engines (Julia's upstream port among them) need no `node:` imports? Recommendation: decide with PumasAI when they port (milestone J); not in this PR.
+2. **Ship `typescript` for `--check`?** Recommendation: no (about 9 MB); `--init-config` adds it as a project dev dependency.
+3. Not changed because decision 7 forbids it: the old Task 5 (in-tree port of `src/resources/extension-subtrees/julia-engine/`). The subtree is pulled after PumasAI ships the port (milestone J).

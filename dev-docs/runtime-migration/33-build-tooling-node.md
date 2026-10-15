@@ -1,208 +1,219 @@
-# PR 33: Build tooling on Node (`configure`, `quarto-bld`, `prepare-dist`, dev launchers)
+# PR 33: The flip: the CLI runs on Node; Deno stays as a tool
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `./configure.sh` and `./configure.cmd` install the official Node.js binary instead of Deno, `quarto-bld` and `prepare-dist` run on Node with the plain esbuild bundler from PR 26, and the dev launchers start `node`.
-**Phase:** 3. **Depends on:** PR 32 (Node CI matrix required and green), PR 26 (`tools/node-bundle/`, root `package.json`), PR 24 (`package/src` codemodded), PR 20 (deno_dom FFI removed), PR 19 (`platform.ts` `runtime()`, `main.ts` `isMainModule`). **Unblocks:** PR 34, 35, 36, 39.
+**Goal:** The Quarto CLI (dev launchers, installed launchers, the Windows `quarto.exe` launcher, `quarto-bld`, `prepare-dist`) runs on a pinned official Node.js binary, while `configure` and `prepare-dist` keep downloading the pinned Deno into `bin/tools/<arch>/` as a *tool* for `quarto run` and `quarto call build-ts-extension` (until PRs 35, 36 and 37), `quarto install deno` provides that tool on installs that lack it, type checking moves to `tsc` in the same PR, and the runtime environment contract (proxy, CA store, `NODE_OPTIONS`, `QUARTO_DENO*`) is kept.
+**Phase:** 3. **Depends on:** PR 32 (Node CI matrix required and green), PR 31 (`QUARTO_TEST_RUNTIME`, Node harness), PR 26 (`tools/node-bundle/`, root `package.json`), PR 27b (`platform.ts`/`env.ts`/`tar.ts`/`log.ts` on `node:`), PR 25 (boundary zero), PR 24 (`package/src` codemodded), PR 20 and 20b (no deno_dom FFI; `tree-sitter`, `graphviz-wasm.js`, `deno-cri` ported), PR 19 (`runtime()`, `isMainModule`), PR 00b (lockfile policy). Task 13 additionally depends on the Spike #2 outcome recorded in `SPIKES.md`. **Unblocks:** PR 34, 35, 36, 37.
 **Branch:** `rt/33-build-tooling-node`.
-**Suggested executor:** Opus. Shell scripts on three platforms, a Node dependency downloader, and launcher semantics (flag mapping, environment sanitising) need judgement; the TypeScript edits are small but spread over many files.
-**Size:** L (about 45 files: 2 configure scripts, 4 launchers, 6 `package/src` modules, 3 `tools/node-bundle` files, CI action, VS Code config, tests, docs).
-**Ships on:** Node. This is the flip. After this PR a dev checkout has no Deno binary; the full test suite runs on the Node matrix from PR 32 and must stay green.
+**Suggested executor:** Opus. Shell, batch and Rust launchers on three platforms, an atomic and locked rebuild path used by parallel test buckets, an environment contract with user-visible warnings, and a first `tsc` run need judgement.
+**Size:** L (about 50 files: 2 configure scripts, 5 launchers, `main.rs`, 7 `package/src` modules, 3 `tools/node-bundle` files, `tools/typecheck/`, `tsconfig.json`, 2 new `src/` modules, 3 edited `src/` modules, CI action and 2 workflows, VS Code config, 5 test files, docs).
+**Ships on:** Node. This is the flip. The full suite runs on Node (the PR 32 matrix, `QUARTO_TEST_RUNTIME` now defaulting to `node`) with Deno present as a tool, and must stay green, including the boundary-ratchet workflow.
 
 ## Spec
 
 ### Context
 
-Assessment sections 3.6 and 7 (Phase 3, step 1): Quarto ships its own runtime binary under `bin/tools/<arch>/`, an esbuild bundle `bin/quarto.js`, and launcher scripts. The Node version has the same shape. The build tooling (`configure.sh`, `quarto-bld`, `prepare-dist`, vendoring, `deno_std` download) is the last code that runs *on* Deno and *about* Deno once PR 25 reached boundary zero and PR 27 to 31 put the runtime layer on Node APIs.
+Assessment sections 3.6 and 7 (Phase 3, step 1) and review findings S1, S5, S6 (`REVIEW-2026-10-15.md`), decision 1 (strategy C). Quarto ships its own runtime binary under `bin/tools/<arch>/`, a single-file esbuild bundle `bin/quarto.js`, and launchers (`package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, the Rust `quarto.exe` built from `package/launcher/src/main.rs`). This PR swaps the runtime under all of them at once, so no shipped launcher still spawns Deno for the CLI after it lands (the Windows MSI keeps working: the Rust launcher change is here, not in PR 34).
+
+Deno does not disappear. Two code paths still spawn it until later PRs move them:
+
+- `src/core/run/deno.ts:56` (`cmd: architectureToolsPath("deno")`): `quarto run` and project `pre-render`/`post-render` `.ts` scripts, and `quarto run --dev tools/*.ts` (which the boundary-ratchet workflow uses). PR 35 makes Node the default for these.
+- `src/command/call/build-ts-extension/cmd.ts:257` (`Deno.env.get("QUARTO_DENO") || architectureToolsPath("deno")`): `deno bundle`. PR 36 moves it to esbuild.
+
+So `configure.sh`, `configure.cmd`, `quarto-bld configure` and `prepare-dist` keep downloading the Deno version pinned in `configuration` (`DENO`, bumped to 2.9.x by PR 00a) into `bin/tools/<arch>/deno` exactly as today, and both call sites resolve Deno through one new function, `denoToolBinary()`, which also finds a Deno installed by the new `quarto install deno` (for packagers and users whose install has no bundled Deno). PR 37 stops downloading it.
 
 What changes for callers:
 
-- Developers run `./configure.sh` as before; it now downloads Node 26 into `package/dist/bin/tools/<arch>/node`, runs `npm ci` at the repository root, and no longer runs `deno install`/`deno cache`. `package/dist/bin/quarto` runs `node` on an esbuild bundle of `src/quarto.ts` that is rebuilt when any source file is newer than the bundle (under one second, see the spike numbers in assessment section 10).
-- `quarto-bld` runs `package/src/bld.ts` through the same bundler.
-- `prepare-dist` produces `bin/quarto.js` with `tools/node-bundle/build.mjs` instead of `tools/deno-esbuild-bundle.ts`, and places `node` (not `deno`) under `bin/tools/<arch>/`.
-- Operators keep `QUARTO_DENO`, `QUARTO_DENO_OPTIONS`, `QUARTO_DENO_EXTRA_OPTIONS`, `QUARTO_DENO_V8_OPTIONS` working for one release as aliases of `QUARTO_NODE` and `QUARTO_NODE_OPTIONS` (the launchers map them; PR 34 adds the one-time deprecation warning). `DENO_DIR`, `QUARTO_DENO_DIR` and `QUARTO_DENO_DOM` have no equivalent and are ignored.
+- Developers run `./configure.sh` as before. It now also downloads Node 26 (`.tar.gz`/`.zip` from `nodejs.org`, checksum-verified) into `package/dist/bin/tools/<arch>/node`, and runs `npm ci` at the repository root. It no longer runs `package/scripts/vendoring/vendor.sh` (the CLI's dependencies come from npm now); it still runs `package/scripts/deno_std/download.sh` (the `quarto run` stdlib cache of the Deno tool, until PR 35).
+- `package/dist/bin/quarto` runs `node` on `package/dist/bin/quarto-dev.mjs`, an esbuild bundle of `src/quarto.ts` rebuilt by `tools/node-bundle/ensure.mjs` when any of its inputs changed. `quarto-bld` runs `package/dist/bin/quarto-bld.mjs` the same way.
+- `prepare-dist` bundles `bin/quarto.js` with `tools/node-bundle/build.mjs`, ships `bin/tools/<arch>/node` and (until PR 37) `bin/tools/<arch>/deno`.
+- `tsc --noEmit` (`npm run typecheck`) replaces the dev launcher's `deno run --check` and `run-tests.sh`'s `deno test --check`, and runs in a new CI workflow.
 
-Verified facts this plan relies on (checked 2026-10-14 against `https://nodejs.org/dist/index.json` and `https://raw.githubusercontent.com/nodejs/Release/main/schedule.json`):
+Why dev mode runs a bundle and not `node src/quarto.ts`: after PR 02b the source has no `enum`, parameter properties or `<T>x` casts, so Node's type stripping could load it, and PR 31's `module.registerHooks` import-map hook already resolves the bare specifiers for tests. The bundle is kept for two reasons. (1) Dev runs the exact artifact that ships: the same esbuild transform, the same resolver, the same module order, so a bundling bug shows up in dev and not first in a release. (2) Startup: unbundled, every `quarto` invocation strips and resolves about 1,200 modules through a JavaScript hook; bundled, Node loads one file. The cost is a rebuild of about one second after an edit, paid once, plus an extra short `node` process per invocation for the staleness check (`ensure.mjs`, about 50 ms: Node start plus about 730 `stat` calls, 14 ms in the review's measurement). Executors record both numbers in the PR description (Task 2 step 7).
 
-- Node `v26.12.0` is the current release of the 26 line (released 2026-10-14). Node 26 becomes Active LTS on 2026-10-28 and is maintained until 2029-04-30. Node `v24.22.0` is today's Active LTS ("Krypton") and enters Maintenance on 2026-10-20. The plan pins `v26.12.0`; when this plan is executed, replace it with the newest `26.x.y` in `index.json` (the field name and download layout do not change within a major line).
-- Download names (from `https://nodejs.org/dist/v26.12.0/SHASUMS256.txt`): `node-v26.12.0-linux-x64.tar.xz`, `node-v26.12.0-linux-arm64.tar.xz`, `node-v26.12.0-darwin-x64.tar.gz`, `node-v26.12.0-darwin-arm64.tar.gz`, `node-v26.12.0-win-x64.zip` (a `win-arm64.zip` exists too; Quarto's Windows build stays x64-only, as today with Deno).
-- Node 26 type stripping is stable and on by default, but it rejects `enum`, parameter properties, `namespace` with runtime code and import aliases; `--experimental-transform-types` was removed in v26.0.0 (`doc/api/typescript.md`). `src/` has 12 `enum` declarations (`src/publish/confluence/api/types.ts`, `src/publish/provider-types.ts`, `src/publish/netlify/api/models/accountSetup.ts`, `src/project/types/website/listing/website-listing-shared.ts`, `src/core/giscus.ts`) and 40 files with constructor parameter properties (the Netlify API services, `src/command/call/axe/scan.ts`, `src/core/knitr.ts`, `src/publish/confluence/api/index.ts`, `src/publish/quarto-pub/api/index.ts`, and the multi-line constructors in `src/publish/types.ts`, `src/publish/rsconnect/api/index.ts`, `src/tools/github.ts`, `src/core/brand/brand.ts`; the assessment, section 3.5, has the same numbers). Node also has no import maps; `package.json` `imports` only accepts `#`-prefixed keys, and `src/import_map.json` maps bare names like `path`, `fs/exists`, `cliffy/command/mod.ts`. **Therefore dev mode runs the esbuild bundle, exactly like production**, instead of `node src/quarto.ts`. esbuild handles enums and parameter properties, the PR 26 resolver plugin applies the import map, and a source map plus `--enable-source-maps` keeps stack traces pointing at `src/*.ts`. This is the "pick one and justify" decision the assignment asked for: the `package.json` `imports` route would require rewriting every bare specifier in 451 files and would still not cover enums.
-- Node reads `NODE_OPTIONS` (space-separated CLI flags) and `NODE_PATH` from the environment (`doc/api/cli.md`). The launchers unset both so a user's Node setup cannot change Quarto's runtime, the way `DENO_DIR` is pinned today. `--use-system-ca` (added v23.8.0) replaces `DENO_TLS_CA_STORE=system,mozilla`; `NODE_EXTRA_CA_CERTS` is left alone because it is the documented way to add a corporate CA.
-- V8 flags are accepted directly by `node`: the spike launcher (`dev-docs/runtime-migration/spike/quarto-node`) ran `node --enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 dist/quarto.js`. `--enable-experimental-regexp-engine` is required for the `/regex/l` flag (quarto-cli#9737). `--max-heap-size`, set by the Deno launchers, is dropped: `--max-old-space-size` is the documented Node flag and the spike rendered every test document without it.
+Verified facts this plan relies on:
+
+- Node `v26.12.0` (2026-10-14) is the newest 26.x; Node 26 is Active LTS from 2026-10-28 until 2029-04-30. Pin the newest `26.x.y` in `https://nodejs.org/dist/index.json` at execution time.
+- `https://nodejs.org/dist/v26.12.0/SHASUMS256.txt` lists `.tar.gz` and `.tar.xz` for every POSIX target (`node-v26.12.0-linux-x64.tar.gz`, `-linux-arm64.tar.gz`, `-darwin-x64.tar.gz`, `-darwin-arm64.tar.gz`) and `node-v26.12.0-win-x64.zip` (checked 2026-10-15). This plan downloads `.tar.gz` everywhere on POSIX, so `xz` is not a prerequisite.
+- Node rejects `--enable-experimental-regexp-engine` inside `NODE_OPTIONS` (`node: --enable-experimental-regexp-engine is not allowed in NODE_OPTIONS`, exit 9) but accepts it on the command line; `/a+/l.test("aaa")` is `true` with it (reproduced on Node 22.22.0). Quarto's own flags therefore always go on the command line.
+- Any invalid flag in `NODE_OPTIONS` aborts Node before Quarto runs (`node: --bogus is not allowed in NODE_OPTIONS`, exit 9; reproduced). Hence the sanitising below.
+- Node's `fetch` and `http` ignore `HTTP(S)_PROXY`/`NO_PROXY` unless started with `--use-env-proxy` (Stability 1.1 in Node 26; fact-check 2026-10-15). On Node 22.22.0 the flag prints `[UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental` to stderr; Task 9 tests stderr on the pinned 26.x and adds `--disable-warning=UNDICI-EHPA` only if that warning still prints.
+- `--use-system-ca` replaces Deno's `DENO_TLS_CA_STORE=system,mozilla`; `NODE_EXTRA_CA_CERTS` keeps working and is not touched.
+- An ESM `.js` file whose nearest `package.json` has no `"type"` prints `[MODULE_TYPELESS_PACKAGE_JSON] Warning: ... Reparsing as ES module` on stderr (reproduced). The root `package.json` from PR 26 has no `"type"` (README convention: Node tooling is `.mjs`). So dev bundles are `.mjs` (`quarto-dev.mjs`, `quarto-bld.mjs`), and Quarto's flags include `--disable-warning=MODULE_TYPELESS_PACKAGE_JSON` because Quarto also `import()`s ESM `.js` files it does not name: `src/resources/library/dayjs/locale/*.js` (`src/core/date.ts:164`), `src/resources/js/graphviz-wasm.js` (`src/core/handlers/dot.ts:61`) and third-party engine bundles (`src/execute/engine.ts:232`). Without any `package.json` above a file, Node detects ESM silently (reproduced), which is the installed layout; `prepare-dist` also writes `bin/package.json` (`{ "type": "module" }`) so `bin/quarto.js` is ESM even when an installer places Quarto under a directory with a `"type": "commonjs"` `package.json`.
+- `node --no-enable-source-maps` after `--enable-source-maps` disables them (reproduced), so a developer can turn off dev source maps with `QUARTO_NODE_OPTIONS=--no-enable-source-maps` (they slow every `.stack` access).
+- `toolsPath(binary)` in `src/core/resources.ts:39-46` reads `QUARTO_<BINARY>`, so `architectureToolsPath("node")` honours `QUARTO_NODE` and `architectureToolsPath("deno")` honours `QUARTO_DENO`.
+- `@types/deno@2.7.0` (2026-10-04) and `@types/node@26.6.5` exist on npm; `typescript@5.9.3` and `7.0.2` exist (this plan pins 5.9.3, as PR 38 did).
 
 Assumptions about earlier PRs (state them in the PR description if they differ):
 
-- PR 26 committed `tools/node-bundle/build.mjs` (the spike bundler with the import-map resolver plugin), `tools/node-bundle/deno-shim.js`, `tools/node-bundle/quarto-node`, a root `package.json` (`"type": "module"`, `esbuild@0.28.1`, `ws`, the `@jsr/*` packages) with `package-lock.json`, and a root `.npmrc` containing `@jsr:registry=https://npm.jsr.io`. PR 25 made the shim unnecessary for `src/`; this plan stops importing it from the bundle banner.
-- PR 24 replaced `Deno.args`/`import.meta.main` in `package/src/bld.ts` with `args()` from `src/deno_ral/process.ts` and `isMainModule(import.meta)` from `src/deno_ral/main.ts`, and dropped `Deno.run` and `deno info` from `package/src` (so `package/src/common/import-report/deno-info.ts` and the `cycle-dependencies` command already read esbuild's metafile).
-- PR 20 deleted `package/src/common/dependencies/deno_dom.ts`, the `DENO_DOM` field of `configuration`, and the `DENO_DOM_PLUGIN`/`QUARTO_DENO_DOM` lines of the launchers. The launcher rewrites below start from that state.
-- PR 31 gave `tests/run-tests.sh` and `tests/run-tests.ps1` a `QUARTO_TEST_RUNTIME` switch (`deno` by default, `node` opt-in) and PR 32 runs the required matrix with `QUARTO_TEST_RUNTIME=node`. Task 11 flips the default; PR 37 deletes the `deno` branch.
+- PR 26: `tools/node-bundle/build.mjs` (resolver plugin built on `tools/node-bundle/import-map.mjs`), `tools/node-bundle/deno-shim.mjs` (banner-imported), `tools/node-bundle/check-shim.mjs`, root `package.json` (no `"type"`, `esbuild`, `ws`, the `@jsr/*` packages), `package-lock.json`, `.npmrc` with `@jsr:registry=https://npm.jsr.io`.
+- PR 02 extended by the Phase 0 rework: `tools/check-runtime-boundary.ts` has scopes `src`, `src-js`, `resources`, `tests`, `package-src`, each with a baseline in `tools/runtime-boundary-baseline.json`. PR 25, 20b and 27b brought `src`, `src-js` and `resources` to zero. **Task 2 refuses to delete the shim otherwise.**
+- PR 31: `tests/run-tests.sh`/`.ps1` honour `QUARTO_TEST_RUNTIME` (`deno` default, `node` opt-in); PR 32 runs the required matrix with `node` and a nightly Deno matrix.
+- PR 24: `package/src` uses `src/deno_ral/` (`args()`, `exec`, `execPath()`, `env`, fs functions) and `isMainModule(import.meta)` in `bld.ts`.
+- PR 20: `DENO_DOM` is gone from `configuration`, the launchers, `devconfig.ts` and `package/src/common/dependencies/`.
+- PR 00b: `deno.lock` is committed; Deno commands in `configure.*` and CI use `--frozen`. After this PR the CLI no longer reads `deno.lock`; the Deno tool still does for `quarto run --dev`.
+- PR 08 vocabulary: `exec`, `spawn` merge `env` over the inherited environment unless `clearEnv: true`.
 
 ### Scope
 
 In:
-- `configuration`: `NODE=v26.12.0`.
-- `package/src/common/dependencies/node.ts`; `archiveUrl` treats bucket `node` like bucket `deno` (download from the official site, not S3).
-- `configure.sh`, `configure.cmd`, `package/scripts/common/utils.sh`: download and unpack Node, `npm ci`, remove `deno_std` download and vendoring.
-- `tools/node-bundle/build.mjs`: export a `bundle()` function, add `--entry`/`--outfile`/`--no-sourcemap` flags, drop the shim banner; new `tools/node-bundle/ensure.mjs` (rebuild when stale).
-- `package/src/quarto-bld`, `package/src/quarto-bld.cmd`: bundle `bld.ts` and run it with `node`.
-- `package/src/util/bundle.ts` (new) replaces `bundle()` in `package/src/util/deno.ts`; `prepare-dist.ts` uses it and installs Node instead of Deno; `tools/deno-esbuild-bundle.ts` deleted.
-- `package/src/common/previewjs.ts` runs `node build.mjs`; `src/webui/quarto-preview/build.ts` becomes `build.mjs`.
-- `src/core/devconfig.ts`: `node` replaces `deno`.
-- `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`: run `node`; alias mapping; `NODE_OPTIONS`/`NODE_PATH` sanitised.
-- `package/scripts/windows/check-node-in-use.cmd` replaces `check-deno-in-use.cmd`.
-- The two binary names in the macOS signing list (`package/src/macos/installer.ts`) and the Windows `sign-files` paths (`create-release.yml`), so the nightly release build keeps working between this PR and PR 34.
-- `.github/workflows/actions/quarto-dev/action.yml`: npm cache replaces the two Deno caches.
-- `.github/workflows/test-quarto-latexmk.yml`: install Deno with `denoland/setup-deno` so `compile-quarto-latexmk` keeps working until PR 39.
-- `.vscode/launch.json`: Node launch configurations.
-- `tests/run-tests.sh`, `tests/run-tests.ps1`: default runtime `node`.
-- Changelog entry, `dev-docs/upgrade-dependencies.md` "Upgrade Node" section.
+- `configuration`: `NODE`. `package/src/common/dependencies/node.ts`; `archiveUrl` treats bucket `node` like `deno`.
+- `configure.sh`, `configure.cmd`, `package/scripts/common/utils.sh`: download Node (and keep downloading Deno), `npm ci`, stop running `vendor.sh`/`vendor.cmd`; `QUARTO_NODE_VERSION` override.
+- `tools/node-bundle/build.mjs` (exported `bundle()`, atomic output, input list), `tools/node-bundle/ensure.mjs` (staleness from the input list, lock), deletion of `tools/node-bundle/deno-shim.mjs` and the banner import.
+- `package/src/quarto-bld`, `quarto-bld.cmd` on Node.
+- `package/src/util/bundle.ts` (new); `prepare-dist.ts` ships Node and Deno, writes `bin/package.json`; `tools/deno-esbuild-bundle.ts` and `bundle()` in `package/src/util/deno.ts` deleted; `validate-bundle`'s prelude gains Node globals.
+- `src/webui/quarto-preview/build.ts` becomes `build.mjs`; `package/src/common/previewjs.ts`.
+- `src/core/devconfig.ts`: `node`, `deno`, `packageLock`.
+- `src/core/runtime-env.ts` (new): restore `NODE_OPTIONS`/`NODE_PATH` for children; one-time warnings for Deno-era variables. Called from `src/quarto.ts`.
+- Launchers: `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, `package/launcher/src/main.rs`; `check-deno-in-use.cmd` becomes `check-node-in-use.cmd`.
+- Deno as a tool: `src/tools/impl/deno-paths.ts`, `src/tools/impl/deno.ts` (`quarto install deno`), the two call sites, a `test-install.yml` job.
+- Type checking: `tsconfig.json`, `tsconfig.paths.json` (generated), `tools/typecheck/gen-tsconfig-paths.mjs`, `npm run typecheck`, `.github/workflows/lint.yml` (typecheck job only; PR 38 adds lint and format).
+- Conditional on Spike #2: the `QUARTO_RUNTIME=node|deno` switch in the three launchers.
+- Signing lists (`package/src/macos/installer.ts`, `create-release.yml` `sign-files`), the `quarto-dev` CI action caches, `tests/run-tests.sh`/`.ps1` default runtime, `.vscode/launch.json`.
+- Tests, changelog, `dev-docs/upgrade-dependencies.md`.
 
 Out:
-- Installers and the Rust launcher (PR 34). `quarto check` runtime row (PR 34). Deprecation warnings for the alias variables (PR 34).
-- `quarto run` on Node (PR 35), `build-ts-extension` (PR 36).
-- Deleting `deno.jsonc`, `src/vendor_deps.ts`, `package/scripts/deno_std/`, `src/resources/deno_std/`, the `DENO` field, `package/src/util/deno.ts` `compile()`/`install()` (PR 37 and PR 39).
-- Lint/format/typecheck tooling (`tsc --noEmit`, `tsconfig.json`): PR 38. This PR removes the `--check` flag from the dev launcher; the opt-in `npm run typecheck` script is PR 38's deliverable.
+- Installer metadata, macOS entitlements for Node, platform minimums, `quarto check` runtime row, the environment contract table and its remaining tests, conda recipe (PR 34).
+- `quarto run` `.ts` on Node (PR 35). `build-ts-extension` on esbuild (PR 36). Stopping the Deno download, removing `QUARTO_RUNTIME`, deleting `deno.jsonc`, `vendor.sh`, `deno_std`, `src/vendor_deps.ts`, the Deno test branch (PR 37). `tinitex` (PR 39 removes it).
+- Linting and formatting (PR 38). PR 38 also removes `@types/deno`.
+- `quarto-cli.code-workspace`: `deno.path` keeps pointing at `package/dist/bin/tools/deno`, which `configure.sh` still creates as a symlink to the Deno tool; PR 37 deletes the `deno.*` keys when it stops downloading Deno.
 
 ### Interfaces
 
 ```ts
 // package/src/common/dependencies/node.ts
 import { Dependency } from "./dependencies.ts";
-
-/** Official Node.js release for Quarto's five platform/arch pairs. */
+type NodeOs = "windows" | "linux" | "darwin";
+type NodeArch = "x86_64" | "aarch64";
+/** Official Node.js release for Quarto's five platform/arch pairs (no Windows arm64, as with Deno). */
 export function node(version: string): Dependency;
-
-/**
- * Archive file name on nodejs.org for a platform pair, e.g.
- * nodeArchiveName("v26.12.0", "linux", "x86_64") === "node-v26.12.0-linux-x64.tar.xz".
- * Exported for the unit test.
- */
-export function nodeArchiveName(
-  version: string,
-  os: "windows" | "linux" | "darwin",
-  arch: "x86_64" | "aarch64",
-): string;
-
-/** Directory name inside the archive, e.g. "node-v26.12.0-linux-x64". */
-export function nodeArchiveDir(
-  version: string,
-  os: "windows" | "linux" | "darwin",
-  arch: "x86_64" | "aarch64",
-): string;
+/** e.g. nodeArchiveName("v26.12.0", "linux", "x86_64") === "node-v26.12.0-linux-x64.tar.gz". */
+export function nodeArchiveName(version: string, os: NodeOs, arch: NodeArch): string;
+/** Directory inside the archive, e.g. "node-v26.12.0-linux-x64". */
+export function nodeArchiveDir(version: string, os: NodeOs, arch: NodeArch): string;
 ```
 
 ```ts
 // package/src/util/bundle.ts
 import { Configuration } from "../common/config.ts";
-
-/**
- * Bundle src/quarto.ts into pkg-working/bin/quarto.js with
- * tools/node-bundle/build.mjs (no source map). Throws on a non-zero exit.
- */
+/** Bundle src/quarto.ts into pkg-working/bin/quarto.js (no source map) with tools/node-bundle/build.mjs. Throws on failure. */
 export async function bundleQuarto(config: Configuration): Promise<void>;
 ```
 
 ```js
-// tools/node-bundle/build.mjs (ESM, runs on the bundled Node)
+// tools/node-bundle/build.mjs
 /**
- * @param {{ entry: string, outfile: string, sourcemap?: boolean, metafile?: boolean }} options
+ * Bundle one TypeScript entry for Node with the import-map resolver.
+ * Writes <outfile>, <outfile>.map (when sourcemap), <outfile>.inputs.json
+ * (the esbuild metafile's input files outside node_modules, as paths relative
+ * to the repository root), each through a temp file + rename.
+ * @param {{ entry: string, outfile: string, sourcemap?: boolean }} options
  * @returns {Promise<{ modules: number, bytes: number, ms: number }>}
  */
 export async function bundle(options);
-// CLI: node tools/node-bundle/build.mjs --entry <file.ts> --outfile <file.js> [--no-sourcemap] [--metafile <file.json>]
+// CLI: node tools/node-bundle/build.mjs --entry <file.ts> --outfile <file> [--no-sourcemap] [--check-shim]
 ```
 
 ```js
 // tools/node-bundle/ensure.mjs
-// CLI: node tools/node-bundle/ensure.mjs --entry <file.ts> --outfile <file.js> [--watch-dir <dir>]...
-// Exit 0 after (re)building when any *.ts/*.js/*.json under the watch dirs (default: the
-// entry's directory tree, src/import_map.json, package-lock.json) is newer than outfile,
-// or when outfile is missing. Prints "bundle up to date" or the build.mjs summary line.
+// CLI: node tools/node-bundle/ensure.mjs --entry <file.ts> --outfile <file.mjs>
+// Rebuilds through build.mjs's bundle() when <outfile> is missing, when
+// <outfile>.inputs.json is missing, when any listed input is newer than
+// <outfile> or deleted, or when src/import_map.json, package-lock.json or a
+// tools/node-bundle/*.mjs file is newer. Takes the lock directory
+// <outfile>.lock (mkdir), re-checks after acquiring it, steals a lock older
+// than 120 s, gives up after 300 s. Prints one line:
+//   "bundle up to date" | "bundle up to date (built by another process)" |
+//   "bundled <entry> -> <outfile> (<MB> MB, <n> modules, <ms> ms; reason: <reason>)"
+```
+
+```ts
+// src/core/runtime-env.ts
+/** [saved name, original name] pairs the launchers use. */
+export const kSavedNodeEnv: ReadonlyArray<readonly [string, string]>;
+/** Pure: what restoreSavedNodeEnv() would set and delete. */
+export function savedNodeEnvChanges(environment: Record<string, string | undefined>): { set: Record<string, string>; remove: string[] };
+/** Moves QUARTO_SAVED_NODE_OPTIONS/QUARTO_SAVED_NODE_PATH back to NODE_OPTIONS/NODE_PATH in this process's environment, so every child inherits the user's values. */
+export function restoreSavedNodeEnv(): void;
+/** Pure: warning texts for the Deno-era variables present in `environment` (empty when QUARTO_RUNTIME_ENV_WARNED=1). */
+export function runtimeEnvWarnings(environment: Record<string, string | undefined>): string[];
+/** Prints runtimeEnvWarnings() through warning() and sets QUARTO_RUNTIME_ENV_WARNED=1 so child quarto processes stay quiet. */
+export function warnRuntimeEnvOnce(): void;
+```
+
+```ts
+// src/tools/impl/deno-paths.ts (no imports from src/tools/tools.ts: it is imported by src/core/run/deno.ts)
+export const kDenoToolVersion: string;          // equals DENO in `configuration` (unit test)
+export function denoInstallDir(): string;        // quartoDataDir("deno")
+export function installedDenoPath(): string;     // <installDir>/deno[.exe]
+export function bundledDenoPath(): string;       // <binPath>/tools/<arch>/deno[.exe] (shipped until PR 37)
+/** QUARTO_DENO (when it exists), else `quarto install deno`, else the bundled tool; undefined when none exists. */
+export function denoToolBinary(): string | undefined;
+/** denoToolBinary() or throws: "<purpose> needs Deno, which is not installed. Run 'quarto install deno'." */
+export function requireDenoToolBinary(purpose: string): string;
+```
+
+```ts
+// src/tools/impl/deno.ts
+import { InstallableTool } from "../types.ts";
+export const denoInstallable: InstallableTool;   // name "Deno"; installs kDenoToolVersion into denoInstallDir()
 ```
 
 ```ts
 // src/core/devconfig.ts
 export interface DevConfig {
-  node: string;        // was: deno
-  pandoc: string;
-  dartsass: string;
-  esbuild: string;
-  typst: string;
-  script: string;      // md5 of the launcher script
-  importMap: string;   // md5 of src/import_map.json
-  packageLock: string; // md5 of package-lock.json (new)
+  node: string; deno: string; pandoc: string; dartsass: string; esbuild: string; typst: string;
+  script: string; importMap: string; packageLock: string;
 }
-export function createDevConfig(node: string, pandoc: string, dartsass: string, esbuild: string, typst: string, scriptDir: string): DevConfig;
+export function createDevConfig(node: string, deno: string, pandoc: string, dartsass: string, esbuild: string, typst: string, scriptDir: string): DevConfig;
 ```
 
-Environment variables read by the launchers after this PR (both dev and installed):
+Launcher contract (dev shell launcher, installed shell launcher, `quarto.cmd`, `quarto.exe`):
 
-| Variable | Meaning | Default |
-|---|---|---|
-| `QUARTO_NODE` | path to the Node binary | `<bin>/tools/<arch>/node[.exe]` |
-| `QUARTO_NODE_OPTIONS` | extra `node` CLI flags, space separated, appended after Quarto's own | empty |
-| `QUARTO_DENO` | alias of `QUARTO_NODE` (used only when `QUARTO_NODE` is unset) | |
-| `QUARTO_DENO_OPTIONS`, `QUARTO_DENO_EXTRA_OPTIONS` | appended to `QUARTO_NODE_OPTIONS` verbatim | |
-| `QUARTO_DENO_V8_OPTIONS` | comma-separated V8 flags, converted to space-separated and appended to `QUARTO_NODE_OPTIONS` | |
-| `QUARTO_TS_PROFILE` | adds `--inspect-brk` (unchanged) | |
-| `QUARTO_DEBUG`, `QUARTO_SHARE_PATH`, `QUARTO_BIN_PATH`, `QUARTO_FORCE_VERSION`, `QUARTO_ACTION`, `QUARTO_TARGET` | unchanged | |
-| `NODE_OPTIONS`, `NODE_PATH` | **removed from the environment** before `node` starts | |
+| Variable | Behaviour after this PR |
+|---|---|
+| `QUARTO_NODE` | path of the Node binary; default `<bin>/tools/<arch>/node[.exe]` |
+| `QUARTO_NODE_OPTIONS` | extra `node` flags, whitespace separated, appended after Quarto's flags (so they win) |
+| `QUARTO_DENO` | **never** the CLI runtime. Still locates the Deno *tool* (`denoToolBinary()`). When set while `QUARTO_NODE` is unset, quarto.js warns once that it is ignored for the CLI |
+| `QUARTO_DENO_OPTIONS`, `QUARTO_DENO_EXTRA_OPTIONS` | not passed to Node (they hold Deno flags such as `--allow-all`, `--reload`, `--v8-flags=`); quarto.js warns once |
+| `QUARTO_DENO_V8_OPTIONS` | comma-separated V8 flags, each passed to Node after Quarto's flags; quarto.js warns once that it is deprecated in favour of `QUARTO_NODE_OPTIONS` |
+| `QUARTO_DENO_DIR`, `QUARTO_DENO_DOM` | ignored by the CLI; quarto.js warns once |
+| `NODE_OPTIONS`, `NODE_PATH` | moved to `QUARTO_SAVED_NODE_OPTIONS`/`QUARTO_SAVED_NODE_PATH` before Node starts (only when set); `restoreSavedNodeEnv()` puts them back into Quarto's process environment at startup, so knitr, Jupyter, scripts and user `node` children see the user's values |
+| `QUARTO_RUNTIME` | conditional (Task 13): `node` (default) or `deno` |
+| `QUARTO_TS_PROFILE` | adds `--inspect-brk` (unchanged) |
+| `QUARTO_LAUNCHER_DEBUG` | `1`: print the final command line (and the `ensure.mjs` line in dev) to stderr |
+| `DENO_DIR`, `DENO_TLS_CA_STORE`, `DENO_NO_UPDATE_CHECK` | no longer set for the CLI; the Deno tool call sites set `DENO_NO_UPDATE_CHECK=1` themselves |
 
-Quarto's own flags, in order: `--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca`, plus `--enable-source-maps` in dev mode.
+Quarto's Node flags, in order: `--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON`, then `--enable-source-maps` in dev mode, then the translated `QUARTO_DENO_V8_OPTIONS`, then `QUARTO_NODE_OPTIONS`. `--max-heap-size`, set by the Deno launchers, is dropped (`--max-old-space-size` is the documented Node flag; the spike rendered every test document without it).
+
+`configure.sh` overrides (shell environment): `QUARTO_NODE_VERSION` (was proposed as `NODE_VERSION`, which collides with the `NODE_VERSION` that official `node:*` Docker images export without a `v`), `DENO_VERSION`, `PANDOC_VERSION`, `DART_SASS_VERSION`, `ESBUILD_VERSION`, `TYPST_VERSION` (unchanged).
 
 ### Files
 
-- Create: `package/src/common/dependencies/node.ts` (Node release dependency)
-- Create: `package/src/util/bundle.ts` (`bundleQuarto`)
-- Create: `tools/node-bundle/ensure.mjs` (stale check and rebuild)
-- Create: `src/webui/quarto-preview/build.mjs` (replaces `build.ts`)
-- Create: `package/scripts/windows/check-node-in-use.cmd` (replaces `check-deno-in-use.cmd`)
-- Create: `tests/unit/node-dependency.test.ts`
-- Create: `tests/unit/node-bundle-ensure.test.ts`
-- Modify: `configuration:12-13` (add `NODE`, comment `DENO`)
-- Modify: `configure.sh` (whole file)
-- Modify: `configure.cmd` (whole file)
-- Modify: `package/scripts/common/utils.sh` (whole file)
-- Modify: `tools/node-bundle/build.mjs` (export `bundle`, CLI flags, no shim banner, eslint-disable post-step)
-- Modify: `package/src/quarto-bld`, `package/src/quarto-bld.cmd` (whole files)
-- Modify: `package/src/common/prepare-dist.ts:13,23,78-101,126-134` (Node dependency, `bundleQuarto`, remove `node-dist`)
-- Modify: `package/src/common/dependencies/dependencies.ts:22-30` (no change to the list; `node` is handled like `deno` was, by `prepare-dist` and `configure`)
-- Modify: `package/src/common/archive-binary-dependencies.ts:27-33` (`bucket === "node"`)
-- Modify: `package/src/common/configure.ts:28-35,69-78` (npm check uses the bundled npm; dev config fields)
-- Modify: `package/src/common/previewjs.ts` (whole file)
-- Modify: `package/src/util/deno.ts:12-41` (delete `bundle()`; keep `compile`, `install`, `updateDenoPath` for PR 39)
-- Modify: `package/src/common/compile-quarto-latexmk.ts:13` (import no longer brings `bundle`)
-- Modify: `src/core/devconfig.ts:19-56,95-115,157-183`
-- Modify: `package/scripts/common/quarto` (whole file)
-- Modify: `package/scripts/windows/quarto.cmd` (whole file)
-- Modify: `package/src/macos/installer.ts:90-96` (`deno` -> `node`)
-- Modify: `.github/workflows/create-release.yml:398` (`deno.exe` -> `node.exe`)
-- Modify: `.github/workflows/actions/quarto-dev/action.yml:7-39`
-- Modify: `.github/workflows/test-quarto-latexmk.yml:33-35`
-- Modify: `.vscode/launch.json` (both configurations)
-- Modify: `tests/run-tests.sh`, `tests/run-tests.ps1` (default `QUARTO_TEST_RUNTIME=node`)
-- Modify: `dev-docs/upgrade-dependencies.md:18-40`
-- Modify: `news/changelog-1.11.md` (Dependencies)
-- Delete: `tools/deno-esbuild-bundle.ts`, `src/webui/quarto-preview/build.ts`, `package/scripts/windows/check-deno-in-use.cmd`
+- Create: `package/src/common/dependencies/node.ts`, `package/src/util/bundle.ts`, `tools/node-bundle/ensure.mjs`, `src/webui/quarto-preview/build.mjs`, `package/scripts/windows/check-node-in-use.cmd` (renamed), `src/core/runtime-env.ts`, `src/tools/impl/deno-paths.ts`, `src/tools/impl/deno.ts`, `tsconfig.json`, `tsconfig.paths.json`, `tools/typecheck/gen-tsconfig-paths.mjs`, `.github/workflows/lint.yml`, `.vscode/tasks.json`
+- Test: `tests/unit/node-dependency.test.ts`, `tests/unit/node-bundle-ensure.test.ts`, `tests/unit/runtime-env.test.ts`, `tests/unit/tools/deno-tool.test.ts`, `tests/smoke/env/launcher-env.test.ts`
+- Modify: `configuration` (add `NODE` after `DENO`), `configure.sh`, `configure.cmd`, `package/scripts/common/utils.sh`, `tools/node-bundle/build.mjs`, `package/src/quarto-bld`, `package/src/quarto-bld.cmd`, `package/src/common/prepare-dist.ts`, `package/src/common/archive-binary-dependencies.ts:27-33`, `package/src/common/configure.ts:28-35,47,69-78`, `package/src/common/previewjs.ts`, `package/src/common/validate-bundle.ts`, `tools/bundle-bug-finder/_prelude.js:2`, `package/src/util/deno.ts:12-41`, `src/core/devconfig.ts`, `src/quarto.ts` (`quarto()` start), `src/core/run/deno.ts:56`, `src/command/call/build-ts-extension/cmd.ts:257-258`, `src/tools/tools.ts:32-38`, `src/command/install/cmd.ts` (example), `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, `package/launcher/src/main.rs`, `package/src/macos/installer.ts:90-96`, `.github/workflows/create-release.yml:398`, `.github/workflows/actions/quarto-dev/action.yml:15-36`, `.github/workflows/test-install.yml`, `tests/run-tests.sh`, `tests/run-tests.ps1`, `.vscode/launch.json`, `package.json`, `package-lock.json`, `.gitignore`, `dev-docs/upgrade-dependencies.md`, `news/changelog-1.12.md`
+- Delete: `tools/deno-esbuild-bundle.ts`, `tools/node-bundle/deno-shim.mjs`, `src/webui/quarto-preview/build.ts`, `src/webui/quarto-preview/deno.jsonc`, `package/scripts/windows/check-deno-in-use.cmd`
 
 ### Acceptance criteria
 
-- `./configure.sh` on Linux x64/arm64 and macOS x64/arm64, and `./configure.cmd` on Windows x64, produce `package/dist/bin/tools/<arch>/node` (`node.exe`) reporting the version in `configuration`, `package/dist/config/node-version`, a populated root `node_modules/`, and `src/resources/preview/quarto-preview.js`; no `deno` binary and no `package/dist/bin/deno_cache` directory exist afterwards.
-- `package/dist/bin/quarto --version` prints `99.9.9`; `package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd` succeeds; `package/dist/bin/quarto --paths` output is unchanged.
-- Editing any `src/**/*.ts` file and running `package/dist/bin/quarto --help` rebuilds `package/dist/bin/quarto-dev.js` once (the launcher prints nothing extra on a rebuild; `QUARTO_DEBUG_BUNDLE=1` prints the build summary).
-- `NODE_OPTIONS=--invalid-flag package/dist/bin/quarto --help` works (the variable is unset before Node starts).
-- `QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=200 package/dist/bin/quarto --help` works and `node` received `--stack-trace-limit=200` (verify with `QUARTO_DEBUG_BUNDLE=1`, which also echoes the command line).
-- `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9` produces `package/pkg-working/bin/quarto.js`, `package/pkg-working/bin/tools/<arch>/node`, no `tools/<arch>/node-dist` directory, no `deno`; `cd package/pkg-working/bin && ./quarto check` passes (the `test-bundle.yml` steps).
-- `quarto-bld validate-bundle` passes (the bundle contains no `eslint-disable-next-line` text).
-- The unit tests added here pass on the three OSes, and the PR 32 Node matrix is green with `QUARTO_TEST_RUNTIME` defaulting to `node`.
-- `grep -rn "deno" configure.sh configure.cmd package/scripts/common/quarto package/scripts/windows/quarto.cmd package/src/quarto-bld package/src/quarto-bld.cmd` returns only the alias-handling lines (`QUARTO_DENO*`).
+- `./configure.sh` (Linux x64/arm64, macOS x64/arm64) and `./configure.cmd` (Windows x64) produce `package/dist/bin/tools/<arch>/node[.exe]` reporting the `configuration` version, `package/dist/bin/tools/<arch>/deno[.exe]` reporting `DENO`, `package/dist/config/node-version`, a populated root `node_modules/`, and `src/resources/preview/quarto-preview.js`; no `package/dist/bin/deno_cache`.
+- `package/dist/bin/quarto --version` prints `99.9.9`; `package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd` succeeds; `ps` during a render shows `node`, not `deno`.
+- The whole suite passes on the three OSes with `QUARTO_TEST_RUNTIME` unset (Node). This includes `tests/smoke/run/run-script.test.ts`, `tests/smoke/run/stdlib-run-version.test.ts`, `tests/smoke/project/project-prepost.test.ts`, `tests/smoke/build-ts-extension/build-ts-extension.test.ts` and `tests/smoke/create/create.test.ts`, which pass **because they still run on the Deno tool** (`src/core/run/deno.ts`, `build-ts-extension/cmd.ts`), not because scripts run on Node.
+- The boundary-ratchet workflow is green: `quarto run --dev tools/check-runtime-boundary.ts` runs on the Deno tool and reports unchanged counts.
+- `npm run typecheck` exits 0 locally and in `.github/workflows/lint.yml`.
+- `tests/smoke/env/launcher-env.test.ts` passes on the three OSes: `NODE_OPTIONS=--bogus quarto --help` exits 0; a child process (`quarto run env.lua`) sees `NODE_OPTIONS` unchanged; `QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=200` reaches `node`; `QUARTO_DENO_OPTIONS=--allow-all quarto --help` exits 0 and warns once.
+- `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9` produces `bin/quarto.js`, `bin/package.json`, `bin/tools/<arch>/node`, `bin/tools/<arch>/deno`, no `node-dist`; `cd package/pkg-working/bin && ./quarto check` passes; `./quarto-bld validate-bundle` passes (`test-bundle.yml`).
+- `cargo build --release --manifest-path package/launcher/Cargo.toml` succeeds; `create-release.yml` dispatched with `publish-release=false` is green on all platforms, including the MSI and `test-smokes-built.yml` on the Windows zip.
+- `quarto install deno` on a layout without `bin/tools/<arch>/deno` installs `kDenoToolVersion` into the Quarto data dir and `quarto run` then finds it (`test-install.yml` job).
+- `tools/node-bundle/deno-shim.mjs` does not exist and `grep -n "deno-shim" tools/node-bundle/*.mjs` prints nothing (the `--check-shim` scan stays as a report).
 
 ## Plan
 
-### Task 1: Pin Node in `configuration` and add the dependency module
+### Task 1: Pin Node and add the dependency module
 
 **Files:**
-- Modify: `configuration:12-13`
+- Modify: `configuration`
 - Create: `package/src/common/dependencies/node.ts`
 - Modify: `package/src/common/archive-binary-dependencies.ts:27-33`
 - Test: `tests/unit/node-dependency.test.ts`
@@ -224,47 +235,22 @@ import {
 } from "../../package/src/common/dependencies/node.ts";
 import { archiveUrl } from "../../package/src/common/archive-binary-dependencies.ts";
 
-unitTest("node dependency - archive names match nodejs.org", () => {
-  assertEquals(
-    nodeArchiveName("v26.12.0", "linux", "x86_64"),
-    "node-v26.12.0-linux-x64.tar.xz",
-  );
-  assertEquals(
-    nodeArchiveName("v26.12.0", "linux", "aarch64"),
-    "node-v26.12.0-linux-arm64.tar.xz",
-  );
-  assertEquals(
-    nodeArchiveName("v26.12.0", "darwin", "x86_64"),
-    "node-v26.12.0-darwin-x64.tar.gz",
-  );
-  assertEquals(
-    nodeArchiveName("v26.12.0", "darwin", "aarch64"),
-    "node-v26.12.0-darwin-arm64.tar.gz",
-  );
-  assertEquals(
-    nodeArchiveName("v26.12.0", "windows", "x86_64"),
-    "node-v26.12.0-win-x64.zip",
-  );
-  assertEquals(
-    nodeArchiveDir("v26.12.0", "windows", "x86_64"),
-    "node-v26.12.0-win-x64",
-  );
+unitTest("node dependency - archive names match nodejs.org (.tar.gz on POSIX, no xz needed)", () => {
+  assertEquals(nodeArchiveName("v26.12.0", "linux", "x86_64"), "node-v26.12.0-linux-x64.tar.gz");
+  assertEquals(nodeArchiveName("v26.12.0", "linux", "aarch64"), "node-v26.12.0-linux-arm64.tar.gz");
+  assertEquals(nodeArchiveName("v26.12.0", "darwin", "x86_64"), "node-v26.12.0-darwin-x64.tar.gz");
+  assertEquals(nodeArchiveName("v26.12.0", "darwin", "aarch64"), "node-v26.12.0-darwin-arm64.tar.gz");
+  assertEquals(nodeArchiveName("v26.12.0", "windows", "x86_64"), "node-v26.12.0-win-x64.zip");
+  assertEquals(nodeArchiveDir("v26.12.0", "windows", "x86_64"), "node-v26.12.0-win-x64");
 });
 
 unitTest("node dependency - downloads from nodejs.org, not the S3 archive", () => {
   const dep = node("v26.12.0");
   assertEquals(dep.bucket, "node");
   const linux = dep.architectureDependencies["x86_64"]["linux"]!;
-  assertEquals(
-    archiveUrl(dep, linux),
-    "https://nodejs.org/dist/v26.12.0/node-v26.12.0-linux-x64.tar.xz",
-  );
+  assertEquals(archiveUrl(dep, linux), "https://nodejs.org/dist/v26.12.0/node-v26.12.0-linux-x64.tar.gz");
   const win = dep.architectureDependencies["x86_64"]["windows"]!;
-  assertEquals(
-    archiveUrl(dep, win),
-    "https://nodejs.org/dist/v26.12.0/node-v26.12.0-win-x64.zip",
-  );
-  // No Windows arm64 build is shipped (same policy as the Deno years).
+  assertEquals(archiveUrl(dep, win), "https://nodejs.org/dist/v26.12.0/node-v26.12.0-win-x64.zip");
   assertEquals(dep.architectureDependencies["aarch64"]["windows"], undefined);
 });
 ```
@@ -272,21 +258,20 @@ unitTest("node dependency - downloads from nodejs.org, not the S3 archive", () =
 - [ ] **Step 2: Run it and see it fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-dependency.test.ts`
-Expected: FAIL with `Module not found "package/src/common/dependencies/node.ts"`.
+Expected: FAIL, module `package/src/common/dependencies/node.ts` not found.
 
 - [ ] **Step 3: Add `NODE` to `configuration`**
 
-Replace lines 12-13 of `configuration`:
+Insert directly after the `export DENO=...` line (keep that line: Deno is still downloaded as a tool):
 
 ```bash
-# Binary dependencies
-# NODE is the bundled JavaScript runtime (official build from https://nodejs.org/dist/).
-# Node 26 is Active LTS from 2026-10-28 and maintained until 2029-04-30.
+# NODE is the JavaScript runtime of the Quarto CLI (official build from https://nodejs.org/dist/).
+# DENO above is still downloaded as a tool for `quarto run` and `quarto call build-ts-extension`
+# until the runtime migration's PR 37.
 export NODE=v26.12.0
-# DENO is no longer downloaded by configure. It is kept until PR 37 for
-# `quarto-bld compile-quarto-latexmk` (see dev-docs/runtime-migration/39-quarto-latexmk-packaging.md).
-export DENO=v2.7.14
 ```
+
+(`configuration` cannot carry comments on export lines; `store_win_configuration.bat` only reads `export ` lines, so `NODE` reaches `configure.cmd` as `!NODE!`.)
 
 - [ ] **Step 4: Implement `node.ts`**
 
@@ -300,8 +285,8 @@ import { Dependency } from "./dependencies.ts";
 import { Configuration } from "../config.ts";
 import { dirname, join } from "../../../../src/deno_ral/path.ts";
 import {
-  copyFileSync,
   chmodSync,
+  copyFileSync,
   ensureDirSync,
   existsSync,
   removeSync,
@@ -311,62 +296,56 @@ import { env } from "../../../../src/deno_ral/env.ts";
 import { unzip } from "../../util/utils.ts";
 import { unTar } from "../../util/tar.ts";
 
-type Os = "windows" | "linux" | "darwin";
-type Arch = "x86_64" | "aarch64";
+type NodeOs = "windows" | "linux" | "darwin";
+type NodeArch = "x86_64" | "aarch64";
 
-const kNodeArch: Record<Arch, string> = { x86_64: "x64", aarch64: "arm64" };
-const kNodeOs: Record<Os, string> = { windows: "win", linux: "linux", darwin: "darwin" };
-const kNodeExt: Record<Os, string> = { windows: "zip", linux: "tar.xz", darwin: "tar.gz" };
+const kNodeArch: Record<NodeArch, string> = { x86_64: "x64", aarch64: "arm64" };
+const kNodeOs: Record<NodeOs, string> = { windows: "win", linux: "linux", darwin: "darwin" };
+const kNodeExt: Record<NodeOs, string> = { windows: "zip", linux: "tar.gz", darwin: "tar.gz" };
 
-export function nodeArchiveDir(version: string, os: Os, arch: Arch): string {
+export function nodeArchiveDir(version: string, os: NodeOs, arch: NodeArch): string {
   return `node-${version}-${kNodeOs[os]}-${kNodeArch[arch]}`;
 }
 
-export function nodeArchiveName(version: string, os: Os, arch: Arch): string {
+export function nodeArchiveName(version: string, os: NodeOs, arch: NodeArch): string {
   return `${nodeArchiveDir(version, os, arch)}.${kNodeExt[os]}`;
 }
 
 export function node(version: string): Dependency {
-  const release = (os: Os, arch: Arch) => {
-    return {
-      filename: nodeArchiveName(version, os, arch),
-      url: `https://nodejs.org/dist/${version}/`,
-      configure: async (_config: Configuration, path: string) => {
-        const vendor = env.get("QUARTO_VENDOR_BINARIES");
-        if (vendor !== undefined && vendor !== "true") {
-          return;
-        }
-        // tools/ directory that received the download
-        const toolsDir = dirname(path);
-        const archDir = join(toolsDir, arch);
-        ensureDirSync(archDir);
-
-        // Expand next to the download, then keep the whole tree as
-        // <arch>/node-dist (npm lives there; configure uses it) and copy the
-        // bare binary to <arch>/node. prepare-dist deletes node-dist.
-        if (os === "windows") {
-          await unzip(path, toolsDir);
-        } else {
-          await unTar(path, toolsDir);
-        }
-        const extracted = join(toolsDir, nodeArchiveDir(version, os, arch));
-        const dist = join(archDir, "node-dist");
-        if (existsSync(dist)) {
-          removeSync(dist, { recursive: true });
-        }
-        // safeMoveSync falls back to copy+delete on EXDEV (tmpfs vs disk on some runners)
-        safeMoveSync(extracted, dist);
-
-        const binary = os === "windows" ? "node.exe" : "node";
-        const src = os === "windows" ? join(dist, binary) : join(dist, "bin", binary);
-        const dest = join(archDir, binary);
-        copyFileSync(src, dest);
-        if (os !== "windows") {
-          chmodSync(dest, 0o755);
-        }
-      },
-    };
-  };
+  const release = (os: NodeOs, arch: NodeArch) => ({
+    filename: nodeArchiveName(version, os, arch),
+    url: `https://nodejs.org/dist/${version}/`,
+    configure: async (_config: Configuration, path: string) => {
+      const vendor = env.get("QUARTO_VENDOR_BINARIES");
+      if (vendor !== undefined && vendor !== "true") {
+        return;
+      }
+      const toolsDir = dirname(path);
+      const archDir = join(toolsDir, arch);
+      ensureDirSync(archDir);
+      if (os === "windows") {
+        await unzip(path, toolsDir);
+      } else {
+        await unTar(path, toolsDir);
+      }
+      // keep the whole distribution as <arch>/node-dist (npm lives there;
+      // configure puts it on PATH), and the bare binary as <arch>/node.
+      // prepare-dist deletes node-dist before packaging.
+      const extracted = join(toolsDir, nodeArchiveDir(version, os, arch));
+      const dist = join(archDir, "node-dist");
+      if (existsSync(dist)) {
+        removeSync(dist, { recursive: true });
+      }
+      safeMoveSync(extracted, dist);
+      const binary = os === "windows" ? "node.exe" : "node";
+      const src = os === "windows" ? join(dist, binary) : join(dist, "bin", binary);
+      const dest = join(archDir, binary);
+      copyFileSync(src, dest);
+      if (os !== "windows") {
+        chmodSync(dest, 0o755);
+      }
+    },
+  });
 
   return {
     name: "Node.js runtime",
@@ -385,18 +364,16 @@ export function node(version: string): Dependency {
     },
   };
 }
-
 ```
 
-`safeMoveSync` is the existing `src/deno_ral/fs.ts` helper (see `.claude/rules/typescript/deno-ral.md`, "Safe File Operations"); the file has exactly one `fs.ts` import line.
+Before writing the import of `unTar`, confirm the helper: `grep -n "export async function unTar" package/src/util/tar.ts`. If it does not exist, use `unzip`'s sibling in `package/src/util/utils.ts` that `dependencies/pandoc.ts` uses for `.tar.gz` (grep `tar.gz` in `package/src/common/dependencies/`), and keep that one import.
 
-- [ ] **Step 5: Treat bucket `node` like `deno` in `archiveUrl`**
+- [ ] **Step 5: `archiveUrl`**
 
 Replace lines 27-33 of `package/src/common/archive-binary-dependencies.ts`:
 
 ```ts
-  // Runtimes are fetched from their official release site, not from S3
-  // (the S3 mirror is for tools whose upstream URLs have changed shape).
+  // Runtimes come from their official release sites, not the S3 mirror.
   if (dependency.bucket === "deno" || dependency.bucket === "node") {
     return platformDependency.url + platformDependency.filename;
   } else {
@@ -416,16 +393,26 @@ git add configuration package/src/common/dependencies/node.ts package/src/common
 git commit -m "build: pin Node 26 in configuration and add the node dependency"
 ```
 
-### Task 2: `build.mjs` as a library and `ensure.mjs`
+### Task 2: `build.mjs` as a library, `ensure.mjs`, shim removal
 
 **Files:**
 - Modify: `tools/node-bundle/build.mjs`
 - Create: `tools/node-bundle/ensure.mjs`
+- Delete: `tools/node-bundle/deno-shim.mjs`
+- Modify: `.gitignore`
 - Test: `tests/unit/node-bundle-ensure.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Gate: the shim must be unused**
 
-The test exercises the stale check through the CLI, using a throwaway entry file so it does not depend on `src/`.
+Run:
+```bash
+quarto run --dev tools/check-runtime-boundary.ts
+node -e 'const b=require("./tools/runtime-boundary-baseline.json"); for (const s of ["src","src-js","resources"]) console.log(s, JSON.stringify(b[s] ?? b.scopes?.[s]))'
+node tools/node-bundle/build.mjs --check-shim
+```
+Expected: the ratchet passes; the `src`, `src-js` and `resources` baselines are all zero; `--check-shim` prints `0 missing`, and every member it still lists comes from third-party code guarded by `typeof Deno` (Cliffy's `@cliffy/internal/runtime/*`, `@std/fmt/colors`). **Stop and report** if any count is non-zero or any listed member comes from `src/` or `src/resources/`: PR 20b or 27b is incomplete, and removing the shim would break renders (review S1).
+
+- [ ] **Step 2: Write the failing test**
 
 ```ts
 /*
@@ -439,75 +426,125 @@ import { join } from "../../src/deno_ral/path.ts";
 import { makeTempDirSync } from "../../src/deno_ral/temp.ts";
 import {
   existsSync,
+  mkdirSync,
+  readDirSync,
   readTextFileSync,
   removeSync,
   statSync,
   utimeSync,
   writeTextFileSync,
 } from "../../src/deno_ral/fs.ts";
-import { exec, execPath } from "../../src/deno_ral/process.ts";
+import { exec } from "../../src/deno_ral/process.ts";
 import { env } from "../../src/deno_ral/env.ts";
+import { architectureToolsPath } from "../../src/core/resources.ts";
 
 const root = env.get("QUARTO_ROOT")!;
 const ensure = join(root, "tools", "node-bundle", "ensure.mjs");
+// the Node binary even when the harness itself runs on Deno (QUARTO_NODE honoured)
+const nodeBin = architectureToolsPath("node");
+const dec = (b: Uint8Array) => new TextDecoder().decode(b);
 
-async function runEnsure(entry: string, outfile: string, watchDir: string) {
-  const r = await exec(execPath(), {
-    args: [ensure, "--entry", entry, "--outfile", outfile, "--watch-dir", watchDir],
-    cwd: root,
-  });
-  assert(r.success, new TextDecoder().decode(r.stderr));
-  return new TextDecoder().decode(r.stdout);
+async function runEnsure(entry: string, outfile: string) {
+  const r = await exec(nodeBin, { args: [ensure, "--entry", entry, "--outfile", outfile], cwd: root });
+  assert(r.success, dec(r.stderr));
+  return dec(r.stdout).trim();
 }
 
-unitTest("ensure.mjs builds when missing, skips when fresh, rebuilds when stale", async () => {
+function touchLater(file: string, than: string) {
+  const t = new Date(statSync(than).mtime!.getTime() + 5000);
+  utimeSync(file, t, t);
+}
+
+function fixture() {
   const dir = makeTempDirSync({ prefix: "ensure-test" });
+  // a directory named "pandoc": the old skip-list design ignored it (review finding)
+  mkdirSync(join(dir, "pandoc"));
+  writeTextFileSync(join(dir, "pandoc", "dep.ts"), "export const v: number = 1;\n");
+  writeTextFileSync(join(dir, "main.ts"), 'import { v } from "./pandoc/dep.ts";\nconsole.log("v=" + v);\n');
+  return { dir, entry: join(dir, "main.ts"), dep: join(dir, "pandoc", "dep.ts"), outfile: join(dir, "out", "main.mjs") };
+}
+
+unitTest("ensure.mjs - builds when missing, skips when fresh, rebuilds when an input changes", async () => {
+  const f = fixture();
   try {
-    const entry = join(dir, "main.ts");
-    const dep = join(dir, "dep.ts");
-    const outfile = join(dir, "out", "main.js");
-    writeTextFileSync(dep, "export const v: number = 1;\n");
-    writeTextFileSync(entry, 'import { v } from "./dep.ts";\nconsole.log("v=" + v);\n');
-
-    const first = await runEnsure(entry, outfile, dir);
-    assertStringIncludes(first, "bundled");
-    assert(existsSync(outfile));
-    assertStringIncludes(readTextFileSync(outfile), "v=");
-
-    const second = await runEnsure(entry, outfile, dir);
-    assertStringIncludes(second, "bundle up to date");
-
-    // make dep.ts newer than the bundle
-    const later = new Date(statSync(outfile).mtime!.getTime() + 5000);
-    writeTextFileSync(dep, "export const v: number = 2;\n");
-    utimeSync(dep, later, later);
-    const third = await runEnsure(entry, outfile, dir);
-    assertStringIncludes(third, "bundled");
-    const run = await exec(execPath(), { args: [outfile] });
-    assertEquals(new TextDecoder().decode(run.stdout).trim(), "v=2");
+    assertStringIncludes(await runEnsure(f.entry, f.outfile), "reason: missing");
+    assert(existsSync(f.outfile + ".inputs.json"));
+    assertEquals(await runEnsure(f.entry, f.outfile), "bundle up to date");
+    writeTextFileSync(f.dep, "export const v: number = 2;\n");
+    touchLater(f.dep, f.outfile);
+    assertStringIncludes(await runEnsure(f.entry, f.outfile), "pandoc/dep.ts");
+    const run = await exec(nodeBin, { args: [f.outfile] });
+    assertEquals(dec(run.stdout).trim(), "v=2");
   } finally {
-    removeSync(dir, { recursive: true });
+    removeSync(f.dir, { recursive: true });
+  }
+});
+
+unitTest("ensure.mjs - a new import is picked up through the edited importer", async () => {
+  const f = fixture();
+  try {
+    await runEnsure(f.entry, f.outfile);
+    writeTextFileSync(join(f.dir, "extra.ts"), 'export const w = "w";\n');
+    writeTextFileSync(f.entry, 'import { w } from "./extra.ts";\nconsole.log(w);\n');
+    touchLater(f.entry, f.outfile);
+    assertStringIncludes(await runEnsure(f.entry, f.outfile), "main.ts");
+    assert(readTextFileSync(f.outfile + ".inputs.json").includes("extra.ts"));
+  } finally {
+    removeSync(f.dir, { recursive: true });
+  }
+});
+
+unitTest("ensure.mjs - concurrent callers build once and never see a partial bundle", async () => {
+  const f = fixture();
+  try {
+    const outs = await Promise.all([1, 2, 3, 4].map(() => runEnsure(f.entry, f.outfile)));
+    assertEquals(outs.filter((o) => o.startsWith("bundled")).length, 1, outs.join("\n"));
+    const run = await exec(nodeBin, { args: [f.outfile] });
+    assertEquals(dec(run.stdout).trim(), "v=1");
+    const leftovers = readDirSync(join(f.dir, "out")).map((e) => e.name)
+      .filter((n) => n.endsWith(".tmp") || n.endsWith(".lock"));
+    assertEquals(leftovers, []);
+  } finally {
+    removeSync(f.dir, { recursive: true });
   }
 });
 ```
 
-- [ ] **Step 2: Run it and see it fail**
+- [ ] **Step 3: Run it and see it fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-bundle-ensure.test.ts`
-Expected: FAIL, stderr contains `Cannot find module '.../tools/node-bundle/ensure.mjs'`.
+Expected: FAIL, stderr `Cannot find module '.../tools/node-bundle/ensure.mjs'`.
 
-- [ ] **Step 3: Refactor `build.mjs`**
+- [ ] **Step 4: Refactor `build.mjs`**
 
-Replace the top-level `esbuild.build` call and the trailing summary of `tools/node-bundle/build.mjs` (the PR 26 file keeps the resolver plugin; only the parts shown change). The plugin's `vendor`, `stubs` and `spike` paths from the spike are already gone in PR 26; the resolver resolves relative to the repository root where `package.json` lives.
+Keep PR 26's imports, the resolver `plugin` and the `--check-shim` scan function. Delete the `deno-shim.mjs` banner import and any `define: { "import.meta.main": ... }` (PR 19's `isMainModule` relies on the real `import.meta`). Replace everything after the `plugin` definition with:
 
 ```js
-// ---- replace everything after the `plugin` definition ----
-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Write through a temp file and rename, so a concurrent reader sees the old
+// or the new file, never a partial one. Windows can refuse a rename while
+// another process holds the target briefly: retry.
+async function writeAtomic(file, contents) {
+  const tmp = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, contents);
+  for (let attempt = 0; ; attempt++) {
+    try {
+      fs.renameSync(tmp, file);
+      return;
+    } catch (e) {
+      if (attempt >= 9 || !["EPERM", "EBUSY", "EACCES"].includes(e.code)) {
+        fs.rmSync(tmp, { force: true });
+        throw e;
+      }
+      await sleep(100);
+    }
+  }
+}
 
 /**
- * Bundle one TypeScript entry point for Node with the import-map resolver.
- * @param {{ entry: string, outfile: string, sourcemap?: boolean, metafile?: boolean }} options
+ * @param {{ entry: string, outfile: string, sourcemap?: boolean }} options
  */
 export async function bundle(options) {
   const entry = path.resolve(options.entry);
@@ -516,52 +553,57 @@ export async function bundle(options) {
   fs.mkdirSync(path.dirname(outfile), { recursive: true });
   const t0 = Date.now();
   const result = await esbuild.build({
+    absWorkingDir: root,
     entryPoints: [entry],
     bundle: true,
     platform: "node",
     format: "esm",
     target: "node26",
     outfile,
-    sourcemap,
+    write: false,
+    sourcemap: sourcemap ? "linked" : false,
+    metafile: true,
     logLevel: "warning",
     plugins: [plugin],
     banner: {
       js: 'import { createRequire as __createRequire } from "node:module"; const require = __createRequire(import.meta.url);',
     },
-    metafile: true,
-    tsconfigRaw: {
-      compilerOptions: { useDefineForClassFields: true, verbatimModuleSyntax: false },
-    },
+    tsconfigRaw: { compilerOptions: { useDefineForClassFields: true, verbatimModuleSyntax: true } },
   });
+  // Input files the bundle depends on, for ensure.mjs. node_modules is covered
+  // by package-lock.json; namespaced inputs ("ns:path") are not files.
+  const inputs = Object.keys(result.metafile.inputs)
+    .filter((p) => !p.includes("node_modules/") && !/^[a-z-]+:/.test(p))
+    .map((p) => path.relative(root, path.resolve(root, p)).split(path.sep).join("/"))
+    .sort();
+  let js;
+  let map;
+  for (const f of result.outputFiles) {
+    if (f.path.endsWith(".map")) map = f.contents;
+    else js = f.text;
+  }
   // tools/bundle-bug-finder runs eslint over the bundle (quarto-bld validate-bundle);
   // a dependency ships an inline "eslint-disable-next-line" that eslint would honour.
-  const text = fs.readFileSync(outfile, "utf8");
-  if (text.includes("eslint-disable-next-line")) {
-    fs.writeFileSync(outfile, text.replaceAll("eslint-disable-next-line", ""));
-  }
-  if (options.metafile) {
-    fs.writeFileSync(
-      typeof options.metafile === "string" ? options.metafile : outfile + ".meta.json",
-      JSON.stringify(result.metafile),
-    );
-  }
-  const bytes = fs.statSync(outfile).size;
-  return { modules: Object.keys(result.metafile.inputs).length, bytes, ms: Date.now() - t0 };
+  js = js.replaceAll("eslint-disable-next-line", "");
+  // map and input list first, the bundle last: its mtime is the freshness stamp
+  if (map) await writeAtomic(outfile + ".map", map);
+  await writeAtomic(outfile + ".inputs.json", JSON.stringify(inputs, null, 1) + "\n");
+  await writeAtomic(outfile, js);
+  return { modules: Object.keys(result.metafile.inputs).length, bytes: Buffer.byteLength(js), ms: Date.now() - t0 };
 }
 
 function parseArgs(argv) {
-  const opts = { sourcemap: true };
+  const opts = { sourcemap: true, checkShim: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--entry") opts.entry = argv[++i];
     else if (a === "--outfile") opts.outfile = argv[++i];
     else if (a === "--no-sourcemap") opts.sourcemap = false;
-    else if (a === "--metafile") opts.metafile = argv[++i];
+    else if (a === "--check-shim") opts.checkShim = true;
     else throw new Error(`build.mjs: unknown argument ${a}`);
   }
-  if (!opts.entry || !opts.outfile) {
-    throw new Error("usage: node tools/node-bundle/build.mjs --entry <file.ts> --outfile <file.js> [--no-sourcemap] [--metafile <file.json>]");
-  }
+  opts.entry ??= path.join(root, "src", "quarto.ts");
+  opts.outfile ??= path.join(root, "tools", "node-bundle", "dist", "quarto.mjs");
   return opts;
 }
 
@@ -569,175 +611,204 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const opts = parseArgs(process.argv.slice(2));
   const r = await bundle(opts);
   console.log(
-    `bundled ${path.relative(root, opts.entry)} -> ${path.relative(root, opts.outfile)} (${(r.bytes / 1e6).toFixed(1)} MB, ${r.modules} modules, ${r.ms} ms)`,
+    `bundled ${path.relative(root, path.resolve(opts.entry))} -> ${path.relative(root, path.resolve(opts.outfile))} (${(r.bytes / 1e6).toFixed(1)} MB, ${r.modules} modules, ${r.ms} ms)`,
   );
+  if (opts.checkShim) {
+    // PR 26's scan, unchanged: lists Deno.<member> references left in the bundle
+    process.exitCode = checkShim(path.resolve(opts.outfile));
+  }
 }
 ```
 
-Also delete the `define: { "import.meta.main": "true" }` option if PR 26 kept it (PR 19 replaced `import.meta.main` with `isMainModule(import.meta)`, which compares `import.meta.filename` with `process.argv[1]`; a define would make every module think it is main) and the `import ".../deno-shim.js"` banner line.
+`verbatimModuleSyntax: true` matches PR 02b's `deno.jsonc` setting (type-only imports are written `import type` and erased). If PR 26 named the scan function differently, keep its name in the last line. Then:
 
-- [ ] **Step 4: Write `ensure.mjs`**
+```bash
+git rm tools/node-bundle/deno-shim.mjs
+grep -rn "deno-shim" tools package .github | grep -v runtime-migration
+```
+Expected: no output (fix any leftover reference, e.g. in `tools/node-bundle/quarto-node`, by deleting the line).
+
+- [ ] **Step 5: Write `ensure.mjs`**
 
 ```js
 // tools/node-bundle/ensure.mjs
 //
 // Copyright (C) 2026 Posit Software, PBC
 //
-// Rebuild a bundle when any watched source file is newer than it. Used by the
-// dev launchers (package/scripts/common/quarto, quarto.cmd) and quarto-bld so
-// that editing src/*.ts is picked up on the next run without a manual build.
+// Rebuild a dev bundle when its inputs changed. Used by the dev launchers and
+// quarto-bld on every invocation, possibly by several processes at once
+// (tests/run-parallel-tests.ts runs test buckets in parallel and many tests
+// spawn `quarto`), hence the lock and build.mjs's atomic writes.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { bundle } from "./build.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const kExts = new Set([".ts", ".js", ".mjs", ".cjs", ".json"]);
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, "..", "..");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const kLockStaleMs = 120_000;
+const kLockTimeoutMs = 300_000;
 
 function parseArgs(argv) {
-  const opts = { watchDirs: [], extraFiles: [] };
+  const opts = {};
   for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    if (a === "--entry") opts.entry = path.resolve(argv[++i]);
-    else if (a === "--outfile") opts.outfile = path.resolve(argv[++i]);
-    else if (a === "--watch-dir") opts.watchDirs.push(path.resolve(argv[++i]));
-    else if (a === "--watch-file") opts.extraFiles.push(path.resolve(argv[++i]));
-    else throw new Error(`ensure.mjs: unknown argument ${a}`);
+    if (argv[i] === "--entry") opts.entry = path.resolve(argv[++i]);
+    else if (argv[i] === "--outfile") opts.outfile = path.resolve(argv[++i]);
+    else throw new Error(`ensure.mjs: unknown argument ${argv[i]}`);
   }
   if (!opts.entry || !opts.outfile) {
-    throw new Error("usage: node tools/node-bundle/ensure.mjs --entry <file.ts> --outfile <file.js> [--watch-dir <dir>]... [--watch-file <file>]...");
+    throw new Error("usage: node tools/node-bundle/ensure.mjs --entry <file.ts> --outfile <file.mjs>");
   }
-  if (opts.watchDirs.length === 0) {
-    opts.watchDirs.push(path.dirname(opts.entry));
-  }
-  // import map and lockfile changes change what gets bundled
-  opts.extraFiles.push(path.join(root, "src", "import_map.json"));
-  opts.extraFiles.push(path.join(root, "package-lock.json"));
   return opts;
 }
 
-// Returns the first file newer than `since`, or null. Skips node_modules and
-// the large non-code trees under src/resources that never enter the bundle.
-const kSkipDirs = new Set(["node_modules", ".git", "dist", "vendor", "formats", "library", "projects", "filters", "extensions", "pandoc", "fonts"]);
-function firstNewer(dir, since) {
-  let entries;
+function mtime(file) {
   try {
-    entries = fs.readdirSync(dir, { withFileTypes: true });
+    return fs.statSync(file).mtimeMs;
   } catch {
     return null;
   }
-  for (const e of entries) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) {
-      if (kSkipDirs.has(e.name)) continue;
-      const hit = firstNewer(p, since);
-      if (hit) return hit;
-    } else if (kExts.has(path.extname(e.name))) {
-      try {
-        if (fs.statSync(p).mtimeMs > since) return p;
-      } catch {
-        // deleted between readdir and stat
-      }
-    }
+}
+
+// Files whose change can change any bundle: the import map, the lockfile, the bundler itself.
+function globalInputs() {
+  const files = [path.join(root, "src", "import_map.json"), path.join(root, "package-lock.json")];
+  for (const f of fs.readdirSync(here)) {
+    if (f.endsWith(".mjs")) files.push(path.join(here, f));
+  }
+  return files;
+}
+
+function staleReason(opts) {
+  const built = mtime(opts.outfile);
+  if (built === null) return "missing";
+  let inputs;
+  try {
+    inputs = JSON.parse(fs.readFileSync(opts.outfile + ".inputs.json", "utf8"));
+  } catch {
+    return "no input list";
+  }
+  for (const f of globalInputs()) {
+    const m = mtime(f);
+    if (m !== null && m > built) return path.relative(root, f);
+  }
+  for (const rel of inputs) {
+    const m = mtime(path.join(root, rel));
+    if (m === null) return `${rel} (deleted)`;
+    if (m > built) return rel;
   }
   return null;
 }
 
-const opts = parseArgs(process.argv.slice(2));
-let reason = null;
-if (!fs.existsSync(opts.outfile)) {
-  reason = "missing";
-} else {
-  const since = fs.statSync(opts.outfile).mtimeMs;
-  for (const f of opts.extraFiles) {
-    if (fs.existsSync(f) && fs.statSync(f).mtimeMs > since) {
-      reason = f;
+async function withLock(lockDir, fn) {
+  const start = Date.now();
+  for (;;) {
+    try {
+      fs.mkdirSync(lockDir);
       break;
+    } catch (e) {
+      if (e.code !== "EEXIST") throw e;
+      const m = mtime(lockDir);
+      if (m !== null && Date.now() - m > kLockStaleMs) {
+        fs.rmSync(lockDir, { recursive: true, force: true });
+        continue;
+      }
+      if (Date.now() - start > kLockTimeoutMs) {
+        throw new Error(`ensure.mjs: timed out waiting for ${lockDir}; delete it if no build is running`);
+      }
+      await sleep(100);
     }
   }
-  if (!reason) {
-    for (const d of opts.watchDirs) {
-      const hit = firstNewer(d, since);
-      if (hit) {
-        reason = hit;
-        break;
-      }
-    }
+  try {
+    return await fn();
+  } finally {
+    fs.rmSync(lockDir, { recursive: true, force: true });
   }
 }
 
-if (!reason) {
+const opts = parseArgs(process.argv.slice(2));
+if (staleReason(opts) === null) {
   console.log("bundle up to date");
 } else {
-  const r = await bundle({ entry: opts.entry, outfile: opts.outfile, sourcemap: true });
-  console.log(
-    `bundled ${path.relative(root, opts.entry)} -> ${path.relative(root, opts.outfile)} (${(r.bytes / 1e6).toFixed(1)} MB, ${r.modules} modules, ${r.ms} ms; reason: ${reason === "missing" ? "missing" : path.relative(root, reason)})`,
-  );
+  fs.mkdirSync(path.dirname(opts.outfile), { recursive: true });
+  await withLock(opts.outfile + ".lock", async () => {
+    const reason = staleReason(opts); // another process may have built it meanwhile
+    if (reason === null) {
+      console.log("bundle up to date (built by another process)");
+      return;
+    }
+    const { bundle } = await import("./build.mjs"); // esbuild is loaded only when building
+    const r = await bundle({ entry: opts.entry, outfile: opts.outfile, sourcemap: true });
+    console.log(
+      `bundled ${path.relative(root, opts.entry)} -> ${path.relative(root, opts.outfile)} (${(r.bytes / 1e6).toFixed(1)} MB, ${r.modules} modules, ${r.ms} ms; reason: ${reason})`,
+    );
+  });
 }
 ```
 
-Note on `kSkipDirs`: `src/resources/types/schema-types.ts` is imported by `src/execute/engine.ts`, so `types` is deliberately not skipped; `src/resources/filters` and the other listed names contain no TypeScript that the bundle imports (verify with `grep -rl "resources/\(formats\|library\|projects\|filters\|extensions\|pandoc\|fonts\)/" src --include=*.ts | grep -v "src/resources"` returning nothing that is an `import`).
+Add to `.gitignore` under `# generated javascript`:
 
-- [ ] **Step 5: Run the test**
+```
+package/dist/bin/*.mjs
+package/dist/bin/*.mjs.map
+package/dist/bin/*.inputs.json
+```
+
+(`package/dist` is already ignored as a whole on `main`: `grep -n "package/dist" .gitignore`; if it is, skip this edit.)
+
+- [ ] **Step 6: Run the test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-bundle-ensure.test.ts`
-Expected: `1 passed`.
+Expected: `3 passed`.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Measure and record**
+
+Run (after Task 9 wires the launcher; come back to this step then):
+```bash
+package/dist/bin/quarto --version >/dev/null   # dev --version does not run node
+time (package/dist/bin/quarto --help >/dev/null)
+time (node tools/node-bundle/ensure.mjs --entry src/quarto.ts --outfile package/dist/bin/quarto-dev.mjs)
+touch src/core/path.ts && time (node tools/node-bundle/ensure.mjs --entry src/quarto.ts --outfile package/dist/bin/quarto-dev.mjs)
+```
+Expected: the fresh check prints `bundle up to date`; the rebuild prints `bundled ... reason: src/core/path.ts`. Put the three timings in the PR description.
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git add tools/node-bundle/build.mjs tools/node-bundle/ensure.mjs tests/unit/node-bundle-ensure.test.ts
-git commit -m "build: export bundle() from build.mjs and add ensure.mjs stale check"
+git add tools/node-bundle tests/unit/node-bundle-ensure.test.ts .gitignore
+git commit -m "build: bundle() with atomic writes and input list; ensure.mjs with lock; drop the Deno shim"
 ```
 
 ### Task 3: `configure.sh`, `configure.cmd`, `utils.sh`
 
 **Files:**
-- Modify: `package/scripts/common/utils.sh`
-- Modify: `configure.sh`
-- Modify: `configure.cmd`
+- Modify: `package/scripts/common/utils.sh`, `configure.sh`, `configure.cmd`
+- Rename: `package/scripts/windows/check-deno-in-use.cmd` -> `check-node-in-use.cmd`
 
-- [ ] **Step 1: Rewrite `utils.sh`**
+- [ ] **Step 1: `utils.sh`: add the Node variables, keep the Deno ones**
+
+Append to `package/scripts/common/utils.sh` (after the existing `DENOFILES`/`DENO_ARCH_DIR` block, which stays for the Deno tool):
 
 ```bash
-# NODE_ARCH_DIR is the tools/<arch> directory; NODE_ARCHIVE is the file name on
-# https://nodejs.org/dist/$NODE/. Both are used by configure.sh, the dev
-# launcher and run-tests.sh.
-
+# Node.js archive for this platform (https://nodejs.org/dist/$NODE/). .tar.gz
+# rather than .tar.xz so that xz is not a prerequisite. NODE comes from
+# `configuration`, sourced before this file by configure.sh; quarto-bld
+# sources this file first, so the names are computed lazily by node_archive().
 NODEURL=https://nodejs.org/dist
-
-if [[ $OSTYPE == 'darwin'* ]]; then
-  FULLARCH=$(uname -sm)
-  if [[ $FULLARCH == "Darwin x86_64" ]]; then
-    NODE_ARCH_DIR=x86_64
-    NODE_ARCHIVE="node-${NODE}-darwin-x64.tar.gz"
-  elif [[ $FULLARCH == "Darwin arm64" ]]; then
-    NODE_ARCH_DIR=aarch64
-    NODE_ARCHIVE="node-${NODE}-darwin-arm64.tar.gz"
+node_archive() {
+  if [[ $OSTYPE == 'darwin'* ]]; then
+    if [[ $DENO_ARCH_DIR == "aarch64" ]]; then echo "node-${NODE}-darwin-arm64.tar.gz"; else echo "node-${NODE}-darwin-x64.tar.gz"; fi
   else
-    echo "configure script failed: unrecognized architecture " ${FULLARCH}
-    exit 1
+    if [[ $DENO_ARCH_DIR == "aarch64" ]]; then echo "node-${NODE}-linux-arm64.tar.gz"; else echo "node-${NODE}-linux-x64.tar.gz"; fi
   fi
-else
-  NIXARCH=$(uname -m)
-  if [[ $NIXARCH == "x86_64" ]]; then
-    NODE_ARCH_DIR=x86_64
-    NODE_ARCHIVE="node-${NODE}-linux-x64.tar.xz"
-  elif [[ $NIXARCH == "aarch64" ]]; then
-    NODE_ARCH_DIR=aarch64
-    NODE_ARCHIVE="node-${NODE}-linux-arm64.tar.xz"
-  else
-    echo "configure script failed: unrecognized architecture " ${NIXARCH}
-    exit 1
-  fi
-fi
-# archive directory name = archive name without the extension
-NODE_ARCHIVE_DIR="${NODE_ARCHIVE%.tar.*}"
+}
 ```
 
-`utils.sh` is sourced after `configuration` everywhere it is used (`configure.sh` sources `configuration` first; `quarto-bld` and `deno_std/download.sh` source `utils.sh` first and then `configuration`; swap the order in `quarto-bld` in Task 4 and delete `download.sh` in PR 37). Grep for other users: `grep -rn "utils.sh" package .github configure.sh tests` and make each of them source `configuration` first.
+`DENO_ARCH_DIR` is the `tools/<arch>` directory name for both runtimes (`x86_64`/`aarch64`); PR 37 renames it to `ARCH_DIR` when the Deno variables go.
 
-- [ ] **Step 2: Rewrite `configure.sh`**
+- [ ] **Step 2: `configure.sh`**
+
+Replace the whole file:
 
 ```bash
 #!/usr/bin/env bash
@@ -746,8 +817,10 @@ source configuration
 
 # Defaults are set in configuration file, but can be overridden here.
 #  We can't put these overrides in the configuration file because it is parsed
-#  very naively on windows.
-export NODE=${NODE_VERSION=$NODE}
+#  very naively on windows. QUARTO_NODE_VERSION, not NODE_VERSION: official
+#  node:* Docker images export NODE_VERSION (without the leading v).
+export NODE=${QUARTO_NODE_VERSION=$NODE}
+export DENO=${DENO_VERSION=$DENO}
 export PANDOC=${PANDOC_VERSION=$PANDOC}
 export DARTSASS=${DART_SASS_VERSION=$DARTSASS}
 export ESBUILD=${ESBUILD_VERSION=$ESBUILD}
@@ -768,150 +841,174 @@ function download() {
 	fi
 }
 
+# sha256 check of one file against nodejs.org's SHASUMS256.txt
+function verify_sha256() {
+  if command -v sha256sum > /dev/null; then
+    grep " $1\$" SHASUMS256.txt | sha256sum -c -
+  else
+    grep " $1\$" SHASUMS256.txt | shasum -a 256 -c -
+  fi
+}
+
 QUARTO_VENDOR_BINARIES=${QUARTO_VENDOR_BINARIES=true}
 
-NODE_BIN=${QUARTO_NODE=$QUARTO_BIN_PATH/tools/$NODE_ARCH_DIR/node}
+NODE_BIN=${QUARTO_NODE=$QUARTO_BIN_PATH/tools/$DENO_ARCH_DIR/node}
+DENO_BIN=$QUARTO_BIN_PATH/tools/$DENO_ARCH_DIR/deno
 
 if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
-  if [[ (! -f "$NODE_BIN") || "$("$NODE_BIN" --version)" != "$NODE" ]]; then
-    echo "Bootstrapping Node.js $NODE..."
+  NODE_ARCHIVE=$(node_archive)
+  DENO_VERSION_NO_V=$(echo "$DENO" | sed 's/v//')
+  NEED_NODE=false
+  NEED_DENO=false
+  if [[ (! -f "$NODE_BIN") || "$("$NODE_BIN" --version)" != "$NODE" ]]; then NEED_NODE=true; fi
+  if [[ (! -f "$DENO_BIN") || $("$DENO_BIN" --version | grep "$DENO_VERSION_NO_V") == "" ]]; then NEED_DENO=true; fi
 
-    rm -rf "$QUARTO_DIST_PATH"
-
-    ## Binary Directory
-    mkdir -p "$QUARTO_BIN_PATH/tools/$NODE_ARCH_DIR"
+  if [[ "$NEED_NODE" = "true" || "$NEED_DENO" = "true" ]]; then
+    # CI sets QUARTO_SKIP_DENO_CACHE_WIPE=1 so restored caches survive.
+    if [ "${QUARTO_SKIP_DENO_CACHE_WIPE}" != "1" ]; then
+      rm -rf "$QUARTO_DIST_PATH"
+    fi
+    mkdir -p "$QUARTO_BIN_PATH/tools/$DENO_ARCH_DIR" "$QUARTO_BIN_PATH/../config"
     pushd "$QUARTO_BIN_PATH/tools"
 
+    echo "Bootstrapping Node.js $NODE..."
     download "$NODEURL/$NODE/$NODE_ARCHIVE" "$NODE_ARCHIVE"
     download "$NODEURL/$NODE/SHASUMS256.txt" SHASUMS256.txt
-    grep " $NODE_ARCHIVE\$" SHASUMS256.txt | shasum -a 256 -c -
+    verify_sha256 "$NODE_ARCHIVE"
     rm SHASUMS256.txt
-
-    tar -xf "$NODE_ARCHIVE"
-    rm -rf "$NODE_ARCH_DIR/node-dist"
-    mv "$NODE_ARCHIVE_DIR" "$NODE_ARCH_DIR/node-dist"
-    cp "$NODE_ARCH_DIR/node-dist/bin/node" "$NODE_ARCH_DIR/node"
-    chmod 755 "$NODE_ARCH_DIR/node"
+    tar -xzf "$NODE_ARCHIVE"
+    rm -rf "$DENO_ARCH_DIR/node-dist"
+    mv "${NODE_ARCHIVE%.tar.gz}" "$DENO_ARCH_DIR/node-dist"
+    cp "$DENO_ARCH_DIR/node-dist/bin/node" "$DENO_ARCH_DIR/node"
+    chmod 755 "$DENO_ARCH_DIR/node"
     rm "$NODE_ARCHIVE"
-
-    # we create a symlink here so that we need only one quarto-cli.code-workspace file
-    ln -sf "$NODE_ARCH_DIR/node" node
-
-    # write node version file for later use (the dev launcher compares it with configuration)
-    mkdir -p "$QUARTO_BIN_PATH/../config"
     echo "$NODE" > "$QUARTO_BIN_PATH/../config/node-version"
+
+    # Deno stays as a tool for `quarto run` and `quarto call build-ts-extension`
+    # until the runtime migration's PR 37.
+    echo "Bootstrapping Deno $DENO (tool)..."
+    for DENOFILE in $DENOFILES; do
+      download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
+      unzip -o "$DENOFILE"
+      mv deno "$DENO_ARCH_DIR"
+      rm "$DENOFILE"
+    done
+    # one quarto-cli.code-workspace for every arch (deno.path)
+    ln -sf "$DENO_ARCH_DIR/deno" deno
+    echo "$DENO" > "$QUARTO_BIN_PATH/../config/deno-version"
 
     popd
   fi
-  export QUARTO_NODE=$QUARTO_BIN_PATH/tools/$NODE_ARCH_DIR/node
+  export QUARTO_NODE=$QUARTO_BIN_PATH/tools/$DENO_ARCH_DIR/node
   # npm from the downloaded distribution (its shebang resolves `node` on PATH)
-  export PATH="$QUARTO_BIN_PATH/tools/$NODE_ARCH_DIR/node-dist/bin:$PATH"
+  export PATH="$QUARTO_BIN_PATH/tools/$DENO_ARCH_DIR/node-dist/bin:$PATH"
 else
   if [ -z "$QUARTO_NODE" ]; then
-    echo "QUARTO_NODE is not set. You either need to allow QUARTO_VENDOR_BINARIES or set QUARTO_NODE to the path of a node binary."
+    echo "QUARTO_NODE is not set. Allow QUARTO_VENDOR_BINARIES or set QUARTO_NODE to the path of a node binary."
     exit 1
   fi
   if ! command -v npm > /dev/null; then
     echo "npm not found on PATH. QUARTO_VENDOR_BINARIES=false requires npm from the same Node installation as QUARTO_NODE."
     exit 1
   fi
+  if [ -z "$QUARTO_DENO" ]; then
+    echo "QUARTO_DENO is not set: \`quarto run\` .ts scripts and \`quarto call build-ts-extension\` will need \`quarto install deno\`."
+  fi
 fi
 
-# Node must not pick up the user's NODE_OPTIONS/NODE_PATH during the build
+# Neither the build nor npm should see the user's Node settings.
 unset NODE_OPTIONS NODE_PATH
 
 echo "Installing TypeScript dependencies (npm ci)"
 npm ci --no-audit --no-fund
 
+echo "Downloading Deno Stdlib (for quarto run scripts on the Deno tool)"
+QUARTO_DENO="$DENO_BIN" "${QUARTO_PACKAGE_PATH}/scripts/deno_std/download.sh"
+
 pushd "$QUARTO_PACKAGE_PATH/src/"
-
-# Run the configure command to bootstrap installation
 ./quarto-bld configure --log-level info
-
 popd
 
 if ! quarto_loc="$(type -p quarto)" || [[ -z $quarto_loc ]]; then
   echo "Quarto symlink doesn't appear to be configured."
 else
-	quarto --version
+  quarto --version
 fi
 ```
 
-`shasum -a 256 -c` exists on macOS (Perl) and on Linux (`perl-Digest-SHA`); if a Linux image lacks `shasum`, replace that line with `grep " $NODE_ARCHIVE\$" SHASUMS256.txt | sha256sum -c -`. Keep one of the two forms in the committed file and name the other in a comment.
+With `QUARTO_VENDOR_BINARIES=false` and `QUARTO_DENO` unset, `download.sh` cannot run; guard that line with `if [ -x "${QUARTO_DENO:-$DENO_BIN}" ]; then ... fi` and use `${QUARTO_DENO:-$DENO_BIN}` as the value. The `DENO_CANARY_COMMIT` upgrade block of the old file is dropped (Deno is a pinned tool now).
 
-- [ ] **Step 3: Rewrite `configure.cmd`**
+- [ ] **Step 3: `configure.cmd`**
+
+Replace the `if "%QUARTO_VENDOR_BINARIES%" == "true" (` block and everything after it with:
 
 ```bat
-@ECHO OFF
-SETLOCAL ENABLEDELAYEDEXPANSION
-
-REM Batch script reminder: variables between % % are evaluated as parse time, not at runtime.
-REM    Variables set dynamically (including being read from a file) should be evaluated
-REM    using ! ! instead of % %. However, this only allows one level of expansion. Do not
-REM    try to create a variable that derives from a derived variable. It will be empty.
-
-call package\src\store_win_configuration.bat
-call .\win_configuration.bat
-
-if NOT DEFINED QUARTO_VENDOR_BINARIES (
-  set "QUARTO_VENDOR_BINARIES=true"
-)
-
-SET "NODE_ARCH_DIR=x86_64"
+SET "DENO_ARCH_DIR=x86_64"
 SET "NODE_ARCHIVE_DIR=node-!NODE!-win-x64"
 SET "NODE_ARCHIVE=!NODE_ARCHIVE_DIR!.zip"
+IF DEFINED QUARTO_NODE_VERSION SET "NODE=!QUARTO_NODE_VERSION!"
 
 if "%QUARTO_VENDOR_BINARIES%" == "true" (
 
-  REM Windows-specific: Check if node.exe is running from package/dist before deleting it
-  call package\scripts\windows\check-node-in-use.cmd "!QUARTO_DIST_PATH!"
-  if "!ERRORLEVEL!"=="1" exit /B 1
+  IF NOT "!QUARTO_SKIP_DENO_CACHE_WIPE!"=="1" (
+    REM Windows: refuse to delete package/dist while node.exe or deno.exe runs from it
+    call package\scripts\windows\check-node-in-use.cmd "!QUARTO_DIST_PATH!"
+    if "!ERRORLEVEL!"=="1" exit /B 1
 
-  echo Removing package/dist/ directory...
-  RMDIR /S /Q "!QUARTO_DIST_PATH!" 2>NUL
-
-  REM Fallback: Verify deletion succeeded (defense in depth)
-  if exist "!QUARTO_DIST_PATH!" (
-    echo.
-    echo ============================================================
-    echo Error: Could not delete package/dist/ directory
-    echo This may be due to permissions, antivirus, or another process holding files
-    echo ============================================================
-    echo.
-    echo Try closing applications and run configure.cmd again
-    exit /B 1
+    echo Removing package/dist/ directory...
+    RMDIR /S /Q "!QUARTO_DIST_PATH!" 2>NUL
+    if exist "!QUARTO_DIST_PATH!" (
+      echo Error: Could not delete package/dist/ directory. Close applications using it and run configure.cmd again.
+      exit /B 1
+    )
   )
 
-  IF NOT EXIST "!QUARTO_BIN_PATH!\tools\!NODE_ARCH_DIR!" MKDIR "!QUARTO_BIN_PATH!\tools\!NODE_ARCH_DIR!"
+  IF NOT EXIST "!QUARTO_BIN_PATH!\tools\!DENO_ARCH_DIR!" MKDIR "!QUARTO_BIN_PATH!\tools\!DENO_ARCH_DIR!"
+  IF NOT EXIST "!QUARTO_BIN_PATH!\..\config" MKDIR "!QUARTO_BIN_PATH!\..\config"
   PUSHD "!QUARTO_BIN_PATH!\tools"
 
   ECHO Bootstrapping Node.js !NODE!...
   CURL --fail -L "https://nodejs.org/dist/!NODE!/!NODE_ARCHIVE!" -o "!NODE_ARCHIVE!"
-  REM Windows 10 build 17063+ ships bsdtar as System32\tar; it extracts zip files.
-  REM Use the absolute path in case a GNU tar (Git for Windows) is first on PATH.
+  REM Windows 10 1803+ ships bsdtar as System32\tar; it extracts .zip. Absolute
+  REM path in case Git for Windows' GNU tar is first on PATH.
   %WINDIR%\System32\tar -xf "!NODE_ARCHIVE!"
+  IF ERRORLEVEL 1 (
+    ECHO tar failed; trying to unzip...
+    unzip -o "!NODE_ARCHIVE!"
+  )
   IF ERRORLEVEL 1 (
     ECHO Unable to decompress !NODE_ARCHIVE!
     exit /B 1
   )
   DEL "!NODE_ARCHIVE!"
-  IF EXIST "!NODE_ARCH_DIR!\node-dist" RMDIR /S /Q "!NODE_ARCH_DIR!\node-dist"
-  MOVE "!NODE_ARCHIVE_DIR!" "!NODE_ARCH_DIR!\node-dist" > NUL
-  COPY /Y "!NODE_ARCH_DIR!\node-dist\node.exe" "!NODE_ARCH_DIR!\node.exe" > NUL
-
-  REM write node version file for later use
-  IF NOT EXIST "!QUARTO_BIN_PATH!\..\config" MKDIR "!QUARTO_BIN_PATH!\..\config"
+  IF EXIST "!DENO_ARCH_DIR!\node-dist" RMDIR /S /Q "!DENO_ARCH_DIR!\node-dist"
+  MOVE "!NODE_ARCHIVE_DIR!" "!DENO_ARCH_DIR!\node-dist" > NUL
+  COPY /Y "!DENO_ARCH_DIR!\node-dist\node.exe" "!DENO_ARCH_DIR!\node.exe" > NUL
   ECHO !NODE!> "!QUARTO_BIN_PATH!\..\config\node-version"
 
-  SET "QUARTO_NODE=!QUARTO_BIN_PATH!\tools\!NODE_ARCH_DIR!\node.exe"
-  REM npm.cmd from the downloaded distribution
-  SET "PATH=!QUARTO_BIN_PATH!\tools\!NODE_ARCH_DIR!\node-dist;!PATH!"
+  ECHO Bootstrapping Deno !DENO! ^(tool^)...
+  PUSHD !DENO_ARCH_DIR!
+  SET "DENO_FILE=deno-x86_64-pc-windows-msvc.zip"
+  CURL --fail -L "https://github.com/denoland/deno/releases/download/!DENO!/!DENO_FILE!" -o "!DENO_FILE!"
+  %WINDIR%\System32\tar -xf "!DENO_FILE!"
+  IF ERRORLEVEL 1 (
+    ECHO Unable to decompress !DENO_FILE!
+    exit /B 1
+  )
+  DEL "!DENO_FILE!"
+  POPD
+  ECHO !DENO!> "!QUARTO_BIN_PATH!\..\config\deno-version"
+
+  SET "QUARTO_NODE=!QUARTO_BIN_PATH!\tools\!DENO_ARCH_DIR!\node.exe"
+  SET "DENO_TOOL=!QUARTO_BIN_PATH!\tools\!DENO_ARCH_DIR!\deno.exe"
+  SET "PATH=!QUARTO_BIN_PATH!\tools\!DENO_ARCH_DIR!\node-dist;!PATH!"
   POPD
 ) ELSE (
   IF NOT DEFINED QUARTO_NODE (
-    ECHO QUARTO_NODE is not set. You either need to allow QUARTO_VENDOR_BINARIES or set QUARTO_NODE to the path of node.exe.
+    ECHO QUARTO_NODE is not set. Allow QUARTO_VENDOR_BINARIES or set QUARTO_NODE to the path of node.exe.
     EXIT /B 1
   )
+  SET "DENO_TOOL=!QUARTO_DENO!"
 )
 
 SET "NODE_OPTIONS="
@@ -921,10 +1018,16 @@ ECHO Installing TypeScript dependencies (npm ci)
 CALL npm ci --no-audit --no-fund
 IF ERRORLEVEL 1 EXIT /B 1
 
+IF DEFINED DENO_TOOL (
+  ECHO Downloading Deno Stdlib ^(for quarto run scripts on the Deno tool^)
+  SET "QUARTO_DENO=!DENO_TOOL!"
+  CALL !QUARTO_PACKAGE_PATH!\scripts\deno_std\download.bat
+)
+
 PUSHD !QUARTO_PACKAGE_PATH!\src
 ECHO Configuring Quarto from !cd!
 CALL .\quarto-bld.cmd configure --log-level info
-echo Configuration done
+IF ERRORLEVEL 1 EXIT /B 1
 POPD
 
 IF EXIST !QUARTO_BIN_PATH!\quarto.cmd (
@@ -939,40 +1042,38 @@ endlocal & set QUARTO_BIN_DEV=%QUARTO_BIN_PATH%
 GOTO :eof
 ```
 
-`store_win_configuration.bat` converts every `export NAME=value` line of `configuration` to `SET`, so `!NODE!` is available after `call .\win_configuration.bat` (verified: it filters on the `export ` prefix only).
+The `QUARTO_DENO_DIR`/`DENO_DIR` block, the `vendor.cmd` call and `SET QUARTO_DENO_EXTRA_OPTIONS=--reload` are gone (they configured the CLI's Deno; `--reload` would now be passed to nothing).
 
-- [ ] **Step 4: Replace `check-deno-in-use.cmd`**
-
-Create `package/scripts/windows/check-node-in-use.cmd` as a copy of `check-deno-in-use.cmd` with these substitutions: every `deno.exe` -> `node.exe`, `Get-Process -Name deno` -> `Get-Process -Name node` (two occurrences), `DENO_CHECK_PATH` -> `NODE_CHECK_PATH` (three occurrences), the header comment and the two user-facing `echo` lines (`Deno is running from this directory` -> `Node.js is running from this directory`, `Please close Deno processes` -> `Please close Node.js processes`, `Deno processes from this directory:` -> `Node.js processes from this directory:`). Delete `check-deno-in-use.cmd`.
+- [ ] **Step 4: `check-node-in-use.cmd`**
 
 ```bash
 git mv package/scripts/windows/check-deno-in-use.cmd package/scripts/windows/check-node-in-use.cmd
-sed -i 's/deno\.exe/node.exe/g; s/-Name deno/-Name node/g; s/DENO_CHECK_PATH/NODE_CHECK_PATH/g; s/check-deno-in-use/check-node-in-use/g; s/Deno is running/Node.js is running/; s/close Deno processes/close Node.js processes/; s/Deno processes from/Node.js processes from/; s/if deno.exe is running/if node.exe is running/; s/if any deno.exe/if any node.exe/; s/while deno is still/while node is still/; s/No deno process/No node process/; s/Deno process found/Node process found/g; s/if deno.exe is running from the specified/if node.exe is running from the specified/; s/system deno in PATH or deno from/system node in PATH or node from/' package/scripts/windows/check-node-in-use.cmd
-grep -n -i deno package/scripts/windows/check-node-in-use.cmd   # expect no output
+grep -n -i "deno" package/scripts/windows/check-node-in-use.cmd
 ```
 
-- [ ] **Step 5: Run `./configure.sh` locally**
+Edit every listed line so the script checks both `node.exe` and `deno.exe` processes whose path is under the given directory: duplicate the `Get-Process -Name deno` PowerShell query as `Get-Process -Name node,deno` (one query, both names), rename `DENO_CHECK_PATH` to `RUNTIME_CHECK_PATH`, and change the user-facing texts to `Node.js or Deno is running from this directory` / `Please close Node.js and Deno processes` / `Node.js/Deno processes from this directory:`.
+Run: `grep -n -i "deno" package/scripts/windows/check-node-in-use.cmd`
+Expected: only the `-Name node,deno` line and the three message lines.
 
-Run: `./configure.sh 2>&1 | tail -20`
-Expected: ends with `99.9.9`; `ls package/dist/bin/tools/x86_64/` lists `node`, `node-dist/`, `pandoc`, `dart-sass/`, `esbuild`, `typst`, `typst-gather`; `cat package/dist/config/node-version` prints `v26.12.0`; `ls package/dist/bin/deno_cache` fails with "No such file".
+- [ ] **Step 5: Run `./configure.sh`** (after Task 4; `quarto-bld configure` needs it)
 
-(`quarto-bld configure` is still the Deno-era script at this point; Task 4 makes `./quarto-bld` run on Node. Run this step after Task 4 if `quarto-bld configure` fails here, and record the order in the commit message.)
+Run: `./configure.sh 2>&1 | tail -15; ls package/dist/bin/tools/x86_64/; cat package/dist/config/node-version package/dist/config/deno-version; ls package/dist/bin/deno_cache`
+Expected: ends with `99.9.9`; the tools dir lists `node`, `node-dist/`, `deno`, `pandoc`, `dart-sass/`, `esbuild`, `typst`, `typst-gather`; the two version files print the `configuration` values; `ls ... deno_cache` fails with `No such file or directory`.
+Then: `QUARTO_NODE_VERSION=v26.12.0 NODE_VERSION=26.12.0 ./configure.sh 2>&1 | grep -c "Bootstrapping Node.js v26.12.0"` prints `1` or `0` (0 when nothing needed downloading), never a 404.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add configure.sh configure.cmd package/scripts/common/utils.sh package/scripts/windows/check-node-in-use.cmd
-git rm -q package/scripts/windows/check-deno-in-use.cmd 2>/dev/null || true
-git commit -m "build: configure scripts download Node instead of Deno and run npm ci"
+git commit -m "build: configure downloads Node and keeps Deno as a tool; npm ci replaces vendoring"
 ```
 
-### Task 4: `quarto-bld` and `quarto-bld.cmd` on Node
+### Task 4: `quarto-bld` on Node
 
 **Files:**
-- Modify: `package/src/quarto-bld`
-- Modify: `package/src/quarto-bld.cmd`
+- Modify: `package/src/quarto-bld`, `package/src/quarto-bld.cmd`
 
-- [ ] **Step 1: Rewrite `quarto-bld`**
+- [ ] **Step 1: `quarto-bld`**
 
 ```bash
 #!/usr/bin/env bash
@@ -980,31 +1081,34 @@ set -e
 
 export SCRIPT_PATH=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-# Prepares Quarto source files for packaging
-source "${SCRIPT_PATH}/../../configuration"
 source "${SCRIPT_PATH}/../scripts/common/utils.sh"
+source "${SCRIPT_PATH}/../../configuration"
 source "${SCRIPT_PATH}/set_package_paths.sh"
 
 if [ -z "$QUARTO_NODE" ]; then
-  export QUARTO_NODE=$SCRIPT_PATH/../dist/bin/tools/$NODE_ARCH_DIR/node
+  export QUARTO_NODE=$SCRIPT_PATH/../dist/bin/tools/$DENO_ARCH_DIR/node
+fi
+# Tasks that still drive Deno (deno_std download, compile-quarto-latexmk until PR 39) find the tool here.
+if [ -z "$QUARTO_DENO" ]; then
+  export QUARTO_DENO=$SCRIPT_PATH/../dist/bin/tools/$DENO_ARCH_DIR/deno
 fi
 
 export RUST_BACKTRACE=full
+# The build never inherits the user's Node settings (no restore needed: quarto-bld spawns build tools only).
 unset NODE_OPTIONS NODE_PATH
 
-# bld.ts imports Cliffy and src/ through src/import_map.json, which Node cannot
-# read, so it is bundled first (tools/node-bundle/build.mjs applies the map).
-# ensure.mjs only rebuilds when a source file is newer than the bundle.
-BLD_BUNDLE="$SCRIPT_PATH/../dist/bin/quarto-bld.js"
-"$QUARTO_NODE" "$QUARTO_ROOT/tools/node-bundle/ensure.mjs" \
-  --entry "$SCRIPT_PATH/bld.ts" --outfile "$BLD_BUNDLE" \
-  --watch-dir "$SCRIPT_PATH" --watch-dir "$QUARTO_ROOT/src" > /dev/null
+# bld.ts imports src/ through src/import_map.json, which Node cannot read, so
+# it is bundled first; ensure.mjs rebuilds only when an input changed.
+BLD_BUNDLE="$SCRIPT_PATH/../dist/bin/quarto-bld.mjs"
+"$QUARTO_NODE" "$QUARTO_ROOT/tools/node-bundle/ensure.mjs" --entry "$SCRIPT_PATH/bld.ts" --outfile "$BLD_BUNDLE" > /dev/null
 
 # --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
-exec "$QUARTO_NODE" --enable-experimental-regexp-engine --stack-trace-limit=100 --enable-source-maps "$BLD_BUNDLE" "$@"
+exec "$QUARTO_NODE" --enable-experimental-regexp-engine --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --enable-source-maps "$BLD_BUNDLE" "$@"
 ```
 
-- [ ] **Step 2: Rewrite `quarto-bld.cmd`**
+`QUARTO_ROOT` comes from `set_package_paths.sh` (`grep -n QUARTO_ROOT package/src/set_package_paths.sh`).
+
+- [ ] **Step 2: `quarto-bld.cmd`**
 
 ```bat
 @ECHO OFF
@@ -1015,27 +1119,27 @@ call %~dp0\..\..\win_configuration.bat
 if NOT DEFINED QUARTO_NODE (
   SET "QUARTO_NODE=%~dp0\..\dist\bin\tools\x86_64\node.exe"
 )
+if NOT DEFINED QUARTO_DENO (
+  SET "QUARTO_DENO=%~dp0\..\dist\bin\tools\x86_64\deno.exe"
+)
 SET "RUST_BACKTRACE=full"
 SET "NODE_OPTIONS="
 SET "NODE_PATH="
 
-SET "BLD_BUNDLE=%~dp0\..\dist\bin\quarto-bld.js"
-"%QUARTO_NODE%" "%QUARTO_ROOT%tools\node-bundle\ensure.mjs" --entry "%~dp0\bld.ts" --outfile "%BLD_BUNDLE%" --watch-dir "%~dp0." --watch-dir "%QUARTO_ROOT%src" > NUL
+SET "BLD_BUNDLE=%~dp0\..\dist\bin\quarto-bld.mjs"
+"%QUARTO_NODE%" "%QUARTO_ROOT%tools\node-bundle\ensure.mjs" --entry "%~dp0\bld.ts" --outfile "%BLD_BUNDLE%" > NUL
 IF ERRORLEVEL 1 EXIT /B 1
 
 REM --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
-"%QUARTO_NODE%" --enable-experimental-regexp-engine --stack-trace-limit=100 --enable-source-maps "%BLD_BUNDLE%" %*
+"%QUARTO_NODE%" --enable-experimental-regexp-engine --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --enable-source-maps "%BLD_BUNDLE%" %*
 ```
 
-(`QUARTO_ROOT` from `win_configuration.bat` ends with a backslash: `set "QUARTO_ROOT=%~dp0"`.)
+(`QUARTO_ROOT` from `win_configuration.bat` ends with a backslash.)
 
 - [ ] **Step 3: Verify**
 
-Run: `cd package/src && ./quarto-bld --help`
-Expected: the Cliffy help listing `configure`, `prepare-dist`, `make-installer-*`, `compile-quarto-latexmk`; `ls ../dist/bin/quarto-bld.js ../dist/bin/quarto-bld.js.map` exist.
-
-Run: `./quarto-bld configure --log-level info 2>&1 | tail -5`
-Expected: `Wrote dev config to bin directory` and the symlink messages (this still writes the Deno-era dev config until Task 7; that is fine, `quarto.ts` reads it only through `devConfigsEqual`).
+Run: `cd package/src && ./quarto-bld --help | head -20 && ls ../dist/bin/quarto-bld.mjs ../dist/bin/quarto-bld.mjs.map ../dist/bin/quarto-bld.mjs.inputs.json`
+Expected: the Cliffy help listing `configure`, `prepare-dist`, `validate-bundle`; the three files exist.
 
 - [ ] **Step 4: Commit**
 
@@ -1044,16 +1148,14 @@ git add package/src/quarto-bld package/src/quarto-bld.cmd
 git commit -m "build: quarto-bld bundles bld.ts and runs it on Node"
 ```
 
-### Task 5: `prepare-dist` bundles with `build.mjs` and ships Node
+### Task 5: `prepare-dist` ships Node and the Deno tool; `validate-bundle` on Node globals
 
 **Files:**
 - Create: `package/src/util/bundle.ts`
-- Modify: `package/src/util/deno.ts:12-41`
-- Modify: `package/src/common/prepare-dist.ts:13,23,78-101,126-134`
-- Modify: `package/src/common/compile-quarto-latexmk.ts:13`
+- Modify: `package/src/util/deno.ts:12-41`, `package/src/common/prepare-dist.ts`, `package/src/common/validate-bundle.ts`, `tools/bundle-bug-finder/_prelude.js:2`
 - Delete: `tools/deno-esbuild-bundle.ts`
 
-- [ ] **Step 1: Write `bundle.ts`**
+- [ ] **Step 1: `bundle.ts`**
 
 ```ts
 /*
@@ -1066,8 +1168,7 @@ import { exec, execPath } from "../../../src/deno_ral/process.ts";
 import { info } from "../../../src/deno_ral/log.ts";
 import { Configuration } from "../common/config.ts";
 
-// Bundle src/quarto.ts for the distribution. Runs tools/node-bundle/build.mjs
-// on the same Node binary that runs quarto-bld (execPath()).
+// Bundle src/quarto.ts for the distribution on the Node that runs quarto-bld.
 export async function bundleQuarto(config: Configuration) {
   const entry = join(config.directoryInfo.src, "quarto.ts");
   const outfile = join(config.directoryInfo.pkgWorking.bin, "quarto.js");
@@ -1085,43 +1186,39 @@ export async function bundleQuarto(config: Configuration) {
 }
 ```
 
-- [ ] **Step 2: Remove `bundle()` from `util/deno.ts`**
+- [ ] **Step 2: `util/deno.ts`, the old bundler**
 
-Delete lines 12-41 (`// TODO in we only use the bundler ...` through the closing brace of `bundle`). Keep `compile`, `install`, `updateDenoPath`: they are used by `compile-quarto-latexmk.ts` and are PR 39's business. Add this comment above `compile`:
+Delete lines 12-41 of `package/src/util/deno.ts` (the `// TODO in we only use the bundler ...` comment and `bundle()`). `compile`, `install`, `updateDenoPath` stay for `compile-quarto-latexmk.ts` unless PR 39 already deleted them (then delete the file: `git rm package/src/util/deno.ts`). Then:
 
-```ts
-// compile() and install() still drive `deno compile`/`deno install` for the
-// tinitex sidecar. They need QUARTO_DENO to point at a Deno binary (configure
-// no longer downloads one). PR 39 replaces them.
+```bash
+git rm tools/deno-esbuild-bundle.ts
+grep -rn "deno-esbuild-bundle\|util/deno.ts\"" package .github tools | grep -v runtime-migration
 ```
+Expected: at most `compile-quarto-latexmk.ts` importing `compile, install, updateDenoPath`.
 
-- [ ] **Step 3: Update `prepare-dist.ts`**
+- [ ] **Step 3: `prepare-dist.ts`**
 
-Replace the imports on lines 13 and 23:
-
-```ts
-import { bundleQuarto } from "../util/bundle.ts";
-// line 23:
-import { node } from "./dependencies/node.ts";
-```
-
-Replace lines 78-101 (`// Download Deno` through the end of the dependency loop):
+- Import: replace `import { bundle } from "../util/deno.ts";` with `import { bundleQuarto } from "../util/bundle.ts";`; add `import { node } from "./dependencies/node.ts";` next to the `deno` import; add `env` from `../../../src/deno_ral/env.ts` and `removeSync`, `writeTextFileSync` to the `fs.ts` import.
+- Replace the `// Download Deno` block with:
 
 ```ts
-  // Download Node (the runtime)
+  // Download Node (the CLI runtime) and Deno (a tool for `quarto run` and
+  // `quarto call build-ts-extension` until the runtime migration's PR 37)
   const nodeVersion = env.get("NODE");
   if (!nodeVersion) {
     throw new Error("NODE is not defined in the environment (source `configuration`)");
   }
   await configArchDependency(node(nodeVersion), targetDir, config);
-
-  // Download the dependencies
-  for (const dependency of kDependencies) {
-    await configArchDependency(dependency, targetDir, config);
+  const denoVersion = env.get("DENO");
+  if (denoVersion) {
+    await configArchDependency(deno(denoVersion), targetDir, config);
   }
+```
 
-  // The runtime's full distribution (npm, headers, docs) is only needed at
-  // configure time; the installer ships the bare binary.
+- After the `kDependencies` loop add:
+
+```ts
+  // npm, headers and docs are only needed at configure time
   for (const arch of ["x86_64", "aarch64"]) {
     const nodeDist = join(targetDir, arch, "node-dist");
     if (existsSync(nodeDist)) {
@@ -1131,60 +1228,52 @@ Replace lines 78-101 (`// Download Deno` through the end of the dependency loop)
   }
 ```
 
-Add `import { env } from "../../../src/deno_ral/env.ts";` and `removeSync` to the `fs.ts` import. (The `deno_dom` `catch` block is gone with PR 20; if it is still present when you execute, delete it in this step.)
-
-Replace lines 126-134 (`// Create the deno bundle` block):
+- Replace the `// Create the deno bundle` block (`info("\nCreating Deno Bundle")` ... `await bundle(config);`) with:
 
 ```ts
-  // Create the Node bundle
   info("\nCreating Node bundle");
-  info(join(config.directoryInfo.pkgWorking.bin, "quarto.js"));
   await bundleQuarto(config);
+  // bin/quarto.js is ESM: make that explicit, whatever package.json an
+  // installer happens to place above bin/ (a "type": "commonjs" one would
+  // otherwise make Node parse the bundle as CommonJS)
+  writeTextFileSync(
+    join(config.directoryInfo.pkgWorking.bin, "package.json"),
+    '{ "type": "module" }\n',
+  );
   info("");
 ```
 
-- [ ] **Step 4: Fix the import in `compile-quarto-latexmk.ts`**
+`buildQuartoPreviewJs(config.directoryInfo.src, undefined, true)` becomes `buildQuartoPreviewJs(config.directoryInfo.src, true)` (Task 6 drops the unused `denoDir` parameter).
 
-Line 13 already imports only `compile, install, updateDenoPath`; confirm `bundle` is not imported anywhere else:
+- [ ] **Step 4: `validate-bundle` sees Node globals**
 
-Run: `grep -rn "util/deno.ts" package/src`
-Expected: only `compile-quarto-latexmk.ts`.
+`tools/bundle-bug-finder/_prelude.js` line 2 (`/*global Deno, globalThis, console, ...`): append `, process, require, module, exports, __dirname, __filename, setImmediate, clearImmediate, queueMicrotask, structuredClone, MessageChannel, MessagePort, BroadcastChannel, navigator` to the list, and change the line-1 comment to `/* definitions which exist in Node's (and Deno's) global scope and are ok for us to ignore */`. `require` is defined by the bundle banner (`const require = __createRequire(import.meta.url)`), but esbuild's own `__require` shim references the free `require` too.
 
-- [ ] **Step 5: Delete the Deno bundler**
+In `package/src/common/validate-bundle.ts` replace `args: ["install"]` with `args: ["install", "--no-audit", "--no-fund"]` (npm is on PATH from `configure`).
 
-```bash
-git rm tools/deno-esbuild-bundle.ts
-grep -rn "deno-esbuild-bundle" . --include=*.ts --include=*.md --include=*.yml --include=*.sh | grep -v runtime-migration
-```
-Expected: no output (the assessment mentions it, which is history).
+Run: `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 --log-level info 2>&1 | tail -8 && ./quarto-bld validate-bundle`
+Expected: `bundled src/quarto.ts -> package/pkg-working/bin/quarto.js (...)`; `validate-bundle` ends with `TEST: OK`. If eslint reports `no-undef` for another global, add it to the prelude list (each addition named in the PR description).
 
-- [ ] **Step 6: Run `prepare-dist` and the bundle test steps**
+- [ ] **Step 5: Verify the layout**
 
-Run:
-```bash
-cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 --log-level info 2>&1 | tail -15
-ls ../pkg-working/bin/tools/x86_64/
-cd ../pkg-working/bin && ./quarto --version && ./quarto check 2>&1 | head -20
-cd ../../src && ./quarto-bld validate-bundle
-```
-Expected: `bundled src/quarto.ts -> package/pkg-working/bin/quarto.js (... MB, ... modules, ... ms)`; the tools directory lists `node` but not `node-dist` or `deno`; `./quarto --version` prints `99.9.9`; `quarto check` reaches `Checking versions of quarto binary dependencies...` (the Deno row still prints until PR 34); `validate-bundle` exits 0. (`./quarto` in `pkg-working/bin` is still the Deno launcher until Task 8; run the last two commands again after Task 8.)
+Run: `ls package/pkg-working/bin package/pkg-working/bin/tools/x86_64`
+Expected: `bin` has `quarto`, `quarto.js`, `package.json`, `tools`; the arch dir has `node`, `deno`, `pandoc`, `esbuild`, `dart-sass`, `typst`, no `node-dist`. On macOS both `tools/x86_64` and `tools/aarch64` have `node` and `deno`.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add package/src/util/bundle.ts package/src/util/deno.ts package/src/common/prepare-dist.ts
-git commit -m "build: prepare-dist bundles with tools/node-bundle and ships Node"
+git add package/src/util package/src/common/prepare-dist.ts package/src/common/validate-bundle.ts tools/bundle-bug-finder/_prelude.js
+git commit -m "build: prepare-dist bundles for Node, ships node and the deno tool; validate-bundle knows Node globals"
 ```
 
 ### Task 6: `quarto-preview.js` build on Node
 
 **Files:**
 - Create: `src/webui/quarto-preview/build.mjs`
-- Delete: `src/webui/quarto-preview/build.ts`
-- Modify: `package/src/common/previewjs.ts`
-- Modify: `package/src/common/configure.ts:28-35`
+- Delete: `src/webui/quarto-preview/build.ts`, `src/webui/quarto-preview/deno.jsonc`
+- Modify: `package/src/common/previewjs.ts`, `package/src/common/configure.ts:28-35,47`
 
-- [ ] **Step 1: Write `build.mjs`**
+- [ ] **Step 1: `build.mjs`**
 
 ```js
 // build.mjs
@@ -1199,10 +1288,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-process.chdir(here);
-const args = process.argv.slice(2);
-
+process.chdir(path.dirname(fileURLToPath(import.meta.url)));
 const kQuartoPreviewJs = "../../resources/preview/quarto-preview.js";
 let jsBuildTime = 0;
 try {
@@ -1211,18 +1297,14 @@ try {
   jsBuildTime = 0;
 }
 
-const buildFromArgs = () => args.includes("--force");
-
-const buildFromGit = () => {
+const changedSinceBuild = () => {
   let stdout;
   try {
     stdout = execFileSync("git", ["ls-files"], { encoding: "utf8" });
   } catch {
-    // git not installed or not a repository: rebuild
-    return true;
+    return true; // no git: rebuild
   }
-  const files = stdout.split("\n").filter((line) => line.length > 0);
-  return files.some((file) => {
+  return stdout.split("\n").filter((l) => l.length > 0).some((file) => {
     try {
       return fs.statSync(file).mtimeMs > jsBuildTime;
     } catch {
@@ -1231,29 +1313,25 @@ const buildFromGit = () => {
   });
 };
 
-if (!(buildFromArgs() || buildFromGit())) {
+if (!process.argv.includes("--force") && !changedSinceBuild()) {
   console.log("No changes to quarto-preview.js, skipping build");
   process.exit(0);
 }
 
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-const run = (npmArgs) => {
-  console.log(`Running: npm ${npmArgs.join(" ")}`);
-  const r = spawnSync(npm, npmArgs, { stdio: "inherit", shell: process.platform === "win32" });
+const run = (args) => {
+  console.log(`Running: npm ${args.join(" ")}`);
+  const r = spawnSync(npm, args, { stdio: "inherit", shell: process.platform === "win32" });
   if (r.status !== 0) {
     console.error("Command failed");
     process.exit(r.status ?? 1);
   }
 };
-
-console.log("Building quarto-preview.js");
-console.log("Installing...");
 run(["ci", "--no-audit", "--no-fund"]);
-console.log("Building...");
 run(["run", "build"]);
 ```
 
-- [ ] **Step 2: Rewrite `previewjs.ts`**
+- [ ] **Step 2: `previewjs.ts`**
 
 ```ts
 /*
@@ -1263,10 +1341,10 @@ run(["run", "build"]);
  */
 
 import { join } from "../../../src/deno_ral/path.ts";
-import { execSync, execPath } from "../../../src/deno_ral/process.ts";
+import { execPath, execSync } from "../../../src/deno_ral/process.ts";
 
-// Build src/resources/preview/quarto-preview.js with the bundled Node. npm must
-// be on PATH (configure.sh puts tools/<arch>/node-dist/bin there).
+// Build src/resources/preview/quarto-preview.js with the Node running
+// quarto-bld. npm must be on PATH (configure puts tools/<arch>/node-dist there).
 export function buildQuartoPreviewJs(srcDir: string, force?: boolean) {
   const args = [join(quartoPreviewJsDir(srcDir), "build.mjs")];
   if (force) {
@@ -1275,8 +1353,8 @@ export function buildQuartoPreviewJs(srcDir: string, force?: boolean) {
   return execSync(execPath(), {
     args,
     cwd: quartoPreviewJsDir(srcDir),
-    stderr: "inherit",
     stdout: "inherit",
+    stderr: "inherit",
   });
 }
 
@@ -1285,54 +1363,42 @@ export function quartoPreviewJsDir(srcDir: string) {
 }
 ```
 
-Update the two callers: `configure.ts:47` becomes `buildQuartoPreviewJs(config.directoryInfo.src)` (unchanged signature position for `srcDir`), `prepare-dist.ts:105` becomes `buildQuartoPreviewJs(config.directoryInfo.src, true)`. The removed middle parameter was `denoDir`, always `undefined`.
-
-- [ ] **Step 3: Make the npm check in `configure.ts` honest**
-
-Replace lines 28-35 of `package/src/common/configure.ts`:
+`configure.ts:47` keeps `buildQuartoPreviewJs(config.directoryInfo.src)`. Replace its npm check (lines 28-35) with:
 
 ```ts
-  // npm is required for building quarto-preview.js (used by `quarto preview`
-  // live-reload). configure.sh/configure.cmd put the bundled Node's npm on
-  // PATH; with QUARTO_VENDOR_BINARIES=false the caller provides it.
+  // npm builds quarto-preview.js. configure.sh/configure.cmd put the bundled
+  // Node's npm on PATH; with QUARTO_VENDOR_BINARIES=false the caller provides it.
   if ((await which("npm")) === undefined) {
     throw new Error(
-      "npm not found on PATH. Run ./configure.sh (which adds the bundled Node's npm to PATH) or install Node.js.",
+      "npm not found on PATH. Run ./configure.sh (or configure.cmd), which adds the bundled Node's npm to PATH.",
     );
   }
 ```
 
-- [ ] **Step 4: Delete `build.ts`, remove the local `deno.jsonc`**
+- [ ] **Step 3: Delete the Deno build script, verify, commit**
 
 ```bash
 git rm src/webui/quarto-preview/build.ts src/webui/quarto-preview/deno.jsonc
-```
-
-- [ ] **Step 5: Verify**
-
-Run: `rm -f src/resources/preview/quarto-preview.js && cd package/src && ./quarto-bld configure --log-level info 2>&1 | grep -A3 "Building quarto-preview"`
-Expected: `Running: npm ci ...`, `Running: npm run build`, and `ls -la src/resources/preview/quarto-preview.js` exists afterwards. A second run prints `No changes to quarto-preview.js, skipping build`.
-
-- [ ] **Step 6: Commit**
-
-```bash
+rm -f src/resources/preview/quarto-preview.js && (cd package/src && ./quarto-bld configure --log-level info 2>&1 | grep -E "Running: npm|skipping")
+ls src/resources/preview/quarto-preview.js
 git add src/webui/quarto-preview/build.mjs package/src/common/previewjs.ts package/src/common/configure.ts package/src/common/prepare-dist.ts
-git commit -m "build: quarto-preview.js build script runs on Node"
+git commit -m "build: quarto-preview.js builds on Node"
 ```
+Expected: `Running: npm ci ...`, `Running: npm run build`; the file exists.
 
-### Task 7: Dev config records Node
+### Task 7: Dev config records Node, Deno and the npm lockfile
 
 **Files:**
-- Modify: `src/core/devconfig.ts:19-56,95-115,157-183`
-- Modify: `package/src/common/configure.ts:69-78`
+- Modify: `src/core/devconfig.ts`, `package/src/common/configure.ts:69-78`
 
-- [ ] **Step 1: Update the interface and factory**
+- [ ] **Step 1: `devconfig.ts`**
 
-Replace lines 19-56 of `src/core/devconfig.ts`:
+Replace the `DevConfig` interface and `createDevConfig` with:
 
 ```ts
 export interface DevConfig {
   node: string;
+  deno: string; // the Deno tool (quarto run, build-ts-extension) until PR 37
   pandoc: string;
   dartsass: string;
   esbuild: string;
@@ -1344,6 +1410,7 @@ export interface DevConfig {
 
 export function createDevConfig(
   node: string,
+  deno: string,
   pandoc: string,
   dartsass: string,
   esbuild: string,
@@ -1353,84 +1420,30 @@ export function createDevConfig(
   const scriptPath = join(scriptDir, "quarto" + (isWindows ? ".cmd" : ""));
   const srcDir = env.get("QUARTO_SRC_PATH") ||
     join(quartoConfig.sharePath(), "../../src");
-  const rootDir = join(srcDir, "..");
   return {
     node,
+    deno,
     pandoc,
     dartsass,
     esbuild,
     typst,
     script: md5HashSync(readTextFileSync(scriptPath)),
     importMap: md5HashSync(readTextFileSync(join(srcDir, "import_map.json"))),
-    packageLock: md5HashSync(readTextFileSync(join(rootDir, "package-lock.json"))),
+    packageLock: md5HashSync(readTextFileSync(join(srcDir, "..", "package-lock.json"))),
   };
 }
 ```
 
-(`env` and `readTextFileSync` imports exist after PR 10/14; if the file still uses `Deno.env.get`/`Deno.readTextFileSync` when you get here, PR 10 or 14 has not landed and this plan must wait.)
+In `readSourceDevConfig` pass `readConfig("NODE"), readConfig("DENO"), ...` in that order. `devConfigsEqual` compares the nine fields (`a.node === b.node && a.deno === b.deno && ... && a.packageLock === b.packageLock`). In `reconfigureReason`, the first branch becomes `if (installed === null || installed.node !== source.node) return versionMessage("Node.js", source.node);`, followed by `else if (installed.deno !== source.deno) return versionMessage("Deno (tool)", source.deno);`, and a last branch `else if (installed.packageLock !== source.packageLock) return "install updated npm dependencies";`. The Windows comment "because deno.exe is running" becomes "because node.exe is running".
 
-Replace lines 95-103 (`readSourceDevConfig` tail):
+- [ ] **Step 2: `configure.ts`**
 
-```ts
-  return createDevConfig(
-    readConfig("NODE"),
-    readConfig("PANDOC"),
-    readConfig("DARTSASS"),
-    readConfig("ESBUILD"),
-    readConfig("TYPST"),
-    quartoConfig.binPath(),
-  );
-```
-
-Replace `devConfigsEqual` (lines 106-115):
-
-```ts
-export function devConfigsEqual(a: DevConfig, b: DevConfig) {
-  return a.node === b.node &&
-    a.pandoc === b.pandoc &&
-    a.dartsass == b.dartsass &&
-    a.esbuild == b.esbuild &&
-    a.typst === b.typst &&
-    a.script == b.script &&
-    a.importMap === b.importMap &&
-    a.packageLock === b.packageLock;
-}
-```
-
-Replace the body of `reconfigureReason` (lines 161-182):
-
-```ts
-  const versionMessage = (dep: string, version: string) => {
-    return `install ${dep} version ${version}`;
-  };
-  if (installed === null || installed.node !== source.node) {
-    return versionMessage("Node.js", source.node);
-  } else if (installed.pandoc !== source.pandoc) {
-    return versionMessage("Pandoc", source.pandoc);
-  } else if (installed.dartsass !== source.dartsass) {
-    return versionMessage("Dart Sass", source.dartsass);
-  } else if (installed.esbuild !== source.esbuild) {
-    return versionMessage("Esbuild", source.esbuild);
-  } else if (installed.typst !== source.typst) {
-    return versionMessage("Typst", source.typst);
-  } else if (installed.script !== source.script) {
-    return "update Quarto wrapper script";
-  } else if (installed.importMap !== source.importMap) {
-    return "update dev import map";
-  } else if (installed.packageLock !== source.packageLock) {
-    return "install updated npm dependencies";
-  }
-```
-
-Also change the Windows message on line 128 from `install Deno` wording: it reads `Quarto requires reconfiguration to ${reason}` already; no Deno text. The comment on lines 121-124 says "because deno.exe is running"; change `deno.exe` to `node.exe`.
-
-- [ ] **Step 2: Update the caller in `configure.ts`**
-
-Replace lines 69-78:
+Replace lines 69-78 with:
 
 ```ts
   const devConfig = createDevConfig(
     env.get("NODE") || "",
+    env.get("DENO") || "",
     env.get("PANDOC") || "",
     env.get("DARTSASS") || "",
     env.get("ESBUILD") || "",
@@ -1439,27 +1452,276 @@ Replace lines 69-78:
   );
 ```
 
-- [ ] **Step 3: Verify**
+- [ ] **Step 3: Verify and commit**
 
-Run: `cd package/src && ./quarto-bld configure --log-level info > /dev/null && cat ../dist/config/dev-config`
-Expected: JSON with keys `node`, `pandoc`, `dartsass`, `esbuild`, `typst`, `script`, `importMap`, `packageLock`; `node` is `v26.12.0`.
-
-- [ ] **Step 4: Commit**
+Run: `cd package/src && ./quarto-bld configure --log-level info > /dev/null && node -e 'console.log(Object.keys(JSON.parse(require("fs").readFileSync("../dist/config/dev-config","utf8"))).join(","))'`
+Expected: `node,deno,pandoc,dartsass,esbuild,typst,script,importMap,packageLock`.
 
 ```bash
 git add src/core/devconfig.ts package/src/common/configure.ts
-git commit -m "build: dev config records the Node version and package-lock hash"
+git commit -m "build: dev config records Node, the Deno tool and package-lock.json"
 ```
 
-### Task 8: Dev launchers run Node
+### Task 8: `runtime-env.ts`: restore the user's Node settings for children; Deno-era warnings
 
 **Files:**
-- Modify: `package/scripts/common/quarto` (whole file)
-- Modify: `package/scripts/windows/quarto.cmd` (whole file)
+- Create: `src/core/runtime-env.ts`
+- Modify: `src/quarto.ts` (`quarto()`)
+- Test: `tests/unit/runtime-env.test.ts`
 
-- [ ] **Step 1: Rewrite `package/scripts/common/quarto`**
+- [ ] **Step 1: Write the failing test**
 
-Keep lines 1-33 (script path resolution and `QUARTO_ROOT` detection) unchanged. Replace everything from line 34 (`QUARTO_SRC_PATH=`) to the end:
+```ts
+/*
+ * runtime-env.test.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+import { unitTest } from "../test.ts";
+import { assertEquals, assertStringIncludes } from "../asserts.ts";
+import { runtimeEnvWarnings, savedNodeEnvChanges } from "../../src/core/runtime-env.ts";
+
+unitTest("runtime-env - saved NODE_* values move back, absent ones stay absent", () => {
+  assertEquals(
+    savedNodeEnvChanges({ QUARTO_SAVED_NODE_OPTIONS: "--max-old-space-size=123", PATH: "/bin" }),
+    { set: { NODE_OPTIONS: "--max-old-space-size=123" }, remove: ["QUARTO_SAVED_NODE_OPTIONS"] },
+  );
+  assertEquals(
+    savedNodeEnvChanges({ QUARTO_SAVED_NODE_PATH: "" }),
+    { set: { NODE_PATH: "" }, remove: ["QUARTO_SAVED_NODE_PATH"] },
+  );
+  assertEquals(savedNodeEnvChanges({ PATH: "/bin" }), { set: {}, remove: [] });
+});
+
+unitTest("runtime-env - nothing to say without Deno-era variables", () => {
+  assertEquals(runtimeEnvWarnings({ QUARTO_NODE: "/x/node", PATH: "/bin" }), []);
+});
+
+unitTest("runtime-env - QUARTO_DENO is never an alias; silent once QUARTO_NODE is set", () => {
+  const w = runtimeEnvWarnings({ QUARTO_DENO: "/opt/deno" });
+  assertEquals(w.length, 1);
+  assertStringIncludes(w[0], "QUARTO_DENO is ignored by the Quarto CLI");
+  assertStringIncludes(w[0], "quarto run");
+  assertEquals(runtimeEnvWarnings({ QUARTO_DENO: "/opt/deno", QUARTO_NODE: "/opt/node" }), []);
+});
+
+unitTest("runtime-env - Deno flag variables are ignored, V8 flags are translated", () => {
+  const w = runtimeEnvWarnings({
+    QUARTO_DENO_OPTIONS: "--allow-all",
+    QUARTO_DENO_EXTRA_OPTIONS: "--reload",
+    QUARTO_DENO_V8_OPTIONS: "--stack-trace-limit=200,--max-old-space-size=4096",
+    QUARTO_DENO_DIR: "/tmp/d",
+  });
+  assertEquals(w.length, 4);
+  assertStringIncludes(w[0], "QUARTO_DENO_OPTIONS is ignored");
+  assertStringIncludes(w[1], "QUARTO_DENO_EXTRA_OPTIONS is ignored");
+  assertStringIncludes(w[2], 'QUARTO_NODE_OPTIONS="--stack-trace-limit=200 --max-old-space-size=4096"');
+  assertStringIncludes(w[3], "QUARTO_DENO_DIR is ignored");
+});
+
+unitTest("runtime-env - empty values and an already-warned process stay quiet", () => {
+  assertEquals(runtimeEnvWarnings({ QUARTO_DENO_OPTIONS: "" }), []);
+  assertEquals(runtimeEnvWarnings({ QUARTO_DENO_OPTIONS: "--x", QUARTO_RUNTIME_ENV_WARNED: "1" }), []);
+});
+```
+
+- [ ] **Step 2: Run it and see it fail**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/runtime-env.test.ts`
+Expected: FAIL, module `src/core/runtime-env.ts` not found.
+
+- [ ] **Step 3: Implement**
+
+```ts
+/*
+ * runtime-env.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ *
+ * Environment contract of the Node runtime. The launchers move the user's
+ * NODE_OPTIONS/NODE_PATH aside so they cannot change Quarto's own Node process
+ * (an invalid flag would abort it, --require would inject code); this module
+ * puts them back so that every child (knitr, Jupyter, scripts, user `node`)
+ * sees them. It also warns once about Deno-era variables the CLI no longer reads.
+ */
+
+import { env } from "../deno_ral/env.ts";
+import { warning } from "../deno_ral/log.ts";
+
+export const kSavedNodeEnv: ReadonlyArray<readonly [string, string]> = [
+  ["QUARTO_SAVED_NODE_OPTIONS", "NODE_OPTIONS"],
+  ["QUARTO_SAVED_NODE_PATH", "NODE_PATH"],
+];
+
+const kWarnedMarker = "QUARTO_RUNTIME_ENV_WARNED";
+const kDocsUrl = "https://quarto.org/docs/advanced/environment-vars.html";
+
+export function savedNodeEnvChanges(
+  environment: Record<string, string | undefined>,
+): { set: Record<string, string>; remove: string[] } {
+  const set: Record<string, string> = {};
+  const remove: string[] = [];
+  for (const [saved, original] of kSavedNodeEnv) {
+    const value = environment[saved];
+    if (value !== undefined) {
+      set[original] = value;
+      remove.push(saved);
+    }
+  }
+  return { set, remove };
+}
+
+export function restoreSavedNodeEnv() {
+  const { set, remove } = savedNodeEnvChanges(env.toObject());
+  for (const [name, value] of Object.entries(set)) {
+    env.set(name, value);
+  }
+  for (const name of remove) {
+    env.delete(name);
+  }
+}
+
+export function runtimeEnvWarnings(
+  environment: Record<string, string | undefined>,
+): string[] {
+  if (environment[kWarnedMarker] === "1") {
+    return [];
+  }
+  const isSet = (name: string) => (environment[name] ?? "") !== "";
+  const messages: string[] = [];
+  if (isSet("QUARTO_DENO") && !isSet("QUARTO_NODE")) {
+    messages.push(
+      `QUARTO_DENO is ignored by the Quarto CLI, which now runs on Node.js (set QUARTO_NODE to choose the Node.js binary). ` +
+        `QUARTO_DENO is still used to find Deno for \`quarto run\` scripts and \`quarto call build-ts-extension\`. See ${kDocsUrl}`,
+    );
+  }
+  for (const name of ["QUARTO_DENO_OPTIONS", "QUARTO_DENO_EXTRA_OPTIONS"]) {
+    if (isSet(name)) {
+      messages.push(
+        `${name} is ignored: it holds Deno flags, which Node.js does not accept. ` +
+          `Put Node.js flags (including V8 flags such as --stack-trace-limit=200) in QUARTO_NODE_OPTIONS. See ${kDocsUrl}`,
+      );
+    }
+  }
+  if (isSet("QUARTO_DENO_V8_OPTIONS")) {
+    const flags = environment["QUARTO_DENO_V8_OPTIONS"]!.split(",").filter((f) => f.length > 0).join(" ");
+    messages.push(
+      `QUARTO_DENO_V8_OPTIONS is deprecated; its flags are passed to Node.js for now. ` +
+        `Use QUARTO_NODE_OPTIONS="${flags}" instead. See ${kDocsUrl}`,
+    );
+  }
+  for (const name of ["QUARTO_DENO_DIR", "QUARTO_DENO_DOM"]) {
+    if (isSet(name)) {
+      messages.push(`${name} is ignored: the Quarto CLI runs on Node.js and has no equivalent setting. See ${kDocsUrl}`);
+    }
+  }
+  return messages;
+}
+
+export function warnRuntimeEnvOnce() {
+  for (const message of runtimeEnvWarnings(env.toObject())) {
+    warning(message);
+  }
+  // children (quarto preview -> quarto render, quarto run) inherit the marker
+  env.set(kWarnedMarker, "1");
+}
+```
+
+- [ ] **Step 4: Call it**
+
+In `src/quarto.ts`, import `{ restoreSavedNodeEnv, warnRuntimeEnvOnce } from "./core/runtime-env.ts"` and make these the first two statements of `export async function quarto(...)`, before `await checkReconfiguration();`:
+
+```ts
+  restoreSavedNodeEnv();
+  warnRuntimeEnvOnce();
+```
+
+(`mainRunner` has initialised the logger before it calls `quarto`, so `warning()` goes to the configured log.)
+
+- [ ] **Step 5: Run the test and commit**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/runtime-env.test.ts`
+Expected: `5 passed`.
+
+```bash
+git add src/core/runtime-env.ts src/quarto.ts tests/unit/runtime-env.test.ts
+git commit -m "runtime: restore NODE_OPTIONS/NODE_PATH for children; warn once about Deno-era variables"
+```
+
+### Task 9: Shell and batch launchers run Node
+
+**Files:**
+- Modify: `package/scripts/common/quarto` (from line 34 to the end), `package/scripts/windows/quarto.cmd` (whole file)
+- Test: `tests/smoke/env/launcher-env.test.ts`
+
+- [ ] **Step 1: Write the failing smoke test**
+
+```ts
+/*
+ * launcher-env.test.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+import { join } from "../../../src/deno_ral/path.ts";
+import { makeTempDirSync } from "../../../src/deno_ral/temp.ts";
+import { removeSync, writeTextFileSync } from "../../../src/deno_ral/fs.ts";
+import { assert, assertEquals, assertStringIncludes } from "../../asserts.ts";
+import { execProcess } from "../../../src/core/process.ts";
+import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
+import { unitTest } from "../../test.ts";
+
+const dir = makeTempDirSync({ prefix: "launcher-env" });
+writeTextFileSync(join(dir, "env.lua"), 'print(os.getenv("NODE_OPTIONS") or "<unset>")\n');
+
+async function quarto(args: string[], env: Record<string, string>) {
+  const r = await execProcess(
+    { cmd: quartoDevCmd(), args, cwd: dir, stdout: "piped", stderr: "piped", ...quartoSpawnEnvOptions(env) },
+    undefined, undefined, undefined, true,
+  );
+  return { code: r.code, out: (r.stdout ?? "").replaceAll("\r", ""), err: (r.stderr ?? "").replaceAll("\r", "") };
+}
+
+unitTest("launcher - an invalid NODE_OPTIONS does not reach Quarto's own Node", async () => {
+  const r = await quarto(["--help"], { NODE_OPTIONS: "--bogus" });
+  assertEquals(r.code, 0, r.err);
+});
+
+unitTest("launcher - children see the user's NODE_OPTIONS unchanged", async () => {
+  const r = await quarto(["run", "env.lua"], { NODE_OPTIONS: "--max-old-space-size=123" });
+  assertEquals(r.code, 0, r.err);
+  assertEquals(r.out.trim(), "--max-old-space-size=123");
+});
+
+unitTest("launcher - QUARTO_DENO_V8_OPTIONS reaches node, with one deprecation warning", async () => {
+  const r = await quarto(["--help"], { QUARTO_DENO_V8_OPTIONS: "--stack-trace-limit=200", QUARTO_LAUNCHER_DEBUG: "1" });
+  assertEquals(r.code, 0, r.err);
+  assertStringIncludes(r.err, "--stack-trace-limit=200");
+  assertEquals((r.err.match(/QUARTO_DENO_V8_OPTIONS is deprecated/g) ?? []).length, 1);
+});
+
+unitTest("launcher - Deno flag variables are ignored with a warning", async () => {
+  const r = await quarto(["--help"], { QUARTO_DENO_OPTIONS: "--allow-all", QUARTO_DENO_EXTRA_OPTIONS: "--reload" });
+  assertEquals(r.code, 0, r.err);
+  assertStringIncludes(r.err, "QUARTO_DENO_OPTIONS is ignored");
+  assertStringIncludes(r.err, "QUARTO_DENO_EXTRA_OPTIONS is ignored");
+});
+
+unitTest("launcher - no stderr noise with a proxy configured", async () => {
+  const r = await quarto(["--help"], { HTTPS_PROXY: "http://127.0.0.1:9", HTTP_PROXY: "http://127.0.0.1:9" });
+  assertEquals(r.code, 0);
+  assertEquals(r.err, "");
+}, { teardown: () => { removeSync(dir, { recursive: true }); return Promise.resolve(); } });
+```
+
+`quarto run env.lua` uses the Lua run handler (pandoc), so the child is not Node: the test observes exactly what a knitr or Jupyter child would inherit.
+
+- [ ] **Step 2: Run it and see it fail**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts`
+Expected: the `QUARTO_DENO_V8_OPTIONS` and `Deno flag variables` tests fail (no warnings, no `QUARTO_LAUNCHER_DEBUG` output on the Deno launcher). The `NODE_OPTIONS` tests already pass on Deno (Deno does not read `NODE_OPTIONS`); they guard the Node launcher written next.
+
+- [ ] **Step 3: Rewrite `package/scripts/common/quarto` from line 34 to the end**
 
 ```bash
 QUARTO_SRC_PATH="$QUARTO_ROOT/src"
@@ -1478,36 +1740,31 @@ if [ -f "$DEV_PATH" ]; then
 
   export QUARTO_BIN_PATH=$SCRIPT_PATH
   export QUARTO_SHARE_PATH="${QUARTO_SHARE_PATH=$QUARTO_SRC_PATH/resources/}"
-
   if [ -z ${QUARTO_DEBUG+x} ]; then
     export QUARTO_DEBUG=true
   fi
 
-  # Check for Node update
+  # Reconfigure when configuration pins another Node or Deno than the one installed
   QUARTO_DIST_CONFIG=$QUARTO_BIN_PATH/../config
-  mkdir -p $QUARTO_DIST_CONFIG
-  NODE_VERSION_FILE=$QUARTO_DIST_CONFIG/node-version
-  NODE_SOURCE_VERSION="`(cd "$QUARTO_ROOT" && source ./configuration && echo $NODE)`"
-  if [ -f "$NODE_VERSION_FILE" ]; then
-    # echo is to trim whitespace to avoid version comparison issues
-    NODE_INSTALLED_VERSION=$(echo `cat "$NODE_VERSION_FILE"`)
-    if [ "${NODE_SOURCE_VERSION}" != "${NODE_INSTALLED_VERSION}" ]; then
-      # configure will call back into this script so we need to update the
-      # version so that the check will pass next time through
-      (cd "$QUARTO_ROOT" && ./configure.sh)
-      echo ""
-      printf "\\033[0;31mQuarto required reconfiguration to install Node.js. Had ${NODE_INSTALLED_VERSION}, needed ${NODE_SOURCE_VERSION}. Please try command again.\\033[0m\n\n"
-      exit 1
+  mkdir -p "$QUARTO_DIST_CONFIG"
+  for RT in NODE DENO; do
+    RT_FILE="$QUARTO_DIST_CONFIG/$(echo $RT | tr '[:upper:]' '[:lower:]')-version"
+    RT_SOURCE="`(cd "$QUARTO_ROOT" && source ./configuration && eval echo \\$$RT)`"
+    if [ -f "$RT_FILE" ]; then
+      RT_INSTALLED=$(echo `cat "$RT_FILE"`)
+      if [ "${RT_SOURCE}" != "${RT_INSTALLED}" ]; then
+        (cd "$QUARTO_ROOT" && ./configure.sh)
+        echo ""
+        printf "\\033[0;31mQuarto required reconfiguration to install ${RT}. Had ${RT_INSTALLED}, needed ${RT_SOURCE}. Please try command again.\\033[0m\n\n"
+        exit 1
+      fi
     fi
-  fi
+  done
 
-  # Caller can point node at another bundle (e.g. a test build)
+  # A caller can point node at another bundle (e.g. a test build)
   if [ -z ${QUARTO_TARGET+x} ]; then
-    QUARTO_TARGET=$QUARTO_BIN_PATH/quarto-dev.js
+    QUARTO_TARGET=$QUARTO_BIN_PATH/quarto-dev.mjs
   fi
-  # Node runs source through an esbuild bundle (Node's type stripping rejects
-  # enums and parameter properties, and cannot read src/import_map.json).
-  # ensure.mjs rebuilds only when a source file is newer than the bundle.
   QUARTO_NODE_DEV_OPTIONS="--enable-source-maps"
 else
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
@@ -1542,93 +1799,62 @@ if [ "$1" == "--paths" ]; then
   exit 0
 fi
 
-if [[ $OSTYPE == 'darwin'* ]]; then
-  # We cannot use uname to determine the _machine_ architecture:
-  # https://github.com/quarto-dev/quarto-cli/issues/2420#issuecomment-1245768732
-  # However, sysctl can return unexpected values in sandboxed/virtualized environments.
-  # Use sysctl -n to get just the value, and check multiple possible patterns.
-  FULLARCH="$(/usr/sbin/sysctl -n machdep.cpu.brand_string 2>/dev/null)"
+# <<< lines 129-164 of the current file (the ARCH_DIR detection: darwin
+#     sysctl/uname branch, linux uname -m branch) go here verbatim >>>
 
-  if [[ $FULLARCH == *"Intel"* ]] || [[ $FULLARCH == *"Xeon"* ]] || [[ $FULLARCH == *"Core"* ]]; then
-    ARCH_DIR=x86_64
-  elif [[ $FULLARCH == *"Apple"* ]] || [[ $FULLARCH == *"ARM"* ]]; then
-    ARCH_DIR=aarch64
-  else
-    # Fallback to uname -m if sysctl doesn't give us recognizable output
-    # This helps with sandboxed/virtualized environments
-    UNAME_ARCH=$(uname -m)
-    if [[ $UNAME_ARCH == "x86_64" ]]; then
-      ARCH_DIR=x86_64
-    elif [[ $UNAME_ARCH == "arm64" ]]; then
-      ARCH_DIR=aarch64
-    else
-      echo "quarto script failed: unrecognized architecture. sysctl returned: '${FULLARCH}', uname -m returned: '${UNAME_ARCH}'"
-      exit 1
-    fi
-  fi
-else
-  NIXARCH=$(uname -m)
-  if [[ $NIXARCH == "x86_64" ]]; then
-    ARCH_DIR=x86_64
-  elif [[ $NIXARCH == "aarch64" ]]; then
-    ARCH_DIR=aarch64
-  else
-    echo "configure script failed: unrecognized architecture " ${NIXARCH}
-    exit 1
-  fi
-fi
-
-# Runtime binary. QUARTO_DENO is accepted as an alias for one release (1.11);
-# quarto.js prints a deprecation notice when an alias is used (PR 34).
+# --- Node runtime -----------------------------------------------------------
+# QUARTO_DENO is not an alias: it names a Deno binary (the `quarto run` tool).
 if [ "$QUARTO_NODE" == "" ]; then
-  if [ "$QUARTO_DENO" != "" ]; then
-    QUARTO_NODE="$QUARTO_DENO"
-  else
-    QUARTO_NODE="${SCRIPT_PATH}/tools/${ARCH_DIR}/node"
-  fi
+  QUARTO_NODE="${SCRIPT_PATH}/tools/${ARCH_DIR}/node"
 fi
 export QUARTO_NODE
 
-# A user's Node setup must not change Quarto's runtime: NODE_OPTIONS would be
-# prepended to our flags and NODE_PATH would shadow bundled modules.
-unset NODE_OPTIONS NODE_PATH
+# The user's NODE_OPTIONS/NODE_PATH must not change Quarto's own Node (an
+# invalid flag aborts it). They are moved aside here and put back for child
+# processes by src/core/runtime-env.ts (restoreSavedNodeEnv).
+if [ -n "${NODE_OPTIONS+x}" ]; then
+  export QUARTO_SAVED_NODE_OPTIONS="$NODE_OPTIONS"
+  unset NODE_OPTIONS
+fi
+if [ -n "${NODE_PATH+x}" ]; then
+  export QUARTO_SAVED_NODE_PATH="$NODE_PATH"
+  unset NODE_PATH
+fi
 
-# Quarto's own flags. --enable-experimental-regexp-engine is required for
-# /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737.
-# --use-system-ca replaces DENO_TLS_CA_STORE=system,mozilla (NODE_EXTRA_CA_CERTS still works).
-QUARTO_NODE_BASE_OPTIONS="--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca ${QUARTO_NODE_DEV_OPTIONS}"
-
-# Aliases of QUARTO_NODE_OPTIONS kept for one release. The V8 variable was a
-# comma-separated list for deno's --v8-flags=; node takes each flag separately.
+# Quarto's own flags (command line: Node refuses some of them in NODE_OPTIONS).
+# --enable-experimental-regexp-engine: /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
+# --use-system-ca: replaces DENO_TLS_CA_STORE=system,mozilla (NODE_EXTRA_CA_CERTS still works)
+# --use-env-proxy: fetch/http honour HTTP(S)_PROXY and NO_PROXY, as Deno did
+# --disable-warning=MODULE_TYPELESS_PACKAGE_JSON: Quarto import()s ESM .js files
+#   (dayjs locales, graphviz-wasm.js, engine bundles) under package.json files it does not own
+QUARTO_NODE_FLAGS="--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ${QUARTO_NODE_DEV_OPTIONS}"
+# Deno-era V8 flags (comma separated) are passed through; quarto.js warns that
+# the variable is deprecated. QUARTO_DENO_OPTIONS/_EXTRA_OPTIONS hold Deno flags
+# and are never passed to node.
 if [ "$QUARTO_DENO_V8_OPTIONS" != "" ]; then
-  QUARTO_NODE_OPTIONS="${QUARTO_NODE_OPTIONS} ${QUARTO_DENO_V8_OPTIONS//,/ }"
+  QUARTO_NODE_FLAGS="${QUARTO_NODE_FLAGS} ${QUARTO_DENO_V8_OPTIONS//,/ }"
 fi
-if [ "$QUARTO_DENO_OPTIONS" != "" ]; then
-  QUARTO_NODE_OPTIONS="${QUARTO_NODE_OPTIONS} ${QUARTO_DENO_OPTIONS}"
-fi
-if [ "$QUARTO_DENO_EXTRA_OPTIONS" != "" ]; then
-  QUARTO_NODE_OPTIONS="${QUARTO_NODE_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS}"
-fi
-
 if [ "$QUARTO_TS_PROFILE" != "" ]; then
-  QUARTO_NODE_OPTIONS="--inspect-brk ${QUARTO_NODE_OPTIONS}"
+  QUARTO_NODE_FLAGS="--inspect-brk ${QUARTO_NODE_FLAGS}"
   export QUARTO_TS_PROFILE=true
 fi
 
 if [ "$QUARTO_DEV_MODE" == true ]; then
-  BUNDLE_LOG=$("${QUARTO_NODE}" "${QUARTO_ROOT}/tools/node-bundle/ensure.mjs" --entry "${DEV_PATH}" --outfile "${QUARTO_TARGET}") || exit 1
-  if [ "$QUARTO_DEBUG_BUNDLE" != "" ]; then
-    echo "$BUNDLE_LOG" >&2
-    echo "${QUARTO_NODE} ${QUARTO_NODE_BASE_OPTIONS} ${QUARTO_NODE_OPTIONS} ${QUARTO_TARGET} $@" >&2
+  ENSURE_LOG=$("${QUARTO_NODE}" "${QUARTO_ROOT}/tools/node-bundle/ensure.mjs" --entry "${DEV_PATH}" --outfile "${QUARTO_TARGET}") || exit 1
+  if [ "$QUARTO_LAUNCHER_DEBUG" == "1" ]; then
+    echo "$ENSURE_LOG" >&2
   fi
 fi
+if [ "$QUARTO_LAUNCHER_DEBUG" == "1" ]; then
+  echo "${QUARTO_NODE} ${QUARTO_NODE_FLAGS} ${QUARTO_NODE_OPTIONS} ${QUARTO_TARGET} $*" >&2
+fi
 
-exec "${QUARTO_NODE}" ${QUARTO_NODE_BASE_OPTIONS} ${QUARTO_NODE_OPTIONS} "${QUARTO_TARGET}" "$@"
+exec "${QUARTO_NODE}" ${QUARTO_NODE_FLAGS} ${QUARTO_NODE_OPTIONS} "${QUARTO_TARGET}" "$@"
 ```
 
-`QUARTO_ACTION` (`run` vs other deno subcommands) and `QUARTO_IMPORT_MAP_ARG`, `QUARTO_CACHE_OPTIONS`, `QUARTO_NO_TYPECHECK` are gone: Node has one way to run a file. `grep -rn "QUARTO_ACTION\|QUARTO_NO_TYPECHECK" . --include=*.sh --include=*.ps1 --include=*.yml --include=*.md | grep -v runtime-migration` must return nothing after this task (fix `tests/README.md` mentions in PR 37 if any).
+The old `QUARTO_DENO_DOM`/`DENO_DOM_PLUGIN` block is gone with PR 20; `QUARTO_ACTION`, `QUARTO_IMPORT_MAP_ARG`, `QUARTO_CACHE_OPTIONS`, `QUARTO_NO_TYPECHECK`, `DENO_DIR` are gone (Node has one way to run a file; type checking is `npm run typecheck`, Task 12). Then: `grep -rn "QUARTO_ACTION\|QUARTO_NO_TYPECHECK" . --include=*.sh --include=*.ps1 --include=*.yml --include=*.md | grep -v runtime-migration` and remove each hit outside `news/`.
 
-- [ ] **Step 2: Rewrite `package/scripts/windows/quarto.cmd`**
+- [ ] **Step 4: Rewrite `package/scripts/windows/quarto.cmd`**
 
 ```bat
 @ECHO OFF
@@ -1638,86 +1864,42 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 SET "SCRIPT_PATH=%~dp0"
 SET DEV_PATH=..\..\..
 
-:: Set SRC_PATH in a way that normalizes the ../.. stuff away
 for %%i in ("%~dp0\%DEV_PATH%") do SET "QUARTO_ROOT=%%~fi"
 SET "QUARTO_TS_PATH=!QUARTO_ROOT!\src\quarto.ts"
 
 IF EXIST "!QUARTO_TS_PATH!" (
 	set QUARTO_DEV_MODE=true
+	IF "%1"=="--version" GOTO devversion
+	IF "%1"=="-v" GOTO devversion
 
-	IF "%1"=="--version" (
-		IF DEFINED QUARTO_FORCE_VERSION (
-			ECHO !QUARTO_FORCE_VERSION!
-			GOTO end
-		)
-		ECHO 99.9.9
-		GOTO end
-	)
+	call !QUARTO_ROOT!\win_configuration.bat
+	set QUARTO_SHARE_PATH=!QUARTO_ROOT!\src\resources
+	IF NOT DEFINED QUARTO_TARGET SET "QUARTO_TARGET=!QUARTO_BIN_PATH!\quarto-dev.mjs"
+	IF NOT DEFINED QUARTO_DEBUG SET QUARTO_DEBUG=true
 
-	IF "%1"=="-v" (
-		IF DEFINED QUARTO_FORCE_VERSION (
-			ECHO !QUARTO_FORCE_VERSION!
-			GOTO end
-		)
-		ECHO 99.9.9
-		GOTO end
-	)
-
-  call !QUARTO_ROOT!\win_configuration.bat
-  REM overrride share path to point to our dev folder instead of dist
-  set QUARTO_SHARE_PATH=!QUARTO_ROOT!\src\resources
-
-	IF NOT DEFINED QUARTO_TARGET (
-		SET "QUARTO_TARGET=!QUARTO_BIN_PATH!\quarto-dev.js"
-	)
-
-	IF NOT DEFINED QUARTO_DEBUG (
-		SET QUARTO_DEBUG=true
-	)
-
-	:: Normalize path to remove ../.. stuff
 	for %%i in ("!SCRIPT_PATH!..\config\node-version") do SET "NODE_VERSION_FILE=%%~fi"
-
-  if exist "!NODE_VERSION_FILE!" (
+	if exist "!NODE_VERSION_FILE!" (
 		set /p NODE_INSTALLED_VERSION=<"!NODE_VERSION_FILE!"
-	  if NOT "!NODE!"=="!NODE_INSTALLED_VERSION!" (
-			echo !NODE!>"!NODE_VERSION_FILE!"
-			cd !QUARTO_ROOT!
-			call configure.cmd
-			echo.
-			echo Quarto required reconfiguration to install Node.js !NODE!. Please try command again.
+		if NOT "!NODE!"=="!NODE_INSTALLED_VERSION!" (
+			echo Quarto requires reconfiguration to install Node.js !NODE! ^(installed: !NODE_INSTALLED_VERSION!^). Please run configure.cmd.
 			exit /b 1
 		)
-	) else (
-		echo !NODE!>"!NODE_VERSION_FILE!"
 	)
-
+	for %%i in ("!SCRIPT_PATH!..\config\deno-version") do SET "DENO_VERSION_FILE=%%~fi"
+	if exist "!DENO_VERSION_FILE!" (
+		set /p DENO_INSTALLED_VERSION=<"!DENO_VERSION_FILE!"
+		if NOT "!DENO!"=="!DENO_INSTALLED_VERSION!" (
+			echo Quarto requires reconfiguration to install Deno !DENO! ^(tool; installed: !DENO_INSTALLED_VERSION!^). Please run configure.cmd.
+			exit /b 1
+		)
+	)
 	SET "QUARTO_NODE_DEV_OPTIONS=--enable-source-maps"
-
 ) ELSE (
-
 	IF NOT DEFINED QUARTO_SHARE_PATH (
-	  for %%i in ("!SCRIPT_PATH!\..\share") do SET "QUARTO_SHARE_PATH=%%~fi"
+		for %%i in ("!SCRIPT_PATH!\..\share") do SET "QUARTO_SHARE_PATH=%%~fi"
 	)
-
-	IF "%1"=="-v" (
-		IF DEFINED QUARTO_FORCE_VERSION (
-			ECHO !QUARTO_FORCE_VERSION!
-			GOTO end
-		)
-		TYPE "!QUARTO_SHARE_PATH!\version"
-		GOTO end
-	)
-
-	IF "%1"=="--version" (
-		IF DEFINED QUARTO_FORCE_VERSION (
-			ECHO !QUARTO_FORCE_VERSION!
-			GOTO end
-		)
-		TYPE "!QUARTO_SHARE_PATH!\version"
-		GOTO end
-	)
-
+	IF "%1"=="--version" GOTO distversion
+	IF "%1"=="-v" GOTO distversion
 	SET "QUARTO_TARGET=%SCRIPT_PATH%\quarto.js"
 	SET "QUARTO_BIN_PATH=%SCRIPT_PATH%"
 	SET "QUARTO_NODE_DEV_OPTIONS="
@@ -1731,35 +1913,24 @@ IF "%1"=="--paths" (
 
 SET NO_COLOR=TRUE
 
-REM Runtime binary. QUARTO_DENO is accepted as an alias for one release (1.11).
-IF NOT DEFINED QUARTO_NODE (
-	IF DEFINED QUARTO_DENO (
-		SET "QUARTO_NODE=!QUARTO_DENO!"
-	) ELSE (
-		SET "QUARTO_NODE=!SCRIPT_PATH!\tools\x86_64\node.exe"
-	)
-)
+REM QUARTO_DENO is not an alias: it names a Deno binary (the quarto run tool).
+IF NOT DEFINED QUARTO_NODE SET "QUARTO_NODE=!SCRIPT_PATH!\tools\x86_64\node.exe"
 
-REM A user's Node setup must not change Quarto's runtime.
-SET "NODE_OPTIONS="
-SET "NODE_PATH="
+REM Move the user's NODE_OPTIONS/NODE_PATH aside; src/core/runtime-env.ts restores them for children.
+IF DEFINED NODE_OPTIONS (
+	SET "QUARTO_SAVED_NODE_OPTIONS=!NODE_OPTIONS!"
+	SET "NODE_OPTIONS="
+)
+IF DEFINED NODE_PATH (
+	SET "QUARTO_SAVED_NODE_PATH=!NODE_PATH!"
+	SET "NODE_PATH="
+)
 
 REM --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
-SET "QUARTO_NODE_BASE_OPTIONS=--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca !QUARTO_NODE_DEV_OPTIONS!"
-
-REM Aliases of QUARTO_NODE_OPTIONS kept for one release. V8 flags were comma separated for deno.
-IF DEFINED QUARTO_DENO_V8_OPTIONS (
-	SET "QUARTO_NODE_OPTIONS=!QUARTO_NODE_OPTIONS! !QUARTO_DENO_V8_OPTIONS:,= !"
-)
-IF DEFINED QUARTO_DENO_OPTIONS (
-	SET "QUARTO_NODE_OPTIONS=!QUARTO_NODE_OPTIONS! !QUARTO_DENO_OPTIONS!"
-)
-IF DEFINED QUARTO_DENO_EXTRA_OPTIONS (
-	SET "QUARTO_NODE_OPTIONS=!QUARTO_NODE_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS!"
-)
-
+SET "QUARTO_NODE_FLAGS=--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON !QUARTO_NODE_DEV_OPTIONS!"
+IF DEFINED QUARTO_DENO_V8_OPTIONS SET "QUARTO_NODE_FLAGS=!QUARTO_NODE_FLAGS! !QUARTO_DENO_V8_OPTIONS:,= !"
 IF DEFINED QUARTO_TS_PROFILE (
-	SET "QUARTO_NODE_OPTIONS=--inspect-brk !QUARTO_NODE_OPTIONS!"
+	SET "QUARTO_NODE_FLAGS=--inspect-brk !QUARTO_NODE_FLAGS!"
 	SET "QUARTO_TS_PROFILE=true"
 )
 
@@ -1767,52 +1938,797 @@ IF DEFINED QUARTO_DEV_MODE (
 	"!QUARTO_NODE!" "!QUARTO_ROOT!\tools\node-bundle\ensure.mjs" --entry "!QUARTO_TS_PATH!" --outfile "!QUARTO_TARGET!" > NUL
 	IF ERRORLEVEL 1 exit /b 1
 )
+IF "!QUARTO_LAUNCHER_DEBUG!"=="1" ECHO "!QUARTO_NODE!" !QUARTO_NODE_FLAGS! !QUARTO_NODE_OPTIONS! "!QUARTO_TARGET!" %* 1>&2
 
-"!QUARTO_NODE!" !QUARTO_NODE_BASE_OPTIONS! !QUARTO_NODE_OPTIONS! "!QUARTO_TARGET!" %*
+"!QUARTO_NODE!" !QUARTO_NODE_FLAGS! !QUARTO_NODE_OPTIONS! "!QUARTO_TARGET!" %*
+GOTO end
+
+:devversion
+IF DEFINED QUARTO_FORCE_VERSION (ECHO !QUARTO_FORCE_VERSION!) ELSE (ECHO 99.9.9)
+GOTO end
+
+:distversion
+IF DEFINED QUARTO_FORCE_VERSION (ECHO !QUARTO_FORCE_VERSION!) ELSE (TYPE "!QUARTO_SHARE_PATH!\version")
+GOTO end
 
 :end
 ```
 
-- [ ] **Step 3: Verify the dev launcher**
+The old `quarto.cmd` re-ran `configure.cmd` itself on a version change; running configure while `node.exe` from `package/dist` is executing this script is exactly what `check-node-in-use.cmd` refuses, so the new script prints the instruction instead (the same message `devconfig.ts` prints on Windows).
 
-Run (Linux/macOS):
+- [ ] **Step 5: `--use-env-proxy` stderr on the pinned Node**
+
+Run: `HTTPS_PROXY=http://127.0.0.1:9 package/dist/bin/quarto --help 2>&1 >/dev/null | head -3`
+Expected: no output. If it prints `[UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental`, add `--disable-warning=UNDICI-EHPA` after `--use-env-proxy` in both launchers here, in `quarto-bld`/`quarto-bld.cmd` (Task 4) and in `main.rs` (Task 10), and say so in the PR description.
+
+- [ ] **Step 6: Run the tests**
+
+Run:
 ```bash
-package/dist/bin/quarto --version
-package/dist/bin/quarto --paths
-QUARTO_DEBUG_BUNDLE=1 package/dist/bin/quarto --help 2>&1 | head -3
-touch src/core/path.ts && QUARTO_DEBUG_BUNDLE=1 package/dist/bin/quarto --help 2>&1 | head -1
-NODE_OPTIONS=--not-a-flag package/dist/bin/quarto --help > /dev/null && echo "NODE_OPTIONS ignored: OK"
-QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=200 QUARTO_DEBUG_BUNDLE=1 package/dist/bin/quarto --help 2>&1 | grep -c "stack-trace-limit=200"
-package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts unit/runtime-env.test.ts
+cd .. && package/dist/bin/quarto --version && package/dist/bin/quarto --paths && package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
-Expected: `99.9.9`; two paths ending in `package/dist/bin` and `src/resources/`; the first `--help` prints `bundle up to date` (or `bundled ...` the very first time) then the command line; after `touch`, `bundled src/quarto.ts -> package/dist/bin/quarto-dev.js (... reason: src/core/path.ts)`; `NODE_OPTIONS ignored: OK`; `1`; the render writes `issue-3847.html`.
+Expected: `10 passed`; `99.9.9`; two paths; the render writes `issue-3847.html`.
 
-- [ ] **Step 4: Re-run the `prepare-dist` bundle check from Task 5 step 6**
-
-Run: `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 > /dev/null && cd ../pkg-working/bin && ./quarto --version && ./quarto check`
-Expected: `99.9.9` then a complete `quarto check` (the launcher in `pkg-working/bin` is now the Node one; `copyQuartoScript` copies `package/scripts/common/quarto`).
-
-- [ ] **Step 5: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add package/scripts/common/quarto package/scripts/windows/quarto.cmd
-git commit -m "build: dev and installed launchers run Node with alias env vars"
+git add package/scripts/common/quarto package/scripts/windows/quarto.cmd tests/smoke/env/launcher-env.test.ts
+git commit -m "build: dev and installed launchers run Node; NODE_* moved aside; Deno flag variables not passed"
 ```
 
-### Task 9: Keep the nightly release build green (binary names in signing lists)
+### Task 10: Rust launcher (`quarto.exe`) runs Node
 
 **Files:**
-- Modify: `package/src/macos/installer.ts:90-96`
-- Modify: `.github/workflows/create-release.yml:398`
+- Modify: `package/launcher/src/main.rs`
 
-- [ ] **Step 1: macOS signing list**
+- [ ] **Step 1: Replace `main.rs`**
 
-Replace lines 90-96 of `package/src/macos/installer.ts`:
+Keep `path_from_env`, `share_dir_from_bin_dir` and `arch_string` unchanged. Replace `main()`, `deno_dir()` and the `DENO_DOM_LIB` constants with:
+
+```rust
+use std::process::Command;
+use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
+
+fn main() {
+    // compute executable path (resolving symlinks)
+    let mut exe_file: PathBuf = env::current_exe().expect("failed to get exe path");
+    let exe_metadata = fs::symlink_metadata(exe_file.as_path())
+        .expect("failed to get symlink metadata for exe path");
+    if exe_metadata.is_symlink() {
+        exe_file =
+            fs::read_link(exe_file.as_path()).expect("failed to canonicalize executable path");
+    }
+
+    let bin_dir = exe_file
+        .parent()
+        .expect("failed to get executable parent")
+        .to_path_buf();
+    let mut share_dir = path_from_env("QUARTO_SHARE_PATH");
+    if share_dir.as_os_str().is_empty() {
+        share_dir = share_dir_from_bin_dir(&bin_dir);
+    }
+    let js_file = bin_dir.join(Path::new("quarto.js"));
+
+    let args: Vec<OsString> = env::args_os().skip(1).collect();
+    if args.is_empty() {
+        std::process::exit(0);
+    }
+    if &args[0] == "--version" || &args[0] == "-v" {
+        let version = fs::read_to_string(share_dir.join("version")).expect("failed to read version");
+        println!("{}", version);
+        std::process::exit(0);
+    }
+    if &args[0] == "--paths" {
+        println!("{}\n{}", bin_dir.display(), share_dir.display());
+        std::process::exit(0);
+    }
+
+    // QUARTO_NODE chooses the Node binary. QUARTO_DENO is not an alias: it
+    // names the Deno tool used by `quarto run`.
+    let mut node_file = path_from_env("QUARTO_NODE");
+    if node_file.as_os_str().is_empty() {
+        node_file = bin_dir.join("tools").join(arch_dir()).join(NODE_BINARY);
+    }
+
+    // Quarto's own flags; see package/scripts/common/quarto for the reasons.
+    let mut node_args: Vec<OsString> = [
+        "--enable-experimental-regexp-engine",
+        "--max-old-space-size=8192",
+        "--stack-trace-limit=100",
+        "--use-system-ca",
+        "--use-env-proxy",
+        "--disable-warning=MODULE_TYPELESS_PACKAGE_JSON",
+    ]
+    .iter()
+    .map(OsString::from)
+    .collect();
+    // Deno-era V8 flags (comma separated): passed through, quarto.js warns.
+    if let Ok(v8) = env::var("QUARTO_DENO_V8_OPTIONS") {
+        node_args.extend(v8.split(',').filter(|s| !s.is_empty()).map(OsString::from));
+    }
+    if env::var_os("QUARTO_TS_PROFILE").is_some() {
+        node_args.insert(0, OsString::from("--inspect-brk"));
+    }
+    if let Ok(extra) = env::var("QUARTO_NODE_OPTIONS") {
+        node_args.extend(extra.split_whitespace().map(OsString::from));
+    }
+    node_args.push(js_file.into_os_string());
+    node_args.extend(args);
+
+    let mut cmd = Command::new(&node_file);
+    cmd.args(&node_args)
+        .env("QUARTO_NODE", &node_file)
+        .env("QUARTO_BIN_PATH", &bin_dir)
+        .env("QUARTO_SHARE_PATH", &share_dir);
+    // The user's NODE_OPTIONS/NODE_PATH must not change Quarto's own Node; they
+    // are restored for children by src/core/runtime-env.ts.
+    for (original, saved) in [
+        ("NODE_OPTIONS", "QUARTO_SAVED_NODE_OPTIONS"),
+        ("NODE_PATH", "QUARTO_SAVED_NODE_PATH"),
+    ] {
+        if let Some(value) = env::var_os(original) {
+            cmd.env(saved, value).env_remove(original);
+        }
+    }
+    #[cfg(target_os = "windows")]
+    cmd.env("NO_COLOR", "TRUE");
+
+    let mut child = cmd.spawn().expect("failed to run node");
+    let status = child.wait().expect("failed to wait on node");
+    if status.success() {
+        std::process::exit(0)
+    } else {
+        match status.code() {
+            Some(code) => std::process::exit(code),
+            // errors reaping the status code have been observed
+            // (see https://github.com/quarto-dev/quarto-cli/issues/2296)
+            None => std::process::exit(0),
+        }
+    }
+}
+
+// tools/<arch> directory holding the runtimes. Windows builds are x64 only.
+fn arch_dir() -> &'static str {
+    if cfg!(target_os = "windows") {
+        return "x86_64";
+    }
+    let arch = arch_string();
+    if arch.starts_with("Darwin arm64") || arch.starts_with("Linux aarch64") {
+        "aarch64"
+    } else {
+        "x86_64"
+    }
+}
+
+#[cfg(target_os = "windows")]
+const NODE_BINARY: &str = "node.exe";
+
+#[cfg(not(target_os = "windows"))]
+const NODE_BINARY: &str = "node";
+```
+
+The `use std::str::FromStr;` import goes away (no longer used).
+
+- [ ] **Step 2: Build and run it against a prepared distribution**
+
+Run:
+```bash
+cargo build --release --manifest-path package/launcher/Cargo.toml
+cp package/launcher/target/release/quarto package/pkg-working/bin/quarto-launcher
+package/pkg-working/bin/quarto-launcher --paths
+NODE_OPTIONS=--bogus QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=50 package/pkg-working/bin/quarto-launcher check versions 2>&1 | head -5
+rm package/pkg-working/bin/quarto-launcher
+```
+Expected: two paths; `check versions` runs (no `--bogus` abort) and prints the `QUARTO_DENO_V8_OPTIONS is deprecated` warning first.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add package/launcher/src/main.rs
+git commit -m "launcher: quarto.exe spawns node with Quarto's flags; NODE_* moved aside"
+```
+
+### Task 11: Deno as a tool: `denoToolBinary()` and `quarto install deno`
+
+**Files:**
+- Create: `src/tools/impl/deno-paths.ts`, `src/tools/impl/deno.ts`
+- Modify: `src/core/run/deno.ts:56`, `src/command/call/build-ts-extension/cmd.ts:257-258`, `src/tools/tools.ts:32-38`, `src/command/install/cmd.ts`, `.github/workflows/test-install.yml`
+- Test: `tests/unit/tools/deno-tool.test.ts`
+
+- [ ] **Step 1: Write the failing test**
 
 ```ts
-    ["aarch64", "x86_64"].forEach((arch) => {
-      // Node (V8 JIT) needs the same entitlements Deno did:
-      // allow-jit and allow-unsigned-executable-memory (entitlements.plist).
+/*
+ * deno-tool.test.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+import { unitTest } from "../../test.ts";
+import { assertEquals } from "../../asserts.ts";
+import { join } from "../../../src/deno_ral/path.ts";
+import { readTextFileSync } from "../../../src/deno_ral/fs.ts";
+import { env } from "../../../src/deno_ral/env.ts";
+import { installableTools } from "../../../src/tools/tools.ts";
+import { kDenoToolVersion } from "../../../src/tools/impl/deno-paths.ts";
+
+unitTest("deno tool - pinned version equals DENO in configuration", () => {
+  const text = readTextFileSync(join(env.get("QUARTO_ROOT")!, "configuration"));
+  const m = text.match(/^export DENO=(\S+)$/m);
+  assertEquals(kDenoToolVersion, m?.[1]);
+});
+
+unitTest("deno tool - installable as `quarto install deno`", () => {
+  assertEquals(installableTools().includes("deno"), true);
+});
+```
+
+- [ ] **Step 2: Run it and see it fail**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/deno-tool.test.ts`
+Expected: FAIL, module `src/tools/impl/deno-paths.ts` not found.
+
+- [ ] **Step 3: `deno-paths.ts`**
+
+```ts
+/*
+ * deno-paths.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ *
+ * Where the Deno *tool* is (Quarto itself runs on Node.js). Kept free of
+ * imports from src/tools/tools.ts so that src/core/run/deno.ts and
+ * build-ts-extension can import it without an import cycle.
+ */
+
+import { existsSync } from "../../deno_ral/fs.ts";
+import { join } from "../../deno_ral/path.ts";
+import { arch, isWindows } from "../../deno_ral/platform.ts";
+import { env } from "../../deno_ral/env.ts";
+import { warnOnce } from "../../core/log.ts";
+import { quartoDataDir } from "../../core/appdirs.ts";
+import { quartoConfig } from "../../core/quarto.ts";
+
+// Same value as DENO in `configuration` (tests/unit/tools/deno-tool.test.ts).
+export const kDenoToolVersion = "v2.9.7";
+
+const kDenoExe = isWindows ? "deno.exe" : "deno";
+
+export function denoInstallDir(): string {
+  return quartoDataDir("deno");
+}
+
+export function installedDenoPath(): string {
+  return join(denoInstallDir(), kDenoExe);
+}
+
+export function bundledDenoPath(): string {
+  return join(quartoConfig.binPath(), "tools", isWindows ? "x86_64" : arch, kDenoExe);
+}
+
+export function denoToolBinary(): string | undefined {
+  const fromEnv = env.get("QUARTO_DENO");
+  if (fromEnv) {
+    if (existsSync(fromEnv)) {
+      return fromEnv;
+    }
+    warnOnce(`QUARTO_DENO is set to ${fromEnv}, which does not exist; looking for another Deno`);
+  }
+  for (const candidate of [installedDenoPath(), bundledDenoPath()]) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return undefined;
+}
+
+export function requireDenoToolBinary(purpose: string): string {
+  const deno = denoToolBinary();
+  if (deno === undefined) {
+    throw new Error(`${purpose} needs Deno, which is not installed. Run 'quarto install deno'.`);
+  }
+  return deno;
+}
+```
+
+Write the actual `DENO` value from `configuration` (after PR 00a) into `kDenoToolVersion`; the test fails otherwise.
+
+- [ ] **Step 4: `deno.ts` (the installable tool)**
+
+```ts
+/*
+ * deno.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ *
+ * `quarto install deno`: the Deno tool for `quarto run` scripts and
+ * `quarto call build-ts-extension`, at the version Quarto is tested with.
+ */
+
+import { chmodSync, ensureDirSync, existsSync, readFileSync, readTextFileSync, safeRemoveSync, writeTextFileSync } from "../../deno_ral/fs.ts";
+import { basename, join } from "../../deno_ral/path.ts";
+import { arch, isWindows, os as platformOs } from "../../deno_ral/platform.ts";
+import { unzip } from "../../core/zip.ts";
+import { InstallableTool, InstallContext, kUpdatePath, PackageInfo, RemotePackageInfo } from "../types.ts";
+import { createToolSymlink, removeToolSymlink } from "../tools.ts";
+import { denoInstallDir, installedDenoPath, kDenoToolVersion } from "./deno-paths.ts";
+
+const kVersionFileName = "version";
+
+function denoTarget(): string {
+  const cpu = arch === "aarch64" ? "aarch64" : "x86_64";
+  if (platformOs === "windows") return "x86_64-pc-windows-msvc";
+  if (platformOs === "darwin") return `${cpu}-apple-darwin`;
+  return `${cpu}-unknown-linux-gnu`;
+}
+
+async function installed() {
+  return existsSync(installedDenoPath());
+}
+
+async function installedVersion(): Promise<string | undefined> {
+  const file = join(denoInstallDir(), kVersionFileName);
+  return existsSync(file) ? readTextFileSync(file).trim() : undefined;
+}
+
+// Pinned, not "latest": user scripts and the stdlib import map are tested
+// against this version, and Deno's development ends in 2027.
+async function latestRelease(): Promise<RemotePackageInfo> {
+  const asset = `deno-${denoTarget()}.zip`;
+  const base = `https://github.com/denoland/deno/releases/download/${kDenoToolVersion}`;
+  return {
+    url: `https://github.com/denoland/deno/releases/tag/${kDenoToolVersion}`,
+    version: kDenoToolVersion,
+    assets: [
+      { name: asset, url: `${base}/${asset}` },
+      { name: `${asset}.sha256sum`, url: `${base}/${asset}.sha256sum` },
+    ],
+  };
+}
+
+async function preparePackage(context: InstallContext): Promise<PackageInfo> {
+  const release = await latestRelease();
+  const [zip, sum] = release.assets;
+  const filePath = join(context.workingDir, zip.name);
+  const sumPath = join(context.workingDir, sum.name);
+  await context.download(`Deno ${release.version}`, zip.url, filePath);
+  await context.download(`Deno ${release.version} checksum`, sum.url, sumPath);
+  const expected = readTextFileSync(sumPath).trim().split(/\s+/)[0].toLowerCase();
+  const digest = await crypto.subtle.digest("SHA-256", readFileSync(filePath));
+  const actual = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  if (actual !== expected) {
+    throw new Error(`Checksum mismatch for ${zip.name}: expected ${expected}, got ${actual}`);
+  }
+  return { filePath, version: release.version };
+}
+
+async function install(pkgInfo: PackageInfo, context: InstallContext) {
+  const dir = denoInstallDir();
+  ensureDirSync(dir);
+  await context.withSpinner({ message: `Unzipping ${basename(pkgInfo.filePath)}` }, async () => {
+    const r = await unzip(pkgInfo.filePath, dir);
+    if (!r.success) {
+      throw new Error(`Failed to extract ${basename(pkgInfo.filePath)}\n${r.stderr}`);
+    }
+  });
+  if (!isWindows) {
+    chmodSync(installedDenoPath(), 0o755);
+  }
+  writeTextFileSync(join(dir, kVersionFileName), pkgInfo.version);
+}
+
+async function afterInstall(context: InstallContext) {
+  if (context.flags[kUpdatePath]) {
+    await context.withSpinner({ message: "Updating PATH" }, async () => {
+      await createToolSymlink(installedDenoPath(), "deno", context);
+    });
+    return isWindows;
+  }
+  return false;
+}
+
+async function uninstall(context: InstallContext) {
+  if (context.flags[kUpdatePath]) {
+    await removeToolSymlink("deno");
+  }
+  await context.withSpinner({ message: "Removing Deno" }, async () => {
+    if (existsSync(denoInstallDir())) {
+      safeRemoveSync(denoInstallDir(), { recursive: true });
+    }
+  });
+}
+
+export const denoInstallable: InstallableTool = {
+  name: "Deno",
+  prereqs: [],
+  installed,
+  installDir: async () => (await installed()) ? denoInstallDir() : undefined,
+  binDir: async () => (await installed()) ? denoInstallDir() : undefined,
+  installedVersion,
+  latestRelease,
+  preparePackage,
+  install,
+  afterInstall,
+  uninstall,
+};
+```
+
+`crypto.subtle` is a web-standard global on Node and Deno; the checksum file is Deno's own `<asset>.sha256sum` release asset (`<hex>  <name>`, verified for v2.9.7).
+
+- [ ] **Step 5: Register; switch the two call sites**
+
+`src/tools/tools.ts` lines 32-38: add `deno: denoInstallable,` after `verapdf` and `import { denoInstallable } from "./impl/deno.ts";` with the other `impl` imports. `src/command/install/cmd.ts`: after the existing examples add
+
+```ts
+  .example(
+    "Install Deno for `quarto run` scripts and engine extension builds",
+    "quarto install deno",
+  )
+```
+
+`src/core/run/deno.ts:56`: `cmd: architectureToolsPath("deno"),` becomes `cmd: requireDenoToolBinary("Running a TypeScript script"),`, and the `env` object of that `execProcess` call gains `DENO_NO_UPDATE_CHECK: "1"` (the CLI launcher no longer exports it). Import `requireDenoToolBinary` from `../../tools/impl/deno-paths.ts`; drop `architectureToolsPath` from the `resources.ts` import if unused.
+
+`src/command/call/build-ts-extension/cmd.ts:257-258`: `const denoBinary = env.get("QUARTO_DENO") || architectureToolsPath("deno");` (PR 14 codemodded the `Deno.env.get`) becomes `const denoBinary = requireDenoToolBinary("quarto call build-ts-extension");`, importing it from `../../../tools/impl/deno-paths.ts`. `denoToolBinary()` already honours `QUARTO_DENO`.
+
+- [ ] **Step 6: `test-install.yml` job**
+
+Append to `.github/workflows/test-install.yml` (and add `"src/core/run/**"` to both `paths:` lists):
+
+```yaml
+  install-deno-tool:
+    name: quarto install deno (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+      - uses: ./.github/workflows/actions/quarto-dev
+      - name: Hide the bundled Deno tool, install it with quarto
+        shell: bash
+        run: |
+          rm -f package/dist/bin/tools/*/deno package/dist/bin/tools/*/deno.exe package/dist/bin/tools/deno
+          quarto install deno --no-prompt
+          printf 'console.log("deno-tool-ok", typeof Deno.version.deno);\n' > s.ts
+          out=$(quarto run s.ts); echo "$out"; echo "$out" | grep -q "deno-tool-ok string"
+          quarto uninstall deno --no-prompt
+          if quarto run s.ts; then echo "expected failure without Deno"; exit 1; fi
+```
+
+- [ ] **Step 7: Run and commit**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/deno-tool.test.ts smoke/run/ smoke/build-ts-extension/build-ts-extension.test.ts smoke/project/project-prepost.test.ts`
+Expected: all pass (the scripts and the extension build run on the bundled Deno tool).
+
+```bash
+git add src/tools src/core/run/deno.ts src/command/call/build-ts-extension/cmd.ts src/command/install/cmd.ts .github/workflows/test-install.yml tests/unit/tools/deno-tool.test.ts
+git commit -m "tools: quarto install deno; quarto run and build-ts-extension find Deno through denoToolBinary()"
+```
+
+### Task 12: Type checking with `tsc`
+
+**Files:**
+- Create: `tools/typecheck/gen-tsconfig-paths.mjs`, `tsconfig.json`, `tsconfig.paths.json`, `.github/workflows/lint.yml`
+- Modify: `package.json`, `package-lock.json`, `tests/run-tests.sh` (line 232's `--check`)
+
+- [ ] **Step 1: Dependencies and script**
+
+```bash
+npm install --save-dev --save-exact typescript@5.9.3 @types/node@26.6.5 @types/deno@2.7.0
+```
+
+Add to `package.json` `scripts`: `"typecheck": "node tools/typecheck/gen-tsconfig-paths.mjs --check && tsc -p tsconfig.json"`.
+
+`@types/deno` is temporary: `src/deno_ral/` may keep a Deno branch per module until PR 37, and `src/deno_ral/platform.ts`'s `runtime()` names `Deno`. PR 38 removes it. Since types are global, `Deno.*` type-checks everywhere; the boundary ratchet (not `tsc`) keeps it out of the rest of `src/`.
+
+- [ ] **Step 2: The `paths` generator**
+
+```js
+// tools/typecheck/gen-tsconfig-paths.mjs
+//
+// Copyright (C) 2026 Posit Software, PBC
+//
+// Generate tsconfig.paths.json from src/import_map.json so tsc resolves the
+// bare names the bundler resolves. --check exits 1 when the committed file is stale.
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { jsrToNpm, npmSpec } from "../node-bundle/import-map.mjs";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const imports = JSON.parse(fs.readFileSync(path.join(root, "src", "import_map.json"), "utf8")).imports;
+const out = path.join(root, "tsconfig.paths.json");
+
+function packagePath(target) {
+  if (target.startsWith("jsr:")) return `node_modules/${jsrToNpm(target)}`;
+  if (target.startsWith("npm:")) return `node_modules/${npmSpec(target)}`;
+  if (target.startsWith("./") || target.startsWith("../")) return path.posix.join("src", target);
+  throw new Error(`src/import_map.json target not supported for tsc: ${target}`);
+}
+
+const paths = {};
+for (const [key, target] of Object.entries(imports)) {
+  const p = packagePath(target);
+  if (key.endsWith("/")) {
+    paths[`${key}*`] = [`${p.replace(/\/$/, "")}/*`];
+  } else {
+    paths[key] = [p];
+  }
+}
+const json = JSON.stringify(
+  { "//": "generated by tools/typecheck/gen-tsconfig-paths.mjs from src/import_map.json; do not edit", compilerOptions: { paths } },
+  null,
+  2,
+) + "\n";
+
+if (process.argv.includes("--check")) {
+  const current = fs.existsSync(out) ? fs.readFileSync(out, "utf8") : "";
+  if (current !== json) {
+    console.error("tsconfig.paths.json is out of date: run node tools/typecheck/gen-tsconfig-paths.mjs");
+    process.exit(1);
+  }
+  console.log("tsconfig.paths.json up to date");
+} else {
+  fs.writeFileSync(out, json);
+  console.log(`wrote tsconfig.paths.json (${Object.keys(paths).length} entries)`);
+}
+```
+
+`jsrToNpm` and `npmSpec` are the PR 26 exports of `tools/node-bundle/import-map.mjs` (template vocabulary). If `jsrToNpm` returns the package name without the subpath, append the subpath (`target.split("/").slice(3).join("/")` after the `@scope/name@ver` part) in `packagePath`; the first `tsc` run in step 4 tells (`TS2307` on a subpath import).
+
+- [ ] **Step 3: `tsconfig.json`**
+
+```json
+{
+  "extends": "./tsconfig.paths.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node", "deno"],
+    "skipLibCheck": true,
+    "noErrorTruncation": true
+  },
+  "files": ["src/quarto.ts", "package/src/bld.ts"],
+  "include": ["tests/**/*.test.ts", "tests/*.ts"],
+  "exclude": ["node_modules", "tests/integration/playwright", "tests/.venv"]
+}
+```
+
+`files` reproduces what `deno run --check src/quarto.ts` checked (the import graph of the CLI) plus `quarto-bld`; `include` reproduces `deno test --check` (test files and their graph). `tools/*.ts` scripts are not included: they are outside the ratchet, several still call the Deno API, and `deno run` never type-checked them either. `noErrorTruncation` comes from `deno.jsonc`. `verbatimModuleSyntax` matches PR 02b.
+
+- [ ] **Step 4: First run and triage**
+
+```bash
+node tools/typecheck/gen-tsconfig-paths.mjs
+npx tsc -p tsconfig.json > /tmp/tsc.txt 2>&1; grep -c "error TS" /tmp/tsc.txt
+grep -oE "error TS[0-9]+" /tmp/tsc.txt | sort | uniq -c | sort -rn | head
+```
+
+Resolve in this order, re-running after each class:
+1. `TS2307` (cannot find module): a `paths` gap; fix the generator, never `@ts-ignore`.
+2. Conflicts between `@types/deno` and `lib.dom`/`@types/node` (`TS2300` duplicate identifier, `TS2403`): if `skipLibCheck` does not silence them, drop `"deno"` from `types` and add `src/deno_ral/deno-types.d.ts` declaring only the `Deno` members `grep -rhoE "Deno\.[a-zA-Z.]+" src/deno_ral | sort -u` lists, as `declare namespace Deno { ... }` with the signatures copied from `@types/deno`; PR 38 deletes that file instead of the package.
+3. `Uint8Array<ArrayBufferLike>` vs `Uint8Array` (Node 22+ types): fix at the `src/deno_ral/` boundary (`new Uint8Array(buf)`), not with casts at call sites.
+4. `ReadableStream` DOM vs `node:stream/web`: cast once inside `src/deno_ral/process.ts`.
+5. Anything else that Deno's checker accepted: fix the code. A file-level `// @ts-nocheck` is allowed only in `tests/` with an issue number in the comment, and the PR lists those files.
+
+Stop condition: `npx tsc -p tsconfig.json` prints nothing. **If the first run reports more than 300 errors, stop and report** the class histogram: that means the Phase 2 code never type-checked against Node's types, which is a Phase 2 defect to fix before the flip. Record the first and final counts in the PR description.
+
+- [ ] **Step 5: Drop `--check` from the Deno test branch**
+
+`tests/run-tests.sh:232` passes `--check` to `deno test`; the Node branch of PR 31 does not type-check. Leave the Deno branch untouched (it is the nightly matrix until PR 37) and add `npm run typecheck` to the local workflow in `tests/README.md` ("Type checking" paragraph: run `npm run typecheck` from the repository root; CI runs it in `lint.yml`).
+
+- [ ] **Step 6: CI workflow**
+
+`.github/workflows/lint.yml`:
+
+```yaml
+name: Lint, Format, Typecheck
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - ".claude/**"
+      - "news/**"
+  push:
+    branches: [main]
+    paths-ignore:
+      - ".claude/**"
+      - "news/**"
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Node version from configuration
+        id: node
+        shell: bash
+        run: |
+          source ./configuration
+          echo "version=${NODE#v}" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.node.outputs.version }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: tsc
+        run: npm run typecheck
+```
+
+PR 38 adds `lint` and `format` steps to this job.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add package.json package-lock.json tsconfig.json tsconfig.paths.json tools/typecheck .github/workflows/lint.yml tests/README.md
+git commit -m "tooling: tsc --noEmit with @types/node replaces deno check"
+git add -A src tests package tools && git commit -m "types: fix errors surfaced by tsc" || true
+```
+
+### Task 13 (conditional on Spike #2): `QUARTO_RUNTIME=node|deno`
+
+Run this task only if `dev-docs/runtime-migration/SPIKES.md` records that Spike #2 passed (the `node:` bundle runs on Deno 2.9: render, preview websocket, `fs.watch`, process groups). Otherwise skip it and write "Task 13 skipped: Spike #2 failed (<one line from SPIKES.md>)" in the PR description; nothing else in this plan depends on it.
+
+**Files:**
+- Modify: `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, `package/launcher/src/main.rs`, `tests/smoke/env/launcher-env.test.ts`
+
+- [ ] **Step 1: Failing test**
+
+Append to `tests/smoke/env/launcher-env.test.ts`:
+
+```ts
+unitTest("launcher - QUARTO_RUNTIME=deno runs the same bundle on the Deno tool", async () => {
+  const r = await quarto(["--help"], { QUARTO_RUNTIME: "deno", QUARTO_LAUNCHER_DEBUG: "1" });
+  assertEquals(r.code, 0, r.err);
+  assert(/deno(\.exe)?"? run /.test(r.err), r.err);
+});
+
+unitTest("launcher - an unknown QUARTO_RUNTIME is an error", async () => {
+  const r = await quarto(["--help"], { QUARTO_RUNTIME: "bun" });
+  assertEquals(r.code, 1);
+  assertStringIncludes(r.err, "QUARTO_RUNTIME must be node or deno");
+});
+```
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts` -> the two new tests fail.
+
+- [ ] **Step 2: Shell launcher branch**
+
+In `package/scripts/common/quarto`, directly before the `# --- Node runtime ---` block:
+
+```bash
+# Dual-runtime window (one prerelease cycle, removed by PR 37): the same
+# node:-API bundle on the Deno tool, as a rollback switch for users.
+case "${QUARTO_RUNTIME:-node}" in
+  node) ;;
+  deno)
+    QUARTO_DENO_TOOL="${SCRIPT_PATH}/tools/${ARCH_DIR}/deno"
+    if [ "$QUARTO_DEV_MODE" == true ]; then
+      "${QUARTO_NODE:-${SCRIPT_PATH}/tools/${ARCH_DIR}/node}" "${QUARTO_ROOT}/tools/node-bundle/ensure.mjs" --entry "${DEV_PATH}" --outfile "${QUARTO_TARGET}" > /dev/null || exit 1
+    fi
+    export DENO_NO_UPDATE_CHECK=1
+    export DENO_TLS_CA_STORE=system,mozilla
+    QUARTO_DENO_RUN="run --allow-all --no-config --no-lock --unstable-kv --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--stack-trace-limit=100"
+    if [ "$QUARTO_LAUNCHER_DEBUG" == "1" ]; then
+      echo "${QUARTO_DENO_TOOL} ${QUARTO_DENO_RUN} ${QUARTO_TARGET} $*" >&2
+    fi
+    exec "${QUARTO_DENO_TOOL}" ${QUARTO_DENO_RUN} "${QUARTO_TARGET}" "$@"
+    ;;
+  *)
+    echo "QUARTO_RUNTIME must be node or deno (got '${QUARTO_RUNTIME}')" >&2
+    exit 1
+    ;;
+esac
+```
+
+`--unstable-kv`: `src/deno_ral/kv.ts` uses `Deno.openKv` when `runtime()` is `deno` (PR 30 keeps that backend until PR 37).
+
+- [ ] **Step 3: `quarto.cmd` branch**
+
+Before `REM QUARTO_DENO is not an alias`:
+
+```bat
+IF NOT DEFINED QUARTO_RUNTIME SET "QUARTO_RUNTIME=node"
+IF "!QUARTO_RUNTIME!"=="deno" (
+	IF DEFINED QUARTO_DEV_MODE (
+		"!SCRIPT_PATH!\tools\x86_64\node.exe" "!QUARTO_ROOT!\tools\node-bundle\ensure.mjs" --entry "!QUARTO_TS_PATH!" --outfile "!QUARTO_TARGET!" > NUL
+		IF ERRORLEVEL 1 exit /b 1
+	)
+	SET "DENO_NO_UPDATE_CHECK=1"
+	SET "DENO_TLS_CA_STORE=system,mozilla"
+	SET "QUARTO_DENO_RUN=run --allow-all --no-config --no-lock --unstable-kv --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--stack-trace-limit=100"
+	IF "!QUARTO_LAUNCHER_DEBUG!"=="1" ECHO "!SCRIPT_PATH!\tools\x86_64\deno.exe" !QUARTO_DENO_RUN! "!QUARTO_TARGET!" %* 1>&2
+	"!SCRIPT_PATH!\tools\x86_64\deno.exe" !QUARTO_DENO_RUN! "!QUARTO_TARGET!" %*
+	GOTO end
+)
+IF NOT "!QUARTO_RUNTIME!"=="node" (
+	ECHO QUARTO_RUNTIME must be node or deno ^(got '!QUARTO_RUNTIME!'^) 1>&2
+	exit /b 1
+)
+```
+
+- [ ] **Step 4: `main.rs` branch**
+
+In `main()`, after the `--paths` handling:
+
+```rust
+    // Dual-runtime window (removed by PR 37).
+    match env::var("QUARTO_RUNTIME").unwrap_or_else(|_| String::from("node")).as_str() {
+        "node" => {}
+        "deno" => {
+            let deno_file = bin_dir.join("tools").join(arch_dir()).join(DENO_BINARY);
+            let mut child = Command::new(&deno_file)
+                .args([
+                    "run", "--allow-all", "--no-config", "--no-lock", "--unstable-kv",
+                    "--v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--stack-trace-limit=100",
+                ])
+                .arg(&js_file)
+                .args(&args)
+                .env("QUARTO_BIN_PATH", &bin_dir)
+                .env("QUARTO_SHARE_PATH", &share_dir)
+                .env("DENO_NO_UPDATE_CHECK", "1")
+                .env("DENO_TLS_CA_STORE", "system,mozilla")
+                .spawn()
+                .expect("failed to run deno");
+            let status = child.wait().expect("failed to wait on deno");
+            std::process::exit(status.code().unwrap_or(0));
+        }
+        other => {
+            eprintln!("QUARTO_RUNTIME must be node or deno (got '{}')", other);
+            std::process::exit(1);
+        }
+    }
+```
+
+and the constants:
+
+```rust
+#[cfg(target_os = "windows")]
+const DENO_BINARY: &str = "deno.exe";
+
+#[cfg(not(target_os = "windows"))]
+const DENO_BINARY: &str = "deno";
+```
+
+- [ ] **Step 5: Run and commit**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts && cargo build --release --manifest-path package/launcher/Cargo.toml`
+Expected: all launcher tests pass; the launcher builds. Then `QUARTO_RUNTIME=deno package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd` renders.
+
+```bash
+git add package/scripts/common/quarto package/scripts/windows/quarto.cmd package/launcher/src/main.rs tests/smoke/env/launcher-env.test.ts
+git commit -m "launcher: QUARTO_RUNTIME=deno runs the bundle on the Deno tool (dual-runtime window)"
+```
+
+### Task 14: Signing lists, CI caches, test runner default, editor config
+
+**Files:**
+- Modify: `package/src/macos/installer.ts:90-96`, `.github/workflows/create-release.yml:398`, `.github/workflows/actions/quarto-dev/action.yml:15-36`, `tests/run-tests.sh`, `tests/run-tests.ps1`, `.vscode/launch.json`
+- Create: `.vscode/tasks.json`
+
+- [ ] **Step 1: macOS signing**
+
+In `package/src/macos/installer.ts`, inside the `["aarch64", "x86_64"].forEach` loop, keep the existing `deno` entry (the tool ships until PR 37) and add before it:
+
+```ts
+      // Node's V8 JIT needs allow-jit and allow-unsigned-executable-memory,
+      // which entitlements.plist grants. PR 34 gives node its own plist.
       signWithEntitlements.push(join(
         config.directoryInfo.pkgWorking.bin,
         "tools",
@@ -1821,111 +2737,53 @@ Replace lines 90-96 of `package/src/macos/installer.ts`:
       ));
 ```
 
-- [ ] **Step 2: Windows signing paths**
+Also add `join(config.directoryInfo.pkgWorking.bin, "package.json")` to `signWithoutEntitlements` next to `quarto.js` (every file in the payload is signed today; a plain JSON file is signed the same way `quarto.js` is).
 
-Replace line 398 of `.github/workflows/create-release.yml` (`./package/pkg-working/bin/tools/x86_64/deno.exe`) with `./package/pkg-working/bin/tools/x86_64/node.exe`. If line 401 (`deno_dom/plugin.dll`) is still there, delete it (PR 20).
+- [ ] **Step 2: Windows signing**
 
-- [ ] **Step 3: Commit**
+In `.github/workflows/create-release.yml` `sign-files` `paths` (line 398 area), add `./package/pkg-working/bin/tools/x86_64/node.exe` above the `deno.exe` line and keep `deno.exe`; delete the `deno_dom/plugin.dll` line if PR 20 left it.
 
-```bash
-git add package/src/macos/installer.ts .github/workflows/create-release.yml
-git commit -m "build: sign node instead of deno in release installers"
-```
+- [ ] **Step 3: CI caches**
 
-PR 34 does the rest of the installer work (Rust launcher, RHEL job, docs). Until PR 34 lands, `quarto.exe` still spawns `deno`, so a Windows MSI built from this commit does not run; the tarball/zip on Linux and macOS work because they use the shell launcher. The PR description must say so and PR 34 must follow within the same prerelease.
-
-### Task 10: CI caches and the latexmk workflow
-
-**Files:**
-- Modify: `.github/workflows/actions/quarto-dev/action.yml:7-39`
-- Modify: `.github/workflows/test-quarto-latexmk.yml:33-35`
-
-- [ ] **Step 1: Replace the two Deno caches with an npm cache**
-
-Replace lines 7-39 of `.github/workflows/actions/quarto-dev/action.yml`:
+In `.github/workflows/actions/quarto-dev/action.yml`, keep the "Cache deno std deps" step (the Deno tool still uses `src/resources/deno_std/cache`) and replace the "Cache Deno development cache" step (lines 15-21) with:
 
 ```yaml
     - name: Cache npm downloads
       uses: actions/cache@v5
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-${{ runner.arch }}-npm-v1-${{ hashFiles('package-lock.json', 'src/webui/quarto-preview/package-lock.json', 'tools/bundle-bug-finder/package-lock.json') }}
+        key: ${{ runner.os }}-${{ runner.arch }}-npm-v1-${{ hashFiles('package-lock.json', 'src/webui/quarto-preview/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-${{ runner.arch }}-npm-v1-
-
-    - name: Configure Quarto (.sh)
-      if: runner.os != 'Windows'
-      shell: bash
-      run: |
-        # install with symlink in /usr/local/bin which in PATH on CI
-        ./configure.sh
-
-    - name: Configure Quarto (.ps1)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        ./configure.cmd
-        "$(Get-ChildItem -Path ./package/dist/bin/quarto.cmd | %{ $_.FullName } | Split-Path)" >> $env:GITHUB_PATH
 ```
 
-`~/.npm` is npm's download cache on all three runners (`%LOCALAPPDATA%\npm-cache` is used on Windows when `~/.npm` does not exist; `actions/cache` expands `~` on Windows to the user profile, where npm 11 keeps `.npm` as well; verify in the first Windows run that the cache step reports a non-zero size and bump to `${{ env.LOCALAPPDATA }}\npm-cache` if not). `tools/bundle-bug-finder/package-lock.json` is gitignored, so `hashFiles` ignores it harmlessly; remove it from the list if the hash function warns.
+Keep `QUARTO_SKIP_DENO_CACHE_WIPE: "1"` on both configure steps (it now protects the restored caches from `rm -rf package/dist`). On the first Windows run, check that the cache step reports a non-zero size; if not, change `path` to `${{ runner.os == 'Windows' && '~\AppData\Local\npm-cache' || '~/.npm' }}`.
 
-- [ ] **Step 2: Keep `compile-quarto-latexmk` running until PR 39**
+- [ ] **Step 4: Test runner defaults to Node**
 
-Insert after line 34 of `.github/workflows/test-quarto-latexmk.yml` (after the `quarto-dev` step):
+In `tests/run-tests.sh` and `tests/run-tests.ps1`, change PR 31's default of `QUARTO_TEST_RUNTIME` from `deno` to `node`. The Deno branch stays usable (Deno is still in `bin/tools`) and is what PR 32's nightly Deno matrix sets explicitly.
 
-```yaml
-      # compile-quarto-latexmk still uses `deno compile` (replaced in PR 39).
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.7.14
-      - name: Point quarto-bld at Deno
-        shell: bash
-        run: echo "QUARTO_DENO=$(which deno)" >> "$GITHUB_ENV"
-```
+- [ ] **Step 5: `.vscode/launch.json` and `.vscode/tasks.json`**
 
-- [ ] **Step 3: Commit**
-
-```bash
-git add .github/workflows/actions/quarto-dev/action.yml .github/workflows/test-quarto-latexmk.yml
-git commit -m "ci: cache npm instead of the Deno caches; keep latexmk compile on setup-deno"
-```
-
-### Task 11: Test runner default and VS Code launch configurations
-
-**Files:**
-- Modify: `tests/run-tests.sh`, `tests/run-tests.ps1`
-- Modify: `.vscode/launch.json`
-
-- [ ] **Step 1: Default the test runtime to Node**
-
-In `tests/run-tests.sh` and `tests/run-tests.ps1`, find the PR 31 line that sets the default of `QUARTO_TEST_RUNTIME` (`QUARTO_TEST_RUNTIME="${QUARTO_TEST_RUNTIME:-deno}"` or the PowerShell equivalent) and change the default to `node`. Also delete the `DENO_DIR` block at lines 52-62 of `run-tests.sh` and lines 33-34, 62-66 of `run-tests.ps1` (the Deno binary and `DENO_DIR` no longer exist); the `deno` branch itself stays until PR 37 and fails with "deno not found" if selected, which is the intended signal.
-
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-dependency.test.ts unit/node-bundle-ensure.test.ts smoke/run/run-script.test.ts`
-Expected: all pass on Node without setting `QUARTO_TEST_RUNTIME`.
-
-- [ ] **Step 2: `.vscode/launch.json`**
-
-Replace both configurations:
+Replace the "Launch Deno" configuration with:
 
 ```json
-{
-  "version": "0.2.0",
-  "configurations": [
     {
-      "name": "Launch Quarto (dev bundle)",
+      "name": "Launch Quarto (Node, dev bundle)",
       "request": "launch",
       "type": "node",
       "args": ["serve"],
       "cwd": "${workspaceFolder}/../quarto-demo",
-      "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/node",
+      "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/x86_64/node",
       "runtimeArgs": [
         "--enable-source-maps",
         "--enable-experimental-regexp-engine",
         "--max-old-space-size=8192",
         "--stack-trace-limit=100",
+        "--use-system-ca",
+        "--use-env-proxy",
         "--inspect-brk",
-        "${workspaceFolder}/package/dist/bin/quarto-dev.js"
+        "${workspaceFolder}/package/dist/bin/quarto-dev.mjs"
       ],
       "preLaunchTask": "quarto: ensure dev bundle",
       "env": {
@@ -1934,35 +2792,12 @@ Replace both configurations:
         "QUARTO_ROOT": "${workspaceFolder}",
         "QUARTO_DEBUG": "true"
       },
-      "windows": {
-        "runtimeExecutable": "${workspaceFolder}\\package\\dist\\bin\\tools\\x86_64\\node.exe"
-      }
+      "osx": { "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/aarch64/node" },
+      "windows": { "runtimeExecutable": "${workspaceFolder}\\package\\dist\\bin\\tools\\x86_64\\node.exe" }
     },
-    {
-      "name": "Run Quarto test",
-      "request": "launch",
-      "type": "node",
-      "cwd": "${workspaceFolder}/tests",
-      "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/node",
-      "runtimeArgs": ["--inspect-brk"],
-      "program": "${workspaceFolder}/tests/run-tests.sh",
-      "args": ["smoke/logging/log-level-direct.test.ts"],
-      "env": {
-        "QUARTO_ROOT": "${workspaceFolder}",
-        "QUARTO_BIN_PATH": "${workspaceFolder}/package/dist/bin",
-        "QUARTO_SHARE_PATH": "${workspaceFolder}/src/resources",
-        "QUARTO_DEBUG": "true",
-        "QUARTO_TESTS_NO_CONFIG": "true"
-      },
-      "windows": {
-        "runtimeExecutable": "${workspaceFolder}\\package\\dist\\bin\\tools\\x86_64\\node.exe"
-      }
-    }
-  ]
-}
 ```
 
-Add `.vscode/tasks.json`:
+(Intel Macs edit `osx.runtimeExecutable` to `x86_64` locally.) Leave the "Run Quarto test" configuration to PR 31's harness entry (if PR 31 changed it, keep its version). Create `.vscode/tasks.json`:
 
 ```json
 {
@@ -1971,11 +2806,11 @@ Add `.vscode/tasks.json`:
     {
       "label": "quarto: ensure dev bundle",
       "type": "shell",
-      "command": "${workspaceFolder}/package/dist/bin/tools/node",
+      "command": "node",
       "args": [
         "${workspaceFolder}/tools/node-bundle/ensure.mjs",
         "--entry", "${workspaceFolder}/src/quarto.ts",
-        "--outfile", "${workspaceFolder}/package/dist/bin/quarto-dev.js"
+        "--outfile", "${workspaceFolder}/package/dist/bin/quarto-dev.mjs"
       ],
       "problemMatcher": []
     }
@@ -1983,85 +2818,93 @@ Add `.vscode/tasks.json`:
 }
 ```
 
-The "Run Quarto test" configuration delegates to `run-tests.sh` because the exact `node --test` invocation is owned by PR 31's harness; adjust `program`/`args` to the harness entry if PR 31 exposes a direct one (check `tests/README.md`).
+`quarto-cli.code-workspace` is not changed: `deno.path` (`./package/dist/bin/tools/deno`) still exists (Task 3 keeps the symlink).
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add tests/run-tests.sh tests/run-tests.ps1 .vscode/launch.json .vscode/tasks.json
-git commit -m "build: test runner defaults to Node; VS Code launches the Node bundle"
+git add package/src/macos/installer.ts .github/workflows/create-release.yml .github/workflows/actions/quarto-dev/action.yml tests/run-tests.sh tests/run-tests.ps1 .vscode/launch.json .vscode/tasks.json
+git commit -m "build: sign node; npm cache in CI; tests default to Node; VS Code launches the Node bundle"
 ```
 
-### Task 12: Changelog and dev-docs
+### Task 15: Changelog and dev-docs
 
 **Files:**
-- Modify: `news/changelog-1.11.md` (`## Dependencies`)
-- Modify: `dev-docs/upgrade-dependencies.md:18-40`
+- Modify: `news/changelog-1.12.md`, `dev-docs/upgrade-dependencies.md`
 
 - [ ] **Step 1: Changelog**
 
-Add under `## Dependencies` (create the section after `## Regression fixes` if absent, per `.claude/rules/changelog.md`):
+Decision 2 ships Node in 1.12. Under `## Dependencies` of `news/changelog-1.12.md` (create the file with the sections `.claude/rules/changelog.md` prescribes if it does not exist):
 
 ```markdown
-- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): Quarto now runs on Node.js v26.12.0 instead of Deno. The `QUARTO_DENO`, `QUARTO_DENO_OPTIONS`, `QUARTO_DENO_EXTRA_OPTIONS` and `QUARTO_DENO_V8_OPTIONS` environment variables keep working in 1.11 as aliases of `QUARTO_NODE` and `QUARTO_NODE_OPTIONS`; `QUARTO_DENO_DIR` and `QUARTO_DENO_DOM` are ignored. `NODE_OPTIONS` and `NODE_PATH` from the environment are not passed to Quarto's runtime.
+- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): Quarto now runs on Node.js v26.12.0 instead of Deno. Deno is still bundled as a tool for `quarto run` TypeScript scripts and `quarto call build-ts-extension`; `quarto install deno` installs it where it is missing.
+- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): Environment variables: `QUARTO_NODE` chooses the Node.js binary and `QUARTO_NODE_OPTIONS` adds Node.js flags. `QUARTO_DENO` no longer selects the CLI runtime (it still locates the Deno tool). `QUARTO_DENO_OPTIONS`, `QUARTO_DENO_EXTRA_OPTIONS`, `QUARTO_DENO_DIR` and `QUARTO_DENO_DOM` are ignored with a warning; `QUARTO_DENO_V8_OPTIONS` still works with a deprecation warning. `NODE_OPTIONS` and `NODE_PATH` do not affect Quarto itself but are passed on to the processes Quarto starts. `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` keep working.
 ```
 
-Replace `NNNNN` with this PR's number once opened.
+Replace `NNNNN` once the PR is open.
 
 - [ ] **Step 2: `dev-docs/upgrade-dependencies.md`**
 
-Replace the `## Upgrade deno` section (lines 18-40, including the RHEL conda-forge subsection) with:
+Add a `## Upgrade Node.js` section before `## Upgrade deno` (keep the Deno section: the tool is upgraded the same way until PR 37, and the `kDenoToolVersion` constant in `src/tools/impl/deno-paths.ts` must change with `DENO`):
 
 ```markdown
 ## Upgrade Node.js
 
-- Pick the newest release of the current LTS line at <https://nodejs.org/dist/index.json> (`"lts"` is a codename string for LTS releases). Quarto tracks one major line per Quarto release.
-- Update `NODE` in `configuration`.
-- Update the pinned version in `src/command/check/check.ts` (`quarto check --strict` compares the running runtime with it; `tests/smoke/check/check-versions-no-mismatch.test.ts` fails on a mismatch).
-- Run `./configure.sh` (Linux/macOS) or `./configure.cmd` (Windows): the dev launcher notices `package/dist/config/node-version` differs from `configuration` and reconfigures on the next run anyway.
-- Dispatch `create-release.yml` without publishing before merging (see the top of this file): the Node binary is signed and notarized like every other bundled binary.
+- Pick the newest release of the current LTS line at <https://nodejs.org/dist/index.json>.
+- Update `NODE` in `configuration` (developers can try another version without editing it: `QUARTO_NODE_VERSION=v26.x.y ./configure.sh`).
+- Update the pinned version in `src/command/check/check.ts` (`quarto check --strict`; `tests/smoke/check/check-versions-no-mismatch.test.ts` fails on a mismatch).
+- Run `./configure.sh` / `./configure.cmd`; the dev launcher also notices `package/dist/config/node-version` differs from `configuration`.
+- Dispatch `create-release.yml` without publishing before merging: the Node binary is signed and notarized like every other bundled binary.
 ```
+
+In the Deno section add one line: `- Update kDenoToolVersion in src/tools/impl/deno-paths.ts (tests/unit/tools/deno-tool.test.ts checks it).`
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add news/changelog-1.11.md dev-docs/upgrade-dependencies.md
+git add news/changelog-1.12.md dev-docs/upgrade-dependencies.md
 git commit -m "docs: changelog and upgrade notes for the Node runtime"
 ```
 
 ## Verification
 
-Before opening the PR:
+Before opening the PR (Linux or macOS; the three-OS run is CI):
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-dependency.test.ts unit/node-bundle-ensure.test.ts`: 3 passed.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/run/run-script.test.ts smoke/check/check-versions-no-mismatch.test.ts smoke/render/`: green (the `check-versions` strict test still reports the Deno row until PR 34; if it fails on `Deno version: (not detected)`, that is PR 34's change and this PR marks the test `ignore` with a comment naming PR 34).
-- `quarto run --dev tools/check-runtime-boundary.ts`: counts unchanged (this PR adds no `Deno.*`).
-- Fresh clone test on Linux: `git clone … && ./configure.sh && package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-dependency.test.ts unit/node-bundle-ensure.test.ts unit/runtime-env.test.ts unit/tools/deno-tool.test.ts smoke/env/launcher-env.test.ts`: all pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/run/ smoke/project/project-prepost.test.ts smoke/build-ts-extension/build-ts-extension.test.ts smoke/create/create.test.ts smoke/check/`: all pass. `smoke/run/run-script.test.ts` and `stdlib-run-version.test.ts` pass because `quarto run` still uses the Deno tool; that is expected, not evidence that scripts run on Node (PR 35).
+- `quarto run --dev tools/check-runtime-boundary.ts`: counts unchanged (the Deno tool runs it).
+- `npm run typecheck`: exit 0.
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ./quarto-bld validate-bundle && (cd ../pkg-working/bin && ./quarto check)`.
-- Push the branch and let `test-smokes.yml`, `test-bundle.yml`, `test-quarto-latexmk.yml`, `test-install.yml` run; dispatch `create-release.yml` with `publish-release=false` and confirm the Linux and macOS jobs pass (Windows MSI is expected to fail at "Build Launcher"-dependent smoke steps until PR 34; the `Sign files` step must pass with `node.exe`).
-- `grep -rn "deno" configure.sh configure.cmd package/scripts/common/quarto package/scripts/windows/quarto.cmd package/src/quarto-bld package/src/quarto-bld.cmd` shows only `QUARTO_DENO*` alias lines.
+- Fresh clone: `git clone … && ./configure.sh && package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd`.
+- Concurrent rebuild, the way `tests/run-parallel-tests.ts` runs buckets (`Promise.all` over `./run-tests.sh` processes, line 259): `cd tests && rm -f ../package/dist/bin/quarto-dev.mjs && for i in 1 2 3 4; do QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts & done; wait`: all four pass, and `ls ../package/dist/bin/*.tmp ../package/dist/bin/*.lock` finds nothing. (`./run-parallel-tests.sh` itself runs through `quarto run`, i.e. the Deno tool, until PR 35.)
+- Push and let every workflow run: `test-smokes.yml` (Node default), the PR 32 Node matrix, the nightly Deno matrix (`workflow_dispatch` it once), `test-bundle.yml`, `test-install.yml`, `lint.yml`, the boundary-ratchet workflow, `test-quarto-latexmk.yml` (unless PR 39 already removed it). Dispatch `create-release.yml` with `publish-release=false`: all jobs green, including the Windows MSI and zip, and `test-smokes-built.yml` on the artifacts.
 
 ## Review checklist
 
-- [ ] `configuration` pins `NODE` to a 26.x release that exists in `https://nodejs.org/dist/index.json`; the checksum step in `configure.sh` verifies the download.
-- [ ] `node.ts` produces exactly the five archive names listed in the Context section; no S3 mirror is involved (`archiveUrl` special case).
-- [ ] The dev launchers unset `NODE_OPTIONS` and `NODE_PATH`, pass `--use-system-ca`, and map all four `QUARTO_DENO*` aliases; no reference to `DENO_DIR`, `--importmap`, `--check`, `--cached-only`, `--unstable-*` remains.
-- [ ] Dev mode runs the bundle via `ensure.mjs`; the watch excludes `node_modules` and the heavy resource trees but includes `src/resources/types`.
-- [ ] `prepare-dist` output contains `bin/tools/<arch>/node` and no `node-dist`; macOS copies both arches like Pandoc.
-- [ ] `build.mjs` no longer defines `import.meta.main` and no longer imports the Deno shim; the `eslint-disable-next-line` scrub is preserved.
-- [ ] `quarto-preview.js` builds through `build.mjs` with `npm ci` (not `npm install`).
-- [ ] Changelog entry names the alias variables and the `NODE_OPTIONS` behaviour.
-- [ ] No file under `src/` other than `src/core/devconfig.ts` changed.
+- [ ] `configure.*` and `prepare-dist` download **both** Node and Deno; no code path runs the CLI on Deno unless `QUARTO_RUNTIME=deno` (Task 13).
+- [ ] `QUARTO_DENO` is never used as the Node binary anywhere (`grep -n QUARTO_DENO package/scripts package/launcher package/src/quarto-bld*`: only the Deno-tool lines).
+- [ ] `NODE_OPTIONS`/`NODE_PATH` are moved to `QUARTO_SAVED_*` only when set, in all three launchers; `restoreSavedNodeEnv()` is the first statement of `quarto()`.
+- [ ] Quarto's flags are identical in the shell launcher, `quarto.cmd`, `main.rs` and `quarto-bld*` (`--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON`).
+- [ ] `ensure.mjs` decides staleness from `<outfile>.inputs.json` (no directory walk, no skip list), takes the lock, re-checks under it; `bundle()` writes JS last through temp + rename.
+- [ ] Dev bundles are `.mjs`; `bin/package.json` is written by `prepare-dist` and signed on macOS.
+- [ ] The shim is deleted only after the Task 2 gate passed; the PR description lists the Deno members third-party code still references (guarded).
+- [ ] `denoToolBinary()` resolution order: `QUARTO_DENO`, installed tool, bundled tool; `src/core/run/deno.ts` and `build-ts-extension` use it.
+- [ ] `tsconfig.json` covers the CLI graph, `bld.ts` and tests; no `@ts-ignore` added; first and last `tsc` counts in the description.
+- [ ] Task 13 present only if `SPIKES.md` says Spike #2 passed.
 
 ## Risks and rollback
 
-- **`npm ci` needs network access to registry.npmjs.org and npm.jsr.io at configure time.** Before this PR, `deno install` needed jsr.io and the GitHub-hosted tarballs; the surface is comparable. Corporate proxies: npm honours `HTTPS_PROXY`; document `npm config set cafile` in the troubleshooting page (PR 34 docs list).
-- **A stale dev bundle.** If `ensure.mjs` misses a file type (e.g. a `.wasm` import), developers see old behaviour. The reason line under `QUARTO_DEBUG_BUNDLE=1` and `rm package/dist/bin/quarto-dev.js` are the escape hatches; add the extension to `kExts` and the test.
-- **Windows `tar` on older Windows 10 builds cannot extract zip.** The old `configure.cmd` had an `unzip` fallback; keep the same two-step fallback if the first CI Windows run fails (`IF ERRORLEVEL 1 unzip -o ...`).
-- **Node 26 glibc requirement (>= 2.28).** The official Linux binaries do not run on RHEL 7 / CentOS 7; neither did Deno 2 on glibc 2.17 in practice (the RHEL tarball job is disabled today). PR 34 removes the job.
-- **Rollback:** revert the PR; `main` goes back to Deno with the PR 32 Node matrix as an allowed-failure job. No data formats changed (the dev config file is regenerated by `configure`).
+- **A Phase 2 gap surfaces only at the flip** (a `Deno.*` call in code outside the ratchet's scopes). Symptom: `ReferenceError: Deno is not defined` in a render. Task 2's gate and the PR 32 matrix (which ran the bundle with the shim) narrow it; the dual-runtime switch (Task 13), when present, is the user-side workaround: `QUARTO_RUNTIME=deno`.
+- **`npm ci` needs registry.npmjs.org and npm.jsr.io at configure time.** npm honours `HTTPS_PROXY`; corporate CAs need `npm config set cafile`. Developer-only (users never run npm).
+- **Installer size:** the installers carry Node and Deno until PR 37 (about +120 MB per arch on macOS universal). Accepted by decision 1.
+- **`--use-env-proxy` changes behaviour for users who set `HTTPS_PROXY` but relied on Quarto ignoring it** (Deno honoured it, so this restores pre-flip behaviour, not a change). `NO_PROXY` is honoured.
+- **Stale lock after a crash during a rebuild.** `ensure.mjs` steals a lock older than 120 s; a developer can delete `package/dist/bin/quarto-dev.mjs.lock`.
+- **Windows rename of the bundle while another `quarto` reads it.** libuv opens files with `FILE_SHARE_DELETE`, so the rename succeeds; `writeAtomic` retries 10 times on `EPERM`/`EBUSY` otherwise.
+- **`tsc` finds many errors the first time.** Bounded by the stop condition in Task 12 step 4.
+- **Rollback:** revert the PR. Every Phase 2 change still works on Deno (the PR 32 nightly Deno matrix proves it), `configure` then runs the Deno launchers again; no data format changed (`dev-config` is regenerated by `configure`).
 
 ## Decisions needed
 
-1. **Pin `v26.12.0` now or wait for 2026-10-28 (LTS promotion)?** Recommendation: pin the newest 26.x at execution time; the LTS label changes nothing in the binary. If the team wants an LTS-labelled release on the first prerelease, PR 33 can land with `v24.22.0` and PR 34 bumps to 26 (the dependency module and `configuration` are the only places); not recommended because 24 enters Maintenance on 2026-10-20.
-2. **Dev mode through the bundle (chosen) vs `node src/quarto.ts` after removing the 12 enums and 40 parameter-property files.** Recommendation: bundle. It is what ships, it keeps `src/import_map.json` as the single dependency map, and the enum cleanup can still happen in PR 38 for `tsc`'s `erasableSyntaxOnly` if the team wants it, without changing the launcher.
+1. **Dist bundle name.** Kept as `bin/quarto.js` plus `bin/package.json` instead of renaming to `quarto.mjs`, because external tools may reference `bin/quarto.js` and the rename buys nothing once `bin/package.json` exists. Change only if a packager objects to a `package.json` in `bin/`.
+2. **`QUARTO_DENO` warning when `QUARTO_NODE` is set.** The plan stays silent then (conda and other packagers set both during the transition: Node for the CLI, Deno for the tool). The alternative, warning whenever `QUARTO_DENO` is set, would print on every conda run until PR 37.
+3. Not changed because the review's concern no longer applies: "`quarto-cli.code-workspace` `deno.path` points at a deleted binary". `configure.sh` keeps the `tools/deno` symlink until PR 37, which removes the `deno.*` keys.

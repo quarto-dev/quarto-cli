@@ -1,84 +1,94 @@
-# PR 34: Installers ship Node, Rust launcher, `quarto check` runtime row, env var aliases, docs
+# PR 34: Installers ship Node correctly; platform minimums; `quarto check` runtime row; runtime environment contract
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Every installer (deb, rpm, tarball, pkg, msi, zip) ships and launches the Node binary, `quarto.exe` spawns `node`, `quarto check` reports and strictly checks the pinned Node version, the `QUARTO_DENO*` aliases print a one-time deprecation notice, and the documentation lists what changed.
-**Phase:** 3. **Depends on:** PR 33. **Unblocks:** PR 37 (CI switch assumes installers work on Node).
+**Goal:** Every installer ships the Node binary with Node's own macOS entitlements and refuses to install where Node 26 cannot run, `quarto check` reports and strictly checks the pinned Node version, the conda recipe template uses `nodejs`, and the runtime environment contract (review S6) is written down as one table with a test per testable row.
+**Phase:** 3. **Depends on:** PR 33 (the flip; launchers, `src/core/runtime-env.ts`, Rust launcher, `quarto install deno`). **Unblocks:** PR 37.
 **Branch:** `rt/34-installers-and-check`.
-**Suggested executor:** Opus. A Rust launcher change, three installer pipelines with signing/notarization, and user-facing wording need judgement; the TypeScript is small.
-**Size:** M (about 18 files: `main.rs`, `create-release.yml`, `check.ts`, a new `runtime-env.ts`, conda recipe, `llm-docs/code-signing-installers.md`, changelog, tests, docs list).
-**Ships on:** Node (PR 33 flipped). The PR 32 Node matrix and `create-release.yml` (dispatched with `publish-release=false`) are the gates.
+**Suggested executor:** Opus. Signing and notarization with new entitlements, installer metadata on three platforms and a proxy end-to-end test need judgement; the TypeScript is small.
+**Size:** M (about 16 files: `node-entitlements.plist`, `installer.ts` (macOS), `distribution.xml`, `installer.ts` (Linux), `create-release.yml`, `check.ts`, conda recipe (3 files), `llm-docs/code-signing-installers.md`, 2 tests, changelog, `docs-updates.md`).
+**Ships on:** Node. Gates: the PR 32 Node matrix, `create-release.yml` dispatched with `publish-release=false` (all platforms), `test-smokes-built.yml` on its artifacts.
 
 ## Spec
 
 ### Context
 
-Assessment sections 3.6 (distribution and packaging) and 6 (operators and CI, packagers) and Phase 3 step 5. PR 33 put `node` into `package/dist` and `pkg-working`, taught the shell launchers to start it, and swapped the two binary names in the signing lists so nightly builds keep working. What is left for a Node-based prerelease to be installable everywhere:
+Assessment sections 3.6 and 6 (operators, CI, packagers), review S6 and the PR 34 findings in `REVIEW-2026-10-15.md` section 4. After PR 33 the CLI runs on Node everywhere, including `quarto.exe` (the Rust launcher moved into PR 33 so the MSI never broke), and the installers already carry `bin/tools/<arch>/node` signed with Quarto's two-key `entitlements.plist`. What is left:
 
-- The Rust launcher `package/launcher/src/main.rs` (shipped as `quarto.exe` on Windows; built on every platform) still spawns `deno run ... quarto.js` with Deno flags (lines 50-113).
-- `create-release.yml` still has the disabled `make-tarball-rhel` job that downloads a conda-forge Deno (lines 207-256) and lists `RHEL Zip` in the publish step (lines 613, 711, 730).
-- `src/command/check/check.ts:274,305` reads `Deno.version.deno` and pins `2.7.14`.
-- Nothing prints a deprecation notice when a `QUARTO_DENO*` variable is set; PR 33's launchers honour the aliases silently.
-- The conda recipe template in `package/conda-recipe/` names `deno` and `deno-dom`.
-- `llm-docs/code-signing-installers.md` describes signing `deno`.
-- quarto.org documents `quarto run` scripts as Deno scripts and the `QUARTO_DENO*` variables.
+- **macOS entitlements.** Quarto signs `pandoc`, `esbuild`, `typst`, `dart` and (since PR 33) `node` with `package/scripts/macos/entitlements.plist`: `com.apple.security.cs.allow-jit` and `com.apple.security.cs.allow-unsigned-executable-memory`. Node's release signing (`tools/osx-codesign.sh` in `nodejs/node`, which passes `tools/osx-entitlements.plist` to `codesign --options runtime`) grants six keys at `v26.12.0` (read 2026-10-15):
+  - `com.apple.security.cs.allow-jit`
+  - `com.apple.security.cs.allow-unsigned-executable-memory`
+  - `com.apple.security.cs.disable-executable-page-protection`
+  - `com.apple.security.cs.allow-dyld-environment-variables`
+  - `com.apple.security.cs.disable-library-validation`
+  - `com.apple.security.get-task-allow`
 
-Linux deb/rpm (`package/src/linux/installer.ts`, `package/scripts/linux/*/postinst`), the macOS pkg scripts (`package/scripts/macos/pkg/postinstall`, `distribution.xml`) and the Windows WiX sources (`package/src/windows/quarto.wxs`, `installer.ts`) contain nothing runtime-specific: they copy `bin/` and `share/` trees and symlink `pandoc`. They need no change beyond what `prepare-dist` already puts into `pkg-working` (verified by reading each file; the review checklist asks the reviewer to confirm).
-
-macOS signing and notarization (from `llm-docs/code-signing-installers.md` and `package/src/macos/installer.ts:69-164`): every Mach-O in the payload is signed individually with `--options=runtime --timestamp`; binaries that JIT get `entitlements.plist` (`com.apple.security.cs.allow-jit`, `com.apple.security.cs.allow-unsigned-executable-memory`). Node's V8 JIT needs exactly those two entitlements, so the entry PR 33 added for `tools/<arch>/node` in `signWithEntitlements` is complete. The official Node binaries arrive signed by the OpenJS Foundation; `codesign --force` replaces that signature with Posit's Developer ID, which is what Deno's binaries also went through. Windows: `sign-files` signs `node.exe` with `smctl` (PR 33 swapped the path); no notarization exists on Windows.
+  Without `disable-library-validation`, hardened-runtime Node refuses to load a native addon (`.node`) that is not signed by Posit's team ID; PR 35 sends script authors to npm packages, some of which ship native addons. `get-task-allow` is a debugging entitlement (lets other processes attach); it is not needed to run Node and Quarto should not ship it. This PR signs `node` with a new `node-entitlements.plist` holding the first five keys. **The executor re-reads Node's plist for the pinned version** (`curl -sS https://raw.githubusercontent.com/nodejs/node/<version>/tools/osx-entitlements.plist`) and records any difference in the PR description.
+- **Platform minimums.** Node 26 official binaries need macOS ≥ 13.5 (x64 and arm64), Linux glibc ≥ 2.28 and kernel ≥ 4.18 (x64 and arm64) (`BUILDING.md` at `v26.12.0`, "Supported platforms"), and Windows 10 / Server 2016 or newer. Deno 2.x ran on older macOS releases. Today `package/scripts/macos/distribution.xml` has no `allowed-os-versions`, so the pkg installs on macOS 12 and `quarto` then fails with a dyld error; the deb/rpm metadata (`package/src/linux/installer.ts:73-103`) declares no libc dependency.
+- **RHEL 7 job.** `create-release.yml` still carries the disabled `make-tarball-rhel` job (`if: false`, lines 207-256) that downloads a conda-forge Deno; Node 26 cannot run on RHEL 7's glibc 2.17.
+- **`quarto check`.** PR 19 already replaced `Deno.version.deno` at `src/command/check/check.ts:274` with `runtime().version`; the row label is still `"Deno"` and the strict pin still `"2.7.14"` (line 305). `quarto check --output <file>` writes the label as a JSON key (`dependencies[name]`, lines 317-323).
+- **Conda.** `package/conda-recipe/build.sh:5,27`, `bld.bat:3,24` export `QUARTO_DENO`; `meta.yaml` pins `deno` (`max_pin="x.x.x"`) and `deno-dom`.
+- **Docs.** `llm-docs/code-signing-installers.md` describes signing `deno`; quarto.org documents `QUARTO_DENO*`.
 
 Assumptions about earlier PRs:
 
-- PR 19 added `runtime(): { name: "deno" | "node" | "bun"; version: string }` to `src/deno_ral/platform.ts`, where `version` has no leading `v` (`process.versions.node`).
-- PR 14 added `env` to `src/deno_ral/env.ts`; PR 22 routed `semver/mod.ts` through `src/deno_ral/semver.ts` (if `check.ts` still imports `semver/mod.ts` directly, keep that import; the ratchet decides).
-- PR 20 removed `QUARTO_DENO_DOM`/`DENO_DOM_PLUGIN` from the launchers and `main.rs`. The `main.rs` rewrite below starts from the file as it is on `main` and deletes those lines if still present.
+- PR 33: launchers pass `--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON`; `NODE_OPTIONS`/`NODE_PATH` saved as `QUARTO_SAVED_*` and restored by `src/core/runtime-env.ts`; `runtimeEnvWarnings()` covers `QUARTO_DENO*`; `tests/smoke/env/launcher-env.test.ts` and `tests/unit/runtime-env.test.ts` exist; `bin/tools/<arch>/deno` still ships (tool) until PR 37.
+- PR 19: `runtime()` in `src/deno_ral/platform.ts` returns `{ name, version }` with `version` without a leading `v`.
+- PR 28 + PR 14b: `exit()` drains stdout/stderr; `tests/smoke/inspect/inspect-pipe.test.ts` exists.
+- PR 20: `deno_dom` is gone from the signing lists and launchers.
 
 ### Scope
 
 In:
-- `package/launcher/src/main.rs`: spawn `node`, Quarto's flags, `QUARTO_NODE` with `QUARTO_DENO` alias, `QUARTO_NODE_OPTIONS` with the three `QUARTO_DENO*` aliases, remove `NODE_OPTIONS`/`NODE_PATH`.
-- `.github/workflows/create-release.yml`: delete `make-tarball-rhel` and its references.
-- `src/command/check/check.ts`: Node.js row, pinned constant exported, unit test against `configuration`.
-- `src/core/runtime-env.ts` (new): one-time deprecation warning for `QUARTO_DENO*`; called from `src/quarto.ts`.
-- `tests/binary-mode-strip-env.txt`: add `QUARTO_NODE`, `QUARTO_NODE_OPTIONS`.
-- `package/conda-recipe/*`: `nodejs` instead of `deno`/`deno-dom`.
-- `llm-docs/code-signing-installers.md`: Node wording.
-- `news/changelog-1.11.md`: `quarto check` JSON key change, deprecation notice.
-- A `dev-docs/runtime-migration/docs-updates.md` checklist of quarto.org pages to change (the website lives in `quarto-dev/quarto-web`; this PR cannot edit it).
+- `package/scripts/macos/node-entitlements.plist` (new); `package/src/macos/installer.ts` signs `node` with it; a `create-release.yml` step that verifies the entitlements on the built tarball.
+- `package/scripts/macos/distribution.xml`: `allowed-os-versions` 13.5. `package/src/linux/installer.ts`: `libc6 (>= 2.28)` (deb) and `glibc >= 2.28` (rpm) dependencies.
+- `create-release.yml`: delete `make-tarball-rhel` and its references.
+- `src/command/check/check.ts`: `Node.js` row and pin; `kPinnedBinaryVersions` exported; unit test against `configuration`.
+- Conda recipe template: `nodejs` (exact pin), `QUARTO_NODE`; keeps `deno` for the tool until PR 37.
+- The runtime environment contract table (below) and `tests/smoke/env/proxy.test.ts`.
+- `llm-docs/code-signing-installers.md`, changelog, `dev-docs/runtime-migration/docs-updates.md`.
 
 Out:
-- `quarto run` behaviour (PR 35). `build-ts-extension` (PR 36). Removing the `DENO` field and the Deno test-runner branch (PR 37). `tinitex` packaging (PR 39).
-- Changing installer layout, install locations, or the MSI upgrade code.
+- The Rust launcher, launcher flags, `NODE_OPTIONS` handling, `QUARTO_DENO*` warnings (PR 33). `quarto run` (PR 35), `build-ts-extension` (PR 36), removing the Deno tool and `QUARTO_RUNTIME` (PR 37).
+- Installer layout, install locations, MSI upgrade code.
+
+### Runtime environment contract (review S6)
+
+One row per environment variable, flag or process behaviour that changed at the flip. "Test" names the test that pins the row; "manual" rows cannot run in CI and list the exact manual check.
+
+| # | Behaviour | Deno (≤ 1.11) | Node (1.12) | Implemented in | Test |
+|---|---|---|---|---|---|
+| 1 | `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` for `fetch` (publish, `install`, `add`, `check`) | honoured | `--use-env-proxy` in every launcher | PR 33 | `tests/smoke/env/proxy.test.ts` (this PR) |
+| 2 | stdout/stderr complete when piped and Quarto exits (`quarto inspect \| head`) | sync writes | layer `exit()` drains both streams | PR 28 | `tests/smoke/inspect/inspect-pipe.test.ts` (PR 14b) |
+| 3 | `QUARTO_DENO` | CLI runtime binary; conda sets it | never the CLI runtime; locates the Deno tool; one warning when `QUARTO_NODE` is unset | PR 33 | `tests/unit/runtime-env.test.ts` |
+| 4 | `QUARTO_DENO_OPTIONS`, `QUARTO_DENO_EXTRA_OPTIONS` | Deno flags | not passed to Node; one warning | PR 33 | `tests/smoke/env/launcher-env.test.ts` |
+| 5 | `QUARTO_DENO_V8_OPTIONS` | `--v8-flags=` list | each flag passed to Node; deprecation warning | PR 33 | `tests/smoke/env/launcher-env.test.ts` |
+| 6 | `NODE_OPTIONS`, `NODE_PATH` | not read | moved aside for Quarto's Node, restored for every child | PR 33 | `tests/smoke/env/launcher-env.test.ts` |
+| 7 | `QUARTO_NODE`, `QUARTO_NODE_OPTIONS` | n/a | Node binary; extra flags after Quarto's | PR 33 | `tests/smoke/env/launcher-env.test.ts` (flags reach `node` under `QUARTO_LAUNCHER_DEBUG=1`) |
+| 8 | `QUARTO_DENO_DIR`, `QUARTO_DENO_DOM`, `DENO_DIR` | Deno cache, deno_dom plugin | ignored by the CLI; warning for the two `QUARTO_` ones | PR 33 | `tests/unit/runtime-env.test.ts` |
+| 9 | CA store (`DENO_TLS_CA_STORE=system,mozilla`) | set by launchers | `--use-system-ca`; `NODE_EXTRA_CA_CERTS` honoured | PR 33 | manual: on a machine with a corporate root CA in the OS store, `quarto add quarto-ext/fontawesome --no-prompt` behind the corporate TLS proxy succeeds |
+| 10 | Cliffy prompts (`cbreak`, Ctrl-C) | raw mode with `cbreak` | `process.stdin.setRawMode`, no `cbreak` (Cliffy 1.3.1) | measured in Spike #2 | manual: `quarto create project` in a terminal, press Ctrl-C at the first prompt: exits with code 130 and restores the terminal (`stty -a` shows `icanon` on) |
+| 11 | macOS hardened runtime | Deno signed with 2 keys | `node` signed with Node's keys minus `get-task-allow` | this PR | `create-release.yml` step "Verify node entitlements" (Task 1) |
+| 12 | Minimum OS | Deno's | macOS 13.5, glibc 2.28, Windows 10 | this PR | `tests/unit/linux-installer-config.test.ts` (Task 2); macOS: manual `installer -pkg ... -target /` on macOS 12 refuses |
+| 13 | `QUARTO_RUNTIME=node\|deno` | n/a | dual-runtime window (only if Spike #2 passed) | PR 33 Task 13 | `tests/smoke/env/launcher-env.test.ts` |
+| 14 | `QUARTO_NODE_VERSION` (configure override) | `DENO_VERSION` | renamed from the proposed `NODE_VERSION` (Docker collision) | PR 33 | manual: `NODE_VERSION=26.12.0 ./configure.sh` downloads `$NODE` from `configuration`, no 404 |
+| 15 | `QUARTO_TS_PROFILE` | `--inspect-brk` | unchanged | PR 33 | manual: `QUARTO_TS_PROFILE=1 quarto --help` waits for a debugger on 9229 |
+| 16 | `NO_COLOR=TRUE` on Windows | set by launchers | unchanged | PR 33 | existing Windows smoke tests (colourless log assertions) |
+| 17 | Process groups, signals (`quarto preview` Ctrl-C kills children) | `Deno.kill` | layer `killProcess` (negative pid) | PR 28 | `tests/unit/process-group.test.ts` (PR 14b) |
 
 ### Interfaces
 
 ```ts
-// src/core/runtime-env.ts
-/**
- * Deprecated environment variables from the Deno years and their replacement.
- * The launchers (package/scripts/common/quarto, quarto.cmd, quarto.exe) still
- * honour the first four as aliases in 1.11; the last two are ignored.
- */
-export const kDeprecatedRuntimeEnv: ReadonlyArray<{ name: string; replacement: string | null }>;
-
-/** Messages for every deprecated variable present in `env`. Pure; unit tested. */
-export function deprecatedRuntimeEnvMessages(env: Record<string, string | undefined>): string[];
-
-/** Print each message once per process through warnOnce. Called from src/quarto.ts. */
-export function warnDeprecatedRuntimeEnv(): void;
-```
-
-```ts
 // src/command/check/check.ts (exported for the unit test)
 export const kPinnedBinaryVersions: {
-  readonly pandoc: string;   // "3.10.0"
+  readonly pandoc: string;   // "3.10.0" (configuration PANDOC padded to three parts)
   readonly dartsass: string; // "1.101.0"
-  readonly node: string;     // "26.12.0"
+  readonly node: string;     // "26.12.0" (configuration NODE without "v")
   readonly typst: string;    // "0.15.1"
 };
 ```
 
-`quarto check versions` output rows after this PR:
+`quarto check versions` rows after this PR:
 
 ```
       Pandoc version 3.10.0: OK
@@ -87,438 +97,227 @@ export const kPinnedBinaryVersions: {
       Typst version 0.15.1: OK
 ```
 
-JSON (`quarto check --output file.json`): `dependencies["Node.js"]` replaces `dependencies["Deno"]`.
+`quarto check --output file.json`: `dependencies["Node.js"]` replaces `dependencies["Deno"]` (the `"Deno"` key is gone, not kept as an alias, because it would report a Node version under a Deno label).
 
-Rust launcher command line (installed Quarto on Windows, and on macOS/Linux when `quarto.exe`-style launcher is used by RStudio builds):
-
+```ts
+// package/src/linux/installer.ts
+/** nfpm package dependencies per format (exported for the unit test). */
+export function packageDependencies(format: "deb" | "rpm"): string[];
 ```
-node --enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca [QUARTO_NODE_OPTIONS...] <bin>/quarto.js <args...>
-```
-
-with `QUARTO_NODE`, `QUARTO_BIN_PATH`, `QUARTO_SHARE_PATH` set in the child environment and `NODE_OPTIONS`, `NODE_PATH` removed. `NO_COLOR=TRUE` on Windows stays.
 
 ### Files
 
-- Modify: `package/launcher/src/main.rs` (whole file)
-- Modify: `.github/workflows/create-release.yml:207-256,607-620,696-721,724-735` (RHEL job and references)
-- Modify: `src/command/check/check.ts:274,302-307`
-- Create: `src/core/runtime-env.ts`
-- Modify: `src/quarto.ts` (call `warnDeprecatedRuntimeEnv()` right after `checkReconfiguration`)
-- Modify: `tests/binary-mode-strip-env.txt`
-- Modify: `package/conda-recipe/build.sh:5-6,27-28,38-39`, `package/conda-recipe/bld.bat:3,24-25,34-35`, `package/conda-recipe/meta.yaml:2-3,18-19,23-32`
-- Modify: `llm-docs/code-signing-installers.md:84,165,192,226`
-- Modify: `news/changelog-1.11.md`
+- Create: `package/scripts/macos/node-entitlements.plist`
+- Modify: `package/src/macos/installer.ts` (the `node` entry PR 33 added: sign with the new plist)
+- Modify: `package/scripts/macos/distribution.xml`
+- Modify: `package/src/linux/installer.ts:73-103` (`packageDependencies`, `depends`)
+- Modify: `.github/workflows/create-release.yml:207-256,612-615,660-666,711,729-732` (RHEL job) and the `test-zip-mac` job (entitlement check)
+- Modify: `src/command/check/check.ts:298-307` (+ the exported constant)
+- Modify: `package/conda-recipe/build.sh`, `package/conda-recipe/bld.bat`, `package/conda-recipe/meta.yaml`
+- Modify: `llm-docs/code-signing-installers.md`, `news/changelog-1.12.md`
 - Create: `dev-docs/runtime-migration/docs-updates.md`
-- Test: `tests/unit/runtime-env.test.ts`, `tests/unit/check-pinned-versions.test.ts`
+- Test: `tests/unit/check-pinned-versions.test.ts`, `tests/unit/linux-installer-config.test.ts`, `tests/smoke/env/proxy.test.ts`
 
 ### Acceptance criteria
 
-- `cargo build --release --manifest-path package/launcher/Cargo.toml` succeeds on Linux, macOS and Windows; `package/launcher/target/release/quarto --paths` run from a `pkg-working/bin` copy prints the bin and share dirs; `... --version` prints the version file; `... render <doc>` renders with `node` as the child process (`ps`/Task Manager shows `node`, no `deno`).
-- `create-release.yml` dispatched with `publish-release=false` succeeds on all platforms; the Windows zip test job (`test-zip-win`) and the macOS tarball test job pass; the MSI installs and `quarto check` runs from a fresh Windows VM or the `test-smokes-built.yml` Windows leg.
-- `quarto check versions` prints a `Node.js version 26.12.0: OK` row and no `Deno` row; `quarto check --strict versions` reports no mismatch; `tests/smoke/check/check-versions-no-mismatch.test.ts` passes.
-- `QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=50 quarto --help` prints exactly one `WARNING: QUARTO_DENO_V8_OPTIONS is deprecated ...` line (on stderr, before the help) and still works.
-- `QUARTO_DENO_DIR=/tmp quarto --help` prints the "ignored" variant of the warning.
-- No warning is printed when none of the variables is set.
-- `grep -n -i deno package/launcher/src/main.rs .github/workflows/create-release.yml package/conda-recipe/*` shows only the alias handling in `main.rs`.
+- `create-release.yml` dispatched with `publish-release=false`, `os=all`: every job green, including notarization (`make-installer-mac`), the new "Verify node entitlements" step and the Windows MSI; `test-smokes-built.yml` green on the artifacts.
+- `codesign -d --entitlements - <bin>/tools/aarch64/node` on the built tarball lists exactly the five keys of `node-entitlements.plist`; `pandoc` still lists the two keys of `entitlements.plist`.
+- The macOS pkg's `distribution.xml` contains `<os-version min="13.5"/>`; the deb declares `libc6 (>= 2.28)`, the rpm `glibc >= 2.28` (`dpkg-deb -f <deb> Depends`, `rpm -qpR <rpm>`).
+- `quarto check versions` prints `Node.js version 26.12.0: OK` and no Deno row; `quarto check --strict versions` passes; `tests/smoke/check/check-versions-no-mismatch.test.ts` passes; `quarto check --output out.json` has `dependencies["Node.js"]` and no `dependencies["Deno"]`.
+- `tests/smoke/env/proxy.test.ts` passes on the three OSes.
+- `grep -n -i "rhel\|deno" .github/workflows/create-release.yml` shows only the `deno.exe` signing line PR 33 kept for the tool.
 
 ## Plan
 
-### Task 1: Rust launcher spawns Node
+### Task 1: Node's entitlements on macOS
 
 **Files:**
-- Modify: `package/launcher/src/main.rs`
+- Create: `package/scripts/macos/node-entitlements.plist`
+- Modify: `package/src/macos/installer.ts`, `.github/workflows/create-release.yml` (`test-zip-mac`)
 
-- [ ] **Step 1: Rewrite `main.rs`**
+- [ ] **Step 1: Re-read Node's plist for the pinned version**
 
-```rust
-use std::process::Command;
-use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
+Run: `curl -sS "https://raw.githubusercontent.com/nodejs/node/$(. ./configuration && echo $NODE)/tools/osx-entitlements.plist"`
+Expected: the six keys listed in the Context. If the set differs, use the new set minus `com.apple.security.get-task-allow` in step 2 and note the difference in the PR description.
 
-fn main() {
-    // compute executable path (resolving symlinks)
-    let mut exe_file: PathBuf = env::current_exe().expect("failed to get exe path");
-    let exe_metadata = fs::symlink_metadata(exe_file.as_path())
-        .expect("failed to get symlink metadata for exe path");
-    if exe_metadata.is_symlink() {
-        exe_file =
-            fs::read_link(exe_file.as_path()).expect("failed to canonicalize executable path");
-    }
+- [ ] **Step 2: `node-entitlements.plist`**
 
-    // compute bin_dir and share_dir (share_dir may be provided externally)
-    let bin_dir = exe_file
-        .parent()
-        .expect("failed to get executable parent")
-        .to_path_buf();
-    let mut share_dir = path_from_env("QUARTO_SHARE_PATH");
-    if share_dir.as_os_str().is_empty() {
-        share_dir = share_dir_from_bin_dir(&bin_dir);
-    }
-
-    // some other file paths
-    let js_file = bin_dir.join(Path::new("quarto.js"));
-
-    // get command line args (skip first which is the program)
-    let args: Vec<OsString> = env::args_os().skip(1).collect();
-
-    // handle no args at all
-    if args.is_empty() {
-        std::process::exit(0);
-    }
-
-    // handle --version
-    if &args[0] == "--version" || &args[0] == "-v" {
-        let version_path = share_dir.join("version");
-        let version = fs::read_to_string(version_path).expect("failed to read version");
-        println!("{}", version);
-        std::process::exit(0);
-    }
-
-    // handle --paths
-    if &args[0] == "--paths" {
-        println!("{}\n{}", bin_dir.display(), share_dir.display());
-        std::process::exit(0);
-    }
-
-    // compute the node location (allow it to be defined externally).
-    // QUARTO_DENO is accepted as an alias of QUARTO_NODE for one release (1.11);
-    // quarto.js prints the deprecation notice.
-    let mut node_file = path_from_env("QUARTO_NODE");
-    if node_file.as_os_str().is_empty() {
-        node_file = path_from_env("QUARTO_DENO");
-    }
-    if node_file.as_os_str().is_empty() {
-        node_file = bin_dir
-            .join("tools")
-            .join(arch_dir())
-            .join(NODE_BINARY);
-    }
-
-    // set environment variables required by quarto.js
-    std::env::set_var("QUARTO_NODE", &node_file);
-    std::env::set_var("QUARTO_BIN_PATH", &bin_dir);
-    std::env::set_var("QUARTO_SHARE_PATH", &share_dir);
-
-    // a user's Node setup must not change Quarto's runtime: NODE_OPTIONS would
-    // be prepended to our flags and NODE_PATH would shadow bundled modules
-    std::env::remove_var("NODE_OPTIONS");
-    std::env::remove_var("NODE_PATH");
-
-    // windows-specific env vars
-    #[cfg(target_os = "windows")]
-    std::env::set_var("NO_COLOR", std::ffi::OsStr::new("TRUE"));
-
-    // Quarto's own node options.
-    // --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
-    // --use-system-ca replaces DENO_TLS_CA_STORE=system,mozilla
-    let mut node_options: Vec<String> = vec![
-        String::from("--enable-experimental-regexp-engine"),
-        String::from("--max-old-space-size=8192"),
-        String::from("--stack-trace-limit=100"),
-        String::from("--use-system-ca"),
-    ];
-
-    // QUARTO_NODE_OPTIONS: space separated extra flags
-    if let Ok(extra) = env::var("QUARTO_NODE_OPTIONS") {
-        node_options.extend(extra.split_whitespace().map(String::from));
-    }
-    // Aliases kept for one release. The V8 variable was comma separated for deno's --v8-flags=.
-    if let Ok(v8) = env::var("QUARTO_DENO_V8_OPTIONS") {
-        node_options.extend(v8.split(',').filter(|s| !s.is_empty()).map(String::from));
-    }
-    for name in ["QUARTO_DENO_OPTIONS", "QUARTO_DENO_EXTRA_OPTIONS"] {
-        if let Ok(extra) = env::var(name) {
-            node_options.extend(extra.split_whitespace().map(String::from));
-        }
-    }
-
-    // run node
-    let mut child = Command::new(&node_file)
-        .args(node_options)
-        .arg(js_file)
-        .args(args)
-        .spawn()
-        .expect("failed to run node");
-
-    // forward exit status
-    let status = child.wait().expect("failed to wait on node");
-    if status.success() {
-        std::process::exit(0)
-    } else {
-        match status.code() {
-            Some(code) => std::process::exit(code),
-            // errors reaping the status code have been observed
-            // (see https://github.com/quarto-dev/quarto-cli/issues/2296)
-            // so in that return a normal exit status -- need further
-            // investigation to figure out if there is more to do here
-            None => std::process::exit(0),
-        }
-    }
-}
-
-// return a PathBuf for an environment variable using os encoding
-// (return empty string if the variable is not found)
-fn path_from_env(key: &str) -> PathBuf {
-    PathBuf::from(env::var_os(key).unwrap_or(OsString::new()))
-}
-
-fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
-    // if quarto is bundled into an `.app` file (e.g. RStudio) it will be
-    // looking for the share directory over in the resources folder.
-    if bin_dir.ends_with("Contents/MacOS/quarto/bin") {
-        bin_dir
-            .parent()
-            .expect("failed to get bin_dir parent")
-            .parent()
-            .expect("failed to get bin_dir parent")
-            .parent()
-            .expect("failed to get bin_dir parent")
-            .join("Resources")
-            .join("quarto")
-            .join("share")
-    // if using standard linux filesystem local bin folder then
-    // look for 'share' in the right place
-    } else if bin_dir.ends_with("usr/local/bin/quarto") {
-        bin_dir
-            .parent()
-            .expect("failed to get bin_dir parent")
-            .parent()
-            .expect("failed to get bin_dir parent")
-            .join("share")
-            .join("quarto")
-    } else {
-        bin_dir
-            .parent()
-            .expect("failed to get bin path parent")
-            .join("share")
-    }
-}
-
-// tools/<arch> directory holding the runtime. Windows builds are x64 only.
-fn arch_dir() -> &'static str {
-    if cfg!(target_os = "windows") {
-        return "x86_64";
-    }
-    match arch_string().as_str() {
-        s if s.starts_with("Darwin arm64") => "aarch64",
-        s if s.starts_with("Darwin x86_64") => "x86_64",
-        s if s.starts_with("Linux aarch64") => "aarch64",
-        _ => "x86_64",
-    }
-}
-
-// returns a string describing the architecture. only works on Unix
-fn arch_string() -> String {
-    let out = Command::new("uname")
-        .args(["-sm"])
-        .output()
-        .expect("Failed to run uname")
-        .stdout;
-    String::from_utf8(out).expect("Couldn't convert to string")
-}
-
-#[cfg(target_os = "windows")]
-const NODE_BINARY: &str = "node.exe";
-
-#[cfg(not(target_os = "windows"))]
-const NODE_BINARY: &str = "node";
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Entitlements for bin/tools/<arch>/node: Node's own release entitlements
+  (nodejs/node tools/osx-entitlements.plist) without get-task-allow, which
+  only lets debuggers attach. disable-library-validation lets Node load
+  native addons (.node) that are not signed by Posit.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+	<true/>
+	<key>com.apple.security.cs.disable-executable-page-protection</key>
+	<true/>
+	<key>com.apple.security.cs.allow-dyld-environment-variables</key>
+	<true/>
+	<key>com.apple.security.cs.disable-library-validation</key>
+	<true/>
+</dict>
+</plist>
 ```
 
-The `Linux aarch64` arm was a `TODO` in the Deno version; adding it makes the launcher usable for Linux arm64 tarballs if a downstream packager uses it.
+- [ ] **Step 3: Sign `node` with it**
 
-- [ ] **Step 2: Build and try it against a prepared distribution**
+In `package/src/macos/installer.ts`, after `const entitlements = join(...)` add:
 
-Run:
-```bash
-cargo build --release --manifest-path package/launcher/Cargo.toml
-cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 > /dev/null && cd ../..
-cp package/launcher/target/release/quarto package/pkg-working/bin/quarto-launcher
-package/pkg-working/bin/quarto-launcher --paths
-package/pkg-working/bin/quarto-launcher --version
-NODE_OPTIONS=--bogus QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=50 package/pkg-working/bin/quarto-launcher check versions
+```ts
+    const nodeEntitlements = join(
+      config.directoryInfo.pkg,
+      "scripts",
+      "macos",
+      "node-entitlements.plist",
+    );
 ```
-Expected: two paths; `99.9.9`; `quarto check versions` runs (the bogus `NODE_OPTIONS` is dropped; after Task 3 the deprecation warning for `QUARTO_DENO_V8_OPTIONS` appears first). On macOS `uname -sm` gives `Darwin arm64`; verify the `tools/aarch64/node` path is used by running with a missing binary and reading the panic message.
 
-- [ ] **Step 3: Commit**
+remove the `node` push PR 33 added to `signWithEntitlements`, and add a third list signed after the loop:
+
+```ts
+    // Node gets Node's own entitlements (node-entitlements.plist)
+    const signWithNodeEntitlements = ["aarch64", "x86_64"].map((arch) =>
+      join(config.directoryInfo.pkgWorking.bin, "tools", arch, "node")
+    );
+    for (const fileToSign of signWithNodeEntitlements) {
+      info(fileToSign);
+      await signCode(applicationDevId, fileToSign, nodeEntitlements);
+    }
+```
+
+- [ ] **Step 4: Verify in the release workflow**
+
+In `.github/workflows/create-release.yml`, job `test-zip-mac`, after the `tar -zxf` step add:
+
+```yaml
+      - name: Verify node entitlements
+        if: ${{ github.event_name != 'schedule' }}
+        shell: bash
+        run: |
+          for arch in aarch64 x86_64; do
+            ents=$(codesign -d --entitlements - --xml "bin/tools/$arch/node" 2>/dev/null)
+            for key in allow-jit allow-unsigned-executable-memory disable-executable-page-protection allow-dyld-environment-variables disable-library-validation; do
+              echo "$ents" | grep -q "com.apple.security.cs.$key" || { echo "::error::$arch/node lacks $key"; exit 1; }
+            done
+            if echo "$ents" | grep -q "get-task-allow"; then echo "::error::$arch/node has get-task-allow"; exit 1; fi
+          done
+          bin/tools/aarch64/node -e 'console.log("node runs under hardened runtime")'
+```
+
+(Scheduled builds skip signing, hence the `if`.)
+
+- [ ] **Step 5: Commit**
 
 ```bash
-git add package/launcher/src/main.rs
-git commit -m "launcher: spawn node with Quarto's flags and env var aliases"
+git add package/scripts/macos/node-entitlements.plist package/src/macos/installer.ts .github/workflows/create-release.yml
+git commit -m "macos: sign node with Node's release entitlements (minus get-task-allow) and verify them"
 ```
 
-### Task 2: Remove the RHEL tarball job
+### Task 2: Platform minimums
+
+**Files:**
+- Modify: `package/scripts/macos/distribution.xml`, `package/src/linux/installer.ts`
+- Test: `tests/unit/linux-installer-config.test.ts`
+
+- [ ] **Step 1: Write the failing test**
+
+```ts
+/*
+ * linux-installer-config.test.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+import { unitTest } from "../test.ts";
+import { assertEquals } from "../asserts.ts";
+import { join } from "../../src/deno_ral/path.ts";
+import { readTextFileSync } from "../../src/deno_ral/fs.ts";
+import { env } from "../../src/deno_ral/env.ts";
+import { packageDependencies } from "../../package/src/linux/installer.ts";
+
+unitTest("linux installers require Node 26's glibc", () => {
+  assertEquals(packageDependencies("deb"), ["libc6 (>= 2.28)"]);
+  assertEquals(packageDependencies("rpm"), ["glibc >= 2.28"]);
+});
+
+unitTest("macOS pkg refuses macOS older than Node 26's minimum", () => {
+  const xml = readTextFileSync(join(env.get("QUARTO_ROOT")!, "package", "scripts", "macos", "distribution.xml"));
+  assertEquals(/<allowed-os-versions>\s*<os-version min="13\.5"\s*\/>\s*<\/allowed-os-versions>/.test(xml), true);
+});
+```
+
+- [ ] **Step 2: Run it and see it fail**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/linux-installer-config.test.ts`
+Expected: FAIL, `packageDependencies` is not exported.
+
+- [ ] **Step 3: Implement**
+
+`package/src/linux/installer.ts`, above `createNfpmConfig`:
+
+```ts
+// Node 26's official Linux binaries need glibc >= 2.28 (nodejs/node BUILDING.md).
+export function packageDependencies(format: "deb" | "rpm"): string[] {
+  return format === "deb" ? ["libc6 (>= 2.28)"] : ["glibc >= 2.28"];
+}
+```
+
+and in the format-specific block: `config.overrides.deb = { recommends: ["unzip", "xz-utils"], depends: packageDependencies("deb") };` and `config.overrides.rpm = { recommends: ["xz"], depends: packageDependencies("rpm") };`.
+
+`package/scripts/macos/distribution.xml`, after `<options hostArchitectures="arm64,x86_64" />`:
+
+```xml
+  <!-- Node 26 (bin/tools/<arch>/node) needs macOS 13.5 or newer -->
+  <allowed-os-versions>
+    <os-version min="13.5"/>
+  </allowed-os-versions>
+```
+
+- [ ] **Step 4: Run and commit**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/linux-installer-config.test.ts`
+Expected: `2 passed`.
+
+```bash
+git add package/src/linux/installer.ts package/scripts/macos/distribution.xml tests/unit/linux-installer-config.test.ts
+git commit -m "installers: require macOS 13.5 and glibc 2.28 (Node 26 minimums)"
+```
+
+### Task 3: Remove the RHEL 7 tarball job
 
 **Files:**
 - Modify: `.github/workflows/create-release.yml`
 
 - [ ] **Step 1: Delete the job and its references**
 
-Delete the `make-tarball-rhel` job (lines 207-256, from `  make-tarball-rhel:` to the end of its `Upload Artifact` step). Then:
+- Delete `make-tarball-rhel` (lines 207-256, from `  make-tarball-rhel:` through its `Upload Artifact` step).
+- `publish-release` `needs:` (lines 612-615): remove the comment `# optional in release to not be blocked by RHEL build depending on conda-forge deno dependency` and the commented `# make-tarball-rhel,`.
+- `Generate Checksums` (lines 660-666): remove the `if [ -f "RHEL Zip/..." ]` block.
+- `Create Release` `files:` (line 711): remove the `RHEL Zip` line; keep `fail_on_unmatched_files: false` only if another optional artifact still needs it (`grep -n "fail_on_unmatched" .github/workflows/create-release.yml` and read the comment).
+- `cleanup-when-failure` `needs:` (lines 729-732): remove the same comment and commented line.
+- Lines 116-118 (`# TODO: uncomment this again if new issue with RHEL build`): delete the two comment lines.
 
-- In `publish-release`'s `needs:` list (around line 607-620) remove `make-tarball-rhel` and the comment `# optional in release to not be blocked by RHEL build depending on conda-forge deno dependency`.
-- In `Generate Checksums` (lines 661-665) remove the `if [ -f "RHEL Zip/..." ]` block.
-- In the `files:` list of `Create Release` (line 711) remove `./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz`.
-- In the `cleanup`/failure job `needs:` (around line 724-735) remove `make-tarball-rhel` and the duplicate comment.
-
-Run: `grep -n -i "rhel\|deno" .github/workflows/create-release.yml`
+Run: `grep -n -i "rhel" .github/workflows/create-release.yml`
 Expected: no output.
-
-Node 26's official Linux binaries require glibc 2.28 (RHEL 8+), so a RHEL 7 build cannot be produced from the official binary; RHEL 7 reached end of maintenance in June 2024. Mention this in the PR description.
 
 - [ ] **Step 2: Commit**
 
 ```bash
 git add .github/workflows/create-release.yml
-git commit -m "ci: drop the RHEL 7 tarball job (Node 26 needs glibc 2.28; job was disabled)"
-```
-
-### Task 3: One-time deprecation notice for `QUARTO_DENO*`
-
-**Files:**
-- Create: `src/core/runtime-env.ts`
-- Modify: `src/quarto.ts`
-- Modify: `tests/binary-mode-strip-env.txt`
-- Test: `tests/unit/runtime-env.test.ts`
-
-- [ ] **Step 1: Write the failing test**
-
-```ts
-/*
- * runtime-env.test.ts
- *
- * Copyright (C) 2026 Posit Software, PBC
- */
-import { unitTest } from "../test.ts";
-import { assertEquals, assertStringIncludes } from "../asserts.ts";
-import { deprecatedRuntimeEnvMessages } from "../../src/core/runtime-env.ts";
-
-unitTest("runtime-env - no messages when nothing deprecated is set", () => {
-  assertEquals(deprecatedRuntimeEnvMessages({ QUARTO_NODE: "/x/node", PATH: "/bin" }), []);
-});
-
-unitTest("runtime-env - aliases name their replacement", () => {
-  const msgs = deprecatedRuntimeEnvMessages({
-    QUARTO_DENO: "/opt/deno",
-    QUARTO_DENO_V8_OPTIONS: "--stack-trace-limit=50",
-  });
-  assertEquals(msgs.length, 2);
-  assertStringIncludes(msgs[0], "QUARTO_DENO is deprecated");
-  assertStringIncludes(msgs[0], "QUARTO_NODE");
-  assertStringIncludes(msgs[1], "QUARTO_DENO_V8_OPTIONS is deprecated");
-  assertStringIncludes(msgs[1], "QUARTO_NODE_OPTIONS");
-  assertStringIncludes(msgs[1], "space-separated");
-});
-
-unitTest("runtime-env - ignored variables say so", () => {
-  const msgs = deprecatedRuntimeEnvMessages({ QUARTO_DENO_DIR: "/tmp", QUARTO_DENO_DOM: "/x.so" });
-  assertEquals(msgs.length, 2);
-  assertStringIncludes(msgs[0], "QUARTO_DENO_DIR is ignored");
-  assertStringIncludes(msgs[1], "QUARTO_DENO_DOM is ignored");
-});
-
-unitTest("runtime-env - empty values do not count as set", () => {
-  assertEquals(deprecatedRuntimeEnvMessages({ QUARTO_DENO: "" }), []);
-});
-```
-
-- [ ] **Step 2: Run it and see it fail**
-
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/runtime-env.test.ts`
-Expected: FAIL, module `src/core/runtime-env.ts` not found.
-
-- [ ] **Step 3: Implement `runtime-env.ts`**
-
-```ts
-/*
- * runtime-env.ts
- *
- * Copyright (C) 2026 Posit Software, PBC
- *
- * Deprecated environment variables from the Deno runtime (Quarto <= 1.10).
- * The launchers still honour the aliases in 1.11; they are removed in 1.12.
- */
-
-import { env } from "../deno_ral/env.ts";
-import { warnOnce } from "./log.ts";
-
-const kDocsUrl = "https://quarto.org/docs/advanced/environment-vars.html";
-
-export const kDeprecatedRuntimeEnv: ReadonlyArray<
-  { name: string; replacement: string | null; note?: string }
-> = [
-  { name: "QUARTO_DENO", replacement: "QUARTO_NODE" },
-  { name: "QUARTO_DENO_OPTIONS", replacement: "QUARTO_NODE_OPTIONS" },
-  { name: "QUARTO_DENO_EXTRA_OPTIONS", replacement: "QUARTO_NODE_OPTIONS" },
-  {
-    name: "QUARTO_DENO_V8_OPTIONS",
-    replacement: "QUARTO_NODE_OPTIONS",
-    note: "V8 flags are now space-separated, e.g. QUARTO_NODE_OPTIONS=\"--stack-trace-limit=200\"",
-  },
-  { name: "QUARTO_DENO_DIR", replacement: null },
-  { name: "QUARTO_DENO_DOM", replacement: null },
-];
-
-export function deprecatedRuntimeEnvMessages(
-  environment: Record<string, string | undefined>,
-): string[] {
-  const messages: string[] = [];
-  for (const entry of kDeprecatedRuntimeEnv) {
-    const value = environment[entry.name];
-    if (value === undefined || value === "") {
-      continue;
-    }
-    if (entry.replacement) {
-      messages.push(
-        `${entry.name} is deprecated and will be removed in Quarto 1.12; use ${entry.replacement} instead.` +
-          (entry.note ? ` ${entry.note}.` : "") +
-          ` See ${kDocsUrl}`,
-      );
-    } else {
-      messages.push(
-        `${entry.name} is ignored: Quarto runs on Node.js and has no equivalent setting. See ${kDocsUrl}`,
-      );
-    }
-  }
-  return messages;
-}
-
-export function warnDeprecatedRuntimeEnv() {
-  for (const message of deprecatedRuntimeEnvMessages(env.toObject())) {
-    warnOnce(message);
-  }
-}
-```
-
-- [ ] **Step 4: Call it at startup**
-
-In `src/quarto.ts`, import `warnDeprecatedRuntimeEnv` from `./core/runtime-env.ts` and call it as the first statement inside the main runner callback, after `checkReconfiguration()` runs (search for `await checkReconfiguration();` in the `mainRunner` body near the bottom of the file and add `warnDeprecatedRuntimeEnv();` on the next line). The logger is initialised by `mainRunner` before the callback, so `warnOnce` goes to the configured log.
-
-- [ ] **Step 5: Strip the new variables in binary-mode tests**
-
-Append to the "Dev-tree pointers" block of `tests/binary-mode-strip-env.txt`:
-
-```
-QUARTO_NODE
-QUARTO_NODE_OPTIONS
-```
-
-Keep `QUARTO_DENO`, `QUARTO_DENO_DOM`, `DENO_DIR` in the list until PR 37 (a developer's shell may still export them).
-
-- [ ] **Step 6: Run the tests**
-
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/runtime-env.test.ts unit/binary-mode-strip-env.test.ts`
-Expected: all pass. Then `QUARTO_DENO_DIR=/tmp package/dist/bin/quarto --help 2>&1 | head -2` prints `WARNING: QUARTO_DENO_DIR is ignored: ...` once.
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add src/core/runtime-env.ts src/quarto.ts tests/unit/runtime-env.test.ts tests/binary-mode-strip-env.txt
-git commit -m "runtime: one-time deprecation notice for QUARTO_DENO* environment variables"
+git commit -m "ci: drop the disabled RHEL 7 tarball job (Node 26 needs glibc 2.28)"
 ```
 
 ### Task 4: `quarto check` reports Node.js
 
 **Files:**
-- Modify: `src/command/check/check.ts:274,302-307`
+- Modify: `src/command/check/check.ts:298-307`
 - Test: `tests/unit/check-pinned-versions.test.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -547,7 +346,6 @@ unitTest("quarto check pins match the configuration file", () => {
   assertEquals("v" + kPinnedBinaryVersions.node, configurationValue("NODE"));
   assertEquals(kPinnedBinaryVersions.dartsass, configurationValue("DARTSASS"));
   assertEquals(kPinnedBinaryVersions.typst, configurationValue("TYPST"));
-  // pandoc is padded to three components by check.ts
   assertEquals(kPinnedBinaryVersions.pandoc.replace(/\.0$/, ""), configurationValue("PANDOC"));
 });
 ```
@@ -559,33 +357,12 @@ Expected: FAIL, `kPinnedBinaryVersions` is not exported.
 
 - [ ] **Step 3: Implement**
 
-In `src/command/check/check.ts`:
-
-Replace line 274 (`const denoVersion = Deno.version.deno;`):
-
-```ts
-  const nodeVersion = runtime().version;
-```
-
-and add `import { runtime } from "../../deno_ral/platform.ts";` (merge into the existing `platform.ts` import on line 32).
-
-Replace lines 298-307 (the `FIXME` comment and `versionConstraints`):
-
-```ts
-  const versionConstraints: [string | undefined, string, string][] = [
-    [pandocVersion, kPinnedBinaryVersions.pandoc, "Pandoc"],
-    [sassVersion, kPinnedBinaryVersions.dartsass, "Dart Sass"],
-    [nodeVersion, kPinnedBinaryVersions.node, "Node.js"],
-    [typstVersion, kPinnedBinaryVersions.typst, "Typst"],
-  ];
-```
-
-Add near the top of the file (after the imports):
+PR 19 already changed line 274 to `const denoVersion = runtime().version;`. Rename the variable to `runtimeVersion` (two occurrences). Add after the imports:
 
 ```ts
 // Versions of the bundled binaries, as in the `configuration` file at the
-// repository root (which is not shipped). `quarto check --strict` requires an
-// exact match; tests/unit/check-pinned-versions.test.ts keeps both in sync.
+// repository root (not shipped). `quarto check --strict` requires an exact
+// match; tests/unit/check-pinned-versions.test.ts keeps both in sync.
 export const kPinnedBinaryVersions = {
   pandoc: "3.10.0",
   dartsass: "1.101.0",
@@ -594,10 +371,23 @@ export const kPinnedBinaryVersions = {
 } as const;
 ```
 
+Replace lines 298-307 (the `FIXME` comment and `versionConstraints`):
+
+```ts
+  const versionConstraints: [string | undefined, string, string][] = [
+    [pandocVersion, kPinnedBinaryVersions.pandoc, "Pandoc"],
+    [sassVersion, kPinnedBinaryVersions.dartsass, "Dart Sass"],
+    [runtimeVersion, kPinnedBinaryVersions.node, "Node.js"],
+    [typstVersion, kPinnedBinaryVersions.typst, "Typst"],
+  ];
+```
+
+The `name` is both the text label and the JSON key, so `--output` now writes `"Node.js"`. Use the values in `configuration` when executing (the test enforces it).
+
 - [ ] **Step 4: Run the tests**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/check-pinned-versions.test.ts smoke/check/check-versions-no-mismatch.test.ts smoke/check/check.test.ts`
-Expected: all pass; `package/dist/bin/quarto check versions` prints the `Node.js version 26.12.0: OK` row.
+Expected: all pass. Then `package/dist/bin/quarto check versions --output /tmp/c.json && node -e 'const d=require("/tmp/c.json").dependencies; console.log(Object.keys(d).join(","))'` prints `Pandoc,Dart Sass,Node.js,Typst` (order as `quarto check` writes it; `Deno` absent).
 
 - [ ] **Step 5: Commit**
 
@@ -606,66 +396,153 @@ git add src/command/check/check.ts tests/unit/check-pinned-versions.test.ts
 git commit -m "check: report and pin the Node.js runtime version"
 ```
 
-### Task 5: Conda recipe template
+### Task 5: Proxy end-to-end test (contract row 1)
+
+**Files:**
+- Test: `tests/smoke/env/proxy.test.ts`
+
+- [ ] **Step 1: Write the test**
+
+`quarto add <url>` fetches an arbitrary URL with `fetch` (`unknownUrlResolver` in `src/extension/extension-host.ts:266-279`); a plain-HTTP URL makes the proxy see the request in clear.
+
+```ts
+/*
+ * proxy.test.ts
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ *
+ * Contract row 1: fetch honours HTTP_PROXY (launchers pass --use-env-proxy).
+ */
+import { assert, assertStringIncludes } from "../../asserts.ts";
+import { execProcess } from "../../../src/core/process.ts";
+import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
+import { unitTest } from "../../test.ts";
+import { serveHttp } from "../../../src/deno_ral/http.ts";
+import { makeTempDirSync } from "../../../src/deno_ral/temp.ts";
+import { removeSync } from "../../../src/deno_ral/fs.ts";
+
+unitTest("proxy - quarto add sends its request through HTTP_PROXY", async () => {
+  const seen: string[] = [];
+  // A forward proxy receives the absolute URL in the request line.
+  const server = serveHttp({
+    port: 0,
+    hostname: "127.0.0.1",
+    handler: (req) => {
+      seen.push(req.url);
+      return new Response("not found", { status: 404 });
+    },
+    onListen: () => {},
+  });
+  await server.listening;
+  const dir = makeTempDirSync({ prefix: "proxy-test" });
+  try {
+    const proxy = `http://127.0.0.1:${server.addr.port}`;
+    const r = await execProcess(
+      {
+        cmd: quartoDevCmd(),
+        args: ["add", "http://quarto-proxy-test.invalid/ext.zip", "--no-prompt"],
+        cwd: dir,
+        stdout: "piped",
+        stderr: "piped",
+        ...quartoSpawnEnvOptions({ HTTP_PROXY: proxy, http_proxy: proxy, NO_PROXY: "", no_proxy: "" }),
+      },
+      undefined, undefined, undefined, true,
+    );
+    assert(!r.success, "the proxy answers 404, so quarto add must fail");
+    assert(seen.length > 0, `the proxy saw no request; stderr: ${r.stderr}`);
+    assertStringIncludes(seen[0], "quarto-proxy-test.invalid/ext.zip");
+  } finally {
+    await server.shutdown();
+    removeSync(dir, { recursive: true });
+  }
+});
+```
+
+`serveHttp`, `listening` and `onListen` are the PR 16 vocabulary (`port: 0` binds an ephemeral port; `addr.port` is the bound one). If the server's request object carries only the path (`/ext.zip`), assert on `req.headers.get("host")` being `quarto-proxy-test.invalid` instead.
+
+- [ ] **Step 2: Run it**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/proxy.test.ts`
+Expected: `1 passed`. To see it fail, run once with `QUARTO_NODE_OPTIONS=--no-use-env-proxy` exported (the extra flag comes last and wins): `seen` stays empty and the DNS lookup of `quarto-proxy-test.invalid` fails instead.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add tests/smoke/env/proxy.test.ts
+git commit -m "tests: fetch goes through HTTP_PROXY (runtime contract row 1)"
+```
+
+### Task 6: Conda recipe template
 
 **Files:**
 - Modify: `package/conda-recipe/build.sh`, `package/conda-recipe/bld.bat`, `package/conda-recipe/meta.yaml`
 
+The recipe keeps `deno` until PR 37: `quarto run` and `build-ts-extension` still need the Deno tool, and with `QUARTO_VENDOR_BINARIES=false` nothing downloads it. `QUARTO_DENO` therefore stays exported (it locates the tool); `QUARTO_NODE` is exported too, which also keeps PR 33's "`QUARTO_DENO` is ignored" warning quiet for conda users.
+
 - [ ] **Step 1: `build.sh`**
 
-Replace lines 5-6 with `export QUARTO_NODE=$PREFIX/bin/node`, lines 27-28 (inside the activate heredoc) with `  export QUARTO_NODE=$PREFIX/bin/node`, and lines 38-39 (deactivate) with `  unset QUARTO_NODE`.
+- After line 5 (`export QUARTO_DENO=$PREFIX/bin/deno`) add `export QUARTO_NODE=$PREFIX/bin/node`. Delete line 6 (`QUARTO_DENO_DOM`) if PR 20 left it.
+- In the activate heredoc add `  export QUARTO_NODE=$PREFIX/bin/node` after the `QUARTO_DENO` line; delete the `QUARTO_DENO_DOM` line.
+- In the deactivate heredoc add `  unset QUARTO_NODE`; delete `unset QUARTO_DENO_DOM`.
 
 - [ ] **Step 2: `bld.bat`**
 
-Replace line 3 with `SET QUARTO_NODE=%LIBRARY_BIN%\node.exe`, lines 24-25 with `  echo SET "QUARTO_NODE=%LIBRARY_BIN:\=/%\node.exe"`, lines 34-35 with `  echo SET QUARTO_NODE=`.
+- After line 3 add `SET QUARTO_NODE=%PREFIX%\node.exe` (conda-forge's `nodejs` installs `node.exe` at the environment root, not in `Library\bin`; confirm with `conda create -n t nodejs && dir %CONDA_PREFIX%\node.exe` before committing, and use the confirmed directory in all three places).
+- Activate block: add `  echo SET "QUARTO_NODE=%PREFIX:\=/%\node.exe"`; delete the `QUARTO_DENO_DOM` line.
+- Deactivate block: add `  echo SET QUARTO_NODE=`; delete `echo SET QUARTO_DENO_DOM=`.
 
 - [ ] **Step 3: `meta.yaml`**
 
-Replace lines 2-3 with:
+Replace the `deno_dom_version` line (line 3) with:
 
 ```yaml
 {% set node_version = load_file_regex(load_file='./configuration', regex_pattern='export\sNODE=v(\S+)').group(1) %}
 ```
 
-Replace the `deno`/`deno-dom` entries in `requirements.build`/`host` (lines 18-19) with `    - nodejs      {{ node_version }}` and the `run` pins (lines 28-32) with `    - {{ pin_compatible("nodejs", max_pin="x") }}` plus the comment `# Node.js major versions are ABI-stable for Quarto's bundle; any 26.x works.` Remove the `deno-dom` comment block (lines 30-32).
+In `requirements.host` replace `- deno-dom  {{ deno_dom_version }}` with `- nodejs    {{ node_version }}`. In `run`, replace the `deno-dom` pin and its comment with:
 
-The conda-forge feedstock (`conda-forge/quarto-feedstock`) is maintained outside this repository; open an issue there linking this PR when it merges.
+```yaml
+    # Exact pin, consistent with `quarto check --strict`, which requires the
+    # Node.js version Quarto was built and tested with.
+    - {{ pin_compatible("nodejs", max_pin="x.x.x") }}
+```
+
+and change the first comment of `run` to say `Deno (a tool for quarto run until Quarto 1.13), Node.js and pandoc`.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add package/conda-recipe
-git commit -m "packaging: conda recipe template uses nodejs"
+git commit -m "packaging: conda recipe template adds nodejs (exact pin) and QUARTO_NODE"
 ```
 
-### Task 6: Docs: signing doc, changelog, quarto.org checklist
+The conda-forge feedstock (`conda-forge/quarto-feedstock`) is maintained outside this repository; open an issue there linking this PR when it merges.
+
+### Task 7: Docs: signing notes, changelog, quarto.org checklist
 
 **Files:**
-- Modify: `llm-docs/code-signing-installers.md:84,165,192,226`
-- Modify: `news/changelog-1.11.md`
+- Modify: `llm-docs/code-signing-installers.md`, `news/changelog-1.12.md`
 - Create: `dev-docs/runtime-migration/docs-updates.md`
 
 - [ ] **Step 1: `llm-docs/code-signing-installers.md`**
 
-- Line 84: replace `per-arch \`deno\`` with `per-arch \`node\`` and `required by Deno's V8` with `required by Node's V8`.
-- Line 165: replace `but it runs through \`deno\`` with `but it runs through \`node\``.
-- Line 192: replace `\`deno.exe\`` with `\`node.exe\`` and delete `\`deno_dom/plugin.dll\`,`.
-- Line 226: replace `the underlying \`quarto.cmd\` / \`deno\` executes` with `the underlying \`node\` executes`, and `All of \`quarto.exe\`, \`deno.exe\`` with `All of \`quarto.exe\`, \`node.exe\``.
-
-Run: `grep -n -i deno llm-docs/code-signing-installers.md` -> no output.
+Run `grep -n -i "deno\|entitlements" llm-docs/code-signing-installers.md` and update each hit: the per-arch binaries signed with entitlements are `node` (with `node-entitlements.plist`, five keys, listed) and `pandoc`/`esbuild`/`typst`/`dart` (with `entitlements.plist`, two keys); `deno` is still signed with `entitlements.plist` while it ships as a tool (until PR 37); the Windows `sign-files` list has `node.exe` and `deno.exe`; `bin/package.json` is signed like `quarto.js`; `deno_dom` lines are deleted.
 
 - [ ] **Step 2: Changelog**
 
-Under `## Commands` add `### \`check\`` (keep H3 ordering alphabetical within the section if others exist):
+In `news/changelog-1.12.md`:
+
+Under `## Commands`, `### \`check\``:
 
 ```markdown
-- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): `quarto check` reports the bundled Node.js version (the `Deno` row is gone; the JSON output key is `Node.js`).
+- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): `quarto check` reports the bundled Node.js version. In `quarto check --output` JSON, the `dependencies` key `Deno` is renamed to `Node.js`.
 ```
 
-Under `## Other fixes and improvements`:
+Under `## Installation` (create it after `## Dependencies` if absent):
 
 ```markdown
-- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): Setting `QUARTO_DENO`, `QUARTO_DENO_OPTIONS`, `QUARTO_DENO_EXTRA_OPTIONS` or `QUARTO_DENO_V8_OPTIONS` prints a one-time deprecation notice; they are removed in Quarto 1.12. `QUARTO_DENO_DIR` and `QUARTO_DENO_DOM` are ignored with a notice.
+- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): Quarto now requires macOS 13.5 or newer, a Linux distribution with glibc 2.28 or newer (e.g. Ubuntu 20.04, Debian 10, RHEL 8), and Windows 10 or newer, the minimums of its bundled Node.js 26. The macOS installer and the deb/rpm packages check this at install time. The RHEL 7 tarball is no longer built.
 ```
 
 - [ ] **Step 3: quarto.org checklist**
@@ -675,61 +552,54 @@ Create `dev-docs/runtime-migration/docs-updates.md`:
 ```markdown
 # quarto.org pages to update for the Node runtime
 
-The website lives in `quarto-dev/quarto-web`. Open one PR there when PR 34 and
-PR 35 of the runtime migration are merged. `quarto.org` could not be fetched
-from the sandbox that wrote this list, so the page names below come from the
-links in this repository (`news/changelog-1.6.md` links
-`docs/projects/scripts.html#deno-scripts`; `src/command/run/run.ts` links
-`docs/projects/scripts.html#periodic-scripts`) and from memory of the site map.
-Verify each path against `https://quarto.org/llms.txt` before editing.
+The website lives in `quarto-dev/quarto-web`; open one PR there when PRs 33-36
+of the runtime migration are merged. Page paths come from links in this
+repository and from `https://quarto.org/llms.txt`; verify each before editing.
 
-| Page (`quarto-web/docs/...`) | What to change |
-|---|---|
-| `projects/scripts.qmd` (`#deno-scripts`, `#periodic-scripts`) | Rename the section to "TypeScript scripts". `quarto run` runs `.ts` on Node.js: `process`, `node:fs`, npm packages from the project's `node_modules`; `stdlib/*` imports keep working; the `Deno` global is a compatibility shim that prints a notice (PR 35 wording); `quarto install deno` for scripts that need real Deno; deprecation timeline (1.11 shim, 1.12 removal). |
-| `extensions/engine.qmd` (or wherever `quarto call build-ts-extension` is documented; check `extensions/` and `prerelease/1.9/`) | `package.json` replaces `deno.json`; esbuild bundling; engines use the `QuartoAPI` object and web standards, no `Deno.*` (PR 36 wording). |
-| `get-started/installation.qmd` and the download page notes | Installer contents: the bundled runtime is Node.js; nothing to install separately. |
-| `troubleshooting/index.qmd` | Replace any `QUARTO_DENO_V8_OPTIONS` / `DENO_DIR` advice; add the npm proxy note for `./configure.sh` (developers). |
-| `advanced/environment-vars.qmd` | Replace the `QUARTO_DENO*` rows with `QUARTO_NODE`, `QUARTO_NODE_OPTIONS`; note `NODE_OPTIONS`/`NODE_PATH` are not inherited. |
-| `prerelease/1.11/_highlights.qmd` | One highlight: "Quarto now runs on Node.js". |
-| `docs/download/` installer tables | No change unless the RHEL 7 tarball row exists; remove it. |
-
-Repository docs updated by the plans themselves: `dev-docs/upgrade-dependencies.md` (PR 33), `llm-docs/code-signing-installers.md` (PR 34), `.claude/CLAUDE.md`, `.claude/rules/typescript/*`, `tests/README.md`, `dev-docs/ci-deno-caching.md`, `dev-docs/update-deno_jsonc.md`, `dev-docs/add-typescript-dependency.md` (PR 37), `src/resources/create/extensions/engine/README.ejs.md` and `packages/quarto-types/README.md` (PR 36).
+| Page (`quarto-web/docs/...`) | What to change | Source PR |
+|---|---|---|
+| `advanced/environment-vars.qmd` | Replace the `QUARTO_DENO*` rows with `QUARTO_NODE`, `QUARTO_NODE_OPTIONS`; `QUARTO_DENO` now only locates the Deno tool; `QUARTO_DENO_OPTIONS`/`_EXTRA_OPTIONS`/`_DIR`/`_DOM` ignored with a warning; `QUARTO_DENO_V8_OPTIONS` deprecated; `NODE_OPTIONS`/`NODE_PATH` not applied to Quarto, passed to children; `HTTP(S)_PROXY`/`NO_PROXY` honoured; `QUARTO_RUNTIME` (only if the dual-runtime window shipped) | 33 |
+| `get-started/installation.qmd`, download page | Minimum macOS 13.5, glibc 2.28, Windows 10; no RHEL 7 tarball | 34 |
+| `troubleshooting/index.qmd` | Replace `QUARTO_DENO_V8_OPTIONS`/`DENO_DIR` advice with `QUARTO_NODE_OPTIONS`; corporate CA: OS store is used, `NODE_EXTRA_CA_CERTS` for extra CAs; proxies: `HTTPS_PROXY`/`NO_PROXY` | 33, 34 |
+| `projects/scripts.qmd` (`#deno-scripts`, `#periodic-scripts`) | "TypeScript scripts": Node by default; `stdlib/*` kept; `Deno` shim and its notice; `QUARTO_RUN_RUNTIME=deno` / `project: script-runtime: deno` with `quarto install deno`; type-only imports need `import type`; migration table | 35 |
+| `extensions/engine.qmd` (or the page that documents `quarto call build-ts-extension`) | `package.json` `quarto.build` config; esbuild; default import map; engines use `QuartoAPI` and web standards; prebuilt bundles referencing `Deno.` are flagged at load | 36 |
+| `prerelease/1.12/_highlights.qmd` | "Quarto now runs on Node.js" | 33 |
+| `cli/check.qmd` (if it documents `--output`) | JSON key `Node.js` | 34 |
 ```
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add llm-docs/code-signing-installers.md news/changelog-1.11.md dev-docs/runtime-migration/docs-updates.md
-git commit -m "docs: Node runtime in signing notes, changelog, and quarto.org checklist"
+git add llm-docs/code-signing-installers.md news/changelog-1.12.md dev-docs/runtime-migration/docs-updates.md
+git commit -m "docs: Node signing notes, platform minimums, check JSON key, quarto.org checklist"
 ```
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/runtime-env.test.ts unit/check-pinned-versions.test.ts unit/binary-mode-strip-env.test.ts smoke/check/`: all pass.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/check-pinned-versions.test.ts unit/linux-installer-config.test.ts unit/runtime-env.test.ts smoke/env/ smoke/check/`: all pass.
 - `quarto run --dev tools/check-runtime-boundary.ts`: unchanged counts.
-- `cargo build --release --manifest-path package/launcher/Cargo.toml` on the local OS; `package/launcher/target/release/quarto --paths` from a `pkg-working/bin` copy.
-- Dispatch `create-release.yml` with `publish-release=false`, `pre-release=true`, `os=all`: all jobs green; download the Windows zip and run `quarto.exe check` on a Windows machine (or let `test-smokes-built.yml` run on the artifacts: see `.claude/rules/testing/built-version-ci.md`).
-- `package/dist/bin/quarto --paths` prints the same two lines as before PR 33 (`quarto-dev` action's sanity check also asserts this).
-- `grep -rn "Deno.version" src` -> no output.
+- `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ./quarto-bld make-installer-deb --set-version 99.9.9 && dpkg-deb -f ../out/quarto-99.9.9-linux-amd64.deb Depends` prints `libc6 (>= 2.28)`.
+- Dispatch `create-release.yml` with `publish-release=false`, `pre-release=true`, `os=all`: all jobs green; `test-smokes-built.yml` on the artifacts green (see `.claude/rules/testing/built-version-ci.md`).
+- On an Apple Silicon Mac with the built pkg: `codesign -d --entitlements - /Applications/quarto/bin/tools/aarch64/node` lists the five keys.
 
 ## Review checklist
 
-- [ ] `main.rs`: `NODE_OPTIONS` and `NODE_PATH` removed before spawn; `QUARTO_DENO` only used when `QUARTO_NODE` is unset; V8 alias split on commas, other aliases on whitespace; no `DENO_*` env set.
-- [ ] `create-release.yml` has no `rhel`, `deno`, `conda` references; `publish-release` `needs` list and `files` list are consistent with the remaining jobs.
-- [ ] Linux `installer.ts`, `postinst`/`postrm`, macOS `distribution.xml`/`postinstall`, Windows `quarto.wxs`/`installer.ts` were read and need no change (they copy trees and symlink `pandoc`).
-- [ ] `check.ts` pins equal `configuration` (unit test) and the JSON key is `Node.js`.
-- [ ] The deprecation notice is printed once per process, names the replacement, and does not fire for empty values.
-- [ ] `tests/binary-mode-strip-env.txt` strips `QUARTO_NODE*` and still strips `QUARTO_DENO*`.
-- [ ] `docs-updates.md` lists every page that mentions Deno that the reviewer knows of; add missing ones in review.
+- [ ] `node-entitlements.plist` equals Node's plist for the pinned version minus `get-task-allow`; the PR description shows the `curl` of step 1; `entitlements.plist` is unchanged for the other binaries.
+- [ ] `distribution.xml` has `allowed-os-versions` 13.5; deb/rpm `depends` set; tests pass.
+- [ ] `create-release.yml` has no `rhel`; `needs` and `files` lists consistent.
+- [ ] `check.ts`: no `Deno` label, JSON key `Node.js`, pins equal `configuration` (unit test); the changelog names the key rename.
+- [ ] Conda: `nodejs` pinned `x.x.x`, `QUARTO_NODE` exported, `deno` and `QUARTO_DENO` kept (tool) with a note that PR 37 removes them.
+- [ ] The contract table has a test or an exact manual check for every row.
 
 ## Risks and rollback
 
-- **Notarization rejects the Node binary.** Symptom: `Notarization was not accepted (status: Invalid)` with an issue naming `tools/<arch>/node`. Cause would be a missing entitlement or signature; the `signWithEntitlements` entry covers it, and `node --version` from the signed binary must still run (a broken signature kills the process with `Killed: 9`). Rollback: revert PR 33 and 34 together.
-- **SmartScreen on Windows.** `node.exe` is signed with Posit's EV certificate like `deno.exe` was; no new reputation needed.
-- **Downstream packagers** (Homebrew, conda-forge, Positron, RStudio) read `QUARTO_DENO` in their wrappers. The alias keeps them working for 1.11; the deprecation notice tells them what to change. Rollback is the same revert.
-- **`arch_dir()` on Linux arm64 tarballs** now resolves `aarch64`; previously the launcher was Windows-only in practice. If a packager relied on the old `x86_64` fallback on arm64 (unlikely: the binary would not run), they set `QUARTO_NODE`.
+- **Notarization rejects the new entitlements.** Symptom: `Notarization was not accepted (status: Invalid)` naming `tools/<arch>/node`. Apple accepts all five keys for Developer ID (Node's own notarized pkg carries them); if one is rejected, drop it, keep `allow-jit`, `allow-unsigned-executable-memory`, `disable-library-validation`, and record it. Rollback: revert Task 1 (node falls back to PR 33's two-key signing).
+- **Users on macOS 12 or glibc < 2.28 lose updates.** The installer now says so at install time instead of failing at run time; the changelog and installation page state the minimums. Those users stay on Quarto 1.11 (Deno).
+- **Readers of `quarto check --output` that look for `"Deno"`** (none found in `quarto-dev` repositories by `grep`; RStudio and Positron read `quarto --version`) get no runtime entry. The changelog line names the rename.
+- **Rollback:** revert the PR; PR 33's installers keep working (two-key signing, no OS gate).
 
 ## Decisions needed
 
-1. **Deprecation window for the `QUARTO_DENO*` aliases: one release (remove in 1.12, recommended) or two.** The assessment proposes one release; the aliases are shell-only and cheap to keep, so extending costs little if users ask.
-2. **Keep the RHEL 7 tarball by building from Node's "unofficial builds" (`unofficial-builds.nodejs.org`, glibc 2.17 variants)?** Recommendation: no; the job has been disabled for a long time and RHEL 7 is out of maintenance. Revisit only on user demand.
+1. Not changed because PR 19 already did it: the review's "Task 4 edits `check.ts:274` which PR 25 removed". This plan only renames the label and the pin.
+2. Not changed: packagers who relied on `QUARTO_DENO` selecting the CLI runtime (the old plan's "packagers keep working" claim was wrong). PR 33 never aliases it; packagers set `QUARTO_NODE`; the conda template does both during the transition.
+3. Deprecation window for `QUARTO_DENO_V8_OPTIONS`: translated in 1.12 with a warning; removal in 1.13 (recommended). Decide when PR 37 lands.
