@@ -50,6 +50,7 @@ import { ProjectOutputFile } from "../../types.ts";
 import { resolveInputTarget } from "../../../project-index.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { imageContentType } from "../../../../core/image.ts";
+import { isDataUrl } from "../../../../core/data-url.ts";
 import { warnOnce } from "../../../../core/log.ts";
 import { isHtmlOutput } from "../../../../config/format.ts";
 
@@ -174,7 +175,9 @@ export async function createFeed(
     : pageImage
     ? [pageImage, dirname(relative(project.dir, source))]
     : [websiteImage(project.config)?.src, "."];
-  if (image) {
+  if (image && isDataUrl(image)) {
+    warnDataUrlFeedImage(relative(project.dir, source));
+  } else if (image) {
     const { href, height, width } = resolveProjectImage(
       image,
       project.dir,
@@ -491,7 +494,11 @@ async function renderFeed(
     }
 
     // Image Data
-    if (item[kFieldImage] && typeof item[kFieldImage] === "string") {
+    if (
+      typeof item[kFieldImage] === "string" && isDataUrl(item[kFieldImage])
+    ) {
+      warnDataUrlFeedImage(item.path?.replace(/^\//, "") ?? title);
+    } else if (item[kFieldImage] && typeof item[kFieldImage] === "string") {
       const image = item[kFieldImage] as string;
       const { href, height, width } = resolveProjectImage(image, project.dir);
       feedItem.image = absoluteUrl(siteUrl, href);
@@ -635,6 +642,12 @@ function feedPath(
   const file = `${stem}.${ext}`;
   return join(dir, file);
 }
+
+// Feed readers fetch the image by URL, so a data URI can't be used
+const warnDataUrlFeedImage = (file: string) =>
+  warnOnce(
+    `Ignoring data URI image of ${file} in the listing feed, as it can't be fetched by URL. Use an image file instead.`,
+  );
 
 // See https://validator.w3.org/feed/docs/rss2.html#ltimagegtSubelementOfLtchannelgt
 const kMaxWidth = 144;

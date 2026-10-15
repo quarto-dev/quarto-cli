@@ -1,0 +1,6 @@
+---
+title: "Posts"
+listing:
+  contents: posts
+  feed: true
+---

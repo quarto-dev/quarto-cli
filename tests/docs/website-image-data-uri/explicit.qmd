@@ -1,0 +1,6 @@
+---
+title: "Data URI page image"
+image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+---
+
+The page `image` is a data URI, so it is ignored with a warning.

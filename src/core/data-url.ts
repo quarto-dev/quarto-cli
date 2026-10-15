@@ -7,3 +7,7 @@ export function asDataUrl(
   const b64Src = base64Encode(content);
   return `data:${mimeType};base64,${b64Src}`;
 }
+
+export function isDataUrl(href: string) {
+  return /^data:/i.test(href);
+}

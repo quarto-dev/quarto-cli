@@ -10,6 +10,7 @@ import * as ld from "../../../core/lodash.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
+import { isDataUrl } from "../../../core/data-url.ts";
 import { imageSize } from "../../../core/image.ts";
 
 import {
@@ -118,9 +119,9 @@ export function computePageTitle(
 
 // Gives a project relative href (leading `/`) for a path written in a document
 // in `documentDir` (project relative). Paths that already start with `/` are
-// kept, URLs are returned as is.
+// kept, URLs and data URIs are returned as is.
 export function projectRelativeHref(href: string, documentDir: string) {
-  if (isAbsoluteRef(href)) {
+  if (isAbsoluteRef(href) || isDataUrl(href)) {
     return href;
   }
   return pathWithForwardSlashes(
