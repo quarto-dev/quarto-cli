@@ -36,6 +36,14 @@ These were throwaway and are recreated by the plans when needed:
   sandbox's proxy blocked `deno.land`. A normal checkout gets them from
   `./configure.sh`.
 
+## Review (2026-10-15)
+
+`REVIEW-2026-10-15.md` is a principal-level review of all 39 plans against the
+code: 13 structural findings (S1–S13), per-plan defects with severity, the
+recommended landing strategy, the rework list and the decisions needed. The
+plans are not executable as sequenced; read the review before step 4 below
+and apply section 5 of it to the plans first.
+
 ## How to resume
 
 1. `git fetch origin && git checkout runtime-migration-plans`.
