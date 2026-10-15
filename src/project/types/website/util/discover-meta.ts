@@ -53,23 +53,24 @@ export function findPreviewImgEl(
   doc: Document,
   options?: { skipDataUrls?: boolean },
 ): Element | undefined {
-  const usable = (img: Element | null): img is Element => {
-    if (!img) return false;
+  const usable = (img: Element) => {
     const src = getDecodedAttribute(img, "src");
     return !(options?.skipDataUrls && src !== null && isDataUrl(src));
   };
 
   // look for an image explicitly marked as the preview image (.class .preview-image)
-  const match = doc.querySelector(`img.${kPreviewImgClass}`);
-  if (usable(match)) {
-    return match;
-  }
-
-  const codeMatch = doc.querySelector(
-    `div.${kPreviewImgClass} div.cell-output-display img`,
-  );
-  if (usable(codeMatch)) {
-    return codeMatch;
+  for (
+    const selector of [
+      `img.${kPreviewImgClass}`,
+      `div.${kPreviewImgClass} div.cell-output-display img`,
+    ]
+  ) {
+    const match = Array.from(doc.querySelectorAll(selector)).find((img) =>
+      usable(img as Element)
+    );
+    if (match) {
+      return match as Element;
+    }
   }
 
   // look for an image with name feature, cover, or thumbnail

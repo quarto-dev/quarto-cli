@@ -38,6 +38,10 @@ const verify: Verify[] = [
   ensureFileRegexMatches(join(outputDir, "orcid-figure.html"), [
     /<meta property="og:image" content="https:\/\/example\.com\/figure\.png">/,
   ], noMetaDataUri),
+  // A data URI marked as preview image is skipped for the next marked one
+  ensureFileRegexMatches(join(outputDir, "preview-class.html"), [
+    /<meta property="og:image" content="https:\/\/example\.com\/figure\.png">/,
+  ], noMetaDataUri),
   // A data URI page `image` is ignored with a warning
   ensureFileRegexMatches(
     join(outputDir, "explicit.html"),
@@ -58,7 +62,7 @@ const verify: Verify[] = [
   ], noDataUri),
   printsMessage({
     level: "WARN",
-    regex: /data URI.*post\.qmd/,
+    regex: /data URI image of posts[\\/]post\.qmd in the listing feed/,
   }),
 ];
 
