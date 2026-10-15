@@ -169,15 +169,22 @@ export async function createFeed(
 
   // Add any image metadata
   // The page image is relative to the listing document, the others to the project
-  const pageImage = format.metadata[kImage] as string | undefined;
-  const [image, imageDir] = options.image
-    ? [options.image, "."]
+  // A data URI is skipped for the next image, as feed readers fetch by URL
+  const urlImage = (image: string | undefined) => {
+    if (image && isDataUrl(image)) {
+      warnDataUrlFeedImage(relative(project.dir, source));
+      return undefined;
+    }
+    return image;
+  };
+  const feedImage = urlImage(options.image);
+  const pageImage = urlImage(format.metadata[kImage] as string | undefined);
+  const [image, imageDir] = feedImage
+    ? [feedImage, "."]
     : pageImage
     ? [pageImage, dirname(relative(project.dir, source))]
-    : [websiteImage(project.config)?.src, "."];
-  if (image && isDataUrl(image)) {
-    warnDataUrlFeedImage(relative(project.dir, source));
-  } else if (image) {
+    : [urlImage(websiteImage(project.config)?.src), "."];
+  if (image) {
     const { href, height, width } = resolveProjectImage(
       image,
       project.dir,

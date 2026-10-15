@@ -56,13 +56,19 @@ const verify: Verify[] = [
   ensureFileRegexMatches(join(outputDir, "posts.html"), [
     /<img [^>]*src="data:image\/png;base64,iVBORw0KGgo/,
   ]),
-  // The feed item ignores it with a warning
+  // The feed item and the feed `image` ignore it with a warning, and the
+  // channel falls back to the site image
   ensureFileRegexMatches(join(outputDir, "posts.xml"), [
     /<title>Post with a data URI image<\/title>/,
+    /<image>\s*<url>https:\/\/example\.com\/site\.png<\/url>/,
   ], noDataUri),
   printsMessage({
     level: "WARN",
     regex: /data URI image of posts[\\/]post\.qmd in the listing feed/,
+  }),
+  printsMessage({
+    level: "WARN",
+    regex: /data URI image of posts\.qmd in the listing feed/,
   }),
 ];
 
@@ -71,6 +77,28 @@ testQuartoCmd("render", [projectDir], verify, {
   teardown: () => {
     removeIfExists(outputDir);
     removeIfExists(join(projectDir, ".quarto"));
+    return Promise.resolve();
+  },
+});
+
+// A data URI site `image` is ignored with a warning, leaving no image
+const siteDataUriDir = docs("website-image-data-uri-site");
+const siteDataUriOutput = join(siteDataUriDir, "_site");
+
+testQuartoCmd("render", [siteDataUriDir], [
+  noErrors,
+  ensureFileRegexMatches(join(siteDataUriOutput, "index.html"), [
+    /<meta property="og:title"/,
+  ], [/<meta property="og:image"/, /<meta name="twitter:image"/]),
+  printsMessage({
+    level: "WARN",
+    regex: /data URI image for social metadata of index\.qmd/,
+  }),
+], {
+  name: "Website data URI site image is skipped",
+  teardown: () => {
+    removeIfExists(siteDataUriOutput);
+    removeIfExists(join(siteDataUriDir, ".quarto"));
     return Promise.resolve();
   },
 });
