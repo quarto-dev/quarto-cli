@@ -3,10 +3,10 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move every plain filesystem and temp-file call in `src/project` and `src/format` from `Deno.*` to `src/deno_ral/fs.ts` / `src/deno_ral/temp.ts` with the codemod, and replace the four `Deno.errors.*` uses in `src/project` (three `instanceof` checks and one type alias) with the `deno_ral/errors.ts` predicates.
-**Phase:** 1. **Depends on:** PR 09 (layer + codemod), PR 02 (ratchet). **Unblocks:** PR 25.
+**Phase:** 1. **Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below). **Unblocks:** PR 25.
 **Branch:** `rt/12-codemod-fs-project-format`.
 **Suggested executor:** Sonnet. Mechanical codemod; three small hand edits with the exact code given below; the only judgement is reading the diff and checking the order-sensitive `readDirSync` loop in MECA bundling.
-**Size:** M. About 48 files rewritten mechanically (38 files in `src/project` and 17 in `src/format` use `Deno.*`); 2 edited by hand.
+**Size:** L by file count, mechanical: 51 files rewritten by the codemod (158 replacements, measured by a dry run of PR 09's codemod logic on `b86f98d`; 38 files in `src/project` and 17 in `src/format` use `Deno.*`); 2 edited by hand.
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
@@ -15,7 +15,7 @@
 
 Third of the four codemod PRs (assessment section 11, order of work step 3; PR 09 ships the tool). `src/project` holds project types (website, book, manuscript, …), serve and the project context; `src/format` holds the output format handlers. Both are almost pure filesystem users: 95 of 109 sites in `src/project` and 63 of 66 in `src/format` are fs calls.
 
-Measured on `main` at a4d0979 (2026-10-14) with `grep -rhoE '\bDeno\.[A-Za-z_]+(\.[A-Za-z_]+)?' <dir> --include=*.ts | sort | uniq -c | sort -rn`:
+Measured on `main` at `b86f98d` (2026-10-15) with `grep -rhoE '\bDeno\.[A-Za-z_]+(\.[A-Za-z_]+)?' <dir> --include=*.ts | sort | uniq -c | sort -rn`:
 
 `src/project` (109 sites in 38 files):
 
@@ -43,7 +43,7 @@ Measured on `main` at a4d0979 (2026-10-14) with `grep -rhoE '\bDeno\.[A-Za-z_]+(
 | `Deno.writeTextFile`, `Deno.readTextFile`, `Deno.open` | 2 each | this PR |
 | `Deno.renameSync`, `Deno.readFileSync`, `Deno.readDirSync` | 1 each | this PR |
 
-This PR rewrites 95 + 1 (temp) sites in `src/project` and 63 in `src/format`, plus 4 `Deno.errors`. Expected counts after the PR: `src/project` 109 − 100 = 9 (5 env, 3 process, 1 FsEvent), `src/format` 66 − 63 = 3 (cwd), each ±2 for comment mentions.
+This PR rewrites 158 sites with the codemod (the grep tables above count 159 because the commented-out `Deno.writeTextFileSync` at `src/project/types/book/book-render.ts:619` is text, not code) plus 4 `Deno.errors` sites by hand: the `src` ratchet count drops by exactly 162. The comment at `book-render.ts:619` stays for PR 25.
 
 Files that need attention beyond the codemod (verified):
 
@@ -66,33 +66,51 @@ Files that need attention beyond the codemod (verified):
 In: the codemod with `--rules fs,temp` on `src/project` and `src/format`; the three `Deno.errors` edits in `src/project`; `deno fmt` on changed files; baseline update.
 Out: `Deno.env` (PR 14), `Deno.cwd`/`pid`/`kill` (PR 08), `Deno.FsEvent` (PR 17), any other directory.
 
+### Landing order and conflict protocol
+
+Phase 1 lands in the order 08 → 22 → 10–13 → 14 (README, review finding S10). PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses. Conflicts in this PR are therefore expected and are resolved mechanically, never by hand-merging a codemodded hunk:
+
+1. `git rebase origin/main`; for every conflicted file under this PR's directories, `git checkout origin/main -- <file>` (reset the file to `main`).
+2. Re-run the codemod on exactly those files: `quarto run --dev tools/codemod-deno-ral.ts --rules <this PR's rules> --file <file> [--file <file>...]`.
+3. Re-apply this PR's hand edits for those files (each is listed with its exact code below), then `package/dist/bin/tools/x86_64/deno fmt <file>...`.
+4. `git add` the files and `git rebase --continue`; run the type check and the dry run of Task 1 again (it must report `0 replacements` for the PR's directories once the hand edits are back).
+
+This works because PR 09's collision detection is symbol-based and reuses existing alias imports: a re-run over a partly migrated file finishes it and does not report the layer's own imports as collisions.
+
 ### Interfaces
 
 No new interfaces. No alias imports are expected: the dry run (Task 1) must report zero collisions for these two directories (verified by grep: no local `remove`/`stat`/`open`/… bindings coexist with the corresponding `Deno.*` call in `src/project` or `src/format`; `src/project/project-shared.ts:482,592` and `src/inspect/inspect.ts:72` bind `const stat = Deno.statSync(...)`, which maps to `statSync`, not `stat`, so there is no clash).
 
 ### Files
 
-- Modify (codemod): every `*.ts` under `src/project` and `src/format` that uses an fs/temp API (about 48 files)
+- Modify (codemod): every `*.ts` under `src/project` and `src/format` that uses an fs/temp API (51 files)
 - Modify (hand): `src/project/project-context.ts:652,967,1072`, `src/project/project-index.ts:250`
 - Modify: `tools/runtime-boundary-baseline.json`
 
 ### Acceptance criteria
 
-- `grep -rnE '\bDeno\.(readTextFileSync|readTextFile|readFileSync|readFile|writeTextFileSync|writeTextFile|writeFileSync|writeFile|statSync|stat|lstatSync|lstat|mkdirSync|mkdir|removeSync|remove|renameSync|rename|copyFileSync|copyFile|readDirSync|readDir|symlinkSync|symlink|readLinkSync|realPath|chmodSync|chmod|utimeSync|truncateSync|open|openSync|create|makeTempDirSync|makeTempDir|makeTempFileSync|makeTempFile|FileInfo|DirEntry|MakeTempOptions|errors)\b' src/project src/format --include=*.ts` is empty.
-- `quarto run --dev tools/check-runtime-boundary.ts` passes, with the `src` scope count about 163 lower than before (the baseline has one count per scope, PR 02); `grep -rhoE '\bDeno\.' src/project --include=*.ts | wc -l` ≤ 12 and the same for `src/format` ≤ 5.
+- AST check (comments never count): `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/project --dir src/format --dry-run | tail -1` → `Summary: 123 files scanned, 0 would be rewritten, 0 replacements, 0 with collisions, 0 skipped`.
+- Text check, comment lines excluded:
+
+  ```bash
+  rg -n '\bDeno\.(readTextFileSync|readTextFile|readFileSync|readFile|writeTextFileSync|writeTextFile|writeFileSync|writeFile|statSync|stat|lstatSync|lstat|mkdirSync|mkdir|removeSync|remove|renameSync|rename|copyFileSync|copyFile|readDirSync|readDir|symlinkSync|symlink|readLinkSync|realPath|realPathSync|chmodSync|chmod|utimeSync|truncateSync|open|openSync|create|makeTempDirSync|makeTempDir|makeTempFileSync|makeTempFile|FileInfo|DirEntry|MakeTempOptions|errors)\b' src/project src/format -g '*.ts' \
+    | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'
+  ```
+  prints nothing (`book-render.ts:619` is a `//` line and is filtered).
+- `quarto run --dev tools/check-runtime-boundary.ts` passes, with the `src` scope count exactly 162 lower than before.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
 - The tests in Verification pass.
 
 ## Plan
 
-Assumes PR 09 landed. Independent of PRs 08, 10, 11, 14, 17.
+Assumes PR 09 landed. In the prescribed order PR 08 and PR 22 have landed; independent of PRs 10, 11, 13, 17.
 
 ### Task 1: Dry run and review
 
 - [ ] **Step 1: Dry run**
 
 Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/project --dir src/format --dry-run > /tmp/codemod-pf.txt; tail -1 /tmp/codemod-pf.txt`
-Expected: `Summary: <N> files scanned, <M> would be rewritten, <R> replacements, 0 with collisions, 0 skipped` with R about 159 and M about 48; `git status --short src` is empty.
+Expected: `Summary: 123 files scanned, 51 would be rewritten, 158 replacements, 0 with collisions, 0 skipped` (measured on `b86f98d`); `git status --short src` is empty.
 
 - [ ] **Step 2: Review the report**
 
@@ -107,7 +125,7 @@ Expected: only `fs`/`temp` rule targets; `open` appears 6 times (the file-handle
 - [ ] **Step 1: Rewrite**
 
 Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/project --dir src/format | tail -1`
-Expected: the same M and R as the dry run.
+Expected: `Summary: 123 files scanned, 51 rewritten, 158 replacements, 0 with collisions, 0 skipped`.
 
 - [ ] **Step 2: Format and type-check**
 
@@ -156,7 +174,7 @@ Add `import { isNotFound } from "../deno_ral/errors.ts";`. Line 250: `if (isNotF
 
 - [ ] **Step 3: Verify and commit**
 
-Run: `grep -rn 'Deno\.errors' src/project src/format --include=*.ts`
+Run: `rg -n 'Deno\.errors' src/project src/format -g '*.ts'`
 Expected: empty.
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/project-context-unreadable-dir.test.ts unit/project/project-detect-denied-path.test.ts smoke/project/project-unreadable-dir.test.ts smoke/project/project-detect-denied-config.test.ts`
@@ -182,7 +200,7 @@ Expected: `0 failed` (PDF/LaTeX tests may skip without TinyTeX; note it in the P
 - [ ] **Step 3: Ratchet**
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts`
-Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by about 163 and no increase in any scope; `for d in src/project src/format; do printf "%s %s\n" $d $(grep -rhoE '\bDeno\.' $d --include=*.ts | wc -l); done` → `src/project` ≤ 12, `src/format` ≤ 5.
+Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 162 and no increase in any scope.
 
 - [ ] **Step 4: Commit**
 
@@ -195,7 +213,7 @@ git commit -m "Lower runtime boundary baseline after project/format fs/temp code
 
 - Task 3 step 3 and Task 4 steps 1–2 → `0 failed`.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
-- The grep in Acceptance criteria → empty.
+- The AST dry run and the `rg` in Acceptance criteria → as stated.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
 - Manual: `package/dist/bin/quarto render tests/docs/websites/search` (a website with listing/feed/sitemap; `_site/sitemap.xml` is written) and `package/dist/bin/quarto render tests/docs/manuscript/base` (the MECA bundle is written under its `_manuscript/` output); both complete without errors. Remove the generated output afterwards (`git clean -fdx tests/docs/websites/search tests/docs/manuscript/base`).
 
@@ -215,4 +233,4 @@ git commit -m "Lower runtime boundary baseline after project/format fs/temp code
 
 ## Decisions needed
 
-None.
+None. Review items closed here: counts (51 files / 158 replacements), the comment-matching grep (`book-render.ts:619`; now AST dry run plus comment-filtered `rg`), zero predicted collisions confirmed, landing order and the reset-and-re-run protocol.
