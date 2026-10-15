@@ -34,3 +34,13 @@ unitTest("projectRelativeHref - url is left alone", async () => {
     "https://example.com/a.png",
   );
 });
+
+// deno-lint-ignore require-await
+unitTest("projectRelativeHref - data URI is left alone", async () => {
+  const dataUri = "data:image/png;base64,iVBORw0KGgo=";
+  assertEquals(projectRelativeHref(dataUri, "news"), dataUri);
+  assertEquals(
+    projectRelativeHref("DATA:image/png;base64,AA==", "."),
+    "DATA:image/png;base64,AA==",
+  );
+});

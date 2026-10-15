@@ -1,0 +1,147 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 107,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 106,
+    "body": [
+      {
+        "type": "VariableDeclaration",
+        "start": 4,
+        "end": 22,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 10,
+            "end": 21,
+            "id": {
+              "type": "Identifier",
+              "start": 10,
+              "end": 16,
+              "name": "values"
+            },
+            "init": {
+              "type": "ArrayExpression",
+              "start": 19,
+              "end": 21,
+              "elements": []
+            }
+          }
+        ],
+        "kind": "const"
+      },
+      {
+        "type": "ForOfStatement",
+        "start": 25,
+        "end": 87,
+        "await": true,
+        "left": {
+          "type": "VariableDeclaration",
+          "start": 36,
+          "end": 47,
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 42,
+              "end": 47,
+              "id": {
+                "type": "Identifier",
+                "start": 42,
+                "end": 47,
+                "name": "value"
+              },
+              "init": null
+            }
+          ],
+          "kind": "const"
+        },
+        "right": {
+          "type": "CallExpression",
+          "start": 51,
+          "end": 56,
+          "callee": {
+            "type": "Identifier",
+            "start": 51,
+            "end": 54,
+            "name": "foo"
+          },
+          "arguments": [],
+          "optional": false
+        },
+        "body": {
+          "type": "BlockStatement",
+          "start": 58,
+          "end": 87,
+          "body": [
+            {
+              "type": "ExpressionStatement",
+              "start": 64,
+              "end": 83,
+              "expression": {
+                "type": "CallExpression",
+                "start": 64,
+                "end": 82,
+                "callee": {
+                  "type": "MemberExpression",
+                  "start": 64,
+                  "end": 75,
+                  "object": {
+                    "type": "Identifier",
+                    "start": 64,
+                    "end": 70,
+                    "name": "values"
+                  },
+                  "property": {
+                    "type": "Identifier",
+                    "start": 71,
+                    "end": 75,
+                    "name": "push"
+                  },
+                  "computed": false,
+                  "optional": false
+                },
+                "arguments": [
+                  {
+                    "type": "Identifier",
+                    "start": 76,
+                    "end": 81,
+                    "name": "value"
+                  }
+                ],
+                "optional": false
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "ReturnStatement",
+        "start": 90,
+        "end": 104,
+        "argument": {
+          "type": "Identifier",
+          "start": 97,
+          "end": 103,
+          "name": "values"
+        }
+      }
+    ]
+  },
+  "async": true,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 51,
+      "end": 54,
+      "name": "foo"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

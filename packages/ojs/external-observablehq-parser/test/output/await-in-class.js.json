@@ -1,0 +1,93 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 72,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 71,
+    "body": [
+      {
+        "type": "ClassDeclaration",
+        "start": 4,
+        "end": 69,
+        "id": {
+          "type": "Identifier",
+          "start": 10,
+          "end": 15,
+          "name": "Inner"
+        },
+        "superClass": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 16,
+          "end": 69,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 22,
+              "end": 65,
+              "static": false,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 28,
+                "end": 34,
+                "name": "method"
+              },
+              "kind": "method",
+              "value": {
+                "type": "FunctionExpression",
+                "start": 34,
+                "end": 65,
+                "id": null,
+                "expression": false,
+                "generator": false,
+                "async": true,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 37,
+                  "end": 65,
+                  "body": [
+                    {
+                      "type": "ExpressionStatement",
+                      "start": 45,
+                      "end": 59,
+                      "expression": {
+                        "type": "AwaitExpression",
+                        "start": 45,
+                        "end": 58,
+                        "argument": {
+                          "type": "Identifier",
+                          "start": 51,
+                          "end": 58,
+                          "name": "promise"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 51,
+      "end": 58,
+      "name": "promise"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

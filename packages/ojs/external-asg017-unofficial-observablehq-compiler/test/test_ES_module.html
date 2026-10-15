@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+
+<head>
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@3/dist/inspector.css"
+  />
+</head>
+<body class="O--body">
+  <div id="main"></div>
+  <script type="module">
+    import {
+      Runtime,
+      Inspector
+    } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@4/dist/runtime.js";
+    import { Compiler } from "/dist/index-esm.js";
+
+    const compile = new Compiler();
+    const src = compile
+      .moduleToESModule(
+        `
+    a = 1
+
+    b = 2
+
+    c = a + b
+
+    md\` This cell contains **markdown**
+
+- ~isn't~
+- *this*
+- [cool](https://www.youtube.com/watch?v=dQw4w9WgXcQ)?
+
+    \`
+
+    {
+      let i = 1;
+      while(i) {
+        yield Promises.tick(100, ++i);
+      }
+    }
+
+    viewof x = html\`<input type="range">\`
+
+    y = x * x
+
+    z = viewof x.valueAsNumber + x
+
+    mutable m = 0
+
+    {
+      const button = html\`<button>increment m, decrement x\`;
+      button.onclick = () => {
+        mutable m++;
+        viewof x.value = viewof x.valueAsNumber - 1;
+        viewof x.dispatchEvent(new CustomEvent('input'));
+      };
+      return button;
+    }
+
+    3*m
+
+    d3 = require('d3-array')
+
+    html\`<img src="https://images.dog.ceo/breeds/dhole/n02115913_4117.jpg" width="100">\`
+
+    import {ramp} from "@mbostock/color-ramp"
+
+    ramp(t => \`hsl(\${t * 360}, 100%, 50%)\`)
+
+    import {map} from "@d3/interrupted-sinu-mollweide"
+
+    map
+
+    import {giraffe} from "https://observablehq.com/@lemonnish/animated-canvas-layers"
+
+    giraffe
+
+    import {chart} from "d43fa2a122cc9fbf"
+
+    chart
+
+    localImage = new Promise((resolve, reject) => {
+      const image = new Image;
+      image.style = "height: 60px; display: block;";
+      image.crossOrigin = "anonymous";
+      image.onerror = reject;
+      image.onload = () => resolve(image);
+      image.src = "https://avatars0.githubusercontent.com/u/15178711?v=4";
+    })
+
+    import {chart as histogram} with {localImage as image} from "https://api.observablehq.com/@d3/mona-lisa-histogram.js"
+
+    histogram
+
+    import {viewof message} from "https://observablehq.com/@observablehq/introduction-to-views"
+
+    viewof message
+
+    message
+
+    import { wrap } from '8135ff976018a995'
+
+    viewof myA = wrap(html\`<input type="number" value="2">\`)
+
+    import { viewof a as a2, b as b2 } with {
+      viewof myA as a
+    } from '8135ff976018a995'
+
+    viewof a2
+
+    viewof a2 === viewof myA
+
+    a2
+
+    b2
+
+    viewof myB = wrap(html\`<input type="number" value="-20">\`)
+
+    import { viewof a as a3, b as b3 } with { myB as a } from '8135ff976018a995'
+
+    viewof a3
+
+    a3
+
+    myB === a3
+
+    b3
+
+    // the executable attachment in test.html doesn't work since this is inside a data URL
+    attached = (await FileAttachment("https://raw.githubusercontent.com/asg017/unofficial-observablehq-compiler/master/README.md").text())
+
+`
+      );
+      console.log(src);
+
+      // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/btoa#Unicode_strings
+      // possibly deprecated...
+      function utoa(str) {
+          return window.btoa(unescape(encodeURIComponent(str)));
+      }
+
+      import(`data:text/javascript;base64,${utoa(src)}`)
+      .then((module) => {
+        const rt = new Runtime();
+        window.MODULE = rt.module(
+          module.default,
+          Inspector.into(document.querySelector("#main"))
+        );
+      });
+  </script>
+</body>

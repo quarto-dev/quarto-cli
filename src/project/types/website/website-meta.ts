@@ -37,15 +37,20 @@ import {
   kTwitterSite,
   kWebsite,
 } from "./website-constants.ts";
-import { computePageTitle, projectRelativeHref } from "./website-shared.ts";
+import {
+  computePageTitle,
+  projectRelativeHref,
+  resolveProjectImage,
+} from "./website-shared.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
 } from "../../../core/markdown-pipeline.ts";
 import { findDescription, findPreviewImg } from "./util/discover-meta.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
+import { isDataUrl } from "../../../core/data-url.ts";
+import { warnOnce } from "../../../core/log.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
-import { imageSize } from "../../../core/image.ts";
 import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
 import { joinUrl } from "../../../core/url.ts";
 import { truncateText } from "../../../core/text.ts";
@@ -158,6 +163,13 @@ export function metadataHtmlPostProcessor(
     // Resources that we find during this post processing
     const resources: string[] = [];
 
+    const warnDataUrlImage = () =>
+      warnOnce(
+        `Ignoring data URI image for social metadata of ${
+          relative(project.dir, source)
+        }, as it can't be fetched by URL. Use an image file instead.`,
+      );
+
     // go through each metadata provider and emit metadata
     [
       openGraphMetadataProvider,
@@ -178,13 +190,27 @@ export function metadataHtmlPostProcessor(
         return;
       }
 
+      // Crawlers fetch the image by URL, so a data URI can't be used
+      if (
+        typeof metadata[kImage] === "string" && isDataUrl(metadata[kImage])
+      ) {
+        warnDataUrlImage();
+        metadata[kImage] = undefined;
+        metadata[kImageHeight] = undefined;
+        metadata[kImageWidth] = undefined;
+      }
+
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
         const pagePreviewImg = findPreviewImg(doc);
         let previewImg = pagePreviewImg;
         if (!previewImg) {
           // The site image is written in _quarto.yml, so it is project relative
-          const siteImg = websiteImage(project.config);
+          let siteImg = websiteImage(project.config);
+          if (siteImg && isDataUrl(siteImg.src)) {
+            warnDataUrlImage();
+            siteImg = undefined;
+          }
           previewImg = siteImg && siteMeta?.[kSiteUrl] !== undefined
             ? { ...siteImg, src: projectRelativeHref(siteImg.src, ".") }
             : siteImg;
@@ -435,36 +461,18 @@ function imageMetadata(
     return {
       href: image,
     };
-  } else if (image.startsWith("/")) {
-    // This is a project relative path
-    const imagePath = join(context.dir, image.slice(1));
-    const size = imageSize(imagePath);
-
-    // read the image size
-    return {
-      path: image,
-      href: joinUrl(baseUrl, image),
-      height: size?.height,
-      width: size?.width,
-    };
-  } else {
-    // This is an input relative path
-    const sourceRelative = relative(context.dir, source);
-    const imageProjectRelative = join(
-      dirname(sourceRelative),
-      image,
-    );
-    const imagePath = join(context.dir, imageProjectRelative);
-    const size = imageSize(imagePath);
-
-    // resolve the image path into an absolute href
-    return {
-      path: imageProjectRelative,
-      href: joinUrl(baseUrl, imageProjectRelative),
-      height: size?.height,
-      width: size?.width,
-    };
   }
+  // Image paths are relative to the source document unless they start with `/`
+  const { href, height, width } = resolveProjectImage(
+    image,
+    context.dir,
+    dirname(relative(context.dir, source)),
+  );
+  return {
+    href: joinUrl(baseUrl, href),
+    height,
+    width,
+  };
 }
 
 type metaVal = [string, string];

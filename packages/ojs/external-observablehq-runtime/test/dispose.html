@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<script type=module>
+
+import {Runtime, Inspector} from "/dist/runtime.js";
+
+const runtime = new Runtime();
+const main = runtime.module();
+
+main.variable(true).define(["invalidation"], async invalidation => {
+  await invalidation;
+  console.log("invalidation");
+});
+
+main.variable(true).define([], function*() {
+  try { while (true) yield; }
+  finally { console.log("return"); }
+});
+
+setTimeout(() => runtime.dispose(), 1000);
+
+</script>

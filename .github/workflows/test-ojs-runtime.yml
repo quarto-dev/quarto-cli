@@ -1,0 +1,45 @@
+# Rebuilds the OJS runtime bundles from packages/ojs and fails if they differ
+# from the bundles committed in src/resources/formats/html/ojs.
+name: OJS Runtime Bundle
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/ojs/**"
+      - "src/resources/formats/html/ojs/quarto-ojs-runtime*.js"
+      - ".github/workflows/test-ojs-runtime.yml"
+  push:
+    # only trigger on branches, not on tags
+    branches: [main]
+    paths:
+      - "packages/ojs/**"
+      - "src/resources/formats/html/ojs/quarto-ojs-runtime*.js"
+      - ".github/workflows/test-ojs-runtime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Build OJS runtime
+        working-directory: packages/ojs
+        run: |
+          npm ci
+          npm run build
+
+      - name: Check committed bundles match the sources
+        run: |
+          if ! git diff --exit-code --stat -- src/resources/formats/html/ojs; then
+            echo "::error::The committed OJS runtime bundles don't match packages/ojs. Run 'npm ci && npm run build' in packages/ojs and commit the result."
+            exit 1
+          fi

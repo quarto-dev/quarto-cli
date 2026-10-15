@@ -1,0 +1,65 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 54,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 53,
+    "body": [
+      {
+        "type": "FunctionDeclaration",
+        "start": 4,
+        "end": 51,
+        "id": {
+          "type": "Identifier",
+          "start": 19,
+          "end": 24,
+          "name": "inner"
+        },
+        "expression": false,
+        "generator": false,
+        "async": true,
+        "params": [],
+        "body": {
+          "type": "BlockStatement",
+          "start": 27,
+          "end": 51,
+          "body": [
+            {
+              "type": "ExpressionStatement",
+              "start": 33,
+              "end": 47,
+              "expression": {
+                "type": "AwaitExpression",
+                "start": 33,
+                "end": 46,
+                "argument": {
+                  "type": "Identifier",
+                  "start": 39,
+                  "end": 46,
+                  "name": "promise"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 39,
+      "end": 46,
+      "name": "promise"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}
