@@ -20676,28 +20676,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "The path to a preview image for this document.",
-            long: "The path to a preview image for this content. By default, \nQuarto will use the image value from the site: metadata. \nIf you provide an image, you may also optionally provide \nan image-width and image-height to improve \nthe appearance of your Twitter Card.\n\nIf image is not provided, Quarto will automatically attempt \nto locate a preview image.\n"
+            long: "The path to a preview image for this content. By default, \nQuarto will use the image value from the `website` metadata.\nTo declare the size of the preview image for Open Graph,\nset `image-width` and `image-height` under `open-graph`.\n\nIf image is not provided, Quarto will automatically attempt\nto locate a preview image.\n"
           }
-        },
-        {
-          name: "image-height",
-          schema: "string",
-          tags: {
-            formats: [
-              "$html-doc"
-            ]
-          },
-          description: "The height of the preview image for this document."
-        },
-        {
-          name: "image-width",
-          schema: "string",
-          tags: {
-            formats: [
-              "$html-doc"
-            ]
-          },
-          description: "The width of the preview image for this document."
         },
         {
           name: "image-alt",
@@ -24782,10 +24762,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "URLs that alias this document, when included in a website.",
         {
           short: "The path to a preview image for this document.",
-          long: "The path to a preview image for this content. By default, Quarto will\nuse the image value from the site: metadata. If you provide an image,\nyou may also optionally provide an image-width and image-height to\nimprove the appearance of your Twitter Card.\nIf image is not provided, Quarto will automatically attempt to locate\na preview image."
+          long: "The path to a preview image for this content. By default, Quarto will\nuse the image value from the <code>website</code> metadata. To declare\nthe size of the preview image for Open Graph, set\n<code>image-width</code> and <code>image-height</code> under\n<code>open-graph</code>.\nIf image is not provided, Quarto will automatically attempt to locate\na preview image."
         },
-        "The height of the preview image for this document.",
-        "The width of the preview image for this document.",
         "The alt text for preview image on this page.",
         {
           short: "If true, the preview image will only load when it comes into\nview.",
@@ -25727,12 +25705,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 218381,
+        _internalId: 218053,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 218373,
+            _internalId: 218045,
             type: "enum",
             enum: [
               "png",
@@ -25748,7 +25726,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 218380,
+            _internalId: 218052,
             type: "anyOf",
             anyOf: [
               {
