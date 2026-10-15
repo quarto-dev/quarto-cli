@@ -157,6 +157,7 @@ import {
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
+  kMermaidScale,
   kNavigationBreadcrumbsLabel,
   kNavigationSiteLabel,
   kNavigationPageLabel,
@@ -546,6 +547,7 @@ export interface FormatExecute {
   [kFigDpi]?: number;
   [kFigAsp]?: number;
   [kMermaidFormat]?: "png" | "svg" | "js";
+  [kMermaidScale]?: string;
   [kDfPrint]?: "default" | "kable" | "tibble" | "paged";
   [kCache]?: true | false | "refresh" | null;
   [kFreeze]?: true | false | "auto";

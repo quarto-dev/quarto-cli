@@ -35,6 +35,7 @@ import {
   kFigResponsive,
   kFigWidth,
   kMermaidFormat,
+  kMermaidScale,
 } from "../../config/constants.ts";
 import { Element } from "../deno-dom.ts";
 import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
@@ -59,6 +60,9 @@ object:
   properties:
     mermaid-format:
       enum: [png, svg, js]
+    mermaid-scale:
+      string:
+        pattern: "^[0-9]+(\\\\.[0-9]+)?%$"
     theme:
       anyOf:
         - null
@@ -237,6 +241,25 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
     const responsive = handlerContext.options.context.format.metadata
       ?.[kFigResponsive];
 
+    // mermaid-scale resizes the diagram's natural size; an explicit
+    // fig-width or fig-height still takes precedence.
+    const resolveScaledSize = async (svgText: string) => {
+      const size = await resolveSize(svgText, cell.options ?? {});
+      const scale = (options[kMermaidScale] ||
+        handlerContext.options.format.execute[kMermaidScale]) as
+          | string
+          | undefined;
+      if (!scale || size.explicitWidth || size.explicitHeight) {
+        return size;
+      }
+      const factor = Number(scale.slice(0, -1)) / 100;
+      return {
+        ...size,
+        widthInInches: size.widthInInches * factor,
+        heightInInches: size.heightInInches * factor,
+      };
+    };
+
     const makeSvg = async () => {
       // Extract and process SVG
       let svg = asMappedString(
@@ -350,7 +373,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         const {
           widthInInches,
           heightInInches,
-        } = await resolveSize(svg.value, cell.options ?? {});
+        } = await resolveScaledSize(svg.value);
 
         return asMappedString(
           makeFigLink(sourceName, widthInInches, heightInInches, true),
@@ -364,7 +387,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           svg,
           options,
           undefined,
-          new Set([kFigWidth, kFigHeight, kMermaidFormat]),
+          new Set([kFigWidth, kFigHeight, kMermaidFormat, kMermaidScale]),
         );
       }
     };
@@ -385,7 +408,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       const {
         widthInInches,
         heightInInches,
-      } = await resolveSize(svgText, cell.options ?? {});
+      } = await resolveScaledSize(svgText);
 
       if (isMarkdownOutput(handlerContext.options.format, ["gfm"])) {
         return asMappedString(makeFigLink(
@@ -405,7 +428,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           )),
           options,
           undefined,
-          new Set([kFigWidth, kFigHeight, kMermaidFormat]),
+          new Set([kFigWidth, kFigHeight, kMermaidFormat, kMermaidScale]),
         );
       }
     };
@@ -448,7 +471,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         rawHtmlBlock.mappedString(),
         options,
         attrs,
-        new Set([kMermaidFormat]),
+        new Set([kMermaidFormat, kMermaidScale]),
       );
     };
 
