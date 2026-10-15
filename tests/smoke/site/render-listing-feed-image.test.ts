@@ -24,6 +24,10 @@ const verify: Verify[] = [
   noErrorsOrWarnings,
   // Listing `feed: image:` option
   ensureFileRegexMatches(join(outputDir, "index.xml"), feedImage),
+  // The post image is document relative and scaled like the feed image
+  ensureFileRegexMatches(join(outputDir, "index.xml"), [
+    /<media:content url="https:\/\/example\.com\/feed\.png" medium="image" type="image\/png" height="96" width="144"\/>/,
+  ]),
   // Site `image` fallback
   ensureFileRegexMatches(join(outputDir, "archive", "index.xml"), feedImage),
   // Project-relative path with a leading slash

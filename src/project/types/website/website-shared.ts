@@ -10,6 +10,7 @@ import * as ld from "../../../core/lodash.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
+import { imageSize } from "../../../core/image.ts";
 
 import {
   NavigationItemObject,
@@ -125,6 +126,22 @@ export function projectRelativeHref(href: string, documentDir: string) {
   return pathWithForwardSlashes(
     href.startsWith("/") ? href : join("/", documentDir, href),
   );
+}
+
+// Resolves an image written in a document in `documentDir` (project relative)
+// to its project relative href and the pixel size of the project file it
+// names. Web URLs have no local file, so they get no size; joining a URL onto
+// the project dir makes an invalid path on Windows and `stat` throws.
+export function resolveProjectImage(
+  image: string,
+  projectDir: string,
+  documentDir = ".",
+): { href: string; height?: number; width?: number } {
+  const href = projectRelativeHref(image, documentDir);
+  const size = isAbsoluteRef(href)
+    ? undefined
+    : imageSize(join(projectDir, href));
+  return { href, height: size?.height, width: size?.width };
 }
 
 export function inputFileHref(href: string) {

@@ -37,7 +37,11 @@ import {
   kTwitterSite,
   kWebsite,
 } from "./website-constants.ts";
-import { computePageTitle, projectRelativeHref } from "./website-shared.ts";
+import {
+  computePageTitle,
+  projectRelativeHref,
+  resolveProjectImage,
+} from "./website-shared.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
@@ -45,7 +49,6 @@ import {
 import { findDescription, findPreviewImg } from "./util/discover-meta.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
-import { imageSize } from "../../../core/image.ts";
 import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
 import { joinUrl } from "../../../core/url.ts";
 import { truncateText } from "../../../core/text.ts";
@@ -435,36 +438,18 @@ function imageMetadata(
     return {
       href: image,
     };
-  } else if (image.startsWith("/")) {
-    // This is a project relative path
-    const imagePath = join(context.dir, image.slice(1));
-    const size = imageSize(imagePath);
-
-    // read the image size
-    return {
-      path: image,
-      href: joinUrl(baseUrl, image),
-      height: size?.height,
-      width: size?.width,
-    };
-  } else {
-    // This is an input relative path
-    const sourceRelative = relative(context.dir, source);
-    const imageProjectRelative = join(
-      dirname(sourceRelative),
-      image,
-    );
-    const imagePath = join(context.dir, imageProjectRelative);
-    const size = imageSize(imagePath);
-
-    // resolve the image path into an absolute href
-    return {
-      path: imageProjectRelative,
-      href: joinUrl(baseUrl, imageProjectRelative),
-      height: size?.height,
-      width: size?.width,
-    };
   }
+  // Image paths are relative to the source document unless they start with `/`
+  const { href, height, width } = resolveProjectImage(
+    image,
+    context.dir,
+    dirname(relative(context.dir, source)),
+  );
+  return {
+    href: joinUrl(baseUrl, href),
+    height,
+    width,
+  };
 }
 
 type metaVal = [string, string];
