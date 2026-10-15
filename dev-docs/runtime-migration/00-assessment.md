@@ -1,9 +1,24 @@
 # Quarto after Deno: feasibility assessment and migration plan
 
-**Status:** Proposed  
+**Status:** Proposed; reviewed 2026-10-15 (see `REVIEW-2026-10-15.md`: decisions in its section 6 supersede section 9 below; errata below)  
 **Date:** 2026-10-14  
 **Deciders:** Quarto core team (Posit)  
 **Scope:** The `quarto-cli` TypeScript layer, its build tooling, tests, packaging, and the user-facing contracts that expose Deno.
+
+## 0. Errata and decisions (2026-10-15)
+
+Corrections from the fact-check and review in `REVIEW-2026-10-15.md`; the body
+below is left as written on 2026-10-14 except where marked.
+
+- Deno: `configuration` pins 2.7.14; 2.9.7 is current and carries the Node-compat fixes Phase 2 relies on (2.8 raised Node test-suite conformance from ~42% to 76%; 2.9 targets Node 26). PR 00a bumps it first.
+- Cliffy: `@cliffy/*` is at 1.3.1 (not "1.2.x"); on Node it ignores the prompt `cbreak` option and `@cliffy/prompt` path suggestions call `Deno.permissions` unguarded.
+- `import.meta.main` is native in Node since 24.2 / 22.18 (Stability 1.0); in a single-file bundle every inlined module sees the bundle's `import.meta`, so an `isMainModule` guard only means something at the bundle entry.
+- Type stripping does not elide type-only imports (`verbatimModuleSyntax` semantics): ~508 files in `src/` use named imports and 62 use `import type`, so "small cleanup" in 3.5 understates the work; Node 26 removed `--experimental-transform-types`, so there is no flag for enums. PR 02b does the codemod.
+- Node's `fetch` and `http` ignore `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` unless the launcher passes `--use-env-proxy` (Stability 1.1); `process.exit` truncates piped stdout on POSIX; both are in the runtime layer's contract now (`_TEMPLATE.md`).
+- Hidden `Deno.*` uses outside the `.ts` ratchet: `src/core/lib/external/tree-sitter-deno.js` (every render), `src/resources/js/graphviz-wasm.js`, `src/core/cri/deno-cri/*.js`, the Julia engine subtree, `core/performance/metrics.ts`, and the `@std/log` file handler, `@std/dotenv` and `@std/io` `readLines` internals. PR 20b ports them; PR 02 counts them.
+- Bun 1.4 (2026-08) shipped the Rust rewrite; the maturity risk in option B stands. esbuild 0.28.2 is current (0.28.1 pinned). `puppeteer-core` is at 25.x, moot since the puppeteer launch helpers are deleted instead (PR 07).
+- `quarto-latexmk` (`tinitex`): rewritten in Rust as a separate project; the CLI plan only removes the `deno compile` step (PR 39). Section 11's "quarto-latexmk" paragraph is superseded.
+- Section 9 decisions were taken on 2026-10-15: Node 26 LTS; shim plus `quarto install deno` for user scripts with Node as the default; test runner decided by Spike V (`SPIKES.md`); `tinitex` as above; 1.11 ships the boundary on Deno, 1.12 on Node.
 
 ## 1. Verdict
 
@@ -82,7 +97,7 @@ The headline numbers are large, but the distribution of the ~2,900 call sites is
 | `@std/path`, `@std/semver`, `@std/yaml`, `@std/encoding`, `@std/async`, `@std/fmt`, `@std/datetime`, `@std/dotenv`, `@std/uuid`, `@std/streams`, `@std/tar`, `@std/log` | JSR | Most `@std` packages declare Node support and install with `npx jsr add`. Prefer `node:path`, `node:crypto`, `node:stream` where a built-in exists. |
 | `@std/fs` (walk, expandGlob, copy, move, ensureDir, exists) | JSR | Uses `Deno.*` internally. Re-implement the handful of helpers in the runtime layer on `node:fs` (`fs.glob` exists in Node 22+). |
 | `@std/testing/asserts` | JSR | `@std/assert` (Node-compatible) or `node:assert/strict`. 166 import sites, one specifier to rewrite. |
-| Cliffy 1.0.0-rc.3 (command, prompt, table, ansi) | `deno.land/x`, 62 files | `@cliffy/command` 1.2.x on JSR declares Node, Deno and Bun support. Needs a spike to confirm the prompt module under Node. Fallbacks: `commander`, `citty`. |
+| Cliffy 1.0.0-rc.3 (command, prompt, table, ansi) | `deno.land/x`, 62 files | `@cliffy/command` 1.3.1 on JSR declares Node, Deno and Bun support. Needs a spike to confirm the prompt module under Node. Fallbacks: `commander`, `citty`. |
 | deno_dom 0.1.41 | `deno.land/x`, 60 files, ~1,900 DOM call sites | `@b-fuze/deno-dom` on JSR (WASM) declares Node support. Keeping the same DOM implementation avoids touching the HTML post-processing code at all. |
 | puppeteer 9.0.2 port | `deno.land/x` | `puppeteer-core` from npm; the Chromium install tool stays. |
 | zod, lodash, acorn, pdfjs-dist | npm | Unchanged. |
@@ -133,7 +148,7 @@ Build tooling (`quarto-bld`, `configure.sh`, vendoring scripts, CI caches keyed 
 | Feature fit | Closest drop-in for Deno's ergonomics: runs TS directly, `bun build --compile` with cross-compilation, built-in WebSocket server, `bun:sqlite`, `bun:ffi`, fast startup. Node-API compatible, so a Node-targeted codebase runs on it. |
 | Ecosystem | npm. |
 | Migration cost | Lower if Bun-specific APIs are used; same as Node if the Node API surface is targeted. |
-| Risk | Reported maturity issues and an in-flight Rust rewrite in 2026. Windows support is younger than Node's. |
+| Risk | Reported maturity issues; the Rust rewrite shipped as Bun 1.4 in August 2026 with known regressions. Windows support is younger than Node's. |
 
 ### Option C: Stay on Deno (pin or fork)
 
@@ -306,7 +321,7 @@ Startup, five `--version` runs: 1.58 s total for the Node bundle, 1.97 s for Den
 3. `src/format/html/format-html-shared.ts:133` iterates `Deno.readDirSync` for the bslib component Sass files and relies on the order. Node returns a different order, so eight CSS rules moved. Sort the entries; that also makes the Deno output deterministic across filesystems.
 4. Cliffy rc.3 pins pre-1.0 `deno.land/std` URLs with old export names (`stripColor`, `encode`). The spike mapped them to std 0.224; moving to `@cliffy/command` 1.x on JSR, which declares Node support, removes the problem.
 5. `src/execute/jupyter/jupyter-kernel.ts` routes messages larger than 1 KB through a temp file to work around a Deno `Conn` bug (issue 7737). On Node the socket write is plain; the workaround can go once the runtime layer exists.
-6. `import.meta.main` has no Node equivalent; replace with an `import.meta.filename` versus `process.argv[1]` check or keep a bundler define.
+6. `import.meta.main` is native in Node 24.2+ (see errata); inside the bundle only the bundler define matters.
 7. The `deno.land/x` puppeteer port must become `puppeteer-core` from npm. It was stubbed in the spike, so Chromium-dependent features (mermaid, screenshots, `quarto check` tools) were not exercised.
 8. `@deno/shim-deno` is stale (last release June 2024) and had two bugs that bit immediately (`makeTempFile*` treats the prefix as a directory, `Conn.read` fails with EAGAIN). Do not build on it; it was only useful for the spike. The plan's own `src/runtime/` layer stands.
 
