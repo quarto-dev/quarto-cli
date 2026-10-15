@@ -62,8 +62,11 @@ export function noColor(): boolean;
 
 ```ts
 /** True when `meta` belongs to the module the process was started with
- * (the `if (import.meta.main)` idiom). Deno: `meta.main`. PR 28 adds the Node
- * branch (compare `meta.filename` with `process.argv[1]`). */
+ * (the `if (import.meta.main)` idiom), on every runtime: when `meta.main` is
+ * defined (Deno, Node 24.2+) it is returned; otherwise the module's path
+ * (`fileURLToPath(meta.url)`) is compared with `process.argv[1]`, both
+ * resolved with `realpath` so a symlinked launcher still matches. False for
+ * non-`file:` URLs or when `process.argv[1]` is unset. No later PR touches it. */
 export function isMainModule(meta: ImportMeta): boolean;
 ```
 
@@ -170,6 +173,12 @@ unitTest("main - isMainModule is false for a test module and reads import.meta",
   // The test runner, not this file, is the entry module.
   assertEquals(isMainModule(import.meta), false);
   assertEquals(isMainModule({ main: true } as unknown as ImportMeta), true);
+  // Without `main` (Node < 24.2) the path is compared with process.argv[1].
+  assertEquals(
+    isMainModule({ url: "file:///nonexistent/rt19-not-main.ts" } as unknown as ImportMeta),
+    false,
+  );
+  assertEquals(isMainModule({ url: "https://example.com/x.ts" } as unknown as ImportMeta), false);
   await Promise.resolve();
 });
 ```
@@ -243,13 +252,36 @@ Create `src/deno_ral/main.ts`:
  * Copyright (C) 2026 Posit Software, PBC
  */
 
+import process from "node:process";
+import { realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 /**
  * True when `meta` is the entry module's import.meta, replacing the
- * `if (import.meta.main)` idiom. Deno sets `import.meta.main`; Node does not,
- * and PR 28 adds that branch (compare meta.filename with process.argv[1]).
+ * `if (import.meta.main)` idiom, on every runtime. Deno (and Node 24.2+) set
+ * `import.meta.main`; when it is defined it is the answer. Otherwise the
+ * module's path is compared with `process.argv[1]`, both through `realpath`
+ * so a symlinked launcher still matches. (`node:` imports resolve on Deno
+ * too, so this module has no runtime branch to revisit later.)
  */
 export function isMainModule(meta: ImportMeta): boolean {
-  return (meta as { main?: boolean }).main === true;
+  const main = (meta as { main?: boolean }).main;
+  if (main !== undefined) {
+    return main === true;
+  }
+  const entry = process.argv[1];
+  if (!entry || !meta.url.startsWith("file:")) {
+    return false;
+  }
+  return canonical(fileURLToPath(meta.url)) === canonical(entry);
+}
+
+function canonical(path: string): string {
+  try {
+    return realpathSync(path);
+  } catch {
+    return path;
+  }
 }
 ```
 

@@ -92,7 +92,7 @@ The headline numbers are large, but the distribution of the ~2,900 call sites is
 
 ### 3.5 TypeScript, lint, format
 
-- Node's TypeScript type stripping is stable (Node 24.12 and 25.2 onward, default on). Quarto already uses explicit `.ts` extensions in imports, which Node requires. Unsupported syntax in the codebase: 1 `enum`, 0 runtime `namespace`s, 36 constructor parameter properties, 0 decorators. Small cleanup. Distribution is an esbuild bundle (`quarto.js`) already, so type stripping only matters for dev mode.
+- Node's TypeScript type stripping is stable (Node 24.12 and 25.2 onward, default on). Quarto already uses explicit `.ts` extensions in imports, which Node requires. Unsupported syntax in the codebase (measured 2026-10-15 in `src/` outside `vendor`): 12 `enum` declarations in 5 files (`src/publish/confluence/api/types.ts` ×7, `src/publish/provider-types.ts`, `src/publish/netlify/api/models/accountSetup.ts`, `src/project/types/website/listing/website-listing-shared.ts` ×2, `src/core/giscus.ts`), 1 runtime `namespace` (`AccountSetup`, which wraps the `period` enum), 40 constructor parameter-property sites in 40 files (36 on one line, mostly the Netlify API services, plus 4 multi-line constructors in `src/publish/types.ts`, `src/publish/rsconnect/api/index.ts`, `src/tools/github.ts`, `src/core/brand/brand.ts`; one more in `tests/gha-grouping.ts`), 0 decorators. Small cleanup. Distribution is an esbuild bundle (`quarto.js`) already, so type stripping only matters for dev mode.
 - Bare import-map aliases (`path`, `fs/copy`, `cliffy/command/mod.ts`) have no native equivalent in Node. Rewrite them to npm package names or `package.json` `imports` subpath aliases (`#runtime/fs`). This is a one-time codemod.
 - `deno check` → `tsc --noEmit` with `@types/node`. Removing the `deno.ns` lib from the type environment is the best migration guide: every remaining `Deno.*` use becomes a compile error.
 - `deno lint` → `oxlint` or ESLint. `deno fmt` → `dprint`, which is the formatter inside `deno fmt`, so formatting churn is near zero.
@@ -206,7 +206,7 @@ Exit: written decision (this document, amended), spike results, dependency sourc
 1. Rename `src/deno_ral/` to `src/runtime/` and extend it to cover fs, env, process, exit, signals, net, http, watch, temp files, platform, console size, and a key-value index.
 2. Codemod the ~2,200 `Deno.*` call sites in `src/`, `package/src` and `tests/` to the runtime layer (section 11 has the module-by-module plan). Most are one-to-one renames.
 3. Replace Deno KV with a JSON index; drop the FFI plugin and its per-platform download; replace `tree-sitter-deno.js` with `web-tree-sitter`.
-4. Fix the 37 syntax sites Node type stripping rejects; rewrite bare import-map aliases to `#runtime/*` and npm names.
+4. Fix the 52 syntax sites Node type stripping rejects (12 enums, 40 parameter-property constructors in `src/`; see 3.5); rewrite bare import-map aliases to `#runtime/*` and npm names.
 5. Add the CI check that forbids `Deno.` outside `src/runtime/`.
 
 Exit: full test suite green on Deno, `Deno.` appears only inside `src/runtime/`.

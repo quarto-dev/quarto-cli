@@ -18,7 +18,7 @@ Assessment section 3.5: Node's type stripping requires explicit `.ts` extensions
 Facts verified in this sandbox (Node 22.22):
 
 - `node --experimental-strip-types --import ./register.mjs --test t.test.ts` runs a `.ts` test that imports `path`, `testing/asserts` and `fs/walk` through a `module.register` resolve hook that applies `src/import_map.json` and resolves the npm/JSR package from the root `node_modules`. `import.meta.url` inside the file is the real `file:///…/t.test.ts` (no bundling, so `tests/utils.ts:252` `fromFileUrl(import.meta.url)` and `tests/quarto-cmd.ts` `new URL("binary-mode-strip-env.txt", import.meta.url)` keep working; a bundled test would see the bundle's URL, which is why this plan does not bundle tests).
-- Strip-only mode fails with `SyntaxError [ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX]: TypeScript enum is not supported in strip-only mode` and `… TypeScript parameter property is not supported in strip-only mode`, each with the file, line and a caret. `node --check` does **not** report them; `module.stripTypeScriptTypes(source, { mode: "strip" })` throws the same messages and is the basis of the scan tool below. `--experimental-transform-types` accepts both but is experimental; this plan removes the syntax instead (10 `enum` declarations in `src/`, 35 constructor parameter properties; the scan lists them).
+- Strip-only mode fails with `SyntaxError [ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX]: TypeScript enum is not supported in strip-only mode` and `… TypeScript parameter property is not supported in strip-only mode`, each with the file, line and a caret. `node --check` does **not** report them; `module.stripTypeScriptTypes(source, { mode: "strip" })` throws the same messages and is the basis of the scan tool below. `--experimental-transform-types` accepts both but is experimental; this plan removes the syntax instead (12 `enum` declarations in `src/`, 40 constructor parameter properties in `src/` plus one in `tests/gha-grouping.ts`; the scan lists them).
 - `node --test` passes `process.execArgv` (`--experimental-strip-types`, `--import`, V8 flags) to its child processes; `--test-reporter=dot` works; a failing test makes `--test` exit 1. Running a test file directly (`node file.test.ts -- args`) also runs `node:test` tests and exits 1 on failure, with `process.argv.slice(2)` = `["--", ...args]`.
 - `node --test` runs files in parallel processes by default; `--test-concurrency=1` serialises them (Deno runs files serially in one process; Quarto's smoke tests share `tests/docs` and ports, so serial is required).
 - The root `package.json` has no `type` field (PR 26 decision), so Node classifies each `.ts` file by syntax detection (default since 22.7): a file with `import`/`export` or top-level `await` is ESM. Every file under `tests/` and `src/` has imports, so none is mistaken for CommonJS.
@@ -75,11 +75,12 @@ export { runHarness } from "./utils.ts"; // PR 23 re-export, kept
 `tests/utils.ts` (PR 23's helpers get a Node branch; signatures unchanged):
 
 ```ts
-/** Deno: `deno test <harness flags> --importmap=… ...args` (PR 23). Node: `node --experimental-strip-types --import
- *  tools/node-bundle/register-import-map.mjs --test --test-concurrency=1 <files>`; `args` are translated:
- *  `--junit-path=X` -> `--test-reporter=junit --test-reporter-destination=X`, `--no-check`/`--check` dropped,
- *  entries before "--" are test files, entries after "--" go to QUARTO_TEST_ARGS. */
-export function runHarness(options: { args: string[]; cwd: string; env?: Record<string, string> }): Promise<{ stdout: string; stderr: string; code: number }>;
+/** Same options as PR 23 (`{ file, cwd, flags?, args?, env?, junitPath? }`; the two PR 23 callers compile unchanged).
+ *  Deno: `deno test <harness flags> --importmap=… [flags] [--junit-path=<junitPath>] <file> [-- args]` (PR 23, unchanged).
+ *  Node: `node --experimental-strip-types --import tools/node-bundle/register-import-map.mjs [flags] --test
+ *  --test-concurrency=1 [--test-reporter=junit --test-reporter-destination=<junitPath>] <file>`; `--no-check`/`--check`
+ *  are dropped from `flags`, `args` go to QUARTO_TEST_ARGS (newline-separated). */
+export function runHarness(options: { file: string; cwd: string; flags?: string[]; args?: string[]; env?: Record<string, string>; junitPath?: string }): Promise<{ stdout: string; stderr: string; code: number }>;
 /** Deno: `<deno> run --allow-net --allow-read --allow-env [--allow-write=<path>] <script>` (PR 23, plus the two read/env
  *  permissions the Node-API scripts below need). Node: `<node> <script>`. */
 export function runtimeScriptCommand(scriptPath: string, options?: { allowWritePath?: string }): { cmd: string; args: string[] };
@@ -99,7 +100,7 @@ export function runtimeScriptCommand(scriptPath: string, options?: { allowWriteP
 - Create: `tests/run-tests-node.sh`, `tests/run-tests-node.ps1`
 - Modify: `tests/test.ts` (exit hook), `tests/smoke/smoke-all.test.ts`, `tests/integration/playwright-tests.test.ts` (`testArgs`)
 - Modify: `tests/unit/chrome-launch-fixtures.ts` (`.mjs` scripts), `tests/unit/chrome-launch.test.ts`, `tests/unit/chrome-launch-flags.test.ts` (Node-API script bodies), `tests/unit/harness-failure-reporting.test.ts` (Deno-only assertions guarded); `tests/unit/smoke-all-prerender-isolation.test.ts` already calls `runHarness` (PR 23) and needs no change
-- Modify: the files `check-ts-syntax.mjs` lists (10 `enum` sites: `src/publish/confluence/api/types.ts` ×7, `src/publish/provider-types.ts`, `src/publish/netlify/api/models/accountSetup.ts`, `src/project/types/website/listing/website-listing-shared.ts`; 35 parameter-property constructors, e.g. `tests/gha-grouping.ts` `GroupEmitter`)
+- Modify: the files `check-ts-syntax.mjs` lists (12 `enum` sites in `src/`: `src/publish/confluence/api/types.ts` ×7, `src/publish/provider-types.ts`, `src/publish/netlify/api/models/accountSetup.ts`, `src/project/types/website/listing/website-listing-shared.ts` ×2, `src/core/giscus.ts`; 40 parameter-property constructors in `src/` (36 single-line, 4 multi-line) plus `tests/gha-grouping.ts` `GroupEmitter`; the same numbers as the assessment, section 3.5, and PR 33)
 - Modify: `.github/workflows/test-node-bundle.yml`, `tests/README.md`
 - Test: `tests/unit/harness-node.test.ts` (new; `testArgs`, `registerTest` skip, `runHarness` round-trip)
 
@@ -248,7 +249,7 @@ Run:
 node --test tools/node-bundle/check-deps.test.mjs
 node --no-warnings tools/node-bundle/check-ts-syntax.mjs
 ```
-Expected: the hook test passes (`@std/assert` resolves once Task 2 adds it to the import map and `package.json`; run this step again after Task 2 if it reports `@std/assert` unmapped). The scan prints one line per offending file (about 14 files: the `enum` files and the parameter-property classes) and `N file(s) use syntax …`, exit 1. Task 3 drives it to `ok`.
+Expected: the hook test passes (`@std/assert` resolves once Task 2 adds it to the import map and `package.json`; run this step again after Task 2 if it reports `@std/assert` unmapped). The scan prints one line per offending file (about 46 files: the 5 `enum` files, the 40 parameter-property classes in `src/` and `tests/gha-grouping.ts`) and `N file(s) use syntax …`, exit 1. Task 3 drives it to `ok`.
 
 - [ ] **Step 6: Commit**
 
@@ -324,7 +325,7 @@ git commit -m "tests: assertions from @std/assert 1.x"
 
 - [ ] **Step 1: Convert `enum` declarations**
 
-For each `export enum X { A = "a", B = "b" }` (string enums; all four files are string enums except `LogLevel` in `src/publish/confluence/api/types.ts`), replace with:
+For each `export enum X { A = "a", B = "b" }` (string enums; all five files are string enums except `LogLevel` in `src/publish/confluence/api/types.ts` and `AccountTokenType` in `src/publish/provider-types.ts`, which are numeric), replace with:
 
 ```ts
 export const X = {
@@ -456,7 +457,7 @@ unitTest("harness - runHarness runs a child test file and reports its exit code"
     `registerTest({ name: "child fails", fn: () => { throw new Error("child boom"); } });`,
   ].join("\n"));
   const junit = join(dir, "junit.xml");
-  const result = await runHarness({ args: [`--junit-path=${junit}`, "--no-check", file], cwd: testsDir });
+  const result = await runHarness({ file, cwd: testsDir, flags: ["--no-check"], junitPath: junit });
   assertEquals(result.code, 1);
   assertEquals(readTextFileSync(join(dir, "ran.txt")), "yes");
   assertStringIncludes(result.stdout + result.stderr, "child boom");
@@ -572,41 +573,51 @@ const kHarnessFlags = [
   "--v8-flags=--enable-experimental-regexp-engine",
 ];
 
-// Runs the test harness in a child process and returns its decoded output.
-// `cwd` must be the tests/ directory. `args` use the Deno spelling
-// (`--junit-path=X`, `--no-check`, files, "--", documents); the Node branch
-// translates them.
+// Runs one test file through the harness in a child process and returns its
+// decoded output. `cwd` must be the tests/ directory. The options are PR 23's
+// (`file`, `flags`, `args`, `env`, `junitPath`); the Deno branch is PR 23's
+// body, the Node branch translates them (`--no-check`/`--check` dropped from
+// `flags`, `junitPath` as the junit reporter, `args` through QUARTO_TEST_ARGS).
 export async function runHarness(options: {
-  args: string[];
+  file: string;
   cwd: string;
+  flags?: string[];
+  args?: string[];
   env?: Record<string, string>;
+  junitPath?: string;
 }): Promise<{ stdout: string; stderr: string; code: number }> {
   const quartoRoot = dirname(options.cwd);
   let cmdArgs: string[];
   const childEnv: Record<string, string> = { ...(options.env ?? {}) };
   if (runtime().name === "node") {
-    const dash = options.args.indexOf("--");
-    const before = dash === -1 ? options.args : options.args.slice(0, dash);
-    const docs = dash === -1 ? [] : options.args.slice(dash + 1);
-    const junit = before.find((a) => a.startsWith("--junit-path="))?.slice("--junit-path=".length);
-    const files = before.filter((a) => !a.startsWith("--"));
+    const nodeFlags = (options.flags ?? []).filter((f) => f !== "--no-check" && f !== "--check");
     cmdArgs = [
       "--no-warnings",
       "--experimental-strip-types",
       "--import",
       join(quartoRoot, "tools", "node-bundle", "register-import-map.mjs"),
       "--enable-experimental-regexp-engine",
+      ...nodeFlags,
       "--test",
       "--test-concurrency=1",
       "--test-reporter=spec",
       "--test-reporter-destination=stdout",
-      ...(junit ? ["--test-reporter=junit", `--test-reporter-destination=${junit}`] : []),
-      ...files,
+      ...(options.junitPath ? ["--test-reporter=junit", `--test-reporter-destination=${options.junitPath}`] : []),
+      options.file,
     ];
-    if (docs.length) childEnv.QUARTO_TEST_ARGS = docs.join("\n");
+    if (options.args && options.args.length > 0) {
+      childEnv.QUARTO_TEST_ARGS = options.args.join("\n");
+    }
   } else {
     const importMap = `--importmap=${join(quartoRoot, "src", "import_map.json")}`;
-    cmdArgs = ["test", ...kHarnessFlags, importMap, ...options.args];
+    cmdArgs = ["test", ...kHarnessFlags, importMap, ...(options.flags ?? [])];
+    if (options.junitPath) {
+      cmdArgs.push(`--junit-path=${options.junitPath}`);
+    }
+    cmdArgs.push(options.file);
+    if (options.args && options.args.length > 0) {
+      cmdArgs.push("--", ...options.args);
+    }
   }
   const result = await exec(execPath(), {
     args: cmdArgs,

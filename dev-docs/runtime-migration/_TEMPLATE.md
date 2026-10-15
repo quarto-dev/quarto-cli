@@ -97,8 +97,10 @@ Module paths are under `src/deno_ral/`. Existing modules: `fs.ts`, `path.ts`,
 |---|---|---|
 | Boundary ratchet (PR 02) | `tools/check-runtime-boundary.ts`, baseline `tools/runtime-boundary-baseline.json` | `quarto run --dev tools/check-runtime-boundary.ts` (fails if any count exceeds the baseline); `--update-baseline` rewrites the baseline with lower counts only |
 | Codemod (PR 09) | `tools/codemod-deno-ral.ts` (ts-morph via `npm:ts-morph`) | `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core` (`--rules` from `fs`, `temp`, `env`, `process`, `platform`; `--dry-run` prints the diff) |
-| Node bundle (PR 26) | `tools/node-bundle/build.mjs`, `tools/node-bundle/deno-shim.js`, `tools/node-bundle/quarto-node`, root `package.json` | `node tools/node-bundle/build.mjs && tools/node-bundle/quarto-node render <doc>` |
+| Node bundle (PR 26) | `tools/node-bundle/build.mjs` (writes `tools/node-bundle/dist/quarto.mjs`, `dist/meta.json`, `dist/resolved.json`), `tools/node-bundle/import-map.mjs` (shared import-map resolver: `applyImportMap`, `resolveBare`, `jsrToNpm`, `npmSpec`, `packageOf`, `dependenciesFromImportMap`, `loadImportMap`), `tools/node-bundle/deno-shim.js`, `tools/node-bundle/quarto-node`, `tools/node-bundle/check-deps.mjs`, `tools/node-bundle/normalize-html.mjs`, root `package.json` (no `"type": "module"`; all Node tooling is `.mjs`) | `node tools/node-bundle/build.mjs [--entry src/quarto.ts] [--out tools/node-bundle/dist/quarto.mjs] [--check-shim] && tools/node-bundle/quarto-node render <doc>`; `node tools/node-bundle/check-deps.mjs [--write]` (package.json `dependencies` must mirror `src/import_map.json`); `node tools/node-bundle/normalize-html.mjs <dir>` (hashes, cell ids, timestamps → placeholders before diffing renders) |
 | Node CI job (PR 26) | `.github/workflows/test-node-bundle.yml` | runs the bundle against `dev-docs/runtime-migration/spike/tests/` and selected smoke tests |
+| Node test loader (PR 31) | `tools/node-bundle/import-map-hook.mjs`, `tools/node-bundle/register-import-map.mjs`, `tools/node-bundle/check-ts-syntax.mjs`, `tests/run-tests-node.sh` | `node --experimental-strip-types --import tools/node-bundle/register-import-map.mjs --test <files>`; `node tools/node-bundle/check-ts-syntax.mjs [dir...]` (exit 1 on `enum`/parameter-property/runtime-`namespace` syntax) |
+| Bundle freshness (PR 33) | `tools/node-bundle/ensure.mjs` | `node tools/node-bundle/ensure.mjs --entry <file.ts> --outfile <file.js> [--watch-dir <dir>]...` rebuilds through `build.mjs`'s exported `bundle()` when any `*.ts`/`*.js`/`*.json` under the watch dirs (default: the entry's tree, `src/import_map.json`, `package-lock.json`) is newer than `outfile` or `outfile` is missing; prints `bundle up to date` otherwise |
 
 ### `errors.ts` (new in PR 09)
 
@@ -108,7 +110,8 @@ export function isAlreadyExists(e: unknown): boolean;   // Deno.errors.AlreadyEx
 export function isPermissionDenied(e: unknown): boolean; // Deno.errors.PermissionDenied | EACCES/EPERM
 export function isAddrInUse(e: unknown): boolean;       // Deno.errors.AddrInUse | EADDRINUSE
 export function isConnectionRefused(e: unknown): boolean;
-export function errorWithPath(e: Error, path: string): Error; // appends "Path: ..." (from monkey-patch.ts)
+export function isConnectionError(e: unknown): boolean;   // BrokenPipe | NotConnected | ConnectionAborted | ConnectionReset | ConnectionRefused | EPIPE | ENOTCONN | ECONNABORTED | ECONNRESET | ECONNREFUSED (PR 09 addition; PR 27 keeps it here)
+export function errorWithPath(e: Error, path: string): Error; // appends "\nPath: <path>" unless the message already ends with it; returns e (from monkey-patch.ts)
 ```
 
 ### `fs.ts` (extended in PR 09)
@@ -118,6 +121,17 @@ Keeps Deno's names for the plain calls so the codemod is `Deno.x(` → `x(` plus
 ```ts
 export interface FileInfo { isFile: boolean; isDirectory: boolean; isSymlink: boolean; size: number; mtime: Date | null; atime: Date | null; birthtime: Date | null; mode: number | null; }
 export interface DirEntry { name: string; isFile: boolean; isDirectory: boolean; isSymlink: boolean; }
+// PR 09 additions: the file-handle shape the 11 Deno.open sites use (streams, Reader/Writer, close)
+export interface FsFile {
+  readonly readable: ReadableStream<Uint8Array>;
+  readonly writable: WritableStream<Uint8Array>;
+  read(p: Uint8Array): Promise<number | null>;
+  write(p: Uint8Array): Promise<number>;
+  writeSync(p: Uint8Array): number;
+  close(): void;
+}
+export interface OpenOptions { read?: boolean; write?: boolean; append?: boolean; create?: boolean; truncate?: boolean; mode?: number; }
+export interface WriteOptions { append?: boolean; create?: boolean; mode?: number; }
 export function readTextFileSync(path: string | URL): string;
 export function readTextFile(path: string | URL): Promise<string>;
 export function readFileSync(path: string | URL): Uint8Array;
@@ -138,14 +152,21 @@ export function renameSync(oldPath: string | URL, newPath: string | URL): void;
 export function rename(oldPath: string | URL, newPath: string | URL): Promise<void>;
 export function copyFileSync(from: string | URL, to: string | URL): void;
 export function copyFile(from: string | URL, to: string | URL): Promise<void>;
-export function readDirSync(path: string | URL): Iterable<DirEntry>;   // sorted by name
+export function readDirSync(path: string | URL): DirEntry[];           // sorted by name (an array is an Iterable<DirEntry>)
 export function readDir(path: string | URL): AsyncIterable<DirEntry>;  // sorted by name
 export function symlinkSync(target: string | URL, path: string | URL, options?: { type?: "file" | "dir" }): void;
+export function symlink(target: string | URL, path: string | URL, options?: { type?: "file" | "dir" }): Promise<void>; // PR 09 addition
 export function readLinkSync(path: string | URL): string;
-export function realPathSync(path: string | URL): string;   // carries the Windows UNC normalisation from monkey-patch.ts
+export function realPathSync(path: string | URL): string;   // normalizePath semantics (absolute, normalised, upper-cased drive letter, Windows UNC prefix removed, from monkey-patch.ts); does NOT resolve symlinks
+export function realPath(path: string | URL): Promise<string>; // PR 09 addition; resolves symlinks (Deno.realPath), as tinytex.ts relies on today
+export function canonicalPathSync(path: string | URL): string; // PR 25 addition: symlinks resolved, Windows `\\?\` prefix removed; hits the file system and throws when `path` does not exist (Deno.realPathSync; PR 27: fs.realpathSync.native)
 export function chmodSync(path: string | URL, mode: number): void;
+export function chmod(path: string | URL, mode: number): Promise<void>;  // PR 09 addition
 export function utimeSync(path: string | URL, atime: number | Date, mtime: number | Date): void;
 export function truncateSync(path: string | URL, len?: number): void;
+export function open(path: string | URL, options?: OpenOptions): Promise<FsFile>;   // PR 09 addition
+export function openSync(path: string | URL, options?: OpenOptions): FsFile;        // PR 09 addition
+export function create(path: string | URL): Promise<FsFile>;                        // PR 09 addition
 // walk, walkSync, expandGlob, expandGlobSync, ensureDir(Sync), existsSync, copy(Sync), moveSync, emptyDirSync, EOL: unchanged re-exports until PR 27
 ```
 
@@ -175,6 +196,7 @@ Codemod: `Deno.env.get(` → `env.get(` with `import { env } from "<rel>/deno_ra
 
 ```ts
 export type StdioOption = "piped" | "inherit" | "null";
+export type Signal = "SIGTERM" | "SIGKILL" | "SIGINT"; // PR 08 addition
 export interface SpawnOptions { args?: string[]; cwd?: string; env?: Record<string, string>; clearEnv?: boolean; stdin?: StdioOption; stdout?: StdioOption; stderr?: StdioOption; signal?: AbortSignal; }
 export interface ExitStatus { success: boolean; code: number; signal: string | null; }
 export interface ExecOutput extends ExitStatus { stdout: Uint8Array; stderr: Uint8Array; }
@@ -184,7 +206,7 @@ export interface ChildProcess {
   readonly stdout: ReadableStream<Uint8Array> | null;
   readonly stderr: ReadableStream<Uint8Array> | null;
   readonly status: Promise<ExitStatus>;
-  kill(signal?: "SIGTERM" | "SIGKILL" | "SIGINT"): void;
+  kill(signal?: Signal): void; // default "SIGTERM"
 }
 export function spawn(cmd: string, options?: SpawnOptions): ChildProcess;          // defaults: stdin inherit, stdout/stderr inherit
 export function exec(cmd: string, options?: SpawnOptions): Promise<ExecOutput>;    // defaults: stdin null, stdout/stderr piped
@@ -199,6 +221,10 @@ export function onSignal(signal: "SIGINT" | "SIGTERM", handler: () => void): voi
 export function writeStdoutSync(data: Uint8Array): number;
 export function writeStderrSync(data: Uint8Array): number;
 export function isTerminal(stream: "stdin" | "stdout" | "stderr"): boolean;
+// PR 08 additions (PR 28 reimplements them on node:child_process / process.stdin with the same signatures):
+export function killProcess(pid: number, signal?: Signal): void; // Deno.kill(pid, signal); default "SIGTERM"; a negative pid addresses a process group on POSIX
+export function readStdin(): Promise<Uint8Array>;               // read stdin to EOF (replaces readAll(Deno.stdin))
+export function readStdinLines(): AsyncIterable<string>;        // stdin as lines without the trailing "\n" / "\r\n" (replaces readLines(Deno.stdin))
 // existing `call(path, opts)` becomes a thin alias of exec and is removed in PR 25
 ```
 `src/core/process.ts` (`execProcess`, `ProcessResult` in `core/process-types.ts`) stays the application-level API; it is reimplemented on `spawn`.
@@ -259,9 +285,52 @@ export function noColor(): boolean;
 ### `main.ts` (new in PR 19)
 
 ```ts
+/** Runtime-neutral in PR 19 (no later PR touches it): returns `meta.main` when defined (Deno, Node 24.2+);
+ * otherwise compares `fileURLToPath(meta.url)` with `process.argv[1]`, both through `realpath`. */
 export function isMainModule(meta: ImportMeta): boolean;
 ```
 
 ### Test harness (PR 23, PR 31)
 
-`tests/harness.ts` exports `registerTest(def: { name: string; fn: () => Promise<void> | void; ignore?: boolean; sanitize?: boolean })` and `tests/asserts.ts` (PR 22) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError`.
+`tests/harness.ts` (PR 23; PR 31 adds the `node:test` branch behind the same types):
+
+```ts
+export interface TestRunContext {
+  /** file:// URL of the module that registered the test. Node: pathToFileURL(t.filePath).href. */
+  origin: string;
+  /** Runs a named sub-test; resolves true when it passed, false when ignored or failed. Node: t.test. */
+  step(name: string, fn: (ctx: TestRunContext) => Promise<void> | void, options?: { ignore?: boolean }): Promise<boolean>;
+}
+export interface SanitizeOptions { resources?: boolean; ops?: boolean; exit?: boolean; }
+export interface TestDefinition {
+  name: string;
+  fn: (ctx: TestRunContext) => Promise<void> | void;   // a `() => void` is assignable
+  ignore?: boolean;                                    // statically skip (not run, not counted)
+  sanitize?: boolean | SanitizeOptions;                // Deno only; ignored on Node
+}
+export function registerTest(def: TestDefinition): void;
+export { runHarness } from "./utils.ts";              // re-export for PR 31
+```
+
+`tests/utils.ts` (PR 23; PR 31 adds the Node branch behind the same options):
+
+```ts
+/** Runs one test file through the harness in a child process. Deno:
+ * `<runtime> test <harness flags> --importmap=… [flags] [--junit-path=<junitPath>] <file> [-- args]`.
+ * Node (PR 31): `node --experimental-strip-types --import tools/node-bundle/register-import-map.mjs [flags] --test
+ * --test-concurrency=1 [--test-reporter=junit --test-reporter-destination=<junitPath>] <file>`, `--no-check`/`--check`
+ * dropped from `flags`, `args` passed through QUARTO_TEST_ARGS (newline-separated). `cwd` must be the tests/ directory. */
+export function runHarness(options: {
+  file: string;                   // test file, relative to cwd or absolute
+  cwd: string;
+  flags?: string[];               // runtime flags placed before the file, e.g. ["--no-check"]
+  args?: string[];                // test arguments placed after "--"
+  env?: Record<string, string>;   // merged over the inherited environment
+  junitPath?: string;
+}): Promise<{ stdout: string; stderr: string; code: number }>;
+/** Command line that runs `scriptPath` with the current JavaScript runtime (Deno: `run --allow-net --allow-read
+ * --allow-env [--allow-write=<path>]`; Node (PR 31): `<node> <script>`). */
+export function runtimeScriptCommand(scriptPath: string, options?: { allowWritePath?: string }): { cmd: string; args: string[] };
+```
+
+`tests/asserts.ts` (PR 22) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError`.

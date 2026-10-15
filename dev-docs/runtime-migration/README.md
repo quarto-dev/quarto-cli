@@ -32,6 +32,30 @@ implementation plan per pull request, in the order the PRs should land.
    `superpowers:executing-plans`), in a worktree, one PR per branch, and
    reviewed on their own.
 
+## Conventions decided by the plans
+
+Later plans assume these; change them in the plan that decides them, not
+downstream.
+
+- Node pin: `NODE=v26.12.0` in `configuration`; bump to the newest 26.x at
+  execution time (PR 33).
+- Node bundle output: `tools/node-bundle/dist/quarto.mjs`; all Node tooling
+  uses the `.mjs` extension and the root `package.json` has **no**
+  `"type": "module"` (PR 26).
+- Ratchet exclusions for the `src` scope (`kSrcExclusions`, PR 02):
+  `src/deno_ral/`, `src/vendor/`, `src/resources/extension-subtrees/`,
+  `src/resources/scripts/`, `src/resources/create/`,
+  `src/webui/quarto-preview/build.ts`. PR 25 drives the rest to zero without
+  adding to the list.
+- Cliffy: `@cliffy/*` 1.3.1 from JSR (PR 06).
+- deno_dom: `jsr:@b-fuze/deno-dom` 0.1.56; the native plugin stays behind a
+  dynamic `import("deno_dom/native")` until PR 20 removes it (PR 05).
+- semver: `npm:semver` behind `src/deno_ral/semver.ts` (PR 04).
+- WebSocket server: `ws` declared in the root `package.json` `dependencies`
+  and as `npm:ws` in `src/import_map.json` (PR 29).
+- `tinitex` is not compiled any more; the workflow calls
+  `quarto call latexmk` (PR 39, recommendation D).
+
 ## How to execute a plan
 
 ```bash
@@ -134,13 +158,16 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 
 ## Progress metric
 
-The PR 02 ratchet prints the current counts. Baseline at the time of writing
-(2026-10-14, `main` at b86f98d):
+The PR 02 ratchet prints the current counts. Baseline as measured by the PR 02
+script (2026-10-14, `main` at a4d0979; the `src` scope excludes PR 02's
+`kSrcExclusions`: `src/deno_ral/`, `src/vendor/`,
+`src/resources/extension-subtrees/`, `src/resources/scripts/`,
+`src/resources/create/`, `src/webui/quarto-preview/build.ts`):
 
 | Scope | `Deno.*` sites | Direct std imports (files) |
 |---|---|---|
-| `src/` outside `src/deno_ral/` | 1,079 | 71 |
-| `package/src` | 240 | (included above) |
-| `tests/` | 840 | 166 (`testing/asserts`) |
+| `src/` outside `kSrcExclusions` | 992 (1,079 with only `deno_ral`/`vendor` excluded) | 75 (76) |
+| `package/src` | 240 | 2 |
+| `tests/` | 840 | 161 |
 
 Zero in `src/` and `package/src` is the exit criterion of Phase 1 (PR 25).
