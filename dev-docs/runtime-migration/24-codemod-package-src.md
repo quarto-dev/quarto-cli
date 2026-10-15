@@ -34,6 +34,8 @@ Sites that need hands:
 | `package/src/common/import-report/find-bad-imports.ts:2`, `find-bad-types-constants.ts:2` | `import { brightBlue } from "jsr:/@std/fmt@^0.224.0/colors"` | `src/deno_ral/colors.ts` |
 | `package/src/common/import-report/report-bundle-async-cycles.ts:13-15` | `npm:acorn@8.14.0`, `npm:acorn-walk@8.3.4`, `npm:javascript-lp-solver` | unchanged (build-tool dependencies, not runtime seams; `acorn` has an import-map alias after PR 03 but the script pins its own version on purpose) |
 
+PR 08 (Task 8) converts the same `Deno.run` and `Deno.Command` sites in `package/src` (`tar.ts`, `git.ts`, `configure.ts`, the import-report scripts, `util/cmd.ts`) to `exec`/`execSync`. Whichever of PR 08 and PR 24 lands second runs `grep -rn 'Deno\.run(\|new Deno\.Command' package/src --include=*.ts` first and skips the files that are already converted; the replacements above and PR 08's agree, except that this PR replaces PR 08's `execSync("ln", …)` in `configure.ts` with `symlinkSync` and routes `deno-info.ts` through the metafile adapter instead of `exec`.
+
 `deno info --json` to esbuild metafile: `tools/deno-esbuild-bundle.ts` already runs `esbuild.build({ plugins: denoPlugins({ importMapURL }), entryPoints: ["./quarto.ts"], outfile: "../package/pkg-working/bin/quarto.js", bundle: true, format: "esm" })` from `src/`. Adding `metafile: true` and writing `result.metafile` to `../package/pkg-working/bin/quarto.meta.json` gives the module graph for the `quarto.ts` root for free during `quarto-bld prepare-dist`. The import-report scripts accept any root (`Deno.args[0]`), so the adapter also runs esbuild in-process (`write: false`) for roots other than the one in the saved metafile. The metafile shape (esbuild `Metafile`):
 
 ```ts

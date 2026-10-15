@@ -21,9 +21,11 @@ Measured in this sandbox on `main` at `a4d0979` with the script in Task 1 (the n
 
 | Scope | `Deno.*` call sites | Files with a direct std import |
 |---|---|---|
-| `src/` excluding `src/deno_ral/` and `src/vendor/` | 1,079 | 76 |
+| `src/` excluding `kSrcExclusions` (below) | 992 | 75 |
 | `package/src` | 240 | 2 |
 | `tests/` | 840 | 161 |
+
+The `src` scope excludes, from the start, the paths that the migration never converts in place (`kSrcExclusions`, with the owner of each): `src/deno_ral/` (the layer itself), `src/vendor/` (vendored dependencies), `src/resources/extension-subtrees/` (git subtree of `PumasAI/quarto-julia-engine`, overwritten by `quarto dev-call pull-git-subtree`; owned by PR 36), `src/resources/scripts/` (standalone `quarto run` fixtures executed under the user-script runtime; PR 35), `src/resources/create/` (user-facing `.ejs.ts` extension templates; PR 35) and `src/webui/quarto-preview/build.ts` (that package's own build script, run with `deno run --no-config`; PR 08 converts it anyway and PR 33 deletes it). With only `src/deno_ral/` and `src/vendor/` excluded the same script measures 1,079 / 76 for `src`; the four other exclusions account for the difference: `extension-subtrees` 74 sites in 4 files and the one std-import file (`julia-engine.ts`), `resources/scripts` 4 sites in 3 files, `resources/create` 1, `build.ts` 8. PR 25 relies on this list when it drives the baseline to zero and does not add to it.
 
 The std-import number for `src/` differs from the README's "71" because the README figure was taken with a narrower module list; the script's list (below) is the authoritative one from now on. Per module in `src/` the 76 files split as: `fmt` 27, `semver` 18, `encoding` 14, `testing` 9, `io` 8, `log` 5, `fs` 5, `flags` 5, `dotenv` 3, `crypto` 2, `async` 2, and one each for `xmlp`, `xml`, `streams`, `path`, `media_types`, `datetime`, `another_cookiejar` (a file can import several modules).
 
@@ -59,6 +61,10 @@ export type Baseline = Record<string, BoundaryCounts>;
 /** The std-library import-map names that must be imported through src/deno_ral/. */
 export const kStdModules: readonly string[];
 
+/** Paths (relative to the repository root, forward slashes; a directory excludes everything beneath it)
+ * that the `src` scope never counts. PR 25 relies on this list when it sets the baseline to zero. */
+export const kSrcExclusions: readonly string[]; // ["src/deno_ral", "src/vendor", "src/resources/extension-subtrees", "src/resources/scripts", "src/resources/create", "src/webui/quarto-preview/build.ts"]
+
 /** Count one scope. `dir` and `exclude` are relative to `root`, forward slashes. Skips node_modules and .venv. */
 export function countScope(root: string, dir: string, exclude: string[]): BoundaryCounts;
 
@@ -91,7 +97,7 @@ CLI contract (`quarto run --dev tools/check-runtime-boundary.ts [--update-baseli
 ### Acceptance criteria
 
 - `quarto run --dev tools/check-runtime-boundary.ts` on the PR branch prints the three scopes with counts equal to the baseline and exits 0.
-- Adding one `Deno.cwd()` call to any file under `src/command/` makes the same command exit 1 with `::error::src: Deno.* calls rose from 1079 to 1080 (baseline tools/runtime-boundary-baseline.json)`.
+- Adding one `Deno.cwd()` call to any file under `src/command/` makes the same command exit 1 with `::error::src: Deno.* calls rose from 992 to 993 (baseline tools/runtime-boundary-baseline.json)`.
 - `--update-baseline` after removing a `Deno.*` call lowers the corresponding number; after adding one it leaves the file unchanged.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts` passes (5 tests).
 - The workflow runs on the PR and is green.
@@ -127,6 +133,7 @@ import { createTempContext } from "../../../src/core/temp.ts";
 import {
   compareToBaseline,
   countScope,
+  kSrcExclusions,
   lowerBaseline,
   measure,
 } from "../../../tools/check-runtime-boundary.ts";
@@ -147,9 +154,15 @@ function makeRepo(root: string) {
   );
   // "DenoX." and "MyDeno." must not match \bDeno\.
   writeFixture(root, "src/core/b.ts", "const DenoX = { a: 1 }; console.log(DenoX.a);\n");
-  // excluded directories
+  // excluded directories and the one excluded file
   writeFixture(root, "src/deno_ral/c.ts", 'import { walk } from "fs/walk";\nDeno.cwd();\n');
   writeFixture(root, "src/vendor/d.ts", "Deno.cwd();\n");
+  writeFixture(root, "src/resources/extension-subtrees/julia-engine/src/j.ts", 'import { exists } from "fs/exists";\nDeno.cwd();\n');
+  writeFixture(root, "src/resources/scripts/k.ts", "Deno.cwd();\n");
+  writeFixture(root, "src/resources/create/l.ejs.ts", "Deno.cwd();\n");
+  writeFixture(root, "src/webui/quarto-preview/build.ts", "Deno.cwd();\n");
+  // a sibling of the excluded file is still counted
+  writeFixture(root, "src/webui/quarto-preview/m.ts", "Deno.cwd();\n");
   // not a .ts file
   writeFixture(root, "src/e.js", "Deno.cwd();\n");
   // skipped tree
@@ -165,8 +178,8 @@ unitTest("check-runtime-boundary - countScope counts Deno. calls and std-import 
     const root = temp.createDir();
     makeRepo(root);
     assertEquals(
-      countScope(root, "src", ["src/deno_ral", "src/vendor"]),
-      { denoCalls: 2, stdImportFiles: 1 },
+      countScope(root, "src", [...kSrcExclusions]),
+      { denoCalls: 3, stdImportFiles: 1 },
     );
     assertEquals(countScope(root, "package/src", []), { denoCalls: 1, stdImportFiles: 1 });
     assertEquals(countScope(root, "tests", []), { denoCalls: 0, stdImportFiles: 1 });
@@ -298,8 +311,18 @@ export const kStdModules: readonly string[] = [
   "@std/path",
 ];
 
+/** Never counted in the `src` scope. A directory entry covers every file beneath it. */
+export const kSrcExclusions: readonly string[] = [
+  "src/deno_ral", // the runtime layer itself
+  "src/vendor", // vendored dependencies
+  "src/resources/extension-subtrees", // git subtree of PumasAI/quarto-julia-engine, maintained upstream (PR 36)
+  "src/resources/scripts", // standalone `quarto run` fixtures executed under the user-script runtime (PR 35)
+  "src/resources/create", // user-facing .ejs.ts extension templates, not Quarto code (PR 35)
+  "src/webui/quarto-preview/build.ts", // that package's own build script (`deno run --no-config`; deleted by PR 33)
+];
+
 const kScopes: Record<string, { dir: string; exclude: string[] }> = {
-  "src": { dir: "src", exclude: ["src/deno_ral", "src/vendor"] },
+  "src": { dir: "src", exclude: [...kSrcExclusions] },
   "package/src": { dir: "package/src", exclude: [] },
   "tests": { dir: "tests", exclude: [] },
 };
@@ -495,11 +518,11 @@ Expected (counts must match; if they do not, `main` moved since this plan was me
 ```
 Runtime boundary check (baseline: tools/runtime-boundary-baseline.json)
 scope         Deno.* calls          std-import files
-src           1079 (baseline none)  76 (baseline none)
+src           992 (baseline none)   75 (baseline none)
 package/src   240 (baseline none)   2 (baseline none)
 tests         840 (baseline none)   161 (baseline none)
-::error::src: Deno.* calls rose from 0 to 1079 (baseline tools/runtime-boundary-baseline.json). ...
-::error::src: std-import files rose from 0 to 76 ...
+::error::src: Deno.* calls rose from 0 to 992 (baseline tools/runtime-boundary-baseline.json). ...
+::error::src: std-import files rose from 0 to 75 ...
 ::error::package/src: Deno.* calls rose from 0 to 240 ...
 ::error::package/src: std-import files rose from 0 to 2 ...
 ::error::tests: Deno.* calls rose from 0 to 840 ...
@@ -515,8 +538,8 @@ Expected file contents (`lowerBaseline` against an empty baseline keeps the curr
 ```json
 {
   "src": {
-    "denoCalls": 1079,
-    "stdImportFiles": 76
+    "denoCalls": 992,
+    "stdImportFiles": 75
   },
   "package/src": {
     "denoCalls": 240,
@@ -532,7 +555,7 @@ Expected file contents (`lowerBaseline` against an empty baseline keeps the curr
 - [ ] **Step 3: Confirm the check passes against the baseline**
 
 Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts; echo "exit=$?"`
-Expected: the table with `(baseline 1079)` etc., then `OK: no count exceeds the baseline.` and `exit=0`.
+Expected: the table with `(baseline 992)` etc., then `OK: no count exceeds the baseline.` and `exit=0`.
 
 - [ ] **Step 4: Prove the ratchet catches a regression**
 
@@ -542,7 +565,7 @@ echo 'const _rt02 = Deno.cwd();' >> src/command/utils.ts
 package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts; echo "exit=$?"
 git checkout -- src/command/utils.ts
 ```
-Expected: `::error::src: Deno.* calls rose from 1079 to 1080 (baseline tools/runtime-boundary-baseline.json). ...` and `exit=1`; the last command restores the file.
+Expected: `::error::src: Deno.* calls rose from 992 to 993 (baseline tools/runtime-boundary-baseline.json). ...` and `exit=1`; the last command restores the file.
 
 - [ ] **Step 5: Prove `--update-baseline` never raises**
 
@@ -553,7 +576,7 @@ package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-basel
 git checkout -- src/command/utils.ts
 git diff --stat tools/runtime-boundary-baseline.json
 ```
-Expected: the baseline file shows no diff (1079 stays 1079).
+Expected: the baseline file shows no diff (992 stays 992).
 
 - [ ] **Step 6: Commit**
 
@@ -561,7 +584,8 @@ Expected: the baseline file shows no diff (1079 stays 1079).
 git add tools/runtime-boundary-baseline.json
 git commit -m "Add runtime boundary baseline
 
-Measured on main: src 1079 Deno.* calls / 76 std-import files,
+Measured on main: src 992 Deno.* calls / 75 std-import files
+(1079 / 76 before the kSrcExclusions beyond deno_ral and vendor),
 package/src 240 / 2, tests 840 / 161."
 ```
 
@@ -658,7 +682,7 @@ After opening the PR, the `Runtime Boundary` check must appear and pass. If `qua
 
 - [ ] Baseline numbers equal the script's output on the merge-base of the PR (re-run on `main` if the PR branch is behind).
 - [ ] `kStdModules` lists exactly: fs, path, io, log, fmt, encoding, async, streams, crypto, tar, uuid, datetime, dotenv, flags, bytes, semver, media_types, xml, xmlp, another_cookiejar, testing, @std/path.
-- [ ] `src/deno_ral` and `src/vendor` are excluded from `src`; `node_modules` and `.venv` are skipped everywhere.
+- [ ] `kSrcExclusions` is exactly `src/deno_ral`, `src/vendor`, `src/resources/extension-subtrees`, `src/resources/scripts`, `src/resources/create`, `src/webui/quarto-preview/build.ts`, each with its reason as a comment, and is exported; `node_modules` and `.venv` are skipped everywhere.
 - [ ] Only `.ts` files are counted (documented scope decision).
 - [ ] `--update-baseline` uses `lowerBaseline` (field-wise minimum), never a plain overwrite.
 - [ ] The workflow has `permissions: contents: read` and the same `paths` list in both triggers.

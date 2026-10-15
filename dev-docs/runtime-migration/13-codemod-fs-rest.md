@@ -31,7 +31,7 @@ Measured on `main` at a4d0979 (2026-10-14) with `grep -rhoE '\bDeno\.[A-Za-z_]+(
 
 `src/render` (5 sites, 2 files: `notebook/notebook-context.ts`, `notebook/notebook-contributor-qmd.ts`): `copyFileSync` 2, `statSync` 2, `writeTextFileSync` 1. This PR: all 5.
 
-Excluded directories, with the reason (these stay in the ratchet baseline; the assessment's "`src/resources` 115 sites in 10 files" row is them plus the julia-engine subtree):
+Excluded directories, with the reason (PR 02's ratchet already leaves `src/resources/extension-subtrees/`, `src/resources/scripts/`, `src/resources/create/` and `src/webui/quarto-preview/build.ts` out of the `src` scope via `kSrcExclusions`; `src/resources/tools/ast-diagram/main.ts` is counted and reaches zero in PR 25; the assessment's "`src/resources` 115 sites in 10 files" row is them plus the julia-engine subtree):
 
 | Path | Sites | Why it cannot import `src/deno_ral` |
 |---|---|---|

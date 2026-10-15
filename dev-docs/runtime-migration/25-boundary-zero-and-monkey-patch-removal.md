@@ -38,14 +38,14 @@ Where each behaviour lives after PR 09 (`09-ral-fs-and-temp-layer.md`; each veri
 
 What changes for `@std/fs` internals (`walk` with `followSymlinks`, `expandGlob`, `copy`), which call `Deno.realPathSync` directly: with the patch they got `normalizePath` (no symlink resolution); after this PR they get the real one. PR 09 established that no file under `src/` calls `Deno.realPathSync` itself, so application code is unaffected.
 
-Zero-count exclusions. PR 02's `tools/check-runtime-boundary.ts` keeps its scopes in `kScopes` (`"src": { dir: "src", exclude: ["src/deno_ral", "src/vendor"] }`, `"package/src"`, `"tests"`) and writes `tools/runtime-boundary-baseline.json` as `{ "<scope>": { "denoCalls": n, "stdImportFiles": m } }`. Three directories under `src/` cannot reach zero and are added to the `src` exclusion list here: `src/resources/extension-subtrees` (git subtree maintained upstream; 72 sites in the julia engine; PR 08 already notes it "stays in the baseline, owned by PR 36"), `src/resources/scripts` (3 sites; `quarto run` fixtures executed under the user-script runtime, PR 35) and `src/resources/create` (1 site in an `.ejs.ts` template for user extensions, PR 36). Everything else in `src/`, including `src/resources/tools/ast-diagram/main.ts` (6 sites) and `src/webui/quarto-preview/build.ts` (8 sites, converted by PR 08), must be at zero; if PR 13/PR 21 left them, this PR converts them.
+Zero-count exclusions. PR 02's `tools/check-runtime-boundary.ts` keeps its scopes in `kScopes` (`"src": { dir: "src", exclude: [...kSrcExclusions] }`, `"package/src"`, `"tests"`) and writes `tools/runtime-boundary-baseline.json` as `{ "<scope>": { "denoCalls": n, "stdImportFiles": m } }`. The exported `kSrcExclusions` already lists, since PR 02, every path under `src/` that cannot reach zero: `src/deno_ral`, `src/vendor`, `src/resources/extension-subtrees` (git subtree maintained upstream; the julia engine; owned by PR 36), `src/resources/scripts` (`quarto run` fixtures executed under the user-script runtime, PR 35), `src/resources/create` (`.ejs.ts` templates for user extensions, PR 35) and `src/webui/quarto-preview/build.ts` (own build script, converted by PR 08 anyway and deleted by PR 33). **This PR does not change that list.** Everything else in `src/`, including `src/resources/tools/ast-diagram/main.ts` (6 sites), must be at zero; if PR 13/PR 21 left them, this PR converts them.
 
 PR 02's workflow is `.github/workflows/runtime-boundary.yml`, running `quarto run --dev tools/check-runtime-boundary.ts` on pull requests and pushes to `main`; the script already exits 1 on any increase. Making the status *required* is a branch-protection setting on `quarto-dev/quarto-cli` `main` (Settings → Branches → `main` → "Require status checks to pass" → add the job name from that workflow); a repository admin does it when this PR merges, and the PR description asks for it explicitly.
 
 ### Scope
 
 In: the deletions, the `call` removal, the baseline at zero, the hard-failing workflow, rules and README updates, and converting any leftover `Deno.*` in `src/`/`package/src` that the acceptance grep reveals.
-Out: `tests/` residue (documented in PR 23; PR 31 finishes it); the three excluded globs; `tools/*.ts` (PR 33/35).
+Out: `tests/` residue (documented in PR 23; PR 31 finishes it); the paths in PR 02's `kSrcExclusions`; `tools/*.ts` (PR 33/35).
 
 ### Interfaces
 
@@ -64,7 +64,7 @@ export function canonicalPathSync(path: string | URL): string;
 ### Files
 
 - Delete: `src/core/deno/monkey-patch.ts`, `src/deno_ral/original-real-path.ts`.
-- Modify: `src/quarto.ts:7-9`; `src/deno_ral/fs.ts:11,145-165` (+ `canonicalPathSync`); `tests/unit/deno-ral/fs.test.ts` (one case); `src/deno_ral/process.ts` (remove `call`); `src/command/render/pandoc.ts:227,1668-1669`; `src/command/create/editor.ts:25,107,164,233`; `src/command/check/check.ts:33,194`; `tests/utils.ts:14,315`; `tests/smoke/project/project-detect-denied-config.test.ts:13,26`; `tests/smoke/check/check-info-project.test.ts:13,27`; `tools/check-runtime-boundary.ts:301-304` (`kScopes` exclusions); `tools/runtime-boundary-baseline.json`; `.claude/rules/typescript/deno-essentials.md`; `.claude/rules/typescript/deno-ral.md`; `dev-docs/runtime-migration/README.md`.
+- Modify: `src/quarto.ts:7-9`; `src/deno_ral/fs.ts:11,145-165` (+ `canonicalPathSync`); `tests/unit/deno-ral/fs.test.ts` (one case); `src/deno_ral/process.ts` (remove `call`); `src/command/render/pandoc.ts:227,1668-1669`; `src/command/create/editor.ts:25,107,164,233`; `src/command/check/check.ts:33,194`; `tests/utils.ts:14,315`; `tests/smoke/project/project-detect-denied-config.test.ts:13,26`; `tests/smoke/check/check-info-project.test.ts:13,27`; `tools/runtime-boundary-baseline.json`; `.claude/rules/typescript/deno-essentials.md`; `.claude/rules/typescript/deno-ral.md`; `dev-docs/runtime-migration/README.md`.
 
 ### Acceptance criteria
 
@@ -240,37 +240,15 @@ git commit -m "remove core/deno/monkey-patch.ts and original-real-path.ts; canon
 ### Task 4: Baseline at zero and a hard-failing check
 
 **Files:**
-- Modify: `tools/runtime-boundary-baseline.json`, `.github/workflows/runtime-boundary.yml`, possibly `tools/check-runtime-boundary.ts` (exclusions)
+- Modify: `tools/runtime-boundary-baseline.json`, `.github/workflows/runtime-boundary.yml` (the exclusion list in `tools/check-runtime-boundary.ts` is PR 02's and stays as it is)
 
 - [ ] **Step 1: Find leftovers**
 
 Run the first acceptance grep. Expected: nothing. If `src/resources/tools/ast-diagram/main.ts` or `src/webui/quarto-preview/build.ts` still show sites, run `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp,env,process,platform --dir src/resources/tools` and `--dir src/webui` and hand-fix the rest (`import.meta.main` → `isMainModule(import.meta)` from `src/deno_ral/main.ts`; `Deno.Command` → `exec`). Commit them as `"src: convert the last Deno.* sites outside the layer"`.
 
-- [ ] **Step 2: Exclusions and baseline**
+- [ ] **Step 2: Baseline**
 
-In `tools/check-runtime-boundary.ts`, the `kScopes` constant (PR 02 placed it around lines 301–304) becomes:
-
-```ts
-const kScopes: Record<string, { dir: string; exclude: string[] }> = {
-  "src": {
-    dir: "src",
-    exclude: [
-      "src/deno_ral",
-      "src/vendor",
-      // git subtree of PumasAI/quarto-julia-engine, maintained upstream (PR 36)
-      "src/resources/extension-subtrees",
-      // `quarto run` fixtures executed under the user-script runtime (PR 35)
-      "src/resources/scripts",
-      // templates for user extensions, not Quarto code (PR 36)
-      "src/resources/create",
-    ],
-  },
-  "package/src": { dir: "package/src", exclude: [] },
-  "tests": { dir: "tests", exclude: [] },
-};
-```
-
-(`isExcluded` matches a directory prefix, so the three entries cover every file beneath them.) Update the unit test in `tests/unit/tools/check-runtime-boundary.test.ts` (PR 02) if it asserts the exclusion list.
+Confirm the exclusion list is untouched: `grep -n -A7 'export const kSrcExclusions' tools/check-runtime-boundary.ts` prints the six PR 02 entries (`src/deno_ral`, `src/vendor`, `src/resources/extension-subtrees`, `src/resources/scripts`, `src/resources/create`, `src/webui/quarto-preview/build.ts`) and nothing else. If any other path under `src/` still has sites, it is converted (Step 1), never excluded.
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline`
 Expected: `tools/runtime-boundary-baseline.json` now contains `"src": { "denoCalls": 0, "stdImportFiles": 0 }` and `"package/src": { "denoCalls": 0, "stdImportFiles": 0 }`; `"tests"` keeps the PR 23 residue. Open the JSON and confirm the zeros by eye.
@@ -292,8 +270,8 @@ Run: `grep -n 'continue-on-error\||| true' .github/workflows/runtime-boundary.ym
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tools/runtime-boundary-baseline.json tools/check-runtime-boundary.ts tests/unit/tools
-git commit -m "runtime boundary: baseline at zero for src and package/src; exclusions for subtree and user-script fixtures"
+git add tools/runtime-boundary-baseline.json
+git commit -m "runtime boundary: baseline at zero for src and package/src"
 ```
 
 ### Task 5: Rules and README
@@ -387,7 +365,7 @@ git commit -m "docs: deno_ral is the only runtime API; Phase 1 complete in the m
 - [ ] Task 1 findings in the PR description; no unaccounted behaviour.
 - [ ] `safeRemoveDirSync` and the four former `originalRealPathSync` callers use `canonicalPathSync` (real symlink resolution); nothing else switched from `realPathSync`.
 - [ ] No `call` export left; no importer of it.
-- [ ] Baseline zeros for `src/` and `package/src`; `kScopes` exclusions limited to the three directories listed, with the reasons as comments.
+- [ ] Baseline zeros for `src/` and `package/src`; `kSrcExclusions` in `tools/check-runtime-boundary.ts` is exactly PR 02's six entries (nothing added by this PR).
 - [ ] Workflow fails hard; admin action requested in the PR description.
 - [ ] `deno-essentials.md` no longer says "Use Deno APIs directly".
 

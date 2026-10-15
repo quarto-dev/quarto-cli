@@ -753,4 +753,4 @@ git commit -m "editor/docs: dprint, oxlint and tsc settings replace the Deno ext
 ## Decisions needed
 
 1. **`oxlint` (recommended) vs ESLint + `typescript-eslint`.** oxlint: single binary, no config sprawl, milliseconds per run, every rule used in the tree except `camelcase` exists. ESLint: `camelcase` exists and type-aware rules are possible, at the cost of 10x the dependencies and seconds per run. The seven `camelcase` directives protect API-shaped names (`html_url`, `tag_name` in `src/tools/github.ts`); not enforcing the rule loses nothing.
-2. **Enable `erasableSyntaxOnly` and remove the 12 enums / 35 parameter-property files?** Recommendation: not in this PR (the bundle makes it unnecessary); open an issue if the team wants `node src/quarto.ts` to work without the bundle.
+2. **Enable `erasableSyntaxOnly` and remove the 12 enums / 40 parameter-property files?** Recommendation: not in this PR (the bundle makes it unnecessary); open an issue if the team wants `node src/quarto.ts` to work without the bundle.

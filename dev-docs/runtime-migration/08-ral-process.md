@@ -34,7 +34,7 @@ Verified inventory (2026-10-14, `main` at a4d0979), all files with `--include=*.
 | 9 | `src/command/dev-call/typst-gather/cmd.ts:62` | runs typst-gather with inherited stdio | `exec` |
 | 10 | `src/webui/quarto-preview/build.ts:23,38` | standalone build script (`deno run --no-config -A build.ts`, imports `node:path`) | `exec`; it can import `process.ts` by relative path because `process.ts` has no bare-specifier imports (see Interfaces) |
 | 11 | `src/resources/tools/ast-diagram/main.ts:27` | resource script shipped in `share/tools/`, run by `deno run` without the import map (imports `https://deno.land/std/path/mod.ts`) | **excluded**: it cannot import `src/deno_ral`; stays in the baseline, owned by PR 35 |
-| 12 | `src/resources/extension-subtrees/julia-engine/src/julia-engine.ts:362,395,427,467` | git subtree of `PumasAI/quarto-julia-engine` | **excluded**: edits are overwritten by `quarto dev-call pull-git-subtree`; stays in the baseline, owned by PR 36 |
+| 12 | `src/resources/extension-subtrees/julia-engine/src/julia-engine.ts:362,395,427,467` | git subtree of `PumasAI/quarto-julia-engine` | **excluded**: edits are overwritten by `quarto dev-call pull-git-subtree`; outside the ratchet's `src` scope (PR 02 `kSrcExclusions`), owned by PR 36 |
 | 13 | `src/resources/extension-subtrees/julia-engine/tests/smoke/julia-engine/julia.test.ts` (18 sites) | same subtree | excluded, same reason |
 | 14 | `src/resources/extension-subtrees/julia-engine/tests/smoke/julia-engine/render.test.ts:19` | same subtree | excluded, same reason |
 | 15 | `package/src/util/cmd.ts:26` | `runCmd` helper for the build tooling | `exec`; `CmdResult.status` becomes `ExitStatus` |
