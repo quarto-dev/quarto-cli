@@ -1,0 +1,5 @@
+---
+title: "website-image-data-uri"
+---
+
+Social and feed images skip data URIs, as crawlers and feed readers fetch images by URL.
