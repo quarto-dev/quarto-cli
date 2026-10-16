@@ -1,5 +1,24 @@
 # Session handoff: runtime migration planning
 
+## Start here: reading order for a new session
+
+1. This file, to the end: state of the branch, what was decided, how to resume.
+2. `00-assessment.md` section 0 (errata and decisions), then sections 1, 2, 7
+   and 11: why Node, what depends on Deno, the phased plan, the runtime-layer
+   design.
+3. `REVIEW-2026-10-15.md` sections 1, 2, 3 and 6: readiness per phase, the
+   structural findings that shaped the rework, the landing strategy, the
+   decisions table.
+4. `README.md`: the executable sequence, conventions, dependency graph and
+   ratchet baseline. The index you consult while working, not the context.
+5. `_TEMPLATE.md`: the normative vocabulary every plan uses.
+6. `SPIKES.md`, then the plan file for the PR being executed.
+
+The meeting summary with the roadmap and architecture drawings is a Claude doc
+(private until shared): https://claude.ai/code/artifact/4868893e-2d5f-4b0c-8035-bfbaa5f264fd.
+The assessment is also published as a page: https://claude.ai/artifact/9thKkB7s15659uYgtwYUmW.
+Both derive from the files here; the files are canonical.
+
 Written 2026-10-15 at the end of the planning session, for whoever (human or
 agent) picks this up in a fresh session.
 
