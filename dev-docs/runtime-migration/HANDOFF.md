@@ -160,8 +160,19 @@ the pass has landed.
   marker matches; readers no longer delete a corrupt index; the Decision
   and Risks say best-effort exclusion; three R18 cases in Task 1; the body
   and the nine cases run on Node 22.22, plus a `kill -STOP` of a live writer
-  for 12 s with a second writer waiting, Deno not run); plans 31, 32, 33,
-  35, 36 still carry the defects its C table names. Row 33's build lock in
+  for 12 s with a second writer waiting, Deno not run) and for 31 (R13: a
+  "Leak guarantees" table in Interfaces, one mechanism per event; the
+  per-test timeout, `QUARTO_TEST_TIMEOUT`, is a watchdog for hangs and
+  "per-file" is corrected everywhere; `runChecked()` in `tests/harness.ts`
+  fails a test that leaves a child, a listening server or a timer open
+  (`process.getActiveResourcesInfo()` before and two `setImmediate` turns
+  after the test) or that calls `exit()` (`process.exit` guarded), with
+  `sanitize` mapped onto it; the forced exit bounds the run and detects
+  nothing; open files, client sockets and pending fs operations are
+  intentionally undetected on Node; a sixth `harness-node.test.ts` case and
+  four one-file examples in Task 5; `runChecked()` run on Node 22.22, Deno
+  and Vitest not run); plans 32, 33, 35, 36 still carry the defects its C
+  table names. Row 33's build lock in
   `ensure.mjs` is to copy PR 30's rule (marker, probe, guarded release); its
   120 s age then only governs locks with no readable owner.
   The line numbers in the review and triage were measured at

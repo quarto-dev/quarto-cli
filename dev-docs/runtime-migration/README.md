@@ -165,6 +165,14 @@ other plans refer to it by file and section (reconciliation pass of
   cache, said as such): PR 30, Interfaces, "Lock ownership" (decision A6;
   PR 33's `ensure.mjs` build lock copies it, triage row 33; `_TEMPLATE.md`'s
   `kv.ts` entry refers to it).
+- The leak guarantees of the Node test harness (the per-test timeout is a
+  watchdog for hangs; `runChecked()` in `registerTest` fails a test that
+  leaves a child process, a listening server or a timer open or that calls
+  `exit()`, with `sanitize` mapped onto it as on Deno; the forced exit after
+  a file's last test bounds the run and detects nothing; open files, client
+  sockets and pending fs operations are intentionally undetected on Node):
+  PR 31, Interfaces, "Leak guarantees" (R13; `_TEMPLATE.md`'s `sanitize`
+  entry, `tests/README.md` and `SPIKES.md`'s Spike V refer to it).
 - The CI graph after Deno removal (events, OSes, bucket generation, required
   check names): PR 37, Context (PR 32 refers to it).
 - Spike V scheduling and its inconclusive outcome: `SPIKES.md`, Spike V
@@ -254,7 +262,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 29 | [29-ral-net-http-watch-on-node-apis.md](29-ral-net-http-watch-on-node-apis.md) | `net.ts`, `http.ts` (with `ws`; the server lifecycle rule: bind states, owned WebSockets, cancellation), `watch.ts` (recreated-root and polling fallback) on Node APIs | 14b, 25, 26, 27b, S2 | Opus | M | planned |
 | 30 | [30-ral-kv-on-node.md](30-ral-kv-on-node.md) | `kv.ts` on a locked JSON file (`<name>.json`), per-key merge, both runtimes; the lock ownership rule (owner marker, liveness probe, guarded release) | 18, 25, 26, 27b | Opus | S | planned |
 | SV | [SPIKES.md](SPIKES.md) | Spike V (two days): Vitest vs `node:test` on ten files after the layer is on `node:` APIs; decision rule with an inconclusive outcome | 27, 27b, 28, 29, 30 | Opus | – | planned |
-| 31 | [31-test-harness-on-node.md](31-test-harness-on-node.md) | `tests/harness.ts` on the chosen runner; `run-tests-node.sh`; `run-parallel-tests.mjs`; `testArgs()`; per-file timeout and forced exit | 02b, 23, 26, 27–30, SV | Opus | L | planned |
+| 31 | [31-test-harness-on-node.md](31-test-harness-on-node.md) | `tests/harness.ts` on the chosen runner; `run-tests-node.sh`; `run-parallel-tests.mjs`; `testArgs()`; leak guarantees (`runChecked()`, per-test timeout, forced exit) | 02b, 23, 26, 27–30, SV | Opus | L | planned |
 | 32 | [32-node-ci-required.md](32-node-ci-required.md) | Bucketed Node matrix (Linux, Windows per PR; macOS nightly) required; prerequisite-aware parity; allowlist empty except Julia until J; Deno matrix to nightly plus `deno-sanity` | 14b, 27, 27b, 28–31, J | Opus | M | planned |
 
 ### Phase 3: flip the runtime, then remove Deno

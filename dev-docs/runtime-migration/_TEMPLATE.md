@@ -341,7 +341,7 @@ export interface TestDefinition {
   name: string;
   fn: (ctx: TestRunContext) => Promise<void> | void;   // a `() => void` is assignable
   ignore?: boolean;                                    // statically skip (not run, not counted)
-  sanitize?: boolean | SanitizeOptions;                // Deno only; ignored on Node
+  sanitize?: boolean | SanitizeOptions;                // Deno: the three sanitizers. Node (PR 31, "Leak guarantees"): resources → children and listening servers, ops → timers, exit → the process.exit guard
 }
 export function registerTest(def: TestDefinition): void;
 export { runHarness } from "./utils.ts";              // re-export for PR 31

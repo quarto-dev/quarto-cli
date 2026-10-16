@@ -19,7 +19,8 @@ Review findings on the earlier draft (blockers B1, B2; S12), all addressed:
 
 - **B1, type-only imports.** Node's type stripping keeps `import { Format } from "../config/types.ts"` when `Format` is only an interface, and module linking fails (`does not provide an export named 'Format'`, reproduced on Node 22.22). Every in-process test (through `tests/quarto-cmd.ts:11` → `src/quarto.ts`) hit this, and `<T>expr` assertions and the parameter property in `tests/quarto-cmd.ts` were missing from the draft's syntax list. PR 02b now fixes all of it in Phase 1 (`verbatimModuleSyntax`, the `import type` codemod, enums, parameter properties, `<T>`) and owns `tools/node-bundle/check-ts-syntax.mjs`; this PR's syntax-cleanup task and its copy of the scan are removed. Vitest's esbuild transform elides type-only imports anyway, which is one of the things Spike V measures.
 - **B2, layer modules not ported.** The harness imports `src/deno_ral/env.ts` and `platform.ts`; on Node they threw at import, and `runtime()` answered `deno` inside the bundle. PR 27b ports both; this PR depends on it.
-- **No `--test-force-exit` or timeout.** A test that leaks a handle (a timer, a child, a server) kept its `node --test` child alive forever. Both variants now set a per-file timeout (10 minutes, the longest smoke file on the timing file takes under 6) and force exit after the last test.
+- **No `--test-force-exit` or timeout.** A test that leaks a handle (a timer, a child, a server) kept its `node --test` child alive forever. Both variants now set a per-test timeout (10 minutes; `--test-timeout` and `testTimeout` bound each test, not the file: two 1.5 s tests pass under a 2 s limit on Node 22.22) and force exit after the last test.
+- **Forced exit is not leak detection (R13 of `REVIEW-2026-10-16.md`).** The earlier draft's acceptance said a leaked timer fails its file, while its worked example expected the leaking file to pass with exit 0 because the runner was terminated; those are different guarantees. They are now separate and each is stated once, in "Leak guarantees" (Interfaces): the per-test timeout is a watchdog for hangs, the forced exit bounds the run and reports nothing, and the detection Deno's sanitizers gave is kept on Node by `runChecked()` in `registerTest` (a count of libuv handles by kind before and after each test, `process.exit` guarded during it), with what Node cannot see listed as intentionally lost.
 - **CI cost (S12).** One process per test file, each re-stripping ~1,200 modules through a JavaScript resolve hook, was not estimated. Spike V measures it against Vitest's transform cache; PR 32 buckets the Node matrix with the existing timing files.
 - **`tests/run-parallel-tests.ts` is Deno-only** (`Deno.run`, unversioned `https://deno.land/std` imports through `quarto run`), and computes the CI buckets: it is ported here to `tests/run-parallel-tests.mjs` (plain Node ESM, also runs on Deno), with a `--runner deno|node` switch for local parallel runs.
 - **Positional arguments.** Neither `node --test` nor `vitest run` passes positional arguments to a test file; `smoke/smoke-all.test.ts` and `integration/playwright-tests.test.ts` read them (after PR 23, through `args()` from `src/deno_ral/process.ts`). `testArgs()` reads `args()` after `--` and otherwise `QUARTO_TEST_ARGS` (newline-separated); both runner scripts set the variable.
@@ -36,7 +37,8 @@ Review findings on the earlier draft (blockers B1, B2; S12), all addressed:
 | Self-spawning tests (`chrome-launch*`, `harness-failure-reporting`) | yes | |
 | How `registerTest` reaches the runner (`node:test` `test()` or Vitest `test()`) | | Task 3 (Variant N) or Task 4 (Variant V) |
 | Module resolution of import-map names on Node | | Variant N: `module.register` hook; Variant V: `resolve.alias` from the import map |
-| Runner flags: per-file timeout, force exit, serial files, JUnit | | Variant N: `--test-timeout=600000 --test-force-exit --test-concurrency=1 --test-reporter=junit`; Variant V: `testTimeout`, `teardownTimeout`, `fileParallelism: false`, `--reporter=junit` |
+| Leak guarantees: `runChecked()` (handle check and exit guard) around every test, `sanitize` mapped onto it | yes (Task 2; the Node branches of Tasks 3 and 4 call it) | |
+| Runner flags: per-test timeout (hang watchdog), force exit, serial files, JUnit | | Variant N: `--test-timeout=600000 --test-force-exit --test-concurrency=1 --test-reporter=junit`; Variant V: `testTimeout`, `teardownTimeout`, `fileParallelism: false`, `--reporter=junit` |
 | `runHarness`'s Node command line | | per variant |
 
 The executor implements Tasks 1, 2, 5–8 and **one** of Tasks 3/4 (the variant Spike V chose; the spike-closing PR deletes the other from this plan). Both are written out below so the spike prototypes from them. If `SPIKES.md` records Spike V as inconclusive with `node:test` provisional (its rule 4), implement Task 3, keep Task 4 and the Variant V bodies in this plan, keep the Vitest branch of the harness behind `process.env.VITEST` as the spike branch had it, and say so in the PR description; the spike's re-run decides whether Task 4 is deleted or swapped in before PR 32 makes the Node matrix required.
@@ -45,7 +47,7 @@ The executor implements Tasks 1, 2, 5–8 and **one** of Tasks 3/4 (the variant 
 
 In:
 - `tests/asserts.ts` on `@std/assert` 1.x; import-map entry; `package.json` synced.
-- `tests/harness.ts`: the Node branch of `registerTest` (variant), `testArgs()`, `onProcessExit()`. `tests/utils.ts`: Node branches of `runHarness` (variant) and `runtimeScriptCommand`.
+- `tests/harness.ts`: the Node branch of `registerTest` (variant), `testArgs()`, `onProcessExit()`, `runChecked()` and `sanitizeOptions()` (the Node mapping of `sanitize`). `tests/utils.ts`: Node branches of `runHarness` (variant) and `runtimeScriptCommand`.
 - Variant N: `tools/node-bundle/import-map-hook.mjs`, `tools/node-bundle/register-import-map.mjs`. Variant V: `tests/vitest.config.mjs`, `vitest` in `devDependencies`.
 - `tests/run-tests-node.sh`, `tests/run-tests-node.ps1`.
 - `tests/run-parallel-tests.mjs` replacing `tests/run-parallel-tests.ts`; `tests/run-parallel-tests.sh` calls it with Node; `.github/workflows/test-smokes-parallel.yml` `jobs-matrix` installs Node instead of Quarto for the bucketing step.
@@ -57,7 +59,7 @@ Out:
 - Strip-only syntax cleanup and `check-ts-syntax.mjs` (PR 02b).
 - Full-suite Node parity, macOS jobs, required status (PR 32).
 - Type checking on Node (`tsc` arrives with PR 33/38).
-- Deno sanitizers (`sanitizeOps`/`sanitizeResources`/`sanitizeExit`): no equivalent in either runner; `sanitize` is honoured on Deno and ignored on Node (documented). The per-file timeout and force exit are the Node-side guard against leaked handles.
+- A Node equivalent of everything Deno's sanitizers see. Neither runner has sanitizers; `runChecked()` keeps the detection this migration depends on (children, listening servers, timers, `exit()`), and open file descriptors, client sockets and pending fs operations are intentionally lost on Node ("Leak guarantees", Interfaces).
 
 ### Interfaces
 
@@ -70,6 +72,21 @@ export function testArgs(): string[];
 /** Runs `handler` once when the test process exits (Deno: "unload" event; Node: process "exit"). */
 export function onProcessExit(handler: () => void): void;
 ```
+
+#### Leak guarantees
+
+Four events, one mechanism each; no mechanism is described as another (R13).
+
+| Event | Deno (`run-tests.sh`) | Node (`run-tests-node.sh`, both variants) | Result |
+|---|---|---|---|
+| A test does not settle (awaits something that never resolves while a handle keeps the loop alive) | nothing, the run hangs | the per-test timeout: `--test-timeout` / `testTimeout`, `QUARTO_TEST_TIMEOUT` ms, default 600000 | the test fails as timed out (`test timed out after 2000ms` with a 2 s limit), the next tests and files run, exit 1. A watchdog for hangs, not leak detection. |
+| A test ends with a handle it opened still open: a child process (`ProcessWrap`), a listening server (`TCPServerWrap`, `PipeServerWrap`), a timer or immediate (`Timeout`, `Immediate`) | `sanitizeResources` (children, servers), `sanitizeOps` (timers) | `runChecked()` in `registerTest`: `process.getActiveResourcesInfo()` counted per kind before the test and two `setImmediate` turns after it (handles are released in the loop's close phase: a child that exited or a server whose `close` callback ran still counts for up to two turns, measured on Node 22.22) | the test fails naming the kinds that grew (`left handles open: ProcessWrap +1`), exit 1 |
+| A test calls `exit()` | `sanitizeExit` | the exit guard in `runChecked()`: `process.exit` replaced for the test's duration by a function that throws (PR 28's `exit()` calls `process.exit` synchronously, so it is caught; without the guard `node:test` reports a file whose test called `process.exit(0)` as passed and never runs the tests after it, exit 0, checked on Node 22.22) | the test fails (`attempted to exit with code 0`) |
+| The file's last test is done and a handle is still open (an opted-out test, module-level code, a library's pooled socket) | Deno's runner exits | `--test-force-exit` (Variant N) / the forked worker is terminated when its file is done (Variant V; Spike V confirms) | the process ends, nothing is reported, the exit code follows the test results. Bounds the run; detects nothing. |
+
+`sanitize` maps onto the check: `resources: false` drops the child and server kinds, `ops: false` the timer kinds, `exit: false` the exit guard, `sanitize: false` all three; `undefined` checks everything, as Deno's defaults do. The existing opt-outs (`tests/smoke/extensions/install.test.ts`, PR 14b's process tests with `{ resources: false, ops: false }`) mean the same thing on both runtimes, and a test that passes Deno's sanitizers passes the check unless it relies on something listed below.
+
+Intentionally lost on Node (Deno's sanitizers see them, `getActiveResourcesInfo()` does not): open file descriptors (an `FsFile` not closed is not a libuv handle), client sockets (`TCPSocketWrap`: `fetch` keeps its connection pooled for about 4 s after the response on Node 22.22, so counting them would fail every test that fetches), and pending fs operations (`FSReqCallback`). The tests that own files and client connections close them explicitly, as PR 16's and PR 29's tests already do for Deno's sanitizer. `process.getActiveResourcesInfo()` is Stability 1 (experimental; in Node since 17.3): when it is missing the check is skipped with one warning per file and the `harness-node.test.ts` leak case fails, which is the signal to reimplement the count on `async_hooks`.
 
 `runHarness` on Node (variant-specific command line, same options and result):
 
@@ -100,7 +117,9 @@ export function onProcessExit(handler: () => void): void;
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/harness-node.test.ts unit/harness-failure-reporting.test.ts unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts unit/smoke-all-prerender-isolation.test.ts` passes on Deno (unchanged behaviour).
 - `cd tests && ./run-tests-node.sh --agent unit/harness-failure-reporting.test.ts unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts` passes on Node.
 - `cd tests && node run-parallel-tests.mjs -n=20 --json-for-ci --timing-file=timing-for-ci.txt` prints the same JSON bucket structure as `quarto run run-parallel-tests.ts -n=20 --json-for-ci --timing-file=timing-for-ci.txt` on `main` (bucket contents differ only where the Deno script placed untimed tests at random).
-- A test that leaks a timer fails its file after the per-file timeout instead of hanging the run (Task 5 step 3).
+- A test that does not settle fails as timed out after the per-test timeout (`QUARTO_TEST_TIMEOUT=2000` in the example) and the run goes on, exit 1 (Task 5 step 3, `zz-hang`).
+- A test that leaves a child process, a listening server or a timer open fails on Node naming the handle kind, and a test that calls `exit()` fails, as the four do on Deno through its sanitizers; `sanitize: false` opts a test out on both runtimes (`harness-node.test.ts`, Task 2; Task 5 step 3, `zz-child`, `zz-timer`).
+- A file whose last test left a handle open while opted out still ends, with exit 0 and nothing reported: the forced exit bounds the run and detects nothing (Task 5 step 3, `zz-opted-out`).
 - `quarto run --dev tools/check-runtime-boundary.ts` stays at zero in `src` and goes down in `tests` (the `.ts` bucketing script with its std imports is gone).
 
 ## Plan
@@ -168,6 +187,7 @@ import { dirname, fromFileUrl, join, toFileUrl } from "../../src/deno_ral/path.t
 import { makeTempDirSync } from "../../src/deno_ral/temp.ts";
 import { readTextFileSync, removeSync, writeTextFileSync } from "../../src/deno_ral/fs.ts";
 import { cwd } from "../../src/deno_ral/process.ts";
+import { runtime } from "../../src/deno_ral/platform.ts";
 
 // Tests run with cwd = tests/ (run-tests.sh, run-tests-node.sh); import.meta.url
 // is not used to find it so the file also works inside a bundle (PR 26 job).
@@ -216,7 +236,53 @@ unitTest("harness - runHarness runs a child test file, passes arguments and repo
   assertStringIncludes(xml, "child fails");
   removeSync(dir, { recursive: true });
 });
+
+// Leak guarantees (Spec): the same child file fails on Deno through its
+// sanitizers and on Node through runChecked(); only the messages differ.
+function junitOutcomes(xml: string): Map<string, "passed" | "failed"> {
+  const outcomes = new Map<string, "passed" | "failed">();
+  for (const m of xml.matchAll(/<testcase\b[^>]*\bname="([^"]*)"[^>]*?(?:\/>|>([\s\S]*?)<\/testcase>)/g)) {
+    outcomes.set(m[1], /<(failure|error)\b/.test(m[2] ?? "") ? "failed" : "passed");
+  }
+  return outcomes;
+}
+
+unitTest("harness - a test that leaves a child, a server or a timer open fails, as does one that calls exit(); sanitize: false opts out", async () => {
+  const dir = makeTempDirSync({ prefix: "rt31-leaks-" });
+  const file = join(dir, "leaks.test.ts");
+  const harnessUrl = toFileUrl(join(testsDir, "harness.ts")).href;
+  const processUrl = toFileUrl(join(testsDir, "..", "src", "deno_ral", "process.ts")).href;
+  const netUrl = toFileUrl(join(testsDir, "..", "src", "deno_ral", "net.ts")).href;
+  const httpUrl = toFileUrl(join(testsDir, "..", "src", "deno_ral", "http.ts")).href;
+  writeTextFileSync(file, [
+    `import { registerTest } from ${JSON.stringify(harnessUrl)};`,
+    `import { execPath, exit, spawn } from ${JSON.stringify(processUrl)};`,
+    `import { findOpenPort } from ${JSON.stringify(netUrl)};`,
+    `import { serveHttp } from ${JSON.stringify(httpUrl)};`,
+    // The child ends by itself: the forced exit of the test process would orphan it otherwise.
+    `registerTest({ name: "leaks a child", fn: () => { spawn(execPath(), { args: ["-e", "setTimeout(() => {}, 5000)"] }); } });`,
+    `registerTest({ name: "leaks a server", fn: async () => { await serveHttp({ port: await findOpenPort(), hostname: "127.0.0.1", handler: () => new Response("x"), onListen: () => {} }).listening; } });`,
+    `registerTest({ name: "leaks a timer", fn: () => { setInterval(() => {}, 1000); } });`,
+    `registerTest({ name: "calls exit", fn: () => { exit(0); } });`,
+    `registerTest({ name: "opted out", sanitize: false, fn: () => { setInterval(() => {}, 1000); } });`,
+    `registerTest({ name: "closes what it opens", fn: async () => { clearTimeout(setTimeout(() => {}, 1000)); const s = serveHttp({ port: await findOpenPort(), hostname: "127.0.0.1", handler: () => new Response("x"), onListen: () => {} }); await s.listening; await s.shutdown(); } });`,
+  ].join("\n"));
+  const junit = join(dir, "junit.xml");
+  const result = await runHarness({ file, cwd: testsDir, flags: ["--no-check"], junitPath: junit });
+  assertEquals(result.code, 1);
+  const outcomes = junitOutcomes(readTextFileSync(junit));
+  assertEquals(outcomes.size, 6, [...outcomes.keys()].join(", "));
+  for (const name of ["leaks a child", "leaks a server", "leaks a timer", "calls exit"]) assertEquals(outcomes.get(name), "failed", name);
+  for (const name of ["opted out", "closes what it opens"]) assertEquals(outcomes.get(name), "passed", name);
+  if (runtime().name === "node") {
+    const out = result.stdout + result.stderr;
+    for (const text of ["ProcessWrap +1", "TCPServerWrap +1", "Timeout +1", "attempted to exit with code 0"]) assertStringIncludes(out, text);
+  }
+  removeSync(dir, { recursive: true });
+});
 ```
+
+(On Deno the four failures are the sanitizers' own: `leaking async ops`, `leaking resources`, `attempted to exit`. The file still ends on both runtimes: Deno's runner exits after the last test; on Node the "opted out" interval is what the forced exit is for.)
 
 - [ ] **Step 2: Run it and see it fail**
 
@@ -253,9 +319,78 @@ export function onProcessExit(handler: () => void): void {
     globalThis.addEventListener("unload", handler);
   }
 }
+
+// Leak guarantees (Spec). Node has no test sanitizers; the Node branches of
+// registerTest (Task 3 or 4) run every test through runChecked(), which maps
+// Deno's three sanitizers onto what Node can see: libuv handles counted by
+// kind before and after the test (children, listening servers, timers) and a
+// guard on process.exit. Handles are released in the loop's close phase, so
+// the count after the test waits two setImmediate turns. Open files, client
+// sockets and pending fs operations are not handles and are not detected.
+import { setImmediate } from "node:timers";
+
+const kResourceKinds = ["ProcessWrap", "TCPServerWrap", "PipeServerWrap"];
+const kOpKinds = ["Timeout", "Immediate"];
+const activeResources: (() => string[]) | undefined =
+  (process as { getActiveResourcesInfo?: () => string[] }).getActiveResourcesInfo;
+let warnedNoHandleCheck = false;
+
+/** PR 23's boolean-or-object normalisation, shared by the Deno branch and runChecked(). */
+export function sanitizeOptions(def: TestDefinition): SanitizeOptions {
+  return typeof def.sanitize === "boolean"
+    ? { resources: def.sanitize, ops: def.sanitize, exit: def.sanitize }
+    : def.sanitize ?? {};
+}
+
+function countHandles(kinds: string[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const kind of activeResources!()) {
+    if (kinds.includes(kind)) counts.set(kind, (counts.get(kind) ?? 0) + 1);
+  }
+  return counts;
+}
+
+export async function runChecked(def: TestDefinition, fn: () => Promise<void> | void): Promise<void> {
+  const sanitize = sanitizeOptions(def);
+  const kinds = [
+    ...(sanitize.resources === false ? [] : kResourceKinds),
+    ...(sanitize.ops === false ? [] : kOpKinds),
+  ];
+  if (kinds.length > 0 && activeResources === undefined && !warnedNoHandleCheck) {
+    warnedNoHandleCheck = true;
+    console.warn("harness: process.getActiveResourcesInfo() is missing on this Node; handles left open are not detected");
+  }
+  const before = kinds.length > 0 && activeResources ? countHandles(kinds) : undefined;
+  const realExit = process.exit;
+  if (sanitize.exit !== false) {
+    process.exit = ((code?: number) => {
+      throw new Error(`Test "${def.name}" attempted to exit with code ${code ?? 0}`);
+    }) as typeof process.exit;
+  }
+  try {
+    await fn();
+  } finally {
+    process.exit = realExit;
+  }
+  if (before === undefined) return;
+  await new Promise((r) => setImmediate(r));
+  await new Promise((r) => setImmediate(r));
+  const after = countHandles(kinds);
+  const leaked = kinds
+    .filter((k) => (after.get(k) ?? 0) > (before.get(k) ?? 0))
+    .map((k) => `${k} +${(after.get(k) ?? 0) - (before.get(k) ?? 0)}`);
+  if (leaked.length > 0) {
+    throw new Error(
+      `Test "${def.name}" left handles open: ${leaked.join(", ")} ` +
+        "(a child process, listening server or timer was not closed; sanitize: { resources: false } or { ops: false } opts out, as on Deno)",
+    );
+  }
+}
 ```
 
-(On Node, `args()` without `--` holds the runner's own arguments, not test arguments, hence the `isNode` guard. `process` is a global on both runtimes.)
+In PR 23's `registerTest`, replace the inline boolean-or-object computation of `sanitize` with `const sanitize = sanitizeOptions(def);` (same result; the Deno branch is otherwise unchanged).
+
+(On Node, `args()` without `--` holds the runner's own arguments, not test arguments, hence the `isNode` guard. `process` is a global on both runtimes. The body of `runChecked` with the six cases of Step 1 was run on Node 22.22 under `node --test --test-force-exit`: the four leaking tests fail with the messages above, the two others pass.)
 
 In `tests/utils.ts`, give `runtimeScriptCommand` its Node branch (PR 23's Deno branch plus the two read/env permissions the `.mjs` scripts below need):
 
@@ -288,7 +423,7 @@ export function runtimeScriptCommand(
 - [ ] **Step 5: Run on Deno**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/harness.test.ts unit/harness-failure-reporting.test.ts docs/smoke-all/2023/02/08/4272.qmd`
-Expected: green; `harness-node.test.ts` still fails its `runHarness` case until a variant's `runHarness` Node branch exists (the Deno branch passes it: run `./run-tests.sh --agent unit/harness-node.test.ts` and expect all four green on Deno).
+Expected: green; `harness-node.test.ts` still fails its two `runHarness` cases until a variant's `runHarness` Node branch exists (the Deno branch passes them: run `./run-tests.sh --agent unit/harness-node.test.ts` and expect all five green on Deno, the leak case through Deno's own sanitizers).
 
 - [ ] **Step 6: Commit**
 
@@ -431,7 +566,8 @@ At the top of PR 23's `registerTest`, before the `sanitize` computation:
   if (nodeTest) {
     nodeTest(def.name, { skip: def.ignore === true }, (t) => {
       const origin = t.filePath ? pathToFileURL(t.filePath).href : "";
-      return Promise.resolve(def.fn(nodeContext(t, origin)));
+      // Leak guarantees (Spec): the handle check and exit guard around the test.
+      return runChecked(def, () => def.fn(nodeContext(t, origin)));
     });
     return;
   }
@@ -474,7 +610,7 @@ Run:
 ```bash
 cd tests && QUARTO_TESTS_NO_CONFIG=true node --no-warnings --import ../tools/node-bundle/register-import-map.mjs --test --test-concurrency=1 --test-force-exit unit/harness-node.test.ts unit/path.test.ts
 ```
-Expected: `# pass` covers the four harness cases and the path tests, `# fail 0`.
+Expected: `# pass` covers the five harness cases and the path tests, `# fail 0` (the leak case's own child file fails four of its six tests; that is what the case asserts).
 
 - [ ] **Step 6: Commit**
 
@@ -589,7 +725,8 @@ At the top of PR 23's `registerTest`:
     vitestTest(def.name, { skip: def.ignore === true }, async (ctx) => {
       const origin = ctx.task.file?.filepath ? pathToFileURL(ctx.task.file.filepath).href : "";
       const failures: unknown[] = [];
-      await def.fn(vitestContext(origin, failures));
+      // Leak guarantees (Spec): the handle check and exit guard around the test.
+      await runChecked(def, () => def.fn(vitestContext(origin, failures)));
       if (failures.length === 1) throw failures[0];
       if (failures.length > 1) throw new AggregateError(failures, `${failures.length} steps failed`);
     });
@@ -731,6 +868,9 @@ all_tests() {
 # ---- Variant N (node:test). Replace with the Variant V body when Spike V chose Vitest.
 # $1: newline-separated QUARTO_TEST_ARGS (may be empty); rest: test files.
 # QUARTO_TEST_JUNIT=<path> adds a JUnit report (single invocations only; PR 32).
+# QUARTO_TEST_TIMEOUT=<ms> is the per-test timeout (default 600000; a hang watchdog,
+# see "Leak guarantees" in the plan). --test-force-exit ends the file's process
+# after its last test whatever is still open.
 run_test_files() {
   local test_args="$1"; shift
   local reporter=(--test-reporter=spec --test-reporter-destination=stdout)
@@ -740,7 +880,7 @@ run_test_files() {
   QUARTO_TEST_ARGS="$test_args" "$NODE" --no-warnings \
     --import "$QUARTO_ROOT/tools/node-bundle/register-import-map.mjs" \
     --enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 \
-    --test --test-concurrency=1 --test-force-exit --test-timeout=600000 \
+    --test --test-concurrency=1 --test-force-exit "--test-timeout=${QUARTO_TEST_TIMEOUT:-600000}" \
     "${reporter[@]}" "${junit[@]}" "$@"
 }
 # ---- end of the runner-specific part
@@ -831,7 +971,8 @@ run_test_files() {
   local junit=()
   [[ -n "$QUARTO_TEST_JUNIT" ]] && junit=(--reporter=junit "--outputFile.junit=$QUARTO_TEST_JUNIT")
   QUARTO_TEST_ARGS="$test_args" "$NODE" "$QUARTO_ROOT/node_modules/vitest/vitest.mjs" run \
-    --config "$SCRIPT_PATH/vitest.config.mjs" "${reporter[@]}" "${junit[@]}" "$@"
+    --config "$SCRIPT_PATH/vitest.config.mjs" "--testTimeout=${QUARTO_TEST_TIMEOUT:-600000}" \
+    "${reporter[@]}" "${junit[@]}" "$@"
 }
 ```
 
@@ -889,9 +1030,10 @@ function Run-TestFiles([string]$testArgs, [string[]]$files) {
   $Env:QUARTO_TEST_ARGS = $testArgs
   $reporter = if ($AGENT_MODE) { @("--test-reporter=dot", "--test-reporter-destination=stdout") } else { @("--test-reporter=spec", "--test-reporter-destination=stdout") }
   $junit = if ($Env:QUARTO_TEST_JUNIT) { @("--test-reporter=junit", "--test-reporter-destination=$($Env:QUARTO_TEST_JUNIT)") } else { @() }
+  $timeout = if ($Env:QUARTO_TEST_TIMEOUT) { $Env:QUARTO_TEST_TIMEOUT } else { "600000" }
   & $NODE --no-warnings --import (Join-Path $Env:QUARTO_ROOT "tools" "node-bundle" "register-import-map.mjs") `
     --enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 `
-    --test --test-concurrency=1 --test-force-exit --test-timeout=600000 @reporter @junit @files
+    --test --test-concurrency=1 --test-force-exit "--test-timeout=$timeout" @reporter @junit @files
   return $LASTEXITCODE
 }
 # ---- end of the runner-specific part
@@ -928,25 +1070,62 @@ function Run-TestFiles([string]$testArgs, [string[]]$files) {
   $Env:QUARTO_TEST_ARGS = $testArgs
   $reporter = if ($AGENT_MODE) { @("--reporter=dot") } else { @("--reporter=default") }
   $junit = if ($Env:QUARTO_TEST_JUNIT) { @("--reporter=junit", "--outputFile.junit=$($Env:QUARTO_TEST_JUNIT)") } else { @() }
-  & $NODE (Join-Path $Env:QUARTO_ROOT "node_modules" "vitest" "vitest.mjs") run --config (Join-Path $SCRIPT_PATH "vitest.config.mjs") @reporter @junit @files
+  $timeout = if ($Env:QUARTO_TEST_TIMEOUT) { $Env:QUARTO_TEST_TIMEOUT } else { "600000" }
+  & $NODE (Join-Path $Env:QUARTO_ROOT "node_modules" "vitest" "vitest.mjs") run --config (Join-Path $SCRIPT_PATH "vitest.config.mjs") "--testTimeout=$timeout" @reporter @junit @files
   return $LASTEXITCODE
 }
 ```
 
-- [ ] **Step 3: Run on Node, including a leaked handle**
+- [ ] **Step 3: Run on Node, then one file per leak guarantee**
 
 Run:
 ```bash
 chmod +x tests/run-tests-node.sh
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests-node.sh --agent unit/path.test.ts unit/text.test.ts unit/harness-node.test.ts unit/gha-grouping.test.ts; echo "exit=$?"
-mkdir -p /tmp/rt31 && cat > unit/zz-leak.test.ts <<'EOF'
+```
+Expected: dots and a tally with no failure, `exit=0`. First-run failures that name `Deno` or an import-map specifier are Phase 2 gaps: file them against the PR that owns the module rather than patching here, unless they are in `tests/` itself.
+
+Then the four cases of "Leak guarantees" (Spec), one file each, each with its own expected result; `timeout 120` is the outer guard, an exit status of 124 means the run itself did not end:
+
+```bash
+cat > unit/zz-hang.test.ts <<'EOF'
+import { unitTest } from "../test.ts";
+unitTest("sleeps 5 s", async () => { await new Promise((r) => setTimeout(r, 5000)); });
+EOF
+QUARTO_TEST_TIMEOUT=2000 QUARTO_TESTS_NO_CONFIG=true timeout 120 ./run-tests-node.sh --agent unit/zz-hang.test.ts; echo "hang exit=$?"
+
+cat > unit/zz-child.test.ts <<'EOF'
+import { unitTest } from "../test.ts";
+import { execPath, spawn } from "../../src/deno_ral/process.ts";
+// The child ends by itself after 5 s; a forced exit would orphan one that did not.
+unitTest("leaves a child running", async () => { spawn(execPath(), { args: ["-e", "setTimeout(() => {}, 5000)"] }); });
+EOF
+QUARTO_TESTS_NO_CONFIG=true timeout 120 ./run-tests-node.sh --agent unit/zz-child.test.ts; echo "child exit=$?"
+
+cat > unit/zz-timer.test.ts <<'EOF'
 import { unitTest } from "../test.ts";
 unitTest("leaks a timer", async () => { setInterval(() => {}, 1000); });
 EOF
-QUARTO_TESTS_NO_CONFIG=true timeout 120 ./run-tests-node.sh --agent unit/zz-leak.test.ts; echo "leak exit=$?"
-rm unit/zz-leak.test.ts
+QUARTO_TESTS_NO_CONFIG=true timeout 120 ./run-tests-node.sh --agent unit/zz-timer.test.ts; echo "timer exit=$?"
+
+cat > unit/zz-opted-out.test.ts <<'EOF'
+import { unitTest } from "../test.ts";
+unitTest("leaks a timer, opted out", async () => { setInterval(() => {}, 1000); }, { sanitize: { ops: false } });
+EOF
+QUARTO_TESTS_NO_CONFIG=true timeout 120 ./run-tests-node.sh --agent unit/zz-opted-out.test.ts; echo "opted-out exit=$?"
+rm unit/zz-hang.test.ts unit/zz-child.test.ts unit/zz-timer.test.ts unit/zz-opted-out.test.ts
 ```
-Expected: dots and a tally with no failure, `exit=0`; then the leak file passes and the run ends (Variant N: `--test-force-exit`; Variant V: forks are torn down after `teardownTimeout`), `leak exit=0` well before the 120 s `timeout` (an exit status of 124 means the handle kept the run alive). First-run failures that name `Deno` or an import-map specifier are Phase 2 gaps: file them against the PR that owns the module rather than patching here, unless they are in `tests/` itself.
+
+Expected:
+
+| File | Mechanism | Output | Exit |
+|---|---|---|---|
+| `zz-hang` | the per-test timeout (watchdog) | one failure, `test timed out after 2000ms` (Variant V: `Test timed out in 2000ms`), after about 2 s | `hang exit=1` |
+| `zz-child` | `runChecked()` handle check | one failure, `left handles open: ProcessWrap +1`; the run ends at once, the child ends on its own 5 s later (`pgrep -f "setTimeout(() => {}, 5000)"` is empty after that) | `child exit=1` |
+| `zz-timer` | `runChecked()` handle check | one failure, `left handles open: Timeout +1`; the run ends although the interval is still armed | `timer exit=1` |
+| `zz-opted-out` | the forced exit only | no failure; the run ends well before the 120 s `timeout` (Variant N: `--test-force-exit`; Variant V: the worker is terminated) and reports nothing about the interval | `opted-out exit=0` |
+
+The last row is the forced exit's whole guarantee: the run is bounded, the leak is not detected. The same four files on Deno (`./run-tests.sh --agent unit/zz-*.test.ts`): the hang file hangs (Deno has no per-test timeout; interrupt it), the child and timer files fail through `sanitizeResources` and `sanitizeOps`, the opted-out file passes. (`unitTest`'s third argument carries `sanitize` into the context PR 23 maps onto `registerTest`; if the signature differs after PR 23, write the two leaking cases with `registerTest` directly as `harness-node.test.ts` does.)
 
 - [ ] **Step 4: Commit**
 
@@ -1285,12 +1464,25 @@ QUARTO_TEST_BIN=../tools/node-bundle/quarto-node ./run-tests-node.sh smoke/   # 
 node run-parallel-tests.mjs -n=8 --runner=node            # local parallel run in 8 buckets
 ```
 
-Differences from the Deno runner: no sanitizers (`sanitize` is ignored; a
-per-file timeout of 10 minutes and a forced exit after the last test guard
-against leaked handles), no type checking, test files run one at a time in
-child processes, and smoke-all document arguments are passed through
+Differences from the Deno runner: no type checking; test files run one at a
+time in child processes; smoke-all document arguments are passed through
 `QUARTO_TEST_ARGS` (`testArgs()` in `harness.ts`) because the Node runners
-have no positional arguments.
+have no positional arguments; and the Node runners have no sanitizers, so
+`harness.ts` provides what they would have (see "Leak guarantees" in
+`dev-docs/runtime-migration/31-test-harness-on-node.md`):
+
+- a test that leaves a child process, a listening server or a timer open
+  fails (`left handles open: ProcessWrap +1`), and a test that calls `exit()`
+  fails; `sanitize: { resources: false }`, `{ ops: false }`, `{ exit: false }`
+  or `sanitize: false` opt out exactly as they do on Deno. Open files, client
+  sockets and pending fs operations are not detected on Node: close them in
+  the test;
+- a test that does not settle fails after the per-test timeout
+  (`QUARTO_TEST_TIMEOUT`, default 600000 ms). This is a watchdog for hangs,
+  not leak detection;
+- after a file's last test its process is ended whatever is still open
+  (`--test-force-exit` / the Vitest worker is terminated). This bounds the
+  run and reports nothing.
 ```
 
 - [ ] **Step 3: Commit**
@@ -1317,7 +1509,8 @@ git commit -m "ci/docs: harness tests on Node through run-tests-node"
 - [ ] Exactly one of Task 3 / Task 4 is implemented, the one `SPIKES.md` (Spike V results) records; the other variant's files are absent, unless the spike recorded "inconclusive" (then Variant N is implemented, Variant V stays in the plan and the harness, and the PR description names the pending re-run).
 - [ ] `tests/harness.ts` imports the runner only on Node (dynamic import; Vitest through a non-literal specifier); PR 23's Deno path, `TestRunContext` and `SanitizeOptions` unchanged; `step` returns `false` for ignored and failed steps; a failed step fails its test.
 - [ ] `testArgs()` prefers positional arguments after `--`; `QUARTO_TEST_ARGS` otherwise; on Node it never returns the runner's own arguments.
-- [ ] `run-tests-node.sh`/`.ps1` mirror `run-tests.sh`/`.ps1`: `--agent`, `--keep-outputs`, document → smoke-all, directory targets, binary-mode default, venv activation, timing format, `QUARTO_TEST_JUNIT`; files run serially with a 10-minute per-file timeout and a forced exit.
+- [ ] `run-tests-node.sh`/`.ps1` mirror `run-tests.sh`/`.ps1`: `--agent`, `--keep-outputs`, document → smoke-all, directory targets, binary-mode default, venv activation, timing format, `QUARTO_TEST_JUNIT`; files run serially with a per-test timeout (`QUARTO_TEST_TIMEOUT`, default 10 minutes) and a forced exit.
+- [ ] Leak guarantees: every test on both Node variants goes through `runChecked()`; `sanitize` maps as the Spec table says and PR 23's Deno branch uses the same `sanitizeOptions()`; the four Task 5 step 3 files give the stated results; no sentence in the plan, `tests/README.md` or the PR description presents the per-test timeout or the forced exit as leak detection.
 - [ ] `tests/asserts.ts` re-exports every name it exported before, now from `@std/assert`; the import map and `package.json` agree (`check-deps.mjs`).
 - [ ] `tests/run-parallel-tests.ts` is deleted; the `.mjs` produces the same bucket structure; the CI bucketing job installs Node 26, not Quarto.
 - [ ] Fake executables are `.mjs` using only `node:` modules and `process`; `runtimeScriptCommand` passes Deno permissions only on Deno.
@@ -1329,9 +1522,11 @@ git commit -m "ci/docs: harness tests on Node through run-tests-node"
 - **The spike's verdict does not hold on the full suite** (a runner that passed ten files fails on a class of tests Spike V did not sample). The other variant is written out in this plan; switching is Task 3 ↔ Task 4 plus the two `run_test_files` bodies. Record the reason in `SPIKES.md` results.
 - **Test isolation differences**: both Node runners run each file in its own process (fresh module state), Deno shares one process. Tests that relied on module state leaking between files would pass on Node and fail on Deno or vice versa; serial files keep the order identical.
 - **Per-file process cost (S12)**: measured by Spike V; PR 32 buckets the Node matrix with the existing timing files so wall time per PR stays near today's Deno matrix.
+- **Handle-check false positives**: a library that keeps a ref'd timer or an `Immediate` alive after an awaited call (undici's keep-alive uses an unref'd timer and a client socket, both outside the counted kinds, checked on Node 22.22) would fail a test that passes Deno's sanitizers. PR 32's parity run shows them; the fix is a settle or an opt-out in that test, as Deno's sanitizers required, never a wider exclusion list without a reason recorded here.
+- **`process.getActiveResourcesInfo()` is experimental** (Stability 1 since Node 17.3). If Node 26 or a later LTS drops or renames it, the check logs one warning per file and the `harness-node.test.ts` leak case fails on Node; reimplement `countHandles()` on `async_hooks.createHook` (track `PROCESSWRAP`, `TCPSERVERWRAP`, `PIPESERVERWRAP`, `Timeout`, `Immediate` by `asyncId`) in this file.
 - **`@std/assert` 1.x message formats** differ slightly from `@std/testing@0.224/asserts` (same code lineage). Tests that assert on the exact assertion message would fail on both runtimes and are fixed in this PR when found.
 - **Whole-PR rollback:** revert the commits; `run-tests.sh` and the Deno harness are untouched except for `onProcessExit` and `testArgs`, both equivalent on Deno; restore `tests/run-parallel-tests.ts` with the revert.
 
 ## Decisions needed
 
-The runner (`node:test` or Vitest) is decided by Spike V before this plan is executed (decision 4); the decision rule and what it changes are in `SPIKES.md`. Everything else is decided above: `@std/assert` over `node:assert`, unbundled execution, `QUARTO_TEST_ARGS`, the per-file timeout and forced exit, the `run-parallel-tests` port. Not changed because it moved: the strip-only syntax cleanup and `check-ts-syntax.mjs` are PR 02b's.
+The runner (`node:test` or Vitest) is decided by Spike V before this plan is executed (decision 4); the decision rule and what it changes are in `SPIKES.md`. Everything else is decided above: `@std/assert` over `node:assert`, unbundled execution, `QUARTO_TEST_ARGS`, the leak guarantees (per-test timeout as watchdog, `runChecked()` for what Deno's sanitizers saw, forced exit as a bound; open files, client sockets and pending fs operations intentionally undetected on Node), the `run-parallel-tests` port. Not changed because it moved: the strip-only syntax cleanup and `check-ts-syntax.mjs` are PR 02b's.
