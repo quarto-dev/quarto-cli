@@ -9191,10 +9191,10 @@ try {
                   }
                 },
                 "image-alt": {
-                  path: {
+                  string: {
                     description: {
                       short: "The alt text for the preview image.",
-                      long: "The alt text for the preview image. By default, Quarto will use\nthe `image-alt` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n"
+                      long: "The alt text for the preview image. By default, Quarto will use\nthe `image-alt` value from the format metadata.\n"
                     }
                   }
                 },
@@ -10150,7 +10150,7 @@ try {
                   }
                 },
                 "image-alt": {
-                  path: {
+                  string: {
                     description: "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
                   }
                 },
@@ -10646,12 +10646,12 @@ try {
                   }
                 },
                 "image-alt": {
-                  path: {
+                  string: {
                     description: "The alt text for the main image on the about page."
                   }
                 },
                 "image-title": {
-                  path: {
+                  string: {
                     description: "The title for the main image on the about page."
                   }
                 },
@@ -20691,6 +20691,19 @@ try {
             description: "The alt text for preview image on this page."
           },
           {
+            name: "image-title",
+            schema: "string",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: {
+              short: "The title for the main image on the about page.",
+              long: "The title for the main image on the about page. Used when\n`about` does not set its own `image-title`.\n"
+            }
+          },
+          {
             name: "image-lazy-loading",
             schema: "boolean",
             tags: {
@@ -20699,8 +20712,8 @@ try {
               ]
             },
             description: {
-              short: "If true, the preview image will only load when it comes into view.",
-              long: 'Enables lazy loading for the preview image. If true, the preview image element \nwill have `loading="lazy"`, and will only load when it comes into view.\n\nIf false, the preview image will load immediately.\n'
+              short: "If true, this page's image in a listing will only load when it comes into view.",
+              long: "Enables lazy loading for this page's image when the page appears as an item\nin a listing. If true, the listing image element will have `loading=\"lazy\"`,\nand will only load when it comes into view.\n\nIf false, the image will load immediately. This overrides the listing's\n`image-lazy-loading` option for this item.\n"
             },
             default: true
           }
@@ -22105,7 +22118,7 @@ try {
           },
           {
             short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata."
           },
           "Image width (pixels)",
           "Image height (pixels)",
@@ -22137,7 +22150,7 @@ try {
           },
           {
             short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata."
           },
           "Image width (pixels)",
           "Image height (pixels)",
@@ -22161,7 +22174,7 @@ try {
           },
           {
             short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata."
           },
           "Image width (pixels)",
           "Image height (pixels)",
@@ -24767,8 +24780,12 @@ try {
           },
           "The alt text for preview image on this page.",
           {
-            short: "If true, the preview image will only load when it comes into\nview.",
-            long: 'Enables lazy loading for the preview image. If true, the preview\nimage element will have <code>loading="lazy"</code>, and will only load\nwhen it comes into view.\nIf false, the preview image will load immediately.'
+            short: "The title for the main image on the about page.",
+            long: "The title for the main image on the about page. Used when\n<code>about</code> does not set its own <code>image-title</code>."
+          },
+          {
+            short: "If true, this page\u2019s image in a listing will only load when it comes\ninto view.",
+            long: 'Enables lazy loading for this page\u2019s image when the page appears as\nan item in a listing. If true, the listing image element will have\n<code>loading="lazy"</code>, and will only load when it comes into\nview.\nIf false, the image will load immediately. This overrides the\nlisting\u2019s <code>image-lazy-loading</code> option for this item.'
           },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
@@ -25706,12 +25723,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 218053,
+          _internalId: 218217,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 218045,
+              _internalId: 218209,
               type: "enum",
               enum: [
                 "png",
@@ -25727,7 +25744,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 218052,
+              _internalId: 218216,
               type: "anyOf",
               anyOf: [
                 {

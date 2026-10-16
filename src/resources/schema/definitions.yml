@@ -605,13 +605,12 @@
               the `image` value from the format metadata. If you provide an 
               image, you may also optionally provide an `image-width` and `image-height`.
       image-alt:
-        path:
+        string:
           description:
             short: "The alt text for the preview image."
             long: |
               The alt text for the preview image. By default, Quarto will use
-              the `image-alt` value from the format metadata. If you provide an 
-              image, you may also optionally provide an `image-width` and `image-height`.
+              the `image-alt` value from the format metadata.
       image-width:
         number:
           description: "Image width (pixels)"
@@ -1278,7 +1277,7 @@
           description: |
             Default site thumbnail image for `twitter` /`open-graph`, relative to the project directory.
       image-alt:
-        path:
+        string:
           description: |
             Default site thumbnail image alt text for `twitter` /`open-graph`
       comments:
@@ -1644,10 +1643,10 @@
               The path to the main image on the about page. If not specified, 
               the `image` provided for the document itself will be used.
       image-alt:
-        path:
+        string:
           description: "The alt text for the main image on the about page."
       image-title:
-        path:
+        string:
           description: "The title for the main image on the about page."
       image-width:
         string:
