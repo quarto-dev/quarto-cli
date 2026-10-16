@@ -102,17 +102,20 @@ export async function bundleQuarto(config: Configuration): Promise<void>;
 ```
 
 ```js
-// tools/node-bundle/build.mjs
+// tools/node-bundle/build.mjs (the builder contract of PR 26, Interfaces: same inputs and both modes; this PR changes the body)
 /**
  * Bundle one TypeScript entry for Node with the import-map resolver.
  * Writes <outfile>, <outfile>.map (when sourcemap), <outfile>.inputs.json
  * (the esbuild metafile's input files outside node_modules, as paths relative
- * to the repository root), each through a temp file + rename.
- * @param {{ entry: string, outfile: string, sourcemap?: boolean }} options
- * @returns {Promise<{ modules: number, bytes: number, ms: number }>}
+ * to the repository root) and, when writeMeta, <outfile>.meta.json (the
+ * metafile), each through a temp file + rename. Every bundle starts with the
+ * interop prelude (require, __filename, __dirname), then `banner`.
+ * @param {{ entry: string, outfile: string, sourcemap?: boolean, banner?: string[], define?: Record<string, string>, writeMeta?: boolean }} options
+ * @returns {Promise<{ outfile: string, modules: number, bytes: number, ms: number, warnings: number }>}
  */
 export async function bundle(options);
-// CLI: node tools/node-bundle/build.mjs --entry <file.ts> --outfile <file> [--no-sourcemap] [--check-shim]
+// CLI: node tools/node-bundle/build.mjs --entry <file.ts> --outfile <file> [--no-sourcemap] [--write-meta] [--check-shim]
+// (the `shim` option and the deno-shim.mjs import are gone; `define` defaults to {}; build-test.mjs's fixture mode is unchanged)
 ```
 
 ```js
@@ -520,7 +523,7 @@ Expected: FAIL, stderr `Cannot find module '.../tools/node-bundle/ensure.mjs'`.
 
 - [ ] **Step 4: Refactor `build.mjs`**
 
-Keep PR 26's imports, the resolver `plugin` and the `--check-shim` scan function. Delete the `deno-shim.mjs` banner import and any `define: { "import.meta.main": ... }` (PR 19's `isMainModule` relies on the real `import.meta`). Replace everything after the `plugin` definition with:
+Keep PR 26's imports, the resolver `plugin` and the `--check-shim` scan function, and keep the builder contract of PR 26 (Interfaces): the `banner`, `define` and `writeMeta` inputs stay, because `build-test.mjs` (fixture mode, kept by PR 32 for `tests/unit/ral/layer-script.ts`) passes `banner` and `define`, and Task 16 reads `<outfile>.meta.json`. Delete the `deno-shim.mjs` banner import and the `shim` option, and make `define` default to `{}` (PR 19's `isMainModule` relies on the real `import.meta`; the CLI bundle no longer defines `import.meta.main`). Replace everything after the `plugin` definition with:
 
 ```js
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -546,13 +549,27 @@ async function writeAtomic(file, contents) {
   }
 }
 
+// Interop prelude (builder contract, PR 26): the CommonJS globals that UMD glue
+// bundled into the ES module reads when `process` exists (web-tree-sitter, PR 20b).
+const kPrelude = [
+  'import { createRequire as __quartoCreateRequire } from "node:module";',
+  'import { fileURLToPath as __quartoFileURLToPath } from "node:url";',
+  'import { dirname as __quartoDirname } from "node:path";',
+  "const require = __quartoCreateRequire(import.meta.url);",
+  "const __filename = __quartoFileURLToPath(import.meta.url);",
+  "const __dirname = __quartoDirname(__filename);",
+];
+
 /**
- * @param {{ entry: string, outfile: string, sourcemap?: boolean }} options
+ * @param {{ entry: string, outfile: string, sourcemap?: boolean, banner?: string[], define?: Record<string, string>, writeMeta?: boolean }} options
  */
 export async function bundle(options) {
   const entry = path.resolve(options.entry);
   const outfile = path.resolve(options.outfile);
   const sourcemap = options.sourcemap ?? true;
+  const banner = options.banner ?? [];
+  const define = options.define ?? {};
+  const writeMeta = options.writeMeta ?? false;
   fs.mkdirSync(path.dirname(outfile), { recursive: true });
   const t0 = Date.now();
   const result = await esbuild.build({
@@ -568,9 +585,8 @@ export async function bundle(options) {
     metafile: true,
     logLevel: "warning",
     plugins: [plugin],
-    banner: {
-      js: 'import { createRequire as __createRequire } from "node:module"; const require = __createRequire(import.meta.url);',
-    },
+    define,
+    banner: { js: [...banner, ...kPrelude].join("\n") },
     tsconfigRaw: { compilerOptions: { useDefineForClassFields: true, verbatimModuleSyntax: true } },
   });
   // Input files the bundle depends on, for ensure.mjs. node_modules is covered
@@ -588,20 +604,22 @@ export async function bundle(options) {
   // tools/bundle-bug-finder runs eslint over the bundle (quarto-bld validate-bundle);
   // a dependency ships an inline "eslint-disable-next-line" that eslint would honour.
   js = js.replaceAll("eslint-disable-next-line", "");
-  // map and input list first, the bundle last: its mtime is the freshness stamp
+  // map, metafile and input list first, the bundle last: its mtime is the freshness stamp
   if (map) await writeAtomic(outfile + ".map", map);
+  if (writeMeta) await writeAtomic(outfile + ".meta.json", JSON.stringify(result.metafile));
   await writeAtomic(outfile + ".inputs.json", JSON.stringify(inputs, null, 1) + "\n");
   await writeAtomic(outfile, js);
-  return { modules: Object.keys(result.metafile.inputs).length, bytes: Buffer.byteLength(js), ms: Date.now() - t0 };
+  return { outfile, modules: Object.keys(result.metafile.inputs).length, bytes: Buffer.byteLength(js), ms: Date.now() - t0, warnings: result.warnings.length };
 }
 
 function parseArgs(argv) {
-  const opts = { sourcemap: true, checkShim: false };
+  const opts = { sourcemap: true, checkShim: false, writeMeta: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--entry") opts.entry = argv[++i];
     else if (a === "--outfile") opts.outfile = argv[++i];
     else if (a === "--no-sourcemap") opts.sourcemap = false;
+    else if (a === "--write-meta") opts.writeMeta = true;
     else if (a === "--check-shim") opts.checkShim = true;
     else throw new Error(`build.mjs: unknown argument ${a}`);
   }
@@ -623,7 +641,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 ```
 
-`verbatimModuleSyntax: true` matches PR 02b's `deno.jsonc` setting (type-only imports are written `import type` and erased). If PR 26 named the scan function differently, keep its name in the last line. Then:
+`verbatimModuleSyntax: true` matches PR 02b's `deno.jsonc` setting (type-only imports are written `import type` and erased). If PR 26 named the scan function differently, keep its name in the last line. `build-test.mjs` needs no change: it passes `banner` and `define` and never passed `shim`. Then:
 
 ```bash
 git rm tools/node-bundle/deno-shim.mjs
@@ -2933,7 +2951,7 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - [ ] `QUARTO_DENO` is never used as the Node binary anywhere (`grep -n QUARTO_DENO package/scripts package/launcher package/src/quarto-bld*`: only the Deno-tool lines).
 - [ ] `NODE_OPTIONS`/`NODE_PATH` are moved to `QUARTO_SAVED_*` only when set, in all three launchers; `restoreSavedNodeEnv()` is the first statement of `quarto()`.
 - [ ] Quarto's flags are identical in the shell launcher, `quarto.cmd`, `main.rs` and `quarto-bld*` (`--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON`).
-- [ ] `ensure.mjs` decides staleness from `<outfile>.inputs.json` (no directory walk, no skip list), takes the lock, re-checks under it; `bundle()` writes JS last through temp + rename.
+- [ ] `ensure.mjs` decides staleness from `<outfile>.inputs.json` (no directory walk, no skip list), takes the lock, re-checks under it; `bundle()` writes JS last through temp + rename, keeps the `banner`/`define`/`writeMeta` inputs of PR 26's builder contract, and emits the three-global interop prelude; `build-test.mjs` is unchanged and `node tools/node-bundle/build-test.mjs --script tests/unit/ral/fixtures/exit-pipe-child.ts` still bundles.
 - [ ] Dev bundles are `.mjs`; `bin/package.json` is written by `prepare-dist` and signed on macOS.
 - [ ] The shim is deleted only after the Task 2 gate passed; the PR description lists the Deno members third-party code still references (guarded).
 - [ ] `denoToolBinary()` resolution order: `QUARTO_DENO`, installed tool, bundled tool; `src/core/run/deno.ts` and `build-ts-extension` use it.

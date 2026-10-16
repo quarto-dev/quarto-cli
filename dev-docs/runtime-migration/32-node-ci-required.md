@@ -545,7 +545,7 @@ Expected: every section empty, or holding Julia-related entries only (PRs 27–3
 git rm tools/node-bundle/run-unit-on-node.mjs tools/node-bundle/known-failures.json
 ```
 
-(`build-test.mjs` and `node-test-adapter.mjs` stay: `tests/unit/ral/layer-script.ts` bundles fixtures with `build-test.mjs --script` on Node.)
+(`build-test.mjs` and `node-test-adapter.mjs` stay: `tests/unit/ral/layer-script.ts` bundles fixtures with `build-test.mjs --script` on Node. That is the fixture mode of the builder contract in `26-node-build-job.md`, Interfaces, which PR 33 keeps when it rewrites `bundle()`.)
 
 - [ ] **Step 2: Add the jobs**
 

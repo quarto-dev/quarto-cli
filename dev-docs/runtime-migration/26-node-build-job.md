@@ -69,18 +69,35 @@ export function dependenciesFromImportMap(map): Record<string, string>;
 
 ```js
 /** Bundles `entry` for Node with esbuild and the import-map resolver.
- *  banner: extra JS lines placed after the shim import (default: none).
+ *  banner: extra JS lines placed after the shim import and before the interop prelude (default: none).
  *  shim: false omits the shim import (default true).
  *  define: esbuild defines (default { "import.meta.main": "true" }; test bundles replace import.meta).
- *  Writes outfile, outfile + ".map", and, when writeMeta, dist/meta.json and dist/resolved.json. */
+ *  sourcemap: write outfile + ".map" (default true).
+ *  writeMeta: also write the esbuild metafile as outfile + ".meta.json" and the import-map
+ *    resolutions as outfile + ".resolved.json" (default false).
+ *  Every bundle starts with the interop prelude (require, __filename, __dirname; see the contract below). */
 export async function bundle(options: {
-  entry: string; outfile: string; banner?: string[]; shim?: boolean; writeMeta?: boolean; define?: Record<string, string>;
+  entry: string; outfile: string; banner?: string[]; shim?: boolean; writeMeta?: boolean; define?: Record<string, string>; sourcemap?: boolean;
 }): Promise<{ outfile: string; modules: number; bytes: number; ms: number; warnings: number }>;
 /** `import "<path of file relative to outfile>";` for banners. */
 export function importLine(outfile: string, file: string): string;
 ```
 
-CLI: `node tools/node-bundle/build.mjs [--entry src/quarto.ts] [--out tools/node-bundle/dist/quarto.mjs] [--check-shim]`. `--check-shim` runs `check-shim.mjs` on the written bundle and exits with its status.
+CLI: `node tools/node-bundle/build.mjs [--entry src/quarto.ts] [--out tools/node-bundle/dist/quarto.mjs] [--check-shim] [--write-meta] [--no-sourcemap]`. `--check-shim` runs `check-shim.mjs` on the written bundle and exits with its status.
+
+**The builder contract (owned by this plan; PRs 20b, 31, 32 and 33 refer here).** One `bundle()` serves every bundle in the repository, in two modes that differ only in their inputs:
+
+| Input | CLI mode (`build.mjs` CLI; PR 33: `ensure.mjs` dev bundles, `bundleQuarto()` for `bin/quarto.js`, Task 16's module graph) | Fixture mode (`bundleTest()` in `build-test.mjs`: one test file, or a layer script with `--script`; used by `run-unit-on-node.mjs` until PR 32 and by `tests/unit/ral/layer-script.ts` from PR 26 on) |
+|---|---|---|
+| `entry`, `outfile` | `src/quarto.ts` (or `--entry`), `tools/node-bundle/dist/quarto.mjs` (or `--out`); PR 33: `package/dist/bin/quarto-dev.mjs`, `quarto-bld.mjs`, `package/pkg-working/bin/quarto.js` | the test file, `tools/node-bundle/dist/tests/<relative path>.mjs` |
+| interop prelude (always, not an option) | `import { createRequire } from "node:module"; const require = createRequire(import.meta.url); const __filename = fileURLToPath(import.meta.url); const __dirname = dirname(__filename);` (the three CommonJS globals `web-tree-sitter`'s UMD glue reads when `process` exists, PR 20b; `tools/deno-esbuild-bundle.ts` defines the same three for the Deno bundle until PR 33 deletes it) | same |
+| `banner` | none | `importLine(outfile, node-test-adapter.mjs)` (test files only), the `__quartoImportMeta` object, `globalThis.__QUARTO_TEST_ORIGIN__ = <file URL>` (test files only) |
+| `define` | `{ "import.meta.main": "true" }` while `src/quarto.ts` guards `main()` on it; `{}` once PR 19's `isMainModule` reads the real `import.meta` (PR 33 makes `{}` the default) | `{ "import.meta": "__quartoImportMeta" }` so `isMainModule` is false inside a test bundle and `src/quarto.ts` never starts the CLI |
+| `shim` | `true` (the `deno-shim.mjs` import first) until PR 33 deletes the shim and the option; no caller passes it | same default; no caller passes it |
+| `sourcemap` | `true`; PR 33's `prepare-dist` passes `false` (`--no-sourcemap`) | `true` |
+| `writeMeta` | `--write-meta` on the CLI (`<outfile>.meta.json`, `<outfile>.resolved.json`); PR 33 Task 16 reads `<outfile>.meta.json` for the module graph | `false` |
+
+Lifecycle: this PR defines the function and both modes; PRs 27, 27b, 28, 29 and 30 only shrink the shim; PR 31 adds nothing to it (tests run unbundled on the import-map hook; `layer-script.ts` keeps fixture mode for spawned layer scripts); PR 32 deletes `run-unit-on-node.mjs` and `known-failures.json` but keeps `build-test.mjs` and `node-test-adapter.mjs` for fixture mode; PR 33 rewrites the body (atomic temp-file writes, `<outfile>.inputs.json` for `ensure.mjs`, the `sourcemap` option, the shim import and `shim` option removed, `define` defaulting to `{}`) and keeps every other input and both modes, so `bundleTest()` is unchanged by the flip. A change to an input is made here first and mirrored in PR 33's Task 2 step 4; a new caller names its mode in its plan.
 
 `tools/node-bundle/check-shim.mjs`: `node tools/node-bundle/check-shim.mjs [--bundle tools/node-bundle/dist/quarto.mjs] [--resources src/resources]`. Collects every `Deno.<a>` and `Deno.<a>.<b>` reference, including the optional-chaining forms `Deno?.<a>` and `Deno.<a>?.<b>`, from the bundle and from every `*.js`/`*.mjs` file under the resources directory (runtime-loaded code the bundle never sees: today `src/resources/js/graphviz-wasm.js` and `src/resources/extension-subtrees/julia-engine/_extensions/julia-engine/julia-engine.js`), skipping `src/resources/editor/` (editor tooling bundles that run in VS Code or a browser worker, never in the CLI process). It imports the shim in a Node process to read the members it defines (first level, and the second level of object members such as `stdin`, `errors`, `build`). Prints `shim: <N> members referenced, <M> missing, <U> unused`, then the missing list (with the files that reference each), then the unused list. Exits 1 when `M > 0`. `kIgnoredReferences` (a set in the file, empty at creation) holds false positives from string literals, each with a comment.
 
@@ -166,7 +183,7 @@ Nothing else is rewritten, so a remaining difference is a real one. The caller e
 
 ### Acceptance criteria
 
-- `npm ci && node tools/node-bundle/build.mjs --check-shim` exits 0 on a clean checkout with Node 26 and prints `bundled src/quarto.ts -> tools/node-bundle/dist/quarto.mjs (...)` followed by `shim: N members referenced, 0 missing, U unused`.
+- `npm ci && node tools/node-bundle/build.mjs --check-shim` exits 0 on a clean checkout with Node 26 and prints `bundled src/quarto.ts -> tools/node-bundle/dist/quarto.mjs (...)` followed by `shim: N members referenced, 0 missing, U unused`; `head -c 600 tools/node-bundle/dist/quarto.mjs` shows the interop prelude defining `require`, `__filename` and `__dirname`.
 - `node --test "tools/node-bundle/*.test.mjs"` passes.
 - `tools/node-bundle/quarto-node --version` prints `99.9.9`; `sleep 10 | timeout 5 tools/node-bundle/quarto-node --version` exits 0 (lazy stdin; an eager stdin stream makes `timeout` kill it).
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` exits 0 on Linux, and its JUnit-derived tally is printed per file.
@@ -514,7 +531,7 @@ export function importLine(outfile, file) {
   return `import ${JSON.stringify(rel)};`;
 }
 
-export async function bundle({ entry, outfile, banner = [], shim = true, writeMeta = false, define = { "import.meta.main": "true" } }) {
+export async function bundle({ entry, outfile, banner = [], shim = true, writeMeta = false, define = { "import.meta.main": "true" }, sourcemap = true }) {
   const map = loadImportMap(root);
   const resolved = new Map();
   const plugin = {
@@ -544,7 +561,16 @@ export async function bundle({ entry, outfile, banner = [], shim = true, writeMe
   const lines = [];
   if (shim) lines.push(importLine(outfile, shimPath));
   lines.push(...banner);
-  lines.push(`import { createRequire as __createRequire } from "node:module"; const require = __createRequire(import.meta.url);`);
+  // Interop prelude (builder contract): the CommonJS globals that UMD glue
+  // bundled into this ES module reads when `process` exists (web-tree-sitter, PR 20b).
+  lines.push(
+    `import { createRequire as __quartoCreateRequire } from "node:module";`,
+    `import { fileURLToPath as __quartoFileURLToPath } from "node:url";`,
+    `import { dirname as __quartoDirname } from "node:path";`,
+    `const require = __quartoCreateRequire(import.meta.url);`,
+    `const __filename = __quartoFileURLToPath(import.meta.url);`,
+    `const __dirname = __quartoDirname(__filename);`,
+  );
   const t0 = Date.now();
   const result = await esbuild.build({
     entryPoints: [entry],
@@ -553,7 +579,7 @@ export async function bundle({ entry, outfile, banner = [], shim = true, writeMe
     format: "esm",
     target: "node26",
     outfile,
-    sourcemap: true,
+    sourcemap,
     logLevel: "warning",
     plugins: [plugin],
     // CLI bundle: src/quarto.ts guards main() on import.meta.main until PR 19
@@ -567,9 +593,8 @@ export async function bundle({ entry, outfile, banner = [], shim = true, writeMe
     tsconfigRaw: { compilerOptions: { useDefineForClassFields: true, verbatimModuleSyntax: false } },
   });
   if (writeMeta) {
-    const dist = path.dirname(outfile);
-    fs.writeFileSync(path.join(dist, "meta.json"), JSON.stringify(result.metafile));
-    fs.writeFileSync(path.join(dist, "resolved.json"), JSON.stringify(Object.fromEntries(resolved), null, 2));
+    fs.writeFileSync(outfile + ".meta.json", JSON.stringify(result.metafile));
+    fs.writeFileSync(outfile + ".resolved.json", JSON.stringify(Object.fromEntries(resolved), null, 2));
   }
   return {
     outfile,
@@ -589,7 +614,7 @@ const isMain = process.argv[1] && pathToFileURL(fs.realpathSync(process.argv[1])
 if (isMain) {
   const entry = path.resolve(root, arg("--entry", "src/quarto.ts"));
   const outfile = path.resolve(root, arg("--out", "tools/node-bundle/dist/quarto.mjs"));
-  const r = await bundle({ entry, outfile, writeMeta: true });
+  const r = await bundle({ entry, outfile, writeMeta: process.argv.includes("--write-meta"), sourcemap: !process.argv.includes("--no-sourcemap") });
   console.log(
     `bundled ${path.relative(root, entry)} -> ${path.relative(root, outfile)} (${(r.bytes / 1e6).toFixed(1)} MB, ${r.modules} modules, ${r.ms} ms, ${r.warnings} warnings)`,
   );
@@ -1987,7 +2012,7 @@ debug logging as with the Deno dev build.
 | Path | Role |
 |---|---|
 | `tools/node-bundle/import-map.mjs` | Maps `src/import_map.json` to npm/JSR package specifiers. Shared with `check-deps.mjs` and the Node test loader (PR 31). |
-| `tools/node-bundle/build.mjs` | esbuild bundler; exports `bundle()`. `--check-shim` runs `check-shim.mjs`. Writes `dist/quarto.mjs`, `dist/meta.json`, `dist/resolved.json`. |
+| `tools/node-bundle/build.mjs` | esbuild bundler; exports `bundle()` (the builder contract: CLI mode and fixture mode, `26-node-build-job.md` Interfaces). `--check-shim` runs `check-shim.mjs`; `--write-meta` writes `<outfile>.meta.json` and `.resolved.json`. Writes `dist/quarto.mjs`. |
 | `tools/node-bundle/check-shim.mjs` | Deno members referenced by the bundle and by `src/resources/**/*.js` vs members the shim defines: missing fails, unused is listed. |
 | `tools/node-bundle/deno-shim.mjs` | Temporary `globalThis.Deno` on `node:` APIs; a no-op on Deno. Shrinks with PR 27–30 and 27b. |
 | `tools/node-bundle/build-test.mjs`, `node-test-adapter.mjs` | Bundle one test file for Node; `Deno.test` on `node:test`. |
@@ -2069,7 +2094,7 @@ Before opening the PR:
 
 ## Review checklist
 
-- [ ] `tools/node-bundle/build.mjs` contains no absolute paths and no clone directories; the only resolution sources are `src/import_map.json`, `node_modules`, and `node:` externals; `bundle()` is exported.
+- [ ] `tools/node-bundle/build.mjs` contains no absolute paths and no clone directories; the only resolution sources are `src/import_map.json`, `node_modules`, and `node:` externals; `bundle()` is exported with the inputs of the builder contract, and every bundle starts with the interop prelude (`require`, `__filename`, `__dirname`).
 - [ ] A remaining `https://` import-map value fails the build with `unmapped remote import <spec> -> <value>` naming the importer.
 - [ ] `deno-shim.mjs` has no third-party imports other than `ws`; every member is a `Deno.<name> =` assignment on its own line; it does nothing when `globalThis.Deno` exists; stdio streams are lazy; `readDirSync`/`readDir` map ENOENT; the header names PR 27–30, 27b and 33.
 - [ ] `check-shim.mjs` scans the bundle and `src/resources/**/*.js`, handles `Deno?.x` and nested members, prints the unused list.
