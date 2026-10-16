@@ -4,6 +4,9 @@ This directory holds the decision record, the spike that validated it, the
 review that reshaped the plans, and one implementation plan per pull request,
 in the order the PRs should land.
 
+**New to this work?** Read `HANDOFF.md` first; its "Start here" section gives
+the reading order. This README is the execution index.
+
 - `00-assessment.md`: the assessment and decision record (situation, options,
   impact, phased plan, spike results, module-by-module refactoring plan), with
   an errata section dated 2026-10-15. Read sections 10 and 11 before any plan.
@@ -20,7 +23,8 @@ in the order the PRs should land.
 - `NN-*.md`: one plan per PR. Each is self-contained: spec, files, tasks with
   checkbox steps, verification commands, review checklist, risks, and a
   suggested executor (Opus or Sonnet) with a size estimate.
-- `HANDOFF.md`: session handoff notes; `braid-seed.sh`: optional strand seeding.
+- `HANDOFF.md`: start here; state of the work and the reading order.
+  `braid-seed.sh`: optional strand seeding.
 
 ## Ground rules that every PR follows
 
