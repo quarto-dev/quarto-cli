@@ -33,6 +33,7 @@ All changes included in 1.11:
 - ([#15019](https://github.com/quarto-dev/quarto-cli/issues/15019)): Fix screen reader announcements in `revealjs` presentations including incremental content before it is revealed and repeating slides and fragments when browser history is enabled. (author: @jooyoungseo)
 - ([#15030](https://github.com/quarto-dev/quarto-cli/pull/15030)): Fix `axe` checks in `revealjs` presentations hiding the current slide from screen readers when moving to another slide while the scan runs.
 - ([#15033](https://github.com/quarto-dev/quarto-cli/issues/15033)): Fix screen reader announcements in `revealjs` presentations reading the CSS inside Mermaid diagrams, omitting image alternative text, and reading the contents of `role="img"` graphics instead of their accessible names. (author: @jooyoungseo)
+- ([#15080](https://github.com/quarto-dev/quarto-cli/issues/15080)): Fix footnote, citation, cross-reference and code annotation popups not closing with Esc, and staying open over the next focused element after keyboard focus leaves them.
 
 ## Formats
 
