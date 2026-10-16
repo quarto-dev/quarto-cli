@@ -145,8 +145,15 @@ the pass has landed.
   `NodeFsFile`, streams closing through the object, idempotent `close()`,
   decision A8; R19: the Windows link type from `stat` of the source with a
   dangling-link fallback; tests for each in Tasks 2 and 4, checked on Node 22
-  only, Deno covered by the tests); plans 29, 30, 31, 32, 33, 35, 36 still
-  carry the defects its C table names. The line numbers in the review and triage were measured at
+  only, Deno covered by the tests) and for 29 (R07: the "Server lifecycle"
+  rule in Interfaces, decision A7; `shutdown()` awaits `listening` before
+  closing, a per-server set of owned `ws` sockets closed with 1001 and
+  terminated in the forced path, `Request.signal` from the response's
+  `close` with `writableFinished === false`, the body loop racing `drain`
+  with `close` and cancelling the reader; five R07 tests in Task 3; the body
+  and all ten cases were run on Node 22.22 with `ws` 8.22, Deno not run);
+  plans 30, 31, 32, 33, 35, 36 still carry the defects its C table names.
+  The line numbers in the review and triage were measured at
   `075cbf4`; re-grep before trusting one.
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both
   harness variants and PR 32 cannot make the Node matrix required until the

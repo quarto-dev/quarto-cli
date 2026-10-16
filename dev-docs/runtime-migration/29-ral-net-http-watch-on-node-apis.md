@@ -22,8 +22,9 @@ Facts verified in this sandbox on Node 22.22 and Deno 2.7.14 (`node:` compat):
 - `ws` 8.22.0 `WebSocketServer({ noServer: true }).handleUpgrade` over a `node:http` `upgrade` event, with the runtime's global `WebSocket` client: echo round-trip succeeds on both runtimes.
 - `fs.watch(dir, { recursive: true })` on Linux: a new subdirectory, a file created in it 500 ms later, a modification, a rename and a deletion are all reported (`rename`/`change` events with relative names). Deno additionally reports a `change` for the create. Node documents recursive watching on Linux since v19.1.0 (`fs.watch` history table) and it is not flagged experimental in Node 22.
 - Node's `Response` constructor rejects status 101, so the websocket upgrade marker is a status-200 `Response` tracked in a `WeakSet` (as in the spike).
+- Server lifecycle on Node 22 (measured for R07; Deno's `node:http` not checked, see Risks): `server.listening` is `false` when `listen()` returns, for an IP host as for a hostname, and `close()` called before the bind settles answers `ERR_SERVER_NOT_RUNNING`; awaiting the `listening` promise and then calling `close()` settles in under 10 ms for both kinds of host, and the same sequence racing a bind failure ends with the bind error. `closeAllConnections()` does not touch a socket handed to the `upgrade` event, `getConnections()` keeps counting it, and `close()`'s callback waits for it: a server with one live WebSocket never reaches `finished` unless the layer closes that socket. `ws` 8's `WebSocketServer.close()` does not close its clients (8.0 change); `ws.close(1001)` to the runtime's `WebSocket` client completes the handshake and frees the server in about 60 ms, to a peer that ignores the close frame the socket stays `CLOSING` (ws's own close timeout is 30 s) and `terminate()` ends it at once. `IncomingMessage`'s `close` fires after every completed response (Node ≥ 16), so it is not a disconnect signal; `ServerResponse`'s `close` with `writableFinished === false` is, and when a client leaves mid-body `drain` never fires while that `close` does. `addEventListener("abort")` on an already-aborted signal never fires; `new Request(url, { signal })` follows the controller. A socket handed to `upgrade` is paused: a client that leaves while the handler is still pending is not noticed until `handleUpgrade` resumes it. The `http.ts` body of Task 3 and the ten cases of its Step 1 were run as written on Node 22.22 with `ws` 8.22 (type-stripped, `net.ts` from Task 2, a stub `log.ts`): all pass, the deaf-peer case in about 2 s; the previous body hangs on four of the five R07 cases and fails the fifth.
 
-Review findings on the earlier draft, all addressed here: it relied on `tests/smoke/preview/`, which did not exist (PR 14b now creates `tests/smoke/preview/preview-reload.test.ts`: serve, WebSocket, file change → reload, shutdown; it is this PR's end-to-end gate); `server.once("error")` left every later server error unhandled (an `error` event without a listener crashes the process): the server now keeps an `on("error")` listener for its whole life; `server.closeIdleConnections()` had only been checked on Node (Spike #2 (g) checks Deno; the call is guarded and the 2 s `closeAllConnections()` fallback stays); `fs.watch` on Deno 2.9 has denoland/deno#36937 (a watcher opened on a directory that was deleted and recreated receives no events): the watcher now re-creates itself when a watched root reappears and falls back to polling for that root where Spike #2 (c) found re-created watchers deaf, with `QUARTO_WATCH_POLLING=1` forcing polling everywhere. Vocabulary changes applied: `HttpServer.listening: Promise<void>` (rejects on bind failure), the default `onListen` prints `Listening on http://<host>:<port>/` to **stderr**, `findOpenPort`'s default `attempts` is 100, `ws` 8.22.
+Review findings on the earlier draft, all addressed here: it relied on `tests/smoke/preview/`, which did not exist (PR 14b now creates `tests/smoke/preview/preview-reload.test.ts`: serve, WebSocket, file change → reload, shutdown; it is this PR's end-to-end gate); `server.once("error")` left every later server error unhandled (an `error` event without a listener crashes the process): the server now keeps an `on("error")` listener for its whole life; `server.closeIdleConnections()` had only been checked on Node (Spike #2 (g) checks Deno; the call is guarded and the 2 s `closeAllConnections()` fallback stays); `fs.watch` on Deno 2.9 has denoland/deno#36937 (a watcher opened on a directory that was deleted and recreated receives no events): the watcher now re-creates itself when a watched root reappears and falls back to polling for that root where Spike #2 (c) found re-created watchers deaf, with `QUARTO_WATCH_POLLING=1` forcing polling everywhere. Vocabulary changes applied: `HttpServer.listening: Promise<void>` (rejects on bind failure), the default `onListen` prints `Listening on http://<host>:<port>/` to **stderr**, `findOpenPort`'s default `attempts` is 100, `ws` 8.22. Codex review R07 (`REVIEW-2026-10-16.md`; triage decision A7) on the draft of this PR: `shutdown()` resolved while a bind was still pending, upgraded sockets were nobody's to close, a response wait on `drain` never settled when the client left and the `Request` had no disconnect signal. The "Server lifecycle" rule in Interfaces answers all three, with the measurements above as the evidence.
 
 **Decision: `fs.watch` recursive, no `@parcel/watcher`.** The only consumer of `watchFs` is the dev-mode source watcher in `src/core/quarto.ts` (`quarto preview` restarts when a `.ts` under `src/` changes); project serving uses the polling watcher in `src/core/watch.ts` (`watchForFileChanges`), which is plain `statSync`. Node 22's Linux implementation adds inotify watches as it discovers directories, so a file written into a brand-new directory within the first milliseconds can be missed; for the dev-mode source watch that is irrelevant. If a future consumer needs guaranteed delivery on large Linux trees, the switch is one import in `watch.ts` (`@parcel/watcher` `subscribe(dir, cb)` has the same shape as the `fs.watch` callback used below) and one `dependencies` entry. The polling fallback in `watch.ts` (a stat snapshot every 500 ms, the same approach as `src/core/watch.ts`) covers the recreated-root case and network or container file systems where native events are unreliable.
 
@@ -50,7 +51,13 @@ Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`net.ts`", "`http.ts`", "
 - `connectTcp({ hostname, port })`: resolves once connected; rejects with the socket error (`code: "ECONNREFUSED"` etc., recognised by `isConnectionRefused`). `read(buf)` returns bytes copied (buffered: data arriving before `read` is kept), `null` at EOF, rejects on a socket error. `write(data)` resolves with `data.length` once flushed to the kernel. `close()` destroys the socket.
 - `isPortAvailable(port, hostname = "127.0.0.1")`: `true` when a listener binds with `exclusive: true` and is closed again; `false` on `EADDRINUSE` only (PR 15 contract); other errors (`EACCES` for a privileged port included) throw.
 - `findOpenPort({ port, hostname = "127.0.0.1", attempts = 100 })`: returns `port` when given and available; otherwise tries random ports in `[3000, 8000)` up to `attempts` times; throws `Error("Unable to find open port")`. PR 15 kept `findOpenPort(defaultPort?)` in `src/core/port.ts` as the application API with Quarto's Chrome/Firefox-unsafe-port filter on top of the layer's generic probe; that split stays.
-- `serveHttp({ port, hostname = "0.0.0.0", handler, signal, onListen })`: returns synchronously. `addr` is `{ hostname, port }` from the options until `listening` resolves, then the bound address (`port: 0` picks an ephemeral port). `listening` resolves once bound and **rejects** with the bind error (`EADDRINUSE`, `EACCES`); `finished` resolves after `close` and also rejects with the bind error; neither rejection is ever unhandled (both promises carry a no-op `catch`), and `onListen` is not called on a bind failure (PR 16 contract). The server keeps an `error` listener for its whole life: a bind error goes to `listening`/`finished`, any later server error is logged at debug level instead of crashing the process. `shutdown()` stops accepting, closes idle keep-alive connections (`closeIdleConnections()` when the runtime provides it, Spike #2 (g)), waits for in-flight requests (`close()`), and is idempotent; after 2 s it calls `closeAllConnections()` so a stuck client cannot keep the process alive. Aborting `signal` is equivalent to `shutdown()`. A handler that throws yields a 500 and the error is logged at debug level. When `onListen` is omitted, `Listening on http://<hostname>:<port>/` is printed to **stderr** (vocabulary; Deno.serve prints it there).
+- `serveHttp({ port, hostname = "0.0.0.0", handler, signal, onListen })`: returns synchronously. `addr` is `{ hostname, port }` from the options until `listening` resolves, then the bound address (`port: 0` picks an ephemeral port). `listening` resolves once bound and **rejects** with the bind error (`EADDRINUSE`, `EACCES`); `finished` resolves after `close` and also rejects with the bind error; neither rejection is ever unhandled (both promises carry a no-op `catch`), and `onListen` is not called on a bind failure (PR 16 contract). The server keeps an `error` listener for its whole life: a bind error goes to `listening`/`finished`, any later server error is logged at debug level instead of crashing the process. `shutdown()` and the abort of `signal` follow the "Server lifecycle" rule below. A handler that throws yields a 500 and the error is logged at debug level. When `onListen` is omitted, `Listening on http://<hostname>:<port>/` is printed to **stderr** (vocabulary; Deno.serve prints it there).
+- **Server lifecycle** (R07; triage decision A7: the layer owns upgraded sockets). A server is *binding* from `serveHttp()` until `listening` settles, *listening* until the first `shutdown()` or abort, then *closing* until `finished` resolves. `node:http` binds asynchronously (`server.listening` is `false` when `serveHttp()` returns, for an IP host as for a hostname), so:
+  - `shutdown()` while *binding* waits for `listening` to settle. If the bind failed it resolves at once (`finished` already rejected with the bind error); otherwise it continues as below. It never resolves while a bind is pending, so a server cannot start listening after its shutdown settled.
+  - `shutdown()` while *listening*: `close()` (stop accepting), `closeIdleConnections()` (guarded, Spike #2 (g)), a close frame with code 1001 to every WebSocket the server owns, then wait for in-flight requests and close handshakes. After 2 s the forced path runs: `closeAllConnections()` for the HTTP sockets and `terminate()` for the WebSockets still open. Node's `closeAllConnections()` does not reach upgraded sockets and `close()` waits for them, so without the second half one live preview client keeps `finished` pending for ever. `finished` resolves on the server's `close` event.
+  - Idempotent and never rejects. A `signal` already aborted when `serveHttp()` is called is an immediate `shutdown()`: the port is bound, `onListen` runs, then it is released and `finished` resolves. A later abort is the same as calling `shutdown()`.
+  - **Socket ownership.** Each server owns the `ws` sockets created from its own `upgrade` event, in a per-server set that `upgradeWebSocket()` fills and the socket's `close` event empties. The module-level `WebSocketServer` is a stateless handshake helper (`clientTracking: false`); `ws` 8's `WebSocketServer.close()` does not close clients, so nothing relies on it. `http-devserver.ts` keeps closing its own clients when it stops; the layer's close is the backstop for every other handler and for abort.
+  - **Request cancellation.** `Request.signal` aborts when the client is gone before the response completed: `ServerResponse`'s `close` with `writableFinished === false` (`IncomingMessage`'s own `close` is not that signal: it fires after every completed response). For an upgrade request it aborts when the upgrade socket closes before the handler returned, best effort: Node does not read a paused upgrade socket, so a client that leaves while an asynchronous upgrade handler is pending is noticed when the handshake runs. The response body is pulled through a reader; a `write` that returns `false` waits for `drain` **or** `close`; on `close`, or when the response is already destroyed, the loop stops and the reader is cancelled, so a file stream or render-log producer behind a vanished client is released and the request stops counting as in flight for `close()`.
 - `upgradeWebSocket(req)`: valid only for a request delivered through the server's `upgrade` event; otherwise throws `TypeError("Request is not upgradable")`. Returns the `ws` socket (it satisfies `WebSocketLike`: `readyState`, `CLOSED`, `CLOSING`, `send`, `close`, `onmessage`/`onclose`/`onerror` setters; `onmessage` receives `{ data: string }` for text frames) and a marker `Response` (status 200) that the handler must return. If the handler returns anything else for an upgrade request, the socket is closed.
 - `watchFs(paths, { recursive = true, poll })`: `poll` (default: `QUARTO_WATCH_POLLING === "1"`) polls every root instead of using `fs.watch`; this optional field is an addition to the vocabulary signature. Otherwise one `fs.watch` per path; throws `ENOENT` synchronously for a missing path. Event mapping: `change` → `modify`; `rename` → `create` when the path exists, `remove` otherwise; a null filename → `other` with the watched root as the path. Events that arrive in the same macrotask are coalesced into one `FsEvent` per kind with de-duplicated absolute paths. When a watched root disappears, a `remove` event for the root is emitted and the root is checked every 500 ms; when it reappears a `create` event is emitted and watching resumes on the new directory: with a new `fs.watch`, or with polling where native events on a recreated directory are known to be lost (Deno, denoland/deno#36937, unless Spike #2 (c) recorded otherwise). `QUARTO_WATCH_POLLING=1` makes every root polled (500 ms stat snapshots; `create`/`modify`/`remove` by path). `close()` stops all watchers and pollers and ends the iteration.
 
@@ -406,9 +413,115 @@ unitTest("http - a server error after binding is logged, not thrown", async () =
   assertEquals(await (await fetch(`http://127.0.0.1:${port}/`)).text(), "ok");
   await server.shutdown();
 });
+
+// R07 (Server lifecycle rule): shutdown during the bind, an already-aborted
+// signal, WebSocket ownership, and cancellation when the client is gone.
+
+unitTest("http - shutdown before the bind settles closes the server and frees the port", async () => {
+  const port = await findOpenPort({ hostname: "127.0.0.1" });
+  const server = serveHttp({ port, hostname: "127.0.0.1", onListen: () => {}, handler: () => new Response("ok") });
+  // No await on `listening`: node:http binds asynchronously, so the bind is
+  // still pending here. The server must not end up listening after this.
+  await server.shutdown();
+  await server.finished;
+  assertEquals(await isPortAvailable(port, "127.0.0.1"), true);
+});
+
+unitTest("http - an already-aborted signal is an immediate shutdown", async () => {
+  const port = await findOpenPort({ hostname: "127.0.0.1" });
+  const ac = new AbortController();
+  ac.abort();
+  const server = serveHttp({ port, hostname: "127.0.0.1", signal: ac.signal, onListen: () => {}, handler: () => new Response("ok") });
+  const t0 = Date.now();
+  await server.finished;
+  assert(Date.now() - t0 < 2000, "finished without the forced path");
+  assertEquals(await isPortAvailable(port, "127.0.0.1"), true);
+});
+
+const upgradeOnly = (req: Request) => upgradeWebSocket(req).response; // every request is an upgrade
+
+unitTest("http - shutdown closes a live WebSocket client with 1001 and finished resolves", async () => {
+  const port = await findOpenPort({ hostname: "127.0.0.1" });
+  const server = serveHttp({ port, hostname: "127.0.0.1", onListen: () => {}, handler: upgradeOnly });
+  await server.listening;
+  const client = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+  await new Promise<void>((resolve, reject) => {
+    client.onopen = () => resolve();
+    client.onerror = () => reject(new Error("websocket error"));
+  });
+  const closeCode = new Promise<number>((resolve) => {
+    client.onclose = (ev) => resolve(ev.code);
+  });
+  const t0 = Date.now();
+  await server.shutdown();
+  await server.finished;
+  assertEquals(await closeCode, 1001);
+  assert(Date.now() - t0 < 2000, "a cooperating client does not need the forced path");
+  assertEquals(await isPortAvailable(port, "127.0.0.1"), true);
+});
+
+unitTest("http - a WebSocket peer that ignores the close frame is terminated in the forced path", async () => {
+  const port = await findOpenPort({ hostname: "127.0.0.1" });
+  const server = serveHttp({ port, hostname: "127.0.0.1", onListen: () => {}, handler: upgradeOnly });
+  await server.listening;
+  // A raw client that completes the handshake and then answers nothing.
+  const conn = await connectTcp({ hostname: "127.0.0.1", port });
+  await conn.write(new TextEncoder().encode(
+    "GET /ws HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n" +
+      "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+  ));
+  const n = await conn.read(new Uint8Array(1024));
+  assert(n !== null && n > 0, "101 handshake received");
+  const t0 = Date.now();
+  await server.shutdown();
+  await server.finished;
+  // About 2 s: the forced path, not ws's 30 s close timeout and not for ever.
+  assert(Date.now() - t0 < 5000, "terminated by the forced path");
+  // The peer sees the close frame, then EOF or a reset.
+  let ended = false;
+  while (!ended) {
+    const got = await conn.read(new Uint8Array(1024)).catch(() => null);
+    ended = got === null;
+  }
+  conn.close();
+  assertEquals(await isPortAvailable(port, "127.0.0.1"), true);
+});
+
+unitTest("http - a client that disconnects mid-response aborts the request and cancels the body", async () => {
+  const port = await findOpenPort({ hostname: "127.0.0.1" });
+  let aborted = false;
+  let cancelled = false;
+  const chunk = new Uint8Array(1024 * 1024);
+  const server = serveHttp({
+    port,
+    hostname: "127.0.0.1",
+    onListen: () => {},
+    handler: (req) => {
+      req.signal.addEventListener("abort", () => { aborted = true; });
+      const body = new ReadableStream<Uint8Array>({
+        pull(controller) { controller.enqueue(chunk); }, // endless producer
+        cancel() { cancelled = true; },
+      });
+      return new Response(body, { headers: { "content-type": "application/octet-stream" } });
+    },
+  });
+  await server.listening;
+  const ac = new AbortController();
+  const res = await fetch(`http://127.0.0.1:${port}/big`, { signal: ac.signal });
+  await res.body!.getReader().read(); // the first chunk arrived; the socket buffers fill up behind it
+  ac.abort();
+  const t0 = Date.now();
+  // The vanished client's request must not hold close() until the forced path.
+  await server.shutdown();
+  await server.finished;
+  assert(Date.now() - t0 < 2000, "the disconnected request ended before the forced path");
+  await new Promise((r) => setTimeout(r, 100)); // the cancel runs after the socket's close event
+  assert(aborted, "req.signal aborted on disconnect");
+  assert(cancelled, "the response body was cancelled");
+});
 ```
 
-(Imports: `assert`, `assertEquals` from `../../asserts.ts`; `serveHttp`, `upgradeWebSocket` from `../../../src/deno_ral/http.ts`; `connectTcp`, `findOpenPort`, `isPortAvailable` from `../../../src/deno_ral/net.ts`. PR 16 already covers the busy-port rejection, the plain-request `TypeError`, idempotent `shutdown` and the basic upgrade; these add request-body streaming, multiple `set-cookie`, keep-alive teardown and the `ws`-backed echo.)
+(Imports: `assert`, `assertEquals` from `../../asserts.ts`; `serveHttp`, `upgradeWebSocket` from `../../../src/deno_ral/http.ts`; `connectTcp`, `findOpenPort`, `isPortAvailable` from `../../../src/deno_ral/net.ts`. PR 16 already covers the busy-port rejection, the plain-request `TypeError`, idempotent `shutdown` and the basic upgrade; these add request-body streaming, multiple `set-cookie`, keep-alive teardown, the `ws`-backed echo, and the five R07 cases of the "Server lifecycle" rule: shutdown during the bind, an already-aborted signal, a cooperating WebSocket client closed with 1001, a deaf peer terminated by the forced path (this case takes about 2 s by design), and a client that leaves mid-response. On the PR 16 Deno body the WebSocket and mid-response cases may fail or hang; they state the contract for Step 3.)
 
 - [ ] **Step 2: Run on the PR 16 (Deno) body**
 
@@ -426,7 +539,9 @@ Expected: PR 16's cases pass; the new ones may pass too (they state the contract
  * HTTP server layer on node:http plus `ws` for the WebSocket server (Node has
  * a WebSocket client but no server). Runs on Node and on Deno 2 (node compat).
  * Users: core/http-server.ts, core/http-devserver.ts, command/preview/preview.ts,
- * command/call/axe/cmd.ts.
+ * command/call/axe/cmd.ts. Lifecycle rule (bind states, socket ownership,
+ * cancellation): dev-docs/runtime-migration/29-ral-net-http-watch-on-node-apis.md,
+ * Interfaces, "Server lifecycle".
  */
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
@@ -434,7 +549,7 @@ import process from "node:process";
 import type { Duplex } from "node:stream";
 import { Readable } from "node:stream";
 // @ts-types="@types/ws"
-import { WebSocketServer } from "ws";
+import { type WebSocket as WsSocket, WebSocketServer } from "ws";
 import { debug } from "./log.ts";
 
 export interface ServeOptions {
@@ -471,15 +586,23 @@ interface UpgradeContext {
   req: IncomingMessage;
   socket: Duplex;
   head: Buffer;
+  /** The owning server's upgraded sockets; upgradeWebSocket() adds the new one. */
+  owned: Set<WsSocket>;
 }
 
 // Requests delivered through the `upgrade` event, keyed by the Request object
 // handed to the handler, and the marker responses upgradeWebSocket() returns.
 const upgradable = new WeakMap<Request, UpgradeContext>();
 const upgraded = new WeakSet<Response>();
-const wss = new WebSocketServer({ noServer: true });
+// Handshake helper only: each server tracks the sockets it owns (ws 8's
+// WebSocketServer.close() would not close them anyway).
+const wss = new WebSocketServer({ noServer: true, clientTracking: false });
 
-function toRequest(req: IncomingMessage, hostname: string, port: number): Request {
+// Graceful shutdown waits this long for in-flight requests and WebSocket
+// close handshakes before the forced path.
+const kForceCloseMs = 2000;
+
+function toRequest(req: IncomingMessage, hostname: string, port: number, signal: AbortSignal): Request {
   const url = `http://${req.headers.host ?? `${hostname}:${port}`}${req.url ?? "/"}`;
   const headers = new Headers();
   for (const [k, v] of Object.entries(req.headers)) {
@@ -487,12 +610,45 @@ function toRequest(req: IncomingMessage, hostname: string, port: number): Reques
     headers.set(k, Array.isArray(v) ? v.join(", ") : v);
   }
   const hasBody = !(req.method === "GET" || req.method === "HEAD");
-  const init: RequestInit & { duplex?: "half" } = { method: req.method, headers };
+  const init: RequestInit & { duplex?: "half" } = { method: req.method, headers, signal };
   if (hasBody) {
     init.body = Readable.toWeb(req) as ReadableStream<Uint8Array>;
     init.duplex = "half";
   }
   return new Request(url, init);
+}
+
+// Aborts when the client is gone before the response completed. The request's
+// own `close` is not that signal: since Node 16 it fires after every completed
+// response. The response's `close` fires in both cases; `writableFinished`
+// tells them apart.
+function abortOnDisconnect(res: ServerResponse): AbortController {
+  const ac = new AbortController();
+  res.on("close", () => {
+    if (!res.writableFinished) ac.abort();
+  });
+  return ac;
+}
+
+// Resolves true on `drain`, false when the response closed first (a client
+// that left mid-body never drains) or was already destroyed.
+function drained(res: ServerResponse): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (res.destroyed) {
+      resolve(false);
+      return;
+    }
+    const onDrain = () => {
+      res.off("close", onClose);
+      resolve(true);
+    };
+    const onClose = () => {
+      res.off("drain", onDrain);
+      resolve(false);
+    };
+    res.once("drain", onDrain);
+    res.once("close", onClose);
+  });
 }
 
 async function sendResponse(res: ServerResponse, response: Response): Promise<void> {
@@ -502,14 +658,25 @@ async function sendResponse(res: ServerResponse, response: Response): Promise<vo
   }
   const cookies = response.headers.getSetCookie();
   if (cookies.length) res.setHeader("set-cookie", cookies);
-  if (response.body) {
-    for await (const chunk of response.body) {
-      if (!res.write(chunk)) {
-        await new Promise<void>((r) => res.once("drain", r));
-      }
+  if (!response.body) {
+    res.end();
+    return;
+  }
+  const reader = response.body.getReader();
+  try {
+    while (!res.destroyed) {
+      const { done, value } = await reader.read();
+      if (done || res.destroyed) break;
+      if (!res.write(value) && !(await drained(res))) break;
+    }
+  } finally {
+    if (res.destroyed) {
+      // The client is gone: release the producer (a file stream, a render log).
+      await reader.cancel().catch(() => {});
+    } else {
+      res.end();
     }
   }
-  res.end();
 }
 
 function remote(req: IncomingMessage): { remoteAddr: { hostname: string; port: number } } {
@@ -520,20 +687,31 @@ export function serveHttp(options: ServeOptions): HttpServer {
   const hostname = options.hostname ?? "0.0.0.0";
   const server: Server = createServer();
   let bound: { hostname: string; port: number } = { hostname, port: options.port };
+  // WebSockets this server owns (Server lifecycle rule, "Socket ownership"):
+  // shutdown() closes them with 1001, the forced path terminates them.
+  const owned = new Set<WsSocket>();
 
   server.on("request", async (req, res) => {
+    const ac = abortOnDisconnect(res);
     try {
-      await sendResponse(res, await options.handler(toRequest(req, hostname, options.port), remote(req)));
+      const response = await options.handler(toRequest(req, hostname, options.port, ac.signal), remote(req));
+      await sendResponse(res, response);
     } catch (e) {
       debug(`[http] handler error: ${e instanceof Error ? e.stack ?? e.message : String(e)}`);
+      if (res.destroyed) return; // the client left; nothing to answer
       if (!res.headersSent) res.statusCode = 500;
       res.end();
     }
   });
 
   server.on("upgrade", async (req, socket, head) => {
-    const request = toRequest(req, hostname, options.port);
-    upgradable.set(request, { req, socket, head });
+    const ac = new AbortController();
+    // Best effort: Node does not read a socket handed to `upgrade`, so a
+    // client that leaves while the handler is still pending is seen when
+    // handleUpgrade resumes it, not before.
+    socket.once("close", () => ac.abort());
+    const request = toRequest(req, hostname, options.port, ac.signal);
+    upgradable.set(request, { req, socket, head, owned });
     try {
       const response = await options.handler(request, remote(req));
       if (!upgraded.has(response)) {
@@ -595,24 +773,40 @@ export function serveHttp(options: ServeOptions): HttpServer {
   let shuttingDown: Promise<void> | undefined;
   const shutdown = () => {
     if (shuttingDown) return shuttingDown;
-    shuttingDown = new Promise<void>((resolve) => {
-      if (!server.listening) {
-        resolve();
+    shuttingDown = (async () => {
+      // Binding: node:http binds asynchronously (`server.listening` is false
+      // until then, for an IP host too). Let the bind settle first, so the
+      // server cannot start listening after this promise resolved. A failed
+      // bind already rejected `finished`; nothing to close.
+      try {
+        await listening;
+      } catch {
         return;
       }
-      // Graceful: stop accepting, drop idle keep-alive sockets, let in-flight
-      // requests finish; force the rest after a bounded wait. Guarded: Spike #2
-      // (g) checks that Deno's node:http provides closeIdleConnections.
+      // Listening: stop accepting, drop idle keep-alive sockets, ask every
+      // WebSocket to leave, let in-flight requests and close handshakes
+      // finish. Guarded: Spike #2 (g) checks that Deno's node:http provides
+      // closeIdleConnections.
       if (typeof server.closeIdleConnections === "function") server.closeIdleConnections();
-      const force = setTimeout(() => server.closeAllConnections(), 2000);
-      server.close(() => {
-        clearTimeout(force);
-        resolve();
-      });
-    });
+      for (const ws of owned) ws.close(1001, "Server shutting down");
+      // Forced path after a bounded wait. closeAllConnections() does not reach
+      // sockets handed to `upgrade`, and close() waits for them: a deaf peer
+      // (ws would wait 30 s for its close frame) is terminated here.
+      const force = setTimeout(() => {
+        server.closeAllConnections();
+        for (const ws of owned) ws.terminate();
+      }, kForceCloseMs);
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+      clearTimeout(force);
+    })();
     return shuttingDown;
   };
-  options.signal?.addEventListener("abort", () => void shutdown(), { once: true });
+  if (options.signal?.aborted) {
+    // An "abort" listener never fires for an already-aborted signal.
+    void shutdown();
+  } else {
+    options.signal?.addEventListener("abort", () => void shutdown(), { once: true });
+  }
 
   return {
     listening,
@@ -629,19 +823,23 @@ export function upgradeWebSocket(req: Request): { socket: WebSocketLike; respons
   if (!ctx) {
     throw new TypeError("Request is not upgradable");
   }
-  let socket: WebSocketLike | undefined;
+  let socket: WsSocket | undefined;
   // handleUpgrade writes the 101 handshake itself and calls back synchronously.
   wss.handleUpgrade(ctx.req, ctx.socket, ctx.head, (ws) => {
-    socket = ws as unknown as WebSocketLike;
+    socket = ws;
   });
   if (!socket) {
     throw new TypeError("WebSocket handshake failed");
   }
+  // The server owns the socket until it closes (Server lifecycle rule).
+  const ws = socket;
+  ctx.owned.add(ws);
+  ws.once("close", () => ctx.owned.delete(ws));
   // Node's Response rejects status 101; this marker tells the upgrade handler
   // the socket was taken over.
   const response = new Response(null, { status: 200 });
   upgraded.add(response);
-  return { socket, response };
+  return { socket: ws as unknown as WebSocketLike, response };
 }
 ```
 
@@ -1003,7 +1201,9 @@ git commit -m "node-bundle: preview websocket smoke; drop net/http/watch shim me
 
 - [ ] `connectTcp` rejects with the socket error; `read` is buffered and returns `null` at EOF; `write` resolves with the byte count.
 - [ ] `isPortAvailable` uses `exclusive: true`, returns `false` on `EADDRINUSE` only, throws otherwise; the server is `unref`'d.
-- [ ] `serveHttp` returns synchronously; `listening` and `finished` reject on bind errors and carry no-op catches; the server's `error` listener is `on`, not `once`, and logs post-bind errors; `onListen` runs only after binding (default prints `Listening on …` to stderr); `shutdown` is idempotent and graceful (`closeIdleConnections` when it is a function, `close`, forced after 2 s), abort equals shutdown, default hostname `0.0.0.0`.
+- [ ] `serveHttp` returns synchronously; `listening` and `finished` reject on bind errors and carry no-op catches; the server's `error` listener is `on`, not `once`, and logs post-bind errors; `onListen` runs only after binding (default prints `Listening on …` to stderr); default hostname `0.0.0.0`.
+- [ ] Server lifecycle rule: `shutdown` awaits `listening` before anything else and resolves on a failed bind; while listening it calls `close`, `closeIdleConnections` (when it is a function), `close(1001)` on every owned WebSocket, and after 2 s `closeAllConnections` plus `terminate()`; it is idempotent; an already-aborted `signal` shuts down at once and a later abort equals `shutdown`; the owned set is per server, filled by `upgradeWebSocket` and emptied on the socket's `close`; the shared `WebSocketServer` has `clientTracking: false`.
+- [ ] Request cancellation: `Request.signal` comes from the response's `close` with `writableFinished === false` (not from `req.on("close")`), or from the upgrade socket's `close`; the body loop checks `res.destroyed`, races `drain` with `close`, and cancels the reader when the client is gone; a handler rejection after the client left is logged at debug and does not touch the destroyed response.
 - [ ] `findOpenPort` defaults to 100 attempts.
 - [ ] Request bodies use `duplex: "half"`; `set-cookie` is sent as an array; response bodies respect `drain`.
 - [ ] `upgradeWebSocket` throws `TypeError` for non-upgrade requests; a handler that does not return the marker response gets the socket closed; the marker is a status-200 `Response`.
@@ -1018,8 +1218,10 @@ git commit -m "node-bundle: preview websocket smoke; drop net/http/watch shim me
 - **Listen errors now surface asynchronously.** `preview.ts` awaits `server.finished`, `serve.ts` awaits it too, `axe/cmd.ts` calls `stop()` then awaits `finished.catch(() => {})`. A caller that ignored `finished` would miss `EADDRINUSE`; the grep in the Review checklist (`server.finished`) confirms all three await it.
 - **`fs.watch` recursive limitations on Linux** (missed events in brand-new directories) and on network or container file systems: the single consumer is the dev-mode source watch; `QUARTO_WATCH_POLLING=1` is the user-facing escape hatch (documented in the PR description and in `dev-docs/runtime-migration/node-bundle.md`), `@parcel/watcher` the documented next step.
 - **Presence timer cost**: one `existsSync` per watched root every 500 ms (one root in practice); negligible.
+- **Graceful close waits for client close handshakes.** `shutdown()` with live preview clients now takes as long as the slowest handshake, bounded by the 2 s forced path (the runtime's `WebSocket` client answers in tens of milliseconds; a frozen tab or a deaf proxy hits the bound). `preview.ts` awaits `finished` on the way out, so `quarto preview` exits up to 2 s later than before in that case and never hangs; previously the dev server closed its clients itself and the layer did not wait. If the bound is felt, lower `kForceCloseMs`, do not remove the wait.
+- **Deno's `node:http` and the upgraded sockets.** Whether Deno's `server.close()` also waits for upgraded sockets, and whether its `closeAllConnections()` reaches them, was not measured (Spike #2 (g) checks `closeIdleConnections` only). The layer closes and terminates its own sockets on both runtimes, so `finished` settles either way; the only difference Deno could show is a `close` event arriving before the last WebSocket's `close`, which the per-server set tolerates (a late `delete` on an emptied set).
 - **Whole-PR rollback:** revert the five commits; the import-map `ws` entry is harmless to keep.
 
 ## Decisions needed
 
-None. The `fs.watch` decision, the recreated-root handling, the polling flag and the `ws` placement are recorded above with the evidence; the two runtime-dependent constants (`kRecreatedRootNeedsPolling`, and the guarded `closeIdleConnections`) follow Spike #2 (c) and (g).
+None. The `fs.watch` decision, the recreated-root handling, the polling flag and the `ws` placement are recorded above with the evidence; the two runtime-dependent constants (`kRecreatedRootNeedsPolling`, and the guarded `closeIdleConnections`) follow Spike #2 (c) and (g). Triage decision A7 (graceful HTTP shutdown owns the upgraded sockets: 1001 on graceful, `terminate()` on forced) is taken and written into the "Server lifecycle" rule.

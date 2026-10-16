@@ -264,6 +264,7 @@ export interface ServeOptions { port: number; hostname?: string; handler: (req: 
 export interface HttpServer { readonly listening: Promise<void>; readonly finished: Promise<void>; readonly addr: { hostname: string; port: number }; shutdown(): Promise<void>; }
 // `listening` rejects on bind failure (isAddrInUse etc.); callers that do not await `finished` await `listening`.
 export function serveHttp(options: ServeOptions): HttpServer; // default onListen prints `Listening on http://<hostname>:<port>/` to stderr, as Deno.serve does
+// shutdown()/abort lifecycle (a pending bind settles first; the server owns its upgraded WebSockets: 1001 on graceful, terminate on forced; `Request.signal` and the body are cancelled when the client is gone): PR 29, Interfaces, "Server lifecycle".
 export interface WebSocketLike { readonly readyState: number; readonly CLOSED: number; readonly CLOSING: number; send(data: string | Uint8Array): void; close(): void; onmessage: ((ev: { data: string | Uint8Array }) => void) | null; onclose: ((ev: unknown) => void) | null; onerror: ((ev: unknown) => void) | null; }
 export function upgradeWebSocket(req: Request): { socket: WebSocketLike; response: Response };
 ```
