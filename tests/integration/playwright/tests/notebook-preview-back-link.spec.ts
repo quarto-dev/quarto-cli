@@ -1,22 +1,5 @@
-import { expect, Locator, Page, test } from "@playwright/test";
-
-// WebKit follows Safari's default of skipping links on Tab; Option+Tab
-// visits every focusable element.
-async function tabUntilFocused(
-  page: Page,
-  browserName: string,
-  target: Locator,
-  maxTabs = 25,
-): Promise<boolean> {
-  const tabKey = browserName === "webkit" ? "Alt+Tab" : "Tab";
-  for (let i = 0; i < maxTabs; i++) {
-    await page.keyboard.press(tabKey);
-    if (await target.evaluate((el) => el === document.activeElement)) {
-      return true;
-    }
-  }
-  return false;
-}
+import { expect, test } from "@playwright/test";
+import { tabUntilFocused } from "../src/utils";
 
 // The notebook preview "Back to Article" control must be a keyboard-operable
 // link in both website and standalone renders (#15015).
