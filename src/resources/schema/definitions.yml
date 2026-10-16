@@ -602,8 +602,7 @@
             short: "The path to a preview image for the content."
             long: |
               The path to a preview image for the content. By default, Quarto will use
-              the `image` value from the format metadata. If you provide an 
-              image, you may also optionally provide an `image-width` and `image-height`.
+              the `image` value from the format metadata.
       image-alt:
         string:
           description:
@@ -611,12 +610,6 @@
             long: |
               The alt text for the preview image. By default, Quarto will use
               the `image-alt` value from the format metadata.
-      image-width:
-        number:
-          description: "Image width (pixels)"
-      image-height:
-        number:
-          description: "Image height (pixels)"
 
 - id: page-footer-region
   anyOf:
@@ -734,6 +727,12 @@
       site:
         string:
           description: "`@username` of the website (must be a quoted string)"
+      image-width:
+        schema: number
+        hidden: true
+      image-height:
+        schema: number
+        hidden: true
 
 - id: open-graph-config
   object:
@@ -752,6 +751,12 @@
               Name that should be displayed for the overall site. If not explicitly 
               provided in the `open-graph` metadata, Quarto will use the website or
               book `title` by default.
+      image-width:
+        number:
+          description: "Image width (pixels)"
+      image-height:
+        number:
+          description: "Image height (pixels)"
 
 - id: page-footer
   object:
