@@ -62,6 +62,30 @@
       The title for the main image on the about page. Used when
       `about` does not set its own `image-title`.
 
+- name: open-graph
+  schema:
+    anyOf:
+      - boolean
+      - null
+      - ref: open-graph-config
+  tags:
+    formats: [$html-doc]
+  description: |
+    Publish open graph metadata for this page. Options set here are merged
+    with the `open-graph` options of the `website` metadata.
+
+- name: twitter-card
+  schema:
+    anyOf:
+      - boolean
+      - null
+      - ref: twitter-card-config
+  tags:
+    formats: [$html-doc]
+  description: |
+    Publish twitter card metadata for this page. Options set here are merged
+    with the `twitter-card` options of the `website` metadata.
+
 - name: image-lazy-loading
   schema: boolean
   tags:

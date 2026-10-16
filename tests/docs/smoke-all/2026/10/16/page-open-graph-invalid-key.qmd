@@ -1,0 +1,14 @@
+---
+title: "Page-level open-graph rejects an unknown key"
+open-graph:
+  imge-width: 1200
+_quarto:
+  tests:
+    html:
+      shouldError: default
+      printsMessage:
+        level: ERROR
+        regex: 'property name imge-width is invalid'
+---
+
+A typo under page-level `open-graph` is reported, as it is under `website: open-graph`.

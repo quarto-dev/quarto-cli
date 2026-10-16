@@ -1,0 +1,24 @@
+---
+title: "Page-level open-graph and twitter-card"
+description: "Page description"
+open-graph:
+  title: "OG title"
+  locale: fr_FR
+twitter-card:
+  card-style: summary
+  creator: "@creator"
+  site: "@site"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:title" content="OG title">'
+          - '<meta property="og:locale" content="fr_FR">'
+          - '<meta name="twitter:card" content="summary">'
+          - '<meta name="twitter:creator" content="@creator">'
+          - '<meta name="twitter:site" content="@site">'
+---
+
+Page front matter enables both providers without any `website:` setting, and every option it sets passes validation and reaches the output.

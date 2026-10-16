@@ -1,0 +1,6 @@
+project:
+  type: website
+
+website:
+  title: "page-social-metadata"
+  site-url: https://example.com/
