@@ -9186,7 +9186,7 @@ try {
                   path: {
                     description: {
                       short: "The path to a preview image for the content.",
-                      long: "The path to a preview image for the content. By default, Quarto will use\nthe `image` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n"
+                      long: "The path to a preview image for the content. By default, Quarto will use\nthe `image` value from the format metadata.\n"
                     }
                   }
                 },
@@ -9196,16 +9196,6 @@ try {
                       short: "The alt text for the preview image.",
                       long: "The alt text for the preview image. By default, Quarto will use\nthe `image-alt` value from the format metadata.\n"
                     }
-                  }
-                },
-                "image-width": {
-                  number: {
-                    description: "Image width (pixels)"
-                  }
-                },
-                "image-height": {
-                  number: {
-                    description: "Image height (pixels)"
                   }
                 }
               }
@@ -9398,6 +9388,14 @@ try {
                   string: {
                     description: "`@username` of the website (must be a quoted string)"
                   }
+                },
+                "image-width": {
+                  schema: "number",
+                  hidden: true
+                },
+                "image-height": {
+                  schema: "number",
+                  hidden: true
                 }
               }
             }
@@ -9421,6 +9419,16 @@ try {
                       short: "Name that should be displayed for the overall site",
                       long: "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n"
                     }
+                  }
+                },
+                "image-width": {
+                  number: {
+                    description: "Image width (pixels)"
+                  }
+                },
+                "image-height": {
+                  number: {
+                    description: "Image height (pixels)"
                   }
                 }
               }
@@ -22114,14 +22122,12 @@ try {
           },
           {
             short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata."
           },
           {
             short: "The alt text for the preview image.",
             long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata."
           },
-          "Image width (pixels)",
-          "Image height (pixels)",
           "Port to listen on (defaults to random value between 3000 and\n8000)",
           "Hostname to bind to (defaults to 127.0.0.1)",
           "Use an exernal application to preview the project.",
@@ -22146,14 +22152,12 @@ try {
           },
           {
             short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata."
           },
           {
             short: "The alt text for the preview image.",
             long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata."
           },
-          "Image width (pixels)",
-          "Image height (pixels)",
           {
             short: "Card style",
             long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
@@ -22170,19 +22174,19 @@ try {
           },
           {
             short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata."
           },
           {
             short: "The alt text for the preview image.",
             long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata."
           },
-          "Image width (pixels)",
-          "Image height (pixels)",
           "Locale of open graph metadata",
           {
             short: "Name that should be displayed for the overall site",
             long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
           },
+          "Image width (pixels)",
+          "Image height (pixels)",
           "Footer left content. Supports markdown formatting.",
           "Footer right content. Supports markdown formatting.",
           "Footer center content. Supports markdown formatting.",
@@ -25723,12 +25727,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 218217,
+          _internalId: 218225,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 218209,
+              _internalId: 218217,
               type: "enum",
               enum: [
                 "png",
@@ -25744,7 +25748,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 218216,
+              _internalId: 218224,
               type: "anyOf",
               anyOf: [
                 {

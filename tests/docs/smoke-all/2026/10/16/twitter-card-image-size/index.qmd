@@ -5,6 +5,10 @@ _quarto:
   render-project: true
   tests:
     html:
+      printsMessage:
+        level: WARN
+        regex: 'deprecated'
+        negate: true
       ensureFileRegexMatches:
         -
           - '<meta name="twitter:image" content="https://example.com/page.png">'

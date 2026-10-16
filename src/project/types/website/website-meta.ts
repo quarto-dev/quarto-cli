@@ -354,6 +354,14 @@ function twitterMetadata(format: Format) {
         }
       },
     );
+    if (
+      twitterData[kImageWidth] !== undefined ||
+      twitterData[kImageHeight] !== undefined
+    ) {
+      warnOnce(
+        "The `twitter-card` options `image-width` and `image-height` are deprecated and have no effect, as Twitter Cards have no image size tags. Set them under `open-graph` instead.",
+      );
+    }
   }
   return metadata;
 }

@@ -1,0 +1,10 @@
+project:
+  type: website
+
+website:
+  title: "twitter-card-image-size-deprecated"
+  site-url: https://example.com/
+  open-graph: true
+  twitter-card:
+    image-width: 1200
+    image-height: 630

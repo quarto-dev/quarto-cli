@@ -312,16 +312,13 @@ export type SocialMetadata = {
   "image-alt"?:
     string /* The alt text for the preview image. By default, Quarto will use
 the `image-alt` value from the format metadata. */;
-  "image-width"?: number /* Image width (pixels) */;
-  "image-height"?: number /* Image height (pixels) */;
   description?:
     string /* A short description of the content. Note that by default Quarto will
 automatically  use the description metadata from the page. Specify this
 field if you’d like to override the description for this provider. */;
   image?:
     string /* The path to a preview image for the content. By default, Quarto will use
-the `image` value from the format metadata. If you provide an
-image, you may also optionally provide an `image-width` and `image-height`. */;
+the `image` value from the format metadata. */;
   title?:
     string; /* The title of the page. Note that by default Quarto will automatically
 use the title metadata from the page. Specify this field if you’d like
@@ -379,6 +376,8 @@ export type TwitterCardConfig = {
 If this is not provided, the best style will automatically
 selected based upon other metadata. You can learn more about Twitter Card
 styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards). */;
+  "image-width"?: number;
+  "image-height"?: number;
   creator?:
     string /* `@username` of the content creator (must be a quoted string) */;
   site?: string; /* `@username` of the website (must be a quoted string) */
@@ -389,6 +388,8 @@ export type OpenGraphConfig = {
     string /* Name that should be displayed for the overall site. If not explicitly
 provided in the `open-graph` metadata, Quarto will use the website or
 book `title` by default. */;
+  "image-width"?: number /* Image width (pixels) */;
+  "image-height"?: number /* Image height (pixels) */;
   locale?: string; /* Locale of open graph metadata */
 } & SocialMetadata;
 
