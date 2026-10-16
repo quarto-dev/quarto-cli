@@ -139,9 +139,14 @@ the pass has landed.
   08's layer so that PR 28 keeps one contract) and for 26 (R03: the
   "Resolver scope" rule in Interfaces, the `node_modules` importer check
   and `resolveDir` choice in the plugin, `resolveBare`'s `mapped` flag,
-  `build.test.mjs`; the R04 interop prelude was already done by B4);
-  plans 27, 29, 30, 31, 32, 33, 35, 36 still carry the defects its C table
-  names. The line numbers in the review and triage were measured at
+  `build.test.mjs`; the R04 interop prelude was already done by B4) and for
+  27 (R05: `openFlagBits()` and the "Open flags" rule, writes through the
+  descriptor with `truncate: !append`; R06: the one-descriptor-owner
+  `NodeFsFile`, streams closing through the object, idempotent `close()`,
+  decision A8; R19: the Windows link type from `stat` of the source with a
+  dangling-link fallback; tests for each in Tasks 2 and 4, checked on Node 22
+  only, Deno covered by the tests); plans 29, 30, 31, 32, 33, 35, 36 still
+  carry the defects its C table names. The line numbers in the review and triage were measured at
   `075cbf4`; re-grep before trusting one.
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both
   harness variants and PR 32 cannot make the Node matrix required until the

@@ -145,6 +145,12 @@ other plans refer to it by file and section (reconciliation pass of
   names from the importer): PR 26, Interfaces, "Resolver scope" (PR 31's
   import-map hook and vitest plugin state the same rule; PR 33 keeps the
   plugin).
+- The open-flag rule (`openFlagBits()`: numeric `node:fs` flags from Deno's
+  independent options, `O_CREAT` iff `create`, `O_TRUNC` iff `truncate`,
+  `O_APPEND` iff `append`, nothing implied; `writeTextFile` opens with
+  `truncate: !append`) and the one-descriptor-owner rule for `FsFile`: PR 27,
+  Interfaces, "Open flags" and "One descriptor owner" (PR 35's shim copies
+  the flag rule; triage row 35).
 - The CI graph after Deno removal (events, OSes, bucket generation, required
   check names): PR 37, Context (PR 32 refers to it).
 - Spike V scheduling and its inconclusive outcome: `SPIKES.md`, Spike V
@@ -228,7 +234,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 |---|---|---|---|---|---|---|
 | 26 | [26-node-build-job.md](26-node-build-job.md) | Node bundler (import map scoped to first-party importers) and `.mjs` shim from `spike/`, root `package.json`, `check-shim.mjs` over bundle and resources, real-Node run of `tests/unit/ral` per PR with `known-failures.json`, render job | 01, 03–07, 20b, 23 | Opus | M | planned |
 | S2 | [SPIKES.md](SPIKES.md) | Spike #2 (one week): `node:` bundle on Deno 2.9, `node:http`+`ws` upgrade, `fs.watch`, process groups and `.bat` quoting, Cliffy prompts on Node, `--use-env-proxy` | 26 | Opus | – | planned |
-| 27 | [27-ral-fs-on-node-apis.md](27-ral-fs-on-node-apis.md) | `fs.ts`/`temp.ts`/`errors.ts` on `node:fs`; `canonicalPathSync` on `realpathSync.native`; `walk`/`expandGlob` without `@std/fs` | 20b, 25, 26, S2 | Opus | L | planned |
+| 27 | [27-ral-fs-on-node-apis.md](27-ral-fs-on-node-apis.md) | `fs.ts`/`temp.ts`/`errors.ts` on `node:fs`; `canonicalPathSync` on `realpathSync.native`; `walk`/`expandGlob` without `@std/fs`; the open-flag rule (`openFlagBits`) and the one-owner `FsFile` | 20b, 25, 26, S2 | Opus | L | planned |
 | 27b | [27b-ral-platform-env-tar-log-on-node.md](27b-ral-platform-env-tar-log-on-node.md) | `platform.ts`, `env.ts`, `tar.ts`, `log.ts` FileHandler on `node:` | 14, 19, 20b, 25, 26, 27 | Sonnet | S | planned |
 | 28 | [28-ral-process-on-node-apis.md](28-ral-process-on-node-apis.md) | `process.ts` on `node:child_process`; BatBadBut-safe batch quoting; draining `exit`; `taskkill /T` | 14b, 25, 26, 27b, S2 | Opus | M | planned |
 | 29 | [29-ral-net-http-watch-on-node-apis.md](29-ral-net-http-watch-on-node-apis.md) | `net.ts`, `http.ts` (with `ws`), `watch.ts` (recreated-root and polling fallback) on Node APIs | 14b, 25, 26, 27b, S2 | Opus | M | planned |
