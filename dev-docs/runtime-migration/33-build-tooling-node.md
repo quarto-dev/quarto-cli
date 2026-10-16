@@ -31,6 +31,8 @@ What changes for callers:
 
 Why dev mode runs a bundle and not `node src/quarto.ts`: after PR 02b the source has no `enum`, parameter properties or `<T>x` casts, so Node's type stripping could load it, and PR 31's `module.registerHooks` import-map hook already resolves the bare specifiers for tests. The bundle is kept for two reasons. (1) Dev runs the exact artifact that ships: the same esbuild transform, the same resolver, the same module order, so a bundling bug shows up in dev and not first in a release. (2) Startup: unbundled, every `quarto` invocation strips and resolves about 1,200 modules through a JavaScript hook; bundled, Node loads one file. The cost is a rebuild of about one second after an edit, paid once, plus an extra short `node` process per invocation for the staleness check (`ensure.mjs`, about 50 ms: Node start plus about 730 `stat` calls, 14 ms in the review's measurement). Executors record both numbers in the PR description (Task 2 step 7).
 
+Review of 2026-10-16 (`REVIEW-2026-10-16.md` R18 and R04, triage bucket C row 33, decisions A6 and B4), addressed here: `ensure.mjs`'s build lock treated age as proof of a crashed builder. A `quarto` invocation stopped by a debugger, by system sleep or by a slow disk keeps its lock past 120 s while esbuild is still running; another invocation removed the lock and started its own build; the first could resume, rename its bundle over the newer one and remove the second's lock in an unconditional `finally`. The lock now follows PR 30's "Lock ownership" rule (Interfaces, below): an owner marker, a liveness probe before breaking, a release and a final rename that check the marker. `ensure.mjs` cannot import `src/deno_ral/kv.ts` (it runs before any bundle exists), so the rule is copied into it, not shared, and `bundle()` gains one optional input, `beforeCommit`, so that the bundle is renamed into place only while the lock is still held (mirrored in PR 26's builder contract). The 120 s age now only governs a lock whose owner cannot be read or probed. R04's part of the row (keep `banner` and `define`, emit `__filename` and `__dirname`) was already done by B4 in Task 2 Step 4 and is checked by the review checklist. The three lock cases of Task 2 Step 2 and `ensure.mjs` itself were run on Node 26.12.0 and 22.22 while correcting the plan (numbers in Task 2 Step 6); the Deno harness run of Step 6 is the check that Deno's `node:process` accepts `process.kill(pid, 0)`.
+
 Verified facts this plan relies on:
 
 - Node `v26.12.0` (2026-10-14) is the newest 26.x; Node 26 is Active LTS from 2026-10-28 until 2029-04-30. Pin the newest `26.x.y` in `https://nodejs.org/dist/index.json` at execution time.
@@ -110,12 +112,19 @@ export async function bundleQuarto(config: Configuration): Promise<void>;
  * to the repository root) and, when writeMeta, <outfile>.meta.json (the
  * metafile), each through a temp file + rename. Every bundle starts with the
  * interop prelude (require, __filename, __dirname), then `banner`.
- * @param {{ entry: string, outfile: string, sourcemap?: boolean, banner?: string[], define?: Record<string, string>, writeMeta?: boolean }} options
+ * `beforeCommit`, when given, is called once after esbuild returns (before
+ * the first file is written) and once more between writing the bundle's
+ * temporary file and renaming it into place; if it throws, the temporary
+ * file is removed and the error propagates (ensure.mjs passes its lock's
+ * assertHeld(), so a builder whose lock was broken never overwrites the
+ * newer bundle).
+ * @param {{ entry: string, outfile: string, sourcemap?: boolean, banner?: string[], define?: Record<string, string>, writeMeta?: boolean, beforeCommit?: () => void }} options
  * @returns {Promise<{ outfile: string, modules: number, bytes: number, ms: number, warnings: number }>}
  */
 export async function bundle(options);
 // CLI: node tools/node-bundle/build.mjs --entry <file.ts> --outfile <file> [--no-sourcemap] [--write-meta] [--check-shim]
-// (the `shim` option and the deno-shim.mjs import are gone; `define` defaults to {}; build-test.mjs's fixture mode is unchanged)
+// (the `shim` option and the deno-shim.mjs import are gone; `define` defaults to {}; `beforeCommit` is new and
+// optional, PR 26's builder contract lists it; build-test.mjs's fixture mode is unchanged)
 ```
 
 ```js
@@ -125,11 +134,14 @@ export async function bundle(options);
 // <outfile>.inputs.json is missing, when any listed input is newer than
 // <outfile> or deleted, or when src/import_map.json, package-lock.json or a
 // tools/node-bundle/*.mjs file is newer. Takes the lock directory
-// <outfile>.lock (mkdir), re-checks after acquiring it, steals a lock older
-// than 120 s, gives up after 300 s. Prints one line:
+// <outfile>.lock (mkdir) under the lock ownership rule below, re-checks
+// after acquiring it, builds with bundle({ beforeCommit: lock.assertHeld }),
+// gives up after 300 s naming the owner. Prints one line:
 //   "bundle up to date" | "bundle up to date (built by another process)" |
 //   "bundled <entry> -> <outfile> (<MB> MB, <n> modules, <ms> ms; reason: <reason>)"
 ```
+
+**Lock ownership (PR 30's rule, copied).** `ensure.mjs` runs before any bundle exists, so it cannot import `src/deno_ral/kv.ts`; its `withLock()` copies the rule of PR 30, Interfaces, "Lock ownership", with the build's own numbers. The lock is the directory `<outfile>.lock`, taken with `mkdir`. As soon as `mkdir` succeeds the holder writes `<lock>/owner`, one JSON line `{ "pid", "host", "nonce" }` (`process.pid`, `os.hostname()`, 8 random bytes in hex); if that write fails the directory is removed and the error propagates. A waiter that finds the directory reads the marker and probes the owner with `process.kill(pid, 0)` when the host is its own: `ESRCH` means gone, success or `EPERM` means alive, anything else (another host, no marker yet, a runtime that refuses the probe) means unknown. A gone owner's lock is broken immediately; an unknown owner's lock is broken once its directory mtime is older than 120 s (a build takes about a second, a minute on a cold, slow machine); a live owner's lock is waited for at 100 ms intervals, whatever its age. Breaking renames the directory to `<lock>.stale.<pid>.<hex>` and removes it (the loser of the rename sees `ENOENT` and retries). `release()` reads the marker back and removes the directory only when it is still this acquisition's. `assertHeld()` does the same check and throws `Error("ensure.mjs: lost the lock …")`; it is passed to `bundle()` as `beforeCommit`, so a builder whose lock was broken and retaken fails before its first write, or between its temporary file and the rename, instead of overwriting the newer bundle; the temporary file is removed. After 300 s of waiting the acquisition throws `Error("ensure.mjs: timed out after 300000 ms waiting for <lock> held by pid <n> on <host>; delete it if no build is running")`. Nothing refreshes the directory's mtime while the lock is held. What this gives is best-effort exclusion over a recomputable artifact (decision A6): a lock from another host, or one whose owner the OS cannot report, is still broken by age alone.
 
 ```ts
 // src/core/runtime-env.ts
@@ -440,8 +452,9 @@ import {
   utimeSync,
   writeTextFileSync,
 } from "../../src/deno_ral/fs.ts";
-import { exec } from "../../src/deno_ral/process.ts";
+import { exec, pid, spawn } from "../../src/deno_ral/process.ts";
 import { env } from "../../src/deno_ral/env.ts";
+import { hostname } from "node:os"; // as PR 30's kv-json.test.ts does
 import { architectureToolsPath } from "../../src/core/resources.ts";
 
 const root = env.get("QUARTO_ROOT")!;
@@ -459,6 +472,16 @@ async function runEnsure(entry: string, outfile: string) {
 function touchLater(file: string, than: string) {
   const t = new Date(statSync(than).mtime!.getTime() + 5000);
   utimeSync(file, t, t);
+}
+
+// A lock directory held by `owner` (R18 cases). `ageMs` backdates its mtime.
+function holdLock(outfile: string, owner: { pid: number; host: string } | null, ageMs: number) {
+  const lock = outfile + ".lock";
+  mkdirSync(lock, { recursive: true });
+  if (owner) writeTextFileSync(join(lock, "owner"), JSON.stringify({ ...owner, nonce: "test" }));
+  const t = new Date(Date.now() - ageMs);
+  utimeSync(lock, t, t);
+  return lock;
 }
 
 function fixture() {
@@ -508,13 +531,83 @@ unitTest("ensure.mjs - concurrent callers build once and never see a partial bun
     const run = await exec(nodeBin, { args: [f.outfile] });
     assertEquals(dec(run.stdout).trim(), "v=1");
     const leftovers = readDirSync(join(f.dir, "out")).map((e) => e.name)
-      .filter((n) => n.endsWith(".tmp") || n.endsWith(".lock"));
+      .filter((n) => n.endsWith(".tmp") || n.includes(".lock"));
     assertEquals(leftovers, []);
   } finally {
     removeSync(f.dir, { recursive: true });
   }
 });
+
+unitTest("ensure.mjs - R18: a live owner's lock is never broken by age", async () => {
+  const f = fixture();
+  try {
+    // the test process holds the lock, as a builder stopped for ten minutes would
+    const lock = holdLock(f.outfile, { pid: pid(), host: hostname() }, 600_000);
+    const t0 = Date.now();
+    const child = spawn(nodeBin, { args: [ensure, "--entry", f.entry, "--outfile", f.outfile], cwd: root, stdout: "piped", stderr: "piped" });
+    await new Promise((r) => setTimeout(r, 1500));
+    assert(existsSync(join(lock, "owner")), "the live owner's lock was broken");
+    assert(!existsSync(f.outfile), "ensure.mjs built while the lock was held");
+    removeSync(lock, { recursive: true }); // the owner releases
+    const status = await child.status;
+    const out = dec(await new Response(child.stdout!).bytes());
+    assert(status.success, dec(await new Response(child.stderr!).bytes()));
+    assertStringIncludes(out, "bundled");
+    assert(Date.now() - t0 >= 1500);
+  } finally {
+    removeSync(f.dir, { recursive: true });
+  }
+});
+
+unitTest("ensure.mjs - R18: a dead owner's lock is broken at once, an ownerless old lock by age", async () => {
+  const f = fixture();
+  try {
+    const dead = spawn(nodeBin, { args: ["-e", "0"], stdout: "null", stderr: "null" });
+    await dead.status; // a pid that has exited
+    holdLock(f.outfile, { pid: dead.pid, host: hostname() }, 0);
+    let t0 = Date.now();
+    assertStringIncludes(await runEnsure(f.entry, f.outfile), "reason: missing");
+    assert(Date.now() - t0 < 60_000, "a fresh lock of a dead pid was waited for");
+    removeSync(f.outfile);
+    holdLock(f.outfile, null, 600_000); // no marker: the owner is unknown, the age decides
+    t0 = Date.now();
+    assertStringIncludes(await runEnsure(f.entry, f.outfile), "reason: missing");
+    assert(Date.now() - t0 < 60_000, "an ownerless old lock was waited for");
+    const leftovers = readDirSync(join(f.dir, "out")).map((e) => e.name).filter((n) => n.includes(".lock"));
+    assertEquals(leftovers, []);
+  } finally {
+    removeSync(f.dir, { recursive: true });
+  }
+});
+
+unitTest("ensure.mjs - R18: a builder whose lock was broken and retaken writes nothing and releases nothing", async () => {
+  const f = fixture();
+  try {
+    // QUARTO_ENSURE_TEST_PAUSE_MS makes the builder sleep inside the lock, before bundle();
+    // meanwhile the test breaks its lock and takes it, as a second builder would after 120 s.
+    const child = spawn(nodeBin, {
+      args: [ensure, "--entry", f.entry, "--outfile", f.outfile],
+      cwd: root,
+      env: { QUARTO_ENSURE_TEST_PAUSE_MS: "2000" },
+      stdout: "piped",
+      stderr: "piped",
+    });
+    const lock = f.outfile + ".lock";
+    while (!existsSync(join(lock, "owner"))) await new Promise((r) => setTimeout(r, 20));
+    removeSync(lock, { recursive: true });
+    holdLock(f.outfile, { pid: pid(), host: hostname() }, 0);
+    const status = await child.status;
+    assert(!status.success);
+    assertStringIncludes(dec(await new Response(child.stderr!).bytes()), "lost the lock");
+    assert(!existsSync(f.outfile), "the resumed builder wrote its bundle over the new owner's");
+    assertEquals(readTextFileSync(join(lock, "owner")).includes('"nonce":"test"'), true, "the resumed builder removed the new owner's lock");
+  } finally {
+    removeSync(f.dir, { recursive: true });
+  }
+});
 ```
+
+`QUARTO_ENSURE_TEST_PAUSE_MS` is read by `ensure.mjs` only to widen the window the third case needs (Step 5); it is not documented for users.
 
 - [ ] **Step 3: Run it and see it fail**
 
@@ -531,10 +624,18 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Write through a temp file and rename, so a concurrent reader sees the old
 // or the new file, never a partial one. Windows can refuse a rename while
-// another process holds the target briefly: retry.
-async function writeAtomic(file, contents) {
+// another process holds the target briefly: retry. `beforeRename` runs
+// between the two steps; if it throws, the temp file is removed and nothing
+// replaces `file` (ensure.mjs's lock check, below).
+async function writeAtomic(file, contents, beforeRename) {
   const tmp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, contents);
+  try {
+    beforeRename?.();
+  } catch (e) {
+    fs.rmSync(tmp, { force: true });
+    throw e;
+  }
   for (let attempt = 0; ; attempt++) {
     try {
       fs.renameSync(tmp, file);
@@ -561,7 +662,7 @@ const kPrelude = [
 ];
 
 /**
- * @param {{ entry: string, outfile: string, sourcemap?: boolean, banner?: string[], define?: Record<string, string>, writeMeta?: boolean }} options
+ * @param {{ entry: string, outfile: string, sourcemap?: boolean, banner?: string[], define?: Record<string, string>, writeMeta?: boolean, beforeCommit?: () => void }} options
  */
 export async function bundle(options) {
   const entry = path.resolve(options.entry);
@@ -570,6 +671,7 @@ export async function bundle(options) {
   const banner = options.banner ?? [];
   const define = options.define ?? {};
   const writeMeta = options.writeMeta ?? false;
+  const beforeCommit = options.beforeCommit; // ensure.mjs: the lock's assertHeld()
   fs.mkdirSync(path.dirname(outfile), { recursive: true });
   const t0 = Date.now();
   const result = await esbuild.build({
@@ -604,11 +706,15 @@ export async function bundle(options) {
   // tools/bundle-bug-finder runs eslint over the bundle (quarto-bld validate-bundle);
   // a dependency ships an inline "eslint-disable-next-line" that eslint would honour.
   js = js.replaceAll("eslint-disable-next-line", "");
+  // Nothing has been written yet: a caller whose lock was lost while esbuild
+  // ran stops here. The second check sits between the bundle's temp file and
+  // its rename (Interfaces, "Lock ownership").
+  beforeCommit?.();
   // map, metafile and input list first, the bundle last: its mtime is the freshness stamp
   if (map) await writeAtomic(outfile + ".map", map);
   if (writeMeta) await writeAtomic(outfile + ".meta.json", JSON.stringify(result.metafile));
   await writeAtomic(outfile + ".inputs.json", JSON.stringify(inputs, null, 1) + "\n");
-  await writeAtomic(outfile, js);
+  await writeAtomic(outfile, js, beforeCommit);
   return { outfile, modules: Object.keys(result.metafile.inputs).length, bytes: Buffer.byteLength(js), ms: Date.now() - t0, warnings: result.warnings.length };
 }
 
@@ -641,7 +747,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 ```
 
-`verbatimModuleSyntax: true` matches PR 02b's `deno.jsonc` setting (type-only imports are written `import type` and erased). If PR 26 named the scan function differently, keep its name in the last line. `build-test.mjs` needs no change: it passes `banner` and `define` and never passed `shim`. Then:
+`verbatimModuleSyntax: true` matches PR 02b's `deno.jsonc` setting (type-only imports are written `import type` and erased). If PR 26 named the scan function differently, keep its name in the last line. `build-test.mjs` needs no change: it passes `banner` and `define` and never passed `shim`; `beforeCommit` is optional and only `ensure.mjs` passes it (PR 26's builder contract has the row). Then:
 
 ```bash
 git rm tools/node-bundle/deno-shim.mjs
@@ -663,12 +769,15 @@ Expected: no output (fix any leftover reference, e.g. in `tools/node-bundle/quar
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { hostname } from "node:os";
+import { randomBytes } from "node:crypto";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..", "..");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const kLockStaleMs = 120_000;
+const kLockStaleMs = 120_000; // only for a lock whose owner cannot be probed
 const kLockTimeoutMs = 300_000;
+const kLockRetryMs = 100;
 
 function parseArgs(argv) {
   const opts = {};
@@ -721,29 +830,115 @@ function staleReason(opts) {
   return null;
 }
 
-async function withLock(lockDir, fn) {
-  const start = Date.now();
+// The lock ownership rule, copied from src/deno_ral/kv.ts (PR 30, Interfaces,
+// "Lock ownership"; this file runs before any bundle exists and cannot import
+// the layer). The lock directory holds one file, `owner` (pid, host, nonce),
+// written as soon as mkdir succeeds. A waiter asks the OS whether the owner
+// is alive (`process.kill(pid, 0)`): a dead owner's lock is broken at once; a
+// live owner's lock is waited for, however old (a `quarto` stopped by a
+// debugger or by system sleep still holds it); a lock whose owner cannot be
+// checked (no marker yet, another host, kill refused) falls back to age and
+// is broken after kLockStaleMs. Breaking is a rename (only one breaker wins;
+// the others see ENOENT and retry). Releasing removes the directory only
+// while `owner` still carries this acquisition's marker, and bundle() checks
+// the same before its first write and before renaming the bundle into place
+// (`beforeCommit`), so a builder that resumes after its lock was broken
+// neither overwrites the newer bundle nor deletes the next owner's lock.
+const kOwnerFile = "owner";
+
+function readOwner(lockDir) {
+  let raw;
+  try {
+    raw = fs.readFileSync(path.join(lockDir, kOwnerFile), "utf8");
+  } catch (e) {
+    if (e.code === "ENOENT") return undefined; // not written yet, or the lock is gone
+    throw e;
+  }
+  try {
+    const o = JSON.parse(raw);
+    if (typeof o?.pid === "number" && typeof o?.host === "string" && typeof o?.nonce === "string") {
+      return { raw, owner: o };
+    }
+  } catch {
+    // fall through
+  }
+  return { raw, owner: undefined };
+}
+
+// true: alive; false: no such process; undefined: cannot tell from here.
+function ownerAlive(owner) {
+  if (owner.host !== hostname()) return undefined;
+  try {
+    process.kill(owner.pid, 0);
+    return true;
+  } catch (e) {
+    if (e.code === "ESRCH") return false;
+    if (e.code === "EPERM") return true; // exists, owned by another user
+    return undefined;
+  }
+}
+
+function breakLock(lockDir) {
+  const stale = `${lockDir}.stale.${process.pid}.${randomBytes(4).toString("hex")}`;
+  try {
+    fs.renameSync(lockDir, stale);
+    fs.rmSync(stale, { recursive: true, force: true });
+  } catch (e) {
+    if (e.code !== "ENOENT") throw e; // another process broke it first
+  }
+}
+
+async function acquireLock(lockDir) {
+  const deadline = Date.now() + kLockTimeoutMs;
+  let lastOwner;
   for (;;) {
     try {
       fs.mkdirSync(lockDir);
       break;
     } catch (e) {
       if (e.code !== "EEXIST") throw e;
-      const m = mtime(lockDir);
-      if (m !== null && Date.now() - m > kLockStaleMs) {
-        fs.rmSync(lockDir, { recursive: true, force: true });
-        continue;
-      }
-      if (Date.now() - start > kLockTimeoutMs) {
-        throw new Error(`ensure.mjs: timed out waiting for ${lockDir}; delete it if no build is running`);
-      }
-      await sleep(100);
     }
+    const m = mtime(lockDir);
+    if (m === null) continue; // released between mkdir and stat
+    const marker = readOwner(lockDir);
+    lastOwner = marker?.owner;
+    const alive = lastOwner ? ownerAlive(lastOwner) : undefined;
+    if (alive === false || (alive === undefined && Date.now() - m > kLockStaleMs)) {
+      breakLock(lockDir);
+      continue;
+    }
+    if (Date.now() > deadline) {
+      const who = lastOwner ? `pid ${lastOwner.pid} on ${lastOwner.host}` : "an unknown process";
+      throw new Error(
+        `ensure.mjs: timed out after ${kLockTimeoutMs} ms waiting for ${lockDir} held by ${who}; delete it if no build is running`,
+      );
+    }
+    await sleep(kLockRetryMs);
   }
+  const raw = JSON.stringify({ pid: process.pid, host: hostname(), nonce: randomBytes(8).toString("hex") });
   try {
-    return await fn();
-  } finally {
+    fs.writeFileSync(path.join(lockDir, kOwnerFile), raw);
+  } catch (e) {
     fs.rmSync(lockDir, { recursive: true, force: true });
+    throw e;
+  }
+  const held = () => readOwner(lockDir)?.raw === raw;
+  return {
+    assertHeld() {
+      if (!held()) throw new Error(`ensure.mjs: lost the lock ${lockDir}: it was broken and taken by another process`);
+    },
+    release() {
+      if (held()) fs.rmSync(lockDir, { recursive: true, force: true });
+    },
+  };
+}
+
+async function withLock(lockDir, fn) {
+  const lock = await acquireLock(lockDir);
+  try {
+    return await fn(lock);
+  } finally {
+    lock.release();
   }
 }
 
@@ -752,14 +947,18 @@ if (staleReason(opts) === null) {
   console.log("bundle up to date");
 } else {
   fs.mkdirSync(path.dirname(opts.outfile), { recursive: true });
-  await withLock(opts.outfile + ".lock", async () => {
+  await withLock(opts.outfile + ".lock", async (lock) => {
     const reason = staleReason(opts); // another process may have built it meanwhile
     if (reason === null) {
       console.log("bundle up to date (built by another process)");
       return;
     }
+    // Test hook (node-bundle-ensure.test.ts, R18): widen the window in which a
+    // waiter can break and take this lock, as a stopped process would.
+    if (process.env.QUARTO_ENSURE_TEST_PAUSE_MS) await sleep(Number(process.env.QUARTO_ENSURE_TEST_PAUSE_MS));
+    lock.assertHeld();
     const { bundle } = await import("./build.mjs"); // esbuild is loaded only when building
-    const r = await bundle({ entry: opts.entry, outfile: opts.outfile, sourcemap: true });
+    const r = await bundle({ entry: opts.entry, outfile: opts.outfile, sourcemap: true, beforeCommit: () => lock.assertHeld() });
     console.log(
       `bundled ${path.relative(root, opts.entry)} -> ${path.relative(root, opts.outfile)} (${(r.bytes / 1e6).toFixed(1)} MB, ${r.modules} modules, ${r.ms} ms; reason: ${reason})`,
     );
@@ -780,7 +979,7 @@ package/dist/bin/*.inputs.json
 - [ ] **Step 6: Run the test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-bundle-ensure.test.ts`
-Expected: `3 passed`.
+Expected: `6 passed`. (The three R18 cases and `ensure.mjs` were run while correcting the plan, transliterated to `node:test` with `fixture()` in a temp directory, on Node 26.12.0 and 22.22, same numbers on both: four concurrent callers built once with no leftover; a 600 s old lock of a live pid was waited for until released (1.6 s), then built; a fresh lock of a dead pid was broken in 3 ms and an ownerless 600 s old lock in 1 ms; a builder paused inside the lock whose lock was broken and retaken exited 1 with `lost the lock`, wrote no bundle and left the new owner's marker in place.)
 
 - [ ] **Step 7: Measure and record**
 
@@ -2975,7 +3174,8 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - `rg -n 'execPath\(\)' src -g '*.ts' -g '!src/deno_ral/**'` prints exactly `src/command/dev-call/make-ast-diagram/cmd.ts` ("Dual-runtime combinations until PR 37"; PR 35 Task 6 removes that one).
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ./quarto-bld validate-bundle && (cd ../pkg-working/bin && ./quarto check)`.
 - Fresh clone: `git clone … && ./configure.sh && package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd`.
-- Concurrent rebuild, the way `tests/run-parallel-tests.ts` runs buckets (`Promise.all` over `./run-tests.sh` processes, line 259): `cd tests && rm -f ../package/dist/bin/quarto-dev.mjs && for i in 1 2 3 4; do QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts & done; wait`: all four pass, and `ls ../package/dist/bin/*.tmp ../package/dist/bin/*.lock` finds nothing. (`./run-parallel-tests.sh` itself runs through `quarto run`, i.e. the Deno tool, until PR 35.)
+- Concurrent rebuild, the way `tests/run-parallel-tests.ts` runs buckets (`Promise.all` over `./run-tests.sh` processes, line 259): `cd tests && rm -f ../package/dist/bin/quarto-dev.mjs && for i in 1 2 3 4; do QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts & done; wait`: all four pass, and `ls ../package/dist/bin/*.tmp ../package/dist/bin/*.lock*` finds nothing. (`./run-parallel-tests.sh` itself runs through `quarto run`, i.e. the Deno tool, until PR 35.)
+- Lock ownership by hand (Linux or macOS): `L=package/dist/bin/quarto-dev.mjs.lock; mkdir $L && echo "{\"pid\":$$,\"host\":\"$(hostname)\",\"nonce\":\"x\"}" > $L/owner && touch -d '10 minutes ago' $L`, then `touch src/core/path.ts && package/dist/bin/quarto --help` in a second shell: it waits (the shell holding the lock is alive, however old the lock); `rm -r $L` in the first shell: the second finishes with `bundled … reason: src/core/path.ts`. Then `mkdir $L && echo '{"pid":999999,"host":"'$(hostname)'","nonce":"x"}' > $L/owner && package/dist/bin/quarto --help`: the dead owner's lock is broken at once and no `*.lock*` is left.
 - Push and let every workflow run: `test-smokes.yml` (Node default), the PR 32 Node matrix, the nightly Deno matrix (`workflow_dispatch` it once), `test-bundle.yml`, `test-install.yml`, `lint.yml`, the boundary-ratchet workflow, `test-quarto-latexmk.yml` (unless PR 39 already removed it). Dispatch `create-release.yml` with `publish-release=false`: all jobs green, including the Windows MSI and zip, and `test-smokes-built.yml` on the artifacts.
 
 ## Review checklist
@@ -2984,7 +3184,7 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - [ ] `QUARTO_DENO` is never used as the Node binary anywhere (`grep -n QUARTO_DENO package/scripts package/launcher package/src/quarto-bld*`: only the Deno-tool lines).
 - [ ] `NODE_OPTIONS`/`NODE_PATH` are moved to `QUARTO_SAVED_*` only when set, in all three launchers; `restoreSavedNodeEnv()` is the first statement of `quarto()`.
 - [ ] Quarto's flags are identical in the shell launcher, `quarto.cmd`, `main.rs` and `quarto-bld*` (`--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON`).
-- [ ] `ensure.mjs` decides staleness from `<outfile>.inputs.json` (no directory walk, no skip list), takes the lock, re-checks under it; `bundle()` writes JS last through temp + rename, keeps the `banner`/`define`/`writeMeta` inputs of PR 26's builder contract, and emits the three-global interop prelude; `build-test.mjs` is unchanged and `node tools/node-bundle/build-test.mjs --script tests/unit/ral/fixtures/exit-pipe-child.ts` still bundles.
+- [ ] `ensure.mjs` decides staleness from `<outfile>.inputs.json` (no directory walk, no skip list), takes the lock under the lock ownership rule (owner marker, `process.kill(pid, 0)` probe, break by rename, release only while the marker matches, the 120 s age only for an unprobeable owner, the timeout naming the owner), re-checks under it; `bundle()` writes JS last through temp + rename and calls `beforeCommit` before its first write and before that rename, keeps the `banner`/`define`/`writeMeta` inputs of PR 26's builder contract, and emits the three-global interop prelude (R04: `require`, `__filename`, `__dirname`); `build-test.mjs` is unchanged and `node tools/node-bundle/build-test.mjs --script tests/unit/ral/fixtures/exit-pipe-child.ts` still bundles.
 - [ ] Dev bundles are `.mjs`; `bin/package.json` is written by `prepare-dist` and signed on macOS.
 - [ ] The shim is deleted only after the Task 2 gate passed; the PR description lists the Deno members third-party code still references (guarded).
 - [ ] `denoToolBinary()` resolution order: `QUARTO_DENO`, installed tool, bundled tool; `src/core/run/deno.ts` and `build-ts-extension` use it.
@@ -2998,7 +3198,7 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - **`npm ci` needs registry.npmjs.org and npm.jsr.io at configure time.** npm honours `HTTPS_PROXY`; corporate CAs need `npm config set cafile`. Developer-only (users never run npm).
 - **Installer size:** the installers carry Node and Deno until PR 37 (about +120 MB per arch on macOS universal). Accepted by decision 1.
 - **`--use-env-proxy` changes behaviour for users who set `HTTPS_PROXY` but relied on Quarto ignoring it** (Deno honoured it, so this restores pre-flip behaviour, not a change). `NO_PROXY` is honoured.
-- **Stale lock after a crash during a rebuild.** `ensure.mjs` steals a lock older than 120 s; a developer can delete `package/dist/bin/quarto-dev.mjs.lock`.
+- **Lock left by a crashed or stopped rebuild.** `ensure.mjs` breaks a lock whose owner pid is gone as soon as it sees it, and one whose owner it cannot probe (no marker, another host) after 120 s; a live owner's lock is waited for up to 300 s, then the error names its pid, and a developer can delete `package/dist/bin/quarto-dev.mjs.lock`. The exclusion is best-effort (decision A6): a lock from another host is still broken by age alone, and a builder that lost its lock fails its write rather than overwriting the newer bundle.
 - **Windows rename of the bundle while another `quarto` reads it.** libuv opens files with `FILE_SHARE_DELETE`, so the rename succeeds; `writeAtomic` retries 10 times on `EPERM`/`EBUSY` otherwise.
 - **`tsc` finds many errors the first time.** Bounded by the stop condition in Task 12 step 4.
 - **Rollback:** revert the PR. Every Phase 2 change still works on Deno (the PR 32 nightly Deno matrix proves it), `configure` then runs the Deno launchers again; no data format changed (`dev-config` is regenerated by `configure`).

@@ -163,8 +163,10 @@ other plans refer to it by file and section (reconciliation pass of
   owner's by age, a live owner's never; release and the final rename only
   while the marker still matches; best-effort exclusion over a recomputable
   cache, said as such): PR 30, Interfaces, "Lock ownership" (decision A6;
-  PR 33's `ensure.mjs` build lock copies it, triage row 33; `_TEMPLATE.md`'s
-  `kv.ts` entry refers to it).
+  PR 33's `ensure.mjs` build lock copies it, PR 33 Interfaces "Lock
+  ownership", with `bundle()`'s optional `beforeCommit` input in PR 26's
+  builder contract so the bundle is renamed into place only while held;
+  `_TEMPLATE.md`'s `kv.ts` entry refers to it).
 - The leak guarantees of the Node test harness (the per-test timeout is a
   watchdog for hangs; `runChecked()` in `registerTest` fails a test that
   leaves a child process, a listening server or a timer open or that calls
@@ -277,7 +279,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 
 | PR | Plan | What | Depends on | Executor | Size | Status |
 |---|---|---|---|---|---|---|
-| 33 | [33-build-tooling-node.md](33-build-tooling-node.md) | CLI launchers (shell, batch, Rust) run Node; Deno kept as a tool; `quarto install deno`; `quarto-bld` and `prepare-dist` on Node; `tsc`; environment contract; `ensure.mjs` dev bundles; Deno CLI dev utilities off `deno info`/`fmt`/`check`; `QUARTO_RUNTIME` if S2 passes, with the dual-runtime combinations table | 32, 00b, 20b | Opus | L | planned |
+| 33 | [33-build-tooling-node.md](33-build-tooling-node.md) | CLI launchers (shell, batch, Rust) run Node; Deno kept as a tool; `quarto install deno`; `quarto-bld` and `prepare-dist` on Node; `tsc`; environment contract; `ensure.mjs` dev bundles under an owned lock (PR 30's rule); Deno CLI dev utilities off `deno info`/`fmt`/`check`; `QUARTO_RUNTIME` if S2 passes, with the dual-runtime combinations table | 32, 00b, 20b | Opus | L | planned |
 | 34 | [34-installers-and-check.md](34-installers-and-check.md) | Installers ship Node with Node's entitlements and OS minimums; `quarto check` Node row; conda; the 17-row runtime contract table with tests; docs | 33 | Opus | M | planned |
 | 35 | [35-user-scripts-compat.md](35-user-scripts-compat.md) | `.ts` scripts run on Node by default (per-file esbuild compile, on-demand `Deno` shim, 34 `stdlib/*` bundles); `QUARTO_RUN_RUNTIME` / `script-runtime` selects the Deno tool; the supported migration surface matrix and the version rule; `juice.ts` and `ast-diagram` on Node APIs | 33, 31, 00c | Opus | L | planned |
 | 36 | [36-build-ts-extension-node.md](36-build-ts-extension-node.md) | `build-ts-extension` on esbuild with the default import map served on Node (`log`/`fs` as `@quarto/std-*` packages from PR 35's builder); warning for prebuilt engines that reference `Deno.` | 33, 35 | Opus | M | planned |

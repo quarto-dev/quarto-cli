@@ -189,10 +189,20 @@ the pass has landed.
   as buckets; five `compare-junit.test.mjs` cases and two more in
   `junit.test.mjs`; the three scripts and their cases run on Node 26.12.0
   and 22.22, the reporter's `file` attribute measured on both, the workflow
-  not run; PR 37's file list renamed accordingly); plans 33, 35, 36 still
-  carry the defects its C table names. Row 33's build lock in
-  `ensure.mjs` is to copy PR 30's rule (marker, probe, guarded release); its
-  120 s age then only governs locks with no readable owner.
+  not run; PR 37's file list renamed accordingly) and for 33 (R18: `ensure.mjs`'s
+  `withLock()` copies PR 30's "Lock ownership" rule, restated in PR 33
+  Interfaces, since it cannot import `kv.ts`: `<lock>/owner` with pid, host
+  and nonce, the `process.kill(pid, 0)` probe, a gone owner's lock broken at
+  once, an unknown owner's after 120 s, a live owner's never, release only
+  while the marker matches, the 300 s timeout naming the owner; `bundle()`
+  gains an optional `beforeCommit` input, called before its first write and
+  between the bundle's temporary file and its rename, which `ensure.mjs`
+  passes as the lock's `assertHeld()`, added to PR 26's builder contract
+  table; three R18 cases in Task 2 Step 2 and a by-hand check in
+  Verification; R04's part, `banner`/`define` kept and the three-global
+  prelude, was already done by B4 and is now named in the review checklist;
+  `ensure.mjs` and the cases ran on Node 26.12.0 and 22.22, Deno not run);
+  plans 35, 36 still carry the defects its C table names.
   The line numbers in the review and triage were measured at
   `075cbf4`; re-grep before trusting one.
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both
