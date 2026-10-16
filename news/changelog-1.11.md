@@ -16,6 +16,8 @@ All changes included in 1.11:
 ## Accessibility
 
 - ([#730](https://github.com/quarto-dev/quarto-cli/issues/730)): Fix keyboard navigation of tabsets in HTML documents without Bootstrap (`theme: none`): Tab now moves from the selected tab into its panel instead of selecting the next tab, and the arrow keys switch tabs.
+- ([#3873](https://github.com/quarto-dev/quarto-cli/issues/3873), [#9003](https://github.com/quarto-dev/quarto-cli/issues/9003)): Honor `fig-alt` for Mermaid and Graphviz diagrams in HTML, revealjs, DOCX, and Typst output while preserving visible captions. (author: @jooyoungseo)
+- ([#5514](https://github.com/quarto-dev/quarto-cli/issues/5514)): Fix `fig-alt` being ignored in `docx` output. Images and figures, including computational figures, now use it as their Word alternative text instead of the caption or an empty description, and the visible caption is unchanged. (author: @jooyoungseo)
 - ([#7058](https://github.com/quarto-dev/quarto-cli/issues/7058)): Move the navbar search control after the navigation links and tools in the DOM so keyboard and screen-reader order matches the visual order. The rendered layout is unchanged (navbar positioning is controlled by CSS `order`), but custom CSS or JS that relied on `#quarto-search` preceding the navbar links in the DOM may need updating.
 - ([#13463](https://github.com/quarto-dev/quarto-cli/issues/13463)): The dark/light mode toggle is now a switch (`button` with `role="switch"`, `aria-checked`, and a localized `aria-label`) instead of a link.
 - ([#14615](https://github.com/quarto-dev/quarto-cli/issues/14615)): Fix invalid `role="menu"` on the website navbar's collapse toggle button, flagged by axe-core (`aria-allowed-role`) and WAVE (`aria-role-mismatch`).

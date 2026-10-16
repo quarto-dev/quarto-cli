@@ -25,9 +25,11 @@ import {
   fixupAlignment,
   makeResponsive,
   resolveSize,
+  setSvgAlt,
   setSvgSize,
 } from "../svg.ts";
 import {
+  kCellFigAlt,
   kFigAlign,
   kFigHeight,
   kFigResponsive,
@@ -221,8 +223,12 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       const captionSpecifier = includeCaption
         ? (cell.options?.["fig-cap"] || "")
         : "";
+      const figAlt = options[kCellFigAlt];
+      const altSpecifier = typeof figAlt === "string"
+        ? ` fig-alt=${JSON.stringify(figAlt.replace(/[\r\n\t]+/g, " "))}`
+        : "";
 
-      return `\n![${captionSpecifier}](${sourceName}){${widthSpecifier}${heightSpecifier}${posSpecifier}${figEnvSpecifier}${idSpecifier}}\n`;
+      return `\n![${captionSpecifier}](${sourceName}){${widthSpecifier}${heightSpecifier}${posSpecifier}${figEnvSpecifier}${idSpecifier}${altSpecifier}}\n`;
     };
     const responsive = handlerContext.options.context.format.metadata
       ?.[kFigResponsive];
@@ -248,6 +254,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       const idsToPatch: string[] = [];
 
       const fixupMermaidSvg = (svg: Element) => {
+        setSvgAlt(svg, options[kCellFigAlt]);
         // replace mermaid id with a consistent one.
         const { baseName: newMermaidId } = handlerContext.uniqueFigureName(
           "mermaid-figure-",
@@ -410,6 +417,9 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       //     "",
       //   );
       const preAttrs = [];
+      if (typeof options[kCellFigAlt] === "string") {
+        preAttrs.push(`fig-alt="${escape(options[kCellFigAlt] as string)}"`);
+      }
       if (options.label) {
         preAttrs.push(`label="${options.label}"`);
       }
