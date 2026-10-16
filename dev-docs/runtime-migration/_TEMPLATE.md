@@ -241,7 +241,7 @@ export function writeStdoutSync(data: Uint8Array): number; // writes all of `dat
 export function writeStderrSync(data: Uint8Array): number;
 export function isTerminal(stream: "stdin" | "stdout" | "stderr"): boolean;
 // PR 08 additions (PR 28 reimplements them on node:child_process / process.stdin with the same signatures):
-export function killProcess(pid: number, signal?: Signal): void; // Deno.kill(pid, signal); default "SIGTERM"; a negative pid addresses a process group on POSIX (Windows: taskkill /T from PR 28)
+export function killProcess(pid: number, signal?: Signal): void; // Deno.kill(pid, signal); default "SIGTERM"; a negative pid addresses a process group on POSIX and the process tree rooted at -pid on Windows (`taskkill /PID <-pid> /T /F`, ESRCH when gone; PR 08, kept by PR 28)
 export function readStdin(): Promise<Uint8Array>;               // read stdin to EOF (replaces readAll(Deno.stdin))
 export function readStdinLines(): AsyncIterable<string>;        // stdin as lines without the trailing "\n" / "\r\n" (replaces readLines(Deno.stdin)); breaking out of the loop releases stdin so the process can exit
 // existing `call(path, opts)` becomes a thin alias of exec and is removed in PR 25

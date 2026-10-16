@@ -143,6 +143,9 @@ other plans refer to it by file and section (reconciliation pass of
   check names): PR 37, Context (PR 32 refers to it).
 - Spike V scheduling and its inconclusive outcome: `SPIKES.md`, Spike V
   (after PR 30; PRs 31 and 32 refer to it).
+- The Windows coverage table (which POSIX process and preview assertions
+  have a Windows equivalent, through which mechanism, and which have none):
+  PR 14b, Context, "Windows coverage" (PRs 28 and 34 refer to it).
 - The supported migration surface matrix, the "not available on Node" table,
   the version rule for `npm:`/`jsr:` specifiers and the governing-lockfile
   table: PR 35, Spec, "Supported migration surface" (PRs 00c, 34, 36 and 37
@@ -191,7 +194,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | PR | Plan | What | Depends on | Executor | Size | Status |
 |---|---|---|---|---|---|---|
 | 02b | [02b-node-compatible-ts-syntax.md](02b-node-compatible-ts-syntax.md) | `verbatimModuleSyntax`; `import type` codemod (2,067 specifiers in 504 files); enums, parameter properties and `<T>` casts rewritten; `check-ts-syntax.mjs` in CI | 02 | Opus | L | planned |
-| 08 | [08-ral-process.md](08-ral-process.md) | `deno_ral/process.ts`: spawn/exec interface with `detached`, flushing `exit`, `execProcess` on it, 16 direct `Deno.Command` sites, exit/cwd/args/execPath/signals/stdio | 02 | Opus | L | planned |
+| 08 | [08-ral-process.md](08-ral-process.md) | `deno_ral/process.ts`: spawn/exec interface with `detached`, `killProcess` (group on POSIX, `taskkill /T` tree on Windows), flushing `exit`, `execProcess` on it, 16 direct `Deno.Command` sites, exit/cwd/args/execPath/signals/stdio | 02 | Opus | L | planned |
 | 39 | [39-remove-quarto-latexmk-compile.md](39-remove-quarto-latexmk-compile.md) | Remove the `tinitex` `deno compile` build and the standalone entry (Rust rewrite replaces it); before PR 25, whose zero needs the files gone | 08 | Sonnet | S | planned |
 | 09 | [09-ral-fs-and-temp-layer.md](09-ral-fs-and-temp-layer.md) | `deno_ral/fs.ts`, `temp.ts`, `errors.ts` API (`canonicalPathSync`, retyped `FileInfo`), unit tests, and the idempotent ts-morph codemod with `--reverse` | 02 | Opus | M | planned |
 | 22 | [22-std-import-seams.md](22-std-import-seams.md) | `colors.ts`, `flags.ts`, base64 seams; table of std modules with internal `Deno.*` and their owner (PR 20b) | 04, 08 | Sonnet | S | planned |
@@ -200,7 +203,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 12 | [12-codemod-fs-project-format.md](12-codemod-fs-project-format.md) | Codemod on `src/project`, `src/format` (51 files) | 09, 08, 22 | Sonnet | L | planned |
 | 13 | [13-codemod-fs-rest.md](13-codemod-fs-rest.md) | Codemod on `src/execute`, `src/publish`, `src/tools`, `src/extension`, `src/preview`, TS under `src/resources` (35 files) | 09, 08, 22 | Sonnet | M | planned |
 | 14 | [14-ral-env.md](14-ral-env.md) | `deno_ral/env.ts` and codemod of all `Deno.env` uses in `src/` (58 files) | 02, 10–13 | Sonnet | L | planned |
-| 14b | [14b-coverage-first.md](14b-coverage-first.md) | Tests before the rewrites: preview reload end-to-end, Jupyter daemon reuse, `inspect` through a pipe, process-group kill | 02, 08, 09 | Opus | S | planned |
+| 14b | [14b-coverage-first.md](14b-coverage-first.md) | Tests before the rewrites: preview reload end-to-end (document and website project, three OSes), Jupyter daemon reuse, `inspect` through a pipe, process-group kill (POSIX) and `taskkill /T` tree kill (Windows) | 02, 08, 09 | Opus | S | planned |
 | 15 | [15-ral-net-async-ports.md](15-ral-net-async-ports.md) | `deno_ral/net.ts`; async port probing; Jupyter kernel transport; Shiny control server on localhost | 08, 09, 14b | Opus | M | planned |
 | 16 | [16-ral-http.md](16-ral-http.md) | `deno_ral/http.ts` with `listening`; preview server, dev server, axe server on it | 15, 08, 14b | Opus | M | planned |
 | 17 | [17-ral-watch.md](17-ral-watch.md) | `deno_ral/watch.ts`; polling watcher and serve watcher on it | 09, 14b | Sonnet | S | planned |

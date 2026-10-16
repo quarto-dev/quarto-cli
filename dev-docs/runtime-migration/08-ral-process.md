@@ -54,7 +54,7 @@ Process-family code sites in scope, counted on the AST (comments excluded) over 
 
 Process-level behaviours this PR pins in the contract test because Node differs (review S6 and the PR 08 findings, 2026-10-15):
 
-- **Process groups.** `preview-server.ts:75` kills `-pid`, but nothing makes the child a group leader today, so on POSIX the call addresses the caller's own group only by accident of how the shell started Quarto, and `kill(-pid)` fails with ESRCH when the child is not a leader. `SpawnOptions.detached` (Deno: `Deno.CommandOptions.detached`, which starts the child in a new process group; PR 28: `child_process.spawn({ detached: true })`, which calls `setsid()`) makes the child a group leader so that `killProcess(-pid)` also ends the grandchildren (uvicorn workers, a Shiny app's R/Python processes). On Windows there are no process groups to signal; `preview-server.ts` ends the tree with `taskkill /PID <pid> /T /F`.
+- **Process groups.** `preview-server.ts:75` kills `-pid`, but nothing makes the child a group leader today, so on POSIX the call addresses the caller's own group only by accident of how the shell started Quarto, and `kill(-pid)` fails with ESRCH when the child is not a leader. `SpawnOptions.detached` (Deno: `Deno.CommandOptions.detached`, which starts the child in a new process group; PR 28: `child_process.spawn({ detached: true })`, which calls `setsid()`) makes the child a group leader so that `killProcess(-pid)` also ends the grandchildren (uvicorn workers, a Shiny app's R/Python processes). On Windows there are no process groups to signal; `killProcess(-pid)` ends the tree rooted at `-pid` with `taskkill /PID <pid> /T /F` (which walks parent pids, so it does not need `detached`), and `preview-server.ts` calls the same `killProcess(-pid)` on every OS. The Windows branch lives in the layer, not in `preview-server.ts`, so that PR 28 keeps one contract and PR 14b's `tests/unit/process-group.test.ts` covers it on Windows CI (its Windows case; review R10).
 - **Exit after large piped output.** `quarto inspect | jq`, `render -o -`: on Node, pipes are asynchronous on POSIX and `process.exit()` truncates. The layer's `exit()` is documented to flush stdout and stderr first; on Deno the writes are synchronous so `Deno.exit` already satisfies it, and the contract test proves it with 1 MiB through a pipe read to the end (the `| wc -c` case) and through a pipe whose reader goes away after the first chunk (the `| head -c 1` case). PR 14b's `tests/smoke/inspect/inspect-pipe.test.ts` covers the same at the CLI level.
 - **Writes to a closed or stalled stream.** `core/log.ts:177-195` breaks out of its loop on a 0-byte write; the first draft of `writeStdoutSync` threw "short write" instead, which would turn a logger hiccup into a crash. `writeStdoutSync`/`writeStderrSync` never throw on a 0-byte write and treat a broken pipe (reader gone) as "stop writing", returning the bytes written.
 - **Missing executable.** `exec` wraps the runtime error for a readable message; the wrapper keeps `code: "ENOENT"` and `cause`, so `isNotFound(e)` (PR 09 `errors.ts`, which also looks through `cause`) is true.
@@ -157,8 +157,10 @@ export function onSignal(signal: "SIGINT" | "SIGTERM", handler: () => void): voi
 export function writeStdoutSync(data: Uint8Array): number;
 export function writeStderrSync(data: Uint8Array): number;
 export function isTerminal(stream: "stdin" | "stdout" | "stderr"): boolean;
-/** Send a signal to a process; a negative pid addresses the process group whose
- *  leader is -pid (POSIX; the leader must have been spawned with detached: true). */
+/** Send a signal to a process. A negative pid addresses the process group whose
+ *  leader is -pid on POSIX (the leader must have been spawned with detached: true)
+ *  and, on Windows, the process tree rooted at -pid (`taskkill /PID <-pid> /T /F`,
+ *  the signal is ignored); throws an Error with code "ESRCH" when that tree is gone. */
 export function killProcess(pid: number, signal?: Signal): void;
 /** Read stdin to EOF (replaces readAll(Deno.stdin)). */
 export function readStdin(): Promise<Uint8Array>;
@@ -421,7 +423,7 @@ unitTest("process.spawn - kill ends the child with a failed status", async () =>
 });
 
 unitTest("process.spawn - detached child leads a group; killProcess(-pid) ends the grandchild", async () => {
-  if (isWindows) return; // process groups are POSIX; preview-server.ts uses taskkill /T on Windows
+  if (isWindows) return; // process groups are POSIX; the Windows tree kill (taskkill /T) is PR 14b's process-group.test.ts
   const child = spawn("sh", {
     args: ["-c", "sleep 30 & echo $!; wait"],
     stdout: "piped",
@@ -753,9 +755,25 @@ export function onSignal(
 
 /**
  * Send a signal to a process. A negative pid addresses the process group led
- * by -pid (POSIX); spawn the leader with `detached: true`.
+ * by -pid (POSIX; spawn the leader with `detached: true`) or, on Windows, the
+ * process tree rooted at -pid (taskkill /T; the signal is ignored).
  */
 export function killProcess(pid: number, signal: Signal = "SIGTERM"): void {
+  if (isWindows && pid < 0) {
+    // No process groups to signal: end the tree rooted at -pid. taskkill
+    // exits 128 when the pid does not exist.
+    const r = new Deno.Command("taskkill", {
+      args: ["/PID", String(-pid), "/T", "/F"],
+      stdout: "null",
+      stderr: "null",
+    }).outputSync();
+    if (r.code === 128) {
+      throw Object.assign(new Error(`taskkill: no process ${-pid}`), {
+        code: "ESRCH",
+      });
+    }
+    return;
+  }
   Deno.kill(pid, signal);
 }
 
@@ -1077,7 +1095,6 @@ Replace the import of `isWindows` (line 8) with:
 ```ts
 import { isWindows } from "../deno_ral/platform.ts";
 import {
-  execSync,
   killProcess,
   spawn,
   writeStderrSync,
@@ -1126,26 +1143,19 @@ and lines 36-81 with:
       await process.status;
     },
     stop: () => {
-      if (!isWindows) {
+      // POSIX: SIGTERM to the group the child leads. Windows: the layer runs
+      // taskkill /T on the tree rooted at the child (no groups to signal).
+      try {
         killProcess(-process.pid, "SIGTERM");
-      } else {
-        // No process groups to signal on Windows: end the whole tree.
-        try {
-          execSync("taskkill", {
-            args: ["/PID", String(process.pid), "/T", "/F"],
-            stdout: "null",
-            stderr: "null",
-          });
-        } catch {
-          process.kill();
-        }
+      } catch {
+        process.kill();
       }
       return Promise.resolve();
     },
   };
 ```
 
-The detached child no longer receives the terminal's Ctrl-C directly; both callers stop it from Quarto's cleanup (`execute/jupyter/jupyter.ts:713-715` registers `server.stop()` with `onCleanup`; `project/serve/serve.ts:465-467` calls it from the `stop()` it hands to the preview cleanup), which `core/main.ts`'s SIGINT handler runs. PR 14b's `tests/unit/process-group.test.ts` exercises this path end to end.
+The detached child no longer receives the terminal's Ctrl-C directly; both callers stop it from Quarto's cleanup (`execute/jupyter/jupyter.ts:713-715` registers `server.stop()` with `onCleanup`; `project/serve/serve.ts:465-467` calls it from the `stop()` it hands to the preview cleanup), which `core/main.ts`'s SIGINT handler runs. PR 14b's `tests/unit/process-group.test.ts` exercises this path end to end: the group kill on POSIX, the `taskkill /T` tree kill on Windows.
 
 - [ ] **Step 6: `src/execute/ojs/extract-resources.ts`**
 
@@ -1755,4 +1765,4 @@ None. Resolved since the first draft:
 - The three additions (`killProcess`, `readStdin`, `readStdinLines`) and `SpawnOptions.detached` are in the shared vocabulary.
 - `src/webui/quarto-preview/build.ts` is not migrated here (it was in the first draft): it stays on `Deno.*` in the ratchet allow-list until PR 33; `process.ts` therefore no longer has to stay free of import-map imports.
 - `src/command/render/latexmk/quarto-latexmk.ts` is not migrated (decision 9: PR 39 deletes it).
-- Windows tree kill: only the external preview server needs it (`taskkill /T`); Chrome's helper processes exit with the browser process. Not changed for `cri/launch.ts` because no orphan has been observed there.
+- Windows tree kill: `killProcess(-pid)` runs `taskkill /T`, and only the external preview server calls it; Chrome's helper processes exit with the browser process. Not changed for `cri/launch.ts` because no orphan has been observed there.

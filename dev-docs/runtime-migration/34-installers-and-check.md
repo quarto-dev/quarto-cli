@@ -74,7 +74,7 @@ One row per environment variable, flag or process behaviour that changed at the 
 | 14 | `QUARTO_NODE_VERSION` (configure override) | `DENO_VERSION` | renamed from the proposed `NODE_VERSION` (Docker collision) | PR 33 | manual: `NODE_VERSION=26.12.0 ./configure.sh` downloads `$NODE` from `configuration`, no 404 |
 | 15 | `QUARTO_TS_PROFILE` | `--inspect-brk` | unchanged | PR 33 | manual: `QUARTO_TS_PROFILE=1 quarto --help` waits for a debugger on 9229 |
 | 16 | `NO_COLOR=TRUE` on Windows | set by launchers | unchanged | PR 33 | existing Windows smoke tests (colourless log assertions) |
-| 17 | Process groups, signals (`quarto preview` Ctrl-C kills children) | `Deno.kill` | layer `killProcess` (negative pid) | PR 28 | `tests/unit/process-group.test.ts` (PR 14b) |
+| 17 | Process groups, signals (`quarto preview` Ctrl-C kills children) | `Deno.kill`; `taskkill /T` on Windows | layer `killProcess` (negative pid: group on POSIX, `taskkill /T` tree on Windows) | PR 28 | `tests/unit/process-group.test.ts` (PR 14b: POSIX group cases on Linux/macOS, the `taskkill /T` case on Windows; see its "Windows coverage" table for what has no Windows equivalent) and `tests/smoke/preview/preview-reload.test.ts`, `preview-project-reload.test.ts` (stop and port release on the three OSes) |
 
 ### Interfaces
 
