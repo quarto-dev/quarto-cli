@@ -10,6 +10,15 @@ import * as ld from "../../../core/lodash.ts";
 
 import { lines } from "../../../core/text.ts";
 
+// Copy of babel-hyphen.json from TinyTeX's regex.tar.gz: the hyphenation
+// language each babel .ini locale expects
+import babelHyphen from "./babel-hyphen.json" with { type: "json" };
+
+const babelHyphenMaps: Record<
+  "hyphen_synonyms" | "babel_hyphen_map" | "babel_hyphen_codes",
+  Record<string, string>
+> = babelHyphen;
+
 // The missing font log file name
 export const kMissingFontLog = "missfont.log";
 
@@ -296,16 +305,85 @@ export function findMissingHyphenationFiles(logText: string): string[] {
     ...warnings.matchAll(babelRegex),
     ...warnings.matchAll(polyglossiaRegex),
   ].map((m) => m[1]));
-  if (packages.length > 0) {
-    return packages;
+  return ld.uniq([...packages, ...detectBabelFallback(logText)]);
+}
+
+// Canonical name of a hyphenation language, resolving language.dat synonyms
+function hyphenCanon(name: string): string {
+  return Object.hasOwn(babelHyphenMaps.hyphen_synonyms, name)
+    ? babelHyphenMaps.hyphen_synonyms[name]
+    : name;
+}
+
+// When babel sets up a language from its .ini file (\babelprovide[import]{lang}
+// or the provide=* package option) and the hyphenation patterns are not
+// installed, babel silently falls back to the current \language with an Info
+// line instead of a warning:
+//   Package babel Info: Importing data for 'spanish'
+//   (babel)             from babel-es.ini. Reported on input line 3.
+//   Package babel Info: Hyphen rules for 'spanish' set to \l@english
+//   (babel)             (\language0). Reported on input line 3.
+// The same pair of lines appears when the patterns were found under another
+// name (e.g. 'austrian' set to \l@ngerman-x-2024-02-28), so the target of
+// `set to` is compared against the hyphenation language the locale's .ini file
+// expects (babel_hyphen_codes, then babel_hyphen_map), modulo language.dat
+// synonyms (hyphen_synonyms). A target of \l@nil is a fallback too when the
+// locale expects patterns.
+// Port of detect_babel_fallback() in tinytex (R/latex.R).
+// https://github.com/rstudio/tinytex/issues/519
+export function detectBabelFallback(logText: string): string[] {
+  // Join babel message continuation lines (e.g. "(babel)  from babel-es.ini.")
+  // to the message they belong to
+  const joined: string[] = [];
+  for (const line of logText.split(/\r?\n/)) {
+    if (joined.length > 0 && /^\(babel\)\s+/.test(line)) {
+      joined[joined.length - 1] += " " + line.replace(/^\(babel\)\s+/, "");
+    } else {
+      joined.push(line);
+    }
   }
 
-  // Try an alternative way of parsing
+  const importRegex =
+    /^Package babel Info: Importing( font and identification)? data for '([^']+)' .*from babel-([-.A-Za-z0-9]+)[.]ini/;
   const hyphenRulesRegex =
-    /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
-  return hyphenationPackagesForLanguages(
-    [...logText.matchAll(hyphenRulesRegex)].map((m) => m[1]),
-  );
+    /^Package babel Info: Hyphen rules for '([^']+)' set to \\l@([-.A-Za-z0-9]+)/;
+
+  // Locale name -> base name of the imported .ini file. The name may be a
+  // custom one (\babelprovide[import=es]{myspanish}), in which case only the
+  // .ini file name points to the expected patterns. The first Importing line
+  // of a locale wins.
+  const imported = new Map<string, string>();
+  for (const line of joined) {
+    const m = importRegex.exec(line);
+    if (m && !imported.has(m[2].toLowerCase())) {
+      imported.set(m[2].toLowerCase(), m[3].toLowerCase());
+    }
+  }
+
+  // The fallback line is the one paired with an Importing line for the same
+  // language; the english.ldf dialects (canadian, australian, ...) have no
+  // Importing line
+  const expectedPatterns: string[] = [];
+  for (const line of joined) {
+    const m = hyphenRulesRegex.exec(line);
+    if (!m) continue;
+    const locale = m[1].toLowerCase();
+    const iniCode = imported.get(locale);
+    if (iniCode === undefined) continue;
+    const target = m[2].toLowerCase();
+    // .ini files without a hyphenrules value are not in babel_hyphen_codes;
+    // for them the locale name itself is the expected pattern if it is a
+    // language.dat name (babel_hyphen_map)
+    const expected = Object.hasOwn(babelHyphenMaps.babel_hyphen_codes, iniCode)
+      ? babelHyphenMaps.babel_hyphen_codes[iniCode]
+      : Object.hasOwn(babelHyphenMaps.babel_hyphen_map, locale)
+      ? babelHyphenMaps.babel_hyphen_map[locale]
+      : undefined;
+    if (expected !== undefined && hyphenCanon(target) !== hyphenCanon(expected)) {
+      expectedPatterns.push(expected);
+    }
+  }
+  return hyphenationPackagesForLanguages(expectedPatterns);
 }
 
 // Parse a log file to find latex errors
