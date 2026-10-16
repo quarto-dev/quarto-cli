@@ -555,14 +555,19 @@ Create `dev-docs/runtime-migration/docs-updates.md`:
 The website lives in `quarto-dev/quarto-web`; open one PR there when PRs 33-36
 of the runtime migration are merged. Page paths come from links in this
 repository and from `https://quarto.org/llms.txt`; verify each before editing.
+What is supported on Node, for which releases, with which author action,
+fallback and retirement is stated once, in plan 35's Spec ("Supported
+migration surface"); the two migration pages below publish its rows and the
+other pages link to them rather than restate them.
 
 | Page (`quarto-web/docs/...`) | What to change | Source PR |
 |---|---|---|
 | `advanced/environment-vars.qmd` | Replace the `QUARTO_DENO*` rows with `QUARTO_NODE`, `QUARTO_NODE_OPTIONS`; `QUARTO_DENO` now only locates the Deno tool; `QUARTO_DENO_OPTIONS`/`_EXTRA_OPTIONS`/`_DIR`/`_DOM` ignored with a warning; `QUARTO_DENO_V8_OPTIONS` deprecated; `NODE_OPTIONS`/`NODE_PATH` not applied to Quarto, passed to children; `HTTP(S)_PROXY`/`NO_PROXY` honoured; `QUARTO_RUNTIME` (only if the dual-runtime window shipped) | 33 |
 | `get-started/installation.qmd`, download page | Minimum macOS 13.5, glibc 2.28, Windows 10; no RHEL 7 tarball | 34 |
 | `troubleshooting/index.qmd` | Replace `QUARTO_DENO_V8_OPTIONS`/`DENO_DIR` advice with `QUARTO_NODE_OPTIONS`; corporate CA: OS store is used, `NODE_EXTRA_CA_CERTS` for extra CAs; proxies: `HTTPS_PROXY`/`NO_PROXY` | 33, 34 |
-| `projects/scripts.qmd` (`#deno-scripts`, `#periodic-scripts`) | "TypeScript scripts": Node by default; `stdlib/*` kept; `Deno` shim and its notice; `QUARTO_RUN_RUNTIME=deno` / `project: script-runtime: deno` with `quarto install deno`; type-only imports need `import type`; migration table | 35 |
-| `extensions/engine.qmd` (or the page that documents `quarto call build-ts-extension`) | `package.json` `quarto.build` config; esbuild; default import map; engines use `QuartoAPI` and web standards; prebuilt bundles referencing `Deno.` are flagged at load | 36 |
+| `projects/scripts-deno-to-node.qmd` (created by PR 00c for 1.11) | Rows 4–6 of plan 35's supported migration surface matrix (plain scripts, `stdlib/*` scripts, Deno-native scripts); the "`stdlib/*` members not available on Node" table; the version rule for `npm:`/`jsr:` imports and the governing-lockfile table; the shim's member table and the `Deno.*` -> `node:` migration table; `QUARTO_RUN_RUNTIME=deno` / `project: script-runtime: deno` with `quarto install deno`; per-file TypeScript compile (`export type` for re-exported types); the 1.13 note | 35 |
+| `projects/scripts.qmd` (`#deno-scripts`, `#periodic-scripts`) | Short "TypeScript scripts run on Node" section linking to `scripts-deno-to-node.qmd`; `Deno` shim and its notice | 35 |
+| `extensions/engine.qmd` (or the page that documents `quarto call build-ts-extension`) | `package.json` `quarto.build` config; esbuild; the default import map on Node (`path`/`encoding` the JSR std packages, `log`/`fs` Node-compatible builds, `FileHandler`/`RotatingFileHandler` fail the build); engines use `QuartoAPI` and web standards; `#migrating-from-deno`: rows 2–3 of plan 35's matrix (prebuilt and rebuilt engines), the `Deno.*` -> `QuartoAPI`/web-standard table, the version rule and the engine rows of the governing-lockfile table; prebuilt bundles referencing `Deno.` are flagged at load; the `"type": "commonjs"` note | 36 |
 | `prerelease/1.12/_highlights.qmd` | "Quarto now runs on Node.js" | 33 |
 | `cli/check.qmd` (if it documents `--output`) | JSON key `Node.js` | 34 |
 ```

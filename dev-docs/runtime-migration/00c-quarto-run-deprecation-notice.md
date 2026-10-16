@@ -13,7 +13,7 @@
 
 ### Context
 
-`REVIEW-2026-10-15.md` decision 2: 1.11 ships on Deno with a deprecation notice for `quarto run`; 1.12 ships on Node, where PR 35 runs `.ts`/`.js`/`.mjs`/`.mts` scripts with Node's type stripping, a `Deno` global shim for the common calls and `stdlib/*` modules, and `quarto install deno` as the escape hatch. Users wrote scripts against `Deno.*` and `stdlib/*` for years (`docs/projects/scripts.html#deno-scripts` on quarto.org). The notice gives them one stable release of warning.
+`REVIEW-2026-10-15.md` decision 2: 1.11 ships on Deno with a deprecation notice for `quarto run`; 1.12 ships on Node, where PR 35 runs `.ts`/`.js`/`.mjs`/`.mts` scripts with Node's type stripping, a `Deno` global shim for the common calls and `stdlib/*` modules, and `quarto install deno` as the escape hatch. Users wrote scripts against `Deno.*` and `stdlib/*` for years (`docs/projects/scripts.html#deno-scripts` on quarto.org). The notice gives them one stable release of warning. What is supported on Node, for which releases, with which author action, fallback and retirement is the supported migration surface matrix in PR 35 (Spec, "Supported migration surface"; this notice concerns its rows 4–6, scripts); the notice text below and the page it names say nothing the matrix does not.
 
 Where `.ts`/`.js` scripts run today (verified): every caller goes through `handlerForScript` (`src/core/run/run.ts:16`), and `denoRunHandler` (`src/core/run/deno.ts:17-76`) is the handler for `.js`/`.ts`. Its callers are `quarto run <script>` (`src/command/run/run.ts:34-41`, reached from `src/quarto.ts:136-139`), project `pre-render`/`post-render` scripts (`src/command/render/project.ts:963-990`, extension-provided scripts included) and `ipynb-filters` (`src/core/jupyter/jupyter-filters.ts:64`). `quarto run --dev <script>` (repository tooling under `tools/`, `options.dev === true`) is internal and gets no notice.
 
@@ -22,7 +22,7 @@ Behaviour:
 - Once per Quarto process: a project with both a `pre-render` and a `post-render` `.ts` script prints the notice once.
 - Printed with `warning()` (three one-line calls, `llm-docs/error-messages.md`), so `--quiet` and `QUARTO_LOG_LEVEL` above `WARNING` hide it like any warning.
 - `QUARTO_RUN_DENO_NOTICE=0` or `false` (any case, surrounding spaces ignored) disables it; unset, empty or any other value shows it.
-- The text names the migration page `https://quarto.org/docs/projects/scripts-deno-to-node.html`. The page itself is created in `quarto-dev/quarto-web` (`docs/projects/scripts-deno-to-node.qmd`) before 1.11 ships; see the docs list in Task 4.
+- The text names the migration page `https://quarto.org/docs/projects/scripts-deno-to-node.html`. The page itself is created in `quarto-dev/quarto-web` (`docs/projects/scripts-deno-to-node.qmd`) before 1.11 ships; see the docs list in Task 4. Its 1.11 content is the notice's promise (scripts move to Node in 1.12, Deno stays available); its 1.12 content is rows 4–6 of PR 35's matrix with the "not available on Node" table, the version rule and the governing-lockfile table, filled in by PR 35 Task 7 (PR 34's `docs-updates.md` carries the row).
 
 The test runners set `QUARTO_RUN_DENO_NOTICE=0` so the many fixtures with `.ts` project scripts (`tests/docs/project/prepost/*`, `tests/docs/websites/drafts/drafts-preprocessor`, `tests/docs/search/issue-10285`) do not trip `noErrorsOrWarnings` verifiers; the new smoke test sets it back to `1` for its own subprocesses.
 
@@ -454,7 +454,7 @@ In `news/changelog-1.11.md`, under `## Commands`, after the `### \`check\`` entr
 Add to the PR description (these are `quarto-dev/quarto-web` changes, tracked there, required before 1.11 ships):
 ```markdown
 Documentation (quarto-web):
-- New page `docs/projects/scripts-deno-to-node.qmd` (URL https://quarto.org/docs/projects/scripts-deno-to-node.html): what changes in 1.12 (Node runs .ts/.js/.mjs/.mts scripts; type stripping limits: no enum, parameter properties, runtime namespace), the Deno API calls the compatibility shim covers, `stdlib/*` support, `quarto install deno` to keep running on Deno, and `QUARTO_RUN_DENO_NOTICE=0`.
+- New page `docs/projects/scripts-deno-to-node.qmd` (URL https://quarto.org/docs/projects/scripts-deno-to-node.html), structured on rows 4–6 of the supported migration surface matrix (plan 35, Spec: plain scripts, `stdlib/*` scripts, Deno-native scripts; per row the supported releases, the author action, the fallback and the retirement): what changes in 1.12 (Node runs .ts/.js/.mjs/.mts scripts, TypeScript compiled per file by esbuild), the Deno API calls the compatibility shim covers, `stdlib/*` support and its "not available on Node" table, the version rule for `npm:`/`jsr:` imports, `quarto install deno` to keep running on Deno, and `QUARTO_RUN_DENO_NOTICE=0`. Engines are not on this page: rows 2–3 of the matrix go to `docs/extensions/engine.qmd#migrating-from-deno` (PR 36).
 - `docs/projects/scripts.qmd`, section "Deno Scripts": a callout linking the new page.
 - `docs/advanced/environment-vars.qmd` (or the page listing Quarto's environment variables): `QUARTO_RUN_DENO_NOTICE`.
 ```

@@ -204,7 +204,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 33 | [33-build-tooling-node.md](33-build-tooling-node.md) | CLI launchers (shell, batch, Rust) run Node; Deno kept as a tool; `quarto install deno`; `quarto-bld` and `prepare-dist` on Node; `tsc`; environment contract; `ensure.mjs` dev bundles; Deno CLI dev utilities off `deno info`/`fmt`/`check`; `QUARTO_RUNTIME` if S2 passes | 32, 00b, 20b | Opus | L | planned |
 | 34 | [34-installers-and-check.md](34-installers-and-check.md) | Installers ship Node with Node's entitlements and OS minimums; `quarto check` Node row; conda; the 17-row runtime contract table with tests; docs | 33 | Opus | M | planned |
 | 35 | [35-user-scripts-compat.md](35-user-scripts-compat.md) | `.ts` scripts run on Node by default (per-file esbuild compile, on-demand `Deno` shim, 34 `stdlib/*` bundles); `QUARTO_RUN_RUNTIME` / `script-runtime` selects the Deno tool; `juice.ts` and `ast-diagram` on Node APIs | 33, 31, 00c | Opus | L | planned |
-| 36 | [36-build-ts-extension-node.md](36-build-ts-extension-node.md) | `build-ts-extension` on esbuild with the default import map preserved; warning for prebuilt engines that reference `Deno.` | 33 | Opus | M | planned |
+| 36 | [36-build-ts-extension-node.md](36-build-ts-extension-node.md) | `build-ts-extension` on esbuild with the default import map served on Node (`log`/`fs` as `@quarto/std-*` packages from PR 35's builder); warning for prebuilt engines that reference `Deno.` | 33, 35 | Opus | M | planned |
 | 37 | [37-ci-switch-and-deno-removal.md](37-ci-switch-and-deno-removal.md) | Stop downloading Deno; remove `QUARTO_RUNTIME`, the nightly Deno matrix, vendoring, `deno.jsonc`, `deno_std`, `deno.lock`; backport checklist step; dev-docs updates | 33–36, 39 | Sonnet | M | planned |
 | 38 | [38-lint-format-typecheck-tooling.md](38-lint-format-typecheck-tooling.md) | `dprint` (Deno-parity config) and `oxlint` (61 matching rules) on `src/`; drop `@types/deno` | 37 | Sonnet | M | planned |
 
@@ -231,7 +231,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
                                                             │
                                                    00b 20b ─┤
                                                             │
-                                            33 ─ 34  35  36 │      (Phase 3)
+                                            33 ─ 34  35 ─ 36 │      (Phase 3)
                                                      └─ 37 ─ 38
 ```
 

@@ -80,7 +80,7 @@ Assumptions about earlier PRs:
 
 ### Scope
 
-In: the inventory above; `DENO_ARCH_DIR` -> `ARCH_DIR`; the backport checklist step; changelog line (Deno no longer bundled).
+In: the inventory above; `DENO_ARCH_DIR` -> `ARCH_DIR`; the backport checklist step; changelog line (Deno no longer bundled); the `deno.json` fallback of `quarto call build-ts-extension` (read with a deprecation warning in 1.12, PR 36 `resolveConfig()`; from this release the file is ignored and the warning says so once: PR 35's supported migration surface matrix, row 3, names this PR as its retirement).
 Out: lint/format tooling, `@types/deno` removal, `.vscode/extensions.json` (PR 38). Renaming `src/deno_ral/` (deleted, see Context). The `QUARTO_DENO*` warnings (kept: they still help users of old shell profiles).
 
 ### Interfaces
