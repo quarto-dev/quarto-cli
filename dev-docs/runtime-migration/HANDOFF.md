@@ -151,8 +151,19 @@ the pass has landed.
   terminated in the forced path, `Request.signal` from the response's
   `close` with `writableFinished === false`, the body loop racing `drain`
   with `close` and cancelling the reader; five R07 tests in Task 3; the body
-  and all ten cases were run on Node 22.22 with `ws` 8.22, Deno not run);
-  plans 30, 31, 32, 33, 35, 36 still carry the defects its C table names.
+  and all ten cases were run on Node 22.22 with `ws` 8.22, Deno not run)
+  and for 30 (R18, decision A6: the "Lock ownership" rule in Interfaces and
+  an exported `lockIndex()`; `<lock>/owner` with pid, host and nonce written
+  on acquire, a `process.kill(pid, 0)` probe before breaking so a live
+  owner's lock is never broken by age, a gone owner's at once and an unknown
+  owner's after 10 s; `release()` and the final `rename` only while the
+  marker matches; readers no longer delete a corrupt index; the Decision
+  and Risks say best-effort exclusion; three R18 cases in Task 1; the body
+  and the nine cases run on Node 22.22, plus a `kill -STOP` of a live writer
+  for 12 s with a second writer waiting, Deno not run); plans 31, 32, 33,
+  35, 36 still carry the defects its C table names. Row 33's build lock in
+  `ensure.mjs` is to copy PR 30's rule (marker, probe, guarded release); its
+  120 s age then only governs locks with no readable owner.
   The line numbers in the review and triage were measured at
   `075cbf4`; re-grep before trusting one.
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both

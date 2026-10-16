@@ -289,7 +289,7 @@ export interface KeyValueStore {
   list<T>(prefix: KvKey): AsyncIterable<KvEntry<T>>;
   close(): void;
 }
-export function openKeyValueStore(dir: string, name: string): Promise<KeyValueStore>; // the backend chooses the file: `<dir>/<name>.kv` for PR 18's Deno.openKv backend (Quarto <= 1.11), `<dir>/<name>.json` for PR 30's JSON backend, the only one on both runtimes from PR 30 on; Quarto versions on different backends never share a file
+export function openKeyValueStore(dir: string, name: string): Promise<KeyValueStore>; // the backend chooses the file: `<dir>/<name>.kv` for PR 18's Deno.openKv backend (Quarto <= 1.11), `<dir>/<name>.json` for PR 30's JSON backend, the only one on both runtimes from PR 30 on; Quarto versions on different backends never share a file. Writes take the owned lock directory `<name>.json.lock` (PR 30, Interfaces, "Lock ownership": owner marker, liveness probe, guarded release; PR 33's build lock copies the rule)
 // Contract (PR 18 tests): a second handle on the same store sees a committed `set`; two processes writing different keys both persist (Node: lock + read-modify-rename).
 ```
 
