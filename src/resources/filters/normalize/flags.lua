@@ -135,6 +135,11 @@ function compute_flags()
         flags.has_shortcodes = true
       end
     end,
+    Math = function(node)
+      if node.text:find("%{%{%<") then
+        flags.has_shortcodes = true
+      end
+    end,
     RawInline = function(el)
       if el.format == "quarto-internal" then
         local result, data = pcall(function() 
