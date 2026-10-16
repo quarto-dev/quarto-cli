@@ -178,10 +178,12 @@ export function metadataHtmlPostProcessor(
       // alias metadata
       const metadata = provider.metadata;
 
-      // If not explicitly enabled, skip this provider
+      // If disabled by the page or not explicitly enabled, skip this provider
       const siteMeta = format.metadata[kWebsite] as Metadata;
       if (
-        !format.metadata[provider.key] && (!siteMeta || !siteMeta[provider.key])
+        format.metadata[provider.key] === false ||
+        (!format.metadata[provider.key] &&
+          (!siteMeta || !siteMeta[provider.key]))
       ) {
         return;
       }
