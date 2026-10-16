@@ -1,0 +1,20 @@
+---
+title: Document *title*
+citation:
+  title: ''
+author: Jane Doe
+date: 2025-04-30
+google-scholar: true
+appendix-cite-as: [display, bibtex]
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_title"][content="Document title"]']
+      ensureHtmlElementContents:
+        selectors: ['.quarto-appendix-citeas em']
+        matches: ['Title']
+---
+
+An empty `citation: title:` falls back to the document `title`.

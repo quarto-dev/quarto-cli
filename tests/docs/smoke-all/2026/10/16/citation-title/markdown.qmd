@@ -1,0 +1,22 @@
+---
+title: "A proof system (part&nbsp;1) with *emphasis* and `code` & R"
+author: Jane Doe
+date: 2025-04-30
+citation: true
+google-scholar: true
+appendix-cite-as: [display, bibtex]
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["meta[name=\"citation_title\"][content=\"A proof system (part\u00a01) with emphasis and code & R\"]"]
+      ensureHtmlElementContents:
+        selectors: ['.quarto-appendix-citeas em', '.quarto-appendix-bibtex']
+        matches: ['Emphasis']
+        noMatches: ['\*', '`', '&nbsp;']
+      ensureFileRegexMatches:
+        - ['\\emph\{Emphasis\}', 'Part~1']
+---
+
+Markdown formatting and entities in the title are converted before they reach the appendix citation, the BibTeX citation and the Google Scholar metadata.

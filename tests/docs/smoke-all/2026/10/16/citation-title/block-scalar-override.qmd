@@ -1,0 +1,22 @@
+---
+title: Plain
+citation:
+  title: >
+    A folded
+    *title*
+author: Jane Doe
+date: 2025-04-30
+google-scholar: true
+appendix-cite-as: [display, bibtex]
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_title"][content="A folded title"]']
+      ensureHtmlElementContents:
+        selectors: ['.quarto-appendix-citeas em']
+        matches: ['Title']
+---
+
+A folded block scalar `citation: title:` keeps its formatting and has no newline in the metadata.
