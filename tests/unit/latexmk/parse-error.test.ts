@@ -591,3 +591,41 @@ unitTest("Detect missing hyphenation patterns for babel .ini locales", async () 
 }, {
   cwd: () => "unit/latexmk/"
 })
+
+unitTest("Ignore babel .ldf languages and detect basic and unquoted .ini imports", async () => {
+  // Real lualatex logs (babel v26.13, TeX Live 2026, hyphen-german installed):
+  // languages loaded from an .ldf file (what Pandoc emits for lang: de-AT and
+  // de-CH) log the identification-only import, then their dialect patterns
+  // (\l@ngerman, \l@german), which are not a fallback.
+  const ldf = (locale: string, ini: string, target: string) =>
+    [
+      `Package babel Info: Importing font and identification data for '${locale}'`,
+      `(babel)             from babel-${ini}.ini. Reported on input line 4478.`,
+      `Package babel Info: Hyphen rules for '${locale}' set to \\l@${target}`,
+      "(babel)             (\\language10). Reported on input line 200.",
+    ].join("\n");
+  assertEquals(findMissingHyphenationFiles(ldf("naustrian", "de-AT", "ngerman")), []);
+  assertEquals(findMissingHyphenationFiles(ldf("nswissgerman", "de-CH", "ngerman")), []);
+  assertEquals(findMissingHyphenationFiles(ldf("austrian", "de-AT", "german")), []);
+
+  // \babelprovide{spanish} without `import` logs the basic level
+  const basic = [
+    "Package babel Info: Importing basic data for 'spanish'",
+    "(babel)             from babel-es.ini. Reported on input line 12.",
+    ")",
+    "Package babel Info: Hyphen rules for 'spanish' set to \\l@nil",
+  ].join("\n");
+  assertEquals(findMissingHyphenationFiles(basic), ["hyphen-spanish"]);
+
+  // babel 3.84 and later until the quoting change write the language name
+  // without quotes in the Importing line (synthetic log from babel.dtx)
+  const unquoted = [
+    "Package babel Info: Importing data for spanish",
+    "(babel)             from babel-es.ini. Reported on input line 3.",
+    "Package babel Info: Hyphen rules for 'spanish' set to \\l@nil",
+    "(babel)             (\\language23). Reported on input line 3.",
+  ].join("\n");
+  assertEquals(findMissingHyphenationFiles(unquoted), ["hyphen-spanish"]);
+}, {
+  cwd: () => "unit/latexmk/"
+})

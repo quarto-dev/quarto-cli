@@ -343,8 +343,13 @@ export function detectBabelFallback(logText: string): string[] {
     }
   }
 
+  // Only the `data` and `basic data` import levels: the identification-only
+  // level (`font and identification data`) is logged for languages loaded from
+  // an .ldf file (e.g. naustrian for de-AT), which register their own dialect
+  // patterns (\l@ngerman) instead of the ones named in the .ini file. Older
+  // babel versions do not quote the language name.
   const importRegex =
-    /^Package babel Info: Importing( font and identification)? data for '([^']+)' .*from babel-([-.A-Za-z0-9]+)[.]ini/;
+    /^Package babel Info: Importing( basic)? data for '?([^'\s]+)'?\s.*from babel-([-.A-Za-z0-9]+)[.]ini/;
   const hyphenRulesRegex =
     /^Package babel Info: Hyphen rules for '([^']+)' set to \\l@([-.A-Za-z0-9]+)/;
 
