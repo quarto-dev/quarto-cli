@@ -359,7 +359,7 @@ function twitterMetadata(format: Format) {
       twitterData[kImageHeight] !== undefined
     ) {
       warnOnce(
-        "The `twitter-card` options `image-width` and `image-height` are deprecated and have no effect, as Twitter Cards have no image size tags. Set them under `open-graph` instead.",
+        "The `twitter-card` options `image-width` and `image-height` are ignored, as Twitter Cards have no image size tags. Set them under `open-graph` instead.",
       );
     }
   }

@@ -1,5 +1,5 @@
 ---
-title: "Twitter Card image size options are deprecated"
+title: "Twitter Card image size options are ignored"
 image: page.png
 _quarto:
   tests:
@@ -7,7 +7,7 @@ _quarto:
       noErrors: true
       printsMessage:
         level: WARN
-        regex: 'twitter-card.*image-width.*image-height.*deprecated.*open-graph'
+        regex: 'twitter-card.*image-width.*image-height.*ignored.*open-graph'
       ensureFileRegexMatches:
         -
           - '<meta name="twitter:image" content="https://example.com/page.png">'
