@@ -9,11 +9,11 @@ import { Element, parseHtml } from "../../src/core/deno-dom.ts";
 import { join } from "../../src/deno_ral/path.ts";
 import { metadataPostProcessor } from "../../src/format/html/format-html-meta.ts";
 import { unitTest } from "../test.ts";
+import { withTempDir } from "../utils.ts";
 import { createMockFormat } from "./format-utils.ts";
 
-async function referenceTitles(body: string) {
-  const dir = Deno.makeTempDirSync();
-  try {
+function referenceTitles(body: string, pandoc: Record<string, unknown> = {}) {
+  return withTempDir(async (dir) => {
     Deno.writeTextFileSync(
       join(dir, "references.bib"),
       `@article{cited, title={Cited reference}, author={Smith, Alice}, year={2024}}
@@ -22,6 +22,7 @@ async function referenceTitles(body: string) {
        @article{key:with/slash.dot, title={Punctuation reference}, author={Davis, Dan}, year={2023}}`,
     );
     const format = createMockFormat({
+      pandoc,
       metadata: {
         title: "An article",
         "google-scholar": true,
@@ -43,9 +44,7 @@ async function referenceTitles(body: string) {
           .match(/citation_title=([^;]+);/)![1].toLowerCase()
       )
       .sort();
-  } finally {
-    Deno.removeSync(dir, { recursive: true });
-  }
+  });
 }
 
 unitTest("Scholar references - omit an unused bibliography", async () => {
@@ -103,6 +102,19 @@ unitTest(
       <span class="citation" data-cites="unknown">An unresolved citation</span>
     `),
       [],
+    );
+  },
+);
+
+unitTest(
+  "Scholar references - include entries under an identifier prefix",
+  async () => {
+    assertEquals(
+      await referenceTitles(
+        '<div id="page-ref-included" class="csl-entry">An entry</div>',
+        { "identifier-prefix": "page-" },
+      ),
+      ["included reference"],
     );
   },
 );

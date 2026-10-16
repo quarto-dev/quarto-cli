@@ -65,6 +65,7 @@ export function metadataPostProcessor(
         input,
         options.inputMetadata,
         doc,
+        (format.pandoc as Metadata)["identifier-prefix"] as string | undefined,
       );
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {
         writeMetaTag(meta.name, meta.content, doc);
@@ -265,14 +266,19 @@ async function googleScholarReferences(
   input: string,
   metadata: Metadata,
   doc: Document,
+  identifierPrefix = "",
 ) {
   const scholarMeta: MetaTagData[] = [];
   const write = metadataWriter(scholarMeta);
 
   const referenceIds = new Set<string>();
   // Bibliography entries include works deliberately added with nocite.
-  for (const entry of doc.querySelectorAll('.csl-entry[id^="ref-"]')) {
-    referenceIds.add((entry as Element).id.slice(4));
+  const entryPrefix = `${identifierPrefix}ref-`;
+  for (const entry of doc.querySelectorAll(".csl-entry[id]")) {
+    const id = (entry as Element).id;
+    if (id.startsWith(entryPrefix)) {
+      referenceIds.add(id.slice(entryPrefix.length));
+    }
   }
   // Citation IDs remain available when the bibliography is suppressed.
   for (const citation of doc.querySelectorAll("[data-cites]")) {
