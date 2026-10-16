@@ -123,6 +123,20 @@ test.describe("code-annotations: select", () => {
     await expect(popup).toBeHidden();
     await expect(trigger).toBeFocused();
   });
+
+  test("popup closes when Tab moves focus from the trigger to the next link", async ({ page, browserName }) => {
+    await page.goto(getUrl(selectUrl), { waitUntil: "load" });
+    const trigger = page.locator(selector);
+    const popup = page.locator(".tippy-box", { hasText: "annotation text" });
+    const next = page.getByRole("link", { name: "Next link" });
+
+    expect(await tabUntilFocused(page, browserName, trigger)).toBe(true);
+    await page.keyboard.press("Enter");
+    await expect(popup).toBeVisible();
+
+    expect(await tabUntilFocused(page, browserName, next, 5)).toBe(true);
+    await expect(popup).toBeHidden();
+  });
 });
 
 test("revealjs: Esc closes a citation popup without opening the overview", async ({ page }) => {
