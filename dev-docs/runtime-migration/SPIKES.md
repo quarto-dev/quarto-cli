@@ -9,7 +9,7 @@ named plans are edited in the same PR.
 | Spike | Time box | When | Owner | Blocks |
 |---|---|---|---|---|
 | #2 Dual runtime and Node-compat surfaces | 5 working days | after PR 26 is merged (it provides `tools/node-bundle/`), before PR 27 starts | Phase 2 worker (Opus) | PR 27, 28, 29, 33 (runtime switch), 34 (proxy row) |
-| V Test runner: Vitest vs `node:test` | 2 working days | after PR 27b, before PR 31 is executed | Phase 2 worker (Opus) | PR 31, PR 32 |
+| V Test runner: Vitest vs `node:test` | 2 working days | after PR 30 (the last of the Phase 2 ports 27, 27b, 28, 29, 30: the sample spawns processes, serves HTTP, opens the KV store and renders), before PR 31 is executed | Phase 2 worker (Opus) | PR 31, PR 32 |
 
 Ground rules for both spikes:
 
@@ -464,7 +464,7 @@ fixed); the sections marked "decided by Spike V" are filled from this spike.
 
 ### Inputs
 
-- PR 02b landed (`import type` everywhere, no `enum`/parameter properties/`<T>`), PR 23 (harness adapter), PR 26 (`tools/node-bundle/import-map.mjs`), PR 27b (`env.ts`, `platform.ts` on Node).
+- PR 02b landed (`import type` everywhere, no `enum`/parameter properties/`<T>`), PR 23 (harness adapter), PR 26 (`tools/node-bundle/import-map.mjs`), and the Phase 2 ports PR 27 (`fs.ts`), 27b (`env.ts`, `platform.ts`), 28 (`process.ts`), 29 (`net.ts`, `http.ts`, `watch.ts`) and 30 (`kv.ts`) on `node:` APIs. Files 4 (`ral/process.test.ts`), 5 (`sass-cache.test.ts`: KV store), 7–10 (in-process renders: Pandoc spawns, the Jupyter transport, the HTTP server) exercise those modules; run before the ports, their failures would measure unfinished runtime work, not the runner (`REVIEW-2026-10-16.md` R12).
 - The two prototype harness branches are written in this spike from PR 31's "Variant N" and "Variant V" code blocks.
 
 ### The ten representative files
@@ -552,10 +552,11 @@ Fill this table on the spike branch, one row per feature, with the command used:
 
 The spike ends after two working days. Decision:
 
-1. A runner is **eligible** if it passes, on Linux, at least the same tests as the Deno baseline on files 1–9, produces parseable JUnit with the same test names, honours a per-file timeout, and runs files serially.
+0. **Classify every failure first.** A test that fails on *both* Node runners with the same error, in a module owned by PR 27–30 (a `node:` body of `src/deno_ral/`), is a runtime gap, not a runner result: record it in the Results section against the owning PR, which fixes it before PR 32 makes the Node matrix required; the test is set aside for rule 1 (it counts for neither runner). A test that fails on one runner only is a runner result. A file that cannot be classified in the time box is recorded as "unclassified" and treated as a runner failure of both runners.
+1. A runner is **eligible** if it passes, on Linux, at least the same tests as the Deno baseline on files 1–9 (tests set aside under rule 0 excluded), produces parseable JUnit with the same test names, honours a per-file timeout, and runs files serially.
 2. If only one runner is eligible, choose it.
 3. If both are eligible, choose **Vitest** only when its bucket time (step 3, files 1–9) is at most 0.75× node:test's **or** node:test's `render-html.test.ts` startup exceeds 10 s; otherwise choose **`node:test`** (no runtime dependency, built into the pinned Node, same reporter names as the Deno JUnit pipeline).
-4. If neither is eligible, choose `node:test` and list the failing files as PR 31 Phase 2 gaps owned by the PRs that own the failing modules.
+4. If neither is eligible, the spike is **inconclusive**: record it as such in the Results section with the failing files and their classification, and record `node:test` as the **provisional** choice for PR 31's prototyping only (it needs no dependency and is the easier one to revert). An inconclusive spike is not a validated outcome: PR 31 proceeds with Variant N but keeps Variant V in its plan and in the harness (both branches, as during the spike), and PR 32 may not make the Node matrix required until the spike has been re-run (one day, files 1–9 after the owning PRs' fixes) and recorded a definitive choice under rules 1–3.
 
 ### What each outcome changes
 
@@ -563,6 +564,7 @@ The spike ends after two working days. Decision:
 |---|---|---|---|
 | `node:test` | Variant N sections become the plan; Variant V sections are deleted from the plan in the spike-closing PR; PR 02b stays a hard dependency | runner commands `run-tests-node.sh`/`.ps1`; JUnit from `--test-reporter=junit` | none |
 | Vitest | Variant V sections become the plan; `vitest` is pinned in `devDependencies` (exact version recorded here); PR 02b is still landed (dev loop, PR 35) but is no longer required by tests | runner commands `npx vitest run --config tests/vitest.config.mjs`; JUnit from `--reporter=junit`; per-bucket `--outputFile.junit` | `tools/node-bundle/check-deps.mjs` ignores `devDependencies` already, no change |
+| inconclusive (rule 4) | Variant N is implemented as provisional; Variant V stays in the plan and both harness branches stay until the re-run; the Results section says "inconclusive" and lists the runtime gaps with their owning PRs | blocked at Task 6 (making Node required) until the re-run records a definitive choice; the Node matrix runs non-required meanwhile | the owning PRs of the set-aside tests fix them (their own `node-unit` runs show the fix); the re-run is scheduled in the spike-closing PR's description |
 
 ## Results
 

@@ -193,8 +193,8 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 28 | [28-ral-process-on-node-apis.md](28-ral-process-on-node-apis.md) | `process.ts` on `node:child_process`; BatBadBut-safe batch quoting; draining `exit`; `taskkill /T` | 14b, 25, 26, 27b, S2 | Opus | M | planned |
 | 29 | [29-ral-net-http-watch-on-node-apis.md](29-ral-net-http-watch-on-node-apis.md) | `net.ts`, `http.ts` (with `ws`), `watch.ts` (recreated-root and polling fallback) on Node APIs | 14b, 25, 26, 27b, S2 | Opus | M | planned |
 | 30 | [30-ral-kv-on-node.md](30-ral-kv-on-node.md) | `kv.ts` on a locked JSON file (`<name>.json`), per-key merge, both runtimes | 18, 25, 26, 27b | Opus | S | planned |
-| SV | [SPIKES.md](SPIKES.md) | Spike V (two days): Vitest vs `node:test` on ten files; decision rule | 27b | Opus | – | planned |
-| 31 | [31-test-harness-on-node.md](31-test-harness-on-node.md) | `tests/harness.ts` on the chosen runner; `run-tests-node.sh`; `run-parallel-tests.mjs`; `testArgs()`; per-file timeout and forced exit | 02b, 23, 26, 27b, SV | Opus | L | planned |
+| SV | [SPIKES.md](SPIKES.md) | Spike V (two days): Vitest vs `node:test` on ten files after the layer is on `node:` APIs; decision rule with an inconclusive outcome | 27, 27b, 28, 29, 30 | Opus | – | planned |
+| 31 | [31-test-harness-on-node.md](31-test-harness-on-node.md) | `tests/harness.ts` on the chosen runner; `run-tests-node.sh`; `run-parallel-tests.mjs`; `testArgs()`; per-file timeout and forced exit | 02b, 23, 26, 27–30, SV | Opus | L | planned |
 | 32 | [32-node-ci-required.md](32-node-ci-required.md) | Bucketed Node matrix (Linux, Windows per PR; macOS nightly) required; prerequisite-aware parity; allowlist empty except Julia until J; Deno matrix to nightly plus `deno-sanity` | 14b, 27, 27b, 28–31, J | Opus | M | planned |
 
 ### Phase 3: flip the runtime, then remove Deno
@@ -225,9 +225,9 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
      │      └─ J (Julia upstream)       │         │
      └──────────────── 25 <─────────────┴─────────┘
                         │
-       01 03–07 20b 23 ─ 26 ─ S2 ─┬─ 27 ─ 27b ─┬─ 28 29 30 ─┐
-                                  │            └─ SV ─ 31 ──┤      (Phase 2)
-                                  └────────── 14b, J ───── 32
+       01 03–07 20b 23 ─ 26 ─ S2 ─── 27 ─ 27b ─── 28 29 30 ─┬─ SV ─ 31 ─┐
+                                                            │           │      (Phase 2)
+                                              14b, J ───────┴─────────── 32
                                                             │
                                                    00b 20b ─┤
                                                             │

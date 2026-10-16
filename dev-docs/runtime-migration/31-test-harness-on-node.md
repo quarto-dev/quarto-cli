@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make `tests/` runnable on Node 26 with the test runner Spike V selects (`node:test` or Vitest), behind the harness adapter interface fixed in `_TEMPLATE.md`, with `tests/run-tests-node.sh`/`.ps1` mirroring `run-tests.sh`/`.ps1` (binary mode, `--agent`, timing, GitHub grouping), the self-spawning tests working on both runtimes, and the CI bucketing script `tests/run-parallel-tests` ported off Deno.
-**Phase:** 2. **Depends on:** Spike V closed (`SPIKES.md`: it decides the runner; this plan keeps both variants until then), PR 02b (no type-only imports kept as value imports, no `enum`/parameter properties/`<T>` assertions: required by the `node:test` variant, harmless for Vitest), PR 23 (`tests/harness.ts` adapter, `tests/` codemodded, `runHarness`/`runtimeScriptCommand`), PR 26 (root `package.json`, `tools/node-bundle/import-map.mjs`, `junit.mjs`), PR 27b (`env.ts`, `platform.ts` on Node: the harness imports both). Module bodies from PR 27–30 make more tests pass but do not block this PR. **Unblocks:** PR 32.
+**Phase:** 2. **Depends on:** Spike V closed (`SPIKES.md`: it decides the runner; this plan keeps both variants until then, and keeps both if the spike recorded "inconclusive" with `node:test` as the provisional choice), PR 02b (no type-only imports kept as value imports, no `enum`/parameter properties/`<T>` assertions: required by the `node:test` variant, harmless for Vitest), PR 23 (`tests/harness.ts` adapter, `tests/` codemodded, `runHarness`/`runtimeScriptCommand`), PR 26 (root `package.json`, `tools/node-bundle/import-map.mjs`, `junit.mjs`), PR 27, 27b, 28, 29, 30 (the layer on `node:` APIs: Spike V runs after PR 30, so this plan starts after the ports; `env.ts` and `platform.ts` are imported by the harness itself). **Unblocks:** PR 32.
 **Branch:** `rt/31-test-harness-on-node`.
 **Suggested executor:** Opus. Two runtimes, a runner that is decided late, process spawning and CI bucketing need judgement.
 **Size:** L (harness, asserts, one runner variant's tooling, 2 runner scripts, the bucketing port, 4 self-spawning tests, CI and docs).
@@ -39,7 +39,7 @@ Review findings on the earlier draft (blockers B1, B2; S12), all addressed:
 | Runner flags: per-file timeout, force exit, serial files, JUnit | | Variant N: `--test-timeout=600000 --test-force-exit --test-concurrency=1 --test-reporter=junit`; Variant V: `testTimeout`, `teardownTimeout`, `fileParallelism: false`, `--reporter=junit` |
 | `runHarness`'s Node command line | | per variant |
 
-The executor implements Tasks 1, 2, 5–8 and **one** of Tasks 3/4 (the variant Spike V chose; the spike-closing PR deletes the other from this plan). Both are written out below so the spike prototypes from them.
+The executor implements Tasks 1, 2, 5–8 and **one** of Tasks 3/4 (the variant Spike V chose; the spike-closing PR deletes the other from this plan). Both are written out below so the spike prototypes from them. If `SPIKES.md` records Spike V as inconclusive with `node:test` provisional (its rule 4), implement Task 3, keep Task 4 and the Variant V bodies in this plan, keep the Vitest branch of the harness behind `process.env.VITEST` as the spike branch had it, and say so in the PR description; the spike's re-run decides whether Task 4 is deleted or swapped in before PR 32 makes the Node matrix required.
 
 ### Scope
 
@@ -1314,7 +1314,7 @@ git commit -m "ci/docs: harness tests on Node through run-tests-node"
 
 ## Review checklist
 
-- [ ] Exactly one of Task 3 / Task 4 is implemented, the one `SPIKES.md` (Spike V results) records; the other variant's files are absent.
+- [ ] Exactly one of Task 3 / Task 4 is implemented, the one `SPIKES.md` (Spike V results) records; the other variant's files are absent, unless the spike recorded "inconclusive" (then Variant N is implemented, Variant V stays in the plan and the harness, and the PR description names the pending re-run).
 - [ ] `tests/harness.ts` imports the runner only on Node (dynamic import; Vitest through a non-literal specifier); PR 23's Deno path, `TestRunContext` and `SanitizeOptions` unchanged; `step` returns `false` for ignored and failed steps; a failed step fails its test.
 - [ ] `testArgs()` prefers positional arguments after `--`; `QUARTO_TEST_ARGS` otherwise; on Node it never returns the runner's own arguments.
 - [ ] `run-tests-node.sh`/`.ps1` mirror `run-tests.sh`/`.ps1`: `--agent`, `--keep-outputs`, document → smoke-all, directory targets, binary-mode default, venv activation, timing format, `QUARTO_TEST_JUNIT`; files run serially with a 10-minute per-file timeout and a forced exit.
