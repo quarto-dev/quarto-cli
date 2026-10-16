@@ -878,7 +878,11 @@ and only until the julia-engine subtree is pulled with its Node port
 ## Deno in CI after PR 32
 
 The full Deno matrix runs nightly (`deno-nightly`, three OSes); per PR only
-`deno-sanity` runs on Deno. PR 37 removes both.
+`deno-sanity` runs on Deno. PR 37 removes both, and `parity-compare`; the
+Node jobs, the bucket generation and the `schedule:` trigger (the only
+scheduled macOS run) stay: the resulting graph is in
+`dev-docs/runtime-migration/37-ci-switch-and-deno-removal.md`, "The CI graph
+after this PR".
 ```
 
 - [ ] **Step 4: Update the plan index and commit**
@@ -912,6 +916,7 @@ git commit -m "ci: Node matrix required; full Deno matrix nightly; parity docume
 
 ## Risks and rollback
 
+- **The Deno jobs are temporary; the Node ones are not.** PR 37 deletes `deno-sanity`, `deno-nightly` and `parity-compare` and keeps everything else in `test-node-bundle.yml`, `schedule:` included (its final graph is in PR 37, "The CI graph after this PR"): nothing here may be written so that removing the Deno jobs takes the macOS run or the required checks with it.
 - **Nightly-only Deno coverage while `main` still ships Deno (between this PR and PR 33).** A Deno-only regression shows up the next morning instead of on the PR; `deno-sanity` catches the common paths (unit tests, `smoke/render/`). The nightly failure is triaged like a red `main`. If that window proves too risky, re-add `pull_request` to `test-smokes-parallel.yml` (one line) until PR 33 merges.
 - **CI cost** stays near today's per PR (Spec table); nightly adds about 85 jobs. If macOS nightly queues for hours, run the macOS legs in 10 buckets (`-n=10` in a second `node-buckets` output) and record it here.
 - **Flaky parity** from timing-dependent tests shows as a test name in `only passing on …` that flips between nights. Use `dev-docs/debugging-flaky-tests.md`; the allowlist is not an escape hatch for non-Julia tests.

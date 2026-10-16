@@ -34,8 +34,9 @@ Inventory (verified on `main` at `b86f98d`, adjusted for PRs 33-36 and 39):
 
 | Workflow | Deno references left after PRs 33-36, 39 |
 |---|---|
-| `test-node-bundle.yml` (PR 26/32) | the nightly/dispatch parity job that runs the suite with `test-runtime: deno` and compares JUnit; the rest duplicates `test-smokes.yml` now that Node is the default |
+| `test-node-bundle.yml` (PR 26/32, workflow name `Node Tests`) | the jobs that run or compare Deno: `deno-sanity`, `deno-nightly`, `parity-compare`, `dual-runtime-smoke` (if Spike #2 added it); the Deno side of `render-parity`. The file, its `schedule:` trigger, the bucket generation and the Node jobs stay: it is the orchestration of the required checks (see "The CI graph after this PR") |
 | `test-smokes.yml` | the `test-runtime` input (PR 32) and its `deno` value; comments at lines 424 (`Deno.Command`) and 613 ("A Deno segfault") |
+| `test-smokes-parallel.yml` | its remaining `workflow_dispatch` runs the Deno runner (PR 32 removed its `pull_request`/`push` triggers); the Node equivalent is a dispatch of `Node Tests`: delete the file |
 | `actions/quarto-dev/action.yml` | "Cache deno std deps" step; `QUARTO_SKIP_DENO_CACHE_WIPE` env |
 | `create-release.yml` | `deno.exe` signing line |
 | `test-install.yml` | the `install-deno-tool` job's first step deletes the bundled Deno; after this PR there is none to delete (simplify the step) |
@@ -56,6 +57,18 @@ Inventory (verified on `main` at `b86f98d`, adjusted for PRs 33-36 and 39):
 **The `src/deno_ral/` directory keeps its name.** An earlier draft renamed it to `src/runtime/`. That task is deleted: the rename touches 452 files (872 import lines: `rg -c deno_ral -g '*.ts' src tests package tools`), changes no behaviour, and every one of those lines would conflict with backports to `v1.11` (which has the codemodded imports, decision 2) and with every open PR. The name is explained in `.claude/rules/typescript/runtime-layer.md` ("historical name: runtime abstraction layer, introduced while Quarto ran on Deno").
 
 `news/changelog-*.md` files are history and are not edited.
+
+**The CI graph after this PR (owned by this plan; PR 32 refers here).** `REVIEW-2026-10-16.md` R11: removing the Deno jobs must not remove the scheduled Node coverage, and a reusable workflow is not a replacement for the triggers, bucket generation and required checks that call it. This is the event-to-job graph Task 3 leaves behind; `grep -i deno` proving nothing is a weaker check than this table.
+
+| Event (`test-node-bundle.yml`, name `Node Tests`) | Jobs | OS | What it runs |
+|---|---|---|---|
+| `pull_request` (branches `main`; `paths-ignore` `news/**`, `.claude/**`), `push` to `main` | `node-buckets` → `node-suite` (20 buckets, from `tests/run-parallel-tests.sh -n=20 --json-for-ci --timing-file=timing-for-ci.txt`, PR 31's `.mjs`) | `ubuntu-latest`, `windows-latest` | the full unit and smoke suites through the reusable `test-smokes.yml` (`buckets`, `runners`, `label-tag` inputs; the `test-runtime` input is gone, the runner scripts are Node only) |
+| same | `node-render` | `ubuntu-latest` | PR 26's bundle build, `check-shim` report, `quarto check` and the spike documents rendered with the Node bundle (the Deno baseline and its diff are gone: the job asserts the renders succeed) |
+| `schedule` (`17 3 * * *`) and `workflow_dispatch` | everything above, plus `node-macos` (`node-buckets` → 20 buckets) | `macos-latest` | the full suite on macOS (the only macOS coverage of the suite; `test-smokes.yml` reserves macOS for scheduled runs) |
+| same | `render-parity` | `ubuntu-latest`, `macos-latest`, `windows-latest` | `dev-docs/feature-format-matrix/qmd-files/**/*.qmd` rendered to HTML by the dev launcher (`package/dist/bin/quarto`, the `ensure.mjs` bundle) and by the distribution bundle (`package/pkg-working/bin/quarto` after `quarto-bld prepare-dist --set-version 99.9.9`), normalised with `normalize-html.mjs` and diffed with `diff -r -x .quarto` (Decision 5 below) |
+| same | `node-binary` | `ubuntu-latest` | `smoke/` in binary mode (`QUARTO_TEST_BIN`) against `tools/node-bundle/quarto-node` |
+
+Callers and names: `node-suite`, `node-macos` and `node-binary` call `.github/workflows/test-smokes.yml` (`uses:`), whose job is `Run smoke (<runner>)`; `node-buckets`, `node-render` and `render-parity` are plain jobs. The required status checks on `main` after this PR (branch protection; a repository admin applies the change and the PR description lists it): `Node bucket NN / Run smoke (ubuntu-latest)` and `Node bucket NN / Run smoke (windows-latest)` for NN = 01…20, and `Build and render on Node (ubuntu-latest)`; the entry `Deno sanity (unit, smoke/render) / Run smoke (ubuntu-latest)` is removed from the required list only after this PR's first green run on `main` shows the Node checks reporting (R11: remove a requirement only after its replacement exists and is observed). Other workflows that run the suite or the bundle and stay as they are: `test-smokes.yml` (dispatch), `test-smokes-built.yml` (release artifacts), `test-ff-matrix.yml`, `test-bundle.yml`, `test-install.yml`, `lint.yml` (PR 33), the boundary-ratchet workflow (PR 02).
 
 Assumptions about earlier PRs:
 
@@ -93,6 +106,7 @@ Ratchet baseline after Task 2:
 - `QUARTO_RUN_RUNTIME=deno quarto run x.ts` without Deno prints `Running a TypeScript script needs Deno, which is not installed. Run 'quarto install deno'.`; after `quarto install deno` it runs (`test-install.yml`).
 - `grep -rn "QUARTO_RUNTIME" package src tests .github` prints nothing.
 - No workflow passes `test-runtime: deno` or `QUARTO_TEST_RUNTIME=deno`; `grep -rn -i "deno" .github` prints only the `install-deno-tool` job of `test-install.yml`.
+- `test-node-bundle.yml` matches "The CI graph after this PR": triggers `pull_request`, `push`, `schedule`, `workflow_dispatch`; jobs `node-buckets`, `node-suite`, `node-render`, `node-macos`, `render-parity`, `node-binary` and no other; a `workflow_dispatch` run is green on the three OSes, including `node-macos` (20 buckets) and `render-parity` (dev bundle vs distribution bundle: `Node render identical`); the required checks on `main` are the Node bucket checks and `node-render`, and `deno-sanity` left the list after that run.
 - `quarto run --dev tools/check-runtime-boundary.ts` reports zero in every scope, `src/deno_ral/` included; `rg -n '\bDeno\.' tools -g '*.ts'` prints nothing (row 16 of PR 25's runtime residue table; PR 35 ported the tools that `quarto run --dev` runs).
 - `ls src/resources/deno_std package/scripts/deno_std package/scripts/vendoring deno.jsonc deno.lock src/dev_import_map.json` all fail.
 - `grep -rn "Deno" .claude dev-docs llm-docs tests/README.md | grep -v "dev-docs/runtime-migration\|QUARTO_DENO\|quarto install deno\|QUARTO_RUN_RUNTIME\|script-runtime\|ran on Deno\|Deno years\|historical name"` prints nothing.
@@ -192,13 +206,14 @@ git commit -m "runtime: remove the Deno branches of the layer; boundary ratchet 
 
 - [ ] **Step 1: Workflows**
 
-- `test-node-bundle.yml`: delete the nightly/dispatch Deno parity job (the one that calls `test-smokes.yml` with `test-runtime: deno` and runs `compare-junit.mjs`) and its `schedule:` trigger; if what remains duplicates `test-smokes.yml` (Node default since PR 33), delete the file (`git rm`) and remove it from branch protection's required checks (a repository admin does this; name the check in the PR description).
+- `test-node-bundle.yml`: delete the jobs `deno-sanity`, `deno-nightly`, `parity-compare` and (if PR 32 Task 5 added it) `dual-runtime-smoke`; delete `tools/node-bundle/compare-junit.mjs`, `compare-junit.test.mjs` and `node-parity-allowlist.txt` with them (nothing else reads them; `junit.mjs` and `junit-prereq.mjs` stay for the JUnit artifacts). **Keep** the `schedule:` trigger, `node-buckets`, `node-suite`, `node-render`, `node-macos`, `render-parity` and `node-binary`: the file is the orchestration behind the required checks and the only scheduled macOS run ("The CI graph after this PR"). In `node-render`, delete the Deno render and the diff step; the job renders the spike documents with the Node bundle and fails on a render error. In `render-parity`, replace the Deno side with the distribution bundle (Decision 5): add a `quarto-bld prepare-dist --set-version 99.9.9` step, render once with `package/dist/bin/quarto` and once with `package/pkg-working/bin/quarto`, keep the normalisation and the diff. Do not delete the workflow; do not rename its jobs (their names are the required checks).
+- `test-smokes-parallel.yml`: `git rm` it (its dispatch ran the Deno matrix; `Node Tests` dispatch is the replacement) and drop its `paths-ignore` lines from the workflows that name it.
 - `test-smokes.yml`: delete the `test-runtime` input and every `QUARTO_TEST_RUNTIME: ${{ inputs.test-runtime }}` line; line 424 comment -> `# Convert the executable to a native Windows path for the harness's process spawn.`; line 613 -> `# A runtime crash (segfault) prints no stack; macOS writes one to a crash report.`
 - `actions/quarto-dev/action.yml`: delete the "Cache deno std deps" step; rename `QUARTO_SKIP_DENO_CACHE_WIPE` to `QUARTO_SKIP_DIST_WIPE` here and in `configure.sh`/`configure.cmd`.
 - `test-install.yml` `install-deno-tool`: delete the `rm -f package/dist/bin/tools/*/deno ...` line.
 
 Run: `grep -rn -i "deno\|QUARTO_TEST_RUNTIME" .github | grep -v "install-deno-tool\|quarto install deno\|quarto uninstall deno\|Deno.version"`
-Expected: no output.
+Expected: no output. Then check the graph, not only the grep: `python3 -c "import yaml; w=yaml.safe_load(open('.github/workflows/test-node-bundle.yml')); print(sorted(w['on']), sorted(w['jobs']))"` prints `['pull_request', 'push', 'schedule', 'workflow_dispatch']` and `['node-binary', 'node-buckets', 'node-macos', 'node-render', 'node-suite', 'render-parity']`; `grep -c "if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'" .github/workflows/test-node-bundle.yml` prints `3` (`node-macos`, `render-parity`, `node-binary`).
 
 - [ ] **Step 2: Test runners**
 
@@ -417,7 +432,7 @@ git commit -m "docs: backport protocol after the runtime migration"
 
 - [ ] No `configure`, `prepare-dist` or launcher path downloads, ships or runs Deno; `denoToolBinary()` finds only `QUARTO_DENO` or `quarto install deno`.
 - [ ] `QUARTO_RUNTIME` is gone everywhere (if it existed) and a test pins that.
-- [ ] No workflow runs the suite on Deno; `test-node-bundle.yml` deleted or reduced; required checks updated (named in the description).
+- [ ] No workflow runs the suite on Deno; `test-node-bundle.yml` keeps its `schedule:`, the bucket generation, `node-macos`, `render-parity` (dev vs distribution bundle) and `node-binary`; `test-smokes-parallel.yml` deleted; the required checks are the Node ones and `deno-sanity` is removed only after the first green `main` run (named in the description).
 - [ ] `src/deno_ral/` contains no `Deno.`; the ratchet scans it.
 - [ ] Deleted files have no importers (Task 4 `grep`).
 - [ ] `src/deno_ral/` is **not** renamed; `runtime-layer.md` explains the name.
@@ -428,6 +443,7 @@ git commit -m "docs: backport protocol after the runtime migration"
 - **Users who set `QUARTO_RUN_RUNTIME=deno` upgrade and lose the bundled Deno.** The error names `quarto install deno`; the changelog says so. Landing in 1.13 (one release after Node shipped with Deno bundled) gives them a release to adapt.
 - **A deleted file was read by something outside the repository** (Positron/RStudio build scripts reading `src/dev_import_map.json`, packagers reading `deno.jsonc`). The PR description lists every deleted path; restoring one is `git checkout <sha> -- <path>`.
 - **The reverse codemod misses an identifier on an old branch.** The `git apply -3` conflict or `deno check` on the stable branch shows it; the checklist says to hand-edit.
+- **macOS coverage is nightly only** (as since PR 32): a macOS-only regression shows up the next morning. `node-macos` is the one scheduled macOS run of the suite; deleting the `schedule:` trigger would remove it, which is why Task 3 keeps the workflow.
 - **Rollback:** revert the PR; `configure` downloads Deno again and the nightly matrix returns.
 
 ## Decisions needed
@@ -436,3 +452,4 @@ git commit -m "docs: backport protocol after the runtime migration"
 2. Not changed because the review's finding is resolved by decision 2 and the deleted rename task: "the 452-file `deno_ral` rename right after a release branch is cut maximises conflicts". The directory keeps its name.
 3. Not changed because decision 1 resolves it: the review's "no Deno CI fallback once PR 33 lands" (S5). PR 33 keeps Deno as a tool and PR 32's nightly Deno matrix runs until this PR; this PR is where the fallback ends, after PRs 35/36 moved the last consumers.
 4. Not changed: `.vscode/extensions.json` still recommends `denoland.vscode-deno` until PR 38 swaps it for dprint/oxc, so editors are not left without a formatter between the two PRs.
+5. **What `render-parity` compares once there is no Deno build** (triage B5 keeps its schedule). Options: (a) delete the job and rely on `test-ff-matrix.yml`, which renders the same documents but on Linux only and per PR; (b) keep a three-OS nightly render that only asserts success; (c) keep the diff and compare the dev launcher's bundle (`ensure.mjs`) with the distribution bundle (`prepare-dist`), which is what users run and what no other workflow renders on three OSes before a release. Recommendation and plan: (c); the job keeps its name (a required-check-adjacent nightly), its OS matrix and `normalize-html.mjs`.
