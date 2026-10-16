@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `quarto call build-ts-extension` bundles engine extensions with the esbuild binary Quarto already ships instead of `deno bundle`, resolves Quarto's default import map on Node through esbuild aliases and packages shipped in `share/extension-build/node_modules/` (`path`, `path/posix`, `encoding/` as the JSR std packages, which are plain JavaScript; `log`, `log/`, `fs/` as `@quarto/std-log` and `@quarto/std-fs`, Node-compatible builds of the same versions produced by PR 35's builder; `log`'s `FileHandler` fails the build naming it), applies PR 35's version rule to the map, reads its options from `package.json` (`quarto.build`) with a deprecated `deno.json` fallback, and Quarto warns when it loads a prebuilt engine bundle that references `Deno.`.
+**Goal:** `quarto call build-ts-extension` bundles engine extensions with the esbuild binary Quarto already ships instead of `deno bundle`, resolves Quarto's default import map on Node through esbuild aliases and packages shipped in `share/extension-build/node_modules/` (`path`, `path/posix`, `encoding/` as the JSR std packages, which are plain JavaScript; `log`, `log/`, `fs/` as `@quarto/std-log` and `@quarto/std-fs`, Node-compatible builds of the same versions produced by PR 35's builder; `log`'s `FileHandler` fails the build naming it), applies PR 35's version rule to the map, reads its options from `package.json` (`quarto.build`) with a deprecated `deno.json` fallback under one precedence rule (a `package.json` without `quarto.build` hides no `deno.json`; a `deno.json` next to a `quarto.build` is ignored whole and named), and Quarto warns when it loads a prebuilt engine bundle that references `Deno.`.
 **Phase:** 3. **Depends on:** PR 33 (Node runtime; `requireDenoToolBinary()` used by today's build path; esbuild in `bin/tools`), PR 35 (the supported migration surface matrix this PR's rows belong to; `tools/run-stdlib/build.mjs --packages`, `buildRunStdlib(..., extraArgs)`, `deno-members.cjs`, `unsupported.ts`'s `kUnsupportedMarker`, the version rule). **Unblocks:** PR 37.
 **Branch:** `rt/36-build-ts-extension-node`.
 **Suggested executor:** Opus. The build command is rewritten with user-facing errors, the import-map-to-alias translation has edge cases, and the engine-loading warning is a compatibility contract.
@@ -31,9 +31,10 @@ Decisions:
 
 - **Bundler:** `bin/tools/<arch>/esbuild` through `esbuildCommand()` (`src/core/esbuild.ts`, already used for OJS). Flags: `--bundle --format=esm --platform=node --target=node26 --log-level=warning`, `--minify`, `--sourcemap`/`--sourcemap=inline`. With `--platform=node`, `node:*` built-ins stay external.
 - **Import map on esbuild:** the esbuild binary has no import-map support, but `--alias:<name>=<package>` substitutes a package name and its subpaths before any other resolution (so it applies even to names like `path` that `--platform=node` would otherwise treat as built-ins). The import map in effect is translated: `jsr:[/]@<scope>/<name>@<ver>[/sub]` -> `@jsr/<scope>__<name>[/sub]`, `npm:<pkg>@<ver>[/sub]` -> `<pkg>[/sub]`; `x` and `x/` collapse to one alias `x`; a subpath key (`path/posix`) is covered by its first segment's alias when the targets agree; `@quarto/types` is skipped (type-only, erased). Then the Node-package table `src/resources/extension-build/node-packages.json` (`{ "log": "@jsr/std__log", "fs": "@jsr/std__fs" }`, the manifest PR 35's builder consumes with `--packages`) replaces a translated target that calls `Deno.*` internally by the package PR 35's builder produces from it: `@jsr/std__log` -> `@quarto/std-log`, `@jsr/std__fs` -> `@quarto/std-fs` (Decision 3; triage A1(b)). Every subpath of such a name (`fs/walk`, `log/levels`) reaches the package's one bundle through its wildcard `exports`, which is why the Node-compatible builds are packages and not a second alias table (esbuild aliases package names, not subpaths). The aliased packages resolve from the project's `node_modules`, then from `NODE_PATH`, which the command sets to `share/extension-build/node_modules` (dist; holds `@jsr/` and `@quarto/`) or, in a dev checkout, `src/resources/extension-build/node_modules` (the `@quarto/` packages, built by `quarto-bld configure`, gitignored) followed by the repository's `node_modules` (the `@jsr/` packages), joined with the platform's path delimiter. `prepare-dist` copies the `@jsr/` packages and their dependencies there and builds the `@quarto/` packages from the root `node_modules` (Task 2).
-- **Which map:** a legacy `deno.json` with `imports` or `importMap` -> that map (deprecation warning). Otherwise the default map `share/extension-build/import-map.json`, also for `package.json` projects, unless `"quarto": { "build": { "defaultImportMap": false } }`. Consequence to document: with the default map, bare `path`/`encoding` mean the JSR std packages and bare `fs`/`log` the Node-compatible builds of the same std versions (as in 1.9-1.11, minus `FileHandler` and `RotatingFileHandler`, PR 35's "not available on Node" table), never Node built-ins; engines that want Node's write `node:path`. An engine whose bundle contains the stub marker of those two members (`kUnsupportedMarker`, PR 35 `tools/run-stdlib/stdlib/unsupported.ts`) fails the build with a message naming the member and `node:fs`/a console handler as the replacement (PR 35 matrix row 3, A1(a)); esbuild drops the unused stub when the engine does not import the member, so an engine that only uses `getLogger`/`ConsoleHandler` builds.
+- **Config precedence (review R16):** one rule for the options and the map together, so the two cannot come from different files. `package.json` governs when it has a `quarto.build` section (an object, even empty, which is what `--init-config` writes): options from `quarto.build`, the default map unless `defaultImportMap: false`; a `deno.json` next to it is ignored whole (`bundle`, `imports` and `importMap` alike) and the command prints one warning naming it, so a map left behind in `deno.json` is not applied and not silently lost. A `package.json` without `quarto.build` (dependencies only, the state of a legacy engine that ran `npm install`) decides nothing: it is not a configuration file for this command, and a `deno.json` next to it governs as if the `package.json` were absent. `deno.json` governs otherwise, when it exists: `bundle` for the options, `imports` or `importMap` for the map, with the deprecation warning (read in 1.12, ignored from 1.13, PR 35 matrix row 3). Neither: no options and the default map. `resolveConfig()` is pure apart from reading the files and reports the outcome in `source` (which file governed) and `ignored` (the path of a `deno.json` set aside); the command prints the warnings from those two fields, so the unit test checks the precedence without capturing output.
+- **Which map:** follows the governing file (Config precedence above): the `deno.json` map (`imports` or `importMap`) when `deno.json` governs; otherwise the default map `share/extension-build/import-map.json`, for `package.json` projects and for projects with no config file, unless the governing `package.json` sets `"quarto": { "build": { "defaultImportMap": false } }`. Consequence to document: with the default map, bare `path`/`encoding` mean the JSR std packages and bare `fs`/`log` the Node-compatible builds of the same std versions (as in 1.9-1.11, minus `FileHandler` and `RotatingFileHandler`, PR 35's "not available on Node" table), never Node built-ins; engines that want Node's write `node:path`. An engine whose bundle contains the stub marker of those two members (`kUnsupportedMarker`, PR 35 `tools/run-stdlib/stdlib/unsupported.ts`) fails the build with a message naming the member and `node:fs`/a console handler as the replacement (PR 35 matrix row 3, A1(a)); esbuild drops the unused stub when the engine does not import the member, so an engine that only uses `getLogger`/`ConsoleHandler` builds.
 - **Versions (triage A2; PR 35's version rule and governing-lockfile table):** the map is resolved by name; what an engine gets is what the governing lockfile holds: the repository's root `package-lock.json` for the default map (the versions of `src/import_map.json`, which is what 1.11's `updateImportMap` wrote into the map; Decision 4), the extension's own `package.json`/`node_modules` for a legacy `deno.json` map and for bare imports. `bundle()` applies PR 35's rule to the map in effect (`warnOnVersionMismatch`: one warning per entry whose version the installed package does not satisfy, naming the key, the requested and the installed version; the five forms of the rule, nothing else checked), never an error. `npm:`/`jsr:` specifiers written in engine sources (not in the map) cannot be resolved by the esbuild CLI: the build stops with esbuild's `Could not resolve`, and `bundle()` turns that into a message naming the package and the `npm install <pkg>[@ver]` plus bare import to use (Decision 4).
-- **Config:** `package.json` `quarto.build` keys `entryPoint`, `outputFile`, `minify`, `sourcemap`, `defaultImportMap`; `deno.json` `bundle` section read for one release with a warning.
+- **Config:** `package.json` `quarto.build` keys `entryPoint`, `outputFile`, `minify`, `sourcemap`, `defaultImportMap`; `deno.json` `bundle` section read for one release with a warning; which file is read follows Config precedence above, never the mere presence of `package.json`.
 - **`--check`:** runs the project's own `node_modules/typescript/bin/tsc --noEmit -p tsconfig.json` on the bundled Node; `--init-config` writes `package.json` (with `devDependencies.typescript`) and `tsconfig.json` whose `paths` cover `@quarto/types` and the default map's keys (pointing into `share/extension-build/node_modules`: `path`, `encoding/*` at `@jsr/`, `log`, `log/*`, `fs/*` at `@quarto/std-<name>`, whose `index.d.ts` re-exports the `@jsr/` package's types, so the `@jsr/std__log` and `@jsr/std__fs` packages stay in the shipped closure for types).
 - **Engine contract** (`packages/quarto-types/README.md`, create template): engines use the `QuartoAPI` object and web-standard globals; `Deno.*` is unavailable; Node built-ins work but are outside the contract.
 - **Detection at load:** before `import()`, `engine.ts` reads the bundle once (per path per process) and, when it contains `Deno.<member>` references, prints one warning naming the engine, up to five members, and the migration page. Bundled subtree engines (`resourcePath("extension-subtrees")`) are skipped. A failed import whose message is the CommonJS one gets a hint about `"type": "commonjs"`.
@@ -76,8 +77,14 @@ export interface ResolvedBuildConfig {
   source: "package.json" | "deno.json" | "default";
   /** import map in effect (default map, or the deno.json one); {} when disabled */
   imports: Record<string, string>;
+  /** path of a deno.json set aside because package.json has "quarto.build"; the command warns once (Config precedence) */
+  ignored?: string;
 }
-/** Reads ./package.json "quarto.build", else ./deno.json ("bundle", "imports"/"importMap"), else defaults. */
+/**
+ * Config precedence (Spec): ./package.json governs iff it has a "quarto.build" section (a deno.json next to it is
+ * ignored whole and returned in `ignored`); else ./deno.json ("bundle", "imports"/"importMap") when it exists, whatever
+ * package.json holds; else defaults. A package.json without "quarto.build" decides nothing.
+ */
 export function resolveConfig(dir: string, defaultImportMapPath: string): ResolvedBuildConfig;
 /** Pure: esbuild --alias arguments for an import map; `nodePackages` (node-packages.json) replaces a translated target by its @quarto/std-<name> package. Throws for a target it cannot express. */
 export function importMapAliases(imports: Record<string, string>, nodePackages?: Record<string, string>): string[];
@@ -149,6 +156,7 @@ Engine extension <path> references the Deno API (Deno.readTextFileSync, Deno.Com
 - `tests/smoke/build-ts-extension-std/fs-log/` (imports `exists` from `fs/exists`, `walk` from `fs/walk`, `getLogger` and `ConsoleHandler` from `log`) builds with the default map; the built bundle, imported by the test on Quarto's Node, reports an existing file, walks a directory and logs through the console handler, with `typeof Deno === "undefined"` (PR 35 matrix row 3; the review's later validation for R09). `tests/smoke/build-ts-extension-std/file-handler/` (imports `FileHandler` from `log`) fails with `FileHandler is not available when Quarto runs on Node.js` and the `node:fs` hint, and writes no bundle.
 - A legacy `deno.json` map with `"left-pad": "npm:left-pad@^1.3.0"` and `left-pad` 1.2.0 installed in the extension's `node_modules` builds and prints one warning naming `left-pad`, `^1.3.0` and `1.2.0` (`versionMismatches`, unit-tested; same forms as PR 35's `register.cjs`).
 - A project with a legacy `deno.json` (`bundle.entryPoint`, inline `imports`) builds and prints the deprecation warning.
+- Mixed configurations (review R16's later validation; `resolveConfig`, unit-tested): the same legacy `deno.json` next to a dependencies-only `package.json` (`name`, `dependencies`, no `quarto.build`) builds from the `deno.json` with the same deprecation warning, its entry point and map intact; next to a `package.json` with `quarto.build` (even an empty `{}`) it is ignored whole: the build takes its options from `quarto.build`, the default map (unless `defaultImportMap: false`), and prints one warning naming `deno.json` and the `quarto.build` section.
 - `quarto call build-ts-extension --init-config` writes `package.json` and `tsconfig.json`; after `npm install`, `--check` runs `tsc` on `architectureToolsPath("node")` and passes for the fixture engine copied into a temp directory; `rg -n 'execPath\(\)' src/command/call/build-ts-extension` prints nothing.
 - Rendering `tests/docs/engine/deno-api-engine/index.qmd` prints the warning once and still renders; bundled subtree engines produce no such warning.
 - `quarto create extension engine` + build + render passes (`tests/smoke/create/create.test.ts`).
@@ -233,16 +241,34 @@ unitTest("build-ts-extension: esbuild args", () => {
   assertEquals(esbuildArgs("e.ts", "o.js", { sourcemap: true }, []).includes("--sourcemap"), true);
 });
 
-unitTest("build-ts-extension: package.json > deno.json > default", () => {
+unitTest("build-ts-extension: config precedence (quarto.build governs; a bare package.json hides no deno.json; a deno.json next to quarto.build is ignored and named)", () => {
   const dir = makeTempDirSync({ prefix: "btx" });
   const defaultMap = join(dir, "default-map.json");
+  const packageJson = join(dir, "package.json");
+  const denoJson = join(dir, "deno.json");
   writeTextFileSync(defaultMap, JSON.stringify({ imports: kDefault }));
   try {
+    // nothing: defaults and the default map
     assertEquals(resolveConfig(dir, defaultMap), { config: {}, source: "default", imports: kDefault });
-    writeTextFileSync(join(dir, "deno.json"), JSON.stringify({ bundle: { entryPoint: "src/a.ts" }, imports: { "x": "npm:x@1" } }));
+    // a dependencies-only package.json decides nothing
+    writeTextFileSync(packageJson, JSON.stringify({ name: "e", dependencies: { "left-pad": "^1.3.0" } }));
+    assertEquals(resolveConfig(dir, defaultMap), { config: {}, source: "default", imports: kDefault });
+    // legacy deno.json governs, with or without that package.json (R16: the mixed case)
+    writeTextFileSync(denoJson, JSON.stringify({ bundle: { entryPoint: "src/a.ts" }, imports: { "x": "npm:x@1" } }));
     assertEquals(resolveConfig(dir, defaultMap), { config: { entryPoint: "src/a.ts" }, source: "deno.json", imports: { "x": "npm:x@1" } });
-    writeTextFileSync(join(dir, "package.json"), JSON.stringify({ quarto: { build: { entryPoint: "src/b.ts", defaultImportMap: false } } }));
-    assertEquals(resolveConfig(dir, defaultMap), { config: { entryPoint: "src/b.ts", defaultImportMap: false }, source: "package.json", imports: {} });
+    removeSync(packageJson);
+    assertEquals(resolveConfig(dir, defaultMap), { config: { entryPoint: "src/a.ts" }, source: "deno.json", imports: { "x": "npm:x@1" } });
+    // quarto.build governs; the deno.json next to it is ignored whole (its map too) and named
+    writeTextFileSync(packageJson, JSON.stringify({ quarto: { build: { entryPoint: "src/b.ts", defaultImportMap: false } } }));
+    assertEquals(resolveConfig(dir, defaultMap), { config: { entryPoint: "src/b.ts", defaultImportMap: false }, source: "package.json", imports: {}, ignored: denoJson });
+    // an empty quarto.build (what --init-config writes) governs too, with the default map
+    writeTextFileSync(packageJson, JSON.stringify({ quarto: { build: {} } }));
+    assertEquals(resolveConfig(dir, defaultMap), { config: {}, source: "package.json", imports: kDefault, ignored: denoJson });
+    removeSync(denoJson);
+    assertEquals(resolveConfig(dir, defaultMap), { config: {}, source: "package.json", imports: kDefault });
+    // a quarto.build that is not an object is an error naming the key
+    writeTextFileSync(packageJson, JSON.stringify({ quarto: { build: "src/b.ts" } }));
+    assertThrows(() => resolveConfig(dir, defaultMap), Error, '"quarto.build"');
   } finally {
     removeSync(dir, { recursive: true });
   }
@@ -338,12 +364,23 @@ function readImports(file: string): Record<string, string> {
 
 export function resolveConfig(dir: string, defaultImportMapPath: string): ResolvedBuildConfig {
   const packageJson = join(dir, "package.json");
-  if (existsSync(packageJson)) {
-    const build = (JSON.parse(readTextFileSync(packageJson)).quarto?.build ?? {}) as ExtensionBuildConfig;
-    const imports = build.defaultImportMap === false ? {} : readImports(defaultImportMapPath);
-    return { config: build, source: "package.json", imports };
-  }
   const denoJson = join(dir, "deno.json");
+  // Config precedence (Spec): package.json governs only through an explicit "quarto.build" section.
+  // A package.json without one (dependencies only) decides nothing and hides no deno.json.
+  const build = existsSync(packageJson)
+    ? (JSON.parse(readTextFileSync(packageJson)).quarto?.build as unknown)
+    : undefined;
+  if (build !== undefined) {
+    if (typeof build !== "object" || build === null || Array.isArray(build)) {
+      throw new Error(`package.json "quarto.build" must be an object (entryPoint, outputFile, minify, sourcemap, defaultImportMap). See ${kDocs}`);
+    }
+    const config = build as ExtensionBuildConfig;
+    const imports = config.defaultImportMap === false ? {} : readImports(defaultImportMapPath);
+    // a deno.json next to quarto.build is ignored whole, its map included; the command names it
+    return existsSync(denoJson)
+      ? { config, source: "package.json", imports, ignored: denoJson }
+      : { config, source: "package.json", imports };
+  }
   if (existsSync(denoJson)) {
     const deno = JSON.parse(readTextFileSync(denoJson)) as {
       bundle?: ExtensionBuildConfig;
@@ -682,9 +719,15 @@ export const buildTsExtensionCommand = new Command()
         return;
       }
       const resolved = resolveConfig(cwd(), resourcePath("extension-build/import-map.json"));
+      // Config precedence (Spec): the two warnings come from resolveConfig()'s fields; nothing is decided here
       if (resolved.source === "deno.json") {
         warning(
           'deno.json is deprecated for quarto call build-ts-extension; move "bundle" to package.json "quarto.build" (quarto call build-ts-extension --init-config).',
+        );
+      }
+      if (resolved.ignored) {
+        warning(
+          `${resolved.ignored} is ignored, including its import map: package.json has a "quarto.build" section, which governs the build. Delete deno.json, or move its "imports" to a package.json dependency and a bare import.`,
         );
       }
       const entryPoint = entryPointArg || autoDetectEntryPoint(resolved.config.entryPoint);
@@ -706,7 +749,7 @@ export const buildTsExtensionCommand = new Command()
 - [ ] **Step 5: Run the unit test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/build-ts-extension-args.test.ts`
-Expected: `5 passed`.
+Expected: `5 passed`. (The `resolveConfig()` body above and the precedence case, transliterated to `node:fs`, pass under `node --test` on Node 26.12.0 and 22.22, 2026-10-16; the Deno run is this step.)
 
 - [ ] **Step 6: Run the unchanged smoke test**
 
@@ -1189,12 +1232,13 @@ git commit -m "docs: engine runtime contract; build-ts-extension on esbuild"
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/build-ts-extension-args.test.ts unit/engine-deno-detection.test.ts $(find smoke/build-ts-extension/ -name '*.test.ts') smoke/create/create.test.ts $(find smoke/engine/ -name '*.test.ts') smoke/inspect/inspect-extensions.test.ts unit/extension/filter-bundled-engines.test.ts smoke/check/check-in-project.test.ts`: all pass.
 - `git diff main -- tests/smoke/build-ts-extension`: empty.
 - `grep -rn "deno bundle\|deno check\|requireDenoToolBinary\|architectureToolsPath(\"deno\")" src/command/call/build-ts-extension` -> no output.
-- Manual: scratch dir, `quarto create extension engine` (name `demo`), `quarto call build-ts-extension`, render the example; then `--init-config && npm install && quarto call build-ts-extension --check`. Legacy: `rm package.json tsconfig.json && printf '{"bundle":{"entryPoint":"src/demo.ts"}}' > deno.json && quarto call build-ts-extension` warns and builds (no `imports` in that deno.json: the build uses no aliases, so the template, which imports only `@quarto/types`, still builds).
+- Manual: scratch dir, `quarto create extension engine` (name `demo`), `quarto call build-ts-extension`, render the example; then `--init-config && npm install && quarto call build-ts-extension --check`. Legacy: `rm package.json tsconfig.json && printf '{"bundle":{"entryPoint":"src/demo.ts"}}' > deno.json && quarto call build-ts-extension` warns and builds (no `imports` in that deno.json: the build uses no aliases, so the template, which imports only `@quarto/types`, still builds). Mixed: `printf '{"name":"demo","private":true}' > package.json && quarto call build-ts-extension` still warns and builds from `deno.json`; then `quarto call build-ts-extension --init-config && quarto call build-ts-extension` builds from `quarto.build` and prints the warning naming `deno.json`.
 - `quarto run --dev tools/check-runtime-boundary.ts`: unchanged.
 
 ## Review checklist
 
 - [ ] The fixture `tests/smoke/build-ts-extension/src/test-engine.ts` and its test are unchanged and pass.
+- [ ] `resolveConfig()` follows the Config precedence: a `package.json` without `quarto.build` hides no `deno.json`; a `deno.json` next to a `quarto.build` is ignored whole (its map too) and named once by the command; an empty `quarto.build` governs (unit test's mixed cases; review R16).
 - [ ] `importMapAliases` covers `x`/`x/` collapsing, subpath keys covered by the base alias, `@quarto/types` skipped, clear errors for unsupported targets (unit test).
 - [ ] `NODE_PATH` points at `share/extension-build/node_modules` in a distribution and at `src/resources/extension-build/node_modules` plus the repository `node_modules` in dev; `prepare-dist` copies the full `@jsr/` dependency closure and builds `@quarto/std-log` and `@quarto/std-fs` with PR 35's builder; the member report names nothing outside `deno-members.cjs`.
 - [ ] `log`/`fs` resolve to the `@quarto/std-*` packages only through `node-packages.json` (a legacy `deno.json` map gets the plain translation); the `fs-log` fixture builds, runs on Quarto's Node with `typeof Deno === "undefined"` and contains no `Deno.`; the `file-handler` fixture fails naming `FileHandler`.
@@ -1210,6 +1254,7 @@ git commit -m "docs: engine runtime contract; build-ts-extension on esbuild"
 - **Bare `fs`/`path` meaning JSR std under the default map.** An engine that relied on Deno resolving bare `fs` to `node:fs` gets `@quarto/std-fs` (the `@std/fs` API on Node); the docs say to write `node:fs`. Projects opt out with `defaultImportMap: false`.
 - **A member of `@std/fs@1.0.16` or `@std/log@0.224.0` outside `deno-members.cjs`.** PR 35's member gate fails `prepare-dist` and `configure`, naming it; the fix is the member in `deno-members.cjs` (PR 35's file; both consumers get it), never a patch to the package. The members those two versions reach were listed from `npm.jsr.io` on 2026-10-16 and are in the table.
 - **The `FileHandler` stub surviving tree shaking** in an engine that does not use it would fail that engine's build. Step 2b's `fs-log` fixture is the check; the `@__PURE__` marking on the stub's constructor is the first fix, and Decision 3 names the fallback (warn instead of fail).
+- **A `deno.json` kept next to a `quarto.build`** is ignored whole, its `imports` included, so an author who moved the options to `package.json` and left the map in `deno.json` builds without that map (bare names then resolve through the default map or `node_modules`). The warning names the file and says what to do; `--init-config` says to delete it. Merging the two files was rejected: one governing file keeps the precedence statable in one sentence (Config precedence).
 - **esbuild alias limits:** an import map whose subpath key points to a different package than its base cannot be expressed; the build stops with a message naming the key.
 - **Rollback:** revert the PR; `build-ts-extension` goes back to `deno bundle` on the Deno tool, which PR 33 keeps until PR 37.
 

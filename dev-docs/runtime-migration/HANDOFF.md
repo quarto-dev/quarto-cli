@@ -106,8 +106,8 @@ correction of `aliasTarget()` in PR 36 is subsumed by PR 36 Decision 4.
 Two notes for whoever continues: the B1 commit carries the maintainer's
 author identity by mistake (an amend and force-push was refused; the
 attribution line is in the message); the triage's C rows for PRs 33, 35
-and 36 overlap files that B2, B4, B7 and B8 edited, and can run now that
-the pass has landed.
+and 36 overlapped files that B2, B4, B7 and B8 edited, and were run after
+the pass landed (all three are done).
 
 ## How to resume
 
@@ -217,8 +217,20 @@ the pass has landed.
   the `.cmd` one Windows-only, a vectors case for the copy, review-checklist
   items that diff both copies against the layer, two Risks entries; the
   table and the cases other than the Windows one ran on Node 26.12.0 and
-  22.22, Deno not involved); plan 36 still carries the defects its C table
-  names.
+  22.22, Deno not involved) and for 36 (R16: a "Config precedence" decision,
+  one rule for the options and the map: `package.json` governs only through
+  a `quarto.build` section, even an empty one, and a `deno.json` next to it
+  is ignored whole and named by one warning; a `package.json` without
+  `quarto.build` decides nothing and hides no `deno.json`; `resolveConfig()`
+  rewritten on that rule with an `ignored` field the command warns from, a
+  non-object `quarto.build` an error; the Goal, "Which map", "Config", the
+  Interfaces comment, an acceptance bullet for the two mixed cases, a review
+  item and a Risks entry say the same thing; the unit test's precedence case
+  covers both mixed cases, the empty section and the error; the body and the
+  case ran under `node --test` on Node 26.12.0 and 22.22; R17's `aliasTarget()`
+  part was B7's PR 36 Decision 4). Every per-plan C row is applied; the two
+  cross-cutting rows (the fact-check before PR 34, the `--reverse` backport
+  after PR 10) remain.
   The line numbers in the review and triage were measured at
   `075cbf4`; re-grep before trusting one.
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both
