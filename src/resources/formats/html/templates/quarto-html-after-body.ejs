@@ -302,17 +302,21 @@
             dismiss();
           }
         };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
         return {
           onShow() {
             window.document.addEventListener('keydown', onKeyDown, true);
-            // On the trigger too: a click trigger (code-annotations: select) has no blur handling
-            instance.reference.addEventListener('focusout', onFocusOut);
             instance.popper.addEventListener('focusout', onFocusOut);
           },
           onHide() {
             window.document.removeEventListener('keydown', onKeyDown, true);
-            instance.reference.removeEventListener('focusout', onFocusOut);
             instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
           },
         };
       },

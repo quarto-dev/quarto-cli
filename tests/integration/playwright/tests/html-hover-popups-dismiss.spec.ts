@@ -137,6 +137,21 @@ test.describe("code-annotations: select", () => {
     expect(await tabUntilFocused(page, browserName, next, 5)).toBe(true);
     await expect(popup).toBeHidden();
   });
+
+  test("popup does not open when Tab leaves the trigger during the show delay", async ({ page, browserName }) => {
+    await page.goto(getUrl(selectUrl), { waitUntil: "load" });
+    const trigger = page.locator(selector);
+    const popup = page.locator(".tippy-box", { hasText: "annotation text" });
+
+    expect(await tabUntilFocused(page, browserName, trigger)).toBe(true);
+    await page.keyboard.press("Enter");
+    await page.keyboard.press(tabKey(browserName));
+    await expect(trigger).not.toBeFocused();
+
+    // Outlast the 50 ms show delay before asserting the popup stays closed
+    await page.waitForTimeout(500);
+    await expect(popup).toBeHidden();
+  });
 });
 
 test("revealjs: Esc closes a citation popup without opening the overview", async ({ page }) => {
