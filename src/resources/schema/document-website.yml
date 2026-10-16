@@ -21,6 +21,38 @@
     Setting this to false prevents the `repo-actions` from appearing on this page.
     Other possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.
 
+- name: bread-crumbs
+  schema: boolean
+  tags:
+    formats: [$html-doc]
+  description: Setting this to false hides the navigation breadcrumbs on this page.
+
+- name: back-to-top-navigation
+  schema: boolean
+  tags:
+    formats: [$html-doc]
+  description: Setting this to false hides the 'back to top' navigation button on this page.
+
+- name: page-navigation
+  schema: boolean
+  tags:
+    formats: [$html-doc]
+  description: Show (`true`) or hide (`false`) the next and previous page links in the footer of this page.
+
+- name: margin-header
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [$html-doc]
+  description: Markdown to place above margin content on this page (text or file path), after the `website` margin header.
+
+- name: margin-footer
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [$html-doc]
+  description: Markdown to place below margin content on this page (text or file path), after the `website` margin footer.
+
 - name: aliases
   schema:
     arrayOf: string

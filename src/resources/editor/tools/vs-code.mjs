@@ -20658,6 +20658,60 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
         },
         {
+          name: "bread-crumbs",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Setting this to false hides the navigation breadcrumbs on this page."
+        },
+        {
+          name: "back-to-top-navigation",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Setting this to false hides the 'back to top' navigation button on this page."
+        },
+        {
+          name: "page-navigation",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Show (`true`) or hide (`false`) the next and previous page links in the footer of this page."
+        },
+        {
+          name: "margin-header",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Markdown to place above margin content on this page (text or file path), after the `website` margin header."
+        },
+        {
+          name: "margin-footer",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Markdown to place below margin content on this page (text or file path), after the `website` margin footer."
+        },
+        {
           name: "aliases",
           schema: {
             arrayOf: "string"
@@ -24812,6 +24866,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
         },
+        "Setting this to false hides the navigation breadcrumbs on this\npage.",
+        "Setting this to false hides the \u2018back to top\u2019 navigation button on\nthis page.",
+        "Show (<code>true</code>) or hide (<code>false</code>) the next and\nprevious page links in the footer of this page.",
+        "Markdown to place above margin content on this page (text or file\npath), after the <code>website</code> margin header.",
+        "Markdown to place below margin content on this page (text or file\npath), after the <code>website</code> margin footer.",
         "URLs that alias this document, when included in a website.",
         {
           short: "The path to a preview image for this document.",
@@ -25764,12 +25823,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 219833,
+        _internalId: 221293,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 219825,
+            _internalId: 221285,
             type: "enum",
             enum: [
               "png",
@@ -25785,7 +25844,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 219832,
+            _internalId: 221292,
             type: "anyOf",
             anyOf: [
               {
