@@ -15,7 +15,7 @@
 
 Assessment section 10 ("What the spike changes in the plan") asks for a standing CI job early: build the Node bundle the way the spike does, run smoke documents on it, and use its failure list as the backlog for Phase 1 and 2. The 2026-10-15 review (S3) adds that green Deno CI in Phase 2 proves only that Deno's `node:` compatibility layer runs the code: Deno's `node:http` sits on `Deno.serve`, its `fs.watch` on Deno's watcher, and PR 28's stdin/stdout deadlock passes on Deno and fails on Node. The fix it asks for is in this PR: run the `deno_ral` unit tests on real Node on every pull request (bundling each test file, which sidesteps the type-only-import problem S2 until PR 02b and PR 31), with a committed list of known Node failures that can only shrink.
 
-The spike proved the approach but is not maintainable: it hard-codes `/home/user/quarto-cli`, resolves `deno.land/x` packages to local git clones, carries stubs for packages PR 04–07 replace, and sits on `@deno/shim-deno` 0.19.2, which has had no release since 2026-03 and had two bugs that bit immediately (`makeTempFile*` treats the prefix as a directory; `Conn.read` fails with EAGAIN). After PR 03–07, every import-map value is `jsr:` or `npm:`, so the resolver only needs the import map plus the `jsr:` → `@jsr/<scope>__<name>` rewrite and `node:` externals.
+The spike proved the approach but is not maintainable: it hard-codes `/home/user/quarto-cli`, resolves `deno.land/x` packages to local git clones, carries stubs for packages PR 04–07 replace, and sits on `@deno/shim-deno` 0.19.2, which has had no release since 2026-03 and had two bugs that bit immediately (`makeTempFile*` treats the prefix as a directory; `Conn.read` fails with EAGAIN). After PR 03–07, every import-map value is `jsr:` or `npm:`, so the resolver only needs the import map plus the `jsr:` → `@jsr/<scope>__<name>` rewrite and `node:` externals, applied to Quarto's own imports only: an import from inside `node_modules` is left to esbuild's Node resolution (the "Resolver scope" rule in Interfaces), so a package's own `path` import never becomes Quarto's `@std/path` alias and nested package versions stay nested.
 
 Review findings on the earlier draft of this plan, all addressed here: `node --test tools/node-bundle/` fails (Node treats a directory argument as a module; a glob is used); the shim's eager `Readable.toWeb(process.stdin)` keeps a process with a piped stdin alive forever (made lazy); `deno-shim.js` under a typeless root `package.json` warns `MODULE_TYPELESS_PACKAGE_JSON` on every run (renamed `.mjs`); `readDirSync`/`readDir` wrapped generators in `wrapSync`, so ENOENT was thrown at iteration and never mapped (eager read, mapped); the render diff included `.quarto/project-cache` (SQLite on Deno, JSON on Node) and absolute paths, so "identical" was unreachable (`-x .quarto` and `normalize-html.mjs --root`); PR 01 was missing from the dependencies; CI used Node 22 against the Node 26 convention; `--check-shim` matched only top-level `Deno.x` in the bundle and missed `Deno?.x`, nested members (`Deno.stdin.read`) and the runtime-loaded JavaScript under `src/resources/` (`graphviz-wasm.js`, `julia-engine.js`).
 
@@ -59,8 +59,8 @@ export function jsrToNpm(spec: string): string;
 export function npmSpec(spec: string): string;
 /** Parses a jsr:/npm: value into { name, version, subpath } where name is the npm package name ("@jsr/std__path" or "lodash"). */
 export function packageOf(value: string): { name: string; version: string; subpath: string };
-/** Resolves a bare specifier to an npm specifier, or returns { external: true } for node: builtins. Throws Error("unmapped remote import <spec> -> <mapped>") for any remaining https:// value. */
-export function resolveBare(spec: string, map): { target: string } | { external: true };
+/** Resolves a bare specifier to an npm specifier, or returns { external: true } for node: builtins. `mapped` is true when an import-map entry matched (the target is then installed by the root package.json), false for a bare name the map does not know (a devDependency such as esbuild or ws). Throws Error("unmapped remote import <spec> -> <mapped>") for any remaining https:// value. */
+export function resolveBare(spec: string, map): { target: string; mapped: boolean } | { external: true };
 /** package.json `dependencies` derived from the import map (one version per package). */
 export function dependenciesFromImportMap(map): Record<string, string>;
 ```
@@ -84,6 +84,18 @@ export function importLine(outfile: string, file: string): string;
 ```
 
 CLI: `node tools/node-bundle/build.mjs [--entry src/quarto.ts] [--out tools/node-bundle/dist/quarto.mjs] [--check-shim] [--write-meta] [--no-sourcemap]`. `--check-shim` runs `check-shim.mjs` on the written bundle and exits with its status.
+
+**Resolver scope (owned by this plan; PR 31's import-map hook and vitest plugin state the same rule, PR 33 keeps this plugin).** The import map is Quarto's, not its dependencies', so the `deno-import-map` plugin decides by importer first and by specifier second:
+
+| Import | Resolution |
+|---|---|
+| Any import whose importer is under a `node_modules` directory (`/[\\/]node_modules[\\/]/` on the importer path) | left to esbuild's Node resolution relative to the importing package: nested versions under `<pkg>/node_modules/`, package `exports`, bare built-ins (`path`, `fs`) externalised by `platform: "node"`. The import map is never consulted, so a dependency's `path` is Node's, not `@std/path`. |
+| Relative, absolute and `file:` specifiers from first-party code | left to esbuild. |
+| `node:` built-ins from first-party code | external. |
+| A bare specifier from first-party code that an import-map entry matches (`resolveBare` → `mapped: true`: `path`, `fs/walk`, `zod`, …) | the npm target is resolved from the repository root (`resolveDir: root`), because Task 2 installs every import-map package in the root `node_modules`; the resolved file then enters ordinary resolution: its own imports have a `node_modules` importer and take the first row. Recorded in `<outfile>.resolved.json`. |
+| A bare specifier from first-party code that no entry matches (`mapped: false`: `esbuild`, `ws`, a `devDependency`) | resolved from the importer's directory (`resolveDir: args.resolveDir`), as Node would; for a file under the repository this reaches the root `node_modules` by the usual walk. |
+
+A first-party bare built-in without the `node:` prefix therefore still takes the import map (`path` → `@std/path`), as it does on Deno; only packages are exempt. The build-time check is `tools/node-bundle/build.test.mjs` (Task 3): a fixture with a root `inner@1`, a `dep` that nests `inner@2` and imports bare `path` must bundle with `inner@2` and without `@jsr/std__path`. This is the bundled counterpart of PR 31's unbundled loader rule, so the bundled execution graph and the unbundled test graph resolve packages the same way.
 
 **The builder contract (owned by this plan; PRs 20b, 31, 32 and 33 refer here).** One `bundle()` serves every bundle in the repository, in two modes that differ only in their inputs:
 
@@ -169,7 +181,7 @@ Nothing else is rewritten, so a remaining difference is a real one. The caller e
 ### Files
 
 - Create: `tools/node-bundle/import-map.mjs`, `tools/node-bundle/check-deps.mjs`, `tools/node-bundle/check-deps.test.mjs`
-- Create: `tools/node-bundle/build.mjs`, `tools/node-bundle/check-shim.mjs`, `tools/node-bundle/check-shim.test.mjs`
+- Create: `tools/node-bundle/build.mjs`, `tools/node-bundle/build.test.mjs`, `tools/node-bundle/check-shim.mjs`, `tools/node-bundle/check-shim.test.mjs`
 - Create: `tools/node-bundle/deno-shim.mjs`
 - Create: `tools/node-bundle/node-test-adapter.mjs`, `tools/node-bundle/build-test.mjs`, `tools/node-bundle/junit.mjs`, `tools/node-bundle/junit.test.mjs`, `tools/node-bundle/run-unit-on-node.mjs`, `tools/node-bundle/known-failures.json`
 - Create: `tools/node-bundle/quarto-node` (executable bit set), `tools/node-bundle/normalize-html.mjs`, `tools/node-bundle/normalize-html.test.mjs`
@@ -184,7 +196,7 @@ Nothing else is rewritten, so a remaining difference is a real one. The caller e
 ### Acceptance criteria
 
 - `npm ci && node tools/node-bundle/build.mjs --check-shim` exits 0 on a clean checkout with Node 26 and prints `bundled src/quarto.ts -> tools/node-bundle/dist/quarto.mjs (...)` followed by `shim: N members referenced, 0 missing, U unused`; `head -c 600 tools/node-bundle/dist/quarto.mjs` shows the interop prelude defining `require`, `__filename` and `__dirname`.
-- `node --test "tools/node-bundle/*.test.mjs"` passes.
+- `node --test "tools/node-bundle/*.test.mjs"` passes, `build.test.mjs` included: a package's nested dependency version survives bundling and its bare `path` import stays the Node built-in (the resolver scope rule, Interfaces).
 - `tools/node-bundle/quarto-node --version` prints `99.9.9`; `sleep 10 | timeout 5 tools/node-bundle/quarto-node --version` exits 0 (lazy stdin; an eager stdin stream makes `timeout` kill it).
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` exits 0 on Linux, and its JUnit-derived tally is printed per file.
 - `tools/node-bundle/quarto-node render dev-docs/runtime-migration/spike/tests/simple.qmd` produces `simple.html`; after `normalize-html.mjs --root`, `diff -r -x .quarto` against the Deno render of the same file is empty.
@@ -242,7 +254,9 @@ test("packageOf extracts name, version and subpath", () => {
 
 test("resolveBare externalises node: and rejects https:", () => {
   assert.deepEqual(resolveBare("node:fs", map), { external: true });
-  assert.deepEqual(resolveBare("zod", map), { target: "zod" });
+  assert.deepEqual(resolveBare("zod", map), { target: "zod", mapped: true });
+  assert.deepEqual(resolveBare("fs/walk", map), { target: "@jsr/std__fs/walk", mapped: true });
+  assert.deepEqual(resolveBare("esbuild", map), { target: "esbuild", mapped: false });
   assert.throws(() => resolveBare("stale", map), /unmapped remote import stale -> https:\/\/deno\.land/);
 });
 
@@ -317,14 +331,16 @@ export function packageOf(value) {
 export function resolveBare(spec, map) {
   if (spec.startsWith("node:")) return { external: true };
   const mapped = applyImportMap(spec, map);
-  if (mapped.startsWith("jsr:")) return { target: jsrToNpm(mapped) };
-  if (mapped.startsWith("npm:")) return { target: npmSpec(mapped) };
+  if (mapped.startsWith("jsr:")) return { target: jsrToNpm(mapped), mapped: true };
+  if (mapped.startsWith("npm:")) return { target: npmSpec(mapped), mapped: true };
   if (/^https?:\/\//.test(mapped)) {
     throw new Error(
       `unmapped remote import ${spec} -> ${mapped}. Every import-map value must be jsr: or npm: (see dev-docs/runtime-migration/03-deps-skypack-to-npm.md).`,
     );
   }
-  return { target: mapped };
+  // No entry matched: a bare name the import map does not know (a devDependency
+  // such as esbuild or ws). The caller resolves it from the importer, as Node would.
+  return { target: mapped, mapped: mapped !== spec };
 }
 
 export function dependenciesFromImportMap(map) {
@@ -344,7 +360,7 @@ export function dependenciesFromImportMap(map) {
 - [ ] **Step 4: Run the tests**
 
 Run: `node --test tools/node-bundle/check-deps.test.mjs`
-Expected: `# pass 5` and `# fail 0`.
+Expected: `# pass 5` and `# fail 0` (the `resolveBare` test has three `mapped` assertions).
 
 - [ ] **Step 5: Commit**
 
@@ -470,7 +486,7 @@ git commit -m "Add root package.json mirroring src/import_map.json with a drift 
 ### Task 3: The bundler and the shim check
 
 **Files:**
-- Create: `tools/node-bundle/build.mjs`
+- Create: `tools/node-bundle/build.mjs`, `tools/node-bundle/build.test.mjs`
 - Create: `tools/node-bundle/check-shim.mjs`
 - Create: `tools/node-bundle/check-shim.test.mjs`
 
@@ -539,6 +555,11 @@ export async function bundle({ entry, outfile, banner = [], shim = true, writeMe
     setup(build) {
       build.onResolve({ filter: /.*/ }, async (args) => {
         if (args.kind === "entry-point" || args.pluginData === "remapped") return;
+        // Resolver scope (Interfaces): the import map is Quarto's, not its
+        // dependencies'. Anything imported from inside node_modules is left to
+        // esbuild's Node resolution relative to the importing package (nested
+        // versions, package exports, bare built-ins such as "path").
+        if (/[\\/]node_modules[\\/]/.test(args.importer)) return;
         const spec = args.path;
         if (spec.startsWith("./") || spec.startsWith("../") || path.isAbsolute(spec) || spec.startsWith("file:")) return;
         let r;
@@ -548,8 +569,11 @@ export async function bundle({ entry, outfile, banner = [], shim = true, writeMe
           return { errors: [{ text: `${e.message} (from ${args.importer})` }] };
         }
         if (r.external) return { path: spec, external: true };
-        resolved.set(spec, r.target);
-        const res = await build.resolve(r.target, { kind: args.kind, resolveDir: root, pluginData: "remapped" });
+        if (r.mapped) resolved.set(spec, r.target);
+        // A mapped package is installed by the root package.json (Task 2), so it
+        // resolves from the root; an unmapped bare name (esbuild, ws, a
+        // devDependency) resolves from the importer's directory, as Node would.
+        const res = await build.resolve(r.target, { kind: args.kind, resolveDir: r.mapped ? root : args.resolveDir, pluginData: "remapped" });
         if (res.errors.length) {
           return { errors: res.errors.map((e) => ({ ...e, text: `${e.text} (mapping ${spec} -> ${r.target} from ${args.importer}; run npm ci)` })) };
         }
@@ -730,16 +754,66 @@ if (isMain) {
 }
 ```
 
-- [ ] **Step 5: Run the scanner test**
+- [ ] **Step 5: Write the resolver-scope test**
 
-Run: `node --test tools/node-bundle/check-shim.test.mjs`
-Expected: `# pass 1`, `# fail 0`.
+The fixture is the one R03 of `REVIEW-2026-10-16.md` asks for: two versions of a transitive dependency and a dependency importing bare `path`. It lives in a temp directory with its own `node_modules`, so it needs no package from the repository; `bundle()` still loads `src/import_map.json` from the repository root, which is what makes bare `path` a trap.
 
-- [ ] **Step 6: Commit**
+```js
+// tools/node-bundle/build.test.mjs
+// Copyright (C) 2026 Posit Software, PBC
+//
+// Resolver scope (26-node-build-job.md, Interfaces): the import map applies
+// to Quarto's own imports only; packages resolve as Node would, relative to
+// their importer.
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { bundle } from "./build.mjs";
+
+function write(file, text) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, text);
+}
+
+test("packages resolve relative to their importer and keep bare built-ins", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "quarto-bundle-scope-"));
+  try {
+    // entry -> dep (root node_modules) -> inner@2 (nested under dep); the root also
+    // holds inner@1. dep imports bare "path", which Quarto's import map sends to @std/path.
+    write(path.join(dir, "node_modules/dep/package.json"), JSON.stringify({ name: "dep", version: "1.0.0", main: "index.js" }));
+    write(path.join(dir, "node_modules/dep/index.js"), 'const path = require("path");\nconst inner = require("inner");\nmodule.exports = { sep: path.sep, inner };\n');
+    write(path.join(dir, "node_modules/dep/node_modules/inner/package.json"), JSON.stringify({ name: "inner", version: "2.0.0", main: "index.js" }));
+    write(path.join(dir, "node_modules/dep/node_modules/inner/index.js"), 'module.exports = "inner@2 nested under dep";\n');
+    write(path.join(dir, "node_modules/inner/package.json"), JSON.stringify({ name: "inner", version: "1.0.0", main: "index.js" }));
+    write(path.join(dir, "node_modules/inner/index.js"), 'module.exports = "inner@1 at the root";\n');
+    write(path.join(dir, "entry.ts"), 'import dep from "dep";\nconsole.log(JSON.stringify(dep));\n');
+    const outfile = path.join(dir, "out", "entry.mjs");
+    await bundle({ entry: path.join(dir, "entry.ts"), outfile, shim: false, sourcemap: false, writeMeta: true });
+    const js = fs.readFileSync(outfile, "utf8");
+    assert.match(js, /inner@2 nested under dep/, "dep must get its nested inner@2");
+    assert.doesNotMatch(js, /inner@1 at the root/, "the root inner@1 must not replace dep's nested copy");
+    assert.doesNotMatch(js, /std__path/, "dep's bare `path` must stay the Node built-in, not Quarto's @std/path alias");
+    assert.deepEqual(JSON.parse(fs.readFileSync(outfile + ".resolved.json", "utf8")), {}, "nothing in the fixture goes through the import map");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+```
+
+Before the `node_modules` importer check in `build.mjs`, this test fails on the third assertion: `dep`'s `path` goes through the import map, `@jsr/std__path` is resolved from the repository root and its module path comments appear in the bundle (esbuild labels every inlined module with its path). With the check, it passes.
+
+- [ ] **Step 6: Run the tooling tests**
+
+Run: `node --test tools/node-bundle/check-shim.test.mjs tools/node-bundle/build.test.mjs`
+Expected: `# pass 2`, `# fail 0`.
+
+- [ ] **Step 7: Commit**
 
 ```bash
-git add tools/node-bundle/build.mjs tools/node-bundle/check-shim.mjs tools/node-bundle/check-shim.test.mjs
-git commit -m "node-bundle: esbuild bundler with an exported bundle() and a shim check over bundle and resources"
+git add tools/node-bundle/build.mjs tools/node-bundle/build.test.mjs tools/node-bundle/check-shim.mjs tools/node-bundle/check-shim.test.mjs
+git commit -m "node-bundle: esbuild bundler with an exported bundle(), an import map scoped to first-party importers, and a shim check over bundle and resources"
 ```
 
 ### Task 4: The temporary Deno shim
@@ -2012,7 +2086,7 @@ debug logging as with the Deno dev build.
 | Path | Role |
 |---|---|
 | `tools/node-bundle/import-map.mjs` | Maps `src/import_map.json` to npm/JSR package specifiers. Shared with `check-deps.mjs` and the Node test loader (PR 31). |
-| `tools/node-bundle/build.mjs` | esbuild bundler; exports `bundle()` (the builder contract: CLI mode and fixture mode, `26-node-build-job.md` Interfaces). `--check-shim` runs `check-shim.mjs`; `--write-meta` writes `<outfile>.meta.json` and `.resolved.json`. Writes `dist/quarto.mjs`. |
+| `tools/node-bundle/build.mjs` | esbuild bundler; exports `bundle()` (the builder contract: CLI mode and fixture mode, `26-node-build-job.md` Interfaces). The import map applies to Quarto's own imports only; anything imported from inside `node_modules` resolves as Node would, relative to its importer (the resolver scope rule, same Interfaces section; `build.test.mjs` checks it). `--check-shim` runs `check-shim.mjs`; `--write-meta` writes `<outfile>.meta.json` and `.resolved.json`. Writes `dist/quarto.mjs`. |
 | `tools/node-bundle/check-shim.mjs` | Deno members referenced by the bundle and by `src/resources/**/*.js` vs members the shim defines: missing fails, unused is listed. |
 | `tools/node-bundle/deno-shim.mjs` | Temporary `globalThis.Deno` on `node:` APIs; a no-op on Deno. Shrinks with PR 27–30 and 27b. |
 | `tools/node-bundle/build-test.mjs`, `node-test-adapter.mjs` | Bundle one test file for Node; `Deno.test` on `node:test`. |
@@ -2094,7 +2168,7 @@ Before opening the PR:
 
 ## Review checklist
 
-- [ ] `tools/node-bundle/build.mjs` contains no absolute paths and no clone directories; the only resolution sources are `src/import_map.json`, `node_modules`, and `node:` externals; `bundle()` is exported with the inputs of the builder contract, and every bundle starts with the interop prelude (`require`, `__filename`, `__dirname`).
+- [ ] `tools/node-bundle/build.mjs` contains no absolute paths and no clone directories; the only resolution sources are `src/import_map.json`, `node_modules`, and `node:` externals; the import map is consulted only for importers outside `node_modules`, mapped targets resolve from the root and unmapped bare names from the importer (`build.test.mjs` passes); `bundle()` is exported with the inputs of the builder contract, and every bundle starts with the interop prelude (`require`, `__filename`, `__dirname`).
 - [ ] A remaining `https://` import-map value fails the build with `unmapped remote import <spec> -> <value>` naming the importer.
 - [ ] `deno-shim.mjs` has no third-party imports other than `ws`; every member is a `Deno.<name> =` assignment on its own line; it does nothing when `globalThis.Deno` exists; stdio streams are lazy; `readDirSync`/`readDir` map ENOENT; the header names PR 27–30, 27b and 33.
 - [ ] `check-shim.mjs` scans the bundle and `src/resources/**/*.js`, handles `Deno?.x` and nested members, prints the unused list.
@@ -2110,6 +2184,7 @@ Before opening the PR:
 
 - **npm.jsr.io availability or a JSR package without a Node-compatible build.** Shows up as `npm ci` 404 or a bundle-time resolution error naming the package. The render job is allowed to fail; `node-unit` fails and blocks: fix forward by pinning a different version in the import map (which the Deno build also uses), or revert this PR.
 - **Shim drift.** New `Deno.*` uses in a dependency or a resource file break the build with a clear member list. The ratchet (PR 02) prevents new uses in application code.
+- **A package that only works through Quarto's import map.** With the resolver scope rule a dependency's bare imports resolve as on Node, so a package that itself imports an import-map-only name (a `jsr:` or `https:` specifier, or a Quarto alias such as `fs/`) fails the bundle naming the importer. Such a package was already broken for `npm ci` and for PR 31's unbundled loader; fix it in the dependency PR (a different version or package), never by widening the plugin back to every importer.
 - **Bundled tests differ from unbundled ones** (`import.meta.url` is the bundle's; module state is per bundle). Such tests are listed in `known-failures.json` with a comment in the PR; PR 31 runs tests unbundled and PR 32 retires this job's unit step in favour of the full Node suite.
 - **A flaky Node test** would make `node-unit` red at random. Treat it like a flaky Deno test (`dev-docs/debugging-flaky-tests.md`); do not list a flaky test as a known failure (the ratchet then fails whenever it passes).
 - **`package.json` at the root confuses other tooling** (editor TypeScript server picking up `node_modules`). Mitigated by `/node_modules` in `.gitignore` and no `"type"` field. If it bites, move `package.json` to `tools/node-bundle/` and point `check-deps.mjs` and the workflow at it; `import-map.mjs` takes the root as a parameter so this is a two-line change.

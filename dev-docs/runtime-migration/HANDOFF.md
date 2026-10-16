@@ -136,10 +136,13 @@ the pass has landed.
   Windows `taskkill /T` case in `process-group.test.ts`, both preview tests
   on three OSes, a website preview test, the "Windows coverage" table; the
   Windows branch of `killProcess` moved from `preview-server.ts` into PR
-  08's layer so that PR 28 keeps one contract); plans 26, 27, 29, 30, 31,
-  32, 33, 35, 36 still carry the defects its C table names. The line
-  numbers in the review and triage were measured at `075cbf4`; re-grep
-  before trusting one.
+  08's layer so that PR 28 keeps one contract) and for 26 (R03: the
+  "Resolver scope" rule in Interfaces, the `node_modules` importer check
+  and `resolveDir` choice in the plugin, `resolveBare`'s `mapped` flag,
+  `build.test.mjs`; the R04 interop prelude was already done by B4);
+  plans 27, 29, 30, 31, 32, 33, 35, 36 still carry the defects its C table
+  names. The line numbers in the review and triage were measured at
+  `075cbf4`; re-grep before trusting one.
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both
   harness variants and PR 32 cannot make the Node matrix required until the
   spike is re-run. The schedule has no slot for that re-run yet.
