@@ -182,12 +182,12 @@ async function initialCompileLatex(
       // See whether there are warnings about hyphenation
       // See (https://github.com/rstudio/tinytex/commit/0f2007426f730a6ed9d45369233c1349a69ddd29)
       const logText = Deno.readTextFileSync(response.log);
-      const missingHyphenationFile = findMissingHyphenationFiles(logText);
-      if (missingHyphenationFile) {
-        // try to install it, unless auto install is opted out
+      const missingHyphenationPackages = findMissingHyphenationFiles(logText);
+      if (missingHyphenationPackages.length > 0) {
+        // try to install them, unless auto install is opted out
         if (pkgMgr.autoInstall) {
           logProgress("Installing missing hyphenation file...");
-          if (await pkgMgr.installPackages([missingHyphenationFile])) {
+          if (await pkgMgr.installPackages(missingHyphenationPackages)) {
             // We installed hyphenation files, retry
             continue;
           } else {
@@ -197,7 +197,7 @@ async function initialCompileLatex(
         // Let's just through a warning, but it may not be fatal for the compilation
         // and we can end normally
         warning(
-          `Possibly missing hyphenation file: '${missingHyphenationFile}'. See more in logfile (by setting 'latex-clean: false').\n`,
+          `Possibly missing hyphenation file: '${missingHyphenationPackages.join("', '")}'. See more in logfile (by setting 'latex-clean: false').\n`,
         );
       }
 

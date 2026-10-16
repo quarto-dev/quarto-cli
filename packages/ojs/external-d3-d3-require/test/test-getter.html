@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<script src="/dist/d3-require.js"></script>
+<script>
+
+d3.require("d3-selection").then(selection0 => {
+  d3.require("d3-array", "d3-selection").then(selection1 => {
+    console.log(selection0.event, selection1.event);
+    selection0.event = 42;
+    console.log(selection0.event, selection1.event);
+  });
+});
+
+</script>

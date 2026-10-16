@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+
+<head>
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@3/dist/inspector.css"
+  />
+</head>
+<body class="O--body">
+  <div id="main"></div>
+  <script type="module">
+    import {
+      Runtime,
+      Inspector
+    } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@4/dist/runtime.js";
+    import { Compiler } from "/dist/index-esm.js";
+
+    const compile = new Compiler();
+    compile
+      .module(
+        `
+    a = 1
+
+    b = 2
+
+    c = a + b
+
+    e = d + 20 // will error out until "d" gets defined below
+
+    viewof x = DOM.input()
+
+    y = \`x is \${x}\`
+
+    
+    viewof myName = html\`<input value="alex!">\`
+
+    md\`**message**: \${myName}\`
+    
+
+`
+      )
+      .then(define => {
+        const rt = new Runtime();
+        const observer = Inspector.into(document.querySelector("#main"));
+        window.MODULE = rt.module(define, observer);
+
+        compile.cell(`d = 200`).then(({ define: defineCell }) => {
+          defineCell(window.MODULE, observer);
+        });
+
+        compile.cell(`a = -300`).then(({ redefine: redefineCell }) => {
+          redefineCell(window.MODULE);
+        });
+
+        compile
+          .cell(`viewof x = html\`<input type="number" value="400">\``)
+          .then(({ redefine: redefineCell }) => {
+            redefineCell(window.MODULE);
+          });
+
+        compile
+          .cell(
+            `import {hello } with {myName as name} from "@tmcw/hello-world"`
+          )
+          .then(({ define: defineCell }) => {
+            defineCell(window.MODULE, observer);
+
+            compile.cell(`hello`).then(({ define: defineCell }) => {
+              defineCell(window.MODULE, observer);
+            });
+          });
+      });
+  </script>
+</body>

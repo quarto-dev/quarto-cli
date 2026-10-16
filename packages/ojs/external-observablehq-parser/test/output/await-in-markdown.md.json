@@ -1,0 +1,94 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 30,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 30,
+    "expressions": [
+      {
+        "type": "AwaitExpression",
+        "start": 4,
+        "end": 26,
+        "argument": {
+          "type": "CallExpression",
+          "start": 10,
+          "end": 26,
+          "callee": {
+            "type": "Identifier",
+            "start": 10,
+            "end": 24,
+            "name": "importantValue"
+          },
+          "arguments": [],
+          "optional": false
+        }
+      }
+    ],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 2,
+        "value": {
+          "raw": "**",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 27,
+        "end": 30,
+        "value": {
+          "raw": "**\n",
+          "cooked": null
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": true,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 2,
+    "body": {
+      "type": "Identifier",
+      "start": 0,
+      "end": 2,
+      "name": "md"
+    },
+    "input": "md",
+    "async": false,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 0,
+        "end": 2,
+        "name": "md"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 10,
+      "end": 24,
+      "name": "importantValue"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

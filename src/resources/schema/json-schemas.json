@@ -639,12 +639,6 @@
           },
           "image-alt": {
             "type": "string"
-          },
-          "image-width": {
-            "type": "number"
-          },
-          "image-height": {
-            "type": "number"
           }
         }
       }
@@ -794,6 +788,12 @@
           },
           "site": {
             "type": "string"
+          },
+          "image-width": {
+            "type": "number"
+          },
+          "image-height": {
+            "type": "number"
           }
         }
       }
@@ -806,6 +806,12 @@
           },
           "site-name": {
             "type": "string"
+          },
+          "image-width": {
+            "type": "number"
+          },
+          "image-height": {
+            "type": "number"
           }
         }
       }

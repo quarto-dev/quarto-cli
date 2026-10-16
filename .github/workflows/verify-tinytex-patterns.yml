@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Download and extract regex.json
+      - name: Download and extract regex.json and hyphen.json
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -28,33 +28,55 @@ jobs:
             exit 0
           fi
           tar -xzf regex.tar.gz
-          echo "✓ Downloaded and extracted regex.json"
+          # Files compared by the later steps
+          PATTERN_FILES="regex.json hyphen.json"
+          if [ ! -f hyphen.json ]; then
+            echo "::warning::hyphen.json not found in regex.tar.gz"
+            PATTERN_FILES="regex.json"
+          fi
+          echo "PATTERN_FILES=$PATTERN_FILES" >> "$GITHUB_ENV"
+          echo "✓ Downloaded and extracted: $PATTERN_FILES"
 
-      - name: Restore cached regex.json
+      - name: Restore cached patterns
         id: cache-restore
         uses: actions/cache/restore@v5
         with:
-          path: .cache/regex.json
-          key: tinytex-regex-latest
+          path: .cache
+          key: tinytex-patterns
 
       - name: Compare versions
         id: compare
         run: |
-          if [ -f .cache/regex.json ]; then
-            if git diff --no-index --quiet .cache/regex.json regex.json; then
-              echo "changed=false" >> $GITHUB_OUTPUT
-              echo "first_run=false" >> $GITHUB_OUTPUT
-              echo "✓ No changes detected"
-            else
-              echo "changed=true" >> $GITHUB_OUTPUT
-              echo "first_run=false" >> $GITHUB_OUTPUT
-              echo "✗ Changes detected"
-              git diff --no-index .cache/regex.json regex.json > pattern-diff.txt || true
-            fi
-          else
+          # The download step sets PATTERN_FILES only when it extracted the files
+          if [ -z "${PATTERN_FILES:-}" ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "first_run=false" >> $GITHUB_OUTPUT
+            echo "skipped=true" >> $GITHUB_OUTPUT
+            echo "::warning::No pattern files downloaded - comparison skipped"
+            exit 0
+          fi
+
+          if [ ! -f .cache/regex.json ]; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "first_run=true" >> $GITHUB_OUTPUT
             echo "⚠ No cached version (first run)"
+            exit 0
+          fi
+
+          changed=false
+          for f in $PATTERN_FILES; do
+            if [ ! -f ".cache/$f" ]; then
+              echo "✗ $f has no cached version"
+              changed=true
+            elif ! git diff --no-index --quiet ".cache/$f" "$f"; then
+              echo "✗ Changes detected in $f"
+              changed=true
+            fi
+          done
+          echo "changed=$changed" >> $GITHUB_OUTPUT
+          echo "first_run=false" >> $GITHUB_OUTPUT
+          if [ "$changed" = "false" ]; then
+            echo "✓ No changes detected"
           fi
 
       - name: Handle first run
@@ -69,6 +91,10 @@ jobs:
           # Count patterns and categories
           PATTERN_COUNT=$(jq '[.[] | length] | add' regex.json)
           CATEGORY_COUNT=$(jq 'keys | length' regex.json)
+          # A checked assignment: invalid JSON must fail the step before it is cached
+          if [ -f hyphen.json ]; then
+            HYPHEN_COUNT=$(jq 'length' hyphen.json)
+          fi
 
           # Write GitHub Actions summary
           echo "## TinyTeX Pattern Baseline Established" >> "$GITHUB_STEP_SUMMARY"
@@ -77,18 +103,23 @@ jobs:
           echo "- **TinyTeX commit:** [\`$TINYTEX_SHORT\`](https://github.com/rstudio/tinytex/commit/$TINYTEX_COMMIT)" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Pattern source:** [R/latex.R](https://github.com/rstudio/tinytex/blob/$TINYTEX_COMMIT/R/latex.R)" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Baseline:** $PATTERN_COUNT patterns across $CATEGORY_COUNT categories" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Cache key:** tinytex-regex-latest" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f hyphen.json ]; then
+            echo "- **Hyphenation map:** $HYPHEN_COUNT names" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "- **Cache key:** tinytex-patterns" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "No issue created (first run - baseline established)." >> "$GITHUB_STEP_SUMMARY"
 
           # Prepare cache directory
           mkdir -p .cache
-          cp regex.json .cache/regex.json
+          for f in $PATTERN_FILES; do
+            cp "$f" ".cache/$f"
+          done
 
           echo "✓ Baseline established - cache will be saved"
 
       - name: Exit if unchanged
-        if: steps.compare.outputs.changed == 'false' && steps.compare.outputs.first_run == 'false'
+        if: steps.compare.outputs.changed == 'false' && steps.compare.outputs.first_run == 'false' && steps.compare.outputs.skipped != 'true'
         run: |
           echo "No pattern changes detected. Cache hit - exiting."
           exit 0
@@ -96,15 +127,18 @@ jobs:
       - name: Prepare readable diff
         if: steps.compare.outputs.changed == 'true'
         run: |
-          # Pretty-print both JSON files for readable diff
-          if [ -f .cache/regex.json ]; then
-            jq --sort-keys . .cache/regex.json > old-formatted.json
-            jq --sort-keys . regex.json > new-formatted.json
-            git diff --no-index old-formatted.json new-formatted.json > readable-diff.txt || true
-          else
-            jq --sort-keys . regex.json > new-formatted.json
-            echo "First run - no previous version to compare" > readable-diff.txt
-          fi
+          # Pretty-print both versions of each file for a readable diff
+          : > readable-diff.txt
+          for f in $PATTERN_FILES; do
+            if [ -f ".cache/$f" ]; then
+              jq --sort-keys . ".cache/$f" > "old-formatted-$f"
+            else
+              old="/dev/null"
+            fi
+            jq --sort-keys . "$f" > "new-formatted-$f"
+            git diff --no-index "${old:-old-formatted-$f}" "new-formatted-$f" >> readable-diff.txt || true
+            unset old
+          done
 
       - name: Create or update issue
         if: steps.compare.outputs.changed == 'true'
@@ -147,7 +181,9 @@ jobs:
         if: steps.compare.outputs.changed == 'true'
         run: |
           mkdir -p .cache
-          cp regex.json .cache/regex.json
+          for f in $PATTERN_FILES; do
+            cp "$f" ".cache/$f"
+          done
           echo "✓ Cache updated with new patterns"
 
       - name: Delete old cache
@@ -156,19 +192,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh cache delete tinytex-regex-latest || echo "No existing cache to delete"
+          gh cache delete tinytex-patterns || echo "No existing cache to delete"
 
       - name: Save new cache
         if: steps.compare.outputs.changed == 'true' || steps.compare.outputs.first_run == 'true'
         uses: actions/cache/save@v5
         with:
-          path: .cache/regex.json
-          key: tinytex-regex-latest
+          path: .cache
+          key: tinytex-patterns
 
       - name: Summary
         if: always()
         run: |
-          if [ "${{ steps.compare.outputs.first_run }}" == "true" ]; then
+          if [ "${{ steps.compare.outputs.skipped }}" == "true" ]; then
+            echo "⚠ Download failed - comparison skipped"
+          elif [ "${{ steps.compare.outputs.first_run }}" == "true" ]; then
             echo "✓ Baseline established - cache created"
           elif [ "${{ steps.compare.outputs.changed }}" == "true" ]; then
             echo "✗ Pattern changes detected - issue created/updated"

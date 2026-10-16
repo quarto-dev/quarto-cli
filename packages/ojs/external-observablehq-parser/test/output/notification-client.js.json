@@ -1,0 +1,77 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 53,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 52,
+    "body": [
+      {
+        "type": "VariableDeclaration",
+        "start": 6,
+        "end": 50,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 10,
+            "end": 49,
+            "id": {
+              "type": "Identifier",
+              "start": 10,
+              "end": 11,
+              "name": "a"
+            },
+            "init": {
+              "type": "CallExpression",
+              "start": 14,
+              "end": 49,
+              "callee": {
+                "type": "Identifier",
+                "start": 14,
+                "end": 32,
+                "name": "NotificationClient"
+              },
+              "arguments": [
+                {
+                  "type": "Literal",
+                  "start": 33,
+                  "end": 48,
+                  "value": "slack:@claire",
+                  "raw": "\"slack:@claire\""
+                }
+              ],
+              "optional": false
+            }
+          }
+        ],
+        "kind": "let"
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 14,
+      "end": 32,
+      "name": "NotificationClient"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": [
+    [
+      "slack:@claire",
+      [
+        {
+          "start": 33,
+          "end": 48
+        }
+      ]
+    ]
+  ]
+}

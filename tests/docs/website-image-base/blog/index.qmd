@@ -1,0 +1,5 @@
+---
+title: "Page without an image"
+---
+
+This page sets no image, so its `og:image` falls back to the site `image`.

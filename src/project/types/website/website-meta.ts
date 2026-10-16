@@ -37,15 +37,20 @@ import {
   kTwitterSite,
   kWebsite,
 } from "./website-constants.ts";
-import { computePageTitle } from "./website-shared.ts";
+import {
+  computePageTitle,
+  projectRelativeHref,
+  resolveProjectImage,
+} from "./website-shared.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
 } from "../../../core/markdown-pipeline.ts";
 import { findDescription, findPreviewImg } from "./util/discover-meta.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
+import { isDataUrl } from "../../../core/data-url.ts";
+import { warnOnce } from "../../../core/log.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
-import { imageSize } from "../../../core/image.ts";
 import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
 import { joinUrl } from "../../../core/url.ts";
 import { truncateText } from "../../../core/text.ts";
@@ -158,6 +163,13 @@ export function metadataHtmlPostProcessor(
     // Resources that we find during this post processing
     const resources: string[] = [];
 
+    const warnDataUrlImage = () =>
+      warnOnce(
+        `Ignoring data URI image for social metadata of ${
+          relative(project.dir, source)
+        }, as it can't be fetched by URL. Use an image file instead.`,
+      );
+
     // go through each metadata provider and emit metadata
     [
       openGraphMetadataProvider,
@@ -178,11 +190,36 @@ export function metadataHtmlPostProcessor(
         return;
       }
 
+      // Crawlers fetch the image by URL, so a data URI can't be used
+      if (
+        typeof metadata[kImage] === "string" && isDataUrl(metadata[kImage])
+      ) {
+        warnDataUrlImage();
+        metadata[kImage] = undefined;
+        metadata[kImageHeight] = undefined;
+        metadata[kImageWidth] = undefined;
+      }
+
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
-        const previewImg = findPreviewImg(doc) || websiteImage(project.config);
+        const pagePreviewImg = findPreviewImg(doc);
+        let previewImg = pagePreviewImg;
+        if (!previewImg) {
+          // The site image is written in _quarto.yml, so it is project relative
+          let siteImg = websiteImage(project.config);
+          if (siteImg && isDataUrl(siteImg.src)) {
+            warnDataUrlImage();
+            siteImg = undefined;
+          }
+          previewImg = siteImg && siteMeta?.[kSiteUrl] !== undefined
+            ? { ...siteImg, src: projectRelativeHref(siteImg.src, ".") }
+            : siteImg;
+        }
         metadata[kImage] = previewImg ? previewImg.src : undefined;
         metadata[kImageAlt] = previewImg ? previewImg.alt : undefined;
+        if (pagePreviewImg && provider.key === kOpenGraph) {
+          usePageDeclaredImageSize(format, metadata);
+        }
       }
 
       // cook up a description if one is not provided
@@ -191,7 +228,13 @@ export function metadataHtmlPostProcessor(
       }
 
       // Convert image to absolute href and add height and width
-      const imagePath = resolveImageMetadata(source, project, format, metadata);
+      const imagePath = resolveImageMetadata(
+        source,
+        project,
+        format,
+        metadata,
+        provider.key === kOpenGraph,
+      );
       if (imagePath) {
         if (imagePath.startsWith("/")) {
           // This is a project relative path
@@ -266,8 +309,28 @@ function opengraphMetadata(
         metadata[key] = openGraph[key];
       }
     });
+
+    // Same predicate as mergedSiteAndDocumentData uses to replace the site image
+    const docOpenGraph = format.metadata[kOpenGraph];
+    const pageSetsImage = !!format.metadata[kImage] ||
+      (typeof docOpenGraph === "object" && docOpenGraph !== null &&
+        !!(docOpenGraph as Metadata)[kImage]);
+    if (pageSetsImage) {
+      usePageDeclaredImageSize(format, metadata);
+    }
   }
   return metadata;
+}
+
+// A size declared on the site describes the site image, so an image the page
+// supplies only gets the dimensions the page itself declares
+function usePageDeclaredImageSize(format: Format, metadata: Metadata) {
+  const docOpenGraph = format.metadata[kOpenGraph];
+  const docData = typeof docOpenGraph === "object" && docOpenGraph !== null
+    ? docOpenGraph as Metadata
+    : {};
+  metadata[kImageHeight] = docData[kImageHeight];
+  metadata[kImageWidth] = docData[kImageWidth];
 }
 
 function twitterMetadata(format: Format) {
@@ -291,6 +354,14 @@ function twitterMetadata(format: Format) {
         }
       },
     );
+    if (
+      twitterData[kImageWidth] !== undefined ||
+      twitterData[kImageHeight] !== undefined
+    ) {
+      warnOnce(
+        "The `twitter-card` options `image-width` and `image-height` are ignored, as Twitter Cards have no image size tags. Set them under `open-graph` instead.",
+      );
+    }
   }
   return metadata;
 }
@@ -318,6 +389,7 @@ function resolveImageMetadata(
   project: ProjectContext,
   format: Format,
   metadata: Metadata,
+  includeSize: boolean,
 ) {
   // populate defaults
   const siteMeta = format.metadata[kWebsite] as Metadata;
@@ -331,10 +403,14 @@ function resolveImageMetadata(
       project,
     );
 
-    // Update the image information
+    // Update the image information, preferring the size read from the file
+    // over a declared one. Twitter Cards have no image size tags, so only
+    // providers that emit a size get one.
     metadata[kImage] = imgMeta.href;
-    metadata[kImageHeight] = imgMeta.height;
-    metadata[kImageWidth] = imgMeta.width;
+    if (includeSize) {
+      metadata[kImageHeight] = imgMeta.height ?? metadata[kImageHeight];
+      metadata[kImageWidth] = imgMeta.width ?? metadata[kImageWidth];
+    }
 
     const altText = format.metadata[kImageAlt];
     if (altText && !metadata[kImageAlt]) {
@@ -358,20 +434,32 @@ function mergedSiteAndDocumentData(
     ? format.metadata[key]
     : false;
 
-  if (typeof siteMetadata === "object" && format.metadata[kImage]) {
-    const siteMeta = siteMetadata as Metadata;
-    siteMeta[kImage] = format.metadata[kImage];
+  // Work on a copy: the site metadata is shared by every page
+  let siteObject: Metadata | undefined;
+  if (typeof siteMetadata === "object") {
+    siteObject = { ...(siteMetadata as Metadata) };
+    if (format.metadata[kImage]) {
+      siteObject[kImage] = format.metadata[kImage];
+    } else if (
+      typeof siteObject[kImage] === "string" &&
+      siteData[kSiteUrl] !== undefined
+    ) {
+      // The site image is written in _quarto.yml, so it is project relative
+      siteObject[kImage] = projectRelativeHref(
+        siteObject[kImage] as string,
+        ".",
+      );
+    }
   }
-  if (
-    typeof siteMetadata === "object" &&
-    typeof docMetadata === "object"
-  ) {
+  if (siteObject && typeof docMetadata === "object") {
     return mergeConfigs(
-      siteMetadata,
+      siteObject,
       docMetadata,
     ) as Metadata;
   } else if (docMetadata !== false) {
     return docMetadata as boolean | Metadata;
+  } else if (siteObject) {
+    return siteObject;
   } else if (siteMetadata !== false) {
     return siteMetadata as boolean | Metadata;
   } else {
@@ -391,36 +479,18 @@ function imageMetadata(
     return {
       href: image,
     };
-  } else if (image.startsWith("/")) {
-    // This is a project relative path
-    const imagePath = join(context.dir, image.slice(1));
-    const size = imageSize(imagePath);
-
-    // read the image size
-    return {
-      path: image,
-      href: `${baseUrl}${image}`,
-      height: size?.height,
-      width: size?.width,
-    };
-  } else {
-    // This is an input relative path
-    const sourceRelative = relative(context.dir, source);
-    const imageProjectRelative = join(
-      dirname(sourceRelative),
-      image,
-    );
-    const imagePath = join(context.dir, imageProjectRelative);
-    const size = imageSize(imagePath);
-
-    // resolve the image path into an absolute href
-    return {
-      path: imageProjectRelative,
-      href: joinUrl(baseUrl, imageProjectRelative),
-      height: size?.height,
-      width: size?.width,
-    };
   }
+  // Image paths are relative to the source document unless they start with `/`
+  const { href, height, width } = resolveProjectImage(
+    image,
+    context.dir,
+    dirname(relative(context.dir, source)),
+  );
+  return {
+    href: joinUrl(baseUrl, href),
+    height,
+    width,
+  };
 }
 
 type metaVal = [string, string];

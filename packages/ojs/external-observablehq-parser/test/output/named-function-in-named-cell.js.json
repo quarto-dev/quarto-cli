@@ -1,0 +1,52 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 36,
+  "id": {
+    "type": "Identifier",
+    "start": 0,
+    "end": 3,
+    "name": "foo"
+  },
+  "body": {
+    "type": "FunctionExpression",
+    "start": 6,
+    "end": 35,
+    "id": {
+      "type": "Identifier",
+      "start": 15,
+      "end": 18,
+      "name": "bar"
+    },
+    "expression": false,
+    "generator": false,
+    "async": false,
+    "params": [],
+    "body": {
+      "type": "BlockStatement",
+      "start": 21,
+      "end": 35,
+      "body": [
+        {
+          "type": "ReturnStatement",
+          "start": 23,
+          "end": 33,
+          "argument": {
+            "type": "Literal",
+            "start": 30,
+            "end": 32,
+            "value": 42,
+            "raw": "42"
+          }
+        }
+      ]
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

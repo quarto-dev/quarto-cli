@@ -1,0 +1,21 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 3,
+  "id": null,
+  "body": {
+    "type": "Literal",
+    "start": 0,
+    "end": 2,
+    "value": "0",
+    "raw": "0n",
+    "bigint": "0"
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

@@ -1,0 +1,153 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 70,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 70,
+    "expressions": [
+      {
+        "type": "UpdateExpression",
+        "start": 9,
+        "end": 24,
+        "operator": "++",
+        "prefix": true,
+        "argument": {
+          "type": "MutableExpression",
+          "start": 11,
+          "end": 24,
+          "id": {
+            "type": "Identifier",
+            "start": 19,
+            "end": 24,
+            "name": "count"
+          }
+        }
+      },
+      {
+        "type": "ViewExpression",
+        "start": 34,
+        "end": 44,
+        "id": {
+          "type": "Identifier",
+          "start": 41,
+          "end": 44,
+          "name": "Foo"
+        }
+      },
+      {
+        "type": "Identifier",
+        "start": 63,
+        "end": 68,
+        "name": "value"
+      }
+    ],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 7,
+        "value": {
+          "raw": "Count: ",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 25,
+        "end": 32,
+        "value": {
+          "raw": "\nView: ",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 45,
+        "end": 61,
+        "value": {
+          "raw": "\nRegular Value: ",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 69,
+        "end": 70,
+        "value": {
+          "raw": "\n",
+          "cooked": null
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 2,
+    "body": {
+      "type": "Identifier",
+      "start": 0,
+      "end": 2,
+      "name": "md"
+    },
+    "input": "md",
+    "async": false,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 0,
+        "end": 2,
+        "name": "md"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": false,
+  "references": [
+    {
+      "type": "MutableExpression",
+      "start": 11,
+      "end": 24,
+      "id": {
+        "type": "Identifier",
+        "start": 19,
+        "end": 24,
+        "name": "count"
+      }
+    },
+    {
+      "type": "ViewExpression",
+      "start": 34,
+      "end": 44,
+      "id": {
+        "type": "Identifier",
+        "start": 41,
+        "end": 44,
+        "name": "Foo"
+      }
+    },
+    {
+      "type": "Identifier",
+      "start": 63,
+      "end": 68,
+      "name": "value"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

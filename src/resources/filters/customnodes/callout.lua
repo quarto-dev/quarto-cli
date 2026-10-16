@@ -56,6 +56,7 @@ function _callout_main()
       div.attr.attributes["appearance"] = nil
       div.attr.attributes["collapse"] = nil
       div.attr.attributes["icon"] = nil
+      div.attr.attributes["title"] = nil
       local callout_type = calloutType(div)
       div.attr.classes = div.attr.classes:filter(function(class) return not _quarto.modules.classpredicates.isCallout(class) end)
       return quarto.Callout({
@@ -188,10 +189,13 @@ function _callout_main()
     attributes:insert("callout-style-" .. calloutAppearance)
   
     local result = pandoc.Div({ calloutBody }, pandoc.Attr(node.attr.identifier or "", attributes))
-    -- in revealjs or epub, if the leftover attr is non-trivial, 
-    -- then we need to wrap the callout in a div (#5208, #6853)
-    if node.attr.identifier ~= "" or #node.attr.classes > 0 or #node.attr.attributes > 0 then
-      return pandoc.Div({ result }, node.attr)
+    -- in revealjs or epub, if there are leftover classes or attributes,
+    -- then we need to wrap the callout in a div (#5208, #6853).
+    -- The identifier stays on the callout div only, so it isn't duplicated.
+    if #node.attr.classes > 0 or #node.attr.attributes > 0 then
+      local wrapperAttr = node.attr:clone()
+      wrapperAttr.identifier = ""
+      return pandoc.Div({ result }, wrapperAttr)
     else
       return result
     end

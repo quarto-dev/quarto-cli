@@ -1,0 +1,8 @@
+---
+title: "Listing with a feed image"
+listing:
+  feed:
+    image: feed-sub.png
+---
+
+The feed image is relative to the project.

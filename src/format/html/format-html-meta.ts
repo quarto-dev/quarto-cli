@@ -21,7 +21,6 @@ import {
   kPdfUrl,
 } from "../../core/csl.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
-import { encodeAttributeValue } from "../../core/html.ts";
 import { kWebsite } from "../../project/types/website/website-constants.ts";
 import {
   documentCSL,
@@ -309,7 +308,8 @@ function metadataWriter(metadata: MetaTagData[]) {
   const write = (key: string, value: unknown) => {
     metadata.push({
       name: key,
-      content: encodeAttributeValue(value as string),
+      // The DOM escapes attribute values when it serializes the final tag.
+      content: String(value),
     });
   };
   return write;
