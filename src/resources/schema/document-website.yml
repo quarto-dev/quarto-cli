@@ -52,15 +52,27 @@
     formats: [$html-doc]
   description: The alt text for preview image on this page.
 
+- name: image-title
+  schema: string
+  tags:
+    formats: [$html-doc]
+  description:
+    short: The title for the main image on the about page.
+    long: |
+      The title for the main image on the about page. Used when
+      `about` does not set its own `image-title`.
+
 - name: image-lazy-loading
   schema: boolean
   tags:
     formats: [$html-doc]
   description:
-    short: If true, the preview image will only load when it comes into view.
+    short: If true, this page's image in a listing will only load when it comes into view.
     long: |
-      Enables lazy loading for the preview image. If true, the preview image element 
-      will have `loading="lazy"`, and will only load when it comes into view.
+      Enables lazy loading for this page's image when the page appears as an item
+      in a listing. If true, the listing image element will have `loading="lazy"`,
+      and will only load when it comes into view.
 
-      If false, the preview image will load immediately.
+      If false, the image will load immediately. This overrides the listing's
+      `image-lazy-loading` option for this item.
   default: true

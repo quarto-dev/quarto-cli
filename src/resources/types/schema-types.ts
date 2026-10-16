@@ -311,8 +311,7 @@ or `gruvbox-dark`) */
 export type SocialMetadata = {
   "image-alt"?:
     string /* The alt text for the preview image. By default, Quarto will use
-the `image-alt` value from the format metadata. If you provide an
-image, you may also optionally provide an `image-width` and `image-height`. */;
+the `image-alt` value from the format metadata. */;
   "image-width"?: number /* Image width (pixels) */;
   "image-height"?: number /* Image height (pixels) */;
   description?:
