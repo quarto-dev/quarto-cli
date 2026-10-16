@@ -1,5 +1,5 @@
-import { expect, Locator, Page, test } from "@playwright/test";
-import { getUrl } from "../src/utils";
+import { expect, test } from "@playwright/test";
+import { getUrl, tabKey, tabUntilFocused } from "../src/utils";
 
 // Regression tests for #15080. Hover popups for footnotes, citations,
 // cross-references, and code annotations (code-annotations: hover) must
@@ -7,27 +7,6 @@ import { getUrl } from "../src/utils";
 // close once focus leaves both its trigger and the popup (WCAG 2.4.11).
 
 const url = "html/hover-popups-dismiss.html";
-
-// WebKit follows Safari's default of skipping links and buttons on Tab;
-// Option+Tab visits every focusable element.
-function tabKey(browserName: string) {
-  return browserName === "webkit" ? "Alt+Tab" : "Tab";
-}
-
-async function tabUntilFocused(
-  page: Page,
-  browserName: string,
-  target: Locator,
-  maxTabs = 25,
-): Promise<boolean> {
-  for (let i = 0; i < maxTabs; i++) {
-    await page.keyboard.press(tabKey(browserName));
-    if (await target.evaluate((el) => el === document.activeElement)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 const triggers = [
   { name: "footnote", selector: 'a[role="doc-noteref"]', text: "footnote text" },
@@ -109,7 +88,7 @@ test.describe("interactive popup and focus", () => {
     await page.keyboard.press(tabKey(browserName));
     await expect(popup.locator(":focus")).toHaveCount(1);
 
-    await page.keyboard.press(browserName === "webkit" ? "Alt+Shift+Tab" : "Shift+Tab");
+    await page.keyboard.press(tabKey(browserName, true));
     await expect(trigger).toBeFocused();
     await expect(popup).toBeVisible();
   });

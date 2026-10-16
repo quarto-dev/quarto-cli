@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { tabKey } from '../src/utils';
 
 test('logo and footer are correctly shown in default mode', async ({ page }) => {
   await page.goto('./revealjs/logo-footer.html#/slide-1');
@@ -201,11 +202,6 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
 test.describe('the closed slide menu is out of the tab order', () => {
   const deck = './revealjs/menu-focus-order.html';
 
-  // WebKit only tabs to links when the Alt modifier is held, which matches
-  // Safari's default "Press Tab to highlight each item on a webpage" setting
-  const tabKeyFor = (browserName: string) =>
-    browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
-
   const menu = (page: Page) => page.locator('nav.slide-menu');
 
   test('Tab does not stop in the closed menu', async ({ page, browserName }) => {
@@ -221,7 +217,7 @@ test.describe('the closed slide menu is out of the tab order', () => {
     // The closed menu comes right after its button in the document
     await page.locator('.slide-menu-button a').focus();
     for (let i = 0; i < 3; i++) {
-      await page.keyboard.press(tabKeyFor(browserName));
+      await page.keyboard.press(tabKey(browserName));
       await expect(page.locator('nav.slide-menu:focus-within')).toHaveCount(0);
     }
   });

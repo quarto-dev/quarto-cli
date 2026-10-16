@@ -147,6 +147,8 @@ From `src/utils.ts`:
 | `ojsRuns(page)`                    | Wait for OJS to finish    |
 | `checkColor(element, prop, color)` | Verify CSS color          |
 | `useDarkLightMode(mode)`           | Set color scheme for test |
+| `tabKey(browserName, shift?)`      | Tab key for the browser (WebKit needs `Alt+Tab` to reach links and buttons) |
+| `tabUntilFocused(page, browserName, target)` | Press Tab until `target` is focused; returns whether it got there |
 
 ## Environment Variables
 

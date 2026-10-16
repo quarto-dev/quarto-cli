@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { tabKey } from '../src/utils';
 
 const dashboard = '/dashboard/hash-navigation.html';
 
@@ -56,16 +57,12 @@ test('page navigation and history still work', async ({ page }) => {
 
 // https://github.com/quarto-dev/quarto-cli/issues/14819
 test('landing on a page hash starts tabbing at the top of the document', async ({ page, browserName }) => {
-  // WebKit only tabs to links when the Alt modifier is held, which matches
-  // Safari's default "Press Tab to highlight each item on a webpage" setting
-  const tabKey = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
-
   await page.goto(`${dashboard}#cool`);
   await expect(coolPane(page)).toHaveClass(/active/);
 
   // the browser would otherwise start sequential focus inside the target
   // pane, which puts the navbar out of reach of a forward Tab
-  await page.keyboard.press(tabKey);
+  await page.keyboard.press(tabKey(browserName));
   const firstStop = await page.evaluate(() => ({
     isBody: document.activeElement === document.body,
     insideAPage: document.activeElement?.closest('.dashboard-page') !== null,
@@ -83,7 +80,7 @@ test('landing on a page hash starts tabbing at the top of the document', async (
       () => document.activeElement?.id === 'tab-cool'
     );
     if (!reachedNavbarTab) {
-      await page.keyboard.press(tabKey);
+      await page.keyboard.press(tabKey(browserName));
     }
   }
   expect(reachedNavbarTab).toBe(true);
