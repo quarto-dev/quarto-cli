@@ -280,8 +280,11 @@
             return;
           }
           // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
-          // except an open reveal.js slide menu, which Esc should close too
-          if (!window.Reveal?.getPlugin?.('menu')?.isOpen()) {
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
             event.stopPropagation();
           }
           if (instance.popper.contains(window.document.activeElement)) {
