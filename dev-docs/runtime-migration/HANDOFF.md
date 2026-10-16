@@ -228,9 +228,11 @@ the pass landed (all three are done).
   item and a Risks entry say the same thing; the unit test's precedence case
   covers both mixed cases, the empty section and the error; the body and the
   case ran under `node --test` on Node 26.12.0 and 22.22; R17's `aliasTarget()`
-  part was B7's PR 36 Decision 4). Every per-plan C row is applied; the two
-  cross-cutting rows (the fact-check before PR 34, the `--reverse` backport
-  after PR 10) remain.
+  part was B7's PR 36 Decision 4). Every per-plan C row is applied, and the
+  cross-cutting fact-check (triage row, 2026-10-16: pins, Node flags, package
+  versions and OS minimums re-checked against the primary sources; four
+  wrong facts fixed in 00a, 26, 31 and 33, Intel macOS note added to 34).
+  The `--reverse` backport demo after PR 10 remains.
   The line numbers in the review and triage were measured at
   `075cbf4`; re-grep before trusting one.
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both

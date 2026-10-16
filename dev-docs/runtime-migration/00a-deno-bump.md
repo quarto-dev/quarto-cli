@@ -16,7 +16,7 @@
 `REVIEW-2026-10-15.md` S13 and section 5 ("00a"): `configuration` pins Deno v2.7.14; the current release line is 2.9 (v2.9.7, 2026-09-17, verified: `https://github.com/denoland/deno/releases/download/v2.9.7/deno-x86_64-unknown-linux-gnu.zip` resolves). Why the bump matters for the migration:
 
 - Deno 2.8 raised Deno's pass rate on Node's own test suite from about 42% to 76%. It fixed the `node:http` `upgrade` wiring (denoland/deno#33342) and non-101 upgrade rejects (#32615), which PR 16 (`http.ts`), PR 29 (`ws` on `node:http`) and the dual-runtime window of decision 1 (the `node:` bundle running on Deno, Spike #2) depend on. 2.7.14 may predate both fixes.
-- Deno 2.9 targets Node 26 compatibility (the Node major PR 33 pins) and adds `fs.glob` `followSymlinks`. Its known open issue denoland/deno#36937 (a recursive `fs.watch` gets no events after the watched directory is deleted and recreated) is a Spike #2 item, not a blocker for this PR: Quarto watches with `Deno.watchFs` today.
+- Deno 2.9 targets Node 26 compatibility (the Node major PR 33 pins) and adds `fs.glob` `followSymlinks`. Its known open issue denoland/deno#36937 (still open on 2026-10-16, fix PR denoland/deno#36964 open: a `node:fs` watcher opened on a directory right after it was deleted and recreated gets no events; the report is not about `recursive`, Spike #2 (c) adds that) is a Spike #2 item, not a blocker for this PR: Quarto watches with `Deno.watchFs` today.
 - Deno joined Cloudflare on 2026-10-09 and announced one more year of monthly bug-fix and security releases, then end of development. 2.9.x is therefore the line Quarto rides until PR 37; this PR is the last planned minor bump, later bumps are patch releases inside 2.9.
 - Deno 2 removed `--lock-write` (the lockfile is updated unless `--frozen` is given). PR 00b depends on that behaviour; this PR does not touch lockfiles beyond what `configure` already does.
 
@@ -268,7 +268,7 @@ Expected: in the resulting run, `make-installer-mac` (signing and notarization) 
 
 - A Deno 2.8/2.9 behaviour change breaks a code path the suite does not cover (for example `Deno.Command` stdio, `Deno.watchFs` during preview, KV). Shows up as user reports after a prerelease; the prerelease cycle before 1.11 stable is the buffer. Rollback: revert the commits (the launchers reconfigure automatically on the next run).
 - A cached `@std` version stops resolving on the new Deno: `configure` fails loudly; fix per `dev-docs/upgrade-dependencies.md` in this PR.
-- Conda builds of Quarto lag until conda-forge publishes `deno 2.9.7`; the feedstock usually follows within days. Not a blocker for the GitHub release.
+- Conda builds of Quarto lag until conda-forge publishes `deno 2.9.7` (on 2026-10-16 the channel's newest build was 2.9.5); the feedstock usually follows within days. Not a blocker for the GitHub release.
 - Rollback: `git revert` the commits; the version check and the launchers follow `configuration`.
 
 ## Decisions needed

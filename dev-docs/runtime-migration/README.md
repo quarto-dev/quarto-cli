@@ -78,6 +78,9 @@ them. Change them in the plan that decides them, not downstream.
   newer 26.x, CI on Node 26, `@cliffy/*` 1.3.1 (PR 06), `@b-fuze/deno-dom`
   0.1.56 on WASM with a `parseHtml`-time gate of at most 2× the native plugin
   (PRs 05, 20), `ws` 8.22 (PR 29), `web-tree-sitter` 0.20.2 (PR 20b).
+  Fact-checked 2026-10-16 against nodejs.org/dist, nodejs/Release
+  `schedule.json`, `BUILDING.md` at v26.12.0, the v26.x API docs, Deno's
+  `Releases.md`, jsr and the npm registry (triage "cross-cutting" row 1).
 - Lockfile: `deno.lock` is committed and used with `--frozen` by configure, CI,
   the dev launchers and the bundle (PR 00b); every import-map edit is followed
   by `package/scripts/vendoring/update-lock.sh` and committed with the lock.

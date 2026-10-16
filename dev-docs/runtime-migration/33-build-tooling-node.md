@@ -35,16 +35,16 @@ Review of 2026-10-16 (`REVIEW-2026-10-16.md` R18 and R04, triage bucket C row 33
 
 Verified facts this plan relies on:
 
-- Node `v26.12.0` (2026-10-14) is the newest 26.x; Node 26 is Active LTS from 2026-10-28 until 2029-04-30. Pin the newest `26.x.y` in `https://nodejs.org/dist/index.json` at execution time.
+- Node `v26.12.0` (2026-10-14) is the newest 26.x; Node 26 is Active LTS from 2026-10-28, Maintenance LTS from 2027-10-20, end of life 2029-04-30 (nodejs/Release `schedule.json`, checked 2026-10-16). Pin the newest `26.x.y` in `https://nodejs.org/dist/index.json` at execution time.
 - `https://nodejs.org/dist/v26.12.0/SHASUMS256.txt` lists `.tar.gz` and `.tar.xz` for every POSIX target (`node-v26.12.0-linux-x64.tar.gz`, `-linux-arm64.tar.gz`, `-darwin-x64.tar.gz`, `-darwin-arm64.tar.gz`) and `node-v26.12.0-win-x64.zip` (checked 2026-10-15). This plan downloads `.tar.gz` everywhere on POSIX, so `xz` is not a prerequisite.
 - Node rejects `--enable-experimental-regexp-engine` inside `NODE_OPTIONS` (`node: --enable-experimental-regexp-engine is not allowed in NODE_OPTIONS`, exit 9) but accepts it on the command line; `/a+/l.test("aaa")` is `true` with it (reproduced on Node 22.22.0). Quarto's own flags therefore always go on the command line.
 - Any invalid flag in `NODE_OPTIONS` aborts Node before Quarto runs (`node: --bogus is not allowed in NODE_OPTIONS`, exit 9; reproduced). Hence the sanitising below.
-- Node's `fetch` and `http` ignore `HTTP(S)_PROXY`/`NO_PROXY` unless started with `--use-env-proxy` (Stability 1.1 in Node 26; fact-check 2026-10-15). On Node 22.22.0 the flag prints `[UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental` to stderr; Task 9 tests stderr on the pinned 26.x and adds `--disable-warning=UNDICI-EHPA` only if that warning still prints.
+- Node's `fetch` and `http` ignore `HTTP(S)_PROXY`/`NO_PROXY` unless started with `--use-env-proxy` (Stability 1.1 in Node 26; fact-check 2026-10-15). On Node 22.22.0 the flag prints `[UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental` to stderr; on Node v26.12.0 it prints nothing (`HTTP_PROXY=http://127.0.0.1:9 node --use-env-proxy -e "fetch(...)"`, measured 2026-10-16). Task 9 tests stderr on the pinned 26.x and adds `--disable-warning=UNDICI-EHPA` only if that warning still prints (`--disable-warning` is Stability 2 since Node 26.7).
 - `--use-system-ca` replaces Deno's `DENO_TLS_CA_STORE=system,mozilla`; `NODE_EXTRA_CA_CERTS` keeps working and is not touched.
 - An ESM `.js` file whose nearest `package.json` has no `"type"` prints `[MODULE_TYPELESS_PACKAGE_JSON] Warning: ... Reparsing as ES module` on stderr (reproduced). The root `package.json` from PR 26 has no `"type"` (README convention: Node tooling is `.mjs`). So dev bundles are `.mjs` (`quarto-dev.mjs`, `quarto-bld.mjs`), and Quarto's flags include `--disable-warning=MODULE_TYPELESS_PACKAGE_JSON` because Quarto also `import()`s ESM `.js` files it does not name: `src/resources/library/dayjs/locale/*.js` (`src/core/date.ts:164`), `src/resources/js/graphviz-wasm.js` (`src/core/handlers/dot.ts:61`) and third-party engine bundles (`src/execute/engine.ts:232`). Without any `package.json` above a file, Node detects ESM silently (reproduced), which is the installed layout; `prepare-dist` also writes `bin/package.json` (`{ "type": "module" }`) so `bin/quarto.js` is ESM even when an installer places Quarto under a directory with a `"type": "commonjs"` `package.json`.
 - `node --no-enable-source-maps` after `--enable-source-maps` disables them (reproduced), so a developer can turn off dev source maps with `QUARTO_NODE_OPTIONS=--no-enable-source-maps` (they slow every `.stack` access).
 - `toolsPath(binary)` in `src/core/resources.ts:39-46` reads `QUARTO_<BINARY>`, so `architectureToolsPath("node")` honours `QUARTO_NODE` and `architectureToolsPath("deno")` honours `QUARTO_DENO`.
-- `@types/deno@2.7.0` (2026-10-04) and `@types/node@26.6.5` exist on npm; `typescript@5.9.3` and `7.0.2` exist (this plan pins 5.9.3, as PR 38 did).
+- `@types/deno@2.7.0` (2026-05-16) and `@types/node@26.6.5` (2026-10-09) exist on npm (registry `time` fields, checked 2026-10-16); `typescript@5.9.3` and `7.0.2` exist (this plan pins 5.9.3, as PR 38 did).
 
 Assumptions about earlier PRs (state them in the PR description if they differ):
 
@@ -2179,7 +2179,7 @@ The old `quarto.cmd` re-ran `configure.cmd` itself on a version change; running 
 - [ ] **Step 5: `--use-env-proxy` stderr on the pinned Node**
 
 Run: `HTTPS_PROXY=http://127.0.0.1:9 package/dist/bin/quarto --help 2>&1 >/dev/null | head -3`
-Expected: no output. If it prints `[UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental`, add `--disable-warning=UNDICI-EHPA` after `--use-env-proxy` in both launchers here, in `quarto-bld`/`quarto-bld.cmd` (Task 4) and in `main.rs` (Task 10), and say so in the PR description.
+Expected: no output (none on v26.12.0 in the sandbox, 2026-10-16). If it prints `[UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental`, add `--disable-warning=UNDICI-EHPA` after `--use-env-proxy` in both launchers here, in `quarto-bld`/`quarto-bld.cmd` (Task 4) and in `main.rs` (Task 10), and say so in the PR description.
 
 - [ ] **Step 6: Run the tests**
 
