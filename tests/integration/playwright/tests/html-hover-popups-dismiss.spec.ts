@@ -137,3 +137,21 @@ test("revealjs: Esc closes a citation popup without opening the overview", async
   await expect(popup).toBeHidden();
   await expect(page.locator(".reveal")).not.toHaveClass(/\boverview\b/);
 });
+
+test("revealjs: Esc closes the slide menu opened over a citation popup", async ({ page, browserName }) => {
+  await page.goto(getUrl("revealjs/hover-popups-dismiss.html#/citation"), { waitUntil: "load" });
+  const menu = page.locator("nav.slide-menu");
+  const popup = page.locator(".tippy-box", { hasText: "TeXbook" });
+  const trigger = page.locator('a[role="doc-biblioref"]');
+
+  // Keyboard focus keeps the popup open while the menu covers the trigger
+  expect(await tabUntilFocused(page, browserName, trigger)).toBe(true);
+  await expect(popup).toBeVisible();
+  await page.keyboard.press("m");
+  await expect(menu).not.toHaveAttribute("inert");
+  await expect(popup).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveAttribute("inert");
+  await expect(page.locator(".reveal")).not.toHaveClass(/\boverview\b/);
+});

@@ -279,8 +279,11 @@
           if (event.key !== 'Escape') {
             return;
           }
-          // Keep Esc from also reaching page handlers (e.g. reveal.js overview)
-          event.stopPropagation();
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too
+          if (!window.Reveal?.getPlugin?.('menu')?.isOpen()) {
+            event.stopPropagation();
+          }
           if (instance.popper.contains(window.document.activeElement)) {
             // Disabled while refocusing so the focus trigger does not reopen it
             instance.disable();
