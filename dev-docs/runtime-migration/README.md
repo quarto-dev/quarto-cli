@@ -149,8 +149,15 @@ other plans refer to it by file and section (reconciliation pass of
   independent options, `O_CREAT` iff `create`, `O_TRUNC` iff `truncate`,
   `O_APPEND` iff `append`, nothing implied; `writeTextFile` opens with
   `truncate: !append`) and the one-descriptor-owner rule for `FsFile`: PR 27,
-  Interfaces, "Open flags" and "One descriptor owner" (PR 35's shim copies
-  the flag rule; triage row 35).
+  Interfaces, "Open flags" and "One descriptor owner" (PR 35's
+  `deno-members.cjs` copies the flag rule, PR 35 Interfaces "Open flags
+  (PR 27's rule, copied)"; triage row 35).
+- The child-process rules of the Node layer (per-method stdio defaults,
+  `spawn` inherits and `exec` pipes; `.bat`/`.cmd` through `cmd.exe /e:ON
+  /v:OFF /d /c` with `batchCommandLine()`, Rust std's escaping; `128 + n`
+  for a signal exit; Web Streams on the child): PR 28, Interfaces (PR 35's
+  `deno-members.cjs` copies them for `Deno.Command`, PR 35 Interfaces "Child
+  processes (PR 28's rules, copied)"; triage row 35).
 - The server lifecycle rule (`shutdown()` waits for a pending bind to settle;
   each server owns the WebSockets upgraded through it, closes them with 1001
   on graceful shutdown and terminates them in the forced path; `Request.signal`
@@ -281,7 +288,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 |---|---|---|---|---|---|---|
 | 33 | [33-build-tooling-node.md](33-build-tooling-node.md) | CLI launchers (shell, batch, Rust) run Node; Deno kept as a tool; `quarto install deno`; `quarto-bld` and `prepare-dist` on Node; `tsc`; environment contract; `ensure.mjs` dev bundles under an owned lock (PR 30's rule); Deno CLI dev utilities off `deno info`/`fmt`/`check`; `QUARTO_RUNTIME` if S2 passes, with the dual-runtime combinations table | 32, 00b, 20b | Opus | L | planned |
 | 34 | [34-installers-and-check.md](34-installers-and-check.md) | Installers ship Node with Node's entitlements and OS minimums; `quarto check` Node row; conda; the 17-row runtime contract table with tests; docs | 33 | Opus | M | planned |
-| 35 | [35-user-scripts-compat.md](35-user-scripts-compat.md) | `.ts` scripts run on Node by default (per-file esbuild compile, on-demand `Deno` shim, 34 `stdlib/*` bundles); `QUARTO_RUN_RUNTIME` / `script-runtime` selects the Deno tool; the supported migration surface matrix and the version rule; `juice.ts` and `ast-diagram` on Node APIs | 33, 31, 00c | Opus | L | planned |
+| 35 | [35-user-scripts-compat.md](35-user-scripts-compat.md) | `.ts` scripts run on Node by default (per-file esbuild compile, on-demand `Deno` shim whose writes and `Deno.Command` copy PR 27's and PR 28's rules, 34 `stdlib/*` bundles); `QUARTO_RUN_RUNTIME` / `script-runtime` selects the Deno tool; the supported migration surface matrix and the version rule; `juice.ts` and `ast-diagram` on Node APIs | 33, 31, 00c | Opus | L | planned |
 | 36 | [36-build-ts-extension-node.md](36-build-ts-extension-node.md) | `build-ts-extension` on esbuild with the default import map served on Node (`log`/`fs` as `@quarto/std-*` packages from PR 35's builder); warning for prebuilt engines that reference `Deno.` | 33, 35 | Opus | M | planned |
 | 37 | [37-ci-switch-and-deno-removal.md](37-ci-switch-and-deno-removal.md) | Stop downloading Deno; remove `QUARTO_RUNTIME`, the nightly Deno matrix, vendoring, `deno.jsonc`, `deno_std`, `deno.lock`; backport checklist step; dev-docs updates | 33–36, 39 | Sonnet | M | planned |
 | 38 | [38-lint-format-typecheck-tooling.md](38-lint-format-typecheck-tooling.md) | `dprint` (Deno-parity config) and `oxlint` (61 matching rules) on `src/`; drop `@types/deno` | 37 | Sonnet | M | planned |

@@ -201,8 +201,24 @@ the pass has landed.
   table; three R18 cases in Task 2 Step 2 and a by-hand check in
   Verification; R04's part, `banner`/`define` kept and the three-global
   prelude, was already done by B4 and is now named in the review checklist;
-  `ensure.mjs` and the cases ran on Node 26.12.0 and 22.22, Deno not run);
-  plans 35, 36 still carry the defects its C table names.
+  `ensure.mjs` and the cases ran on Node 26.12.0 and 22.22, Deno not run)
+  and for 35 (R05: `deno-members.cjs` copies PR 27's `openFlagBits()` and
+  write mapping, "Open flags (PR 27's rule, copied)" in Interfaces, no string
+  flag left, so `{ create: false }` truncates and never creates and `{ append,
+  create: false }` never creates; R15: `Deno.Command` copies PR 28's rules,
+  "Child processes (PR 28's rules, copied)": an enumerated option subset with
+  a `TypeError` for anything else, per-method stdio defaults, `spawn()`
+  handing out Web Streams with a `TypeError` for a non-piped getter, `128 +
+  n` for a signal exit, `.bat`/`.cmd` through `cmd.exe` with a copy of
+  `batchCommandLine()`, the differences from Deno stated; R09: the changelog
+  names the member table and the `Command` subset instead of "the common
+  `Deno` API calls" (B7 had already dropped "keep working"; R08's
+  `architectureToolsPath("node")` was B8's); six R05/R15 cases in Task 3,
+  the `.cmd` one Windows-only, a vectors case for the copy, review-checklist
+  items that diff both copies against the layer, two Risks entries; the
+  table and the cases other than the Windows one ran on Node 26.12.0 and
+  22.22, Deno not involved); plan 36 still carries the defects its C table
+  names.
   The line numbers in the review and triage were measured at
   `075cbf4`; re-grep before trusting one.
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both

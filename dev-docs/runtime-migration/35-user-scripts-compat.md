@@ -17,6 +17,8 @@ Assessment section 6 ("Users who write TypeScript scripts for Quarto: the main c
 
 `src/resources/deno_std/run_import_map.json` has **34** entries (counted with `python3 -c "import json;print(len(json.load(open('src/resources/deno_std/run_import_map.json'))['imports']))"`): 26 `jsr:/@std/<pkg>@0.224.x` targets, 7 `https://deno.land/std@0.224.0/{encoding,fmt}/*.ts` targets and `stdlib/juice` -> `https://cdn.skypack.dev/juice@10.0.0`.
 
+Review of 2026-10-16 (`REVIEW-2026-10-16.md` R05, R15 and R09, triage bucket C row 35; the row's R08 part, `architectureToolsPath("node")` in `runOnNode()`, was done by B8, and the "keep working" wording of the Goal and the changelog by B7), addressed here: the member table's writes went through `node:fs` string flags (`"w"`, `"a"`, `"r+"`), which bundle create, truncate and append; `writeTextFile(path, text, { create: false })` opened with `"r+"` and kept the tail of a longer file (reproduced on Node 26.12.0 and 22.22: `"hi"` written over `"0123456789"` reads back `"hi23456789"`), and `{ append: true, create: false }` created a missing file. The table now copies PR 27's `openFlagBits()` and its write mapping (Interfaces, "Open flags (PR 27's rule, copied)"). `Deno.Command` used one set of stdio defaults for `output()` and `spawn()`, returned Node streams from `spawn()` so that `child.stdout.getReader()` and `child.stdin.getWriter()` failed, and spawned `.bat`/`.cmd` files directly, which Node refuses (CVE-2024-27980); it now copies PR 28's rules (Interfaces, "Child processes (PR 28's rules, copied)"): per-method defaults, Web Streams through `Readable.toWeb`/`Writable.toWeb`, `cmd.exe` with `batchCommandLine()`, 128 + n for a signal exit, and the option subset it supports is enumerated, anything else a `TypeError`. The table cannot import `src/deno_ral/` (it ships as a `.cjs` next to the bundles and is bundled into the `@quarto/std-*` packages), so both rules are copied, not shared; the review checklist diffs the copies against the layer. The changelog's shim sentence names the member table and the `Command` subset instead of "the common `Deno` API calls". The corrected table and the Task 3 R05/R15 cases other than the Windows one were run on Node 26.12.0 and 22.22 while correcting the plan (a 1 MiB round trip through a piped child, `kill()` as `143 SIGTERM`, PR 28's batch vectors through the copy); Deno is not involved, the shim never runs there.
+
 Verified facts this plan relies on:
 
 - Node 26's `module.registerHooks({ resolve, load })` (synchronous, in-thread) is Stability 1.2; `module.register` is deprecated (DEP0205). A `--require`d CommonJS file can call it before the entry module loads.
@@ -157,9 +159,13 @@ Node command line:
 
 `deno-members.cjs` exports `members`, the table below, implemented on `node:fs`, `node:child_process` and `process` with Deno's error classes and no notice; it serves two consumers: `deno-shim.cjs` installs `globalThis.Deno` as a Proxy over it that prints the notice once per process on the first access of any member unless `QUARTO_RUN_DENO_NOTICE=0`, and every `stdlib/*` bundle references it as a module-local `Deno` binding (Task 1; Decision 3). The members:
 
-`readTextFile(Sync)`, `readFile(Sync)`, `writeTextFile(Sync)`, `writeFile(Sync)`, `stat(Sync)`, `lstat(Sync)`, `mkdir(Sync)`, `remove(Sync)`, `readDir(Sync)`, `copyFile(Sync)`, `rename(Sync)`, `realPath(Sync)`, `readLink(Sync)`, `symlink(Sync)`, `link(Sync)`, `utime(Sync)`, `makeTempDir(Sync)`, `cwd`, `chdir`, `uid`, `gid`, `permissions` (`query`, `querySync`: always `granted`), `env` (`get`, `set`, `delete`, `has`, `toObject`), `args`, `exit`, `execPath`, `pid`, `noColor`, `inspect` (`node:util`; `stdlib/fmt_printf` uses it for `%i`/`%I`), `Command` (`output()`, `outputSync()`, `spawn()`), `errors` (`NotFound`, `AlreadyExists`, `PermissionDenied`, `NotSupported`), `build` (`os`, `arch`), `version` (`deno: "compat"`, `node`, `v8`).
+`readTextFile(Sync)`, `readFile(Sync)`, `writeTextFile(Sync)`, `writeFile(Sync)`, `stat(Sync)`, `lstat(Sync)`, `mkdir(Sync)`, `remove(Sync)`, `readDir(Sync)`, `copyFile(Sync)`, `rename(Sync)`, `realPath(Sync)`, `readLink(Sync)`, `symlink(Sync)`, `link(Sync)`, `utime(Sync)`, `makeTempDir(Sync)`, `cwd`, `chdir`, `uid`, `gid`, `permissions` (`query`, `querySync`: always `granted`), `env` (`get`, `set`, `delete`, `has`, `toObject`), `args`, `exit`, `execPath`, `pid`, `noColor`, `inspect` (`node:util`; `stdlib/fmt_printf` uses it for `%i`/`%I`), `Command` (`output()`, `outputSync()`, `spawn()`; the subset in "Child processes" below), `errors` (`NotFound`, `AlreadyExists`, `PermissionDenied`, `NotSupported`), `build` (`os`, `arch`), `version` (`deno: "compat"`, `node`, `v8`).
 
 `readLink(Sync)` and `symlink(Sync)` go beyond the review's list because `@std/fs@0.224`'s `copy`, `walk` and `ensureSymlink` call them; `link(Sync)`, `utime(Sync)`, `uid`, `gid`, `permissions.query(Sync)` and `errors.NotSupported` are there because `@std/fs@1.0.16`, the version the default engine import map resolves to (PR 36 Decision 4), reaches them from `ensureLink`, `copy` (`preserveTimestamps`), `exists` (`isReadable`) and `move` (listed from the package on `npm.jsr.io`, 2026-10-16; the member gate of Task 1 step 4 re-checks it on every build). Through the shim, every other member returns `undefined` (so `typeof Deno.x` feature detection works); the notice is printed on that first access too, and if the process exits with a non-zero code after touching unsupported members, one line names them with their Node equivalent.
+
+**Open flags (PR 27's rule, copied).** `writeTextFile(Sync)` and `writeFile(Sync)` open with a copy of PR 27's `openFlagBits()` (`O_CREAT` iff `create`, `O_TRUNC` iff `truncate`, `O_APPEND` iff `append`, nothing implied between the three) called with `{ write: true, create: create ?? true, truncate: !append, append }`, as `Deno.writeFile` maps its options, and write through the descriptor (`writeFileSync(fd, data)`, `handle.writeFile(data)`). So `{ create: false }` truncates an existing file and is `NotFound` on a missing one, `{ append: true, create: false }` never creates, shorter replacement content leaves no trailing bytes, and `mode` applies at creation. No `"w"`, `"a"` or `"r+"` string flag remains in `deno-members.cjs`.
+
+**Child processes (PR 28's rules, copied).** `Command` accepts the options `args`, `cwd`, `env`, `clearEnv`, `stdin`, `stdout`, `stderr`, `signal`, `uid`, `gid` and `windowsRawArguments`; any other option is a `TypeError` naming it, thrown by the constructor (the shim says what it does not do instead of ignoring it). Defaults are per method, as in Deno: `output()` and `outputSync()` run with `stdin: "null"`, `stdout: "piped"`, `stderr: "piped"` and throw a `TypeError` for `stdin: "piped"` or an `"inherit"` output; `spawn()` runs with all three `"inherit"`. `spawn()` returns a child with `pid`, `status` (a promise of `{ success, code, signal }`), `stdin` as a `WritableStream<Uint8Array>` and `stdout`/`stderr` as `ReadableStream<Uint8Array>` (`Writable.toWeb`/`Readable.toWeb`; each getter is a `TypeError` when that stream is not piped), `output()` (collects the piped streams, then `status`), `kill(signal = "SIGTERM")` (a no-op once exited), `ref()` and `unref()`. A signal-terminated child has `code: 128 + <signal number>` and `signal` set. `env` merges over the inherited environment unless `clearEnv`, with the Windows case-insensitive override. On Windows a `.bat`/`.cmd` command runs through `cmd.exe /e:ON /v:OFF /d /c "<line>"` with `windowsVerbatimArguments`, the line from a copy of PR 28's `batchCommandLine()` (Rust std's escaping, so the batch file receives the arguments verbatim and nothing is injected); an argument with CR, LF or NUL is an `EINVAL` error thrown by the method. Differences from Deno, stated rather than hidden: a missing executable rejects `output()` and `spawn().status` with `NotFound` instead of `spawn()` throwing synchronously (Node reports it asynchronously); `output()` on a spawned child returns empty bytes for a stream that was not piped instead of throwing; `windowsRawArguments` maps to Node's `windowsVerbatimArguments`. The implementation is PR 28's `command()`, `stdio()`, `mergedEnv()` and `exitStatus()` on `node:child_process`, copied because the table cannot import the layer.
 
 Deprecation timeline (changelog and docs): 1.11 scripts run on Deno with a notice (PR 00c); 1.12 scripts run on Node, `stdlib/*` kept, the `Deno` shim prints a notice, `QUARTO_RUN_RUNTIME=deno`/`script-runtime: deno` keep the Deno behaviour; 1.13 Deno is no longer bundled (`quarto install deno`), shim removal is decided then (Decisions needed).
 
@@ -181,6 +187,8 @@ Deprecation timeline (changelog and docs): 1.11 scripts run on Deno with a notic
 - `tests/smoke/project/project-prepost.test.ts` passes with its fixtures unchanged; the render log contains the shim notice at most once per script process.
 - A script that imports a type without `import type` (`import { Foo, x } from "./types.ts"`), one with an `enum`, and one next to a `"type": "commonjs"` `package.json` all run (`tests/unit/run-compat-hooks.test.ts`).
 - `typeof Deno.noColor` and `typeof Deno.openKv` do not throw in a script that also uses `Deno.cwd()`; a script that never mentions `Deno` sees `typeof Deno === "undefined"`.
+- `grep -cE '"(w|a|r\+|w\+|a\+|wx)"' src/resources/run-compat/deno-members.cjs` → `0`; through the shim, `Deno.writeTextFileSync(p, "hi", { create: false })` over a ten-byte file reads back `hi`, `{ create: false }` on a missing file is `Deno.errors.NotFound` and creates nothing, `{ append: true, create: false }` never creates, sync and async (`run-compat-shim.test.ts`, R05).
+- Through the shim, `new Deno.Command(...).spawn()` with piped stdio hands out a `WritableStream` and `ReadableStream`s (`getWriter()`/`getReader()` move 1 MiB through a child), a non-piped stream's getter is a `TypeError`, `spawn()` inherits stdio by default and `output()` pipes it, a killed child reports `code: 143, signal: "SIGTERM"`, an unknown option is a `TypeError`, and on Windows a `.cmd` receives PR 28's BatBadBut vectors verbatim with nothing injected (`run-compat-shim.test.ts`, R15).
 - `QUARTO_RUN_RUNTIME=deno quarto run x.ts` and `project: script-runtime: deno` run on the Deno tool (`navigator.userAgent` starts with `Deno/`); with no Deno available they fail with `Running a TypeScript script needs Deno, which is not installed. Run 'quarto install deno'.`
 - `quarto run --dev tools/check-runtime-boundary.ts` runs on Node; the `resources` scope falls from PR 25's 11 `Deno.` / 1 std file to 1 / 0 (the engine template, PR 36's row of the residue table), every other count unchanged; `rg -n '\bDeno\.' src/resources/scripts src/resources/tools` prints nothing.
 - A Typst render with a raw HTML table (`astpipeline.lua` runs `quarto run juice.ts`) succeeds with no shim notice in its log; `package/dist/bin/quarto dev-call make-ast-diagram <qmd>` produces the same HTML diagram as on `main`.
@@ -447,6 +455,7 @@ const path = require("node:path");
 const util = require("node:util");
 const { spawn, spawnSync } = require("node:child_process");
 const { fileURLToPath } = require("node:url");
+const { Readable, Writable } = require("node:stream");
 
 class NotFound extends Error { constructor(m) { super(m); this.name = "NotFound"; } }
 class AlreadyExists extends Error { constructor(m) { super(m); this.name = "AlreadyExists"; } }
@@ -477,11 +486,45 @@ function fileInfo(st) {
 function dirEntry(d) {
   return { name: d.name, isFile: d.isFile(), isDirectory: d.isDirectory(), isSymlink: d.isSymbolicLink() };
 }
-// Deno's WriteFileOptions: append, create (default true). Node has no
-// "append without create" flag; "a" is used and creates the file.
-function writeFlag(o) {
-  if (o && o.append) return "a";
-  return o && o.create === false ? "r+" : "w";
+// Open flags: PR 27's openFlagBits() and writeOpenFlags(), copied (the
+// table ships as a .cjs next to the bundles and cannot import
+// src/deno_ral/fs.ts). node:fs string flags bundle create, truncate and
+// append (w created when create was false, a created a missing file, r+ kept
+// the tail of longer content: review R05); the numeric flags imply nothing
+// between the three, and the data is written through the descriptor.
+function openFlagBits(options) {
+  const o = options ?? {};
+  const read = o.read ?? true;
+  const write = o.write === true || o.append === true;
+  if (o.create && !write) throw new TypeError("'create' requires 'write' or 'append'");
+  if (o.truncate && !o.write) throw new TypeError("'truncate' requires 'write'");
+  const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_TRUNC, O_APPEND } = fs.constants;
+  let bits = read && write ? O_RDWR : write ? O_WRONLY : O_RDONLY;
+  if (o.create) bits |= O_CREAT;
+  if (o.truncate) bits |= O_TRUNC;
+  if (o.append) bits |= O_APPEND;
+  return bits;
+}
+// Deno.writeFile's option mapping: create defaults to true, a non-append
+// write truncates, { append, create: false } never creates.
+function writeOpenFlags(o) {
+  return openFlagBits({ write: true, create: (o && o.create) ?? true, truncate: !(o && o.append), append: o && o.append });
+}
+function writeSyncImpl(p, data, o) {
+  const fd = fs.openSync(p, writeOpenFlags(o), o && o.mode);
+  try {
+    fs.writeFileSync(fd, data); // given a descriptor: writes at its position (the end under O_APPEND)
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+async function writeImpl(p, data, o) {
+  const handle = await fsp.open(p, writeOpenFlags(o), o && o.mode);
+  try {
+    await handle.writeFile(data);
+  } finally {
+    await handle.close();
+  }
 }
 function removeSyncImpl(p, o) {
   if (o && o.recursive) return fs.rmSync(p, { recursive: true });
@@ -495,42 +538,155 @@ async function removeImpl(p, o) {
 const tempPrefix = (o) => path.join((o && o.dir) || os.tmpdir(), (o && o.prefix) || "");
 const symlinkType = (o) => (o && o.type === "dir" ? "dir" : o && o.type === "junction" ? "junction" : "file");
 
-class Command {
-  constructor(cmd, options = {}) { this.cmd = cmd; this.options = options; }
-  #spawnOptions() {
-    const o = this.options;
-    const map = (v, d) => v === "inherit" ? "inherit" : v === "null" ? "ignore" : v === "piped" ? "pipe" : d;
-    return {
-      cwd: o.cwd, env: o.clearEnv ? { ...o.env } : { ...process.env, ...o.env },
-      stdio: [map(o.stdin, "ignore"), map(o.stdout, "pipe"), map(o.stderr, "pipe")],
-      windowsHide: true,
-    };
+// Child processes: Deno.Command on node:child_process with PR 28's rules
+// copied (the table cannot import src/deno_ral/process.ts): method-specific
+// stdio defaults, .bat/.cmd through cmd.exe with batchCommandLine(), Web
+// Streams on the spawned child, 128 + n for a signal exit (review R15).
+const kIsWindows = process.platform === "win32";
+
+function invalid(message) {
+  return Object.assign(new Error(message), { code: "EINVAL" });
+}
+// batchCommandLine(): PR 28's src/deno_ral/batch-command-line.ts, copied.
+// Rust std's make_bat_command_line (CVE-2024-24576), which is what Deno's
+// Command applies; Node refuses .bat/.cmd without a shell (CVE-2024-27980).
+const kUnquoted = /^[A-Za-z0-9#$*+\-./:?@\\_]$/;
+function appendArg(arg) {
+  if (/[\r\n\0]/.test(arg)) throw invalid("batch file arguments are invalid (CR, LF or NUL)");
+  let quote = arg.length === 0 || arg.endsWith("\\");
+  for (const ch of arg) {
+    const cp = ch.codePointAt(0);
+    if (cp < 0x80 ? !kUnquoted.test(ch) : /\p{Cc}/u.test(ch)) quote = true;
   }
-  #result(code, signal, out, err) {
-    return { code: code ?? 1, success: code === 0, signal: signal ?? null, stdout: new Uint8Array(out ?? []), stderr: new Uint8Array(err ?? []) };
+  let out = "";
+  let backslashes = 0;
+  for (const ch of arg) {
+    if (ch === "\\") { backslashes++; out += ch; continue; }
+    if (ch === '"') out += "\\".repeat(backslashes) + '"';
+    else if (ch === "%") out += "%%cd:~,";
+    backslashes = 0;
+    out += ch;
+  }
+  return quote ? `"${out}${"\\".repeat(backslashes)}"` : out;
+}
+function batchCommandLine(script, args) {
+  if (script.includes('"') || script.endsWith("\\")) {
+    throw invalid(`batch file path may not contain '"' or end with '\\': ${script}`);
+  }
+  return [`"${script}"`, ...args.map(appendArg)].join(" ");
+}
+function command(cmd, args) {
+  if (!kIsWindows || !/\.(cmd|bat)$/i.test(cmd)) return [cmd, args, {}];
+  return [
+    process.env.ComSpec ?? "cmd.exe",
+    ["/e:ON", "/v:OFF", "/d", "/c", `"${batchCommandLine(cmd, args)}"`],
+    { windowsVerbatimArguments: true },
+  ];
+}
+const stdio = (v, def) => v === undefined ? def : v === "piped" ? "pipe" : v === "null" ? "ignore" : "inherit";
+function mergedEnv(o) {
+  if (o.clearEnv) return { ...(o.env ?? {}) };
+  const base = { ...process.env };
+  if (kIsWindows && o.env) {
+    const overridden = new Set(Object.keys(o.env).map((k) => k.toUpperCase()));
+    for (const k of Object.keys(base)) if (overridden.has(k.toUpperCase())) delete base[k];
+  }
+  return { ...base, ...(o.env ?? {}) };
+}
+function exitStatus(code, signal) {
+  if (signal) return { success: false, code: 128 + (os.constants.signals[signal] ?? 0), signal };
+  return { success: code === 0, code: code ?? 1, signal: null };
+}
+const kCommandOptions = new Set(["args", "cwd", "env", "clearEnv", "stdin", "stdout", "stderr", "signal", "uid", "gid", "windowsRawArguments"]);
+
+class ChildProcess {
+  #child; #status; #stdin; #stdout; #stderr;
+  constructor(child) {
+    this.#child = child;
+    this.#stdin = child.stdin ? Writable.toWeb(child.stdin) : null;
+    this.#stdout = child.stdout ? Readable.toWeb(child.stdout) : null;
+    this.#stderr = child.stderr ? Readable.toWeb(child.stderr) : null;
+    this.#status = new Promise((resolve, reject) => {
+      child.once("error", (e) => { if (e.name !== "AbortError") reject(translate(e)); });
+      child.once("close", (code, signal) => resolve(exitStatus(code, signal)));
+    });
+    this.#status.catch(() => {});
+  }
+  get pid() { return this.#child.pid ?? -1; }
+  get status() { return this.#status; }
+  #piped(stream, name) {
+    if (!stream) throw new TypeError(`Cannot get ${name}: ${name} is not piped`);
+    return stream;
+  }
+  get stdin() { return this.#piped(this.#stdin, "stdin"); }
+  get stdout() { return this.#piped(this.#stdout, "stdout"); }
+  get stderr() { return this.#piped(this.#stderr, "stderr"); }
+  async output() {
+    const read = async (s) => {
+      if (!s) return new Uint8Array();
+      const chunks = [];
+      for await (const c of s) chunks.push(c);
+      return new Uint8Array(Buffer.concat(chunks));
+    };
+    const [stdout, stderr, status] = await Promise.all([read(this.#stdout), read(this.#stderr), this.#status]);
+    return { ...status, stdout, stderr };
+  }
+  kill(signal = "SIGTERM") {
+    if (this.#child.exitCode === null && this.#child.signalCode === null) this.#child.kill(signal);
+  }
+  ref() { this.#child.ref(); }
+  unref() { this.#child.unref(); }
+}
+
+class Command {
+  #cmd; #options;
+  constructor(cmd, options = {}) {
+    for (const k of Object.keys(options)) {
+      if (!kCommandOptions.has(k)) throw new TypeError(`Deno.Command option '${k}' is not supported by Quarto's Node.js compatibility shim`);
+    }
+    this.#cmd = cmd instanceof URL ? fileURLToPath(cmd) : String(cmd);
+    this.#options = options;
+  }
+  // spawn(): everything inherited; output()/outputSync(): stdin null, stdout
+  // and stderr piped (Deno's defaults for each method).
+  #spawnArgs(mode) {
+    const o = this.#options;
+    const [file, args, extra] = command(this.#cmd, o.args ?? []);
+    const defIn = mode === "spawn" ? "inherit" : "ignore";
+    const defOut = mode === "spawn" ? "inherit" : "pipe";
+    return [file, args, {
+      cwd: o.cwd, env: mergedEnv(o),
+      stdio: [stdio(o.stdin, defIn), stdio(o.stdout, defOut), stdio(o.stderr, defOut)],
+      windowsHide: true, signal: o.signal, uid: o.uid, gid: o.gid,
+      windowsVerbatimArguments: o.windowsRawArguments, ...extra,
+    }];
+  }
+  #checkOutput() {
+    const o = this.#options;
+    if (o.stdin === "piped") throw new TypeError("Piped stdin is not supported for this function, use 'Deno.Command.spawn()' instead");
+    if (o.stdout === "inherit") throw new TypeError("Piped stdout is required for output");
+    if (o.stderr === "inherit") throw new TypeError("Piped stderr is required for output");
   }
   output() {
+    this.#checkOutput();
     return new Promise((resolve, reject) => {
-      const child = spawn(this.cmd, this.options.args ?? [], this.#spawnOptions());
+      const child = spawn(...this.#spawnArgs("output"));
       const out = [], err = [];
       child.stdout?.on("data", (d) => out.push(d));
       child.stderr?.on("data", (d) => err.push(d));
-      child.on("error", (e) => reject(translate(e)));
-      child.on("close", (code, signal) => resolve(this.#result(code, signal, Buffer.concat(out), Buffer.concat(err))));
+      child.once("error", (e) => { if (e.name !== "AbortError") reject(translate(e)); });
+      child.once("close", (code, signal) => resolve({ ...exitStatus(code, signal), stdout: new Uint8Array(Buffer.concat(out)), stderr: new Uint8Array(Buffer.concat(err)) }));
     });
   }
   outputSync() {
-    const r = spawnSync(this.cmd, this.options.args ?? [], this.#spawnOptions());
+    this.#checkOutput();
+    const [file, args, options] = this.#spawnArgs("output");
+    const r = spawnSync(file, args, { ...options, maxBuffer: 1024 * 1024 * 1024 });
     if (r.error) throw translate(r.error);
-    return this.#result(r.status, r.signal, r.stdout, r.stderr);
+    return { ...exitStatus(r.status, r.signal), stdout: new Uint8Array(r.stdout ?? Buffer.alloc(0)), stderr: new Uint8Array(r.stderr ?? Buffer.alloc(0)) };
   }
   spawn() {
-    const child = spawn(this.cmd, this.options.args ?? [], this.#spawnOptions());
-    const status = new Promise((resolve, reject) => {
-      child.on("error", (e) => reject(translate(e)));
-      child.on("close", (code, signal) => resolve({ code: code ?? 1, success: code === 0, signal: signal ?? null }));
-    });
-    return { pid: child.pid, status, kill: (sig) => child.kill(sig ?? "SIGTERM"), stdout: child.stdout, stderr: child.stderr, stdin: child.stdin };
+    return new ChildProcess(spawn(...this.#spawnArgs("spawn")));
   }
 }
 
@@ -539,10 +695,10 @@ const members = {
   readTextFileSync: sync((p) => fs.readFileSync(p, "utf8")),
   readFile: async(async (p) => new Uint8Array(await fsp.readFile(p))),
   readFileSync: sync((p) => new Uint8Array(fs.readFileSync(p))),
-  writeTextFile: async((p, d, o) => fsp.writeFile(p, d, { flag: writeFlag(o), mode: o && o.mode })),
-  writeTextFileSync: sync((p, d, o) => fs.writeFileSync(p, d, { flag: writeFlag(o), mode: o && o.mode })),
-  writeFile: async((p, d, o) => fsp.writeFile(p, d, { flag: writeFlag(o), mode: o && o.mode })),
-  writeFileSync: sync((p, d, o) => fs.writeFileSync(p, d, { flag: writeFlag(o), mode: o && o.mode })),
+  writeTextFile: async(writeImpl),
+  writeTextFileSync: sync(writeSyncImpl),
+  writeFile: async(writeImpl),
+  writeFileSync: sync(writeSyncImpl),
   stat: async(async (p) => fileInfo(await fsp.stat(p))),
   statSync: sync((p) => fileInfo(fs.statSync(p))),
   lstat: async(async (p) => fileInfo(await fsp.lstat(p))),
@@ -601,7 +757,7 @@ const members = {
   get noColor() { return process.env.NO_COLOR !== undefined && process.env.NO_COLOR !== ""; },
 };
 
-module.exports = { members, errors, translate };
+module.exports = { members, errors, translate, openFlagBits, batchCommandLine };
 ```
 
 Add to `.gitignore` under `# generated javascript`:
@@ -1203,10 +1359,14 @@ git commit -m "run: Node module hooks (stdlib/*, esbuild TS compile, commonjs ov
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
+import { createRequire } from "node:module";
 import { unitTest } from "../test.ts";
 import { assert, assertEquals, assertStringIncludes } from "../asserts.ts";
 import { makeTempDirSync } from "../../src/deno_ral/temp.ts";
-import { removeSync } from "../../src/deno_ral/fs.ts";
+import { existsSync, removeSync } from "../../src/deno_ral/fs.ts";
+import { join } from "../../src/deno_ral/path.ts";
+import { isWindows } from "../../src/deno_ral/platform.ts";
+import { architectureToolsPath } from "../../src/core/resources.ts";
 import { runNodeScript } from "./run-compat-hooks.test.ts";
 
 async function inDir(fn: (dir: string) => Promise<void>) {
@@ -1247,17 +1407,134 @@ unitTest("shim - unknown members are undefined, never throw; exit hint on failur
   assertStringIncludes(bad.err, "Deno.openKv is not provided by Quarto's Node.js compatibility shim");
 }));
 
-unitTest("shim - Deno.Command output() and outputSync()", () => inDir(async (dir) => {
-  const r = await runNodeScript(dir, "c.ts", {
-    "c.ts": `
-const o = await new Deno.Command(Deno.execPath(), { args: ["-e", "console.log('hi'); process.exit(3)"] }).output();
-console.log(o.code, o.success, new TextDecoder().decode(o.stdout).trim());
-const s = new Deno.Command(Deno.execPath(), { args: ["-e", "process.stdout.write('sync')"] }).outputSync();
-console.log(new TextDecoder().decode(s.stdout));
+unitTest("shim - writeTextFile/writeFile: create, truncate and append independent (R05)", () => inDir(async (dir) => {
+  const r = await runNodeScript(dir, "w.ts", {
+    "w.ts": `
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+const nf = (fn) => { try { fn(); return "no error"; } catch (e) { return e instanceof Deno.errors.NotFound ? "NotFound" : String(e); } };
+const nfa = async (p) => { try { await p; return "no error"; } catch (e) { return e instanceof Deno.errors.NotFound ? "NotFound" : String(e); } };
+writeFileSync("a.txt", "0123456789");
+Deno.writeTextFileSync("a.txt", "hi", { create: false });
+writeFileSync("b.txt", "0123456789");
+await Deno.writeTextFile("b.txt", "yo", { create: false });
+console.log(readFileSync("a.txt", "utf8"), readFileSync("b.txt", "utf8"));
+console.log(nf(() => Deno.writeTextFileSync("m.txt", "x", { create: false })), await nfa(Deno.writeTextFile("m.txt", "x", { create: false })), existsSync("m.txt"));
+Deno.writeTextFileSync("c.txt", "ab", { append: true });
+await Deno.writeTextFile("c.txt", "cd", { append: true });
+console.log(readFileSync("c.txt", "utf8"), nf(() => Deno.writeTextFileSync("n.txt", "x", { append: true, create: false })), await nfa(Deno.writeFile("n.txt", new Uint8Array([1]), { append: true, create: false })), existsSync("n.txt"));
+writeFileSync("d.bin", "0123456789");
+Deno.writeFileSync("d.bin", new Uint8Array([65, 66]));
+await Deno.writeFile("e.bin", new TextEncoder().encode("xyz"), { mode: 0o600 });
+console.log(readFileSync("d.bin", "utf8"), readFileSync("e.bin", "utf8"), process.platform === "win32" || (statSync("e.bin").mode & 0o777) === 0o600);
 `,
   });
   assert(r.success, r.err);
-  assertEquals(r.out.trim().split("\n"), ["3 false hi", "sync"]);
+  assertEquals(r.out.trim().split("\n"), ["hi yo", "NotFound NotFound false", "abcd NotFound NotFound false", "AB xyz true"]);
+}));
+
+unitTest("shim - Deno.Command output() and outputSync(): per-method defaults, rejected forms (R15)", () => inDir(async (dir) => {
+  const r = await runNodeScript(dir, "c.ts", {
+    "c.ts": `
+const te = (b) => new TextDecoder().decode(b).trim();
+const o = await new Deno.Command(Deno.execPath(), { args: ["-e", "process.stdin.on('end', () => { console.log('eof'); console.error('err'); process.exit(3) }); process.stdin.resume()"] }).output();
+console.log(o.code, o.success, o.signal, te(o.stdout), te(o.stderr));
+const s = new Deno.Command(Deno.execPath(), { args: ["-e", "process.stdout.write('sync')"] }).outputSync();
+console.log(te(s.stdout));
+const t = (fn) => { try { fn(); return "no error"; } catch (e) { return e.constructor.name; } };
+console.log(t(() => new Deno.Command(Deno.execPath(), { stdout: "inherit" }).output()), t(() => new Deno.Command(Deno.execPath(), { stdin: "piped" }).outputSync()), t(() => new Deno.Command(Deno.execPath(), { bogus: 1 })));
+`,
+  });
+  assert(r.success, r.err);
+  // stdin is null by default, so the child sees end-of-input at once
+  assertEquals(r.out.trim().split("\n"), ["3 false null eof err", "sync", "TypeError TypeError TypeError"]);
+}));
+
+unitTest("shim - Deno.Command spawn(): Web Streams when piped, inherit by default (R15)", () => inDir(async (dir) => {
+  const r = await runNodeScript(dir, "s.ts", {
+    "s.ts": `
+const child = new Deno.Command(Deno.execPath(), { args: ["-e", "process.stdin.pipe(process.stdout)"], stdin: "piped", stdout: "piped" }).spawn();
+console.log(child.stdin instanceof WritableStream, child.stdout instanceof ReadableStream, (() => { try { child.stderr; return "no error"; } catch (e) { return e.constructor.name; } })());
+const data = new Uint8Array(1024 * 1024).fill(7);
+const writer = child.stdin.getWriter();
+const written = writer.write(data).then(() => writer.close());
+let got = 0;
+const reader = child.stdout.getReader();
+for (;;) { const { done, value } = await reader.read(); if (done) break; got += value.length; }
+await written;
+const st = await child.status;
+console.log(got, st.code, st.success, typeof child.pid);
+const inherited = new Deno.Command(Deno.execPath(), { args: ["-e", "console.log('from child')"] }).spawn();
+console.log("status", (await inherited.status).code);
+`,
+  });
+  assert(r.success, r.err);
+  // the 1 MiB goes through while stdout is read concurrently (PR 28's pipe rule); the inherited child writes to our stdout
+  assertEquals(r.out.trim().split("\n"), ["true true TypeError", "1048576 0 true number", "from child", "status 0"]);
+}));
+
+unitTest("shim - Deno.Command: child.output(), kill() as 128 + n, abort signal, missing executable (R15)", () => inDir(async (dir) => {
+  const r = await runNodeScript(dir, "k.ts", {
+    "k.ts": `
+const te = (b) => new TextDecoder().decode(b).trim();
+const c = new Deno.Command(Deno.execPath(), { args: ["-e", "console.log('a'); console.error('b')"], stdout: "piped", stderr: "piped" }).spawn();
+const o = await c.output();
+console.log(o.code, te(o.stdout), te(o.stderr));
+const sleeper = new Deno.Command(Deno.execPath(), { args: ["-e", "setTimeout(() => {}, 10000)"], stdout: "null", stderr: "null" }).spawn();
+sleeper.kill();
+const st = await sleeper.status;
+sleeper.kill(); // a no-op after exit
+console.log(st.success, process.platform === "win32" ? "143 SIGTERM" : st.code + " " + st.signal);
+const ac = new AbortController();
+const aborted = new Deno.Command(Deno.execPath(), { args: ["-e", "setTimeout(() => {}, 10000)"], signal: ac.signal, stdout: "null", stderr: "null" }).spawn();
+setTimeout(() => ac.abort(), 50);
+console.log((await aborted.status).signal);
+const nf = async (p) => { try { await p; return "no error"; } catch (e) { return e instanceof Deno.errors.NotFound ? "NotFound" : String(e); } };
+console.log(await nf(new Deno.Command("quarto-no-such-binary").output()), await nf(Promise.resolve().then(() => new Deno.Command("quarto-no-such-binary").outputSync())), await nf(new Deno.Command("quarto-no-such-binary").spawn().status));
+`,
+  });
+  assert(r.success, r.err);
+  // the Windows value of kill() is not measured; the guard above keeps the case to what Node documents (SIGTERM reported, forced exit)
+  assertEquals(r.out.trim().split("\n"), ["0 a b", "false 143 SIGTERM", "SIGTERM", "NotFound NotFound NotFound"]);
+}));
+
+unitTest("shim - batchCommandLine copy matches PR 28's vectors", () => {
+  const { batchCommandLine } = createRequire(import.meta.url)("../../src/resources/run-compat/deno-members.cjs");
+  const line = (...args: string[]) => batchCommandLine("C:\\t\\x.cmd", args);
+  assertEquals(line("plain"), `"C:\\t\\x.cmd" plain`);
+  assertEquals(line("two words"), `"C:\\t\\x.cmd" "two words"`);
+  assertEquals(line("%PATH%"), `"C:\\t\\x.cmd" "%%cd:~,%PATH%%cd:~,%"`);
+  assertEquals(line('he said "hi"'), `"C:\\t\\x.cmd" "he said ""hi"""`);
+  assertEquals(line('"&echo INJECTED'), `"C:\\t\\x.cmd" """&echo INJECTED"`);
+  assertEquals(line("trailing\\"), `"C:\\t\\x.cmd" "trailing\\\\"`);
+  assertEquals(line(""), `"C:\\t\\x.cmd" ""`);
+  assertEquals(line("C:\\dir\\file.qmd", "--to", "html"), `"C:\\t\\x.cmd" C:\\dir\\file.qmd --to html`);
+  const code = (fn: () => unknown) => { try { fn(); } catch (e) { return (e as { code?: string }).code; } return "no error"; };
+  for (const bad of ["a\nb", "a\rb", "a\0b"]) assertEquals(code(() => line(bad)), "EINVAL");
+  assertEquals(code(() => batchCommandLine('C:\\bad"name.cmd', [])), "EINVAL");
+  assertEquals(code(() => batchCommandLine("C:\\dir\\", [])), "EINVAL");
+});
+
+// PR 28's forwarding .cmd and its BatBadBut vectors, this time through the shim's Command.
+const kVectors = ["plain", "two words", "a&b", "a|b", "a^b", "50%", "%PATH%", "%%PATH%%", "<in", ">out", 'he said "hi"', '"&echo INJECTED', "trailing\\", ""];
+
+unitTest("shim - Deno.Command runs a .cmd through cmd.exe with the batch escaping (Windows)", () => inDir(async (dir) => {
+  if (!isWindows) return;
+  const r = await runNodeScript(dir, "b.ts", {
+    "argv.mjs": "console.log(JSON.stringify(process.argv.slice(2)));\n",
+    "forward.cmd": `@echo off\r\n"${architectureToolsPath("node")}" "${join(dir, "argv.mjs")}" %*\r\n`,
+    "b.ts": `
+const out = await new Deno.Command(${JSON.stringify(join(dir, "forward.cmd"))}, { args: ${JSON.stringify(kVectors)} }).output();
+console.log(out.code, new TextDecoder().decode(out.stdout).trim());
+try { await new Deno.Command(${JSON.stringify(join(dir, "forward.cmd"))}, { args: ["a\\nb"] }).output(); console.log("no error"); } catch (e) { console.log(e.code); }
+`,
+  });
+  assert(r.success, r.err);
+  const lines = r.out.trim().split("\n");
+  assertEquals(lines.length, 2, `an injected command printed output: ${lines.join(" | ")}`);
+  assertEquals(lines[0].slice(0, 2), "0 ");
+  assertEquals(JSON.parse(lines[0].slice(2)), kVectors);
+  assertEquals(lines[1], "EINVAL");
+  assert(!existsSync(join(dir, "out")), "no redirection happened");
 }));
 
 unitTest("shim - not installed for scripts that never mention Deno", () => inDir(async (dir) => {
@@ -1345,7 +1622,7 @@ globalThis.Deno = new Proxy(members, {
 - [ ] **Step 4: Run both test files and commit**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-compat-hooks.test.ts unit/run-compat-shim.test.ts`
-Expected: `11 passed`.
+Expected: `16 passed` (the `.cmd` case returns early off Windows and runs on the Windows CI matrix, as PR 28's does).
 
 ```bash
 git add src/resources/run-compat/deno-shim.cjs tests/unit/run-compat-shim.test.ts tools/check-runtime-boundary.ts
@@ -1742,12 +2019,12 @@ git commit -m "run: juice.ts and ast-diagram on Node APIs; retire check-usage"
 - [ ] **Step 1: Changelog** (under `## Commands`, `### \`run\``)
 
 ```markdown
-- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): `quarto run` and project `pre-render`/`post-render` TypeScript and JavaScript scripts now run on the Node.js runtime bundled with Quarto. The 34 `stdlib/*` imports are served from bundles shipped with Quarto; `stdlib/log`'s `FileHandler` and `stdlib/http`'s `serveDir`/`serveFile` are not available on Node (see the migration page for the full list). TypeScript is compiled per file, so type-only imports, enums and parameter properties work as before. The common `Deno` API calls run through a deprecated compatibility shim that prints a one-time notice (`QUARTO_RUN_DENO_NOTICE=0` hides it); other `Deno` members are undefined and named when the script fails. `npm:` and `jsr:` imports resolve from the project's `node_modules`, where the project's `package.json` and lockfile decide the version (a version in the import that the installed package does not satisfy is a warning); remote `https:` imports are not supported on Node. To keep running scripts on Deno, set `QUARTO_RUN_RUNTIME=deno` or `project: script-runtime: deno` in `_quarto.yml`.
+- ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): `quarto run` and project `pre-render`/`post-render` TypeScript and JavaScript scripts now run on the Node.js runtime bundled with Quarto. The 34 `stdlib/*` imports are served from bundles shipped with Quarto; `stdlib/log`'s `FileHandler` and `stdlib/http`'s `serveDir`/`serveFile` are not available on Node (see the migration page for the full list). TypeScript is compiled per file, so type-only imports, enums and parameter properties work as before. The `Deno` members listed on the migration page (file system, environment, `cwd`/`args`/`exit`, and `Deno.Command` with `output()`, `outputSync()` and `spawn()` handing out Web Streams) run through a deprecated compatibility shim that prints a one-time notice (`QUARTO_RUN_DENO_NOTICE=0` hides it); other `Deno` members are undefined and named when the script fails. `npm:` and `jsr:` imports resolve from the project's `node_modules`, where the project's `package.json` and lockfile decide the version (a version in the import that the installed package does not satisfy is a warning); remote `https:` imports are not supported on Node. To keep running scripts on Deno, set `QUARTO_RUN_RUNTIME=deno` or `project: script-runtime: deno` in `_quarto.yml`.
 ```
 
 - [ ] **Step 2: `docs-updates.md`**
 
-PR 34 created the table; make sure its `projects/scripts-deno-to-node.qmd` row (the migration page PR 00c named) carries rows 4–6 of the supported migration surface matrix (Spec), the "not available on Node" table, the version rule and the governing-lockfile table, plus: per-file TypeScript compile (residual: re-exported types need `export type`); `"type": "commonjs"` no longer matters; `QUARTO_RUN_RUNTIME`, `project.script-runtime`; `quarto install deno`; the shim's member table and the migration table (`Deno.readTextFileSync` -> `fs.readFileSync(path, "utf8")`, `Deno.env.get` -> `process.env`, `Deno.args` -> `process.argv.slice(2)`, `Deno.Command` -> `node:child_process`, `Deno.exit` -> `process.exit`, `Deno.cwd` -> `process.cwd()`); and the 1.13 note. The `projects/scripts.qmd` row keeps a short "TypeScript scripts run on Node" section that links to it.
+PR 34 created the table; make sure its `projects/scripts-deno-to-node.qmd` row (the migration page PR 00c named) carries rows 4–6 of the supported migration surface matrix (Spec), the "not available on Node" table, the version rule and the governing-lockfile table, plus: per-file TypeScript compile (residual: re-exported types need `export type`); `"type": "commonjs"` no longer matters; `QUARTO_RUN_RUNTIME`, `project.script-runtime`; `quarto install deno`; the shim's member table (with the `Deno.Command` subset and its stated differences from Deno) and the migration table (`Deno.readTextFileSync` -> `fs.readFileSync(path, "utf8")`, `Deno.env.get` -> `process.env`, `Deno.args` -> `process.argv.slice(2)`, `Deno.Command` -> `node:child_process`, `Deno.exit` -> `process.exit`, `Deno.cwd` -> `process.cwd()`); and the 1.13 note. The `projects/scripts.qmd` row keeps a short "TypeScript scripts run on Node" section that links to it.
 
 - [ ] **Step 3: Commit**
 
@@ -1771,6 +2048,7 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 - [ ] `tools/run-stdlib/manifest.json` has 34 keys equal to `run_import_map.json`; `fs` and `path` are `@jsr/std__fs@0.224.0`/`@jsr/std__path@0.224.0`; `tools/run-stdlib/package-lock.json` committed.
 - [ ] `register.cjs` uses `module.registerHooks`; the load hook only touches `file:` URLs outside `node_modules`; TypeScript goes through `QUARTO_RUN_ESBUILD` with an inline source map.
 - [ ] The shim is installed on demand, never throws on unknown members, prints one notice under `QUARTO_RUN_DENO_NOTICE`, and `deno-members.cjs` implements `readDir`, `copyFile`, `rename`, `realPath`, `lstat`, `chdir` and their `Sync` forms (plus `readLink`, `symlink` for `@std/fs`, `inspect` for `fmt_printf`).
+- [ ] The copies match their rule: `openFlagBits()` in `deno-members.cjs` is PR 27's body (`src/deno_ral/fs.ts`) line for line apart from `fs.constants` for `nodeFs.constants`, and `appendArg()`/`batchCommandLine()` are PR 28's (`src/deno_ral/batch-command-line.ts`) apart from the dropped type annotations; `diff` them in the review. The writes go through `writeOpenFlags()` with `truncate: !append`; no string flag in the file (the acceptance grep). `Command` follows "Child processes" in Interfaces: the option subset rejected by name, per-method defaults, Web Streams, `128 + n`, `.bat`/`.cmd` through `cmd.exe`; the R05 and R15 cases of `run-compat-shim.test.ts` pass, the `.cmd` one on Windows CI.
 - [ ] No bundle under `share/run-stdlib/` contains `Deno.` (module-local binding); the builder's member report is in the PR description and lists no member outside `deno-members.cjs`; `FileHandler`/`RotatingFileHandler`/`serveDir`/`serveFile` are the stubs of `unsupported.ts`.
 - [ ] The version rule: `register.cjs` warns once per package and requested version for the five forms of the rule and stays silent otherwise; the `npm:left-pad@^1.3.0` test passes.
 - [ ] Precedence `QUARTO_RUN_RUNTIME` > `project.script-runtime` > `node`; the Deno path uses PR 33's `requireDenoToolBinary()`; the Node path uses `architectureToolsPath("node")`, and `execPath()` has no caller left in `src/` (PR 33, "Dual-runtime combinations until PR 37").
@@ -1784,6 +2062,8 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 - **`"type": "commonjs"` next to a script.** Without the hook, Node prints `Failed to load the ES module ... Make sure to set "type": "module"` and `SyntaxError: Cannot use import statement outside a module`. The hook loads local files with `import`/`export` as ESM; a genuine CommonJS `.js` (no `import`/`export`) still loads as CommonJS.
 - **A `stdlib/*` member that needs a `Deno` member the table lacks.** The known ones (`FileHandler`, `RotatingFileHandler`, `serveDir`, `serveFile`) are stubs that throw a message naming themselves (the "not available on Node" table); the builder's member gate fails the build for any other, so none ships unknowingly. If a user path turns out to need one, add the member to `deno-members.cjs` (both consumers get it) and the row to the table, or point the user at `QUARTO_RUN_RUNTIME=deno`.
 - **The version rule warns, it does not pin.** A script that relied on Deno fetching `npm:left-pad@1.3.0` gets whatever the project installed, with a warning when it differs; exotic range forms (`>=`, `||`, `x`) are not checked at all. Documented on the migration page; the warning names the file so authors can fix `package.json`.
+- **Two copies of a rule.** `openFlagBits()` and `batchCommandLine()` live in `src/deno_ral/` and again in `deno-members.cjs`, because the table ships outside the bundle and inside the `@quarto/std-*` packages and cannot import the layer. A fix to one that misses the other is the risk; the review checklist diffs the copies and the shim test replays PR 28's vectors. If the layer's rule changes, change both in the same PR.
+- **`Deno.Command` forms outside the subset.** A script passing `windowsRawArguments`, `uid` or `gid` gets Node's equivalents; one passing anything else (`cwd` as a `URL` is accepted, options Deno never had are not) fails at construction with the option's name, which is the intended message. A Deno script that relies on `spawn()` throwing synchronously for a missing executable sees the rejection on `status` instead; stated in Interfaces and on the migration page.
 - **npm packages that detect Deno.** The shim is installed only when a module mentions `Deno.`; a script that mixes `Deno.*` and such a package may send the package down its Deno path. Workaround: `QUARTO_RUN_RUNTIME=deno`, or migrate the `Deno.*` calls.
 - **Startup cost per local `.ts` file** (one esbuild process, tens of ms). Scripts have few local files; measure `quarto run` on `tests/docs/run/test-stdlib.ts` before/after in the PR description.
 - **Rollback:** revert the PR; scripts run on the Deno tool again (it is still bundled until PR 37).
