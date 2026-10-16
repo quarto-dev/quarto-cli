@@ -1,0 +1,20 @@
+---
+title: "A measured page image sizes og:image only"
+image: page.png
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta name="twitter:image" content="https://example.com/page.png">'
+          - '<meta property="og:image:height" content="160">'
+          - '<meta property="og:image:width" content="210">'
+        -
+          - 'twitter:image-height'
+          - 'twitter:image-width'
+          - 'twitter:image:height'
+          - 'twitter:image:width'
+---
+
+Twitter Cards have no image size tags, so the measured size of this PNG goes to Open Graph only.
