@@ -35,7 +35,7 @@ Scopes (the scope keys are the baseline JSON keys; PR 25 relies on `"src"` and `
 |---|---|
 | `async`, `async/*`; `crypto`, `crypto/*`; `datetime`, `datetime/*`; `streams`, `streams/*`; `io/*`; `log`, `log/*` except `log/file-handler`; `fmt/printf`; `dotenv/stringify` | everything else: `fmt/colors`, `flags`, `encoding/*`, `fs/*`, `path`, `@std/path`, `http/*`, `testing/*`, `dotenv` (its `load`), `log/file-handler`, `tar`, `bytes`, `uuid`, every `https://deno.land/std` URL and every `jsr:@std` specifier |
 
-A file counts as a `stdImportFiles` hit when at least one non-comment line imports a counted module; a file whose only std imports are allow-listed does not count. The rule is textual: it cannot see a Quarto helper that imports a counted module on the file's behalf, and it does not say whether an allow-listed module is *safe*; that is PR 22's table (which reads the std sources) and PR 25's hidden-dependency inventory (which proves each std module with internal `Deno.*` has a replacement before Phase 1 closes). Changing the allow-list is a PR 22 change (the table) mirrored here (the constant), never the other way round. The zero PR 25 reaches is therefore "zero counted std imports", not "zero std imports".
+A file counts as a `stdImportFiles` hit when at least one non-comment line imports a counted module; a file whose only std imports are allow-listed does not count. The rule is textual: it cannot see a Quarto helper that imports a counted module on the file's behalf (the fixture shows this with `src/core/indirect.ts`, which imports a helper that calls `Deno.*` and imports `fs/exists`: the helper is counted, the importer is not), and it does not say whether an allow-listed module is *safe*; that is PR 22's table (which reads the std sources) and PR 25's hidden-dependency inventory (which proves each std module with internal `Deno.*` has a replacement before Phase 1 closes). Changing the allow-list is a PR 22 change (the table) mirrored here (the constant), never the other way round. The zero PR 25 reaches is therefore "zero counted std imports", not "zero std imports".
 
 Measured on `main` at `b86f98d` with the counting rules of Task 1 (reproduced with a Node 22 port of the same walk and regexes; the first run of the committed script must print exactly these numbers, plus the one `Deno.` occurrence the new unit test adds to `tests`):
 
@@ -57,6 +57,8 @@ Per module (all 62 `src` files with any std import, allow-listed ones included),
 
 The `Deno.` rule counts textual occurrences, comments and strings included (as in the first draft; the codemod PRs remove those too). The std-import rule ignores lines that start with `//`, `/*` or `*` (comment lines), so commented-out imports and JSDoc examples do not count.
 
+The two counters are all the ratchet sees. A Deno CLI spawn written without `Deno.` on the line (`execPath()` or `QUARTO_DENO` after PR 08, a `deno` command in a launcher such as `package/src/quarto-bld`, `configure.sh` or a `.cmd` file, a `deno run` in a workflow) is not a count and never lowers or raises a baseline. Those are the rows of the runtime residue table in PR 25 (Context), and the check that they are all listed at a phase boundary is PR 25 Task 7 step 2's `rg -n 'execPath\(\)|QUARTO_DENO'` over `package/src` and `src`, repeated by PR 33 and PR 37 at their gates, not this script (review `REVIEW-2026-10-16.md` R02, "Later validation").
+
 `tests/asserts.ts` moves here from PR 22's design: the tests that later plans add import assertions from it, so PR 31 can swap the assertion library in one file. This PR only adds the seam and its test; migrating the 157 existing `testing/asserts` importers is PR 22/PR 23 work.
 
 The `tests` scope has a ratchet too, but tests written before PR 09 lands (PR 09 adds `deno_ral` `fs`/`temp` with `readTextFileSync`, `writeTextFileSync`, `makeTempDirSync`) have no way to touch files without `Deno.*`. Those PRs (PR 01: +6, PR 05: +1, and PR 08 if its tests write files) run `--update-baseline --accept-tests-increase`, which lowers every other scope as usual and sets `tests` to the current counts; the PR description lists each new test file and its `Deno.` count. From PR 09 on, `--accept-tests-increase` is not used (`_TEMPLATE.md` rule: new tests use `deno_ral`).
@@ -76,6 +78,7 @@ Out:
 - A `deno lint` plugin (mentioned in the assessment as a later replacement for the regexes).
 - Any change to the counted code, and migrating existing tests to `tests/asserts.ts` (PR 22/23).
 - `tools/` itself (never counted: it is build and migration tooling; PR 33/38 own it).
+- Counting Deno CLI invocations and launchers (`execPath()`, `QUARTO_DENO`, `deno …` in shell or workflow files): the runtime residue table in PR 25 and its `rg` check own those (Context, last paragraph).
 
 ### Interfaces
 
@@ -191,7 +194,7 @@ export {
 - The baseline is `src` 992/49, `src-js` 7/0, `resources` 10/1, `package/src` 240/3, `tests` 814/165 (or the numbers the script prints on the PR's merge-base, if `main` moved; the PR description shows the script output).
 - Adding one `Deno.cwd()` call to any file under `src/command/` makes the same command exit 1 with `::error::src: Deno.* calls rose from 992 to 993 ...`; adding one to `src/core/cri/deno-cri/chrome.js` reports `src-js`; adding `import { join } from 'https://deno.land/std/path/mod.ts';` to a file under `src/core/` reports `src: std-import files rose`; adding `import { delay } from "async";` to a file under `src/core/` that imports no std module reports nothing (allow-listed).
 - `--update-baseline` never raises a number; `--update-baseline --accept-tests-increase` raises only `tests`.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts` → `9 passed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts` → `10 passed`.
 - The `Runtime Boundary` workflow runs on the PR and is green.
 
 ## Plan
@@ -363,6 +366,10 @@ function makeRepo(root: string) {
   writeFixture(root, "src/core/h.ts", `import { delay } ${FROM} "async";\nimport { getLogger } ${FROM} "log";\nimport { readAll } ${FROM} "io/read-all";\nimport { sprintf } ${FROM} "fmt/printf";\n`);
   // std file: log/file-handler is the counted exception under the log/ prefix
   writeFixture(root, "src/core/i.ts", `import { FileHandler } ${FROM} "log/file-handler";\n`);
+  // R01 "Later validation": a forbidden filesystem import (1 std file) next to a call (1 call), in a helper...
+  writeFixture(root, "src/core/helper.ts", `import { exists } ${FROM} "fs/exists";\nexport const cwd = () => ${DENO}cwd();\nexport { exists };\n`);
+  // ...and the importer of that helper: an indirect Deno dependency the textual rule does not see (0 calls, 0 std files)
+  writeFixture(root, "src/core/indirect.ts", `import { cwd, exists } ${FROM} "./helper.ts";\nexport const here = cwd();\nexport const ok = exists(here);\n`);
   // excluded from src
   writeFixture(root, "src/deno_ral/c.ts", `import { walk } ${FROM} "fs/walk";\n${DENO}cwd();\n`);
   writeFixture(root, "src/vendor/d.ts", `${DENO}cwd();\n`);
@@ -391,7 +398,7 @@ function makeRepo(root: string) {
 }
 
 const kExpected = {
-  "src": { denoCalls: 3, stdImportFiles: 5 },
+  "src": { denoCalls: 4, stdImportFiles: 6 },
   "src-js": { denoCalls: 1, stdImportFiles: 0 },
   "resources": { denoCalls: 3, stdImportFiles: 1 },
   "package/src": { denoCalls: 1, stdImportFiles: 1 },
@@ -467,6 +474,22 @@ unitTest("check-runtime-boundary - hasStdImport covers URLs, jsr, quotes, http/,
   ];
   for (const text of yes) assert(hasStdImport(text), `expected std import: ${text}`);
   for (const text of no) assert(!hasStdImport(text), `expected no std import: ${text}`);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - an indirect Deno dependency is counted at the helper, not at its importer", async () => {
+  // The std boundary rule is textual (Context): src/core/indirect.ts in the fixture imports ./helper.ts,
+  // which calls Deno and imports fs/exists. In a repository holding the importer alone, src counts nothing;
+  // the helper is what the fixture's kExpected.src counts (its 1 call and 1 std file are in the 4 and 6).
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    writeFixture(root, "src/quarto.ts", "export {};\n");
+    writeFixture(root, "src/core/indirect.ts", `import { cwd, exists } ${FROM} "./helper.ts";\nexport const here = cwd();\nexport const ok = exists(here);\n`);
+    assertEquals(countScope(root, kScopes["src"]), { denoCalls: 0, stdImportFiles: 0 });
+  } finally {
+    temp.cleanup();
+  }
 });
 
 // deno-lint-ignore require-await
@@ -856,7 +879,7 @@ if (import.meta.main) {
 - [ ] **Step 4: Run the tests**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts`
-Expected: nine dots, `9 passed`.
+Expected: ten dots, `10 passed`.
 
 - [ ] **Step 5: Lint the script and tests**
 
@@ -1061,7 +1084,7 @@ After opening the PR, the `Runtime Boundary` check must appear and pass. If `qua
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts` → `9 passed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts` → `10 passed`.
 - `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts` → `OK: no count exceeds the baseline.`, exit 0.
 - Task 3 steps 4 and 5 (regressions detected in `src` and `src-js`; baseline never raised except `tests` with the explicit flag).
 - `package/dist/bin/tools/x86_64/deno lint tools/check-runtime-boundary.ts tests/asserts.ts` → clean.
@@ -1073,6 +1096,7 @@ After opening the PR, the `Runtime Boundary` check must appear and pass. If `qua
 - [ ] `kStdModules` is exactly the 18 std names of `src/import_map.json` (async, bytes, crypto, datetime, dotenv, encoding, flags, fmt, fs, http, io, log, path, @std/path, streams, tar, testing, uuid) and contains none of `semver`, `media_types`, `xml`, `xmlp`, `another_cookiejar`, `yaml`.
 - [ ] `kStdImportRe` accepts single and double quotes, `deno.land/std` with and without a version, `jsr:@std` and `jsr:/@std`; `hasStdImport` skips comment lines.
 - [ ] `kStdAllowListed` and `kStdCountedExceptions` equal the "import map" rows of PR 22's inventory table (`async`, `crypto`, `datetime`, `streams`, `io/*`, `log` and `log/*` except `log/file-handler`, `fmt/printf`, `dotenv/stringify`); a URL or `jsr:` specifier is never allow-listed; the fixture has one file that imports allow-listed modules only and is not counted.
+- [ ] The fixture holds the three cases of `REVIEW-2026-10-16.md` R01 "Later validation": a permitted pure import (`src/core/h.ts`, not counted), a forbidden filesystem import (`src/core/helper.ts`, `fs/exists`, counted) and an importer of a helper with an indirect Deno dependency (`src/core/indirect.ts`, not counted; its own test proves it contributes nothing).
 - [ ] `kSrcExclusions` is exactly the six entries, each with its reason; `kTestsExclusions` is `tests/docs` and `tests/asserts.ts`; `src-js` and `resources` never count the same file.
 - [ ] `--update-baseline` uses `lowerBaseline`; only `--accept-tests-increase` can raise a number, and only `tests`.
 - [ ] The unit test file contains no literal `Deno.` and no literal std import (it builds them from `DENO`/`FROM`/`IMPORT`), so it adds exactly one `Deno.` occurrence (`Deno.writeTextFileSync` in `writeFixture`) to `tests` and no std-import file.
@@ -1096,4 +1120,5 @@ None. Recorded choices (review items closed here):
 - Review "02" (minor): `quarto run --dev` uses the `deno_std` cache copy as `DENO_DIR` (Context, last paragraph).
 - `src-js` excludes `src/resources` so that `src-js` and `resources` are disjoint (`_TEMPLATE.md`'s first wording overlapped them; counting a file twice would make one removal lower two baselines).
 - The std boundary rule (review `REVIEW-2026-10-16.md` R01, triage B1): the allow-list of import-map seams lives here as `kStdAllowListed`, PR 22's table is its source, PR 25's zero is "zero counted std imports", and `README.md` ground rule 2 and `_TEMPLATE.md` say so. The first draft counted every std import and so made PR 22 (which keeps the seams) and PR 25 (which required zero) contradict each other.
+- Re-read against the review's "Later validation" lines (2026-10-16): R01's three fixture cases are in `makeRepo` (`h.ts`, `helper.ts`, `indirect.ts`) with a test for the indirect case; R02's point (a residue check must look at subprocess commands and launchers, not only `Deno.` references) is recorded as a limit of this ratchet in Context and Scope, with PR 25 Task 7 step 2's `rg` named as the check that covers it.
 - `kStdModules` keeps PR 22's `http` and leaves out `yaml`: `yaml` maps to `js-yaml` (skypack today, npm after PR 03), not to the std library; PR 22 lists it as out of scope for the same reason. `semver`, `media_types`, `xml`, `xmlp` and `another_cookiejar` are `deno.land/x` packages that PR 04 replaces; they are not std either.
