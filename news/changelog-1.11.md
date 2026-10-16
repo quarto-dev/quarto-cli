@@ -102,6 +102,8 @@ All changes included in 1.11:
 - ([#15057](https://github.com/quarto-dev/quarto-cli/pull/15057)): Fix a numeric top-level `image-width` or `image-height` in page front matter failing the render. These options were never used, so they are removed from the schema; declare the preview image size under `open-graph` instead.
 - ([#15083](https://github.com/quarto-dev/quarto-cli/pull/15083)): Fix editors offering no completion for the top-level `image-title` option that about pages read, and correct the description of the top-level `image-lazy-loading` option, which only affects the page's image when it appears in a listing.
 - ([#15084](https://github.com/quarto-dev/quarto-cli/pull/15084)): Fix page-level `open-graph` and `twitter-card` options not being validated, which let a misspelled option be silently ignored and a value of the wrong type crash the render. These options are now checked like their `website` counterparts, so a page or `_metadata.yml` with an unknown option under `open-graph` or `twitter-card`, which was ignored before, now fails to render with an error naming the option.
+- ([#TBD](https://github.com/quarto-dev/quarto-cli/pull/TBD)): Fix page-level `bread-crumbs`, `back-to-top-navigation`, `page-navigation`, `margin-header` and `margin-footer` options not being validated or offered for completion in editors. A page value of the wrong type now fails to render with an error instead of being accepted silently.
+- ([#TBD](https://github.com/quarto-dev/quarto-cli/pull/TBD)): Fix `open-graph: false` or `twitter-card: false` in page front matter or `_metadata.yml` not disabling Open Graph or Twitter Card metadata for that page when the website enables it.
 
 ## Lua API
 
