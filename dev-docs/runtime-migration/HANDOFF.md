@@ -11,8 +11,10 @@
    decisions table.
 3b. `REVIEW-2026-10-16.md` (the Codex review of the reworked plans, 21
    findings) and `TRIAGE-2026-10-16.md` (every finding verified; the work
-   split into maintainer decisions, a cross-plan reconciliation pass, and
-   per-plan local corrections). The plans are not yet corrected for it.
+   split into maintainer decisions A1–A8, taken; a cross-plan reconciliation
+   pass B1–B9, landed, one commit per item listed in the triage; and
+   per-plan local corrections, bucket C, still to do). Read the triage's
+   bucket C table before executing any plan it names.
 4. `README.md`: the executable sequence, conventions, dependency graph and
    ratchet baseline. The index you consult while working, not the context.
 5. `_TEMPLATE.md`: the normative vocabulary every plan uses.
@@ -23,8 +25,9 @@ The meeting summary with the roadmap and architecture drawings is a Claude doc
 The assessment is also published as a page: https://claude.ai/artifact/9thKkB7s15659uYgtwYUmW.
 Both derive from the files here; the files are canonical.
 
-Written 2026-10-15 at the end of the planning session, for whoever (human or
-agent) picks this up in a fresh session.
+Written 2026-10-15 at the end of the planning session, updated 2026-10-16 at
+the end of the reconciliation pass, for whoever (human or agent) picks this
+up in a fresh session.
 
 ## State
 
@@ -38,6 +41,9 @@ agent) picks this up in a fresh session.
   - `_TEMPLATE.md`: plan structure and the normative shared vocabulary for
     `src/deno_ral/` (every plan uses these names).
   - `00a-*.md` to `39-*.md`: one plan per PR (46 PRs), plus `SPIKES.md`.
+  - `REVIEW-2026-10-15.md`, `REVIEW-2026-10-16.md`, `TRIAGE-2026-10-16.md`:
+    the two reviews and the triage of the second one (what was decided,
+    what was reconciled, what is still to correct locally).
   - `spike/`: the Node bundler, shim, launcher and test documents from the
     spike that ran the unmodified CLI on Node 22.
 - The published assessment page (same content as `00-assessment.md` with the
@@ -70,11 +76,11 @@ rewritten and renamed, `SPIKES.md` added, `_TEMPLATE.md` vocabulary updated,
 table, dependency graph, conventions and baseline. The plans are now
 executable in the README order; the first three to run are PR 02, 00a, 00b.
 
-## Reconciliation pass (bucket B of `TRIAGE-2026-10-16.md`): state on 2026-10-16
+## Reconciliation pass (bucket B of `TRIAGE-2026-10-16.md`): done on 2026-10-16
 
-Six of the nine items are committed and pushed, one commit per item; the
-working tree was clean when the session stopped. Nothing from B7–B9 is
-started.
+All nine items are committed and pushed, one commit per item (verified with
+`git log` on the branch). `README.md` "Shared rules and tables" is the index
+of where each rule now lives; this table adds the commit.
 
 | Item | Commit | Where the rule or table lives |
 |---|---|---|
@@ -84,56 +90,24 @@ started.
 | B4 | `7023b19` | PR 26, Interfaces "The builder contract"; PR 33 Task 2 step 4 keeps it |
 | B5 | `91aa3ef` | PR 37, Context "The CI graph after this PR" (decision 5: `render-parity` = dev bundle vs distribution bundle) |
 | B6 | `63b94d8` | `SPIKES.md` Spike V (after PR 30; rule 0 classification; rule 4 inconclusive) |
+| B7 | `be2ea17` | PR 35, Spec "Supported migration surface" (the matrix, the "not available on Node" table, the version rule, the governing-lockfile table); PR 35 Decision 3 (module-local `Deno` binding for the `stdlib/*` bundles); PR 36 Decisions 3 and 4 (`@quarto/std-*` packages; root lockfile versions, the version rule as a warning); PRs 00c, 34, 37 refer to the matrix; README graph 35 → 36 |
+| B8 | `99a5328` | PR 33, "Dual-runtime combinations until PR 37" (after Task 13) and the `execPath()` rule; PR 35 `runOnNode()` and PR 36 `typeCheck()` on `architectureToolsPath("node")`; doc comment on `execPath()` in PR 28 and `_TEMPLATE.md`; acceptance greps in 33, 35, 36, 37 |
+| B9 | the commit that updated this file | README (review bullet, "Shared rules and tables", rows 33 and 35), this file, the resolution list in `TRIAGE-2026-10-16.md` |
 
-Still to do, in order (one commit each, message starting with the id):
+The README table, dependency graph and progress metric were checked once
+against every plan's `**Depends on:**` line after B8: they agree (B2 and B6
+had already moved PR 39 and Spike V; B7 added 35 → 36).
 
-- **B7, supported migration surface matrix** (R09, R17, decision 1; A1 and
-  A2 as decided in the triage). Write the matrix once in PR 35's Spec
-  (rows: internal API, prebuilt engines, rebuilt engines, plain scripts,
-  `stdlib/*` scripts, Deno-native scripts; columns: supported releases,
-  author action, fallback, retirement) and the version-semantics rule
-  (A2: the project `package.json`/lockfile governs; warn when a versioned
-  `npm:`/`jsr:` specifier is not satisfied by the installed version; say
-  which lockfile governs scripts, `stdlib/*` and engines). Reference it
-  from 00c (notice text and the migration-page list), 34
-  (`docs-updates.md` rows) and 36. Two mechanisms A1(b) implies are not in
-  the plans yet and need a "Decision needed" each, recommendation picked:
-  (1) PR 35: the `stdlib/*` bundles call `Deno.*` internally and only work
-  under the global script shim, so reusing them for in-process engines
-  (which have no `Deno`, decision 1) needs a module-local `Deno` binding
-  injected by `tools/run-stdlib/build.mjs` (esbuild `inject`), built from
-  the same member table as `deno-shim.cjs`; (2) PR 36: esbuild `--alias`
-  maps package names, not subpaths, so `fs/walk`-style imports can reach a
-  single bundle only if the bundles are packaged as
-  `@quarto/std-<name>` packages with a wildcard `exports` entry under
-  `share/extension-build/node_modules`; the `importMapAliases` unit test
-  expectations and the `prepare-dist` step change accordingly. PR 35's
-  changelog "stdlib/* imports keep working" becomes "for the modules in
-  the matrix"; `FileHandler` and `serveDir` are documented unsupported.
-- **B8, dual-runtime combinations** (R08). One table in PR 33 (next to
-  Task 13): CLI runtime (Node; Deno via `QUARTO_RUNTIME` if Spike #2
-  passed) × script runtime (Node; Deno via `QUARTO_RUN_RUNTIME`), with the
-  executable each uses and the support window (until PR 37). Rule: code in
-  `src/` that spawns Node uses `architectureToolsPath("node")` (honours
-  `QUARTO_NODE`), never `execPath()`, which is the CLI's own runtime;
-  `package/src` (`quarto-bld`, always Node) may use `execPath()`. Audit
-  found so far: PR 35 `runOnNode()` (C row 35 also names it), PR 36
-  `typeCheck()` (runs `tsc` with `execPath()`), PR 33 `bundleQuarto` and
-  PR 35 `buildRunStdlib` (quarto-bld, fine). Add a grep to PR 33's
-  acceptance, a doc comment on `execPath()` in `_TEMPLATE.md` and PR 28,
-  and references from 35 and 37.
-- **B9, refresh.** README table, dependency graph and progress metric from
-  the corrected graph (B2 and B6 already updated their rows and edges;
-  check the whole thing once), this file's reading order (add
-  `TRIAGE-2026-10-16.md` to "Start here", mark the pass as done), the
-  "Known loose ends" below, and one line per B item in
-  `TRIAGE-2026-10-16.md` naming the resolving commit.
+Three "Decision needed" entries were added by B7 where the triage did not
+cover a mechanism, each with its recommendation picked and the plan written
+for it: PR 35 Decision 3, PR 36 Decisions 3 and 4 (above). The C-row
+correction of `aliasTarget()` in PR 36 is subsumed by PR 36 Decision 4.
 
 Two notes for whoever continues: the B1 commit carries the maintainer's
 author identity by mistake (an amend and force-push was refused; the
 attribution line is in the message); the triage's C rows for PRs 33, 35
-and 36 overlap files B2, B4 and the pending B7/B8 edit, so run them after
-B9 as the triage says.
+and 36 overlap files that B2, B4, B7 and B8 edited, and can run now that
+the pass has landed.
 
 ## How to resume
 
@@ -142,17 +116,28 @@ B9 as the triage says.
    `_TEMPLATE.md`.
 3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the
    test runner is decided by Spike V in `SPIKES.md` before PR 31.
-4. Open the plans as PRs against `main` in the README order: PR 02 first, then
+4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task
+   per plan file, in parallel where the triage marks it), then the re-read
+   of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for.
+5. Open the plans as PRs against `main` in the README order: PR 02 first, then
    00a and 00b, then 03–06 in parallel, then 07. Each plan names its
    branch, executor and verification commands.
-5. Keep the README status column current as PRs merge.
+6. Keep the README status column current as PRs merge.
 
 ## Known loose ends in the plans
 
-- `00-assessment.md` and PR 22 still cite the inventory-era "71 files with
-  direct std imports" and "166 `testing/asserts` imports"; PR 02's script
-  measures 76 and 161 with a wider module list and says so. Not reconciled on
-  purpose (narrative vs. tool output).
+- `00-assessment.md` still cites the inventory-era "71 files with direct std
+  imports" and "166 `testing/asserts` imports"; PR 02's script measures 75
+  `src` files before the std boundary allow-list and 49 after it (B1), and
+  161 in `tests`, and says so. Not reconciled on purpose (narrative vs. tool
+  output).
+- Bucket C of `TRIAGE-2026-10-16.md` is not applied: plans 00b, 14b, 26, 27,
+  28, 29, 30, 31, 32, 33, 34, 35, 36 still carry the defects its C table
+  names. The line numbers in the review and triage were measured at
+  `075cbf4`; re-grep before trusting one.
+- Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both
+  harness variants and PR 32 cannot make the Node matrix required until the
+  spike is re-run. The schedule has no slot for that re-run yet.
 - PR 07 was written for porting puppeteer to `puppeteer-core` as asked, but
   its author found the launch helpers have no callers and recommends deleting
   them instead. Decide before executing PR 07.

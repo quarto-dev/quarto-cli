@@ -15,9 +15,10 @@ the reading order. This README is the execution index.
   decisions taken in its section 6). The plans below are the reworked version.
 - `REVIEW-2026-10-16.md`: the Codex review of the reworked plans (R01–R21 and
   eleven open decisions). `TRIAGE-2026-10-16.md` verifies each finding and
-  splits the follow-up into decisions, a reconciliation pass and local plan
-  corrections. Until that pass lands, the plans still carry the R01–R21
-  defects.
+  splits the follow-up into decisions (A, taken), a reconciliation pass (B,
+  landed on 2026-10-16; the commit per item is listed in the triage) and
+  local plan corrections (C, not yet applied: the plans its table names
+  still carry their C-row defects).
 - `SPIKES.md`: the two time-boxed spikes that sit inside Phase 2 (Spike #2 on
   Deno's Node compatibility and the dual-runtime window; Spike V on the test
   runner). Their outcomes set constants in PRs 28, 29, 31, 33 and 37.
@@ -122,6 +123,36 @@ them. Change them in the plan that decides them, not downstream.
 - `tests/run-tests.sh` accepts files only, never directories: plans write
   `$(find unit/ral -name '*.test.ts')`.
 
+## Shared rules and tables
+
+Each rule or table below is written once, in the plan that owns it, and the
+other plans refer to it by file and section (reconciliation pass of
+2026-10-16, bucket B of `TRIAGE-2026-10-16.md`). Change it in its owner.
+
+- The std boundary rule and `kStdAllowListed`: PR 02, Context (PR 22's
+  inventory table is the source; PR 25, this README and `_TEMPLATE.md` refer
+  to it).
+- The runtime residue table (every `Deno.*` or Deno CLI use kept after
+  Phase 1, with its runtime, owner PR, removal PR and gate): PR 25, Context
+  (PRs 24, 33, 35, 36, 37 and 39 refer to it).
+- The `deno_ral` vocabulary (env key validation, `exit` draining, the KV file
+  rule, `execPath()`): `_TEMPLATE.md`, "Shared vocabulary".
+- The builder contract (`bundle()` inputs, CLI and fixture modes, the interop
+  prelude): PR 26, Interfaces (PRs 20b, 31, 32 and 33 refer to it).
+- The CI graph after Deno removal (events, OSes, bucket generation, required
+  check names): PR 37, Context (PR 32 refers to it).
+- Spike V scheduling and its inconclusive outcome: `SPIKES.md`, Spike V
+  (after PR 30; PRs 31 and 32 refer to it).
+- The supported migration surface matrix, the "not available on Node" table,
+  the version rule for `npm:`/`jsr:` specifiers and the governing-lockfile
+  table: PR 35, Spec, "Supported migration surface" (PRs 00c, 34, 36 and 37
+  refer to it).
+- The dual-runtime combinations table (CLI runtime × script runtime until
+  PR 37, with the executable each uses) and the rule that `src/` spawns Node
+  on `architectureToolsPath("node")` and Deno on `requireDenoToolBinary()`,
+  never on `execPath()`: PR 33, "Dual-runtime combinations until PR 37"
+  (PRs 28, 35, 36, 37 and `_TEMPLATE.md` refer to it).
+
 ## How to execute a plan
 
 ```bash
@@ -201,9 +232,9 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 
 | PR | Plan | What | Depends on | Executor | Size | Status |
 |---|---|---|---|---|---|---|
-| 33 | [33-build-tooling-node.md](33-build-tooling-node.md) | CLI launchers (shell, batch, Rust) run Node; Deno kept as a tool; `quarto install deno`; `quarto-bld` and `prepare-dist` on Node; `tsc`; environment contract; `ensure.mjs` dev bundles; Deno CLI dev utilities off `deno info`/`fmt`/`check`; `QUARTO_RUNTIME` if S2 passes | 32, 00b, 20b | Opus | L | planned |
+| 33 | [33-build-tooling-node.md](33-build-tooling-node.md) | CLI launchers (shell, batch, Rust) run Node; Deno kept as a tool; `quarto install deno`; `quarto-bld` and `prepare-dist` on Node; `tsc`; environment contract; `ensure.mjs` dev bundles; Deno CLI dev utilities off `deno info`/`fmt`/`check`; `QUARTO_RUNTIME` if S2 passes, with the dual-runtime combinations table | 32, 00b, 20b | Opus | L | planned |
 | 34 | [34-installers-and-check.md](34-installers-and-check.md) | Installers ship Node with Node's entitlements and OS minimums; `quarto check` Node row; conda; the 17-row runtime contract table with tests; docs | 33 | Opus | M | planned |
-| 35 | [35-user-scripts-compat.md](35-user-scripts-compat.md) | `.ts` scripts run on Node by default (per-file esbuild compile, on-demand `Deno` shim, 34 `stdlib/*` bundles); `QUARTO_RUN_RUNTIME` / `script-runtime` selects the Deno tool; `juice.ts` and `ast-diagram` on Node APIs | 33, 31, 00c | Opus | L | planned |
+| 35 | [35-user-scripts-compat.md](35-user-scripts-compat.md) | `.ts` scripts run on Node by default (per-file esbuild compile, on-demand `Deno` shim, 34 `stdlib/*` bundles); `QUARTO_RUN_RUNTIME` / `script-runtime` selects the Deno tool; the supported migration surface matrix and the version rule; `juice.ts` and `ast-diagram` on Node APIs | 33, 31, 00c | Opus | L | planned |
 | 36 | [36-build-ts-extension-node.md](36-build-ts-extension-node.md) | `build-ts-extension` on esbuild with the default import map served on Node (`log`/`fs` as `@quarto/std-*` packages from PR 35's builder); warning for prebuilt engines that reference `Deno.` | 33, 35 | Opus | M | planned |
 | 37 | [37-ci-switch-and-deno-removal.md](37-ci-switch-and-deno-removal.md) | Stop downloading Deno; remove `QUARTO_RUNTIME`, the nightly Deno matrix, vendoring, `deno.jsonc`, `deno_std`, `deno.lock`; backport checklist step; dev-docs updates | 33–36, 39 | Sonnet | M | planned |
 | 38 | [38-lint-format-typecheck-tooling.md](38-lint-format-typecheck-tooling.md) | `dprint` (Deno-parity config) and `oxlint` (61 matching rules) on `src/`; drop `@types/deno` | 37 | Sonnet | M | planned |
