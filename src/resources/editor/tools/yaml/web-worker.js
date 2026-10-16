@@ -20712,6 +20712,42 @@ try {
             }
           },
           {
+            name: "open-graph",
+            schema: {
+              anyOf: [
+                "boolean",
+                null,
+                {
+                  ref: "open-graph-config"
+                }
+              ]
+            },
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Publish open graph metadata for this page. Options set here are merged\nwith the `open-graph` options of the `website` metadata.\n"
+          },
+          {
+            name: "twitter-card",
+            schema: {
+              anyOf: [
+                "boolean",
+                null,
+                {
+                  ref: "twitter-card-config"
+                }
+              ]
+            },
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Publish twitter card metadata for this page. Options set here are merged\nwith the `twitter-card` options of the `website` metadata.\n"
+          },
+          {
             name: "image-lazy-loading",
             schema: "boolean",
             tags: {
@@ -24787,6 +24823,8 @@ try {
             short: "The title for the main image on the about page.",
             long: "The title for the main image on the about page. Used when\n<code>about</code> does not set its own <code>image-title</code>."
           },
+          "Publish open graph metadata for this page. Options set here are\nmerged with the <code>open-graph</code> options of the\n<code>website</code> metadata.",
+          "Publish twitter card metadata for this page. Options set here are\nmerged with the <code>twitter-card</code> options of the\n<code>website</code> metadata.",
           {
             short: "If true, this page\u2019s image in a listing will only load when it comes\ninto view.",
             long: 'Enables lazy loading for this page\u2019s image when the page appears as\nan item in a listing. If true, the listing image element will have\n<code>loading="lazy"</code>, and will only load when it comes into\nview.\nIf false, the image will load immediately. This overrides the\nlisting\u2019s <code>image-lazy-loading</code> option for this item.'
@@ -25727,12 +25765,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 218225,
+          _internalId: 219833,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 218217,
+              _internalId: 219825,
               type: "enum",
               enum: [
                 "png",
@@ -25748,7 +25786,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 218224,
+              _internalId: 219832,
               type: "anyOf",
               anyOf: [
                 {

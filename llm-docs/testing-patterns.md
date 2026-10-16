@@ -6,6 +6,8 @@ key_files:
   - tests/quarto-cmd.ts
   - tests/verify.ts
   - tests/utils.ts
+  - tests/unit/schema-validation/utils.ts
+  - src/core/schema/utils.ts
 ---
 
 # Quarto Test Patterns
@@ -487,6 +489,19 @@ testQuartoCmd(
 ```
 
 Run test **without fix** first to verify it fails, then verify it passes with fix.
+
+## Schema Validation Tests
+
+When the question is whether a YAML value is accepted or rejected (a schema added or changed in `src/resources/schema/`), test it with a unit test under `tests/unit/schema-validation/`, not a smoke-all document per value.
+A unit test validates YAML strings directly against the real schema in milliseconds, and a new case is one table row instead of one render.
+Example: `tests/unit/schema-validation/front-matter-social-metadata.test.ts`, a table of front matter snippets with the expected outcome.
+
+- Front matter and `_metadata.yml` validate against `getFrontMatterSchema()` (`src/core/lib/yaml-schema/front-matter.ts`), the schema used at render time; `_quarto.yml` validates against `getProjectConfigSchema()` (`src/core/lib/yaml-schema/project-config.ts`).
+- Validate with `readAndValidateYamlFromMappedString` and assert on `yamlValidationErrors`; wrap tests in `yamlValidationUnitTest` (`tests/unit/schema-validation/utils.ts`), which initializes the schema state.
+- Include valid rows next to invalid ones: they catch a schema that is too strict, such as rejecting an empty value the code handles.
+- The schema is loaded from the generated `src/resources/editor/tools/yaml/yaml-intelligence-resources.json`, not from the `.yml` source. Run `dev-call build-artifacts` after editing the schema, otherwise the test runs against the old schema. To prove RED, restore the old generated files (or the old `.yml` and rebuild), not the `.yml` alone.
+
+Use a render test only for what happens after validation, such as the output an option produces.
 
 ## Smoke-All Tests (YAML-Based)
 
