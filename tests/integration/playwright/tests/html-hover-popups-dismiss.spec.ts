@@ -114,3 +114,47 @@ test.describe("interactive popup and focus", () => {
     await expect(popup).toBeVisible();
   });
 });
+
+test.describe("code-annotations: select", () => {
+  const selectUrl = "html/hover-popups-dismiss-select.html";
+  const selector = "button.code-annotation-anchor";
+
+  test("Esc closes a popup opened by click", async ({ page }) => {
+    await page.goto(getUrl(selectUrl), { waitUntil: "load" });
+    const trigger = page.locator(selector);
+    const popup = page.locator(".tippy-box", { hasText: "annotation text" });
+
+    await trigger.click();
+    await expect(popup).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(popup).toBeHidden();
+  });
+
+  test("Esc closes a popup opened from the keyboard", async ({ page, browserName }) => {
+    await page.goto(getUrl(selectUrl), { waitUntil: "load" });
+    const trigger = page.locator(selector);
+    const popup = page.locator(".tippy-box", { hasText: "annotation text" });
+
+    expect(await tabUntilFocused(page, browserName, trigger)).toBe(true);
+    await page.keyboard.press("Enter");
+    await expect(popup).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(popup).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+});
+
+test("revealjs: Esc closes a citation popup without opening the overview", async ({ page }) => {
+  await page.goto(getUrl("revealjs/hover-popups-dismiss.html#/citation"), { waitUntil: "load" });
+  const trigger = page.locator('a[role="doc-biblioref"]');
+  const popup = page.locator(".tippy-box", { hasText: "TeXbook" });
+
+  await trigger.hover();
+  await expect(popup).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(popup).toBeHidden();
+  await expect(page.locator(".reveal")).not.toHaveClass(/\boverview\b/);
+});
