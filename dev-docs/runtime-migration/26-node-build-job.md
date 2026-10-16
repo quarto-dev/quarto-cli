@@ -6,7 +6,7 @@
 **Phase:** 2. **Depends on:** PR 01 (deterministic bslib Sass ordering: without it two renders never diff clean), PR 03, 04, 05, 06, 07 (every import-map value is `jsr:` or `npm:`), PR 23 (`tests/harness.ts` registers through `Deno.test({...})`, the call the Node adapter implements; the layer tests live in `tests/unit/ral/`). **Unblocks:** Spike #2 (`SPIKES.md`), PR 27, 27b, 28, 29, 30, 31, 32.
 **Branch:** `rt/26-node-build-job`.
 **Suggested executor:** Opus. The resolver, the shim inventory, the test adapter and the known-failures ratchet need judgement about what the bundle and the tests really reference; the rest is mechanical.
-**Size:** M (17 new files, 3 modified; nothing under `src/`).
+**Size:** M (19 new files, 3 modified; nothing under `src/`).
 **Ships on:** Deno; nothing under `src/` changes. Node: the new `node-unit` job (Linux and Windows) is **not** `continue-on-error` and is the per-PR real-Node signal; the `node-render` job is `continue-on-error: true` until PR 32.
 
 ## Spec
@@ -95,14 +95,14 @@ CLI: `node tools/node-bundle/build.mjs [--entry src/quarto.ts] [--out tools/node
 | A bare specifier from first-party code that an import-map entry matches (`resolveBare` → `mapped: true`: `path`, `fs/walk`, `zod`, …) | the npm target is resolved from the repository root (`resolveDir: root`), because Task 2 installs every import-map package in the root `node_modules`; the resolved file then enters ordinary resolution: its own imports have a `node_modules` importer and take the first row. Recorded in `<outfile>.resolved.json`. |
 | A bare specifier from first-party code that no entry matches (`mapped: false`: `esbuild`, `ws`, a `devDependency`) | resolved from the importer's directory (`resolveDir: args.resolveDir`), as Node would; for a file under the repository this reaches the root `node_modules` by the usual walk. |
 
-A first-party bare built-in without the `node:` prefix therefore still takes the import map (`path` → `@std/path`), as it does on Deno; only packages are exempt. The build-time check is `tools/node-bundle/build.test.mjs` (Task 3): a fixture with a root `inner@1`, a `dep` that nests `inner@2` and imports bare `path` must bundle with `inner@2` and without `@jsr/std__path`. This is the bundled counterpart of PR 31's unbundled loader rule, so the bundled execution graph and the unbundled test graph resolve packages the same way.
+A first-party bare built-in without the `node:` prefix therefore still takes the import map (`path` → `@std/path`), as it does on Deno; only packages are exempt. The build-time check is `tools/node-bundle/build.test.mjs` (Task 3): a fixture with a root `inner@1`, a `dep` that nests `inner@2` and imports bare `path` must bundle with `inner@2` and without `@jsr/std__path`, and the bundle, run, must print what `node entry.ts` prints unbundled from the fixture directory (the comparison R03's "Later validation" in `REVIEW-2026-10-16.md` asks for). This is the bundled counterpart of PR 31's unbundled loader rule, so the bundled execution graph and the unbundled test graph resolve packages the same way.
 
 **The builder contract (owned by this plan; PRs 20b, 31, 32 and 33 refer here).** One `bundle()` serves every bundle in the repository, in two modes that differ only in their inputs:
 
 | Input | CLI mode (`build.mjs` CLI; PR 33: `ensure.mjs` dev bundles, `bundleQuarto()` for `bin/quarto.js`, Task 16's module graph) | Fixture mode (`bundleTest()` in `build-test.mjs`: one test file, or a layer script with `--script`; used by `run-unit-on-node.mjs` until PR 32 and by `tests/unit/ral/layer-script.ts` from PR 26 on) |
 |---|---|---|
 | `entry`, `outfile` | `src/quarto.ts` (or `--entry`), `tools/node-bundle/dist/quarto.mjs` (or `--out`); PR 33: `package/dist/bin/quarto-dev.mjs`, `quarto-bld.mjs`, `package/pkg-working/bin/quarto.js` | the test file, `tools/node-bundle/dist/tests/<relative path>.mjs` |
-| interop prelude (always, not an option) | `import { createRequire } from "node:module"; const require = createRequire(import.meta.url); const __filename = fileURLToPath(import.meta.url); const __dirname = dirname(__filename);` (the three CommonJS globals `web-tree-sitter`'s UMD glue reads when `process` exists, PR 20b; `tools/deno-esbuild-bundle.ts` defines the same three for the Deno bundle until PR 33 deletes it) | same |
+| interop prelude (always, not an option) | `import { createRequire } from "node:module"; const require = createRequire(import.meta.url); const __filename = fileURLToPath(import.meta.url); const __dirname = dirname(__filename);` (the three CommonJS globals `web-tree-sitter`'s UMD glue reads when `process` exists, PR 20b; `tools/deno-esbuild-bundle.ts` defines the same three for the Deno bundle until PR 33 deletes it). Checked twice (R04's "Later validation"): `build.test.mjs`'s prelude case runs a bundled UMD-style module that reads the three, and the `node-render` job's `simple.qmd` initialises tree-sitter on every render (Acceptance criteria) | same |
 | `banner` | none | `importLine(outfile, node-test-adapter.mjs)` (test files only), the `__quartoImportMeta` object, `globalThis.__QUARTO_TEST_ORIGIN__ = <file URL>` (test files only) |
 | `define` | `{ "import.meta.main": "true" }` while `src/quarto.ts` guards `main()` on it; `{}` once PR 19's `isMainModule` reads the real `import.meta` (PR 33 makes `{}` the default) | `{ "import.meta": "__quartoImportMeta" }` so `isMainModule` is false inside a test bundle and `src/quarto.ts` never starts the CLI |
 | `shim` | `true` (the `deno-shim.mjs` import first) until PR 33 deletes the shim and the option; no caller passes it | same default; no caller passes it |
@@ -193,7 +193,7 @@ Nothing else is rewritten, so a remaining difference is a real one. The caller e
 - Create: `tools/node-bundle/import-map.mjs`, `tools/node-bundle/check-deps.mjs`, `tools/node-bundle/check-deps.test.mjs`
 - Create: `tools/node-bundle/build.mjs`, `tools/node-bundle/build.test.mjs`, `tools/node-bundle/check-shim.mjs`, `tools/node-bundle/check-shim.test.mjs`
 - Create: `tools/node-bundle/deno-shim.mjs`
-- Create: `tools/node-bundle/node-test-adapter.mjs`, `tools/node-bundle/build-test.mjs`, `tools/node-bundle/junit.mjs`, `tools/node-bundle/junit.test.mjs`, `tools/node-bundle/run-unit-on-node.mjs`, `tools/node-bundle/known-failures.json`
+- Create: `tools/node-bundle/node-test-adapter.mjs`, `tools/node-bundle/build-test.mjs`, `tools/node-bundle/build-test.test.mjs`, `tools/node-bundle/fixtures/imports-cli.test.ts`, `tools/node-bundle/junit.mjs`, `tools/node-bundle/junit.test.mjs`, `tools/node-bundle/run-unit-on-node.mjs`, `tools/node-bundle/known-failures.json`
 - Create: `tools/node-bundle/quarto-node` (executable bit set), `tools/node-bundle/normalize-html.mjs`, `tools/node-bundle/normalize-html.test.mjs`
 - Create: `tests/unit/ral/layer-script.ts` (helper for layer tests that spawn a script importing `src/deno_ral/`; used by PR 28 and PR 30)
 - Create: `package.json`, `package-lock.json`, `.npmrc`
@@ -206,10 +206,10 @@ Nothing else is rewritten, so a remaining difference is a real one. The caller e
 ### Acceptance criteria
 
 - `npm ci && node tools/node-bundle/build.mjs --check-shim` exits 0 on a clean checkout with Node 26 and prints `bundled src/quarto.ts -> tools/node-bundle/dist/quarto.mjs (...)` followed by `shim: N members referenced, 0 missing, U unused`; `head -c 600 tools/node-bundle/dist/quarto.mjs` shows the interop prelude defining `require`, `__filename` and `__dirname`.
-- `node --test "tools/node-bundle/*.test.mjs"` passes, `build.test.mjs` included: a package's nested dependency version survives bundling and its bare `path` import stays the Node built-in (the resolver scope rule, Interfaces).
+- `node --test "tools/node-bundle/*.test.mjs"` passes, `build.test.mjs` and `build-test.test.mjs` included: a package's nested dependency version survives bundling, its bare `path` import stays the Node built-in and the bundle prints what the unbundled `node entry.ts` prints (the resolver scope rule, Interfaces; R03); a bundled UMD-style module reads `require`, `__filename` and `__dirname` from the interop prelude, and the same bundle without the prelude fails with `ReferenceError` (R04); a fixture that imports `src/quarto.ts`, bundled with `bundleTest()` and run under `node --test`, reports one passing test and prints no CLI output (R04, fixture mode of the builder contract).
 - `tools/node-bundle/quarto-node --version` prints `99.9.9`; `sleep 10 | timeout 5 tools/node-bundle/quarto-node --version` exits 0 (lazy stdin; an eager stdin stream makes `timeout` kill it).
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` exits 0 on Linux, and its JUnit-derived tally is printed per file.
-- `tools/node-bundle/quarto-node render dev-docs/runtime-migration/spike/tests/simple.qmd` produces `simple.html`; after `normalize-html.mjs --root`, `diff -r -x .quarto` against the Deno render of the same file is empty.
+- `tools/node-bundle/quarto-node render dev-docs/runtime-migration/spike/tests/simple.qmd` produces `simple.html`; after `normalize-html.mjs --root`, `diff -r -x .quarto` against the Deno render of the same file is empty. Every render initialises tree-sitter (`render-shared.ts:44-45` → `initState` → `initYamlIntelligenceResourcesFromFilesystem` → `initTreeSitter`; PR 20b's inventory row), so this render and the `node-render` job are the HTML render R04's "Later validation" asks for: through `tree-sitter-deno.js` on the shim's `Deno.readFileSync`/`realPathSync` until PR 20b lands, through `web-tree-sitter`'s UMD glue on the interop prelude after it. A `ReferenceError: __dirname is not defined` at the first render is the prelude missing (PR 20b, Risks).
 - `node tools/node-bundle/check-deps.mjs` exits 0; editing one version in `src/import_map.json` makes it exit 1 with a one-line explanation per difference.
 - The workflow runs on pull requests; `node-unit` has no `continue-on-error`, `node-render` has `continue-on-error: true` and uploads `node-render-diff`.
 - No file under `src/` changes (`git diff --stat main -- src/` is empty).
@@ -764,9 +764,9 @@ if (isMain) {
 }
 ```
 
-- [ ] **Step 5: Write the resolver-scope test**
+- [ ] **Step 5: Write the resolver-scope and prelude tests**
 
-The fixture is the one R03 of `REVIEW-2026-10-16.md` asks for: two versions of a transitive dependency and a dependency importing bare `path`. It lives in a temp directory with its own `node_modules`, so it needs no package from the repository; `bundle()` still loads `src/import_map.json` from the repository root, which is what makes bare `path` a trap.
+The first fixture is the one R03 of `REVIEW-2026-10-16.md` asks for: two versions of a transitive dependency and a dependency importing bare `path`, and the bundle compared with the unbundled Node run of the same entry. It lives in a temp directory with its own `node_modules`, so it needs no package from the repository; `bundle()` still loads `src/import_map.json` from the repository root, which is what makes bare `path` a trap. `node entry.ts` runs unbundled through Node's type stripping (Node 26; the entry has no type syntax anyway) and resolves `dep` from the fixture's `node_modules`, so both runs must print the same object. The second fixture is R04's: a dependency shaped like `web-tree-sitter` 0.20.2's emscripten glue (PR 20b), which reads `__dirname` and `__filename` and calls `require("fs")` when `process` exists; the bundle must run it, and the same bundle with the prelude lines removed must fail the way a missing prelude fails in the CLI.
 
 ```js
 // tools/node-bundle/build.test.mjs
@@ -774,17 +774,25 @@ The fixture is the one R03 of `REVIEW-2026-10-16.md` asks for: two versions of a
 //
 // Resolver scope (26-node-build-job.md, Interfaces): the import map applies
 // to Quarto's own imports only; packages resolve as Node would, relative to
-// their importer.
+// their importer, and the bundle behaves like the unbundled Node run.
+// Interop prelude (builder contract): bundled UMD glue reads require,
+// __filename and __dirname.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { bundle } from "./build.mjs";
 
 function write(file, text) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text);
+}
+
+function run(file, cwd) {
+  const r = spawnSync(process.execPath, [file], { cwd, encoding: "utf8" });
+  return { status: r.status, stdout: r.stdout.trim(), stderr: r.stderr };
 }
 
 test("packages resolve relative to their importer and keep bare built-ins", async () => {
@@ -806,18 +814,57 @@ test("packages resolve relative to their importer and keep bare built-ins", asyn
     assert.doesNotMatch(js, /inner@1 at the root/, "the root inner@1 must not replace dep's nested copy");
     assert.doesNotMatch(js, /std__path/, "dep's bare `path` must stay the Node built-in, not Quarto's @std/path alias");
     assert.deepEqual(JSON.parse(fs.readFileSync(outfile + ".resolved.json", "utf8")), {}, "nothing in the fixture goes through the import map");
+    // R03 "Later validation": the bundle behaves like the unbundled Node run of the same entry.
+    const bundled = run(outfile, dir);
+    const unbundled = run(path.join(dir, "entry.ts"), dir);
+    assert.equal(unbundled.status, 0, unbundled.stderr);
+    assert.equal(bundled.status, 0, bundled.stderr);
+    assert.equal(unbundled.stdout, JSON.stringify({ sep: path.sep, inner: "inner@2 nested under dep" }));
+    assert.equal(bundled.stdout, unbundled.stdout, "the bundle and the unbundled run must print the same");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the interop prelude gives bundled UMD glue require, __filename and __dirname", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "quarto-bundle-prelude-"));
+  try {
+    // The shape of web-tree-sitter 0.20.2's emscripten glue (PR 20b): when `process`
+    // exists it reads __dirname and __filename and calls require("fs").
+    write(path.join(dir, "node_modules/glue/package.json"), JSON.stringify({ name: "glue", version: "1.0.0", main: "glue.js" }));
+    write(path.join(dir, "node_modules/glue/glue.js"), [
+      'var scriptDirectory = "";',
+      'if (typeof process !== "undefined" && typeof require === "function") {',
+      '  scriptDirectory = __dirname + "/";',
+      '  var nodeFS = require("fs");',
+      '  module.exports = { scriptDirectory, file: __filename, readFileSync: typeof nodeFS.readFileSync };',
+      '} else { module.exports = { scriptDirectory: "browser" }; }',
+    ].join("\n"));
+    write(path.join(dir, "entry.ts"), 'import glue from "glue";\nconsole.log(JSON.stringify(glue));\n');
+    const outfile = path.join(dir, "out", "entry.mjs");
+    await bundle({ entry: path.join(dir, "entry.ts"), outfile, shim: false, sourcemap: false });
+    const r = run(outfile, dir);
+    assert.equal(r.status, 0, r.stderr);
+    assert.deepEqual(JSON.parse(r.stdout), { scriptDirectory: path.dirname(outfile) + "/", file: outfile, readFileSync: "function" });
+    // Without the prelude the same bundle fails at the first read of __dirname (PR 20b, Risks).
+    const stripped = path.join(dir, "out", "stripped.mjs");
+    const isPrelude = (l) => /^(const|import) .*__quarto(CreateRequire|FileURLToPath|Dirname)|^const (require|__filename|__dirname) =/.test(l);
+    fs.writeFileSync(stripped, fs.readFileSync(outfile, "utf8").split("\n").filter((l) => !isPrelude(l)).join("\n"));
+    const sr = run(stripped, dir);
+    assert.notEqual(sr.status, 0, "a bundle without the prelude must not run");
+    assert.match(sr.stderr, /ReferenceError: __dirname is not defined|Dynamic require/);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
 ```
 
-Before the `node_modules` importer check in `build.mjs`, this test fails on the third assertion: `dep`'s `path` goes through the import map, `@jsr/std__path` is resolved from the repository root and its module path comments appear in the bundle (esbuild labels every inlined module with its path). With the check, it passes.
+Before the `node_modules` importer check in `build.mjs`, the first test fails on the third assertion: `dep`'s `path` goes through the import map, `@jsr/std__path` is resolved from the repository root and its module path comments appear in the bundle (esbuild labels every inlined module with its path). With the check, it passes, and the run comparison prints `{"sep":"/","inner":"inner@2 nested under dep"}` on both sides (`"\\"` on Windows). In the second test esbuild wraps `glue.js` in its CommonJS shim and leaves `__dirname`, `__filename` and the `require` fallback as free references to the bundle's top level, which is where the prelude defines them; the stripped copy proves the assertion is about the prelude and not about esbuild. Both tests ran on Node 26.12.0 and 22.22 against this file's `bundle()` (the extracted body with the plan's `import-map.mjs` and the repository's `src/import_map.json`).
 
 - [ ] **Step 6: Run the tooling tests**
 
 Run: `node --test tools/node-bundle/check-shim.test.mjs tools/node-bundle/build.test.mjs`
-Expected: `# pass 2`, `# fail 0`.
+Expected: `# pass 3`, `# fail 0`.
 
 - [ ] **Step 7: Commit**
 
@@ -1459,7 +1506,7 @@ node tools/node-bundle/normalize-html.mjs --root /tmp/rt26/deno /tmp/rt26/deno
 node tools/node-bundle/normalize-html.mjs --root /tmp/rt26/node /tmp/rt26/node
 diff -r -x .quarto /tmp/rt26/deno /tmp/rt26/node && echo "IDENTICAL"
 ```
-Expected: both renders print `Output created: simple.html`; the diff prints `IDENTICAL` (PR 01 made the bslib Sass order deterministic; the bootstrap hash and the absolute root are normalised; `.quarto/` is excluded).
+Expected: both renders print `Output created: simple.html`; the diff prints `IDENTICAL` (PR 01 made the bslib Sass order deterministic; the bootstrap hash and the absolute root are normalised; `.quarto/` is excluded). The Node render initialised tree-sitter on the way (every render does; Acceptance criteria), which is R04's render check.
 
 - [ ] **Step 6: Commit**
 
@@ -1473,6 +1520,7 @@ git commit -m "node-bundle: quarto-node launcher and render-output normaliser"
 **Files:**
 - Create: `tools/node-bundle/junit.mjs`, `tools/node-bundle/junit.test.mjs`
 - Create: `tools/node-bundle/node-test-adapter.mjs`, `tools/node-bundle/build-test.mjs`
+- Create: `tools/node-bundle/build-test.test.mjs`, `tools/node-bundle/fixtures/imports-cli.test.ts`
 - Create: `tools/node-bundle/run-unit-on-node.mjs`, `tools/node-bundle/known-failures.json`
 
 - [ ] **Step 1: Write the failing JUnit parser test**
@@ -1731,7 +1779,55 @@ if (isMain) {
 
 The banner's `import` of the adapter is hoisted with the shim import that `bundle()` puts first, so the order of evaluation is: shim, adapter, then the banner statements, then the test file; the adapter reads `__QUARTO_TEST_ORIGIN__` only when a test registers.
 
-- [ ] **Step 5: Write the runner and the ratchet**
+- [ ] **Step 5: Write the fixture-mode test**
+
+R04's "Later validation" asks for a retained bundled fixture that imports CLI code without executing the CLI entry point. The fixture imports `src/quarto.ts` itself (so it needs `npm ci`, like every other check here, and bundles the whole CLI once), and the test runs it under `node --test`. If `src/quarto.ts`'s guard ran inside the bundle, `main()` would parse `node --test`'s arguments as a Quarto command line and exit before the test registered; the test therefore asserts a single passing test and no CLI output. PR 32 keeps `build-test.mjs` for `layer-script.ts` and this test keeps proving the fixture mode after PR 33's rewrite of `bundle()`.
+
+```ts
+// tools/node-bundle/fixtures/imports-cli.test.ts
+// Copyright (C) 2026 Posit Software, PBC
+//
+// Fixture for build-test.test.mjs: imports the CLI entry module; bundled in
+// fixture mode (import.meta.main is false) the CLI must not start.
+import { quarto } from "../../../src/quarto.ts";
+
+Deno.test("importing the CLI does not start it", () => {
+  if (import.meta.main !== false) throw new Error("import.meta.main must be false in a test bundle");
+  if (typeof quarto !== "function") throw new Error("the CLI export is not usable");
+});
+```
+
+```js
+// tools/node-bundle/build-test.test.mjs
+// Copyright (C) 2026 Posit Software, PBC
+//
+// Fixture mode of the builder contract (26-node-build-job.md, Interfaces): a
+// bundled test that imports src/quarto.ts runs its tests and never starts the CLI.
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { bundleTest } from "./build-test.mjs";
+import { here } from "./build.mjs";
+
+test("a bundled fixture that imports the CLI runs its tests without starting the CLI", async () => {
+  const out = await bundleTest(path.join(here, "fixtures", "imports-cli.test.ts"));
+  // A child `node --test` started from inside `node --test` must not inherit the
+  // parent's worker channel (NODE_TEST_CONTEXT), or it reports nothing on stdout.
+  const env = { ...process.env };
+  delete env.NODE_TEST_CONTEXT;
+  const r = spawnSync(process.execPath, ["--test", "--test-reporter=tap", out], { encoding: "utf8", env });
+  assert.equal(r.status, 0, r.stderr + r.stdout);
+  assert.doesNotMatch(r.stdout + r.stderr, /Usage:|quarto render/, "the CLI must not start inside the fixture");
+  assert.match(r.stdout, /# pass 1\n/);
+  assert.match(r.stdout, /# fail 0\n/);
+});
+```
+
+Run: `node --test tools/node-bundle/build-test.test.mjs`
+Expected: `# pass 1`, `# fail 0`. Measured on Node 26.12.0 and 22.22 with a stand-in for `src/quarto.ts` (an exported function and `if (import.meta.main) { console.log("CLI STARTED"); process.exit(2); }`): the fixture bundle reads `__quartoImportMeta.main`, which is `false`, and the inner run prints `# pass 1`; without the `NODE_TEST_CONTEXT` deletion the inner run exits 0 with an empty stdout.
+
+- [ ] **Step 6: Write the runner and the ratchet**
 
 ```js
 // tools/node-bundle/run-unit-on-node.mjs
@@ -1860,7 +1956,7 @@ if (problems.length) {
 console.log(`node unit tests: no change against ${rel(knownPath)} (${osKey})`);
 ```
 
-- [ ] **Step 6: The helper for tests that spawn a layer script**
+- [ ] **Step 7: The helper for tests that spawn a layer script**
 
 `tests/unit/ral/layer-script.ts`:
 
@@ -1904,7 +2000,7 @@ export async function layerScriptCommand(
 
 `runtime()` reports `node` inside a test bundle only once PR 27b teaches it the shim marker; until then this helper takes the Deno branch on Node and the spawned `node run …` fails, which lists the (few) tests that use it in `known-failures.json` until PR 27b. No test uses the helper in this PR.
 
-- [ ] **Step 7: Create the known-failures list from a first run**
+- [ ] **Step 8: Create the known-failures list from a first run**
 
 Run:
 ```bash
@@ -1914,7 +2010,7 @@ node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/k
 ```
 Expected: one tally line per `tests/unit/ral/*.test.ts` file, `wrote N entries for linux`, then the second run ends with `node unit tests: no change against tools/node-bundle/known-failures.json (linux)` and exit 0. Inspect every entry: a failure that is a shim gap (a missing or wrong member) is fixed in the shim now instead of being listed; a failure that is a genuine Node difference the Phase 2 PRs fix (for example an `instanceof Deno.errors.X` assertion, a `.cmd` case) stays listed. The Windows section is filled the same way from the first CI run's log (Task 7): copy the `--write` output of a `workflow_dispatch` run with an added `--write` step, or run the two commands on a Windows machine.
 
-- [ ] **Step 8: Prove the ratchet both ways**
+- [ ] **Step 9: Prove the ratchet both ways**
 
 Run:
 ```bash
@@ -1924,10 +2020,10 @@ node tools/node-bundle/run-unit-on-node.mjs --known-failures /tmp/kf.json tests/
 ```
 Expected: `stale known-failures entry: ... > [unit] > definitely-not-a-real-test` and `exit=1`.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
-git add tools/node-bundle/junit.mjs tools/node-bundle/junit.test.mjs tools/node-bundle/node-test-adapter.mjs tools/node-bundle/build-test.mjs tools/node-bundle/run-unit-on-node.mjs tools/node-bundle/known-failures.json tests/unit/ral/layer-script.ts
+git add tools/node-bundle/junit.mjs tools/node-bundle/junit.test.mjs tools/node-bundle/node-test-adapter.mjs tools/node-bundle/build-test.mjs tools/node-bundle/build-test.test.mjs tools/node-bundle/fixtures/imports-cli.test.ts tools/node-bundle/run-unit-on-node.mjs tools/node-bundle/known-failures.json tests/unit/ral/layer-script.ts
 git commit -m "node-bundle: run the deno_ral unit tests on Node with a shrinking known-failures list"
 ```
 
@@ -2212,7 +2308,7 @@ git commit -m "Document the Node bundle tooling"
 
 Before opening the PR:
 
-- `node --test "tools/node-bundle/*.test.mjs"` → all pass (`check-deps`, `check-shim`, `junit`, `normalize-html`).
+- `node --test "tools/node-bundle/*.test.mjs"` → all pass (`check-deps`, `check-shim`, `build`, `build-test`, `junit`, `normalize-html`).
 - `node tools/node-bundle/check-deps.mjs` → `package.json dependencies match src/import_map.json (N packages)`.
 - `node tools/node-bundle/build.mjs --check-shim` → `shim: N members referenced, 0 missing, U unused`.
 - `tools/node-bundle/quarto-node --version` → `99.9.9`; `sleep 10 | timeout 5 tools/node-bundle/quarto-node --version; echo "exit=$?"` → `exit=0`.
@@ -2225,11 +2321,11 @@ Before opening the PR:
 
 ## Review checklist
 
-- [ ] `tools/node-bundle/build.mjs` contains no absolute paths and no clone directories; the only resolution sources are `src/import_map.json`, `node_modules`, and `node:` externals; the import map is consulted only for importers outside `node_modules`, mapped targets resolve from the root and unmapped bare names from the importer (`build.test.mjs` passes); `bundle()` is exported with the inputs of the builder contract, and every bundle starts with the interop prelude (`require`, `__filename`, `__dirname`).
+- [ ] `tools/node-bundle/build.mjs` contains no absolute paths and no clone directories; the only resolution sources are `src/import_map.json`, `node_modules`, and `node:` externals; the import map is consulted only for importers outside `node_modules`, mapped targets resolve from the root and unmapped bare names from the importer, and the bundle runs like the unbundled entry (`build.test.mjs` passes); `bundle()` is exported with the inputs of the builder contract, and every bundle starts with the interop prelude (`require`, `__filename`, `__dirname`; the prelude case of `build.test.mjs` runs bundled UMD glue on it).
 - [ ] A remaining `https://` import-map value fails the build with `unmapped remote import <spec> -> <value>` naming the importer.
 - [ ] `deno-shim.mjs` has no third-party imports other than `ws`; every member is a `Deno.<name> =` assignment on its own line; it does nothing when `globalThis.Deno` exists; stdio streams are lazy; `readDirSync`/`readDir` map ENOENT; the header names PR 27–30, 27b and 33.
 - [ ] `check-shim.mjs` scans the bundle and `src/resources/**/*.js`, handles `Deno?.x` and nested members, prints the unused list.
-- [ ] Test bundles override `import.meta` (`main: false`), so `src/quarto.ts` never starts inside a test.
+- [ ] Test bundles override `import.meta` (`main: false`), so `src/quarto.ts` never starts inside a test (`build-test.test.mjs` proves it on a fixture that imports `src/quarto.ts`).
 - [ ] `known-failures.json` entries were each inspected (no shim gap is listed instead of fixed); the ratchet rejects passes, stale entries and growth without the label.
 - [ ] `package.json` has no `"type": "module"`; `engines.node` is `>=26`; `dependencies` equals `dependenciesFromImportMap`; `ws` and `esbuild` are `devDependencies`; `test:tooling` uses a glob.
 - [ ] `package-lock.json` resolves `@jsr/*` packages from `https://npm.jsr.io` (grep `npm.jsr.io` in the lockfile).
@@ -2255,3 +2351,5 @@ Review items not changed here, with the reason:
 
 - The render job stays at three documents, Linux only, allowed to fail, with `quarto-node check … || true`. Not changed because the per-PR real-Node gate is now `node-unit` (Linux and Windows, not allowed to fail); the render job is a smoke signal for the bundle until PR 32 makes it required and adds the full Node suite and nightly render parity on three OSes.
 - The shim makes Cliffy's internal runtime helpers and `@std/path` take their Deno branches on Node, which can hide Node-only problems. Not changed because the shim is what lets the unmodified sources run on Node before Phase 2 ports the layer; the members those packages reach are listed by `check-shim.mjs` (so they are visible), PR 27b makes `runtime()` see through the shim, and PR 31's runner runs the sources unbundled without the shim, so the PR 32 Node matrix exercises the Node branches of Cliffy and `@std` before PR 33 removes the shim from the shipped bundle.
+
+Re-read against the review's "Later validation" lines (2026-10-16): R03's fixture (two versions of a transitive dependency, a dependency importing bare `path`) was already in Task 3 step 5; the comparison with the unbundled Node run is now in the same test (both runs printed, compared). R04: the HTML render that initialises tree-sitter is the `node-render` job's `simple.qmd` (every render initialises tree-sitter; the Acceptance criteria now say so and name the loader before and after PR 20b), plus a prelude case in `build.test.mjs` that runs bundled UMD glue with and without the prelude so the check does not wait for PR 20b; the retained bundled fixture that imports CLI code is `tools/node-bundle/fixtures/imports-cli.test.ts` with `build-test.test.mjs` (Task 6 step 5). R12 cites this PR only as a scheduling point for Spike V (B6 moved the spike); its "Later validation" belongs to PR 31. The three cases ran on Node 26.12.0 and 22.22.
