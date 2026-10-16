@@ -14,8 +14,10 @@ _quarto:
       ensureHtmlElements:
         - ['meta[name="citation_title"][content="Document title"]']
       ensureHtmlElementContents:
-        selectors: ['.quarto-appendix-citeas em']
+        selectors: ['.quarto-appendix-citeas', '.quarto-appendix-bibtex']
         matches: ['Title']
+      ensureFileRegexMatches:
+        - ['<em>Title</em>']
 ---
 
 An empty `citation: title:` shortcode falls back to the document `title`.

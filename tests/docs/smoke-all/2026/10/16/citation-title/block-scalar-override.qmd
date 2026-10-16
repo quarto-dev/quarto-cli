@@ -15,8 +15,10 @@ _quarto:
       ensureHtmlElements:
         - ['meta[name="citation_title"][content="A folded title"]']
       ensureHtmlElementContents:
-        selectors: ['.quarto-appendix-citeas em']
+        selectors: ['.quarto-appendix-citeas', '.quarto-appendix-bibtex']
         matches: ['Title']
+      ensureFileRegexMatches:
+        - ['<em>Title</em>']
 ---
 
 A folded block scalar `citation: title:` keeps its formatting and has no newline in the metadata.
