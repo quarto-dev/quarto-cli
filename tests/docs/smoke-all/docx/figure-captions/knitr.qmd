@@ -1,0 +1,64 @@
+---
+title: DOCX figure captions and alt text (knitr)
+format: docx
+engine: knitr
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        -
+          # cross-referenced cell
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a01: K1 caption']"
+          # unlabelled cell with fig-cap
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='K2 caption']"
+          # fig-subcap with layout-ncol: both subcaptions and the panel caption
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='(a) K4a sub caption']"
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='(b) K4b sub caption']"
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a02: K4 caption']"
+          # cross-referenced cell without fig-alt
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a03: K5 caption']"
+          # descr of a cross-referenced cell without fig-alt is empty
+          - "//w:tbl[.//w:t[contains(., 'K5 caption')]]//wp:docPr[@descr='']"
+        -
+          # alt text never becomes visible text
+          - "//w:t[contains(., 'ALT-ONLY')]"
+          - "//w:tbl[.//w:t[contains(., 'K5 caption')]]//wp:docPr[@descr!='']"
+---
+
+Pins how figure captions and alt text from knitr cells render in DOCX.
+Visible captions must stay unchanged whatever the filter pipeline does with alt text, and every alt value carries a marker that must never appear in the document text.
+The image description (`descr`) is checked only for the cell without `fig-alt`.
+
+```{r}
+#| label: fig-k1
+#| fig-cap: "K1 caption"
+#| fig-alt: "K1 ALT-ONLY"
+plot(1)
+```
+
+```{r}
+#| fig-cap: "K2 caption"
+#| fig-alt: "K2 ALT-ONLY"
+plot(2)
+```
+
+```{r}
+#| fig-alt: "K3 ALT-ONLY"
+plot(3)
+```
+
+```{r}
+#| label: fig-k4
+#| fig-cap: "K4 caption"
+#| fig-subcap: ["K4a sub caption", "K4b sub caption"]
+#| fig-alt: ["K4a ALT-ONLY", "K4b ALT-ONLY"]
+#| layout-ncol: 2
+plot(4)
+plot(5)
+```
+
+```{r}
+#| label: fig-k5
+#| fig-cap: "K5 caption"
+plot(6)
+```
