@@ -42,6 +42,7 @@ In:
 - `tools/run-stdlib/` (own `package.json`, lockfile, `.npmrc`, `manifest.json` with 34 entries, `build.mjs`, `stdlib/permissions.ts`); output `src/resources/run-stdlib/` (dev, gitignored) and `share/run-stdlib/` (dist).
 - `quarto run --dev` on Node (import-map hook + this PR's hooks).
 - Removal of PR 00c's Deno-side notice; the shim's notice replaces it.
+- The `resources` rows of PR 25's runtime residue table that this PR owns (Task 6): `src/resources/scripts/juice.ts` and `src/resources/tools/ast-diagram/main.ts` on Node APIs, `check-usage.ts`/`.sh` deleted, `make-ast-diagram` through the script run handler; `tools/*.ts` that break under `quarto run --dev` on Node (row 16).
 - Changelog, `src/command/run/run.ts` help text, `dev-docs/runtime-migration/docs-updates.md` row.
 
 Out:
@@ -133,6 +134,7 @@ Deprecation timeline (changelog and docs): 1.11 scripts run on Deno with a notic
 
 - Create: `src/core/run/typescript.ts`, `src/resources/run-compat/register.cjs`, `src/resources/run-compat/deno-shim.cjs`, `tools/run-stdlib/package.json`, `tools/run-stdlib/package-lock.json`, `tools/run-stdlib/.npmrc`, `tools/run-stdlib/manifest.json`, `tools/run-stdlib/build.mjs`, `tools/run-stdlib/stdlib/permissions.ts`
 - Move: `src/resources/deno_std/run_import_map.json` -> `src/resources/run-compat/deno/run_import_map.json`
+- Modify (Task 6): `src/resources/scripts/juice.ts`, `src/resources/tools/ast-diagram/main.ts`, `src/command/dev-call/make-ast-diagram/cmd.ts`, `tools/runtime-boundary-baseline.json`; Delete: `src/resources/scripts/check-usage.ts`, `src/resources/scripts/check-usage.sh`
 - Modify: `src/core/run/deno.ts` (import map path; 00c notice removed), `src/core/run/types.ts`, `src/core/run/register.ts`, `src/command/run/run.ts:52-56`, `src/command/render/project.ts` (lines 333, 855, 914-933, 935-1000), `src/project/types.ts:47-48`, `src/resources/schema/project.yml:44-51`, `package/src/common/configure.ts`, `package/src/common/prepare-dist.ts`, `package/src/common/previewjs.ts` (`buildRunStdlib`), `.gitignore`, `news/changelog-1.12.md`, `dev-docs/runtime-migration/docs-updates.md`
 - Regenerate: `src/resources/schema/json-schemas.json`, `src/resources/types/` (via `quarto dev-call build-artifacts`)
 - Test: `tests/unit/run-stdlib-manifest.test.ts`, `tests/unit/run-compat-hooks.test.ts`, `tests/unit/run-compat-shim.test.ts`, `tests/unit/run-runtime-select.test.ts`, `tests/smoke/run/run-script-node.test.ts`, `tests/smoke/project/project-script-runtime.test.ts` with fixture `tests/docs/project/prepost/script-runtime-deno/` (`_quarto.yml`, `index.qmd`, `which.ts`)
@@ -145,7 +147,8 @@ Deprecation timeline (changelog and docs): 1.11 scripts run on Deno with a notic
 - A script that imports a type without `import type` (`import { Foo, x } from "./types.ts"`), one with an `enum`, and one next to a `"type": "commonjs"` `package.json` all run (`tests/unit/run-compat-hooks.test.ts`).
 - `typeof Deno.noColor` and `typeof Deno.openKv` do not throw in a script that also uses `Deno.cwd()`; a script that never mentions `Deno` sees `typeof Deno === "undefined"`.
 - `QUARTO_RUN_RUNTIME=deno quarto run x.ts` and `project: script-runtime: deno` run on the Deno tool (`navigator.userAgent` starts with `Deno/`); with no Deno available they fail with `Running a TypeScript script needs Deno, which is not installed. Run 'quarto install deno'.`
-- `quarto run --dev tools/check-runtime-boundary.ts` runs on Node with unchanged counts.
+- `quarto run --dev tools/check-runtime-boundary.ts` runs on Node; the `resources` scope falls from PR 25's 11 `Deno.` / 1 std file to 1 / 0 (the engine template, PR 36's row of the residue table), every other count unchanged; `rg -n '\bDeno\.' src/resources/scripts src/resources/tools` prints nothing.
+- A Typst render with a raw HTML table (`astpipeline.lua` runs `quarto run juice.ts`) succeeds with no shim notice in its log; `package/dist/bin/quarto dev-call make-ast-diagram <qmd>` produces the same HTML diagram as on `main`.
 
 ## Plan
 
@@ -1340,7 +1343,71 @@ git add src/project/types.ts src/resources/schema src/resources/types src/comman
 git commit -m "project: script-runtime selects node or deno for pre/post-render scripts"
 ```
 
-### Task 6: Changelog and docs
+### Task 6: Resource scripts and `ast-diagram` on Node; retire `check-usage` (PR 25 runtime residue table, rows 1, 2, 3, 16)
+
+These `.ts` resources ran on the Deno tool and are excluded from the `src` scope (PR 02 `kSrcExclusions`); the `resources` scope counts them. From this PR they would run on Node through the shim, so they are ported to Node APIs here (the shim is for users' scripts, not Quarto's own).
+
+**Files:**
+- Modify: `src/resources/scripts/juice.ts`, `src/resources/tools/ast-diagram/main.ts`, `src/command/dev-call/make-ast-diagram/cmd.ts`, `tools/runtime-boundary-baseline.json`
+- Delete: `src/resources/scripts/check-usage.ts`, `src/resources/scripts/check-usage.sh`
+
+- [ ] **Step 1: `juice.ts`**
+
+`src/resources/filters/normalize/astpipeline.lua:68-69` runs `quarto run <share>/scripts/juice.ts <file>` for raw HTML tables in Typst output. Replace the file's body with:
+
+```ts
+import { readFileSync } from "node:fs";
+import juice from "stdlib/juice";
+
+console.log(juice(readFileSync(process.argv[2], "utf8")));
+```
+
+(`node:fs` and `process` exist on the Deno tool too, so `QUARTO_RUN_RUNTIME=deno` still renders.)
+
+- [ ] **Step 2: `ast-diagram`**
+
+In `src/resources/tools/ast-diagram/main.ts`: delete the `#!/usr/bin/env -S deno run …` line; `import { join } from "https://deno.land/std/path/mod.ts"` -> `import { join } from "node:path"`; `Deno.readTextFile`/`Deno.writeTextFile` -> `readFile`/`writeFile` from `node:fs/promises`; the `new Deno.Command("quarto", { args: [...], stdout: "piped" })` + `output()` -> `execFileSync("quarto", ["pandoc", "-t", "json", markdownFile], { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 })` from `node:child_process`; `Deno.args` -> `process.argv.slice(2)`; `new URL(".", import.meta.url).pathname` -> `dirname(fileURLToPath(import.meta.url))` (`node:url`; the `pathname` form breaks on Windows drive letters). `ast-diagram.ts` and `types.ts` are pure and unchanged.
+
+In `src/command/dev-call/make-ast-diagram/cmd.ts`, replace the `execProcess({ cmd: execPath(), args: ["run", "--allow-read", "--allow-write", "--allow-run", <main.ts>, ...] })` spawn with the script run handler, so the script runs on whatever `selectScriptRuntime()` chooses:
+
+```ts
+    const script = resourcePath(join("tools", "ast-diagram", "main.ts"));
+    const handler = handlerForScript(script);
+    if (!handler) {
+      throw new Error(`No run handler for ${script}`);
+    }
+    await handler.run(script, [...args, "--mode", options.mode || "full"]);
+```
+
+(`handlerForScript` from `../../../core/run/run.ts`; drop the `execProcess` and `execPath` imports if unused.)
+
+- [ ] **Step 3: Delete `check-usage`**
+
+```bash
+git rm src/resources/scripts/check-usage.ts src/resources/scripts/check-usage.sh
+rg -n 'check-usage' src package tests tools
+```
+Expected: no output (the script summarised `deno info` output and has no caller).
+
+- [ ] **Step 4: Ratchet and verify**
+
+Run:
+```bash
+rg -n '\bDeno\.' src/resources/scripts src/resources/tools
+package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline
+package/dist/bin/quarto dev-call make-ast-diagram tests/docs/minimal.qmd
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(rg -l 'typst' smoke/render | tr '\n' ' ')
+```
+Expected: the first `rg` prints nothing; the baseline's `resources` entry becomes 1 `Deno.` (the engine template, PR 36) and 0 std files; `make-ast-diagram` writes its HTML diagram next to the input as on `main`; the Typst render tests pass, and a render of a Typst document with a raw HTML `<table>` (`rg -l '<table' tests/docs/smoke-all/typst`) shows no `Deno compatibility shim` notice in its log. If a `tools/*.ts` script fails under `quarto run --dev` on Node (row 16 of the residue table), fix the script in this PR, as Task 4 step 7 says for the ratchet tool.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/resources/scripts src/resources/tools/ast-diagram src/command/dev-call/make-ast-diagram/cmd.ts tools/runtime-boundary-baseline.json
+git commit -m "run: juice.ts and ast-diagram on Node APIs; retire check-usage"
+```
+
+### Task 7: Changelog and docs
 
 **Files:**
 - Modify: `news/changelog-1.12.md`, `dev-docs/runtime-migration/docs-updates.md`
@@ -1368,6 +1435,7 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 - `quarto run --dev tools/check-runtime-boundary.ts`: runs on Node, unchanged counts; the ratchet workflow is green on the branch.
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ls ../pkg-working/share/run-stdlib/*.js | wc -l` prints `34`; `ls ../pkg-working/share/run-compat` lists `deno`, `deno-shim.cjs`, `register.cjs`.
 - Installed layout: `cd package/pkg-working/bin && ./quarto run ../../../tests/docs/run/test-stdlib.ts` exits 0.
+- Task 6 step 4 (resource scripts on Node; `resources` at 1/0; `make-ast-diagram` and the Typst HTML-table render).
 
 ## Review checklist
 
@@ -1377,6 +1445,7 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 - [ ] Precedence `QUARTO_RUN_RUNTIME` > `project.script-runtime` > `node`; the Deno path uses PR 33's `requireDenoToolBinary()`.
 - [ ] PR 00c's Deno-side notice is gone; no other `QUARTO_RUN_DENO_NOTICE` reader remains besides the shim.
 - [ ] Fixtures under `tests/docs/project/prepost/` (other than the new `script-runtime-deno/`) unchanged.
+- [ ] `src/resources/scripts/` and `src/resources/tools/ast-diagram/` contain no `Deno.`; `check-usage` is gone; `make-ast-diagram` goes through the run handler; the `resources` baseline is 1/0 (PR 25's residue table rows 1-3 and 16 closed).
 
 ## Risks and rollback
 

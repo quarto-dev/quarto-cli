@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Delete the `deno compile` build of the standalone `tinitex` binary (`quarto-bld compile-quarto-latexmk`, its CI workflow and the standalone entry module), because `tinitex` is being rewritten in Rust as a separate project; the latexmk modules that `quarto render --to pdf` uses stay.
-**Phase:** 3 by number. **Depends on:** nothing functionally; it is listed after PR 33 only for ordering. It can land in Phase 1 right after PR 08 if the team prefers (see "When to land"). **Unblocks:** PR 37 (which stops downloading Deno; this PR removes the last `deno compile`).
+**Phase:** 1, after PR 08 and before PR 25. **Depends on:** nothing functionally (PR 08 first, so that neither PR edits `quarto-latexmk.ts` after the other deleted it). **Unblocks:** PR 25 (its `src` and `package/src` zero needs `quarto-latexmk.ts`'s `Deno.args` and `compile-quarto-latexmk.ts`'s `Deno.build.target` gone: row 5 of PR 25's runtime residue table), PR 37 (which stops downloading Deno; this PR removes the last `deno compile`).
 **Branch:** `rt/39-remove-quarto-latexmk-compile`.
 **Suggested executor:** Sonnet. Deletions from a complete inventory.
 **Size:** S (8 files: 4 deleted, 4 edited).
@@ -34,7 +34,7 @@ Kept, unchanged: `src/command/render/latexmk/{latex,latexmk,parse-error,pdf,pkgm
 
 ### When to land
 
-Any time; it touches nothing the runtime migration changes except files it deletes. Landing it in Phase 1, right after PR 08, is cheaper: these plans then have less to do, and the coordinator removes those lines from them:
+In Phase 1, after PR 08 and before PR 25 (README order; `REVIEW-2026-10-16.md` R02). It touches nothing the runtime migration changes except files it deletes, and PR 25 assumes the files are gone (no conditional allow-list entry exists for them). The plans below still carry conditional lines for the window between PR 08 and this PR; once it lands, the coordinator removes those lines from the ones that have not executed yet:
 
 - PR 06: the `src/command/render/latexmk/quarto-latexmk.ts` Cliffy edits and the `deno check ... quarto-latexmk.ts` commands.
 - PR 08: `Deno.args` at `quarto-latexmk.ts:130` (if PR 08 has not landed yet; otherwise it already edited the file this PR deletes).
@@ -43,6 +43,7 @@ Any time; it touches nothing the runtime migration changes except files it delet
 - PR 22: `quarto-latexmk.ts` in the `flags` seam list.
 - PR 24: the `compile-quarto-latexmk.ts`/`util/deno.ts` out-of-scope note.
 - PR 33: the `test-quarto-latexmk.yml` `setup-deno` note (already removed from PR 33's current text).
+- PR 25: nothing (it already assumes this PR landed).
 
 ### Scope
 

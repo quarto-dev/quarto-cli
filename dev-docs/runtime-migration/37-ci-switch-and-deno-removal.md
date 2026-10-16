@@ -93,7 +93,7 @@ Ratchet baseline after Task 2:
 - `QUARTO_RUN_RUNTIME=deno quarto run x.ts` without Deno prints `Running a TypeScript script needs Deno, which is not installed. Run 'quarto install deno'.`; after `quarto install deno` it runs (`test-install.yml`).
 - `grep -rn "QUARTO_RUNTIME" package src tests .github` prints nothing.
 - No workflow passes `test-runtime: deno` or `QUARTO_TEST_RUNTIME=deno`; `grep -rn -i "deno" .github` prints only the `install-deno-tool` job of `test-install.yml`.
-- `quarto run --dev tools/check-runtime-boundary.ts` reports zero in every scope, `src/deno_ral/` included.
+- `quarto run --dev tools/check-runtime-boundary.ts` reports zero in every scope, `src/deno_ral/` included; `rg -n '\bDeno\.' tools -g '*.ts'` prints nothing (row 16 of PR 25's runtime residue table; PR 35 ported the tools that `quarto run --dev` runs).
 - `ls src/resources/deno_std package/scripts/deno_std package/scripts/vendoring deno.jsonc deno.lock src/dev_import_map.json` all fail.
 - `grep -rn "Deno" .claude dev-docs llm-docs tests/README.md | grep -v "dev-docs/runtime-migration\|QUARTO_DENO\|quarto install deno\|QUARTO_RUN_RUNTIME\|script-runtime\|ran on Deno\|Deno years\|historical name"` prints nothing.
 - Every workflow is green on the branch; `create-release.yml` dispatched with `publish-release=false` is green.

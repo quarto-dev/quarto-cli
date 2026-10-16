@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Close Phase 1: remove the last runtime-specific scaffolding (`src/core/deno/monkey-patch.ts`, `src/deno_ral/original-real-path.ts`, the `call` alias in `src/deno_ral/process.ts`), sweep the remaining `Deno.*` type references (absorbing the former PR 21) and comment mentions, record the standalone scripts in an explicit ratchet allow-list, set the runtime-boundary baseline to zero for `src/` and `package/src`, make the boundary check a required CI status, and prove the hidden-dependency inventory is closed.
-**Phase:** 1. **Depends on:** PR 04 (removes `deno.land/x/cache`), PR 07 (removes the puppeteer 9.0.2 port), PRs 08–20, PR 20b (`onFileRead`, `metrics.ts`, the `src-js`/`resources` baselines), PRs 22–24. **Unblocks:** PR 27–31 (Phase 2 reimplementations).
+**Phase:** 1. **Depends on:** PR 04 (removes `deno.land/x/cache`), PR 07 (removes the puppeteer 9.0.2 port), PRs 08–20, PR 20b (`onFileRead`, `metrics.ts`, the `src-js`/`resources` baselines), PRs 22–24, PR 39 (deletes the `deno compile` entry `quarto-latexmk.ts` and `compile-quarto-latexmk.ts`, the last `Deno.*` sites in `src` and `package/src` that no codemod converts). **Unblocks:** PR 27–31 (Phase 2 reimplementations).
 **Branch:** `rt/25-boundary-zero-and-monkey-patch-removal`.
 **Suggested executor:** Sonnet. Verification plus deletions and one-line rewrites; each behaviour the monkey patch carried has a named home and a test to point at, and every remaining site is listed below with its replacement.
 **Size:** M. 2 files deleted; about 25 files modified (the 4 `originalRealPathSync` callers, the `call` users, about 15 files with a comment that names `Deno.*`, the boundary tool, the type-sweep stragglers if any), plus `tools/runtime-boundary-baseline.json`, the workflow, two `.claude/rules` files and `README.md`.
@@ -32,9 +32,32 @@ Assessment section 3.3, row "Monkey patches (`src/core/deno/monkey-patch.ts`)", 
 
 | Path | Sites | Why | Allow-list entry (this PR) | Ported by |
 |---|---|---|---|---|
-| `src/resources/tools/ast-diagram/main.ts` | 6 (+1 std import file) | executed by `deno run` from `share/tools` (`src/command/dev-call/make-ast-diagram/cmd.ts:23-29`) without the import map; imports `https://deno.land/std/path/mod.ts` | added to `kSrcExclusions` and to `kUserScriptResourceDirs`, so it leaves the `src` scope and is ratcheted under `resources` | PR 35 (`quarto run` work) |
-| `src/webui/quarto-preview/build.ts` | 8 | that package's build script, `deno run --no-config -A build.ts` (`package/src/common/previewjs.ts:14`); `deno_ral/fs.ts` needs the import map | already in `kSrcExclusions`; this PR rewrites its reason comment (PR 08 does not convert it) | PR 33 (build tooling) |
-| `src/command/render/latexmk/quarto-latexmk.ts` (only if PR 39 has not landed) | 1 (`Deno.args`) | standalone `tinitex` entry compiled by `deno compile`; decision 9 deletes it | added to `kSrcExclusions` with the reason "deleted by PR 39"; PR 39 removes the entry together with the file | PR 39 (deletion) |
+| `src/resources/tools/ast-diagram/main.ts` | 6 (+1 std import file) | executed by `deno run` from `share/tools` (`src/command/dev-call/make-ast-diagram/cmd.ts:23-29`) without the import map; imports `https://deno.land/std/path/mod.ts` | added to `kSrcExclusions` and to `kUserScriptResourceDirs`, so it leaves the `src` scope and is ratcheted under `resources` | PR 35 Task 6 |
+| `src/webui/quarto-preview/build.ts` | 8 | that package's build script, `deno run --no-config -A build.ts` (`package/src/common/previewjs.ts:14`); `deno_ral/fs.ts` needs the import map | already in `kSrcExclusions`; this PR rewrites its reason comment (PR 08 does not convert it) | PR 33 Task 6 |
+
+(`src/command/render/latexmk/quarto-latexmk.ts` and `package/src/common/compile-quarto-latexmk.ts` are gone before this PR: PR 39 is a prerequisite, so no conditional allow-list entry exists for them.)
+
+**Runtime residue table (owned by this plan; PRs 24, 33, 35, 36, 37 and 39 refer here).** Every file or call that keeps a `Deno.*` use or spawns the Deno CLI on purpose after Phase 1, with the runtime it runs on, the plan and task that ports or retires it, and the gate that proves it. "Phase 1 zero" is this PR's ratchet (`src`, `src-js`, `package/src` at 0/0); the `resources` scope stays at the sum of the rows marked `resources` until their owners land. Code in the CLI bundle (`src`, `src-js`, `package/src`) and resources run as separate programs are gated separately: PR 33 removes the Node shim on the first group only.
+
+| # | Residue | Runs on | Owner (task) | Gone after | Gate |
+|---|---|---|---|---|---|
+| 1 | `src/resources/scripts/juice.ts` (2 `Deno.`; `resources`): run by `astpipeline.lua:68-69` as `quarto run juice.ts` for raw HTML tables in Typst output | the user-script runtime: Deno tool until PR 35, Node after | PR 35 Task 6 (rewrite on `node:fs`/`process.argv`) | PR 35 | `resources` −2; the Typst smoke tests that pass an HTML table through `juice` render without the shim notice |
+| 2 | `src/resources/scripts/check-usage.ts` and `.sh` (2 `Deno.`, 1 std file; `resources`): parses `deno info` output | developer shell | PR 35 Task 6 (delete; nothing calls it) | PR 35 | `resources` −2 and −1 std file |
+| 3 | `src/resources/tools/ast-diagram/main.ts` (6 `Deno.`, 1 std file; `resources`) and its `deno run` spawn in `src/command/dev-call/make-ast-diagram/cmd.ts` | the Deno tool, spawned by the CLI | PR 35 Task 6 (port to `node:` APIs; `cmd.ts` runs it through the script run handler) | PR 35 | `resources` −6 and −1 std file; `quarto dev-call make-ast-diagram` works on Node |
+| 4 | `src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts:94` (1 `Deno.`; `resources`): the engine template users build | in Quarto's process once built (an engine bundle) | PR 36 Task 4 (`quarto.mappedString.fromFile`) | PR 36 | `resources` −1; `tests/smoke/create/create.test.ts` |
+| 5 | `src/command/render/latexmk/quarto-latexmk.ts` (1 `Deno.args`; `src`), `package/src/common/compile-quarto-latexmk.ts` (2 `Deno.build.target`; `package/src`), `compile`/`install` in `package/src/util/deno.ts`, `.github/workflows/test-quarto-latexmk.yml` | `deno compile` (the standalone `tinitex` build) | PR 39 (deletion) | PR 39, before this PR | this PR's `src` and `package/src` zero |
+| 6 | `package/src/common/cyclic-dependencies.ts` (`<QUARTO_DENO> info --json`), `package/src/common/import-report/deno-info.ts` (`deno info --json`; imported by `explain-all-cycles`, `explain-import-chain`, `find-bad-imports`, `find-bad-types-constants`, `report-risky-files`), `report-bundle-async-cycles.ts` (`deno run explain-all-cycles.ts` plus `npm:acorn`, `npm:acorn-walk`, `npm:javascript-lp-solver`) | `quarto-bld` and `quarto run --dev` (Deno until PR 33/35), spawning the Deno CLI | PR 33 Task 16 (module graph from the esbuild metafile; `explain-all-cycles` called in-process) | PR 33 | PR 33 acceptance: no `deno info`/`deno run` spawn in `package/src`; `quarto-bld cycle-dependencies` and `find-bad-imports.ts` run on Node |
+| 7 | `package/src/common/previewjs.ts` (`<execPath()> run --no-config -A build.ts`) and `src/webui/quarto-preview/build.ts` (8 `Deno.`; `kSrcExclusions`) | `quarto-bld` spawning the Deno CLI | PR 33 Task 6 (`build.mjs` on Node) | PR 33 | `kSrcExclusions` loses `build.ts`; `quarto-bld configure` builds `quarto-preview.js` |
+| 8 | `package/src/util/deno.ts` `bundle()` and `tools/deno-esbuild-bundle.ts` (`<QUARTO_DENO> run … deno-esbuild-bundle.ts`) | `quarto-bld prepare-dist` | PR 33 Task 5 (`tools/node-bundle/build.mjs`) | PR 33 | `prepare-dist` produces `bin/quarto.js` on Node |
+| 9 | `src/core/schema/types-from-schema.ts:30` `fmtSource` (`deno fmt` through the CLI's own executable; `dev-call build-artifacts`) | the CLI runtime | PR 33 Task 16 (dropped; PR 38 formats generated files with dprint) | PR 33 | `quarto dev-call build-artifacts` runs on Node; PR 38's `dprint check` covers the generated files |
+| 10 | `src/execute/ojs/extract-resources.ts:337` (`deno check` of TypeScript imported by an `{ojs}` cell, through the CLI's own executable) | the CLI runtime | PR 33 Task 16 (type check dropped; esbuild compile kept) | PR 33 | PR 33 acceptance; the OJS smoke tests with a TypeScript import |
+| 11 | `src/core/run/deno.ts` (`quarto run` and project scripts on the Deno tool) | the Deno tool | PR 35 Task 4 (Node by default; the Deno path stays behind `QUARTO_RUN_RUNTIME`) | PR 37 stops bundling Deno; the path stays for `quarto install deno` | PR 35 acceptance |
+| 12 | `src/command/call/build-ts-extension/cmd.ts` (`deno bundle` on the Deno tool) | the Deno tool | PR 36 Task 1 (esbuild) | PR 36 | PR 36 acceptance |
+| 13 | `src/resources/editor/tools/vs-code.mjs`, `yaml/web-worker.js` (`Deno.build.os`, built artifacts; `resources`) | VS Code / a browser worker | PR 19 (rewrites `src/core/lib/errors.ts`, regenerates them) | PR 19 | `resources` −2 |
+| 14 | `src/resources/js/graphviz-wasm.js`, `src/core/lib/external/tree-sitter-deno.js`, `src/core/cri/deno-cri/*.js` | the CLI process | PR 20b | PR 20b | `src-js` 0; `resources` −3 |
+| 15 | `tests/docs/project/prepost/**/*.ts` fixtures using the Deno API | the user-script runtime | PR 35 keeps them as shim regression tests (excluded from the `tests` scope) | PR 35 Decision 1 (shim removal date) | `project-prepost.test.ts` |
+| 16 | `tools/*.ts` repository tooling (`check-runtime-boundary.ts`, `codemod-deno-ral.ts`, …) using `Deno.*`; never counted (PR 02) | `quarto run --dev`: Deno tool until PR 35, Node after | PR 35 Task 4 step 7 (fix each tool that fails on Node) | PR 35 | `quarto run --dev tools/check-runtime-boundary.ts` on Node (PR 35); `rg '\bDeno\.' tools -g '*.ts'` empty (PR 37 acceptance) |
+| 17 | `src/resources/extension-subtrees/julia-engine/` (24 `Deno.`; excluded from every scope) | Quarto's process (an engine bundle) | milestone J (PumasAI, upstream) | the subtree pull before PR 32 | PR 32 parity allowlist empty |
 
 Every other path under `src/` and `package/src` reaches zero, comments included (the `Deno.` counter counts text, PR 02). For the std-import counter, zero means zero *counted* std imports under the std boundary rule (`02-runtime-boundary-check.md`, "The std boundary rule"): direct imports of the allow-listed import-map seams (`async`, `crypto`, `datetime`, `streams`, `io/*`, `log` minus `log/file-handler`, `fmt/printf`, `dotenv/stringify`; PR 22's table) remain in `src/` and are not violations. Item 2 of the hidden-dependency inventory below is what makes that safe: every std module with internal `Deno.*` is either reimplemented by then or owned by a named Phase 2 PR.
 
@@ -61,7 +84,7 @@ Every other path under `src/` and `package/src` reaches zero, comments included 
 | `@std/tar` (via `src/deno_ral/tar.ts`) | `Deno.open` and friends | owned by PR 27b |
 | `@std/fmt/printf` `sprintf` | `Deno.inspect` for `%i`/`%I` and its bad-argument text only | not reached: Quarto's one use is `sprintf("%<n>d: ", …)` (`src/core/text.ts:79`); recorded, not replaced (PR 20b) |
 
-3. Deno CLI invocations that remain on purpose, each with its owner: in `package/src`, `common/previewjs.ts:18` (`execPath()` + `run build.ts`), `util/deno.ts` (`QUARTO_DENO` + `bundle`/`compile`/`install`), `common/cyclic-dependencies.ts:143-148`, `common/import-report/deno-info.ts:66` and `report-bundle-async-cycles.ts:28` → PR 33 (build tooling on Node; `compile` goes with PR 39); in `src/`, `core/schema/types-from-schema.ts:30` (`deno fmt`, `dev-call build-artifacts`) → PR 33/38, `execute/ojs/extract-resources.ts:337` (`deno check` of OJS TypeScript) → PR 33, `command/dev-call/make-ast-diagram/cmd.ts:23` (`deno run` of `ast-diagram/main.ts`) → PR 35, `core/run/deno.ts` (`quarto run`) → PR 35, `command/call/build-ts-extension/cmd.ts` → PR 36.
+3. Every Deno CLI invocation that remains on purpose, and every file that keeps `Deno.*`, has a row in the runtime residue table above with an owner and a gate; Task 7 step 2 lists the invocations and the PR description maps each to its row.
 4. `src/resources/extension-subtrees/julia-engine` is excluded from every scope; decision 7 tracks it upstream and it must be pulled before PR 32.
 
 **Deno types in signatures (former PR 21).** Inventory grep (`Deno.<Type>` in a type position anywhere outside the layer):
@@ -108,7 +131,7 @@ Changed implementation, same signature (vocabulary):
 export function canonicalPathSync(path: string | URL): string;
 ```
 
-`tools/check-runtime-boundary.ts` (PR 02's tool): `kSrcExclusions` gains `src/resources/tools/ast-diagram` (and, conditionally, `src/command/render/latexmk/quarto-latexmk.ts`); `kUserScriptResourceDirs` gains `src/resources/tools/ast-diagram/`.
+`tools/check-runtime-boundary.ts` (PR 02's tool): `kSrcExclusions` gains `src/resources/tools/ast-diagram`; `kUserScriptResourceDirs` gains `src/resources/tools/ast-diagram/`.
 
 ### Files
 
@@ -119,7 +142,7 @@ export function canonicalPathSync(path: string | URL): string;
 
 ### Acceptance criteria
 
-- `rg -n '\bDeno\.' src package/src -g '*.ts' -g '!src/deno_ral/**' -g '!src/resources/extension-subtrees/**' -g '!src/resources/scripts/**' -g '!src/resources/create/**' -g '!src/resources/tools/ast-diagram/**' -g '!src/webui/quarto-preview/build.ts' -g '!src/command/render/latexmk/quarto-latexmk.ts'` prints nothing (comments included: the ratchet counts them).
+- `rg -n '\bDeno\.' src package/src -g '*.ts' -g '!src/deno_ral/**' -g '!src/resources/extension-subtrees/**' -g '!src/resources/scripts/**' -g '!src/resources/create/**' -g '!src/resources/tools/ast-diagram/**' -g '!src/webui/quarto-preview/build.ts'` prints nothing (comments included: the ratchet counts them).
 - `quarto run --dev tools/check-runtime-boundary.ts` exits 0 with `src` and `package/src` at `0` for both counters (the std counter under PR 02's std boundary rule: allow-listed seams are not counted), `src-js` and `resources` at PR 20b's recorded values (plus `ast-diagram/main.ts` in `resources`), and exits non-zero when a `Deno.cwd()` is temporarily added to `src/core/path.ts` (Task 7 step 3).
 - `ls src/core/deno/monkey-patch.ts src/deno_ral/original-real-path.ts` → both "No such file".
 - `rg -n 'originalRealPathSync|monkey-patch|original-real-path' src tests package/src .claude -g '!dev-docs/**'` prints nothing; `rg -n 'import \{[^}]*\bcall\b[^}]*\} from "[./]*deno_ral/process.ts"' src -g '*.ts'` prints nothing.
@@ -283,7 +306,7 @@ git commit -m "remove core/deno/monkey-patch.ts and original-real-path.ts; canon
 - [ ] **Step 1: List what is left**
 
 ```bash
-rg -n '\bDeno\.' src package/src -g '*.ts' -g '!src/deno_ral/**' -g '!src/resources/**' -g '!src/webui/quarto-preview/build.ts' -g '!src/command/render/latexmk/quarto-latexmk.ts' \
+rg -n '\bDeno\.' src package/src -g '*.ts' -g '!src/deno_ral/**' -g '!src/resources/**' -g '!src/webui/quarto-preview/build.ts' \
   | rg '^[^:]+:[0-9]+:\s*(//|/\*|\*)|//.*\bDeno\.'
 ```
 
@@ -338,7 +361,7 @@ export const kSrcExclusions: readonly string[] = [
   "src/vendor", // vendored dependencies
   "src/resources/extension-subtrees", // git subtree of PumasAI/quarto-julia-engine, maintained upstream
   "src/resources/scripts", // `quarto run` fixtures under the user-script runtime (PR 35); counted in `resources`
-  "src/resources/create", // .ejs.ts extension templates for users (PR 35); counted in `resources`
+  "src/resources/create", // .ejs.ts extension templates for users (engine template: PR 36); counted in `resources`
   "src/resources/tools/ast-diagram", // run by `deno run` from share/tools without the import map; counted in `resources`; ported by PR 35
   "src/webui/quarto-preview/build.ts", // that package's build script (`deno run --no-config`); allow-listed until PR 33 ports the build tooling
 ];
@@ -346,11 +369,7 @@ export const kSrcExclusions: readonly string[] = [
 
 (keep the exact comment text PR 02 used for the first five entries; only the `ast-diagram` line is new and the `build.ts` reason changes from "PR 08 converts, PR 33 deletes" to the text above), and `kUserScriptResourceDirs` becomes `["src/resources/scripts/", "src/resources/create/", "src/resources/tools/ast-diagram/"]`.
 
-If `src/command/render/latexmk/quarto-latexmk.ts` still exists (PR 39 not landed), add one more entry after `build.ts`:
-
-```ts
-  "src/command/render/latexmk/quarto-latexmk.ts", // standalone tinitex entry (deno compile); deleted by PR 39 with this line (decision 9)
-```
+PR 39 landed before this PR (a prerequisite), so `src/command/render/latexmk/quarto-latexmk.ts` no longer exists and needs no entry; `ls src/command/render/latexmk/quarto-latexmk.ts package/src/common/compile-quarto-latexmk.ts` must print "No such file" for both before continuing.
 
 Add a unit case to PR 02's `tests/unit/tools/check-runtime-boundary.test.ts` (the fixture-tree test) asserting that a `Deno.cwd()` in `src/resources/tools/ast-diagram/main.ts` is counted under `resources` and not under `src`.
 
@@ -385,10 +404,10 @@ quarto run --dev tools/check-runtime-boundary.ts                                
 rg -n 'from "(log/file-handler|dotenv)"' src -g '*.ts' -g '!src/deno_ral/**'      # item 2: no FileHandler or dotenv load importer outside the layer (plain `log`, `log/logger`, `dotenv/stringify` are allow-listed seams and may remain)
 rg -n 'FileHandler' src/deno_ral/log.ts                                              # item 2: own file handler (PR 20b)
 rg -n 'readStdinLines|readStdin\b' src/command/create/cmd.ts src/command/editor-support/crossref.ts  # item 2 (PR 08)
-rg -n 'execPath\(\)|QUARTO_DENO' package/src src -g '*.ts' -g '!src/deno_ral/**'   # item 3: exactly the sites listed in Context, each with its owner
+rg -n 'execPath\(\)|QUARTO_DENO' package/src src -g '*.ts' -g '!src/deno_ral/**'   # item 3: exactly the rows of the runtime residue table (Context), each with its owner
 ```
 
-Expected: the ratchet passes; the second command prints nothing; the others print the sites the Context table lists and no others. An unlisted Deno CLI invocation gets an owner in the PR description before merge.
+Expected: the ratchet passes; the second command prints nothing; the others print the sites the residue table lists and no others. An unlisted Deno CLI invocation gets a row in the residue table (with an owner) in this PR before merge.
 
 - [ ] **Step 3: Prove the ratchet bites**
 
@@ -481,7 +500,7 @@ Delete the "## Module Loading Order" section (it documents the monkey patch). Re
 | `semver.ts`, `flags.ts`, `dotenv.ts`, `crypto.ts`, `async.ts`, `datetime.ts`, `streams.ts`, `encoding.ts`, `io.ts`, `tar.ts` | Standard-library seams | re-exports |
 ```
 
-Add one paragraph: "Allow-listed standalone scripts (not converted, ratcheted under `resources` or excluded): `src/resources/tools/ast-diagram/main.ts` (PR 35), `src/webui/quarto-preview/build.ts` (PR 33), `src/resources/scripts/`, `src/resources/create/` (PR 35)."
+Add one paragraph: "Allow-listed standalone scripts (not converted, ratcheted under `resources` or excluded): `src/resources/tools/ast-diagram/main.ts` and `src/resources/scripts/` (PR 35), `src/webui/quarto-preview/build.ts` (PR 33), `src/resources/create/` (the engine template, PR 36); the full list with owners is the runtime residue table in `dev-docs/runtime-migration/25-boundary-zero-and-monkey-patch-removal.md`."
 
 - [ ] **Step 3: `dev-docs/runtime-migration/README.md`**
 
@@ -510,9 +529,9 @@ git commit -m "docs: deno_ral is the only runtime API; Phase 1 complete in the m
 - [ ] No `call` export left; no importer of it.
 - [ ] The type inventory grep is empty (or only `tests/test.ts:545`).
 - [ ] Every comment in the Task 5 table is rewritten or deleted; no code changed in those hunks.
-- [ ] `kSrcExclusions` = PR 02's six entries + `ast-diagram` (+ `quarto-latexmk.ts` only while it exists), each with its reason; `kUserScriptResourceDirs` includes `ast-diagram`; the boundary unit test covers the move.
+- [ ] `kSrcExclusions` = PR 02's six entries + `ast-diagram`, each with its reason; `kUserScriptResourceDirs` includes `ast-diagram`; the boundary unit test covers the move.
 - [ ] Baseline zeros for `src/` and `package/src`; `src-js` and `resources` at PR 20b's values (+ `ast-diagram` in `resources`).
-- [ ] The hidden-dependency inventory is in the PR description with evidence.
+- [ ] The hidden-dependency inventory is in the PR description with evidence, and every Deno CLI invocation found by Task 7 step 2 has a row in the residue table.
 - [ ] Workflow fails hard; admin action requested in the PR description.
 - [ ] `deno-essentials.md` no longer says "Use Deno APIs directly".
 

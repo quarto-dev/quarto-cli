@@ -159,6 +159,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 |---|---|---|---|---|---|---|
 | 02b | [02b-node-compatible-ts-syntax.md](02b-node-compatible-ts-syntax.md) | `verbatimModuleSyntax`; `import type` codemod (2,067 specifiers in 504 files); enums, parameter properties and `<T>` casts rewritten; `check-ts-syntax.mjs` in CI | 02 | Opus | L | planned |
 | 08 | [08-ral-process.md](08-ral-process.md) | `deno_ral/process.ts`: spawn/exec interface with `detached`, flushing `exit`, `execProcess` on it, 16 direct `Deno.Command` sites, exit/cwd/args/execPath/signals/stdio | 02 | Opus | L | planned |
+| 39 | [39-remove-quarto-latexmk-compile.md](39-remove-quarto-latexmk-compile.md) | Remove the `tinitex` `deno compile` build and the standalone entry (Rust rewrite replaces it); before PR 25, whose zero needs the files gone | 08 | Sonnet | S | planned |
 | 09 | [09-ral-fs-and-temp-layer.md](09-ral-fs-and-temp-layer.md) | `deno_ral/fs.ts`, `temp.ts`, `errors.ts` API (`canonicalPathSync`, retyped `FileInfo`), unit tests, and the idempotent ts-morph codemod with `--reverse` | 02 | Opus | M | planned |
 | 22 | [22-std-import-seams.md](22-std-import-seams.md) | `colors.ts`, `flags.ts`, base64 seams; table of std modules with internal `Deno.*` and their owner (PR 20b) | 04, 08 | Sonnet | S | planned |
 | 10 | [10-codemod-fs-core.md](10-codemod-fs-core.md) | Run the fs/temp codemod on `src/core`, `src/quarto-core`, `src/config` (56 files) | 09, 08, 22 | Sonnet | L | planned |
@@ -176,7 +177,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 20b | [20b-hidden-deno-uses.md](20b-hidden-deno-uses.md) | `tree-sitter-deno.js` → `web-tree-sitter`; `graphviz-wasm.js`; deno-cri JS; `onFileRead` hook for `metrics.ts`; own `FileHandler`; dotenv parser | 02, 08, 09, 14 | Opus | M | planned |
 | 23 | [23-codemod-tests.md](23-codemod-tests.md) | Codemod `tests/`; `tests/harness.ts` adapter around `Deno.test`; assertions through `tests/asserts.ts` | 02, 08, 09, 14, 19, 22 | Opus | L | planned |
 | 24 | [24-codemod-package-src.md](24-codemod-package-src.md) | Codemod `package/src`; `Deno.run` → `exec`; remaining Deno CLI calls listed for PR 33 | 02, 08, 09, 14, 19, 22 | Sonnet | M | planned |
-| 25 | [25-boundary-zero-and-monkey-patch-removal.md](25-boundary-zero-and-monkey-patch-removal.md) | Delete `core/deno/monkey-patch.ts` and `original-real-path.ts`; types sweep (former PR 21); comment sweep; standalone-script allow-list; hidden-dependency inventory; ratchet to zero and required | 04, 07, 08–20, 20b, 22–24 | Sonnet | M | planned |
+| 25 | [25-boundary-zero-and-monkey-patch-removal.md](25-boundary-zero-and-monkey-patch-removal.md) | Delete `core/deno/monkey-patch.ts` and `original-real-path.ts`; types sweep (former PR 21); comment sweep; standalone-script allow-list; hidden-dependency inventory and the runtime residue table (owners and gates for every remaining `Deno.*` or Deno CLI use); ratchet to zero and required | 04, 07, 08–20, 20b, 22–24, 39 | Sonnet | M | planned |
 | J | milestone, no plan | Julia engine ported upstream by PumasAI against the PR 08/09 engine API; subtree pulled; Julia entries leave the PR 32 allowlist | 08, 09, upstream | maintainer | – | planned |
 
 ### Phase 2: Node implementations, still running on Deno
@@ -198,10 +199,9 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 
 | PR | Plan | What | Depends on | Executor | Size | Status |
 |---|---|---|---|---|---|---|
-| 39 | [39-remove-quarto-latexmk-compile.md](39-remove-quarto-latexmk-compile.md) | Remove the `tinitex` `deno compile` build and the standalone entry (Rust rewrite replaces it); can land in Phase 1 after PR 08 | none | Sonnet | S | planned |
-| 33 | [33-build-tooling-node.md](33-build-tooling-node.md) | CLI launchers (shell, batch, Rust) run Node; Deno kept as a tool; `quarto install deno`; `quarto-bld` and `prepare-dist` on Node; `tsc`; environment contract; `ensure.mjs` dev bundles; `QUARTO_RUNTIME` if S2 passes | 32, 00b, 20b | Opus | L | planned |
+| 33 | [33-build-tooling-node.md](33-build-tooling-node.md) | CLI launchers (shell, batch, Rust) run Node; Deno kept as a tool; `quarto install deno`; `quarto-bld` and `prepare-dist` on Node; `tsc`; environment contract; `ensure.mjs` dev bundles; Deno CLI dev utilities off `deno info`/`fmt`/`check`; `QUARTO_RUNTIME` if S2 passes | 32, 00b, 20b | Opus | L | planned |
 | 34 | [34-installers-and-check.md](34-installers-and-check.md) | Installers ship Node with Node's entitlements and OS minimums; `quarto check` Node row; conda; the 17-row runtime contract table with tests; docs | 33 | Opus | M | planned |
-| 35 | [35-user-scripts-compat.md](35-user-scripts-compat.md) | `.ts` scripts run on Node by default (per-file esbuild compile, on-demand `Deno` shim, 34 `stdlib/*` bundles); `QUARTO_RUN_RUNTIME` / `script-runtime` selects the Deno tool | 33, 31, 00c | Opus | L | planned |
+| 35 | [35-user-scripts-compat.md](35-user-scripts-compat.md) | `.ts` scripts run on Node by default (per-file esbuild compile, on-demand `Deno` shim, 34 `stdlib/*` bundles); `QUARTO_RUN_RUNTIME` / `script-runtime` selects the Deno tool; `juice.ts` and `ast-diagram` on Node APIs | 33, 31, 00c | Opus | L | planned |
 | 36 | [36-build-ts-extension-node.md](36-build-ts-extension-node.md) | `build-ts-extension` on esbuild with the default import map preserved; warning for prebuilt engines that reference `Deno.` | 33 | Opus | M | planned |
 | 37 | [37-ci-switch-and-deno-removal.md](37-ci-switch-and-deno-removal.md) | Stop downloading Deno; remove `QUARTO_RUNTIME`, the nightly Deno matrix, vendoring, `deno.jsonc`, `deno_std`, `deno.lock`; backport checklist step; dev-docs updates | 33–36, 39 | Sonnet | M | planned |
 | 38 | [38-lint-format-typecheck-tooling.md](38-lint-format-typecheck-tooling.md) | `dprint` (Deno-parity config) and `oxlint` (61 matching rules) on `src/`; drop `@types/deno` | 37 | Sonnet | M | planned |
@@ -219,6 +219,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
      │      ├─ 14b ─┬─ 15 ─ 16          │         │        (Phase 1)
      │      ├─ 17   ├─ 18   19          │         │
      │      ├─ 20b ─┘       05 ─ 20     │         │
+     │      ├─ 39 (latexmk build)       │         │
      │      └─ J (Julia upstream)       │         │
      └──────────────── 25 <─────────────┴─────────┘
                         │
@@ -226,16 +227,18 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
                                   │            └─ SV ─ 31 ──┤      (Phase 2)
                                   └────────── 14b, J ───── 32
                                                             │
-                                    39 ─┐          00b 20b ─┤
-                                        │                   │
-                                        │   33 ─ 34  35  36 │      (Phase 3)
-                                        └───── 37 ─ 38
+                                                   00b 20b ─┤
+                                                            │
+                                            33 ─ 34  35  36 │      (Phase 3)
+                                                     └─ 37 ─ 38
 ```
 
 Edges that cross phases: 05 → 20 (timing baseline); 20b → 26, 27, 33 (shim
 members, tree-sitter in the bundle); 14b → 28, 29, 32 (the end-to-end gates);
 02b → 31, 35 (type-only imports); 00b → 33 (bundle gate); 00c → 35 (notice);
-S2 → 33 and 37 (`QUARTO_RUNTIME`); J → 32 (allowlist).
+S2 → 33 and 37 (`QUARTO_RUNTIME`); J → 32 (allowlist); 39 → 25 (zero needs the
+`deno compile` files gone) and 37. Every remaining `Deno.*` or Deno CLI use
+after Phase 1 has an owner and a gate in PR 25's runtime residue table.
 
 ## Progress metric
 

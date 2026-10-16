@@ -48,7 +48,7 @@ In:
 - `src/resources/extension-build/`: keep `import-map.json`; delete `deno.json`; add `tsconfig.template.json`; rewrite `README.md`.
 - `package/src/common/prepare-dist.ts`: keep `updateImportMap`; copy the default map's package closure to `share/extension-build/node_modules`.
 - `src/execute/engine.ts`: `Deno.` detection warning and the CommonJS hint.
-- `src/resources/create/extensions/engine/` template (`Deno.readTextFileSync` -> `quarto.mappedString.fromFile`) and README.
+- `src/resources/create/extensions/engine/` template (`Deno.readTextFileSync` -> `quarto.mappedString.fromFile`) and README (row 4 of PR 25's runtime residue table: the last `resources` entry; the baseline reaches 0/0 here).
 - `packages/quarto-types/README.md` contract; `llm-docs/quarto-api.md`; changelog; `docs-updates.md` row.
 
 Out:
@@ -874,7 +874,7 @@ git commit -m "engines: warn when a loaded engine bundle references the Deno API
 - [ ] **Step 1: Template source**
 
 Line 94: `quarto.markdownRegex.partition(Deno.readTextFileSync(file))` -> `quarto.markdownRegex.partition(quarto.mappedString.fromFile(file).value)`.
-Run: `grep -n "Deno\." src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts` -> no output.
+Run: `grep -n "Deno\." src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts` -> no output. Then `quarto run --dev tools/check-runtime-boundary.ts --update-baseline`: `resources` reaches 0/0 (PR 35 closed the other rows); commit `tools/runtime-boundary-baseline.json` with this task.
 
 - [ ] **Step 2: README** (replace lines 20-41)
 

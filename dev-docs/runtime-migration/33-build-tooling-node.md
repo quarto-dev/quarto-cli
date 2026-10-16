@@ -47,7 +47,7 @@ Verified facts this plan relies on:
 Assumptions about earlier PRs (state them in the PR description if they differ):
 
 - PR 26: `tools/node-bundle/build.mjs` (resolver plugin built on `tools/node-bundle/import-map.mjs`), `tools/node-bundle/deno-shim.mjs` (banner-imported), `tools/node-bundle/check-shim.mjs`, root `package.json` (no `"type"`, `esbuild`, `ws`, the `@jsr/*` packages), `package-lock.json`, `.npmrc` with `@jsr:registry=https://npm.jsr.io`.
-- PR 02 extended by the Phase 0 rework: `tools/check-runtime-boundary.ts` has scopes `src`, `src-js`, `resources`, `tests`, `package-src`, each with a baseline in `tools/runtime-boundary-baseline.json`. PR 25, 20b and 27b brought `src`, `src-js` and `resources` to zero. **Task 2 refuses to delete the shim otherwise.**
+- PR 02 extended by the Phase 0 rework: `tools/check-runtime-boundary.ts` has scopes `src`, `src-js`, `resources`, `tests`, `package/src`, each with a baseline in `tools/runtime-boundary-baseline.json`. PR 25, 20b and 27b brought `src` and `src-js` to zero; `resources` holds the rows of PR 25's runtime residue table that PR 35 and PR 36 own (scripts and a template that never load in the CLI process: 11 `Deno.` occurrences and 1 std file after PR 25). **Task 2 refuses to delete the shim unless `src` and `src-js` are zero.**
 - PR 31: `tests/run-tests.sh`/`.ps1` honour `QUARTO_TEST_RUNTIME` (`deno` default, `node` opt-in); PR 32 runs the required matrix with `node` and a nightly Deno matrix.
 - PR 24: `package/src` uses `src/deno_ral/` (`args()`, `exec`, `execPath()`, `env`, fs functions) and `isMainModule(import.meta)` in `bld.ts`.
 - PR 20: `DENO_DOM` is gone from `configuration`, the launchers, `devconfig.ts` and `package/src/common/dependencies/`.
@@ -64,6 +64,7 @@ In:
 - `package/src/util/bundle.ts` (new); `prepare-dist.ts` ships Node and Deno, writes `bin/package.json`; `tools/deno-esbuild-bundle.ts` and `bundle()` in `package/src/util/deno.ts` deleted; `validate-bundle`'s prelude gains Node globals.
 - `src/webui/quarto-preview/build.ts` becomes `build.mjs`; `package/src/common/previewjs.ts`.
 - `src/core/devconfig.ts`: `node`, `deno`, `packageLock`.
+- The Deno CLI dev utilities of PR 25's runtime residue table (rows 6, 9, 10): `package/src/common/cyclic-dependencies.ts` and `import-report/*` on the esbuild metafile, `report-bundle-async-cycles.ts` in-process, `types-from-schema.ts` without `deno fmt`, `extract-resources.ts` without `deno check` (Task 16).
 - `src/core/runtime-env.ts` (new): restore `NODE_OPTIONS`/`NODE_PATH` for children; one-time warnings for Deno-era variables. Called from `src/quarto.ts`.
 - Launchers: `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, `package/launcher/src/main.rs`; `check-deno-in-use.cmd` becomes `check-node-in-use.cmd`.
 - Deno as a tool: `src/tools/impl/deno-paths.ts`, `src/tools/impl/deno.ts` (`quarto install deno`), the two call sites, a `test-install.yml` job.
@@ -192,6 +193,7 @@ Quarto's Node flags, in order: `--enable-experimental-regexp-engine --max-old-sp
 
 - Create: `package/src/common/dependencies/node.ts`, `package/src/util/bundle.ts`, `tools/node-bundle/ensure.mjs`, `src/webui/quarto-preview/build.mjs`, `package/scripts/windows/check-node-in-use.cmd` (renamed), `src/core/runtime-env.ts`, `src/tools/impl/deno-paths.ts`, `src/tools/impl/deno.ts`, `tsconfig.json`, `tsconfig.paths.json`, `tools/typecheck/gen-tsconfig-paths.mjs`, `.github/workflows/lint.yml`, `.vscode/tasks.json`
 - Test: `tests/unit/node-dependency.test.ts`, `tests/unit/node-bundle-ensure.test.ts`, `tests/unit/runtime-env.test.ts`, `tests/unit/tools/deno-tool.test.ts`, `tests/smoke/env/launcher-env.test.ts`
+- Modify (Task 16): `package/src/common/import-report/deno-info.ts` (renamed `module-graph.ts`), `package/src/common/import-report/{explain-all-cycles,explain-import-chain,find-bad-imports,find-bad-types-constants,report-risky-files,report-bundle-async-cycles}.ts`, `report-bundle-async-cycles.md`, `package/src/common/cyclic-dependencies.ts`, `src/core/schema/types-from-schema.ts`, `src/command/dev-call/build-artifacts/cmd.ts`, `src/execute/ojs/extract-resources.ts`
 - Modify: `configuration` (add `NODE` after `DENO`), `configure.sh`, `configure.cmd`, `package/scripts/common/utils.sh`, `tools/node-bundle/build.mjs`, `package/src/quarto-bld`, `package/src/quarto-bld.cmd`, `package/src/common/prepare-dist.ts`, `package/src/common/archive-binary-dependencies.ts:27-33`, `package/src/common/configure.ts:28-35,47,69-78`, `package/src/common/previewjs.ts`, `package/src/common/validate-bundle.ts`, `tools/bundle-bug-finder/_prelude.js:2`, `package/src/util/deno.ts:12-41`, `src/core/devconfig.ts`, `src/quarto.ts` (`quarto()` start), `src/core/run/deno.ts:56`, `src/command/call/build-ts-extension/cmd.ts:257-258`, `src/tools/tools.ts:32-38`, `src/command/install/cmd.ts` (example), `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, `package/launcher/src/main.rs`, `package/src/macos/installer.ts:90-96`, `.github/workflows/create-release.yml:398`, `.github/workflows/actions/quarto-dev/action.yml:15-36`, `.github/workflows/test-install.yml`, `tests/run-tests.sh`, `tests/run-tests.ps1`, `.vscode/launch.json`, `package.json`, `package-lock.json`, `.gitignore`, `dev-docs/upgrade-dependencies.md`, `news/changelog-1.12.md`
 - Delete: `tools/deno-esbuild-bundle.ts`, `tools/node-bundle/deno-shim.mjs`, `src/webui/quarto-preview/build.ts`, `src/webui/quarto-preview/deno.jsonc`, `package/scripts/windows/check-deno-in-use.cmd`
 
@@ -207,6 +209,7 @@ Quarto's Node flags, in order: `--enable-experimental-regexp-engine --max-old-sp
 - `cargo build --release --manifest-path package/launcher/Cargo.toml` succeeds; `create-release.yml` dispatched with `publish-release=false` is green on all platforms, including the MSI and `test-smokes-built.yml` on the Windows zip.
 - `quarto install deno` on a layout without `bin/tools/<arch>/deno` installs `kDenoToolVersion` into the Quarto data dir and `quarto run` then finds it (`test-install.yml` job).
 - `tools/node-bundle/deno-shim.mjs` does not exist and `grep -n "deno-shim" tools/node-bundle/*.mjs` prints nothing (the `--check-shim` scan stays as a report).
+- No code path spawns the Deno CLI for `info`, `run`, `fmt`, `check` or `bundle` outside the two Deno-tool call sites: `rg -n '"(info|fmt|check|bundle)"' package/src src -g '*.ts' -g '!src/deno_ral/**'` prints no Deno subcommand argument, and `rg -ln 'requireDenoToolBinary|denoToolBinary' src -g '*.ts'` prints exactly `src/core/run/deno.ts`, `src/command/call/build-ts-extension/cmd.ts` and the two `src/tools/impl/deno*.ts` files. `cd package/src && ./quarto-bld cycle-dependencies -o "$(mktemp -d)/cycles.json"` writes the JSON on Node (Task 16).
 
 ## Plan
 
@@ -410,7 +413,7 @@ quarto run --dev tools/check-runtime-boundary.ts
 node -e 'const b=require("./tools/runtime-boundary-baseline.json"); for (const s of ["src","src-js","resources"]) console.log(s, JSON.stringify(b[s] ?? b.scopes?.[s]))'
 node tools/node-bundle/build.mjs --check-shim
 ```
-Expected: the ratchet passes; the `src`, `src-js` and `resources` baselines are all zero; `--check-shim` prints `0 missing`, and every member it still lists comes from third-party code guarded by `typeof Deno` (Cliffy's `@cliffy/internal/runtime/*`, `@std/fmt/colors`). **Stop and report** if any count is non-zero or any listed member comes from `src/` or `src/resources/`: PR 20b or 27b is incomplete, and removing the shim would break renders (review S1).
+Expected: the ratchet passes; the `src` and `src-js` baselines are zero; `resources` equals the value PR 25 recorded for the rows of its runtime residue table that PR 35 and PR 36 still own (`juice.ts`, `check-usage.ts`, `ast-diagram/main.ts`, the engine template: 11 `Deno.` occurrences, 1 std file; fewer if PR 35 or 36 landed first); `--check-shim` prints `0 missing`, and every member it still lists comes from third-party code guarded by `typeof Deno` (Cliffy's `@cliffy/internal/runtime/*`, `@std/fmt/colors`). The `resources` residue is not a shim concern: those `.ts` files run as separate programs (the script runtime, or a user's engine build), never in the CLI process, and `--check-shim` scans the `.js` resources the CLI does load. **Stop and report** if `src` or `src-js` is non-zero, if `resources` exceeds the residue-table value, or if any listed member comes from `src/` or `src/resources/`: PR 20b or 27b is incomplete, and removing the shim would break renders (review S1).
 
 - [ ] **Step 2: Write the failing test**
 
@@ -2832,6 +2835,8 @@ git commit -m "build: sign node; npm cache in CI; tests default to Node; VS Code
 **Files:**
 - Modify: `news/changelog-1.12.md`, `dev-docs/upgrade-dependencies.md`
 
+(The changelog also carries the two user-visible lines of Task 16: OJS TypeScript imports are no longer type-checked, and generated type files are unformatted until PR 38.)
+
 - [ ] **Step 1: Changelog**
 
 Decision 2 ships Node in 1.12. Under `## Dependencies` of `news/changelog-1.12.md` (create the file with the sections `.claude/rules/changelog.md` prescribes if it does not exist):
@@ -2866,6 +2871,49 @@ git add news/changelog-1.12.md dev-docs/upgrade-dependencies.md
 git commit -m "docs: changelog and upgrade notes for the Node runtime"
 ```
 
+### Task 16: Deno CLI dev utilities: port or retire (PR 25 runtime residue table, rows 6, 9, 10)
+
+Until this task, `quarto-bld cycle-dependencies`, the `package/src/common/import-report/*` scripts and `report-bundle-async-cycles.ts` spawn the Deno CLI (`deno info --json`, `deno run`), and two `src/` sites spawn the CLI's own executable with a Deno subcommand (`deno fmt` in `types-from-schema.ts`, `deno check` in `extract-resources.ts`). After the flip `execPath()` is Node, so each needs a port or a retirement before this PR merges (PR 24 kept them on purpose; the dispositions are recorded under Decisions needed, 4 and 5).
+
+**Files:**
+- Rename: `package/src/common/import-report/deno-info.ts` -> `module-graph.ts`
+- Modify: `package/src/common/import-report/{explain-all-cycles,explain-import-chain,find-bad-imports,find-bad-types-constants,report-risky-files,report-bundle-async-cycles}.ts`, `report-bundle-async-cycles.md`, `package/src/common/cyclic-dependencies.ts`, `package.json`, `package-lock.json`, `src/core/schema/types-from-schema.ts`, `src/command/dev-call/build-artifacts/cmd.ts`, `src/execute/ojs/extract-resources.ts`, `news/changelog-1.12.md`
+
+- [ ] **Step 1: The module graph comes from the esbuild metafile**
+
+`tools/node-bundle/build.mjs`'s `bundle()` keeps PR 26's `writeMeta` option (the builder contract in `26-node-build-job.md`, Interfaces): with `--write-meta` the CLI writes the esbuild metafile as `<outfile>.meta.json`. `module-graph.ts` exports `getModuleGraph(entry: string): Promise<DependencyGraph>`: it runs `exec(execPath(), { args: [<root>/tools/node-bundle/build.mjs, "--entry", entry, "--outfile", join(tmp, "graph.mjs"), "--no-sourcemap", "--write-meta"] })` in a temp directory, reads `graph.mjs.meta.json`, and returns `Record<fileUrl, fileUrl[]>` built from `metafile.inputs[path].imports[].path` (paths relative to the repository root, turned into `file://` URLs with `toFileUrl(join(root, path))`; `external: true` imports and `node_modules` inputs are kept as edges so the reports still show third-party packages). `DenoInfoJSON`, `getDenoInfo` and the `deno info` field names (`specifier`, `dependencies[].code`) are deleted; `moduleGraph(info)` becomes `moduleGraph(graph)` with the same return shape (`{ graph, errors }`, `errors` always empty: esbuild fails the build on an unresolved import, which `getModuleGraph` turns into a thrown `Error` naming the importer). The five importers of `deno-info.ts` change their import and nothing else; `cyclic-dependencies.ts` `loadModules()` returns `getModuleGraph(join(config.directoryInfo.src, "quarto.ts"))` and loses the `QUARTO_DENO` lookup and the `--unstable` flag.
+
+- [ ] **Step 2: `report-bundle-async-cycles.ts` runs in-process**
+
+Factor the body of `explain-all-cycles.ts` into an exported `writeCycles(entryPoint: string, options: { simplify?: string[]; toon?: string; graph?: string })` that the script's `import.meta.main`/`isMainModule` block calls; `report-bundle-async-cycles.ts` `generateCycles()` calls it directly instead of spawning `deno run … explain-all-cycles.ts`. Its `npm:acorn@8.14.0`, `npm:acorn-walk@8.3.4` and `npm:javascript-lp-solver` imports become bare `acorn`, `acorn-walk`, `javascript-lp-solver`, pinned exactly in the root `package.json` `devDependencies` (`npm install --save-dev --save-exact acorn@8.14.0 acorn-walk@8.3.4 javascript-lp-solver@<current>`); PR 26's bundler and PR 31's import-map hook resolve bare names from `node_modules`. Update `report-bundle-async-cycles.md`'s "Tool location" and invocation lines (`quarto run --dev …` is unchanged as a command; it runs on the Deno tool until PR 35 and on Node after, and this script no longer spawns anything).
+
+- [ ] **Step 3: `types-from-schema.ts`: no `deno fmt`**
+
+Delete `fmtSource()` and its call in `src/command/dev-call/build-artifacts/cmd.ts` (the generated `src/resources/types/*.ts` are written as the generator emits them; PR 38's `dprint fmt` formats them and `dprint check` keeps them formatted). Run `package/dist/bin/quarto dev-call build-artifacts` once and commit the regenerated files: the diff is whitespace only (`git diff --stat src/resources/types` and a `git diff -w --stat` that is empty).
+
+- [ ] **Step 4: `extract-resources.ts`: no `deno check`**
+
+Delete the `deno check` block (the `Deno.execPath()`/`execPath()` spawn with `"check"`, the `conf/deno-ts-compile.jsonc` and `conf/jsx-import-map.json` arguments, the TS7026 guidance for denoland/deno#14723) and keep the esbuild compile that follows it: a TypeScript import of an `{ojs}` cell is bundled without a type check, and a syntax error surfaces as esbuild's error. Delete `src/resources/conf/deno-ts-compile.jsonc` and `jsx-import-map.json` if nothing else reads them (`rg -n 'deno-ts-compile|jsx-import-map' src package`).
+
+- [ ] **Step 5: Verify**
+
+Run:
+```bash
+cd package/src && ./quarto-bld cycle-dependencies -o "$(mktemp -d)/cycles.json" && cd ../..
+package/dist/bin/quarto run --dev package/src/common/import-report/find-bad-imports.ts src/quarto.ts
+package/dist/bin/quarto run --dev package/src/common/import-report/report-bundle-async-cycles.ts
+rg -n '"(info|fmt|check|bundle)"' package/src src -g '*.ts' -g '!src/deno_ral/**'
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/ojs/ -name '*.test.ts')
+```
+Expected: `cycles.json` written with the same top-level shape as PR 24 recorded; `find-bad-imports` exits 0; the async-cycles report prints without spawning (`ps` during the run shows no `deno` child); the `rg` prints no Deno subcommand argument; the OJS smoke tests pass, including the documents with a TypeScript import (`rg -l '\.tsx?"' tests/docs/ojs tests/docs/smoke-all/ojs`).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add package/src package.json package-lock.json src/core/schema/types-from-schema.ts src/command/dev-call/build-artifacts/cmd.ts src/execute/ojs/extract-resources.ts src/resources/types src/resources/conf news/changelog-1.12.md
+git commit -m "build: dev utilities off the Deno CLI (esbuild metafile graph; no deno fmt/check)"
+```
+
 ## Verification
 
 Before opening the PR (Linux or macOS; the three-OS run is CI):
@@ -2891,6 +2939,7 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - [ ] `denoToolBinary()` resolution order: `QUARTO_DENO`, installed tool, bundled tool; `src/core/run/deno.ts` and `build-ts-extension` use it.
 - [ ] `tsconfig.json` covers the CLI graph, `bld.ts` and tests; no `@ts-ignore` added; first and last `tsc` counts in the description.
 - [ ] Task 13 present only if `SPIKES.md` says Spike #2 passed.
+- [ ] Task 16: `module-graph.ts` reads the esbuild metafile, no `deno info`/`deno run`/`deno fmt`/`deno check` spawn remains, the three acorn/lp-solver packages are exact `devDependencies`, and the two changelog lines are present; every row of PR 25's runtime residue table owned by this PR (6, 7, 8, 9, 10) is closed.
 
 ## Risks and rollback
 
@@ -2908,3 +2957,5 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 1. **Dist bundle name.** Kept as `bin/quarto.js` plus `bin/package.json` instead of renaming to `quarto.mjs`, because external tools may reference `bin/quarto.js` and the rename buys nothing once `bin/package.json` exists. Change only if a packager objects to a `package.json` in `bin/`.
 2. **`QUARTO_DENO` warning when `QUARTO_NODE` is set.** The plan stays silent then (conda and other packagers set both during the transition: Node for the CLI, Deno for the tool). The alternative, warning whenever `QUARTO_DENO` is set, would print on every conda run until PR 37.
 3. Not changed because the review's concern no longer applies: "`quarto-cli.code-workspace` `deno.path` points at a deleted binary". `configure.sh` keeps the `tools/deno` symlink until PR 37, which removes the `deno.*` keys.
+4. **`deno fmt` of generated types (residue row 9).** Options: (a) keep formatting through the Deno tool (`requireDenoToolBinary`) until PR 38, which breaks `dev-call build-artifacts` on a checkout without the tool and ties a `src/` command to it; (b) drop the format step now and let PR 38's dprint format the generated files; (c) bring dprint forward into this PR. Recommendation and plan: (b); the one-time whitespace diff of `src/resources/types/` is committed in Task 16 step 3.
+5. **`deno check` of OJS TypeScript imports (residue row 10).** Options: (a) type-check with `tsc` from the user's project, which Quarto cannot assume exists; (b) drop the type check and rely on the esbuild compile that already follows it; (c) keep `deno check` through the Deno tool, which would make a render feature depend on an optional tool. Recommendation and plan: (b), with a changelog line; an `{ojs}` cell importing TypeScript with a type error renders (as the browser would run it) instead of failing the render.

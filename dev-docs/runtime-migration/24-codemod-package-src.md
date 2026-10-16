@@ -30,7 +30,7 @@ Hand conversions left for this PR:
 | `package/src/util/utils.ts:20-28` (`download`) | `Deno.create(dest)` + `writeAll(file, contents)` from `io/write-all` | `writeFileSync(dest, contents)` from `fs.ts` |
 | `package/src/common/configure.ts:169-175` | a process for `ln -s <arch>/pandoc pandoc` (`execSync("ln", …)` after PR 08; an un-awaited `Deno.run` before) | `symlinkSync(linkTarget, join(targetDir, "pandoc"))` from `fs.ts` (relative target kept) |
 
-**What stays a Deno CLI invocation (owned by PR 33).** "Zero `Deno.*`" in this scope is not "runtime neutral": these calls start the Deno binary through `execPath()` or `QUARTO_DENO` and stay until PR 33 decides each one:
+**What stays a Deno CLI invocation (owned by PR 33 Task 16; the complete list with gates is the runtime residue table in PR 25, Context).** "Zero `Deno.*`" in this scope is not "runtime neutral": these calls start the Deno binary through `execPath()` or `QUARTO_DENO` and stay until PR 33 ports or retires each one:
 
 | File | Command |
 |---|---|
