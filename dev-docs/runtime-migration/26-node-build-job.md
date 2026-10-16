@@ -140,8 +140,17 @@ export function layerScriptCommand(fixture: string, args?: string[]): Promise<{ 
 `tools/node-bundle/junit.mjs`:
 
 ```js
-/** testcase name -> outcome, for the JUnit XML written by `deno test --junit-path`, `node --test --test-reporter=junit` and Vitest. */
-export function parseJUnit(xml: string): { passed: Set<string>; failed: Set<string>; skipped: Set<string> };
+/** Outcomes of the JUnit XML written by `deno test --junit-path`, `node --test --test-reporter=junit` and Vitest.
+ *  A case is identified by file and name (R14: two files may register the same name); the file comes from the
+ *  case's file attribute (node:test on Node 26), a file-looking classname (Deno) or the enclosing file suite
+ *  (Vitest), "" when the report has none (Node 22's reporter). The name sets stay for callers that know the
+ *  file (run-unit-on-node.mjs runs one file per report). */
+export function parseJUnit(xml: string): {
+  passed: Set<string>; failed: Set<string>; skipped: Set<string>;
+  cases: { file: string; name: string; outcome: "passed" | "failed" | "skipped" }[];
+};
+export function normalizeTestFile(p: string): string;   // "./smoke\\a.test.ts", "<root>/tests/smoke/a.test.ts" → "smoke/a.test.ts"
+export const caseId: (c: { file: string; name: string }) => string;   // "<file> :: <name>", the parity identity (PR 32)
 ```
 
 CLI: `node tools/node-bundle/junit.mjs summary <file.xml>...` prints `<file>: passed N, failed M, skipped K` per file.
@@ -1472,9 +1481,9 @@ git commit -m "node-bundle: quarto-node launcher and render-output normaliser"
 // Copyright (C) 2026 Posit Software, PBC
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseJUnit } from "./junit.mjs";
+import { caseId, normalizeTestFile, parseJUnit } from "./junit.mjs";
 
-// Deno shape: one <testsuite> per file, escaped attributes.
+// Deno shape: one <testsuite> per file, escaped attributes, classname = file.
 const deno = `<?xml version="1.0"?><testsuites><testsuite name="./unit/a.test.ts" tests="5">
 <testcase name="[unit] &gt; a passes" classname="./unit/a.test.ts" time="0.1"/>
 <testcase name="[unit] &gt; a fails" classname="./unit/a.test.ts"><failure message="boom"/></testcase>
@@ -1483,31 +1492,45 @@ const deno = `<?xml version="1.0"?><testsuites><testsuite name="./unit/a.test.ts
 <testcase name="[unit] &gt; with output" classname="./unit/a.test.ts"><system-out>log</system-out></testcase>
 </testsuite></testsuites>`;
 
-// node:test shape: no file suite, ">" unescaped in attributes, a test with
-// subtests written as a <testsuite> with counters.
+// node:test shape (Node 26): no file suite, ">" unescaped in attributes, an
+// absolute file="" on each testcase, a test with steps written as a
+// <testsuite> with counters and no file (its steps carry it).
 const node = `<?xml version="1.0" encoding="utf-8"?>
 <testsuites>
 	<testsuite name="[unit] > passes" time="0.003" disabled="0" errors="0" tests="1" failures="0" skipped="0" hostname="vm">
-		<testcase name="inner" time="0.001" classname="test"/>
+		<testcase name="inner" time="0.001" classname="[unit] > passes" file="/w/quarto-cli/tests/unit/a.test.ts"/>
 	</testsuite>
-	<testcase name="[unit] > fails" time="0.000479" classname="test" failure="boom">
+	<testcase name="[unit] > fails" time="0.000479" classname="test" file="/w/quarto-cli/tests/unit/a.test.ts" failure="boom">
 		<failure type="testCodeFailure" message="boom">at TestContext.&lt;anonymous> (x.mjs:1:1)</failure>
 	</testcase>
-	<testcase name="[unit] > ignored" time="0.0004" classname="test"><skipped type="skipped" message="true"/></testcase>
+	<testcase name="[unit] > ignored" time="0.0004" classname="test" file="C:\\w\\quarto-cli\\tests\\unit\\b.test.ts"><skipped type="skipped" message="true"/></testcase>
 </testsuites>`;
 
-test("parseJUnit reads Deno reports", () => {
+// Node 22's reporter writes no file at all.
+const node22 = `<testsuites><testcase name="[unit] > plain" time="0.001" classname="test"/></testsuites>`;
+
+test("parseJUnit reads Deno reports, with the file from classname", () => {
   const r = parseJUnit(deno);
   assert.deepEqual([...r.passed].sort(), ["[unit] > a passes", "[unit] > with output"]);
   assert.deepEqual([...r.failed].sort(), ["[unit] > a errors", "[unit] > a fails"]);
   assert.deepEqual([...r.skipped], ["[unit] > a skipped"]);
+  assert.deepEqual(r.cases.map((c) => c.file), Array(5).fill("unit/a.test.ts"));
+  assert.equal(caseId(r.cases[0]), "unit/a.test.ts :: [unit] > a passes");
 });
 
-test("parseJUnit reads node:test reports with subtests and unescaped attributes", () => {
+test("parseJUnit reads node:test reports with steps and unescaped attributes, the file from the file attribute", () => {
   const r = parseJUnit(node);
   assert.deepEqual([...r.passed].sort(), ["[unit] > passes", "[unit] > passes > inner"]);
   assert.deepEqual([...r.failed], ["[unit] > fails"]);
   assert.deepEqual([...r.skipped], ["[unit] > ignored"]);
+  assert.deepEqual(r.cases.map((c) => c.file), ["unit/a.test.ts", "unit/a.test.ts", "unit/a.test.ts", "unit/b.test.ts"]);
+  assert.deepEqual(parseJUnit(node22).cases.map((c) => c.file), [""]);
+});
+
+test("normalizeTestFile: one spelling per file", () => {
+  for (const p of ["./smoke/a.test.ts", ".\\smoke\\a.test.ts", "smoke/a.test.ts", "C:/w/quarto-cli/tests/smoke/a.test.ts", "/w/tests/smoke/a.test.ts"]) {
+    assert.equal(normalizeTestFile(p), "smoke/a.test.ts", p);
+  }
 });
 ```
 
@@ -1526,6 +1549,15 @@ Expected: `ERR_MODULE_NOT_FOUND`.
 // instead of a <testcase>, and does not escape ">" inside attributes; both
 // are handled. A testcase nested in such a test is named "<parent> > <child>".
 // Suites named after a file (*.ts, *.mjs, *.js) or unnamed do not prefix names.
+//
+// Identity. A test is identified by its file and its name: two files may
+// register the same name (R14 of REVIEW-2026-10-16.md). The file comes from
+// the testcase's `file` attribute (node:test on Node 26: an absolute path on
+// every <testcase>, none on the <testsuite> of a test with steps, which takes
+// its first child's), else a file-looking `classname` (Deno), else the
+// enclosing file suite (Deno, Vitest; PR 32 adds one for a reporter that
+// writes none, such as Node 22's). `cases` carries both; the name sets are
+// kept for callers that already know the file (run-unit-on-node.mjs).
 // Usage: node tools/node-bundle/junit.mjs summary <file.xml>...
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
@@ -1535,12 +1567,33 @@ function attr(attrs, name) {
   const m = attrs.match(new RegExp(`(?:^|\\s)${name}="([^"]*)"`));
   return m ? unescape(m[1]) : undefined;
 }
-const isFileSuite = (name) => name === "" || /\.(m?[jt]s)$/.test(name);
+export const isTestFile = (name) => /\.(m?[jt]s)$/.test(name);
+const isFileSuite = (name) => name === "" || isTestFile(name);
+
+/** "./smoke\\a.test.ts", "C:/x/tests/smoke/a.test.ts" and "smoke/a.test.ts" are the same file. */
+export function normalizeTestFile(p) {
+  let f = p.replace(/\\/g, "/").replace(/^(\.\/)+/, "");
+  const i = f.lastIndexOf("/tests/");
+  if (i !== -1) f = f.slice(i + "/tests/".length);
+  return f;
+}
+/** The identity the parity report compares: "<file> :: <name>". */
+export const caseId = ({ file, name }) => `${file} :: ${name}`;
 
 export function parseJUnit(xml) {
   const passed = new Set(), failed = new Set(), skipped = new Set();
-  const stack = []; // names of enclosing test suites ("" for file suites)
-  const prefixed = (name) => [...stack.filter(Boolean), name].join(" > ");
+  const cases = [];
+  const stack = []; // enclosing suites: { name: "" for file suites, file, test: the suite's own case if it is a test with steps }
+  const prefixed = (name) => [...stack.map((s) => s.name).filter(Boolean), name].join(" > ");
+  const record = (outcome, name, attrs) => {
+    const own = attr(attrs, "file") ?? attr(attrs, "classname");
+    const file = own && isTestFile(own) ? normalizeTestFile(own) : (stack.findLast((s) => s.file)?.file ?? "");
+    ({ passed, failed, skipped })[outcome].add(name);
+    const c = { file, name, outcome };
+    cases.push(c);
+    if (file) for (const s of stack) if (s.test && !s.test.file) s.test.file = file; // a test with steps: its file is its steps' file
+    return c;
+  };
   const tag = /<(\/?)(testsuite|testcase)\b((?:[^>"]|"[^"]*")*?)(\/?)>/g;
   let m;
   while ((m = tag.exec(xml))) {
@@ -1548,11 +1601,12 @@ export function parseJUnit(xml) {
     if (kind === "testsuite") {
       if (closing) { stack.pop(); continue; }
       const name = attr(attrs, "name") ?? "";
+      let test;
       if (!isFileSuite(name)) {
         const bad = Number(attr(attrs, "failures") ?? 0) + Number(attr(attrs, "errors") ?? 0);
-        (bad > 0 ? failed : passed).add(prefixed(name));
+        test = record(bad > 0 ? "failed" : "passed", prefixed(name), attrs);
       }
-      if (!selfClosing) stack.push(isFileSuite(name) ? "" : name);
+      if (!selfClosing) stack.push(isFileSuite(name) ? { name: "", file: name ? normalizeTestFile(name) : "" } : { name, file: "", test });
       continue;
     }
     if (closing) continue;
@@ -1563,24 +1617,26 @@ export function parseJUnit(xml) {
       body = xml.slice(tag.lastIndex, end === -1 ? undefined : end);
       if (end !== -1) tag.lastIndex = end + "</testcase>".length;
     }
-    if (/<(failure|error)\b/.test(body)) failed.add(name);
-    else if (/<skipped\b/.test(body)) skipped.add(name);
-    else passed.add(name);
+    if (/<(failure|error)\b/.test(body)) record("failed", name, attrs);
+    else if (/<skipped\b/.test(body)) record("skipped", name, attrs);
+    else record("passed", name, attrs);
   }
-  return { passed, failed, skipped };
+  return { passed, failed, skipped, cases };
 }
 
 const isMain = process.argv[1] && pathToFileURL(fs.realpathSync(process.argv[1])).href === import.meta.url;
 if (isMain && process.argv[2] === "summary") {
   for (const f of process.argv.slice(3)) {
     const r = parseJUnit(fs.readFileSync(f, "utf8"));
-    console.log(`${f}: passed ${r.passed.size}, failed ${r.failed.size}, skipped ${r.skipped.size}`);
+    const n = (o) => r.cases.filter((c) => c.outcome === o).length;
+    const noFile = r.cases.filter((c) => !c.file).length;
+    console.log(`${f}: passed ${n("passed")}, failed ${n("failed")}, skipped ${n("skipped")}${noFile ? ` (${noFile} without a file)` : ""}`);
   }
 }
 ```
 
 Run: `node --test tools/node-bundle/junit.test.mjs`
-Expected: `# pass 2`, `# fail 0`.
+Expected: `# pass 3`, `# fail 0`.
 
 - [ ] **Step 3: Write the `node:test` adapter**
 
@@ -2091,7 +2147,7 @@ debug logging as with the Deno dev build.
 | `tools/node-bundle/deno-shim.mjs` | Temporary `globalThis.Deno` on `node:` APIs; a no-op on Deno. Shrinks with PR 27–30 and 27b. |
 | `tools/node-bundle/build-test.mjs`, `node-test-adapter.mjs` | Bundle one test file for Node; `Deno.test` on `node:test`. |
 | `tools/node-bundle/run-unit-on-node.mjs`, `known-failures.json` | The per-PR real-Node run of `tests/unit/ral/` and its shrinking failure list. |
-| `tools/node-bundle/junit.mjs` | JUnit reader shared with PR 32's parity report. |
+| `tools/node-bundle/junit.mjs` | JUnit reader shared with PR 32's parity report; identifies a case by file and name (`cases`, `caseId`) from the `file` attribute, the `classname` or the file suite. |
 | `tools/node-bundle/quarto-node` | Launcher with the dev share path and V8 flags. |
 | `tools/node-bundle/check-deps.mjs` | Fails when `package.json` `dependencies` drift from the import map. `--write` regenerates them. |
 | `tools/node-bundle/normalize-html.mjs` | Normalises the render root, hashes, cell ids and timestamps so Deno and Node renders diff clean. |

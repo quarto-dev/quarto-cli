@@ -171,8 +171,26 @@ the pass has landed.
   nothing; open files, client sockets and pending fs operations are
   intentionally undetected on Node; a sixth `harness-node.test.ts` case and
   four one-file examples in Task 5; `runChecked()` run on Node 22.22, Deno
-  and Vitest not run); plans 32, 33, 35, 36 still carry the defects its C
-  table names. Row 33's build lock in
+  and Vitest not run) and for 32 (R14: a "Parity evidence" table in
+  Interfaces; `parity-compare` needs `node-buckets` too and fails in its
+  first step on any `needs.*.result` other than `success`, then
+  `compare-junit.mjs --buckets N` (`N_BUCKETS`, a new output of
+  `node-buckets`) refuses a runtime with other than `N` bucket artifacts, a
+  bucket without a report, a report without a case, a case without a file or
+  a missing path with `parity: NO EVIDENCE`; `compare()` counts any failure
+  on either side against `ok` (`failedDeno` never allowlisted, `failedNode`
+  only for Julia); a test is `<file> :: <name>` (`caseId` and `cases` in PR
+  26's `junit.mjs`, the file from the case's `file` attribute, written by
+  node:test's reporter on Node 26, a file-looking `classname`, Deno's, or
+  the file suite, Vitest's; Node 22's reporter writes no file, so
+  `junit-finish.mjs`, which replaces `junit-prereq.mjs`, keeps a `--file`
+  wrap the runner scripts do not use); the artifact download patterns are
+  `d[0-9][0-9]`/`n[0-9][0-9]` so that `denosanity` and `nbin` do not count
+  as buckets; five `compare-junit.test.mjs` cases and two more in
+  `junit.test.mjs`; the three scripts and their cases run on Node 26.12.0
+  and 22.22, the reporter's `file` attribute measured on both, the workflow
+  not run; PR 37's file list renamed accordingly); plans 33, 35, 36 still
+  carry the defects its C table names. Row 33's build lock in
   `ensure.mjs` is to copy PR 30's rule (marker, probe, guarded release); its
   120 s age then only governs locks with no readable owner.
   The line numbers in the review and triage were measured at

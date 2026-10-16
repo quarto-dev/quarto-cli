@@ -173,6 +173,14 @@ other plans refer to it by file and section (reconciliation pass of
   sockets and pending fs operations are intentionally undetected on Node):
   PR 31, Interfaces, "Leak guarantees" (R13; `_TEMPLATE.md`'s `sanitize`
   entry, `tests/README.md` and `SPIKES.md`'s Spike V refer to it).
+- The parity evidence rule (the nightly `parity-compare` job fails before
+  comparing unless every test job it depends on succeeded and every bucket of
+  both runtimes uploaded a readable report; a test is `<file> :: <name>`,
+  `junit.mjs` `caseId` in PR 26, the file read from the report's `file`
+  attribute, `classname` or file suite; a failure on either side is never
+  parity): PR 32,
+  Interfaces, "Parity evidence" (R14; PR 37 deletes the job and keeps
+  `junit.mjs` and `junit-finish.mjs`).
 - The CI graph after Deno removal (events, OSes, bucket generation, required
   check names): PR 37, Context (PR 32 refers to it).
 - Spike V scheduling and its inconclusive outcome: `SPIKES.md`, Spike V
@@ -254,7 +262,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 
 | PR | Plan | What | Depends on | Executor | Size | Status |
 |---|---|---|---|---|---|---|
-| 26 | [26-node-build-job.md](26-node-build-job.md) | Node bundler (import map scoped to first-party importers) and `.mjs` shim from `spike/`, root `package.json`, `check-shim.mjs` over bundle and resources, real-Node run of `tests/unit/ral` per PR with `known-failures.json`, render job | 01, 03–07, 20b, 23 | Opus | M | planned |
+| 26 | [26-node-build-job.md](26-node-build-job.md) | Node bundler (import map scoped to first-party importers) and `.mjs` shim from `spike/`, root `package.json`, `check-shim.mjs` over bundle and resources, real-Node run of `tests/unit/ral` per PR with `known-failures.json`, `junit.mjs` (cases by file and name), render job | 01, 03–07, 20b, 23 | Opus | M | planned |
 | S2 | [SPIKES.md](SPIKES.md) | Spike #2 (one week): `node:` bundle on Deno 2.9, `node:http`+`ws` upgrade, `fs.watch`, process groups and `.bat` quoting, Cliffy prompts on Node, `--use-env-proxy` | 26 | Opus | – | planned |
 | 27 | [27-ral-fs-on-node-apis.md](27-ral-fs-on-node-apis.md) | `fs.ts`/`temp.ts`/`errors.ts` on `node:fs`; `canonicalPathSync` on `realpathSync.native`; `walk`/`expandGlob` without `@std/fs`; the open-flag rule (`openFlagBits`) and the one-owner `FsFile` | 20b, 25, 26, S2 | Opus | L | planned |
 | 27b | [27b-ral-platform-env-tar-log-on-node.md](27b-ral-platform-env-tar-log-on-node.md) | `platform.ts`, `env.ts`, `tar.ts`, `log.ts` FileHandler on `node:` | 14, 19, 20b, 25, 26, 27 | Sonnet | S | planned |
@@ -263,7 +271,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 30 | [30-ral-kv-on-node.md](30-ral-kv-on-node.md) | `kv.ts` on a locked JSON file (`<name>.json`), per-key merge, both runtimes; the lock ownership rule (owner marker, liveness probe, guarded release) | 18, 25, 26, 27b | Opus | S | planned |
 | SV | [SPIKES.md](SPIKES.md) | Spike V (two days): Vitest vs `node:test` on ten files after the layer is on `node:` APIs; decision rule with an inconclusive outcome | 27, 27b, 28, 29, 30 | Opus | – | planned |
 | 31 | [31-test-harness-on-node.md](31-test-harness-on-node.md) | `tests/harness.ts` on the chosen runner; `run-tests-node.sh`; `run-parallel-tests.mjs`; `testArgs()`; leak guarantees (`runChecked()`, per-test timeout, forced exit) | 02b, 23, 26, 27–30, SV | Opus | L | planned |
-| 32 | [32-node-ci-required.md](32-node-ci-required.md) | Bucketed Node matrix (Linux, Windows per PR; macOS nightly) required; prerequisite-aware parity; allowlist empty except Julia until J; Deno matrix to nightly plus `deno-sanity` | 14b, 27, 27b, 28–31, J | Opus | M | planned |
+| 32 | [32-node-ci-required.md](32-node-ci-required.md) | Bucketed Node matrix (Linux, Windows per PR; macOS nightly) required; prerequisite-aware parity by file and name, computed only from complete evidence (green jobs, every bucket reported, failures counted); allowlist empty except Julia until J; Deno matrix to nightly plus `deno-sanity` | 14b, 27, 27b, 28–31, J | Opus | M | planned |
 
 ### Phase 3: flip the runtime, then remove Deno
 
