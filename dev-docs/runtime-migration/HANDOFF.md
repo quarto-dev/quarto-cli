@@ -118,8 +118,8 @@ the pass landed (all three are done).
    test runner is decided by Spike V in `SPIKES.md` before PR 31.
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task
    per plan file, in parallel where the triage marks it), then the re-read
-   of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25
-   and 26 done 2026-10-16).
+   of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25,
+   26 and 27 done 2026-10-16).
 5. Open the plans as PRs against `main` in the README order: PR 02 first, then
    00a and 00b, then 03–06 in parallel, then 07. Each plan names its
    branch, executor and verification commands.

@@ -19,7 +19,7 @@ After PR 09–13 and PR 25, application code calls `readTextFileSync`, `statSync
 
 Review findings on the earlier draft, all addressed here: it rewrote `src/deno_ral/original-real-path.ts`, which PR 25 deletes (this plan does not touch it); it never wrote the Node body of `canonicalPathSync`, which five PR 25 callers use (Task 3 writes it on `fs.realpathSync.native`); its temp-file loop retried every error while the vocabulary says `EEXIST` only (fixed); it made `copy()` synchronous on the claim that callers copy small trees, but `src/publish/gh-pages/gh-pages.ts:243` (`await copy(renderResult.baseDir, tempDir, { overwrite: true })`) copies a whole rendered site (both `copy` on `node:fs/promises` and `copySync` are provided); the async `walk` used `fsp.realpath` while the sync one used `realpathSync.native` (both now go through the layer's own `realPath`/`canonicalPathSync`, which use the same libuv `uv_fs_realpath`, and a test pins that they agree); it cited `tests/docs/websites/book`, which does not exist (`tests/docs/smoke-all/book/simple` is used).
 
-Review of 2026-10-16 (`REVIEW-2026-10-16.md`, triage bucket C row 27), addressed here: `openFlags()`/`writeFlag()` translated Deno's independent `create`/`truncate`/`append` options into `node:fs` string flags that bundle them (`"w"` truncated a `{ write, create }` open and created a `{ write, truncate, create: false }` one; `"a"` created a missing file on append) and `{ create: false }` writes went through `"r+"` (R05): the layer now derives numeric flags (`openFlagBits()`, Interfaces, "Open flags"). `NodeFsFile` wrapped the same descriptor in a new `autoClose: true` stream on every getter access and `close()` swallowed `EBADF`, so a recycled descriptor could be closed (R06): the file is now the single owner of its descriptor and its streams close through it (Interfaces, "One descriptor owner"; triage decision A8). `copySymlink` picked the Windows link type from `lstat`, which describes the link, so every directory link became a file link (R19, a bug `@std/fs` 1.0.16 `copy.ts` has today): the type now comes from `stat` of the source with a dangling-link fallback (Task 4). The numeric flags, `writeFileSync(fd, data)` and the streams' `fs` option were checked on Node 22.22 while correcting the plan; on Deno 2.7.14 they are covered by the tests of Tasks 2 and 4, which run on both runtimes.
+Review of 2026-10-16 (`REVIEW-2026-10-16.md`, triage bucket C row 27), addressed here: `openFlags()`/`writeFlag()` translated Deno's independent `create`/`truncate`/`append` options into `node:fs` string flags that bundle them (`"w"` truncated a `{ write, create }` open and created a `{ write, truncate, create: false }` one; `"a"` created a missing file on append) and `{ create: false }` writes went through `"r+"` (R05): the layer now derives numeric flags (`openFlagBits()`, Interfaces, "Open flags"). `NodeFsFile` wrapped the same descriptor in a new `autoClose: true` stream on every getter access and `close()` swallowed `EBADF`, so a recycled descriptor could be closed (R06): the file is now the single owner of its descriptor and its streams close through it (Interfaces, "One descriptor owner"; triage decision A8). `copySymlink` picked the Windows link type from `lstat`, which describes the link, so every directory link became a file link (R19, a bug `@std/fs` 1.0.16 `copy.ts` has today): the type now comes from `stat` of the source with a dangling-link fallback (Task 4). The numeric flags, `writeFileSync(fd, data)` and the streams' `fs` option were checked on Node 26.12.0 and 22.22 (the Task 2 R05 and R06 cases, transliterated to `node:test` over the Task 3 bodies, pass on both; the second run was the re-read of the review's "Later validation" lines on 2026-10-16, which also removed the orphan tail of the test the R05 cases replaced and added the writer-closed-underneath and junction cases); on Deno 2.7.14 they are covered by the tests of Tasks 2 and 4, which run on both runtimes.
 
 The normalising `realPathSync` that PR 09 introduced is gone from the vocabulary (PR 09 maps `Deno.realPathSync(` to `canonicalPathSync(`); this PR does not reintroduce it. `canonicalPathSync(path)` resolves symlinks, throws when `path` does not exist, and returns a path without the Windows `\\?\` prefix: libuv's `uv_fs_realpath` (behind both `fs.realpathSync.native` and `fs.promises.realpath`) strips `\\?\` and turns `\\?\UNC\` into `\\`, which is "removed by the runtime itself" in the vocabulary's words.
 
@@ -110,7 +110,7 @@ export function openFlagBits(options?: OpenOptions): number;
 
 `writeTextFile(Sync)`/`writeFile(Sync)` open with `openFlagBits({ write: true, create: options.create ?? true, truncate: !options.append, append: options.append })`, which is how `Deno.writeFile` maps its options, and write through the descriptor; no `"w"`, `"a"` or `"r+"` string flag remains in `fs.ts`. So `{ create: false }` truncates an existing file and fails with `ENOENT` on a missing one, `{ append: true, create: false }` never creates, and shorter replacement content leaves no trailing bytes.
 
-**One descriptor owner.** An `FsFile` owns its descriptor until it is closed. `readable` and `writable` are created once and cached. The Node streams behind them are given an `fs` option whose `close` is routed to the object's `close()`, so they never call `fs.close` on a number the object may already have released and the OS reused; reaching EOF, cancelling the readable, closing or aborting the writable therefore close the file exactly once (Deno semantics, triage A8). `close()` is idempotent and records the closed state; afterwards `read`, `write`, `writeSync` and the streams fail with an `EBADF` error instead of touching a recycled descriptor. Closing the file while a stream is mid-flight fails that stream's next operation, as Deno's `BadResource` does.
+**One descriptor owner.** An `FsFile` owns its descriptor until it is closed. `readable` and `writable` are created once and cached. The Node streams behind them are given an `fs` option whose `close` is routed to the object's `close()`, so they never call `fs.close` on a number the object may already have released and the OS reused; reaching EOF, cancelling the readable, closing or aborting the writable therefore close the file exactly once (Deno semantics, triage A8). `close()` is idempotent and records the closed state; afterwards `read`, `write`, `writeSync` and the streams fail with an `EBADF` error instead of touching a recycled descriptor. Closing the file while its readable is mid-flight fails the next read with `EBADF`, as Deno's `BadResource` does. The writable differs in one timing: Node's `Writable.toWeb` resolves a `write()` as soon as the chunk is buffered, so one `write()` issued after `close()` still resolves; the underlying write then fails with `EBADF`, which errors the stream, and `closed`, `ready` and every later `write()` reject with it while the buffered bytes are never written (measured on Node 26.12.0 and 22.22). A caller that closes a file under its own writer learns of it from `closed` or the next `write()`, never through a write on a recycled descriptor.
 
 ### Files
 
@@ -457,6 +457,7 @@ unitTest("FsFile - one descriptor owner: EOF, cancel, writer close and close() c
   other2.close();
   const g = join(dir, "g.txt");
   const w = openSync(g, { write: true, create: true, truncate: true });
+  assert(w.writable === w.writable, "the writable stream is created once");
   w.writeSync(enc.encode("0"));
   const writer = w.writable.getWriter();
   await writer.write(enc.encode("abc"));
@@ -480,17 +481,25 @@ unitTest("FsFile - one descriptor owner: EOF, cancel, writer close and close() c
   } catch (e) {
     assertEquals((e as { code?: string }).code, "EBADF", "a stream over an explicitly closed file fails instead of reading a recycled descriptor");
   }
-  removeSync(dir, { recursive: true });
-});
-  assertEquals(readTextFileSync(f), "12");
-  writeTextFileSync(f, "3", { create: false });
-  assertEquals(readTextFileSync(f), "3", "create:false truncates an existing file");
+  // A writer whose file is closed underneath it. Writable.toWeb resolves a
+  // write() as soon as the chunk is buffered, so the first write() after
+  // close() resolves; the underlying write then fails with EBADF, which errors
+  // the stream: closed, ready and every later write() reject with it, and the
+  // buffered chunk never reaches a recycled descriptor (Node 26.12.0 and 22.22).
+  const z = openSync(g, { write: true });
+  const zw = z.writable.getWriter();
+  z.close();
+  await zw.write(enc.encode("q")); // buffered: resolves
+  let closedWith: unknown;
+  await zw.closed.catch((e) => (closedWith = e));
+  assertEquals((closedWith as { code?: string }).code, "EBADF", "the closed file reaches the writer as EBADF on closed");
   try {
-    writeTextFileSync(join(dir, "nope.txt"), "x", { create: false });
-    assert(false, "expected NotFound");
+    await zw.write(enc.encode("r"));
+    assert(false, "expected EBADF");
   } catch (e) {
-    assert(isNotFound(e));
+    assertEquals((e as { code?: string }).code, "EBADF", "and on every later write()");
   }
+  assertEquals(readTextFileSync(g), "0abc", "the buffered chunk was not written");
   removeSync(dir, { recursive: true });
 });
 
@@ -1158,6 +1167,7 @@ import {
   writeTextFileSync,
 } from "../../../src/deno_ral/fs.ts";
 import { isAlreadyExists } from "../../../src/deno_ral/errors.ts";
+import { symlinkSync as nodeSymlinkSync } from "node:fs"; // junction fixture only (R19)
 
 // project/
 //   _quarto.yml  index.qmd  README.md  README.Rmd  _draft.qmd
@@ -1327,6 +1337,11 @@ unitTest("copy(Sync) - a directory symlink keeps its target's type, a dangling l
     symlinkSync("target", join(dir, "src", "rel-dir"), { type: "dir" }); // relative: resolves at src/ and, once copied, at out/
     symlinkSync(join(dir, "src", "target"), join(dir, "src", "abs-dir"), { type: "dir" });
     symlinkSync(join(dir, "src", "gone"), join(dir, "src", "dangling"));
+    // A junction, Windows only and through node:fs (the layer exposes no
+    // junction type because Quarto creates none): lstat reports a symlink,
+    // readlink gives its absolute target, stat a directory, so copy recreates
+    // it as a "dir" symlink to that target (Context, the `copy` bullet).
+    if (isWindows) nodeSymlinkSync(join(dir, "src", "target"), join(dir, "src", "junction"), "junction");
   } catch (e) {
     if (isWindows && (e as { code?: string }).code === "EPERM") {
       removeSync(dir, { recursive: true });
@@ -1337,7 +1352,7 @@ unitTest("copy(Sync) - a directory symlink keeps its target's type, a dangling l
   copySync(join(dir, "src"), join(dir, "out-sync"));
   await copy(join(dir, "src"), join(dir, "out-async"));
   for (const out of ["out-sync", "out-async"]) {
-    for (const name of ["rel-dir", "abs-dir"]) {
+    for (const name of isWindows ? ["rel-dir", "abs-dir", "junction"] : ["rel-dir", "abs-dir"]) {
       const copied = join(dir, out, name);
       assert(lstatSync(copied).isSymlink, `${out}/${name} is a symlink`);
       assert(statSync(copied).isDirectory, `${out}/${name} resolves to a directory (on Windows: a "dir" link, not a "file" link)`);
@@ -1915,7 +1930,7 @@ git commit -m "node-bundle: drop shim members and known failures made obsolete b
 - `grep -c "Deno\." src/deno_ral/fs.ts src/deno_ral/temp.ts` → `0` for each; `grep -c '"fs/' src/deno_ral/fs.ts` → `0`; `ls src/deno_ral/original-real-path.ts` → no such file.
 - `node tools/node-bundle/build.mjs --check-shim` → `0 missing`, no `unused` list; the two spike renders above succeed.
 - Manual: `cp -r tests/docs/smoke-all/book/simple /tmp/rt27-book && package/dist/bin/quarto render /tmp/rt27-book` (a book: walk, glob, copy of resources into `_book`), then the same with `tools/node-bundle/quarto-node render /tmp/rt27-book` and a normalised diff of the two `_book` trees (PR 26's `normalize-html.mjs --root`, `diff -r -x .quarto`); and `package/dist/bin/quarto create project website /tmp/rt27-site --no-prompt` (ensureDir, copy, ensureUserWritable).
-- Windows: run `cd tests; $env:QUARTO_TESTS_NO_CONFIG="true"; .\run-tests.ps1 --agent unit/ral/` on a Windows machine or let the CI matrix run; the PR 26 `node-unit` job runs the same files on Node on Windows (`canonicalPathSync` drive-letter and no-prefix case; the R19 case needs a runner with symlink privilege, which GitHub's `windows-latest` has, and checks that a copied directory link is a `"dir"` link; a junction is not in the fixture because Quarto creates none, and its behaviour is the one the Context's `copy` bullet states).
+- Windows: run `cd tests; $env:QUARTO_TESTS_NO_CONFIG="true"; .\run-tests.ps1 --agent unit/ral/` on a Windows machine or let the CI matrix run; the PR 26 `node-unit` job runs the same files on Node on Windows (`canonicalPathSync` drive-letter and no-prefix case; the R19 case needs a runner with symlink privilege, which GitHub's `windows-latest` has, and checks that a copied directory link is a `"dir"` link; the fixture's junction, made with `node:fs` because Quarto creates none, must come out as a `"dir"` link to its absolute target, as the Context's `copy` bullet states).
 
 ## Review checklist
 
@@ -1931,7 +1946,7 @@ git commit -m "node-bundle: drop shim members and known failures made obsolete b
 - [ ] `walk` `skip`/`match` test the full path (not the name), `exts` get a leading dot, symlinks are yielded as symlinks when `followSymlinks: false`.
 - [ ] `copySync` recreates symlinks, refuses copying into a subdirectory of the source, honours `overwrite` and `preserveTimestamps`; on Windows the link type comes from `statSync(src)` (`"dir"` for a directory target, `"file"` otherwise and for a dangling link), never from `lstat`.
 - [ ] `openFlagBits` is the only flag translation in `fs.ts`: `O_CREAT` iff `create`, `O_TRUNC` iff `truncate`, `O_APPEND` iff `append`, `TypeError` for `create` without write/append and `truncate` without write; `writeTextFile(Sync)`/`writeFile(Sync)` go through it with `truncate: !append`; the R05 tests (existing and missing file × create/truncate/append, shorter replacement, sync and async) pass on both runtimes.
-- [ ] `NodeFsFile`: one `#fd`, nulled by an idempotent `close()`; `readable`/`writable` cached; the Node streams get the `fs` option that routes `close` to the object; EOF, cancel, writer close and abort close the file (A8); every operation after close fails with `EBADF`; the R06 test's recycled-descriptor cases pass on both runtimes.
+- [ ] `NodeFsFile`: one `#fd`, nulled by an idempotent `close()`; `readable`/`writable` cached; the Node streams get the `fs` option that routes `close` to the object; EOF, cancel, writer close and abort close the file (A8); `read`, `write`, `writeSync` and the readable fail with `EBADF` after close, and a writer's buffered `write()` surfaces it on `closed`, `ready` and the next `write()`; the R06 test's recycled-descriptor cases pass on both runtimes.
 - [ ] `moveSync` throws `EEXIST` without `overwrite` and `ENOTSUP` for a move into its own subtree.
 - [ ] `temp.ts` builds `<dir>/<prefix><hex><suffix>` and retries only on `EEXIST`.
 - [ ] The shim lost members, none were added; `--check-shim` prints no `unused` list.
@@ -1942,7 +1957,7 @@ git commit -m "node-bundle: drop shim members and known failures made obsolete b
 - **Semantic drift in walk/glob** shows up as changed project input discovery (files missing from a website render, extension not found). The new tests encode `projectHiddenIgnoreGlob` and `resolvePathGlobs` usage; `smoke/project/` and `smoke/extensions/` cover the callers. Rollback: `git revert` the walk/glob commit; the `@std/fs` re-exports return and still run on Deno.
 - **`canonicalPathSync` on Windows** (`fs.realpathSync.native`): libuv strips `\\?\` and rewrites `\\?\UNC\` to `\\`; a mapped network drive resolves to its UNC target (as Deno's `realPathSync` does, both use `GetFinalPathNameByHandleW`). If a regression appears in `safeRemoveDirSync` or the four other PR 25 callers, it shows as a path-comparison failure in `tests/unit/ral/safe-remove-dir.test.ts` on the Windows `node-unit` job; the fallback is `fs.realpathSync` (the JavaScript implementation, no drive-to-UNC resolution) in `canonicalPathSync` only.
 - **Performance:** `copy()` is sequential per entry like `@std/fs` (no parallel copies, which would risk EMFILE on large sites). If `quarto publish gh-pages` of a large site regresses, measure with `QUARTO_PROFILE` before changing it.
-- **`node:fs` compat on Deno for the R05/R06 mechanisms:** numeric open flags, `writeFileSync(fd, data)` and the streams' `fs` option were checked on Node 22.22 only; Deno 2.7.14's `node:fs` polyfill is a port of Node's `internal/fs/streams.js` and should honour them, and the Task 2 tests run on both runtimes to prove it. If one does not hold on Deno: for the flags, open with the access bits only and apply `O_CREAT`/`O_TRUNC` by hand (`existsSync` check, `ftruncateSync(fd, 0)`) behind the same `openFlagBits` contract; for the streams, keep `autoClose: false` and `once("end")`/`once("finish")`/`once("close")` listeners that call `close()`, and make `close()` tolerate the `EBADF` that Node's `destroy()` then causes by closing the descriptor itself, with a comment saying which runtime needs it. Either fallback keeps the tests of Task 2 as the contract.
+- **`node:fs` compat on Deno for the R05/R06 mechanisms:** numeric open flags, `writeFileSync(fd, data)` and the streams' `fs` option were checked on Node 26.12.0 and 22.22 only; Deno 2.7.14's `node:fs` polyfill is a port of Node's `internal/fs/streams.js` and should honour them, and the Task 2 tests run on both runtimes to prove it. If one does not hold on Deno: for the flags, open with the access bits only and apply `O_CREAT`/`O_TRUNC` by hand (`existsSync` check, `ftruncateSync(fd, 0)`) behind the same `openFlagBits` contract; for the streams, keep `autoClose: false` and `once("end")`/`once("finish")`/`once("close")` listeners that call `close()`, and make `close()` tolerate the `EBADF` that Node's `destroy()` then causes by closing the descriptor itself, with a comment saying which runtime needs it. Either fallback keeps the tests of Task 2 as the contract.
 - **Whole-PR rollback:** revert the five commits; no caller changed.
 
 ## Decisions needed
