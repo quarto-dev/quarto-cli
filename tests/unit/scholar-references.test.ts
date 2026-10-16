@@ -12,7 +12,7 @@ import { unitTest } from "../test.ts";
 import { withTempDir } from "../utils.ts";
 import { createMockFormat } from "./format-utils.ts";
 
-function referenceTitles(body: string, pandoc: Record<string, unknown> = {}) {
+function referenceTitles(body: string) {
   return withTempDir(async (dir) => {
     Deno.writeTextFileSync(
       join(dir, "references.bib"),
@@ -22,7 +22,6 @@ function referenceTitles(body: string, pandoc: Record<string, unknown> = {}) {
        @article{key:with/slash.dot, title={Punctuation reference}, author={Davis, Dan}, year={2023}}`,
     );
     const format = createMockFormat({
-      pandoc,
       metadata: {
         title: "An article",
         "google-scholar": true,
@@ -47,6 +46,11 @@ function referenceTitles(body: string, pandoc: Record<string, unknown> = {}) {
   });
 }
 
+// Pandoc applies the identifier prefix to the container and its entries.
+function bibliography(entries: string, identifierPrefix = "") {
+  return `<div id="${identifierPrefix}refs" class="references csl-bib-body">${entries}</div>`;
+}
+
 unitTest("Scholar references - omit an unused bibliography", async () => {
   assertEquals(await referenceTitles("<p>No citations.</p>"), []);
 });
@@ -66,7 +70,7 @@ unitTest(
 unitTest("Scholar references - include rendered nocite entries", async () => {
   assertEquals(
     await referenceTitles(
-      '<div id="ref-included" class="csl-entry">An entry</div>',
+      bibliography('<div id="ref-included" class="csl-entry">An entry</div>'),
     ),
     ["included reference"],
   );
@@ -77,7 +81,7 @@ unitTest("Scholar references - deduplicate repeated citations", async () => {
     await referenceTitles(`
       <span class="citation" data-cites="cited included">Citations</span>
       <span class="citation" data-cites="cited">Repeated citation</span>
-      <div id="ref-included" class="csl-entry">An entry</div>
+      ${bibliography('<div id="ref-included" class="csl-entry">An entry</div>')}
     `),
     ["cited reference", "included reference"],
   );
@@ -111,8 +115,10 @@ unitTest(
   async () => {
     assertEquals(
       await referenceTitles(
-        '<div id="page-ref-included" class="csl-entry">An entry</div>',
-        { "identifier-prefix": "page-" },
+        bibliography(
+          '<div id="page-ref-included" class="csl-entry">An entry</div>',
+          "page-",
+        ),
       ),
       ["included reference"],
     );

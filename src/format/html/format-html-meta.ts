@@ -65,7 +65,6 @@ export function metadataPostProcessor(
         input,
         options.inputMetadata,
         doc,
-        (format.pandoc as Metadata)["identifier-prefix"] as string | undefined,
       );
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {
         writeMetaTag(meta.name, meta.content, doc);
@@ -266,18 +265,24 @@ async function googleScholarReferences(
   input: string,
   metadata: Metadata,
   doc: Document,
-  identifierPrefix = "",
 ) {
   const scholarMeta: MetaTagData[] = [];
   const write = metadataWriter(scholarMeta);
 
   const referenceIds = new Set<string>();
   // Bibliography entries include works deliberately added with nocite.
-  const entryPrefix = `${identifierPrefix}ref-`;
-  for (const entry of doc.querySelectorAll(".csl-entry[id]")) {
-    const id = (entry as Element).id;
-    if (id.startsWith(entryPrefix)) {
-      referenceIds.add(id.slice(entryPrefix.length));
+  // Pandoc writes any identifier prefix (from YAML or --id-prefix) into
+  // both the `<prefix>refs` container id and its `<prefix>ref-` entry ids.
+  for (const container of doc.querySelectorAll('.csl-bib-body[id$="refs"]')) {
+    const containerId = (container as Element).id;
+    const entryPrefix = `${containerId.slice(0, -"refs".length)}ref-`;
+    for (
+      const entry of (container as Element).querySelectorAll(".csl-entry[id]")
+    ) {
+      const id = (entry as Element).id;
+      if (id.startsWith(entryPrefix)) {
+        referenceIds.add(id.slice(entryPrefix.length));
+      }
     }
   }
   // Citation IDs remain available when the bibliography is suppressed.
