@@ -36,7 +36,7 @@ Assessment section 3.3, row "Monkey patches (`src/core/deno/monkey-patch.ts`)", 
 | `src/webui/quarto-preview/build.ts` | 8 | that package's build script, `deno run --no-config -A build.ts` (`package/src/common/previewjs.ts:14`); `deno_ral/fs.ts` needs the import map | already in `kSrcExclusions`; this PR rewrites its reason comment (PR 08 does not convert it) | PR 33 (build tooling) |
 | `src/command/render/latexmk/quarto-latexmk.ts` (only if PR 39 has not landed) | 1 (`Deno.args`) | standalone `tinitex` entry compiled by `deno compile`; decision 9 deletes it | added to `kSrcExclusions` with the reason "deleted by PR 39"; PR 39 removes the entry together with the file | PR 39 (deletion) |
 
-Every other path under `src/` and `package/src` reaches zero, comments included (the `Deno.` counter counts text, PR 02).
+Every other path under `src/` and `package/src` reaches zero, comments included (the `Deno.` counter counts text, PR 02). For the std-import counter, zero means zero *counted* std imports under the std boundary rule (`02-runtime-boundary-check.md`, "The std boundary rule"): direct imports of the allow-listed import-map seams (`async`, `crypto`, `datetime`, `streams`, `io/*`, `log` minus `log/file-handler`, `fmt/printf`, `dotenv/stringify`; PR 22's table) remain in `src/` and are not violations. Item 2 of the hidden-dependency inventory below is what makes that safe: every std module with internal `Deno.*` is either reimplemented by then or owned by a named Phase 2 PR.
 
 **Comment and string occurrences.** On `b86f98d`, 23 of the 992 `src` occurrences are not code (comments and one commented-out block), plus one comment line in `package/src`. Some are removed by earlier PRs, the rest by Task 5 of this PR:
 
@@ -49,7 +49,7 @@ Every other path under `src/` and `package/src` reaches zero, comments included 
 
 **Hidden-dependency inventory (exit criterion, review S1).** Phase 1 is complete only when all of the following hold; Task 7 checks each and the PR description records the result:
 
-1. Ratchet: `src` and `package/src` at 0/0; `src-js` and `resources` at exactly the values PR 20b recorded (`src-js` 0; `resources` 5 plus the 6 sites and 1 std-import file of `ast-diagram/main.ts`, which this PR moves into that scope); `tests` at the residue PR 23 documents.
+1. Ratchet: `src` and `package/src` at 0/0 (zero `Deno.` occurrences, zero counted std imports); `src-js` and `resources` at exactly the values PR 20b recorded (`src-js` 0; `resources` 5 plus the 6 sites and 1 std-import file of `ast-diagram/main.ts`, which this PR moves into that scope); `tests` at the residue PR 23 documents.
 2. Std modules that call `Deno.*` internally, each either reimplemented or owned by a named Phase 2 PR:
 
 | Std module (as imported) | Internal `Deno.*` | Status at PR 25 |
@@ -120,7 +120,7 @@ export function canonicalPathSync(path: string | URL): string;
 ### Acceptance criteria
 
 - `rg -n '\bDeno\.' src package/src -g '*.ts' -g '!src/deno_ral/**' -g '!src/resources/extension-subtrees/**' -g '!src/resources/scripts/**' -g '!src/resources/create/**' -g '!src/resources/tools/ast-diagram/**' -g '!src/webui/quarto-preview/build.ts' -g '!src/command/render/latexmk/quarto-latexmk.ts'` prints nothing (comments included: the ratchet counts them).
-- `quarto run --dev tools/check-runtime-boundary.ts` exits 0 with `src` and `package/src` at `0` for both counters, `src-js` and `resources` at PR 20b's recorded values (plus `ast-diagram/main.ts` in `resources`), and exits non-zero when a `Deno.cwd()` is temporarily added to `src/core/path.ts` (Task 7 step 3).
+- `quarto run --dev tools/check-runtime-boundary.ts` exits 0 with `src` and `package/src` at `0` for both counters (the std counter under PR 02's std boundary rule: allow-listed seams are not counted), `src-js` and `resources` at PR 20b's recorded values (plus `ast-diagram/main.ts` in `resources`), and exits non-zero when a `Deno.cwd()` is temporarily added to `src/core/path.ts` (Task 7 step 3).
 - `ls src/core/deno/monkey-patch.ts src/deno_ral/original-real-path.ts` → both "No such file".
 - `rg -n 'originalRealPathSync|monkey-patch|original-real-path' src tests package/src .claude -g '!dev-docs/**'` prints nothing; `rg -n 'import \{[^}]*\bcall\b[^}]*\} from "[./]*deno_ral/process.ts"' src -g '*.ts'` prints nothing.
 - The type inventory grep above prints only `tests/test.ts:545` if PR 23 kept it, or nothing.
@@ -382,7 +382,7 @@ Run, and paste each output in the PR description:
 
 ```bash
 quarto run --dev tools/check-runtime-boundary.ts                                   # item 1
-rg -n 'from "(log|dotenv)(/[^"]*)?"' src -g '*.ts' -g '!src/deno_ral/**'           # item 2: no @std/log or @std/dotenv importer outside the layer
+rg -n 'from "(log/file-handler|dotenv)"' src -g '*.ts' -g '!src/deno_ral/**'      # item 2: no FileHandler or dotenv load importer outside the layer (plain `log`, `log/logger`, `dotenv/stringify` are allow-listed seams and may remain)
 rg -n 'FileHandler' src/deno_ral/log.ts                                              # item 2: own file handler (PR 20b)
 rg -n 'readStdinLines|readStdin\b' src/command/create/cmd.ts src/command/editor-support/crossref.ts  # item 2 (PR 08)
 rg -n 'execPath\(\)|QUARTO_DENO' package/src src -g '*.ts' -g '!src/deno_ral/**'   # item 3: exactly the sites listed in Context, each with its owner
@@ -424,8 +424,11 @@ Replace the section "## Deno APIs vs Node.js" (PR 09 already replaced its exampl
 ## Runtime APIs: always through `src/deno_ral/`
 
 Application code never calls `Deno.*` (not even in comments) and never imports
-the standard library directly; a CI check (`tools/check-runtime-boundary.ts`)
-fails the build otherwise. Use the runtime abstraction layer:
+the standard library directly, except the runtime-neutral import-map seams the
+boundary check allow-lists (`async`, `crypto`, `datetime`, `streams`, `io/*`,
+`log` other than `log/file-handler`, `fmt/printf`, `dotenv/stringify`); a CI
+check (`tools/check-runtime-boundary.ts`) fails the build otherwise. Use the
+runtime abstraction layer:
 
 ```typescript
 // Correct

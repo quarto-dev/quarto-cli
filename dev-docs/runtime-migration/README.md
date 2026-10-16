@@ -37,10 +37,14 @@ the reading order. This README is the execution index.
    full existing test suite is the gate; from PR 26 a real-Node job runs the
    layer's unit tests per PR with a known-failures list that may only shrink;
    PR 32 makes the bucketed Node matrix required.
-2. Application code never calls `Deno.*` or imports the standard library
-   directly; it imports `src/deno_ral/`. PR 02 adds a CI ratchet with five
-   scopes (`src`, `src-js`, `resources`, `package/src`, `tests`) whose counts
-   can only go down.
+2. Application code never calls `Deno.*` and never imports the standard
+   library directly, except the runtime-neutral import-map seams the std
+   boundary rule allow-lists (`async`, `crypto`, `datetime`, `streams`, `io/*`,
+   `log` other than `log/file-handler`, `fmt/printf`, `dotenv/stringify`; the
+   rule is in `02-runtime-boundary-check.md`, the module inventory behind it in
+   `22-std-import-seams.md`); everything else imports `src/deno_ral/`. PR 02
+   adds a CI ratchet with five scopes (`src`, `src-js`, `resources`,
+   `package/src`, `tests`) whose counts can only go down.
 3. Runtime-shaped APIs (process, HTTP, TCP, watch, key-value, errors) get
    Quarto's own interface. Plain filesystem and environment calls keep Deno's
    names so the codemods are mechanical and reversible (`--reverse`).
@@ -240,12 +244,14 @@ reworked PR 02 script (2026-10-15, `main` at `b86f98d`):
 
 | Scope | `Deno.*` sites | Direct std imports (files) |
 |---|---|---|
-| `src` (`.ts` outside `kSrcExclusions`) | 992 | 62 |
+| `src` (`.ts` outside `kSrcExclusions`) | 992 | 49 |
 | `src-js` (`.js` under `src/`, excluding `src/resources`) | 7 | 0 |
 | `resources` (runtime-loaded `src/resources/**`) | 10 | 1 |
-| `package/src` | 240 | 4 |
+| `package/src` | 240 | 3 |
 | `tests` (excluding `tests/docs`) | 814 | 165 |
 
-Zero in `src`, `src-js` and `package/src`, and an explicit allow-list for
-`resources`, is the exit criterion of Phase 1 (PR 25). `tests` reaches zero in
-PR 23.
+The std column counts files with a direct std import that the std boundary
+rule does not allow-list (PR 02); 13 `src` files and 1 `package/src` file
+import allow-listed seams only and are not counted. Zero in `src`, `src-js`
+and `package/src`, and an explicit allow-list for `resources`, is the exit
+criterion of Phase 1 (PR 25). `tests` reaches zero in PR 23.

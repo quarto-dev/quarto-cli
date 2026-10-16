@@ -318,7 +318,7 @@ import fs from "node:fs";
 process.env.PATH;
 ```
 
-`tools/check-runtime-boundary.ts` fails CI on a new `Deno.` use or a direct `node:`/`@std` import outside the layer.
+`tools/check-runtime-boundary.ts` fails CI on a new `Deno.` use, a direct `node:` import outside the layer, or a direct std import that the std boundary rule does not allow-list (`kStdAllowListed`; the allow-list outlives the Deno runtime because its modules are runtime-neutral).
 ```
 
 and Key conventions item 4 -> `**Use the runtime layer** - no direct \`node:*\` imports outside \`src/deno_ral/\``. In `runtime-layer.md`: title `# Runtime layer (\`src/deno_ral/\`)`; first paragraph: "The runtime abstraction layer over Node.js built-ins. Historical name: introduced while Quarto ran on Deno; kept to avoid churning about 450 importing files and every backport."; the module table gains the modules the migration added (`env.ts`, `temp.ts`, `errors.ts`, `net.ts`, `http.ts`, `watch.ts`, `kv.ts`, `main.ts`; one line each from `_TEMPLATE.md`); the "Module Loading Order" section is deleted (the monkey-patch is gone since PR 25). `paths:` frontmatter unchanged.

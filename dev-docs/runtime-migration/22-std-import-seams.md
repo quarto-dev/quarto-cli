@@ -24,7 +24,7 @@ So this PR keeps three seams:
 | `src/deno_ral/encoding.ts` (`encoding/base64`, `encoding/hex`), already exists with base64 | 12 files in `src/` | Node has native base64/hex (`Buffer`, `Uint8Array.fromBase64`); one file to switch, and the unreferenced `src/core/encode-metadata.ts:6` imports a name (`encode`) that `@std/encoding` 1.x no longer has. |
 | `src/deno_ral/semver.ts` | done by PR 04 | verified here only |
 
-Every other std module stays behind its import-map key, which is its seam (PR 26's `tools/node-bundle/import-map.mjs` resolves the same keys to `@jsr/std__*` on Node). The table below is the inventory PR 25's hidden-dependency check reads:
+Every other std module stays behind its import-map key, which is its seam (PR 26's `tools/node-bundle/import-map.mjs` resolves the same keys to `@jsr/std__*` on Node). The table below is the inventory PR 25's hidden-dependency check reads, and the source of the std boundary rule's allow-list: PR 02's scanner (`kStdAllowListed`, `02-runtime-boundary-check.md` "The std boundary rule") does not count a direct import of a row whose owner is "import map"; every other std import counts, including `log/file-handler` and `dotenv` (`load`). A change to the "Owner" column of a row is mirrored in `kStdAllowListed` in the same PR.
 
 | Import-map key | Runtime `Deno.*` inside the std module? | Owner |
 |---|---|---|
@@ -79,7 +79,7 @@ Rewrite tool:
 - `grep -rn 'from "jsr:\|from "https://deno.land/std' package/src --include=*.ts` prints nothing.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` → exit 0; `package/src/quarto-bld --help` → command list.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ -name '*.test.ts') smoke/render/render-html.test.ts` passes.
-- Ratchet: `src` std-import files lower by the number of files whose only std imports were these three (the tool prints it), `package/src` std-import files lower by 3 (`find-bad-imports.ts`, `find-bad-types-constants.ts`, `util/git.ts`); `Deno.` counts unchanged; baseline committed.
+- Ratchet: `src` std-import files lower by the number of files whose only counted std imports were these three (the tool prints it; allow-listed imports such as `io/*` or `async` in the same file do not keep it counted), `package/src` std-import files from 3 to 0 (`find-bad-imports.ts`, `find-bad-types-constants.ts`, `util/git.ts`; `util/utils.ts`'s `io/write-all` is allow-listed and PR 24 converts it anyway); `Deno.` counts unchanged; baseline committed.
 
 ## Plan
 
@@ -255,8 +255,8 @@ git commit -m "route fmt/colors, flags and encoding imports through src/deno_ral
 
 ### Task 4: Ratchet and docs
 
-- [ ] **Step 1:** `quarto run --dev tools/check-runtime-boundary.ts --update-baseline` → std-import counts lower for `src` and `package/src` (`package/src` by 3); `Deno.` counts unchanged.
-- [ ] **Step 2:** In `.claude/rules/typescript/deno-ral.md`, add rows for `colors.ts`, `flags.ts` (and `semver.ts` if PR 04 did not add it), extend the `encoding.ts` row with `decodeHex`, `encodeHex`, and add under "Why Use deno_ral": `Other std modules are imported by their import-map key (log, io/*, async, crypto, datetime, streams, dotenv/stringify, fmt/printf, media_types): the import map is their seam. Do not import @std/log's FileHandler or @std/dotenv's load (they call Deno.* internally): use deno_ral/log.ts FileHandler and quarto-core/dotenv.ts (PR 20b).`
+- [ ] **Step 1:** `quarto run --dev tools/check-runtime-boundary.ts --update-baseline` → std-import counts lower for `src` and `package/src` (`package/src` to 0); `Deno.` counts unchanged.
+- [ ] **Step 2:** In `.claude/rules/typescript/deno-ral.md`, add rows for `colors.ts`, `flags.ts` (and `semver.ts` if PR 04 did not add it), extend the `encoding.ts` row with `decodeHex`, `encodeHex`, and add under "Why Use deno_ral": `Other std modules are imported by their import-map key (log, io/*, async, crypto, datetime, streams, dotenv/stringify, fmt/printf, media_types): the import map is their seam, and the runtime boundary ratchet (tools/check-runtime-boundary.ts, kStdAllowListed) does not count them. Do not import @std/log's FileHandler or @std/dotenv's load (they call Deno.* internally; the ratchet counts them): use deno_ral/log.ts FileHandler and quarto-core/dotenv.ts (PR 20b).`
 - [ ] **Step 3: Commit**
 
 ```bash
@@ -277,7 +277,7 @@ git commit -m "ratchet after the std seams; document which std modules have a se
 - [ ] Every import that changed keeps its original names and type-only status (an `import type` stays `import type`; PR 02b forbids value imports of types).
 - [ ] No semver importer outside `src/deno_ral/semver.ts` (PR 04's work intact).
 - [ ] `quarto-latexmk.ts`, the build-ts-extension fixture and the julia subtree are untouched.
-- [ ] The inventory table in this plan matches what PR 20b and PR 08 actually replace.
+- [ ] The inventory table in this plan matches what PR 20b and PR 08 actually replace, and its "import map" rows equal PR 02's `kStdAllowListed` (with `log/file-handler` in `kStdCountedExceptions`).
 
 ## Risks and rollback
 
