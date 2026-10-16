@@ -1,0 +1,33 @@
+diff --git a/js/reveal.js b/js/reveal.js
+index 8e5f5ee..82f66f6 100644
+--- a/js/reveal.js
++++ b/js/reveal.js
+@@ -2841,14 +2841,20 @@ export default function( revealElement, options ) {
+ 	 */
+ 	function onPageVisibilityChange( event ) {
+ 
+-		// If, after clicking a link or similar and we're coming back,
+-		// focus the document.body to ensure we can use keyboard shortcuts
+-		if( document.hidden === false && document.activeElement !== document.body ) {
+-			// Not all elements support .blur() - SVGs among them.
+-			if( typeof document.activeElement.blur === 'function' ) {
+-				document.activeElement.blur();
+-			}
+-			document.body.focus();
++		// If, after clicking into a frame such as an embedded video, we're
++		// coming back, move the focus to the presentation so that keyboard
++		// shortcuts work: keys pressed in a frame never reach reveal.js.
++		// Anywhere else they do, so leave the focus where the reader left it.
++		// On the body it would take them out of what they were on, and screen
++		// readers in browse mode do not pass the arrow keys on from there.
++		if( document.hidden === false && document.activeElement && document.activeElement.tagName === 'IFRAME' ) {
++			// Blur the frame first, as reveal.js did: in Playwright's Firefox,
++			// focusing the deck straight from a frame leaves the focus there.
++			document.activeElement.blur();
++			if( !dom.wrapper.hasAttribute( 'tabindex' ) ) {
++				dom.wrapper.setAttribute( 'tabindex', '-1' );
++			}
++			dom.wrapper.focus( { preventScroll: true } );
+ 		}
+ 
+ 	}
