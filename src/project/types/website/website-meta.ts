@@ -228,7 +228,13 @@ export function metadataHtmlPostProcessor(
       }
 
       // Convert image to absolute href and add height and width
-      const imagePath = resolveImageMetadata(source, project, format, metadata);
+      const imagePath = resolveImageMetadata(
+        source,
+        project,
+        format,
+        metadata,
+        provider.key === kOpenGraph,
+      );
       if (imagePath) {
         if (imagePath.startsWith("/")) {
           // This is a project relative path
@@ -375,6 +381,7 @@ function resolveImageMetadata(
   project: ProjectContext,
   format: Format,
   metadata: Metadata,
+  includeSize: boolean,
 ) {
   // populate defaults
   const siteMeta = format.metadata[kWebsite] as Metadata;
@@ -389,10 +396,13 @@ function resolveImageMetadata(
     );
 
     // Update the image information, preferring the size read from the file
-    // over a declared one
+    // over a declared one. Twitter Cards have no image size tags, so only
+    // providers that emit a size get one.
     metadata[kImage] = imgMeta.href;
-    metadata[kImageHeight] = imgMeta.height ?? metadata[kImageHeight];
-    metadata[kImageWidth] = imgMeta.width ?? metadata[kImageWidth];
+    if (includeSize) {
+      metadata[kImageHeight] = imgMeta.height ?? metadata[kImageHeight];
+      metadata[kImageWidth] = imgMeta.width ?? metadata[kImageWidth];
+    }
 
     const altText = format.metadata[kImageAlt];
     if (altText && !metadata[kImageAlt]) {

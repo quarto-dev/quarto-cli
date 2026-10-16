@@ -6,3 +6,4 @@ website:
   site-url: https://example.com/
   open-graph: true
   twitter-card: true
+  image: page.png
