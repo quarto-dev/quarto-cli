@@ -95,7 +95,7 @@ Behaviour made precise by this PR:
 - `grep -c "Deno\." src/deno_ral/process.ts src/core/process.ts src/deno_ral/batch-command-line.ts` → `0` for each.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') unit/exec-process-stdin.test.ts unit/windows-exec.test.ts unit/process-group.test.ts` passes on Deno (Linux, macOS, Windows CI).
 - `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` passes on Linux and Windows (the `node-unit` job) with no `process*` or `batch-command-line` entry in the list.
-- `process-exit-pipe.test.ts` shows on Node: 2 MiB written then `exit(7)` reaches `wc -c` in full, and through `head -c 1` the exit status is `7` with no `EPIPE` in stderr.
+- `process-exit-pipe.test.ts` shows on Node: 2 MiB written then `exit(7)` reaches `wc -c` in full with status 7, and through `head -c 1` the process ends with status 0 (the broken-pipe rule of the vocabulary: EPIPE ends the process with `process.exitCode ?? 0`, and `exit(7)` has not run yet when the write fails) and no `EPIPE` in stderr.
 - The CVE vectors in `batch-command-line.test.ts` round-trip unchanged through a forwarding `.cmd` on Windows, and no injected command runs.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-r.test.ts smoke/render/render-stdout.test.ts $(find smoke/jupyter/ -name '*.test.ts') smoke/inspect/inspect-pipe.test.ts smoke/preview/preview-reload.test.ts` passes.
 - `quarto run --dev tools/check-runtime-boundary.ts` stays at zero; `node tools/node-bundle/build.mjs --check-shim` → `0 missing`, no `unused` list.

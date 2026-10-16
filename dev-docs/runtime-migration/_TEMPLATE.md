@@ -230,7 +230,7 @@ export interface ChildProcess {
 export function spawn(cmd: string, options?: SpawnOptions): ChildProcess;          // defaults: stdin inherit, stdout/stderr inherit
 export function exec(cmd: string, options?: SpawnOptions): Promise<ExecOutput>;    // defaults: stdin null, stdout/stderr piped
 export function execSync(cmd: string, options?: SpawnOptions): ExecOutput;
-export function exit(code?: number): never; // flushes stdout and stderr before exiting (Node: process.exitCode + drain both streams; contract test pipes ≥ 1 MB through `head -c 1` and `wc -c`)
+export function exit(code?: number): never; // nothing written before exit() is lost. Deno: writes are synchronous, so this is Deno.exit. Node (PR 28): the layer makes the stdout/stderr handles blocking when it loads (`_handle.setBlocking(true)`), so every write has completed before the next statement; exit() sets process.exitCode and calls process.exit at once (a `never` function cannot wait for a drain). Broken pipe (EPIPE on stdout/stderr, the reader went away): the process ends quietly with `process.exitCode ?? 0`, so a pipeline cut short by `head -c 1` reports 0 even when exit(7) would have followed. Contract tests: PR 28 `process-exit-pipe.test.ts` (2 MiB through `wc -c` keeps every byte and the code; `head -c 1` gives 0 and no EPIPE text) and PR 14b `inspect-pipe.test.ts`
 export function cwd(): string;
 export function chdir(dir: string): void;
 export function args(): string[];
@@ -288,7 +288,7 @@ export interface KeyValueStore {
   list<T>(prefix: KvKey): AsyncIterable<KvEntry<T>>;
   close(): void;
 }
-export function openKeyValueStore(dir: string, name: string): Promise<KeyValueStore>; // the backend chooses the file: `<dir>/<name>.kv` (Deno.openKv) or `<dir>/<name>.json` (Node, PR 30), so Quarto versions on different runtimes never share a file
+export function openKeyValueStore(dir: string, name: string): Promise<KeyValueStore>; // the backend chooses the file: `<dir>/<name>.kv` for PR 18's Deno.openKv backend (Quarto <= 1.11), `<dir>/<name>.json` for PR 30's JSON backend, the only one on both runtimes from PR 30 on; Quarto versions on different backends never share a file
 // Contract (PR 18 tests): a second handle on the same store sees a committed `set`; two processes writing different keys both persist (Node: lock + read-modify-rename).
 ```
 
@@ -322,7 +322,7 @@ export class FileHandler extends BaseHandler { constructor(level: LevelName, opt
 
 ### `env.ts` key validation (PR 14 contract)
 
-`env.get` returns `undefined` for a key that is empty or contains `=` or NUL (Node `process.env` semantics; Deno throws, so the Deno implementation guards).
+`env.get`, `env.set` and `env.delete` throw `TypeError` for a key that is empty or contains `=` or NUL, and `env.set` throws `TypeError` for a value containing NUL (`Deno.env` semantics, kept on Node by PR 27b's own validation because `process.env` would accept such keys silently). The contract test is PR 14's `env - invalid names throw TypeError on every runtime`; PR 27b runs it against the Node body.
 
 ### Test harness (PR 23, PR 31)
 

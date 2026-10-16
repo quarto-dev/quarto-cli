@@ -34,7 +34,7 @@ Assumptions about earlier PRs:
 
 - PR 33: launchers pass `--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON`; `NODE_OPTIONS`/`NODE_PATH` saved as `QUARTO_SAVED_*` and restored by `src/core/runtime-env.ts`; `runtimeEnvWarnings()` covers `QUARTO_DENO*`; `tests/smoke/env/launcher-env.test.ts` and `tests/unit/runtime-env.test.ts` exist; `bin/tools/<arch>/deno` still ships (tool) until PR 37.
 - PR 19: `runtime()` in `src/deno_ral/platform.ts` returns `{ name, version }` with `version` without a leading `v`.
-- PR 28 + PR 14b: `exit()` drains stdout/stderr; `tests/smoke/inspect/inspect-pipe.test.ts` exists.
+- PR 28 + PR 14b: stdio is blocking on Node so `exit()` never truncates, and a broken pipe ends the process quietly with status 0 (vocabulary, `exit`); `tests/smoke/inspect/inspect-pipe.test.ts` exists.
 - PR 20: `deno_dom` is gone from the signing lists and launchers.
 
 ### Scope
@@ -59,7 +59,7 @@ One row per environment variable, flag or process behaviour that changed at the 
 | # | Behaviour | Deno (≤ 1.11) | Node (1.12) | Implemented in | Test |
 |---|---|---|---|---|---|
 | 1 | `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` for `fetch` (publish, `install`, `add`, `check`) | honoured | `--use-env-proxy` in every launcher | PR 33 | `tests/smoke/env/proxy.test.ts` (this PR) |
-| 2 | stdout/stderr complete when piped and Quarto exits (`quarto inspect \| head`) | sync writes | layer `exit()` drains both streams | PR 28 | `tests/smoke/inspect/inspect-pipe.test.ts` (PR 14b) |
+| 2 | stdout/stderr complete when piped and Quarto exits (`quarto inspect \| head`) | sync writes | the layer makes stdio blocking at load; `exit()` never truncates; EPIPE ends the process with status 0 | PR 28 | `tests/smoke/inspect/inspect-pipe.test.ts` (PR 14b) |
 | 3 | `QUARTO_DENO` | CLI runtime binary; conda sets it | never the CLI runtime; locates the Deno tool; one warning when `QUARTO_NODE` is unset | PR 33 | `tests/unit/runtime-env.test.ts` |
 | 4 | `QUARTO_DENO_OPTIONS`, `QUARTO_DENO_EXTRA_OPTIONS` | Deno flags | not passed to Node; one warning | PR 33 | `tests/smoke/env/launcher-env.test.ts` |
 | 5 | `QUARTO_DENO_V8_OPTIONS` | `--v8-flags=` list | each flag passed to Node; deprecation warning | PR 33 | `tests/smoke/env/launcher-env.test.ts` |

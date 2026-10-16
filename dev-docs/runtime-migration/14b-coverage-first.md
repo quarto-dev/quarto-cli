@@ -602,7 +602,8 @@ git commit -m "tests: cover Jupyter kernel daemon reuse and abort (--execute-dae
  * `quarto inspect` writes its JSON with one synchronous write and exits.
  * When the reader goes away early (`| head -c 1`) it must exit 0 with no
  * broken-pipe error; when the reader reads to the end (`| wc -c`) every byte
- * must arrive. Deno's stdout writes are synchronous; on Node a pipe is
+ * must arrive. This is the exit/broken-pipe contract of the vocabulary
+ * (_TEMPLATE.md, process.ts `exit`), which PR 28 implements on Node. Deno's stdout writes are synchronous; on Node a pipe is
  * asynchronous and process.exit() truncates it, which PR 28's exit() must
  * prevent (review S6). Ignored on Windows: needs bash, head and wc.
  */

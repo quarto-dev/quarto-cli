@@ -2627,7 +2627,7 @@ case "${QUARTO_RUNTIME:-node}" in
     fi
     export DENO_NO_UPDATE_CHECK=1
     export DENO_TLS_CA_STORE=system,mozilla
-    QUARTO_DENO_RUN="run --allow-all --no-config --no-lock --unstable-kv --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--stack-trace-limit=100"
+    QUARTO_DENO_RUN="run --allow-all --no-config --no-lock --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--stack-trace-limit=100"
     if [ "$QUARTO_LAUNCHER_DEBUG" == "1" ]; then
       echo "${QUARTO_DENO_TOOL} ${QUARTO_DENO_RUN} ${QUARTO_TARGET} $*" >&2
     fi
@@ -2640,7 +2640,7 @@ case "${QUARTO_RUNTIME:-node}" in
 esac
 ```
 
-`--unstable-kv`: `src/deno_ral/kv.ts` uses `Deno.openKv` when `runtime()` is `deno` (PR 30 keeps that backend until PR 37).
+No `--unstable-kv`: since PR 30 `src/deno_ral/kv.ts` has one JSON backend on both runtimes and nothing in the bundle calls `Deno.openKv` (`grep -c openKv tools/node-bundle/dist/quarto.mjs` prints `0`; the flag would be refused by a future Deno that drops the unstable API).
 
 - [ ] **Step 3: `quarto.cmd` branch**
 
@@ -2655,7 +2655,7 @@ IF "!QUARTO_RUNTIME!"=="deno" (
 	)
 	SET "DENO_NO_UPDATE_CHECK=1"
 	SET "DENO_TLS_CA_STORE=system,mozilla"
-	SET "QUARTO_DENO_RUN=run --allow-all --no-config --no-lock --unstable-kv --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--stack-trace-limit=100"
+	SET "QUARTO_DENO_RUN=run --allow-all --no-config --no-lock --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--stack-trace-limit=100"
 	IF "!QUARTO_LAUNCHER_DEBUG!"=="1" ECHO "!SCRIPT_PATH!\tools\x86_64\deno.exe" !QUARTO_DENO_RUN! "!QUARTO_TARGET!" %* 1>&2
 	"!SCRIPT_PATH!\tools\x86_64\deno.exe" !QUARTO_DENO_RUN! "!QUARTO_TARGET!" %*
 	GOTO end
@@ -2678,7 +2678,7 @@ In `main()`, after the `--paths` handling:
             let deno_file = bin_dir.join("tools").join(arch_dir()).join(DENO_BINARY);
             let mut child = Command::new(&deno_file)
                 .args([
-                    "run", "--allow-all", "--no-config", "--no-lock", "--unstable-kv",
+                    "run", "--allow-all", "--no-config", "--no-lock",
                     "--v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--stack-trace-limit=100",
                 ])
                 .arg(&js_file)

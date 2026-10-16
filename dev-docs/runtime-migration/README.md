@@ -104,8 +104,10 @@ them. Change them in the plan that decides them, not downstream.
   or the project key `script-runtime` selects the Deno tool for `.ts` scripts
   (PR 35); `QUARTO_RUN_DENO_NOTICE=0` silences the notice (PR 00c, 35).
 - Store names: project cache `index`, Sass cache `sass-index`; the backend
-  picks the file (`<name>.kv` on Deno, `<name>.json` on Node) so Quarto
-  versions on different runtimes never share a file (PRs 18, 30).
+  picks the file (`<name>.kv` for PR 18's `Deno.openKv` backend, which
+  Quarto 1.11 ships; `<name>.json` for PR 30's JSON backend, the only one on
+  both runtimes from PR 30 on) so Quarto versions on different backends never
+  share a file (PRs 18, 30).
 - `src/deno_ral/` keeps its name. `src/core/puppeteer.ts` keeps its name.
 - Ratchet exclusions for the `src` scope (`kSrcExclusions`, PR 02):
   `src/deno_ral/`, `src/vendor/`, `src/resources/extension-subtrees/`,

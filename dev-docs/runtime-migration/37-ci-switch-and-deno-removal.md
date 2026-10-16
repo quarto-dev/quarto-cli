@@ -47,7 +47,7 @@ Inventory (verified on `main` at `b86f98d`, adjusted for PRs 33-36 and 39):
 - `src/vendor_deps.ts`, `tests/test-deps.ts`, `deno.jsonc`, `deno.lock` (PR 00b; nothing runs Deno on the CLI's import graph any more), `package/src/common/create-deno-config.ts`, `package/src/common/deno-meta.json`, `package/src/common/create-dev-import-map.ts`, `src/dev_import_map.json`, `src/core/deno/import-maps.ts`, `src/tools/impl/deno-jupyter.ts` (empty), `tests/test-conf.json`, `package/src/common/dependencies/deno.ts`, `dev-docs/update-deno_jsonc.md`.
 - `initDenoCache` in `src/core/run/deno.ts` (the Deno path keeps `DENO_DIR=quartoCacheDir("deno")`; `QUARTO_RUN_NO_NETWORK=true` keeps meaning `--cached-only` and works after one online run).
 
-**Code:** Deno branches left in `src/deno_ral/*` by PRs 27-30 (`runtime().name === "deno"`, `Deno.openKv` backend of `kv.ts`); `src/core/deno/debug.ts:43,51` (`QUARTO_DENO_V8_OPTIONS` text); `tests/run-tests.sh`/`.ps1` Deno branch; `tests/binary-mode-strip-env.txt` `DENO_DIR` line.
+**Code:** Deno branches left in `src/deno_ral/*` by PRs 27-29 (`runtime().name === "deno"` bodies; `kv.ts` has none: PR 30 made the JSON file the only backend on both runtimes); `src/core/deno/debug.ts:43,51` (`QUARTO_DENO_V8_OPTIONS` text); `tests/run-tests.sh`/`.ps1` Deno branch; `tests/binary-mode-strip-env.txt` `DENO_DIR` line.
 
 **Editor:** `quarto-cli.code-workspace` and `.vscode/settings.json` `deno.*` keys (the `deno.path` target disappears with the download); `.vscode/extensions.json` keeps `denoland.vscode-deno` until PR 38 replaces it.
 
@@ -165,7 +165,7 @@ return nodeFs.readFileSync(path, "utf8");
 return nodeFs.readFileSync(path, "utf8");
 ```
 
-`platform.ts` `runtime()` keeps the `"deno" | "node" | "bun"` union (it describes the process, used by `quarto check`) but its detection branch reads `globalThis.Deno` through `"Deno" in globalThis` without the `Deno.` member syntax. `kv.ts`: the `Deno.openKv` backend goes; the JSON-file backend of PR 30 is the only one (users upgrading from 1.11 keep their `.kv` files unread, which PR 18/30 already handle as a cache miss). Run the layer tests after each file: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')`.
+`platform.ts` `runtime()` keeps the `"deno" | "node" | "bun"` union (it describes the process, used by `quarto check`) but its detection branch reads `globalThis.Deno` through `"Deno" in globalThis` without the `Deno.` member syntax. `kv.ts`: nothing to remove; PR 30 made the JSON file the only backend on both runtimes, and an upgrading user's `.kv` files stay unread (one cold cache, as PR 30 recorded). Run the layer tests after each file: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')`.
 
 `src/core/deno/debug.ts:43` comment `export QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=100` -> `export QUARTO_NODE_OPTIONS=--stack-trace-limit=100`; line 51 `is QUARTO_DENO_V8_OPTIONS set with a sufficiently-large stack size?` -> `is QUARTO_NODE_OPTIONS set with a sufficiently-large --stack-trace-limit?`.
 

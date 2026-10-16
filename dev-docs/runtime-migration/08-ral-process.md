@@ -138,9 +138,9 @@ export function spawn(cmd: string, options?: SpawnOptions): ChildProcess;
 export function exec(cmd: string, options?: SpawnOptions): Promise<ExecOutput>;
 /** Synchronous `exec` (same defaults and errors). */
 export function execSync(cmd: string, options?: SpawnOptions): ExecOutput;
-/** Exit with `code` after stdout and stderr are flushed. Deno: writes are
- *  synchronous, so this is Deno.exit. Node (PR 28): set process.exitCode and
- *  end once both streams have drained. */
+/** Exit with `code`; nothing written before the call is lost. Deno: writes are
+ *  synchronous, so this is Deno.exit. Node (PR 28): stdio is made blocking when
+ *  the layer loads, then process.exitCode is set and process.exit called. */
 export function exit(code?: number): never;
 export function cwd(): string;
 export function chdir(dir: string): void;
@@ -709,9 +709,9 @@ export function execSync(cmd: string, options: SpawnOptions = {}): ExecOutput {
 }
 
 /**
- * Exit after stdout and stderr are flushed. Deno's standard-stream writes are
- * synchronous, so nothing is pending here; PR 28 sets process.exitCode and
- * ends once both streams have drained.
+ * Exit; nothing written before the call is lost. Deno's standard-stream writes
+ * are synchronous, so nothing is pending here; PR 28 makes Node's stdio
+ * blocking at load so the same holds there, then exits at once.
  */
 export function exit(code?: number): never {
   return Deno.exit(code);
