@@ -131,9 +131,9 @@ the pass has landed.
   `src` files before the std boundary allow-list and 49 after it (B1), and
   161 in `tests`, and says so. Not reconciled on purpose (narrative vs. tool
   output).
-- Bucket C of `TRIAGE-2026-10-16.md` is not applied: plans 00b, 14b, 26, 27,
-  28, 29, 30, 31, 32, 33, 34, 35, 36 still carry the defects its C table
-  names. The line numbers in the review and triage were measured at
+- Bucket C of `TRIAGE-2026-10-16.md` is applied for 00b only (R20: lock
+  scope, `tools/check-test-imports.ts`, Decision 2); plans 14b, 26, 27, 28,
+  29, 30, 31, 32, 33, 34, 35, 36 still carry the defects its C table names. The line numbers in the review and triage were measured at
   `075cbf4`; re-grep before trusting one.
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both
   harness variants and PR 32 cannot make the Node matrix required until the

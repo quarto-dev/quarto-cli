@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Every module the dev launcher, the build (`quarto-bld`, the esbuild bundle) and the test dependencies resolve is pinned in a committed `deno.lock` that `configure` and CI use with `--frozen`, and a `Bundle Test` job proves on Linux, macOS and Windows that the release bundle runs from an empty `DENO_DIR` with `--cached-only`, imports no external `npm:`/`jsr:`/`http(s):` module, and renders HTML, a website, OJS, mermaid and a manuscript.
+**Goal:** Every module reachable from six entrypoints (`src/quarto.ts`, `src/vendor_deps.ts`, `tests/test-deps.ts`, `package/scripts/deno_std/deno_std.ts`, `package/src/bld.ts`, `tools/deno-esbuild-bundle.ts`: the dev launcher, the build and the declared test dependencies) is pinned in a committed `deno.lock` that `configure`, `quarto-bld`, the bundle, the dev launcher and CI use with `--frozen`; the tests run `--no-lock`, so `tools/check-test-imports.ts` proves that every remote module the tests reach is inside that locked graph; and a `Bundle Test` job proves on Linux, macOS and Windows that the release bundle runs from an empty `DENO_DIR` with `--cached-only`, imports no external `npm:`/`jsr:`/`http(s):` module, and renders HTML, a website, OJS, mermaid and a manuscript.
 **Phase:** 0, before PR 03. **Depends on:** 02 (landing order), 00a (the lockfile is written by the Deno version it will be read by). **Unblocks:** 03, 04, 05, 06, 07 (each changes `src/import_map.json` and updates `deno.lock` in the same PR; the gate is their release check).
 **Branch:** `rt/00b-lockfile-and-bundle-gate`.
 **Suggested executor:** Opus. Shell, batch and workflow edits across three platforms, and two judgement calls when the first frozen run or the first bundle scan reports something unexpected (both spelled out below).
-**Size:** M (about 17 files: `.gitignore`, `deno.lock`, `deno.jsonc`, `package/src/common/deno-meta.json`, `package/scripts/vendoring/vendor.sh`, `vendor.cmd`, new `update-lock.sh`, `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, `package/src/quarto-bld`, `quarto-bld.cmd`, `package/src/util/deno.ts`, `tools/deno-esbuild-bundle.ts`, `package/scripts/deno_std/download.sh`, `download.bat`, `lock.sh`, new `tools/check-bundle-externals.ts` and its test, `.github/workflows/actions/quarto-dev/action.yml`, `.github/workflows/test-bundle.yml`, two dev-docs).
+**Size:** M (about 24 files: `.gitignore`, `deno.lock`, `deno.jsonc`, `package/src/common/deno-meta.json`, `package/scripts/vendoring/vendor.sh`, `vendor.cmd`, new `update-lock.sh`, `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, `package/src/quarto-bld`, `quarto-bld.cmd`, `package/src/util/deno.ts`, `tools/deno-esbuild-bundle.ts`, `package/scripts/deno_std/download.sh`, `download.bat`, `lock.sh`, new `tools/check-bundle-externals.ts` and `tools/check-test-imports.ts` with their tests, four `tests/smoke/inspect/*.test.ts` import lines, `tools/runtime-boundary-baseline.json`, `.github/workflows/actions/quarto-dev/action.yml`, `.github/workflows/test-bundle.yml`, two dev-docs).
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
@@ -20,6 +20,7 @@ How dependencies are resolved today (verified by reading the scripts):
 - `.gitignore:25-26` ignores `deno.lock`. `deno.jsonc` has no `lock` key, so every Deno command that discovers it (`quarto-bld`, which does not pass `--no-config`; `deno run` of `tools/deno-esbuild-bundle.ts` from `src/`; `quarto run --dev`) writes an uncommitted `deno.lock` at the root.
 - The launchers pass `--no-config --no-lock` (`package/scripts/common/quarto:186`, `package/scripts/windows/quarto.cmd:131`, `package/launcher/src/main.rs:84-88`) and `--cached-only` in dev and release mode (`quarto:71`, `quarto:95`, `quarto.cmd:71`, `quarto.cmd:107`, `main.rs:89`).
 - `configure.sh` runs, in order: `package/scripts/deno_std/download.sh` (the user-script stdlib cache, below), `quarto-bld configure`, then `package/scripts/vendoring/vendor.sh`, which runs `deno install --allow-all --no-config --entrypoint <file> --importmap=src/import_map.json` once per entrypoint (`quarto.ts`, `vendor_deps.ts`, `../tests/test-deps.ts`, `../package/scripts/deno_std/deno_std.ts`) into `package/dist/bin/deno_cache`, inside `set +e`: a failing entrypoint is ignored. `vendor.cmd` does the same and prints `Warning: Failed to vendor ..., continuing...`.
+- The tests run with `--no-lock` and without `--cached-only` (`tests/run-tests.sh:72`, `tests/run-tests.ps1:130`). A lockfile constrains only the module graph of its entrypoints, and a populated cache constrains nothing: a test that imports a remote module outside that graph makes Deno fetch it at test time, on every cold cache, at whatever version the specifier (or an import-map redirect) resolves to. Today `tests/smoke/inspect/{inspect-code-cells,inspect-extensions,inspect-include,inspect-recursive-include}.test.ts` import `https://deno.land/std@0.93.0/assert/assert_object_match.ts`, which `src/import_map.json:69` redirects to `https://deno.land/std@0.217.0/`; nothing under `src/`, `package/src/` or `tests/test-deps.ts` imports std 0.217, so that module is a cold-cache test-only dependency the lockfile would not pin (R20). The rest of what the tests import (`testing/asserts`, `fmt/colors`, `encoding/base64`, `fs/eol`, `path`, `zod`, `scss-parser`, `cliffy/`, `binary-search-bounds`, `slimdom`, `fontoxpath`) reaches the locked graph through `src/quarto.ts` or `tests/test-deps.ts`, but only the check below keeps it that way.
 - `jsr:` ranges (`@luca/esbuild-deno-loader@^0.11.1` in `tools/deno-esbuild-bundle.ts:6`, the `^` ranges inside Cliffy 1.3.1 after PR 06) and npm transitive versions are therefore resolved independently by every developer machine and by each platform's release build.
 - `.github/workflows/actions/quarto-dev/action.yml:15-21` restores the dev cache with `restore-keys`, and `QUARTO_SKIP_DENO_CACHE_WIPE=1` keeps it, so after an import-map change CI restores a superset cache that still holds the old `deno.land`/skypack modules: a missing download is hidden.
 - `.github/workflows/test-bundle.yml` builds the bundle on `ubuntu-latest` with that warm cache and runs `quarto check` only, which never parses HTML, never starts Chrome and never reaches a lazily loaded chunk.
@@ -36,6 +37,8 @@ In:
 - Frozen by default: `vendor.sh`/`vendor.cmd`, `quarto-bld`/`quarto-bld.cmd`, the bundle step (`package/src/util/deno.ts` and `lockPath` in `tools/deno-esbuild-bundle.ts`), the dev-mode launchers. `QUARTO_DENO_LOCK_MODE=update` (set by the new `package/scripts/vendoring/update-lock.sh`) switches the vendoring and `quarto-bld` to `--frozen=false`.
 - `download.sh`/`download.bat` frozen; `lock.sh` fixed for Deno 2.
 - `tools/check-bundle-externals.ts` (finds `import`/`export from`/`import()` of `npm:`, `jsr:`, `http:`, `https:` in a bundle) and its unit test.
+- `tools/check-test-imports.ts` and its unit test: every remote module (`npm:`, `jsr:`, `http:`, `https:`) in the module graph of the test files (`tests/**/*.ts` outside `tests/docs/**`, which Quarto runs with the `quarto run` import map and `deno_std.lock`, and `tests/integration/playwright/**`, which Node runs from its own `package.json`) is in the module graph of the six lockfile entrypoints. Two generated aggregate modules keep each `deno info` call to one argument, so there is no 700-file command line on Windows. Runs in `Bundle Test`.
+- The four `tests/smoke/inspect/*.test.ts` import `assertObjectMatch` from `tests/asserts.ts` (PR 02's seam, which exports it) instead of `https://deno.land/std@0.93.0/assert/assert_object_match.ts`; `tools/runtime-boundary-baseline.json` is lowered with `--update-baseline` (`tests` std files 165 → 162; the fourth file already imported `testing/asserts`).
 - `quarto-dev` action: input `deno-cache` (default `"true"`); the dev cache key also hashes `deno.lock`.
 - `test-bundle.yml`: matrix `ubuntu-latest`, `macos-latest`, `windows-latest`; cold dev cache for the build (`deno-cache: "false"`); external-specifier scan; the bundle run with an empty `DENO_DIR` (the release launchers already pass `--cached-only`); `quarto check`; five renders; debug logs kept as an artifact.
 - Remove the unused `https://deno.land/std@0.196.0/testing/asserts.ts` import and the commented `deno.land/x/esbuild` line from `tools/deno-esbuild-bundle.ts` (the file is edited anyway; the import was a `deno.land` fetch in every release build).
@@ -43,7 +46,7 @@ In:
 
 Out:
 - The release launcher (`package/launcher/src/main.rs`) and the release mode of both script launchers keep `--no-lock`: no lockfile ships, and the gate proves the bundle needs none.
-- Tests keep `--no-lock` (`tests/run-tests.sh:72`, `tests/run-tests.ps1:130`): see Decisions.
+- Locking the test runs themselves: `tests/run-tests.sh:72` and `tests/run-tests.ps1:130` keep `--no-lock`; `tools/check-test-imports.ts` is what keeps the tests' graph inside the lockfile (Decisions, 1).
 - Replacing `deno_std.lock` or the `quarto run` cache (PR 35).
 - The renders as a performance gate (PR 05 records the `parseHtml` baseline; PR 20 gates on it).
 
@@ -66,6 +69,29 @@ export const kAllowedExternalSpecifiers: ReadonlyMap<string, string>;
 ```
 
 CLI: `quarto run --dev tools/check-bundle-externals.ts <bundle.js>` prints `<line>: <specifier>` per finding not in the allow-list and exits 1 if there is any; prints `OK: no external module specifiers in <bundle.js>` and exits 0 otherwise; exits 2 without an argument.
+
+`tools/check-test-imports.ts`:
+
+```ts
+import type { DenoInfoJSON } from "../package/src/common/import-report/deno-info.ts";
+
+/** The six entrypoints `deno.lock` covers, relative to the repository root (the same list as `vendor.sh`). */
+export const kLockEntrypoints: readonly string[];
+
+/** The test files whose graph is checked: `tests/**\/*.ts` minus `tests/docs/**` and
+ * `tests/integration/playwright/**`, repo-relative, sorted. */
+export function testEntrypoints(root: string): string[];
+
+/** A remote module the tests reach that the lockfile entrypoints do not. */
+export interface UnlockedImport { specifier: string; importers: string[]; }
+
+/** Modules of `testGraph` whose specifier starts with `npm:`, `jsr:`, `http:` or `https:` and that `lockedGraph`
+ * does not contain (after following `redirects`), each with the local modules of `testGraph` that import it
+ * (repo-relative paths, sorted). Both arguments are parsed `deno info --json` output. */
+export function unlockedImports(testGraph: DenoInfoJSON, lockedGraph: DenoInfoJSON, root: string): UnlockedImport[];
+```
+
+CLI: `quarto run --dev tools/check-test-imports.ts [--root <dir>]`, from the repository root. It writes two aggregate modules into a temporary directory (`tests-graph.ts`: one `import "file://...";` line per test entrypoint; `locked-graph.ts`: one per lockfile entrypoint), runs `deno info --json --no-config --no-lock --unstable-kv --unstable-ffi --importmap=src/import_map.json` on each with the Deno binary from `architectureToolsPath("deno")` (as `package/src/common/import-report/deno-info.ts` does), and prints one block per unlocked module (`::error::<specifier> is imported by tests but not pinned by deno.lock` then `  imported by <file>` lines) and exits 1; otherwise prints `OK: every remote module the tests reach is in the locked graph (<n> remote modules, <m> test files)` and exits 0. `--no-lock` is deliberate: the check compares graphs, so it never fails with a lockfile message that names no importer.
 
 `package/scripts/vendoring/update-lock.sh [--refresh]`: re-vendors into `package/dist/bin/deno_cache` and updates `deno.lock` (`--frozen=false`). Without a flag, every pinned version stays pinned and new specifiers are added; `--refresh` deletes `deno.lock` first, which re-resolves every range (a deliberate dependency update).
 
@@ -93,6 +119,9 @@ inputs:
 - Modify: `package/scripts/deno_std/download.sh:13`, `download.bat:9`, `lock.sh:3`
 - Create: `tools/check-bundle-externals.ts`
 - Test: `tests/unit/tools/check-bundle-externals.test.ts`
+- Create: `tools/check-test-imports.ts`
+- Test: `tests/unit/tools/check-test-imports.test.ts`
+- Modify: `tests/smoke/inspect/inspect-code-cells.test.ts`, `inspect-extensions.test.ts`, `inspect-include.test.ts`, `inspect-recursive-include.test.ts` (the `assertObjectMatch` import line), `tools/runtime-boundary-baseline.json` (`tests` std files)
 - Modify: `.github/workflows/actions/quarto-dev/action.yml:1-21`, `.github/workflows/test-bundle.yml` (whole file)
 - Modify: `dev-docs/ci-deno-caching.md`, `dev-docs/add-typescript-dependency.md` (whole body)
 - Modify: `dev-docs/runtime-migration/README.md` (PR 00b row status)
@@ -102,7 +131,8 @@ inputs:
 - `git ls-files deno.lock` prints `deno.lock`; `./configure.sh` on a clean checkout leaves `git status --short` empty.
 - Changing one version in `src/import_map.json` (for example `zod` 3.24.4 → 3.24.3) without updating the lockfile makes `./configure.sh` fail with `The lockfile is out of date`; `package/scripts/vendoring/update-lock.sh` then succeeds and changes `deno.lock`.
 - `package/dist/bin/quarto check` works in dev mode with the frozen lockfile; `quarto run --dev tools/check-runtime-boundary.ts` still works (its graph is outside the lockfile and `deno.jsonc` has `"lock": false`).
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-bundle-externals.test.ts` → `3 passed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-bundle-externals.test.ts unit/tools/check-test-imports.test.ts` → `6 passed`.
+- `quarto run --dev tools/check-test-imports.ts` prints `OK: every remote module the tests reach is in the locked graph (...)` and exits 0; with the `assertObjectMatch` import of one inspect test reverted to the `std@0.93.0` URL it prints the `std@0.217.0` specifier and that file, and exits 1.
 - `Bundle Test` is green on `ubuntu-latest`, `macos-latest` and `windows-latest`: no external specifier in `quarto.js`; `quarto check` and the five renders succeed with an empty `DENO_DIR`.
 - `rg -n 'deno\.land' tools/deno-esbuild-bundle.ts` prints nothing.
 
@@ -632,7 +662,296 @@ git add tools/check-bundle-externals.ts tests/unit/tools/check-bundle-externals.
 git commit -m "Add a check for external module specifiers in the release bundle"
 ```
 
-### Task 6: The CI cache input and the three-OS bundle gate
+### Task 6: The test-import check
+
+**Files:**
+- Create: `tools/check-test-imports.ts`
+- Test: `tests/unit/tools/check-test-imports.test.ts`
+- Modify: `tests/smoke/inspect/inspect-code-cells.test.ts`, `inspect-extensions.test.ts`, `inspect-include.test.ts`, `inspect-recursive-include.test.ts`, `tools/runtime-boundary-baseline.json`
+
+The tests run `--no-lock` (Decisions, 1), so the lockfile pins what they import only while every remote module in their graph is also in the graph of the six entrypoints. This task adds the check that keeps it so, and fixes the one import that breaks it today.
+
+- [ ] **Step 1: Confirm the `deno info` command on the current tree**
+
+Run from the repository root (`D` as in Task 1):
+```bash
+T=$(mktemp -d)
+for f in $(find tests -name '*.ts' -not -path 'tests/docs/*' -not -path 'tests/integration/playwright/*' | sort); do echo "import \"file://$PWD/$f\";"; done > "$T/tests-graph.ts"
+for f in src/quarto.ts src/vendor_deps.ts tests/test-deps.ts package/scripts/deno_std/deno_std.ts package/src/bld.ts tools/deno-esbuild-bundle.ts; do echo "import \"file://$PWD/$f\";"; done > "$T/locked-graph.ts"
+"$D" info --json --no-config --no-lock --unstable-kv --unstable-ffi --importmap=src/import_map.json "$T/tests-graph.ts" > "$T/tests.json"; echo "tests exit=$?"
+"$D" info --json --no-config --no-lock --unstable-kv --unstable-ffi --importmap=src/import_map.json "$T/locked-graph.ts" > "$T/locked.json"; echo "locked exit=$?"
+jq -r '.modules[].specifier' "$T/locked.json" | sort > "$T/locked.txt"
+jq -r '.modules[].specifier' "$T/tests.json" | grep -E '^(npm:|jsr:|https?:)' | sort | comm -23 - "$T/locked.txt"
+```
+Expected: both `exit=0`; the last command lists `https://deno.land/std@0.217.0/assert/assert_object_match.ts` and the std 0.217 modules it imports (`assert/assertion_error.ts`, `assert/_format.ts`, ...), nothing else. If it lists more, each extra line is a test-only remote import to fix in Step 4 the same way (or, when no in-tree replacement exists, to import in `tests/test-deps.ts` with a comment naming the test files). If `deno info` rejects a flag, drop it from this command and from the script in Step 3 (`info` builds the graph without executing, so the unstable flags are only there to match the launcher).
+
+- [ ] **Step 2: Write the failing test**
+
+Create `tests/unit/tools/check-test-imports.test.ts`:
+
+```ts
+/*
+ * check-test-imports.test.ts
+ *
+ * Tests run with --no-lock, so every remote module they reach must be in the
+ * module graph that deno.lock pins (the six lockfile entrypoints).
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+
+import { unitTest } from "../../test.ts";
+import { assertEquals } from "../../asserts.ts";
+import { testEntrypoints, unlockedImports } from "../../../tools/check-test-imports.ts";
+import type { DenoInfoJSON } from "../../../../package/src/common/import-report/deno-info.ts";
+
+const root = "/repo";
+const mod = (specifier: string, deps: string[] = []) => ({
+  specifier,
+  local: specifier.replace("file://", ""),
+  emit: "",
+  map: null,
+  mediaType: "TypeScript",
+  size: 0,
+  dependencies: deps.map((d) => ({ specifier: d, code: { specifier: d, span: { start: 0, end: 0 } } })),
+});
+const graph = (roots: string[], modules: ReturnType<typeof mod>[], redirects: Record<string, string> = {}): DenoInfoJSON =>
+  ({ roots, modules, redirects } as unknown as DenoInfoJSON);
+
+// deno-lint-ignore require-await
+unitTest("check-test-imports - reports remote modules outside the locked graph with their importers", async () => {
+  const locked = graph(["file:///repo/src/quarto.ts"], [
+    mod("file:///repo/src/quarto.ts", ["npm:/zod@3.24.4"]),
+    mod("npm:/zod@3.24.4"),
+  ]);
+  const tests = graph(["file:///tmp/tests-graph.ts"], [
+    mod("file:///tmp/tests-graph.ts", ["file:///repo/tests/unit/a.test.ts", "file:///repo/tests/smoke/b.test.ts"]),
+    mod("file:///repo/tests/unit/a.test.ts", ["npm:/zod@3.24.4", "https://deno.land/std@0.217.0/assert/assert_object_match.ts"]),
+    mod("file:///repo/tests/smoke/b.test.ts", ["https://deno.land/std@0.217.0/assert/assert_object_match.ts"]),
+    mod("npm:/zod@3.24.4"),
+    mod("https://deno.land/std@0.217.0/assert/assert_object_match.ts", ["https://deno.land/std@0.217.0/assert/assertion_error.ts"]),
+    mod("https://deno.land/std@0.217.0/assert/assertion_error.ts"),
+  ]);
+  assertEquals(unlockedImports(tests, locked, root), [
+    {
+      specifier: "https://deno.land/std@0.217.0/assert/assert_object_match.ts",
+      importers: ["tests/smoke/b.test.ts", "tests/unit/a.test.ts"],
+    },
+    {
+      specifier: "https://deno.land/std@0.217.0/assert/assertion_error.ts",
+      importers: ["https://deno.land/std@0.217.0/assert/assert_object_match.ts"],
+    },
+  ]);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-test-imports - follows redirects and ignores local and node: modules", async () => {
+  const locked = graph(["file:///repo/src/quarto.ts"], [
+    mod("file:///repo/src/quarto.ts", ["https://deno.land/std@0.217.0/path/mod.ts"]),
+    mod("https://deno.land/std@0.217.0/path/mod.ts"),
+  ], { "https://deno.land/std@0.93.0/path/mod.ts": "https://deno.land/std@0.217.0/path/mod.ts" });
+  const tests = graph(["file:///tmp/tests-graph.ts"], [
+    mod("file:///tmp/tests-graph.ts", ["file:///repo/tests/unit/a.test.ts"]),
+    mod("file:///repo/tests/unit/a.test.ts", ["https://deno.land/std@0.93.0/path/mod.ts", "node:fs", "file:///repo/tests/util.ts"]),
+    mod("https://deno.land/std@0.217.0/path/mod.ts"),
+    mod("node:fs"),
+    mod("file:///repo/tests/util.ts"),
+  ], { "https://deno.land/std@0.93.0/path/mod.ts": "https://deno.land/std@0.217.0/path/mod.ts" });
+  assertEquals(unlockedImports(tests, locked, root), []);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-test-imports - testEntrypoints skips tests/docs and the playwright tree", async () => {
+  const files = testEntrypoints(Deno.cwd().endsWith("tests") ? ".." : ".");
+  assertEquals(files.some((f) => f.startsWith("tests/docs/")), false);
+  assertEquals(files.some((f) => f.startsWith("tests/integration/playwright/")), false);
+  assertEquals(files.includes("tests/test-deps.ts"), true);
+  assertEquals(files.includes("tests/smoke/inspect/inspect-extensions.test.ts"), true);
+});
+```
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-test-imports.test.ts`
+Expected: fails to resolve `../../../tools/check-test-imports.ts`.
+
+- [ ] **Step 3: Write the check**
+
+Create `tools/check-test-imports.ts`:
+
+```ts
+/*
+ * check-test-imports.ts
+ *
+ * The tests run with --no-lock, so deno.lock pins what they import only while
+ * every remote module in their graph is also reachable from the six lockfile
+ * entrypoints (see dev-docs/runtime-migration/00b-lockfile-and-bundle-gate.md).
+ * This script compares the two module graphs and names the importers of any
+ * module that is not.
+ *
+ *   quarto run --dev tools/check-test-imports.ts [--root <dir>]
+ *
+ * Copyright (C) 2026 Posit Software, PBC
+ */
+
+import { join, relative, toFileUrl } from "../src/deno_ral/path.ts";
+import { walkSync } from "fs/walk";
+import { architectureToolsPath } from "../src/core/resources.ts";
+import type { DenoInfoJSON } from "../package/src/common/import-report/deno-info.ts";
+
+export const kLockEntrypoints: readonly string[] = [
+  "src/quarto.ts",
+  "src/vendor_deps.ts",
+  "tests/test-deps.ts",
+  "package/scripts/deno_std/deno_std.ts",
+  "package/src/bld.ts",
+  "tools/deno-esbuild-bundle.ts",
+];
+
+const kExcludedTestTrees = ["tests/docs/", "tests/integration/playwright/"];
+
+export function testEntrypoints(root: string): string[] {
+  const files: string[] = [];
+  for (const entry of walkSync(join(root, "tests"), { exts: [".ts"], includeDirs: false })) {
+    const rel = relative(root, entry.path).replaceAll("\\", "/");
+    if (kExcludedTestTrees.some((t) => rel.startsWith(t))) continue;
+    files.push(rel);
+  }
+  return files.sort();
+}
+
+export interface UnlockedImport {
+  specifier: string;
+  importers: string[];
+}
+
+const isRemote = (s: string) => /^(npm:|jsr:|https?:)/.test(s);
+
+type Graph = DenoInfoJSON & { redirects?: Record<string, string> };
+
+function resolved(graph: Graph, specifier: string): string {
+  return graph.redirects?.[specifier] ?? specifier;
+}
+
+function local(root: string, specifier: string): string {
+  const prefix = toFileUrl(root).href.replace(/\/$/, "") + "/";
+  return specifier.startsWith(prefix) ? specifier.slice(prefix.length) : specifier;
+}
+
+export function unlockedImports(testGraph: Graph, lockedGraph: Graph, root: string): UnlockedImport[] {
+  const locked = new Set(lockedGraph.modules.map((m) => resolved(lockedGraph, m.specifier)));
+  const importers = new Map<string, Set<string>>();
+  for (const m of testGraph.modules) {
+    for (const d of m.dependencies ?? []) {
+      const target = d.code?.specifier ?? d.type?.specifier;
+      if (!target) continue;
+      const t = resolved(testGraph, target);
+      if (!isRemote(t) || locked.has(t)) continue;
+      if (!importers.has(t)) importers.set(t, new Set());
+      importers.get(t)!.add(local(root, m.specifier));
+    }
+  }
+  return [...importers.keys()].sort().map((specifier) => ({
+    specifier,
+    importers: [...importers.get(specifier)!].sort(),
+  }));
+}
+
+async function denoInfo(root: string, aggregate: string): Promise<Graph> {
+  const cmd = new Deno.Command(architectureToolsPath("deno"), {
+    args: [
+      "info", "--json", "--no-config", "--no-lock", "--unstable-kv", "--unstable-ffi",
+      `--importmap=${join(root, "src", "import_map.json")}`, aggregate,
+    ],
+    stdout: "piped", stderr: "piped",
+  });
+  const out = await cmd.output();
+  if (!out.success) {
+    throw new Error(`deno info failed on ${aggregate}:\n${new TextDecoder().decode(out.stderr)}`);
+  }
+  return JSON.parse(new TextDecoder().decode(out.stdout));
+}
+
+function writeAggregate(dir: string, name: string, root: string, files: readonly string[]): string {
+  const path = join(dir, name);
+  Deno.writeTextFileSync(path, files.map((f) => `import "${toFileUrl(join(root, f)).href}";\n`).join(""));
+  return path;
+}
+
+if (import.meta.main) {
+  const rootArg = Deno.args.indexOf("--root");
+  const root = Deno.realPathSync(rootArg >= 0 ? Deno.args[rootArg + 1] : ".");
+  const tests = testEntrypoints(root);
+  const dir = Deno.makeTempDirSync({ prefix: "check-test-imports-" });
+  try {
+    const testGraph = await denoInfo(root, writeAggregate(dir, "tests-graph.ts", root, tests));
+    const lockedGraph = await denoInfo(root, writeAggregate(dir, "locked-graph.ts", root, kLockEntrypoints));
+    const unlocked = unlockedImports(testGraph, lockedGraph, root);
+    if (unlocked.length > 0) {
+      for (const u of unlocked) {
+        console.log(`::error::${u.specifier} is imported by tests but not pinned by deno.lock`);
+        for (const i of u.importers) console.log(`  imported by ${i}`);
+      }
+      console.log("Fix: import the module from an in-tree seam (tests/asserts.ts, src/) or add it to tests/test-deps.ts, then run package/scripts/vendoring/update-lock.sh.");
+      Deno.exit(1);
+    }
+    const remote = testGraph.modules.filter((m) => isRemote(m.specifier)).length;
+    console.log(`OK: every remote module the tests reach is in the locked graph (${remote} remote modules, ${tests.length} test files)`);
+  } finally {
+    Deno.removeSync(dir, { recursive: true });
+  }
+}
+```
+
+`fs/walk` and the bare `path` seam are import-map entries the ratchet's std allow-list accepts for `tools/` (PR 02; `tools/` is not a counted scope). `Deno.Command` and `Deno.*` file calls are allowed in `tools/` for the same reason (PR 02's `check-runtime-boundary.ts` uses them too).
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-test-imports.test.ts`
+Expected: `3 passed`.
+
+- [ ] **Step 4: Run the check, fix the inspect tests, run it again**
+
+Run: `package/dist/bin/quarto run --dev tools/check-test-imports.ts; echo "exit=$?"`
+Expected: `::error::https://deno.land/std@0.217.0/assert/assert_object_match.ts is imported by tests but not pinned by deno.lock`, four `imported by tests/smoke/inspect/...` lines, the std 0.217 modules it pulls in (imported by `assert_object_match.ts` itself), and `exit=1`. This is the cold-cache test-only dependency R20 describes.
+
+Then in `tests/smoke/inspect/inspect-code-cells.test.ts`, `inspect-extensions.test.ts`, `inspect-include.test.ts` and `inspect-recursive-include.test.ts` replace
+```ts
+import { assertObjectMatch } from "https://deno.land/std@0.93.0/assert/assert_object_match.ts";
+```
+with
+```ts
+import { assertObjectMatch } from "../../asserts.ts";
+```
+(`tests/asserts.ts` exports `assertObjectMatch`, PR 02). In `inspect-extensions.test.ts` the file also imports `assert, assertEquals` from `testing/asserts`; leave that line alone (PR 23 moves it).
+
+Run:
+```bash
+package/dist/bin/quarto run --dev tools/check-test-imports.ts; echo "exit=$?"
+cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/inspect -name '*.test.ts'); cd ..
+package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline
+git diff --stat tools/runtime-boundary-baseline.json
+```
+Expected: `OK: every remote module the tests reach is in the locked graph (...)` and `exit=0`; the inspect tests pass; the ratchet prints a `::notice::` for `tests` std files (165 → 162: three of the four files had no other std import) and rewrites the baseline; the diff touches that one number.
+
+- [ ] **Step 5: Prove the check catches a new unlocked import (the failing test of this task)**
+
+Run:
+```bash
+echo 'import "https://deno.land/std@0.224.0/assert/assert_exists.ts";' >> tests/smoke/inspect/inspect-cleanup.test.ts
+package/dist/bin/quarto run --dev tools/check-test-imports.ts; echo "exit=$?"
+git checkout tests/smoke/inspect/inspect-cleanup.test.ts
+```
+Expected: `::error::https://deno.land/std@0.224.0/assert/assert_exists.ts is imported by tests but not pinned by deno.lock`, `  imported by tests/smoke/inspect/inspect-cleanup.test.ts`, `exit=1`; the last command restores the file.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add tools/check-test-imports.ts tests/unit/tools/check-test-imports.test.ts tests/smoke/inspect tools/runtime-boundary-baseline.json
+git commit -m "Check that every remote module the tests reach is pinned by deno.lock
+
+Tests run with --no-lock, so the lockfile only covers them while their
+module graph stays inside the six entrypoints' graph. The four inspect
+tests imported assertObjectMatch from std@0.93.0 (redirected to 0.217),
+a module nothing else reaches; they use tests/asserts.ts now."
+```
+
+### Task 7: The CI cache input and the three-OS bundle gate
 
 **Files:**
 - Modify: `.github/workflows/actions/quarto-dev/action.yml:1-21`
@@ -769,6 +1088,11 @@ jobs:
         run: |
           quarto run --dev tools/check-bundle-externals.ts package/pkg-working/bin/quarto.js
 
+      - name: Every remote module the tests reach is pinned by deno.lock
+        shell: pwsh
+        run: |
+          quarto run --dev tools/check-test-imports.ts
+
       - name: Run the bundle from an empty DENO_DIR
         shell: bash
         run: |
@@ -848,7 +1172,7 @@ for external module specifiers, and runs the bundle from an empty
 DENO_DIR (--cached-only) through check and five renders."
 ```
 
-### Task 7: Documentation and status
+### Task 8: Documentation and status
 
 **Files:**
 - Modify: `dev-docs/add-typescript-dependency.md`, `dev-docs/ci-deno-caching.md`
@@ -862,7 +1186,7 @@ Replace the whole body of `dev-docs/add-typescript-dependency.md` with:
 ## Adding or updating a TypeScript dependency
 
 1. Add or change the entry in `src/import_map.json` as an `npm:` or `jsr:` specifier pinned to an exact version. Never use `deno.land`, a CDN (`cdn.skypack.dev`, `esm.sh`, `dev.jspm.io`) or a version range.
-2. If only tests use it, also import it in `tests/test-deps.ts`. If scripts run with `quarto run` need it, add it to `package/scripts/deno_std/deno_std.ts` and `src/resources/deno_std/run_import_map.json`, then run `package/scripts/deno_std/lock.sh`.
+2. If only tests use it, also import it in `tests/test-deps.ts`: the tests run `--no-lock`, and `Bundle Test` runs `tools/check-test-imports.ts`, which fails when a test reaches a remote module that none of the six lockfile entrypoints (`src/quarto.ts`, `src/vendor_deps.ts`, `tests/test-deps.ts`, `package/scripts/deno_std/deno_std.ts`, `package/src/bld.ts`, `tools/deno-esbuild-bundle.ts`) reaches. If scripts run with `quarto run` need it, add it to `package/scripts/deno_std/deno_std.ts` and `src/resources/deno_std/run_import_map.json`, then run `package/scripts/deno_std/lock.sh`.
 3. Run `package/scripts/vendoring/update-lock.sh` (Windows: `set QUARTO_DENO_LOCK_MODE=update` then `configure.cmd`). It re-vendors `package/dist/bin/deno_cache` and adds the new modules to `deno.lock`.
 4. Commit `deno.lock` with the import-map change. `configure`, the dev launcher, `quarto-bld` and the release bundle all run with the frozen lockfile and fail with "The lockfile is out of date" until you do.
 5. The `Bundle Test` workflow checks that the release bundle does not import the package at runtime from the network (`tools/check-bundle-externals.ts`) and renders documents with it on Linux, macOS and Windows.
@@ -890,7 +1214,7 @@ git add dev-docs/add-typescript-dependency.md dev-docs/ci-deno-caching.md dev-do
 git commit -m "Document the lockfile workflow and the uncached bundle gate"
 ```
 
-### Task 8: CI on three OSes
+### Task 9: CI on three OSes
 
 **Files:** possibly `deno.lock`
 
@@ -906,9 +1230,11 @@ npm packages with platform-specific optional dependencies (`esbuild` via `npm:es
 
 - `./configure.sh` on a clean checkout → success, `git status --short` empty.
 - Task 2 Step 6 and Task 3 Step 6 (drift fails frozen configure and the frozen dev launcher).
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-bundle-externals.test.ts` → `3 passed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-bundle-externals.test.ts unit/tools/check-test-imports.test.ts` → `6 passed`.
+- `quarto run --dev tools/check-test-imports.ts` → `OK: ...`, exit 0; Task 6 Step 5 (a new remote import in a test is reported with its importer, exit 1).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/inspect -name '*.test.ts')` → passed (the four `assertObjectMatch` importers).
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/run -name '*.test.ts') $(find smoke/check -name '*.test.ts') smoke/render/render-minimal.test.ts` → passed (the launcher change touches every dev-mode run).
-- `quarto run --dev tools/check-runtime-boundary.ts` → `OK`, unchanged counts (no counted file changed).
+- `quarto run --dev tools/check-runtime-boundary.ts` → `OK`; the only count that moved is `tests` std files, 165 → 162 (Task 6 Step 4), and the committed baseline says so.
 - `Bundle Test` green on the three OSes.
 
 ## Review checklist
@@ -920,10 +1246,12 @@ npm packages with platform-specific optional dependencies (`esbuild` via `npm:es
 - [ ] `download.sh`/`download.bat` are frozen; `lock.sh` no longer passes `--lock-write`.
 - [ ] The bundle gate runs on three OSes, builds from an empty dev cache, scans `quarto.js`, runs with an empty `DENO_DIR` after hiding `src/quarto.ts`, and asserts the five outputs exist.
 - [ ] `kAllowedExternalSpecifiers` is empty, or every entry names the file and why Deno never executes it.
+- [ ] `kLockEntrypoints` in `tools/check-test-imports.ts` lists the same six files as `vendor.sh`/`vendor.cmd`; `Bundle Test` runs the check; no test file imports a `deno.land` URL (`rg -n 'deno\.land' tests --glob '!tests/docs/**'` prints nothing).
+- [ ] `vendor.cmd` runs `--frozen` like `vendor.sh`; if it does not, the PR description carries the evidence Decision 2 asks for.
 
 ## Risks and rollback
 
-- A platform-dependent lockfile (Task 8 Step 2) makes `configure` fail on one OS. Shows up in this PR's CI; resolved by committing the union. If Deno cannot produce one lockfile that is frozen-clean on all three OSes, drop `--frozen` from `vendor.cmd` only and record it in the PR (the bundle build on Linux/macOS stays frozen).
+- A platform-dependent lockfile (Task 9 Step 2) makes `configure` fail on one OS. Shows up in this PR's CI; resolved by committing the union (Task 9 Step 2). If three rounds of Task 9 Step 2 do not converge, stop: relaxing `--frozen` on one OS is Decision 2, not something this task decides.
 - A developer with uncommitted import-map experiments hits "The lockfile is out of date" in the dev launcher. The message names the fix; `QUARTO_DENO_LOCK_OPTIONS=--no-lock` is the escape hatch.
 - `deno.jsonc` was hand-edited relative to `deno-meta.json` before this PR (`compilerOptions` exists only in `deno.jsonc`); regenerating it with `create-deno-config.ts` drops `compilerOptions`. Not changed here; whoever regenerates keeps that block by hand (`dev-docs/update-deno_jsonc.md`).
 - The gate costs three OS jobs of about 15 minutes each (cold configure plus `prepare-dist` plus renders) per PR. If that is too slow, run the Windows and macOS legs only on `push` to `main` and on PRs that touch `src/import_map.json`, `deno.lock`, `package/**` or `tools/**`.
@@ -931,6 +1259,7 @@ npm packages with platform-specific optional dependencies (`esbuild` via `npm:es
 
 ## Decisions needed
 
-1. **Tests stay on `--no-lock`.** `tests/run-tests.sh:72` and `run-tests.ps1:130` keep `--no-lock`. Locking the test runs would need every `tests/**/*.test.ts` as a lockfile entrypoint (about 700 files, over the Windows command-line limit for `vendor.cmd`), and the tests run against the cache that frozen `configure` just populated, so they resolve the locked versions anyway. Recommendation: keep `--no-lock` for tests until PR 31 moves them to Node and `package-lock.json`.
+1. **What the lockfile covers, and how the tests stay inside it.** `deno.lock` pins the module graph of six entrypoints (`src/quarto.ts`, `src/vendor_deps.ts`, `tests/test-deps.ts`, `package/scripts/deno_std/deno_std.ts`, `package/src/bld.ts`, `tools/deno-esbuild-bundle.ts`) and nothing else. `tests/run-tests.sh:72` and `run-tests.ps1:130` keep `--no-lock`, and a populated cache does not constrain what an unlocked run resolves: a test that reaches a remote module outside that graph fetches it at test time, at whatever version the specifier resolves to (R20; the inspect tests did exactly that). Options: (a) lock the test runs by passing every test file as a lockfile entrypoint through a generated aggregate module (no Windows command-line problem) and running the tests with `--lock deno.lock --frozen`; (b) keep `--no-lock` and enforce, in CI, that every remote module the tests reach is in the locked graph (`tools/check-test-imports.ts`, Task 6), with `tests/test-deps.ts` as the entrypoint a test-only dependency is added to. Recommendation and what this plan does: **(b)**. It gives the same guarantee for the graph as it is today, costs one `deno info` call per CI run instead of a lockfile that changes with every test file, and PR 31 replaces the test runner anyway (`package-lock.json` then pins test dependencies). The exception (tests run unlocked) is tracked here, in the Goal, and in `dev-docs/add-typescript-dependency.md`.
+2. **No platform-specific relaxation of `--frozen` without evidence.** The first draft allowed dropping `--frozen` from `vendor.cmd` if one lockfile could not be frozen-clean on all three OSes. That would leave Windows, a supported OS, with the drift detection the rest of this PR exists to add. Options when Task 9 Step 2 does not converge: (a) pin the npm package whose optional platform dependencies differ (`esbuild` is the known case) so that one lockfile holds every platform's entries, or exclude it from the locked graph by moving its only importer behind an `npm:` specifier the bundle resolves at build time; (b) keep `--frozen=false` on Windows but make the `quarto-dev` action's "Basic dev mode sanity check" fail when `configure` modifies `deno.lock` (`git diff --exit-code deno.lock`), which detects the same drift one step later; (c) drop frozen enforcement on Windows. Recommendation: **(a)**, then (b) if (a) is impossible; (c) is not available. Whichever is taken, the maintainer decides on the evidence pasted in the PR description: the three `git diff deno.lock` outputs from Task 9 Step 2 and the Deno version, and the PR records the decision under this heading.
 
 Review items closed here: S9 (no lockfile, bundle self-containment never checked), Phase 0 cross-cutting 1 (gate), 2 (lockfile), 3 (superset cache: `deno-cache: "false"` for the gate, `deno.lock` in the key), 4 (partly: `tools/deno-esbuild-bundle.ts:7`; the rest is PR 07's last task).
