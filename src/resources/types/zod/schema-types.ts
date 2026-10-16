@@ -248,8 +248,6 @@ export const ZodSocialMetadata = z.object({
   description: z.string(),
   image: z.string(),
   "image-alt": z.string(),
-  "image-width": z.number(),
-  "image-height": z.number(),
 }).strict().partial();
 
 export const ZodPageFooterRegion = z.union([
@@ -288,11 +286,11 @@ export const ZodTwitterCardConfig = z.object({
   description: z.string(),
   image: z.string(),
   "image-alt": z.string(),
-  "image-width": z.number(),
-  "image-height": z.number(),
   "card-style": z.enum(["summary", "summary_large_image"] as const),
   creator: z.string(),
   site: z.string(),
+  "image-width": z.number(),
+  "image-height": z.number(),
 }).strict().partial();
 
 export const ZodOpenGraphConfig = z.object({
@@ -300,10 +298,10 @@ export const ZodOpenGraphConfig = z.object({
   description: z.string(),
   image: z.string(),
   "image-alt": z.string(),
-  "image-width": z.number(),
-  "image-height": z.number(),
   locale: z.string(),
   "site-name": z.string(),
+  "image-width": z.number(),
+  "image-height": z.number(),
 }).strict().partial();
 
 export const ZodPageFooter = z.object({
