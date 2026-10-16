@@ -13,6 +13,11 @@ the reading order. This README is the execution index.
 - `REVIEW-2026-10-15.md`: the principal review of the first draft of the plans
   (structural findings S1–S13, per-plan defects, the landing strategy, the
   decisions taken in its section 6). The plans below are the reworked version.
+- `REVIEW-2026-10-16.md`: the Codex review of the reworked plans (R01–R21 and
+  eleven open decisions). `TRIAGE-2026-10-16.md` verifies each finding and
+  splits the follow-up into decisions, a reconciliation pass and local plan
+  corrections. Until that pass lands, the plans still carry the R01–R21
+  defects.
 - `SPIKES.md`: the two time-boxed spikes that sit inside Phase 2 (Spike #2 on
   Deno's Node compatibility and the dual-runtime window; Spike V on the test
   runner). Their outcomes set constants in PRs 28, 29, 31, 33 and 37.

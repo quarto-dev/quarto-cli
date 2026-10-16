@@ -9,6 +9,10 @@
 3. `REVIEW-2026-10-15.md` sections 1, 2, 3 and 6: readiness per phase, the
    structural findings that shaped the rework, the landing strategy, the
    decisions table.
+3b. `REVIEW-2026-10-16.md` (the Codex review of the reworked plans, 21
+   findings) and `TRIAGE-2026-10-16.md` (every finding verified; the work
+   split into maintainer decisions, a cross-plan reconciliation pass, and
+   per-plan local corrections). The plans are not yet corrected for it.
 4. `README.md`: the executable sequence, conventions, dependency graph and
    ratchet baseline. The index you consult while working, not the context.
 5. `_TEMPLATE.md`: the normative vocabulary every plan uses.
