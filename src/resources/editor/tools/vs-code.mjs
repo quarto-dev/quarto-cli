@@ -20780,7 +20780,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Publish open graph metadata for this page. Options set here are merged\nwith the `open-graph` options of the `website` metadata.\n"
+          description: "Publish open graph metadata for this page. Options set here are merged\nwith the `open-graph` options of the `website` metadata. Set to `false`\nto omit open graph metadata from this page.\n"
         },
         {
           name: "twitter-card",
@@ -20798,7 +20798,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Publish twitter card metadata for this page. Options set here are merged\nwith the `twitter-card` options of the `website` metadata.\n"
+          description: "Publish twitter card metadata for this page. Options set here are merged\nwith the `twitter-card` options of the `website` metadata. Set to `false`\nto omit twitter card metadata from this page.\n"
         },
         {
           name: "image-lazy-loading",
@@ -24881,8 +24881,8 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The title for the main image on the about page.",
           long: "The title for the main image on the about page. Used when\n<code>about</code> does not set its own <code>image-title</code>."
         },
-        "Publish open graph metadata for this page. Options set here are\nmerged with the <code>open-graph</code> options of the\n<code>website</code> metadata.",
-        "Publish twitter card metadata for this page. Options set here are\nmerged with the <code>twitter-card</code> options of the\n<code>website</code> metadata.",
+        "Publish open graph metadata for this page. Options set here are\nmerged with the <code>open-graph</code> options of the\n<code>website</code> metadata. Set to <code>false</code> to omit open\ngraph metadata from this page.",
+        "Publish twitter card metadata for this page. Options set here are\nmerged with the <code>twitter-card</code> options of the\n<code>website</code> metadata. Set to <code>false</code> to omit twitter\ncard metadata from this page.",
         {
           short: "If true, this page\u2019s image in a listing will only load when it comes\ninto view.",
           long: 'Enables lazy loading for this page\u2019s image when the page appears as\nan item in a listing. If true, the listing image element will have\n<code>loading="lazy"</code>, and will only load when it comes into\nview.\nIf false, the image will load immediately. This overrides the\nlisting\u2019s <code>image-lazy-loading</code> option for this item.'

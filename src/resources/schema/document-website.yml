@@ -104,7 +104,8 @@
     formats: [$html-doc]
   description: |
     Publish open graph metadata for this page. Options set here are merged
-    with the `open-graph` options of the `website` metadata.
+    with the `open-graph` options of the `website` metadata. Set to `false`
+    to omit open graph metadata from this page.
 
 - name: twitter-card
   schema:
@@ -116,7 +117,8 @@
     formats: [$html-doc]
   description: |
     Publish twitter card metadata for this page. Options set here are merged
-    with the `twitter-card` options of the `website` metadata.
+    with the `twitter-card` options of the `website` metadata. Set to `false`
+    to omit twitter card metadata from this page.
 
 - name: image-lazy-loading
   schema: boolean
