@@ -1191,6 +1191,20 @@ Node jobs, the bucket generation and the `schedule:` trigger (the only
 scheduled macOS run) stay: the resulting graph is in
 `dev-docs/runtime-migration/37-ci-switch-and-deno-removal.md`, "The CI graph
 after this PR".
+
+**Protection of the still-shipping Deno runtime between this PR and PR 33
+(owned by this plan; PR 33's acceptance refers here).** `REVIEW-2026-10-16.md`
+decision 2, triage A3: `main` ships Deno until PR 33 lands, so from this PR
+on a pull request is protected on Deno only by `deno-sanity` (`unit/` and
+`smoke/render/` on Linux) and by the nightly `deno-nightly`. That reduction is
+accepted (A3 option a) under one rule: **a pull request that touches
+`src/deno_ral/`, the launchers or the build tooling dispatches `Node Tests`
+on its branch before merge and links the run; PR 33 itself merges only with
+one green `deno-nightly` run on its branch and `parity: OK` for the three
+OSes from the same run, both linked in its PR description.** A red
+`deno-sanity` is a blocker like any required check; a red `deno-nightly` the
+next morning is fixed or reverted that day, since the nightly is the only
+full evidence that `main` still ships. The rule ends with PR 37.
 ```
 
 - [ ] **Step 4: Update the plan index and commit**

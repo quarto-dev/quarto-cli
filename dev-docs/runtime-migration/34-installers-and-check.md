@@ -602,7 +602,7 @@ git commit -m "docs: Node signing notes, platform minimums, check JSON key, quar
 - **Intel macOS becomes an untested Node platform in early 2028** (`BUILDING.md` footnote 8). Quarto's `darwin-x64` build then runs on binaries Node no longer tests; keep the macOS x64 smoke job in CI and decide at that point whether 1.13+ keeps the Intel pkg.
 - **Users on macOS 12 or glibc < 2.28 lose updates.** The installer now says so at install time instead of failing at run time; the changelog and installation page state the minimums. Those users stay on Quarto 1.11 (Deno).
 - **Readers of `quarto check --output` that look for `"Deno"`** (none found in `quarto-dev` repositories by `grep`; RStudio and Positron read `quarto --version`) get no runtime entry. The changelog line names the rename.
-- **Rollback:** revert the PR; PR 33's installers keep working (two-key signing, no OS gate).
+- **Rollback:** revert the PR; PR 33's installers keep working (two-key signing, no OS gate). The release-level rules (prerelease soak and promotion criteria, revert by default for a P1 in the layer, what the runtime switches are for, returning to 1.11) are PR 33's, "Risks and rollback", "Rollout and rollback after the flip"; this PR supplies the `quarto check` evidence that rule 1 needs.
 
 ## Decisions needed
 

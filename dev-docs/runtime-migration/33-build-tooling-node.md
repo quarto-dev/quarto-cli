@@ -219,6 +219,7 @@ Quarto's Node flags, in order: `--enable-experimental-regexp-engine --max-old-sp
 - The whole suite passes on the three OSes with `QUARTO_TEST_RUNTIME` unset (Node). This includes `tests/smoke/run/run-script.test.ts`, `tests/smoke/run/stdlib-run-version.test.ts`, `tests/smoke/project/project-prepost.test.ts`, `tests/smoke/build-ts-extension/build-ts-extension.test.ts` and `tests/smoke/create/create.test.ts`, which pass **because they still run on the Deno tool** (`src/core/run/deno.ts`, `build-ts-extension/cmd.ts`), not because scripts run on Node.
 - The boundary-ratchet workflow is green: `quarto run --dev tools/check-runtime-boundary.ts` runs on the Deno tool and reports unchanged counts.
 - `npm run typecheck` exits 0 locally and in `.github/workflows/lint.yml`.
+- Before merge (triage A3; the rule is PR 32's, "Deno in CI after PR 32"): one green `deno-nightly` run of `Node Tests` dispatched on this branch and `parity: OK` for Linux, macOS and Windows from the same run, both linked in the PR description. The Deno fallback (Task 13), when present, is not a substitute for that run.
 - `tests/smoke/env/launcher-env.test.ts` passes on the three OSes: `NODE_OPTIONS=--bogus quarto --help` exits 0; a child process (`quarto run env.lua`) sees `NODE_OPTIONS` unchanged; `QUARTO_DENO_V8_OPTIONS=--stack-trace-limit=200` reaches `node`; `QUARTO_DENO_OPTIONS=--allow-all quarto --help` exits 0 and warns once.
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9` produces `bin/quarto.js`, `bin/package.json`, `bin/tools/<arch>/node`, `bin/tools/<arch>/deno`, no `node-dist`; `cd package/pkg-working/bin && ./quarto check` passes; `./quarto-bld validate-bundle` passes (`test-bundle.yml`).
 - `cargo build --release --manifest-path package/launcher/Cargo.toml` succeeds; `create-release.yml` dispatched with `publish-release=false` is green on all platforms, including the MSI and `test-smokes-built.yml` on the Windows zip.
@@ -2834,7 +2835,8 @@ In `package/scripts/common/quarto`, directly before the `# --- Node runtime ---`
 
 ```bash
 # Dual-runtime window (one prerelease cycle, removed by PR 37): the same
-# node:-API bundle on the Deno tool, as a rollback switch for users.
+# node:-API bundle on the Deno tool, for users whose scripts or extensions
+# still need Deno (Risks and rollback, rule 3), not a fix for Quarto defects.
 case "${QUARTO_RUNTIME:-node}" in
   node) ;;
   deno)
@@ -3176,7 +3178,7 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - Fresh clone: `git clone … && ./configure.sh && package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd`.
 - Concurrent rebuild, the way `tests/run-parallel-tests.ts` runs buckets (`Promise.all` over `./run-tests.sh` processes, line 259): `cd tests && rm -f ../package/dist/bin/quarto-dev.mjs && for i in 1 2 3 4; do QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts & done; wait`: all four pass, and `ls ../package/dist/bin/*.tmp ../package/dist/bin/*.lock*` finds nothing. (`./run-parallel-tests.sh` itself runs through `quarto run`, i.e. the Deno tool, until PR 35.)
 - Lock ownership by hand (Linux or macOS): `L=package/dist/bin/quarto-dev.mjs.lock; mkdir $L && echo "{\"pid\":$$,\"host\":\"$(hostname)\",\"nonce\":\"x\"}" > $L/owner && touch -d '10 minutes ago' $L`, then `touch src/core/path.ts && package/dist/bin/quarto --help` in a second shell: it waits (the shell holding the lock is alive, however old the lock); `rm -r $L` in the first shell: the second finishes with `bundled … reason: src/core/path.ts`. Then `mkdir $L && echo '{"pid":999999,"host":"'$(hostname)'","nonce":"x"}' > $L/owner && package/dist/bin/quarto --help`: the dead owner's lock is broken at once and no `*.lock*` is left.
-- Push and let every workflow run: `test-smokes.yml` (Node default), the PR 32 Node matrix, the nightly Deno matrix (`workflow_dispatch` it once), `test-bundle.yml`, `test-install.yml`, `lint.yml`, the boundary-ratchet workflow, `test-quarto-latexmk.yml` (unless PR 39 already removed it). Dispatch `create-release.yml` with `publish-release=false`: all jobs green, including the Windows MSI and zip, and `test-smokes-built.yml` on the artifacts.
+- Push and let every workflow run: `test-smokes.yml` (Node default), the PR 32 Node matrix, the nightly Deno matrix (`workflow_dispatch` it once; its run URL and the `parity: OK` lines go in the PR description, the A3 merge condition in Acceptance), `test-bundle.yml`, `test-install.yml`, `lint.yml`, the boundary-ratchet workflow, `test-quarto-latexmk.yml` (unless PR 39 already removed it). Dispatch `create-release.yml` with `publish-release=false`: all jobs green, including the Windows MSI and zip, and `test-smokes-built.yml` on the artifacts.
 
 ## Review checklist
 
@@ -3202,6 +3204,13 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - **Windows rename of the bundle while another `quarto` reads it.** libuv opens files with `FILE_SHARE_DELETE`, so the rename succeeds; `writeAtomic` retries 10 times on `EPERM`/`EBUSY` otherwise.
 - **`tsc` finds many errors the first time.** Bounded by the stop condition in Task 12 step 4.
 - **Rollback:** revert the PR. Every Phase 2 change still works on Deno (the PR 32 nightly Deno matrix proves it), `configure` then runs the Deno launchers again; no data format changed (`dev-config` is regenerated by `configure`).
+
+**Rollout and rollback after the flip (owned by this plan; PR 34, PR 37 and `README.md` refer here).** `REVIEW-2026-10-16.md` decision 3, triage A4. A switch is not a rollback plan, because `QUARTO_RUNTIME=deno` (Task 13) runs the same ported layer, bundler output and launchers on the Deno tool: a defect in `src/deno_ral/`, in `tools/node-bundle/` or in a launcher is present on both sides of the switch. Hence four rules:
+
+1. **Soak.** 1.12 prereleases ship on Node for at least one full prerelease cycle (00-assessment section 7, Phase 3 step 6) before promotion to stable; 1.11 stays the stable release for the whole soak. Promotion needs: the feature-format matrix and the Playwright suite green on the Node prerelease, the PR 32 parity report `OK` on the three OSes, PR 34's `quarto check` evidence on every supported installer, and no open P1 in the layer, the bundler or the launchers.
+2. **Revert is the default for a P1 in the layer.** A defect in `src/deno_ral/`, the bundle or a launcher found during the soak is fixed forward when the fix is small and otherwise reverted PR by PR (each Phase 2 and Phase 3 PR stays revertable on its own: that is why PR 34 is separate and why PR 37 waits). The switch never counts as the fix of such a defect.
+3. **The switch is for users, for scripts and extensions only.** `QUARTO_RUNTIME=deno` (when Spike #2 made Task 13 possible) and `QUARTO_RUN_RUNTIME=deno` / `script-runtime` (PR 35) exist for user-side breakage: a `quarto run` script, a project hook or an engine extension that depended on Deno. They are documented on the migration page for that purpose and nowhere as a workaround for Quarto's own defects.
+4. **Returning to 1.11.** A prerelease user blocked by a Node-only defect goes back to the 1.11 stable installer, which keeps working for the whole soak and the first 1.12 stable cycle; the release notes of every 1.12 prerelease say so in one line. Caches are version-keyed (PRs 18 and 30), so going back loses nothing.
 
 ## Decisions needed
 

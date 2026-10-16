@@ -440,6 +440,7 @@ git commit -m "docs: backport protocol after the runtime migration"
 
 ## Risks and rollback
 
+- **This PR closes the dual-runtime window.** It lands only after PR 33's rollout rules have run their course ("Risks and rollback", "Rollout and rollback after the flip": the soak is over, 1.12 is stable on Node, no open P1 in the layer); the switches it removes were for user-side script/extension breakage, so their removal is a compatibility decision, not a rollback decision.
 - **Users who set `QUARTO_RUN_RUNTIME=deno` upgrade and lose the bundled Deno.** The error names `quarto install deno`; the changelog says so. Landing in 1.13 (one release after Node shipped with Deno bundled) gives them a release to adapt.
 - **A deleted file was read by something outside the repository** (Positron/RStudio build scripts reading `src/dev_import_map.json`, packagers reading `deno.jsonc`). The PR description lists every deleted path; restoring one is `git checkout <sha> -- <path>`.
 - **The reverse codemod misses an identifier on an old branch.** The `git apply -3` conflict or `deno check` on the stable branch shows it; the checklist says to hand-edit.

@@ -74,6 +74,13 @@ them. Change them in the plan that decides them, not downstream.
   branch is cut; 1.12 ships on Node; PR 37 targets 1.13. Backports to `v1.10`
   and older use the codemod's `--reverse` mode (step added to
   `dev-docs/checklist-backport-a-pr.md` by PR 37).
+- Pre-flip Deno protection (triage A3): from PR 32 a pull request runs
+  `deno-sanity` plus the nightly `deno-nightly`; PR 33 merges only with one
+  green `deno-nightly` and `parity: OK` on its branch (PR 32, "Deno in CI
+  after PR 32"). Rollout and rollback after the flip (triage A4): one full
+  prerelease soak, revert by default for a P1 in the layer, the runtime
+  switches for user-side script/extension breakage only, 1.11 stable as the
+  way back (PR 33, "Risks and rollback").
 - Pins: Deno `v2.9.x` (PR 00a; newest 2.9 at execution), Node `v26.12.0` or
   newer 26.x, CI on Node 26, `@cliffy/*` 1.3.1 (PR 06), `@b-fuze/deno-dom`
   0.1.56 on WASM with a `parseHtml`-time gate of at most 2× the native plugin
@@ -209,6 +216,12 @@ other plans refer to it by file and section (reconciliation pass of
   on `architectureToolsPath("node")` and Deno on `requireDenoToolBinary()`,
   never on `execPath()`: PR 33, "Dual-runtime combinations until PR 37"
   (PRs 28, 35, 36, 37 and `_TEMPLATE.md` refer to it).
+- The pre-flip Deno protection rule (what protects `main` on Deno between
+  PR 32 and PR 33, and PR 33's merge condition): PR 32, "Deno in CI after
+  PR 32" (PR 33 refers to it).
+- Rollout and rollback after the flip (soak, revert by default, what the
+  switches are for, returning to 1.11): PR 33, "Risks and rollback" (PRs 34
+  and 37 refer to it).
 
 ## How to execute a plan
 
