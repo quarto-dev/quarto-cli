@@ -70,6 +70,71 @@ rewritten and renamed, `SPIKES.md` added, `_TEMPLATE.md` vocabulary updated,
 table, dependency graph, conventions and baseline. The plans are now
 executable in the README order; the first three to run are PR 02, 00a, 00b.
 
+## Reconciliation pass (bucket B of `TRIAGE-2026-10-16.md`): state on 2026-10-16
+
+Six of the nine items are committed and pushed, one commit per item; the
+working tree was clean when the session stopped. Nothing from B7–B9 is
+started.
+
+| Item | Commit | Where the rule or table lives |
+|---|---|---|
+| B1 | `11d115f` | PR 02, Context "The std boundary rule" (`kStdAllowListed`; PR 22's table is the source); baseline `src` 49, `package/src` 3 |
+| B2 | `22993e6` | PR 25, Context "Runtime residue table" (17 rows); PR 39 before PR 25; PR 33 Task 16; PR 35 Task 6 |
+| B3 | `0480a47` | `_TEMPLATE.md` (env keys, `exit`, KV file rule); PR 28 acceptance; PRs 33/37 lose `--unstable-kv` and the stale KV-backend sentences |
+| B4 | `7023b19` | PR 26, Interfaces "The builder contract"; PR 33 Task 2 step 4 keeps it |
+| B5 | `91aa3ef` | PR 37, Context "The CI graph after this PR" (decision 5: `render-parity` = dev bundle vs distribution bundle) |
+| B6 | `63b94d8` | `SPIKES.md` Spike V (after PR 30; rule 0 classification; rule 4 inconclusive) |
+
+Still to do, in order (one commit each, message starting with the id):
+
+- **B7, supported migration surface matrix** (R09, R17, decision 1; A1 and
+  A2 as decided in the triage). Write the matrix once in PR 35's Spec
+  (rows: internal API, prebuilt engines, rebuilt engines, plain scripts,
+  `stdlib/*` scripts, Deno-native scripts; columns: supported releases,
+  author action, fallback, retirement) and the version-semantics rule
+  (A2: the project `package.json`/lockfile governs; warn when a versioned
+  `npm:`/`jsr:` specifier is not satisfied by the installed version; say
+  which lockfile governs scripts, `stdlib/*` and engines). Reference it
+  from 00c (notice text and the migration-page list), 34
+  (`docs-updates.md` rows) and 36. Two mechanisms A1(b) implies are not in
+  the plans yet and need a "Decision needed" each, recommendation picked:
+  (1) PR 35: the `stdlib/*` bundles call `Deno.*` internally and only work
+  under the global script shim, so reusing them for in-process engines
+  (which have no `Deno`, decision 1) needs a module-local `Deno` binding
+  injected by `tools/run-stdlib/build.mjs` (esbuild `inject`), built from
+  the same member table as `deno-shim.cjs`; (2) PR 36: esbuild `--alias`
+  maps package names, not subpaths, so `fs/walk`-style imports can reach a
+  single bundle only if the bundles are packaged as
+  `@quarto/std-<name>` packages with a wildcard `exports` entry under
+  `share/extension-build/node_modules`; the `importMapAliases` unit test
+  expectations and the `prepare-dist` step change accordingly. PR 35's
+  changelog "stdlib/* imports keep working" becomes "for the modules in
+  the matrix"; `FileHandler` and `serveDir` are documented unsupported.
+- **B8, dual-runtime combinations** (R08). One table in PR 33 (next to
+  Task 13): CLI runtime (Node; Deno via `QUARTO_RUNTIME` if Spike #2
+  passed) × script runtime (Node; Deno via `QUARTO_RUN_RUNTIME`), with the
+  executable each uses and the support window (until PR 37). Rule: code in
+  `src/` that spawns Node uses `architectureToolsPath("node")` (honours
+  `QUARTO_NODE`), never `execPath()`, which is the CLI's own runtime;
+  `package/src` (`quarto-bld`, always Node) may use `execPath()`. Audit
+  found so far: PR 35 `runOnNode()` (C row 35 also names it), PR 36
+  `typeCheck()` (runs `tsc` with `execPath()`), PR 33 `bundleQuarto` and
+  PR 35 `buildRunStdlib` (quarto-bld, fine). Add a grep to PR 33's
+  acceptance, a doc comment on `execPath()` in `_TEMPLATE.md` and PR 28,
+  and references from 35 and 37.
+- **B9, refresh.** README table, dependency graph and progress metric from
+  the corrected graph (B2 and B6 already updated their rows and edges;
+  check the whole thing once), this file's reading order (add
+  `TRIAGE-2026-10-16.md` to "Start here", mark the pass as done), the
+  "Known loose ends" below, and one line per B item in
+  `TRIAGE-2026-10-16.md` naming the resolving commit.
+
+Two notes for whoever continues: the B1 commit carries the maintainer's
+author identity by mistake (an amend and force-push was refused; the
+attribution line is in the message); the triage's C rows for PRs 33, 35
+and 36 overlap files B2, B4 and the pending B7/B8 edit, so run them after
+B9 as the triage says.
+
 ## How to resume
 
 1. `git fetch origin && git checkout runtime-migration-plans`.
