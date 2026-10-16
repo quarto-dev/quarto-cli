@@ -28,7 +28,7 @@ Inventory (verified on `main` at `b86f98d`, adjusted for PRs 33-36 and 39):
 - Conda: `package/conda-recipe/*` (`deno` requirement, `QUARTO_DENO` exports).
 - `configuration`: `export DENO=` stays, with a comment: it is the version `quarto install deno` installs (`kDenoToolVersion`, kept equal by `tests/unit/tools/deno-tool.test.ts`), no longer downloaded by `configure`.
 
-**Dual-runtime window (only if PR 33 Task 13 ran):** the `QUARTO_RUNTIME` blocks in `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, `package/launcher/src/main.rs` (and `DENO_BINARY`), the two tests in `tests/smoke/env/launcher-env.test.ts`, the changelog/docs rows.
+**Dual-runtime window (only if PR 33 Task 13 ran):** the `QUARTO_RUNTIME` blocks in `package/scripts/common/quarto`, `package/scripts/windows/quarto.cmd`, `package/launcher/src/main.rs` (and `DENO_BINARY`), the two tests in `tests/smoke/env/launcher-env.test.ts`, the changelog/docs rows, and the `QUARTO_RUNTIME=deno` step PR 35 added to `dual-runtime-smoke`. Of PR 33's table "Dual-runtime combinations until PR 37" only the first two rows survive (CLI on Node; scripts on Node, or on the Deno tool from `quarto install deno`). The rule under that table is not window-specific and stays: `src/` spawns Node on `architectureToolsPath("node")` and Deno on `requireDenoToolBinary()`, never on `execPath()`; `rg -n 'execPath\(\)' src -g '*.ts' -g '!src/deno_ral/**'` keeps printing nothing.
 
 **CI (`ls .github/workflows`):**
 
@@ -431,7 +431,7 @@ git commit -m "docs: backport protocol after the runtime migration"
 ## Review checklist
 
 - [ ] No `configure`, `prepare-dist` or launcher path downloads, ships or runs Deno; `denoToolBinary()` finds only `QUARTO_DENO` or `quarto install deno`.
-- [ ] `QUARTO_RUNTIME` is gone everywhere (if it existed) and a test pins that.
+- [ ] `QUARTO_RUNTIME` is gone everywhere (if it existed) and a test pins that; PR 33's combinations table is down to its first two rows in behaviour, and `rg -n 'execPath\(\)' src -g '*.ts' -g '!src/deno_ral/**'` prints nothing.
 - [ ] No workflow runs the suite on Deno; `test-node-bundle.yml` keeps its `schedule:`, the bucket generation, `node-macos`, `render-parity` (dev vs distribution bundle) and `node-binary`; `test-smokes-parallel.yml` deleted; the required checks are the Node ones and `deno-sanity` is removed only after the first green `main` run (named in the description).
 - [ ] `src/deno_ral/` contains no `Deno.`; the ratchet scans it.
 - [ ] Deleted files have no importers (Task 4 `grep`).

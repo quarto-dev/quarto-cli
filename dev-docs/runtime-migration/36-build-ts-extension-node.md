@@ -43,7 +43,7 @@ Assumptions about earlier PRs:
 - PR 33: Node CLI; `requireDenoToolBinary`; `architectureToolsPath("esbuild")`; root `package.json` dependencies mirror `src/import_map.json` (PR 26 `check-deps.mjs`), so the default map's packages are in the root `node_modules`.
 - PR 22/03-07: every `src/import_map.json` value for `path`, `path/posix`, `log`, `log/`, `fs/`, `encoding/` is a `jsr:` target.
 - PR 35: `tools/run-stdlib/build.mjs --outdir <dir> --manifest <file> --modules-from <node_modules> --packages` writes one self-contained `@quarto/std-<name>` package per manifest entry (the contract is stated in PR 35's Scope), `buildRunStdlib(root, outDir, force, extraArgs)` in `package/src/common/previewjs.ts` runs it, `src/resources/run-compat/deno-members.cjs` provides the members `@std/fs@1.0.16` and `@std/log@0.224.0` reach (the builder's member gate fails otherwise), and `kUnsupportedMarker` is the literal the `FileHandler`/`RotatingFileHandler` stubs throw.
-- PR 14/08: `env`, `execPath()`, `cwd()`, `exit()` in `src/deno_ral/`.
+- PR 14/08: `env`, `cwd()`, `exit()` in `src/deno_ral/`. `tsc` runs on `architectureToolsPath("node")` (`QUARTO_NODE` honoured), never on `execPath()`: under PR 33's `QUARTO_RUNTIME=deno` the CLI's own executable is the Deno tool (PR 33, "Dual-runtime combinations until PR 37"; review R08).
 
 ### Scope
 
@@ -149,7 +149,7 @@ Engine extension <path> references the Deno API (Deno.readTextFileSync, Deno.Com
 - `tests/smoke/build-ts-extension-std/fs-log/` (imports `exists` from `fs/exists`, `walk` from `fs/walk`, `getLogger` and `ConsoleHandler` from `log`) builds with the default map; the built bundle, imported by the test on Quarto's Node, reports an existing file, walks a directory and logs through the console handler, with `typeof Deno === "undefined"` (PR 35 matrix row 3; the review's later validation for R09). `tests/smoke/build-ts-extension-std/file-handler/` (imports `FileHandler` from `log`) fails with `FileHandler is not available when Quarto runs on Node.js` and the `node:fs` hint, and writes no bundle.
 - A legacy `deno.json` map with `"left-pad": "npm:left-pad@^1.3.0"` and `left-pad` 1.2.0 installed in the extension's `node_modules` builds and prints one warning naming `left-pad`, `^1.3.0` and `1.2.0` (`versionMismatches`, unit-tested; same forms as PR 35's `register.cjs`).
 - A project with a legacy `deno.json` (`bundle.entryPoint`, inline `imports`) builds and prints the deprecation warning.
-- `quarto call build-ts-extension --init-config` writes `package.json` and `tsconfig.json`; after `npm install`, `--check` runs `tsc` and passes for the fixture engine copied into a temp directory.
+- `quarto call build-ts-extension --init-config` writes `package.json` and `tsconfig.json`; after `npm install`, `--check` runs `tsc` on `architectureToolsPath("node")` and passes for the fixture engine copied into a temp directory; `rg -n 'execPath\(\)' src/command/call/build-ts-extension` prints nothing.
 - Rendering `tests/docs/engine/deno-api-engine/index.qmd` prints the warning once and still renders; bundled subtree engines produce no such warning.
 - `quarto create extension engine` + build + render passes (`tests/smoke/create/create.test.ts`).
 - `share/extension-build/` in a `prepare-dist` output contains `README.md`, `import-map.json`, `node-packages.json`, `tsconfig.template.json`, `quarto-types.d.ts`, `node_modules/@jsr/` (the closure of `std__path`, `std__encoding`, `std__log`, `std__fs`) and `node_modules/@quarto/std-log`, `node_modules/@quarto/std-fs` (each `package.json`, `<name>.js`, `index.d.ts`), and nothing else; `rg -c '\bDeno\.' share/extension-build/node_modules/@quarto` prints nothing.
@@ -299,13 +299,13 @@ export async function esbuildCommand(
 
 import { Command } from "cliffy/command/mod.ts";
 import { error, info, warning } from "../../../deno_ral/log.ts";
-import { resourcePath } from "../../../core/resources.ts";
+import { architectureToolsPath, resourcePath } from "../../../core/resources.ts";
 import { esbuildCommand } from "../../../core/esbuild.ts";
 import { execProcess } from "../../../core/process.ts";
 import { basename, delimiter, dirname, extname, isAbsolute, join, resolve } from "../../../deno_ral/path.ts";
 import { existsSync, mkdirSync, readDirSync, readTextFileSync, removeSync, writeTextFileSync } from "../../../deno_ral/fs.ts";
 import { expandGlobSync } from "../../../core/deno/expand-glob.ts";
-import { cwd, execPath, exit } from "../../../deno_ral/process.ts";
+import { cwd, exit } from "../../../deno_ral/process.ts";
 import { readYaml } from "../../../core/yaml.ts";
 
 export interface ExtensionBuildConfig {
@@ -595,7 +595,9 @@ async function typeCheck(): Promise<void> {
     exit(1);
   }
   info("Type-checking...");
-  const result = await execProcess({ cmd: execPath(), args: [tsc, "--noEmit", "-p", tsconfig], cwd: cwd() });
+  // The bundled Node (QUARTO_NODE honoured), not execPath(): under QUARTO_RUNTIME=deno the CLI
+  // runs on the Deno tool (PR 33, "Dual-runtime combinations until PR 37").
+  const result = await execProcess({ cmd: architectureToolsPath("node"), args: [tsc, "--noEmit", "-p", tsconfig], cwd: cwd() });
   if (!result.success) {
     error("Type check failed\n");
     error("Fix the type errors above, or adjust compilerOptions in tsconfig.json.");
@@ -1199,7 +1201,7 @@ git commit -m "docs: engine runtime contract; build-ts-extension on esbuild"
 - [ ] The version rule matches PR 35's (`satisfies` identical to `register.cjs`'s, the five forms); a mismatch is one warning per entry, never an error; an `npm:`/`jsr:` specifier in sources gets the `npm install` message.
 - [ ] `engine.ts` reads each bundle once per process, skips bundled subtree engines, and never blocks loading; the CommonJS hint only appears for that error shape.
 - [ ] No edit under `src/resources/extension-subtrees/`.
-- [ ] `cmd.ts` has no `Deno.` and no Deno binary use.
+- [ ] `cmd.ts` has no `Deno.`, no Deno binary use and no `execPath()`; `tsc` runs on `architectureToolsPath("node")` (PR 33, "Dual-runtime combinations until PR 37").
 
 ## Risks and rollback
 

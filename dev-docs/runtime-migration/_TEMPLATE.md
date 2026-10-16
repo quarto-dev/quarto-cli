@@ -234,7 +234,7 @@ export function exit(code?: number): never; // nothing written before exit() is 
 export function cwd(): string;
 export function chdir(dir: string): void;
 export function args(): string[];
-export function execPath(): string;
+export function execPath(): string; // the executable running this process: Node, or the Deno tool under PR 33's QUARTO_RUNTIME=deno. Never the Node to spawn a child on: `src/` uses architectureToolsPath("node") for Node children and requireDenoToolBinary() for Deno children (PR 33, "Dual-runtime combinations until PR 37"); `package/src` (quarto-bld, always Node) and `tests/` self-spawn helpers that branch on runtime().name may use execPath()
 export function pid(): number;
 export function onSignal(signal: "SIGINT" | "SIGTERM", handler: () => void): void;
 export function writeStdoutSync(data: Uint8Array): number; // writes all of `data`; a 0-byte write is not an error

@@ -80,6 +80,7 @@ Behaviour made precise by this PR:
 - Broken pipe: an `EPIPE` on stdout or stderr ends the process with `process.exitCode ?? 0` and no message (the reader of `quarto inspect | head -c 1` went away; PR 14b's `inspect-pipe.test.ts` pins "no EPIPE crash" and the exit code).
 - `onSignal(signal, handler)`: `process.on(signal, handler)`. On Windows `SIGTERM` listeners never fire (Node and Deno alike); `SIGINT` fires on Ctrl-C.
 - `isTerminal(stream)`: `isatty(0|1|2)`.
+- `execPath()`: `process.execPath`, the executable running the current process and nothing more: Node, or the Deno tool under PR 33's `QUARTO_RUNTIME=deno` (the bundle on Deno). It is not "a Node binary": `src/` code that spawns Node uses `architectureToolsPath("node")`, code that spawns Deno uses `requireDenoToolBinary()` (PR 33, "Dual-runtime combinations until PR 37", which also lists the legitimate callers: `package/src` and the `tests/` self-spawn helpers that branch on `runtime().name`, as this PR's batch-file test does).
 
 ### Files
 
@@ -672,6 +673,9 @@ export function args(): string[] {
   return nodeProcess.argv.slice(2);
 }
 
+/** The executable running this process (Node, or the Deno tool under QUARTO_RUNTIME=deno).
+ *  Not the Node to spawn children on: use architectureToolsPath("node") for Node and
+ *  requireDenoToolBinary() for Deno (PR 33, "Dual-runtime combinations until PR 37"). */
 export function execPath(): string {
   return nodeProcess.execPath;
 }
@@ -1093,6 +1097,7 @@ git commit -m "node-bundle: drop shim members and known failures made obsolete b
 - [ ] Stdio is made blocking at module load on Node; `exit()` sets `process.exitCode` and exits; EPIPE on stdout/stderr (stream or `writeSync`) exits quietly with the current exit code; 0-byte writes return 0.
 - [ ] `exitStatus` maps signals to `128 + n` and keeps the signal name; `AbortError` does not reject `status`.
 - [ ] No `Deno.` left in the three files; the shim lost members, none added; `known-failures.json` lost entries, none added.
+- [ ] `execPath()` carries the doc comment (the executable running this process; Node children use `architectureToolsPath("node")`), and no `src/` caller in this PR spawns Node on it.
 
 ## Risks and rollback
 

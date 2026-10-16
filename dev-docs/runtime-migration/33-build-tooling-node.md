@@ -183,7 +183,7 @@ Launcher contract (dev shell launcher, installed shell launcher, `quarto.cmd`, `
 | `QUARTO_DENO_V8_OPTIONS` | comma-separated V8 flags, each passed to Node after Quarto's flags; quarto.js warns once that it is deprecated in favour of `QUARTO_NODE_OPTIONS` |
 | `QUARTO_DENO_DIR`, `QUARTO_DENO_DOM` | ignored by the CLI; quarto.js warns once |
 | `NODE_OPTIONS`, `NODE_PATH` | moved to `QUARTO_SAVED_NODE_OPTIONS`/`QUARTO_SAVED_NODE_PATH` before Node starts (only when set); `restoreSavedNodeEnv()` puts them back into Quarto's process environment at startup, so knitr, Jupyter, scripts and user `node` children see the user's values |
-| `QUARTO_RUNTIME` | conditional (Task 13): `node` (default) or `deno` |
+| `QUARTO_RUNTIME` | conditional (Task 13): `node` (default) or `deno`. Independent of PR 35's `QUARTO_RUN_RUNTIME`; the four combinations and the executable each uses are the table "Dual-runtime combinations until PR 37" (after Task 13) |
 | `QUARTO_TS_PROFILE` | adds `--inspect-brk` (unchanged) |
 | `QUARTO_LAUNCHER_DEBUG` | `1`: print the final command line (and the `ensure.mjs` line in dev) to stderr |
 | `DENO_DIR`, `DENO_TLS_CA_STORE`, `DENO_NO_UPDATE_CHECK` | no longer set for the CLI; the Deno tool call sites set `DENO_NO_UPDATE_CHECK=1` themselves |
@@ -2737,6 +2737,38 @@ git add package/scripts/common/quarto package/scripts/windows/quarto.cmd package
 git commit -m "launcher: QUARTO_RUNTIME=deno runs the bundle on the Deno tool (dual-runtime window)"
 ```
 
+## Dual-runtime combinations until PR 37
+
+Two switches exist during the window, and they are independent: `QUARTO_RUNTIME` picks what runs the CLI (Task 13, only if Spike #2 passed; one prerelease cycle, closed by PR 37), `QUARTO_RUN_RUNTIME` / `project.script-runtime` picks what runs `quarto run` and project `pre-render`/`post-render` scripts (PR 35). The CLI's own executable is never the answer to "which Node runs this child": under `QUARTO_RUNTIME=deno`, `execPath()` is the Deno tool, and passing it Node flags (`--require`, a `tsc` path) fails exactly when a user has fallen back to Deno (review R08). This table is the one statement of the supported combinations; PRs 35, 36 and 37 refer to it.
+
+| CLI (`QUARTO_RUNTIME`) | Scripts (`QUARTO_RUN_RUNTIME`) | CLI executable | Script executable | Supported | Validated by |
+|---|---|---|---|---|---|
+| `node` (default) | `node` (default) | `QUARTO_NODE`, else `<bin>/tools/<arch>/node[.exe]` (launchers, Task 9/10; they export `QUARTO_NODE` to the CLI process) | `architectureToolsPath("node")`: the same binary, since `QUARTO_NODE` is set | 1.12 onwards; the only combination left after PR 37 | PR 35 `tests/smoke/run/run-script-node.test.ts`, `tests/smoke/project/project-prepost.test.ts`; the required Node checks (PR 32) |
+| `node` | `deno` | same | `requireDenoToolBinary()`: `QUARTO_DENO`, else `quarto install deno`, else the bundled tool (Task 11) | 1.12 onwards; bundled tool until PR 37, installed tool after | PR 35 `run-script-node.test.ts` (`QUARTO_RUN_RUNTIME=deno` case), `project-script-runtime.test.ts`; `test-install.yml` after PR 37 |
+| `deno` (Task 13) | `node` | `<bin>/tools/<arch>/deno[.exe]` running the same `node:`-API bundle (Task 13) | `architectureToolsPath("node")` (`QUARTO_NODE`, else the bundled Node). **Never `execPath()`**, which is Deno here | the Task 13 window only (one prerelease cycle); removed by PR 37 | PR 35 Verification: the `dual-runtime-smoke` job (PR 32 Task 5) renders a project with a `pre-render` `.ts` script under both script runtimes |
+| `deno` | `deno` | same | `requireDenoToolBinary()` | same window | same |
+
+Other Node children of the CLI (not scripts) follow the first column only: `quarto call build-ts-extension --check` runs `tsc` on `architectureToolsPath("node")` (PR 36), whatever `QUARTO_RUNTIME` is.
+
+**Rule for code that spawns a runtime (owned here; PR 28 documents it on `execPath()`, `_TEMPLATE.md` carries the comment):**
+
+- `src/` code that spawns **Node** uses `architectureToolsPath("node")` (`toolsPath()` honours `QUARTO_NODE`, falls back to the bundled binary that `configure`/`prepare-dist` place in `tools/<arch>/`). It never uses `execPath()`.
+- `src/` code that spawns **Deno** uses `requireDenoToolBinary(purpose)` (Task 11); never `architectureToolsPath("deno")` (the tool may be installed, not bundled) and never `execPath()`.
+- `execPath()` is the executable running the current process and nothing more: Node under `QUARTO_RUNTIME=node`, the Deno tool under `QUARTO_RUNTIME=deno`. Its legitimate callers are `package/src` (`quarto-bld` is always Node after Task 4: `bundleQuarto()`, `buildQuartoPreviewJs()`, PR 35's `buildRunStdlib()`) and `tests/` helpers that spawn "the runtime running this test" and pick the arguments by `runtime().name` (PR 19 `runFixture`, PR 26 `layerScriptCommand`, PR 28's batch-file test, PR 31's Node-only harness).
+
+Audit of the `execPath()` callers in `src/` after this PR (the grep below pins it):
+
+| Caller | Plan | Spawns | Executable | Outcome |
+|---|---|---|---|---|
+| `runOnNode()` in `src/core/run/typescript.ts` | PR 35 Task 4 | a user script on Node (`--require register.cjs`) | `architectureToolsPath("node")` (was `execPath()`: R08) | corrected in PR 35 |
+| `typeCheck()` in `src/command/call/build-ts-extension/cmd.ts` | PR 36 Task 1 | `node_modules/typescript/bin/tsc` | `architectureToolsPath("node")` (was `execPath()`) | corrected in PR 36 |
+| `src/core/run/deno.ts`, `build-ts-extension` legacy `deno.json` path | Task 11 | the Deno tool | `requireDenoToolBinary()` | already right |
+| `src/command/dev-call/make-ast-diagram/cmd.ts` (`execPath() run …`) | PR 35 Task 6 | `ast-diagram/main.ts` | goes through the run handler | spawn deleted |
+| `src/core/schema/types-from-schema.ts` (`deno fmt`), `src/execute/ojs/extract-resources.ts` (`deno check`) | Task 16 | the Deno CLI | none | spawn deleted |
+| `tests/unit/node-bundle-ensure.test.ts` (Task 2: `nodeBin`, "even when the harness itself runs on Deno"), PR 35's `runNodeScript` test helper | Task 2, PR 35 Task 1 | Node | `architectureToolsPath("node")` | already right (the model for the rule) |
+
+Acceptance (this PR): `rg -n 'execPath\(\)' src -g '*.ts' -g '!src/deno_ral/**'` prints exactly `src/command/dev-call/make-ast-diagram/cmd.ts` (PR 35 Task 6 removes it). After PR 36 it prints nothing, and PRs 35 and 36 each pin their half.
+
 ### Task 14: Signing lists, CI caches, test runner default, editor config
 
 **Files:**
@@ -2940,6 +2972,7 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/run/ -name '*.test.ts') smoke/project/project-prepost.test.ts smoke/build-ts-extension/build-ts-extension.test.ts smoke/create/create.test.ts $(find smoke/check/ -name '*.test.ts')`: all pass. `smoke/run/run-script.test.ts` and `stdlib-run-version.test.ts` pass because `quarto run` still uses the Deno tool; that is expected, not evidence that scripts run on Node (PR 35).
 - `quarto run --dev tools/check-runtime-boundary.ts`: counts unchanged (the Deno tool runs it).
 - `npm run typecheck`: exit 0.
+- `rg -n 'execPath\(\)' src -g '*.ts' -g '!src/deno_ral/**'` prints exactly `src/command/dev-call/make-ast-diagram/cmd.ts` ("Dual-runtime combinations until PR 37"; PR 35 Task 6 removes that one).
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ./quarto-bld validate-bundle && (cd ../pkg-working/bin && ./quarto check)`.
 - Fresh clone: `git clone … && ./configure.sh && package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd`.
 - Concurrent rebuild, the way `tests/run-parallel-tests.ts` runs buckets (`Promise.all` over `./run-tests.sh` processes, line 259): `cd tests && rm -f ../package/dist/bin/quarto-dev.mjs && for i in 1 2 3 4; do QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts & done; wait`: all four pass, and `ls ../package/dist/bin/*.tmp ../package/dist/bin/*.lock` finds nothing. (`./run-parallel-tests.sh` itself runs through `quarto run`, i.e. the Deno tool, until PR 35.)
@@ -2956,7 +2989,7 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - [ ] The shim is deleted only after the Task 2 gate passed; the PR description lists the Deno members third-party code still references (guarded).
 - [ ] `denoToolBinary()` resolution order: `QUARTO_DENO`, installed tool, bundled tool; `src/core/run/deno.ts` and `build-ts-extension` use it.
 - [ ] `tsconfig.json` covers the CLI graph, `bld.ts` and tests; no `@ts-ignore` added; first and last `tsc` counts in the description.
-- [ ] Task 13 present only if `SPIKES.md` says Spike #2 passed.
+- [ ] Task 13 present only if `SPIKES.md` says Spike #2 passed. The table "Dual-runtime combinations until PR 37" matches the launchers and Task 11: the launchers export `QUARTO_NODE`, so `architectureToolsPath("node")` names the CLI's Node; `execPath()` has no caller in `src/` outside `make-ast-diagram` (Verification grep).
 - [ ] Task 16: `module-graph.ts` reads the esbuild metafile, no `deno info`/`deno run`/`deno fmt`/`deno check` spawn remains, the three acorn/lp-solver packages are exact `devDependencies`, and the two changelog lines are present; every row of PR 25's runtime residue table owned by this PR (6, 7, 8, 9, 10) is closed.
 
 ## Risks and rollback

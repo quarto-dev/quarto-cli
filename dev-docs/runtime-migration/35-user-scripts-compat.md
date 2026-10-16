@@ -31,7 +31,7 @@ Assumptions about earlier PRs:
 - PR 33: `src/tools/impl/deno-paths.ts` (`requireDenoToolBinary`), `quarto install deno`, the bundled Deno tool in `bin/tools/<arch>/` (until PR 37); `src/core/run/deno.ts` calls `requireDenoToolBinary("Running a TypeScript script")`; launchers restore the user's `NODE_OPTIONS` for children (so scripts see it).
 - PR 31: `tools/node-bundle/register-import-map.mjs` registers a resolve hook that maps `src/import_map.json` names to `node_modules` (used here for `quarto run --dev`).
 - PR 00c: the Deno handler prints a one-time notice silenced by `QUARTO_RUN_DENO_NOTICE=0` (`grep -rn QUARTO_RUN_DENO_NOTICE src` finds it).
-- PR 14/08: `env`, `execPath()` in `src/deno_ral/`; `architectureToolsPath("esbuild")` honours `QUARTO_ESBUILD`.
+- PR 14/08: `env` in `src/deno_ral/`; `architectureToolsPath("esbuild")` honours `QUARTO_ESBUILD` and `architectureToolsPath("node")` honours `QUARTO_NODE` (PR 33 launcher contract). The Node that runs a script is `architectureToolsPath("node")`, never `execPath()`: under PR 33's `QUARTO_RUNTIME=deno` the CLI's own executable is the Deno tool (review R08). The supported CLI × script runtime combinations are PR 33's table "Dual-runtime combinations until PR 37".
 
 ### Supported migration surface (review decision 1; triage A1 and A2)
 
@@ -122,7 +122,8 @@ Environment read by `quarto run` / project scripts:
 
 | Variable | Meaning |
 |---|---|
-| `QUARTO_RUN_RUNTIME` | `node` or `deno`; overrides `project.script-runtime`; any other value is an error |
+| `QUARTO_RUN_RUNTIME` | `node` or `deno`; overrides `project.script-runtime`; any other value is an error. Independent of PR 33's `QUARTO_RUNTIME` (the CLI's runtime): see PR 33, "Dual-runtime combinations until PR 37" |
+| `QUARTO_NODE` | the Node binary scripts run on (`architectureToolsPath("node")`; PR 33 launcher contract); default the bundled `tools/<arch>/node[.exe]` |
 | `QUARTO_RUN_DENO_NOTICE` | `0` silences the shim's one-time notice (same variable PR 00c introduced for the Deno-side notice) |
 | `QUARTO_RUN_NO_NETWORK` | Deno path: `--cached-only` (unchanged). Node path: no effect (Node never downloads modules) |
 | `QUARTO_DENO` | locates the Deno tool (PR 33) |
@@ -132,7 +133,7 @@ Set by Quarto for a Node script process: `QUARTO_RUN_STDLIB_DIR` (absolute path 
 Node command line:
 
 ```
-<execPath()> --require <share>/run-compat/register.cjs --enable-source-maps --enable-experimental-regexp-engine
+<architectureToolsPath("node")> --require <share>/run-compat/register.cjs --enable-source-maps --enable-experimental-regexp-engine
   --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON <script> <args...>
 ```
 
@@ -1453,7 +1454,6 @@ and `runtime?: ScriptRuntime;` (with its doc comment from the Interfaces) to `Ru
 
 import { extname, join } from "../../deno_ral/path.ts";
 import { env } from "../../deno_ral/env.ts";
-import { execPath } from "../../deno_ral/process.ts";
 import { execProcess } from "../process.ts";
 import { architectureToolsPath, resourcePath } from "../resources.ts";
 import { quartoConfig } from "../quarto.ts";
@@ -1490,9 +1490,11 @@ function devHookArgs(): string[] {
 }
 
 async function runOnNode(script: string, args: string[], stdin?: string, options?: RunHandlerOptions) {
+  // The bundled Node (QUARTO_NODE honoured), not execPath(): under QUARTO_RUNTIME=deno
+  // the CLI itself runs on the Deno tool (PR 33, "Dual-runtime combinations until PR 37").
   return await execProcess(
     {
-      cmd: execPath(),
+      cmd: architectureToolsPath("node"),
       args: [
         ...(options?.dev ? devHookArgs() : []),
         "--require",
@@ -1552,7 +1554,7 @@ In `src/core/run/deno.ts`:
 - [ ] **Step 7: Run and commit**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-runtime-select.test.ts $(find smoke/run/ -name '*.test.ts')`
-Expected: all pass (`run-script.test.ts`, `stdlib-run-version.test.ts`, `command-passthrough.test.ts` now on Node; `run-script-node.test.ts` 3 passed). Then `quarto run --dev tools/check-runtime-boundary.ts` prints unchanged counts (on Node). If it fails on a `Deno.` member of the shim or the import-map hook, fix the tool (it is repository code) rather than the shim, and list the fix in the PR.
+Expected: all pass (`run-script.test.ts`, `stdlib-run-version.test.ts`, `command-passthrough.test.ts` now on Node; `run-script-node.test.ts` 3 passed). Then `quarto run --dev tools/check-runtime-boundary.ts` prints unchanged counts (on Node). `rg -n 'execPath\(\)' src/core/run` prints nothing. If it fails on a `Deno.` member of the shim or the import-map hook, fix the tool (it is repository code) rather than the shim, and list the fix in the PR.
 
 ```bash
 git add src/core/run src/command/run/run.ts tests/unit/run-runtime-select.test.ts tests/smoke/run/run-script-node.test.ts
@@ -1761,6 +1763,8 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ls ../pkg-working/share/run-stdlib/*.js | wc -l` prints `34`; `ls ../pkg-working/share/run-compat` lists `deno`, `deno-members.cjs`, `deno-shim.cjs`, `register.cjs`; `ls ../pkg-working/share/run-stdlib/deno-members.cjs` exists.
 - Installed layout: `cd package/pkg-working/bin && ./quarto run ../../../tests/docs/run/test-stdlib.ts` exits 0.
 - Task 6 step 4 (resource scripts on Node; `resources` at 1/0; `make-ast-diagram` and the Typst HTML-table render).
+- `rg -n 'execPath\(\)' src -g '*.ts' -g '!src/deno_ral/**'` prints nothing (PR 33's rule, "Dual-runtime combinations until PR 37"; PR 36 keeps it).
+- Only if PR 33 Task 13 ran (`grep -n QUARTO_RUNTIME package/scripts/common/quarto`): the four rows of PR 33's combinations table. Locally, `QUARTO_RUNTIME=deno package/dist/bin/quarto render tests/docs/project/prepost/<a fixture with a pre-render .ts script>` once with `QUARTO_RUN_RUNTIME=node` and once with `QUARTO_RUN_RUNTIME=deno`, both green and the Node run with no `Deno/` in `navigator.userAgent`. In CI, add to the `dual-runtime-smoke` job of `test-node-bundle.yml` (PR 32 Task 5) one step that renders that fixture with the bundle on Deno under both values of `QUARTO_RUN_RUNTIME`; the Node side of the job already covers the first two rows.
 
 ## Review checklist
 
@@ -1769,7 +1773,7 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 - [ ] The shim is installed on demand, never throws on unknown members, prints one notice under `QUARTO_RUN_DENO_NOTICE`, and `deno-members.cjs` implements `readDir`, `copyFile`, `rename`, `realPath`, `lstat`, `chdir` and their `Sync` forms (plus `readLink`, `symlink` for `@std/fs`, `inspect` for `fmt_printf`).
 - [ ] No bundle under `share/run-stdlib/` contains `Deno.` (module-local binding); the builder's member report is in the PR description and lists no member outside `deno-members.cjs`; `FileHandler`/`RotatingFileHandler`/`serveDir`/`serveFile` are the stubs of `unsupported.ts`.
 - [ ] The version rule: `register.cjs` warns once per package and requested version for the five forms of the rule and stays silent otherwise; the `npm:left-pad@^1.3.0` test passes.
-- [ ] Precedence `QUARTO_RUN_RUNTIME` > `project.script-runtime` > `node`; the Deno path uses PR 33's `requireDenoToolBinary()`.
+- [ ] Precedence `QUARTO_RUN_RUNTIME` > `project.script-runtime` > `node`; the Deno path uses PR 33's `requireDenoToolBinary()`; the Node path uses `architectureToolsPath("node")`, and `execPath()` has no caller left in `src/` (PR 33, "Dual-runtime combinations until PR 37").
 - [ ] PR 00c's Deno-side notice is gone; no other `QUARTO_RUN_DENO_NOTICE` reader remains besides the shim.
 - [ ] Fixtures under `tests/docs/project/prepost/` (other than the new `script-runtime-deno/`) unchanged.
 - [ ] `src/resources/scripts/` and `src/resources/tools/ast-diagram/` contain no `Deno.`; `check-usage` is gone; `make-ast-diagram` goes through the run handler; the `resources` baseline is 1/0 (PR 25's residue table rows 1-3 and 16 closed).
