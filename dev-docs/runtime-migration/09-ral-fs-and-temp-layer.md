@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add the filesystem, temp-file and error-predicate surface of the runtime layer (`src/deno_ral/fs.ts` extended and retyped, `src/deno_ral/temp.ts` and `src/deno_ral/errors.ts` new), each with a unit test that is the compatibility contract for PR 27, and ship the codemod `tools/codemod-deno-ral.ts` (forward and `--reverse`) that PRs 10–14 run to move callers and that the backport checklist uses to move fixes back to stable branches.
-**Phase:** 1. **Depends on:** PR 02 (ratchet; the codemod imports its `kSrcExclusions`). **Unblocks:** PR 10, 11, 12, 13, 14, 17, 18, 20b, 23, 24.
+**Phase:** 1. **Depends on:** PR 02 (ratchet; the codemod imports its `kSrcExclusions`). **Unblocks:** PR 10, 11, 12, 13, 14, 14b, 17, 18, 19, 20b, 23, 24, 25. Milestone J (Julia engine, README row J) needs nothing from this PR beyond the exported `fs.ts`/`temp.ts`/`errors.ts` interfaces; the hand-off to PumasAI is triage A9.
 **Branch:** `rt/09-ral-fs-and-temp-layer`.
 **Suggested executor:** Opus. The layer code is mechanical, but the codemod's symbol-based collision handling, alias-preserving import merge and reverse mode need judgement, and the two monkey-patch behaviours (read-error path annotation, temp retry) must be carried over exactly.
 **Size:** M. 3 layer modules (1 extended), 1 tool with its own test and 21 fixture files, 3 unit test files, 2 rules docs, the backport checklist, one changelog line; no application caller changes.
