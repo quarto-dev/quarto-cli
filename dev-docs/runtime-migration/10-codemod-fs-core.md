@@ -309,3 +309,7 @@ git commit -m "Lower runtime boundary baseline after core fs/temp codemod"
 ## Decisions needed
 
 None. Review items closed here: counts (56 files / 153 replacements, not ~70 / ~180), acceptance greps that matched comments (`copy.ts:28,145`; now AST dry run plus a comment-filtered `rg`), the "report rather than extend `FileInfo`" dead end (PR 09 retypes `getFileInfoType`), landing order and the reset-and-re-run conflict protocol.
+
+## Follow-up after merge
+
+One representative maintenance fix backported through `--reverse` (`TRIAGE-2026-10-16.md`, cross-cutting row 2; review decision 10), owed once this PR is on `main`, because this PR creates the first codemodded files a backport can cross. Pick the first real fix to `main` that touches a call site this PR renamed (`git log --oneline main -- src/core/path.ts | head`), run the backport step PR 37 Task 6 Step 1 spells out (same commands before the flip; the codemod runs through `quarto run --dev` on Deno) against a scratch branch off `v1.10`, confirm `git apply -3` succeeds and the scratch branch type-checks with its own tooling, and record the commit used in the triage row and in `dev-docs/checklist-backport-a-pr.md` (PR 09 adds the step there). The error predicates of Task 4 have no 1:1 reverse: they are the manual part the review asked to keep explicit. PR 37 Task 6 Step 2 repeats the exercise after the flip.

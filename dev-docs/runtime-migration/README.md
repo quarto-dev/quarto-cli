@@ -17,8 +17,9 @@ the reading order. This README is the execution index.
   eleven open decisions). `TRIAGE-2026-10-16.md` verifies each finding and
   splits the follow-up into decisions (A, taken), a reconciliation pass (B,
   landed on 2026-10-16; the commit per item is listed in the triage) and
-  local plan corrections (C, not yet applied: the plans its table names
-  still carry their C-row defects).
+  local plan corrections (C, applied 2026-10-16 and 2026-10-17, one commit
+  per row listed in the triage; its step-4 re-read is complete). Its A9–A11
+  are still open; see "Decisions and conventions" below.
 - `SPIKES.md`: the two time-boxed spikes that sit inside Phase 2 (Spike #2 on
   Deno's Node compatibility and the dual-runtime window; Spike V on the test
   runner). Their outcomes set constants in PRs 28, 29, 31, 33 and 37.
@@ -81,6 +82,16 @@ them. Change them in the plan that decides them, not downstream.
   prerelease soak, revert by default for a P1 in the layer, the runtime
   switches for user-side script/extension breakage only, 1.11 stable as the
   way back (PR 33, "Risks and rollback").
+- Still open (triage A9–A11; they name owners and thresholds, not plan text,
+  and no plan assumes an answer): who opens the upstream issue with PumasAI
+  on `QuartoAPI.system.connectTcp()`/`spawnDetached()` and whether the
+  process/network interfaces freeze before the answer (A9; read before PR 08
+  lands, PR 08 "Decisions needed"); an owner each for the packaging readiness
+  gate, the HTTP publishing contract, distribution compliance and the offline
+  promise (A10; the names go in this bullet once decided; read before PRs 16,
+  29, 33 and 34); the performance baseline and thresholds (A11; set in PR 34,
+  "Decisions needed" 4). The `--reverse` backport demo (triage cross-cutting
+  row 2) is owed after PR 10 merges (PR 10, "Follow-up after merge").
 - Pins: Deno `v2.9.x` (PR 00a; newest 2.9 at execution), Node `v26.12.0` or
   newer 26.x, CI on Node 26, `@cliffy/*` 1.3.1 (PR 06), `@b-fuze/deno-dom`
   0.1.56 on WASM with a `parseHtml`-time gate of at most 2× the native plugin
@@ -281,7 +292,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 23 | [23-codemod-tests.md](23-codemod-tests.md) | Codemod `tests/`; `tests/harness.ts` adapter around `Deno.test`; assertions through `tests/asserts.ts` | 02, 08, 09, 14, 19, 22 | Opus | L | planned |
 | 24 | [24-codemod-package-src.md](24-codemod-package-src.md) | Codemod `package/src`; `Deno.run` → `exec`; remaining Deno CLI calls listed for PR 33 | 02, 08, 09, 14, 19, 22 | Sonnet | M | planned |
 | 25 | [25-boundary-zero-and-monkey-patch-removal.md](25-boundary-zero-and-monkey-patch-removal.md) | Delete `core/deno/monkey-patch.ts` and `original-real-path.ts`; types sweep (former PR 21); comment sweep; standalone-script allow-list; hidden-dependency inventory and the runtime residue table (owners and gates for every remaining `Deno.*` or Deno CLI use); ratchet to zero and required | 04, 07, 08–20, 20b, 22–24, 39 | Sonnet | M | planned |
-| J | milestone, no plan | Julia engine ported upstream by PumasAI against the PR 08/09 engine API; subtree pulled; Julia entries leave the PR 32 allowlist | 08, 09, upstream | maintainer | – | planned |
+| J | milestone, no plan | Julia engine ported upstream by PumasAI against the PR 08/09 engine API; subtree pulled; Julia entries leave the PR 32 allowlist; owner and upstream-issue timing open (triage A9) | 08, 09, upstream | maintainer | – | planned |
 
 ### Phase 2: Node implementations, still running on Deno
 

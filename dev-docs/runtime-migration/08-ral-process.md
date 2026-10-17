@@ -1761,7 +1761,9 @@ git commit -m "Changelog, rules doc and lower runtime boundary baseline after pr
 
 ## Decisions needed
 
-None. Resolved since the first draft:
+Open outside this plan (triage A9, review decision 4; maintainer): who opens the upstream issue with PumasAI on `QuartoAPI.system.connectTcp()`/`system.spawnDetached()` (PR 36 Decisions needed 1) and by when, and whether this interface and PR 15's are treated as frozen before the answer. The triage recommends opening the issue before this PR lands so the interface can still move; PR 15's Scope currently says it is filed after PRs 08/09. Nothing in this plan changes with the answer. Whoever executes this PR checks `TRIAGE-2026-10-16.md` A9 first and, if it is still open, says so in the PR description.
+
+None in this plan. Resolved since the first draft:
 - The three additions (`killProcess`, `readStdin`, `readStdinLines`) and `SpawnOptions.detached` are in the shared vocabulary.
 - `src/webui/quarto-preview/build.ts` is not migrated here (it was in the first draft): it stays on `Deno.*` in the ratchet allow-list until PR 33; `process.ts` therefore no longer has to stay free of import-map imports.
 - `src/command/render/latexmk/quarto-latexmk.ts` is not migrated (decision 9: PR 39 deletes it).

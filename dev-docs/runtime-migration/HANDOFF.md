@@ -13,8 +13,9 @@
    findings) and `TRIAGE-2026-10-16.md` (every finding verified; the work
    split into maintainer decisions A1–A8, taken; a cross-plan reconciliation
    pass B1–B9, landed, one commit per item listed in the triage; and
-   per-plan local corrections, bucket C, still to do). Read the triage's
-   bucket C table before executing any plan it names.
+   per-plan local corrections, bucket C, applied, and its step-4 re-read,
+   done). Its A9–A11 are still open: see "Known loose ends" below for
+   where each is written.
 4. `README.md`: the executable sequence, conventions, dependency graph and
    ratchet baseline. The index you consult while working, not the context.
 5. `_TEMPLATE.md`: the normative vocabulary every plan uses.
@@ -243,9 +244,21 @@ the pass landed (all three are done).
   cross-cutting fact-check (triage row, 2026-10-16: pins, Node flags, package
   versions and OS minimums re-checked against the primary sources; four
   wrong facts fixed in 00a, 26, 31 and 33, Intel macOS note added to 34).
-  The `--reverse` backport demo after PR 10 remains.
+  The `--reverse` backport demo after PR 10 remains (next bullet).
   The line numbers in the review and triage were measured at
   `075cbf4`; re-grep before trusting one.
+- Still open on 2026-10-17, each written where the session that needs it
+  will read it, so none needs this file to be remembered: triage A9 (who
+  opens the upstream issue with PumasAI, whether the process/network
+  interfaces freeze first) in PR 08 "Decisions needed" and README row J;
+  A10 (owners for the packaging readiness gate, the HTTP publishing
+  contract, distribution compliance, the offline promise) as the README
+  "Decisions and conventions" bullet to fill in; A11 (performance baseline
+  and thresholds) in PR 34 "Decisions needed" 4; the `--reverse` backport
+  demo (triage cross-cutting row 2) in PR 10 "Follow-up after merge", repeated
+  by PR 37 Task 6 Step 2 after the flip; PR 25's two-command residue
+  inspection in PR 37's Acceptance criteria and review checklist (PR 37 had
+  repeated only the `execPath()` grep).
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both
   harness variants and PR 32 cannot make the Node matrix required until the
   spike is re-run. The schedule has no slot for that re-run yet.
