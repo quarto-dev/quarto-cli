@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reimplement the four `deno_ral` modules no other Phase 2 plan ports (`src/deno_ral/platform.ts`, `env.ts`, `tar.ts`, and the `FileHandler` PR 20b added to `log.ts`) on `node:process`, `node:os`, `node:util` and `node:fs`, so that importing the layer on Node no longer throws `ReferenceError: Deno is not defined` and `runtime()` reports the runtime that is actually running, including inside the Node bundle.
-**Phase:** 2, before PR 31. **Depends on:** PR 14 (`env.ts` and its contract test), PR 19 (`platform.ts` exports and real `runtime()` detection), PR 20b (`FileHandler` in `log.ts`, `quarto-core/dotenv.ts` on the layer), PR 25 (boundary at zero), PR 26 (shim, `node-unit` job), PR 27 (`fs.ts` on `node:fs`, used by the tests). **Unblocks:** PR 31, PR 32.
+**Phase:** 2, before PR 31. **Depends on:** PR 14 (`env.ts` and its contract test), PR 19 (`platform.ts` exports and real `runtime()` detection), PR 20b (`FileHandler` in `log.ts`, `quarto-core/dotenv.ts` on the layer), PR 25 (boundary at zero), PR 26 (shim, `node-unit` job), PR 27 (`fs.ts` on `node:fs`, used by the tests). **Unblocks:** PR 28, PR 29, PR 30 (they depend on `platform.ts` and `env.ts` on `node:`), PR 31, PR 32.
 **Branch:** `rt/27b-ral-platform-env-tar-log-on-node`.
 **Suggested executor:** Sonnet. Four small modules with fixed interfaces and contract tests; the only judgement is the `runtime()` shim marker and the lazy tar input streams, both specified here.
 **Size:** S (4 source files rewritten, 3 test files added or extended, shim shrink).
@@ -677,6 +677,18 @@ Expected: green on Deno (`tests/smoke/logging/` exercises `--log`); on Node no n
 git add src/deno_ral/log.ts tests/unit/ral/log-file-handler.test.ts
 git commit -m "deno_ral/log: FileHandler on node:fs with an exit-time flush"
 ```
+
+### Task 4b: `colors.ts` honours `NO_COLOR` on Node (promised by PR 22)
+
+**Files:** `src/deno_ral/colors.ts`, `tests/unit/ral/colors.test.ts` (new, 2 cases)
+
+PR 22 wrote in `src/deno_ral/colors.ts`: "PR 27b makes this file call `setColorEnabled(!noColor())` so `NO_COLOR` is honoured on Node too". `@std/fmt/colors` decides from `globalThis.Deno?.noColor`, which the Node runtime does not have.
+
+- [ ] **Step 1: Write the failing test**: a `unitTest` that spawns `execPath()` with `NO_COLOR=1` running a one-line script importing `src/deno_ral/colors.ts` and printing `red("x")`, and asserts the output has no escape code; a second case without `NO_COLOR` on a non-TTY asserts the same function's result equals what `getColorEnabled()` says.
+- [ ] **Step 2: Run it and see it fail** on the Node job: `node tools/node-bundle/run-unit-on-node.mjs tests/unit/ral/colors.test.ts`. Expected: the `NO_COLOR` case fails on Node (colour emitted), passes on Deno.
+- [ ] **Step 3: Implement**: after the re-export line in `colors.ts`, `import { noColor } from "./platform.ts"; setColorEnabled(!noColor());` (Task 1's `noColor()` reads `NO_COLOR` on both runtimes).
+- [ ] **Step 4: Run the tests** on Deno (`cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/colors.test.ts`) and on Node (step 2 command). Expected: both cases pass on both runtimes.
+- [ ] **Step 5: Commit**: `git add src/deno_ral/colors.ts tests/unit/ral/colors.test.ts && git commit -m "deno_ral/colors: honour NO_COLOR on Node (PR 22's promise)"`
 
 ### Task 5: Shim and known-failures shrink
 
