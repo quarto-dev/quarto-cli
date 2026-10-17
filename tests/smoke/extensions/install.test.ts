@@ -66,9 +66,12 @@ const extUrls = [
   "quarto-ext/lightbox@cool",
   "quarto-ext/lightbox@v0.1.4",
   "quarto-ext/lightbox@test/use-in-quarto-cli",
+  "quarto-ext/lightbox@a738ff253fd46dd0cdd6aa992178cb7561b70251",
+  "quarto-ext/lightbox@a738ff2",
   "https://github.com/quarto-ext/lightbox/archive/refs/tags/v0.1.4.tar.gz",
   "https://github.com/quarto-ext/lightbox/archive/refs/heads/main.tar.gz",
   "https://github.com/quarto-ext/lightbox/archive/refs/heads/cool.tar.gz",
+  "https://github.com/quarto-ext/lightbox/archive/a738ff253fd46dd0cdd6aa992178cb7561b70251.tar.gz",
 ];
 
 if (!isLinux) {
@@ -77,6 +80,7 @@ if (!isLinux) {
       "https://github.com/quarto-ext/lightbox/archive/refs/tags/v0.1.4.zip",
       "https://github.com/quarto-ext/lightbox/archive/refs/heads/main.zip",
       "https://github.com/quarto-ext/lightbox/archive/refs/heads/cool.zip",
+      "https://github.com/quarto-ext/lightbox/archive/a738ff253fd46dd0cdd6aa992178cb7561b70251.zip",
     ],
   );
 }
