@@ -119,7 +119,8 @@ the pass landed (all three are done).
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task
    per plan file, in parallel where the triage marks it), then the re-read
    of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25,
-   26, 27 and 29 done 2026-10-16, 33 and 35 done 2026-10-17).
+   26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is
+   complete).
 5. Open the plans as PRs against `main` in the README order: PR 02 first, then
    00a and 00b, then 03–06 in parallel, then 07. Each plan names its
    branch, executor and verification commands.
@@ -229,7 +230,16 @@ the pass landed (all three are done).
   item and a Risks entry say the same thing; the unit test's precedence case
   covers both mixed cases, the empty section and the error; the body and the
   case ran under `node --test` on Node 26.12.0 and 22.22; R17's `aliasTarget()`
-  part was B7's PR 36 Decision 4). Every per-plan C row is applied, and the
+  part was B7's PR 36 Decision 4). The step-4 re-read of 36 (2026-10-17) ran
+  its `fs-log` engine as written against the packages PR 35's builder makes
+  from the root pins, on Node 26.12.0 and 22.22, and found `path` served raw
+  (`@std/path@1.0.8`'s `resolve()` reads `Deno.cwd()`: now `@quarto/std-path`),
+  the member table's messages putting `Deno.Command` into every package
+  (now `kDeno`), the `FileHandler` check lost under `minify: true` (now a
+  `"quarto-unsupported:<member>"` literal), and two defects in PR 35's builder
+  (the gate's loader on `unsupported.ts`, the gate scanning the inlined
+  table); the R17 forms joined PR 36's version-rule test and the residue
+  inspection its Verification. Every per-plan C row is applied, and the
   cross-cutting fact-check (triage row, 2026-10-16: pins, Node flags, package
   versions and OS minimums re-checked against the primary sources; four
   wrong facts fixed in 00a, 26, 31 and 33, Intel macOS note added to 34).
