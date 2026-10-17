@@ -1141,7 +1141,9 @@ Run:
 grep -n "continue-on-error" .github/workflows/test-node-bundle.yml
 grep -v '^#' tools/node-bundle/node-parity-allowlist.txt | grep -c . ; grep -v '^#' tools/node-bundle/node-parity-allowlist.txt | grep -vic julia
 ```
-Expected: no `continue-on-error`; the allowlist count is 0, or every line is a Julia line (second count `0`). The last nightly `parity-compare` run printed `parity: OK` for all three OSes.
+Expected: no `continue-on-error`; the allowlist count is 0, or every line is a Julia line (second count `0`). On the branch, a `workflow_dispatch` run of `parity-compare` (Verification; dispatched by the maintainer named in README "Roles" when the worker lacks the rights) printed `parity: OK` for all three OSes: a `schedule:` trigger runs on `main` only, so there is no nightly before the merge.
+
+Completion sequence for this PR (the worker cannot do the last step): merge → the first nightly `parity-compare` on `main` prints `parity: OK` → the maintainer switches branch protection (Step 3 below) → the README row goes to `merged`. Until then the row says `in progress (awaiting branch protection)`.
 
 - [ ] **Step 2: The Deno matrix runs nightly once Node is required**
 
@@ -1154,7 +1156,7 @@ Append to `dev-docs/runtime-migration/node-bundle.md`:
 ```markdown
 ## Required status checks (PR 32)
 
-The Node matrix is required on `main`. A maintainer with admin rights replaces
+The Node matrix is required on `main`. The maintainer named in README "Roles" (admin rights) replaces
 the Deno bucket checks with the Node ones in the branch protection rule
 (Settings → Branches → `main` → "Require status checks to pass"), or with the
 CLI, starting from the current list
