@@ -31,7 +31,7 @@ What changes for callers:
 
 Why dev mode runs a bundle and not `node src/quarto.ts`: after PR 02b the source has no `enum`, parameter properties or `<T>x` casts, so Node's type stripping could load it, and PR 31's `module.registerHooks` import-map hook already resolves the bare specifiers for tests. The bundle is kept for two reasons. (1) Dev runs the exact artifact that ships: the same esbuild transform, the same resolver, the same module order, so a bundling bug shows up in dev and not first in a release. (2) Startup: unbundled, every `quarto` invocation strips and resolves about 1,200 modules through a JavaScript hook; bundled, Node loads one file. The cost is a rebuild of about one second after an edit, paid once, plus an extra short `node` process per invocation for the staleness check (`ensure.mjs`, about 50 ms: Node start plus about 730 `stat` calls, 14 ms in the review's measurement). Executors record both numbers in the PR description (Task 2 step 7).
 
-Review of 2026-10-16 (`REVIEW-2026-10-16.md` R18 and R04, triage bucket C row 33, decisions A6 and B4), addressed here: `ensure.mjs`'s build lock treated age as proof of a crashed builder. A `quarto` invocation stopped by a debugger, by system sleep or by a slow disk keeps its lock past 120 s while esbuild is still running; another invocation removed the lock and started its own build; the first could resume, rename its bundle over the newer one and remove the second's lock in an unconditional `finally`. The lock now follows PR 30's "Lock ownership" rule (Interfaces, below): an owner marker, a liveness probe before breaking, a release and a final rename that check the marker. `ensure.mjs` cannot import `src/deno_ral/kv.ts` (it runs before any bundle exists), so the rule is copied into it, not shared, and `bundle()` gains one optional input, `beforeCommit`, so that the bundle is renamed into place only while the lock is still held (mirrored in PR 26's builder contract). The 120 s age now only governs a lock whose owner cannot be read or probed. R04's part of the row (keep `banner` and `define`, emit `__filename` and `__dirname`) was already done by B4 in Task 2 Step 4 and is checked by the review checklist. The three lock cases of Task 2 Step 2 and `ensure.mjs` itself were run on Node 26.12.0 and 22.22 while correcting the plan (numbers in Task 2 Step 6); the Deno harness run of Step 6 is the check that Deno's `node:process` accepts `process.kill(pid, 0)`.
+Review of 2026-10-16 (`REVIEW-2026-10-16.md` R18 and R04, triage bucket C row 33, decisions A6 and B4), addressed here: `ensure.mjs`'s build lock treated age as proof of a crashed builder. A `quarto` invocation stopped by a debugger, by system sleep or by a slow disk keeps its lock past 120 s while esbuild is still running; another invocation removed the lock and started its own build; the first could resume, rename its bundle over the newer one and remove the second's lock in an unconditional `finally`. The lock now follows PR 30's "Lock ownership" rule (Interfaces, below): an owner marker, a liveness probe before breaking, a release and a final rename that check the marker. `ensure.mjs` cannot import `src/deno_ral/kv.ts` (it runs before any bundle exists), so the rule is copied into it, not shared, and `bundle()` gains one optional input, `beforeCommit`, so that the bundle is renamed into place only while the lock is still held (mirrored in PR 26's builder contract). The 120 s age now only governs a lock whose owner cannot be read or probed. R04's part of the row (keep `banner` and `define`, emit `__filename` and `__dirname`) was already done by B4 in Task 2 Step 4 and is checked by the review checklist. The three lock cases of Task 2 Step 2 and `ensure.mjs` itself were run on Node 26.12.0 and 22.22 while correcting the plan (numbers in Task 2 Step 6); the Deno harness run of Step 6 is the check that Deno's `node:process` accepts `process.kill(pid, 0)`. The re-read of the review's "Later validation" lines (2026-10-17, last paragraph of this plan) added the cancellation case to Task 2 Step 2, the bundler's own tests to Task 2 Step 6 and the Verification, PR 25's two-command residue inspection at this PR's boundary (Acceptance, Verification), and a project hook rendered under `QUARTO_RUNTIME=deno` in Task 13.
 
 Verified facts this plan relies on:
 
@@ -215,7 +215,7 @@ Quarto's Node flags, in order: `--enable-experimental-regexp-engine --max-old-sp
 ### Acceptance criteria
 
 - `./configure.sh` (Linux x64/arm64, macOS x64/arm64) and `./configure.cmd` (Windows x64) produce `package/dist/bin/tools/<arch>/node[.exe]` reporting the `configuration` version, `package/dist/bin/tools/<arch>/deno[.exe]` reporting `DENO`, `package/dist/config/node-version`, a populated root `node_modules/`, and `src/resources/preview/quarto-preview.js`; no `package/dist/bin/deno_cache`.
-- `package/dist/bin/quarto --version` prints `99.9.9`; `package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd` succeeds; `ps` during a render shows `node`, not `deno`.
+- `package/dist/bin/quarto --version` prints `99.9.9`; `package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd` succeeds; `ps` during a render shows `node`, not `deno`. Every render initialises tree-sitter through `web-tree-sitter`'s UMD glue on the interop prelude (PR 26, Acceptance criteria), so this render, on the bundle this PR's `bundle()` wrote, is R04's HTML render; a `ReferenceError: __dirname is not defined` here is the prelude missing from Task 2 Step 4.
 - The whole suite passes on the three OSes with `QUARTO_TEST_RUNTIME` unset (Node). This includes `tests/smoke/run/run-script.test.ts`, `tests/smoke/run/stdlib-run-version.test.ts`, `tests/smoke/project/project-prepost.test.ts`, `tests/smoke/build-ts-extension/build-ts-extension.test.ts` and `tests/smoke/create/create.test.ts`, which pass **because they still run on the Deno tool** (`src/core/run/deno.ts`, `build-ts-extension/cmd.ts`), not because scripts run on Node.
 - The boundary-ratchet workflow is green: `quarto run --dev tools/check-runtime-boundary.ts` runs on the Deno tool and reports unchanged counts.
 - `npm run typecheck` exits 0 locally and in `.github/workflows/lint.yml`.
@@ -226,6 +226,7 @@ Quarto's Node flags, in order: `--enable-experimental-regexp-engine --max-old-sp
 - `quarto install deno` on a layout without `bin/tools/<arch>/deno` installs `kDenoToolVersion` into the Quarto data dir and `quarto run` then finds it (`test-install.yml` job).
 - `tools/node-bundle/deno-shim.mjs` does not exist and `grep -n "deno-shim" tools/node-bundle/*.mjs` prints nothing (the `--check-shim` scan stays as a report).
 - No code path spawns the Deno CLI for `info`, `run`, `fmt`, `check` or `bundle` outside the two Deno-tool call sites: `rg -n '"(info|fmt|check|bundle)"' package/src src -g '*.ts' -g '!src/deno_ral/**'` prints no Deno subcommand argument, and `rg -ln 'requireDenoToolBinary|denoToolBinary' src -g '*.ts'` prints exactly `src/core/run/deno.ts`, `src/command/call/build-ts-extension/cmd.ts` and the two `src/tools/impl/deno*.ts` files. `cd package/src && ./quarto-bld cycle-dependencies -o "$(mktemp -d)/cycles.json"` writes the JSON on Node (Task 16).
+- The residue inspection of PR 25 Task 7 step 2 (its last two `rg` commands: the TypeScript spawns and binary references, then the shell, batch, Rust and workflow files) is run at this PR's boundary and pasted in the PR description with each hit mapped to a row of PR 25's runtime residue table (review R02's "Later validation": subprocess commands and launchers, not only `Deno.` references). Expected after this PR: rows 6–10 print nothing; rows 3, 11 and 12 print their one site each; the remaining TypeScript hits are this PR's `src/tools/impl/deno*.ts`, `src/core/devconfig.ts` and row 19's `package/src` dependency modules, and every `execPath()` in `package/src` is `quarto-bld`'s own Node (`util/bundle.ts`, `previewjs.ts`, `import-report/module-graph.ts`); the second command prints lines of rows 18–20's files only, all of them about the Deno *tool* (the Task 13 block, `configure.*`'s Deno download and `deno_std`, `quarto-bld`'s `QUARTO_DENO` export for the tool, signing lists, caches, `test-install.yml`'s `install-deno-tool` job). A launcher line that runs `bin/quarto.js` or the dev bundle on `deno` outside Task 13's block, or any hit without a row, blocks the merge.
 
 ## Plan
 
@@ -606,9 +607,39 @@ unitTest("ensure.mjs - R18: a builder whose lock was broken and retaken writes n
     removeSync(f.dir, { recursive: true });
   }
 });
+
+unitTest("ensure.mjs - R18: a builder cancelled inside the lock leaves a lock the next builder breaks at once", async () => {
+  const f = fixture();
+  try {
+    // Ctrl-C on a `quarto` that was rebuilding: the builder dies with its lock
+    // held and no `finally` runs. The next builder finds a dead owner.
+    const child = spawn(nodeBin, {
+      args: [ensure, "--entry", f.entry, "--outfile", f.outfile],
+      cwd: root,
+      env: { QUARTO_ENSURE_TEST_PAUSE_MS: "5000" },
+      stdout: "piped",
+      stderr: "piped",
+    });
+    const lock = f.outfile + ".lock";
+    while (!existsSync(join(lock, "owner"))) await new Promise((r) => setTimeout(r, 20));
+    child.kill("SIGTERM");
+    await child.status;
+    assert(existsSync(join(lock, "owner")), "the cancelled builder's lock should stay behind");
+    const t0 = Date.now();
+    assertStringIncludes(await runEnsure(f.entry, f.outfile), "reason: missing");
+    assert(Date.now() - t0 < 60_000, "the cancelled builder's lock was waited for");
+    const leftovers = readDirSync(join(f.dir, "out")).map((e) => e.name)
+      .filter((n) => n.endsWith(".tmp") || n.includes(".lock"));
+    assertEquals(leftovers, []);
+    const run = await exec(nodeBin, { args: [f.outfile] });
+    assertEquals(dec(run.stdout).trim(), "v=1");
+  } finally {
+    removeSync(f.dir, { recursive: true });
+  }
+});
 ```
 
-`QUARTO_ENSURE_TEST_PAUSE_MS` is read by `ensure.mjs` only to widen the window the third case needs (Step 5); it is not documented for users.
+`QUARTO_ENSURE_TEST_PAUSE_MS` is read by `ensure.mjs` only to widen the window the third and fourth cases need (Step 5); it is not documented for users. The four R18 cases are the review's "Later validation" for R18: a live writer paused past the stale threshold while another waits (the first), crash recovery (a dead pid and an ownerless old lock, the second), the paused writer resumed after its lock was broken (the third) and cancellation (the fourth).
 
 - [ ] **Step 3: Run it and see it fail**
 
@@ -979,8 +1010,8 @@ package/dist/bin/*.inputs.json
 
 - [ ] **Step 6: Run the test**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-bundle-ensure.test.ts`
-Expected: `6 passed`. (The three R18 cases and `ensure.mjs` were run while correcting the plan, transliterated to `node:test` with `fixture()` in a temp directory, on Node 26.12.0 and 22.22, same numbers on both: four concurrent callers built once with no leftover; a 600 s old lock of a live pid was waited for until released (1.6 s), then built; a fresh lock of a dead pid was broken in 3 ms and an ownerless 600 s old lock in 1 ms; a builder paused inside the lock whose lock was broken and retaken exited 1 with `lost the lock`, wrote no bundle and left the new owner's marker in place.)
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/node-bundle-ensure.test.ts && node --test "tools/node-bundle/*.test.mjs"`
+Expected: `7 passed`, and PR 26's bundler tests pass against the rewritten `bundle()`: `build.test.mjs`'s prelude case (bundled UMD glue reads `require`, `__filename` and `__dirname`; the stripped copy fails) and `build-test.test.mjs`'s `imports-cli` fixture (a test bundle that imports `src/quarto.ts` under `node --test` reports one passing test and prints no CLI output). Those two are R04's "Later validation" and this step is where they are re-proven after the rewrite; the render of the Acceptance criteria is the tree-sitter half. (The four R18 cases and `ensure.mjs` were run while correcting the plan, transliterated to `node:test` with `fixture()` in a temp directory, on Node 26.12.0 and 22.22, same numbers on both: four concurrent callers built once with no leftover; a 600 s old lock of a live pid was waited for until released (1.6 s), then built; a fresh lock of a dead pid was broken in 3 ms and an ownerless 600 s old lock in 1 ms; a builder paused inside the lock whose lock was broken and retaken exited 1 with `lost the lock`, wrote no bundle and left the new owner's marker in place; a builder killed with `SIGTERM` inside the lock left its marker behind and the next builder broke it and rebuilt in 82 ms on 26.12.0, 119 ms on 22.22, no `.tmp` or `.lock*` left. PR 26's prelude case and a fixture-mode case (`banner` plus `define: { "import.meta": "__quartoImportMeta" }` on an entry whose main guard reads the real `import.meta`) were run against the Step 4 body with a no-op resolver on both versions: the prelude keeps the real `import.meta.url` because the banner is verbatim, and the guarded entry never starts.)
 
 - [ ] **Step 7: Measure and record**
 
@@ -2811,13 +2842,27 @@ Run this task only if `dev-docs/runtime-migration/SPIKES.md` records that Spike 
 
 - [ ] **Step 1: Failing test**
 
-Append to `tests/smoke/env/launcher-env.test.ts`:
+Insert into `tests/smoke/env/launcher-env.test.ts`, before the proxy test (the last one: it carries the `teardown` that removes `dir`, so a test appended after it would run in a deleted directory), and add `existsSync` and `mkdirSync` to the `fs.ts` import:
 
 ```ts
+// A project whose pre-render hook is a .ts script. Until PR 35 the hook runs on the Deno
+// tool whatever runs the CLI (src/core/run/deno.ts); PR 35 crosses it with QUARTO_RUN_RUNTIME.
+const hook = join(dir, "hook");
+mkdirSync(hook);
+writeTextFileSync(join(hook, "_quarto.yml"), "project:\n  pre-render: pre.ts\n");
+writeTextFileSync(join(hook, "pre.ts"), 'Deno.writeTextFileSync("pre-ran.txt", navigator.userAgent);\n');
+writeTextFileSync(join(hook, "index.qmd"), "# hook\n");
+
 unitTest("launcher - QUARTO_RUNTIME=deno runs the same bundle on the Deno tool", async () => {
   const r = await quarto(["--help"], { QUARTO_RUNTIME: "deno", QUARTO_LAUNCHER_DEBUG: "1" });
   assertEquals(r.code, 0, r.err);
   assert(/deno(\.exe)?"? run /.test(r.err), r.err);
+});
+
+unitTest("launcher - QUARTO_RUNTIME=deno renders a project whose pre-render hook is a script", async () => {
+  const r = await quarto(["render", hook], { QUARTO_RUNTIME: "deno" });
+  assertEquals(r.code, 0, r.err);
+  assert(existsSync(join(hook, "pre-ran.txt")), "the pre-render script did not run");
 });
 
 unitTest("launcher - an unknown QUARTO_RUNTIME is an error", async () => {
@@ -2827,7 +2872,7 @@ unitTest("launcher - an unknown QUARTO_RUNTIME is an error", async () => {
 });
 ```
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts` -> the two new tests fail.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts` -> the three new tests fail (the render one because `QUARTO_RUNTIME` is not yet read; after Step 2 it passes on the Deno-tool script path, R08's CLI-on-Deno row with a project render hook).
 
 - [ ] **Step 2: Shell launcher branch**
 
@@ -2931,7 +2976,7 @@ const DENO_BINARY: &str = "deno";
 - [ ] **Step 5: Run and commit**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts && cargo build --release --manifest-path package/launcher/Cargo.toml`
-Expected: all launcher tests pass; the launcher builds. Then `QUARTO_RUNTIME=deno package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd` renders.
+Expected: all launcher tests pass (the hook render included); the launcher builds. Then `QUARTO_RUNTIME=deno package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd` renders, and `QUARTO_RUNTIME=deno package/dist/bin/quarto render tests/docs/project/prepost/mutate-render-list` renders with its pre-render script on the Deno tool (the rows of the table below at this PR: the CLI on either runtime, the script always on the Deno tool until PR 35).
 
 ```bash
 git add package/scripts/common/quarto package/scripts/windows/quarto.cmd package/launcher/src/main.rs tests/smoke/env/launcher-env.test.ts
@@ -2946,8 +2991,8 @@ Two switches exist during the window, and they are independent: `QUARTO_RUNTIME`
 |---|---|---|---|---|---|
 | `node` (default) | `node` (default) | `QUARTO_NODE`, else `<bin>/tools/<arch>/node[.exe]` (launchers, Task 9/10; they export `QUARTO_NODE` to the CLI process) | `architectureToolsPath("node")`: the same binary, since `QUARTO_NODE` is set | 1.12 onwards; the only combination left after PR 37 | PR 35 `tests/smoke/run/run-script-node.test.ts`, `tests/smoke/project/project-prepost.test.ts`; the required Node checks (PR 32) |
 | `node` | `deno` | same | `requireDenoToolBinary()`: `QUARTO_DENO`, else `quarto install deno`, else the bundled tool (Task 11) | 1.12 onwards; bundled tool until PR 37, installed tool after | PR 35 `run-script-node.test.ts` (`QUARTO_RUN_RUNTIME=deno` case), `project-script-runtime.test.ts`; `test-install.yml` after PR 37 |
-| `deno` (Task 13) | `node` | `<bin>/tools/<arch>/deno[.exe]` running the same `node:`-API bundle (Task 13) | `architectureToolsPath("node")` (`QUARTO_NODE`, else the bundled Node). **Never `execPath()`**, which is Deno here | the Task 13 window only (one prerelease cycle); removed by PR 37 | PR 35 Verification: the `dual-runtime-smoke` job (PR 32 Task 5) renders a project with a `pre-render` `.ts` script under both script runtimes |
-| `deno` | `deno` | same | `requireDenoToolBinary()` | same window | same |
+| `deno` (Task 13) | `node` | `<bin>/tools/<arch>/deno[.exe]` running the same `node:`-API bundle (Task 13) | `architectureToolsPath("node")` (`QUARTO_NODE`, else the bundled Node). **Never `execPath()`**, which is Deno here | the Task 13 window only (one prerelease cycle); removed by PR 37 | at this PR: Task 13's `launcher-env.test.ts` case renders a project whose `pre-render` hook is a `.ts` script under `QUARTO_RUNTIME=deno` (the hook runs on the Deno tool until PR 35, so this PR proves the CLI-on-Deno row with a hook and not yet the script-on-Node cell). From PR 35: its Verification renders the same kind of fixture under `QUARTO_RUNTIME=deno` with both values of `QUARTO_RUN_RUNTIME`, locally and as a step of the `dual-runtime-smoke` job (PR 32 Task 5) |
+| `deno` | `deno` | same | `requireDenoToolBinary()` | same window | same (at this PR, Task 13's case is this row's behaviour) |
 
 Other Node children of the CLI (not scripts) follow the first column only: `quarto call build-ts-extension --check` runs `tsc` on `architectureToolsPath("node")` (PR 36), whatever `QUARTO_RUNTIME` is.
 
@@ -3174,6 +3219,8 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - `quarto run --dev tools/check-runtime-boundary.ts`: counts unchanged (the Deno tool runs it).
 - `npm run typecheck`: exit 0.
 - `rg -n 'execPath\(\)' src -g '*.ts' -g '!src/deno_ral/**'` prints exactly `src/command/dev-call/make-ast-diagram/cmd.ts` ("Dual-runtime combinations until PR 37"; PR 35 Task 6 removes that one).
+- The residue inspection at this boundary (Acceptance criteria, last bullet; PR 25 Task 7 step 2's last two commands, pasted with each hit mapped to its row): `rg -n 'execPath\(\)|QUARTO_DENO|architectureToolsPath\("deno"\)|"deno"' package/src src -g '*.ts' -g '!src/deno_ral/**'` and `rg -n -i '\bdeno\b' package/scripts package/src/quarto-bld package/src/quarto-bld.cmd package/launcher/src configure.sh configure.cmd .github/workflows -g '!*.ts'`.
+- `node --test "tools/node-bundle/*.test.mjs"`: all pass (Task 2 Step 6; the prelude case and the `imports-cli` fixture are R04's two checks on the rewritten `bundle()`).
 - `cd package/src && ./quarto-bld prepare-dist --set-version 99.9.9 && ./quarto-bld validate-bundle && (cd ../pkg-working/bin && ./quarto check)`.
 - Fresh clone: `git clone … && ./configure.sh && package/dist/bin/quarto render tests/docs/smoke-all/2023/01/04/issue-3847.qmd`.
 - Concurrent rebuild, the way `tests/run-parallel-tests.ts` runs buckets (`Promise.all` over `./run-tests.sh` processes, line 259): `cd tests && rm -f ../package/dist/bin/quarto-dev.mjs && for i in 1 2 3 4; do QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts & done; wait`: all four pass, and `ls ../package/dist/bin/*.tmp ../package/dist/bin/*.lock*` finds nothing. (`./run-parallel-tests.sh` itself runs through `quarto run`, i.e. the Deno tool, until PR 35.)
@@ -3186,13 +3233,13 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 - [ ] `QUARTO_DENO` is never used as the Node binary anywhere (`grep -n QUARTO_DENO package/scripts package/launcher package/src/quarto-bld*`: only the Deno-tool lines).
 - [ ] `NODE_OPTIONS`/`NODE_PATH` are moved to `QUARTO_SAVED_*` only when set, in all three launchers; `restoreSavedNodeEnv()` is the first statement of `quarto()`.
 - [ ] Quarto's flags are identical in the shell launcher, `quarto.cmd`, `main.rs` and `quarto-bld*` (`--enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON`).
-- [ ] `ensure.mjs` decides staleness from `<outfile>.inputs.json` (no directory walk, no skip list), takes the lock under the lock ownership rule (owner marker, `process.kill(pid, 0)` probe, break by rename, release only while the marker matches, the 120 s age only for an unprobeable owner, the timeout naming the owner), re-checks under it; `bundle()` writes JS last through temp + rename and calls `beforeCommit` before its first write and before that rename, keeps the `banner`/`define`/`writeMeta` inputs of PR 26's builder contract, and emits the three-global interop prelude (R04: `require`, `__filename`, `__dirname`); `build-test.mjs` is unchanged and `node tools/node-bundle/build-test.mjs --script tests/unit/ral/fixtures/exit-pipe-child.ts` still bundles.
+- [ ] `ensure.mjs` decides staleness from `<outfile>.inputs.json` (no directory walk, no skip list), takes the lock under the lock ownership rule (owner marker, `process.kill(pid, 0)` probe, break by rename, release only while the marker matches, the 120 s age only for an unprobeable owner, the timeout naming the owner), re-checks under it; `bundle()` writes JS last through temp + rename and calls `beforeCommit` before its first write and before that rename, keeps the `banner`/`define`/`writeMeta` inputs of PR 26's builder contract, and emits the three-global interop prelude (R04: `require`, `__filename`, `__dirname`); `build-test.mjs` is unchanged, `node tools/node-bundle/build-test.mjs --script tests/unit/ral/fixtures/exit-pipe-child.ts` still bundles, and `node --test "tools/node-bundle/*.test.mjs"` passes (the prelude case and the `imports-cli` fixture against this PR's `bundle()`).
 - [ ] Dev bundles are `.mjs`; `bin/package.json` is written by `prepare-dist` and signed on macOS.
 - [ ] The shim is deleted only after the Task 2 gate passed; the PR description lists the Deno members third-party code still references (guarded).
 - [ ] `denoToolBinary()` resolution order: `QUARTO_DENO`, installed tool, bundled tool; `src/core/run/deno.ts` and `build-ts-extension` use it.
 - [ ] `tsconfig.json` covers the CLI graph, `bld.ts` and tests; no `@ts-ignore` added; first and last `tsc` counts in the description.
 - [ ] Task 13 present only if `SPIKES.md` says Spike #2 passed. The table "Dual-runtime combinations until PR 37" matches the launchers and Task 11: the launchers export `QUARTO_NODE`, so `architectureToolsPath("node")` names the CLI's Node; `execPath()` has no caller in `src/` outside `make-ast-diagram` (Verification grep).
-- [ ] Task 16: `module-graph.ts` reads the esbuild metafile, no `deno info`/`deno run`/`deno fmt`/`deno check` spawn remains, the three acorn/lp-solver packages are exact `devDependencies`, and the two changelog lines are present; every row of PR 25's runtime residue table owned by this PR (6, 7, 8, 9, 10) is closed.
+- [ ] Task 16: `module-graph.ts` reads the esbuild metafile, no `deno info`/`deno run`/`deno fmt`/`deno check` spawn remains, the three acorn/lp-solver packages are exact `devDependencies`, and the two changelog lines are present; every row of PR 25's runtime residue table owned by this PR (6, 7, 8, 9, 10) is closed, and the two-command residue inspection of the Acceptance criteria is in the PR description with every hit mapped to a row.
 
 ## Risks and rollback
 
@@ -3219,3 +3266,5 @@ Before opening the PR (Linux or macOS; the three-OS run is CI):
 3. Not changed because the review's concern no longer applies: "`quarto-cli.code-workspace` `deno.path` points at a deleted binary". `configure.sh` keeps the `tools/deno` symlink until PR 37, which removes the `deno.*` keys.
 4. **`deno fmt` of generated types (residue row 9).** Options: (a) keep formatting through the Deno tool (`requireDenoToolBinary`) until PR 38, which breaks `dev-call build-artifacts` on a checkout without the tool and ties a `src/` command to it; (b) drop the format step now and let PR 38's dprint format the generated files; (c) bring dprint forward into this PR. Recommendation and plan: (b); the one-time whitespace diff of `src/resources/types/` is committed in Task 16 step 3.
 5. **`deno check` of OJS TypeScript imports (residue row 10).** Options: (a) type-check with `tsc` from the user's project, which Quarto cannot assume exists; (b) drop the type check and rely on the esbuild compile that already follows it; (c) keep `deno check` through the Deno tool, which would make a render feature depend on an optional tool. Recommendation and plan: (b), with a changelog line; an `{ojs}` cell importing TypeScript with a type error renders (as the browser would run it) instead of failing the render.
+
+Re-read against the review's "Later validation" lines (2026-10-17). R02 (inspect the complete residue table at each phase boundary, subprocess commands and launchers included): this PR repeated only the `execPath()` grep at its boundary; the Acceptance criteria and Verification now run PR 25 Task 7 step 2's two `rg` commands here and say what each row should print after the flip (rows 6–10 nothing, rows 18–20 only Deno-tool lines, a launcher line running the CLI on `deno` outside Task 13's block blocks the merge). R04 (an HTML render that initialises tree-sitter; a retained bundled fixture that imports CLI code without starting the CLI): both checks exist in PR 26 (`build.test.mjs`'s prelude case, `build-test.test.mjs`'s `imports-cli` fixture, the `node-render` job), but this PR rewrites `bundle()` without running them; Task 2 Step 6, the Verification and the review checklist now run `node --test "tools/node-bundle/*.test.mjs"` after the rewrite, and the Acceptance render names itself as the tree-sitter render. R08 (CLI Node/Deno crossed with script Node/Deno, including a project render hook): the table "Dual-runtime combinations until PR 37" delegated every row to PR 35, and Task 13 only rendered a plain document; Task 13 now renders a project whose `pre-render` hook is a `.ts` script under `QUARTO_RUNTIME=deno` (test and Step 5), the table says which cells this PR proves (the hook runs on the Deno tool whatever runs the CLI until PR 35) and which PR 35 adds; the Task 13 tests are inserted before the test that carries the teardown, not appended after it. R18 (a live writer paused past the stale threshold while another waits, then resumed; cancellation and crash recovery): the pause, the resume after a broken lock and the crash were the three Task 2 Step 2 cases; cancellation (a builder killed inside the lock, no `finally`) is now the fourth. The new case, PR 26's prelude case and a fixture-mode case ran on Node 26.12.0 and 22.22 against the Task 2 bodies.
