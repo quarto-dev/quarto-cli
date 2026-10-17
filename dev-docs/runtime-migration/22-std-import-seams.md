@@ -3,10 +3,10 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Route the three std modules that need a Quarto-owned seam (`fmt/colors`, `flags`, `encoding/base64`+`hex`) through `src/deno_ral/` in `src/` and `package/src`, add the `tools/rewrite-import-specifier.sh` tool PR 23 reuses, and record, for every other std module, why the import-map key is its seam and which plan reimplements the ones that call `Deno.*` internally.
-**Phase:** 1 (lands right after PR 08). **Depends on:** PR 04 (`src/deno_ral/semver.ts` and the semver importers), PR 02 (ratchet). **Unblocks:** PR 23 (rewrite tool), PR 24, PR 25.
+**Phase:** 1 (lands right after PR 08). **Depends on:** PR 04 (`src/deno_ral/semver.ts` and the semver importers), PR 02 (ratchet). **Unblocks:** PR 10, 11, 12, 13 (landing order: the codemods run after the seams exist), PR 23 (rewrite tool), PR 24, PR 25.
 **Branch:** `rt/22-std-import-seams`.
 **Suggested executor:** Sonnet. Two new re-export modules, one extended, a scripted specifier rewrite and a type-check; nothing to design.
-**Size:** M. 3 layer files, 1 tool script, 44 import lines in `src/` and `package/src` (29 `fmt/colors` including the two `jsr:` URLs, 3 `flags`, 12 `encoding`), the rules doc and the baseline.
+**Size:** L by file count (about 50 files: 3 layer files, 1 tool script, 44 importer files, 2 docs); mechanical. 3 layer files, 1 tool script, 44 import lines in `src/` and `package/src` (29 `fmt/colors` including the two `jsr:` URLs, 3 `flags`, 12 `encoding`), the rules doc and the baseline.
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
@@ -19,7 +19,7 @@ So this PR keeps three seams:
 
 | Seam | Importers today (`main` at `b86f98d`) | Why a Quarto file |
 |---|---|---|
-| `src/deno_ral/colors.ts` (`fmt/colors`) | 26 in `src/`, `package/src/util/git.ts`; plus `package/src/common/import-report/find-bad-imports.ts:2` and `find-bad-types-constants.ts:2` through a pinned `jsr:/@std/fmt@^0.224.0/colors` URL | `@std/fmt/colors` decides colour from `globalThis.Deno?.noColor` (`colors.ts:58` at 1.0.6), which does not exist on Node: colours would ignore `NO_COLOR` there. PR 27b adds `setColorEnabled(!noColor())` in this one file. |
+| `src/deno_ral/colors.ts` (`fmt/colors`; PR 27b Task 4b adds `setColorEnabled(!noColor())`) | 26 in `src/`, `package/src/util/git.ts`; plus `package/src/common/import-report/find-bad-imports.ts:2` and `find-bad-types-constants.ts:2` through a pinned `jsr:/@std/fmt@^0.224.0/colors` URL | `@std/fmt/colors` decides colour from `globalThis.Deno?.noColor` (`colors.ts:58` at 1.0.6), which does not exist on Node: colours would ignore `NO_COLOR` there. PR 27b adds `setColorEnabled(!noColor())` in this one file. |
 | `src/deno_ral/flags.ts` (`flags`) | `src/quarto-core/profile.ts`, `src/core/log.ts`, `src/core/main.ts` (and `src/command/render/latexmk/quarto-latexmk.ts`, deleted by PR 39, decision 9) | `@std/flags` is deprecated in favour of `@std/cli`'s `parseArgs`; one file to switch. |
 | `src/deno_ral/encoding.ts` (`encoding/base64`, `encoding/hex`), already exists with base64 | 12 files in `src/` | Node has native base64/hex (`Buffer`, `Uint8Array.fromBase64`); one file to switch, and the unreferenced `src/core/encode-metadata.ts:6` imports a name (`encode`) that `@std/encoding` 1.x no longer has. |
 | `src/deno_ral/semver.ts` | done by PR 04 | verified here only |
