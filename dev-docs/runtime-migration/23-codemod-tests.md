@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Put the test harness's single `Deno.test` call behind `tests/harness.ts` (`registerTest`), convert the three test files that call `Deno.test` directly, move every process/fs/env/platform `Deno.*` call in `tests/` onto `src/deno_ral/` (by hand for `Deno.Command`/`Deno.kill`, by codemod for the rest), keep the `deno test` self-invocations behind `runHarness()` in `tests/utils.ts`, migrate the test tree's assertion and std imports to `tests/asserts.ts` and `src/deno_ral/`, and replace the removed `Deno.run` in `tests/run-parallel-tests.ts` (which stays a `quarto run` script for the installed Quarto that CI uses).
-**Phase:** 1. **Depends on:** PR 08 (`process.ts`), PR 09 (codemod tool `tools/codemod-deno-ral.ts`, `fs.ts`/`temp.ts`/`errors.ts`), PR 14 (`env.ts`), PR 19 (`platform.ts`), PR 02 (`tests/asserts.ts`; the `tests` ratchet scope). Uses PR 22's `tools/rewrite-import-specifier.sh` and seams (PR 22 lands right after PR 08). **Unblocks:** PR 25, PR 31.
+**Phase:** 1. **Depends on:** PR 08 (`process.ts`), PR 09 (codemod tool `tools/codemod-deno-ral.ts`, `fs.ts`/`temp.ts`/`errors.ts`), PR 14 (`env.ts`), PR 19 (`platform.ts`), PR 02 (`tests/asserts.ts`; the `tests` ratchet scope). Uses PR 22's `tools/rewrite-import-specifier.sh` and seams (PR 22 lands right after PR 08). **Unblocks:** PR 25, PR 26 (its Node run of `tests/unit/ral` uses `tests/harness.ts`), PR 31.
 **Branch:** `rt/23-codemod-tests`.
 **Suggested executor:** Opus. The harness conversion must preserve `context.origin` (GitHub Actions grouping), the three sanitizer flags and `t.step`; `quarto-cmd.ts`'s spawn/kill/timeout logic is the test suite's backbone and has no test of its own.
 **Size:** L. 142 files with `Deno.*` sites in `tests/` (813 sites in scope; 27 more under `tests/docs/**` are user scripts run by `quarto run`/pre-render hooks, excluded from the `tests` scope by PR 02 and owned by PR 35), the assertion import of 162 files (mostly the same files), 2 new files.
@@ -805,6 +805,9 @@ git commit -m "tests: assertions through tests/asserts.ts; std imports through s
 ```
 
 ### Task 6: Codemod, one directory per commit
+
+README ground rule 7 applies to this task: run the codemod on fresh `main`, open and merge the same day (the reviewer is booked; the local smoke run of step 3 is budgeted in that day); a conflict is reset + re-run, never a hand merge; the baseline is regenerated per ground rule 8. PR 20 edits `tests/run-tests.sh` and two unit tests this codemod rewrites: land PR 20 first (README ground rule 8 merge order), or re-run the codemod after it merges.
+
 
 **Files:** every remaining file with `Deno.` under `tests/unit`, `tests/smoke`, `tests/integration`, `tests/tools`, `tests/*.ts`
 
