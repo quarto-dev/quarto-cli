@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Remove the `semver/`, `media_types/`, `xmlp/`, `xml/`, `another_cookiejar/`, `cache/` and `events/` entries from `src/import_map.json`, replacing each with an npm/JSR package or a Node built-in that works on Deno today and on Node later (the Posit Connect cookie jar is kept, on `tough-cookie`), with `deno.lock` updated in the same commits.
-**Phase:** 0. **Depends on:** 02 (ratchet, `tests/asserts.ts`), 00b (frozen `deno.lock`, `update-lock.sh`, the bundle gate). **Unblocks:** PR 22 (std import seams; semver is done here), PR 26, PR 07's last task (the std-redirect cleanup that used to be this plan's Task 7).
+**Phase:** 0. **Depends on:** 02 (ratchet, `tests/asserts.ts`), 00b (frozen `deno.lock`, `update-lock.sh`, the bundle gate). **Unblocks:** PR 22 (std import seams; semver is done here), PR 25 (it checks `deno.land/x/cache` is gone), PR 26, PR 07's last task (the std-redirect cleanup that used to be this plan's Task 7).
 **Branch:** `rt/04-deps-deno-land-x-small`.
 **Suggested executor:** Opus. Each replacement is small, but four of them change library APIs (XML building/parsing, cookies, mime lookup) and need judgement at the call site when a test disagrees with the plan.
 **Size:** M (import map, `deno.lock`, 1 new `deno_ral` module, 17 semver importer files, 1 new rsconnect module, 4 other source files, 3 JS files, 5 new tests).
