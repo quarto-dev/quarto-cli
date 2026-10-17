@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give Quarto its own process interface in `src/deno_ral/process.ts` (`spawn`, `exec`, `execSync`, `exit`, `cwd`, `chdir`, `args`, `execPath`, `pid`, `onSignal`, `killProcess`, `writeStdoutSync`, `writeStderrSync`, `isTerminal`, `readStdin`, `readStdinLines`), reimplement `src/core/process.ts` `execProcess` on `spawn`, and move every direct `Deno.Command`, `Deno.run`, `Deno.exit`, `Deno.cwd`, `Deno.args`, `Deno.execPath`, `Deno.pid`, `Deno.kill`, `Deno.addSignalListener`, `Deno.stdin`/`Deno.stdout`/`Deno.stderr` use in `src/` and the build tooling's process spawning in `package/src` onto it.
-**Phase:** 1. **Depends on:** PR 02 (ratchet). **Unblocks:** PR 14b (its `tests/unit/process-group.test.ts` needs `SpawnOptions.detached` and `killProcess`), PR 15, PR 19, PR 20b, PR 28.
+**Phase:** 1. **Depends on:** PR 02 (ratchet). **Unblocks:** PR 22, 39, 10–13, 18, 23, 24 and milestone J (landing order and `exec`/`exit`), PR 14b (its `tests/unit/process-group.test.ts` needs `SpawnOptions.detached` and `killProcess`), PR 15, PR 19, PR 20b, PR 28.
 **Branch:** `rt/08-ral-process`.
 **Suggested executor:** Opus. The `execProcess` rewrite must keep stdin chunking, stream merging and timeout semantics intact for its 55 importers; three spawn sites (Chrome launch, external preview server, Jupyter log tail) have lifecycle subtleties, and the process-group, exit-flush and stdin-release contracts need judgement; the rest is mechanical.
 **Size:** L. 1 rewritten module, 1 new unit test file (17 cases), 132 code sites in 58 files under `src/`, 32 sites in 10 files under `package/src`, plus the ratchet baseline, `.claude/rules/typescript/deno-ral.md` and one changelog line.
@@ -32,7 +32,7 @@ Verified inventory (2026-10-15, `main` at `b86f98d`). `rg -o 'new Deno\.Command'
 | 9 | `src/command/dev-call/typst-gather/cmd.ts:62` | runs typst-gather with inherited stdio | `exec` |
 | 10 | `src/webui/quarto-preview/build.ts:23,38` | that package's own build script, run with `deno run --no-config -A build.ts` (`package/src/common/previewjs.ts:14`) | **excluded**: already outside the ratchet's `src` scope (PR 02 `kSrcExclusions`); it keeps `Deno.*` until PR 33 ports the build tooling (PR 25 records it in the allow-list) |
 | 11 | `src/resources/tools/ast-diagram/main.ts:27` | resource script shipped in `share/tools/`, run by `deno run` without the import map (`src/command/dev-call/make-ast-diagram/cmd.ts:23-29`) | **excluded**: cannot import `src/deno_ral`; PR 25 moves it to the ratchet allow-list; PR 35 ports it with the `quarto run` work |
-| 12 | `src/resources/extension-subtrees/julia-engine/src/julia-engine.ts:362,395,427,467` | git subtree of `PumasAI/quarto-julia-engine` | **excluded**: no in-tree edit (decision 7); outside the ratchet's `src` scope; fixed upstream once this PR and PR 09 publish the runtime-neutral engine API |
+| 12 | `src/resources/extension-subtrees/julia-engine/src/julia-engine.ts:362,395,427,467` | git subtree of `PumasAI/quarto-julia-engine` | **excluded**: no in-tree edit (decision 7); outside the ratchet's `src` scope; fixed upstream once this PR and PR 09 publish the runtime-neutral engine API (nothing to deliver for J here beyond the exported interfaces of `process.ts`; the hand-off to PumasAI is triage A9, README row J) |
 | 13 | `src/resources/extension-subtrees/julia-engine/tests/smoke/julia-engine/julia.test.ts` (18 sites) | same subtree | excluded, same reason |
 | 14 | `src/resources/extension-subtrees/julia-engine/tests/smoke/julia-engine/render.test.ts:19` | same subtree | excluded, same reason |
 | 15 | `package/src/util/cmd.ts:26` | `runCmd` helper for the build tooling | `exec`; `CmdResult.status` becomes `ExitStatus` |
@@ -252,7 +252,7 @@ When a file already imports from `deno_ral/process.ts` (only `src/command/render
 - [ ] **Step 1: Check the bundled Deno's type declarations**
 
 Run: `package/dist/bin/tools/x86_64/deno types | grep -n -A3 'detached?: boolean'`
-Expected: one hit inside `interface CommandOptions` (doc: "Whether to detach the spawned process from the current process"). If it is absent (Deno older than the PR 00a bump), stop and land PR 00a first: the process-group contract depends on it, and a hand-rolled `setsid` wrapper is not portable to macOS.
+Expected: one hit inside `interface CommandOptions` (doc: "Whether to detach the spawned process from the current process"). PR 14b records that Deno 2.7.14, the version before PR 00a, already has it, so this check should pass whatever the Phase 0 state; if it is absent all the same, stop and land PR 00a first (not a header dependency, a guard): the process-group contract depends on it, and a hand-rolled `setsid` wrapper is not portable to macOS.
 
 ### Task 1: `src/deno_ral/process.ts` with its unit test
 
