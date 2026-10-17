@@ -6,7 +6,7 @@
 **Phase:** 2. **Depends on:** Spike V closed (`SPIKES.md`: it decides the runner; this plan keeps both variants until then, and keeps both if the spike recorded "inconclusive" with `node:test` as the provisional choice), PR 02b (no type-only imports kept as value imports, no `enum`/parameter properties/`<T>` assertions: required by the `node:test` variant, harmless for Vitest), PR 23 (`tests/harness.ts` adapter, `tests/` codemodded, `runHarness`/`runtimeScriptCommand`), PR 26 (root `package.json`, `tools/node-bundle/import-map.mjs`, `junit.mjs`), PR 27, 27b, 28, 29, 30 (the layer on `node:` APIs: Spike V runs after PR 30, so this plan starts after the ports; `env.ts` and `platform.ts` are imported by the harness itself). **Unblocks:** PR 32.
 **Branch:** `rt/31-test-harness-on-node`.
 **Suggested executor:** Opus. Two runtimes, a runner that is decided late, process spawning and CI bucketing need judgement.
-**Size:** L (harness, asserts, one runner variant's tooling, 2 runner scripts, the bucketing port, 4 self-spawning tests, CI and docs).
+**Size:** M by file count (about 20 files), L by volume (harness, asserts, one runner variant's tooling, 2 runner scripts, the bucketing port, 4 self-spawning tests, CI and docs).
 **Ships on:** Deno; the whole suite stays green on `run-tests.sh`. Node: `run-tests-node.sh --agent unit/path.test.ts unit/text.test.ts unit/harness-node.test.ts unit/gha-grouping.test.ts` passes and becomes a step of the PR 26 `node-unit` job; that job keeps running `tests/unit/ral/` bundled against its known-failures ratchet until PR 32 replaces it with the full Node suite. Broader Node parity is PR 32.
 
 ## Spec
@@ -41,7 +41,7 @@ Review findings on the earlier draft (blockers B1, B2; S12), all addressed:
 | Runner flags: per-test timeout (hang watchdog), force exit, serial files, JUnit | | Variant N: `--test-timeout=600000 --test-force-exit --test-concurrency=1 --test-reporter=junit`; Variant V: `testTimeout`, `teardownTimeout`, `fileParallelism: false`, `--reporter=junit` |
 | `runHarness`'s Node command line | | per variant |
 
-The executor implements Tasks 1, 2, 5–8 and **one** of Tasks 3/4 (the variant Spike V chose; the spike-closing PR deletes the other from this plan). Both are written out below so the spike prototypes from them. If `SPIKES.md` records Spike V as inconclusive with `node:test` provisional (its rule 4), implement Task 3, keep Task 4 and the Variant V bodies in this plan, keep the Vitest branch of the harness behind `process.env.VITEST` as the spike branch had it, and say so in the PR description; the spike's re-run decides whether Task 4 is deleted or swapped in before PR 32 makes the Node matrix required.
+The executor implements Tasks 1, 2, 5–8 and **one** of Tasks 3/4 (the variant Spike V chose; the spike-closing PR deletes the other from this plan, including the "Replace with the Variant V body" blocks of `tests/run-tests-node.sh` and `.ps1` in Tasks 5–6, so one body remains). Both are written out below so the spike prototypes from them. If `SPIKES.md` records Spike V as inconclusive with `node:test` provisional (its rule 4), implement Task 3, keep Task 4 and the Variant V bodies in this plan, keep the Vitest branch of the harness behind `process.env.VITEST` as the spike branch had it, and say so in the PR description; the spike's re-run decides whether Task 4 is deleted or swapped in before PR 32 makes the Node matrix required.
 
 ### Scope
 
