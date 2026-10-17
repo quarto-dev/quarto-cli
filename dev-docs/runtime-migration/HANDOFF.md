@@ -35,13 +35,13 @@ up in a fresh session.
 - Branch `runtime-migration-plans` on `cderv/quarto-cli` (fork), based on
   `main` at `b86f98d`. All commits pushed.
 - Everything durable is in this directory (`dev-docs/runtime-migration/`):
-  - `README.md`: entry point, the ordered table of 39 PRs, dependency graph,
+  - `README.md`: entry point, the ordered table of 45 PRs, two spikes and one milestone, dependency graph,
     conventions the plans decided, progress metric.
   - `00-assessment.md`: decision record (why Node, impact, phased plan, spike
     results, module-by-module refactoring plan).
   - `_TEMPLATE.md`: plan structure and the normative shared vocabulary for
     `src/deno_ral/` (every plan uses these names).
-  - `00a-*.md` to `39-*.md`: one plan per PR (46 PRs), plus `SPIKES.md`.
+  - `00a-*.md` to `39-*.md`: one plan per PR (45 PRs), plus `SPIKES.md`.
   - `REVIEW-2026-10-15.md`, `REVIEW-2026-10-16.md`, `TRIAGE-2026-10-16.md`:
     the two reviews and the triage of the second one (what was decided,
     what was reconciled, what is still to correct locally).
@@ -126,6 +126,17 @@ the pass landed (all three are done).
    00a and 00b, then 03–06 in parallel, then 07. Each plan names its
    branch, executor and verification commands.
 6. Keep the README status column current as PRs merge.
+
+## Organisation review (2026-10-17)
+
+A management pre-validation of the plans (report in French under
+`/mnt/project-files/revue-organisation/`) found the content complete and the
+organisation incomplete: no named roles, no release dates in the index, no
+merge rule for shared files, two stale hand-offs (00b → 07, 22 → 27b). Its
+corrections are in README ("Roles", "Release calendar", "Open decisions with an
+owner", ground rule 8, step 0 of "How to execute a plan"), `SPIKES.md`
+(decider column), `_TEMPLATE.md` and the plan headers it lists. The "Roles"
+table and the cut dates are the maintainer's to fill in before Phase 0 starts.
 
 ## Known loose ends in the plans
 
@@ -261,10 +272,11 @@ the pass landed (all three are done).
   repeated only the `execPath()` grep).
 - Spike V may end inconclusive (`SPIKES.md` rule 4): PR 31 then keeps both
   harness variants and PR 32 cannot make the Node matrix required until the
-  spike is re-run. The schedule has no slot for that re-run yet.
-- PR 07 was written for porting puppeteer to `puppeteer-core` as asked, but
-  its author found the launch helpers have no callers and recommends deleting
-  them instead. Decide before executing PR 07.
+  spike is re-run. README "The sequence" now carries the rows `27x–30x` (fix
+  PRs for the runtime gaps rule 0 records) and `SV-rerun` between SV and 31.
+- PR 07: decided (`REVIEW-2026-10-15.md` decision 8): the unused puppeteer
+  launch helpers and the deprecated `chromium` tool are deleted, not ported;
+  the plan is written that way. Nothing to decide before executing it.
 - PR 13 counts 72 `Deno.*` sites in the Julia engine subtree; PR 02's script
   rule counts 74. Both are excluded from the ratchet from the start.
 - Windows behaviour, interactive Cliffy prompts, Posit Connect publishing
@@ -281,6 +293,6 @@ marker), so nothing was created. To track the PRs as strands with their
 dependencies: configure a skein (`braid init`, or `braid init --join <doc-id>`
 with an existing one; keep `.braid.toml` out of git), then run
 `dev-docs/runtime-migration/braid-seed.sh` once from the repository root.
-It creates an epic plus 46 `task` strands, two spike strands and one milestone labelled `runtime-migration`,
+It creates an epic plus one `task` strand per PR, two spike strands and one milestone labelled `runtime-migration`,
 `phase-N` and `executor-<model>`, with `blocks` dependencies matching the
 README order, so `braid ready` lists exactly the PRs that can start.

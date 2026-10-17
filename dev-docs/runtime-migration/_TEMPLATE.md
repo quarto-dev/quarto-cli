@@ -64,6 +64,10 @@ What can break, how it shows up, how to revert.
 
 ## Decisions needed
 Only if a choice cannot be made in the plan: options, trade-offs, recommendation.
+Keep the decisions still open apart from the notes that answer a review
+("Not changed because ..."), so a worker sees at a glance what is open; a
+decision that needs a named person is also a row of README "Open decisions
+with an owner".
 ```
 
 Rules (from the writing-plans skill): no placeholders ("TBD", "handle edge
@@ -89,9 +93,16 @@ Repository conventions that plans must respect (`.claude/CLAUDE.md` and
   `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/<file>.test.ts`.
   The ratchet (PR 02) has a `tests` scope: tests written by PRs 09 and later use
   `deno_ral` `fs`/`temp`/`process`, never raw `Deno.*`.
-- Landing order inside Phase 1: 08 → 22 → 10–13 → 14. A conflict in a codemod PR
-  is resolved by resetting the file to `main` and re-running the codemod, never
-  by hand (the codemod is idempotent, PR 09).
+- Landing order inside Phase 1: 02 → 02b → 08 → 22 → 10–13 → 14, with 09
+  before 10; 22 depends on PR 04 (Phase 0). A conflict in a codemod PR is
+  resolved by resetting the file to `main` and re-running the codemod, never
+  by hand (the codemod is idempotent, PR 09); a conflict on a shared file
+  (`tools/runtime-boundary-baseline.json`, `deno.lock`, the shim, the
+  `deno-ral.md` table, a changelog) follows README ground rule 8.
+- Commands in the plans write the Linux path `package/dist/bin/tools/x86_64/deno`;
+  on Apple Silicon it is `tools/aarch64/deno`, on Windows `tools\x86_64\deno.exe`.
+- Size is by file count (S < 10, M 10–40, L > 40 files); a plan that is large by
+  volume but small by files says so next to the letter.
 - Pins: Deno `v2.9.x` (PR 00a; newest 2.9 at execution), Node `v26.12.0` or
   newer 26.x, `@cliffy/*` 1.3.1, `@b-fuze/deno-dom` 0.1.56, `ws` 8.22.
 - Dev build: `./configure.sh`, then `package/dist/bin/quarto ...`. Dev scripts
@@ -109,7 +120,7 @@ Module paths are under `src/deno_ral/`. Existing modules: `fs.ts`, `path.ts`,
 |---|---|---|
 | Boundary ratchet (PR 02) | `tools/check-runtime-boundary.ts`, baseline `tools/runtime-boundary-baseline.json` | `quarto run --dev tools/check-runtime-boundary.ts` (fails if any count exceeds the baseline); `--update-baseline` rewrites the baseline with lower counts only. Scopes: `src` (`.ts` outside `kSrcExclusions`), `src-js` (`.js` under `src/` outside `src/vendor` and `src/resources/extension-subtrees`), `resources` (runtime-loaded `src/resources/**/*.{js,ts}`), `package/src`, `tests` (the `--accept-tests-increase` flag lets a PR that adds tests raise the `tests` count on purpose). `src-js` excludes all of `src/resources`, so it does not overlap `resources`. The std-import rule matches `jsr:@std`, `https://deno.land/std`, single and double quotes and every import-map std key (`http/` included); `deno.land/x` packages are not std; a file whose only std imports are the allow-listed seams (`kStdAllowListed`, the std boundary rule of PR 02) is not counted |
 | Codemod (PR 09) | `tools/codemod-deno-ral.ts` (ts-morph via `npm:ts-morph`) | `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core` (`--rules` from `fs`, `temp`, `env`, `process`, `platform`; `--dry-run` prints the diff; `--reverse` maps layer calls back to `Deno.*` for backport patches). Idempotent: collision detection is symbol-based (an identifier already imported from `deno_ral/*` is not a collision); import merging preserves aliases and `isTypeOnly`; the skip list mirrors `kSrcExclusions` plus the browser-shared `src/core/lib` |
-| TS syntax check (PR 02b) | `tools/check-ts-syntax.mjs` | `node tools/check-ts-syntax.mjs [dir...]` runs `module.stripTypeScriptTypes` over every `.ts` under `src/` and `tests/`; exit 1 on `enum`, parameter property, runtime `namespace`, `<T>` assertion or any other syntax Node's type stripping rejects. `verbatimModuleSyntax` is on in `deno.jsonc` from PR 02b: type-only imports use `import type` |
+| TS syntax check (PR 02b) | `tools/node-bundle/check-ts-syntax.mjs` | `node tools/node-bundle/check-ts-syntax.mjs [dir...]` runs `module.stripTypeScriptTypes` over every `.ts` under `src/` and `tests/`; exit 1 on `enum`, parameter property, runtime `namespace`, `<T>` assertion or any other syntax Node's type stripping rejects. `verbatimModuleSyntax` is on in `deno.jsonc` from PR 02b: type-only imports use `import type` |
 | Node bundle (PR 26) | `tools/node-bundle/build.mjs` (exports `bundle()`: the builder contract with its CLI and fixture modes, interop prelude `require`/`__filename`/`__dirname`, inputs `entry`, `outfile`, `banner`, `define`, `shim` (until PR 33), `sourcemap`, `writeMeta`; writes `tools/node-bundle/dist/quarto.mjs` and, with `--write-meta`, `<outfile>.meta.json`), `tools/node-bundle/import-map.mjs` (shared import-map resolver: `applyImportMap`, `resolveBare`, `jsrToNpm`, `npmSpec`, `packageOf`, `dependenciesFromImportMap`, `loadImportMap`), `tools/node-bundle/deno-shim.mjs`, `tools/node-bundle/quarto-node`, `tools/node-bundle/check-deps.mjs`, `tools/node-bundle/check-shim.mjs` (scans the bundle and `src/resources/**/*.js`, including `Deno?.x` and nested members), `tools/node-bundle/build-test.mjs` (bundles one test file for `node:test`), `tools/node-bundle/known-failures.json` (Node-only failures; may only shrink), `tools/node-bundle/normalize-html.mjs`, root `package.json` (no `"type": "module"`; all Node tooling is `.mjs`) | `node tools/node-bundle/build.mjs [--entry src/quarto.ts] [--out tools/node-bundle/dist/quarto.mjs] [--check-shim] && tools/node-bundle/quarto-node render <doc>`; `node tools/node-bundle/check-deps.mjs [--write]` (package.json `dependencies` must mirror `src/import_map.json`); `node tools/node-bundle/normalize-html.mjs <dir>` (hashes, cell ids, timestamps → placeholders before diffing renders) |
 | Node CI job (PR 26) | `.github/workflows/test-node-bundle.yml` | runs the bundle against `dev-docs/runtime-migration/spike/tests/` and selected smoke tests |
 | Node test loader (PR 31; runner decided by Spike V in `SPIKES.md`) | `tools/node-bundle/import-map-hook.mjs`, `tools/node-bundle/register-import-map.mjs`, `tests/run-tests-node.sh` | `node --import tools/node-bundle/register-import-map.mjs --test --test-force-exit <files>` (node:test variant) or `vitest run` (Vitest variant) |

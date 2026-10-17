@@ -19,7 +19,10 @@ the reading order. This README is the execution index.
   landed on 2026-10-16; the commit per item is listed in the triage) and
   local plan corrections (C, applied 2026-10-16 and 2026-10-17, one commit
   per row listed in the triage; its step-4 re-read is complete). Its A9–A11
-  are still open; see "Decisions and conventions" below.
+  are still open; see "Decisions and conventions" below. The organisation
+  review of 2026-10-17 (`/mnt/project-files/revue-organisation/`, report in
+  French) added the "Roles", "Release calendar" and "Open decisions with an
+  owner" subsections, ground rule 8 and step 0 of "How to execute a plan".
 - `SPIKES.md`: the two time-boxed spikes that sit inside Phase 2 (Spike #2 on
   Deno's Node compatibility and the dual-runtime window; Spike V on the test
   runner). Their outcomes set constants in PRs 28, 29, 31, 33 and 37.
@@ -64,6 +67,24 @@ the reading order. This README is the execution index.
    on their own. Codemod PRs are generated from fresh `main` and merged the
    same day; a conflict is resolved by resetting the file and re-running the
    codemod, never by hand.
+8. Shared files are never merged by hand (organisation review of 2026-10-17,
+   `/mnt/project-files/revue-organisation/`). After a rebase:
+   `tools/runtime-boundary-baseline.json` is regenerated with
+   `quarto run --dev tools/check-runtime-boundary.ts --update-baseline`
+   (`--accept-tests-increase` when the plan says so) and the plan's expected
+   delta is re-read against the new `main`; `deno.lock` is regenerated with
+   `package/scripts/vendoring/update-lock.sh` after taking `main`'s copy;
+   `tools/node-bundle/deno-shim.mjs` and `known-failures.json` are re-checked
+   with `node tools/node-bundle/build.mjs --check-shim` and
+   `run-unit-on-node.mjs`; a table row added to
+   `.claude/rules/typescript/deno-ral.md` or a changelog line is re-applied on
+   top of `main`'s version. Suggested merge order where the graph allows
+   parallel work: 03 → 04 → 05 → 06 (simplest first); 20 before 23 and 24
+   (PR 20 edits `package/src` and `tests/` files those codemods rewrite; a
+   codemod PR opened after 20 merged picks up its edits); 34 before 35 and 36
+   (34 creates `dev-docs/runtime-migration/docs-updates.md`; 35 and 36 create
+   it if it is absent); 28, 29 and 30 may run in parallel and each re-runs
+   the two shim checks after rebasing on the others.
 
 ## Decisions and conventions
 
@@ -74,7 +95,8 @@ them. Change them in the plan that decides them, not downstream.
   deprecation notice (PR 00c); Phase 1 codemods land before the `v1.11`
   branch is cut; 1.12 ships on Node; PR 37 targets 1.13. Backports to `v1.10`
   and older use the codemod's `--reverse` mode (step added to
-  `dev-docs/checklist-backport-a-pr.md` by PR 37).
+  `dev-docs/checklist-backport-a-pr.md` by PR 09, rewritten by PR 37 after
+  the flip).
 - Pre-flip Deno protection (triage A3): from PR 32 a pull request runs
   `deno-sanity` plus the nightly `deno-nightly`; PR 33 merges only with one
   green `deno-nightly` and `parity: OK` on its branch (PR 32, "Deno in CI
@@ -137,12 +159,61 @@ them. Change them in the plan that decides them, not downstream.
   `src/webui/quarto-preview/build.ts` (allow-listed until PR 33). PR 25 adds an
   explicit allow-list with reasons for the standalone scripts.
 - Landing order inside Phase 1: 02 → 02b → 08 → 22 → 10–13 → 14, with 09
-  before 10. `tests/asserts.ts` lands in PR 02; tests written by PRs 09 and
+  before 10. PR 22 depends on PR 04 (Phase 0, behind 00b and 00a), so 10–13
+  and 14 wait for that part of Phase 0 too. `tests/asserts.ts` lands in PR 02; tests written by PRs 09 and
   later use the layer, never raw `Deno.*`.
 - Migration page for script authors: `https://quarto.org/docs/projects/scripts-deno-to-node.html`
   (PRs 00c, 35; created in quarto-web).
 - `tests/run-tests.sh` accepts files only, never directories: plans write
   `$(find unit/ral -name '*.test.ts')`.
+
+### Roles (organisation review of 2026-10-17; names to be filled in by the maintainer)
+
+The plans name an executor model per PR and nothing else. Every row below is a
+role a plan relies on; the second column is filled in once and the plans refer
+here (A10 above is the same kind of entry and stays where it is).
+
+| Role | Who | What the plans expect |
+|---|---|---|
+| PR reviewer | _to fill in_ | reviews every `rt/*` PR on its own (rule 7); available the same day for the codemod PRs 10–13, 23, 24 and the baseline re-generation they need |
+| Maintainer with push, Actions and admin rights on `quarto-dev/quarto-cli` | _to fill in_ | pushes branches that need `workflow_dispatch` (SPIKES 2.0, PR 32 Task 4, PR 20 Task 1, PR 05 Task 7, PRs 00a, 33, 34, 37 `create-release.yml` with `publish-release=false`), creates labels (PR 26 Task 7), changes branch protection (PRs 02b, 25, 32, 37, 39), validates the nightly CI cost of PR 32 |
+| Release manager | _to fill in_ | confirms the `v1.11` and `v1.12` cut dates below, declares the 1.12 soak over and the promotion to stable, decides a revert for a P1 in the layer, writes the "back to 1.11" release-notes line (PR 33 "Rollout and rollback after the flip"), owns the 1.13 target of PR 37 |
+| Spike decider | _to fill in_ | ends each spike at its time box, takes the go/no-go from the Results section, reviews the spike-closing PR before it edits plans 27–33 (`SPIKES.md`) |
+| Plan coordinator | _to fill in_ | removes the conditional lines PR 39 names from plans not yet executed (PR 39 "When to land"), keeps this README's status column and this table current, refreshes a plan before it is handed to a worker (step 0 of "How to execute a plan") |
+| quarto-web author | _to fill in_ | creates `docs/projects/scripts-deno-to-node.qmd` before 1.11 ships (PR 00c prints its URL), opens the one quarto-web PR after PRs 33–36 (PR 34 Task 7) |
+| External contacts | _to fill in_ | the Posit Connect question of PR 04 Decision 1 (answer consumed by PR 04 or a follow-up), the conda-forge feedstock issue of PR 34, the `c4spar/deno-cliffy` issue if Spike #2 (e) fails, the link to the Rust `tinitex` repository for PR 39; PumasAI is A9 |
+| Manual verification on a machine the worker lacks | _to fill in_ per OS | Windows (PRs 00b, 05, 06, 08, 14b, 28), macOS 12 and Apple Silicon (PR 34), a Posit Connect server (PR 04), a browser (PR 16), Shiny with a second host (PR 15), a corporate CA (PR 34). The result is pasted in the PR description; CI on that OS is the evidence when nobody can run it by hand |
+
+### Release calendar (to confirm by the release manager)
+
+| Milestone | Exit check | Target (00-assessment section 7) | Cut date |
+|---|---|---|---|
+| Phase 0 done | PR 07 merged (Phase 0 exit check) | end of 2026 | – |
+| Phase 1 done, boundary at zero | PR 25 merged, "Phase 1 complete on <date>" written below | March 2027 | before the `v1.11` branch is cut: _date to confirm_ |
+| Phase 2 done, Node matrix required | PR 32 merged and its branch protection switched | June 2027 | – |
+| Flip shipped in a prerelease | PR 33 merged, first 1.12 prerelease on Node | September 2027 | `v1.12` branch cut: _date to confirm_ |
+| Deno removed | PR 37 merged | 1.13 (decided; PR 37 Decision 1 is closed) | after the 1.12 soak |
+
+PR 00c prints "Starting with Quarto 1.12" and the 1.12 changelog is named by
+PRs 33–36: if 1.12 slips, the coordinator updates PR 00c's text, test and
+changelog line in the same PR that moves the date.
+
+### Open decisions with an owner (besides A9–A11 above)
+
+Each plan's "Decisions needed" section already carries a recommendation that
+the plan applies. The rows below are the ones that still need a named person
+or an external answer; "pick one in the PR description" does not apply to them.
+
+| Where | Decision | Decider | Trigger |
+|---|---|---|---|
+| PR 20 Task 1 step 4 | go/no-go of the `parseHtml` WASM gate when it fails on an OS | maintainer (same as the A10 packaging gate once named) | the three-OS timing run |
+| PR 04 Decision 1 | whether Posit Connect ever needs a session cookie | external contact above | before PR 04 merges, or a follow-up PR named in PR 04's description |
+| PR 33 Decisions 4 and 5 | `deno fmt` of generated types and `deno check` of OJS imports dropped (recommendation (b) in both) | maintainer | before PR 33 starts |
+| PR 34 Decision 3 | removal of the `QUARTO_DENO_V8_OPTIONS` translation in 1.13 | release manager | PR 37 Task 3 carries it when 1.13 is cut |
+| PR 35 Decisions 1 and 2 | shim removal date, `stdlib/*` beyond 1.13 | release manager | the 1.13 branch cut, from issue reports during the 1.12 soak |
+| PRs 06 and 07 Decision 1 | the optional renames (`@cliffy/command` import style, `src/core/puppeteer.ts`) | coordinator | after PR 26 and after Phase 1 respectively; dropped if nobody asks |
+| PR 33 and PR 35 size | whether PR 33 lands as one PR or as 33a (Tasks 1, 11, 12, 16) + 33b (the flip), and PR 35 as one PR or 35a (Task 1 builder) + 35b (scripts) | maintainer | before Phase 3 starts |
+| User breakage after the flip | issue label, weekly triage owner during the soak, criterion to extend the dual-runtime window or the shim | release manager | before the first 1.12 prerelease |
 
 ## Shared rules and tables
 
@@ -236,17 +307,46 @@ other plans refer to it by file and section (reconciliation pass of
 
 ## How to execute a plan
 
+Step 0, before the plan is handed to a worker (coordinator): the plans were
+written against `main` at `b86f98d` and cite line numbers. Re-grep every
+`path:line` the plan cites, check each "assumes PR xx landed with ..." against
+`main`, check the plan's `**Depends on:**` PRs are merged, read the "Open
+decisions with an owner" table above for a row that names this PR, and set the
+plan's row in "The sequence" to `in progress`. The person who merges the PR
+sets it to `merged`.
+
 ```bash
 git checkout main && git pull
-git checkout -b <branch-named-in-the-plan>
+git worktree add ../<branch-named-in-the-plan> -b <branch-named-in-the-plan>   # rule 7: one worktree per PR
 # open the plan, work the checkboxes top to bottom, commit at each commit step
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent <test files named in the plan>
 ```
 
 Each plan names the tests it adds and the existing tests it must keep green.
 When a plan says "Decision needed", the options and a recommendation are in the
-plan; pick one in the PR description. A plan that says "decided by Spike #2"
-or "decided by Spike V" waits for the outcome recorded in `SPIKES.md`.
+plan; pick one in the PR description unless the "Open decisions with an owner"
+table names a decider. A plan that says "decided by Spike #2" or "decided by
+Spike V" waits for the outcome recorded in `SPIKES.md`.
+
+Actions reserved to the maintainer (see "Roles"): a step that runs `gh pr
+create` or `git push` on `quarto-dev/quarto-cli`, `gh workflow run`, `gh label
+create`, or changes branch protection is done by the maintainer named in
+"Roles"; a worker without those rights stops at the step, says so in the PR
+description, and hands the branch over. A PR whose completion needs such an
+action (PRs 02b, 25, 32, 37, 39) is `merged` only once the action is done.
+
+A test that fails on an OS the worker cannot run: CI on that OS is the
+evidence; the reviewer triages the failure (`dev-docs/debugging-flaky-tests.md`);
+a test is never disabled, skipped or quarantined to get green; a manual
+Windows or macOS step the worker cannot do is done by the person named in
+"Roles" or, when the plan names a CI job that covers it, trusted to that job
+with a line in the PR description saying so.
+
+Commits follow the plan's steps as written (a failing-test step followed by
+its implementation step may leave one red commit; no squash is required).
+Changelog: a dependency bump gets a line under `## Dependencies` of
+`news/changelog-<version>.md` (created by PR 00a); a plan with no user-visible
+change says `Out: changelog` in its Scope with the reason.
 
 ## The sequence
 
@@ -292,7 +392,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 23 | [23-codemod-tests.md](23-codemod-tests.md) | Codemod `tests/`; `tests/harness.ts` adapter around `Deno.test`; assertions through `tests/asserts.ts` | 02, 08, 09, 14, 19, 22 | Opus | L | planned |
 | 24 | [24-codemod-package-src.md](24-codemod-package-src.md) | Codemod `package/src`; `Deno.run` → `exec`; remaining Deno CLI calls listed for PR 33 | 02, 08, 09, 14, 19, 22 | Sonnet | M | planned |
 | 25 | [25-boundary-zero-and-monkey-patch-removal.md](25-boundary-zero-and-monkey-patch-removal.md) | Delete `core/deno/monkey-patch.ts` and `original-real-path.ts`; types sweep (former PR 21); comment sweep; standalone-script allow-list; hidden-dependency inventory and the runtime residue table (owners and gates for every remaining `Deno.*` or Deno CLI use); ratchet to zero and required | 04, 07, 08–20, 20b, 22–24, 39 | Sonnet | M | planned |
-| J | milestone, no plan | Julia engine ported upstream by PumasAI against the PR 08/09 engine API; subtree pulled; Julia entries leave the PR 32 allowlist; owner and upstream-issue timing open (triage A9) | 08, 09, upstream | maintainer | – | planned |
+| J | milestone, no plan | Julia engine ported upstream by PumasAI against the PR 08/09 engine API; subtree pulled; Julia entries leave the PR 32 allowlist (PR 32 does not wait for J; the allowlist is emptied when the subtree is pulled); PRs 08 and 09 have nothing to deliver for J beyond their public interfaces; owner and upstream-issue timing open (triage A9) | 08, 09, upstream | maintainer | – | planned |
 
 ### Phase 2: Node implementations, still running on Deno
 
@@ -305,9 +405,11 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 28 | [28-ral-process-on-node-apis.md](28-ral-process-on-node-apis.md) | `process.ts` on `node:child_process`; BatBadBut-safe batch quoting; draining `exit`; `taskkill /T` | 14b, 25, 26, 27b, S2 | Opus | M | planned |
 | 29 | [29-ral-net-http-watch-on-node-apis.md](29-ral-net-http-watch-on-node-apis.md) | `net.ts`, `http.ts` (with `ws`; the server lifecycle rule: bind states, owned WebSockets, cancellation), `watch.ts` (recreated-root and polling fallback) on Node APIs | 14b, 25, 26, 27b, S2 | Opus | M | planned |
 | 30 | [30-ral-kv-on-node.md](30-ral-kv-on-node.md) | `kv.ts` on a locked JSON file (`<name>.json`), per-key merge, both runtimes; the lock ownership rule (owner marker, liveness probe, guarded release) | 18, 25, 26, 27b | Opus | S | planned |
-| SV | [SPIKES.md](SPIKES.md) | Spike V (two days): Vitest vs `node:test` on ten files after the layer is on `node:` APIs; decision rule with an inconclusive outcome | 27, 27b, 28, 29, 30 | Opus | – | planned |
-| 31 | [31-test-harness-on-node.md](31-test-harness-on-node.md) | `tests/harness.ts` on the chosen runner; `run-tests-node.sh`; `run-parallel-tests.mjs`; `testArgs()`; leak guarantees (`runChecked()`, per-test timeout, forced exit) | 02b, 23, 26, 27–30, SV | Opus | L | planned |
-| 32 | [32-node-ci-required.md](32-node-ci-required.md) | Bucketed Node matrix (Linux, Windows per PR; macOS nightly) required; prerequisite-aware parity by file and name, computed only from complete evidence (green jobs, every bucket reported, failures counted); allowlist empty except Julia until J; Deno matrix to nightly plus `deno-sanity` | 14b, 27, 27b, 28–31, J | Opus | M | planned |
+| 27x–30x | fix PRs, no plan | Correctives for the "runtime gaps" Spike V rule 0 records against PRs 27, 27b, 28, 29, 30 (a test failing on both runners in a `node:` body of the layer); one PR per gap, branch `rt/NN-fix-<gap>`, its own `node-unit` run shows the fix; none if the spike records no gap | SV | Opus | S | planned |
+| SV | [SPIKES.md](SPIKES.md) | Spike V (two days): Vitest vs `node:test` on ten files after the layer is on `node:` APIs; decision rule with an inconclusive outcome | 02b, 27, 27b, 28, 29, 30 | Opus | – | planned |
+| SV-rerun | [SPIKES.md](SPIKES.md) | One-day re-run of Spike V (files 1–9) after the 27x–30x fixes, only when the spike was inconclusive (rule 4); records the definitive runner | 27x–30x | Opus | – | planned |
+| 31 | [31-test-harness-on-node.md](31-test-harness-on-node.md) | `tests/harness.ts` on the chosen runner; `run-tests-node.sh`; `run-parallel-tests.mjs`; `testArgs()`; leak guarantees (`runChecked()`, per-test timeout, forced exit) | 02b, 23, 26, 27–30, SV (SV-rerun before PR 32 Task 6 when inconclusive) | Opus | L | planned |
+| 32 | [32-node-ci-required.md](32-node-ci-required.md) | Bucketed Node matrix (Linux, Windows per PR; macOS nightly) required; prerequisite-aware parity by file and name, computed only from complete evidence (green jobs, every bucket reported, failures counted); allowlist empty except Julia until J; Deno matrix to nightly plus `deno-sanity`; `merged` only after one nightly `parity: OK` on `main` and the maintainer's branch-protection switch | 14b, 27, 27b, 28–31 (J is not a hard prerequisite: PR 32 may merge with the Julia allowlist non-empty, PR 36 Context) | Opus | M | planned |
 
 ### Phase 3: flip the runtime, then remove Deno
 
@@ -339,7 +441,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
                         │
        01 03–07 20b 23 ─ 26 ─ S2 ─── 27 ─ 27b ─── 28 29 30 ─┬─ SV ─ 31 ─┐
                                                             │           │      (Phase 2)
-                                              14b, J ───────┴─────────── 32
+                                              14b, (J) ─────┴─────────── 32      (27x–30x and SV-rerun sit between SV and 31 when Spike V records gaps)
                                                             │
                                                    00b 20b ─┤
                                                             │
@@ -350,7 +452,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 Edges that cross phases: 05 → 20 (timing baseline); 20b → 26, 27, 33 (shim
 members, tree-sitter in the bundle); 14b → 28, 29, 32 (the end-to-end gates);
 02b → 31, 35 (type-only imports); 00b → 33 (bundle gate); 00c → 35 (notice);
-S2 → 33 and 37 (`QUARTO_RUNTIME`); J → 32 (allowlist); 39 → 25 (zero needs the
+S2 → 33 and 37 (`QUARTO_RUNTIME`); J → 32 (allowlist; soft, see row 32); 39 → 25 (zero needs the
 `deno compile` files gone) and 37. Every remaining `Deno.*` or Deno CLI use
 after Phase 1 has an owner and a gate in PR 25's runtime residue table.
 

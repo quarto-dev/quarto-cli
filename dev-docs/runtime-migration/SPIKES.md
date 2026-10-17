@@ -6,10 +6,18 @@ table saying which plan changes for each outcome. Results are recorded at the
 end of this file (section "Results"), in the PR that closes the spike, and the
 named plans are edited in the same PR.
 
-| Spike | Time box | When | Owner | Blocks |
-|---|---|---|---|---|
-| #2 Dual runtime and Node-compat surfaces | 5 working days | after PR 26 is merged (it provides `tools/node-bundle/`), before PR 27 starts | Phase 2 worker (Opus) | PR 27, 28, 29, 33 (runtime switch), 34 (proxy row) |
-| V Test runner: Vitest vs `node:test` | 2 working days | after PR 30 (the last of the Phase 2 ports 27, 27b, 28, 29, 30: the sample spawns processes, serves HTTP, opens the KV store and renders), before PR 31 is executed | Phase 2 worker (Opus) | PR 31, PR 32 |
+| Spike | Time box | When | Runs it | Decides | Blocks |
+|---|---|---|---|---|---|
+| #2 Dual runtime and Node-compat surfaces | 5 working days | after PR 26 is merged (it provides `tools/node-bundle/`), before PR 27 starts | Phase 2 worker (Opus) | the spike decider (README "Roles") | PR 27, 28, 29, 33 (runtime switch), 34 (proxy row) |
+| V Test runner: Vitest vs `node:test` | 2 working days | after PR 30 (the last of the Phase 2 ports 27, 27b, 28, 29, 30: the sample spawns processes, serves HTTP, opens the KV store and renders), before PR 31 is executed | Phase 2 worker (Opus) | the spike decider (README "Roles") | PR 31, PR 32 |
+
+The spike decider ends the spike when its time box is reached (the worker
+records "unknown" for what has no answer), takes the go/no-go from the Results
+section against the exit criteria, and reviews the spike-closing PR before it
+edits any plan. A spike-closing PR that records runtime gaps (Spike V rule 0)
+also opens one `rt/NN-fix-<gap>` PR per gap (README "The sequence", row
+27x–30x) and schedules the SV-rerun row. PRs 27, 28, 29 and 33 do not start
+before Spike #2's Results are written; PRs 31 and 32 not before Spike V's.
 
 Ground rules for both spikes:
 
@@ -92,7 +100,7 @@ jobs:
           done
 ```
 
-Run it after steps 2.2–2.4 with `gh workflow run spike2.yml --ref spike/2-dual-runtime && gh run watch`. The log is the evidence for the OSes you did not run locally.
+Run it after steps 2.2–2.4 with `gh workflow run spike2.yml --ref spike/2-dual-runtime && gh run watch`. The log is the evidence for the OSes you did not run locally. The branch must be pushed to `quarto-dev/quarto-cli` itself (a `workflow_dispatch` from a fork does not run): the maintainer named in README "Roles" pushes it and dispatches when the worker lacks the rights. Step 2.5 needs a real terminal on Linux or macOS and step 2.6 outbound network to quarto.org and api.github.com; the same person runs them if the worker's environment has neither.
 
 #### 2.1 (a) The Node bundle on Deno (two days)
 
@@ -448,7 +456,7 @@ The spike ends after five working days or when every question (a)–(g) has a re
 | (c) | Node nested MISSING on an OS | PR 29 makes `QUARTO_WATCH_POLLING=1` the default on that OS (`watch.ts`, one constant) and records it. |
 | (d) | Deno group kill fails | PR 28's `killProcess(-pid)` on Deno falls back to `taskkill`-style tree walk via `ps -o pid= --ppid` (POSIX) — the code is added to PR 28 Task 3 with the test from PR 14b. |
 | (d) | Deno ignores `windowsVerbatimArguments` | PR 28's `.bat`/`.cmd` path spawns the file directly on Deno (Rust `Command` escaping) and uses the escaping `cmd.exe` line only on Node (`kBatchViaCmd = runtime().name === "node"`). |
-| (e) | `Deno.permissions` reachable from a Quarto prompt | PR 26's shim keeps `permissions`; an upstream issue is filed on `c4spar/deno-cliffy`; PR 33 cannot delete the shim member until the Cliffy fix ships (its Risks list it). |
+| (e) | `Deno.permissions` reachable from a Quarto prompt | PR 26's shim keeps `permissions`; an upstream issue is filed on `c4spar/deno-cliffy` by the external contact named in README "Roles", in the spike-closing PR's week; PR 33 cannot delete the shim member until the Cliffy fix ships (its Risks list it). |
 | (e) | Ctrl-C leaves raw mode or crashes | PR 34's runtime-environment contract gets a row "prompt interrupted" with a test, and a `process.on("SIGINT")` restore of `setRawMode(false)` in `src/core/lib/...` is added to PR 34. |
 | (f) | flag works | PR 33's launcher passes `--use-env-proxy` (or exports `NODE_USE_ENV_PROXY=1`, whichever form the spike confirmed); PR 34's contract table row "HTTP(S)_PROXY/NO_PROXY" cites this spike. |
 | (f) | flag does not cover a fetch path | PR 33 adds `http.setGlobalProxyFromEnv()` at startup (Node 26) and the uncovered call site is listed in PR 34. |
