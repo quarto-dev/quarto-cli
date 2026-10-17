@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add `src/deno_ral/env.ts` (the `env` object from the shared vocabulary) with its unit test, then run the codemod's `env` rule over all of `src/` so that no application file reads or writes environment variables through `Deno.env`.
-**Phase:** 1. **Depends on:** PR 09 (the codemod and its `env` rule), PR 02 (ratchet); lands after PRs 08, 22 and 10–13 (landing order below). **Unblocks:** PR 23, PR 24, PR 25, PR 27b.
+**Phase:** 1. **Depends on:** PR 09 (the codemod and its `env` rule), PR 02 (ratchet); lands after PRs 08, 22 and 10–13 (landing order below). **Unblocks:** PR 20, PR 20b, PR 23, PR 24, PR 25, PR 27b.
 **Branch:** `rt/14-ral-env`.
 **Suggested executor:** Sonnet. One 50-line module, one test, one codemod run, six alias fixes with the exact edits given below.
 **Size:** L by file count, mechanical. 1 new module, 1 new test, 50 files rewritten by the codemod (149 replacements), 6 more edited by hand with an alias import (17 sites).
