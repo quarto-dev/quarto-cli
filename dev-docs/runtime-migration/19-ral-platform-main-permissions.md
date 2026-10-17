@@ -6,7 +6,7 @@
 **Phase:** 1. **Depends on:** PR 08 (`exec`, `execPath` in `process.ts`), PR 09 (`temp.ts`, `fs.ts` for the write probe and the tests), PR 02 (ratchet; `tests/asserts.ts`). **Unblocks:** PR 23, PR 25, PR 27b, PR 34.
 **Branch:** `rt/19-ral-platform-main-permissions`.
 **Suggested executor:** Sonnet. Every replacement is a one-line substitution with a known target; the two judgement calls (`isWritable`, `isMainModule` under bundling) are decided below.
-**Size:** M by file count: 2 layer files, 2 tests with 2 fixtures, about 22 call-site files.
+**Size:** M by file count (README row says S; M is right): 2 layer files, 2 tests with 2 fixtures, about 22 call-site files.
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
