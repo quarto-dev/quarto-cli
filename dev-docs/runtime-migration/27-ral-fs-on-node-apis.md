@@ -6,7 +6,7 @@
 **Phase:** 2. **Depends on:** PR 25 (boundary at zero: every caller already imports `src/deno_ral/fs.ts`, `temp.ts`, `errors.ts`; `original-real-path.ts` is deleted and `canonicalPathSync` replaces it), PR 26 (`tools/node-bundle/`: this PR edits the shim, and the `node-unit` job runs this PR's tests on real Node), PR 20b (`onFileRead` read-observer hook in `fs.ts`, kept here). Starts after Spike #2 closes (`SPIKES.md`). **Unblocks:** PR 27b, 31, 32.
 **Branch:** `rt/27-ral-fs-on-node-apis`.
 **Suggested executor:** Opus. The walk/glob semantics and the error mapping need judgement; the per-function rewrites are mechanical but numerous.
-**Size:** L (3 source files rewritten, ~50 exported functions, 2 new test files, 1 extended, shim shrink).
+**Size:** S by file count, L by volume and judgement (3 source files rewritten, ~50 exported functions, 2 new test files, 1 extended, shim shrink).
 **Ships on:** Deno; the whole existing suite must stay green. Node: the PR 26 `node-unit` job runs `tests/unit/ral/` (including this PR's new files) on real Node 26 on Linux and Windows; the entries for `fs`/`temp`/`errors` tests in `tools/node-bundle/known-failures.json` are removed by this PR, and none is added. `node tools/node-bundle/build.mjs --check-shim` reports `0 missing` and an empty `unused` list after the shim shrink.
 
 ## Spec
