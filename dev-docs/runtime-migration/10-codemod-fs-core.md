@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move every plain filesystem and temp-file call in `src/core`, `src/quarto-core` and `src/config` from `Deno.*` to `src/deno_ral/fs.ts` / `src/deno_ral/temp.ts` with the codemod, fix the two reported collisions by hand, and replace the 13 `instanceof Deno.errors.X` checks in `src/core` with the `deno_ral/errors.ts` predicates.
-**Phase:** 1. **Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below). **Unblocks:** PR 25.
+**Phase:** 1. **Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below). **Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
 **Branch:** `rt/10-codemod-fs-core`.
 **Suggested executor:** Sonnet. The codemod does the bulk; the hand edits are five small, fully specified changes.
 **Size:** L by file count, mechanical: 56 files rewritten by the codemod (153 replacements, measured by a dry run of PR 09's codemod logic on `b86f98d`), 9 files edited by hand (3 collision sites, 13 `Deno.errors` sites, 1 `Deno.ReadFileOptions`).
@@ -110,6 +110,9 @@ import { readTextFile as fsReadTextFile, readTextFileSync as fsReadTextFileSync 
 Assumes PR 09 landed (`tools/codemod-deno-ral.ts`, `src/deno_ral/{fs,temp,errors}.ts`, `getFileInfoType` retyped) and PR 02's ratchet exists. In the prescribed order PR 08 has landed (so `src/core/console.ts` no longer opens files); if it has not, `src/core/console.ts:174` still has `Deno.openSync`, which the codemod rewrites to `openSync`, and both orders end in the same place.
 
 ### Task 1: Dry run and review
+
+README ground rule 7 applies: this PR is generated from fresh `main` the day it is opened and merged the same day; the reviewer named in README "Roles" is booked for that day. PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
+
 
 - [ ] **Step 1: Dry run**
 
