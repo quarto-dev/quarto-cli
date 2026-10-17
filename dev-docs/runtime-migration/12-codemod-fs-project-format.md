@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move every plain filesystem and temp-file call in `src/project` and `src/format` from `Deno.*` to `src/deno_ral/fs.ts` / `src/deno_ral/temp.ts` with the codemod, and replace the four `Deno.errors.*` uses in `src/project` (three `instanceof` checks and one type alias) with the `deno_ral/errors.ts` predicates.
-**Phase:** 1. **Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below). **Unblocks:** PR 25.
+**Phase:** 1. **Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below). **Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
 **Branch:** `rt/12-codemod-fs-project-format`.
 **Suggested executor:** Sonnet. Mechanical codemod; three small hand edits with the exact code given below; the only judgement is reading the diff and checking the order-sensitive `readDirSync` loop in MECA bundling.
 **Size:** L by file count, mechanical: 51 files rewritten by the codemod (158 replacements, measured by a dry run of PR 09's codemod logic on `b86f98d`; 38 files in `src/project` and 17 in `src/format` use `Deno.*`); 2 edited by hand.
@@ -106,6 +106,9 @@ No new interfaces. No alias imports are expected: the dry run (Task 1) must repo
 Assumes PR 09 landed. In the prescribed order PR 08 and PR 22 have landed; independent of PRs 10, 11, 13, 17.
 
 ### Task 1: Dry run and review
+
+README ground rule 7 applies: this PR is generated from fresh `main` the day it is opened and merged the same day; the reviewer named in README "Roles" is booked for that day. PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
+
 
 - [ ] **Step 1: Dry run**
 
