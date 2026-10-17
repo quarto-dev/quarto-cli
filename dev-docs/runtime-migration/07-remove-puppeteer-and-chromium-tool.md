@@ -29,7 +29,7 @@ Mermaid diagrams for non-HTML formats, `createPngsFromHtml`/`extractHtml` in the
 
 The `chromium` tool: deprecated in v1.10 and scheduled for removal in v1.11 (`src/tools/tools.ts:40-41`; `configuration` says `QUARTO_VERSION=1.11`). `quarto install chromium` and `quarto update tool chromium` already redirect to `chrome-headless-shell` with a deprecation warning (`tools.ts:124-132`, `tools-console.ts:154-174`; tested by the "Chromium deprecation redirect" job of `.github/workflows/test-install.yml:77-195`). What still depends on the tool and on puppeteer 9's `BrowserFetcher`: listing an old download (`allTools`, `loadTools`), the `quarto check` hint (`check.ts:423-427`) and its "Chromium installed by Quarto" detection (`check.ts:609-621`), `quarto uninstall chromium`, removing the old download after installing `chrome-headless-shell` (`chrome-headless-shell.ts:136-147`, `tools-console.ts:164-169`), and the fallback in `getBrowserExecutablePath`. puppeteer 9 stored downloads under `quartoDataDir("chromium")` as `<linux|mac|win32|win64>-<revision>/<archive>/<executable>`. After this PR a small `src/tools/impl/chromium-legacy.ts` only detects and removes that directory; nothing uses the old browser any more (users who have no Chrome and only an old `quarto install chromium` download are told to run `quarto install chrome-headless-shell`, which `quarto check` already recommends).
 
-The puppeteer port also brought three `https://deno.land/std@0.93.0/...` redirects into `src/import_map.json` and the `src/vendor_deps.ts` entrypoint (`deno.land/x/puppeteer@9.0.2`, `dev.jspm.io/jszip@3.5.0`, `deno.land/std@0.93.0/path`), which also carries a `std@0.196.0/encoding/base64.ts` import that Cliffy rc.3 needed. PRs 04 and 06 no longer remove redirects themselves (their first drafts predicted each other's state and missed users); Task 6 here does it once, after 03–06 have landed, with one `deno info` run over every entrypoint: `src/quarto.ts`, `tests/test-deps.ts`, `package/src/bld.ts`, `package/scripts/deno_std/deno_std.ts`, every `tests/**/*.test.ts` (the four `tests/smoke/inspect/*.test.ts` import `https://deno.land/std@0.93.0/assert/assert_object_match.ts`, resolvable only through the `std@0.93.0/` redirect, so they are rewritten to `tests/asserts.ts` first), every `tools/*.ts`, and the `src/resources/**/*.ts` scripts that run with `src/import_map.json`.
+The puppeteer port also brought three `https://deno.land/std@0.93.0/...` redirects into `src/import_map.json` and the `src/vendor_deps.ts` entrypoint (`deno.land/x/puppeteer@9.0.2`, `dev.jspm.io/jszip@3.5.0`, `deno.land/std@0.93.0/path`), which also carries a `std@0.196.0/encoding/base64.ts` import that Cliffy rc.3 needed. PRs 04 and 06 no longer remove redirects themselves (their first drafts predicted each other's state and missed users); Task 6 here does it once, after 03–06 have landed, with one `deno info` run over every entrypoint: `src/quarto.ts`, `tests/test-deps.ts`, `package/src/bld.ts`, `package/scripts/deno_std/deno_std.ts`, every `tests/**/*.test.ts` (the four `tests/smoke/inspect/*.test.ts` used to import `https://deno.land/std@0.93.0/assert/assert_object_match.ts`, resolvable only through the `std@0.93.0/` redirect; PR 00b Task 6 step 4 rewrote them to `tests/asserts.ts`, so this PR assumes PR 00b landed with that rewrite and only checks it), every `tools/*.ts`, and the `src/resources/**/*.ts` scripts that run with `src/import_map.json`.
 
 Phase 0 exit criterion (Task 6 Step 7): `rg -n 'deno\.land|skypack|jspm' src package tests tools` prints nothing outside this allow-list:
 
@@ -108,7 +108,8 @@ CLI behaviour after this PR:
 - Modify: `src/import_map.json` (`puppeteer`; Task 6: the `https://deno.land/std@...` keys), `deno.lock`
 - Delete (Task 6): `src/vendor_deps.ts`, `src/dev_import_map.json`, `src/import_map_additional_entries.json`, `package/src/common/create-dev-import-map.ts`
 - Modify (Task 6): `package/scripts/vendoring/vendor.sh`, `vendor.cmd`, `.github/workflows/actions/quarto-dev/action.yml:19`, `dev-docs/ci-deno-caching.md`, `.claude/CLAUDE.md:25`, `tests/README.md:369`
-- Modify (Task 6): `tests/smoke/inspect/inspect-code-cells.test.ts`, `inspect-extensions.test.ts`, `inspect-include.test.ts`, `inspect-recursive-include.test.ts`; `tests/run-parallel-tests.ts:13-17`; `src/resources/tools/ast-diagram/main.ts:3`; `tools/document-generator/main.ts:1`; `tools/run-pandoc-capture.ts:2`; `tools/subcommand-history.ts:46`
+- Modify (Task 6): `tools/check-test-imports.ts` (`kLockEntrypoints` loses `src/vendor_deps.ts`; its test if it names the six entries), `dev-docs/add-typescript-dependency.md` (the list of lock entrypoints, five after this PR), `package/scripts/vendoring/update-lock.sh` if it lists the entrypoints (all three written by PR 00b)
+- Check only (Task 6): `tests/smoke/inspect/inspect-code-cells.test.ts`, `inspect-extensions.test.ts`, `inspect-include.test.ts`, `inspect-recursive-include.test.ts`; `tests/run-parallel-tests.ts:13-17`; `src/resources/tools/ast-diagram/main.ts:3`; `tools/document-generator/main.ts:1`; `tools/run-pandoc-capture.ts:2`; `tools/subcommand-history.ts:46`
 - Test: `tests/unit/core/browser-discovery.test.ts` (new), `tests/unit/tools/chromium-legacy.test.ts` (new)
 - Modify: `tools/runtime-boundary-baseline.json` (`src` and `tests` std-import files fall)
 - Modify: `news/changelog-1.11.md`, `dev-docs/runtime-migration/README.md`
@@ -122,7 +123,7 @@ CLI behaviour after this PR:
 - With a fake old download (`<userDataDir>/quarto/chromium/linux-869685/chrome-linux/`), `quarto check` prints the `NOTE:` and `quarto uninstall chromium` removes the directory.
 - Mermaid to Typst and the axe smoke test render (CDP path, shares `getBrowserExecutablePath`); `Bundle Test` (three OSes) green.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/browser-discovery.test.ts unit/tools/chromium-legacy.test.ts` → `3 passed`.
-- `quarto run --dev tools/check-runtime-boundary.ts` passes after `--update-baseline`: `src` std-import files −1 (`src/vendor_deps.ts`), `tests` std-import files −4 (the inspect tests), `Deno.` counts unchanged (the deleted code had no `Deno.` call; `chromium-legacy.ts` uses `deno_ral`).
+- `quarto run --dev tools/check-runtime-boundary.ts` passes after `--update-baseline`: `src` std-import files −1 (`src/vendor_deps.ts`), `tests` std-import files unchanged (PR 00b already moved the four inspect tests to `tests/asserts.ts`), `Deno.` counts unchanged (the deleted code had no `Deno.` call; `chromium-legacy.ts` uses `deno_ral`).
 
 ## Plan
 
@@ -634,22 +635,13 @@ Run this task only when PRs 03, 04, 05 and 06 are merged and this branch is reba
 Run: `grep -c 'deno\.land/x\|skypack' src/import_map.json; grep -cE '"(semver|deno_dom/|cliffy/command/mod.ts|yaml)": "(npm|jsr):' src/import_map.json`
 Expected: `0`, then `4` (03 moved `yaml` to npm, 04 `semver`, 05 `deno_dom/`, 06 `cliffy/command/mod.ts`; Task 3 removed `puppeteer`). Any other result means a Phase 0 PR is not merged into this branch yet: stop and rebase.
 
-- [ ] **Step 2: Rewrite the four inspect tests to `tests/asserts.ts`**
+- [ ] **Step 2: Confirm PR 00b rewrote the four inspect tests, and drop `src/vendor_deps.ts` from the lock entrypoints**
 
-In `tests/smoke/inspect/inspect-code-cells.test.ts`, `inspect-include.test.ts` and `inspect-recursive-include.test.ts` replace
-```ts
-import { assertObjectMatch } from "https://deno.land/std@0.93.0/assert/assert_object_match.ts";
-```
-with
-```ts
-import { assertObjectMatch } from "../../asserts.ts";
-```
-In `tests/smoke/inspect/inspect-extensions.test.ts` delete that line and replace `import { assert, assertEquals } from "testing/asserts";` with
-```ts
-import { assert, assertEquals, assertObjectMatch } from "../../asserts.ts";
-```
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/inspect -name '*.test.ts')`
-Expected: all passed.
+Assumes PR 00b landed (its Task 6 step 4 moved `assertObjectMatch` of the four `tests/smoke/inspect/*.test.ts` to `tests/asserts.ts`; its `tools/check-test-imports.ts` exports `kLockEntrypoints` with six entries).
+Run: `grep -l 'deno.land/std@0.93.0' tests/smoke/inspect/*.test.ts; grep -n 'vendor_deps' tools/check-test-imports.ts dev-docs/add-typescript-dependency.md package/scripts/vendoring/update-lock.sh`
+Expected: the first `grep` prints nothing (if it prints a file, PR 00b is not on `main`: stop, this PR lands after it); the second prints the lines that name `src/vendor_deps.ts` as a lock entrypoint. Remove `src/vendor_deps.ts` from `kLockEntrypoints`, from the entrypoint list in `dev-docs/add-typescript-dependency.md` and from `update-lock.sh` if it repeats the list; adjust `tools/check-test-imports.test.ts` if it counts six entries.
+Run: `quarto run --dev tools/check-test-imports.ts`
+Expected: `OK: every remote module the tests reach is in the locked graph (...)`, exit 0 (the file is deleted later in this task; `deno info` on a missing entrypoint would fail the Bundle Test job otherwise).
 
 - [ ] **Step 3: Find which `deno.land/std` redirect keys anything still uses**
 
@@ -809,7 +801,7 @@ On the PR: `Smoke Tests`, `Parallel Smokes Tests`, `Bundle Test` (three OSes), `
 - [ ] The comments in `handlers/types.ts`, `cri/launch.ts`, `deno/monkey-patch.ts` no longer mention puppeteer.
 - [ ] Task 6 ran after 03–06 were merged; its `deno info` output and the Step 7 exit check output are pasted in the PR description; every remaining `deno.land`/skypack/jspm reference is in the allow-list table.
 - [ ] `src/vendor_deps.ts` and the three dead import-map files are gone and nothing references them.
-- [ ] The baseline diff lowers only `src.stdImportFiles` (−1) and `tests.stdImportFiles` (−4).
+- [ ] The baseline diff lowers only `src.stdImportFiles` (−1); `tests.stdImportFiles` is unchanged (PR 00b took the inspect-tests credit).
 
 ## Risks and rollback
 
