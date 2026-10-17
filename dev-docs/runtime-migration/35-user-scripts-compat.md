@@ -6,7 +6,7 @@
 **Phase:** 3. **Depends on:** PR 33 (Node CLI; `denoToolBinary()`/`requireDenoToolBinary()`, `quarto install deno`; `tools/node-bundle/build.mjs`), PR 31 (`tools/node-bundle/register-import-map.mjs`), PR 00c (the `quarto run` deprecation notice this PR replaces). **Unblocks:** PR 37.
 **Branch:** `rt/35-user-scripts-compat`.
 **Suggested executor:** Opus. The module hooks, the shim and its messages, and the runtime-selection policy are user-facing contracts.
-**Size:** L (about 30 files: run handlers, project plumbing and schema, `register.cjs`, `deno-shim.cjs`, the `tools/run-stdlib/` builder with its own `package.json`, `prepare-dist`/`configure` wiring, five test files and fixtures, changelog, docs).
+**Size:** M by file count, L by volume (about 30 files: run handlers, project plumbing and schema, `register.cjs`, `deno-shim.cjs`, the `tools/run-stdlib/` builder with its own `package.json`, `prepare-dist`/`configure` wiring, five test files and fixtures, changelog, docs).
 **Ships on:** Node. Gates: PR 32 matrix, `tests/smoke/run/`, `tests/smoke/project/project-prepost.test.ts` (fixtures unchanged), the new tests below, the boundary-ratchet workflow (`quarto run --dev` now on Node).
 
 ## Spec
@@ -2193,7 +2193,7 @@ git commit -m "run: juice.ts and ast-diagram on Node APIs; retire check-usage"
 
 - [ ] **Step 2: `docs-updates.md`**
 
-PR 34 created the table; make sure its `projects/scripts-deno-to-node.qmd` row (the migration page PR 00c named) carries rows 4–6 of the supported migration surface matrix (Spec), the "not available on Node" table, the version rule and the governing-lockfile table, plus: per-file TypeScript compile (residual: re-exported types need `export type`); `"type": "commonjs"` no longer matters; `QUARTO_RUN_RUNTIME`, `project.script-runtime`; `quarto install deno`; the shim's member table (with the `Deno.Command` subset and its stated differences from Deno) and the migration table (`Deno.readTextFileSync` -> `fs.readFileSync(path, "utf8")`, `Deno.env.get` -> `process.env`, `Deno.args` -> `process.argv.slice(2)`, `Deno.Command` -> `node:child_process`, `Deno.exit` -> `process.exit`, `Deno.cwd` -> `process.cwd()`); and the 1.13 note. The `projects/scripts.qmd` row keeps a short "TypeScript scripts run on Node" section that links to it.
+PR 34 created the table (if PR 34 has not landed yet, create `dev-docs/runtime-migration/docs-updates.md` with PR 34 Task 7's header and this row; PR 34 merges into it, README ground rule 8); make sure its `projects/scripts-deno-to-node.qmd` row (the migration page PR 00c named) carries rows 4–6 of the supported migration surface matrix (Spec), the "not available on Node" table, the version rule and the governing-lockfile table, plus: per-file TypeScript compile (residual: re-exported types need `export type`); `"type": "commonjs"` no longer matters; `QUARTO_RUN_RUNTIME`, `project.script-runtime`; `quarto install deno`; the shim's member table (with the `Deno.Command` subset and its stated differences from Deno) and the migration table (`Deno.readTextFileSync` -> `fs.readFileSync(path, "utf8")`, `Deno.env.get` -> `process.env`, `Deno.args` -> `process.argv.slice(2)`, `Deno.Command` -> `node:child_process`, `Deno.exit` -> `process.exit`, `Deno.cwd` -> `process.cwd()`); and the 1.13 note. The `projects/scripts.qmd` row keeps a short "TypeScript scripts run on Node" section that links to it.
 
 - [ ] **Step 3: Commit**
 
@@ -2241,8 +2241,10 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 
 ## Decisions needed
 
-1. **Shim removal date.** Recommendation: keep the shim through 1.13 and decide then from issue reports; removing it has no maintenance benefit while it is a single file.
-2. **`stdlib/*` beyond 1.13.** Recommendation: keep; the bundles are build-time inputs only.
+0. **One PR or two.** Task 1 (the `tools/run-stdlib/` builder, build-time only, no user-visible change, about 880 plan lines) could land first as `rt/35a-stdlib-builder`; Tasks 2–7 then flip the scripts. Recommendation: two PRs if the reviewer asks for it at step 0; decider: the maintainer, before Phase 3 starts (README "Open decisions with an owner").
+
+1. **Shim removal date.** Recommendation: keep the shim through 1.13 and decide then from issue reports; removing it has no maintenance benefit while it is a single file. Decider and trigger: the release manager at the 1.13 branch cut (README "Open decisions with an owner").
+2. **`stdlib/*` beyond 1.13.** Recommendation: keep; the bundles are build-time inputs only. Same decider and trigger as 1.
 3. **Module-local `Deno` binding for the `stdlib/*` bundles** (triage A1(b) reuses the bundles for in-process engines, which have no `Deno` global by review decision 1). Options: (a) keep the bundles dependent on the global shim: a bundle contains `Deno.`, `register.cjs` installs the shim when it loads one; scripts only, importing `stdlib/fmt_colors` turns on the deprecated global for a script that never wrote `Deno.`, and PR 36 cannot reuse the bundles. (b) esbuild `inject` of `tools/run-stdlib/stdlib/deno-binding.js`, which exports the member table of `deno-members.cjs` under the name `Deno`, so every `Deno.<member>` reference inside a bundle becomes a module-local reference: no global, no notice, the same bundles serve scripts and the engine map, and the builder's member gate proves every reference is in the table. (c) an engine-side `Deno` shim (A1 option (c), not taken). Recommendation and choice: (b); this plan is written for it.
 4. Not changed because the review's concern is resolved by the design: "type-only imports not in the risk list" (now in Risks with the exact error, and mitigated by the per-file compile); "`stdlib/fs`/`stdlib/path` mapped to `deno_ral` lack APIs" (now the 0.224 JSR packages).
 
