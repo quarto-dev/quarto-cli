@@ -6,7 +6,7 @@
 **Phase:** 2. **Depends on:** PR 18 (`openKeyValueStore(dir, name)`, both caches on it, the cross-handle and cross-process contract cases), PR 25 (boundary at zero), PR 26 (shim, `node-unit` job, `tests/unit/ral/layer-script.ts`), PR 27b (`runtime()` correct inside the test bundles, which `layer-script.ts` relies on). **Unblocks:** PR 31, 32.
 **Branch:** `rt/30-ral-kv-on-node`.
 **Suggested executor:** Opus. The store is small, but the lock, its stale-owner policy and the cross-version file layout need judgement; the flag removal is a grep.
-**Size:** S (1 source file rewritten, 1 test file and 1 fixture added, 11 flag sites, shim shrink).
+**Size:** M by file count (about 17 files: the three launchers and `package/launcher/src/main.rs` among them), S by new code (1 source file rewritten, 1 test file and 1 fixture added, 11 flag sites, shim shrink).
 **Ships on:** Deno; the existing suite, in particular `unit/sass-cache.test.ts` and `smoke/render/`, must stay green. Node: the PR 26 `node-unit` job runs `tests/unit/ral/kv.test.ts` and `kv-json.test.ts` on real Node (Linux, Windows); their entries in `tools/node-bundle/known-failures.json` are removed and none is added.
 
 ## Spec
