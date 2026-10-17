@@ -69,7 +69,7 @@ Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`net.ts`", "`http.ts`", "
 - Modify: `src/import_map.json` (add `ws`, `@types/ws`)
 - Modify: `package.json`, `package-lock.json` (move `ws` to `dependencies`, add `@types/ws`)
 - Modify: `.github/workflows/test-node-bundle.yml` (preview websocket step)
-- Modify: `tools/node-bundle/deno-shim.mjs` (delete unused members)
+- Modify: `tools/node-bundle/deno-shim.mjs` (delete unused members), `tools/node-bundle/known-failures.json` (Task 5 step 2 removes this PR's entries; shared with PRs 28 and 30, README ground rule 8)
 - Test: `tests/unit/ral/net.test.ts`, `tests/unit/ral/http.test.ts`, `tests/unit/ral/watch.test.ts` (PR 15/16/17 contracts; extended). Assumes these names; if PR 15–17 used others, extend the files `ls tests/unit/ral/` shows.
 
 ### Acceptance criteria
