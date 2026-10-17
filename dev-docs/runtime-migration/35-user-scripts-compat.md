@@ -17,14 +17,14 @@ Assessment section 6 ("Users who write TypeScript scripts for Quarto: the main c
 
 `src/resources/deno_std/run_import_map.json` has **34** entries (counted with `python3 -c "import json;print(len(json.load(open('src/resources/deno_std/run_import_map.json'))['imports']))"`): 26 `jsr:/@std/<pkg>@0.224.x` targets, 7 `https://deno.land/std@0.224.0/{encoding,fmt}/*.ts` targets and `stdlib/juice` -> `https://cdn.skypack.dev/juice@10.0.0`.
 
-Review of 2026-10-16 (`REVIEW-2026-10-16.md` R05, R15 and R09, triage bucket C row 35; the row's R08 part, `architectureToolsPath("node")` in `runOnNode()`, was done by B8, and the "keep working" wording of the Goal and the changelog by B7), addressed here: the member table's writes went through `node:fs` string flags (`"w"`, `"a"`, `"r+"`), which bundle create, truncate and append; `writeTextFile(path, text, { create: false })` opened with `"r+"` and kept the tail of a longer file (reproduced on Node 26.12.0 and 22.22: `"hi"` written over `"0123456789"` reads back `"hi23456789"`), and `{ append: true, create: false }` created a missing file. The table now copies PR 27's `openFlagBits()` and its write mapping (Interfaces, "Open flags (PR 27's rule, copied)"). `Deno.Command` used one set of stdio defaults for `output()` and `spawn()`, returned Node streams from `spawn()` so that `child.stdout.getReader()` and `child.stdin.getWriter()` failed, and spawned `.bat`/`.cmd` files directly, which Node refuses (CVE-2024-27980); it now copies PR 28's rules (Interfaces, "Child processes (PR 28's rules, copied)"): per-method defaults, Web Streams through `Readable.toWeb`/`Writable.toWeb`, `cmd.exe` with `batchCommandLine()`, 128 + n for a signal exit, and the option subset it supports is enumerated, anything else a `TypeError`. The table cannot import `src/deno_ral/` (it ships as a `.cjs` next to the bundles and is bundled into the `@quarto/std-*` packages), so both rules are copied, not shared; the review checklist diffs the copies against the layer. The changelog's shim sentence names the member table and the `Command` subset instead of "the common `Deno` API calls". The corrected table and the Task 3 R05/R15 cases other than the Windows one were run on Node 26.12.0 and 22.22 while correcting the plan (a 1 MiB round trip through a piped child, `kill()` as `143 SIGTERM`, PR 28's batch vectors through the copy); Deno is not involved, the shim never runs there.
+Review of 2026-10-16 (`REVIEW-2026-10-16.md` R05, R15 and R09, triage bucket C row 35; the row's R08 part, `architectureToolsPath("node")` in `runOnNode()`, was done by B8, and the "keep working" wording of the Goal and the changelog by B7), addressed here: the member table's writes went through `node:fs` string flags (`"w"`, `"a"`, `"r+"`), which bundle create, truncate and append; `writeTextFile(path, text, { create: false })` opened with `"r+"` and kept the tail of a longer file (reproduced on Node 26.12.0 and 22.22: `"hi"` written over `"0123456789"` reads back `"hi23456789"`), and `{ append: true, create: false }` created a missing file. The table now copies PR 27's `openFlagBits()` and its write mapping (Interfaces, "Open flags (PR 27's rule, copied)"). `Deno.Command` used one set of stdio defaults for `output()` and `spawn()`, returned Node streams from `spawn()` so that `child.stdout.getReader()` and `child.stdin.getWriter()` failed, and spawned `.bat`/`.cmd` files directly, which Node refuses (CVE-2024-27980); it now copies PR 28's rules (Interfaces, "Child processes (PR 28's rules, copied)"): per-method defaults, Web Streams through `Readable.toWeb`/`Writable.toWeb`, `cmd.exe` with `batchCommandLine()`, 128 + n for a signal exit, and the option subset it supports is enumerated, anything else a `TypeError`. The table cannot import `src/deno_ral/` (it ships as a `.cjs` next to the bundles and is bundled into the `@quarto/std-*` packages), so both rules are copied, not shared; the review checklist diffs the copies against the layer. The changelog's shim sentence names the member table and the `Command` subset instead of "the common `Deno` API calls". The corrected table and the Task 3 R05/R15 cases other than the Windows one were run on Node 26.12.0 and 22.22 while correcting the plan (a 1 MiB round trip through a piped child, `kill()` as `143 SIGTERM`, PR 28's batch vectors through the copy); Deno is not involved, the shim never runs there. The re-read of the review's "Later validation" lines (2026-10-17, last paragraph of this plan) rebuilt eight of the bundles from the 0.224 packages with Task 1's binding and gate and found four things wrong: `@std/path@0.224`'s `resolve()` and `_os` read the global as `const { Deno } = globalThis`, a form esbuild `inject` cannot rewrite, so `resolve("x")` and every `stdlib/fs` function that calls it threw `Resolved a relative path without a CWD.` (Task 1 Step 4 now rewrites the two `globalThis` forms); the gate's comment stripping kept JSDoc (`minifyWhitespace: true` strips it) and counted `Symbol.for("Deno.customInspect")` strings; seven modules reach members the table lacked (`stdout`/`stderr`, `SeekMode`, `errors.UnexpectedEof` and `unrefTimer`/`refTimer` added; `@std/http`'s `server` module stubbed whole; `Tar`'s file-path source listed as not available); and `@std/fs@0.224.0` already reaches `link`, `utime`, `uid`, `gid` and `permissions.query`. It also added the dual-runtime cells of R08 to Task 4 (Step 6b), and the R17 forms and a stdlib-operations case (R09) to Task 2's test.
 
 Verified facts this plan relies on:
 
 - Node 26's `module.registerHooks({ resolve, load })` (synchronous, in-thread) is Stability 1.2; `module.register` is deprecated (DEP0205). A `--require`d CommonJS file can call it before the entry module loads.
 - Node's type stripping does **not** elide type-only imports. Reproduced on Node 22.22: `import { Foo, x } from "./types.ts"` where `Foo` is an interface fails with `SyntaxError: The requested module './types.ts' does not provide an export named 'Foo'`. Deno scripts write this form constantly (Deno's transpiler elides it). Type stripping also rejects `enum`, parameter properties and runtime `namespace` (`ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX`). This plan therefore does not use type stripping for scripts: the `load` hook compiles each local `.ts` file with the esbuild binary Quarto ships (`esbuild --loader=ts`, which elides imports only used as types and supports `enum` and parameter properties), with an inline source map so stack traces point at the user's file. Residual: `export { T } from "./x.ts"` re-exporting a type cannot be elided by a per-file compiler (Deno has the same limitation); scripts write `export type { T }`.
 - A `.ts`/`.js` script whose nearest `package.json` says `"type": "commonjs"` fails with `Warning: Failed to load the ES module: <file>. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension.` followed by `SyntaxError: Cannot use import statement outside a module` (reproduced). Deno ignored `package.json`. The `load` hook returns `format: "module"` for local files that contain `import`/`export` statements, whatever `package.json` says.
-- `@std/fs@0.224.0` and `@std/path@0.224.0` exist on `npm.jsr.io` as `@jsr/std__fs` and `@jsr/std__path`, as do all other pinned 0.224 versions of `run_import_map.json`, plus `@jsr/std__encoding@0.224.0`, `@jsr/std__fmt@0.224.0`, and `juice@10.0.0` on npm (checked 2026-10-15). `@std/fs@0.224` calls `Deno.*` for everything (`Deno.stat`, `lstat`, `readDir`, `mkdir`, `remove`, `copyFile`, `rename`, `realPath`, `readLink`, `symlink`, `errors.NotFound`); the member table (`deno-members.cjs`, Interfaces) implements exactly those, so `stdlib/fs` keeps its full API (`exists`, `ensureFile`, `ensureSymlink`, `move`, `emptyDir`, `walk`, `expandGlob`, `copy`) instead of the subset `src/deno_ral/fs.ts` would offer. `@std/path@0.224` is plain JavaScript (`parse`, `format`, `common`, `SEPARATOR`, `win32`, `posix` complete).
+- `@std/fs@0.224.0` and `@std/path@0.224.0` exist on `npm.jsr.io` as `@jsr/std__fs` and `@jsr/std__path`, as do all other pinned 0.224 versions of `run_import_map.json`, plus `@jsr/std__encoding@0.224.0`, `@jsr/std__fmt@0.224.0`, and `juice@10.0.0` on npm (checked 2026-10-15). `@std/fs@0.224.0` calls `Deno.*` for everything: `stat`, `lstat`, `readDir`, `mkdir`, `remove`, `copyFile`, `rename`, `realPath`, `readLink`, `symlink`, `link`, `utime`, `writeFile`, `cwd`, `uid`, `gid`, `permissions.query`, `build.os` and `errors.NotFound`/`AlreadyExists`/`PermissionDenied`, 35 references with the `Sync` forms (the package bundled with esbuild and its inputs scanned the way Task 1 Step 4's gate does, 2026-10-17); the member table (`deno-members.cjs`, Interfaces) implements exactly those, so `stdlib/fs` keeps its full API (`exists`, `ensureFile`, `ensureSymlink`, `move`, `emptyDir`, `walk`, `expandGlob`, `copy`) instead of the subset `src/deno_ral/fs.ts` would offer. `@std/path@0.224` is plain JavaScript (`parse`, `format`, `common`, `SEPARATOR`, `win32`, `posix` complete) except that `_os.ts` and `resolve()` read the global as `const { Deno } = globalThis` (`build.os` for the platform, `cwd()` for a relative `resolve`); `@std/fmt/colors`, `@std/internal`, `@std/front-matter` and `@std/fs`'s `eol`/`expandGlob` use the same form, eleven sites across the 0.224 packages, and `globalThis.Deno?.build.os` four more. esbuild `inject` rewrites only bare `Deno` identifiers, so Task 1 Step 4 rewrites those two forms itself; without that, `resolve("x")` throws `Resolved a relative path without a CWD.` from inside `ensureSymlink`, `copy` and `expandGlob` (measured on Node 26.12.0 and 22.22 with the eight rebuilt bundles).
 - Libraries feature-detect Deno (`@std/fmt/colors@0.224`: `typeof Deno?.noColor === "boolean" ? Deno.noColor : false` at module level; Cliffy's runtime branches). A shim that throws on unknown members breaks their import, and a `Deno` global at all makes some npm packages take their Deno code path. Hence: the shim is installed only when a local module contains `Deno.` (the `stdlib/*` bundles carry a module-local `Deno` binding, Decision 3, and never install the global), and unknown members return `undefined`.
 - The in-repo fixtures `tests/docs/project/prepost/extension/_extensions/author/prerender/pre-render.ts`, `tests/docs/project/prepost/invalid-mutate/pre.ts` and `tests/docs/project/prepost/script-env-vars/check-env.ts` use `Deno.statSync`, `Deno.errors.NotFound`, `Deno.writeTextFileSync`, `Deno.removeSync`, `Deno.env.get`, `Deno.cwd`, `stdlib/path`, `stdlib/fs`. They stay unchanged: they are the shim's regression tests.
 
@@ -53,11 +53,12 @@ Assumptions about earlier PRs:
 | Module | Member | Needs | On Node |
 |---|---|---|---|
 | `stdlib/log`; the engine map's `log`, `log/` | `FileHandler`, `RotatingFileHandler` | `Deno.openSync` and an `FsFile` | replaced in the bundle by a stub that throws `FileHandler is not available when Quarto runs on Node.js` at construction (`tools/run-stdlib/stdlib/unsupported.ts`); an engine build whose output contains the stub's marker fails (PR 36 `bundle()`) |
-| `stdlib/http` | `serveDir`, `serveFile` (the file server) | `Deno.open`, `Deno.serve` | the same stub; `node:http` instead |
+| `stdlib/http` | `serveDir`, `serveFile` (the `file_server` module) and `Server`, `serve`, `serveTls`, `serveListener` (the `server` module, deprecated in 0.224) | `Deno.open`, `Deno.serve`, `Deno.listen`, `listenTls`, `serveHttp`, `networkInterfaces` and five `Deno.errors` classes | the same stub, substituted for both modules whole (the gate scans module sources: stubbing two functions of `file_server` would still let its `main` reach `Deno.serve`); `node:http` instead |
+| `stdlib/tar` | `Tar.append` with a `{ filePath }` source | `Deno.open` and an `FsFile` | the one member the gate allows without providing (`kAllowedUnsupported` in `build.mjs`, this row as its reason): the binding maps `open`/`openSync` to a function that throws `Deno.open is not available when Quarto runs on Node.js`; the `{ reader, contentSize }` form works with a `node:fs` stream |
 | `stdlib/permissions` | `grant`, `grantOrThrow` | `Deno.permissions`, which has no Node meaning | the local stub grants every request |
 | `stdlib/io` and `stdlib/streams` readers | `Deno.stdin` passed in by the script | `Deno.stdin` is not in the member table | `process.stdin`; the script's `Deno.stdin` access is `undefined` and named in the exit hint |
 
-**Version rule for `npm:` and `jsr:` specifiers (A2 (a)).** A version in a specifier (`npm:left-pad@1.3.0`, `jsr:@std/path@^1`) pins nothing on Node: the specifier resolves as its package name plus subpath, and the governing lockfile below decides what is installed. When the installed version does not satisfy the requested one, Quarto prints one warning per package and requested version, naming the importing file, the requested version and the installed one, and continues. The forms checked are `1`, `1.2`, `1.2.3`, `^1.2.3` and `~1.2.3` (with an optional leading `v`); any other range form is not checked. Implemented in `register.cjs` for scripts (Task 2, `checkVersion`) and in PR 36's `bundle()` for the engine import map (`versionMismatches` plus one warning per entry, same forms; PR 36 Decision 4), documented on both pages above.
+**Version rule for `npm:` and `jsr:` specifiers (A2 (a)).** A version in a specifier (`npm:left-pad@1.3.0`, `jsr:@std/path@^1`) pins nothing on Node: the specifier resolves as its package name plus subpath, and the governing lockfile below decides what is installed. When the installed version does not satisfy the requested one, Quarto prints one warning per package and requested version, naming the importing file, the requested version and the installed one, and continues; once per package and requested version (two files requesting `^1.3.0` give one warning, a third requesting `2` a second one). A prerelease installed version is compared by its numeric part (`2.0.0-beta.1` satisfies `2`); a scoped package (`npm:@scope/name@^1`) and a subpath (`npm:left-pad@1.3.0/sub`, `jsr:@std/path@^1/posix`) are checked the same way, the subpath resolving through the package's `exports`. The forms checked are `1`, `1.2`, `1.2.3`, `^1.2.3` and `~1.2.3` (with an optional leading `v`); any other range form is not checked. Implemented in `register.cjs` for scripts (Task 2, `checkVersion`) and in PR 36's `bundle()` for the engine import map (`versionMismatches` plus one warning per entry, same forms; PR 36 Decision 4), documented on both pages above.
 
 | What resolves | Governing lockfile | Changed by |
 |---|---|---|
@@ -159,9 +160,9 @@ Node command line:
 
 `deno-members.cjs` exports `members`, the table below, implemented on `node:fs`, `node:child_process` and `process` with Deno's error classes and no notice; it serves two consumers: `deno-shim.cjs` installs `globalThis.Deno` as a Proxy over it that prints the notice once per process on the first access of any member unless `QUARTO_RUN_DENO_NOTICE=0`, and every `stdlib/*` bundle references it as a module-local `Deno` binding (Task 1; Decision 3). The members:
 
-`readTextFile(Sync)`, `readFile(Sync)`, `writeTextFile(Sync)`, `writeFile(Sync)`, `stat(Sync)`, `lstat(Sync)`, `mkdir(Sync)`, `remove(Sync)`, `readDir(Sync)`, `copyFile(Sync)`, `rename(Sync)`, `realPath(Sync)`, `readLink(Sync)`, `symlink(Sync)`, `link(Sync)`, `utime(Sync)`, `makeTempDir(Sync)`, `cwd`, `chdir`, `uid`, `gid`, `permissions` (`query`, `querySync`: always `granted`), `env` (`get`, `set`, `delete`, `has`, `toObject`), `args`, `exit`, `execPath`, `pid`, `noColor`, `inspect` (`node:util`; `stdlib/fmt_printf` uses it for `%i`/`%I`), `Command` (`output()`, `outputSync()`, `spawn()`; the subset in "Child processes" below), `errors` (`NotFound`, `AlreadyExists`, `PermissionDenied`, `NotSupported`), `build` (`os`, `arch`), `version` (`deno: "compat"`, `node`, `v8`).
+`readTextFile(Sync)`, `readFile(Sync)`, `writeTextFile(Sync)`, `writeFile(Sync)`, `stat(Sync)`, `lstat(Sync)`, `mkdir(Sync)`, `remove(Sync)`, `readDir(Sync)`, `copyFile(Sync)`, `rename(Sync)`, `realPath(Sync)`, `readLink(Sync)`, `symlink(Sync)`, `link(Sync)`, `utime(Sync)`, `makeTempDir(Sync)`, `cwd`, `chdir`, `uid`, `gid`, `permissions` (`query`, `querySync`: always `granted`), `env` (`get`, `set`, `delete`, `has`, `toObject`), `args`, `exit`, `execPath`, `pid`, `noColor`, `inspect` (`node:util`; `stdlib/fmt_printf` uses it for `%i`/`%I`), `stdout`/`stderr` (`write`, `writeSync`, `writable`, `close`; `@std/fmt@0.224`'s `printf` calls `Deno.stdout.writeSync`, and Deno scripts write `Deno.stdout.write`), `SeekMode` (`Start`, `Current`, `End`; `@std/io@0.224.8`'s `readRange`), `unrefTimer`/`refTimer` (`Timeout.unref()`/`ref()` of `node:timers`; `@std/async@0.224.2`'s `delay({ persistent: false })`), `Command` (`output()`, `outputSync()`, `spawn()`; the subset in "Child processes" below), `errors` (`NotFound`, `AlreadyExists`, `PermissionDenied`, `NotSupported`, `UnexpectedEof`: `@std/io`'s `readInt`/`readShort`/`readLong`), `build` (`os`, `arch`), `version` (`deno: "compat"`, `node`, `v8`).
 
-`readLink(Sync)` and `symlink(Sync)` go beyond the review's list because `@std/fs@0.224`'s `copy`, `walk` and `ensureSymlink` call them; `link(Sync)`, `utime(Sync)`, `uid`, `gid`, `permissions.query(Sync)` and `errors.NotSupported` are there because `@std/fs@1.0.16`, the version the default engine import map resolves to (PR 36 Decision 4), reaches them from `ensureLink`, `copy` (`preserveTimestamps`), `exists` (`isReadable`) and `move` (listed from the package on `npm.jsr.io`, 2026-10-16; the member gate of Task 1 step 4 re-checks it on every build). Through the shim, every other member returns `undefined` (so `typeof Deno.x` feature detection works); the notice is printed on that first access too, and if the process exits with a non-zero code after touching unsupported members, one line names them with their Node equivalent.
+`readLink(Sync)` and `symlink(Sync)` go beyond the review's list because `@std/fs@0.224`'s `copy`, `walk` and `ensureSymlink` call them; `link(Sync)`, `utime(Sync)`, `uid`, `gid` and `permissions.query(Sync)` are reached by `@std/fs@0.224.0` itself (`ensureLink`, `copy` with `preserveTimestamps`, `exists`), and `errors.NotSupported` by `move` of `@std/fs@1.0.16`, the version the default engine import map resolves to (PR 36 Decision 4; both listed from the packages on `npm.jsr.io`, 2026-10-17). The member gate of Task 1 step 4 re-checks this on every build; it would report the `chmod`, `chown`, `umask`, `truncate` and `makeTempFile` of 1.0.16's `unstable_*` subpath modules if an engine map build ever included one. `stdout`/`stderr`, `SeekMode`, `errors.UnexpectedEof` and `unrefTimer`/`refTimer` are there because `printf`, `readRange`/`readInt`/`readShort`/`readLong` and `delay` reach them (the gate run of 2026-10-17 over the 33 bundled entries; without them the builds of `stdlib/fmt_printf`, `stdlib/io` and `stdlib/async` fail at Task 1 Step 6). Through the shim, every other member returns `undefined` (so `typeof Deno.x` feature detection works); the notice is printed on that first access too, and if the process exits with a non-zero code after touching unsupported members, one line names them with their Node equivalent.
 
 **Open flags (PR 27's rule, copied).** `writeTextFile(Sync)` and `writeFile(Sync)` open with a copy of PR 27's `openFlagBits()` (`O_CREAT` iff `create`, `O_TRUNC` iff `truncate`, `O_APPEND` iff `append`, nothing implied between the three) called with `{ write: true, create: create ?? true, truncate: !append, append }`, as `Deno.writeFile` maps its options, and write through the descriptor (`writeFileSync(fd, data)`, `handle.writeFile(data)`). So `{ create: false }` truncates an existing file and is `NotFound` on a missing one, `{ append: true, create: false }` never creates, shorter replacement content leaves no trailing bytes, and `mode` applies at creation. No `"w"`, `"a"` or `"r+"` string flag remains in `deno-members.cjs`.
 
@@ -181,8 +182,8 @@ Deprecation timeline (changelog and docs): 1.11 scripts run on Deno with a notic
 ### Acceptance criteria
 
 - `share/run-stdlib/` in a `prepare-dist` output holds 34 `.js` files, a `package.json` (`{ "type": "module" }`) and a copy of `deno-members.cjs`, no `.map`; `share/run-compat/` holds `register.cjs`, `deno-members.cjs`, `deno-shim.cjs`, `deno/run_import_map.json`.
-- `node tools/run-stdlib/build.mjs --outdir src/resources/run-stdlib --force` prints, per bundle, the `Deno` members it reaches, every one of them in `deno-members.cjs` (the member gate; the PR description pastes the report), and no bundle's text contains `Deno.` (`rg -c '\bDeno\.' src/resources/run-stdlib` prints nothing: the binding is module-local).
-- A script that imports `stdlib/fs` or `stdlib/fmt_colors` and never mentions `Deno` sees `typeof Deno === "undefined"`; `new FileHandler(...)` from `stdlib/log` throws `FileHandler is not available when Quarto runs on Node.js`; `import "npm:left-pad@^1.3.0"` with `left-pad` 1.2.0 installed prints one warning naming the file, `npm:left-pad@^1.3.0` and `1.2.0`, and runs (`tests/unit/run-compat-hooks.test.ts`).
+- `node tools/run-stdlib/build.mjs --outdir src/resources/run-stdlib --force` prints, per bundle, the `Deno` members it reaches, every one of them in `deno-members.cjs` (the member gate; the PR description pastes the report), and no bundle's text contains `Deno.` (`rg -c '\bDeno\.' src/resources/run-stdlib` prints nothing: the binding is module-local) or reads the global (`rg -n 'globalThis\s*\??\.\s*Deno|\{\s*Deno\s*\}\s*=\s*globalThis' src/resources/run-stdlib` prints nothing either).
+- A script that imports `stdlib/fs` or `stdlib/fmt_colors` and never mentions `Deno` sees `typeof Deno === "undefined"`, and in such a script `resolve("x")` from `stdlib/path` is absolute, `stdlib/fs`'s `copy`, `walk`, `move`, `ensureSymlink` and `emptyDir` work, `stdlib/log`'s `ConsoleHandler` logs, `stdlib/fmt_printf`'s `printf` writes and `stdlib/io`'s `readRange` seeks (`run-compat-hooks.test.ts`, the R09 case); `new FileHandler(...)` from `stdlib/log` throws `FileHandler is not available when Quarto runs on Node.js`; `import "npm:left-pad@^1.3.0"` with `left-pad` 1.2.0 installed prints one warning naming the file, `npm:left-pad@^1.3.0` and `1.2.0`, and runs (`tests/unit/run-compat-hooks.test.ts`).
 - `tests/smoke/run/run-script.test.ts`, `stdlib-run-version.test.ts` (`stdlib/io` `readLines`), `command-passthrough.test.ts` pass with the scripts running on Node.
 - `tests/smoke/project/project-prepost.test.ts` passes with its fixtures unchanged; the render log contains the shim notice at most once per script process.
 - A script that imports a type without `import type` (`import { Foo, x } from "./types.ts"`), one with an `enum`, and one next to a `"type": "commonjs"` `package.json` all run (`tests/unit/run-compat-hooks.test.ts`).
@@ -416,8 +417,11 @@ export function unsupported(member: string): never {
 // bundle. No global is installed and no notice is printed: the user did not
 // write `Deno.`, the standard library did.
 import { createRequire } from "node:module";
-const quartoDeno = createRequire(import.meta.url)("./deno-members.cjs").members;
-export { quartoDeno as Deno };
+const { members, unavailable } = createRequire(import.meta.url)("./deno-members.cjs");
+// `open` is allowed by the gate without the table providing it (build.mjs kAllowedUnsupported)
+const quartoDeno = { ...members, open: unavailable("open"), openSync: unavailable("openSync") };
+// the second name is what build.mjs's `define` substitutes for `globalThis.Deno`
+export { quartoDeno as Deno, quartoDeno as __quartoDenoBinding };
 ```
 
 `tools/run-stdlib/stdlib/deno-binding-inline.js` (the binding `--packages` injects instead: the `@quarto/std-<name>` packages are bundled a second time, by the esbuild CLI, into an engine's single `.js` file that ships anywhere, so nothing may be required from a file next to the bundle; the table is bundled in):
@@ -430,8 +434,9 @@ export { quartoDeno as Deno };
 // Module-local `Deno` for the @quarto/std-<name> packages of the default engine
 // import map (PR 36): the member table is bundled into the package, because
 // the package is itself bundled into an engine file by build-ts-extension.
-import { members as quartoDeno } from "../../../src/resources/run-compat/deno-members.cjs";
-export { quartoDeno as Deno };
+import { members, unavailable } from "../../../src/resources/run-compat/deno-members.cjs";
+const quartoDeno = { ...members, open: unavailable("open"), openSync: unavailable("openSync") };
+export { quartoDeno as Deno, quartoDeno as __quartoDenoBinding };
 ```
 
 `src/resources/run-compat/deno-members.cjs` (the member table; `deno-shim.cjs` in Task 3 wraps it for user scripts):
@@ -461,7 +466,17 @@ class NotFound extends Error { constructor(m) { super(m); this.name = "NotFound"
 class AlreadyExists extends Error { constructor(m) { super(m); this.name = "AlreadyExists"; } }
 class PermissionDenied extends Error { constructor(m) { super(m); this.name = "PermissionDenied"; } }
 class NotSupported extends Error { constructor(m) { super(m); this.name = "NotSupported"; } }
-const errors = { NotFound, AlreadyExists, PermissionDenied, NotSupported };
+class UnexpectedEof extends Error { constructor(m) { super(m); this.name = "UnexpectedEof"; } }
+const errors = { NotFound, AlreadyExists, PermissionDenied, NotSupported, UnexpectedEof };
+// For members the gate allows without the table providing them (build.mjs kAllowedUnsupported).
+const unavailable = (name) => () => { throw new TypeError(`Deno.${name} is not available when Quarto runs on Node.js`); };
+// Deno.stdout / Deno.stderr: @std/fmt's printf writes through writeSync; scripts through write.
+const stdStream = (fd, stream) => ({
+  write: async (data) => fs.writeSync(fd, data),
+  writeSync: (data) => fs.writeSync(fd, data),
+  get writable() { return Writable.toWeb(stream); },
+  close: () => {},
+});
 
 function translate(e) {
   if (!e || typeof e.code !== "string") return e;
@@ -737,6 +752,11 @@ const members = {
   exit: (code) => process.exit(code ?? 0),
   execPath: () => process.execPath,
   inspect: (value, options) => util.inspect(value, options),
+  stdout: stdStream(1, process.stdout),
+  stderr: stdStream(2, process.stderr),
+  SeekMode: Object.freeze({ Start: 0, Current: 1, End: 2, 0: "Start", 1: "Current", 2: "End" }),
+  unrefTimer: (id) => { if (id && typeof id.unref === "function") id.unref(); },
+  refTimer: (id) => { if (id && typeof id.ref === "function") id.ref(); },
   env: {
     get: (k) => process.env[k],
     set: (k, v) => { process.env[k] = v; },
@@ -757,7 +777,7 @@ const members = {
   get noColor() { return process.env.NO_COLOR !== undefined && process.env.NO_COLOR !== ""; },
 };
 
-module.exports = { members, errors, translate, openFlagBits, batchCommandLine };
+module.exports = { members, errors, translate, openFlagBits, batchCommandLine, unavailable };
 ```
 
 Add to `.gitignore` under `# generated javascript`:
@@ -769,7 +789,7 @@ tools/run-stdlib/node_modules/
 
 - [ ] **Step 4: The builder**
 
-`tools/run-stdlib/build.mjs`. Three things beyond bundling: the `Deno` binding injection (Decision 3), the stubs for the "not available on Node" table, and the member gate that proves every `Deno` member the bundled std code reaches is in `deno-members.cjs` (the gate reads the esbuild metafile's inputs, strips comments with `esbuild.transformSync` so JSDoc examples do not count, and reuses `referencedMembers` from PR 26's `tools/node-bundle/check-shim.mjs`). `--manifest`, `--modules-from` and `--packages` exist for PR 36 (the `@quarto/std-<name>` packages of the engine import map); this PR only uses the defaults.
+`tools/run-stdlib/build.mjs`. Four things beyond bundling: the `Deno` binding injection (Decision 3) with a rewrite of the two `globalThis` forms `inject` cannot reach (`const { Deno } = globalThis;` through an `onLoad` plugin that renames the local, `globalThis.Deno` through `define`; Context, "Verified facts"), the stubs for the "not available on Node" table (whole modules: `file_handler`, `rotating_file_handler`, `file_server`, `server`), the member gate that proves every `Deno` member the bundled std code reaches is in `deno-members.cjs` (the gate reads the esbuild metafile's inputs, strips comments with `esbuild.transformSync({ minifyWhitespace: true })`, because plain `transformSync` keeps JSDoc, measured with esbuild 0.28.2, and `@std/csv`'s examples alone would add `makeTempFile` and `open`; ignores the `Symbol.for("Deno.customInspect")` strings of `@std/http` and `@std/crypto` through `kIgnoredReferences`, as PR 26's `check-shim.mjs` does; reuses its `referencedMembers`), and `kAllowedUnsupported`, the members a bundle may reach without the table providing them, each with the row of the table that says so (only `open` today, for `Tar`). `--manifest`, `--modules-from` and `--packages` exist for PR 36 (the `@quarto/std-<name>` packages of the engine import map); this PR only uses the defaults.
 
 ```js
 // tools/run-stdlib/build.mjs
@@ -857,16 +877,23 @@ function isProvided(ref) {
   return objectMembers.has(first) ? provided.has(ref) : true;
 }
 
-// Stubs for the members of the "not available on Node" table (plan 35, Spec).
+// Stubs for the members of the "not available on Node" table (plan 35, Spec):
+// whole modules, because the gate scans module sources.
 const kStubs = {
   file_handler: ["FileHandler"],
   rotating_file_handler: ["RotatingFileHandler"],
   file_server: ["serveDir", "serveFile"],
+  server: ["Server", "serve", "serveTls", "serveListener"],
 };
+// Members a bundle may reach without the table providing them (the binding
+// throws a message naming them); the value is the table row that says why.
+const kAllowedUnsupported = { open: "stdlib/tar: Tar.append with a { filePath } source", openSync: "stdlib/tar" };
+// String literals referencedMembers would count as references (PR 26's check-shim.mjs has the same set).
+const kIgnoredReferences = new Set(["customInspect"]); // Symbol.for("Deno.customInspect") in @std/http user_agent and @std/crypto
 const stubPlugin = {
   name: "quarto-unsupported-std-members",
   setup(build) {
-    build.onResolve({ filter: /(^|[\\/])(file_handler|rotating_file_handler|file_server)\.(js|ts)$/ }, (args) => {
+    build.onResolve({ filter: /(^|[\\/])(file_handler|rotating_file_handler|file_server|server)\.(js|ts)$/ }, (args) => {
       if (!/std__(log|http)([\\/]|$)/.test(args.resolveDir)) return undefined;
       return { path: path.basename(args.path).replace(/\.(js|ts)$/, ""), namespace: "quarto-unsupported" };
     });
@@ -875,11 +902,29 @@ const stubPlugin = {
       resolveDir: here,
       contents: `import { unsupported } from ${JSON.stringify(unsupportedFile)};\n` +
         kStubs[args.path].map((n) =>
-          n.endsWith("Handler")
+          n.endsWith("Handler") || n === "Server"
             ? `export class ${n} { constructor() { unsupported(${JSON.stringify(n)}); } }`
             : `export function ${n}(): never { return unsupported(${JSON.stringify(n)}); }`
         ).join("\n") + "\n",
     }));
+  },
+};
+// @std 0.224 reads the global in two forms esbuild `inject` cannot rewrite:
+// `const { Deno } = globalThis;` (path/_os, path resolve, fmt/colors, internal,
+// front-matter, fs eol and expand_glob: eleven sites) and `globalThis.Deno?.build.os`
+// (four sites; `define` below). Without this, resolve("x") throws
+// "Resolved a relative path without a CWD." on Node.
+const globalThisPlugin = {
+  name: "quarto-globalthis-deno",
+  setup(build) {
+    build.onLoad({ filter: /node_modules[\\/]@jsr[\\/].*\.js$/ }, (args) => {
+      const text = fs.readFileSync(args.path, "utf8");
+      const form = /(const|let|var)\s*\{\s*Deno\s*\}\s*=\s*globalThis\s*;/g;
+      if (!form.test(text)) return undefined;
+      const contents = text.replace(form, "const __quartoDeno = __quartoDenoBinding;")
+        .replace(/(?<![\w$."'])Deno(?=\s*\??\.)/g, "__quartoDeno");
+      return { contents, loader: "js" };
+    });
   },
 };
 
@@ -932,7 +977,8 @@ for (const [name, entry] of Object.entries(manifest)) {
     metafile: true,
     absWorkingDir: root,
     inject: [packages ? inlineBindingFile : bindingFile],
-    plugins: [stubPlugin],
+    define: { "globalThis.Deno": "__quartoDenoBinding" },
+    plugins: [stubPlugin, globalThisPlugin],
     logLevel: "warning",
     banner: { js: 'import { createRequire as __createRequire } from "node:module"; const require = __createRequire(import.meta.url);' },
   });
@@ -942,13 +988,15 @@ for (const [name, entry] of Object.entries(manifest)) {
     if (input.startsWith("quarto-unsupported:")) continue;
     const file = path.resolve(root, input);
     if (file === bindingFile || !fs.existsSync(file)) continue;
-    const code = esbuild.transformSync(fs.readFileSync(file, "utf8"), { loader: "js", legalComments: "none" }).code;
-    for (const ref of referencedMembers(code)) reached.add(ref);
+    // minifyWhitespace drops the JSDoc examples (legalComments: "none" alone keeps them)
+    const code = esbuild.transformSync(fs.readFileSync(file, "utf8"), { loader: "js", minifyWhitespace: true }).code;
+    for (const ref of referencedMembers(code)) if (!kIgnoredReferences.has(ref)) reached.add(ref);
   }
   const list = [...reached].sort();
   console.log(`stdlib/${name}: ${list.length === 0 ? "no Deno member" : list.map((r) => "Deno." + r).join(", ")}`);
   for (const ref of list) {
-    if (!isProvided(ref)) failures.push(`stdlib/${name} reaches Deno.${ref}, which src/resources/run-compat/deno-members.cjs does not provide`);
+    if (ref in kAllowedUnsupported) console.log(`stdlib/${name}: Deno.${ref} allowed without the table (${kAllowedUnsupported[ref]})`);
+    else if (!isProvided(ref)) failures.push(`stdlib/${name} reaches Deno.${ref}, which src/resources/run-compat/deno-members.cjs does not provide`);
   }
 }
 if (failures.length > 0) {
@@ -1009,7 +1057,7 @@ node tools/run-stdlib/build.mjs --outdir src/resources/run-stdlib
 ls src/resources/run-stdlib/*.js | wc -l
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-stdlib-manifest.test.ts
 ```
-Expected: one `stdlib/<name>: ...` line per module naming the `Deno` members it reaches (all in `deno-members.cjs`; `stdlib/fs` lists the eleven of the Context, `stdlib/path` lists none), then `built 34 run-stdlib modules ...`; `34`; `2 passed`. Paste the 34 report lines into the PR description: they are the evidence behind the "not available on Node" table.
+Expected: one `stdlib/<name>: ...` line per module naming the `Deno` members it reaches (all in `deno-members.cjs`; `stdlib/fs` lists the 35 references of the Context, `stdlib/path` `build.os` and `cwd`, `stdlib/fmt_printf` `inspect` and `stdout.writeSync`, `stdlib/io` `SeekMode.Start` and `errors.UnexpectedEof`, `stdlib/async` `unrefTimer`, `stdlib/tar` `stat` and `open` as allowed, `stdlib/log` and `stdlib/http` nothing from their stubbed modules; 23 modules list none), then `built 34 run-stdlib modules ...`; `34`; `2 passed`. Paste the 34 report lines into the PR description: they are the evidence behind the "not available on Node" table.
 
 ```bash
 git add tools/run-stdlib src/resources/run-compat/deno-members.cjs src/resources/run-compat/deno/run_import_map.json .gitignore package/src/common/previewjs.ts package/src/common/configure.ts package/src/common/prepare-dist.ts tests/unit/run-stdlib-manifest.test.ts
@@ -1037,6 +1085,7 @@ import { makeTempDirSync } from "../../src/deno_ral/temp.ts";
 import { mkdirSync, removeSync, writeTextFileSync } from "../../src/deno_ral/fs.ts";
 import { exec } from "../../src/deno_ral/process.ts";
 import { env } from "../../src/deno_ral/env.ts";
+import { isWindows } from "../../src/deno_ral/platform.ts";
 import { architectureToolsPath } from "../../src/core/resources.ts";
 
 const root = env.get("QUARTO_ROOT")!;
@@ -1141,7 +1190,84 @@ unitTest("hooks - a versioned npm: specifier warns when node_modules holds anoth
   assert(r2.success, r2.err);
   assertEquals(r2.err.includes("not satisfied"), false);
 }));
+
+unitTest("hooks - version rule: two requested versions, a scoped package, subpaths (R17)", withDir(async (dir) => {
+  // node_modules holds one version of each package; the specifiers ask for others, with
+  // scopes and subpaths. The warning is once per package and requested version, in import order.
+  const installed = {
+    "node_modules/left-pad/package.json": '{ "name": "left-pad", "version": "1.2.0", "exports": { ".": "./index.js", "./sub": "./sub.js" } }\n',
+    "node_modules/left-pad/index.js": "module.exports = (s) => s;\n",
+    "node_modules/left-pad/sub.js": 'module.exports = (s) => "sub:" + s;\n',
+    "node_modules/@scope/name/package.json": '{ "name": "@scope/name", "version": "2.0.0-beta.1", "type": "module", "exports": { ".": "./index.js", "./deep/*": "./lib/*.js" } }\n',
+    "node_modules/@scope/name/index.js": 'export const v = "scoped";\n',
+    "node_modules/@scope/name/lib/x.js": 'export const d = "deep";\n',
+    "node_modules/@jsr/std__path/package.json": '{ "name": "@jsr/std__path", "version": "0.224.0", "type": "module", "exports": { ".": "./mod.js", "./posix": "./posix.js" } }\n',
+    "node_modules/@jsr/std__path/mod.js": 'export const join = (...p) => p.join("/");\n',
+    "node_modules/@jsr/std__path/posix.js": 'export const join = (...p) => p.join("/");\n',
+    "again.ts": 'import lp from "npm:left-pad@^1.3.0";\nexport const again = lp("again");\n',
+  };
+  const r = await runNodeScript(dir, "m.ts", {
+    ...installed,
+    "m.ts": `
+import a from "npm:left-pad@^1.3.0";
+import b from "npm:left-pad@2";
+import c from "npm:left-pad@1.2.0";
+import s from "npm:left-pad@1.3.0/sub";
+import { v } from "npm:@scope/name@^1.0.0";
+import { d } from "npm:@scope/name@2.0.0/deep/x";
+import { join } from "jsr:@std/path@^1/posix";
+import { join as j2 } from "jsr:@std/path@0.224.0";
+import { again } from "./again.ts";
+console.log(a("x"), b("y"), c("z"), s("w"), v, d, join("p", "q"), j2("r", "s"), again);
+`,
+  });
+  assert(r.success, r.err);
+  assertEquals(r.out.trim(), "x y z sub:w scoped deep p/q r/s again");
+  const warnings = r.err.split("\n").filter((l) => l.includes("is not satisfied"));
+  // ^1.3.0 once although two files ask for it; 1.2.0 and 2.0.0 (prerelease installed) satisfied; the rest in import order
+  assertEquals(warnings.map((l) => l.match(/WARNING: (\S+) /)![1]), ["npm:left-pad@^1.3.0", "npm:left-pad@2", "npm:left-pad@1.3.0/sub", "npm:@scope/name@^1.0.0", "jsr:@std/path@^1/posix"]);
+  assertStringIncludes(warnings[3], "installed @scope/name 2.0.0-beta.1");
+  assertStringIncludes(warnings[4], "installed @jsr/std__path 0.224.0");
+}));
+
+unitTest("hooks - representative stdlib operations run on the module-local binding (R09)", withDir(async (dir) => {
+  // Operations that go through the member table: fs copy/walk/move/ensureSymlink/emptyDir
+  // (readDir, lstat, symlink, readLink, rename, remove, utime), path resolve (cwd, through the
+  // globalThis rewrite), log's ConsoleHandler, fmt's printf (stdout.writeSync), io's readRange
+  // (SeekMode), async's delay({ persistent: false }) (unrefTimer). No global Deno is created.
+  const link = !isWindows; // a symlink needs a privilege on Windows CI
+  const r = await runNodeScript(dir, "ops.ts", {
+    "src/a.txt": "A",
+    "src/sub/b.txt": "B",
+    "ops.ts": `
+import { copy, walk, move, ensureSymlink, ensureDir, emptyDir, exists } from "stdlib/fs";
+import { resolve, isAbsolute } from "stdlib/path";
+import { sprintf, printf } from "stdlib/fmt_printf";
+import { ConsoleHandler, getLogger, setup } from "stdlib/log";
+import { readRange } from "stdlib/io";
+import { delay } from "stdlib/async";
+if (${link}) await ensureSymlink("a.txt", "src/link.txt");
+await copy("src", "dst");
+const names = []; for await (const e of walk("dst")) names.push(e.name);
+await move("dst/sub", "moved");
+await ensureDir("empty/x"); await emptyDir("empty");
+setup({ handlers: { c: new ConsoleHandler("INFO", { formatter: (rec) => "LOG " + rec.msg }) }, loggers: { default: { level: "INFO", handlers: ["c"] } } });
+getLogger().info("hello");
+const keep = setTimeout(() => {}, 1000); await delay(5, { persistent: false }); clearTimeout(keep);
+const fake = { async seek(n) { return n; }, async read(b) { const n = Math.min(2, b.length); b.set([65, 66].slice(0, n)); return n; } };
+printf("%s %i|", "p", 42);
+console.log(sprintf("%05.1f %s", 3.14159, names.sort().join(",")), isAbsolute(resolve("x")), await exists("moved/b.txt"), await exists("dst/sub"), await exists("empty/x"), new TextDecoder().decode(await readRange(fake, { start: 0, end: 1 })), typeof Deno);
+`,
+  });
+  assert(r.success, r.err);
+  const expected = link ? "a.txt,b.txt,dst,link.txt,sub" : "a.txt,b.txt,dst,sub";
+  assertStringIncludes(r.out, "p 42|");
+  assertStringIncludes(r.out, `003.1 ${expected} true true false false AB undefined`);
+  assertStringIncludes(r.out, "LOG hello");
+}));
 ```
+
+The R17 and R09 cases are the review's "Later validation" for those findings (re-read of 2026-10-17). Both were run on Node 26.12.0 and 22.22 while correcting the plan: the version-rule script against `register.cjs` as written here (same five warnings in the same order on both), the operations script against `fs`, `path`, `fmt_printf`, `fmt_colors`, `log`, `io`, `async` and `tar` bundles built from the 0.224 packages with the Task 1 Step 4 binding, rewrite and stubs (same output on both; `ConsoleHandler` colours its line, so the test checks `LOG hello` as a substring).
 
 (`@std/fmt/colors@0.224` reads `Deno?.noColor` at module level; in the bundle that is the module-local binding of Task 1, so nothing is installed on `globalThis`. Task 3's last test shows the same for a script that never mentions `Deno`.)
 
@@ -1336,7 +1462,7 @@ registerHooks({ resolve, load });
 - [ ] **Step 4: Run the test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-compat-hooks.test.ts`
-Expected: `7 passed` (none of these scripts mentions `Deno.`, so `deno-shim.cjs`, Task 3, is not loaded yet).
+Expected: `9 passed` (none of these scripts mentions `Deno.`, so `deno-shim.cjs`, Task 3, is not loaded yet).
 
 - [ ] **Step 5: Commit**
 
@@ -1622,7 +1748,7 @@ globalThis.Deno = new Proxy(members, {
 - [ ] **Step 4: Run both test files and commit**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-compat-hooks.test.ts unit/run-compat-shim.test.ts`
-Expected: `16 passed` (the `.cmd` case returns early off Windows and runs on the Windows CI matrix, as PR 28's does).
+Expected: `18 passed` (the `.cmd` case returns early off Windows and runs on the Windows CI matrix, as PR 28's does).
 
 ```bash
 git add src/resources/run-compat/deno-shim.cjs tests/unit/run-compat-shim.test.ts tools/check-runtime-boundary.ts
@@ -1633,8 +1759,8 @@ git commit -m "run: an on-demand, deprecated Deno global over the member table f
 
 **Files:**
 - Create: `src/core/run/typescript.ts`
-- Modify: `src/core/run/types.ts`, `src/core/run/deno.ts`, `src/core/run/register.ts`, `src/command/run/run.ts:52-56`
-- Test: `tests/unit/run-runtime-select.test.ts`, `tests/smoke/run/run-script-node.test.ts`
+- Modify: `src/core/run/types.ts`, `src/core/run/deno.ts`, `src/core/run/register.ts`, `src/command/run/run.ts:52-56`; only if PR 33 Task 13 ran: `.github/workflows/test-node-bundle.yml` (Step 6b)
+- Test: `tests/unit/run-runtime-select.test.ts`, `tests/smoke/run/run-script-node.test.ts`; only if PR 33 Task 13 ran: `tests/smoke/env/launcher-env.test.ts` (Step 6b)
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1828,13 +1954,46 @@ In `src/core/run/deno.ts`:
   )
 ```
 
+- [ ] **Step 6b: The dual-runtime cells (only if PR 33 Task 13 ran: `grep -n QUARTO_RUNTIME package/scripts/common/quarto` prints the branch)**
+
+PR 33's table "Dual-runtime combinations until PR 37" has four cells; `run-script-node.test.ts` and `project-script-runtime.test.ts` (Task 5) prove the two with the CLI on Node. The two with the CLI on the Deno tool are PR 33 Task 13's `launcher-env.test.ts` case, which until this PR only proved that the hook ran (on the Deno tool, whatever ran the CLI). Replace that case so it reads which runtime wrote the marker (the fixture's `pre.ts` writes `navigator.userAgent` through `Deno.writeTextFileSync`, so on Node it goes through the shim), and add `readTextFileSync` and `removeSync` to the test's `fs.ts` import:
+
+```ts
+unitTest("launcher - QUARTO_RUNTIME=deno renders a project whose pre-render hook is a script", async () => {
+  // Review R08: the CLI on the Deno tool, the hook on the bundled Node (architectureToolsPath("node"),
+  // never execPath(), which is Deno here), then on the Deno tool (PR 33, "Dual-runtime combinations").
+  for (const [runtime, agent] of [["node", "Node.js/"], ["deno", "Deno/"]] as const) {
+    if (existsSync(join(hook, "pre-ran.txt"))) removeSync(join(hook, "pre-ran.txt"));
+    const r = await quarto(["render", hook], { QUARTO_RUNTIME: "deno", QUARTO_RUN_RUNTIME: runtime });
+    assertEquals(r.code, 0, r.err);
+    assertStringIncludes(readTextFileSync(join(hook, "pre-ran.txt")), agent, `the pre-render hook did not run on ${runtime}`);
+  }
+});
+```
+
+In `.github/workflows/test-node-bundle.yml`, after the render step of the `dual-runtime-smoke` job (PR 32 Task 5), one step that does the same with the installed layout and Task 5's fixture (`which.ts` writes the runtime name):
+
+```yaml
+      - name: Project hook under QUARTO_RUNTIME=deno with both script runtimes (plan 35, review R08)
+        shell: bash
+        run: |
+          for rt in node deno; do
+            cp -r tests/docs/project/prepost/script-runtime-deno "$RUNNER_TEMP/hook-$rt"
+            QUARTO_RUNTIME=deno QUARTO_RUN_RUNTIME=$rt package/dist/bin/quarto render "$RUNNER_TEMP/hook-$rt"
+          done
+          grep -qx 'Node.js' "$RUNNER_TEMP/hook-node/runtime.txt" && grep -qx 'Deno' "$RUNNER_TEMP/hook-deno/runtime.txt"
+```
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts`
+Expected: all pass; before this PR's Task 4 Step 4 the `node` iteration fails with `Deno/` in the marker (the hook still ran on the Deno tool), which is the test proving the cell.
+
 - [ ] **Step 7: Run and commit**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-runtime-select.test.ts $(find smoke/run/ -name '*.test.ts')`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/run-runtime-select.test.ts $(find smoke/run/ -name '*.test.ts')` (plus `smoke/env/launcher-env.test.ts` when Step 6b applies)
 Expected: all pass (`run-script.test.ts`, `stdlib-run-version.test.ts`, `command-passthrough.test.ts` now on Node; `run-script-node.test.ts` 3 passed). Then `quarto run --dev tools/check-runtime-boundary.ts` prints unchanged counts (on Node). `rg -n 'execPath\(\)' src/core/run` prints nothing. If it fails on a `Deno.` member of the shim or the import-map hook, fix the tool (it is repository code) rather than the shim, and list the fix in the PR.
 
 ```bash
-git add src/core/run src/command/run/run.ts tests/unit/run-runtime-select.test.ts tests/smoke/run/run-script-node.test.ts
+git add src/core/run src/command/run/run.ts tests/unit/run-runtime-select.test.ts tests/smoke/run/run-script-node.test.ts tests/smoke/env/launcher-env.test.ts .github/workflows/test-node-bundle.yml
 git commit -m "run: TypeScript scripts run on Node by default; QUARTO_RUN_RUNTIME=deno selects the Deno tool"
 ```
 
@@ -2041,7 +2200,7 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 - Installed layout: `cd package/pkg-working/bin && ./quarto run ../../../tests/docs/run/test-stdlib.ts` exits 0.
 - Task 6 step 4 (resource scripts on Node; `resources` at 1/0; `make-ast-diagram` and the Typst HTML-table render).
 - `rg -n 'execPath\(\)' src -g '*.ts' -g '!src/deno_ral/**'` prints nothing (PR 33's rule, "Dual-runtime combinations until PR 37"; PR 36 keeps it).
-- Only if PR 33 Task 13 ran (`grep -n QUARTO_RUNTIME package/scripts/common/quarto`): the four rows of PR 33's combinations table. Locally, `QUARTO_RUNTIME=deno package/dist/bin/quarto render tests/docs/project/prepost/<a fixture with a pre-render .ts script>` once with `QUARTO_RUN_RUNTIME=node` and once with `QUARTO_RUN_RUNTIME=deno`, both green and the Node run with no `Deno/` in `navigator.userAgent`. In CI, add to the `dual-runtime-smoke` job of `test-node-bundle.yml` (PR 32 Task 5) one step that renders that fixture with the bundle on Deno under both values of `QUARTO_RUN_RUNTIME`; the Node side of the job already covers the first two rows.
+- Only if PR 33 Task 13 ran (`grep -n QUARTO_RUNTIME package/scripts/common/quarto`): the four cells of PR 33's combinations table (review R08's "Later validation": CLI Node/Deno crossed with script Node/Deno, with a project render hook). CLI on Node: `run-script-node.test.ts` and `project-script-runtime.test.ts`. CLI on the Deno tool: Task 4 Step 6b's `launcher-env.test.ts` case (`cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/env/launcher-env.test.ts`) and, by hand, `QUARTO_RUNTIME=deno QUARTO_RUN_RUNTIME=node package/dist/bin/quarto render tests/docs/project/prepost/script-runtime-deno` writing `Node.js` to `runtime.txt` (the env var beats the project key) and the same with `QUARTO_RUN_RUNTIME=deno` writing `Deno`. In CI the `dual-runtime-smoke` step of Step 6b.
 
 ## Review checklist
 
@@ -2049,9 +2208,11 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 - [ ] `register.cjs` uses `module.registerHooks`; the load hook only touches `file:` URLs outside `node_modules`; TypeScript goes through `QUARTO_RUN_ESBUILD` with an inline source map.
 - [ ] The shim is installed on demand, never throws on unknown members, prints one notice under `QUARTO_RUN_DENO_NOTICE`, and `deno-members.cjs` implements `readDir`, `copyFile`, `rename`, `realPath`, `lstat`, `chdir` and their `Sync` forms (plus `readLink`, `symlink` for `@std/fs`, `inspect` for `fmt_printf`).
 - [ ] The copies match their rule: `openFlagBits()` in `deno-members.cjs` is PR 27's body (`src/deno_ral/fs.ts`) line for line apart from `fs.constants` for `nodeFs.constants`, and `appendArg()`/`batchCommandLine()` are PR 28's (`src/deno_ral/batch-command-line.ts`) apart from the dropped type annotations; `diff` them in the review. The writes go through `writeOpenFlags()` with `truncate: !append`; no string flag in the file (the acceptance grep). `Command` follows "Child processes" in Interfaces: the option subset rejected by name, per-method defaults, Web Streams, `128 + n`, `.bat`/`.cmd` through `cmd.exe`; the R05 and R15 cases of `run-compat-shim.test.ts` pass, the `.cmd` one on Windows CI.
-- [ ] No bundle under `share/run-stdlib/` contains `Deno.` (module-local binding); the builder's member report is in the PR description and lists no member outside `deno-members.cjs`; `FileHandler`/`RotatingFileHandler`/`serveDir`/`serveFile` are the stubs of `unsupported.ts`.
+- [ ] No bundle under `share/run-stdlib/` contains `Deno.` or reads `globalThis.Deno` (module-local binding); the builder's member report is in the PR description and lists no member outside `deno-members.cjs` other than the allowed `open`; `FileHandler`/`RotatingFileHandler`/`serveDir`/`serveFile`/`Server`/`serve`/`serveTls`/`serveListener` are the stubs of `unsupported.ts`.
 - [ ] The version rule: `register.cjs` warns once per package and requested version for the five forms of the rule and stays silent otherwise; the `npm:left-pad@^1.3.0` test passes.
 - [ ] Precedence `QUARTO_RUN_RUNTIME` > `project.script-runtime` > `node`; the Deno path uses PR 33's `requireDenoToolBinary()`; the Node path uses `architectureToolsPath("node")`, and `execPath()` has no caller left in `src/` (PR 33, "Dual-runtime combinations until PR 37").
+- [ ] If PR 33 Task 13 ran: `launcher-env.test.ts`'s hook case reads the marker under both values of `QUARTO_RUN_RUNTIME` with `QUARTO_RUNTIME=deno`, and the `dual-runtime-smoke` job has the Step 6b step (R08).
+- [ ] The builder: `globalThisPlugin` and the `define` are in `build.mjs` (the Acceptance `rg` for `globalThis` reads of the bundles prints nothing), the gate strips comments with `minifyWhitespace: true`, `kIgnoredReferences` holds only `customInspect`, `kAllowedUnsupported` only `open`/`openSync` with the `Tar` row, and the Task 2 R09 case passes (R09).
 - [ ] PR 00c's Deno-side notice is gone; no other `QUARTO_RUN_DENO_NOTICE` reader remains besides the shim.
 - [ ] Fixtures under `tests/docs/project/prepost/` (other than the new `script-runtime-deno/`) unchanged.
 - [ ] `src/resources/scripts/` and `src/resources/tools/ast-diagram/` contain no `Deno.`; `check-usage` is gone; `make-ast-diagram` goes through the run handler; the `resources` baseline is 1/0 (PR 25's residue table rows 1-3 and 16 closed).
@@ -2060,7 +2221,7 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 
 - **Type-only imports in user scripts.** Without the esbuild compile, Node fails with `SyntaxError: The requested module './types.ts' does not provide an export named 'Foo'`. The load hook compiles every local `.ts`; the residual case is a re-export of a type (`export { Foo } from "./types.ts"`), which fails with the same message and needs `export type { Foo }` (Deno's transpiler has the same limitation; documented).
 - **`"type": "commonjs"` next to a script.** Without the hook, Node prints `Failed to load the ES module ... Make sure to set "type": "module"` and `SyntaxError: Cannot use import statement outside a module`. The hook loads local files with `import`/`export` as ESM; a genuine CommonJS `.js` (no `import`/`export`) still loads as CommonJS.
-- **A `stdlib/*` member that needs a `Deno` member the table lacks.** The known ones (`FileHandler`, `RotatingFileHandler`, `serveDir`, `serveFile`) are stubs that throw a message naming themselves (the "not available on Node" table); the builder's member gate fails the build for any other, so none ships unknowingly. If a user path turns out to need one, add the member to `deno-members.cjs` (both consumers get it) and the row to the table, or point the user at `QUARTO_RUN_RUNTIME=deno`.
+- **A `stdlib/*` member that needs a `Deno` member the table lacks.** The known ones (`FileHandler`, `RotatingFileHandler`, `serveDir`, `serveFile`, the `server` module of `@std/http`, `Tar`'s file-path source) are stubs or a named thrower that throw a message naming themselves (the "not available on Node" table); the builder's member gate fails the build for any other, so none ships unknowingly. If a user path turns out to need one, add the member to `deno-members.cjs` (both consumers get it) and the row to the table, or point the user at `QUARTO_RUN_RUNTIME=deno`.
 - **The version rule warns, it does not pin.** A script that relied on Deno fetching `npm:left-pad@1.3.0` gets whatever the project installed, with a warning when it differs; exotic range forms (`>=`, `||`, `x`) are not checked at all. Documented on the migration page; the warning names the file so authors can fix `package.json`.
 - **Two copies of a rule.** `openFlagBits()` and `batchCommandLine()` live in `src/deno_ral/` and again in `deno-members.cjs`, because the table ships outside the bundle and inside the `@quarto/std-*` packages and cannot import the layer. A fix to one that misses the other is the risk; the review checklist diffs the copies and the shim test replays PR 28's vectors. If the layer's rule changes, change both in the same PR.
 - **`Deno.Command` forms outside the subset.** A script passing `windowsRawArguments`, `uid` or `gid` gets Node's equivalents; one passing anything else (`cwd` as a `URL` is accepted, options Deno never had are not) fails at construction with the option's name, which is the intended message. A Deno script that relies on `spawn()` throwing synchronously for a missing executable sees the rejection on `status` instead; stated in Interfaces and on the migration page.
@@ -2074,3 +2235,5 @@ git commit -m "docs: scripts on Node, stdlib, shim, script-runtime"
 2. **`stdlib/*` beyond 1.13.** Recommendation: keep; the bundles are build-time inputs only.
 3. **Module-local `Deno` binding for the `stdlib/*` bundles** (triage A1(b) reuses the bundles for in-process engines, which have no `Deno` global by review decision 1). Options: (a) keep the bundles dependent on the global shim: a bundle contains `Deno.`, `register.cjs` installs the shim when it loads one; scripts only, importing `stdlib/fmt_colors` turns on the deprecated global for a script that never wrote `Deno.`, and PR 36 cannot reuse the bundles. (b) esbuild `inject` of `tools/run-stdlib/stdlib/deno-binding.js`, which exports the member table of `deno-members.cjs` under the name `Deno`, so every `Deno.<member>` reference inside a bundle becomes a module-local reference: no global, no notice, the same bundles serve scripts and the engine map, and the builder's member gate proves every reference is in the table. (c) an engine-side `Deno` shim (A1 option (c), not taken). Recommendation and choice: (b); this plan is written for it.
 4. Not changed because the review's concern is resolved by the design: "type-only imports not in the risk list" (now in Risks with the exact error, and mitigated by the per-file compile); "`stdlib/fs`/`stdlib/path` mapped to `deno_ral` lack APIs" (now the 0.224 JSR packages).
+
+Re-read against the review's "Later validation" lines (2026-10-17). R05 (existing/missing files across create, truncate and append, shorter content, sync and async, layer and shim): the Task 3 R05 case and the Acceptance criteria already carry every form for the shim; the layer's half is PR 27's (its own re-read). R15 (piped Web Streams, inherited output from `spawn()`, a Windows `.cmd` through the shim): the three Task 3 R15 cases, the `.cmd` one on Windows CI. R08 (CLI Node/Deno crossed with script Node/Deno, with a project render hook): the CLI-on-Node cells were `run-script-node.test.ts` and `project-script-runtime.test.ts`; the CLI-on-Deno cells were a Verification sentence naming no fixture, so Task 4 Step 6b now rewrites PR 33 Task 13's `launcher-env.test.ts` hook case to read which runtime wrote the marker under both values of `QUARTO_RUN_RUNTIME`, and adds a `dual-runtime-smoke` step rendering Task 5's fixture the same way; PR 33's table cells name them. R17 (requested version differs from installed, two requested versions of one package, scoped packages, subpaths): the test had only the first; the new Task 2 R17 case has all four plus `jsr:` with a subpath, run against `register.cjs` on Node 26.12.0 and 22.22 (five warnings in import order, `^1.3.0` once for two files, a prerelease installed version compared by its numeric part, stated in the version rule). R09 (representative script stdlib operations against the shim): nothing executed a `stdlib/fs` operation beyond `ensureFile`/`exists`, so eight bundles were built from the 0.224 packages with Task 1's binding, stubs and gate, which found that `@std/path`'s `resolve()` reads `const { Deno } = globalThis` (esbuild `inject` cannot rewrite it; `ensureSymlink`, `copy` and `expandGlob` threw `Resolved a relative path without a CWD.`), that the gate's `transformSync` kept JSDoc and counted `Symbol.for("Deno.customInspect")`, and that `fmt_printf`, `io`, `async`, `tar` and `http` reach members outside the table; Task 1 Step 4 now rewrites the two `globalThis` forms, strips with `minifyWhitespace`, ignores the string, stubs `@std/http`'s `server` module whole and allows `open` for `Tar`, the table gains `stdout`/`stderr`, `SeekMode`, `errors.UnexpectedEof` and `unrefTimer`/`refTimer`, and the new Task 2 R09 case runs copy/walk/move/ensureSymlink/emptyDir, `resolve`, `ConsoleHandler`, `printf`, `readRange` and `delay` in one script; all of it ran on Node 26.12.0 and 22.22 with the same output. The Context's attribution of `link`, `utime`, `uid`, `gid` and `permissions.query` to `@std/fs@1.0.16` was wrong (0.224.0 reaches them) and is corrected.
