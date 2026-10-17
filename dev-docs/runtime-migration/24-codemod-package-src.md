@@ -146,6 +146,9 @@ git commit -m "package/src: writeFileSync and symlinkSync instead of Deno.create
 
 ### Task 3: Codemod the rest
 
+README ground rule 7 applies: fresh `main`, opened and merged the same day, conflicts by reset + re-run. PR 20 edits `package/src/common/{configure,prepare-dist}.ts`, `package/src/util/deno.ts`, `dependencies.ts` and `macos/installer.ts`, which this codemod rewrites: land PR 20 first (README ground rule 8), or, if PR 20 has not landed, note that `configure.ts` still contains `Deno.env.get("DENO_DOM")` and the codemod takes it (PR 20 then rebases).
+
+
 **Files:** every `package/src` file with remaining `Deno.*`
 
 - [ ] **Step 1: Measure before**
