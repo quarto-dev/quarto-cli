@@ -6,37 +6,82 @@ import { getUrl } from "../src/utils";
 // the nearest parent listing, not just the first entry in listings.json.
 
 const fixtureRoot = "blog/multi-listing-blog/_site";
-const alphaHrefPattern = /\/blog\/index\.html#category=alpha$/;
+const categoryHrefPattern = (name: string) =>
+  new RegExp(`/blog/index\\.html#category=${name}$`);
 
-const alphaLinkLocator = (page: Page) =>
+const categoryLinkLocator = (page: Page, name: string) =>
   page
-    .locator("header.quarto-title-block .quarto-category", { hasText: "alpha" })
+    .locator("header.quarto-title-block .quarto-category", { hasText: name })
     .locator("a");
 
-test("Category link on a post resolves to the nearest parent listing", async ({ page }) => {
-  await page.goto(`./${fixtureRoot}/blog/post-one/`);
+// A full render writes the blog listing first in listings.json, while an
+// incremental render or `quarto preview` can write the homepage listing first.
+// The link must not depend on that order.
+const listingOrders = [
+  { name: "rendered listing order", homepageFirst: false },
+  { name: "homepage listing first", homepageFirst: true },
+];
 
-  await expect(alphaLinkLocator(page)).toHaveAttribute("href", alphaHrefPattern);
+const serveListings = async (page: Page, homepageFirst: boolean) => {
+  if (!homepageFirst) {
+    return;
+  }
+  await page.route("**/listings.json", async (route) => {
+    const response = await route.fetch();
+    const listings: { listing: string }[] = await response.json();
+    const isHomepage = (entry: { listing: string }) =>
+      entry.listing === "/index.html";
+    await route.fulfill({
+      response,
+      json: [
+        ...listings.filter(isHomepage),
+        ...listings.filter((entry) => !isHomepage(entry)),
+      ],
+    });
+  });
+};
 
-  await alphaLinkLocator(page).click();
-  await expect(page).toHaveURL(
-    getUrl(`${fixtureRoot}/blog/index.html#category=alpha`),
-  );
-  await expect(
-    page.locator(
-      `div.category[data-category="${btoa(encodeURIComponent("alpha"))}"]`,
-    ),
-  ).toHaveClass(/active/);
-  await expect(page.getByRole("link", { name: "Post one", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Post two", exact: true })).toBeVisible();
-});
+for (const { name, homepageFirst } of listingOrders) {
+  test.describe(name, () => {
+    test.beforeEach(async ({ page }) => {
+      await serveListings(page, homepageFirst);
+    });
 
-test("Category link on a post does not point at the homepage listing", async ({ page }) => {
-  // Reach the post from the homepage so document.referrer triggers the
-  // fallback branch that previously selected the wrong listing.
-  await page.goto(`./${fixtureRoot}/`);
-  await page.getByRole("link", { name: "Post one", exact: true }).click();
-  await expect(page).toHaveURL(getUrl(`${fixtureRoot}/blog/post-one/`));
+    test("Category link on a post filters the nearest parent listing", async ({ page }) => {
+      await page.goto(`./${fixtureRoot}/blog/post-one/`);
 
-  await expect(alphaLinkLocator(page)).toHaveAttribute("href", alphaHrefPattern);
-});
+      // Only "Post one" carries `beta`, so the filter must hide "Post two".
+      await expect(categoryLinkLocator(page, "beta")).toHaveAttribute(
+        "href",
+        categoryHrefPattern("beta"),
+      );
+
+      await categoryLinkLocator(page, "beta").click();
+      await expect(page).toHaveURL(
+        getUrl(`${fixtureRoot}/blog/index.html#category=beta`),
+      );
+      await expect(
+        page.locator(
+          `div.category[data-category="${btoa(encodeURIComponent("beta"))}"]`,
+        ),
+      ).toHaveClass(/active/);
+      await expect(page.getByRole("link", { name: "Post one", exact: true }))
+        .toBeVisible();
+      await expect(page.getByRole("link", { name: "Post two", exact: true }))
+        .toBeHidden();
+    });
+
+    test("Category link on a post does not point at the homepage listing", async ({ page }) => {
+      // Reach the post from the homepage so document.referrer points at the
+      // homepage listing.
+      await page.goto(`./${fixtureRoot}/`);
+      await page.getByRole("link", { name: "Post one", exact: true }).click();
+      await expect(page).toHaveURL(getUrl(`${fixtureRoot}/blog/post-one/`));
+
+      await expect(categoryLinkLocator(page, "alpha")).toHaveAttribute(
+        "href",
+        categoryHrefPattern("alpha"),
+      );
+    });
+  });
+}
