@@ -2,7 +2,9 @@
 title: "Home"
 listing:
   id: latest
-  contents: blog/*/index.qmd
+  contents:
+    - blog/*/index.qmd
+    - notes/*/index.qmd
   type: default
   sort: "date desc"
   filter-ui: false

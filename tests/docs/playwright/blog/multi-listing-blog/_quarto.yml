@@ -9,5 +9,7 @@ website:
         text: Home
       - href: blog/index.qmd
         text: Blog
+      - href: topics/index.qmd
+        text: Topics
 
 format: html

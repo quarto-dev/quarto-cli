@@ -6,8 +6,8 @@ import { getUrl } from "../src/utils";
 // the nearest parent listing, not just the first entry in listings.json.
 
 const fixtureRoot = "blog/multi-listing-blog/_site";
-const categoryHrefPattern = (name: string) =>
-  new RegExp(`/blog/index\\.html#category=${name}$`);
+const categoryHrefPattern = (name: string, listing = "blog") =>
+  new RegExp(`/${listing}/index\\.html#category=${name}$`);
 
 const categoryLinkLocator = (page: Page, name: string) =>
   page
@@ -81,6 +81,20 @@ for (const { name, homepageFirst } of listingOrders) {
       await expect(categoryLinkLocator(page, "alpha")).toHaveAttribute(
         "href",
         categoryHrefPattern("alpha"),
+      );
+    });
+
+    test("Category link on a post with only the site listing above it follows the referrer listing", async ({ page }) => {
+      // "Note one" sits under notes/, which has no listing of its own, so the
+      // only ancestor listing is the site root. The reader came from Topics,
+      // which lists the note, so its categories should filter Topics.
+      await page.goto(`./${fixtureRoot}/topics/`);
+      await page.getByRole("link", { name: "Note one", exact: true }).click();
+      await expect(page).toHaveURL(getUrl(`${fixtureRoot}/notes/note-one/`));
+
+      await expect(categoryLinkLocator(page, "gamma")).toHaveAttribute(
+        "href",
+        categoryHrefPattern("gamma", "topics"),
       );
     });
   });
