@@ -99,15 +99,15 @@ for (const { name, homepageFirst } of listingOrders) {
     });
 
     test("Category link on a post follows the referrer among listings in the same directory", async ({ page }) => {
-      // blog/index.html and blog/archive.html both list "Post one" from the
+      // blog/index.html and blog/archive.html both list "Post two" from the
       // same directory, so neither is nearer; the reader came from Archive.
       await page.goto(`./${fixtureRoot}/blog/archive.html`);
-      await page.getByRole("link", { name: "Post one", exact: true }).click();
-      await expect(page).toHaveURL(getUrl(`${fixtureRoot}/blog/post-one/`));
+      await page.getByRole("link", { name: "Post two", exact: true }).click();
+      await expect(page).toHaveURL(getUrl(`${fixtureRoot}/blog/post-two/`));
 
-      await expect(categoryLinkLocator(page, "beta")).toHaveAttribute(
+      await expect(categoryLinkLocator(page, "alpha")).toHaveAttribute(
         "href",
-        categoryHrefPattern("beta", "blog/archive"),
+        categoryHrefPattern("alpha", "blog/archive"),
       );
     });
   });

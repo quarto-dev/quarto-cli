@@ -1,7 +1,7 @@
 ---
 title: "Archive"
 listing:
-  contents: "*/index.qmd"
+  contents: "post-two/index.qmd"
   type: table
   sort: "date asc"
   categories: true
