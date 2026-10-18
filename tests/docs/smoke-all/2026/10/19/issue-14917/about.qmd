@@ -1,0 +1,30 @@
+---
+title: "About"
+description: "About page description"
+open-graph:
+  site-name: "DOCUMENT SITE NAME"
+format:
+  html:
+    include-in-header:
+      - text: |
+          <meta property="og:site_name" content="DECOY">
+          <meta property="og:title" content="DECOY TITLE">
+          <meta property="og:description" content="DECOY DESCRIPTION">
+          <meta name="twitter:title" content="DECOY TITLE">
+          <meta name="twitter:description" content="DECOY DESCRIPTION">
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - 'meta[property="og:site_name"][content="DECOY"]'
+          - 'meta[property="og:site_name"][content="DOCUMENT SITE NAME"]'
+          - 'meta[property="og:title"][content="DECOY TITLE"]'
+          - 'meta[property="og:description"][content="DECOY DESCRIPTION"]'
+          - 'meta[name="twitter:title"][content="DECOY TITLE"]'
+          - 'meta[name="twitter:description"][content="DECOY DESCRIPTION"]'
+          - 'meta[property="og:title"][content^="About"]'
+          - 'meta[name="twitter:description"][content="About page description"]'
+        - ['meta[property="og:site_name"][content="SITE TITLE"]']
+---
+
+Tags written by `include-in-header` must keep their values; Quarto updates only the tags it wrote itself.
