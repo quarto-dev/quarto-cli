@@ -120,6 +120,10 @@ All changes included in 1.11:
 
 - ([#14960](https://github.com/quarto-dev/quarto-cli/issues/14960)): Fix `quarto check` failing when the project contains a directory it cannot read, for example when a stray `_quarto.yml` in the home directory makes the home directory a project. `quarto check` now reads only the project configuration, without scanning input files or creating a `.quarto` directory in the project root. `quarto check info` reports the project root and the `_quarto.yml` that set it (`info.project` in `--output` JSON), and warns when the project root is the home directory or a filesystem root. `quarto render` and `quarto preview` now report an unreadable directory in the project as one error naming the directory, the project root and its `_quarto.yml`, instead of a raw `readdir` error with a stack trace.
 
+### `use template`
+
+- ([#14008](https://github.com/quarto-dev/quarto-cli/issues/14008)): Fix `quarto use template` not installing the template's extensions when they are scoped by organisation, such as `quarto-journals/acm`. (author: @mcanouil)
+
 ## Extensions
 
 - ([#14936](https://github.com/quarto-dev/quarto-cli/pull/14936)): Accept and ignore static engine declaration keys (`name`, `claims`, `file-extensions`, `claims-files` — including an optional `processor` on `claims-files` entries) in the `external-engine` schema, so extensions can declare them for Quarto 2's engine resolution without breaking Quarto 1 validation. No Quarto 1 behavior change. (author: @gordonwoodhull)
