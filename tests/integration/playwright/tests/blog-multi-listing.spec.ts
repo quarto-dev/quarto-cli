@@ -6,8 +6,8 @@ import { getUrl } from "../src/utils";
 // the nearest parent listing, not just the first entry in listings.json.
 
 const fixtureRoot = "blog/multi-listing-blog/_site";
-const categoryHrefPattern = (name: string, listing = "blog") =>
-  new RegExp(`/${listing}/index\\.html#category=${name}$`);
+const categoryHrefPattern = (name: string, listing = "blog/index") =>
+  new RegExp(`/${listing}\\.html#category=${name}$`);
 
 const categoryLinkLocator = (page: Page, name: string) =>
   page
@@ -94,7 +94,20 @@ for (const { name, homepageFirst } of listingOrders) {
 
       await expect(categoryLinkLocator(page, "gamma")).toHaveAttribute(
         "href",
-        categoryHrefPattern("gamma", "topics"),
+        categoryHrefPattern("gamma", "topics/index"),
+      );
+    });
+
+    test("Category link on a post follows the referrer among listings in the same directory", async ({ page }) => {
+      // blog/index.html and blog/archive.html both list "Post one" from the
+      // same directory, so neither is nearer; the reader came from Archive.
+      await page.goto(`./${fixtureRoot}/blog/archive.html`);
+      await page.getByRole("link", { name: "Post one", exact: true }).click();
+      await expect(page).toHaveURL(getUrl(`${fixtureRoot}/blog/post-one/`));
+
+      await expect(categoryLinkLocator(page, "beta")).toHaveAttribute(
+        "href",
+        categoryHrefPattern("beta", "blog/archive"),
       );
     });
   });

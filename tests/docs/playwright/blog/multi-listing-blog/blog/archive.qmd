@@ -1,0 +1,8 @@
+---
+title: "Archive"
+listing:
+  contents: "*/index.qmd"
+  type: table
+  sort: "date asc"
+  categories: true
+---
