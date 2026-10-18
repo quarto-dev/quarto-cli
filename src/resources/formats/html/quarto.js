@@ -288,25 +288,36 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           offsetAbsoluteUrl(window.location.pathname),
           listingHrefs
         );
-        if (nearestListing) {
-          activateCategories(nearestListing);
-        } else {
-          // See if the referrer is a listing page for this item
-          const referredRelativePath = offsetAbsoluteUrl(document.referrer);
-          const referrerListing = listingHrefs.find((listingHref) => {
-            const isListingReferrer =
-              listingHref === referredRelativePath ||
-              listingHref === referredRelativePath + "index.html";
-            return isListingReferrer;
-          });
 
-          if (referrerListing) {
-            // Try to use the referrer if possible
-            activateCategories(referrerListing);
-          } else if (listingHrefs.length > 0) {
-            // Otherwise, just fall back to the first listing
-            activateCategories(listingHrefs[0]);
-          }
+        // See if the referrer is a listing page for this item. listingHrefs
+        // are full pathnames, so compare against the referrer's pathname.
+        const referrerPath = document.referrer
+          ? new URL(document.referrer).pathname
+          : undefined;
+        const referrerListing = referrerPath
+          ? listingHrefs.find(
+              (listingHref) =>
+                listingHref === referrerPath ||
+                listingHref === referrerPath + "index.html"
+            )
+          : undefined;
+
+        // A site root listing is an ancestor of every page, so it only wins
+        // over the listing the reader came from when nothing nearer matches.
+        const siteRootDir = new URL(
+          offsetRelativeUrl(""),
+          window.location
+        ).pathname.replace(/[^/]+$/, "");
+        const nearestIsSiteRoot =
+          nearestListing?.replace(/[^/]+$/, "") === siteRootDir;
+
+        if (nearestListing && !(nearestIsSiteRoot && referrerListing)) {
+          activateCategories(nearestListing);
+        } else if (referrerListing) {
+          activateCategories(referrerListing);
+        } else if (listingHrefs.length > 0) {
+          // Otherwise, just fall back to the first listing
+          activateCategories(listingHrefs[0]);
         }
       });
     }
