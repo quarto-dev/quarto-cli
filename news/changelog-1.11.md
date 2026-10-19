@@ -41,6 +41,7 @@ All changes included in 1.11:
 
 ### All Formats
 
+- ([#15092](https://github.com/quarto-dev/quarto-cli/issues/15092)): Fix shortcodes inside math (`$...$`, `$$...$$`) not being resolved when they are the only shortcodes in the document. The shortcode filter only runs when `compute_flags()` detects a shortcode, and it did not look inside `Math` nodes. Follow-up to [#14255](https://github.com/quarto-dev/quarto-cli/issues/14255). (author: @MBe-iUS)
 - ([#14772](https://github.com/quarto-dev/quarto-cli/issues/14772)): Custom `language` keys now reach templates through `$quarto.language.<key>$`. A key that Quarto does not ship passed schema validation and was merged over the defaults, then discarded before templates saw it, so it expanded to an empty string with no warning. (author: @mcanouil)
 - ([#14882](https://github.com/quarto-dev/quarto-cli/issues/14882)): Fix brand font families with a word starting with a digit, such as `Source Sans 3`, not applying in `html` and `revealjs` output. The same names in `mainfont` now also apply in `revealjs`. (author: @Masad791)
 

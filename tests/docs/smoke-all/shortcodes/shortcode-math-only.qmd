@@ -1,0 +1,24 @@
+---
+title: Shortcode only in math
+format:
+  html: default
+  latex: default
+five: 5
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['5 \+ 5']
+        - ['b58fc729|7B7B3C|\{\{&lt;']
+    latex:
+      ensureFileRegexMatches:
+        - ['5 \+ 5']
+        - ['b58fc729|7B7B3C|\{\{<']
+---
+
+The shortcodes below are the only ones in this document, so nothing outside
+math tells Quarto that the document contains shortcodes.
+
+Inline: $5 + {{< meta five >}}$
+
+Display: $$5 + {{< meta five >}}$$
