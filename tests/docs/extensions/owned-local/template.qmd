@@ -1,0 +1,5 @@
+---
+title: Owned local template
+---
+
+{{< cool Quarto >}}
