@@ -856,8 +856,13 @@ kbd {
 }
 
 :root {
-  --r-inline-code-font: #{$font-family-monospace-inline};
-  --r-block-code-font: #{$font-family-monospace-block};
+  // inspect() keeps the quotes of a family name like "Source Sans 3", which
+  // plain interpolation drops; reveal.js' exposer.scss writes these without them
+  --r-main-font: #{inspect($mainFont)};
+  --r-heading-font: #{inspect($headingFont)};
+  --r-code-font: #{inspect($codeFont)};
+  --r-inline-code-font: #{inspect($font-family-monospace-inline)};
+  --r-block-code-font: #{inspect($font-family-monospace-block)};
   --r-inline-code-font-size: #{$revealjs-code-inline-font-size};
   --r-block-code-font-size: #{$revealjs-code-block-font-size};
 }
