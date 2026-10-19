@@ -80,7 +80,7 @@ export function metadataPostProcessor(
   };
 }
 
-function googleScholarEnabled(format: Format) {
+export function googleScholarEnabled(format: Format) {
   // Enabled by the format / document
   if (format.metadata[kGoogleScholar] === true) {
     return true;
@@ -271,9 +271,32 @@ async function googleScholarReferences(
   metadata: Metadata,
   doc: Document,
 ) {
-  const scholarMeta: MetaTagData[] = [];
-  const write = metadataWriter(scholarMeta);
+  const referenceIds = documentReferenceIds(doc);
+  if (referenceIds.size === 0) {
+    return [];
+  }
+  return citationReferenceMeta(
+    await bibliographyCslJson(input, metadata),
+    referenceIds,
+  );
+}
 
+// Replaces the page's citation_reference tags with one per reference
+// in `references` whose id appears in the document.
+export function replaceGoogleScholarReferences(
+  doc: Document,
+  references: CSL[],
+) {
+  for (const tag of doc.querySelectorAll('meta[name="citation_reference"]')) {
+    (tag as Element).remove();
+  }
+  const tags = citationReferenceMeta(references, documentReferenceIds(doc));
+  for (const tag of tags) {
+    writeMetaTag(tag.name, tag.content, doc);
+  }
+}
+
+function documentReferenceIds(doc: Document) {
   const referenceIds = new Set<string>();
   // Bibliography entries include works deliberately added with nocite.
   // Pandoc writes any identifier prefix (from YAML or --id-prefix) into
@@ -299,12 +322,15 @@ async function googleScholarReferences(
       }
     }
   }
-  if (referenceIds.size === 0) {
-    return scholarMeta;
-  }
+  return referenceIds;
+}
 
-  const references = await bibliographyCslJson(input, metadata);
-
+function citationReferenceMeta(
+  references: CSL[] | undefined,
+  referenceIds: Set<string>,
+) {
+  const scholarMeta: MetaTagData[] = [];
+  const write = metadataWriter(scholarMeta);
   if (references) {
     references.forEach((reference) => {
       if (!reference.id || !referenceIds.has(reference.id)) {
