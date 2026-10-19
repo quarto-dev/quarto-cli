@@ -58,6 +58,7 @@ All changes included in 1.11:
 - ([#14976](https://github.com/quarto-dev/quarto-cli/pull/14976)): Fix KaTeX math not rendering on pages with Jupyter widgets when `html-math-method` is set with the object form (`method: katex` and `url`).
 - ([#15049](https://github.com/quarto-dev/quarto-cli/pull/15049)): Fix Google Scholar reference metadata including unused entries from a shared bibliography. Reference tags now follow the rendered citations and bibliography, including entries added with `nocite` and citations with a suppressed bibliography. (author: @jolars)
 - ([#15051](https://github.com/quarto-dev/quarto-cli/pull/15051)): Fix a callout's `title` option also rendering as an HTML `title` attribute in html, revealjs and epub output, which showed the title as a tooltip over the whole callout.
+- ([#15108](https://github.com/quarto-dev/quarto-cli/pull/15108)): Fix Google Scholar metadata showing formatting markup such as `<i>` in `citation_reference` tags for bibliography entries, and `undefined` as the book title of a chapter without one.
 
 ### `pdf`
 
