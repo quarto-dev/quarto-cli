@@ -151,7 +151,7 @@ unitTest(
       const doc = await scholarMetadata(
         { title: "An article", bibliography: "references.bib" },
         input,
-        '<div id="ref-doe2020" class="csl-entry"></div>',
+        '<div id="refs" class="references csl-bib-body"><div id="ref-doe2020" class="csl-entry"></div></div>',
       );
       assertEquals(
         doc.querySelector('meta[name="citation_reference"]')!
@@ -184,7 +184,7 @@ unitTest(
           bibliography: "references.bib",
         },
         input,
-        '<div id="ref-doe2020" class="csl-entry"></div>',
+        '<div id="refs" class="references csl-bib-body"><div id="ref-doe2020" class="csl-entry"></div></div>',
       );
       assertEquals(
         doc.querySelector('meta[name="citation_inbook_title"]'),
