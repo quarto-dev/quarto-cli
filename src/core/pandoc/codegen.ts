@@ -240,9 +240,13 @@ export function pandocNativeStr(content: string): PandocNode {
   return {
     ...basePandocNode,
     emit: (ls: EitherString[]) => {
-      const maxBackticks = content.match(/`+/g)?.[0].length || 0;
+      const maxBackticks = (content.match(/`+/g) ?? []).reduce(
+        (longest, run) => Math.max(longest, run.length),
+        0,
+      );
       const backticks = "`".repeat(maxBackticks + 1);
       const escapedContent = content
+        .replaceAll("\\", "\\\\")
         .replaceAll(
           '"',
           '\\"',
