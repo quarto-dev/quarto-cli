@@ -103,7 +103,7 @@ end
 
 local function ensure_frame(env_name, title, render_code)
   if typst_theorem_like_frames[env_name] then
-    return false
+    return
   end
 
   typst_theorem_like_frames[env_name] = true
@@ -116,13 +116,10 @@ local function ensure_frame(env_name, title, render_code)
     render_code ..
     ")")
   quarto.doc.include_text("in-header", "#show: show-" .. env_name)
-  return true
 end
 
 return {
-  appearance = appearance,
   ensure_appearance_imports = ensure_appearance_imports,
-  ensure_simple_render = ensure_simple_render,
   ensure_frame = ensure_frame,
   render_code = render_code,
   typst_string = typst_string,

@@ -168,9 +168,10 @@ end, function(proof_tbl)
   elseif _quarto.format.isJatsOutput() then
     el = jatsTheorem(el,  nil, name )
   elseif _quarto.format.isTypstOutput() then
+    -- a block holding only a title still needs its frame, so that its label
+    -- exists for references; theorems do the same
     if #el.content == 0 then
-      warn("Proof block has no content; skipping")
-      return pandoc.Null()
+      el.content = pandoc.Blocks({pandoc.Para({pandoc.Str '\u{a0}'})})
     end
     ensure_typst_proofs(proof.env)
     local preamble = pandoc.Plain({pandoc.RawInline("typst", "#" .. proof.env .. "(")})
@@ -180,8 +181,8 @@ end, function(proof_tbl)
       -- `number: auto`, and its prefix would keep a space before the empty
       -- number, so an unnumbered block pins both
       preamble.content:insert(pandoc.RawInline("typst",
-        'number: "", get-prefix: (..args) => ' ..
-        _quarto.modules.theorems.typst_string(envTitle(proof.env, proof.title))))
+        'number: "", get-prefix: (..args) => text(weight: "bold", ' ..
+        _quarto.modules.theorems.typst_string(envTitle(proof.env, proof.title)) .. ')'))
     end
     if name and #name > 0 then
       if not numbered then
