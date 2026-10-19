@@ -39,7 +39,7 @@ All changes included in 1.11:
 ### All Formats
 
 - ([#14772](https://github.com/quarto-dev/quarto-cli/issues/14772)): Custom `language` keys now reach templates through `$quarto.language.<key>$`. A key that Quarto does not ship passed schema validation and was merged over the defaults, then discarded before templates saw it, so it expanded to an empty string with no warning. (author: @mcanouil)
-- ([#14882](https://github.com/quarto-dev/quarto-cli/issues/14882)): Fix brand font families with a word starting with a digit, such as `Source Sans 3`, not applying in `html` and `revealjs` output. The family names are now quoted in the generated CSS, as `mainfont` and `monofont` already were in `html`. In `revealjs`, `mainfont` and `monofont` names with spaces are now quoted in `--r-main-font`, `--r-heading-font` and `--r-code-font` too, and the `--mermaid-font-family` variable keeps its quotes in both formats.
+- ([#14882](https://github.com/quarto-dev/quarto-cli/issues/14882)): Fix brand font families with a word starting with a digit, such as `Source Sans 3`, not applying in `html` and `revealjs` output. The same names in `mainfont` now also apply in `revealjs`. (author: @Masad791)
 
 ### `dashboard`
 
