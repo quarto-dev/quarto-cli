@@ -67,7 +67,9 @@ unitTest("extension-dirs - terminates at the filesystem root", async () => {
   assertEquals(reply.error, undefined);
   assertEquals(
     reply.dirs?.slice(2),
-    existsSync(rootExtensionsDir) ? [rootExtensionsDir] : [],
+    existsSync(rootExtensionsDir, { isDirectory: true })
+      ? [rootExtensionsDir]
+      : [],
     `unexpected extension directories after the built-in ones: ${
       JSON.stringify(reply.dirs)
     }`,
