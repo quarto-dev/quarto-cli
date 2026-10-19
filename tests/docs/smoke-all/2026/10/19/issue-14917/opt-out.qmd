@@ -9,6 +9,8 @@ format:
           <meta property="og:site_name" content="PAGE SITE NAME">
           <meta property="og:title" content="PAGE TITLE">
           <meta name="twitter:title" content="PAGE TITLE">
+          <meta property="og:description" content="PAGE DESCRIPTION">
+          <meta name="twitter:description" content="PAGE DESCRIPTION">
 _quarto:
   tests:
     html:
@@ -16,6 +18,8 @@ _quarto:
         - - 'meta[property="og:site_name"][content="PAGE SITE NAME"]'
           - 'meta[property="og:title"][content="PAGE TITLE"]'
           - 'meta[name="twitter:title"][content="PAGE TITLE"]'
+          - 'meta[property="og:description"][content="PAGE DESCRIPTION"]'
+          - 'meta[name="twitter:description"][content="PAGE DESCRIPTION"]'
         - ['meta[property="og:site_name"][content="SITE TITLE"]']
 ---
 
