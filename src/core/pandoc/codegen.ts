@@ -242,6 +242,7 @@ export function pandocNativeStr(content: string): PandocNode {
       );
       const backticks = "`".repeat(maxBackticks + 1);
       const escapedContent = content
+        .replaceAll("\\", "\\\\")
         .replaceAll(
           '"',
           '\\"',
