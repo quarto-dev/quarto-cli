@@ -119,7 +119,7 @@ unitTest(
       const doc = await scholarMetadata(
         metadata,
         input,
-        '<div id="ref-obrien2026" class="csl-entry"></div>',
+        '<div id="refs" class="references csl-bib-body"><div id="ref-obrien2026" class="csl-entry"></div></div>',
       );
       const reference = doc.querySelector('meta[name="citation_reference"]')!
         .getAttribute("content")!;

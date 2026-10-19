@@ -54,6 +54,7 @@ All changes included in 1.11:
 - ([#14684](https://github.com/quarto-dev/quarto-cli/issues/14684)): Add a "Skip to main content" link to Bootstrap-themed HTML output (documents, websites, books, dashboards) so keyboard users can bypass the navbar and sidebars.
 - ([#14973](https://github.com/quarto-dev/quarto-cli/issues/14973)): Fix Safari sometimes opening pages with a light and dark theme at the top instead of at the URL fragment target, and toggling the color scheme scrolling back to the top of the page.
 - ([#14976](https://github.com/quarto-dev/quarto-cli/pull/14976)): Fix KaTeX math not rendering on pages with Jupyter widgets when `html-math-method` is set with the object form (`method: katex` and `url`).
+- ([#15049](https://github.com/quarto-dev/quarto-cli/pull/15049)): Fix Google Scholar reference metadata including unused entries from a shared bibliography. Reference tags now follow the rendered citations and bibliography, including entries added with `nocite` and citations with a suppressed bibliography. (author: @jolars)
 - ([#15051](https://github.com/quarto-dev/quarto-cli/pull/15051)): Fix a callout's `title` option also rendering as an HTML `title` attribute in html, revealjs and epub output, which showed the title as a tooltip over the whole callout.
 
 ### `pdf`
@@ -104,6 +105,8 @@ All changes included in 1.11:
 - ([#15057](https://github.com/quarto-dev/quarto-cli/pull/15057)): Fix a numeric top-level `image-width` or `image-height` in page front matter failing the render. These options were never used, so they are removed from the schema; declare the preview image size under `open-graph` instead.
 - ([#15083](https://github.com/quarto-dev/quarto-cli/pull/15083)): Fix editors offering no completion for the top-level `image-title` option that about pages read, and correct the description of the top-level `image-lazy-loading` option, which only affects the page's image when it appears in a listing.
 - ([#15084](https://github.com/quarto-dev/quarto-cli/pull/15084)): Fix page-level `open-graph` and `twitter-card` options not being validated, which let a misspelled option be silently ignored and a value of the wrong type crash the render. These options are now checked like their `website` counterparts, so a page or `_metadata.yml` with an unknown option under `open-graph` or `twitter-card`, which was ignored before, now fails to render with an error naming the option.
+- ([#15091](https://github.com/quarto-dev/quarto-cli/pull/15091)): Fix page-level `bread-crumbs`, `back-to-top-navigation`, `page-navigation`, `margin-header` and `margin-footer` options not being validated or offered for completion in editors. A page value of the wrong type now fails to render with an error instead of being accepted silently.
+- ([#15091](https://github.com/quarto-dev/quarto-cli/pull/15091)): Fix `open-graph: false` or `twitter-card: false` in page front matter or `_metadata.yml` not disabling Open Graph or Twitter Card metadata for that page when the website enables it.
 
 ## Lua API
 
