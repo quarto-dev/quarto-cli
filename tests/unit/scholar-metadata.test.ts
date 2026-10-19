@@ -7,7 +7,7 @@
 import { assertEquals, assertStringIncludes } from "testing/asserts";
 import { Metadata } from "../../src/config/types.ts";
 import { bibliographyCslJson } from "../../src/core/bibliography.ts";
-import { parseHtml } from "../../src/core/deno-dom.ts";
+import { Element, parseHtml } from "../../src/core/deno-dom.ts";
 import { join } from "../../src/deno_ral/path.ts";
 import { metadataPostProcessor } from "../../src/format/html/format-html-meta.ts";
 import { unitTest } from "../test.ts";
@@ -196,3 +196,65 @@ unitTest(
     });
   },
 );
+
+function metaContent(
+  doc: Awaited<ReturnType<typeof scholarMetadata>>,
+  name: string,
+) {
+  return doc.querySelector(`meta[name="${name}"]`)?.getAttribute("content");
+}
+
+unitTest("Scholar metadata - split the citation page range", async () => {
+  for (
+    const [page, firstPage, lastPage] of [
+      ["97-111", "97", "111"],
+      ["97–111", "97", "111"],
+      ["97 - 111", "97", "111"],
+      ["1-3, 7-9", "1", undefined],
+      ["42", "42", undefined],
+    ]
+  ) {
+    const doc = await scholarMetadata({
+      title: "An article",
+      citation: { page },
+    });
+    assertEquals(metaContent(doc, "citation_firstpage"), firstPage, page);
+    assertEquals(metaContent(doc, "citation_lastpage"), lastPage, page);
+  }
+});
+
+unitTest("Scholar metadata - split reference page ranges", async () => {
+  await withTempDir(async (dir) => {
+    Deno.writeTextFileSync(
+      join(dir, "references.yaml"),
+      `---
+references:
+- {id: endash, type: article-journal, title: En dash, page: "97–111"}
+- {id: single, type: article-journal, title: Single, page: "42"}
+- {id: list, type: article-journal, title: List, page: "1-3, 7-9"}
+---
+`,
+    );
+    const doc = await scholarMetadata(
+      { title: "An article", bibliography: "references.yaml" },
+      join(dir, "test.qmd"),
+      '<span class="citation" data-cites="endash single list"></span>',
+    );
+    const references = Object.fromEntries(
+      [...doc.querySelectorAll('meta[name="citation_reference"]')].map(
+        (element) => {
+          const content = (element as Element).getAttribute("content")!;
+          return [content.match(/citation_title=([^;]+);/)![1], content];
+        },
+      ),
+    );
+    assertStringIncludes(
+      references["En dash"],
+      "citation_firstpage=97; citation_lastpage=111;",
+    );
+    assertStringIncludes(references["Single"], "citation_firstpage=42;");
+    assertEquals(references["Single"].includes("citation_lastpage"), false);
+    assertStringIncludes(references["List"], "citation_firstpage=1;");
+    assertEquals(references["List"].includes("citation_lastpage"), false);
+  });
+});
