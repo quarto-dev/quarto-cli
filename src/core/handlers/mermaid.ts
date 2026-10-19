@@ -37,7 +37,11 @@ import {
 import { Element } from "../deno-dom.ts";
 import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
 import { readYamlFromString } from "../yaml.ts";
-import { pandocCode, pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
+import {
+  pandocCode,
+  pandocHtmlBlock,
+  pandocRawStr,
+} from "../pandoc/codegen.ts";
 import { LocalizedError } from "../lib/located-error.ts";
 import { info, warning } from "../../deno_ral/log.ts";
 import { FormatDependency } from "../../config/types.ts";
