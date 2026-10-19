@@ -1,5 +1,5 @@
 ---
-title: "mermaid config front matter and ojs"
+title: "mermaid source that looks like markdown, then ojs"
 format: html
 _quarto:
   tests:
@@ -7,14 +7,19 @@ _quarto:
       ensureHtmlElements:
         - ["pre.mermaid.mermaid-js", "div[id^=\"ojs-cell-\"]"]
         - []
+      ensureHtmlElementCount:
+        - selectors: ["pre.mermaid.mermaid-js"]
+          counts: [2]
 ---
 
-A `mermaid` cell can carry Mermaid's own `---` front matter to set diagram
-options such as `config`. That source is emitted verbatim into the intermediate
-markdown, where its closing `---` used to be read as the start of a YAML front
-matter block. Everything after it, including the `ojs` cell below, was swallowed
-into that never-terminated block, so no OJS cell was ever compiled and the cell
-rendered as plain code instead.
+Each `mermaid` cell below is emitted verbatim into the intermediate markdown,
+inside a raw HTML block. If anything in the diagram source ends that block early,
+the rest of the document is misread, and the `ojs` cell at the end is not
+compiled.
+
+The first diagram carries Mermaid's own `---` front matter to set `config`. Its
+closing `---` used to be read as the start of a YAML front matter block that
+swallowed everything after it.
 
 ```{mermaid}
 ---
@@ -24,6 +29,18 @@ config:
 graph LR
     A --> B
 ```
+
+The second diagram uses Mermaid markdown strings. A label with a single backtick
+comes first, then a line that starts with three backticks. The raw block fence
+must be longer than the longest backtick run, not the first one, or that line
+closes the block.
+
+````{mermaid}
+graph LR
+A["`a tick label`"] --> B["`two
+```
+lines`"]
+````
 
 ```{ojs}
 //| echo: true
