@@ -133,3 +133,36 @@ unitTest(
     });
   },
 );
+
+unitTest(
+  "Scholar metadata - omit book title for a chapter without container title",
+  async () => {
+    await withTempDir(async (dir) => {
+      Deno.writeTextFileSync(
+        join(dir, "references.bib"),
+        `@incollection{doe2020,
+        title = {A chapter},
+        author = {Doe, Jane},
+        year = {2020}
+      }`,
+      );
+      const input = join(dir, "test.qmd");
+      const doc = await scholarMetadata(
+        {
+          title: "A chapter of my own",
+          citation: { type: "chapter" },
+          bibliography: "references.bib",
+        },
+        input,
+        '<div id="ref-doe2020" class="csl-entry"></div>',
+      );
+      assertEquals(
+        doc.querySelector('meta[name="citation_inbook_title"]'),
+        null,
+      );
+      const reference = doc.querySelector('meta[name="citation_reference"]')!
+        .getAttribute("content")!;
+      assertEquals(reference.includes("citation_inbook_title"), false);
+    });
+  },
+);

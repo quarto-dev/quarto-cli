@@ -244,7 +244,9 @@ function googleScholarMeta(
       write("citation_book_title", csl["container-title"]);
     }
   } else if (type === "chapter") {
-    write("citation_inbook_title", csl["container-title"]);
+    if (csl["container-title"]) {
+      write("citation_inbook_title", csl["container-title"]);
+    }
   } else {
     if (csl["container-title"]) {
       write("citation_journal_title", csl["container-title"]);
