@@ -214,8 +214,12 @@ export function pandocBlock(delimiterCharacter: ":" | "`") {
         // now find the longest streak of delimiter characters in the innerLs
         const longestStreak = Math.max(...innerLs.map((eitherS) => {
           const s = asMappedString(eitherS).value;
-          return s.match(new RegExp(`${delimiterCharacter}+`, "g"))?.[0]
-            ?.length || 0;
+          const runs = s.match(new RegExp(`${delimiterCharacter}+`, "g")) ??
+            [];
+          return runs.reduce(
+            (longest, run) => Math.max(longest, run.length),
+            0,
+          );
         }));
         const delimiter = delimiterCharacter.repeat(
           Math.max(3, longestStreak + 1),
