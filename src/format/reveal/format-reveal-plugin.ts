@@ -388,7 +388,8 @@ function revealMenuPlugin(format: Format) {
         }],
         openButton: format.metadata[kRevealMenu] !== false,
         // read by quarto-menu.js, which names the button with it
-        openButtonLabel: format.language[kRevealjsMenuButtonLabel],
+        openButtonLabel: format.language[kRevealjsMenuButtonLabel] ||
+          "Slide menu",
       },
     },
   };

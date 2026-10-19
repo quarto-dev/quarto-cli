@@ -550,7 +550,7 @@ const fixupRevealJsInitialization = (
       // language strings, so `<` is escaped: a value holding `</script>` would
       // otherwise close this script early.
       const configValue = (value: unknown) =>
-        JSON.stringify(value).replace(/</g, "\\u003c");
+        (JSON.stringify(value) ?? "undefined").replace(/</g, "\\u003c");
 
       // Write any additional configuration of reveal
       const configJs: string[] = [];
