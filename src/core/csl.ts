@@ -132,6 +132,16 @@ export interface CSLDate {
   literal?: string;
 }
 
+// Matches the rich-text tags Pandoc emits when it renders CSL markup
+// (italic, bold, underline, super/subscript, small caps).
+const cslRichTextTags =
+  /<\/?(?:i|b|u|sup|sub)>|<span style="font-variant:small-caps;">|<\/span>/g;
+
+// Strips CSL rich-text tags from a value, leaving all other text untouched.
+export function cslTextToPlain(value: string): string {
+  return value.replace(cslRichTextTags, "");
+}
+
 export function suggestId(author: CSLName[], date?: CSLDate) {
   // Try to get the last name
   let citeIdLeading = "";

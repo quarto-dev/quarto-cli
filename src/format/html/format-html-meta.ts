@@ -9,13 +9,14 @@ import {
   PandocInputTraits,
   RenderedFormat,
 } from "../../command/render/types.ts";
-import { kCanonicalUrl } from "../../config/constants.ts";
+import { kCanonicalUrl, kCitationTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { bibliographyCslJson } from "../../core/bibliography.ts";
 import {
   CSL,
   cslDateToEDTFDate,
   CSLExtras,
+  cslTextToPlain,
   kAbstractUrl,
   kEIssn,
   kPdfUrl,
@@ -59,7 +60,11 @@ export function metadataPostProcessor(
         "webpage",
         format.pandoc["output-file"],
         offset,
+        options.inputTraits[kCitationTitle],
       );
+      if (csl.title) {
+        csl.title = cslTextToPlain(csl.title);
+      }
       const documentMetadata = googleScholarMeta(csl, extras);
       const referenceMetadata = await googleScholarReferences(
         input,
@@ -75,7 +80,7 @@ export function metadataPostProcessor(
   };
 }
 
-function googleScholarEnabled(format: Format) {
+export function googleScholarEnabled(format: Format) {
   // Enabled by the format / document
   if (format.metadata[kGoogleScholar] === true) {
     return true;
@@ -239,7 +244,9 @@ function googleScholarMeta(
       write("citation_book_title", csl["container-title"]);
     }
   } else if (type === "chapter") {
-    write("citation_inbook_title", csl["container-title"]);
+    if (csl["container-title"]) {
+      write("citation_inbook_title", csl["container-title"]);
+    }
   } else {
     if (csl["container-title"]) {
       write("citation_journal_title", csl["container-title"]);
@@ -266,9 +273,32 @@ async function googleScholarReferences(
   metadata: Metadata,
   doc: Document,
 ) {
-  const scholarMeta: MetaTagData[] = [];
-  const write = metadataWriter(scholarMeta);
+  const referenceIds = documentReferenceIds(doc);
+  if (referenceIds.size === 0) {
+    return [];
+  }
+  return citationReferenceMeta(
+    await bibliographyCslJson(input, metadata),
+    referenceIds,
+  );
+}
 
+// Replaces the page's citation_reference tags with one per reference
+// in `references` whose id appears in the document.
+export function replaceGoogleScholarReferences(
+  doc: Document,
+  references: CSL[],
+) {
+  for (const tag of doc.querySelectorAll('meta[name="citation_reference"]')) {
+    (tag as Element).remove();
+  }
+  const tags = citationReferenceMeta(references, documentReferenceIds(doc));
+  for (const tag of tags) {
+    writeMetaTag(tag.name, tag.content, doc);
+  }
+}
+
+function documentReferenceIds(doc: Document) {
   const referenceIds = new Set<string>();
   // Bibliography entries include works deliberately added with nocite.
   // Pandoc writes any identifier prefix (from YAML or --id-prefix) into
@@ -294,12 +324,15 @@ async function googleScholarReferences(
       }
     }
   }
-  if (referenceIds.size === 0) {
-    return scholarMeta;
-  }
+  return referenceIds;
+}
 
-  const references = await bibliographyCslJson(input, metadata);
-
+function citationReferenceMeta(
+  references: CSL[] | undefined,
+  referenceIds: Set<string>,
+) {
+  const scholarMeta: MetaTagData[] = [];
+  const write = metadataWriter(scholarMeta);
   if (references) {
     references.forEach((reference) => {
       if (!reference.id || !referenceIds.has(reference.id)) {
@@ -307,9 +340,10 @@ async function googleScholarReferences(
       }
       const refMetas = googleScholarMeta(reference, {});
       const metaStrs = refMetas.map((refMeta) => {
-        return `${refMeta.name}=${refMeta.content};`;
+        // Bibliography fields are CSL rich text; Scholar expects plain text.
+        return `${refMeta.name}=${cslTextToPlain(refMeta.content)};`;
       });
-      write("citation_reference", metaStrs.join());
+      write("citation_reference", metaStrs.join(" "));
     });
   }
   return scholarMeta;

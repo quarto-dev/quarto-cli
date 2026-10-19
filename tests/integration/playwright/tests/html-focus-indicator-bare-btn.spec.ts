@@ -1,5 +1,5 @@
-import { expect, Locator, Page, test } from "@playwright/test";
-import { getUrl } from "../src/utils";
+import { expect, test } from "@playwright/test";
+import { getUrl, tabUntilFocused } from "../src/utils";
 
 // Regression tests for #14774. Quarto emits three buttons that carry the
 // Bootstrap `btn` class with no `btn-*` variant class: the code tools
@@ -9,25 +9,8 @@ import { getUrl } from "../src/utils";
 // buttons took keyboard focus with no visible indicator. Quarto restores
 // the browser's native ring with `outline: revert`.
 
-// Move focus with real Tab presses so the button matches :focus-visible —
-// the fix only applies to keyboard focus, and programmatic locator.focus()
-// does not reliably match :focus-visible. WebKit follows Safari's default
-// of skipping buttons on Tab; Option+Tab visits every focusable element.
-async function tabUntilFocused(
-  page: Page,
-  browserName: string,
-  target: Locator,
-  maxTabs = 25,
-): Promise<boolean> {
-  const tabKey = browserName === "webkit" ? "Alt+Tab" : "Tab";
-  for (let i = 0; i < maxTabs; i++) {
-    await page.keyboard.press(tabKey);
-    if (await target.evaluate((el) => el === document.activeElement)) {
-      return true;
-    }
-  }
-  return false;
-}
+// Focus moves with real Tab presses (tabUntilFocused) because the fix only
+// applies to keyboard focus, i.e. to :focus-visible.
 
 test("code tools button shows a focus indicator on keyboard focus", async ({
   page,

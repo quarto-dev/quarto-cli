@@ -93,6 +93,7 @@ export function documentCSL(
   defaultType: CSLType,
   outputFile?: string,
   offset?: string,
+  cslTitle?: string,
 ): { csl: CSL; extras: CSLExtras } {
   const citationMetadata = citationMeta(inputMetadata);
 
@@ -101,12 +102,17 @@ export function documentCSL(
     ? cslType(citationMetadata[kType] as string)
     : defaultType;
 
-  // The title
-  const title = (citationMetadata[kTitle] || inputMetadata[kTitle]) as string;
+  // The title: when the filters converted it from markdown (even to an empty
+  // string), that CSL rich text replaces the raw metadata string
+  const title = cslTitle !== undefined
+    ? cslTitle
+    : (citationMetadata[kTitle] || inputMetadata[kTitle]) as string;
   const csl: CSL = {
-    title,
     type,
   };
+  if (title) {
+    csl.title = title;
+  }
 
   // The citation key
   const key = citationMetadata[kCitationKey] as string | undefined;

@@ -360,15 +360,22 @@ window.QuartoSupport = function () {
 
   // Prevent offscreen slides from receiving keyboard focus.
   // Mirrors reveal.js 6.0.2 (hakimel/reveal.js#1587); remove this block
-  // when the bundled reveal.js is >= 6.0.2.
+  // when the bundled reveal.js is >= 6.0.2, but keep moving the focus to the
+  // deck unless reveal.js does by then: 6.0.2 drops it to the body.
   function updateInertSlides(deck) {
     const allowAllSlides = deck.isOverview() || deck.isScrollView() || deck.isPrintView();
     const currentSlide = deck.getCurrentSlide();
-    deck.getRevealElement().querySelectorAll('.slides section').forEach((slide) => {
-      slide.toggleAttribute(
-        'inert',
-        !allowAllSlides && slide !== currentSlide && !slide.contains(currentSlide)
-      );
+    const revealElement = deck.getRevealElement();
+    revealElement.querySelectorAll('.slides section').forEach((slide) => {
+      const inert = !allowAllSlides && slide !== currentSlide && !slide.contains(currentSlide);
+      // Making the slide that has the focus inert would drop the focus to the
+      // body, where screen readers stop passing the arrow keys on to the deck
+      // (#15078). Move it to the deck first, so it stays in the presentation.
+      if (inert && slide.contains(document.activeElement)) {
+        if (!revealElement.hasAttribute('tabindex')) revealElement.setAttribute('tabindex', '-1');
+        revealElement.focus({ preventScroll: true });
+      }
+      slide.toggleAttribute('inert', inert);
     });
   }
 

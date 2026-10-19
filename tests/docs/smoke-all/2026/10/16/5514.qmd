@@ -1,0 +1,22 @@
+---
+title: "fig-alt in docx for images and figures (#5514)"
+format: docx
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        -
+          - '//wp:docPr[@descr="Cross-referenced alternative"]'
+          - '//w:t[starts-with(., "Figure") and contains(., "Cross-referenced visible caption")]'
+          - '//wp:docPr[@descr="Plain alternative"]'
+          - '//w:t[contains(., "Plain visible caption")]'
+        - []
+---
+
+`fig-alt` must become the Word picture description in `docx`, while the visible caption stays in the document. Without it, Pandoc uses the image caption as description: empty for a cross-referenced figure, as layout moves the caption out of the image, and the caption text for a plain image.
+
+See @fig-static.
+
+![Cross-referenced visible caption]({{< placeholder 200 100 >}}){#fig-static fig-alt="Cross-referenced alternative"}
+
+![Plain visible caption]({{< placeholder 200 100 >}}){fig-alt="Plain alternative"}
