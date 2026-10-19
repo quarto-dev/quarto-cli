@@ -316,7 +316,7 @@ async function googleScholarReferences(
       const metaStrs = refMetas.map((refMeta) => {
         return `${refMeta.name}=${refMeta.content};`;
       });
-      write("citation_reference", metaStrs.join());
+      write("citation_reference", metaStrs.join(" "));
     });
   }
   return scholarMeta;

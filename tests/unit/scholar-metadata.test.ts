@@ -135,6 +135,36 @@ unitTest(
 );
 
 unitTest(
+  "Scholar metadata - separate reference fields with semicolon and space",
+  async () => {
+    await withTempDir(async (dir) => {
+      Deno.writeTextFileSync(
+        join(dir, "references.bib"),
+        `@article{doe2020,
+        title = {A title},
+        journal = {A Journal},
+        author = {Doe, Jane},
+        year = {2020}
+      }`,
+      );
+      const input = join(dir, "test.qmd");
+      const doc = await scholarMetadata(
+        { title: "An article", bibliography: "references.bib" },
+        input,
+        '<div id="ref-doe2020" class="csl-entry"></div>',
+      );
+      assertEquals(
+        doc.querySelector('meta[name="citation_reference"]')!
+          .getAttribute("content"),
+        "citation_title=A title; citation_author=Jane Doe; " +
+          "citation_publication_date=2020; citation_cover_date=2020; " +
+          "citation_year=2020; citation_journal_title=A Journal;",
+      );
+    });
+  },
+);
+
+unitTest(
   "Scholar metadata - omit book title for a chapter without container title",
   async () => {
     await withTempDir(async (dir) => {
