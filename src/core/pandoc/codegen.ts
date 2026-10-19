@@ -216,7 +216,10 @@ export function pandocBlock(delimiterCharacter: ":" | "`") {
           const s = asMappedString(eitherS).value;
           const runs = s.match(new RegExp(`${delimiterCharacter}+`, "g")) ??
             [];
-          return Math.max(0, ...runs.map((run) => run.length));
+          return runs.reduce(
+            (longest, run) => Math.max(longest, run.length),
+            0,
+          );
         }));
         const delimiter = delimiterCharacter.repeat(
           Math.max(3, longestStreak + 1),
