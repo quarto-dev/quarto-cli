@@ -23,6 +23,8 @@ _quarto:
           - 'meta[name="twitter:title"][content="DECOY TITLE"]'
           - 'meta[name="twitter:description"][content="DECOY DESCRIPTION"]'
           - 'meta[property="og:title"][content^="About"]'
+          - 'meta[property="og:description"][content="About page description"]'
+          - 'meta[name="twitter:title"][content^="About"]'
           - 'meta[name="twitter:description"][content="About page description"]'
         - ['meta[property="og:site_name"][content="SITE TITLE"]']
 ---
