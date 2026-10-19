@@ -13,7 +13,6 @@ _quarto:
         - []
         - ['Proof content visible']
     typst:
-      noErrors: default
       ensureTypstFileRegexMatches:
         - ['#proof\(']
         - []
