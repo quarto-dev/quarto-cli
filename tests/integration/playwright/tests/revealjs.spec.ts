@@ -256,3 +256,25 @@ test.describe('the closed slide menu is out of the tab order', () => {
     await expect(menu(page)).not.toHaveAttribute('inert');
   });
 });
+
+// https://github.com/quarto-dev/quarto-cli/issues/14249
+test.describe('the slide menu button has an accessible name', () => {
+  const button = (page: Page) => page.locator('.slide-menu-button a');
+
+  test('the default label', async ({ page }) => {
+    await page.goto('./revealjs/menu-focus-order.html');
+    await expect(button(page)).toHaveAccessibleName('Slide menu');
+  });
+
+  test('a menu built after the presentation loads', async ({ page }) => {
+    await page.goto('./revealjs/menu-delay-init.html');
+    await expect(page.locator('.reveal')).toHaveClass(/\bready\b/);
+    await page.evaluate(() => (window as any).Reveal.getPlugin('menu').initialiseMenu());
+    await expect(button(page)).toHaveAccessibleName('Slide menu');
+  });
+
+  test('a label set through the language files', async ({ page }) => {
+    await page.goto('./revealjs/menu-button-label.html');
+    await expect(button(page)).toHaveAccessibleName('Menu des diapositives');
+  });
+});
