@@ -96,16 +96,16 @@ end
 -- opts.color: clouds and rainbow fill color
 -- opts.simple_render, opts.simple_style: name and style ("theorem" or "proof")
 -- of the simple renderer
-local function render_code(appearance, opts)
-  if appearance == "fancy" then
+local function render_code(appearance_name, opts)
+  if appearance_name == "fancy" then
     return "  render: fancy-box.with(\n" ..
       "    get-border-color: get-" .. opts.color_scheme .. "-border-color,\n" ..
       "    get-body-color: get-" .. opts.color_scheme .. "-body-color,\n" ..
       "    get-symbol: loc => none,\n" ..
       "  ),\n"
-  elseif appearance == "clouds" then
+  elseif appearance_name == "clouds" then
     return "  render: clouds-render.with(fill: " .. opts.color .. ".lighten(85%)),\n"
-  elseif appearance == "rainbow" then
+  elseif appearance_name == "rainbow" then
     return "  render: rainbow-render.with(fill: " .. opts.color .. ".darken(20%)),\n"
   end
   ensure_simple_render(opts.simple_render, opts.simple_style)
@@ -121,7 +121,7 @@ local function header_code(title, bold)
   return typst_string(title)
 end
 
-local function ensure_frame(env_name, title, render_code, bold)
+local function ensure_frame(env_name, title, render_arg, bold)
   if typst_theorem_like_frames[env_name] then
     return
   end
@@ -133,7 +133,7 @@ local function ensure_frame(env_name, title, render_code, bold)
     "  " .. header_code(title, bold) .. ",\n" ..
     "  inherited-levels: theorem-inherited-levels,\n" ..
     "  numbering: theorem-numbering,\n" ..
-    render_code ..
+    render_arg ..
     ")")
   quarto.doc.include_text("in-header", "#show: show-" .. env_name)
 end
@@ -143,5 +143,4 @@ return {
   ensure_frame = ensure_frame,
   header_code = header_code,
   render_code = render_code,
-  typst_string = typst_string,
 }
