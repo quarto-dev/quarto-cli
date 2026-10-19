@@ -97,11 +97,9 @@ export function metadataHtmlPostProcessor(
   format: Format,
   extras: FormatExtras,
   pipeline: MarkdownPipeline,
-  written = new Map<string, Element>(),
+  written: Map<string, Element>,
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
-    written.clear();
-
     // read document level metadata
     const pageMeta = pageMetadata(format, extras);
 
