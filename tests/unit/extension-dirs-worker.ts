@@ -19,3 +19,7 @@ worker.onmessage = (event: MessageEvent<Request>) => {
     worker.postMessage({ error: String(error) });
   }
 };
+
+// Tells the test that the imports have loaded, so that its timeout covers
+// only the call and not the start of the Worker.
+worker.postMessage({ ready: true });

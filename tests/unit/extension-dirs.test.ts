@@ -11,12 +11,24 @@ import { join } from "../../src/deno_ral/path.ts";
 import { normalizePath } from "../../src/core/path.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
 
-type Reply = { dirs?: string[]; error?: string };
+type Reply = { ready?: true; dirs?: string[]; error?: string };
 
 const kTimeoutMs = 10000;
 
+function nextMessage(worker: Worker): Promise<Reply> {
+  return new Promise<Reply>((resolve, reject) => {
+    worker.onmessage = (event: MessageEvent<Reply>) => resolve(event.data);
+    worker.onerror = (event: ErrorEvent) => {
+      event.preventDefault();
+      reject(new Error(`extension-dirs worker failed: ${event.message}`));
+    };
+  });
+}
+
 // Runs inputExtensionDirs in a Worker, so that an endless loop fails the test
-// after kTimeoutMs instead of hanging the suite.
+// after kTimeoutMs instead of hanging the suite. The timeout starts once the
+// Worker has loaded its imports, which can take several seconds on a cold
+// cache.
 async function inputExtensionDirsInWorker(
   input: string,
   projectDir: string,
@@ -27,13 +39,8 @@ async function inputExtensionDirsInWorker(
   );
   let timer: number | undefined;
   try {
-    const reply = new Promise<Reply>((resolve, reject) => {
-      worker.onmessage = (event: MessageEvent<Reply>) => resolve(event.data);
-      worker.onerror = (event: ErrorEvent) => {
-        event.preventDefault();
-        reject(new Error(`extension-dirs worker failed: ${event.message}`));
-      };
-    });
+    await nextMessage(worker);
+    const reply = nextMessage(worker);
     const timeout = new Promise<never>((_resolve, reject) => {
       timer = setTimeout(
         () =>
