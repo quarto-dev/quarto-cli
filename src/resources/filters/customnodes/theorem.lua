@@ -113,10 +113,10 @@ local function ensure_typst_theorems(reftype)
     color_scheme = color_scheme,
     color = theme_colors[reftype] or "gray",
     simple_render = "simple-theorem-render",
-    italic_body = true,
+    simple_style = "theorem",
   })
 
-  _quarto.modules.theorems.ensure_frame(theorem_type.env, title, render_code)
+  _quarto.modules.theorems.ensure_frame(theorem_type.env, title, render_code, true)
 end
 
 

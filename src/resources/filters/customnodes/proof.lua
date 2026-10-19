@@ -81,10 +81,14 @@ local function ensure_typst_proofs(proof_env)
     color_scheme = "tertiary",
     color = proof_theme_colors[proof_env] or "gray",
     simple_render = "simple-proof-render",
-    italic_body = false,
+    simple_style = "proof",
   })
 
-  _quarto.modules.theorems.ensure_frame(proof_env, title, render_code)
+  -- the simple renderer writes the header in italic, like LaTeX and HTML;
+  -- the other appearances keep theorion's bold header, as theorems do
+  local bold = appearance ~= "simple"
+  _quarto.modules.theorems.ensure_frame(proof_env, title, render_code, bold)
+  return bold
 end
 
 function is_proof_div(div)
@@ -173,7 +177,7 @@ end, function(proof_tbl)
     if #el.content == 0 then
       el.content = pandoc.Blocks({pandoc.Para({pandoc.Str '\u{a0}'})})
     end
-    ensure_typst_proofs(proof.env)
+    local bold = ensure_typst_proofs(proof.env)
     local preamble = pandoc.Plain({pandoc.RawInline("typst", "#" .. proof.env .. "(")})
     local numbered = is_numbered_proof(proof_tbl.identifier)
     if not numbered then
@@ -181,8 +185,8 @@ end, function(proof_tbl)
       -- `number: auto`, and its prefix would keep a space before the empty
       -- number, so an unnumbered block pins both
       preamble.content:insert(pandoc.RawInline("typst",
-        'number: "", get-prefix: (..args) => text(weight: "bold", ' ..
-        _quarto.modules.theorems.typst_string(envTitle(proof.env, proof.title)) .. ')'))
+        'number: "", get-prefix: (..args) => ' ..
+        _quarto.modules.theorems.header_code(envTitle(proof.env, proof.title), bold)))
     end
     if name and #name > 0 then
       if not numbered then
@@ -199,6 +203,11 @@ end, function(proof_tbl)
       callproof.content:insert(pandoc.RawInline("typst", "] <" .. proof_tbl.identifier .. ">"))
     else
       callproof.content:insert(pandoc.RawInline("typst", "]"))
+    end
+    -- attributes such as `style` stay on a wrapper div, so the Typst CSS
+    -- support turns them into a block around the frame, as for other divs
+    if #el.attr.attributes > 0 then
+      return pandoc.Div({callproof}, pandoc.Attr("", {}, el.attr.attributes))
     end
     return callproof
   else

@@ -53,15 +53,25 @@ local function ensure_appearance_imports()
   return val
 end
 
-local function ensure_simple_render(render_name, italic_body)
+-- Defines a simple renderer once. The "theorem" style writes a bold header and
+-- an italic body; the "proof" style writes an italic header and an upright
+-- body, with the name in brackets, as amsthm and the HTML output do.
+local function ensure_simple_render(render_name, style)
   if typst_simple_renderers[render_name] then
     return
   end
 
   typst_simple_renderers[render_name] = true
-  local body_render = "body"
-  if italic_body then
-    body_render = "emph(body)"
+  if style == "proof" then
+    quarto.doc.include_text("in-header", "#let " .. render_name .. [[(prefix: none, title: "", full-title: auto, body) = {
+  emph(prefix)
+  if title != "" and title != none [ (#title)]
+  [. ]
+  body
+  parbreak()
+}
+]])
+    return
   end
 
   quarto.doc.include_text("in-header", "#let " .. render_name .. [[(prefix: none, title: "", full-title: auto, body) = {
@@ -69,7 +79,7 @@ local function ensure_simple_render(render_name, italic_body)
     strong[#full-title.]
     h(0.5em)
   }
-  ]] .. body_render .. "\n" .. [[
+  emph(body)
   parbreak()
 }
 ]])
@@ -84,7 +94,8 @@ end
 -- Returns the `render:` argument of make-frame for the theorem appearance.
 -- opts.color_scheme: fancy color set (primary, secondary or tertiary)
 -- opts.color: clouds and rainbow fill color
--- opts.simple_render, opts.italic_body: name and body style of the simple renderer
+-- opts.simple_render, opts.simple_style: name and style ("theorem" or "proof")
+-- of the simple renderer
 local function render_code(appearance, opts)
   if appearance == "fancy" then
     return "  render: fancy-box.with(\n" ..
@@ -97,11 +108,20 @@ local function render_code(appearance, opts)
   elseif appearance == "rainbow" then
     return "  render: rainbow-render.with(fill: " .. opts.color .. ".darken(20%)),\n"
   end
-  ensure_simple_render(opts.simple_render, opts.italic_body)
+  ensure_simple_render(opts.simple_render, opts.simple_style)
   return "  render: " .. opts.simple_render .. ",\n"
 end
 
-local function ensure_frame(env_name, title, render_code)
+-- Returns the Typst code for a frame header: bold, or plain for blocks whose
+-- renderer styles the header itself.
+local function header_code(title, bold)
+  if bold then
+    return 'text(weight: "bold", ' .. typst_string(title) .. ')'
+  end
+  return typst_string(title)
+end
+
+local function ensure_frame(env_name, title, render_code, bold)
   if typst_theorem_like_frames[env_name] then
     return
   end
@@ -110,7 +130,7 @@ local function ensure_frame(env_name, title, render_code)
   quarto.doc.include_text("in-header", "#let (" .. env_name .. "-counter, " .. env_name .. "-box, " ..
     env_name .. ", show-" .. env_name .. ") = make-frame(\n" ..
     "  \"" .. env_name .. "\",\n" ..
-    "  text(weight: \"bold\", " .. typst_string(title) .. "),\n" ..
+    "  " .. header_code(title, bold) .. ",\n" ..
     "  inherited-levels: theorem-inherited-levels,\n" ..
     "  numbering: theorem-numbering,\n" ..
     render_code ..
@@ -121,6 +141,7 @@ end
 return {
   ensure_appearance_imports = ensure_appearance_imports,
   ensure_frame = ensure_frame,
+  header_code = header_code,
   render_code = render_code,
   typst_string = typst_string,
 }
