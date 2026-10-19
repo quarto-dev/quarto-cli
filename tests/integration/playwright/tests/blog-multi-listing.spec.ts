@@ -14,37 +14,47 @@ const categoryLinkLocator = (page: Page, name: string) =>
     .locator("header.quarto-title-block .quarto-category", { hasText: name })
     .locator("a");
 
-// A full render writes the blog listing first in listings.json, while an
-// incremental render or `quarto preview` can write the homepage listing first.
-// The link must not depend on that order.
+// The order of listings.json depends on how the site was rendered, so each
+// case serves an explicit order. The link must not depend on that order.
+// Both put the blog listing before the archive, so the first of two listings
+// in the same directory is never the expected one.
 const listingOrders = [
-  { name: "rendered listing order", homepageFirst: false },
-  { name: "homepage listing first", homepageFirst: true },
+  {
+    name: "homepage listing last",
+    order: [
+      "/blog/index.html",
+      "/blog/archive.html",
+      "/topics/index.html",
+      "/index.html",
+    ],
+  },
+  {
+    name: "homepage listing first",
+    order: [
+      "/index.html",
+      "/blog/index.html",
+      "/blog/archive.html",
+      "/topics/index.html",
+    ],
+  },
 ];
 
-const serveListings = async (page: Page, homepageFirst: boolean) => {
-  if (!homepageFirst) {
-    return;
-  }
+const serveListings = async (page: Page, order: string[]) => {
   await page.route("**/listings.json", async (route) => {
     const response = await route.fetch();
     const listings: { listing: string }[] = await response.json();
-    const isHomepage = (entry: { listing: string }) =>
-      entry.listing === "/index.html";
+    const rank = (entry: { listing: string }) => order.indexOf(entry.listing);
     await route.fulfill({
       response,
-      json: [
-        ...listings.filter(isHomepage),
-        ...listings.filter((entry) => !isHomepage(entry)),
-      ],
+      json: [...listings].sort((a, b) => rank(a) - rank(b)),
     });
   });
 };
 
-for (const { name, homepageFirst } of listingOrders) {
+for (const { name, order } of listingOrders) {
   test.describe(name, () => {
     test.beforeEach(async ({ page }) => {
-      await serveListings(page, homepageFirst);
+      await serveListings(page, order);
     });
 
     test("Category link on a post filters the nearest parent listing", async ({ page }) => {
