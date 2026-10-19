@@ -314,7 +314,8 @@ async function googleScholarReferences(
       }
       const refMetas = googleScholarMeta(reference, {});
       const metaStrs = refMetas.map((refMeta) => {
-        return `${refMeta.name}=${refMeta.content};`;
+        // Bibliography fields are CSL rich text; Scholar expects plain text.
+        return `${refMeta.name}=${cslTextToPlain(refMeta.content)};`;
       });
       write("citation_reference", metaStrs.join(" "));
     });
