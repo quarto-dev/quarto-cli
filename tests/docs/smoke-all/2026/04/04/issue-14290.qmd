@@ -15,10 +15,12 @@ _quarto:
           - '#ref\(<rem-example>'
           - '#ref\(<sol-exercise>'
           # unnumbered blocks pin their number and keep the counter still
-          - '#remark\(number: "", get-prefix: '
-          - '#proof\(number: "", get-prefix: '
+          - '#remark\(number: "", get-prefix: \(\.\.args\) => text\(weight: "bold", "Remark"\)'
+          - '#proof\(number: "", get-prefix: \(\.\.args\) => text\(weight: "bold", "Proof"\)'
           # a numbered proof keeps theorion's own number
           - '#proof\(\)\[(\r\n?|\n)Numbered proof\.'
+          # a block holding only a title keeps its label for references
+          - '<prf-b>'
         - []
       ensurePdfRegexMatches:
         -
@@ -28,10 +30,11 @@ _quarto:
           - 'Proof\. This is an unnumbered proof'
           - 'Proof 1\. Numbered proof'
           - 'Proof \(With code\)\. A named proof'
-          - 'See Remark 1, Solution 1 and Proof 1'
+          - 'Proof 2 \(Only a title\)'
+          - 'See Remark 1, Solution 1, Proof 1 and Proof 2'
         -
           - 'Remark 2'
-          - 'Proof 2'
+          - 'Proof 3'
           - 'Proof \.'
 ---
 
@@ -82,4 +85,10 @@ A named proof.
 
 :::
 
-See @rem-example, @sol-exercise and @prf-a.
+::: {#prf-b}
+
+## Only a title
+
+:::
+
+See @rem-example, @sol-exercise, @prf-a and @prf-b.
