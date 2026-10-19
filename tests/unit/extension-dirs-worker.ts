@@ -20,6 +20,6 @@ worker.onmessage = (event: MessageEvent<Request>) => {
   }
 };
 
-// Tells the test that the imports have loaded, so that its timeout covers
-// only the call and not the start of the Worker.
+// Tells the test that the module graph is loaded, and type checked under
+// `deno test --check`, so that its timeout covers only the call.
 worker.postMessage({ ready: true });

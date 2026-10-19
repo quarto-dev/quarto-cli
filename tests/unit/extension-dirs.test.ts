@@ -26,8 +26,9 @@ function nextMessage(worker: Worker): Promise<Reply> {
 }
 
 // Runs inputExtensionDirs in a Worker, so that an endless loop fails the test
-// after kTimeoutMs instead of hanging the suite. The timeout starts once the
-// Worker has loaded its imports, which can take several seconds on a cold
+// after kTimeoutMs instead of hanging the suite. The timeout starts when the
+// Worker is ready. Under `deno test --check`, Deno type checks the module graph
+// of the Worker when it starts, which can take more than kTimeoutMs on a cold
 // cache.
 async function inputExtensionDirsInWorker(
   input: string,
