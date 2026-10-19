@@ -1,0 +1,71 @@
+---
+title: DOCX figure captions and alt text (Jupyter)
+format: docx
+jupyter: python3
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        -
+          # cross-referenced cell
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a01: J1 caption']"
+          # unlabelled cell with fig-cap
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='J2 caption']"
+          # fig-subcap with layout-ncol: both subcaptions and the panel caption
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='(a) J4a sub caption']"
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='(b) J4b sub caption']"
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a02: J4 caption']"
+          # cross-referenced cell without fig-alt
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a03: J5 caption']"
+          # descr of a cross-referenced cell without fig-alt is empty
+          - "//w:tbl[.//w:t[contains(., 'J5 caption')]]//wp:docPr[@descr='']"
+        -
+          # alt text never becomes visible text
+          - "//w:t[contains(., 'ALT-ONLY')]"
+          - "//w:tbl[.//w:t[contains(., 'J5 caption')]]//wp:docPr[@descr!='']"
+---
+
+Pins how figure captions and alt text from Jupyter cells render in DOCX.
+Visible captions must stay unchanged whatever the filter pipeline does with alt text, and every alt value carries a marker that must never appear in the document text.
+The image description (`descr`) is checked only for the cell without `fig-alt`.
+
+```{python}
+#| label: fig-j1
+#| fig-cap: "J1 caption"
+#| fig-alt: "J1 ALT-ONLY"
+import matplotlib.pyplot as plt
+plt.plot([1, 2])
+plt.show()
+```
+
+```{python}
+#| fig-cap: "J2 caption"
+#| fig-alt: "J2 ALT-ONLY"
+plt.plot([1, 2])
+plt.show()
+```
+
+```{python}
+#| fig-alt: "J3 ALT-ONLY"
+plt.plot([1, 2])
+plt.show()
+```
+
+```{python}
+#| label: fig-j4
+#| fig-cap: "J4 caption"
+#| fig-subcap: ["J4a sub caption", "J4b sub caption"]
+#| fig-alt: ["J4a ALT-ONLY", "J4b ALT-ONLY"]
+#| layout-ncol: 2
+plt.plot([1, 2])
+plt.show()
+plt.plot([2, 1])
+plt.show()
+```
+
+```{python}
+#| label: fig-j5
+#| fig-cap: "J5 caption"
+plt.plot([1, 2])
+plt.show()
+```
