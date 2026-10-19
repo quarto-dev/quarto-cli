@@ -19,6 +19,12 @@ _quarto:
           - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a03: J5 caption']"
           # descr of a cross-referenced cell without fig-alt is empty
           - "//w:tbl[.//w:t[contains(., 'J5 caption')]]//wp:docPr[@descr='']"
+          # descr of cells with fig-alt is that value
+          - "//wp:docPr[@descr='J1 ALT-ONLY']"
+          - "//wp:docPr[@descr='J2 ALT-ONLY']"
+          - "//wp:docPr[@descr='J3 ALT-ONLY']"
+          - "//wp:docPr[@descr='J4a ALT-ONLY']"
+          - "//wp:docPr[@descr='J4b ALT-ONLY']"
         -
           # alt text never becomes visible text
           - "//w:t[contains(., 'ALT-ONLY')]"
@@ -27,7 +33,7 @@ _quarto:
 
 Pins how figure captions and alt text from Jupyter cells render in DOCX.
 Visible captions must stay unchanged whatever the filter pipeline does with alt text, and every alt value carries a marker that must never appear in the document text.
-The image description (`descr`) is checked only for the cell without `fig-alt`.
+The image description (`descr`) is the `fig-alt` value when one is set, and empty for the cross-referenced cell without it.
 
 ```{python}
 #| label: fig-j1

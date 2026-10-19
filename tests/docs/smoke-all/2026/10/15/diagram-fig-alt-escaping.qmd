@@ -1,0 +1,41 @@
+---
+title: "Diagram alternative text escaping"
+format:
+  docx: default
+  typst:
+    keep-typ: true
+    pdf-standard: ua-1
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        -
+          - '//wp:docPr[contains(@descr, "quote") and contains(@descr, "<tag>") and contains(@descr, "café 한글")]'
+          - '//wp:docPr[@descr=""]'
+          - '//w:t[contains(., "Decorative visible caption")]'
+        - []
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'café 한글'
+        - []
+---
+
+```{mermaid}
+%%| fig-alt: >-
+%%|   A "quote" & <tag> \ path
+%%|   café 한글
+flowchart LR
+  A[Start] --> B[End]
+```
+
+::: {.content-visible when-format="docx"}
+
+```{dot}
+//| fig-cap: "Decorative visible caption"
+//| fig-alt: ""
+digraph G { Start -> End }
+```
+
+:::

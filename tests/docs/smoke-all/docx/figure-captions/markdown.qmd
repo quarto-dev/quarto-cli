@@ -36,15 +36,30 @@ _quarto:
           - "//w:tbl[.//w:t[contains(., 'C04 xref caption')]]//wp:docPr[@descr='']"
           # descr of the callout icon is empty
           - "//w:tbl[.//w:t[.='Note']]//wp:docPr[@descr='']"
+          # descr of images with fig-alt or alt is that value
+          - "//wp:docPr[@descr='C01 ALT-ONLY']"
+          - "//wp:docPr[@descr='C02 ALT-ONLY']"
+          - "//wp:docPr[@descr='C05a ALT-ONLY']"
+          - "//wp:docPr[@descr='C06 ALT-ONLY']"
+          - "//wp:docPr[@descr='C07a ALT-ONLY']"
+          - "//wp:docPr[@descr='C09 ALT-ONLY']"
+          - "//wp:docPr[@descr='C10 ALT-ONLY']"
+          - "//wp:docPr[@descr='C11 ALT-ONLY a *b* <c> & d']"
+          - "//wp:docPr[@descr='C12 ALT-ONLY']"
+          - "//wp:docPr[@descr='C13 ALT-ONLY']"
+          # descr of an image with empty fig-alt stays empty instead of using the caption
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C08 empty alt caption']/preceding-sibling::w:p[1]//wp:docPr[@descr='']"
         -
           # alt text never becomes visible text
           - "//w:t[contains(., 'ALT-ONLY')]"
           - "//w:tbl[.//w:t[contains(., 'C04 xref caption')]]//wp:docPr[@descr!='']"
+          - "//wp:docPr[@descr='C08 empty alt caption']"
 ---
 
 Pins how figure captions and alt text render in DOCX for every way an image can reach the document.
 Visible captions must stay unchanged whatever the filter pipeline does with alt text, and every alt value carries a marker that must never appear in the document text.
-The image description (`descr`) is checked only for images without `fig-alt`.
+The image description (`descr`) is the `fig-alt` or `alt` value when one is set, and the caption for a plain figure or empty for a cross-referenced one otherwise.
+An explicit empty `fig-alt` keeps the description empty: it is not replaced by the caption, although Word does not treat the image as decorative.
 
 C01 inline image: text ![C01 inline caption](image.png){fig-alt="C01 ALT-ONLY"} text.
 

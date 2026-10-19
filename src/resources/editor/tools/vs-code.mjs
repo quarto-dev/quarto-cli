@@ -7633,13 +7633,16 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "fig-alt",
           tags: {
             formats: [
-              "$html-all"
+              "$html-all",
+              "docx",
+              "$pdf-all",
+              "typst"
             ]
           },
           schema: {
             maybeArrayOf: "string"
           },
-          description: "Alternative text to be used in the `alt` attribute of HTML images.\n"
+          description: "Alternative text for figures, distinct from their visible caption.\n"
         },
         {
           name: "fig-env",
@@ -23548,7 +23551,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Figure subcaptions",
         "Hyperlink target for the figure",
         "Figure horizontal alignment (<code>default</code>, <code>left</code>,\n<code>right</code>, or <code>center</code>)",
-        "Alternative text to be used in the <code>alt</code> attribute of HTML\nimages.",
+        "Alternative text for figures, distinct from their visible\ncaption.",
         "LaTeX environment for figure output",
         {
           short: "LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.",

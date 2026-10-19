@@ -1,0 +1,73 @@
+---
+title: "Diagram alternative text"
+format:
+  html: default
+  docx: default
+  typst:
+    keep-typ: true
+    pdf-standard: ua-1
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'pre.mermaid-js[data-fig-alt="Mermaid alternative text"]'
+          - '#fig-dot svg[role="img"][aria-label="DOT alternative text"]'
+          - '#fig-mermaid figcaption'
+          - '#fig-dot figcaption'
+          - 'pre.mermaid-js[data-fig-alt="Uncaptioned Mermaid alternative"]'
+          - 'svg[aria-label="Uncaptioned DOT alternative"]'
+        - []
+    docx:
+      ensureDocxXpath:
+        -
+          - '//wp:docPr[@descr="Mermaid alternative text"]'
+          - '//wp:docPr[@descr="DOT alternative text"]'
+          - '//wp:docPr[@descr="Uncaptioned Mermaid alternative"]'
+          - '//wp:docPr[@descr="Uncaptioned DOT alternative"]'
+          - '//wp:docPr[@descr="Static alternative"]'
+          - '//w:t[contains(., "Mermaid visible caption")]'
+          - '//w:t[contains(., "DOT visible caption")]'
+          - '//w:t[contains(., "Static visible caption")]'
+        - []
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'alt:\s*"Mermaid alternative text"'
+          - 'alt:\s*"DOT alternative text"'
+          - 'alt:\s*"Uncaptioned Mermaid alternative"'
+          - 'alt:\s*"Uncaptioned DOT alternative"'
+          - 'alt:\s*"Static alternative"'
+        - []
+---
+
+See @fig-mermaid and @fig-dot.
+
+```{mermaid}
+%%| label: fig-mermaid
+%%| fig-cap: "Mermaid visible caption"
+%%| fig-alt: "Mermaid alternative text"
+flowchart LR
+  A[Start] --> B[End]
+```
+
+```{dot}
+//| label: fig-dot
+//| fig-cap: "DOT visible caption"
+//| fig-alt: "DOT alternative text"
+digraph G { Start -> End }
+```
+
+```{mermaid}
+%%| fig-alt: "Uncaptioned Mermaid alternative"
+flowchart LR
+  A[Start] --> B[End]
+```
+
+```{dot}
+//| fig-alt: "Uncaptioned DOT alternative"
+digraph G { Start -> End }
+```
+
+![Static visible caption]({{< placeholder 200 100 >}}){fig-alt="Static alternative"}
