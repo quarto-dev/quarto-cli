@@ -152,6 +152,7 @@ import("./quarto-pre/figures.lua")
 import("./quarto-pre/font.lua")
 import("./quarto-pre/hidden.lua")
 import("./quarto-pre/include-paths.lua")
+import("./quarto-pre/citation-title.lua")
 import("./quarto-pre/input-traits.lua")
 import("./quarto-pre/line-numbers.lua")
 import("./quarto-pre/meta.lua")
@@ -417,6 +418,10 @@ local quarto_pre_filters = {
   },
   { name = "pre-quarto-pre-meta-inject",
     filter = quarto_pre_meta_inject(),
+    traverser = 'jog',
+  },
+  { name = "pre-citation-title",
+    filter = citation_title(),
     traverser = 'jog',
   },
   { name = "pre-write-results",

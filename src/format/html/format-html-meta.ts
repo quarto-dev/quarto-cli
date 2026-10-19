@@ -9,13 +9,14 @@ import {
   PandocInputTraits,
   RenderedFormat,
 } from "../../command/render/types.ts";
-import { kCanonicalUrl } from "../../config/constants.ts";
+import { kCanonicalUrl, kCitationTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { bibliographyCslJson } from "../../core/bibliography.ts";
 import {
   CSL,
   cslDateToEDTFDate,
   CSLExtras,
+  cslTextToPlain,
   kAbstractUrl,
   kEIssn,
   kPdfUrl,
@@ -59,7 +60,11 @@ export function metadataPostProcessor(
         "webpage",
         format.pandoc["output-file"],
         offset,
+        options.inputTraits[kCitationTitle],
       );
+      if (csl.title) {
+        csl.title = cslTextToPlain(csl.title);
+      }
       const documentMetadata = googleScholarMeta(csl, extras);
       const referenceMetadata = await googleScholarReferences(
         input,
