@@ -198,6 +198,45 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
   });
 });
 
+test.describe('the focus stays in the deck when its slide is left (#15078)', () => {
+  // Not getByRole: non-present slides carry aria-hidden, which getByRole skips.
+  const slideButton = (page: Page, id: string) =>
+    page.locator('button', { hasText: `Button on ${id}` });
+  const deck = (page: Page) => page.locator('.reveal');
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('./revealjs/offscreen-slides-focus.html#/slide-2');
+    await expect(page.locator('.reveal.ready')).toBeAttached();
+  });
+
+  test('moving on from the slide that has the focus hands it to the deck', async ({ page }) => {
+    await slideButton(page, 'slide-2').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page).toHaveURL(/#\/slide-3$/);
+    await expect(deck(page)).toBeFocused();
+    await expect(deck(page)).toHaveAttribute('tabindex', '-1');
+    // From the deck, Tab goes on into the new slide.
+    await page.keyboard.press('Tab');
+    await expect(slideButton(page, 'slide-3')).toBeFocused();
+  });
+
+  test('moving on leaves a focus that was not on the slide alone', async ({ page }) => {
+    await page.keyboard.press('ArrowRight');
+    await expect(page).toHaveURL(/#\/slide-3$/);
+    await expect(deck(page)).not.toBeFocused();
+    await expect(deck(page)).not.toHaveAttribute('tabindex');
+  });
+
+  test('leaving the overview hands a focus on another slide to the deck', async ({ page }) => {
+    await page.keyboard.press('o');
+    await expect(page.locator('.reveal.overview')).toBeAttached();
+    await slideButton(page, 'slide-5').focus();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.reveal.overview')).toHaveCount(0);
+    await expect(deck(page)).toBeFocused();
+  });
+});
+
 // https://github.com/quarto-dev/quarto-cli/issues/15011
 test.describe('the closed slide menu is out of the tab order', () => {
   const deck = './revealjs/menu-focus-order.html';
