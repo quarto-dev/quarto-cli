@@ -85,6 +85,7 @@ All changes included in 1.11:
 - ([#14879](https://github.com/quarto-dev/quarto-cli/issues/14879)): Support `plausible-analytics`, `back-to-top-navigation`, and `image-alt` under the `book` key, which previously had no effect.
 - ([#14929](https://github.com/quarto-dev/quarto-cli/pull/14929)): Fix `Error compiling template` when rendering a book to `pdf`, `docx` or `epub` on Windows with Quarto located under a directory whose name starts with `_`, `.`, `-` or another punctuation character.
 - ([#14975](https://github.com/quarto-dev/quarto-cli/issues/14975)): Fix `llms-txt` in book projects showing unresolved cross-references (`Equation eq-one` instead of `Equation 1.1`) in the generated `.llms.md` pages.
+- ([#15106](https://github.com/quarto-dev/quarto-cli/pull/15106)): Fix Google Scholar `citation_reference` metadata missing on the references page of an HTML book.
 
 ### Websites
 
