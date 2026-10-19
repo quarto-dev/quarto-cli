@@ -4,13 +4,13 @@ format:
   revealjs:
     auto-animate-easing: "ease</script>"
 language:
-  revealjs-menu-button-label: "Menu</script>"
+  revealjs-menu-button-label: "Menu</script> $&"
 _quarto:
   tests:
     revealjs:
       ensureFileRegexMatches:
         -
-          - '"openButtonLabel":"Menu\\u003c/script>"'
+          - '"openButtonLabel":"Menu\\u003c/script> \$&"'
           - '''autoAnimateEasing'': "ease\\u003c/script>"'
         -
           - 'Menu</script>'
@@ -21,6 +21,8 @@ Quarto writes the Reveal.js configuration, including the slide menu button
 label from the language files and metadata such as `auto-animate-easing`, as
 JSON inside the `Reveal.initialize` script. A value holding `</script>` must be
 escaped, or it closes that script early and the presentation never starts.
+A value holding `$&` must be written as is, not read as a replacement pattern
+when the configuration is inserted into the script.
 
 ## Slide
 

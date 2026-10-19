@@ -565,9 +565,11 @@ const fixupRevealJsInitialization = (
 
       const configStr = configJs.join(",\n");
 
+      // A replacer function inserts configStr literally, so `$&` or `$'` in a
+      // config value is not read as a replacement pattern.
       scriptEl.innerText = scriptEl.innerText.replace(
         "Reveal.initialize({",
-        `Reveal.initialize({\n${configStr},\n`,
+        () => `Reveal.initialize({\n${configStr},\n`,
       );
     }
   }
