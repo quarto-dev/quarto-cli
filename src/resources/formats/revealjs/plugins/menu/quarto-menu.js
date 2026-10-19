@@ -45,6 +45,18 @@ window.RevealMenuToolHandlers = {
   })
 };
 
+// The plugin's button is a bare `<a href="#">` holding only an icon, so give it
+// an accessible name from the language files. The plugin builds the button and
+// the menu in the same call, so the button exists whenever the menu does.
+// See https://github.com/quarto-dev/quarto-cli/issues/14249
+const labelMenuButton = function () {
+  const label = Reveal.getConfig().menu?.openButtonLabel;
+  const button = document.querySelector(".slide-menu-button a");
+  if (label && button && !button.hasAttribute("aria-label")) {
+    button.setAttribute("aria-label", label);
+  }
+};
+
 // Keep the slide menu out of the tab order and the accessibility tree while it
 // is closed. Closing only moves it off screen, so screen readers still read it,
 // and Chrome and Firefox make its slide list a Tab stop once the list scrolls.
@@ -65,6 +77,7 @@ document.addEventListener("menu-ready", function () {
 
   const menu = document.querySelector(".slide-menu");
   if (menu) {
+    labelMenuButton();
     followMenu(menu);
     return;
   }
@@ -76,6 +89,7 @@ document.addEventListener("menu-ready", function () {
     const builtMenu = container.querySelector(".slide-menu");
     if (builtMenu) {
       observer.disconnect();
+      labelMenuButton();
       followMenu(builtMenu);
     }
   });

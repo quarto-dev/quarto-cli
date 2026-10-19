@@ -554,10 +554,17 @@ const fixupRevealJsInitialization = (
         );
       });
 
-      // Plugin initialization
+      // Plugin initialization. Plugin options can hold author-supplied text,
+      // such as language strings, so `<` is escaped: a value holding
+      // `</script>` would otherwise close this script early.
       Object.keys(pluginInit.revealConfig).forEach((key) => {
         configJs.push(
-          `'${key}': ${JSON.stringify(pluginInit.revealConfig[key])}`,
+          `'${key}': ${
+            JSON.stringify(pluginInit.revealConfig[key]).replace(
+              /</g,
+              "\\u003c",
+            )
+          }`,
         );
       });
 

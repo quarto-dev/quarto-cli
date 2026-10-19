@@ -6,7 +6,11 @@
 
 import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
 import { basename, join } from "../../deno_ral/path.ts";
-import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
+import {
+  kIncludeInHeader,
+  kRevealjsMenuButtonLabel,
+  kSelfContained,
+} from "../../config/constants.ts";
 
 import { error } from "../../deno_ral/log.ts";
 
@@ -383,6 +387,8 @@ function revealMenuPlugin(format: Format) {
           content: revealMenuTools(format),
         }],
         openButton: format.metadata[kRevealMenu] !== false,
+        // read by quarto-menu.js, which names the button with it
+        openButtonLabel: format.language[kRevealjsMenuButtonLabel],
       },
     },
   };

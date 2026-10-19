@@ -710,8 +710,8 @@ test.describe('Axe — code line-number anchors have accessible names (#14655)',
     const reportSlide = page.locator('section.quarto-axe-report-slide');
     await expect(reportSlide).toBeAttached({ timeout: 10000 });
 
-    // RevealJS chrome (.slide-menu-button) and its default viewport meta trip
-    // their own pre-existing, unrelated violations — out of scope for #14655.
+    // The RevealJS default viewport meta trips its own pre-existing, unrelated
+    // violation — out of scope for #14655.
     // The regression guard here is narrower: no violation should target a
     // code line-number anchor (id `cbN-n`).
     const targets = await reportSlide.locator('.quarto-axe-violation-target').allTextContents();
