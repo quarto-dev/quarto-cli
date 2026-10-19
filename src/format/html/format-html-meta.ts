@@ -244,7 +244,9 @@ function googleScholarMeta(
       write("citation_book_title", csl["container-title"]);
     }
   } else if (type === "chapter") {
-    write("citation_inbook_title", csl["container-title"]);
+    if (csl["container-title"]) {
+      write("citation_inbook_title", csl["container-title"]);
+    }
   } else {
     if (csl["container-title"]) {
       write("citation_journal_title", csl["container-title"]);
@@ -338,9 +340,10 @@ function citationReferenceMeta(
       }
       const refMetas = googleScholarMeta(reference, {});
       const metaStrs = refMetas.map((refMeta) => {
-        return `${refMeta.name}=${refMeta.content};`;
+        // Bibliography fields are CSL rich text; Scholar expects plain text.
+        return `${refMeta.name}=${cslTextToPlain(refMeta.content)};`;
       });
-      write("citation_reference", metaStrs.join());
+      write("citation_reference", metaStrs.join(" "));
     });
   }
   return scholarMeta;

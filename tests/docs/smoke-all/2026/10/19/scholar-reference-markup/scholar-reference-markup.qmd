@@ -1,0 +1,14 @@
+---
+title: Scholar reference metadata is plain text
+format: html
+google-scholar: true
+bibliography: references.bib
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_reference"][content*="citation_title=The R Book: CO2, x2 and Small Caps;"]', 'meta[name="citation_reference"][content*="citation_journal_title=Journal of Statistical Software;"]']
+        - ['meta[name="citation_reference"][content*="<"]']
+---
+
+This article cites a work whose title and journal carry formatting [@formatted].
