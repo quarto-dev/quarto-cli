@@ -1,0 +1,14 @@
+---
+title: "Home"
+open-graph:
+  site-name: "DOCUMENT SITE NAME"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[property="og:site_name"][content="DOCUMENT SITE NAME"]']
+        - ['meta[property="og:site_name"][content="SITE TITLE"]']
+---
+
+`og:site_name` should come from this page's `open-graph.site-name`, not the website title.

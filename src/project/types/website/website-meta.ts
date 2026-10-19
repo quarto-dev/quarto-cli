@@ -73,7 +73,11 @@ export function metadataHtmlDependencies(
   format: Format,
   extras: FormatExtras,
 ) {
-  const pipeline = metaMarkdownPipeline(format, extras);
+  // The social meta tags Quarto writes for this page, by name. The markdown
+  // pipeline updates these elements rather than the first matching tag in the
+  // head, which may come from include-in-header or an extension (#14917).
+  const written = new Map<string, Element>();
+  const pipeline = metaMarkdownPipeline(format, extras, written);
   return {
     [kHtmlPostprocessors]: metadataHtmlPostProcessor(
       source,
@@ -81,6 +85,7 @@ export function metadataHtmlDependencies(
       format,
       extras,
       pipeline,
+      written,
     ),
     [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
   };
@@ -92,6 +97,7 @@ export function metadataHtmlPostProcessor(
   format: Format,
   extras: FormatExtras,
   pipeline: MarkdownPipeline,
+  written: Map<string, Element>,
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     // read document level metadata
@@ -267,7 +273,8 @@ export function metadataHtmlPostProcessor(
             key = provider.filter(key);
           }
 
-          writeMetaTag(`${provider.prefix}:${key}`, value, doc);
+          const name = `${provider.prefix}:${key}`;
+          written.set(name, writeMetaTag(name, value, doc));
         }
       });
     });
@@ -503,9 +510,14 @@ const kTwitterDesc = "quarto-twittercarddesc";
 const kOgTitle = "quarto-ogcardtitle";
 const kOgDesc = "quarto-ogcardddesc";
 const kMetaSideNameId = "quarto-metasitename";
+const kOgSiteName = "quarto-ogsitename";
 const kMetaSiteDescId = "quarto-metasitedesc";
 
-function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
+function metaMarkdownPipeline(
+  format: Format,
+  extras: FormatExtras,
+  written: Map<string, Element>,
+) {
   const resolvedTitle = computePageTitle(format);
 
   const titleMetaHandler = {
@@ -550,15 +562,15 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
       // Process social metadata titles
       [{
         key: kOgTitle,
-        sel: 'meta[property="og:title"]',
+        name: "og:title",
       }, {
         key: kTwitterTitle,
-        sel: 'meta[name="twitter:title"]',
+        name: "twitter:title",
       }].forEach(
         (obj) => {
           const renderedObjEl = rendered[obj.key];
           if (renderedObjEl) {
-            const metaEl = doc.querySelector(obj.sel);
+            const metaEl = written.get(obj.name);
             if (metaEl) {
               metaEl.setAttribute("content", renderedObjEl.innerText);
             }
@@ -570,12 +582,20 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
 
   const siteTitleMetaHandler = {
     getUnrendered() {
+      const inlines: Record<string, string> = {};
       const siteMeta = format.metadata[kWebsite] as Metadata;
       if (siteMeta && siteMeta[kTitle]) {
-        return { inlines: { [kMetaSideNameId]: siteMeta[kTitle] as string } };
+        inlines[kMetaSideNameId] = siteMeta[kTitle] as string;
       }
+      // og:site_name is the page's open-graph.site-name when set, else the
+      // website title, the same value the tag was written with
+      const ogSiteName = opengraphMetadata(format)[kSiteName];
+      if (typeof ogSiteName === "string") {
+        inlines[kOgSiteName] = ogSiteName;
+      }
+      return { inlines };
     },
-    processRendered(rendered: Record<string, Element>, doc: Document) {
+    processRendered(rendered: Record<string, Element>) {
       const renderedEl = rendered[kMetaSideNameId];
       if (renderedEl) {
         // Write resolved title back into format.metadata so it flows
@@ -584,13 +604,12 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
         if (siteMeta) {
           siteMeta[kTitle] = renderedEl.innerText;
         }
-        // Update the og:site_name meta tag
-        const el = doc.querySelector(
-          `meta[property="og:site_name"]`,
-        );
-        if (el) {
-          el.setAttribute("content", renderedEl.innerText);
-        }
+      }
+      // Update the og:site_name meta tag
+      const siteNameEl = rendered[kOgSiteName];
+      const metaEl = written.get("og:site_name");
+      if (siteNameEl && metaEl) {
+        metaEl.setAttribute("content", siteNameEl.innerText);
       }
     },
   };
@@ -616,17 +635,17 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
       inlines[kOgDesc] = ogMeta.description as string || description || "";
       return { inlines };
     },
-    processRendered(rendered: Record<string, Element>, doc: Document) {
+    processRendered(rendered: Record<string, Element>) {
       // Meta values
       const metaVals = [{
-        sel: 'meta[property="og:description"]',
+        name: "og:description",
         key: kOgDesc,
-      }, { sel: 'meta[name="twitter:description"]', key: kTwitterDesc }];
+      }, { name: "twitter:description", key: kTwitterDesc }];
 
       metaVals.forEach((metaVal) => {
         const renderedEl = rendered[metaVal.key];
         if (renderedEl) {
-          const metaEl = doc.querySelector(metaVal.sel);
+          const metaEl = written.get(metaVal.name);
           if (metaEl) {
             metaEl.setAttribute("content", renderedEl.innerText);
           }
