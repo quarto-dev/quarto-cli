@@ -1,0 +1,18 @@
+---
+title: Scholar metadata for an explicitly included reference
+format: html
+google-scholar: true
+bibliography: references.bib
+nocite: '@included'
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementCount:
+        - selectors: ['meta[name="citation_reference"]', '.csl-entry[id^="ref-"]']
+          counts: [2, 2]
+      ensureHtmlElements:
+        - ['meta[name="citation_reference"][content*="citation_author=Alice Smith;"]', 'meta[name="citation_reference"][content*="citation_author=Bob Jones;"]']
+        - ['meta[name="citation_reference"][content*="citation_author=Carol Brown;"]']
+---
+
+This article cites one work [@cited] and includes another in its bibliography.

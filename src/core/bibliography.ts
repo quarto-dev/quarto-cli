@@ -112,5 +112,22 @@ export async function renderToCSLJSON(
       );
     }
   }
-  return bibloEntries;
+  // Pandoc resolves a repeated id to the entry from the later bibliography,
+  // so keep that entry, at the position where the id first appeared.
+  const uniqueEntries: CSL[] = [];
+  const positions = new Map<string, number>();
+  for (const entry of bibloEntries) {
+    const position = entry.id === undefined
+      ? undefined
+      : positions.get(entry.id);
+    if (position !== undefined) {
+      uniqueEntries[position] = entry;
+    } else {
+      if (entry.id !== undefined) {
+        positions.set(entry.id, uniqueEntries.length);
+      }
+      uniqueEntries.push(entry);
+    }
+  }
+  return uniqueEntries;
 }

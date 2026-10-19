@@ -123,6 +123,23 @@ export const fixupAlignment = (svg: Element, align: string) => {
   svg.setAttribute("style", style);
 };
 
+// Keep this in sync with setSvgAlt in formats/html/mermaid/mermaid-init.js.
+export function setSvgAlt(svg: Element, alt: unknown) {
+  if (typeof alt !== "string") {
+    return;
+  }
+  // fig-alt replaces the diagram's name, not its visible caption or description.
+  // aria-labelledby would otherwise take precedence over aria-label.
+  svg.removeAttribute("aria-labelledby");
+  svg.setAttribute("role", "img");
+  if (alt === "") {
+    svg.removeAttribute("aria-label");
+    svg.setAttribute("aria-hidden", "true");
+  } else {
+    svg.setAttribute("aria-label", alt);
+  }
+}
+
 // https://github.com/b-fuze/deno-dom/issues/133
 const denoDomWorkaroundNamedItemAccessor = (
   _str: string,

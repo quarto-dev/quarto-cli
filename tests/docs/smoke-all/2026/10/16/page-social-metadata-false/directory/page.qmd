@@ -1,0 +1,14 @@
+---
+title: "Directory metadata opts out of Open Graph only"
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      ensureFileRegexMatches:
+        -
+          - '<meta name="twitter:title"'
+        -
+          - '<meta property="og:'
+---
+
+The site enables `open-graph` and `twitter-card`, and this directory's `_metadata.yml` sets `open-graph: false`, so only Twitter Card metadata remains.

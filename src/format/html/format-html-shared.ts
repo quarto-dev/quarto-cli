@@ -504,7 +504,11 @@ export function createCodeBlock(
   return preEl;
 }
 
-export function writeMetaTag(name: string, content: string, doc: Document) {
+export function writeMetaTag(
+  name: string,
+  content: string,
+  doc: Document,
+): Element {
   // Meta tag
   const m = doc.createElement("META");
   if (name.startsWith("og:")) {
@@ -520,6 +524,7 @@ export function writeMetaTag(name: string, content: string, doc: Document) {
   // Insert the nodes
   doc.querySelector("head")?.appendChild(m);
   doc.querySelector("head")?.appendChild(nl);
+  return m;
 }
 
 export function writeLinkTag(rel: string, href: string, doc: Document) {

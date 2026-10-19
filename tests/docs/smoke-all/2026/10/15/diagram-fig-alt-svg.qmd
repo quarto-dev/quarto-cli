@@ -1,0 +1,42 @@
+---
+title: "Mermaid SVG file alternative text"
+format:
+  html:
+    mermaid-format: svg
+  docx:
+    mermaid-format: svg
+  typst:
+    mermaid-format: svg
+    keep-typ: true
+    pdf-standard: ua-1
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - '#fig-svg svg[role="img"][aria-label="SVG file alternative"]'
+        - []
+    docx:
+      noErrors: default
+      ensureDocxXpath:
+        -
+          - '//wp:docPr[@descr="SVG file alternative"]'
+          - '//w:t[contains(., "SVG visible caption")]'
+        - []
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'alt:\s*"SVG file alternative"'
+        - []
+---
+
+See @fig-svg.
+
+```{mermaid}
+%%| label: fig-svg
+%%| fig-cap: "SVG visible caption"
+%%| fig-alt: "SVG file alternative"
+flowchart LR
+  A[Start] --> B[End]
+```
