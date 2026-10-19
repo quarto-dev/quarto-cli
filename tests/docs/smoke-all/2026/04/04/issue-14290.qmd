@@ -15,8 +15,8 @@ _quarto:
           - '#ref\(<rem-example>'
           - '#ref\(<sol-exercise>'
           # unnumbered blocks pin their number and keep the counter still
-          - '#remark\(number: "", get-prefix: \(\.\.args\) => text\(weight: "bold", "Remark"\)'
-          - '#proof\(number: "", get-prefix: \(\.\.args\) => text\(weight: "bold", "Proof"\)'
+          - '#remark\(number: "", get-prefix: \(\.\.args\) => "Remark"\)'
+          - '#proof\(number: "", get-prefix: \(\.\.args\) => "Proof"\)'
           # a numbered proof keeps theorion's own number
           - '#proof\(\)\[(\r\n?|\n)Numbered proof\.'
           # a block holding only a title keeps its label for references
