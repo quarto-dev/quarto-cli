@@ -17,3 +17,10 @@ unitTest("native-string - basics", async () => {
   assertEquals(pandocNativeStr('"hello\nworld"').mappedString().value, '`Str "\\"hello\\nworld\\""`{=pandoc-native}');
   assertEquals(pandocNativeStr('"hello\\\'world"').mappedString().value, '`Str "\\"hello\\\'world\\""`{=pandoc-native}');
 })
+
+// deno-lint-ignore require-await
+unitTest("native-string - delimiter longer than the longest backtick run", async () => {
+  assertEquals(pandocNativeStr("a`b``c").mappedString().value, '```Str "a`b``c"```{=pandoc-native}');
+  assertEquals(pandocNativeStr("a``b`c").mappedString().value, '```Str "a``b`c"```{=pandoc-native}');
+  assertEquals(pandocNativeStr("a`b```c``d").mappedString().value, '````Str "a`b```c``d"````{=pandoc-native}');
+})
