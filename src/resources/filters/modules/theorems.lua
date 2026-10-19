@@ -138,9 +138,19 @@ local function ensure_frame(env_name, title, render_arg, bold)
   quarto.doc.include_text("in-header", "#show: show-" .. env_name)
 end
 
+-- Keeps the block's attributes, such as `style`, on a wrapper div, so the Typst
+-- CSS support turns them into a block around the frame, as for other divs.
+local function keep_attributes(frame, attributes)
+  if #attributes > 0 then
+    return pandoc.Div({frame}, pandoc.Attr("", {}, attributes))
+  end
+  return frame
+end
+
 return {
   ensure_appearance_imports = ensure_appearance_imports,
   ensure_frame = ensure_frame,
   header_code = header_code,
+  keep_attributes = keep_attributes,
   render_code = render_code,
 }

@@ -182,7 +182,7 @@ end, function(thm)
     local callthm = make_scaffold(pandoc.Div, preamble)
     tappend(callthm.content, quarto.utils.as_blocks(el.content))
     callthm.content:insert(pandoc.RawInline("typst", "] <" .. el.attr.identifier .. ">"))
-    return callthm
+    return _quarto.modules.theorems.keep_attributes(callthm, el.attr.attributes)
 
   else
     -- order might be nil in the case of an ipynb rendering in

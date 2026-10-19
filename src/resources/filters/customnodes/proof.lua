@@ -204,12 +204,7 @@ end, function(proof_tbl)
     else
       callproof.content:insert(pandoc.RawInline("typst", "]"))
     end
-    -- attributes such as `style` stay on a wrapper div, so the Typst CSS
-    -- support turns them into a block around the frame, as for other divs
-    if #el.attr.attributes > 0 then
-      return pandoc.Div({callproof}, pandoc.Attr("", {}, el.attr.attributes))
-    end
-    return callproof
+    return _quarto.modules.theorems.keep_attributes(callproof, el.attr.attributes)
   else
     el.classes:insert(proof.title:lower())
     local span_title = pandoc.Emph(pandoc.Str(envTitle(proof.env, proof.title)))
