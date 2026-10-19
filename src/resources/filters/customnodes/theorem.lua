@@ -103,30 +103,18 @@ local function ensure_typst_theorems(reftype)
   local appearance = _quarto.modules.theorems.ensure_appearance_imports()
   local theorem_type = theorem_types[reftype]
   local title = titleString(reftype, theorem_type.title)
-  local render_code
-
-  if appearance == "fancy" then
-    local color_scheme = "secondary"
-    if theorem_type.style == "definition" then
-      color_scheme = "primary"
-    elseif reftype == "prp" then
-      color_scheme = "tertiary"
-    end
-    render_code = "  render: fancy-box.with(\n" ..
-      "    get-border-color: get-" .. color_scheme .. "-border-color,\n" ..
-      "    get-body-color: get-" .. color_scheme .. "-body-color,\n" ..
-      "    get-symbol: loc => none,\n" ..
-      "  ),\n"
-  elseif appearance == "clouds" then
-    local color = theme_colors[reftype] or "gray"
-    render_code = "  render: clouds-render.with(fill: " .. color .. ".lighten(85%)),\n"
-  elseif appearance == "rainbow" then
-    local color = theme_colors[reftype] or "gray"
-    render_code = "  render: rainbow-render.with(fill: " .. color .. ".darken(20%)),\n"
-  else
-    _quarto.modules.theorems.ensure_simple_render("simple-theorem-render", true)
-    render_code = "  render: simple-theorem-render,\n"
+  local color_scheme = "secondary"
+  if theorem_type.style == "definition" then
+    color_scheme = "primary"
+  elseif reftype == "prp" then
+    color_scheme = "tertiary"
   end
+  local render_code = _quarto.modules.theorems.render_code(appearance, {
+    color_scheme = color_scheme,
+    color = theme_colors[reftype] or "gray",
+    simple_render = "simple-theorem-render",
+    italic_body = true,
+  })
 
   _quarto.modules.theorems.ensure_frame(theorem_type.env, title, render_code)
 end

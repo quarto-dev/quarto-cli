@@ -66,28 +66,23 @@ local proof_theme_colors = {
   proof = "gray", remark = "orange", solution = "teal"
 }
 
+-- A proof is numbered only when its identifier is a crossref id (`prf-`,
+-- `rem-` or `sol-`).
+local function is_numbered_proof(identifier)
+  local ref = identifier and refType(identifier)
+  return ref ~= nil and crossref.categories.by_ref_type[ref] ~= nil
+end
+
 local function ensure_typst_proofs(proof_env)
   local appearance = _quarto.modules.theorems.ensure_appearance_imports()
   local proof_info = proof_types[proof_env]
   local title = envTitle(proof_env, proof_info.title)
-  local render_code
-
-  if appearance == "fancy" then
-    render_code = "  render: fancy-box.with(\n" ..
-      "    get-border-color: get-tertiary-border-color,\n" ..
-      "    get-body-color: get-tertiary-body-color,\n" ..
-      "    get-symbol: loc => none,\n" ..
-      "  ),\n"
-  elseif appearance == "clouds" then
-    local color = proof_theme_colors[proof_env] or "gray"
-    render_code = "  render: clouds-render.with(fill: " .. color .. ".lighten(85%)),\n"
-  elseif appearance == "rainbow" then
-    local color = proof_theme_colors[proof_env] or "gray"
-    render_code = "  render: rainbow-render.with(fill: " .. color .. ".darken(20%)),\n"
-  else
-    _quarto.modules.theorems.ensure_simple_render("simple-proof-render", false)
-    render_code = "  render: simple-proof-render,\n"
-  end
+  local render_code = _quarto.modules.theorems.render_code(appearance, {
+    color_scheme = "tertiary",
+    color = proof_theme_colors[proof_env] or "gray",
+    simple_render = "simple-proof-render",
+    italic_body = false,
+  })
 
   _quarto.modules.theorems.ensure_frame(proof_env, title, render_code)
 end
@@ -179,7 +174,19 @@ end, function(proof_tbl)
     end
     ensure_typst_proofs(proof.env)
     local preamble = pandoc.Plain({pandoc.RawInline("typst", "#" .. proof.env .. "(")})
+    local numbered = is_numbered_proof(proof_tbl.identifier)
+    if not numbered then
+      -- theorion steps the counter and prints the number only for
+      -- `number: auto`, and its prefix would keep a space before the empty
+      -- number, so an unnumbered block pins both
+      preamble.content:insert(pandoc.RawInline("typst",
+        'number: "", get-prefix: (..args) => ' ..
+        _quarto.modules.theorems.typst_string(envTitle(proof.env, proof.title))))
+    end
     if name and #name > 0 then
+      if not numbered then
+        preamble.content:insert(pandoc.RawInline("typst", ", "))
+      end
       preamble.content:insert(pandoc.RawInline("typst", 'title: ['))
       tappend(preamble.content, name)
       preamble.content:insert(pandoc.RawInline("typst", ']'))
