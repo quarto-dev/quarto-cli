@@ -546,26 +546,21 @@ const fixupRevealJsInitialization = (
         );
       }
 
+      // Config values can hold author-supplied text, such as metadata or
+      // language strings, so `<` is escaped: a value holding `</script>` would
+      // otherwise close this script early.
+      const configValue = (value: unknown) =>
+        JSON.stringify(value).replace(/</g, "\\u003c");
+
       // Write any additional configuration of reveal
       const configJs: string[] = [];
       Object.keys(extraConfig).forEach((key) => {
-        configJs.push(
-          `'${key}': ${JSON.stringify(extraConfig[key])}`,
-        );
+        configJs.push(`'${key}': ${configValue(extraConfig[key])}`);
       });
 
-      // Plugin initialization. Plugin options can hold author-supplied text,
-      // such as language strings, so `<` is escaped: a value holding
-      // `</script>` would otherwise close this script early.
+      // Plugin initialization
       Object.keys(pluginInit.revealConfig).forEach((key) => {
-        configJs.push(
-          `'${key}': ${
-            JSON.stringify(pluginInit.revealConfig[key]).replace(
-              /</g,
-              "\\u003c",
-            )
-          }`,
-        );
+        configJs.push(`'${key}': ${configValue(pluginInit.revealConfig[key])}`);
       });
 
       const configStr = configJs.join(",\n");
