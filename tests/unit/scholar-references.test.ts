@@ -7,7 +7,10 @@
 import { assertEquals } from "testing/asserts";
 import { Element, parseHtml } from "../../src/core/deno-dom.ts";
 import { join } from "../../src/deno_ral/path.ts";
-import { metadataPostProcessor } from "../../src/format/html/format-html-meta.ts";
+import {
+  metadataPostProcessor,
+  replaceGoogleScholarReferences,
+} from "../../src/format/html/format-html-meta.ts";
 import { unitTest } from "../test.ts";
 import { withTempDir } from "../utils.ts";
 import { createMockFormat } from "./format-utils.ts";
@@ -122,5 +125,53 @@ unitTest(
       ),
       ["included reference"],
     );
+  },
+);
+
+unitTest(
+  "Scholar references - replace rewrites tags from the bibliography in the document",
+  async () => {
+    const doc = await parseHtml(
+      `<html><head><meta name="citation_reference" content="stale"></head><body>${
+        bibliography(
+          '<div id="ref-cited" class="csl-entry"></div><div id="ref-included" class="csl-entry"></div>',
+        )
+      }</body></html>`,
+    );
+    replaceGoogleScholarReferences(doc, [
+      {
+        id: "cited",
+        type: "article-journal",
+        title: "Cited reference",
+        author: [{ family: "Smith", given: "Alice" }],
+      },
+      {
+        id: "included",
+        type: "article-journal",
+        title: "Included reference",
+        author: [{ family: "Jones", given: "Bob" }],
+      },
+      {
+        id: "unused",
+        type: "article-journal",
+        title: "Unused reference",
+        author: [{ family: "Brown", given: "Carol" }],
+      },
+    ]);
+    const rendered = await parseHtml(doc.documentElement!.outerHTML);
+    const contents = [
+      ...rendered.querySelectorAll('meta[name="citation_reference"]'),
+    ].map((element) => (element as Element).getAttribute("content")!);
+    assertEquals(contents.length, 2);
+    assertEquals(contents.includes("stale"), false);
+    assertEquals(
+      contents.some((c) => c.includes("citation_title=Cited reference;")),
+      true,
+    );
+    assertEquals(
+      contents.some((c) => c.includes("citation_title=Included reference;")),
+      true,
+    );
+    assertEquals(contents.some((c) => c.includes("Unused reference")), false);
   },
 );
