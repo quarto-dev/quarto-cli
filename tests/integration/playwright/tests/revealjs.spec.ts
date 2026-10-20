@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { tabKey } from '../src/utils';
 
 test('logo and footer are correctly shown in default mode', async ({ page }) => {
   await page.goto('./revealjs/logo-footer.html#/slide-1');
@@ -197,14 +198,48 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
   });
 });
 
+test.describe('the focus stays in the deck when its slide is left (#15078)', () => {
+  // Not getByRole: non-present slides carry aria-hidden, which getByRole skips.
+  const slideButton = (page: Page, id: string) =>
+    page.locator('button', { hasText: `Button on ${id}` });
+  const deck = (page: Page) => page.locator('.reveal');
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('./revealjs/offscreen-slides-focus.html#/slide-2');
+    await expect(page.locator('.reveal.ready')).toBeAttached();
+  });
+
+  test('moving on from the slide that has the focus hands it to the deck', async ({ page }) => {
+    await slideButton(page, 'slide-2').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page).toHaveURL(/#\/slide-3$/);
+    await expect(deck(page)).toBeFocused();
+    await expect(deck(page)).toHaveAttribute('tabindex', '-1');
+    // From the deck, Tab goes on into the new slide.
+    await page.keyboard.press('Tab');
+    await expect(slideButton(page, 'slide-3')).toBeFocused();
+  });
+
+  test('moving on leaves a focus that was not on the slide alone', async ({ page }) => {
+    await page.keyboard.press('ArrowRight');
+    await expect(page).toHaveURL(/#\/slide-3$/);
+    await expect(deck(page)).not.toBeFocused();
+    await expect(deck(page)).not.toHaveAttribute('tabindex');
+  });
+
+  test('leaving the overview hands a focus on another slide to the deck', async ({ page }) => {
+    await page.keyboard.press('o');
+    await expect(page.locator('.reveal.overview')).toBeAttached();
+    await slideButton(page, 'slide-5').focus();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.reveal.overview')).toHaveCount(0);
+    await expect(deck(page)).toBeFocused();
+  });
+});
+
 // https://github.com/quarto-dev/quarto-cli/issues/15011
 test.describe('the closed slide menu is out of the tab order', () => {
   const deck = './revealjs/menu-focus-order.html';
-
-  // WebKit only tabs to links when the Alt modifier is held, which matches
-  // Safari's default "Press Tab to highlight each item on a webpage" setting
-  const tabKeyFor = (browserName: string) =>
-    browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
 
   const menu = (page: Page) => page.locator('nav.slide-menu');
 
@@ -221,7 +256,7 @@ test.describe('the closed slide menu is out of the tab order', () => {
     // The closed menu comes right after its button in the document
     await page.locator('.slide-menu-button a').focus();
     for (let i = 0; i < 3; i++) {
-      await page.keyboard.press(tabKeyFor(browserName));
+      await page.keyboard.press(tabKey(browserName));
       await expect(page.locator('nav.slide-menu:focus-within')).toHaveCount(0);
     }
   });
@@ -258,5 +293,27 @@ test.describe('the closed slide menu is out of the tab order', () => {
     await expect(menu(page)).toHaveAttribute('inert');
     await page.locator('div.slide-menu-button').click();
     await expect(menu(page)).not.toHaveAttribute('inert');
+  });
+});
+
+// https://github.com/quarto-dev/quarto-cli/issues/14249
+test.describe('the slide menu button has an accessible name', () => {
+  const button = (page: Page) => page.locator('.slide-menu-button a');
+
+  test('the default label', async ({ page }) => {
+    await page.goto('./revealjs/menu-focus-order.html');
+    await expect(button(page)).toHaveAccessibleName('Slide menu');
+  });
+
+  test('a menu built after the presentation loads', async ({ page }) => {
+    await page.goto('./revealjs/menu-delay-init.html');
+    await expect(page.locator('.reveal')).toHaveClass(/\bready\b/);
+    await page.evaluate(() => (window as any).Reveal.getPlugin('menu').initialiseMenu());
+    await expect(button(page)).toHaveAccessibleName('Slide menu');
+  });
+
+  test('a label set through the language files', async ({ page }) => {
+    await page.goto('./revealjs/menu-button-label.html');
+    await expect(button(page)).toHaveAccessibleName('Menu des diapositives');
   });
 });

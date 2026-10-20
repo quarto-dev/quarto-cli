@@ -132,6 +132,26 @@ export interface CSLDate {
   literal?: string;
 }
 
+// Matches the rich-text tags Pandoc emits when it renders CSL markup
+// (italic, bold, underline, super/subscript, small caps).
+const cslRichTextTags =
+  /<\/?(?:i|b|u|sup|sub)>|<span style="font-variant:small-caps;">|<\/span>/g;
+
+// Strips CSL rich-text tags from a value, leaving all other text untouched.
+export function cslTextToPlain(value: string): string {
+  return value.replace(cslRichTextTags, "");
+}
+
+// Splits a CSL `page` value ("97-111", "97–111", "42") into its first and
+// last page. A page list ("1-3, 7-9") yields only the first page.
+export function cslPageRange(page: string) {
+  const [range, ...others] = page.split(/[,&]/);
+  const match = range.match(/^\s*(.*?)\s*[-–—]+\s*(.*?)\s*$/);
+  const first = (match ? match[1] : range.trim()) || undefined;
+  const last = (match && others.length === 0 ? match[2] : "") || undefined;
+  return { first, last };
+}
+
 export function suggestId(author: CSLName[], date?: CSLDate) {
   // Try to get the last name
   let citeIdLeading = "";

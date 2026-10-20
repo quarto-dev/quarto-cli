@@ -1,0 +1,11 @@
+---
+title: "Mermaid accessible name and description"
+format: html
+---
+
+```{mermaid}
+flowchart LR
+    accTitle: Build pipeline
+    accDescr: Source goes through build to deploy
+    A[Source] --> B[Build] --> C[Deploy]
+```

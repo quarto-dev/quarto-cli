@@ -7,7 +7,7 @@
  * Adapted from: https://github.com/watson/ci-info
  */
 
-import { dirname, isAbsolute, join } from "../deno_ral/path.ts";
+import { dirname, extname, isAbsolute, join } from "../deno_ral/path.ts";
 import { kBibliography } from "../config/constants.ts";
 import { Metadata } from "../config/types.ts";
 import { asArray } from "./array.ts";
@@ -85,6 +85,11 @@ export async function renderToCSLJSON(
     // in which case just leave it alone (otherwise it is cwd relative)
     const biblioPath = join(dir, biblio);
     const cmd = [pandocBinaryPath()];
+    // Without -f, pandoc reads a .json input as its own JSON AST
+    if (extname(biblioPath).toLowerCase() === ".json") {
+      cmd.push("-f");
+      cmd.push("csljson");
+    }
     cmd.push(
       isAbsolute(biblioPath) ? biblioPath : join(Deno.cwd(), biblioPath),
     );
@@ -112,5 +117,22 @@ export async function renderToCSLJSON(
       );
     }
   }
-  return bibloEntries;
+  // Pandoc resolves a repeated id to the entry from the later bibliography,
+  // so keep that entry, at the position where the id first appeared.
+  const uniqueEntries: CSL[] = [];
+  const positions = new Map<string, number>();
+  for (const entry of bibloEntries) {
+    const position = entry.id === undefined
+      ? undefined
+      : positions.get(entry.id);
+    if (position !== undefined) {
+      uniqueEntries[position] = entry;
+    } else {
+      if (entry.id !== undefined) {
+        positions.set(entry.id, uniqueEntries.length);
+      }
+      uniqueEntries.push(entry);
+    }
+  }
+  return uniqueEntries;
 }

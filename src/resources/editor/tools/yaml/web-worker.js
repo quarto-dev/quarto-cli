@@ -7634,13 +7634,16 @@ try {
             name: "fig-alt",
             tags: {
               formats: [
-                "$html-all"
+                "$html-all",
+                "docx",
+                "$pdf-all",
+                "typst"
               ]
             },
             schema: {
               maybeArrayOf: "string"
             },
-            description: "Alternative text to be used in the `alt` attribute of HTML images.\n"
+            description: "Alternative text for figures, distinct from their visible caption.\n"
           },
           {
             name: "fig-env",
@@ -10530,6 +10533,7 @@ try {
                 "skip-to-content": "string",
                 "scrollable-code-label": "string",
                 "scrollable-output-label": "string",
+                "revealjs-menu-button-label": "string",
                 "repo-action-links-edit": "string",
                 "repo-action-links-source": "string",
                 "repo-action-links-issue": "string",
@@ -23549,7 +23553,7 @@ try {
           "Figure subcaptions",
           "Hyperlink target for the figure",
           "Figure horizontal alignment (<code>default</code>, <code>left</code>,\n<code>right</code>, or <code>center</code>)",
-          "Alternative text to be used in the <code>alt</code> attribute of HTML\nimages.",
+          "Alternative text for figures, distinct from their visible\ncaption.",
           "LaTeX environment for figure output",
           {
             short: "LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.",
@@ -25824,12 +25828,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 221293,
+          _internalId: 221295,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 221285,
+              _internalId: 221287,
               type: "enum",
               enum: [
                 "png",
@@ -25845,7 +25849,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 221292,
+              _internalId: 221294,
               type: "anyOf",
               anyOf: [
                 {

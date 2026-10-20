@@ -1,0 +1,57 @@
+---
+title: "Proof-like blocks keep the LaTeX style in the simple appearance"
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # the header is italic and the body upright, as in LaTeX and HTML
+          - '#let simple-proof-render\(prefix: none, title: "", full-title: auto, body\) = \{(\r\n?|\n)\s*emph\(prefix\)'
+          - 'make-frame\((\r\n?|\n)\s*"proof",(\r\n?|\n)\s*"Proof",'
+          - 'make-frame\((\r\n?|\n)\s*"remark",(\r\n?|\n)\s*"Remark",'
+          - '#proof\(number: "", get-prefix: \(\.\.args\) => "Proof"\)\['
+          # theorems keep the bold header
+          - 'make-frame\((\r\n?|\n)\s*"theorem",(\r\n?|\n)\s*text\(weight: "bold", "Theorem"\),'
+          # attributes on the block still reach the output
+          - '#block\(fill: yellow\)\[(\r\n?|\n)#set text\(fill: red\);(\r\n?|\n)#proof\('
+          - '#block\(fill: aqua\)\[(\r\n?|\n)#set text\(fill: blue\);(\r\n?|\n)#theorem\(\)\['
+        -
+          - 'text\(weight: "bold", "Proof"\)'
+          - 'text\(weight: "bold", "Remark"\)'
+      ensurePdfRegexMatches:
+        -
+          - 'Remark 1 \(Named\)\. A numbered remark'
+          - 'Proof\. An unnumbered proof'
+        - []
+---
+
+In the `simple` appearance, which the documentation describes as classic
+LaTeX style, `proof`, `remark` and `solution` headers are italic with an
+upright body, as amsthm and the HTML output write them. Theorems keep a bold
+header. A `style` attribute on a proof or a theorem still reaches the Typst
+output.
+
+::: {#thm-a}
+A theorem.
+:::
+
+::: {.proof}
+An unnumbered proof.
+:::
+
+::: {#rem-a}
+## Named
+A numbered remark.
+:::
+
+::: {.proof style="background-color: yellow; color: red"}
+A styled proof.
+:::
+
+::: {#thm-b style="background-color: aqua; color: blue"}
+A styled theorem.
+:::
+
+See @rem-a.

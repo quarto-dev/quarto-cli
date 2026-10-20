@@ -1,0 +1,8 @@
+---
+title: "Post with an image in the body"
+date: 2026-01-02
+---
+
+Text with an image in the body, found once the post is rendered.
+
+![A figure](figure.png)

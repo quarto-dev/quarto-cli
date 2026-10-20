@@ -1,0 +1,7 @@
+project:
+  type: website
+  resources:
+    - placeholder.png
+
+website:
+  title: "Listing thumbnail link"
