@@ -1,0 +1,15 @@
+---
+title: "Dark brand listed first defaults to dark"
+format: html
+brand:
+  dark: slate-brand.yml
+  light: united-brand.yml
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['body.quarto-dark', 'link.quarto-color-alternate']
+        - []
+---
+
+Both brand files are valid and `dark` is listed first, so the page defaults to dark mode.
