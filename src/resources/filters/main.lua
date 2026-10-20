@@ -638,6 +638,7 @@ local quarto_finalize_filters = {
 }
 
 local quarto_layout_filters = {
+  { name = "layout-latex-table-floats", filter = latex_table_floats() },
   { name = "manuscript filtering",
     filter = manuscript(),
     traverser = 'jog',

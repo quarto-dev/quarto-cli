@@ -1,0 +1,39 @@
+---
+documentclass: article
+classoption: twocolumn
+---
+
+See @tbl-first, @tbl-second, and @tbl-panel (especially @tbl-child).
+
+| Name | Value |
+|------|------:|
+| Plain | 0 |
+
+| Name | Value |
+|------|------:|
+| First | 1 |
+
+: First caption {#tbl-first tbl-pos="t"}
+
+| Name | Value |
+|------|------:|
+| Second | 2 |
+
+: Second caption {#tbl-second .float latex-placement="b" tbl-pos="t"}
+
+::: {#tbl-panel layout-ncol=2}
+
+| Name | Value |
+|------|------:|
+| Child | 3 |
+
+: Child caption {#tbl-child .float}
+
+| Name | Value |
+|------|------:|
+| Other | 4 |
+
+: Other caption {#tbl-other}
+
+Panel caption
+:::

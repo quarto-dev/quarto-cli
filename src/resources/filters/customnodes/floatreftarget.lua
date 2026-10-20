@@ -336,6 +336,10 @@ end, function(float)
     caption_cmd_name = "caption"
     float.content.caption.long = float.caption_long
     float.content.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+    if float.content.classes:includes("float") and figPos and
+        float.content.attributes["latex-placement"] == nil then
+      float.content.attributes["latex-placement"] = figPos
+    end
     return float.content
   end
 

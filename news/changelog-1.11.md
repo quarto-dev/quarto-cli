@@ -11,6 +11,8 @@ All changes included in 1.11:
 
 ## Dependencies
 
+- Update Pandoc to 3.10.1.
+
 - ([#15043](https://github.com/quarto-dev/quarto-cli/issues/15043)): Update the OJS runtime to acorn 8.17, Observable Inspector 5.0.1, and Observable Inputs 0.10.6. `FileAttachment(...).mimeType` now reports `text/javascript` instead of `application/javascript` for `.js` and `.mjs` files.
 
 ## Accessibility
@@ -38,6 +40,10 @@ All changes included in 1.11:
 - ([#15080](https://github.com/quarto-dev/quarto-cli/issues/15080)): Fix footnote, citation, cross-reference and code annotation popups not closing with Esc, and staying open over the next focused element after keyboard focus leaves them.
 
 ## Formats
+
+### `pdf`
+
+- ([#14846](https://github.com/quarto-dev/quarto-cli/issues/14846)): Use Pandoc's floating tables for ordinary Markdown tables in documents with `classoption: twocolumn`, including tables with cross-references. Single-column documents retain `longtable` by default and can opt into floating tables with `.float`. Respect `tbl-pos` for floating cross-referenced tables unless `latex-placement` is explicitly set. Panel, subtable, margin, and full-width layout handling is unchanged.
 
 ### All Formats
 
