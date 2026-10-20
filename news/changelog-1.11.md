@@ -63,6 +63,7 @@ All changes included in 1.11:
 - ([#15051](https://github.com/quarto-dev/quarto-cli/pull/15051)): Fix a callout's `title` option also rendering as an HTML `title` attribute in html, revealjs and epub output, which showed the title as a tooltip over the whole callout.
 - ([#15108](https://github.com/quarto-dev/quarto-cli/pull/15108)): Fix Google Scholar metadata showing formatting markup such as `<i>` in `citation_reference` tags for bibliography entries, and `undefined` as the book title of a chapter without one.
 - ([#15115](https://github.com/quarto-dev/quarto-cli/pull/15115)): Fix Google Scholar writing two `citation_reference` tags for a reference defined in two bibliography files. The tag now describes the entry Pandoc renders.
+- ([#15118](https://github.com/quarto-dev/quarto-cli/pull/15118)): Fix Google Scholar metadata missing the first and last page of bibliography entries, and giving wrong pages for a citation `page` written with an en-dash or as a page list.
 
 ### `pdf`
 
