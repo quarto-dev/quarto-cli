@@ -6,7 +6,7 @@
 **Phase:** 3. **Depends on:** PR 37 (no `deno.jsonc`, no `Deno.` left in `src/deno_ral/`), PR 33 (`tsc`, `lint.yml`). **Unblocks:** nothing (last tooling PR).
 **Branch:** `rt/38-lint-format-typecheck-tooling`.
 **Suggested executor:** Sonnet. Known option names, a parity run with a mechanical stop condition, and a directive codemod.
-**Size:** M (about 10 config/script files, `lint.yml`, editor settings, the directive codemod over about 200 files in `src/`; the optional task touches about 430 more).
+**Size:** L by file count (the directive codemod touches about 200 files under `src/` and the format commit all of `src/`; reviewed through the parity output, not line by line), M by hand-written content (about 10 config/script files, `lint.yml`, editor settings, the directive codemod over about 200 files in `src/`; the optional task touches about 430 more).
 **Ships on:** Node. Gates: `lint.yml` (typecheck from PR 33, plus lint and format here) green; the suite unchanged.
 
 ## Spec
@@ -594,6 +594,8 @@ git commit -m "editor/docs: dprint and oxlint replace the Deno extension"
 - **Rollback:** revert the PR; the formatting commit can be reverted independently (it changes whitespace and quotes only).
 
 ## Decisions needed
+
+Release: 1.13, after PR 37; no changelog entry (developer tooling only, no user-visible change).
 
 1. **oxlint (recommended) vs ESLint + typescript-eslint.** oxlint covers every recommended `deno lint` rule that applies to this tree (61 by name plus three equivalents) in one binary; ESLint adds type-aware rules at about 10x the dependencies and seconds per run.
 2. Not changed because the brief moves it: the old Task 3 (`tsc` with generated `paths`) is PR 33's Task 12; this PR only removes `@types/deno`.
