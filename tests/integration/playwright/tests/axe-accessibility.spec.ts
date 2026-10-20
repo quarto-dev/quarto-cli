@@ -839,7 +839,14 @@ test.describe('HTML axe — the report overlay scrolls by keyboard (#14680)', ()
   // overlay self-scan (scrollable-region-focusable, line ~388), so only an
   // actual key press that moves scrollTop catches them.
   for (const key of ['PageDown', 'ArrowDown']) {
-    test(`html — focused overlay scrolls on ${key}`, async ({ page }) => {
+    test(`html — focused overlay scrolls on ${key}`, async ({ page, browserName }) => {
+      // WebKit on macOS ignores about half of ArrowDown presses on a focused
+      // scroll region, even a plain HTML one with no Quarto code; PageDown
+      // scrolls reliably and still covers the overlay.
+      test.skip(
+        key === 'ArrowDown' && browserName === 'webkit' && process.platform === 'darwin',
+        'WebKit on macOS drops ArrowDown on a focused scroll region',
+      );
       await page.goto('/html/axe-overlay-scroll.html', { waitUntil: 'networkidle' });
 
       const axeReport = page.locator('.quarto-axe-report');
