@@ -46,6 +46,7 @@ All changes included in 1.11:
 
 - ([#14772](https://github.com/quarto-dev/quarto-cli/issues/14772)): Custom `language` keys now reach templates through `$quarto.language.<key>$`. A key that Quarto does not ship passed schema validation and was merged over the defaults, then discarded before templates saw it, so it expanded to an empty string with no warning. (author: @mcanouil)
 - ([#14882](https://github.com/quarto-dev/quarto-cli/issues/14882)): Fix brand font families with a word starting with a digit, such as `Source Sans 3`, not applying in `html` and `revealjs` output. The same names in `mainfont` now also apply in `revealjs`. (author: @Masad791)
+- ([#14891](https://github.com/quarto-dev/quarto-cli/issues/14891)): Fix a brand file that holds only comments, such as a commented-out `_brand.yml` template, stopping the render with `YAML value is missing`. It now prints a warning and is ignored. (author: @Masad791)
 
 ### `dashboard`
 
