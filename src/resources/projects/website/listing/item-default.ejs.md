@@ -14,9 +14,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 // Capture the item number for utility functions that need it
 const itemNumber = listing.utilities.itemNumber();
 
-// Writes a metadata value
-const outputMetadata = (item, field) => {
-
+// Reads a (possibly dotted) metadata field from an item
 const readField = (item, field) => {
 let value = item[field];
 if (field.includes(".") && !field.endsWith(".") && !field.startsWith(".")) {
@@ -28,6 +26,19 @@ value = value[deref];
 }
 return value;
 }
+
+// Whether the metadata block shows any text for the item
+const hasMetadata = (item) => {
+return Boolean(
+(fields.includes('date') && item.date) ||
+(fields.includes('author') && item.author) ||
+(fields.includes('reading-time') && item['reading-time']) ||
+otherFields.some(field => readField(item, field))
+);
+}
+
+// Writes a metadata value
+const outputMetadata = (item, field) => {
 
 let value = readField(item, field);
 if (value !== undefined) {
@@ -91,9 +102,13 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 
 ::: {.metadata}
 
+<% if (hasMetadata(item)) { %>
+
 ```{=html}
 <a href="<%- item.path %>" class="no-external">
 ```
+
+<% } %>
 
 <% if (fields.includes('date') && item.date) { %>
 <div class="listing-date"><%= item.date %></div>
@@ -115,9 +130,13 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% outputMetadata(item, field) %>
 <% } %>
 
+<% if (hasMetadata(item)) { %>
+
 ```{=html}
 </a>
 ```
+
+<% } %>
 
 :::
 

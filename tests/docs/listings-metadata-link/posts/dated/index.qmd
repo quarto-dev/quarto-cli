@@ -1,0 +1,8 @@
+---
+title: "Post with a date and an author"
+date: 2026-01-01
+author: "Jane Doe"
+version: "1.0"
+---
+
+Text.
