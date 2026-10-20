@@ -18,8 +18,9 @@ import {
 // a tab stop with no accessible name. The link is only written when the
 // block has visible content. Cases covered: no date or author, fields that
 // exclude every metadata field, a listed custom field that is missing, empty,
-// blank or an empty list on the post. Every post keeps its metadata column to preserve the
-// row layout.
+// blank or an empty list on the post. Every post keeps its metadata column to
+// preserve the row layout. The subtitle link is likewise only written for a
+// post with a subtitle.
 const projectDir = docs("listings-metadata-link");
 const outputDir = join(projectDir, "_site");
 const metadataColumn = "div.quarto-post > div.metadata";
@@ -40,6 +41,14 @@ testQuartoCmd("render", [projectDir], [
     'div.metadata a[href$="/undated/index.html"]',
     'div.metadata a[href$="/empty-version/index.html"]',
   ]),
+  // only the post with a subtitle gets a subtitle link (#14380)
+  ensureHtmlElementCount(join(outputDir, "index.html"), {
+    selectors: [
+      'div.listing-subtitle a[href$="/dated/index.html"]',
+      "div.listing-subtitle",
+    ],
+    counts: [1, 1],
+  }),
   // fields exclude every metadata field
   ensureHtmlElements(join(outputDir, "fields.html"), [], [
     "div.metadata a",

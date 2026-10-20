@@ -2,6 +2,7 @@
 title: "Post with a date and an author"
 date: 2026-01-01
 author: "Jane Doe"
+subtitle: "A subtitle"
 version: "1.0"
 ---
 
