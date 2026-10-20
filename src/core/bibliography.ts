@@ -13,6 +13,8 @@ import { Metadata } from "../config/types.ts";
 import { asArray } from "./array.ts";
 import { CSL } from "./csl.ts";
 
+import { FAILSAFE_SCHEMA, loadAll } from "yaml";
+
 import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
 
@@ -84,15 +86,37 @@ export async function renderToCSLJSON(
     // The bibliopath might end up as an absolute path
     // in which case just leave it alone (otherwise it is cwd relative)
     const biblioPath = join(dir, biblio);
+    const absBiblioPath = isAbsolute(biblioPath)
+      ? biblioPath
+      : join(Deno.cwd(), biblioPath);
+    const ext = extname(biblioPath).toLowerCase();
     const cmd = [pandocBinaryPath()];
-    // Without -f, pandoc reads a .json input as its own JSON AST
-    if (extname(biblioPath).toLowerCase() === ".json") {
-      cmd.push("-f");
-      cmd.push("csljson");
+    let stdin: string | undefined;
+    if (ext === ".json") {
+      // Without -f, pandoc reads a .json input as its own JSON AST
+      cmd.push("-f", "csljson", absBiblioPath);
+    } else if (ext === ".yaml" || ext === ".yml") {
+      // Pandoc has no reader for a YAML bibliography: read as markdown, it
+      // only works when wrapped in --- delimiters. Like --bibliography, use
+      // the first YAML document, either a references: map or a bare array.
+      // The failsafe schema keeps scalars as written, and json: true lets a
+      // duplicate key win last, as pandoc does.
+      const firstDoc = loadAll(Deno.readTextFileSync(absBiblioPath), null, {
+        schema: FAILSAFE_SCHEMA,
+        json: true,
+      })?.[0];
+      if (Array.isArray(firstDoc)) {
+        // --metadata-file needs a map, so wrap the array in a metadata block
+        // for pandoc's YAML reader to parse its fields as it would the map
+        cmd.push("-f", "markdown");
+        stdin = `---\n${JSON.stringify({ references: firstDoc })}\n---\n`;
+      } else {
+        cmd.push("-f", "markdown", `--metadata-file=${absBiblioPath}`);
+        stdin = "";
+      }
+    } else {
+      cmd.push(absBiblioPath);
     }
-    cmd.push(
-      isAbsolute(biblioPath) ? biblioPath : join(Deno.cwd(), biblioPath),
-    );
     cmd.push("-t");
     cmd.push("csljson");
     cmd.push("--citeproc");
@@ -105,6 +129,7 @@ export async function renderToCSLJSON(
         stderr: "piped",
         cwd: dir,
       },
+      stdin,
     );
     if (result.success) {
       if (result.stdout) {

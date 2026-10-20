@@ -1,0 +1,15 @@
+---
+title: Scholar metadata for a bare YAML bibliography
+format: html
+google-scholar: true
+bibliography: references-bare.yaml
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_reference"][content*="citation_author=Alice Smith;"]']
+---
+
+The bibliography is a YAML file with a `references:` list and no `---` delimiters, which pandoc accepts for `--bibliography`. Pandoc has no input format that reads such a file, so the Scholar reference tags need it handled explicitly.
+
+This article cites one work [@cited].
