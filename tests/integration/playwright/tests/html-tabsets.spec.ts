@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { tabKey } from '../src/utils';
 
 test('Jupyter - Creates working tabsets from for loops', async ({ page }) => {
   await page.goto('/html/tabsets/jupyter-tabsets.html');
@@ -25,19 +26,19 @@ test.describe('Tabby tabsets (theme: none) keyboard navigation', () => {
     await expect(page.getByRole('tablist')).toBeAttached();
   });
 
-  test('Tab moves from the selected tab into its panel (#730)', async ({ page }) => {
+  test('Tab moves from the selected tab into its panel (#730)', async ({ page, browserName }) => {
     await page.getByRole('button', { name: 'Button before the tabset' }).focus();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(page.getByRole('tab', { name: 'Tab A' })).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(page.getByRole('button', { name: 'Button in tab A' })).toBeFocused();
     await expect(page.getByRole('tab', { name: 'Tab A' })).toHaveAttribute('aria-selected', 'true');
   });
 
-  test('Shift+Tab from the panel returns to the selected tab', async ({ page }) => {
+  test('Shift+Tab from the panel returns to the selected tab', async ({ page, browserName }) => {
     await page.getByRole('tab', { name: 'Tab B' }).click();
     await page.getByRole('button', { name: 'Button in tab B' }).focus();
-    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press(tabKey(browserName, true));
     await expect(page.getByRole('tab', { name: 'Tab B' })).toBeFocused();
   });
 
