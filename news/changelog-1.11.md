@@ -139,6 +139,7 @@ All changes included in 1.11:
 
 - ([#14254](https://github.com/quarto-dev/quarto-cli/issues/14254)): Fix `quarto render` hanging when the input file is at the filesystem root. (author: @mcanouil)
 - ([#14936](https://github.com/quarto-dev/quarto-cli/pull/14936)): Accept and ignore static engine declaration keys (`name`, `claims`, `file-extensions`, `claims-files` — including an optional `processor` on `claims-files` entries) in the `external-engine` schema, so extensions can declare them for Quarto 2's engine resolution without breaking Quarto 1 validation. No Quarto 1 behavior change. (author: @gordonwoodhull)
+- ([#15111](https://github.com/quarto-dev/quarto-cli/issues/15111)): `quarto add`, `quarto update` and `quarto use template` now tell which name to use for an extension stored under another owner in its source. The extension is installed under the owner it is installed from (none for a local path or an archive), so a name qualified with the source owner did not find it.
 
 ## Engines
 
