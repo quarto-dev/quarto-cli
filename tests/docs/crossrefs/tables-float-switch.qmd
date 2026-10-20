@@ -1,0 +1,32 @@
+---
+documentclass: article
+---
+
+```{=latex}
+\twocolumn
+\begin{figure*}[t]
+\ifdim\linewidth<\textwidth
+  \errmessage{Double-column figure lost its full text width}
+\fi
+\centering
+Double-column figure.
+\end{figure*}
+```
+
+See @tbl-switched.
+
+| Name | Value |
+|------|------:|
+| Switched | 1 |
+
+: Switched caption {#tbl-switched .column-page tbl-cap-location="bottom"}
+
+```{=latex}
+\onecolumn
+```
+
+| Name | Value |
+|------|------:|
+| Restored | 2 |
+
+: Restored caption {#tbl-restored .column-page}

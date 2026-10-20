@@ -8,14 +8,14 @@ end, function (layout)
   local rendered_panel = latexPanel(layout)
   local preamble = layout.preamble
   if preamble == nil then
-    return rendered_panel
+    return latexTableNoteEnvironment(rendered_panel)
   end
   
   local result = pandoc.Blocks({})
   panel_insert_preamble(result, preamble)
   result:insert(rendered_panel)
 
-  return result
+  return latexTableNoteEnvironment(pandoc.Div(result))
 end)
 
 _quarto.ast.add_renderer("PanelLayout", function(_)
@@ -365,6 +365,16 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   end
 
   
+  -- Unlabelled tables in panels also need a non-floating tabular. Otherwise
+  -- Pandoc emits longtable inside the minipage, which still fails in twocolumn.
+  if not isSubRef and tbl then
+    cell.content = _quarto.ast.walk(cell.content, {
+      Table = function(table)
+        return latexTabular(table, vAlign)
+      end
+    })
+  end
+
   -- convert to latex percent as necessary
   width = asLatexSize(width)
 
@@ -444,47 +454,87 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
 end
 
 function latexTabular(tbl, vAlign)
-  
-  -- convert to simple table
-  tbl = pandoc.utils.to_simple_table(tbl)
-  
-  -- list of inlines
-  local tabular = pandoc.List()
-  
-  -- vertically align the minipage
-  local tabularVAlign = latexMinipageValign(vAlign)
- 
-  -- caption
-  if #tbl.caption > 0 then
-    latexAppend(tabular, "\\caption{")
-    tappend(tabular, tbl.caption)
-    latexAppend(tabular, "}\n")
+  -- Let Pandoc serialize the full Table, including widths, spans, and blocks.
+  -- Only remove its outer float: Quarto's layout owns the enclosing environment.
+  tbl = tbl:clone()
+  local has_notes = false
+  _quarto.ast.walk(tbl, {Note = function() has_notes = true end})
+  local caption = quarto.utils.as_inlines(tbl.caption.long)
+  tbl.caption = pandoc.Caption()
+  tbl.identifier = ""
+  if not tbl.classes:includes("float") then
+    tbl.classes:insert("float")
   end
-  
-  -- header
-  local aligns = table.concat(tbl.aligns:map(latexTabularAlign), "")
-  latexAppend(tabular, "\\begin{tabular}" .. tabularVAlign .. "{" .. aligns .. "}\n")
-  latexAppend(tabular, "\\toprule\n")
-  
-  -- headers (optional)
-  local headers = latexTabularRow(tbl.headers)
-  if latexTabularRowHasContent(headers) then
-    latexTabularRowAppend(tabular, headers)
-    latexAppend(tabular, "\\midrule\n")
+  quarto.doc.use_latex_package("multirow")
+  local content = latexWriteTable(tbl, function(text)
+    local opens, closes
+    text, opens = text:gsub("\\begin{table}%b[]%s*\\centering%s*", "", 1)
+    text, closes = text:gsub("\\end{tabular}%s*\\end{table}", "\\end{tabular}", 1)
+    assert(opens == 1 and closes == 1, "Could not unwrap Pandoc's floating table")
+    text = text:gsub("\\begin{tabular}", "\\begin{tabular}" .. latexMinipageValign(vAlign), 1)
+    return text
+  end)
+  if has_notes then
+    quarto.doc.use_latex_package("footnotehyper")
+    content = pandoc.Div({content}, pandoc.Attr("", {"quarto-table-notes"}))
   end
-  
-  -- rows
-  for _,row in ipairs(tbl.rows) do
-    latexTabularRowAppend(tabular, latexTabularRow(row))
+  if caption and #caption > 0 then
+    return pandoc.Div({
+      quarto.LatexInlineCommand({name = "caption", arg = pandoc.Span(caption)}),
+      content
+    })
   end
-  
-  -- footer
-  latexAppend(tabular, "\\bottomrule\n")
-  latexAppend(tabular, "\\end{tabular}")
-  
-  -- return tabular
-  return pandoc.Para(tabular)
-  
+  return content
+end
+
+-- Footnote text emitted while constructing a float would otherwise be lost.
+-- Collect it around the outermost float/panel and release it afterwards.
+function latexTableNoteEnvironment(content)
+  local has_notes = false
+  _quarto.ast.walk(content, {
+    Div = function(div)
+      if div.classes:includes("quarto-table-notes") then
+        has_notes = true
+      end
+    end
+  })
+  if has_notes then
+    return quarto.LatexEnvironment({name = "savenotes", content = content})
+  end
+  return content
+end
+
+-- Keep citations in the AST for citeproc/natbib processing even when a table
+-- must be serialized before the document's writer runs.
+function latexWriteTable(tbl, transform)
+  local cites = pandoc.List({})
+  local uuid = "85b77c8a-261c-4f58-9b04-f21c67e0a758"
+  local first_id = global_table_guid_id
+  tbl = _quarto.ast.walk(tbl, {
+    Cite = function(cite)
+      cites:insert(cite)
+      return pandoc.Str(uuid .. "-" .. (first_id + #cites) .. "-" .. uuid)
+    end
+  })
+  local text = pandoc.write(pandoc.Pandoc({tbl}), "latex")
+  if transform then
+    text = transform(text)
+  end
+  local raw = pandoc.RawBlock("latex", text)
+  if #cites == 0 then
+    return raw
+  end
+  global_table_guid_id = first_id + #cites
+  local result = pandoc.Blocks({})
+  for i, cite in ipairs(cites) do
+    result:insert(_quarto.ast.make_scaffold(pandoc.Span, pandoc.Inlines({
+      pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. (first_id + i) .. "-" .. uuid .. "\n"),
+      cite,
+      pandoc.RawInline("latex", "\n%quarto-end-define-uuid\n")
+    })))
+  end
+  result:insert(raw)
+  return pandoc.Div(result)
 end
 
 function latexTabularRow(row)
