@@ -67,6 +67,7 @@ All changes included in 1.11:
 - ([#15115](https://github.com/quarto-dev/quarto-cli/pull/15115)): Fix Google Scholar writing two `citation_reference` tags for a reference defined in two bibliography files. The tag now describes the entry Pandoc renders.
 - ([#15118](https://github.com/quarto-dev/quarto-cli/pull/15118)): Fix Google Scholar metadata missing the first and last page of bibliography entries, and giving wrong pages for a citation `page` written with an en-dash or as a page list.
 - ([#15125](https://github.com/quarto-dev/quarto-cli/pull/15125)): Fix Google Scholar metadata failing the render with a CSL JSON (`.json`) bibliography.
+- ([#15128](https://github.com/quarto-dev/quarto-cli/pull/15128)): Fix Google Scholar metadata missing references with a YAML bibliography not wrapped in `---` delimiters.
 
 ### `pdf`
 
