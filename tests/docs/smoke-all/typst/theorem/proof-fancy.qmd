@@ -1,0 +1,42 @@
+---
+format:
+  typst:
+    keep-typ: true
+    theorem-appearance: fancy
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # proof-like frames use the tertiary fancy colours and a bold header
+          - 'make-frame\((\r\n?|\n)\s*"proof",(\r\n?|\n)\s*text\(weight: "bold", "Proof"\),'
+          - 'make-frame\((\r\n?|\n)\s*"remark",(\r\n?|\n)\s*text\(weight: "bold", "Remark"\),'
+          - 'get-border-color: get-tertiary-border-color'
+          - '#proof\(number: "", get-prefix: \(\.\.args\) => text\(weight: "bold", "Proof"\)\)\['
+          - '#remark\(\)\['
+        -
+          - "simple-proof-render"
+          - "clouds-render"
+          - "rainbow-render"
+      ensurePdfRegexMatches:
+        -
+          - "Proof"
+          - "Remark 1"
+        -
+          - "Proof 1"
+          - "Remark 2"
+---
+
+::: {.proof}
+An unnumbered proof.
+:::
+
+::: {.remark}
+An unnumbered remark.
+:::
+
+::: {#rem-a}
+A numbered remark.
+:::
+
+See @rem-a.

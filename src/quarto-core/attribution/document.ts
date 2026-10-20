@@ -27,6 +27,7 @@ import {
   cslDate,
   CSLExtras,
   cslNames,
+  cslPageRange,
   CSLType,
   cslType,
   kAbstractUrl,
@@ -485,23 +486,14 @@ function pages(citationMetadata: Metadata): PageRange {
   let pages = citationMetadata[kPage]
     ? `${citationMetadata[kPage] as string}` // Force pages to string in case user writes `page: 7`
     : undefined;
-  if (pages && pages.includes("-")) {
-    const pagesSplit = pages.split("-");
-    if (!firstPage) {
-      firstPage = pagesSplit[0];
-    }
-
-    if (!lastPage) {
-      lastPage = pagesSplit[1];
-    }
-  } else if (pages && !firstPage) {
-    firstPage = pages;
-  } else if (!pages) {
-    if (firstPage && lastPage) {
-      pages = `${firstPage} - ${lastPage}`;
-    } else if (firstPage) {
-      pages = `${firstPage}`;
-    }
+  if (pages) {
+    const range = cslPageRange(pages);
+    firstPage = firstPage || range.first;
+    lastPage = lastPage || range.last;
+  } else if (firstPage && lastPage) {
+    pages = `${firstPage} - ${lastPage}`;
+  } else if (firstPage) {
+    pages = `${firstPage}`;
   }
   return {
     firstPage: firstPage as string,

@@ -61,6 +61,36 @@ _quarto.ast.add_handler({
   end
 })
 
+-- Color mapping for clouds/rainbow themes (per proof type)
+local proof_theme_colors = {
+  proof = "gray", remark = "orange", solution = "teal"
+}
+
+-- A proof is numbered only when its identifier is a crossref id (`prf-`,
+-- `rem-` or `sol-`).
+local function is_numbered_proof(identifier)
+  local ref = identifier and refType(identifier)
+  return ref ~= nil and crossref.categories.by_ref_type[ref] ~= nil
+end
+
+local function ensure_typst_proofs(proof_env)
+  local appearance = _quarto.modules.theorems.ensure_appearance_imports()
+  local proof_info = proof_types[proof_env]
+  local title = envTitle(proof_env, proof_info.title)
+  local render_code = _quarto.modules.theorems.render_code(appearance, {
+    color_scheme = "tertiary",
+    color = proof_theme_colors[proof_env] or "gray",
+    simple_render = "simple-proof-render",
+    simple_style = "proof",
+  })
+
+  -- the simple renderer writes the header in italic, like LaTeX and HTML;
+  -- the other appearances keep theorion's bold header, as theorems do
+  local bold = appearance ~= "simple"
+  _quarto.modules.theorems.ensure_frame(proof_env, title, render_code, bold)
+  return bold
+end
+
 function is_proof_div(div)
   local ref = refType(div.identifier)
   if ref ~= nil then
@@ -141,6 +171,40 @@ end, function(proof_tbl)
     end
   elseif _quarto.format.isJatsOutput() then
     el = jatsTheorem(el,  nil, name )
+  elseif _quarto.format.isTypstOutput() then
+    -- a block holding only a title still needs its frame, so that its label
+    -- exists for references; theorems do the same
+    if #el.content == 0 then
+      el.content = pandoc.Blocks({pandoc.Para({pandoc.Str '\u{a0}'})})
+    end
+    local bold = ensure_typst_proofs(proof.env)
+    local preamble = pandoc.Plain({pandoc.RawInline("typst", "#" .. proof.env .. "(")})
+    local numbered = is_numbered_proof(proof_tbl.identifier)
+    if not numbered then
+      -- theorion steps the counter and prints the number only for
+      -- `number: auto`, and its prefix would keep a space before the empty
+      -- number, so an unnumbered block pins both
+      preamble.content:insert(pandoc.RawInline("typst",
+        'number: "", get-prefix: (..args) => ' ..
+        _quarto.modules.theorems.header_code(envTitle(proof.env, proof.title), bold)))
+    end
+    if name and #name > 0 then
+      if not numbered then
+        preamble.content:insert(pandoc.RawInline("typst", ", "))
+      end
+      preamble.content:insert(pandoc.RawInline("typst", 'title: ['))
+      tappend(preamble.content, name)
+      preamble.content:insert(pandoc.RawInline("typst", ']'))
+    end
+    preamble.content:insert(pandoc.RawInline("typst", ")["))
+    local callproof = make_scaffold(pandoc.Div, preamble)
+    tappend(callproof.content, quarto.utils.as_blocks(el.content))
+    if proof_tbl.identifier and proof_tbl.identifier ~= "" then
+      callproof.content:insert(pandoc.RawInline("typst", "] <" .. proof_tbl.identifier .. ">"))
+    else
+      callproof.content:insert(pandoc.RawInline("typst", "]"))
+    end
+    return _quarto.modules.theorems.keep_attributes(callproof, el.attr.attributes)
   else
     el.classes:insert(proof.title:lower())
     local span_title = pandoc.Emph(pandoc.Str(envTitle(proof.env, proof.title)))
