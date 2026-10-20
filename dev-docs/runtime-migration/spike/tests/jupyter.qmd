@@ -1,0 +1,13 @@
+---
+title: "Jupyter on Node"
+format: html
+---
+
+```{python}
+import sys, platform
+print(sys.version.split()[0], platform.machine())
+x = sum(range(10))
+x
+```
+
+The value of `x` is `{python} x`.
