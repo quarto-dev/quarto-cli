@@ -68,6 +68,7 @@ All changes included in 1.11:
 - ([#15118](https://github.com/quarto-dev/quarto-cli/pull/15118)): Fix Google Scholar metadata missing the first and last page of bibliography entries, and giving wrong pages for a citation `page` written with an en-dash or as a page list.
 - ([#15125](https://github.com/quarto-dev/quarto-cli/pull/15125)): Fix Google Scholar metadata failing the render with a CSL JSON (`.json`) bibliography.
 - ([#15128](https://github.com/quarto-dev/quarto-cli/pull/15128)): Fix Google Scholar metadata missing references with a YAML bibliography not wrapped in `---` delimiters.
+- ([#15131](https://github.com/quarto-dev/quarto-cli/issues/15131)): Fix the light/dark toggle appearing, with no dark styles to switch to, when the `dark` brand file holds only comments and is ignored.
 
 ### `pdf`
 
