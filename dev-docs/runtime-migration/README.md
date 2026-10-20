@@ -167,22 +167,23 @@ them. Change them in the plan that decides them, not downstream.
 - `tests/run-tests.sh` accepts files only, never directories: plans write
   `$(find unit/ral -name '*.test.ts')`.
 
-### Roles (organisation review of 2026-10-17; names to be filled in by the maintainer)
+### Roles
 
-The plans name an executor model per PR and nothing else. Every row below is a
-role a plan relies on; the second column is filled in once and the plans refer
-here (A10 above is the same kind of entry and stays where it is).
+The migration is executed by a solo maintainer (Chris) plus LLM-driven agents.
+The table below maps each role the plans rely on to how it is actually
+discharged. The plans refer here rather than to named people.
 
 | Role | Who | What the plans expect |
 |---|---|---|
-| PR reviewer | _to fill in_ | reviews every `rt/*` PR on its own (rule 7); available the same day for the codemod PRs 10–13, 23, 24 and the baseline re-generation they need |
-| Maintainer with push, Actions and admin rights on `quarto-dev/quarto-cli` | _to fill in_ | pushes branches that need `workflow_dispatch` (SPIKES 2.0, PR 32 Task 4, PR 20 Task 1, PR 05 Task 7, PRs 00a, 33, 34, 37 `create-release.yml` with `publish-release=false`), creates labels (PR 26 Task 7), changes branch protection (PRs 02b, 25, 32, 37, 39), validates the nightly CI cost of PR 32 |
-| Release manager | _to fill in_ | confirms the `v1.11` and `v1.12` cut dates below, declares the 1.12 soak over and the promotion to stable, decides a revert for a P1 in the layer, writes the "back to 1.11" release-notes line (PR 33 "Rollout and rollback after the flip"), owns the 1.13 target of PR 37 |
-| Spike decider | _to fill in_ | ends each spike at its time box, takes the go/no-go from the Results section, reviews the spike-closing PR before it edits plans 27–33 (`SPIKES.md`) |
-| Plan coordinator | _to fill in_ | removes the conditional lines PR 39 names from plans not yet executed (PR 39 "When to land"), keeps this README's status column and this table current, refreshes a plan before it is handed to a worker (step 0 of "How to execute a plan") |
-| quarto-web author | _to fill in_ | creates `docs/projects/scripts-deno-to-node.qmd` before 1.11 ships (PR 00c prints its URL), opens the one quarto-web PR after PRs 33–36 (PR 34 Task 7) |
-| External contacts | _to fill in_ | the Posit Connect question of PR 04 Decision 1 (answer consumed by PR 04 or a follow-up), the conda-forge feedstock issue of PR 34, the `c4spar/deno-cliffy` issue if Spike #2 (e) fails, the link to the Rust `tinitex` repository for PR 39; PumasAI is A9 |
-| Manual verification on a machine the worker lacks | _to fill in_ per OS | Windows (PRs 00b, 05, 06, 08, 14b, 28), macOS 12 and Apple Silicon (PR 34), a Posit Connect server (PR 04), a browser (PR 16), Shiny with a second host (PR 15), a corporate CA (PR 34). The result is pasted in the PR description; CI on that OS is the evidence when nobody can run it by hand |
+| PR reviewer | Chris | reviews every `rt/*` PR on its own (rule 7); available the same day for the codemod PRs 10–13, 23, 24 and the baseline re-generation they need |
+| Maintainer (push, Actions and admin rights on `quarto-dev/quarto-cli`) | Chris | runs every `gh pr create`, `git push` on `quarto-dev/quarto-cli`, `gh workflow run`, `gh label create` (PR 26 Task 7), branch-protection change (PRs 02b, 25, 32, 37, 39), and the nightly CI cost validation of PR 32. An executor without those rights stops at the step, says so in the PR description, and hands the branch over |
+| Release manager | Chris | confirms the `v1.11` and `v1.12` cut dates below, declares the 1.12 soak over and the promotion to stable, decides a revert for a P1 in the layer, writes the "back to 1.11" release-notes line (PR 33 "Rollout and rollback after the flip"), owns the 1.13 target of PR 37 |
+| Spike decider | Chris | ends each spike at its time box, takes the go/no-go from the Results section, reviews the spike-closing PR before it edits plans 27–33 (`SPIKES.md`) |
+| Plan coordinator | a fresh LLM session per plan | removes the conditional lines PR 39 names from plans not yet executed (PR 39 "When to land"), keeps this README's status column current, refreshes a plan before it is executed (step 0 of "How to execute a plan": re-grep every cited `path:line`, check dependencies, check the open-decisions table) |
+| Plan executor | an LLM agent (sub-agent driven) | works a plan's checkboxes top to bottom, commits at each commit step, runs the tests the plan names, opens the PR (the `gh pr create` itself is run by Chris). Driven per plan via `superpowers:subagent-driven-development` or `superpowers:executing-plans` as the plan specifies |
+| quarto-web author | Chris | creates `docs/projects/scripts-deno-to-node.qmd` before 1.11 ships (PR 00c prints its URL), opens the one quarto-web PR after PRs 33–36 (PR 34 Task 7) |
+| External contacts | Chris | the Posit Connect question of PR 04 Decision 1 (answer consumed by PR 04 or a follow-up), the conda-forge feedstock issue of PR 34, the `c4spar/deno-cliffy` issue if Spike #2 (e) fails, the link to the Rust `tinitex` repository for PR 39; PumasAI is A9 |
+| Manual verification on a machine the executor lacks | Chris per OS | Windows (PRs 00b, 05, 06, 08, 14b, 28), macOS 12 and Apple Silicon (PR 34), a Posit Connect server (PR 04), a browser (PR 16), Shiny with a second host (PR 15), a corporate CA (PR 34). The result is pasted in the PR description; CI on that OS is the evidence when nobody can run it by hand |
 
 ### Release calendar (to confirm by the release manager)
 
@@ -307,7 +308,7 @@ other plans refer to it by file and section (reconciliation pass of
 
 ## How to execute a plan
 
-Step 0, before the plan is handed to a worker (coordinator): the plans were
+Step 0, before the plan is executed (coordinator): the plans were
 written against `main` at `b86f98d` and cite line numbers. Re-grep every
 `path:line` the plan cites, check each "assumes PR xx landed with ..." against
 `main`, check the plan's `**Depends on:**` PRs are merged, read the "Open
@@ -330,16 +331,16 @@ Spike V" waits for the outcome recorded in `SPIKES.md`.
 
 Actions reserved to the maintainer (see "Roles"): a step that runs `gh pr
 create` or `git push` on `quarto-dev/quarto-cli`, `gh workflow run`, `gh label
-create`, or changes branch protection is done by the maintainer named in
-"Roles"; a worker without those rights stops at the step, says so in the PR
+create`, or changes branch protection is done by the maintainer (Chris, see
+"Roles"); an executor without those rights stops at the step, says so in the PR
 description, and hands the branch over. A PR whose completion needs such an
 action (PRs 02b, 25, 32, 37, 39) is `merged` only once the action is done.
 
-A test that fails on an OS the worker cannot run: CI on that OS is the
+A test that fails on an OS the executor cannot run: CI on that OS is the
 evidence; the reviewer triages the failure (`dev-docs/debugging-flaky-tests.md`);
 a test is never disabled, skipped or quarantined to get green; a manual
-Windows or macOS step the worker cannot do is done by the person named in
-"Roles" or, when the plan names a CI job that covers it, trusted to that job
+Windows or macOS step the executor cannot do is done by Chris (see "Roles")
+or, when the plan names a CI job that covers it, trusted to that job
 with a line in the PR description saying so.
 
 Commits follow the plan's steps as written (a failing-test step followed by

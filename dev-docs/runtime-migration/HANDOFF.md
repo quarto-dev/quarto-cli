@@ -136,7 +136,8 @@ merge rule for shared files, two stale hand-offs (00b → 07, 22 → 27b). Its
 corrections are in README ("Roles", "Release calendar", "Open decisions with an
 owner", ground rule 8, step 0 of "How to execute a plan"), `SPIKES.md`
 (decider column), `_TEMPLATE.md` and the plan headers it lists. The "Roles"
-table and the cut dates are the maintainer's to fill in before Phase 0 starts.
+table has since been filled in for a solo maintainer (Chris) plus LLM-driven
+agents; the cut dates remain Chris's to confirm before Phase 0 starts.
 
 ## Known loose ends in the plans
 
