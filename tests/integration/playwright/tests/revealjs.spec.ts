@@ -113,27 +113,27 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
   const currentSlideId = (page: Page) =>
     page.evaluate(() => (window as any).Reveal.getCurrentSlide().id);
 
-  test('Tab on a slide reaches only that slide (#14795)', async ({ page }) => {
+  test('Tab on a slide reaches only that slide (#14795)', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-3');
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-3')).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(page.locator('.reveal .slides section :focus')).toHaveCount(0);
   });
 
-  test('Tab after keyboard navigation stays on the new slide', async ({ page }) => {
+  test('Tab after keyboard navigation stays on the new slide', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-2');
     await page.keyboard.press('ArrowRight');
     await expect(page).toHaveURL(/#\/slide-3$/);
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-3')).toBeFocused();
   });
 
-  test('Tab in a vertical stack reaches only the current child', async ({ page }) => {
+  test('Tab in a vertical stack reaches only the current child', async ({ page, browserName }) => {
     await gotoSlide(page, '#/stack-b');
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'stack-b')).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(focusOutsideCurrentSlide(page)).toHaveCount(0);
   });
 
@@ -143,7 +143,7 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await expect(slideButton(page, 'slide-6')).toBeFocused();
   });
 
-  test('overview: slides are clickable, inert returns on exit', async ({ page }) => {
+  test('overview: slides are clickable, inert returns on exit', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-3');
     await page.keyboard.press('o');
     await expect(page.locator('.reveal.overview')).toBeAttached();
@@ -151,7 +151,7 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await page.locator('section#slide-5').click({ position: { x: 5, y: 5 } });
     await expect(page).toHaveURL(/#\/slide-5$/);
     await expect(page.locator('.reveal.overview')).toHaveCount(0);
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-5')).toBeFocused();
   });
 
@@ -162,7 +162,7 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await expect(slideButton(page, 'slide-4')).toBeFocused();
   });
 
-  test('scroll view toggle with R: focusable inside, current slide reachable after leaving', async ({ page }) => {
+  test('scroll view toggle with R: focusable inside, current slide reachable after leaving', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-2');
     await page.keyboard.press('R');
     await expect.poll(() => isScrollView(page)).toBe(true);
@@ -173,11 +173,11 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await expect.poll(() => currentSlideId(page)).toBe('slide-4');
     await page.keyboard.press('R');
     await expect.poll(() => isScrollView(page)).toBe(false);
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-4')).toBeFocused();
   });
 
-  test('responsive scroll view below scrollActivationWidth', async ({ page }) => {
+  test('responsive scroll view below scrollActivationWidth', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-2');
     await page.setViewportSize({ width: 400, height: 700 });
     await expect.poll(() => isScrollView(page)).toBe(true);
@@ -187,7 +187,7 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await expect.poll(() => currentSlideId(page)).toBe('slide-4');
     await page.setViewportSize({ width: 1280, height: 720 });
     await expect.poll(() => isScrollView(page)).toBe(false);
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-4')).toBeFocused();
   });
 
@@ -209,14 +209,14 @@ test.describe('the focus stays in the deck when its slide is left (#15078)', () 
     await expect(page.locator('.reveal.ready')).toBeAttached();
   });
 
-  test('moving on from the slide that has the focus hands it to the deck', async ({ page }) => {
+  test('moving on from the slide that has the focus hands it to the deck', async ({ page, browserName }) => {
     await slideButton(page, 'slide-2').focus();
     await page.keyboard.press('ArrowRight');
     await expect(page).toHaveURL(/#\/slide-3$/);
     await expect(deck(page)).toBeFocused();
     await expect(deck(page)).toHaveAttribute('tabindex', '-1');
     // From the deck, Tab goes on into the new slide.
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-3')).toBeFocused();
   });
 
