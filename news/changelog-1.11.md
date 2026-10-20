@@ -41,10 +41,6 @@ All changes included in 1.11:
 
 ## Formats
 
-### `pdf`
-
-- ([#14846](https://github.com/quarto-dev/quarto-cli/issues/14846)): Use Pandoc's floating tables for ordinary Markdown tables in documents with `classoption: twocolumn`, including tables with cross-references. Single-column documents retain `longtable` by default and can opt into floating tables with `.float`. Respect `tbl-pos` for floating cross-referenced tables unless `latex-placement` is explicitly set. Panel, subtable, margin, and full-width layout handling is unchanged.
-
 ### All Formats
 
 - ([#14772](https://github.com/quarto-dev/quarto-cli/issues/14772)): Custom `language` keys now reach templates through `$quarto.language.<key>$`. A key that Quarto does not ship passed schema validation and was merged over the defaults, then discarded before templates saw it, so it expanded to an empty string with no warning. (author: @mcanouil)
@@ -69,6 +65,8 @@ All changes included in 1.11:
 - ([#15115](https://github.com/quarto-dev/quarto-cli/pull/15115)): Fix Google Scholar writing two `citation_reference` tags for a reference defined in two bibliography files. The tag now describes the entry Pandoc renders.
 
 ### `pdf`
+
+- ([#14846](https://github.com/quarto-dev/quarto-cli/issues/14846)): Use Pandoc's floating tables for ordinary Markdown tables in documents with `classoption: twocolumn`, including tables with cross-references. Single-column documents retain `longtable` by default and can opt into floating tables with `.float`. Respect `tbl-pos` unless `latex-placement` is explicitly set. Render full-width, margin, bottom-captioned, and panel tables without `longtable`, retaining Pandoc's widths, spans, citations, and footnotes. Preserve native double-column `table*` and `figure*` environments when loading `sidenotes`, including documents that switch columns in the body.
 
 - ([#14982](https://github.com/quarto-dev/quarto-cli/issues/14982)): Fix a footnote in document metadata, such as `title` or `author`, making PDF and Typst output shift heading levels, which turned the first level-1 heading into the document title.
 - ([#15027](https://github.com/quarto-dev/quarto-cli/issues/15027)): Fix PDF rendering with regional German variants such as `lang: de-CH` failing when German hyphenation patterns are not installed, instead of installing them automatically.

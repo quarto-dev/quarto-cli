@@ -106,9 +106,31 @@ function layout_meta_inject_latex_packages()
       if (layoutState.hasColumns or marginReferences() or marginCitations()) and _quarto.format.isLatexOutput() then
         -- inject sidenotes package
         metaInjectLatex(meta, function(inject)
-          inject(
-            usePackage("sidenotes")
-          )
+          -- sidenotes redefines table*/figure* as single-column floats widened
+          -- into the margin. In twocolumn documents these must remain native
+          -- double-column floats. Choose at use time, since journal styles may
+          -- switch columns in the document rather than via classoption.
+          inject([[
+\@ifpackageloaded{sidenotes}{}{%
+  \expandafter\let\expandafter\quarto@native@table\csname table*\endcsname
+  \expandafter\let\expandafter\quarto@native@endtable\csname endtable*\endcsname
+  \expandafter\let\expandafter\quarto@native@figure\csname figure*\endcsname
+  \expandafter\let\expandafter\quarto@native@endfigure\csname endfigure*\endcsname
+  \usepackage{sidenotes}
+  \expandafter\let\expandafter\quarto@margin@table\csname table*\endcsname
+  \expandafter\let\expandafter\quarto@margin@endtable\csname endtable*\endcsname
+  \expandafter\let\expandafter\quarto@margin@figure\csname figure*\endcsname
+  \expandafter\let\expandafter\quarto@margin@endfigure\csname endfigure*\endcsname
+  \expandafter\def\csname table*\endcsname{%
+    \if@twocolumn\expandafter\quarto@native@table\else\expandafter\quarto@margin@table\fi}
+  \expandafter\def\csname endtable*\endcsname{%
+    \if@twocolumn\quarto@native@endtable\else\quarto@margin@endtable\fi}
+  \expandafter\def\csname figure*\endcsname{%
+    \if@twocolumn\expandafter\quarto@native@figure\else\expandafter\quarto@margin@figure\fi}
+  \expandafter\def\csname endfigure*\endcsname{%
+    \if@twocolumn\quarto@native@endfigure\else\quarto@margin@endfigure\fi}
+}
+]])
           inject(
             usePackage("marginnote")
           )

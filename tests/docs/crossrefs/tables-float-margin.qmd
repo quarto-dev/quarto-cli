@@ -1,0 +1,25 @@
+---
+documentclass: article
+---
+
+See @tbl-margin and @tbl-wide-onecolumn.
+
+| Name | Value |
+|------|------:|
+| Margin | 1 |
+
+: Margin caption {#tbl-margin .column-margin tbl-cap-location="bottom"}
+
+| Name | Value |
+|------|------:|
+| Wide | 2 |
+
+: Wide one-column caption {#tbl-wide-onecolumn .column-page}
+
+::: {.column-margin}
+
+| Name | Value |
+|------|------:|
+| Bare margin | 3 |
+
+:::

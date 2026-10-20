@@ -326,7 +326,8 @@ end, function(float)
       return {}
     end
     caption_cmd_name = "subcaption"
-  elseif float.content.t == "Table" and float_type == "tbl" then -- float.parent_id is nil here
+  elseif float.content.t == "Table" and float_type == "tbl" and
+      figEnv == "table" and capLoc == "top" then -- float.parent_id is nil here
     -- special-case the situation where the figure is Table and the content is Table
     --
     -- just return the table itself with the caption inside the table
@@ -341,6 +342,16 @@ end, function(float)
       float.content.attributes["latex-placement"] = figPos
     end
     return float.content
+  end
+
+  -- Native tables in full-width/margin floats, or with bottom captions, need
+  -- Quarto's environment and caption rather than Pandoc's default longtable.
+  if not float.parent_id and float.content.t == "Table" and float_type == "tbl" then
+    figPos = float.attributes["latex-placement"] or figPos
+    if figEnv == "marginfigure" then
+      figEnv = "margintable"
+    end
+    float.content = latexTabular(float.content)
   end
 
   local fig_scap = attribute(float, kFigScap, nil)
@@ -404,6 +415,9 @@ end, function(float)
       end
     end,
     Table = function(tbl)
+      if tbl.classes:includes("float") then
+        return latexTabular(tbl)
+      end
       local cites = pandoc.List({})
       local guid_id = global_table_guid_id
       local uuid = "85b77c8a-261c-4f58-9b04-f21c67e0a758"
@@ -650,13 +664,13 @@ end, function(float)
     -- the panel layout code
     return figure_content
   else
-    return quarto.LatexEnvironment({
+    return latexTableNoteEnvironment(quarto.LatexEnvironment({
       name = figEnv,
       pos = figPos,
       content = _quarto.ast.walk(figure_content, {
         Image = drop_class("column-margin")
       })
-    })
+    }))
   end
 end)
 

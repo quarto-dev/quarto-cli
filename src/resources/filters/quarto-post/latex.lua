@@ -192,13 +192,15 @@ function render_latex()
   end
   
   function handle_table_columns(table)
-    local useMargin = table.classes:find_if(isStarEnv)
-    if useMargin then
-      return {
-        beginColumnComment(),
-        table,
-      endColumnComment()
-      }
+    local full_width = table.classes:find_if(isStarEnv)
+    local in_margin = table.classes:find_if(isMarginEnv)
+    if full_width or in_margin then
+      noteHasColumns()
+      return latexTableNoteEnvironment(quarto.LatexEnvironment({
+        name = in_margin and "margintable" or "table*",
+        pos = table.attributes["latex-placement"] or table.attributes["tbl-pos"],
+        content = latexTabular(table)
+      }))
     end
     if table.classes:includes("render-as-tabular") then
       return latexTabular(table)
@@ -239,6 +241,7 @@ function render_latex()
         Block = found_something_else,
         Inline = found_something_else,
         Table = function(t)
+          t.classes:insert("column-margin")
           local result = handle_table_columns(t)
           found_table = true
           return result,false
@@ -260,6 +263,9 @@ function render_latex()
       if f ~= nil then
         noteHasColumns()
         el.content = strip(el.content, f)
+        el.content = _quarto.ast.walk(el.content, {
+          Table = function(tbl) return latexTabular(tbl) end
+        })
         tprepend(el.content, {pandoc.RawBlock("latex", "\\begin{figure*}[H]")})
         tappend(el.content, {pandoc.RawBlock("latex", "\\end{figure*}")})
         return el, false
