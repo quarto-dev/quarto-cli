@@ -2,14 +2,14 @@
 title: "No dark mode when the only dark brand file is ignored"
 format: html
 brand:
-  dark: comment-only-dark-brand.yml
+  dark: comment-only-dark-only-brand.yml
 _quarto:
   tests:
     html:
       noErrors: true
       printsMessage:
         level: WARN
-        regex: 'comment-only-dark-brand\.yml has no content and will be ignored'
+        regex: 'comment-only-dark-only-brand\.yml has no content and will be ignored'
       ensureHtmlElements:
         - ['body.quarto-light']
         - ['body.quarto-dark', 'link.quarto-color-alternate']

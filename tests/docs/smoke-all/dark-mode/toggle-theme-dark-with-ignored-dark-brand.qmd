@@ -7,14 +7,14 @@ format:
       dark: darkly
 brand:
   light: united-brand.yml
-  dark: comment-only-dark-brand.yml
+  dark: comment-only-dark-brand-with-theme.yml
 _quarto:
   tests:
     html:
       noErrors: true
       printsMessage:
         level: WARN
-        regex: 'comment-only-dark-brand\.yml has no content and will be ignored'
+        regex: 'comment-only-dark-brand-with-theme\.yml has no content and will be ignored'
       ensureHtmlElements:
         - ['link.quarto-color-alternate', 'body.quarto-light']
         - []
