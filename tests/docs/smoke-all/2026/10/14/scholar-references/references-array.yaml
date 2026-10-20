@@ -2,6 +2,7 @@
   type: article-journal
   title: "*Formatted* reference"
   volume: 1.10
+  issue: !!int 7
   author:
   - family: Smith
     given: Alice

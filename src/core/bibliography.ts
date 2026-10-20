@@ -13,10 +13,22 @@ import { Metadata } from "../config/types.ts";
 import { asArray } from "./array.ts";
 import { CSL } from "./csl.ts";
 
-import { FAILSAFE_SCHEMA, loadAll } from "yaml";
+import { FAILSAFE_SCHEMA, loadAll, Type } from "yaml";
 
 import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
+
+// Keeps every scalar as written and, like pandoc, accepts any tag (!!int,
+// !custom, ...) by keeping the untagged value
+const kBibliographyYamlSchema = FAILSAFE_SCHEMA.extend(
+  (["scalar", "sequence", "mapping"] as const).map((kind) =>
+    new Type("", {
+      kind,
+      multi: true,
+      construct: (data: unknown) => data ?? "",
+    })
+  ),
+);
 
 export async function bibliographyCslJson(input: string, metadata: Metadata) {
   const bibliography = metadata[kBibliography] as string | string[];
@@ -99,10 +111,9 @@ export async function renderToCSLJSON(
       // Pandoc has no reader for a YAML bibliography: read as markdown, it
       // only works when wrapped in --- delimiters. Like --bibliography, use
       // the first YAML document, either a references: map or a bare array.
-      // The failsafe schema keeps scalars as written, and json: true lets a
-      // duplicate key win last, as pandoc does.
+      // json: true lets a duplicate key win last, as pandoc does.
       const firstDoc = loadAll(Deno.readTextFileSync(absBiblioPath), null, {
-        schema: FAILSAFE_SCHEMA,
+        schema: kBibliographyYamlSchema,
         json: true,
       })?.[0];
       if (Array.isArray(firstDoc)) {

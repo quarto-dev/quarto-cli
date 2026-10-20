@@ -7,7 +7,7 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ['meta[name="citation_reference"][content*="citation_title=Formatted reference;"][content*="citation_volume=1.10;"]']
+        - ['meta[name="citation_reference"][content*="citation_title=Formatted reference;"][content*="citation_volume=1.10;"][content*="citation_issue=7;"]']
 ---
 
 The bibliography is a YAML file holding a top-level list of references, with no `references:` key, which pandoc accepts for `--bibliography`. The fields still go through pandoc's YAML reader: the markdown title is parsed and the unquoted volume keeps its text.

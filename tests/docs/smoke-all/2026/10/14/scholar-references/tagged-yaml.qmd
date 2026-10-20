@@ -1,0 +1,15 @@
+---
+title: Scholar metadata for a YAML bibliography with explicit tags
+format: html
+google-scholar: true
+bibliography: references-tagged.yaml
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_reference"][content*="citation_publication_date=2024;"][content*="citation_volume=2;"][content*="citation_issue=7;"]']
+---
+
+The bibliography is a delimited YAML file whose values carry explicit tags, standard (`!!int`) and custom (`!custom`). Pandoc accepts any tag and keeps the value's text, so the Scholar reference tags do too.
+
+This article cites one work [@cited].
