@@ -27,14 +27,16 @@ value = value[deref];
 return value;
 }
 
+// Whether a value renders as visible text (falsy values render as &nbsp;,
+// empty lists and blank strings as whitespace)
+const hasText = (value) => !!value && String(value).trim() !== "";
+
 // Whether the metadata block shows any text for the item
 const hasMetadata = (item) => {
-return Boolean(
-(fields.includes('date') && item.date) ||
-(fields.includes('author') && item.author) ||
-(fields.includes('reading-time') && item['reading-time']) ||
-otherFields.some(field => readField(item, field))
-);
+return (fields.includes('date') && hasText(item.date)) ||
+(fields.includes('author') && hasText(item.author)) ||
+(fields.includes('reading-time') && hasText(item['reading-time'])) ||
+otherFields.some(field => hasText(readField(item, field)));
 }
 
 // Writes a metadata value
