@@ -1,0 +1,10 @@
+---
+title: "Posts with reading time"
+listing:
+  contents: posts
+  type: default
+  sort: "title"
+  fields: [title, reading-time]
+---
+
+A default listing whose only metadata field is the reading time.
