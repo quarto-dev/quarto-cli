@@ -6,7 +6,7 @@
 **Phase:** 3. **Depends on:** PR 33, 34, 35, 36 (no CLI code path needs a bundled Deno any more), PR 39 (`test-quarto-latexmk.yml` and `compile-quarto-latexmk.ts` used `deno compile`). **Unblocks:** PR 38.
 **Branch:** `rt/37-ci-switch-and-deno-removal`.
 **Suggested executor:** Sonnet. Deletions and documentation edits from a precise inventory; the only judgement is in Task 2 (removing Deno branches from `src/deno_ral/`), which has explicit rules.
-**Size:** M (about 45 files deleted or edited).
+**Size:** L by file count (about 45 files deleted or edited), most of them deletions.
 **Ships on:** Node. Gates: every workflow in `.github/workflows/` green on the branch; `tools/check-runtime-boundary.ts` at zero in every scope including `src/deno_ral/`; `create-release.yml` dispatched once.
 
 ## Spec
@@ -15,7 +15,7 @@
 
 Assessment Phase 4 step 2, review S5 and S11, decisions 1 and 2. After PRs 33-36: the CLI runs on Node; `quarto run` scripts default to Node and reach Deno only through `QUARTO_RUN_RUNTIME=deno`/`project.script-runtime: deno` via `requireDenoToolBinary()`; `build-ts-extension` uses esbuild; `tinitex` is gone (PR 39). The bundled `bin/tools/<arch>/deno` therefore serves only users who opt into Deno for scripts, and `quarto install deno` serves them as well. This PR stops shipping it (about 120 MB per architecture) and removes the Deno-era scaffolding.
 
-Release mapping (decision 2): 1.11 ships the boundary work on Deno; 1.12 ships Node with Deno bundled as a tool (PRs 33-36). This PR lands for **1.13** if the team wants one release with both bundled (recommended: users who set `QUARTO_RUN_RUNTIME=deno` get a release to run `quarto install deno`), or late in 1.12 otherwise; the changelog file below follows that choice.
+Release mapping (decision 2): 1.11 ships the boundary work on Deno; 1.12 ships Node with Deno bundled as a tool (PRs 33-36). This PR lands for **1.13** (decided in the organisation review of 2026-10-17, README "Release calendar": users who set `QUARTO_RUN_RUNTIME=deno` get one release, 1.12, to run `quarto install deno`); the changelog file is `news/changelog-1.13.md`.
 
 Inventory (verified on `main` at `b86f98d`, adjusted for PRs 33-36 and 39):
 
@@ -413,7 +413,7 @@ git commit -m "docs: backport protocol after the runtime migration"
 
 ### Task 7: Changelog
 
-- [ ] **Step 1:** In the changelog of the release this PR lands in (`news/changelog-1.13.md`, or `1.12` if the team lands it before the 1.12 cut), under `## Dependencies`:
+- [ ] **Step 1:** In the changelog of the release this PR lands in (`news/changelog-1.13.md`), under `## Dependencies`:
 
 ```markdown
 - ([#NNNNN](https://github.com/quarto-dev/quarto-cli/pull/NNNNN)): Deno is no longer bundled with Quarto. To run `quarto run` or project scripts on Deno (`QUARTO_RUN_RUNTIME=deno`, `project: script-runtime: deno`), install it with `quarto install deno`. The `QUARTO_RUNTIME` switch of the 1.12 prereleases is removed.
@@ -450,7 +450,7 @@ git commit -m "docs: backport protocol after the runtime migration"
 
 ## Decisions needed
 
-1. **1.12 or 1.13** for this PR. Recommendation: 1.13 (Context).
+1. **1.12 or 1.13** for this PR: 1.13, decided (Context; README "Release calendar").
 2. Not changed because the review's finding is resolved by decision 2 and the deleted rename task: "the 452-file `deno_ral` rename right after a release branch is cut maximises conflicts". The directory keeps its name.
 3. Not changed because decision 1 resolves it: the review's "no Deno CI fallback once PR 33 lands" (S5). PR 33 keeps Deno as a tool and PR 32's nightly Deno matrix runs until this PR; this PR is where the fallback ends, after PRs 35/36 moved the last consumers.
 4. Not changed: `.vscode/extensions.json` still recommends `denoland.vscode-deno` until PR 38 swaps it for dprint/oxc, so editors are not left without a formatter between the two PRs.
