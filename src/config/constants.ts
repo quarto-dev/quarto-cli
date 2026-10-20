@@ -306,6 +306,7 @@ export const kToggleReaderMode = "toggle-reader-mode";
 export const kToggleNavigation = "toggle-navigation";
 export const kScrollableCodeLabel = "scrollable-code-label";
 export const kScrollableOutputLabel = "scrollable-output-label";
+export const kRevealjsMenuButtonLabel = "revealjs-menu-button-label";
 
 export const kNavigationSiteLabel = "navigation-site-label";
 export const kNavigationSectionLabel = "navigation-section-label";
@@ -449,6 +450,7 @@ export const kLanguageDefaultsKeys = [
   kNavigationBreadcrumbsLabel,
   kScrollableCodeLabel,
   kScrollableOutputLabel,
+  kRevealjsMenuButtonLabel,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,
