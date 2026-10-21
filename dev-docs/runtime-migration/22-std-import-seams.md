@@ -1,19 +1,26 @@
 # PR 22: `colors`, `flags` and `encoding` seams in `src/deno_ral/`; the import map is the seam for the other std modules
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Route the three std modules that need a Quarto-owned seam (`fmt/colors`, `flags`, `encoding/base64`+`hex`) through `src/deno_ral/` in `src/` and `package/src`, add the `tools/rewrite-import-specifier.sh` tool PR 23 reuses, and record, for every other std module, why the import-map key is its seam and which plan reimplements the ones that call `Deno.*` internally.
-**Phase:** 1 (lands right after PR 08). **Depends on:** PR 04 (`src/deno_ral/semver.ts` and the semver importers), PR 02 (ratchet). **Unblocks:** PR 10, 11, 12, 13 (landing order: the codemods run after the seams exist), PR 23 (rewrite tool), PR 24, PR 25.
+**Phase:** 1 (lands right after PR 08).
+**Depends on:** PR 04 (`src/deno_ral/semver.ts` and the semver importers), PR 02 (ratchet).
+**Unblocks:** PR 10, 11, 12, 13 (landing order: the codemods run after the seams exist), PR 23 (rewrite tool), PR 24, PR 25.
 **Branch:** `rt/22-std-import-seams`.
-**Suggested executor:** Sonnet. Two new re-export modules, one extended, a scripted specifier rewrite and a type-check; nothing to design.
-**Size:** L by file count (about 50 files: 3 layer files, 1 tool script, 44 importer files, 2 docs); mechanical. 3 layer files, 1 tool script, 44 import lines in `src/` and `package/src` (29 `fmt/colors` including the two `jsr:` URLs, 3 `flags`, 12 `encoding`), the rules doc and the baseline.
+**Suggested executor:** Sonnet.
+Two new re-export modules, one extended, a scripted specifier rewrite and a type-check; nothing to design.
+**Size:** L by file count (about 50 files: 3 layer files, 1 tool script, 44 importer files, 2 docs); mechanical.
+3 layer files, 1 tool script, 44 import lines in `src/` and `package/src` (29 `fmt/colors` including the two `jsr:` URLs, 3 `flags`, 12 `encoding`), the rules doc and the baseline.
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
 
 ### Context
 
-Assessment section 11, module plan row "`colors.ts`, `semver.ts`, `base64` in `encoding.ts`, `flags.ts`, `asserts` (tests)". The review (section 4, PR 22; S1) found the first draft's eleven re-export files of little value: the import map already maps every bare std specifier (`fmt/`, `log`, `io/`, …) in one place, and PR 26's resolver maps the same keys for Node. A seam file is worth having only where Quarto expects to change the implementation or its behaviour on Node, and the real Phase 3 risk is std modules that call `Deno.*` at runtime, which no re-export fixes.
+Assessment section 11, module plan row "`colors.ts`, `semver.ts`, `base64` in `encoding.ts`, `flags.ts`, `asserts` (tests)".
+The review (section 4, PR 22; S1) found the first draft's eleven re-export files of little value: the import map already maps every bare std specifier (`fmt/`, `log`, `io/`, …) in one place, and PR 26's resolver maps the same keys for Node.
+A seam file is worth having only where Quarto expects to change the implementation or its behaviour on Node, and the real Phase 3 risk is std modules that call `Deno.*` at runtime, which no re-export fixes.
 
 So this PR keeps three seams:
 
@@ -24,7 +31,9 @@ So this PR keeps three seams:
 | `src/deno_ral/encoding.ts` (`encoding/base64`, `encoding/hex`), already exists with base64 | 12 files in `src/` | Node has native base64/hex (`Buffer`, `Uint8Array.fromBase64`); one file to switch, and the unreferenced `src/core/encode-metadata.ts:6` imports a name (`encode`) that `@std/encoding` 1.x no longer has. |
 | `src/deno_ral/semver.ts` | done by PR 04 | verified here only |
 
-Every other std module stays behind its import-map key, which is its seam (PR 26's `tools/node-bundle/import-map.mjs` resolves the same keys to `@jsr/std__*` on Node). The table below is the inventory PR 25's hidden-dependency check reads, and the source of the std boundary rule's allow-list: PR 02's scanner (`kStdAllowListed`, `02-runtime-boundary-check.md` "The std boundary rule") does not count a direct import of a row whose owner is "import map"; every other std import counts, including `log/file-handler` and `dotenv` (`load`). A change to the "Owner" column of a row is mirrored in `kStdAllowListed` in the same PR.
+Every other std module stays behind its import-map key, which is its seam (PR 26's `tools/node-bundle/import-map.mjs` resolves the same keys to `@jsr/std__*` on Node).
+The table below is the inventory PR 25's hidden-dependency check reads, and the source of the std boundary rule's allow-list: PR 02's scanner (`kStdAllowListed`, `02-runtime-boundary-check.md` "The std boundary rule") does not count a direct import of a row whose owner is "import map"; every other std import counts, including `log/file-handler` and `dotenv` (`load`).
+A change to the "Owner" column of a row is mirrored in `kStdAllowListed` in the same PR.
 
 | Import-map key | Runtime `Deno.*` inside the std module? | Owner |
 |---|---|---|
@@ -129,8 +138,7 @@ chmod +x tools/rewrite-import-specifier.sh
 
 - [ ] **Step 2: Dry check without writing**
 
-Run: `grep -rlF --include='*.ts' 'from "flags"' src package/src | grep -v '^src/deno_ral/' | sort`
-Expected: `src/command/render/latexmk/quarto-latexmk.ts`, `src/core/log.ts`, `src/core/main.ts`, `src/quarto-core/profile.ts`.
+Run: `grep -rlF --include='*.ts' 'from "flags"' src package/src | grep -v '^src/deno_ral/' | sort` Expected: `src/command/render/latexmk/quarto-latexmk.ts`, `src/core/log.ts`, `src/core/main.ts`, `src/quarto-core/profile.ts`.
 
 - [ ] **Step 3: Commit**
 
@@ -190,8 +198,7 @@ export { decodeHex, encodeHex } from "encoding/hex";
 
 - [ ] **Step 3: Type-check the layer**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json deno_ral/colors.ts deno_ral/flags.ts deno_ral/encoding.ts`
-Expected: exit 0.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json deno_ral/colors.ts deno_ral/flags.ts deno_ral/encoding.ts` Expected: exit 0.
 
 - [ ] **Step 4: Commit**
 
@@ -209,7 +216,8 @@ tools/rewrite-import-specifier.sh fmt/colors src/deno_ral/colors.ts src package/
 tools/rewrite-import-specifier.sh 'jsr:/@std/fmt@^0.224.0/colors' src/deno_ral/colors.ts package/src
 ```
 
-Expected: 27 files printed by the first command (26 `src/` + `package/src/util/git.ts`), 2 by the second (`find-bad-imports.ts`, `find-bad-types-constants.ts`). `src/core/text.ts` keeps `import { rgb24 } from "../deno_ral/colors.ts"`-style imports working since `colors.ts` re-exports everything.
+Expected: 27 files printed by the first command (26 `src/` + `package/src/util/git.ts`), 2 by the second (`find-bad-imports.ts`, `find-bad-types-constants.ts`).
+`src/core/text.ts` keeps `import { rgb24 } from "../deno_ral/colors.ts"`-style imports working since `colors.ts` re-exports everything.
 
 - [ ] **Step 2: flags**
 
@@ -227,7 +235,8 @@ tools/rewrite-import-specifier.sh encoding/base64 src/deno_ral/encoding.ts src
 tools/rewrite-import-specifier.sh encoding/hex src/deno_ral/encoding.ts src
 ```
 
-Expected: 11 + 1 files (`encode-metadata.ts` among the 11; `publish.ts` is the hex one). Then fix the name in the unreferenced `src/core/encode-metadata.ts:6` by hand (`encode` does not exist in `@std/encoding` 1.x):
+Expected: 11 + 1 files (`encode-metadata.ts` among the 11; `publish.ts` is the hex one).
+Then fix the name in the unreferenced `src/core/encode-metadata.ts:6` by hand (`encode` does not exist in `@std/encoding` 1.x):
 
 ```ts
 import { encodeBase64 as base64Encode } from "../deno_ral/encoding.ts";
@@ -235,8 +244,8 @@ import { encodeBase64 as base64Encode } from "../deno_ral/encoding.ts";
 
 - [ ] **Step 4: semver (verification only)**
 
-Run: `grep -rn 'from "semver' src package/src --include=*.ts | grep -v '^src/deno_ral/semver.ts'`
-Expected: nothing (PR 04 rewrote every importer). If a line appears, PR 04 missed it: rewrite that import to the relative path of `src/deno_ral/semver.ts` and mention it in the PR.
+Run: `grep -rn 'from "semver' src package/src --include=*.ts | grep -v '^src/deno_ral/semver.ts'` Expected: nothing (PR 04 rewrote every importer).
+If a line appears, PR 04 missed it: rewrite that import to the relative path of `src/deno_ral/semver.ts` and mention it in the PR.
 
 - [ ] **Step 5: Type-check and render**
 
@@ -287,4 +296,5 @@ git commit -m "ratchet after the std seams; document which std modules have a se
 
 ## Decisions needed
 
-None. Not changed because: the first draft's other eight seams (`dotenv`, `crypto`, `async`, `datetime`, `streams`, `fmt`, `media-types`, extended `io`/`log`) were re-exports that only moved specifiers across ~240 files; the import map already is that seam, and the two modules with internal `Deno.*` among them are reimplemented in PR 20b, not re-exported.
+None.
+Not changed because: the first draft's other eight seams (`dotenv`, `crypto`, `async`, `datetime`, `streams`, `fmt`, `media-types`, extended `io`/`log`) were re-exports that only moved specifiers across ~240 files; the import map already is that seam, and the two modules with internal `Deno.*` among them are reimplemented in PR 20b, not re-exported.

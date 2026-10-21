@@ -1,33 +1,47 @@
 # PR 16: `deno_ral/http.ts`; preview server, dev server, axe server on it
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Put an HTTP server and WebSocket upgrade interface (`serveHttp`, `HttpServer` with `listening`/`finished`, `upgradeWebSocket`, `WebSocketLike`) in `src/deno_ral/http.ts`, implemented on `Deno.serve`/`Deno.upgradeWebSocket` for now, and move every server in `src/` onto it, with callers awaiting the bind.
-**Phase:** 1. **Depends on:** PR 15 (async `findOpenPort`; the `preview-shiny.ts` port fix), PR 14b (`tests/smoke/preview/preview-reload.test.ts`), PR 08 (`writeStderrSync`), PR 02 (ratchet; `tests/asserts.ts`). **Unblocks:** PR 25, PR 29.
+**Phase:** 1.
+**Depends on:** PR 15 (async `findOpenPort`; the `preview-shiny.ts` port fix), PR 14b (`tests/smoke/preview/preview-reload.test.ts`), PR 08 (`writeStderrSync`), PR 02 (ratchet; `tests/asserts.ts`).
+**Unblocks:** PR 25, PR 29.
 **Branch:** `rt/16-ral-http`.
-**Suggested executor:** Opus. The WebSocket adapter must preserve the dev server's client-tracking semantics (`readyState`, `onclose` debounce), the axe command's shutdown ordering, and the exact "Listening on" line; all are easy to subtly break.
-**Size:** M. 1 new module, 1 new test, 6 modified files (`src/core/http-server.ts`, `src/core/http-devserver.ts`, `src/command/preview/preview.ts`, `src/command/preview/preview-shiny.ts`, `src/project/serve/serve.ts`, `src/command/call/axe/cmd.ts`), the rules doc and the baseline.
+**Suggested executor:** Opus.
+The WebSocket adapter must preserve the dev server's client-tracking semantics (`readyState`, `onclose` debounce), the axe command's shutdown ordering, and the exact "Listening on" line; all are easy to subtly break.
+**Size:** M.
+1 new module, 1 new test, 6 modified files (`src/core/http-server.ts`, `src/core/http-devserver.ts`, `src/command/preview/preview.ts`, `src/command/preview/preview-shiny.ts`, `src/project/serve/serve.ts`, `src/command/call/axe/cmd.ts`), the rules doc and the baseline.
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
 
 ### Context
 
-Assessment section 3.3 lists `Deno.serve` and `Deno.upgradeWebSocket` as Deno-specific runtime features used by `src/core/http-server.ts`, `src/core/http-devserver.ts`, `src/command/preview/preview.ts` and `src/command/call/axe/cmd.ts`; the Node replacement is `node:http` plus the `ws` package. Section 11, module plan row `http.ts`: `serveHttp({ port, hostname, handler, signal, onListen })` returning `{ finished, shutdown }`; `upgradeWebSocket(req)` returning a browser-shaped socket. The spike's shim (`Deno.serve` and `Deno.upgradeWebSocket` sections) is the proof that the interface below can be implemented on Node: it builds a `Request` from `http.IncomingMessage`, streams the `Response` body back, and uses `ws`'s `WebSocketServer.handleUpgrade` for upgrades.
+Assessment section 3.3 lists `Deno.serve` and `Deno.upgradeWebSocket` as Deno-specific runtime features used by `src/core/http-server.ts`, `src/core/http-devserver.ts`, `src/command/preview/preview.ts` and `src/command/call/axe/cmd.ts`; the Node replacement is `node:http` plus the `ws` package.
+Section 11, module plan row `http.ts`: `serveHttp({ port, hostname, handler, signal, onListen })` returning `{ finished, shutdown }`; `upgradeWebSocket(req)` returning a browser-shaped socket.
+The spike's shim (`Deno.serve` and `Deno.upgradeWebSocket` sections) is the proof that the interface below can be implemented on Node: it builds a `Request` from `http.IncomingMessage`, streams the `Response` body back, and uses `ws`'s `WebSocketServer.handleUpgrade` for upgrades.
 
 Call sites today (verified on `main` at `b86f98d`):
 
-- `src/core/http-server.ts:18`: `Deno.serve({ ...options, signal })` inside `handleHttpRequests`, which returns `{ server, stop }`. Callers: `src/project/serve/serve.ts:423-430` (uses `stop`, then prints `Preview service running (<port>)`), `src/project/serve/serve.ts:775-781` (uses `server.finished`), `src/command/call/axe/cmd.ts:402-422` (uses `server.stop()` and `server.server.finished`), `src/command/preview/preview-shiny.ts:160` (uses `.stop`, then prints `Preview service running`).
-- `src/core/http-devserver.ts:130`: `Deno.upgradeWebSocket(req)`; the client list is typed `{ socket: WebSocket }` (line 44); `socket.readyState !== WebSocket.CLOSED` at line 54; `socket.onmessage` (132), `socket.onclose` (138), `socket.send` (69, 187), `socket.close()` (193). No consumer uses streaming responses, `req.signal`, `remoteAddr`, `onopen` or `onerror`.
+- `src/core/http-server.ts:18`: `Deno.serve({ ...options, signal })` inside `handleHttpRequests`, which returns `{ server, stop }`.
+  Callers: `src/project/serve/serve.ts:423-430` (uses `stop`, then prints `Preview service running (<port>)`), `src/project/serve/serve.ts:775-781` (uses `server.finished`), `src/command/call/axe/cmd.ts:402-422` (uses `server.stop()` and `server.server.finished`), `src/command/preview/preview-shiny.ts:160` (uses `.stop`, then prints `Preview service running`).
+- `src/core/http-devserver.ts:130`: `Deno.upgradeWebSocket(req)`; the client list is typed `{ socket: WebSocket }` (line 44); `socket.readyState !== WebSocket.CLOSED` at line 54; `socket.onmessage` (132), `socket.onclose` (138), `socket.send` (69, 187), `socket.close()` (193).
+  No consumer uses streaming responses, `req.signal`, `remoteAddr`, `onopen` or `onerror`.
 - `src/command/preview/preview.ts:288-301`: `Deno.serve({ signal, port, hostname }, handler)` then `await server.finished`; it passes no `onListen`, so Deno prints its default line.
 - `src/command/call/axe/cmd.ts:413-418`: a comment naming `Deno.serve` and `Deno.exit` (the code goes through `handleHttpRequests`).
 
 Two behaviours to preserve or fix:
 
-- **Bind failure.** `Deno.serve` binds synchronously and throws (`AddrInUse`, `PermissionDenied`); Node binds asynchronously. A layer that reports the failure only through a rejected `finished` (the first draft) silently breaks `serve.ts:423-430` and `preview-shiny.ts:160`, which never await `finished` and would print "Preview service running" with nothing listening. The layer therefore adds `listening: Promise<void>` (resolves once bound, rejects with the bind error), and both callers await it before printing.
-- **Default `onListen`.** Deno's default (`ext/http/00_serve.ts:983-995` at `v2.7.14`) logs `Listening on <scheme><host>:<port>/` through `import.meta.log("info", …)`, i.e. on stderr, where `<host>` is `localhost` for `0.0.0.0`/`::` on Windows and bracketed for IPv6, and appends ` (http://localhost:<port>/)` when bound to `0.0.0.0`/`::` elsewhere. `quarto preview` relies on that line (it passes no `onListen`). The layer reproduces it exactly on stderr; a `console.log` default (first draft) would move it to stdout.
+- **Bind failure.** `Deno.serve` binds synchronously and throws (`AddrInUse`, `PermissionDenied`); Node binds asynchronously.
+  A layer that reports the failure only through a rejected `finished` (the first draft) silently breaks `serve.ts:423-430` and `preview-shiny.ts:160`, which never await `finished` and would print "Preview service running" with nothing listening.
+  The layer therefore adds `listening: Promise<void>` (resolves once bound, rejects with the bind error), and both callers await it before printing.
+- **Default `onListen`.** Deno's default (`ext/http/00_serve.ts:983-995` at `v2.7.14`) logs `Listening on <scheme><host>:<port>/` through `import.meta.log("info", …)`, i.e. on stderr, where `<host>` is `localhost` for `0.0.0.0`/`::` on Windows and bracketed for IPv6, and appends ` (http://localhost:<port>/)` when bound to `0.0.0.0`/`::` elsewhere.
+  `quarto preview` relies on that line (it passes no `onListen`).
+  The layer reproduces it exactly on stderr; a `console.log` default (first draft) would move it to stdout.
 
-Coverage: `tests/smoke/preview/preview-reload.test.ts` (PR 14b) drives `preview.ts` and `http-devserver.ts` end to end (bind, WebSocket upgrade, `render:*`/`reload` messages, SIGTERM shutdown, port release). The new unit test pins the layer contract, including keep-alive teardown, which PR 29 must reproduce on `node:http` (where `server.close()` waits for idle keep-alive sockets unless `closeIdleConnections()` is called).
+Coverage: `tests/smoke/preview/preview-reload.test.ts` (PR 14b) drives `preview.ts` and `http-devserver.ts` end to end (bind, WebSocket upgrade, `render:*`/`reload` messages, SIGTERM shutdown, port release).
+The new unit test pins the layer contract, including keep-alive teardown, which PR 29 must reproduce on `node:http` (where `server.close()` waits for idle keep-alive sockets unless `closeIdleConnections()` is called).
 
 ### Scope
 
@@ -44,7 +58,8 @@ Out:
 - `src/core/http.ts:228-240` `maybeDisplaySocketError` (`instanceof Deno.errors.*`): PR 10's `errors` rule.
 - `src/core/http.ts:47` `Deno.readFileSync`, `http-devserver.ts:126` `Deno.readFile`: PR 10.
 - The WebSocket *client* (`new WebSocket(...)` in `src/core/cri/`): browser-global API, available on Node 22+, not a runtime seam.
-- The `!socket.CLOSED && !socket.CLOSING` condition at `http-devserver.ts:191`: `CLOSED`/`CLOSING` are the numeric constants 3 and 2, so the condition is always false and `socket.close()` is never reached. This PR preserves that behaviour (the browser closes the socket when it reloads); the plan adds a comment, nothing else.
+- The `!socket.CLOSED && !socket.CLOSING` condition at `http-devserver.ts:191`: `CLOSED`/`CLOSING` are the numeric constants 3 and 2, so the condition is always false and `socket.close()` is never reached.
+  This PR preserves that behaviour (the browser closes the socket when it reloads); the plan adds a comment, nothing else.
 
 ### Interfaces
 
@@ -348,8 +363,7 @@ unitTest("http - upgradeWebSocket throws on a plain request", async () => {
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/http.test.ts`
-Expected: type-check error `Module not found "file:///.../src/deno_ral/http.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/http.test.ts` Expected: type-check error `Module not found "file:///.../src/deno_ral/http.ts"`.
 
 - [ ] **Step 3: Implement `http.ts`**
 
@@ -502,8 +516,8 @@ export function upgradeWebSocket(
 
 - [ ] **Step 4: Run the test**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/http.test.ts`
-Expected: `........` then `ok | 8 passed | 0 failed`. If Deno's resource sanitizer reports a leaked `fetch` body in the abort test, read the body (`await res.text()`) before aborting, as the test does; do not disable the sanitizer.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/http.test.ts` Expected: `........` then `ok | 8 passed | 0 failed`.
+If Deno's resource sanitizer reports a leaked `fetch` body in the abort test, read the body (`await res.text()`) before aborting, as the test does; do not disable the sanitizer.
 
 - [ ] **Step 5: Commit**
 
@@ -557,7 +571,8 @@ export function handleHttpRequests(
 
 - [ ] **Step 2: `src/project/serve/serve.ts:423-430`**
 
-`externalPreviewServer` is async since PR 15. Replace
+`externalPreviewServer` is async since PR 15.
+Replace
 
 ```ts
     ({ stop } = handleHttpRequests({
@@ -585,7 +600,8 @@ with
 
 - [ ] **Step 3: `src/command/preview/preview-shiny.ts:158-162`**
 
-`runPreviewControlService` is async since PR 15. Replace
+`runPreviewControlService` is async since PR 15.
+Replace
 
 ```ts
   onCleanup(
@@ -626,13 +642,13 @@ and replace the comment at lines 413–418 with:
 
 - [ ] **Step 5: Type-check**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
-Expected: exit 0. `serve.ts:775-781` compiles unchanged (`server.finished` exists on `HttpServer`). If `preview-shiny.ts` reports `Property 'port' is missing`, PR 15's fix did not land; apply PR 15 Task 3 step 3 here.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` Expected: exit 0.
+`serve.ts:775-781` compiles unchanged (`server.finished` exists on `HttpServer`).
+If `preview-shiny.ts` reports `Property 'port' is missing`, PR 15's fix did not land; apply PR 15 Task 3 step 3 here.
 
 - [ ] **Step 6: Run the axe and preview tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/axe-config.test.ts $(find smoke/axe/ -name '*.test.ts') smoke/preview/preview-reload.test.ts`
-Expected: `ok | N passed | 0 failed` (Chrome-dependent tests skip with a warning without Chrome).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/axe-config.test.ts $(find smoke/axe/ -name '*.test.ts') smoke/preview/preview-reload.test.ts` Expected: `ok | N passed | 0 failed` (Chrome-dependent tests skip with a warning without Chrome).
 
 - [ ] **Step 7: Commit**
 
@@ -676,19 +692,19 @@ import { serveHttp } from "../../deno_ral/http.ts";
   await server.finished;
 ```
 
-(No `onListen`: the default prints Deno's line on stderr, as before. A bind failure rejects `finished`, which propagates out of `preview()` as the synchronous `Deno.serve` throw did.)
+(No `onListen`: the default prints Deno's line on stderr, as before.
+A bind failure rejects `finished`, which propagates out of `preview()` as the synchronous `Deno.serve` throw did.)
 
 Also delete the stale comment at line 220 (`// const listener = Deno.listen({ port: options.port!, hostname: options.host });`), which the ratchet counts.
 
 - [ ] **Step 3: Type-check and run the preview tests**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
-Expected: exit 0.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` Expected: exit 0.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts unit/preview-initial-path.test.ts`
-Expected: `ok | N passed | 0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts unit/preview-initial-path.test.ts` Expected: `ok | N passed | 0 failed`.
 
-Manual: `package/dist/bin/quarto preview tests/docs/smoke-all/2023/05/24/5657-raw.qmd --no-browser --port 4321 2>&1 >/dev/null | grep Listening` → `Listening on http://127.0.0.1:4321/`; the same command with `2>/dev/null | grep -c Listening` → `0` (nothing on stdout). Ctrl-C exits with no stack trace.
+Manual: `package/dist/bin/quarto preview tests/docs/smoke-all/2023/05/24/5657-raw.qmd --no-browser --port 4321 2>&1 >/dev/null | grep Listening` → `Listening on http://127.0.0.1:4321/`; the same command with `2>/dev/null | grep -c Listening` → `0` (nothing on stdout).
+Ctrl-C exits with no stack trace.
 
 - [ ] **Step 4: Commit**
 
@@ -788,13 +804,14 @@ import { upgradeWebSocket, WebSocketLike } from "../deno_ral/http.ts";
 
 - [ ] **Step 5: Type-check, run tests, manual reload check**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
-Expected: exit 0.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` Expected: exit 0.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts unit/preview-brand-cache.test.ts`
-Expected: `ok | N passed | 0 failed`. `preview-reload.test.ts` is the end-to-end check of this task: it receives `render:start`, `render:stop:true` and `reload` through `upgradeWebSocket`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts unit/preview-brand-cache.test.ts` Expected: `ok | N passed | 0 failed`.
+`preview-reload.test.ts` is the end-to-end check of this task: it receives `render:start`, `render:stop:true` and `reload` through `upgradeWebSocket`.
 
-Manual (browser side and timeout path, not covered by the test): `package/dist/bin/quarto preview tests/docs/smoke-all/2023/05/24/5657-raw.qmd --timeout 5`, open the browser, edit the title, save; the page reloads. Close the tab; after 5 s the preview exits (the `onclose` debounce path). Use the `/quarto-preview-test` skill topics "live reload" and "timeout" for the structured procedure.
+Manual (browser side and timeout path, not covered by the test): `package/dist/bin/quarto preview tests/docs/smoke-all/2023/05/24/5657-raw.qmd --timeout 5`, open the browser, edit the title, save; the page reloads.
+Close the tab; after 5 s the preview exits (the `onclose` debounce path).
+Use the `/quarto-preview-test` skill topics "live reload" and "timeout" for the structured procedure.
 
 - [ ] **Step 6: Commit**
 
@@ -810,8 +827,8 @@ git commit -m "core/http-devserver: websocket clients through deno_ral/http upgr
 
 - [ ] **Step 1: Baseline**
 
-Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline`
-Expected: the `src` count drops by 7 (`http-server.ts` 2 including its comment, `http-devserver.ts` 1, `preview.ts` 2 including the removed comment, `axe/cmd.ts` 2 for the rewritten comment's `Deno.serve` and `Deno.exit`); `tests` unchanged. The JSON file is rewritten.
+Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline` Expected: the `src` count drops by 7 (`http-server.ts` 2 including its comment, `http-devserver.ts` 1, `preview.ts` 2 including the removed comment, `axe/cmd.ts` 2 for the rewritten comment's `Deno.serve` and `Deno.exit`); `tests` unchanged.
+The JSON file is rewritten.
 
 - [ ] **Step 2: Rules table row**
 
@@ -848,11 +865,14 @@ git commit -m "ratchet baseline after http.ts; document http.ts in deno-ral rule
 
 ## Risks and rollback
 
-- Deno's `server.shutdown()` rejects if called after the signal already aborted the server; the wrapper swallows that so `stop(); await shutdown()` sequences are safe. If the axe command starts failing with "server already closed", the `.catch` is missing.
-- The default "Listening on" line now goes through `writeStderrSync` instead of Deno's internal logger; Deno's logger also writes to stderr, so `2>/dev/null` users see no change. `--quiet` did not suppress it before and does not now.
+- Deno's `server.shutdown()` rejects if called after the signal already aborted the server; the wrapper swallows that so `stop(); await shutdown()` sequences are safe.
+  If the axe command starts failing with "server already closed", the `.catch` is missing.
+- The default "Listening on" line now goes through `writeStderrSync` instead of Deno's internal logger; Deno's logger also writes to stderr, so `2>/dev/null` users see no change.
+  `--quiet` did not suppress it before and does not now.
 - Phase 2 risk recorded for Spike #2: Deno's own `node:http` is built on `Deno.serve`, so running PR 29's `node:http` + `ws` implementation on Deno 2 tests Deno's shim, not Node; the keep-alive test above is what both runtimes must pass.
 - Rollback: revert the five commits.
 
 ## Decisions needed
 
-None. Not changed because: the review asked whether a `listening` promise or an awaiting `handleHttpRequests` should fix the silent bind failure; the promise is chosen because `preview.ts` and the unit test also need it, and `handleHttpRequests` stays synchronous so its `stop` can be registered for cleanup before the bind settles.
+None.
+Not changed because: the review asked whether a `listening` promise or an awaiting `handleHttpRequests` should fix the silent bind failure; the promise is chosen because `preview.ts` and the unit test also need it, and `handleHttpRequests` stays synchronous so its `stop` can be registered for cleanup before the bind settles.

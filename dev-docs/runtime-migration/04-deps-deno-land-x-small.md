@@ -1,11 +1,15 @@
 # PR 04: Replace the small `deno.land/x` dependencies
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Remove the `semver/`, `media_types/`, `xmlp/`, `xml/`, `another_cookiejar/`, `cache/` and `events/` entries from `src/import_map.json`, replacing each with an npm/JSR package or a Node built-in that works on Deno today and on Node later (the Posit Connect cookie jar is kept, on `tough-cookie`), with `deno.lock` updated in the same commits.
-**Phase:** 0. **Depends on:** 02 (ratchet, `tests/asserts.ts`), 00b (frozen `deno.lock`, `update-lock.sh`, the bundle gate). **Unblocks:** PR 22 (std import seams; semver is done here), PR 25 (it checks `deno.land/x/cache` is gone), PR 26, PR 07's last task (the std-redirect cleanup that used to be this plan's Task 7).
+**Phase:** 0.
+**Depends on:** 02 (ratchet, `tests/asserts.ts`), 00b (frozen `deno.lock`, `update-lock.sh`, the bundle gate).
+**Unblocks:** PR 22 (std import seams; semver is done here), PR 25 (it checks `deno.land/x/cache` is gone), PR 26, PR 07's last task (the std-redirect cleanup that used to be this plan's Task 7).
 **Branch:** `rt/04-deps-deno-land-x-small`.
-**Suggested executor:** Opus. Each replacement is small, but four of them change library APIs (XML building/parsing, cookies, mime lookup) and need judgement at the call site when a test disagrees with the plan.
+**Suggested executor:** Opus.
+Each replacement is small, but four of them change library APIs (XML building/parsing, cookies, mime lookup) and need judgement at the call site when a test disagrees with the plan.
 **Size:** M (import map, `deno.lock`, 1 new `deno_ral` module, 17 semver importer files, 1 new rsconnect module, 4 other source files, 3 JS files, 5 new tests).
 **Ships on:** Deno; the existing test suite must stay green.
 
@@ -13,7 +17,9 @@
 
 ### Context
 
-`00-assessment.md` section 3.4 (row "xmlp, xml, another_cookiejar, media_types, cache, events") and section 10 (the spike had to re-source every `deno.land/x` package from GitHub tags). These seven entries are the small ones; deno_dom, cliffy and puppeteer have their own PRs (05, 06, 07). Each task below is independent and lands as its own commit so a reviewer can bisect.
+`00-assessment.md` section 3.4 (row "xmlp, xml, another_cookiejar, media_types, cache, events") and section 10 (the spike had to re-source every `deno.land/x` package from GitHub tags).
+These seven entries are the small ones; deno_dom, cliffy and puppeteer have their own PRs (05, 06, 07).
+Each task below is independent and lands as its own commit so a reviewer can bisect.
 
 What each entry is used for (verified with grep on `main` at `b86f98d`):
 
@@ -27,7 +33,8 @@ What each entry is used for (verified with grep on `main` at `b86f98d`):
 | `cache/` | `deno.land/x/cache@0.2.12` | none (`grep -rn '"cache/' src package/src tests tools` is empty) | — | delete the entry |
 | `events/` | `deno.land/x/events@v1.0.0` (a copy of Node's `EventEmitter`) | `src/core/cri/deno-cri/chrome.js:9,53`, `index.js:9,35`, `websocket-wrapper.js:9,13` (default import; `class ... extends EventEmitter` and `new EventEmitter()`) | `node:events` default export (verified on Deno 2.7.14: `import EventEmitter from "node:events"` is the class, `class C extends EventEmitter` works, `EventEmitter === EE2` for the named import). `node:` built-ins are runtime-neutral by construction. |
 
-`src/import_map.json` also carries redirect entries for old `deno.land/std` URLs that these packages import internally (`https://deno.land/std@0.105.0/` is `media_types`' path import; the three `std@0.91.0` entries are most likely `cache`'s; `std@0.196.0/console/unicode_width.ts` is cliffy rc.3's and `std@0.93.0/*` are puppeteer's). This PR does not touch those redirects: PR 07's last task removes every redirect that is unused once 03–07 have landed, with one `deno info` run over every entrypoint (including `tests/**/*.test.ts`, `tools/*.ts`, `package/scripts/deno_std/deno_std.ts` and the `src/resources/**` scripts, which the first draft of this plan missed and would have reported as unused).
+`src/import_map.json` also carries redirect entries for old `deno.land/std` URLs that these packages import internally (`https://deno.land/std@0.105.0/` is `media_types`' path import; the three `std@0.91.0` entries are most likely `cache`'s; `std@0.196.0/console/unicode_width.ts` is cliffy rc.3's and `std@0.93.0/*` are puppeteer's).
+This PR does not touch those redirects: PR 07's last task removes every redirect that is unused once 03–07 have landed, with one `deno info` run over every entrypoint (including `tests/**/*.test.ts`, `tools/*.ts`, `package/scripts/deno_std/deno_std.ts` and the `src/resources/**` scripts, which the first draft of this plan missed and would have reported as unused).
 
 ### Scope
 
@@ -70,7 +77,8 @@ export class Range { constructor(range: string | Range, optionsOrLoose?: boolean
 export function parseSitemap(xml: string): Array<{ loc: string; lastmod: string }>;
 ```
 
-`src/project/types/manuscript/meca.ts`: `toXml(manifest: MecaManifest): string` keeps its signature. Output format (fixed by the unit test in Task 4): XML declaration, MECA doctype, then the `<manifest>` tree indented by two spaces, attributes in insertion order, empty `<instance/>` self-closed, trailing newline.
+`src/project/types/manuscript/meca.ts`: `toXml(manifest: MecaManifest): string` keeps its signature.
+Output format (fixed by the unit test in Task 4): XML declaration, MECA doctype, then the `<manifest>` tree indented by two spaces, attributes in insertion order, empty `<instance/>` self-closed, trailing newline.
 
 `src/execute/ojs/extract-resources.ts`: no signature change; the mime lookup becomes `typeByExtension(extname(resolvedFileName).toLowerCase()) || "application/octet-stream"`.
 
@@ -185,8 +193,7 @@ unitTest("deno_ral/semver - SemVer and Range classes", async () => {
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/semver.test.ts`
-Expected: FAIL, `Module not found "file:///.../src/deno_ral/semver.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/semver.test.ts` Expected: FAIL, `Module not found "file:///.../src/deno_ral/semver.ts"`.
 
 - [ ] **Step 3: Add the import-map entries and the wrapper**
 
@@ -218,8 +225,8 @@ export { coerce, Range, satisfies, SemVer, valid } from "semver";
 
 - [ ] **Step 4: Re-vendor and run the test**
 
-Run: `package/scripts/vendoring/update-lock.sh && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/semver.test.ts`
-Expected: `deno.lock updated; commit it with the import-map change.`, then `3 passed`. (Every import-map edit in this plan is followed by `update-lock.sh`: the dev launcher and the test runner use the cache `configure` populated from the frozen `deno.lock`, and the dev launcher passes `--cached-only`.)
+Run: `package/scripts/vendoring/update-lock.sh && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/semver.test.ts` Expected: `deno.lock updated; commit it with the import-map change.`, then `3 passed`.
+(Every import-map edit in this plan is followed by `update-lock.sh`: the dev launcher and the test runner use the cache `configure` populated from the frozen `deno.lock`, and the dev launcher passes `--cached-only`.)
 
 - [ ] **Step 5: Point the 17 importer files (18 import lines) at the wrapper**
 
@@ -252,16 +259,14 @@ Default imports (`export default SemVer` existed only in the Deno port; node-sem
 
 - [ ] **Step 6: Confirm nothing imports the old name, then type-check the CLI**
 
-Run: `grep -rn 'from "semver/' src package/src tests tools --include=*.ts; package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/quarto.ts`
-Expected: no grep output; `deno check` exits 0. If `deno check` reports a `TS2345`/`TS2322` at one of the call sites listed in the Context table (the Deno port typed `coerce`'s argument as `string | SemVer`; `@types/semver` also accepts `number | null | undefined`, so new errors are unlikely), narrow the value at the call site (`if (x) ...`) rather than loosening the wrapper.
+Run: `grep -rn 'from "semver/' src package/src tests tools --include=*.ts; package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/quarto.ts` Expected: no grep output; `deno check` exits 0.
+If `deno check` reports a `TS2345`/`TS2322` at one of the call sites listed in the Context table (the Deno port typed `coerce`'s argument as `string | SemVer`; `@types/semver` also accepts `number | null | undefined`, so new errors are unlikely), narrow the value at the call site (`if (x) ...`) rather than loosening the wrapper.
 
 - [ ] **Step 7: Run the tests that exercise the call sites**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/semver.test.ts smoke/check/check.test.ts $(find smoke/extensions -name '*.test.ts') $(find smoke/engine -name '*.test.ts')`
-Expected: all passed (`check` prints tool versions through `satisfies`; extension install validates `quarto-required` through `Range`/`satisfies`/`coerce`; the engine tests go through `engine.ts:66` and `knitr.ts:144-156`).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/semver.test.ts smoke/check/check.test.ts $(find smoke/extensions -name '*.test.ts') $(find smoke/engine -name '*.test.ts')` Expected: all passed (`check` prints tool versions through `satisfies`; extension install validates `quarto-required` through `Range`/`satisfies`/`coerce`; the engine tests go through `engine.ts:66` and `knitr.ts:144-156`).
 
-Run: `QUARTO_VERSION_REQUIREMENT=">=1.4" package/dist/bin/quarto --version; QUARTO_VERSION_REQUIREMENT=">=100" package/dist/bin/quarto render tests/docs/minimal.qmd --to html; echo "exit=$?"`
-Expected: `99.9.9`; then `ERROR: Quarto version 99.9.9 does not meet semver requirement >=100` and `exit=1` (`src/quarto.ts:62-70`).
+Run: `QUARTO_VERSION_REQUIREMENT=">=1.4" package/dist/bin/quarto --version; QUARTO_VERSION_REQUIREMENT=">=100" package/dist/bin/quarto render tests/docs/minimal.qmd --to html; echo "exit=$?"` Expected: `99.9.9`; then `ERROR: Quarto version 99.9.9 does not meet semver requirement >=100` and `exit=1` (`src/quarto.ts:62-70`).
 
 - [ ] **Step 8: Commit**
 
@@ -341,8 +346,7 @@ with
 
 - [ ] **Step 3: Re-vendor, type-check and run the OJS tests**
 
-Run: `package/scripts/vendoring/update-lock.sh && package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/execute/ojs/extract-resources.ts && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/ojs/dependency-traversal.test.ts smoke/render/render-ojs.test.ts`
-Expected: `Check` line, then all passed (`dependency-traversal` renders a document whose OJS cells attach local files, which are inlined as data URLs with the looked-up mime type).
+Run: `package/scripts/vendoring/update-lock.sh && package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/execute/ojs/extract-resources.ts && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/ojs/dependency-traversal.test.ts smoke/render/render-ojs.test.ts` Expected: `Check` line, then all passed (`dependency-traversal` renders a document whose OJS cells attach local files, which are inlined as data URLs with the looked-up mime type).
 
 - [ ] **Step 4: Commit**
 
@@ -420,8 +424,7 @@ unitTest("parseSitemap - empty urlset and incomplete urls", async () => {
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/website-sitemap-parse.test.ts`
-Expected: FAIL at type-check, `has no exported member 'parseSitemap'`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/website-sitemap-parse.test.ts` Expected: FAIL at type-check, `has no exported member 'parseSitemap'`.
 
 - [ ] **Step 3: Change the import map**
 
@@ -517,8 +520,7 @@ to
 
 - [ ] **Step 5: Re-vendor, run the unit test and the sitemap smoke tests**
 
-Run: `package/scripts/vendoring/update-lock.sh && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/website-sitemap-parse.test.ts smoke/website/drafts.test.ts smoke/website/drafts-env.test.ts`
-Expected: all passed (`drafts.test.ts` renders a site and checks `sitemap.xml` with `ensureFileRegexMatches` from `tests/smoke/website/draft-utils.ts:37-41`).
+Run: `package/scripts/vendoring/update-lock.sh && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/website-sitemap-parse.test.ts smoke/website/drafts.test.ts smoke/website/drafts-env.test.ts` Expected: all passed (`drafts.test.ts` renders a site and checks `sitemap.xml` with `ensureFileRegexMatches` from `tests/smoke/website/draft-utils.ts:37-41`).
 
 - [ ] **Step 6: Exercise the incremental path by hand**
 
@@ -532,7 +534,8 @@ package/dist/bin/quarto render /tmp/rt04site && cat /tmp/rt04site/_site/sitemap.
 sleep 1; touch /tmp/rt04site/about.qmd
 package/dist/bin/quarto render /tmp/rt04site/about.qmd && cat /tmp/rt04site/_site/sitemap.xml
 ```
-Expected: the first `sitemap.xml` lists `https://example.com/index.html` and `https://example.com/about.html`; the second (single-file render, which takes the incremental `readSitemap` branch at `website-sitemap.ts:121`) still lists both, with `about.html`'s `<lastmod>` later than before. Remove `/tmp/rt04site` afterwards.
+Expected: the first `sitemap.xml` lists `https://example.com/index.html` and `https://example.com/about.html`; the second (single-file render, which takes the incremental `readSitemap` branch at `website-sitemap.ts:121`) still lists both, with `about.html`'s `<lastmod>` later than before.
+Remove `/tmp/rt04site` afterwards.
 
 - [ ] **Step 7: Commit**
 
@@ -612,8 +615,8 @@ unitTest("meca toXml - declaration, doctype, attributes, text, one item-metadata
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/manuscript-meca-xml.test.ts`
-Expected: FAIL. With the old `xml` package still mapped, the assertion fails on formatting differences (the old library's doctype and indentation) and on the metadata block (two nested `item-metadata` levels and only the last key), which is the point of pinning the new format.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/manuscript-meca-xml.test.ts` Expected: FAIL.
+With the old `xml` package still mapped, the assertion fails on formatting differences (the old library's doctype and indentation) and on the metadata block (two nested `item-metadata` levels and only the last key), which is the point of pinning the new format.
 
 - [ ] **Step 3: Remove the import-map entry**
 
@@ -723,17 +726,19 @@ with
   }
 ```
 
-The rest of `toMecaXMLItem` stays as it is: `XMLBuilder` omits attributes and elements whose value is `undefined` (verified), so `"@media-type": item.instance.mediaType` behaves as before. No production caller passes `metadata` (`toMecaItem`, `manuscript-meca.ts:407`), so rendered manuscripts are unaffected by the metadata fix.
+The rest of `toMecaXMLItem` stays as it is: `XMLBuilder` omits attributes and elements whose value is `undefined` (verified), so `"@media-type": item.instance.mediaType` behaves as before.
+No production caller passes `metadata` (`toMecaItem`, `manuscript-meca.ts:407`), so rendered manuscripts are unaffected by the metadata fix.
 
 - [ ] **Step 5: Re-vendor and run the unit test**
 
-Run: `package/scripts/vendoring/update-lock.sh && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/manuscript-meca-xml.test.ts`
-Expected: `1 passed`. (`builder.build` ends with a newline, which gives the trailing newline in the expected string.)
+Run: `package/scripts/vendoring/update-lock.sh && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/manuscript-meca-xml.test.ts` Expected: `1 passed`.
+(`builder.build` ends with a newline, which gives the trailing newline in the expected string.)
 
 - [ ] **Step 6: Render the manuscript fixtures and validate the MECA bundle**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/manuscript/render-manuscript.test.ts smoke/jats/render-manuscript.test.ts`
-Expected: all passed. `ensureMECAValidates` (`tests/verify.ts:1323`) runs `meca validate` on the zip when the `meca` npm CLI is on `PATH` and prints `meca not present, skipping MECA validation` otherwise. For this PR, install it once (`npm install -g meca`) so the validation actually runs, and keep the line `Validating MECA Archive` without a failure in the output.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/manuscript/render-manuscript.test.ts smoke/jats/render-manuscript.test.ts` Expected: all passed.
+`ensureMECAValidates` (`tests/verify.ts:1323`) runs `meca validate` on the zip when the `meca` npm CLI is on `PATH` and prints `meca not present, skipping MECA validation` otherwise.
+For this PR, install it once (`npm install -g meca`) so the validation actually runs, and keep the line `Validating MECA Archive` without a failure in the output.
 
 Run:
 ```bash
@@ -828,8 +833,7 @@ unitTest("rsconnect cookie fetch - a new jar starts empty and bad cookies are ig
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/publish/rsconnect-cookie-fetch.test.ts`
-Expected: FAIL at type-check time, `Module not found ".../src/publish/rsconnect/api/cookie-fetch.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/publish/rsconnect-cookie-fetch.test.ts` Expected: FAIL at type-check time, `Module not found ".../src/publish/rsconnect/api/cookie-fetch.ts"`.
 
 - [ ] **Step 3: Change the import map and re-vendor**
 
@@ -841,8 +845,7 @@ with
 ```json
     "tough-cookie": "npm:tough-cookie@6.0.2",
 ```
-Run: `package/scripts/vendoring/update-lock.sh`
-Expected: `deno.lock updated; commit it with the import-map change.`
+Run: `package/scripts/vendoring/update-lock.sh` Expected: `deno.lock updated; commit it with the import-map change.`
 
 - [ ] **Step 4: Implement the wrapper**
 
@@ -895,12 +898,12 @@ import { fetchWithCookieJar } from "./cookie-fetch.ts";
 // one cookie jar per process, as with the previous another_cookiejar wrapper
 const fetch = fetchWithCookieJar();
 ```
-The `fetch(this.apiUrl(path), {...})` call at line 60 is unchanged. Leave the unused `cookies_` field (line 85) alone.
+The `fetch(this.apiUrl(path), {...})` call at line 60 is unchanged.
+Leave the unused `cookies_` field (line 85) alone.
 
 - [ ] **Step 6: Run the tests and type-check the publish code**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/publish/rsconnect-cookie-fetch.test.ts && cd .. && package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/publish/rsconnect/api/index.ts src/publish/rsconnect/rsconnect.ts && package/dist/bin/quarto publish connect --help | head -3`
-Expected: `2 passed`; `Check` lines; the first lines of the `quarto publish connect` help.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/publish/rsconnect-cookie-fetch.test.ts && cd .. && package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/publish/rsconnect/api/index.ts src/publish/rsconnect/rsconnect.ts && package/dist/bin/quarto publish connect --help | head -3` Expected: `2 passed`; `Check` lines; the first lines of the `quarto publish connect` help.
 
 - [ ] **Step 7: Commit**
 
@@ -920,8 +923,7 @@ survive upload, deploy and task polling."
 
 - [ ] **Step 1: Confirm `cache/` is unused**
 
-Run: `grep -rn '"cache/' src package/src tests tools --include=*.ts --include=*.js --include=*.mjs`
-Expected: no output.
+Run: `grep -rn '"cache/' src package/src tests tools --include=*.ts --include=*.js --include=*.mjs` Expected: no output.
 
 - [ ] **Step 2: Change the three imports**
 
@@ -945,8 +947,10 @@ Delete the lines
 
 - [ ] **Step 4: Re-vendor and render a mermaid diagram (deno-cri drives Chrome over CDP)**
 
-Run: `package/scripts/vendoring/update-lock.sh && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent docs/smoke-all/2026/02/12/mermaid-typst.qmd docs/smoke-all/2026/02/12/mermaid-multi-diagram.qmd`
-Expected: all passed. These need a Chrome: run `package/dist/bin/quarto install chrome-headless-shell --no-prompt` first if `package/dist/bin/quarto check` reports `Chrome: (not detected)`. The Typst document is the gate: formats without a JavaScript runtime render mermaid to an image through `withCriClient` (`src/core/handlers/base.ts:146,180` → `src/core/cri/cri.ts`, headless Chrome over CDP; the format split is at `src/core/handlers/mermaid.ts:309`), and Typst is bundled with Quarto so no TinyTeX is needed. `mermaid-pdf-default.qmd` covers the same path for LaTeX if TinyTeX is installed.
+Run: `package/scripts/vendoring/update-lock.sh && cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent docs/smoke-all/2026/02/12/mermaid-typst.qmd docs/smoke-all/2026/02/12/mermaid-multi-diagram.qmd` Expected: all passed.
+These need a Chrome: run `package/dist/bin/quarto install chrome-headless-shell --no-prompt` first if `package/dist/bin/quarto check` reports `Chrome: (not detected)`.
+The Typst document is the gate: formats without a JavaScript runtime render mermaid to an image through `withCriClient` (`src/core/handlers/base.ts:146,180` → `src/core/cri/cri.ts`, headless Chrome over CDP; the format split is at `src/core/handlers/mermaid.ts:309`), and Typst is bundled with Quarto so no TinyTeX is needed.
+`mermaid-pdf-default.qmd` covers the same path for LaTeX if TinyTeX is installed.
 
 - [ ] **Step 5: Commit**
 
@@ -964,8 +968,8 @@ The `https://deno.land/std@...` redirect entries that `media_types` (`std@0.105.
 
 - [ ] **Step 1: Confirm the ratchet does not move**
 
-Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts`
-Expected: `OK: no count exceeds the baseline.` and no `::notice::` line: under PR 02's rules none of the seven packages is std, `Deno.` counts are unchanged (see Acceptance criteria), and the five new tests contain no `Deno.`. A `::notice::` that a count fell means something else changed; a regression means a `Deno.` slipped into a new file.
+Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts` Expected: `OK: no count exceeds the baseline.` and no `::notice::` line: under PR 02's rules none of the seven packages is std, `Deno.` counts are unchanged (see Acceptance criteria), and the five new tests contain no `Deno.`.
+A `::notice::` that a count fell means something else changed; a regression means a `Deno.` slipped into a new file.
 
 - [ ] **Step 2: Set the PR 04 row to `in progress` and commit**
 
@@ -1013,16 +1017,23 @@ On the PR: `Bundle Test` (PR 00b gate: three OSes, empty caches; the manuscript 
 
 ## Risks and rollback
 
-- `satisfies` semantics with prereleases: both libraries implement node-semver's rule (a prerelease only satisfies a range that names a prerelease on the same tuple). The dev build reports `99.9.9`, not a prerelease, so extension checks behave as before; the unit test pins it.
-- The MECA manifest text changes (indentation, quoted doctype, self-closing `<instance/>`). The XML is semantically identical; `meca validate` in the manuscript smoke tests is the external check. Rollback: revert the Task 4 commit (restores the `xml/` entry).
-- Connect publishing has no automated end-to-end test; the unit test covers the jar, the manual publish in Verification covers the server. The behaviour matches `another_cookiejar` (one jar per process, cookies sent by domain and path). Redirect responses that set cookies are not seen by the wrapper; Connect's API does not redirect.
+- `satisfies` semantics with prereleases: both libraries implement node-semver's rule (a prerelease only satisfies a range that names a prerelease on the same tuple).
+  The dev build reports `99.9.9`, not a prerelease, so extension checks behave as before; the unit test pins it.
+- The MECA manifest text changes (indentation, quoted doctype, self-closing `<instance/>`).
+  The XML is semantically identical; `meca validate` in the manuscript smoke tests is the external check.
+  Rollback: revert the Task 4 commit (restores the `xml/` entry).
+- Connect publishing has no automated end-to-end test; the unit test covers the jar, the manual publish in Verification covers the server.
+  The behaviour matches `another_cookiejar` (one jar per process, cookies sent by domain and path).
+  Redirect responses that set cookies are not seen by the wrapper; Connect's API does not redirect.
 - `fast-xml-parser` brings six small dependencies and `tough-cookie` brings `tldts`; all are pinned by `deno.lock` and bundled under the PR 00b gate.
 - Each task is one commit; revert individually (each commit carries its `deno.lock` change).
 
 ## Decisions needed
 
-None open. Recorded:
-1. **Cookie jar for Posit Connect: kept** (review decision 5), on `tough-cookie` with a 30-line wrapper. Ask the Connect team whether a session cookie is ever needed; drop the jar later only if they confirm it is not.
+None open.
+Recorded:
+1. **Cookie jar for Posit Connect: kept** (review decision 5), on `tough-cookie` with a 30-line wrapper.
+   Ask the Connect team whether a session cookie is ever needed; drop the jar later only if they confirm it is not.
 2. **Layer tests live in `tests/unit/ral/`** (the existing directory; `_TEMPLATE.md` convention), so the semver contract test is `tests/unit/ral/semver.test.ts`.
 
 Review items closed here: the MECA nesting expectation (fixed in code, pinned with two keys), the cookie jar (kept), the counts (17 semver files, six fast-xml-parser dependencies), the `deno info` entrypoints (the redirect cleanup moved to PR 07's last task with the full entrypoint list), the missing re-vendor step (every map edit is followed by `update-lock.sh`).

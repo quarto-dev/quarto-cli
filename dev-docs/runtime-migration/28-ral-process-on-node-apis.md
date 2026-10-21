@@ -1,41 +1,65 @@
 # PR 28: `process.ts` on `node:child_process`
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reimplement `src/deno_ral/process.ts` on `node:child_process`, `node:process`, `node:fs` and `node:tty` with three guarantees Deno gives today and Node does not by default: `.bat`/`.cmd` arguments escaped against `cmd.exe` injection (BatBadBut, CVE-2024-24576/CVE-2024-27980), no output lost when `exit()` follows a large write to a pipe, and process groups that can be killed as a whole; make `execProcess` read a child's output while it writes stdin, and delete the 4 KB stdin chunking.
-**Phase:** 2. **Depends on:** PR 25 (every spawn goes through `src/deno_ral/process.ts` or `src/core/process.ts`), PR 26 (shim, `node-unit` job, `tests/unit/ral/layer-script.ts`), PR 27b (`runtime()` answers `node` inside the test bundles), PR 14b (`tests/smoke/inspect/inspect-pipe.test.ts`, `tests/unit/process-group.test.ts`, `tests/smoke/jupyter/daemon.test.ts`). Starts after Spike #2 closes (`SPIKES.md`, question (d)). **Unblocks:** PR 31, 32.
+**Phase:** 2.
+**Depends on:** PR 25 (every spawn goes through `src/deno_ral/process.ts` or `src/core/process.ts`), PR 26 (shim, `node-unit` job, `tests/unit/ral/layer-script.ts`), PR 27b (`runtime()` answers `node` inside the test bundles), PR 14b (`tests/smoke/inspect/inspect-pipe.test.ts`, `tests/unit/process-group.test.ts`, `tests/smoke/jupyter/daemon.test.ts`).
+Starts after Spike #2 closes (`SPIKES.md`, question (d)).
+**Unblocks:** PR 31, 32.
 **Branch:** `rt/28-ral-process-on-node-apis`.
-**Suggested executor:** Opus. Spawn-failure semantics, Windows batch escaping, stdio draining and the stdin/stdout concurrency need judgement.
+**Suggested executor:** Opus.
+Spawn-failure semantics, Windows batch escaping, stdio draining and the stdin/stdout concurrency need judgement.
 **Size:** M (2 source files rewritten, 1 created, 4 test files and 1 fixture, shim shrink).
-**Ships on:** Deno; the whole existing suite must stay green. Node: the PR 26 `node-unit` job runs this PR's `tests/unit/ral/process*.test.ts` and `batch-command-line.test.ts` on real Node on Linux and Windows; the `process` entries in `tools/node-bundle/known-failures.json` are removed and none is added.
+**Ships on:** Deno; the whole existing suite must stay green.
+Node: the PR 26 `node-unit` job runs this PR's `tests/unit/ral/process*.test.ts` and `batch-command-line.test.ts` on real Node on Linux and Windows; the `process` entries in `tools/node-bundle/known-failures.json` are removed and none is added.
 
 ## Spec
 
 ### Context
 
-Assessment section 11, module plan row `process.ts`: "Own `SpawnOptions`, `ChildProcess` (stdin writer, stdout/stderr as streams, `status` promise, `kill`) … Drop the 4 KB stdin chunking once off Deno." Section 10, spike finding: `Deno.Command` was shimmed on `child_process.spawn` with `Readable.toWeb`/`Writable.toWeb` and rendering (Pandoc with piped stdin, Dart Sass, Typst, Jupyter) worked.
+Assessment section 11, module plan row `process.ts`: "Own `SpawnOptions`, `ChildProcess` (stdin writer, stdout/stderr as streams, `status` promise, `kill`) … Drop the 4 KB stdin chunking once off Deno."
+Section 10, spike finding: `Deno.Command` was shimmed on `child_process.spawn` with `Readable.toWeb`/`Writable.toWeb` and rendering (Pandoc with piped stdin, Dart Sass, Typst, Jupyter) worked.
 
-After PR 08 and PR 25, `src/deno_ral/process.ts` exposes the shared-vocabulary interface implemented on `Deno.Command` and friends, and `src/core/process.ts` `execProcess` is built on `spawn`. This PR replaces the bodies.
+After PR 08 and PR 25, `src/deno_ral/process.ts` exposes the shared-vocabulary interface implemented on `Deno.Command` and friends, and `src/core/process.ts` `execProcess` is built on `spawn`.
+This PR replaces the bodies.
 
 Review findings on the earlier draft of this plan, all addressed here (review S3, S6, S8):
 
-- **Batch-file quoting (S8).** The draft routed `.cmd`/`.bat` through `cmd.exe /d /s /c "<line>"`, quoting an argument only when it contained whitespace or `"` and escaping `"` as `\"`, which `cmd.exe` does not understand. An argument such as `a&calc` or `%PATH%` went through unquoted or expanded: the BatBadBut class (CVE-2024-24576 in Rust's `Command`, CVE-2024-27980 in Node). Deno's `Command` is Rust's, which has escaped batch arguments since Rust 1.77.2, so the draft was a security regression at the flip.
-- **`exit()` truncation (S6).** `process.exit()` right after a large write to a piped stdout loses data on POSIX (pipes are asynchronous in Node; Deno's writes are synchronous). Verified in this sandbox on Node 22.22 and 26.12.0 (same numbers on both): `process.stdout.write(4 MiB); process.exit(0)` into `(sleep 1; wc -c)` delivers 65,536 bytes; with `process.stdout._handle.setBlocking(true)` first, 4,194,304; `console.log` lines likewise. `quarto inspect | jq` and `quarto render -o -` hit this.
-- **Process groups.** `src/preview/preview-server.ts:75` kills `-pid` (a process group) on POSIX; PR 08 added `SpawnOptions.detached` (vocabulary) so the child leads its own group. Node needs `detached: true`; Windows has no `kill(-pid)`, so the layer kills the tree with `taskkill /T /F` (PR 08's Deno body already does; this PR keeps the contract on `spawnSync`).
+- **Batch-file quoting (S8).** The draft routed `.cmd`/`.bat` through `cmd.exe /d /s /c "<line>"`, quoting an argument only when it contained whitespace or `"` and escaping `"` as `\"`, which `cmd.exe` does not understand.
+  An argument such as `a&calc` or `%PATH%` went through unquoted or expanded: the BatBadBut class (CVE-2024-24576 in Rust's `Command`, CVE-2024-27980 in Node).
+  Deno's `Command` is Rust's, which has escaped batch arguments since Rust 1.77.2, so the draft was a security regression at the flip.
+- **`exit()` truncation (S6).** `process.exit()` right after a large write to a piped stdout loses data on POSIX (pipes are asynchronous in Node; Deno's writes are synchronous).
+  Verified in this sandbox on Node 22.22 and 26.12.0 (same numbers on both): `process.stdout.write(4 MiB); process.exit(0)` into `(sleep 1; wc -c)` delivers 65,536 bytes; with `process.stdout._handle.setBlocking(true)` first, 4,194,304; `console.log` lines likewise.
+  `quarto inspect | jq` and `quarto render -o -` hit this.
+- **Process groups.** `src/preview/preview-server.ts:75` kills `-pid` (a process group) on POSIX; PR 08 added `SpawnOptions.detached` (vocabulary) so the child leads its own group.
+  Node needs `detached: true`; Windows has no `kill(-pid)`, so the layer kills the tree with `taskkill /T /F` (PR 08's Deno body already does; this PR keeps the contract on `spawnSync`).
 - **Unverified Deno compat.** `windowsVerbatimArguments` and `process.kill(-pid)` on Deno's `node:child_process` are Spike #2 (d); this PR reads the recorded answer (Task 2, `kDenoHonoursVerbatim`).
 - **Tests named but absent.** `smoke/knitr/` and `smoke/preview/` do not exist; this plan uses `tests/smoke/render/render-r.test.ts` (knitr) and PR 14b's `tests/smoke/preview/preview-reload.test.ts`, `tests/smoke/jupyter/daemon.test.ts`, `tests/smoke/inspect/inspect-pipe.test.ts` and `tests/unit/process-group.test.ts`.
 
 Facts verified in this sandbox (Node 22.22 and Deno 2.7.14, `node:child_process` compat):
 
-- `spawn("cat")` with `Writable.toWeb(child.stdin)` / `Readable.toWeb(child.stdout)` moves 1 MiB through the child on both runtimes **only when stdout is read concurrently with the stdin write**. Writing all of stdin before reading stdout deadlocks on Node (the 64 KiB pipe fills) and happens to pass on Deno. The current `execProcess` writes stdin first and reads output afterwards; Task 4 reorders it.
-- A missing executable: `spawn()` returns a `ChildProcess` with `pid === undefined` and emits `error` (`code: "ENOENT"`) asynchronously, then `close`. `spawnSync()` returns `{ error: { code: "ENOENT" }, status: null }`. Deno's `Deno.Command.spawn()` throws synchronously; the interface keeps `spawn()` non-throwing and makes `status` reject.
+- `spawn("cat")` with `Writable.toWeb(child.stdin)` / `Readable.toWeb(child.stdout)` moves 1 MiB through the child on both runtimes **only when stdout is read concurrently with the stdin write**.
+  Writing all of stdin before reading stdout deadlocks on Node (the 64 KiB pipe fills) and happens to pass on Deno.
+  The current `execProcess` writes stdin first and reads output afterwards; Task 4 reorders it.
+- A missing executable: `spawn()` returns a `ChildProcess` with `pid === undefined` and emits `error` (`code: "ENOENT"`) asynchronously, then `close`.
+  `spawnSync()` returns `{ error: { code: "ENOENT" }, status: null }`.
+  Deno's `Deno.Command.spawn()` throws synchronously; the interface keeps `spawn()` non-throwing and makes `status` reject.
 - `spawnSync` honours `maxBuffer`; the shim used 1 GiB and Pandoc's largest outputs fit.
 - `fs.writeSync(1, data)` and `isatty(1)` work on both runtimes; after `setBlocking(true)`, `fs.writeSync(1, 4 MiB)` after a `console.log` delivers every byte (no `EAGAIN`).
 - With blocking stdio, a write to a pipe whose reader has gone (`| head -c 1`) emits `error` with `code: "EPIPE"` on the stream; without a listener that is an uncaught exception with a stack trace.
 
-**Decision: the layer escapes batch-file arguments itself, with Rust's algorithm; not through `safeWindowsExec`.** Options were (a) route `.bat`/`.cmd` through the existing `safeWindowsExec` (`src/core/windows.ts`, which writes `[program, ...args].join(" ")` into a temporary `.bat` and runs `cmd /c` on it), or (b) port Rust std's `make_bat_command_line` (the CVE-2024-24576 fix Deno ships today) into a small layer module and pass its output to `cmd.exe /e:ON /v:OFF /d /c "<line>"` with `windowsVerbatimArguments: true`. Chosen: (b). Reasons: `safeWindowsExec` does not escape at all (`requireQuoting` only wraps arguments containing ` <>()|\:&;#?*'` in `"`, so `%PATH%` is expanded inside the `.bat` and an argument containing `"` closes the quote), so routing through it would keep the injection; (b) reproduces exactly what Deno does today, so behaviour does not change at the flip; (b) needs no temporary file per spawn; and the algorithm is small (forty lines) and has a published test corpus. `safeWindowsExec` stays for its own purpose (running a command line through `cmd` with `chcp 65001`), unchanged.
+**Decision: the layer escapes batch-file arguments itself, with Rust's algorithm; not through `safeWindowsExec`.** Options were (a) route `.bat`/`.cmd` through the existing `safeWindowsExec` (`src/core/windows.ts`, which writes `[program, ...args].join(" ")` into a temporary `.bat` and runs `cmd /c` on it), or (b) port Rust std's `make_bat_command_line` (the CVE-2024-24576 fix Deno ships today) into a small layer module and pass its output to `cmd.exe /e:ON /v:OFF /d /c "<line>"` with `windowsVerbatimArguments: true`.
+Chosen: (b).
+Reasons: `safeWindowsExec` does not escape at all (`requireQuoting` only wraps arguments containing ` <>()|\:&;#?*'` in `"`, so `%PATH%` is expanded inside the `.bat` and an argument containing `"` closes the quote), so routing through it would keep the injection; (b) reproduces exactly what Deno does today, so behaviour does not change at the flip; (b) needs no temporary file per spawn; and the algorithm is small (forty lines) and has a published test corpus.
+`safeWindowsExec` stays for its own purpose (running a command line through `cmd` with `chcp 65001`), unchanged.
 
-**Decision: `exit()` drains by making stdio blocking, not by waiting.** The vocabulary asks that `exit(code)` flush stdout and stderr before exiting ("`process.exitCode = code` then end after both streams drained"). A function typed `never` cannot wait for a stream's `finish` event (it would return to its caller, which then runs on: every `exit(1)` in an error branch would keep going). The layer instead makes the stdout and stderr handles blocking when it loads (`_handle.setBlocking(true)`, available on pipe and TCP handles; files and Windows pipes are synchronous in Node already), which is Deno's model: every write completes before the next statement. `exit(code)` then sets `process.exitCode = code` and calls `process.exit(code)`, and nothing is queued. A broken pipe (`EPIPE`) ends the process quietly with the current `process.exitCode`.
+**Decision: `exit()` drains by making stdio blocking, not by waiting.** The vocabulary asks that `exit(code)` flush stdout and stderr before exiting ("`process.exitCode = code` then end after both streams drained").
+A function typed `never` cannot wait for a stream's `finish` event (it would return to its caller, which then runs on: every `exit(1)` in an error branch would keep going).
+The layer instead makes the stdout and stderr handles blocking when it loads (`_handle.setBlocking(true)`, available on pipe and TCP handles; files and Windows pipes are synchronous in Node already), which is Deno's model: every write completes before the next statement.
+`exit(code)` then sets `process.exitCode = code` and calls `process.exit(code)`, and nothing is queued.
+A broken pipe (`EPIPE`) ends the process quietly with the current `process.exitCode`.
 
 ### Scope
 
@@ -53,7 +77,8 @@ Out:
 
 ### Interfaces
 
-Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`process.ts`"), including PR 08's additions (`Signal`, `killProcess`, `readStdin`, `readStdinLines`, `SpawnOptions.detached`). New layer-internal module:
+Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`process.ts`"), including PR 08's additions (`Signal`, `killProcess`, `readStdin`, `readStdinLines`, `SpawnOptions.detached`).
+New layer-internal module:
 
 ```ts
 // src/deno_ral/batch-command-line.ts
@@ -67,20 +92,27 @@ export function batchCommandLine(script: string, args: string[]): string;
 
 Behaviour made precise by this PR:
 
-- `spawn(cmd, options)`: never throws for a missing executable (PR 08 reserved this change for this PR); `status` rejects with the spawn error (`code: "ENOENT"`, so `isNotFound(e)` is true). It throws synchronously (code `EINVAL`) only for an invalid batch-file argument, as Deno's `Command` does. `pid` is `-1` until Node assigns one. `stdin`/`stdout`/`stderr` are `null` unless the option is `"piped"`. When `options.signal` aborts, the child is killed with SIGTERM and `status` resolves with `signal: "SIGTERM"`.
+- `spawn(cmd, options)`: never throws for a missing executable (PR 08 reserved this change for this PR); `status` rejects with the spawn error (`code: "ENOENT"`, so `isNotFound(e)` is true).
+  It throws synchronously (code `EINVAL`) only for an invalid batch-file argument, as Deno's `Command` does.
+  `pid` is `-1` until Node assigns one.
+  `stdin`/`stdout`/`stderr` are `null` unless the option is `"piped"`.
+  When `options.signal` aborts, the child is killed with SIGTERM and `status` resolves with `signal: "SIGTERM"`.
 - `detached: true`: POSIX, the child calls `setsid` (Node `detached: true`) and leads a new process group whose id is its pid; Windows, `CREATE_NEW_PROCESS_GROUP` (Node `detached: true`, with `windowsHide: true` so no console window appears).
 - `env`: merged over the inherited environment unless `clearEnv: true`; on Windows an override replaces an inherited variable whose name differs only in case (`Path` vs `PATH`).
 - `exec(cmd, options)`: defaults `stdin: "null"`, `stdout: "piped"`, `stderr: "piped"`; resolves with collected buffers; rejects with the spawn error for a missing executable.
 - `execSync(cmd, options)`: `spawnSync` with `maxBuffer: 1 GiB`; throws the spawn error for a missing executable; otherwise returns `ExecOutput` even for a non-zero exit.
 - `ExitStatus.code` for a signal-terminated child is `128 + signal number`, `signal` is the name.
 - `kill(signal)`: `child.kill(signal)`; a no-op when the child already exited.
-- `killProcess(pid, signal)`: POSIX `process.kill(pid, signal)` (a negative pid addresses a process group); Windows with a negative pid: `taskkill /PID <-pid> /T /F` (the whole tree; Windows has no signals), throwing an Error with `code: "ESRCH"` when `taskkill` reports no such process (exit 128); Windows with a positive pid: `process.kill(pid, signal)`. Same contract as PR 08's Deno body; PR 14b's `process-group.test.ts` pins it on Windows CI.
+- `killProcess(pid, signal)`: POSIX `process.kill(pid, signal)` (a negative pid addresses a process group); Windows with a negative pid: `taskkill /PID <-pid> /T /F` (the whole tree; Windows has no signals), throwing an Error with `code: "ESRCH"` when `taskkill` reports no such process (exit 128); Windows with a positive pid: `process.kill(pid, signal)`.
+  Same contract as PR 08's Deno body; PR 14b's `process-group.test.ts` pins it on Windows CI.
 - `writeStdoutSync`/`writeStderrSync`: loop until every byte is written (`EAGAIN` waits 1 ms with `Atomics.wait` and retries; with blocking stdio it does not occur); a 0-byte write returns 0 and does not throw.
 - `exit(code)`: `process.exitCode = code; process.exit(code)`, with stdio made blocking at module load (see the decision above), so output written before `exit()` reaches a pipe in full.
 - Broken pipe: an `EPIPE` on stdout or stderr ends the process with `process.exitCode ?? 0` and no message (the reader of `quarto inspect | head -c 1` went away; PR 14b's `inspect-pipe.test.ts` pins "no EPIPE crash" and the exit code).
-- `onSignal(signal, handler)`: `process.on(signal, handler)`. On Windows `SIGTERM` listeners never fire (Node and Deno alike); `SIGINT` fires on Ctrl-C.
+- `onSignal(signal, handler)`: `process.on(signal, handler)`.
+  On Windows `SIGTERM` listeners never fire (Node and Deno alike); `SIGINT` fires on Ctrl-C.
 - `isTerminal(stream)`: `isatty(0|1|2)`.
-- `execPath()`: `process.execPath`, the executable running the current process and nothing more: Node, or the Deno tool under PR 33's `QUARTO_RUNTIME=deno` (the bundle on Deno). It is not "a Node binary": `src/` code that spawns Node uses `architectureToolsPath("node")`, code that spawns Deno uses `requireDenoToolBinary()` (PR 33, "Dual-runtime combinations until PR 37", which also lists the legitimate callers: `package/src` and the `tests/` self-spawn helpers that branch on `runtime().name`, as this PR's batch-file test does).
+- `execPath()`: `process.execPath`, the executable running the current process and nothing more: Node, or the Deno tool under PR 33's `QUARTO_RUNTIME=deno` (the bundle on Deno).
+  It is not "a Node binary": `src/` code that spawns Node uses `architectureToolsPath("node")`, code that spawns Deno uses `requireDenoToolBinary()` (PR 33, "Dual-runtime combinations until PR 37", which also lists the legitimate callers: `package/src` and the `tests/` self-spawn helpers that branch on `runtime().name`, as this PR's batch-file test does).
 
 ### Files
 
@@ -234,7 +266,8 @@ unitTest("process - isTerminal is a boolean; 0-byte writes return 0", async () =
 });
 ```
 
-(`runtime()` reports the real runtime since PR 27b, including inside PR 26's test bundles. `process` is a global on Deno 2 and Node; referencing it in a child's source string is not a `Deno.*` use.)
+(`runtime()` reports the real runtime since PR 27b, including inside PR 26's test bundles.
+`process` is a global on Deno 2 and Node; referencing it in a child's source string is not a `Deno.*` use.)
 
 - [ ] **Step 2: Run it and see it fail**
 
@@ -243,7 +276,8 @@ Run:
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process-node-semantics.test.ts; cd ..
 node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/process-node-semantics.test.ts
 ```
-Expected on Deno: `spawn of a missing executable …` fails (Deno's `Command.spawn()` throws synchronously); the signal/code case may fail (`code` differs). On Node (shim `Deno.Command`): the missing-executable case passes, the Windows env-case test fails on the Windows `node-unit` job (the shim spreads `process.env` first).
+Expected on Deno: `spawn of a missing executable …` fails (Deno's `Command.spawn()` throws synchronously); the signal/code case may fail (`code` differs).
+On Node (shim `Deno.Command`): the missing-executable case passes, the Windows env-case test fails on the Windows `node-unit` job (the shim spreads `process.env` first).
 
 - [ ] **Step 3: Commit the test**
 
@@ -340,8 +374,7 @@ unitTest("process - batch files receive their arguments verbatim and nothing is 
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/batch-command-line.test.ts`
-Expected: `Module not found … src/deno_ral/batch-command-line.ts`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/batch-command-line.test.ts` Expected: `Module not found … src/deno_ral/batch-command-line.ts`.
 
 - [ ] **Step 3: Implement**
 
@@ -408,8 +441,7 @@ export function batchCommandLine(script: string, args: string[]): string {
 
 - [ ] **Step 4: Run the string tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/batch-command-line.test.ts`
-Expected: the two string tests pass on every OS; the Windows end-to-end case passes on Windows CI only after Task 3 (it runs through `exec`; on Deno it already passes because Deno's `Command` escapes the same way).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/batch-command-line.test.ts` Expected: the two string tests pass on every OS; the Windows end-to-end case passes on Windows CI only after Task 3 (it runs through `exec`; on Deno it already passes because Deno's `Command` escapes the same way).
 
 - [ ] **Step 5: Commit**
 
@@ -769,7 +801,10 @@ Run:
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process.test.ts unit/ral/process-node-semantics.test.ts unit/ral/batch-command-line.test.ts unit/process-group.test.ts; cd ..
 node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/process.test.ts tests/unit/ral/process-node-semantics.test.ts tests/unit/ral/batch-command-line.test.ts
 ```
-Expected: green on Deno; on Node either `no change` or `now passes on Node …` for `process` entries (removed in Task 6). PR 08's contract cases pass unchanged; if PR 08 added a case asserting that `spawn()` of a missing executable throws synchronously, replace it with the `status`-rejects case from Task 1 (PR 08 reserved that change for this PR). PR 14b's `process-group.test.ts` has two POSIX cases (`detached: true` makes the child a group leader; `killProcess(-pid)` ends the grandchild) and one Windows case (`killProcess(-pid)` runs `taskkill /T` on a detached PowerShell child and its `ping` grandchild, checked through `tasklist`; a second call throws `ESRCH`); each runs where it applies and is ignored elsewhere, so the Windows evidence for this PR's `killProcess` is the Windows case on the Windows `node-unit`/Deno jobs, not a green run of ignored tests. The Windows group membership itself is not observable and is not asserted (PR 14b, "Windows coverage").
+Expected: green on Deno; on Node either `no change` or `now passes on Node …` for `process` entries (removed in Task 6).
+PR 08's contract cases pass unchanged; if PR 08 added a case asserting that `spawn()` of a missing executable throws synchronously, replace it with the `status`-rejects case from Task 1 (PR 08 reserved that change for this PR).
+PR 14b's `process-group.test.ts` has two POSIX cases (`detached: true` makes the child a group leader; `killProcess(-pid)` ends the grandchild) and one Windows case (`killProcess(-pid)` runs `taskkill /T` on a detached PowerShell child and its `ping` grandchild, checked through `tasklist`; a second call throws `ESRCH`); each runs where it applies and is ignored elsewhere, so the Windows evidence for this PR's `killProcess` is the Windows case on the Windows `node-unit`/Deno jobs, not a green run of ignored tests.
+The Windows group membership itself is not observable and is not asserted (PR 14b, "Windows coverage").
 
 - [ ] **Step 3: Commit**
 
@@ -840,8 +875,8 @@ unitTest("spawn - 1 MiB written to stdin while stdout is read", async () => {
 
 - [ ] **Step 2: Run it and see it fail (or hang)**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process-stdin.test.ts`
-Expected on Deno: may pass (Deno's pipes are more forgiving). Then on Node: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/process-stdin.test.ts` → the `execProcess` case times out (300 s per-file timeout of the PR 26 runner; interrupt it after 30 s): the deadlock the next step removes.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process-stdin.test.ts` Expected on Deno: may pass (Deno's pipes are more forgiving).
+Then on Node: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/process-stdin.test.ts` → the `execProcess` case times out (300 s per-file timeout of the PR 26 runner; interrupt it after 30 s): the deadlock the next step removes.
 
 - [ ] **Step 3: Implement**
 
@@ -915,17 +950,17 @@ In `src/core/process.ts`, inside `execProcess`, replace the block that starts at
     const status = await withTimeout(process.status);
 ```
 
-Everything else in `execProcess` (the `spawn(options.cmd, { ...options, stdin: stdin !== undefined ? "piped" : options.stdin, stdout: "piped", stderr: "piped" })` call from PR 08, `registerForExitCleanup`, the result object, the error wrapping) stays. Delete the `kWindowSize` constant and the `// write in 4k chunks (deno observed to overflow at > 64k)` comment. `processOutput` already uses `writeStdoutSync`/`writeStderrSync` (PR 08); if it still names `Deno.stdout.writeSync`, replace with `writeStdoutSync(chunk)` / `writeStderrSync(chunk)` from `../deno_ral/process.ts`.
+Everything else in `execProcess` (the `spawn(options.cmd, { ...options, stdin: stdin !== undefined ? "piped" : options.stdin, stdout: "piped", stderr: "piped" })` call from PR 08, `registerForExitCleanup`, the result object, the error wrapping) stays.
+Delete the `kWindowSize` constant and the `// write in 4k chunks (deno observed to overflow at > 64k)` comment.
+`processOutput` already uses `writeStdoutSync`/`writeStderrSync` (PR 08); if it still names `Deno.stdout.writeSync`, replace with `writeStdoutSync(chunk)` / `writeStderrSync(chunk)` from `../deno_ral/process.ts`.
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process-stdin.test.ts unit/exec-process-stdin.test.ts unit/ral/process.test.ts`
-Expected: all green; `exec-process-stdin.test.ts` reports `0 unhandled rejections` for its four scenarios.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process-stdin.test.ts unit/exec-process-stdin.test.ts unit/ral/process.test.ts` Expected: all green; `exec-process-stdin.test.ts` reports `0 unhandled rejections` for its four scenarios.
 
 - [ ] **Step 5: Run the spawn-heavy smoke tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-typst-package-staging.test.ts smoke/render/render-r.test.ts smoke/render/render-stdout.test.ts $(find smoke/jupyter/ -name '*.test.ts') smoke/jupyter/daemon.test.ts unit/windows-exec.test.ts $(find unit/latexmk/ -name '*.test.ts')`
-Expected: all green (Pandoc with piped stdin, Typst, Rscript through knitr, `render -o -`, the Jupyter kernel daemon from PR 14b's `daemon.test.ts`; `latexmk` tests exercise `safeWindowsExec` paths on Windows CI).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-typst-package-staging.test.ts smoke/render/render-r.test.ts smoke/render/render-stdout.test.ts $(find smoke/jupyter/ -name '*.test.ts') smoke/jupyter/daemon.test.ts unit/windows-exec.test.ts $(find unit/latexmk/ -name '*.test.ts')` Expected: all green (Pandoc with piped stdin, Typst, Rscript through knitr, `render -o -`, the Jupyter kernel daemon from PR 14b's `daemon.test.ts`; `latexmk` tests exercise `safeWindowsExec` paths on Windows CI).
 
 - [ ] **Step 6: Commit**
 
@@ -1029,12 +1064,14 @@ Run:
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process-exit-pipe.test.ts; cd ..
 node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/process-exit-pipe.test.ts
 ```
-Expected: green on both (verified against the Task 3 body on Node 22.22: `2097152` and `status=7`; `status=0` with an empty stderr for both modes through `head -c 1`). To see the test catch the bug, comment out `makeStdioBlocking()` in `src/deno_ral/process.ts` and rerun on Node: the first case reports far fewer bytes than 2,097,152. Restore the line.
+Expected: green on both (verified against the Task 3 body on Node 22.22: `2097152` and `status=7`; `status=0` with an empty stderr for both modes through `head -c 1`).
+To see the test catch the bug, comment out `makeStdioBlocking()` in `src/deno_ral/process.ts` and rerun on Node: the first case reports far fewer bytes than 2,097,152.
+Restore the line.
 
 - [ ] **Step 4: Run PR 14b's end-to-end checks**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/inspect/inspect-pipe.test.ts smoke/render/render-stdout.test.ts unit/process-group.test.ts`
-Expected: green (the `inspect | head -c 1` exit code and absence of an EPIPE crash, full `inspect | wc -c` output, `render -o -`, process-group kill). If `inspect-pipe.test.ts` pinned a non-zero exit code for the broken pipe (Deno 2.9's `BrokenPipe` behaviour at the time PR 14b recorded it), change its expectation to `0` in this PR, on both runtimes, and say so in the PR description: a reader that stops reading is not an error of the command, and the layer now behaves the same on Deno and Node.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/inspect/inspect-pipe.test.ts smoke/render/render-stdout.test.ts unit/process-group.test.ts` Expected: green (the `inspect | head -c 1` exit code and absence of an EPIPE crash, full `inspect | wc -c` output, `render -o -`, process-group kill).
+If `inspect-pipe.test.ts` pinned a non-zero exit code for the broken pipe (Deno 2.9's `BrokenPipe` behaviour at the time PR 14b recorded it), change its expectation to `0` in this PR, on both runtimes, and say so in the PR description: a reader that stops reading is not an error of the command, and the layer now behaves the same on Deno and Node.
 
 - [ ] **Step 5: Commit**
 
@@ -1050,8 +1087,8 @@ git commit -m "tests: exit() drains piped stdout; broken pipe ends quietly"
 
 - [ ] **Step 1: Check the Windows quoting callers still go through `safeWindowsExec`**
 
-Run: `grep -rn "requireQuoting" src/ --include=*.ts | grep -v "windows.ts"`
-Expected: only `src/command/render/latexmk/texlive.ts`, `src/core/shell.ts`, `src/core/zip.ts`, each passing the quoted array to `safeWindowsExec` (which writes a `.bat` and runs `cmd /c <file>`; `cmd` is not a batch file, so the layer spawns it directly). If any caller passes `requireQuoting(...).args` straight to `execProcess` with a `.bat`/`.cmd` program, its quotes would now be escaped a second time: route it through `safeWindowsExec` like the others and add a case to `tests/unit/windows-exec.test.ts`.
+Run: `grep -rn "requireQuoting" src/ --include=*.ts | grep -v "windows.ts"` Expected: only `src/command/render/latexmk/texlive.ts`, `src/core/shell.ts`, `src/core/zip.ts`, each passing the quoted array to `safeWindowsExec` (which writes a `.bat` and runs `cmd /c <file>`; `cmd` is not a batch file, so the layer spawns it directly).
+If any caller passes `requireQuoting(...).args` straight to `execProcess` with a `.bat`/`.cmd` program, its quotes would now be escaped a second time: route it through `safeWindowsExec` like the others and add a case to `tests/unit/windows-exec.test.ts`.
 
 - [ ] **Step 2: Rebuild, shrink the shim, render on Node**
 
@@ -1061,12 +1098,14 @@ npm ci && node tools/node-bundle/build.mjs --check-shim
 tools/node-bundle/quarto-node render dev-docs/runtime-migration/spike/tests/simple.qmd
 tools/node-bundle/quarto-node render dev-docs/runtime-migration/spike/tests/jupyter.qmd
 ```
-Expected: `0 missing` and an `unused` list (candidates: `Command`, `exit`, `execPath`, `pid`, `args`, `cwd`, `chdir`, `addSignalListener`, `removeSignalListener`, `kill`, `stdout`, `stderr`, `stdin`, `isatty`); members still referenced by `src/resources/**/*.js` (`julia-engine.js` uses `Deno.Command`) are not listed and stay. Delete the listed `Deno.<name> = ...` lines and the helpers only they used (`ChildProcess`, `stdio`, `spawnOptions`, `windowsCommand`, `batchCommandLine`, `exitStatus`, `lazy`), rebuild to confirm `0 missing` and no `unused` list, then both renders succeed (`jupyter.qmd` exercises the kernel daemon spawn with piped stdin).
+Expected: `0 missing` and an `unused` list (candidates: `Command`, `exit`, `execPath`, `pid`, `args`, `cwd`, `chdir`, `addSignalListener`, `removeSignalListener`, `kill`, `stdout`, `stderr`, `stdin`, `isatty`); members still referenced by `src/resources/**/*.js` (`julia-engine.js` uses `Deno.Command`) are not listed and stay.
+Delete the listed `Deno.<name> = ...` lines and the helpers only they used (`ChildProcess`, `stdio`, `spawnOptions`, `windowsCommand`, `batchCommandLine`, `exitStatus`, `lazy`), rebuild to confirm `0 missing` and no `unused` list, then both renders succeed (`jupyter.qmd` exercises the kernel daemon spawn with piped stdin).
 
 - [ ] **Step 3: Remove the fixed known failures**
 
-Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/`
-Expected: `now passes on Node, remove it …` for the `process` entries (exit 1). Delete them (Linux; Windows from this branch's `node-unit` run), rerun, `no change`, exit 0. A failure in the new files on Node is a bug in this PR: fix it, do not list it.
+Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` Expected: `now passes on Node, remove it …` for the `process` entries (exit 1).
+Delete them (Linux; Windows from this branch's `node-unit` run), rerun, `no change`, exit 0.
+A failure in the new files on Node is a bug in this PR: fix it, do not list it.
 
 - [ ] **Step 4: Commit**
 
@@ -1101,15 +1140,21 @@ git commit -m "node-bundle: drop shim members and known failures made obsolete b
 
 ## Risks and rollback
 
-- **`_handle.setBlocking` is a Node-internal API.** It has existed on pipe, TCP and TTY handles since Node 0.x and is what Node itself relies on for synchronous TTYs; it is guarded (`typeof … === "function"`), so a Node without it falls back to asynchronous pipes and the `process-exit-pipe.test.ts` case fails on the `node-unit` job, which is the signal. Cost of blocking stdio: a stalled reader blocks Quarto, exactly as on Deno today.
+- **`_handle.setBlocking` is a Node-internal API.** It has existed on pipe, TCP and TTY handles since Node 0.x and is what Node itself relies on for synchronous TTYs; it is guarded (`typeof … === "function"`), so a Node without it falls back to asynchronous pipes and the `process-exit-pipe.test.ts` case fails on the `node-unit` job, which is the signal.
+  Cost of blocking stdio: a stalled reader blocks Quarto, exactly as on Deno today.
 - **Blocking stdio and the event loop.** A slow terminal or pipe reader now slows Quarto's own progress output instead of buffering it in memory; this is Deno's behaviour and the one users have.
-- **Pipe back-pressure differences** could surface as hangs in a spawn-heavy path (Jupyter daemon, Typst gather). The new tests, PR 14b's `daemon.test.ts` and `smoke/jupyter/` cover the known cases. Rollback: `git revert` the `execProcess` commit restores the old ordering (still correct on Deno).
-- **Windows batch escaping.** A batch file receives `"a""b"` for an argument `a"b` (cmd.exe has no other way to carry a quote inside a quoted argument); a batch file that re-parses `%1` itself sees the doubled quote, as it does under Deno today. Quarto's batch spawns (`quarto.cmd`, `npm.cmd`, `tlmgr.bat` via `safeWindowsExec`) pass paths and flags.
+- **Pipe back-pressure differences** could surface as hangs in a spawn-heavy path (Jupyter daemon, Typst gather).
+  The new tests, PR 14b's `daemon.test.ts` and `smoke/jupyter/` cover the known cases.
+  Rollback: `git revert` the `execProcess` commit restores the old ordering (still correct on Deno).
+- **Windows batch escaping.** A batch file receives `"a""b"` for an argument `a"b` (cmd.exe has no other way to carry a quote inside a quoted argument); a batch file that re-parses `%1` itself sees the doubled quote, as it does under Deno today.
+  Quarto's batch spawns (`quarto.cmd`, `npm.cmd`, `tlmgr.bat` via `safeWindowsExec`) pass paths and flags.
 - **Deno compat (Spike #2 (d)).** If Deno 2.9 ignores `windowsVerbatimArguments`, `kDenoHonoursVerbatim = false` makes Deno spawn batch files directly (Rust escaping) and Node use the `cmd.exe` line; if Deno cannot kill a process group with `process.kill(-pid)`, the spike's outcome table adds a `ps`-based tree walk to `killProcess` on Deno, tested by PR 14b's `process-group.test.ts`.
-- **Pre-existing: `safeWindowsExec`** writes its command line into a `.bat` without escaping (`%VAR%` expands, `"` is not escaped). Its four callers pass Quarto-controlled paths; out of scope here, filed as a follow-up issue linked from the PR.
+- **Pre-existing: `safeWindowsExec`** writes its command line into a `.bat` without escaping (`%VAR%` expands, `"` is not escaped).
+  Its four callers pass Quarto-controlled paths; out of scope here, filed as a follow-up issue linked from the PR.
 - **`process.exit` on Deno** skips Deno's own `unload` handlers in some versions; `src/core/cleanup.ts` runs Quarto's cleanup before calling `exit()`, so nothing user-visible depends on them.
 - **Whole-PR rollback:** revert the commits; no caller changed.
 
 ## Decisions needed
 
-None. Batch escaping (Rust's algorithm in the layer, not `safeWindowsExec`) and draining by blocking stdio are decided in the Spec with their reasons; the one runtime-dependent constant (`kDenoHonoursVerbatim`) is set from Spike #2 (d).
+None.
+Batch escaping (Rust's algorithm in the layer, not `safeWindowsExec`) and draining by blocking stdio are decided in the Spec with their reasons; the one runtime-dependent constant (`kDenoHonoursVerbatim`) is set from Spike #2 (d).

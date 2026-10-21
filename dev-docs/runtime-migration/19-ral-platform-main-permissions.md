@@ -1,11 +1,15 @@
 # PR 19: `platform.ts` extension with real `runtime()` detection, `main.ts`, remove `Deno.permissions`; version/consoleSize/inspect/uid/noColor/build/import.meta.main
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Extend `src/deno_ral/platform.ts` with `runtime()` (real runtime detection), `consoleColumns()`, `inspect()`, `isRootUser()`, `noColor()`, add `src/deno_ral/main.ts` with `isMainModule(import.meta)`, and replace every `Deno.version`, `Deno.consoleSize`, `Deno.inspect`, `Deno.uid`, `Deno.noColor`, `Deno.build`, `import.meta.main` and `Deno.permissions` site in `src/`, `package/src` and `tests/` with the layer, without changing any user-visible behaviour.
-**Phase:** 1. **Depends on:** PR 08 (`exec`, `execPath` in `process.ts`), PR 09 (`temp.ts`, `fs.ts` for the write probe and the tests), PR 02 (ratchet; `tests/asserts.ts`). **Unblocks:** PR 23, PR 25, PR 27b, PR 34.
+**Phase:** 1.
+**Depends on:** PR 08 (`exec`, `execPath` in `process.ts`), PR 09 (`temp.ts`, `fs.ts` for the write probe and the tests), PR 02 (ratchet; `tests/asserts.ts`).
+**Unblocks:** PR 23, PR 25, PR 27b, PR 34.
 **Branch:** `rt/19-ral-platform-main-permissions`.
-**Suggested executor:** Sonnet. Every replacement is a one-line substitution with a known target; the two judgement calls (`isWritable`, `isMainModule` under bundling) are decided below.
+**Suggested executor:** Sonnet.
+Every replacement is a one-line substitution with a known target; the two judgement calls (`isWritable`, `isMainModule` under bundling) are decided below.
 **Size:** M by file count (README row says S; M is right): 2 layer files, 2 tests with 2 fixtures, about 22 call-site files.
 **Ships on:** Deno; the existing test suite must stay green.
 
@@ -13,7 +17,8 @@
 
 ### Context
 
-Assessment section 3.3 row "`Deno.addSignalListener`, `Deno.consoleSize`, `Deno.execPath`, `Deno.build`, `Deno.inspect`, `Deno.uid`, `Deno.permissions`" and row `import.meta.main`; section 11 module plan rows `platform.ts` (extend with runtime name/version, `consoleColumns()`, `inspect()`), `main.ts` (`isMainModule(import.meta)`), `permissions` (remove; replace with a filesystem check). Signals, `execPath`, `args` are PR 08.
+Assessment section 3.3 row "`Deno.addSignalListener`, `Deno.consoleSize`, `Deno.execPath`, `Deno.build`, `Deno.inspect`, `Deno.uid`, `Deno.permissions`" and row `import.meta.main`; section 11 module plan rows `platform.ts` (extend with runtime name/version, `consoleColumns()`, `inspect()`), `main.ts` (`isMainModule(import.meta)`), `permissions` (remove; replace with a filesystem check).
+Signals, `execPath`, `args` are PR 08.
 
 Verified sites (`main` at `b86f98d`; `grep -rn 'Deno\.\(version\|consoleSize\|inspect\|uid\|noColor\|build\|permissions\)' src tests package/src tools --include=*.ts` and `grep -rn 'import\.meta\.main' ...`):
 
@@ -32,11 +37,19 @@ Verified sites (`main` at `b86f98d`; `grep -rn 'Deno\.\(version\|consoleSize\|in
 | `import.meta.main` | `src/quarto.ts:220`, `package/src/bld.ts:55`, `package/src/common/import-report/{explain-import-chain:148,find-bad-types-constants:22,explain-all-cycles:152,find-bad-imports:53,report-risky-files:45,report-bundle-async-cycles:800}.ts` | `isMainModule(import.meta)` |
 | `import.meta.main` elsewhere | `src/command/render/latexmk/quarto-latexmk.ts:128` (PR 39 deletes the standalone entry, decision 9); `src/resources/scripts/check-usage.ts:3`, `src/resources/scripts/empty.ts:1` (user-script fixtures run by `quarto run`, PR 35); `src/resources/tools/ast-diagram/main.ts:58`, `tools/render-all-formats.ts:136`, `tools/sass-variable-explainer/_attic/print-dependency-graph.ts:108` (dev tools, PR 35); `tests/tools/check-gha-log.ts:114` (PR 23) | out of scope here |
 
-**`isWritable` is a no-op today, and stays non-blocking.** Under `--allow-all` (which every launcher passes) `Deno.permissions.query` always answers `"granted"`, so the macOS prerequisite "`/usr/local/bin` is writable" has never stopped an install. That is correct behaviour: `afterInstall` tries `QUARTO_TEXLIVE_BINPATH` or `suggestUserBinPaths()` (`src/core/path.ts:339-356`; `/usr/local/bin` is only one candidate) and only warns when `tlmgr path add` fails for all of them (`tinytex.ts:390-425`). Turning the prerequisite into a real check would make `quarto install tinytex` hard-exit (`src/tools/tools.ts:158-166`) on Macs where it works today (review S8). So the `Deno.permissions` call is replaced by a real write probe whose only effect is a warning; the prerequisite still returns `true`.
+**`isWritable` is a no-op today, and stays non-blocking.** Under `--allow-all` (which every launcher passes) `Deno.permissions.query` always answers `"granted"`, so the macOS prerequisite "`/usr/local/bin` is writable" has never stopped an install.
+That is correct behaviour: `afterInstall` tries `QUARTO_TEXLIVE_BINPATH` or `suggestUserBinPaths()` (`src/core/path.ts:339-356`; `/usr/local/bin` is only one candidate) and only warns when `tlmgr path add` fails for all of them (`tinytex.ts:390-425`).
+Turning the prerequisite into a real check would make `quarto install tinytex` hard-exit (`src/tools/tools.ts:158-166`) on Macs where it works today (review S8).
+So the `Deno.permissions` call is replaced by a real write probe whose only effect is a warning; the prerequisite still returns `true`.
 
-**`runtime()` does real detection** (vocabulary): `typeof Deno !== "undefined" && "version" in Deno` → `deno`; else `process.versions.bun` → `bun`; else `node`. Written against `globalThis`, so PR 27b only adds the Node-bundle shim marker and nothing else in this function changes.
+**`runtime()` does real detection** (vocabulary): `typeof Deno !== "undefined" && "version" in Deno` → `deno`; else `process.versions.bun` → `bun`; else `node`.
+Written against `globalThis`, so PR 27b only adds the Node-bundle shim marker and nothing else in this function changes.
 
-**`isMainModule` must hold under both runtimes and is used for one entry in the CLI.** Deno and Node ≥ 24.2 set `import.meta.main`; otherwise `fileURLToPath(meta.url)` is compared with `process.argv[1]` through `realpath`. A test that asserts `isMainModule(import.meta) === false` for the test file itself is wrong under `node --test <file>` (each file is the entry there), so the test runs two tiny fixture scripts as child processes instead. Bundle caveat: in a single-file bundle every inlined module shares the bundle's `import.meta`, so `isMainModule(import.meta)` is true in every bundled module that calls it. Inside the CLI graph only `src/quarto.ts` calls it (the `package/src` scripts are separate entry points, never bundled; `quarto-latexmk.ts`, the other entry that would have been bundled by `compile-quarto-latexmk.ts`, is deleted by PR 39). The docstring records this; PR 25's checklist keeps it true.
+**`isMainModule` must hold under both runtimes and is used for one entry in the CLI.** Deno and Node ≥ 24.2 set `import.meta.main`; otherwise `fileURLToPath(meta.url)` is compared with `process.argv[1]` through `realpath`.
+A test that asserts `isMainModule(import.meta) === false` for the test file itself is wrong under `node --test <file>` (each file is the entry there), so the test runs two tiny fixture scripts as child processes instead.
+Bundle caveat: in a single-file bundle every inlined module shares the bundle's `import.meta`, so `isMainModule(import.meta)` is true in every bundled module that calls it.
+Inside the CLI graph only `src/quarto.ts` calls it (the `package/src` scripts are separate entry points, never bundled; `quarto-latexmk.ts`, the other entry that would have been bundled by `compile-quarto-latexmk.ts`, is deleted by PR 39).
+The docstring records this; PR 25's checklist keeps it true.
 
 ### Scope
 
@@ -263,8 +276,7 @@ unitTest("main - isMainModule is true for the entry module only", async () => {
 
 - [ ] **Step 3: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/platform.test.ts`
-Expected: type-check errors `Module '"../../../src/deno_ral/platform.ts"' has no exported member 'runtime'` and `Module not found ".../src/deno_ral/main.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/platform.test.ts` Expected: type-check errors `Module '"../../../src/deno_ral/platform.ts"' has no exported member 'runtime'` and `Module not found ".../src/deno_ral/main.ts"`.
 
 - [ ] **Step 4: Implement**
 
@@ -380,8 +392,7 @@ function canonical(path: string): string {
 
 - [ ] **Step 5: Run the test**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/platform.test.ts`
-Expected: `........` then `ok | 8 passed | 0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/platform.test.ts` Expected: `........` then `ok | 8 passed | 0 failed`.
 
 - [ ] **Step 6: Commit**
 
@@ -450,10 +461,10 @@ Add `import { isMainModule } from "./deno_ral/main.ts";` and replace `if (import
 
 - [ ] **Step 7: Type-check and smoke**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
-Expected: exit 0.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` Expected: exit 0.
 
-Run: `package/dist/bin/quarto --version` → prints the dev version (`99.9.9`). `package/dist/bin/quarto check 2>&1 | grep 'Deno version'` → `      Deno version 2.7.14: OK` (the pinned version).
+Run: `package/dist/bin/quarto --version` → prints the dev version (`99.9.9`).
+`package/dist/bin/quarto check 2>&1 | grep 'Deno version'` → `      Deno version 2.7.14: OK` (the pinned version).
 
 - [ ] **Step 8: Commit**
 
@@ -520,8 +531,7 @@ unitTest("tinytex - the macOS bin-dir prerequisite never blocks an install", asy
 });
 ```
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/tinytex-writable.test.ts`
-Expected: type-check error `Module '"../../../src/tools/impl/tinytex.ts"' has no exported member 'isDirWritable'`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/tinytex-writable.test.ts` Expected: type-check error `Module '"../../../src/tools/impl/tinytex.ts"' has no exported member 'isDirWritable'`.
 
 - [ ] **Step 2: Line 266**
 
@@ -565,12 +575,12 @@ and the prerequisite with:
   }],
 ```
 
-(`warning` is already imported from `../../deno_ral/log.ts` at line 6. `InstallPreReq.check` is `(context: InstallContext) => Promise<boolean>`, `src/tools/types.ts:31`.)
+(`warning` is already imported from `../../deno_ral/log.ts` at line 6.
+`InstallPreReq.check` is `(context: InstallContext) => Promise<boolean>`, `src/tools/types.ts:31`.)
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/tools/ -name '*.test.ts')`
-Expected: `ok | N passed | 0 failed` (the read-only case is ignored on Windows and as root).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/tools/ -name '*.test.ts')` Expected: `ok | N passed | 0 failed` (the read-only case is ignored on Windows and as root).
 
 - [ ] **Step 5: Commit**
 
@@ -632,9 +642,7 @@ function platformHasNonAsciiCharacters(): boolean {
 - [ ] **Step 3: Regenerate the editor bundles and verify**
 
 Run: `grep -n 'Deno\.' src/core/lib/external/colors.ts src/core/lib/errors.ts` → nothing (the probes use `Deno?.`).
-Run: `package/dist/bin/quarto dev-call build-artifacts`
-Run: `git diff --stat src/resources/editor`
-Expected: `vs-code.mjs` and `yaml/web-worker.js` change only in the two probe functions (`git diff src/resources/editor | grep '^[-+]' | grep -v '^[-+][-+]'` shows only lines from those functions); `grep -n 'Deno\.' src/resources/editor/tools/vs-code.mjs src/resources/editor/tools/yaml/web-worker.js` prints nothing.
+Run: `package/dist/bin/quarto dev-call build-artifacts` Run: `git diff --stat src/resources/editor` Expected: `vs-code.mjs` and `yaml/web-worker.js` change only in the two probe functions (`git diff src/resources/editor | grep '^[-+]' | grep -v '^[-+][-+]'` shows only lines from those functions); `grep -n 'Deno\.' src/resources/editor/tools/vs-code.mjs src/resources/editor/tools/yaml/web-worker.js` prints nothing.
 
 - [ ] **Step 4: Commit**
 
@@ -657,7 +665,8 @@ Add `import { arch as hostArch } from "../../../src/deno_ral/platform.ts";` (the
 
 - [ ] **Step 2: `import.meta.main` in `bld.ts:55` and the six import-report scripts**
 
-In each file add `import { isMainModule } from "<rel>/src/deno_ral/main.ts";` (`bld.ts`: `../../src/deno_ral/main.ts`; files under `package/src/common/import-report/`: `../../../../src/deno_ral/main.ts`) and replace `if (import.meta.main) {` with `if (isMainModule(import.meta)) {`. These are separate entry points run with `quarto run --dev`/`deno run`, never bundled, so the bundle caveat does not apply.
+In each file add `import { isMainModule } from "<rel>/src/deno_ral/main.ts";` (`bld.ts`: `../../src/deno_ral/main.ts`; files under `package/src/common/import-report/`: `../../../../src/deno_ral/main.ts`) and replace `if (import.meta.main) {` with `if (isMainModule(import.meta)) {`.
+These are separate entry points run with `quarto run --dev`/`deno run`, never bundled, so the bundle caveat does not apply.
 
 - [ ] **Step 3: Verify `quarto-bld` still dispatches**
 
@@ -690,8 +699,7 @@ In each of `chrome-launch-fixtures.ts:36`, `typst-gather.test.ts:472`, `9133.tes
 
 - [ ] **Step 3: Run the touched tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/project-detect-denied-path.test.ts smoke/project/project-detect-denied-config.test.ts unit/chrome-launch.test.ts smoke/issues/9133/9133.test.ts smoke/create/create.test.ts smoke/typst-gather/typst-gather.test.ts`
-Expected: `ok | N passed | 0 failed` (denied-path tests are ignored when running as root, as before).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/project/project-detect-denied-path.test.ts smoke/project/project-detect-denied-config.test.ts unit/chrome-launch.test.ts smoke/issues/9133/9133.test.ts smoke/create/create.test.ts smoke/typst-gather/typst-gather.test.ts` Expected: `ok | N passed | 0 failed` (denied-path tests are ignored when running as root, as before).
 
 - [ ] **Step 4: Commit**
 
@@ -741,10 +749,12 @@ git commit -m "ratchet baseline after platform/main; document platform.ts and ma
 ## Risks and rollback
 
 - `isRootUser()` on Windows returns false where `Deno.uid()` returned `null`; the three tests compared against `0`, so semantics are preserved.
-- The fixture-based `isMainModule` test needs the runtime to run a `.ts` file directly; on Node that is the default from 23.6/22.18 (type stripping), and PR 31's CI uses Node 26. Under Node 22.12–22.17 it would need `--experimental-strip-types`; not a supported configuration for the Node harness.
+- The fixture-based `isMainModule` test needs the runtime to run a `.ts` file directly; on Node that is the default from 23.6/22.18 (type stripping), and PR 31's CI uses Node 26.
+  Under Node 22.12–22.17 it would need `--experimental-strip-types`; not a supported configuration for the Node harness.
 - The `colors.ts` rewrite changes nothing on Deno; in the browser bundle it keeps `noColor = true`.
 - Rollback: revert the seven commits.
 
 ## Decisions needed
 
-None. Not changed because: the first draft made the TinyTeX `/usr/local/bin` prerequisite a real, blocking check and called it a fix; that would hard-exit installs that work today (review S8, `afterInstall` already handles a non-writable directory), so it is replaced by a warning-only probe that keeps today's outcome.
+None.
+Not changed because: the first draft made the TinyTeX `/usr/local/bin` prerequisite a real, blocking check and called it a fix; that would hard-exit installs that work today (review S8, `afterInstall` already handles a non-writable directory), so it is replaced by a warning-only probe that keeps today's outcome.

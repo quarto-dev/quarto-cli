@@ -1,37 +1,26 @@
 # Time-boxed spikes before and during Phase 2
 
-Two spikes retire the bets Phase 2 makes before the code that depends on them
-is written. Each has a goal, a time box, exact steps, exit criteria, and a
-table saying which plan changes for each outcome. Results are recorded at the
-end of this file (section "Results"), in the PR that closes the spike, and the
-named plans are edited in the same PR.
+Two spikes retire the bets Phase 2 makes before the code that depends on them is written.
+Each has a goal, a time box, exact steps, exit criteria, and a table saying which plan changes for each outcome.
+Results are recorded at the end of this file (section "Results"), in the PR that closes the spike, and the named plans are edited in the same PR.
 
 | Spike | Time box | When | Runs it | Decides | Blocks |
 |---|---|---|---|---|---|
 | #2 Dual runtime and Node-compat surfaces | 5 working days | after PR 26 is merged (it provides `tools/node-bundle/`), before PR 27 starts | Phase 2 worker (Opus) | the spike decider (README "Roles") | PR 27, 28, 29, 33 (runtime switch), 34 (proxy row) |
 | V Test runner: Vitest vs `node:test` | 2 working days | after PR 30 (the last of the Phase 2 ports 27, 27b, 28, 29, 30: the sample spawns processes, serves HTTP, opens the KV store and renders), before PR 31 is executed | Phase 2 worker (Opus) | the spike decider (README "Roles") | PR 31, PR 32 |
 
-The spike decider ends the spike when its time box is reached (the worker
-records "unknown" for what has no answer), takes the go/no-go from the Results
-section against the exit criteria, and reviews the spike-closing PR before it
-edits any plan. A spike-closing PR that records runtime gaps (Spike V rule 0)
-also opens one `rt/NN-fix-<gap>` PR per gap (README "The sequence", row
-27x–30x) and schedules the SV-rerun row. PRs 27, 28, 29 and 33 do not start
-before Spike #2's Results are written; PRs 31 and 32 not before Spike V's.
+The spike decider ends the spike when its time box is reached (the worker records "unknown" for what has no answer), takes the go/no-go from the Results section against the exit criteria, and reviews the spike-closing PR before it edits any plan.
+A spike-closing PR that records runtime gaps (Spike V rule 0) also opens one `rt/NN-fix-<gap>` PR per gap (README "The sequence", row 27x–30x) and schedules the SV-rerun row.
+PRs 27, 28, 29 and 33 do not start before Spike #2's Results are written; PRs 31 and 32 not before Spike V's.
 
 Ground rules for both spikes:
 
 - Work on a throwaway branch (`spike/2-dual-runtime`, `spike/v-test-runner`).
-  Nothing from the branch is merged except the scripts under
-  `dev-docs/runtime-migration/spike/spike2/` or `spike/runner/` (evidence,
-  like the original `spike/`) and the edits to this file and to the plans.
-- Pins: Deno 2.9.x as installed by PR 00a (`package/dist/bin/tools/<arch>/deno`;
-  the commands below write `$DENO` for it), Node 26.12.0 or newer 26.x
-  (`node --version` prints `v26.`), `ws` 8.22.0, `@cliffy/*` 1.3.1.
+  Nothing from the branch is merged except the scripts under `dev-docs/runtime-migration/spike/spike2/` or `spike/runner/` (evidence, like the original `spike/`) and the edits to this file and to the plans.
+- Pins: Deno 2.9.x as installed by PR 00a (`package/dist/bin/tools/<arch>/deno`; the commands below write `$DENO` for it), Node 26.12.0 or newer 26.x (`node --version` prints `v26.`), `ws` 8.22.0, `@cliffy/*` 1.3.1.
 - Every command is run from the repository root unless it says otherwise.
-- "Linux", "macOS", "Windows" means: run it there. A machine you do not have is
-  covered by the dispatch workflow in step 2.0, which runs the same scripts on
-  the three GitHub-hosted runners.
+- "Linux", "macOS", "Windows" means: run it there.
+  A machine you do not have is covered by the dispatch workflow in step 2.0, which runs the same scripts on the three GitHub-hosted runners.
 
 ## Spike #2: the `node:` bundle on Deno, and the Node-compat surfaces Phase 2 relies on
 
@@ -64,7 +53,8 @@ npm ci
 mkdir -p dev-docs/runtime-migration/spike/spike2
 ```
 
-Expected: `deno 2.9.` and `v26.`. If `$DENO` is older than 2.9, PR 00a has not landed: stop and land it first (the spike's answers are only valid for the Deno version that ships).
+Expected: `deno 2.9.` and `v26.`.
+If `$DENO` is older than 2.9, PR 00a has not landed: stop and land it first (the spike's answers are only valid for the Deno version that ships).
 
 - [ ] **Step 2: A dispatch workflow that runs the spike scripts on three OSes**
 
@@ -100,11 +90,15 @@ jobs:
           done
 ```
 
-Run it after steps 2.2–2.4 with `gh workflow run spike2.yml --ref spike/2-dual-runtime && gh run watch`. The log is the evidence for the OSes you did not run locally. The branch must be pushed to `quarto-dev/quarto-cli` itself (a `workflow_dispatch` from a fork does not run): the maintainer named in README "Roles" pushes it and dispatches when the worker lacks the rights. Step 2.5 needs a real terminal on Linux or macOS and step 2.6 outbound network to quarto.org and api.github.com; the same person runs them if the worker's environment has neither.
+Run it after steps 2.2–2.4 with `gh workflow run spike2.yml --ref spike/2-dual-runtime && gh run watch`.
+The log is the evidence for the OSes you did not run locally.
+The branch must be pushed to `quarto-dev/quarto-cli` itself (a `workflow_dispatch` from a fork does not run): the maintainer named in README "Roles" pushes it and dispatches when the worker lacks the rights.
+Step 2.5 needs a real terminal on Linux or macOS and step 2.6 outbound network to quarto.org and api.github.com; the same person runs them if the worker's environment has neither.
 
 #### 2.1 (a) The Node bundle on Deno (two days)
 
-The bundle's banner imports `tools/node-bundle/deno-shim.mjs`; on Deno the shim is a no-op (PR 26 guards `globalThis.Deno` and keeps the real one), so `deno run` of the bundle exercises the bundling mechanics (ESM output, `createRequire` banner, inlined npm/JSR packages, `node:` built-ins, top-level await in `@b-fuze/deno-dom/wasm`, `import.meta` of a single file) against the real Deno APIs. The `deno_ral` bodies that PR 27–30 move onto `node:` APIs are run on Deno by every one of those PRs' own Deno CI, so they are not re-tested here; step 2.1.4 re-runs this check at the end of Phase 2.
+The bundle's banner imports `tools/node-bundle/deno-shim.mjs`; on Deno the shim is a no-op (PR 26 guards `globalThis.Deno` and keeps the real one), so `deno run` of the bundle exercises the bundling mechanics (ESM output, `createRequire` banner, inlined npm/JSR packages, `node:` built-ins, top-level await in `@b-fuze/deno-dom/wasm`, `import.meta` of a single file) against the real Deno APIs.
+The `deno_ral` bodies that PR 27–30 move onto `node:` APIs are run on Deno by every one of those PRs' own Deno CI, so they are not re-tested here; step 2.1.4 re-runs this check at the end of Phase 2.
 
 - [ ] **Step 1: Build the bundle**
 
@@ -136,7 +130,8 @@ diff -r -x .quarto /tmp/spike2/deno-src /tmp/spike2/deno-bundle && echo "DENO BU
 diff -r -x .quarto /tmp/spike2/deno-src /tmp/spike2/node-bundle && echo "NODE BUNDLE IDENTICAL"
 ```
 
-Expected (success): `99.9.9`, three `Output created:` lines per runtime, `DENO BUNDLE IDENTICAL`, `NODE BUNDLE IDENTICAL`. Record every error verbatim (first stack frame and the bundle line, resolved through `tools/node-bundle/dist/quarto.mjs.map`).
+Expected (success): `99.9.9`, three `Output created:` lines per runtime, `DENO BUNDLE IDENTICAL`, `NODE BUNDLE IDENTICAL`.
+Record every error verbatim (first stack frame and the bundle line, resolved through `tools/node-bundle/dist/quarto.mjs.map`).
 
 - [ ] **Step 3: Commands that are not renders**
 
@@ -285,7 +280,9 @@ node watch.mjs
 cd -
 ```
 
-Expected: one summary line per runtime: `nested OK` everywhere; `recreated-root OK` on Node. On Deno the `recreated-root` result is the answer to #36937 for 2.9.x on that OS. Repeat on the other two OSes (dispatch workflow, step 2.0).
+Expected: one summary line per runtime: `nested OK` everywhere; `recreated-root OK` on Node.
+On Deno the `recreated-root` result is the answer to #36937 for 2.9.x on that OS.
+Repeat on the other two OSes (dispatch workflow, step 2.0).
 
 #### 2.4 (d) Process groups, `windowsVerbatimArguments`, `.bat` spawning (one day, three OSes)
 
@@ -341,7 +338,9 @@ node child.mjs
 cd -
 ```
 
-Expected on POSIX (both runtimes): `group kill OK`. Expected on Windows, Node: `verbatim stdout="\"a b\" \r\ntwo\r\n"` (exact quoting printed by `echo`), `direct .bat error=EINVAL`, `taskkill /T status=0`. The Deno lines are the answers: whether `windowsVerbatimArguments` is honoured (same stdout as Node), and whether Deno spawns the `.bat` directly (and with what escaping of `a&b` and `%PATH%`; Deno's `child_process` is built on its Rust `Command`, which applies the BatBadBut-safe escaping).
+Expected on POSIX (both runtimes): `group kill OK`.
+Expected on Windows, Node: `verbatim stdout="\"a b\" \r\ntwo\r\n"` (exact quoting printed by `echo`), `direct .bat error=EINVAL`, `taskkill /T status=0`.
+The Deno lines are the answers: whether `windowsVerbatimArguments` is honoured (same stdout as Node), and whether Deno spawns the `.bat` directly (and with what escaping of `a&b` and `%PATH%`; Deno's `child_process` is built on its Rust `Command`, which applies the BatBadBut-safe escaping).
 
 #### 2.5 (e) Cliffy 1.3.1 prompts on Node (half a day, Linux or macOS)
 
@@ -352,7 +351,8 @@ grep -n "Deno.permissions\|Deno?.permissions" tools/node-bundle/dist/quarto.mjs 
 grep -rn "files: true\|suggestions:" src --include=*.ts | grep -v "core/lib/yaml-validation" | head
 ```
 
-Expected: hits only inside `@cliffy/prompt`'s path-suggestion code and no Quarto `Input` prompt with `files: true` or `suggestions:`. If a Quarto prompt passes `files: true`, that prompt crashes on Node without the shim member.
+Expected: hits only inside `@cliffy/prompt`'s path-suggestion code and no Quarto `Input` prompt with `files: true` or `suggestions:`.
+If a Quarto prompt passes `files: true`, that prompt crashes on Node without the shim member.
 
 - [ ] **Step 2: Drive a Select and a Confirm prompt through a pseudo-terminal**
 
@@ -378,7 +378,8 @@ printf '\033[B\ry\r' | script -q -c "node /tmp/spike2/prompt.mjs" /dev/null | ta
 
 (`script -q -c` is util-linux; on macOS use `script -q /dev/null node /tmp/spike2/prompt.mjs`.)
 
-Expected (success): `RESULT two true`; on Ctrl-C an exit code of 130 (SIGINT) or 1 with no stack trace, and `icanon` (canonical mode restored) rather than `-icanon`. Record the actual behaviour; Deno's `cbreak` behaviour (Ctrl-C delivered as a key, prompt raises an error) is the baseline: run the same two commands with `"$DENO" run --allow-all --no-config /tmp/spike2/prompt.mjs`.
+Expected (success): `RESULT two true`; on Ctrl-C an exit code of 130 (SIGINT) or 1 with no stack trace, and `icanon` (canonical mode restored) rather than `-icanon`.
+Record the actual behaviour; Deno's `cbreak` behaviour (Ctrl-C delivered as a key, prompt raises an error) is the baseline: run the same two commands with `"$DENO" run --allow-all --no-config /tmp/spike2/prompt.mjs`.
 
 #### 2.6 (f) `--use-env-proxy` behind a proxy (half a day)
 
@@ -427,11 +428,13 @@ kill $PROXY; unset HTTPS_PROXY HTTP_PROXY
 cat /tmp/spike2/proxy.log
 ```
 
-Expected (success): `no flag 200` produces no `CONNECT` line (Node ignores the variables by default); `flag 200` produces `CONNECT quarto.org:443`; `no_proxy 200` produces no new line; `quarto tools` produces `CONNECT api.github.com:443` (the TinyTeX/Chromium latest-release lookups in `src/tools/github.ts`); `deno 200` produces a `CONNECT` line (Deno's baseline). Run once more with `NODE_USE_ENV_PROXY=1` instead of the flag to confirm the environment-variable form (PR 33 picks one for the launcher).
+Expected (success): `no flag 200` produces no `CONNECT` line (Node ignores the variables by default); `flag 200` produces `CONNECT quarto.org:443`; `no_proxy 200` produces no new line; `quarto tools` produces `CONNECT api.github.com:443` (the TinyTeX/Chromium latest-release lookups in `src/tools/github.ts`); `deno 200` produces a `CONNECT` line (Deno's baseline).
+Run once more with `NODE_USE_ENV_PROXY=1` instead of the flag to confirm the environment-variable form (PR 33 picks one for the launcher).
 
 ### Exit criteria
 
-The spike ends after five working days or when every question (a)–(g) has a recorded answer on every OS it applies to, whichever is first. An unanswered question at the time box is recorded as "unknown" and is treated as a failure in the outcome table.
+The spike ends after five working days or when every question (a)–(g) has a recorded answer on every OS it applies to, whichever is first.
+An unanswered question at the time box is recorded as "unknown" and is treated as a failure in the outcome table.
 
 | Question | Success means |
 |---|---|
@@ -466,13 +469,13 @@ The spike ends after five working days or when every question (a)–(g) has a re
 
 ### Goal
 
-Decide the Node test runner for PR 31 from measurements (decision 4). PR 31 is
-written runner-agnostic (the harness adapter interface in `_TEMPLATE.md` is
-fixed); the sections marked "decided by Spike V" are filled from this spike.
+Decide the Node test runner for PR 31 from measurements (decision 4).
+PR 31 is written runner-agnostic (the harness adapter interface in `_TEMPLATE.md` is fixed); the sections marked "decided by Spike V" are filled from this spike.
 
 ### Inputs
 
-- PR 02b landed (`import type` everywhere, no `enum`/parameter properties/`<T>`), PR 23 (harness adapter), PR 26 (`tools/node-bundle/import-map.mjs`), and the Phase 2 ports PR 27 (`fs.ts`), 27b (`env.ts`, `platform.ts`), 28 (`process.ts`), 29 (`net.ts`, `http.ts`, `watch.ts`) and 30 (`kv.ts`) on `node:` APIs. Files 4 (`ral/process.test.ts`), 5 (`sass-cache.test.ts`: KV store), 7–10 (in-process renders: Pandoc spawns, the Jupyter transport, the HTTP server) exercise those modules; run before the ports, their failures would measure unfinished runtime work, not the runner (`REVIEW-2026-10-16.md` R12).
+- PR 02b landed (`import type` everywhere, no `enum`/parameter properties/`<T>`), PR 23 (harness adapter), PR 26 (`tools/node-bundle/import-map.mjs`), and the Phase 2 ports PR 27 (`fs.ts`), 27b (`env.ts`, `platform.ts`), 28 (`process.ts`), 29 (`net.ts`, `http.ts`, `watch.ts`) and 30 (`kv.ts`) on `node:` APIs.
+  Files 4 (`ral/process.test.ts`), 5 (`sass-cache.test.ts`: KV store), 7–10 (in-process renders: Pandoc spawns, the Jupyter transport, the HTTP server) exercise those modules; run before the ports, their failures would measure unfinished runtime work, not the runner (`REVIEW-2026-10-16.md` R12).
 - The two prototype harness branches are written in this spike from PR 31's "Variant N" and "Variant V" code blocks.
 
 ### The ten representative files
@@ -501,7 +504,8 @@ git checkout main && git pull && git checkout -b spike/v-test-runner
 npm install --save-dev vitest@3
 ```
 
-Apply PR 31's Task "Variant N" (loader hook `tools/node-bundle/register-import-map.mjs`, harness `node:test` branch) and Task "Variant V" (`tests/vitest.config.mjs`, harness Vitest branch) code blocks. Both variants coexist on the spike branch: the harness selects Vitest when `process.env.VITEST` is set and `node:test` otherwise.
+Apply PR 31's Task "Variant N" (loader hook `tools/node-bundle/register-import-map.mjs`, harness `node:test` branch) and Task "Variant V" (`tests/vitest.config.mjs`, harness Vitest branch) code blocks.
+Both variants coexist on the spike branch: the harness selects Vitest when `process.env.VITEST` is set and `node:test` otherwise.
 
 - [ ] **Step 2: Correctness on the ten files (day 1)**
 
@@ -519,7 +523,9 @@ node tools/node-bundle/junit.mjs summary /tmp/v-node.xml
 node tools/node-bundle/junit.mjs summary /tmp/v-vitest.xml
 ```
 
-Expected: each command prints a pass/fail tally; `junit.mjs summary` (PR 26) prints `passed N, failed M, skipped K` for each report. Record the per-file pass count against the Deno baseline. File 10 needs `npx playwright install chromium` once.
+Expected: each command prints a pass/fail tally; `junit.mjs summary` (PR 26) prints `passed N, failed M, skipped K` for each report.
+Record the per-file pass count against the Deno baseline.
+File 10 needs `npx playwright install chromium` once.
 
 - [ ] **Step 3: Timing (day 2 morning)**
 
@@ -538,7 +544,8 @@ done
 cd ..
 ```
 
-Record the median of three for each line. `render-html.test.ts` startup is dominated by loading `src/quarto.ts` (~1,200 modules): it shows the cost of type stripping through the loader hook (node:test) against Vite's transform cache (Vitest).
+Record the median of three for each line.
+`render-html.test.ts` startup is dominated by loading `src/quarto.ts` (~1,200 modules): it shows the cost of type stripping through the loader hook (node:test) against Vite's transform cache (Vitest).
 
 - [ ] **Step 4: Features (day 2 afternoon)**
 
@@ -558,13 +565,17 @@ Fill this table on the spike branch, one row per feature, with the command used:
 
 ### Exit criteria and decision rule
 
-The spike ends after two working days. Decision:
+The spike ends after two working days.
+Decision:
 
-0. **Classify every failure first.** A test that fails on *both* Node runners with the same error, in a module owned by PR 27–30 (a `node:` body of `src/deno_ral/`), is a runtime gap, not a runner result: record it in the Results section against the owning PR, which fixes it before PR 32 makes the Node matrix required; the test is set aside for rule 1 (it counts for neither runner). A test that fails on one runner only is a runner result. A file that cannot be classified in the time box is recorded as "unclassified" and treated as a runner failure of both runners.
+0. **Classify every failure first.** A test that fails on *both* Node runners with the same error, in a module owned by PR 27–30 (a `node:` body of `src/deno_ral/`), is a runtime gap, not a runner result: record it in the Results section against the owning PR, which fixes it before PR 32 makes the Node matrix required; the test is set aside for rule 1 (it counts for neither runner).
+   A test that fails on one runner only is a runner result.
+   A file that cannot be classified in the time box is recorded as "unclassified" and treated as a runner failure of both runners.
 1. A runner is **eligible** if it passes, on Linux, at least the same tests as the Deno baseline on files 1–9 (tests set aside under rule 0 excluded), produces parseable JUnit with the same test names, honours a per-test timeout, and runs files serially.
 2. If only one runner is eligible, choose it.
 3. If both are eligible, choose **Vitest** only when its bucket time (step 3, files 1–9) is at most 0.75× node:test's **or** node:test's `render-html.test.ts` startup exceeds 10 s; otherwise choose **`node:test`** (no runtime dependency, built into the pinned Node, same reporter names as the Deno JUnit pipeline).
-4. If neither is eligible, the spike is **inconclusive**: record it as such in the Results section with the failing files and their classification, and record `node:test` as the **provisional** choice for PR 31's prototyping only (it needs no dependency and is the easier one to revert). An inconclusive spike is not a validated outcome: PR 31 proceeds with Variant N but keeps Variant V in its plan and in the harness (both branches, as during the spike), and PR 32 may not make the Node matrix required until the spike has been re-run (one day, files 1–9 after the owning PRs' fixes) and recorded a definitive choice under rules 1–3.
+4. If neither is eligible, the spike is **inconclusive**: record it as such in the Results section with the failing files and their classification, and record `node:test` as the **provisional** choice for PR 31's prototyping only (it needs no dependency and is the easier one to revert).
+   An inconclusive spike is not a validated outcome: PR 31 proceeds with Variant N but keeps Variant V in its plan and in the harness (both branches, as during the spike), and PR 32 may not make the Node matrix required until the spike has been re-run (one day, files 1–9 after the owning PRs' fixes) and recorded a definitive choice under rules 1–3.
 
 ### What each outcome changes
 
@@ -576,9 +587,8 @@ The spike ends after two working days. Decision:
 
 ## Results
 
-Filled by the spike-closing PRs. One subsection per spike: date, Deno and Node
-versions, OS list, the answer to each question with the log excerpt, the
-decision taken from the outcome table, and the list of plan edits made.
+Filled by the spike-closing PRs.
+One subsection per spike: date, Deno and Node versions, OS list, the answer to each question with the log excerpt, the decision taken from the outcome table, and the list of plan edits made.
 
 ### Spike #2
 

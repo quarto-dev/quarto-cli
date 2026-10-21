@@ -1,19 +1,26 @@
 # PR 20b: Hidden `Deno.*` uses: tree-sitter, graphviz, deno-cri, file-read metrics, log file handler, dotenv
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Remove every runtime `Deno.*` use that the `src` ratchet scope cannot see (hand-patched JavaScript, runtime-loaded resources, a monkey-patch, and std modules that call `Deno.*` internally) by replacing each with the standard package or a small Quarto implementation on `src/deno_ral/`, so the `src-js` scope reaches 0 and the `resources` scope reaches an explicit allow-list.
-**Phase:** 1. **Depends on:** PR 09 (`src/deno_ral/fs.ts` read functions, `openSync`, `FsFile`; `errors.ts` `isNotFound`), PR 14 (`src/deno_ral/env.ts`), PR 08 (`exec`/`spawn`: Task 7 step 1 checks a conversion PR 08 made), PR 02 (`src-js` and `resources` scopes; `tests/asserts.ts`). **Unblocks:** PR 25 (hidden-dependency inventory), PR 26 (`--check-shim` over `src/resources/**/*.js`), PR 27 (shim members), PR 27b (log file handler on `node:fs`), PR 33.
+**Phase:** 1.
+**Depends on:** PR 09 (`src/deno_ral/fs.ts` read functions, `openSync`, `FsFile`; `errors.ts` `isNotFound`), PR 14 (`src/deno_ral/env.ts`), PR 08 (`exec`/`spawn`: Task 7 step 1 checks a conversion PR 08 made), PR 02 (`src-js` and `resources` scopes; `tests/asserts.ts`).
+**Unblocks:** PR 25 (hidden-dependency inventory), PR 26 (`--check-shim` over `src/resources/**/*.js`), PR 27 (shim members), PR 27b (log file handler on `node:fs`), PR 33.
 **Branch:** `rt/20b-hidden-deno-uses`.
-**Suggested executor:** Opus. Six independent replacements, two of them (tree-sitter, graphviz) inside emscripten glue where a wrong module option fails only at runtime; each needs a careful look at what the vendored file did.
-**Size:** M. 1 file deleted, 1 binary added, 2 source files created, 11 modified, 6 test files created; about 20 files.
+**Suggested executor:** Opus.
+Six independent replacements, two of them (tree-sitter, graphviz) inside emscripten glue where a wrong module option fails only at runtime; each needs a careful look at what the vendored file did.
+**Size:** M.
+1 file deleted, 1 binary added, 2 source files created, 11 modified, 6 test files created; about 20 files.
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
 
 ### Context
 
-`REVIEW-2026-10-15.md` S1 lists `Deno.*` uses outside the `.ts` files the first ratchet counted, with no owning plan, while PR 33 drops the Node shim on the claim that the boundary is clean. This PR owns the ones that run inside the CLI (the Julia subtree is decision 7's; `quarto run` fixtures under `src/resources/scripts/` and `src/resources/create/` are PR 35's and PR 36's). Verified on `main` at `b86f98d`:
+`REVIEW-2026-10-15.md` S1 lists `Deno.*` uses outside the `.ts` files the first ratchet counted, with no owning plan, while PR 33 drops the Node shim on the claim that the boundary is clean.
+This PR owns the ones that run inside the CLI (the Julia subtree is decision 7's; `quarto run` fixtures under `src/resources/scripts/` and `src/resources/create/` are PR 35's and PR 36's).
+Verified on `main` at `b86f98d`:
 
 | Use | Where | When it runs | Replacement in this PR |
 |---|---|---|---|
@@ -26,16 +33,27 @@
 | `@std/dotenv` 0.225.3 `load()` → `Deno.readTextFile`, `Deno.errors.NotFound` (`mod.ts:233-246`); its `parse()` → `Deno.env.get` for `${VAR}` expansion (`parse.ts:48`) | `src/quarto-core/dotenv.ts:7,23-29,60,87`, `src/core/quarto.ts:10,60-76` | every project render (`_environment*` files), `quartoConfig.dotenv()` | own `loadDotenv`/`parseDotenv` in `src/quarto-core/dotenv.ts` (Task 6) |
 | `readLines(Deno.stdin)` + `Deno.stdin.close()` | `src/command/create/cmd.ts:259-260` | `quarto create --json` | already `readStdinLines()` by PR 08 (Task 5 step 4 of `08-ral-process.md`); Task 7 verifies |
 
-Std modules that are imported directly but have no runtime `Deno.*` (`fmt/colors` reads a guarded `globalThis.Deno?.noColor`; `io/*` only mention `Deno` in JSDoc; `datetime`, `crypto`, `async`, `streams`, `encoding`, `log` other than `FileHandler`, `dotenv/stringify`) stay behind the import map, which is their seam (PR 22). `fmt/printf` calls `Deno.inspect` only for `%i`/`%I` and in its bad-argument error text; Quarto's one use is `sprintf("%<n>d: ", …)` (`src/core/text.ts:79`), so it is listed in the PR 25 inventory, not replaced.
+Std modules that are imported directly but have no runtime `Deno.*` (`fmt/colors` reads a guarded `globalThis.Deno?.noColor`; `io/*` only mention `Deno` in JSDoc; `datetime`, `crypto`, `async`, `streams`, `encoding`, `log` other than `FileHandler`, `dotenv/stringify`) stay behind the import map, which is their seam (PR 22).
+`fmt/printf` calls `Deno.inspect` only for `%i`/`%I` and in its bad-argument error text; Quarto's one use is `sprintf("%<n>d: ", …)` (`src/core/text.ts:79`), so it is listed in the PR 25 inventory, not replaced.
 
-Version choice for tree-sitter: the vendored glue and `src/resources/editor/tools/yaml/tree-sitter.js` (the browser copy) match `web-tree-sitter` 0.20.2's export set exactly (0.20.3 adds `_realloc`, 0.19.x lacks a libc++ export the grammar uses; compared against the npm tarballs). `src/resources/editor/tools/yaml/tree-sitter-yaml.wasm` is a 2022 build (legacy `dylink` section, C++ external scanner importing `_ZNKSt3__220__vector_base_commonILb1EE20__throw_length_errorEv`); `web-tree-sitter` 0.20.7 and later no longer export that symbol, and 0.22+ changed the grammar ABI and module format. 0.20.2 is therefore the version that loads the shipped grammar with no rebuild; checked on Node 22: `Parser.init({ wasmBinary })` with 0.20.2's own `tree-sitter.wasm`, then `Language.load(bytes)` of the shipped grammar, parses `title: hello\nformat:\n  html:\n    toc: true\n` to `(stream (document (block_node (block_mapping ...`. The npm glue must be paired with its own `tree-sitter.wasm` (the shipped 394 KB `tree-sitter.wasm` is a different emscripten build: imports and exports differ; it stays, for the browser bundles).
+Version choice for tree-sitter: the vendored glue and `src/resources/editor/tools/yaml/tree-sitter.js` (the browser copy) match `web-tree-sitter` 0.20.2's export set exactly (0.20.3 adds `_realloc`, 0.19.x lacks a libc++ export the grammar uses; compared against the npm tarballs).
+`src/resources/editor/tools/yaml/tree-sitter-yaml.wasm` is a 2022 build (legacy `dylink` section, C++ external scanner importing `_ZNKSt3__220__vector_base_commonILb1EE20__throw_length_errorEv`); `web-tree-sitter` 0.20.7 and later no longer export that symbol, and 0.22+ changed the grammar ABI and module format.
+0.20.2 is therefore the version that loads the shipped grammar with no rebuild; checked on Node 22: `Parser.init({ wasmBinary })` with 0.20.2's own `tree-sitter.wasm`, then `Language.load(bytes)` of the shipped grammar, parses `title: hello\nformat:\n  html:\n    toc: true\n` to `(stream (document (block_node (block_mapping ...`.
+The npm glue must be paired with its own `tree-sitter.wasm` (the shipped 394 KB `tree-sitter.wasm` is a different emscripten build: imports and exports differ; it stays, for the browser bundles).
 
-The npm glue is a UMD/CommonJS script. When `process.versions.node` exists (Node, and Deno 2, which exposes `process` globally) its init evaluates `__dirname` and lazily `require("fs")`/`require("path")`. Running from source on Deno, Deno's CommonJS loader provides both. In an ESM bundle neither exists, so the bundle needs a banner defining `require`, `__filename` and `__dirname` (Task 1 adds it to `tools/deno-esbuild-bundle.ts`; PR 26's `tools/node-bundle/build.mjs` emits the same three definitions as the interop prelude of its builder contract, which PR 33 keeps).
+The npm glue is a UMD/CommonJS script.
+When `process.versions.node` exists (Node, and Deno 2, which exposes `process` globally) its init evaluates `__dirname` and lazily `require("fs")`/`require("path")`.
+Running from source on Deno, Deno's CommonJS loader provides both.
+In an ESM bundle neither exists, so the bundle needs a banner defining `require`, `__filename` and `__dirname` (Task 1 adds it to `tools/deno-esbuild-bundle.ts`; PR 26's `tools/node-bundle/build.mjs` emits the same three definitions as the interop prelude of its builder contract, which PR 33 keeps).
 
 ### Scope
 
 In: the seven rows above; deleting `tree-sitter-deno.js`; the bundle banner; tests for each replacement; ratchet baselines for `src`, `src-js`, `resources`; `.claude/rules/typescript/deno-ral.md` rows.
-Out: the browser/IDE tree-sitter path (`src/resources/editor/tools/yaml/tree-sitter.js` + `tree-sitter.wasm`, concatenated into `web-worker.js` and `vs-code.mjs` by `dev-call build-artifacts`, `src/command/dev-call/build-artifacts/cmd.ts:116-131`; `src/core/lib/yaml-intelligence/parsing.ts:38-66` loads the grammar from `tree-sitter-yaml.json` bytes in the browser): untouched, and must stay byte-identical. `src/resources/scripts/*.ts`, `src/resources/create/**` (PR 35/36). The Julia subtree (decision 7). `fmt/printf` (see Context). `src/resources/editor/tools/{vs-code.mjs,yaml/web-worker.js}`'s `Deno.build.os` (PR 19 rewrites `src/core/lib/errors.ts` and regenerates them).
+Out: the browser/IDE tree-sitter path (`src/resources/editor/tools/yaml/tree-sitter.js` + `tree-sitter.wasm`, concatenated into `web-worker.js` and `vs-code.mjs` by `dev-call build-artifacts`, `src/command/dev-call/build-artifacts/cmd.ts:116-131`; `src/core/lib/yaml-intelligence/parsing.ts:38-66` loads the grammar from `tree-sitter-yaml.json` bytes in the browser): untouched, and must stay byte-identical.
+`src/resources/scripts/*.ts`, `src/resources/create/**` (PR 35/36).
+The Julia subtree (decision 7).
+`fmt/printf` (see Context).
+`src/resources/editor/tools/{vs-code.mjs,yaml/web-worker.js}`'s `Deno.build.os` (PR 19 rewrites `src/core/lib/errors.ts` and regenerates them).
 
 ### Interfaces
 
@@ -102,7 +120,8 @@ export function loadDotenv(envPath: string | null): Promise<Record<string, strin
 ### Acceptance criteria
 
 - `grep -rn 'Deno\.' src --include=*.js --include=*.mjs | grep -v '^src/vendor/' | grep -v '^src/resources/'` prints nothing (`src-js` = 0).
-- `grep -rln 'Deno\.' src/resources --include=*.js --include=*.mjs --include=*.ts | grep -v extension-subtrees | grep -v '^src/resources/types/' | sort` prints exactly the allow-list `src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts`, `src/resources/scripts/check-usage.ts`, `src/resources/scripts/juice.ts`, `src/resources/tools/ast-diagram/main.ts` (plus `src/resources/editor/tools/vs-code.mjs` and `yaml/web-worker.js` only if PR 19 has not landed). `resources` baseline = 5 (`check-usage.ts` 2, `juice.ts` 2, the engine template 1).
+- `grep -rln 'Deno\.' src/resources --include=*.js --include=*.mjs --include=*.ts | grep -v extension-subtrees | grep -v '^src/resources/types/' | sort` prints exactly the allow-list `src/resources/create/extensions/engine/src/qstart-filesafename-qend.ejs.ts`, `src/resources/scripts/check-usage.ts`, `src/resources/scripts/juice.ts`, `src/resources/tools/ast-diagram/main.ts` (plus `src/resources/editor/tools/vs-code.mjs` and `yaml/web-worker.js` only if PR 19 has not landed).
+  `resources` baseline = 5 (`check-usage.ts` 2, `juice.ts` 2, the engine template 1).
 - `grep -rn 'tree-sitter-deno\|from "dotenv"\|log/file-handler\|Deno\.readTextFileSync =' src package/src --include=*.ts` prints nothing.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/tree-sitter-init.test.ts unit/core/graphviz-wasm.test.ts unit/ral/fs-on-file-read.test.ts unit/core/performance-metrics.test.ts unit/ral/log-file-handler.test.ts unit/dotenv-parse.test.ts unit/dotenv-config.test.ts $(find unit/yaml-intelligence/ -name '*.test.ts')` passes.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/logging/log-level-and-formats.test.ts smoke/render/render-html.test.ts` and `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent docs/smoke-all/2023/02/13/dot-bug.qmd docs/smoke-all/2023/07/10/6153.qmd` pass.
@@ -171,8 +190,7 @@ unitTest("tree-sitter - initTreeSitter parses YAML through the npm glue", async 
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/tree-sitter-init.test.ts`
-Expected: type-check error `Module '"../../../src/core/schema/deno-init-tree-sitter.ts"' has no exported member 'kWebTreeSitterWasm'`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/tree-sitter-init.test.ts` Expected: type-check error `Module '"../../../src/core/schema/deno-init-tree-sitter.ts"' has no exported member 'kWebTreeSitterWasm'`.
 
 - [ ] **Step 3: Add the dependency and the wasm resource**
 
@@ -277,11 +295,9 @@ Add to the `esbuild.build({ ... })` options, after `format: "esm",`:
 
 - [ ] **Step 6: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/tree-sitter-init.test.ts $(find unit/yaml-intelligence/ -name '*.test.ts')`
-Expected: `ok | N passed | 0 failed` (`yaml-intelligence.test.ts` and `annotated-yaml.test.ts` drive the parser through `initYamlIntelligenceResourcesFromFilesystem`).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/tree-sitter-init.test.ts $(find unit/yaml-intelligence/ -name '*.test.ts')` Expected: `ok | N passed | 0 failed` (`yaml-intelligence.test.ts` and `annotated-yaml.test.ts` drive the parser through `initYamlIntelligenceResourcesFromFilesystem`).
 
-Run: `package/dist/bin/quarto render tests/docs/minimal.qmd --to html && package/dist/bin/quarto dev-call build-artifacts && git status --short src/resources/editor`
-Expected: the render succeeds; `build-artifacts` completes (it calls `initTreeSitter`, `cmd.ts:170`); the status prints nothing (browser bundles unchanged).
+Run: `package/dist/bin/quarto render tests/docs/minimal.qmd --to html && package/dist/bin/quarto dev-call build-artifacts && git status --short src/resources/editor` Expected: the render succeeds; `build-artifacts` completes (it calls `initTreeSitter`, `cmd.ts:170`); the status prints nothing (browser bundles unchanged).
 
 - [ ] **Step 7: Prove the bundled CLI loads it**
 
@@ -295,7 +311,9 @@ mv src/quarto1.ts src/quarto.ts
 echo "bundle render exit: $status"
 ```
 
-Expected: `Output created: ...minimal.html` and `bundle render exit: 0`. A `ReferenceError: __dirname is not defined` means the Step 5 banner is missing. The PR 00b bundle gate re-checks this on three OSes.
+Expected: `Output created: ...minimal.html` and `bundle render exit: 0`.
+A `ReferenceError: __dirname is not defined` means the Step 5 banner is missing.
+The PR 00b bundle gate re-checks this on three OSes.
 
 - [ ] **Step 8: Commit**
 
@@ -356,8 +374,7 @@ unitTest("graphviz-wasm - lays out a graph from injected bytes", async () => {
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/graphviz-wasm.test.ts`
-Expected: the first test fails (`graphvizWasmModule` reads `QUARTO_SHARE_PATH` and succeeds instead of throwing), the second with `graphvizModule.setGraphvizWasmBinary is not a function`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/graphviz-wasm.test.ts` Expected: the first test fails (`graphvizWasmModule` reads `QUARTO_SHARE_PATH` and succeeds instead of throwing), the second with `graphvizModule.setGraphvizWasmBinary is not a function`.
 
 - [ ] **Step 3: `src/resources/js/graphviz-wasm.js` lines 30–43**
 
@@ -382,7 +399,8 @@ export function graphvizWasmModule() {
 }
 ```
 
-Leave the comment `// C = graphvizWasm();` at line ~3202 as it is (a comment in the emscripten code, no `Deno.`). Run `grep -n 'Deno\.' src/resources/js/graphviz-wasm.js` → nothing.
+Leave the comment `// C = graphvizWasm();` at line ~3202 as it is (a comment in the emscripten code, no `Deno.`).
+Run `grep -n 'Deno\.' src/resources/js/graphviz-wasm.js` → nothing.
 
 - [ ] **Step 4: `src/core/handlers/dot.ts`**
 
@@ -418,10 +436,8 @@ renaming the two uses of `graphvizModule.graphviz()` in `cell()` to `graphviz.gr
 
 - [ ] **Step 5: Run the tests and a dot render**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/graphviz-wasm.test.ts`
-Expected: `ok | 2 passed | 0 failed`.
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent docs/smoke-all/2023/02/13/dot-bug.qmd docs/smoke-all/2023/07/10/6153.qmd`
-Expected: pass.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/graphviz-wasm.test.ts` Expected: `ok | 2 passed | 0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent docs/smoke-all/2023/02/13/dot-bug.qmd docs/smoke-all/2023/07/10/6153.qmd` Expected: pass.
 
 - [ ] **Step 6: Commit**
 
@@ -475,7 +491,8 @@ git commit -m "deno-cri: drop the dead Deno.inspect hook and commented Deno.reso
 - Create: `tests/unit/ral/fs-on-file-read.test.ts`, `tests/unit/core/performance-metrics.test.ts`
 - Modify: `src/deno_ral/fs.ts`, `src/core/performance/metrics.ts`
 
-Assumes PR 09 defines `readTextFileSync`, `readTextFile`, `readFileSync` and `readFile` as functions in `src/deno_ral/fs.ts` (`grep -n 'export function readTextFileSync\|export async function readTextFile\|export function readFileSync\|export async function readFile' src/deno_ral/fs.ts` prints four lines). If PR 09 made them re-exports (`export const readFileSync = Deno.readFileSync`), turn each into a function with the same signature first.
+Assumes PR 09 defines `readTextFileSync`, `readTextFile`, `readFileSync` and `readFile` as functions in `src/deno_ral/fs.ts` (`grep -n 'export function readTextFileSync\|export async function readTextFile\|export function readFileSync\|export async function readFile' src/deno_ral/fs.ts` prints four lines).
+If PR 09 made them re-exports (`export const readFileSync = Deno.readFileSync`), turn each into a function with the same signature first.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -570,8 +587,8 @@ unitTest("metrics - fileReads records reads with the caller's stack", async () =
 
 - [ ] **Step 2: Run them and see them fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs-on-file-read.test.ts unit/core/performance-metrics.test.ts`
-Expected: type-check error `Module '"../../../src/deno_ral/fs.ts"' has no exported member 'onFileRead'`. (The metrics test would also fail today: `metricsObject.fileReads` is captured as `undefined` when the module loads, so the report never contains reads; this PR fixes that with a getter.)
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs-on-file-read.test.ts unit/core/performance-metrics.test.ts` Expected: type-check error `Module '"../../../src/deno_ral/fs.ts"' has no exported member 'onFileRead'`.
+(The metrics test would also fail today: `metricsObject.fileReads` is captured as `undefined` when the module loads, so the report never contains reads; this PR fixes that with a getter.)
 
 - [ ] **Step 3: `src/deno_ral/fs.ts`**
 
@@ -599,7 +616,8 @@ function notifyFileRead(path: string | URL): void {
 }
 ```
 
-and make `notifyFileRead(path);` the first statement of `readTextFileSync`, `readTextFile`, `readFileSync` and `readFile`. For example, if PR 09 wrote
+and make `notifyFileRead(path);` the first statement of `readTextFileSync`, `readTextFile`, `readFileSync` and `readFile`.
+For example, if PR 09 wrote
 
 ```ts
 export function readTextFileSync(path: string | URL): string {
@@ -652,14 +670,13 @@ const metricsObject = {
 };
 ```
 
-(Previously only `Deno.readTextFileSync` was observed, through a monkey-patch, and the report always printed `fileReads: undefined`; now the four layer read functions are observed and reported. Reads that bypass the layer are invisible, which after PRs 10–13 means none in `src/`.)
+(Previously only `Deno.readTextFileSync` was observed, through a monkey-patch, and the report always printed `fileReads: undefined`; now the four layer read functions are observed and reported.
+Reads that bypass the layer are invisible, which after PRs 10–13 means none in `src/`.)
 
 - [ ] **Step 5: Run the tests and the real metric**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs-on-file-read.test.ts unit/core/performance-metrics.test.ts`
-Expected: `ok | 2 passed | 0 failed`.
-Run: `QUARTO_REPORT_PERFORMANCE_METRICS=fileReads package/dist/bin/quarto render tests/docs/minimal.qmd --to html 2>/dev/null | grep -c '"path"'`
-Expected: a number greater than 0 (today it prints 0).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs-on-file-read.test.ts unit/core/performance-metrics.test.ts` Expected: `ok | 2 passed | 0 failed`.
+Run: `QUARTO_REPORT_PERFORMANCE_METRICS=fileReads package/dist/bin/quarto render tests/docs/minimal.qmd --to html 2>/dev/null | grep -c '"path"'` Expected: a number greater than 0 (today it prints 0).
 
 - [ ] **Step 6: Commit**
 
@@ -768,8 +785,7 @@ unitTest("log FileHandler - mode x refuses an existing file", async () => {
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/log-file-handler.test.ts`
-Expected: type-check error `Module '"../../../src/deno_ral/log.ts"' has no exported member 'FileHandler'`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/log-file-handler.test.ts` Expected: type-check error `Module '"../../../src/deno_ral/log.ts"' has no exported member 'FileHandler'`.
 
 - [ ] **Step 3: `src/deno_ral/log.ts`**
 
@@ -869,13 +885,15 @@ export class FileHandler extends BaseHandler {
 
 (Move the new `import` lines to the top of the file, after the header; they are shown here together for readability.)
 
-`src/deno_ral/fs.ts` imports `debug` from `./log.ts` (line 12 at `b86f98d`), so `log.ts` importing `./fs.ts` would create a module cycle. Break it at the fs side: change that line to
+`src/deno_ral/fs.ts` imports `debug` from `./log.ts` (line 12 at `b86f98d`), so `log.ts` importing `./fs.ts` would create a module cycle.
+Break it at the fs side: change that line to
 
 ```ts
 import { debug } from "log";
 ```
 
-(the same function `log.ts` re-exports). Check: `quarto run --dev package/src/common/import-report/explain-all-cycles.ts src/quarto.ts 2>&1 | grep -c 'deno_ral/log.ts'` prints `0`.
+(the same function `log.ts` re-exports).
+Check: `quarto run --dev package/src/common/import-report/explain-all-cycles.ts src/quarto.ts 2>&1 | grep -c 'deno_ral/log.ts'` prints `0`.
 
 - [ ] **Step 4: `src/core/log.ts` lines 11–13**
 
@@ -898,8 +916,7 @@ import { BaseHandler, FileHandler } from "../deno_ral/log.ts";
 
 - [ ] **Step 5: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/log-file-handler.test.ts smoke/logging/log-level-and-formats.test.ts`
-Expected: `ok | N passed | 0 failed` (the smoke test renders with `--log` in plain and JSON formats and reads the files back).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/log-file-handler.test.ts smoke/logging/log-level-and-formats.test.ts` Expected: `ok | N passed | 0 failed` (the smoke test renders with `--log` in plain and JSON formats and reads the files back).
 
 - [ ] **Step 6: Commit**
 
@@ -991,8 +1008,7 @@ unitTest("dotenv - loadDotenv reads a file; missing file or null path is empty",
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/dotenv-parse.test.ts`
-Expected: type-check error `Module '"../../src/quarto-core/dotenv.ts"' has no exported member 'loadDotenv'`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/dotenv-parse.test.ts` Expected: type-check error `Module '"../../src/quarto-core/dotenv.ts"' has no exported member 'loadDotenv'`.
 
 - [ ] **Step 3: Parser and loader in `src/quarto-core/dotenv.ts`**
 
@@ -1141,10 +1157,8 @@ Delete line 10 (`import { load as config, LoadOptions as ConfigOptions } from "d
 
 - [ ] **Step 5: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/dotenv-parse.test.ts unit/dotenv-config.test.ts`
-Expected: `ok | 4 passed | 0 failed`.
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent docs/smoke-all/website/llms-txt-shortcode/index.qmd` (a project with an `_environment` file; if `index.qmd` is not the entry, `ls tests/docs/smoke-all/website/llms-txt-shortcode/` and pass the `.qmd` with `_quarto: tests:` front matter)
-Expected: pass (`LLMS_TEST_VAR="Resolved"` reaches the render).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/dotenv-parse.test.ts unit/dotenv-config.test.ts` Expected: `ok | 4 passed | 0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent docs/smoke-all/website/llms-txt-shortcode/index.qmd` (a project with an `_environment` file; if `index.qmd` is not the entry, `ls tests/docs/smoke-all/website/llms-txt-shortcode/` and pass the `.qmd` with `_quarto: tests:` front matter) Expected: pass (`LLMS_TEST_VAR="Resolved"` reaches the render).
 
 - [ ] **Step 6: Commit**
 
@@ -1160,16 +1174,15 @@ git commit -m "dotenv: own parser and loader on deno_ral (replaces @std/dotenv l
 
 - [ ] **Step 1: Verify the `create --json` stdin conversion (PR 08)**
 
-Run: `grep -n 'Deno\.stdin\|readLines' src/command/create/cmd.ts`
-Expected: nothing (PR 08 Task 5 step 4 replaced `readLines(Deno.stdin)` with `readStdinLines()`). If a line prints, apply PR 08's replacement exactly as written there (`for await (const line of readStdinLines()) { input = line; break; }` with `readStdinLines` imported from `../../deno_ral/process.ts`) in this PR.
+Run: `grep -n 'Deno\.stdin\|readLines' src/command/create/cmd.ts` Expected: nothing (PR 08 Task 5 step 4 replaced `readLines(Deno.stdin)` with `readStdinLines()`).
+If a line prints, apply PR 08's replacement exactly as written there (`for await (const line of readStdinLines()) { input = line; break; }` with `readStdinLines` imported from `../../deno_ral/process.ts`) in this PR.
 
 - [ ] **Step 2: Baselines**
 
-Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline`
-Expected: `src-js` 0 (from 7: `tree-sitter-deno.js` 5, `chrome.js` 1, `external-request.js` 1); `resources` 5 (from 10, or from 8 if PR 19 already regenerated the editor bundles: `graphviz-wasm.js` 3 removed); `src` lower by the `metrics.ts` monkey-patch (2) plus `deno-init-tree-sitter.ts:25` if PR 10 had not already rewritten it. Commit the file.
+Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline` Expected: `src-js` 0 (from 7: `tree-sitter-deno.js` 5, `chrome.js` 1, `external-request.js` 1); `resources` 5 (from 10, or from 8 if PR 19 already regenerated the editor bundles: `graphviz-wasm.js` 3 removed); `src` lower by the `metrics.ts` monkey-patch (2) plus `deno-init-tree-sitter.ts:25` if PR 10 had not already rewritten it.
+Commit the file.
 
-Run: `grep -rln 'Deno\.' src/resources --include=*.js --include=*.mjs --include=*.ts | grep -v extension-subtrees | grep -v '^src/resources/types/' | sort`
-Expected: exactly the allow-list in Acceptance criteria.
+Run: `grep -rln 'Deno\.' src/resources --include=*.js --include=*.mjs --include=*.ts | grep -v extension-subtrees | grep -v '^src/resources/types/' | sort` Expected: exactly the allow-list in Acceptance criteria.
 
 - [ ] **Step 3: Rules**
 
@@ -1203,14 +1216,17 @@ git commit -m "ratchet: src-js at zero, resources at the user-script allow-list"
 
 ## Risks and rollback
 
-- tree-sitter in the bundle: a missing banner shows as `ReferenceError: __dirname is not defined` at the first render of the bundled CLI (Task 1 step 7 and the PR 00b gate catch it). PR 26's Node bundle carries the same definitions in its interop prelude (builder contract), and PR 33's rewrite keeps them.
-- `web-tree-sitter` 0.20.2 is from 2021 and unmaintained on that line. Moving to a current release means rebuilding `tree-sitter-yaml.wasm` with a current `tree-sitter-cli` (ABI 14/15, `dylink.0`) and updating the browser copy too; that is a separate change, not needed for the runtime migration.
+- tree-sitter in the bundle: a missing banner shows as `ReferenceError: __dirname is not defined` at the first render of the bundled CLI (Task 1 step 7 and the PR 00b gate catch it).
+  PR 26's Node bundle carries the same definitions in its interop prelude (builder contract), and PR 33's rewrite keeps them.
+- `web-tree-sitter` 0.20.2 is from 2021 and unmaintained on that line.
+  Moving to a current release means rebuilding `tree-sitter-yaml.wasm` with a current `tree-sitter-cli` (ABI 14/15, `dylink.0`) and updating the browser copy too; that is a separate change, not needed for the runtime migration.
 - `FileHandler` without an `unload` listener: a process that exits without running cleanup (a crash) loses at most 4 KB of buffered log lines; `LogFileHandler.log` flushes after every message, so Quarto's `--log` loses nothing.
 - dotenv: the port keeps @std/dotenv's quirks (a `g`-flagged `RE_EXPAND_VALUE.test` carries `lastIndex` between calls; an undefined default expands to `"undefined"`), deliberately, so no `_environment` file changes meaning in this PR.
 - Rollback: revert the seven commits; restoring `tree-sitter-deno.js` also restores its import.
 
 ## Decisions needed
 
-- Not changed because: the brief placed the tree-sitter loader in `src/core/lib/yaml-intelligence/`; that directory is compiled into the browser bundles (`build-artifacts`, `cmd.ts:91-114`) and must not import `src/deno_ral/fs.ts`. The CLI loader already lives in `src/core/schema/deno-init-tree-sitter.ts`, so the byte loading goes there and the browser path (global `TreeSitter` from `tree-sitter.js`, grammar from `tree-sitter-yaml.json`) is untouched.
+- Not changed because: the brief placed the tree-sitter loader in `src/core/lib/yaml-intelligence/`; that directory is compiled into the browser bundles (`build-artifacts`, `cmd.ts:91-114`) and must not import `src/deno_ral/fs.ts`.
+  The CLI loader already lives in `src/core/schema/deno-init-tree-sitter.ts`, so the byte loading goes there and the browser path (global `TreeSitter` from `tree-sitter.js`, grammar from `tree-sitter-yaml.json`) is untouched.
 - Not changed because: `readLines(Deno.stdin)` in `create/cmd.ts` is PR 08's conversion (Task 5 step 4 there); this PR only verifies it, to avoid two PRs editing the same lines.
 - For PR 26 (recorded here, applied there): the Node bundle's interop prelude in `tools/node-bundle/build.mjs` defines `__filename` and `__dirname` next to `require`, for the same CommonJS glue; it is part of the builder contract (`26-node-build-job.md`, Interfaces) and survives PR 33's rewrite of the builder.

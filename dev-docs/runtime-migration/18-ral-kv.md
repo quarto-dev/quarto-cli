@@ -1,29 +1,45 @@
 # PR 18: `deno_ral/kv.ts`; project cache and Sass cache on it
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add `src/deno_ral/kv.ts` (`KeyValueStore`, `openKeyValueStore(dir, name)`, the backend choosing the file) wrapping `Deno.openKv`, pin cross-handle and cross-process semantics in its contract test, and move `src/core/cache/cache.ts` and `src/core/sass/cache.ts` onto it so that `Deno.Kv`/`Deno.openKv` appear only in the layer and Quarto versions on different runtimes never open each other's index file.
-**Phase:** 1. **Depends on:** PR 09 (layer conventions; `temp.ts`, `fs.ts`), PR 08 (`exec`, `execPath`, `args`, `exit` for the two-process test), PR 02 (ratchet; `tests/asserts.ts`). **Unblocks:** PR 25, PR 30.
+**Phase:** 1.
+**Depends on:** PR 09 (layer conventions; `temp.ts`, `fs.ts`), PR 08 (`exec`, `execPath`, `args`, `exit` for the two-process test), PR 02 (ratchet; `tests/asserts.ts`).
+**Unblocks:** PR 25, PR 30.
 **Branch:** `rt/18-ral-kv`.
-**Suggested executor:** Opus. Small, but the project cache's `clear()`/version handling, the Sass cache's closed-handle registry (#14594, #13955) and the user-global Sass cache shared by every installed Quarto must all survive the interface change.
-**Size:** S. 1 new module, 1 new test with a child-process fixture, 2 modified sources, 1 extended test, baseline, rules doc.
-**Ships on:** Deno; the existing test suite must stay green. The `--unstable-kv` flag stays in every launcher until PR 30 (Node implementation) and PR 33 (launchers on Node) remove it.
+**Suggested executor:** Opus.
+Small, but the project cache's `clear()`/version handling, the Sass cache's closed-handle registry (#14594, #13955) and the user-global Sass cache shared by every installed Quarto must all survive the interface change.
+**Size:** S.
+1 new module, 1 new test with a child-process fixture, 2 modified sources, 1 extended test, baseline, rules doc.
+**Ships on:** Deno; the existing test suite must stay green.
+The `--unstable-kv` flag stays in every launcher until PR 30 (Node implementation) and PR 33 (launchers on Node) remove it.
 
 ## Spec
 
 ### Context
 
-Assessment section 3.3: `Deno.openKv` (unstable) backs two small key → file-hash indexes, `src/core/cache/cache.ts` (project cache) and `src/core/sass/cache.ts` (Sass cache). Section 11 module plan row `kv.ts`: `get`, `set`, `delete`, `list(prefix)`, `close`; the Deno implementation wraps `Deno.Kv` today.
+Assessment section 3.3: `Deno.openKv` (unstable) backs two small key → file-hash indexes, `src/core/cache/cache.ts` (project cache) and `src/core/sass/cache.ts` (Sass cache).
+Section 11 module plan row `kv.ts`: `get`, `set`, `delete`, `list(prefix)`, `close`; the Deno implementation wraps `Deno.Kv` today.
 
-`REVIEW-2026-10-15.md` S7 (blocker for PR 30): the Sass cache lives in the user-global, unversioned `quartoCacheDir("sass")` (`src/core/sass.ts:408-413`), shared by every installed Quarto (the RStudio-bundled copy and the CLI), and `.quarto/project-cache/` is shared by every Quarto that renders the project. If the store path were part of the interface, PR 30 would rewrite `sass.kv` as JSON and an older Deno-based Quarto would fail on `Deno.openKv` of a non-SQLite file or on `checkVersion` ("newer than supported", `sass/cache.ts:192-197`). Decision: `openKeyValueStore(dir, name)` and the backend chooses the file: `<dir>/<name>.kv` here (Deno KV, SQLite), `<dir>/<name>.json` in PR 30. Each runtime then has its own index file; old versions keep theirs.
+`REVIEW-2026-10-15.md` S7 (blocker for PR 30): the Sass cache lives in the user-global, unversioned `quartoCacheDir("sass")` (`src/core/sass.ts:408-413`), shared by every installed Quarto (the RStudio-bundled copy and the CLI), and `.quarto/project-cache/` is shared by every Quarto that renders the project.
+If the store path were part of the interface, PR 30 would rewrite `sass.kv` as JSON and an older Deno-based Quarto would fail on `Deno.openKv` of a non-SQLite file or on `checkVersion` ("newer than supported", `sass/cache.ts:192-197`).
+Decision: `openKeyValueStore(dir, name)` and the backend chooses the file: `<dir>/<name>.kv` here (Deno KV, SQLite), `<dir>/<name>.json` in PR 30.
+Each runtime then has its own index file; old versions keep theirs.
 
-That isolates the indexes but not the files they point at. The Sass cache stores compiled CSS next to the index as `<identifierHash>.css` and trusts it when its index entry's `hash` matches the input. Two Quarto versions with separate indexes in the same directory would overwrite each other's `<identifierHash>.css` for different inputs and each would serve the other's CSS. So the new Sass cache names outputs by both hashes (`<identifierHash>-<inputHash>.css`), removes the file its own previous entry pointed at when it replaces the entry, and uses a new index name (`sass-index`) so that it never shares an index with Quarto ≤ 1.10, which still reads `<identifierHash>.css` through `sass.kv`. The project cache's disk files are already content-addressed (`md5HashBytes(value)`, `cache.ts:95-118`), so only its index name changes (`index` instead of the file `deno-kv-file`).
+That isolates the indexes but not the files they point at.
+The Sass cache stores compiled CSS next to the index as `<identifierHash>.css` and trusts it when its index entry's `hash` matches the input.
+Two Quarto versions with separate indexes in the same directory would overwrite each other's `<identifierHash>.css` for different inputs and each would serve the other's CSS.
+So the new Sass cache names outputs by both hashes (`<identifierHash>-<inputHash>.css`), removes the file its own previous entry pointed at when it replaces the entry, and uses a new index name (`sass-index`) so that it never shares an index with Quarto ≤ 1.10, which still reads `<identifierHash>.css` through `sass.kv`.
+The project cache's disk files are already content-addressed (`md5HashBytes(value)`, `cache.ts:95-118`), so only its index name changes (`index` instead of the file `deno-kv-file`).
 
-Concurrency: SQLite gives today's caches cross-handle and cross-process safety, and the Sass cache is hit by parallel renders and by preview plus render at once. The contract test now pins "a second handle on the same store sees a committed set" and "two processes writing different keys both persist", which PR 30's JSON backend must satisfy (lock directory plus read-modify-rename, vocabulary).
+Concurrency: SQLite gives today's caches cross-handle and cross-process safety, and the Sass cache is hit by parallel renders and by preview plus render at once.
+The contract test now pins "a second handle on the same store sees a committed set" and "two processes writing different keys both persist", which PR 30's JSON backend must satisfy (lock directory plus read-modify-rename, vocabulary).
 
 Verified usage (`main` at `b86f98d`):
 
-`src/core/cache/cache.ts` (242 lines): `import { assert } from "testing/asserts"` (line 9); field `index: Deno.Kv | null` (32); `close()` (43–48); `clear()` iterates `this.index.list({ prefix: [] })` and calls `Deno.removeSync(join(dir, entry.value))` for every non-version key; every value is an object, so `join` throws a `TypeError` on the first non-version entry (50–62); `createOnDisk()` sets `["version"]` to `"1"` without awaiting (64–67); `init()` opens `Deno.openKv(join(indexPath, "deno-kv-file"))` and handles the version (69–91); the four `add*` methods `assert(result.ok)` (93–138); `get` (140–147); `_getAs` deletes the key on `Deno.errors.NotFound` (149–170). The only reader is `memoizeStringFunction` (`cache.ts:232-242`, used by `src/core/sass.ts:359` for the vars block).
+`src/core/cache/cache.ts` (242 lines): `import { assert } from "testing/asserts"` (line 9); field `index: Deno.Kv | null` (32); `close()` (43–48); `clear()` iterates `this.index.list({ prefix: [] })` and calls `Deno.removeSync(join(dir, entry.value))` for every non-version key; every value is an object, so `join` throws a `TypeError` on the first non-version entry (50–62); `createOnDisk()` sets `["version"]` to `"1"` without awaiting (64–67); `init()` opens `Deno.openKv(join(indexPath, "deno-kv-file"))` and handles the version (69–91); the four `add*` methods `assert(result.ok)` (93–138); `get` (140–147); `_getAs` deletes the key on `Deno.errors.NotFound` (149–170).
+The only reader is `memoizeStringFunction` (`cache.ts:232-242`, used by `src/core/sass.ts:359` for the vars block).
 
 `src/core/sass/cache.ts` (220 lines): header comment `Deno.KV` (4); `class SassCache` (19, not exported) with `kv: Deno.Kv` (20, 27); `getFromHash` (32–79) reads `["entry", hash]` and returns `join(path, hash + ".css")`; `setFromHash` (81–105) writes it; `cleanup()` closes the store and deletes the registry entry (145–164); `checkVersion(kv: Deno.Kv, path)` (173–199); `sassCache()` opens `Deno.openKv(join(path, "sass.kv"))` (211).
 
@@ -314,8 +330,7 @@ unitTest("kv - close is idempotent and a closed store rejects", async () => {
 
 - [ ] **Step 3: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv.test.ts`
-Expected: type-check error `Module not found "file:///.../src/deno_ral/kv.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv.test.ts` Expected: type-check error `Module not found "file:///.../src/deno_ral/kv.ts"`.
 
 - [ ] **Step 4: Implement `kv.ts`**
 
@@ -402,8 +417,8 @@ export async function openKeyValueStore(
 
 - [ ] **Step 5: Run the test**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv.test.ts`
-Expected: `........` then `ok | 8 passed | 0 failed`. The two-process test takes a few seconds (two runtime start-ups).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv.test.ts` Expected: `........` then `ok | 8 passed | 0 failed`.
+The two-process test takes a few seconds (two runtime start-ups).
 
 - [ ] **Step 6: Commit**
 
@@ -511,7 +526,8 @@ Line 32:
 
 - [ ] **Step 4: The four `add*` methods (lines 93–138)**
 
-Each `const result = await this.index.set(key, {...}); assert(result.ok);` becomes `await this.index.set(key, {...});` (the store throws when a set fails). For example `addBuffer` (keep whatever form PR 10 gave the `writeFileSync` call):
+Each `const result = await this.index.set(key, {...}); assert(result.ok);` becomes `await this.index.set(key, {...});` (the store throws when a set fails).
+For example `addBuffer` (keep whatever form PR 10 gave the `writeFileSync` call):
 
 ```ts
   async addBuffer(key: string[], value: Uint8Array): Promise<void> {
@@ -543,11 +559,9 @@ Apply the same two-line change to `addString`, `addSmallBuffer`, `addSmallString
 
 - [ ] **Step 6: Type-check and run the project cache consumers**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
-Expected: exit 0.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` Expected: exit 0.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/check/check-project-config-only.test.ts smoke/render/render-html.test.ts`
-Expected: `ok | N passed | 0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/check/check-project-config-only.test.ts smoke/render/render-html.test.ts` Expected: `ok | N passed | 0 failed`.
 
 - [ ] **Step 7: Commit**
 
@@ -564,7 +578,8 @@ git commit -m "core/cache: project cache index on deno_ral/kv (store \"index\");
 
 - [ ] **Step 1: Write the failing test (append to `tests/unit/sass-cache.test.ts`)**
 
-Change the assertion import (line 13) to `import { assert, assertEquals } from "../asserts.ts";` and add `import { readTextFileSync, writeTextFileSync } from "../../src/deno_ral/fs.ts";`, `import { makeTempDirSync } from "../../src/deno_ral/temp.ts";`, `import { openKeyValueStore } from "../../src/deno_ral/kv.ts";`, and `SassCache` to the `sass/cache.ts` import. Line 32 becomes `// First resolve creates the cache and opens its key-value store.` Then append:
+Change the assertion import (line 13) to `import { assert, assertEquals } from "../asserts.ts";` and add `import { readTextFileSync, writeTextFileSync } from "../../src/deno_ral/fs.ts";`, `import { makeTempDirSync } from "../../src/deno_ral/temp.ts";`, `import { openKeyValueStore } from "../../src/deno_ral/kv.ts";`, and `SassCache` to the `sass/cache.ts` import.
+Line 32 becomes `// First resolve creates the cache and opens its key-value store.` Then append:
 
 ```ts
 const ID = "a".repeat(32);
@@ -609,8 +624,7 @@ unitTest(
 );
 ```
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/sass-cache.test.ts`
-Expected: type-check error (`SassCache` is not exported; `openKeyValueStore` signature not yet used by `sass/cache.ts`).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/sass-cache.test.ts` Expected: type-check error (`SassCache` is not exported; `openKeyValueStore` signature not yet used by `sass/cache.ts`).
 
 - [ ] **Step 2: Header comment, import, class, constructor**
 
@@ -761,13 +775,14 @@ In `sassCache()` replace lines 209–212:
 
 - [ ] **Step 6: Type-check, run the Sass cache tests, manual reuse check**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
-Expected: exit 0.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` Expected: exit 0.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/sass-cache.test.ts smoke/render/render-html.test.ts`
-Expected: `ok | N passed | 0 failed` (the new test included).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/sass-cache.test.ts smoke/render/render-html.test.ts` Expected: `ok | N passed | 0 failed` (the new test included).
 
-Manual: `cd tests/docs/website-image-base && QUARTO_LOG_LEVEL=DEBUG ../../../package/dist/bin/quarto render 2>&1 | grep -c 'cache hit'` run twice: the second number is greater than 0. Then list the user cache (`~/.cache/quarto/sass` on Linux, `~/Library/Caches/quarto/sass` on macOS, `%LOCALAPPDATA%\quarto\sass` on Windows; `quartoCacheDir` in `src/core/appdirs.ts`, honouring `XDG_CACHE_HOME` on Linux): `sass-index.kv` and `<32 hex>-<32 hex>.css` files are present; an existing `sass.kv` and `<32 hex>.css` from an older Quarto are untouched. `ls tests/docs/website-image-base/.quarto/project-cache/` shows `index.kv`. Remove the website's `_site` and `.quarto` afterwards (`git status --short tests/docs/website-image-base` clean).
+Manual: `cd tests/docs/website-image-base && QUARTO_LOG_LEVEL=DEBUG ../../../package/dist/bin/quarto render 2>&1 | grep -c 'cache hit'` run twice: the second number is greater than 0.
+Then list the user cache (`~/.cache/quarto/sass` on Linux, `~/Library/Caches/quarto/sass` on macOS, `%LOCALAPPDATA%\quarto\sass` on Windows; `quartoCacheDir` in `src/core/appdirs.ts`, honouring `XDG_CACHE_HOME` on Linux): `sass-index.kv` and `<32 hex>-<32 hex>.css` files are present; an existing `sass.kv` and `<32 hex>.css` from an older Quarto are untouched.
+`ls tests/docs/website-image-base/.quarto/project-cache/` shows `index.kv`.
+Remove the website's `_site` and `.quarto` afterwards (`git status --short tests/docs/website-image-base` clean).
 
 - [ ] **Step 7: Commit**
 
@@ -813,12 +828,16 @@ git commit -m "ratchet baseline after kv.ts; document kv.ts"
 
 ## Risks and rollback
 
-- First run after upgrading: the project cache and the Sass cache start empty (new index names), so the first render of each theme recompiles Sass once. Old `deno-kv-file`, `sass.kv` and `<hash>.css` files remain for older Quarto versions and are never written by this one; mention it in the PR description (internal caches, no changelog entry).
-- `Deno.Kv` over SQLite with two writer processes: Deno KV retries on a busy database internally. If the two-process test fails on some OS with `database is locked`, that is a pre-existing hazard of today's caches under parallel renders; fix it in `kv.ts` by retrying `kv.set` up to 5 times with a 50 ms pause when the error message contains `database is locked`, and keep the test.
+- First run after upgrading: the project cache and the Sass cache start empty (new index names), so the first render of each theme recompiles Sass once.
+  Old `deno-kv-file`, `sass.kv` and `<hash>.css` files remain for older Quarto versions and are never written by this one; mention it in the PR description (internal caches, no changelog entry).
+- `Deno.Kv` over SQLite with two writer processes: Deno KV retries on a busy database internally.
+  If the two-process test fails on some OS with `database is locked`, that is a pre-existing hazard of today's caches under parallel renders; fix it in `kv.ts` by retrying `kv.set` up to 5 times with a 50 ms pause when the error message contains `database is locked`, and keep the test.
 - `Deno.Kv.list` yields in key order; `KeyValueStore.list` documents the same, and the unit test asserts it so PR 30 keeps it.
-- The `clear()` change alters a code path that previously threw a `TypeError` on the first non-version entry. No test relied on that throw (`grep -rn 'clear()' tests`).
+- The `clear()` change alters a code path that previously threw a `TypeError` on the first non-version entry.
+  No test relied on that throw (`grep -rn 'clear()' tests`).
 - Rollback: revert the four commits; the old index files were never touched, so older behaviour resumes with its caches intact.
 
 ## Decisions needed
 
-None. Not changed because: the review's S7 fix (backend-specific file names) alone would let two runtimes share `<identifierHash>.css` files through separate indexes and serve each other's CSS; renaming the outputs and the Sass index is part of the same fix, decided here rather than deferred to PR 30.
+None.
+Not changed because: the review's S7 fix (backend-specific file names) alone would let two runtimes share `<identifierHash>.css` files through separate indexes and serve each other's CSS; renaming the outputs and the Sass index is part of the same fix, decided here rather than deferred to PR 30.

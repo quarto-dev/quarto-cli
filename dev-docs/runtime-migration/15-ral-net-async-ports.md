@@ -1,34 +1,45 @@
 # PR 15: `deno_ral/net.ts`, async port probing, Jupyter kernel transport on it
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give Quarto its own TCP interface (`connectTcp`, `TcpConnection`, `isPortAvailable`, `findOpenPort`, all async) in `src/deno_ral/net.ts`, make `src/core/port.ts` async on top of it, and move the Jupyter kernel daemon transport off `Deno.connect`/`Deno.Conn`.
-**Phase:** 1. **Depends on:** PR 14b (`tests/smoke/preview/preview-reload.test.ts`, `tests/smoke/jupyter/daemon.test.ts`), PR 08 (`spawn` in `src/deno_ral/process.ts`), PR 09 (`isAddrInUse` in `src/deno_ral/errors.ts`), PR 02 (ratchet; `tests/asserts.ts`). **Unblocks:** PR 16, PR 25, PR 29.
+**Phase:** 1.
+**Depends on:** PR 14b (`tests/smoke/preview/preview-reload.test.ts`, `tests/smoke/jupyter/daemon.test.ts`), PR 08 (`spawn` in `src/deno_ral/process.ts`), PR 09 (`isAddrInUse` in `src/deno_ral/errors.ts`), PR 02 (ratchet; `tests/asserts.ts`).
+**Unblocks:** PR 16, PR 25, PR 29.
 **Branch:** `rt/15-ral-net-async-ports`.
-**Suggested executor:** Opus. The `findOpenPort` sync-to-async change ripples through 15 call sites (8 in `src/`, 7 in `tests/`) in preview, serve, cri and axe, two of which (`withCriClient`, `runPreviewControlService`) are synchronous functions whose callers must be inspected; the kernel read loop is subtle.
-**Size:** M. 1 new module, 1 new test, 14 modified files (`src/core/port.ts`, `src/execute/jupyter/jupyter-kernel.ts`, 7 caller files in `src/`, 3 test files, the rules doc, the baseline).
+**Suggested executor:** Opus.
+The `findOpenPort` sync-to-async change ripples through 15 call sites (8 in `src/`, 7 in `tests/`) in preview, serve, cri and axe, two of which (`withCriClient`, `runPreviewControlService`) are synchronous functions whose callers must be inspected; the kernel read loop is subtle.
+**Size:** M.
+1 new module, 1 new test, 14 modified files (`src/core/port.ts`, `src/execute/jupyter/jupyter-kernel.ts`, 7 caller files in `src/`, 3 test files, the rules doc, the baseline).
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
 
 ### Context
 
-Assessment section 10, finding 1: `src/core/port.ts` probes ports with a synchronous `Deno.listen`, and Node can only bind asynchronously. Assessment section 11, module plan row `net.ts`: own `TcpConnection` (`read`, `write`, `close`); `findOpenPort`/`isPortAvailable` become async; users are `core/port.ts` and `execute/jupyter/jupyter-kernel.ts`. Ground rule 4 of `README.md`: no synchronous network calls in any interface.
+Assessment section 10, finding 1: `src/core/port.ts` probes ports with a synchronous `Deno.listen`, and Node can only bind asynchronously.
+Assessment section 11, module plan row `net.ts`: own `TcpConnection` (`read`, `write`, `close`); `findOpenPort`/`isPortAvailable` become async; users are `core/port.ts` and `execute/jupyter/jupyter-kernel.ts`.
+Ground rule 4 of `README.md`: no synchronous network calls in any interface.
 
-Today `src/core/port.ts` (250 lines) exports `findOpenPort(defaultPort?: number): number` (sync), `isPortAvailableSync(options)`, `getAvailablePortSync(options)` and `waitForPort(options, timeout)` (already async but polling the sync probe). `src/execute/jupyter/jupyter-kernel.ts` calls `Deno.connect` in `denoConnectToKernel` (lines 464–491), types the connection as `Deno.Conn` in `writeKernelCommand` (line 261), `connectToKernel` (line 377) and `denoConnectToKernel` (line 466), and reads the kernel's response in a `conn.read(buffer)` loop at lines 90–133.
+Today `src/core/port.ts` (250 lines) exports `findOpenPort(defaultPort?: number): number` (sync), `isPortAvailableSync(options)`, `getAvailablePortSync(options)` and `waitForPort(options, timeout)` (already async but polling the sync probe).
+`src/execute/jupyter/jupyter-kernel.ts` calls `Deno.connect` in `denoConnectToKernel` (lines 464–491), types the connection as `Deno.Conn` in `writeKernelCommand` (line 261), `connectToKernel` (line 377) and `denoConnectToKernel` (line 466), and reads the kernel's response in a `conn.read(buffer)` loop at lines 90–133.
 
-Test coverage this PR relies on (PR 14b): no other test reaches the kernel daemon transport, because every Jupyter smoke test passes `--no-execute-daemon` and the default (`src/execute/jupyter/jupyter.ts:475-482`, `isInteractiveSession() && !runningInCI()`) is false in CI; `tests/smoke/jupyter/daemon.test.ts` renders twice with `--execute-daemon` and asserts the second render reuses the kernel, then aborts it. `tests/smoke/preview/preview-reload.test.ts` starts `quarto preview --port <p>` (a `waitForPort`/`findOpenPort` caller) and checks the port is released on shutdown.
+Test coverage this PR relies on (PR 14b): no other test reaches the kernel daemon transport, because every Jupyter smoke test passes `--no-execute-daemon` and the default (`src/execute/jupyter/jupyter.ts:475-482`, `isInteractiveSession() && !runningInCI()`) is false in CI; `tests/smoke/jupyter/daemon.test.ts` renders twice with `--execute-daemon` and asserts the second render reuses the kernel, then aborts it.
+`tests/smoke/preview/preview-reload.test.ts` starts `quarto preview --port <p>` (a `waitForPort`/`findOpenPort` caller) and checks the port is released on shutdown.
 
 Port probing semantics change, on purpose: today `findOpenPort()` tries one random safe port, then shuffles all ~4,985 safe ports in [3000, 8000) and probes them in order until one binds (`port.ts:48-73`). After this PR it tries up to 100 random ports per `net.findOpenPort` call and `core/port.ts` repeats that up to 100 times to skip browser-unsafe ports (at most 10,000 random probes). On a machine with almost every port in that range bound, the old code was guaranteed to find the last free one; the new one is probabilistic. That situation does not occur in practice (preview, axe and Chrome each need one port), and both runtimes need an async probe, which makes an exhaustive sequential scan slow.
 
-After this PR, application code imports `src/deno_ral/net.ts`; the implementation inside `net.ts` still uses `Deno.listen`/`Deno.connect` (that is allowed: `src/deno_ral/` is the only place the ratchet exempts). PR 29 reimplements `net.ts` on `node:net` behind the same interface and the same unit test, whose server side already uses `node:net` so it runs unchanged on both runtimes.
+After this PR, application code imports `src/deno_ral/net.ts`; the implementation inside `net.ts` still uses `Deno.listen`/`Deno.connect` (that is allowed: `src/deno_ral/` is the only place the ratchet exempts).
+PR 29 reimplements `net.ts` on `node:net` behind the same interface and the same unit test, whose server side already uses `node:net` so it runs unchanged on both runtimes.
 
 ### Scope
 
 In:
 - `src/deno_ral/net.ts` with the four exports from the shared vocabulary.
 - `src/core/port.ts`: `findOpenPort` and `waitForPort` become async and delegate to `net.ts`; `isPortAvailableSync` and `getAvailablePortSync` are deleted (no caller outside `port.ts`, verified with `grep -rn 'isPortAvailableSync\|getAvailablePortSync' src tests package`).
-- Every caller of `findOpenPort` gets an `await` (15 sites): `src/project/serve/serve.ts:423`, `src/command/call/axe/cmd.ts:401,463`, `src/command/preview/preview-shiny.ts:158`, `src/command/preview/preview.ts:132`, `src/core/previewurl.ts:42`, `src/core/cri/cri.ts:28`, `src/core/cri/launch.ts:253`, `tests/unit/chrome-launch.test.ts:67,99,235,262`, `tests/unit/chrome-launch-flags.test.ts:77`, `tests/smoke/axe/axe-transport-failclosed.test.ts:92,110`. (PR 14b's `preview-reload.test.ts` already writes `await findOpenPort()`.)
+- Every caller of `findOpenPort` gets an `await` (15 sites): `src/project/serve/serve.ts:423`, `src/command/call/axe/cmd.ts:401,463`, `src/command/preview/preview-shiny.ts:158`, `src/command/preview/preview.ts:132`, `src/core/previewurl.ts:42`, `src/core/cri/cri.ts:28`, `src/core/cri/launch.ts:253`, `tests/unit/chrome-launch.test.ts:67,99,235,262`, `tests/unit/chrome-launch-flags.test.ts:77`, `tests/smoke/axe/axe-transport-failclosed.test.ts:92,110`.
+  (PR 14b's `preview-reload.test.ts` already writes `await findOpenPort()`.)
 - The `preview-shiny` control service: pass the probed `port` (today it is dropped and the service binds Deno's default 8000 while printing another port) and bind `kLocalhost` (today `0.0.0.0`, review S8).
 - `src/execute/jupyter/jupyter-kernel.ts` on `TcpConnection`.
 - Unit test `tests/unit/ral/net.test.ts`.
@@ -36,7 +47,8 @@ In:
 Out:
 - `src/resources/extension-subtrees/julia-engine/src/julia-engine.ts` (`Deno.connect` at line 532, `Deno.TcpConn` at 562, `Deno.Conn` at 837): upstream subtree (decision 7 of the review: no in-tree edit; the upstream issue is filed after PRs 08/09 fix the engine API).
 - Removing the >1 KB temp-file workaround in `writeKernelCommand` (kept, see Task 4; PR 29 decides).
-- `Deno.Command("tail")` / `Deno.ChildProcess` at `jupyter-kernel.ts:63-69`: PR 08's codemod of direct `Deno.Command` sites covers it. If PR 08 left it, replace it in Task 4 with `spawn("tail", { args: [...], stdout: "inherit", stderr: "inherit" })` from `src/deno_ral/process.ts` and type the variable as `ChildProcess | undefined`.
+- `Deno.Command("tail")` / `Deno.ChildProcess` at `jupyter-kernel.ts:63-69`: PR 08's codemod of direct `Deno.Command` sites covers it.
+  If PR 08 left it, replace it in Task 4 with `spawn("tail", { args: [...], stdout: "inherit", stderr: "inherit" })` from `src/deno_ral/process.ts` and type the variable as `ChildProcess | undefined`.
 - `waitForPort`'s semantics (it returns `true` when the port is *free*, which callers use to mean "the requested port can be bound"); unchanged.
 
 ### Interfaces
@@ -240,8 +252,7 @@ unitTest("net - findOpenPort honours a free requested port and skips a bound one
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts`
-Expected: fails at type-check (`--check` is on) with `Module not found "file:///.../src/deno_ral/net.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts` Expected: fails at type-check (`--check` is on) with `Module not found "file:///.../src/deno_ral/net.ts"`.
 
 - [ ] **Step 3: Implement `net.ts`**
 
@@ -341,8 +352,7 @@ export async function findOpenPort(
 
 - [ ] **Step 4: Run the test**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts`
-Expected: `.....` then `ok | 5 passed | 0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts` Expected: `.....` then `ok | 5 passed | 0 failed`.
 
 - [ ] **Step 5: Commit**
 
@@ -442,13 +452,14 @@ export async function waitForPort(
 }
 ```
 
-This deletes `isPortAvailableSync`, `getAvailablePortSync`, `getRandomPortSync`, `randomSafePort`, `random`, `withinRange`, the three option interfaces, and the imports of `./lodash.ts` and `./random.ts` (both used only by the deleted code; `grep -n 'ld\.\|randomInt' src/core/port.ts` must print nothing after the edit). `isPortSafe` and its list are byte-for-byte the existing ones (lines 17–39).
+This deletes `isPortAvailableSync`, `getAvailablePortSync`, `getRandomPortSync`, `randomSafePort`, `random`, `withinRange`, the three option interfaces, and the imports of `./lodash.ts` and `./random.ts` (both used only by the deleted code; `grep -n 'ld\.\|randomInt' src/core/port.ts` must print nothing after the edit).
+`isPortSafe` and its list are byte-for-byte the existing ones (lines 17–39).
 
 - [ ] **Step 2: Type-check to list the callers that now fail**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts 2>&1 | grep -E '^error|ERROR' | head -20`
-(On macOS arm64 the tools directory is `aarch64`.)
-Expected: errors (number→Promise<number> mismatches) in exactly these files: `core/previewurl.ts`, `command/preview/preview.ts`, `command/preview/preview-shiny.ts`, `project/serve/serve.ts`, `command/call/axe/cmd.ts`, `core/cri/cri.ts`, `core/cri/launch.ts`. Task 3 fixes them.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts 2>&1 | grep -E '^error|ERROR' | head -20` (On macOS arm64 the tools directory is `aarch64`.)
+Expected: errors (number→Promise<number> mismatches) in exactly these files: `core/previewurl.ts`, `command/preview/preview.ts`, `command/preview/preview-shiny.ts`, `project/serve/serve.ts`, `command/call/axe/cmd.ts`, `core/cri/cri.ts`, `core/cri/launch.ts`.
+Task 3 fixes them.
 
 - [ ] **Step 3: Commit (red state is fine on a feature branch; keep the commit atomic for review)**
 
@@ -501,7 +512,8 @@ git commit -m "core/port: findOpenPort and waitForPort are async on deno_ral/net
 
 - [ ] **Step 2: `withCriClient` in `src/core/cri/cri.ts:22-30`**
 
-The function is synchronous and returns `criSemaphore.runExclusive(...)`, a promise. Move the port lookup inside the exclusive section so the signature stays `Promise<T>`:
+The function is synchronous and returns `criSemaphore.runExclusive(...)`, a promise.
+Move the port lookup inside the exclusive section so the signature stays `Promise<T>`:
 
 ```ts
 export function withCriClient<T>(
@@ -546,11 +558,14 @@ and lines 158–161:
   info(`Preview service running (${port})`);
 ```
 
-Two pre-existing bugs fixed in the same lines: the old call spread `handlerOptions` (`baseDir`, `onRequest`, which `Deno.serve` ignores) and passed no `port`, so the control service bound Deno's default 8000 while printing another port; and it bound `0.0.0.0`, exposing the render/terminate control channel on every interface (review S8). Add `import { kLocalhost } from "../../core/port-consts.ts";` if the file does not already import it (`grep -n kLocalhost src/command/preview/preview-shiny.ts`). PR 16 makes `handleHttpRequests` await the bind before this `info` line.
+Two pre-existing bugs fixed in the same lines: the old call spread `handlerOptions` (`baseDir`, `onRequest`, which `Deno.serve` ignores) and passed no `port`, so the control service bound Deno's default 8000 while printing another port; and it bound `0.0.0.0`, exposing the render/terminate control channel on every interface (review S8).
+Add `import { kLocalhost } from "../../core/port-consts.ts";` if the file does not already import it (`grep -n kLocalhost src/command/preview/preview-shiny.ts`).
+PR 16 makes `handleHttpRequests` await the bind before this `info` line.
 
 - [ ] **Step 4: `externalPreviewServer` in `src/project/serve/serve.ts:389-431`**
 
-The function already returns `Promise<PreviewServer>` but is not declared `async`. Declare it async (the single caller at the top of `serveProject` already awaits it; confirm with `grep -n 'externalPreviewServer(' src/project/serve/serve.ts`) and await the port:
+The function already returns `Promise<PreviewServer>` but is not declared `async`.
+Declare it async (the single caller at the top of `serveProject` already awaits it; confirm with `grep -n 'externalPreviewServer(' src/project/serve/serve.ts`) and await the port:
 
 ```ts
 async function externalPreviewServer(
@@ -589,13 +604,12 @@ If the function body ends with `return Promise.resolve({...})` or a bare object,
 
 - [ ] **Step 6: Type-check and run the touched tests**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
-Expected: no output (exit 0).
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` Expected: no output (exit 0).
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts smoke/axe/axe-transport-failclosed.test.ts smoke/preview/preview-reload.test.ts`
-Expected: `ok | N passed | 0 failed` (Chrome-dependent cases are skipped with a warning when Chrome is absent; `preview-reload` is ignored on Windows).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts smoke/axe/axe-transport-failclosed.test.ts smoke/preview/preview-reload.test.ts` Expected: `ok | N passed | 0 failed` (Chrome-dependent cases are skipped with a warning when Chrome is absent; `preview-reload` is ignored on Windows).
 
-Manual check: `package/dist/bin/quarto preview tests/docs/smoke-all/2023/05/24/5657-raw.qmd --no-browser --port 4321` prints `Browse at http://localhost:4321/`; then run it a second time while the first is still running and expect `ERROR: Requested port 4321 is already in use.` (after the 5 s `waitForPort`). Ctrl-C the first.
+Manual check: `package/dist/bin/quarto preview tests/docs/smoke-all/2023/05/24/5657-raw.qmd --no-browser --port 4321` prints `Browse at http://localhost:4321/`; then run it a second time while the first is still running and expect `ERROR: Requested port 4321 is already in use.` (after the 5 s `waitForPort`).
+Ctrl-C the first.
 
 - [ ] **Step 7: Commit**
 
@@ -650,7 +664,8 @@ async function writeKernelCommand(
 }
 ```
 
-(`makeTempFileSync`/`writeFileSync` come from `src/deno_ral/temp.ts`/`fs.ts` after PR 13's codemod; if the file still reads `Deno.makeTempFileSync`/`Deno.writeFileSync`, keep those two calls as they are: this PR does not add or remove them. The old comment at line 272 contained `Deno.Conn`; the new one names no `Deno.` symbol.)
+(`makeTempFileSync`/`writeFileSync` come from `src/deno_ral/temp.ts`/`fs.ts` after PR 13's codemod; if the file still reads `Deno.makeTempFileSync`/`Deno.writeFileSync`, keep those two calls as they are: this PR does not add or remove them.
+The old comment at line 272 contained `Deno.Conn`; the new one names no `Deno.` symbol.)
 
 - [ ] **Step 3: `connectToKernel` signature (line 374–377) and `denoConnectToKernel` (lines 464–491)**
 
@@ -686,15 +701,15 @@ async function tcpConnectToKernel(
 
 - [ ] **Step 4: The read loop (lines 90–133) needs no change**
 
-`conn.read(buffer)` returning `number | null` is the same contract; verify the loop still compiles unchanged. Only the variable type changed through `connectToKernel`'s return type.
+`conn.read(buffer)` returning `number | null` is the same contract; verify the loop still compiles unchanged.
+Only the variable type changed through `connectToKernel`'s return type.
 
 - [ ] **Step 5: Type-check and run the daemon test**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
-Expected: exit 0.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` Expected: exit 0.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/jupyter/ -name '*.test.ts')`
-Expected: `ok | N passed | 0 failed`. `daemon.test.ts` (PR 14b) is the one that goes through `executeKernelKeepalive` → `connectToKernel` → `tcpConnectToKernel` (first render starts the daemon, second reuses it over the new transport, the last aborts it through `abortKernel` → `writeKernelCommand`); the other Jupyter tests pass `--no-execute-daemon` and only exercise `abortKernel`'s connect attempt.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/jupyter/ -name '*.test.ts')` Expected: `ok | N passed | 0 failed`.
+`daemon.test.ts` (PR 14b) is the one that goes through `executeKernelKeepalive` → `connectToKernel` → `tcpConnectToKernel` (first render starts the daemon, second reuses it over the new transport, the last aborts it through `abortKernel` → `writeKernelCommand`); the other Jupyter tests pass `--no-execute-daemon` and only exercise `abortKernel`'s connect attempt.
 
 - [ ] **Step 6: Commit**
 
@@ -711,8 +726,7 @@ git commit -m "jupyter-kernel: connect to the kernel daemon through deno_ral/net
 
 - [ ] **Step 1: Update the baseline**
 
-Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline`
-Expected: prints the new, lower count for `src` (8 fewer `Deno.` occurrences: 2 in `port.ts` (`Deno.listen` at 123, `Deno.errors.AddrInUse` at 131), 6 in `jupyter-kernel.ts` (`Deno.Conn` ×3 in signatures, the comment at line 272, `Deno.connect` ×2); 7 if `port.ts:131` was already rewritten by PR 10), `tests` unchanged (`net.test.ts` has no `Deno.`), and rewrites `tools/runtime-boundary-baseline.json`.
+Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline` Expected: prints the new, lower count for `src` (8 fewer `Deno.` occurrences: 2 in `port.ts` (`Deno.listen` at 123, `Deno.errors.AddrInUse` at 131), 6 in `jupyter-kernel.ts` (`Deno.Conn` ×3 in signatures, the comment at line 272, `Deno.connect` ×2); 7 if `port.ts:131` was already rewritten by PR 10), `tests` unchanged (`net.test.ts` has no `Deno.`), and rewrites `tools/runtime-boundary-baseline.json`.
 
 - [ ] **Step 2: Add the module to the rules table**
 
@@ -751,12 +765,17 @@ git commit -m "ratchet baseline after net.ts; document net.ts in deno-ral rules"
 
 ## Risks and rollback
 
-- A missed `await` on `findOpenPort` compiles only if the result is passed where `number | Promise<number>` is accepted (e.g. into a template string); the acceptance grep catches it. Symptom: a URL like `http://localhost:[object Promise]/`.
-- `isPortAvailable` throws on bind errors other than "address in use" (e.g. `EACCES` for ports < 1024 as non-root). Previous behaviour was identical (`throw error`), so nothing changes.
-- `connectTcp.write` now loops on short writes. If a kernel daemon misbehaves on larger single messages, the temp-file path still applies above 1 KB, so behaviour is unchanged for large payloads.
-- Binding the Shiny control service to `127.0.0.1` instead of `0.0.0.0`: a setup that reached the control channel from another host (not a documented use; RStudio calls it locally) stops working. Changelog entry not needed for an unintended exposure; mention it in the PR description.
+- A missed `await` on `findOpenPort` compiles only if the result is passed where `number | Promise<number>` is accepted (e.g. into a template string); the acceptance grep catches it.
+  Symptom: a URL like `http://localhost:[object Promise]/`.
+- `isPortAvailable` throws on bind errors other than "address in use" (e.g. `EACCES` for ports < 1024 as non-root).
+  Previous behaviour was identical (`throw error`), so nothing changes.
+- `connectTcp.write` now loops on short writes.
+  If a kernel daemon misbehaves on larger single messages, the temp-file path still applies above 1 KB, so behaviour is unchanged for large payloads.
+- Binding the Shiny control service to `127.0.0.1` instead of `0.0.0.0`: a setup that reached the control channel from another host (not a documented use; RStudio calls it locally) stops working.
+  Changelog entry not needed for an unintended exposure; mention it in the PR description.
 - Rollback: revert the five commits; no data format or file layout changes.
 
 ## Decisions needed
 
-None. Not changed because: the review noted the port-probing semantics change (exhaustive shuffled scan → random probes); it is kept and documented under Context, since an exhaustive async scan of ~5,000 ports would be slow on both runtimes and no caller needs it.
+None.
+Not changed because: the review noted the port-probing semantics change (exhaustive shuffled scan → random probes); it is kept and documented under Context, since an exhaustive async scan of ~5,000 ports would be slow on both runtimes and no caller needs it.

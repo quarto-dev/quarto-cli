@@ -1,11 +1,15 @@
 # PR 11: Run the fs/temp codemod on `src/command`
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move every plain filesystem and temp-file call in `src/command` from `Deno.*` to `src/deno_ral/fs.ts` / `src/deno_ral/temp.ts` with the codemod, fix the one reported collision by hand, and replace the single `instanceof Deno.errors.NotFound` in `src/command` with `isNotFound`.
-**Phase:** 1. **Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below). **Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
+**Phase:** 1.
+**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below).
+**Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
 **Branch:** `rt/11-codemod-fs-command`.
-**Suggested executor:** Sonnet. Mechanical codemod plus two small hand edits; the review is about reading the diff, not designing anything.
+**Suggested executor:** Sonnet.
+Mechanical codemod plus two small hand edits; the review is about reading the diff, not designing anything.
 **Size:** L by file count, mechanical: 43 of the 59 `src/command` files that use `Deno.*` are rewritten by the codemod (149 replacements, fs and temp, measured by a dry run of PR 09's codemod logic on `b86f98d`); 2 edited by hand.
 **Ships on:** Deno; the existing test suite must stay green.
 
@@ -13,7 +17,8 @@
 
 ### Context
 
-Second of the four codemod PRs (assessment section 11, order of work step 3; PR 09 ships the tool). `src/command` holds the CLI commands (`render/`, `preview/`, `create/`, `use/`, `call/`, `dev-call/`, `inspect/`, `check/`, …) and is the second-largest `Deno.*` user after `src/core`.
+Second of the four codemod PRs (assessment section 11, order of work step 3; PR 09 ships the tool).
+`src/command` holds the CLI commands (`render/`, `preview/`, `create/`, `use/`, `call/`, `dev-call/`, `inspect/`, `check/`, …) and is the second-largest `Deno.*` user after `src/core`.
 
 Measured on `main` at `b86f98d` (2026-10-15) with `grep -rhoE '\bDeno\.[A-Za-z_]+(\.[A-Za-z_]+)?' src/command --include=*.ts | sort | uniq -c | sort -rn` (266 sites in 59 files):
 
@@ -35,7 +40,8 @@ Measured on `main` at `b86f98d` (2026-10-15) with `grep -rhoE '\bDeno\.[A-Za-z_]
 | `Deno.writeFile`, `Deno.stat`, `Deno.realPathSync` (comment in `call/axe/cmd.ts:184`), `Deno.readTextFile`, `Deno.readFile`, `Deno.lstat`, `Deno.chmodSync`, `Deno.errors.NotFound` | 1 each | this PR (the comment stays; it describes why `realPathSync` was not used) |
 | `Deno.version.deno`, `Deno.stdout`, `Deno.stdin.close`, `Deno.listen`, `Deno.execPath`, `Deno.args`, `Deno.CommandOptions`, `Deno.Command` | 1 each | PR 19, PR 08, PR 08, PR 15, PR 08, PR 08, PR 08, PR 08 |
 
-This PR rewrites 149 sites with the codemod (146 fs, 3 temp), 1 collision site and 1 `Deno.errors` site by hand: the `src` ratchet count drops by exactly 151. The comment at `call/axe/cmd.ts:184` (and the other comment lines PR 25 lists) stays.
+This PR rewrites 149 sites with the codemod (146 fs, 3 temp), 1 collision site and 1 `Deno.errors` site by hand: the `src` ratchet count drops by exactly 151.
+The comment at `call/axe/cmd.ts:184` (and the other comment lines PR 25 lists) stays.
 
 Files that need attention beyond the codemod (verified):
 
@@ -57,7 +63,9 @@ Out: `Deno.exit`/`cwd`/`args`/`execPath`/stdio/`Command` (PR 08), `Deno.env` (PR
 
 ### Landing order and conflict protocol
 
-Phase 1 lands in the order 08 → 22 → 10–13 → 14 (README, review finding S10). PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses. Conflicts in this PR are therefore expected and are resolved mechanically, never by hand-merging a codemodded hunk:
+Phase 1 lands in the order 08 → 22 → 10–13 → 14 (README, review finding S10).
+PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses.
+Conflicts in this PR are therefore expected and are resolved mechanically, never by hand-merging a codemodded hunk:
 
 1. `git rebase origin/main`; for every conflicted file under this PR's directories, `git checkout origin/main -- <file>` (reset the file to `main`).
 2. Re-run the codemod on exactly those files: `quarto run --dev tools/codemod-deno-ral.ts --rules <this PR's rules> --file <file> [--file <file>...]`.
@@ -68,7 +76,8 @@ This works because PR 09's collision detection is symbol-based and reuses existi
 
 ### Interfaces
 
-No new interfaces. Alias import used by the hand fix:
+No new interfaces.
+Alias import used by the hand fix:
 
 ```ts
 // src/command/dev-call/pull-git-subtree/cmd.ts
@@ -97,44 +106,42 @@ import { stat as fsStat } from "../../../deno_ral/fs.ts";
 
 ## Plan
 
-Assumes PR 09 landed. In the prescribed order PR 08 and PR 22 have landed (`pandoc.ts` already imports from `deno_ral/process.ts`; that import is unrelated to the `deno_ral/fs.ts` one the codemod adds). Independent of PR 10, 12, 13.
+Assumes PR 09 landed.
+In the prescribed order PR 08 and PR 22 have landed (`pandoc.ts` already imports from `deno_ral/process.ts`; that import is unrelated to the `deno_ral/fs.ts` one the codemod adds).
+Independent of PR 10, 12, 13.
 
 ### Task 1: Dry run and review
 
-README ground rule 7 applies: this PR is generated from fresh `main` the day it is opened and merged the same day; the reviewer named in README "Roles" is booked for that day. PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
+README ground rule 7 applies: this PR is generated from fresh `main` the day it is opened and merged the same day; the reviewer named in README "Roles" is booked for that day.
+PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
 
 
 - [ ] **Step 1: Dry run**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run > /tmp/codemod-command.txt; tail -1 /tmp/codemod-command.txt`
-Expected: `Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped` (measured on `b86f98d`); `git status --short src` is empty.
+Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run > /tmp/codemod-command.txt; tail -1 /tmp/codemod-command.txt` Expected: `Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped` (measured on `b86f98d`); `git status --short src` is empty.
 
 - [ ] **Step 2: Review the report**
 
-Run: `grep -E 'skipped|collision' /tmp/codemod-command.txt`
-Expected exactly:
+Run: `grep -E 'skipped|collision' /tmp/codemod-command.txt` Expected exactly:
 ```
 src/command/dev-call/pull-git-subtree/cmd.ts:91: collision: local binding 'stat' conflicts with deno_ral/fs.ts; left as Deno.*
 ```
 Any other collision line means a local name shadows a layer function; read that file and plan an alias import like Task 3 before continuing.
 
-Run: `grep '→' /tmp/codemod-command.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn`
-Expected: only names from the `fs`/`temp` rule tables (`writeTextFileSync`, `readTextFileSync`, `statSync`, `readDirSync`, …).
+Run: `grep '→' /tmp/codemod-command.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` Expected: only names from the `fs`/`temp` rule tables (`writeTextFileSync`, `readTextFileSync`, `statSync`, `readDirSync`, …).
 
 ### Task 2: Apply the codemod
 
 - [ ] **Step 1: Rewrite**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command | tail -1`
-Expected: `Summary: 107 files scanned, 43 rewritten, 149 replacements, 1 with collisions, 0 skipped`.
+Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command | tail -1` Expected: `Summary: 107 files scanned, 43 rewritten, 149 replacements, 1 with collisions, 0 skipped`.
 
 - [ ] **Step 2: Format and type-check**
 
-Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt`
-Expected: `git diff --stat | tail -1` lists only files under `src/command`.
+Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: `git diff --stat | tail -1` lists only files under `src/command`.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors. A `FileInfo` member error would mean a caller reads a field the layer's `FileInfo` lacks (`src/command` reads `isFile`, `isDirectory`, `mtime`, `size`): stop and raise it on PR 09's vocabulary rather than casting.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+A `FileInfo` member error would mean a caller reads a field the layer's `FileInfo` lacks (`src/command` reads `isFile`, `isDirectory`, `mtime`, `size`): stop and raise it on PR 09's vocabulary rather than casting.
 
 - [ ] **Step 3: Commit**
 
@@ -150,7 +157,8 @@ git commit -m "command: codemod Deno fs/temp calls to deno_ral (mechanical)"
 
 - [ ] **Step 1: `src/command/dev-call/pull-git-subtree/cmd.ts`**
 
-The file now imports nothing from `deno_ral/fs.ts` for `stat` (blocked). Add `import { stat as fsStat } from "../../../deno_ral/fs.ts";` (merge into the existing `deno_ral/fs.ts` import if the codemod created one for `existsSync`/other names) and change line 91:
+The file now imports nothing from `deno_ral/fs.ts` for `stat` (blocked).
+Add `import { stat as fsStat } from "../../../deno_ral/fs.ts";` (merge into the existing `deno_ral/fs.ts` import if the codemod created one for `existsSync`/other names) and change line 91:
 
 ```ts
     const stat = await fsStat(prefixPath);
@@ -158,7 +166,8 @@ The file now imports nothing from `deno_ral/fs.ts` for `stat` (blocked). Add `im
 
 - [ ] **Step 2: `src/command/render/pandoc.ts`**
 
-Add `import { isNotFound } from "../../deno_ral/errors.ts";`. Replace line 1648:
+Add `import { isNotFound } from "../../deno_ral/errors.ts";`.
+Replace line 1648:
 
 ```ts
           if (!isNotFound(err)) {
@@ -168,11 +177,9 @@ Add `import { isNotFound } from "../../deno_ral/errors.ts";`. Replace line 1648:
 
 - [ ] **Step 3: Verify and commit**
 
-Run: `rg -n 'Deno\.errors|Deno\.stat\(' src/command -g '*.ts'`
-Expected: empty.
+Run: `rg -n 'Deno\.errors|Deno\.stat\(' src/command -g '*.ts'` Expected: empty.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 ```bash
 git add src/command/dev-call/pull-git-subtree/cmd.ts src/command/render/pandoc.ts
@@ -183,23 +190,20 @@ git commit -m "command: resolve stat collision and use isNotFound in pandoc font
 
 - [ ] **Step 1: Unit tests that exercise `src/command`**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/render/ -name '*.test.ts') $(find unit/latexmk/ -name '*.test.ts') unit/axe-config.test.ts unit/axe-artifacts.test.ts unit/axe-postrender.test.ts unit/axe-mode-discovery.test.ts unit/preview-compatibility.test.ts unit/preview-initial-path.test.ts unit/preview-external-links.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/chrome-launch.test.ts unit/render-shared-output-dir.test.ts unit/single-file-input-abs-12401.test.ts unit/typst-fonts.test.ts unit/print-call-r-diagnostics.test.ts`
-Expected: `0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/render/ -name '*.test.ts') $(find unit/latexmk/ -name '*.test.ts') unit/axe-config.test.ts unit/axe-artifacts.test.ts unit/axe-postrender.test.ts unit/axe-mode-discovery.test.ts unit/preview-compatibility.test.ts unit/preview-initial-path.test.ts unit/preview-external-links.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/chrome-launch.test.ts unit/render-shared-output-dir.test.ts unit/single-file-input-abs-12401.test.ts unit/typst-fonts.test.ts unit/print-call-r-diagnostics.test.ts` Expected: `0 failed`.
 
 - [ ] **Step 2: Smoke tests for the commands whose files changed**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-docx.test.ts smoke/render/render-pdf.test.ts smoke/render/render-templates.test.ts smoke/render/render-output-dir.test.ts smoke/render/render-cli-metadata-file.test.ts $(find smoke/create/ -name '*.test.ts') $(find smoke/use/ -name '*.test.ts') $(find smoke/use-brand/ -name '*.test.ts') $(find smoke/inspect/ -name '*.test.ts') $(find smoke/check/ -name '*.test.ts') $(find smoke/build-ts-extension/ -name '*.test.ts') $(find smoke/typst-gather/ -name '*.test.ts') smoke/crossref/figures.test.ts $(find smoke/convert/ -name '*.test.ts') smoke/filters/editor-support.test.ts smoke/axe/axe-exit-codes.test.ts $(find smoke/run/ -name '*.test.ts') smoke/project/project-simple.test.ts`
-Expected: `0 failed`. (`render-pdf.test.ts` needs TinyTeX; if it is skipped for prerequisites, that is acceptable, note it in the PR.)
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-docx.test.ts smoke/render/render-pdf.test.ts smoke/render/render-templates.test.ts smoke/render/render-output-dir.test.ts smoke/render/render-cli-metadata-file.test.ts $(find smoke/create/ -name '*.test.ts') $(find smoke/use/ -name '*.test.ts') $(find smoke/use-brand/ -name '*.test.ts') $(find smoke/inspect/ -name '*.test.ts') $(find smoke/check/ -name '*.test.ts') $(find smoke/build-ts-extension/ -name '*.test.ts') $(find smoke/typst-gather/ -name '*.test.ts') smoke/crossref/figures.test.ts $(find smoke/convert/ -name '*.test.ts') smoke/filters/editor-support.test.ts smoke/axe/axe-exit-codes.test.ts $(find smoke/run/ -name '*.test.ts') smoke/project/project-simple.test.ts` Expected: `0 failed`.
+(`render-pdf.test.ts` needs TinyTeX; if it is skipped for prerequisites, that is acceptable, note it in the PR.)
 
 - [ ] **Step 3: Manual check of the one order-sensitive output**
 
-Run: `package/dist/bin/quarto capabilities | python3 -c "import json,sys; t=json.load(sys.stdin)['themes']; print(t[:5], t[1:] == sorted(t[1:]))"`
-Expected: `['default', 'cerulean', 'cosmo', 'cyborg', 'darkly'] True` (`"default"` is pushed first by `capabilities.ts:73`; the directory entries after it are now sorted).
+Run: `package/dist/bin/quarto capabilities | python3 -c "import json,sys; t=json.load(sys.stdin)['themes']; print(t[:5], t[1:] == sorted(t[1:]))"` Expected: `['default', 'cerulean', 'cosmo', 'cyborg', 'darkly'] True` (`"default"` is pushed first by `capabilities.ts:73`; the directory entries after it are now sorted).
 
 - [ ] **Step 4: Ratchet**
 
-Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts`
-Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 151 and no increase in any scope.
+Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 151 and no increase in any scope.
 
 - [ ] **Step 5: Commit**
 
@@ -233,4 +237,6 @@ git commit -m "Lower runtime boundary baseline after command fs/temp codemod"
 
 ## Decisions needed
 
-None. Review items closed here: counts (43 files / 149 replacements), the comment-matching grep (AST dry run plus comment-filtered `rg`), the predicted `stat` collision, landing order and the reset-and-re-run protocol. `quarto-latexmk.ts` is no longer described as a sidecar this PR keeps working (decision 9).
+None.
+Review items closed here: counts (43 files / 149 replacements), the comment-matching grep (AST dry run plus comment-filtered `rg`), the predicted `stat` collision, landing order and the reset-and-re-run protocol.
+`quarto-latexmk.ts` is no longer described as a sidecar this PR keeps working (decision 9).

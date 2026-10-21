@@ -1,35 +1,48 @@
 # PR 17: `deno_ral/watch.ts`; polling watcher and serve watcher on it
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add `src/deno_ral/watch.ts` (`FsEvent`, `FsWatcher`, `watchFs`) on `Deno.watchFs`, and retype the three consumers (`src/core/quarto.ts`, `src/core/watch.ts`, `src/project/serve/watch.ts`) so no `Deno.watchFs`/`Deno.FsEvent` remains outside the layer.
-**Phase:** 1. **Depends on:** PR 09 (`src/deno_ral/temp.ts`; `fs.ts` `canonicalPathSync`, `writeTextFileSync`, `removeSync`), PR 14b (`tests/smoke/preview/preview-reload.test.ts`), PR 02 (ratchet; `tests/asserts.ts`). **Unblocks:** PR 25, PR 29.
+**Phase:** 1.
+**Depends on:** PR 09 (`src/deno_ral/temp.ts`; `fs.ts` `canonicalPathSync`, `writeTextFileSync`, `removeSync`), PR 14b (`tests/smoke/preview/preview-reload.test.ts`), PR 02 (ratchet; `tests/asserts.ts`).
+**Unblocks:** PR 25, PR 29.
 **Branch:** `rt/17-ral-watch`.
-**Suggested executor:** Sonnet. One small module, one kind-mapping, three type edits; mechanical once the interface is fixed.
-**Size:** S. 1 new module, 1 new test, 3 modified source files, baseline, rules doc.
+**Suggested executor:** Sonnet.
+One small module, one kind-mapping, three type edits; mechanical once the interface is fixed.
+**Size:** S.
+1 new module, 1 new test, 3 modified source files, baseline, rules doc.
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
 
 ### Context
 
-Assessment section 3.3 lists `Deno.watchFs`/`Deno.FsEvent` as used by `src/core/quarto.ts`, `src/core/watch.ts` and `src/project/serve/watch.ts`; Node replacement is `fs.watch({ recursive: true })` (Linux support since Node 20) or `@parcel/watcher`. Section 11 module plan row `watch.ts`: own `FsEvent` type; `core/watch.ts` (polling watcher) and `project/serve/watch.ts` adopt it.
+Assessment section 3.3 lists `Deno.watchFs`/`Deno.FsEvent` as used by `src/core/quarto.ts`, `src/core/watch.ts` and `src/project/serve/watch.ts`; Node replacement is `fs.watch({ recursive: true })` (Linux support since Node 20) or `@parcel/watcher`.
+Section 11 module plan row `watch.ts`: own `FsEvent` type; `core/watch.ts` (polling watcher) and `project/serve/watch.ts` adopt it.
 
 Verified sites (`main` at `b86f98d`):
 
-- `src/core/quarto.ts:94`: `const watcher = Deno.watchFs([srcDir], { recursive: true });` inside `previewMonitorResources`, dev-mode only (`quartoConfig.isDebug()`), iterating `event.paths` and looking for `.ts` changes to terminate the preview. It is the only native watcher.
-- `src/core/watch.ts:12,14`: `export interface PollingFsWatcher extends AsyncIterable<Deno.FsEvent> { close; [Symbol.asyncIterator](): AsyncIterableIterator<Deno.FsEvent> }`; `watchForFileChanges` yields `{ kind: "create" | "modify", paths }` by polling mtimes. It never calls `Deno.watchFs`.
-- `src/project/serve/watch.ts:110`: `handleWatchEvent = async (event: Deno.FsEvent)`; it reads `event.paths` and checks `["modify", "create"].includes(event.kind)` (line 128). The watcher it consumes (line 342) is `watchForFileChanges`.
+- `src/core/quarto.ts:94`: `const watcher = Deno.watchFs([srcDir], { recursive: true });` inside `previewMonitorResources`, dev-mode only (`quartoConfig.isDebug()`), iterating `event.paths` and looking for `.ts` changes to terminate the preview.
+  It is the only native watcher.
+- `src/core/watch.ts:12,14`: `export interface PollingFsWatcher extends AsyncIterable<Deno.FsEvent> { close; [Symbol.asyncIterator](): AsyncIterableIterator<Deno.FsEvent> }`; `watchForFileChanges` yields `{ kind: "create" | "modify", paths }` by polling mtimes.
+  It never calls `Deno.watchFs`.
+- `src/project/serve/watch.ts:110`: `handleWatchEvent = async (event: Deno.FsEvent)`; it reads `event.paths` and checks `["modify", "create"].includes(event.kind)` (line 128).
+  The watcher it consumes (line 342) is `watchForFileChanges`.
 - `src/command/preview/preview.ts:678-683` consumes `watchForFileChanges` and checks `event.kind === "modify"`; no `Deno.` reference, compiles unchanged once `PollingFsWatcher` yields `FsEvent`.
 
-So the serve and preview watchers are polling and only emit `create`/`modify`; rename/remove semantics of the native watcher matter to no consumer today. Deno's `FsEvent.kind` is `"any" | "access" | "create" | "modify" | "rename" | "remove" | "other"`. The layer's `FsEvent.kind` (vocabulary) is `"create" | "modify" | "remove" | "rename" | "other"`; `"any"` and `"access"` map to `"other"`.
+So the serve and preview watchers are polling and only emit `create`/`modify`; rename/remove semantics of the native watcher matter to no consumer today.
+Deno's `FsEvent.kind` is `"any" | "access" | "create" | "modify" | "rename" | "remove" | "other"`.
+The layer's `FsEvent.kind` (vocabulary) is `"create" | "modify" | "remove" | "rename" | "other"`; `"any"` and `"access"` map to `"other"`.
 
-Coverage: `tests/smoke/preview/preview-reload.test.ts` (PR 14b) edits a document under `quarto preview` and waits for `reload`, which goes through `watchForFileChanges` → `PollingFsWatcher` → `preview.ts:678-683`. The native watcher in `quarto.ts` is dev-mode only and checked manually (Task 2 step 4).
+Coverage: `tests/smoke/preview/preview-reload.test.ts` (PR 14b) edits a document under `quarto preview` and waits for `reload`, which goes through `watchForFileChanges` → `PollingFsWatcher` → `preview.ts:678-683`.
+The native watcher in `quarto.ts` is dev-mode only and checked manually (Task 2 step 4).
 
 ### Scope
 
 In: `watch.ts`, its unit test, the three consumers, baseline, rules table.
-Out: `Deno.statSync` at `src/core/watch.ts:39,74` and `Deno.readTextFileSync` at `src/project/serve/watch.ts:138,192` (PR 10/PR 12 codemods). The polling strategy of `watchForFileChanges` (unchanged; it stays a polling watcher because inotify limits and network drives made native watching unreliable for project inputs).
+Out: `Deno.statSync` at `src/core/watch.ts:39,74` and `Deno.readTextFileSync` at `src/project/serve/watch.ts:138,192` (PR 10/PR 12 codemods).
+The polling strategy of `watchForFileChanges` (unchanged; it stays a polling watcher because inotify limits and network drives made native watching unreliable for project inputs).
 
 ### Interfaces
 
@@ -228,12 +241,12 @@ unitTest("watch - watching a missing path throws", async () => {
 });
 ```
 
-(The last test leaves an empty temp directory; the OS temp cleanup removes it. It uses a path under a fresh temp dir so it is missing on every OS, including Windows where `/definitely/...` is drive-relative.)
+(The last test leaves an empty temp directory; the OS temp cleanup removes it.
+It uses a path under a fresh temp dir so it is missing on every OS, including Windows where `/definitely/...` is drive-relative.)
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/watch.test.ts`
-Expected: type-check error `Module not found "file:///.../src/deno_ral/watch.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/watch.test.ts` Expected: type-check error `Module not found "file:///.../src/deno_ral/watch.ts"`.
 
 - [ ] **Step 3: Implement `watch.ts`**
 
@@ -302,8 +315,8 @@ export function watchFs(
 
 - [ ] **Step 4: Run the test**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/watch.test.ts`
-Expected: `...` then `ok | 3 passed | 0 failed`. On macOS the first event for a new file may be `create` followed by `modify`; the test tolerates either order.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/watch.test.ts` Expected: `...` then `ok | 3 passed | 0 failed`.
+On macOS the first event for a new file may be `create` followed by `modify`; the test tolerates either order.
 
 - [ ] **Step 5: Commit**
 
@@ -347,7 +360,8 @@ import { sleep } from "./async.ts";
 export type PollingFsWatcher = FsWatcher;
 ```
 
-(Keep any other import the file has today; `grep -n '^import' src/core/watch.ts` before and after.) In the generator body (lines 87–99) annotate the yielded literals so the narrowed kind type-checks:
+(Keep any other import the file has today; `grep -n '^import' src/core/watch.ts` before and after.)
+In the generator body (lines 87–99) annotate the yielded literals so the narrowed kind type-checks:
 
 ```ts
           if (created.length > 0) {
@@ -374,11 +388,9 @@ Line 110:
 
 - [ ] **Step 4: Type-check and run the consumers' tests**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts`
-Expected: exit 0.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --import-map=import_map.json quarto.ts` Expected: exit 0.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts`
-Expected: `ok | N passed | 0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/preview/preview-reload.test.ts unit/preview-compatibility.test.ts` Expected: `ok | N passed | 0 failed`.
 
 Manual (dev-mode src watcher, the one native watcher): `package/dist/bin/quarto preview tests/docs/smoke-all/2023/05/24/5657-raw.qmd --no-browser`, then `touch src/core/watch.ts`; the preview prints `quarto src code changed: preview terminating` and exits with code 1 (the pre-existing behaviour of `terminatePreview`).
 
@@ -423,8 +435,10 @@ git commit -m "ratchet baseline after watch.ts; document watch.ts"
 
 ## Risks and rollback
 
-- The unit test depends on OS notification latency; the 5 s timeout and the 200 ms registration delay follow what Deno's own `watchFs` tests use. If it flakes on CI macOS, raise `kEventTimeoutMs` to 10000 rather than disabling the test (see `dev-docs/debugging-flaky-tests.md`).
-- Phase 2: `fs.watch` recursive on Deno has an open issue (denoland/deno#36937: a watcher reopened on a recreated directory gets no events); Spike #2 covers it. The polling watchers that serve and preview use are unaffected.
+- The unit test depends on OS notification latency; the 5 s timeout and the 200 ms registration delay follow what Deno's own `watchFs` tests use.
+  If it flakes on CI macOS, raise `kEventTimeoutMs` to 10000 rather than disabling the test (see `dev-docs/debugging-flaky-tests.md`).
+- Phase 2: `fs.watch` recursive on Deno has an open issue (denoland/deno#36937: a watcher reopened on a recreated directory gets no events); Spike #2 covers it.
+  The polling watchers that serve and preview use are unaffected.
 - Rollback: revert three commits.
 
 ## Decisions needed

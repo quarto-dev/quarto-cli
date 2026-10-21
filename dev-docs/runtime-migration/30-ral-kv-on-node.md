@@ -1,34 +1,60 @@
 # PR 30: `kv.ts` as a locked JSON index (`<name>.json`); drop `--unstable-kv` from Quarto's own launchers
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the `Deno.Kv`-backed `src/deno_ral/kv.ts` with a JSON index file per store (`<dir>/<name>.json`, a file name no Deno-based Quarto ever opens), written under a lock directory with per-key merge and atomic replacement, so parallel renders, preview plus render, and Quarto versions on either runtime share cache directories without losing or corrupting entries; then remove `--unstable-kv` from Quarto's own launchers and test runners.
-**Phase:** 2. **Depends on:** PR 18 (`openKeyValueStore(dir, name)`, both caches on it, the cross-handle and cross-process contract cases), PR 25 (boundary at zero), PR 26 (shim, `node-unit` job, `tests/unit/ral/layer-script.ts`), PR 27b (`runtime()` correct inside the test bundles, which `layer-script.ts` relies on). **Unblocks:** PR 31, 32.
+**Phase:** 2.
+**Depends on:** PR 18 (`openKeyValueStore(dir, name)`, both caches on it, the cross-handle and cross-process contract cases), PR 25 (boundary at zero), PR 26 (shim, `node-unit` job, `tests/unit/ral/layer-script.ts`), PR 27b (`runtime()` correct inside the test bundles, which `layer-script.ts` relies on).
+**Unblocks:** PR 31, 32.
 **Branch:** `rt/30-ral-kv-on-node`.
-**Suggested executor:** Opus. The store is small, but the lock, its stale-owner policy and the cross-version file layout need judgement; the flag removal is a grep.
+**Suggested executor:** Opus.
+The store is small, but the lock, its stale-owner policy and the cross-version file layout need judgement; the flag removal is a grep.
 **Size:** M by file count (about 17 files: the three launchers and `package/launcher/src/main.rs` among them), S by new code (1 source file rewritten, 1 test file and 1 fixture added, 11 flag sites, shim shrink).
-**Ships on:** Deno; the existing suite, in particular `unit/sass-cache.test.ts` and `smoke/render/`, must stay green. Node: the PR 26 `node-unit` job runs `tests/unit/ral/kv.test.ts` and `kv-json.test.ts` on real Node (Linux, Windows); their entries in `tools/node-bundle/known-failures.json` are removed and none is added.
+**Ships on:** Deno; the existing suite, in particular `unit/sass-cache.test.ts` and `smoke/render/`, must stay green.
+Node: the PR 26 `node-unit` job runs `tests/unit/ral/kv.test.ts` and `kv-json.test.ts` on real Node (Linux, Windows); their entries in `tools/node-bundle/known-failures.json` are removed and none is added.
 
 ## Spec
 
 ### Context
 
-Assessment section 3.3: `Deno.openKv` (unstable) backs two small key → file-hash indexes, the project cache (`src/core/cache/cache.ts`) and the Sass cache (`src/core/sass/cache.ts`); "a JSON index file with atomic writes is sufficient; `node:sqlite` … if a real store is wanted". Section 11 module row `kv.ts`: "Deno implementation wraps `Deno.Kv` today; the Node one is a JSON index or `node:sqlite`."
+Assessment section 3.3: `Deno.openKv` (unstable) backs two small key → file-hash indexes, the project cache (`src/core/cache/cache.ts`) and the Sass cache (`src/core/sass/cache.ts`); "a JSON index file with atomic writes is sufficient; `node:sqlite` … if a real store is wanted".
+Section 11 module row `kv.ts`: "Deno implementation wraps `Deno.Kv` today; the Node one is a JSON index or `node:sqlite`."
 
 Review findings on the earlier draft (S7 and the Phase 2 report), all addressed here:
 
-- **Shared state across Quarto versions.** The Sass cache lives in a user-global, unversioned `quartoCacheDir("sass")` shared by every installed Quarto (the RStudio-bundled copy and the CLI), and the project cache in `.quarto/project-cache` is shared by whichever Quarto renders the project. The draft rewrote the existing file in place as JSON and bumped the cache versions: an older Deno-based Quarto would then throw on open ("newer than supported") or fail `Deno.openKv` on a non-SQLite file, and the draft's "delete a foreign SQLite file" step would destroy the other version's index. Now the **backend chooses the file** (vocabulary): this JSON backend uses `<dir>/<name>.json`, Deno's `Deno.openKv` backend (PR 18, Quarto ≤ 1.11) uses `<dir>/<name>.kv`. Neither ever opens the other's file, so no version bump and no deletion are needed. The two indexes share the blob files next to them (content-hashed names); each cache already tolerates a blob that disappeared (the Sass cache checks the file before a hit, the project cache's `_getAs` drops the key on NotFound), so one version clearing its index costs the other at most a recompute.
-- **"Last writer wins per key" was false.** Read-modify-rename without a lock loses another process's keys and deletes: two processes read the same old file, each writes its own key, the second rename drops the first key. Now every `set`/`delete` takes a lock directory (`<name>.json.lock`), re-reads the file under the lock, applies its single change and replaces the file; verified on Node 22.22 with three processes writing 60 keys each into one store: 180 entries survive.
-- **Windows rename failures.** Antivirus and indexers hold files open briefly; `rename` over such a file fails with `EPERM`/`EACCES`/`EBUSY`. The write retries with backoff (about 1.6 s in total) before failing.
+- **Shared state across Quarto versions.** The Sass cache lives in a user-global, unversioned `quartoCacheDir("sass")` shared by every installed Quarto (the RStudio-bundled copy and the CLI), and the project cache in `.quarto/project-cache` is shared by whichever Quarto renders the project.
+  The draft rewrote the existing file in place as JSON and bumped the cache versions: an older Deno-based Quarto would then throw on open ("newer than supported") or fail `Deno.openKv` on a non-SQLite file, and the draft's "delete a foreign SQLite file" step would destroy the other version's index.
+  Now the **backend chooses the file** (vocabulary): this JSON backend uses `<dir>/<name>.json`, Deno's `Deno.openKv` backend (PR 18, Quarto ≤ 1.11) uses `<dir>/<name>.kv`.
+  Neither ever opens the other's file, so no version bump and no deletion are needed.
+  The two indexes share the blob files next to them (content-hashed names); each cache already tolerates a blob that disappeared (the Sass cache checks the file before a hit, the project cache's `_getAs` drops the key on NotFound), so one version clearing its index costs the other at most a recompute.
+- **"Last writer wins per key" was false.** Read-modify-rename without a lock loses another process's keys and deletes: two processes read the same old file, each writes its own key, the second rename drops the first key.
+  Now every `set`/`delete` takes a lock directory (`<name>.json.lock`), re-reads the file under the lock, applies its single change and replaces the file; verified on Node 22.22 with three processes writing 60 keys each into one store: 180 entries survive.
+- **Windows rename failures.** Antivirus and indexers hold files open briefly; `rename` over such a file fails with `EPERM`/`EACCES`/`EBUSY`.
+  The write retries with backoff (about 1.6 s in total) before failing.
 - **Reads saw only their own process's writes.** The vocabulary's contract test includes "a second handle on the same store sees a committed set": `get`/`list` reload when the file's signature (inode, mtime, size) changed; every write replaces the file, so a committed write always changes it.
 
-Review of 2026-10-16 (`REVIEW-2026-10-16.md` R18, triage bucket C row 30, decision A6), addressed here: the lock treated age as proof of a crashed writer. A process stopped by a debugger, by system sleep or by slow I/O keeps its lock past the threshold while still inside its read-modify-rename; another process broke the lock and entered; the first could resume, rename its stale index over the newer one and remove the second's lock in an unconditional `finally`. The lock now carries an owner marker, a waiter asks the OS whether the owner is alive before breaking, the release and the rename check the marker, and a corrupt index is no longer deleted by readers outside the lock (Interfaces, "Lock ownership"). The plan says what the design gives, best-effort exclusion over a recomputable cache, and not more. The body of Task 2 and the cases of Task 1 were run on Node 22.22 while correcting the plan (numbers in Task 2 Step 2); Deno is covered by the Task 2 run.
+Review of 2026-10-16 (`REVIEW-2026-10-16.md` R18, triage bucket C row 30, decision A6), addressed here: the lock treated age as proof of a crashed writer.
+A process stopped by a debugger, by system sleep or by slow I/O keeps its lock past the threshold while still inside its read-modify-rename; another process broke the lock and entered; the first could resume, rename its stale index over the newer one and remove the second's lock in an unconditional `finally`.
+The lock now carries an owner marker, a waiter asks the OS whether the owner is alive before breaking, the release and the rename check the marker, and a corrupt index is no longer deleted by readers outside the lock (Interfaces, "Lock ownership").
+The plan says what the design gives, best-effort exclusion over a recomputable cache, and not more.
+The body of Task 2 and the cases of Task 1 were run on Node 22.22 while correcting the plan (numbers in Task 2 Step 2); Deno is covered by the Task 2 run.
 
-**Decision: JSON index, not `node:sqlite`.** Both stores hold a few hundred entries at most, values are a hash string plus a type tag or a small `Uint8Array`/string, and the access pattern is read-mostly with occasional single-key writes. `node:sqlite` is still Stability 1.2 in Node 26.12, and a SQLite file would bring back the cross-version format question. Revisit only if a cache grows past tens of thousands of entries.
+**Decision: JSON index, not `node:sqlite`.** Both stores hold a few hundred entries at most, values are a hash string plus a type tag or a small `Uint8Array`/string, and the access pattern is read-mostly with occasional single-key writes.
+`node:sqlite` is still Stability 1.2 in Node 26.12, and a SQLite file would bring back the cross-version format question.
+Revisit only if a cache grows past tens of thousands of entries.
 
-**Decision: an owned lock directory, written here, not the `proper-lockfile` package (triage A6).** `mkdir` is atomic on every OS and on network file systems, which is all `proper-lockfile` relies on, and a dependency for sixty lines is not worth a supply-chain entry. The holder writes its identity into the directory (`<lock>/owner`: pid, host, a random nonce) and keeps the lock for one read-modify-rename (milliseconds). A waiter never breaks the lock of a process the OS reports alive, however old the lock is: a process stopped by a debugger or by system sleep still owns its write. A lock whose owner is gone is broken at once; one whose owner cannot be checked (marker not written yet, another host, the liveness probe refused) is broken after 10 s. Breaking is a rename (only one breaker wins); releasing removes the directory only while the marker is still this acquisition's, and the index is renamed into place only while the marker still matches, so an owner that resumes after its lock was broken neither overwrites the new state nor deletes the new owner's lock. The package's mtime refresh loop is not copied: a stopped process cannot refresh anything, which is the case the liveness probe covers. Waiting longer than 15 s throws, naming the owner, and a cache write then fails like any other I/O error. What this gives is best-effort exclusion over a recomputable cache, not a guarantee: on a shared file system between machines the probe cannot run and age decides; a pid reused by an unrelated process reads as alive and ends in the 15 s error rather than a broken lock; two processes that both saw the same ownerless stale lock can both break it and, in a window of microseconds, both proceed, costing at worst one lost cache entry (a recompute), never a torn file, because the file is only ever replaced by `rename`.
+**Decision: an owned lock directory, written here, not the `proper-lockfile` package (triage A6).** `mkdir` is atomic on every OS and on network file systems, which is all `proper-lockfile` relies on, and a dependency for sixty lines is not worth a supply-chain entry.
+The holder writes its identity into the directory (`<lock>/owner`: pid, host, a random nonce) and keeps the lock for one read-modify-rename (milliseconds).
+A waiter never breaks the lock of a process the OS reports alive, however old the lock is: a process stopped by a debugger or by system sleep still owns its write.
+A lock whose owner is gone is broken at once; one whose owner cannot be checked (marker not written yet, another host, the liveness probe refused) is broken after 10 s.
+Breaking is a rename (only one breaker wins); releasing removes the directory only while the marker is still this acquisition's, and the index is renamed into place only while the marker still matches, so an owner that resumes after its lock was broken neither overwrites the new state nor deletes the new owner's lock.
+The package's mtime refresh loop is not copied: a stopped process cannot refresh anything, which is the case the liveness probe covers.
+Waiting longer than 15 s throws, naming the owner, and a cache write then fails like any other I/O error.
+What this gives is best-effort exclusion over a recomputable cache, not a guarantee: on a shared file system between machines the probe cannot run and age decides; a pid reused by an unrelated process reads as alive and ends in the 15 s error rather than a broken lock; two processes that both saw the same ownerless stale lock can both break it and, in a window of microseconds, both proceed, costing at worst one lost cache entry (a recompute), never a torn file, because the file is only ever replaced by `rename`.
 
-**Decision: one backend on both runtimes.** After this PR the Deno build also uses the JSON store (it runs on `node:fs`), so `Deno.Kv` leaves Quarto entirely and the `--unstable-kv` flag goes from the launchers, `quarto-bld`, `package/src/util/deno.ts` and the test runners. Users of a Deno-based Quarto (1.11 and earlier) keep their `<name>.kv` files untouched; the first render with this build starts a `<name>.json` index (one cold cache).
+**Decision: one backend on both runtimes.** After this PR the Deno build also uses the JSON store (it runs on `node:fs`), so `Deno.Kv` leaves Quarto entirely and the `--unstable-kv` flag goes from the launchers, `quarto-bld`, `package/src/util/deno.ts` and the test runners.
+Users of a Deno-based Quarto (1.11 and earlier) keep their `<name>.kv` files untouched; the first render with this build starts a `<name>.json` index (one cold cache).
 
 ### Scope
 
@@ -75,16 +101,30 @@ export interface IndexLock {
 export function lockIndex(indexPath: string): Promise<IndexLock>;
 ```
 
-**Lock ownership.** The lock is the directory `<index>.lock`, taken with `mkdir`. As soon as `mkdir` succeeds the holder writes `<lock>/owner`, one JSON line `{ "pid", "host", "nonce" }` (`process.pid`, `os.hostname()`, 8 random bytes in hex); if that write fails the directory is removed and the error propagates. A waiter that finds the directory reads the marker and probes the owner with `process.kill(pid, 0)` when the host is its own: `ESRCH` means gone, success or `EPERM` means alive, anything else (another host, no marker yet, a runtime that refuses the probe) means unknown. A gone owner's lock is broken immediately; an unknown owner's lock is broken once its directory mtime is older than 10 s; a live owner's lock is waited for at 20 ms intervals, whatever its age. Breaking renames the directory to `<lock>.stale.<pid>.<hex>` and removes it (the loser of the rename sees `ENOENT` and retries). `release()` reads the marker back and removes the directory only when it is still this acquisition's. `assertHeld()` does the same check and throws `Error("Lost the lock …")`; the store calls it after writing its temporary file and before the `rename`, so an owner whose lock was broken removes its temporary file and fails that one write instead of overwriting the newer index. After 15 s of waiting the acquisition throws `Error("Timed out after 15000 ms waiting for <lock> held by pid <n> on <host>; delete it if no Quarto is running")`. No code path refreshes the directory's mtime while the lock is held, and nothing outside the lock deletes an index file.
+**Lock ownership.** The lock is the directory `<index>.lock`, taken with `mkdir`.
+As soon as `mkdir` succeeds the holder writes `<lock>/owner`, one JSON line `{ "pid", "host", "nonce" }` (`process.pid`, `os.hostname()`, 8 random bytes in hex); if that write fails the directory is removed and the error propagates.
+A waiter that finds the directory reads the marker and probes the owner with `process.kill(pid, 0)` when the host is its own: `ESRCH` means gone, success or `EPERM` means alive, anything else (another host, no marker yet, a runtime that refuses the probe) means unknown.
+A gone owner's lock is broken immediately; an unknown owner's lock is broken once its directory mtime is older than 10 s; a live owner's lock is waited for at 20 ms intervals, whatever its age.
+Breaking renames the directory to `<lock>.stale.<pid>.<hex>` and removes it (the loser of the rename sees `ENOENT` and retries).
+`release()` reads the marker back and removes the directory only when it is still this acquisition's.
+`assertHeld()` does the same check and throws `Error("Lost the lock …")`; the store calls it after writing its temporary file and before the `rename`, so an owner whose lock was broken removes its temporary file and fails that one write instead of overwriting the newer index.
+After 15 s of waiting the acquisition throws `Error("Timed out after 15000 ms waiting for <lock> held by pid <n> on <host>; delete it if no Quarto is running")`.
+No code path refreshes the directory's mtime while the lock is held, and nothing outside the lock deletes an index file.
 
 Behaviour made precise:
 
-- **Files:** the index `<dir>/<name>.json`; while a write is in progress, the lock directory `<dir>/<name>.json.lock` holding the one file `owner`, and a temporary `<dir>/<name>.json.<pid>.<8 hex>.tmp`; while a stale lock is being broken, `<dir>/<name>.json.lock.stale.<pid>.<8 hex>` for the duration of its removal. Nothing else is created; `<dir>/<name>.kv` and its `-wal`/`-shm` files are never opened or removed.
-- **Format:** `{ "format": 1, "entries": { "<JSON key>": <encoded value>, ... } }`. The key string is `JSON.stringify(key)`. `Uint8Array` values are encoded as `{ "$bytes": "<base64>" }` (recursively inside plain objects and arrays); functions, symbols and bigints throw `TypeError` at `set`.
-- **Writes (`set`, `delete`):** take the lock (`lockIndex`: create the lock directory and write the owner marker; on `EEXIST` apply the stale-owner policy above, wait 20 ms and retry; throw after 15 s), re-read the index, apply the one change, write the temporary file, check the lock is still held, `rename` the temporary file over the index (on Windows, retry `EPERM`/`EACCES`/`EBUSY` with backoff 10 ms doubling to 500 ms, eight retries), release the lock if still held. Two processes writing different keys both persist; a writer whose lock was broken and retaken fails that write with the "Lost the lock" error and leaves the new owner's lock and index alone.
+- **Files:** the index `<dir>/<name>.json`; while a write is in progress, the lock directory `<dir>/<name>.json.lock` holding the one file `owner`, and a temporary `<dir>/<name>.json.<pid>.<8 hex>.tmp`; while a stale lock is being broken, `<dir>/<name>.json.lock.stale.<pid>.<8 hex>` for the duration of its removal.
+  Nothing else is created; `<dir>/<name>.kv` and its `-wal`/`-shm` files are never opened or removed.
+- **Format:** `{ "format": 1, "entries": { "<JSON key>": <encoded value>, ... } }`.
+  The key string is `JSON.stringify(key)`.
+  `Uint8Array` values are encoded as `{ "$bytes": "<base64>" }` (recursively inside plain objects and arrays); functions, symbols and bigints throw `TypeError` at `set`.
+- **Writes (`set`, `delete`):** take the lock (`lockIndex`: create the lock directory and write the owner marker; on `EEXIST` apply the stale-owner policy above, wait 20 ms and retry; throw after 15 s), re-read the index, apply the one change, write the temporary file, check the lock is still held, `rename` the temporary file over the index (on Windows, retry `EPERM`/`EACCES`/`EBUSY` with backoff 10 ms doubling to 500 ms, eight retries), release the lock if still held.
+  Two processes writing different keys both persist; a writer whose lock was broken and retaken fails that write with the "Lost the lock" error and leaves the new owner's lock and index alone.
 - **Reads (`get`, `list`):** from memory, reloaded first when the index file's inode, mtime or size changed since the last load, so a second handle (or process) sees a committed write.
-- **`list(prefix)` ordering:** keys sorted element-wise; at each position strings sort before numbers (Deno KV order), strings by code unit, numbers numerically; a key that is a strict prefix of another sorts first. `list([])` lists everything.
-- **A corrupt index** (not JSON, or JSON without `"format": 1`) reads as empty; readers leave the file in place (they run outside the lock, and a reader's `rm` could follow a writer's `rename` and delete a good index), and the next write replaces it under the lock. This store never writes a partial file itself.
+- **`list(prefix)` ordering:** keys sorted element-wise; at each position strings sort before numbers (Deno KV order), strings by code unit, numbers numerically; a key that is a strict prefix of another sorts first.
+  `list([])` lists everything.
+- **A corrupt index** (not JSON, or JSON without `"format": 1`) reads as empty; readers leave the file in place (they run outside the lock, and a reader's `rm` could follow a writer's `rename` and delete a good index), and the next write replaces it under the lock.
+  This store never writes a partial file itself.
 - **`close()`** flushes nothing (every write already reached the disk) and marks the store closed: later calls throw `Error("Key-value store <path> is closed")`; `close()` is idempotent (PR 18 contract).
 
 ### Files
@@ -343,8 +383,8 @@ unitTest("kv - a corrupt index reads as empty, is left alone by readers and repl
 
 - [ ] **Step 3: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv-json.test.ts`
-Expected on the PR 18 (`Deno.Kv`) body: the first case fails (no `sass.json`; the file is `sass.kv` and is opened as SQLite), the three lock cases fail (no lock is taken; `lockIndex` does not exist, so the file does not even type-check until Task 2: run the others with the third case commented out). The cross-process case may pass on `Deno.Kv` (SQLite handles it): it is the contract the JSON store must keep.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv-json.test.ts` Expected on the PR 18 (`Deno.Kv`) body: the first case fails (no `sass.json`; the file is `sass.kv` and is opened as SQLite), the three lock cases fail (no lock is taken; `lockIndex` does not exist, so the file does not even type-check until Task 2: run the others with the third case commented out).
+The cross-process case may pass on `Deno.Kv` (SQLite handles it): it is the contract the JSON store must keep.
 
 - [ ] **Step 4: Commit the tests**
 
@@ -779,7 +819,9 @@ Run:
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv.test.ts unit/ral/kv-json.test.ts unit/sass-cache.test.ts; cd ..
 node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/kv.test.ts tests/unit/ral/kv-json.test.ts
 ```
-Expected: green on Deno; on Node, `now passes on Node …` for the `kv` entries (removed in Task 5) and no new failure. The Deno run is also the check that Deno's `node:process` accepts `process.kill(pid, 0)`: if it throws, the owner reads as unknown, the 60 s old lock of the live owner is broken by age and the R18 live-owner case fails; then port the probe to `Deno.kill(pid, 0)` behind `runtime()` rather than weakening the test. (The body above and the nine cases, transliterated to `node:test`, were run on Node 22.22 while correcting the plan: three processes, 60 keys each, 180 entries, no leftover files, three runs in a row; an ownerless 60 s old lock broken in 2 ms; a live lock waited for 311 ms; the 60 s old lock of a live pid waited for 309 ms; a fresh lock of a dead pid broken in 1 ms; a lock held by a live pid that never releases threw after 15005 ms with the owner named.)
+Expected: green on Deno; on Node, `now passes on Node …` for the `kv` entries (removed in Task 5) and no new failure.
+The Deno run is also the check that Deno's `node:process` accepts `process.kill(pid, 0)`: if it throws, the owner reads as unknown, the 60 s old lock of the live owner is broken by age and the R18 live-owner case fails; then port the probe to `Deno.kill(pid, 0)` behind `runtime()` rather than weakening the test.
+(The body above and the nine cases, transliterated to `node:test`, were run on Node 22.22 while correcting the plan: three processes, 60 keys each, 180 entries, no leftover files, three runs in a row; an ownerless 60 s old lock broken in 2 ms; a live lock waited for 311 ms; the 60 s old lock of a live pid waited for 309 ms; a fresh lock of a dead pid broken in 1 ms; a lock held by a live pid that never releases threw after 15005 ms with the owner named.)
 
 - [ ] **Step 3: Commit**
 
@@ -806,7 +848,9 @@ ls /tmp/rt30/.quarto/project-cache/
 sha256sum -c /tmp/rt30-before.sha
 quarto render /tmp/rt30
 ```
-Expected: the installed release (a Deno build) renders; this build renders next to it and adds `<name>.json` to `.quarto/project-cache/`; `sha256sum -c` prints `OK` for every file the release wrote (untouched); the release renders again without a cache error or warning. For the Sass cache, `QUARTO_LOG_LEVEL=DEBUG package/dist/bin/quarto render /tmp/rt30 2>&1 | grep "Creating SassCache at"` prints its directory; list it and check that `sass.kv` (from the release) and `sass.json` (from this build) both exist, that `sass.kv`'s checksum is unchanged, and that the release still renders. If no installed release is available, copy a `sass.kv` from any machine's cache into the directory before rendering: the check is that this build leaves it byte-identical.
+Expected: the installed release (a Deno build) renders; this build renders next to it and adds `<name>.json` to `.quarto/project-cache/`; `sha256sum -c` prints `OK` for every file the release wrote (untouched); the release renders again without a cache error or warning.
+For the Sass cache, `QUARTO_LOG_LEVEL=DEBUG package/dist/bin/quarto render /tmp/rt30 2>&1 | grep "Creating SassCache at"` prints its directory; list it and check that `sass.kv` (from the release) and `sass.json` (from this build) both exist, that `sass.kv`'s checksum is unchanged, and that the release still renders.
+If no installed release is available, copy a `sass.kv` from any machine's cache into the directory before rendering: the check is that this build leaves it byte-identical.
 
 ### Task 4: Remove `--unstable-kv` from Quarto's own launchers and runners
 
@@ -814,8 +858,8 @@ Expected: the installed release (a Deno build) renders; this build renders next 
 
 - [ ] **Step 1: Edit the shell, cmd and Rust sites**
 
-Run: `grep -rn "unstable-kv" package/ tests/ src/ | grep -v node_modules`
-Expected: the sites listed in Scope plus `src/core/run/deno.ts:63`, which stays. For each other line, delete the flag token only:
+Run: `grep -rn "unstable-kv" package/ tests/ src/ | grep -v node_modules` Expected: the sites listed in Scope plus `src/core/run/deno.ts:63`, which stays.
+For each other line, delete the flag token only:
 
 - `package/src/util/deno.ts`: delete both `denoBundleCmd.push("--unstable-kv");` lines (55 and 87 on `main`).
 - `package/src/quarto-bld` (line 21) and `package/src/quarto-bld.cmd` (line 13): remove ` --unstable-kv` from the `deno run` line.
@@ -856,13 +900,12 @@ git commit -m "Drop --unstable-kv from Quarto's launchers and runners (Deno KV n
 
 - [ ] **Step 1: Rebuild, delete `openKv`**
 
-Run: `node tools/node-bundle/build.mjs --check-shim`
-Expected: `openKv` in the `unused` list. Delete `Deno.openKv = ...`, the `Kv` class and the `freeze`/`revive` helpers; rebuild; `0 missing`, no `unused` list.
+Run: `node tools/node-bundle/build.mjs --check-shim` Expected: `openKv` in the `unused` list.
+Delete `Deno.openKv = ...`, the `Kv` class and the `freeze`/`revive` helpers; rebuild; `0 missing`, no `unused` list.
 
 - [ ] **Step 2: Remove the fixed known failures**
 
-Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/`
-Expected: `now passes on Node …` for `kv` entries (exit 1); delete them (Linux; Windows from this branch's `node-unit` run); rerun: `no change`, exit 0.
+Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` Expected: `now passes on Node …` for `kv` entries (exit 1); delete them (Linux; Windows from this branch's `node-unit` run); rerun: `no change`, exit 0.
 
 - [ ] **Step 3: Render on Node with a warm cache twice**
 
@@ -890,13 +933,15 @@ git commit -m "node-bundle: drop the openKv shim and the kv known failures"
 - `quarto run --dev tools/check-runtime-boundary.ts` → zero.
 - Task 3: the `.kv` files a Deno-based release wrote are byte-identical after this build renders, and the release still renders.
 - Parallel writers: `cd tests && for i in 1 2 3; do QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/kv-json.test.ts || break; done` → green three times (the cross-process case is timing-sensitive by nature; it must not flake).
-- R18's later validation (a live writer paused past the stale threshold while another writes, then resumed; cancellation and crash recovery) is the three lock cases of `kv-json.test.ts`: the paused writer is the test's own pid behind a 60 s old lock, the crash is a lock with a dead pid or no marker, the resumed owner is `lockIndex()` released after its directory was replaced. On Linux or macOS the same can be watched by hand: start `kv-writer.ts` on a store with 2000 keys, `kill -STOP` it, run a second writer on the same store, and `kill -CONT` the first within 15 s; both finish, every key survives and no `.lock` directory is left (done on Node 22.22 with the body above: the stopped writer's marker in `<lock>/owner`, the second writer waited 12.6 s for a 12 s stop, both exited 0, 2050 entries, no lock left; the previous body would have broken the lock at 10 s).
+- R18's later validation (a live writer paused past the stale threshold while another writes, then resumed; cancellation and crash recovery) is the three lock cases of `kv-json.test.ts`: the paused writer is the test's own pid behind a 60 s old lock, the crash is a lock with a dead pid or no marker, the resumed owner is `lockIndex()` released after its directory was replaced.
+  On Linux or macOS the same can be watched by hand: start `kv-writer.ts` on a store with 2000 keys, `kill -STOP` it, run a second writer on the same store, and `kill -CONT` the first within 15 s; both finish, every key survives and no `.lock` directory is left (done on Node 22.22 with the body above: the stopped writer's marker in `<lock>/owner`, the second writer waited 12.6 s for a 12 s stop, both exited 0, 2050 entries, no lock left; the previous body would have broken the lock at 10 s).
 
 ## Review checklist
 
 - [ ] The index is `<dir>/<name>.json`; nothing opens, rewrites or deletes `<name>.kv` or its side files; no cache version constant changed.
 - [ ] Every write takes the lock directory and writes `<lock>/owner` (pid, host, nonce) at once, re-reads the file under it, changes one key, writes a pid-and-random temporary file, checks the marker is still its own and `rename`s it; `release()` in `finally` removes the directory only while the marker matches; a waiter probes the owner with `process.kill(pid, 0)` and breaks a gone owner's lock at once, an unknown owner's lock after 10 s and a live owner's lock never; breaking is a rename; waiting is bounded (15 s) and the error names the owner.
-- [ ] No reader deletes the index: a corrupt file reads as empty and the next write replaces it under the lock. Nothing refreshes the lock directory's mtime while held.
+- [ ] No reader deletes the index: a corrupt file reads as empty and the next write replaces it under the lock.
+      Nothing refreshes the lock directory's mtime while held.
 - [ ] Windows `EPERM`/`EACCES`/`EBUSY` on `rename` is retried with backoff; other errors are not.
 - [ ] Reads reload when the file signature changed; a second handle sees a committed set; a closed store throws on every method and `close()` is idempotent.
 - [ ] `Uint8Array` values round-trip; functions are rejected with `TypeError`; `list` ordering matches the test.
@@ -905,13 +950,21 @@ git commit -m "node-bundle: drop the openKv shim and the kv known failures"
 
 ## Risks and rollback
 
-- **One cold cache per project and per Sass cache directory** the first time this build runs (a new `<name>.json` index next to the old `.kv`). No warning is printed; the caches re-validate by hash.
-- **Blob files shared between the two indexes**: a `clear()` from one Quarto version removes blobs the other version's index still names; the other version then misses (Sass cache: file check; project cache: `_getAs` drops the key on NotFound) and recomputes. No error surfaces.
-- **Best-effort exclusion, not a guarantee** (Spec, decision on the lock; triage A6): two waiters that both saw the same ownerless stale lock can both break it and both proceed, at worst one lost cache entry after a crashed writer, never a torn file. A pid reused by an unrelated process after a crash reads as a live owner: the waiter then fails after 15 s with the owner named instead of breaking the lock; deleting the `.lock` directory recovers.
-- **A writer stopped for more than 15 s** (debugger, system sleep) makes every other writer on that index fail its write after 15 s with the "Timed out … held by pid …" error until it resumes; the stopped writer's state is never overwritten and its lock never deleted. A renderer that hits this fails like on any cache I/O error.
-- **Network file systems**: `mkdir` atomicity holds on NFSv3+ and SMB, but the liveness probe only answers for the local host; a lock written from another machine is broken by age alone (10 s, clocks within that of each other), which is the pre-A6 contract with all of R18's exposure. A project cache on such a share between machines is not a supported setup today either.
-- **Rollback:** `git revert` the kv commit (PR 18's `Deno.Kv` body returns) together with the flag-removal commit (the launchers need `--unstable-kv` again). The `<name>.json` files left behind are ignored by the reverted build.
+- **One cold cache per project and per Sass cache directory** the first time this build runs (a new `<name>.json` index next to the old `.kv`).
+  No warning is printed; the caches re-validate by hash.
+- **Blob files shared between the two indexes**: a `clear()` from one Quarto version removes blobs the other version's index still names; the other version then misses (Sass cache: file check; project cache: `_getAs` drops the key on NotFound) and recomputes.
+  No error surfaces.
+- **Best-effort exclusion, not a guarantee** (Spec, decision on the lock; triage A6): two waiters that both saw the same ownerless stale lock can both break it and both proceed, at worst one lost cache entry after a crashed writer, never a torn file.
+  A pid reused by an unrelated process after a crash reads as a live owner: the waiter then fails after 15 s with the owner named instead of breaking the lock; deleting the `.lock` directory recovers.
+- **A writer stopped for more than 15 s** (debugger, system sleep) makes every other writer on that index fail its write after 15 s with the "Timed out … held by pid …" error until it resumes; the stopped writer's state is never overwritten and its lock never deleted.
+  A renderer that hits this fails like on any cache I/O error.
+- **Network file systems**: `mkdir` atomicity holds on NFSv3+ and SMB, but the liveness probe only answers for the local host; a lock written from another machine is broken by age alone (10 s, clocks within that of each other), which is the pre-A6 contract with all of R18's exposure.
+  A project cache on such a share between machines is not a supported setup today either.
+- **Rollback:** `git revert` the kv commit (PR 18's `Deno.Kv` body returns) together with the flag-removal commit (the launchers need `--unstable-kv` again).
+  The `<name>.json` files left behind are ignored by the reverted build.
 
 ## Decisions needed
 
-None. JSON over `node:sqlite`, the owned lock directory over the `proper-lockfile` package (its ownership and stale-owner policy are triage decision A6, taken 2026-10-16), and one backend on both runtimes are decided in the Spec. Not changed because the review's concern is resolved by separate file names: the cache version bump and the "delete a foreign SQLite file" step of the earlier draft (both removed); `src/core/run/deno.ts`'s `--unstable-kv` (user scripts, PR 35).
+None.
+JSON over `node:sqlite`, the owned lock directory over the `proper-lockfile` package (its ownership and stale-owner policy are triage decision A6, taken 2026-10-16), and one backend on both runtimes are decided in the Spec.
+Not changed because the review's concern is resolved by separate file names: the cache version bump and the "delete a foreign SQLite file" step of the earlier draft (both removed); `src/core/run/deno.ts`'s `--unstable-kv` (user scripts, PR 35).

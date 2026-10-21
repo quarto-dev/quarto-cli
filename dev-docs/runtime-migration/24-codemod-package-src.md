@@ -1,26 +1,36 @@
 # PR 24: Codemod `package/src` onto `src/deno_ral/`
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move the build tooling under `package/src` off direct `Deno.*` calls: confirm PR 08's process conversions, replace `Deno.create` + `writeAll` and the `ln -s` process with layer file calls, and run the codemod for the remaining ~215 sites, so that `package/src` reaches zero in the ratchet; the Deno CLI invocations behind `execPath()`/`QUARTO_DENO` stay, by design, for PR 33.
-**Phase:** 1. **Depends on:** PR 08 (Task 8 converted every `Deno.run` and `new Deno.Command` in `package/src`), PR 09 (codemod tool, `fs.ts`/`temp.ts`/`errors.ts`), PR 14 (`env.ts`), PR 19 (`platform.ts`, `main.ts`), PR 22 (`src/deno_ral/colors.ts`; it already rewrote `package/src`'s `fmt/colors` and `jsr:/@std/fmt` imports), PR 02 (ratchet). **Unblocks:** PR 25, PR 33.
+**Phase:** 1.
+**Depends on:** PR 08 (Task 8 converted every `Deno.run` and `new Deno.Command` in `package/src`), PR 09 (codemod tool, `fs.ts`/`temp.ts`/`errors.ts`), PR 14 (`env.ts`), PR 19 (`platform.ts`, `main.ts`), PR 22 (`src/deno_ral/colors.ts`; it already rewrote `package/src`'s `fmt/colors` and `jsr:/@std/fmt` imports), PR 02 (ratchet).
+**Unblocks:** PR 25, PR 33.
 **Branch:** `rt/24-codemod-package-src`.
-**Suggested executor:** Sonnet. Two small hand edits and a codemod run with a fixed target; the judgement (what stays a Deno CLI call) is decided below.
-**Size:** M. About 38 files touched by the codemod, 2 by hand, the baseline.
+**Suggested executor:** Sonnet.
+Two small hand edits and a codemod run with a fixed target; the judgement (what stays a Deno CLI call) is decided below.
+**Size:** M.
+About 38 files touched by the codemod, 2 by hand, the baseline.
 **Ships on:** Deno; `quarto-bld` keeps working (it is how the distribution is built).
 
 ## Spec
 
 ### Context
 
-Assessment section 11, "Order of work" step 8: `package/src` drops `Deno.*` in favour of the layer. Section 3.1: build tooling is Deno TS using `Deno.run`, `deno info`, `deno compile`, `deno install`.
+Assessment section 11, "Order of work" step 8: `package/src` drops `Deno.*` in favour of the layer.
+Section 3.1: build tooling is Deno TS using `Deno.run`, `deno info`, `deno compile`, `deno install`.
 
-Inventory (`main` at `b86f98d`): 240 `Deno.` occurrences in 40 files. By API: `env` 48, `writeTextFileSync` 29, `removeSync` 29, `readTextFileSync` 23, `copyFileSync` 21, `args` 16, `run` 13 (11 calls plus 2 in `@ts-expect-error` comments in `util/tar.ts:95,119`), `exit` 8, `cwd` 7, `renameSync` 6, `remove` 5, `copyFile` 5, `readDirSync` 4, `makeTempDirSync` 4, `writeFileSync` 3, `chmodSync` 3, `chdir` 3, `build` 3, `makeTempFile` 2, `Command` 2, `writeTextFile` 1, `symlinkSync` 1, `execPath` 1, `errors` 1, `create` 1, `CommandStatus` 1. Largest files: `common/update-html-dependencies.ts` 57, `common/configure.ts` 19, `common/import-report/explain-all-cycles.ts` 11, `macos/installer.ts` 10, `common/import-report/explain-import-chain.ts` 10.
+Inventory (`main` at `b86f98d`): 240 `Deno.` occurrences in 40 files.
+By API: `env` 48, `writeTextFileSync` 29, `removeSync` 29, `readTextFileSync` 23, `copyFileSync` 21, `args` 16, `run` 13 (11 calls plus 2 in `@ts-expect-error` comments in `util/tar.ts:95,119`), `exit` 8, `cwd` 7, `renameSync` 6, `remove` 5, `copyFile` 5, `readDirSync` 4, `makeTempDirSync` 4, `writeFileSync` 3, `chmodSync` 3, `chdir` 3, `build` 3, `makeTempFile` 2, `Command` 2, `writeTextFile` 1, `symlinkSync` 1, `execPath` 1, `errors` 1, `create` 1, `CommandStatus` 1.
+Largest files: `common/update-html-dependencies.ts` 57, `common/configure.ts` 19, `common/import-report/explain-all-cycles.ts` 11, `macos/installer.ts` 10, `common/import-report/explain-import-chain.ts` 10.
 
 Already handled by earlier PRs, so not repeated here:
 
-- **PR 08, Task 8** converts the 11 `Deno.run` calls (`util/tar.ts` 2, `util/git.ts` 3, `common/configure.ts` 1, `import-report/{deno-info,explain-import-chain,explain-all-cycles,report-risky-files,report-bundle-async-cycles}.ts` 1 each), the two `new Deno.Command` sites (`util/cmd.ts`, `common/previewjs.ts`) and `Deno.CommandStatus` to `exec`/`execSync` from `src/deno_ral/process.ts`. Task 1 verifies; it does not redo them.
-- **PR 19** replaces `Deno.build.arch` (`common/config.ts:100`) and the `import.meta.main` guards. `Deno.build.target` in `common/compile-quarto-latexmk.ts:58,107` disappears with that file (PR 39, decision 9).
+- **PR 08, Task 8** converts the 11 `Deno.run` calls (`util/tar.ts` 2, `util/git.ts` 3, `common/configure.ts` 1, `import-report/{deno-info,explain-import-chain,explain-all-cycles,report-risky-files,report-bundle-async-cycles}.ts` 1 each), the two `new Deno.Command` sites (`util/cmd.ts`, `common/previewjs.ts`) and `Deno.CommandStatus` to `exec`/`execSync` from `src/deno_ral/process.ts`.
+  Task 1 verifies; it does not redo them.
+- **PR 19** replaces `Deno.build.arch` (`common/config.ts:100`) and the `import.meta.main` guards.
+  `Deno.build.target` in `common/compile-quarto-latexmk.ts:58,107` disappears with that file (PR 39, decision 9).
 - **PR 22** routes `package/src/util/git.ts`'s `fmt/colors` and the two `jsr:/@std/fmt@^0.224.0/colors` imports (`import-report/find-bad-imports.ts:2`, `find-bad-types-constants.ts:2`) through `src/deno_ral/colors.ts`.
 
 Hand conversions left for this PR:
@@ -40,7 +50,9 @@ Hand conversions left for this PR:
 | `package/src/common/previewjs.ts` | `<execPath()> run --no-config -A build.ts` (the preview JS build) |
 | `package/src/util/deno.ts` | `<QUARTO_DENO> run …/tools/deno-esbuild-bundle.ts` (the bundle), `<QUARTO_DENO> compile` / `install` |
 
-The first draft replaced `deno info` with an esbuild metafile adapter importing `jsr:@luca/esbuild-deno-loader`; that loader itself shells out to `deno info --json`, the plan wrote the metafile into `package/pkg-working/bin/` (copied wholesale into every installer by `package/src/linux/installer.ts:133` and its siblings), and it contradicted this PR's own no-`jsr:` rule. The module graph and the metafile move to PR 33, which replaces the bundler and has a metafile anyway. This PR keeps PR 08's `exec` call for `deno info`.
+The first draft replaced `deno info` with an esbuild metafile adapter importing `jsr:@luca/esbuild-deno-loader`; that loader itself shells out to `deno info --json`, the plan wrote the metafile into `package/pkg-working/bin/` (copied wholesale into every installer by `package/src/linux/installer.ts:133` and its siblings), and it contradicted this PR's own no-`jsr:` rule.
+The module graph and the metafile move to PR 33, which replaces the bundler and has a metafile anyway.
+This PR keeps PR 08's `exec` call for `deno info`.
 
 Assumptions: `tools/codemod-deno-ral.ts --dir package/src` computes imports relative to `src/deno_ral` from outside `src/` (PR 09's tool handles arbitrary `--dir`) and maps `Deno.errors.NotFound` instanceof checks with its `errors` rule (PR 10 uses it); `src/deno_ral/fs.ts` exports `writeFileSync` and `symlinkSync` (vocabulary, PR 09).
 
@@ -51,7 +63,8 @@ Out: the Deno CLI invocations listed above (PR 33); `compile-quarto-latexmk.ts` 
 
 ### Interfaces
 
-No new interface. `package/src/util/utils.ts`'s `download(src: string, dest: string): Promise<void>` keeps its signature.
+No new interface.
+`package/src/util/utils.ts`'s `download(src: string, dest: string): Promise<void>` keeps its signature.
 
 ### Files
 
@@ -78,11 +91,10 @@ No new interface. `package/src/util/utils.ts`'s `download(src: string, dest: str
 
 - [ ] **Step 1: Check**
 
-Run: `grep -rn 'Deno\.run(\|new Deno\.Command\|Deno\.CommandStatus' package/src --include=*.ts`
-Expected: nothing. If a line prints, PR 08 Task 8 (`dev-docs/runtime-migration/08-ral-process.md`, steps 1–6) did not cover that file: apply that task's replacement for it verbatim (same `exec`/`execSync` call shapes), and note the file in the PR description.
+Run: `grep -rn 'Deno\.run(\|new Deno\.Command\|Deno\.CommandStatus' package/src --include=*.ts` Expected: nothing.
+If a line prints, PR 08 Task 8 (`dev-docs/runtime-migration/08-ral-process.md`, steps 1–6) did not cover that file: apply that task's replacement for it verbatim (same `exec`/`execSync` call shapes), and note the file in the PR description.
 
-Run: `grep -rn '@ts-expect-error `Deno.run()`' package/src/util/tar.ts`
-Expected: nothing (PR 08 removed both comments with the calls).
+Run: `grep -rn '@ts-expect-error `Deno.run()`' package/src/util/tar.ts` Expected: nothing (PR 08 removed both comments with the calls).
 
 - [ ] **Step 2: Commit (only if Step 1 changed files)**
 
@@ -118,7 +130,8 @@ export async function download(src: string, dest: string): Promise<void> {
 
 - [ ] **Step 2: `configure.ts` `copyPandocScript`**
 
-Add `symlinkSync` to the file's `../../../src/deno_ral/fs.ts` import (and drop `execSync` from its `process.ts` import if nothing else uses it: `grep -n 'execSync(' package/src/common/configure.ts`). Replace the `if (!isWindows) { … }` block of `copyPandocScript` (the `ln -s` process) with:
+Add `symlinkSync` to the file's `../../../src/deno_ral/fs.ts` import (and drop `execSync` from its `process.ts` import if nothing else uses it: `grep -n 'execSync(' package/src/common/configure.ts`).
+Replace the `if (!isWindows) { … }` block of `copyPandocScript` (the `ln -s` process) with:
 
 ```ts
   if (!isWindows) {
@@ -146,8 +159,8 @@ git commit -m "package/src: writeFileSync and symlinkSync instead of Deno.create
 
 ### Task 3: Codemod the rest
 
-README ground rule 7 applies: fresh `main`, opened and merged the same day, conflicts by reset + re-run. PR 20 edits `package/src/common/{configure,prepare-dist}.ts`, `package/src/util/deno.ts`, `dependencies.ts` and `macos/installer.ts`, which this codemod rewrites: land PR 20 first (README ground rule 8), or, if PR 20 has not landed, note that `configure.ts` still contains `Deno.env.get("DENO_DOM")` and the codemod takes it (PR 20 then rebases).
-
+README ground rule 7 applies: fresh `main`, opened and merged the same day, conflicts by reset + re-run.
+PR 20 edits `package/src/common/{configure,prepare-dist}.ts`, `package/src/util/deno.ts`, `dependencies.ts` and `macos/installer.ts`, which this codemod rewrites: land PR 20 first (README ground rule 8), or, if PR 20 has not landed, note that `configure.ts` still contains `Deno.env.get("DENO_DOM")` and the codemod takes it (PR 20 then rebases).
 
 **Files:** every `package/src` file with remaining `Deno.*`
 
@@ -167,7 +180,8 @@ quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp,env,process,platform 
 grep -rnE '\bDeno\.' package/src --include=*.ts | grep -v 'common/compile-quarto-latexmk.ts'
 ```
 
-Expected: the dry run shows only `Deno.x(` → `x(` substitutions plus added imports; the final grep prints nothing. Hand-fix any `skipped:` lines the tool reported (for example `Deno.errors.NotFound` at `common/validate-bundle.ts:72` becomes `isNotFound(e)` from `src/deno_ral/errors.ts` if the rule did not cover it).
+Expected: the dry run shows only `Deno.x(` → `x(` substitutions plus added imports; the final grep prints nothing.
+Hand-fix any `skipped:` lines the tool reported (for example `Deno.errors.NotFound` at `common/validate-bundle.ts:72` becomes `isNotFound(e)` from `src/deno_ral/errors.ts` if the rule did not cover it).
 
 - [ ] **Step 3: Verify the build tooling end to end**
 
@@ -223,4 +237,5 @@ git commit -m "ratchet baseline: package/src at zero"
 
 ## Decisions needed
 
-None. Not changed because: the review found the first draft's esbuild-metafile replacement for `deno info` pointless (the loader shells out to `deno info` itself), self-contradictory (a `jsr:` import in a PR forbidding them) and harmful (a multi-MB metafile in `pkg-working/bin`, shipped by installers); it is removed from this PR and the module-graph work belongs to PR 33's bundler change.
+None.
+Not changed because: the review found the first draft's esbuild-metafile replacement for `deno info` pointless (the loader shells out to `deno info` itself), self-contradictory (a `jsr:` import in a PR forbidding them) and harmful (a multi-MB metafile in `pkg-working/bin`, shipped by installers); it is removed from this PR and the module-graph work belongs to PR 33's bundler change.

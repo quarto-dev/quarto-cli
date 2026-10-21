@@ -1,40 +1,68 @@
 # PR 29: `net.ts`, `http.ts` (with `ws`) and `watch.ts` on Node APIs
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reimplement `src/deno_ral/net.ts` on `node:net`, `src/deno_ral/http.ts` on `node:http` plus the `ws` package, and `src/deno_ral/watch.ts` on `fs.watch({ recursive: true })`, so the preview server, the Jupyter kernel transport, port probing and file watching have one implementation that runs on Deno 2 today and on Node after the flip.
-**Phase:** 2. **Depends on:** PR 25 (callers use the layer), PR 26 (root `package.json` where `ws` is declared, the shim, the `node-unit` job), PR 27b (`runtime()` answers `node` in the bundle; `watch.ts` reads it), PR 14b (`tests/smoke/preview/preview-reload.test.ts`, `tests/smoke/preview/preview-project-reload.test.ts`, `tests/smoke/jupyter/daemon.test.ts`: the end-to-end coverage this rewrite is gated on). Starts after Spike #2 closes (`SPIKES.md`, questions (b), (c), (g)). **Unblocks:** PR 31, 32.
+**Phase:** 2.
+**Depends on:** PR 25 (callers use the layer), PR 26 (root `package.json` where `ws` is declared, the shim, the `node-unit` job), PR 27b (`runtime()` answers `node` in the bundle; `watch.ts` reads it), PR 14b (`tests/smoke/preview/preview-reload.test.ts`, `tests/smoke/preview/preview-project-reload.test.ts`, `tests/smoke/jupyter/daemon.test.ts`: the end-to-end coverage this rewrite is gated on).
+Starts after Spike #2 closes (`SPIKES.md`, questions (b), (c), (g)).
+**Unblocks:** PR 31, 32.
 **Branch:** `rt/29-ral-net-http-watch-on-node-apis`.
-**Suggested executor:** Opus. Request/Response conversion, WebSocket upgrade plumbing and event coalescing need judgement.
+**Suggested executor:** Opus.
+Request/Response conversion, WebSocket upgrade plumbing and event coalescing need judgement.
 **Size:** M (3 source files rewritten, `src/import_map.json`, `package.json`, 3 test files extended, shim shrink).
-**Ships on:** Deno; the existing suite, including PR 14b's `smoke/preview/preview-reload.test.ts`, `smoke/preview/preview-project-reload.test.ts` and `unit/preview-*.test.ts`, must stay green. Node: the PR 26 `node-unit` job runs `tests/unit/ral/{net,http,watch}.test.ts` on real Node (Linux, Windows) and their entries in `tools/node-bundle/known-failures.json` are removed; the `node-render` job gains a step that serves a preview a WebSocket client reaches.
+**Ships on:** Deno; the existing suite, including PR 14b's `smoke/preview/preview-reload.test.ts`, `smoke/preview/preview-project-reload.test.ts` and `unit/preview-*.test.ts`, must stay green.
+Node: the PR 26 `node-unit` job runs `tests/unit/ral/{net,http,watch}.test.ts` on real Node (Linux, Windows) and their entries in `tools/node-bundle/known-failures.json` are removed; the `node-render` job gains a step that serves a preview a WebSocket client reaches.
 
 ## Spec
 
 ### Context
 
-Assessment section 3.3 lists `Deno.serve`/`Deno.upgradeWebSocket` (preview, dev server, axe server), `Deno.listen`/`Deno.connect`/`Deno.Conn` (port probing, Jupyter kernel daemon) and `Deno.watchFs` (dev-mode source watch) as the runtime-shaped features with Node replacements `node:http` + `ws`, `node:net`, `fs.watch`. Section 11 gives each its own module (`net.ts`, `http.ts`, `watch.ts`) with Quarto-owned interfaces, created on Deno by PR 15, 16 and 17. Spike findings (section 10): `Deno.serve` on `node:http` and `Deno.upgradeWebSocket` on `ws` ran the preview server end to end (HTTP, `quarto-preview.js`, websocket, `render:start` push); `Deno.connect` needed a buffered `net.Socket` wrapper; port probing had to become async (done by PR 15).
+Assessment section 3.3 lists `Deno.serve`/`Deno.upgradeWebSocket` (preview, dev server, axe server), `Deno.listen`/`Deno.connect`/`Deno.Conn` (port probing, Jupyter kernel daemon) and `Deno.watchFs` (dev-mode source watch) as the runtime-shaped features with Node replacements `node:http` + `ws`, `node:net`, `fs.watch`.
+Section 11 gives each its own module (`net.ts`, `http.ts`, `watch.ts`) with Quarto-owned interfaces, created on Deno by PR 15, 16 and 17.
+Spike findings (section 10): `Deno.serve` on `node:http` and `Deno.upgradeWebSocket` on `ws` ran the preview server end to end (HTTP, `quarto-preview.js`, websocket, `render:start` push); `Deno.connect` needed a buffered `net.Socket` wrapper; port probing had to become async (done by PR 15).
 
 Facts verified in this sandbox on Node 22.22 and Deno 2.7.14 (`node:` compat):
 
-- `net.createServer().listen({ port, host, exclusive: true })` reports `EADDRINUSE` on a bound port; `net.createConnection` to a closed port reports `ECONNREFUSED`. Both runtimes.
-- `http.createServer` + `fetch`: multiple `set-cookie` headers round-trip; `server.closeAllConnections` exists. Both runtimes.
+- `net.createServer().listen({ port, host, exclusive: true })` reports `EADDRINUSE` on a bound port; `net.createConnection` to a closed port reports `ECONNREFUSED`.
+  Both runtimes.
+- `http.createServer` + `fetch`: multiple `set-cookie` headers round-trip; `server.closeAllConnections` exists.
+  Both runtimes.
 - `ws` 8.22.0 `WebSocketServer({ noServer: true }).handleUpgrade` over a `node:http` `upgrade` event, with the runtime's global `WebSocket` client: echo round-trip succeeds on both runtimes.
-- `fs.watch(dir, { recursive: true })` on Linux: a new subdirectory, a file created in it 500 ms later, a modification, a rename and a deletion are all reported (`rename`/`change` events with relative names). Deno additionally reports a `change` for the create. Node documents recursive watching on Linux since v19.1.0 (`fs.watch` history table) and it is not flagged experimental in Node 22 or 26.
+- `fs.watch(dir, { recursive: true })` on Linux: a new subdirectory, a file created in it 500 ms later, a modification, a rename and a deletion are all reported (`rename`/`change` events with relative names).
+  Deno additionally reports a `change` for the create.
+  Node documents recursive watching on Linux since v19.1.0 (`fs.watch` history table) and it is not flagged experimental in Node 22 or 26.
 - Node's `Response` constructor rejects status 101, so the websocket upgrade marker is a status-200 `Response` tracked in a `WeakSet` (as in the spike).
-- Server lifecycle on Node 22 (measured for R07; Deno's `node:http` not checked, see Risks): `server.listening` is `false` when `listen()` returns, for an IP host as for a hostname, and `close()` called before the bind settles answers `ERR_SERVER_NOT_RUNNING`; awaiting the `listening` promise and then calling `close()` settles in under 10 ms for both kinds of host, and the same sequence racing a bind failure ends with the bind error. `closeAllConnections()` does not touch a socket handed to the `upgrade` event, `getConnections()` keeps counting it, and `close()`'s callback waits for it: a server with one live WebSocket never reaches `finished` unless the layer closes that socket. `ws` 8's `WebSocketServer.close()` does not close its clients (8.0 change); `ws.close(1001)` to the runtime's `WebSocket` client completes the handshake and frees the server in about 60 ms, to a peer that ignores the close frame the socket stays `CLOSING` (ws's own close timeout is 30 s) and `terminate()` ends it at once. `IncomingMessage`'s `close` fires after every completed response (Node ≥ 16), so it is not a disconnect signal; `ServerResponse`'s `close` with `writableFinished === false` is, and when a client leaves mid-body `drain` never fires while that `close` does. `addEventListener("abort")` on an already-aborted signal never fires; `new Request(url, { signal })` follows the controller. A socket handed to `upgrade` is paused: a client that leaves while the handler is still pending is not noticed until `handleUpgrade` resumes it. The `http.ts` body of Task 3 and the ten cases of its Step 1 were run as written on Node 22.22 with `ws` 8.22 (type-stripped, `net.ts` from Task 2, a stub `log.ts`): all pass, the deaf-peer case in about 2 s; the previous body hangs on four of the five R07 cases and fails the fifth. The re-read of the review's "Later validation" lines (2026-10-16) added the two bind cases (a hostname still being resolved, a bind that fails under the shutdown) and ran the twelve cases again on Node 26.12.0 and 22.22, all passing on both.
+- Server lifecycle on Node 22 (measured for R07; Deno's `node:http` not checked, see Risks): `server.listening` is `false` when `listen()` returns, for an IP host as for a hostname, and `close()` called before the bind settles answers `ERR_SERVER_NOT_RUNNING`; awaiting the `listening` promise and then calling `close()` settles in under 10 ms for both kinds of host, and the same sequence racing a bind failure ends with the bind error.
+  `closeAllConnections()` does not touch a socket handed to the `upgrade` event, `getConnections()` keeps counting it, and `close()`'s callback waits for it: a server with one live WebSocket never reaches `finished` unless the layer closes that socket.
+  `ws` 8's `WebSocketServer.close()` does not close its clients (8.0 change); `ws.close(1001)` to the runtime's `WebSocket` client completes the handshake and frees the server in about 60 ms, to a peer that ignores the close frame the socket stays `CLOSING` (ws's own close timeout is 30 s) and `terminate()` ends it at once.
+  `IncomingMessage`'s `close` fires after every completed response (Node ≥ 16), so it is not a disconnect signal; `ServerResponse`'s `close` with `writableFinished === false` is, and when a client leaves mid-body `drain` never fires while that `close` does.
+  `addEventListener("abort")` on an already-aborted signal never fires; `new Request(url, { signal })` follows the controller.
+  A socket handed to `upgrade` is paused: a client that leaves while the handler is still pending is not noticed until `handleUpgrade` resumes it.
+  The `http.ts` body of Task 3 and the ten cases of its Step 1 were run as written on Node 22.22 with `ws` 8.22 (type-stripped, `net.ts` from Task 2, a stub `log.ts`): all pass, the deaf-peer case in about 2 s; the previous body hangs on four of the five R07 cases and fails the fifth.
+  The re-read of the review's "Later validation" lines (2026-10-16) added the two bind cases (a hostname still being resolved, a bind that fails under the shutdown) and ran the twelve cases again on Node 26.12.0 and 22.22, all passing on both.
 
-Review findings on the earlier draft, all addressed here: it relied on `tests/smoke/preview/`, which did not exist (PR 14b now creates `tests/smoke/preview/preview-reload.test.ts`: serve, WebSocket, file change → reload, shutdown; it is this PR's end-to-end gate); `server.once("error")` left every later server error unhandled (an `error` event without a listener crashes the process): the server now keeps an `on("error")` listener for its whole life; `server.closeIdleConnections()` had only been checked on Node (Spike #2 (g) checks Deno; the call is guarded and the 2 s `closeAllConnections()` fallback stays); `fs.watch` on Deno 2.9 has denoland/deno#36937 (a watcher opened on a directory that was deleted and recreated receives no events): the watcher now re-creates itself when a watched root reappears and falls back to polling for that root where Spike #2 (c) found re-created watchers deaf, with `QUARTO_WATCH_POLLING=1` forcing polling everywhere. Vocabulary changes applied: `HttpServer.listening: Promise<void>` (rejects on bind failure), the default `onListen` prints `Listening on http://<host>:<port>/` to **stderr**, `findOpenPort`'s default `attempts` is 100, `ws` 8.22. Codex review R07 (`REVIEW-2026-10-16.md`; triage decision A7) on the draft of this PR: `shutdown()` resolved while a bind was still pending, upgraded sockets were nobody's to close, a response wait on `drain` never settled when the client left and the `Request` had no disconnect signal. The "Server lifecycle" rule in Interfaces answers all three, with the measurements above as the evidence.
+Review findings on the earlier draft, all addressed here: it relied on `tests/smoke/preview/`, which did not exist (PR 14b now creates `tests/smoke/preview/preview-reload.test.ts`: serve, WebSocket, file change → reload, shutdown; it is this PR's end-to-end gate); `server.once("error")` left every later server error unhandled (an `error` event without a listener crashes the process): the server now keeps an `on("error")` listener for its whole life; `server.closeIdleConnections()` had only been checked on Node (Spike #2 (g) checks Deno; the call is guarded and the 2 s `closeAllConnections()` fallback stays); `fs.watch` on Deno 2.9 has denoland/deno#36937 (a watcher opened on a directory that was deleted and recreated receives no events): the watcher now re-creates itself when a watched root reappears and falls back to polling for that root where Spike #2 (c) found re-created watchers deaf, with `QUARTO_WATCH_POLLING=1` forcing polling everywhere.
+Vocabulary changes applied: `HttpServer.listening: Promise<void>` (rejects on bind failure), the default `onListen` prints `Listening on http://<host>:<port>/` to **stderr**, `findOpenPort`'s default `attempts` is 100, `ws` 8.22.
+Codex review R07 (`REVIEW-2026-10-16.md`; triage decision A7) on the draft of this PR: `shutdown()` resolved while a bind was still pending, upgraded sockets were nobody's to close, a response wait on `drain` never settled when the client left and the `Request` had no disconnect signal.
+The "Server lifecycle" rule in Interfaces answers all three, with the measurements above as the evidence.
 
-**Decision: `fs.watch` recursive, no `@parcel/watcher`.** The only consumer of `watchFs` is the dev-mode source watcher in `src/core/quarto.ts` (`quarto preview` restarts when a `.ts` under `src/` changes); project serving uses the polling watcher in `src/core/watch.ts` (`watchForFileChanges`), which is plain `statSync`. Node 22's Linux implementation adds inotify watches as it discovers directories, so a file written into a brand-new directory within the first milliseconds can be missed; for the dev-mode source watch that is irrelevant. If a future consumer needs guaranteed delivery on large Linux trees, the switch is one import in `watch.ts` (`@parcel/watcher` `subscribe(dir, cb)` has the same shape as the `fs.watch` callback used below) and one `dependencies` entry. The polling fallback in `watch.ts` (a stat snapshot every 500 ms, the same approach as `src/core/watch.ts`) covers the recreated-root case and network or container file systems where native events are unreliable.
+**Decision: `fs.watch` recursive, no `@parcel/watcher`.** The only consumer of `watchFs` is the dev-mode source watcher in `src/core/quarto.ts` (`quarto preview` restarts when a `.ts` under `src/` changes); project serving uses the polling watcher in `src/core/watch.ts` (`watchForFileChanges`), which is plain `statSync`.
+Node 22's Linux implementation adds inotify watches as it discovers directories, so a file written into a brand-new directory within the first milliseconds can be missed; for the dev-mode source watch that is irrelevant.
+If a future consumer needs guaranteed delivery on large Linux trees, the switch is one import in `watch.ts` (`@parcel/watcher` `subscribe(dir, cb)` has the same shape as the `fs.watch` callback used below) and one `dependencies` entry.
+The polling fallback in `watch.ts` (a stat snapshot every 500 ms, the same approach as `src/core/watch.ts`) covers the recreated-root case and network or container file systems where native events are unreliable.
 
-**Decision: `ws` is declared in the root `package.json` `dependencies` and in `src/import_map.json` as `"ws": "npm:ws@8.22.0"`**, so the Deno build resolves it with `npm:` (Deno runs `ws` on its `node:http`/`node:net` compat, verified above) and the Node bundle resolves it from `node_modules` through the PR 26 resolver. Types come from `@types/ws` via `// @ts-types="@types/ws"` with an import-map entry `"@types/ws": "npm:@types/ws@8.18.1"` (pin to the latest 8.x on JSR/npm at execution time if 8.18.1 is not the latest). PR 26's `check-deps.mjs` then requires both in `dependencies`; `ws` moves out of `devDependencies`.
+**Decision: `ws` is declared in the root `package.json` `dependencies` and in `src/import_map.json` as `"ws": "npm:ws@8.22.0"`**, so the Deno build resolves it with `npm:` (Deno runs `ws` on its `node:http`/`node:net` compat, verified above) and the Node bundle resolves it from `node_modules` through the PR 26 resolver.
+Types come from `@types/ws` via `// @ts-types="@types/ws"` with an import-map entry `"@types/ws": "npm:@types/ws@8.18.1"` (pin to the latest 8.x on JSR/npm at execution time if 8.18.1 is not the latest).
+PR 26's `check-deps.mjs` then requires both in `dependencies`; `ws` moves out of `devDependencies`.
 
 ### Scope
 
 In:
 - Rewrite `src/deno_ral/net.ts`, `src/deno_ral/http.ts`, `src/deno_ral/watch.ts` on `node:` APIs and `ws`; no `Deno.*` remains in them.
-- `src/import_map.json`: `ws`, `@types/ws`. Root `package.json`: `ws` and `@types/ws` in `dependencies`; `package-lock.json` regenerated.
+- `src/import_map.json`: `ws`, `@types/ws`.
+  Root `package.json`: `ws` and `@types/ws` in `dependencies`; `package-lock.json` regenerated.
 - Extend the PR 15/16/17 unit tests with the Node-sensitive cases listed below.
 - Preview WebSocket smoke step in `.github/workflows/test-node-bundle.yml` using `dev-docs/runtime-migration/spike/tests/ws-client.mjs`.
 - Shrink `tools/node-bundle/deno-shim.mjs` (`serve`, `upgradeWebSocket`, `connect`, `listen`, `watchFs` and their helpers).
@@ -46,20 +74,52 @@ Out:
 
 ### Interfaces
 
-Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`net.ts`", "`http.ts`", "`watch.ts`"). Behaviour made precise by this PR:
+Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`net.ts`", "`http.ts`", "`watch.ts`").
+Behaviour made precise by this PR:
 
-- `connectTcp({ hostname, port })`: resolves once connected; rejects with the socket error (`code: "ECONNREFUSED"` etc., recognised by `isConnectionRefused`). `read(buf)` returns bytes copied (buffered: data arriving before `read` is kept), `null` at EOF, rejects on a socket error. `write(data)` resolves with `data.length` once flushed to the kernel. `close()` destroys the socket.
+- `connectTcp({ hostname, port })`: resolves once connected; rejects with the socket error (`code: "ECONNREFUSED"` etc., recognised by `isConnectionRefused`).
+  `read(buf)` returns bytes copied (buffered: data arriving before `read` is kept), `null` at EOF, rejects on a socket error.
+  `write(data)` resolves with `data.length` once flushed to the kernel.
+  `close()` destroys the socket.
 - `isPortAvailable(port, hostname = "127.0.0.1")`: `true` when a listener binds with `exclusive: true` and is closed again; `false` on `EADDRINUSE` only (PR 15 contract); other errors (`EACCES` for a privileged port included) throw.
-- `findOpenPort({ port, hostname = "127.0.0.1", attempts = 100 })`: returns `port` when given and available; otherwise tries random ports in `[3000, 8000)` up to `attempts` times; throws `Error("Unable to find open port")`. PR 15 kept `findOpenPort(defaultPort?)` in `src/core/port.ts` as the application API with Quarto's Chrome/Firefox-unsafe-port filter on top of the layer's generic probe; that split stays.
-- `serveHttp({ port, hostname = "0.0.0.0", handler, signal, onListen })`: returns synchronously. `addr` is `{ hostname, port }` from the options until `listening` resolves, then the bound address (`port: 0` picks an ephemeral port). `listening` resolves once bound and **rejects** with the bind error (`EADDRINUSE`, `EACCES`); `finished` resolves after `close` and also rejects with the bind error; neither rejection is ever unhandled (both promises carry a no-op `catch`), and `onListen` is not called on a bind failure (PR 16 contract). The server keeps an `error` listener for its whole life: a bind error goes to `listening`/`finished`, any later server error is logged at debug level instead of crashing the process. `shutdown()` and the abort of `signal` follow the "Server lifecycle" rule below. A handler that throws yields a 500 and the error is logged at debug level. When `onListen` is omitted, `Listening on http://<hostname>:<port>/` is printed to **stderr** (vocabulary; Deno.serve prints it there).
-- **Server lifecycle** (R07; triage decision A7: the layer owns upgraded sockets). A server is *binding* from `serveHttp()` until `listening` settles, *listening* until the first `shutdown()` or abort, then *closing* until `finished` resolves. `node:http` binds asynchronously (`server.listening` is `false` when `serveHttp()` returns, for an IP host as for a hostname), so:
-  - `shutdown()` while *binding* waits for `listening` to settle. If the bind failed it resolves at once (`finished` already rejected with the bind error); otherwise it continues as below. It never resolves while a bind is pending, so a server cannot start listening after its shutdown settled.
-  - `shutdown()` while *listening*: `close()` (stop accepting), `closeIdleConnections()` (guarded, Spike #2 (g)), a close frame with code 1001 to every WebSocket the server owns, then wait for in-flight requests and close handshakes. After 2 s the forced path runs: `closeAllConnections()` for the HTTP sockets and `terminate()` for the WebSockets still open. Node's `closeAllConnections()` does not reach upgraded sockets and `close()` waits for them, so without the second half one live preview client keeps `finished` pending for ever. `finished` resolves on the server's `close` event.
-  - Idempotent and never rejects. A `signal` already aborted when `serveHttp()` is called is an immediate `shutdown()`: the port is bound, `onListen` runs, then it is released and `finished` resolves. A later abort is the same as calling `shutdown()`.
-  - **Socket ownership.** Each server owns the `ws` sockets created from its own `upgrade` event, in a per-server set that `upgradeWebSocket()` fills and the socket's `close` event empties. The module-level `WebSocketServer` is a stateless handshake helper (`clientTracking: false`); `ws` 8's `WebSocketServer.close()` does not close clients, so nothing relies on it. `http-devserver.ts` keeps closing its own clients when it stops; the layer's close is the backstop for every other handler and for abort.
-  - **Request cancellation.** `Request.signal` aborts when the client is gone before the response completed: `ServerResponse`'s `close` with `writableFinished === false` (`IncomingMessage`'s own `close` is not that signal: it fires after every completed response). For an upgrade request it aborts when the upgrade socket closes before the handler returned, best effort: Node does not read a paused upgrade socket, so a client that leaves while an asynchronous upgrade handler is pending is noticed when the handshake runs. The response body is pulled through a reader; a `write` that returns `false` waits for `drain` **or** `close`; on `close`, or when the response is already destroyed, the loop stops and the reader is cancelled, so a file stream or render-log producer behind a vanished client is released and the request stops counting as in flight for `close()`.
-- `upgradeWebSocket(req)`: valid only for a request delivered through the server's `upgrade` event; otherwise throws `TypeError("Request is not upgradable")`. Returns the `ws` socket (it satisfies `WebSocketLike`: `readyState`, `CLOSED`, `CLOSING`, `send`, `close`, `onmessage`/`onclose`/`onerror` setters; `onmessage` receives `{ data: string }` for text frames) and a marker `Response` (status 200) that the handler must return. If the handler returns anything else for an upgrade request, the socket is closed.
-- `watchFs(paths, { recursive = true, poll })`: `poll` (default: `QUARTO_WATCH_POLLING === "1"`) polls every root instead of using `fs.watch`; this optional field is an addition to the vocabulary signature. Otherwise one `fs.watch` per path; throws `ENOENT` synchronously for a missing path. Event mapping: `change` → `modify`; `rename` → `create` when the path exists, `remove` otherwise; a null filename → `other` with the watched root as the path. Events that arrive in the same macrotask are coalesced into one `FsEvent` per kind with de-duplicated absolute paths. When a watched root disappears, a `remove` event for the root is emitted and the root is checked every 500 ms; when it reappears a `create` event is emitted and watching resumes on the new directory: with a new `fs.watch`, or with polling where native events on a recreated directory are known to be lost (Deno, denoland/deno#36937, unless Spike #2 (c) recorded otherwise). `QUARTO_WATCH_POLLING=1` makes every root polled (500 ms stat snapshots; `create`/`modify`/`remove` by path). `close()` stops all watchers and pollers and ends the iteration.
+- `findOpenPort({ port, hostname = "127.0.0.1", attempts = 100 })`: returns `port` when given and available; otherwise tries random ports in `[3000, 8000)` up to `attempts` times; throws `Error("Unable to find open port")`.
+  PR 15 kept `findOpenPort(defaultPort?)` in `src/core/port.ts` as the application API with Quarto's Chrome/Firefox-unsafe-port filter on top of the layer's generic probe; that split stays.
+- `serveHttp({ port, hostname = "0.0.0.0", handler, signal, onListen })`: returns synchronously.
+  `addr` is `{ hostname, port }` from the options until `listening` resolves, then the bound address (`port: 0` picks an ephemeral port).
+  `listening` resolves once bound and **rejects** with the bind error (`EADDRINUSE`, `EACCES`); `finished` resolves after `close` and also rejects with the bind error; neither rejection is ever unhandled (both promises carry a no-op `catch`), and `onListen` is not called on a bind failure (PR 16 contract).
+  The server keeps an `error` listener for its whole life: a bind error goes to `listening`/`finished`, any later server error is logged at debug level instead of crashing the process.
+  `shutdown()` and the abort of `signal` follow the "Server lifecycle" rule below.
+  A handler that throws yields a 500 and the error is logged at debug level.
+  When `onListen` is omitted, `Listening on http://<hostname>:<port>/` is printed to **stderr** (vocabulary; Deno.serve prints it there).
+- **Server lifecycle** (R07; triage decision A7: the layer owns upgraded sockets).
+  A server is *binding* from `serveHttp()` until `listening` settles, *listening* until the first `shutdown()` or abort, then *closing* until `finished` resolves.
+  `node:http` binds asynchronously (`server.listening` is `false` when `serveHttp()` returns, for an IP host as for a hostname), so:
+  - `shutdown()` while *binding* waits for `listening` to settle.
+    If the bind failed it resolves at once (`finished` already rejected with the bind error); otherwise it continues as below.
+    It never resolves while a bind is pending, so a server cannot start listening after its shutdown settled.
+  - `shutdown()` while *listening*: `close()` (stop accepting), `closeIdleConnections()` (guarded, Spike #2 (g)), a close frame with code 1001 to every WebSocket the server owns, then wait for in-flight requests and close handshakes.
+    After 2 s the forced path runs: `closeAllConnections()` for the HTTP sockets and `terminate()` for the WebSockets still open.
+    Node's `closeAllConnections()` does not reach upgraded sockets and `close()` waits for them, so without the second half one live preview client keeps `finished` pending for ever.
+    `finished` resolves on the server's `close` event.
+  - Idempotent and never rejects.
+    A `signal` already aborted when `serveHttp()` is called is an immediate `shutdown()`: the port is bound, `onListen` runs, then it is released and `finished` resolves.
+    A later abort is the same as calling `shutdown()`.
+  - **Socket ownership.** Each server owns the `ws` sockets created from its own `upgrade` event, in a per-server set that `upgradeWebSocket()` fills and the socket's `close` event empties.
+    The module-level `WebSocketServer` is a stateless handshake helper (`clientTracking: false`); `ws` 8's `WebSocketServer.close()` does not close clients, so nothing relies on it.
+    `http-devserver.ts` keeps closing its own clients when it stops; the layer's close is the backstop for every other handler and for abort.
+  - **Request cancellation.** `Request.signal` aborts when the client is gone before the response completed: `ServerResponse`'s `close` with `writableFinished === false` (`IncomingMessage`'s own `close` is not that signal: it fires after every completed response).
+    For an upgrade request it aborts when the upgrade socket closes before the handler returned, best effort: Node does not read a paused upgrade socket, so a client that leaves while an asynchronous upgrade handler is pending is noticed when the handshake runs.
+    The response body is pulled through a reader; a `write` that returns `false` waits for `drain` **or** `close`; on `close`, or when the response is already destroyed, the loop stops and the reader is cancelled, so a file stream or render-log producer behind a vanished client is released and the request stops counting as in flight for `close()`.
+- `upgradeWebSocket(req)`: valid only for a request delivered through the server's `upgrade` event; otherwise throws `TypeError("Request is not upgradable")`.
+  Returns the `ws` socket (it satisfies `WebSocketLike`: `readyState`, `CLOSED`, `CLOSING`, `send`, `close`, `onmessage`/`onclose`/`onerror` setters; `onmessage` receives `{ data: string }` for text frames) and a marker `Response` (status 200) that the handler must return.
+  If the handler returns anything else for an upgrade request, the socket is closed.
+- `watchFs(paths, { recursive = true, poll })`: `poll` (default: `QUARTO_WATCH_POLLING === "1"`) polls every root instead of using `fs.watch`; this optional field is an addition to the vocabulary signature.
+  Otherwise one `fs.watch` per path; throws `ENOENT` synchronously for a missing path.
+  Event mapping: `change` → `modify`; `rename` → `create` when the path exists, `remove` otherwise; a null filename → `other` with the watched root as the path.
+  Events that arrive in the same macrotask are coalesced into one `FsEvent` per kind with de-duplicated absolute paths.
+  When a watched root disappears, a `remove` event for the root is emitted and the root is checked every 500 ms; when it reappears a `create` event is emitted and watching resumes on the new directory: with a new `fs.watch`, or with polling where native events on a recreated directory are known to be lost (Deno, denoland/deno#36937, unless Spike #2 (c) recorded otherwise).
+  `QUARTO_WATCH_POLLING=1` makes every root polled (500 ms stat snapshots; `create`/`modify`/`remove` by path).
+  `close()` stops all watchers and pollers and ends the iteration.
 
 ### Files
 
@@ -70,7 +130,8 @@ Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`net.ts`", "`http.ts`", "
 - Modify: `package.json`, `package-lock.json` (move `ws` to `dependencies`, add `@types/ws`)
 - Modify: `.github/workflows/test-node-bundle.yml` (preview websocket step)
 - Modify: `tools/node-bundle/deno-shim.mjs` (delete unused members), `tools/node-bundle/known-failures.json` (Task 5 step 2 removes this PR's entries; shared with PRs 28 and 30, README ground rule 8)
-- Test: `tests/unit/ral/net.test.ts`, `tests/unit/ral/http.test.ts`, `tests/unit/ral/watch.test.ts` (PR 15/16/17 contracts; extended). Assumes these names; if PR 15–17 used others, extend the files `ls tests/unit/ral/` shows.
+- Test: `tests/unit/ral/net.test.ts`, `tests/unit/ral/http.test.ts`, `tests/unit/ral/watch.test.ts` (PR 15/16/17 contracts; extended).
+  Assumes these names; if PR 15–17 used others, extend the files `ls tests/unit/ral/` shows.
 
 ### Acceptance criteria
 
@@ -178,8 +239,8 @@ unitTest("net - write resolves with the byte count and the peer receives it", as
 
 - [ ] **Step 2: Run on the PR 15 (Deno) body**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts`
-Expected: the PR 15 cases pass; the new cases may pass on the Deno body too (they describe the contract). Continue.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts` Expected: the PR 15 cases pass; the new cases may pass on the Deno body too (they describe the contract).
+Continue.
 
 - [ ] **Step 3: Implement**
 
@@ -299,8 +360,7 @@ export async function findOpenPort(
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts unit/chrome-launch.test.ts $(find smoke/jupyter/ -name '*.test.ts')`
-Expected: all green (the Jupyter kernel daemon talks to the kernel over `connectTcp`; `chrome-launch` uses `findOpenPort`).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/net.test.ts unit/chrome-launch.test.ts $(find smoke/jupyter/ -name '*.test.ts')` Expected: all green (the Jupyter kernel daemon talks to the kernel over `connectTcp`; `chrome-launch` uses `findOpenPort`).
 
 - [ ] **Step 5: Commit**
 
@@ -547,12 +607,13 @@ unitTest("http - a client that disconnects mid-response aborts the request and c
 });
 ```
 
-(Imports: `assert`, `assertEquals` from `../../asserts.ts`; `serveHttp`, `upgradeWebSocket` from `../../../src/deno_ral/http.ts`; `connectTcp`, `findOpenPort`, `isPortAvailable` from `../../../src/deno_ral/net.ts`. PR 16 already covers the busy-port rejection, the plain-request `TypeError`, idempotent `shutdown` and the basic upgrade; these add request-body streaming, multiple `set-cookie`, keep-alive teardown, the `ws`-backed echo, and the seven R07 cases of the "Server lifecycle" rule: shutdown during the bind (an IP host, a hostname still being resolved, a bind that then fails under the shutdown), an already-aborted signal, a cooperating WebSocket client closed with 1001, a deaf peer terminated by the forced path (this case takes about 2 s by design), and a client that leaves mid-response. On the PR 16 Deno body the WebSocket and mid-response cases may fail or hang; they state the contract for Step 3.)
+(Imports: `assert`, `assertEquals` from `../../asserts.ts`; `serveHttp`, `upgradeWebSocket` from `../../../src/deno_ral/http.ts`; `connectTcp`, `findOpenPort`, `isPortAvailable` from `../../../src/deno_ral/net.ts`.
+PR 16 already covers the busy-port rejection, the plain-request `TypeError`, idempotent `shutdown` and the basic upgrade; these add request-body streaming, multiple `set-cookie`, keep-alive teardown, the `ws`-backed echo, and the seven R07 cases of the "Server lifecycle" rule: shutdown during the bind (an IP host, a hostname still being resolved, a bind that then fails under the shutdown), an already-aborted signal, a cooperating WebSocket client closed with 1001, a deaf peer terminated by the forced path (this case takes about 2 s by design), and a client that leaves mid-response.
+On the PR 16 Deno body the WebSocket and mid-response cases may fail or hang; they state the contract for Step 3.)
 
 - [ ] **Step 2: Run on the PR 16 (Deno) body**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/http.test.ts`
-Expected: PR 16's cases pass; the new ones may pass too (they state the contract for the Node body).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/http.test.ts` Expected: PR 16's cases pass; the new ones may pass too (they state the contract for the Node body).
 
 - [ ] **Step 3: Implement**
 
@@ -869,7 +930,8 @@ export function upgradeWebSocket(req: Request): { socket: WebSocketLike; respons
 }
 ```
 
-`ws`'s `onmessage` delivers `MessageEvent.data` as a string for text frames and a `Buffer` for binary ones; `core/http-devserver.ts` only sends and receives text. If the type checker complains about the `ws as unknown as WebSocketLike` cast, widen `WebSocketLike.onmessage`'s parameter to `{ data: string | Uint8Array | ArrayBuffer }` in the vocabulary comment and here.
+`ws`'s `onmessage` delivers `MessageEvent.data` as a string for text frames and a `Buffer` for binary ones; `core/http-devserver.ts` only sends and receives text.
+If the type checker complains about the `ws as unknown as WebSocketLike` cast, widen `WebSocketLike.onmessage`'s parameter to `{ data: string | Uint8Array | ArrayBuffer }` in the vocabulary comment and here.
 
 - [ ] **Step 4: Run the tests**
 
@@ -878,7 +940,8 @@ Run:
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/http.test.ts smoke/preview/preview-reload.test.ts smoke/preview/preview-project-reload.test.ts unit/preview-initial-path.test.ts unit/preview-external-links.test.ts unit/axe-postrender.test.ts; cd ..
 node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/http.test.ts
 ```
-Expected: all green on Deno; on Node, no new failure. PR 14b's `preview-reload.test.ts` and `preview-project-reload.test.ts` exercise `quarto preview` end to end (serve, WebSocket, file change → reload, shutdown; a single document and a website) on Deno through the new `node:http` body, on Linux and Windows in the Deno matrix; the Node run of the same flow is the workflow step in Task 5 (Linux), and PR 32's `node-suite` runs the two tests themselves on Node on Linux and Windows.
+Expected: all green on Deno; on Node, no new failure.
+PR 14b's `preview-reload.test.ts` and `preview-project-reload.test.ts` exercise `quarto preview` end to end (serve, WebSocket, file change → reload, shutdown; a single document and a website) on Deno through the new `node:http` body, on Linux and Windows in the Deno matrix; the Node run of the same flow is the workflow step in Task 5 (Linux), and PR 32's `node-suite` runs the two tests themselves on Node on Linux and Windows.
 
 - [ ] **Step 5: Commit**
 
@@ -954,7 +1017,8 @@ unitTest("watch - a deleted and recreated root keeps reporting changes (denoland
 });
 ```
 
-(Imports: `assert` from `../../asserts.ts`; `type FsEvent`, `type FsWatcher`, `watchFs` from `../../../src/deno_ral/watch.ts`; `mkdirSync`, `removeSync`, `writeTextFileSync` from `../../../src/deno_ral/fs.ts`; `isAbsolute`, `join` from `../../../src/deno_ral/path.ts`; `makeTempDirSync` from `../../../src/deno_ral/temp.ts`. PR 17 already covers create/modify at the top level, idempotent `close` and the missing-path throw; this adds the nested new directory, `remove`, the polling mode and the recreated root.)
+(Imports: `assert` from `../../asserts.ts`; `type FsEvent`, `type FsWatcher`, `watchFs` from `../../../src/deno_ral/watch.ts`; `mkdirSync`, `removeSync`, `writeTextFileSync` from `../../../src/deno_ral/fs.ts`; `isAbsolute`, `join` from `../../../src/deno_ral/path.ts`; `makeTempDirSync` from `../../../src/deno_ral/temp.ts`.
+PR 17 already covers create/modify at the top level, idempotent `close` and the missing-path throw; this adds the nested new directory, `remove`, the polling mode and the recreated root.)
 
 - [ ] **Step 2: Run and observe**
 
@@ -963,7 +1027,8 @@ Run:
 cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/watch.test.ts; cd ..
 node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/watch.test.ts
 ```
-Expected: the `poll: true` cases fail to type-check or ignore the option on the PR 17 body (`poll` is new); the recreated-root case fails on Deno (#36937, and the PR 17 body does not re-watch) and on Node (no re-watch). These are the contract for Step 3.
+Expected: the `poll: true` cases fail to type-check or ignore the option on the PR 17 body (`poll` is new); the recreated-root case fails on Deno (#36937, and the PR 17 body does not re-watch) and on Node (no re-watch).
+These are the contract for Step 3.
 
 - [ ] **Step 3: Implement**
 
@@ -1155,7 +1220,8 @@ Expected: all green on Deno and on Node (Linux here; the `node-unit` job adds Wi
 - [ ] **Step 5: Manual dev-mode check, including the recreated root**
 
 Run: `QUARTO_DEBUG=true package/dist/bin/quarto preview dev-docs/runtime-migration/spike/tests/simple.qmd --no-browser --port 4399` in one terminal; in another `touch src/core/watch.ts`.
-Expected: the preview prints `quarto src code changed` (from `terminatePreview` in `src/core/quarto.ts`) and exits. Repeat with `QUARTO_WATCH_POLLING=1`: same message within a second.
+Expected: the preview prints `quarto src code changed` (from `terminatePreview` in `src/core/quarto.ts`) and exits.
+Repeat with `QUARTO_WATCH_POLLING=1`: same message within a second.
 
 - [ ] **Step 6: Commit**
 
@@ -1195,8 +1261,9 @@ git commit -m "deno_ral/watch: fs.watch recursive, re-watch a recreated root, po
 
 - [ ] **Step 2: Rebuild, shrink the shim and the known-failures list**
 
-Run: `node tools/node-bundle/build.mjs --check-shim`
-Expected: `0 missing` and `serve`, `upgradeWebSocket`, `connect`, `listen`, `watchFs` in the `unused` list (unless `src/resources/**/*.js` still references one: `julia-engine.js` uses `Deno.connect`, which then stays until the subtree pull, decision 7). Delete the listed members and their helpers (`toRequest`, `sendResponse`, `Conn`, `upgradable`, `upgraded`, `wss`, the `ws`/`http`/`net` imports if nothing else uses them) from `deno-shim.mjs`; rebuild; `0 missing`, no `unused` list. Then run `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/`, delete the `net`/`http`/`watch` entries it reports as passing (Linux; Windows from this branch's `node-unit` run), rerun: `no change`, exit 0.
+Run: `node tools/node-bundle/build.mjs --check-shim` Expected: `0 missing` and `serve`, `upgradeWebSocket`, `connect`, `listen`, `watchFs` in the `unused` list (unless `src/resources/**/*.js` still references one: `julia-engine.js` uses `Deno.connect`, which then stays until the subtree pull, decision 7).
+Delete the listed members and their helpers (`toRequest`, `sendResponse`, `Conn`, `upgradable`, `upgraded`, `wss`, the `ws`/`http`/`net` imports if nothing else uses them) from `deno-shim.mjs`; rebuild; `0 missing`, no `unused` list.
+Then run `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/`, delete the `net`/`http`/`watch` entries it reports as passing (Linux; Windows from this branch's `node-unit` run), rerun: `no change`, exit 0.
 
 - [ ] **Step 3: Run the preview smoke locally**
 
@@ -1220,7 +1287,8 @@ git commit -m "node-bundle: preview websocket smoke; drop net/http/watch shim me
 - `quarto run --dev tools/check-runtime-boundary.ts` → zero.
 - Manual: `package/dist/bin/quarto preview dev-docs/runtime-migration/spike/tests/website --no-browser`, open the URL, edit `about.qmd`, confirm the page reloads (websocket push through `ws`).
 - Manual: `package/dist/bin/quarto call axe dev-docs/runtime-migration/spike/tests/website/_site` after rendering (serves the site dir on `serveHttp`, `findOpenPort`).
-- Windows CI: the normal Deno matrix runs `smoke/preview/preview-reload.test.ts` and `smoke/preview/preview-project-reload.test.ts` on Windows (PR 14b runs both there, not ignored: reload and shutdown of a document and of a website preview, the preview tree ended with `taskkill /T`); the `node-unit` job runs `tests/unit/ral/{net,http,watch}.test.ts` on Node on Windows; `fs.watch` recursive and `ws` are native there. The Node preview smoke of Task 5 runs on Linux only (`node-render` is Linux until PR 32); the first Node run of the two preview tests on Windows is PR 32's `node-suite`, which is why PR 32, not this PR, is the Windows Node preview gate.
+- Windows CI: the normal Deno matrix runs `smoke/preview/preview-reload.test.ts` and `smoke/preview/preview-project-reload.test.ts` on Windows (PR 14b runs both there, not ignored: reload and shutdown of a document and of a website preview, the preview tree ended with `taskkill /T`); the `node-unit` job runs `tests/unit/ral/{net,http,watch}.test.ts` on Node on Windows; `fs.watch` recursive and `ws` are native there.
+  The Node preview smoke of Task 5 runs on Linux only (`node-render` is Linux until PR 32); the first Node run of the two preview tests on Windows is PR 32's `node-suite`, which is why PR 32, not this PR, is the Windows Node preview gate.
 - Manual, recreated output directory: `QUARTO_DEBUG=true package/dist/bin/quarto preview dev-docs/runtime-migration/spike/tests/website --no-browser`, then `rm -rf dev-docs/runtime-migration/spike/tests/website/_site` and edit `about.qmd`: the page reloads (project serving uses the polling watcher in `src/core/watch.ts`, unaffected by #36937; this check guards against a regression in the serve path while `watch.ts` changes).
 
 ## Review checklist
@@ -1240,16 +1308,28 @@ git commit -m "node-bundle: preview websocket smoke; drop net/http/watch shim me
 
 ## Risks and rollback
 
-- **Deno's `node:http` compat differs from Node** in edge cases (chunked uploads, header casing). PR 14b's `preview-reload.test.ts` and the unit tests cover Quarto's usage (GET/POST JSON, static files, websocket). If a Deno-only failure appears, keep the Node body and add a guarded `runtime().name === "deno"` branch for that one operation, not a parallel implementation. If Spike #2 (b) found `node:http` + `ws` broken on Deno 2.9, the outcome table in `SPIKES.md` applies: the Phase 1 `Deno.serve` body stays behind `runtime().name === "deno"` for `serveHttp`/`upgradeWebSocket` only, the one sanctioned dual body, deleted by PR 37.
-- **Listen errors now surface asynchronously.** `preview.ts` awaits `server.finished`, `serve.ts` awaits it too, `axe/cmd.ts` calls `stop()` then awaits `finished.catch(() => {})`. A caller that ignored `finished` would miss `EADDRINUSE`; the grep in the Review checklist (`server.finished`) confirms all three await it.
+- **Deno's `node:http` compat differs from Node** in edge cases (chunked uploads, header casing).
+  PR 14b's `preview-reload.test.ts` and the unit tests cover Quarto's usage (GET/POST JSON, static files, websocket).
+  If a Deno-only failure appears, keep the Node body and add a guarded `runtime().name === "deno"` branch for that one operation, not a parallel implementation.
+  If Spike #2 (b) found `node:http` + `ws` broken on Deno 2.9, the outcome table in `SPIKES.md` applies: the Phase 1 `Deno.serve` body stays behind `runtime().name === "deno"` for `serveHttp`/`upgradeWebSocket` only, the one sanctioned dual body, deleted by PR 37.
+- **Listen errors now surface asynchronously.** `preview.ts` awaits `server.finished`, `serve.ts` awaits it too, `axe/cmd.ts` calls `stop()` then awaits `finished.catch(() => {})`.
+  A caller that ignored `finished` would miss `EADDRINUSE`; the grep in the Review checklist (`server.finished`) confirms all three await it.
 - **`fs.watch` recursive limitations on Linux** (missed events in brand-new directories) and on network or container file systems: the single consumer is the dev-mode source watch; `QUARTO_WATCH_POLLING=1` is the user-facing escape hatch (documented in the PR description and in `dev-docs/runtime-migration/node-bundle.md`), `@parcel/watcher` the documented next step.
 - **Presence timer cost**: one `existsSync` per watched root every 500 ms (one root in practice); negligible.
-- **Graceful close waits for client close handshakes.** `shutdown()` with live preview clients now takes as long as the slowest handshake, bounded by the 2 s forced path (the runtime's `WebSocket` client answers in tens of milliseconds; a frozen tab or a deaf proxy hits the bound). `preview.ts` awaits `finished` on the way out, so `quarto preview` exits up to 2 s later than before in that case and never hangs; previously the dev server closed its clients itself and the layer did not wait. If the bound is felt, lower `kForceCloseMs`, do not remove the wait.
-- **Deno's `node:http` and the upgraded sockets.** Whether Deno's `server.close()` also waits for upgraded sockets, and whether its `closeAllConnections()` reaches them, was not measured (Spike #2 (g) checks `closeIdleConnections` only). The layer closes and terminates its own sockets on both runtimes, so `finished` settles either way; the only difference Deno could show is a `close` event arriving before the last WebSocket's `close`, which the per-server set tolerates (a late `delete` on an emptied set).
+- **Graceful close waits for client close handshakes.** `shutdown()` with live preview clients now takes as long as the slowest handshake, bounded by the 2 s forced path (the runtime's `WebSocket` client answers in tens of milliseconds; a frozen tab or a deaf proxy hits the bound).
+  `preview.ts` awaits `finished` on the way out, so `quarto preview` exits up to 2 s later than before in that case and never hangs; previously the dev server closed its clients itself and the layer did not wait.
+  If the bound is felt, lower `kForceCloseMs`, do not remove the wait.
+- **Deno's `node:http` and the upgraded sockets.** Whether Deno's `server.close()` also waits for upgraded sockets, and whether its `closeAllConnections()` reaches them, was not measured (Spike #2 (g) checks `closeIdleConnections` only).
+  The layer closes and terminates its own sockets on both runtimes, so `finished` settles either way; the only difference Deno could show is a `close` event arriving before the last WebSocket's `close`, which the per-server set tolerates (a late `delete` on an emptied set).
 - **Whole-PR rollback:** revert the five commits; the import-map `ws` entry is harmless to keep.
 
 ## Decisions needed
 
-None. The `fs.watch` decision, the recreated-root handling, the polling flag and the `ws` placement are recorded above with the evidence; the two runtime-dependent constants (`kRecreatedRootNeedsPolling`, and the guarded `closeIdleConnections`) follow Spike #2 (c) and (g). Triage decision A7 (graceful HTTP shutdown owns the upgraded sockets: 1001 on graceful, `terminate()` on forced) is taken and written into the "Server lifecycle" rule.
+None.
+The `fs.watch` decision, the recreated-root handling, the polling flag and the `ws` placement are recorded above with the evidence; the two runtime-dependent constants (`kRecreatedRootNeedsPolling`, and the guarded `closeIdleConnections`) follow Spike #2 (c) and (g).
+Triage decision A7 (graceful HTTP shutdown owns the upgraded sockets: 1001 on graceful, `terminate()` on forced) is taken and written into the "Server lifecycle" rule.
 
-Re-read against the review's "Later validation" lines (2026-10-16). R07: the already-aborted signal, the active WebSocket during shutdown (a cooperating client closed with 1001, a deaf peer terminated by the forced path) and the slow streamed response whose client leaves under backpressure were already Task 3 Step 1 cases; "immediate shutdown during hostname resolution/bind" had only the IP-host case, so two cases join it: `hostname: "localhost"` (the lookup keeps the bind pending longer) and a bind that fails with `EADDRINUSE` while `shutdown()` waits for it (`shutdown()` resolves, `finished` rejects, the server that owns the port keeps serving). The twelve cases ran on Node 26.12.0 and 22.22 against the Task 3 body. R10 cites this PR as a consumer of PR 14b's Windows evidence: the preview reload and shutdown line is PR 14b's two preview tests, which run on Windows in the Deno matrix, so this PR now names `preview-project-reload.test.ts` (the website path R10 asked for) next to `preview-reload.test.ts` everywhere it gates on the document one, and the Verification says where the Node run of the two happens (Linux in Task 5, Linux and Windows in PR 32's `node-suite`); the child-tree termination and argument/path lines are PR 28's, and the Jupyter line is `smoke/jupyter/daemon.test.ts`, already in the acceptance (Julia's `julia-engine.js` keeps `Deno.connect` through the shim until the subtree pull, Task 5 Step 2).
+Re-read against the review's "Later validation" lines (2026-10-16).
+R07: the already-aborted signal, the active WebSocket during shutdown (a cooperating client closed with 1001, a deaf peer terminated by the forced path) and the slow streamed response whose client leaves under backpressure were already Task 3 Step 1 cases; "immediate shutdown during hostname resolution/bind" had only the IP-host case, so two cases join it: `hostname: "localhost"` (the lookup keeps the bind pending longer) and a bind that fails with `EADDRINUSE` while `shutdown()` waits for it (`shutdown()` resolves, `finished` rejects, the server that owns the port keeps serving).
+The twelve cases ran on Node 26.12.0 and 22.22 against the Task 3 body.
+R10 cites this PR as a consumer of PR 14b's Windows evidence: the preview reload and shutdown line is PR 14b's two preview tests, which run on Windows in the Deno matrix, so this PR now names `preview-project-reload.test.ts` (the website path R10 asked for) next to `preview-reload.test.ts` everywhere it gates on the document one, and the Verification says where the Node run of the two happens (Linux in Task 5, Linux and Windows in PR 32's `node-suite`); the child-tree termination and argument/path lines are PR 28's, and the Jupyter line is `smoke/jupyter/daemon.test.ts`, already in the acceptance (Julia's `julia-engine.js` keeps `Deno.connect` through the shim until the subtree pull, Task 5 Step 2).

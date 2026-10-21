@@ -1,11 +1,15 @@
 # PR 01: Quick fixes from the Node spike
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Land the two runtime-neutral fixes the spike found: `with { type: "json" }` on the two dynamic JSON imports, and a deterministic (sorted) order for the bslib Sass files.
-**Phase:** 0. **Depends on:** 02 (lands first in Phase 0; this PR's test imports `tests/asserts.ts` and raises the `tests` baseline with `--accept-tests-increase`). **Unblocks:** PR 26 (the Node bundle job needs both).
+**Phase:** 0.
+**Depends on:** 02 (lands first in Phase 0; this PR's test imports `tests/asserts.ts` and raises the `tests` baseline with `--accept-tests-increase`).
+**Unblocks:** PR 26 (the Node bundle job needs both).
 **Branch:** `rt/01-quick-fixes-from-spike`.
-**Suggested executor:** Sonnet. Both changes are mechanical; the only judgement is in the test design, which this plan spells out.
+**Suggested executor:** Sonnet.
+Both changes are mechanical; the only judgement is in the test design, which this plan spells out.
 **Size:** S (5 files: 2 source edits, 1 source refactor, 1 new unit test, the ratchet baseline).
 **Ships on:** Deno; the existing test suite must stay green.
 
@@ -15,9 +19,19 @@
 
 `00-assessment.md` section 10, findings 2 and 3:
 
-- `src/core/lib/yaml-intelligence/yaml-intelligence.ts:1209-1212` and `src/core/lib/yaml-intelligence/parsing.ts:57-60` use the legacy import-assertion form `{ assert: { type: "json" } }` on a dynamic `import()`. Node 22 rejects `assert`. Verified in this sandbox with the project's own Deno (2.7.14, `package/dist/bin/tools/x86_64/deno`): a dynamic JSON import with `{ assert: ... }` **fails at runtime on Deno too** (`TypeError: Attempted to load JSON module without specifying "type": "json" attribute`), while `{ with: ... }` works, and `deno check` accepts both. The code path is not reached by the Deno CLI (`parsing.ts:41-42` says the branch "should never run in the CLI"; the CLI initialises tree-sitter through `src/core/schema/deno-init-tree-sitter.ts` and `setTreeSitter`). It runs inside the esbuild bundles for the IDE (`src/resources/editor/tools/yaml/web-worker.js`, `src/resources/editor/tools/vs-code.mjs`), where esbuild (0.28.1, `package/dist/bin/tools/x86_64/esbuild`) inlines the JSON module and drops the attribute. Verified: esbuild bundles both spellings with exit 0, and the committed bundles contain no `type: "json"` text. So the change is a pure spelling fix with no effect on built artifacts.
-- `src/format/html/format-html-shared.ts:119-141` (`bslibComponentRules`) concatenates every file in `src/resources/formats/html/bslib/bslib-scss/` and `src/resources/formats/html/bslib/components/scss/` in whatever order `Deno.readDirSync` yields. That order is whatever the filesystem returns: hash order on ext4, and no sorted-order guarantee on APFS or NTFS either. The spike compared runs on different machines and saw eight CSS rules move. Sorting the entries by name makes the output identical everywhere.
-- Not changed here: `bslib-scss/bslib.scss` `@import`s `spacer`, `tab-fill` and `color-utilities`, which are also concatenated as files of the same directory, so their rules are emitted twice whatever the order. That duplication predates this PR and does not depend on the order; removing it is a theme change, not a determinism fix.
+- `src/core/lib/yaml-intelligence/yaml-intelligence.ts:1209-1212` and `src/core/lib/yaml-intelligence/parsing.ts:57-60` use the legacy import-assertion form `{ assert: { type: "json" } }` on a dynamic `import()`.
+  Node 22 rejects `assert`.
+  Verified in this sandbox with the project's own Deno (2.7.14, `package/dist/bin/tools/x86_64/deno`): a dynamic JSON import with `{ assert: ... }` **fails at runtime on Deno too** (`TypeError: Attempted to load JSON module without specifying "type": "json" attribute`), while `{ with: ... }` works, and `deno check` accepts both.
+  The code path is not reached by the Deno CLI (`parsing.ts:41-42` says the branch "should never run in the CLI"; the CLI initialises tree-sitter through `src/core/schema/deno-init-tree-sitter.ts` and `setTreeSitter`).
+  It runs inside the esbuild bundles for the IDE (`src/resources/editor/tools/yaml/web-worker.js`, `src/resources/editor/tools/vs-code.mjs`), where esbuild (0.28.1, `package/dist/bin/tools/x86_64/esbuild`) inlines the JSON module and drops the attribute.
+  Verified: esbuild bundles both spellings with exit 0, and the committed bundles contain no `type: "json"` text.
+  So the change is a pure spelling fix with no effect on built artifacts.
+- `src/format/html/format-html-shared.ts:119-141` (`bslibComponentRules`) concatenates every file in `src/resources/formats/html/bslib/bslib-scss/` and `src/resources/formats/html/bslib/components/scss/` in whatever order `Deno.readDirSync` yields.
+  That order is whatever the filesystem returns: hash order on ext4, and no sorted-order guarantee on APFS or NTFS either.
+  The spike compared runs on different machines and saw eight CSS rules move.
+  Sorting the entries by name makes the output identical everywhere.
+- Not changed here: `bslib-scss/bslib.scss` `@import`s `spacer`, `tab-fill` and `color-utilities`, which are also concatenated as files of the same directory, so their rules are emitted twice whatever the order.
+  That duplication predates this PR and does not depend on the order; removing it is a theme change, not a determinism fix.
 
 ### Scope
 
@@ -74,8 +88,7 @@ export const bslibComponentRules = (): string; // unchanged signature; now `conc
 
 - [ ] **Step 1: Confirm the two sites (and only those two)**
 
-Run: `grep -rn 'assert: { type: "json" }' src --include=*.ts`
-Expected:
+Run: `grep -rn 'assert: { type: "json" }' src --include=*.ts` Expected:
 ```
 src/core/lib/yaml-intelligence/parsing.ts:59:    { assert: { type: "json" } }
 src/core/lib/yaml-intelligence/yaml-intelligence.ts:1211:      { assert: { type: "json" } }
@@ -123,14 +136,12 @@ with:
 
 - [ ] **Step 4: Type-check both files**
 
-Run: `package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/core/lib/yaml-intelligence/yaml-intelligence.ts src/core/lib/yaml-intelligence/parsing.ts`
-(on macOS use `tools/aarch64/deno` or `tools/x86_64/deno`; on Windows `package\dist\bin\tools\x86_64\deno.exe`)
-Expected: `Check .../yaml-intelligence.ts`, `Check .../parsing.ts`, exit 0.
+Run: `package/dist/bin/tools/x86_64/deno check --import-map src/import_map.json src/core/lib/yaml-intelligence/yaml-intelligence.ts src/core/lib/yaml-intelligence/parsing.ts` (on macOS use `tools/aarch64/deno` or `tools/x86_64/deno`; on Windows `package\dist\bin\tools\x86_64\deno.exe`) Expected: `Check .../yaml-intelligence.ts`, `Check .../parsing.ts`, exit 0.
 
 - [ ] **Step 5: Rebuild the IDE bundles and confirm they are byte-identical**
 
-Run: `package/dist/bin/quarto dev-call build-artifacts && git status --short src/resources/editor`
-Expected: the command finishes without `Failure:` lines and `git status` prints nothing for `src/resources/editor` (esbuild inlines the JSON, so the attribute spelling never reaches the bundle). If `build-artifacts` also rewrites `src/resources/schema/json-schemas.json` or `src/resources/types/` with no content change, that is unrelated to this PR; `git diff --stat` must show those files with 0 insertions/deletions or they must be reverted with `git checkout -- <file>`.
+Run: `package/dist/bin/quarto dev-call build-artifacts && git status --short src/resources/editor` Expected: the command finishes without `Failure:` lines and `git status` prints nothing for `src/resources/editor` (esbuild inlines the JSON, so the attribute spelling never reaches the bundle).
+If `build-artifacts` also rewrites `src/resources/schema/json-schemas.json` or `src/resources/types/` with no content change, that is unrelated to this PR; `git diff --stat` must show those files with 0 insertions/deletions or they must be reverted with `git checkout -- <file>`.
 
 - [ ] **Step 6: Commit**
 
@@ -218,8 +229,7 @@ unitTest("bslibComponentRules - bslib-scss files precede components/scss files, 
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/format-html-bslib-order.test.ts`
-Expected: FAIL at type-check time with `TS2305 ... has no exported member 'concatenateDirFiles'` (the runner passes `--check` for unit tests).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/format-html-bslib-order.test.ts` Expected: FAIL at type-check time with `TS2305 ... has no exported member 'concatenateDirFiles'` (the runner passes `--check` for unit tests).
 
 - [ ] **Step 3: Implement `concatenateDirFiles` and use it**
 
@@ -291,18 +301,17 @@ export const bslibComponentRules = () => {
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/format-html-bslib-order.test.ts`
-Expected: two dots and a tally line `2 passed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/format-html-bslib-order.test.ts` Expected: two dots and a tally line `2 passed`.
 
 - [ ] **Step 5: Render a themed HTML document and check the CSS still compiles**
 
-Run: `package/dist/bin/quarto render tests/docs/callouts.qmd --to html --output-dir /tmp/rt01 && ls /tmp/rt01/callouts_files/libs/bootstrap/`
-Expected: render succeeds; the directory contains `bootstrap-*.min.css` (the compiled theme that includes the bslib rules). Remove `/tmp/rt01` afterwards.
+Run: `package/dist/bin/quarto render tests/docs/callouts.qmd --to html --output-dir /tmp/rt01 && ls /tmp/rt01/callouts_files/libs/bootstrap/` Expected: render succeeds; the directory contains `bootstrap-*.min.css` (the compiled theme that includes the bslib rules).
+Remove `/tmp/rt01` afterwards.
 
 - [ ] **Step 6: Record the new test in the ratchet baseline**
 
-Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-tests-increase && git diff tools/runtime-boundary-baseline.json`
-Expected: one `::warning::tests baseline raised from N to N+6 (Deno.* calls)` line; the diff changes only `tests.denoCalls` (+6, the six `Deno.writeTextFileSync` fixture writes; PR 09 provides `deno_ral` file writers for later tests). List the file and its count in the PR description.
+Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-tests-increase && git diff tools/runtime-boundary-baseline.json` Expected: one `::warning::tests baseline raised from N to N+6 (Deno.* calls)` line; the diff changes only `tests.denoCalls` (+6, the six `Deno.writeTextFileSync` fixture writes; PR 09 provides `deno_ral` file writers for later tests).
+List the file and its count in the PR description.
 
 - [ ] **Step 7: Commit**
 
@@ -339,9 +348,13 @@ Before opening the PR:
 ## Risks and rollback
 
 - No existing test pins the compiled theme CSS (no snapshot or hash of `bootstrap-*.min.css`), so the suite cannot see a rule-order change; the unit test pins the concatenation order instead.
-- Risk: a theme's CSS rule order changes on machines whose filesystem returned a non-sorted order. The bslib component rules select disjoint components (`.accordion`, `.card`, `.sidebar`, `.value-box`, ...), so cascade order between those files does not change computed styles. If a visual regression is reported, `git revert` the second commit; the first commit is independent.
-- Risk: none for the `with` change on Deno (the branch is not executed by the CLI) or in the bundles (JSON inlined). If an editor integration that consumes `vs-code.mjs` or `web-worker.js` from a different build pipeline breaks, the fix is in that pipeline, not here.
+- Risk: a theme's CSS rule order changes on machines whose filesystem returned a non-sorted order.
+  The bslib component rules select disjoint components (`.accordion`, `.card`, `.sidebar`, `.value-box`, ...), so cascade order between those files does not change computed styles.
+  If a visual regression is reported, `git revert` the second commit; the first commit is independent.
+- Risk: none for the `with` change on Deno (the branch is not executed by the CLI) or in the bundles (JSON inlined).
+  If an editor integration that consumes `vs-code.mjs` or `web-worker.js` from a different build pipeline breaks, the fix is in that pipeline, not here.
 
 ## Decisions needed
 
-None. Review items closed: "APFS sorted" corrected (Context); the duplicated `@import` rules are recorded as out of scope (Context); the missing CSS-hash pin is recorded (Risks).
+None.
+Review items closed: "APFS sorted" corrected (Context); the duplicated `@import` rules are recorded as out of scope (Context); the missing CSS-hash pin is recorded (Risks).

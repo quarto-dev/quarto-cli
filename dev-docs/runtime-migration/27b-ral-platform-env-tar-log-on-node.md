@@ -1,13 +1,18 @@
 # PR 27b: `platform.ts`, `env.ts`, `tar.ts` and the `log.ts` file handler on `node:` APIs
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reimplement the four `deno_ral` modules no other Phase 2 plan ports (`src/deno_ral/platform.ts`, `env.ts`, `tar.ts`, and the `FileHandler` PR 20b added to `log.ts`) on `node:process`, `node:os`, `node:util` and `node:fs`, so that importing the layer on Node no longer throws `ReferenceError: Deno is not defined` and `runtime()` reports the runtime that is actually running, including inside the Node bundle.
-**Phase:** 2, before PR 31. **Depends on:** PR 14 (`env.ts` and its contract test), PR 19 (`platform.ts` exports and real `runtime()` detection), PR 20b (`FileHandler` in `log.ts`, `quarto-core/dotenv.ts` on the layer), PR 25 (boundary at zero), PR 26 (shim, `node-unit` job), PR 27 (`fs.ts` on `node:fs`, used by the tests). **Unblocks:** PR 28, PR 29, PR 30 (they depend on `platform.ts` and `env.ts` on `node:`), PR 31, PR 32.
+**Phase:** 2, before PR 31.
+**Depends on:** PR 14 (`env.ts` and its contract test), PR 19 (`platform.ts` exports and real `runtime()` detection), PR 20b (`FileHandler` in `log.ts`, `quarto-core/dotenv.ts` on the layer), PR 25 (boundary at zero), PR 26 (shim, `node-unit` job), PR 27 (`fs.ts` on `node:fs`, used by the tests).
+**Unblocks:** PR 28, PR 29, PR 30 (they depend on `platform.ts` and `env.ts` on `node:`), PR 31, PR 32.
 **Branch:** `rt/27b-ral-platform-env-tar-log-on-node`.
-**Suggested executor:** Sonnet. Four small modules with fixed interfaces and contract tests; the only judgement is the `runtime()` shim marker and the lazy tar input streams, both specified here.
+**Suggested executor:** Sonnet.
+Four small modules with fixed interfaces and contract tests; the only judgement is the `runtime()` shim marker and the lazy tar input streams, both specified here.
 **Size:** S (4 source files rewritten, 3 test files added or extended, shim shrink).
-**Ships on:** Deno; the whole existing suite must stay green. Node: the PR 26 `node-unit` job runs `tests/unit/ral/` on real Node on Linux and Windows; the `platform`, `env`, `tar` and `log-file-handler` entries in `tools/node-bundle/known-failures.json` are removed by this PR and none is added.
+**Ships on:** Deno; the whole existing suite must stay green.
+Node: the PR 26 `node-unit` job runs `tests/unit/ral/` on real Node on Linux and Windows; the `platform`, `env`, `tar` and `log-file-handler` entries in `tools/node-bundle/known-failures.json` are removed by this PR and none is added.
 
 ## Spec
 
@@ -22,11 +27,17 @@ Review finding B2 (`REVIEW-2026-10-15.md`, S1 and the Phase 2 report): PRs 27–
 | `src/deno_ral/tar.ts` | `@std/tar` `TarStream` fed by `stat`/`open`/`create` (layer calls after PR 13; `Deno.stat`/`Deno.open`/`Deno.create` before) and `import { pathWithForwardSlashes } from "../core/path.ts"` | works once PR 27 lands, but opens every input file before the archive is written (`Promise.all` over `open`): EMFILE on large `quarto publish` bundles (macOS's default limit is 256) |
 | `src/deno_ral/log.ts` `FileHandler` (PR 20b) | file I/O through the layer, flush on `globalThis.addEventListener("unload")` | Node has no global `addEventListener("unload")`: `--log <file>` throws at `setup()` |
 
-`@std/tar` 0.1.6 (`tar/tar-stream`) itself is pure web streams: its `tar_stream.js` mentions `Deno.*` only in doc comments (checked in the published `@jsr/std__tar@0.1.6` package), so it stays. `@std/log`'s `BaseHandler`, `ConsoleHandler`, `setup` and `getLogger` are runtime-neutral and stay; only the file handler needed replacing, which PR 20b did. The `.env` loader is PR 20b's own parser in `src/quarto-core/dotenv.ts` on the layer's `env`/`fs`, so it runs on Node once this PR and PR 27 land; it is verified here, not rewritten.
+`@std/tar` 0.1.6 (`tar/tar-stream`) itself is pure web streams: its `tar_stream.js` mentions `Deno.*` only in doc comments (checked in the published `@jsr/std__tar@0.1.6` package), so it stays.
+`@std/log`'s `BaseHandler`, `ConsoleHandler`, `setup` and `getLogger` are runtime-neutral and stay; only the file handler needed replacing, which PR 20b did.
+The `.env` loader is PR 20b's own parser in `src/quarto-core/dotenv.ts` on the layer's `env`/`fs`, so it runs on Node once this PR and PR 27 land; it is verified here, not rewritten.
 
-**Decision: `runtime()` recognises the Node shim.** The bundle's temporary shim (`tools/node-bundle/deno-shim.mjs`, PR 26) defines `globalThis.Deno` with a `version` member, so PR 19's detection (`typeof Deno !== "undefined" && "version" in Deno`) answers `deno` inside the bundle. The shim carries the marker `Symbol.for("quarto.deno-shim")` (PR 26); `runtime()` treats a `Deno` global carrying it as absent. This is the only place outside `tools/` that knows about the shim, and it disappears with the shim (PR 33).
+**Decision: `runtime()` recognises the Node shim.** The bundle's temporary shim (`tools/node-bundle/deno-shim.mjs`, PR 26) defines `globalThis.Deno` with a `version` member, so PR 19's detection (`typeof Deno !== "undefined" && "version" in Deno`) answers `deno` inside the bundle.
+The shim carries the marker `Symbol.for("quarto.deno-shim")` (PR 26); `runtime()` treats a `Deno` global carrying it as absent.
+This is the only place outside `tools/` that knows about the shim, and it disappears with the shim (PR 33).
 
-**Decision: `env` keeps Deno's validation.** `process.env` silently accepts keys Deno rejects. The Node body validates like `Deno.env`: an empty key, or a key containing `=` or NUL, throws `TypeError` from `get`, `set` and `delete`; a value containing NUL throws `TypeError` from `set`. This is the contract PR 14's test pins.
+**Decision: `env` keeps Deno's validation.** `process.env` silently accepts keys Deno rejects.
+The Node body validates like `Deno.env`: an empty key, or a key containing `=` or NUL, throws `TypeError` from `get`, `set` and `delete`; a value containing NUL throws `TypeError` from `set`.
+This is the contract PR 14's test pins.
 
 ### Scope
 
@@ -45,7 +56,8 @@ Out:
 
 ### Interfaces
 
-Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`platform.ts`", "`env.ts`") and from PR 20b. Spelled out for this PR:
+Unchanged from the shared vocabulary (`_TEMPLATE.md`, "`platform.ts`", "`env.ts`") and from PR 20b.
+Spelled out for this PR:
 
 ```ts
 // src/deno_ral/platform.ts
@@ -98,7 +110,8 @@ export class FileHandler extends BaseHandler {
 - Modify: `src/deno_ral/env.ts` (entire body)
 - Modify: `src/deno_ral/tar.ts` (entire body)
 - Modify: `src/deno_ral/log.ts` (the `FileHandler` class PR 20b added; the `@std/log` re-exports stay)
-- Test: `tests/unit/ral/platform.test.ts` (PR 19; one case appended), `tests/unit/ral/env.test.ts` (PR 14; validation cases appended if absent), `tests/unit/ral/tar.test.ts` (new), `tests/unit/ral/log-file-handler.test.ts` (new, or extended if PR 20b created it). Assumes PR 14 and PR 19 put their contract tests at these paths (vocabulary rule: layer tests live in `tests/unit/ral/`); if not, extend the files `ls tests/unit/ral/` shows.
+- Test: `tests/unit/ral/platform.test.ts` (PR 19; one case appended), `tests/unit/ral/env.test.ts` (PR 14; validation cases appended if absent), `tests/unit/ral/tar.test.ts` (new), `tests/unit/ral/log-file-handler.test.ts` (new, or extended if PR 20b created it).
+  Assumes PR 14 and PR 19 put their contract tests at these paths (vocabulary rule: layer tests live in `tests/unit/ral/`); if not, extend the files `ls tests/unit/ral/` shows.
 - Modify: `tools/node-bundle/deno-shim.mjs` (delete members reported unused), `tools/node-bundle/known-failures.json` (remove fixed entries)
 
 ### Acceptance criteria
@@ -153,9 +166,8 @@ unitTest("platform - runtime() names the runtime that runs this test, not the bu
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/platform.test.ts`
-Expected on Deno: both pass (the PR 19 body reads `Deno.*`). Then run it on Node through the bundle: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/platform.test.ts`
-Expected: `new Node failure: tests/unit/ral/platform.test.ts > [unit] > platform - runtime() names the runtime …` (the shim's `Deno.version` makes PR 19's `runtime()` answer `deno`), exit 1.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/platform.test.ts` Expected on Deno: both pass (the PR 19 body reads `Deno.*`).
+Then run it on Node through the bundle: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/platform.test.ts` Expected: `new Node failure: tests/unit/ral/platform.test.ts > [unit] > platform - runtime() names the runtime …` (the shim's `Deno.version` makes PR 19's `runtime()` answer `deno`), exit 1.
 
 - [ ] **Step 3: Implement**
 
@@ -245,8 +257,7 @@ git commit -m "deno_ral/platform: node:process body; runtime() ignores the Node 
 
 - [ ] **Step 1: Make sure the validation cases exist**
 
-Run: `grep -n "invalid characters\|empty string" tests/unit/ral/env.test.ts`
-If it prints nothing, PR 14's test predates the vocabulary's validation rule: append (adding `assertThrows` to the `../../asserts.ts` import):
+Run: `grep -n "invalid characters\|empty string" tests/unit/ral/env.test.ts` If it prints nothing, PR 14's test predates the vocabulary's validation rule: append (adding `assertThrows` to the `../../asserts.ts` import):
 
 ```ts
 unitTest("env - invalid keys and values throw TypeError like Deno.env", async () => {
@@ -263,8 +274,7 @@ unitTest("env - invalid keys and values throw TypeError like Deno.env", async ()
 
 - [ ] **Step 2: Run on Node and see it fail**
 
-Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/env.test.ts`
-Expected: the validation case fails on Node with the shim's `Deno.env` (it does not validate); the other PR 14 cases pass.
+Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/env.test.ts` Expected: the validation case fails on Node with the shim's `Deno.env` (it does not validate); the other PR 14 cases pass.
 
 - [ ] **Step 3: Implement**
 
@@ -406,8 +416,7 @@ unitTest("tar - 2000 inputs are archived without exhausting file descriptors", a
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/tar.test.ts`
-Expected on Deno: the first case passes; the second fails with `EMFILE`/`Too many open files` where the descriptor limit is below 2000 (macOS default 256; check with `ulimit -n`; on a Linux runner with a high limit it may pass, and the Node run below is the contract).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/tar.test.ts` Expected on Deno: the first case passes; the second fails with `EMFILE`/`Too many open files` where the descriptor limit is below 2000 (macOS default 256; check with `ulimit -n`; on a Linux runner with a high limit it may pass, and the Node run below is the contract).
 
 - [ ] **Step 3: Implement**
 
@@ -575,12 +584,12 @@ unitTest("log FileHandler - buffers until bufferSize, then writes", async () => 
 
 - [ ] **Step 2: Run on Node and see it fail**
 
-Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/log-file-handler.test.ts`
-Expected: `setup()` throws `TypeError: globalThis.addEventListener is not a function` (PR 20b's unload hook) or the cases pass if PR 20b already used `process.on`; either way Step 3 makes the body `node:fs` only.
+Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/log-file-handler.test.ts` Expected: `setup()` throws `TypeError: globalThis.addEventListener is not a function` (PR 20b's unload hook) or the cases pass if PR 20b already used `process.on`; either way Step 3 makes the body `node:fs` only.
 
 - [ ] **Step 3: Implement**
 
-Replace the `FileHandler` class (and its options interface) in `src/deno_ral/log.ts` with the block below; keep every `@std/log` re-export the file has (`debug`, `error`, `getLogger`, `info`, `LogLevels`, `setup`, `warning`, `LevelName`, `LogRecord`, `BaseHandler` …). If `BaseHandler`, `BaseHandlerOptions`, `LevelName`, `LogLevels` or `LogRecord` are not imported yet, import them from `"log"` (the import-map name the file already uses).
+Replace the `FileHandler` class (and its options interface) in `src/deno_ral/log.ts` with the block below; keep every `@std/log` re-export the file has (`debug`, `error`, `getLogger`, `info`, `LogLevels`, `setup`, `warning`, `LevelName`, `LogRecord`, `BaseHandler` …).
+If `BaseHandler`, `BaseHandlerOptions`, `LevelName`, `LogLevels` or `LogRecord` are not imported yet, import them from `"log"` (the import-map name the file already uses).
 
 ```ts
 import { closeSync, openSync, writeSync } from "node:fs";
@@ -682,12 +691,15 @@ git commit -m "deno_ral/log: FileHandler on node:fs with an exit-time flush"
 
 **Files:** `src/deno_ral/colors.ts`, `tests/unit/ral/colors.test.ts` (new, 2 cases)
 
-PR 22 wrote in `src/deno_ral/colors.ts`: "PR 27b makes this file call `setColorEnabled(!noColor())` so `NO_COLOR` is honoured on Node too". `@std/fmt/colors` decides from `globalThis.Deno?.noColor`, which the Node runtime does not have.
+PR 22 wrote in `src/deno_ral/colors.ts`: "PR 27b makes this file call `setColorEnabled(!noColor())` so `NO_COLOR` is honoured on Node too".
+`@std/fmt/colors` decides from `globalThis.Deno?.noColor`, which the Node runtime does not have.
 
 - [ ] **Step 1: Write the failing test**: a `unitTest` that spawns `execPath()` with `NO_COLOR=1` running a one-line script importing `src/deno_ral/colors.ts` and printing `red("x")`, and asserts the output has no escape code; a second case without `NO_COLOR` on a non-TTY asserts the same function's result equals what `getColorEnabled()` says.
-- [ ] **Step 2: Run it and see it fail** on the Node job: `node tools/node-bundle/run-unit-on-node.mjs tests/unit/ral/colors.test.ts`. Expected: the `NO_COLOR` case fails on Node (colour emitted), passes on Deno.
+- [ ] **Step 2: Run it and see it fail** on the Node job: `node tools/node-bundle/run-unit-on-node.mjs tests/unit/ral/colors.test.ts`.
+      Expected: the `NO_COLOR` case fails on Node (colour emitted), passes on Deno.
 - [ ] **Step 3: Implement**: after the re-export line in `colors.ts`, `import { noColor } from "./platform.ts"; setColorEnabled(!noColor());` (Task 1's `noColor()` reads `NO_COLOR` on both runtimes).
-- [ ] **Step 4: Run the tests** on Deno (`cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/colors.test.ts`) and on Node (step 2 command). Expected: both cases pass on both runtimes.
+- [ ] **Step 4: Run the tests** on Deno (`cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/colors.test.ts`) and on Node (step 2 command).
+      Expected: both cases pass on both runtimes.
 - [ ] **Step 5: Commit**: `git add src/deno_ral/colors.ts tests/unit/ral/colors.test.ts && git commit -m "deno_ral/colors: honour NO_COLOR on Node (PR 22's promise)"`
 
 ### Task 5: Shim and known-failures shrink
@@ -697,13 +709,14 @@ PR 22 wrote in `src/deno_ral/colors.ts`: "PR 27b makes this file call `setColorE
 
 - [ ] **Step 1: Delete the unused shim members**
 
-Run: `npm ci && node tools/node-bundle/build.mjs --check-shim`
-Expected: `0 missing` and an `unused` list; the candidates are `env`, `build`, `version`, `consoleSize`, `inspect`, `uid`, `noColor`, `hostname`. A member still referenced by `src/resources/**/*.js` (for example `Deno.build` and `Deno.env` in `julia-engine.js` until the subtree pull, decision 7) is not listed and stays. Delete exactly the listed lines; rebuild; `0 missing`, no `unused` list.
+Run: `npm ci && node tools/node-bundle/build.mjs --check-shim` Expected: `0 missing` and an `unused` list; the candidates are `env`, `build`, `version`, `consoleSize`, `inspect`, `uid`, `noColor`, `hostname`.
+A member still referenced by `src/resources/**/*.js` (for example `Deno.build` and `Deno.env` in `julia-engine.js` until the subtree pull, decision 7) is not listed and stays.
+Delete exactly the listed lines; rebuild; `0 missing`, no `unused` list.
 
 - [ ] **Step 2: Remove the fixed known failures**
 
-Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/`
-Expected: `now passes on Node, remove it …` lines for `platform`, `env`, `tar` and `log-file-handler` cases (exit 1). Delete them from the `linux` section (and from `windows` when this branch's Windows `node-unit` run reports them); rerun; `no change`, exit 0.
+Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` Expected: `now passes on Node, remove it …` lines for `platform`, `env`, `tar` and `log-file-handler` cases (exit 1).
+Delete them from the `linux` section (and from `windows` when this branch's Windows `node-unit` run reports them); rerun; `no change`, exit 0.
 
 - [ ] **Step 3: Commit**
 
@@ -733,11 +746,15 @@ git commit -m "node-bundle: drop shim members and known failures fixed by deno_r
 
 ## Risks and rollback
 
-- **`inspect()` output differs between runtimes** (`util.inspect` quotes strings with `'`, `Deno.inspect` with `"`). The only caller is debug logging in `src/publish/confluence/confluence-logger.ts`; no test asserts the format. Accepted.
-- **`noColor()` with `NO_COLOR=""`**: no-color.org says an empty value does not disable colour; this body follows it. If Deno 2.9 treats an empty value as set (check `NO_COLOR= deno eval 'console.log(Deno.noColor)'` while executing), match Deno and say so in the PR.
+- **`inspect()` output differs between runtimes** (`util.inspect` quotes strings with `'`, `Deno.inspect` with `"`).
+  The only caller is debug logging in `src/publish/confluence/confluence-logger.ts`; no test asserts the format.
+  Accepted.
+- **`noColor()` with `NO_COLOR=""`**: no-color.org says an empty value does not disable colour; this body follows it.
+  If Deno 2.9 treats an empty value as set (check `NO_COLOR= deno eval 'console.log(Deno.noColor)'` while executing), match Deno and say so in the PR.
 - **Lazy tar inputs change when a missing file is reported**: a file deleted between `stat` and archiving now fails during `pipeTo` instead of before; the error is the same `ENOENT` and aborts the publish as before.
 - **Whole-PR rollback:** revert the five commits; no caller changed.
 
 ## Decisions needed
 
-None. The shim marker in `runtime()` and the `env` validation are decided above.
+None.
+The shim marker in `runtime()` and the `env` validation are decided above.

@@ -1,36 +1,58 @@
 # PR 27: `fs.ts`, `temp.ts` and `errors.ts` on `node:` APIs; `walk`/`expandGlob` without `@std/fs`
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reimplement `src/deno_ral/fs.ts`, `src/deno_ral/temp.ts` and `src/deno_ral/errors.ts` on `node:fs`, `node:fs/promises`, `node:os` and `node:crypto`, including Quarto's own `walk`, `walkSync`, `expandGlob`, `expandGlobSync`, `ensureDir(Sync)`, `existsSync`, `copy(Sync)`, `moveSync`, `emptyDirSync` and `EOL`, so the filesystem layer has one implementation that runs on Deno 2 today and on Node after the flip.
-**Phase:** 2. **Depends on:** PR 25 (boundary at zero: every caller already imports `src/deno_ral/fs.ts`, `temp.ts`, `errors.ts`; `original-real-path.ts` is deleted and `canonicalPathSync` replaces it), PR 26 (`tools/node-bundle/`: this PR edits the shim, and the `node-unit` job runs this PR's tests on real Node), PR 20b (`onFileRead` read-observer hook in `fs.ts`, kept here). Starts after Spike #2 closes (`SPIKES.md`). **Unblocks:** PR 27b, 31, 32.
+**Phase:** 2.
+**Depends on:** PR 25 (boundary at zero: every caller already imports `src/deno_ral/fs.ts`, `temp.ts`, `errors.ts`; `original-real-path.ts` is deleted and `canonicalPathSync` replaces it), PR 26 (`tools/node-bundle/`: this PR edits the shim, and the `node-unit` job runs this PR's tests on real Node), PR 20b (`onFileRead` read-observer hook in `fs.ts`, kept here).
+Starts after Spike #2 closes (`SPIKES.md`).
+**Unblocks:** PR 27b, 31, 32.
 **Branch:** `rt/27-ral-fs-on-node-apis`.
-**Suggested executor:** Opus. The walk/glob semantics and the error mapping need judgement; the per-function rewrites are mechanical but numerous.
+**Suggested executor:** Opus.
+The walk/glob semantics and the error mapping need judgement; the per-function rewrites are mechanical but numerous.
 **Size:** S by file count, L by volume and judgement (3 source files rewritten, ~50 exported functions, 2 new test files, 1 extended, shim shrink).
-**Ships on:** Deno; the whole existing suite must stay green. Node: the PR 26 `node-unit` job runs `tests/unit/ral/` (including this PR's new files) on real Node 26 on Linux and Windows; the entries for `fs`/`temp`/`errors` tests in `tools/node-bundle/known-failures.json` are removed by this PR, and none is added. `node tools/node-bundle/build.mjs --check-shim` reports `0 missing` and an empty `unused` list after the shim shrink.
+**Ships on:** Deno; the whole existing suite must stay green.
+Node: the PR 26 `node-unit` job runs `tests/unit/ral/` (including this PR's new files) on real Node 26 on Linux and Windows; the entries for `fs`/`temp`/`errors` tests in `tools/node-bundle/known-failures.json` are removed by this PR, and none is added.
+`node tools/node-bundle/build.mjs --check-shim` reports `0 missing` and an empty `unused` list after the shim shrink.
 
 ## Spec
 
 ### Context
 
-Assessment section 11, module plan row `fs.ts`: "`walk`/`expandGlob` stay re-exported from `@std/fs` until the flip, then are reimplemented on `node:fs`". Section 3.4: "`@std/fs` uses `Deno.*` internally. Re-implement the handful of helpers in the runtime layer on `node:fs`". Design rule 6: "Write each module on `node:` APIs and run it on Deno 2."
+Assessment section 11, module plan row `fs.ts`: "`walk`/`expandGlob` stay re-exported from `@std/fs` until the flip, then are reimplemented on `node:fs`".
+Section 3.4: "`@std/fs` uses `Deno.*` internally.
+Re-implement the handful of helpers in the runtime layer on `node:fs`".
+Design rule 6: "Write each module on `node:` APIs and run it on Deno 2."
 
-After PR 09–13 and PR 25, application code calls `readTextFileSync`, `statSync`, `walkSync`, `expandGlobSync` from `src/deno_ral/fs.ts`, which still delegates to `Deno.*` and to `fs/walk`, `fs/expand-glob`, `fs/copy`, `fs/move`, `fs/ensure-dir`, `fs/exists`, `fs/eol`, `fs/empty-dir` from `@std/fs` 1.0.16. This PR replaces those bodies. The public signatures (shared vocabulary in `_TEMPLATE.md`) do not change, so no caller changes.
+After PR 09–13 and PR 25, application code calls `readTextFileSync`, `statSync`, `walkSync`, `expandGlobSync` from `src/deno_ral/fs.ts`, which still delegates to `Deno.*` and to `fs/walk`, `fs/expand-glob`, `fs/copy`, `fs/move`, `fs/ensure-dir`, `fs/exists`, `fs/eol`, `fs/empty-dir` from `@std/fs` 1.0.16.
+This PR replaces those bodies.
+The public signatures (shared vocabulary in `_TEMPLATE.md`) do not change, so no caller changes.
 
 Review findings on the earlier draft, all addressed here: it rewrote `src/deno_ral/original-real-path.ts`, which PR 25 deletes (this plan does not touch it); it never wrote the Node body of `canonicalPathSync`, which five PR 25 callers use (Task 3 writes it on `fs.realpathSync.native`); its temp-file loop retried every error while the vocabulary says `EEXIST` only (fixed); it made `copy()` synchronous on the claim that callers copy small trees, but `src/publish/gh-pages/gh-pages.ts:243` (`await copy(renderResult.baseDir, tempDir, { overwrite: true })`) copies a whole rendered site (both `copy` on `node:fs/promises` and `copySync` are provided); the async `walk` used `fsp.realpath` while the sync one used `realpathSync.native` (both now go through the layer's own `realPath`/`canonicalPathSync`, which use the same libuv `uv_fs_realpath`, and a test pins that they agree); it cited `tests/docs/websites/book`, which does not exist (`tests/docs/smoke-all/book/simple` is used).
 
-Review of 2026-10-16 (`REVIEW-2026-10-16.md`, triage bucket C row 27), addressed here: `openFlags()`/`writeFlag()` translated Deno's independent `create`/`truncate`/`append` options into `node:fs` string flags that bundle them (`"w"` truncated a `{ write, create }` open and created a `{ write, truncate, create: false }` one; `"a"` created a missing file on append) and `{ create: false }` writes went through `"r+"` (R05): the layer now derives numeric flags (`openFlagBits()`, Interfaces, "Open flags"). `NodeFsFile` wrapped the same descriptor in a new `autoClose: true` stream on every getter access and `close()` swallowed `EBADF`, so a recycled descriptor could be closed (R06): the file is now the single owner of its descriptor and its streams close through it (Interfaces, "One descriptor owner"; triage decision A8). `copySymlink` picked the Windows link type from `lstat`, which describes the link, so every directory link became a file link (R19, a bug `@std/fs` 1.0.16 `copy.ts` has today): the type now comes from `stat` of the source with a dangling-link fallback (Task 4). The numeric flags, `writeFileSync(fd, data)` and the streams' `fs` option were checked on Node 26.12.0 and 22.22 (the Task 2 R05 and R06 cases, transliterated to `node:test` over the Task 3 bodies, pass on both; the second run was the re-read of the review's "Later validation" lines on 2026-10-16, which also removed the orphan tail of the test the R05 cases replaced and added the writer-closed-underneath and junction cases); on Deno 2.7.14 they are covered by the tests of Tasks 2 and 4, which run on both runtimes.
+Review of 2026-10-16 (`REVIEW-2026-10-16.md`, triage bucket C row 27), addressed here: `openFlags()`/`writeFlag()` translated Deno's independent `create`/`truncate`/`append` options into `node:fs` string flags that bundle them (`"w"` truncated a `{ write, create }` open and created a `{ write, truncate, create: false }` one; `"a"` created a missing file on append) and `{ create: false }` writes went through `"r+"` (R05): the layer now derives numeric flags (`openFlagBits()`, Interfaces, "Open flags").
+`NodeFsFile` wrapped the same descriptor in a new `autoClose: true` stream on every getter access and `close()` swallowed `EBADF`, so a recycled descriptor could be closed (R06): the file is now the single owner of its descriptor and its streams close through it (Interfaces, "One descriptor owner"; triage decision A8).
+`copySymlink` picked the Windows link type from `lstat`, which describes the link, so every directory link became a file link (R19, a bug `@std/fs` 1.0.16 `copy.ts` has today): the type now comes from `stat` of the source with a dangling-link fallback (Task 4).
+The numeric flags, `writeFileSync(fd, data)` and the streams' `fs` option were checked on Node 26.12.0 and 22.22 (the Task 2 R05 and R06 cases, transliterated to `node:test` over the Task 3 bodies, pass on both; the second run was the re-read of the review's "Later validation" lines on 2026-10-16, which also removed the orphan tail of the test the R05 cases replaced and added the writer-closed-underneath and junction cases); on Deno 2.7.14 they are covered by the tests of Tasks 2 and 4, which run on both runtimes.
 
-The normalising `realPathSync` that PR 09 introduced is gone from the vocabulary (PR 09 maps `Deno.realPathSync(` to `canonicalPathSync(`); this PR does not reintroduce it. `canonicalPathSync(path)` resolves symlinks, throws when `path` does not exist, and returns a path without the Windows `\\?\` prefix: libuv's `uv_fs_realpath` (behind both `fs.realpathSync.native` and `fs.promises.realpath`) strips `\\?\` and turns `\\?\UNC\` into `\\`, which is "removed by the runtime itself" in the vocabulary's words.
+The normalising `realPathSync` that PR 09 introduced is gone from the vocabulary (PR 09 maps `Deno.realPathSync(` to `canonicalPathSync(`); this PR does not reintroduce it.
+`canonicalPathSync(path)` resolves symlinks, throws when `path` does not exist, and returns a path without the Windows `\\?\` prefix: libuv's `uv_fs_realpath` (behind both `fs.realpathSync.native` and `fs.promises.realpath`) strips `\\?\` and turns `\\?\UNC\` into `\\`, which is "removed by the runtime itself" in the vocabulary's words.
 
 Verified in this sandbox on Node 22.22 and the pinned Deno 2.7.14 (`node:fs` compat): `readdirSync({ withFileTypes })` with `isSymbolicLink()`, `realpathSync.native`, `statSync` (`mtime`, `birthtime`, `mode`), `openSync(path, "wx")` → `EEXIST`, `rmSync` → `ENOENT` for a missing path and `ERR_FS_EISDIR` for a directory without `recursive`, `utimesSync`, `truncateSync`, `chmodSync`, `symlinkSync`, `readlinkSync` behave identically on both runtimes.
 
 `@std/fs` semantics this PR preserves (read from the 1.0.16 sources: `walk.ts`, `expand_glob.ts`, `copy.ts`, `move.ts`, `ensure_dir.ts`, `empty_dir.ts`, `exists.ts`, `eol.ts`):
 
-- `walk(root, { maxDepth = Infinity, includeFiles = true, includeDirs = true, includeSymlinks = true, followSymlinks = false, canonicalize = true, exts, match, skip })`: yields the root first (when `includeDirs` and it passes `exts`/`match`/`skip`); stops when `maxDepth < 1` or the root matches `skip`; for each entry: symlink + `!followSymlinks` → yield as a symlink entry (no descent); symlink + `followSymlinks` → `realPath`, re-`lstat`, path becomes the real path when `canonicalize`; directories recurse with `maxDepth - 1`; files yield when `includeFiles` and the filters pass. `exts` are normalised to a leading dot. `skip`/`match` test the **full path** (`path.match(regex)`), not the name. Throws the underlying error (NotFound for a missing root, PermissionDenied for an unreadable directory: `src/project/project-context.ts` tags that error).
-- `expandGlob(glob, { root = cwd, exclude = [], includeDirs = true, extended = true, globstar = true, caseInsensitive = false, followSymlinks = false, canonicalize = true })`: splits the glob into segments; the non-glob leading segments form the fixed root; a missing fixed root yields nothing (NotFound swallowed, other errors thrown); `**` walks with `maxDepth: globstar ? Infinity : 1` and `skip: excludePatterns`; other segments match entry **names** one level down; results per segment are de-duplicated by path and sorted by path; trailing `/` keeps directories only; `includeDirs: false` drops directories; `exclude` globs are resolved against the root and compiled with `globToRegExp`. Yielded paths are absolute. The `?()` extglob in `**/README.?([Rrq])md` and the `**` globstar in `src/project/project-context.ts` `projectHiddenIgnoreGlob` come from `globToRegExp` (`@std/path`, pure TypeScript, kept).
+- `walk(root, { maxDepth = Infinity, includeFiles = true, includeDirs = true, includeSymlinks = true, followSymlinks = false, canonicalize = true, exts, match, skip })`: yields the root first (when `includeDirs` and it passes `exts`/`match`/`skip`); stops when `maxDepth < 1` or the root matches `skip`; for each entry: symlink + `!followSymlinks` → yield as a symlink entry (no descent); symlink + `followSymlinks` → `realPath`, re-`lstat`, path becomes the real path when `canonicalize`; directories recurse with `maxDepth - 1`; files yield when `includeFiles` and the filters pass.
+  `exts` are normalised to a leading dot.
+  `skip`/`match` test the **full path** (`path.match(regex)`), not the name.
+  Throws the underlying error (NotFound for a missing root, PermissionDenied for an unreadable directory: `src/project/project-context.ts` tags that error).
+- `expandGlob(glob, { root = cwd, exclude = [], includeDirs = true, extended = true, globstar = true, caseInsensitive = false, followSymlinks = false, canonicalize = true })`: splits the glob into segments; the non-glob leading segments form the fixed root; a missing fixed root yields nothing (NotFound swallowed, other errors thrown); `**` walks with `maxDepth: globstar ? Infinity : 1` and `skip: excludePatterns`; other segments match entry **names** one level down; results per segment are de-duplicated by path and sorted by path; trailing `/` keeps directories only; `includeDirs: false` drops directories; `exclude` globs are resolved against the root and compiled with `globToRegExp`.
+  Yielded paths are absolute.
+  The `?()` extglob in `**/README.?([Rrq])md` and the `**` globstar in `src/project/project-context.ts` `projectHiddenIgnoreGlob` come from `globToRegExp` (`@std/path`, pure TypeScript, kept).
 - `copy(src, dest, { overwrite = false, preserveTimestamps = false })`: refuses to copy a directory into itself (`isSubdir`) with an Error; `dest` existing and `!overwrite` → AlreadyExists; a directory onto a non-directory → Error; symlinks are recreated as symlinks (on Windows with the type of the link's **target**, `statSync(src)`: a directory → `"dir"`, anything else or a dangling link → `"file"`; a junction, which `lstat` reports as a symlink and `readlink` resolves, is recreated as a directory symlink of that target; `@std/fs` 1.0.16 reads `lstat`, which describes the link itself, and so recreates every directory link as a file link: R19, not carried over); directories are created with `ensureDir` and recursed; `preserveTimestamps` copies `atime`/`mtime`.
-- `moveSync(src, dest, { overwrite = false })`: a directory into its own subdirectory → Error; `overwrite` removes `dest` first (NotFound ignored); otherwise an existing `dest` → AlreadyExists; then `rename`. (Quarto's cross-device fallback is `safeMoveSync`, kept.)
+- `moveSync(src, dest, { overwrite = false })`: a directory into its own subdirectory → Error; `overwrite` removes `dest` first (NotFound ignored); otherwise an existing `dest` → AlreadyExists; then `rename`.
+  (Quarto's cross-device fallback is `safeMoveSync`, kept.)
 - `ensureDir(Sync)`: `mkdir -p`; an existing non-directory → Error `Ensure path exists, expected 'dir', got 'file'`.
 - `existsSync(path)`: `statSync` succeeds → true (follows symlinks: a dangling link is false); NotFound → false; PermissionDenied → true (the path exists but is not readable); other errors thrown.
 - `emptyDirSync(dir)`: creates it, or removes every entry inside it.
@@ -39,13 +61,15 @@ Verified in this sandbox on Node 22.22 and the pinned Deno 2.7.14 (`node:fs` com
 ### Scope
 
 In:
-- Rewrite `src/deno_ral/fs.ts`, `src/deno_ral/temp.ts`, `src/deno_ral/errors.ts` on `node:` APIs; no `Deno.*` (outside `errors.ts`'s guarded fallback) and no `@std/fs` import remains in them. `canonicalPathSync` on `fs.realpathSync.native`; `realPath` on `fs.promises.realpath`; PR 20b's `onFileRead` hook kept.
+- Rewrite `src/deno_ral/fs.ts`, `src/deno_ral/temp.ts`, `src/deno_ral/errors.ts` on `node:` APIs; no `Deno.*` (outside `errors.ts`'s guarded fallback) and no `@std/fs` import remains in them.
+  `canonicalPathSync` on `fs.realpathSync.native`; `realPath` on `fs.promises.realpath`; PR 20b's `onFileRead` hook kept.
 - Keep every helper the file exports today (`isSubdir`, `toPathString`, `safeMoveSync`, `safeRemoveSync`, `safeExistsFileSync`, `UnsafeRemovalError`, `safeRemoveDirSync`, `safeModeFromFile`, `safeChmodSync`, `ensureUserWritable`, `getFileInfoType`, `PathType`, `WalkEntry`, `ExpandGlobOptions`, `CopyOptions`).
 - Unit tests for walk/glob/copy semantics and the Node-specific behaviours under `tests/unit/ral/` (the directory the PR 26 `node-unit` job runs on real Node).
 - Shrink `tools/node-bundle/deno-shim.mjs` by the members this PR makes unused; remove the now-passing `fs`/`temp`/`errors` entries from `tools/node-bundle/known-failures.json`.
 
 Out:
-- Any caller change (signatures unchanged). If a caller breaks, the PR 09 contract test was incomplete: add the missing case to the PR 09 test file and fix the implementation here.
+- Any caller change (signatures unchanged).
+  If a caller breaks, the PR 09 contract test was incomplete: add the missing case to the PR 09 test file and fix the implementation here.
 - `src/deno_ral/original-real-path.ts` (deleted by PR 25) and the normalising `realPathSync` (removed from the vocabulary).
 - `src/deno_ral/path.ts` (stays on `@std/path`; it is pure).
 - `env.ts`, `platform.ts`, `tar.ts`, `log.ts` (PR 27b); `process.ts`, `net.ts`, `http.ts`, `watch.ts`, `kv.ts` (PR 28–30).
@@ -53,7 +77,9 @@ Out:
 
 ### Interfaces
 
-All signatures are the shared vocabulary (`_TEMPLATE.md`, "`fs.ts`", "`temp.ts`", "`errors.ts`") plus the additions PR 09 made (its Interfaces section): `FsFile`, `OpenOptions`, `open`, `openSync`, `create`, `symlink`, `realPath`, `chmod`; `readDirSync` returns `DirEntry[]`; `readTextFileSync`/`readTextFile` append `\nPath: <path>` to a read error's message once (`errorWithPath`); `errors.ts` exports `isConnectionError` (EPIPE, ENOTCONN, ECONNABORTED, ECONNRESET, ECONNREFUSED). All unchanged. Types added or made explicit by this PR, previously re-exported from `@std/fs`:
+All signatures are the shared vocabulary (`_TEMPLATE.md`, "`fs.ts`", "`temp.ts`", "`errors.ts`") plus the additions PR 09 made (its Interfaces section): `FsFile`, `OpenOptions`, `open`, `openSync`, `create`, `symlink`, `realPath`, `chmod`; `readDirSync` returns `DirEntry[]`; `readTextFileSync`/`readTextFile` append `\nPath: <path>` to a read error's message once (`errorWithPath`); `errors.ts` exports `isConnectionError` (EPIPE, ENOTCONN, ECONNABORTED, ECONNRESET, ECONNREFUSED).
+All unchanged.
+Types added or made explicit by this PR, previously re-exported from `@std/fs`:
 
 ```ts
 export interface WalkEntry extends DirEntry { path: string; }
@@ -90,11 +116,15 @@ export const EOL: "\n" | "\r\n"; export const LF: "\n"; export const CRLF: "\r\n
 export function format(content: string, eol: "\n" | "\r\n"): string;
 ```
 
-Error behaviour (note: a `Deno.errors.AlreadyExists` constructed by `@std/fs` has no `code`, verified on Deno 2.7.14, which is why `errors.ts` keeps the guarded `instanceof` fallback for the remaining Deno-native paths): every function throws the `node:fs` error unchanged (an `Error` with `code` set to `ENOENT`, `EEXIST`, `EACCES`, `EPERM`, `ENOTEMPTY`, …). `errors.ts` predicates recognise the `code`; no Quarto error class is introduced. Rationale: after PR 25 there is no `instanceof Deno.errors.X` left in `src/` (Task 1 verifies this with a grep that must print 0), so classes have no consumer. `copy`/`moveSync`/`ensureDir` throw errors constructed here with the same `code` values (`EEXIST`, `ENOTSUP`) so the predicates apply to them too.
+Error behaviour (note: a `Deno.errors.AlreadyExists` constructed by `@std/fs` has no `code`, verified on Deno 2.7.14, which is why `errors.ts` keeps the guarded `instanceof` fallback for the remaining Deno-native paths): every function throws the `node:fs` error unchanged (an `Error` with `code` set to `ENOENT`, `EEXIST`, `EACCES`, `EPERM`, `ENOTEMPTY`, …).
+`errors.ts` predicates recognise the `code`; no Quarto error class is introduced.
+Rationale: after PR 25 there is no `instanceof Deno.errors.X` left in `src/` (Task 1 verifies this with a grep that must print 0), so classes have no consumer.
+`copy`/`moveSync`/`ensureDir` throw errors constructed here with the same `code` values (`EEXIST`, `ENOTSUP`) so the predicates apply to them too.
 
 Two rules this PR owns (review R05 and R06; PR 35's shim and any later `FsFile` implementation follow them):
 
-**Open flags.** `node:fs` string flags bundle create, truncate and append (`"w"` is `O_WRONLY | O_CREAT | O_TRUNC`, `"a"` is `O_WRONLY | O_CREAT | O_APPEND`); Deno's options are independent. The layer derives a numeric flag set and implies nothing:
+**Open flags.** `node:fs` string flags bundle create, truncate and append (`"w"` is `O_WRONLY | O_CREAT | O_TRUNC`, `"a"` is `O_WRONLY | O_CREAT | O_APPEND`); Deno's options are independent.
+The layer derives a numeric flag set and implies nothing:
 
 ```ts
 /**
@@ -108,9 +138,16 @@ Two rules this PR owns (review R05 and R06; PR 35's shim and any later `FsFile` 
 export function openFlagBits(options?: OpenOptions): number;
 ```
 
-`writeTextFile(Sync)`/`writeFile(Sync)` open with `openFlagBits({ write: true, create: options.create ?? true, truncate: !options.append, append: options.append })`, which is how `Deno.writeFile` maps its options, and write through the descriptor; no `"w"`, `"a"` or `"r+"` string flag remains in `fs.ts`. So `{ create: false }` truncates an existing file and fails with `ENOENT` on a missing one, `{ append: true, create: false }` never creates, and shorter replacement content leaves no trailing bytes.
+`writeTextFile(Sync)`/`writeFile(Sync)` open with `openFlagBits({ write: true, create: options.create ?? true, truncate: !options.append, append: options.append })`, which is how `Deno.writeFile` maps its options, and write through the descriptor; no `"w"`, `"a"` or `"r+"` string flag remains in `fs.ts`.
+So `{ create: false }` truncates an existing file and fails with `ENOENT` on a missing one, `{ append: true, create: false }` never creates, and shorter replacement content leaves no trailing bytes.
 
-**One descriptor owner.** An `FsFile` owns its descriptor until it is closed. `readable` and `writable` are created once and cached. The Node streams behind them are given an `fs` option whose `close` is routed to the object's `close()`, so they never call `fs.close` on a number the object may already have released and the OS reused; reaching EOF, cancelling the readable, closing or aborting the writable therefore close the file exactly once (Deno semantics, triage A8). `close()` is idempotent and records the closed state; afterwards `read`, `write`, `writeSync` and the streams fail with an `EBADF` error instead of touching a recycled descriptor. Closing the file while its readable is mid-flight fails the next read with `EBADF`, as Deno's `BadResource` does. The writable differs in one timing: Node's `Writable.toWeb` resolves a `write()` as soon as the chunk is buffered, so one `write()` issued after `close()` still resolves; the underlying write then fails with `EBADF`, which errors the stream, and `closed`, `ready` and every later `write()` reject with it while the buffered bytes are never written (measured on Node 26.12.0 and 22.22). A caller that closes a file under its own writer learns of it from `closed` or the next `write()`, never through a write on a recycled descriptor.
+**One descriptor owner.** An `FsFile` owns its descriptor until it is closed.
+`readable` and `writable` are created once and cached.
+The Node streams behind them are given an `fs` option whose `close` is routed to the object's `close()`, so they never call `fs.close` on a number the object may already have released and the OS reused; reaching EOF, cancelling the readable, closing or aborting the writable therefore close the file exactly once (Deno semantics, triage A8).
+`close()` is idempotent and records the closed state; afterwards `read`, `write`, `writeSync` and the streams fail with an `EBADF` error instead of touching a recycled descriptor.
+Closing the file while its readable is mid-flight fails the next read with `EBADF`, as Deno's `BadResource` does.
+The writable differs in one timing: Node's `Writable.toWeb` resolves a `write()` as soon as the chunk is buffered, so one `write()` issued after `close()` still resolves; the underlying write then fails with `EBADF`, which errors the stream, and `closed`, `ready` and every later `write()` reject with it while the buffered bytes are never written (measured on Node 26.12.0 and 22.22).
+A caller that closes a file under its own writer learns of it from `closed` or the next `write()`, never through a write on a recycled descriptor.
 
 ### Files
 
@@ -121,7 +158,8 @@ export function openFlagBits(options?: OpenOptions): number;
 - Modify: `tools/node-bundle/known-failures.json` (remove entries for the files below that now pass on Node)
 - Test: `tests/unit/ral/fs-walk-glob.test.ts` (new)
 - Test: `tests/unit/ral/fs-node-semantics.test.ts` (new)
-- Test: `tests/unit/ral/errors.test.ts` (PR 09; one case appended), `tests/unit/ral/fs.test.ts`, `tests/unit/ral/temp.test.ts` (PR 09; one case changed in `temp.test.ts`, see Task 3). Assumes PR 09 landed with these names under `tests/unit/ral/` (vocabulary rule: layer tests live there); if they differ, the contract is whatever `ls tests/unit/ral/` shows.
+- Test: `tests/unit/ral/errors.test.ts` (PR 09; one case appended), `tests/unit/ral/fs.test.ts`, `tests/unit/ral/temp.test.ts` (PR 09; one case changed in `temp.test.ts`, see Task 3).
+  Assumes PR 09 landed with these names under `tests/unit/ral/` (vocabulary rule: layer tests live there); if they differ, the contract is whatever `ls tests/unit/ral/` shows.
 
 ### Acceptance criteria
 
@@ -144,8 +182,8 @@ export function openFlagBits(options?: OpenOptions): number;
 
 - [ ] **Step 1: Verify no `instanceof Deno.errors` consumer remains**
 
-Run: `grep -rn "instanceof Deno.errors" src/ package/src tests/ --include=*.ts | grep -v "src/deno_ral/" | wc -l`
-Expected: `0`. If not 0, PR 25's ratchet was bypassed: convert each site to the matching predicate from `src/deno_ral/errors.ts` first (same mechanical change as PR 10–13) and commit that separately.
+Run: `grep -rn "instanceof Deno.errors" src/ package/src tests/ --include=*.ts | grep -v "src/deno_ral/" | wc -l` Expected: `0`.
+If not 0, PR 25's ratchet was bypassed: convert each site to the matching predicate from `src/deno_ral/errors.ts` first (same mechanical change as PR 10–13) and commit that separately.
 
 - [ ] **Step 2: Add a Node-code test case to the PR 09 contract test**
 
@@ -181,12 +219,12 @@ unitTest("errors - predicates recognise node:fs error codes", async () => {
 });
 ```
 
-(Imports: `fail`, `assert` from `../../asserts.ts`; `makeTempDirSync` from `../../../src/deno_ral/temp.ts`; `removeSync` from `../../../src/deno_ral/fs.ts`; the five predicates from `../../../src/deno_ral/errors.ts`. Add whichever the file does not import yet.)
+(Imports: `fail`, `assert` from `../../asserts.ts`; `makeTempDirSync` from `../../../src/deno_ral/temp.ts`; `removeSync` from `../../../src/deno_ral/fs.ts`; the five predicates from `../../../src/deno_ral/errors.ts`.
+Add whichever the file does not import yet.)
 
 - [ ] **Step 3: Run it; the Deno-era predicates may already pass (Deno 2 sets `code`), either way continue**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts`
-Expected: PASS or FAIL depending on the PR 09 body; the next step makes the body code-first.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts` Expected: PASS or FAIL depending on the PR 09 body; the next step makes the body code-first.
 
 - [ ] **Step 4: Implement**
 
@@ -282,8 +320,7 @@ If PR 09's `errors.ts` exported more names than these (check with `grep -n "^exp
 
 - [ ] **Step 5: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts`
-Expected: all green, including `errors - predicates recognise node:fs error codes`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts` Expected: all green, including `errors - predicates recognise node:fs error codes`.
 
 - [ ] **Step 6: Commit**
 
@@ -546,8 +583,7 @@ unitTest("fs - existsSync is false for a dangling symlink", async () => {
 
 - [ ] **Step 2: Run it and see what fails on the PR 09 implementation**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs-node-semantics.test.ts`
-Expected: all cases may already pass on the PR 09 (Deno) body; the file is the contract for the Node body written in Task 3.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs-node-semantics.test.ts` Expected: all cases may already pass on the PR 09 (Deno) body; the file is the contract for the Node body written in Task 3.
 
 - [ ] **Step 3: Commit the test**
 
@@ -565,7 +601,8 @@ git commit -m "tests: pin node-sensitive fs semantics for deno_ral/fs"
 
 - [ ] **Step 1: Pin the retry rule in the PR 09 temp test**
 
-The vocabulary retries 5 times on `isAlreadyExists(e)` only. If `tests/unit/ral/temp.test.ts` contains PR 09's case expecting a missing parent directory to be retried, replace it with:
+The vocabulary retries 5 times on `isAlreadyExists(e)` only.
+If `tests/unit/ral/temp.test.ts` contains PR 09's case expecting a missing parent directory to be retried, replace it with:
 
 ```ts
 unitTest("temp - a missing parent directory fails at once with NotFound (only EEXIST is retried)", async () => {
@@ -686,7 +723,8 @@ export function makeTempFile(options?: TempOptions): Promise<string> {
 
 - [ ] **Step 3: Rewrite the plain-call section of `fs.ts`**
 
-Replace everything in `src/deno_ral/fs.ts` above the first Quarto helper (`getFileInfoType`) with the block below, and keep the helpers (they already call the layer's own functions after PR 25; if one still names `Deno.`, replace it with the layer function of the same name). The walk/glob/copy/move/ensure/empty/EOL functions are added in Task 4; until then, keep the `@std/fs` re-exports for them so the suite stays green between commits.
+Replace everything in `src/deno_ral/fs.ts` above the first Quarto helper (`getFileInfoType`) with the block below, and keep the helpers (they already call the layer's own functions after PR 25; if one still names `Deno.`, replace it with the layer function of the same name).
+The walk/glob/copy/move/ensure/empty/EOL functions are added in Task 4; until then, keep the `@std/fs` re-exports for them so the suite stays green between commits.
 
 ```ts
 /*
@@ -1111,12 +1149,12 @@ export function format(content: string, eol: "\n" | "\r\n"): string {
 
 ```
 
-Keep `fs/walk`, `fs/expand-glob`, `fs/copy`, `fs/move` re-exports for one more commit (Task 4 replaces them). The former `isSubdir`/`safe*` helpers follow unchanged.
+Keep `fs/walk`, `fs/expand-glob`, `fs/copy`, `fs/move` re-exports for one more commit (Task 4 replaces them).
+The former `isSubdir`/`safe*` helpers follow unchanged.
 
 - [ ] **Step 4: Run the contract tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') $(find unit/ral/ -name '*.test.ts')`
-Expected: all green, including `fs-node-semantics.test.ts` and PR 09's `temp.test.ts` (`makeTempFileSync({ prefix: "a", suffix: ".txt" })` yields `<tmp>/a<hex>.txt`; a missing parent fails at once with NotFound).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') $(find unit/ral/ -name '*.test.ts')` Expected: all green, including `fs-node-semantics.test.ts` and PR 09's `temp.test.ts` (`makeTempFileSync({ prefix: "a", suffix: ".txt" })` yields `<tmp>/a<hex>.txt`; a missing parent fails at once with NotFound).
 
 - [ ] **Step 5: Commit**
 
@@ -1403,8 +1441,8 @@ unitTest("copy (async) - same semantics as copySync, and other work runs while i
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs-walk-glob.test.ts`
-Expected: the `@std/fs`-backed functions mostly pass on Deno; `copySync ... symlinks` and the `ENOENT` code check may fail (Deno's `@std/fs` throws `Deno.errors.NotFound`, which carries `code` in Deno 2, so this may pass too). Either way, the test is the contract for the next step.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs-walk-glob.test.ts` Expected: the `@std/fs`-backed functions mostly pass on Deno; `copySync ... symlinks` and the `ENOENT` code check may fail (Deno's `@std/fs` throws `Deno.errors.NotFound`, which carries `code` in Deno 2, so this may pass too).
+Either way, the test is the contract for the next step.
 
 - [ ] **Step 3: Implement**
 
@@ -1869,17 +1907,17 @@ export function moveSync(src: string | URL, dest: string | URL, options: MoveOpt
 }
 ```
 
-`isSubdir` is the existing helper in the same file. `canonicalPathSync` and `realPath` are the functions Task 3 added. `process.cwd()` is used for the default glob root because `deno_ral/process.ts` imports `fs.ts` indirectly (log) and a cycle must be avoided; `process` is a global on Node and on Deno 2.
+`isSubdir` is the existing helper in the same file.
+`canonicalPathSync` and `realPath` are the functions Task 3 added.
+`process.cwd()` is used for the default glob root because `deno_ral/process.ts` imports `fs.ts` indirectly (log) and a cycle must be avoided; `process` is a global on Node and on Deno 2.
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') $(find unit/ral/ -name '*.test.ts')`
-Expected: all green.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts') $(find unit/ral/ -name '*.test.ts')` Expected: all green.
 
 - [ ] **Step 5: Run the callers that depend on walk/glob**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/project/ -name '*.test.ts') unit/path.test.ts unit/filter-paths.test.ts $(find unit/extension/ -name '*.test.ts') $(find smoke/project/ -name '*.test.ts') $(find smoke/extensions/ -name '*.test.ts') $(find smoke/book/ -name '*.test.ts')`
-Expected: all green (`tests/smoke/extensions/` and `tests/smoke/book/` exist on `main`; `smoke/extensions/install.test.ts` exercises `copy`, `smoke/book/render-book.test.ts` walk/glob over a book).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/project/ -name '*.test.ts') unit/path.test.ts unit/filter-paths.test.ts $(find unit/extension/ -name '*.test.ts') $(find smoke/project/ -name '*.test.ts') $(find smoke/extensions/ -name '*.test.ts') $(find smoke/book/ -name '*.test.ts')` Expected: all green (`tests/smoke/extensions/` and `tests/smoke/book/` exist on `main`; `smoke/extensions/install.test.ts` exercises `copy`, `smoke/book/render-book.test.ts` walk/glob over a book).
 
 - [ ] **Step 6: Commit**
 
@@ -1896,13 +1934,15 @@ git commit -m "deno_ral/fs: walk, expandGlob, copy and move on node:fs (no @std/
 
 - [ ] **Step 1: Build and delete the unused members**
 
-Run: `npm ci && node tools/node-bundle/build.mjs --check-shim`
-Expected: `0 missing` and an `unused` list (PR 26's `check-shim.mjs` prints it). The candidates after this PR are the plain file calls (`readTextFileSync` … `truncateSync`, `open`/`openSync`/`create`/`createSync`, `realPath`/`realPathSync`), `makeTemp*`, and `errors` if nothing else references it; members still referenced by a dependency or by `src/resources/**/*.js` (for example `julia-engine.js`) are not listed and stay. Delete exactly the listed `Deno.<name> = ...` lines (and helpers such as `FsFile`, `openFlags`, `tempPath`, `attempts` once nothing in the shim uses them), rebuild, confirm `0 missing` and no `unused` list.
+Run: `npm ci && node tools/node-bundle/build.mjs --check-shim` Expected: `0 missing` and an `unused` list (PR 26's `check-shim.mjs` prints it).
+The candidates after this PR are the plain file calls (`readTextFileSync` … `truncateSync`, `open`/`openSync`/`create`/`createSync`, `realPath`/`realPathSync`), `makeTemp*`, and `errors` if nothing else references it; members still referenced by a dependency or by `src/resources/**/*.js` (for example `julia-engine.js`) are not listed and stay.
+Delete exactly the listed `Deno.<name> = ...` lines (and helpers such as `FsFile`, `openFlags`, `tempPath`, `attempts` once nothing in the shim uses them), rebuild, confirm `0 missing` and no `unused` list.
 
 - [ ] **Step 2: Remove the known failures this PR fixes**
 
-Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/`
-Expected: lines `now passes on Node, remove it from known-failures.json: tests/unit/ral/<fs|temp|errors>.test.ts > …` (exit 1). Delete those entries from the `linux` section (and the `windows` section if the Windows `node-unit` run of this branch reports them), rerun, and expect `node unit tests: no change …` with exit 0. A new failure in `fs-walk-glob.test.ts` or `fs-node-semantics.test.ts` on Node is a bug in this PR: fix it, do not list it.
+Run: `node tools/node-bundle/run-unit-on-node.mjs --known-failures tools/node-bundle/known-failures.json tests/unit/ral/` Expected: lines `now passes on Node, remove it from known-failures.json: tests/unit/ral/<fs|temp|errors>.test.ts > …` (exit 1).
+Delete those entries from the `linux` section (and the `windows` section if the Windows `node-unit` run of this branch reports them), rerun, and expect `node unit tests: no change …` with exit 0.
+A new failure in `fs-walk-glob.test.ts` or `fs-node-semantics.test.ts` on Node is a bug in this PR: fix it, do not list it.
 
 - [ ] **Step 3: Render on Node**
 
@@ -1954,12 +1994,19 @@ git commit -m "node-bundle: drop shim members and known failures made obsolete b
 
 ## Risks and rollback
 
-- **Semantic drift in walk/glob** shows up as changed project input discovery (files missing from a website render, extension not found). The new tests encode `projectHiddenIgnoreGlob` and `resolvePathGlobs` usage; `smoke/project/` and `smoke/extensions/` cover the callers. Rollback: `git revert` the walk/glob commit; the `@std/fs` re-exports return and still run on Deno.
-- **`canonicalPathSync` on Windows** (`fs.realpathSync.native`): libuv strips `\\?\` and rewrites `\\?\UNC\` to `\\`; a mapped network drive resolves to its UNC target (as Deno's `realPathSync` does, both use `GetFinalPathNameByHandleW`). If a regression appears in `safeRemoveDirSync` or the four other PR 25 callers, it shows as a path-comparison failure in `tests/unit/ral/safe-remove-dir.test.ts` on the Windows `node-unit` job; the fallback is `fs.realpathSync` (the JavaScript implementation, no drive-to-UNC resolution) in `canonicalPathSync` only.
-- **Performance:** `copy()` is sequential per entry like `@std/fs` (no parallel copies, which would risk EMFILE on large sites). If `quarto publish gh-pages` of a large site regresses, measure with `QUARTO_PROFILE` before changing it.
-- **`node:fs` compat on Deno for the R05/R06 mechanisms:** numeric open flags, `writeFileSync(fd, data)` and the streams' `fs` option were checked on Node 26.12.0 and 22.22 only; Deno 2.7.14's `node:fs` polyfill is a port of Node's `internal/fs/streams.js` and should honour them, and the Task 2 tests run on both runtimes to prove it. If one does not hold on Deno: for the flags, open with the access bits only and apply `O_CREAT`/`O_TRUNC` by hand (`existsSync` check, `ftruncateSync(fd, 0)`) behind the same `openFlagBits` contract; for the streams, keep `autoClose: false` and `once("end")`/`once("finish")`/`once("close")` listeners that call `close()`, and make `close()` tolerate the `EBADF` that Node's `destroy()` then causes by closing the descriptor itself, with a comment saying which runtime needs it. Either fallback keeps the tests of Task 2 as the contract.
+- **Semantic drift in walk/glob** shows up as changed project input discovery (files missing from a website render, extension not found).
+  The new tests encode `projectHiddenIgnoreGlob` and `resolvePathGlobs` usage; `smoke/project/` and `smoke/extensions/` cover the callers.
+  Rollback: `git revert` the walk/glob commit; the `@std/fs` re-exports return and still run on Deno.
+- **`canonicalPathSync` on Windows** (`fs.realpathSync.native`): libuv strips `\\?\` and rewrites `\\?\UNC\` to `\\`; a mapped network drive resolves to its UNC target (as Deno's `realPathSync` does, both use `GetFinalPathNameByHandleW`).
+  If a regression appears in `safeRemoveDirSync` or the four other PR 25 callers, it shows as a path-comparison failure in `tests/unit/ral/safe-remove-dir.test.ts` on the Windows `node-unit` job; the fallback is `fs.realpathSync` (the JavaScript implementation, no drive-to-UNC resolution) in `canonicalPathSync` only.
+- **Performance:** `copy()` is sequential per entry like `@std/fs` (no parallel copies, which would risk EMFILE on large sites).
+  If `quarto publish gh-pages` of a large site regresses, measure with `QUARTO_PROFILE` before changing it.
+- **`node:fs` compat on Deno for the R05/R06 mechanisms:** numeric open flags, `writeFileSync(fd, data)` and the streams' `fs` option were checked on Node 26.12.0 and 22.22 only; Deno 2.7.14's `node:fs` polyfill is a port of Node's `internal/fs/streams.js` and should honour them, and the Task 2 tests run on both runtimes to prove it.
+  If one does not hold on Deno: for the flags, open with the access bits only and apply `O_CREAT`/`O_TRUNC` by hand (`existsSync` check, `ftruncateSync(fd, 0)`) behind the same `openFlagBits` contract; for the streams, keep `autoClose: false` and `once("end")`/`once("finish")`/`once("close")` listeners that call `close()`, and make `close()` tolerate the `EBADF` that Node's `destroy()` then causes by closing the descriptor itself, with a comment saying which runtime needs it.
+  Either fallback keeps the tests of Task 2 as the contract.
 - **Whole-PR rollback:** revert the five commits; no caller changed.
 
 ## Decisions needed
 
-None. The no-error-classes decision is backed by the Task 1 grep; reopen it only if that grep is not zero.
+None.
+The no-error-classes decision is backed by the Task 1 grep; reopen it only if that grep is not zero.

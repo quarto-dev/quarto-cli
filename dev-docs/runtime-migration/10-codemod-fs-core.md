@@ -1,11 +1,15 @@
 # PR 10: Run the fs/temp codemod on `src/core`, `src/quarto-core`, `src/config`
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move every plain filesystem and temp-file call in `src/core`, `src/quarto-core` and `src/config` from `Deno.*` to `src/deno_ral/fs.ts` / `src/deno_ral/temp.ts` with the codemod, fix the two reported collisions by hand, and replace the 13 `instanceof Deno.errors.X` checks in `src/core` with the `deno_ral/errors.ts` predicates.
-**Phase:** 1. **Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below). **Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
+**Phase:** 1.
+**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below).
+**Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
 **Branch:** `rt/10-codemod-fs-core`.
-**Suggested executor:** Sonnet. The codemod does the bulk; the hand edits are five small, fully specified changes.
+**Suggested executor:** Sonnet.
+The codemod does the bulk; the hand edits are five small, fully specified changes.
 **Size:** L by file count, mechanical: 56 files rewritten by the codemod (153 replacements, measured by a dry run of PR 09's codemod logic on `b86f98d`), 9 files edited by hand (3 collision sites, 13 `Deno.errors` sites, 1 `Deno.ReadFileOptions`).
 **Ships on:** Deno; the existing test suite must stay green.
 
@@ -13,7 +17,9 @@
 
 ### Context
 
-Assessment section 11, order of work step 3: "A `ts-morph` script run with `quarto run --dev` rewrites `Deno.<fsCall>(` to the layer function and adds the import; review by directory (`core`, …)". PR 09 shipped `tools/codemod-deno-ral.ts` (rules `fs`, `temp`, `env`, `process`, `platform`), the extended `src/deno_ral/fs.ts`, `src/deno_ral/temp.ts` and `src/deno_ral/errors.ts`. This PR is the first of four that run it (10: core; 11: command; 12: project/format; 13: the rest).
+Assessment section 11, order of work step 3: "A `ts-morph` script run with `quarto run --dev` rewrites `Deno.<fsCall>(` to the layer function and adds the import; review by directory (`core`, …)".
+PR 09 shipped `tools/codemod-deno-ral.ts` (rules `fs`, `temp`, `env`, `process`, `platform`), the extended `src/deno_ral/fs.ts`, `src/deno_ral/temp.ts` and `src/deno_ral/errors.ts`.
+This PR is the first of four that run it (10: core; 11: command; 12: project/format; 13: the rest).
 
 Measured on `main` at `b86f98d` (2026-10-15) with `grep -rhoE '\bDeno\.[A-Za-z_]+(\.[A-Za-z_]+)?' <dir> --include=*.ts | sort | uniq -c | sort -rn` (comments included; the ratchet counts the same way):
 
@@ -40,7 +46,8 @@ Measured on `main` at `b86f98d` (2026-10-15) with `grep -rhoE '\bDeno\.[A-Za-z_]
 
 `src/quarto-core` (8 sites, 3 files): `Deno.env.get` 2, `Deno.env.set` 2, `Deno.env.delete` 1 (PR 14); `Deno.writeTextFileSync` 1 (`dotenv.ts:80`), `Deno.statSync` 1, `Deno.readTextFileSync` 1 (this PR).
 
-`src/config` (1 site, 1 file): `Deno.env.get` in `constants.ts` (PR 14). Nothing for this PR; the directory is included so the dry run proves it.
+`src/config` (1 site, 1 file): `Deno.env.get` in `constants.ts` (PR 14).
+Nothing for this PR; the directory is included so the dry run proves it.
 
 Files in scope that need attention beyond the codemod (all verified):
 
@@ -64,7 +71,9 @@ Out: comment lines that mention `Deno.*` (`src/core/copy.ts:28,145` and the othe
 
 ### Landing order and conflict protocol
 
-Phase 1 lands in the order 08 → 22 → 10–13 → 14 (README, review finding S10). PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses. Conflicts in this PR are therefore expected and are resolved mechanically, never by hand-merging a codemodded hunk:
+Phase 1 lands in the order 08 → 22 → 10–13 → 14 (README, review finding S10).
+PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses.
+Conflicts in this PR are therefore expected and are resolved mechanically, never by hand-merging a codemodded hunk:
 
 1. `git rebase origin/main`; for every conflicted file under this PR's directories, `git checkout origin/main -- <file>` (reset the file to `main`).
 2. Re-run the codemod on exactly those files: `quarto run --dev tools/codemod-deno-ral.ts --rules <this PR's rules> --file <file> [--file <file>...]`.
@@ -75,7 +84,8 @@ This works because PR 09's collision detection is symbol-based and reuses existi
 
 ### Interfaces
 
-No new interfaces. Alias imports used by the hand fixes (convention from PR 08: never rename the local binding):
+No new interfaces.
+Alias imports used by the hand fixes (convention from PR 08: never rename the local binding):
 
 ```ts
 // src/core/copy.ts
@@ -107,22 +117,22 @@ import { readTextFile as fsReadTextFile, readTextFileSync as fsReadTextFileSync 
 
 ## Plan
 
-Assumes PR 09 landed (`tools/codemod-deno-ral.ts`, `src/deno_ral/{fs,temp,errors}.ts`, `getFileInfoType` retyped) and PR 02's ratchet exists. In the prescribed order PR 08 has landed (so `src/core/console.ts` no longer opens files); if it has not, `src/core/console.ts:174` still has `Deno.openSync`, which the codemod rewrites to `openSync`, and both orders end in the same place.
+Assumes PR 09 landed (`tools/codemod-deno-ral.ts`, `src/deno_ral/{fs,temp,errors}.ts`, `getFileInfoType` retyped) and PR 02's ratchet exists.
+In the prescribed order PR 08 has landed (so `src/core/console.ts` no longer opens files); if it has not, `src/core/console.ts:174` still has `Deno.openSync`, which the codemod rewrites to `openSync`, and both orders end in the same place.
 
 ### Task 1: Dry run and review
 
-README ground rule 7 applies: this PR is generated from fresh `main` the day it is opened and merged the same day; the reviewer named in README "Roles" is booked for that day. PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
+README ground rule 7 applies: this PR is generated from fresh `main` the day it is opened and merged the same day; the reviewer named in README "Roles" is booked for that day.
+PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
 
 
 - [ ] **Step 1: Dry run**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run > /tmp/codemod-core.txt; tail -3 /tmp/codemod-core.txt`
-Expected: the last line is `Summary: 205 files scanned, 56 would be rewritten, 153 replacements, 2 with collisions, 2 skipped` (measured on `b86f98d`; a few more replacements are possible if `main` gained `Deno.*` sites since, and `1 skipped` with 154 replacements if PR 20b landed first); `git status --short src` is empty.
+Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run > /tmp/codemod-core.txt; tail -3 /tmp/codemod-core.txt` Expected: the last line is `Summary: 205 files scanned, 56 would be rewritten, 153 replacements, 2 with collisions, 2 skipped` (measured on `b86f98d`; a few more replacements are possible if `main` gained `Deno.*` sites since, and `1 skipped` with 154 replacements if PR 20b landed first); `git status --short src` is empty.
 
 - [ ] **Step 2: Review the report**
 
-Run: `grep -E 'skipped|collision' /tmp/codemod-core.txt`
-Expected exactly:
+Run: `grep -E 'skipped|collision' /tmp/codemod-core.txt` Expected exactly:
 ```
 src/core/deno/monkey-patch.ts: skipped: assigns to Deno.realPathSync at line 17
 src/core/performance/metrics.ts: skipped: assigns to Deno.readTextFileSync at line 23
@@ -138,16 +148,15 @@ Run: `grep -c '→' /tmp/codemod-core.txt` and skim `grep '→' /tmp/codemod-cor
 
 - [ ] **Step 1: Rewrite**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config | tail -1`
-Expected: `Summary: 205 files scanned, 56 rewritten, 153 replacements, 2 with collisions, 2 skipped` (the same numbers as the dry run).
+Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config | tail -1` Expected: `Summary: 205 files scanned, 56 rewritten, 153 replacements, 2 with collisions, 2 skipped` (the same numbers as the dry run).
 
 - [ ] **Step 2: Format and type-check**
 
-Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt`
-Expected: files reformatted (long import lines wrapped); `git diff --stat | tail -1` shows only files under the three directories.
+Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: files reformatted (long import lines wrapped); `git diff --stat | tail -1` shows only files under the three directories.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors. (`FileInfo`'s eight fields cover what `src/core` reads: `isDirectory`, `isFile`, `isSymlink`, `size`, `atime`, `mtime`, `mode`; `getFileInfoType` takes the layer's `FileInfo` since PR 09. A check error about a missing `FileInfo` member means a caller reads a field the layer does not expose: stop and raise it on PR 09's vocabulary rather than casting.)
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+(`FileInfo`'s eight fields cover what `src/core` reads: `isDirectory`, `isFile`, `isSymlink`, `size`, `atime`, `mtime`, `mode`; `getFileInfoType` takes the layer's `FileInfo` since PR 09.
+A check error about a missing `FileInfo` member means a caller reads a field the layer does not expose: stop and raise it on PR 09's vocabulary rather than casting.)
 
 - [ ] **Step 3: Commit**
 
@@ -163,7 +172,8 @@ git commit -m "core: codemod Deno fs/temp calls to deno_ral (mechanical)"
 
 - [ ] **Step 1: `src/core/copy.ts`**
 
-The codemod added an import from `../deno_ral/fs.ts` (merged into the existing one at lines 17-23, which already imports `existsSync`, `safeRemoveSync`, `getFileInfoType`, …) containing `lstatSync`, `statSync`, `utimeSync`, `readDirSync`, `readLinkSync`, `symlinkSync`, `type FileInfo` but not `copyFileSync`. Add `copyFileSync as fsCopyFileSync` to that import and change line 152:
+The codemod added an import from `../deno_ral/fs.ts` (merged into the existing one at lines 17-23, which already imports `existsSync`, `safeRemoveSync`, `getFileInfoType`, …) containing `lstatSync`, `statSync`, `utimeSync`, `readDirSync`, `readLinkSync`, `symlinkSync`, `type FileInfo` but not `copyFileSync`.
+Add `copyFileSync as fsCopyFileSync` to that import and change line 152:
 
 ```ts
   fsCopyFileSync(src, dest);
@@ -173,7 +183,8 @@ Leave the comment at line 28 as it is (comment lines are PR 25's cleanup; the ac
 
 - [ ] **Step 2: `src/core/qualified-path.ts`**
 
-Confirm nothing passes `options` to the exported `readTextFile`: `grep -rn 'qualified-path.ts' src tests --include=*.ts` shows no importer of these two functions outside the file (verified 2026-10-14; if an importer exists, keep the parameter name but type it as `{ signal?: AbortSignal }` and ignore it). Then replace lines 69-77 with:
+Confirm nothing passes `options` to the exported `readTextFile`: `grep -rn 'qualified-path.ts' src tests --include=*.ts` shows no importer of these two functions outside the file (verified 2026-10-14; if an importer exists, keep the parameter name but type it as `{ signal?: AbortSignal }` and ignore it).
+Then replace lines 69-77 with:
 
 ```ts
 export function readTextFile(t: QualifiedPath) {
@@ -191,11 +202,9 @@ and add `import { readTextFile as fsReadTextFile, readTextFileSync as fsReadText
 
 - [ ] **Step 3: Type-check and commit**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/paths/qualified-path.test.ts unit/file-permissions.test.ts`
-Expected: `0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/paths/qualified-path.test.ts unit/file-permissions.test.ts` Expected: `0 failed`.
 
 ```bash
 git add src/core/copy.ts src/core/qualified-path.ts
@@ -209,7 +218,9 @@ git commit -m "core: resolve codemod collisions in copy.ts and qualified-path.ts
 
 - [ ] **Step 1: `src/core/http.ts`**
 
-Add `import { isConnectionError, isNotFound } from "../deno_ral/errors.ts";`. Line 64: `} else if (isNotFound(e)) {`. Replace lines 228-240:
+Add `import { isConnectionError, isNotFound } from "../deno_ral/errors.ts";`.
+Line 64: `} else if (isNotFound(e)) {`.
+Replace lines 228-240:
 
 ```ts
 export function maybeDisplaySocketError(e: unknown) {
@@ -225,35 +236,39 @@ export function maybeDisplaySocketError(e: unknown) {
 
 - [ ] **Step 2: `src/core/port.ts`**
 
-Add `import { isAddrInUse } from "../deno_ral/errors.ts";`. Line 131: `if (isAddrInUse(error)) {`.
+Add `import { isAddrInUse } from "../deno_ral/errors.ts";`.
+Line 131: `if (isAddrInUse(error)) {`.
 
 - [ ] **Step 3: `src/core/cache/cache.ts`**
 
-Add `import { isNotFound } from "../../deno_ral/errors.ts";`. Line 161: `if (!isNotFound(e)) {`.
+Add `import { isNotFound } from "../../deno_ral/errors.ts";`.
+Line 161: `if (!isNotFound(e)) {`.
 
 - [ ] **Step 4: `src/core/path.ts`**
 
-Add `import { isNotFound } from "../deno_ral/errors.ts";`. Line 189: `if (!isNotFound(e)) {`.
+Add `import { isNotFound } from "../deno_ral/errors.ts";`.
+Line 189: `if (!isNotFound(e)) {`.
 
 - [ ] **Step 5: `src/core/jupyter/jupyter-shared.ts`**
 
-Add `import { isNotFound } from "../../deno_ral/errors.ts";`. Line 107: `if (!isNotFound(err)) {`.
+Add `import { isNotFound } from "../../deno_ral/errors.ts";`.
+Line 107: `if (!isNotFound(err)) {`.
 
 - [ ] **Step 6: `src/core/typst.ts`**
 
-Add `import { isNotFound } from "../deno_ral/errors.ts";`. Line 82: `if (isNotFound(e)) {`.
+Add `import { isNotFound } from "../deno_ral/errors.ts";`.
+Line 82: `if (isNotFound(e)) {`.
 
 - [ ] **Step 7: `src/core/copy.ts`**
 
-Add `import { isNotFound } from "../deno_ral/errors.ts";`. Line 236: `if (isNotFound(err)) {`.
+Add `import { isNotFound } from "../deno_ral/errors.ts";`.
+Line 236: `if (isNotFound(err)) {`.
 
 - [ ] **Step 8: Verify and commit**
 
-Run: `grep -rn 'Deno\.errors' src/core src/quarto-core src/config --include=*.ts`
-Expected: empty.
+Run: `grep -rn 'Deno\.errors' src/core src/quarto-core src/config --include=*.ts` Expected: empty.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 ```bash
 git add src/core
@@ -264,18 +279,15 @@ git commit -m "core: Deno.errors instanceof checks through deno_ral/errors predi
 
 - [ ] **Step 1: Unit tests that exercise `src/core`**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/core/ -name '*.test.ts') $(find unit/paths/ -name '*.test.ts') unit/path.test.ts $(find unit/ral/ -name '*.test.ts') unit/dotenv-config.test.ts unit/environment.test.ts unit/sass-cache.test.ts unit/exec-process-stdin.test.ts unit/render/cleanup.test.ts unit/file-permissions.test.ts $(find unit/config/ -name '*.test.ts') unit/typst-fonts.test.ts unit/dart-sass.test.ts $(find unit/jupyter/ -name '*.test.ts') $(find unit/mapped-strings/ -name '*.test.ts') $(find unit/break-quarto-md/ -name '*.test.ts') $(find unit/schema-validation/ -name '*.test.ts') unit/text.test.ts unit/markdown-pipeline.test.ts unit/pandoc.test.ts unit/pandoc-formats.test.ts unit/pandoc-partition.test.ts unit/chrome-launch.test.ts unit/preview-brand-cache.test.ts`
-Expected: `0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/core/ -name '*.test.ts') $(find unit/paths/ -name '*.test.ts') unit/path.test.ts $(find unit/ral/ -name '*.test.ts') unit/dotenv-config.test.ts unit/environment.test.ts unit/sass-cache.test.ts unit/exec-process-stdin.test.ts unit/render/cleanup.test.ts unit/file-permissions.test.ts $(find unit/config/ -name '*.test.ts') unit/typst-fonts.test.ts unit/dart-sass.test.ts $(find unit/jupyter/ -name '*.test.ts') $(find unit/mapped-strings/ -name '*.test.ts') $(find unit/break-quarto-md/ -name '*.test.ts') $(find unit/schema-validation/ -name '*.test.ts') unit/text.test.ts unit/markdown-pipeline.test.ts unit/pandoc.test.ts unit/pandoc-formats.test.ts unit/pandoc-partition.test.ts unit/chrome-launch.test.ts unit/preview-brand-cache.test.ts` Expected: `0 failed`.
 
 - [ ] **Step 2: Smoke tests that go through the touched code (render pipeline, freezer, caches, http server, temp dirs)**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-minimal.test.ts smoke/render/render-output-dir.test.ts smoke/project/project-simple.test.ts smoke/project/project-prepost.test.ts smoke/site/render-site.test.ts smoke/jupyter/cache.test.ts $(find smoke/logging/ -name '*.test.ts') smoke/check/check.test.ts $(find smoke/run/ -name '*.test.ts') $(find smoke/env/ -name '*.test.ts') smoke/extensions/install.test.ts`
-Expected: `0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-minimal.test.ts smoke/render/render-output-dir.test.ts smoke/project/project-simple.test.ts smoke/project/project-prepost.test.ts smoke/site/render-site.test.ts smoke/jupyter/cache.test.ts $(find smoke/logging/ -name '*.test.ts') smoke/check/check.test.ts $(find smoke/run/ -name '*.test.ts') $(find smoke/env/ -name '*.test.ts') smoke/extensions/install.test.ts` Expected: `0 failed`.
 
 - [ ] **Step 3: Ratchet**
 
-Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts`
-Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 170 (171 with PR 20b first) and no increase in any scope.
+Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 170 (171 with PR 20b first) and no increase in any scope.
 
 - [ ] **Step 4: Commit**
 
@@ -304,15 +316,20 @@ git commit -m "Lower runtime boundary baseline after core fs/temp codemod"
 
 ## Risks and rollback
 
-- `readDirSync` now returns a sorted array; `src/core/path.ts:53` (emptiness check) and `copy.ts:179` (recursive copy) are order-independent, so output is unchanged. If a snapshot test under `tests/docs/smoke-all` differs only in file order, that is the intended determinism; update the snapshot.
+- `readDirSync` now returns a sorted array; `src/core/path.ts:53` (emptiness check) and `copy.ts:179` (recursive copy) are order-independent, so output is unchanged.
+  If a snapshot test under `tests/docs/smoke-all` differs only in file order, that is the intended determinism; update the snapshot.
 - `qualified-path.ts` loses the unused `options` parameter; if a hidden caller passed `{ signal }`, the type check in Task 3 step 3 catches it.
 - `deno fmt` may reflow lines unrelated to the codemod in a file it touched; acceptable, but if a diff becomes unreadable, run `deno fmt` only on the import block by reverting the unrelated hunks.
 - Rollback: `git revert` the four commits; the layer (PR 09) stays.
 
 ## Decisions needed
 
-None. Review items closed here: counts (56 files / 153 replacements, not ~70 / ~180), acceptance greps that matched comments (`copy.ts:28,145`; now AST dry run plus a comment-filtered `rg`), the "report rather than extend `FileInfo`" dead end (PR 09 retypes `getFileInfoType`), landing order and the reset-and-re-run conflict protocol.
+None.
+Review items closed here: counts (56 files / 153 replacements, not ~70 / ~180), acceptance greps that matched comments (`copy.ts:28,145`; now AST dry run plus a comment-filtered `rg`), the "report rather than extend `FileInfo`" dead end (PR 09 retypes `getFileInfoType`), landing order and the reset-and-re-run conflict protocol.
 
 ## Follow-up after merge
 
-One representative maintenance fix backported through `--reverse` (`TRIAGE-2026-10-16.md`, cross-cutting row 2; review decision 10), owed once this PR is on `main`, because this PR creates the first codemodded files a backport can cross. Pick the first real fix to `main` that touches a call site this PR renamed (`git log --oneline main -- src/core/path.ts | head`), run the backport step PR 37 Task 6 Step 1 spells out (same commands before the flip; the codemod runs through `quarto run --dev` on Deno) against a scratch branch off `v1.10`, confirm `git apply -3` succeeds and the scratch branch type-checks with its own tooling, and record the commit used in the triage row and in `dev-docs/checklist-backport-a-pr.md` (PR 09 adds the step there). The error predicates of Task 4 have no 1:1 reverse: they are the manual part the review asked to keep explicit. PR 37 Task 6 Step 2 repeats the exercise after the flip.
+One representative maintenance fix backported through `--reverse` (`TRIAGE-2026-10-16.md`, cross-cutting row 2; review decision 10), owed once this PR is on `main`, because this PR creates the first codemodded files a backport can cross.
+Pick the first real fix to `main` that touches a call site this PR renamed (`git log --oneline main -- src/core/path.ts | head`), run the backport step PR 37 Task 6 Step 1 spells out (same commands before the flip; the codemod runs through `quarto run --dev` on Deno) against a scratch branch off `v1.10`, confirm `git apply -3` succeeds and the scratch branch type-checks with its own tooling, and record the commit used in the triage row and in `dev-docs/checklist-backport-a-pr.md` (PR 09 adds the step there).
+The error predicates of Task 4 have no 1:1 reverse: they are the manual part the review asked to keep explicit.
+PR 37 Task 6 Step 2 repeats the exercise after the flip.
