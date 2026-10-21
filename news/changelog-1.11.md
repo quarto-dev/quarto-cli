@@ -2,7 +2,6 @@ All changes included in 1.11:
 
 ## Regression fixes
 
-- ([#13444](https://github.com/quarto-dev/quarto-cli/issues/13444)): Fix the code copy button in `html` covering the code annotation marker on the first line of an annotated code block, which stopped the annotation from showing on hover or click (regression introduced in v1.8.15).
 - ([#14920](https://github.com/quarto-dev/quarto-cli/issues/14920)): Fix Windows ARM diagnostics for x64 R crashes to preserve the specialized error in `quarto check`, JSON output, and render failures, and update the native ARM64 R installation guidance.
 - ([#14731](https://github.com/quarto-dev/quarto-cli/pull/14731)): Fix `QUARTO_VENDOR_BINARIES=false` builds silently succeeding with missing binaries. The `configure` step's "is it on PATH?" check for `typst-gather`, `typst`, `pandoc` and `esbuild` compared an unawaited `Promise` against `undefined`, so the guard never fired. A build with `typst-gather` neither vendored nor on PATH reported success and produced a Quarto tree without it, surfacing only at render time as `typst-gather analyze failed; staging all packages as fallback`. The missing-binary error message now also names the path that was checked and the `QUARTO_TYPST_GATHER` environment variable.
 - ([#14741](https://github.com/quarto-dev/quarto-cli/issues/14741)): Fix PDF rendering of a cross-referenced table failing with `! Extra }, or forgotten \endgroup.` when the `endfloat` package defers `longtable` environments (`\DeclareDelayedFloatFlavor*{longtable}{table}`).
@@ -61,6 +60,7 @@ All changes included in 1.11:
 
 - ([#12452](https://github.com/quarto-dev/quarto-cli/issues/12452)): Fix repeated HTML escaping in Google Scholar metadata, including apostrophes in titles, special characters in authors and URLs, and nested reference metadata.
 - ([#12650](https://github.com/quarto-dev/quarto-cli/issues/12650)): Fix markdown formatting and HTML entities in a document title appearing literally in the appendix citation, the BibTeX citation, and the Google Scholar `citation_title`. (author: @jolars)
+- ([#13444](https://github.com/quarto-dev/quarto-cli/issues/13444)): Fix the code copy button covering the code annotation marker on the first line of an annotated code block, which stopped the annotation from showing on hover or click (regression introduced in v1.8.15).
 - ([#14684](https://github.com/quarto-dev/quarto-cli/issues/14684)): Add a "Skip to main content" link to Bootstrap-themed HTML output (documents, websites, books, dashboards) so keyboard users can bypass the navbar and sidebars.
 - ([#14973](https://github.com/quarto-dev/quarto-cli/issues/14973)): Fix Safari sometimes opening pages with a light and dark theme at the top instead of at the URL fragment target, and toggling the color scheme scrolling back to the top of the page.
 - ([#14976](https://github.com/quarto-dev/quarto-cli/pull/14976)): Fix KaTeX math not rendering on pages with Jupyter widgets when `html-math-method` is set with the object form (`method: katex` and `url`).
