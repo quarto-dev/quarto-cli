@@ -977,7 +977,7 @@ Expected file contents:
 Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts; echo "exit=$?"`
 Expected: the table with `(baseline 992)` etc., then `OK: no count exceeds the baseline.` and `exit=0`.
 
-- [ ] **Step 4: Prove the ratchet catches a regression in each kind of file**
+- [x] **Step 4: Prove the ratchet catches a regression in each kind of file**
 
 Run:
 ```bash
@@ -990,7 +990,7 @@ git checkout -- src/command/utils.ts src/core/cri/deno-cri/chrome.js src/core/mi
 ```
 Expected (numbers from the baseline written in Step 3; the ones below are `b86f98d`'s): `::error::src: Deno.* calls rose from 992 to 993`, `::error::src: std-import files rose from 49 to 50` (`mime.ts` only: `path.ts` gained an allow-listed import, which does not count), `::error::src-js: Deno.* calls rose from 7 to 8`, and `exit=1`; the last command restores the files. The URL probe needs a file that imports no counted std module, or the file is already among the counted ones and the count cannot rise; `src/core/mime.ts` imports none (`src/core/text.ts`, the first draft's target, imports `fmt/colors`). The dev launcher runs Deno with `--cached-only`, so the URL probe fails before the script runs unless `package/dist/bin/deno_cache` already holds that URL; warm it first (needs network) with `DENO_DIR="$PWD/package/dist/bin/deno_cache" package/dist/bin/tools/x86_64/deno cache https://deno.land/std/path/mod.ts`. A plain `deno cache` fills the global cache, which the launcher does not read.
 
-- [ ] **Step 5: Prove `--update-baseline` never raises and `--accept-tests-increase` raises only `tests`**
+- [x] **Step 5: Prove `--update-baseline` never raises and `--accept-tests-increase` raises only `tests`**
 
 Run:
 ```bash
@@ -1008,7 +1008,7 @@ The first line stages the baseline written in Step 2, so that `git diff` compare
 
 Expected (numbers from the baseline written in Step 2; the ones below were measured at `502f28448`): the first `git diff --stat` is empty; after the second run the diff shows only `"denoCalls": 828` → `829` under `tests` and a `::warning::tests baseline raised from 828 to 829 (Deno.* calls); ...` line was printed (`src` stays 994); `git checkout` exits 0 and the baseline holds 828 again; the last command prints `check-runtime-boundary: --accept-tests-increase is only valid with --update-baseline` and `exit=2`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/runtime-boundary-baseline.json
@@ -1025,7 +1025,7 @@ src-js 7 / 0, resources 10 / 1, package/src 240 / 3, tests 828 / 177."
 - Create: `.github/workflows/runtime-boundary.yml`
 - Modify: `dev-docs/runtime-migration/README.md` (PR 02 row status)
 
-- [ ] **Step 1: Write the workflow**
+- [x] **Step 1: Write the workflow**
 
 Create `.github/workflows/runtime-boundary.yml` (same checkout/action pattern as `.github/workflows/test-bundle.yml`):
 
@@ -1081,16 +1081,16 @@ jobs:
           quarto run --dev tools/check-runtime-boundary.ts
 ```
 
-- [ ] **Step 2: Validate the YAML locally**
+- [x] **Step 2: Validate the YAML locally**
 
 Run: `package/dist/bin/tools/x86_64/deno eval 'import { parse } from "jsr:@std/yaml@1.0.5"; console.log(Object.keys(parse(Deno.readTextFileSync(".github/workflows/runtime-boundary.yml")) as Record<string, unknown>))'`
 Expected: `[ "name", "on", "permissions", "jobs" ]`.
 
-- [ ] **Step 3: Update the README status row**
+- [x] **Step 3: Update the README status row**
 
 In `dev-docs/runtime-migration/README.md`, change the PR 02 row's last cell from `planned` to `in progress`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .github/workflows/runtime-boundary.yml dev-docs/runtime-migration/README.md
@@ -1337,3 +1337,55 @@ One dated entry per working session; newest last. The normative plan ends at
 - Step 4 now says how to warm `package/dist/bin/deno_cache` for the URL
   probe (the launcher is `--cached-only`), as session 4 did by hand.
 - Resume: Task 3 steps 4-6, then Task 4 and Verification.
+
+### 2026-10-21 (session 7): Task 3 steps 4-6, Task 4 steps 1-4, Verification (Windows)
+
+- Task 3 step 4 (probes appended, then
+  `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts`):
+  table rows `src           995 (baseline 994)      50 (baseline 49)` and
+  `src-js        8 (baseline 7)          0 (baseline 0)`; verbatim:
+  `::error::src: Deno.* calls rose from 994 to 995 (baseline tools/runtime-boundary-baseline.json). Application code must use src/deno_ral/ instead of Deno.* or direct std imports; see dev-docs/runtime-migration/README.md`,
+  `::error::src: std-import files rose from 49 to 50 (baseline tools/runtime-boundary-baseline.json). ...`,
+  `::error::src-js: Deno.* calls rose from 7 to 8 (baseline tools/runtime-boundary-baseline.json). ...`,
+  `exit=1`. The allow-listed `import { delay as _rt02d } from "async";`
+  probe on `src/core/path.ts` counted nothing. The deno.land/std URL was
+  still in `package/dist/bin/deno_cache` from session 4, so no re-warm was
+  needed. `git checkout --` restored the four probe files;
+  `git status --short` returned to the starting state.
+- Task 3 step 5 (`git add tools/runtime-boundary-baseline.json`, probes on
+  `src/command/utils.ts` and `tests/utils.ts`, then the two
+  `quarto.cmd run --dev ... --update-baseline` runs): the first
+  `git diff --stat tools/runtime-boundary-baseline.json` was empty
+  (`src` stayed 994, `tests` stayed 828). The second run printed
+  `::warning::tests baseline raised from 828 to 829 (Deno.* calls); list the new test files in the PR description`
+  and the diff showed only `-    "denoCalls": 828,` / `+    "denoCalls": 829,`
+  under `tests`. `git checkout -- src/command/utils.ts tests/utils.ts
+  tools/runtime-boundary-baseline.json` exited 0 and the baseline held
+  828/177 again. The last command printed `check-runtime-boundary:
+  --accept-tests-increase is only valid with --update-baseline` and
+  `exit=2`.
+- Task 3 step 6: baseline committed as `3c7b829f6` ("Add runtime boundary
+  baseline"), 994/49, 7/0, 10/1, 240/3, 828/177.
+- Task 4 steps 1-2: `.github/workflows/runtime-boundary.yml` written
+  exactly as the plan's block. Step 2's key list verbatim:
+  `[ "name", "on", "permissions", "jobs" ]`.
+- Task 4 steps 3-4: committed as `542c399e4` ("Run the runtime boundary
+  ratchet in CI"). Incident: the IDE's format-on-save (the session-4
+  formatter again) reflowed README.md inside that commit (96+/96-) and the
+  open plan file in the working tree. Repaired without history rewriting
+  (amend/reset forbidden): the plan file was restored from HEAD and its
+  ticks re-applied via bash, and fix-up commit `9fba91d80` ("docs: restore
+  README.md formatting, keep PR 02 status change") reverts the reflow; the
+  net README diff of `542c399e4` + `9fba91d80` is exactly the PR 02 status
+  cell (`planned` -> `in progress`). The committed workflow file was
+  checked against the plan's YAML block and matches it exactly.
+- Verification on the final tree: `cd tests && DENO_DIR=x86_64
+  QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent
+  unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts` ->
+  `ok | 13 passed | 0 failed (1s)`; `package/dist/bin/quarto.cmd run --dev
+  tools/check-runtime-boundary.ts` -> `OK: no count exceeds the baseline.`,
+  `exit=0`; `package/dist/bin/tools/x86_64/deno lint
+  tools/check-runtime-boundary.ts tests/asserts.ts` -> `Checked 2 files`.
+  The regression/baseline bullets are covered by the Task 3 step 4-5
+  results above. The last bullet (workflow green on the PR) needs Task 4
+  step 5, which this session was told not to run (no push, no PR).
