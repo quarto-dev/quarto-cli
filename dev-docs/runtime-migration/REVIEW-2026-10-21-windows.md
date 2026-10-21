@@ -125,11 +125,17 @@ Windows consequence, MEASURED:
 
 ```ts
 const kWindowsChild = 'import("node:child_process").then(({ spawn }) => { const c = spawn("ping", ["-n", "31", "127.0.0.1"], { stdio: "ignore", windowsHide: true }); console.log(c.pid); });';
+// PR 26's deno-shim.mjs defines globalThis.Deno on Node and marks it (26:912),
+// so "Deno" in globalThis alone would pass `eval` to node.exe.
+const onDeno = "Deno" in globalThis &&
+  !(globalThis as { Deno: Record<symbol, unknown> }).Deno[Symbol.for("quarto.deno-shim")];
 const child = spawn(execPath(), {
-  args: "Deno" in globalThis ? ["eval", kWindowsChild] : ["-e", kWindowsChild],
+  args: onDeno ? ["eval", kWindowsChild] : ["-e", kWindowsChild],
   stdin: "null", stdout: "piped", stderr: "null",
 });
 ```
+
+The runtime test uses the same marker as PR 26's runner (26:1731). The measurements above predate the shim, so the shimmed Node case is SOURCE, not MEASURED: from PR 26 on, PR 28's Node run of this test loads the shim.
 
 Edit 14b:28, 14b:236-239 and table row 38 to match. In 28:772, change "on a detached PowerShell child" to "on a runtime child".
 
@@ -189,9 +195,29 @@ Windows consequence, MEASURED with the plans' code extracted verbatim: while one
 
 PR 30's own 180-entry test and its "must not flake" Verification would fail on the Windows legs. A flaky test must not be parked in the `windows` known-failures list.
 
-**Amendment:** treat `EPERM`/`EACCES`/`EBUSY` on win32 as transient (retry, or "not there yet") at each listed site.
-- PR 30: `const isTransient = (e) => process.platform === "win32" && ["EPERM","EACCES","EBUSY"].includes(e.code ?? "")`, OR-ed into the four conditions. MEASURED: 8/8 and 3/3 clean runs on Node, 5/5 on Deno.
-- PR 33: the same codes in `readOwner`, the `mkdir` catch and `breakLock`, plus `rmSync(lockDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 20 })`. MEASURED: 0 of 24 failed.
+**Amendment:** on win32, treat `EPERM`/`EACCES`/`EBUSY` as transient, but only through a bounded retry that checks the deadline and sleeps.
+- Do not simply add these codes next to `EEXIST` in the `mkdir` catch. A *persistent* permission failure (no write access to the lock's parent) then falls through to the `mtime` stat, which finds no lock and `continue`s before both the deadline check and the sleep: a busy loop that never ends. MEASURED on a directory with a deny-create ACL: this version was still spinning after 10 s.
+- The `mkdir` site, in both plans (33's `acquireLock`, 30's `lockIndex` at 633):
+
+  ```js
+  const kTransient = process.platform === "win32" ? ["EPERM", "EACCES", "EBUSY"] : [];
+  // ...
+  try {
+    fs.mkdirSync(lockDir);
+    break;
+  } catch (e) {
+    if (kTransient.includes(e.code)) {
+      if (Date.now() > deadline) throw e; // persistent: report the permission error
+      await sleep(kLockRetryMs);
+      continue;
+    }
+    if (e.code !== "EEXIST") throw e;
+  }
+  ```
+
+- The read and break sites (`readOwner`, `breakLock`, 30's `stat` `continue` at 639): treat the same codes as "not there yet". These paths reach the deadline check and the sleep, or go back to the `mkdir` above, so they stay bounded.
+- Both `rmSync` calls: `{ recursive: true, force: true, maxRetries: 10, retryDelay: 20 }`.
+- MEASURED for this version (PR 33's lock code, Node 24, 8 processes × 40 acquisitions): 0 of 24 runs failed. On the deny-create directory it throws the `mkdir` permission error once the timeout passes (3 s timeout in the test). PR 30's variant has the same structure; the measurements of an earlier version of this amendment (8/8 and 3/3 clean on Node, 5/5 on Deno) were taken without the bounded `mkdir` branch.
 - Record the rule once in PR 30's lock-ownership contract, since both PRs follow it.
 
 ### W12 — `gen-tsconfig-paths --check` fails on every Windows checkout
@@ -273,7 +299,19 @@ Windows consequence, MEASURED:
 
 **33:1199-1201, 33:1222-1226, 33:27.** `NODE_ARCHIVE_DIR` is built before `QUARTO_NODE_VERSION` is applied, so an override downloads `.../v26.13.0/node-v26.12.0-win-x64.zip`, a 404 (MEASURED replica). The configure.cmd path also never verifies `SHASUMS256.txt`, although 33:27 promises a "checksum-verified" download. **Amendment:**
 - Move the override above line 1199.
-- Add the batch checksum block from the O4 review output. It is a `powershell -NoProfile` SHA-256 over `[IO.File]` APIs; `Get-FileHash` is unavailable when 5.1 is launched from a pwsh-started `.cmd`, and `findstr /E` misses LF-only lines. MEASURED: match → exit 0, altered archive → exit 1, from both shells.
+- After the archive download (33:1223), add this block. It uses the `:fail` label of W18. MEASURED: a matching archive gives exit 0; an altered archive prints `Checksum mismatch` and exits 1; same from Git Bash and pwsh.
+
+  ```bat
+    CURL --fail -L "https://nodejs.org/dist/!NODE!/SHASUMS256.txt" -o SHASUMS256.txt
+    powershell -NoProfile -Command "$n = $env:NODE_ARCHIVE; $l = [IO.File]::ReadAllLines((Join-Path (Get-Location) 'SHASUMS256.txt')) | Where-Object { $_.EndsWith('  ' + $n) }; $h = [BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash([IO.File]::ReadAllBytes((Join-Path (Get-Location) $n)))).Replace('-', ''); if (-not $l -or $h -ne $l.Split(' ')[0]) { exit 1 }"
+    IF ERRORLEVEL 1 (
+      ECHO Checksum mismatch for !NODE_ARCHIVE!
+      GOTO :fail
+    )
+    DEL SHASUMS256.txt
+  ```
+
+  It computes SHA-256 through `[IO.File]` APIs because `Get-FileHash` is unavailable when Windows PowerShell 5.1 is launched from a `.cmd` that pwsh started (MEASURED). `findstr /E` cannot replace the PowerShell line: it does not match the LF-only `SHASUMS256.txt` (MEASURED).
 
 ### W20 — Git Bash `sed -i` strips every CR
 
@@ -348,7 +386,7 @@ The POSIX launcher is also `--cached-only` (`package/scripts/common/quarto:71`),
 ### W30 — Pids from Git Bash and interactive preview stops
 
 - 33:3227 `"pid":$$`: an MSYS pid, so Node sees ESRCH and breaks the "live owner" lock at once (MEASURED). **Amendment:** `$(cat /proc/$$/winpid)`. In `quarto.cmd`, show the ensure line when `QUARTO_LAUNCHER_DEBUG=1`; the contract at 33:200 promises it.
-- 15:598 and 16:691 rely on `... | grep Listening` and an interactive Ctrl-C. In Git Bash, `kill $!` reaches only the `cmd.exe` wrapper. **Amendment:** the Windows recipe MEASURED by S3:
+- 15:598 and 16:691 rely on `... | grep Listening` and an interactive Ctrl-C. In Git Bash, `kill $!` reaches only the `cmd.exe` wrapper. **Amendment:** this Windows recipe (MEASURED):
   1. start the preview in the background;
   2. find the listener with `netstat -ano | grep :4321`;
   3. resolve the parent `cmd.exe` with `Get-CimInstance Win32_Process`;
@@ -368,7 +406,7 @@ Convention C8.
 
 ### W33 — PR 38's parity recipe is POSIX-only
 
-**38:165-176.** `ROOT=$PWD` writes `/c/...` into `dprint.json` for a native `dprint.exe`; `DENO="$HOME/.local/share/quarto/deno/deno"` is wrong on Windows (`%LOCALAPPDATA%\quarto\deno\deno.exe`); the launcher is extensionless. **Amendment:** `ROOT=$(pwd -W 2>/dev/null || pwd)` and `DENO="$ROOT/package/dist/bin/tools/x86_64/deno"`. MEASURED: it formats `src/core/lib`.
+**38:165-176.** `ROOT=$PWD` writes `/c/...` into `dprint.json` for a native `dprint.exe`; `DENO="$HOME/.local/share/quarto/deno/deno"` is wrong on Windows (`%LOCALAPPDATA%\quarto\deno\deno.exe`); the launcher is extensionless. **Amendment:** `ROOT=$(pwd -W 2>/dev/null || pwd)`, and take `DENO` from the directory that `quarto install deno` prints (`quartoDataDir("deno")`, 33:2450). On Windows from Git Bash that is `DENO="$(cygpath -u "$LOCALAPPDATA")/quarto/deno/deno.exe"`. The bundled `package/dist/bin/tools/x86_64/deno` cannot be used: PR 38 depends on PR 37, which stops downloading it. SOURCE only; `quarto install deno` does not exist before PR 33.
 
 Also:
 - 38 Task 6: dprint's Deno preset forces LF, so `fmt:check` on a Windows working copy flags 486 CRLF files (PLAUSIBLE). Run it on Linux or CI, or set `newLineKind`.
@@ -405,7 +443,7 @@ Also:
 | 25:151, 410; 33:3016, 3221; 37:31 | `rg` prints backslash paths | `rg --path-separator /` |
 | 33:3049-3059, 37:284 | npm cache is `%LOCALAPPDATA%\npm-cache`, not `~/.npm` | OS-conditional cache path |
 | 33:1576 | `spawnSync(npm, args, { shell })` prints DEP0190 | join the constant args into one string |
-| 33:1306-1308 | check-node-in-use: two `Get-Process` lines, not one; blocking path never exercised | edit both lines; add the manual PowerShell case (O4 review output) |
+| 33:1306-1308 | check-node-in-use: two `Get-Process` lines, not one; blocking path never exercised | edit lines 38 and 51 to `-Name node,deno` (rename the usage and REM texts too); add a manual PowerShell case: start `package\dist\bin\tools\x86_64\node.exe -e "setTimeout(()=>{},60000)"` with `Start-Process -PassThru`, run `cmd /c 'package\scripts\windows\check-node-in-use.cmd "%CD%\package\dist"'` and expect exit 1 with the process listed; `Stop-Process -Id` it and expect exit 0 |
 | 33:2218, 2978 | tests run a stale `package/dist/bin/quarto.cmd` copy after a launcher edit (every OS) | re-run configure first |
 | 15:738, 16:246 | refused loopback connect takes about 2 s on Windows | no step timeouts below 3 s |
 | 17:383 | `touch` exists only in Git Bash | PowerShell `(Get-Item f).LastWriteTime = Get-Date` |
@@ -413,9 +451,9 @@ Also:
 | 20 Task 3 step 6 | `rm -rf .../deno_dom` while a Quarto process holds the DLL | stop Quarto first; list before deleting |
 | 20:344 | `QUARTO_DENO_DOM=/anything` is rewritten by MSYS (harmless) | none needed |
 | 20:100-190 | the parseHtml gate is bash-only | "Windows: Git Bash, or the CI job dispatched by the maintainer" |
-| 29:1187, 1203 | trailing ` /` becomes `C:/Program Files/Git/`; a `VAR=x` prefix does not persist | rows 32 and 38 of the S5 review output |
+| 29:1187, 1203 | trailing ` /` becomes `C:/Program Files/Git/`; a `VAR=x` prefix does not persist | drop the trailing `/` (`node "$SPIKE_TESTS/ws-client.mjs" 4321`; `/` is the default path) or prefix `MSYS_NO_PATHCONV=1`; for the hand run, in Git Bash: `export SPIKE_TESTS=dev-docs/runtime-migration/spike/tests RUNNER_TEMP=/tmp/rt29; mkdir -p "$RUNNER_TEMP"` (the `cp -r` fails without the parent on any OS) |
 | 14:390 | Deno `env.get` is case-insensitive on Windows; the Node copy is not | a Windows assertion in `env.test.ts` |
-| 27 (info) | measured Node fs semantics on Windows (rename over open file, chmod, realpath casing) | for PR 27's reviewer; S4 review output Finding 16 |
+| 27 (info) | measured Node fs semantics on Windows (rename over open file, chmod, realpath casing) | for PR 27's reviewer, all MEASURED on Node 24: `renameSync` over a file this process holds open fails `EPERM`; `rmSync` of an open file succeeds, so `moveSync({overwrite:true})` works; `chmodSync(f, 0o000)` gives mode `0o444` (an unreadable path needs `icacls`); `mkdirSync({mode})` is ignored; `statSync().mode` is `0o100666`, so 27:779's `mode: isWindows ? null : st.mode` matches Deno; `realpathSync.native` normalises case and strips `\\?\`, the planned fallback `fs.realpathSync` (27:1958) keeps the input casing; `lstat` reports a junction as a symlink |
 | 30:279, 297 | test timers remove the lock with no retry (PLAUSIBLE race) | wrap in the W11 retry |
 | SPIKES:346, 379 | Cliffy prompts never checked on Windows | manual Windows Terminal step |
 | 06:157, 599 | `quarto` with no args or a bad flag prints differently on Windows | compare against the captured baseline, not the prose |
