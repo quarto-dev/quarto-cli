@@ -1123,7 +1123,7 @@ git add .github/workflows/runtime-boundary.yml dev-docs/runtime-migration/README
 git commit -m "Run the runtime boundary ratchet in CI"
 ```
 
-- [ ] **Step 5: Push and watch the job**
+- [x] **Step 5: Push and watch the job**
 
 After opening the PR, the `Runtime Boundary` check must appear and pass.
 If `quarto` is not on `PATH` in the job, the `Set Path` step is missing (compare with `test-bundle.yml`).
@@ -1358,3 +1358,14 @@ The normative plan ends at "Decisions needed" above.
   `--update-baseline` wrote `tests.denoCalls` 826 (diff: `-    "denoCalls": 828,` / `+    "denoCalls": 826,`); committed with the test change as `0fbe48a98`.
 - The Context paragraph ("three" -> "one", restoring the original wording, now true) and Review checklist item 8 are re-amended; the session 7 addendum stays as history.
   The baseline is now src 994/49, src-js 7/0, resources 10/1, package/src 240/3, tests 826/177 — main's 825/177 plus the unit test's one occurrence, exactly as the Context paragraph describes.
+### 2026-10-21 (session 9): Task 4 step 5, PR opened, Runtime Boundary green
+
+- Starting-state mismatch on handoff: the branch had been rebased since the handoff was written (16 commits vs the expected 14, new hashes throughout, HEAD `docs: format PR 02 branch docs with yamark` instead of `docs: PR 02 plan, unit test expectations built from DENO, tests baseline 826`).
+  The two extra tip commits are `cb4e500c8` (plan drops private tracker references) and `efcada396` (yamark formatting of the branch docs); both are docs-only.
+  Stopped and reported as instructed; told to treat the rebased branch as authoritative and to note the rebase here.
+- Re-verified content before pushing: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed the expected table (src 994/49, src-js 7/0, resources 10/1, package/src 240/3, tests 826/177), `OK: no count exceeds the baseline.`, exit 0.
+  The net README diff of `869487706` + `3cc755654` (pre-rebase `542c399e4` + `9fba91d80`) is exactly the PR 02 status cell (`planned` -> `in progress`).
+- Pushed to `upstream` (quarto-dev/quarto-cli) and opened the PR: https://github.com/quarto-dev/quarto-cli/pull/15135.
+  The first body draft skipped the repo's PR template; after loading the open-pr skill the body was rewritten (`gh pr edit`) to the template's Description/Checklist structure with the AI-assistance disclosure, keeping the plan-mandated content (verbatim table, baseline lines, commit notes, plan link).
+- `Runtime Boundary` run: https://github.com/quarto-dev/quarto-cli/actions/runs/39615179224 -> success, job `runtime-boundary` in 1m2s, all steps green (`Set Path` present; `Check runtime boundary` passed).
+  Other workflows on the PR were still running at the time of this entry; the plan only requires Runtime Boundary green.
