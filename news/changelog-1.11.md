@@ -96,6 +96,8 @@ All changes included in 1.11:
 
 ## Projects
 
+- ([#3186](https://github.com/quarto-dev/quarto-cli/issues/3186)): Fix projects being ignored when a directory above the project root starts with a dot.
+
 ### Books
 
 - ([#10114](https://github.com/quarto-dev/quarto-cli/issues/10114)): Support `announcement` under the `book` key, which previously had no effect.

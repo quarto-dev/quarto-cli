@@ -28,7 +28,9 @@ import { getenv } from "./env.ts";
 import { execProcess } from "./process.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
-export const kSkipHidden = /[/\\][\.]/;
+export function skipHiddenWithin(dir: string) {
+  return new RegExp(`^${ld.escapeRegExp(dir)}[/\\\\](?:.*[/\\\\])?\\.`);
+}
 
 export function removeIfExists(file: string) {
   if (existsSync(file)) {

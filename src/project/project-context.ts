@@ -34,9 +34,9 @@ import { isYamlPath, readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import {
   ensureTrailingSlash,
-  kSkipHidden,
   normalizePath,
   pathWithForwardSlashes,
+  skipHiddenWithin,
 } from "../core/path.ts";
 
 import { includedMetadata, mergeProjectMetadata } from "../config/metadata.ts";
@@ -938,7 +938,7 @@ export function projectYamlFiles(dir: string): string[] {
       // virtualenvs include symblinks to R or Python libraries that are in turn
       // circular. much safer to not follow symlinks!
       followSymlinks: false,
-      skip: [kSkipHidden].concat(
+      skip: [skipHiddenWithin(dir)].concat(
         projIgnoreGlobs.map((ignore) => globToRegExp(join(dir, ignore) + SEP)),
       ),
     })
@@ -1083,7 +1083,7 @@ async function projectInputFilesInternal(
           // virtualenvs include symblinks to R or Python libraries that are in turn
           // circular. much safer to not follow symlinks!
           followSymlinks: false,
-          skip: [kSkipHidden].concat(
+          skip: [skipHiddenWithin(dir)].concat(
             engineIgnoreDirs().map((ignore) =>
               globToRegExp(join(dir, ignore) + SEP)
             ),
