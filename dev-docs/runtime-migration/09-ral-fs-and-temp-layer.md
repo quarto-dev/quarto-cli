@@ -1,31 +1,58 @@
 # PR 09: `deno_ral/fs.ts` and `deno_ral/temp.ts` API, error predicates, unit tests, and the ts-morph codemod (no callers moved yet)
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add the filesystem, temp-file and error-predicate surface of the runtime layer (`src/deno_ral/fs.ts` extended and retyped, `src/deno_ral/temp.ts` and `src/deno_ral/errors.ts` new), each with a unit test that is the compatibility contract for PR 27, and ship the codemod `tools/codemod-deno-ral.ts` (forward and `--reverse`) that PRs 10–14 run to move callers and that the backport checklist uses to move fixes back to stable branches.
-**Phase:** 1. **Depends on:** PR 02 (ratchet; the codemod imports its `kSrcExclusions`). **Unblocks:** PR 10, 11, 12, 13, 14, 14b, 17, 18, 19, 20b, 23, 24, 25. Milestone J (Julia engine, README row J) needs nothing from this PR beyond the exported `fs.ts`/`temp.ts`/`errors.ts` interfaces; the hand-off to PumasAI is triage A9.
+**Phase:** 1.
+**Depends on:** PR 02 (ratchet; the codemod imports its `kSrcExclusions`).
+**Unblocks:** PR 10, 11, 12, 13, 14, 14b, 17, 18, 19, 20b, 23, 24, 25.
+Milestone J (Julia engine, README row J) needs nothing from this PR beyond the exported `fs.ts`/`temp.ts`/`errors.ts` interfaces; the hand-off to PumasAI is triage A9.
 **Branch:** `rt/09-ral-fs-and-temp-layer`.
-**Suggested executor:** Opus. The layer code is mechanical, but the codemod's symbol-based collision handling, alias-preserving import merge and reverse mode need judgement, and the two monkey-patch behaviours (read-error path annotation, temp retry) must be carried over exactly.
-**Size:** M. 3 layer modules (1 extended), 1 tool with its own test and 21 fixture files, 3 unit test files, 2 rules docs, the backport checklist, one changelog line; no application caller changes.
-**Ships on:** Deno; the existing test suite must stay green. The ratchet baseline does not change (no caller moves).
+**Suggested executor:** Opus.
+The layer code is mechanical, but the codemod's symbol-based collision handling, alias-preserving import merge and reverse mode need judgement, and the two monkey-patch behaviours (read-error path annotation, temp retry) must be carried over exactly.
+**Size:** M.
+3 layer modules (1 extended), 1 tool with its own test and 21 fixture files, 3 unit test files, 2 rules docs, the backport checklist, one changelog line; no application caller changes.
+**Ships on:** Deno; the existing test suite must stay green.
+The ratchet baseline does not change (no caller moves).
 
 ## Spec
 
 ### Context
 
-Assessment section 11, module plan rows `fs.ts` ("extend: readTextFile[Sync], … own `FileInfo`, `DirEntry` types; error predicates. The read-error path annotation moves here. `readDirSync` callers that depend on order get an explicit sort") and `temp.ts` ("new: makeTempDir[Sync], makeTempFile[Sync], own `TempOptions`; carries the retry loop from `core/deno/monkey-patch.ts`"), design rule 4 ("error handling through predicates … replace `instanceof Deno.errors.X`") and order-of-work step 3 ("a `ts-morph` script run with `quarto run --dev` rewrites `Deno.<fsCall>(` to the layer function and adds the import; review by directory"). Review findings S10 and S11 (2026-10-15) set the codemod's requirements: retype the layer helpers that take Deno types, preserve aliases and `import type`, symbol-based idempotent collisions, a reverse mode for backports, and a skip list that mirrors the ratchet.
+Assessment section 11, module plan rows `fs.ts` ("extend: readTextFile[Sync], … own `FileInfo`, `DirEntry` types; error predicates.
+The read-error path annotation moves here.
+`readDirSync` callers that depend on order get an explicit sort") and `temp.ts` ("new: makeTempDir[Sync], makeTempFile[Sync], own `TempOptions`; carries the retry loop from `core/deno/monkey-patch.ts`"), design rule 4 ("error handling through predicates … replace `instanceof Deno.errors.X`") and order-of-work step 3 ("a `ts-morph` script run with `quarto run --dev` rewrites `Deno.<fsCall>(` to the layer function and adds the import; review by directory").
+Review findings S10 and S11 (2026-10-15) set the codemod's requirements: retype the layer helpers that take Deno types, preserve aliases and `import type`, symbol-based idempotent collisions, a reverse mode for backports, and a skip list that mirrors the ratchet.
 
 What exists today (verified 2026-10-15, `main` at `b86f98d`):
 
-- `src/deno_ral/fs.ts` (206 lines; its header comment says `encoding.ts`, a copy-paste error) re-exports `@std/fs` helpers (`ensureDir`, `existsSync`, `walk`, `expandGlob`, `copy`, `moveSync`, `emptyDirSync`, `EOL`) and defines `safeMoveSync`, `safeRemoveSync`, `safeExistsFileSync`, `safeRemoveDirSync`, `safeModeFromFile`, `safeChmodSync`, `ensureUserWritable`, `isSubdir`, `toPathString`, `getFileInfoType`. Two of them take Deno types: `getFileInfoType(fileInfo: Deno.FileInfo)` (line 30) and `safeRemoveSync(file, options: Deno.RemoveOptions = {})` (line 116). `src/core/copy.ts:203` calls `getFileInfoType(Deno.lstatSync(src))`; once PR 10 rewrites that to the layer's `lstatSync`, which returns the 8-field `FileInfo`, `deno check` fails because `Deno.FileInfo` requires `dev`, `ino`, `nlink`, `ctime`, … This PR retypes both helpers to the layer's types, so PR 10 type-checks.
-- `src/core/deno/monkey-patch.ts` (135 lines), imported first by `src/quarto.ts:9`: sets `Deno.realPathSync = normalizePath` (line 17; `normalizePath` in `src/core/path.ts:319-328` makes the path absolute against `Deno.cwd()`, normalises it, and upper-cases a Windows drive letter; it does not resolve symlinks and removes no prefix), wraps `Deno.makeTemp{File,Dir}{,Sync}` in a 5-attempt retry loop on any error (lines 35-99, Deno issue 17781), and wraps `Deno.readTextFile{,Sync}` to append `"\nPath: <path>"` to the error message (lines 101-135). It also installs `Deno.copy`/`Deno.writeAll` shims (lines 19-24; PR 25). `src/deno_ral/original-real-path.ts` saves the un-patched `Deno.realPathSync` for `safeRemoveDirSync`, `check.ts:194`, `tests/utils.ts:315` and two smoke tests.
-- **No code calls `Deno.realPathSync` itself** (`rg 'Deno\.realPathSync\('` over `src`, `tests`, `package/src` finds only comments, the monkey-patch assignment and `originalRealPathSync`). The first draft of this plan added a `realPathSync` with `normalizePath` semantics next to a symlink-resolving `realPath`: a sync/async pair with opposite meanings (macOS `/var` vs `/private/var`) and no callers. It is dropped. The layer instead gets `canonicalPathSync(path)` (symlinks resolved, throws when missing), implemented on the runtime's own real-path call, and the codemod maps `Deno.realPathSync(` to it. The async `realPath` keeps `Deno.realPath` semantics (`src/tools/impl/tinytex.ts:662` relies on symlink resolution).
-- `@std/fs@1.0.16` (the import map's `fs/` key): the only `Deno.realPathSync` call in the modules Quarto imports is in `walk`/`walkSync` (`walk.ts:922`), and it runs only with `followSymlinks: true`, which `expandGlob` forwards; `copy`/`expand_glob` never call it. Every Quarto call site passes `followSymlinks: false` explicitly (`src/core/copy.ts:80`, `src/project/project-context.ts:940,1085`, `src/extension/extension.ts:532`) or relies on the default `false`. So the monkey patch changes nothing for `@std/fs` today, and removing it (PR 25) is safe.
-- `src/core/performance/metrics.ts:18-33` (`captureFileReads`) reassigns `Deno.readTextFileSync` at runtime to record file reads. Until PR 20b replaces that with the layer's `onFileRead(listener)` hook, the layer must look `Deno.readTextFileSync` up at call time (never cache the function). This PR does not add `onFileRead`; PR 20b owns it.
+- `src/deno_ral/fs.ts` (206 lines; its header comment says `encoding.ts`, a copy-paste error) re-exports `@std/fs` helpers (`ensureDir`, `existsSync`, `walk`, `expandGlob`, `copy`, `moveSync`, `emptyDirSync`, `EOL`) and defines `safeMoveSync`, `safeRemoveSync`, `safeExistsFileSync`, `safeRemoveDirSync`, `safeModeFromFile`, `safeChmodSync`, `ensureUserWritable`, `isSubdir`, `toPathString`, `getFileInfoType`.
+  Two of them take Deno types: `getFileInfoType(fileInfo: Deno.FileInfo)` (line 30) and `safeRemoveSync(file, options: Deno.RemoveOptions = {})` (line 116).
+  `src/core/copy.ts:203` calls `getFileInfoType(Deno.lstatSync(src))`; once PR 10 rewrites that to the layer's `lstatSync`, which returns the 8-field `FileInfo`, `deno check` fails because `Deno.FileInfo` requires `dev`, `ino`, `nlink`, `ctime`, … This PR retypes both helpers to the layer's types, so PR 10 type-checks.
+- `src/core/deno/monkey-patch.ts` (135 lines), imported first by `src/quarto.ts:9`: sets `Deno.realPathSync = normalizePath` (line 17; `normalizePath` in `src/core/path.ts:319-328` makes the path absolute against `Deno.cwd()`, normalises it, and upper-cases a Windows drive letter; it does not resolve symlinks and removes no prefix), wraps `Deno.makeTemp{File,Dir}{,Sync}` in a 5-attempt retry loop on any error (lines 35-99, Deno issue 17781), and wraps `Deno.readTextFile{,Sync}` to append `"\nPath: <path>"` to the error message (lines 101-135).
+  It also installs `Deno.copy`/`Deno.writeAll` shims (lines 19-24; PR 25).
+  `src/deno_ral/original-real-path.ts` saves the un-patched `Deno.realPathSync` for `safeRemoveDirSync`, `check.ts:194`, `tests/utils.ts:315` and two smoke tests.
+- **No code calls `Deno.realPathSync` itself** (`rg 'Deno\.realPathSync\('` over `src`, `tests`, `package/src` finds only comments, the monkey-patch assignment and `originalRealPathSync`).
+  The first draft of this plan added a `realPathSync` with `normalizePath` semantics next to a symlink-resolving `realPath`: a sync/async pair with opposite meanings (macOS `/var` vs `/private/var`) and no callers.
+  It is dropped.
+  The layer instead gets `canonicalPathSync(path)` (symlinks resolved, throws when missing), implemented on the runtime's own real-path call, and the codemod maps `Deno.realPathSync(` to it.
+  The async `realPath` keeps `Deno.realPath` semantics (`src/tools/impl/tinytex.ts:662` relies on symlink resolution).
+- `@std/fs@1.0.16` (the import map's `fs/` key): the only `Deno.realPathSync` call in the modules Quarto imports is in `walk`/`walkSync` (`walk.ts:922`), and it runs only with `followSymlinks: true`, which `expandGlob` forwards; `copy`/`expand_glob` never call it.
+  Every Quarto call site passes `followSymlinks: false` explicitly (`src/core/copy.ts:80`, `src/project/project-context.ts:940,1085`, `src/extension/extension.ts:532`) or relies on the default `false`.
+  So the monkey patch changes nothing for `@std/fs` today, and removing it (PR 25) is safe.
+- `src/core/performance/metrics.ts:18-33` (`captureFileReads`) reassigns `Deno.readTextFileSync` at runtime to record file reads.
+  Until PR 20b replaces that with the layer's `onFileRead(listener)` hook, the layer must look `Deno.readTextFileSync` up at call time (never cache the function).
+  This PR does not add `onFileRead`; PR 20b owns it.
 - Deno-specific types used in application signatures that this PR gives a home: `Deno.FileInfo` (`src/core/copy.ts:231,232`), `Deno.MakeTempOptions` (`src/core/temp.ts:58,71,76,79`, `src/core/temp-types.ts:11,13,14`, `monkey-patch.ts`), `Deno.ReadFileOptions` (`src/core/qualified-path.ts:69`), `Deno.FsFile` (none by name; 11 `Deno.open` sites use it structurally).
 - `Deno.errors.*` sites: 18 in `src/` (17 `instanceof` checks and one type alias), 1 in `package/src`, 4 in `tests/`: `NotFound` (`src/project/project-index.ts:250`, `src/command/render/pandoc.ts:1648`, `src/core/copy.ts:236`, `src/core/cache/cache.ts:161`, `src/core/path.ts:189`, `src/core/http.ts:64,230`, `src/core/jupyter/jupyter-shared.ts:107`, `src/core/typst.ts:82`, `package/src/common/validate-bundle.ts:72`), `PermissionDenied` (`src/project/project-context.ts:652,967,1072`; 967 is the type alias `InputWalkError`, rewritten by PR 12), `AddrInUse` (`src/core/port.ts:131`), and the five connection errors in `src/core/http.ts:231-235`.
-- `Deno.readDirSync`/`Deno.readDir` iteration: no caller uses `.next()`; `src/command/use/commands/brand.ts:706` spreads the result (works on an array); `src/tools/impl/chrome-headless-shell.ts:122` mutates the directory while iterating (safer with a snapshot array); emptiness checks (`src/core/path.ts:53`, `src/command/use/commands/template.ts:373`, `src/command/render/freeze.ts:250`) become a full read and sort, negligible for those directories. Order-dependent loops: `src/format/html/format-html-shared.ts:133` (bslib SCSS; PR 01 also sorts), `src/command/capabilities/capabilities.ts:75` (theme list), `src/command/call/build-ts-extension/cmd.ts:118` (entry list), `src/project/types/manuscript/manuscript-meca.ts:427` (MECA item order), `src/extension/extension.ts:296,477,683` (extension discovery order). The layer sorts by code unit (`a.name < b.name`), so uppercase names sort before lowercase ones. That differs from APFS and NTFS listing order as well as from ext4's hash order, so the discovery order changes on every OS; the result is deterministic everywhere, and the PR carries a changelog line.
-- Dev scripts import npm packages directly: `tools/deno-esbuild-bundle.ts:1` uses `npm:esbuild@0.27.1`. `quarto run --dev <script>` (`src/core/run/deno.ts:37-74`) runs `deno run --import-map src/import_map.json --allow-all` and passes the script's arguments through untouched (`src/command/run/run.ts:14-44`), so `npm:ts-morph@28.0.0` (pure JS, latest) resolves from the Deno npm cache. With PR 00b's committed `deno.lock` and `--frozen`, the new npm package must be added to the lockfile (Task 5).
+- `Deno.readDirSync`/`Deno.readDir` iteration: no caller uses `.next()`; `src/command/use/commands/brand.ts:706` spreads the result (works on an array); `src/tools/impl/chrome-headless-shell.ts:122` mutates the directory while iterating (safer with a snapshot array); emptiness checks (`src/core/path.ts:53`, `src/command/use/commands/template.ts:373`, `src/command/render/freeze.ts:250`) become a full read and sort, negligible for those directories.
+  Order-dependent loops: `src/format/html/format-html-shared.ts:133` (bslib SCSS; PR 01 also sorts), `src/command/capabilities/capabilities.ts:75` (theme list), `src/command/call/build-ts-extension/cmd.ts:118` (entry list), `src/project/types/manuscript/manuscript-meca.ts:427` (MECA item order), `src/extension/extension.ts:296,477,683` (extension discovery order).
+  The layer sorts by code unit (`a.name < b.name`), so uppercase names sort before lowercase ones.
+  That differs from APFS and NTFS listing order as well as from ext4's hash order, so the discovery order changes on every OS; the result is deterministic everywhere, and the PR carries a changelog line.
+- Dev scripts import npm packages directly: `tools/deno-esbuild-bundle.ts:1` uses `npm:esbuild@0.27.1`.
+  `quarto run --dev <script>` (`src/core/run/deno.ts:37-74`) runs `deno run --import-map src/import_map.json --allow-all` and passes the script's arguments through untouched (`src/command/run/run.ts:14-44`), so `npm:ts-morph@28.0.0` (pure JS, latest) resolves from the Deno npm cache.
+  With PR 00b's committed `deno.lock` and `--frozen`, the new npm package must be added to the lockfile (Task 5).
 
 ### Scope
 
@@ -38,7 +65,9 @@ In:
 - `.claude/rules/typescript/deno-ral.md` rows for `fs.ts`, `temp.ts`, `errors.ts` and a "Moving code off `Deno.*`" subsection; `.claude/rules/typescript/deno-essentials.md` example block; `dev-docs/checklist-backport-a-pr.md` reverse-codemod step; `news/changelog-1.11.md` line for directory order; `deno.lock` entry for `ts-morph`.
 
 Out:
-- Moving any caller (PRs 10–14, 23, 24). Deleting or editing `src/core/deno/monkey-patch.ts` (PR 25). Reimplementing `walk`/`expandGlob`/`copy` (PR 27).
+- Moving any caller (PRs 10–14, 23, 24).
+  Deleting or editing `src/core/deno/monkey-patch.ts` (PR 25).
+  Reimplementing `walk`/`expandGlob`/`copy` (PR 27).
 - The `onFileRead` read-observer hook and the `metrics.ts` rewrite (PR 20b).
 - `src/deno_ral/env.ts` itself (PR 14 adds it; the codemod's `env` rule is written here and tested on fixtures only).
 - The `process` rule's targets beyond `exit`, `cwd`, `chdir`, `args`, `execPath`, `pid` (PR 08 moves `Deno.Command` by hand).
@@ -137,17 +166,20 @@ export function makeTempFile(options?: TempOptions): Promise<string>;
 export function retryOnAlreadyExists<T>(fn: () => T, attempts?: number): T;
 ```
 
-While `monkey-patch.ts` is alive (until PR 25), its own any-error loop runs inside this one; a NotFound then costs 5 inner attempts (not 25), an AlreadyExists at most 25. Harmless and temporary.
+While `monkey-patch.ts` is alive (until PR 25), its own any-error loop runs inside this one; a NotFound then costs 5 inner attempts (not 25), an AlreadyExists at most 25.
+Harmless and temporary.
 
 #### `tools/codemod-deno-ral.ts`
 
 CLI: `quarto run --dev tools/codemod-deno-ral.ts --rules <r1,r2> (--dir <d> | --file <f>)... [--dry-run] [--reverse] [--ral-dir <path>]`.
 
 - `--rules`: comma-separated subset of `fs`, `temp`, `env`, `process`, `platform` (required).
-- `--dir`: walk `*.ts` under it (repeatable), relative to the current directory, which must be the repository root. Skipped: the paths in `kCodemodExclusions` (PR 02's `kSrcExclusions`: `src/deno_ral`, `src/vendor`, `src/resources/extension-subtrees`, `src/resources/scripts`, `src/resources/create`, `src/webui/quarto-preview/build.ts`; plus `src/core/lib`, which is bundled for the browser and must not import `deno_ral` (`src/core/lib/errors.ts:27-29`), and `src/resources/tools/ast-diagram`, a standalone script run by `deno run` without the import map that PR 25 moves into the ratchet allow-list), any `node_modules/` segment, `*.d.ts`, `*.ejs.ts`.
+- `--dir`: walk `*.ts` under it (repeatable), relative to the current directory, which must be the repository root.
+  Skipped: the paths in `kCodemodExclusions` (PR 02's `kSrcExclusions`: `src/deno_ral`, `src/vendor`, `src/resources/extension-subtrees`, `src/resources/scripts`, `src/resources/create`, `src/webui/quarto-preview/build.ts`; plus `src/core/lib`, which is bundled for the browser and must not import `deno_ral` (`src/core/lib/errors.ts:27-29`), and `src/resources/tools/ast-diagram`, a standalone script run by `deno run` without the import map that PR 25 moves into the ratchet allow-list), any `node_modules/` segment, `*.d.ts`, `*.ejs.ts`.
 - `--file`: one file (repeatable); not subject to the skip list (used by the backport step on worktree files).
 - `--dry-run`: print every replacement as `<file>:<line>: Deno.x → x` and the import that would be added; write nothing.
-- `--reverse`: map layer names imported from `deno_ral/<module>.ts` back to `Deno.*` and remove the specifiers (and the declaration when it becomes empty). Uses the same rule tables read right to left.
+- `--reverse`: map layer names imported from `deno_ral/<module>.ts` back to `Deno.*` and remove the specifiers (and the declaration when it becomes empty).
+  Uses the same rule tables read right to left.
 - `--ral-dir`: absolute path of the layer directory (default `<cwd>/src/deno_ral`); import specifiers are computed relative to each file from it.
 
 Library API (used by the codemod test):
@@ -185,13 +217,23 @@ Rule tables (exact):
 | `platform` | `platform.ts` | `build.os` → `os`, `build.arch` → `arch` (two-level member access) | — |
 
 Behaviour (forward):
-1. A file that *assigns* to any `Deno.<x>` (e.g. `Deno.realPathSync = …`, `Deno.readTextFileSync = …`) is skipped whole with `skipped: "assigns to Deno.<x> at line N"`. This keeps `src/core/deno/monkey-patch.ts` and (until PR 20b) `src/core/performance/metrics.ts` untouched automatically.
-2. **Alias reuse.** If the file already imports the export from the same layer module (`import { stat as fsStat } from ".../deno_ral/fs.ts"`), the replacement text is that local name (`Deno.stat(` → `fsStat(`), and no import is added. This makes the PRs 10–14 hand fixes (alias imports for collisions) stable under re-runs.
-3. **Symbol-based collisions.** The replacement text `x` collides when some identifier `x` in the file that is a binding or a reference (declaration name, parameter, import specifier, shorthand property value, plain reference; property names `a.x`, `{ x: 1 }`, interface members are not) resolves, through the type checker, to a symbol whose declarations are not all import specifiers of export `x` from the same layer module. Unresolvable identifiers count as collisions (conservative). A colliding name is left as `Deno.*` everywhere in the file and reported as a `Collision`; the rest of the file is still rewritten. Because an existing layer import of the same export never collides, a second run over a partly migrated file finishes the job (idempotent).
-4. **Import merge.** New value names are merged into an existing non-type-only `import { … } from "<rel>/deno_ral/<module>.ts"`, keeping every existing specifier's text (`type X`, `x as y`) and sorting by exported name with `localeCompare`; new type names go into that same declaration as inline `type X`, or into an existing `import type { … }` from the module when only types are added. Without a suitable declaration, a new one is inserted after the last import, or before the first statement (after the header comment) when the file has no imports; a declaration with only type names is written `import type { … }`.
-5. Edits are computed from AST positions and applied to the file text from the end backwards; the AST is never mutated. Files are written only when at least one replacement was applied and `--dry-run` is off. The tool lives in `tools/`, outside the ratchet scopes, and may use `Deno.*`.
+1. A file that *assigns* to any `Deno.<x>` (e.g. `Deno.realPathSync = …`, `Deno.readTextFileSync = …`) is skipped whole with `skipped: "assigns to Deno.<x> at line N"`.
+   This keeps `src/core/deno/monkey-patch.ts` and (until PR 20b) `src/core/performance/metrics.ts` untouched automatically.
+2. **Alias reuse.** If the file already imports the export from the same layer module (`import { stat as fsStat } from ".../deno_ral/fs.ts"`), the replacement text is that local name (`Deno.stat(` → `fsStat(`), and no import is added.
+   This makes the PRs 10–14 hand fixes (alias imports for collisions) stable under re-runs.
+3. **Symbol-based collisions.** The replacement text `x` collides when some identifier `x` in the file that is a binding or a reference (declaration name, parameter, import specifier, shorthand property value, plain reference; property names `a.x`, `{ x: 1 }`, interface members are not) resolves, through the type checker, to a symbol whose declarations are not all import specifiers of export `x` from the same layer module.
+   Unresolvable identifiers count as collisions (conservative).
+   A colliding name is left as `Deno.*` everywhere in the file and reported as a `Collision`; the rest of the file is still rewritten.
+   Because an existing layer import of the same export never collides, a second run over a partly migrated file finishes the job (idempotent).
+4. **Import merge.** New value names are merged into an existing non-type-only `import { … } from "<rel>/deno_ral/<module>.ts"`, keeping every existing specifier's text (`type X`, `x as y`) and sorting by exported name with `localeCompare`; new type names go into that same declaration as inline `type X`, or into an existing `import type { … }` from the module when only types are added.
+   Without a suitable declaration, a new one is inserted after the last import, or before the first statement (after the header comment) when the file has no imports; a declaration with only type names is written `import type { … }`.
+5. Edits are computed from AST positions and applied to the file text from the end backwards; the AST is never mutated.
+   Files are written only when at least one replacement was applied and `--dry-run` is off.
+   The tool lives in `tools/`, outside the ratchet scopes, and may use `Deno.*`.
 
-Behaviour (reverse): for each import specifier from a layer module of the selected rules whose exported name appears in the rule tables, every reference to its local binding (resolved by symbol, so aliases and shadowing are handled) is replaced: values by `Deno.<name>` (`canonicalPathSync` → `Deno.realPathSync`, `env` → `Deno.env`, `os`/`arch` → `Deno.build.os`/`Deno.build.arch`), a call `args()`/`pid()` by `Deno.args`/`Deno.pid`, a type reference by `Deno.<T>`. If every reference was rewritten the specifier is removed (the declaration too when nothing is left); otherwise the specifier stays and is reported in `left`. Names outside the tables (`existsSync`, `safeRemoveSync`, `isNotFound`, …) are untouched: stable branches have `deno_ral/fs.ts` with the `safe*` helpers, but not `errors.ts`.
+Behaviour (reverse): for each import specifier from a layer module of the selected rules whose exported name appears in the rule tables, every reference to its local binding (resolved by symbol, so aliases and shadowing are handled) is replaced: values by `Deno.<name>` (`canonicalPathSync` → `Deno.realPathSync`, `env` → `Deno.env`, `os`/`arch` → `Deno.build.os`/`Deno.build.arch`), a call `args()`/`pid()` by `Deno.args`/`Deno.pid`, a type reference by `Deno.<T>`.
+If every reference was rewritten the specifier is removed (the declaration too when nothing is left); otherwise the specifier stays and is reported in `left`.
+Names outside the tables (`existsSync`, `safeRemoveSync`, `isNotFound`, …) are untouched: stable branches have `deno_ral/fs.ts` with the `safe*` helpers, but not `errors.ts`.
 
 ### Files
 
@@ -212,7 +254,8 @@ Behaviour (reverse): for each import specifier from a layer module of the select
 
 ## Plan
 
-Assumes PR 02 landed (`tools/check-runtime-boundary.ts` exporting `kSrcExclusions`, and `.github/workflows/runtime-boundary.yml`), `./configure.sh` has been run, and `package/dist/bin/tools/x86_64/deno` is the dev Deno (substitute the architecture directory present). New unit tests use the layer (`deno_ral`) for their own file operations, never raw `Deno.*` (the ratchet has a `tests` scope); the error-predicate test constructs `Deno.errors` instances through `globalThis` for the same reason.
+Assumes PR 02 landed (`tools/check-runtime-boundary.ts` exporting `kSrcExclusions`, and `.github/workflows/runtime-boundary.yml`), `./configure.sh` has been run, and `package/dist/bin/tools/x86_64/deno` is the dev Deno (substitute the architecture directory present).
+New unit tests use the layer (`deno_ral`) for their own file operations, never raw `Deno.*` (the ratchet has a `tests` scope); the error-predicate test constructs `Deno.errors` instances through `globalThis` for the same reason.
 
 ### Task 1: `src/deno_ral/errors.ts`
 
@@ -311,8 +354,7 @@ unitTest("errors - errorWithPath appends the path exactly once", async () => {
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts`
-Expected: fails with `Module not found "file:///.../src/deno_ral/errors.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts` Expected: fails with `Module not found "file:///.../src/deno_ral/errors.ts"`.
 
 - [ ] **Step 3: Implement**
 
@@ -421,8 +463,7 @@ export function errorWithPath(e: Error, path: string): Error {
 
 - [ ] **Step 4: Run the test**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts`
-Expected: `ok | 4 passed | 0 failed`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts` Expected: `ok | 4 passed | 0 failed`
 
 - [ ] **Step 5: Commit**
 
@@ -554,8 +595,7 @@ unitTest("temp - retries only AlreadyExists, at most 5 times", async () => {
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/temp.test.ts`
-Expected: fails with `Module not found "file:///.../src/deno_ral/temp.ts"`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/temp.test.ts` Expected: fails with `Module not found "file:///.../src/deno_ral/temp.ts"`.
 
 - [ ] **Step 3: Implement**
 
@@ -636,8 +676,7 @@ export function makeTempFile(options?: TempOptions): Promise<string> {
 
 - [ ] **Step 4: Run the test**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/temp.test.ts`
-Expected: `ok | 5 passed | 0 failed`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/temp.test.ts` Expected: `ok | 5 passed | 0 failed`
 
 - [ ] **Step 5: Commit**
 
@@ -861,8 +900,7 @@ unitTest("fs - open/create expose streams and close", withDir(async (dir) => {
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs.test.ts`
-Expected: fails at type-check with `Module '"../../../src/deno_ral/fs.ts"' has no exported member 'readTextFileSync'` (and others).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs.test.ts` Expected: fails at type-check with `Module '"../../../src/deno_ral/fs.ts"' has no exported member 'readTextFileSync'` (and others).
 
 - [ ] **Step 3: Implement (append to `src/deno_ral/fs.ts`)**
 
@@ -1189,11 +1227,9 @@ The `originalRealPathSync` import (line 11) stays: `canonicalPathSync` uses it u
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs.test.ts $(find unit/ral/ -name '*.test.ts')`
-Expected: `ok | 15 passed | 0 failed` (12 new + the 3 existing cases in `unit/ral/safe-*.test.ts`).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs.test.ts $(find unit/ral/ -name '*.test.ts')` Expected: `ok | 15 passed | 0 failed` (12 new + the 3 existing cases in `unit/ral/safe-*.test.ts`).
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 - [ ] **Step 5: Commit**
 
@@ -1209,11 +1245,14 @@ git commit -m "deno_ral/fs: plain filesystem calls, canonicalPathSync, layer-typ
 - Create: `tools/codemod-deno-ral.ts`
 - Test: `tools/codemod/codemod-deno-ral.test.ts`, `tools/codemod/fixtures/*`
 
-The codemod test lives under `tools/`, not `tests/unit/`: `run-tests.sh` only discovers `*.test.ts` under `tests/`, so the per-OS unit runs never download or type-check `npm:ts-morph` (review finding: it would add network and TypeScript compiler typings to every `tests/unit` run on three OSes). It runs in one dedicated CI step (Task 5) and locally with plain `deno test`. Being outside the ratchet scopes, it may use `Deno.*`.
+The codemod test lives under `tools/`, not `tests/unit/`: `run-tests.sh` only discovers `*.test.ts` under `tests/`, so the per-OS unit runs never download or type-check `npm:ts-morph` (review finding: it would add network and TypeScript compiler typings to every `tests/unit` run on three OSes).
+It runs in one dedicated CI step (Task 5) and locally with plain `deno test`.
+Being outside the ratchet scopes, it may use `Deno.*`.
 
 - [ ] **Step 1: Write the fixtures**
 
-Each fixture is copied by the test to `<tmp>/src/core/<name>.ts`, next to a (non-existent) `<tmp>/src/deno_ral/`, so layer imports read `../deno_ral/<module>.ts`. Fixture files are inputs to a tool, not modules of the build, and `deno check` never sees them (they are not imported).
+Each fixture is copied by the test to `<tmp>/src/core/<name>.ts`, next to a (non-existent) `<tmp>/src/deno_ral/`, so layer imports read `../deno_ral/<module>.ts`.
+Fixture files are inputs to a tool, not modules of the build, and `deno check` never sees them (they are not imported).
 
 `tools/codemod/fixtures/fs-basic.input.ts`:
 ```ts
@@ -1731,8 +1770,7 @@ Deno.test("codemod - collectFiles applies the skip list", () => {
 
 - [ ] **Step 3: Run it and see it fail**
 
-Run: `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/`
-Expected: fails with `Module not found "file:///.../tools/codemod-deno-ral.ts"`.
+Run: `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` Expected: fails with `Module not found "file:///.../tools/codemod-deno-ral.ts"`.
 
 - [ ] **Step 4: Implement `tools/codemod-deno-ral.ts`**
 
@@ -2348,15 +2386,15 @@ if (import.meta.main) {
 
 - [ ] **Step 5: Run the test**
 
-Run: `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/`
-Expected: `ok | 17 passed | 0 failed`. The first run downloads `ts-morph@28.0.0` into the Deno npm cache (network needed once). The fixtures and the logic were validated before this plan was written by running a Node port of exactly this file (only the `Deno.*`/`deno_ral` imports swapped for `node:` ones) over the same fixtures with `ts-morph@28.0.0`; all 17 cases passed.
+Run: `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` Expected: `ok | 17 passed | 0 failed`.
+The first run downloads `ts-morph@28.0.0` into the Deno npm cache (network needed once).
+The fixtures and the logic were validated before this plan was written by running a Node port of exactly this file (only the `Deno.*`/`deno_ral` imports swapped for `node:` ones) over the same fixtures with `ts-morph@28.0.0`; all 17 cases passed.
 
 If a fixture comparison fails on whitespace only, fix the *expected* file to match the tool's deterministic output and say so in the commit message; the contract is "deterministic", not "pretty" (PRs 10–14 run `deno fmt` after the codemod).
 
 - [ ] **Step 6: Dry-run against the real tree**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run | grep -E 'skipped|collision|Summary'`
-Expected (measured with the Node port on `b86f98d`; about one second per rewritten file, because each file gets its own type checker):
+Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run | grep -E 'skipped|collision|Summary'` Expected (measured with the Node port on `b86f98d`; about one second per rewritten file, because each file gets its own type checker):
 ```
 src/core/copy.ts:60: collision: local binding 'copyFileSync' conflicts with deno_ral/fs.ts; left as Deno.*
 src/core/deno/monkey-patch.ts: skipped: assigns to Deno.realPathSync at line 17
@@ -2365,7 +2403,8 @@ src/core/qualified-path.ts:69: collision: local binding 'readTextFile' conflicts
 src/core/qualified-path.ts:73: collision: local binding 'readTextFileSync' conflicts with deno_ral/fs.ts; left as Deno.*
 Summary: 205 files scanned, 56 would be rewritten, 153 replacements, 2 with collisions, 2 skipped
 ```
-(205, not 264: `src/core/lib` is skipped.) `git status --short src` shows no modified files.
+(205, not 264: `src/core/lib` is skipped.)
+`git status --short src` shows no modified files.
 
 - [ ] **Step 7: Commit**
 
@@ -2381,13 +2420,15 @@ git commit -m "tools: ts-morph codemod for Deno.* <-> deno_ral rewrites, with fi
 
 - [ ] **Step 1: Lockfile**
 
-PR 00b commits `deno.lock` and runs Deno with `--frozen`, so a new `npm:` specifier must be recorded. Run:
+PR 00b commits `deno.lock` and runs Deno with `--frozen`, so a new `npm:` specifier must be recorded.
+Run:
 
 ```bash
 package/dist/bin/tools/x86_64/deno cache --lock=deno.lock --frozen=false --import-map=src/import_map.json tools/codemod-deno-ral.ts tools/codemod/codemod-deno-ral.test.ts
 git diff --stat deno.lock
 ```
-Expected: `deno.lock` gains `npm:ts-morph@28.0.0` and its dependencies (`@ts-morph/common`, `code-block-writer`, `typescript`, …); nothing else changes. (If PR 00b has not landed yet, `deno.lock` does not exist in the tree: skip this step; PR 00b's lockfile then picks the specifier up when it is generated.)
+Expected: `deno.lock` gains `npm:ts-morph@28.0.0` and its dependencies (`@ts-morph/common`, `code-block-writer`, `typescript`, …); nothing else changes.
+(If PR 00b has not landed yet, `deno.lock` does not exist in the tree: skip this step; PR 00b's lockfile then picks the specifier up when it is generated.)
 
 - [ ] **Step 2: CI step**
 
@@ -2398,7 +2439,8 @@ In `.github/workflows/runtime-boundary.yml` (PR 02's job, Linux, after its `conf
         run: package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/
 ```
 
-This is the only place CI runs the codemod tests; `tests/run-tests.sh` never sees them. If PR 02b landed first, the step already exists (it runs `tools/codemod/` for 02b's own test); leave it as it is.
+This is the only place CI runs the codemod tests; `tests/run-tests.sh` never sees them.
+If PR 02b landed first, the step already exists (it runs `tools/codemod/` for 02b's own test); leave it as it is.
 
 - [ ] **Step 3: Backport checklist**
 
@@ -2471,7 +2513,8 @@ Deno.cwd();
 Open the PR as a draft to get its number `N`, then add under `## Other fixes and improvements` in `news/changelog-1.11.md`:
 
 ```markdown
-- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): Directories are now read in a fixed order (sorted by name, uppercase before lowercase) on every platform. Extension discovery, the theme list of `quarto capabilities`, and the items of a MECA bundle no longer depend on the file system's listing order; when two extensions share an id, which one wins can differ from earlier versions.
+- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): Directories are now read in a fixed order (sorted by name, uppercase before lowercase) on every platform.
+  Extension discovery, the theme list of `quarto capabilities`, and the items of a MECA bundle no longer depend on the file system's listing order; when two extensions share an id, which one wins can differ from earlier versions.
 ```
 
 (The behaviour reaches users when PRs 11–13 move the callers; they land before the `v1.11` cut, decision 2.)
@@ -2509,13 +2552,20 @@ git commit -m "codemod CI step, backport step, rules docs and changelog for deno
 ## Risks and rollback
 
 - `npm:ts-morph@28.0.0` under Deno: ts-morph is pure JS and runs through Deno's `npm:` support; if `Project` fails to load, pin `npm:ts-morph@26.0.0` and, as a last resort, rewrite the finder on `npm:typescript`'s compiler API with the same text-edit strategy (the fixtures are the contract either way).
-- The codemod test needs network on first run to fetch ts-morph; the CI step runs after `configure.sh` with network. With `--frozen` (PR 00b), forgetting Task 5 step 1 makes the step fail with a lockfile error, not silently.
-- Speed: about one second per file that has a `Deno.` occurrence (a type checker per file, without `lib.d.ts`). The largest run, `--rules env --dir src` in PR 14, takes about a minute. Acceptable for a one-off tool.
-- `noLib`: an identifier that resolves only to a global (DOM `open`, for example) counts as a collision. Conservative by design; it shows up as an extra collision line in a dry run.
-- `readDirSync` returning an array instead of a lazy iterator changes nothing for `for…of` callers; the one caller that spreads it (`src/command/use/commands/brand.ts:706`) still works. The order change is user-visible (changelog line).
+- The codemod test needs network on first run to fetch ts-morph; the CI step runs after `configure.sh` with network.
+  With `--frozen` (PR 00b), forgetting Task 5 step 1 makes the step fail with a lockfile error, not silently.
+- Speed: about one second per file that has a `Deno.` occurrence (a type checker per file, without `lib.d.ts`).
+  The largest run, `--rules env --dir src` in PR 14, takes about a minute.
+  Acceptable for a one-off tool.
+- `noLib`: an identifier that resolves only to a global (DOM `open`, for example) counts as a collision.
+  Conservative by design; it shows up as an extra collision line in a dry run.
+- `readDirSync` returning an array instead of a lazy iterator changes nothing for `for…of` callers; the one caller that spreads it (`src/command/use/commands/brand.ts:706`) still works.
+  The order change is user-visible (changelog line).
 - Double "Path:" annotation while `monkey-patch.ts` is alive is prevented by idempotence.
 - Rollback: revert the PR; nothing outside the layer, `tools/`, tests and docs changes.
 
 ## Decisions needed
 
-None. Review items closed here: `FileInfo` type break (retyped helpers), alias/`import type` merge, non-idempotent collisions (symbol-based, alias reuse), `realPathSync` footgun (dropped; `canonicalPathSync` here, not in PR 25), skip list vs `kSrcExclusions` (imported, plus `src/core/lib` and `ast-diagram`), `npm:ts-morph` in every unit run (moved to `tools/codemod/` with one CI step), `@std/fs` facts (corrected in Context), temp retry scope (AlreadyExists only), `readDirSync` order (documented, changelog), `instanceof` count (18 in `src/`, 1 in `package/src`, 4 in `tests/`). The `onFileRead` hook for `metrics.ts` is PR 20b's, not this PR's.
+None.
+Review items closed here: `FileInfo` type break (retyped helpers), alias/`import type` merge, non-idempotent collisions (symbol-based, alias reuse), `realPathSync` footgun (dropped; `canonicalPathSync` here, not in PR 25), skip list vs `kSrcExclusions` (imported, plus `src/core/lib` and `ast-diagram`), `npm:ts-morph` in every unit run (moved to `tools/codemod/` with one CI step), `@std/fs` facts (corrected in Context), temp retry scope (AlreadyExists only), `readDirSync` order (documented, changelog), `instanceof` count (18 in `src/`, 1 in `package/src`, 4 in `tests/`).
+The `onFileRead` hook for `metrics.ts` is PR 20b's, not this PR's.

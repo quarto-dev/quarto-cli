@@ -1,23 +1,36 @@
 # PR 08: `deno_ral/process.ts`: spawn/exec interface, `execProcess` on it, direct `Deno.Command` sites, exit/cwd/args/execPath/signals/stdio
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give Quarto its own process interface in `src/deno_ral/process.ts` (`spawn`, `exec`, `execSync`, `exit`, `cwd`, `chdir`, `args`, `execPath`, `pid`, `onSignal`, `killProcess`, `writeStdoutSync`, `writeStderrSync`, `isTerminal`, `readStdin`, `readStdinLines`), reimplement `src/core/process.ts` `execProcess` on `spawn`, and move every direct `Deno.Command`, `Deno.run`, `Deno.exit`, `Deno.cwd`, `Deno.args`, `Deno.execPath`, `Deno.pid`, `Deno.kill`, `Deno.addSignalListener`, `Deno.stdin`/`Deno.stdout`/`Deno.stderr` use in `src/` and the build tooling's process spawning in `package/src` onto it.
-**Phase:** 1. **Depends on:** PR 02 (ratchet). **Unblocks:** PR 22, 39, 10–13, 18, 23, 24 and milestone J (landing order and `exec`/`exit`), PR 14b (its `tests/unit/process-group.test.ts` needs `SpawnOptions.detached` and `killProcess`), PR 15, PR 19, PR 20b, PR 28.
+**Phase:** 1.
+**Depends on:** PR 02 (ratchet).
+**Unblocks:** PR 22, 39, 10–13, 18, 23, 24 and milestone J (landing order and `exec`/`exit`), PR 14b (its `tests/unit/process-group.test.ts` needs `SpawnOptions.detached` and `killProcess`), PR 15, PR 19, PR 20b, PR 28.
 **Branch:** `rt/08-ral-process`.
-**Suggested executor:** Opus. The `execProcess` rewrite must keep stdin chunking, stream merging and timeout semantics intact for its 55 importers; three spawn sites (Chrome launch, external preview server, Jupyter log tail) have lifecycle subtleties, and the process-group, exit-flush and stdin-release contracts need judgement; the rest is mechanical.
-**Size:** L. 1 rewritten module, 1 new unit test file (17 cases), 132 code sites in 58 files under `src/`, 32 sites in 10 files under `package/src`, plus the ratchet baseline, `.claude/rules/typescript/deno-ral.md` and one changelog line.
+**Suggested executor:** Opus.
+The `execProcess` rewrite must keep stdin chunking, stream merging and timeout semantics intact for its 55 importers; three spawn sites (Chrome launch, external preview server, Jupyter log tail) have lifecycle subtleties, and the process-group, exit-flush and stdin-release contracts need judgement; the rest is mechanical.
+**Size:** L.
+1 rewritten module, 1 new unit test file (17 cases), 132 code sites in 58 files under `src/`, 32 sites in 10 files under `package/src`, plus the ratchet baseline, `.claude/rules/typescript/deno-ral.md` and one changelog line.
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
 
 ### Context
 
-Assessment section 11, module plan row `process.ts`: absorb `Deno.Command`, `Deno.run` (build tooling), `execPath`, `pid`, `args`, `exit`, `cwd`, `chdir`, `addSignalListener`, `kill`, raw stdio access and `isatty`, with Quarto's own `SpawnOptions`/`ChildProcess`. "Port `execProcess` first; then route the direct `Deno.Command` sites through `execProcess` or the new `spawn`." Section 11 names this the highest-leverage module: every external tool call goes through it and it is where Node differs most (PR 28 reimplements it on `node:child_process` behind the same interface and the same unit test).
+Assessment section 11, module plan row `process.ts`: absorb `Deno.Command`, `Deno.run` (build tooling), `execPath`, `pid`, `args`, `exit`, `cwd`, `chdir`, `addSignalListener`, `kill`, raw stdio access and `isatty`, with Quarto's own `SpawnOptions`/`ChildProcess`.
+"Port `execProcess` first; then route the direct `Deno.Command` sites through `execProcess` or the new `spawn`."
+Section 11 names this the highest-leverage module: every external tool call goes through it and it is where Node differs most (PR 28 reimplements it on `node:child_process` behind the same interface and the same unit test).
 
-Today `src/deno_ral/process.ts` is 10 lines: `call(path, opts: Deno.CommandOptions)` wrapping `new Deno.Command(path, opts).output()`, imported by `src/command/render/pandoc.ts:227` and `src/command/create/editor.ts:25`. `src/core/process.ts` (265 lines) builds a `Deno.Command` at line 77, spawns it, writes stdin in 4 KB chunks (lines 92-101, "deno observed to overflow at > 64k"), multiplexes stdout/stderr with `MuxAsyncIterator` and writes inherited output with `Deno.stdout.writeSync`/`Deno.stderr.writeSync` (lines 254-256). Its `ExecProcessOptions` is `Deno.CommandOptions & { cmd: string }` (line 48). `execProcess` is imported by 55 files under `src/` besides `src/core/process.ts`, 4 under `package/src` and 17 under `tests/` (`rg -l '\bexecProcess\b'`). `ExecProcessOptions` is re-exported to engine extensions through `src/core/api/types.ts:21,166` (the `quarto.system.execProcess` API); `packages/quarto-types/src/system.ts:18-26` declares its own structural copy with `cmd`, `args`, `cwd`, `env`, `stdout`, `stderr`, `stdin`, which the new type keeps satisfying. The new type drops the other `Deno.CommandOptions` fields (`uid`, `gid`, `windowsRawArguments`, `ref`, numeric stdio): no caller in the tree passes them (verified by the reviewer, 2026-10-15), but a third-party engine extension could, so the PR carries a changelog line.
+Today `src/deno_ral/process.ts` is 10 lines: `call(path, opts: Deno.CommandOptions)` wrapping `new Deno.Command(path, opts).output()`, imported by `src/command/render/pandoc.ts:227` and `src/command/create/editor.ts:25`.
+`src/core/process.ts` (265 lines) builds a `Deno.Command` at line 77, spawns it, writes stdin in 4 KB chunks (lines 92-101, "deno observed to overflow at > 64k"), multiplexes stdout/stderr with `MuxAsyncIterator` and writes inherited output with `Deno.stdout.writeSync`/`Deno.stderr.writeSync` (lines 254-256).
+Its `ExecProcessOptions` is `Deno.CommandOptions & { cmd: string }` (line 48).
+`execProcess` is imported by 55 files under `src/` besides `src/core/process.ts`, 4 under `package/src` and 17 under `tests/` (`rg -l '\bexecProcess\b'`).
+`ExecProcessOptions` is re-exported to engine extensions through `src/core/api/types.ts:21,166` (the `quarto.system.execProcess` API); `packages/quarto-types/src/system.ts:18-26` declares its own structural copy with `cmd`, `args`, `cwd`, `env`, `stdout`, `stderr`, `stdin`, which the new type keeps satisfying.
+The new type drops the other `Deno.CommandOptions` fields (`uid`, `gid`, `windowsRawArguments`, `ref`, numeric stdio): no caller in the tree passes them (verified by the reviewer, 2026-10-15), but a third-party engine extension could, so the PR carries a changelog line.
 
-Verified inventory (2026-10-15, `main` at `b86f98d`). `rg -o 'new Deno\.Command' src package/src -g '*.ts' | wc -l` gives 38 occurrences: 23 in the julia-engine subtree, 15 in 14 files elsewhere, of which `src/core/process.ts` (Task 2) and `src/deno_ral/process.ts` (Task 1) are the layer and its first client:
+Verified inventory (2026-10-15, `main` at `b86f98d`).
+`rg -o 'new Deno\.Command' src package/src -g '*.ts' | wc -l` gives 38 occurrences: 23 in the julia-engine subtree, 15 in 14 files elsewhere, of which `src/core/process.ts` (Task 2) and `src/deno_ral/process.ts` (Task 1) are the layer and its first client:
 
 | # | File:line | What it does today | Plan |
 |---|---|---|---|
@@ -38,28 +51,49 @@ Verified inventory (2026-10-15, `main` at `b86f98d`). `rg -o 'new Deno\.Command'
 | 15 | `package/src/util/cmd.ts:26` | `runCmd` helper for the build tooling | `exec`; `CmdResult.status` becomes `ExitStatus` |
 | 16 | `package/src/common/previewjs.ts:18` | `deno run build.ts` with `outputSync()` | `execSync(execPath(), …)` |
 
-`src/command/render/latexmk/quarto-latexmk.ts` (`Deno.args` at line 130, plus `import.meta.main`) is **also excluded**: it is the standalone `tinitex` entry compiled by `deno compile`, and decision 9 deletes it in PR 39 (`tinitex` is being rewritten in Rust). Converting it here would be throw-away work, and its `args` parameters (lines 32, 46, 61) would need an alias import for nothing. The latexmk modules that `render --to pdf` uses (`pdf.ts`, `latex.ts`, `texlive.ts`, …) are not excluded.
+`src/command/render/latexmk/quarto-latexmk.ts` (`Deno.args` at line 130, plus `import.meta.main`) is **also excluded**: it is the standalone `tinitex` entry compiled by `deno compile`, and decision 9 deletes it in PR 39 (`tinitex` is being rewritten in Rust).
+Converting it here would be throw-away work, and its `args` parameters (lines 32, 46, 61) would need an alias import for nothing.
+The latexmk modules that `render --to pdf` uses (`pdf.ts`, `latex.ts`, `texlive.ts`, …) are not excluded.
 
-`Deno.run` (soft-removed in Deno 2, still works) is used in `package/src/util/tar.ts:96,120`, `package/src/util/git.ts:49,67,113`, `package/src/common/configure.ts:171` (not awaited), `package/src/common/import-report/deno-info.ts:67`, `explain-all-cycles.ts:144`, `explain-import-chain.ts:140`, `report-bundle-async-cycles.ts:32`, `report-risky-files.ts:64`, and in a comment in `src/core/deno/monkey-patch.ts:27`. All code sites move to `exec`/`execSync`.
+`Deno.run` (soft-removed in Deno 2, still works) is used in `package/src/util/tar.ts:96,120`, `package/src/util/git.ts:49,67,113`, `package/src/common/configure.ts:171` (not awaited), `package/src/common/import-report/deno-info.ts:67`, `explain-all-cycles.ts:144`, `explain-import-chain.ts:140`, `report-bundle-async-cycles.ts:32`, `report-risky-files.ts:64`, and in a comment in `src/core/deno/monkey-patch.ts:27`.
+All code sites move to `exec`/`execSync`.
 
-Process-family code sites in scope, counted on the AST (comments excluded) over `src/` minus `src/deno_ral/`, `src/resources/`, `src/webui/quarto-preview/build.ts` and `quarto-latexmk.ts`: 132 sites in 58 files: `cwd` 49, `exit` 41, `Command` 8, `stdout` 7, `stderr` 5, `stdin` 3, `execPath` 3, `CommandStatus` 3 (type), `ChildProcess` 3 (type), `CommandOptions` 2 (type), `args` 2, `addSignalListener` 2, `pid` 2, `kill` 2. Per file:
+Process-family code sites in scope, counted on the AST (comments excluded) over `src/` minus `src/deno_ral/`, `src/resources/`, `src/webui/quarto-preview/build.ts` and `quarto-latexmk.ts`: 132 sites in 58 files: `cwd` 49, `exit` 41, `Command` 8, `stdout` 7, `stderr` 5, `stdin` 3, `execPath` 3, `CommandStatus` 3 (type), `ChildProcess` 3 (type), `CommandOptions` 2 (type), `args` 2, `addSignalListener` 2, `pid` 2, `kill` 2.
+Per file:
 
-- `Deno.exit` (41 code sites): `src/command/call/build-ts-extension/cmd.ts` 13, `src/quarto.ts` 6, `src/command/call/typst-gather/cmd.ts` 6, `src/tools/tools.ts` 3, `src/command/dev-call/typst-gather/cmd.ts` 3, `src/command/dev-call/pull-git-subtree/cmd.ts` 3, `src/command/dev-call/validate-yaml/cmd.ts` 2, `src/command/call/engine-cmd.ts` 2, `src/core/cleanup.ts` 1, `src/command/dev-call/cmd.ts` 1, `src/command/call/cmd.ts` 1. Three comment lines also mention it (`src/tools/tools-console.ts:165`, `src/command/call/axe/cmd.ts:417`, `src/quarto.ts:187`); comments are left to PR 25's comment cleanup (one owner for all comment lines).
-- `Deno.cwd` (49): `src/command/call/typst-gather/cmd.ts` 6, `src/core/jupyter/jupyter-shared.ts` 3, `src/command/preview/cmd.ts` 3, `src/command/call/build-ts-extension/cmd.ts` 3, `src/extension/extension.ts` 2, `src/execute/rmd.ts` 2, `src/execute/ojs/extract-resources.ts` 2, `src/command/render/cmd.ts` 2, and 1 each in `src/project/serve/serve.ts`, `src/inspect/inspect.ts`, `src/format/reveal/format-reveal-theme.ts`, `src/format/html/format-html-notebook.ts`, `src/format/dashboard/format-dashboard-shared.ts`, `src/extension/install.ts`, `src/core/schema/validated-yaml.ts`, `src/core/path.ts`, `src/core/mapped-text.ts`, `src/core/jupyter/jupyter-embed.ts`, `src/core/jupyter/filtered-notebook-cache.ts`, `src/core/bibliography.ts`, `src/command/use/commands/template.ts`, `src/command/use/commands/brand.ts`, `src/command/use/commands/binder/binder.ts`, `src/command/render/template.ts`, `src/command/render/project.ts`, `src/command/remove/cmd.ts`, `src/command/publish/cmd.ts`, `src/command/preview/preview-shiny.ts`, `src/command/list/cmd.ts`, `src/command/inspect/cmd.ts`, `src/command/create/cmd.ts`, `src/command/create-project/cmd.ts`, `src/command/command-utils.ts`, `src/command/call/axe/cmd.ts`. The 7 in `package/src` (`common/cyclic-dependencies.ts` 3, `common/config.ts` 2, `macos/installer.ts` 1, `common/create-deno-config.ts` 1) are left for PR 24.
+- `Deno.exit` (41 code sites): `src/command/call/build-ts-extension/cmd.ts` 13, `src/quarto.ts` 6, `src/command/call/typst-gather/cmd.ts` 6, `src/tools/tools.ts` 3, `src/command/dev-call/typst-gather/cmd.ts` 3, `src/command/dev-call/pull-git-subtree/cmd.ts` 3, `src/command/dev-call/validate-yaml/cmd.ts` 2, `src/command/call/engine-cmd.ts` 2, `src/core/cleanup.ts` 1, `src/command/dev-call/cmd.ts` 1, `src/command/call/cmd.ts` 1.
+  Three comment lines also mention it (`src/tools/tools-console.ts:165`, `src/command/call/axe/cmd.ts:417`, `src/quarto.ts:187`); comments are left to PR 25's comment cleanup (one owner for all comment lines).
+- `Deno.cwd` (49): `src/command/call/typst-gather/cmd.ts` 6, `src/core/jupyter/jupyter-shared.ts` 3, `src/command/preview/cmd.ts` 3, `src/command/call/build-ts-extension/cmd.ts` 3, `src/extension/extension.ts` 2, `src/execute/rmd.ts` 2, `src/execute/ojs/extract-resources.ts` 2, `src/command/render/cmd.ts` 2, and 1 each in `src/project/serve/serve.ts`, `src/inspect/inspect.ts`, `src/format/reveal/format-reveal-theme.ts`, `src/format/html/format-html-notebook.ts`, `src/format/dashboard/format-dashboard-shared.ts`, `src/extension/install.ts`, `src/core/schema/validated-yaml.ts`, `src/core/path.ts`, `src/core/mapped-text.ts`, `src/core/jupyter/jupyter-embed.ts`, `src/core/jupyter/filtered-notebook-cache.ts`, `src/core/bibliography.ts`, `src/command/use/commands/template.ts`, `src/command/use/commands/brand.ts`, `src/command/use/commands/binder/binder.ts`, `src/command/render/template.ts`, `src/command/render/project.ts`, `src/command/remove/cmd.ts`, `src/command/publish/cmd.ts`, `src/command/preview/preview-shiny.ts`, `src/command/list/cmd.ts`, `src/command/inspect/cmd.ts`, `src/command/create/cmd.ts`, `src/command/create-project/cmd.ts`, `src/command/command-utils.ts`, `src/command/call/axe/cmd.ts`.
+  The 7 in `package/src` (`common/cyclic-dependencies.ts` 3, `common/config.ts` 2, `macos/installer.ts` 1, `common/create-deno-config.ts` 1) are left for PR 24.
 - `Deno.args`: `src/quarto.ts:223`, `src/core/main.ts:26`; `package/src`: 16 sites in 9 files, of which the 4 import-report files touched here are converted and the rest (`create-schema-types.ts` 4, `find-bad-types-constants.ts`, `find-bad-imports.ts`, `bld.ts`) wait for PR 24.
 - `Deno.execPath`: `src/execute/ojs/extract-resources.ts:337`, `src/core/schema/types-from-schema.ts:30`, `src/command/dev-call/make-ast-diagram/cmd.ts:23`, `package/src/common/previewjs.ts:18`.
-- `Deno.pid`: `src/project/serve/serve.ts:918`, `src/execute/jupyter/jupyter.ts:487`. `Deno.kill`: `src/project/serve/serve.ts:907`, `src/preview/preview-server.ts:75` (process group, negative pid). `Deno.addSignalListener`: `src/core/main.ts:34,36`. `Deno.chdir`: none in `src/`; 3 in `package/src` (PR 24).
-- `Deno.stdout.writeSync`: `src/core/process.ts:254`, `src/tools/tools.ts:95`, `src/command/inspect/cmd.ts:61`, `src/command/editor-support/crossref.ts:149`, `src/command/create/cmd.ts:296`; `Deno.stdout` handed to `writeAllSync`: `src/core/console.ts:176`, `src/command/capabilities/cmd.ts:20`. `Deno.stderr.writeSync`: `src/preview/preview-server.ts:63,69`, `src/core/process.ts:256`, `src/core/log.ts:185`. `Deno.stderr.isTerminal()`: `src/core/platform.ts:98`. `Deno.stdin`: `src/command/create/cmd.ts:259-260` (`readLines(Deno.stdin).next()` then `close()`), `src/command/editor-support/crossref.ts:82` (`readAll(Deno.stdin)`). PR 20b's inventory also lists the `create/cmd.ts` `readLines(Deno.stdin)` site; this PR converts it first (landing order 08 → 22 → 10–13 → 14 → 14b, 20b), and PR 20b skips it when it finds `readStdinLines()` there.
+- `Deno.pid`: `src/project/serve/serve.ts:918`, `src/execute/jupyter/jupyter.ts:487`.
+  `Deno.kill`: `src/project/serve/serve.ts:907`, `src/preview/preview-server.ts:75` (process group, negative pid).
+  `Deno.addSignalListener`: `src/core/main.ts:34,36`.
+  `Deno.chdir`: none in `src/`; 3 in `package/src` (PR 24).
+- `Deno.stdout.writeSync`: `src/core/process.ts:254`, `src/tools/tools.ts:95`, `src/command/inspect/cmd.ts:61`, `src/command/editor-support/crossref.ts:149`, `src/command/create/cmd.ts:296`; `Deno.stdout` handed to `writeAllSync`: `src/core/console.ts:176`, `src/command/capabilities/cmd.ts:20`.
+  `Deno.stderr.writeSync`: `src/preview/preview-server.ts:63,69`, `src/core/process.ts:256`, `src/core/log.ts:185`.
+  `Deno.stderr.isTerminal()`: `src/core/platform.ts:98`.
+  `Deno.stdin`: `src/command/create/cmd.ts:259-260` (`readLines(Deno.stdin).next()` then `close()`), `src/command/editor-support/crossref.ts:82` (`readAll(Deno.stdin)`).
+  PR 20b's inventory also lists the `create/cmd.ts` `readLines(Deno.stdin)` site; this PR converts it first (landing order 08 → 22 → 10–13 → 14 → 14b, 20b), and PR 20b skips it when it finds `readStdinLines()` there.
 - Deno process types in signatures: `Deno.ChildProcess` (`src/core/process.ts:12,16`, `src/execute/jupyter/jupyter-kernel.ts:63`), `Deno.CommandOptions` (`src/core/process.ts:48`, `src/command/render/pandoc.ts:262`), `Deno.CommandStatus` (`src/core/cri/launch.ts:134,139,146`).
 
 Process-level behaviours this PR pins in the contract test because Node differs (review S6 and the PR 08 findings, 2026-10-15):
 
-- **Process groups.** `preview-server.ts:75` kills `-pid`, but nothing makes the child a group leader today, so on POSIX the call addresses the caller's own group only by accident of how the shell started Quarto, and `kill(-pid)` fails with ESRCH when the child is not a leader. `SpawnOptions.detached` (Deno: `Deno.CommandOptions.detached`, which starts the child in a new process group; PR 28: `child_process.spawn({ detached: true })`, which calls `setsid()`) makes the child a group leader so that `killProcess(-pid)` also ends the grandchildren (uvicorn workers, a Shiny app's R/Python processes). On Windows there are no process groups to signal; `killProcess(-pid)` ends the tree rooted at `-pid` with `taskkill /PID <pid> /T /F` (which walks parent pids, so it does not need `detached`), and `preview-server.ts` calls the same `killProcess(-pid)` on every OS. The Windows branch lives in the layer, not in `preview-server.ts`, so that PR 28 keeps one contract and PR 14b's `tests/unit/process-group.test.ts` covers it on Windows CI (its Windows case; review R10).
-- **Exit after large piped output.** `quarto inspect | jq`, `render -o -`: on Node, pipes are asynchronous on POSIX and `process.exit()` truncates. The layer's `exit()` is documented to flush stdout and stderr first; on Deno the writes are synchronous so `Deno.exit` already satisfies it, and the contract test proves it with 1 MiB through a pipe read to the end (the `| wc -c` case) and through a pipe whose reader goes away after the first chunk (the `| head -c 1` case). PR 14b's `tests/smoke/inspect/inspect-pipe.test.ts` covers the same at the CLI level.
-- **Writes to a closed or stalled stream.** `core/log.ts:177-195` breaks out of its loop on a 0-byte write; the first draft of `writeStdoutSync` threw "short write" instead, which would turn a logger hiccup into a crash. `writeStdoutSync`/`writeStderrSync` never throw on a 0-byte write and treat a broken pipe (reader gone) as "stop writing", returning the bytes written.
+- **Process groups.** `preview-server.ts:75` kills `-pid`, but nothing makes the child a group leader today, so on POSIX the call addresses the caller's own group only by accident of how the shell started Quarto, and `kill(-pid)` fails with ESRCH when the child is not a leader.
+  `SpawnOptions.detached` (Deno: `Deno.CommandOptions.detached`, which starts the child in a new process group; PR 28: `child_process.spawn({ detached: true })`, which calls `setsid()`) makes the child a group leader so that `killProcess(-pid)` also ends the grandchildren (uvicorn workers, a Shiny app's R/Python processes).
+  On Windows there are no process groups to signal; `killProcess(-pid)` ends the tree rooted at `-pid` with `taskkill /PID <pid> /T /F` (which walks parent pids, so it does not need `detached`), and `preview-server.ts` calls the same `killProcess(-pid)` on every OS.
+  The Windows branch lives in the layer, not in `preview-server.ts`, so that PR 28 keeps one contract and PR 14b's `tests/unit/process-group.test.ts` covers it on Windows CI (its Windows case; review R10).
+- **Exit after large piped output.** `quarto inspect | jq`, `render -o -`: on Node, pipes are asynchronous on POSIX and `process.exit()` truncates.
+  The layer's `exit()` is documented to flush stdout and stderr first; on Deno the writes are synchronous so `Deno.exit` already satisfies it, and the contract test proves it with 1 MiB through a pipe read to the end (the `| wc -c` case) and through a pipe whose reader goes away after the first chunk (the `| head -c 1` case).
+  PR 14b's `tests/smoke/inspect/inspect-pipe.test.ts` covers the same at the CLI level.
+- **Writes to a closed or stalled stream.** `core/log.ts:177-195` breaks out of its loop on a 0-byte write; the first draft of `writeStdoutSync` threw "short write" instead, which would turn a logger hiccup into a crash.
+  `writeStdoutSync`/`writeStderrSync` never throw on a 0-byte write and treat a broken pipe (reader gone) as "stop writing", returning the bytes written.
 - **Missing executable.** `exec` wraps the runtime error for a readable message; the wrapper keeps `code: "ENOENT"` and `cause`, so `isNotFound(e)` (PR 09 `errors.ts`, which also looks through `cause`) is true.
-- **Environment merge.** `Deno.Command` merges `env` over the inherited environment; Node's `spawn` replaces it. The contract pins merge (`PATH` survives when `env` is passed) unless `clearEnv: true`.
-- **Early stop reading stdin.** `create/cmd.ts:259-260` reads one line and then calls `Deno.stdin.close()`; on Node a flowing stdin keeps the process alive. `readStdinLines()` releases stdin when the consumer stops early (`break`), and the contract test proves the process then exits with input still pending.
+- **Environment merge.** `Deno.Command` merges `env` over the inherited environment; Node's `spawn` replaces it.
+  The contract pins merge (`PATH` survives when `env` is passed) unless `clearEnv: true`.
+- **Early stop reading stdin.** `create/cmd.ts:259-260` reads one line and then calls `Deno.stdin.close()`; on Node a flowing stdin keeps the process alive.
+  `readStdinLines()` releases stdin when the consumer stops early (`break`), and the contract test proves the process then exits with input still pending.
 
 Not in this PR: `Deno.env` (PR 14), `Deno.consoleSize`/`Deno.noColor`/`Deno.build`/`Deno.version`/`Deno.uid`/`Deno.permissions` (PR 19), `Deno.Conn`/`Deno.connect`/`Deno.listen` (PR 15), the `package/src` sites not listed above (PR 24), `tests/` (PR 23), `tools/*.ts`, comment lines that mention `Deno.*` (PR 25).
 
@@ -69,7 +103,8 @@ In:
 - `src/deno_ral/process.ts`: the full interface from the shared vocabulary (`SpawnOptions.detached`, `killProcess`, `readStdin`, `readStdinLines` included), implemented on `Deno.Command`, `Deno.exit`, `Deno.cwd`, `Deno.chdir`, `Deno.args`, `Deno.execPath`, `Deno.pid`, `Deno.kill`, `Deno.addSignalListener`, `Deno.stdin`/`stdout`/`stderr`.
 - `src/core/process.ts`: `execProcess` on `spawn`; `ExecProcessOptions = SpawnOptions & { cmd: string }`; `registerForExitCleanup(process: ChildProcess)`.
 - The 12 movable direct `Deno.Command` files (rows 1-9, 15, 16 and `src/core/process.ts`), the 10 `Deno.run` code sites, and every `Deno.exit`/`cwd`/`args`/`execPath`/`pid`/`kill`/`addSignalListener`/stdio code site in `src/` outside the excluded paths, grouped by directory into separate commits.
-- In the `package/src` files this PR already edits (`util/cmd.ts`, `util/tar.ts`, `util/git.ts`, `common/previewjs.ts`, `common/configure.ts`, the five `common/import-report/*.ts`): also their `Deno.exit`/`Deno.args` sites. Nothing else in `package/src`.
+- In the `package/src` files this PR already edits (`util/cmd.ts`, `util/tar.ts`, `util/git.ts`, `common/previewjs.ts`, `common/configure.ts`, the five `common/import-report/*.ts`): also their `Deno.exit`/`Deno.args` sites.
+  Nothing else in `package/src`.
 - `tests/unit/ral/process.test.ts` (the contract; PR 28 keeps it green on Node); `tests/unit/exec-process-stdin.test.ts` stays as the regression test for the stdin path.
 - `news/changelog-1.11.md` line for the `quarto.system.execProcess` options narrowing.
 - `.claude/rules/typescript/deno-ral.md` row for `process.ts`; ratchet baseline update.
@@ -174,9 +209,11 @@ export const call: (cmd: string, options?: SpawnOptions) => Promise<ExecOutput>;
 ```
 
 Behavioural notes that the unit test pins down:
-- `exec` stdin defaults to `"null"`; `Deno.Command.output()` defaulted to `"inherit"`. The two `call` users (`ttx` in `pandoc.ts`, editor launchers in `editor.ts`) and `devconfig.ts`/`types-from-schema.ts`/`extract-resources.ts` do not read stdin, so nothing changes for them.
+- `exec` stdin defaults to `"null"`; `Deno.Command.output()` defaulted to `"inherit"`.
+  The two `call` users (`ttx` in `pandoc.ts`, editor launchers in `editor.ts`) and `devconfig.ts`/`types-from-schema.ts`/`extract-resources.ts` do not read stdin, so nothing changes for them.
 - `ExecOutput.stdout`/`stderr` are empty `Uint8Array`s (never a throwing getter, unlike `Deno.CommandOutput`) when the stream was not piped.
-- `ExitStatus.signal` is `"SIGTERM"` etc. on POSIX when the child was killed, `null` otherwise.
+- `ExitStatus.signal` is `"SIGTERM"` etc.
+  on POSIX when the child was killed, `null` otherwise.
 - `env` is merged; `clearEnv` empties first.
 - A detached child's whole group dies on `killProcess(-pid)`, grandchildren included (POSIX).
 - 1 MiB written with `writeStdoutSync` before `exit(3)` reaches a pipe in full; when the reader goes away early, the writer still exits with code 3 and prints no broken-pipe error.
@@ -201,7 +238,9 @@ export function processSuccessResult(): ProcessResult;
 
 `package/src/util/cmd.ts`: `export interface CmdResult { status: ExitStatus; stdout: string; stderr: string }` (callers only read `status.success`: `package/src/common/update-html-dependencies.ts:1052,1066`, `package/src/macos/installer.ts:324,358`).
 
-Import alias convention for files where a local binding has the same name as the layer function (found with the collision emulation over `src/`, 2026-10-15): `src/command/call/build-ts-extension/cmd.ts:41` and `src/command/call/typst-gather/cmd.ts:42` (`cwd`), `src/execute/rmd.ts:447` (`cwd`), `src/core/main.ts:22` and `src/quarto.ts:86` (`args`), `src/project/serve/serve.ts:900` (`pid`). Import with an alias, `cwd as currentDir`, `args as processArgs`, `pid as processPid`. Never rename the local binding.
+Import alias convention for files where a local binding has the same name as the layer function (found with the collision emulation over `src/`, 2026-10-15): `src/command/call/build-ts-extension/cmd.ts:41` and `src/command/call/typst-gather/cmd.ts:42` (`cwd`), `src/execute/rmd.ts:447` (`cwd`), `src/core/main.ts:22` and `src/quarto.ts:86` (`args`), `src/project/serve/serve.ts:900` (`pid`).
+Import with an alias, `cwd as currentDir`, `args as processArgs`, `pid as processPid`.
+Never rename the local binding.
 
 ### Files
 
@@ -236,7 +275,8 @@ Import alias convention for files where a local binding has the same name as the
 
 ## Plan
 
-Assumes PR 02 landed with `tools/check-runtime-boundary.ts` and `tools/runtime-boundary-baseline.json`, and that `./configure.sh` has been run (dev build at `package/dist/bin/quarto`, Deno at `package/dist/bin/tools/x86_64/deno`; substitute the architecture directory present under `package/dist/bin/tools/`). Line numbers are from `main` at `b86f98d`; re-check each with `rg -n` before editing.
+Assumes PR 02 landed with `tools/check-runtime-boundary.ts` and `tools/runtime-boundary-baseline.json`, and that `./configure.sh` has been run (dev build at `package/dist/bin/quarto`, Deno at `package/dist/bin/tools/x86_64/deno`; substitute the architecture directory present under `package/dist/bin/tools/`).
+Line numbers are from `main` at `b86f98d`; re-check each with `rg -n` before editing.
 
 Helper used by several tasks to insert an import before the first `import` statement of a file (GNU sed; on macOS use `gsed`):
 
@@ -251,8 +291,8 @@ When a file already imports from `deno_ral/process.ts` (only `src/command/render
 
 - [ ] **Step 1: Check the bundled Deno's type declarations**
 
-Run: `package/dist/bin/tools/x86_64/deno types | grep -n -A3 'detached?: boolean'`
-Expected: one hit inside `interface CommandOptions` (doc: "Whether to detach the spawned process from the current process"). PR 14b records that Deno 2.7.14, the version before PR 00a, already has it, so this check should pass whatever the Phase 0 state; if it is absent all the same, stop and land PR 00a first (not a header dependency, a guard): the process-group contract depends on it, and a hand-rolled `setsid` wrapper is not portable to macOS.
+Run: `package/dist/bin/tools/x86_64/deno types | grep -n -A3 'detached?: boolean'` Expected: one hit inside `interface CommandOptions` (doc: "Whether to detach the spawned process from the current process").
+PR 14b records that Deno 2.7.14, the version before PR 00a, already has it, so this check should pass whatever the Phase 0 state; if it is absent all the same, stop and land PR 00a first (not a header dependency, a guard): the process-group contract depends on it, and a hand-rolled `setsid` wrapper is not portable to macOS.
 
 ### Task 1: `src/deno_ral/process.ts` with its unit test
 
@@ -262,7 +302,9 @@ Expected: one hit inside `interface CommandOptions` (doc: "Whether to detach the
 
 - [ ] **Step 1: Write the failing test**
 
-The test must not use raw `Deno.*` (the ratchet has a `tests` scope). Child scripts that exercise `exit`, `writeStdoutSync` and `readStdinLines` are written to a temp file and run with the current runtime: `execPath() run --no-config --allow-all <script>` on Deno, `execPath() <script>` on Node (PR 28; Node strips the types). The script imports the layer by absolute file URL, so it needs no import map.
+The test must not use raw `Deno.*` (the ratchet has a `tests` scope).
+Child scripts that exercise `exit`, `writeStdoutSync` and `readStdinLines` are written to a temp file and run with the current runtime: `execPath() run --no-config --allow-all <script>` on Deno, `execPath() <script>` on Node (PR 28; Node strips the types).
+The script imports the layer by absolute file URL, so it needs no import map.
 
 ```ts
 /*
@@ -535,8 +577,7 @@ p.writeStdoutSync(new TextEncoder().encode("done\\n"));
 
 - [ ] **Step 2: Run it and see it fail**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process.test.ts`
-Expected: the run fails at type-check time with `Module '"../../../src/deno_ral/process.ts"' has no exported member 'exec'` (and the other names).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process.test.ts` Expected: the run fails at type-check time with `Module '"../../../src/deno_ral/process.ts"' has no exported member 'exec'` (and the other names).
 
 - [ ] **Step 3: Implement `src/deno_ral/process.ts`**
 
@@ -862,10 +903,10 @@ export const call = (cmd: string, options: SpawnOptions = {}) =>
 
 - [ ] **Step 4: Run the tests**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process.test.ts`
-Expected: `ok | 17 passed | 0 failed`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process.test.ts` Expected: `ok | 17 passed | 0 failed`
 
-If the "reader going away early" case fails with a non-3 code, read the child's stderr in the assertion message: a `BrokenPipe` from a write path other than `writeAllSync` (for example a `console.log`) means the script is wrong, not the layer. If the "early break" case hits the 30 s timeout, `Deno.stdin.close()` did not release the pending read on this Deno version; report it on the PR (the case documents a contract PR 28 must meet on Node) rather than weakening the test.
+If the "reader going away early" case fails with a non-3 code, read the child's stderr in the assertion message: a `BrokenPipe` from a write path other than `writeAllSync` (for example a `console.log`) means the script is wrong, not the layer.
+If the "early break" case hits the 30 s timeout, `Deno.stdin.close()` did not release the pending read on this Deno version; report it on the PR (the case documents a contract PR 28 must meet on Node) rather than weakening the test.
 
 - [ ] **Step 5: Commit**
 
@@ -882,8 +923,7 @@ git commit -m "deno_ral/process: spawn/exec interface with contract test"
 
 - [ ] **Step 1: Run the existing regression test to record the baseline**
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/exec-process-stdin.test.ts`
-Expected: `ok | 4 passed | 0 failed` (3 on Windows, where the tests return early).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/exec-process-stdin.test.ts` Expected: `ok | 4 passed | 0 failed` (3 on Windows, where the tests return early).
 
 - [ ] **Step 2: Rewrite `src/core/process.ts`**
 
@@ -996,7 +1036,9 @@ Replace lines 71-114 (the comment `// define process` through the end of the std
     }
 ```
 
-In the merge branch (old lines 138-139) replace `process.stdout.values()` / `process.stderr.values()` with `process.stdout!.values()` / `process.stderr!.values()`. In the independent-streams branch (old lines 168-195) keep the `!== null` guards; they now compile against `ReadableStream | null`. Replace old line 200 `const status = await withTimeout(process.output());` with:
+In the merge branch (old lines 138-139) replace `process.stdout.values()` / `process.stderr.values()` with `process.stdout!.values()` / `process.stderr!.values()`.
+In the independent-streams branch (old lines 168-195) keep the `!== null` guards; they now compile against `ReadableStream | null`.
+Replace old line 200 `const status = await withTimeout(process.output());` with:
 
 ```ts
     const status = await withTimeout(process.status);
@@ -1028,11 +1070,10 @@ Delete the `// FIXME: In Deno 2 we get ReadableStreams...` comment block and the
 
 - [ ] **Step 3: Type-check and run the regression tests**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: errors only in `src/core/cri/launch.ts` (`registerForExitCleanup` now takes `ChildProcess`; `Deno.ChildProcess` is structurally compatible, so this may already pass) and nowhere else. If `launch.ts` errors, Task 3 fixes it; continue.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: errors only in `src/core/cri/launch.ts` (`registerForExitCleanup` now takes `ChildProcess`; `Deno.ChildProcess` is structurally compatible, so this may already pass) and nowhere else.
+If `launch.ts` errors, Task 3 fixes it; continue.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/exec-process-stdin.test.ts unit/ral/process.test.ts`
-Expected: `ok | 21 passed | 0 failed`
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/exec-process-stdin.test.ts unit/ral/process.test.ts` Expected: `ok | 21 passed | 0 failed`
 
 - [ ] **Step 4: Commit**
 
@@ -1048,7 +1089,8 @@ git commit -m "core/process: implement execProcess on deno_ral spawn"
 
 - [ ] **Step 1: `src/core/devconfig.ts`**
 
-Add `import { exec } from "../deno_ral/process.ts";` next to the other `deno_ral` imports. Replace lines 142-147:
+Add `import { exec } from "../deno_ral/process.ts";` next to the other `deno_ral` imports.
+Replace lines 142-147:
 
 ```ts
   await exec(configureScript[0], {
@@ -1061,7 +1103,8 @@ Add `import { exec } from "../deno_ral/process.ts";` next to the other `deno_ral
 
 - [ ] **Step 2: `src/core/schema/types-from-schema.ts`**
 
-Add `import { exec, execPath } from "../../deno_ral/process.ts";`. Replace lines 29-33:
+Add `import { exec, execPath } from "../../deno_ral/process.ts";`.
+Replace lines 29-33:
 
 ```ts
 export function fmtSource(source: string) {
@@ -1071,7 +1114,9 @@ export function fmtSource(source: string) {
 
 - [ ] **Step 3: `src/core/cri/launch.ts`**
 
-Add `type ExitStatus, spawn` to the existing import from `../../deno_ral/process.ts` (create it if the file has none: `import { type ExitStatus, spawn } from "../../deno_ral/process.ts";`). Replace `Deno.CommandStatus` with `ExitStatus` at lines 134, 139, 146. Replace lines 285-290:
+Add `type ExitStatus, spawn` to the existing import from `../../deno_ral/process.ts` (create it if the file has none: `import { type ExitStatus, spawn } from "../../deno_ral/process.ts";`).
+Replace `Deno.CommandStatus` with `ExitStatus` at lines 134, 139, 146.
+Replace lines 285-290:
 
 ```ts
   const process = spawn(app, {
@@ -1082,11 +1127,13 @@ Add `type ExitStatus, spawn` to the existing import from `../../deno_ral/process
   });
 ```
 
-Line 299: `const stream = process.stderr!.pipeThrough(new TextDecoderStream());`. Lines 315 (`process.kill()`) and 325 (`await process.status`) are unchanged.
+Line 299: `const stream = process.stderr!.pipeThrough(new TextDecoderStream());`.
+Lines 315 (`process.kill()`) and 325 (`await process.status`) are unchanged.
 
 - [ ] **Step 4: `src/core/typst.ts`**
 
-Delete lines 295-341 (the `/* export async function typstWatch ... */` block). It is dead code and the only `Deno.Command` mention in the file.
+Delete lines 295-341 (the `/* export async function typstWatch ... */` block).
+It is dead code and the only `Deno.Command` mention in the file.
 
 - [ ] **Step 5: `src/preview/preview-server.ts`**
 
@@ -1155,11 +1202,13 @@ and lines 36-81 with:
   };
 ```
 
-The detached child no longer receives the terminal's Ctrl-C directly; both callers stop it from Quarto's cleanup (`execute/jupyter/jupyter.ts:713-715` registers `server.stop()` with `onCleanup`; `project/serve/serve.ts:465-467` calls it from the `stop()` it hands to the preview cleanup), which `core/main.ts`'s SIGINT handler runs. PR 14b's `tests/unit/process-group.test.ts` exercises this path end to end: the group kill on POSIX, the `taskkill /T` tree kill on Windows.
+The detached child no longer receives the terminal's Ctrl-C directly; both callers stop it from Quarto's cleanup (`execute/jupyter/jupyter.ts:713-715` registers `server.stop()` with `onCleanup`; `project/serve/serve.ts:465-467` calls it from the `stop()` it hands to the preview cleanup), which `core/main.ts`'s SIGINT handler runs.
+PR 14b's `tests/unit/process-group.test.ts` exercises this path end to end: the group kill on POSIX, the `taskkill /T` tree kill on Windows.
 
 - [ ] **Step 6: `src/execute/ojs/extract-resources.ts`**
 
-Add `import { cwd, exec, execPath } from "../../deno_ral/process.ts";`. Replace lines 337-349:
+Add `import { cwd, exec, execPath } from "../../deno_ral/process.ts";`.
+Replace lines 337-349:
 
 ```ts
   const output = await exec(execPath(), {
@@ -1179,7 +1228,9 @@ Lines 245 and 777: `Deno.cwd()` → `cwd()`.
 
 - [ ] **Step 7: `src/execute/jupyter/jupyter-kernel.ts`**
 
-Add `import { type ChildProcess, spawn } from "../../deno_ral/process.ts";`. Line 63: `let serverLogProcess: ChildProcess | undefined;`. Lines 66-68:
+Add `import { type ChildProcess, spawn } from "../../deno_ral/process.ts";`.
+Line 63: `let serverLogProcess: ChildProcess | undefined;`.
+Lines 66-68:
 
 ```ts
       serverLogProcess = spawn("tail", {
@@ -1191,7 +1242,8 @@ Line 147 (`serverLogProcess?.kill("SIGKILL")`) is unchanged.
 
 - [ ] **Step 8: `src/command/dev-call/typst-gather/cmd.ts`**
 
-Add `import { exec, exit } from "../../../deno_ral/process.ts";`. Replace lines 62-74:
+Add `import { exec, exit } from "../../../deno_ral/process.ts";`.
+Replace lines 62-74:
 
 ```ts
     const result = await exec(typstGatherBinary, {
@@ -1211,11 +1263,9 @@ Line 54: `Deno.exit(1)` → `exit(1)`.
 
 - [ ] **Step 9: Type-check and test**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts smoke/typst-gather/typst-gather.test.ts smoke/ojs/dependency-traversal.test.ts smoke/jupyter/issue-10097.test.ts`
-Expected: all pass (tally `0 failed`).
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts smoke/typst-gather/typst-gather.test.ts smoke/ojs/dependency-traversal.test.ts smoke/jupyter/issue-10097.test.ts` Expected: all pass (tally `0 failed`).
 
 - [ ] **Step 10: Commit**
 
@@ -1248,7 +1298,9 @@ Add `import { exit } from "../deno_ral/process.ts";`; line 25: `exit(code);`.
 
 - [ ] **Step 3: `src/core/main.ts`**
 
-Replace the `isWindows` import (line 19) with `import { args as processArgs, onSignal } from "../deno_ral/process.ts";` (`isWindows` has no other use in the file). Line 26: `const args = parse(processArgs());`. Replace lines 29-37 with:
+Replace the `isWindows` import (line 19) with `import { args as processArgs, onSignal } from "../deno_ral/process.ts";` (`isWindows` has no other use in the file).
+Line 26: `const args = parse(processArgs());`.
+Replace lines 29-37 with:
 
 ```ts
     // install termination signal handlers (SIGTERM is a no-op on Windows,
@@ -1263,7 +1315,8 @@ Add `import { isTerminal } from "../deno_ral/process.ts";`; line 98: `return isT
 
 - [ ] **Step 5: `src/core/log.ts`**
 
-Add `import { writeStderrSync } from "../deno_ral/process.ts";`. Replace lines 177-195 (`override log(msg: string): void { ... }`) with:
+Add `import { writeStderrSync } from "../deno_ral/process.ts";`.
+Replace lines 177-195 (`override log(msg: string): void { ... }`) with:
 
 ```ts
   override log(msg: string): void {
@@ -1273,7 +1326,8 @@ Add `import { writeStderrSync } from "../deno_ral/process.ts";`. Replace lines 1
 
 - [ ] **Step 6: `src/core/console.ts`**
 
-Replace lines 8-9 (`io/write-all`, `io/read-all` imports; verify with `grep -n 'readAllSync\|writeAllSync' src/core/console.ts` that lines 175-176 are their only uses) with `import { writeStdoutSync } from "../deno_ral/process.ts";`. Replace lines 173-178:
+Replace lines 8-9 (`io/write-all`, `io/read-all` imports; verify with `grep -n 'readAllSync\|writeAllSync' src/core/console.ts` that lines 175-176 are their only uses) with `import { writeStdoutSync } from "../deno_ral/process.ts";`.
+Replace lines 173-178:
 
 ```ts
 export function writeFileToStdout(file: string) {
@@ -1281,18 +1335,17 @@ export function writeFileToStdout(file: string) {
 }
 ```
 
-(`Deno.readFileSync` is rewritten by the PR 10 codemod. If PR 09 has already landed, `src/deno_ral/fs.ts` exports `readFileSync`; import it from there instead of writing a new `Deno.readFileSync` call. The same applies to `crossref.ts:149` in Task 5.)
+(`Deno.readFileSync` is rewritten by the PR 10 codemod.
+If PR 09 has already landed, `src/deno_ral/fs.ts` exports `readFileSync`; import it from there instead of writing a new `Deno.readFileSync` call.
+The same applies to `crossref.ts:149` in Task 5.)
 
 - [ ] **Step 7: Verify and commit**
 
-Run: `rg -n '\bDeno\.(exit|cwd|args|addSignalListener|stdin|stdout|stderr)\b' src/core -g '*.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'`
-Expected: empty.
+Run: `rg -n '\bDeno\.(exit|cwd|args|addSignalListener|stdin|stdout|stderr)\b' src/core -g '*.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'` Expected: empty.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/path.test.ts unit/environment.test.ts unit/core/append-log-options.test.ts $(find smoke/logging/ -name '*.test.ts')`
-Expected: `0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/path.test.ts unit/environment.test.ts unit/core/append-log-options.test.ts $(find smoke/logging/ -name '*.test.ts')` Expected: `0 failed`.
 
 ```bash
 git add src/core
@@ -1319,7 +1372,8 @@ done
 sed -i 's/Deno\.cwd()/currentDir()/g' src/command/call/build-ts-extension/cmd.ts src/command/call/typst-gather/cmd.ts
 ```
 
-Then add the imports from the table (by hand; `add_import` works for all of them). Comment lines that mention `Deno.exit` (`src/command/call/axe/cmd.ts:417`) are left for PR 25's comment cleanup.
+Then add the imports from the table (by hand; `add_import` works for all of them).
+Comment lines that mention `Deno.exit` (`src/command/call/axe/cmd.ts:417`) are left for PR 25's comment cleanup.
 
 - [ ] **Step 2: `Deno.cwd` files (no local `cwd` binding; plain `cwd` import)**
 
@@ -1330,7 +1384,8 @@ Then add the imports from the table (by hand; `add_import` works for all of them
 | `../../../deno_ral/process.ts` | `src/command/use/commands/template.ts`, `src/command/use/commands/brand.ts`, `src/command/call/axe/cmd.ts` |
 | `../../../../deno_ral/process.ts` | `src/command/use/commands/binder/binder.ts` |
 
-For each: `sed -i 's/Deno\.cwd()/cwd()/g' FILE` and add `import { cwd } from "<path>";` (`src/command/call/axe/cmd.ts` has only its one `Deno.cwd()` code site). `src/command/inspect/cmd.ts` and `src/command/create/cmd.ts` also need `writeStdoutSync` (Step 4), so import `{ cwd, writeStdoutSync }` there.
+For each: `sed -i 's/Deno\.cwd()/cwd()/g' FILE` and add `import { cwd } from "<path>";` (`src/command/call/axe/cmd.ts` has only its one `Deno.cwd()` code site).
+`src/command/inspect/cmd.ts` and `src/command/create/cmd.ts` also need `writeStdoutSync` (Step 4), so import `{ cwd, writeStdoutSync }` there.
 
 - [ ] **Step 3: `args` and `execPath`**
 
@@ -1362,14 +1417,11 @@ and line 296: `writeStdoutSync(new TextEncoder().encode(resultJSON));`.
 
 - [ ] **Step 5: Verify and commit**
 
-Run: `rg -n '\bDeno\.(exit|cwd|args|execPath|stdin|stdout|stderr|CommandOptions)\b' src/command -g '*.ts' -g '!src/command/render/latexmk/quarto-latexmk.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'`
-Expected: empty.
+Run: `rg -n '\bDeno\.(exit|cwd|args|execPath|stdin|stdout|stderr|CommandOptions)\b' src/command -g '*.ts' -g '!src/command/render/latexmk/quarto-latexmk.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'` Expected: empty.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/create/create.test.ts smoke/inspect/inspect-project.test.ts smoke/check/check.test.ts $(find smoke/build-ts-extension/ -name '*.test.ts') smoke/use/template.test.ts smoke/render/render-html.test.ts $(find unit/render/ -name '*.test.ts')`
-Expected: `0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/create/create.test.ts smoke/inspect/inspect-project.test.ts smoke/check/check.test.ts $(find smoke/build-ts-extension/ -name '*.test.ts') smoke/use/template.test.ts smoke/render/render-html.test.ts $(find unit/render/ -name '*.test.ts')` Expected: `0 failed`.
 
 Manual: `echo '{"type":"project","directive":{"type":"default"},"directory":"'$(mktemp -d)'/p"}' | package/dist/bin/quarto create --json` prints a JSON result (exercises `readStdinLines` and `writeStdoutSync`), and `package/dist/bin/quarto capabilities | head -3` prints JSON.
 
@@ -1396,14 +1448,12 @@ git commit -m "command: exit/cwd/args/execPath/stdio through deno_ral/process"
 
 - [ ] **Step 2: Verify and commit**
 
-Run: `rg -n '\bDeno\.(exit|cwd|pid|kill|stdin|stdout|stderr)\b' src/project src/format src/execute src/extension src/inspect src/tools src/preview -g '*.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'`
-Expected: empty.
+Run: `rg -n '\bDeno\.(exit|cwd|pid|kill|stdin|stdout|stderr)\b' src/project src/format src/execute src/extension src/inspect src/tools src/preview -g '*.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'` Expected: empty.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts`
-Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/project/ -name '*.test.ts') $(find unit/extension/ -name '*.test.ts') $(find unit/tools/ -name '*.test.ts') smoke/project/project-simple.test.ts smoke/site/render-site.test.ts smoke/extensions/install.test.ts smoke/render/render-jupyter.test.ts`
-Expected: `0 failed`. (`smoke/render/render-jupyter.test.ts` needs the Python test environment; if it is skipped for prerequisites, run `smoke/jupyter/issue-10097.test.ts` instead.)
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/project/ -name '*.test.ts') $(find unit/extension/ -name '*.test.ts') $(find unit/tools/ -name '*.test.ts') smoke/project/project-simple.test.ts smoke/site/render-site.test.ts smoke/extensions/install.test.ts smoke/render/render-jupyter.test.ts` Expected: `0 failed`.
+(`smoke/render/render-jupyter.test.ts` needs the Python test environment; if it is skipped for prerequisites, run `smoke/jupyter/issue-10097.test.ts` instead.)
 
 ```bash
 git add src/project src/format src/execute src/extension src/inspect src/tools
@@ -1419,15 +1469,16 @@ git commit -m "project/format/execute/extension/tools: process calls through den
 
 - [ ] **Step 1: `src/quarto.ts`**
 
-Add `import { args as processArgs, exit } from "./deno_ral/process.ts";` after the `import { mainRunner } from "./core/main.ts";` line. `sed -i 's/Deno\.exit(/exit(/g' src/quarto.ts` (6 code sites; the sed also rewrites the comment at line 187, "The calls to Deno.exit() above", to "exit()", which is correct prose). Line 223: `let quartoArgs = [...processArgs()];`. Line 7's comment keeps `Deno.realPathSync` (it describes the monkey patch; PR 25 deletes it).
+Add `import { args as processArgs, exit } from "./deno_ral/process.ts";` after the `import { mainRunner } from "./core/main.ts";` line.
+`sed -i 's/Deno\.exit(/exit(/g' src/quarto.ts` (6 code sites; the sed also rewrites the comment at line 187, "The calls to Deno.exit() above", to "exit()", which is correct prose).
+Line 223: `let quartoArgs = [...processArgs()];`.
+Line 7's comment keeps `Deno.realPathSync` (it describes the monkey patch; PR 25 deletes it).
 
 - [ ] **Step 2: Verify**
 
-Run: `package/dist/bin/quarto --version && package/dist/bin/quarto pandoc --version | head -1 && package/dist/bin/quarto typst --version`
-Expected: a version, `pandoc 3.x`, `typst 0.x` (the three `exit(result.code)` passthrough paths).
+Run: `package/dist/bin/quarto --version && package/dist/bin/quarto pandoc --version | head -1 && package/dist/bin/quarto typst --version` Expected: a version, `pandoc 3.x`, `typst 0.x` (the three `exit(result.code)` passthrough paths).
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/run/command-passthrough.test.ts smoke/run/run-script.test.ts`
-Expected: `0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/run/command-passthrough.test.ts smoke/run/run-script.test.ts` Expected: `0 failed`.
 
 - [ ] **Step 3: Commit**
 
@@ -1438,7 +1489,9 @@ git commit -m "quarto.ts: exit/args through deno_ral/process"
 
 ### Task 8: `package/src`: `Deno.run` and the two `Deno.Command` helpers
 
-PR 24 (`package/src` codemod) lists the same `Deno.run` sites and says to skip any that PR 08 already converted (its table notes "PR 08 already retyped `CmdResult.status`"). Whichever PR lands second checks `grep -rn 'Deno\.run(\|new Deno\.Command' package/src --include=*.ts` and skips the converted files. PR 24 may later replace the `execSync("ln", …)` in `configure.ts` with `symlinkSync` from `deno_ral/fs.ts` (PR 09); PR 08 depends only on PR 02, so it keeps the process call.
+PR 24 (`package/src` codemod) lists the same `Deno.run` sites and says to skip any that PR 08 already converted (its table notes "PR 08 already retyped `CmdResult.status`").
+Whichever PR lands second checks `grep -rn 'Deno\.run(\|new Deno\.Command' package/src --include=*.ts` and skips the converted files.
+PR 24 may later replace the `execSync("ln", …)` in `configure.ts` with `symlinkSync` from `deno_ral/fs.ts` (PR 09); PR 08 depends only on PR 02, so it keeps the process call.
 
 **Files:**
 - Modify: `package/src/util/cmd.ts`, `package/src/common/previewjs.ts`, `package/src/util/tar.ts`, `package/src/util/git.ts`, `package/src/common/configure.ts`, `package/src/common/import-report/deno-info.ts`, `explain-all-cycles.ts`, `explain-import-chain.ts`, `report-bundle-async-cycles.ts`, `report-risky-files.ts`
@@ -1517,7 +1570,8 @@ export function buildQuartoPreviewJs(
 
 - [ ] **Step 3: `package/src/util/tar.ts`**
 
-Add `import { exec } from "../../../src/deno_ral/process.ts";`. Lines 95-99:
+Add `import { exec } from "../../../src/deno_ral/process.ts";`.
+Lines 95-99:
 
 ```ts
   const status = await exec(tarCmd[0], {
@@ -1538,11 +1592,13 @@ Lines 119-124:
   });
 ```
 
-Both replaced ranges start at the `// @ts-expect-error` comment line above each `Deno.run` (lines 95 and 119): it must go with the call, or the type check fails on an unused directive. The `if (status.code !== 0)` blocks that follow are unchanged.
+Both replaced ranges start at the `// @ts-expect-error` comment line above each `Deno.run` (lines 95 and 119): it must go with the call, or the type check fails on an unused directive.
+The `if (status.code !== 0)` blocks that follow are unchanged.
 
 - [ ] **Step 4: `package/src/util/git.ts`**
 
-Add `import { exec } from "../../../src/deno_ral/process.ts";`. Lines 49-57 (checkout):
+Add `import { exec } from "../../../src/deno_ral/process.ts";`.
+Lines 49-57 (checkout):
 
 ```ts
   const status = await exec(gitCmd[0], {
@@ -1575,7 +1631,8 @@ Lines 67-82 (clone; stderr is parsed for the directory name):
     info(outputTxt);
 ```
 
-(keep the following `match`/`return` lines, re-indented into the `if (outputTxt)` block). Lines 113-120 (apply):
+(keep the following `match`/`return` lines, re-indented into the `if (outputTxt)` block).
+Lines 113-120 (apply):
 
 ```ts
     const status = await exec(gitCmd[0], {
@@ -1590,7 +1647,8 @@ Lines 67-82 (clone; stderr is parsed for the directory name):
 
 - [ ] **Step 5: `package/src/common/configure.ts`**
 
-Add `import { execSync } from "../../../src/deno_ral/process.ts";`. Lines 171-174 (previously an un-awaited `Deno.run`):
+Add `import { execSync } from "../../../src/deno_ral/process.ts";`.
+Lines 171-174 (previously an un-awaited `Deno.run`):
 
 ```ts
     execSync("ln", {
@@ -1668,17 +1726,13 @@ plus `exit`/`args()` for its other sites.
 
 - [ ] **Step 7: Verify and commit**
 
-Run: `grep -rn 'Deno\.run(\|new Deno\.Command\|Deno\.CommandStatus' package/src --include=*.ts`
-Expected: empty.
+Run: `grep -rn 'Deno\.run(\|new Deno\.Command\|Deno\.CommandStatus' package/src --include=*.ts` Expected: empty.
 
-Run: `package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=src/import_map.json package/src/bld.ts package/src/common/import-report/report-risky-files.ts package/src/common/import-report/report-bundle-async-cycles.ts package/src/common/import-report/explain-all-cycles.ts package/src/common/import-report/explain-import-chain.ts`
-Expected: no errors.
+Run: `package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=src/import_map.json package/src/bld.ts package/src/common/import-report/report-risky-files.ts package/src/common/import-report/report-bundle-async-cycles.ts package/src/common/import-report/explain-all-cycles.ts package/src/common/import-report/explain-import-chain.ts` Expected: no errors.
 
-Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tar-command.test.ts unit/macos-notarize-status.test.ts`
-Expected: `0 failed`.
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tar-command.test.ts unit/macos-notarize-status.test.ts` Expected: `0 failed`.
 
-Run: `package/src/quarto-bld prepare-dist --help` (exercises that `bld.ts` still loads)
-Expected: help text.
+Run: `package/src/quarto-bld prepare-dist --help` (exercises that `bld.ts` still loads) Expected: help text.
 
 ```bash
 git add package/src
@@ -1695,13 +1749,13 @@ git commit -m "package/src: Deno.run and Deno.Command through deno_ral/process"
 Open the PR as a draft to get its number `N`, then add under `## Extensions` in `news/changelog-1.11.md` (create the heading in the position `.claude/rules/changelog.md` prescribes if it is absent):
 
 ```markdown
-- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): `quarto.system.execProcess` (the engine-extension API) now accepts exactly the options declared in `@quarto/types` plus `clearEnv`, `signal` and `detached`. Other Deno-specific options (`uid`, `gid`, `windowsRawArguments`, numeric stdio) were never part of the declared API and are now ignored.
+- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): `quarto.system.execProcess` (the engine-extension API) now accepts exactly the options declared in `@quarto/types` plus `clearEnv`, `signal` and `detached`.
+  Other Deno-specific options (`uid`, `gid`, `windowsRawArguments`, numeric stdio) were never part of the declared API and are now ignored.
 ```
 
 - [ ] **Step 2: Lower the baseline**
 
-Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts`
-Expected: the second command passes; `git diff tools/runtime-boundary-baseline.json` shows only decreases: `src` lower by 133, `package/src` lower by 32 (re-measure if an earlier PR changed the touched files; the counts must only go down).
+Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: the second command passes; `git diff tools/runtime-boundary-baseline.json` shows only decreases: `src` lower by 133, `package/src` lower by 32 (re-measure if an earlier PR changed the touched files; the counts must only go down).
 
 - [ ] **Step 3: Update the rules doc**
 
@@ -1711,7 +1765,9 @@ In `.claude/rules/typescript/deno-ral.md`, replace the `process.ts` row of the m
 | `process.ts` | Process execution and process-level runtime | `spawn`, `exec`, `execSync`, `exit`, `cwd`, `chdir`, `args`, `execPath`, `pid`, `onSignal`, `killProcess`, `writeStdoutSync`, `writeStderrSync`, `isTerminal`, `readStdin`, `readStdinLines` |
 ```
 
-and add under "Process execution" in the Common Utilities section: "Never call `Deno.Command`, `Deno.exit`, `Deno.cwd` or `Deno.args` directly; import the equivalent from `deno_ral/process.ts`. `execProcess` (`src/core/process.ts`) remains the API for running external tools with captured output. Spawn with `detached: true` (POSIX) when the child must be stopped together with its own children through `killProcess(-pid)`."
+and add under "Process execution" in the Common Utilities section: "Never call `Deno.Command`, `Deno.exit`, `Deno.cwd` or `Deno.args` directly; import the equivalent from `deno_ral/process.ts`.
+`execProcess` (`src/core/process.ts`) remains the API for running external tools with captured output.
+Spawn with `detached: true` (POSIX) when the child must be stopped together with its own children through `killProcess(-pid)`."
 
 - [ ] **Step 4: Run the Verification list below, then commit**
 
@@ -1729,7 +1785,8 @@ git commit -m "Changelog, rules doc and lower runtime boundary baseline after pr
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The acceptance `rg` → empty.
 - Manual: `package/dist/bin/quarto preview tests/docs/test.qmd` then Ctrl-C → exits promptly, no orphan `pandoc`/`deno` processes in `ps`.
-- Manual (POSIX, needs Python with `shiny`): render-preview a Shiny-for-Python document with `package/dist/bin/quarto preview <doc>.qmd`, then Ctrl-C; `ps -ef | grep -c '[u]vicorn'` → `0` (the detached group was killed). On Windows the same check with `tasklist | findstr python` after Ctrl-C prints nothing.
+- Manual (POSIX, needs Python with `shiny`): render-preview a Shiny-for-Python document with `package/dist/bin/quarto preview <doc>.qmd`, then Ctrl-C; `ps -ef | grep -c '[u]vicorn'` → `0` (the detached group was killed).
+  On Windows the same check with `tasklist | findstr python` after Ctrl-C prints nothing.
 - Manual: `package/dist/bin/quarto inspect tests/docs/test.qmd | head -c 1; echo " exit=$?"` prints one character and `exit=0` with no `BrokenPipe` message (the CLI-level form of the contract; PR 14b automates it).
 - Manual (needs Chrome): `package/dist/bin/quarto render` of a document with a `{mermaid}` cell to `pdf` or `docx` → renders; `quarto check` shows Chrome detected.
 
@@ -1752,19 +1809,32 @@ git commit -m "Changelog, rules doc and lower runtime boundary baseline after pr
 
 ## Risks and rollback
 
-- `exec` defaults stdin to `"null"` where `Deno.Command.output()` inherited it. A tool that reads stdin interactively would now get EOF. None of the migrated `output()` sites read stdin (configure script, `deno fmt`, `deno check`, `ttx`, editor launchers, `npm`, `git`, `tar`, `rg`); if one shows up, pass `stdin: "inherit"` at that site.
-- The external preview server now runs in its own process group on POSIX, so the terminal's Ctrl-C no longer reaches it directly. Both callers stop it from Quarto's cleanup; if Quarto itself is killed with SIGKILL the server survives (it did before too whenever the shell put Quarto in a different group). Visible as an orphaned `uvicorn`/`R` process after a crash.
-- `writeStdoutSync` swallowing a broken pipe means Quarto keeps computing after `| head` closed the pipe, then exits with its normal code; before, the first write threw `BrokenPipe` and the process crashed with a stack trace. This is the intended behaviour (pinned by the contract test and by PR 14b's `inspect-pipe.test.ts`).
-- `readStdinLines` closes stdin after an early stop; a caller that reads stdin again afterwards gets EOF. The only caller (`create --json`) reads one line.
-- `spawn` on Deno throws synchronously for a missing executable; the Node implementation (PR 28) may reject `status` instead. Callers in this PR that spawn (`cri/launch.ts`, `preview-server.ts`, `jupyter-kernel.ts`, `execProcess`) are all inside `try`/`await` paths that handle both.
+- `exec` defaults stdin to `"null"` where `Deno.Command.output()` inherited it.
+  A tool that reads stdin interactively would now get EOF.
+  None of the migrated `output()` sites read stdin (configure script, `deno fmt`, `deno check`, `ttx`, editor launchers, `npm`, `git`, `tar`, `rg`); if one shows up, pass `stdin: "inherit"` at that site.
+- The external preview server now runs in its own process group on POSIX, so the terminal's Ctrl-C no longer reaches it directly.
+  Both callers stop it from Quarto's cleanup; if Quarto itself is killed with SIGKILL the server survives (it did before too whenever the shell put Quarto in a different group).
+  Visible as an orphaned `uvicorn`/`R` process after a crash.
+- `writeStdoutSync` swallowing a broken pipe means Quarto keeps computing after `| head` closed the pipe, then exits with its normal code; before, the first write threw `BrokenPipe` and the process crashed with a stack trace.
+  This is the intended behaviour (pinned by the contract test and by PR 14b's `inspect-pipe.test.ts`).
+- `readStdinLines` closes stdin after an early stop; a caller that reads stdin again afterwards gets EOF.
+  The only caller (`create --json`) reads one line.
+- `spawn` on Deno throws synchronously for a missing executable; the Node implementation (PR 28) may reject `status` instead.
+  Callers in this PR that spawn (`cri/launch.ts`, `preview-server.ts`, `jupyter-kernel.ts`, `execProcess`) are all inside `try`/`await` paths that handle both.
 - Rollback: revert the PR; every change is additive at the layer and mechanical at the call sites, no data format changed.
 
 ## Decisions needed
 
-Open outside this plan (triage A9, review decision 4; maintainer): who opens the upstream issue with PumasAI on `QuartoAPI.system.connectTcp()`/`system.spawnDetached()` (PR 36 Decisions needed 1) and by when, and whether this interface and PR 15's are treated as frozen before the answer. The triage recommends opening the issue before this PR lands so the interface can still move; PR 15's Scope currently says it is filed after PRs 08/09. Nothing in this plan changes with the answer. Whoever executes this PR checks `TRIAGE-2026-10-16.md` A9 first and, if it is still open, says so in the PR description. Partially answered 2026-10-21 (PR #15133 comment, README row J): a Node port of the engine already exists on Gordon Woodhull's fork (`gordonwoodhull/quarto-julia-engine` branch `q2/node-port`), to be PRed upstream to PumasAI once #14936 ships in a stable Quarto 1 release — so the port is a concrete reference for the API question, and the interface conversation goes through Gordon rather than starting cold with PumasAI.
+Open outside this plan (triage A9, review decision 4; maintainer): who opens the upstream issue with PumasAI on `QuartoAPI.system.connectTcp()`/`system.spawnDetached()` (PR 36 Decisions needed 1) and by when, and whether this interface and PR 15's are treated as frozen before the answer.
+The triage recommends opening the issue before this PR lands so the interface can still move; PR 15's Scope currently says it is filed after PRs 08/09.
+Nothing in this plan changes with the answer.
+Whoever executes this PR checks `TRIAGE-2026-10-16.md` A9 first and, if it is still open, says so in the PR description.
+Partially answered 2026-10-21 (PR #15133 comment, README row J): a Node port of the engine already exists on Gordon Woodhull's fork (`gordonwoodhull/quarto-julia-engine` branch `q2/node-port`), to be PRed upstream to PumasAI once #14936 ships in a stable Quarto 1 release — so the port is a concrete reference for the API question, and the interface conversation goes through Gordon rather than starting cold with PumasAI.
 
-None in this plan. Resolved since the first draft:
+None in this plan.
+Resolved since the first draft:
 - The three additions (`killProcess`, `readStdin`, `readStdinLines`) and `SpawnOptions.detached` are in the shared vocabulary.
 - `src/webui/quarto-preview/build.ts` is not migrated here (it was in the first draft): it stays on `Deno.*` in the ratchet allow-list until PR 33; `process.ts` therefore no longer has to stay free of import-map imports.
 - `src/command/render/latexmk/quarto-latexmk.ts` is not migrated (decision 9: PR 39 deletes it).
-- Windows tree kill: `killProcess(-pid)` runs `taskkill /T`, and only the external preview server calls it; Chrome's helper processes exit with the browser process. Not changed for `cri/launch.ts` because no orphan has been observed there.
+- Windows tree kill: `killProcess(-pid)` runs `taskkill /T`, and only the external preview server calls it; Chrome's helper processes exit with the browser process.
+  Not changed for `cri/launch.ts` because no orphan has been observed there.
