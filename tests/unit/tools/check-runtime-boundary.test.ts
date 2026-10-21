@@ -197,7 +197,7 @@ unitTest("check-runtime-boundary - compareToBaseline reports regressions and imp
     "tests": { denoCalls: 5, stdImportFiles: 1 },
   };
   assertEquals(compareToBaseline(current, baseline), {
-    regressions: ["src: Deno.* calls rose from 10 to 11"],
+    regressions: [`src: ${DENO}* calls rose from 10 to 11`],
     improvements: ["src: std-import files fell from 3 to 2"],
   });
   assertEquals(compareToBaseline(baseline, baseline), { regressions: [], improvements: [] });
@@ -246,7 +246,7 @@ unitTest("check-runtime-boundary - parseBaseline rejects a scope with a missing,
 // deno-lint-ignore require-await
 unitTest("check-runtime-boundary - a scope missing from the baseline is a regression", async () => {
   assertEquals(compareToBaseline({ "src-js": { denoCalls: 1, stdImportFiles: 0 } }, {}), {
-    regressions: ["src-js: Deno.* calls rose from 0 to 1"],
+    regressions: [`src-js: ${DENO}* calls rose from 0 to 1`],
     improvements: [],
   });
 });
