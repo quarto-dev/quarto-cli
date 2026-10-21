@@ -1,0 +1,81 @@
+---
+title: Div syntax for definition lists
+format:
+  html: default
+  latex: default
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - "div#tight > dl > dt > code"
+          - "div#loose > dl > dd > p"
+          - "div#nested > dl > dd > dl > dt"
+          - "div#not-a-list.definition-list > p"
+          - "div#no-definitions.definition-list > ul"
+        - - "div#tight div.definition-list"
+          - "div#loose div.definition-list"
+          - "div#nested div.definition-list"
+    latex:
+      ensureFileRegexMatches:
+        - - '\\begin\{description\}'
+          - '\\item\[\\texttt\{time\}\]'
+          - '\\item\[Outer term\]'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        - - '/ Loose term: #block\['
+          - '/ Inner term: #block\['
+        - []
+---
+
+The `.definition-list` div is the definition list syntax of Quarto 2.
+Each item of the outer bullet list is a term, and each item of its
+nested bullet list is one of that term's definitions.
+
+The `id`s below are only for the tests. A `DefinitionList` has no
+attributes, so the div's `id` is dropped, and the tests locate each list
+by the wrapper div added around it.
+
+::: {#tight}
+::: {.definition-list}
+* `time`
+  - A timestamp that identifies when the request was initiated.
+  - Type: string
+* `id`
+  - A unique identifier.
+:::
+:::
+
+::: {#loose}
+::: {.definition-list}
+* Loose term
+
+  - A definition with two paragraphs.
+
+    The second paragraph.
+
+  - Another definition.
+:::
+:::
+
+::: {#nested}
+::: {.definition-list}
+* Outer term
+  - ::: {.definition-list}
+    * Inner term
+      - Inner definition.
+    :::
+:::
+:::
+
+A div that doesn't have the definition-list shape is left as is.
+
+::: {#not-a-list .definition-list}
+Not a list.
+:::
+
+::: {#no-definitions .definition-list}
+* A term without a nested list of definitions.
+:::
