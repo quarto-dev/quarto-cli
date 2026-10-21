@@ -33,8 +33,8 @@ the reading order. This README is the execution index.
 - `NN-*.md`: one plan per PR. Each is self-contained: spec, files, tasks with
   checkbox steps, verification commands, review checklist, risks, and a
   suggested executor (Opus or Sonnet) with a size estimate.
-- `HANDOFF.md`: start here; state of the work and the reading order.
-  `braid-seed.sh`: optional strand seeding.
+- `HANDOFF.md`: start here; state of the work, the reading order and how the
+  work is tracked.
 
 ## Ground rules that every PR follows
 

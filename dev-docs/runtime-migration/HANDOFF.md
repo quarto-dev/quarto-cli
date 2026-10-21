@@ -286,14 +286,15 @@ agents; the cut dates remain Chris's to confirm before Phase 0 starts.
 - The plans were written against `main` at `b86f98d` (2026-10-14). Line
   references drift as `main` moves; re-grep before trusting a line number.
 
-## Tracking with braid (optional)
+## Tracking
 
-braid 0.7.0 is installed in the cloud session image, but no skein is
-configured for this repository (no `.braid.toml`, no `.braid-project`
-marker), so nothing was created. To track the PRs as strands with their
-dependencies: configure a skein (`braid init`, or `braid init --join <doc-id>`
-with an existing one; keep `.braid.toml` out of git), then run
-`dev-docs/runtime-migration/braid-seed.sh` once from the repository root.
-It creates an epic plus one `task` strand per PR, two spike strands and one milestone labelled `runtime-migration`,
-`phase-N` and `executor-<model>`, with `blocks` dependencies matching the
-README order, so `braid ready` lists exactly the PRs that can start.
+This repository has no issue tracker for this work: the files in this
+directory are the whole record. The order, dependencies and status of every
+PR, spike and milestone are in `README.md` (the sequence tables and the
+dependency graph), and each plan file holds its own checkbox steps.
+
+Anyone who wants issue-level tracking sets it up in their own tooling, from
+the README "The sequence" tables: one item per row (45 PRs, two spikes, one milestone), a
+dependency for each "depends on" entry, and a link to the row's plan file.
+The maintainer does this in a private tracker that is not committed. Keep the
+plans as the source for design; a tracker only needs status and ordering.
