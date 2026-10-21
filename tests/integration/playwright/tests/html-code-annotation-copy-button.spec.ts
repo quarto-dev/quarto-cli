@@ -19,6 +19,10 @@ const testCases = [
     name: "hover with a custom code block font size",
     url: "html/code-annotation-copy-button-font-size.html",
   },
+  {
+    name: "hover with a code block font size in percent",
+    url: "html/code-annotation-copy-button-font-size-percent.html",
+  },
 ];
 
 test.describe("code copy button and code annotation marker", () => {
