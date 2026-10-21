@@ -983,12 +983,12 @@ Run:
 ```bash
 echo 'const _rt02 = Deno.cwd();' >> src/command/utils.ts
 echo 'Deno.cwd();' >> src/core/cri/deno-cri/chrome.js
-echo "import { join as _rt02j } from 'https://deno.land/std/path/mod.ts';" >> src/core/text.ts
+echo "import { join as _rt02j } from 'https://deno.land/std/path/mod.ts';" >> src/core/mime.ts
 echo 'import { delay as _rt02d } from "async";' >> src/core/path.ts
 package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts; echo "exit=$?"
-git checkout -- src/command/utils.ts src/core/cri/deno-cri/chrome.js src/core/text.ts src/core/path.ts
+git checkout -- src/command/utils.ts src/core/cri/deno-cri/chrome.js src/core/mime.ts src/core/path.ts
 ```
-Expected: `::error::src: Deno.* calls rose from 992 to 993`, `::error::src: std-import files rose from 49 to 50` (`text.ts` only: `path.ts` gained an allow-listed import, which does not count), `::error::src-js: Deno.* calls rose from 7 to 8`, and `exit=1`; the last command restores the files.
+Expected (numbers from the baseline written in Step 3; the ones below are `b86f98d`'s): `::error::src: Deno.* calls rose from 992 to 993`, `::error::src: std-import files rose from 49 to 50` (`mime.ts` only: `path.ts` gained an allow-listed import, which does not count), `::error::src-js: Deno.* calls rose from 7 to 8`, and `exit=1`; the last command restores the files. The URL probe needs a file that imports no counted std module, or the file is already among the counted ones and the count cannot rise; `src/core/mime.ts` imports none (`src/core/text.ts`, the first draft's target, imports `fmt/colors`).
 
 - [ ] **Step 5: Prove `--update-baseline` never raises and `--accept-tests-increase` raises only `tests`**
 
@@ -1284,3 +1284,26 @@ One dated entry per working session; newest last. The normative plan ends at
   `src/core/path.ts` works but is also the allow-list probe target, so pick
   another file or run the probes in separate runs), then run step 5, commit
   the already-written baseline at step 6, and do Task 4 and Verification.
+
+### 2026-10-21 (session 5): Task 3 step 4 probe target amended
+
+- Defect confirmed: `src/core/text.ts` imports `fmt/colors`, so the
+  committed script already counts it. Step 4's URL probe now targets
+  `src/core/mime.ts`, which imports no std module at all (checked with the
+  script's own `hasStdImport`). The step's text says why the target must
+  be an uncounted file.
+- The amended step 4 was run once on Windows against the uncommitted
+  session-4 baseline (`package/dist/bin/quarto.cmd run --dev ...`): `src`
+  994 -> 995 and 49 -> 50, `src-js` 7 -> 8, `resources`, `package/src` and
+  `tests` unchanged, `exit=1`. The probe files were then restored;
+  `git status --short` shows only `tools/runtime-boundary-baseline.json`.
+- Review job 3571 (roborev, on `435fb1c35`) is open and awaiting the
+  maintainer's decision: (1) `hasStdImport` checks one match per line, so
+  two imports on one line or a `from` split from its specifier evade it
+  (no such layout in `src`, `package/src` or `tests` today); (2)
+  `readBaseline` does not validate the parsed counts. Both are in code this
+  plan prescribes verbatim, so any change comes as a plan amendment. Do
+  not change the script for them on your own.
+- Resume: Task 3 step 4 (or treat it as done on the evidence above and
+  tick it), step 5, commit the already-written baseline at step 6, then
+  Task 4 and Verification.
