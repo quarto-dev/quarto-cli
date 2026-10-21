@@ -96,7 +96,7 @@ All changes included in 1.11:
 
 ## Projects
 
-- ([#3186](https://github.com/quarto-dev/quarto-cli/issues/3186)): Fix projects being ignored when a directory above the project root starts with a dot.
+- ([#3186](https://github.com/quarto-dev/quarto-cli/issues/3186)): Fix projects being ignored when a directory above the project root starts with a dot. (author: @jkrumbiegel)
 
 ### Books
 
