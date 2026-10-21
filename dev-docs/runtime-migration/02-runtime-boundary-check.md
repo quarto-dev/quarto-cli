@@ -1158,7 +1158,7 @@ None. Recorded choices (review items closed here):
 - Re-read against the review's "Later validation" lines (2026-10-16): R01's three fixture cases are in `makeRepo` (`h.ts`, `helper.ts`, `indirect.ts`) with a test for the indirect case; R02's point (a residue check must look at subprocess commands and launchers, not only `Deno.` references) is recorded as a limit of this ratchet in Context and Scope, with PR 25 Task 7 step 2's `rg` named as the check that covers it.
 - `kStdModules` keeps PR 22's `http` and leaves out `yaml`: `yaml` maps to `js-yaml` (skypack today, npm after PR 03), not to the std library; PR 22 lists it as out of scope for the same reason. `semver`, `media_types`, `xml`, `xmlp` and `another_cookiejar` are `deno.land/x` packages that PR 04 replaces; they are not std either.
 
-- **The unit test's own `Deno.` count (decided 2026-10-21, quarto-cli-81ld.51):** the two `compareToBaseline` expectation strings are built from the `DENO` constant, like the fixtures, so the unit test file holds exactly one literal `Deno.` match (`Deno.writeTextFileSync` in `writeFixture`) and adds exactly one occurrence to `tests`; the `tests` baseline is 826 (`0fbe48a98`). Rejected: keeping the strings verbatim and accepting a self-referential count of three — the file's `DENO`/`FROM`/`IMPORT` discipline exists to keep the ratchet's own test invisible to it, and a count that moves when the ratchet's message strings are edited is noise every later baseline-lowering PR would have to remember.
+- **The unit test's own `Deno.` count (decided 2026-10-21):** the two `compareToBaseline` expectation strings are built from the `DENO` constant, like the fixtures, so the unit test file holds exactly one literal `Deno.` match (`Deno.writeTextFileSync` in `writeFixture`) and adds exactly one occurrence to `tests`; the `tests` baseline is 826 (`0fbe48a98`). Rejected: keeping the strings verbatim and accepting a self-referential count of three — the file's `DENO`/`FROM`/`IMPORT` discipline exists to keep the ratchet's own test invisible to it, and a count that moves when the ratchet's message strings are edited is noise every later baseline-lowering PR would have to remember.
 
 ## Execution log (executor notes, not plan text)
 
@@ -1410,12 +1410,12 @@ One dated entry per working session; newest last. The normative plan ends at
   and Review checklist item 8 (now names the three matches). Session 4's
   log line ("the 828 includes the new unit test's one Deno.") is left as
   the historical record it is; this entry supersedes it.
-- Filed as quarto-cli-81ld.51 for the remaining decision: reword the two
+- Left open for the plan-amendment session, the remaining decision: reword the two
   expectation strings so the file counts one (and lower the `tests`
   baseline by 2 with `--update-baseline` in the same change), or keep
   the self-referential count. The plan-amendment session decides.
 
-### 2026-10-21 (session 8): quarto-cli-81ld.51 resolved, expectation strings reworded, tests baseline 826
+### 2026-10-21 (session 8): expectation strings reworded, tests baseline 826
 
 - Decision: reword (the first option of the session 7 addendum). The
   rationale is recorded as a "Recorded choices" bullet in "Decisions
