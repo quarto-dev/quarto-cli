@@ -379,7 +379,7 @@ export function runHarness(options: {
 export function runtimeScriptCommand(scriptPath: string, options?: { allowWritePath?: string }): { cmd: string; args: string[] };
 ```
 
-`tests/asserts.ts` (PR 02) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError`; PR 23 adds `assertFalse`, `assertInstanceOf`, `assertNotEquals`, `assertStrictEquals`.
+`tests/asserts.ts` (PR 02) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError` from the import-map key `@std/assert` (0.224.0 from PR 02, 1.x from PR 31; never from `testing/asserts`, whose `AssertionError` is not the class its assertions throw, PR 02 "Decisions needed"); PR 23 adds `assertFalse`, `assertInstanceOf`, `assertNotEquals`, `assertStrictEquals`.
 
 `tests/harness.ts` also exports `testArgs(): string[]` (the test's own arguments: `Deno.args` after `--` on Deno, `QUARTO_TEST_ARGS` under the Node runner; PR 23/31) and `onProcessExit(fn: () => void): void` (PR 31). Shared helpers for process-level tests live in `tests/process-helpers.ts` (PR 14b: `waitFor`, `collectText`, `processGroupOf`, `isProcessGone`).
 

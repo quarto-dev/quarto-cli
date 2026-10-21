@@ -46,7 +46,7 @@ The executor implements Tasks 1, 2, 5–8 and **one** of Tasks 3/4 (the variant 
 ### Scope
 
 In:
-- `tests/asserts.ts` on `@std/assert` 1.x; import-map entry; `package.json` synced.
+- `tests/asserts.ts` on `@std/assert` 1.x: PR 02's import-map entry bumped from 0.224.0; `package.json` synced.
 - `tests/harness.ts`: the Node branch of `registerTest` (variant), `testArgs()`, `onProcessExit()`, `runChecked()` and `sanitizeOptions()` (the Node mapping of `sanitize`). `tests/utils.ts`: Node branches of `runHarness` (variant) and `runtimeScriptCommand`.
 - Variant N: `tools/node-bundle/import-map-hook.mjs`, `tools/node-bundle/register-import-map.mjs`. Variant V: `tests/vitest.config.mjs`, `vitest` in `devDependencies`.
 - `tests/run-tests-node.sh`, `tests/run-tests-node.ps1`.
@@ -129,24 +129,18 @@ Intentionally lost on Node (Deno's sanitizers see them, `getActiveResourcesInfo(
 **Files:**
 - Modify: `src/import_map.json`, `package.json`, `package-lock.json`, `tests/asserts.ts`
 
-- [ ] **Step 1: Add the import-map entry**
+- [ ] **Step 1: Bump the import-map entry**
 
-In `src/import_map.json`: `"@std/assert": "jsr:@std/assert@1.0.19",` (1.0.19 is the latest 1.0.x on 2026-10-15; pin the latest 1.0.x listed at https://jsr.io/@std/assert at execution time). Then:
+In `src/import_map.json`, PR 02's `"@std/assert": "jsr:@std/assert@0.224.0",` becomes `"@std/assert": "jsr:@std/assert@1.0.19",` (1.0.19 is the latest 1.0.x on 2026-10-15; pin the latest 1.0.x listed at https://jsr.io/@std/assert at execution time). Then:
 
 ```bash
 node tools/node-bundle/check-deps.mjs --write && npm install && node tools/node-bundle/check-deps.mjs
 ```
 Expected: `package.json dependencies match src/import_map.json (N packages)`.
 
-- [ ] **Step 2: Point the seam at `@std/assert`**
+- [ ] **Step 2: Update the seam's header comment**
 
-PR 02 created `tests/asserts.ts` re-exporting from `testing/asserts` (`jsr:@std/testing@0.224.0/asserts`, itself a re-export of `@std/assert`). Change only the module specifier, keeping every exported name (`grep -n "^  [a-zA-Z]" tests/asserts.ts` before editing):
-
-```ts
-} from "@std/assert";
-```
-
-and the header comment's last sentence to: "Assertions come from @std/assert 1.x on both runtimes (resolved through the import map on Deno, and through the PR 31 resolver on Node)."
+PR 02 created `tests/asserts.ts` re-exporting from `"@std/assert"` through that import-map key (PR 02 "Decisions needed", "The seam's source"), so Step 1 already moves the seam to 1.x: the module specifier and the exported names stay as they are (`grep -n '^} from "@std/assert";' tests/asserts.ts` prints one line). Add one sentence to the header comment, after the sentence about `testing/asserts`: "Assertions come from @std/assert 1.x on both runtimes (resolved through the import map on Deno, and through the PR 31 resolver on Node)."
 
 **Decision recorded here:** `@std/assert`, not `node:assert/strict`. `assertEquals` uses `@std/assert`'s structural `equal` (consistent `+0`/`-0` and `NaN`, `Date`/`RegExp`/`Map`/`Set`/typed arrays by value, prototypes ignored for plain objects) and throws `AssertionError` with a diff; `node:assert.deepStrictEqual` differs on prototypes and typed-array wrappers, and `assertStringIncludes`, `assertMatch`, `assertObjectMatch`, `assertRejects`, `fail` have no direct equivalents. Tests that match assertion message text keep matching (same code lineage).
 
@@ -517,7 +511,7 @@ export async function resolve(specifier, context, next) {
 ```
 
 Run: `node --test tools/node-bundle/import-map-hook.test.mjs`
-Expected: `# pass 1` (after Task 1 put `@std/assert` in the import map and `node_modules`).
+Expected: `# pass 1` (after Task 1 bumped `@std/assert` to 1.x in the import map and installed it in `node_modules`).
 
 - [ ] **Step 3: `registerTest` on `node:test`**
 
@@ -1511,7 +1505,7 @@ git commit -m "ci/docs: harness tests on Node through run-tests-node"
 - [ ] `testArgs()` prefers positional arguments after `--`; `QUARTO_TEST_ARGS` otherwise; on Node it never returns the runner's own arguments.
 - [ ] `run-tests-node.sh`/`.ps1` mirror `run-tests.sh`/`.ps1`: `--agent`, `--keep-outputs`, document → smoke-all, directory targets, binary-mode default, venv activation, timing format, `QUARTO_TEST_JUNIT`; files run serially with a per-test timeout (`QUARTO_TEST_TIMEOUT`, default 10 minutes) and a forced exit.
 - [ ] Leak guarantees: every test on both Node variants goes through `runChecked()`; `sanitize` maps as the Spec table says and PR 23's Deno branch uses the same `sanitizeOptions()`; the four Task 5 step 3 files give the stated results; no sentence in the plan, `tests/README.md` or the PR description presents the per-test timeout or the forced exit as leak detection.
-- [ ] `tests/asserts.ts` re-exports every name it exported before, now from `@std/assert`; the import map and `package.json` agree (`check-deps.mjs`).
+- [ ] `tests/asserts.ts` re-exports every name it exported before, still from `"@std/assert"`, whose import-map entry is now 1.x; the import map and `package.json` agree (`check-deps.mjs`).
 - [ ] `tests/run-parallel-tests.ts` is deleted; the `.mjs` produces the same bucket structure; the CI bucketing job installs Node 26, not Quarto.
 - [ ] Fake executables are `.mjs` using only `node:` modules and `process`; `runtimeScriptCommand` passes Deno permissions only on Deno.
 - [ ] `runHarness` keeps PR 23's options; the Node branch drops `--check`/`--no-check`, writes JUnit when asked and passes arguments through `QUARTO_TEST_ARGS`.
@@ -1524,7 +1518,7 @@ git commit -m "ci/docs: harness tests on Node through run-tests-node"
 - **Per-file process cost (S12)**: measured by Spike V; PR 32 buckets the Node matrix with the existing timing files so wall time per PR stays near today's Deno matrix.
 - **Handle-check false positives**: a library that keeps a ref'd timer or an `Immediate` alive after an awaited call (undici's keep-alive uses an unref'd timer and a client socket, both outside the counted kinds, checked on Node 22.22) would fail a test that passes Deno's sanitizers. PR 32's parity run shows them; the fix is a settle or an opt-out in that test, as Deno's sanitizers required, never a wider exclusion list without a reason recorded here.
 - **`process.getActiveResourcesInfo()` reports libuv handles only** (added in Node 17.3/16.14; Stability 2, stable since Node 24.0/22.16, confirmed in the v26.x API docs on 2026-10-16, so a removal is not expected). If a later LTS drops or renames it, the check logs one warning per file and the `harness-node.test.ts` leak case fails on Node; reimplement `countHandles()` on `async_hooks.createHook` (track `PROCESSWRAP`, `TCPSERVERWRAP`, `PIPESERVERWRAP`, `Timeout`, `Immediate` by `asyncId`) in this file.
-- **`@std/assert` 1.x message formats** differ slightly from `@std/testing@0.224/asserts` (same code lineage). Tests that assert on the exact assertion message would fail on both runtimes and are fixed in this PR when found.
+- **`@std/assert` 1.x message formats** differ slightly from `@std/assert` 0.224 (same code lineage). Tests that assert on the exact assertion message would fail on both runtimes and are fixed in this PR when found.
 - **Whole-PR rollback:** revert the commits; `run-tests.sh` and the Deno harness are untouched except for `onProcessExit` and `testArgs`, both equivalent on Deno; restore `tests/run-parallel-tests.ts` with the revert.
 
 ## Decisions needed

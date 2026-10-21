@@ -6,7 +6,7 @@
 **Phase:** 0. **Lands first in Phase 0**: every other Phase 0 plan lowers (or, for `tests` only, explicitly accepts) this baseline in the same change. **Depends on:** none. **Unblocks:** 00a, 00b, 00c, 01, 03–07, and every Phase 1 PR (08–14, 22, 25 drive the baseline down).
 **Branch:** `rt/02-runtime-boundary-check`.
 **Suggested executor:** Sonnet. The script, the fixture and the expected numbers are fully specified below; the only judgement is re-measuring if `main` moved.
-**Size:** S (6 new files: script, baseline, assertion seam, two unit tests, workflow).
+**Size:** S (6 new files: script, baseline, assertion seam, two unit tests, workflow; one line added to `src/import_map.json`).
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
@@ -61,6 +61,8 @@ The two counters are all the ratchet sees. A Deno CLI spawn written without `Den
 
 `tests/asserts.ts` moves here from PR 22's design: the tests that later plans add import assertions from it, so PR 31 can swap the assertion library in one file. This PR only adds the seam and its test; migrating the 157 existing `testing/asserts` importers is PR 22/PR 23 work.
 
+The seam re-exports from `@std/assert` 0.224.0 through a new import-map key, `"@std/assert": "jsr:@std/assert@0.224.0"`, not from `testing/asserts` (Decisions needed, "The seam's source"). `testing/asserts` resolves to `jsr:/@std/testing@0.224.0/asserts.ts`, a deprecated shim whose functions delegate to `@std/assert` but which declares its own `AssertionError` class, so `assert(false)` throws an error that is not `instanceof` the `AssertionError` the shim exports. `@std/assert` 0.224.0 is the version the shim already depends on; the `testing/` key stays (157 test files and 9 `src` files still import it). `@std/assert` joins `kStdModules`, so a test that imports it directly instead of through the seam is counted.
+
 The `tests` scope has a ratchet too, but tests written before PR 09 lands (PR 09 adds `deno_ral` `fs`/`temp` with `readTextFileSync`, `writeTextFileSync`, `makeTempDirSync`) have no way to touch files without `Deno.*`. Those PRs (PR 01: +6, PR 05: +1, and PR 08 if its tests write files) run `--update-baseline --accept-tests-increase`, which lowers every other scope as usual and sets `tests` to the current counts; the PR description lists each new test file and its `Deno.` count. From PR 09 on, `--accept-tests-increase` is not used (`_TEMPLATE.md` rule: new tests use `deno_ral`).
 
 `quarto run --dev` (how the script runs) sets `DENO_DIR` to the user cache copy of `src/resources/deno_std/cache` (`initDenoCache` in `src/core/run/deno.ts:95-119`), not to `package/dist/bin/deno_cache`; the first run downloads the script's graph (the `@std/fs` and `@std/path` versions in `src/import_map.json`) into that cache, so the CI job needs network, which it has.
@@ -70,7 +72,7 @@ The `tests` scope has a ratchet too, but tests written before PR 09 lands (PR 09
 In:
 - `tools/check-runtime-boundary.ts`: counts per scope, compares with the baseline, exits 1 on any increase; `--update-baseline` rewrites the baseline with lower counts only; `--accept-tests-increase` (with `--update-baseline`) also accepts a higher `tests` count.
 - `tools/runtime-boundary-baseline.json`: the committed baseline (five scopes).
-- `tests/asserts.ts`: the assertion seam.
+- `tests/asserts.ts`: the assertion seam, and its import-map key `@std/assert` in `src/import_map.json`.
 - `tests/unit/tools/check-runtime-boundary.test.ts`, `tests/unit/asserts.test.ts`.
 - `.github/workflows/runtime-boundary.yml`: runs the script on pull requests and pushes to `main`.
 
@@ -108,7 +110,7 @@ export interface ScopeSpec {
 }
 
 /** Import-map names that resolve to the std library (`src/import_map.json`). deno.land/x packages are not std. */
-export const kStdModules: readonly string[]; // async bytes crypto datetime dotenv encoding flags fmt fs http io log path @std/path streams tar testing uuid
+export const kStdModules: readonly string[]; // async bytes crypto datetime dotenv encoding flags fmt fs http io log path @std/path @std/assert streams tar testing uuid
 
 /** The std boundary rule (Context): import-map seams that are not counted. Exact names and `name/` prefixes;
  * `log/file-handler` is counted although `log/` is a prefix here. Mirrors the "import map" rows of PR 22's table. */
@@ -175,7 +177,7 @@ export {
   assertStringIncludes,
   assertThrows,
   fail,
-} from "testing/asserts";
+} from "@std/assert"; // src/import_map.json: "@std/assert": "jsr:@std/assert@0.224.0"
 ```
 
 ### Files
@@ -183,6 +185,7 @@ export {
 - Create: `tools/check-runtime-boundary.ts` (counting, comparison, CLI)
 - Create: `tools/runtime-boundary-baseline.json` (baseline)
 - Create: `tests/asserts.ts` (assertion seam)
+- Modify: `src/import_map.json` (one key: `"@std/assert": "jsr:@std/assert@0.224.0"`, after `"@std/path"`)
 - Create: `tests/unit/tools/check-runtime-boundary.test.ts` (unit tests on a temp fixture)
 - Create: `tests/unit/asserts.test.ts` (the seam's exports)
 - Create: `.github/workflows/runtime-boundary.yml` (CI job)
@@ -203,9 +206,10 @@ export {
 
 **Files:**
 - Create: `tests/asserts.ts`
+- Modify: `src/import_map.json`
 - Test: `tests/unit/asserts.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/asserts.test.ts`:
 
@@ -250,12 +254,20 @@ unitTest("asserts - failing assertions throw AssertionError", async () => {
 });
 ```
 
-- [ ] **Step 2: Run it and see it fail**
+- [x] **Step 2: Run it and see it fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/asserts.test.ts`
 Expected: FAIL at type-check time, `Module not found "file:///.../tests/asserts.ts"`.
 
-- [ ] **Step 3: Create the seam**
+- [ ] **Step 3: Create the seam and its import-map key**
+
+In `src/import_map.json`, add one line after `"@std/path": "jsr:@std/path@1.0.8",`:
+
+```json
+    "@std/assert": "jsr:@std/assert@0.224.0",
+```
+
+Leave the `"testing/"` key as it is. The key changes the import map's hash, which the dev launcher compares with its installed configuration (`src/quarto.ts:78`, `src/core/devconfig.ts`): on Linux and macOS the next `quarto` command reconfigures by itself, on Windows it stops with "Quarto requires reconfiguration"; run `./configure.cmd` once before Task 3's `quarto run --dev`. The test runner in Step 4 does not go through that check.
 
 Create `tests/asserts.ts`:
 
@@ -266,6 +278,8 @@ Create `tests/asserts.ts`:
  * The assertions tests use. Tests import from here, never from
  * "testing/asserts" or "@std/assert" directly, so the assertion library can
  * be swapped in one place (dev-docs/runtime-migration, PR 31).
+ * Not "testing/asserts": that module declares its own AssertionError, which
+ * its assert() and fail() do not throw.
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
@@ -280,18 +294,18 @@ export {
   assertStringIncludes,
   assertThrows,
   fail,
-} from "testing/asserts";
+} from "@std/assert";
 ```
 
 - [ ] **Step 4: Run the test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/asserts.test.ts`
-Expected: two dots, `2 passed`.
+Expected: two dots, `2 passed`. With `from "testing/asserts"` instead, the second test fails with `Expected error to be instance of "AssertionError", but was "AssertionError"`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tests/asserts.ts tests/unit/asserts.test.ts
+git add src/import_map.json tests/asserts.ts tests/unit/asserts.test.ts
 git commit -m "Add tests/asserts.ts as the single assertion import for tests"
 ```
 
@@ -451,6 +465,7 @@ unitTest("check-runtime-boundary - hasStdImport covers URLs, jsr, quotes, http/,
     `import { assert } ${FROM} "jsr:@std/assert";`,
     `import { serveDir } ${FROM} "http/file-server";`,
     `import { x } ${FROM} "@std/path";`,
+    `import { assert } ${FROM} "@std/assert";`,
     `import {\n  exists,\n} ${FROM} "fs/exists";`,
     `export { walk } ${FROM} "fs/walk";`,
   ];
@@ -600,6 +615,7 @@ export const kStdModules: readonly string[] = [
   "log",
   "path",
   "@std/path",
+  "@std/assert",
   "streams",
   "tar",
   "testing",
@@ -667,7 +683,7 @@ export const kSrcExclusions: readonly string[] = [
 /** Never counted in the `tests` scope. */
 export const kTestsExclusions: readonly string[] = [
   "tests/docs", // documents and user-script fixtures run by Quarto (PR 35 keeps their Deno.* on purpose)
-  "tests/asserts.ts", // the assertion seam: the one test file that imports testing/asserts
+  "tests/asserts.ts", // the assertion seam: the one test file that imports @std/assert
 ];
 
 const kUserScriptResourceDirs = ["src/resources/scripts/", "src/resources/create/"];
@@ -1093,14 +1109,14 @@ After opening the PR, the `Runtime Boundary` check must appear and pass. If `qua
 ## Review checklist
 
 - [ ] Baseline numbers equal the script's output on the merge-base of the PR (re-run on `main` if the PR branch is behind); the PR description pastes the table.
-- [ ] `kStdModules` is exactly the 18 std names of `src/import_map.json` (async, bytes, crypto, datetime, dotenv, encoding, flags, fmt, fs, http, io, log, path, @std/path, streams, tar, testing, uuid) and contains none of `semver`, `media_types`, `xml`, `xmlp`, `another_cookiejar`, `yaml`.
+- [ ] `kStdModules` is exactly the 19 std names of `src/import_map.json` after Task 1 (async, bytes, crypto, datetime, dotenv, encoding, flags, fmt, fs, http, io, log, path, @std/path, @std/assert, streams, tar, testing, uuid) and contains none of `semver`, `media_types`, `xml`, `xmlp`, `another_cookiejar`, `yaml`.
 - [ ] `kStdImportRe` accepts single and double quotes, `deno.land/std` with and without a version, `jsr:@std` and `jsr:/@std`; `hasStdImport` skips comment lines.
 - [ ] `kStdAllowListed` and `kStdCountedExceptions` equal the "import map" rows of PR 22's inventory table (`async`, `crypto`, `datetime`, `streams`, `io/*`, `log` and `log/*` except `log/file-handler`, `fmt/printf`, `dotenv/stringify`); a URL or `jsr:` specifier is never allow-listed; the fixture has one file that imports allow-listed modules only and is not counted.
 - [ ] The fixture holds the three cases of `REVIEW-2026-10-16.md` R01 "Later validation": a permitted pure import (`src/core/h.ts`, not counted), a forbidden filesystem import (`src/core/helper.ts`, `fs/exists`, counted) and an importer of a helper with an indirect Deno dependency (`src/core/indirect.ts`, not counted; its own test proves it contributes nothing).
 - [ ] `kSrcExclusions` is exactly the six entries, each with its reason; `kTestsExclusions` is `tests/docs` and `tests/asserts.ts`; `src-js` and `resources` never count the same file.
 - [ ] `--update-baseline` uses `lowerBaseline`; only `--accept-tests-increase` can raise a number, and only `tests`.
 - [ ] The unit test file contains no literal `Deno.` and no literal std import (it builds them from `DENO`/`FROM`/`IMPORT`), so it adds exactly one `Deno.` occurrence (`Deno.writeTextFileSync` in `writeFixture`) to `tests` and no std-import file.
-- [ ] `tests/asserts.ts` exports the nine names of `_TEMPLATE.md`'s vocabulary and nothing else.
+- [ ] `tests/asserts.ts` exports the nine names of `_TEMPLATE.md`'s vocabulary and nothing else, from `"@std/assert"` (not `"testing/asserts"`); `src/import_map.json` gains exactly one key, `"@std/assert": "jsr:@std/assert@0.224.0"`, and its `"testing/"` key is unchanged.
 - [ ] The workflow has `permissions: contents: read` and the same `paths` list in both triggers.
 
 ## Risks and rollback
@@ -1115,6 +1131,22 @@ After opening the PR, the `Runtime Boundary` check must appear and pass. If `qua
 ## Decisions needed
 
 None. Recorded choices (review items closed here):
+
+- **The seam's source (decided 2026-10-21, after Task 1 step 4 failed on the first draft):** `tests/asserts.ts` re-exports from `"@std/assert"`, mapped in `src/import_map.json` to `jsr:@std/assert@0.224.0`, not from `"testing/asserts"`. Evidence, measured with the Deno in `package/dist/bin/tools/x86_64/`:
+  - Failure: the first draft's seam failed `asserts - failing assertions throw AssertionError` with `Expected error to be instance of "AssertionError", but was "AssertionError"`.
+  - Cause: `"testing/"` maps to `jsr:/@std/testing@0.224.0/`, and `asserts.ts` there is a deprecated shim. It imports `jsr:@std/assert@^0.224.0` as a namespace and delegates every function to it, but declares its own `export class AssertionError extends Error` (same body as `@std/assert`'s: a one-string constructor and `name = "AssertionError"`), so `assert(false)` throws `@std/assert`'s class, not the one the shim exports.
+  - Not a duplicate package: `deno info` lists exactly one `@std/assert`, 0.224.0.
+  - No `@std/testing` version helps: 0.225.3, the last 0.x, has the same design, and 1.0 removed the module.
+  - Graph: with the new key, the seam's module graph is the same 33 remote modules as `testing/asserts`' graph minus the shim file. PR 00b's `tools/check-test-imports.ts` therefore finds them in the locked graph: through `tests/test-deps.ts`'s `testing/asserts` import until PR 23, and through the seam once PR 23 points `test-deps.ts` at `./asserts.ts`.
+  - Run: `unit/asserts.test.ts` passed (`2 passed`) together with an existing `testing/asserts` importer, and `deno lint` was clean on both files.
+  - Existing importers: none of the 157 importers in `tests/`, nor anything in `src/`, `package/` or `tools/`, tests `instanceof AssertionError`. `tests/test.ts` only constructs it, and `tests/smoke/verify/pdf-text-position.test.ts` imports it unused. So PR 23's move of those importers onto the seam is behavior-identical, and PR 23's four extra names exist in `@std/assert` 0.224.0.
+
+  Alternatives rejected:
+  - Keep the shim and weaken the test to `Error` or a `name` check: it gives up the identity pin, which the test exists for (later tests write `assertThrows(fn, AssertionError)` against the seam).
+  - Re-export from a raw `jsr:@std/assert@0.224.0` specifier with no import-map key: it passes on Deno. On Node it does not: PR 26 makes the root `package.json` `dependencies` the exact mirror of `src/import_map.json` (`check-deps.mjs`), so `@jsr/std__assert` would be an undeclared package reached only through `@jsr/std__testing`'s own dependency, from PR 26 until PR 31. PR 31 would also still have to edit the seam.
+
+  With the key, PR 31 Task 1 bumps the key's version and edits only the seam's header comment. `@std/assert` is added to `kStdModules` and to PR 22's inventory table as counted, so a direct import outside the seam raises the `tests` count. The `"testing/"` key is not touched, because 157 test files (PR 23) and 9 `src` files (PR 18 owns `src/core/cache/cache.ts`) still import it. The dev launcher sees a changed import-map hash and reconfigures once (Task 1 step 3). PR 02 lands before PR 00b, so no `deno.lock` exists yet to regenerate.
+
 - S1 / review section 4 "02": `.js` and runtime-loaded resources are counted (`src-js`, `resources`), each with its own baseline; the std regex covers full URLs, `jsr:@std`, single quotes, `http/`, and no longer counts `deno.land/x` packages.
 - Review "02": the unit tests no longer contradict each other (one fixture, one `kExpected`, used by both `countScope` and `measure`).
 - Review "02" (minor): `quarto run --dev` uses the `deno_std` cache copy as `DENO_DIR` (Context, last paragraph).
@@ -1122,3 +1154,77 @@ None. Recorded choices (review items closed here):
 - The std boundary rule (review `REVIEW-2026-10-16.md` R01, triage B1): the allow-list of import-map seams lives here as `kStdAllowListed`, PR 22's table is its source, PR 25's zero is "zero counted std imports", and `README.md` ground rule 2 and `_TEMPLATE.md` say so. The first draft counted every std import and so made PR 22 (which keeps the seams) and PR 25 (which required zero) contradict each other.
 - Re-read against the review's "Later validation" lines (2026-10-16): R01's three fixture cases are in `makeRepo` (`h.ts`, `helper.ts`, `indirect.ts`) with a test for the indirect case; R02's point (a residue check must look at subprocess commands and launchers, not only `Deno.` references) is recorded as a limit of this ratchet in Context and Scope, with PR 25 Task 7 step 2's `rg` named as the check that covers it.
 - `kStdModules` keeps PR 22's `http` and leaves out `yaml`: `yaml` maps to `js-yaml` (skypack today, npm after PR 03), not to the std library; PR 22 lists it as out of scope for the same reason. `semver`, `media_types`, `xml`, `xmlp` and `another_cookiejar` are `deno.land/x` packages that PR 04 replaces; they are not std either.
+
+## Execution log (executor notes, not plan text)
+
+One dated entry per working session; newest last. The normative plan ends at
+"Decisions needed" above.
+
+### 2026-10-21 (session 2): Task 1 blocked at step 4, handed to a plan-amendment session
+
+- Step 0 (coordinator refresh) done: `main` moved `b86f98d` → `502f28448`
+  (+48 commits, includes the merged plans). The three path:line citations
+  (`src/core/run/deno.ts:95-119` `initDenoCache`, `src/core/lib/external/colors.ts:14`,
+  `src/core/sass/analyzer/get-dependencies.ts:2`) re-verified against current
+  `main`. No "Open decisions with an owner" row names PR 02. **Task 3 must
+  re-measure the baseline with the committed script and commit the fresh
+  numbers, not the plan's 992/49, 7/0, 10/1, 240/3, 814/165.**
+- Environment (Windows Git Bash): `tests/run-tests.sh` line 53 sets
+  `DENO_ARCH_DIR=$DENO_DIR`, so tests run as
+  `cd tests && DENO_DIR=x86_64 QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent <files>`.
+  Do not edit `run-tests.sh` (out of scope).
+- Task 1 steps 1–3 done: [tests/asserts.ts](../../../tests/asserts.ts) and
+  [tests/unit/asserts.test.ts](../../../tests/unit/asserts.test.ts) written
+  exactly as the plan specifies, uncommitted. Step 2 failure confirmed
+  (TS2307). Step 4 blocked: `1 passed | 1 failed` —
+  `asserts - failing assertions throw AssertionError` fails with
+  `Expected error to be instance of "AssertionError", but was "AssertionError"`.
+- Root cause (verified at runtime, `deno info` + cached source inspection;
+  this supersedes session 1's "two copies of @std/assert" hypothesis):
+  `src/import_map.json` maps `"testing/"` → `"jsr:/@std/testing@0.224.0/"`,
+  so the seam resolves to `@std/testing@0.224.0/asserts.ts`, a deprecated
+  pass-through shim. Its `assert()`/`fail()` delegate to
+  `jsr:@std/assert@^0.224.0` (the graph holds exactly one `@std/assert`,
+  0.224.0 — not a duplicate-package problem), but the shim defines its **own
+  local** `export class AssertionError extends Error` instead of re-exporting
+  `@std/assert`'s. So `assert(false)` throws an error that is not
+  `instanceof` the `AssertionError` exported from the same module. The design
+  is identical in `@std/testing@0.225.3` (the last 0.x; the module was
+  removed in 1.0), so **no published `@std/testing` can satisfy the plan's
+  test**. Re-exporting the nine names from `jsr:@std/assert@0.224.0` directly
+  makes the test pass verbatim (verified). Baseline impact of changing the
+  seam's source: none (`tests/asserts.ts` is in `kTestsExclusions`). The 157
+  existing `testing/asserts` importers never rely on `AssertionError`
+  identity, which is why the wart was invisible until this test pinned it.
+- The plan is normative and the test cannot pass as specified, so execution
+  stopped per instruction rather than improvising a deviation. A separate
+  session (Opus) is deciding the resolution and amending the plan
+  ("Decisions needed" above, plus downstream references: `_TEMPLATE.md`'s
+  nine-name vocabulary, PRs 22/23/31, the `"testing/"` import-map entry).
+- State at hand-back: branch `rt/02-runtime-boundary-check`, **nothing
+  committed**; working tree holds only the two uncommitted Task 1 files
+  (amendments to this file aside). Resume after the amendment: redo Task 1
+  step 3 if the seam text changed, run step 4 (`2 passed`), commit at step 5,
+  then Tasks 2–4.
+
+### 2026-10-21 (session 3): plan amended, Task 1 step 3 reopened
+
+- Resolution recorded in "Decisions needed", "The seam's source": the seam
+  imports from `"@std/assert"` through a new import-map key
+  `"@std/assert": "jsr:@std/assert@0.224.0"`. The other changes in this
+  file: Context, Scope, Interfaces (`kStdModules` + `@std/assert`, the seam
+  block), Files, Task 1 step 3 (unticked: its text changed), Task 1 step 5's
+  `git add`, Task 2's `kStdModules`, one `hasStdImport` positive case, the
+  `kTestsExclusions` comment, and two review-checklist items. The `10 passed`
+  count is unchanged (the new case sits in an existing test).
+- Downstream plans amended to match: `_TEMPLATE.md` (the seam's source),
+  PR 22's inventory table (an `@std/assert` row), PR 23 Task 5 step 1 (the
+  extended seam keeps `from "@std/assert"`), PR 31 (Task 1 bumps the
+  existing key instead of adding it; the seam's specifier is already right).
+- Probe run, then reverted (`src/import_map.json` clean against `HEAD`,
+  `tests/asserts.ts` byte-identical to the session-2 file): with the key and
+  the seam on `"@std/assert"`, `unit/asserts.test.ts` gave `2 passed`, plus
+  an existing `testing/asserts` importer green, and `deno lint` was clean.
+- Resume: redo Task 1 step 3 as now written (the key, then the seam), step 4,
+  step 5. On Windows run `./configure.cmd` once before Task 3's
+  `quarto run --dev` (the import-map hash changed).

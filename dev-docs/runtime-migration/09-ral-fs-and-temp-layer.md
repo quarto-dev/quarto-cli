@@ -230,7 +230,7 @@ Assumes PR 02 landed (`tools/check-runtime-boundary.ts` exporting `kSrcExclusion
  */
 
 import { unitTest } from "../../test.ts";
-import { assert, assertEquals } from "testing/asserts";
+import { assert, assertEquals } from "../../asserts.ts";
 import {
   errorWithPath,
   isAddrInUse,
@@ -449,7 +449,7 @@ The test uses only helpers that `deno_ral/fs.ts` already exports (`existsSync`, 
  */
 
 import { unitTest } from "../../test.ts";
-import { assert, assertEquals, assertRejects, assertThrows } from "testing/asserts";
+import { assert, assertEquals, assertRejects, assertThrows } from "../../asserts.ts";
 import {
   makeTempDir,
   makeTempDirSync,
@@ -670,7 +670,7 @@ import {
   assertEquals,
   assertStringIncludes,
   assertThrows,
-} from "testing/asserts";
+} from "../../asserts.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { isNotFound } from "../../../src/deno_ral/errors.ts";
 import { makeTempDirSync } from "../../../src/deno_ral/temp.ts";

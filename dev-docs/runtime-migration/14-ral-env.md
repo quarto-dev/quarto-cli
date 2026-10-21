@@ -185,7 +185,7 @@ In the prescribed order PRs 08, 22 and 10–13 have landed; the `env` rule only 
  */
 
 import { unitTest } from "../../test.ts";
-import { assert, assertEquals, assertThrows } from "testing/asserts";
+import { assert, assertEquals, assertThrows } from "../../asserts.ts";
 import { env } from "../../../src/deno_ral/env.ts";
 
 const kName = "QUARTO_RAL_ENV_TEST_7F3A";

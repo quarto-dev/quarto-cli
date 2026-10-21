@@ -46,7 +46,8 @@ A change to the "Owner" column of a row is mirrored in `kStdAllowListed` in the 
 | `fmt/printf` | `Deno.inspect` for `%i`/`%I` and in its bad-argument message; Quarto's only use is `sprintf("%<n>d: ", …)` (`src/core/text.ts:79`) | import map; listed in PR 25's inventory as a known non-issue |
 | `async`, `crypto/crypto`, `datetime/parse`, `streams/text-line-stream`, `media_types` | no | import map |
 | `path`, `fs/*` | `fs/*` is all `Deno.*` | `src/deno_ral/path.ts`, `fs.ts` already; `fs.ts` on `node:fs` is PR 27 |
-| `testing/asserts` | no | `tests/asserts.ts` (PR 02); the test tree migrates in PR 23; `src/core/cache/cache.ts:9` gets a local `assert` in PR 18 |
+| `testing/asserts` | no | `tests/asserts.ts` (PR 02); the test tree migrates in PR 23; `src/core/cache/cache.ts:9` gets a local `assert` in PR 18; the other eight `src` importers have no owner yet (Decisions needed 1) |
+| `@std/assert` (added by PR 02, `jsr:@std/assert@0.224.0`; PR 31 bumps it to 1.x) | no | `tests/asserts.ts` only (PR 02); counted everywhere else (`kStdModules`), so tests reach it through the seam |
 
 ### Scope
 
@@ -296,5 +297,12 @@ git commit -m "ratchet after the std seams; document which std modules have a se
 
 ## Decisions needed
 
-None.
+1. **Open (found 2026-10-21 while amending PR 02): who removes `testing/asserts` from the eight `src` files other than `cache.ts`.** Each one imports only `assert` from `"testing/asserts"`: `src/command/convert/jupyter.ts`, `src/command/render/pandoc-html.ts`, `src/command/render/pandoc.ts`, `src/core/esbuild.ts`, `src/format/dashboard/format-dashboard.ts`, `src/format/html/format-html.ts`, `src/project/project-shared.ts`, `src/publish/huggingface/huggingface.ts`.
+   Verify on current `main` with `grep -rn 'from "testing/asserts"' src --include=*.ts`, which prints nine lines with `cache.ts`.
+   `testing/*` is counted by PR 02's std boundary rule, `src` cannot import `tests/asserts.ts`, and no plan names these files, so PR 25's zero in `src` fails on them.
+   Recommendation, not yet written into this plan's tasks: this PR owns them, with one shared `assert(condition, msg)` that throws `InternalError` (`src/core/lib/error.ts`), the same body PR 18 gives `cache.ts` locally, and `tools/rewrite-import-specifier.sh testing/asserts <helper> src`.
+   The `src` std-import baseline then drops by 8 here.
+   PR 18 could import the shared helper instead of its local copy if it lands after this PR.
+   Decider: the plan coordinator, before this PR executes.
+
 Not changed because: the first draft's other eight seams (`dotenv`, `crypto`, `async`, `datetime`, `streams`, `fmt`, `media-types`, extended `io`/`log`) were re-exports that only moved specifiers across ~240 files; the import map already is that seam, and the two modules with internal `Deno.*` among them are reimplemented in PR 20b, not re-exported.

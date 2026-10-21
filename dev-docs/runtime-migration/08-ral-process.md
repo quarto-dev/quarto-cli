@@ -280,7 +280,7 @@ import {
   assertEquals,
   assertRejects,
   assertStringIncludes,
-} from "testing/asserts";
+} from "../../asserts.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import {
   args,
