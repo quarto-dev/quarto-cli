@@ -1997,8 +1997,11 @@ textarea {
 
 // Code Annotation
 
-.code-annotated .code-copy-button {
-  margin-right: 1.25em;
+// The copy button is a sibling of div.sourceCode, so its em is not the code
+// font size. Clear the gutter (calc(20px + 0.5em) in code font size) plus the
+// default 5px margin.
+.code-copy-outer-scaffold:has(pre.code-annotated) > .code-copy-button {
+  margin-right: calc(20px + 0.5 * #{$code-block-font-size} + 5px);
   margin-top: 0;
   padding-bottom: 0;
   padding-top: 3px;

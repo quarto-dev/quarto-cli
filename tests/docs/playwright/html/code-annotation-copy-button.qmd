@@ -9,3 +9,9 @@ import polars as pl # <1>
 ```
 
 1. This is a code block with a copy button and an annotation.
+
+A code block without annotations keeps the copy button in its default place.
+
+```{.python}
+import polars as pl
+```
