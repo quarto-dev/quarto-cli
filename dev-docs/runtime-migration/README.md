@@ -187,7 +187,7 @@ Update this table as PRs land.
 
 | PR | Plan | What | Depends on | Executor | Size | Status |
 |---|---|---|---|---|---|---|
-| 02 | [02-runtime-boundary-check.md](02-runtime-boundary-check.md) | CI ratchet counting `Deno.*` and direct std imports in five scopes (`src`, `src-js`, `resources`, `package/src`, `tests`); `tests/asserts.ts`; lands first | none | Sonnet | S | planned |
+| 02 | [02-runtime-boundary-check.md](02-runtime-boundary-check.md) | CI ratchet counting `Deno.*` and direct std imports in five scopes (`src`, `src-js`, `resources`, `package/src`, `tests`); `tests/asserts.ts`; lands first | none | Sonnet | S | in progress |
 | 00a | [00a-deno-bump.md](00a-deno-bump.md) | Deno 2.7.14 → newest 2.9.x everywhere the version appears | 02 | Sonnet | S | planned |
 | 00b | [00b-lockfile-and-bundle-gate.md](00b-lockfile-and-bundle-gate.md) | Committed `deno.lock` with `--frozen` (six entrypoints); `tools/check-test-imports.ts` keeps the unlocked tests inside that graph; three-OS bundle gate (cold cache, external-specifier grep, five renders) | 02, 00a | Opus | M | planned |
 | 00c | [00c-quarto-run-deprecation-notice.md](00c-quarto-run-deprecation-notice.md) | One-time notice when `quarto run` or a pre/post-render `.ts` script runs on Deno; `QUARTO_RUN_DENO_NOTICE=0` | 02 | Sonnet | S | planned |
