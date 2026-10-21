@@ -1,0 +1,22 @@
+{
+  "src": {
+    "denoCalls": 994,
+    "stdImportFiles": 49
+  },
+  "src-js": {
+    "denoCalls": 7,
+    "stdImportFiles": 0
+  },
+  "resources": {
+    "denoCalls": 10,
+    "stdImportFiles": 1
+  },
+  "package/src": {
+    "denoCalls": 240,
+    "stdImportFiles": 3
+  },
+  "tests": {
+    "denoCalls": 826,
+    "stdImportFiles": 177
+  }
+}

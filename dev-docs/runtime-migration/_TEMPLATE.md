@@ -1,34 +1,40 @@
 # Plan template and shared vocabulary
 
-Every `NN-*.md` plan in this directory follows this structure. The shared
-vocabulary at the end is normative: plans that define or use a `deno_ral`
-module use exactly these names and signatures so that the plans compose.
+Every `NN-*.md` plan in this directory follows this structure.
+The shared vocabulary at the end is normative: plans that define or use a `deno_ral` module use exactly these names and signatures so that the plans compose.
 
 ## Structure of a plan
 
 ```markdown
 # PR NN: <title>
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** one sentence.
-**Phase:** 0 | 1 | 2 | 3. **Depends on:** PR xx, yy. **Unblocks:** PR zz.
+**Phase:** 0 | 1 | 2 | 3.
+**Depends on:** PR xx, yy.
+**Unblocks:** PR zz.
 **Branch:** `rt/NN-<slug>`.
 **Suggested executor:** Opus | Sonnet, with one line of reasoning (judgement needed vs mechanical).
 **Size:** S (< 10 files) | M (10–40 files) | L (> 40 files); the number of call sites or files touched.
-**Ships on:** Deno; the existing test suite must stay green. (Phase 2+ plans also name the Node job.)
+**Ships on:** Deno; the existing test suite must stay green.
+(Phase 2+ plans also name the Node job.)
 
 ## Spec
 
 ### Context
-Why this PR exists and what it changes for callers. Point to the assessment section.
+Why this PR exists and what it changes for callers.
+Point to the assessment section.
 
 ### Scope
-In: ... Out: ... (explicit, so reviewers can reject scope creep).
+In: ...
+Out: ...
+(explicit, so reviewers can reject scope creep).
 
 ### Interfaces
-Complete TypeScript for every type and function this PR adds or changes
-(signatures, doc comments, error behaviour). Use the shared vocabulary below.
+Complete TypeScript for every type and function this PR adds or changes (signatures, doc comments, error behaviour).
+Use the shared vocabulary below.
 
 ### Files
 - Create: `exact/path.ts` (responsibility)
@@ -64,55 +70,32 @@ What can break, how it shows up, how to revert.
 
 ## Decisions needed
 Only if a choice cannot be made in the plan: options, trade-offs, recommendation.
-Keep the decisions still open apart from the notes that answer a review
-("Not changed because ..."), so a worker sees at a glance what is open; a
-decision that needs a named person is also a row of README "Open decisions
-with an owner".
+Keep the decisions still open apart from the notes that answer a review ("Not changed because ..."), so a worker sees at a glance what is open; a decision that needs a named person is also a row of README "Open decisions with an owner".
 ```
 
-Rules (from the writing-plans skill): no placeholders ("TBD", "handle edge
-cases", "similar to task N"); exact paths; code blocks for every code step;
-exact commands with expected output; DRY, YAGNI, TDD, frequent commits. Where
-a detail depends on an earlier PR's outcome, state the assumption explicitly
-("assumes PR 09 landed with `readTextFileSync` exported from
-`src/deno_ral/fs.ts`").
+Rules (from the writing-plans skill): no placeholders ("TBD", "handle edge cases", "similar to task N"); exact paths; code blocks for every code step; exact commands with expected output; DRY, YAGNI, TDD, frequent commits.
+Where a detail depends on an earlier PR's outcome, state the assumption explicitly ("assumes PR 09 landed with `readTextFileSync` exported from `src/deno_ral/fs.ts`").
 
-Repository conventions that plans must respect (`.claude/CLAUDE.md` and
-`.claude/rules/`):
+Repository conventions that plans must respect (`.claude/CLAUDE.md` and `.claude/rules/`):
 
-- Imports use import-map names and `.ts` extensions; application code imports
-  `src/deno_ral/`, never `jsr:`/`npm:` URLs and never `Deno.*` (after Phase 1).
-  Direct std imports are allowed only for the import-map seams the std boundary
-  rule allow-lists (PR 02 `kStdAllowListed`; the module inventory is PR 22's
-  table): `async`, `crypto`, `datetime`, `streams`, `io/*`, `log` other than
-  `log/file-handler`, `fmt/printf`, `dotenv/stringify`.
+- Imports use import-map names and `.ts` extensions; application code imports `src/deno_ral/`, never `jsr:`/`npm:` URLs and never `Deno.*` (after Phase 1).
+  Direct std imports are allowed only for the import-map seams the std boundary rule allow-lists (PR 02 `kStdAllowListed`; the module inventory is PR 22's table): `async`, `crypto`, `datetime`, `streams`, `io/*`, `log` other than `log/file-handler`, `fmt/printf`, `dotenv/stringify`.
 - New files carry `Copyright (C) 2026 Posit Software, PBC`.
-- Unit tests live in `tests/unit/` (runtime-layer tests under the existing
-  `tests/unit/ral/`), use `unitTest` from `tests/test.ts` and assertions from
-  `tests/asserts.ts` (added by PR 02), and run with
-  `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/<file>.test.ts`.
-  The ratchet (PR 02) has a `tests` scope: tests written by PRs 09 and later use
-  `deno_ral` `fs`/`temp`/`process`, never raw `Deno.*`.
-- Landing order inside Phase 1: 02 → 02b → 08 → 22 → 10–13 → 14, with 09
-  before 10; 22 depends on PR 04 (Phase 0). A conflict in a codemod PR is
-  resolved by resetting the file to `main` and re-running the codemod, never
-  by hand (the codemod is idempotent, PR 09); a conflict on a shared file
-  (`tools/runtime-boundary-baseline.json`, `deno.lock`, the shim, the
-  `deno-ral.md` table, a changelog) follows README ground rule 8.
-- Commands in the plans write the Linux path `package/dist/bin/tools/x86_64/deno`;
-  on Apple Silicon it is `tools/aarch64/deno`, on Windows `tools\x86_64\deno.exe`.
-- Size is by file count (S < 10, M 10–40, L > 40 files); a plan that is large by
-  volume but small by files says so next to the letter.
-- Pins: Deno `v2.9.x` (PR 00a; newest 2.9 at execution), Node `v26.12.0` or
-  newer 26.x, `@cliffy/*` 1.3.1, `@b-fuze/deno-dom` 0.1.56, `ws` 8.22.
-- Dev build: `./configure.sh`, then `package/dist/bin/quarto ...`. Dev scripts
-  run with `quarto run --dev <script.ts>` (uses `src/import_map.json`).
+- Unit tests live in `tests/unit/` (runtime-layer tests under the existing `tests/unit/ral/`), use `unitTest` from `tests/test.ts` and assertions from `tests/asserts.ts` (added by PR 02), and run with `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/<file>.test.ts`.
+  The ratchet (PR 02) has a `tests` scope: tests written by PRs 09 and later use `deno_ral` `fs`/`temp`/`process`, never raw `Deno.*`.
+- Landing order inside Phase 1: 02 → 02b → 08 → 22 → 10–13 → 14, with 09 before 10; 22 depends on PR 04 (Phase 0).
+  A conflict in a codemod PR is resolved by resetting the file to `main` and re-running the codemod, never by hand (the codemod is idempotent, PR 09); a conflict on a shared file (`tools/runtime-boundary-baseline.json`, `deno.lock`, the shim, the `deno-ral.md` table, a changelog) follows README ground rule 8.
+- Commands in the plans write the Linux path `package/dist/bin/tools/x86_64/deno`; on Apple Silicon it is `tools/aarch64/deno`, on Windows `tools\x86_64\deno.exe`.
+- Size is by file count (S < 10, M 10–40, L > 40 files); a plan that is large by volume but small by files says so next to the letter.
+- Pins: Deno `v2.9.x` (PR 00a; newest 2.9 at execution), Node `v26.12.0` or newer 26.x, `@cliffy/*` 1.3.1, `@b-fuze/deno-dom` 0.1.56, `ws` 8.22.
+- Dev build: `./configure.sh`, then `package/dist/bin/quarto ...`.
+  Dev scripts run with `quarto run --dev <script.ts>` (uses `src/import_map.json`).
 - Changelog entries go in `news/changelog-1.11.md` only for user-visible changes.
 
 ## Shared vocabulary (normative)
 
-Module paths are under `src/deno_ral/`. Existing modules: `fs.ts`, `path.ts`,
-`log.ts`, `io.ts`, `encoding.ts`, `platform.ts`, `process.ts`, `tar.ts`.
+Module paths are under `src/deno_ral/`.
+Existing modules: `fs.ts`, `path.ts`, `log.ts`, `io.ts`, `encoding.ts`, `platform.ts`, `process.ts`, `tar.ts`.
 
 ### Tooling introduced by plans
 
@@ -137,8 +120,7 @@ export function isConnectionRefused(e: unknown): boolean;
 export function isConnectionError(e: unknown): boolean;   // BrokenPipe | NotConnected | ConnectionAborted | ConnectionReset | ConnectionRefused | EPIPE | ENOTCONN | ECONNABORTED | ECONNRESET | ECONNREFUSED (PR 09 addition; PR 27 keeps it here)
 export function errorWithPath(e: Error, path: string): Error; // appends "\nPath: <path>" unless the message already ends with it; returns e (from monkey-patch.ts)
 ```
-The predicates also inspect `e.cause`, so an `exec`/`spawn` failure for a missing
-executable (which carries `code: "ENOENT"`, PR 08) satisfies `isNotFound`.
+The predicates also inspect `e.cause`, so an `exec`/`spawn` failure for a missing executable (which carries `code: "ENOENT"`, PR 08) satisfies `isNotFound`.
 
 ### `fs.ts` (extended in PR 09)
 
@@ -195,8 +177,7 @@ export function openSync(path: string | URL, options?: OpenOptions): FsFile;    
 export function create(path: string | URL): Promise<FsFile>;                        // PR 09 addition
 // walk, walkSync, expandGlob, expandGlobSync, ensureDir(Sync), existsSync, copy(Sync), moveSync, emptyDirSync, EOL: unchanged re-exports until PR 27 (which keeps both `copy` and `copySync`)
 ```
-PR 09 also retypes the existing `getFileInfoType(fileInfo: FileInfo)` and
-`safeRemoveSync` to the layer's `FileInfo`.
+PR 09 also retypes the existing `getFileInfoType(fileInfo: FileInfo)` and `safeRemoveSync` to the layer's `FileInfo`.
 
 ### `temp.ts` (new in PR 09)
 
@@ -334,7 +315,8 @@ export class FileHandler extends BaseHandler { constructor(level: LevelName, opt
 
 ### `env.ts` key validation (PR 14 contract)
 
-`env.get`, `env.set` and `env.delete` throw `TypeError` for a key that is empty or contains `=` or NUL, and `env.set` throws `TypeError` for a value containing NUL (`Deno.env` semantics, kept on Node by PR 27b's own validation because `process.env` would accept such keys silently). The contract test is PR 14's `env - invalid names throw TypeError on every runtime`; PR 27b runs it against the Node body.
+`env.get`, `env.set` and `env.delete` throw `TypeError` for a key that is empty or contains `=` or NUL, and `env.set` throws `TypeError` for a value containing NUL (`Deno.env` semantics, kept on Node by PR 27b's own validation because `process.env` would accept such keys silently).
+The contract test is PR 14's `env - invalid names throw TypeError on every runtime`; PR 27b runs it against the Node body.
 
 ### Test harness (PR 23, PR 31)
 
@@ -379,8 +361,9 @@ export function runHarness(options: {
 export function runtimeScriptCommand(scriptPath: string, options?: { allowWritePath?: string }): { cmd: string; args: string[] };
 ```
 
-`tests/asserts.ts` (PR 02) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError`; PR 23 adds `assertFalse`, `assertInstanceOf`, `assertNotEquals`, `assertStrictEquals`.
+`tests/asserts.ts` (PR 02) re-exports `assert`, `assertEquals`, `assertStringIncludes`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `fail`, `AssertionError` from the import-map key `@std/assert` (0.224.0 from PR 02, 1.x from PR 31; never from `testing/asserts`, whose `AssertionError` is not the class its assertions throw, PR 02 "Decisions needed"); PR 23 adds `assertFalse`, `assertInstanceOf`, `assertNotEquals`, `assertStrictEquals`.
 
-`tests/harness.ts` also exports `testArgs(): string[]` (the test's own arguments: `Deno.args` after `--` on Deno, `QUARTO_TEST_ARGS` under the Node runner; PR 23/31) and `onProcessExit(fn: () => void): void` (PR 31). Shared helpers for process-level tests live in `tests/process-helpers.ts` (PR 14b: `waitFor`, `collectText`, `processGroupOf`, `isProcessGone`).
+`tests/harness.ts` also exports `testArgs(): string[]` (the test's own arguments: `Deno.args` after `--` on Deno, `QUARTO_TEST_ARGS` under the Node runner; PR 23/31) and `onProcessExit(fn: () => void): void` (PR 31).
+Shared helpers for process-level tests live in `tests/process-helpers.ts` (PR 14b: `waitFor`, `collectText`, `processGroupOf`, `isProcessGone`).
 
 `tests/run-tests.sh` accepts files only, never directories: write `$(find unit/ral -name '*.test.ts')`, not `unit/ral/`.
