@@ -97,14 +97,19 @@ export function isAllowListedStdImport(specifier: string): boolean {
 
 const kCommentLineRe = /^\s*(\/\/|\/\*|\*)/;
 
+const kStdImportAllRe = new RegExp(kStdImportRe.source, "g");
+
+/** Scans every import in the text, so an allow-listed import does not hide a counted one on the
+ * same line, and a `from` separated from its specifier by a newline is still seen. Comment lines
+ * are blanked, keeping the newlines. */
 export function hasStdImport(text: string): boolean {
-  return text.split("\n").some((line) => {
-    if (kCommentLineRe.test(line)) {
-      return false;
-    }
-    const match = kStdImportRe.exec(line);
-    return match !== null && !isAllowListedStdImport(match[1]);
-  });
+  const code = text
+    .split("\n")
+    .map((line) => kCommentLineRe.test(line) ? "" : line)
+    .join("\n");
+  return [...code.matchAll(kStdImportAllRe)].some((match) =>
+    !isAllowListedStdImport(match[1])
+  );
 }
 
 /** Never counted in the `src` scope. A directory entry covers every file beneath it. */
@@ -244,11 +249,39 @@ export function acceptTestsIncrease(
   return result;
 }
 
+const isCount = (n: unknown) => Number.isInteger(n) && (n as number) >= 0;
+
+/** Parses a baseline file, rejecting any scope without a non-negative integer for each field:
+ * a missing field would make its comparison always false and silently disable that constraint. */
+export function parseBaseline(text: string): Baseline {
+  const parsed: unknown = JSON.parse(text);
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error("baseline must be a JSON object keyed by scope");
+  }
+  for (const [scope, counts] of Object.entries(parsed)) {
+    for (const field of kFields) {
+      if (!isCount((counts as Record<string, unknown> | null)?.[field])) {
+        throw new Error(
+          `baseline scope "${scope}": ${field} must be a non-negative integer`,
+        );
+      }
+    }
+  }
+  return parsed as Baseline;
+}
+
 function readBaseline(path: string): Baseline {
   if (!existsSync(path)) {
     return {};
   }
-  return JSON.parse(Deno.readTextFileSync(path)) as Baseline;
+  try {
+    return parseBaseline(Deno.readTextFileSync(path));
+  } catch (e) {
+    console.error(
+      `check-runtime-boundary: cannot use ${kBaselineRelPath}: ${(e as Error).message}`,
+    );
+    Deno.exit(2);
+  }
 }
 
 function printTable(current: Baseline, baseline: Baseline) {

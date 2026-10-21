@@ -9,7 +9,7 @@
  */
 
 import { unitTest } from "../../test.ts";
-import { assert, assertEquals } from "../../asserts.ts";
+import { assert, assertEquals, assertThrows } from "../../asserts.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 import { createTempContext } from "../../../src/core/temp.ts";
@@ -21,6 +21,7 @@ import {
   kScopes,
   lowerBaseline,
   measure,
+  parseBaseline,
 } from "../../../tools/check-runtime-boundary.ts";
 
 // Built at runtime so this file's text is not counted by the ratchet itself.
@@ -200,6 +201,46 @@ unitTest("check-runtime-boundary - compareToBaseline reports regressions and imp
     improvements: ["src: std-import files fell from 3 to 2"],
   });
   assertEquals(compareToBaseline(baseline, baseline), { regressions: [], improvements: [] });
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - hasStdImport sees every import, not only the first on a line", async () => {
+  const yes = [
+    `${IMPORT} { delay } ${FROM} "async"; ${IMPORT} { blue } ${FROM} "fmt/colors";`,
+    `${IMPORT} { blue }\n  ${FROM}\n  "fmt/colors";`,
+    `${IMPORT} { delay } ${FROM} "async";\n${IMPORT} {\n  blue,\n} ${FROM}\n"fmt/colors";`,
+    `// ${IMPORT} { x } ${FROM} "fmt/colors"\n${IMPORT} { blue } ${FROM} "fmt/colors";`,
+  ];
+  const no = [
+    `${IMPORT} { delay } ${FROM} "async"; ${IMPORT} { sleep } ${FROM} "log";`,
+    `${IMPORT} { delay }\n  ${FROM}\n  "async";`,
+    `// ${IMPORT} { blue } ${FROM} "fmt/colors"\n${IMPORT} { delay } ${FROM} "async";`,
+  ];
+  for (const text of yes) assert(hasStdImport(text), `expected std import: ${text}`);
+  for (const text of no) assert(!hasStdImport(text), `expected no std import: ${text}`);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - parseBaseline accepts a complete baseline", async () => {
+  const baseline = { "src": { denoCalls: 3, stdImportFiles: 0 }, "tests": { denoCalls: 0, stdImportFiles: 2 } };
+  assertEquals(parseBaseline(JSON.stringify(baseline)), baseline);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - parseBaseline rejects a scope with a missing, negative or non-integer count", async () => {
+  const malformed = [
+    `{"src":{"denoCalls":0}}`,
+    `{"src":{"stdImportFiles":0}}`,
+    `{"src":{"denoCalls":-1,"stdImportFiles":0}}`,
+    `{"src":{"denoCalls":1.5,"stdImportFiles":0}}`,
+    `{"src":{"denoCalls":"3","stdImportFiles":0}}`,
+    `{"src":null}`,
+    `[]`,
+    `null`,
+  ];
+  for (const text of malformed) {
+    assertThrows(() => parseBaseline(text), Error, "baseline", `expected rejection: ${text}`);
+  }
 });
 
 // deno-lint-ignore require-await
