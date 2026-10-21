@@ -81,6 +81,8 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task per plan file, in parallel where the triage marks it), then the re-read of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25, 26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is complete).
 5. Open the plans as PRs against `main` in the README order: PR 02 first, then 00a and 00b, then 03–06 in parallel, then 07.
    Each plan names its branch, executor and verification commands.
+   For the per-worktree session ritual (window model, trust, fresh conversation, concurrency ceiling), check
+   `local/multi-worktree-workflow.md` if it exists — it is a maintainer-local, untracked note.
 6. Keep the README status column current as PRs merge.
 
 ## Organisation review (2026-10-17)
