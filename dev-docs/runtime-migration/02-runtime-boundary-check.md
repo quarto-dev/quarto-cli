@@ -37,7 +37,7 @@ Scopes (the scope keys are the baseline JSON keys; PR 25 relies on `"src"` and `
 
 A file counts as a `stdImportFiles` hit when at least one non-comment line imports a counted module; a file whose only std imports are allow-listed does not count. The rule is textual: it cannot see a Quarto helper that imports a counted module on the file's behalf (the fixture shows this with `src/core/indirect.ts`, which imports a helper that calls `Deno.*` and imports `fs/exists`: the helper is counted, the importer is not), and it does not say whether an allow-listed module is *safe*; that is PR 22's table (which reads the std sources) and PR 25's hidden-dependency inventory (which proves each std module with internal `Deno.*` has a replacement before Phase 1 closes). Changing the allow-list is a PR 22 change (the table) mirrored here (the constant), never the other way round. The zero PR 25 reaches is therefore "zero counted std imports", not "zero std imports".
 
-Measured on `main` at `b86f98d` with the counting rules of Task 1 (reproduced with a Node 22 port of the same walk and regexes; the first run of the committed script must print exactly these numbers, plus the one `Deno.` occurrence the new unit test adds to `tests`):
+Measured on `main` at `b86f98d` with the counting rules of Task 1 (reproduced with a Node 22 port of the same walk and regexes; the first run of the committed script must print exactly these numbers, plus the three `Deno.` occurrences the new unit test adds to `tests`):
 
 | Scope | `Deno.*` occurrences | Files with a direct std import |
 |---|---|---|
@@ -1118,7 +1118,7 @@ After opening the PR, the `Runtime Boundary` check must appear and pass. If `qua
 - [ ] The fixture holds the three cases of `REVIEW-2026-10-16.md` R01 "Later validation": a permitted pure import (`src/core/h.ts`, not counted), a forbidden filesystem import (`src/core/helper.ts`, `fs/exists`, counted) and an importer of a helper with an indirect Deno dependency (`src/core/indirect.ts`, not counted; its own test proves it contributes nothing).
 - [ ] `kSrcExclusions` is exactly the six entries, each with its reason; `kTestsExclusions` is `tests/docs` and `tests/asserts.ts`; `src-js` and `resources` never count the same file.
 - [ ] `--update-baseline` uses `lowerBaseline`; only `--accept-tests-increase` can raise a number, and only `tests`.
-- [ ] The unit test file contains no literal `Deno.` and no literal std import (it builds them from `DENO`/`FROM`/`IMPORT`), so it adds exactly one `Deno.` occurrence (`Deno.writeTextFileSync` in `writeFixture`) to `tests` and no std-import file.
+- [ ] The unit test file contains no literal std import (it builds the fixtures from `DENO`/`FROM`/`IMPORT`), so it adds no std-import file to `tests`. Its literal `Deno.` matches are exactly three: `Deno.writeTextFileSync` in `writeFixture` and the two `compareToBaseline` expectation strings (`"src: Deno.* calls rose from 10 to 11"`, `"src-js: Deno.* calls rose from 0 to 1"`). Rewording those strings so the count is one is quarto-cli-81ld.51.
 - [ ] `tests/asserts.ts` exports the nine names of `_TEMPLATE.md`'s vocabulary and nothing else, from `"@std/assert"` (not `"testing/asserts"`); `src/import_map.json` gains exactly one key, `"@std/assert": "jsr:@std/assert@0.224.0"`, and its `"testing/"` key is unchanged.
 - [ ] The workflow has `permissions: contents: read` and the same `paths` list in both triggers.
 
@@ -1389,3 +1389,26 @@ One dated entry per working session; newest last. The normative plan ends at
   The regression/baseline bullets are covered by the Task 3 step 4-5
   results above. The last bullet (workflow green on the PR) needs Task 4
   step 5, which this session was told not to run (no push, no PR).
+
+### 2026-10-21 (session 7 addendum): unit-test Deno. count corrected in the prose
+
+- Found while walking the Review checklist against the committed code:
+  the unit test file adds three `Deno.` occurrences to the `tests` scope,
+  not one. The ratchet's own regex matches `Deno.writeTextFileSync` in
+  `writeFixture` (line 35) and the two `compareToBaseline` expectation
+  strings `"src: Deno.* calls rose from 10 to 11"` (line 200) and
+  `"src-js: Deno.* calls rose from 0 to 1"` (line 249), both verbatim
+  from Task 2's code block. Arithmetic proof: the committed script run
+  with `--root` against the main worktree (content-identical to the
+  merge-base `502f28448` in the counted dirs) prints `tests` 825/177;
+  the branch baseline is 828/177, a difference of exactly 3. No ratchet
+  impact: the baseline is a measured number and the check passes; the
+  "no literal std import" half of the checklist item was true.
+- Corrected in this commit: the Context paragraph ("one" -> "three")
+  and Review checklist item 8 (now names the three matches). Session 4's
+  log line ("the 828 includes the new unit test's one Deno.") is left as
+  the historical record it is; this entry supersedes it.
+- Filed as quarto-cli-81ld.51 for the remaining decision: reword the two
+  expectation strings so the file counts one (and lower the `tests`
+  baseline by 2 with `--update-baseline` in the same change), or keep
+  the self-referential count. The plan-amendment session decides.
