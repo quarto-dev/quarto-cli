@@ -197,7 +197,7 @@ export {
 - The baseline is `src` 992/49, `src-js` 7/0, `resources` 10/1, `package/src` 240/3, `tests` 814/165 (or the numbers the script prints on the PR's merge-base, if `main` moved; the PR description shows the script output).
 - Adding one `Deno.cwd()` call to any file under `src/command/` makes the same command exit 1 with `::error::src: Deno.* calls rose from 992 to 993 ...`; adding one to `src/core/cri/deno-cri/chrome.js` reports `src-js`; adding `import { join } from 'https://deno.land/std/path/mod.ts';` to a file under `src/core/` reports `src: std-import files rose`; adding `import { delay } from "async";` to a file under `src/core/` that imports no std module reports nothing (allow-listed).
 - `--update-baseline` never raises a number; `--update-baseline --accept-tests-increase` raises only `tests`.
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts` → `10 passed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts` → `13 passed` (10 before `fac6b460a` added the `parseBaseline` tests).
 - The `Runtime Boundary` workflow runs on the PR and is green.
 
 ## Plan
@@ -988,12 +988,13 @@ echo 'import { delay as _rt02d } from "async";' >> src/core/path.ts
 package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts; echo "exit=$?"
 git checkout -- src/command/utils.ts src/core/cri/deno-cri/chrome.js src/core/mime.ts src/core/path.ts
 ```
-Expected (numbers from the baseline written in Step 3; the ones below are `b86f98d`'s): `::error::src: Deno.* calls rose from 992 to 993`, `::error::src: std-import files rose from 49 to 50` (`mime.ts` only: `path.ts` gained an allow-listed import, which does not count), `::error::src-js: Deno.* calls rose from 7 to 8`, and `exit=1`; the last command restores the files. The URL probe needs a file that imports no counted std module, or the file is already among the counted ones and the count cannot rise; `src/core/mime.ts` imports none (`src/core/text.ts`, the first draft's target, imports `fmt/colors`).
+Expected (numbers from the baseline written in Step 3; the ones below are `b86f98d`'s): `::error::src: Deno.* calls rose from 992 to 993`, `::error::src: std-import files rose from 49 to 50` (`mime.ts` only: `path.ts` gained an allow-listed import, which does not count), `::error::src-js: Deno.* calls rose from 7 to 8`, and `exit=1`; the last command restores the files. The URL probe needs a file that imports no counted std module, or the file is already among the counted ones and the count cannot rise; `src/core/mime.ts` imports none (`src/core/text.ts`, the first draft's target, imports `fmt/colors`). The dev launcher runs Deno with `--cached-only`, so the URL probe fails before the script runs unless `package/dist/bin/deno_cache` already holds that URL; warm it first (needs network) with `DENO_DIR="$PWD/package/dist/bin/deno_cache" package/dist/bin/tools/x86_64/deno cache https://deno.land/std/path/mod.ts`. A plain `deno cache` fills the global cache, which the launcher does not read.
 
 - [ ] **Step 5: Prove `--update-baseline` never raises and `--accept-tests-increase` raises only `tests`**
 
 Run:
 ```bash
+git add tools/runtime-boundary-baseline.json
 echo 'const _rt02 = Deno.cwd();' >> src/command/utils.ts
 echo 'const _rt02 = Deno.cwd();' >> tests/utils.ts
 package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline
@@ -1003,7 +1004,9 @@ git diff tools/runtime-boundary-baseline.json
 git checkout -- src/command/utils.ts tests/utils.ts tools/runtime-boundary-baseline.json
 package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --accept-tests-increase; echo "exit=$?"
 ```
-Expected: the first `git diff --stat` is empty; after the second run the diff shows only `"denoCalls": 814` → `815` under `tests` and a `::warning::tests baseline raised from 814 to 815` line was printed (`src` stays 992); the last command prints the usage message and `exit=2`.
+The first line stages the baseline written in Step 2, so that `git diff` compares the working file with it and `git checkout --` restores it from the index. On an untracked file, `git diff` prints nothing whatever happened and `git checkout --` aborts on the pathspec, leaving the probe lines in place.
+
+Expected (numbers from the baseline written in Step 2; the ones below were measured at `502f28448`): the first `git diff --stat` is empty; after the second run the diff shows only `"denoCalls": 828` → `829` under `tests` and a `::warning::tests baseline raised from 828 to 829 (Deno.* calls); ...` line was printed (`src` stays 994); `git checkout` exits 0 and the baseline holds 828 again; the last command prints `check-runtime-boundary: --accept-tests-increase is only valid with --update-baseline` and `exit=2`.
 
 - [ ] **Step 6: Commit**
 
@@ -1011,9 +1014,9 @@ Expected: the first `git diff --stat` is empty; after the second run the diff sh
 git add tools/runtime-boundary-baseline.json
 git commit -m "Add runtime boundary baseline
 
-Measured on main: src 992 Deno. occurrences / 49 std-import files
-(allow-listed import-map seams not counted), src-js 7 / 0,
-resources 10 / 1, package/src 240 / 3, tests 814 / 165."
+Measured on main at 502f28448: src 994 Deno. occurrences / 49
+std-import files (allow-listed import-map seams not counted),
+src-js 7 / 0, resources 10 / 1, package/src 240 / 3, tests 828 / 177."
 ```
 
 ### Task 4: The CI workflow
@@ -1100,7 +1103,7 @@ After opening the PR, the `Runtime Boundary` check must appear and pass. If `qua
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts` → `10 passed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts` → `13 passed` (10 before `fac6b460a` added the `parseBaseline` tests).
 - `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts` → `OK: no count exceeds the baseline.`, exit 0.
 - Task 3 steps 4 and 5 (regressions detected in `src` and `src-js`; baseline never raised except `tests` with the explicit flag).
 - `package/dist/bin/tools/x86_64/deno lint tools/check-runtime-boundary.ts tests/asserts.ts` → clean.
@@ -1307,3 +1310,30 @@ One dated entry per working session; newest last. The normative plan ends at
 - Resume: Task 3 step 4 (or treat it as done on the evidence above and
   tick it), step 5, commit the already-written baseline at step 6, then
   Task 4 and Verification.
+
+### 2026-10-21 (session 6): Task 3 step 5 amended, script hardened after review
+
+- `fac6b460a` closes review job 3571's two points in the script, beyond
+  Task 2's code block: `hasStdImport` scans every import in the
+  comment-stripped text, and `parseBaseline` rejects a scope whose counts
+  are not non-negative integers (exit 2). The committed script is now the
+  reference, not Task 2's code block. The unit run gives `13 passed`
+  (Acceptance and Verification updated). Counts are unchanged: the check
+  passes against the uncommitted baseline (994/49, 7/0, 10/1, 240/3,
+  828/177).
+- Defect in step 5 (every OS): it ran `git diff` and `git checkout --` on
+  the baseline before step 6 committed it. On an untracked file the diff
+  is empty whatever happened, and the checkout aborts on the pathspec and
+  leaves the probe lines in `src/command/utils.ts` and `tests/utils.ts`.
+  Step 5 now starts with `git add tools/runtime-boundary-baseline.json`;
+  its expected numbers and the step 6 commit message carry the measured
+  counts.
+- The amended step 5 was run once on Windows (`quarto.cmd`): first diff
+  empty, second diff `828` -> `829` under `tests` with the `::warning::`
+  line, `git checkout` exit 0 with the baseline back at 828, last command
+  `--accept-tests-increase is only valid with --update-baseline` and
+  `exit=2`. The baseline was then unstaged; `git status --short` shows it
+  untracked again.
+- Step 4 now says how to warm `package/dist/bin/deno_cache` for the URL
+  probe (the launcher is `--cached-only`), as session 4 did by hand.
+- Resume: Task 3 steps 4-6, then Task 4 and Verification.
