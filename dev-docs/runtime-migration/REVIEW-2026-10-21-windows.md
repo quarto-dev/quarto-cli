@@ -195,30 +195,61 @@ Windows consequence, MEASURED with the plans' code extracted verbatim: while one
 
 PR 30's own 180-entry test and its "must not flake" Verification would fail on the Windows legs. A flaky test must not be parked in the `windows` known-failures list.
 
-**Amendment:** on win32, treat `EPERM`/`EACCES`/`EBUSY` as transient, but only through a bounded retry that checks the deadline and sleeps.
-- Do not simply add these codes next to `EEXIST` in the `mkdir` catch. A *persistent* permission failure (no write access to the lock's parent) then falls through to the `mtime` stat, which finds no lock and `continue`s before both the deadline check and the sleep: a busy loop that never ends. MEASURED on a directory with a deny-create ACL: this version was still spinning after 10 s.
-- The `mkdir` site, in both plans (33's `acquireLock`, 30's `lockIndex` at 633):
+**Amendment:** on win32, treat `EPERM`/`EACCES`/`EBUSY` as transient, and make *every* retry pass the deadline check and the sleep.
 
-  ```js
-  const kTransient = process.platform === "win32" ? ["EPERM", "EACCES", "EBUSY"] : [];
-  // ...
-  try {
-    fs.mkdirSync(lockDir);
-    break;
-  } catch (e) {
-    if (kTransient.includes(e.code)) {
-      if (Date.now() > deadline) throw e; // persistent: report the permission error
+Two things make a per-site fix unsafe. First, the loop has several `continue` paths that skip the deadline check and the sleep: after a failed `mkdir`, after a `stat` that finds nothing (33's `mtime()` swallows every error; 30:639), and after `breakLock`. Second, a *persistent* permission failure looks just like a transient one. So swallowing these codes at any one site turns a permanent failure into a busy loop that never ends. MEASURED, with the codes swallowed at the sites but the loop otherwise unchanged:
+- a parent directory with a deny-create ACL: still spinning after 10 s (the `mkdir` path);
+- a dead-owner lock whose rename is denied: still spinning after 10 s (`breakLock` → `continue` → `mkdir` `EEXIST` → `breakLock`).
+
+The loop shape, for 33's `acquireLock` and 30's `lockIndex` alike:
+
+```js
+const kTransient = process.platform === "win32" ? ["EPERM", "EACCES", "EBUSY"] : [];
+const isTransient = (e) => kTransient.includes(e?.code);
+
+async function acquireLock(lockDir) {
+  const deadline = Date.now() + kLockTimeoutMs;
+  let lastOwner, lastTransient;
+  for (let attempt = 0; ; attempt++) {
+    if (attempt > 0) {
+      // every retry, whichever path asked for it, ends here
+      if (Date.now() > deadline) {
+        if (lastTransient) throw lastTransient; // persistent: report the permission error
+        throw new Error(/* the plan's timeout message, naming lastOwner */);
+      }
       await sleep(kLockRetryMs);
+    }
+    lastTransient = undefined;
+    try {
+      fs.mkdirSync(lockDir);
+      break;
+    } catch (e) {
+      if (isTransient(e)) { lastTransient = e; continue; }
+      if (e.code !== "EEXIST") throw e;
+    }
+    const m = mtime(lockDir);
+    if (m === null) continue; // released between mkdir and stat, or stat failed
+    lastOwner = readOwner(lockDir)?.owner; // readOwner: ENOENT or transient -> undefined
+    const alive = lastOwner ? ownerAlive(lastOwner) : undefined;
+    if (alive === false || (alive === undefined && Date.now() - m > kLockStaleMs)) {
+      lastTransient = breakLock(lockDir); // returns the transient error it swallowed, else undefined
       continue;
     }
-    if (e.code !== "EEXIST") throw e;
   }
-  ```
+  // ... write the owner marker as in the plan
+}
+```
 
-- The read and break sites (`readOwner`, `breakLock`, 30's `stat` `continue` at 639): treat the same codes as "not there yet". These paths reach the deadline check and the sleep, or go back to the `mkdir` above, so they stay bounded.
+- `breakLock` returns `undefined` on `ENOENT`, returns the error on a transient code, and throws anything else. In PR 30 the `stat` at 639 treats a transient code like `ENOENT`, recording it in `lastTransient`.
 - Both `rmSync` calls: `{ recursive: true, force: true, maxRetries: 10, retryDelay: 20 }`.
-- MEASURED for this version (PR 33's lock code, Node 24, 8 processes × 40 acquisitions): 0 of 24 runs failed. On the deny-create directory it throws the `mkdir` permission error once the timeout passes (3 s timeout in the test). PR 30's variant has the same structure; the measurements of an earlier version of this amendment (8/8 and 3/3 clean on Node, 5/5 on Deno) were taken without the bounded `mkdir` branch.
-- Record the rule once in PR 30's lock-ownership contract, since both PRs follow it.
+- Cost: one `kLockRetryMs` sleep after a successful `breakLock`, and after a lock released between `mkdir` and `stat`.
+- MEASURED for this shape (PR 33's lock code, Node 24, 3 s test timeout):
+  - 8 processes × 40 acquisitions: 0 of 24 runs failed;
+  - deny-create parent: throws the `mkdir` `EPERM` after the timeout;
+  - rename-denied dead-owner lock: throws the `rename` `EPERM` after the timeout.
+
+  PR 30's variant has the same structure. The PR 30 measurements of the first version of this amendment (8/8 and 3/3 clean on Node, 5/5 on Deno) predate this loop shape.
+- Record the rule once in PR 30's lock-ownership contract, since both PRs follow it: "every retry of the acquisition loop passes the deadline check and the back-off; at the deadline, report the last permission error if there was one."
 
 ### W12 — `gen-tsconfig-paths --check` fails on every Windows checkout
 
