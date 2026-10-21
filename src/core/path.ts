@@ -29,7 +29,9 @@ import { execProcess } from "./process.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
 export function skipHiddenWithin(dir: string) {
-  const startOfDir = `^${ld.escapeRegExp(dir)}`;
+  // walk() yields children of `dir` in normalized form without a doubled separator
+  const walkedDir = normalize(dir).replace(/[/\\]+$/, "");
+  const startOfDir = `^${ld.escapeRegExp(walkedDir)}`;
   const separator = "[/\\\\]";
   const anySubdirs = `(?:.*${separator})?`;
   const dot = "\\.";

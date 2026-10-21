@@ -112,6 +112,21 @@ unitTest(
   },
 );
 
+unitTest(
+  "projectContext below a hidden parent dir walks render list directories",
+  async () => {
+    await withTempDir(async (tmp) => {
+      const root = join(normalizePath(tmp), ".parent", "project");
+      Deno.mkdirSync(root, { recursive: true });
+      writeProject(root, "project:\n  type: default\n  render:\n    - sub\n");
+      await withContext(root, (context) => {
+        assert(context, "expected a project context");
+        assertEquals(relativeInputs(context), ["sub/page.qmd"]);
+      });
+    });
+  },
+);
+
 // Tracked fixture rather than a temp dir: this path leaves the project's
 // disk cache open, so the directory cannot be removed on Windows.
 unitTest(
