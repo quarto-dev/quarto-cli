@@ -130,8 +130,14 @@ them. Change them in the plan that decides them, not downstream.
   helpers and the `chromium` tool are deleted, not ported (PR 07).
 - `tinitex` is rewritten in Rust as a separate project; PR 39 only removes the
   `deno compile` build.
-- Julia engine: ported upstream by PumasAI (milestone J); the subtree is pulled
-  before PR 32; no in-tree edit.
+- Julia engine: ported upstream (milestone J); the subtree is pulled before
+  PR 32; no in-tree edit. The Node port exists: Gordon Woodhull's fork, branch
+  [`q2/node-port`](https://github.com/gordonwoodhull/quarto-julia-engine/tree/q2/node-port)
+  of `PumasAI/quarto-julia-engine` — use that fork until the subtree pull. The
+  upstream PR waits for quarto-cli #14936 to ship in a stable Quarto 1 release
+  ([PR #15133 comment](https://github.com/quarto-dev/quarto-cli/pull/15133#issuecomment-6300211258),
+  2026-10-21); #14936 merged to `main` 2026-09-30, is not in the `v1.10`
+  branch, so that means the v1.11 stable release unless it is backported.
 - Test runner: `node:test` or Vitest, decided by Spike V before PR 31 executes.
 - Node bundle and tooling: `tools/node-bundle/dist/quarto.mjs`; all Node tooling
   and the shim are `.mjs`; the root `package.json` has no `"type": "module"`;
@@ -393,7 +399,7 @@ Status values: `planned`, `in progress`, `merged`. Update this table as PRs land
 | 23 | [23-codemod-tests.md](23-codemod-tests.md) | Codemod `tests/`; `tests/harness.ts` adapter around `Deno.test`; assertions through `tests/asserts.ts` | 02, 08, 09, 14, 19, 22 | Opus | L | planned |
 | 24 | [24-codemod-package-src.md](24-codemod-package-src.md) | Codemod `package/src`; `Deno.run` → `exec`; remaining Deno CLI calls listed for PR 33 | 02, 08, 09, 14, 19, 22 | Sonnet | M | planned |
 | 25 | [25-boundary-zero-and-monkey-patch-removal.md](25-boundary-zero-and-monkey-patch-removal.md) | Delete `core/deno/monkey-patch.ts` and `original-real-path.ts`; types sweep (former PR 21); comment sweep; standalone-script allow-list; hidden-dependency inventory and the runtime residue table (owners and gates for every remaining `Deno.*` or Deno CLI use); ratchet to zero and required | 04, 07, 08–20, 20b, 22–24, 39 | Sonnet | M | planned |
-| J | milestone, no plan | Julia engine ported upstream by PumasAI against the PR 08/09 engine API; subtree pulled; Julia entries leave the PR 32 allowlist (PR 32 does not wait for J; the allowlist is emptied when the subtree is pulled); PRs 08 and 09 have nothing to deliver for J beyond their public interfaces; owner and upstream-issue timing open (triage A9) | 08, 09, upstream | maintainer | – | planned |
+| J | milestone, no plan | Julia engine ported upstream against the PR 08/09 engine API; subtree pulled; Julia entries leave the PR 32 allowlist (PR 32 does not wait for J; the allowlist is emptied when the subtree is pulled); PRs 08 and 09 have nothing to deliver for J beyond their public interfaces; the port exists on Gordon Woodhull's fork (`gordonwoodhull/quarto-julia-engine` branch `q2/node-port`, to use until the pull); the upstream PR to PumasAI waits for #14936 to ship in a stable Quarto 1 release — on `main` only as of 2026-10-21, so v1.11 stable unless backported to v1.10 (PR #15133 comment, 2026-10-21; partially answers triage A9 — Gordon owns the port, the `connectTcp`/`spawnDetached` API question of PR 36 Decisions needed 1 stays open) | 08, 09, upstream | Gordon Woodhull (port), maintainer (subtree pull) | – | in progress (fork) |
 
 ### Phase 2: Node implementations, still running on Deno
 
