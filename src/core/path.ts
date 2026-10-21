@@ -29,7 +29,11 @@ import { execProcess } from "./process.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
 export function skipHiddenWithin(dir: string) {
-  return new RegExp(`^${ld.escapeRegExp(dir)}[/\\\\](?:.*[/\\\\])?\\.`);
+  const startOfDir = `^${ld.escapeRegExp(dir)}`;
+  const separator = "[/\\\\]";
+  const anySubdirs = `(?:.*${separator})?`;
+  const dot = "\\.";
+  return new RegExp(`${startOfDir}${separator}${anySubdirs}${dot}`);
 }
 
 export function removeIfExists(file: string) {
