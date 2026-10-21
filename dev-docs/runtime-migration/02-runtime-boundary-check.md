@@ -259,7 +259,7 @@ unitTest("asserts - failing assertions throw AssertionError", async () => {
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/asserts.test.ts`
 Expected: FAIL at type-check time, `Module not found "file:///.../tests/asserts.ts"`.
 
-- [ ] **Step 3: Create the seam and its import-map key**
+- [x] **Step 3: Create the seam and its import-map key**
 
 In `src/import_map.json`, add one line after `"@std/path": "jsr:@std/path@1.0.8",`:
 
@@ -297,12 +297,12 @@ export {
 } from "@std/assert";
 ```
 
-- [ ] **Step 4: Run the test**
+- [x] **Step 4: Run the test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/asserts.test.ts`
 Expected: two dots, `2 passed`. With `from "testing/asserts"` instead, the second test fails with `Expected error to be instance of "AssertionError", but was "AssertionError"`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/import_map.json tests/asserts.ts tests/unit/asserts.test.ts
@@ -315,7 +315,7 @@ git commit -m "Add tests/asserts.ts as the single assertion import for tests"
 - Create: `tools/check-runtime-boundary.ts`
 - Test: `tests/unit/tools/check-runtime-boundary.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/unit/tools/check-runtime-boundary.test.ts`. The fixture strings are assembled from `DENO`, `FROM` and `IMPORT` so that this file's own text contains no `Deno.`, no `from "<std>"` and no `import("<std>")`; otherwise the ratchet would count the fixtures in the `tests` scope.
 
@@ -551,12 +551,12 @@ unitTest("check-runtime-boundary - acceptTestsIncrease raises tests only", async
 });
 ```
 
-- [ ] **Step 2: Run the tests and see them fail**
+- [x] **Step 2: Run the tests and see them fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts`
 Expected: FAIL at type-check time, `Module not found "file:///.../tools/check-runtime-boundary.ts"`.
 
-- [ ] **Step 3: Write the script**
+- [x] **Step 3: Write the script**
 
 Create `tools/check-runtime-boundary.ts`:
 
@@ -892,17 +892,17 @@ if (import.meta.main) {
 }
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts unit/asserts.test.ts`
 Expected: ten dots, `10 passed`.
 
-- [ ] **Step 5: Lint the script and tests**
+- [x] **Step 5: Lint the script and tests**
 
 Run: `package/dist/bin/tools/x86_64/deno lint tools/check-runtime-boundary.ts tests/unit/tools/check-runtime-boundary.test.ts tests/asserts.ts tests/unit/asserts.test.ts`
 Expected: `Checked 4 files`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/check-runtime-boundary.ts tests/unit/tools/check-runtime-boundary.test.ts
@@ -918,7 +918,7 @@ resources, package/src, tests. deno.land/x packages are not std."
 **Files:**
 - Create: `tools/runtime-boundary-baseline.json`
 
-- [ ] **Step 1: Run the script without a baseline**
+- [x] **Step 1: Run the script without a baseline**
 
 Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts; echo "exit=$?"`
 Expected (if `main` moved since `b86f98d`, the printed numbers are the new truth; put them in the PR description):
@@ -942,7 +942,7 @@ tests         814 (baseline none)     165 (baseline none)
 exit=1
 ```
 
-- [ ] **Step 2: Write the baseline**
+- [x] **Step 2: Write the baseline**
 
 Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline && cat tools/runtime-boundary-baseline.json`
 Expected file contents:
@@ -972,7 +972,7 @@ Expected file contents:
 }
 ```
 
-- [ ] **Step 3: Confirm the check passes against the baseline**
+- [x] **Step 3: Confirm the check passes against the baseline**
 
 Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts; echo "exit=$?"`
 Expected: the table with `(baseline 992)` etc., then `OK: no count exceeds the baseline.` and `exit=0`.
@@ -1228,3 +1228,59 @@ One dated entry per working session; newest last. The normative plan ends at
 - Resume: redo Task 1 step 3 as now written (the key, then the seam), step 4,
   step 5. On Windows run `./configure.cmd` once before Task 3's
   `quarto run --dev` (the import-map hash changed).
+
+### 2026-10-21 (session 4): Tasks 1-2 done, baseline measured; stopped at Task 3 step 4 (plan defect in the probe target)
+
+- Task 1 steps 3-5 done: `"@std/assert": "jsr:@std/assert@0.224.0"` added
+  after `"@std/path"` in `src/import_map.json` (`"testing/"` untouched);
+  `tests/asserts.ts` rewritten to the amended text (`from "@std/assert"`).
+  Step 4: `2 passed`. Committed as `6aa156d93`.
+- `./configure.cmd` run once from PowerShell after the import-map change;
+  `git status --short` clean afterwards.
+- Task 2 done: `tests/unit/tools/check-runtime-boundary.test.ts` and
+  `tools/check-runtime-boundary.ts` written exactly as amended (`kStdModules`
+  has 19 names including `"@std/assert"`; the `hasStdImport` positive cases
+  include the `"@std/assert"` line). Step 2 failed as expected (TS2307).
+  Step 4: `10 passed` across both unit test files. Step 5: `Checked 4 files`.
+  Committed as `435fb1c35`.
+- Windows adaptations (no plan text changed for them): the dev launcher is
+  `package/dist/bin/quarto.cmd` (there is no extensionless `quarto` on
+  Windows), and the Windows launcher runs the outer Deno with
+  `--cached-only --check` over `src/quarto.ts`, so a probe that adds an
+  uncached remote import to the CLI graph fails before the script runs.
+  `package/dist/bin/deno_cache` (gitignored) was warmed once with
+  `deno cache https://deno.land/std/path/mod.ts` so the step-4 probes could
+  run.
+- Task 3 steps 1-3 done. Fresh numbers on this branch (`main` at `502f28448`;
+  the plan's 992/49, 7/0, 10/1, 240/3, 814/165 are stale): **src 994/49,
+  src-js 7/0, resources 10/1, package/src 240/3, tests 828/177** — these go in
+  the PR description. The `@std/assert` key changes no count (only the
+  excluded seam imports it); the 828 includes the new unit test's one `Deno.`.
+  `--update-baseline` wrote those numbers and the check passes against the
+  baseline with exit 0. `tools/runtime-boundary-baseline.json` is written but
+  UNCOMMITTED (step 6 not reached).
+- Task 3 step 4 partial, then stopped per the standing instruction (plan text
+  vs observed behavior). The `Deno.*` probes behave as planned (`src` 994 ->
+  995, `src-js` 7 -> 8, `exit=1`) and the allow-listed `"async"` import on
+  `src/core/path.ts` is not counted. But the URL probe on `src/core/text.ts`
+  does NOT raise `src` std-import files: `text.ts` already imports
+  `fmt/colors` (a counted module) at `b86f98d` (`git show
+  b86f98d:src/core/text.ts`, line 8; no commits to the file since), so it is
+  already one of the 49 and the expected `std-import files rose from 49 to
+  50` cannot occur with that target — a plan defect at writing time, not
+  `main` drift. A supplemental probe (the same URL import appended to
+  `src/core/path.ts`, an uncounted file) produced exactly `::error::src:
+  std-import files rose from 49 to 50` and `exit=1`, then was reverted: the
+  mechanism is correct, only the plan's probe target is wrong (the Acceptance
+  criteria say "a file under `src/core/`", so the criterion itself is
+  satisfiable).
+- All probe edits reverted; `git status --short` shows only the uncommitted
+  baseline. Editor incident: a format-on-save in the IDE reflowed this file
+  mid-session (table padding, `_emphasis_`, extra blank lines); the file was
+  restored from HEAD with `git checkout` and the checkbox ticks re-applied,
+  so this file's diff is the ticks and this entry only.
+- Stopped before Task 3 steps 5-6, Task 4 and Verification. To resume: amend
+  step 4's probe target (any `src` file with no counted std import;
+  `src/core/path.ts` works but is also the allow-list probe target, so pick
+  another file or run the probes in separate runs), then run step 5, commit
+  the already-written baseline at step 6, and do Task 4 and Verification.
