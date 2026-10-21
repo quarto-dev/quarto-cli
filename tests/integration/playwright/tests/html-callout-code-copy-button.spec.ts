@@ -52,17 +52,18 @@ async function geometry(page: Page, id: string): Promise<Geometry> {
   }, id);
 }
 
-// Code callouts, with the paragraph-only callout of the same appearance
-// they are compared with at the edge where the code sits.
+// Code callouts, with the block outside a callout their copy button is
+// compared with, and the paragraph-only callout of the same appearance they
+// are compared with at the edge where the code sits.
 const cases = [
-  { id: "titled-first", edge: "top", reference: "titled-paragraph" },
-  { id: "titled-last", edge: "bottom", reference: "titled-paragraph" },
-  { id: "titled-cell-first", edge: "top", reference: "titled-paragraph" },
-  { id: "titled-cell-last", edge: "bottom", reference: "titled-paragraph" },
-  { id: "titled-annotated", edge: "top", reference: "titled-paragraph" },
-  { id: "collapse-first", edge: null, reference: null },
-  { id: "simple-first", edge: "top", reference: "simple-paragraph" },
-  { id: "minimal-last", edge: "bottom", reference: "minimal-paragraph" },
+  { id: "titled-first", button: "plain", edge: "top", reference: "titled-paragraph" },
+  { id: "titled-last", button: "plain", edge: "bottom", reference: "titled-paragraph" },
+  { id: "titled-cell-first", button: "plain", edge: "top", reference: "titled-paragraph" },
+  { id: "titled-cell-last", button: "plain", edge: "bottom", reference: "titled-paragraph" },
+  { id: "titled-annotated", button: "plain-annotated", edge: "top", reference: "titled-paragraph" },
+  { id: "collapse-first", button: "plain", edge: null, reference: null },
+  { id: "simple-first", button: "plain", edge: "top", reference: "simple-paragraph" },
+  { id: "minimal-last", button: "plain", edge: "bottom", reference: "minimal-paragraph" },
 ] as const;
 
 test.describe("Code copy button in callouts", () => {
@@ -72,9 +73,9 @@ test.describe("Code copy button in callouts", () => {
     });
   });
 
-  for (const { id, edge, reference } of cases) {
+  for (const { id, button, edge, reference } of cases) {
     test(`${id}: copy button sits inside the code frame`, async ({ page }) => {
-      const plain = await geometry(page, "plain");
+      const plain = await geometry(page, button);
       const code = await geometry(page, id);
       expect(code.buttonOffset).not.toBeNull();
       expect(Math.abs(code.buttonOffset! - plain.buttonOffset!))
@@ -92,4 +93,29 @@ test.describe("Code copy button in callouts", () => {
       });
     }
   }
+
+  // Inside the code frame, the button of an annotated first line must still
+  // leave the annotation marker hoverable, as it does outside a callout.
+  test("titled-annotated: copy button does not cover the marker", async ({ page }) => {
+    const anchor = page.locator(
+      "div#titled-annotated button.code-annotation-anchor",
+    );
+    await expect(anchor).toHaveCount(1);
+    // elementFromPoint only sees the viewport.
+    await anchor.scrollIntoViewIfNeeded();
+    const box = (await anchor.boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+
+    // Hovering the marker also reveals the copy button.
+    await page.mouse.move(x, y);
+    const hit = await page.evaluate(
+      ([px, py]) =>
+        document.elementFromPoint(px, py)?.closest(
+          ".code-annotation-anchor, .code-copy-button",
+        )?.className ?? null,
+      [x, y],
+    );
+    expect(hit).toContain("code-annotation-anchor");
+  });
 });
