@@ -10,14 +10,28 @@ $focus-ring-outer: $focus-ring-outer-color;
   // Shift the derived color only as far as needed to reach 9:1
   $focus-ring-outer: theme-contrast($primary-text-emphasis, $focus-ring-inner, 9);
 }
+// On a dark page the tones swap, so the outline (the part that touches the
+// page) is the tone that contrasts with the page background.
+$focus-ring-page-is-dark: quarto-contrast($body-bg, $white) >
+  quarto-contrast($body-bg, $black);
+$focus-ring-outline-color: if(
+  $focus-ring-page-is-dark,
+  $focus-ring-inner,
+  $focus-ring-outer
+);
+$focus-ring-shadow-color: if(
+  $focus-ring-page-is-dark,
+  $focus-ring-outer,
+  $focus-ring-inner
+);
 $focus-ring-outline-width: 2px;
 $focus-ring-outline-offset: 2px;
 // how far the ring reaches outside the element's border box
 $focus-ring-extent: $focus-ring-outline-width + $focus-ring-outline-offset;
-$focus-ring-inner-shadow: 0 0 0 $focus-ring-outline-offset $focus-ring-inner;
+$focus-ring-inner-shadow: 0 0 0 $focus-ring-outline-offset $focus-ring-shadow-color;
 
 @mixin focus-ring {
-  outline: $focus-ring-outline-width solid $focus-ring-outer;
+  outline: $focus-ring-outline-width solid $focus-ring-outline-color;
   outline-offset: $focus-ring-outline-offset;
   box-shadow: $focus-ring-inner-shadow;
 }
