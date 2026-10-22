@@ -8,6 +8,7 @@ All changes included in 1.11:
 - ([#14857](https://github.com/quarto-dev/quarto-cli/issues/14857)): Fix `quarto install chrome-headless-shell` (and `quarto install chromium`) failing with a 404 on Linux arm64 due to a stale Playwright CDN URL.
 - ([#14946](https://github.com/quarto-dev/quarto-cli/issues/14946)): Fix `revealjs` and `dashboard` logos resolving to broken paths in documents in a project subdirectory when the project has a brand (regression introduced in v1.8.22). Logo paths are now always relative to the document; a project-relative logo path in a website with a brand still works but prints a deprecation warning.
 - ([#14993](https://github.com/quarto-dev/quarto-cli/issues/14993)): Fix Typst output dropping a brand font from a `font-family` list when another document in the same directory or project was rendered first with different brand fonts.
+- ([#15143](https://github.com/quarto-dev/quarto-cli/issues/15143)): Fix PDF rendering with `pdf-standard` failing with `\DocumentMetadata not supported!` after updating to KOMA-Script 3.49.3, which provides the default document classes.
 
 ## Dependencies
 
@@ -165,6 +166,7 @@ All changes included in 1.11:
 - ([#14834](https://github.com/quarto-dev/quarto-cli/issues/14834)): Fix `ERROR: Internal Error` when rendering documents whose payload exceeds the Julia server's socket send buffer.
 - ([PumasAI/quarto-julia-engine#8](https://github.com/PumasAI/quarto-julia-engine/pull/8)): Support `keep-ipynb`, which writes the executed notebook to `<stem>.ipynb` alongside the source file.
 - ([PumasAI/quarto-julia-engine#14](https://github.com/PumasAI/quarto-julia-engine/pull/14)): Fix the Julia worker process being left running after a failed render without an execution daemon.
+- ([PumasAI/quarto-julia-engine#16](https://github.com/PumasAI/quarto-julia-engine/pull/16)): Update QuartoNotebookRunner to 0.18.5, which fixes renders hanging on long error stacktraces or on cells that leave a process running, blank R plots with `fig-format: svg`, slow shutdown of workers with a lot of `stdout` output, and cached cell outputs not being invalidated when document or project metadata changes.
 - ([PumasAI/quarto-julia-engine#13](https://github.com/PumasAI/quarto-julia-engine/pull/13)): Shell (`;`), help (`?`), and Pkg (`]`) mode cells now work when the cell has `#|` options.
 - ([PumasAI/quarto-julia-engine#11](https://github.com/PumasAI/quarto-julia-engine/pull/11)): Support `fig-format: retina`, normalized to `png` with doubled `fig-dpi` as in the `jupyter` and `knitr` engines.
 - ([PumasAI/quarto-julia-engine#7](https://github.com/PumasAI/quarto-julia-engine/pull/7)): Support `execute-dir`, shared worker processes across notebooks with matching configs (`share_worker_process: true`).
