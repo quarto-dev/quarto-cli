@@ -16,6 +16,7 @@ All changes included in 1.11:
 
 ## Accessibility
 
+- ([#15159](https://github.com/quarto-dev/quarto-cli/issues/15159), [#15160](https://github.com/quarto-dev/quarto-cli/issues/15160)): Give the `revealjs` speaker-view Layout selector an accessible name and visible keyboard focus, and name the current slide, upcoming slide, time, and notes regions. Changing layouts no longer forwards control keys to the slides, and the slide navigation buttons no longer introduce an unrelated complementary landmark. (author: @jooyoungseo)
 - ([#730](https://github.com/quarto-dev/quarto-cli/issues/730)): Fix keyboard navigation of tabsets in HTML documents without Bootstrap (`theme: none`): Tab now moves from the selected tab into its panel instead of selecting the next tab, and the arrow keys switch tabs.
 - ([#3873](https://github.com/quarto-dev/quarto-cli/issues/3873), [#9003](https://github.com/quarto-dev/quarto-cli/issues/9003)): Honor `fig-alt` for Mermaid and Graphviz diagrams in HTML, revealjs, DOCX, and Typst output while preserving visible captions. (author: @jooyoungseo)
 - ([#5514](https://github.com/quarto-dev/quarto-cli/issues/5514)): Fix `fig-alt` being ignored in `docx` output. Images and figures, including computational figures, now use it as their Word alternative text instead of the caption or an empty description, and the visible caption is unchanged. (author: @jooyoungseo)
