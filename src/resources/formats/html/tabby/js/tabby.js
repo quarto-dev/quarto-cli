@@ -156,15 +156,37 @@
       target.focus();
     };
 
+    // Whether Shift+Tab is being pressed. Focus moves while the key is down, so
+    // this tells focus changes made by Shift+Tab apart from clicks.
+    var shiftTabDown = false;
+    var trackShiftTab = function () {
+      if (trackShiftTab.done) return;
+      trackShiftTab.done = true;
+      document.addEventListener(
+        "keydown",
+        function (event) {
+          shiftTabDown = event.key === "Tab" && event.shiftKey;
+        },
+        true
+      );
+      document.addEventListener(
+        "keyup",
+        function () {
+          shiftTabDown = false;
+        },
+        true
+      );
+    };
+
     // In revealjs, Shift+Tab from after a tabset reaches the content of the
     // selected panel first, which skips the tabs after it. Start from the end
     // of the last panel instead, so Shift+Tab is the reverse of Tab. Only for
-    // keyboard focus: a click in a panel must keep that panel.
+    // Shift+Tab: a click in a panel must keep that panel.
     var backwardEntryHandler = function (event) {
       var from = event.relatedTarget;
       var tab = getTab(event.currentTarget);
       var map = tab && getTabsMap(tab);
-      if (!from || !map || !event.target.matches(":focus-visible")) return;
+      if (!from || !map || !shiftTabDown) return;
 
       var tabList = map.tabs[0].closest('[role="tablist"]');
       var fromInside = Array.prototype.some.call(map.tabs, function (tab) {
@@ -175,10 +197,12 @@
         from.compareDocumentPosition(tabList) &
         Node.DOCUMENT_POSITION_PRECEDING;
       var last = map.tabs[map.tabs.length - 1];
+      var lastContent = document.querySelector(last.hash);
       if (
         fromInside ||
         !fromAfter ||
-        last.getAttribute("aria-selected") === "true"
+        !lastContent ||
+        lastContent.contains(event.target)
       ) {
         return;
       }
@@ -251,6 +275,7 @@
         content.addEventListener("keydown", tabOrderHandler);
         tab.addEventListener("focusin", backwardEntryHandler);
         content.addEventListener("focusin", backwardEntryHandler);
+        trackShiftTab();
       }
     };
 

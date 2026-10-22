@@ -162,3 +162,21 @@ A [link after the details tabset](https://quarto.org).
 [link in tab I](https://quarto.org)
 
 :::
+
+A [link after the editor tabset](https://quarto.org).
+
+## Empty selected panel
+
+::: {.panel-tabset}
+
+### Tab J
+
+Nothing to focus in this panel.
+
+### Tab K
+
+[link in tab K](https://quarto.org)
+
+:::
+
+A [link after the empty panel tabset](https://quarto.org).
