@@ -296,14 +296,22 @@ export function acceptIncrease(current: Baseline): Baseline {
   );
 }
 
+/** The scopes whose code can import src/deno_ral/. `resources` holds user-script and extension templates and
+ * `src-js` plain JavaScript, neither of which can. */
+const kDenoRalImportScopes: readonly string[] = ["src", "package/src", "tests"];
+
 /** Keyed by exact API key. A PR that adds a deno_ral replacement adds its keys here. */
 export const kRalDenoReplacements: Readonly<
   Record<string, { hint: string; scopes?: readonly string[] }>
 > = {
   "build.os": {
     hint: "os (or isWindows, isMac, isLinux) from src/deno_ral/platform.ts",
+    scopes: kDenoRalImportScopes,
   },
-  "build.arch": { hint: "arch from src/deno_ral/platform.ts" },
+  "build.arch": {
+    hint: "arch from src/deno_ral/platform.ts",
+    scopes: kDenoRalImportScopes,
+  },
 };
 
 /** Keyed by stdModuleOf(). `module` is repository-relative. A suggestion only: never turns a finding into an error. */

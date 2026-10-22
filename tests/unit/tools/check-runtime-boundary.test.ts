@@ -675,3 +675,23 @@ unitTest("check-runtime-boundary - a covered API in browser-shared code is a war
   assertEquals(rendered.errors.map((e) => e.file), ["src/core/other.ts"]);
   assertEquals(rendered.warnings.map((w) => w.file), ["src/core/lib/errors.ts"]);
 });
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - a covered API is only an error where deno_ral can be imported", async () => {
+  const hint = kRalDenoReplacements["build.os"].hint;
+  for (const scope of ["src", "package/src", "tests"]) {
+    assertEquals(denoReplacement("build.os", scope), hint, scope);
+    assertEquals(denoReplacement("build.arch", scope), kRalDenoReplacements["build.arch"].hint, scope);
+  }
+  for (const scope of ["resources", "src-js"]) {
+    assertEquals(denoReplacement("build.os", scope), undefined, scope);
+    assertEquals(denoReplacement("build.arch", scope), undefined, scope);
+  }
+
+  const report = diffChanges([
+    { path: "src/resources/create/extensions/engine/a.ts", before: "", after: `export const o = ${DENO}build.os;\n`, addedLines: [1] },
+  ]);
+  assertEquals(report.findings.length, 1);
+  assertEquals(report.findings[0].scope, "resources");
+  assertEquals(report.findings[0].replacement, undefined);
+});
