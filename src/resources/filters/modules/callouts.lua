@@ -283,10 +283,9 @@ local function calloutDiv(node)
     local calloutid = "callout-" .. calloutidx
     calloutidx = calloutidx + 1
 
-    -- create the header to contain the title
-    -- title should expand to fill its space
-    local titleDiv = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {"callout-title-container", "flex-fill"}))
-    local headerDiv = pandoc.Div({imgDiv, titleDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
+    -- create the header to contain the icon and title; its content is
+    -- filled below, once per branch (collapsible or not)
+    local headerDiv = pandoc.Div({}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
     local bodyDiv = div
     bodyDiv.attr.classes:insert("callout-body")
 
@@ -330,6 +329,10 @@ local function calloutDiv(node)
       -- add the current body to the collapse div and use the collapse div instead
       collapseDiv.content:insert(bodyDiv)
       bodyDiv = collapseDiv
+    else
+      -- title should expand to fill its space
+      local titleDiv = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {"callout-title-container", "flex-fill"}))
+      headerDiv.content = pandoc.Blocks({imgDiv, titleDiv})
     end
 
     -- add the header and body to the div
