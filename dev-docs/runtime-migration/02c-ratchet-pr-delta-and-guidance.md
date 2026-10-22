@@ -281,20 +281,20 @@ New exports are pure functions: their first run fails at module load because the
 
 **Interfaces:** Consumes Tasks 1–3. Produces `parseAddedLines`, `gitChanges`, `acceptIncrease`, the CLI contract.
 
-- [ ] **Step 1: Write the tests**
+- [x] **Step 1: Write the tests**
   - `parseAddedLines - reads hunk headers`: a `-U0` diff with hunks `@@ -3,0 +4,2 @@`, `@@ -10 +12 @@`, `@@ -20,3 +23,0 @@` → `[4, 5, 12]`.
   - `gitChanges - tracked, deleted and untracked files, verbatim paths` (Review Focus 5): in a temp dir from `createTempContext`, run git through `execProcess` from `src/core/process.ts` (`git init`, then `git -c user.name=t -c user.email=t@example.com commit`); commit `src/quarto.ts`, `src/a.ts`, `src/gone.ts`; modify `src/a.ts`, delete `src/gone.ts`, add untracked `tests/unit/new.test.ts` and `src/café.ts` → `gitChanges(root, "HEAD")` returns four changes keyed by those exact paths, `before === null` exactly for the two untracked ones, `after === null` exactly for `src/gone.ts`, `addedLines` of an untracked file equal to all its lines.
   - `gitChanges - unknown revision`: same repo, `gitChanges(root, "no-such-rev")` rejects with message `check-runtime-boundary: no-such-rev is not a commit`.
   - `acceptIncrease writes the current counts` (replaces `acceptTestsIncrease raises tests only`, whose behaviour this PR removes): `acceptIncrease(current)` deep-equals `current` for one scope above and one below a baseline.
-- [ ] **Step 2: Run them** → module-load failure on the new exports.
-- [ ] **Step 3: Implement** `parseAddedLines` and `gitChanges`, every call through `execProcess` with `cwd: root` and its result checked:
+- [x] **Step 2: Run them** → module-load failure on the new exports.
+- [x] **Step 3: Implement** `parseAddedLines` and `gitChanges`, every call through `execProcess` with `cwd: root` and its result checked:
   1. `git rev-parse --verify --quiet <rev>^{commit}`: failure → the "is not a commit" error.
   2. `git diff -z --name-only --no-renames <rev> --` and `git ls-files -z --others --exclude-standard`: split on NUL; keep paths where `scopesOf` is non-empty.
   3. `git ls-tree -z -r --name-only <rev> -- <paths>`: the set of paths present at `<rev>`; `before` is null exactly for paths outside it, otherwise `git show <rev>:<path>` must succeed.
   4. `after`: the file read from disk, null if it does not exist.
   5. `addedLines`: `git diff -U0 --no-renames <rev> -- <path>` through `parseAddedLines`; for an untracked file, every line.
   Any other failing call → the "git <args> failed" error. Then `acceptIncrease` and the CLI contract in `import.meta.main`: delta mode runs `measure`, `gitChanges`, `diffChanges`, `renderDelta`, prints through `error`/`warning`/`notice` from `src/tools/github.ts` (plain lines outside Actions), appends the summary with `stepSummary` and prints it to stdout when that returns false; `--accept-tests-increase` is removed.
-- [ ] **Step 4: Change the workflow**: `actions/checkout@v6` gets `with: fetch-depth: 2`; the check step becomes
+- [x] **Step 4: Change the workflow**: `actions/checkout@v6` gets `with: fetch-depth: 2`; the check step becomes
 
 ```yaml
       - name: Check runtime boundary
@@ -311,8 +311,8 @@ New exports are pure functions: their first run fails at module load because the
 ```
 
   and the header comment states the two modes.
-- [ ] **Step 5: Run the tests** → all `check-runtime-boundary` tests pass.
-- [ ] **Step 6: Commit**: `Check pull requests against their base and accept increases in any scope` (stage the three files).
+- [x] **Step 5: Run the tests** → all `check-runtime-boundary` tests pass.
+- [x] **Step 6: Commit**: `Check pull requests against their base and accept increases in any scope` (stage the three files).
 
 ### Task 5: docs
 
@@ -393,3 +393,11 @@ Run from the branch worktree; `Q` is `package/dist/bin/quarto` (`quarto.cmd` on 
 ### 2026-10-22: review fix after Task 3
 
 - Defect: `countText` and the empty counts in `diffChanges` used `{}`, so a `Deno.constructor` in a comment read the inherited function and made the scope total a string (NaN delta, no findings, a covered increase passing); `Deno.__proto__` was lost. Reproduced by the new test before the fix: `"function Object() { [native code] }1"` instead of `1` (assertion failure, a real RED). Fix: null-prototype dictionaries. `unit/tools/check-runtime-boundary.test.ts` → 31 passed, counts unchanged (994/49, 7/0, 10/1, 240/3, 832/177).
+
+### 2026-10-22: Task 4
+
+- Step 2 (characterisation start, not RED): the first run of the new tests failed at module load for the missing exports (`parseAddedLines`, `gitChanges`, `acceptIncrease`).
+- Step 5: `unit/tools/check-runtime-boundary.test.ts` → `ok | 34 passed | 0 failed`; the test file holds one literal `Deno.` match and no literal std import. Smoke run: `--against HEAD` prints the five rows and `No count changed in this PR.`, exit 0; `--against no-such-rev` prints `check-runtime-boundary: no-such-rev is not a commit`, exit 2.
+- Deviation: the `--update-baseline --accept-increase` warning now reads `<scope> baseline raised from X to Y (<label>); list the new occurrences in the PR description` (the old text named test files, and the flag now accepts any scope).
+- Deviation: `--against` without a revision exits 2 with a usage line (not in the plan; the alternative is an undefined revision reaching git).
+- Note: the tool now imports `src/core/process.ts` (via `execProcess`), which pulls the `async` import-map module; a first `quarto run --dev` downloads `@std/async` from jsr like the other std modules.

@@ -5,13 +5,16 @@
  * (dev-docs/runtime-migration/02-runtime-boundary-check.md).
  *
  * Counts, per scope, the `Deno.` occurrences and the files that import the
- * standard library directly instead of through src/deno_ral/, and fails when
- * any count exceeds the committed baseline.
+ * standard library directly instead of through src/deno_ral/. Two modes:
+ * without flags it fails when any count exceeds the committed baseline (main);
+ * with --against <rev> it compares the working tree with <rev> and fails only
+ * for a Deno.* API that src/deno_ral already replaces (pull requests).
  *
  * Usage (from the repository root):
  *   quarto run --dev tools/check-runtime-boundary.ts
  *   quarto run --dev tools/check-runtime-boundary.ts --update-baseline
- *   quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-tests-increase
+ *   quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-increase
+ *   quarto run --dev tools/check-runtime-boundary.ts --against <rev>
  *   quarto run --dev tools/check-runtime-boundary.ts --root /path/to/quarto-cli
  *
  * Copyright (C) 2026 Posit Software, PBC
@@ -19,6 +22,8 @@
 
 import { existsSync, walkSync } from "../src/deno_ral/fs.ts";
 import { join, relative } from "../src/deno_ral/path.ts";
+import { execProcess } from "../src/core/process.ts";
+import { error, notice, stepSummary, warning } from "../src/tools/github.ts";
 
 export interface BoundaryCounts {
   denoCalls: number;
@@ -284,15 +289,11 @@ export function lowerBaseline(current: Baseline, baseline: Baseline): Baseline {
   return result;
 }
 
-export function acceptTestsIncrease(
-  current: Baseline,
-  baseline: Baseline,
-): Baseline {
-  const result = lowerBaseline(current, baseline);
-  if (current["tests"]) {
-    result["tests"] = { ...current["tests"] };
-  }
-  return result;
+/** The current counts for every scope, raised or lowered. */
+export function acceptIncrease(current: Baseline): Baseline {
+  return Object.fromEntries(
+    Object.entries(current).map(([scope, counts]) => [scope, { ...counts }]),
+  );
 }
 
 /** Keyed by exact API key. A PR that adds a deno_ral replacement adds its keys here. */
@@ -598,6 +599,91 @@ export function renderDelta(
   };
 }
 
+/** Parses `git diff -U0` output for one file into the added line numbers of the new side. */
+export function parseAddedLines(diff: string): number[] {
+  const lines: number[] = [];
+  for (const hunk of diff.matchAll(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/gm)) {
+    const start = Number(hunk[1]);
+    const count = hunk[2] === undefined ? 1 : Number(hunk[2]);
+    for (let n = start; n < start + count; n++) {
+      lines.push(n);
+    }
+  }
+  return lines;
+}
+
+async function runGit(root: string, args: string[]): Promise<string> {
+  const result = await execProcess({
+    cmd: "git",
+    args,
+    cwd: root,
+    stdout: "piped",
+    stderr: "piped",
+  });
+  if (!result.success) {
+    throw new Error(
+      `check-runtime-boundary: git ${args.join(" ")} failed: ${
+        (result.stderr ?? "").trim()
+      }`,
+    );
+  }
+  return result.stdout ?? "";
+}
+
+const nulSeparated = (output: string) => output.split("\0").filter(Boolean);
+
+/** Changed and untracked files under any scope, working tree vs `rev`, renames split into delete + add.
+ * Throws Error("check-runtime-boundary: <rev> is not a commit") for an unknown revision and
+ * Error("check-runtime-boundary: git <args> failed: <stderr>") for any other failing git call. */
+export async function gitChanges(
+  root: string,
+  rev: string,
+): Promise<FileChange[]> {
+  try {
+    await runGit(root, ["rev-parse", "--verify", "--quiet", `${rev}^{commit}`]);
+  } catch {
+    throw new Error(`check-runtime-boundary: ${rev} is not a commit`);
+  }
+  const tracked = nulSeparated(
+    await runGit(root, ["diff", "-z", "--name-only", "--no-renames", rev, "--"]),
+  );
+  const untracked = nulSeparated(
+    await runGit(root, ["ls-files", "-z", "--others", "--exclude-standard"]),
+  );
+  const paths = [...new Set([...tracked, ...untracked])].filter((path) =>
+    scopesOf(path).length > 0
+  );
+  if (paths.length === 0) {
+    return [];
+  }
+  const atRev = new Set(
+    nulSeparated(
+      await runGit(root, ["ls-tree", "-z", "-r", "--name-only", rev, "--", ...paths]),
+    ),
+  );
+  const changes: FileChange[] = [];
+  for (const path of paths) {
+    const before = atRev.has(path)
+      ? await runGit(root, ["show", `${rev}:${path}`])
+      : null;
+    const file = join(root, ...path.split("/"));
+    const after = existsSync(file) ? Deno.readTextFileSync(file) : null;
+    let addedLines: number[] = [];
+    if (after !== null) {
+      if (before === null) {
+        const count = after.split("\n").length - (after.endsWith("\n") ? 1 : 0);
+        addedLines = Array.from({ length: after.length === 0 ? 0 : count }, (_, i) => i + 1);
+      } else {
+        addedLines = parseAddedLines(
+          await runGit(root, ["diff", "-U0", "--no-renames", rev, "--", path]),
+        );
+      }
+    }
+    changes.push({ path, before, after, addedLines });
+  }
+  return changes;
+}
+
 const isCount = (n: unknown) => Number.isInteger(n) && (n as number) >= 0;
 
 /** Parses a baseline file, rejecting any scope without a non-negative integer for each field:
@@ -651,13 +737,22 @@ if (import.meta.main) {
   const rootIndex = args.indexOf("--root");
   const root = rootIndex >= 0 ? args[rootIndex + 1] : Deno.cwd();
   const update = args.includes("--update-baseline");
-  const acceptTests = args.includes("--accept-tests-increase");
+  const accept = args.includes("--accept-increase");
+  const againstIndex = args.indexOf("--against");
+  const against = againstIndex >= 0 ? args[againstIndex + 1] : undefined;
 
-  if (acceptTests && !update) {
-    console.error(
-      "check-runtime-boundary: --accept-tests-increase is only valid with --update-baseline",
-    );
+  const usage = (message: string) => {
+    console.error(`check-runtime-boundary: ${message}`);
     Deno.exit(2);
+  };
+  if (accept && !update) {
+    usage("--accept-increase is only valid with --update-baseline");
+  }
+  if (againstIndex >= 0 && against === undefined) {
+    usage("--against needs a revision");
+  }
+  if (againstIndex >= 0 && update) {
+    usage("--against cannot be combined with --update-baseline");
   }
   if (!existsSync(join(root, "src", "quarto.ts"))) {
     console.error(
@@ -674,17 +769,20 @@ if (import.meta.main) {
   printTable(current, baseline);
 
   if (update) {
-    const next = acceptTests
-      ? acceptTestsIncrease(current, baseline)
+    const next = accept
+      ? acceptIncrease(current)
       : lowerBaseline(current, baseline);
-    if (acceptTests && baseline["tests"]) {
-      for (const field of kFields) {
-        if (next["tests"][field] > baseline["tests"][field]) {
-          console.log(
-            `::warning::tests baseline raised from ${baseline["tests"][field]} to ${
-              next["tests"][field]
-            } (${kFieldLabels[field]}); list the new test files in the PR description`,
-          );
+    if (accept) {
+      for (const [scope, counts] of Object.entries(next)) {
+        for (const field of kFields) {
+          const before = baseline[scope]?.[field];
+          if (before !== undefined && counts[field] > before) {
+            console.log(
+              `::warning::${scope} baseline raised from ${before} to ${
+                counts[field]
+              } (${kFieldLabels[field]}); list the new occurrences in the PR description`,
+            );
+          }
         }
       }
     }
@@ -693,16 +791,40 @@ if (import.meta.main) {
     Deno.exit(0);
   }
 
+  if (against !== undefined) {
+    let changes: FileChange[];
+    try {
+      changes = await gitChanges(root, against);
+    } catch (e) {
+      console.error((e as Error).message);
+      Deno.exit(2);
+    }
+    const rendered = renderDelta(diffChanges(changes), current, baseline);
+    for (const message of rendered.notices) {
+      notice(message);
+    }
+    for (const { message, file, line } of rendered.warnings) {
+      warning(message, { file, line });
+    }
+    for (const { message, file, line } of rendered.errors) {
+      error(message, { file, line });
+    }
+    if (!stepSummary(rendered.summary)) {
+      console.log(rendered.summary);
+    }
+    Deno.exit(rendered.failed ? 1 : 0);
+  }
+
   const { regressions, improvements } = compareToBaseline(current, baseline);
   for (const line of improvements) {
-    console.log(
-      `::notice::${line}; run 'quarto run --dev tools/check-runtime-boundary.ts --update-baseline' and commit ${kBaselineRelPath}`,
+    notice(
+      `${line}; run 'quarto run --dev tools/check-runtime-boundary.ts --update-baseline' and commit ${kBaselineRelPath}`,
     );
   }
   if (regressions.length > 0) {
     for (const line of regressions) {
-      console.log(
-        `::error::${line} (baseline ${kBaselineRelPath}). Application code must use src/deno_ral/ instead of Deno.* or direct std imports; see dev-docs/runtime-migration/README.md`,
+      error(
+        `${line} on main. A merged PR raised it without updating the baseline: if the new calls have no replacement, run 'quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-increase' on main and commit ${kBaselineRelPath}; otherwise replace them (see ${kReadmeRelPath})`,
       );
     }
     Deno.exit(1);

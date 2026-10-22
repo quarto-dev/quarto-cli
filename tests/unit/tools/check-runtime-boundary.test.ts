@@ -9,23 +9,26 @@
  */
 
 import { unitTest } from "../../test.ts";
-import { assert, assertEquals, assertThrows } from "../../asserts.ts";
+import { assert, assertEquals, assertRejects, assertThrows } from "../../asserts.ts";
 import { join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
+import { ensureDirSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
+import { execProcess } from "../../../src/core/process.ts";
 import { createTempContext } from "../../../src/core/temp.ts";
 import {
-  acceptTestsIncrease,
+  acceptIncrease,
   compareToBaseline,
   countScope,
   countText,
   denoReplacement,
   diffChanges,
   type FileChange,
+  gitChanges,
   hasStdImport,
   kRalDenoReplacements,
   kScopes,
   lowerBaseline,
   measure,
+  parseAddedLines,
   parseBaseline,
   renderDelta,
   scopesOf,
@@ -270,12 +273,10 @@ unitTest("check-runtime-boundary - lowerBaseline never raises a number", async (
 });
 
 // deno-lint-ignore require-await
-unitTest("check-runtime-boundary - acceptTestsIncrease raises tests only", async () => {
-  const baseline = { "src": { denoCalls: 10, stdImportFiles: 3 }, "tests": { denoCalls: 5, stdImportFiles: 1 } };
-  assertEquals(
-    acceptTestsIncrease({ "src": { denoCalls: 12, stdImportFiles: 1 }, "tests": { denoCalls: 7, stdImportFiles: 2 } }, baseline),
-    { "src": { denoCalls: 10, stdImportFiles: 1 }, "tests": { denoCalls: 7, stdImportFiles: 2 } },
-  );
+unitTest("check-runtime-boundary - acceptIncrease writes the current counts", async () => {
+  const current = { "src": { denoCalls: 12, stdImportFiles: 1 }, "tests": { denoCalls: 7, stdImportFiles: 2 } };
+  assertEquals(acceptIncrease(current), current);
+  assert(acceptIncrease(current) !== current, "returns a copy");
 });
 
 // deno-lint-ignore require-await
@@ -544,4 +545,77 @@ unitTest("check-runtime-boundary - inherited property names count as ordinary De
   assertEquals(report.deltas["src"].denoCalls, 3);
   assertEquals(report.findings.find((f) => f.name === "build.os")?.replacement, kRalDenoReplacements["build.os"].hint);
   assertEquals(renderDelta(report, { "src": { denoCalls: 3, stdImportFiles: 0 } }, {}).failed, true);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - parseAddedLines reads hunk headers", async () => {
+  const diff = [
+    "diff --git a/src/a.ts b/src/a.ts",
+    "--- a/src/a.ts",
+    "+++ b/src/a.ts",
+    "@@ -3,0 +4,2 @@",
+    "+x",
+    "+y",
+    "@@ -10 +12 @@",
+    "-old",
+    "+new",
+    "@@ -20,3 +23,0 @@",
+    "-a",
+    "-b",
+    "-c",
+  ].join("\n");
+  assertEquals(parseAddedLines(diff), [4, 5, 12]);
+});
+
+async function git(root: string, ...args: string[]): Promise<void> {
+  const result = await execProcess({ cmd: "git", args, cwd: root, stdout: "piped", stderr: "piped" });
+  assert(result.success, `git ${args.join(" ")} failed: ${result.stderr}`);
+}
+
+async function makeGitRepo(root: string) {
+  writeFixture(root, "src/quarto.ts", "export {};\n");
+  writeFixture(root, "src/a.ts", "export const a = 1;\n");
+  writeFixture(root, "src/gone.ts", "export const gone = 1;\n");
+  await git(root, "init");
+  await git(root, "add", ".");
+  await git(root, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "init");
+}
+
+unitTest("check-runtime-boundary - gitChanges tracked, deleted and untracked files, verbatim paths", async () => {
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    await makeGitRepo(root);
+    writeFixture(root, "src/a.ts", "export const a = 1;\nexport const b = 2;\n");
+    safeRemoveSync(join(root, "src", "gone.ts"));
+    writeFixture(root, "tests/unit/new.test.ts", "a\nb\nc\n");
+    writeFixture(root, "src/café.ts", "export const c = 1;\n");
+
+    const changes = await gitChanges(root, "HEAD");
+    const byPath = Object.fromEntries(changes.map((c) => [c.path, c]));
+    assertEquals(Object.keys(byPath).sort(), ["src/a.ts", "src/café.ts", "src/gone.ts", "tests/unit/new.test.ts"]);
+    assertEquals(changes.filter((c) => c.before === null).map((c) => c.path).sort(), ["src/café.ts", "tests/unit/new.test.ts"]);
+    assertEquals(changes.filter((c) => c.after === null).map((c) => c.path), ["src/gone.ts"]);
+    assertEquals(byPath["src/a.ts"].before, "export const a = 1;\n");
+    assertEquals(byPath["src/a.ts"].addedLines, [2]);
+    assertEquals(byPath["tests/unit/new.test.ts"].addedLines, [1, 2, 3]);
+    assertEquals(byPath["src/café.ts"].addedLines, [1]);
+  } finally {
+    temp.cleanup();
+  }
+});
+
+unitTest("check-runtime-boundary - gitChanges unknown revision", async () => {
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    await makeGitRepo(root);
+    await assertRejects(
+      () => gitChanges(root, "no-such-rev"),
+      Error,
+      "check-runtime-boundary: no-such-rev is not a commit",
+    );
+  } finally {
+    temp.cleanup();
+  }
 });
