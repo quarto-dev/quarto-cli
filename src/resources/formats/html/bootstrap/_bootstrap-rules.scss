@@ -1512,13 +1512,17 @@ kbd,
 }
 
 // the header of a collapsible callout is a native button (#4934);
-// reset its UA styles so it looks like the header it replaced
+// remove the UA button styles so it looks like the header it replaced
+// (Reboot already sets margin, font size, line height and cursor)
 .callout .callout-toggle-btn {
-  all: unset;
-  box-sizing: border-box;
-  cursor: pointer;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
   font: inherit;
   color: inherit;
+  text-align: inherit;
+  letter-spacing: inherit;
 }
 
 .callout .callout-toggle-btn:focus-visible {
