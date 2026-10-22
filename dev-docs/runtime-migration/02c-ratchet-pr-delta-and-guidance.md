@@ -265,15 +265,15 @@ New exports are pure functions: their first run fails at module load because the
 
 **Interfaces:** Consumes Task 2. Produces `Annotation`, `Rendered`, `renderDelta`.
 
-- [ ] **Step 1: Write the tests** (exact strings from the Messages table and the summary layout)
+- [x] **Step 1: Write the tests** (exact strings from the Messages table and the summary layout)
   - `renderDelta - uncovered increases: warnings and maintainer block, not failed`: deltas `tests` +6/0, two uncovered findings (`tests/unit/a.test.ts` `writeTextFileSync` +4, `tests/unit/b.test.ts` `mkdirSync` +2), `current.tests = { denoCalls: 832, stdImportFiles: 177 }`, baseline equal to `current` minus the deltas → `failed === false`; two warnings with the uncovered text; summary contains `| tests | +6 | 0 |`, `### Maintainer action before merging`, `Expected counts after merge: tests 832 / 177.`, and no `### What to change`.
   - `renderDelta - covered increase: error with line, failed`: one finding `{ scope: "src", file: "src/core/x.ts", kind: "deno", name: "build.os", delta: 1, line: 12, replacement: <hint> }` → `failed === true`; `errors[0]` equals `{ message: "src: +1 Deno.build.os in src/core/x.ts; use os (or isWindows, isMac, isLinux) from src/deno_ral/platform.ts instead (runtime boundary, see dev-docs/runtime-migration/README.md)", file: "src/core/x.ts", line: 12 }`; summary has the `### What to change` bullet of the layout.
   - `renderDelta - a std import with a suggestion is a warning naming the module`: finding `{ scope: "tests", file: "tests/unit/c.test.ts", kind: "std", name: "testing/asserts", delta: 1, suggestion: "tests/asserts.ts" }` → `failed === false`; one warning `tests: tests/unit/c.test.ts now imports the standard library directly (testing/asserts); if tests/asserts.ts exports what this file uses with the same behaviour, import it from there. Otherwise nothing to change in this PR: a maintainer accepts the new count before merging (see the job summary).`
   - `renderDelta - main above baseline, PR adds nothing` (Review Focus 4): no findings, zero deltas, `current.tests.denoCalls = 832`, `baseline.tests.denoCalls = 826` → `failed === false`, one notice `main is above tools/runtime-boundary-baseline.json (tests Deno.* calls 832 > 826); not caused by this PR, a maintainer fixes main`, summary contains `No count changed in this PR.`
-- [ ] **Step 2: Run them** → module-load failure on `renderDelta`.
-- [ ] **Step 3: Implement** `renderDelta` (base = `current - deltas` per field for the notice).
-- [ ] **Step 4: Run the tests** → all pass.
-- [ ] **Step 5: Commit**: `Render runtime boundary findings as annotations and a job summary`.
+- [x] **Step 2: Run them** → module-load failure on `renderDelta`.
+- [x] **Step 3: Implement** `renderDelta` (base = `current - deltas` per field for the notice).
+- [x] **Step 4: Run the tests** → all pass.
+- [x] **Step 5: Commit**: `Render runtime boundary findings as annotations and a job summary`.
 
 ### Task 4: git plumbing, CLI and workflow
 
@@ -382,4 +382,10 @@ Run from the branch worktree; `Q` is `package/dist/bin/quarto` (`quarto.cmd` on 
 
 - Step 2 (characterisation start, not RED): type-check failure at module load, `has no exported member` for `denoReplacement`, `diffChanges`, `FileChange`, `kRalDenoReplacements`, `stdSuggestion`.
 - Step 4: `unit/tools/check-runtime-boundary.test.ts` → `ok | 26 passed | 0 failed`; the test file still holds one literal `Deno.` match.
+- Deviation: none.
+
+### 2026-10-22: Task 3
+
+- Step 2 (characterisation start, not RED): type-check failure at module load, `has no exported member 'renderDelta'`.
+- Step 4: `unit/tools/check-runtime-boundary.test.ts` → `ok | 30 passed | 0 failed`; the test file still holds one literal `Deno.` match.
 - Deviation: none.

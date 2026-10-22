@@ -27,6 +27,7 @@ import {
   lowerBaseline,
   measure,
   parseBaseline,
+  renderDelta,
   scopesOf,
   stdModuleOf,
   stdSuggestion,
@@ -439,4 +440,94 @@ unitTest("check-runtime-boundary - diffChanges an import split across more files
   assertEquals(report.findings.length, 1);
   assertEquals(report.findings[0].file, "src/b.ts");
   assertEquals(report.findings[0].name, "fs/exists");
+});
+
+const kUncoveredWarning = (scope: string, n: number, api: string, file: string) =>
+  `${scope}: +${n} ${DENO}${api} in ${file}; src/deno_ral has no replacement yet, so nothing to change in this PR. A maintainer accepts the new count before merging (see the job summary).`;
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta uncovered increases: warnings and maintainer block, not failed", async () => {
+  const current = { "tests": { denoCalls: 832, stdImportFiles: 177 } };
+  const rendered = renderDelta(
+    {
+      deltas: { "tests": { denoCalls: 6, stdImportFiles: 0 } },
+      findings: [
+        { scope: "tests", file: "tests/unit/a.test.ts", kind: "deno", name: "writeTextFileSync", delta: 4 },
+        { scope: "tests", file: "tests/unit/b.test.ts", kind: "deno", name: "mkdirSync", delta: 2 },
+      ],
+    },
+    current,
+    { "tests": { denoCalls: 826, stdImportFiles: 177 } },
+  );
+  assertEquals(rendered.failed, false);
+  assertEquals(rendered.errors, []);
+  assertEquals(rendered.warnings.map((w) => w.message), [
+    kUncoveredWarning("tests", 4, "writeTextFileSync", "tests/unit/a.test.ts"),
+    kUncoveredWarning("tests", 2, "mkdirSync", "tests/unit/b.test.ts"),
+  ]);
+  assert(rendered.summary.includes("| tests | +6 | 0 |"));
+  assert(rendered.summary.includes("### Maintainer action before merging"));
+  assert(rendered.summary.includes("Expected counts after merge: tests 832 / 177."));
+  assert(!rendered.summary.includes("### What to change"));
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta covered increase: error with line, failed", async () => {
+  const hint = kRalDenoReplacements["build.os"].hint;
+  const rendered = renderDelta(
+    {
+      deltas: { "src": { denoCalls: 1, stdImportFiles: 0 } },
+      findings: [
+        { scope: "src", file: "src/core/x.ts", kind: "deno", name: "build.os", delta: 1, line: 12, replacement: hint },
+      ],
+    },
+    { "src": { denoCalls: 995, stdImportFiles: 49 } },
+    { "src": { denoCalls: 994, stdImportFiles: 49 } },
+  );
+  assertEquals(rendered.failed, true);
+  assertEquals(rendered.errors[0], {
+    message: `src: +1 ${DENO}build.os in src/core/x.ts; use os (or isWindows, isMac, isLinux) from src/deno_ral/platform.ts instead (runtime boundary, see dev-docs/runtime-migration/README.md)`,
+    file: "src/core/x.ts",
+    line: 12,
+  });
+  assert(rendered.summary.includes("### What to change"));
+  assert(
+    rendered.summary.includes(
+      `- \`src/core/x.ts\` line 12: use os (or isWindows, isMac, isLinux) from src/deno_ral/platform.ts instead of ${DENO}build.os`,
+    ),
+  );
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta a std import with a suggestion is a warning naming the module", async () => {
+  const rendered = renderDelta(
+    {
+      deltas: { "tests": { denoCalls: 0, stdImportFiles: 1 } },
+      findings: [
+        { scope: "tests", file: "tests/unit/c.test.ts", kind: "std", name: "testing/asserts", delta: 1, suggestion: "tests/asserts.ts" },
+      ],
+    },
+    { "tests": { denoCalls: 832, stdImportFiles: 178 } },
+    { "tests": { denoCalls: 832, stdImportFiles: 177 } },
+  );
+  assertEquals(rendered.failed, false);
+  assertEquals(rendered.warnings.map((w) => w.message), [
+    "tests: tests/unit/c.test.ts now imports the standard library directly (testing/asserts); if tests/asserts.ts exports what this file uses with the same behaviour, import it from there. Otherwise nothing to change in this PR: a maintainer accepts the new count before merging (see the job summary).",
+  ]);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta main above baseline, PR adds nothing", async () => {
+  const rendered = renderDelta(
+    { deltas: { "tests": { denoCalls: 0, stdImportFiles: 0 } }, findings: [] },
+    { "tests": { denoCalls: 832, stdImportFiles: 177 } },
+    { "tests": { denoCalls: 826, stdImportFiles: 177 } },
+  );
+  assertEquals(rendered.failed, false);
+  assertEquals(rendered.errors, []);
+  assertEquals(rendered.warnings, []);
+  assertEquals(rendered.notices, [
+    `main is above tools/runtime-boundary-baseline.json (tests ${DENO}* calls 832 > 826); not caused by this PR, a maintainer fixes main`,
+  ]);
+  assert(rendered.summary.includes("No count changed in this PR."));
 });

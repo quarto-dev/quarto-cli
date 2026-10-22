@@ -473,6 +473,130 @@ export function diffChanges(changes: FileChange[]): DeltaReport {
   return { deltas, findings };
 }
 
+export interface Annotation {
+  message: string;
+  file: string;
+  line?: number;
+}
+
+export interface Rendered {
+  errors: Annotation[];
+  warnings: Annotation[];
+  notices: string[];
+  summary: string; // markdown for GITHUB_STEP_SUMMARY
+  failed: boolean; // errors.length > 0
+}
+
+const kReadmeRelPath = "dev-docs/runtime-migration/README.md";
+
+const kAcceptClause =
+  "a maintainer accepts the new count before merging (see the job summary).";
+const kAcceptSentence = kAcceptClause[0].toUpperCase() + kAcceptClause.slice(1);
+
+const signed = (n: number) => n > 0 ? `+${n}` : `${n}`;
+
+/** `current` is measure() of the working tree (the merge result on CI), so `current - deltas` is the base. */
+export function renderDelta(
+  report: DeltaReport,
+  current: Baseline,
+  baseline: Baseline,
+): Rendered {
+  const errors: Annotation[] = [];
+  const warnings: Annotation[] = [];
+  const notices: string[] = [];
+  const changes: string[] = [];
+  const warnedScopes = new Set<string>();
+
+  for (const finding of report.findings) {
+    const annotation = (message: string): Annotation => {
+      const result: Annotation = { message, file: finding.file };
+      if (finding.line !== undefined) result.line = finding.line;
+      return result;
+    };
+    if (finding.kind === "deno" && finding.replacement !== undefined) {
+      errors.push(annotation(
+        `${finding.scope}: +${finding.delta} Deno.${finding.name} in ${finding.file}; use ${finding.replacement} instead (runtime boundary, see ${kReadmeRelPath})`,
+      ));
+      const where = finding.line !== undefined ? ` line ${finding.line}` : "";
+      changes.push(
+        `- \`${finding.file}\`${where}: use ${finding.replacement} instead of Deno.${finding.name}`,
+      );
+      continue;
+    }
+    warnedScopes.add(finding.scope);
+    if (finding.kind === "deno") {
+      warnings.push(annotation(
+        `${finding.scope}: +${finding.delta} Deno.${finding.name} in ${finding.file}; src/deno_ral has no replacement yet, so nothing to change in this PR. ${kAcceptSentence}`,
+      ));
+    } else if (finding.suggestion !== undefined) {
+      warnings.push(annotation(
+        `${finding.scope}: ${finding.file} now imports the standard library directly (${finding.name}); if ${finding.suggestion} exports what this file uses with the same behaviour, import it from there. Otherwise nothing to change in this PR: ${kAcceptClause}`,
+      ));
+    } else {
+      warnings.push(annotation(
+        `${finding.scope}: ${finding.file} now imports the standard library directly (${finding.name}); there is no runtime-layer replacement for it yet, so nothing to change in this PR. ${kAcceptSentence}`,
+      ));
+    }
+  }
+
+  for (const [scope, counts] of Object.entries(current)) {
+    const base = baseline[scope] ?? { denoCalls: 0, stdImportFiles: 0 };
+    for (const field of kFields) {
+      const before = counts[field] - (report.deltas[scope]?.[field] ?? 0);
+      if (before > base[field]) {
+        notices.push(
+          `main is above ${kBaselineRelPath} (${scope} ${kFieldLabels[field]} ${before} > ${
+            base[field]
+          }); not caused by this PR, a maintainer fixes main`,
+        );
+      }
+    }
+  }
+
+  const rows = Object.entries(report.deltas)
+    .filter(([_scope, d]) => d.denoCalls !== 0 || d.stdImportFiles !== 0)
+    .map(([scope, d]) =>
+      `| ${scope} | ${signed(d.denoCalls)} | ${signed(d.stdImportFiles)} |`
+    );
+  const summary = ["## Runtime boundary", ""];
+  if (rows.length === 0) {
+    summary.push("No count changed in this PR.", "");
+  } else {
+    summary.push(
+      "| scope | Deno.* calls | std-import files |",
+      "|---|---|---|",
+      ...rows,
+      "",
+    );
+  }
+  if (errors.length > 0) {
+    summary.push("### What to change", "", ...changes, "");
+  }
+  if (warnings.length > 0) {
+    const expected = Object.entries(current)
+      .filter(([scope]) => warnedScopes.has(scope))
+      .map(([scope, c]) => `${scope} ${c.denoCalls} / ${c.stdImportFiles}`)
+      .join(", ");
+    summary.push(
+      "### Maintainer action before merging",
+      "",
+      "This PR raises counts (warnings above). Where a warning suggests a module, check whether the PR should use it; accept the rest. Before merging, update the branch with `main`, then run",
+      "",
+      "    quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-increase",
+      "",
+      `and push the \`${kBaselineRelPath}\` change to this PR. Expected counts after merge: ${expected}.`,
+      "",
+    );
+  }
+  return {
+    errors,
+    warnings,
+    notices,
+    summary: summary.join("\n"),
+    failed: errors.length > 0,
+  };
+}
+
 const isCount = (n: unknown) => Number.isInteger(n) && (n as number) >= 0;
 
 /** Parses a baseline file, rejecting any scope without a non-negative integer for each field:
