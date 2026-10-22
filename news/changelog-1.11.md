@@ -184,6 +184,7 @@ All changes included in 1.11:
 - ([#14775](https://github.com/quarto-dev/quarto-cli/issues/14775)): Fix a crash when the `QUARTO_R` environment variable is set to a malformed path. Quarto now warns and falls back to other R lookup methods.
 - ([#14865](https://github.com/quarto-dev/quarto-cli/issues/14865)): Fix internal links in a preview being treated as external when the preview is reached through a proxy, such as on Posit Workbench. Links are now classified against the origin the browser sees.
 - ([#14878](https://github.com/quarto-dev/quarto-cli/pull/14878)): Add `az` (Azerbaijani) language translation. (author: @abdanar)
+- ([#15126](https://github.com/quarto-dev/quarto-cli/issues/15126)): Translate the `revealjs-menu-button-label` language key in French. (author: @D3ller)
 - ([#14983](https://github.com/quarto-dev/quarto-cli/issues/14983)): Fix `quarto render` treating a parent folder as a Hugo project when its `config/` folder can't be entered, which silently wrote `hugo-md` output or failed with a permission error. (author: @pinin4fjords)
 - ([#15097](https://github.com/quarto-dev/quarto-cli/pull/15097)): Fix the `.content-hidden unless-profile` attribute completion inserting invalid syntax (its `=` was missing), and typos in three attribute completion descriptions. (author: @rkskmt)
 - ([#15140](https://github.com/quarto-dev/quarto-cli/pull/15140)): Add support for definition lists written as a `definition-list` div holding a nested bullet list, the definition list syntax of Quarto 2.
