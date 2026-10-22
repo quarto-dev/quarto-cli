@@ -426,6 +426,18 @@ test.describe('tabset keyboard focus order', () => {
     ], true);
   });
 
+  test('Shift+Tab treats another tab widget in a panel as panel content', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/other-tab-widget-in-a-panel');
+    await tab(page, 'Tab M').click();
+    await link(page, 'link in tab M').focus();
+    await expectTabOrder(page, browserName, [
+      tab(page, 'Tab M'),
+      page.getByRole('tab', { name: 'widget tab 1' }),
+      link(page, 'link in tab L'),
+      tab(page, 'Tab L'),
+    ], true);
+  });
+
   test('Tab reaches details summaries and skips unrevealed fragments in panels', async ({ page, browserName }) => {
     await gotoSlide(page, '#/details-and-fragments-in-a-tabset');
     await tab(page, 'Tab E').focus();

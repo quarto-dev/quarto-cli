@@ -91,12 +91,16 @@
         // like unselected panels (also of a nested tabset), is not rendered,
         // and revealjs fragments not yet shown have `visibility: hidden`
         (el) =>
+          el.getAttribute("tabindex") !== "-1" &&
           !el.matches(":disabled") &&
           !el.getAttribute("aria-hidden") &&
           el.getClientRects().length > 0 &&
           window.getComputedStyle(el).visibility === "visible"
       );
     };
+
+    // Tabs set up by tabby, as opposed to other tab widgets in a panel
+    var tabbyTabs = new WeakSet();
 
     // The tab of a tab or of a tab panel
     var getTab = function (tabOrPanel) {
@@ -115,12 +119,14 @@
       var last = getKeyboardFocusableElements(content).pop();
       if (!last) return tab.focus();
 
-      // Outermost tab or tab panel between the last element and this panel
+      // Outermost tabby tab or tab panel between the last element and this
+      // panel; other tab widgets are ordinary panel content
       var nestedTab;
       for (var node = last; node && node !== content; node = node.parentElement) {
         var role = node.getAttribute("role");
-        if (role === "tab") nestedTab = node;
-        if (role === "tabpanel") nestedTab = getTab(node);
+        var nodeTab =
+          role === "tab" ? node : role === "tabpanel" ? getTab(node) : null;
+        if (nodeTab && tabbyTabs.has(nodeTab)) nestedTab = nodeTab;
       }
       var nested = nestedTab && getTabsMap(nestedTab);
       if (nested) return focusEndOf(nested.tabs[nested.tabs.length - 1]);
@@ -266,6 +272,7 @@
 
       // Add roles
       tab.setAttribute("role", "tab");
+      tabbyTabs.add(tab);
       tab.setAttribute("aria-controls", content.id);
       tab.closest("li").setAttribute("role", "presentation");
       content.setAttribute("role", "tabpanel");

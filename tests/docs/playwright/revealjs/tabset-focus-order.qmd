@@ -184,3 +184,25 @@ Nothing to focus in this panel.
 :::
 
 A [link after the empty panel tabset](https://quarto.org).
+
+## Other tab widget in a panel
+
+::: {.panel-tabset}
+
+### Tab L
+
+[link in tab L](https://quarto.org)
+
+```{=html}
+<div role="tablist">
+  <button role="tab" aria-selected="true">widget tab 1</button>
+  <button role="tab" aria-selected="false" tabindex="-1">widget tab 2</button>
+</div>
+<div role="tabpanel">Widget content.</div>
+```
+
+### Tab M
+
+[link in tab M](https://quarto.org)
+
+:::
