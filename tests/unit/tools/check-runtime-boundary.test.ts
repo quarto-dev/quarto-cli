@@ -17,11 +17,14 @@ import {
   acceptTestsIncrease,
   compareToBaseline,
   countScope,
+  countText,
   hasStdImport,
   kScopes,
   lowerBaseline,
   measure,
   parseBaseline,
+  scopesOf,
+  stdModuleOf,
 } from "../../../tools/check-runtime-boundary.ts";
 
 // Built at runtime so this file's text is not counted by the ratchet itself.
@@ -267,4 +270,56 @@ unitTest("check-runtime-boundary - acceptTestsIncrease raises tests only", async
     acceptTestsIncrease({ "src": { denoCalls: 12, stdImportFiles: 1 }, "tests": { denoCalls: 7, stdImportFiles: 2 } }, baseline),
     { "src": { denoCalls: 10, stdImportFiles: 1 }, "tests": { denoCalls: 7, stdImportFiles: 2 } },
   );
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - countText keys Deno APIs by one or two identifiers", async () => {
+  const text = [
+    DENO + "build.os",
+    DENO + "build.target",
+    DENO + "readTextFileSync(p)",
+    DENO + "readTextFileSync(q)",
+    DENO + "\n",
+  ].join("\n");
+  assertEquals(countText(text).deno, { "build.os": 1, "build.target": 1, readTextFileSync: 2, "": 1 });
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - countText never swallows a following prefix", async () => {
+  assertEquals(countText(DENO + DENO + "build.os").deno, { [DENO + "build"]: 1, "build.os": 1 });
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - countText lists counted std specifiers, not allow-listed ones", async () => {
+  const text = [
+    `${IMPORT} { ensureDir } ${FROM} "fs/ensure-dir";`,
+    `${IMPORT} { delay } ${FROM} "async";`,
+    `${IMPORT} * as path ${FROM} "path";`,
+    `${IMPORT} type { WalkEntry } ${FROM} "jsr:@std/fs";`,
+  ].join("\n");
+  assertEquals(countText(text).std, ["fs/ensure-dir", "path", "jsr:@std/fs"]);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - stdModuleOf normalises every specifier form", async () => {
+  assertEquals(stdModuleOf("fs/ensure-dir"), "fs");
+  assertEquals(stdModuleOf("@std/fs"), "fs");
+  assertEquals(stdModuleOf("jsr:@std/fs@1.0.16/walk"), "fs");
+  assertEquals(stdModuleOf("testing/asserts"), "testing");
+  assertEquals(stdModuleOf("jsr:/@std/assert"), "assert");
+  assertEquals(stdModuleOf("https://deno.land/std@0.93.0/assert/assert_object_match.ts"), "assert");
+  assertEquals(stdModuleOf("@std/path"), "path");
+  assertEquals(stdModuleOf("path"), "path");
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - scopesOf follows each scope's rules", async () => {
+  assertEquals(scopesOf("src/core/a.ts"), ["src"]);
+  assertEquals(scopesOf("src/resources/scripts/x.ts"), ["resources"]);
+  assertEquals(scopesOf("src/resources/formats/html/a.js"), ["resources"]);
+  assertEquals(scopesOf("src/x.js"), ["src-js"]);
+  assertEquals(scopesOf("tests/docs/a.ts"), []);
+  assertEquals(scopesOf("tests/unit/a.test.ts"), ["tests"]);
+  assertEquals(scopesOf("src/vendor/a.ts"), []);
+  assertEquals(scopesOf("tests/node_modules/a.ts"), []);
 });

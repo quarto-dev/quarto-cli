@@ -99,17 +99,51 @@ const kCommentLineRe = /^\s*(\/\/|\/\*|\*)/;
 
 const kStdImportAllRe = new RegExp(kStdImportRe.source, "g");
 
+/** Per-file counts. `deno` maps the API key to its occurrences: "build.os" for `Deno.build.os`,
+ * "readTextFileSync" for `Deno.readTextFileSync(`, "" for a `Deno.` followed by no identifier,
+ * so the sum equals the old \bDeno\. count. `std` lists counted std specifiers (allow-listed excluded), in source order, duplicates kept. */
+export interface FileCounts {
+  deno: Record<string, number>;
+  std: string[];
+}
+
+// The key is read inside a lookahead so a following `Deno.` is never consumed.
+const kDenoRe = /\bDeno\.(?=(\w*)(?:\.(\w+))?)/g;
+
 /** Scans every import in the text, so an allow-listed import does not hide a counted one on the
  * same line, and a `from` separated from its specifier by a newline is still seen. Comment lines
  * are blanked, keeping the newlines. */
-export function hasStdImport(text: string): boolean {
+export function countText(text: string): FileCounts {
+  const deno: Record<string, number> = {};
+  for (const match of text.matchAll(kDenoRe)) {
+    const key = match[1] + (match[2] ? "." + match[2] : "");
+    deno[key] = (deno[key] ?? 0) + 1;
+  }
   const code = text
     .split("\n")
     .map((line) => kCommentLineRe.test(line) ? "" : line)
     .join("\n");
-  return [...code.matchAll(kStdImportAllRe)].some((match) =>
-    !isAllowListedStdImport(match[1])
-  );
+  const std = [...code.matchAll(kStdImportAllRe)]
+    .map((match) => match[1])
+    .filter((specifier) => !isAllowListedStdImport(specifier));
+  return { deno, std };
+}
+
+export function hasStdImport(text: string): boolean {
+  return countText(text).std.length > 0;
+}
+
+/** The std module of a specifier, "@std/" stripped so equivalent spellings agree:
+ * "fs/ensure-dir", "@std/fs", "jsr:@std/fs@1.0.16/walk" -> "fs"; "testing/asserts" -> "testing";
+ * "jsr:/@std/assert" and "https://deno.land/std@0.93.0/assert/assert_object_match.ts" -> "assert";
+ * "@std/path", "path" -> "path". */
+export function stdModuleOf(specifier: string): string {
+  const url = specifier.match(/^https:\/\/deno\.land\/std(?:@[^/]*)?\/([^/]+)/);
+  if (url) {
+    return url[1];
+  }
+  const rest = specifier.replace(/^jsr:\/?/, "").replace(/^@std\//, "");
+  return rest.split("/")[0].replace(/@.*$/, "");
 }
 
 /** Never counted in the `src` scope. A directory entry covers every file beneath it. */
@@ -152,11 +186,25 @@ export const kScopes: Readonly<Record<string, ScopeSpec>> = {
   "tests": { dir: "tests", exts: [".ts"], exclude: [...kTestsExclusions] },
 };
 
-const kDenoRe = /\bDeno\./g;
 const kSkip = [/node_modules/, /\.venv/];
 
 function isExcluded(rel: string, exclude: string[]): boolean {
   return exclude.some((e) => rel === e || rel.startsWith(e + "/"));
+}
+
+function inScope(rel: string, spec: ScopeSpec): boolean {
+  return rel.startsWith(spec.dir + "/") &&
+    spec.exts.some((ext) => rel.endsWith(ext)) &&
+    !kSkip.some((re) => re.test(rel)) &&
+    !isExcluded(rel, spec.exclude) &&
+    (!spec.include || spec.include(rel));
+}
+
+/** The scopes a repository-relative path (forward slashes) is counted in: same exts, exclude, include and kSkip rules as countScope. */
+export function scopesOf(rel: string): string[] {
+  return Object.entries(kScopes)
+    .filter(([_name, spec]) => inScope(rel, spec))
+    .map(([name]) => name);
 }
 
 export function countScope(root: string, spec: ScopeSpec): BoundaryCounts {
@@ -174,15 +222,12 @@ export function countScope(root: string, spec: ScopeSpec): BoundaryCounts {
     })
   ) {
     const rel = relative(root, entry.path).replaceAll("\\", "/");
-    if (isExcluded(rel, spec.exclude)) {
+    if (!inScope(rel, spec)) {
       continue;
     }
-    if (spec.include && !spec.include(rel)) {
-      continue;
-    }
-    const text = Deno.readTextFileSync(entry.path);
-    denoCalls += (text.match(kDenoRe) ?? []).length;
-    if (hasStdImport(text)) {
+    const counts = countText(Deno.readTextFileSync(entry.path));
+    denoCalls += Object.values(counts.deno).reduce((a, b) => a + b, 0);
+    if (counts.std.length > 0) {
       stdImportFiles++;
     }
   }

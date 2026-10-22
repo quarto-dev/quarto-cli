@@ -225,17 +225,17 @@ New exports are pure functions: their first run fails at module load because the
 
 **Interfaces:** Produces `FileCounts`, `countText`, `scopesOf`, `stdModuleOf`; `countScope`, `measure`, `hasStdImport` keep their signatures.
 
-- [ ] **Step 1: Write the tests**
+- [x] **Step 1: Write the tests**
   - `countText - keys Deno APIs by one or two identifiers`: `DENO + "build.os"`, `DENO + "build.target"`, twice `DENO + "readTextFileSync(p)"`, `DENO + "\n"` → `deno` equals `{ "build.os": 1, "build.target": 1, readTextFileSync: 2, "": 1 }`.
   - `countText - never swallows a following Deno. prefix`: `DENO + DENO + "build.os"` → `deno` equals `{ "Deno.build": 1, "build.os": 1 }` (two occurrences, as `\bDeno\.` counts).
   - `countText - lists counted std specifiers, not allow-listed ones`: imports from `"fs/ensure-dir"`, `"async"`, `"path"` (namespace form) and `"jsr:@std/fs"` (`import type`) → `std` equals `["fs/ensure-dir", "path", "jsr:@std/fs"]`.
   - `stdModuleOf - normalises every specifier form`: every example of its doc comment.
   - `scopesOf - follows each scope's rules`: `src/core/a.ts` → `["src"]`; `src/resources/scripts/x.ts` → `["resources"]`; `src/resources/formats/html/a.js` → `["resources"]`; `src/x.js` → `["src-js"]`; `tests/docs/a.ts` → `[]`; `tests/unit/a.test.ts` → `["tests"]`; `src/vendor/a.ts` → `[]`; `tests/node_modules/a.ts` → `[]`.
   - The existing tests stay unchanged and must keep passing.
-- [ ] **Step 2: Run them**: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts` → module-load failure on the missing exports.
-- [ ] **Step 3: Implement** `countText` (Deno: `/\bDeno\.(?=(\w*)(?:\.(\w+))?)/g`, the key read inside a lookahead so no `Deno.` prefix is consumed and the match count equals the old `\bDeno\.` count; std: the existing specifier regex over comment-blanked text, filtered by `isAllowListedStdImport`), `stdModuleOf`, `scopesOf` (one predicate shared with `countScope`); `countScope` sums `countText`.
-- [ ] **Step 4: Run the tests** → all pass. Then `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts` → the five rows of the Acceptance criteria, unchanged.
-- [ ] **Step 5: Commit** (see Dev workflow): message `Count runtime boundary occurrences per file, per Deno API and per std import`.
+- [x] **Step 2: Run them**: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts` → module-load failure on the missing exports.
+- [x] **Step 3: Implement** `countText` (Deno: `/\bDeno\.(?=(\w*)(?:\.(\w+))?)/g`, the key read inside a lookahead so no `Deno.` prefix is consumed and the match count equals the old `\bDeno\.` count; std: the existing specifier regex over comment-blanked text, filtered by `isAllowListedStdImport`), `stdModuleOf`, `scopesOf` (one predicate shared with `countScope`); `countScope` sums `countText`.
+- [x] **Step 4: Run the tests** → all pass. Then `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts` → the five rows of the Acceptance criteria, unchanged.
+- [x] **Step 5: Commit** (see Dev workflow): message `Count runtime boundary occurrences per file, per Deno API and per std import`.
 
 ### Task 2: delta over changed files, replacement maps, findings
 
@@ -370,3 +370,10 @@ Run from the branch worktree; `Q` is `package/dist/bin/quarto` (`quarto.cmd` on 
 ## Execution log
 
 (The executor appends dated entries: commands run and their quoted output, deviations from the plan, open questions.)
+
+### 2026-10-22: Task 1
+
+- Absolute counts before Task 1 (`quarto.cmd run --dev tools/check-runtime-boundary.ts`, exit 0): src 994/49, src-js 7/0, resources 10/1, package/src 240/3, tests 832/177.
+- Step 2 (characterisation start, not RED): the new test imports fail type-checking at module load: `has no exported member named 'stdModuleOf'`, likewise `countText`, `scopesOf`.
+- Step 4: `unit/tools/check-runtime-boundary.test.ts` → `ok | 16 passed | 0 failed`. Counts after Task 1: identical to before (994/49, 7/0, 10/1, 240/3, 832/177), `OK: no count exceeds the baseline.`
+- Deviation: none in the tool. A first draft of the test put the literal `Deno.build` key in an expected object, which raised the tests count by 2 (834); the key is now built from `DENO`, the test file again holds one literal match (`writeFixture`).
