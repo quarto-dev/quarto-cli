@@ -41,8 +41,8 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
 // (`.btn:focus-visible { outline: 0 }`, `.form-control:focus`, ...), which
 // beat the (0,1,0) rule above. These rules tie with Bootstrap and win on
 // order; author rules on the same classes come later and still win.
-// Don't add rules for other controls: only Bootstrap's outline removals
-// belong here.
+// Don't add rules for other controls: only outline removals by Bootstrap
+// or a bundled library belong here.
 .btn:focus-visible,
 .btn-close:focus-visible,
 .nav-link:focus-visible,
@@ -52,6 +52,13 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
 .form-select:focus-visible,
 .form-check-input:focus-visible,
 .form-range:focus-visible {
+  @include focus-ring;
+}
+
+// MathJax injects `mjx-speech:focus { outline: none }` (0,1,1) at runtime,
+// after this stylesheet, so a tie loses on order. (0,2,1) puts the ring back
+// on the focusable speech element of each equation.
+:root mjx-speech:focus-visible {
   @include focus-ring;
 }
 

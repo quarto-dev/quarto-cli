@@ -36,8 +36,10 @@ control.
   such as `a:focus-visible` (0,1,1) win. Do not raise it.
 - Bootstrap removes the outline with (0,2,0) rules (`.btn:focus-visible`,
   `.nav-link:focus-visible`, `.form-control:focus`, ...). A second rule lists
-  these classes and includes the ring again. Add a class to that list only
-  if Bootstrap removes its outline.
+  these classes and includes the ring again. MathJax removes the outline on
+  `mjx-speech` at runtime, so `:root mjx-speech:focus-visible` (0,2,1) puts
+  it back. Add a rule only if Bootstrap or a bundled library removes the
+  outline.
 - The inner tone is `box-shadow: var(--quarto-focus-ring-shadow)`. The
   property is set on `:root`. An author can remove the inner tone with
   `--quarto-focus-ring-shadow: none`. Use the property, not
