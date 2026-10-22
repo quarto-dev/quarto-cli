@@ -151,3 +151,19 @@ test("author a:focus-visible rule replaces the focus ring", async ({
   await expect(link).toHaveCSS("outline-width", "3px");
   await expect(link).toHaveCSS("box-shadow", "none");
 });
+
+// The ring's width and offset are public Sass variables. The fixture sets
+// a 3px outline with a 1px offset; the inner tone fills the 1px gap.
+test("Sass variables set the focus ring size", async ({
+  page,
+  browserName,
+}) => {
+  await page.goto(getUrl("html/focus-ring-size.html"), { waitUntil: "load" });
+  const link = page.getByRole("link", { name: "inline link" });
+  await expect(link).toBeVisible();
+  expect(await tabUntilFocused(page, browserName, link)).toBe(true);
+  await expect(link).toHaveCSS("outline-style", "solid");
+  await expect(link).toHaveCSS("outline-width", "3px");
+  await expect(link).toHaveCSS("outline-offset", "1px");
+  await expect(link).toHaveCSS("box-shadow", /^rgb\(255, 255, 255\) 0px 0px 0px 1px/);
+});

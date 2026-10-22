@@ -201,6 +201,10 @@ $zindex-skip-link: 1070 !default;
 // is responsible for its 9:1 contrast against the inner color.
 $focus-ring-outer-color: null !default;
 $focus-ring-inner-color: null !default;
+// Width of the outer tone, and of the gap that the inner tone fills. Keep
+// the width at 2px or more for WCAG 2.4.13 (Focus Appearance).
+$focus-ring-outline-width: 2px !default;
+$focus-ring-outline-offset: 2px !default;
 
 // Turn off Bootstrap's translucent box-shadow focus halos; the focus ring
 // replaces them.

@@ -53,8 +53,10 @@ control.
   give `.page-link` a `box-shadow` with a higher specificity, so a
   `(0,4,0)` rule includes the ring again.
 
-- The ring follows W3C technique C40. The outer color is a 2px `outline`. The
-  inner color is a `box-shadow` that fills the 2px `outline-offset`.
+- The ring follows W3C technique C40. The outer color is an `outline`
+  (`$focus-ring-outline-width`, 2px). The inner color is a `box-shadow` that
+  fills the `outline-offset` (`$focus-ring-outline-offset`, 2px). Both are
+  public `!default` variables in `_bootstrap-variables.scss`.
 - On a dark page (`$body-bg` has more contrast with white than with black),
   the derived tones swap: white goes on the `outline`. The test is per
   stylesheet, not per `light:`/`dark:` key. If a user sets
