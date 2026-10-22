@@ -374,7 +374,6 @@ test.describe('tabset keyboard focus order', () => {
 
   test('Shift+Tab reverses the order around a tabset', async ({ page, browserName }) => {
     await gotoSlide(page, '#/links-around-a-tabset');
-    await tab(page, 'Tab D').click();
     await link(page, 'link after the tabset').focus();
     await expectTabOrder(page, browserName, [
       link(page, 'link in tab D'),
@@ -438,6 +437,15 @@ test.describe('tabset keyboard focus order', () => {
       link(page, 'link in tab G'),
       link(page, 'link after the details tabset'),
     ]);
+  });
+
+  test('clicking into a panel from after the tabset keeps that panel', async ({ page }) => {
+    await gotoSlide(page, '#/details-and-fragments-in-a-tabset');
+    await link(page, 'link after the details tabset').focus();
+    const summary = page.locator('summary', { hasText: 'details in tab E' });
+    await summary.click();
+    await expect(summary).toBeFocused();
+    await expect(tab(page, 'Tab E')).toHaveAttribute('aria-selected', 'true');
   });
 
   test('Tab is left to a panel control that handles it', async ({ page, browserName }) => {

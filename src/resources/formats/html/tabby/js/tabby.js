@@ -98,6 +98,24 @@
       );
     };
 
+    // The tab of a tab or of a tab panel
+    var getTab = function (tabOrPanel) {
+      return tabOrPanel.getAttribute("role") === "tab"
+        ? tabOrPanel
+        : document.getElementById(tabOrPanel.getAttribute("aria-labelledby"));
+    };
+
+    // Selects a tab and focuses the last focusable element of its panel, or
+    // the tab itself if there is none. The panel content is hidden until the
+    // tab is selected.
+    var focusEndOf = function (tab) {
+      toggle(tab);
+      (
+        getKeyboardFocusableElements(document.querySelector(tab.hash)).pop() ||
+        tab
+      ).focus();
+    };
+
     // In revealjs, Tab goes from a tab to its panel content and from the end
     // of that content to the next tab; Shift+Tab goes the other way. Tabs come
     // before all panels in the DOM, so the browser alone would go tab to tab.
@@ -106,9 +124,7 @@
       if (event.key !== "Tab" || event.defaultPrevented) return;
       var current = event.currentTarget;
       var onTab = current.getAttribute("role") === "tab";
-      var tab = onTab
-        ? current
-        : document.getElementById(current.getAttribute("aria-labelledby"));
+      var tab = getTab(current);
       var map = tab && getTabsMap(tab);
       if (!map) return;
 
@@ -120,12 +136,9 @@
       } else if (onTab) {
         var previous = map.tabs[map.index - 1];
         if (!previous) return;
-        // Select the previous tab first: its panel content is hidden until then
-        toggle(previous);
-        target =
-          getKeyboardFocusableElements(
-            document.querySelector(previous.hash)
-          ).pop() || previous;
+        event.preventDefault();
+        focusEndOf(previous);
+        return;
       } else {
         var focusables = getKeyboardFocusableElements(current);
         if (event.shiftKey && event.target === focusables[0]) {
@@ -141,6 +154,36 @@
 
       event.preventDefault();
       target.focus();
+    };
+
+    // In revealjs, Shift+Tab from after a tabset reaches the content of the
+    // selected panel first, which skips the tabs after it. Start from the end
+    // of the last panel instead, so Shift+Tab is the reverse of Tab. Only for
+    // keyboard focus: a click in a panel must keep that panel.
+    var backwardEntryHandler = function (event) {
+      var from = event.relatedTarget;
+      var tab = getTab(event.currentTarget);
+      var map = tab && getTabsMap(tab);
+      if (!from || !map || !event.target.matches(":focus-visible")) return;
+
+      var tabList = map.tabs[0].closest('[role="tablist"]');
+      var fromInside = Array.prototype.some.call(map.tabs, function (tab) {
+        var content = document.querySelector(tab.hash);
+        return tab === from || (content && content.contains(from));
+      });
+      var fromAfter =
+        from.compareDocumentPosition(tabList) &
+        Node.DOCUMENT_POSITION_PRECEDING;
+      var last = map.tabs[map.tabs.length - 1];
+      if (
+        fromInside ||
+        !fromAfter ||
+        last.getAttribute("aria-selected") === "true"
+      ) {
+        return;
+      }
+
+      focusEndOf(last);
     };
 
     /**
@@ -159,6 +202,8 @@
       tab.removeEventListener("focus", focusHandler, true);
       tab.removeEventListener("keydown", tabOrderHandler);
       content.removeEventListener("keydown", tabOrderHandler);
+      tab.removeEventListener("focusin", backwardEntryHandler);
+      content.removeEventListener("focusin", backwardEntryHandler);
 
       // Remove roles
       tab.removeAttribute("role");
@@ -204,6 +249,8 @@
         tab.addEventListener("focus", focusHandler);
         tab.addEventListener("keydown", tabOrderHandler);
         content.addEventListener("keydown", tabOrderHandler);
+        tab.addEventListener("focusin", backwardEntryHandler);
+        content.addEventListener("focusin", backwardEntryHandler);
       }
     };
 
