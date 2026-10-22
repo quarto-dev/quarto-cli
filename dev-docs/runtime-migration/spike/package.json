@@ -23,7 +23,7 @@
     "@jsr/std__testing": "0.224.0",
     "@jsr/std__uuid": "1.0.6",
     "@observablehq/parser": "4.5.0",
-    "acorn": "8.4.0",
+    "acorn": "8.18.0",
     "acorn-class-fields": "1.0.0",
     "acorn-walk": "8.2.0",
     "ansi_up": "6.0.2",
