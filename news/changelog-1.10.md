@@ -2,6 +2,8 @@
 
 ## In this release
 
+- ([#15143](https://github.com/quarto-dev/quarto-cli/issues/15143)): Fix PDF rendering with `pdf-standard` failing with `\DocumentMetadata not supported!` after updating to KOMA-Script 3.49.3, which provides the default document classes.
+
 ## In previous releases
 
 - ([#14920](https://github.com/quarto-dev/quarto-cli/issues/14920)): Correct the Windows ARM diagnostic for x64 R crashes with stable native ARM64 R installation guidance, including reinstalling packages and configuring `QUARTO_R`.
