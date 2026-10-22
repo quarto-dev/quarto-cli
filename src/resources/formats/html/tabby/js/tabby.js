@@ -102,7 +102,8 @@
     // of that content to the next tab; Shift+Tab goes the other way. Tabs come
     // before all panels in the DOM, so the browser alone would go tab to tab.
     var tabOrderHandler = function (event) {
-      if (event.key !== "Tab") return;
+      // Leave Tab to controls that handle it themselves, like code editors
+      if (event.key !== "Tab" || event.defaultPrevented) return;
       var current = event.currentTarget;
       var onTab = current.getAttribute("role") === "tab";
       var tab = onTab

@@ -136,3 +136,29 @@ Folded text.
 :::
 
 A [link after the details tabset](https://quarto.org).
+
+## Control handling Tab in a tabset
+
+::: {.panel-tabset}
+
+### Tab H
+
+```{=html}
+<textarea aria-label="editor in tab H"></textarea>
+<script>
+  // Inserts a tab character on Tab, like code editors do, without stopping
+  // propagation
+  document.querySelector('textarea[aria-label="editor in tab H"]')
+    .addEventListener("keydown", function (event) {
+      if (event.key !== "Tab") return;
+      event.preventDefault();
+      this.setRangeText("\t", this.selectionStart, this.selectionEnd, "end");
+    });
+</script>
+```
+
+### Tab I
+
+[link in tab I](https://quarto.org)
+
+:::

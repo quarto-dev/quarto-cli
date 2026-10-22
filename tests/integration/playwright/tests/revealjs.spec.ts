@@ -439,4 +439,13 @@ test.describe('tabset keyboard focus order', () => {
       link(page, 'link after the details tabset'),
     ]);
   });
+
+  test('Tab is left to a panel control that handles it', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/control-handling-tab-in-a-tabset');
+    const editor = page.getByRole('textbox', { name: 'editor in tab H' });
+    await editor.focus();
+    await page.keyboard.press(tabKey(browserName));
+    await expect(editor).toBeFocused();
+    await expect(editor).toHaveValue('\t');
+  });
 });
