@@ -38,7 +38,7 @@
     "moment-guess": "1.2.4",
     "pdfjs-dist": "4.9.155",
     "scss-parser": "1.0.6",
-    "semver": "7.7.2",
+    "semver": "7.8.5",
     "slimdom": "4.2.0",
     "std-legacy-encoding": "npm:@jsr/std__encoding@^0.224.0",
     "std-legacy-fmt": "npm:@jsr/std__fmt@^0.224.0",
