@@ -1,7 +1,0 @@
----
-format:
-  html:
-    crossref: false
-filters:
-  - testcrossref.lua
----

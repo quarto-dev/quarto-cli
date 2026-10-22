@@ -1,6 +1,0 @@
-project:
-  type: website
-
-format:
-  html: default
-  commonmark: default

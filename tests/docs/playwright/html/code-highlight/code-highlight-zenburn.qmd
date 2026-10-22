@@ -1,6 +1,0 @@
----
-title: Testing zenburn code highlight
-syntax-highlighting: zenburn
----
-
-{{< include _body.md >}}

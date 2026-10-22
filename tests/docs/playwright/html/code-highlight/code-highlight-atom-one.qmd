@@ -1,6 +1,0 @@
----
-title: Testing atom-one code highlight
-syntax-highlighting: atom-one
----
-
-{{< include _body.md >}}

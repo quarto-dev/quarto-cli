@@ -1,8 +1,0 @@
----
-title: Sections Test
-number-sections: true
----
-
-## Introduction {#sec-introduction}
-
-See @sec-introduction for additional context.

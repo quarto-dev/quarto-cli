@@ -1,9 +1,0 @@
-
-
-
-div.gslide div.gslide-description,
-div.gslide-description .gslide-title,
-div.gslide-description .gslide-desc {
-    color: var(--quarto-body-color);
-    background-color: var(--quarto-body-bg);
-}

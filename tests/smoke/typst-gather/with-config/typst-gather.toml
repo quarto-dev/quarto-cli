@@ -1,4 +1,0 @@
-# Test config with rootdir
-rootdir = "_extensions/config-format"
-destination = "typst/packages"
-discover = ["typst-template.typ"]

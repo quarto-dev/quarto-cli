@@ -1,8 +1,0 @@
----
-title: Hello Callout!
-format:
-  html:
-    minimal: true
----
-
-This file will be with no Quarto feature https://quarto.org/docs/output-formats/html-basics.html#minimal-html

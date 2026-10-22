@@ -1,7 +1,0 @@
----
-title: This is a Test
-date: 2022/10/1
-lang: fr-CA
----
-
-## Hello Date!

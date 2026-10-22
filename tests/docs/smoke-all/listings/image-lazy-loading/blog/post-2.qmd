@@ -1,7 +1,0 @@
----
-title: Post 2
-image: https://placeholder.co/200/200.png
-image-lazy-loading: false
----
-
-This is 2.

@@ -1,7 +1,0 @@
----
-title: "test"
-format:
-  latex: default
----
-
-![](images/image.jpeg){.column-margin}

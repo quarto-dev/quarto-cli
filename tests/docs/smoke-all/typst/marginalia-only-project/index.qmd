@@ -1,8 +1,0 @@
----
-title: "Marginalia Only Test"
-papersize: us-letter
----
-
-Main content here.
-
-[This note goes in the margin.]{.column-margin}

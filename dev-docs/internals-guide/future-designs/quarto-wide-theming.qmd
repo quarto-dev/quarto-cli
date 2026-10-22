@@ -1,3 +1,0 @@
-Could we create a minimal-but-useful theming system that
-works across all of our formats?
-

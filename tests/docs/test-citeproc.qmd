@@ -1,8 +1,0 @@
----
-title: "Citeproc explicit"
-format: html
-bibliography: references.bib
-citeproc: true
----
-
-Hello [@guo2020]

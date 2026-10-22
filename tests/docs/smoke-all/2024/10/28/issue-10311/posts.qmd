@@ -1,7 +1,0 @@
----
-title: "Listing Example"
-listing:
-  contents: posts
-_quarto:
-  render-project: true
----

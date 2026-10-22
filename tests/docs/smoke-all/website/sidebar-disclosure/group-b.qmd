@@ -1,5 +1,0 @@
----
-title: "group-b"
----
-
-Page group-b.

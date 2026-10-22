@@ -1,9 +1,0 @@
-# Introduction
-
-Hello world. this is an introduction
-
-[@afzal2020]
-
-[A figure](./cover.png){#fig-1}
-
-{{< include _include.qmd >}}

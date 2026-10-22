@@ -1,6 +1,0 @@
----
-# a dummy file with a filter that runs the luacov reporter
-title: foo
-filters:
-  - report.lua
----

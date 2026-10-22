@@ -1,7 +1,0 @@
----
-title: Home
----
-
-# Welcome
-
-Edit this line (or `_quarto.yml`) and save to force preview re-renders.

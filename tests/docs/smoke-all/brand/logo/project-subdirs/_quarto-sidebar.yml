@@ -1,8 +1,0 @@
-website:
-  sidebar:
-    style: "docked"
-    search: false
-    contents:
-      - href: index.qmd
-        text: Home
-      - about.qmd

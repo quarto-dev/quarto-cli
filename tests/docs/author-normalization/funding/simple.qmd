@@ -1,8 +1,0 @@
----
-title: Simple Funding
-funding: "The author(s) received no specific funding for this work."
-format: jats
----
-
-
-

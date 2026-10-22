@@ -1,8 +1,0 @@
----
-format: typst
-_quarto:
-  tests:
-    typst: null
----
-
-{{< embed plots.qmd#plot >}}

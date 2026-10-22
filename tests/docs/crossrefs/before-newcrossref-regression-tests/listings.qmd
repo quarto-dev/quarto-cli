@@ -1,9 +1,0 @@
----
-title: Listings Test
----
-
-```{#lst-customers .sql lst-cap="Customers Query"}
-SELECT * FROM Customers
-```
-
-Then we query the customers database (@lst-customers).

@@ -1,9 +1,0 @@
----
-title: <%= title %>
-format:
-  <%= format %>: default
-author: <%= author %>
-date: last-modified
----
-
-## Introduction

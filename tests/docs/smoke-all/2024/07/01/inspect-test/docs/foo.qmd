@@ -1,3 +1,0 @@
-{{< include _bar.md >}}
-
-{{< include /_test.md >}}

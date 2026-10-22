@@ -1,7 +1,0 @@
-title: Fancy Text
-author: Posit Software, PBC
-version: 1.1.1
-quarto-required: ">=1.2.198"
-contributes:
-  shortcodes:
-    - fancy-text.lua

@@ -1,6 +1,0 @@
----
-title: This is a Test
-date: today
----
-
-## Hello Date!

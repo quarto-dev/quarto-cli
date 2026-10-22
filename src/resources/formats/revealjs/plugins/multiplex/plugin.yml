@@ -1,8 +1,0 @@
-name: multiplex
-script: [socket.io.js, multiplex.js]
-register: false
-config:
-  multiplex:
-    secret: null
-    id: null
-    url: "https://multiplex.up.railway.app/"

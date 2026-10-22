@@ -1,1 +1,0 @@
-Deno.readTextFileSync(Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES"));

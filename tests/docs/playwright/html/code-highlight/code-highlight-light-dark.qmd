@@ -1,9 +1,0 @@
----
-format:
-  html:
-    syntax-highlighting:
-        light: pygments
-        dark: kate
----
-
-{{< include _body.md >}}

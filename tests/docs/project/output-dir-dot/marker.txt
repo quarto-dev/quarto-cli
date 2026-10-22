@@ -1,1 +1,0 @@
-This file should NOT be deleted when rendering with output-dir: .

@@ -1,6 +1,0 @@
----
-format: html+test
-filters:
-  - format-identifier.lua
----
-

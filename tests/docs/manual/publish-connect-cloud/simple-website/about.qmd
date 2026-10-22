@@ -1,9 +1,0 @@
----
-title: "About"
----
-
-## About This Site
-
-Second page for testing multi-page publishing.
-
-Back to [Home](index.qmd).

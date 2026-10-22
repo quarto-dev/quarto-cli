@@ -1,5 +1,0 @@
----
-title: Foo
----
-
-You can embed videos in documents using the `{{{< video >}}}` shortcode. For example, here we embed a YouTube video:

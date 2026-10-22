@@ -1,5 +1,0 @@
----
-format: customwriter.lua
----
-
-## Test.

@@ -1,8 +1,0 @@
----
-title: "test"
-format: latex
----
-
-::: {.solution .content-visible when-format="html"}
-hello
-:::

@@ -1,9 +1,0 @@
----
-format: html
-shortcodes:
-  - issue_9665.lua
----
-
-Hello.
-
-![]({{< bug foo=bar >}})

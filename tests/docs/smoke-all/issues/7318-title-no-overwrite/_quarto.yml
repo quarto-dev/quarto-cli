@@ -1,7 +1,0 @@
-project:
-  title: "Project"
-  type: website
-format:
-  html:
-    template-partials:
-      - metadata.html

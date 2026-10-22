@@ -1,7 +1,0 @@
----
-title: 5814-confluence-figure-sizing-is-ignored
-format: confluence-publish
-validate-yaml: false
----
-
-![Image](elephant.png){width=120 height=90}

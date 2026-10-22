@@ -1,7 +1,0 @@
-/.quarto/
-*.html
-*.llms.md
-llms.txt
-*_files/
-
-**/*.quarto_ipynb

@@ -1,5 +1,0 @@
-## First slide heading
-
-```{python}
-
-```

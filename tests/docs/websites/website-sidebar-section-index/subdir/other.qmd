@@ -1,5 +1,0 @@
----
-title: "Other Page"
----
-
-This is another page in the subdir.

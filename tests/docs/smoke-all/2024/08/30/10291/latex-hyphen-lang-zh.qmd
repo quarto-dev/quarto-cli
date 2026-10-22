@@ -1,9 +1,0 @@
----
-format: pdf
-lang: zh
-_quarto:
-  tests:
-    pdf: null
----
-
-# 范叶亮

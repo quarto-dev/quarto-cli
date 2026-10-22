@@ -1,7 +1,0 @@
-An inline r value `r 7 * 11 * 13`.
-
-As of 2023-03-07, we only auto-bind code blocks.
-
-```{r}
-3 + 4
-```

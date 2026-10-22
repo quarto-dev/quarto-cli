@@ -1,5 +1,0 @@
----
-title: "Test Project"
----
-
-This file should be rendered.

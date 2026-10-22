@@ -1,4 +1,0 @@
----
-title: "subdir index"
-format: typst
----

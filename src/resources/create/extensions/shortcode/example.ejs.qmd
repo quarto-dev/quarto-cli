@@ -1,8 +1,0 @@
----
-title: "<%= title %> Example"
----
-
-## Heading
-
-{{< <%= filesafename %> >}}
-

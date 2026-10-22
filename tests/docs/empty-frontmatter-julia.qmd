@@ -1,5 +1,0 @@
-Some text
-
-```{julia}
-1 + 1
-```

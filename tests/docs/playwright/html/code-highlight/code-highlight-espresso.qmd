@@ -1,6 +1,0 @@
----
-title: Testing espresso code highlight
-syntax-highlighting: espresso
----
-
-{{< include _body.md >}}

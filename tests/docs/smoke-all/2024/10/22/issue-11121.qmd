@@ -1,9 +1,0 @@
----
-format: 
-  html:
-    theme:
-      - cerulean
-      - test.scss
----
-
-## This will crash

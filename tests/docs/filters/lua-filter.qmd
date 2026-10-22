@@ -1,7 +1,0 @@
----
-title: Lua Filter Test
-filters:
-  - smallcaps.lua
----
-
-**This should be in all caps**

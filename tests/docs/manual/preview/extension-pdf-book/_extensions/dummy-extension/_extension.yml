@@ -1,5 +1,0 @@
-name: dummy-extension
-contributes:
-  formats:
-    pdf: default
-    html: default

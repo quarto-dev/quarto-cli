@@ -1,8 +1,0 @@
----
-title: Hello
-format:
-  pdf: default
-  html: default
----
-
-Yeah.

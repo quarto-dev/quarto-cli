@@ -1,6 +1,0 @@
----
-title: Hello
-format: html
----
-
-Hello world.

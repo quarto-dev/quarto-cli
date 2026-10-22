@@ -1,7 +1,0 @@
-logo:
-  images:
-    light-logo:
-      path: light-logo.png
-      alt: light logo
-  small:
-    light: light-logo

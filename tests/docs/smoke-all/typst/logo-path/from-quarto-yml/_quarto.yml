@@ -1,5 +1,0 @@
-project:
-  type: default
-format:
-  typst:
-    logo: images/logo.svg

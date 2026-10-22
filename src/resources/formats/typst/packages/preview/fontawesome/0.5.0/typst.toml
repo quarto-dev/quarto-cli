@@ -1,8 +1,0 @@
-[package]
-name = "fontawesome"
-version = "0.5.0"
-entrypoint = "lib.typ"
-authors = ["duskmoon (Campbell He) <kp.campbell.he@duskmoon314.com>"]
-license = "MIT"
-description = "A Typst library for Font Awesome icons through the desktop fonts."
-repository = "https://github.com/duskmoon314/typst-fontawesome"

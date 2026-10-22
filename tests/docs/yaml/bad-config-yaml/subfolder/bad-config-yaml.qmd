@@ -1,7 +1,0 @@
----
-title: "bad-config-yaml"
----
-
-## Quarto
-
-This is a doc in a dummy project to check that error message is correct

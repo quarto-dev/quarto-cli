@@ -1,4 +1,0 @@
-```{python}
-#| echo: true
-print("Hello, world")
-```

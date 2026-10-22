@@ -1,9 +1,0 @@
-project:
-  type: manuscript
-
-manuscript:
-  article: 13616.qmd
-
-format:
-  pdf:
-    pdf-engine: xelatex

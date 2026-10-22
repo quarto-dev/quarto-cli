@@ -1,8 +1,0 @@
----
-title: "test dependency traversal"
-format: html
----
-
-```{ojs}
-import { foo } from "./test-dependency-traversal-2.qmd";
-```

@@ -1,7 +1,0 @@
----
-title: issue-8274
-filters:
-  - 8274.lua
----
-
-## Hello.

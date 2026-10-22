@@ -1,4 +1,0 @@
----@meta
-
----@module 'quarto'
-quarto = {}

@@ -1,6 +1,0 @@
----
-title: Testing radical code highlight
-syntax-highlighting: radical
----
-
-{{< include _body.md >}}

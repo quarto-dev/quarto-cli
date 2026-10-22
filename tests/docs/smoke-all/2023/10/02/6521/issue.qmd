@@ -1,5 +1,0 @@
----
-title: test
----
-
-{{< embed nb.qmd#fig-1 >}}

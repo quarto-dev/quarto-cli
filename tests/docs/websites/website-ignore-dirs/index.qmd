@@ -1,5 +1,0 @@
----
-title: "Test Website"
----
-
-This file should be rendered.

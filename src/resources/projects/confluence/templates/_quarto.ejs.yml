@@ -1,5 +1,0 @@
-project:
-  type: confluence
-  title: "<%= title %>"
-
-<% if(editor){ %>editor: <%= editor %><% } %>

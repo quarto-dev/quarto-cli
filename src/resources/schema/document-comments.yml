@@ -1,6 +1,0 @@
-- name: comments
-  tags:
-    formats: [$html-files]
-  schema:
-    ref: document-comments-configuration
-  description: Configuration for document commenting.

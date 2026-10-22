@@ -1,5 +1,0 @@
----
-bad-meta: [[1,2]]
----
-
-{{< meta bad-meta >}}
