@@ -1522,9 +1522,50 @@ kbd,
 }
 
 .callout.callout-titled .callout-body > :last-child:not(.sourceCode),
-.callout.callout-titled .callout-body > div > :last-child:not(.sourceCode) {
+.callout.callout-titled .callout-body > div > :last-child:not(.sourceCode, .code-copy-button) {
   padding-bottom: 0.5rem;
   margin-bottom: 0;
+}
+
+// Code blocks are wrapped in .code-copy-outer-scaffold, which positions the
+// copy button. At a callout edge, space the scaffold with margin instead of
+// padding and drop the code block's own margin, so the button stays inside
+// the code frame and the gap matches a paragraph's.
+.callout .callout-body-container {
+  > .code-copy-outer-scaffold:first-child,
+  > .cell:first-child > .code-copy-outer-scaffold:first-child {
+    > div.sourceCode {
+      margin-top: 0;
+    }
+  }
+
+  > .code-copy-outer-scaffold:last-child,
+  > .cell:last-child > .code-copy-outer-scaffold:last-child {
+    > div.sourceCode {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.callout.callout-style-default .callout-body {
+  > .code-copy-outer-scaffold:first-child,
+  > .cell:first-child:has(> .code-copy-outer-scaffold:first-child) {
+    padding-top: 0;
+    margin-top: 0.5rem;
+  }
+}
+
+.callout.callout-titled .callout-body {
+  > .code-copy-outer-scaffold:last-child,
+  > .cell:last-child:has(> .code-copy-outer-scaffold:last-child) {
+    padding-bottom: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  // Undoes the `> div > :last-child` padding above for code ending a cell.
+  > .cell:last-child > .code-copy-outer-scaffold:last-child {
+    padding-bottom: 0;
+  }
 }
 
 .callout:not(.callout-titled) .callout-body > :first-child,
