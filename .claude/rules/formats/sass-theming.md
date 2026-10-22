@@ -43,8 +43,7 @@ control.
 - The inner tone is `box-shadow: var(--quarto-focus-ring-shadow)`. The
   property is set on `:root`. An author can remove the inner tone with
   `--quarto-focus-ring-shadow: none`. Use the property, not
-  `$focus-ring-inner-shadow`, in rules that add to the ring (for example the
-  skip link).
+  `$focus-ring-inner-shadow`, in any rule that adds to the ring.
 
 - One exception is the search box. Its visible field is `.aa-Form`, which
   holds a borderless `.aa-Input`. The form gets `@include focus-ring` when the

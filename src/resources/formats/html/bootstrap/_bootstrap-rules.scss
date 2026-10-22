@@ -83,12 +83,6 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
   text-decoration: none;
   border: 1px solid $border-color;
   border-radius: $border-radius;
-  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
-}
-
-// keep the focus ring's inner tone alongside the drop shadow
-#quarto-skip-link:focus-visible {
-  box-shadow: var(--quarto-focus-ring-shadow), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
 }
 
 // the skip-link target receives programmatic focus (tabindex="-1"); don't
