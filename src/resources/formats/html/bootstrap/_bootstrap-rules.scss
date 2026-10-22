@@ -1139,6 +1139,14 @@ td code:not(.sourceCode) {
   padding-right: $focus-ring-extent;
 }
 
+// The collapsed navbar menu scrolls, and its links run to its edges. The
+// padding makes room for the focus ring; the negative margin keeps the links
+// where they were.
+.navbar-nav-scroll {
+  padding: $focus-ring-extent;
+  margin: -$focus-ring-extent;
+}
+
 .sidebar.quarto-banner-title-block-sidebar {
   & > * {
     padding-top: 1.65em;
