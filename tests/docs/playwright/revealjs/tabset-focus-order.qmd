@@ -39,6 +39,8 @@ A [link before the tabset](https://quarto.org).
 
 Content C with a [link in tab C](https://quarto.org).
 
+<div hidden><a href="https://quarto.org">hidden link in tab C</a></div>
+
 ### Tab D
 
 Content D with a [link in tab D](https://quarto.org).

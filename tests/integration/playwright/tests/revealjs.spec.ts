@@ -417,6 +417,8 @@ test.describe('tabset keyboard focus order', () => {
     await link(page, 'link in outer B').focus();
     await expectTabOrder(page, browserName, [
       tab(page, 'Outer B'),
+      link(page, 'link in inner 2'),
+      tab(page, 'Inner 2'),
       link(page, 'link in inner 1'),
       tab(page, 'Inner 1'),
       link(page, 'link in outer A'),

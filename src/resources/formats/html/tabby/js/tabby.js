@@ -87,9 +87,9 @@
           'a[href], button, input, textarea, select, summary,[tabindex]:not([tabindex="-1"])'
         ),
       ].filter(
-        // Shown elements only, as the browser skips the others: content of
-        // unselected panels (also of a nested tabset) is not rendered, and
-        // revealjs fragments not yet shown have `visibility: hidden`
+        // Shown elements only, as the browser skips the others: hidden content,
+        // like unselected panels (also of a nested tabset), is not rendered,
+        // and revealjs fragments not yet shown have `visibility: hidden`
         (el) =>
           !el.hasAttribute("disabled") &&
           !el.getAttribute("aria-hidden") &&
@@ -107,13 +107,24 @@
 
     // Selects a tab and focuses the last focusable element of its panel, or
     // the tab itself if there is none. The panel content is hidden until the
-    // tab is selected.
+    // tab is selected. When the panel ends with a nested tabset, its end is
+    // the end of that tabset's last panel, as Tab would reach it.
     var focusEndOf = function (tab) {
       toggle(tab);
-      (
-        getKeyboardFocusableElements(document.querySelector(tab.hash)).pop() ||
-        tab
-      ).focus();
+      var content = document.querySelector(tab.hash);
+      var last = getKeyboardFocusableElements(content).pop();
+      if (!last) return tab.focus();
+
+      // Outermost tab or tab panel between the last element and this panel
+      var nestedTab;
+      for (var node = last; node && node !== content; node = node.parentElement) {
+        var role = node.getAttribute("role");
+        if (role === "tab") nestedTab = node;
+        if (role === "tabpanel") nestedTab = getTab(node);
+      }
+      var nested = nestedTab && getTabsMap(nestedTab);
+      if (nested) return focusEndOf(nested.tabs[nested.tabs.length - 1]);
+      last.focus();
     };
 
     // In revealjs, Tab goes from a tab to its panel content and from the end
