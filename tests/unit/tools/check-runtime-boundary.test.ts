@@ -660,3 +660,18 @@ unitTest("check-runtime-boundary - baselineAt reads the baseline committed at th
     temp.cleanup();
   }
 });
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - a covered API in browser-shared code is a warning, not an error", async () => {
+  const report = diffChanges([
+    { path: "src/core/lib/errors.ts", before: "", after: `export const o = ${DENO}build.os;\n`, addedLines: [1] },
+    { path: "src/core/other.ts", before: "", after: `export const o = ${DENO}build.os;\n`, addedLines: [1] },
+  ]);
+  const byFile = Object.fromEntries(report.findings.map((f) => [f.file, f]));
+  assertEquals(byFile["src/core/lib/errors.ts"].replacement, undefined);
+  assertEquals(byFile["src/core/other.ts"].replacement, kRalDenoReplacements["build.os"].hint);
+
+  const rendered = renderDelta(report, { "src": { denoCalls: 996, stdImportFiles: 49 } }, { "src": { denoCalls: 994, stdImportFiles: 49 } });
+  assertEquals(rendered.errors.map((e) => e.file), ["src/core/other.ts"]);
+  assertEquals(rendered.warnings.map((w) => w.file), ["src/core/lib/errors.ts"]);
+});

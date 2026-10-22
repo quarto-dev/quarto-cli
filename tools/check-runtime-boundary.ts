@@ -316,6 +316,13 @@ export const kStdSuggestions: Readonly<
   "assert": { module: "tests/asserts.ts", scopes: ["tests"] },
 };
 
+/** Code that also runs in the browser (the YAML intelligence web worker imports it), so it cannot
+ * import src/deno_ral/: a covered API there is only ever a warning. */
+const kBrowserSharedPaths: readonly string[] = ["src/core/lib/"];
+
+const isBrowserShared = (path: string) =>
+  kBrowserSharedPaths.some((prefix) => path.startsWith(prefix));
+
 export function denoReplacement(api: string, scope: string): string | undefined {
   const entry = Object.hasOwn(kRalDenoReplacements, api)
     ? kRalDenoReplacements[api]
@@ -419,7 +426,9 @@ export function diffChanges(changes: FileChange[]): DeltaReport {
           };
           const line = firstAddedLine(e.change, "Deno." + api);
           if (line !== undefined) finding.line = line;
-          const replacement = denoReplacement(api, scope);
+          const replacement = isBrowserShared(e.change.path)
+            ? undefined
+            : denoReplacement(api, scope);
           if (replacement !== undefined) finding.replacement = replacement;
           findings.push(finding);
         }
