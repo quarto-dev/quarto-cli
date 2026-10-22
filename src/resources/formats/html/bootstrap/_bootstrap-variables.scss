@@ -194,6 +194,21 @@ $zindex-pagelayout: 998;
 // above the fixed/headroom navbar ($zindex-fixed: 1030)
 $zindex-skip-link: 1070 !default;
 
+// Keyboard focus ring (see the `:focus-visible` rule in _bootstrap-rules.scss).
+// When unset, the outer color comes from $primary-text-emphasis and the
+// inner color is $white; both resolve in the rules layer, after Bootstrap
+// has defined $primary-text-emphasis. An author who sets the outer color
+// is responsible for its 9:1 contrast against the inner color.
+$focus-ring-outer-color: null !default;
+$focus-ring-inner-color: null !default;
+
+// Turn off Bootstrap's translucent box-shadow focus halos; the focus ring
+// replaces them.
+$focus-ring-box-shadow: none !default;
+$form-select-focus-box-shadow: none !default;
+$form-range-thumb-focus-box-shadow: none !default;
+$btn-focus-width: 0 !default;
+
 $popover-bg: if(variable-exists(body-bg), $body-bg, null) !default;
 $input-bg: if(variable-exists(body-bg), $body-bg, null) !default;
 

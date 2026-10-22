@@ -1,3 +1,27 @@
+// Keyboard focus ring (WCAG 2.4.7, 1.4.11), after W3C technique C40: two
+// tones at least 9:1 apart, so one of them reaches 3:1 against any solid
+// background. The outer tone is the outline, which theme rules rarely
+// override and forced-colors mode keeps; the inner tone is a box-shadow that
+// fills the outline offset. Resolved here, after all defaults, so that
+// $primary-text-emphasis exists and every rules layer can use the result.
+$focus-ring-inner: if($focus-ring-inner-color, $focus-ring-inner-color, $white);
+$focus-ring-outer: $focus-ring-outer-color;
+@if not $focus-ring-outer {
+  // Shift the derived color only as far as needed to reach 9:1
+  $focus-ring-outer: theme-contrast($primary-text-emphasis, $focus-ring-inner, 9);
+}
+$focus-ring-outline-width: 2px;
+$focus-ring-outline-offset: 2px;
+// how far the ring reaches outside the element's border box
+$focus-ring-extent: $focus-ring-outline-width + $focus-ring-outline-offset;
+$focus-ring-inner-shadow: 0 0 0 $focus-ring-outline-offset $focus-ring-inner;
+
+@mixin focus-ring {
+  outline: $focus-ring-outline-width solid $focus-ring-outer;
+  outline-offset: $focus-ring-outline-offset;
+  box-shadow: $focus-ring-inner-shadow;
+}
+
 @mixin body-secondary {
   @if variable-exists(body-secondary) {
     color: $body-secondary;
