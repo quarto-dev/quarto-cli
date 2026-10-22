@@ -27,10 +27,22 @@ For the three-tier callout CSS architecture (Bootstrap, RevealJS, standalone HTM
 ## Keyboard focus ring (Bootstrap formats)
 
 One rule in `_bootstrap-rules.scss` draws the focus ring for every focusable
-element: `:root :focus-visible`. The `focus-ring` mixin in
+element: `:focus-visible`. The `focus-ring` mixin in
 `_bootstrap-mixins.scss` defines the ring. Do not add focus rules for one
 control. A rule with a higher specificity replaces part of the ring on that
 control.
+
+- The global rule has specificity (0,1,0) on purpose, so that author rules
+  such as `a:focus-visible` (0,1,1) win. Do not raise it.
+- Bootstrap removes the outline with (0,2,0) rules (`.btn:focus-visible`,
+  `.nav-link:focus-visible`, `.form-control:focus`, ...). A second rule lists
+  these classes and includes the ring again. Add a class to that list only
+  if Bootstrap removes its outline.
+- The inner tone is `box-shadow: var(--quarto-focus-ring-shadow)`. The
+  property is set on `:root`. An author can remove the inner tone with
+  `--quarto-focus-ring-shadow: none`. Use the property, not
+  `$focus-ring-inner-shadow`, in rules that add to the ring (for example the
+  skip link).
 
 - One exception is the search box. Its visible field is `.aa-Form`, which
   holds a borderless `.aa-Input`. The form gets `@include focus-ring` when the

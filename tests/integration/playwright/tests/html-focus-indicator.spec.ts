@@ -2,7 +2,7 @@ import { expect, Locator, test } from "@playwright/test";
 import { getUrl, tabUntilFocused } from "../src/utils";
 
 // Quarto draws one keyboard focus ring for every focusable element, from a
-// single `:root :focus-visible` rule: an outline in the outer color, with
+// global `:focus-visible` rule: an outline in the outer color, with
 // the inner color as a box-shadow in the outline offset (W3C technique
 // C40). Bootstrap's box-shadow halos are turned off at the source.
 //
@@ -132,4 +132,22 @@ test.describe("forced colors", () => {
     await expect(link).toHaveCSS("outline-style", "solid");
     await expect(link).toHaveCSS("outline-width", "2px");
   });
+});
+
+// Author focus rules must win over the global ring. The fixture's theme
+// sets `a:focus-visible { outline: 3px solid #b5361f }`, a (0,1,1)
+// selector, and removes the inner tone with one custom property.
+test("author a:focus-visible rule replaces the focus ring", async ({
+  page,
+  browserName,
+}) => {
+  await page.goto(getUrl("html/focus-ring-author-override.html"), {
+    waitUntil: "load",
+  });
+  const link = page.getByRole("link", { name: "inline link" });
+  await expect(link).toBeVisible();
+  expect(await tabUntilFocused(page, browserName, link)).toBe(true);
+  await expect(link).toHaveCSS("outline-color", "rgb(181, 54, 31)");
+  await expect(link).toHaveCSS("outline-width", "3px");
+  await expect(link).toHaveCSS("box-shadow", "none");
 });

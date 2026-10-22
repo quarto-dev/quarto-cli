@@ -35,7 +35,8 @@ $focus-ring-inner-shadow: 0 0 0 $focus-ring-outline-offset $focus-ring-shadow-co
 @mixin focus-ring {
   outline: $focus-ring-outline-width solid $focus-ring-outline-color;
   outline-offset: $focus-ring-outline-offset;
-  box-shadow: $focus-ring-inner-shadow;
+  // the property is set on :root in _bootstrap-rules.scss
+  box-shadow: var(--quarto-focus-ring-shadow);
 }
 
 @mixin body-secondary {

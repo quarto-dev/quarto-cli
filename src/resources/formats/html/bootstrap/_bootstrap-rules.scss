@@ -23,11 +23,35 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
   margin-top: 1rem;
 }
 
+// The inner tone is a custom property, so an author can remove it with
+// one line (`--quarto-focus-ring-shadow: none`) without matching the
+// specificity of the rules below.
+:root {
+  --quarto-focus-ring-shadow: #{$focus-ring-inner-shadow};
+}
+
 // One keyboard focus ring for every focusable element (see the focus-ring
-// mixin). (0,2,0) ties with Bootstrap's .nav-link:focus-visible and
-// .form-control:focus and wins on order; user rules still come later.
-// Don't add per-control focus rules: they break the one-ring convention.
-:root :focus-visible {
+// mixin). The rule has (0,1,0) specificity on purpose, so that author rules
+// such as `a:focus-visible` (0,1,1) win over it.
+:focus-visible {
+  @include focus-ring;
+}
+
+// Bootstrap removes the outline on these controls with (0,2,0) rules
+// (`.btn:focus-visible { outline: 0 }`, `.form-control:focus`, ...), which
+// beat the (0,1,0) rule above. These rules tie with Bootstrap and win on
+// order; author rules on the same classes come later and still win.
+// Don't add rules for other controls: only Bootstrap's outline removals
+// belong here.
+.btn:focus-visible,
+.btn-close:focus-visible,
+.nav-link:focus-visible,
+.navbar-toggler:focus-visible,
+.accordion-button:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.form-range:focus-visible {
   @include focus-ring;
 }
 
@@ -57,7 +81,7 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
 
 // keep the focus ring's inner tone alongside the drop shadow
 #quarto-skip-link:focus-visible {
-  box-shadow: $focus-ring-inner-shadow, 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
+  box-shadow: var(--quarto-focus-ring-shadow), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
 }
 
 // the skip-link target receives programmatic focus (tabindex="-1"); don't
