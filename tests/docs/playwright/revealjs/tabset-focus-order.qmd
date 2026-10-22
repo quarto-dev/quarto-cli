@@ -72,3 +72,67 @@ Nothing to focus in this panel.
 [link in second B](https://quarto.org)
 
 :::
+
+## Nested tabsets
+
+::: {.panel-tabset}
+
+### Outer A
+
+A [link in outer A](https://quarto.org).
+
+::: {.panel-tabset}
+
+#### Inner 1
+
+[link in inner 1](https://quarto.org)
+
+#### Inner 2
+
+[link in inner 2](https://quarto.org)
+
+:::
+
+### Outer B
+
+[link in outer B](https://quarto.org)
+
+:::
+
+## Details and fragments in a tabset
+
+::: {.panel-tabset}
+
+### Tab E
+
+[link in tab E](https://quarto.org)
+
+<details>
+<summary>details in tab E</summary>
+
+Folded text.
+
+</details>
+
+### Tab F
+
+<details>
+<summary>details in tab F</summary>
+
+Folded text.
+
+</details>
+
+[link in tab F](https://quarto.org)
+
+### Tab G
+
+::: {.fragment}
+[link in a fragment](https://quarto.org)
+:::
+
+[link in tab G](https://quarto.org)
+
+:::
+
+A [link after the details tabset](https://quarto.org).

@@ -397,4 +397,46 @@ test.describe('tabset keyboard focus order', () => {
       link(page, 'link in second B'),
     ]);
   });
+
+  test('a nested tabset is traversed inside its outer panel', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/nested-tabsets');
+    await expectTabOrder(page, browserName, [
+      tab(page, 'Outer A'),
+      link(page, 'link in outer A'),
+      tab(page, 'Inner 1'),
+      link(page, 'link in inner 1'),
+      tab(page, 'Inner 2'),
+      link(page, 'link in inner 2'),
+      tab(page, 'Outer B'),
+      link(page, 'link in outer B'),
+    ]);
+  });
+
+  test('Shift+Tab reverses the order through a nested tabset', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/nested-tabsets');
+    await tab(page, 'Outer B').click();
+    await link(page, 'link in outer B').focus();
+    await expectTabOrder(page, browserName, [
+      tab(page, 'Outer B'),
+      link(page, 'link in inner 1'),
+      tab(page, 'Inner 1'),
+      link(page, 'link in outer A'),
+      tab(page, 'Outer A'),
+    ], true);
+  });
+
+  test('Tab reaches details summaries and skips unrevealed fragments in panels', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/details-and-fragments-in-a-tabset');
+    await tab(page, 'Tab E').focus();
+    await expectTabOrder(page, browserName, [
+      link(page, 'link in tab E'),
+      page.locator('summary', { hasText: 'details in tab E' }),
+      tab(page, 'Tab F'),
+      page.locator('summary', { hasText: 'details in tab F' }),
+      link(page, 'link in tab F'),
+      tab(page, 'Tab G'),
+      link(page, 'link in tab G'),
+      link(page, 'link after the details tabset'),
+    ]);
+  });
 });

@@ -84,13 +84,17 @@
     var getKeyboardFocusableElements = function (element) {
       return [
         ...element.querySelectorAll(
-          'a[href], button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])'
+          'a[href], button, input, textarea, select, summary,[tabindex]:not([tabindex="-1"])'
         ),
       ].filter(
+        // Shown elements only, as the browser skips the others: content of
+        // unselected panels (also of a nested tabset) is not rendered, and
+        // revealjs fragments not yet shown have `visibility: hidden`
         (el) =>
           !el.hasAttribute("disabled") &&
           !el.getAttribute("aria-hidden") &&
-          el.getClientRects().length > 0
+          el.getClientRects().length > 0 &&
+          window.getComputedStyle(el).visibility === "visible"
       );
     };
 
@@ -98,7 +102,7 @@
     // of that content to the next tab; Shift+Tab goes the other way. Tabs come
     // before all panels in the DOM, so the browser alone would go tab to tab.
     var tabOrderHandler = function (event) {
-      if (event.key !== "Tab" || event.defaultPrevented) return;
+      if (event.key !== "Tab") return;
       var current = event.currentTarget;
       var onTab = current.getAttribute("role") === "tab";
       var tab = onTab
@@ -115,6 +119,7 @@
       } else if (onTab) {
         var previous = map.tabs[map.index - 1];
         if (!previous) return;
+        // Select the previous tab first: its panel content is hidden until then
         toggle(previous);
         target =
           getKeyboardFocusableElements(
