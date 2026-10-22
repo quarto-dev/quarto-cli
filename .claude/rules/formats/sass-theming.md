@@ -41,6 +41,10 @@ control.
 
 - The ring follows W3C technique C40. The outer color is a 2px `outline`. The
   inner color is a `box-shadow` that fills the 2px `outline-offset`.
+- On a dark page (`$body-bg` has more contrast with white than with black),
+  the derived tones swap: white goes on the `outline`. The test is per
+  stylesheet, not per `light:`/`dark:` key. If a user sets
+  `$focus-ring-outer-color` or `$focus-ring-inner-color`, nothing swaps.
 - The outer color is the `outline` because Bootswatch themes often set
   `box-shadow` on controls, but rarely `outline`. Forced-colors mode also
   keeps the `outline`.
@@ -50,4 +54,4 @@ control.
   `box-shadow: none`. An example is `#quarto-document-content`, which gets
   focus from the skip link.
 - If a scroll container clips the ring, add `$focus-ring-extent` of padding
-  on that side. The TOC sidebars are an example.
+  on that side. The TOC sidebars and the collapsed navbar menu are examples.
