@@ -48,6 +48,8 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
 .nav-link:focus-visible,
 .navbar-toggler:focus-visible,
 .accordion-button:focus-visible,
+.carousel-control-prev:focus-visible,
+.carousel-control-next:focus-visible,
 .form-control:focus-visible,
 .form-select:focus-visible,
 .form-check-input:focus-visible,
