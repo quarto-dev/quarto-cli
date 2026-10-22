@@ -169,13 +169,14 @@
         },
         true
       );
-      document.addEventListener(
-        "keyup",
-        function () {
-          shiftTabDown = false;
-        },
-        true
-      );
+      // A click, or leaving the window (the keyup then goes elsewhere), ends it
+      // too
+      var clear = function () {
+        shiftTabDown = false;
+      };
+      document.addEventListener("keyup", clear, true);
+      document.addEventListener("pointerdown", clear, true);
+      window.addEventListener("blur", clear);
     };
 
     // In revealjs, Shift+Tab from after a tabset reaches the content of the

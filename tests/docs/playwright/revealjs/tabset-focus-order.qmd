@@ -163,7 +163,7 @@ A [link after the details tabset](https://quarto.org).
 
 :::
 
-A [link after the editor tabset](https://quarto.org).
+A [link after the editor tabset](https://quarto.org) and [a second link](https://quarto.org).
 
 ## Empty selected panel
 

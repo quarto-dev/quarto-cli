@@ -457,6 +457,19 @@ test.describe('tabset keyboard focus order', () => {
     await expect(tab(page, 'Tab H')).toHaveAttribute('aria-selected', 'true');
   });
 
+  test('clicking a panel control while Shift+Tab is held keeps that panel', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/control-handling-tab-in-a-tabset');
+    await link(page, 'a second link').focus();
+    await page.keyboard.down('Shift');
+    if (browserName === 'webkit') await page.keyboard.down('Alt');
+    await page.keyboard.down('Tab');
+    await expect(link(page, 'link after the editor tabset')).toBeFocused();
+    const editor = page.getByRole('textbox', { name: 'editor in tab H' });
+    await editor.click();
+    await expect(editor).toBeFocused();
+    await expect(tab(page, 'Tab H')).toHaveAttribute('aria-selected', 'true');
+  });
+
   test('Shift+Tab from after a tabset with an empty selected panel reaches the last panel', async ({ page, browserName }) => {
     await gotoSlide(page, '#/empty-selected-panel');
     await link(page, 'link after the empty panel tabset').focus();
