@@ -1479,7 +1479,9 @@ kbd,
   border-bottom-right-radius: add($border-radius, -1px);
 }
 
-// Bootstrap toggles `collapsed` on the trigger (the button), not the header
+// Bootstrap toggles `collapsed` on the trigger (the button), not the header.
+// Without :has() support (e.g. Firefox < 121) the corner stays square;
+// that is cosmetic only, so no JS fallback.
 .callout > .callout-header:has(> .callout-toggle-btn.collapsed) {
   border-bottom-right-radius: add($border-radius, -1px);
 }
