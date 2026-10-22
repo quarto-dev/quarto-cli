@@ -87,7 +87,7 @@ Initialisation contract (unchanged behaviour, new mechanism):
 - `Bundle Test` (PR 00b gate) is green on three OSes and its HTML render log contains `Loaded deno-dom-native` on each.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/core/deno-dom.test.ts` → `4 passed`; the HTML smoke tests in Verification pass.
 - The PR description contains the 0.1.41 → 0.1.56 release-notes summary and the `parseHtml` baseline table (native, three OSes, both targets; WASM for information).
-- `quarto run --dev tools/check-runtime-boundary.ts` passes after `--update-baseline --accept-tests-increase`: `src` −1 (`Deno.dlopen` moved into the package), `tests` +1 (`Deno.readTextFileSync` in the new test).
+- `quarto run --dev tools/check-runtime-boundary.ts` passes after `--update-baseline --accept-increase`: `src` −1 (`Deno.dlopen` moved into the package), `tests` +1 (`Deno.readTextFileSync` in the new test).
 
 ## Plan
 
@@ -620,7 +620,7 @@ Expected: three green jobs. Put a table in the PR description: one row per OS (`
 
 - [ ] **Step 1: Update the baseline**
 
-Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-tests-increase && git diff tools/runtime-boundary-baseline.json`
+Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-increase && git diff tools/runtime-boundary-baseline.json`
 Expected: `src.denoCalls` falls by 1 (`Deno.dlopen` moved into the package; `Deno.env.get` and `Deno.writeTextFile` remain), `tests.denoCalls` rises by 1 (`Deno.readTextFileSync` in the new test; one `::warning::` line), nothing else changes. List the test file and its count in the PR description.
 
 - [ ] **Step 2: Set the PR 05 row to `in progress` and commit**

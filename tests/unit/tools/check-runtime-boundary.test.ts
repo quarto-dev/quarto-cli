@@ -9,19 +9,32 @@
  */
 
 import { unitTest } from "../../test.ts";
-import { assert, assertEquals, assertThrows } from "../../asserts.ts";
+import { assert, assertEquals, assertRejects, assertThrows } from "../../asserts.ts";
 import { join } from "../../../src/deno_ral/path.ts";
-import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
+import { ensureDirSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
+import { execProcess } from "../../../src/core/process.ts";
 import { createTempContext } from "../../../src/core/temp.ts";
 import {
-  acceptTestsIncrease,
+  acceptIncrease,
+  baselineAt,
   compareToBaseline,
   countScope,
+  countText,
+  denoReplacement,
+  diffChanges,
+  type FileChange,
+  gitChanges,
   hasStdImport,
+  kRalDenoReplacements,
   kScopes,
   lowerBaseline,
   measure,
+  parseAddedLines,
   parseBaseline,
+  renderDelta,
+  scopesOf,
+  stdModuleOf,
+  stdSuggestion,
 } from "../../../tools/check-runtime-boundary.ts";
 
 // Built at runtime so this file's text is not counted by the ratchet itself.
@@ -261,10 +274,424 @@ unitTest("check-runtime-boundary - lowerBaseline never raises a number", async (
 });
 
 // deno-lint-ignore require-await
-unitTest("check-runtime-boundary - acceptTestsIncrease raises tests only", async () => {
-  const baseline = { "src": { denoCalls: 10, stdImportFiles: 3 }, "tests": { denoCalls: 5, stdImportFiles: 1 } };
-  assertEquals(
-    acceptTestsIncrease({ "src": { denoCalls: 12, stdImportFiles: 1 }, "tests": { denoCalls: 7, stdImportFiles: 2 } }, baseline),
-    { "src": { denoCalls: 10, stdImportFiles: 1 }, "tests": { denoCalls: 7, stdImportFiles: 2 } },
+unitTest("check-runtime-boundary - acceptIncrease writes the current counts", async () => {
+  const current = { "src": { denoCalls: 12, stdImportFiles: 1 }, "tests": { denoCalls: 7, stdImportFiles: 2 } };
+  assertEquals(acceptIncrease(current), current);
+  assert(acceptIncrease(current) !== current, "returns a copy");
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - countText keys Deno APIs by one or two identifiers", async () => {
+  const text = [
+    DENO + "build.os",
+    DENO + "build.target",
+    DENO + "readTextFileSync(p)",
+    DENO + "readTextFileSync(q)",
+    DENO + "\n",
+  ].join("\n");
+  assertEquals(countText(text).deno, { "build.os": 1, "build.target": 1, readTextFileSync: 2, "": 1 });
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - countText never swallows a following prefix", async () => {
+  assertEquals(countText(DENO + DENO + "build.os").deno, { [DENO + "build"]: 1, "build.os": 1 });
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - countText lists counted std specifiers, not allow-listed ones", async () => {
+  const text = [
+    `${IMPORT} { ensureDir } ${FROM} "fs/ensure-dir";`,
+    `${IMPORT} { delay } ${FROM} "async";`,
+    `${IMPORT} * as path ${FROM} "path";`,
+    `${IMPORT} type { WalkEntry } ${FROM} "jsr:@std/fs";`,
+  ].join("\n");
+  assertEquals(countText(text).std, ["fs/ensure-dir", "path", "jsr:@std/fs"]);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - stdModuleOf normalises every specifier form", async () => {
+  assertEquals(stdModuleOf("fs/ensure-dir"), "fs");
+  assertEquals(stdModuleOf("@std/fs"), "fs");
+  assertEquals(stdModuleOf("jsr:@std/fs@1.0.16/walk"), "fs");
+  assertEquals(stdModuleOf("testing/asserts"), "testing");
+  assertEquals(stdModuleOf("jsr:/@std/assert"), "assert");
+  assertEquals(stdModuleOf("https://deno.land/std@0.93.0/assert/assert_object_match.ts"), "assert");
+  assertEquals(stdModuleOf("@std/path"), "path");
+  assertEquals(stdModuleOf("path"), "path");
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - scopesOf follows each scope's rules", async () => {
+  assertEquals(scopesOf("src/core/a.ts"), ["src"]);
+  assertEquals(scopesOf("src/resources/scripts/x.ts"), ["resources"]);
+  assertEquals(scopesOf("src/resources/formats/html/a.js"), ["resources"]);
+  assertEquals(scopesOf("src/x.js"), ["src-js"]);
+  assertEquals(scopesOf("tests/docs/a.ts"), []);
+  assertEquals(scopesOf("tests/unit/a.test.ts"), ["tests"]);
+  assertEquals(scopesOf("src/vendor/a.ts"), []);
+  assertEquals(scopesOf("tests/node_modules/a.ts"), []);
+});
+
+const imp = (specifier: string) => `${IMPORT} { x } ${FROM} "${specifier}";\n`;
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - stdSuggestion by module, scope-limited", async () => {
+  assertEquals(stdSuggestion("testing/asserts", "tests"), "tests/asserts.ts");
+  assertEquals(stdSuggestion("testing/asserts", "src"), undefined);
+  assertEquals(stdSuggestion("jsr:@std/fs@1.0.16/walk", "src"), "src/deno_ral/fs.ts");
+  assertEquals(stdSuggestion("fs/walk", "src"), "src/deno_ral/fs.ts");
+  assertEquals(stdSuggestion("fmt/colors", "src"), undefined);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - denoReplacement exact keys only", async () => {
+  assertEquals(denoReplacement("build.os", "src"), kRalDenoReplacements["build.os"].hint);
+  assertEquals(denoReplacement("build.target", "src"), undefined);
+  assertEquals(denoReplacement("build", "src"), undefined);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - diffChanges an uncovered increase is a finding without replacement", async () => {
+  const changes: FileChange[] = [{
+    path: "tests/unit/a.test.ts",
+    before: "",
+    after: `\n\n${DENO}mkdirSync(x)\n\n${DENO}mkdirSync(y)\n`,
+    addedLines: [3, 5],
+  }];
+  const report = diffChanges(changes);
+  assertEquals(report.deltas["tests"].denoCalls, 2);
+  assertEquals(report.findings, [
+    { scope: "tests", file: "tests/unit/a.test.ts", kind: "deno", name: "mkdirSync", delta: 2, line: 3 },
+  ]);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - diffChanges a covered increase carries the replacement", async () => {
+  const report = diffChanges([
+    { path: "src/core/a.ts", before: "", after: `export const o = ${DENO}build.os;\n`, addedLines: [1] },
+  ]);
+  assertEquals(report.findings.length, 1);
+  assertEquals(report.findings[0].replacement, kRalDenoReplacements["build.os"].hint);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - diffChanges a renamed file is net zero", async () => {
+  const text = `${DENO}cwd();\n${DENO}pid;\n`;
+  const report = diffChanges([
+    { path: "src/a.ts", before: text, after: null, addedLines: [] },
+    { path: "src/b.ts", before: null, after: text, addedLines: [1, 2] },
+  ]);
+  assertEquals(report.deltas["src"].denoCalls, 0);
+  assertEquals(report.findings, []);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - diffChanges a moved covered call does not hide behind an unrelated increase", async () => {
+  const os = `${DENO}build.os;\n`;
+  const report = diffChanges([
+    { path: "src/a.ts", before: os, after: "", addedLines: [] },
+    { path: "src/b.ts", before: null, after: `${os}${DENO}cwd();\n`, addedLines: [1, 2] },
+  ]);
+  assertEquals(report.findings.length, 1);
+  assertEquals(report.findings[0].name, "cwd");
+  assertEquals(report.findings[0].replacement, undefined);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - diffChanges a file moved into an excluded path lowers the count", async () => {
+  const text = `${DENO}cwd();\n`;
+  const report = diffChanges([
+    { path: "tests/unit/x.ts", before: text, after: null, addedLines: [] },
+    { path: "tests/docs/x.ts", before: null, after: text, addedLines: [1] },
+  ]);
+  assertEquals(report.deltas["tests"].denoCalls, -1);
+  assertEquals(report.findings, []);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - diffChanges every module a newly counted file imports is reported, never as an error", async () => {
+  const report = diffChanges([
+    { path: "src/core/a.ts", before: "export {};\n", after: imp("fmt/colors") + imp("path"), addedLines: [1, 2] },
+  ]);
+  assertEquals(report.deltas["src"].stdImportFiles, 1);
+  assertEquals(report.findings, [
+    { scope: "src", file: "src/core/a.ts", kind: "std", name: "fmt/colors", delta: 1, line: 1 },
+    { scope: "src", file: "src/core/a.ts", kind: "std", name: "path", delta: 1, line: 2, suggestion: "src/deno_ral/path.ts" },
+  ]);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - diffChanges a moved std import nets out", async () => {
+  const report = diffChanges([
+    { path: "src/a.ts", before: imp("path"), after: "", addedLines: [] },
+    { path: "src/b.ts", before: null, after: imp("path"), addedLines: [1] },
+    { path: "src/c.ts", before: null, after: imp("fmt/colors"), addedLines: [1] },
+  ]);
+  assertEquals(report.deltas["src"].stdImportFiles, 1);
+  assertEquals(report.findings.length, 1);
+  assertEquals(report.findings[0].name, "fmt/colors");
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - diffChanges an import split across more files still reports", async () => {
+  const report = diffChanges([
+    { path: "src/a.ts", before: imp("path") + imp("fs/exists"), after: imp("path"), addedLines: [] },
+    { path: "src/b.ts", before: null, after: imp("fs/exists"), addedLines: [1] },
+  ]);
+  assertEquals(report.deltas["src"].stdImportFiles, 1);
+  assertEquals(report.findings.length, 1);
+  assertEquals(report.findings[0].file, "src/b.ts");
+  assertEquals(report.findings[0].name, "fs/exists");
+});
+
+const kUncoveredWarning = (scope: string, n: number, api: string, file: string) =>
+  `${scope}: +${n} ${DENO}${api} in ${file}; src/deno_ral has no replacement yet, so nothing to change in this PR. A maintainer accepts the new count before merging (see the job summary).`;
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta uncovered increases: warnings and maintainer block, not failed", async () => {
+  const current = { "tests": { denoCalls: 832, stdImportFiles: 177 } };
+  const rendered = renderDelta(
+    {
+      deltas: { "tests": { denoCalls: 6, stdImportFiles: 0 } },
+      findings: [
+        { scope: "tests", file: "tests/unit/a.test.ts", kind: "deno", name: "writeTextFileSync", delta: 4 },
+        { scope: "tests", file: "tests/unit/b.test.ts", kind: "deno", name: "mkdirSync", delta: 2 },
+      ],
+    },
+    current,
+    { "tests": { denoCalls: 826, stdImportFiles: 177 } },
   );
+  assertEquals(rendered.failed, false);
+  assertEquals(rendered.errors, []);
+  assertEquals(rendered.notices, []);
+  assertEquals(rendered.warnings.map((w) => w.message), [
+    kUncoveredWarning("tests", 4, "writeTextFileSync", "tests/unit/a.test.ts"),
+    kUncoveredWarning("tests", 2, "mkdirSync", "tests/unit/b.test.ts"),
+  ]);
+  assert(rendered.summary.includes("| tests | +6 | 0 |"));
+  assert(rendered.summary.includes("### Maintainer action before merging"));
+  assert(rendered.summary.includes("Expected counts after merge: tests 832 / 177."));
+  assert(!rendered.summary.includes("### What to change"));
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta covered increase: error with line, failed", async () => {
+  const hint = kRalDenoReplacements["build.os"].hint;
+  const rendered = renderDelta(
+    {
+      deltas: { "src": { denoCalls: 1, stdImportFiles: 0 } },
+      findings: [
+        { scope: "src", file: "src/core/x.ts", kind: "deno", name: "build.os", delta: 1, line: 12, replacement: hint },
+      ],
+    },
+    { "src": { denoCalls: 995, stdImportFiles: 49 } },
+    { "src": { denoCalls: 994, stdImportFiles: 49 } },
+  );
+  assertEquals(rendered.failed, true);
+  assertEquals(rendered.errors[0], {
+    message: `src: +1 ${DENO}build.os in src/core/x.ts; use os (or isWindows, isMac, isLinux) from src/deno_ral/platform.ts instead (runtime boundary, see dev-docs/runtime-migration/README.md)`,
+    file: "src/core/x.ts",
+    line: 12,
+  });
+  assert(rendered.summary.includes("### What to change"));
+  assert(
+    rendered.summary.includes(
+      `- \`src/core/x.ts\` line 12: use os (or isWindows, isMac, isLinux) from src/deno_ral/platform.ts instead of ${DENO}build.os`,
+    ),
+  );
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta a std import with a suggestion is a warning naming the module", async () => {
+  const rendered = renderDelta(
+    {
+      deltas: { "tests": { denoCalls: 0, stdImportFiles: 1 } },
+      findings: [
+        { scope: "tests", file: "tests/unit/c.test.ts", kind: "std", name: "testing/asserts", delta: 1, suggestion: "tests/asserts.ts" },
+      ],
+    },
+    { "tests": { denoCalls: 832, stdImportFiles: 178 } },
+    { "tests": { denoCalls: 832, stdImportFiles: 177 } },
+  );
+  assertEquals(rendered.failed, false);
+  assertEquals(rendered.warnings.map((w) => w.message), [
+    "tests: tests/unit/c.test.ts now imports the standard library directly (testing/asserts); if tests/asserts.ts exports what this file uses with the same behaviour, import it from there. Otherwise nothing to change in this PR: a maintainer accepts the new count before merging (see the job summary).",
+  ]);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta main above baseline, PR adds nothing", async () => {
+  const rendered = renderDelta(
+    { deltas: { "tests": { denoCalls: 0, stdImportFiles: 0 } }, findings: [] },
+    { "tests": { denoCalls: 832, stdImportFiles: 177 } },
+    { "tests": { denoCalls: 826, stdImportFiles: 177 } },
+  );
+  assertEquals(rendered.failed, false);
+  assertEquals(rendered.errors, []);
+  assertEquals(rendered.warnings, []);
+  assertEquals(rendered.notices, [
+    `main is above tools/runtime-boundary-baseline.json (tests ${DENO}* calls 832 > 826); not caused by this PR, a maintainer fixes main`,
+  ]);
+  assert(rendered.summary.includes("No count changed in this PR."));
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - inherited property names count as ordinary Deno API keys", async () => {
+  const text = `// ${DENO}constructor\n// ${DENO}__proto__\n${DENO}build.os;\n`;
+  const counts = countText(text).deno;
+  assertEquals(counts["constructor"], 1);
+  assertEquals(counts["__proto__"], 1);
+  assertEquals(counts["build.os"], 1);
+
+  const report = diffChanges([{ path: "src/a.ts", before: null, after: text, addedLines: [1, 2, 3] }]);
+  assertEquals(report.deltas["src"].denoCalls, 3);
+  assertEquals(report.findings.find((f) => f.name === "build.os")?.replacement, kRalDenoReplacements["build.os"].hint);
+  assertEquals(renderDelta(report, { "src": { denoCalls: 3, stdImportFiles: 0 } }, {}).failed, true);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - parseAddedLines reads hunk headers", async () => {
+  const diff = [
+    "diff --git a/src/a.ts b/src/a.ts",
+    "--- a/src/a.ts",
+    "+++ b/src/a.ts",
+    "@@ -3,0 +4,2 @@",
+    "+x",
+    "+y",
+    "@@ -10 +12 @@",
+    "-old",
+    "+new",
+    "@@ -20,3 +23,0 @@",
+    "-a",
+    "-b",
+    "-c",
+  ].join("\n");
+  assertEquals(parseAddedLines(diff), [4, 5, 12]);
+});
+
+async function git(root: string, ...args: string[]): Promise<void> {
+  const result = await execProcess({ cmd: "git", args, cwd: root, stdout: "piped", stderr: "piped" });
+  assert(result.success, `git ${args.join(" ")} failed: ${result.stderr}`);
+}
+
+async function makeGitRepo(root: string) {
+  writeFixture(root, "src/quarto.ts", "export {};\n");
+  writeFixture(root, "src/a.ts", "export const a = 1;\n");
+  writeFixture(root, "src/gone.ts", "export const gone = 1;\n");
+  await git(root, "init");
+  await git(root, "add", ".");
+  await git(root, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "init");
+}
+
+unitTest("check-runtime-boundary - gitChanges tracked, deleted and untracked files, verbatim paths", async () => {
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    await makeGitRepo(root);
+    writeFixture(root, "src/a.ts", "export const a = 1;\nexport const b = 2;\n");
+    safeRemoveSync(join(root, "src", "gone.ts"));
+    writeFixture(root, "tests/unit/new.test.ts", "a\nb\nc\n");
+    writeFixture(root, "src/café.ts", "export const c = 1;\n");
+
+    const changes = await gitChanges(root, "HEAD");
+    const byPath = Object.fromEntries(changes.map((c) => [c.path, c]));
+    assertEquals(Object.keys(byPath).sort(), ["src/a.ts", "src/café.ts", "src/gone.ts", "tests/unit/new.test.ts"]);
+    assertEquals(changes.filter((c) => c.before === null).map((c) => c.path).sort(), ["src/café.ts", "tests/unit/new.test.ts"]);
+    assertEquals(changes.filter((c) => c.after === null).map((c) => c.path), ["src/gone.ts"]);
+    assertEquals(byPath["src/a.ts"].before, "export const a = 1;\n");
+    assertEquals(byPath["src/a.ts"].addedLines, [2]);
+    assertEquals(byPath["tests/unit/new.test.ts"].addedLines, [1, 2, 3]);
+    assertEquals(byPath["src/café.ts"].addedLines, [1]);
+  } finally {
+    temp.cleanup();
+  }
+});
+
+unitTest("check-runtime-boundary - gitChanges unknown revision", async () => {
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    await makeGitRepo(root);
+    await assertRejects(
+      () => gitChanges(root, "no-such-rev"),
+      Error,
+      "check-runtime-boundary: no-such-rev is not a commit",
+    );
+  } finally {
+    temp.cleanup();
+  }
+});
+
+unitTest("check-runtime-boundary - gitChanges handles more changed paths than fit on one command line", async () => {
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    await makeGitRepo(root);
+    const names = Array.from({ length: 300 }, (_, i) => `tests/unit/${"a".repeat(120)}${i}.test.ts`);
+    for (const name of names) {
+      writeFixture(root, name, "export {};\n");
+    }
+    const changes = await gitChanges(root, "HEAD");
+    assertEquals(changes.map((c) => c.path).sort(), [...names].sort());
+  } finally {
+    temp.cleanup();
+  }
+});
+
+unitTest("check-runtime-boundary - baselineAt reads the baseline committed at the revision, not the working tree's", async () => {
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    await makeGitRepo(root);
+    assertEquals(await baselineAt(root, "HEAD"), undefined);
+
+    const committed = { "src": { denoCalls: 994, stdImportFiles: 49 } };
+    writeFixture(root, "tools/runtime-boundary-baseline.json", JSON.stringify(committed));
+    await git(root, "add", ".");
+    await git(root, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "baseline");
+    writeFixture(root, "tools/runtime-boundary-baseline.json", JSON.stringify({ "src": { denoCalls: 993, stdImportFiles: 49 } }));
+    assertEquals(await baselineAt(root, "HEAD"), committed);
+
+    writeFixture(root, "tools/runtime-boundary-baseline.json", `{"src":{"denoCalls":1}}`);
+    await git(root, "add", ".");
+    await git(root, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "malformed");
+    await assertRejects(() => baselineAt(root, "HEAD"), Error, "baseline");
+  } finally {
+    temp.cleanup();
+  }
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - a covered API in browser-shared code is a warning, not an error", async () => {
+  const report = diffChanges([
+    { path: "src/core/lib/errors.ts", before: "", after: `export const o = ${DENO}build.os;\n`, addedLines: [1] },
+    { path: "src/core/other.ts", before: "", after: `export const o = ${DENO}build.os;\n`, addedLines: [1] },
+  ]);
+  const byFile = Object.fromEntries(report.findings.map((f) => [f.file, f]));
+  assertEquals(byFile["src/core/lib/errors.ts"].replacement, undefined);
+  assertEquals(byFile["src/core/other.ts"].replacement, kRalDenoReplacements["build.os"].hint);
+
+  const rendered = renderDelta(report, { "src": { denoCalls: 996, stdImportFiles: 49 } }, { "src": { denoCalls: 994, stdImportFiles: 49 } });
+  assertEquals(rendered.errors.map((e) => e.file), ["src/core/other.ts"]);
+  assertEquals(rendered.warnings.map((w) => w.file), ["src/core/lib/errors.ts"]);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - a covered API is only an error where deno_ral can be imported", async () => {
+  const hint = kRalDenoReplacements["build.os"].hint;
+  for (const scope of ["src", "package/src", "tests"]) {
+    assertEquals(denoReplacement("build.os", scope), hint, scope);
+    assertEquals(denoReplacement("build.arch", scope), kRalDenoReplacements["build.arch"].hint, scope);
+  }
+  for (const scope of ["resources", "src-js"]) {
+    assertEquals(denoReplacement("build.os", scope), undefined, scope);
+    assertEquals(denoReplacement("build.arch", scope), undefined, scope);
+  }
+
+  const report = diffChanges([
+    { path: "src/resources/create/extensions/engine/a.ts", before: "", after: `export const o = ${DENO}build.os;\n`, addedLines: [1] },
+  ]);
+  assertEquals(report.findings.length, 1);
+  assertEquals(report.findings[0].scope, "resources");
+  assertEquals(report.findings[0].replacement, undefined);
 });

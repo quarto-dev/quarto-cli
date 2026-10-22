@@ -1,5 +1,7 @@
 # PR 02: Runtime boundary ratchet in CI, and `tests/asserts.ts`
 
+**Amended by:** PR 02c (PR-mode comparison, replacement maps, `--accept-increase`).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 

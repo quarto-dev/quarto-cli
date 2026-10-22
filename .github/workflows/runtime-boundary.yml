@@ -1,7 +1,11 @@
 # Runtime boundary ratchet for the Deno -> Node migration.
-# Fails when the number of `Deno.` occurrences or direct std-library imports
-# (per scope: src, src-js, resources, package/src, tests) rises above
-# tools/runtime-boundary-baseline.json.
+# Counts `Deno.` occurrences and direct std-library imports per scope
+# (src, src-js, resources, package/src, tests). Two modes:
+#   - pull_request: compares the merge commit with its first parent (the base
+#     branch tip) and fails only for a Deno.* API that src/deno_ral replaces;
+#     other increases are warnings plus a maintainer block in the job summary.
+#   - push (main) and workflow_dispatch: fails when a count rises above
+#     tools/runtime-boundary-baseline.json.
 # See dev-docs/runtime-migration/02-runtime-boundary-check.md.
 name: Runtime Boundary
 on:
@@ -34,6 +38,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
 
       - name: Set Path
         shell: bash
@@ -45,5 +51,12 @@ jobs:
 
       - name: Check runtime boundary
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          quarto run --dev tools/check-runtime-boundary.ts
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            # The checkout is the merge commit: HEAD^1 is the base branch tip.
+            quarto run --dev tools/check-runtime-boundary.ts --against HEAD^1
+          else
+            quarto run --dev tools/check-runtime-boundary.ts
+          fi
