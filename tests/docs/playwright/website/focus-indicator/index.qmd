@@ -2,6 +2,27 @@
 title: "Home"
 ---
 
-Regression test for #14774: below 992px the secondary nav shows the
-sidebar toggle and sidebar search buttons. Both are bare Bootstrap
-`.btn` elements and must keep a visible keyboard focus indicator.
+Fixture for the global focus ring. Every focusable control must show the
+same ring: a `$focus-ring-outer-color` outline, with the inner color as a
+box-shadow in the outline offset.
+
+Below 992px the secondary nav shows the sidebar toggle and sidebar search
+buttons, which are bare Bootstrap `.btn` elements (#14774).
+
+## Links
+
+An [inline link](about.qmd) in the body.
+
+## Tabset
+
+::: {.panel-tabset}
+
+### First tab
+
+Content of the first tab.
+
+### Second tab
+
+Content of the second tab.
+
+:::

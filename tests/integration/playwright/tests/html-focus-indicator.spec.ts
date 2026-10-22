@@ -1,34 +1,76 @@
-import { expect, test } from "@playwright/test";
+import { expect, Locator, test } from "@playwright/test";
 import { getUrl, tabUntilFocused } from "../src/utils";
 
-// Regression tests for #14774. Quarto emits three buttons that carry the
-// Bootstrap `btn` class with no `btn-*` variant class: the code tools
-// button, the sidebar toggle, and the sidebar search button. Bootstrap's
-// .btn:focus-visible removes the native focus ring (outline: 0) and
-// substitutes a box-shadow that only the variant classes define, so these
-// buttons took keyboard focus with no visible indicator. Quarto restores
-// the browser's native ring with `outline: revert`.
+// Quarto draws one keyboard focus ring for every focusable element, from a
+// single `:root :focus-visible` rule: an outline in the outer color, with
+// the inner color as a box-shadow in the outline offset (W3C technique
+// C40). Bootstrap's box-shadow halos are turned off at the source.
+//
+// The website fixture sets `$focus-ring-outer-color: #123456`, so an
+// outline in that color shows that the global rule won the cascade on that
+// control; a component rule that wins instead shows up as a wrong color.
+//
+// Focus moves with real Tab presses (tabUntilFocused) because the ring
+// only applies to keyboard focus, i.e. to :focus-visible.
 
-// Focus moves with real Tab presses (tabUntilFocused) because the fix only
-// applies to keyboard focus, i.e. to :focus-visible.
+const outerColor = "rgb(18, 52, 86)"; // #123456, set in focus-ring.scss
+const innerShadow = /^rgb\(255, 255, 255\) 0px 0px 0px 2px/; // default $white
 
-test("code tools button shows a focus indicator on keyboard focus", async ({
+async function expectFocusRing(control: Locator) {
+  await expect(control).toHaveCSS("outline-style", "solid");
+  await expect(control).toHaveCSS("outline-color", outerColor);
+  await expect(control).toHaveCSS("outline-width", "2px");
+  await expect(control).toHaveCSS("outline-offset", "2px");
+  await expect(control).toHaveCSS("box-shadow", innerShadow);
+}
+
+test.describe("website controls show the focus ring", () => {
+  test.use({ viewport: { width: 1400, height: 900 } });
+
+  const controls = [
+    { name: "navbar link", page: "index", selector: "#navbarCollapse a.nav-link:not(.active)" },
+    { name: "sidebar section toggle", page: "index", selector: "#quarto-sidebar button.sidebar-item-toggle" },
+    { name: "inline link", page: "index", selector: "main a:not([class])" },
+    { name: "TOC link", page: "index", selector: "#TOC a.nav-link:not(.active)" },
+    { name: "tabset tab", page: "index", selector: ".panel-tabset a.nav-link.active" },
+    { name: "listing sort", page: "listing", selector: ".quarto-listing-sort select" },
+    { name: "listing filter", page: "listing", selector: ".quarto-listing-filter input" },
+    { name: "listing pagination", page: "listing", selector: ".pagination li.active a.page-link" },
+  ];
+
+  for (const { name, page: pageName, selector } of controls) {
+    test(name, async ({ page, browserName }) => {
+      await page.goto(getUrl(`website/focus-indicator/_site/${pageName}.html`), {
+        waitUntil: "load",
+      });
+      const control = page.locator(selector).first();
+      await expect(control).toBeVisible();
+      expect(await tabUntilFocused(page, browserName, control, 40)).toBe(true);
+      await expectFocusRing(control);
+    });
+  }
+});
+
+// The search box draws the ring on the form, which is the visible field,
+// instead of on the borderless input inside it.
+test("sidebar search input shows the focus ring on its form", async ({
   page,
   browserName,
 }) => {
-  await page.goto(getUrl("html/code-tools-focus-indicator.html"), {
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.goto(getUrl("website/focus-indicator/_site/index.html"), {
     waitUntil: "load",
   });
-
-  const button = page.locator("button.code-tools-button");
-  await expect(button).toBeVisible();
-  expect(await tabUntilFocused(page, browserName, button)).toBe(true);
-
-  // outline: revert restores the user-agent ring (outline-style: auto in
-  // every engine); any non-none outline is a visible indicator.
-  await expect(button).not.toHaveCSS("outline-style", "none");
+  const input = page.locator("#quarto-sidebar .aa-Input");
+  await expect(input).toBeVisible();
+  expect(await tabUntilFocused(page, browserName, input)).toBe(true);
+  await expectFocusRing(page.locator("#quarto-sidebar .aa-Form"));
+  await expect(input).toHaveCSS("outline-style", "none");
 });
 
+// Regression tests for #14774: these buttons carry Bootstrap's `btn` class
+// with no `btn-*` variant, so Bootstrap's own .btn:focus-visible left them
+// with no indicator.
 test.describe("website secondary nav buttons", () => {
   // The secondary nav holding the sidebar toggle and sidebar search
   // buttons only appears when the sidebar collapses, below the lg
@@ -41,19 +83,53 @@ test.describe("website secondary nav buttons", () => {
   ];
 
   for (const { name, selector } of buttons) {
-    test(`${name} button shows a focus indicator on keyboard focus`, async ({
+    test(`${name} button shows the focus ring`, async ({
       page,
       browserName,
     }) => {
-      await page.goto(getUrl("website/bare-btn-focus/_site/index.html"), {
+      await page.goto(getUrl("website/focus-indicator/_site/index.html"), {
         waitUntil: "load",
       });
 
       const button = page.locator(`.quarto-secondary-nav ${selector}`);
       await expect(button).toBeVisible();
       expect(await tabUntilFocused(page, browserName, button)).toBe(true);
-
-      await expect(button).not.toHaveCSS("outline-style", "none");
+      await expectFocusRing(button);
     });
   }
+});
+
+test("code tools button shows the focus ring", async ({
+  page,
+  browserName,
+}) => {
+  await page.goto(getUrl("html/code-tools-focus-indicator.html"), {
+    waitUntil: "load",
+  });
+
+  const button = page.locator("button.code-tools-button");
+  await expect(button).toBeVisible();
+  expect(await tabUntilFocused(page, browserName, button)).toBe(true);
+
+  // Default theme, so no fixed outer color to compare against.
+  await expect(button).toHaveCSS("outline-style", "solid");
+  await expect(button).toHaveCSS("outline-offset", "2px");
+  await expect(button).toHaveCSS("box-shadow", innerShadow);
+});
+
+// Forced-colors mode drops every box-shadow, so Bootstrap's halo left
+// `.nav-link` with no indicator there. The ring's outline survives.
+test.describe("forced colors", () => {
+  test.use({ viewport: { width: 1400, height: 900 }, forcedColors: "active" });
+
+  test("navbar link keeps an outline", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "forced colors emulation is Chromium-only");
+    await page.goto(getUrl("website/focus-indicator/_site/index.html"), {
+      waitUntil: "load",
+    });
+    const link = page.locator("#navbarCollapse a.nav-link:not(.active)").first();
+    expect(await tabUntilFocused(page, browserName, link)).toBe(true);
+    await expect(link).toHaveCSS("outline-style", "solid");
+    await expect(link).toHaveCSS("outline-width", "2px");
+  });
 });

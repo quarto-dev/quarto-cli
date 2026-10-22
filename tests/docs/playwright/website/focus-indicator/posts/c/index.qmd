@@ -1,0 +1,6 @@
+---
+title: "Post c"
+date: 2026-10-03
+---
+
+Body of post c.

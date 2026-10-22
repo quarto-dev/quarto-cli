@@ -1,0 +1,9 @@
+---
+title: "Listing"
+listing:
+  contents: posts
+  sort: "date desc"
+  sort-ui: true
+  filter-ui: true
+  page-size: 2
+---
