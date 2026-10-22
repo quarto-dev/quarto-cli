@@ -462,6 +462,7 @@ unitTest("check-runtime-boundary - renderDelta uncovered increases: warnings and
   );
   assertEquals(rendered.failed, false);
   assertEquals(rendered.errors, []);
+  assertEquals(rendered.notices, []);
   assertEquals(rendered.warnings.map((w) => w.message), [
     kUncoveredWarning("tests", 4, "writeTextFileSync", "tests/unit/a.test.ts"),
     kUncoveredWarning("tests", 2, "mkdirSync", "tests/unit/b.test.ts"),

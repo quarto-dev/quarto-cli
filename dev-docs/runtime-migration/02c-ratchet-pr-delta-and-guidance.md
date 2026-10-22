@@ -423,3 +423,12 @@ Run from the branch worktree; `Q` is `package/dist/bin/quarto` (`quarto.cmd` on 
 - V5: absolute mode prints src 994/49, src-js 7/0, resources 10/1, package/src 240/3, tests 832/177 and `OK: no count exceeds the baseline.`, `exit=0`; `--accept-increase` alone → `exit=2`; `--against HEAD --update-baseline` → `exit=2`; `--update-baseline --accept-increase` → `exit=0`, `git diff --stat tools/runtime-boundary-baseline.json` empty (the tool writes LF over the CRLF working copy, which leaves a phantom ` M`; the content hash equals `HEAD`'s, restored with `git checkout --`).
 - V6: both scratch worktrees held only the copied tool (`git status --short` → ` M tools/check-runtime-boundary.ts`); removed with `git worktree remove --force`; `git worktree list` shows no `rb-*`.
 - V7 (CI) is for after the push.
+
+### 2026-10-22: whole-branch review
+
+- No Critical findings; the five Review Focus classes hold (checked through real git for rename and move-into-`tests/docs`).
+- Important, fixed: the `current - deltas` base behind the "main is above" notice was only asserted with zero deltas. `renderDelta uncovered increases` now also asserts `notices` is empty (current 832, delta +6, baseline 826). Mutation check: with the base computed as `current`, that test fails (34 passed, 1 failed); restored, 35 passed.
+- Minor, deferred: `line` attribution matches by substring (`Deno.readTextFile` matches a `Deno.readTextFileSync` line; `"path"` matches a `deno_ral/path.ts` import), as the plan specifies; it becomes a wrong error line once later PRs add `readTextFile`-style keys to the map.
+- Minor, deferred: `git diff -U0 -- <path>` treats the path as a pathspec (`src/[id].ts` picks up another file's hunks: wrong line numbers only, never counts); `--literal-pathspecs` would fix it. No tracked in-scope path contains `[ ] * ? :` today.
+- Minor, deferred: `git diff` is run without `--no-color --no-ext-diff`, so a user git config (`color.diff=always`, `diff.external`) can empty `addedLines` in local runs; CI is unaffected.
+- Minor, deferred: the CLI exit-code contract and the stdout summary fallback are covered only by manual Verification 5; no test covers a report with both errors and warnings, or that "Expected counts after merge" lists only scopes with warnings.
