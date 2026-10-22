@@ -313,6 +313,8 @@ local function calloutDiv(node)
         "<button type='button' class='callout-toggle-btn d-flex flex-fill" .. collapsedClz .. "'" ..
         " data-bs-toggle='collapse' data-bs-target='." .. bsTargetClz .. "'" ..
         " aria-controls='" .. calloutid .. "' aria-expanded='" .. expandedAttrVal .. "'>")
+      -- pandoc has no button element, so raw open/close tags wrap the AST
+      -- spans (as in foldcode.lua's <summary>); keep them in the same Plain
       local btnClose = pandoc.RawInline("html", "</button>")
       headerDiv.content = pandoc.Blocks({pandoc.Plain({btnOpen, iconSpan, titleSpan, toggleIcon, btnClose})})
 
