@@ -91,7 +91,7 @@
         // like unselected panels (also of a nested tabset), is not rendered,
         // and revealjs fragments not yet shown have `visibility: hidden`
         (el) =>
-          !el.hasAttribute("disabled") &&
+          !el.matches(":disabled") &&
           !el.getAttribute("aria-hidden") &&
           el.getClientRects().length > 0 &&
           window.getComputedStyle(el).visibility === "visible"

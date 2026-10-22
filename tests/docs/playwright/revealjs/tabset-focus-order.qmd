@@ -161,6 +161,8 @@ A [link after the details tabset](https://quarto.org).
 
 ### Tab I
 
+<fieldset disabled><input aria-label="disabled input in tab I"></fieldset>
+
 [link in tab I](https://quarto.org)
 
 :::

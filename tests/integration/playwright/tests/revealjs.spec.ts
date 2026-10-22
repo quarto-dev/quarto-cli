@@ -482,6 +482,12 @@ test.describe('tabset keyboard focus order', () => {
     ], true);
   });
 
+  test('Tab skips controls disabled by their fieldset in a panel', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/control-handling-tab-in-a-tabset');
+    await tab(page, 'Tab I').click();
+    await expectTabOrder(page, browserName, [link(page, 'link in tab I')]);
+  });
+
   test('Tab is left to a panel control that handles it', async ({ page, browserName }) => {
     await gotoSlide(page, '#/control-handling-tab-in-a-tabset');
     const editor = page.getByRole('textbox', { name: 'editor in tab H' });
