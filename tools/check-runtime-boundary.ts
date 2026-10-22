@@ -294,6 +294,185 @@ export function acceptTestsIncrease(
   return result;
 }
 
+/** Keyed by exact API key. A PR that adds a deno_ral replacement adds its keys here. */
+export const kRalDenoReplacements: Readonly<
+  Record<string, { hint: string; scopes?: readonly string[] }>
+> = {
+  "build.os": {
+    hint: "os (or isWindows, isMac, isLinux) from src/deno_ral/platform.ts",
+  },
+  "build.arch": { hint: "arch from src/deno_ral/platform.ts" },
+};
+
+/** Keyed by stdModuleOf(). `module` is repository-relative. A suggestion only: never turns a finding into an error. */
+export const kStdSuggestions: Readonly<
+  Record<string, { module: string; scopes?: readonly string[] }>
+> = {
+  "path": { module: "src/deno_ral/path.ts" },
+  "fs": { module: "src/deno_ral/fs.ts" },
+  "testing": { module: "tests/asserts.ts", scopes: ["tests"] },
+  "assert": { module: "tests/asserts.ts", scopes: ["tests"] },
+};
+
+export function denoReplacement(api: string, scope: string): string | undefined {
+  const entry = Object.hasOwn(kRalDenoReplacements, api)
+    ? kRalDenoReplacements[api]
+    : undefined;
+  return entry && (!entry.scopes || entry.scopes.includes(scope))
+    ? entry.hint
+    : undefined;
+}
+
+export function stdSuggestion(specifier: string, scope: string): string | undefined {
+  const module = stdModuleOf(specifier);
+  const entry = Object.hasOwn(kStdSuggestions, module)
+    ? kStdSuggestions[module]
+    : undefined;
+  return entry && (!entry.scopes || entry.scopes.includes(scope))
+    ? entry.module
+    : undefined;
+}
+
+export interface FileChange {
+  path: string; // repository-relative, forward slashes, verbatim (no git quoting)
+  before: string | null; // text at the base revision, null only when the path is absent there
+  after: string | null; // text in the working tree, null if deleted
+  addedLines: number[]; // 1-based line numbers in `after` that the diff adds
+}
+
+export interface Finding {
+  scope: string;
+  file: string;
+  kind: "deno" | "std";
+  name: string; // API key, or the std specifier as written
+  delta: number; // > 0 (deno: this file's increase of the API; std: 1)
+  line?: number; // first added line containing the occurrence
+  replacement?: string; // deno only; set = covered = error
+  suggestion?: string; // std only: module from kStdSuggestions
+}
+
+export interface DeltaReport {
+  deltas: Record<string, BoundaryCounts>; // per scope, after minus before, over the changed files; may be negative
+  findings: Finding[];
+}
+
+const sum = (counts: Record<string, number>) =>
+  Object.values(counts).reduce((a, b) => a + b, 0);
+
+function firstAddedLine(
+  change: FileChange,
+  needle: string,
+): number | undefined {
+  const lines = (change.after ?? "").split("\n");
+  return change.addedLines.find((n) => lines[n - 1]?.includes(needle));
+}
+
+export function diffChanges(changes: FileChange[]): DeltaReport {
+  const deltas: Record<string, BoundaryCounts> = {};
+  for (const scope of Object.keys(kScopes)) {
+    deltas[scope] = { denoCalls: 0, stdImportFiles: 0 };
+  }
+  const empty: FileCounts = { deno: {}, std: [] };
+  const entries = changes.map((change) => ({
+    change,
+    scopes: scopesOf(change.path),
+    before: change.before === null ? empty : countText(change.before),
+    after: change.after === null ? empty : countText(change.after),
+  }));
+  for (const { scopes, before, after } of entries) {
+    for (const scope of scopes) {
+      deltas[scope].denoCalls += sum(after.deno) - sum(before.deno);
+      deltas[scope].stdImportFiles += (after.std.length > 0 ? 1 : 0) -
+        (before.std.length > 0 ? 1 : 0);
+    }
+  }
+
+  const findings: Finding[] = [];
+  for (const scope of Object.keys(kScopes)) {
+    const inScope = entries.filter((e) => e.scopes.includes(scope));
+
+    if (deltas[scope].denoCalls > 0) {
+      const apis = new Set(
+        inScope.flatMap((e) => [
+          ...Object.keys(e.before.deno),
+          ...Object.keys(e.after.deno),
+        ]),
+      );
+      for (const api of apis) {
+        const own = (e: typeof inScope[number]) =>
+          (e.after.deno[api] ?? 0) - (e.before.deno[api] ?? 0);
+        if (inScope.reduce((n, e) => n + own(e), 0) <= 0) {
+          continue;
+        }
+        for (const e of inScope) {
+          if (own(e) <= 0) {
+            continue;
+          }
+          const finding: Finding = {
+            scope,
+            file: e.change.path,
+            kind: "deno",
+            name: api,
+            delta: own(e),
+          };
+          const line = firstAddedLine(e.change, "Deno." + api);
+          if (line !== undefined) finding.line = line;
+          const replacement = denoReplacement(api, scope);
+          if (replacement !== undefined) finding.replacement = replacement;
+          findings.push(finding);
+        }
+      }
+    }
+
+    if (deltas[scope].stdImportFiles > 0) {
+      const modulesOf = (counts: FileCounts) =>
+        new Set(counts.std.map(stdModuleOf));
+      const modules = new Set(
+        inScope.flatMap((e) => [...modulesOf(e.after)]),
+      );
+      const stdFinding = (e: typeof inScope[number], name: string): Finding => {
+        const finding: Finding = {
+          scope,
+          file: e.change.path,
+          kind: "std",
+          name,
+          delta: 1,
+        };
+        const line = firstAddedLine(e.change, name);
+        if (line !== undefined) finding.line = line;
+        const suggestion = stdSuggestion(name, scope);
+        if (suggestion !== undefined) finding.suggestion = suggestion;
+        return finding;
+      };
+      const reported: Finding[] = [];
+      for (const module of modules) {
+        const importing = (counts: FileCounts) => modulesOf(counts).has(module);
+        const net = inScope.filter((e) => importing(e.after)).length -
+          inScope.filter((e) => importing(e.before)).length;
+        if (net <= 0) {
+          continue;
+        }
+        for (const e of inScope) {
+          if (importing(e.after) && !importing(e.before)) {
+            reported.push(
+              stdFinding(e, e.after.std.find((s) => stdModuleOf(s) === module)!),
+            );
+          }
+        }
+      }
+      if (reported.length === 0) {
+        for (const e of inScope) {
+          if (e.after.std.length > 0 && e.before.std.length === 0) {
+            reported.push(stdFinding(e, e.after.std[0]));
+          }
+        }
+      }
+      findings.push(...reported);
+    }
+  }
+  return { deltas, findings };
+}
+
 const isCount = (n: unknown) => Number.isInteger(n) && (n as number) >= 0;
 
 /** Parses a baseline file, rejecting any scope without a non-negative integer for each field:

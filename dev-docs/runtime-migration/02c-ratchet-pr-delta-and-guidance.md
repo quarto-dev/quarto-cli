@@ -243,7 +243,7 @@ New exports are pure functions: their first run fails at module load because the
 
 **Interfaces:** Consumes Task 1. Produces `kRalDenoReplacements`, `kStdSuggestions`, `denoReplacement`, `stdSuggestion`, `FileChange`, `Finding`, `DeltaReport`, `diffChanges`.
 
-- [ ] **Step 1: Write the tests** (`FileChange[]` built by hand with explicit `addedLines`)
+- [x] **Step 1: Write the tests** (`FileChange[]` built by hand with explicit `addedLines`)
   - `stdSuggestion - by module, scope-limited`: `"testing/asserts"` in `tests` → `"tests/asserts.ts"`; in `src` → undefined; `"jsr:@std/fs@1.0.16/walk"` and `"fs/walk"` → both `"src/deno_ral/fs.ts"`; `"fmt/colors"` → undefined.
   - `denoReplacement - exact keys only`: `"build.os"` → the hint; `"build.target"` → undefined; `"build"` → undefined.
   - `diffChanges - an uncovered increase is a finding without replacement`: `tests/unit/a.test.ts` before `""`, after two `DENO + "mkdirSync(x)"` lines on lines 3 and 5, `addedLines: [3, 5]` → `deltas.tests.denoCalls === 2`; one finding `{ scope: "tests", file: "tests/unit/a.test.ts", kind: "deno", name: "mkdirSync", delta: 2, line: 3 }` without `replacement`.
@@ -254,10 +254,10 @@ New exports are pure functions: their first run fails at module load because the
   - `diffChanges - every module a newly counted file imports is reported, never as an error`: `src/core/a.ts` before no import, after imports from `"fmt/colors"` then `"path"` → `deltas.src.stdImportFiles === 1`; two findings, `fmt/colors` without `suggestion` and `path` with `suggestion: "src/deno_ral/path.ts"`, neither with `replacement`.
   - `diffChanges - a moved std import nets out`: `src/a.ts` loses its only std import (`"path"`), `src/b.ts` gains `"path"`, `src/c.ts` gains `"fmt/colors"` → `deltas.src.stdImportFiles === 1`; exactly one finding, `name: "fmt/colors"`.
   - `diffChanges - an import split across more files still reports`: `src/a.ts` before imports `"path"` and `"fs/exists"`, after imports only `"path"`; `src/b.ts` (new) imports `"fs/exists"` → per-module nets are 0, `deltas.src.stdImportFiles === 1`; exactly one finding for `src/b.ts`, `name: "fs/exists"`. Task 3's maintainer-block test uses this report too: with `current.src = { denoCalls: 994, stdImportFiles: 50 }` the summary contains `Expected counts after merge: src 994 / 50.`
-- [ ] **Step 2: Run them** (same command) → module-load failure on the missing exports.
-- [ ] **Step 3: Implement** per the attribution rules.
-- [ ] **Step 4: Run the tests** → all pass.
-- [ ] **Step 5: Commit**: `Attribute runtime boundary increases to files and to working deno_ral replacements`.
+- [x] **Step 2: Run them** (same command) → module-load failure on the missing exports.
+- [x] **Step 3: Implement** per the attribution rules.
+- [x] **Step 4: Run the tests** → all pass.
+- [x] **Step 5: Commit**: `Attribute runtime boundary increases to files and to working deno_ral replacements`.
 
 ### Task 3: rendering annotations and the job summary
 
@@ -377,3 +377,9 @@ Run from the branch worktree; `Q` is `package/dist/bin/quarto` (`quarto.cmd` on 
 - Step 2 (characterisation start, not RED): the new test imports fail type-checking at module load: `has no exported member named 'stdModuleOf'`, likewise `countText`, `scopesOf`.
 - Step 4: `unit/tools/check-runtime-boundary.test.ts` → `ok | 16 passed | 0 failed`. Counts after Task 1: identical to before (994/49, 7/0, 10/1, 240/3, 832/177), `OK: no count exceeds the baseline.`
 - Deviation: none in the tool. A first draft of the test put the literal `Deno.build` key in an expected object, which raised the tests count by 2 (834); the key is now built from `DENO`, the test file again holds one literal match (`writeFixture`).
+
+### 2026-10-22: Task 2
+
+- Step 2 (characterisation start, not RED): type-check failure at module load, `has no exported member` for `denoReplacement`, `diffChanges`, `FileChange`, `kRalDenoReplacements`, `stdSuggestion`.
+- Step 4: `unit/tools/check-runtime-boundary.test.ts` → `ok | 26 passed | 0 failed`; the test file still holds one literal `Deno.` match.
+- Deviation: none.
