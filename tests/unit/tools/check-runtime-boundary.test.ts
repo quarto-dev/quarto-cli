@@ -619,3 +619,19 @@ unitTest("check-runtime-boundary - gitChanges unknown revision", async () => {
     temp.cleanup();
   }
 });
+
+unitTest("check-runtime-boundary - gitChanges handles more changed paths than fit on one command line", async () => {
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    await makeGitRepo(root);
+    const names = Array.from({ length: 300 }, (_, i) => `tests/unit/${"a".repeat(120)}${i}.test.ts`);
+    for (const name of names) {
+      writeFixture(root, name, "export {};\n");
+    }
+    const changes = await gitChanges(root, "HEAD");
+    assertEquals(changes.map((c) => c.path).sort(), [...names].sort());
+  } finally {
+    temp.cleanup();
+  }
+});

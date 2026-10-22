@@ -656,10 +656,9 @@ export async function gitChanges(
   if (paths.length === 0) {
     return [];
   }
+  // The whole tree, not `-- <paths>`: a large comparison would exceed the Windows command-line limit.
   const atRev = new Set(
-    nulSeparated(
-      await runGit(root, ["ls-tree", "-z", "-r", "--name-only", rev, "--", ...paths]),
-    ),
+    nulSeparated(await runGit(root, ["ls-tree", "-z", "-r", "--name-only", rev])),
   );
   const changes: FileChange[] = [];
   for (const path of paths) {
