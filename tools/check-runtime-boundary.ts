@@ -683,6 +683,21 @@ export async function gitChanges(
   return changes;
 }
 
+/** The baseline committed at `rev`, or undefined when that revision has none (it predates the ratchet).
+ * Throws for a malformed baseline, like parseBaseline. */
+export async function baselineAt(
+  root: string,
+  rev: string,
+): Promise<Baseline | undefined> {
+  const spec = `${rev}:${kBaselineRelPath}`;
+  try {
+    await runGit(root, ["cat-file", "-e", spec]);
+  } catch {
+    return undefined;
+  }
+  return parseBaseline(await runGit(root, ["show", spec]));
+}
+
 const isCount = (n: unknown) => Number.isInteger(n) && (n as number) >= 0;
 
 /** Parses a baseline file, rejecting any scope without a non-negative integer for each field:
@@ -798,7 +813,15 @@ if (import.meta.main) {
       console.error((e as Error).message);
       Deno.exit(2);
     }
-    const rendered = renderDelta(diffChanges(changes), current, baseline);
+    // "main is above its baseline" is about the base revision's baseline: the PR's own
+    // baseline may already be lowered or raised.
+    let baseBaseline = baseline;
+    try {
+      baseBaseline = (await baselineAt(root, against)) ?? baseline;
+    } catch (e) {
+      usage(`cannot use ${kBaselineRelPath} at ${against}: ${(e as Error).message}`);
+    }
+    const rendered = renderDelta(diffChanges(changes), current, baseBaseline);
     for (const message of rendered.notices) {
       notice(message);
     }

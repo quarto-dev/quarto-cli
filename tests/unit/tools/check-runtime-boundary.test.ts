@@ -16,6 +16,7 @@ import { execProcess } from "../../../src/core/process.ts";
 import { createTempContext } from "../../../src/core/temp.ts";
 import {
   acceptIncrease,
+  baselineAt,
   compareToBaseline,
   countScope,
   countText,
@@ -632,6 +633,29 @@ unitTest("check-runtime-boundary - gitChanges handles more changed paths than fi
     }
     const changes = await gitChanges(root, "HEAD");
     assertEquals(changes.map((c) => c.path).sort(), [...names].sort());
+  } finally {
+    temp.cleanup();
+  }
+});
+
+unitTest("check-runtime-boundary - baselineAt reads the baseline committed at the revision, not the working tree's", async () => {
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    await makeGitRepo(root);
+    assertEquals(await baselineAt(root, "HEAD"), undefined);
+
+    const committed = { "src": { denoCalls: 994, stdImportFiles: 49 } };
+    writeFixture(root, "tools/runtime-boundary-baseline.json", JSON.stringify(committed));
+    await git(root, "add", ".");
+    await git(root, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "baseline");
+    writeFixture(root, "tools/runtime-boundary-baseline.json", JSON.stringify({ "src": { denoCalls: 993, stdImportFiles: 49 } }));
+    assertEquals(await baselineAt(root, "HEAD"), committed);
+
+    writeFixture(root, "tools/runtime-boundary-baseline.json", `{"src":{"denoCalls":1}}`);
+    await git(root, "add", ".");
+    await git(root, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "malformed");
+    await assertRejects(() => baselineAt(root, "HEAD"), Error, "baseline");
   } finally {
     temp.cleanup();
   }
