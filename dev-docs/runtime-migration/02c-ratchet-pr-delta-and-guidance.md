@@ -318,13 +318,13 @@ New exports are pure functions: their first run fails at module load because the
 
 **Files:** README, `_TEMPLATE.md`, `01-quick-fixes-from-spike.md`, `05-deps-deno-dom-jsr.md`, `14b-coverage-first.md`, `02-runtime-boundary-check.md`.
 
-- [ ] **Step 1:** README:
+- [x] **Step 1:** README:
   - Phase 0 table, after the 02 row: `| 02c | [02c-ratchet-pr-delta-and-guidance.md](02c-ratchet-pr-delta-and-guidance.md) | PR runs compare with the base branch; findings name a working replacement or ask the maintainer to accept; `--accept-increase` | 02 | Sonnet | S | planned |`.
   - Phase 0 heading: `(PR 02 first, then 02c, then 00a → 00b, then 03–06 in parallel, then 07)`, and one sentence under it: "Every PR that changes a count lands after 02c; preparing it earlier is fine."
   - The ratchet sentence near line 30 gains: "PR runs count only the PR's own increase (PR 02c); main keeps the absolute baseline."
-- [ ] **Step 2:** Replace every *invocation* of `--accept-tests-increase` by `--accept-increase` in README, `_TEMPLATE.md`, 01, 05, 14b. In `_TEMPLATE.md`, extend the "Landing order" line with "02c lands before any other count-changing PR", and add: "A PR that adds an equivalent `deno_ral` replacement for a `Deno.*` API adds its exact keys (e.g. `readTextFileSync`) to `kRalDenoReplacements` in `tools/check-runtime-boundary.ts` in the same change, which turns later increases of that API into errors; a PR that adds a std seam may add a `kStdSuggestions` entry (suggestions never fail a PR)." In 02, add under the header: "**Amended by:** PR 02c (PR-mode comparison, replacement maps, `--accept-increase`)."
-- [ ] **Step 3:** `grep -rln -- "--accept-tests-increase" dev-docs/runtime-migration tools .github` prints only `REVIEW-*.md`, `02-runtime-boundary-check.md` and this plan.
-- [ ] **Step 4: Commit**: `docs: runtime migration, PR 02c ratchet modes and replacement map rule` (stage the six files).
+- [x] **Step 2:** Replace every *invocation* of `--accept-tests-increase` by `--accept-increase` in README, `_TEMPLATE.md`, 01, 05, 14b. In `_TEMPLATE.md`, extend the "Landing order" line with "02c lands before any other count-changing PR", and add: "A PR that adds an equivalent `deno_ral` replacement for a `Deno.*` API adds its exact keys (e.g. `readTextFileSync`) to `kRalDenoReplacements` in `tools/check-runtime-boundary.ts` in the same change, which turns later increases of that API into errors; a PR that adds a std seam may add a `kStdSuggestions` entry (suggestions never fail a PR)." In 02, add under the header: "**Amended by:** PR 02c (PR-mode comparison, replacement maps, `--accept-increase`)."
+- [x] **Step 3:** `grep -rln -- "--accept-tests-increase" dev-docs/runtime-migration tools .github` prints only `REVIEW-*.md`, `02-runtime-boundary-check.md` and this plan.
+- [x] **Step 4: Commit**: `docs: runtime migration, PR 02c ratchet modes and replacement map rule` (stage the six files).
 
 ## Verification
 
@@ -401,3 +401,8 @@ Run from the branch worktree; `Q` is `package/dist/bin/quarto` (`quarto.cmd` on 
 - Deviation: the `--update-baseline --accept-increase` warning now reads `<scope> baseline raised from X to Y (<label>); list the new occurrences in the PR description` (the old text named test files, and the flag now accepts any scope).
 - Deviation: `--against` without a revision exits 2 with a usage line (not in the plan; the alternative is an undefined revision reaching git).
 - Note: the tool now imports `src/core/process.ts` (via `execProcess`), which pulls the `async` import-map module; a first `quarto run --dev` downloads `@std/async` from jsr like the other std modules.
+
+### 2026-10-22: Task 5
+
+- Step 3: `grep -rln -- "--accept-tests-increase" dev-docs/runtime-migration tools .github` → `02-runtime-boundary-check.md`, `02c-ratchet-pr-delta-and-guidance.md`, `REVIEW-2026-10-21-windows-extraction.md`, `REVIEW-2026-10-21-windows.md` (the expected set: history, the plan, and the two `REVIEW-*` files).
+- Deviation: the `_TEMPLATE.md` tooling-table sentence "the `--accept-tests-increase` flag lets a PR that adds tests raise the `tests` count on purpose" was rewritten to describe `--accept-increase` for any scope and `--against`, since a bare rename would have left it false. The "Landing order" line is the Phase 1 bullet in `_TEMPLATE.md`; the 02c sentence was appended there.

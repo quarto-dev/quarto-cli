@@ -5,7 +5,7 @@
 
 **Goal:** Land the two runtime-neutral fixes the spike found: `with { type: "json" }` on the two dynamic JSON imports, and a deterministic (sorted) order for the bslib Sass files.
 **Phase:** 0.
-**Depends on:** 02 (lands first in Phase 0; this PR's test imports `tests/asserts.ts` and raises the `tests` baseline with `--accept-tests-increase`).
+**Depends on:** 02 (lands first in Phase 0; this PR's test imports `tests/asserts.ts` and raises the `tests` baseline with `--accept-increase`).
 **Unblocks:** PR 26 (the Node bundle job needs both).
 **Branch:** `rt/01-quick-fixes-from-spike`.
 **Suggested executor:** Sonnet.
@@ -75,7 +75,7 @@ export const bslibComponentRules = (): string; // unchanged signature; now `conc
 - `package/dist/bin/quarto dev-call build-artifacts` completes and `git status --short src/resources/editor` is empty (the bundles do not change).
 - `concatenateDirFiles` returns file contents in sorted-name order regardless of creation order (unit test).
 - `bslibComponentRules()` equals `concatenateDirFiles` of `bslib-scss` followed by `concatenateDirFiles` of `components/scss` (the five `bslib-scss` files precede the nine `components/scss` files) (unit test).
-- `quarto run --dev tools/check-runtime-boundary.ts` passes after `--update-baseline --accept-tests-increase`: `src` unchanged (the helper keeps the 2 `Deno.` calls the old loop had), `tests` +6.
+- `quarto run --dev tools/check-runtime-boundary.ts` passes after `--update-baseline --accept-increase`: `src` unchanged (the helper keeps the 2 `Deno.` calls the old loop had), `tests` +6.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/format-html-bslib-order.test.ts smoke/site/render-site-themes.test.ts smoke/render/render-html.test.ts` is green.
 
 ## Plan
@@ -310,7 +310,7 @@ Remove `/tmp/rt01` afterwards.
 
 - [ ] **Step 6: Record the new test in the ratchet baseline**
 
-Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-tests-increase && git diff tools/runtime-boundary-baseline.json` Expected: one `::warning::tests baseline raised from N to N+6 (Deno.* calls)` line; the diff changes only `tests.denoCalls` (+6, the six `Deno.writeTextFileSync` fixture writes; PR 09 provides `deno_ral` file writers for later tests).
+Run: `package/dist/bin/quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-increase && git diff tools/runtime-boundary-baseline.json` Expected: one `::warning::tests baseline raised from N to N+6 (Deno.* calls)` line; the diff changes only `tests.denoCalls` (+6, the six `Deno.writeTextFileSync` fixture writes; PR 09 provides `deno_ral` file writers for later tests).
 List the file and its count in the PR description.
 
 - [ ] **Step 7: Commit**

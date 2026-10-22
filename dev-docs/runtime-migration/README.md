@@ -27,7 +27,7 @@ This README is the execution index.
 1. Every PR lands on `main` one at a time and ships on Deno until PR 33.
    The full existing test suite is the gate; from PR 26 a real-Node job runs the layer's unit tests per PR with a known-failures list that may only shrink; PR 32 makes the bucketed Node matrix required.
 2. Application code never calls `Deno.*` and never imports the standard library directly, except the runtime-neutral import-map seams the std boundary rule allow-lists (`async`, `crypto`, `datetime`, `streams`, `io/*`, `log` other than `log/file-handler`, `fmt/printf`, `dotenv/stringify`; the rule is in `02-runtime-boundary-check.md`, the module inventory behind it in `22-std-import-seams.md`); everything else imports `src/deno_ral/`.
-   PR 02 adds a CI ratchet with five scopes (`src`, `src-js`, `resources`, `package/src`, `tests`) whose counts can only go down.
+   PR 02 adds a CI ratchet with five scopes (`src`, `src-js`, `resources`, `package/src`, `tests`) whose counts can only go down. PR runs count only the PR's own increase (PR 02c); main keeps the absolute baseline.
 3. Runtime-shaped APIs (process, HTTP, TCP, watch, key-value, errors) get Quarto's own interface.
    Plain filesystem and environment calls keep Deno's names so the codemods are mechanical and reversible (`--reverse`).
 4. No synchronous network calls in any interface.
@@ -42,7 +42,7 @@ This README is the execution index.
    Group merges are out because each plan's acceptance criteria and baseline steps assume it lands individually.
    The chain 00a → 00b → 03–06 → 07 is the Phase 0 critical path and never waits for a worktree slot; 00c, 01, 02b, 08 and 09 can start in parallel right after 02 (08 and 09 unblock all of Phase 1).
 8. Shared files are never merged by hand (organisation review of 2026-10-17, `/mnt/project-files/revue-organisation/`).
-   After a rebase: `tools/runtime-boundary-baseline.json` is regenerated with `quarto run --dev tools/check-runtime-boundary.ts --update-baseline` (`--accept-tests-increase` when the plan says so) and the plan's expected delta is re-read against the new `main`; `deno.lock` is regenerated with `package/scripts/vendoring/update-lock.sh` after taking `main`'s copy; `tools/node-bundle/deno-shim.mjs` and `known-failures.json` are re-checked with `node tools/node-bundle/build.mjs --check-shim` and `run-unit-on-node.mjs`; a table row added to `.claude/rules/typescript/deno-ral.md` or a changelog line is re-applied on top of `main`'s version.
+   After a rebase: `tools/runtime-boundary-baseline.json` is regenerated with `quarto run --dev tools/check-runtime-boundary.ts --update-baseline` (`--accept-increase` when the plan says so) and the plan's expected delta is re-read against the new `main`; `deno.lock` is regenerated with `package/scripts/vendoring/update-lock.sh` after taking `main`'s copy; `tools/node-bundle/deno-shim.mjs` and `known-failures.json` are re-checked with `node tools/node-bundle/build.mjs --check-shim` and `run-unit-on-node.mjs`; a table row added to `.claude/rules/typescript/deno-ral.md` or a changelog line is re-applied on top of `main`'s version.
    Suggested merge order where the graph allows parallel work: 03 → 04 → 05 → 06 (simplest first); 20 before 23 and 24 (PR 20 edits `package/src` and `tests/` files those codemods rewrite; a codemod PR opened after 20 merged picks up its edits); 34 before 35 and 36 (34 creates `dev-docs/runtime-migration/docs-updates.md`; 35 and 36 create it if it is absent); 28, 29 and 30 may run in parallel and each re-runs the two shim checks after rebasing on the others.
 
 ## Decisions and conventions
@@ -187,11 +187,14 @@ Changelog: a dependency bump gets a line under `## Dependencies` of `news/change
 Status values: `planned`, `in progress`, `merged`.
 Update this table as PRs land.
 
-### Phase 0: de-risk dependencies (PR 02 first, then 00a → 00b, then 03–06 in parallel, then 07)
+### Phase 0: de-risk dependencies (PR 02 first, then 02c, then 00a → 00b, then 03–06 in parallel, then 07)
+
+Every PR that changes a count lands after 02c; preparing it earlier is fine.
 
 | PR | Plan | What | Depends on | Executor | Size | Status |
 |---|---|---|---|---|---|---|
 | 02 | [02-runtime-boundary-check.md](02-runtime-boundary-check.md) | CI ratchet counting `Deno.*` and direct std imports in five scopes (`src`, `src-js`, `resources`, `package/src`, `tests`); `tests/asserts.ts`; lands first | none | Sonnet | S | in progress |
+| 02c | [02c-ratchet-pr-delta-and-guidance.md](02c-ratchet-pr-delta-and-guidance.md) | PR runs compare with the base branch; findings name a working replacement or ask the maintainer to accept; `--accept-increase` | 02 | Sonnet | S | planned |
 | 00a | [00a-deno-bump.md](00a-deno-bump.md) | Deno 2.7.14 → newest 2.9.x everywhere the version appears | 02 | Sonnet | S | planned |
 | 00b | [00b-lockfile-and-bundle-gate.md](00b-lockfile-and-bundle-gate.md) | Committed `deno.lock` with `--frozen` (six entrypoints); `tools/check-test-imports.ts` keeps the unlocked tests inside that graph; three-OS bundle gate (cold cache, external-specifier grep, five renders) | 02, 00a | Opus | M | planned |
 | 00c | [00c-quarto-run-deprecation-notice.md](00c-quarto-run-deprecation-notice.md) | One-time notice when `quarto run` or a pre/post-render `.ts` script runs on Deno; `QUARTO_RUN_DENO_NOTICE=0` | 02 | Sonnet | S | planned |
