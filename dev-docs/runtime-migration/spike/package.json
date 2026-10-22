@@ -29,7 +29,7 @@
     "ansi_up": "6.0.2",
     "binary-search-bounds": "2.0.5",
     "blueimp-md5": "2.19.0",
-    "dayjs": "1.8.21",
+    "dayjs": "1.11.23",
     "diff": "5.0.0",
     "esbuild": "0.28.1",
     "fontoxpath": "3.29.1",
