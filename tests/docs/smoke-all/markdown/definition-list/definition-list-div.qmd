@@ -12,21 +12,25 @@ _quarto:
         - - "div#tight > dl > dt > code"
           - "div#loose > dl > dd > p"
           - "div#nested > dl > dd > dl > dt"
+          - "div#list-table-in-definition > dl > dd > table"
           - "div#not-a-list.definition-list > p"
           - "div#no-definitions.definition-list > ul"
         - - "div#tight div.definition-list"
           - "div#loose div.definition-list"
           - "div#nested div.definition-list"
+          - "div#list-table-in-definition div.list-table"
     latex:
       ensureFileRegexMatches:
         - - '\\begin\{description\}'
           - '\\item\[\\texttt\{time\}\]'
           - '\\item\[Outer term\]'
+          - '\\item\[Table term\][\s\S]*?\\begin\{longtable\}'
         - []
     typst:
       ensureTypstFileRegexMatches:
         - - '/ Loose term: #block\['
           - '/ Inner term: #block\['
+          - '/ Table term: #block\[\s*#table\('
         - []
 ---
 
@@ -66,6 +70,18 @@ by the wrapper div added around it.
   - ::: {.definition-list}
     * Inner term
       - Inner definition.
+    :::
+:::
+:::
+
+::: {#list-table-in-definition}
+::: {.definition-list}
+* Table term
+  - ::: {.list-table}
+    * - Fruit
+      - Price
+    * - Apple
+      - 1.20
     :::
 :::
 :::
