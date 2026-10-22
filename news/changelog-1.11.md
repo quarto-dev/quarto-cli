@@ -8,6 +8,7 @@ All changes included in 1.11:
 - ([#14857](https://github.com/quarto-dev/quarto-cli/issues/14857)): Fix `quarto install chrome-headless-shell` (and `quarto install chromium`) failing with a 404 on Linux arm64 due to a stale Playwright CDN URL.
 - ([#14946](https://github.com/quarto-dev/quarto-cli/issues/14946)): Fix `revealjs` and `dashboard` logos resolving to broken paths in documents in a project subdirectory when the project has a brand (regression introduced in v1.8.22). Logo paths are now always relative to the document; a project-relative logo path in a website with a brand still works but prints a deprecation warning.
 - ([#14993](https://github.com/quarto-dev/quarto-cli/issues/14993)): Fix Typst output dropping a brand font from a `font-family` list when another document in the same directory or project was rendered first with different brand fonts.
+- ([#15143](https://github.com/quarto-dev/quarto-cli/issues/15143)): Fix PDF rendering with `pdf-standard` failing with `\DocumentMetadata not supported!` after updating to KOMA-Script 3.49.3, which provides the default document classes.
 
 ## Dependencies
 
