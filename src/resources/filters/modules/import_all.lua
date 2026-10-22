@@ -24,6 +24,7 @@ _quarto.modules = {
   theorems = require("modules/theorems"),
   typst = require("modules/typst"),
   listtable = require("modules/listtable"),
+  definitionlist = require("modules/definitionlist"),
   tableutils = require("modules/tableutils"),
 }
 
