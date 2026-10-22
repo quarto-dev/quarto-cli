@@ -114,7 +114,8 @@ const kDenoRe = /\bDeno\.(?=(\w*)(?:\.(\w+))?)/g;
  * same line, and a `from` separated from its specifier by a newline is still seen. Comment lines
  * are blanked, keeping the newlines. */
 export function countText(text: string): FileCounts {
-  const deno: Record<string, number> = {};
+  // No prototype: `Deno.constructor` or `Deno.__proto__` in a comment must be an ordinary key.
+  const deno: Record<string, number> = Object.create(null);
   for (const match of text.matchAll(kDenoRe)) {
     const key = match[1] + (match[2] ? "." + match[2] : "");
     deno[key] = (deno[key] ?? 0) + 1;
@@ -372,7 +373,7 @@ export function diffChanges(changes: FileChange[]): DeltaReport {
   for (const scope of Object.keys(kScopes)) {
     deltas[scope] = { denoCalls: 0, stdImportFiles: 0 };
   }
-  const empty: FileCounts = { deno: {}, std: [] };
+  const empty: FileCounts = { deno: Object.create(null), std: [] };
   const entries = changes.map((change) => ({
     change,
     scopes: scopesOf(change.path),

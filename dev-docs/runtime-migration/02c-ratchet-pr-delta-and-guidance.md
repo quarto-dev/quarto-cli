@@ -389,3 +389,7 @@ Run from the branch worktree; `Q` is `package/dist/bin/quarto` (`quarto.cmd` on 
 - Step 2 (characterisation start, not RED): type-check failure at module load, `has no exported member 'renderDelta'`.
 - Step 4: `unit/tools/check-runtime-boundary.test.ts` → `ok | 30 passed | 0 failed`; the test file still holds one literal `Deno.` match.
 - Deviation: none.
+
+### 2026-10-22: review fix after Task 3
+
+- Defect: `countText` and the empty counts in `diffChanges` used `{}`, so a `Deno.constructor` in a comment read the inherited function and made the scope total a string (NaN delta, no findings, a covered increase passing); `Deno.__proto__` was lost. Reproduced by the new test before the fix: `"function Object() { [native code] }1"` instead of `1` (assertion failure, a real RED). Fix: null-prototype dictionaries. `unit/tools/check-runtime-boundary.test.ts` → 31 passed, counts unchanged (994/49, 7/0, 10/1, 240/3, 832/177).

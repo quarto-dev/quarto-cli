@@ -531,3 +531,17 @@ unitTest("check-runtime-boundary - renderDelta main above baseline, PR adds noth
   ]);
   assert(rendered.summary.includes("No count changed in this PR."));
 });
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - inherited property names count as ordinary Deno API keys", async () => {
+  const text = `// ${DENO}constructor\n// ${DENO}__proto__\n${DENO}build.os;\n`;
+  const counts = countText(text).deno;
+  assertEquals(counts["constructor"], 1);
+  assertEquals(counts["__proto__"], 1);
+  assertEquals(counts["build.os"], 1);
+
+  const report = diffChanges([{ path: "src/a.ts", before: null, after: text, addedLines: [1, 2, 3] }]);
+  assertEquals(report.deltas["src"].denoCalls, 3);
+  assertEquals(report.findings.find((f) => f.name === "build.os")?.replacement, kRalDenoReplacements["build.os"].hint);
+  assertEquals(renderDelta(report, { "src": { denoCalls: 3, stdImportFiles: 0 } }, {}).failed, true);
+});
