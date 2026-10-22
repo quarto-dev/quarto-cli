@@ -87,8 +87,54 @@
           'a[href], button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])'
         ),
       ].filter(
-        (el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden")
+        (el) =>
+          !el.hasAttribute("disabled") &&
+          !el.getAttribute("aria-hidden") &&
+          el.getClientRects().length > 0
       );
+    };
+
+    // In revealjs, Tab goes from a tab to its panel content and from the end
+    // of that content to the next tab; Shift+Tab goes the other way. Tabs come
+    // before all panels in the DOM, so the browser alone would go tab to tab.
+    var tabOrderHandler = function (event) {
+      if (event.key !== "Tab" || event.defaultPrevented) return;
+      var current = event.currentTarget;
+      var onTab = current.getAttribute("role") === "tab";
+      var tab = onTab
+        ? current
+        : document.getElementById(current.getAttribute("aria-labelledby"));
+      var map = tab && getTabsMap(tab);
+      if (!map) return;
+
+      var target;
+      if (onTab && !event.shiftKey) {
+        target = getKeyboardFocusableElements(
+          document.querySelector(tab.hash)
+        )[0];
+      } else if (onTab) {
+        var previous = map.tabs[map.index - 1];
+        if (!previous) return;
+        toggle(previous);
+        target =
+          getKeyboardFocusableElements(
+            document.querySelector(previous.hash)
+          ).pop() || previous;
+      } else {
+        var focusables = getKeyboardFocusableElements(current);
+        if (event.shiftKey && event.target === focusables[0]) {
+          target = tab;
+        } else if (
+          !event.shiftKey &&
+          event.target === focusables[focusables.length - 1]
+        ) {
+          target = map.tabs[map.index + 1];
+        }
+      }
+      if (!target) return;
+
+      event.preventDefault();
+      target.focus();
     };
 
     /**
@@ -105,6 +151,8 @@
 
       // remove event listener
       tab.removeEventListener("focus", focusHandler, true);
+      tab.removeEventListener("keydown", tabOrderHandler);
+      content.removeEventListener("keydown", tabOrderHandler);
 
       // Remove roles
       tab.removeAttribute("role");
@@ -145,8 +193,12 @@
         content.setAttribute("hidden", "hidden");
       }
 
-      // add focus event listender
-      if (isReveal()) tab.addEventListener("focus", focusHandler);
+      // add focus and Tab order event listeners
+      if (isReveal()) {
+        tab.addEventListener("focus", focusHandler);
+        tab.addEventListener("keydown", tabOrderHandler);
+        content.addEventListener("keydown", tabOrderHandler);
+      }
     };
 
     /**
@@ -322,26 +374,13 @@
         // Add role to wrapper
         tabWrapper.setAttribute("role", "tablist");
 
-        // Add roles to tabs. provide dynanmic tab indexes if we are within reveal
-        var contentTabindexes = isReveal();
-        var nextTabindex = 1;
+        // Add roles to tabs
         Array.prototype.forEach.call(tabs, function (tab) {
-          if (contentTabindexes) {
-            tab.setAttribute("tabindex", "" + nextTabindex++);
-          } else {
-            tab.setAttribute("tabindex", "0");
-          }
+          tab.setAttribute("tabindex", "0");
 
           // Get the tab content
           var content = document.querySelector(tab.hash);
           if (!content) return;
-
-          // set tab indexes for content
-          if (contentTabindexes) {
-            getKeyboardFocusableElements(content).forEach(function (el) {
-              el.setAttribute("tabindex", "" + nextTabindex++);
-            });
-          }
 
           // Setup the tab
           setupTab(tab, content, settings);

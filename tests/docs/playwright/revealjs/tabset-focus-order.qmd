@@ -28,3 +28,47 @@ Content B with a [link in tab B](https://quarto.org).
 ## Slide 4
 
 Plain slide after the tabset.
+
+## Links around a tabset
+
+A [link before the tabset](https://quarto.org).
+
+::: {.panel-tabset}
+
+### Tab C
+
+Content C with a [link in tab C](https://quarto.org).
+
+### Tab D
+
+Content D with a [link in tab D](https://quarto.org).
+
+:::
+
+A [link after the tabset](https://quarto.org).
+
+## Two tabsets
+
+::: {.panel-tabset}
+
+### First A
+
+[link in first A](https://quarto.org)
+
+### First B
+
+[link in first B](https://quarto.org)
+
+:::
+
+::: {.panel-tabset}
+
+### Second A
+
+Nothing to focus in this panel.
+
+### Second B
+
+[link in second B](https://quarto.org)
+
+:::

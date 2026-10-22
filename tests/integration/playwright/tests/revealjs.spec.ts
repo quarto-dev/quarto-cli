@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Locator, Page } from '@playwright/test';
 import { tabKey } from '../src/utils';
 
 test('logo and footer are correctly shown in default mode', async ({ page }) => {
@@ -330,20 +330,71 @@ test.describe('tabset keyboard focus order', () => {
     await expect(tab(page, 'Tab A')).toBeAttached();
   };
 
-  test('first Tab stays on the current slide (#14970)', async ({ page }) => {
+  const link = (page: Page, name: string) => page.getByRole('link', { name });
+
+  // Presses Tab (or Shift+Tab) once per target and checks each gets focus in turn.
+  const expectTabOrder = async (
+    page: Page,
+    browserName: string,
+    targets: Locator[],
+    shift = false,
+  ) => {
+    for (const target of targets) {
+      await page.keyboard.press(tabKey(browserName, shift));
+      await expect(target).toBeFocused();
+    }
+  };
+
+  test('first Tab stays on the current slide (#14970)', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-1');
-    await page.keyboard.press('Tab');
-    await expect(page.getByRole('link', { name: 'link on slide 1' })).toBeFocused();
+    await expectTabOrder(page, browserName, [link(page, 'link on slide 1')]);
   });
 
-  test('Tab moves from a tab into its panel content', async ({ page }) => {
+  test('Tab moves from a tab into its panel content', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-3');
     await tab(page, 'Tab A').focus();
-    await page.keyboard.press('Tab');
-    await expect(page.getByRole('link', { name: 'link in tab A' })).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(tab(page, 'Tab B')).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(page.getByRole('link', { name: 'link in tab B' })).toBeFocused();
+    await expectTabOrder(page, browserName, [
+      link(page, 'link in tab A'),
+      tab(page, 'Tab B'),
+      link(page, 'link in tab B'),
+    ]);
+  });
+
+  test('Tab follows document order around a tabset (#14970)', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/links-around-a-tabset');
+    await expectTabOrder(page, browserName, [
+      link(page, 'link before the tabset'),
+      tab(page, 'Tab C'),
+      link(page, 'link in tab C'),
+      tab(page, 'Tab D'),
+      link(page, 'link in tab D'),
+      link(page, 'link after the tabset'),
+    ]);
+  });
+
+  test('Shift+Tab reverses the order around a tabset', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/links-around-a-tabset');
+    await tab(page, 'Tab D').click();
+    await link(page, 'link after the tabset').focus();
+    await expectTabOrder(page, browserName, [
+      link(page, 'link in tab D'),
+      tab(page, 'Tab D'),
+      link(page, 'link in tab C'),
+      tab(page, 'Tab C'),
+      link(page, 'link before the tabset'),
+    ], true);
+  });
+
+  test('two tabsets on a slide are traversed one after the other (#14970)', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/two-tabsets');
+    await expectTabOrder(page, browserName, [
+      tab(page, 'First A'),
+      link(page, 'link in first A'),
+      tab(page, 'First B'),
+      link(page, 'link in first B'),
+      tab(page, 'Second A'),
+      tab(page, 'Second B'),
+      link(page, 'link in second B'),
+    ]);
   });
 });
