@@ -32,7 +32,7 @@
     "dayjs": "1.8.21",
     "diff": "5.0.0",
     "esbuild": "0.28.1",
-    "fontoxpath": "3.29.1",
+    "fontoxpath": "3.34.0",
     "js-yaml": "4.1.1",
     "lodash": "4.17.21",
     "moment-guess": "1.2.4",
