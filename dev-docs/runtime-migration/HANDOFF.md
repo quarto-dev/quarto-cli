@@ -21,8 +21,7 @@ Written 2026-10-15 at the end of the planning session, updated 2026-10-16 at the
 
 ## State
 
-- Branch `runtime-migration-plans` on `cderv/quarto-cli` (fork), based on `main` at `b86f98d`.
-  All commits pushed.
+- The plans merged to `main` as #15133 on 2026-10-20.
 - Everything durable is in this directory (`dev-docs/runtime-migration/`):
   - `README.md`: entry point, the ordered table of 45 PRs, two spikes and one milestone, dependency graph, conventions the plans decided, progress metric.
   - `00-assessment.md`: decision record (why Node, impact, phased plan, spike results, module-by-module refactoring plan).
@@ -47,7 +46,7 @@ These were throwaway and are recreated by the plans when needed:
 `REVIEW-2026-10-15.md` is the principal review of the first draft (13 structural findings, per-plan defects, the landing strategy, the decisions taken in its section 6).
 Every plan was then reworked against it: six new PRs (00a, 00b, 00c, 02b, 14b, 20b, 27b), PR 21 folded into 25, PR 07 and PR 39 rewritten and renamed, `SPIKES.md` added, `_TEMPLATE.md` vocabulary updated, `00-assessment.md` given an errata section.
 `README.md` carries the new table, dependency graph, conventions and baseline.
-The plans are now executable in the README order; the first three to run are PR 02, 00a, 00b.
+The plans are now executable in the README order; PR 02 (#15135) and 02c (#15153) are merged, and the next to run are 00a, then 00b.
 
 ## Reconciliation pass (bucket B of `TRIAGE-2026-10-16.md`): done on 2026-10-16
 
@@ -75,11 +74,11 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 
 ## How to resume
 
-1. `git fetch origin && git checkout runtime-migration-plans`.
+1. Work from an up-to-date `main`: the plans are there.
 2. Read `README.md`, then `00-assessment.md` sections 10 and 11, then `_TEMPLATE.md`.
 3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the test runner is decided by Spike V in `SPIKES.md` before PR 31.
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task per plan file, in parallel where the triage marks it), then the re-read of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25, 26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is complete).
-5. Open the plans as PRs against `main` in the README order: PR 02 first, then 00a and 00b, then 03–06 in parallel, then 07.
+5. PR 02 and 02c are merged; open the remaining plans as PRs against `main` in the README order: 00a and 00b, then 03–06 in parallel, then 07.
    Each plan names its branch, executor and verification commands.
    For the per-worktree session ritual (window model, trust, fresh conversation, concurrency ceiling), check
    `local/multi-worktree-workflow.md` if it exists — it is a maintainer-local, untracked note.
