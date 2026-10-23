@@ -17492,6 +17492,18 @@ var require_yaml_intelligence_resources = __commonJS({
             }
           },
           description: "Mermaid diagram options"
+        },
+        {
+          name: "mermaid-scale",
+          schema: {
+            string: {
+              pattern: "^[0-9]+(\\.[0-9]+)?%$"
+            }
+          },
+          description: {
+            short: "Scale for Mermaid diagrams rendered as images",
+            long: "Percentage of their natural size at which Mermaid diagrams rendered\nwith `mermaid-format: png` or `svg` are shown, for example `75%`.\nAn explicit `fig-width` or `fig-height` takes precedence.\n"
+          }
         }
       ],
       "schema/document-metadata.yml": [
@@ -24397,6 +24409,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
         "Mermaid diagram options",
         "The mermaid built-in theme to use.",
+        {
+          short: "Scale for Mermaid diagrams rendered as images",
+          long: "Percentage of their natural size at which Mermaid diagrams rendered\nwith <code>mermaid-format: png</code> or <code>svg</code> are shown, for\nexample <code>75%</code>. An explicit <code>fig-width</code> or\n<code>fig-height</code> takes precedence."
+        },
         "List of keywords to be included in the document metadata.",
         "The document subject",
         "The subject text.",
@@ -25827,12 +25843,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 221295,
+        _internalId: 221618,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 221287,
+            _internalId: 221607,
             type: "enum",
             enum: [
               "png",
@@ -25847,8 +25863,14 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             exhaustiveCompletions: true
           },
+          "mermaid-scale": {
+            _internalId: 221610,
+            type: "string",
+            pattern: "^[0-9]+(\\.[0-9]+)?%$",
+            description: 'be a string that satisfies regex "^[0-9]+(\\.[0-9]+)?%$"'
+          },
           theme: {
-            _internalId: 221294,
+            _internalId: 221617,
             type: "anyOf",
             anyOf: [
               {
@@ -25869,9 +25891,9 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         patternProperties: {},
         propertyNames: {
-          errorMessage: "property ${value} does not match case convention mermaid-format,theme",
+          errorMessage: "property ${value} does not match case convention mermaid-format,mermaid-scale,theme",
           type: "string",
-          pattern: "(?!(^mermaid_format$|^mermaidFormat$))",
+          pattern: "(?!(^mermaid_format$|^mermaidFormat$|^mermaid_scale$|^mermaidScale$))",
           tags: {
             "case-convention": [
               "dash-case"
