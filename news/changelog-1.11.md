@@ -16,7 +16,6 @@ All changes included in 1.11:
 
 ## Accessibility
 
-- ([#15159](https://github.com/quarto-dev/quarto-cli/issues/15159), [#15160](https://github.com/quarto-dev/quarto-cli/issues/15160)): Give the `revealjs` speaker-view Layout selector an accessible name and visible keyboard focus, and name the current slide, upcoming slide, time, and notes regions. Changing layouts no longer forwards control keys to the slides, and the slide navigation buttons no longer introduce an unrelated complementary landmark. (author: @jooyoungseo)
 - ([#730](https://github.com/quarto-dev/quarto-cli/issues/730)): Fix keyboard navigation of tabsets in HTML documents without Bootstrap (`theme: none`): Tab now moves from the selected tab into its panel instead of selecting the next tab, and the arrow keys switch tabs.
 - ([#3873](https://github.com/quarto-dev/quarto-cli/issues/3873), [#9003](https://github.com/quarto-dev/quarto-cli/issues/9003)): Honor `fig-alt` for Mermaid and Graphviz diagrams in HTML, revealjs, DOCX, and Typst output while preserving visible captions. (author: @jooyoungseo)
 - ([#5514](https://github.com/quarto-dev/quarto-cli/issues/5514)): Fix `fig-alt` being ignored in `docx` output. Images and figures, including computational figures, now use it as their Word alternative text instead of the caption or an empty description, and the visible caption is unchanged. (author: @jooyoungseo)
@@ -43,6 +42,7 @@ All changes included in 1.11:
 - ([#15079](https://github.com/quarto-dev/quarto-cli/issues/15079)): Fix keyboard focus in `revealjs` presentations moving to the page when coming back to the presentation's browser tab, which took readers off the link or chart they were on and made screen readers stop passing the arrow keys to the presentation. (author: @jooyoungseo)
 - ([#15080](https://github.com/quarto-dev/quarto-cli/issues/15080)): Fix footnote, citation, cross-reference and code annotation popups not closing with Esc, and staying open over the next focused element after keyboard focus leaves them.
 - ([#15129](https://github.com/quarto-dev/quarto-cli/issues/15129)): Fix default listings rendering an empty, focusable metadata link for posts with no date, author or other listed field to show, flagged by axe-core (`link-name`).
+- ([#15159](https://github.com/quarto-dev/quarto-cli/issues/15159), [#15160](https://github.com/quarto-dev/quarto-cli/issues/15160)): Fix the `revealjs` speaker view's Layout selector having no accessible name or visible keyboard focus, and its current slide, upcoming slide, time, and notes areas not being named regions. Changing layouts no longer forwards control keys to the slides, and the slide navigation buttons no longer introduce an unrelated complementary landmark. (author: @jooyoungseo)
 
 ## Formats
 
