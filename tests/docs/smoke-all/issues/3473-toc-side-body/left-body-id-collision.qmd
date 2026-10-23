@@ -1,0 +1,33 @@
+---
+title: 3473-toc-left-body-id-collision
+format:
+  html:
+    toc: true
+    toc-location: left-body
+    toc-title: Contents
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "nav#TOC a#toc-setup"
+          - "nav#TOC a#toc-setup-body"
+          - "nav#TOC-body a#toc-setup-body-1"
+          - "nav#TOC-body a#toc-setup-body-body"
+        - []
+      ensureFileRegexMatches:
+        - []
+        - ['id="toc-setup-body"[\s\S]*id="toc-setup-body"']
+---
+
+The heading pair below slugs to `toc-setup` and `toc-setup-body`. A fixed
+`-body` suffix on the cloned body TOC would hand `toc-setup` the id
+`toc-setup-body`, which the sidebar TOC already holds (#14844).
+
+# Setup
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+# Setup Body
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
