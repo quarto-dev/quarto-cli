@@ -356,23 +356,41 @@ function bootstrapHtmlPostprocessor(
         const clonedToc = toc.cloneNode(true) as Element;
         clonedToc.id = "TOC-body";
 
+        const tocActionsEl = clonedToc.querySelector(".toc-actions");
+        if (tocActionsEl) {
+          tocActionsEl.remove();
+        }
+
         // Ids must be unique, so the clone can't keep the originals: suffix
         // every id it carries, and repoint its aria-labelledby at the renamed
         // heading. Nothing outside the nav references these ids, and the
         // originals stay on `toc`, so existing lookups resolve as before.
-        const clonedLabelId = clonedToc.getAttribute("aria-labelledby");
+        //
+        // A fixed suffix can still collide: headings "Setup" and "Setup Body"
+        // give `toc-setup` and `toc-setup-body`, so `toc-setup` + `-body` is
+        // already taken. Check each candidate against the document and the
+        // ids handed out so far, and append a counter until it is free.
+        const assignedIds = new Set<string>();
+        const uniqueBodyId = (id: string) => {
+          const base = `${id}-body`;
+          let candidate = base;
+          for (let n = 1; doc.getElementById(candidate) || assignedIds.has(candidate); n++) {
+            candidate = `${base}-${n}`;
+          }
+          assignedIds.add(candidate);
+          return candidate;
+        };
+        const renamedIds = new Map<string, string>();
         const clonedIdEls = clonedToc.querySelectorAll("[id]");
         for (let i = 0; i < clonedIdEls.length; i++) {
           const clonedIdEl = clonedIdEls[i] as Element;
-          clonedIdEl.id = `${clonedIdEl.id}-body`;
+          const newId = uniqueBodyId(clonedIdEl.id);
+          renamedIds.set(clonedIdEl.id, newId);
+          clonedIdEl.id = newId;
         }
-        if (clonedLabelId) {
-          clonedToc.setAttribute("aria-labelledby", `${clonedLabelId}-body`);
-        }
-
-        const tocActionsEl = clonedToc.querySelector(".toc-actions");
-        if (tocActionsEl) {
-          tocActionsEl.remove();
+        const clonedLabelId = clonedToc.getAttribute("aria-labelledby");
+        if (clonedLabelId && renamedIds.has(clonedLabelId)) {
+          clonedToc.setAttribute("aria-labelledby", renamedIds.get(clonedLabelId)!);
         }
 
         toc.parentElement?.insertBefore(clonedToc, toc);
