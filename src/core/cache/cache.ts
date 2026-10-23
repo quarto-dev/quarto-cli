@@ -9,6 +9,7 @@
 import { assert } from "testing/asserts";
 import { ensureDirSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
+import { v8Branch } from "../../deno_ral/platform.ts";
 import { md5HashBytes } from "../hash.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../quarto.ts";
@@ -29,10 +30,16 @@ const requiredQuartoVersions: Record<string, string> = {
 
 class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
   projectScratchDir: string;
+  storeDir: string;
   index: Deno.Kv | null;
 
   constructor(_projectScratchDir: string) {
     this.projectScratchDir = _projectScratchDir;
+    this.storeDir = join(
+      _projectScratchDir,
+      "project-cache",
+      `v8-${v8Branch}`,
+    );
     this.index = null;
   }
 
@@ -53,9 +60,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     for await (const entry of entries) {
       const diskValue = entry.value;
       if (entry.key[0] !== "version") {
-        Deno.removeSync(
-          join(this.projectScratchDir, "project-cache", diskValue as string),
-        );
+        Deno.removeSync(join(this.storeDir, diskValue as string));
       }
       await this.index.delete(entry.key);
     }
@@ -67,9 +72,8 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
   }
 
   async init(): Promise<void> {
-    const indexPath = join(this.projectScratchDir, "project-cache");
-    ensureDirSync(indexPath);
-    this.index = await Deno.openKv(join(indexPath, "deno-kv-file"));
+    ensureDirSync(this.storeDir);
+    this.index = await Deno.openKv(join(this.storeDir, "deno-kv-file"));
     let version = await this.index.get(["version"]);
     if (version.value === null) {
       await this.createOnDisk();
@@ -93,10 +97,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
   async addBuffer(key: string[], value: Uint8Array): Promise<void> {
     assert(this.index);
     const hash = await md5HashBytes(value);
-    Deno.writeFileSync(
-      join(this.projectScratchDir, "project-cache", hash),
-      value,
-    );
+    Deno.writeFileSync(join(this.storeDir, hash), value);
     const result = await this.index.set(key, {
       hash,
       type: "buffer",
@@ -108,10 +109,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     assert(this.index);
     const buffer = new TextEncoder().encode(value);
     const hash = await md5HashBytes(buffer);
-    Deno.writeTextFileSync(
-      join(this.projectScratchDir, "project-cache", hash),
-      value,
-    );
+    Deno.writeTextFileSync(join(this.storeDir, hash), value);
     const result = await this.index.set(key, {
       hash,
       type: "string",
@@ -187,9 +185,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     return this._getAs(key, (result) => {
       assert(result.type === "buffer", "Expected buffer");
       const { hash } = result as DiskCacheEntry;
-      return Deno.readFileSync(
-        join(this.projectScratchDir, "project-cache", hash),
-      );
+      return Deno.readFileSync(join(this.storeDir, hash));
     });
   }
 
@@ -197,9 +193,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     return this._getAs(key, (result) => {
       assert(result.type === "string", "Expected string");
       const { hash } = result as DiskCacheEntry;
-      return Deno.readTextFileSync(
-        join(this.projectScratchDir, "project-cache", hash),
-      );
+      return Deno.readTextFileSync(join(this.storeDir, hash));
     });
   }
 
