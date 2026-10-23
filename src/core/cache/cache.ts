@@ -7,7 +7,7 @@
  */
 
 import { assert } from "testing/asserts";
-import { ensureDirSync } from "../../deno_ral/fs.ts";
+import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { v8Branch } from "../../deno_ral/platform.ts";
 import { md5HashBytes } from "../hash.ts";
@@ -58,9 +58,15 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     assert(this.index);
     const entries = this.index.list({ prefix: [] });
     for await (const entry of entries) {
-      const diskValue = entry.value;
-      if (entry.key[0] !== "version") {
-        Deno.removeSync(join(this.storeDir, diskValue as string));
+      const value = entry.value as CacheIndexEntry;
+      // immediate entries live in the index only; disk entries with
+      // identical content share one hash file
+      if (
+        entry.key[0] !== "version" &&
+        (value.type === "buffer" || value.type === "string")
+      ) {
+        const { hash } = value as DiskCacheEntry;
+        safeRemoveSync(join(this.storeDir, hash));
       }
       await this.index.delete(entry.key);
     }

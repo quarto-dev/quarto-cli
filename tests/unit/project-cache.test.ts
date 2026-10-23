@@ -44,3 +44,36 @@ unitTest(
     }, "quarto-project-cache-v8");
   },
 );
+
+unitTest(
+  "projectCache - clear() removes disk and immediate entries of a populated cache",
+  async () => {
+    await withTempDir(async (scratch) => {
+      const cache = await createProjectCache(scratch);
+      try {
+        await cache.addString(["string"], "shared content");
+        await cache.addString(["same-content"], "shared content");
+        await cache.addBuffer(["buffer"], new Uint8Array([1, 2, 3]));
+        await cache.addSmallString(["small-string"], "small");
+        await cache.addSmallBuffer(["small-buffer"], new Uint8Array([4]));
+        const storeDir = join(scratch, "project-cache", `v8-${v8Branch}`);
+        const stringHash = await md5HashBytes(
+          new TextEncoder().encode("shared content"),
+        );
+        const bufferHash = await md5HashBytes(new Uint8Array([1, 2, 3]));
+
+        await cache.clear();
+
+        assertEquals(await cache.get(["string"]), null);
+        assertEquals(await cache.get(["same-content"]), null);
+        assertEquals(await cache.get(["buffer"]), null);
+        assertEquals(await cache.get(["small-string"]), null);
+        assertEquals(await cache.get(["small-buffer"]), null);
+        assert(!existsSync(join(storeDir, stringHash)));
+        assert(!existsSync(join(storeDir, bufferHash)));
+      } finally {
+        cache.close();
+      }
+    }, "quarto-project-cache-clear");
+  },
+);
