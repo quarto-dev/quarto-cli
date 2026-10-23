@@ -5,7 +5,7 @@
  */
 
 import { unitTest } from "../../test.ts";
-import { assert } from "testing/asserts";
+import { assert } from "../../asserts.ts";
 import { isPortSafe } from "../../../src/core/port.ts";
 
 // Quarto fetches from the servers it starts on ports from findOpenPort

@@ -4,7 +4,6 @@
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Land the two runtime-neutral fixes the spike found: `with { type: "json" }` on the two dynamic JSON imports, and a deterministic (sorted) order for the bslib Sass files.
-**Status 2026-10-22:** the `assert` → `with` half landed with PR 00a (#15152), because TypeScript 6 in Deno 2.9.8 rejects `assert` (TS2880). It did change the IDE bundles: esbuild now wraps the JSON module as ESM instead of CommonJS (same data, same `.default`), so the "no effect on built artifacts" statement below no longer holds. Skip those edits; this PR keeps only the bslib ordering.
 **Phase:** 0.
 **Depends on:** 02 (lands first in Phase 0; this PR's test imports `tests/asserts.ts` and raises the `tests` baseline with `--accept-increase`).
 **Unblocks:** PR 26 (the Node bundle job needs both).
