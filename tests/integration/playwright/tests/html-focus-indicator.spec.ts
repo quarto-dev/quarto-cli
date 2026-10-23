@@ -152,6 +152,52 @@ test("author a:focus-visible rule replaces the focus ring", async ({
   await expect(link).toHaveCSS("box-shadow", "none");
 });
 
+// On a paired `light:`/`dark:` theme, Quarto compiles the two themes into
+// separate stylesheets and each resolves the focus ring against its own
+// $body-bg. The light (cosmo) sheet keeps the dark tone on the outline; the
+// dark (darkly) sheet swaps the tones so the outline is white and the dark
+// tone is the inner band. This guards the swap logic, which depends on the
+// dark bundle being recompiled against the dark $body-bg.
+test.describe("paired light/dark theme swaps the focus ring tones", () => {
+  // Each theme derives its dark tone from its own $primary-text-emphasis
+  // (shade-color($primary, 60%)), as computed styles.
+  const cosmoDarkTone = "rgb(16, 51, 91)";
+  const darklyDarkTone = "rgb(22, 36, 51)";
+  const white = "rgb(255, 255, 255)";
+
+  const lightOutline = cosmoDarkTone;
+  const lightShadow = new RegExp(`^${white.replace(/[()]/g, "\\$&")} 0px 0px 0px 2px`);
+  const darkOutline = white;
+  const darkShadow = new RegExp(`^${darklyDarkTone.replace(/[()]/g, "\\$&")} 0px 0px 0px 2px`);
+
+  async function expectRing(link: Locator, outlineColor: string, shadow: RegExp) {
+    await expect(link).toHaveCSS("outline-style", "solid");
+    await expect(link).toHaveCSS("outline-color", outlineColor);
+    await expect(link).toHaveCSS("box-shadow", shadow);
+  }
+
+  test("light and dark stylesheets resolve the ring against their own page", async ({
+    page,
+    browserName,
+  }) => {
+    await page.goto(getUrl("html/focus-ring-light-dark.html"), {
+      waitUntil: "load",
+    });
+    const link = page.getByRole("link", { name: "inline link" });
+    await expect(link).toBeVisible();
+
+    // Light stylesheet (default): dark tone on the outline.
+    expect(await tabUntilFocused(page, browserName, link)).toBe(true);
+    await expectRing(link, lightOutline, lightShadow);
+
+    // Switch to the dark stylesheet; the ring must swap tones. Clicking the
+    // toggle moves focus to it, so tab back to the link.
+    await page.locator("button.quarto-color-scheme-toggle").first().click();
+    expect(await tabUntilFocused(page, browserName, link)).toBe(true);
+    await expectRing(link, darkOutline, darkShadow);
+  });
+});
+
 // The ring's width and offset are public Sass variables. The fixture sets
 // a 3px outline with a 1px offset; the inner tone fills the 1px gap.
 test("Sass variables set the focus ring size", async ({
