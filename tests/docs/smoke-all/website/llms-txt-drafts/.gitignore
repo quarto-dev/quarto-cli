@@ -2,6 +2,8 @@
 *.html
 *.llms.md
 llms.txt
+search.json
+site_libs/
 *_files/
 
 **/*.quarto_ipynb

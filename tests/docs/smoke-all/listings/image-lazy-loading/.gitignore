@@ -1,1 +1,4 @@
 /.quarto/
+blog/index-*.html
+/search.json
+/site_libs/

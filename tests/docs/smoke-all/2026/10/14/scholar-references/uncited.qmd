@@ -1,0 +1,14 @@
+---
+title: Scholar metadata without references
+format: html
+google-scholar: true
+bibliography: references.bib
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementCount:
+        - selectors: ['meta[name="citation_reference"]']
+          counts: [0]
+---
+
+This article does not cite any work from the shared bibliography.

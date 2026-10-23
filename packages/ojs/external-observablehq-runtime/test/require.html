@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<body class="O--body">
+<div id="foo"></div>
+<script type=module>
+
+import {Runtime, Inspector, Library} from "/dist/runtime.js";
+
+const runtime = new Runtime(new Library);
+const module = runtime.module();
+module.variable().define("d3", ["require"], require => require("d3-array"));
+module.variable(new Inspector(document.querySelector("#foo"))).define(["d3"], d3 => d3.range(100));
+
+</script>

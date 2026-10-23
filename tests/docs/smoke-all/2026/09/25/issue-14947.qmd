@@ -1,0 +1,48 @@
+---
+title: "Typst: px image sizes are converted when the image has alt text"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      # Leaked px, unsupported units, and unresolved paths must not compile.
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          # Inline fig-alt keeps its alt and converts 200px to 200/96 inches.
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Inline fig-alt")(?=[^)]*height: 2\.08333\d*in)'
+          # Explicit alt survives alongside the converted 30px width.
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Inline alt")(?=[^)]*width: 0\.3125\d*in)'
+          # An inline caption supplies alt when no alt attribute is present.
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Caption as alt")(?=[^)]*height: 0\.20833\d*in)'
+          # A captioned figure uses fig-alt, not its visible caption.
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Figure fig-alt")(?=[^)]*height: 0\.20833\d*in)'
+          # Cross-referenced figures also retain fig-alt and converted size.
+          - 'image\("penrose\.svg"(?=[^)]*alt: "Crossref fig-alt")(?=[^)]*height: 0\.20833\d*in)'
+          # The encoded source path becomes a usable filename without losing alt.
+          - 'image\("my image\.svg"(?=[^)]*alt: "Encoded path")'
+          # Unsupported 3vw width is omitted while the image and alt remain.
+          - 'image\("penrose\.svg",\s*alt:\s*"Unknown unit"\)'
+        -
+          # No image may retain an unconverted integer px dimension.
+          - 'image\([^)]*\d+px'
+          # A URL-encoded path must not appear in Typst output.
+          - 'my%20image'
+          # Typst cannot accept the unsupported vw dimension.
+          - '3vw'
+---
+
+Inline with fig-alt: ![](penrose.svg){height="200px" fig-alt="Inline fig-alt"}
+
+Inline with alt: ![](penrose.svg){width="30px" alt="Inline alt"}
+
+Inline with caption: text ![Caption as alt](penrose.svg){height="20px"} text
+
+Encoded path: ![](my%20image.svg){alt="Encoded path"}
+
+Unknown unit: ![](penrose.svg){width="3vw" alt="Unknown unit"}
+
+![Figure caption](penrose.svg){height="20px" fig-alt="Figure fig-alt"}
+
+![Crossref caption](penrose.svg){#fig-penrose height="20px" fig-alt="Crossref fig-alt"}

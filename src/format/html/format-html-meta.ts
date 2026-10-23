@@ -9,19 +9,20 @@ import {
   PandocInputTraits,
   RenderedFormat,
 } from "../../command/render/types.ts";
-import { kCanonicalUrl } from "../../config/constants.ts";
+import { kCanonicalUrl, kCitationTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { bibliographyCslJson } from "../../core/bibliography.ts";
 import {
   CSL,
   cslDateToEDTFDate,
   CSLExtras,
+  cslPageRange,
+  cslTextToPlain,
   kAbstractUrl,
   kEIssn,
   kPdfUrl,
 } from "../../core/csl.ts";
-import { Document } from "../../core/deno-dom.ts";
-import { encodeAttributeValue } from "../../core/html.ts";
+import { Document, Element } from "../../core/deno-dom.ts";
 import { kWebsite } from "../../project/types/website/website-constants.ts";
 import {
   documentCSL,
@@ -60,11 +61,16 @@ export function metadataPostProcessor(
         "webpage",
         format.pandoc["output-file"],
         offset,
+        options.inputTraits[kCitationTitle],
       );
+      if (csl.title) {
+        csl.title = cslTextToPlain(csl.title);
+      }
       const documentMetadata = googleScholarMeta(csl, extras);
       const referenceMetadata = await googleScholarReferences(
         input,
         options.inputMetadata,
+        doc,
       );
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {
         writeMetaTag(meta.name, meta.content, doc);
@@ -75,7 +81,7 @@ export function metadataPostProcessor(
   };
 }
 
-function googleScholarEnabled(format: Format) {
+export function googleScholarEnabled(format: Format) {
   // Enabled by the format / document
   if (format.metadata[kGoogleScholar] === true) {
     return true;
@@ -200,12 +206,16 @@ function googleScholarMeta(
     write("citation_language", csl.language);
   }
 
-  if (csl["page-first"]) {
-    write("citation_firstpage", csl["page-first"]);
+  // Bibliography entries from Pandoc carry only `page`.
+  const pageRange = cslPageRange(`${csl.page ?? ""}`);
+  const firstPage = csl["page-first"] || pageRange.first;
+  if (firstPage) {
+    write("citation_firstpage", firstPage);
   }
 
-  if (csl["page-last"]) {
-    write("citation_lastpage", csl["page-last"]);
+  const lastPage = csl["page-last"] || pageRange.last;
+  if (lastPage) {
+    write("citation_lastpage", lastPage);
   }
 
   const type = csl.type;
@@ -239,7 +249,9 @@ function googleScholarMeta(
       write("citation_book_title", csl["container-title"]);
     }
   } else if (type === "chapter") {
-    write("citation_inbook_title", csl["container-title"]);
+    if (csl["container-title"]) {
+      write("citation_inbook_title", csl["container-title"]);
+    }
   } else {
     if (csl["container-title"]) {
       write("citation_journal_title", csl["container-title"]);
@@ -261,20 +273,82 @@ function googleScholarMeta(
   return scholarMeta;
 }
 
-async function googleScholarReferences(input: string, metadata: Metadata) {
+async function googleScholarReferences(
+  input: string,
+  metadata: Metadata,
+  doc: Document,
+) {
+  const referenceIds = documentReferenceIds(doc);
+  if (referenceIds.size === 0) {
+    return [];
+  }
+  return citationReferenceMeta(
+    await bibliographyCslJson(input, metadata),
+    referenceIds,
+  );
+}
+
+// Replaces the page's citation_reference tags with one per reference
+// in `references` whose id appears in the document.
+export function replaceGoogleScholarReferences(
+  doc: Document,
+  references: CSL[],
+) {
+  for (const tag of doc.querySelectorAll('meta[name="citation_reference"]')) {
+    (tag as Element).remove();
+  }
+  const tags = citationReferenceMeta(references, documentReferenceIds(doc));
+  for (const tag of tags) {
+    writeMetaTag(tag.name, tag.content, doc);
+  }
+}
+
+function documentReferenceIds(doc: Document) {
+  const referenceIds = new Set<string>();
+  // Bibliography entries include works deliberately added with nocite.
+  // Pandoc writes any identifier prefix (from YAML or --id-prefix) into
+  // both the `<prefix>refs` container id and its `<prefix>ref-` entry ids.
+  for (const container of doc.querySelectorAll('.csl-bib-body[id$="refs"]')) {
+    const containerId = (container as Element).id;
+    const entryPrefix = `${containerId.slice(0, -"refs".length)}ref-`;
+    for (
+      const entry of (container as Element).querySelectorAll(".csl-entry[id]")
+    ) {
+      const id = (entry as Element).id;
+      if (id.startsWith(entryPrefix)) {
+        referenceIds.add(id.slice(entryPrefix.length));
+      }
+    }
+  }
+  // Citation IDs remain available when the bibliography is suppressed.
+  for (const citation of doc.querySelectorAll("[data-cites]")) {
+    const cites = (citation as Element).getAttribute("data-cites")!.trim();
+    if (cites) {
+      for (const id of cites.split(/\s+/)) {
+        referenceIds.add(id);
+      }
+    }
+  }
+  return referenceIds;
+}
+
+function citationReferenceMeta(
+  references: CSL[] | undefined,
+  referenceIds: Set<string>,
+) {
   const scholarMeta: MetaTagData[] = [];
   const write = metadataWriter(scholarMeta);
-
-  // Generate the references by reading the bibliography and parsing the html
-  const references = await bibliographyCslJson(input, metadata);
-
   if (references) {
     references.forEach((reference) => {
+      if (!reference.id || !referenceIds.has(reference.id)) {
+        return;
+      }
       const refMetas = googleScholarMeta(reference, {});
       const metaStrs = refMetas.map((refMeta) => {
-        return `${refMeta.name}=${refMeta.content};`;
+        // Bibliography fields are CSL rich text; Scholar expects plain text.
+        return `${refMeta.name}=${cslTextToPlain(refMeta.content)};`;
       });
-      write("citation_reference", metaStrs.join());
+      write("citation_reference", metaStrs.join(" "));
     });
   }
   return scholarMeta;
@@ -284,7 +358,8 @@ function metadataWriter(metadata: MetaTagData[]) {
   const write = (key: string, value: unknown) => {
     metadata.push({
       name: key,
-      content: encodeAttributeValue(value as string),
+      // The DOM escapes attribute values when it serializes the final tag.
+      content: String(value),
     });
   };
   return write;

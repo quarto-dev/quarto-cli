@@ -70,6 +70,13 @@
       tab.dispatchEvent(event);
     };
 
+    // In revealjs, arrow keys belong to slide navigation: tabs stay in the Tab
+    // order and activate on focus. Elsewhere tabs use a roving tabindex with
+    // arrow key navigation.
+    var isReveal = function () {
+      return window.document.body.classList.contains("reveal-viewport");
+    };
+
     var focusHandler = function (event) {
       toggle(event.target);
     };
@@ -77,11 +84,148 @@
     var getKeyboardFocusableElements = function (element) {
       return [
         ...element.querySelectorAll(
-          'a[href], button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])'
+          'a[href], button, input, textarea, select, summary,[tabindex]:not([tabindex="-1"])'
         ),
       ].filter(
-        (el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden")
+        // Shown elements only, as the browser skips the others: hidden content,
+        // like unselected panels (also of a nested tabset), is not rendered,
+        // and revealjs fragments not yet shown have `visibility: hidden`
+        (el) =>
+          el.getAttribute("tabindex") !== "-1" &&
+          !el.matches(":disabled") &&
+          !el.getAttribute("aria-hidden") &&
+          el.getClientRects().length > 0 &&
+          window.getComputedStyle(el).visibility === "visible"
       );
+    };
+
+    // Tabs set up by tabby, as opposed to other tab widgets in a panel
+    var tabbyTabs = new WeakSet();
+
+    // The tab of a tab or of a tab panel
+    var getTab = function (tabOrPanel) {
+      return tabOrPanel.getAttribute("role") === "tab"
+        ? tabOrPanel
+        : document.getElementById(tabOrPanel.getAttribute("aria-labelledby"));
+    };
+
+    // Selects a tab and focuses the last focusable element of its panel, or
+    // the tab itself if there is none. The panel content is hidden until the
+    // tab is selected. When the panel ends with a nested tabset, its end is
+    // the end of that tabset's last panel, as Tab would reach it.
+    var focusEndOf = function (tab) {
+      toggle(tab);
+      var content = document.querySelector(tab.hash);
+      var last = getKeyboardFocusableElements(content).pop();
+      if (!last) return tab.focus();
+
+      // Outermost tabby tab or tab panel between the last element and this
+      // panel; other tab widgets are ordinary panel content
+      var nestedTab;
+      for (var node = last; node && node !== content; node = node.parentElement) {
+        var role = node.getAttribute("role");
+        var nodeTab =
+          role === "tab" ? node : role === "tabpanel" ? getTab(node) : null;
+        if (nodeTab && tabbyTabs.has(nodeTab)) nestedTab = nodeTab;
+      }
+      var nested = nestedTab && getTabsMap(nestedTab);
+      if (nested) return focusEndOf(nested.tabs[nested.tabs.length - 1]);
+      last.focus();
+    };
+
+    // In revealjs, Tab goes from a tab to its panel content and from the end
+    // of that content to the next tab; Shift+Tab goes the other way. Tabs come
+    // before all panels in the DOM, so the browser alone would go tab to tab.
+    var tabOrderHandler = function (event) {
+      // Leave Tab to controls that handle it themselves, like code editors
+      if (event.key !== "Tab" || event.defaultPrevented) return;
+      var current = event.currentTarget;
+      var onTab = current.getAttribute("role") === "tab";
+      var tab = getTab(current);
+      var map = tab && getTabsMap(tab);
+      if (!map) return;
+
+      var target;
+      if (onTab && !event.shiftKey) {
+        target = getKeyboardFocusableElements(
+          document.querySelector(tab.hash)
+        )[0];
+      } else if (onTab) {
+        var previous = map.tabs[map.index - 1];
+        if (!previous) return;
+        event.preventDefault();
+        focusEndOf(previous);
+        return;
+      } else {
+        var focusables = getKeyboardFocusableElements(current);
+        if (event.shiftKey && event.target === focusables[0]) {
+          target = tab;
+        } else if (
+          !event.shiftKey &&
+          event.target === focusables[focusables.length - 1]
+        ) {
+          target = map.tabs[map.index + 1];
+        }
+      }
+      if (!target) return;
+
+      event.preventDefault();
+      target.focus();
+    };
+
+    // Whether Shift+Tab is being pressed. Focus moves while the key is down, so
+    // this tells focus changes made by Shift+Tab apart from clicks.
+    var shiftTabDown = false;
+    var trackShiftTab = function () {
+      if (trackShiftTab.done) return;
+      trackShiftTab.done = true;
+      document.addEventListener(
+        "keydown",
+        function (event) {
+          shiftTabDown = event.key === "Tab" && event.shiftKey;
+        },
+        true
+      );
+      // A click, or leaving the window (the keyup then goes elsewhere), ends it
+      // too
+      var clear = function () {
+        shiftTabDown = false;
+      };
+      document.addEventListener("keyup", clear, true);
+      document.addEventListener("pointerdown", clear, true);
+      window.addEventListener("blur", clear);
+    };
+
+    // In revealjs, Shift+Tab from after a tabset reaches the content of the
+    // selected panel first, which skips the tabs after it. Start from the end
+    // of the last panel instead, so Shift+Tab is the reverse of Tab. Only for
+    // Shift+Tab: a click in a panel must keep that panel.
+    var backwardEntryHandler = function (event) {
+      var from = event.relatedTarget;
+      var tab = getTab(event.currentTarget);
+      var map = tab && getTabsMap(tab);
+      if (!from || !map || !shiftTabDown) return;
+
+      var tabList = map.tabs[0].closest('[role="tablist"]');
+      var fromInside = Array.prototype.some.call(map.tabs, function (tab) {
+        var content = document.querySelector(tab.hash);
+        return tab === from || (content && content.contains(from));
+      });
+      var fromAfter =
+        from.compareDocumentPosition(tabList) &
+        Node.DOCUMENT_POSITION_PRECEDING;
+      var last = map.tabs[map.tabs.length - 1];
+      var lastContent = document.querySelector(last.hash);
+      if (
+        fromInside ||
+        !fromAfter ||
+        !lastContent ||
+        lastContent.contains(event.target)
+      ) {
+        return;
+      }
+
+      focusEndOf(last);
     };
 
     /**
@@ -98,6 +242,10 @@
 
       // remove event listener
       tab.removeEventListener("focus", focusHandler, true);
+      tab.removeEventListener("keydown", tabOrderHandler);
+      content.removeEventListener("keydown", tabOrderHandler);
+      tab.removeEventListener("focusin", backwardEntryHandler);
+      content.removeEventListener("focusin", backwardEntryHandler);
 
       // Remove roles
       tab.removeAttribute("role");
@@ -124,6 +272,7 @@
 
       // Add roles
       tab.setAttribute("role", "tab");
+      tabbyTabs.add(tab);
       tab.setAttribute("aria-controls", content.id);
       tab.closest("li").setAttribute("role", "presentation");
       content.setAttribute("role", "tabpanel");
@@ -134,11 +283,19 @@
         tab.setAttribute("aria-selected", "true");
       } else {
         tab.setAttribute("aria-selected", "false");
+        if (!isReveal()) tab.setAttribute("tabindex", "-1");
         content.setAttribute("hidden", "hidden");
       }
 
-      // add focus event listender
-      tab.addEventListener("focus", focusHandler);
+      // add focus and Tab order event listeners
+      if (isReveal()) {
+        tab.addEventListener("focus", focusHandler);
+        tab.addEventListener("keydown", tabOrderHandler);
+        content.addEventListener("keydown", tabOrderHandler);
+        tab.addEventListener("focusin", backwardEntryHandler);
+        content.addEventListener("focusin", backwardEntryHandler);
+        trackShiftTab();
+      }
     };
 
     /**
@@ -155,6 +312,7 @@
 
       // Hide the tab
       tab.setAttribute("aria-selected", "false");
+      if (!isReveal()) tab.setAttribute("tabindex", "-1");
 
       // Hide the content
       if (!content) return { previousTab: tab };
@@ -174,6 +332,7 @@
      */
     var show = function (tab, content) {
       tab.setAttribute("aria-selected", "true");
+      if (!isReveal()) tab.setAttribute("tabindex", "0");
       content.removeAttribute("hidden");
       tab.focus();
     };
@@ -312,27 +471,13 @@
         // Add role to wrapper
         tabWrapper.setAttribute("role", "tablist");
 
-        // Add roles to tabs. provide dynanmic tab indexes if we are within reveal
-        var contentTabindexes =
-          window.document.body.classList.contains("reveal-viewport");
-        var nextTabindex = 1;
+        // Add roles to tabs
         Array.prototype.forEach.call(tabs, function (tab) {
-          if (contentTabindexes) {
-            tab.setAttribute("tabindex", "" + nextTabindex++);
-          } else {
-            tab.setAttribute("tabindex", "0");
-          }
+          tab.setAttribute("tabindex", "0");
 
           // Get the tab content
           var content = document.querySelector(tab.hash);
           if (!content) return;
-
-          // set tab indexes for content
-          if (contentTabindexes) {
-            getKeyboardFocusableElements(content).forEach(function (el) {
-              el.setAttribute("tabindex", "" + nextTabindex++);
-            });
-          }
 
           // Setup the tab
           setupTab(tab, content, settings);
@@ -380,7 +525,26 @@
         if (!tab.matches(selector + ' [role="tab"]')) return;
 
         // Only run for specific keys
-        if (["Home", "End"].indexOf(event.key) < 0) return;
+        var keys = isReveal()
+          ? ["Home", "End"]
+          : [
+              "ArrowUp",
+              "ArrowDown",
+              "ArrowLeft",
+              "ArrowRight",
+              "Up",
+              "Down",
+              "Left",
+              "Right",
+              "Home",
+              "End",
+            ];
+        if (keys.indexOf(event.key) < 0) return;
+
+        // Keep the key from also scrolling the page or, in revealjs, from
+        // changing slide
+        event.preventDefault();
+        event.stopPropagation();
 
         // Switch tabs
         switchTabs(tab, event.key);

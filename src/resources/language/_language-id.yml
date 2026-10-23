@@ -90,6 +90,11 @@ navigation-toolbar-label: "Bilah alat"  # wikidata Q371434
 navigation-page-label: "Halaman"        # libreoffice sw
 navigation-breadcrumbs-label: "Jalur"   # libreoffice sw 'Path' (no attested term) — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Kode yang dapat digulir"        # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Keluaran yang dapat digulir"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Gambar"
 crossref-tbl-title: "Tabel"
 crossref-lst-title: "Daftar"

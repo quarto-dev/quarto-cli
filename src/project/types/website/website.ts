@@ -362,7 +362,7 @@ export const websiteProjectType: ProjectType = {
       extras[kFilterParams] = extras[kFilterParams] || {};
       extras[kFilterParams]["llms-txt"] = true;
       extras.html[kHtmlFinalizers]?.push(
-        llmsHtmlFinalizer(source, project, format),
+        llmsHtmlFinalizer(source, project, format, flags),
       );
     }
 

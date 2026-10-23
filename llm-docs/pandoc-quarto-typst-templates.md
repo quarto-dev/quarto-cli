@@ -83,7 +83,7 @@ Combines Pandoc definitions with Quarto-specific functionality:
 - Code block styling (gray background, padding, rounded corners)
 - `block_with_new_content` helper for reconstructing blocks with modified content
 - `empty` function to check if content is empty (handles strings and content nodes)
-- Subfloat support via `quartosubfloatcounter` and `quarto_super` function for nested figures with sub-numbering
+- Subfloat support via `quartosubfloatcounter` and `quarto_super` function for nested figures with sub-numbering; subfloats are `outlined: false`, so only the parent appears in a list of figures
 - Callout figure show rule that transforms callout figures with proper titles and cross-reference numbering
 - `callout` function for rendering callout boxes with customizable colors, icons, and styling
 
@@ -106,6 +106,7 @@ Corresponds to `conf()` in Pandoc's `template.typst`. Defines the `article()` fu
 - `title-size`, `subtitle-size` for customizable title sizing
 - `heading-family`, `heading-weight`, `heading-style`, `heading-color`, `heading-line-height` for brand typography
 - `toc`, `toc_title`, `toc_depth`, `toc_indent` for integrated table of contents
+- `lof`, `lof-title`, `lot`, `lot-title` for lists of figures and tables (outlines of `quarto-float-fig` / `quarto-float-tbl` figures)
 
 **Functionality**:
 - Sets `document()` metadata (title, keywords, author string) for PDF accessibility
@@ -113,7 +114,7 @@ Corresponds to `conf()` in Pandoc's `template.typst`. Defines the `article()` fu
 - Applies conditional font settings using `set ... if` pattern (Typst 0.14+)
 - Applies link colors using `content-to-string` helper
 - Renders the title block with thanks footnote, author grid, date, and abstract
-- Optionally renders table of contents
+- Optionally renders table of contents, then lists of figures and tables
 - Handles single or multi-column layout
 
 ### page.typ - Page Configuration
@@ -143,6 +144,7 @@ Applies the `article()` function via a show rule, mapping Pandoc metadata and br
 - `linkcolor`, `citecolor`, `filecolor` → link color parameters
 - `keywords` → `keywords`
 - `toc`, `toc-title`, `toc-depth`, `toc-indent` → TOC parameters
+- `lof`, `lot` → `lof`, `lot`; titles from `crossref.lof-title` / `crossref.lot-title`, else `quarto.language.crossref-lof-title` / `crossref-lot-title` (localized)
 - `columns` → `cols`
 
 **Brand.yaml Fallbacks** (used when Pandoc metadata not set):
@@ -210,3 +212,7 @@ This is the copy of Pandoc's `default.typst`, kept for reference. It is used whe
 | `toc-title` | `toc_title` | - | |
 | `toc-depth` | `toc_depth` | - | |
 | `toc-indent` | `toc_indent` | - | Quarto extension |
+| `lof` | `lof` | - | Quarto extension (Pandoc's Typst writer ignores it) |
+| - | `lof-title` | - | `crossref.lof-title`, else `quarto.language.crossref-lof-title` |
+| `lot` | `lot` | - | Quarto extension (Pandoc's Typst writer ignores it) |
+| - | `lot-title` | - | `crossref.lot-title`, else `quarto.language.crossref-lot-title` |

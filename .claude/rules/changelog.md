@@ -53,7 +53,9 @@ For external contributors (not core team):
 **Variations:**
 - Pull requests: `([#13441](https://github.com/quarto-dev/quarto-cli/pull/13441))`
 - External repos: `([rstudio/tinytex-releases#49](url))`
-- No issue/PR (rare): Reference commit hash instead: `([commit](https://github.com/quarto-dev/quarto-cli/commit/abc123))`
+- No issue/PR (rare): Reference commit hash instead: `([commit](https://github.com/quarto-dev/quarto-cli/commit/abc123))`. This link is the only place a SHA appears: when the description names a regression's origin, give the version that first shipped it ("regression introduced in v1.9.18"; find it with `git tag --contains <sha> | sort -V | head -1`).
+
+**Ordering:** within a section, entries go in ascending issue number.
 
 ## Writing Entries
 
@@ -68,6 +70,8 @@ For external contributors (not core team):
 **Style:**
 - Use backticks for code/options: `` `icon=false` ``
 - Period at end of every description
+- Describe what the user sees break or start working, in one sentence. Internals (cache or field names, the mechanism, file paths) and a concrete repro value belong in the PR body; the entry names the general symptom ("sidebar titles containing dunder names").
+- Put an OS qualifier inside the sentence where the behavior happens ("...missing on Windows on the first render"), not as a trailing "(Windows only)".
 - Author attribution `(author: @username)` for **external contributors only** - do NOT add for quarto-cli core team members
 
 ## Regression Fixes

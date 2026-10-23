@@ -38,7 +38,7 @@ import {
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { Format } from "../../../config/types.ts";
-import { dirAndStem, kSkipHidden } from "../../../core/path.ts";
+import { dirAndStem, skipHiddenWithin } from "../../../core/path.ts";
 import { inputFileForOutputFile } from "../../project-index.ts";
 
 import * as ld from "../../../core/lodash.ts";
@@ -139,7 +139,7 @@ export const createMecaBundle = async (
 
   // Process src files
   const skip = [
-    kSkipHidden,
+    skipHiddenWithin(context.dir),
     /\.DS_Store/,
   ];
   const projType = projectType(context.config?.project?.[kProjectType]);

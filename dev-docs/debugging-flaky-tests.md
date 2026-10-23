@@ -184,7 +184,15 @@ quarto install tinytex
 for test in test1.ts test2.ts test3.ts; do
   ./run-tests.sh $test || break
 done
+
+# Run against a built quarto instead of the in-process dev sources
+# (binary mode; see llm-docs/built-version-testing-architecture.md)
+QUARTO_TEST_BIN=/path/to/installed/quarto ./run-tests.sh path/to/test.ts
 ```
+
+By default, the harness invokes Quarto in-process. With `QUARTO_TEST_BIN` set,
+each invocation runs in a subprocess. A flake that disappears in binary mode
+may indicate shared state in the dev harness.
 
 ### Package/Dependency Comparison
 

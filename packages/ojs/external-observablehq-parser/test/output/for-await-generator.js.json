@@ -1,0 +1,90 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 62,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 61,
+    "body": [
+      {
+        "type": "ForOfStatement",
+        "start": 4,
+        "end": 59,
+        "await": true,
+        "left": {
+          "type": "VariableDeclaration",
+          "start": 15,
+          "end": 26,
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 21,
+              "end": 26,
+              "id": {
+                "type": "Identifier",
+                "start": 21,
+                "end": 26,
+                "name": "value"
+              },
+              "init": null
+            }
+          ],
+          "kind": "const"
+        },
+        "right": {
+          "type": "CallExpression",
+          "start": 30,
+          "end": 35,
+          "callee": {
+            "type": "Identifier",
+            "start": 30,
+            "end": 33,
+            "name": "foo"
+          },
+          "arguments": [],
+          "optional": false
+        },
+        "body": {
+          "type": "BlockStatement",
+          "start": 37,
+          "end": 59,
+          "body": [
+            {
+              "type": "ExpressionStatement",
+              "start": 43,
+              "end": 55,
+              "expression": {
+                "type": "YieldExpression",
+                "start": 43,
+                "end": 54,
+                "delegate": false,
+                "argument": {
+                  "type": "Identifier",
+                  "start": 49,
+                  "end": 54,
+                  "name": "value"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "async": true,
+  "generator": true,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 30,
+      "end": 33,
+      "name": "foo"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

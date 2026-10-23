@@ -11,6 +11,7 @@ import { walkSync } from "../../../src/deno_ral/fs.ts";
 import { CreateResult } from "../../../src/command/create/cmd-types.ts";
 import { assert } from "testing/asserts";
 import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 
 const kCreateTypes: Record<string, string[]> = {
   "project": ["website", "default", "book", "website:blog"],
@@ -54,6 +55,7 @@ for (const type of Object.keys(kCreateTypes)) {
           args: cmd.slice(1),
           stdout: "piped",
           stderr: "piped",
+          ...quartoSpawnEnvOptions(),
         }, stdIn);
         assert(process.success, process.stderr);
         if (process.stdout) {
@@ -62,11 +64,11 @@ for (const type of Object.keys(kCreateTypes)) {
         assert(process.success, process.stderr);
       });
 
-      // Verify all created files are user-writable.
-      // NOTE: In dev environments, resource files are already writable (0o644),
-      // so this test passes even without ensureUserWritable. It guards against
-      // regressions; the unit test in file-permissions.test.ts covers the
-      // read-only → writable transition directly.
+      // In dev environments resource files are already writable (0o644), so
+      // this passes even without ensureUserWritable; it guards against
+      // regressions. The unit test covers the read-only-to-writable
+      // transition directly. This smoke test checks the permissions of the
+      // created project.
       await t.step({
         name: `> check writable ${type} ${template}`,
         ignore: Deno.build.os === "windows",
@@ -101,6 +103,7 @@ for (const type of Object.keys(kCreateTypes)) {
             cwd: path,
             stdout: "piped",
             stderr: "piped",
+            ...quartoSpawnEnvOptions(),
           });
           assert(buildProcess.success, buildProcess.stderr);
         }
@@ -115,6 +118,7 @@ for (const type of Object.keys(kCreateTypes)) {
               cwd: path,
               stdout: "piped",
               stderr: "piped",
+              ...quartoSpawnEnvOptions(),
             });
             assert(process.success, process.stderr);
           }

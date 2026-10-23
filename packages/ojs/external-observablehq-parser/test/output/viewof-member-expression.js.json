@@ -1,0 +1,49 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 16,
+  "id": null,
+  "body": {
+    "type": "MemberExpression",
+    "start": 0,
+    "end": 15,
+    "object": {
+      "type": "ViewExpression",
+      "start": 0,
+      "end": 10,
+      "id": {
+        "type": "Identifier",
+        "start": 7,
+        "end": 10,
+        "name": "foo"
+      }
+    },
+    "property": {
+      "type": "Identifier",
+      "start": 11,
+      "end": 15,
+      "name": "name"
+    },
+    "computed": false,
+    "optional": false
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "ViewExpression",
+      "start": 0,
+      "end": 10,
+      "id": {
+        "type": "Identifier",
+        "start": 7,
+        "end": 10,
+        "name": "foo"
+      }
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

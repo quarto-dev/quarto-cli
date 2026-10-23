@@ -55,3 +55,7 @@ For version 11.2.0, for example, these are:
 - https://unpkg.com/mermaid@11.2.0/dist/mermaid.min.js
 
 Copy these files to `src/resources/formats/html/mermaid`.
+
+## Upgrade the OJS runtime
+
+The OJS runtime and its bundled npm dependencies are built from `packages/ojs`, not downloaded. See [update-ojs-runtime.md](update-ojs-runtime.md).

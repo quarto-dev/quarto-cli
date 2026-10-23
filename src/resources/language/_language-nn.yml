@@ -90,6 +90,12 @@ navigation-toolbar-label: "Verktøylinje"  # gnome gedit nn
 navigation-page-label: "Side"             # libreoffice sw
 navigation-breadcrumbs-label: "Sti"       # libreoffice sw 'Path' (no attested term) — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+# No attested "scrollable" here; taken from Swedish "rullbar".
+scrollable-code-label: "Rullbar kode"       # derived + code-summary — assembled, needs review
+scrollable-output-label: "Rullbare utdata"  # derived + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabell"
 crossref-lst-title: "Liste"

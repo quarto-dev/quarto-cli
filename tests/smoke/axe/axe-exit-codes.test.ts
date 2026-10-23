@@ -19,21 +19,10 @@
 import { assert, assertEquals } from "testing/asserts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
-import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { execProcess } from "../../../src/core/process.ts";
 import { unitTest } from "../../test.ts";
-import { quartoDevCmd } from "../../utils.ts";
+import { quartoDevBinCmd, quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { AxeFindings } from "../../../src/command/call/axe/schemas.ts";
-
-// Under run-tests.sh/.ps1 the dev binary's dir is exported; resolve it
-// explicitly so the subprocess never falls through to a release quarto that
-// happens to be on PATH.
-function quartoBin(): string {
-  const binPath = Deno.env.get("QUARTO_BIN_PATH");
-  return binPath
-    ? join(binPath, isWindows ? "quarto.cmd" : "quarto")
-    : quartoDevCmd();
-}
 
 const workingDir = Deno.makeTempDirSync({ prefix: "quarto-axe-exit" });
 Deno.mkdirSync(join(workingDir, "site"));
@@ -61,10 +50,10 @@ function axeExitTest(
 ) {
   unitTest(name, async () => {
     const result = await execProcess({
-      cmd: quartoBin(),
+      cmd: quartoDevBinCmd(),
       args: ["call", "axe", "site", ...args],
       cwd: workingDir,
-      env,
+      ...quartoSpawnEnvOptions(env),
       stdout: "piped",
       stderr: "piped",
     });
@@ -175,10 +164,10 @@ unitTest(
     Deno.writeTextFileSync(staleFindings, `{"stale": true}`);
 
     const result = await execProcess({
-      cmd: quartoBin(),
+      cmd: quartoDevBinCmd(),
       args: ["call", "axe", "site"],
       cwd: workingDir,
-      env: { QUARTO_CHROMIUM: notABrowser },
+      ...quartoSpawnEnvOptions({ QUARTO_CHROMIUM: notABrowser }),
       stdout: "piped",
       stderr: "piped",
     });

@@ -1,0 +1,40 @@
+---
+title: "Math with plain"
+format:
+  html:
+    html-math-method: plain
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureLlmsMdRegexMatches:
+        - ['\*ρ\*', '\*Δx\*', '\*α\*₁² here']
+        - ['\$ρ', '\$α', 'math/tex']
+---
+
+Inline math $\rho\,\Delta\theta = \Delta x$ and $a < b$ and $f'(x)$.
+
+$$
+\sigma = E\varepsilon
+$$ {#eq-hooke}
+
+See @eq-hooke. Literal price $5.
+
+$$
+\begin{aligned}
+a &= b \\
+c &= d
+\end{aligned}
+$$
+
+::: {.callout-note}
+Callout math $\alpha_1^2$ here.
+
+$$
+\int_0^1 f(x)\,dx
+$$
+:::
+
+| Col | Math |
+|-----|------|
+| a   | $\beta\,\gamma$ |

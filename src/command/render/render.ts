@@ -194,6 +194,7 @@ export async function renderPandoc(
     args: recipe.args,
     services: context.options.services,
     metadata: executeResult.metadata,
+    unexecutedMetadata: context.target.metadata,
     quiet,
     flags: context.options.flags,
   };
@@ -205,9 +206,6 @@ export async function renderPandoc(
 
   // run pandoc conversion (exit on failure)
   const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
-  if (!pandocResult) {
-    return Promise.reject();
-  }
 
   return {
     complete: async (renderedFormats: RenderedFormat[], cleanup?: boolean) => {

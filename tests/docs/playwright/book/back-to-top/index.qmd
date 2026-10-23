@@ -1,0 +1,14 @@
+---
+title: "Preface"
+---
+
+# Preface {.unnumbered}
+
+Regression test for #14879: `back-to-top-navigation` set under the `book`
+key must control the book website output, not just `website:`. This page
+is tall enough to scroll and exercise the show/hide/click-to-top behavior
+of the `#quarto-back-to-top` control.
+
+<div style="height: 300vh;"></div>
+
+End of page.

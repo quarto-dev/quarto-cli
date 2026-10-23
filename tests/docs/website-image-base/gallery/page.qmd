@@ -1,0 +1,5 @@
+---
+title: "Page with an image from _metadata.yml"
+---
+
+The image comes from `_metadata.yml`.

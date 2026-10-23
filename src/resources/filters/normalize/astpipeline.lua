@@ -318,6 +318,11 @@ function quarto_ast_pipeline()
       filter = _quarto.modules.listtable.list_table_filter(),
       traverser = 'jog',
     },
+
+    { name = "astpipeline-process-definition-lists",
+      filter = _quarto.modules.definitionlist.definition_list_filter(),
+      traverser = 'jog',
+    },
     
     { name = "astpipeline-process-tables",
       filter = astpipeline_process_tables(),

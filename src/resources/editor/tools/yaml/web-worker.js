@@ -7634,13 +7634,16 @@ try {
             name: "fig-alt",
             tags: {
               formats: [
-                "$html-all"
+                "$html-all",
+                "docx",
+                "$pdf-all",
+                "typst"
               ]
             },
             schema: {
               maybeArrayOf: "string"
             },
-            description: "Alternative text to be used in the `alt` attribute of HTML images.\n"
+            description: "Alternative text for figures, distinct from their visible caption.\n"
           },
           {
             name: "fig-env",
@@ -8755,6 +8758,92 @@ try {
                     path: {
                       description: "Path to the TypeScript module for the execution engine"
                     }
+                  },
+                  name: {
+                    string: {
+                      description: {
+                        short: "Name of the execution engine (accepted and ignored by Quarto 1).",
+                        long: "Name of the execution engine (e.g. `julia`).\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, which uses it to resolve the engine by name (for\nexample from `engine: julia` in document front matter) without\nloading the engine module.\n"
+                      }
+                    }
+                  },
+                  claims: {
+                    anyOf: [
+                      {
+                        arrayOf: "string"
+                      },
+                      {
+                        object: {
+                          additionalProperties: {
+                            anyOf: [
+                              {
+                                ref: "external-engine-language-claim"
+                              },
+                              {
+                                arrayOf: {
+                                  ref: "external-engine-language-claim"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    description: {
+                      short: "Languages this engine claims (accepted and ignored by Quarto 1).",
+                      long: "The languages this engine claims, keyed by language name\n(e.g. `julia: { kind: primary, priority: 1 }`). The special key\n`fallback` declares a fallback claim for otherwise-unclaimed\nlanguages. An array of strings (e.g. `claims: [julia]`) is\nshorthand for a primary claim on each.\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, which uses it to resolve code cells to engines without\nloading the engine module.\n"
+                    }
+                  },
+                  "file-extensions": {
+                    arrayOf: "string",
+                    description: {
+                      short: "File extensions this engine can handle (accepted and ignored by Quarto 1).",
+                      long: "The file extensions this engine can handle (e.g. `.jl`).\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, where it is a per-engine declaration used to resolve\ninput files to engines without loading the engine module.\n"
+                    }
+                  },
+                  "claims-files": {
+                    arrayOf: {
+                      anyOf: [
+                        "string",
+                        {
+                          object: {
+                            closed: true,
+                            properties: {
+                              extension: "string",
+                              processor: {
+                                anyOf: [
+                                  "string",
+                                  {
+                                    object: {
+                                      closed: true,
+                                      properties: {
+                                        name: "string",
+                                        language: "string",
+                                        comment: "string"
+                                      },
+                                      required: [
+                                        "name"
+                                      ]
+                                    }
+                                  }
+                                ],
+                                description: {
+                                  short: "Content processor for this file claim (accepted and ignored by Quarto 1).",
+                                  long: "The content processor that sniffs and converts files\nmatching this claim, given either as a bare processor\nname (e.g. `spin`) or as `{ name, language?, comment? }`\nwith parameters (e.g.\n`{ name: percent, language: julia }`; `comment`\ndefaults to `#`).\n\nQuarto 1 accepts and ignores this property. It is\nreserved for Quarto 2, which runs the named processor\nnatively to claim and convert input files without\nloading the engine module.\n"
+                                }
+                              }
+                            },
+                            required: [
+                              "extension"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    description: {
+                      short: "Files this engine claims (accepted and ignored by Quarto 1).",
+                      long: "The files this engine claims, by extension (either a bare\nextension string or `{ extension: <ext> }`, optionally with a\n`processor` naming the content processor that sniffs and\nconverts matching files).\n\nQuarto 1 accepts and ignores this property. It is reserved for\nQuarto 2, which uses it to resolve input files to engines\nwithout loading the engine module.\n"
+                    }
                   }
                 },
                 required: [
@@ -8763,6 +8852,36 @@ try {
               },
               description: "An execution engine not pre-loaded in Quarto"
             }
+          },
+          {
+            id: "external-engine-language-claim",
+            anyOf: [
+              "boolean",
+              "number",
+              {
+                enum: [
+                  "primary",
+                  "interop",
+                  "fallback"
+                ]
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    kind: {
+                      enum: [
+                        "primary",
+                        "interop",
+                        "fallback"
+                      ]
+                    },
+                    priority: "number",
+                    whenClass: "string"
+                  }
+                }
+              }
+            ]
           },
           {
             id: "document-comments-configuration",
@@ -9070,26 +9189,16 @@ try {
                   path: {
                     description: {
                       short: "The path to a preview image for the content.",
-                      long: "The path to a preview image for the content. By default, Quarto will use\nthe `image` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n"
+                      long: "The path to a preview image for the content. By default, Quarto will use\nthe `image` value from the format metadata.\n"
                     }
                   }
                 },
                 "image-alt": {
-                  path: {
+                  string: {
                     description: {
                       short: "The alt text for the preview image.",
-                      long: "The alt text for the preview image. By default, Quarto will use\nthe `image-alt` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n"
+                      long: "The alt text for the preview image. By default, Quarto will use\nthe `image-alt` value from the format metadata.\n"
                     }
-                  }
-                },
-                "image-width": {
-                  number: {
-                    description: "Image width (pixels)"
-                  }
-                },
-                "image-height": {
-                  number: {
-                    description: "Image height (pixels)"
                   }
                 }
               }
@@ -9282,6 +9391,14 @@ try {
                   string: {
                     description: "`@username` of the website (must be a quoted string)"
                   }
+                },
+                "image-width": {
+                  schema: "number",
+                  hidden: true
+                },
+                "image-height": {
+                  schema: "number",
+                  hidden: true
                 }
               }
             }
@@ -9305,6 +9422,16 @@ try {
                       short: "Name that should be displayed for the overall site",
                       long: "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n"
                     }
+                  }
+                },
+                "image-width": {
+                  number: {
+                    description: "Image width (pixels)"
+                  }
+                },
+                "image-height": {
+                  number: {
+                    description: "Image height (pixels)"
                   }
                 }
               }
@@ -10030,11 +10157,11 @@ try {
                 },
                 image: {
                   path: {
-                    description: "Default site thumbnail image for `twitter` /`open-graph`\n"
+                    description: "Default site thumbnail image for `twitter` /`open-graph`, relative to the project directory.\n"
                   }
                 },
                 "image-alt": {
-                  path: {
+                  string: {
                     description: "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
                   }
                 },
@@ -10404,6 +10531,9 @@ try {
                 "copy-button-tooltip": "string",
                 "copy-button-tooltip-success": "string",
                 "skip-to-content": "string",
+                "scrollable-code-label": "string",
+                "scrollable-output-label": "string",
+                "revealjs-menu-button-label": "string",
                 "repo-action-links-edit": "string",
                 "repo-action-links-source": "string",
                 "repo-action-links-issue": "string",
@@ -10528,12 +10658,12 @@ try {
                   }
                 },
                 "image-alt": {
-                  path: {
+                  string: {
                     description: "The alt text for the main image on the about page."
                   }
                 },
                 "image-title": {
-                  path: {
+                  string: {
                     description: "The title for the main image on the about page."
                   }
                 },
@@ -10697,7 +10827,7 @@ try {
                             path: {
                               description: {
                                 short: "The path to an image for this feed.",
-                                long: "The path to an image for this feed. If not specified, the image for the page the listing \nappears on will be used, otherwise an image will be used if specified for the site \nin the Quarto project.\n"
+                                long: "The path to an image for this feed. If not specified, the image for the page the listing \nappears on will be used, otherwise an image will be used if specified for the site \nin the Quarto project. A relative path set in the listing page front matter is relative to the project directory.\n"
                               }
                             }
                           },
@@ -20533,6 +20663,60 @@ try {
             description: "Setting this to false prevents the `repo-actions` from appearing on this page.\nOther possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.\n"
           },
           {
+            name: "bread-crumbs",
+            schema: "boolean",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Setting this to false hides the navigation breadcrumbs on this page."
+          },
+          {
+            name: "back-to-top-navigation",
+            schema: "boolean",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Setting this to false hides the 'back to top' navigation button on this page."
+          },
+          {
+            name: "page-navigation",
+            schema: "boolean",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Show (`true`) or hide (`false`) the next and previous page links in the footer of this page."
+          },
+          {
+            name: "margin-header",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Markdown to place above margin content on this page (text or file path), after the `website` margin header."
+          },
+          {
+            name: "margin-footer",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Markdown to place below margin content on this page (text or file path), after the `website` margin footer."
+          },
+          {
             name: "aliases",
             schema: {
               arrayOf: "string"
@@ -20559,28 +20743,8 @@ try {
             },
             description: {
               short: "The path to a preview image for this document.",
-              long: "The path to a preview image for this content. By default, \nQuarto will use the image value from the site: metadata. \nIf you provide an image, you may also optionally provide \nan image-width and image-height to improve \nthe appearance of your Twitter Card.\n\nIf image is not provided, Quarto will automatically attempt \nto locate a preview image.\n"
+              long: "The path to a preview image for this content. By default, \nQuarto will use the image value from the `website` metadata.\nTo declare the size of the preview image for Open Graph,\nset `image-width` and `image-height` under `open-graph`.\n\nIf image is not provided, Quarto will automatically attempt\nto locate a preview image.\n"
             }
-          },
-          {
-            name: "image-height",
-            schema: "string",
-            tags: {
-              formats: [
-                "$html-doc"
-              ]
-            },
-            description: "The height of the preview image for this document."
-          },
-          {
-            name: "image-width",
-            schema: "string",
-            tags: {
-              formats: [
-                "$html-doc"
-              ]
-            },
-            description: "The width of the preview image for this document."
           },
           {
             name: "image-alt",
@@ -20593,6 +20757,55 @@ try {
             description: "The alt text for preview image on this page."
           },
           {
+            name: "image-title",
+            schema: "string",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: {
+              short: "The title for the main image on the about page.",
+              long: "The title for the main image on the about page. Used when\n`about` does not set its own `image-title`.\n"
+            }
+          },
+          {
+            name: "open-graph",
+            schema: {
+              anyOf: [
+                "boolean",
+                null,
+                {
+                  ref: "open-graph-config"
+                }
+              ]
+            },
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Publish open graph metadata for this page. Options set here are merged\nwith the `open-graph` options of the `website` metadata. Set to `false`\nto omit open graph metadata from this page.\n"
+          },
+          {
+            name: "twitter-card",
+            schema: {
+              anyOf: [
+                "boolean",
+                null,
+                {
+                  ref: "twitter-card-config"
+                }
+              ]
+            },
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Publish twitter card metadata for this page. Options set here are merged\nwith the `twitter-card` options of the `website` metadata. Set to `false`\nto omit twitter card metadata from this page.\n"
+          },
+          {
             name: "image-lazy-loading",
             schema: "boolean",
             tags: {
@@ -20601,8 +20814,8 @@ try {
               ]
             },
             description: {
-              short: "If true, the preview image will only load when it comes into view.",
-              long: 'Enables lazy loading for the preview image. If true, the preview image element \nwill have `loading="lazy"`, and will only load when it comes into view.\n\nIf false, the preview image will load immediately.\n'
+              short: "If true, this page's image in a listing will only load when it comes into view.",
+              long: "Enables lazy loading for this page's image when the page appears as an item\nin a listing. If true, the listing image element will have `loading=\"lazy\"`,\nand will only load when it comes into view.\n\nIf false, the image will load immediately. This overrides the listing's\n`image-lazy-loading` option for this item.\n"
             },
             default: true
           }
@@ -21934,6 +22147,26 @@ try {
           "The language that should be used when displaying the commenting\ninterface.",
           "An execution engine not pre-loaded in Quarto",
           "Path to the TypeScript module for the execution engine",
+          {
+            short: "Name of the execution engine (accepted and ignored by Quarto 1).",
+            long: "Name of the execution engine (e.g.&nbsp;<code>julia</code>).\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, which uses it to resolve the engine by name (for example from\n<code>engine: julia</code> in document front matter) without loading the\nengine module."
+          },
+          {
+            short: "Languages this engine claims (accepted and ignored by Quarto 1).",
+            long: "The languages this engine claims, keyed by language name\n(e.g.&nbsp;<code>julia: { kind: primary, priority: 1 }</code>). The special\nkey <code>fallback</code> declares a fallback claim for\notherwise-unclaimed languages. An array of strings\n(e.g.&nbsp;<code>claims: [julia]</code>) is shorthand for a primary claim on\neach.\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, which uses it to resolve code cells to engines without loading the\nengine module."
+          },
+          {
+            short: "File extensions this engine can handle (accepted and ignored by\nQuarto 1).",
+            long: "The file extensions this engine can handle\n(e.g.&nbsp;<code>.jl</code>).\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, where it is a per-engine declaration used to resolve input files to\nengines without loading the engine module."
+          },
+          {
+            short: "Files this engine claims (accepted and ignored by Quarto 1).",
+            long: "The files this engine claims, by extension (either a bare extension\nstring or <code>{ extension: &lt;ext&gt; }</code>, optionally with a\n<code>processor</code> naming the content processor that sniffs and\nconverts matching files).\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, which uses it to resolve input files to engines without loading the\nengine module."
+          },
+          {
+            short: "Content processor for this file claim (accepted and ignored by Quarto\n1).",
+            long: "The content processor that sniffs and converts files matching this\nclaim, given either as a bare processor name (e.g.&nbsp;<code>spin</code>) or\nas <code>{ name, language?, comment? }</code> with parameters (e.g.\n<code>{ name: percent, language: julia }</code>; <code>comment</code>\ndefaults to <code>#</code>).\nQuarto 1 accepts and ignores this property. It is reserved for Quarto\n2, which runs the named processor natively to claim and convert input\nfiles without loading the engine module."
+          },
           "The Github repo that will be used to store comments.",
           "The label that will be assigned to issues created by Utterances.",
           {
@@ -21983,14 +22216,12 @@ try {
           },
           {
             short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata."
           },
           {
             short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata."
           },
-          "Image width (pixels)",
-          "Image height (pixels)",
           "Port to listen on (defaults to random value between 3000 and\n8000)",
           "Hostname to bind to (defaults to 127.0.0.1)",
           "Use an exernal application to preview the project.",
@@ -22015,14 +22246,12 @@ try {
           },
           {
             short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata."
           },
           {
             short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata."
           },
-          "Image width (pixels)",
-          "Image height (pixels)",
           {
             short: "Card style",
             long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
@@ -22039,19 +22268,19 @@ try {
           },
           {
             short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata."
           },
           {
             short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata."
           },
-          "Image width (pixels)",
-          "Image height (pixels)",
           "Locale of open graph metadata",
           {
             short: "Name that should be displayed for the overall site",
             long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
           },
+          "Image width (pixels)",
+          "Image height (pixels)",
           "Footer left content. Supports markdown formatting.",
           "Footer right content. Supports markdown formatting.",
           "Footer center content. Supports markdown formatting.",
@@ -22214,7 +22443,7 @@ try {
           "Provide a \u2018back to top\u2019 navigation button",
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>, relative to the project directory.",
           "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
@@ -22381,7 +22610,7 @@ try {
           "Provide a \u2018back to top\u2019 navigation button",
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>, relative to the project directory.",
           "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
@@ -22490,7 +22719,7 @@ try {
           },
           {
             short: "The path to an image for this feed.",
-            long: "The path to an image for this feed. If not specified, the image for\nthe page the listing appears on will be used, otherwise an image will be\nused if specified for the site in the Quarto project."
+            long: "The path to an image for this feed. If not specified, the image for\nthe page the listing appears on will be used, otherwise an image will be\nused if specified for the site in the Quarto project. A relative path\nset in the listing page front matter is relative to the project\ndirectory."
           },
           {
             short: "The description of this feed.",
@@ -23324,7 +23553,7 @@ try {
           "Figure subcaptions",
           "Hyperlink target for the figure",
           "Figure horizontal alignment (<code>default</code>, <code>left</code>,\n<code>right</code>, or <code>center</code>)",
-          "Alternative text to be used in the <code>alt</code> attribute of HTML\nimages.",
+          "Alternative text for figures, distinct from their visible\ncaption.",
           "LaTeX environment for figure output",
           {
             short: "LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.",
@@ -24642,17 +24871,26 @@ try {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
+          "Setting this to false hides the navigation breadcrumbs on this\npage.",
+          "Setting this to false hides the \u2018back to top\u2019 navigation button on\nthis page.",
+          "Show (<code>true</code>) or hide (<code>false</code>) the next and\nprevious page links in the footer of this page.",
+          "Markdown to place above margin content on this page (text or file\npath), after the <code>website</code> margin header.",
+          "Markdown to place below margin content on this page (text or file\npath), after the <code>website</code> margin footer.",
           "URLs that alias this document, when included in a website.",
           {
             short: "The path to a preview image for this document.",
-            long: "The path to a preview image for this content. By default, Quarto will\nuse the image value from the site: metadata. If you provide an image,\nyou may also optionally provide an image-width and image-height to\nimprove the appearance of your Twitter Card.\nIf image is not provided, Quarto will automatically attempt to locate\na preview image."
+            long: "The path to a preview image for this content. By default, Quarto will\nuse the image value from the <code>website</code> metadata. To declare\nthe size of the preview image for Open Graph, set\n<code>image-width</code> and <code>image-height</code> under\n<code>open-graph</code>.\nIf image is not provided, Quarto will automatically attempt to locate\na preview image."
           },
-          "The height of the preview image for this document.",
-          "The width of the preview image for this document.",
           "The alt text for preview image on this page.",
           {
-            short: "If true, the preview image will only load when it comes into\nview.",
-            long: 'Enables lazy loading for the preview image. If true, the preview\nimage element will have <code>loading="lazy"</code>, and will only load\nwhen it comes into view.\nIf false, the preview image will load immediately.'
+            short: "The title for the main image on the about page.",
+            long: "The title for the main image on the about page. Used when\n<code>about</code> does not set its own <code>image-title</code>."
+          },
+          "Publish open graph metadata for this page. Options set here are\nmerged with the <code>open-graph</code> options of the\n<code>website</code> metadata. Set to <code>false</code> to omit open\ngraph metadata from this page.",
+          "Publish twitter card metadata for this page. Options set here are\nmerged with the <code>twitter-card</code> options of the\n<code>website</code> metadata. Set to <code>false</code> to omit twitter\ncard metadata from this page.",
+          {
+            short: "If true, this page\u2019s image in a listing will only load when it comes\ninto view.",
+            long: 'Enables lazy loading for this page\u2019s image when the page appears as\nan item in a listing. If true, the listing image element will have\n<code>loading="lazy"</code>, and will only load when it comes into\nview.\nIf false, the image will load immediately. This overrides the\nlisting\u2019s <code>image-lazy-loading</code> option for this item.'
           },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
@@ -24828,7 +25066,7 @@ try {
           "Provide a \u2018back to top\u2019 navigation button",
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>, relative to the project directory.",
           "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
@@ -25181,7 +25419,7 @@ try {
           "Provide a \u2018back to top\u2019 navigation button",
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
-          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>, relative to the project directory.",
           "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
@@ -25590,12 +25828,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 218300,
+          _internalId: 221295,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 218292,
+              _internalId: 221287,
               type: "enum",
               enum: [
                 "png",
@@ -25611,7 +25849,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 218299,
+              _internalId: 221294,
               type: "anyOf",
               anyOf: [
                 {

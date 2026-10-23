@@ -159,8 +159,68 @@ website:
 };
 
 export type ExternalEngine = {
+  "file-extensions"?:
+    (string)[] /* The file extensions this engine can handle (e.g. `.jl`).
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, where it is a per-engine declaration used to resolve
+input files to engines without loading the engine module. */;
+  "claims-files"?: ((string | {
+    extension: string;
+    processor?: string | {
+      comment?: string;
+      language?: string;
+      name: string;
+    }; /* The content processor that sniffs and converts files
+matching this claim, given either as a bare processor
+name (e.g. `spin`) or as `{ name, language?, comment? }`
+with parameters (e.g.
+`{ name: percent, language: julia }`; `comment`
+defaults to `#`).
+
+Quarto 1 accepts and ignores this property. It is
+reserved for Quarto 2, which runs the named processor
+natively to claim and convert input files without
+loading the engine module. */
+  }))[] /* The files this engine claims, by extension (either a bare
+extension string or `{ extension: <ext> }`, optionally with a
+`processor` naming the content processor that sniffs and
+converts matching files).
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, which uses it to resolve input files to engines
+without loading the engine module. */;
+  claims?: (string)[] | {
+    [key: string]:
+      | ExternalEngineLanguageClaim
+      | (ExternalEngineLanguageClaim)[];
+  } /* The languages this engine claims, keyed by language name
+(e.g. `julia: { kind: primary, priority: 1 }`). The special key
+`fallback` declares a fallback claim for otherwise-unclaimed
+languages. An array of strings (e.g. `claims: [julia]`) is
+shorthand for a primary claim on each.
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, which uses it to resolve code cells to engines without
+loading the engine module. */;
+  name?: string /* Name of the execution engine (e.g. `julia`).
+
+Quarto 1 accepts and ignores this property. It is reserved for
+Quarto 2, which uses it to resolve the engine by name (for
+example from `engine: julia` in document front matter) without
+loading the engine module. */;
   path: string; /* Path to the TypeScript module for the execution engine */
 }; /* An execution engine not pre-loaded in Quarto */
+
+export type ExternalEngineLanguageClaim =
+  | boolean
+  | number
+  | ("primary" | "interop" | "fallback")
+  | {
+    kind?: "primary" | "interop" | "fallback";
+    priority?: number;
+    whenClass?: string;
+  };
 
 export type DocumentCommentsConfiguration = false | {
   giscus?: GiscusConfiguration;
@@ -251,18 +311,14 @@ or `gruvbox-dark`) */
 export type SocialMetadata = {
   "image-alt"?:
     string /* The alt text for the preview image. By default, Quarto will use
-the `image-alt` value from the format metadata. If you provide an
-image, you may also optionally provide an `image-width` and `image-height`. */;
-  "image-width"?: number /* Image width (pixels) */;
-  "image-height"?: number /* Image height (pixels) */;
+the `image-alt` value from the format metadata. */;
   description?:
     string /* A short description of the content. Note that by default Quarto will
 automatically  use the description metadata from the page. Specify this
 field if you’d like to override the description for this provider. */;
   image?:
     string /* The path to a preview image for the content. By default, Quarto will use
-the `image` value from the format metadata. If you provide an
-image, you may also optionally provide an `image-width` and `image-height`. */;
+the `image` value from the format metadata. */;
   title?:
     string; /* The title of the page. Note that by default Quarto will automatically
 use the title metadata from the page. Specify this field if you’d like
@@ -320,6 +376,8 @@ export type TwitterCardConfig = {
 If this is not provided, the best style will automatically
 selected based upon other metadata. You can learn more about Twitter Card
 styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards). */;
+  "image-width"?: number;
+  "image-height"?: number;
   creator?:
     string /* `@username` of the content creator (must be a quoted string) */;
   site?: string; /* `@username` of the website (must be a quoted string) */
@@ -330,6 +388,8 @@ export type OpenGraphConfig = {
     string /* Name that should be displayed for the overall site. If not explicitly
 provided in the `open-graph` metadata, Quarto will use the website or
 book `title` by default. */;
+  "image-width"?: number /* Image width (pixels) */;
+  "image-height"?: number /* Image height (pixels) */;
   locale?: string; /* Locale of open graph metadata */
 } & SocialMetadata;
 
@@ -494,7 +554,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   description?: string /* Website description */;
   drafts?: MaybeArrayOf<string>;
   favicon?: string /* The path to the favicon for this website */;
-  image?: string /* Default site thumbnail image for `twitter` /`open-graph` */;
+  image?:
+    string /* Default site thumbnail image for `twitter` /`open-graph`, relative to the project directory. */;
   navbar?: boolean | {
     "logo-alt"?: string /* Alternate text for the logo image. */;
     "logo-href"?:
@@ -723,6 +784,9 @@ export type FormatLanguage = {
   "copy-button-tooltip"?: string;
   "copy-button-tooltip-success"?: string;
   "skip-to-content"?: string;
+  "scrollable-code-label"?: string;
+  "scrollable-output-label"?: string;
+  "revealjs-menu-button-label"?: string;
   "repo-action-links-edit"?: string;
   "repo-action-links-source"?: string;
   "repo-action-links-issue"?: string;
@@ -935,7 +999,7 @@ of the site will be used if specified in the Quarto project. */;
     image?:
       string /* The path to an image for this feed. If not specified, the image for the page the listing
 appears on will be used, otherwise an image will be used if specified for the site
-in the Quarto project. */;
+in the Quarto project. A relative path set in the listing page front matter is relative to the project directory. */;
     language?: string /* The language of the feed. Omitted if not specified.
 See [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)
 for a list of valid language codes. */;

@@ -1,0 +1,15 @@
+---
+title: Scholar metadata for a complete bibliography
+format: html
+google-scholar: true
+bibliography: references.bib
+nocite: '@*'
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementCount:
+        - selectors: ['meta[name="citation_reference"]', '.csl-entry[id^="ref-"]']
+          counts: [3, 3]
+---
+
+This article explicitly includes every entry in its bibliography.

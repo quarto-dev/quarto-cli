@@ -5,68 +5,79 @@
  */
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/utils.ts";
-import { projectContext } from "../project/project-context.ts";
-import { notebookContext } from "../render/notebook/notebook-context.ts";
+import {
+  frameInputWalkError,
+  type ProjectConfigResolution,
+  resolveEngineExtensions,
+  resolveProjectConfig,
+} from "../project/project-context.ts";
+import { createExtensionContext } from "../extension/extension.ts";
 import { resolveEngines } from "../execute/engine.ts";
-import type { ProjectContext } from "../project/types.ts";
+import { normalizePath } from "../core/path.ts";
+import type { ProjectConfig } from "../project/types.ts";
 
 /**
- * Create a minimal "zero-file" project context for loading bundled engine extensions
- * when no actual project or file exists.
+ * Resolve a config holding only the bundled engine extensions, for use when
+ * no project exists.
  *
  * This is needed for commands like `quarto check julia` that run outside any project
- * but still need access to bundled engines. The context provides just enough structure
- * to discover and register bundled engine extensions.
+ * but still need access to bundled engines.
  *
- * @param dir - Directory to use as the base (defaults to current working directory)
- * @returns A minimal ProjectContext with bundled engines loaded
+ * @param dir - Directory to use as the base
+ * @returns A project config with bundled engines loaded
  */
-async function zeroFileProjectContext(dir?: string): Promise<ProjectContext> {
-  const { createExtensionContext } = await import(
-    "../extension/extension.ts"
-  );
-  const { resolveEngineExtensions } = await import(
-    "../project/project-context.ts"
-  );
-
-  const extensionContext = createExtensionContext();
-  const config = await resolveEngineExtensions(
-    extensionContext,
+function bundledEngineConfig(dir: string): Promise<ProjectConfig> {
+  return resolveEngineExtensions(
+    createExtensionContext(),
     { project: {} },
-    dir || Deno.cwd(),
+    dir,
   );
-
-  // Return a minimal project context with the resolved engine config
-  return {
-    dir: dir || Deno.cwd(),
-    config,
-  } as ProjectContext;
 }
 
 /**
- * Initialize project context and register external engines from project config.
+ * Initialize project configuration and register external engines from it.
  *
  * This consolidates the common pattern of:
  * 1. Loading YAML intelligence resources
- * 2. Creating project context
+ * 2. Resolving the project configuration (without walking project input files)
  * 3. Registering external engines via reorderEngines()
  *
- * If no project is found, a zero-file context is created to load bundled engine
- * extensions (like Julia), ensuring they're available for commands like `quarto check julia`.
+ * If no project is found, a config with only the bundled engine extensions
+ * (like Julia) is used, ensuring they're available for commands like `quarto check julia`.
  *
  * @param dir - Optional directory path (defaults to current working directory)
+ * @returns The resolved project configuration, or undefined when no project is found
  */
 export async function initializeProjectContextAndEngines(
   dir?: string,
-): Promise<void> {
-  // Initialize YAML intelligence resources (required for project context)
+): Promise<ProjectConfigResolution | undefined> {
+  // Initialize YAML intelligence resources (required for project config)
   await initYamlIntelligenceResourcesFromFilesystem();
 
-  // Load project context if we're in a project directory, or create a zero-file
-  // context to load bundled engines when no project exists
-  const context = await projectContext(dir || Deno.cwd(), notebookContext()) ||
-    await zeroFileProjectContext(dir);
+  // Use the project config if we're in a project directory, or load only
+  // the bundled engines when no project exists
+  const baseDir = normalizePath(dir || Deno.cwd());
+  const resolved = await resolveProjectConfig(baseDir);
+  const config = resolved?.config ?? await bundledEngineConfig(baseDir);
 
   // Register external engines from project config
-  await resolveEngines(context);
+  await resolveEngines({ config });
+
+  return resolved;
+}
+
+/**
+ * Wraps a command action so a permission error from the project input walk
+ * is reported as a framed error naming the project and its _quarto.yml.
+ */
+export function withInputWalkErrorFraming<A extends unknown[]>(
+  action: (...args: A) => Promise<void>,
+): (...args: A) => Promise<void> {
+  return async (...args: A) => {
+    try {
+      await action(...args);
+    } catch (e) {
+      throw frameInputWalkError(e);
+    }
+  };
 }

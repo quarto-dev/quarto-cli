@@ -28,7 +28,15 @@ import { getenv } from "./env.ts";
 import { execProcess } from "./process.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
-export const kSkipHidden = /[/\\][\.]/;
+export function skipHiddenWithin(dir: string) {
+  // walk() yields children of `dir` in normalized form without a doubled separator
+  const walkedDir = normalize(dir).replace(/[/\\]+$/, "");
+  const startOfDir = `^${ld.escapeRegExp(walkedDir)}`;
+  const separator = "[/\\\\]";
+  const anySubdirs = `(?:.*${separator})?`;
+  const dot = "\\.";
+  return new RegExp(`${startOfDir}${separator}${anySubdirs}${dot}`);
+}
 
 export function removeIfExists(file: string) {
   if (existsSync(file)) {

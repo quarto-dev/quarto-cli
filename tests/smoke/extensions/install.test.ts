@@ -1,4 +1,4 @@
-import { noErrorsOrWarnings } from "../../verify.ts";
+import { noErrorsOrWarnings, printsMessage } from "../../verify.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { ExecuteOutput, testQuartoCmd, Verify } from "../../test.ts";
 import { assert } from "testing/asserts";
@@ -48,6 +48,7 @@ testQuartoCmd(
     noErrorsOrWarnings,
     verifySubDirCount("_extensions", 1),
     verifySubDirName("_extensions", "quarto-ext"),
+    printsMessage({ level: "INFO", regex: /installed as/, negate: true }),
   ],
   {
     cwd: () => {
@@ -185,3 +186,31 @@ for (const zipFile of zipFiles) {
     },
   );
 }
+
+// Verify installation from a local directory drops the source owner folder
+// and says so (#15111)
+testQuartoCmd(
+  "add",
+  [join(testDirAbs, "owned-local"), "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "coolster"),
+    printsMessage({
+      level: "INFO",
+      regex: /'quarto-test\/coolster' installed as 'coolster'/,
+    }),
+  ],
+  {
+    cwd: () => {
+      return workingDir;
+    },
+    teardown: () => {
+      try {
+        Deno.removeSync("_extensions", { recursive: true });
+      } catch {
+      }
+      return Promise.resolve();
+    },
+  },
+);

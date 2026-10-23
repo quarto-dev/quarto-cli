@@ -14,6 +14,7 @@ import {
   parsePandocTitle,
   partitionMarkdown,
 } from "../../../core/pandoc/pandoc-partition.ts";
+import { pandocQuotedAttrValue } from "../../../core/pandoc/pandoc-attr.ts";
 
 import {
   kAbstract,
@@ -58,7 +59,19 @@ import { ProjectOutputFile } from "../types.ts";
 
 import { executionEngineKeepMd } from "../../../execute/engine.ts";
 
-import { websiteOutputFiles, websitePostRender } from "../website/website.ts";
+import {
+  websiteOutputFiles,
+  websitePostRender,
+  WebsiteProjectOutputFile,
+} from "../website/website.ts";
+import {
+  bookLlmsPage,
+  computeOutputFilePath,
+  convertHtmlToLlmsMarkdown,
+} from "../website/website-llms.ts";
+import { websiteConfigBoolean } from "../website/website-config.ts";
+import { kLlmsTxt } from "../website/website-constants.ts";
+import { parseHtml } from "../../../core/deno-dom.ts";
 
 import {
   onSingleFileBookPostRender,
@@ -83,7 +96,10 @@ import {
   kBookCoverImage,
   kBookCoverImageAlt,
 } from "./book-shared.ts";
-import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
+import {
+  bookCrossrefsPostRender,
+  bookCrossrefsResolver,
+} from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
 import { partitionYamlFrontMatter } from "../../../core/yaml.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
@@ -469,35 +485,10 @@ async function mergeExecutedFiles(
             return createMarkdownTitle(titleText, titleAttr);
           };
 
-          // If there is front matter for this chapter, this will generate a code
-          // cell that will be rendered a LUA filter (the code cell will provide the
-          // path to the template that should be used as well as the front matter
-          // to use when rendering)
-          const resolveTitleBlockMarkdown = (yaml?: Metadata) => {
-            if (yaml) {
-              const titleBlockPath = resourcePath(
-                "projects/book/pandoc/title-block.md",
-              );
-
-              const titleAttr = `template='${titleBlockPath}'`;
-              const frontMatter = `---\n${
-                stringify(yaml, { indent: 2 })
-              }\n---\n`;
-
-              const titleBlockMd = "```````{.quarto-title-block " +
-                titleAttr + "}\n" +
-                frontMatter +
-                "\n```````\n\n";
-
-              return titleBlockMd;
-            } else {
-              return "";
-            }
-          };
-
           // Compose the markdown for this chapter
           const titleMarkdown = resolveTitleMarkdown(partitioned);
-          const titleBlockMarkdown = resolveTitleBlockMarkdown(
+          const titleBlockMarkdown = bookTitleBlockMarkdown(
+            resourcePath("projects/book/pandoc/title-block.md"),
             partitioned.yaml,
           );
           const bodyMarkdown = partitioned.yaml?.title
@@ -618,6 +609,7 @@ export async function bookPostRender(
     // fixup crossrefs and bibliography for web output
     await bookBibliographyPostRender(context, incremental, websiteFiles);
     await bookCrossrefsPostRender(context, websiteFiles);
+    await bookLlmsPostRender(context, websiteFiles);
 
     // website files are now already written on a per-file basis
     // websiteFiles.forEach((websiteFile) => {
@@ -649,6 +641,32 @@ export async function bookPostRender(
         outputFiles,
       );
     }
+  }
+}
+
+async function bookLlmsPostRender(
+  context: ProjectContext,
+  websiteFiles: WebsiteProjectOutputFile[],
+) {
+  if (!websiteConfigBoolean(kLlmsTxt, false, context.config)) {
+    return;
+  }
+  const resolveCrossrefs = await bookCrossrefsResolver(context);
+  for (const file of websiteFiles) {
+    // undefined for pages the finalizer skipped (hidden drafts)
+    const html = bookLlmsPage(file.input);
+    if (html === undefined) {
+      continue;
+    }
+    const doc = await parseHtml(html);
+    resolveCrossrefs(file.file, file.format, doc);
+    await convertHtmlToLlmsMarkdown(
+      "<!DOCTYPE html>\n" + doc.documentElement!.outerHTML,
+      computeOutputFilePath(file.input, context).replace(
+        /\.html$/,
+        ".llms.md",
+      ),
+    );
   }
 }
 
@@ -690,6 +708,26 @@ function cleanupExecutedFile(
     file.executeResult.supporting,
     executionEngineKeepMd(file.context),
   );
+}
+
+// If there is front matter for a chapter, this generates a code cell that will
+// be rendered by a LUA filter (the code cell provides the path to the template
+// that should be used as well as the front matter to use when rendering)
+export function bookTitleBlockMarkdown(
+  templatePath: string,
+  yaml?: Metadata,
+) {
+  if (yaml) {
+    const titleAttr = `template=${pandocQuotedAttrValue(templatePath)}`;
+    const frontMatter = `---\n${stringify(yaml, { indent: 2 })}\n---\n`;
+
+    return "```````{.quarto-title-block " +
+      titleAttr + "}\n" +
+      frontMatter +
+      "\n```````\n\n";
+  } else {
+    return "";
+  }
 }
 
 function bookItemMetadata(

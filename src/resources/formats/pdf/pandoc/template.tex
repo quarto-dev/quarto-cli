@@ -1,4 +1,12 @@
 $document-metadata.latex()$
+$if(pdfstandard)$
+$-- KOMA-Script 3.49.3 aborts on \DocumentMetadata unless \komascript_documentmetadata_test: exists;
+$-- a no-op keeps the 3.49.2 behaviour (#15143). The guard keeps a definition made earlier.
+\ExplSyntaxOn
+\cs_if_exist:NF \komascript_documentmetadata_test:
+  { \cs_new:Npn \komascript_documentmetadata_test: { } }
+\ExplSyntaxOff
+$endif$
 % Options for packages loaded elsewhere
 $passoptions.latex()$
 %

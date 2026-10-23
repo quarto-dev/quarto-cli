@@ -1,7 +1,11 @@
-import { expect, Locator, PlaywrightTestOptions } from "@playwright/test";
+import { expect, Locator, Page, PlaywrightTestOptions } from "@playwright/test";
+
+// Port of the fixture server that playwright.config.ts starts on tests/docs/playwright
+export const fixtureServerPort = process.env.QUARTO_PLAYWRIGHT_PORT ?? "8765";
+export const fixtureServerUrl = `http://127.0.0.1:${fixtureServerPort}`;
 
 export const getUrl = (path: string) => {
-  return `http://127.0.0.1:8080/${path}`;
+  return `${fixtureServerUrl}/${path}`;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -250,4 +254,28 @@ export function useDarkLightMode(mode: 'dark' | 'light'): Partial<PlaywrightTest
   return {
     colorScheme: mode
   };
+}
+// WebKit follows Safari's default "Press Tab to highlight each item on a
+// webpage" setting and skips links and buttons on Tab; Option+Tab visits
+// every focusable element.
+export function tabKey(browserName: string, shift = false): string {
+  const key = shift ? "Shift+Tab" : "Tab";
+  return browserName === "webkit" ? `Alt+${key}` : key;
+}
+
+// Presses Tab until `target` holds focus. Real key presses, unlike
+// locator.focus(), reliably make the target match :focus-visible.
+export async function tabUntilFocused(
+  page: Page,
+  browserName: string,
+  target: Locator,
+  maxTabs = 25,
+): Promise<boolean> {
+  for (let i = 0; i < maxTabs; i++) {
+    await page.keyboard.press(tabKey(browserName));
+    if (await target.evaluate((el) => el === document.activeElement)) {
+      return true;
+    }
+  }
+  return false;
 }

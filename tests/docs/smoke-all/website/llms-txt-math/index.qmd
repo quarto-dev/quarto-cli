@@ -1,0 +1,5 @@
+---
+title: "llms-txt math"
+---
+
+Pages exercising math in `.llms.md` output, one per `html-math-method`.

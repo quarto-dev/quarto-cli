@@ -1,0 +1,167 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 128,
+  "id": {
+    "type": "Identifier",
+    "start": 15,
+    "end": 18,
+    "name": "bar"
+  },
+  "body": {
+    "type": "FunctionExpression",
+    "start": 0,
+    "end": 127,
+    "id": {
+      "type": "Identifier",
+      "start": 15,
+      "end": 18,
+      "name": "bar"
+    },
+    "expression": false,
+    "generator": false,
+    "async": true,
+    "params": [],
+    "body": {
+      "type": "BlockStatement",
+      "start": 21,
+      "end": 127,
+      "body": [
+        {
+          "type": "VariableDeclaration",
+          "start": 25,
+          "end": 43,
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 31,
+              "end": 42,
+              "id": {
+                "type": "Identifier",
+                "start": 31,
+                "end": 37,
+                "name": "values"
+              },
+              "init": {
+                "type": "ArrayExpression",
+                "start": 40,
+                "end": 42,
+                "elements": []
+              }
+            }
+          ],
+          "kind": "const"
+        },
+        {
+          "type": "ForOfStatement",
+          "start": 46,
+          "end": 108,
+          "await": true,
+          "left": {
+            "type": "VariableDeclaration",
+            "start": 57,
+            "end": 68,
+            "declarations": [
+              {
+                "type": "VariableDeclarator",
+                "start": 63,
+                "end": 68,
+                "id": {
+                  "type": "Identifier",
+                  "start": 63,
+                  "end": 68,
+                  "name": "value"
+                },
+                "init": null
+              }
+            ],
+            "kind": "const"
+          },
+          "right": {
+            "type": "CallExpression",
+            "start": 72,
+            "end": 77,
+            "callee": {
+              "type": "Identifier",
+              "start": 72,
+              "end": 75,
+              "name": "foo"
+            },
+            "arguments": [],
+            "optional": false
+          },
+          "body": {
+            "type": "BlockStatement",
+            "start": 79,
+            "end": 108,
+            "body": [
+              {
+                "type": "ExpressionStatement",
+                "start": 85,
+                "end": 104,
+                "expression": {
+                  "type": "CallExpression",
+                  "start": 85,
+                  "end": 103,
+                  "callee": {
+                    "type": "MemberExpression",
+                    "start": 85,
+                    "end": 96,
+                    "object": {
+                      "type": "Identifier",
+                      "start": 85,
+                      "end": 91,
+                      "name": "values"
+                    },
+                    "property": {
+                      "type": "Identifier",
+                      "start": 92,
+                      "end": 96,
+                      "name": "push"
+                    },
+                    "computed": false,
+                    "optional": false
+                  },
+                  "arguments": [
+                    {
+                      "type": "Identifier",
+                      "start": 97,
+                      "end": 102,
+                      "name": "value"
+                    }
+                  ],
+                  "optional": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "ReturnStatement",
+          "start": 111,
+          "end": 125,
+          "argument": {
+            "type": "Identifier",
+            "start": 118,
+            "end": 124,
+            "name": "values"
+          }
+        }
+      ]
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 72,
+      "end": 75,
+      "name": "foo"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

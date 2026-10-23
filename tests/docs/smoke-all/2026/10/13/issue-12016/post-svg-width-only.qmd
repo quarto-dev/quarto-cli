@@ -1,0 +1,18 @@
+---
+title: "A page image does not inherit a dimension the page leaves out"
+open-graph:
+  image: square.svg
+  image-width: 10
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:image" content="https://example.com/square.svg">'
+          - '<meta property="og:image:width" content="10">'
+        -
+          - '<meta property="og:image:height"'
+---
+
+The page declares only the width of its image, so the site's height is not used for it.

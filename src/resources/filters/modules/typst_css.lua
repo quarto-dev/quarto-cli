@@ -658,10 +658,85 @@ end
 
 local _available_fonts = nil
 local _fonts_initialized = false
-local _generic_families = {
-  ["serif"] = true, ["sans-serif"] = true, ["monospace"] = true,
-  ["cursive"] = true, ["fantasy"] = true, ["math"] = true,
+
+-- Typst has no CSS generic families, so emitting `sans-serif` / `monospace` makes every compile warn
+-- `unknown font family`. Each generic keyword is instead replaced, at its
+-- position in the user's list, by the first *available* font from an ordered
+-- candidate list. The keyword itself is never emitted. No font is bundled.
+--
+-- Sources (fetched 2026-10-03), merged in this order per keyword:
+--   1. Chromium per-OS defaults (chrome/app/resources/locale_settings_{win,mac}.grd)
+--   2. fontconfig conf.d/60-latin.conf (Linux)
+--   3. Modern Font Stacks (github.com/system-fonts/modern-font-stacks, CC0)
+--   4. Bootstrap 5 $font-family-sans-serif / $font-family-monospace
+--   5. Typst's built-in fonts, last, so serif/monospace/math always resolve.
+-- Non-family tokens from those sources (sans-serif-condensed, casual, ...)
+-- are omitted. sans-serif has no built-in target and may resolve to nothing.
+local _generic_candidates = {
+  ["serif"] = {
+    "Times New Roman", "Times",
+    "Noto Serif", "DejaVu Serif", "Thorndale AMT", "Luxi Serif",
+    "Nimbus Roman No9 L", "Nimbus Roman",
+    "Charter", "Bitstream Charter", "Sitka Text", "Cambria", "Georgia",
+    "Libertinus Serif",
+  },
+  ["sans-serif"] = {
+    "Arial", "Helvetica",
+    "Noto Sans", "DejaVu Sans", "Verdana", "Albany AMT", "Luxi Sans",
+    "Nimbus Sans L", "Nimbus Sans", "Lucida Sans Unicode", "Tahoma",
+    "Inter", "Roboto", "Helvetica Neue", "Arial Nova", "Segoe UI",
+    "Liberation Sans", "Ubuntu", "Calibri",
+  },
+  ["monospace"] = {
+    "Courier New", "Menlo",
+    "Noto Sans Mono", "Inconsolata", "Andale Mono", "Cumberland AMT",
+    "Luxi Mono", "Nimbus Mono L", "Nimbus Mono", "Nimbus Mono PS", "Courier",
+    "Cascadia Code", "Source Code Pro", "Consolas",
+    "SFMono-Regular", "Monaco", "Liberation Mono",
+    "DejaVu Sans Mono",
+  },
+  ["cursive"] = {
+    "Comic Sans MS", "Apple Chancery",
+    "ITC Zapf Chancery Std", "Zapfino",
+    "Segoe Print", "Bradley Hand", "Chilanka",
+  },
+  ["fantasy"] = {
+    "Impact", "Papyrus",
+    "Copperplate Gothic Std", "Cooper Std", "Bauhaus Std",
+  },
+  ["math"] = {
+    "Cambria Math", "STIX Two Math",
+    "New Computer Modern Math",
+  },
 }
+
+local function concat_lists(...)
+  local out = {}
+  for _, l in ipairs({...}) do
+    for _, v in ipairs(l) do out[#out + 1] = v end
+  end
+  return out
+end
+
+-- CSS Fonts 4 `system-ui` / `ui-*`: platform UI faces first, then the plain
+-- generic they specialise (ui-rounded has no plain fallback).
+_generic_candidates["system-ui"] = concat_lists(
+  { "SF Pro Text", "SF Pro", "Segoe UI", "Cantarell", "Adwaita Sans",
+    "Noto Sans UI", "Ubuntu" },
+  _generic_candidates["sans-serif"])
+_generic_candidates["ui-sans-serif"] = _generic_candidates["system-ui"]
+_generic_candidates["ui-serif"] = concat_lists(
+  { "New York" }, _generic_candidates["serif"])
+_generic_candidates["ui-monospace"] = concat_lists(
+  { "SF Mono", "Cascadia Mono" }, _generic_candidates["monospace"])
+_generic_candidates["ui-rounded"] = {
+  "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Arial Rounded MT Bold",
+  "Arial Rounded MT", "Quicksand", "Comfortaa", "Manjari",
+}
+
+-- Typst's default text font; the last resort when a list resolves to nothing,
+-- since Typst rejects an empty `font: ()`.
+local _terminal_fallback = "Libertinus Serif"
 
 local function init_available_fonts(list)
   _fonts_initialized = true
@@ -681,25 +756,58 @@ local function ensure_available_fonts()
   init_available_fonts(param('typst-available-fonts'))
 end
 
+-- Pure resolver: `families` is a list of unquoted CSS family names/keywords,
+-- `available` a set of lower-cased available family names (nil = unknown).
+-- Returns the list of concrete family names to hand to Typst.
+local function resolve_font_families(families, available)
+  local resolved, unavailable, seen = {}, {}, {}
+  local function add(into, name)
+    local k = name:lower()
+    if not seen[k] then
+      seen[k] = true
+      into[#into + 1] = name
+    end
+  end
+  for _, name in ipairs(families) do
+    local key = name:lower()
+    local candidates = _generic_candidates[key]
+    if candidates then
+      -- Without availability data there is no way to choose; drop it.
+      for _, c in ipairs(available and candidates or {}) do
+        if available[c:lower()] then
+          add(resolved, c)
+          break
+        end
+      end
+    elseif key:find('^generic%(') then
+      -- script-specific generics (fangsong, kai, ...) have no Typst analogue
+    elseif not available or available[key] then
+      add(resolved, name)
+    else
+      add(unavailable, name)
+    end
+  end
+  if #resolved > 0 then return resolved end
+  if #unavailable > 0 then return unavailable end
+  return { _terminal_fallback }
+end
+
 local function translate_font_family_list(sl)
   if sl == nil then
     return '()'
   end
   ensure_available_fonts()
-  local all_strings = {}
-  local filtered = {}
+  local families = {}
   for s in sl:gmatch('([^,]+)') do
     s = s:gsub('^%s+', ''):gsub('%s+$', '')
     if s ~= '' then
-      local cleaned = dequote(s)
-      local quoted = quote(cleaned)
-      table.insert(all_strings, quoted)
-      if not _available_fonts or _available_fonts[cleaned:lower()] or _generic_families[cleaned:lower()] then
-        table.insert(filtered, quoted)
-      end
+      families[#families + 1] = (dequote(s))
     end
   end
-  local result = #filtered > 0 and filtered or all_strings
+  local result = {}
+  for i, name in ipairs(resolve_font_families(families, _available_fonts)) do
+    result[i] = quote(name)
+  end
   local trailcomma = #result == 1 and ',' or ''
   return '(' .. table.concat(result, ', ') .. trailcomma .. ')'
 end
@@ -837,6 +945,7 @@ return {
   translate_border_color = translate_border_color,
   translate_font_weight = translate_font_weight,
   translate_font_family_list = translate_font_family_list,
+  resolve_font_families = resolve_font_families,
   init_available_fonts = init_available_fonts,
   consume_width = consume_width,
   consume_style = consume_style,

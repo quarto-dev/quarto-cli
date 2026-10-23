@@ -1,0 +1,40 @@
+---
+title: Callout title option is not rendered as an HTML title attribute
+format:
+  html: default
+  revealjs: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - div.callout.callout-titled#with-id
+          - div.callout.callout-titled.test-data-attr[data-foo="bar"]
+        -
+          - div.callout[title]
+    revealjs:
+      ensureHtmlElements:
+        -
+          - section > div.callout.callout-titled#with-id # no wrapper needed
+          - div[data-foo="bar"] > div.callout.callout-titled
+        -
+          - div.callout[title]
+          - div[title] > div.callout # wrapper
+---
+
+The `title` option of a callout is rendered as the callout heading.
+It must not also be passed through as an HTML `title` attribute, which browsers show as a tooltip over the whole callout.
+In html the leftover attributes are copied onto the `.callout` div; in revealjs they go on a wrapper div, so a titled callout with only an id needs no wrapper.
+Other leftover attributes such as `data-*` are still passed through.
+
+## Titled callout with an id
+
+::: {#with-id .callout-note title="Titled"}
+Body.
+:::
+
+## Titled callout with a data attribute
+
+::: {.callout-tip .test-data-attr title="Plain" data-foo="bar"}
+Body.
+:::

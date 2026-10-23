@@ -1,0 +1,16 @@
+---
+title: "Without site-url, a page image does not inherit the site's size"
+image: square.svg
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:image" content="square.svg">'
+        -
+          - '<meta property="og:image:height"'
+          - '<meta property="og:image:width"'
+---
+
+The size the site declares for its own image does not describe this page's image.

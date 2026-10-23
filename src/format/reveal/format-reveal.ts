@@ -77,10 +77,11 @@ import {
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { projectIsWebsite } from "../../project/project-shared.ts";
 import { titleSlidePartial } from "./format-reveal-title.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
-import { logoAddLeadingSlashes, resolveLogo } from "../../core/brand/brand.ts";
+import { resolveInputRelativeLogo } from "../../core/brand/brand.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -301,7 +302,9 @@ export function revealjsFormat() {
                   theme["text-highlighting-mode"],
                 ),
               ],
-              [kMarkdownAfterBody]: [revealMarkdownAfterBody(format, input)],
+              [kMarkdownAfterBody]: [
+                revealMarkdownAfterBody(format, input, project),
+              ],
             },
           },
         );
@@ -392,7 +395,11 @@ export function revealjsFormat() {
   );
 }
 
-function revealMarkdownAfterBody(format: Format, input: string) {
+function revealMarkdownAfterBody(
+  format: Format,
+  input: string,
+  project: ProjectContext,
+) {
   let brandMode: "light" | "dark" = "light";
   if (format.metadata[kBrandMode] === "dark") {
     brandMode = "dark";
@@ -401,14 +408,15 @@ function revealMarkdownAfterBody(format: Format, input: string) {
   lines.push("::: {.quarto-auto-generated-content style='display: none;'}\n");
   const revealLogo = format
     .metadata[kSlideLogo] as (string | { path: string } | undefined);
-  let logo = resolveLogo(format.render.brand, revealLogo, [
-    "small",
-    "medium",
-    "large",
-  ]);
+  const logo = resolveInputRelativeLogo(
+    format.render.brand,
+    revealLogo,
+    ["small", "medium", "large"],
+    input,
+    projectIsWebsite(project),
+  );
   if (logo && logo[brandMode]) {
-    logo = logoAddLeadingSlashes(logo, format.render.brand, input);
-    const modeLogo = logo![brandMode]!;
+    const modeLogo = logo[brandMode]!;
     const altText = modeLogo.alt ? `alt="${modeLogo.alt}" ` : "";
     lines.push(
       `<img src="${modeLogo.path}" ${altText}class="slide-logo" />`,
@@ -538,26 +546,30 @@ const fixupRevealJsInitialization = (
         );
       }
 
+      // Config values can hold author-supplied text, such as metadata or
+      // language strings, so `<` is escaped: a value holding `</script>` would
+      // otherwise close this script early.
+      const configValue = (value: unknown) =>
+        (JSON.stringify(value) ?? "undefined").replace(/</g, "\\u003c");
+
       // Write any additional configuration of reveal
       const configJs: string[] = [];
       Object.keys(extraConfig).forEach((key) => {
-        configJs.push(
-          `'${key}': ${JSON.stringify(extraConfig[key])}`,
-        );
+        configJs.push(`'${key}': ${configValue(extraConfig[key])}`);
       });
 
       // Plugin initialization
       Object.keys(pluginInit.revealConfig).forEach((key) => {
-        configJs.push(
-          `'${key}': ${JSON.stringify(pluginInit.revealConfig[key])}`,
-        );
+        configJs.push(`'${key}': ${configValue(pluginInit.revealConfig[key])}`);
       });
 
       const configStr = configJs.join(",\n");
 
+      // A replacer function inserts configStr literally, so `$&` or `$'` in a
+      // config value is not read as a replacement pattern.
       scriptEl.innerText = scriptEl.innerText.replace(
         "Reveal.initialize({",
-        `Reveal.initialize({\n${configStr},\n`,
+        () => `Reveal.initialize({\n${configStr},\n`,
       );
     }
   }

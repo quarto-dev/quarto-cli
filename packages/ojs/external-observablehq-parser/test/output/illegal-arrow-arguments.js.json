@@ -1,0 +1,11 @@
+{
+  "error": {
+    "type": "SyntaxError",
+    "message": "arguments is not allowed (1:6)",
+    "pos": 6,
+    "loc": {
+      "line": 1,
+      "column": 6
+    }
+  }
+}

@@ -10,23 +10,27 @@ import { InternalError } from "../lib/error.ts";
 import { md5HashAsync } from "../hash.ts";
 import { join } from "../../deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
+import { v8Branch } from "../../deno_ral/platform.ts";
 import { TempContext } from "../temp.ts";
 import { safeRemoveIfExists } from "../path.ts";
 import * as log from "../../deno_ral/log.ts";
 import { onCleanup } from "../cleanup.ts";
 import { Cloneable } from "../safe-clone-deep.ts";
+import { getKv, kvOp, openKv } from "../../deno_ral/kv.ts";
 
 class SassCache implements Cloneable<SassCache> {
   kv: Deno.Kv;
   path: string;
+  kvFile: string;
 
   clone() {
     return this;
   }
 
-  constructor(kv: Deno.Kv, path: string) {
+  constructor(kv: Deno.Kv, path: string, kvFile: string) {
     this.kv = kv;
     this.path = path;
+    this.kvFile = kvFile;
   }
 
   async getFromHash(
@@ -42,22 +46,20 @@ class SassCache implements Cloneable<SassCache> {
       throw new InternalError(`Invalid hash length: ${hash.length}`);
     }
 
-    const result = await this.kv.get(["entry", hash]);
-    if (result.value === null) {
+    const value = await getKv<unknown>(this.kv, this.kvFile, ["entry", hash]);
+    if (value === null) {
       log.debug(`  cache miss`);
       return null;
     }
-    if (typeof result.value !== "object") {
+    if (typeof value !== "object") {
       throw new InternalError(
-        `Unsupported SassCache entry type\nExpected SassCacheEntry, got ${typeof result
-          .value}`,
+        `Unsupported SassCache entry type\nExpected SassCacheEntry, got ${typeof value}`,
       );
     }
-    const v = result.value as Record<string, unknown>;
+    const v = value as Record<string, unknown>;
     if (typeof v.key !== "string" || typeof v.hash !== "string") {
       throw new InternalError(
-        `Unsupported SassCache entry type\nExpected SassCacheEntry, got ${typeof result
-          .value}`,
+        `Unsupported SassCache entry type\nExpected SassCacheEntry, got ${typeof value}`,
       );
     }
     const outputFilePath = join(this.path, `${hash}.css`);
@@ -98,10 +100,11 @@ class SassCache implements Cloneable<SassCache> {
       }
       throw error;
     }
-    await this.kv.set(["entry", identifierHash], {
-      key: cacheIdentifier,
-      hash: inputHash,
-    });
+    await kvOp(this.kvFile, () =>
+      this.kv.set(["entry", identifierHash], {
+        key: cacheIdentifier,
+        hash: inputHash,
+      }));
     return outputFilePath;
   }
 
@@ -143,7 +146,9 @@ class SassCache implements Cloneable<SassCache> {
   }
 
   // add a cleanup method to register a cleanup handler
-  cleanup(temp: TempContext | undefined) {
+  // registryKey is the path the cache was requested with, which differs from
+  // this.path (the per-V8-branch store dir under it).
+  cleanup(temp: TempContext | undefined, registryKey: string) {
     const registerCleanup = temp ? temp.onCleanup : onCleanup;
     const cachePath = this.path;
     registerCleanup(() => {
@@ -158,7 +163,7 @@ class SassCache implements Cloneable<SassCache> {
       } finally {
         // Drop the registry entry so a later resolve of the same path opens a
         // fresh KV handle instead of reusing this now-closed one (#14594, #13955).
-        delete _sassCache[cachePath];
+        delete _sassCache[registryKey];
       }
     });
   }
@@ -171,24 +176,23 @@ const requiredQuartoVersions: Record<number, string> = {
 };
 
 async function checkVersion(kv: Deno.Kv, path: string) {
-  const version = await kv.get(["version"]);
-  if (version.value === null) {
-    await kv.set(["version"], 1);
+  const version = await getKv<unknown>(kv, path, ["version"]);
+  if (version === null) {
+    await kvOp(path, () => kv.set(["version"], 1));
   } else {
-    if (typeof version.value !== "number") {
+    if (typeof version !== "number") {
       throw new Error(
-        `Unsupported SassCache version type in ${path}\nExpected number, got ${typeof version
-          .value}`,
+        `Unsupported SassCache version type in ${path}\nExpected number, got ${typeof version}`,
       );
     }
-    if (version.value < currentSassCacheVersion) {
+    if (version < currentSassCacheVersion) {
       // in the future we should clean this automatically, but this is v1 and there should be
       // no old data anywhere.
       throw new Error(
         `Found outdated SassCache version. Please clear ${path}.`,
       );
     }
-    if (version.value > currentSassCacheVersion) {
+    if (version > currentSassCacheVersion) {
       throw new Error(
         `Found a SassCache version that's newer than supported. Please clear ${path} or upgrade Quarto to ${
           requiredQuartoVersions[currentSassCacheVersion]
@@ -205,14 +209,20 @@ export async function sassCache(
   temp: TempContext | undefined,
 ): Promise<SassCache> {
   if (!_sassCache[path]) {
-    log.debug(`Creating SassCache at ${path}`);
-    ensureDirSync(path);
-    const kvFile = join(path, "sass.kv");
-    const kv = await Deno.openKv(kvFile);
-    await checkVersion(kv, kvFile);
-    _sassCache[path] = new SassCache(kv, path);
+    const storeDir = join(path, `v8-${v8Branch}`);
+    log.debug(`Creating SassCache at ${storeDir}`);
+    ensureDirSync(storeDir);
+    const kvFile = join(storeDir, "sass.kv");
+    const kv = await openKv(kvFile);
+    try {
+      await checkVersion(kv, kvFile);
+    } catch (e) {
+      kv.close();
+      throw e;
+    }
+    _sassCache[path] = new SassCache(kv, storeDir, kvFile);
     // register cleanup for this cache
-    _sassCache[path].cleanup(temp);
+    _sassCache[path].cleanup(temp, path);
   }
   log.debug(`Returning SassCache at ${path}`);
   const result = _sassCache[path];

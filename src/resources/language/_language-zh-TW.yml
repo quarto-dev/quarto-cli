@@ -92,6 +92,11 @@ navigation-toolbar-label: "工具列"     # libreoffice sfx2 zh-TW 'Show Toolbar
 navigation-page-label: "頁面"         # mediawiki zh-tw 'pageinfo-toolboxlink' 頁面資訊; LibreOffice gives 頁 — adapted, needs review
 navigation-breadcrumbs-label: "路徑"  # libreoffice sw zh-TW 'Path'; attested term is simplified and holds 導航 — adapted, needs review
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "可滾動的程式碼"   # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "可滾動的輸出"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "圖"
 crossref-tbl-title: "表"
 crossref-lst-title: "列表"
