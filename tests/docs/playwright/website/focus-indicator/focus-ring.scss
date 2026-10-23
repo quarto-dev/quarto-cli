@@ -2,3 +2,7 @@
 // A distinctive outer color, so the tests can tell the focus ring
 // apart from any other outline.
 $focus-ring-outer-color: #123456;
+// Sizes that differ from the 2px defaults, so the tests can tell that
+// the public Sass variables reach the ring.
+$focus-ring-outline-width: 3px;
+$focus-ring-outline-offset: 1px;
