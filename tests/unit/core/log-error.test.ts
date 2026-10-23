@@ -48,3 +48,34 @@ test({
     printsMessage({ level: "ERROR", regex: /outer: middle: inner/ }),
   ],
 });
+
+test({
+  name: "logError stops at a self-referencing cause",
+  type: "unit",
+  context: {},
+  // deno-lint-ignore require-await
+  execute: async () => {
+    const err = new Error("self");
+    err.cause = err;
+    logError(err);
+  },
+  verify: [
+    printsMessage({ level: "ERROR", regex: /^self$/m }),
+  ],
+});
+
+test({
+  name: "logError stops at a cause cycle",
+  type: "unit",
+  context: {},
+  // deno-lint-ignore require-await
+  execute: async () => {
+    const first = new Error("first");
+    const second = new Error("second", { cause: first });
+    first.cause = second;
+    logError(first);
+  },
+  verify: [
+    printsMessage({ level: "ERROR", regex: /^first: second$/m }),
+  ],
+});
