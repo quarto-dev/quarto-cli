@@ -10,11 +10,14 @@
  */
 
 import { unitTest } from "../test.ts";
-import { assertEquals } from "testing/asserts";
-import { join } from "../../src/deno_ral/path.ts";
+import { assert, assertEquals, assertMatch } from "testing/asserts";
+import { dirname, join } from "../../src/deno_ral/path.ts";
+import { ensureDirSync, existsSync } from "../../src/deno_ral/fs.ts";
+import { v8Branch } from "../../src/deno_ral/platform.ts";
 import { safeRemoveIfExists } from "../../src/core/path.ts";
 import { createTempContext, TempContext } from "../../src/core/temp.ts";
 import { sassCache } from "../../src/core/sass/cache.ts";
+import { withTempDir } from "../utils.ts";
 
 // A syntactically valid md5 hash that will never be present in a fresh cache,
 // so getFromHash exercises kv.get() and returns a clean cache miss (null).
@@ -54,5 +57,40 @@ unitTest(
       temp2?.cleanup();
       safeRemoveIfExists(root);
     }
+  },
+);
+
+// Bytes an older Quarto's store could hold; not a SQLite file, so opening it
+// with Deno.openKv throws "file is not a database".
+const LEGACY_SENTINEL = "legacy sass.kv owned by another Quarto version";
+const ID_HASH = "a".repeat(32);
+const INPUT_HASH = "1".repeat(32);
+
+unitTest(
+  "sassCache - stores index and outputs under v8-<branch> and never opens a legacy sass.kv",
+  async () => {
+    await withTempDir(async (root) => {
+      const cachePath = join(root, "sass");
+      ensureDirSync(cachePath);
+      const legacy = join(cachePath, "sass.kv");
+      Deno.writeTextFileSync(legacy, LEGACY_SENTINEL);
+
+      const temp = createTempContext();
+      try {
+        const cache = await sassCache(cachePath, temp);
+        const out = await cache.setFromHash(ID_HASH, INPUT_HASH, "id", (p) => {
+          Deno.writeTextFileSync(p, "/* css */");
+          return Promise.resolve();
+        });
+        assertMatch(v8Branch, /^\d+\.\d+$/);
+        const storeDir = join(cachePath, `v8-${v8Branch}`);
+        assertEquals(dirname(out), storeDir);
+        assert(existsSync(join(storeDir, "sass.kv")));
+        assertEquals(await cache.getFromHash(ID_HASH, INPUT_HASH), out);
+        assertEquals(Deno.readTextFileSync(legacy), LEGACY_SENTINEL);
+      } finally {
+        temp.cleanup();
+      }
+    }, "quarto-sass-cache-v8");
   },
 );
