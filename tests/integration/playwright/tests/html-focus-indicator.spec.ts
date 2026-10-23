@@ -166,6 +166,8 @@ test("paired light/dark theme swaps the focus ring tones", async ({
 }) => {
   const white = "rgb(255, 255, 255)";
   const whiteShadow = /^rgb\(255, 255, 255\) 0px 0px 0px 2px/;
+  // Any color but white, in the ring's 2px inner-band geometry.
+  const nonWhiteShadow = /^rgb\((?!255, 255, 255\))\d+, \d+, \d+\) 0px 0px 0px 2px/;
 
   await page.goto(getUrl("html/focus-ring-light-dark.html"), {
     waitUntil: "load",
@@ -185,5 +187,5 @@ test("paired light/dark theme swaps the focus ring tones", async ({
   expect(await tabUntilFocused(page, browserName, link)).toBe(true);
   await expect(link).toHaveCSS("outline-style", "solid");
   await expect(link).toHaveCSS("outline-color", white);
-  await expect(link).not.toHaveCSS("box-shadow", whiteShadow);
+  await expect(link).toHaveCSS("box-shadow", nonWhiteShadow);
 });
