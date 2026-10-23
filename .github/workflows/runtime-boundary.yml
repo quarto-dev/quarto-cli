@@ -3,7 +3,8 @@
 # (src, src-js, resources, package/src, tests). Two modes:
 #   - pull_request: compares the merge commit with its first parent (the base
 #     branch tip) and fails only for a Deno.* API that src/deno_ral replaces;
-#     other increases are warnings plus a maintainer block in the job summary.
+#     other increases are warnings plus a maintainer block in the job summary,
+#     or notices once the PR's own baseline accepts them.
 #   - push (main) and workflow_dispatch: fails when a count rises above
 #     tools/runtime-boundary-baseline.json.
 # See dev-docs/runtime-migration/02-runtime-boundary-check.md.
