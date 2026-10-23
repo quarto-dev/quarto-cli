@@ -290,10 +290,13 @@ sassDamageTest(
     damageKvTableRoot(file);
     const temp = createTempContext();
     try {
+      const errors: Error[] = [];
       for (let i = 0; i < 2; i++) {
         const e = await assertRejects(() => sassCache(cachePath, temp), Error);
         assertStringIncludes(e.message, "Delete the folder");
+        errors.push(e);
       }
+      assertEquals(errors[1].message, errors[0].message);
       // Fails with os error 32 on Windows if a handle leaked.
       Deno.removeSync(storeDir, { recursive: true });
     } finally {
