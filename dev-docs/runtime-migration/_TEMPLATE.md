@@ -282,7 +282,7 @@ export interface KeyValueStore {
   list<T>(prefix: KvKey): AsyncIterable<KvEntry<T>>;
   close(): void;
 }
-export function openKeyValueStore(dir: string, name: string): Promise<KeyValueStore>; // the backend chooses the file: `<dir>/<name>.kv` for PR 18's Deno.openKv backend (Quarto <= 1.11), `<dir>/<name>.json` for PR 30's JSON backend, the only one on both runtimes from PR 30 on; Quarto versions on different backends never share a file. Writes take the owned lock directory `<name>.json.lock` (PR 30, Interfaces, "Lock ownership": owner marker, liveness probe, guarded release; PR 33's build lock copies the rule)
+export function openKeyValueStore(dir: string, name: string): Promise<KeyValueStore>; // the backend chooses the file: `<dir>/<name>.kv` for PR 18's Deno.openKv backend (Quarto <= 1.11), `<dir>/<name>.json` for PR 30's JSON backend, the only one on both runtimes from PR 30 on; Quarto versions on different backends never share a file. The Deno backend also keeps each store per V8 release branch (`v8-<v8Branch>` directory, `platform.ts`, #15180), since Deno KV files written by a newer V8 cannot be read by an older one; the JSON backend needs no tag. Writes take the owned lock directory `<name>.json.lock` (PR 30, Interfaces, "Lock ownership": owner marker, liveness probe, guarded release; PR 33's build lock copies the rule)
 // Contract (PR 18 tests): a second handle on the same store sees a committed `set`; two processes writing different keys both persist (Node: lock + read-modify-rename).
 ```
 
@@ -290,6 +290,7 @@ export function openKeyValueStore(dir: string, name: string): Promise<KeyValueSt
 
 ```ts
 export const isWindows: boolean; export const isMac: boolean; export const isLinux: boolean; export const os: string; export const arch: string; // existing
+export const v8Branch: string; // existing (#15180): V8 release branch "<major>.<minor>"; Deno KV stores live under `v8-<v8Branch>/` because the V8 serializer format changes between branches. Every plan that rewrites platform.ts keeps it (PR 27b: from `process.versions.v8`); PR 30 removes it with its last consumer
 export function runtime(): { name: "deno" | "node" | "bun"; version: string }; // real detection from PR 19: Deno when `typeof Deno !== "undefined" && "version" in Deno`, Bun when `process.versions.bun`, else Node
 export function consoleColumns(): number | undefined;
 export function inspect(value: unknown, options?: { depth?: number; colors?: boolean }): string;
