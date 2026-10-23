@@ -75,7 +75,7 @@ Test isolated functionality:
 
 ```typescript
 import { unitTest } from "../test.ts";
-import { assert, assertEquals } from "testing/asserts";
+import { assert, assertEquals } from "../asserts.ts";
 
 // deno-lint-ignore require-await
 unitTest("feature - description", async () => {
@@ -84,7 +84,7 @@ unitTest("feature - description", async () => {
 });
 ```
 
-Assertions from `testing/asserts`: `assert`, `assertEquals`, `assertThrows`, `assertRejects`
+Assertions come from `tests/asserts.ts` (relative path, e.g. `../asserts.ts` from `tests/unit/`), never from a std assertion module directly; the Runtime Boundary check flags a direct std import in tests. Exports: `assert`, `assertEquals`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `assertStringIncludes`, `fail`, `AssertionError`
 
 ## Common Patterns
 
