@@ -8,7 +8,8 @@
  * standard library directly instead of through src/deno_ral/. Two modes:
  * without flags it fails when any count exceeds the committed baseline (main);
  * with --against <rev> it compares the working tree with <rev> and fails only
- * for a Deno.* API that src/deno_ral already replaces (pull requests).
+ * for a Deno.* API that src/deno_ral already replaces (pull requests); other
+ * increases are warnings until the working tree's baseline accepts them.
  *
  * Usage (from the repository root):
  *   quarto run --dev tools/check-runtime-boundary.ts
@@ -501,6 +502,7 @@ export interface Annotation {
 export interface Rendered {
   errors: Annotation[];
   warnings: Annotation[];
+  accepted: Annotation[]; // increases the PR's own baseline already covers
   notices: string[];
   summary: string; // markdown for GITHUB_STEP_SUMMARY
   failed: boolean; // errors.length > 0
@@ -514,17 +516,29 @@ const kAcceptSentence = kAcceptClause[0].toUpperCase() + kAcceptClause.slice(1);
 
 const signed = (n: number) => n > 0 ? `+${n}` : `${n}`;
 
-/** `current` is measure() of the working tree (the merge result on CI), so `current - deltas` is the base. */
+/** `current` is measure() of the working tree (the merge result on CI), so `current - deltas` is the base.
+ * `baseline` is the base revision's baseline, `merged` the working tree's: a count the PR raised
+ * in `merged` and does not exceed is accepted, the state the push check on main will see. */
 export function renderDelta(
   report: DeltaReport,
   current: Baseline,
   baseline: Baseline,
+  merged: Baseline = baseline,
 ): Rendered {
   const errors: Annotation[] = [];
   const warnings: Annotation[] = [];
+  const accepted: Annotation[] = [];
   const notices: string[] = [];
   const changes: string[] = [];
   const warnedScopes = new Set<string>();
+
+  const isAccepted = (scope: string, field: keyof BoundaryCounts) => {
+    const raised = merged[scope]?.[field];
+    return raised !== undefined &&
+      raised > (baseline[scope]?.[field] ?? 0) &&
+      (current[scope]?.[field] ?? 0) <= raised;
+  };
+  const acceptedSuffix = `; accepted by this PR's ${kBaselineRelPath}.`;
 
   for (const finding of report.findings) {
     const annotation = (message: string): Annotation => {
@@ -540,6 +554,14 @@ export function renderDelta(
       changes.push(
         `- \`${finding.file}\`${where}: use ${finding.replacement} instead of Deno.${finding.name}`,
       );
+      continue;
+    }
+    if (isAccepted(finding.scope, finding.kind === "deno" ? "denoCalls" : "stdImportFiles")) {
+      accepted.push(annotation(
+        finding.kind === "deno"
+          ? `${finding.scope}: +${finding.delta} Deno.${finding.name} in ${finding.file}${acceptedSuffix}`
+          : `${finding.scope}: ${finding.file} now imports the standard library directly (${finding.name})${acceptedSuffix}`,
+      ));
       continue;
     }
     warnedScopes.add(finding.scope);
@@ -591,6 +613,18 @@ export function renderDelta(
   if (errors.length > 0) {
     summary.push("### What to change", "", ...changes, "");
   }
+  const acceptedRows = Object.entries(report.deltas).flatMap(([scope, d]) =>
+    kFields
+      .filter((field) => d[field] > 0 && isAccepted(scope, field))
+      .map((field) =>
+        `- ${scope} ${kFieldLabels[field]}: baseline ${
+          baseline[scope]?.[field] ?? 0
+        } → ${merged[scope][field]}`
+      )
+  );
+  if (acceptedRows.length > 0) {
+    summary.push("### Accepted in this PR", "", ...acceptedRows, "");
+  }
   if (warnings.length > 0) {
     const expected = Object.entries(current)
       .filter(([scope]) => warnedScopes.has(scope))
@@ -610,6 +644,7 @@ export function renderDelta(
   return {
     errors,
     warnings,
+    accepted,
     notices,
     summary: summary.join("\n"),
     failed: errors.length > 0,
@@ -838,9 +873,12 @@ if (import.meta.main) {
     } catch (e) {
       usage(`cannot use ${kBaselineRelPath} at ${against}: ${(e as Error).message}`);
     }
-    const rendered = renderDelta(diffChanges(changes), current, baseBaseline);
+    const rendered = renderDelta(diffChanges(changes), current, baseBaseline, baseline);
     for (const message of rendered.notices) {
       notice(message);
+    }
+    for (const { message, file, line } of rendered.accepted) {
+      notice(message, { file, line });
     }
     for (const { message, file, line } of rendered.warnings) {
       warning(message, { file, line });

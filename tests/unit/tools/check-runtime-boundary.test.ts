@@ -10,7 +10,8 @@
 
 import { unitTest } from "../../test.ts";
 import { assert, assertEquals, assertRejects, assertThrows } from "../../asserts.ts";
-import { join } from "../../../src/deno_ral/path.ts";
+import { join, resolve } from "../../../src/deno_ral/path.ts";
+import { quartoDevBinCmd } from "../../quarto-cmd.ts";
 import { ensureDirSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { execProcess } from "../../../src/core/process.ts";
 import { createTempContext } from "../../../src/core/temp.ts";
@@ -656,6 +657,76 @@ unitTest("check-runtime-boundary - baselineAt reads the baseline committed at th
     await git(root, "add", ".");
     await git(root, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "malformed");
     await assertRejects(() => baselineAt(root, "HEAD"), Error, "baseline");
+  } finally {
+    temp.cleanup();
+  }
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta accepts only counts the PR itself raised", async () => {
+  const report = {
+    deltas: { "tests": { denoCalls: 1, stdImportFiles: 1 } },
+    findings: [
+      { scope: "tests", file: "tests/unit/a.test.ts", kind: "deno" as const, name: "cwd", delta: 1 },
+      { scope: "tests", file: "tests/unit/c.test.ts", kind: "std" as const, name: "testing/asserts", delta: 1, suggestion: "tests/asserts.ts" },
+    ],
+  };
+  const current = { "tests": { denoCalls: 830, stdImportFiles: 178 } };
+  // main sits below its baseline for calls; the PR raises only std-import files.
+  const base = { "tests": { denoCalls: 832, stdImportFiles: 177 } };
+  const rendered = renderDelta(report, current, base, { "tests": { denoCalls: 832, stdImportFiles: 178 } });
+  assertEquals(rendered.accepted.map((a) => a.message), [
+    "tests: tests/unit/c.test.ts now imports the standard library directly (testing/asserts); accepted by this PR's tools/runtime-boundary-baseline.json.",
+  ]);
+  assertEquals(rendered.warnings.map((w) => w.file), ["tests/unit/a.test.ts"]);
+  assert(rendered.summary.includes("- tests std-import files: baseline 177 → 178"));
+  assert(!rendered.summary.includes(`- tests ${DENO}* calls`));
+  assert(rendered.summary.includes("### Maintainer action before merging"));
+});
+
+/** Runs the script in PR mode on `root`, as CI does, and returns its stdout. */
+async function runAgainst(root: string, rev: string): Promise<string> {
+  const result = await execProcess({
+    cmd: resolve(quartoDevBinCmd()),
+    args: [
+      "run", "--dev", resolve("..", "tools", "check-runtime-boundary.ts"),
+      "--root", root, "--against", rev,
+    ],
+    env: { GITHUB_ACTIONS: "true", GITHUB_STEP_SUMMARY: "" },
+    stdout: "piped",
+    stderr: "piped",
+  });
+  assert(result.success, `check-runtime-boundary failed: ${result.stdout}\n${result.stderr}`);
+  return result.stdout ?? "";
+}
+
+unitTest("check-runtime-boundary - PR mode: an increase the PR's baseline already accepts is a notice, not a warning", async () => {
+  const temp = createTempContext();
+  try {
+    const root = temp.createDir();
+    makeRepo(root);
+    writeFixture(root, "tools/runtime-boundary-baseline.json", JSON.stringify(kExpected));
+    await git(root, "init");
+    await git(root, "add", ".");
+    await git(root, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "base");
+
+    writeFixture(root, "tests/j.test.ts", `${DENO}cwd();\n`);
+    const raised = { ...kExpected, "tests": { denoCalls: 2, stdImportFiles: 2 } };
+    writeFixture(root, "tools/runtime-boundary-baseline.json", JSON.stringify(raised));
+
+    const out = await runAgainst(root, "HEAD");
+    assert(!out.includes("::warning"), out);
+    assert(out.includes("::notice file=tests/j.test.ts,line=1::tests: +1 " + DENO + "cwd in tests/j.test.ts; accepted by this PR's tools/runtime-boundary-baseline.json"), out);
+    assert(out.includes("### Accepted in this PR"), out);
+    assert(out.includes(`- tests ${DENO}* calls: baseline 1 → 2`), out);
+    assert(!out.includes("### Maintainer action before merging"), out);
+
+    // A baseline raised for a smaller increase than the PR makes leaves the warnings.
+    writeFixture(root, "tests/k.test.ts", `${DENO}cwd();\n`);
+    const stale = await runAgainst(root, "HEAD");
+    assert(stale.includes("::warning file=tests/j.test.ts"), stale);
+    assert(stale.includes("### Maintainer action before merging"), stale);
+    assert(!stale.includes("### Accepted in this PR"), stale);
   } finally {
     temp.cleanup();
   }
