@@ -1,0 +1,30 @@
+---
+format:
+  revealjs:
+    transition: none
+    controls: true
+---
+
+## First slide
+
+First slide content.
+
+::: {.fragment}
+A fragment.
+:::
+
+::: {.notes}
+First slide notes.
+:::
+
+## Slide without notes
+
+This slide deliberately has no notes.
+
+## Last slide
+
+Last slide content.
+
+::: {.notes}
+Last slide notes.
+:::
