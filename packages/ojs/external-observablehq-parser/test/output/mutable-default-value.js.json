@@ -1,0 +1,86 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 43,
+  "id": {
+    "type": "Identifier",
+    "start": 9,
+    "end": 11,
+    "name": "fn"
+  },
+  "body": {
+    "type": "FunctionExpression",
+    "start": 0,
+    "end": 42,
+    "id": {
+      "type": "Identifier",
+      "start": 9,
+      "end": 11,
+      "name": "fn"
+    },
+    "expression": false,
+    "generator": false,
+    "async": false,
+    "params": [
+      {
+        "type": "AssignmentPattern",
+        "start": 12,
+        "end": 25,
+        "left": {
+          "type": "Identifier",
+          "start": 12,
+          "end": 13,
+          "name": "y"
+        },
+        "right": {
+          "type": "MutableExpression",
+          "start": 16,
+          "end": 25,
+          "id": {
+            "type": "Identifier",
+            "start": 24,
+            "end": 25,
+            "name": "x"
+          }
+        }
+      }
+    ],
+    "body": {
+      "type": "BlockStatement",
+      "start": 27,
+      "end": 42,
+      "body": [
+        {
+          "type": "ReturnStatement",
+          "start": 31,
+          "end": 40,
+          "argument": {
+            "type": "Identifier",
+            "start": 38,
+            "end": 39,
+            "name": "y"
+          }
+        }
+      ]
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "MutableExpression",
+      "start": 16,
+      "end": 25,
+      "id": {
+        "type": "Identifier",
+        "start": 24,
+        "end": 25,
+        "name": "x"
+      }
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

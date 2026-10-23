@@ -1,0 +1,16 @@
+---
+author: Jane Doe
+date: 2025-04-30
+citation: true
+google-scholar: true
+appendix-cite-as: [display, bibtex]
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['#quarto-citation']
+        - ['meta[name="citation_title"]']
+---
+
+A document without a `title` still renders the citation appendix, with no `citation_title` meta tag.

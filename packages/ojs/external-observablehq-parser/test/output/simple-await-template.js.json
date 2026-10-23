@@ -1,0 +1,60 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 19,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 18,
+    "expressions": [
+      {
+        "type": "AwaitExpression",
+        "start": 3,
+        "end": 16,
+        "argument": {
+          "type": "Identifier",
+          "start": 9,
+          "end": 16,
+          "name": "promise"
+        }
+      }
+    ],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 1,
+        "end": 1,
+        "value": {
+          "raw": "",
+          "cooked": ""
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 17,
+        "end": 17,
+        "value": {
+          "raw": "",
+          "cooked": ""
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": true,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 9,
+      "end": 16,
+      "name": "promise"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

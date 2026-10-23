@@ -61,3 +61,5 @@ tests/docs/callouts.pdf
 # quarto cache directories (populated at render time)
 .quarto
 .orca
+# br doctor per-run artifacts
+.doctor/

@@ -26,11 +26,11 @@ import {
 } from "../deno_ral/path.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
 import {
-  kSkipHidden,
   normalizePath,
   pathWithForwardSlashes,
   resolvePathGlobs,
   safeExistsSync,
+  skipHiddenWithin,
 } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
@@ -530,7 +530,7 @@ export function extensionFilesFromDirs(dirs: string[]) {
         {
           includeDirs: false,
           followSymlinks: false,
-          skip: [kSkipHidden],
+          skip: [skipHiddenWithin(dir)],
         },
       )
     ) {
@@ -576,7 +576,9 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
       if (extensionPath) {
         extensionDirectories.push(extensionPath);
       }
-      currentDir = dirname(currentDir);
+      const nextDir = dirname(currentDir);
+      if (nextDir === currentDir) break;
+      currentDir = nextDir;
     } while (isSubdir(projectDir, currentDir) || projectDir === currentDir);
     return extensionDirectories;
   } else if (input) {
@@ -939,7 +941,12 @@ async function readExtension(
             let projectDir = extensionDir, last;
             do {
               last = basename(projectDir);
-              projectDir = dirname(projectDir);
+              const nextDir = dirname(projectDir);
+              if (nextDir === projectDir) {
+                projectDir = "";
+                break;
+              }
+              projectDir = nextDir;
             } while (projectDir && last !== "_extensions");
             if (projectDir) {
               (object.project as Record<string, unknown>)[key] = relative(

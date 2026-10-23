@@ -1,0 +1,17 @@
+---
+title: "Project-relative directory metadata logo (deprecated)"
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'img/top\.png.*project'
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.\.(/|\\)img(/|\\)top\.png" class="slide-logo"'
+        - []
+---
+
+## Section

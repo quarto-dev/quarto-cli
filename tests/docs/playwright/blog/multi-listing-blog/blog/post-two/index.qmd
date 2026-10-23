@@ -1,0 +1,8 @@
+---
+title: "Post two"
+date: "2026-01-01"
+categories:
+  - alpha
+---
+
+Body of post two.

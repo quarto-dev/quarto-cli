@@ -25,7 +25,7 @@ The core model: a page ships **one presentation or two**. When it ships two, the
 - `false` — dark mode exists; the default is light.
 - `true` — dark mode exists; the default is dark.
 
-It gates the toggle (`src/project/types/website/website-navigation.ts:356-362`), the before-body script (`src/format/html/format-html.ts:351`, template written at `:530`), and the body class (`format-html-bootstrap.ts:1073-1078`). Its inputs: `darkModeDefaultMetadata()` (`format-html-info.ts:46-70`) reads key order of `theme:` then `brand:`; `darkModeDefault()` (`:71-85`) adds a fallback on `format.render.brand?.dark`.
+It gates the toggle (`src/project/types/website/website-navigation.ts:356-362`), the before-body script (`src/format/html/format-html.ts:351`, template written at `:530`), and the body class (`format-html-bootstrap.ts:1073-1078`). Its input is `darkModeDefault()` (`format-html-info.ts:56-66`): it reads `theme:` key order first, then `brand:` key order only when `format.render.brand?.dark` is loaded, and falls back to `false` for a loaded dark brand with no `brand:` key order. `darkModeDefaultMetadata()` (`:49-54`) reads the same key orders from metadata alone, without the loaded-brand check; it exists for `render-contexts.ts`, which calls it before the brand is loaded.
 
 ## Configuration surface
 
@@ -53,7 +53,7 @@ Brand SASS layers become one more bundle with a `dark` half (`src/core/sass/bran
 
 ### Precedence between `theme.dark` and brand dark
 
-- **Default mode:** `theme:` key order wins over `brand:` key order (`format-html-info.ts:46-70`). A unified `_brand.yml` carries no preference and defaults to light (`:81-82`).
+- **Default mode:** `theme:` key order wins over `brand:` key order (`format-html-info.ts:56-66`). A unified `_brand.yml` carries no preference and defaults to light (`:63`).
 - **Variable values:** SASS `!default` order. Brand normally sits before the theme, so the theme overrides brand. An explicit `brand` marker in the theme list (`theme: {dark: [cyborg, brand]}`) reverses this (`pandoc-html.ts:91-137`, `format-html-scss.ts:216-219`). Pinned by `tests/integration/playwright/tests/html-dark-mode.spec.ts` and `html-dark-mode-defaultlight.spec.ts`.
 
 ### `respect-user-color-scheme`
@@ -115,6 +115,7 @@ To read the active mode: the `body` class, or the `rel` of `link.quarto-color-sc
 | Situation | Rendered result | Trap |
 |---|---|---|
 | Light-only `_brand.yml` | Full `quarto-color-scheme`/`quarto-color-alternate` link set, all `data-mode="light"`, **no toggle, no before-body script** | An "alternate link exists" probe reports two modes; there is one. Cause: stylesheets key off `project.resolveBrand()` (always split) while the toggle keys off `format.render.brand.dark` (`render-contexts.ts:574-585`). Fixture: `tests/docs/axe-scan/sites/brand-light-only` |
+| Dark brand file holding only comments | Warning, file ignored; without a `theme.dark` the page has a single light mode and no toggle, with `theme: {light, dark}` the theme's dark mode stays | `brand:` metadata still lists `dark:`; anything reading its key order must check the loaded brand (`format.render.brand.dark`) |
 | `theme: {light: cosmo, dark: flatly}` | Alternate link with `data-mode="light"` | A `[data-mode="dark"]` probe reports one mode; there are two |
 | `theme: darkly` | One link, `data-mode="dark"`, no `quarto-color-scheme` class, `body.quarto-light` | Visually dark page that every declaration-level signal calls light |
 | `theme: none` / `html+minimal` + brand dark | Untested edge: `brandSassFormatExtras` still contributes a bootstrap bundle (`pandoc-html.ts:284-294`) | Possible alternate stylesheets with no JS to manage them |
@@ -127,7 +128,7 @@ To read the active mode: the `body` class, or the `rel` of `link.quarto-color-sc
 | `kTheme` = `"theme"` | `src/config/constants.ts:635` |
 | `kBrand` = `"brand"` | `src/config/constants.ts:123` |
 | `kRespectUserColorScheme` | `src/config/constants.ts:156` |
-| `formatDarkMode`, `darkModeDefault`, `darkModeDefaultMetadata` | `src/format/html/format-html-info.ts:33-85` |
+| `formatDarkMode`, `darkModeDefault`, `darkModeDefaultMetadata` | `src/format/html/format-html-info.ts:33-78` |
 | `brandHasDarkMode`, `splitUnifiedBrand` | `src/core/brand/brand.ts:545-590`, `:773-805` |
 | `cssHasDarkModeSentinel` | `src/core/pandoc/css.ts:45-47` |
 | `attribForThemeStyle` (link attributes) | `src/command/render/pandoc-html.ts:658-679` |

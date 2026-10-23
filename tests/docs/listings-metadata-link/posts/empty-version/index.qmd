@@ -1,0 +1,6 @@
+---
+title: "Post with an empty version"
+version: ""
+---
+
+Text.

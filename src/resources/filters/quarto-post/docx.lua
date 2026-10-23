@@ -201,3 +201,21 @@ function calloutDocx(node)
     return calloutDocxSimple(node, type, hasIcon)
   end
 end
+
+-- The DOCX writer uses Image.caption for the picture description. Apply
+-- fig-alt after layout has extracted the visible figure caption.
+function render_docx_fixups()
+  if not _quarto.format.isDocxOutput() then
+    return {}
+  end
+  return {
+    Image = function(image)
+      local alt = image.attributes[kFigAlt] or image.attributes["alt"]
+      if alt ~= nil then
+        image.caption = pandoc.Inlines{pandoc.Str(alt)}
+        image.attributes[kFigAlt] = nil
+        return image
+      end
+    end
+  }
+end

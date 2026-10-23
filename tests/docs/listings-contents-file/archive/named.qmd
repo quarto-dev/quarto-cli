@@ -1,0 +1,8 @@
+---
+title: Named
+listing:
+  contents:
+    - posts
+    - posts/post.qmd
+    - named.qmd
+---

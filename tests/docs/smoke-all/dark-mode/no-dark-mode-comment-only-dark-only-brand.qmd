@@ -1,0 +1,21 @@
+---
+title: "No dark mode when the only dark brand file is ignored"
+format: html
+brand:
+  dark: comment-only-dark-only-brand.yml
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'comment-only-dark-only-brand\.yml has no content and will be ignored'
+      ensureHtmlElements:
+        - ['body.quarto-light']
+        - ['body.quarto-dark', 'link.quarto-color-alternate']
+      ensureFileRegexMatches:
+        - []
+        - ['quarto-color-scheme-toggle']
+---
+
+The dark brand file is the only dark source and holds only comments, so it is ignored and the page has a single light mode.

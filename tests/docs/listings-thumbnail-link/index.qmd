@@ -1,0 +1,10 @@
+---
+title: "Posts"
+listing:
+  contents: posts
+  type: default
+  sort: "title"
+---
+
+A default listing with no `image-placeholder`. The post without an image
+gets an empty placeholder in its thumbnail link.

@@ -20,6 +20,7 @@ import { mappedConcat, mappedIndexToLineCol } from "../lib/mapped-text.ts";
 
 import { lineOffsets } from "../lib/text.ts";
 import {
+  kCellFigAlt,
   kFigAlign,
   kFigHeight,
   kFigResponsive,
@@ -30,6 +31,7 @@ import {
   fixupAlignment,
   makeResponsive,
   resolveSize,
+  setSvgAlt,
   setSvgSize,
 } from "../svg.ts";
 import { Element, parseHtml } from "../deno-dom.ts";
@@ -135,11 +137,16 @@ const dotHandler: LanguageHandler = {
       const captionSpecifier = includeCaption
         ? (cell.options?.["fig-cap"] || "")
         : "";
+      const figAlt = options[kCellFigAlt];
+      const altSpecifier = typeof figAlt === "string"
+        ? ` fig-alt=${JSON.stringify(figAlt.replace(/[\r\n\t]+/g, " "))}`
+        : "";
 
-      return `\n![${captionSpecifier}](${sourceName}){${widthSpecifier}${heightSpecifier}${posSpecifier}${figEnvSpecifier}${idSpecifier}}\n`;
+      return `\n![${captionSpecifier}](${sourceName}){${widthSpecifier}${heightSpecifier}${posSpecifier}${figEnvSpecifier}${idSpecifier}${altSpecifier}}\n`;
     };
 
-    const fixupRevealAlignment = (svg: Element) => {
+    const fixupSvg = (svg: Element) => {
+      setSvgAlt(svg, options[kCellFigAlt]);
       if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
         const align = (options?.[kFigAlign] as string) ?? "center";
         fixupAlignment(svg, align);
@@ -159,9 +166,9 @@ const dotHandler: LanguageHandler = {
         responsive && options[kFigWidth] === undefined &&
         options[kFigHeight] === undefined
       ) {
-        svg = await makeResponsive(svg, fixupRevealAlignment);
+        svg = await makeResponsive(svg, fixupSvg);
       } else {
-        svg = await setSvgSize(svg, options, fixupRevealAlignment);
+        svg = await setSvgSize(svg, options, fixupSvg);
       }
 
       svg = mappedConcat(["```{=html}\n", svg, "\n```\n"]);

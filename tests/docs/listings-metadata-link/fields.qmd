@@ -1,0 +1,10 @@
+---
+title: "Posts without metadata fields"
+listing:
+  contents: posts
+  type: default
+  sort: "title"
+  fields: [image, title]
+---
+
+A default listing whose fields exclude every metadata field.

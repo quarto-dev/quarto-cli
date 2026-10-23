@@ -1,0 +1,44 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 19,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 18,
+    "body": [
+      {
+        "type": "ExpressionStatement",
+        "start": 4,
+        "end": 16,
+        "expression": {
+          "type": "YieldExpression",
+          "start": 4,
+          "end": 15,
+          "delegate": false,
+          "argument": {
+            "type": "Identifier",
+            "start": 10,
+            "end": 15,
+            "name": "value"
+          }
+        }
+      }
+    ]
+  },
+  "async": false,
+  "generator": true,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 10,
+      "end": 15,
+      "name": "value"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

@@ -22,6 +22,8 @@ QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh --agent unit/my-test.test.ts
 $env:QUARTO_TESTS_NO_CONFIG="true"; .\run-tests.ps1 --agent unit/my-test.test.ts
 ```
 
+Passing any `.qmd`, `.md` or `.ipynb` target makes the runner run only `smoke/smoke-all.test.ts` and skip every `.test.ts` target in the same call. A one-line notice is printed, but the `--agent` tally looks like a full pass, so run unit and smoke test files in a separate call.
+
 Plain form (no `--agent`), full flag list, rerun-on-failure workflow, bash-only reporter-collision caveat: `tests/README.md`.
 
 **Binary mode:** set `QUARTO_TEST_BIN` to an installed Quarto outside the checkout.

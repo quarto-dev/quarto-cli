@@ -1,0 +1,10 @@
+project:
+  type: website
+
+website:
+  title: "issue-12016-remote-site-image"
+  site-url: https://example.com/
+  open-graph:
+    image: https://images.example.com/social.jpg
+    image-width: 1200
+    image-height: 630

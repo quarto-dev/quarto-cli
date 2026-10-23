@@ -10,6 +10,7 @@ import { InternalError } from "../lib/error.ts";
 import { md5HashAsync } from "../hash.ts";
 import { join } from "../../deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
+import { v8Branch } from "../../deno_ral/platform.ts";
 import { TempContext } from "../temp.ts";
 import { safeRemoveIfExists } from "../path.ts";
 import * as log from "../../deno_ral/log.ts";
@@ -143,7 +144,9 @@ class SassCache implements Cloneable<SassCache> {
   }
 
   // add a cleanup method to register a cleanup handler
-  cleanup(temp: TempContext | undefined) {
+  // registryKey is the path the cache was requested with, which differs from
+  // this.path (the per-V8-branch store dir under it).
+  cleanup(temp: TempContext | undefined, registryKey: string) {
     const registerCleanup = temp ? temp.onCleanup : onCleanup;
     const cachePath = this.path;
     registerCleanup(() => {
@@ -158,7 +161,7 @@ class SassCache implements Cloneable<SassCache> {
       } finally {
         // Drop the registry entry so a later resolve of the same path opens a
         // fresh KV handle instead of reusing this now-closed one (#14594, #13955).
-        delete _sassCache[cachePath];
+        delete _sassCache[registryKey];
       }
     });
   }
@@ -205,14 +208,15 @@ export async function sassCache(
   temp: TempContext | undefined,
 ): Promise<SassCache> {
   if (!_sassCache[path]) {
-    log.debug(`Creating SassCache at ${path}`);
-    ensureDirSync(path);
-    const kvFile = join(path, "sass.kv");
+    const storeDir = join(path, `v8-${v8Branch}`);
+    log.debug(`Creating SassCache at ${storeDir}`);
+    ensureDirSync(storeDir);
+    const kvFile = join(storeDir, "sass.kv");
     const kv = await Deno.openKv(kvFile);
     await checkVersion(kv, kvFile);
-    _sassCache[path] = new SassCache(kv, path);
+    _sassCache[path] = new SassCache(kv, storeDir);
     // register cleanup for this cache
-    _sassCache[path].cleanup(temp);
+    _sassCache[path].cleanup(temp, path);
   }
   log.debug(`Returning SassCache at ${path}`);
   const result = _sassCache[path];

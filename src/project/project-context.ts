@@ -34,10 +34,9 @@ import { isYamlPath, readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import {
   ensureTrailingSlash,
-  kSkipHidden,
   normalizePath,
   pathWithForwardSlashes,
-  safeExistsSync,
+  skipHiddenWithin,
 } from "../core/path.ts";
 
 import { includedMetadata, mergeProjectMetadata } from "../config/metadata.ts";
@@ -691,6 +690,17 @@ type ProjectTypeDetector = {
   detect: string[][];
 };
 
+// existsSync treats PermissionDenied as existing, so a detect path below a
+// directory that can't be searched would match even if it doesn't exist.
+function detectPathExists(path: string) {
+  try {
+    Deno.statSync(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function projectExtensionsConfigResolver(
   context: ExtensionContext,
   dir: string,
@@ -723,7 +733,7 @@ async function projectExtensionsConfigResolver(
     for (const detector of projectTypeDetectors) {
       if (
         detector.detect.some((files) =>
-          files.every((file) => safeExistsSync(join(dir, file)))
+          files.every((file) => detectPathExists(join(dir, file)))
         )
       ) {
         return Promise.resolve({
@@ -928,7 +938,7 @@ export function projectYamlFiles(dir: string): string[] {
       // virtualenvs include symblinks to R or Python libraries that are in turn
       // circular. much safer to not follow symlinks!
       followSymlinks: false,
-      skip: [kSkipHidden].concat(
+      skip: [skipHiddenWithin(dir)].concat(
         projIgnoreGlobs.map((ignore) => globToRegExp(join(dir, ignore) + SEP)),
       ),
     })
@@ -1073,7 +1083,7 @@ async function projectInputFilesInternal(
           // virtualenvs include symblinks to R or Python libraries that are in turn
           // circular. much safer to not follow symlinks!
           followSymlinks: false,
-          skip: [kSkipHidden].concat(
+          skip: [skipHiddenWithin(dir)].concat(
             engineIgnoreDirs().map((ignore) =>
               globToRegExp(join(dir, ignore) + SEP)
             ),

@@ -1,0 +1,8 @@
+---
+title: "Note one"
+date: "2026-01-03"
+categories:
+  - gamma
+---
+
+Body of note one.

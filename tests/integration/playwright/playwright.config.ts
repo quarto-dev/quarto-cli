@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { fixtureServerPort, fixtureServerUrl } from './src/utils';
 
 /**
  * Read environment variables from file.
@@ -40,7 +41,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://127.0.0.1:8080',
+    baseURL: fixtureServerUrl,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -97,9 +98,12 @@ export default defineConfig({
   webServer: [
     {
       // HTTP server for rendered HTML files
-      command: 'uv run python -m http.server 8080 --bind 127.0.0.1',
-      url: 'http://127.0.0.1:8080',
-      reuseExistingServer: !isCI,
+      command: `uv run python -m http.server ${fixtureServerPort} --bind 127.0.0.1`,
+      url: fixtureServerUrl,
+      // Never reuse: a server already on the port may be another app, or another
+      // checkout serving its own tests/docs/playwright, so tests would run
+      // against the wrong HTML. A busy port fails the run instead.
+      reuseExistingServer: false,
       cwd: '../../docs/playwright',
       // http.server does a reverse DNS lookup before listening, slow on some hosts
       timeout: 120000,
@@ -109,6 +113,9 @@ export default defineConfig({
       // Socket.IO multiplex server for RevealJS
       command: 'npm start',
       url: 'http://127.0.0.1:1948',
+      // Reused locally: it relays socket messages and serves no test fixtures,
+      // and its port is fixed in revealjs/multiplex.qmd, so concurrent runs
+      // from several checkouts share one instance.
       reuseExistingServer: !isCI,
       cwd: './multiplex-server',
       timeout: 10000,

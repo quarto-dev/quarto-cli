@@ -95,6 +95,11 @@ navigation-toolbar-label: "Barra de herramientas"  # wikidata Q371434
 navigation-page-label: "Página"                    # libreoffice sw
 navigation-breadcrumbs-label: "Hilo de Ariadna"    # wikidata Q846205
 
+# Accessible names for scrollable regions (never shown as visible text). One rule
+# for translators: keep the word that says the region scrolls.
+scrollable-code-label: "Código desplazable"    # firefox devtools + code-summary — assembled, needs review
+scrollable-output-label: "Salida desplazable"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabla"
 crossref-lst-title: "Listado"

@@ -12,6 +12,7 @@ import { normalize as posixNormalize } from "path/posix";
 // node:path compat, which lacks SEPARATOR, fromFileUrl, etc. Importing from
 // "@std/path" (a non-colliding alias) preserves correct typings.
 export {
+  DELIMITER,
   fromFileUrl,
   globToRegExp,
   isGlob,

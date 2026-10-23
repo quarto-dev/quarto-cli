@@ -1,0 +1,11 @@
+---
+title: "Marked preview images"
+---
+
+The first marked preview image is a data URI, so the next marked one is used, not the first local image.
+
+![A data URI](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==){.preview-image}
+
+![The site image](site.png)
+
+![A figure](figure.png){.preview-image}

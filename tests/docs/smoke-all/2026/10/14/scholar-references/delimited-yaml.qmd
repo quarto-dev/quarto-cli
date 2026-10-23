@@ -1,0 +1,15 @@
+---
+title: Scholar metadata for a delimited YAML bibliography
+format: html
+google-scholar: true
+bibliography: references-delimited.yaml
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_reference"][content*="citation_title=Cited reference;"]']
+---
+
+The bibliography is a YAML file wrapped in `---` delimiters, with a duplicated `title` key. Pandoc warns and keeps the last value, so the Scholar reference tags do too.
+
+This article cites one work [@cited].

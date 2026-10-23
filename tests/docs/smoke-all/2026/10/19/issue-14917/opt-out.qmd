@@ -1,0 +1,26 @@
+---
+title: "Opt out"
+open-graph: false
+twitter-card: false
+format:
+  html:
+    include-in-header:
+      - text: |
+          <meta property="og:site_name" content="PAGE SITE NAME">
+          <meta property="og:title" content="PAGE TITLE">
+          <meta name="twitter:title" content="PAGE TITLE">
+          <meta property="og:description" content="PAGE DESCRIPTION">
+          <meta name="twitter:description" content="PAGE DESCRIPTION">
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - 'meta[property="og:site_name"][content="PAGE SITE NAME"]'
+          - 'meta[property="og:title"][content="PAGE TITLE"]'
+          - 'meta[name="twitter:title"][content="PAGE TITLE"]'
+          - 'meta[property="og:description"][content="PAGE DESCRIPTION"]'
+          - 'meta[name="twitter:description"][content="PAGE DESCRIPTION"]'
+        - ['meta[property="og:site_name"][content="SITE TITLE"]']
+---
+
+This page turns off Quarto's social metadata and writes its own tags, which must keep their values.

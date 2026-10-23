@@ -1,0 +1,14 @@
+---
+title: "Site social metadata applies by default"
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:title"'
+          - '<meta name="twitter:title"'
+        - []
+---
+
+This page sets neither `open-graph` nor `twitter-card`, so the site settings apply.

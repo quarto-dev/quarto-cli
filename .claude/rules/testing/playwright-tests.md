@@ -106,7 +106,7 @@ test('Feature that is known broken', async ({ page }) => {
 ## Configuration
 
 - **Config file:** `playwright.config.ts`
-- **Base URL:** `http://127.0.0.1:8080`
+- **Base URL:** `http://127.0.0.1:8765` (port from `QUARTO_PLAYWRIGHT_PORT`, see `src/utils.ts`)
 - **Test documents:** `tests/docs/playwright/<feature>/`
 - **Test specs:** `tests/integration/playwright/tests/*.spec.ts`
 
@@ -115,9 +115,15 @@ test('Feature that is known broken', async ({ page }) => {
 Playwright starts a Python HTTP server automatically when running tests:
 
 ```bash
-uv run python -m http.server 8080
+uv run python -m http.server 8765
 # Serves from tests/docs/playwright/
 ```
+
+The fixture server is never reused (`reuseExistingServer: false`): if another process answers on the port, the run stops with `http://127.0.0.1:<port> is already used`.
+Each concurrent run (another worktree, a second terminal) needs its own free `QUARTO_PLAYWRIGHT_PORT`; the default 8765 suits only one run at a time.
+A process answering 404 on the port is not detected as busy; the run then times out after 120 s (`Timed out waiting 120000ms from config.webServer`), so pick another port.
+
+The revealjs multiplex server has a fixed port, 1948 (set in `tests/docs/playwright/revealjs/multiplex.qmd`), and is reused locally: concurrent runs share the first run's instance, which serves no test fixtures.
 
 ## Best Practices
 
@@ -141,6 +147,8 @@ From `src/utils.ts`:
 | `ojsRuns(page)`                    | Wait for OJS to finish    |
 | `checkColor(element, prop, color)` | Verify CSS color          |
 | `useDarkLightMode(mode)`           | Set color scheme for test |
+| `tabKey(browserName, shift?)`      | Tab key for the browser (WebKit needs `Alt+Tab` to reach links and buttons) |
+| `tabUntilFocused(page, browserName, target)` | Press Tab until `target` is focused; returns whether it got there |
 
 ## Environment Variables
 
@@ -148,3 +156,4 @@ From `src/utils.ts`:
 | ------------------------------------------ | ---------------------------------- |
 | `QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER`      | Skip rendering (use existing HTML) |
 | `QUARTO_PLAYWRIGHT_TESTS_SKIP_CLEANOUTPUT` | Keep rendered files after test     |
+| `QUARTO_PLAYWRIGHT_PORT`                   | Fixture server port (default 8765) |

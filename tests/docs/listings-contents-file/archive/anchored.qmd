@@ -1,0 +1,7 @@
+---
+title: Anchored
+listing:
+  contents:
+    - posts
+    - /items.yml
+---

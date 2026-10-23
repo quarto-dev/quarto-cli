@@ -1,0 +1,10 @@
+references:
+- id: cited
+  type: article-journal
+  title: Cited reference
+  author:
+  - family: Smith
+    given: Alice
+  issued:
+    date-parts:
+    - [2024]

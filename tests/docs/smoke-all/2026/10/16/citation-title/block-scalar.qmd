@@ -1,0 +1,22 @@
+---
+title: |
+  A *literal* title
+author: Jane Doe
+date: 2025-04-30
+citation: true
+google-scholar: true
+appendix-cite-as: [display, bibtex]
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_title"][content="A literal title"]']
+      ensureHtmlElementContents:
+        selectors: ['.quarto-appendix-citeas', '.quarto-appendix-bibtex']
+        matches: ['Literal']
+      ensureFileRegexMatches:
+        - ['<em>Literal</em>']
+---
+
+A literal block scalar title keeps its formatting and has no newline in the metadata.

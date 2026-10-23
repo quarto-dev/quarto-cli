@@ -1177,12 +1177,31 @@ export async function runPandoc(
       if (key === kTheme && isRevealjsOutput(options.format.pandoc)) {
         continue;
       }
+      // - controls and previewLinks are replaced for revealjs when not a boolean (e.g. 'auto'), which is not a valid reveal.js value
+      if (
+        (key === "controls" || key === "previewLinks") &&
+        typeof engineMetadata[key] !== "boolean" &&
+        isRevealjsOutput(options.format.pandoc)
+      ) {
+        continue;
+      }
       // - categories are handled specifically already for website projects with a metadata override and should not be overridden by user input
       if (key === kFieldCategories && projectIsWebsite(options.project)) {
         continue;
       }
-      // perform the override
-      pandocMetadata[key] = engineMetadata[key];
+      // a key that execution left unchanged keeps what other sources merged
+      // into it, with the document's own values on top; a key holding inline
+      // expressions takes the executed value as a whole
+      if (ld.isEqual(options.unexecutedMetadata?.[key], engineMetadata[key])) {
+        // wrapped so that arrays and scalars are concatenated or replaced,
+        // not merged by index
+        pandocMetadata[key] = mergeConfigs(
+          { value: pandocMetadata[key] },
+          { value: options.unexecutedMetadata?.[key] },
+        ).value;
+      } else {
+        pandocMetadata[key] = engineMetadata[key];
+      }
     }
   }
 

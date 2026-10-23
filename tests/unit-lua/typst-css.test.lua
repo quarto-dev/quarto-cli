@@ -430,11 +430,12 @@ function TestTranslateFontFamilyList:testSingleHasTrailingComma()
     '("foo",)')
 end
 
-function TestTranslateFontFamilyList:testWhitespaceOnlyIsEmpty()
-  -- BUG L: '   ' yields '("",)' because the gmatch matches the
-  -- whitespace run as one token, leading-space trim makes it empty,
-  -- but we still emit it as a quoted empty family.
-  lu.assertEquals(typst_css.translate_font_family_list('   '), '()')
+function TestTranslateFontFamilyList:testWhitespaceOnlyFallsBackToDefaultFont()
+  -- Typst rejects an empty font list, so an otherwise empty list
+  -- resolves to Typst's default text font.
+  lu.assertEquals(
+    typst_css.translate_font_family_list('   '),
+    '("Libertinus Serif",)')
 end
 
 -- Sides: expand_side_shorthand ----------------------------------------

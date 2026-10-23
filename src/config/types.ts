@@ -194,6 +194,9 @@ import {
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
   kResourcePath,
+  kScrollableCodeLabel,
+  kScrollableOutputLabel,
+  kRevealjsMenuButtonLabel,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
   kSearchDetatchedCancelButtonTitle,
@@ -713,6 +716,9 @@ export interface FormatLanguage {
   [kNavigationToolbarLabel]?: string;
   [kNavigationPageLabel]?: string;
   [kNavigationBreadcrumbsLabel]?: string;
+  [kScrollableCodeLabel]?: string;
+  [kScrollableOutputLabel]?: string;
+  [kRevealjsMenuButtonLabel]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchMoreMatchText]?: string;

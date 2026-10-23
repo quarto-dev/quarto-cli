@@ -1,0 +1,26 @@
+---
+title: "Title `r 1 + 1`"
+custom-key: "Custom `{r} 2 + 3`"
+nested:
+  inner: "Nested `r 3 * 3`"
+engine: knitr
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<h1 class="title">Title 2</h1>'
+          - '<div id="custom-key">\s*<p>Custom 5</p>'
+          - '<div id="nested-inner">\s*<p>Nested 9</p>'
+        - []
+---
+
+Inline R expressions in YAML front matter are evaluated by knitr, and the evaluated values must reach pandoc: the standard `title`, a custom top-level key, and a nested key with no project-level counterpart.
+
+::: {#custom-key}
+{{< meta custom-key >}}
+:::
+
+::: {#nested-inner}
+{{< meta nested.inner >}}
+:::

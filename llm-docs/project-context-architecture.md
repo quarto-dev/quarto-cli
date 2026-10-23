@@ -1,6 +1,6 @@
 ---
-main_commit: 9b307f7db
-analyzed_date: 2026-09-30
+main_commit: 04e334159
+analyzed_date: 2026-10-03
 key_files:
   - src/project/project-context.ts
   - src/command/command-utils.ts
@@ -25,6 +25,7 @@ Two layers: `resolveProjectConfig()` (config only) and `projectContext()` (confi
 2. **Extension detector pass** — only if pass 1 found nothing.
    `projectExtensionsConfigResolver()` collects `project.detect` file sets from extensions (loaded relative to the starting dir) and restarts the upward walk from the original dir looking for a dir containing one set.
    The result is a synthesized `{ project: { type } }` config with no file.
+   A detect path counts only when `Deno.statSync` succeeds, so a path below a directory that can't be searched never matches (#14983).
 
 The nearest `_quarto.yml` wins, so a stray `~/_quarto.yml` makes every path under `~` a project rooted at `~` (#14960).
 

@@ -6,6 +6,8 @@ key_files:
   - tests/quarto-cmd.ts
   - tests/verify.ts
   - tests/utils.ts
+  - tests/unit/schema-validation/utils.ts
+  - src/core/schema/utils.ts
 ---
 
 # Quarto Test Patterns
@@ -218,6 +220,7 @@ unitTest("runs from workingDir", async () => {
 
 **Key points:**
 
+- A test that runs R/knitr from the new cwd also needs the renv activation described in "R Tests That Change Working Directory" below.
 - The harness calls `cwd()` **before** `setup()`, so the directory must already exist when `cwd()` runs — create it at module scope, not in `setup`.
 - `teardown` runs **before** the harness restores the cwd, so on Windows the temp dir may still be the cwd and resist removal.
   Wrap the removal in try/catch (best-effort) — see `tests/smoke/use/template.test.ts` and `tests/unit/dotenv-config.test.ts`.
@@ -429,7 +432,7 @@ Most knitr tests never leave `tests/` — they pass paths relative to the curren
 A test that changes cwd through `TestContext.cwd()` loses that activation. The R subprocess starts outside `tests/`, and package loads may fail with `there is no package called 'rmarkdown'`.
 A developer machine with rmarkdown on the default `.libPaths()` may mask this CI failure.
 
-**Fix:** write a `.Rprofile` in the fixture cwd that points renv to the test project:
+**Fix:** call `writeTestsRenvProfile(dir)` (`tests/utils.ts`) in `setup()` to write a `.Rprofile` in the fixture cwd that points renv to the test project. It writes:
 
 ```r
 Sys.setenv(RENV_PROJECT = "<absolute path to tests/>")
@@ -486,6 +489,19 @@ testQuartoCmd(
 ```
 
 Run test **without fix** first to verify it fails, then verify it passes with fix.
+
+## Schema Validation Tests
+
+When the question is whether a YAML value is accepted or rejected (a schema added or changed in `src/resources/schema/`), test it with a unit test under `tests/unit/schema-validation/`, not a smoke-all document per value.
+A unit test validates YAML strings directly against the real schema in milliseconds, and a new case is one table row instead of one render.
+Example: `tests/unit/schema-validation/front-matter-social-metadata.test.ts`, a table of front matter snippets with the expected outcome.
+
+- Front matter and `_metadata.yml` validate against `getFrontMatterSchema()` (`src/core/lib/yaml-schema/front-matter.ts`), the schema used at render time; `_quarto.yml` validates against `getProjectConfigSchema()` (`src/core/lib/yaml-schema/project-config.ts`).
+- Validate with `readAndValidateYamlFromMappedString` and assert on `yamlValidationErrors`; wrap tests in `yamlValidationUnitTest` (`tests/unit/schema-validation/utils.ts`), which initializes the schema state.
+- Include valid rows next to invalid ones: they catch a schema that is too strict, such as rejecting an empty value the code handles.
+- The schema is loaded from the generated `src/resources/editor/tools/yaml/yaml-intelligence-resources.json`, not from the `.yml` source. Run `dev-call build-artifacts` after editing the schema, otherwise the test runs against the old schema. To prove RED, restore the old generated files (or the old `.yml` and rebuild), not the `.yml` alone.
+
+Use a render test only for what happens after validation, such as the output an option produces.
 
 ## Smoke-All Tests (YAML-Based)
 

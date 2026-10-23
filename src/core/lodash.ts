@@ -23,6 +23,7 @@ import ld_isPlainObject from "lodash/isPlainObject.js";
 import ld_isEqual from "lodash/isEqual.js";
 import ld_orderBy from "lodash/orderBy.js";
 import ld_escape from "lodash/escape.js";
+import ld_escapeRegExp from "lodash/escapeRegExp.js";
 import { makeTimedFunction } from "./performance/function-times.ts";
 
 export const cloneDeep = makeTimedFunction("ld_cloneDeep", ld_cloneDeep);
@@ -42,3 +43,4 @@ export const isPlainObject = ld_isPlainObject;
 export const isEqual = ld_isEqual;
 export const orderBy = ld_orderBy;
 export const escape = ld_escape;
+export const escapeRegExp = ld_escapeRegExp;

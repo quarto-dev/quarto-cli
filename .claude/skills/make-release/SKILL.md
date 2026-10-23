@@ -53,7 +53,7 @@ Do not perform these actions without confirmation. State the exact action and ta
 repository, then wait for explicit approval:
 
 - Pushing the new stable branch (`git push origin v1.x`)
-- Pushing version-bump / release-checklist commits to `main`
+- Pushing version-bump / release-checklist commits to `main` or a stable `v1.x` branch
 - Any `workflow_dispatch` carrying a publish flag (e.g. `publish-release=true`, chocolatey publish checkbox, Cloudsmith `dry-run=false`)
 - Editing a live GitHub release's flags (pre-release / "Set as latest release")
 - Pushing the release tag
@@ -63,13 +63,14 @@ Dry-runs and read-only verification don't need a gate — run them freely.
 
 ## 4. Cross-repo flow
 
-Three repos are involved, with real ordering dependencies:
+The release flow spans up to four repositories, with real ordering dependencies:
 
 - `quarto-dev/quarto-cli` — the release build and tag
 - `quarto-dev/quarto-web` — quarto.org site, downloads, highlights, announcement
 - `quarto-dev/quarto-cli-pypi` — pypi publish
+- `quarto-dev/quarto-release-bundles` — Chocolatey package build and publish
 
-Ordering matters: e.g. quarto-cli's release build must fully publish before quarto-web's `update-downloads.yml` will pick it up, and chocolatey waits on the quarto.org download page updating. State which repo each step targets. Use `gh --repo <owner>/<name> ...` so verification works even without a local clone of every repo.
+Ordering matters: e.g. quarto-cli's release build must fully publish before quarto-web's `update-downloads.yml` will pick it up, and Chocolatey waits for the quarto.org download page to update. State which repo each step targets. Use `gh --repo <owner>/<name> ...` so verification works even without a local clone of every repo.
 
 **No local quarto-web clone:** if a step needs local content edits to quarto-web (e.g. the `docs/prerelease/<version>/` highlights `.qmd` files, or `_quarto.yml` edits) and no local quarto-web clone is present, stop and ask the user for the clone path or to make the edit themselves. Do not attempt the edit through the GitHub API and do not silently skip the step.
 

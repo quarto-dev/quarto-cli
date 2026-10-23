@@ -1,0 +1,8 @@
+---
+title: Scholar references under a command-line identifier prefix
+google-scholar: true
+bibliography: references.bib
+nocite: "@adami2020"
+---
+
+This document cites nothing; its only reference comes from `nocite`.

@@ -1,0 +1,8 @@
+---
+title: "Archive"
+listing:
+  contents: "post-two/index.qmd"
+  type: table
+  sort: "date asc"
+  categories: true
+---

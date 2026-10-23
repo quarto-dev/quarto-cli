@@ -5,6 +5,7 @@
  */
 
 import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import { warnOnce } from "../core/log.ts";
 import {
   dirname,
   isAbsolute,
@@ -553,7 +554,26 @@ export async function projectResolveBrand(
   project: ProjectContext,
   fileName?: string,
 ): Promise<LightDarkBrandDarkFlag | undefined> {
-  async function loadSingleBrand(brandPath: string): Promise<Brand> {
+  // A brand file holding only comments (e.g. a commented-out template) has no
+  // YAML value and would fail validation, so warn and treat it as absent.
+  function isEmptyBrandFile(brandPath: string): boolean {
+    let empty = false;
+    try {
+      empty = parse(Deno.readTextFileSync(brandPath)) == null;
+    } catch {
+      // invalid YAML: let validation report it
+    }
+    if (empty) {
+      warnOnce(`Brand file ${brandPath} has no content and will be ignored.`);
+    }
+    return empty;
+  }
+  async function loadSingleBrand(
+    brandPath: string,
+  ): Promise<Brand | undefined> {
+    if (isEmptyBrandFile(brandPath)) {
+      return undefined;
+    }
     const brand = await readAndValidateYamlFromFile(
       brandPath,
       refSchema("brand-single", "Format-independent brand configuration."),
@@ -563,7 +583,10 @@ export async function projectResolveBrand(
   }
   async function loadUnifiedBrand(
     brandPath: string,
-  ): Promise<LightDarkBrandDarkFlag> {
+  ): Promise<LightDarkBrandDarkFlag | undefined> {
+    if (isEmptyBrandFile(brandPath)) {
+      return undefined;
+    }
     const brand = await readAndValidateYamlFromFile(
       brandPath,
       refSchema("brand-unified", "Format-independent brand configuration."),
@@ -662,7 +685,8 @@ export async function projectResolveBrand(
       if (!existsSync(brandPath)) {
         continue;
       }
-      project.brandCache.brand = await loadUnifiedBrand(brandPath);
+      project.brandCache.brand = (await loadUnifiedBrand(brandPath)) ??
+        project.brandCache.brand;
     }
     return project.brandCache.brand;
   } else {

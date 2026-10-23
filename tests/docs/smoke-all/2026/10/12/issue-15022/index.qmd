@@ -1,0 +1,16 @@
+---
+title: "issue-15022"
+listing:
+  contents: posts
+  feed:
+    image: https://example.com/feed-image.png
+_quarto:
+  render-project: true
+  tests:
+    html:
+      fileExists:
+        outputPath: index.xml
+---
+
+A listing feed whose items and feed image are web URLs must render without
+trying to read them from the project directory.
