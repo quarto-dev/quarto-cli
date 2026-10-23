@@ -181,9 +181,14 @@ test("paired light/dark theme swaps the focus ring tones", async ({
   await expect(link).not.toHaveCSS("outline-color", white);
   await expect(link).toHaveCSS("box-shadow", whiteShadow);
 
-  // Switch to the dark stylesheet; the ring must swap tones. Clicking the
-  // toggle moves focus to it, so tab back to the link.
+  // Switch to the dark stylesheet; the ring must swap tones. The toggle is
+  // the last focusable element, and Firefox does not wrap Tab back to the
+  // top of the page, so reload instead: the choice is kept in localStorage
+  // and the reload starts the tab order from the top again.
   await page.locator("button.quarto-color-scheme-toggle").first().click();
+  await expect(page.locator("body")).toHaveClass(/quarto-dark/);
+  await page.reload({ waitUntil: "load" });
+  await expect(page.locator("body")).toHaveClass(/quarto-dark/);
   expect(await tabUntilFocused(page, browserName, link)).toBe(true);
   await expect(link).toHaveCSS("outline-style", "solid");
   await expect(link).toHaveCSS("outline-color", white);
