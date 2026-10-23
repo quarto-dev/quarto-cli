@@ -8,8 +8,10 @@ _quarto:
     html:
       ensureHtmlElements:
         - 
-          - "div.callout-header.collapsed ~ div#callout-1.collapse"
-          - "div.callout-header:not(.collapsed) ~ div#callout-2.collapse.show"
+          - "div.callout-header > button.callout-toggle-btn.collapsed[aria-expanded='false'][aria-controls='callout-1']"
+          - "div.callout-header ~ div#callout-1.collapse:not(.show)"
+          - "div.callout-header > button.callout-toggle-btn:not(.collapsed)[aria-expanded='true'][aria-controls='callout-2']"
+          - "div.callout-header ~ div#callout-2.collapse.show"
 ---
 
 ::: {.callout-note collapse="true"}

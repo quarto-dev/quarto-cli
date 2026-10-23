@@ -270,7 +270,9 @@ local function calloutDiv(node)
 
     if needs_screen_reader_callout_type then
       -- add a screen reader callout type
-      local srCalloutType = pandoc.Span(pandoc.Str(displayName(callout_type)))
+      -- the trailing space keeps the type and title apart in the
+      -- accessible name of the collapse button ("Note Title", not "NoteTitle")
+      local srCalloutType = pandoc.Span({pandoc.Str(displayName(callout_type)), pandoc.Space()})
       srCalloutType.attr.classes:insert("screen-reader-only")
       title:insert(1, srCalloutType)
     end
@@ -281,10 +283,9 @@ local function calloutDiv(node)
     local calloutid = "callout-" .. calloutidx
     calloutidx = calloutidx + 1
 
-    -- create the header to contain the title
-    -- title should expand to fill its space
-    local titleDiv = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {"callout-title-container", "flex-fill"}))
-    local headerDiv = pandoc.Div({imgDiv, titleDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
+    -- create the header to contain the icon and title; its content is
+    -- filled below, once per branch (collapsible or not)
+    local headerDiv = pandoc.Div({}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
     local bodyDiv = div
     bodyDiv.attr.classes:insert("callout-body")
 
@@ -292,24 +293,30 @@ local function calloutDiv(node)
 
       -- collapse default value     
       local expandedAttrVal = "true"
+      local collapsedClz = ""
       if collapse == "true" or collapse == true then
         expandedAttrVal = "false"
-        headerDiv.attr.classes:insert("collapsed")
+        collapsedClz = " collapsed"
       end
+      headerDiv.attr.classes:insert("callout-collapsible")
 
-      -- create the collapse button
+      -- the whole header is a native <button> (APG disclosure pattern), so
+      -- its children must be phrasing content: use spans, not divs
+      local iconSpan = pandoc.Span(imgPlaceholder.content, pandoc.Attr("", {"callout-icon-container"}))
+      local titleSpan = pandoc.Span(title, pandoc.Attr("", {"callout-title-container", "flex-fill"}))
       local btnClasses = "callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"
-      local btnIcon = "<i class='callout-toggle'></i>"
-      local toggleButton = pandoc.RawInline("html", "<div class='" .. btnClasses .. "'>" .. btnIcon .. "</div>")
-      headerDiv.content:insert(pandoc.Plain(toggleButton));
-
-      -- configure the header div for collapse
+      local toggleIcon = pandoc.RawInline("html", "<span class='" .. btnClasses .. "'><i class='callout-toggle'></i></span>")
+      -- target the contents class (not the id): margin content inside the
+      -- callout is moved out of it and carries this class too
       local bsTargetClz = calloutid .. "-contents"
-      headerDiv.attr.attributes["bs-toggle"] = "collapse"
-      headerDiv.attr.attributes["bs-target"] = "." .. bsTargetClz
-      headerDiv.attr.attributes["aria-controls"] = calloutid
-      headerDiv.attr.attributes["aria-expanded"] = expandedAttrVal
-      headerDiv.attr.attributes["aria-label"] = 'Toggle callout'
+      local btnOpen = pandoc.RawInline("html",
+        "<button type='button' class='callout-toggle-btn d-flex flex-fill" .. collapsedClz .. "'" ..
+        " data-bs-toggle='collapse' data-bs-target='." .. bsTargetClz .. "'" ..
+        " aria-controls='" .. calloutid .. "' aria-expanded='" .. expandedAttrVal .. "'>")
+      -- pandoc has no button element, so raw open/close tags wrap the AST
+      -- spans (as in foldcode.lua's <summary>); keep them in the same Plain
+      local btnClose = pandoc.RawInline("html", "</button>")
+      headerDiv.content = pandoc.Blocks({pandoc.Plain({btnOpen, iconSpan, titleSpan, toggleIcon, btnClose})})
 
       -- configure the body div for collapse
       local collapseDiv = pandoc.Div({})
@@ -324,6 +331,10 @@ local function calloutDiv(node)
       -- add the current body to the collapse div and use the collapse div instead
       collapseDiv.content:insert(bodyDiv)
       bodyDiv = collapseDiv
+    else
+      -- title should expand to fill its space
+      local titleDiv = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {"callout-title-container", "flex-fill"}))
+      headerDiv.content = pandoc.Blocks({imgDiv, titleDiv})
     end
 
     -- add the header and body to the div

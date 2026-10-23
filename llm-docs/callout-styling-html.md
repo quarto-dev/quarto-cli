@@ -57,6 +57,23 @@ The `hasBootstrap()` function (in `filters/common/pandoc.lua`) checks the `has-b
 </div>
 ```
 
+A collapsible callout (`collapse="true"` or `"false"`) wraps the header content in a native `<button>`, so its children are `<span>`s (a button accepts only phrasing content). Bootstrap updates `aria-expanded` and the `collapsed` class on the button, not on the header:
+
+```html
+<div class="callout-header callout-collapsible d-flex align-content-center">
+  <button type="button" class="callout-toggle-btn d-flex flex-fill collapsed"
+          data-bs-toggle="collapse" data-bs-target=".callout-1-contents"
+          aria-controls="callout-1" aria-expanded="false">
+    <span class="callout-icon-container"><i class='callout-icon'></i></span>
+    <span class="callout-title-container flex-fill">Title</span>
+    <span class="callout-btn-toggle ..."><i class="callout-toggle"></i></span>
+  </button>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">...</div>
+```
+
+The target is the `callout-N-contents` class, not the id: margin content moved out of the callout carries the class too, so it collapses with the callout.
+
 ### EPUB/RevealJS HTML
 
 ```html
@@ -93,7 +110,8 @@ File: `src/resources/formats/html/bootstrap/_bootstrap-rules.scss`
 |-------|-----------|-------------|
 | Titled | `.callout-titled` | Has a title/header |
 | Untitled | `:not(.callout-titled)` | Content only, no header |
-| Collapsed | `.callout-header.collapsed` | Collapsible, currently closed |
+| Collapsible | `.callout-header.callout-collapsible` | Header holds a `.callout-toggle-btn` button |
+| Collapsed | `.callout-toggle-btn.collapsed` | Collapsible, currently closed (on the button; style the header with `:has()`) |
 | Empty content | `.callout-empty-content` | No body content |
 
 ### Styling Patterns

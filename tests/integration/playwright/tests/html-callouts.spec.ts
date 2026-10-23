@@ -37,3 +37,53 @@ test('Default callout spacing is handled by padding', async ({ page }) => {
   const paddingBottom = await getCSSProperty(lastChild, 'padding-bottom', true) as number;
   expect(paddingBottom).toBeGreaterThan(0);
 });
+
+test.describe('Collapsible callout toggle is keyboard operable (#4934)', () => {
+  test('Tab reaches the toggle; Enter and Space open and close it', async ({ page, browserName }) => {
+    await page.goto('./html/callouts/callout-collapse-keyboard.html');
+    // WebKit only tabs to buttons with Alt held
+    const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+
+    const button = page.locator('#collapsed .callout-toggle-btn');
+    const body = page.locator('#collapsed .callout-collapse');
+    // Bootstrap ignores a toggle while a collapse transition runs
+    const settled = () => expect(body).not.toHaveClass(/collapsing/);
+    await expect(button).toHaveAccessibleName('Note Starts collapsed');
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await expect(body).toBeHidden();
+
+    for (let i = 0; i < 20; i++) {
+      await page.keyboard.press(tab);
+      if (await button.evaluate((el) => el === document.activeElement)) break;
+    }
+    await expect(button).toBeFocused();
+    await expect(button).toHaveCSS('outline-style', 'solid');
+
+    await page.keyboard.press('Enter');
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await expect(body).toBeVisible();
+    await settled();
+
+    await page.keyboard.press('Space');
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await expect(body).toBeHidden();
+    await settled();
+
+    await page.keyboard.press('Space');
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await expect(body).toBeVisible();
+  });
+
+  test('An expanded callout starts open and collapses with Enter', async ({ page }) => {
+    await page.goto('./html/callouts/callout-collapse-keyboard.html');
+    const button = page.locator('#expanded .callout-toggle-btn');
+    const body = page.locator('#expanded .callout-collapse');
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await expect(body).toBeVisible();
+
+    await button.focus();
+    await page.keyboard.press('Enter');
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await expect(body).toBeHidden();
+  });
+});

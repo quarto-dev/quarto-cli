@@ -44,6 +44,7 @@ All changes included in 1.11:
 - ([#15080](https://github.com/quarto-dev/quarto-cli/issues/15080)): Fix footnote, citation, cross-reference and code annotation popups not closing with Esc, and staying open over the next focused element after keyboard focus leaves them.
 - ([#15129](https://github.com/quarto-dev/quarto-cli/issues/15129)): Fix default listings rendering an empty, focusable metadata link for posts with no date, author or other listed field to show, flagged by axe-core (`link-name`).
 - ([#15159](https://github.com/quarto-dev/quarto-cli/issues/15159), [#15160](https://github.com/quarto-dev/quarto-cli/issues/15160)): Fix the `revealjs` speaker view's Layout selector having no accessible name or visible keyboard focus, and its current slide, upcoming slide, time, and notes areas not being named regions. Changing layouts no longer forwards control keys to the slides, and the slide navigation buttons no longer introduce an unrelated complementary landmark. (author: @jooyoungseo)
+- ([#4934](https://github.com/quarto-dev/quarto-cli/issues/4934)): The header of a collapsible callout is now a `<button>`, so keyboard users can reach it with Tab and toggle it with Enter or Space. Screen readers announce the callout type and title as the button name, instead of "Toggle callout". The appearance does not change, except for a focus ring on keyboard focus.
 
 ## Formats
 
@@ -76,6 +77,7 @@ All changes included in 1.11:
 - ([#15125](https://github.com/quarto-dev/quarto-cli/pull/15125)): Fix Google Scholar metadata failing the render with a CSL JSON (`.json`) bibliography.
 - ([#15128](https://github.com/quarto-dev/quarto-cli/pull/15128)): Fix Google Scholar metadata missing references with a YAML bibliography not wrapped in `---` delimiters.
 - ([#15131](https://github.com/quarto-dev/quarto-cli/issues/15131)): Fix the light/dark toggle appearing, with no dark styles to switch to, when the `dark` brand file holds only comments and is ignored.
+- ([#15177](https://github.com/quarto-dev/quarto-cli/issues/15177)): Fix the hidden callout type label running into the title in the page text and the website search index, for example `NoteRemember this` instead of `Note Remember this`.
 
 ### `pdf`
 
