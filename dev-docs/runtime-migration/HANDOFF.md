@@ -46,7 +46,7 @@ These were throwaway and are recreated by the plans when needed:
 `REVIEW-2026-10-15.md` is the principal review of the first draft (13 structural findings, per-plan defects, the landing strategy, the decisions taken in its section 6).
 Every plan was then reworked against it: six new PRs (00a, 00b, 00c, 02b, 14b, 20b, 27b), PR 21 folded into 25, PR 07 and PR 39 rewritten and renamed, `SPIKES.md` added, `_TEMPLATE.md` vocabulary updated, `00-assessment.md` given an errata section.
 `README.md` carries the new table, dependency graph, conventions and baseline.
-The plans are now executable in the README order; PR 02 (#15135) and 02c (#15153) are merged, and the next to run are 00a, then 00b.
+The plans are now executable in the README order; PR 02 (#15135) and 02c (#15153) are merged; 00a is in progress as the Deno 2.9.8 security bump (#15152), and 00b runs next.
 
 ## Reconciliation pass (bucket B of `TRIAGE-2026-10-16.md`): done on 2026-10-16
 

@@ -13,6 +13,7 @@ All changes included in 1.11:
 ## Dependencies
 
 - ([#15043](https://github.com/quarto-dev/quarto-cli/issues/15043)): Update the OJS runtime to acorn 8.17, Observable Inspector 5.0.1, and Observable Inputs 0.10.6. `FileAttachment(...).mimeType` now reports `text/javascript` instead of `application/javascript` for `.js` and `.mjs` files.
+- ([#15152](https://github.com/quarto-dev/quarto-cli/issues/15152)): Update `deno` to v2.9.8. HTTPS requests made by Quarto (`quarto publish`, `quarto add`, `quarto use template`, `quarto install`) no longer trust certificates issued through the compromised eMudhra / emSign certificate authorities, which Deno 2.7.14 accepted.
 
 ## Accessibility
 
@@ -190,4 +191,5 @@ All changes included in 1.11:
 - ([#15097](https://github.com/quarto-dev/quarto-cli/pull/15097)): Fix the `.content-hidden unless-profile` attribute completion inserting invalid syntax (its `=` was missing), and typos in three attribute completion descriptions. (author: @rkskmt)
 - ([#15126](https://github.com/quarto-dev/quarto-cli/issues/15126)): Translate the `revealjs-menu-button-label` language key in French. (author: @D3ller)
 - ([#15140](https://github.com/quarto-dev/quarto-cli/pull/15140)): Add support for definition lists written as a `definition-list` div holding a nested bullet list, the definition list syntax of Quarto 2.
+- ([#15157](https://github.com/quarto-dev/quarto-cli/issues/15157)): Fix `quarto preview` and other commands sometimes starting a local server on port 4190, which browsers refuse to connect to.
 - ([#15180](https://github.com/quarto-dev/quarto-cli/pull/15180)): Fix older Quarto versions failing to render with `RangeError: could not deserialize value` once a Quarto built on a newer Deno has used the same cache. Also fix a project cache that already has entries failing to clear with `Path must be a string`.
