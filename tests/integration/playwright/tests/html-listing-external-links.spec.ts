@@ -5,73 +5,166 @@ const listingTypes = [
     name: "default",
     page: "index.html",
     containerSelector: ".quarto-listing-default",
+    itemAnchorSelector:
+      '.quarto-listing-default .listing-title a[href="https://example.com/external-article"]',
     externalLinkSelector:
       '.quarto-listing-default a[href="https://example.com/external-article"]',
+    hasIconChecks: true,
   },
   {
     name: "grid",
     page: "grid.html",
     containerSelector: ".quarto-listing-container-grid",
+    itemAnchorSelector:
+      '.quarto-listing-container-grid a.quarto-grid-link[href="https://example.com/external-article"]',
     externalLinkSelector:
       '.quarto-listing-container-grid a[href="https://example.com/external-article"]',
+    hasIconChecks: true,
   },
   {
     name: "table",
     page: "table.html",
     containerSelector: ".quarto-listing-table",
+    itemAnchorSelector:
+      '.quarto-listing-table a[href="https://example.com/external-article"]',
     externalLinkSelector:
       '.quarto-listing-table a[href="https://example.com/external-article"]',
+    hasIconChecks: false,
   },
 ];
 
-listingTypes.forEach(({ name, page, containerSelector, externalLinkSelector }) => {
-  test.describe(`External links in ${name} listing`, () => {
-    test("External listing item has target=_blank attribute", async ({
-      page: browserPage,
-    }) => {
-      await browserPage.goto(`./listings/external-links/_site/${page}`);
+const afterContent = (selector: string) =>
+  `(() => {
+    const el = document.querySelector(${JSON.stringify(selector)});
+    return el ? getComputedStyle(el, "::after").content : "missing";
+  })()`;
 
-      // Wait for the listing to be visible
-      await browserPage.waitForSelector(containerSelector);
+listingTypes.forEach(
+  ({
+    name,
+    page,
+    containerSelector,
+    itemAnchorSelector,
+    externalLinkSelector,
+    hasIconChecks,
+  }) => {
+    test.describe(`External links in ${name} listing`, () => {
+      test("External listing item has target=_blank attribute", async ({
+        page: browserPage,
+      }) => {
+        await browserPage.goto(`./listings/external-links/_site/${page}`);
+        await browserPage.waitForSelector(containerSelector);
 
-      // Find the link to the external article
-      const externalLink = browserPage.locator(externalLinkSelector);
+        const externalLink = browserPage.locator(externalLinkSelector);
 
-      await expect(externalLink.first()).toHaveAttribute("target", "_blank");
+        await expect(externalLink.first()).toHaveAttribute("target", "_blank");
+      });
+
+      test("External listing item has rel=noopener attribute", async ({
+        page: browserPage,
+      }) => {
+        await browserPage.goto(`./listings/external-links/_site/${page}`);
+        await browserPage.waitForSelector(containerSelector);
+
+        const externalLink = browserPage.locator(externalLinkSelector);
+
+        await expect(externalLink.first()).toHaveAttribute("rel", "noopener");
+      });
+
+      test("item anchor announces the new tab", async ({
+        page: browserPage,
+      }) => {
+        await browserPage.goto(`./listings/external-links/_site/${page}`);
+        await browserPage.waitForSelector(containerSelector);
+
+        await expect(browserPage.locator(itemAnchorSelector).first())
+          .toHaveAccessibleName(/\(opens in a new tab\)$/);
+      });
+
+      test("internal item has no target and no announcement", async ({
+        page: browserPage,
+      }) => {
+        await browserPage.goto(`./listings/external-links/_site/${page}`);
+        await browserPage.waitForSelector(containerSelector);
+
+        const internalLink = browserPage
+          .locator(containerSelector)
+          .getByRole("link", { name: "Local Post" })
+          .first();
+
+        await expect(internalLink).toBeVisible();
+        await expect(internalLink).not.toHaveAttribute("target");
+        await expect(internalLink.locator(".quarto-ext-newwindow")).toHaveCount(
+          0,
+        );
+      });
+
+      test("listing has no axe-core violations", async ({
+        page: browserPage,
+      }) => {
+        await browserPage.goto(`./listings/external-links/_site/${page}`);
+        await browserPage.waitForSelector(containerSelector);
+        await browserPage.waitForFunction(() => (window as any).axe);
+
+        const violations = await browserPage.evaluate(async (selector) => {
+          const axe = (window as any).axe;
+          const result = await axe.run(document.querySelector(selector));
+          return result.violations.map(
+            (v: { id: string; nodes: { target: string[] }[] }) => ({
+              id: v.id,
+              targets: v.nodes.map((n) => n.target),
+            }),
+          );
+        }, containerSelector);
+        expect(violations).toEqual([]);
+      });
+
+      if (hasIconChecks) {
+        test("item anchor has no external icon", async ({
+          page: browserPage,
+        }) => {
+          await browserPage.goto(`./listings/external-links/_site/${page}`);
+          await browserPage.waitForSelector(containerSelector);
+
+          expect(
+            await browserPage.evaluate(afterContent(itemAnchorSelector)),
+          ).toBe("none");
+        });
+
+        test("description link keeps its external icon", async ({
+          page: browserPage,
+        }) => {
+          await browserPage.goto(`./listings/external-links/_site/${page}`);
+          await browserPage.waitForSelector(containerSelector);
+
+          const descriptionLink = browserPage
+            .locator(containerSelector)
+            .locator('a[href="https://example.org/docs"]');
+
+          await expect(descriptionLink).toHaveClass(/external/);
+          const content = await browserPage.evaluate(
+            afterContent(
+              `${containerSelector} a[href="https://example.org/docs"]`,
+            ),
+          );
+          expect(content).not.toBe("none");
+          expect(content).not.toBe("missing");
+        });
+      }
     });
+  },
+);
 
-    test("External listing item has rel=noopener attribute", async ({
-      page: browserPage,
-    }) => {
-      await browserPage.goto(`./listings/external-links/_site/${page}`);
+test.describe("External links without link-external-newwindow", () => {
+  test("option absent: no target and no announcement", async ({
+    page: browserPage,
+  }) => {
+    await browserPage.goto("./listings/external-links/_site/no-newwindow.html");
 
-      // Wait for the listing to be visible
-      await browserPage.waitForSelector(containerSelector);
+    const link = browserPage.locator('a[href="https://example.com/outside"]');
 
-      // Find the link to the external article
-      const externalLink = browserPage.locator(externalLinkSelector);
-
-      await expect(externalLink.first()).toHaveAttribute("rel", "noopener");
-    });
-
-    test("Internal listing item does NOT have target=_blank attribute", async ({
-      page: browserPage,
-    }) => {
-      await browserPage.goto(`./listings/external-links/_site/${page}`);
-
-      // Wait for the listing to be visible
-      await browserPage.waitForSelector(containerSelector);
-
-      // Find the link to the local post by its text content
-      const internalLink = browserPage
-        .getByRole("link", { name: "Local Post" })
-        .first();
-
-      // Verify the link exists
-      await expect(internalLink).toBeVisible();
-
-      // Internal links should not have target="_blank"
-      await expect(internalLink).not.toHaveAttribute("target", "_blank");
-    });
+    await expect(link).toBeVisible();
+    await expect(link).not.toHaveAttribute("target");
+    await expect(link.locator(".quarto-ext-newwindow")).toHaveCount(0);
   });
 });

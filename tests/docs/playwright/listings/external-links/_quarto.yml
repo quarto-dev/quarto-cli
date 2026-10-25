@@ -5,5 +5,9 @@ website:
   title: "Testing external links in listings"
 
 link-external-newwindow: true
+link-external-icon: true
 
 format: html
+
+axe:
+  output: console

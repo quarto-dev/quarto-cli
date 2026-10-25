@@ -5,7 +5,7 @@ listing:
   contents:
     - path: https://example.com/external-article
       title: "External Article"
-      description: "An external article that should open in new window."
+      description: "An external article that should open in new window, see the [docs](https://example.org/docs)."
     - path: local-post.qmd
       title: "Local Post"
       description: "A local post that should NOT open in new window."
