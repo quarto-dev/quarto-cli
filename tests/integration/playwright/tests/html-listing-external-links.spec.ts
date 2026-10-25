@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 const listingTypes = [
   {
@@ -49,9 +49,7 @@ listingTypes.forEach(
     hasIconChecks,
   }) => {
     test.describe(`External links in ${name} listing`, () => {
-      test("External listing item has target=_blank attribute", async ({
-        page: browserPage,
-      }) => {
+      test("External listing item has target=_blank attribute", async ({ page: browserPage }) => {
         await browserPage.goto(`./listings/external-links/_site/${page}`);
         await browserPage.waitForSelector(containerSelector);
 
@@ -60,9 +58,7 @@ listingTypes.forEach(
         await expect(externalLink.first()).toHaveAttribute("target", "_blank");
       });
 
-      test("External listing item has rel=noopener attribute", async ({
-        page: browserPage,
-      }) => {
+      test("External listing item has rel=noopener attribute", async ({ page: browserPage }) => {
         await browserPage.goto(`./listings/external-links/_site/${page}`);
         await browserPage.waitForSelector(containerSelector);
 
@@ -71,9 +67,7 @@ listingTypes.forEach(
         await expect(externalLink.first()).toHaveAttribute("rel", "noopener");
       });
 
-      test("item anchor announces the new tab", async ({
-        page: browserPage,
-      }) => {
+      test("item anchor announces the new tab", async ({ page: browserPage }) => {
         await browserPage.goto(`./listings/external-links/_site/${page}`);
         await browserPage.waitForSelector(containerSelector);
 
@@ -81,9 +75,7 @@ listingTypes.forEach(
           .toHaveAccessibleName(/\(opens in a new tab\)$/);
       });
 
-      test("internal item has no target and no announcement", async ({
-        page: browserPage,
-      }) => {
+      test("internal item has no target and no announcement", async ({ page: browserPage }) => {
         await browserPage.goto(`./listings/external-links/_site/${page}`);
         await browserPage.waitForSelector(containerSelector);
 
@@ -99,16 +91,18 @@ listingTypes.forEach(
         );
       });
 
-      test("listing has no axe-core violations", async ({
-        page: browserPage,
-      }) => {
+      test("listing has no axe-core violations", async ({ page: browserPage }) => {
         await browserPage.goto(`./listings/external-links/_site/${page}`);
         await browserPage.waitForSelector(containerSelector);
         await browserPage.waitForFunction(() => (window as any).axe);
 
         const violations = await browserPage.evaluate(async (selector) => {
           const axe = (window as any).axe;
-          const result = await axe.run(document.querySelector(selector));
+          // heading-order judges the listing heading levels against the
+          // page, which this test does not cover.
+          const result = await axe.run(document.querySelector(selector), {
+            rules: { "heading-order": { enabled: false } },
+          });
           return result.violations.map(
             (v: { id: string; nodes: { target: string[] }[] }) => ({
               id: v.id,
@@ -120,9 +114,7 @@ listingTypes.forEach(
       });
 
       if (hasIconChecks) {
-        test("item anchor has no external icon", async ({
-          page: browserPage,
-        }) => {
+        test("item anchor has no external icon", async ({ page: browserPage }) => {
           await browserPage.goto(`./listings/external-links/_site/${page}`);
           await browserPage.waitForSelector(containerSelector);
 
@@ -131,9 +123,7 @@ listingTypes.forEach(
           ).toBe("none");
         });
 
-        test("description link keeps its external icon", async ({
-          page: browserPage,
-        }) => {
+        test("description link keeps its external icon", async ({ page: browserPage }) => {
           await browserPage.goto(`./listings/external-links/_site/${page}`);
           await browserPage.waitForSelector(containerSelector);
 
@@ -156,9 +146,7 @@ listingTypes.forEach(
 );
 
 test.describe("External links without link-external-newwindow", () => {
-  test("option absent: no target and no announcement", async ({
-    page: browserPage,
-  }) => {
+  test("option absent: no target and no announcement", async ({ page: browserPage }) => {
     await browserPage.goto("./listings/external-links/_site/no-newwindow.html");
 
     const link = browserPage.locator('a[href="https://example.com/outside"]');
