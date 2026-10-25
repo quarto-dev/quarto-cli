@@ -101,6 +101,9 @@ navigation-breadcrumbs-label: "Breadcrumbs"
 scrollable-code-label: "Scrollable code"
 scrollable-output-label: "Scrollable output"
 
+# Announced by screen readers after a link that opens in a new tab (never shown as visible text).
+link-external-newwindow-label: "(opens in a new tab)"
+
 # Accessible name for the Reveal.js slide menu button (never shown as visible text).
 revealjs-menu-button-label: "Slide menu"
 

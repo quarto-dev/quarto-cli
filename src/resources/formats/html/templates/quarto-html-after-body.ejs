@@ -226,6 +226,9 @@
       <% } else { %>
         var filterRegex = new RegExp('/' + window.location.host + '/');
       <% } %>
+      <% if (linkExternalNewwindow) { %>
+      const newWindowLabel = <%= JSON.stringify(language['link-external-newwindow-label']).replace(/</g, '\\u003c') %>;
+      <% } %>
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -244,6 +247,15 @@
             link.setAttribute("target", "_blank");
             if (link.getAttribute("rel") === null) {
               link.setAttribute("rel", "noopener");
+            }
+            if (!link.querySelector(".quarto-ext-newwindow")) {
+              var newWindowNote = window.document.createElement("span");
+              newWindowNote.classList.add("visually-hidden", "quarto-ext-newwindow");
+              newWindowNote.textContent = " " + newWindowLabel;
+              link.appendChild(newWindowNote);
+              if (link.hasAttribute("aria-label")) {
+                link.setAttribute("aria-label", link.getAttribute("aria-label") + " " + newWindowLabel);
+              }
             }
           <% } %>
   
