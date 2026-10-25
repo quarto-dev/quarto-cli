@@ -54,7 +54,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% if (fields.includes('image')) { %>
 
 ```{=html}
-<div class="thumbnail"><a href="<%- item.path %>">
+<div class="thumbnail"><a href="<%- item.path %>" class="no-external-icon">
 <% if (item.image) { %>
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 <% } else { %>
@@ -68,9 +68,9 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 ::: {.body}
 
 <% if (fields.includes('title')) { %>
-<h3 class="no-anchor listing-title"><a href="<%- item.path %>"><%= item.title %></a></h3>
+<h3 class="no-anchor listing-title"><a href="<%- item.path %>" class="no-external-icon"><%= item.title %></a></h3>
 <% if (fields.includes('subtitle') && hasText(item.subtitle)) { %>
-<div class="listing-subtitle"><a href="<%- item.path %>"><%= item.subtitle %></a></div>
+<div class="listing-subtitle"><a href="<%- item.path %>" class="no-external-icon"><%= item.subtitle %></a></div>
 <% } %>
 <% } %>
 
@@ -89,7 +89,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% if (fields.includes('description')) { %>
 
 ```{=html}
-<div class="delink listing-description"><a href="<%- item.path %>">
+<div class="delink listing-description"><a href="<%- item.path %>" class="no-external-icon">
 ```
 
 <%= item.description %>
@@ -107,7 +107,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% if (hasMetadata(item)) { %>
 
 ```{=html}
-<a href="<%- item.path %>">
+<a href="<%- item.path %>" class="no-external-icon">
 ```
 
 <% } %>

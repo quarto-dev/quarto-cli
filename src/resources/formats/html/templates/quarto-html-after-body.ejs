@@ -248,6 +248,7 @@
           <% } %>
   
           
+          if (!link.classList.contains('no-external-icon')) {
           <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
             // external icon, if provided
             var extIcon = window.document.createElement('i');
@@ -258,6 +259,7 @@
             // default icon
             link.classList.add("external");
           <% } %>
+          }
         }
       }
   
