@@ -546,7 +546,7 @@
   
           // Each band is positioned against its own containing block, which is
           // not the offsetParent of the lines, so place it from client rects.
-          const placeBand = (band, firstEl, lastEl) => {
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
             const container = band.offsetParent;
             if (container === null) {
               return;
@@ -561,6 +561,13 @@
             const height = (lastRect.bottom - firstRect.top) / scale;
             band.style.top = top - 2 + "px";
             band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
           };
 
           if (lineIds.length > 0) {
@@ -576,15 +583,7 @@
               div.style.position = 'absolute';
               parent.appendChild(div);
             }
-            placeBand(div, el, lastEl);
-            // Without the copy button wrapper, the band's containing block is
-            // wider than the code block, so span the code block explicitly.
-            const codeBlock = parent.closest("div.sourceCode") || parent;
-            const containerRect = div.offsetParent.getBoundingClientRect();
-            const scale = containerRect.height / div.offsetParent.offsetHeight || 1;
-            const blockRect = codeBlock.getBoundingClientRect();
-            div.style.left = (blockRect.left - containerRect.left) / scale - div.offsetParent.clientLeft + "px";
-            div.style.width = blockRect.width / scale + "px";
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
 
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
