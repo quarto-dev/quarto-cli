@@ -253,6 +253,8 @@
             if (!link.querySelector(".quarto-ext-newwindow")) {
               var newWindowNote = window.document.createElement("span");
               newWindowNote.classList.add("visually-hidden", "quarto-ext-newwindow");
+              // minimal HTML ships no .visually-hidden rule
+              newWindowNote.style.cssText = "border:0;clip:rect(0 0 0 0);height:1px;margin:0;overflow:hidden;padding:0;position:absolute;width:1px;white-space:nowrap;";
               newWindowNote.textContent = " " + newWindowLabel;
               link.appendChild(newWindowNote);
               if (link.hasAttribute("aria-label")) {
