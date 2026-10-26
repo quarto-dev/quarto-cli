@@ -6304,7 +6304,7 @@
                 }
               ]
             },
-            "description": "The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
+            "description": "A list of font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
           }
         },
         "required": [
@@ -16406,7 +16406,7 @@
     "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
     "A method for providing font files directly, either locally or from an\nonline location.",
     "The font family name.",
-    "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
+    "A list of font files to include. These can be local or online. Local\nfile paths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
     "The path to the font file. This can be a local path or a URL.",
     "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
     "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
