@@ -182,7 +182,8 @@ export function typstFormat(): Format {
   });
 }
 
-const annotatedLineRendering = `let annote-num = annotations.at(str(annote-pos), default: none)
+const annotatedLineRendering =
+  `let annote-num = annotations.at(str(annote-pos), default: none)
      if annote-num != none {
        if cell-id != "" {
          let lbl = cell-id + "-annote-" + str(annote-num)

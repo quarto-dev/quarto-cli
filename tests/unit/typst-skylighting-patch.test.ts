@@ -13,7 +13,8 @@ import {
   patchSkylightingFunction,
 } from "../../src/format/typst/format-typst.ts";
 
-const skylightingFn = `#let Skylighting(fill: none, number: false, start: 1, sourcelines) = {
+const skylightingFn =
+  `#let Skylighting(fill: none, number: false, start: 1, sourcelines) = {
    let blocks = []
    let lnum = start - 1
    let bgcolor = rgb("#f1f3f5")
