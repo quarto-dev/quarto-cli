@@ -115,7 +115,7 @@ All changes included in 1.11:
 
 ### Websites
 
-- ([#9468](https://github.com/quarto-dev/quarto-cli/issues/9468)): Fix listing items not opening in a new tab with `link-external-newwindow: true`, while keeping the external link icon off the item. (author: @mcanouil)
+- ([#9468](https://github.com/quarto-dev/quarto-cli/issues/9468)): Fix listing items not opening in a new tab with `link-external-newwindow: true`, while keeping the external link icon off default and grid listing items. (author: @mcanouil)
 - ([#10756](https://github.com/quarto-dev/quarto-cli/issues/10756)): Fix the notebook preview of an embedded `.qmd` file going missing from the output directory when a project is rendered again, which broke its source notebook link.
 - ([#12014](https://github.com/quarto-dev/quarto-cli/issues/12014)): Fix `twitter-card` `image-width` and `image-height` being listed as options although Twitter Cards have no image size tags. They are no longer documented, and setting them prints a warning pointing to `open-graph`, where an image size is used. The size Quarto measures from a local image is no longer written as `twitter:image-height` and `twitter:image-width` tags, only as `og:image:height` and `og:image:width`.
 - ([#12016](https://github.com/quarto-dev/quarto-cli/issues/12016)): Fix `open-graph` `image-width` and `image-height` being dropped when `site-url` is set and Quarto cannot measure the image, such as a remote image. A size declared in the site `open-graph` options no longer applies when a page sets its own `image`, even the same file: declare `image-width` and `image-height` in the page `open-graph` options or in shared metadata such as `_metadata.yml`.
