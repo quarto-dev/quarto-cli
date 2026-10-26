@@ -7,8 +7,6 @@ const listingTypes = [
     containerSelector: ".quarto-listing-default",
     itemAnchorSelector:
       '.quarto-listing-default .listing-title a[href="https://example.com/external-article"]',
-    externalLinkSelector:
-      '.quarto-listing-default a[href="https://example.com/external-article"]',
     hasIconChecks: true,
   },
   {
@@ -17,8 +15,6 @@ const listingTypes = [
     containerSelector: ".quarto-listing-container-grid",
     itemAnchorSelector:
       '.quarto-listing-container-grid a.quarto-grid-link[href="https://example.com/external-article"]',
-    externalLinkSelector:
-      '.quarto-listing-container-grid a[href="https://example.com/external-article"]',
     hasIconChecks: true,
   },
   {
@@ -26,8 +22,6 @@ const listingTypes = [
     page: "table.html",
     containerSelector: ".quarto-listing-table",
     itemAnchorSelector:
-      '.quarto-listing-table a[href="https://example.com/external-article"]',
-    externalLinkSelector:
       '.quarto-listing-table a[href="https://example.com/external-article"]',
     hasIconChecks: false,
   },
@@ -45,7 +39,6 @@ listingTypes.forEach(
     page,
     containerSelector,
     itemAnchorSelector,
-    externalLinkSelector,
     hasIconChecks,
   }) => {
     test.describe(`External links in ${name} listing`, () => {
@@ -53,7 +46,7 @@ listingTypes.forEach(
         await browserPage.goto(`./listings/external-links/_site/${page}`);
         await browserPage.waitForSelector(containerSelector);
 
-        const externalLink = browserPage.locator(externalLinkSelector);
+        const externalLink = browserPage.locator(itemAnchorSelector);
 
         await expect(externalLink.first()).toHaveAttribute("target", "_blank");
       });
@@ -62,7 +55,7 @@ listingTypes.forEach(
         await browserPage.goto(`./listings/external-links/_site/${page}`);
         await browserPage.waitForSelector(containerSelector);
 
-        const externalLink = browserPage.locator(externalLinkSelector);
+        const externalLink = browserPage.locator(itemAnchorSelector);
 
         await expect(externalLink.first()).toHaveAttribute("rel", "noopener");
       });
@@ -184,5 +177,18 @@ test.describe("External links in minimal HTML", () => {
     const box = await note.boundingBox();
     expect(box?.width ?? 0).toBeLessThanOrEqual(1);
     expect(box?.height ?? 0).toBeLessThanOrEqual(1);
+  });
+});
+
+test.describe("Imageless external item in a default listing", () => {
+  test("empty thumbnail link is hidden and out of the tab order", async ({ page: browserPage }) => {
+    await browserPage.goto("./listings/external-links/_site/index.html");
+
+    const thumbnailLink = browserPage.locator(
+      '.quarto-listing-default .thumbnail a[href="https://example.com/external-article"]',
+    );
+
+    await expect(thumbnailLink).toHaveAttribute("aria-hidden", "true");
+    await expect(thumbnailLink).toHaveAttribute("tabindex", "-1");
   });
 });
