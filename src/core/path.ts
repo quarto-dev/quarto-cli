@@ -28,7 +28,15 @@ import { getenv } from "./env.ts";
 import { execProcess } from "./process.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
-export const kSkipHidden = /[/\\][\.]/;
+export function skipHiddenWithin(dir: string) {
+  // walk() yields children of `dir` in normalized form without a doubled separator
+  const walkedDir = normalize(dir).replace(/[/\\]+$/, "");
+  const startOfDir = `^${ld.escapeRegExp(walkedDir)}`;
+  const separator = "[/\\\\]";
+  const anySubdirs = `(?:.*${separator})?`;
+  const dot = "\\.";
+  return new RegExp(`${startOfDir}${separator}${anySubdirs}${dot}`);
+}
 
 export function removeIfExists(file: string) {
   if (existsSync(file)) {
@@ -324,7 +332,15 @@ export function normalizePath(path: string | URL): string {
   file = normalize(file);
   // some runtimes (e.g. nodejs) create paths w/ lowercase drive
   // letters, make those uppercase
-  return file.replace(/^\w:\\/, (m) => m[0].toUpperCase() + ":\\");
+  return file.replace(/^\w:\\/, (m: string) => m[0].toUpperCase() + ":\\");
+}
+
+// Compares two filesystem paths for equality in a separator-agnostic way by
+// normalizing both sides first. Use this instead of comparing raw path strings:
+// engines (notably knitr) can report paths with forward slashes on Windows even
+// when other paths use the platform separator, so a raw === comparison fails.
+export function pathsEqual(a: string, b: string): boolean {
+  return normalizePath(a) === normalizePath(b);
 }
 
 // Moved here from env.ts to avoid circular dependency

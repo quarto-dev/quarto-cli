@@ -1,0 +1,5 @@
+---
+title: Website categories merge
+---
+
+Home page of the fixture. The assertions live in `posts/post.qmd`.

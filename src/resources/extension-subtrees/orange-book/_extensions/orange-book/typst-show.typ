@@ -25,10 +25,25 @@ $if(toc-depth)$
   outline-depth: $toc-depth$,
 $endif$
 $if(lof)$
-  list-of-figure-title: "$if(crossref.lof-title)$$crossref.lof-title$$else$$crossref-lof-title$$endif$",
+$if(crossref.lof-title)$
+  list-of-figure-title: "$crossref.lof-title$",
+$else$
+$if(quarto.language.crossref-lof-title)$
+  list-of-figure-title: "$quarto.language.crossref-lof-title$",
+$endif$
+$endif$
 $endif$
 $if(lot)$
-  list-of-table-title: "$if(crossref.lot-title)$$crossref.lot-title$$else$$crossref-lot-title$$endif$",
+$if(crossref.lot-title)$
+  list-of-table-title: "$crossref.lot-title$",
+$else$
+$if(quarto.language.crossref-lot-title)$
+  list-of-table-title: "$quarto.language.crossref-lot-title$",
+$endif$
+$endif$
+$endif$
+$if(quarto.language.crossref-ch-prefix)$
+  supplement-chapter: "$quarto.language.crossref-ch-prefix$",
 $endif$
 $if(margin-geometry)$
   padded-heading-number: false,

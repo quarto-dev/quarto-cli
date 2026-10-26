@@ -1,0 +1,54 @@
+---
+title: callout ending with a code block
+format: revealjs
+---
+
+## Default titled, ends with code
+
+::: {#default-titled-code .callout-note title="Titled"}
+Some text before the code.
+
+```python
+1 + 1
+```
+:::
+
+## Simple untitled, ends with code
+
+::: {#simple-untitled-code .callout-note appearance="simple"}
+Some text before the code.
+
+```python
+1 + 1
+```
+:::
+
+## Simple titled, ends with code
+
+::: {#simple-titled-code .callout-note appearance="simple" title="Titled"}
+Some text before the code.
+
+```python
+1 + 1
+```
+:::
+
+## Default titled, ends with paragraph
+
+::: {#default-titled-paragraph .callout-note title="Titled"}
+```python
+1 + 1
+```
+
+Some text after the code.
+:::
+
+## Simple untitled, ends with paragraph
+
+::: {#simple-untitled-paragraph .callout-note appearance="simple"}
+```python
+1 + 1
+```
+
+Some text after the code.
+:::

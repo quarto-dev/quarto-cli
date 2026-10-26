@@ -19,7 +19,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '#block\[\s*#set text\(style: "italic"\); Italic div\s*\]'
+          - '#block\[\s*#set text\(style: "italic"\);\s*Italic div\s*\]'
         - []
 ---
 

@@ -9,6 +9,7 @@ import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
   kAppendixViewLicense,
+  kCitationTitle,
   kLang,
   kPositionedRefs,
   kSectionTitleCitation,
@@ -286,7 +287,7 @@ export async function processDocumentAppendix(
     // Place the citation for this document itself, if appropriate
     if (format.metadata[kCitation]) {
       // Render the citation data for this document
-      const cite = await generateCite(input, format, offset);
+      const cite = await generateCite(input, format, inputTraits, offset);
       if (cite?.bibtex || cite?.html) {
         addSection((sectionEl) => {
           const contentsDiv = doc.createElement("DIV");
@@ -505,7 +506,12 @@ function creativeCommonsUrl(license: string, lang?: string, version?: string) {
   }
 }
 
-async function generateCite(input: string, format: Format, offset?: string) {
+async function generateCite(
+  input: string,
+  format: Format,
+  inputTraits: PandocInputTraits,
+  offset?: string,
+) {
   const citeStyle = citeStyleTester(format);
   if (citeStyle.hasCiteAs()) {
     const { csl } = documentCSL(
@@ -514,6 +520,7 @@ async function generateCite(input: string, format: Format, offset?: string) {
       "webpage",
       format.pandoc["output-file"],
       offset,
+      inputTraits[kCitationTitle],
     );
     if (csl) {
       // Render the HTML and BibTeX form of this document

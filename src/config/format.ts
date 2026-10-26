@@ -6,6 +6,7 @@
 
 import { kBaseFormat, kPreferHtml } from "../config/constants.ts";
 import { Format, FormatPandoc } from "./types.ts";
+import { parseFormatString } from "../core/pandoc/pandoc-formats.ts";
 
 export function isPdfOutput(format: string): boolean;
 export function isPdfOutput(format: FormatPandoc): boolean;
@@ -97,14 +98,20 @@ export function isJatsOutput(format?: string | FormatPandoc) {
     format = format?.to || "html";
   }
 
-  return [
+  const jatsFormats = [
     "jats",
     "jats_archiving",
     "jats_articleauthoring",
     "jats_publishing",
-  ].find((formatStr) => {
-    return (format as string).startsWith(formatStr);
-  }) !== undefined;
+  ];
+  const formatStr = format as string;
+  if (jatsFormats.some((f) => formatStr.startsWith(f))) return true;
+  try {
+    const base = parseFormatString(formatStr).baseFormat;
+    return jatsFormats.some((f) => base.startsWith(f));
+  } catch {
+    return false;
+  }
 }
 
 export function isPresentationOutput(format: FormatPandoc) {
@@ -123,7 +130,12 @@ export function isRevealjsOutput(format?: string | FormatPandoc) {
     format = format?.to;
   }
   format = format || "html";
-  return format.startsWith("revealjs");
+  if (format.startsWith("revealjs")) return true;
+  try {
+    return parseFormatString(format).baseFormat.startsWith("revealjs");
+  } catch {
+    return false;
+  }
 }
 
 export function isNativeOutput(format: FormatPandoc) {
@@ -146,7 +158,12 @@ function isFormatTo(format: string | FormatPandoc, to: string) {
   const formatStr = typeof format === "string"
     ? format
     : (format?.to || "html");
-  return formatStr.startsWith(to);
+  if (formatStr.startsWith(to)) return true;
+  try {
+    return parseFormatString(formatStr).baseFormat.startsWith(to);
+  } catch {
+    return false;
+  }
 }
 
 export function isMarkdownOutput(

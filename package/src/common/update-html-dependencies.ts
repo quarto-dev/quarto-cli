@@ -78,6 +78,12 @@ export async function updateHtmlDependencies(config: Configuration) {
   );
   cleanSourceMap(anchorJs);
 
+  // Axe (LICENSE files must ship alongside the MPL-2.0 axe.min.js)
+  const axeDir = join(formatDir, "axe");
+  for (const file of ["axe.min.js", "LICENSE", "LICENSE-3RD-PARTY.txt"]) {
+    await updateUnpkgDependency("AXE_JS", "axe-core", file, join(axeDir, file));
+  }
+
   // Poppper
   const popperJs = join(formatDir, "popper", "popper.min.js");
   await updateUnpkgDependency(
@@ -298,7 +304,37 @@ export async function updateHtmlDependencies(config: Configuration) {
     "hakimel/reveal.js",
     "REVEAL_JS",
     workingDir,
-    (dir: string, version: string) => {
+    async (dir: string, version: string) => {
+      // Backport the unmerged PRs hakimel/reveal.js#3946 and #3949, plus
+      // native image alt text from reveal.js 6, to 5.1.0, and keep the focus
+      // where it was when the page is shown again (#15079), which no reveal.js
+      // release does yet. Also backport the speaker-view accessible label,
+      // named regions, and neutral slide-controls container (#15159, #15160;
+      // upstream hakimel/reveal.js#3953).
+      // Before removing these source patches and rebuild step, verify all
+      // fixes are in the release we bundle. Each patch applies after the
+      // one before it.
+      const sourceDir = join(dir, `reveal.js-${version}`);
+      for (const patch of [
+        "revealjs-0001-screen-reader-announcements.patch",
+        "revealjs-0002-image-announcements.patch",
+        "revealjs-0003-focus-on-return.patch",
+        "revealjs-0004-speaker-view-accessibility.patch",
+      ]) {
+        await runCmd("git", [
+          "-C", sourceDir, "apply", "--ignore-space-change",
+          join(patchesDir, patch),
+        ]);
+      }
+      // Skip install scripts: rebuilding the bundles does not need Puppeteer.
+      await runCmd(config.os === "windows" ? "npm.cmd" : "npm", [
+        "--prefix", sourceDir, "ci", "--ignore-scripts",
+      ]);
+      await runCmd("node", [
+        join(sourceDir, "node_modules", "gulp", "bin", "gulp.js"),
+        "--cwd", sourceDir, "js", "plugins",
+      ]);
+
       // Copy the desired resource files
       info("Copying reveal.js resources' directory");
       if (existsSync(revealJs)) {

@@ -1,0 +1,20 @@
+---
+title: "Hover popups can be dismissed with a slide menu that ignores the keyboard"
+format:
+  revealjs:
+    menu:
+      keyboard: false
+      open-on-init: true
+references:
+  - id: knuth1984
+    type: book
+    author:
+      - family: Knuth
+        given: Donald E.
+    title: The TeXbook
+    issued: 1984
+---
+
+## Citation
+
+A citation [@knuth1984].

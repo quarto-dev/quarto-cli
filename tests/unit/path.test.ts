@@ -6,16 +6,18 @@
 */
 
 import { unitTest } from "../test.ts";
-import { assert } from "testing/asserts";
-import { join, resolve } from "../../src/deno_ral/path.ts";
+import { assert, assertEquals } from "testing/asserts";
+import { join, relative, resolve, SEP } from "../../src/deno_ral/path.ts";
 import { isWindows } from "../../src/deno_ral/platform.ts";
 import {
   dirAndStem,
+  pathsEqual,
   removeIfEmptyDir,
   removeIfExists,
   resolvePathGlobs,
+  skipHiddenWithin,
 } from "../../src/core/path.ts";
-import { existsSync } from "../../src/deno_ral/fs.ts";
+import { existsSync, walkSync } from "../../src/deno_ral/fs.ts";
 import { docs } from "../utils.ts";
 
 const workingDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
@@ -88,6 +90,56 @@ unitTest("path - dirAndStem", async () => {
     assert(dir === dirStem.dir, `Invalid directory ${dir} from dirAndStem`);
     assert(stem === dirStem.stem, `Invalid stem ${stem} from dirAndStem`);
   });
+});
+
+// Path equality must be separator-agnostic: the knitr engine reports paths
+// with forward slashes on Windows while other paths are normalized to the
+// platform separator. Comparing the raw strings then fails on Windows (#14613).
+// deno-lint-ignore require-await
+unitTest("path - pathsEqual is separator-agnostic (#14613)", async () => {
+  const dir = Deno.makeTempDirSync({ prefix: "quarto-pathsequal-test" });
+  try {
+    const filesDir = join(dir, "index_files");
+    const forwardSlash = filesDir.replaceAll("\\", "/");
+
+    assert(
+      pathsEqual(filesDir, forwardSlash),
+      "same path with different separators must compare equal",
+    );
+    assert(
+      !pathsEqual(filesDir, join(dir, "other_files")),
+      "different paths must not compare equal",
+    );
+  } finally {
+    Deno.removeSync(dir, { recursive: true });
+  }
+});
+
+// The walk root may be a hidden directory or sit below one (#3186), and
+// callers pass it with a trailing separator (`quarto render proj/`) or with
+// forward slashes on Windows; walk() yields children normalized either way.
+// deno-lint-ignore require-await
+unitTest("path - skipHiddenWithin only skips hidden paths below dir", async () => {
+  const tmp = Deno.makeTempDirSync({ prefix: "quarto-skiphidden-test" });
+  try {
+    const root = join(tmp, ".parent", "proj");
+    for (const file of ["a.qmd", "x.y/b.qmd", ".git/c", "sub/.venv/d"]) {
+      Deno.mkdirSync(join(root, file, ".."), { recursive: true });
+      Deno.writeTextFileSync(join(root, file), "");
+    }
+    for (
+      const dir of [root, root + SEP, root.replaceAll("\\", "/")]
+    ) {
+      const files = [...walkSync(dir, {
+        includeDirs: false,
+        skip: [skipHiddenWithin(dir)],
+      })].map((entry) => relative(root, entry.path).replaceAll("\\", "/"))
+        .sort();
+      assertEquals(files, ["a.qmd", "x.y/b.qmd"], `walking ${dir}`);
+    }
+  } finally {
+    Deno.removeSync(tmp, { recursive: true });
+  }
 });
 
 interface GlobTest {

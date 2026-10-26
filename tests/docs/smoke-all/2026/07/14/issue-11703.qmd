@@ -1,0 +1,16 @@
+---
+title: "Double semicolon in SCSS rule"
+format:
+  html:
+    theme:
+      - default
+      - custom-11703.scss
+_quarto:
+  tests:
+    html:
+      ensureCssRegexMatches:
+        - ['--quarto-scss-export-issue-11703-color', '\.hanged']
+---
+
+A theme rule containing a double semicolon (`max-height: 100% !important;;`)
+must not break the SCSS color variable export.

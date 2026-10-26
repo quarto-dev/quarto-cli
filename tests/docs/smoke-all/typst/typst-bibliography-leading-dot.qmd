@@ -1,0 +1,22 @@
+---
+title: "Typst bibliography with leading-dot path"
+format:
+  typst:
+    keep-typ: true
+bibliography: ./refs.bib
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+      - ['\#bibliography\(\("\./refs\.bib"\)\)']
+      - ['\\\.', '\\/']
+      noErrors: default
+---
+
+Pandoc 3.10's Typst writer backslash-escapes any metadata string starting with a
+literal dot (jgm/pandoc#11511, jgm/pandoc#11761). Quarto's `biblio.typ` partial
+interpolates the raw `bibliography` metadata value into `#bibliography(...)`, so a
+relative path with a leading dot (`./refs.bib`) previously compiled to invalid Typst
+(`path must not contain a backslash`). This document exercises that path directly.
+
+See @Cronbach_1951 for a citation that must still resolve correctly.

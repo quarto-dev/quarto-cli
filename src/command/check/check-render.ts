@@ -6,6 +6,8 @@
 
 import { render } from "../render/render-shared.ts";
 import type { RenderServiceWithLifetime } from "../render/types.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 /**
  * Options for test-rendering a document during check operations
@@ -48,10 +50,14 @@ export async function checkRender(
   Deno.writeTextFileSync(tempFile, content);
 
   // Render with appropriate flags
-  const result = await render(tempFile, {
-    services,
-    flags: { quiet: true, executeDaemon: 0 },
-  });
+  // Single-file context: the temp dir can sit beneath a project root, whose
+  // config and input files have no bearing on the check render.
+  const renderOptions = { services, flags: { quiet: true, executeDaemon: 0 } };
+  const result = await render(
+    tempFile,
+    renderOptions,
+    await singleFileProjectContext(tempFile, notebookContext(), renderOptions),
+  );
 
   // Return simplified result
   return {

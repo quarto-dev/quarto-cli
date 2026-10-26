@@ -1,0 +1,41 @@
+---
+title: "Manual Test: preview format change detection (#14533)"
+format: html
+---
+
+## Purpose
+
+This document tests that `quarto preview` detects a frontmatter
+format change on the **first** render request after the edit.
+Before the fix, the first request after a format edit returned
+the previous format; the user had to trigger a second render
+before the preview process restarted with the new format.
+
+**Why manual?** The bug surfaces in an interactive preview session
+with a real IDE client connected, and the fix turns on the
+behavior of `previewRenderRequestIsCompatible` against a live
+`fileInformationCache`. The unit test in
+`tests/unit/preview-compatibility.test.ts` locks in the cache
+behavior; this matrix covers the user-facing flow.
+
+## Steps
+
+1. Run: `quarto preview tests/docs/manual/preview/14533-format-change-detection.qmd`
+2. Wait for the html preview to open in the browser.
+3. Edit the frontmatter `format: html` → `format: typst`. Save.
+4. Trigger one Preview render (in Positron: Preview button; in
+   RStudio: Knit button or `Cmd/Ctrl+Shift+K`).
+5. Observe the output.
+
+## Expected
+
+- **One** render after the edit produces typst output.
+- The preview process restarts (visible in the terminal) on the
+  first request after the format edit, not the second.
+
+## Body
+
+Edit the line below across format changes to confirm content is
+re-rendered, not just the format swap:
+
+Current value: 1

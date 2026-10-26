@@ -23,14 +23,11 @@ function quartoRuntimeDir(): string {
       base = join(Deno.env.get("LOCALAPPDATA")!, "quarto");
       break;
     default: {
-      // Note: quarto's xdgUserRuntimeDir does not append the app name
-      // when XDG_RUNTIME_DIR is set (unlike the other XDG dir functions).
       const xdgRuntime = Deno.env.get("XDG_RUNTIME_DIR");
       if (xdgRuntime) {
-        base = xdgRuntime;
+        base = join(xdgRuntime, "quarto");
       } else {
-        const cacheHome = Deno.env.get("XDG_CACHE_HOME") ??
-          join(Deno.env.get("HOME")!, ".cache");
+        const cacheHome = Deno.env.get("XDG_CACHE_HOME") ?? join(Deno.env.get("HOME")!, ".cache");
         base = join(cacheHome, "quarto");
       }
       break;
@@ -188,10 +185,7 @@ Deno.test("julia engine", async (t) => {
       },
     ).outputSync();
     assertSuccess(force_close_output);
-    assertStderrIncludes(
-      force_close_output,
-      "Worker force-closed successfully",
-    );
+    assertStderrIncludes(force_close_output, "Worker force-closed successfully");
 
     const status_output_2 = new Deno.Command(
       quartoCmd(),
@@ -202,6 +196,24 @@ Deno.test("julia engine", async (t) => {
 
     const render_output = await render_cmd;
     assertStderrIncludes(render_output, "File was force-closed during run");
+  });
+
+  await t.step("failed one-shot run closes its worker", () => {
+    const render_output = new Deno.Command(
+      quartoCmd(),
+      {
+        args: ["render", "error.qmd", "--execute-daemon", "0"],
+        cwd: docs("julia-engine/error"),
+      },
+    ).outputSync();
+    assert(!render_output.success);
+
+    const status_output = new Deno.Command(
+      quartoCmd(),
+      { args: ["call", "engine", "julia", "status"], cwd: juliaTestDir },
+    ).outputSync();
+    assertSuccess(status_output);
+    assertStdoutIncludes(status_output, "workers active: 0");
   });
 
   await t.step("log exists", () => {

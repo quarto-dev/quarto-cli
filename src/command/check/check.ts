@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { info } from "../../deno_ral/log.ts";
+import { info, warning } from "../../deno_ral/log.ts";
 
 import { render } from "../render/render-shared.ts";
 import { renderServices } from "../render/render-services.ts";
@@ -24,15 +24,18 @@ import { satisfies } from "semver/mod.ts";
 import { dartCommand } from "../../core/dart-sass.ts";
 import { allTools, installableTool } from "../../tools/tools.ts";
 import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
-import { which } from "../../core/path.ts";
+import { pathsEqual, which } from "../../core/path.ts";
 import { dirname } from "../../deno_ral/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { typstBinaryPath } from "../../core/typst.ts";
 import { quartoCacheDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
+import { originalRealPathSync } from "../../deno_ral/original-real-path.ts";
 import { makeStringEnumTypeEnforcer } from "../../typing/dynamic.ts";
 import { detectBrowser } from "../../core/puppeteer.ts";
 import { executionEngines } from "../../execute/engine.ts";
+import type { ProjectConfigResolution } from "../../project/project-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export function getTargets(): readonly string[] {
   const checkableEngineNames = executionEngines()
@@ -58,6 +61,7 @@ export type CheckConfiguration = {
   output: string | undefined;
   services: RenderServiceWithLifetime;
   jsonResult: CheckJsonResult | undefined;
+  project: ProjectConfigResolution | undefined;
 };
 
 function checkCompleteMessage(conf: CheckConfiguration, message: string) {
@@ -76,6 +80,7 @@ export async function check(
   target: Target,
   strict?: boolean,
   output?: string,
+  project?: ProjectConfigResolution,
 ): Promise<void> {
   const services = renderServices(notebookContext());
   const conf: CheckConfiguration = {
@@ -84,6 +89,7 @@ export async function check(
     output,
     services,
     jsonResult: undefined,
+    project,
   };
   if (conf.output) {
     conf.jsonResult = {
@@ -134,11 +140,61 @@ export async function check(
 // and the message is useful for troubleshooting
 async function checkInfo(conf: CheckConfiguration) {
   const cacheDir = quartoCacheDir();
+  const project = conf.project
+    ? { dir: conf.project.dir, configFile: conf.project.configFile }
+    : null;
   if (conf.jsonResult) {
-    conf.jsonResult!.info = { cacheDir };
+    conf.jsonResult!.info = { cacheDir, project };
   }
   checkCompleteMessage(conf, "Checking environment information...");
   checkInfoMsg(conf, kIndent + "Quarto cache location: " + cacheDir);
+  if (project) {
+    checkInfoMsg(conf, kIndent + "Project root: " + project.dir);
+    checkInfoMsg(
+      conf,
+      kIndent + "Project config: " +
+        (project.configFile ?? "none (project type detected by an extension)"),
+    );
+    warnOnBroadProjectRoot(project.dir, project.configFile);
+  } else {
+    checkInfoMsg(conf, kIndent + "Project: none found (single-file mode)");
+  }
+}
+
+// A project rooted at the home dir or a filesystem root (typically a stray
+// _quarto.yml) makes every document below it part of that project.
+function warnOnBroadProjectRoot(dir: string, configFile: string | null) {
+  let rootKind: string;
+  if (dirname(dir) === dir) {
+    rootKind = "the filesystem root";
+  } else {
+    const home = userHomeDir();
+    if (home === undefined || !pathsEqual(dir, home)) {
+      return;
+    }
+    rootKind = "your home directory";
+  }
+  const source = configFile ?? "a project type detected by an extension";
+  warning(`Project root is ${rootKind} (${dir}), set by ${source}.`);
+  warning(
+    "Every command run below this directory treats it as one project." +
+      (configFile
+        ? " Remove or move this file if it was created by accident."
+        : ""),
+  );
+}
+
+function userHomeDir(): string | undefined {
+  const home = Deno.env.get(isWindows ? "USERPROFILE" : "HOME");
+  if (!home) {
+    return undefined;
+  }
+  // The project root is a real path (resolved from the process cwd).
+  try {
+    return originalRealPathSync(home);
+  } catch {
+    return home;
+  }
 }
 
 async function checkVersions(conf: CheckConfiguration) {
@@ -244,10 +300,10 @@ async function checkVersions(conf: CheckConfiguration) {
   // file is in an awkward format and it is not packaged
   // with our installers
   const versionConstraints: [string | undefined, string, string][] = [
-    [pandocVersion, "3.8.3", "Pandoc"],
-    [sassVersion, "1.87.0", "Dart Sass"],
-    [denoVersion, "2.4.5", "Deno"],
-    [typstVersion, "0.14.2", "Typst"],
+    [pandocVersion, "3.10.0", "Pandoc"],
+    [sassVersion, "1.101.0", "Dart Sass"],
+    [denoVersion, "2.7.14", "Deno"],
+    [typstVersion, "0.15.1", "Typst"],
   ];
   const checkData: [string | undefined, string, string][] = versionConstraints
     .map(([version, ver, name]) => [
@@ -498,10 +554,12 @@ title: "Title"
 ## Header
 `,
     );
-    const result = await render(mdPath, {
-      services,
-      flags: { quiet: true },
-    });
+    const options = { services, flags: { quiet: true } };
+    const result = await render(
+      mdPath,
+      options,
+      await singleFileProjectContext(mdPath, notebookContext(), options),
+    );
     if (result.error) {
       if (!conf.jsonResult) {
         throw result.error;

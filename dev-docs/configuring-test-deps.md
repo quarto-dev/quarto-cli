@@ -79,3 +79,9 @@
   using Pkg
   Pkg.add("DataFrames")
   ```
+
+# Updating test dependencies
+
+- When `main` updates the test environment (`tests/renv.lock`, `tests/uv.lock`, `tests/Manifest.toml`, or the R / Python / Julia versions in `.github/workflows/test-smokes.yml`), backport the update to the current stable branch (e.g. `v1.10`) while it still receives patch releases, as its own PR (see `checklist-backport-a-pr.md`).
+  - Patch releases are then tested against the same current R, Python, Julia and package versions users install.
+  - CI caches are shared: the R cache key is built from the OS, the R version and the `tests/renv.lock` hash, and any branch can read caches saved on `main`. A stable branch with identical lock files gets cache hits; a diverged one does a slow cold restore on each PR.

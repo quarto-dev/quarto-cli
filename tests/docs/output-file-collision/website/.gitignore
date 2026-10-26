@@ -1,0 +1,6 @@
+/.quarto/
+/_site/
+/site_libs/
+/index.html
+/index.commonmark.md
+**/*.quarto_ipynb

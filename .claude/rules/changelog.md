@@ -15,14 +15,15 @@ paths:
 
 1. **`## Regression fixes`** - Always FIRST if present
 2. **`## Dependencies`** - Bundled tool updates
-3. **`## Formats`** - By output format (H3 subsections)
-4. **`## Projects`** - By project type (H3 subsections)
-5. **`## Publishing`** - By platform (H3 subsections)
-6. **`## Lua API`** - Filter API changes
-7. **`## Commands`** - CLI commands (H3 subsections)
-8. **`## Extensions`** - Extension system changes
-9. **`## Engines`** - Execution engines (H3 subsections)
-10. **`## Other fixes and improvements`** - Always LAST
+3. **`## Accessibility`** - a11y fixes (axe-core, WAVE, WCAG conformance). Established in `changelog-1.10.md`; see `changelog-1.11.md` for a second instance.
+4. **`## Formats`** - By output format (H3 subsections)
+5. **`## Projects`** - By project type (H3 subsections)
+6. **`## Publishing`** - By platform (H3 subsections)
+7. **`## Lua API`** - Filter API changes
+8. **`## Commands`** - CLI commands (H3 subsections)
+9. **`## Extensions`** - Extension system changes
+10. **`## Engines`** - Execution engines (H3 subsections)
+11. **`## Other fixes and improvements`** - Always LAST
 
 ### Format Subsections
 Use H3 headings with backtick-wrapped names:
@@ -31,6 +32,12 @@ Use H3 headings with backtick-wrapped names:
 ### `typst`
 ### `pdf`
 ```
+
+Use `### All Formats` (no backticks) for cross-format features that apply regardless of output format. Place it first among the H3 subsections, before format-specific ones. Example: `changelog-1.9.md` uses it for a `syntax-highlighting` option change that affects all formats.
+
+### Major Feature Sections
+
+Large new features that deserve prominence can get a dedicated H2 section instead of being buried in `## Other fixes and improvements`. Examples from past releases: `## Shortcodes` (1.9), `## Crossrefs` (1.8), `## Languages` (1.8), `## YAML validation` (1.7). Place these sections in the hierarchy where they fit logically — before `## Formats` if format-agnostic, or after `## Formats` if they extend format concerns. Highlights (promotional) still go in quarto-web, not here.
 
 ## Entry Format
 
@@ -46,7 +53,9 @@ For external contributors (not core team):
 **Variations:**
 - Pull requests: `([#13441](https://github.com/quarto-dev/quarto-cli/pull/13441))`
 - External repos: `([rstudio/tinytex-releases#49](url))`
-- No issue/PR (rare): Reference commit hash instead: `([commit](https://github.com/quarto-dev/quarto-cli/commit/abc123))`
+- No issue/PR (rare): Reference commit hash instead: `([commit](https://github.com/quarto-dev/quarto-cli/commit/abc123))`. This link is the only place a SHA appears: when the description names a regression's origin, give the version that first shipped it ("regression introduced in v1.9.18"; find it with `git tag --contains <sha> | sort -V | head -1`).
+
+**Ordering:** within a section, entries go in ascending issue number.
 
 ## Writing Entries
 
@@ -61,6 +70,8 @@ For external contributors (not core team):
 **Style:**
 - Use backticks for code/options: `` `icon=false` ``
 - Period at end of every description
+- Describe what the user sees break or start working, in one sentence. Internals (cache or field names, the mechanism, file paths) and a concrete repro value belong in the PR body; the entry names the general symptom ("sidebar titles containing dunder names").
+- Put an OS qualifier inside the sentence where the behavior happens ("...missing on Windows on the first render"), not as a trailing "(Windows only)".
 - Author attribution `(author: @username)` for **external contributors only** - do NOT add for quarto-cli core team members
 
 ## Regression Fixes
@@ -101,7 +112,9 @@ The stable changelog has a dual top-level structure that does NOT exist on main:
 
 **Backport entries always go under `# v{next} backports > ## In this release`.** Never under `## Regression fixes` of the `# v{this} changes` section — that section is frozen and tracks the original v1.x release.
 
-**Lifecycle:** When the next v1.x.y patch ships, entries under `## In this release` get demoted to `## In previous releases` as part of release prep. Don't pre-empt this — leave them under `In this release` until release time.
+**Where the scaffold comes from:** the `# v{next} backports` heading (with empty `## In this release` / `## In previous releases`) and the `# v{this} changes` wrapper are seeded when the stable branch is cut — see the branch-creation step in `dev-docs/checklist-make-a-new-quarto-release.md`. If a stable branch is missing the `# v{next} backports` heading, it was cut without it: add the scaffold before filing the entry, rather than falling back to `## Regression fixes`.
+
+**Lifecycle:** When the next v1.x.y patch ships, entries under `## In this release` get demoted to `## In previous releases` as part of release prep (the changelog step in `dev-docs/checklist-make-a-new-stable-quarto-release.md`). Don't pre-empt this — leave them under `In this release` until release time.
 
 ### Workflow
 

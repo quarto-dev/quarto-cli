@@ -1,0 +1,11 @@
+{
+  "error": {
+    "type": "SyntaxError",
+    "message": "Identifier 'foo' has already been declared (1:21)",
+    "pos": 21,
+    "loc": {
+      "line": 1,
+      "column": 21
+    }
+  }
+}

@@ -26,10 +26,11 @@ import {
 } from "../deno_ral/path.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
 import {
-  kSkipHidden,
   normalizePath,
+  pathWithForwardSlashes,
   resolvePathGlobs,
   safeExistsSync,
+  skipHiddenWithin,
 } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
@@ -529,7 +530,7 @@ export function extensionFilesFromDirs(dirs: string[]) {
         {
           includeDirs: false,
           followSymlinks: false,
-          skip: [kSkipHidden],
+          skip: [skipHiddenWithin(dir)],
         },
       )
     ) {
@@ -575,7 +576,9 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
       if (extensionPath) {
         extensionDirectories.push(extensionPath);
       }
-      currentDir = dirname(currentDir);
+      const nextDir = dirname(currentDir);
+      if (nextDir === currentDir) break;
+      currentDir = nextDir;
     } while (isSubdir(projectDir, currentDir) || projectDir === currentDir);
     return extensionDirectories;
   } else if (input) {
@@ -708,6 +711,39 @@ function builtinExtensions() {
 // Path for built-in subtree extensions
 export function builtinSubtreeExtensions() {
   return resourcePath("extension-subtrees");
+}
+
+// Predicate: does `enginePath` live under the built-in subtree path?
+// Works in both source-tree (QUARTO_SHARE_PATH=src/resources) and
+// installed (QUARTO_SHARE_PATH=share) layouts. See #14529.
+// Uses a path-boundary check so a sibling directory whose name merely
+// starts with the same prefix (e.g. `extension-subtrees-custom/`) does
+// not register as bundled.
+export function isBundledSubtreeEnginePath(
+  enginePath: string,
+  subtreePath: string,
+): boolean {
+  const normalizedEngine = pathWithForwardSlashes(enginePath);
+  const normalizedSubtree = pathWithForwardSlashes(subtreePath).replace(
+    /\/+$/,
+    "",
+  );
+  return normalizedEngine === normalizedSubtree ||
+    normalizedEngine.startsWith(normalizedSubtree + "/");
+}
+
+// Filters out bundled subtree engines from a metadata `engines` array.
+export function filterBundledSubtreeEngines(
+  engines: ReadonlyArray<unknown>,
+): unknown[] {
+  const subtreePath = builtinSubtreeExtensions();
+  return engines.filter((engine) => {
+    const enginePath = typeof engine === "string"
+      ? engine
+      : (engine as { path?: string } | null | undefined)?.path;
+    if (!enginePath) return true;
+    return !isBundledSubtreeEnginePath(enginePath, subtreePath);
+  });
 }
 
 // Validate the extension
@@ -905,7 +941,12 @@ async function readExtension(
             let projectDir = extensionDir, last;
             do {
               last = basename(projectDir);
-              projectDir = dirname(projectDir);
+              const nextDir = dirname(projectDir);
+              if (nextDir === projectDir) {
+                projectDir = "";
+                break;
+              }
+              projectDir = nextDir;
             } while (projectDir && last !== "_extensions");
             if (projectDir) {
               (object.project as Record<string, unknown>)[key] = relative(

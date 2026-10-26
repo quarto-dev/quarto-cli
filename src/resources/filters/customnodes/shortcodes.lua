@@ -331,7 +331,29 @@ function shortcodes_filter()
         end,
         Image = function(el)
           el = attr_handler(el)
+          local before = el.src
           el.src = apply_code_shortcode(el.src)
+          -- A shortcode used as an image source is parsed without an extension,
+          -- so Pandoc appends default_image_extension to it. Once the shortcode
+          -- resolves to a path that already carries its own extension, that
+          -- appended extension is spurious and doubles up -- e.g. diagram.png.png,
+          -- or diagram.png.svg in Typst where the default differs (#14583). Strip
+          -- the appended default extension, but only when the resolved path still
+          -- has an extension of its own, so the multi-format workflow (a shortcode
+          -- resolving to an extensionless path) keeps its appended extension.
+          if el.src ~= before then
+            local ext = PANDOC_READER_OPTIONS.default_image_extension
+            if ext and ext ~= "" then
+              local suffix = "." .. ext
+              if el.src:sub(-#suffix) == suffix then
+                local candidate = el.src:sub(1, -#suffix - 1)
+                local _, candidate_ext = pandoc.path.split_extension(candidate)
+                if candidate_ext ~= "" then
+                  el.src = candidate
+                end
+              end
+            end
+          end
           return el
         end,
         Link = function(el)

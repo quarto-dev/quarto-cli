@@ -15,13 +15,17 @@ if [[ "$RUNNER_DEBUG" == "1" ]] || [[ "$QUARTO_TEST_VERBOSE" == "true" ]]; then
   VERBOSE_MODE=true
 fi
 
-# Check if keep-outputs mode is enabled
+# Check if keep-outputs mode or agent mode is enabled
 KEEP_OUTPUTS=false
+AGENT_MODE=false
 FILTERED_ARGS=()
 for arg in "$@"; do
   case $arg in
     --keep-outputs|-k)
       KEEP_OUTPUTS=true
+      ;;
+    --agent)
+      AGENT_MODE=true
       ;;
     *)
       FILTERED_ARGS+=("$arg")
@@ -33,6 +37,11 @@ set -- "${FILTERED_ARGS[@]}"
 if [[ "$KEEP_OUTPUTS" == "true" ]]; then
   export QUARTO_TEST_KEEP_OUTPUTS=true
   echo "> Keep outputs mode enabled - test artifacts will not be deleted"
+fi
+
+AGENT_REPORTER_ARGS=()
+if [[ "$AGENT_MODE" == "true" ]]; then
+  AGENT_REPORTER_ARGS=(--reporter=dot)
 fi
 
 source $SCRIPT_PATH/../package/scripts/common/utils.sh
@@ -62,6 +71,52 @@ export QUARTO_DEBUG=true
 
 QUARTO_DENO_OPTIONS="--config test-conf.json --v8-flags=--enable-experimental-regexp-engine,--max-old-space-size=8192,--max-heap-size=8192 --unstable-kv --unstable-ffi --no-lock --allow-all"
 
+# QUARTO_TEST_BIN selects an installed Quarto outside this checkout.
+# The harness still uses the dev runtime configured above.
+if [[ -n "$QUARTO_TEST_BIN" ]]; then
+  if [[ ! -x "$QUARTO_TEST_BIN" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) does not exist or is not executable"
+    exit 1
+  fi
+  # Strip dev paths while probing the installed binary. Shared list, see
+  # tests/binary-mode-strip-env.txt (also read by quarto-cmd.ts and run-tests.ps1).
+  strip_env_file="$SCRIPT_PATH/binary-mode-strip-env.txt"
+  if [[ ! -f "$strip_env_file" ]]; then
+    echo "ERROR: strip-env list file not found: $strip_env_file"
+    exit 1
+  fi
+  strip_args=()
+  while IFS=$' \t\r' read -r name || [[ -n "$name" ]]; do
+    [[ -z "$name" || "$name" == \#* ]] && continue
+    if [[ ! "$name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+      echo "ERROR: strip-env list file contains an invalid variable name: $name"
+      exit 1
+    fi
+    strip_args+=(-u "$name")
+  done < "$strip_env_file"
+  if [[ "${#strip_args[@]}" -eq 0 ]]; then
+    echo "ERROR: strip-env list file yielded no variable names: $strip_env_file"
+    exit 1
+  fi
+  QUARTO_TEST_BIN_VERSION="$(env "${strip_args[@]}" "$QUARTO_TEST_BIN" --version 2>/dev/null)"
+  QUARTO_TEST_BIN_PROBE_EXIT=$?
+  if [[ $QUARTO_TEST_BIN_PROBE_EXIT -ne 0 ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) exited with code $QUARTO_TEST_BIN_PROBE_EXIT while reporting its version."
+    exit 1
+  fi
+  if [[ -z "$QUARTO_TEST_BIN_VERSION" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN ($QUARTO_TEST_BIN) did not report a version."
+    echo "The distribution is likely incomplete (missing share/version)."
+    exit 1
+  fi
+  if [[ "$QUARTO_TEST_BIN_VERSION" == "99.9.9" ]]; then
+    echo "ERROR: QUARTO_TEST_BIN reports the dev version sentinel 99.9.9."
+    echo "The selected launcher runs the dev sources because it has a sibling src/quarto.ts."
+    echo "Point QUARTO_TEST_BIN at a built distribution extracted outside the git checkout."
+    exit 1
+  fi
+  echo "> BINARY MODE: testing built quarto ${QUARTO_TEST_BIN_VERSION} at ${QUARTO_TEST_BIN}"
+fi
 
 if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
 then
@@ -75,19 +130,22 @@ fi
 if [[ -z $QUARTO_TESTS_FORCE_NO_VENV && -n $QUARTO_TESTS_FORCE_NO_PIPENV ]]; then
   export QUARTO_TESTS_FORCE_NO_VENV=$QUARTO_TESTS_FORCE_NO_PIPENV
 fi
-if [[ -z $QUARTO_TESTS_FORCE_NO_VENV ]]
+QUARTO_VENV_ACTIVATE="${QUARTO_ROOT}/tests/.venv/bin/activate"
+if [[ -z $QUARTO_TESTS_FORCE_NO_VENV && -f $QUARTO_VENV_ACTIVATE ]]
 then
   # Save possible activated virtualenv for later restauration
   OLD_VIRTUAL_ENV=$VIRTUAL_ENV
   if [[ "$VERBOSE_MODE" == "true" ]]; then
     echo "> Activating virtualenv from .venv for Python tests in Quarto"
   fi
-  source "${QUARTO_ROOT}/tests/.venv/bin/activate"
+  source "$QUARTO_VENV_ACTIVATE"
   if [[ "$VERBOSE_MODE" == "true" ]]; then
     echo "> Using Python from $(which python)"
     echo "> VIRTUAL_ENV: ${VIRTUAL_ENV}"
   fi
   quarto_venv_activated="true"
+elif [[ -z $QUARTO_TESTS_FORCE_NO_VENV && "$VERBOSE_MODE" == "true" ]]; then
+  echo "> No virtualenv found at ${QUARTO_VENV_ACTIVATE}, using Python from PATH"
 fi
 
 SMOKE_ALL_TEST_FILE="./smoke/smoke-all.test.ts"
@@ -114,13 +172,13 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
       SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -regextype "posix-extended" -regex ".*/[^_][^/]*[.]qmd" -o -regex ".*/[^_][^/]*[.]md" -o -regex ".*/[^_][^/]*[.]ipynb"`
       for j in $SMOKE_ALL_FILES; do
         echo "${SMOKE_ALL_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
-        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" ${SMOKE_ALL_TEST_FILE} -- ${j}
+        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" ${SMOKE_ALL_TEST_FILE} -- ${j}
       done
       continue
     fi
     # Otherwise we time the individual test.ts test
     echo $i >> "$QUARTO_TEST_TIMING"
-    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $i
+    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" $i
   done
   # exit the script with an error code if the timing file shows error
   grep -q 'Command exited with non-zero status' $QUARTO_TEST_TIMING && SUCCESS=1 || SUCCESS=0
@@ -130,19 +188,19 @@ else
   ## Short version syntax to run smoke-all.test.ts
   ## Only use if different than ./run-test.sh ./smoke/smoke-all.test.ts
   if [[ "$1" =~ smoke-all\.test\.ts ]]; then
-    TESTS_TO_RUN=$@
+    TESTS_TO_RUN=("$@")
   else
     # Check file argument
-    SMOKE_ALL_FILES=""
-    TESTS_TO_RUN=""
+    SMOKE_ALL_FILES=()
+    TESTS_TO_RUN=()
     if [[ ! -z "$*" ]]; then
-      for file in "$*"; do
+      for file in "$@"; do
         filename=$(basename "$file")
         # smoke-all.test.ts works with .qmd, .md and .ipynb but  will ignored file starting with _
         if [[ $filename =~ ^[^_].*[.]qmd$ ]] || [[ $filename =~ ^[^_].*[.]ipynb$ ]] || [[ $filename =~ ^[^_].*[.]md$ ]]; then
-          SMOKE_ALL_FILES="${SMOKE_ALL_FILES} ${file}"
+          SMOKE_ALL_FILES+=("${file}")
         elif [[ $file =~ .*[.]ts$ ]]; then
-          TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
+          TESTS_TO_RUN+=("${file}")
         else
           echo "#### WARNING"
           echo "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)."
@@ -151,17 +209,27 @@ else
         fi
       done
     fi
-    if [ "$SMOKE_ALL_FILES" != "" ]; then
-      if [ "$TESTS_TO_RUN" != "" ]; then
+    if [ "${#SMOKE_ALL_FILES[@]}" -ne 0 ]; then
+      if [ "${#TESTS_TO_RUN[@]}" -ne 0 ]; then
         echo "#### WARNING"
         echo "When passing .qmd, .md and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
-        echo "Ignoring ${TESTS_TO_RUN}."
+        echo "Ignoring ${TESTS_TO_RUN[*]}."
         echo "####"
       fi
-      TESTS_TO_RUN="${SMOKE_ALL_TEST_FILE} -- ${SMOKE_ALL_FILES}"
+      TESTS_TO_RUN=("${SMOKE_ALL_TEST_FILE}" "--" "${SMOKE_ALL_FILES[@]}")
     fi
   fi
-  "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" $TESTS_TO_RUN
+  # Binary mode defaults to smoke tests; other compatible suites are explicit.
+  if [[ -n "$QUARTO_TEST_BIN" && "${#TESTS_TO_RUN[@]}" -eq 0 && -z "$*" ]]; then
+    TESTS_TO_RUN=("smoke/")
+    echo "> BINARY MODE: defaulting to smoke/ tests (pass a path explicitly to run others, e.g. integration/playwright-tests.test.ts)"
+  fi
+  # TESTS_TO_RUN is an array and quoted here on purpose: a bucket can be a
+  # literal, unexpanded ** glob pattern (e.g. from the ff-matrix CI bucket),
+  # and smoke-all.test.ts expands it itself via expandGlobSync. Expanding it
+  # here instead would depend on bash's own (non-recursive by default) glob
+  # semantics and could silently drop deeply nested matches.
+  "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" "${TESTS_TO_RUN[@]}"
   SUCCESS=$?
 fi
 

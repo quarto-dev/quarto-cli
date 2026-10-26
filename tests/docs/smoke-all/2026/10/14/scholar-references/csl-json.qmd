@@ -1,0 +1,15 @@
+---
+title: Scholar metadata for a CSL JSON bibliography
+format: html
+google-scholar: true
+bibliography: references.json
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_reference"][content*="citation_author=Alice Smith;"]']
+---
+
+The bibliography is a CSL JSON file. Pandoc reads a bare `.json` input as its own JSON AST, so the Scholar reference tags need the bibliography read explicitly as CSL JSON.
+
+This article cites one work [@cited].

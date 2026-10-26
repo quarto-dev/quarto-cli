@@ -4,8 +4,6 @@ inputs:
   paths:
     description: "Paths to sign"
     required: true
-  signtools-extra-args:
-    description: "Additionnal arguments to pass to signtool"
 outputs:
   cert_path:
     description: "certificate path"
@@ -95,13 +93,13 @@ runs:
         }
         Write-Output "::endgroup::"
 
-    - name: Sign files with signtool
+    - name: Sign files with smctl
       shell: pwsh
       env:
         SM_CLIENT_CERT_FILE: ${{ steps.setup-cert.outputs.SM_CLIENT_CERT_FILE }}
       run: |
         Write-Output "::group::Check for required environment variables"
-        $requiredEnvVars = @('SM_HOST', 'SM_API_KEY', 'SM_CLIENT_CERT_FILE', 'SM_CLIENT_CERT_PASSWORD', 'CERT_FINGERPRINT')
+        $requiredEnvVars = @('SM_HOST', 'SM_API_KEY', 'SM_CLIENT_CERT_FILE', 'SM_CLIENT_CERT_PASSWORD', 'KEYPAIR_ALIAS')
         foreach ($envVar in $requiredEnvVars) {
           if (-not $(Get-Item -Path "Env:$envVar" -ErrorAction SilentlyContinue)) {
             Write-Output "::error title=Missing environment variable::Environment variable $envVar is not set."
@@ -110,19 +108,16 @@ runs:
           Write-Output "All env var correctly set."
         }
         Write-Output "::endgroup::"
-        Write-Output "::group::Sync certificates"
-        smctl windows certsync
-        Write-Output "::endgroup::"
         # Sign each file that will be bundled in the installer
         $paths = "${{ inputs.paths }}" -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
         foreach ($path in $paths) {
           Write-Output "::group::Signing ${path}"
-          signtool.exe sign /sha1 $env:CERT_FINGERPRINT /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 ${{ inputs.signtools-extra-args }} $path
+          smctl sign --keypair-alias $env:KEYPAIR_ALIAS --input $path --digalg SHA256 --sigalg SHA256 --timestamp=true
           if ($LASTEXITCODE -ne 0) {
             Write-Output "::error title=Signing error::Error while signing ${path}"
             exit 1
           }
-          signtool.exe verify /v /pa $path
+          smctl sign verify --input $path
           if ($LASTEXITCODE -ne 0) {
             Write-Output "::error title=Verify signature error::Error while verifying ${path}"
             exit 1

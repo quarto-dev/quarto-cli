@@ -1,0 +1,18 @@
+{
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2020
+  },
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "rules": {
+    "no-cond-assign": 0,
+    "no-var": 2,
+    "comma-dangle": ["error", "never"],
+    "semi": [2, "always"],
+    "quotes": ["error", "double", {"allowTemplateLiterals": true}]
+  }
+}

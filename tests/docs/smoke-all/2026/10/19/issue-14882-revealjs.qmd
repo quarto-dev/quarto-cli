@@ -1,0 +1,20 @@
+---
+title: "Issue 14882 - brand font family names are quoted in revealjs CSS"
+format: revealjs
+brand:
+  typography:
+    base: Source Sans 3
+    headings: Bricolage Grotesque 96pt
+    monospace: M PLUS 1 Code
+_quarto:
+  tests:
+    revealjs:
+      ensureCssRegexMatches:
+        - ['--r-main-font:\s*"Source Sans 3"', '--r-heading-font:\s*"Bricolage Grotesque 96pt"', '--r-code-font:\s*"M PLUS 1 Code"', '--mermaid-font-family:\s*"Source Sans 3"']
+        # reveal.js' exposer.scss still writes the values unquoted first; an unquoted one after Quarto's quoted one would win
+        - ['--r-main-font:\s*"Source Sans 3"[\s\S]*--r-main-font:\s*Source Sans 3', '--r-heading-font:\s*"Bricolage Grotesque 96pt"[\s\S]*--r-heading-font:\s*Bricolage Grotesque 96pt', '--r-code-font:\s*"M PLUS 1 Code"[\s\S]*--r-code-font:\s*M PLUS 1 Code']
+---
+
+## A slide
+
+Body text and `inline code`.

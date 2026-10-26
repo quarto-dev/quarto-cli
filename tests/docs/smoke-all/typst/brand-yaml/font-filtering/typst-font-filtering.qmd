@@ -1,0 +1,19 @@
+---
+title: "Font Filtering Test"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '"Libertinus Serif"'
+          - '"DejaVu Sans Mono"'
+        -
+          - 'Nonexistent Font One'
+          - 'Nonexistent Font Two'
+          - 'Nonexistent Mono Font'
+---
+
+This document tests that unavailable fonts are filtered from brand typography fallback lists.

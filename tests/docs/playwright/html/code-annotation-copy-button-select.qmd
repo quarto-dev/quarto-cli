@@ -1,0 +1,11 @@
+---
+title: "Code copy button and code annotation marker (select)"
+format: html
+code-annotations: select
+---
+
+```{.python}
+import polars as pl # <1>
+```
+
+1. This is a code block with a copy button and an annotation.

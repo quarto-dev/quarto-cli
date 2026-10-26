@@ -1,0 +1,10 @@
+---
+title: "Posts"
+listing:
+  contents: posts
+  type: default
+  sort: "title"
+---
+
+A default listing with the default fields. The post without a date or
+an author has nothing to show in its metadata block.

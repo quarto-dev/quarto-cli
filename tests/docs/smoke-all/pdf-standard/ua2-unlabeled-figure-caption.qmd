@@ -1,5 +1,5 @@
 ---
-title: "UA-2: unlabeled figure caption produces invalid structure"
+title: "UA-2: unlabeled figure caption passes verapdf validation"
 lang: en
 format:
   pdf:
@@ -16,32 +16,27 @@ _quarto:
         - ['\\DocumentMetadata\{', 'pdfstandard=\{ua-2\}', 'tagging=on']
         - []
       printsMessage:
-        # Known issue: unlabeled captioned figures go through pandoc3_figure.lua
-        # which produces a bare \begin{figure}[H] environment. LaTeX's tagpdf
-        # places <Caption> as a sibling of <Figure> under <Document> instead of
-        # nesting them inside a grouping element. This violates UA-2 which
-        # requires <Caption> to be a child of <Figure>, <Table>, or <Formula>.
+        # Unlabeled captioned figures go through pandoc3_figure.lua, which
+        # produces a bare \begin{figure}[H] environment. This historically
+        # produced an invalid UA-2 structure tree where tagpdf placed
+        # <Caption> as a sibling of <Figure> under <Document> instead of
+        # nesting them inside a grouping element, and verapdf flagged it.
         #
-        # Labeled figures ({#fig-label}) go through FloatRefTarget, which wraps
-        # the figure in a \Div that provides the grouping context tagpdf needs.
-        #
-        # Structure produced (invalid):
-        #   /Document
-        #     /Caption    <- should be inside a grouping element
-        #     /Figure     <- sibling instead of parent
-        #
-        # Expected (valid, as produced by labeled figures):
-        #   /Document
-        #     /Div
-        #       /Caption  <- properly nested
-        #       /Figure
+        # With the tagpdf/luamml versions in current TeX Live, verapdf now
+        # passes UA-2 validation for this document, so the failure warning
+        # should no longer appear. We negate the assertion to lock in that
+        # behavior. Whether the structure tree is genuinely conforming (vs.
+        # verapdf leniency) is tracked in issue #14570.
         level: WARN
         regex: "PDF validation failed for ua-2"
+        negate: true
 ---
 
-# Known LaTeX tagging limitation
+# Unlabeled figure caption tagging
 
-An unlabeled captioned figure produces invalid UA-2 structure because
-tagpdf does not nest `<Caption>` inside a grouping element.
+An unlabeled captioned figure historically produced invalid UA-2 structure
+because tagpdf did not nest `<Caption>` inside a grouping element. With the
+tagpdf/luamml versions in current TeX Live, verapdf now passes UA-2
+validation for this document (see issue #14570).
 
 ![This is a caption on an unlabeled figure](penrose.svg)

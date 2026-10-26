@@ -143,6 +143,21 @@ export function watchProject(
             const services = renderServices(nbContext);
             try {
               const result = await renderManager.submitRender(() => {
+                // Invalidate the persistent project context's cache for
+                // each changed input. The HTTP-handler render in
+                // serve.ts reuses watcher.project() with its long-lived
+                // fileInformationCache; without this invalidation,
+                // projectResolveFullMarkdownForFile returns the pre-edit
+                // expanded markdown and the regenerated HTML keeps the
+                // stale body (#10392). The invalidation runs inside the
+                // render queue so it is serialized with any in-flight
+                // render — invalidateForFile may delete a transient
+                // .quarto_ipynb, and running it outside the queue could
+                // race with a concurrent HTTP-handler render that is
+                // still reading that notebook.
+                for (const input of inputs) {
+                  project.fileInformationCache?.invalidateForFile(input);
+                }
                 if (inputs.length > 1) {
                   return renderProject(
                     project!,

@@ -17,3 +17,13 @@ So we tweaked dracula theme et this test checks that color of title is like in o
 Content
 
 :::
+
+## Bold in title
+
+::: {.callout-note}
+
+## Title with <b>raw b</b> and **strong**
+
+Content with bold
+
+:::

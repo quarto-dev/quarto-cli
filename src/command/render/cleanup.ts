@@ -11,6 +11,7 @@ import * as ld from "../../core/lodash.ts";
 
 import {
   normalizePath,
+  pathsEqual,
   removeIfEmptyDir,
   removeIfExists,
 } from "../../core/path.ts";
@@ -73,7 +74,7 @@ export function renderCleanup(
         filesDir = normalizePath(filesDir);
       }
       supporting = supporting.map((supportingDir) => {
-        if (filesDir === supportingDir) {
+        if (pathsEqual(filesDir, supportingDir)) {
           return join(filesDir, figuresDir(figureFormat));
         } else {
           return supportingDir;

@@ -4,14 +4,14 @@ async function check_backgrounds(page, class_, primary, secondary) {
   const locatr = await page.locator('body').first();
   await expect(locatr).toHaveClass(`fullcontent ${class_}`);
   await expect(locatr).toHaveCSS('background-color', primary);
-  await page.locator("a.quarto-color-scheme-toggle").click();
+  await page.locator("button.quarto-color-scheme-toggle").click();
   const locatr2 = await page.locator('body').first();
   await expect(locatr2).toHaveCSS('background-color', secondary);
 }
 
 
 async function check_toggle(page, alternate) {
-  const locatr = await page.locator("a.quarto-color-scheme-toggle");
+  const locatr = await page.locator("button.quarto-color-scheme-toggle");
   await expect(locatr).toHaveClass(`top-right quarto-color-scheme-toggle${alternate?" alternate":""}`)
 }
 

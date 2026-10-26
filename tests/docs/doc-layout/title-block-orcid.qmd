@@ -1,0 +1,12 @@
+---
+title: "ORCID accessibility"
+author:
+  - name: Norah Jones
+    orcid: 0000-0001-2345-6789
+  - name: Jane Doe
+    orcid: 0000-0003-4444-5555
+---
+
+## Section
+
+Content.

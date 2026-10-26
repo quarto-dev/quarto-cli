@@ -1,0 +1,16 @@
+---
+title: "KaTeX set with the object form of html-math-method"
+format:
+  html:
+    html-math-method:
+      method: katex
+      url: "https://cdn.jsdelivr.net/npm/katex@latest/dist/"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['window\.backupDefine = window\.define', 'window\.define = window\.backupDefine']
+        - ['<script defer="" src="[^"]*katex\.min\.js"']
+---
+
+Inline math $x^2$.

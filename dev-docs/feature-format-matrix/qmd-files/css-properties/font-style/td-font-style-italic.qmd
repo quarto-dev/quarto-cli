@@ -19,7 +19,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - '\[#set text\(style: "italic"\); B\]'
+          - '\[#set text\(style: "italic"\);\s*B\]'
         - []
 ---
 

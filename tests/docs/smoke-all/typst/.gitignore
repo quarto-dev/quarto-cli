@@ -1,3 +1,6 @@
 # Generated test outputs (from keep-typ option)
 *.typ
 *.pdf
+
+/.quarto/
+**/*.quarto_ipynb

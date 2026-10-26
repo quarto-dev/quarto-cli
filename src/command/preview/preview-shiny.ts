@@ -33,7 +33,7 @@ import {
 } from "../../core/http.ts";
 import { findOpenPort } from "../../core/port.ts";
 import { handleHttpRequests } from "../../core/http-server.ts";
-import { normalizePath } from "../../core/path.ts";
+import { pathsEqual } from "../../core/path.ts";
 import { previewMonitorResources } from "../../core/quarto.ts";
 import { renderServices } from "../render/render-services.ts";
 import { RenderFlags } from "../render/types.ts";
@@ -123,7 +123,7 @@ function runPreviewControlService(
   // helper to check whether a render request is compatible
   // with the original render
   const isCompatibleRequest = async (prevReq: PreviewRenderRequest) => {
-    return normalizePath(options.input) === normalizePath(prevReq.path) &&
+    return pathsEqual(options.input, prevReq.path) &&
       await previewRenderRequestIsCompatible(
         prevReq,
         options.project,

@@ -149,8 +149,10 @@ import("./quarto-pre/code-filename.lua")
 import("./quarto-pre/contentsshortcode.lua")
 import("./quarto-pre/engine-escape.lua")
 import("./quarto-pre/figures.lua")
+import("./quarto-pre/font.lua")
 import("./quarto-pre/hidden.lua")
 import("./quarto-pre/include-paths.lua")
+import("./quarto-pre/citation-title.lua")
 import("./quarto-pre/input-traits.lua")
 import("./quarto-pre/line-numbers.lua")
 import("./quarto-pre/meta.lua")
@@ -409,8 +411,17 @@ local quarto_pre_filters = {
     traverser = 'jog',
   },
 
+  { name = "pre-font-fallback",
+    filter = normalize_font_fallbacks(),
+    flags = { "has_font_fallback" },
+    traverser = 'jog',
+  },
   { name = "pre-quarto-pre-meta-inject",
     filter = quarto_pre_meta_inject(),
+    traverser = 'jog',
+  },
+  { name = "pre-citation-title",
+    filter = citation_title(),
     traverser = 'jog',
   },
   { name = "pre-write-results",
@@ -530,6 +541,10 @@ local quarto_post_filters = {
   -- format fixups post rendering
   { name = "post-render-latex-fixups",
     filters = render_latex_fixups(),
+    traverser = 'jog',
+  },
+  { name = "post-render-docx-fixups",
+    filter = render_docx_fixups(),
     traverser = 'jog',
   },
   { name = "post-render-html-fixups",

@@ -41,11 +41,14 @@ import {
 } from "../../deno_ral/platform.ts";
 
 // This the https texlive repo that we use by default
-const kDefaultRepos = [
+export const kDefaultRepos = [
   "https://mirrors.rit.edu/CTAN/systems/texlive/tlnet/",
   "https://ctan.math.illinois.edu/systems/texlive/tlnet/",
   "https://mirror.las.iastate.edu/tex-archive/systems/texlive/tlnet/",
 ];
+
+// CDN-backed TinyTeX mirror (https://yihui.org/en/2026/03/tinytex-ctan-mirror/).
+export const kTlnetMirror = "https://tlnet.yihui.org";
 
 // Different packages
 const kTinyTexRepo = "rstudio/tinytex-releases";
@@ -333,9 +336,15 @@ async function afterInstall(context: InstallContext) {
       },
     );
 
-    // Set the default repo to an https repo
+    // Set the default repo to an https repo.
+    // Allow override via QUARTO_TINYTEX_REPOSITORY, or CTAN_REPO (honored for
+    // parity with the R tinytex package, which reads it during install-tl).
     let restartRequired = false;
-    const defaultRepo = await textLiveRepo();
+    // Use `||` (not `??`) so an explicit empty `QUARTO_TINYTEX_REPOSITORY=""`
+    // falls through to `CTAN_REPO` rather than masking it.
+    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY") ||
+      Deno.env.get("CTAN_REPO");
+    const defaultRepo = await resolveTinytexRepo(envRepo);
     await context.withSpinner(
       {
         message: `Setting default repository`,
@@ -482,7 +491,9 @@ function exec(path: string, cmd: string[]) {
 
 const kTlMgrKey = "tlmgr";
 
-async function textLiveRepo() {
+async function textLiveRepoFallback(
+  fetchFn: typeof fetch = fetch,
+) {
   // We don't set the default to `ctan` because one caveat of mirror.ctan.org
   // is that it resolves to many different hosts, and they are not perfectly synchronized;
   // Recommendation is to update only daily (at most), and not more often, which we don't want.
@@ -492,7 +503,7 @@ async function textLiveRepo() {
   let autoUrl;
   try {
     const url = "https://mirror.ctan.org/systems/texlive/tlnet";
-    const response = await fetch(url, { redirect: "follow" });
+    const response = await fetchFn(url, { redirect: "follow" });
     autoUrl = response.url;
   } catch (_e) {}
   if (!autoUrl) {
@@ -500,6 +511,58 @@ async function textLiveRepo() {
     autoUrl = kDefaultRepos[randomInt];
   }
   return autoUrl;
+}
+
+export async function isTlnet(
+  url: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<boolean> {
+  // Probe the TLPDB file inside the mirror, not the URL root: a valid mirror
+  // root commonly serves an HTML directory index, while a misconfigured
+  // Cloudflare catch-all returns text/html for every path including the TLPDB.
+  // Combining a deep-file probe with the text/html guard rejects both
+  // unreachable and catch-all-misconfigured deployments. Matches R tinytex's
+  // is_tlnet() at R/install.R.
+  const probeUrl = `${url.replace(/\/$/, "")}/tlpkg/texlive.tlpdb`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const response = await fetchFn(probeUrl, {
+      method: "HEAD",
+      signal: controller.signal,
+      redirect: "follow",
+    });
+    if (response.status >= 400) {
+      debug(`isTlnet probe ${probeUrl} rejected: status ${response.status}`);
+      return false;
+    }
+    const contentType = response.headers.get("Content-Type") ?? "";
+    if (contentType.toLowerCase().includes("text/html")) {
+      debug(
+        `isTlnet probe ${probeUrl} rejected: Content-Type ${contentType} (catch-all html)`,
+      );
+      return false;
+    }
+    return true;
+  } catch (e) {
+    debug(`isTlnet probe ${probeUrl} rejected: fetch error ${e}`);
+    return false;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export async function resolveTinytexRepo(
+  envOverride?: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<string> {
+  if (envOverride) {
+    return envOverride;
+  }
+  if (await isTlnet(kTlnetMirror, fetchFn)) {
+    return kTlnetMirror;
+  }
+  return textLiveRepoFallback(fetchFn);
 }
 
 export function tinyTexPkgName(

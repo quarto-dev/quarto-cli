@@ -1,0 +1,29 @@
+# Environment variables removed from the inherited ambient environment before
+# invoking a built quarto under test. A caller-supplied overlay is applied
+# after removal and may reintroduce a name listed here on purpose.
+# One variable name per line. Blank lines and '#' comments are ignored.
+#
+# Read by tests/quarto-cmd.ts (every binary-mode spawn) and by the
+# QUARTO_TEST_BIN preflight probe in tests/run-tests.sh and tests/run-tests.ps1.
+
+# Dev-tree pointers exported by run-tests.[sh|ps1] and configure.
+QUARTO_SHARE_PATH
+QUARTO_BIN_PATH
+QUARTO_ROOT
+QUARTO_SRC_PATH
+QUARTO_DENO
+QUARTO_DENO_DOM
+DENO_DIR
+
+# Dev-mode behaviour and version overrides.
+QUARTO_DEBUG
+QUARTO_FORCE_VERSION
+QUARTO_VERSION_REQUIREMENT
+
+# Ambient per-run state that must not leak into a test spawn.
+QUARTO_PROJECT_DIR
+QUARTO_PROFILE
+QUARTO_LOG
+QUARTO_LOG_LEVEL
+QUARTO_LOG_FORMAT
+RSTUDIO

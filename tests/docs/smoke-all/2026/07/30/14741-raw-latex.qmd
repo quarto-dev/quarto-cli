@@ -1,0 +1,82 @@
+---
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      # an unbalanced brace makes LaTeX fail with "Too many }'s"
+      noErrors: default
+      ensureLatexFileRegexMatches:
+        -
+          # the author's own \LTcaptype definition, and the group scoping it, survive
+          - '\{\\def\\LTcaptype\{figure\}'
+          # a group holding more than Pandoc's definition survives whole
+          - '\{\\setlength\{\\arrayrulewidth\}\{2\.5pt\}'
+          # each table still gets its caption
+          - '\\caption\{\\label\{tbl-two-groups\}'
+          - '\\caption\{\\label\{tbl-user-def\}'
+          - '\\caption\{\\label\{tbl-extra-in-group\}'
+        - []
+---
+
+Companion to `14741.qmd`. Removing the `{ ... }` group Pandoc puts around a
+captionless longtable is only safe when those braces are provably Pandoc's own
+wrapper. Raw LaTeX can carry the same shape without the same meaning, and the
+three cases below are the ones where dropping the braces would corrupt the
+output. Each must come through byte for byte as the author wrote it.
+
+## Two groups in one raw block
+
+The pattern that splits the raw block spans from the first `\begin{longtable}`
+to the last `\end{longtable}`, so here the opening brace belongs to the first
+group and the closing brace to the second. Removing both leaves one orphan of
+each, and `pdflatex` stops with `Too many }'s`.
+
+::: {#tbl-two-groups .cell}
+```{=latex}
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}l@{}}
+a \\
+\end{longtable}
+}
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}l@{}}
+b \\
+\end{longtable}
+}
+```
+Two groups in one raw block
+:::
+
+## The author's own `\LTcaptype`
+
+`\def\LTcaptype{figure}` is the documented way to make a longtable caption use
+the figure counter. It is not Pandoc's marker and must not be touched.
+
+::: {#tbl-user-def .cell}
+```{=latex}
+{\def\LTcaptype{figure}
+\begin{longtable}[]{@{}lr@{}}
+a & b \\
+\end{longtable}
+}
+```
+Author-defined LTcaptype
+:::
+
+## A group that scopes more than the definition
+
+Anything else inside the group is scoped by it. Dropping the brace would let
+these settings leak into the rest of the document.
+
+::: {#tbl-extra-in-group .cell}
+```{=latex}
+{\def\LTcaptype{none} % do not increment counter
+\setlength{\arrayrulewidth}{2.5pt}
+\begin{longtable}[]{@{}l@{}}
+a \\
+\end{longtable}
+}
+```
+Group with a setlength in it
+:::

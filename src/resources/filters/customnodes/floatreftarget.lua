@@ -2,7 +2,6 @@
 -- Copyright (C) 2023 Posit Software, PBC
 
 local drop_class = require("modules/filters").drop_class
-local patterns = require("modules/patterns")
 
 -- Track whether we've injected the Typst show rule for listing alignment
 local injected_listing_align_rule = false
@@ -458,9 +457,27 @@ end, function(float)
               "triggered this error.")
               return {}
             end
-            -- Strip Pandoc 3.8+ LTcaptype definition since we're adding our own caption
-            -- Keep the { } wrapper (harmless) to avoid orphan braces
-            longtable_preamble = longtable_preamble:gsub("\\def\\LTcaptype{none}[^\n]*\n?", "")
+            -- Pandoc 3.8.1+ wraps a captionless table in a brace group that only
+            -- scopes `\def\LTcaptype{none}`. We supply our own \caption and drop that
+            -- definition, so the group is now pointless - and not inert: it breaks
+            -- packages that move the environment out of the text flow (endfloat's
+            -- \DeclareDelayedFloatFlavor*{longtable}{table}, #14741). Drop the braces
+            -- with the definition, but only when provably Pandoc's own wrapper:
+            -- preamble is just the brace + def, postamble is just the brace, and the
+            -- block holds a single longtable. Otherwise strip the definition alone.
+            local preamble_without_group, opened = longtable_preamble:gsub(
+              "^(%s*){%s*\\def\\LTcaptype{none}[^\n]*\n(%s*)$", "%1%2")
+            local postamble_without_group, closed = longtable_postamble:gsub(
+              "^(%s*)}(%s*)$", "%1%2")
+            local single_longtable =
+              longtable_content:find("\\begin{longtable}", 1, true) == nil
+            if opened > 0 and closed > 0 and single_longtable then
+              longtable_preamble = preamble_without_group
+              longtable_postamble = postamble_without_group
+            else
+              longtable_preamble =
+                longtable_preamble:gsub("\\def\\LTcaptype{none}[^\n]*\n?", "")
+            end
             -- split the content into params and actual content
             -- params are everything in the first line of longtable_content
             -- actual content is everything else
@@ -505,10 +522,29 @@ end, function(float)
               end
               return result
             else
+              -- For a bottom caption, place the caption inside the longtable
+              -- foot (immediately before \endlastfoot) so it renders below the
+              -- table, matching Pandoc's native longtable output. Without this,
+              -- the caption lands after the data rows but inside the body. See #14575.
+              -- Tables without a foot (e.g. kable(longtable=TRUE)) fall through
+              -- to the behavior below.
+              local foot_pos = cap_loc ~= "top" and content:find("\\endlastfoot", 1, true)
+              if foot_pos then
+                return pandoc.Blocks({
+                  pandoc.RawBlock("latex", longtable_preamble),
+                  pandoc.RawBlock("latex", start),
+                  pandoc.RawBlock("latex", content:sub(1, foot_pos - 1)),
+                  latex_caption,
+                  pandoc.RawInline("latex", "\\tabularnewline"),
+                  pandoc.RawBlock("latex", content:sub(foot_pos)),
+                  pandoc.RawBlock("latex", "\\end{longtable}"),
+                  pandoc.RawBlock("latex", longtable_postamble),
+                })
+              end
               local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
               -- if cap_loc is top, insert content on bottom
               if cap_loc == "top" then
-                result:insert(pandoc.RawBlock("latex", content))        
+                result:insert(pandoc.RawBlock("latex", content))
               else
                 result:insert(1, pandoc.RawBlock("latex", content))
               end
@@ -546,7 +582,7 @@ end, function(float)
   -- and recreating it below.
   -- See #7937
   if _quarto.format.isRawLatex(float.content) then
-    local _b, _e, _beginenv, inner_content, _endenv = float.content.text:find(patterns.latex_table_star)
+    local _b, _e, _beginenv, inner_content, _endenv = float.content.text:find(_quarto.modules.patterns.latex_table_star)
     if _b ~= nil then 
       figEnv = "table*"
       float.content.text = inner_content

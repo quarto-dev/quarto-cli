@@ -23,6 +23,7 @@ import {
   DependencyHtmlFile,
   Format,
   FormatExtras,
+  FormatLanguage,
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
@@ -66,7 +67,7 @@ import { processToolbars } from "./format-dashboard-toolbar.ts";
 import { processDatatables } from "./format-dashboard-tables.ts";
 import { assert } from "testing/asserts";
 import { brandBootstrapSassBundles } from "../../core/sass/brand.ts";
-import { logoAddLeadingSlashes, resolveLogo } from "../../core/brand/brand.ts";
+import { resolveInputRelativeLogo } from "../../core/brand/brand.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -130,14 +131,13 @@ export function dashboardFormat() {
             alt: format.metadata[kLogoAlt] as string,
           };
         }
-        let logo = resolveLogo(brand, logoSpec, [
-          "small",
-          "medium",
-          "large",
-        ]);
-        logo = logoAddLeadingSlashes(logo, brand, input);
-
-        format.metadata[kLogo] = logo;
+        format.metadata[kLogo] = resolveInputRelativeLogo(
+          brand,
+          logoSpec,
+          ["small", "medium", "large"],
+          input,
+          isWebsiteProject,
+        );
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,
           markdown,
@@ -154,7 +154,7 @@ export function dashboardFormat() {
         extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
           [];
         extras.html[kHtmlPostprocessors].push(
-          dashboardHtmlPostProcessor(dashboard),
+          dashboardHtmlPostProcessor(dashboard, format.language),
         );
 
         extras.metadata = extras.metadata || {};
@@ -317,6 +317,7 @@ registerWriterFormatHandler((format) => {
 
 function dashboardHtmlPostProcessor(
   dashboardMeta: DashboardMeta,
+  language: FormatLanguage,
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     const result: HtmlPostProcessResult = {
@@ -335,6 +336,9 @@ function dashboardHtmlPostProcessor(
     // Mark the page container with layout instructions
     const containerEl = doc.querySelector("div.page-layout-custom");
     if (containerEl) {
+      // dashboards have no <main> element, so mark the content container
+      // as the main landmark for assistive technology
+      containerEl.setAttribute("role", "main");
       const containerClz = [
         "quarto-dashboard-content",
         "bslib-gap-spacing",
@@ -391,7 +395,7 @@ function dashboardHtmlPostProcessor(
     processNavigation(doc);
 
     // Process pages that may be present in the document
-    processPages(doc, dashboardMeta);
+    processPages(doc, dashboardMeta, language);
 
     // Process Navbar buttons
     processNavButtons(doc, dashboardMeta);

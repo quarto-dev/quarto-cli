@@ -6,7 +6,7 @@ _quarto:
     html:
       printsMessage:
         level: INFO
-        regex: 'resources[/\\]extension-subtrees[/\\]'
+        regex: 'extension-subtrees[/\\]'
         negate: true
 ---
 

@@ -1,0 +1,8 @@
+---
+title: "Topics"
+listing:
+  contents: "../notes/*/index.qmd"
+  type: default
+  sort: "date desc"
+  categories: true
+---

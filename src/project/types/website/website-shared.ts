@@ -9,6 +9,9 @@ import { join } from "../../../deno_ral/path.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
+import { isAbsoluteRef } from "../../../core/http.ts";
+import { isDataUrl } from "../../../core/data-url.ts";
+import { imageSize } from "../../../core/image.ts";
 
 import {
   NavigationItemObject,
@@ -112,6 +115,34 @@ export function computePageTitle(
   } else {
     return title as string;
   }
+}
+
+// Gives a project relative href (leading `/`) for a path written in a document
+// in `documentDir` (project relative). Paths that already start with `/` are
+// kept, URLs and data URIs are returned as is.
+export function projectRelativeHref(href: string, documentDir: string) {
+  if (isAbsoluteRef(href) || isDataUrl(href)) {
+    return href;
+  }
+  return pathWithForwardSlashes(
+    href.startsWith("/") ? href : join("/", documentDir, href),
+  );
+}
+
+// Resolves an image written in a document in `documentDir` (project relative)
+// to its project relative href and the pixel size of the project file it
+// names. Web URLs have no local file, so they get no size; joining a URL onto
+// the project dir makes an invalid path on Windows and `stat` throws.
+export function resolveProjectImage(
+  image: string,
+  projectDir: string,
+  documentDir = ".",
+): { href: string; height?: number; width?: number } {
+  const href = projectRelativeHref(image, documentDir);
+  const size = isAbsoluteRef(href)
+    ? undefined
+    : imageSize(join(projectDir, href));
+  return { href, height: size?.height, width: size?.width };
 }
 
 export function inputFileHref(href: string) {
@@ -474,5 +505,5 @@ export function containsHref(href: string, items: SidebarItem[]) {
 
 export function itemHasNavTarget(item: SidebarItem, href: string) {
   return item.href === href ||
-    item.href === href.replace(/\/index\.html/, "/");
+    item.href === href.replace(/\/index\.html(?=[?#]|$)/, "/");
 }

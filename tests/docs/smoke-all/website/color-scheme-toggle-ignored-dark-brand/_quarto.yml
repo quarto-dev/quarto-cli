@@ -1,0 +1,16 @@
+project:
+  type: website
+  output-dir: .
+
+website:
+  title: "Website"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+
+brand:
+  light: light-brand.yml
+  dark: dark-brand.yml
+
+format: html

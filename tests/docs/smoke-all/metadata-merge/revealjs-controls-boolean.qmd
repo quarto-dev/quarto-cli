@@ -1,0 +1,22 @@
+---
+title: Controls and preview links set in front matter and metadata-files
+format: revealjs
+metadata-files:
+  - revealjs-controls-boolean-extra.yml
+controls: false
+previewLinks: false
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        -
+          - 'controls: false,'
+          - 'previewLinks: false,'
+        -
+          - 'controls: true,'
+          - 'previewLinks: true,'
+---
+
+## Slide
+
+A boolean `controls` or `previewLinks` in the front matter wins over its `metadata-files`, like any other key.

@@ -3,6 +3,7 @@ import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { execProcess } from "../../../src/core/process.ts";
 import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { unitTest } from "../../test.ts";
 import { EOL } from "fs/eol";
 import { lines } from "../../../src/core/text.ts";
@@ -20,9 +21,9 @@ const ensureStreams = (name: string, script: string, stdout: string, stderr: str
           basename(script),
         ],
         // disable logging here to allow for checking the output
-        env: {
+        ...quartoSpawnEnvOptions({
           "QUARTO_LOG_LEVEL": "CRITICAL",
-        }
+        }),
       },
       undefined,
       undefined,
@@ -55,7 +56,8 @@ const testRunCmd = (name: string, script: string) => {
       args: [
         "run",
         basename(script),
-      ]
+      ],
+      ...quartoSpawnEnvOptions(),
     });
     assert(result.success);
   }, 

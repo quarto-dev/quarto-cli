@@ -1,0 +1,248 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 129,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 128,
+    "body": [
+      {
+        "type": "VariableDeclaration",
+        "start": 4,
+        "end": 32,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 8,
+            "end": 31,
+            "id": {
+              "type": "Identifier",
+              "start": 8,
+              "end": 9,
+              "name": "a"
+            },
+            "init": {
+              "type": "CallExpression",
+              "start": 12,
+              "end": 31,
+              "callee": {
+                "type": "Identifier",
+                "start": 12,
+                "end": 26,
+                "name": "FileAttachment"
+              },
+              "arguments": [
+                {
+                  "type": "Literal",
+                  "start": 27,
+                  "end": 30,
+                  "value": "a",
+                  "raw": "\"a\""
+                }
+              ],
+              "optional": false
+            }
+          }
+        ],
+        "kind": "let"
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 35,
+        "end": 63,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 39,
+            "end": 62,
+            "id": {
+              "type": "Identifier",
+              "start": 39,
+              "end": 40,
+              "name": "b"
+            },
+            "init": {
+              "type": "CallExpression",
+              "start": 43,
+              "end": 62,
+              "callee": {
+                "type": "Identifier",
+                "start": 43,
+                "end": 57,
+                "name": "FileAttachment"
+              },
+              "arguments": [
+                {
+                  "type": "Literal",
+                  "start": 58,
+                  "end": 61,
+                  "value": "b",
+                  "raw": "'b'"
+                }
+              ],
+              "optional": false
+            }
+          }
+        ],
+        "kind": "let"
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 66,
+        "end": 94,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 70,
+            "end": 93,
+            "id": {
+              "type": "Identifier",
+              "start": 70,
+              "end": 71,
+              "name": "c"
+            },
+            "init": {
+              "type": "CallExpression",
+              "start": 74,
+              "end": 93,
+              "callee": {
+                "type": "Identifier",
+                "start": 74,
+                "end": 88,
+                "name": "FileAttachment"
+              },
+              "arguments": [
+                {
+                  "type": "TemplateLiteral",
+                  "start": 89,
+                  "end": 92,
+                  "expressions": [],
+                  "quasis": [
+                    {
+                      "type": "TemplateElement",
+                      "start": 90,
+                      "end": 91,
+                      "value": {
+                        "raw": "c",
+                        "cooked": "c"
+                      },
+                      "tail": true
+                    }
+                  ]
+                }
+              ],
+              "optional": false
+            }
+          }
+        ],
+        "kind": "let"
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 97,
+        "end": 126,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 101,
+            "end": 125,
+            "id": {
+              "type": "Identifier",
+              "start": 101,
+              "end": 103,
+              "name": "c2"
+            },
+            "init": {
+              "type": "CallExpression",
+              "start": 106,
+              "end": 125,
+              "callee": {
+                "type": "Identifier",
+                "start": 106,
+                "end": 120,
+                "name": "FileAttachment"
+              },
+              "arguments": [
+                {
+                  "type": "Literal",
+                  "start": 121,
+                  "end": 124,
+                  "value": "c",
+                  "raw": "\"c\""
+                }
+              ],
+              "optional": false
+            }
+          }
+        ],
+        "kind": "let"
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 12,
+      "end": 26,
+      "name": "FileAttachment"
+    },
+    {
+      "type": "Identifier",
+      "start": 43,
+      "end": 57,
+      "name": "FileAttachment"
+    },
+    {
+      "type": "Identifier",
+      "start": 74,
+      "end": 88,
+      "name": "FileAttachment"
+    },
+    {
+      "type": "Identifier",
+      "start": 106,
+      "end": 120,
+      "name": "FileAttachment"
+    }
+  ],
+  "fileAttachments": [
+    [
+      "a",
+      [
+        {
+          "start": 27,
+          "end": 30
+        }
+      ]
+    ],
+    [
+      "b",
+      [
+        {
+          "start": 58,
+          "end": 61
+        }
+      ]
+    ],
+    [
+      "c",
+      [
+        {
+          "start": 89,
+          "end": 92
+        },
+        {
+          "start": 121,
+          "end": 124
+        }
+      ]
+    ]
+  ],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

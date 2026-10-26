@@ -1,0 +1,43 @@
+---
+title: "Conditional Headings (no section-divs)"
+# Companion regression test for https://github.com/quarto-dev/quarto-cli/issues/14562
+# Even with `section-divs: false` (normal headings render as bare <h2 id>), the
+# conditional block's leading heading still acquires a <section> wrapper that the
+# `llms-hidden-content` marker class fuses onto. The llms HTML finalizer must keep
+# that heading's id intact for HTML, while still excluding the content from the
+# .llms.md output.
+format:
+  html:
+    section-divs: false
+_quarto:
+  tests:
+    html:
+      ensureLlmsMdExists: true
+      ensureHtmlElements:
+        -
+          # The html-only heading keeps its id (TOC link target survives)
+          - '#html-only-heading'
+        -
+          # No internal marker classes leak into the HTML output
+          - '.llms-hidden-content'
+          - '.llms-conditional-content'
+      ensureLlmsMdRegexMatches:
+        -
+          # Normal content is present in the .llms.md output
+          - 'NODIVSNORMALTEXT'
+        -
+          # html-only content is excluded from the .llms.md output
+          - 'NODIVSHTMLONLYTEXT'
+---
+
+## Normal Section
+
+NODIVSNORMALTEXT
+
+::: {.content-hidden when-format="llms-txt"}
+
+## HTML Only Heading
+
+NODIVSHTMLONLYTEXT
+
+:::

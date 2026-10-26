@@ -1,0 +1,31 @@
+---
+title: default-image-extension custom value
+logo: assets/diagram.png
+default-image-extension: jpg
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          # Both fixes must read the configured extension, not a hardcoded "png".
+          # Fix A strips the appended .jpg off a whole-shortcode source
+          - 'src="assets/diagram\.png"'
+          # Local file gets the configured .jpg appended (multi-format workflow)
+          - 'src="images/screenshot\.jpg"'
+          # Fix B strips the appended .jpg off the empty-filename URL
+          - 'src="https://example\.com/"'
+        -
+          # Fix B must have stripped the spurious .jpg from the URL
+          - 'src="https://example\.com/\.jpg"'
+          # Fix A must not leave a doubled extension on the shortcode
+          - 'diagram\.png\.jpg'
+---
+
+A non-default extension must flow through both fixes.
+
+![shortcode]({{< meta logo >}})
+
+![local](images/screenshot)
+
+![empty url](https://example.com/)

@@ -1,0 +1,3 @@
+{
+  let a = DatabaseClient("a");
+}

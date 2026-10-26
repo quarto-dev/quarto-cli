@@ -20,7 +20,7 @@ _quarto:
       ensureTypstFileRegexMatches:
         -
           # note css fuchsia #f012be is not the same as css fuchsia #ff00ff
-          - '\[#set text\(fill: fuchsia\); B\]'
+          - '\[#set text\(fill: fuchsia\);\s*B\]'
         - []
 ---
 

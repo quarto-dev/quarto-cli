@@ -159,6 +159,7 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
       const isText = (node: Node) => node.nodeType === Node.TEXT_NODE;
       const isEmphasis = (node: Node) => node.nodeName === "EM";
       const isBold = (node: Node) => node.nodeName === "STRONG";
+      const isCode = (node: Node) => node.nodeName === "CODE";
       const isMath = (node: Node) =>
         node.nodeName === "SPAN" &&
         (node as Element).classList.contains("math") &&
@@ -169,6 +170,7 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
           (isText(headerChildNode) ||
             isEmphasis(headerChildNode) ||
             isBold(headerChildNode) ||
+            isCode(headerChildNode) ||
             isMath(headerChildNode)) &&
           headerChildNode.textContent.trim() !== ""
         ) {

@@ -14,6 +14,7 @@ The `deno_ral/` directory provides a runtime abstraction layer over Deno's stand
 | `fs.ts` | File system | `existsSync`, `ensureDirSync`, `copySync`, `safeMoveSync`, `safeRemoveSync` |
 | `path.ts` | Path utilities | `join`, `dirname`, `basename`, `extname` |
 | `log.ts` | Logging | `debug`, `info`, `warning`, `error` |
+| `kv.ts` | Deno KV cache stores | `openKv`, `getKv`, `kvOp`, `KvDamagedError` |
 | `platform.ts` | Platform detection | `isWindows` |
 | `process.ts` | Process execution | Process utilities |
 

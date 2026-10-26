@@ -5,6 +5,7 @@
  */
 
 import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import { warnOnce } from "../core/log.ts";
 import {
   dirname,
   isAbsolute,
@@ -468,7 +469,35 @@ export async function projectResolveFullMarkdownForFile(
   force?: boolean,
 ): Promise<MappedString> {
   const cache = ensureFileInformationCache(project, file);
-  if (!force && cache.fullMarkdown) {
+
+  // Source-mtime + size guard: in preview mode the persistent project
+  // context (and its fileInformationCache) is reused across renders. If
+  // the source file was edited since the cache entry was populated, the
+  // cached expanded markdown is stale (#10392). Re-read in that case.
+  // Size is checked alongside mtime to catch the edge case where an
+  // edit lands within a single mtime tick on a coarse-resolution
+  // filesystem but changes the byte count.
+  let currentMtime: number | undefined;
+  let currentSize: number | undefined;
+  try {
+    const stat = Deno.statSync(file);
+    currentMtime = stat.mtime?.getTime();
+    currentSize = stat.size;
+  } catch {
+    currentMtime = undefined;
+    currentSize = undefined;
+  }
+
+  if (
+    !force &&
+    cache.fullMarkdown &&
+    cache.sourceMtime !== undefined &&
+    cache.sourceSize !== undefined &&
+    currentMtime !== undefined &&
+    currentSize !== undefined &&
+    cache.sourceMtime === currentMtime &&
+    cache.sourceSize === currentSize
+  ) {
     return cache.fullMarkdown;
   }
 
@@ -495,6 +524,8 @@ export async function projectResolveFullMarkdownForFile(
   try {
     const result = await expandIncludes(markdown, options, file);
     cache.fullMarkdown = result;
+    cache.sourceMtime = currentMtime;
+    cache.sourceSize = currentSize;
     cache.includeMap = options.state?.include.includes as FileInclusion[];
     return result;
   } finally {
@@ -523,7 +554,26 @@ export async function projectResolveBrand(
   project: ProjectContext,
   fileName?: string,
 ): Promise<LightDarkBrandDarkFlag | undefined> {
-  async function loadSingleBrand(brandPath: string): Promise<Brand> {
+  // A brand file holding only comments (e.g. a commented-out template) has no
+  // YAML value and would fail validation, so warn and treat it as absent.
+  function isEmptyBrandFile(brandPath: string): boolean {
+    let empty = false;
+    try {
+      empty = parse(Deno.readTextFileSync(brandPath)) == null;
+    } catch {
+      // invalid YAML: let validation report it
+    }
+    if (empty) {
+      warnOnce(`Brand file ${brandPath} has no content and will be ignored.`);
+    }
+    return empty;
+  }
+  async function loadSingleBrand(
+    brandPath: string,
+  ): Promise<Brand | undefined> {
+    if (isEmptyBrandFile(brandPath)) {
+      return undefined;
+    }
     const brand = await readAndValidateYamlFromFile(
       brandPath,
       refSchema("brand-single", "Format-independent brand configuration."),
@@ -533,7 +583,10 @@ export async function projectResolveBrand(
   }
   async function loadUnifiedBrand(
     brandPath: string,
-  ): Promise<LightDarkBrandDarkFlag> {
+  ): Promise<LightDarkBrandDarkFlag | undefined> {
+    if (isEmptyBrandFile(brandPath)) {
+      return undefined;
+    }
     const brand = await readAndValidateYamlFromFile(
       brandPath,
       refSchema("brand-unified", "Format-independent brand configuration."),
@@ -553,17 +606,20 @@ export async function projectResolveBrand(
     }
     return resolved;
   }
+  // A token over the candidate brand files' existence + mtime + size, so the
+  // long-lived preview brandCache is reused only while the on-disk brand state
+  // is unchanged. Mirrors the fullMarkdown mtime+size guard above.
+  function brandSourceState(paths: string[]): string {
+    return paths.map((path) => {
+      try {
+        const stat = Deno.statSync(path);
+        return `${path}:${stat.mtime?.getTime()}:${stat.size}`;
+      } catch {
+        return `${path}:absent`;
+      }
+    }).join("|");
+  }
   if (fileName === undefined) {
-    if (project.brandCache) {
-      return project.brandCache.brand;
-    }
-    project.brandCache = {};
-    let fileNames = [
-      "_brand.yml",
-      "_brand.yaml",
-      "_brand/_brand.yml",
-      "_brand/_brand.yaml",
-    ].map((file) => join(project.dir, file));
     const brand = (project?.config?.brand ??
       project?.config?.project.brand) as
         | boolean
@@ -572,6 +628,39 @@ export async function projectResolveBrand(
           light?: string;
           dark?: string;
         };
+
+    // Determine the candidate brand files this resolve will consult, so the
+    // staleness token below covers exactly the paths that affect the result.
+    let candidatePaths: string[];
+    if (
+      typeof brand === "object" && brand &&
+      ("light" in brand || "dark" in brand)
+    ) {
+      candidatePaths = [
+        brand.light ? resolveBrandPath(brand.light, project.dir) : undefined,
+        brand.dark ? resolveBrandPath(brand.dark, project.dir) : undefined,
+      ].filter((path): path is string => path !== undefined);
+    } else if (typeof brand === "string") {
+      candidatePaths = [join(project.dir, brand)];
+    } else {
+      candidatePaths = [
+        "_brand.yml",
+        "_brand.yaml",
+        "_brand/_brand.yml",
+        "_brand/_brand.yaml",
+      ].map((file) => join(project.dir, file));
+    }
+
+    // In preview mode the project context is long-lived and brandCache is
+    // reused across re-renders. Reuse the cached brand only when the on-disk
+    // state of the candidate files is unchanged; otherwise re-resolve so a
+    // _brand.yml added, removed, or edited mid-session takes effect (#14593).
+    const sourceState = brandSourceState(candidatePaths);
+    if (project.brandCache && project.brandCache.sourceState === sourceState) {
+      return project.brandCache.brand;
+    }
+    project.brandCache = { sourceState };
+
     if (brand === false) {
       project.brandCache.brand = undefined;
       return project.brandCache.brand;
@@ -591,15 +680,13 @@ export async function projectResolveBrand(
       };
       return project.brandCache.brand;
     }
-    if (typeof brand === "string") {
-      fileNames = [join(project.dir, brand)];
-    }
 
-    for (const brandPath of fileNames) {
+    for (const brandPath of candidatePaths) {
       if (!existsSync(brandPath)) {
         continue;
       }
-      project.brandCache.brand = await loadUnifiedBrand(brandPath);
+      project.brandCache.brand = (await loadUnifiedBrand(brandPath)) ??
+        project.brandCache.brand;
     }
     return project.brandCache.brand;
   } else {

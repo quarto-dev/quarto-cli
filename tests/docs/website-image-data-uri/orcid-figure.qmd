@@ -1,0 +1,10 @@
+---
+title: "ORCID badge then a figure"
+author:
+  - name: Jane Doe
+    orcid: 0000-0002-0000-0000
+---
+
+The ORCID badge comes first but is a data URI, so this figure is used.
+
+![A figure](figure.png)

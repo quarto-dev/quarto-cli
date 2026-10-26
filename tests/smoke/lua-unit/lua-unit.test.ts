@@ -21,10 +21,13 @@ import { fromFileUrl, join } from "../../../src/deno_ral/path.ts";
 import { assert } from "testing/asserts";
 import { execProcess } from "../../../src/core/process.ts";
 import { quartoDevCmd } from "../../utils.ts";
+import { quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { unitTest } from "../../test.ts";
 
 // Explicit list, relative to tests/unit-lua/. Keep alphabetized.
 const LUA_TESTS: string[] = [
+  "mediabag.test.lua",
+  "path.test.lua",
   "typst-css.test.lua",
 ];
 
@@ -50,7 +53,7 @@ for (const relPath of LUA_TESTS) {
       {
         cmd: quartoDevCmd(),
         args: ["run", luaScript],
-        env: { LUA_PATH },
+        ...quartoSpawnEnvOptions({ LUA_PATH }),
       },
       undefined,
       undefined,

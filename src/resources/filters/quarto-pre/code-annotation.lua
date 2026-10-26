@@ -1,13 +1,10 @@
 -- code.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local constants = require("modules/constants")
-
-
 local hasAnnotations = false
 
 function isAnnotationCell(el) 
-  return el and is_regular_node(el, "Div") and el.attr.classes:includes(constants.kCellAnnotationClass)
+  return el and is_regular_node(el, "Div") and el.attr.classes:includes(_quarto.modules.constants.kCellAnnotationClass)
 end
 -- annotations appear at the end of the line and are of the form
 -- # <1> 
@@ -20,7 +17,7 @@ end
 -- can be used to resolve annotation numbers and strip them from source 
 -- code
 local function annoteProvider(lang) 
-  local commentChars = constants.kLangCommentChars[lang] or constants.kDefaultCodeAnnotationComment
+  local commentChars = _quarto.modules.constants.kLangCommentChars[lang] or _quarto.modules.constants.kDefaultCodeAnnotationComment
   if commentChars ~= nil then
 
     local startComment = patternEscape(commentChars[1])
@@ -233,7 +230,7 @@ function processLaTeXAnnotation(line, annoteNumber, annotationProvider)
   -- we specially handle LaTeX output in coordination with the post processor
   -- which will replace any of these tokens as appropriate.   
   local hasHighlighting = param('text-highlighting', false)
-  if param(constants.kCodeAnnotationsParam) == constants.kCodeAnnotationStyleNone then
+  if param(_quarto.modules.constants.kCodeAnnotationsParam) == _quarto.modules.constants.kCodeAnnotationStyleNone then
     local replaced = annotationProvider.stripAnnotation(line, annoteNumber) 
     return replaced
   else
@@ -252,7 +249,7 @@ function processLaTeXAnnotation(line, annoteNumber, annotationProvider)
 end
 
 function processAsciidocAnnotation(line, annoteNumber, annotationProvider)
-  if param(constants.kCodeAnnotationsParam) == constants.kCodeAnnotationStyleNone then
+  if param(_quarto.modules.constants.kCodeAnnotationsParam) == _quarto.modules.constants.kCodeAnnotationStyleNone then
     local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, '') 
     return replaced
   else
@@ -271,7 +268,7 @@ end
 function code_meta()
   return {
     Meta = function(meta)
-      if _quarto.format.isLatexOutput() and hasAnnotations and param(constants.kCodeAnnotationsParam) ~= constants.kCodeAnnotationStyleNone then
+      if _quarto.format.isLatexOutput() and hasAnnotations and param(_quarto.modules.constants.kCodeAnnotationsParam) ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
         -- ensure we have tikx for making the circles
         quarto.doc.use_latex_package("tikz");
         quarto.doc.include_text('in-header', [[
@@ -294,10 +291,10 @@ function code_annotations()
   local idCounter = 1
 
   -- the user request code annotations value
-  local codeAnnotations = param(constants.kCodeAnnotationsParam)
+  local codeAnnotations = param(_quarto.modules.constants.kCodeAnnotationsParam)
 
-  local requireNonIncremental = PANDOC_WRITER_OPTIONS[constants.kIncremental] and (
-    codeAnnotations == constants.kCodeAnnotationStyleSelect or codeAnnotations == constants.kCodeAnnotationStyleHover
+  local requireNonIncremental = PANDOC_WRITER_OPTIONS[_quarto.modules.constants.kIncremental] and (
+    codeAnnotations == _quarto.modules.constants.kCodeAnnotationStyleSelect or codeAnnotations == _quarto.modules.constants.kCodeAnnotationStyleHover
   )
 
   -- walk the blocks and look for annotated code
@@ -371,8 +368,8 @@ function code_annotations()
             pendingCellId = identifier
             
             -- decorate the cell and return it
-            if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
-              resolvedCodeBlock.attr.classes:insert(constants.kDataCodeAnnonationClz);
+            if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
+              resolvedCodeBlock.attr.classes:insert(_quarto.modules.constants.kDataCodeAnnonationClz);
             end
             return resolvedCodeBlock
           else
@@ -401,7 +398,7 @@ function code_annotations()
                   local codeCell = processCodeCell(el, cellId)
                   if codeCell then
                     processedAnnotation = true
-                    if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
+                    if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
                       codeCell.attr.identifier = cellId;
                     end
                   end
@@ -431,7 +428,7 @@ function code_annotations()
                 local cellId = resolveCellId(codeblock.attr.identifier)
                 local codeCell = processCodeCell(codeblock, cellId)
                 if codeCell then
-                  if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
+                  if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
                     codeCell.attr.identifier = cellId;
                   end
                   block.content[1].content[1] = codeCell
@@ -457,7 +454,7 @@ function code_annotations()
               local cellId = resolveCellId(block.attr.identifier)
               local codeCell = processCodeCell(block, cellId)
               if codeCell then
-                if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
+                if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
                   codeCell.attr.identifier = cellId;
                 end
                 outputBlock(codeCell)
@@ -489,9 +486,9 @@ function code_annotations()
                   term = "<" .. tostring(annotationNumber) .. ">"
                 else
                   if lineNumMeta.count == 1 then
-                    term = language[constants.kCodeLine] .. " " .. lineNumMeta.text;
+                    term = language[_quarto.modules.constants.kCodeLine] .. " " .. lineNumMeta.text;
                   else
-                    term = language[constants.kCodeLines] .. " " .. lineNumMeta.text;
+                    term = language[_quarto.modules.constants.kCodeLines] .. " " .. lineNumMeta.text;
                   end
                 end
 
@@ -506,9 +503,9 @@ function code_annotations()
                   -- use an attribute list since it then guarantees that the
                   -- order of the attributes is consistent from run to run
                   local attribs = pandoc.AttributeList {
-                    {constants.kDataCodeCellTarget, pendingCellId},
-                    {constants.kDataCodeCellLines, lineNumMeta.lineNumbers},
-                    {constants.kDataCodeCellAnnotation, annotationToken}
+                    {_quarto.modules.constants.kDataCodeCellTarget, pendingCellId},
+                    {_quarto.modules.constants.kDataCodeCellLines, lineNumMeta.lineNumbers},
+                    {_quarto.modules.constants.kDataCodeCellAnnotation, annotationToken}
                   }
                   definition = pandoc.Span(definitionContent, pandoc.Attr(attribs))
                 else 
@@ -541,10 +538,10 @@ function code_annotations()
             end
 
             -- if there is a pending code cell, then insert into that and add it
-            if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
+            if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
               if pendingCodeCell ~= nil then
                 -- wrap the definition list in a cell
-                local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {constants.kCellAnnotationClass, requireNonIncremental and constants.kNonIncremental or nil }))
+                local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {_quarto.modules.constants.kCellAnnotationClass, requireNonIncremental and _quarto.modules.constants.kNonIncremental or nil }))
                 if is_custom_node(pendingCodeCell) then
                   local custom = _quarto.ast.resolve_custom_data(pendingCodeCell) or pandoc.Div({}) -- won't happen but the Lua analyzer doesn't know it
                   custom.content:insert(2, dlDiv)
@@ -555,7 +552,7 @@ function code_annotations()
               else
                 if requireNonIncremental then
                   -- wrap in Non Incremental Div to prevent automatique 
-                  outputBlockClearPending(pandoc.Div({dl}, pandoc.Attr("", {constants.kNonIncremental})))
+                  outputBlockClearPending(pandoc.Div({dl}, pandoc.Attr("", {_quarto.modules.constants.kNonIncremental})))
                 else 
                   outputBlockClearPending(dl)
                 end
@@ -579,7 +576,7 @@ function code_annotations()
   -- return code_filter
   return {
     Pandoc = function(doc)
-      local codeAnnotations = param(constants.kCodeAnnotationsParam)
+      local codeAnnotations = param(_quarto.modules.constants.kCodeAnnotationsParam)
 
       -- if code annotations is false, then don't even walk it
       if codeAnnotations == false then

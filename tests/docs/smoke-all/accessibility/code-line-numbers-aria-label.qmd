@@ -1,0 +1,77 @@
+---
+title: "code-line-numbers anchors have accessible names (#14655)"
+format:
+  html: default
+  revealjs: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'pre.numberSource a[aria-label="1"]'
+          - 'pre.numberSource a[aria-label="2"]'
+          - 'pre.sourceCode:not(.numberSource) a[aria-hidden="true"]'
+          - '#startfrom a[aria-label="100"]'
+          - '#startfrom a[aria-label="101"]'
+          - '#badstart a[aria-label="1"]'
+          - '#badstart a[aria-label="2"]'
+        -
+          - 'pre.numberSource a[href]:not([aria-label])'
+          - 'pre.numberSource a[href][aria-label=""]'
+          - 'pre.sourceCode:not(.numberSource) a[aria-label]'
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'pre.numberSource a[aria-label="1"]'
+          - 'pre.numberSource a[aria-label="2"]'
+        -
+          - 'pre.numberSource a[href]:not([aria-label])'
+---
+
+## Canonical numbered (row 2)
+
+```{.r .numberLines}
+x <- 1
+y <- 2
+```
+
+## Hyphen-synonym numbered (row 3)
+
+```{.python .number-lines}
+a = 1
+b = 2
+```
+
+## No-language numbered (row 8)
+
+```{.numberLines}
+plain line one
+plain line two
+```
+
+## lineAnchors only — must stay non-numbered (row 10)
+
+```{.r .lineAnchors}
+z <- 3
+```
+
+## Second numbered block, no id (row 11)
+
+```{.python .numberLines}
+p = 1
+q = 2
+```
+
+## Custom start (row 5)
+
+```{#startfrom .python .numberLines startFrom="100"}
+a = 1
+b = 2
+```
+
+## Invalid start falls back to 1 (row 6)
+
+```{#badstart .python .numberLines startFrom="notanumber"}
+c = 3
+d = 4
+```

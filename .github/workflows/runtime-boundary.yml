@@ -1,0 +1,63 @@
+# Runtime boundary ratchet for the Deno -> Node migration.
+# Counts `Deno.` occurrences and direct std-library imports per scope
+# (src, src-js, resources, package/src, tests). Two modes:
+#   - pull_request: compares the merge commit with its first parent (the base
+#     branch tip) and fails only for a Deno.* API that src/deno_ral replaces;
+#     other increases are warnings plus a maintainer block in the job summary,
+#     or notices once the PR's own baseline accepts them.
+#   - push (main) and workflow_dispatch: fails when a count rises above
+#     tools/runtime-boundary-baseline.json.
+# See dev-docs/runtime-migration/02-runtime-boundary-check.md.
+name: Runtime Boundary
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "package/src/**"
+      - "tests/**"
+      - "tools/check-runtime-boundary.ts"
+      - "tools/runtime-boundary-baseline.json"
+      - ".github/workflows/runtime-boundary.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "package/src/**"
+      - "tests/**"
+      - "tools/check-runtime-boundary.ts"
+      - "tools/runtime-boundary-baseline.json"
+      - ".github/workflows/runtime-boundary.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Set Path
+        shell: bash
+        run: |
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Configure Quarto
+        uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Check runtime boundary
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            # The checkout is the merge commit: HEAD^1 is the base branch tip.
+            quarto run --dev tools/check-runtime-boundary.ts --against HEAD^1
+          else
+            quarto run --dev tools/check-runtime-boundary.ts
+          fi

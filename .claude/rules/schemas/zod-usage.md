@@ -59,9 +59,4 @@ YAML schema validation happens at config load time, so downstream code doesn't n
 
 ## Regenerating Schemas
 
-After modifying YAML schema definitions:
-
-```bash
-package/dist/bin/quarto dev-call build-artifacts    # Linux/macOS
-package/dist/bin/quarto.cmd dev-call build-artifacts  # Windows
-```
+After modifying YAML schema definitions, run `dev-call build-artifacts` — see `.claude/rules/dev-tools/dev-call-commands.md` § build-artifacts.

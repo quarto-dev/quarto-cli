@@ -1,0 +1,5 @@
+typography:
+  base:
+    family: "FakeFont Alpha, FakeFont Beta"
+  monospace:
+    family: "FakeMonoFont One, FakeMonoFont Two"

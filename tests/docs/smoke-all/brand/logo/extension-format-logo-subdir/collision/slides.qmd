@@ -1,0 +1,20 @@
+---
+title: "Logo path existing both relative to the document and to the project"
+format: revealjs
+logo: img/top.png
+_quarto:
+  tests:
+    revealjs:
+      noErrorsOrWarnings: true
+      fileExists:
+        outputPath: img/top.png
+      ensureFileRegexMatches:
+        -
+          - '<img src="img(/|\\)top\.png" class="slide-logo"'
+        -
+          - '<img src="\.\.(/|\\)img(/|\\)top\.png"'
+---
+
+`img/top.png` exists both next to this document and at the project root. Logo paths are relative to the document, so the document-relative file is used without a deprecation warning. Versions 1.8 to 1.10 picked the project-root file here, because they prefixed every logo path with `/` when the project had a brand.
+
+## Section

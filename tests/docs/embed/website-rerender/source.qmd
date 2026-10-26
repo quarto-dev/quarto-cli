@@ -1,0 +1,9 @@
+---
+title: "Source"
+---
+
+```{r}
+#| label: fig-cars
+#| fig-cap: "Cars"
+plot(cars)
+```

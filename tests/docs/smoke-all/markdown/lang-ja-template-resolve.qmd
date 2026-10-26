@@ -1,0 +1,17 @@
+---
+lang: ja
+format:
+  plain:
+    template: lang-fr-template-resolve.template.txt
+    output-ext: txt
+_quarto:
+  tests:
+    plain:
+      ensureFileRegexMatches:
+        -
+          - "^チャプター\\s*$"
+---
+
+Unicode round-trip guard: a non-Latin locale must survive the
+defaults-file YAML serialization and Pandoc template tokenizer
+unchanged. With `lang: ja`, `crossref-ch-prefix` resolves to "チャプター".

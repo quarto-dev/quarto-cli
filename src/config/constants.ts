@@ -304,10 +304,20 @@ export const kToggleSidebar = "toggle-sidebar";
 export const kToggleDarkMode = "toggle-dark-mode";
 export const kToggleReaderMode = "toggle-reader-mode";
 export const kToggleNavigation = "toggle-navigation";
+export const kScrollableCodeLabel = "scrollable-code-label";
+export const kScrollableOutputLabel = "scrollable-output-label";
+export const kRevealjsMenuButtonLabel = "revealjs-menu-button-label";
+
+export const kNavigationSiteLabel = "navigation-site-label";
+export const kNavigationSectionLabel = "navigation-section-label";
+export const kNavigationToolbarLabel = "navigation-toolbar-label";
+export const kNavigationPageLabel = "navigation-page-label";
+export const kNavigationBreadcrumbsLabel = "navigation-breadcrumbs-label";
 
 export const kCopyButtonTooltip = "copy-button-tooltip";
 export const kCopyButtonTooltipSuccess = "copy-button-tooltip-success";
 export const kBackToTop = "back-to-top";
+export const kSkipToContent = "skip-to-content";
 export const kRepoActionLinksEdit = "repo-action-links-edit";
 export const kRepoActionLinksSource = "repo-action-links-source";
 export const kRepoActionLinksIssue = "repo-action-links-issue";
@@ -433,9 +443,18 @@ export const kLanguageDefaultsKeys = [
   kToggleReaderMode,
   kToggleSidebar,
   kToggleSection,
+  kNavigationSiteLabel,
+  kNavigationSectionLabel,
+  kNavigationToolbarLabel,
+  kNavigationPageLabel,
+  kNavigationBreadcrumbsLabel,
+  kScrollableCodeLabel,
+  kScrollableOutputLabel,
+  kRevealjsMenuButtonLabel,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,
+  kSkipToContent,
   kRepoActionLinksEdit,
   kRepoActionLinksSource,
   kRepoActionLinksIssue,
@@ -661,6 +680,7 @@ export const kCapBottom = "bottom";
 
 // Pandoc Input Traits
 export const kPositionedRefs = "positioned-refs";
+export const kCitationTitle = "citation-title";
 
 // https://pandoc.org/MANUAL.html#defaults-files
 // note: we are keeping some things out of 'defaults' b/ca

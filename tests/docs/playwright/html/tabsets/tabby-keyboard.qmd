@@ -1,0 +1,29 @@
+---
+pagetitle: Tabby tabset keyboard navigation
+format:
+  html:
+    theme: none
+---
+
+<!-- Buttons rather than links: WebKit skips links when tabbing by default. -->
+
+<button type="button">Button before the tabset</button>
+
+::: {.panel-tabset}
+
+### Tab A
+
+<button type="button">Button in tab A</button>
+
+### Tab B
+
+<button type="button">Button in tab B</button>
+
+### Tab C
+
+<button type="button">Button in tab C</button>
+
+:::
+
+::: {style="height: 300vh"}
+:::

@@ -1,7 +1,11 @@
-import { expect, Locator, PlaywrightTestOptions } from "@playwright/test";
+import { expect, Locator, Page, PlaywrightTestOptions } from "@playwright/test";
+
+// Port of the fixture server that playwright.config.ts starts on tests/docs/playwright
+export const fixtureServerPort = process.env.QUARTO_PLAYWRIGHT_PORT ?? "8765";
+export const fixtureServerUrl = `http://127.0.0.1:${fixtureServerPort}`;
 
 export const getUrl = (path: string) => {
-  return `http://127.0.0.1:8080/${path}`;
+  return `${fixtureServerUrl}/${path}`;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -206,13 +210,22 @@ export async function getCSSProperty(loc: Locator, variable: string, asNumber = 
   }
 }
 
+// Different browser engines resolve compounding relative-unit (em/rem)
+// font-size cascades with slightly different subpixel rounding, so an
+// exact/decimal-precision comparison is too strict across Chromium/Firefox/WebKit.
+// Use a small fixed absolute tolerance instead — mirrors Playwright's own
+// pattern for cross-engine CSS/DIP rounding drift.
+export function expectCloseTo(actual: number, expected: number, tolerance: number = 0.1) {
+  expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance);
+}
+
 export async function checkCSSproperty(loc1: Locator, loc2: Locator, property: string, asNumber: false | true, checkType: 'identical' | 'similar', factor: number = 1) {
   let loc1Property = await getCSSProperty(loc1, property, asNumber);
   let loc2Property = await getCSSProperty(loc2, property, asNumber);
   if (checkType === 'identical') {
     await expect(loc2).toHaveCSS(property, loc1Property as string);
   } else {
-    await expect(loc1Property).toBeCloseTo(loc2Property as number * factor);
+    expectCloseTo(loc1Property as number, loc2Property as number * factor);
   }
 }
 
@@ -241,4 +254,28 @@ export function useDarkLightMode(mode: 'dark' | 'light'): Partial<PlaywrightTest
   return {
     colorScheme: mode
   };
+}
+// WebKit follows Safari's default "Press Tab to highlight each item on a
+// webpage" setting and skips links and buttons on Tab; Option+Tab visits
+// every focusable element.
+export function tabKey(browserName: string, shift = false): string {
+  const key = shift ? "Shift+Tab" : "Tab";
+  return browserName === "webkit" ? `Alt+${key}` : key;
+}
+
+// Presses Tab until `target` holds focus. Real key presses, unlike
+// locator.focus(), reliably make the target match :focus-visible.
+export async function tabUntilFocused(
+  page: Page,
+  browserName: string,
+  target: Locator,
+  maxTabs = 25,
+): Promise<boolean> {
+  for (let i = 0; i < maxTabs; i++) {
+    await page.keyboard.press(tabKey(browserName));
+    if (await target.evaluate((el) => el === document.activeElement)) {
+      return true;
+    }
+  }
+  return false;
 }

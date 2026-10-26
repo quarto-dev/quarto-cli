@@ -1,0 +1,29 @@
+---
+title: "Header test^[A footnote in the title.]"
+number-sections: true
+keep-tex: true
+keep-typ: true
+format:
+  pdf: default
+  typst: default
+_quarto:
+  tests:
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\\section\{Only level two\}', '\\section\{Another\}']
+        - ['\\subsection\{Only level two\}']
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['^= Only level two', '^= Another']
+        - ['^== Only level two']
+---
+
+A footnote in `title` must not stop the heading shift for a document without level-1 headings.
+
+## Only level two
+
+Body.
+
+## Another
+
+Body.

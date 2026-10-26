@@ -1,0 +1,13 @@
+---
+title: "Code copy button and code annotation marker (code block font size in percent)"
+format:
+  html:
+    theme: [default, code-annotation-copy-button-font-size-percent.scss]
+code-annotations: hover
+---
+
+```{.python}
+import polars as pl # <1>
+```
+
+1. This is a code block with a copy button and an annotation.

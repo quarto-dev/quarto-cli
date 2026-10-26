@@ -1,0 +1,16 @@
+project:
+  type: book
+
+book:
+  title: "Image Alt Book"
+  site-url: "https://example.com"
+  open-graph: true
+  twitter-card: true
+  image: cover.png
+  image-alt: "A description of the preview image"
+  chapters:
+    - index.qmd
+
+format:
+  html:
+    theme: cosmo

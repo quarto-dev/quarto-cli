@@ -1,0 +1,33 @@
+---
+format: html
+engine: jupyter
+code-fold: true
+code-tools: true
+code-copy: true
+keep-hidden: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - "details.code-fold" # folded cell survives the code-copy scaffold
+          - "div.code-copy-outer-scaffold > div.sourceCode"
+          - "div.sourceCode.cell-code.hidden" # echo: false cell
+        - []
+---
+
+With `code-copy` enabled (the default), each code block is wrapped in a
+`div.code-copy-outer-scaffold`, which broke the "Show All Code" / "Hide All
+Code" `code-tools` selectors that assumed `.sourceCode` was a direct child of
+`<details>` or `.cell` (issue #13583). This document checks the post-fix DOM:
+the folded cell keeps its `details.code-fold`, the scaffold wraps the
+`div.sourceCode`, and the `echo: false` cell (kept via `keep-hidden: true`)
+still carries `div.sourceCode.cell-code.hidden`.
+
+```{python}
+print("visible, folded code")
+```
+
+```{python}
+#| echo: false
+print("hidden code")
+```

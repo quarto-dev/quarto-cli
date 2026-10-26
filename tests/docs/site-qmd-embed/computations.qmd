@@ -1,0 +1,9 @@
+---
+title: Computations
+jupyter: python3
+---
+
+```{python}
+#| label: answer
+print(42)
+```

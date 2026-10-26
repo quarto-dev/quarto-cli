@@ -1,0 +1,16 @@
+---
+title: "Website"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'button.quarto-color-scheme-toggle[type="button"][role="switch"][aria-checked="false"][aria-label="Toggle dark mode"][title="Toggle dark mode"]'
+          - 'a.quarto-reader-toggle[title]'
+          - 'a.quarto-navigation-tool[href="https://github.com/quarto-dev/quarto-cli"]'
+        -
+          - 'a.quarto-color-scheme-toggle'
+---
+
+The navbar color-scheme toggle is a named switch (#13463); the reader-mode
+toggle and navbar tool links keep their existing shape.

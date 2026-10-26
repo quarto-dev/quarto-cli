@@ -22,6 +22,10 @@ function axeHtmlDependency(options: unknown): FormatDependency {
       encodeBase64(JSON.stringify(options))
     }</script>`,
     scripts: [{
+      // Classic script, so it executes before the deferred module below.
+      name: "axe.min.js",
+      path: formatResourcePath("html", join("axe", "axe.min.js")),
+    }, {
       name: "axe-check.js",
       path: formatResourcePath("html", join("axe", "axe-check.js")),
       attribs: { type: "module" },
@@ -58,6 +62,9 @@ body div.quarto-axe-report {
   color: var(--r-main-color, #222);
   max-height: 50vh;
   overflow-y: auto;
+  /* The overlay lives inside <main>, so it inherits page-level centering
+     (e.g. the jolla about template centers main). Pin it left. */
+  text-align: left;
 }
 
 .quarto-axe-violation-help { padding-left: 0.5rem; }

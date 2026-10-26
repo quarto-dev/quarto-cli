@@ -1,8 +1,6 @@
 -- table-captions.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local patterns = require("modules/patterns")
-
 function table_captions()
   local kTblCap = "tbl-cap"
   local kTblSubCap = "tbl-subcap"
@@ -153,8 +151,8 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
         -- (2) Append the tblLabels[idx] to whatever caption is there
         if hasRawHtmlTable(raw) then
           -- html table patterns
-          local tablePattern = patterns.html_table
-          local captionPattern = patterns.html_table_caption
+          local tablePattern = _quarto.modules.patterns.html_table
+          local captionPattern = _quarto.modules.patterns.html_table_caption
           -- insert caption if there is none
           local beginCaption, caption = raw.text:match(captionPattern)
           if not beginCaption then

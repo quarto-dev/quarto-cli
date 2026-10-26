@@ -1,0 +1,18 @@
+---
+title: Home
+---
+
+This site ships `theme: darkly` and nothing else: one presentation, and it is
+dark-coloured. The rendered page carries a single `id="quarto-bootstrap"` link
+tagged `data-mode="dark"`, no colour-scheme toggle and no before-body script —
+a visually dark page that every declaration-level signal calls light.
+
+```{=html}
+<!-- PLANTED: button-name (critical). One deliberate finding, so the single
+     'default' cell demonstrably scanned this page rather than an about:blank
+     lookalike. -->
+<p><button></button></p>
+```
+
+Keep this page's markup minimal. Its concern is mode discovery and the
+dark-coloured annotation, not findings.

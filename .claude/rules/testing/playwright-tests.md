@@ -1,12 +1,13 @@
 ---
 paths:
-  - "tests/integration/playwright/**/*.spec.ts"
-  - "tests/integration/playwright/**/*.ts"
+  - tests/integration/playwright/**/*.spec.ts
+  - tests/integration/playwright/**/*.ts
 ---
 
 # Playwright Tests
 
-Browser-based tests for interactive features. Tests live in `tests/integration/playwright/tests/`.
+Browser-based tests for interactive features.
+Tests live in `tests/integration/playwright/tests/`.
 
 ## Local Development Workflow
 
@@ -44,6 +45,10 @@ The wrapper (`playwright-tests.test.ts`):
 3. Runs `npx playwright test`
 4. Cleans up rendered output
 
+The suite runs in dev and binary-mode CI.
+Render spawns must use `quartoSpawnEnvOptions()` so a built Quarto cannot inherit dev-tree paths.
+Browser assertions are ignored on Windows CI, so built-version CI has no Windows Playwright leg.
+
 ## Test Structure
 
 Tests use `@playwright/test` framework:
@@ -63,7 +68,8 @@ test("Feature description", async ({ page }) => {
 
 ### Parameterized Tests
 
-When testing the same behavior across multiple formats or configurations, use `test.describe` with a test cases array instead of separate spec files. See `html-math-katex.spec.ts` and `axe-accessibility.spec.ts` for examples.
+When testing the same behavior across multiple formats or configurations, use `test.describe` with a test cases array instead of separate spec files.
+See `html-math-katex.spec.ts` and `axe-accessibility.spec.ts` for examples.
 
 ```typescript
 const testCases = [
@@ -81,11 +87,13 @@ test.describe('Feature across formats', () => {
 });
 ```
 
-**When to use:** Same assertion logic applied to multiple formats, output modes, or configurations. Reduces file count and centralizes shared helpers.
+**When to use:** Same assertion logic applied to multiple formats, output modes, or configurations.
+Reduces file count and centralizes shared helpers.
 
 ### Expected Failures
 
-Use `test.fail()` to document known failures. Playwright inverts the result: the test passes if it fails, and flags if it unexpectedly passes (signaling the fix landed).
+Use `test.fail()` to document known failures.
+Playwright inverts the result: the test passes if it fails, and flags if it unexpectedly passes (signaling the fix landed).
 
 ```typescript
 test('Feature that is known broken', async ({ page }) => {
@@ -98,7 +106,7 @@ test('Feature that is known broken', async ({ page }) => {
 ## Configuration
 
 - **Config file:** `playwright.config.ts`
-- **Base URL:** `http://127.0.0.1:8080`
+- **Base URL:** `http://127.0.0.1:8765` (port from `QUARTO_PLAYWRIGHT_PORT`, see `src/utils.ts`)
 - **Test documents:** `tests/docs/playwright/<feature>/`
 - **Test specs:** `tests/integration/playwright/tests/*.spec.ts`
 
@@ -107,9 +115,15 @@ test('Feature that is known broken', async ({ page }) => {
 Playwright starts a Python HTTP server automatically when running tests:
 
 ```bash
-uv run python -m http.server 8080
+uv run python -m http.server 8765
 # Serves from tests/docs/playwright/
 ```
+
+The fixture server is never reused (`reuseExistingServer: false`): if another process answers on the port, the run stops with `http://127.0.0.1:<port> is already used`.
+Each concurrent run (another worktree, a second terminal) needs its own free `QUARTO_PLAYWRIGHT_PORT`; the default 8765 suits only one run at a time.
+A process answering 404 on the port is not detected as busy; the run then times out after 120 s (`Timed out waiting 120000ms from config.webServer`), so pick another port.
+
+The revealjs multiplex server has a fixed port, 1948 (set in `tests/docs/playwright/revealjs/multiplex.qmd`), and is reused locally: concurrent runs share the first run's instance, which serves no test fixtures.
 
 ## Best Practices
 
@@ -133,6 +147,8 @@ From `src/utils.ts`:
 | `ojsRuns(page)`                    | Wait for OJS to finish    |
 | `checkColor(element, prop, color)` | Verify CSS color          |
 | `useDarkLightMode(mode)`           | Set color scheme for test |
+| `tabKey(browserName, shift?)`      | Tab key for the browser (WebKit needs `Alt+Tab` to reach links and buttons) |
+| `tabUntilFocused(page, browserName, target)` | Press Tab until `target` is focused; returns whether it got there |
 
 ## Environment Variables
 
@@ -140,3 +156,4 @@ From `src/utils.ts`:
 | ------------------------------------------ | ---------------------------------- |
 | `QUARTO_PLAYWRIGHT_TESTS_SKIP_RENDER`      | Skip rendering (use existing HTML) |
 | `QUARTO_PLAYWRIGHT_TESTS_SKIP_CLEANOUTPUT` | Keep rendered files after test     |
+| `QUARTO_PLAYWRIGHT_PORT`                   | Fixture server port (default 8765) |

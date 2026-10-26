@@ -10,7 +10,7 @@ function read_includes(meta)
       ensureIncludes(meta, constants.kHeaderIncludes)
       ensureIncludes(meta, constants.kIncludeBefore)
       ensureIncludes(meta, constants.kIncludeAfter)
-          
+
       -- read file includes
       readIncludeFiles(meta, constants.kIncludeInHeader, constants.kHeaderIncludes)
       readIncludeFiles(meta, constants.kIncludeBeforeBody, constants.kIncludeBefore)

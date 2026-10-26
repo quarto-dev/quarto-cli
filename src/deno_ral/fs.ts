@@ -124,6 +124,16 @@ export function safeRemoveSync(
   }
 }
 
+// True only for an existing regular file; false for a directory, a missing
+// path, or a path that cannot be stat'd.
+export function safeExistsFileSync(path: string) {
+  try {
+    return existsSync(path) && Deno.statSync(path).isFile;
+  } catch {
+    return false;
+  }
+}
+
 export class UnsafeRemovalError extends Error {
   constructor(msg: string) {
     super(msg);

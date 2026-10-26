@@ -5,8 +5,8 @@
  */
 
 import { error, info } from "../deno_ral/log.ts";
-import { basename, join } from "../deno_ral/path.ts";
-import { existsSync } from "../deno_ral/fs.ts";
+import { basename, DELIMITER, join, relative } from "../deno_ral/path.ts";
+import { existsSync, walkSync } from "../deno_ral/fs.ts";
 import * as colors from "fmt/colors";
 
 import { satisfies } from "semver/mod.ts";
@@ -14,16 +14,21 @@ import { satisfies } from "semver/mod.ts";
 import { execProcess } from "./process.ts";
 import { architectureToolsPath } from "./resources.ts";
 import { resourcePath } from "./resources.ts";
+import { md5HashSync } from "./hash.ts";
+import { projectScratchPath } from "../project/project-scratch.ts";
 
 export function typstBinaryPath() {
   return Deno.env.get("QUARTO_TYPST") ||
     architectureToolsPath("typst");
 }
 
-function fontPathsArgs(fontPaths?: string[]) {
+export function fontPathsArgs(
+  fontPaths?: string[],
+  getEnv: (name: string) => string | undefined = (name) => Deno.env.get(name),
+) {
   // orders matter and fontPathsQuarto should be first for our template to work
   const fontPathsQuarto = ["--font-path", resourcePath("formats/typst/fonts")];
-  const fontPathsEnv = Deno.env.get("TYPST_FONT_PATHS");
+  const fontPathsEnv = getEnv("TYPST_FONT_PATHS");
   let fontExtrasArgs: string[] = [];
   if (fontPaths && fontPaths.length > 0) {
     fontExtrasArgs = fontPaths.map((p) => ["--font-path", p]).flat();
@@ -34,6 +39,145 @@ function fontPathsArgs(fontPaths?: string[]) {
   }
 
   return fontPathsQuarto.concat(fontExtrasArgs);
+}
+
+export function parseTypstFontsOutput(output: string): string[] {
+  return output
+    .split(/\r?\n/)
+    .map((line) => line.trim().toLowerCase())
+    .filter((line) => line.length > 0);
+}
+
+const availableFontsMemoryCache = new Map<string, string[]>();
+
+// Every directory Typst will search, split on the platform path-list delimiter
+function fontPathDirs(
+  fontPaths: string[],
+  getEnv: (name: string) => string | undefined,
+): string[] {
+  const args = fontPathsArgs(fontPaths, getEnv);
+  const dirs: string[] = [];
+  args.forEach((arg, i) => {
+    if (i > 0 && args[i - 1] === "--font-path") {
+      dirs.push(...arg.split(DELIMITER).filter((d) => d.length > 0));
+    }
+  });
+  return dirs.sort();
+}
+
+// undefined means the scan was incomplete
+function fontDirFingerprint(dir: string): string | undefined {
+  const lines: string[] = [];
+  try {
+    for (const entry of walkSync(dir, { includeDirs: false })) {
+      const rel = relative(dir, entry.path);
+      try {
+        const stat = Deno.statSync(entry.path);
+        lines.push(`${rel}\t${stat.size}\t${stat.mtime?.getTime() ?? ""}`);
+      } catch {
+        lines.push(`${rel}\t<unstatable>`);
+      }
+    }
+  } catch (e) {
+    if (e instanceof Deno.errors.NotFound) {
+      return `${dir}\t<missing>`;
+    }
+    return undefined;
+  }
+  return [dir, ...lines.sort()].join("\n");
+}
+
+// The key covers directory contents, so fonts added to an already-queried
+// dir invalidate both caches.
+export function availableFontsCacheKey(
+  fontPaths: string[],
+  getEnv: (name: string) => string | undefined = (name) => Deno.env.get(name),
+): string | undefined {
+  const fingerprints: string[] = [];
+  for (const dir of fontPathDirs(fontPaths, getEnv)) {
+    const fingerprint = fontDirFingerprint(dir);
+    if (fingerprint === undefined) {
+      return undefined;
+    }
+    fingerprints.push(fingerprint);
+  }
+  return md5HashSync(fingerprints.join("\n"));
+}
+
+export async function getAvailableTypstFonts(
+  fontPaths: string[],
+  projectDir?: string,
+): Promise<string[]> {
+  const cacheKey = availableFontsCacheKey(fontPaths);
+
+  // Check in-memory cache
+  const memoryCached = cacheKey !== undefined
+    ? availableFontsMemoryCache.get(cacheKey)
+    : undefined;
+  if (memoryCached) {
+    return memoryCached;
+  }
+
+  // Check disk cache if project context
+  if (projectDir && cacheKey !== undefined) {
+    try {
+      const cachePath = projectScratchPath(
+        projectDir,
+        "typst/available-fonts.json",
+      );
+      const cacheContent = Deno.readTextFileSync(cachePath);
+      const cached = JSON.parse(cacheContent) as {
+        fontPathsHash: string;
+        fonts: string[];
+      };
+      if (cached.fontPathsHash === cacheKey) {
+        availableFontsMemoryCache.set(cacheKey, cached.fonts);
+        return cached.fonts;
+      }
+    } catch {
+      // Cache miss or invalid — will re-query
+    }
+  }
+
+  // Query typst fonts
+  const cmd = [typstBinaryPath(), "fonts"];
+  cmd.push(...fontPathsArgs(fontPaths));
+
+  const result = await execProcess({
+    cmd: cmd[0],
+    args: cmd.slice(1),
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  if (!result.success || !result.stdout) {
+    return [];
+  }
+
+  const fonts = parseTypstFontsOutput(result.stdout);
+
+  // Populate caches
+  if (cacheKey === undefined) {
+    return fonts;
+  }
+  availableFontsMemoryCache.set(cacheKey, fonts);
+
+  if (projectDir) {
+    try {
+      const cachePath = projectScratchPath(
+        projectDir,
+        "typst/available-fonts.json",
+      );
+      Deno.writeTextFileSync(
+        cachePath,
+        JSON.stringify({ fontPathsHash: cacheKey, fonts }),
+      );
+    } catch {
+      // Non-fatal — in-memory cache still works
+    }
+  }
+
+  return fonts;
 }
 
 export type TypstCompileOptions = {

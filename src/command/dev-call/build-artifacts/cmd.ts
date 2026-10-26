@@ -16,7 +16,7 @@ import { formatResourcePath, resourcePath } from "../../../core/resources.ts";
 import { simple } from "acorn/walk";
 import { Parser } from "acorn/acorn";
 import classFields from "acorn-class-fields";
-import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
+import { initTreeSitter } from "../../../core/schema/deno-init-tree-sitter.ts";
 
 // initialize language handlers
 import "../../../core/handlers/handlers.ts";
@@ -163,6 +163,10 @@ export const buildJsCommand = new Command()
     "Builds all the javascript assets necessary for IDE support.\n\n",
   )
   .action(async () => {
-    await initYamlIntelligenceResourcesFromFilesystem();
+    // buildAssets() must see schemas read fresh from disk: setSchemaDefinition()
+    // registers each $id once and silently ignores later calls, so pre-seeding
+    // the registry from the generated JSON would pin stale definitions.
+    // Mirrors package/src/common/prepare-dist.ts.
+    await initTreeSitter();
     await buildAssets();
   });

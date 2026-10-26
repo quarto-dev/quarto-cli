@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2024 Posit Software, PBC
  */
 
-import { basename, join, relative } from "../../../deno_ral/path.ts";
+import { basename, join, relative, resolve } from "../../../deno_ral/path.ts";
 import { existsSync } from "../../../deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 
@@ -13,7 +13,7 @@ import { execProcess } from "../../../core/process.ts";
 import { pandocBinaryPath, resourcePath } from "../../../core/resources.ts";
 
 import { kProject404File, ProjectContext } from "../../types.ts";
-import { projectOutputDir } from "../../project-shared.ts";
+import { projectIsBook, projectOutputDir } from "../../project-shared.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import { kLlmsTxt } from "./website-constants.ts";
@@ -30,7 +30,9 @@ import {
   projectDraftMode,
 } from "./website-utils.ts";
 import { resolveInputTargetForOutputFile } from "../../project-index.ts";
-import { Format, Metadata } from "../../../config/types.ts";
+import { Format, Metadata, PandocFlags } from "../../../config/types.ts";
+import { MathMethods } from "../../../resources/types/schema-types.ts";
+import { resolveHtmlMathMethod } from "../../../format/html/format-html-math.ts";
 import { kWebsite } from "./website-constants.ts";
 
 /**
@@ -38,7 +40,7 @@ import { kWebsite } from "./website-constants.ts";
  * Uses inputFileHref to convert the relative source path to an HTML href,
  * then joins with the output directory.
  */
-function computeOutputFilePath(
+export function computeOutputFilePath(
   source: string,
   project: ProjectContext,
 ): string {
@@ -56,13 +58,18 @@ function computeOutputFilePath(
 export function llmsHtmlFinalizer(
   source: string,
   project: ProjectContext,
-  _format: Format,
+  format: Format,
+  flags: PandocFlags,
 ) {
+  const mathMethod = resolveHtmlMathMethod(format, flags)?.method;
   return async (doc: Document): Promise<void> => {
     // Check if llms-txt is enabled
     if (!websiteConfigBoolean(kLlmsTxt, false, project.config)) {
       return;
     }
+
+    // Drop any page held from an earlier render of this source
+    bookLlmsPages.delete(bookLlmsPageKey(source));
 
     // Check draft status via multiple mechanisms
     const draftMode = projectDraftMode(project);
@@ -83,18 +90,37 @@ export function llmsHtmlFinalizer(
     }
 
     // Extract main content from HTML
-    const htmlContent = extractMainContent(doc);
+    const htmlContent = extractMainContent(doc, mathMethod);
 
-    // Compute the output file path and derive the .llms.md path
-    const outputFile = computeOutputFilePath(source, project);
-    const llmsOutputPath = outputFile.replace(/\.html$/, ".llms.md");
+    if (projectIsBook(project)) {
+      // book post-render converts it once cross-references are resolved
+      bookLlmsPages.set(bookLlmsPageKey(source), htmlContent);
+    } else {
+      // Compute the output file path and derive the .llms.md path
+      const outputFile = computeOutputFilePath(source, project);
+      const llmsOutputPath = outputFile.replace(/\.html$/, ".llms.md");
 
-    // Convert HTML to markdown using Pandoc with the llms.lua filter
-    await convertHtmlToLlmsMarkdown(htmlContent, llmsOutputPath);
+      // Convert HTML to markdown using Pandoc with the llms.lua filter
+      await convertHtmlToLlmsMarkdown(htmlContent, llmsOutputPath);
+    }
 
     // Clean up conditional content markers from the original HTML doc
     cleanupConditionalContent(doc);
   };
+}
+
+// llms HTML of book pages from their latest render, keyed by absolute source path
+const bookLlmsPages = new Map<string, string>();
+
+function bookLlmsPageKey(source: string) {
+  return pathWithForwardSlashes(resolve(source));
+}
+
+/**
+ * The llms HTML held for a book page by the HTML finalizer, if any.
+ */
+export function bookLlmsPage(source: string): string | undefined {
+  return bookLlmsPages.get(bookLlmsPageKey(source));
 }
 
 /**
@@ -108,11 +134,22 @@ function cleanupConditionalContent(doc: Document): void {
     (el as Element).remove();
   }
 
-  // Unwrap llms-hidden markers (keep content, remove wrapper div)
+  // Unwrap llms-hidden markers (keep content, remove wrapper div).
+  //
+  // When the marked block leads with a heading, Pandoc's --section-divs fuses
+  // the marker class onto the <section> it generates for that heading (e.g.
+  // <section id="..." class="level2 llms-hidden-content">). Unwrapping that
+  // section would strip the <section> and its id, breaking the TOC, anchors,
+  // and cross-references. So keep the section and only drop the marker class;
+  // genuine wrapper divs are still unwrapped. See issue #14562.
   for (const el of doc.querySelectorAll(".llms-hidden-content")) {
-    const parent = (el as Element).parentElement;
+    const element = el as Element;
+    if (element.tagName === "SECTION") {
+      element.classList.remove("llms-hidden-content");
+      continue;
+    }
+    const parent = element.parentElement;
     if (parent) {
-      const element = el as Element;
       while (element.firstChild) {
         parent.insertBefore(element.firstChild as Node, element as Node);
       }
@@ -125,7 +162,10 @@ function cleanupConditionalContent(doc: Document): void {
  * Extract the main content from an HTML document, removing navigation,
  * sidebars, footers, scripts, and styles.
  */
-function extractMainContent(doc: Document): string {
+function extractMainContent(
+  doc: Document,
+  mathMethod: MathMethods | undefined,
+): string {
   // Clone the document to avoid mutating the original
   const clone = doc.cloneNode(true) as Document;
 
@@ -166,8 +206,9 @@ function extractMainContent(doc: Document): string {
     return "";
   }
 
-  // Preprocess annotated code blocks before converting to markdown
+  // Preprocess annotated code blocks and math before converting to markdown
   preprocessAnnotatedCodeBlocks(clone, main as Element);
+  preprocessMath(clone, main as Element, mathMethod);
 
   // Return a minimal HTML document with just the content
   return `<!DOCTYPE html>
@@ -242,9 +283,54 @@ function preprocessAnnotatedCodeBlocks(
 }
 
 /**
+ * Convert math to `<script type="math/tex">`, which Pandoc's HTML reader
+ * reads back as math. Pandoc's HTML writer emits MathJax and KaTeX math as
+ * TeX text in `span.math` and webtex math as `img.math` (TeX in `alt`); read
+ * as plain text instead, the gfm writer mangles the backslashes.
+ * `span.math` from the plain method holds rendered text, not TeX, and is
+ * left as is.
+ */
+function preprocessMath(
+  doc: Document,
+  container: Element,
+  mathMethod: MathMethods | undefined,
+): void {
+  const mathElements = container.querySelectorAll(
+    "span.math.inline, span.math.display, img.math.inline, img.math.display",
+  );
+  for (const node of mathElements) {
+    const el = node as Element;
+    const display = el.classList.contains("display");
+    let tex: string | null = null;
+    if (el.tagName === "IMG") {
+      tex = el.getAttribute("alt");
+    } else if (mathMethod === "katex") {
+      tex = el.textContent;
+    } else if (mathMethod === undefined || mathMethod === "mathjax") {
+      // MathJax (the html default when no method is set) wraps the TeX in
+      // \( \) or \[ \]
+      const text = el.textContent;
+      const delimited = display
+        ? text.match(/^\s*\\\[([\s\S]*)\\\]\s*$/)
+        : text.match(/^\s*\\\(([\s\S]*)\\\)\s*$/);
+      tex = delimited ? delimited[1] : null;
+    }
+    // script text can't hold "</script", so such math is left as is
+    if (tex === null || /<\/script/i.test(tex)) continue;
+    const script = doc.createElement("script");
+    script.setAttribute(
+      "type",
+      display ? "math/tex; mode=display" : "math/tex",
+    );
+    script.textContent = tex.trim();
+    el.replaceWith(script);
+  }
+}
+
+/**
  * Convert HTML content to markdown using Pandoc with the llms.lua filter.
  */
-async function convertHtmlToLlmsMarkdown(
+export async function convertHtmlToLlmsMarkdown(
   htmlContent: string,
   outputPath: string,
 ): Promise<void> {
@@ -260,12 +346,13 @@ async function convertHtmlToLlmsMarkdown(
     // Use gfm-raw_html for clean markdown output:
     // - gfm gives us proper table and code block handling
     // - -raw_html strips remaining HTML tags, converting figures to markdown images
+    // - -tex_math_gfm writes math as $...$ / $$...$$ instead of GitHub's $`...`$
     // Note: We use plain "html" input format (not html-native_divs-native_spans)
     // because native_divs interferes with the Lua filter's callout processing
     const cmd = [pandocBinaryPath()];
     cmd.push(tempHtml);
     cmd.push("-f", "html");
-    cmd.push("-t", "gfm-raw_html");
+    cmd.push("-t", "gfm-raw_html-tex_math_gfm");
     cmd.push("--lua-filter", filterPath);
     cmd.push("-o", outputPath);
     cmd.push("--wrap=none");

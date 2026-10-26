@@ -161,6 +161,8 @@ Pandoc's upstream `revealjs.template` (copied to `revealjs.template`) has type i
 - `scrollActivationWidth: '$scrollActivationWidth$'` renders numbers as strings
 - `scrollProgress` defField defaults to `true` instead of reveal.js's `'auto'`
 
+Pandoc's viewport meta tag (`maximum-scale=1.0, user-scalable=no, minimal-ui`, inherited from reveal.js's `index.html`) disables pinch-zoom and fails WCAG 1.4.4. `template.html` uses `width=device-width, initial-scale=1.0` instead, matching reveal.js's own `demo.html` ([#14952](https://github.com/quarto-dev/quarto-cli/issues/14952)).
+
 ## Adding New Reveal.js Options
 
 When adding support for a new reveal.js configuration option:

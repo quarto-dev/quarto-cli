@@ -1,0 +1,51 @@
+---
+title: "Card titles with inline code (issue #14646)"
+format: dashboard
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - ".test-attr-code .card-title code"
+          - ".cell .card-title code"
+          - ".test-combined .card-title code"
+        -
+          - ".test-attr-code .card-header > code"
+          - ".cell .card-header > code"
+          - ".test-combined .card-header > code"
+          - ".test-combined .card-header > span.math.inline"
+          - ".test-combined .card-header > em"
+          - ".test-combined .card-header > strong"
+---
+
+Regression test for #14646. Inline verbatim code (backtick) formatting in
+dashboard card titles was extracted from its original position and appended
+after the rest of the title text, instead of staying inline where it was
+written — the same bug previously fixed for math, emphasis and bold in
+#10340. The card `title` attribute and the executable cell `title` option
+both build the card header through the same code path, so both forms are
+covered here. Each card carries its own scoping class (or relies on the
+executable cell's implicit `.cell` class) so a failure in one card cannot
+be masked by another card's passing assertion.
+
+## card title attribute
+
+::: {.card .test-attr-code title="Inline `code` between words"}
+
+:::
+
+## executable cell title option
+
+```{python}
+#| title: "Inline `code` between words"
+1 + 1
+```
+
+## combined formatting
+
+Code alongside math, emphasis and bold in the same title exercises the
+same loose-text extraction loop that #10340 covers without code.
+
+::: {.card .test-combined title="`code`, $math$, *em*, and **bold** together"}
+
+:::

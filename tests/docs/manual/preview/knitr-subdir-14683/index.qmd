@@ -1,0 +1,6 @@
+---
+title: Home
+---
+
+Home page. The regression fixture is `labs/doc.qmd` — preview it from the
+`labs/` directory with a bare filename (see T33).

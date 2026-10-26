@@ -1,0 +1,106 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 60,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 59,
+    "body": [
+      {
+        "type": "VariableDeclaration",
+        "start": 4,
+        "end": 17,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 8,
+            "end": 16,
+            "id": {
+              "type": "Identifier",
+              "start": 8,
+              "end": 9,
+              "name": "a"
+            },
+            "init": {
+              "type": "Literal",
+              "start": 12,
+              "end": 16,
+              "value": null,
+              "raw": "null"
+            }
+          }
+        ],
+        "kind": "let"
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 20,
+        "end": 34,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 24,
+            "end": 33,
+            "id": {
+              "type": "Identifier",
+              "start": 24,
+              "end": 25,
+              "name": "b"
+            },
+            "init": {
+              "type": "Literal",
+              "start": 28,
+              "end": 33,
+              "value": false,
+              "raw": "false"
+            }
+          }
+        ],
+        "kind": "let"
+      },
+      {
+        "type": "ExpressionStatement",
+        "start": 37,
+        "end": 45,
+        "expression": {
+          "type": "AssignmentExpression",
+          "start": 37,
+          "end": 44,
+          "operator": "||=",
+          "left": {
+            "type": "Identifier",
+            "start": 37,
+            "end": 38,
+            "name": "a"
+          },
+          "right": {
+            "type": "Identifier",
+            "start": 43,
+            "end": 44,
+            "name": "b"
+          }
+        }
+      },
+      {
+        "type": "ReturnStatement",
+        "start": 48,
+        "end": 57,
+        "argument": {
+          "type": "Identifier",
+          "start": 55,
+          "end": 56,
+          "name": "a"
+        }
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

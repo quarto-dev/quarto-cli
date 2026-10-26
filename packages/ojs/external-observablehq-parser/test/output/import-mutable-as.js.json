@@ -1,0 +1,46 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 42,
+  "id": null,
+  "body": {
+    "type": "ImportDeclaration",
+    "start": 0,
+    "end": 41,
+    "specifiers": [
+      {
+        "type": "ImportSpecifier",
+        "start": 8,
+        "end": 26,
+        "view": false,
+        "mutable": true,
+        "imported": {
+          "type": "Identifier",
+          "start": 16,
+          "end": 19,
+          "name": "foo"
+        },
+        "local": {
+          "type": "Identifier",
+          "start": 23,
+          "end": 26,
+          "name": "bar"
+        }
+      }
+    ],
+    "source": {
+      "type": "Literal",
+      "start": 33,
+      "end": 41,
+      "value": "module",
+      "raw": "\"module\""
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

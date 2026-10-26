@@ -1,0 +1,13 @@
+/*-- scss:defaults --*/
+$issue-14687-color: #ff0000;
+
+/*-- scss:rules --*/
+
+/* A declaration on the same line as the opening brace, with no space after
+   the colon and a non-identifier value, used to break the SCSS analyzer
+   (https://github.com/quarto-dev/quarto-cli/issues/14687). */
+.example {width:100px;}
+
+#test-14687 {
+  background-color: $issue-14687-color;
+}

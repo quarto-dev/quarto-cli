@@ -1,0 +1,5 @@
+typography:
+  base:
+    family: "Libertinus Serif, Nonexistent Font One, Nonexistent Font Two"
+  monospace:
+    family: "DejaVu Sans Mono, Nonexistent Mono Font"

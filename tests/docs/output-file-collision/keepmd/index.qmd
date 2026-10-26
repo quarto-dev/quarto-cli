@@ -1,0 +1,6 @@
+---
+title: Home
+output-file: index.html
+---
+
+Keep md content.
