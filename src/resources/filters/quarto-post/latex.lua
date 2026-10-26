@@ -192,6 +192,10 @@ function render_latex()
   end
   
   function handle_table_columns(table)
+    -- Code-cell layout may already have supplied the enclosing environment.
+    if table.classes:includes("render-as-tabular") then
+      return latexTabular(table)
+    end
     local full_width = table.classes:find_if(isStarEnv)
     local in_margin = table.classes:find_if(isMarginEnv)
     if full_width or in_margin then
@@ -201,9 +205,6 @@ function render_latex()
         pos = table.attributes["latex-placement"] or table.attributes["tbl-pos"],
         content = latexTabular(table)
       }))
-    end
-    if table.classes:includes("render-as-tabular") then
-      return latexTabular(table)
     end
   end
   

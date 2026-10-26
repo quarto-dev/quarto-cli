@@ -72,6 +72,7 @@ testRender(docs("crossrefs/tables-float-margin.qmd"), "pdf", true, [
     /Table 2: Wide one-column caption/,
     /See Table 1 and Table 2/,
     /Bare margin/,
+    /Cell margin/,
   ], [/\?\?/]),
 ]);
 

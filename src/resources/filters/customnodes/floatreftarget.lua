@@ -344,9 +344,10 @@ end, function(float)
     return float.content
   end
 
-  -- Native tables in full-width/margin floats, or with bottom captions, need
-  -- Quarto's environment and caption rather than Pandoc's default longtable.
-  if not float.parent_id and float.content.t == "Table" and float_type == "tbl" then
+  -- Only floating tables need Quarto's environment and bottom caption here.
+  -- Ordinary single-column tables must retain longtable and its caption foot.
+  if not float.parent_id and float.content.t == "Table" and float_type == "tbl" and
+      (figEnv ~= "table" or float.classes:includes("float")) then
     figPos = float.attributes["latex-placement"] or figPos
     if figEnv == "marginfigure" then
       figEnv = "margintable"

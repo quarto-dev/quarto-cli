@@ -23,3 +23,13 @@ See @tbl-margin and @tbl-wide-onecolumn.
 | Bare margin | 3 |
 
 :::
+
+::: {.cell .column-margin}
+::: {.cell-output-display}
+
+| Name | Value |
+|------|------:|
+| Cell margin | 4 |
+
+:::
+:::

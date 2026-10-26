@@ -36,3 +36,32 @@ function removeCodeOptions()
     end
   }
 end
+
+function preserve_markdown_code_languages()
+  return {
+    CodeBlock = function(code)
+      if not _quarto.format.isMarkdownOutput() or
+          tcontains(PANDOC_WRITER_OPTIONS.extensions, "fenced_code_attributes") then
+        return nil
+      end
+      -- Since Pandoc 3.10.1, bare classes are only treated as languages if
+      -- Skylighting knows them. Explicit language-* classes still preserve
+      -- arbitrary names, including those interpreted by downstream renderers.
+      -- Match the previous writer's first non-sourceCode class convention,
+      -- while respecting an already-explicit language anywhere in the list.
+      local language
+      for _, class in ipairs(code.classes) do
+        if class:match("^language%-") then
+          return nil
+        end
+        if language == nil and class ~= "sourceCode" then
+          language = class
+        end
+      end
+      if language then
+        code.classes:insert("language-" .. language)
+        return code
+      end
+    end
+  }
+end
