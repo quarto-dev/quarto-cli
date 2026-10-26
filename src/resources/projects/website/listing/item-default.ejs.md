@@ -54,7 +54,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% if (fields.includes('image')) { %>
 
 ```{=html}
-<div class="thumbnail"><a href="<%- item.path %>" class="no-external-icon">
+<div class="thumbnail"><a href="<%- item.path %>" class="no-external-icon"<%= !item.image && !item.outputHref ? ' aria-hidden="true" tabindex="-1"' : '' %>>
 <% if (item.image) { %>
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 <% } else { %>
