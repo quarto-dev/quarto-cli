@@ -23,6 +23,55 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
   margin-top: 1rem;
 }
 
+// The inner tone is a custom property, so an author can remove it with
+// one line (`--quarto-focus-ring-shadow: none`) without matching the
+// specificity of the rules below.
+:root {
+  --quarto-focus-ring-shadow: #{$focus-ring-inner-shadow};
+}
+
+// One keyboard focus ring for every focusable element (see the focus-ring
+// mixin). The rule has (0,1,0) specificity on purpose, so that author rules
+// such as `a:focus-visible` (0,1,1) win over it.
+:focus-visible {
+  @include focus-ring;
+}
+
+// Bootstrap removes the outline on these controls with (0,2,0) rules
+// (`.btn:focus-visible { outline: 0 }`, `.form-control:focus`, ...), which
+// beat the (0,1,0) rule above. These rules tie with Bootstrap and win on
+// order; author rules on the same classes come later and still win.
+// Don't add rules for other controls: only outline removals by Bootstrap
+// or a bundled library belong here.
+.btn:focus-visible,
+.btn-close:focus-visible,
+.nav-link:focus-visible,
+.navbar-toggler:focus-visible,
+.accordion-button:focus-visible,
+.carousel-control-prev:focus-visible,
+.carousel-control-next:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.form-range:focus-visible {
+  @include focus-ring;
+}
+
+// MathJax injects `mjx-speech:focus { outline: none }` (0,1,1) at runtime,
+// after this stylesheet, so a tie loses on order. (0,2,1) puts the ring back
+// on the focusable speech element of each equation.
+:root mjx-speech:focus-visible {
+  @include focus-ring;
+}
+
+// Exception: some Bootswatch themes give pagination links their own
+// box-shadow (vapor's glow on the active link, zephyr's drop shadow), which
+// replaces the ring's inner tone. On vapor's dark page that leaves no
+// visible ring. (0,4,0) beats those theme rules.
+.pagination .page-item .page-link:focus-visible {
+  @include focus-ring;
+}
+
 // skip-to-content link (WCAG 2.4.1 Bypass Blocks); visually hidden via
 // Bootstrap's .visually-hidden-focusable helper until it receives focus
 #quarto-skip-link:focus {
@@ -36,7 +85,6 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
   text-decoration: none;
   border: 1px solid $border-color;
   border-radius: $border-radius;
-  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
 }
 
 // the skip-link target receives programmatic focus (tabindex="-1"); don't
@@ -44,6 +92,7 @@ ol > li:not(:has(> p)) > ol > li:has(> p) {
 #quarto-document-content:focus,
 #quarto-content:focus {
   outline: none;
+  box-shadow: none;
 }
 
 // Grid layout
@@ -1061,16 +1110,6 @@ td code:not(.sourceCode) {
   padding: 0.7rem;
 }
 
-// These buttons are bare .btn elements (no btn-* variant class), so
-// Bootstrap's .btn:focus-visible leaves them with no focus indicator.
-// Restore the browser's ring; unlike box-shadow it survives forced colors.
-// See https://github.com/quarto-dev/quarto-cli/issues/14774
-.quarto-btn-toggle:focus-visible,
-.quarto-search-button:focus-visible,
-.code-tools-button:focus-visible {
-  outline: revert;
-}
-
 .code-tools-button {
   font-size: 1rem;
   padding: 0.15rem 0.15rem;
@@ -1118,6 +1157,21 @@ td code:not(.sourceCode) {
 .sidebar.margin-sidebar {
   top: 0px;
   padding-top: 1em;
+}
+
+// TOC links run to the edge of these scroll containers, which would clip
+// their focus ring
+.sidebar.toc-left,
+.sidebar.margin-sidebar {
+  padding-right: $focus-ring-extent;
+}
+
+// The collapsed navbar menu scrolls, and its links run to its edges. The
+// padding makes room for the focus ring; the negative margin keeps the links
+// where they were.
+.navbar-nav-scroll {
+  padding: $focus-ring-extent;
+  margin: -$focus-ring-extent;
 }
 
 .sidebar.quarto-banner-title-block-sidebar {

@@ -1,0 +1,8 @@
+/*-- scss:rules --*/
+// A typical author focus rule: an element selector with (0,1,1)
+// specificity that sets only the outline, plus one line to remove the
+// Quarto inner tone.
+a:focus-visible {
+  outline: 3px solid #b5361f;
+  --quarto-focus-ring-shadow: none;
+}

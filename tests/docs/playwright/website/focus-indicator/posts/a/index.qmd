@@ -1,0 +1,6 @@
+---
+title: "Post a"
+date: 2026-10-01
+---
+
+Body of post a.
