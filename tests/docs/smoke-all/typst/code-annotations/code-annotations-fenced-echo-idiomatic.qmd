@@ -10,10 +10,12 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          # Wrapped raw content has no fence line, so the key stays 1
-          - '#quarto-code-annotation\(\("1": 1\), cell-id: "annotated-cell-1"\)'
+          # Wrapped raw content keeps the fence line, so the code is line 2
+          - '#quarto-code-annotation\(\("2": 1\), cell-id: "annotated-cell-1"\)'
+          - '```markdown\n```\{r\}\nx <- 1'
           - '#quarto-annotation-item\("annotated-cell-1"'
-        - []
+        -
+          - '\{\{r\}\}'
 ---
 
 ```{{r}}
