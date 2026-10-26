@@ -159,3 +159,28 @@ test.describe("External links without link-external-newwindow", () => {
     await expect(link.locator(".quarto-ext-newwindow")).toHaveCount(0);
   });
 });
+
+test.describe("External links shown after listing updates", () => {
+  test("item on page 2 is decorated after pagination", async ({ page: browserPage }) => {
+    await browserPage.goto("./listings/external-links/_site/paged.html");
+    const listing = browserPage.locator("#paged-listing");
+    await listing.locator(".pagination .page.page-link", { hasText: "2" }).click();
+
+    const link = listing.locator('.listing-title a[href="https://example.com/external-article"]');
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAccessibleName(/\(opens in a new tab\)$/);
+    await expect(link.locator(".quarto-ext-newwindow")).toHaveCount(1);
+  });
+});
+
+test.describe("External links in minimal HTML", () => {
+  test("new-tab announcement stays visually hidden", async ({ page: browserPage }) => {
+    await browserPage.goto("./listings/external-links/_site/minimal.html");
+
+    const note = browserPage.locator('a[href="https://example.com/minimal"] .quarto-ext-newwindow');
+    await expect(note).toHaveCount(1);
+    const box = await note.boundingBox();
+    expect(box?.width ?? 0).toBeLessThanOrEqual(1);
+    expect(box?.height ?? 0).toBeLessThanOrEqual(1);
+  });
+});
