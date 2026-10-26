@@ -551,9 +551,12 @@ function code_annotations()
                 local annotationNumber = block.start + i - 1
                 local annoteId = toAnnoteId(annotationNumber)
                 if pendingAnnotations[annoteId] then
-                  local content = pandoc.write(pandoc.Pandoc({v[1]}), "typst")
+                  -- Open and close the item with raw Typst around the item's own
+                  -- blocks, so cross-references and citations resolve later.
                   annotationBlocks:insert(pandoc.RawBlock("typst",
-                    "#quarto-annotation-item(\"" .. (pendingCellId or "") .. "\", " .. tostring(annotationNumber) .. ", [" .. content .. "])"))
+                    "#quarto-annotation-item(\"" .. (pendingCellId or "") .. "\", " .. tostring(annotationNumber) .. ", ["))
+                  annotationBlocks:extend(v)
+                  annotationBlocks:insert(pandoc.RawBlock("typst", "])"))
                 end
               end
 

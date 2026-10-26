@@ -1,0 +1,27 @@
+---
+title: Code Annotations (cross-reference and citation in an item)
+bibliography: refs.bib
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-annotation-item\("annotated-cell-1", 1, \[\s*Compare with #ref\(<fig-x>, supplement: \[Figure\]\)'
+          - 'quarto-annotation-item\("annotated-cell-1", 2, \[\s*See @knuth'
+        -
+          - '#cite\(<fig-x>'
+---
+
+```{.python}
+x = 1  # <1>
+y = 2  # <2>
+```
+
+1. Compare with @fig-x.
+2. See [@knuth].
+
+![A figure](fig.png){#fig-x}
