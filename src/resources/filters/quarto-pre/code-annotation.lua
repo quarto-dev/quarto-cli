@@ -300,6 +300,10 @@ function code_annotations()
   -- the user request code annotations value
   local codeAnnotations = param(_quarto.modules.constants.kCodeAnnotationsParam)
 
+  if _quarto.format.isTypstOutput() and codeAnnotations == _quarto.modules.constants.kCodeAnnotationStyleSelect then
+    warn("Typst does not support 'code-annotations: select'; annotations use the gutter style, as with 'hover'.")
+  end
+
   local requireNonIncremental = PANDOC_WRITER_OPTIONS[_quarto.modules.constants.kIncremental] and (
     codeAnnotations == _quarto.modules.constants.kCodeAnnotationStyleSelect or codeAnnotations == _quarto.modules.constants.kCodeAnnotationStyleHover
   )

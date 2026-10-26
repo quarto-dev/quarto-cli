@@ -5,6 +5,8 @@
  */
 
 import { join } from "../../deno_ral/path.ts";
+import { warning } from "../../deno_ral/log.ts";
+import { execProcess } from "../../core/process.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -33,7 +35,7 @@ import {
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
-import { formatResourcePath } from "../../core/resources.ts";
+import { formatResourcePath, pandocBinaryPath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 import { hasLevelOneHeadings as hasL1Headings } from "../../core/lib/markdown-analysis/level-one-headings.ts";
 import {
@@ -180,6 +182,105 @@ export function typstFormat(): Format {
   });
 }
 
+const annotatedLineRendering = `let annote-num = annotations.at(str(annote-pos), default: none)
+     if annote-num != none {
+       if cell-id != "" {
+         let lbl = cell-id + "-annote-" + str(annote-num)
+         if str(annote-num) not in seen-annotes {
+           seen-annotes.insert(str(annote-num), true)
+           blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
+         } else {
+           blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))]] + EndLine()
+         }
+       } else {
+         blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
+       }
+     } else {
+       blocks = blocks + ln + EndLine()
+     }`;
+
+export function applyPatch(
+  source: string,
+  pattern: string | RegExp,
+  replacement: string,
+): { source: string; applied: boolean } {
+  const patched = source.replace(pattern, replacement);
+  return { source: patched, applied: patched !== source };
+}
+
+// Styles Pandoc's Skylighting function, then adds the annotation patches.
+// When one annotation patch misses, the styled function without any
+// annotation patch is returned together with the name of the missed patch.
+export function patchSkylightingFunction(
+  fn: string,
+  brandBgColor?: string,
+): { fn: string; failedPatch?: string } {
+  // Fix block() call: add width, inset, radius
+  let styled = fn.replace(
+    "block(fill: bgcolor, blocks)",
+    "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks)",
+  );
+
+  // Override bgcolor with brand monospace-block background-color
+  if (brandBgColor) {
+    styled = styled.replace(
+      /(let bgcolor = )(?:rgb\("[^"]*"\)|none)/,
+      `$1rgb("${brandBgColor}")`,
+    );
+  }
+
+  const patches: [string, string | RegExp, string][] = [
+    [
+      "signature",
+      "start: 1, sourcelines)",
+      'start: 1, cell-id: "", annotations: (:), sourcelines)',
+    ],
+    // Move lnum increment outside if-number block and track a 1-based
+    // annotation position independent of `start` (annotation dict keys
+    // are always 1-based, whether or not Pandoc passes `start:`)
+    [
+      "line counter",
+      /if number \{\n\s+lnum = lnum \+ 1\n/,
+      "lnum = lnum + 1\n     annote-pos = annote-pos + 1\n     if number {\n",
+    ],
+    // Initialise the annotation position counter and a dictionary to
+    // track which annotation numbers have already emitted a back-label
+    // (avoids duplicate labels when one annotation spans multiple lines).
+    [
+      "position counter",
+      /let lnum = start - 1\n/,
+      "let lnum = start - 1\n     let annote-pos = 0\n     let seen-annotes = (:)\n",
+    ],
+    // Add annotation rendering per line (derive circle colour from bgcolor).
+    // quarto-annote-link degrades to an unlinked circle when the annotation
+    // item label is missing (e.g. no trailing ordered list).
+    [
+      "line rendering",
+      "blocks = blocks + ln + EndLine()",
+      annotatedLineRendering,
+    ],
+  ];
+
+  let annotated = styled;
+  for (const [name, pattern, replacement] of patches) {
+    const result = applyPatch(annotated, pattern, replacement);
+    if (!result.applied) {
+      return { fn: styled, failedPatch: name };
+    }
+    annotated = result.source;
+  }
+  return { fn: annotated };
+}
+
+async function pandocVersion(): Promise<string> {
+  const result = await execProcess({
+    cmd: pandocBinaryPath(),
+    args: ["--version"],
+    stdout: "piped",
+  });
+  return result.stdout?.split("\n")[0]?.split(" ")[1] ?? "(unknown version)";
+}
+
 // Fix Skylighting code block styling in .typ output (issue #14126).
 // The Pandoc-generated Skylighting function uses block(fill: bgcolor, blocks)
 // which lacks width, inset, and radius. This postprocessor matches the entire
@@ -215,93 +316,49 @@ function skylightingPostProcessor(brandBgColor?: string) {
     let content = Deno.readTextFileSync(output).replace(/\r\n/g, "\n");
     let changed = false;
 
+    let annotationsPatched = true;
     const match = skylightingFnRe.exec(content);
     if (match) {
-      let fn = match[1];
-
-      // Fix block() call: add width, inset, radius, stroke
-      fn = fn.replace(
-        "block(fill: bgcolor, blocks)",
-        "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks)",
-      );
-
-      // Override bgcolor with brand monospace-block background-color
-      if (brandBgColor) {
-        fn = fn.replace(
-          /(let bgcolor = )(?:rgb\("[^"]*"\)|none)/,
-          `$1rgb("${brandBgColor}")`,
+      const patched = patchSkylightingFunction(match[1], brandBgColor);
+      if (patched.failedPatch !== undefined) {
+        annotationsPatched = false;
+        warning(
+          `Typst code annotations: patch "${patched.failedPatch}" did not apply to Pandoc ${await pandocVersion()}; annotations are disabled for this document.`,
         );
       }
-
-      // Add cell-id and annotations parameters to function signature
-      fn = fn.replace(
-        "start: 1, sourcelines)",
-        'start: 1, cell-id: "", annotations: (:), sourcelines)',
-      );
-
-      // Move lnum increment outside if-number block and track a 1-based
-      // annotation position independent of `start` (annotation dict keys
-      // are always 1-based, whether or not Pandoc passes `start:`)
-      fn = fn.replace(
-        /if number \{\n\s+lnum = lnum \+ 1\n/,
-        "lnum = lnum + 1\n     annote-pos = annote-pos + 1\n     if number {\n",
-      );
-
-      // Initialise the annotation position counter and a dictionary to
-      // track which annotation numbers have already emitted a back-label
-      // (avoids duplicate labels when one annotation spans multiple lines).
-      fn = fn.replace(
-        /let lnum = start - 1\n/,
-        "let lnum = start - 1\n     let annote-pos = 0\n     let seen-annotes = (:)\n",
-      );
-
-      // Add annotation rendering per line (derive circle colour from bgcolor).
-      // quarto-annote-link degrades to an unlinked circle when the annotation
-      // item label is missing (e.g. no trailing ordered list).
-      fn = fn.replace(
-        "blocks = blocks + ln + EndLine()",
-        `let annote-num = annotations.at(str(annote-pos), default: none)
-     if annote-num != none {
-       if cell-id != "" {
-         let lbl = cell-id + "-annote-" + str(annote-num)
-         if str(annote-num) not in seen-annotes {
-           seen-annotes.insert(str(annote-num), true)
-           blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
-         } else {
-           blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))]] + EndLine()
-         }
-       } else {
-         blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
-       }
-     } else {
-       blocks = blocks + ln + EndLine()
-     }`,
-      );
-
-      if (fn !== match[1]) {
-        content = content.replace(match[1], fn);
+      if (patched.fn !== match[1]) {
+        content = content.replace(match[1], patched.fn);
         changed = true;
       }
     }
 
     // Merge annotation markers into Skylighting call sites, including
     // optional #block[ wrappers and #quarto-code-filename(...)[ wrappers.
-    const merged = content.replace(
-      annotationMarkerRe,
-      '$3#Skylighting(cell-id: "$1", annotations: $2, ',
-    );
-    if (merged !== content) {
-      content = merged;
-      changed = true;
+    if (annotationsPatched) {
+      const merged = content.replace(
+        annotationMarkerRe,
+        '$3#Skylighting(cell-id: "$1", annotations: $2, ',
+      );
+      if (merged !== content) {
+        content = merged;
+        changed = true;
+      }
     }
 
-    // Strip any markers that could not be merged (e.g. the code block was
+    // Strip markers that could not be merged (e.g. the code block was
     // wrapped in output the merge regex does not recognise) so they don't
     // leak into keep-typ output. Rendering degrades gracefully via
     // quarto-annote-link.
     const stripped = content.replace(
-      /^[^\S\n]*\/\/ quarto-code-annotations:[^\n]*\n/gm,
-      "",
+      /^[^\S\n]*\/\/ quarto-code-annotations: (\S*) [^\n]*\n/gm,
+      (_marker, cellId: string) => {
+        if (annotationsPatched) {
+          warning(
+            `Typst code annotations: the annotations of cell "${cellId}" could not be attached to its code block and are not shown in the code.`,
+          );
+        }
+        return "";
+      },
     );
     if (stripped !== content) {
       content = stripped;
