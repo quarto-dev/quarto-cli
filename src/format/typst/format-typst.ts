@@ -188,12 +188,12 @@ const annotatedLineRendering = `let annote-num = annotations.at(str(annote-pos),
          let lbl = cell-id + "-annote-" + str(annote-num)
          if str(annote-num) not in seen-annotes {
            seen-annotes.insert(str(annote-num), true)
-           blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
+           blocks = blocks + box(width: 100% - annote-ln-width)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
          } else {
-           blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))]] + EndLine()
+           blocks = blocks + box(width: 100% - annote-ln-width)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))]] + EndLine()
          }
        } else {
-         blocks = blocks + box(width: 100%)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
+         blocks = blocks + box(width: 100% - annote-ln-width)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
        }
      } else {
        blocks = blocks + ln + EndLine()
@@ -249,7 +249,7 @@ export function patchSkylightingFunction(
     [
       "position counter",
       /let lnum = start - 1\n/,
-      "let lnum = start - 1\n     let annote-pos = 0\n     let seen-annotes = (:)\n",
+      "let lnum = start - 1\n     let annote-pos = 0\n     let seen-annotes = (:)\n     let annote-ln-width = if number { if start + sourcelines.len() > 999 { 30pt } else { 24pt } } else { 0pt }\n",
     ],
     // Add annotation rendering per line (derive circle colour from bgcolor).
     // quarto-annote-link degrades to an unlinked circle when the annotation
