@@ -8,6 +8,7 @@ listing:
     - path: https://example.com/external-article
       title: "External Article"
   type: default
+  sort: "title desc"
   page-size: 1
 ---
 

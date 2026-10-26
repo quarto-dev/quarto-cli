@@ -163,8 +163,10 @@ test.describe("External links without link-external-newwindow", () => {
 test.describe("External links shown after listing updates", () => {
   test("item on page 2 is decorated after pagination", async ({ page: browserPage }) => {
     await browserPage.goto("./listings/external-links/_site/paged.html");
-    const listing = browserPage.locator("#paged-listing");
-    await listing.locator(".pagination .page.page-link", { hasText: "2" }).click();
+    const listing = browserPage.locator(".quarto-listing-default");
+    await browserPage
+      .locator("#paged-listing-pagination .page.page-link", { hasText: "2" })
+      .click();
 
     const link = listing.locator('.listing-title a[href="https://example.com/external-article"]');
     await expect(link).toHaveAttribute("target", "_blank");
