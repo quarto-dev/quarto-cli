@@ -233,9 +233,11 @@
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
       // Inspect non-navigation links and adorn them if external
-     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link):not([data-quarto-external])');
       for (var i=0; i<links.length; i++) {
         const link = links[i];
+        link.dataset.quartoExternal = "";
         if (!isInternal(link.href)) {
           // undo the damage that might have been done by quarto-nav.js in the case of
           // links that we want to consider external
@@ -274,6 +276,8 @@
           }
         }
       }
+      };
+      window.quartoDecorateExternalLinks(window.document);
   
   
   
