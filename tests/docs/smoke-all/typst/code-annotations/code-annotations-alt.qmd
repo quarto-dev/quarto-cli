@@ -1,0 +1,20 @@
+---
+title: Code Annotations (text alternative)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'math\.equation\(alt: "Annotation " \+ str\(n\)'
+        - []
+---
+
+```{.python}
+x = 1  # <1>
+```
+
+1. Assign x.

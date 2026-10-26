@@ -27,10 +27,10 @@
 // Code annotation support
 #let quarto-circled-number(n, color: none) = context {
   let c = if color != none { color } else { text.fill }
-  box(baseline: 15%, circle(
+  box(baseline: 15%, math.equation(alt: "Annotation " + str(n), block: false, circle(
     radius: 0.55em,
     stroke: 0.5pt + c,
-  )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])
+  )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))]))
 }
 
 // Link to `target` only if that label exists in the document; otherwise

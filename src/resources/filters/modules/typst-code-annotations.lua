@@ -6,6 +6,10 @@
 
 local function _main()
 
+  local function typstEscapeString(s)
+    return (s:gsub('[\\"]', "\\%0"))
+  end
+
   -- Convert annotations table to a flat Typst dictionary string.
   -- Keys are line positions (as strings), values are annotation numbers.
   local function typstAnnotationsDict(annotations)
@@ -47,7 +51,7 @@ local function _main()
   -- will merge into the Skylighting call site.
   local function typstAnnotationMarker(annotations, cellId, offset)
     local dict = typstAnnotationsDict(adjustAnnotations(annotations, offset))
-    return pandoc.RawBlock("typst", "// quarto-code-annotations: " .. (cellId or "") .. " " .. dict)
+    return pandoc.RawBlock("typst", "// quarto-code-annotations: " .. typstEscapeString(cellId or "") .. " " .. dict)
   end
 
   -- Native/none mode: wrap a CodeBlock in #quarto-code-annotation(annotations)[...].
@@ -72,12 +76,13 @@ local function _main()
     end
     local fence = string.rep("`", maxBackticks + 1)
     local raw = "#quarto-code-annotation(" .. dict
-      .. (cellId and cellId ~= "" and (", cell-id: \"" .. cellId .. "\"") or "")
+      .. (cellId and cellId ~= "" and (", cell-id: \"" .. typstEscapeString(cellId) .. "\"") or "")
       .. ")[" .. fence .. lang .. "\n" .. code .. "\n" .. fence .. "]"
     return pandoc.RawBlock("typst", raw)
   end
 
   return {
+    typstEscapeString = typstEscapeString,
     typstAnnotationsDict = typstAnnotationsDict,
     typstAnnotationMarker = typstAnnotationMarker,
     wrapTypstAnnotatedCode = wrapTypstAnnotatedCode,

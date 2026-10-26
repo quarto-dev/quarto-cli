@@ -327,7 +327,8 @@ function code_annotations()
         -- Collected annotation keys are display-based. Two different shifts
         -- apply when converting them back to physical source lines for Typst:
         -- pendingOffset (startFrom or the fenced-echo start line) for code
-        -- re-emitted from the pre-time text (native wrap path, no fence line),
+        -- re-emitted from the pre-time text (native wrap path, whose raw
+        -- block adds the fence line of an escaped engine block itself),
         -- and pendingStartFrom alone for the Skylighting path, whose output
         -- still contains the injected fenced-echo line.
         local pendingOffset = nil
@@ -553,10 +554,14 @@ function code_annotations()
                 if pendingAnnotations[annoteId] then
                   -- Open and close the item with raw Typst around the item's own
                   -- blocks, so cross-references and citations resolve later.
-                  annotationBlocks:insert(pandoc.RawBlock("typst",
-                    "#quarto-annotation-item(\"" .. (pendingCellId or "") .. "\", " .. tostring(annotationNumber) .. ", ["))
-                  annotationBlocks:extend(v)
-                  annotationBlocks:insert(pandoc.RawBlock("typst", "])"))
+                  -- One Div per item keeps the three parts in one layout cell.
+                  local itemBlocks = pandoc.Blocks({pandoc.RawBlock("typst",
+                    "#quarto-annotation-item(\"" .. typstAnnotations.typstEscapeString(pendingCellId or "") .. "\", " .. tostring(annotationNumber) .. ", [")})
+                  itemBlocks:extend(v)
+                  itemBlocks:insert(pandoc.RawBlock("typst", "])"))
+                  annotationBlocks:insert(pandoc.Div(itemBlocks))
+                else
+                  warn("List item " .. tostring(i) .. " has no corresponding annotation in the code cell\n(" .. pandoc.utils.stringify(v) .. ")")
                 end
               end
 
@@ -594,16 +599,16 @@ function code_annotations()
                   outputBlock(dlDiv)
                 elseif is_custom_node(resolvedCell) then
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
+                  custom.content:insert(2, dlDiv)
                   if useSkylighting then
                     custom.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                   end
-                  custom.content:insert(dlDiv)
                   outputBlock(resolvedCell)
                 else
+                  resolvedCell.content:insert(2, dlDiv)
                   if useSkylighting then
                     resolvedCell.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                   end
-                  resolvedCell.content:insert(dlDiv)
                   outputBlock(resolvedCell)
                 end
               else
