@@ -116,8 +116,10 @@
 }
 
 // Style native raw code blocks with default inset and radius
+// Default fill is a set rule so a later `set block(fill: ...)` (brand or user) wins
+#show raw.where(block: true): set block(fill: luma(230))
 #show raw.where(block: true): it => block(
-  fill: luma(230), width: 100%, inset: 8pt, radius: 2pt, it,
+  width: 100%, inset: 8pt, radius: 2pt, it,
 )
 
 #let block_with_new_content(old_block, new_content) = {

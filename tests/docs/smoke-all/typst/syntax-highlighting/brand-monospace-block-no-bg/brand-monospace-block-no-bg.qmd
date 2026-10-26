@@ -19,7 +19,7 @@ _quarto:
           - 'let bgcolor = rgb\("#f1f3f5"\)'
           - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
         # No brand background-color show rule (not configured)
-        - ['^#show raw\.where\(block: true\): set block\(fill:']
+        - ['^#show raw\.where\(block: true\): set block\(fill: rgb\(']
 ---
 
 Brand sets monospace-block color, weight, size, and line-height but NOT
