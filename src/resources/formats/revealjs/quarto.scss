@@ -769,20 +769,13 @@ div.cell-output-display div.pagedtable-wrapper table.table {
   left: auto;
 }
 
+.reveal #code-annotation-line-highlight,
 .reveal #code-annotation-line-highlight-gutter {
+  box-sizing: border-box;
   width: 100%;
   border-top: solid var(--quarto-hl-co-color) 1px;
   border-bottom: solid var(--quarto-hl-co-color) 1px;
   z-index: 2;
-}
-
-.reveal #code-annotation-line-highlight {
-  margin-left: -8em;
-  width: calc(100% + 4em);
-  border-top: solid var(--quarto-hl-co-color) 1px;
-  border-bottom: solid var(--quarto-hl-co-color) 1px;
-  z-index: 2;
-  margin-bottom: -2px;
 }
 
 .reveal code.sourceCode .code-annotation-anchor.code-annotation-active {
