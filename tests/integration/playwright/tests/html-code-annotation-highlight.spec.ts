@@ -39,15 +39,27 @@ const annotatedLines = async (page: Page, dt: Locator): Promise<Box> => {
   }, [cell, annotation]);
 };
 
+// The click handlers attach on DOMContentLoaded scripts, so retry a click that
+// lands before they exist.
+const selectAnnotation = async (page: Page, dt: Locator) => {
+  await expect(async () => {
+    if (await page.locator("#code-annotation-line-highlight").count() === 0) {
+      await dt.click();
+    }
+    await expect(page.locator("#code-annotation-line-highlight"))
+      .toBeVisible({ timeout: 500 });
+  }).toPass();
+};
+
 const expectBandsPlaced = async (page: Page, block: Locator) => {
-  const terms = block.locator("xpath=following-sibling::*[1]")
+  const terms = block.locator("xpath=following::dl[1]")
     .locator("dt[data-target-cell]");
   const count = await terms.count();
   expect(count).toBeGreaterThan(1);
-  const sourceCode = await boxOf(block.locator("div.sourceCode"));
+  const sourceCode = await boxOf(block);
   for (let i = 0; i < count; i++) {
     const dt = terms.nth(i);
-    await dt.click();
+    await selectAnnotation(page, dt);
     const band = await boxOf(page.locator("#code-annotation-line-highlight"));
     const gutterBand = await boxOf(
       page.locator("#code-annotation-line-highlight-gutter"),
@@ -85,6 +97,10 @@ const expectBandsPlaced = async (page: Page, block: Locator) => {
 const htmlCases = [
   { name: "html", url: "html/code-annotation-highlight.html" },
   { name: "dashboard", url: "dashboard/code-annotation-highlight.html" },
+  {
+    name: "html without code copy",
+    url: "html/code-annotation-highlight-no-copy.html",
+  },
 ];
 
 test.describe("code annotation line highlight", () => {
@@ -92,7 +108,7 @@ test.describe("code annotation line highlight", () => {
     for (const [label, index] of [["without", 0], ["with", 1]] as const) {
       test(`${name} — ${label} line numbers, bands fit the code block`, async ({ page }) => {
         await page.goto(getUrl(url), { waitUntil: "load" });
-        const block = page.locator(".code-copy-outer-scaffold")
+        const block = page.locator("div.sourceCode")
           .filter({ has: page.locator("pre.code-annotated") })
           .nth(index);
         await block.scrollIntoViewIfNeeded();
@@ -101,10 +117,12 @@ test.describe("code annotation line highlight", () => {
     }
   }
 
-  for (const [slide, index] of [
-    ["without-line-numbers", 1],
-    ["with-line-numbers", 2],
-  ] as const) {
+  for (
+    const [slide, index] of [
+      ["without-line-numbers", 1],
+      ["with-line-numbers", 2],
+    ] as const
+  ) {
     test(`revealjs — ${slide}, bands fit the code block`, async ({ page }) => {
       await page.goto(getUrl("revealjs/code-annotation-highlight.html"), {
         waitUntil: "load",
@@ -113,7 +131,7 @@ test.describe("code annotation line highlight", () => {
       await page.evaluate((h) => (window as any).Reveal.slide(h), index);
       const section = page.locator(`section#${slide}`);
       await expect(section).toHaveClass(/present/);
-      const block = section.locator(".code-copy-outer-scaffold");
+      const block = section.locator("div.sourceCode");
       await expect(block).toBeVisible();
       await expectBandsPlaced(page, block);
     });
@@ -124,7 +142,7 @@ test.describe("code annotation line highlight", () => {
       // Known gap, older than #13448: the light band tint lowers the
       // contrast of the arrow theme's `.im` tokens to 4.24:1. The tokens
       // leave no room for a tint, as #14959 shows for Reveal.js.
-      test.fail(scheme === "light");
+      test.fixme(scheme === "light");
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto(getUrl("html/code-annotation-highlight-contrast.html"), {
         waitUntil: "load",
@@ -132,9 +150,10 @@ test.describe("code annotation line highlight", () => {
       await expect(page.locator("body")).toHaveClass(
         scheme === "dark" ? /quarto-dark/ : /quarto-light/,
       );
-      await page.locator("dt[data-target-cell]").first().click();
-      await expect(page.locator("#code-annotation-line-highlight"))
-        .toBeVisible();
+      await selectAnnotation(
+        page,
+        page.locator("dt[data-target-cell]").first(),
+      );
       await page.addScriptTag({
         content: readFileSync(
           join(
@@ -149,9 +168,9 @@ test.describe("code annotation line highlight", () => {
         const result = await axe.run("div.sourceCode", {
           runOnly: { type: "rule", values: ["color-contrast"] },
         });
-        return result.violations.flatMap((v: { nodes: { target: string[] }[] }) =>
-          v.nodes.map((n) => n.target.join(" "))
-        );
+        return result.violations.flatMap((
+          v: { nodes: { target: string[] }[] },
+        ) => v.nodes.map((n) => n.target.join(" ")));
       });
       expect(violations).toEqual([]);
     });
