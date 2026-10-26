@@ -118,6 +118,9 @@ listingTypes.forEach(
           await browserPage.goto(`./listings/external-links/_site/${page}`);
           await browserPage.waitForSelector(containerSelector);
 
+          // The external-link script sets target; read the style only after it ran.
+          await expect(browserPage.locator(itemAnchorSelector).first())
+            .toHaveAttribute("target", "_blank");
           expect(
             await browserPage.evaluate(afterContent(itemAnchorSelector)),
           ).toBe("none");
