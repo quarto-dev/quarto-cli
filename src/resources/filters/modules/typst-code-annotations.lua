@@ -52,9 +52,9 @@ local function _main()
 
   -- Native/none mode: wrap a CodeBlock in #quarto-code-annotation(annotations)[...].
   -- raw.line numbers always start at 1 regardless of startFrom, so adjust keys.
-  local function wrapTypstAnnotatedCode(codeBlock, annotations, cellId, offset)
+  local function wrapTypstAnnotatedCode(codeBlock, annotations, cellId, offset, dropLanguage)
     local dict = typstAnnotationsDict(adjustAnnotations(annotations, offset))
-    local lang = codeBlock.attr.classes[1] or ""
+    local lang = not dropLanguage and codeBlock.attr.classes[1] or ""
     local code = codeBlock.text
     local maxBackticks = 2
     for seq in code:gmatch("`+") do

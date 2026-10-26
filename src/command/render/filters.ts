@@ -947,13 +947,17 @@ async function resolveFilterExtension(
   return results.flat();
 }
 
+const kSyntaxHighlightingMode = "syntax-highlighting-mode";
+
 const extractTypstFilterParams = (format: Format) => {
   const theme = format.pandoc[kSyntaxHighlighting] ||
     format.pandoc[kHighlightStyle] ||
     kDefaultHighlightStyle;
   // Object themes (light/dark) resolve to a single .theme file for Typst
   // (resolveTextHighlightStyle), so Skylighting is active for them too.
-  const skylighting = theme !== "none" && theme !== "idiomatic";
+  const highlightingMode = theme === "none" || theme === "idiomatic"
+    ? theme
+    : "skylighting";
 
   return {
     [kTocIndent]: format.metadata[kTocIndent],
@@ -961,6 +965,6 @@ const extractTypstFilterParams = (format: Format) => {
     [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
     [kBrandMode]: format.metadata[kBrandMode],
     [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
-    [kSyntaxHighlighting]: skylighting,
+    [kSyntaxHighlightingMode]: highlightingMode,
   };
 };

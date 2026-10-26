@@ -287,6 +287,9 @@ end
 -- find its annotations, then process the subsequent OL
 function code_annotations()
   local typstAnnotations = require("modules/typst-code-annotations")
+  local highlightingMode = param(_quarto.modules.constants.kSyntaxHighlightingMode, _quarto.modules.constants.kSyntaxHighlightingSkylighting)
+  local useSkylighting = highlightingMode == _quarto.modules.constants.kSyntaxHighlightingSkylighting
+  local dropLanguage = highlightingMode == _quarto.modules.constants.kSyntaxHighlightingNone
 
   -- the localized strings
   local language = param("language", nil)
@@ -481,11 +484,11 @@ function code_annotations()
                   if _quarto.format.isTypstOutput()
                       and codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone
                       and pendingAnnotations and next(pendingAnnotations) ~= nil then
-                    if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
+                    if useSkylighting then
                       block.content[1].content[1] = codeCell
                       block.content[1].content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                     else
-                      block.content[1].content[1] = typstAnnotations.wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId, pendingOffset)
+                      block.content[1].content[1] = typstAnnotations.wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId, pendingOffset, dropLanguage)
                     end
                   else
                     block.content[1].content[1] = codeCell
@@ -520,11 +523,11 @@ function code_annotations()
                 if _quarto.format.isTypstOutput()
                     and codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone
                     and pendingAnnotations and next(pendingAnnotations) ~= nil then
-                  if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
+                  if useSkylighting then
                     outputBlock(typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                     outputBlock(codeCell)
                   else
-                    outputBlock(typstAnnotations.wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId, pendingOffset))
+                    outputBlock(typstAnnotations.wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId, pendingOffset, dropLanguage))
                   end
                 else
                   outputBlock(codeCell)
@@ -555,10 +558,10 @@ function code_annotations()
                   CodeBlock = function(el)
                     if el.attr.classes:find('cell-code') or
                        el.attr.classes:find(_quarto.modules.constants.kDataCodeAnnonationClz) then
-                      if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
+                      if useSkylighting then
                         return nil
                       else
-                        return typstAnnotations.wrapTypstAnnotatedCode(el, pendingAnnotations, pendingCellId, pendingOffset)
+                        return typstAnnotations.wrapTypstAnnotatedCode(el, pendingAnnotations, pendingCellId, pendingOffset, dropLanguage)
                       end
                     end
                   end
@@ -571,7 +574,7 @@ function code_annotations()
                   -- they don't land inside the captioned figure. The float's
                   -- content slot may be a bare block rather than a Blocks list.
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
-                  if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
+                  if useSkylighting then
                     local marker = typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom)
                     local floatContent = custom.content
                     if floatContent ~= nil and floatContent.insert ~= nil then
@@ -584,13 +587,13 @@ function code_annotations()
                   outputBlock(dlDiv)
                 elseif is_custom_node(resolvedCell) then
                   local custom = _quarto.ast.resolve_custom_data(resolvedCell) or pandoc.Div({})
-                  if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
+                  if useSkylighting then
                     custom.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                   end
                   custom.content:insert(dlDiv)
                   outputBlock(resolvedCell)
                 else
-                  if param(_quarto.modules.constants.kSyntaxHighlighting, true) then
+                  if useSkylighting then
                     resolvedCell.content:insert(1, typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
                   end
                   resolvedCell.content:insert(dlDiv)
