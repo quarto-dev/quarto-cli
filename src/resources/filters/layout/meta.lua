@@ -106,9 +106,44 @@ function layout_meta_inject_latex_packages()
       if (layoutState.hasColumns or marginReferences() or marginCitations()) and _quarto.format.isLatexOutput() then
         -- inject sidenotes package
         metaInjectLatex(meta, function(inject)
-          inject(
-            usePackage("sidenotes")
-          )
+          -- sidenotes redefines table*/figure* as single-column floats widened
+          -- into the margin. In twocolumn documents these must remain native
+          -- double-column floats. Choose at use time, since journal styles may
+          -- switch columns in the document rather than via classoption.
+          inject([[
+% Install the dispatchers only when Quarto loads sidenotes itself. If the
+% document already loaded it, leave that existing package setup untouched.
+\@ifpackageloaded{sidenotes}{}{%
+  % Save the document class's native double-column float environments before
+  % sidenotes replaces them. Save both the opening and closing commands.
+  % csname addresses environment commands whose names contain a literal '*';
+  % expandafter lets \let copy the resulting command's current definition.
+  \expandafter\let\expandafter\quarto@native@table\csname table*\endcsname
+  \expandafter\let\expandafter\quarto@native@endtable\csname endtable*\endcsname
+  \expandafter\let\expandafter\quarto@native@figure\csname figure*\endcsname
+  \expandafter\let\expandafter\quarto@native@endfigure\csname endfigure*\endcsname
+  \usepackage{sidenotes}
+  % Keep sidenotes' versions too: in single-column documents they extend a
+  % regular float into the margin, which is the intended column-page layout.
+  \expandafter\let\expandafter\quarto@margin@table\csname table*\endcsname
+  \expandafter\let\expandafter\quarto@margin@endtable\csname endtable*\endcsname
+  \expandafter\let\expandafter\quarto@margin@figure\csname figure*\endcsname
+  \expandafter\let\expandafter\quarto@margin@endfigure\csname endfigure*\endcsname
+  % Select the implementation when each environment is used, not when the
+  % preamble is read. A journal style or the document body may call
+  % \twocolumn or \onecolumn after sidenotes has already been loaded.
+  % Expand past \else or \fi before calling an opening command so its
+  % optional placement argument (such as [t]) is still the next input token.
+  \expandafter\def\csname table*\endcsname{%
+    \if@twocolumn\expandafter\quarto@native@table\else\expandafter\quarto@margin@table\fi}
+  \expandafter\def\csname endtable*\endcsname{%
+    \if@twocolumn\quarto@native@endtable\else\quarto@margin@endtable\fi}
+  \expandafter\def\csname figure*\endcsname{%
+    \if@twocolumn\expandafter\quarto@native@figure\else\expandafter\quarto@margin@figure\fi}
+  \expandafter\def\csname endfigure*\endcsname{%
+    \if@twocolumn\quarto@native@endfigure\else\quarto@margin@endfigure\fi}
+}
+]])
           inject(
             usePackage("marginnote")
           )
