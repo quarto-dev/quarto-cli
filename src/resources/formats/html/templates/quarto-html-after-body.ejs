@@ -265,11 +265,13 @@
           
           if (!link.classList.contains('no-external-icon')) {
           <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
-            // external icon, if provided
-            var extIcon = window.document.createElement('i');
-            extIcon.classList.add('bi-<%=linkExternalIcon%>');
-            extIcon.classList.add('quarto-ext-icon');
-            link.parentNode.insertBefore(extIcon, link.nextSibling)
+            // external icon, if provided (listing updates rerun this on the same links)
+            if (!link.nextElementSibling?.classList.contains('quarto-ext-icon')) {
+              var extIcon = window.document.createElement('i');
+              extIcon.classList.add('bi-<%=linkExternalIcon%>');
+              extIcon.classList.add('quarto-ext-icon');
+              link.parentNode.insertBefore(extIcon, link.nextSibling)
+            }
           <% } else if (linkExternalIcon) { %>
             // default icon
             link.classList.add("external");
