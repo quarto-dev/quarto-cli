@@ -10,6 +10,8 @@ _quarto:
       ensureTypstFileRegexMatches:
         -
           - 'math\.equation\(alt: "Annotation " \+ str\(n\)'
+          - 'annotations: \("1": 1\)'
+          - 'quarto-annotation-item\("annotated-cell-1", 1, \['
         - []
 ---
 
