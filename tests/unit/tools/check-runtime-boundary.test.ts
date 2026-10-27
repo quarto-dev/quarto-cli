@@ -678,13 +678,36 @@ unitTest("check-runtime-boundary - renderDelta accepts only counts the PR itself
   // main sits below its baseline for calls; the PR raises only std-import files.
   const base = { "tests": { denoCalls: 832, stdImportFiles: 177 } };
   const rendered = renderDelta(report, current, base, { "tests": { denoCalls: 832, stdImportFiles: 178 } });
+  // The Deno.* call fits under the untouched baseline: main stays green, so it is a notice, not "accepted by this PR".
   assertEquals(rendered.accepted.map((a) => a.message), [
+    `tests: +1 ${DENO}cwd in tests/unit/a.test.ts; within tools/runtime-boundary-baseline.json, which main sits below.`,
     "tests: tests/unit/c.test.ts now imports the standard library directly (testing/asserts); accepted by this PR's tools/runtime-boundary-baseline.json.",
   ]);
-  assertEquals(rendered.warnings.map((w) => w.file), ["tests/unit/a.test.ts"]);
+  assertEquals(rendered.warnings, []);
+  assertEquals(rendered.failed, false);
   assert(rendered.summary.includes("- tests std-import files: baseline 177 → 178"));
   assert(!rendered.summary.includes(`- tests ${DENO}* calls`));
-  assert(rendered.summary.includes("### Maintainer action before merging"));
+  assert(!rendered.summary.includes("### Maintainer action before merging"));
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - renderDelta passes once the PR's baseline covers an increase made while main sits below its baseline", async () => {
+  const report = {
+    deltas: { "tests": { denoCalls: 1, stdImportFiles: 0 } },
+    findings: [{ scope: "tests", file: "tests/unit/a.test.ts", kind: "deno" as const, name: "cwd", delta: 1 }],
+  };
+  // main counts 829 against a committed 832; the PR adds one, and --accept-increase writes 830.
+  const rendered = renderDelta(
+    report,
+    { "tests": { denoCalls: 830, stdImportFiles: 177 } },
+    { "tests": { denoCalls: 832, stdImportFiles: 177 } },
+    { "tests": { denoCalls: 830, stdImportFiles: 177 } },
+  );
+  assertEquals(rendered.failed, false);
+  assertEquals(rendered.warnings, []);
+  assertEquals(rendered.accepted.map((a) => a.message), [
+    `tests: +1 ${DENO}cwd in tests/unit/a.test.ts; within tools/runtime-boundary-baseline.json, which main sits below.`,
+  ]);
 });
 
 /** Runs the script in PR mode on `root`, as CI does, and returns its exit status and stdout. */

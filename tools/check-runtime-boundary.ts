@@ -9,8 +9,8 @@
  * without flags it fails when any count exceeds the committed baseline (main);
  * with --against <rev> it compares the working tree with <rev> (pull requests):
  * a Deno.* API that src/deno_ral already replaces is an error, any other
- * increase is a warning that still fails the run until the working tree's
- * baseline accepts it, which a maintainer pushes to the PR before merging.
+ * increase above the working tree's baseline is a warning that still fails the
+ * run until a maintainer pushes the accepted baseline to the PR before merging.
  *
  * Usage (from the repository root):
  *   quarto run --dev tools/check-runtime-boundary.ts
@@ -506,7 +506,7 @@ export interface Rendered {
   accepted: Annotation[]; // increases the PR's own baseline already covers
   notices: string[];
   summary: string; // markdown for GITHUB_STEP_SUMMARY
-  failed: boolean; // errors or warnings: an increase not accepted by the PR's baseline would turn main red
+  failed: boolean; // errors or warnings: a warning is a count above the PR's baseline, which would turn main red
 }
 
 const kReadmeRelPath = "dev-docs/runtime-migration/README.md";
@@ -544,6 +544,11 @@ export function renderDelta(
       (current[scope]?.[field] ?? 0) <= raised;
   };
   const acceptedSuffix = `; accepted by this PR's ${kBaselineRelPath}.`;
+  // The push check on main compares with `merged`: a count within it cannot turn main red,
+  // even when the PR did not raise it (main sits below its baseline).
+  const isCovered = (scope: string, field: keyof BoundaryCounts) =>
+    (current[scope]?.[field] ?? 0) <= (merged[scope]?.[field] ?? 0);
+  const coveredSuffix = `; within ${kBaselineRelPath}, which main sits below.`;
 
   for (const finding of report.findings) {
     const annotation = (message: string): Annotation => {
@@ -561,11 +566,13 @@ export function renderDelta(
       );
       continue;
     }
-    if (isAccepted(finding.scope, finding.kind === "deno" ? "denoCalls" : "stdImportFiles")) {
+    const field = finding.kind === "deno" ? "denoCalls" : "stdImportFiles";
+    if (isAccepted(finding.scope, field) || isCovered(finding.scope, field)) {
+      const suffix = isAccepted(finding.scope, field) ? acceptedSuffix : coveredSuffix;
       accepted.push(annotation(
         finding.kind === "deno"
-          ? `${finding.scope}: +${finding.delta} Deno.${finding.name} in ${finding.file}${acceptedSuffix}`
-          : `${finding.scope}: ${finding.file} now imports the standard library directly (${finding.name})${acceptedSuffix}`,
+          ? `${finding.scope}: +${finding.delta} Deno.${finding.name} in ${finding.file}${suffix}`
+          : `${finding.scope}: ${finding.file} now imports the standard library directly (${finding.name})${suffix}`,
       ));
       continue;
     }
