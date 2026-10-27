@@ -60,7 +60,7 @@
 
 #let quarto-code-filename(filename, body) = {
   show raw.where(block: true): it => it
-  block(width: 100%, radius: 2pt, clip: true)[
+  block(width: 100%, radius: 2pt, clip: true, stroke: 0.5pt + luma(200))[
     #set block(spacing: 0pt)
     #block(fill: luma(220), width: 100%, inset: (x: 8pt, y: 4pt))[
       #text(size: 0.85em, weight: "bold", fill: luma(30))[#filename]]
@@ -121,7 +121,7 @@
 // Default fill is a set rule so a later `set block(fill: ...)` (brand or user) wins
 #show raw.where(block: true): set block(fill: luma(230))
 #show raw.where(block: true): it => block(
-  width: 100%, inset: 8pt, radius: 2pt, it,
+  width: 100%, inset: 8pt, radius: 2pt, stroke: 0.5pt + luma(200), it,
 )
 
 #let block_with_new_content(old_block, new_content) = {

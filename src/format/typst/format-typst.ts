@@ -216,10 +216,10 @@ export function patchSkylightingFunction(
   fn: string,
   brandBgColor?: string,
 ): { fn: string; failedPatch?: string } {
-  // Fix block() call: add width, inset, radius
+  // Fix block() call: add width, inset, radius, stroke
   let styled = fn.replace(
     "block(fill: bgcolor, blocks)",
-    "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks)",
+    "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, stroke: 0.5pt + luma(200), blocks)",
   );
 
   // Override bgcolor with brand monospace-block background-color
