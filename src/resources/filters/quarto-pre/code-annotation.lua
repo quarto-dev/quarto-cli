@@ -386,23 +386,26 @@ function code_annotations()
 
         local resolveCellId = function(identifier) 
           if identifier ~= nil and identifier ~= '' then
-            -- Typst fails on duplicate labels, so make repeated ids unique
-            if _quarto.format.isTypstOutput() and usedCellIds[identifier] then
-              local count = usedCellIds[identifier] + 1
-              usedCellIds[identifier] = count
-              local uniqueId = identifier .. '-' .. tostring(count)
-              usedCellIds[uniqueId] = 1
-              warn("Duplicate code cell id '" .. identifier .. "'; using '" .. uniqueId .. "' for its annotations.")
-              return uniqueId
-            end
-            usedCellIds[identifier] = 1
             return identifier
           else
             local cellId = 'annotated-cell-' .. tostring(idCounter)
             idCounter = idCounter + 1
-            usedCellIds[cellId] = 1
             return cellId
           end
+        end
+
+        -- Typst fails on duplicate labels, so make repeated ids of annotated cells unique
+        local uniqueCellId = function(identifier)
+          if _quarto.format.isTypstOutput() and usedCellIds[identifier] then
+            local count = usedCellIds[identifier] + 1
+            usedCellIds[identifier] = count
+            local uniqueId = identifier .. '-' .. tostring(count)
+            usedCellIds[uniqueId] = 1
+            warn("Duplicate code cell id '" .. identifier .. "'; using '" .. uniqueId .. "' for its annotations.")
+            return uniqueId
+          end
+          usedCellIds[identifier] = 1
+          return identifier
         end
 
         local processCodeCell = function(el, identifier)
@@ -420,7 +423,7 @@ function code_annotations()
           if annotations and next(annotations) ~= nil then
             -- store the annotations and  cell info
             pendingAnnotations = annotations
-            pendingCellId = identifier
+            pendingCellId = uniqueCellId(identifier)
             pendingOffset = annotationOffset or 1
             pendingStartFrom = tonumber(el.attr.attributes['startFrom']) or 1
             
@@ -456,7 +459,7 @@ function code_annotations()
                   if codeCell then
                     processedAnnotation = true
                     if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
-                      codeCell.attr.identifier = cellId;
+                      codeCell.attr.identifier = pendingCellId;
                     end
                   end
                   return codeCell
@@ -486,7 +489,7 @@ function code_annotations()
                 if codeCell then
                   processedAnnotation = true
                   if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
-                    codeCell.attr.identifier = cellId;
+                    codeCell.attr.identifier = pendingCellId;
                   end
                 end
                 return codeCell
@@ -515,7 +518,7 @@ function code_annotations()
                 local codeCell = processCodeCell(codeblock, cellId)
                 if codeCell then
                   if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
-                    codeCell.attr.identifier = cellId;
+                    codeCell.attr.identifier = pendingCellId;
                   end
                   -- Typst DecoratedCodeBlock: embed annotation data inside the block
                   -- so the marker stays adjacent to the Skylighting call after rendering
@@ -554,7 +557,7 @@ function code_annotations()
               local codeCell = processCodeCell(block, cellId)
               if codeCell then
                 if codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone then
-                  codeCell.attr.identifier = cellId;
+                  codeCell.attr.identifier = pendingCellId;
                 end
                 -- Typst standalone CodeBlock: emit annotation data alongside
                 -- the code block. The OL handler will emit annotation items.
