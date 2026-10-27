@@ -88,15 +88,19 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 
 <% if (fields.includes('description')) { %>
 
+::: {.delink .listing-description}
+
 ```{=html}
-<div class="delink listing-description"><a href="<%- item.path %>" class="no-external-icon">
+<a href="<%- item.path %>" class="no-external-icon">
 ```
 
 <%= item.description %>
 
 ```{=html}
-</a></div>
+</a>
 ```
+
+:::
 
 <% } %>
 

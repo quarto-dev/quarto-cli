@@ -49,6 +49,7 @@ All changes included in 1.11:
 - ([#15080](https://github.com/quarto-dev/quarto-cli/issues/15080)): Fix footnote, citation, cross-reference and code annotation popups not closing with Esc, and staying open over the next focused element after keyboard focus leaves them.
 - ([#15129](https://github.com/quarto-dev/quarto-cli/issues/15129)): Fix default listings rendering an empty, focusable metadata link for posts with no date, author or other listed field to show, flagged by axe-core (`link-name`).
 - ([#15159](https://github.com/quarto-dev/quarto-cli/issues/15159), [#15160](https://github.com/quarto-dev/quarto-cli/issues/15160)): Fix the `revealjs` speaker view's Layout selector having no accessible name or visible keyboard focus, and its current slide, upcoming slide, time, and notes areas not being named regions. Changing layouts no longer forwards control keys to the slides, and the slide navigation buttons no longer introduce an unrelated complementary landmark. (author: @jooyoungseo)
+- ([#15211](https://github.com/quarto-dev/quarto-cli/issues/15211)): Fix default and grid listings rendering empty, focusable links when an item description contains a link, flagged by axe-core (`link-name`), a regression introduced in v1.7.7. Links in descriptions are shown as text again, so the whole description links to the item.
 
 ## Formats
 
