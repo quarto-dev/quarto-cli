@@ -142,6 +142,7 @@ All changes included in 1.11:
 - ([#15091](https://github.com/quarto-dev/quarto-cli/pull/15091)): Fix page-level `bread-crumbs`, `back-to-top-navigation`, `page-navigation`, `margin-header` and `margin-footer` options not being validated or offered for completion in editors. A page value of the wrong type now fails to render with an error instead of being accepted silently.
 - ([#15091](https://github.com/quarto-dev/quarto-cli/pull/15091)): Fix `open-graph: false` or `twitter-card: false` in page front matter or `_metadata.yml` not disabling Open Graph or Twitter Card metadata for that page when the website enables it.
 - ([#15114](https://github.com/quarto-dev/quarto-cli/pull/15114)): Fix a website category containing backticks showing broken text in the page title block, and a category containing a backslash, such as a Windows path, failing the render or losing its backslashes.
+- ([#15206](https://github.com/quarto-dev/quarto-cli/issues/15206)): Fix website listings attaching another update handler on every URL hash change, and an extra one per additional listing on the same page.
 
 ## Lua API
 
