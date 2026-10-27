@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Locator, Page } from '@playwright/test';
 import { tabKey } from '../src/utils';
 
 test('logo and footer are correctly shown in default mode', async ({ page }) => {
@@ -113,27 +113,27 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
   const currentSlideId = (page: Page) =>
     page.evaluate(() => (window as any).Reveal.getCurrentSlide().id);
 
-  test('Tab on a slide reaches only that slide (#14795)', async ({ page }) => {
+  test('Tab on a slide reaches only that slide (#14795)', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-3');
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-3')).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(page.locator('.reveal .slides section :focus')).toHaveCount(0);
   });
 
-  test('Tab after keyboard navigation stays on the new slide', async ({ page }) => {
+  test('Tab after keyboard navigation stays on the new slide', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-2');
     await page.keyboard.press('ArrowRight');
     await expect(page).toHaveURL(/#\/slide-3$/);
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-3')).toBeFocused();
   });
 
-  test('Tab in a vertical stack reaches only the current child', async ({ page }) => {
+  test('Tab in a vertical stack reaches only the current child', async ({ page, browserName }) => {
     await gotoSlide(page, '#/stack-b');
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'stack-b')).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(focusOutsideCurrentSlide(page)).toHaveCount(0);
   });
 
@@ -143,7 +143,7 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await expect(slideButton(page, 'slide-6')).toBeFocused();
   });
 
-  test('overview: slides are clickable, inert returns on exit', async ({ page }) => {
+  test('overview: slides are clickable, inert returns on exit', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-3');
     await page.keyboard.press('o');
     await expect(page.locator('.reveal.overview')).toBeAttached();
@@ -151,7 +151,7 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await page.locator('section#slide-5').click({ position: { x: 5, y: 5 } });
     await expect(page).toHaveURL(/#\/slide-5$/);
     await expect(page.locator('.reveal.overview')).toHaveCount(0);
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-5')).toBeFocused();
   });
 
@@ -162,7 +162,7 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await expect(slideButton(page, 'slide-4')).toBeFocused();
   });
 
-  test('scroll view toggle with R: focusable inside, current slide reachable after leaving', async ({ page }) => {
+  test('scroll view toggle with R: focusable inside, current slide reachable after leaving', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-2');
     await page.keyboard.press('R');
     await expect.poll(() => isScrollView(page)).toBe(true);
@@ -173,11 +173,11 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await expect.poll(() => currentSlideId(page)).toBe('slide-4');
     await page.keyboard.press('R');
     await expect.poll(() => isScrollView(page)).toBe(false);
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-4')).toBeFocused();
   });
 
-  test('responsive scroll view below scrollActivationWidth', async ({ page }) => {
+  test('responsive scroll view below scrollActivationWidth', async ({ page, browserName }) => {
     await gotoSlide(page, '#/slide-2');
     await page.setViewportSize({ width: 400, height: 700 });
     await expect.poll(() => isScrollView(page)).toBe(true);
@@ -187,7 +187,7 @@ test.describe('off-screen slides are not focusable (#14795)', () => {
     await expect.poll(() => currentSlideId(page)).toBe('slide-4');
     await page.setViewportSize({ width: 1280, height: 720 });
     await expect.poll(() => isScrollView(page)).toBe(false);
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-4')).toBeFocused();
   });
 
@@ -209,14 +209,14 @@ test.describe('the focus stays in the deck when its slide is left (#15078)', () 
     await expect(page.locator('.reveal.ready')).toBeAttached();
   });
 
-  test('moving on from the slide that has the focus hands it to the deck', async ({ page }) => {
+  test('moving on from the slide that has the focus hands it to the deck', async ({ page, browserName }) => {
     await slideButton(page, 'slide-2').focus();
     await page.keyboard.press('ArrowRight');
     await expect(page).toHaveURL(/#\/slide-3$/);
     await expect(deck(page)).toBeFocused();
     await expect(deck(page)).toHaveAttribute('tabindex', '-1');
     // From the deck, Tab goes on into the new slide.
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey(browserName));
     await expect(slideButton(page, 'slide-3')).toBeFocused();
   });
 
@@ -293,5 +293,219 @@ test.describe('the closed slide menu is out of the tab order', () => {
     await expect(menu(page)).toHaveAttribute('inert');
     await page.locator('div.slide-menu-button').click();
     await expect(menu(page)).not.toHaveAttribute('inert');
+  });
+});
+
+// https://github.com/quarto-dev/quarto-cli/issues/14249
+test.describe('the slide menu button has an accessible name', () => {
+  const button = (page: Page) => page.locator('.slide-menu-button a');
+
+  test('the default label', async ({ page }) => {
+    await page.goto('./revealjs/menu-focus-order.html');
+    await expect(button(page)).toHaveAccessibleName('Slide menu');
+  });
+
+  test('a menu built after the presentation loads', async ({ page }) => {
+    await page.goto('./revealjs/menu-delay-init.html');
+    await expect(page.locator('.reveal')).toHaveClass(/\bready\b/);
+    await page.evaluate(() => (window as any).Reveal.getPlugin('menu').initialiseMenu());
+    await expect(button(page)).toHaveAccessibleName('Slide menu');
+  });
+
+  test('a label set through the language files', async ({ page }) => {
+    await page.goto('./revealjs/menu-button-label.html');
+    await expect(button(page)).toHaveAccessibleName('Menu des diapositives');
+  });
+});
+
+test.describe('tabset keyboard focus order', () => {
+  // Tabs live on non-present slides, which reveal marks aria-hidden, so they
+  // are located by attribute and text rather than by accessible role.
+  const tab = (page: Page, name: string) =>
+    page.locator('[role="tab"]', { hasText: name });
+
+  const gotoSlide = async (page: Page, hash: string) => {
+    await page.goto(`./revealjs/tabset-focus-order.html${hash}`);
+    await expect(page.locator('.reveal.ready')).toBeAttached();
+    await expect(tab(page, 'Tab A')).toBeAttached();
+  };
+
+  const link = (page: Page, name: string) => page.getByRole('link', { name });
+
+  // Presses Tab (or Shift+Tab) once per target and checks each gets focus in turn.
+  const expectTabOrder = async (
+    page: Page,
+    browserName: string,
+    targets: Locator[],
+    shift = false,
+  ) => {
+    for (const target of targets) {
+      await page.keyboard.press(tabKey(browserName, shift));
+      await expect(target).toBeFocused();
+    }
+  };
+
+  test('first Tab stays on the current slide (#14970)', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/slide-1');
+    await expectTabOrder(page, browserName, [link(page, 'link on slide 1')]);
+  });
+
+  test('Tab moves from a tab into its panel content', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/slide-3');
+    await tab(page, 'Tab A').focus();
+    await expectTabOrder(page, browserName, [
+      link(page, 'link in tab A'),
+      tab(page, 'Tab B'),
+      link(page, 'link in tab B'),
+    ]);
+  });
+
+  test('Tab follows document order around a tabset (#14970)', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/links-around-a-tabset');
+    await expectTabOrder(page, browserName, [
+      link(page, 'link before the tabset'),
+      tab(page, 'Tab C'),
+      link(page, 'link in tab C'),
+      tab(page, 'Tab D'),
+      link(page, 'link in tab D'),
+      link(page, 'link after the tabset'),
+    ]);
+  });
+
+  test('Shift+Tab reverses the order around a tabset', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/links-around-a-tabset');
+    await link(page, 'link after the tabset').focus();
+    await expectTabOrder(page, browserName, [
+      link(page, 'link in tab D'),
+      tab(page, 'Tab D'),
+      link(page, 'link in tab C'),
+      tab(page, 'Tab C'),
+      link(page, 'link before the tabset'),
+    ], true);
+  });
+
+  test('two tabsets on a slide are traversed one after the other (#14970)', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/two-tabsets');
+    await expectTabOrder(page, browserName, [
+      tab(page, 'First A'),
+      link(page, 'link in first A'),
+      tab(page, 'First B'),
+      link(page, 'link in first B'),
+      tab(page, 'Second A'),
+      tab(page, 'Second B'),
+      link(page, 'link in second B'),
+    ]);
+  });
+
+  test('a nested tabset is traversed inside its outer panel', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/nested-tabsets');
+    await expectTabOrder(page, browserName, [
+      tab(page, 'Outer A'),
+      link(page, 'link in outer A'),
+      tab(page, 'Inner 1'),
+      link(page, 'link in inner 1'),
+      tab(page, 'Inner 2'),
+      link(page, 'link in inner 2'),
+      tab(page, 'Outer B'),
+      link(page, 'link in outer B'),
+    ]);
+  });
+
+  test('Shift+Tab reverses the order through a nested tabset', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/nested-tabsets');
+    await tab(page, 'Outer B').click();
+    await link(page, 'link in outer B').focus();
+    await expectTabOrder(page, browserName, [
+      tab(page, 'Outer B'),
+      link(page, 'link in inner 2'),
+      tab(page, 'Inner 2'),
+      link(page, 'link in inner 1'),
+      tab(page, 'Inner 1'),
+      link(page, 'link in outer A'),
+      tab(page, 'Outer A'),
+    ], true);
+  });
+
+  test('Shift+Tab treats another tab widget in a panel as panel content', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/other-tab-widget-in-a-panel');
+    await tab(page, 'Tab M').click();
+    await link(page, 'link in tab M').focus();
+    await expectTabOrder(page, browserName, [
+      tab(page, 'Tab M'),
+      page.getByRole('tab', { name: 'widget tab 1' }),
+      link(page, 'link in tab L'),
+      tab(page, 'Tab L'),
+    ], true);
+  });
+
+  test('Tab reaches details summaries and skips unrevealed fragments in panels', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/details-and-fragments-in-a-tabset');
+    await tab(page, 'Tab E').focus();
+    await expectTabOrder(page, browserName, [
+      link(page, 'link in tab E'),
+      page.locator('summary', { hasText: 'details in tab E' }),
+      tab(page, 'Tab F'),
+      page.locator('summary', { hasText: 'details in tab F' }),
+      link(page, 'link in tab F'),
+      tab(page, 'Tab G'),
+      link(page, 'link in tab G'),
+      link(page, 'link after the details tabset'),
+    ]);
+  });
+
+  test('clicking into a panel from after the tabset keeps that panel', async ({ page }) => {
+    await gotoSlide(page, '#/details-and-fragments-in-a-tabset');
+    await link(page, 'link after the details tabset').focus();
+    const summary = page.locator('summary', { hasText: 'details in tab E' });
+    await summary.click();
+    await expect(summary).toBeFocused();
+    await expect(tab(page, 'Tab E')).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('clicking a text field in a panel from after the tabset keeps that panel', async ({ page }) => {
+    await gotoSlide(page, '#/control-handling-tab-in-a-tabset');
+    await link(page, 'link after the editor tabset').focus();
+    const editor = page.getByRole('textbox', { name: 'editor in tab H' });
+    await editor.click();
+    await expect(editor).toBeFocused();
+    await expect(tab(page, 'Tab H')).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('clicking a panel control while Shift+Tab is held keeps that panel', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/control-handling-tab-in-a-tabset');
+    await link(page, 'a second link').focus();
+    await page.keyboard.down('Shift');
+    if (browserName === 'webkit') await page.keyboard.down('Alt');
+    await page.keyboard.down('Tab');
+    await expect(link(page, 'link after the editor tabset')).toBeFocused();
+    const editor = page.getByRole('textbox', { name: 'editor in tab H' });
+    await editor.click();
+    await expect(editor).toBeFocused();
+    await expect(tab(page, 'Tab H')).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('Shift+Tab from after a tabset with an empty selected panel reaches the last panel', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/empty-selected-panel');
+    await link(page, 'link after the empty panel tabset').focus();
+    await expectTabOrder(page, browserName, [
+      link(page, 'link in tab K'),
+      tab(page, 'Tab K'),
+      tab(page, 'Tab J'),
+    ], true);
+  });
+
+  test('Tab skips controls disabled by their fieldset in a panel', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/control-handling-tab-in-a-tabset');
+    await tab(page, 'Tab I').click();
+    await expectTabOrder(page, browserName, [link(page, 'link in tab I')]);
+  });
+
+  test('Tab is left to a panel control that handles it', async ({ page, browserName }) => {
+    await gotoSlide(page, '#/control-handling-tab-in-a-tabset');
+    const editor = page.getByRole('textbox', { name: 'editor in tab H' });
+    await editor.focus();
+    await page.keyboard.press(tabKey(browserName));
+    await expect(editor).toBeFocused();
+    await expect(editor).toHaveValue('\t');
   });
 });

@@ -1,0 +1,10 @@
+---
+pagetitle: Slide menu button label from the language files
+format: revealjs
+language:
+  revealjs-menu-button-label: "Menu des diapositives"
+---
+
+## Slide 1
+
+The slide menu button takes its name from `revealjs-menu-button-label`.

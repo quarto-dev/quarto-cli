@@ -18,8 +18,8 @@
     "dev": "tsc --noEmit && vite build --mode=development"
   },
   "dependencies": {
-    "@fluentui/react-icons": "^2.0.302",
-    "@fluentui/react-components": "~9.48.0",
+    "@fluentui/react-icons": "^2.0.343",
+    "@fluentui/react-components": "~9.74.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "ansi-output": "^0.0.9"

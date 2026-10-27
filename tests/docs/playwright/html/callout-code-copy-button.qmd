@@ -1,0 +1,169 @@
+---
+title: "Code copy button in callouts"
+format: html
+code-annotations: hover
+---
+
+## Plain
+
+::: {#plain}
+
+```bash
+echo "plain"
+```
+
+:::
+
+## Plain, annotated
+
+::: {#plain-annotated}
+
+```python
+import polars as pl # <1>
+```
+
+1. Import polars.
+
+:::
+
+## Titled, paragraph only
+
+::: {#titled-paragraph .callout-note}
+
+## Titled, paragraph only
+
+A paragraph.
+
+:::
+
+## Titled, code first
+
+::: {#titled-first .callout-note}
+
+## Titled, code first
+
+```bash
+echo "first"
+```
+
+A paragraph.
+
+:::
+
+## Titled, code last
+
+::: {#titled-last .callout-note}
+
+## Titled, code last
+
+A paragraph.
+
+```bash
+echo "last"
+```
+
+:::
+
+## Collapsible, code first
+
+::: {#collapse-first .callout-note collapse="false"}
+
+## Collapsible, code first
+
+```bash
+echo "first"
+```
+
+A paragraph.
+
+:::
+
+## Titled, cell first
+
+::: {#titled-cell-first .callout-note}
+
+## Titled, cell first
+
+::: {.cell}
+
+```{.r .cell-code}
+1 + 1
+```
+
+:::
+
+A paragraph.
+
+:::
+
+## Titled, cell last
+
+::: {#titled-cell-last .callout-note}
+
+## Titled, cell last
+
+A paragraph.
+
+::: {.cell}
+
+```{.r .cell-code}
+1 + 1
+```
+
+:::
+
+:::
+
+## Titled, annotated code first
+
+::: {#titled-annotated .callout-note}
+
+## Titled, annotated code first
+
+```python
+import polars as pl # <1>
+```
+
+1. Import polars.
+
+:::
+
+## Simple, paragraph only
+
+::: {#simple-paragraph .callout-note appearance="simple"}
+
+A paragraph.
+
+:::
+
+## Simple, code first
+
+::: {#simple-first .callout-note appearance="simple"}
+
+```bash
+echo "first"
+```
+
+A paragraph.
+
+:::
+
+## Minimal, paragraph only
+
+::: {#minimal-paragraph .callout-note appearance="minimal"}
+
+A paragraph.
+
+:::
+
+## Minimal, code last
+
+::: {#minimal-last .callout-note appearance="minimal"}
+
+A paragraph.
+
+```bash
+echo "last"
+```
+
+:::

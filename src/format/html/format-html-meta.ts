@@ -16,6 +16,7 @@ import {
   CSL,
   cslDateToEDTFDate,
   CSLExtras,
+  cslPageRange,
   cslTextToPlain,
   kAbstractUrl,
   kEIssn,
@@ -205,12 +206,16 @@ function googleScholarMeta(
     write("citation_language", csl.language);
   }
 
-  if (csl["page-first"]) {
-    write("citation_firstpage", csl["page-first"]);
+  // Bibliography entries from Pandoc carry only `page`.
+  const pageRange = cslPageRange(`${csl.page ?? ""}`);
+  const firstPage = csl["page-first"] || pageRange.first;
+  if (firstPage) {
+    write("citation_firstpage", firstPage);
   }
 
-  if (csl["page-last"]) {
-    write("citation_lastpage", csl["page-last"]);
+  const lastPage = csl["page-last"] || pageRange.last;
+  if (lastPage) {
+    write("citation_lastpage", lastPage);
   }
 
   const type = csl.type;

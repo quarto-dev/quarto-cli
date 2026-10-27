@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Spike launcher: run the Node bundle of quarto with the dev share dir and downloaded tools.
+export QUARTO_BIN_PATH=/home/user/quarto-cli/package/dist/bin
+export QUARTO_SHARE_PATH=/home/user/quarto-cli/src/resources
+export QUARTO_DEBUG="${QUARTO_DEBUG:-false}"
+exec node --enable-experimental-regexp-engine --max-old-space-size=8192 --stack-trace-limit=100 /home/user/quarto-cli/.spike-node/dist/quarto.js "$@"

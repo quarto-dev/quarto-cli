@@ -330,14 +330,15 @@ export async function copyExtensions(
   ensureDirSync(finalExtensionTargetDir);
 
   // Move extensions into the target directory (root or owner)
-  await readAndCopyExtensions(srcDir, finalExtensionTargetDir);
+  await readAndCopyExtensions(srcDir, finalExtensionTargetDir, source.owner);
 }
 
 // Reads the extensions from an extensions directory and copies
-// them to a destination directory
+// them to a destination directory (the owner directory, if any)
 async function readAndCopyExtensions(
   extensionsDir: string,
   targetDir: string,
+  owner?: string,
 ) {
   const extensions = await readExtensions(extensionsDir);
   info(
@@ -347,6 +348,22 @@ async function readAndCopyExtensions(
   );
 
   for (const extension of extensions) {
+    // The namespace comes from where the extension is installed from,
+    // not from an owner folder in the source
+    const sourceOwner = extension.id.organization;
+    if (sourceOwner && sourceOwner !== owner) {
+      const sourceId = `${sourceOwner}/${extension.id.name}`;
+      if (owner) {
+        const installedId = `${owner}/${extension.id.name}`;
+        info(
+          `    '${sourceId}' installed as '${installedId}', under the owner it is installed from. Refer to it as '${extension.id.name}' or '${installedId}'.`,
+        );
+      } else {
+        info(
+          `    '${sourceId}' installed as '${extension.id.name}', as extensions from a local path or an archive have no owner. Refer to it as '${extension.id.name}'.`,
+        );
+      }
+    }
     copyTo(
       extension.path,
       join(targetDir, extension.id.name),

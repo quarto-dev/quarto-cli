@@ -26,11 +26,11 @@ import {
 } from "../deno_ral/path.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
 import {
-  kSkipHidden,
   normalizePath,
   pathWithForwardSlashes,
   resolvePathGlobs,
   safeExistsSync,
+  skipHiddenWithin,
 } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
@@ -530,7 +530,7 @@ export function extensionFilesFromDirs(dirs: string[]) {
         {
           includeDirs: false,
           followSymlinks: false,
-          skip: [kSkipHidden],
+          skip: [skipHiddenWithin(dir)],
         },
       )
     ) {

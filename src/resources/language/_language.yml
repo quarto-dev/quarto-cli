@@ -101,6 +101,9 @@ navigation-breadcrumbs-label: "Breadcrumbs"
 scrollable-code-label: "Scrollable code"
 scrollable-output-label: "Scrollable output"
 
+# Accessible name for the Reveal.js slide menu button (never shown as visible text).
+revealjs-menu-button-label: "Slide menu"
+
 crossref-fig-title: "Figure"
 crossref-tbl-title: "Table"
 crossref-lst-title: "Listing"

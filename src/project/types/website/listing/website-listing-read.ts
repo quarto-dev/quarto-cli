@@ -465,16 +465,18 @@ export function completeListingItems(
             );
           } else {
             debug(`[listing] using empty div: ${docAbsPath}`);
-            fileContents = fileContents.replace(
+            fileContents = replaceWithEmptyDiv(
+              fileContents,
               imgPlaceholder,
-              emptyDiv(imgHeight),
+              imgHeight,
             );
           }
         } else {
           debug(`[listing] does not exist: ${docAbsPath}`);
-          fileContents = fileContents.replace(
+          fileContents = replaceWithEmptyDiv(
+            fileContents,
             imgPlaceholder,
-            emptyDiv(imgHeight),
+            imgHeight,
           );
           warning(
             `Unable to read listing preview image from ${docRelativePath}`,
@@ -497,6 +499,37 @@ function emptyDiv(height?: string) {
   return `<div class="listing-item-img-placeholder card-img-top" ${
     height ? `style="height: ${height};"` : ""
   }>&nbsp;</div>`;
+}
+
+// The default listing template places the image placeholder inside a link
+// to the item. When no image is found, that link wraps only the empty div,
+// so it has no accessible name but is still a tab stop (#15066). Keep the
+// link for the layout, but hide it from assistive technology and take it
+// out of the tab order; the title link next to it goes to the same page.
+function replaceWithEmptyDiv(
+  contents: string,
+  placeholder: string,
+  height?: string,
+) {
+  const linkedPlaceholder = new RegExp(
+    `<a\\b([^>]*)>(\\s*)${escapeRegExp(placeholder)}(\\s*)</a>`,
+  );
+  const match = linkedPlaceholder.exec(contents);
+  if (!match) {
+    return contents.replace(placeholder, emptyDiv(height));
+  }
+  const [link, attrs, before, after] = match;
+  const hiddenAttrs = attrs +
+    (/\saria-hidden=/.test(attrs) ? "" : ' aria-hidden="true"') +
+    (/\stabindex=/.test(attrs) ? "" : ' tabindex="-1"');
+  return contents.replace(
+    link,
+    () => `<a${hiddenAttrs}>${before}${emptyDiv(height)}${after}</a>`,
+  );
+}
+
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function descriptionPlaceholder(file?: string, maxLength?: number): string {
