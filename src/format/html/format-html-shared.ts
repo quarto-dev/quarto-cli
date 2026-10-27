@@ -28,6 +28,8 @@ import {
 import { formatResourcePath } from "../../core/resources.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { normalizePath } from "../../core/path.ts";
+import { formatHasBootstrap } from "./format-html-info.ts";
+import { HtmlFormatFeatureDefaults } from "./format-html-types.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -73,11 +75,27 @@ export const kCitation = "citation";
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
 
-// whether code copy buttons (and clipboard.js) are enabled for this format.
-// 'code-copy' is on by default unless the format (e.g. 'minimal') turns it off
+export function htmlFormatFeatureDefaults(
+  format: Format,
+): HtmlFormatFeatureDefaults {
+  const bootstrap = formatHasBootstrap(format);
+  const minimal = format.metadata[kMinimal] === true;
+  return {
+    tabby: !minimal && !bootstrap,
+    copyCode: !minimal,
+    anchors: !minimal,
+    hoverCitations: !minimal,
+    hoverFootnotes: !minimal,
+    figResponsive: !minimal,
+    codeAnnotations: !minimal,
+    hoverXrefs: !minimal,
+  };
+}
+
+// whether code copy buttons (and clipboard.js) are enabled for this format
 export function formatHasCodeCopy(
   format: Format,
-  enabledByDefault = format.metadata[kMinimal] !== true,
+  enabledByDefault = htmlFormatFeatureDefaults(format).copyCode,
 ): boolean {
   return enabledByDefault
     ? format.metadata[kCodeCopy] !== false

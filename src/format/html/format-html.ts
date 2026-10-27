@@ -68,6 +68,7 @@ import {
   clipboardDependency,
   createCodeCopyButton,
   formatHasCodeCopy,
+  htmlFormatFeatureDefaults,
   kAnchorSections,
   kAxe,
   kBootstrapDependencyName,
@@ -675,23 +676,6 @@ const kFormatHasBootstrap = "has-bootstrap";
 function htmlFormatFilterParams(format: Format) {
   return {
     [kFormatHasBootstrap]: formatHasBootstrap(format),
-  };
-}
-
-function htmlFormatFeatureDefaults(
-  format: Format,
-): HtmlFormatFeatureDefaults {
-  const bootstrap = formatHasBootstrap(format);
-  const minimal = format.metadata[kMinimal] === true;
-  return {
-    tabby: !minimal && !bootstrap,
-    copyCode: !minimal,
-    anchors: !minimal,
-    hoverCitations: !minimal,
-    hoverFootnotes: !minimal,
-    figResponsive: !minimal,
-    codeAnnotations: !minimal,
-    hoverXrefs: !minimal,
   };
 }
 
