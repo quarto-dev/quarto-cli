@@ -16,8 +16,9 @@ _quarto:
         matches: ['“Literal &Nbsp; and &Notanentity; and\s+R&notebook and &#123\.”']
         noMatches: [" "]
       ensureFileRegexMatches:
-        # BibTeX title; R&notebook is not asserted there because the block is inserted as HTML, which decodes &not
-        - ['title = \{Literal \\&amp;Nbsp; and \\&amp;Notanentity; and', '\\&amp;\\#123\}']
+        # BibTeX title; R\&notebook must not have its legacy &not decoded to ¬
+        - ['title = \{Literal \\&amp;Nbsp; and \\&amp;Notanentity; and', 'R\\&amp;notebook', '\\&amp;\\#123\}']
+        - ['R\\¬ebook']
 ---
 
 Text that only looks like an HTML entity stays literal in the appendix citation, the BibTeX citation and the Google Scholar metadata: an escaped `&amp;nbsp;` is the text `&nbsp;`, not a no-break space, and an unknown entity or an incomplete reference is not decoded.
