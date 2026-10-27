@@ -282,6 +282,84 @@ async function pandocVersion(): Promise<string> {
   return result.stdout?.split("\n")[0]?.split(" ")[1] ?? "(unknown version)";
 }
 
+const annotationHelperDependencies: [string, string[]][] = [
+  ["quarto-annote-link", []],
+  ["quarto-circled-number", []],
+  ["quarto-annote-color", []],
+  ["quarto-code-filename", []],
+  ["quarto-code-annotation", ["quarto-annote-link", "quarto-circled-number"]],
+  ["quarto-annotation-item", ["quarto-annote-link", "quarto-circled-number"]],
+];
+
+function extractLetBlock(source: string, name: string): string | undefined {
+  const start = source.search(new RegExp(`^#let ${name}\\(`, "m"));
+  if (start === -1) {
+    return undefined;
+  }
+  const rest = source.slice(start);
+  const next = rest.slice(1).search(/^(#let |#show|\/\/)/m);
+  const block = next === -1 ? rest : rest.slice(0, next + 1);
+  return block.trimEnd();
+}
+
+// Typst extensions can replace the definitions partial and then lack the
+// helpers that code annotations and filenames call. Define only the missing
+// ones, before the first line that can use them.
+export function injectMissingAnnotationHelpers(
+  content: string,
+  definitionsSource: string,
+): { content: string; injected: string[] } {
+  const isDefined = (name: string) =>
+    new RegExp(`^\\s*#let ${name}\\b`, "m").test(content);
+  const isUsed = (name: string) =>
+    new RegExp(`(?<!#let )\\b${name}\\(`).test(content);
+
+  const needed = new Set<string>();
+  for (const [name, dependencies] of annotationHelperDependencies) {
+    if (isUsed(name)) {
+      needed.add(name);
+      dependencies.forEach((dependency) => needed.add(dependency));
+    }
+  }
+
+  const injected: string[] = [];
+  const blocks: string[] = [];
+  for (const [name] of annotationHelperDependencies) {
+    if (needed.has(name) && !isDefined(name)) {
+      const block = extractLetBlock(definitionsSource, name);
+      if (block !== undefined) {
+        injected.push(name);
+        blocks.push(block);
+      }
+    }
+  }
+  if (injected.length === 0) {
+    return { content, injected };
+  }
+
+  // Typst closures capture earlier bindings only, so define the helpers before
+  // the first top-level block that calls any of them.
+  const firstUse = Math.min(
+    ...injected.map((name) =>
+      content.search(new RegExp(`(?<!#let )\\b${name}\\(`))
+    ).filter((index) => index !== -1),
+  );
+  let anchor = -1;
+  for (
+    const m of content.slice(0, firstUse).matchAll(/^(#let |#show|#set)/gm)
+  ) {
+    anchor = m.index!;
+  }
+  if (anchor === -1) {
+    anchor = content.lastIndexOf("\n", firstUse) + 1;
+  }
+  return {
+    content: content.slice(0, anchor) + blocks.join("\n\n") + "\n\n" +
+      content.slice(anchor),
+    injected,
+  };
+}
+
 // Fix Skylighting code block styling in .typ output (issue #14126).
 // The Pandoc-generated Skylighting function uses block(fill: bgcolor, blocks)
 // which lacks width, inset, and radius. This postprocessor matches the entire
@@ -371,6 +449,20 @@ function skylightingPostProcessor(brandBgColor?: string) {
     );
     if (stripped !== content) {
       content = stripped;
+      changed = true;
+    }
+
+    const withHelpers = injectMissingAnnotationHelpers(
+      content,
+      Deno.readTextFileSync(
+        formatResourcePath(
+          "typst",
+          join("pandoc", "quarto", "definitions.typ"),
+        ),
+      ),
+    );
+    if (withHelpers.injected.length > 0) {
+      content = withHelpers.content;
       changed = true;
     }
 

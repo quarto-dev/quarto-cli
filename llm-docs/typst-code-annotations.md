@@ -65,6 +65,7 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 
 ## Known limits
 
+- An extension that replaces `definitions.typ` lacks the annotation helpers. The post-processor defines only the missing ones, before the first block that uses them.
 - Code inside a figure with `layout-ncol` (`::: {#fig-a layout-ncol=2}` with a caption) cannot receive its circles, because the layout puts the marker in a grid cell of its own. Quarto prints a warning with the cell id and removes the marker. The list items still render, and the document compiles.
 - `hover` and `select` annotation styles use the gutter style. `select` also prints a warning.
 - Per-cell `code-annotations` options are not read for any format; only the document-level value counts.

@@ -10,6 +10,7 @@ import { unitTest } from "../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 import {
   applyPatch,
+  injectMissingAnnotationHelpers,
   patchSkylightingFunction,
 } from "../../src/format/typst/format-typst.ts";
 
@@ -53,3 +54,65 @@ unitTest(
     assert(result.fn.includes("width: 100%, inset: 8pt"));
   },
 );
+
+const definitionsSource = Deno.readTextFileSync(
+  "../src/resources/formats/typst/pandoc/quarto/definitions.typ",
+);
+
+const usingDocument =
+  `#let Skylighting(fill: none, number: false, start: 1, cell-id: "", annotations: (:), sourcelines) = {
+  quarto-annote-link(lbl)[#quarto-circled-number(1, color: quarto-annote-color(bgcolor))]
+}
+#quarto-code-filename("a.py")[
+#Skylighting(([x],));
+]
+#quarto-code-annotation(("1": 1), cell-id: "c")[x]
+#quarto-annotation-item("c", 1, [Item])
+#show: doc => doc
+`;
+
+unitTest("typst-skylighting-patch - helpers: nothing used", async () => {
+  const content = "#show: doc => doc\nplain\n";
+  const result = injectMissingAnnotationHelpers(content, definitionsSource);
+  assertEquals(result.content, content);
+  assertEquals(result.injected, []);
+});
+
+unitTest("typst-skylighting-patch - helpers: all missing", async () => {
+  const result = injectMissingAnnotationHelpers(
+    usingDocument,
+    definitionsSource,
+  );
+  assertEquals(result.injected.length, 6);
+  assert(
+    result.content.indexOf("#let quarto-code-filename(") <
+      result.content.indexOf("#let Skylighting("),
+  );
+  assert(
+    result.content.indexOf("#let quarto-annote-link(") <
+      result.content.indexOf("#let quarto-code-annotation("),
+  );
+});
+
+unitTest("typst-skylighting-patch - helpers: one missing", async () => {
+  const link = definitionsSource.search(/^#let quarto-annote-link\(/m);
+  const afterLink = definitionsSource.slice(link + 1).search(/^(#let |#show)/m);
+  const withoutLink = definitionsSource.slice(0, link) +
+    definitionsSource.slice(link + 1 + afterLink);
+  const result = injectMissingAnnotationHelpers(
+    withoutLink + usingDocument,
+    definitionsSource,
+  );
+  assertEquals(result.injected, ["quarto-annote-link"]);
+  assert(
+    result.content.indexOf("#let quarto-annote-link(") <
+      result.content.indexOf("#let quarto-code-annotation("),
+  );
+});
+
+unitTest("typst-skylighting-patch - helpers: all present", async () => {
+  const content = definitionsSource + usingDocument;
+  const result = injectMissingAnnotationHelpers(content, definitionsSource);
+  assertEquals(result.content, content);
+  assertEquals(result.injected, []);
+});
