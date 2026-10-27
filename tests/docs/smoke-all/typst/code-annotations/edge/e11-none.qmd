@@ -1,0 +1,24 @@
+---
+title: code-annotations none
+format:
+  typst:
+    keep-typ: true
+    code-annotations: none
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'Skylighting\('
+        -
+          - 'quarto-code-annotations:'
+          - 'quarto-annotation-item\("'
+          - 'annotations: \("1"'
+---
+
+```{.python}
+x = 1  # <1>
+```
+
+1. Assign x.

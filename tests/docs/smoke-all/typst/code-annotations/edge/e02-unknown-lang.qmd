@@ -1,0 +1,29 @@
+---
+title: Unknown language
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-annotation-item\("annotated-cell-1"'
+          - 'quarto-annotation-item\("annotated-cell-2"'
+        -
+          - 'quarto-code-annotations:'
+---
+
+```{.foobar}
+x = 1  # <1>
+```
+
+1. Assign x.
+
+```
+y = 2  # <1>
+```
+
+1. Assign y.
