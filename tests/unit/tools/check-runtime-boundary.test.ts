@@ -678,7 +678,7 @@ unitTest("check-runtime-boundary - renderDelta accepts only counts the PR itself
   // main sits below its baseline for calls; the PR raises only std-import files.
   const base = { "tests": { denoCalls: 832, stdImportFiles: 177 } };
   const rendered = renderDelta(report, current, base, { "tests": { denoCalls: 832, stdImportFiles: 178 } });
-  // The Deno.* call fits under the untouched baseline: main stays green, so it is a notice, not "accepted by this PR".
+  // The runtime call fits under the untouched baseline: main stays green, so it is a notice, not "accepted by this PR".
   assertEquals(rendered.accepted.map((a) => a.message), [
     `tests: +1 ${DENO}cwd in tests/unit/a.test.ts; within tools/runtime-boundary-baseline.json, which main sits below.`,
     "tests: tests/unit/c.test.ts now imports the standard library directly (testing/asserts); accepted by this PR's tools/runtime-boundary-baseline.json.",
