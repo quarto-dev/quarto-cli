@@ -383,8 +383,18 @@ function code_annotations()
           return outputs
         end
 
+        local usedCellIds = {}
         local resolveCellId = function(identifier) 
           if identifier ~= nil and identifier ~= '' then
+            -- Typst fails on duplicate labels, so make repeated ids unique
+            if _quarto.format.isTypstOutput() and usedCellIds[identifier] then
+              local count = usedCellIds[identifier] + 1
+              usedCellIds[identifier] = count
+              local uniqueId = identifier .. '-' .. tostring(count)
+              warn("Duplicate code cell id '" .. identifier .. "'; using '" .. uniqueId .. "' for its annotations.")
+              return uniqueId
+            end
+            usedCellIds[identifier] = 1
             return identifier
           else
             local cellId = 'annotated-cell-' .. tostring(idCounter)
