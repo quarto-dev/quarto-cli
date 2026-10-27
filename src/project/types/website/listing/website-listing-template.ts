@@ -575,12 +575,6 @@ export function templateJsScript(
       window['quarto-listing-loaded']();
     }
   });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
   `;
   return jsScript;
 }

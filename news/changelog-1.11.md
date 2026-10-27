@@ -49,6 +49,7 @@ All changes included in 1.11:
 - ([#15080](https://github.com/quarto-dev/quarto-cli/issues/15080)): Fix footnote, citation, cross-reference and code annotation popups not closing with Esc, and staying open over the next focused element after keyboard focus leaves them.
 - ([#15129](https://github.com/quarto-dev/quarto-cli/issues/15129)): Fix default listings rendering an empty, focusable metadata link for posts with no date, author or other listed field to show, flagged by axe-core (`link-name`).
 - ([#15159](https://github.com/quarto-dev/quarto-cli/issues/15159), [#15160](https://github.com/quarto-dev/quarto-cli/issues/15160)): Fix the `revealjs` speaker view's Layout selector having no accessible name or visible keyboard focus, and its current slide, upcoming slide, time, and notes areas not being named regions. Changing layouts no longer forwards control keys to the slides, and the slide navigation buttons no longer introduce an unrelated complementary landmark. (author: @jooyoungseo)
+- ([#15211](https://github.com/quarto-dev/quarto-cli/issues/15211)): Fix default and grid listings rendering empty, focusable links when an item description contains a link, flagged by axe-core (`link-name`), a regression introduced in v1.7.7. Links in descriptions are shown as text again, so the whole description links to the item.
 
 ## Formats
 
@@ -82,6 +83,7 @@ All changes included in 1.11:
 - ([#15128](https://github.com/quarto-dev/quarto-cli/pull/15128)): Fix Google Scholar metadata missing references with a YAML bibliography not wrapped in `---` delimiters.
 - ([#15131](https://github.com/quarto-dev/quarto-cli/issues/15131)): Fix the light/dark toggle appearing, with no dark styles to switch to, when the `dark` brand file holds only comments and is ignored.
 - ([#15207](https://github.com/quarto-dev/quarto-cli/issues/15207)): Fix the BibTeX citation in the HTML appendix showing a copy button that does nothing when `code-copy: false` is set.
+- ([#15210](https://github.com/quarto-dev/quarto-cli/issues/15210)): Fix the BibTeX citation in the HTML appendix showing and copying altered text when the title contains text that looks like an HTML entity, such as `&lt;` or `R&notebook`.
 
 ### `pdf`
 
@@ -142,6 +144,7 @@ All changes included in 1.11:
 - ([#15091](https://github.com/quarto-dev/quarto-cli/pull/15091)): Fix page-level `bread-crumbs`, `back-to-top-navigation`, `page-navigation`, `margin-header` and `margin-footer` options not being validated or offered for completion in editors. A page value of the wrong type now fails to render with an error instead of being accepted silently.
 - ([#15091](https://github.com/quarto-dev/quarto-cli/pull/15091)): Fix `open-graph: false` or `twitter-card: false` in page front matter or `_metadata.yml` not disabling Open Graph or Twitter Card metadata for that page when the website enables it.
 - ([#15114](https://github.com/quarto-dev/quarto-cli/pull/15114)): Fix a website category containing backticks showing broken text in the page title block, and a category containing a backslash, such as a Windows path, failing the render or losing its backslashes.
+- ([#15206](https://github.com/quarto-dev/quarto-cli/issues/15206)): Fix website listings attaching another update handler on every URL hash change, and an extra one per additional listing on the same page.
 
 ## Lua API
 
