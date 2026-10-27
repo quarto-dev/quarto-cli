@@ -320,6 +320,13 @@ function skylightingPostProcessor(brandBgColor?: string) {
 
     let annotationsPatched = true;
     const match = skylightingFnRe.exec(content);
+    if (!match && annotationMarkerRe.test(content)) {
+      annotationsPatched = false;
+      warning(
+        `Typst code annotations: the Skylighting function was not found in the output of Pandoc ${await pandocVersion()}; annotations are disabled for this document.`,
+      );
+    }
+    annotationMarkerRe.lastIndex = 0;
     if (match) {
       const patched = patchSkylightingFunction(match[1], brandBgColor);
       if (patched.failedPatch !== undefined) {

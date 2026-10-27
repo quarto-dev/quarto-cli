@@ -296,6 +296,7 @@ function code_annotations()
 
   -- an id counter to provide nice numeric ids to cell
   local idCounter = 1
+  local usedCellIds = {}
 
   -- the user request code annotations value
   local codeAnnotations = param(_quarto.modules.constants.kCodeAnnotationsParam)
@@ -383,7 +384,6 @@ function code_annotations()
           return outputs
         end
 
-        local usedCellIds = {}
         local resolveCellId = function(identifier) 
           if identifier ~= nil and identifier ~= '' then
             -- Typst fails on duplicate labels, so make repeated ids unique
@@ -391,6 +391,7 @@ function code_annotations()
               local count = usedCellIds[identifier] + 1
               usedCellIds[identifier] = count
               local uniqueId = identifier .. '-' .. tostring(count)
+              usedCellIds[uniqueId] = 1
               warn("Duplicate code cell id '" .. identifier .. "'; using '" .. uniqueId .. "' for its annotations.")
               return uniqueId
             end
@@ -399,6 +400,7 @@ function code_annotations()
           else
             local cellId = 'annotated-cell-' .. tostring(idCounter)
             idCounter = idCounter + 1
+            usedCellIds[cellId] = 1
             return cellId
           end
         end
@@ -448,7 +450,7 @@ function code_annotations()
             local processedAnnotation = false
             local resolvedBlock = _quarto.ast.walk(block, {
               CodeBlock = function(el)
-                if el.attr.classes:find('cell-code') then
+                if el.attr.classes:find('cell-code') and not el.attr.classes:find(_quarto.modules.constants.kDataCodeAnnonationClz) then
                   local cellId = resolveCellId(el.attr.identifier)
                   local codeCell = processCodeCell(el, cellId)
                   if codeCell then
@@ -542,7 +544,7 @@ function code_annotations()
           elseif block.t == 'CodeBlock'  then
             -- don't process code cell output here - we'll get it above
             -- This processes non-executable code blocks
-            if not block.attr.classes:find('cell-code') then
+            if not block.attr.classes:find('cell-code') and not block.attr.classes:find(_quarto.modules.constants.kDataCodeAnnonationClz) then
 
               -- If there is a pending code cell and we get here, just
               -- output the pending code cell and continue
