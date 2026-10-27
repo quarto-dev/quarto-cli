@@ -13,6 +13,8 @@ _quarto:
           - 'quarto-code-filename\("c#d\.py"'
           - 'quarto-code-filename\("e\*f_g\.py"'
           - 'quarto-code-filename\("123"'
+          - 'replace\(regex\("\[/_\.-\]"\), m => m\.text \+ "\\u\{200b\}"\)'
+          - 'replace\(regex\("\[\^/_\.\\u\{200b\}-\]\{31,\}"\)'
         - []
 ---
 

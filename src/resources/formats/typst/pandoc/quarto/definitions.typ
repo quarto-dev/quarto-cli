@@ -60,9 +60,12 @@
 }
 
 #let quarto-code-filename(filename, body) = {
-  // Long names without break points would be clipped, so allow a break anywhere
-  let filename = if type(filename) == str and filename.len() > 60 {
-    filename.clusters().join(sym.zws)
+  // Long names would be clipped: allow breaks after separators first, and
+  // inside runs of more than 30 characters without a separator
+  let filename = if type(filename) == str and filename.len() > 40 {
+    filename
+      .replace(regex("[/_.-]"), m => m.text + "\u{200b}")
+      .replace(regex("[^/_.\u{200b}-]{31,}"), m => m.text.clusters().join("\u{200b}"))
   } else { filename }
   show raw.where(block: true): it => it
   block(width: 100%, radius: 2pt, clip: true, stroke: 0.5pt + luma(128))[
