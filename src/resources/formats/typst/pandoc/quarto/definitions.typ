@@ -59,6 +59,10 @@
 }
 
 #let quarto-code-filename(filename, body) = {
+  // Long names without break points would be clipped, so allow a break anywhere
+  let filename = if type(filename) == str and filename.len() > 60 {
+    filename.clusters().join(sym.zws)
+  } else { filename }
   show raw.where(block: true): it => it
   block(width: 100%, radius: 2pt, clip: true, stroke: 0.5pt + luma(200))[
     #set block(spacing: 0pt)

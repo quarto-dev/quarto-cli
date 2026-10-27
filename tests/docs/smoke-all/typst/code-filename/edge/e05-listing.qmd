@@ -1,0 +1,27 @@
+---
+title: Filename on listings
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrorsOrWarnings: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-code-filename\("foo\.py"'
+          - 'quarto-code-filename\("bar\.py"'
+          - 'First caption'
+          - 'Second caption'
+        - []
+---
+
+::: {#lst-1 lst-cap="First caption" filename="foo.py"}
+```{.python}
+x = 1
+```
+:::
+
+```{#lst-2 .python lst-cap="Second caption" filename="bar.py"}
+y = 2
+```
