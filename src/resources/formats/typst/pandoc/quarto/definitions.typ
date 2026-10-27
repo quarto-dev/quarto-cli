@@ -27,9 +27,9 @@
 // Code annotation support
 #let quarto-circled-number(n, color: none) = context {
   let c = if color != none { color } else { text.fill }
-  // Bounds edges keep the row as tall as it was before the equation wrapper,
-  // which carries the text alternative.
-  box(baseline: 15%, text(top-edge: "bounds", bottom-edge: "bounds", math.equation(alt: "Annotation " + str(n), block: false, circle(
+  // A zero-height box lets the circle overflow instead of making its row taller.
+  // The equation wrapper carries the text alternative.
+  box(height: 0pt, move(dy: -0.1em, math.equation(alt: "Annotation " + str(n), block: false, circle(
     radius: 0.55em,
     stroke: 0.5pt + c,
   )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])))

@@ -9,7 +9,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - 'math\.equation\(alt: "Annotation " \+ str\(n\)'
+          - 'box\(height: 0pt, move\(dy: -0\.1em, math\.equation\(alt: "Annotation " \+ str\(n\)'
           - 'annotations: \("1": 1\)'
           - 'quarto-annotation-item\("annotated-cell-1", 1, \['
         - []
