@@ -97,15 +97,11 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 
 <% if (showField('description')) { %>
 
-```{=html}
-<div class="card-text listing-description delink">
-```
+::: {.card-text .listing-description .delink}
 
 <%= item.description %>
 
-```{=html}
-</div>
-```
+:::
 
 <% } %>
 

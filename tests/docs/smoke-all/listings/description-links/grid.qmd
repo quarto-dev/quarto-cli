@@ -1,0 +1,33 @@
+---
+title: "Grid listing, description with a link"
+listing:
+  id: description-links
+  type: grid
+  contents:
+    - path: https://example.com/article
+      title: "Article"
+      description: "Read the article, see the [docs](https://example.org/docs)."
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # the description stays inside the card's link to the item
+          - ".quarto-listing-container-grid a.quarto-grid-link[href='https://example.com/article'] .listing-description span"
+        -
+          # the link must be removed, not nested in the item's wrapping <a>
+          - ".quarto-listing-container-grid .listing-description a[href='https://example.org/docs']"
+      ensureFileRegexMatches:
+        -
+          # the link text is kept
+          - '<span>docs</span>'
+---
+
+::: {#description-links}
+:::
+
+The grid listing wraps the whole item card in a link to the item. A link
+inside the description would nest one `<a>` in another, which the HTML parser
+splits into empty, unnamed links. The description link must be turned into
+plain text instead.

@@ -10,8 +10,8 @@ listing:
       title: "Local Post"
     - path: https://example.com/external-article
       title: "External Article"
-      description: "An external article, see the [docs](https://example.org/docs)."
-  type: default
+  type: table
+  fields: [title]
   sort: "title desc"
   page-size: 1
 ---
