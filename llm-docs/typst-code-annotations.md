@@ -66,7 +66,8 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 ## Known limits
 
 - `hover` and `select` annotation styles use the gutter style. `select` also prints a warning.
-- An executable cell with annotations and no list after it gets no circles. A plain code block in the same case does.
+- Per-cell `code-annotations` options are not read for any format; only the document-level value counts.
+- A filename longer than 60 characters may break at any character, using zero-width spaces.
 - Two copies of the gutter layout exist (the Skylighting patch and `quarto-code-annotation`).
 
 ## Tests

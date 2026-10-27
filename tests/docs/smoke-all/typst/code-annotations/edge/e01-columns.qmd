@@ -1,0 +1,31 @@
+---
+title: Columns
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrorsOrWarnings: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'Skylighting\(cell-id: "annotated-cell-1", annotations: \("1": 1\)'
+        -
+          - 'quarto-code-annotations:'
+          - '# <1>'
+---
+
+::: {.columns}
+::: {.column width="50%"}
+```{.python}
+z = 1  # <1>
+```
+
+1. Assign z.
+:::
+
+::: {.column width="50%"}
+text
+:::
+:::

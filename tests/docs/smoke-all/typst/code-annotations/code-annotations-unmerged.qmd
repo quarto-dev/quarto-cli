@@ -18,10 +18,12 @@ _quarto:
           - 'quarto-code-annotations:'
 ---
 
-::: {layout-ncol=2}
+::: {#fig-code}
 ```{.python}
 z = 1  # <1>
 ```
 
-1. Assign z.
+A caption.
 :::
+
+1. Assign z.

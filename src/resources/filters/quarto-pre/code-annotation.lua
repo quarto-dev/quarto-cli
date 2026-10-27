@@ -348,7 +348,28 @@ function code_annotations()
         
         local flushPending = function()
           if pendingCodeCell then
-            outputBlock(pendingCodeCell)
+            local flushedCell = pendingCodeCell
+            -- No list followed the cell: still render the annotation circles
+            if _quarto.format.isTypstOutput()
+                and codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone
+                and pendingAnnotations and next(pendingAnnotations) ~= nil then
+              if useSkylighting then
+                flushedCell = pandoc.Div({
+                  typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom),
+                  pendingCodeCell
+                })
+              else
+                flushedCell = _quarto.ast.walk(pendingCodeCell, {
+                  CodeBlock = function(el)
+                    if el.attr.classes:find('cell-code') or
+                       el.attr.classes:find(_quarto.modules.constants.kDataCodeAnnonationClz) then
+                      return typstAnnotations.wrapTypstAnnotatedCode(el, pendingAnnotations, pendingCellId, pendingOffset, dropLanguage)
+                    end
+                  end
+                })
+              end
+            end
+            outputBlock(flushedCell)
           end
           clearPending()
         end
@@ -529,8 +550,11 @@ function code_annotations()
                     and codeAnnotations ~= _quarto.modules.constants.kCodeAnnotationStyleNone
                     and pendingAnnotations and next(pendingAnnotations) ~= nil then
                   if useSkylighting then
-                    outputBlock(typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom))
-                    outputBlock(codeCell)
+                    -- One Div keeps the marker and the code in the same layout cell
+                    outputBlock(pandoc.Div({
+                      typstAnnotations.typstAnnotationMarker(pendingAnnotations, pendingCellId, pendingStartFrom),
+                      codeCell
+                    }))
                   else
                     outputBlock(typstAnnotations.wrapTypstAnnotatedCode(codeCell, pendingAnnotations, pendingCellId, pendingOffset, dropLanguage))
                   end
