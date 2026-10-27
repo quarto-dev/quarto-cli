@@ -69,7 +69,6 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 - `hover` and `select` annotation styles use the gutter style. `select` also prints a warning.
 - Per-cell `code-annotations` options are not read for any format; only the document-level value counts.
 - A filename longer than 60 characters may break at any character, using zero-width spaces.
-- A code block inside a figure div (`::: {#fig-code}` with a caption) does not merge its marker. Quarto warns with the cell id and the circles are dropped; the annotation list still renders.
 - Two copies of the gutter layout exist (the Skylighting patch and `quarto-code-annotation`).
 
 ## Tests
