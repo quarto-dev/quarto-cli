@@ -2,9 +2,11 @@
 # Counts `Deno.` occurrences and direct std-library imports per scope
 # (src, src-js, resources, package/src, tests). Two modes:
 #   - pull_request: compares the merge commit with its first parent (the base
-#     branch tip) and fails only for a Deno.* API that src/deno_ral replaces;
-#     other increases are warnings plus a maintainer block in the job summary,
-#     or notices once the PR's own baseline accepts them.
+#     branch tip). A Deno.* API that src/deno_ral replaces is an error the
+#     contributor fixes; any other increase is a warning that keeps the job red
+#     until the PR's own baseline accepts it (then a notice). The contributor
+#     has nothing to change: a maintainer pushes the baseline update to the PR
+#     before merging (job summary), so a green PR never turns main red.
 #   - push (main) and workflow_dispatch: fails when a count rises above
 #     tools/runtime-boundary-baseline.json.
 # See dev-docs/runtime-migration/02-runtime-boundary-check.md.

@@ -446,10 +446,10 @@ unitTest("check-runtime-boundary - diffChanges an import split across more files
 });
 
 const kUncoveredWarning = (scope: string, n: number, api: string, file: string) =>
-  `${scope}: +${n} ${DENO}${api} in ${file}; src/deno_ral has no replacement yet, so nothing to change in this PR. A maintainer accepts the new count before merging (see the job summary).`;
+  `${scope}: +${n} ${DENO}${api} in ${file}; src/deno_ral has no replacement yet, so nothing to change in this PR. A maintainer accepts the new count before merging; this job stays red until then (see the job summary).`;
 
 // deno-lint-ignore require-await
-unitTest("check-runtime-boundary - renderDelta uncovered increases: warnings and maintainer block, not failed", async () => {
+unitTest("check-runtime-boundary - renderDelta uncovered increases: warnings and maintainer block, failed until accepted", async () => {
   const current = { "tests": { denoCalls: 832, stdImportFiles: 177 } };
   const rendered = renderDelta(
     {
@@ -462,7 +462,7 @@ unitTest("check-runtime-boundary - renderDelta uncovered increases: warnings and
     current,
     { "tests": { denoCalls: 826, stdImportFiles: 177 } },
   );
-  assertEquals(rendered.failed, false);
+  assertEquals(rendered.failed, true);
   assertEquals(rendered.errors, []);
   assertEquals(rendered.notices, []);
   assertEquals(rendered.warnings.map((w) => w.message), [
@@ -471,6 +471,9 @@ unitTest("check-runtime-boundary - renderDelta uncovered increases: warnings and
   ]);
   assert(rendered.summary.includes("| tests | +6 | 0 |"));
   assert(rendered.summary.includes("### Maintainer action before merging"));
+  assert(rendered.summary.includes(
+    "Nothing for the contributor to change: this job stays red until a maintainer accepts the new counts.",
+  ));
   assert(rendered.summary.includes("Expected counts after merge: tests 832 / 177."));
   assert(!rendered.summary.includes("### What to change"));
 });
@@ -514,9 +517,9 @@ unitTest("check-runtime-boundary - renderDelta a std import with a suggestion is
     { "tests": { denoCalls: 832, stdImportFiles: 178 } },
     { "tests": { denoCalls: 832, stdImportFiles: 177 } },
   );
-  assertEquals(rendered.failed, false);
+  assertEquals(rendered.failed, true);
   assertEquals(rendered.warnings.map((w) => w.message), [
-    "tests: tests/unit/c.test.ts now imports the standard library directly (testing/asserts); if tests/asserts.ts exports what this file uses with the same behaviour, import it from there. Otherwise nothing to change in this PR: a maintainer accepts the new count before merging (see the job summary).",
+    "tests: tests/unit/c.test.ts now imports the standard library directly (testing/asserts); if tests/asserts.ts exports what this file uses with the same behaviour, import it from there. Otherwise nothing to change in this PR: a maintainer accepts the new count before merging; this job stays red until then (see the job summary).",
   ]);
 });
 
@@ -684,8 +687,8 @@ unitTest("check-runtime-boundary - renderDelta accepts only counts the PR itself
   assert(rendered.summary.includes("### Maintainer action before merging"));
 });
 
-/** Runs the script in PR mode on `root`, as CI does, and returns its stdout. */
-async function runAgainst(root: string, rev: string): Promise<string> {
+/** Runs the script in PR mode on `root`, as CI does, and returns its exit status and stdout. */
+async function runAgainst(root: string, rev: string): Promise<{ success: boolean; out: string }> {
   const result = await execProcess({
     cmd: resolve(quartoDevBinCmd()),
     args: [
@@ -696,8 +699,7 @@ async function runAgainst(root: string, rev: string): Promise<string> {
     stdout: "piped",
     stderr: "piped",
   });
-  assert(result.success, `check-runtime-boundary failed: ${result.stdout}\n${result.stderr}`);
-  return result.stdout ?? "";
+  return { success: result.success, out: (result.stdout ?? "") + (result.stderr ?? "") };
 }
 
 unitTest("check-runtime-boundary - PR mode: an increase the PR's baseline already accepts is a notice, not a warning", async () => {
@@ -714,16 +716,26 @@ unitTest("check-runtime-boundary - PR mode: an increase the PR's baseline alread
     const raised = { ...kExpected, "tests": { denoCalls: 2, stdImportFiles: 2 } };
     writeFixture(root, "tools/runtime-boundary-baseline.json", JSON.stringify(raised));
 
-    const out = await runAgainst(root, "HEAD");
+    const { success, out } = await runAgainst(root, "HEAD");
+    assert(success, out);
     assert(!out.includes("::warning"), out);
+    assert(!out.includes("::error"), out);
     assert(out.includes("::notice file=tests/j.test.ts,line=1::tests: +1 " + DENO + "cwd in tests/j.test.ts; accepted by this PR's tools/runtime-boundary-baseline.json"), out);
     assert(out.includes("### Accepted in this PR"), out);
     assert(out.includes(`- tests ${DENO}* calls: baseline 1 → 2`), out);
     assert(!out.includes("### Maintainer action before merging"), out);
 
-    // A baseline raised for a smaller increase than the PR makes leaves the warnings.
+    // A baseline raised for a smaller increase than the PR makes leaves the warnings and fails the job,
+    // telling the contributor that accepting the count is the maintainer's step.
     writeFixture(root, "tests/k.test.ts", `${DENO}cwd();\n`);
-    const stale = await runAgainst(root, "HEAD");
+    const { success: staleSuccess, out: stale } = await runAgainst(root, "HEAD");
+    assert(!staleSuccess, stale);
+    assert(
+      stale.includes(
+        "::error::This PR raises runtime boundary counts that tools/runtime-boundary-baseline.json does not accept yet. Nothing for the contributor to change: a maintainer pushes the baseline update to this PR before merging (see the job summary).",
+      ),
+      stale,
+    );
     assert(stale.includes("::warning file=tests/j.test.ts"), stale);
     assert(stale.includes("### Maintainer action before merging"), stale);
     assert(!stale.includes("### Accepted in this PR"), stale);

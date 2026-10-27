@@ -7,9 +7,10 @@
  * Counts, per scope, the `Deno.` occurrences and the files that import the
  * standard library directly instead of through src/deno_ral/. Two modes:
  * without flags it fails when any count exceeds the committed baseline (main);
- * with --against <rev> it compares the working tree with <rev> and fails only
- * for a Deno.* API that src/deno_ral already replaces (pull requests); other
- * increases are warnings until the working tree's baseline accepts them.
+ * with --against <rev> it compares the working tree with <rev> (pull requests):
+ * a Deno.* API that src/deno_ral already replaces is an error, any other
+ * increase is a warning that still fails the run until the working tree's
+ * baseline accepts it, which a maintainer pushes to the PR before merging.
  *
  * Usage (from the repository root):
  *   quarto run --dev tools/check-runtime-boundary.ts
@@ -505,14 +506,18 @@ export interface Rendered {
   accepted: Annotation[]; // increases the PR's own baseline already covers
   notices: string[];
   summary: string; // markdown for GITHUB_STEP_SUMMARY
-  failed: boolean; // errors.length > 0
+  failed: boolean; // errors or warnings: an increase not accepted by the PR's baseline would turn main red
 }
 
 const kReadmeRelPath = "dev-docs/runtime-migration/README.md";
 
 const kAcceptClause =
-  "a maintainer accepts the new count before merging (see the job summary).";
+  "a maintainer accepts the new count before merging; this job stays red until then (see the job summary).";
 const kAcceptSentence = kAcceptClause[0].toUpperCase() + kAcceptClause.slice(1);
+
+/** Printed once in PR mode when a warning fails the job, so the contributor knows the remedy is not theirs. */
+const kPendingAcceptanceError =
+  `This PR raises runtime boundary counts that ${kBaselineRelPath} does not accept yet. Nothing for the contributor to change: a maintainer pushes the baseline update to this PR before merging (see the job summary).`;
 
 const signed = (n: number) => n > 0 ? `+${n}` : `${n}`;
 
@@ -633,6 +638,8 @@ export function renderDelta(
     summary.push(
       "### Maintainer action before merging",
       "",
+      "Nothing for the contributor to change: this job stays red until a maintainer accepts the new counts.",
+      "",
       "This PR raises counts (warnings above). Where a warning suggests a module, check whether the PR should use it; accept the rest. Before merging, update the branch with `main`, then run",
       "",
       "    quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-increase",
@@ -647,7 +654,7 @@ export function renderDelta(
     accepted,
     notices,
     summary: summary.join("\n"),
-    failed: errors.length > 0,
+    failed: errors.length > 0 || warnings.length > 0,
   };
 }
 
@@ -885,6 +892,9 @@ if (import.meta.main) {
     }
     for (const { message, file, line } of rendered.errors) {
       error(message, { file, line });
+    }
+    if (rendered.warnings.length > 0) {
+      error(kPendingAcceptanceError);
     }
     if (!stepSummary(rendered.summary)) {
       console.log(rendered.summary);
