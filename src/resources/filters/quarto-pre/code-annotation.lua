@@ -120,7 +120,8 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
     
     local outputs = pandoc.List({})
     local i = 1
-    local offset = codeBlockEl.attr.attributes['startFrom'] or defaultStartLine
+    -- the injected fence line of a fenced echo block counts as one line before the code
+    local offset = (tonumber(codeBlockEl.attr.attributes['startFrom']) or 1) + defaultStartLine - 1
     for line in toLines(code) do
   
       -- Look and annotation
