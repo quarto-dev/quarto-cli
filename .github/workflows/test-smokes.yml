@@ -155,6 +155,8 @@ jobs:
               echo "::warning::apt attempt $attempt failed (exit $status); dropping azure.archive.ubuntu.com from $mirrors"
               sudo sed -i '/azure\.archive\.ubuntu\.com/d' "$mirrors"
             fi
+            # Finishes any install the timeout interrupted; a no-op otherwise.
+            sudo dpkg --configure -a
           done
           echo "::error::apt command failed after 3 attempts"
           exit 1
