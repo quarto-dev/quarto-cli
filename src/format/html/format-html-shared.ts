@@ -30,6 +30,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import { normalizePath } from "../../core/path.ts";
 import { formatHasBootstrap } from "./format-html-info.ts";
 import { HtmlFormatFeatureDefaults } from "./format-html-types.ts";
+import { normalizeNewlines } from "../../core/text.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -516,7 +517,7 @@ export function createCodeCopyButton(doc: Document, format: Format) {
 
 export function createCodeBlock(
   doc: Document,
-  htmlContents: string,
+  text: string,
   language?: string,
 ) {
   const preEl = doc.createElement("PRE");
@@ -527,7 +528,7 @@ export function createCodeBlock(
   if (language) {
     codeEl.classList.add(language);
   }
-  codeEl.innerHTML = htmlContents;
+  codeEl.textContent = normalizeNewlines(text);
   preEl.appendChild(codeEl);
   return preEl;
 }
