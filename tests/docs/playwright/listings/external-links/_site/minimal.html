@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-99.9.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>External Links Test - Minimal HTML – Testing external links in listings</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+
+
+<script src="site_libs/quarto-axe/axe.min.js"></script>
+<script src="site_libs/quarto-axe/axe-check.js" type="module"></script>
+<script id="quarto-axe-checker-options" type="text/plain">eyJvdXRwdXQiOiJjb25zb2xlIn0=</script>
+<link href="site_libs/bootstrap/bootstrap-4cdf1774b8889c47edd9dfc08abe574d.min.css" rel="stylesheet" append-hash="true" data-mode="light">
+
+
+</head>
+
+<body>
+
+
+<header id="title-block-header">
+<h1 class="title">External Links Test - Minimal HTML</h1>
+
+</header>
+
+
+<p>An <a href="https://example.com/minimal">Outside</a> link.</p>
+
+
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      const newWindowLabel = "(opens in a new tab)";
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            if (!link.querySelector(".quarto-ext-newwindow")) {
+              var newWindowNote = window.document.createElement("span");
+              newWindowNote.classList.add("visually-hidden", "quarto-ext-newwindow");
+              // minimal HTML ships no .visually-hidden rule
+              newWindowNote.style.cssText = "border:0;clip:rect(0 0 0 0);height:1px;margin:0;overflow:hidden;padding:0;position:absolute;width:1px;white-space:nowrap;";
+              newWindowNote.textContent = " " + newWindowLabel;
+              link.appendChild(newWindowNote);
+              if (link.hasAttribute("aria-label")) {
+                link.setAttribute("aria-label", link.getAttribute("aria-label") + " " + newWindowLabel);
+              }
+            }
+          if (!link.classList.contains('no-external-icon')) {
+            // default icon
+            link.classList.add("external");
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+  });
+  </script>
+
+
+
+
+</body></html>

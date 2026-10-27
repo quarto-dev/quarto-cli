@@ -28,11 +28,12 @@
 #let quarto-circled-number(n, color: none) = context {
   let c = if color != none { color } else { text.fill }
   // A zero-height box lets the circle overflow instead of making its row taller.
+  // The 0.55em baseline offset, undone by the move, stops the box from raising its line.
   // The equation wrapper carries the text alternative.
-  box(height: 0pt, math.equation(alt: "Annotation " + str(n), block: false, circle(
+  box(height: 0pt, baseline: 0.55em, move(dy: -0.55em, math.equation(alt: "Annotation " + str(n), block: false, circle(
     radius: 0.55em,
     stroke: 0.5pt + c,
-  )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))]))
+  )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])))
 }
 
 // Link to `target` only if that label exists in the document; otherwise

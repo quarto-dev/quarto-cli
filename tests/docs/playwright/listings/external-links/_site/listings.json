@@ -1,0 +1,26 @@
+[
+  {
+    "listing": "/table.html",
+    "items": [
+      "/local-post.html"
+    ]
+  },
+  {
+    "listing": "/paged.html",
+    "items": [
+      "/local-post.html"
+    ]
+  },
+  {
+    "listing": "/index.html",
+    "items": [
+      "/local-post.html"
+    ]
+  },
+  {
+    "listing": "/grid.html",
+    "items": [
+      "/local-post.html"
+    ]
+  }
+]
