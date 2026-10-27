@@ -63,12 +63,12 @@
   block(width: 100%, radius: 2pt, clip: true)[
     #set block(spacing: 0pt)
     #block(fill: luma(220), width: 100%, inset: (x: 8pt, y: 4pt))[
-      #text(size: 0.85em, weight: "bold")[#filename]]
+      #text(size: 0.85em, weight: "bold", fill: luma(30))[#filename]]
     #body
   ]
 }
 
-#let quarto-code-annotation(annotations, cell-id: "", color: luma(60), body) = {
+#let quarto-code-annotation(annotations, cell-id: "", color: none, body) = {
   // Build a set of first-line positions per annotation number so that
   // back-labels are only emitted once (avoiding duplicate labels when
   // one annotation spans multiple lines).
