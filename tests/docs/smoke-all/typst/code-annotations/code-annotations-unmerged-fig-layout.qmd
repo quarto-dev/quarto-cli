@@ -1,0 +1,33 @@
+---
+title: Code Annotations (marker that cannot merge, figure layout)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      printsMessage:
+        level: WARN
+        regex: 'cell "annotated-cell-1" could not be attached'
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-annotation-item\("annotated-cell-1"'
+        -
+          - 'quarto-code-annotations:'
+---
+
+::: {#fig-a layout-ncol=2}
+```{.python}
+z = 1  # <1>
+```
+
+```{.python}
+w = 2
+```
+
+Caption
+:::
+
+1. Assign z.
