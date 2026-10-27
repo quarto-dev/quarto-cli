@@ -16,4 +16,4 @@ _quarto:
           - '#quarto-citation div.code-copy-outer-scaffold'
 ---
 
-With `code-copy: false`, clipboard.js is not loaded, so a copy button on the BibTeX block in the citation appendix would do nothing. The BibTeX block is still rendered, but without the copy button or its scaffold, the same as other code blocks in the document.
+With `code-copy: false`, clipboard.js is not loaded, so a copy button on the BibTeX block in the citation appendix would do nothing. The BibTeX block is still rendered, but without the copy button or its scaffold, the same as other code blocks in the document (#15207).
