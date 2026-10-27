@@ -10,6 +10,10 @@ _quarto:
     html:
       ensureFileRegexMatches:
         - ['title = \{Tags a\\&amp;lt;b and x\\&amp;amp;nbsp;y\}']
+        # Pandoc writes CRLF on Windows; the block must keep LF line endings
+        - ['\r']
 ---
 
 The BibTeX appendix block shows the Pandoc biblatex output as text. The title text `a&lt;b` becomes `a\&lt;b` in BibTeX and must not display as `a\<b`; `x&amp;nbsp;y` becomes `x\&amp;nbsp;y` and must not display as `x\&nbsp;y`. These words are not title-cased, so the entity-like sequences stay intact.
+
+Pandoc writes the BibTeX with CRLF line endings on Windows; the block keeps LF line endings like the rest of the page.
