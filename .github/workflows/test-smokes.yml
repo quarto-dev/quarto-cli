@@ -72,6 +72,70 @@ jobs:
           echo "TEMP=${{ runner.temp }}" >> $GITHUB_ENV
         shell: bash
 
+      # Drops a slow azure.archive.ubuntu.com from the apt mirror list so the job uses
+      # archive.ubuntu.com (actions/runner-images#14823): sampled here before setup-r,
+      # and after a failed attempt in later apt steps run via $APT_WITH_FALLBACK.
+      # Inline, not a local action, because release mode checks out older tags.
+      - name: Configure apt mirror fallback
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          APT_MIRROR_SAMPLE_PACKAGE: fonts-wqy-zenhei
+          APT_MIRROR_MIN_SPEED: "1000000"
+        run: |
+          mirrors=/etc/apt/apt-mirrors.txt
+          helper="$RUNNER_TEMP/apt-with-mirror-fallback.sh"
+          cat > "$helper" <<'EOF'
+          #!/usr/bin/env bash
+          # Usage: apt-with-mirror-fallback.sh '<apt command>'
+          # Runs the command as root with a per-attempt timeout; timeout runs as
+          # root so the kill reaches apt and dpkg children.
+          mirrors=/etc/apt/apt-mirrors.txt
+          log=$(mktemp)
+          for attempt in 1 2 3; do
+            echo "::group::Attempt $attempt of 3"
+            start=$SECONDS
+            sudo env "PATH=$PATH" timeout --kill-after=15 180 bash -c "$1" 2>&1 | tee "$log"
+            status=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            echo "Attempt $attempt exited $status after $((SECONDS - start))s; hosts served:"
+            grep -oE '^(Get|Hit):[0-9]+ https?://[^/ ]+' "$log" | awk '{print $2}' | sort | uniq -c
+            [ "$status" -eq 0 ] && exit 0
+            if grep -q 'azure\.archive\.ubuntu\.com' "$mirrors" 2>/dev/null; then
+              echo "::warning::apt attempt $attempt failed (exit $status); dropping azure.archive.ubuntu.com from $mirrors"
+              sudo sed -i '/azure\.archive\.ubuntu\.com/d' "$mirrors"
+            fi
+            # Finishes any install the timeout interrupted; a no-op otherwise.
+            sudo dpkg --configure -a
+          done
+          echo "::error::apt command failed after 3 attempts"
+          exit 1
+          EOF
+          chmod +x "$helper"
+          echo "APT_WITH_FALLBACK=$helper" >> "$GITHUB_ENV"
+
+          if ! grep -q 'azure\.archive\.ubuntu\.com' "$mirrors" 2>/dev/null; then
+            echo "No Azure mirror configured; skipping the speed sample"
+            exit 0
+          fi
+          set +e
+          sudo apt-get update -qq
+          # The printed URI may name the mirror+file: list rather than a host, so keep only the pool path.
+          uri=$(apt-get download --print-uris -qq "$APT_MIRROR_SAMPLE_PACKAGE" | head -n 1 | cut -d"'" -f2)
+          if [[ "$uri" != */pool/* ]]; then
+            echo "::warning::Could not resolve a pool path for $APT_MIRROR_SAMPLE_PACKAGE; skipping the speed sample"
+            exit 0
+          fi
+          url="http://azure.archive.ubuntu.com/ubuntu/pool/${uri#*/pool/}"
+          speed=$(curl -fsS -o /dev/null --speed-limit "$APT_MIRROR_MIN_SPEED" --speed-time 10 --max-time 60 -w '%{speed_download}' "$url")
+          status=$?
+          echo "Sampled $url: exit $status, ${speed:-0} bytes/s"
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::azure.archive.ubuntu.com is slow or unreachable (curl exit $status); dropping it from $mirrors"
+            sudo sed -i '/azure\.archive\.ubuntu\.com/d' "$mirrors"
+          fi
+          exit 0
+
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
@@ -140,7 +204,12 @@ jobs:
           && (format('{0}', inputs.buckets) == ''
               || contains(inputs.buckets, 'playwright-tests.test.ts'))
         timeout-minutes: 15
-        run: npx playwright install-deps
+        run: |
+          if [ -n "${APT_WITH_FALLBACK:-}" ]; then
+            "$APT_WITH_FALLBACK" 'npx playwright install-deps'
+          else
+            npx playwright install-deps
+          fi
         working-directory: ./tests/integration/playwright
 
       - name: Install Playwright Browsers
@@ -182,19 +251,18 @@ jobs:
       - name: Install missing system deps
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libcurl4-openssl-dev
-          sudo apt-get install -y libxml2-utils
-          sudo apt-get install -y libharfbuzz-dev libfribidi-dev
-          sudo apt-get install -y poppler-utils
-          sudo apt-get install -y libnode-dev
+          "$APT_WITH_FALLBACK" 'apt-get update -y &&
+            apt-get install -y libcurl4-openssl-dev &&
+            apt-get install -y libxml2-utils &&
+            apt-get install -y libharfbuzz-dev libfribidi-dev &&
+            apt-get install -y poppler-utils &&
+            apt-get install -y libnode-dev'
 
       - name: Install rsvg-convert for SVG conversion tests
         # Only do it on linux runner, and only if we are running the relevant tests
         if: runner.os == 'Linux' && (format('{0}', inputs.buckets) == '' || contains(inputs.buckets, 'render-pdf-svg-conversion') || contains(inputs.buckets, 'pdf-standard'))
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y librsvg2-bin
+          "$APT_WITH_FALLBACK" 'apt-get update -y && apt-get install -y librsvg2-bin'
 
       - name: Restore R packages
         id: restore-r-packages
