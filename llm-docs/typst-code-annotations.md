@@ -65,7 +65,7 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 
 ## Known limits
 
-- Code inside a figure-like div (`::: {#fig-code}` with a caption, or `::: {#fig-a layout-ncol=2}` with a caption) cannot receive its circles. Quarto prints a warning with the cell id and removes the marker. The list items still render, and the document compiles.
+- Code inside a figure with `layout-ncol` (`::: {#fig-a layout-ncol=2}` with a caption) cannot receive its circles, because the layout puts the marker in a grid cell of its own. Quarto prints a warning with the cell id and removes the marker. The list items still render, and the document compiles.
 - `hover` and `select` annotation styles use the gutter style. `select` also prints a warning.
 - Per-cell `code-annotations` options are not read for any format; only the document-level value counts.
 - A filename longer than 60 characters may break at any character, using zero-width spaces.
