@@ -228,6 +228,23 @@
       <% } %>
       <% if (linkExternalNewwindow) { %>
       const newWindowLabel = <%= JSON.stringify(language['link-external-newwindow-label']).replace(/</g, '\\u003c') %>;
+      const newWindowNoteId = "quarto-ext-newwindow-label";
+      // Links reference one hidden label through aria-describedby, so the
+      // announcement never changes their accessible name.
+      var describeNewWindow = (link) => {
+        if (!window.document.getElementById(newWindowNoteId)) {
+          var newWindowNote = window.document.createElement("span");
+          newWindowNote.id = newWindowNoteId;
+          newWindowNote.hidden = true;
+          newWindowNote.textContent = newWindowLabel;
+          window.document.body.appendChild(newWindowNote);
+        }
+        var describedBy = (link.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(newWindowNoteId)) {
+          describedBy.push(newWindowNoteId);
+          link.setAttribute("aria-describedby", describedBy.join(" "));
+        }
+      }
       <% } %>
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
@@ -249,17 +266,7 @@
             if (link.getAttribute("rel") === null) {
               link.setAttribute("rel", "noopener");
             }
-            if (!link.querySelector(".quarto-ext-newwindow")) {
-              var newWindowNote = window.document.createElement("span");
-              newWindowNote.classList.add("visually-hidden", "quarto-ext-newwindow");
-              // minimal HTML ships no .visually-hidden rule
-              newWindowNote.style.cssText = "border:0;clip:rect(0 0 0 0);height:1px;margin:0;overflow:hidden;padding:0;position:absolute;width:1px;white-space:nowrap;";
-              newWindowNote.textContent = " " + newWindowLabel;
-              link.appendChild(newWindowNote);
-              if (link.hasAttribute("aria-label")) {
-                link.setAttribute("aria-label", link.getAttribute("aria-label") + " " + newWindowLabel);
-              }
-            }
+            describeNewWindow(link);
           <% } %>
   
           
