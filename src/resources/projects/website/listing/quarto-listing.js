@@ -47,6 +47,7 @@ window["quarto-listing-loaded"] = () => {
     // and refresh any newly visible items.
     list.on("updated", function () {
       renderVisibleProgressiveImages(list);
+      window.quartoDecorateExternalLinks?.(list.list);
       setTimeout(() => refreshPaginationHandlers(listingId));
 
       // Show or hide the no matching message

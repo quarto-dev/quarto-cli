@@ -1,0 +1,8 @@
+---
+title: "External Links Test - Minimal HTML"
+format:
+  html:
+    minimal: true
+---
+
+An [Outside](https://example.com/minimal) link.

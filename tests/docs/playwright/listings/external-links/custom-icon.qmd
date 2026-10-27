@@ -1,0 +1,20 @@
+---
+title: "External Links Test - Custom Icon"
+# the schema accepts only true or false for link-external-icon
+validate-yaml: false
+link-external-icon: box-arrow-up-right
+listing:
+  id: custom-icon-listing
+  contents:
+    - path: local-post.qmd
+      title: "Local Post"
+    - path: https://example.com/external-article
+      title: "External Article"
+      description: "An external article, see the [docs](https://example.org/docs)."
+  type: default
+  sort: "title desc"
+  page-size: 1
+---
+
+::: {#custom-icon-listing}
+:::

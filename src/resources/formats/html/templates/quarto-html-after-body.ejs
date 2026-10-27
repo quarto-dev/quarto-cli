@@ -226,11 +226,32 @@
       <% } else { %>
         var filterRegex = new RegExp('/' + window.location.host + '/');
       <% } %>
+      <% if (linkExternalNewwindow) { %>
+      const newWindowLabel = <%= JSON.stringify(language['link-external-newwindow-label']).replace(/</g, '\\u003c') %>;
+      const newWindowNoteId = "quarto-ext-newwindow-label";
+      // Links reference one hidden label through aria-describedby, so the
+      // announcement never changes their accessible name.
+      var describeNewWindow = (link) => {
+        if (!window.document.getElementById(newWindowNoteId)) {
+          var newWindowNote = window.document.createElement("span");
+          newWindowNote.id = newWindowNoteId;
+          newWindowNote.hidden = true;
+          newWindowNote.textContent = newWindowLabel;
+          window.document.body.appendChild(newWindowNote);
+        }
+        var describedBy = (link.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(newWindowNoteId)) {
+          describedBy.push(newWindowNoteId);
+          link.setAttribute("aria-describedby", describedBy.join(" "));
+        }
+      }
+      <% } %>
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
       // Inspect non-navigation links and adorn them if external
-     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
       for (var i=0; i<links.length; i++) {
         const link = links[i];
         if (!isInternal(link.href)) {
@@ -245,21 +266,28 @@
             if (link.getAttribute("rel") === null) {
               link.setAttribute("rel", "noopener");
             }
+            describeNewWindow(link);
           <% } %>
   
           
+          if (!link.classList.contains('no-external-icon')) {
           <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
-            // external icon, if provided
-            var extIcon = window.document.createElement('i');
-            extIcon.classList.add('bi-<%=linkExternalIcon%>');
-            extIcon.classList.add('quarto-ext-icon');
-            link.parentNode.insertBefore(extIcon, link.nextSibling)
+            // external icon, if provided (listing updates rerun this on the same links)
+            if (!link.nextElementSibling?.classList.contains('quarto-ext-icon')) {
+              var extIcon = window.document.createElement('i');
+              extIcon.classList.add('bi-<%=linkExternalIcon%>');
+              extIcon.classList.add('quarto-ext-icon');
+              link.parentNode.insertBefore(extIcon, link.nextSibling)
+            }
           <% } else if (linkExternalIcon) { %>
             // default icon
             link.classList.add("external");
           <% } %>
+          }
         }
       }
+      };
+      window.quartoDecorateExternalLinks(window.document);
   
   
   
