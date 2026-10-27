@@ -311,11 +311,12 @@ function skylightingPostProcessor(brandBgColor?: string) {
   // Between the marker and the Skylighting call there may be #block[ (cell
   // divs), #figure([ (crossref floats), and #quarto-code-filename( wrappers.
   const annotationMarkerRe =
-    /\/\/ quarto-code-annotations: (\S*) (\([^)]*\))\n(\s*(?:(?:#block\[|#figure\(\[)\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
+    /\/\/ quarto-code-annotations: ([^\n]*?) (\([^)]*\))\n(\s*(?:(?:#block\[|#figure\(\[)\s*)*(?:#quarto-code-filename\([^\n]*\)\[\s*)?)#Skylighting\(/g;
 
   return async (output: string) => {
-    let content = Deno.readTextFileSync(output).replace(/\r\n/g, "\n");
-    let changed = false;
+    const original = Deno.readTextFileSync(output);
+    let content = original.replace(/\r\n/g, "\n");
+    let changed = content !== original;
 
     let annotationsPatched = true;
     const match = skylightingFnRe.exec(content);
@@ -351,7 +352,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
     // leak into keep-typ output. Rendering degrades gracefully via
     // quarto-annote-link.
     const stripped = content.replace(
-      /^[^\S\n]*\/\/ quarto-code-annotations: (\S*) [^\n]*\n/gm,
+      /^[^\S\n]*\/\/ quarto-code-annotations: ([^\n]*?) \([^\n]*\n/gm,
       (_marker, cellId: string) => {
         if (annotationsPatched) {
           warning(
