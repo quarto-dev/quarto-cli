@@ -10,29 +10,41 @@ window.quartoListingCategory = (category) => {
   }
 };
 
-window["quarto-listing-loaded"] = () => {
-  // Process any existing hash
-  const hash = getHash();
+const wiredListings = new Set();
 
-  if (hash) {
-    // If there is a category, switch to that
-    if (hash.category) {
-      // category hash are URI encoded so we need to decode it before processing
-      // so that we can match it with the category element processed in JS
-      activateCategory(decodeURIComponent(hash.category));
-    }
-    // Paginate a specific listing
-    const listingIds = Object.keys(window["quarto-listings"]);
-    for (const listingId of listingIds) {
-      const page = hash[getListingPageKey(listingId)];
-      if (page) {
-        showPage(listingId, page);
-      }
-    }
+// Apply the category and per-listing page stored in the URL hash
+function applyListingHash() {
+  const hash = getHash();
+  if (!hash || !window["quarto-listings"]) {
+    return;
   }
 
-  const listingIds = Object.keys(window["quarto-listings"]);
-  for (const listingId of listingIds) {
+  // If there is a category, switch to that
+  if (hash.category) {
+    // category hash are URI encoded so we need to decode it before processing
+    // so that we can match it with the category element processed in JS
+    activateCategory(decodeURIComponent(hash.category));
+  }
+  // Paginate a specific listing
+  for (const listingId of Object.keys(window["quarto-listings"])) {
+    const page = hash[getListingPageKey(listingId)];
+    if (page) {
+      showPage(listingId, page);
+    }
+  }
+}
+
+window["quarto-listing-loaded"] = () => {
+  // Process any existing hash
+  applyListingHash();
+
+  // Each listing calls this once its List is created, so wire each one once
+  for (const listingId of Object.keys(window["quarto-listings"])) {
+    if (wiredListings.has(listingId)) {
+      continue;
+    }
+    wiredListings.add(listingId);
+
     // The actual list
     const list = window["quarto-listings"][listingId];
 
@@ -55,6 +67,8 @@ window["quarto-listing-loaded"] = () => {
     });
   }
 };
+
+window.addEventListener("hashchange", applyListingHash);
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Attach click handlers to categories
