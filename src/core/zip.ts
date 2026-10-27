@@ -7,45 +7,43 @@ import { dirname } from "../deno_ral/path.ts";
 import { existsSync } from "../deno_ral/fs.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { execProcess } from "./process.ts";
-import { safeWindowsExec } from "./windows.ts";
+
+// Quote a value as a PowerShell single-quoted string literal. PowerShell
+// treats ' and the curly quotes ‘ ’ ‚ ‛ all as single quotes; each is
+// escaped by doubling it.
+function powershellLiteral(value: string) {
+  return `'${value.replace(/['‘’‚‛]/g, "$&$&")}'`;
+}
 
 export function unzip(file: string, dir?: string) {
   if (!dir) dir = dirname(file);
 
+  // Windows extraction launches executables directly, without a temporary
+  // .bat: Group Policy can block running .bat files from %TEMP% (#15198)
   if (isWindows && file.endsWith(".exe")) {
     // Self-extracting 7z archive (e.g., TinyTeX-windows.exe)
-    return safeWindowsExec(
-      file,
-      ["-y"],
-      (cmd: string[]) => {
-        return execProcess({
-          cmd: cmd[0],
-          args: cmd.slice(1),
-          cwd: dir,
-          stdout: "piped",
-        });
-      },
-    );
+    return execProcess({
+      cmd: file,
+      args: ["-y"],
+      cwd: dir,
+      stdout: "piped",
+    });
   } else if (file.endsWith("zip")) {
     // It's a zip file
     if (isWindows) {
-      const args = [
-        "-Command",
-        `"& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('${file}', '${dir}'); }"`,
-      ];
-      return safeWindowsExec(
-        "powershell",
-        args,
-        (cmd: string[]) => {
-          return execProcess(
-            {
-              cmd: cmd[0],
-              args: cmd.slice(1),
-              stdout: "piped",
-            },
-          );
-        },
-      );
+      // UTF-8 output keeps non-ASCII characters in error messages readable
+      const script = [
+        "[Console]::OutputEncoding = [Text.Encoding]::UTF8",
+        "Add-Type -A 'System.IO.Compression.FileSystem'",
+        `[IO.Compression.ZipFile]::ExtractToDirectory(${
+          powershellLiteral(file)
+        }, ${powershellLiteral(dir)})`,
+      ].join("; ");
+      return execProcess({
+        cmd: "powershell",
+        args: ["-NoProfile", "-NonInteractive", "-Command", script],
+        stdout: "piped",
+      });
     } else {
       // Use the built in unzip command
       return execProcess(
