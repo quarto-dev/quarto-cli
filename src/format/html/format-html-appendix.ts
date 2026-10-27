@@ -305,7 +305,7 @@ export async function processDocumentAppendix(
 
             const bibTexDiv = createCodeBlock(doc, cite.bibtex, "bibtex");
             bibTexDiv.classList.add(kQuartoCiteBibtexClass);
-            
+
             const outerScaffold = doc.createElement("div");
             outerScaffold.classList.add("code-copy-outer-scaffold");
             outerScaffold.appendChild(bibTexDiv);
