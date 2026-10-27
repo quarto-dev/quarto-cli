@@ -616,9 +616,7 @@ function code_annotations()
                   outputBlock(ab)
                 end
               end
-              pendingAnnotations = nil
-              pendingCellId = nil
-              pendingCodeCell = nil
+              clearPending()
 
             -- Generic handler for all other formats
             else
