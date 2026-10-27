@@ -60,11 +60,13 @@
 }
 
 #let quarto-code-filename(filename, body) = {
-  // Long names would be clipped: allow breaks after separators first, and
+  // Long names would be clipped: allow breaks after separators (but not after the
+  // last dot, which keeps the extension attached) first, and
   // inside runs of more than 30 characters without a separator
   let filename = if type(filename) == str and filename.len() > 40 {
     filename
       .replace(regex("[/_.-]"), m => m.text + "\u{200b}")
+      .replace(regex("\\.\u{200b}([^.]*)\\z"), m => "." + m.captures.at(0))
       .replace(regex("[^/_.\u{200b}-]{31,}"), m => m.text.clusters().join("\u{200b}"))
   } else { filename }
   show raw.where(block: true): it => it

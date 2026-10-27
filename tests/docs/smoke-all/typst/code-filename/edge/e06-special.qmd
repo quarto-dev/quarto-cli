@@ -14,6 +14,7 @@ _quarto:
           - 'quarto-code-filename\("e\*f_g\.py"'
           - 'quarto-code-filename\("123"'
           - 'replace\(regex\("\[/_\.-\]"\), m => m\.text \+ "\\u\{200b\}"\)'
+          - 'replace\(regex\("\\\\\.\\u\{200b\}\(\[\^\.\]\*\)\\\\z"\)'
           - 'replace\(regex\("\[\^/_\.\\u\{200b\}-\]\{31,\}"\)'
         - []
 ---
