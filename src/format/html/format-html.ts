@@ -67,12 +67,12 @@ import { bootstrapExtras } from "./format-html-bootstrap.ts";
 import {
   clipboardDependency,
   createCodeCopyButton,
+  formatHasCodeCopy,
   kAnchorSections,
   kAxe,
   kBootstrapDependencyName,
   kCitationsHover,
   kCodeAnnotations,
-  kCodeCopy,
   kComments,
   kDocumentCss,
   kFootnotesHover,
@@ -306,11 +306,7 @@ export async function htmlFormatExtras(
   } else {
     options.tabby = format.metadata[kTabsets] || false;
   }
-  if (featureDefaults.copyCode) {
-    options.copyCode = format.metadata[kCodeCopy] !== false;
-  } else {
-    options.copyCode = format.metadata[kCodeCopy] || false;
-  }
+  options.copyCode = formatHasCodeCopy(format, featureDefaults.copyCode);
   if (featureDefaults.anchors) {
     options.anchors = format.metadata[kAnchorSections] !== false;
   } else {
@@ -712,9 +708,7 @@ function htmlFormatPostprocessor(
   }
 
   // read options
-  const codeCopy = featureDefaults.copyCode
-    ? format.metadata[kCodeCopy] !== false
-    : format.metadata[kCodeCopy] || false;
+  const codeCopy = formatHasCodeCopy(format, featureDefaults.copyCode);
 
   const anchors = featureDefaults.anchors
     ? format.metadata[kAnchorSections] !== false

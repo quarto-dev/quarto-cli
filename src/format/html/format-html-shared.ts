@@ -73,6 +73,17 @@ export const kCitation = "citation";
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
 
+// whether code copy buttons (and clipboard.js) are enabled for this format.
+// 'code-copy' is on by default unless the format (e.g. 'minimal') turns it off
+export function formatHasCodeCopy(
+  format: Format,
+  enabledByDefault = format.metadata[kMinimal] !== true,
+): boolean {
+  return enabledByDefault
+    ? format.metadata[kCodeCopy] !== false
+    : !!format.metadata[kCodeCopy];
+}
+
 export const clipboardDependency = () => {
   const dependency: FormatDependency = { name: "clipboard" };
   dependency.scripts = [];
@@ -492,7 +503,6 @@ export function createCodeBlock(
 ) {
   const preEl = doc.createElement("PRE");
   preEl.classList.add("sourceCode");
-  preEl.classList.add("code-with-copy");
 
   const codeEl = doc.createElement("CODE");
   codeEl.classList.add("sourceCode");
