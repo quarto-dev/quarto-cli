@@ -56,7 +56,10 @@ unitTest(
 );
 
 const definitionsSource = Deno.readTextFileSync(
-  "../src/resources/formats/typst/pandoc/quarto/definitions.typ",
+  new URL(
+    "../../src/resources/formats/typst/pandoc/quarto/definitions.typ",
+    import.meta.url,
+  ),
 );
 
 const usingDocument =
@@ -116,3 +119,21 @@ unitTest("typst-skylighting-patch - helpers: all present", async () => {
   assertEquals(result.content, content);
   assertEquals(result.injected, []);
 });
+
+unitTest(
+  "typst-skylighting-patch - helpers: injected at top level, not inside a bracket",
+  async () => {
+    const content = `#let preamble = 1
+#block[
+#set align(left)
+#quarto-annotation-item("c", 1, [Item])
+]
+`;
+    const result = injectMissingAnnotationHelpers(content, definitionsSource);
+    assert(result.injected.includes("quarto-annotation-item"));
+    assert(
+      result.content.indexOf("#let quarto-annotation-item(") <
+        result.content.indexOf("#let preamble"),
+    );
+  },
+);

@@ -337,21 +337,15 @@ export function injectMissingAnnotationHelpers(
     return { content, injected };
   }
 
-  // Typst closures capture earlier bindings only, so define the helpers before
-  // the first top-level block that calls any of them.
-  const firstUse = Math.min(
-    ...injected.map((name) =>
-      content.search(new RegExp(`(?<!#let )\\b${name}\\(`))
-    ).filter((index) => index !== -1),
-  );
-  let anchor = -1;
-  for (
-    const m of content.slice(0, firstUse).matchAll(/^(#let |#show|#set)/gm)
-  ) {
-    anchor = m.index!;
+  // Typst closures capture earlier bindings only, and a `#set` inside a content
+  // block would scope them, so define the helpers before the first top-level
+  // `#let` of the file.
+  let anchor = content.search(/^#let /m);
+  if (anchor === -1) {
+    anchor = content.search(/^#show: doc =>/m);
   }
   if (anchor === -1) {
-    anchor = content.lastIndexOf("\n", firstUse) + 1;
+    return { content, injected: [] };
   }
   return {
     content: content.slice(0, anchor) + blocks.join("\n\n") + "\n\n" +
