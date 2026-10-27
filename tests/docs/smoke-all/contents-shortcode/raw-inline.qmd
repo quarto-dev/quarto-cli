@@ -1,0 +1,23 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["p > span#raw-paragraph", "li > span#raw-list-item", "#destination > #source"]
+      ensureHtmlElementContents:
+        selectors: ["#destination"]
+        matches: ["Reused content"]
+---
+
+`<span id="raw-paragraph">Raw paragraph</span>`{=html}
+
+- `<span id="raw-list-item">Raw list item</span>`{=html}
+
+::: {#source}
+Reused content
+:::
+
+::: {#destination}
+{{< contents source >}}
+:::

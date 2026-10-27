@@ -76,7 +76,7 @@ function contents_shortcode_filter()
           return nil
         end
         local raw = quarto.utils.match("[1]/RawInline")(el)
-        if not raw then
+        if not raw or raw.format ~= "quarto-internal" then
           return nil
         end
         local result, data = pcall(function() 
