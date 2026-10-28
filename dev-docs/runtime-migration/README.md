@@ -200,6 +200,14 @@ A test that fails on an OS the executor cannot run: CI on that OS is the evidenc
 Commits follow the plan's steps as written (a failing-test step followed by its implementation step may leave one red commit; no squash is required).
 Changelog: a dependency bump gets a line under `## Dependencies` of `news/changelog-<version>.md` (created by PR 00a); a plan with no user-visible change says `Out: changelog` in its Scope with the reason.
 
+Progress tracking while executing (decided 2026-10-28, from PR 09's run):
+
+- The plan file ends with an "Execution log" section: one entry per task with the commands run and their quoted output; numbers reported anywhere (test counts, ratchet counts, dry-run summaries) are copied from real output.
+  The executor ticks the plan's checkboxes as steps complete; the execution-log and checkbox updates fold into each task's own commit.
+- The beads issue for the PR is set to `in_progress` when execution starts; a `br comments add` one-liner records each finished task.
+  Beads state lives in the main checkout's `.beads/` (the worktree has a `redirect` file); it is never committed from a feature branch.
+  The issue closes when the PR merges, not before.
+
 ## The sequence
 
 Status values: `planned`, `in progress`, `merged`.
