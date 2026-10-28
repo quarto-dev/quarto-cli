@@ -162,11 +162,14 @@ Deno.test("codemod - a file assigning to Deno.* is skipped whole", () => {
   assertEquals(output, read("assignment-skip.input.ts"));
 });
 
-Deno.test("codemod - compound, nested and delete writes to Deno.* skip the file", () => {
+Deno.test("codemod - every form of write to Deno.* skips the file", () => {
   const cases: [string, RuleName[], string][] = [
     ["write-compound", ["fs"], "assigns to Deno.readTextFileSync at line 2"],
     ["write-nested", ["env", "platform"], "assigns to Deno.build.os at line 2"],
     ["write-delete", ["env"], "assigns to Deno.env at line 2"],
+    ["write-destructure-object", ["fs"], "assigns to Deno.readTextFileSync at line 2"],
+    ["write-destructure-array", ["platform"], "assigns to Deno.build.os at line 2"],
+    ["write-for-of", ["platform"], "assigns to Deno.build.os at line 2"],
   ];
   for (const [name, rules, skipped] of cases) {
     const { result, output } = run(name, rules);
@@ -174,6 +177,12 @@ Deno.test("codemod - compound, nested and delete writes to Deno.* skip the file"
     assertEquals(result.replacements, [], name);
     assertEquals(output, read(`${name}.input.ts`), name);
   }
+});
+
+Deno.test("codemod - Deno.* inside object and array literals that are not written is rewritten", () => {
+  const { result, output } = run("literal-not-write", ["fs"]);
+  assertEquals(result.skipped, undefined);
+  assertEquals(output, read("literal-not-write.expected.ts"));
 });
 
 Deno.test("codemod --reverse - round-trips the basic fixtures", () => {
