@@ -241,15 +241,24 @@ function isDenoEscape(id: Node): boolean {
     !Node.isTypeQuery(parent) && !Node.isTypeReference(parent);
 }
 
+// The object and member name of `o.x` or `o["x"]`.
+function memberOf(node: Node | undefined): { object: Node; name: string } | undefined {
+  if (Node.isPropertyAccessExpression(node)) {
+    return { object: node.getExpression(), name: node.getName() };
+  }
+  if (!Node.isElementAccessExpression(node)) return undefined;
+  const arg = node.getArgumentExpression();
+  return Node.isStringLiteral(arg)
+    ? { object: node.getExpression(), name: arg.getLiteralText() }
+    : undefined;
+}
+
 // `globalThis.Deno`, `self["Deno"]`, ... when `id` is the global object.
 const kGlobalObjects = ["globalThis", "self", "window"];
 function globalObjectDeno(id: Node): Node | undefined {
   if (!kGlobalObjects.includes(id.getText())) return undefined;
   const access = accessOn(id);
-  if (Node.isPropertyAccessExpression(access) && access.getName() === "Deno") return access;
-  const arg = Node.isElementAccessExpression(access) ? access.getArgumentExpression() : undefined;
-  if (Node.isStringLiteral(arg) && arg.getLiteralText() === "Deno") return access;
-  return undefined;
+  return memberOf(access)?.name === "Deno" ? access : undefined;
 }
 
 // Calls that replace or remove members of their first argument. A Map, so
@@ -261,15 +270,16 @@ const kMutators = new Map([
 
 // `Object.assign` when `node`, possibly wrapped, is the first argument of
 // such a call (`Object.assign(Deno.build, ...)`), the callee and its owner
-// possibly wrapped too (`(Object.assign)(...)`).
+// possibly wrapped too (`(Object.assign)(...)`) and the callee possibly an
+// element access (`Object["assign"](...)`).
 function mutatorOf(node: Node): string | undefined {
   const arg = outermostWrapper(node);
   const call = arg.getParent();
   if (!Node.isCallExpression(call) || call.getArguments()[0] !== arg) return undefined;
-  const callee = unwrap(call.getExpression());
-  if (!Node.isPropertyAccessExpression(callee)) return undefined;
-  const owner = unwrap(callee.getExpression());
-  if (!Node.isIdentifier(owner) || !kMutators.get(owner.getText())?.includes(callee.getName())) {
+  const callee = memberOf(unwrap(call.getExpression()));
+  if (!callee) return undefined;
+  const owner = unwrap(callee.object);
+  if (!Node.isIdentifier(owner) || !kMutators.get(owner.getText())?.includes(callee.name)) {
     return undefined;
   }
   return call.getExpression().getText();
