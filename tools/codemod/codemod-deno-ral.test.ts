@@ -181,6 +181,12 @@ Deno.test("codemod - every form of write to Deno.* skips the file", () => {
     ],
     ["write-asserted-nested", ["platform"], "assigns to (<any> Deno.build).os at line 2"],
     ["write-element-access", ["fs"], 'assigns to Deno["readTextFileSync"] at line 2'],
+    // Deno used other than as `Deno.x`: what is done with it cannot be followed.
+    ["write-define-property", ["fs"], "uses Deno other than as Deno.x at line 2"],
+    ["write-alias", ["fs"], "uses Deno other than as Deno.x at line 1"],
+    ["write-global-this", ["fs"], "reaches Deno through globalThis.Deno at line 2"],
+    ["write-global-this-element", ["fs"], 'reaches Deno through self["Deno"] at line 2'],
+    ["write-object-assign", ["platform"], "assigns to Deno.build via Object.assign at line 2"],
   ];
   for (const [name, rules, skipped] of cases) {
     const { result, output } = run(name, rules);
@@ -194,6 +200,12 @@ Deno.test("codemod - Deno.* inside object and array literals that are not writte
   const { result, output } = run("literal-not-write", ["fs"]);
   assertEquals(result.skipped, undefined);
   assertEquals(output, read("literal-not-write.expected.ts"));
+});
+
+Deno.test("codemod - Deno.x as a later argument and typeof Deno are not writes", () => {
+  const { result, output } = run("mutator-not-write", ["fs"]);
+  assertEquals(result.skipped, undefined);
+  assertEquals(output, read("mutator-not-write.expected.ts"));
 });
 
 Deno.test("codemod --reverse - round-trips the basic fixtures", () => {
