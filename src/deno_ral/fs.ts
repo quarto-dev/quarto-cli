@@ -1,5 +1,5 @@
 /*
- * encoding.ts
+ * fs.ts
  *
  * Copyright (C) 2020-2024 Posit Software, PBC
  */
@@ -10,6 +10,7 @@ import { copySync } from "fs/copy";
 import { existsSync } from "fs/exists";
 import { originalRealPathSync } from "./original-real-path.ts";
 import { debug } from "./log.ts";
+import { errorWithPath } from "./errors.ts";
 
 export { ensureDir, ensureDirSync } from "fs/ensure-dir";
 export { existsSync } from "fs/exists";
@@ -27,7 +28,7 @@ export type { WalkEntry } from "fs/walk";
 // from https://jsr.io/@std/fs/1.0.3/_get_file_info_type.ts
 
 export type PathType = "file" | "dir" | "symlink";
-export function getFileInfoType(fileInfo: Deno.FileInfo): PathType | undefined {
+export function getFileInfoType(fileInfo: FileInfo): PathType | undefined {
   return fileInfo.isFile
     ? "file"
     : fileInfo.isDirectory
@@ -113,7 +114,7 @@ export function safeMoveSync(
 
 export function safeRemoveSync(
   file: string,
-  options: Deno.RemoveOptions = {},
+  options: { recursive?: boolean } = {},
 ) {
   try {
     Deno.removeSync(file, options);
@@ -144,21 +145,14 @@ export function safeRemoveDirSync(
   path: string,
   boundary: string,
 ) {
-  // Resolve symlinks to ensure consistent path comparison.
-  // This is needed because external tools (like knitr) may resolve symlinks
-  // while project.dir preserves them.
-  //
-  // We use the original Deno.realPathSync (saved before monkey-patching)
-  // because the monkey-patch replaces it with normalizePath which doesn't
-  // resolve symlinks.
-  //
-  // Note: The UNC path bug that motivated the monkey-patch was fixed in
-  // Deno v1.16 (see denoland/deno#12243), so this is safe on all platforms.
+  // Resolve symlinks so both sides compare the same physical path. External
+  // tools (knitr, for example) may resolve symlinks while project.dir
+  // preserves them.
   let resolvedPath = path;
   let resolvedBoundary = boundary;
   try {
-    resolvedPath = originalRealPathSync(path);
-    resolvedBoundary = originalRealPathSync(boundary);
+    resolvedPath = canonicalPathSync(path);
+    resolvedBoundary = canonicalPathSync(boundary);
   } catch {
     // If resolution fails (e.g., path doesn't exist), use original paths
   }
@@ -212,4 +206,309 @@ export function ensureUserWritable(path: string): void {
   if (mode !== undefined && !(mode & 0o200)) {
     safeChmodSync(path, mode | 0o200);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Plain filesystem calls (PR 09). Deno's names are kept so that the codemod is
+// `Deno.x(` → `x(` plus an import. Implemented on Deno here; PR 27 moves this
+// section to node:fs behind the same signatures and the same unit test
+// (tests/unit/ral/fs.test.ts).
+//
+// Deno.* is looked up at call time on purpose: core/performance/metrics.ts
+// reassigns Deno.readTextFileSync to record file reads until PR 20b replaces
+// that with the onFileRead hook in this module.
+// ---------------------------------------------------------------------------
+
+export interface FileInfo {
+  isFile: boolean;
+  isDirectory: boolean;
+  isSymlink: boolean;
+  size: number;
+  mtime: Date | null;
+  atime: Date | null;
+  birthtime: Date | null;
+  mode: number | null;
+}
+
+export interface DirEntry {
+  name: string;
+  isFile: boolean;
+  isDirectory: boolean;
+  isSymlink: boolean;
+}
+
+export interface FsFile {
+  readonly readable: ReadableStream<Uint8Array>;
+  readonly writable: WritableStream<Uint8Array>;
+  read(p: Uint8Array): Promise<number | null>;
+  write(p: Uint8Array): Promise<number>;
+  writeSync(p: Uint8Array): number;
+  close(): void;
+}
+
+export interface OpenOptions {
+  read?: boolean;
+  write?: boolean;
+  append?: boolean;
+  create?: boolean;
+  truncate?: boolean;
+  mode?: number;
+}
+
+export interface WriteOptions {
+  append?: boolean;
+  create?: boolean;
+  mode?: number;
+}
+
+function toFileInfo(info: Deno.FileInfo): FileInfo {
+  return {
+    isFile: info.isFile,
+    isDirectory: info.isDirectory,
+    isSymlink: info.isSymlink,
+    size: info.size,
+    mtime: info.mtime,
+    atime: info.atime,
+    birthtime: info.birthtime,
+    mode: info.mode,
+  };
+}
+
+function toDirEntry(entry: Deno.DirEntry): DirEntry {
+  return {
+    name: entry.name,
+    isFile: entry.isFile,
+    isDirectory: entry.isDirectory,
+    isSymlink: entry.isSymlink,
+  };
+}
+
+function byName(a: DirEntry, b: DirEntry): number {
+  return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+}
+
+function annotate(e: unknown, path: string | URL): unknown {
+  return e instanceof Error ? errorWithPath(e, toPathString(path)) : e;
+}
+
+export function readTextFileSync(path: string | URL): string {
+  try {
+    return Deno.readTextFileSync(path);
+  } catch (e) {
+    throw annotate(e, path);
+  }
+}
+
+export async function readTextFile(path: string | URL): Promise<string> {
+  try {
+    return await Deno.readTextFile(path);
+  } catch (e) {
+    throw annotate(e, path);
+  }
+}
+
+export function readFileSync(path: string | URL): Uint8Array {
+  try {
+    return Deno.readFileSync(path);
+  } catch (e) {
+    throw annotate(e, path);
+  }
+}
+
+export async function readFile(path: string | URL): Promise<Uint8Array> {
+  try {
+    return await Deno.readFile(path);
+  } catch (e) {
+    throw annotate(e, path);
+  }
+}
+
+export function writeTextFileSync(
+  path: string | URL,
+  data: string,
+  options?: WriteOptions,
+): void {
+  Deno.writeTextFileSync(path, data, options);
+}
+
+export function writeTextFile(
+  path: string | URL,
+  data: string,
+  options?: WriteOptions,
+): Promise<void> {
+  return Deno.writeTextFile(path, data, options);
+}
+
+export function writeFileSync(
+  path: string | URL,
+  data: Uint8Array,
+  options?: WriteOptions,
+): void {
+  Deno.writeFileSync(path, data, options);
+}
+
+export function writeFile(
+  path: string | URL,
+  data: Uint8Array,
+  options?: WriteOptions,
+): Promise<void> {
+  return Deno.writeFile(path, data, options);
+}
+
+export function statSync(path: string | URL): FileInfo {
+  return toFileInfo(Deno.statSync(path));
+}
+
+export async function stat(path: string | URL): Promise<FileInfo> {
+  return toFileInfo(await Deno.stat(path));
+}
+
+export function lstatSync(path: string | URL): FileInfo {
+  return toFileInfo(Deno.lstatSync(path));
+}
+
+export async function lstat(path: string | URL): Promise<FileInfo> {
+  return toFileInfo(await Deno.lstat(path));
+}
+
+export function mkdirSync(
+  path: string | URL,
+  options?: { recursive?: boolean; mode?: number },
+): void {
+  Deno.mkdirSync(path, options);
+}
+
+export function mkdir(
+  path: string | URL,
+  options?: { recursive?: boolean; mode?: number },
+): Promise<void> {
+  return Deno.mkdir(path, options);
+}
+
+export function removeSync(
+  path: string | URL,
+  options?: { recursive?: boolean },
+): void {
+  Deno.removeSync(path, options);
+}
+
+export function remove(
+  path: string | URL,
+  options?: { recursive?: boolean },
+): Promise<void> {
+  return Deno.remove(path, options);
+}
+
+export function renameSync(oldPath: string | URL, newPath: string | URL): void {
+  Deno.renameSync(oldPath, newPath);
+}
+
+export function rename(
+  oldPath: string | URL,
+  newPath: string | URL,
+): Promise<void> {
+  return Deno.rename(oldPath, newPath);
+}
+
+export function copyFileSync(from: string | URL, to: string | URL): void {
+  Deno.copyFileSync(from, to);
+}
+
+export function copyFile(from: string | URL, to: string | URL): Promise<void> {
+  return Deno.copyFile(from, to);
+}
+
+/** Directory entries sorted by name (code-unit order). */
+export function readDirSync(path: string | URL): DirEntry[] {
+  return Array.from(Deno.readDirSync(path), toDirEntry).sort(byName);
+}
+
+/** Directory entries sorted by name (code-unit order). */
+export async function* readDir(path: string | URL): AsyncIterable<DirEntry> {
+  const entries: DirEntry[] = [];
+  for await (const entry of Deno.readDir(path)) {
+    entries.push(toDirEntry(entry));
+  }
+  entries.sort(byName);
+  yield* entries;
+}
+
+export function symlinkSync(
+  target: string | URL,
+  path: string | URL,
+  options?: { type?: "file" | "dir" },
+): void {
+  // Deno.SymlinkOptions.type is required in Deno 2's types; pass options only
+  // when a type was given so a bare `symlinkSync(a, b)` stays options-free.
+  Deno.symlinkSync(
+    target,
+    path,
+    options?.type !== undefined ? { type: options.type } : undefined,
+  );
+}
+
+export function symlink(
+  target: string | URL,
+  path: string | URL,
+  options?: { type?: "file" | "dir" },
+): Promise<void> {
+  return Deno.symlink(
+    target,
+    path,
+    options?.type !== undefined ? { type: options.type } : undefined,
+  );
+}
+
+export function readLinkSync(path: string | URL): string {
+  return Deno.readLinkSync(path);
+}
+
+/** Resolves symlinks (the un-patched Deno.realPath behaviour). */
+export function realPath(path: string | URL): Promise<string> {
+  return Deno.realPath(path);
+}
+
+/**
+ * The canonical absolute path: symlinks resolved, and no Windows `\\?\` prefix
+ * (Deno strips it itself, so nothing is sliced here). Throws when the path
+ * does not exist. Uses the runtime's own realPathSync: until PR 25 deletes
+ * core/deno/monkey-patch.ts, Deno.realPathSync is patched to normalizePath,
+ * so the saved original is called. PR 25 switches this to Deno.realPathSync;
+ * PR 27 to fs.realpathSync.native.
+ */
+export function canonicalPathSync(path: string | URL): string {
+  return originalRealPathSync(path);
+}
+
+export function chmodSync(path: string | URL, mode: number): void {
+  Deno.chmodSync(path, mode);
+}
+
+export function chmod(path: string | URL, mode: number): Promise<void> {
+  return Deno.chmod(path, mode);
+}
+
+export function utimeSync(
+  path: string | URL,
+  atime: number | Date,
+  mtime: number | Date,
+): void {
+  Deno.utimeSync(path, atime, mtime);
+}
+
+export function truncateSync(path: string | URL, len?: number): void {
+  // Deno.truncateSync's types take string only (no URL).
+  Deno.truncateSync(toPathString(path), len);
+}
+
+export function open(path: string | URL, options?: OpenOptions): Promise<FsFile> {
+  return Deno.open(path, options);
+}
+
+export function openSync(path: string | URL, options?: OpenOptions): FsFile {
+  return Deno.openSync(path, options);
+}
+
+export function create(path: string | URL): Promise<FsFile> {
+  return Deno.create(path);
 }
