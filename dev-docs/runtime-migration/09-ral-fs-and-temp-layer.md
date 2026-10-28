@@ -263,7 +263,7 @@ New unit tests use the layer (`deno_ral`) for their own file operations, never r
 - Create: `src/deno_ral/errors.ts`
 - Test: `tests/unit/ral/errors.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 /*
@@ -352,11 +352,11 @@ unitTest("errors - errorWithPath appends the path exactly once", async () => {
 });
 ```
 
-- [ ] **Step 2: Run it and see it fail**
+- [x] **Step 2: Run it and see it fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts` Expected: fails with `Module not found "file:///.../src/deno_ral/errors.ts"`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 /*
@@ -461,11 +461,11 @@ export function errorWithPath(e: Error, path: string): Error {
 }
 ```
 
-- [ ] **Step 4: Run the test**
+- [x] **Step 4: Run the test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/errors.test.ts` Expected: `ok | 4 passed | 0 failed`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/deno_ral/errors.ts tests/unit/ral/errors.test.ts
@@ -478,7 +478,7 @@ git commit -m "deno_ral/errors: runtime-neutral error predicates"
 - Create: `src/deno_ral/temp.ts`
 - Test: `tests/unit/ral/temp.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 The test uses only helpers that `deno_ral/fs.ts` already exports (`existsSync`, `safeRemoveSync`), so it does not depend on Task 3.
 
@@ -593,11 +593,11 @@ unitTest("temp - retries only AlreadyExists, at most 5 times", async () => {
 });
 ```
 
-- [ ] **Step 2: Run it and see it fail**
+- [x] **Step 2: Run it and see it fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/temp.test.ts` Expected: fails with `Module not found "file:///.../src/deno_ral/temp.ts"`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 /*
@@ -674,11 +674,11 @@ export function makeTempFile(options?: TempOptions): Promise<string> {
 }
 ```
 
-- [ ] **Step 4: Run the test**
+- [x] **Step 4: Run the test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/temp.test.ts` Expected: `ok | 5 passed | 0 failed`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/deno_ral/temp.ts tests/unit/ral/temp.test.ts
@@ -2569,3 +2569,45 @@ git commit -m "codemod CI step, backport step, rules docs and changelog for deno
 None.
 Review items closed here: `FileInfo` type break (retyped helpers), alias/`import type` merge, non-idempotent collisions (symbol-based, alias reuse), `realPathSync` footgun (dropped; `canonicalPathSync` here, not in PR 25), skip list vs `kSrcExclusions` (imported, plus `src/core/lib` and `ast-diagram`), `npm:ts-morph` in every unit run (moved to `tools/codemod/` with one CI step), `@std/fs` facts (corrected in Context), temp retry scope (AlreadyExists only), `readDirSync` order (documented, changelog), `instanceof` count (18 in `src/`, 1 in `package/src`, 4 in `tests/`).
 The `onFileRead` hook for `metrics.ts` is PR 20b's, not this PR's.
+
+## Execution log
+
+Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + `tests/run-tests.ps1 --agent`; the Windows equivalent of the plan's `./run-tests.sh` commands).
+
+### Step 0: plan refresh against this worktree
+
+- Branch tip `364ee3bae` (fetched upstream/main); dev build present (`package/dist/bin/quarto.cmd`, `package/dist/bin/tools/x86_64/deno.exe`); `deno.lock` committed.
+- PR 02 present: `tools/check-runtime-boundary.ts` exports `kSrcExclusions` at line 158; `.github/workflows/runtime-boundary.yml`, `tests/asserts.ts` exist.
+- Every `path:line` the plan cites was re-grepped. Two Context citations drifted (content identical, line moved): `src/core/cache/cache.ts:161` is now line 186; `src/core/path.ts:189` is now line 197. `src/deno_ral/fs.ts` is 215 lines (the plan says 206): the Task 3 append point "after `ensureUserWritable`, line 206" is the end of the file, line 214, and the `safeRemoveDirSync` block of lines 147-163 sits at lines 143-169. The `@std/fs` `walk.ts:922` citation cannot be re-grepped (`fs/` maps to the remote `jsr:/@std/fs@1.0.16/`); the `Deno.realPathSync(` grep over `src/` confirms no application caller.
+- README "Open decisions with an owner": no row names PR 09; the plan's "Decisions needed" is none.
+- Beads: `quarto-cli-81ld.13` open with both `blocks` dependencies closed (PR 02 #15135, PR 02c #15153). `quarto-cli-81ld.50` (plan defect: contract tests imported `testing/asserts`) is closed: the plan's `tests/unit/ral` tests import `../../asserts.ts`; only the `tools/codemod` test keeps `testing/asserts` (outside the ratchet `tests` scope, by design).
+
+### Task 1: `src/deno_ral/errors.ts`
+
+- Step 2 (RED): `QUARTO_TESTS_NO_CONFIG=true pwsh -File run-tests.ps1 --agent unit/ral/errors.test.ts` →
+
+  ```
+  TS2307 [ERROR]: Cannot find module 'file:///C:/Users/chris/Documents/DEV_R/quarto-cli.worktrees/rt-09-ral-fs-and-temp-layer/src/deno_ral/errors.ts'.
+  error: Type checking failed.
+  ```
+- Step 4 (GREEN): same command →
+
+  ```
+  ok | 4 passed | 0 failed (88ms)
+  ```
+- Step 5: commit `c40c547ff` "deno_ral/errors: runtime-neutral error predicates" (2 files, 184 insertions).
+
+### Task 2: `src/deno_ral/temp.ts`
+
+- Step 2 (RED): `QUARTO_TESTS_NO_CONFIG=true pwsh -File run-tests.ps1 --agent unit/ral/temp.test.ts` →
+
+  ```
+  TS2307 [ERROR]: Cannot find module 'file:///C:/Users/chris/Documents/DEV_R/quarto-cli.worktrees/rt-09-ral-fs-and-temp-layer/src/deno_ral/temp.ts'.
+  error: Type checking failed.
+  ```
+- Step 4 (GREEN): same command →
+
+  ```
+  ok | 5 passed | 0 failed (78ms)
+  ```
+- Step 5: commit `e43dc49d1` "deno_ral/temp: makeTemp* retrying on AlreadyExists only" (2 files, 180 insertions).

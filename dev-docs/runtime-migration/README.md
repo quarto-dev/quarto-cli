@@ -188,6 +188,14 @@ A test that fails on an OS the executor cannot run: CI on that OS is the evidenc
 Commits follow the plan's steps as written (a failing-test step followed by its implementation step may leave one red commit; no squash is required).
 Changelog: a dependency bump gets a line under `## Dependencies` of `news/changelog-<version>.md` (created by PR 00a); a plan with no user-visible change says `Out: changelog` in its Scope with the reason.
 
+Progress tracking while executing (decided 2026-10-28, from PR 09's run):
+
+- The plan file ends with an "Execution log" section: one entry per task with the commands run and their quoted output; numbers reported anywhere (test counts, ratchet counts, dry-run summaries) are copied from real output.
+  The executor ticks the plan's checkboxes as steps complete; the execution-log and checkbox updates fold into each task's own commit.
+- The beads issue for the PR is set to `in_progress` when execution starts; a `br comments add` one-liner records each finished task.
+  Beads state lives in the main checkout's `.beads/` (the worktree has a `redirect` file); it is never committed from a feature branch.
+  The issue closes when the PR merges, not before.
+
 ## The sequence
 
 Status values: `planned`, `in progress`, `merged`.
@@ -219,7 +227,7 @@ Every PR that changes a count lands after 02c; preparing it earlier is fine.
 | 02b | [02b-node-compatible-ts-syntax.md](02b-node-compatible-ts-syntax.md) | `verbatimModuleSyntax`; `import type` codemod (2,067 specifiers in 504 files); enums, parameter properties and `<T>` casts rewritten; `check-ts-syntax.mjs` in CI | 02 | Opus | L | planned |
 | 08 | [08-ral-process.md](08-ral-process.md) | `deno_ral/process.ts`: spawn/exec interface with `detached`, `killProcess` (group on POSIX, `taskkill /T` tree on Windows), flushing `exit`, `execProcess` on it, 16 direct `Deno.Command` sites, exit/cwd/args/execPath/signals/stdio | 02 | Opus | L | planned |
 | 39 | [39-remove-quarto-latexmk-compile.md](39-remove-quarto-latexmk-compile.md) | Remove the `tinitex` `deno compile` build and the standalone entry (Rust rewrite replaces it); before PR 25, whose zero needs the files gone | 08 | Sonnet | S | planned |
-| 09 | [09-ral-fs-and-temp-layer.md](09-ral-fs-and-temp-layer.md) | `deno_ral/fs.ts`, `temp.ts`, `errors.ts` API (`canonicalPathSync`, retyped `FileInfo`), unit tests, and the idempotent ts-morph codemod with `--reverse` | 02 | Opus | M | planned |
+| 09 | [09-ral-fs-and-temp-layer.md](09-ral-fs-and-temp-layer.md) | `deno_ral/fs.ts`, `temp.ts`, `errors.ts` API (`canonicalPathSync`, retyped `FileInfo`), unit tests, and the idempotent ts-morph codemod with `--reverse` | 02 | Opus | M | in progress |
 | 22 | [22-std-import-seams.md](22-std-import-seams.md) | `colors.ts`, `flags.ts`, base64 seams; table of std modules with internal `Deno.*` and their owner (PR 20b) | 04, 08 | Sonnet | S | planned |
 | 10 | [10-codemod-fs-core.md](10-codemod-fs-core.md) | Run the fs/temp codemod on `src/core`, `src/quarto-core`, `src/config` (56 files) | 09, 08, 22 | Sonnet | L | planned |
 | 11 | [11-codemod-fs-command.md](11-codemod-fs-command.md) | Codemod on `src/command` (43 files) | 09, 08, 22 | Sonnet | L | planned |
