@@ -188,6 +188,28 @@ function isBindingOrReference(id: Node): boolean {
   return true;
 }
 
+// The target of an assignment (`=`, `+=`, `&&=`, ...), `++`/`--`, or
+// `delete`: rewriting it to an imported binding would not be valid.
+function isWriteTarget(node: Node): boolean {
+  let target = node;
+  let parent = node.getParent();
+  while (parent && Node.isParenthesizedExpression(parent)) {
+    target = parent;
+    parent = parent.getParent();
+  }
+  if (!parent) return false;
+  if (Node.isBinaryExpression(parent)) {
+    const op = parent.getOperatorToken().getKind();
+    return parent.getLeft() === target &&
+      op >= SyntaxKind.FirstAssignment && op <= SyntaxKind.LastAssignment;
+  }
+  if (Node.isPrefixUnaryExpression(parent) || Node.isPostfixUnaryExpression(parent)) {
+    const op = parent.getOperatorToken();
+    return op === SyntaxKind.PlusPlusToken || op === SyntaxKind.MinusMinusToken;
+  }
+  return Node.isDeleteExpression(parent);
+}
+
 function resolvesToModule(
   sourceFile: SourceFile,
   specifier: string,
@@ -289,15 +311,15 @@ function forwardFile(
   const edits: Edit[] = [];
   const text = sourceFile.getFullText();
 
-  // 1. Files that assign to Deno.* (monkey patches, instrumentation) are left alone.
+  // 1. Files that write to Deno.* (monkey patches, instrumentation) are left
+  //    alone. The written node may be `Deno.x` or, for nested rules, `Deno.a.b`.
   for (const pae of sourceFile.getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)) {
     if (!isGlobalDeno(pae.getExpression(), kValueMeaning, checker)) continue;
     const parent = pae.getParent();
-    if (
-      Node.isBinaryExpression(parent) && parent.getLeft() === pae &&
-      parent.getOperatorToken().getKind() === SyntaxKind.EqualsToken
-    ) {
-      result.skipped = `assigns to ${pae.getText()} at line ${pae.getStartLineNumber()}`;
+    const nested = Node.isPropertyAccessExpression(parent) && parent.getExpression() === pae;
+    const written = [pae, ...(nested ? [parent] : [])].find(isWriteTarget);
+    if (written) {
+      result.skipped = `assigns to ${written.getText()} at line ${written.getStartLineNumber()}`;
       return { result, edits: [] };
     }
   }
@@ -500,6 +522,9 @@ function reverseFile(
   const edits: Edit[] = [];
   const text = sourceFile.getFullText();
   const identifiers = sourceFile.getDescendantsOfKind(SyntaxKind.Identifier);
+  const localExports = sourceFile.getExportDeclarations()
+    .filter((d) => !d.hasModuleSpecifier())
+    .flatMap((d) => d.getNamedExports());
 
   for (const decl of sourceFile.getImportDeclarations()) {
     const ruleName = rules.find((r) =>
@@ -513,6 +538,16 @@ function reverseFile(
       const target = table[spec.getName()];
       if (!target) continue;
       const local = spec.getAliasNode()?.getText() ?? spec.getName();
+      // `export { x }` / `export { x as y }` re-exports the binding itself and
+      // has no `Deno.*` spelling; keep the import (reported in `left`).
+      const reexport = localExports.find((e) =>
+        checker.getExportSpecifierLocalTargetSymbol(e.compilerNode)?.declarations
+          ?.includes(spec.compilerNode)
+      );
+      if (reexport) {
+        result.left.push({ name: local, line: reexport.getStartLineNumber(), module: rule.module });
+        continue;
+      }
       const refs = identifiers.filter((id) =>
         id.getText() === local && isBindingOrReference(id) &&
         id !== spec.getNameNode() && id !== spec.getAliasNode() &&
