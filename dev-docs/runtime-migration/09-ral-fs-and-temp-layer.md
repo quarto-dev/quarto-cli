@@ -255,7 +255,7 @@ Names outside the tables (`existsSync`, `safeRemoveSync`, `isNotFound`, …) are
 ## Plan
 
 Assumes PR 02 landed (`tools/check-runtime-boundary.ts` exporting `kSrcExclusions`, and `.github/workflows/runtime-boundary.yml`), `./configure.sh` has been run, and `package/dist/bin/tools/x86_64/deno` is the dev Deno (substitute the architecture directory present).
-New unit tests use the layer (`deno_ral`) for their own file operations, never raw `Deno.*` (the ratchet has a `tests` scope); the error-predicate test constructs `Deno.errors` instances through `globalThis` for the same reason.
+New unit tests use the layer (`deno_ral`) for their own file operations, never raw `Deno.*` (the ratchet has a `tests` scope); the error-predicate test reads `Deno.errors` directly behind a `typeof Deno` guard and counts in the `tests` baseline (reading it through `globalThis` would only hide it from the ratchet).
 
 ### Task 1: `src/deno_ral/errors.ts`
 
@@ -2625,3 +2625,10 @@ Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + 
   The plan expected `15 passed` (12 new + 3 `safe-*`); the ral suite now also holds errors (4) and temp (5) from Tasks 1–2, so 12 + 3 + 4 + 5 = 24 = 23 passed + 1 ignored.
 - Step 4, `deno check`: the plan's command fails on Deno 2.7 with `error: Requires import access to "cdn.skypack.dev:443", run again with the --allow-import flag` (a remote import in `src/core/yaml.ts:31`). With `--allow-import` added → `Check quarto.ts`, no errors. Recorded in README for every plan whose verification runs this command.
 - Step 5: commit `9d3b1ca00` "deno_ral/fs: plain filesystem calls, canonicalPathSync, layer-typed helpers" (2 files, 516 insertions, 15 deletions).
+
+### Review of Tasks 1–3
+
+- `tests/unit/ral/fs.test.ts` reuses `withTempDir` from `tests/utils.ts` instead of its own `withDir`; the duplicated `codeError`/`withCode` helpers of `temp.test.ts` and `errors.test.ts` became `errorWithCode` in `tests/unit/ral/utils.ts`.
+- `errors.test.ts` reads `Deno.errors` directly behind a `typeof Deno` guard instead of through `globalThis` (which only hid the access from the ratchet); `tools/runtime-boundary-baseline.json` `tests` 874 → 875 with `--accept-increase`. The PR description lists that occurrence.
+- Plan and PR numbers removed from the comments in `src/deno_ral/{fs,errors,temp}.ts` and the `fs.test.ts` header; README "Decisions and conventions" records both rules.
+- `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/ral/*.test.ts` → `ok | 23 passed | 0 failed | 1 ignored`.
