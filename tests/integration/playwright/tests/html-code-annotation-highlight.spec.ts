@@ -94,6 +94,17 @@ const expectBandsPlaced = async (page: Page, block: Locator) => {
   }
 };
 
+// Guards the fixture against format defaults: Reveal.js numbers code lines
+// unless told otherwise, so a case can silently test the wrong layout.
+const expectLineNumbers = async (block: Locator, numbered: boolean) => {
+  const pre = block.locator("pre.code-annotated");
+  if (numbered) {
+    await expect(pre).toHaveClass(/\bnumber-lines\b/);
+  } else {
+    await expect(pre).not.toHaveClass(/\bnumber-lines\b/);
+  }
+};
+
 const htmlCases = [
   { name: "html", url: "html/code-annotation-highlight.html" },
   { name: "dashboard", url: "dashboard/code-annotation-highlight.html" },
@@ -111,6 +122,7 @@ test.describe("code annotation line highlight", () => {
         const block = page.locator("div.sourceCode")
           .filter({ has: page.locator("pre.code-annotated") })
           .nth(index);
+        await expectLineNumbers(block, label === "with");
         await block.scrollIntoViewIfNeeded();
         await expectBandsPlaced(page, block);
       });
@@ -118,9 +130,9 @@ test.describe("code annotation line highlight", () => {
   }
 
   for (
-    const [slide, index] of [
-      ["without-line-numbers", 1],
-      ["with-line-numbers", 2],
+    const [slide, index, numbered] of [
+      ["without-line-numbers", 1, false],
+      ["with-line-numbers", 2, true],
     ] as const
   ) {
     test(`revealjs — ${slide}, bands fit the code block`, async ({ page }) => {
@@ -133,6 +145,7 @@ test.describe("code annotation line highlight", () => {
       await expect(section).toHaveClass(/present/);
       const block = section.locator("div.sourceCode");
       await expect(block).toBeVisible();
+      await expectLineNumbers(block, numbered);
       await expectBandsPlaced(page, block);
     });
   }
@@ -145,6 +158,7 @@ test.describe("code annotation line highlight", () => {
     });
     const box = page.locator("#scroll-box");
     const block = box.locator("div.sourceCode");
+    await expectLineNumbers(block, false);
     await block.scrollIntoViewIfNeeded();
     expect(await box.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
     await expectBandsPlaced(page, block);
