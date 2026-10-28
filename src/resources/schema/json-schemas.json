@@ -1931,6 +1931,9 @@
           "scrollable-output-label": {
             "type": "string"
           },
+          "link-external-newwindow-label": {
+            "type": "string"
+          },
           "revealjs-menu-button-label": {
             "type": "string"
           },

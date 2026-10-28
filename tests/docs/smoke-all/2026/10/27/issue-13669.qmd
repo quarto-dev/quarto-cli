@@ -1,0 +1,17 @@
+---
+title: "Citation BibTeX copy button"
+author: "Author name"
+date: "2025-01-01"
+format: html
+citation: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - '#quarto-citation div.code-copy-outer-scaffold > pre.quarto-appendix-bibtex'
+          - '#quarto-citation div.code-copy-outer-scaffold > button.code-copy-button'
+        - []
+---
+
+The BibTeX block in the citation appendix sits in the same `code-copy-outer-scaffold` wrapper as other code blocks, so the copy button is positioned inside the block and its icon shows on hover (#13669).

@@ -1,0 +1,16 @@
+---
+title: "External Links Test - Paginated"
+listing:
+  id: paged-listing
+  contents:
+    - path: local-post.qmd
+      title: "Local Post"
+    - path: https://example.com/external-article
+      title: "External Article"
+  type: default
+  sort: "title desc"
+  page-size: 1
+---
+
+::: {#paged-listing}
+:::
