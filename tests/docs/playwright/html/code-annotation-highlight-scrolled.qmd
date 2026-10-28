@@ -1,0 +1,34 @@
+---
+title: "Code annotation line highlight in a scrolled container"
+format:
+  html:
+    code-copy: false
+code-annotations: below
+---
+
+::: {#scroll-box style="position: relative; height: 200px; overflow: auto;"}
+
+Filler paragraph so the code block starts below the visible area of the box.
+
+Filler paragraph so the code block starts below the visible area of the box.
+
+Filler paragraph so the code block starts below the visible area of the box.
+
+Filler paragraph so the code block starts below the visible area of the box.
+
+```{.python}
+# Some comment
+# to avoid overlapping copy button and annotation marker
+import polars as pl # <1>
+df = pl.DataFrame({"a": [1, 2]}) # <2>
+df.head() # <2>
+```
+
+1. Import the library.
+2. Build and show a data frame.
+
+Filler paragraph after the annotations.
+
+Filler paragraph after the annotations.
+
+:::
