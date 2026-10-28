@@ -170,6 +170,17 @@ Deno.test("codemod - every form of write to Deno.* skips the file", () => {
     ["write-destructure-object", ["fs"], "assigns to Deno.readTextFileSync at line 2"],
     ["write-destructure-array", ["platform"], "assigns to Deno.build.os at line 2"],
     ["write-for-of", ["platform"], "assigns to Deno.build.os at line 2"],
+    ["write-asserted-target", ["fs"], "assigns to Deno.readTextFileSync at line 2"],
+    ["write-non-null", ["platform"], "assigns to Deno.build.os at line 2"],
+    // A patch through a wrapped receiver: rewriting `original` to the layer
+    // wrapper would make the patched function call itself.
+    [
+      "write-asserted-receiver",
+      ["fs"],
+      "assigns to (Deno as any).readTextFileSync at line 2",
+    ],
+    ["write-asserted-nested", ["platform"], "assigns to (<any> Deno.build).os at line 2"],
+    ["write-element-access", ["fs"], 'assigns to Deno["readTextFileSync"] at line 2'],
   ];
   for (const [name, rules, skipped] of cases) {
     const { result, output } = run(name, rules);
