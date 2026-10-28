@@ -1255,7 +1255,7 @@ The codemod test lives under `tools/`, not `tests/unit/`: `run-tests.sh` only di
 It runs in one dedicated CI step (Task 5) and locally with plain `deno test`.
 Being outside the ratchet scopes, it may use `Deno.*`.
 
-- [ ] **Step 1: Write the fixtures**
+- [x] **Step 1: Write the fixtures**
 
 Each fixture is copied by the test to `<tmp>/src/core/<name>.ts`, next to a (non-existent) `<tmp>/src/deno_ral/`, so layer imports read `../deno_ral/<module>.ts`.
 Fixture files are inputs to a tool, not modules of the build, and `deno check` never sees them (they are not imported).
@@ -1566,7 +1566,7 @@ export function stop() {
 }
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 `tools/codemod/codemod-deno-ral.test.ts`:
 
@@ -1774,11 +1774,11 @@ Deno.test("codemod - collectFiles applies the skip list", () => {
 });
 ```
 
-- [ ] **Step 3: Run it and see it fail**
+- [x] **Step 3: Run it and see it fail**
 
 Run: `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` Expected: fails with `Module not found "file:///.../tools/codemod-deno-ral.ts"`.
 
-- [ ] **Step 4: Implement `tools/codemod-deno-ral.ts`**
+- [x] **Step 4: Implement `tools/codemod-deno-ral.ts`**
 
 ```ts
 /*
@@ -2390,7 +2390,7 @@ if (import.meta.main) {
 }
 ```
 
-- [ ] **Step 5: Run the test**
+- [x] **Step 5: Run the test**
 
 Run: `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` Expected: `ok | 17 passed | 0 failed`.
 The first run downloads `ts-morph@28.0.0` into the Deno npm cache (network needed once).
@@ -2398,7 +2398,7 @@ The fixtures and the logic were validated before this plan was written by runnin
 
 If a fixture comparison fails on whitespace only, fix the *expected* file to match the tool's deterministic output and say so in the commit message; the contract is "deterministic", not "pretty" (PRs 10–14 run `deno fmt` after the codemod).
 
-- [ ] **Step 6: Dry-run against the real tree**
+- [x] **Step 6: Dry-run against the real tree**
 
 Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run | grep -E 'skipped|collision|Summary'` Expected (measured with the Node port on `b86f98d`; about one second per rewritten file, because each file gets its own type checker):
 ```
@@ -2412,7 +2412,7 @@ Summary: 205 files scanned, 56 would be rewritten, 153 replacements, 2 with coll
 (205, not 264: `src/core/lib` is skipped.)
 `git status --short src` shows no modified files.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tools/codemod-deno-ral.ts tools/codemod
@@ -2640,3 +2640,22 @@ Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + 
 - `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/ral/*.test.ts` → `ok | 23 passed | 0 failed | 1 ignored`.
 - Post-commit review found `annotate` in `src/deno_ral/fs.ts` defeated `errorWithPath`'s idempotence for file URLs: it passed `toPathString(path)` (filesystem path) while the still-active read-annotation wrapper appends `"Path: " + path` (the URL href), so a second `Path:` line was added. Commit `4bdd5f4ca` switches to `String(path)` and adds missing-file URL cases to `fs.test.ts` (the new assertion fails on the old code: two `Path:` lines).
 - The `errorWithPath` docstring and the `annotate` comment no longer name the read-annotation wrapper's file: the wording holds while the wrapper is active and after its removal, so the removal-time comment sweep has two fewer hits (the remaining ones, in `temp.ts` and `fs.test.ts`, are tracked in beads). `String(path)` is unchanged, so idempotence with the active wrapper is unaffected.
+
+### Task 4: the codemod and its fixtures
+
+- Steps 1–3 (fixtures, failing test, RED) were ticked with files on disk at resume; verified the RED via the module-not-found state and the ticked checkboxes.
+- Step 4: `tools/codemod-deno-ral.ts` transcribed verbatim from the plan (607 lines). The prior session's write had been interrupted; rewrote the whole file from the plan block rather than splice mid-function.
+- Step 5 (GREEN): `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` initially failed 9/17 with CRLF mismatches — the extracted fixtures and test file had been written CRLF, while the tool emits LF. Normalized all `tools/codemod/**` files and `tools/codemod-deno-ral.ts` to LF (repo standard for `tools/`; `tests/unit/ral/fs.test.ts` is `i/lf w/lf`). Re-run: `ok | 17 passed | 0 failed`, matching the plan exactly.
+- Step 6 (dry-run): `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run`. All 5 collision/skipped lines, 205 files, 153 replacements, 2 collisions, 2 skipped match the plan. One delta: `57 would be rewritten` vs the plan's `56` — the plan's figure was measured on `b86f98d`; this worktree's `src/core` gained a rewritable call in Tasks 1–3 (one extra file), not an error. `git status --short src` empty (dry-run wrote nothing).
+- Step 7: commit `c5af406bc` "tools: ts-morph codemod for Deno.* <-> deno_ral rewrites, with fixtures" (32 files, 1000 insertions).
+
+### Review of Task 4: the write guard
+
+Four review rounds on the forward guard that skips files patching `Deno.*` (forward behaviour item 1). Each finding was reproduced before the fix, and each new fixture is rewritten by the previous guard and skipped unchanged by the new one.
+
+- `61947b5f9`: the guard matched only a plain `=` on `Deno.x`. Compound and logical assignments, `++`/`--`, `delete`, and writes to the nested `Deno.build.os` node the platform rule replaces now skip the file. The same commit fixes reverse mode: `export { os }` keeps its import and is reported in `left`.
+- `0b4a15b83`: destructuring targets (`({ readTextFileSync: Deno.readTextFileSync } = o)`, `[Deno.build.os] = …`) and `for…of`/`for…in` heads. `literal-not-write` pins that a literal that is not a pattern is still rewritten.
+- `81d6aed64`: writes through `as`, `<T>`, `!` or `satisfies` on the target or the `Deno` receiver, and `Deno["x"]`. The receiver case shows why the guard exists: with `(Deno as any).readTextFileSync = …`, an earlier `const original = Deno.readTextFileSync` became the layer wrapper, which forwards to the patched method, so the patch called itself.
+- `94753630a`: `Object.defineProperty(Deno, …)` hid the same recursion, and so did an alias or `globalThis.Deno`. Rather than list every mutating call, the guard now skips a file where the global `Deno` is used other than as `Deno.x` (alias, argument, spread, destructuring source) or reached through `globalThis`/`self`/`window`, which is the rule README "How to execute a plan" already applies to `src/`. `typeof Deno`, type positions and declaration names are exempt; the first draft flagged `type Deno = …` in `shadowed-deno`. The `Object`/`Reflect` mutator list remains only for nested `Deno.a` targets (`Object.assign(Deno.build, …)`).
+- `842260c91`: forward behaviour item 1 now lists the four `skipped` reasons and the per-file limit. The Step 4 code block still shows the guard as first transcribed.
+- After each round, `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` passed (26 tests after the last round), and the forward dry run over `src/` with all rules (`--rules fs,temp,env,process,platform --dir src --dry-run`) was unchanged: 624 files scanned, 224 would be rewritten, 816 replacements, 18 with collisions, 2 skipped (`src/core/deno/monkey-patch.ts`, `src/core/performance/metrics.ts`).
