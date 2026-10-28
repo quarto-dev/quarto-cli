@@ -131,10 +131,10 @@ No signature changes. `FileCounts.deno` keys indirect access like direct access:
 
 **Files:** `tools/runtime-boundary-baseline.json`, `dev-docs/runtime-migration/README.md`
 
-- [ ] **Step 1: Run the check.** `quarto run --dev tools/check-runtime-boundary.ts` from the repository root. Expected rows: `src 992 (baseline 991)`, `resources 12 (baseline 10)`, every other count equal to its baseline, and "rose" messages for `src` and `resources`. Different numbers mean `main` moved: re-run the Context measurement and record it in the execution log.
-- [ ] **Step 2: Update the baseline.** `quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-increase`; then re-run Step 1's command and expect no "rose" message.
-- [ ] **Step 3: README row.** In "The sequence", set the `02d` row's status from `planned` to `in progress` (the row landed with this plan).
-- [ ] **Step 4: Commit.** `git add tools/runtime-boundary-baseline.json dev-docs/runtime-migration/README.md dev-docs/runtime-migration/02d-ratchet-counts-indirect-deno.md`, message "Runtime boundary: baseline for indirect Deno access (src +1, resources +2)".
+- [x] **Step 1: Run the check.** `quarto run --dev tools/check-runtime-boundary.ts` from the repository root. Expected rows: `src 992 (baseline 991)`, `resources 12 (baseline 10)`, every other count equal to its baseline, and "rose" messages for `src` and `resources`. Different numbers mean `main` moved: re-run the Context measurement and record it in the execution log.
+- [x] **Step 2: Update the baseline.** `quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-increase`; then re-run Step 1's command and expect no "rose" message.
+- [x] **Step 3: README row.** In "The sequence", set the `02d` row's status from `planned` to `in progress` (the row landed with this plan).
+- [x] **Step 4: Commit.** `git add tools/runtime-boundary-baseline.json dev-docs/runtime-migration/README.md dev-docs/runtime-migration/02d-ratchet-counts-indirect-deno.md`, message "Runtime boundary: baseline for indirect Deno access (src +1, resources +2)".
 
 ## Verification
 
@@ -189,3 +189,42 @@ Step 4 (GREEN), same command:
 ```text
 ok | 43 passed | 0 failed (14s)
 ```
+
+### Task 2: baseline and README
+
+Step 1, from the repository root: `./package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts`
+
+```text
+scope         Deno.* calls            std-import files
+src           992 (baseline 991)      49 (baseline 49)
+src-js        7 (baseline 7)          0 (baseline 0)
+resources     12 (baseline 10)        1 (baseline 1)
+package/src   240 (baseline 240)      3 (baseline 3)
+tests         874 (baseline 874)      176 (baseline 176)
+src: Deno.* calls rose from 991 to 992 on main. ...
+resources: Deno.* calls rose from 10 to 12 on main. ...
+```
+
+The numbers match the plan, so the Context measurement stands.
+
+Step 2: the same command with `--update-baseline --accept-increase`:
+
+```text
+::warning::src baseline raised from 991 to 992 (Deno.* calls); list the new occurrences in the PR description
+::warning::resources baseline raised from 10 to 12 (Deno.* calls); list the new occurrences in the PR description
+Baseline written to tools/runtime-boundary-baseline.json
+```
+
+Re-run without the flags:
+
+```text
+scope         Deno.* calls            std-import files
+src           992 (baseline 992)      49 (baseline 49)
+src-js        7 (baseline 7)          0 (baseline 0)
+resources     12 (baseline 12)        1 (baseline 1)
+package/src   240 (baseline 240)      3 (baseline 3)
+tests         874 (baseline 874)      176 (baseline 176)
+OK: no count exceeds the baseline.
+```
+
+Step 3: the `02d` row in `dev-docs/runtime-migration/README.md` now reads `in progress`.
