@@ -188,6 +188,11 @@ Deno.test("codemod - every form of write to Deno.* skips the file", () => {
     ["write-shorthand", ["fs"], "uses Deno other than as Deno.x at line 1"],
     ["write-global-this", ["fs"], "reaches Deno through globalThis.Deno at line 2"],
     ["write-global-this-element", ["fs"], 'reaches Deno through self["Deno"] at line 2'],
+    [
+      "write-global-this-template",
+      ["fs"],
+      "reaches Deno through globalThis[`Deno`] at line 2",
+    ],
     ["write-object-assign", ["platform"], "assigns to Deno.build via Object.assign at line 2"],
     [
       "write-object-assign-paren",
@@ -198,6 +203,11 @@ Deno.test("codemod - every form of write to Deno.* skips the file", () => {
       "write-object-assign-element",
       ["platform"],
       'assigns to Deno.build via Object["assign"] at line 2',
+    ],
+    [
+      "write-object-assign-template",
+      ["platform"],
+      "assigns to Deno.build via Object[`assign`] at line 2",
     ],
   ];
   for (const [name, rules, skipped] of cases) {
