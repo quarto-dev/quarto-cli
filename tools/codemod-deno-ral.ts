@@ -202,6 +202,15 @@ function outermostWrapper(node: Node): Node {
   return outer;
 }
 
+// The expression inside any transparent wrappers: `Object.assign` for
+// `(Object.assign)`.
+function unwrap(node: Node): Node {
+  while (isTransparentWrapper(node)) {
+    node = (node as Node & { getExpression(): Node }).getExpression();
+  }
+  return node;
+}
+
 // The `.x` or `[x]` access whose receiver is `node`, possibly wrapped
 // (`(Deno as any).x`).
 function accessOn(node: Node): Node | undefined {
@@ -221,6 +230,8 @@ function isDenoEscape(id: Node): boolean {
   if (accessOn(id)) return false;
   const parent = outermostWrapper(id).getParent();
   if (!parent) return false;
+  // `{ Deno }` is a use, although its name is also the property's name.
+  if (Node.isShorthandPropertyAssignment(parent)) return true;
   // The name of a declaration (`type Deno = ...`) is not a use.
   if (
     !Node.isExpression(parent) &&
@@ -241,25 +252,27 @@ function globalObjectDeno(id: Node): Node | undefined {
   return undefined;
 }
 
-// Calls that replace or remove members of their first argument.
-const kMutators: Record<string, string[]> = {
-  Object: ["assign", "defineProperty", "defineProperties"],
-  Reflect: ["set", "defineProperty", "deleteProperty"],
-};
+// Calls that replace or remove members of their first argument. A Map, so
+// that an owner such as `constructor` finds no inherited entry.
+const kMutators = new Map([
+  ["Object", ["assign", "defineProperty", "defineProperties"]],
+  ["Reflect", ["set", "defineProperty", "deleteProperty"]],
+]);
 
 // `Object.assign` when `node`, possibly wrapped, is the first argument of
-// such a call (`Object.assign(Deno.build, ...)`).
+// such a call (`Object.assign(Deno.build, ...)`), the callee and its owner
+// possibly wrapped too (`(Object.assign)(...)`).
 function mutatorOf(node: Node): string | undefined {
   const arg = outermostWrapper(node);
   const call = arg.getParent();
   if (!Node.isCallExpression(call) || call.getArguments()[0] !== arg) return undefined;
-  const callee = call.getExpression();
+  const callee = unwrap(call.getExpression());
   if (!Node.isPropertyAccessExpression(callee)) return undefined;
-  const owner = callee.getExpression();
-  if (!Node.isIdentifier(owner) || !kMutators[owner.getText()]?.includes(callee.getName())) {
+  const owner = unwrap(callee.getExpression());
+  if (!Node.isIdentifier(owner) || !kMutators.get(owner.getText())?.includes(callee.getName())) {
     return undefined;
   }
-  return callee.getText();
+  return call.getExpression().getText();
 }
 
 // The target of an assignment (`=`, `+=`, `&&=`, ...), `++`/`--`, `delete`,
