@@ -214,6 +214,54 @@ function accessOn(node: Node): Node | undefined {
   return undefined;
 }
 
+// A use of `Deno` that is neither `Deno.x` nor a read of its type:
+// `const d = Deno`, `f(Deno)`, `{ ...Deno }`, `const { x } = Deno`. What
+// happens to Deno past such a use cannot be followed.
+function isDenoEscape(id: Node): boolean {
+  if (accessOn(id)) return false;
+  const parent = outermostWrapper(id).getParent();
+  if (!parent) return false;
+  // The name of a declaration (`type Deno = ...`) is not a use.
+  if (
+    !Node.isExpression(parent) &&
+    ts.getNameOfDeclaration(parent.compilerNode as ts.Declaration) === id.compilerNode
+  ) return false;
+  return !Node.isTypeOfExpression(parent) && !Node.isQualifiedName(parent) &&
+    !Node.isTypeQuery(parent) && !Node.isTypeReference(parent);
+}
+
+// `globalThis.Deno`, `self["Deno"]`, ... when `id` is the global object.
+const kGlobalObjects = ["globalThis", "self", "window"];
+function globalObjectDeno(id: Node): Node | undefined {
+  if (!kGlobalObjects.includes(id.getText())) return undefined;
+  const access = accessOn(id);
+  if (Node.isPropertyAccessExpression(access) && access.getName() === "Deno") return access;
+  const arg = Node.isElementAccessExpression(access) ? access.getArgumentExpression() : undefined;
+  if (Node.isStringLiteral(arg) && arg.getLiteralText() === "Deno") return access;
+  return undefined;
+}
+
+// Calls that replace or remove members of their first argument.
+const kMutators: Record<string, string[]> = {
+  Object: ["assign", "defineProperty", "defineProperties"],
+  Reflect: ["set", "defineProperty", "deleteProperty"],
+};
+
+// `Object.assign` when `node`, possibly wrapped, is the first argument of
+// such a call (`Object.assign(Deno.build, ...)`).
+function mutatorOf(node: Node): string | undefined {
+  const arg = outermostWrapper(node);
+  const call = arg.getParent();
+  if (!Node.isCallExpression(call) || call.getArguments()[0] !== arg) return undefined;
+  const callee = call.getExpression();
+  if (!Node.isPropertyAccessExpression(callee)) return undefined;
+  const owner = callee.getExpression();
+  if (!Node.isIdentifier(owner) || !kMutators[owner.getText()]?.includes(callee.getName())) {
+    return undefined;
+  }
+  return callee.getText();
+}
+
 // The target of an assignment (`=`, `+=`, `&&=`, ...), `++`/`--`, `delete`,
 // or a `for (x of/in ...)` head, directly or inside a destructuring pattern
 // (`({ a: x } = o)`, `[x] = a`): rewriting it to an imported binding would
@@ -359,17 +407,26 @@ function forwardFile(
   //    alone. The written node may be `Deno.x` or, for nested rules, `Deno.a.b`,
   //    with the receiver wrapped or not (`(Deno as any).x`, `Deno["x"]`). A
   //    write through a wrapped receiver counts too: the file's plain reads
-  //    would otherwise become layer calls into the patched function.
+  //    would otherwise become layer calls into the patched function. A file
+  //    that uses Deno other than as `Deno.x` (an alias, an argument such as
+  //    `Object.defineProperty(Deno, ...)`, `globalThis.Deno`) is left alone
+  //    too, since writes past that use cannot be followed.
+  const skip = (reason: string, node: Node) => {
+    result.skipped = `${reason} at line ${node.getStartLineNumber()}`;
+    return { result, edits: [] };
+  };
   for (const id of sourceFile.getDescendantsOfKind(SyntaxKind.Identifier)) {
-    if (!isGlobalDeno(id, kValueMeaning, checker)) continue;
+    const viaGlobal = globalObjectDeno(id);
+    if (viaGlobal) return skip(`reaches Deno through ${viaGlobal.getText()}`, viaGlobal);
+    if (!isBindingOrReference(id) || !isGlobalDeno(id, kValueMeaning, checker)) continue;
+    if (isDenoEscape(id)) return skip("uses Deno other than as Deno.x", id);
     const access = accessOn(id);
     if (!access) continue;
     const nested = accessOn(access);
     const written = [access, ...(nested ? [nested] : [])].find(isWriteTarget);
-    if (written) {
-      result.skipped = `assigns to ${written.getText()} at line ${written.getStartLineNumber()}`;
-      return { result, edits: [] };
-    }
+    if (written) return skip(`assigns to ${written.getText()}`, written);
+    const mutator = mutatorOf(access);
+    if (mutator) return skip(`assigns to ${access.getText()} via ${mutator}`, access);
   }
 
   const importDecls = sourceFile.getImportDeclarations();
