@@ -144,17 +144,21 @@ No signature changes. `FileCounts.deno` keys indirect access like direct access:
 
 ## Review checklist
 
-- [ ] `typeof Deno`, a `"Deno"` string, `DenoKv`, `myDeno.x`, `["Deno"]` in an array and `obj["Deno"]` stay uncounted (second new test); bracket access counts only on a `globalThis` receiver.
-- [ ] `globalThis.Deno.cwd()` counts once, not twice (the bare alternative's negative lookahead).
-- [ ] The keys of indirect access match the keys of direct access, so `kRalDenoReplacements` findings apply to both (`globalThis.Deno?.build.os` keys as `build.os`).
-- [ ] No file outside the four in Files changed.
-- [ ] No new helper duplicates an existing one (`tests/utils.ts`, `tests/verify.ts`, `tests/unit/**/utils.ts`, `src/`).
-- [ ] No code outside `src/deno_ral/` reaches `Deno` indirectly to stay out of the ratchet count.
-- [ ] Comments in `src/` and `tests/` state the current reason only, with no plan or PR numbers.
+- [x] `typeof Deno`, a `"Deno"` string, `DenoKv`, `myDeno.x`, `["Deno"]` in an array and `obj["Deno"]` stay uncounted (second new test); bracket access counts only on a `globalThis` receiver.
+- [x] `globalThis.Deno.cwd()` counts once, not twice (the bare alternative's negative lookahead).
+- [x] The keys of indirect access match the keys of direct access, so `kRalDenoReplacements` findings apply to both (`globalThis.Deno?.build.os` keys as `build.os`).
+- [x] No file outside the four in Files changed.
+- [x] No new helper duplicates an existing one (`tests/utils.ts`, `tests/verify.ts`, `tests/unit/**/utils.ts`, `src/`).
+- [x] No code outside `src/deno_ral/` reaches `Deno` indirectly to stay out of the ratchet count.
+- [x] Comments in `src/` and `tests/` state the current reason only, with no plan or PR numbers.
 
 ## Risks and rollback
 
 A false positive raises a count a PR did not really raise; it shows as a "rose" finding on an unrelated line and is fixed by tightening the regex with a test case.
+Known gaps, left uncounted on purpose: a cast with more than one word (`(globalThis as Record<string, unknown>)["Deno"]`), destructuring (`const { Deno: d } = globalThis`), an alias (`const d = Deno`) and `self.Deno`/`window.Deno`.
+Measured on `main` at `364ee3bae`: none appears in a counted scope (the only destructuring is in the excluded `src/resources/extension-subtrees`).
+Counting an alias would mean counting a bare `Deno`, which the comments counted with the code also use in prose; a deliberate dodge always finds a spelling a regex misses, so the review checklist item on indirect access is the check, and code that still reaches Deno fails on Node (PRs 26 and 31).
+The PR check (`--against` the base) prints "main is above the baseline ... not caused by this PR" for `src` and `resources`: it counts the base tree with this PR's regex. That notice is expected here, and the PR description says so.
 Rollback: revert the PR; the baseline goes back with it.
 
 ## Execution log
