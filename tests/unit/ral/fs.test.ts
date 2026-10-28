@@ -17,7 +17,7 @@ import {
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { isNotFound } from "../../../src/deno_ral/errors.ts";
 import { makeTempDirSync } from "../../../src/deno_ral/temp.ts";
-import { join } from "../../../src/deno_ral/path.ts";
+import { join, toFileUrl } from "../../../src/deno_ral/path.ts";
 import {
   canonicalPathSync,
   chmodSync,
@@ -76,6 +76,31 @@ unitTest("fs - read errors carry the path once and satisfy isNotFound", withDir(
   }
   assert(isNotFound(asyncErr));
   assertStringIncludes((asyncErr as Error).message, "Path: " + missing);
+  // Missing file as a file URL: the annotation must use the same
+  // representation as core/deno/monkey-patch.ts (`"Path: " + path`, i.e.
+  // the URL href) so it is appended once even with the patch active.
+  const missingUrl = toFileUrl(missing);
+  const urlErr = assertThrows(() => readTextFileSync(missingUrl));
+  assert(isNotFound(urlErr));
+  assertStringIncludes((urlErr as Error).message, "Path: " + missingUrl);
+  assertEquals(
+    (urlErr as Error).message.split("Path: ").length,
+    2,
+    "URL path appended once",
+  );
+  let asyncUrlErr: unknown;
+  try {
+    await readTextFile(missingUrl);
+  } catch (err) {
+    asyncUrlErr = err;
+  }
+  assert(isNotFound(asyncUrlErr));
+  assertStringIncludes((asyncUrlErr as Error).message, "Path: " + missingUrl);
+  assertEquals(
+    (asyncUrlErr as Error).message.split("Path: ").length,
+    2,
+    "URL path appended once",
+  );
 }));
 
 unitTest("fs - bytes round trip", withDir((dir) => {
