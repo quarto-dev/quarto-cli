@@ -188,6 +188,32 @@ function isBindingOrReference(id: Node): boolean {
   return true;
 }
 
+// Wrappers that leave the wrapped expression the same assignment target or
+// receiver: `(x)`, `x as T`, `<T>x`, `x!`, `x satisfies T`.
+function isTransparentWrapper(node: Node): boolean {
+  return Node.isParenthesizedExpression(node) || Node.isAsExpression(node) ||
+    Node.isTypeAssertion(node) || Node.isNonNullExpression(node) ||
+    Node.isSatisfiesExpression(node);
+}
+
+function outermostWrapper(node: Node): Node {
+  let outer = node;
+  for (let p = outer.getParent(); p && isTransparentWrapper(p); p = p.getParent()) outer = p;
+  return outer;
+}
+
+// The `.x` or `[x]` access whose receiver is `node`, possibly wrapped
+// (`(Deno as any).x`).
+function accessOn(node: Node): Node | undefined {
+  const receiver = outermostWrapper(node);
+  const access = receiver.getParent();
+  if (
+    (Node.isPropertyAccessExpression(access) || Node.isElementAccessExpression(access)) &&
+    access.getExpression() === receiver
+  ) return access;
+  return undefined;
+}
+
 // The target of an assignment (`=`, `+=`, `&&=`, ...), `++`/`--`, `delete`,
 // or a `for (x of/in ...)` head, directly or inside a destructuring pattern
 // (`({ a: x } = o)`, `[x] = a`): rewriting it to an imported binding would
@@ -196,13 +222,13 @@ function isWriteTarget(node: Node): boolean {
   let target = node;
   let parent = node.getParent();
   let inPattern = false;
-  // Climb parentheses and the literals that a destructuring pattern is
-  // written with; whether the outermost literal is a pattern is decided below.
+  // Climb transparent wrappers and the literals that a destructuring pattern
+  // is written with; whether the outermost literal is a pattern is decided below.
   while (parent) {
     if (Node.isArrayLiteralExpression(parent) || Node.isObjectLiteralExpression(parent)) {
       inPattern = true;
     } else if (
-      !Node.isParenthesizedExpression(parent) && !Node.isSpreadElement(parent) &&
+      !isTransparentWrapper(parent) && !Node.isSpreadElement(parent) &&
       !Node.isSpreadAssignment(parent) &&
       !(Node.isPropertyAssignment(parent) && parent.getInitializer() === target)
     ) break;
@@ -330,12 +356,16 @@ function forwardFile(
   const text = sourceFile.getFullText();
 
   // 1. Files that write to Deno.* (monkey patches, instrumentation) are left
-  //    alone. The written node may be `Deno.x` or, for nested rules, `Deno.a.b`.
-  for (const pae of sourceFile.getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)) {
-    if (!isGlobalDeno(pae.getExpression(), kValueMeaning, checker)) continue;
-    const parent = pae.getParent();
-    const nested = Node.isPropertyAccessExpression(parent) && parent.getExpression() === pae;
-    const written = [pae, ...(nested ? [parent] : [])].find(isWriteTarget);
+  //    alone. The written node may be `Deno.x` or, for nested rules, `Deno.a.b`,
+  //    with the receiver wrapped or not (`(Deno as any).x`, `Deno["x"]`). A
+  //    write through a wrapped receiver counts too: the file's plain reads
+  //    would otherwise become layer calls into the patched function.
+  for (const id of sourceFile.getDescendantsOfKind(SyntaxKind.Identifier)) {
+    if (!isGlobalDeno(id, kValueMeaning, checker)) continue;
+    const access = accessOn(id);
+    if (!access) continue;
+    const nested = accessOn(access);
+    const written = [access, ...(nested ? [nested] : [])].find(isWriteTarget);
     if (written) {
       result.skipped = `assigns to ${written.getText()} at line ${written.getStartLineNumber()}`;
       return { result, edits: [] };
