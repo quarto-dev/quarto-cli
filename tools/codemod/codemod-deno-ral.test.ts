@@ -128,9 +128,12 @@ Deno.test("codemod - platform rule rewrites Deno.build.os/arch", () => {
 });
 
 Deno.test("codemod - a locally bound Deno receiver is left alone", () => {
+  // Shadowing is per meaning: a value-only `Deno` parameter does not hide the
+  // global namespace in `Deno.FileInfo`, and a local `type Deno` does not hide
+  // the global value in `Deno.readTextFileSync(...)`.
   const { result, output } = run("shadowed-deno", ["fs"]);
   assertEquals(output, read("shadowed-deno.expected.ts"));
-  assertEquals(result.replacements.length, 2);
+  assertEquals(result.replacements.length, 4);
   assertEquals(result.collisions, []);
 });
 
@@ -179,6 +182,16 @@ Deno.test("codemod --reverse - expands shorthand properties to explicit assignme
   const { result, output } = run("reverse-shorthand", ["platform"], { reverse: true });
   assertEquals(output, read("reverse-shorthand.expected.ts"));
   assertEquals(result.importsRemoved, { "platform.ts": ["arch", "os"] });
+});
+
+Deno.test("codemod --reverse - keeps an import whose Deno.* would be shadowed", () => {
+  const { result, output } = run("reverse-shadowed-deno", ["fs", "platform"], { reverse: true });
+  assertEquals(output, read("reverse-shadowed-deno.expected.ts"));
+  assertEquals(result.left, [
+    { name: "statSync", line: 4, module: "fs.ts" },
+    { name: "os", line: 7, module: "platform.ts" },
+  ]);
+  assertEquals(result.importsRemoved, { "fs.ts": ["FileInfo"] });
 });
 
 Deno.test("codemod --reverse - follows aliases and reports what it cannot express", () => {

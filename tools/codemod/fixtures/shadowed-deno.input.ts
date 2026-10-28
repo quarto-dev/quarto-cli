@@ -16,3 +16,8 @@ export function readReal(path: string): string {
 export function realInfo(f: Deno.FileInfo): unknown {
   return f;
 }
+
+export function typeOnly(path: string): string {
+  type Deno = { readTextFileSync: unknown };
+  return Deno.readTextFileSync(path);
+}
