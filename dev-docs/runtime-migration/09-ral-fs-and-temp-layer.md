@@ -2614,9 +2614,9 @@ Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + 
 
 ### Task 3: `src/deno_ral/fs.ts` additions
 
-- Step 2 (RED): `QUARTO_TESTS_NO_CONFIG=true pwsh -File run-tests.ps1 --agent unit/ral/fs.test.ts` → 23 type errors, `TS2305: Module '"../../../src/deno_ral/fs.ts"' has no exported member 'readTextFileSync'` (and the other new names), as expected.
+- Step 2 (RED): `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/ral/fs.test.ts` → 23 type errors, `TS2305: Module '"../../../src/deno_ral/fs.ts"' has no exported member 'readTextFileSync'` (and the other new names), as expected.
 - Step 3: the plan's verbatim block needed two adaptations against this worktree's vendored Deno 2.7.14 types (a defect in the plan's Step 3 code): `Deno.SymlinkOptions.type` is required, so `symlink[Sync]` forwards an options object only when a `type` is given (a bare `symlinkSync(a, b)` stays options-free, matching existing callers); `Deno.truncateSync` takes `string` only, so a URL goes through `toPathString`. Both recorded in README "Open decisions with an owner" for PR 27.
-- Step 4 (GREEN): `QUARTO_TESTS_NO_CONFIG=true pwsh -File run-tests.ps1 --agent <all unit/ral/*.test.ts>` →
+- Step 4 (GREEN): `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/ral/*.test.ts` (pwsh passes the glob through; Deno expands it) →
 
   ```
   ok | 23 passed | 0 failed | 1 ignored (6s)
