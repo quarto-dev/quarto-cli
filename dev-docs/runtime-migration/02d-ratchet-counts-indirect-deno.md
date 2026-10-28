@@ -25,7 +25,7 @@ The current regex misses three spellings of the same access:
 3. a bare `globalThis.Deno` that aliases the namespace (`Deno = globalThis.Deno;`).
 
 `globalThis.Deno.cwd()` is already counted: `\b` matches between `.` and `D`.
-`typeof Deno` and the string `"Deno"` are not access and stay uncounted.
+`typeof Deno`, the string `"Deno"`, and `["Deno"]` as an array element or a property of any object other than `globalThis` are not access to the namespace and stay uncounted.
 
 Measured on `main` at `364ee3bae` with the regex below (a scratch script over `git ls-files`, scoped with `scopesOf`): no optional-chaining or bracket hit outside the excluded paths; three bare hits, `src/core/lib/external/colors.ts:28` (`src`) and the generated bundles `src/resources/editor/tools/vs-code.mjs:25954`, `src/resources/editor/tools/yaml/web-worker.js:25968` (`resources`).
 `src/deno_ral/` stays exempt (`kSrcExclusions`): its `(globalThis as any).Deno?.errors` in `errors.ts` is the layer's own runtime check.
@@ -84,6 +84,8 @@ No signature changes. `FileCounts.deno` keys indirect access like direct access:
       `const s = "${DENO_ID}";`,
       `${DENO_ID}Kv.open()`,
       `my${DENO_ID}.x`,
+      `const names = ["${DENO_ID}"];`,
+      `obj["${DENO_ID}"].x`,
     ].join("\n");
     assertEquals(countText(text).deno, {});
   });
@@ -103,11 +105,13 @@ No signature changes. `FileCounts.deno` keys indirect access like direct access:
   ```
 
   ```typescript
-  // Three alternatives: `Deno.` or `Deno?.`; `["Deno"]` (any quote); a bare `globalThis.Deno`, also
-  // `(globalThis as any).Deno`, not followed by an access (the first alternative counts that one).
-  // The key is read inside a lookahead so a following `Deno.` is never consumed.
+  // Three alternatives: `Deno.` or `Deno?.`; `globalThis["Deno"]` (any quote, also `globalThis?.[`);
+  // a bare `globalThis.Deno` not followed by an access (the first alternative counts that one).
+  // The globalThis receiver may be cast, `(globalThis as any)`; requiring it keeps `["Deno"]` in an
+  // array or on another object uncounted. The key is read inside a lookahead so a following
+  // `Deno.` is never consumed.
   const kDenoRe =
-    /\bDeno\??\.(?=(\w*)(?:\??\.(\w+))?)|\[\s*["'`]Deno["'`]\s*\](?:\??\.)?(?=(\w*)(?:\??\.(\w+))?)|\bglobalThis(?:\s+as\s+\w+\s*\))?\s*\??\.\s*Deno\b(?!\??\.)/g;
+    /\bDeno\??\.(?=(\w*)(?:\??\.(\w+))?)|\bglobalThis(?:\s+as\s+\w+\s*\))?\s*(?:\?\.)?\[\s*["'`]Deno["'`]\s*\](?:\??\.)?(?=(\w*)(?:\??\.(\w+))?)|\bglobalThis(?:\s+as\s+\w+\s*\))?\s*\??\.\s*Deno\b(?!\??\.)/g;
   ```
 
   ```typescript
@@ -140,7 +144,7 @@ No signature changes. `FileCounts.deno` keys indirect access like direct access:
 
 ## Review checklist
 
-- [ ] `typeof Deno`, a `"Deno"` string, `DenoKv` and `myDeno.x` stay uncounted (second new test).
+- [ ] `typeof Deno`, a `"Deno"` string, `DenoKv`, `myDeno.x`, `["Deno"]` in an array and `obj["Deno"]` stay uncounted (second new test); bracket access counts only on a `globalThis` receiver.
 - [ ] `globalThis.Deno.cwd()` counts once, not twice (the bare alternative's negative lookahead).
 - [ ] The keys of indirect access match the keys of direct access, so `kRalDenoReplacements` findings apply to both (`globalThis.Deno?.build.os` keys as `build.os`).
 - [ ] No file outside the four in Files changed.
