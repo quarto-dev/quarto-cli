@@ -194,3 +194,4 @@ All changes included in 1.11:
 - ([#15126](https://github.com/quarto-dev/quarto-cli/issues/15126)): Translate the `revealjs-menu-button-label` language key in French. (author: @D3ller)
 - ([#15140](https://github.com/quarto-dev/quarto-cli/pull/15140)): Add support for definition lists written as a `definition-list` div holding a nested bullet list, the definition list syntax of Quarto 2.
 - ([#15180](https://github.com/quarto-dev/quarto-cli/pull/15180)): Fix older Quarto versions failing to render with `RangeError: could not deserialize value` once a Quarto built on a newer Deno has used the same cache. Also fix a project cache that already has entries failing to clear with `Path must be a string`.
+- ([#15205](https://github.com/quarto-dev/quarto-cli/pull/15205)): Fix `contents` shortcode throwing errors in presence of rich content. (author: @benkeks)
