@@ -142,6 +142,24 @@ function isDenoIdentifier(node: Node | undefined): boolean {
   return node !== undefined && Node.isIdentifier(node) && node.getText() === "Deno";
 }
 
+// The global `Deno` has no declaration under noLib (see newProject), so an
+// identifier whose name resolves to a binding in scope (parameter, local,
+// import, type) shadows the global and its member accesses must be left
+// alone. getSymbolAtLocation is not enough: for the left of a qualified name
+// (`Deno.FileInfo`) it returns a transient symbol with no declarations even
+// when a local `Deno` binding exists.
+function isGlobalDeno(node: Node | undefined, checker: ts.TypeChecker): boolean {
+  if (!isDenoIdentifier(node)) return false;
+  // excludeGlobals: a lib-provided global `Deno` must not count as a binding.
+  const resolved = checker.resolveName(
+    "Deno",
+    (node as Identifier).compilerNode,
+    ts.SymbolFlags.Value | ts.SymbolFlags.Namespace | ts.SymbolFlags.Alias | ts.SymbolFlags.Type,
+    /*excludeGlobals*/ true,
+  );
+  return resolved === undefined;
+}
+
 // A binding or a reference in scope, as opposed to a property name.
 function isBindingOrReference(id: Node): boolean {
   const parent = id.getParent();
@@ -263,7 +281,7 @@ function forwardFile(
 
   // 1. Files that assign to Deno.* (monkey patches, instrumentation) are left alone.
   for (const pae of sourceFile.getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)) {
-    if (!isDenoIdentifier(pae.getExpression())) continue;
+    if (!isGlobalDeno(pae.getExpression(), checker)) continue;
     const parent = pae.getParent();
     if (
       Node.isBinaryExpression(parent) && parent.getLeft() === pae &&
@@ -295,22 +313,28 @@ function forwardFile(
   // 3. Symbol-based collisions: does `local` refer to anything other than
   //    the layer export it would name?
   const identifiers = sourceFile.getDescendantsOfKind(SyntaxKind.Identifier);
-  const isLayerBinding = (decl: ts.Declaration, module: string, exportName: string) => {
+  const isLayerBinding = (decl: ts.Declaration, module: string, exportName: string, forType: boolean) => {
     if (!ts.isImportSpecifier(decl) || specifierExport(decl) !== exportName) return false;
     const importDecl = decl.parent.parent.parent;
-    return ts.isStringLiteral(importDecl.moduleSpecifier) &&
-      resolvesToModule(sourceFile, importDecl.moduleSpecifier.text, ralDir, module);
+    if (
+      !ts.isImportDeclaration(importDecl) ||
+      !ts.isStringLiteral(importDecl.moduleSpecifier) ||
+      !resolvesToModule(sourceFile, importDecl.moduleSpecifier.text, ralDir, module)
+    ) return false;
+    // A type-only binding cannot back a value rewrite; merging would add a
+    // second binding of the same name, so it conflicts instead of reusing.
+    return forType || (!decl.isTypeOnly && !importDecl.importClause?.isTypeOnly);
   };
   const collisionCache = new Map<string, boolean>();
-  const blocked = (local: string, module: string, exportName: string): boolean => {
-    const key = `${module}:${exportName}:${local}`;
+  const blocked = (local: string, module: string, exportName: string, forType: boolean): boolean => {
+    const key = `${module}:${exportName}:${local}:${forType}`;
     const cached = collisionCache.get(key);
     if (cached !== undefined) return cached;
     let collision: Collision | undefined;
     for (const id of identifiers) {
       if (id.getText() !== local || !isBindingOrReference(id)) continue;
       const decls = referencedDeclarations(id, checker);
-      const ok = decls.length > 0 && decls.every((d) => isLayerBinding(d, module, exportName));
+      const ok = decls.length > 0 && decls.every((d) => isLayerBinding(d, module, exportName, forType));
       if (!ok) {
         collision = { name: local, line: id.getStartLineNumber(), module };
         break;
@@ -330,7 +354,7 @@ function forwardFile(
   const replace = (node: Node, exportName: string, module: string, isType: boolean, suffix = "") => {
     const existing = existingLocal(module, exportName, isType);
     const local = existing ?? exportName;
-    if (blocked(local, module, exportName)) return false;
+    if (blocked(local, module, exportName, isType)) return false;
     const to = local + suffix;
     edits.push({ start: node.getStart(), end: node.getEnd(), text: to });
     result.replacements.push({ line: node.getStartLineNumber(), from: node.getText(), to });
@@ -340,7 +364,7 @@ function forwardFile(
 
   // 4. Value positions: Deno.<name> and Deno.<a>.<b>.
   for (const pae of sourceFile.getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)) {
-    if (!isDenoIdentifier(pae.getExpression())) continue;
+    if (!isGlobalDeno(pae.getExpression(), checker)) continue;
     const name = pae.getName();
     const parent = pae.getParent();
     for (const ruleName of rules) {
@@ -363,7 +387,7 @@ function forwardFile(
   // 5. Type positions: Deno.<T>.
   for (const ref of sourceFile.getDescendantsOfKind(SyntaxKind.TypeReference)) {
     const typeName = ref.getTypeName();
-    if (!Node.isQualifiedName(typeName) || !isDenoIdentifier(typeName.getLeft())) continue;
+    if (!Node.isQualifiedName(typeName) || !isGlobalDeno(typeName.getLeft(), checker)) continue;
     const name = typeName.getRight().getText();
     for (const ruleName of rules) {
       const rule = RULES[ruleName];
@@ -383,7 +407,9 @@ function forwardFile(
   for (const [module, names] of wanted) {
     const decls = declsFor(module);
     const valueDecl = decls.find((d) => !d.isTypeOnly() && d.getNamespaceImport() === undefined);
-    const typeDecl = decls.find((d) => d.isTypeOnly());
+    // Namespace imports (`import type * as fs`) are not merge targets:
+    // rewriting one to named imports would break the existing `fs.X` uses.
+    const typeDecl = decls.find((d) => d.isTypeOnly() && d.getNamespaceImport() === undefined);
     const values = [...names.values].sort(byName);
     const types = [...names.types].sort(byName);
     result.importsAdded[module] = [...values, ...types].sort(byName);
@@ -501,6 +527,12 @@ function reverseFile(
           complete = false;
           result.left.push({ name: local, line: id.getStartLineNumber(), module: rule.module });
           break;
+        }
+        // A shorthand property (`{ os }`) cannot take a dotted value; expand
+        // it to an explicit assignment, keeping the property name.
+        if (Node.isShorthandPropertyAssignment(parent)) {
+          node = parent;
+          to = `${id.getText()}: ${to}`;
         }
         specEdits.push({ start: node.getStart(), end: node.getEnd(), text: to });
         specReplacements.push({ line: node.getStartLineNumber(), from: node.getText(), to });
