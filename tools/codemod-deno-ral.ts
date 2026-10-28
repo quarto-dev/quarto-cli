@@ -241,13 +241,15 @@ function isDenoEscape(id: Node): boolean {
     !Node.isTypeQuery(parent) && !Node.isTypeReference(parent);
 }
 
-// The object and member name of `o.x`, `o["x"]` or o[`x`].
+// The object and member name of `o.x`, `o["x"]` or o[`x`], the key possibly
+// wrapped (`o[("x")]`).
 function memberOf(node: Node | undefined): { object: Node; name: string } | undefined {
   if (Node.isPropertyAccessExpression(node)) {
     return { object: node.getExpression(), name: node.getName() };
   }
   if (!Node.isElementAccessExpression(node)) return undefined;
-  const arg = node.getArgumentExpression();
+  const key = node.getArgumentExpression();
+  const arg = key && unwrap(key);
   return Node.isStringLiteral(arg) || Node.isNoSubstitutionTemplateLiteral(arg)
     ? { object: node.getExpression(), name: arg.getLiteralText() }
     : undefined;
