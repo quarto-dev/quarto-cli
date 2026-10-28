@@ -57,7 +57,7 @@ No signature changes. `FileCounts.deno` keys indirect access like direct access:
 
 **Files:** `tools/check-runtime-boundary.ts`, `tests/unit/tools/check-runtime-boundary.test.ts`
 
-- [ ] **Step 1: Write the failing test.** Insert after the test "countText never swallows a following prefix". The fixtures build the name at run time, like the file's existing `DENO` constant, so the test file itself is not counted:
+- [x] **Step 1: Write the failing test.** Insert after the test "countText never swallows a following prefix". The fixtures build the name at run time, like the file's existing `DENO` constant, so the test file itself is not counted:
 
   ```typescript
   const DENO_ID = DENO.slice(0, -1);
@@ -91,10 +91,10 @@ No signature changes. `FileCounts.deno` keys indirect access like direct access:
   });
   ```
 
-- [ ] **Step 2: Run it and see it fail.** From `tests/`: `QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts`.
+- [x] **Step 2: Run it and see it fail.** From `tests/`: `QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts`.
   Expected: the first new test fails on `assertEquals` with the actual value `{ cwd: 1 }` (only `globalThis.Deno.cwd()` is counted today); the second passes (it guards against over-counting and is not RED).
 
-- [ ] **Step 3: Implement.** In `tools/check-runtime-boundary.ts`, replace the `FileCounts` doc comment, `kDenoRe` and its comment, and the key line in `countText`:
+- [x] **Step 3: Implement.** In `tools/check-runtime-boundary.ts`, replace the `FileCounts` doc comment, `kDenoRe` and its comment, and the key line in `countText`:
 
   ```typescript
   /** Per-file counts. `deno` maps the API key to its occurrences: "build.os" for `Deno.build.os`,
@@ -123,9 +123,9 @@ No signature changes. `FileCounts.deno` keys indirect access like direct access:
     }
   ```
 
-- [ ] **Step 4: Run the tests.** Same command as Step 2. Expected: the `--agent` tally reports no failure; the existing tests "countText keys Deno APIs by one or two identifiers", "countText never swallows a following prefix" and "inherited property names count as ordinary Deno API keys" pass unchanged.
+- [x] **Step 4: Run the tests.** Same command as Step 2. Expected: the `--agent` tally reports no failure; the existing tests "countText keys Deno APIs by one or two identifiers", "countText never swallows a following prefix" and "inherited property names count as ordinary Deno API keys" pass unchanged.
 
-- [ ] **Step 5: Commit.** `git add tools/check-runtime-boundary.ts tests/unit/tools/check-runtime-boundary.test.ts`, message "Runtime boundary: count Deno reached through optional chaining and globalThis".
+- [x] **Step 5: Commit.** `git add tools/check-runtime-boundary.ts tests/unit/tools/check-runtime-boundary.test.ts`, message "Runtime boundary: count Deno reached through optional chaining and globalThis".
 
 ### Task 2: baseline and README
 
@@ -158,3 +158,34 @@ A false positive raises a count a PR did not really raise; it shows as a "rose" 
 Rollback: revert the PR; the baseline goes back with it.
 
 ## Execution log
+
+### Task 1: count indirect access
+
+Step 0 checks: `kDenoRe` at `tools/check-runtime-boundary.ts:118` was `/\bDeno\.(?=(\w*)(?:\.(\w+))?)/g`, `FileCounts` and `countText` at lines 109-130, baseline `src` 991 and `resources` 10.
+The plan's code adds no helper duplicating one in `tests/` or `src/` (it reuses the file's `DENO` constant), reaches Deno through `globalThis` only inside fixture strings, and its comments cite no plan or PR numbers.
+Setup: `./configure.cmd` ran; `package/dist/bin/quarto.cmd` exists.
+
+Step 2 (RED), from `tests/`: `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/tools/check-runtime-boundary.test.ts`
+
+```text
+[unit] > check-runtime-boundary - countText counts optional-chaining, bracket and globalThis access => ./test.ts:794:8
+Values are not equal.
+    [Diff] Actual / Expected
++   {
++     "": 2,
++     "build.os": 1,
++     "errors.NotFound": 1,
+-   [Object: null prototype] {
+      cwd: 1,
++     errors: 3,
+    }
+FAILED | 42 passed | 1 failed (12s)
+```
+
+The actual value is `{ cwd: 1 }`; the second new test passed.
+
+Step 4 (GREEN), same command:
+
+```text
+ok | 43 passed | 0 failed (14s)
+```
