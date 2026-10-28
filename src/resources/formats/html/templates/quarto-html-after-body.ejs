@@ -557,7 +557,7 @@
             const scale = containerRect.height / container.offsetHeight || 1;
             const firstRect = firstEl.getBoundingClientRect();
             const lastRect = lastEl.getBoundingClientRect();
-            const top = (firstRect.top - containerRect.top) / scale - container.clientTop;
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
             const height = (lastRect.bottom - firstRect.top) / scale;
             band.style.top = top - 2 + "px";
             band.style.height = height + 4 + "px";
@@ -565,7 +565,7 @@
               // Without the copy button wrapper, the containing block is wider
               // than the code block, so span the code block explicitly.
               const blockRect = codeBlock.getBoundingClientRect();
-              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + "px";
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
               band.style.width = blockRect.width / scale + "px";
             }
           };

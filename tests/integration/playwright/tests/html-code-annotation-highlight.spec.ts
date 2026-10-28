@@ -137,12 +137,25 @@ test.describe("code annotation line highlight", () => {
     });
   }
 
+  test("html — inside a scrolled positioned container, bands fit the code block", async ({ page }) => {
+    // Without the copy button wrapper, the band's containing block is the
+    // positioned scroll box, so its scroll offset must not shift the band.
+    await page.goto(getUrl("html/code-annotation-highlight-scrolled.html"), {
+      waitUntil: "load",
+    });
+    const box = page.locator("#scroll-box");
+    const block = box.locator("div.sourceCode");
+    await block.scrollIntoViewIfNeeded();
+    expect(await box.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await expectBandsPlaced(page, block);
+  });
+
   for (const scheme of ["light", "dark"] as const) {
     test(`html — ${scheme} theme, highlighted code keeps its contrast`, async ({ page }) => {
       // Known gap, older than #13448: the light band tint lowers the
       // contrast of the arrow theme's `.im` tokens to 4.24:1. The tokens
       // leave no room for a tint, as #14959 shows for Reveal.js.
-      test.fixme(scheme === "light");
+      test.fail(scheme === "light");
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto(getUrl("html/code-annotation-highlight-contrast.html"), {
         waitUntil: "load",
