@@ -6,7 +6,7 @@ code-annotations: below
 
 ## Without line numbers
 
-```{.python}
+```{.python code-line-numbers="false"}
 # Some comment
 # to avoid overlapping copy button and annotation marker
 import polars as pl # <1>
