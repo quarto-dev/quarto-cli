@@ -2584,7 +2584,7 @@ Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + 
 
 ### Task 1: `src/deno_ral/errors.ts`
 
-- Step 2 (RED): `QUARTO_TESTS_NO_CONFIG=true pwsh -File run-tests.ps1 --agent unit/ral/errors.test.ts` →
+- Step 2 (RED): `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/ral/errors.test.ts` →
 
   ```
   TS2307 [ERROR]: Cannot find module 'file:///C:/Users/chris/Documents/DEV_R/quarto-cli.worktrees/rt-09-ral-fs-and-temp-layer/src/deno_ral/errors.ts'.
@@ -2599,7 +2599,7 @@ Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + 
 
 ### Task 2: `src/deno_ral/temp.ts`
 
-- Step 2 (RED): `QUARTO_TESTS_NO_CONFIG=true pwsh -File run-tests.ps1 --agent unit/ral/temp.test.ts` →
+- Step 2 (RED): `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/ral/temp.test.ts` →
 
   ```
   TS2307 [ERROR]: Cannot find module 'file:///C:/Users/chris/Documents/DEV_R/quarto-cli.worktrees/rt-09-ral-fs-and-temp-layer/src/deno_ral/temp.ts'.
