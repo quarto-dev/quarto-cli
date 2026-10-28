@@ -136,9 +136,10 @@ function refreshPaginationHandlers(listingId) {
     ".pagination li.page-item:not(.disabled) .page.page-link"
   );
   for (const paginationEl of paginationEls) {
+    // list.js's pagination plugin shows the page from its own click
+    // listener on the pagination list; this handler only records the hash.
     paginationEl.onclick = (sender) => {
       setPageHash(listingId, sender.target.getAttribute("data-i"));
-      showPage(listingId, sender.target.getAttribute("data-i"));
       return false;
     };
   }
