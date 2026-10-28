@@ -209,14 +209,10 @@ export function ensureUserWritable(path: string): void {
 }
 
 // ---------------------------------------------------------------------------
-// Plain filesystem calls (PR 09). Deno's names are kept so that the codemod is
-// `Deno.x(` → `x(` plus an import. Implemented on Deno here; PR 27 moves this
-// section to node:fs behind the same signatures and the same unit test
-// (tests/unit/ral/fs.test.ts).
+// Plain filesystem calls, named after their Deno.* counterparts.
 //
 // Deno.* is looked up at call time on purpose: core/performance/metrics.ts
-// reassigns Deno.readTextFileSync to record file reads until PR 20b replaces
-// that with the onFileRead hook in this module.
+// reassigns Deno.readTextFileSync to record file reads.
 // ---------------------------------------------------------------------------
 
 export interface FileInfo {
@@ -474,10 +470,8 @@ export function realPath(path: string | URL): Promise<string> {
 /**
  * The canonical absolute path: symlinks resolved, and no Windows `\\?\` prefix
  * (Deno strips it itself, so nothing is sliced here). Throws when the path
- * does not exist. Uses the runtime's own realPathSync: until PR 25 deletes
- * core/deno/monkey-patch.ts, Deno.realPathSync is patched to normalizePath,
- * so the saved original is called. PR 25 switches this to Deno.realPathSync;
- * PR 27 to fs.realpathSync.native.
+ * does not exist. core/deno/monkey-patch.ts patches Deno.realPathSync to
+ * normalizePath, so the saved original is called.
  */
 export function canonicalPathSync(path: string | URL): string {
   return originalRealPathSync(path);
