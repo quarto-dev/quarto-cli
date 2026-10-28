@@ -87,9 +87,8 @@ export function isConnectionError(e: unknown): boolean {
 }
 
 /**
- * Append the offending path to an error message (idempotent).
- * core/deno/monkey-patch.ts annotates Deno.readTextFile* errors the same way;
- * the idempotence keeps the path from being appended twice.
+ * Append the offending path to an error message (idempotent): calling it
+ * again with the same path leaves the message unchanged.
  */
 export function errorWithPath(e: Error, path: string): Error {
   const suffix = "\nPath: " + path;
