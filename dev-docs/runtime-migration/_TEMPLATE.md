@@ -63,7 +63,10 @@ Commands to run before opening the PR, with expected results:
 - a manual render where relevant: `package/dist/bin/quarto render <doc>`
 
 ## Review checklist
-What the reviewer verifies, as a checklist.
+What the reviewer verifies, as a checklist. Every plan ends it with these code-quality items (README "How to execute a plan" has the commands):
+- [ ] No new helper duplicates an existing one (`tests/utils.ts`, `tests/verify.ts`, `tests/unit/**/utils.ts`, `src/`); a helper needed by two new test files lives in one shared file.
+- [ ] No code outside `src/deno_ral/` reaches `Deno` indirectly (`globalThis.Deno`, `globalThis["Deno"]`) to stay out of the ratchet count; a needed `Deno.` access is written as such and the baseline increase is accepted.
+- [ ] Comments in `src/` and `tests/` state the current reason only: no plan or PR numbers ("until PR 25"), no description of what a later PR will change.
 
 ## Risks and rollback
 What can break, how it shows up, how to revert.
