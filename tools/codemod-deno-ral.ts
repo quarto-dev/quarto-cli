@@ -142,22 +142,32 @@ function isDenoIdentifier(node: Node | undefined): boolean {
   return node !== undefined && Node.isIdentifier(node) && node.getText() === "Deno";
 }
 
-// The global `Deno` has no declaration under noLib (see newProject), so an
-// identifier whose name resolves to a binding in scope (parameter, local,
-// import, type) shadows the global and its member accesses must be left
-// alone. getSymbolAtLocation is not enough: for the left of a qualified name
-// (`Deno.FileInfo`) it returns a transient symbol with no declarations even
-// when a local `Deno` binding exists.
-function isGlobalDeno(node: Node | undefined, checker: ts.TypeChecker): boolean {
-  if (!isDenoIdentifier(node)) return false;
+// How `Deno` is looked up at a location: `Deno.x` in an expression resolves
+// the value; the left of a qualified type name (`Deno.FileInfo`) resolves the
+// namespace. A binding of the other meaning does not shadow (a value-only
+// parameter named Deno leaves `Deno.FileInfo` global; a local `type Deno`
+// leaves `Deno.readTextFileSync()` global). Alias is in both: an import named
+// Deno may carry either meaning, so it conservatively shadows.
+const kValueMeaning = ts.SymbolFlags.Value | ts.SymbolFlags.Alias;
+const kNamespaceMeaning = ts.SymbolFlags.Namespace | ts.SymbolFlags.Alias;
+
+// The global `Deno` has no declaration under noLib (see newProject), so a
+// `Deno` that resolves to a binding in scope with the given meaning shadows
+// the global. getSymbolAtLocation is not enough: for the left of a qualified
+// name it returns a transient symbol with no declarations even when a local
+// `Deno` binding exists.
+function denoBoundAt(node: Node, meaning: ts.SymbolFlags, checker: ts.TypeChecker): boolean {
   // excludeGlobals: a lib-provided global `Deno` must not count as a binding.
-  const resolved = checker.resolveName(
-    "Deno",
-    (node as Identifier).compilerNode,
-    ts.SymbolFlags.Value | ts.SymbolFlags.Namespace | ts.SymbolFlags.Alias | ts.SymbolFlags.Type,
-    /*excludeGlobals*/ true,
-  );
-  return resolved === undefined;
+  return checker.resolveName("Deno", node.compilerNode, meaning, /*excludeGlobals*/ true) !==
+    undefined;
+}
+
+function isGlobalDeno(
+  node: Node | undefined,
+  meaning: ts.SymbolFlags,
+  checker: ts.TypeChecker,
+): boolean {
+  return isDenoIdentifier(node) && !denoBoundAt(node as Identifier, meaning, checker);
 }
 
 // A binding or a reference in scope, as opposed to a property name.
@@ -281,7 +291,7 @@ function forwardFile(
 
   // 1. Files that assign to Deno.* (monkey patches, instrumentation) are left alone.
   for (const pae of sourceFile.getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)) {
-    if (!isGlobalDeno(pae.getExpression(), checker)) continue;
+    if (!isGlobalDeno(pae.getExpression(), kValueMeaning, checker)) continue;
     const parent = pae.getParent();
     if (
       Node.isBinaryExpression(parent) && parent.getLeft() === pae &&
@@ -364,7 +374,7 @@ function forwardFile(
 
   // 4. Value positions: Deno.<name> and Deno.<a>.<b>.
   for (const pae of sourceFile.getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)) {
-    if (!isGlobalDeno(pae.getExpression(), checker)) continue;
+    if (!isGlobalDeno(pae.getExpression(), kValueMeaning, checker)) continue;
     const name = pae.getName();
     const parent = pae.getParent();
     for (const ruleName of rules) {
@@ -387,7 +397,10 @@ function forwardFile(
   // 5. Type positions: Deno.<T>.
   for (const ref of sourceFile.getDescendantsOfKind(SyntaxKind.TypeReference)) {
     const typeName = ref.getTypeName();
-    if (!Node.isQualifiedName(typeName) || !isGlobalDeno(typeName.getLeft(), checker)) continue;
+    if (
+      !Node.isQualifiedName(typeName) ||
+      !isGlobalDeno(typeName.getLeft(), kNamespaceMeaning, checker)
+    ) continue;
     const name = typeName.getRight().getText();
     for (const ruleName of rules) {
       const rule = RULES[ruleName];
@@ -512,7 +525,12 @@ function reverseFile(
         const parent = id.getParent()!;
         let node: Node = id;
         let to: string | undefined;
-        if (Node.isTypeReference(parent) && parent.getTypeName() === id) {
+        const isType = Node.isTypeReference(parent) && parent.getTypeName() === id;
+        if (denoBoundAt(id, isType ? kNamespaceMeaning : kValueMeaning, checker)) {
+          // The introduced `Deno.*` would name the local binding, not the
+          // runtime global; keep the import (reported in `left`).
+          to = undefined;
+        } else if (isType) {
           to = target.type;
         } else if (target.call) {
           if (Node.isCallExpression(parent) && parent.getExpression() === id &&

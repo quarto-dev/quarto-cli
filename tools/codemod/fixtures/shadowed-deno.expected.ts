@@ -6,7 +6,7 @@ export function readVia(
   return Deno.readTextFileSync(path);
 }
 
-export function info(Deno: { FileInfo: unknown }, f: Deno.FileInfo): unknown {
+export function info(Deno: { FileInfo: unknown }, f: FileInfo): unknown {
   return f;
 }
 
@@ -16,4 +16,9 @@ export function readReal(path: string): string {
 
 export function realInfo(f: FileInfo): unknown {
   return f;
+}
+
+export function typeOnly(path: string): string {
+  type Deno = { readTextFileSync: unknown };
+  return readTextFileSync(path);
 }
