@@ -162,6 +162,20 @@ Deno.test("codemod - a file assigning to Deno.* is skipped whole", () => {
   assertEquals(output, read("assignment-skip.input.ts"));
 });
 
+Deno.test("codemod - compound, nested and delete writes to Deno.* skip the file", () => {
+  const cases: [string, RuleName[], string][] = [
+    ["write-compound", ["fs"], "assigns to Deno.readTextFileSync at line 2"],
+    ["write-nested", ["env", "platform"], "assigns to Deno.build.os at line 2"],
+    ["write-delete", ["env"], "assigns to Deno.env at line 2"],
+  ];
+  for (const [name, rules, skipped] of cases) {
+    const { result, output } = run(name, rules);
+    assertEquals(result.skipped, skipped, name);
+    assertEquals(result.replacements, [], name);
+    assertEquals(output, read(`${name}.input.ts`), name);
+  }
+});
+
 Deno.test("codemod --reverse - round-trips the basic fixtures", () => {
   const cases: [string, RuleName[]][] = [
     ["fs-basic", ["fs"]],
@@ -192,6 +206,16 @@ Deno.test("codemod --reverse - keeps an import whose Deno.* would be shadowed", 
     { name: "os", line: 7, module: "platform.ts" },
   ]);
   assertEquals(result.importsRemoved, { "fs.ts": ["FileInfo"] });
+});
+
+Deno.test("codemod --reverse - keeps an import that the file re-exports", () => {
+  const { result, output } = run("reverse-reexport", ["platform", "process"], { reverse: true });
+  assertEquals(output, read("reverse-reexport.expected.ts"));
+  assertEquals(result.left, [
+    { name: "os", line: 3, module: "platform.ts" },
+    { name: "cwd", line: 4, module: "process.ts" },
+  ]);
+  assertEquals(result.importsRemoved, { "platform.ts": ["arch"] });
 });
 
 Deno.test("codemod --reverse - follows aliases and reports what it cannot express", () => {
