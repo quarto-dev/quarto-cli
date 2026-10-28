@@ -217,7 +217,13 @@ Rule tables (exact):
 | `platform` | `platform.ts` | `build.os` → `os`, `build.arch` → `arch` (two-level member access) | — |
 
 Behaviour (forward):
-1. A file that *assigns* to any `Deno.<x>` (e.g. `Deno.realPathSync = …`, `Deno.readTextFileSync = …`) is skipped whole with `skipped: "assigns to Deno.<x> at line N"`.
+1. A file that writes to `Deno.*`, or uses the global `Deno` other than as `Deno.x`, is skipped whole with a `skipped` reason; rewriting any of it could turn a captured original (`const original = Deno.readTextFileSync`) into a layer call that forwards to the patched method, so the patch calls itself.
+   - `assigns to <target> at line N`: `Deno.x` or, for nested rules, `Deno.a.b` is the target of an assignment (`=`, compound, logical), `++`/`--`, `delete`, a `for…of`/`for…in` head, or a destructuring pattern; the target or the `Deno` receiver may be wrapped in parentheses, `as`, `<T>`, `!` or `satisfies` (`(Deno as any).x = …`), and `Deno["x"]` counts as `Deno.x`.
+   - `assigns to Deno.a via <call> at line N`: for nested rules, `Deno.a` is the first argument of `Object.assign`/`defineProperty`/`defineProperties` or `Reflect.set`/`defineProperty`/`deleteProperty`.
+   - `uses Deno other than as Deno.x at line N`: the global `Deno` is aliased (`const D = Deno`), passed as an argument (`Object.defineProperty(Deno, …)`), spread, or destructured; `typeof Deno`, type positions (`Deno.FileInfo`) and declaration names (`type Deno = …`) are not uses.
+   - `reaches Deno through globalThis.Deno at line N`: `Deno` is reached through `globalThis`, `self` or `window`, with `.Deno` or `["Deno"]`.
+
+   The check is per file: what happens to `Deno` once it is passed elsewhere, or a patch in one file meeting a capture in another, is left to the rule that no code outside `src/deno_ral/` reaches `Deno` indirectly (README "How to execute a plan", and the review checklist in `_TEMPLATE.md`).
    This keeps `src/core/deno/monkey-patch.ts` and (until PR 20b) `src/core/performance/metrics.ts` untouched automatically.
 2. **Alias reuse.** If the file already imports the export from the same layer module (`import { stat as fsStat } from ".../deno_ral/fs.ts"`), the replacement text is that local name (`Deno.stat(` → `fsStat(`), and no import is added.
    This makes the PRs 10–14 hand fixes (alias imports for collisions) stable under re-runs.
