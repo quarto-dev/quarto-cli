@@ -81,6 +81,8 @@ Change them in the plan that decides them, not downstream.
 - Landing order inside Phase 1: 02 → 02b → 08 → 22 → 10–13 → 14, with 09 before 10.
   PR 22 depends on PR 04 (Phase 0, behind 00b and 00a), so 10–13 and 14 wait for that part of Phase 0 too.
   `tests/asserts.ts` lands in PR 02; tests written by PRs 09 and later use the layer, never raw `Deno.*`.
+  A test that must touch a Deno-only object (the `Deno.errors` classes in `tests/unit/ral/errors.test.ts`) writes `Deno.` directly and accepts the `tests` baseline increase; it never reaches it through `globalThis` to stay out of the count.
+- Code comments in `src/` and `tests/` describe the code as it is now, without plan or PR numbers ("until PR 25", "PR 27 moves this"); what a later PR changes belongs in that PR's plan (decided 2026-10-28, PR 09 review).
 - Migration page for script authors: `https://quarto.org/docs/projects/scripts-deno-to-node.html` (PRs 00c, 35; created in quarto-web).
 - `tests/run-tests.sh` accepts files only, never directories: plans write `$(find unit/ral -name '*.test.ts')`.
 
