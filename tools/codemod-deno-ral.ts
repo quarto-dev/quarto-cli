@@ -188,16 +188,34 @@ function isBindingOrReference(id: Node): boolean {
   return true;
 }
 
-// The target of an assignment (`=`, `+=`, `&&=`, ...), `++`/`--`, or
-// `delete`: rewriting it to an imported binding would not be valid.
+// The target of an assignment (`=`, `+=`, `&&=`, ...), `++`/`--`, `delete`,
+// or a `for (x of/in ...)` head, directly or inside a destructuring pattern
+// (`({ a: x } = o)`, `[x] = a`): rewriting it to an imported binding would
+// not be valid.
 function isWriteTarget(node: Node): boolean {
   let target = node;
   let parent = node.getParent();
-  while (parent && Node.isParenthesizedExpression(parent)) {
+  let inPattern = false;
+  // Climb parentheses and the literals that a destructuring pattern is
+  // written with; whether the outermost literal is a pattern is decided below.
+  while (parent) {
+    if (Node.isArrayLiteralExpression(parent) || Node.isObjectLiteralExpression(parent)) {
+      inPattern = true;
+    } else if (
+      !Node.isParenthesizedExpression(parent) && !Node.isSpreadElement(parent) &&
+      !Node.isSpreadAssignment(parent) &&
+      !(Node.isPropertyAssignment(parent) && parent.getInitializer() === target)
+    ) break;
     target = parent;
     parent = parent.getParent();
   }
   if (!parent) return false;
+  if ((Node.isForOfStatement(parent) || Node.isForInStatement(parent)) &&
+    parent.getInitializer() === target) return true;
+  if (inPattern) {
+    return Node.isBinaryExpression(parent) && parent.getLeft() === target &&
+      parent.getOperatorToken().getKind() === SyntaxKind.EqualsToken;
+  }
   if (Node.isBinaryExpression(parent)) {
     const op = parent.getOperatorToken().getKind();
     return parent.getLeft() === target &&
