@@ -72,6 +72,17 @@ The C-row correction of `aliasTarget()` in PR 36 is subsumed by PR 36 Decision 4
 
 Two notes for whoever continues: the B1 commit carries the maintainer's author identity by mistake (an amend and force-push was refused; the attribution line is in the message); the triage's C rows for PRs 33, 35 and 36 overlapped files that B2, B4, B7 and B8 edited, and were run after the pass landed (all three are done).
 
+## Pending on `rt/09` before its PR opens
+
+Written 2026-10-28; delete this section once both items are done.
+
+1. Rebase onto `main`: PR 02d merged as #15218 (`623cd99e8`).
+   `HANDOFF.md` conflicts on the two status lines both branches edited; resolve them to "02d (#15218) is merged, 09 is in progress".
+   After the rebase, set the README `02d` row to `merged`.
+   `tools/runtime-boundary-baseline.json` merges without a conflict; `quarto run --dev tools/check-runtime-boundary.ts` should then report `src` 992, `resources` 12, `tests` 875 and no "rose" message.
+2. Task 4 review: the committed codemod (`c5af406bc`) had four defects, each to be fixed with a fixture before Task 5.
+   Reverse mode turned a shorthand property (`{ os }`) into invalid syntax (`{ Deno.build.os }`); a type-only namespace import (`import type * as fs`) was overwritten with named imports; an existing `import { type statSync }` plus a `Deno.statSync(...)` call produced a duplicate binding; and forward mode rewrote calls on a local binding named `Deno`.
+
 ## How to resume
 
 1. Work from an up-to-date `main`: the plans are there.
