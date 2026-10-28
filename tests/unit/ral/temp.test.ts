@@ -16,12 +16,7 @@ import {
 import { isAlreadyExists, isNotFound } from "../../../src/deno_ral/errors.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { basename, dirname, join } from "../../../src/deno_ral/path.ts";
-
-function codeError(code: string): Error {
-  const e = new Error(code);
-  (e as Error & { code: string }).code = code;
-  return e;
-}
+import { errorWithCode } from "./utils.ts";
 
 // deno-lint-ignore require-await
 unitTest("temp - makeTempDirSync honours dir, prefix and suffix", async () => {
@@ -81,7 +76,7 @@ unitTest("temp - retries only AlreadyExists, at most 5 times", async () => {
   let calls = 0;
   const flaky = () => {
     calls++;
-    if (calls < 3) throw codeError("EEXIST");
+    if (calls < 3) throw errorWithCode("EEXIST");
     return "ok";
   };
   assertEquals(retryOnAlreadyExists(flaky), "ok");
@@ -91,7 +86,7 @@ unitTest("temp - retries only AlreadyExists, at most 5 times", async () => {
   const e = assertThrows(() =>
     retryOnAlreadyExists(() => {
       calls++;
-      throw codeError("EEXIST");
+      throw errorWithCode("EEXIST");
     })
   );
   assert(isAlreadyExists(e));
@@ -101,7 +96,7 @@ unitTest("temp - retries only AlreadyExists, at most 5 times", async () => {
   assertThrows(() =>
     retryOnAlreadyExists(() => {
       calls++;
-      throw codeError("ENOENT");
+      throw errorWithCode("ENOENT");
     })
   );
   assertEquals(calls, 1, "other errors are not retried");

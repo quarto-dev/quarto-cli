@@ -15,24 +15,13 @@ import {
   isNotFound,
   isPermissionDenied,
 } from "../../../src/deno_ral/errors.ts";
-
-function withCode(code: string): Error {
-  const e = new Error(code);
-  (e as Error & { code: string }).code = code;
-  return e;
-}
-
-// The runtime's own error classes, when the runtime has them (Deno). Looked up
-// through globalThis so this file stays free of the Deno namespace.
-// deno-lint-ignore no-explicit-any
-const runtimeErrors = (globalThis as any)["Deno"]?.errors as
-  | Record<string, new (msg: string) => Error>
-  | undefined;
+import { errorWithCode } from "./utils.ts";
 
 // deno-lint-ignore require-await
 unitTest("errors - predicates recognise the runtime's error classes", async () => {
-  if (!runtimeErrors) return; // Node: covered by the code-based case below
-  const e = (name: string) => new runtimeErrors[name]("x");
+  if (typeof Deno === "undefined") return; // Node: covered by the code-based case below
+  const errors = Deno.errors;
+  const e = (name: keyof typeof errors) => new errors[name]("x");
   assert(isNotFound(e("NotFound")));
   assert(isAlreadyExists(e("AlreadyExists")));
   assert(isPermissionDenied(e("PermissionDenied")));
@@ -47,15 +36,15 @@ unitTest("errors - predicates recognise the runtime's error classes", async () =
 
 // deno-lint-ignore require-await
 unitTest("errors - predicates recognise Node-style error codes", async () => {
-  assert(isNotFound(withCode("ENOENT")));
-  assert(isAlreadyExists(withCode("EEXIST")));
-  assert(isPermissionDenied(withCode("EACCES")));
-  assert(isPermissionDenied(withCode("EPERM")));
-  assert(isAddrInUse(withCode("EADDRINUSE")));
-  assert(isConnectionRefused(withCode("ECONNREFUSED")));
-  assert(isConnectionError(withCode("EPIPE")));
-  assert(isConnectionError(withCode("ECONNRESET")));
-  assert(!isNotFound(withCode("EEXIST")));
+  assert(isNotFound(errorWithCode("ENOENT")));
+  assert(isAlreadyExists(errorWithCode("EEXIST")));
+  assert(isPermissionDenied(errorWithCode("EACCES")));
+  assert(isPermissionDenied(errorWithCode("EPERM")));
+  assert(isAddrInUse(errorWithCode("EADDRINUSE")));
+  assert(isConnectionRefused(errorWithCode("ECONNREFUSED")));
+  assert(isConnectionError(errorWithCode("EPIPE")));
+  assert(isConnectionError(errorWithCode("ECONNRESET")));
+  assert(!isNotFound(errorWithCode("EEXIST")));
   assert(!isNotFound(new Error("x")));
   assert(!isNotFound(undefined));
   assert(!isNotFound("ENOENT"));
@@ -64,7 +53,7 @@ unitTest("errors - predicates recognise Node-style error codes", async () => {
 // deno-lint-ignore require-await
 unitTest("errors - predicates look through cause (wrapped exec errors)", async () => {
   const wrapped = new Error("Error executing 'x': not found", {
-    cause: withCode("ENOENT"),
+    cause: errorWithCode("ENOENT"),
   });
   assert(isNotFound(wrapped));
   assert(!isAlreadyExists(wrapped));

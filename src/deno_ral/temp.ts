@@ -7,8 +7,8 @@
  * core/deno/monkey-patch.ts installs on Deno.makeTemp* (rare EEXIST races,
  * https://github.com/denoland/deno/issues/17781), narrowed to AlreadyExists:
  * any other error (a missing parent directory, a permission problem) is
- * reported at once. Until PR 25 removes the monkey patch, its own loop runs
- * inside this one; that is harmless.
+ * reported at once. The monkey patch's own loop runs inside this one; that is
+ * harmless.
  */
 
 import { isAlreadyExists } from "./errors.ts";

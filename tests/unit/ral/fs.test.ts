@@ -2,12 +2,13 @@
  * fs.test.ts
  *
  * Compatibility contract for the plain filesystem calls in
- * src/deno_ral/fs.ts. PR 27 must keep this file green on node:fs.
+ * src/deno_ral/fs.ts: every runtime implementation must keep it green.
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
 
 import { unitTest } from "../../test.ts";
+import { withTempDir } from "../../utils.ts";
 import {
   assert,
   assertEquals,
@@ -16,7 +17,6 @@ import {
 } from "../../asserts.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { isNotFound } from "../../../src/deno_ral/errors.ts";
-import { makeTempDirSync } from "../../../src/deno_ral/temp.ts";
 import { join, toFileUrl } from "../../../src/deno_ral/path.ts";
 import {
   canonicalPathSync,
@@ -44,25 +44,14 @@ import {
   writeTextFileSync,
 } from "../../../src/deno_ral/fs.ts";
 
-function withDir(fn: (dir: string) => void | Promise<void>) {
-  return async () => {
-    const dir = makeTempDirSync({ prefix: "ral-fs-" });
-    try {
-      await fn(dir);
-    } finally {
-      removeSync(dir, { recursive: true });
-    }
-  };
-}
-
-unitTest("fs - text round trip and append", withDir((dir) => {
+unitTest("fs - text round trip and append", () => withTempDir((dir) => {
   const file = join(dir, "a.txt");
   writeTextFileSync(file, "hello");
   writeTextFileSync(file, " world", { append: true });
   assertEquals(readTextFileSync(file), "hello world");
 }));
 
-unitTest("fs - read errors carry the path once and satisfy isNotFound", withDir(async (dir) => {
+unitTest("fs - read errors carry the path once and satisfy isNotFound", () => withTempDir(async (dir) => {
   const missing = join(dir, "missing.txt");
   const e = assertThrows(() => readTextFileSync(missing));
   assert(isNotFound(e));
@@ -103,13 +92,13 @@ unitTest("fs - read errors carry the path once and satisfy isNotFound", withDir(
   );
 }));
 
-unitTest("fs - bytes round trip", withDir((dir) => {
+unitTest("fs - bytes round trip", () => withTempDir((dir) => {
   const file = join(dir, "b.bin");
   writeFileSync(file, new Uint8Array([1, 2, 3]));
   assertEquals([...readFileSync(file)], [1, 2, 3]);
 }));
 
-unitTest("fs - statSync and lstatSync", withDir((dir) => {
+unitTest("fs - statSync and lstatSync", () => withTempDir((dir) => {
   const file = join(dir, "s.txt");
   writeTextFileSync(file, "12345");
   const info = statSync(file);
@@ -127,7 +116,7 @@ unitTest("fs - statSync and lstatSync", withDir((dir) => {
   }
 }));
 
-unitTest("fs - mkdirSync recursive and removeSync recursive", withDir((dir) => {
+unitTest("fs - mkdirSync recursive and removeSync recursive", () => withTempDir((dir) => {
   const nested = join(dir, "x", "y", "z");
   mkdirSync(nested, { recursive: true });
   assert(existsSync(nested));
@@ -135,7 +124,7 @@ unitTest("fs - mkdirSync recursive and removeSync recursive", withDir((dir) => {
   assert(!existsSync(join(dir, "x")));
 }));
 
-unitTest("fs - renameSync and copyFileSync", withDir((dir) => {
+unitTest("fs - renameSync and copyFileSync", () => withTempDir((dir) => {
   const a = join(dir, "a.txt");
   const b = join(dir, "b.txt");
   const c = join(dir, "c.txt");
@@ -147,7 +136,7 @@ unitTest("fs - renameSync and copyFileSync", withDir((dir) => {
   assertEquals(readTextFileSync(b), "A");
 }));
 
-unitTest("fs - readDirSync and readDir are sorted by name", withDir(async (dir) => {
+unitTest("fs - readDirSync and readDir are sorted by name", () => withTempDir(async (dir) => {
   for (const name of ["c.txt", "a.txt", "b.txt"]) {
     writeTextFileSync(join(dir, name), name);
   }
@@ -164,7 +153,7 @@ unitTest("fs - readDirSync and readDir are sorted by name", withDir(async (dir) 
   assertEquals(async, sync);
 }));
 
-unitTest("fs - canonicalPathSync resolves symlinks and throws when missing", withDir((dir) => {
+unitTest("fs - canonicalPathSync resolves symlinks and throws when missing", () => withTempDir((dir) => {
   const real = join(dir, "real");
   mkdirSync(real);
   const canonicalReal = canonicalPathSync(real);
@@ -179,7 +168,7 @@ unitTest("fs - canonicalPathSync resolves symlinks and throws when missing", wit
   assert(isNotFound(e));
 }));
 
-unitTest("fs - getFileInfoType takes the layer's FileInfo", withDir((dir) => {
+unitTest("fs - getFileInfoType takes the layer's FileInfo", () => withTempDir((dir) => {
   const file = join(dir, "f.txt");
   writeTextFileSync(file, "x");
   assertEquals(getFileInfoType(lstatSync(file)), "file");
@@ -191,7 +180,7 @@ unitTest("fs - getFileInfoType takes the layer's FileInfo", withDir((dir) => {
   }
 }));
 
-unitTest("fs - utimeSync and truncateSync", withDir((dir) => {
+unitTest("fs - utimeSync and truncateSync", () => withTempDir((dir) => {
   const file = join(dir, "u.txt");
   writeTextFileSync(file, "0123456789");
   const when = new Date("2020-01-02T03:04:05Z");
@@ -203,7 +192,7 @@ unitTest("fs - utimeSync and truncateSync", withDir((dir) => {
   assertEquals(readTextFileSync(file), "");
 }));
 
-unitTest("fs - chmodSync (POSIX)", withDir((dir) => {
+unitTest("fs - chmodSync (POSIX)", () => withTempDir((dir) => {
   if (isWindows) return;
   const file = join(dir, "m.txt");
   writeTextFileSync(file, "x");
@@ -211,7 +200,7 @@ unitTest("fs - chmodSync (POSIX)", withDir((dir) => {
   assertEquals((statSync(file).mode ?? 0) & 0o777, 0o600);
 }));
 
-unitTest("fs - open/create expose streams and close", withDir(async (dir) => {
+unitTest("fs - open/create expose streams and close", () => withTempDir(async (dir) => {
   const file = join(dir, "o.txt");
   const out = await create(file);
   const writer = out.writable.getWriter();
