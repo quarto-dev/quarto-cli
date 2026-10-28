@@ -287,8 +287,11 @@ function byName(a: DirEntry, b: DirEntry): number {
   return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
 }
 
+// String(path) (the URL href for URLs) matches what core/deno/monkey-patch.ts
+// appends (`"Path: " + path`), so errorWithPath stays idempotent when the
+// monkey patch already annotated the error.
 function annotate(e: unknown, path: string | URL): unknown {
-  return e instanceof Error ? errorWithPath(e, toPathString(path)) : e;
+  return e instanceof Error ? errorWithPath(e, String(path)) : e;
 }
 
 export function readTextFileSync(path: string | URL): string {
