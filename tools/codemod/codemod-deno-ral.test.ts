@@ -194,6 +194,11 @@ Deno.test("codemod - every form of write to Deno.* skips the file", () => {
       ["platform"],
       "assigns to Deno.build via (Object.assign) at line 2",
     ],
+    [
+      "write-object-assign-element",
+      ["platform"],
+      'assigns to Deno.build via Object["assign"] at line 2',
+    ],
   ];
   for (const [name, rules, skipped] of cases) {
     const { result, output } = run(name, rules);
