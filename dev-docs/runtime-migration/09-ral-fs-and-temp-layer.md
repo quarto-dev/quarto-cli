@@ -691,7 +691,7 @@ git commit -m "deno_ral/temp: makeTemp* retrying on AlreadyExists only"
 - Modify: `src/deno_ral/fs.ts` (append after `ensureUserWritable`, line 206)
 - Test: `tests/unit/ral/fs.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 /*
@@ -898,11 +898,11 @@ unitTest("fs - open/create expose streams and close", withDir(async (dir) => {
 }));
 ```
 
-- [ ] **Step 2: Run it and see it fail**
+- [x] **Step 2: Run it and see it fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs.test.ts` Expected: fails at type-check with `Module '"../../../src/deno_ral/fs.ts"' has no exported member 'readTextFileSync'` (and others).
 
-- [ ] **Step 3: Implement (append to `src/deno_ral/fs.ts`)**
+- [x] **Step 3: Implement (append to `src/deno_ral/fs.ts`)**
 
 Add `import { errorWithPath } from "./errors.ts";` to the imports at the top (keep the existing `fromFileUrl`, `resolve`, `SEP` and `originalRealPathSync` imports), then append:
 
@@ -1225,13 +1225,13 @@ Then make the edits to the existing part of the file:
 
 The `originalRealPathSync` import (line 11) stays: `canonicalPathSync` uses it until PR 25.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/fs.test.ts $(find unit/ral/ -name '*.test.ts')` Expected: `ok | 15 passed | 0 failed` (12 new + the 3 existing cases in `unit/ral/safe-*.test.ts`).
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/deno_ral/fs.ts tests/unit/ral/fs.test.ts
@@ -2611,3 +2611,17 @@ Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + 
   ok | 5 passed | 0 failed (78ms)
   ```
 - Step 5: commit `e43dc49d1` "deno_ral/temp: makeTemp* retrying on AlreadyExists only" (2 files, 180 insertions).
+
+### Task 3: `src/deno_ral/fs.ts` additions
+
+- Step 2 (RED): `QUARTO_TESTS_NO_CONFIG=true pwsh -File run-tests.ps1 --agent unit/ral/fs.test.ts` → 23 type errors, `TS2305: Module '"../../../src/deno_ral/fs.ts"' has no exported member 'readTextFileSync'` (and the other new names), as expected.
+- Step 3: the plan's verbatim block needed two adaptations against this worktree's vendored Deno 2.7.14 types (a defect in the plan's Step 3 code): `Deno.SymlinkOptions.type` is required, so `symlink[Sync]` forwards an options object only when a `type` is given (a bare `symlinkSync(a, b)` stays options-free, matching existing callers); `Deno.truncateSync` takes `string` only, so a URL goes through `toPathString`. Both recorded in README "Open decisions with an owner" for PR 27.
+- Step 4 (GREEN): `QUARTO_TESTS_NO_CONFIG=true pwsh -File run-tests.ps1 --agent <all unit/ral/*.test.ts>` →
+
+  ```
+  ok | 23 passed | 0 failed | 1 ignored (6s)
+  ```
+
+  The plan expected `15 passed` (12 new + 3 `safe-*`); the ral suite now also holds errors (4) and temp (5) from Tasks 1–2, so 12 + 3 + 4 + 5 = 24 = 23 passed + 1 ignored.
+- Step 4, `deno check`: the plan's command fails on Deno 2.7 with `error: Requires import access to "cdn.skypack.dev:443", run again with the --allow-import flag` (a remote import in `src/core/yaml.ts:31`). With `--allow-import` added → `Check quarto.ts`, no errors. Recorded in README for every plan whose verification runs this command.
+- Step 5: commit `9d3b1ca00` "deno_ral/fs: plain filesystem calls, canonicalPathSync, layer-typed helpers" (2 files, 516 insertions, 15 deletions).
