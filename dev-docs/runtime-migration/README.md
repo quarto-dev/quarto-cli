@@ -175,14 +175,14 @@ Step 0 also audits the plan's code blocks, because the executor transcribes them
 Fix each hit in the plan, and record it in the execution log, before Task 1:
 
 - Every function the plan's code defines (`rg -n 'function \w+' <plan>`) is searched for in `tests/utils.ts`, `tests/verify.ts`, `tests/unit/**/utils.ts` and `src/`; an existing helper is reused, and a helper two new test files need lives in one shared file.
-- No code outside `src/deno_ral/` reaches `Deno` through `globalThis` to stay out of the ratchet count (`rg -n 'globalThis.*Deno' <plan>`); a `Deno.` access the code needs is written as such and the baseline increase is accepted.
+- No code outside `src/deno_ral/` reaches `Deno` indirectly to stay out of the ratchet count: through `globalThis`, `self` or `window`, by destructuring, or through an alias (`const d = Deno`) (`rg -nP '\bglobalThis\b|\bDeno\b(?!\??\.)' <plan>`; `typeof Deno` and prose hits are fine). A `Deno.` access the code needs is written as such and the baseline increase is accepted.
 - Comments inside code blocks state the current reason only: no plan or PR numbers, no description of what a later PR will change (`rg -n '(//|\*).*\bPR [0-9]' <plan>`; a hit in a shell or YAML block that is not a code comment is fine).
 
 After each task's commit, the reviewer runs a reuse and simplification pass over the task's diff, on top of the plan's own review checklist: the plan checks behaviour, this pass checks the three points above on the code as committed.
 On the whole branch before the PR opens:
 
 ```bash
-git diff main...HEAD -- src tests ':!src/deno_ral' | rg -n '^\+.*globalThis.*Deno'   # the layer itself is exempt
+git diff main...HEAD -- src tests ':!src/deno_ral' | rg -nP '^\+.*(\bglobalThis\b|\bDeno\b(?!\??\.))'   # the layer itself is exempt; typeof Deno and prose hits are fine
 git diff main...HEAD -- src tests | rg -n '^\+.*(//|\*).*\bPR [0-9]'
 git diff main...HEAD -- tests | rg -n '^\+\s*(export )?(async )?function \w+'   # each name: rg it in tests/ and src/
 ```
