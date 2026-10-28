@@ -127,6 +127,31 @@ Deno.test("codemod - platform rule rewrites Deno.build.os/arch", () => {
   assertEquals(output, read("platform-basic.expected.ts"));
 });
 
+Deno.test("codemod - a locally bound Deno receiver is left alone", () => {
+  const { result, output } = run("shadowed-deno", ["fs"]);
+  assertEquals(output, read("shadowed-deno.expected.ts"));
+  assertEquals(result.replacements.length, 2);
+  assertEquals(result.collisions, []);
+});
+
+Deno.test("codemod - a type-only namespace import is not overwritten", () => {
+  const { result, output } = run("type-ns-import", ["fs"]);
+  assertEquals(output, read("type-ns-import.expected.ts"));
+  assertEquals(result.importsAdded, { "fs.ts": ["DirEntry"] });
+});
+
+Deno.test("codemod - a type-only import conflicts with a value rewrite", () => {
+  const { result, output } = run("type-value-conflict", ["fs"]);
+  // Both the inline `type statSync` and the declaration-level
+  // `import type { lstatSync }` block the value rewrite; the file is unchanged.
+  assertEquals(output, read("type-value-conflict.input.ts"));
+  assertEquals(result.replacements, []);
+  assertEquals(result.collisions, [
+    { name: "statSync", line: 1, module: "fs.ts" },
+    { name: "lstatSync", line: 2, module: "fs.ts" },
+  ]);
+});
+
 Deno.test("codemod - a file assigning to Deno.* is skipped whole", () => {
   const { result, output } = run("assignment-skip", ["fs"]);
   assertEquals(result.skipped, "assigns to Deno.readTextFileSync at line 2");
@@ -148,6 +173,12 @@ Deno.test("codemod --reverse - round-trips the basic fixtures", () => {
     const { output } = run(name, rules, { reverse: true, input: `${name}.expected.ts` });
     assertEquals(output, read(`${name}.input.ts`), name);
   }
+});
+
+Deno.test("codemod --reverse - expands shorthand properties to explicit assignments", () => {
+  const { result, output } = run("reverse-shorthand", ["platform"], { reverse: true });
+  assertEquals(output, read("reverse-shorthand.expected.ts"));
+  assertEquals(result.importsRemoved, { "platform.ts": ["arch", "os"] });
 });
 
 Deno.test("codemod --reverse - follows aliases and reports what it cannot express", () => {
