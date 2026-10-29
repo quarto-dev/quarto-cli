@@ -786,6 +786,7 @@ export type FormatLanguage = {
   "skip-to-content"?: string;
   "scrollable-code-label"?: string;
   "scrollable-output-label"?: string;
+  "link-external-newwindow-label"?: string;
   "revealjs-menu-button-label"?: string;
   "repo-action-links-edit"?: string;
   "repo-action-links-source"?: string;
@@ -1729,7 +1730,7 @@ export type BrandFontFile = {
     path: string;
     style?: BrandFontStyle;
     weight?: BrandFontWeight;
-  }))[] /* The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */;
+  }))[] /* A list of font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs. */;
   source: "file";
 }; /* A method for providing font files directly, either locally or from an online location. */
 

@@ -26,6 +26,7 @@ import {
 import {
   createCodeBlock,
   createCodeCopyButton,
+  formatHasCodeCopy,
   hasMarginCites,
   hasMarginRefs,
   insertFootnotesTitle,
@@ -305,10 +306,19 @@ export async function processDocumentAppendix(
 
             const bibTexDiv = createCodeBlock(doc, cite.bibtex, "bibtex");
             bibTexDiv.classList.add(kQuartoCiteBibtexClass);
-            contentsDiv.appendChild(bibTexDiv);
 
-            const copyButton = createCodeCopyButton(doc, format);
-            bibTexDiv.appendChild(copyButton);
+            if (formatHasCodeCopy(format)) {
+              bibTexDiv.classList.add("code-with-copy");
+              const outerScaffold = doc.createElement("div");
+              outerScaffold.classList.add("code-copy-outer-scaffold");
+              outerScaffold.appendChild(bibTexDiv);
+              contentsDiv.appendChild(outerScaffold);
+
+              const copyButton = createCodeCopyButton(doc, format);
+              outerScaffold.appendChild(copyButton);
+            } else {
+              contentsDiv.appendChild(bibTexDiv);
+            }
           }
 
           if (cite?.html) {

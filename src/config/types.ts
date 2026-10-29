@@ -196,6 +196,7 @@ import {
   kResourcePath,
   kScrollableCodeLabel,
   kScrollableOutputLabel,
+  kLinkExternalNewwindowLabel,
   kRevealjsMenuButtonLabel,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
@@ -718,6 +719,7 @@ export interface FormatLanguage {
   [kNavigationBreadcrumbsLabel]?: string;
   [kScrollableCodeLabel]?: string;
   [kScrollableOutputLabel]?: string;
+  [kLinkExternalNewwindowLabel]?: string;
   [kRevealjsMenuButtonLabel]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;

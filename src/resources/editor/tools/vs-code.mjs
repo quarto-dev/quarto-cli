@@ -10532,6 +10532,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "skip-to-content": "string",
               "scrollable-code-label": "string",
               "scrollable-output-label": "string",
+              "link-external-newwindow-label": "string",
               "revealjs-menu-button-label": "string",
               "repo-action-links-edit": "string",
               "repo-action-links-source": "string",
@@ -13336,7 +13337,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     }
                   ]
                 },
-                description: "The font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
+                description: "A list of font files to include. These can be local or online. Local file paths should be relative to the `brand.yml` file. Online paths should be complete URLs.\n"
               }
             },
             required: [
@@ -23438,7 +23439,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The font display method, determines how a font face is font face is\nshown depending on its download status and readiness for use.",
         "A method for providing font files directly, either locally or from an\nonline location.",
         "The font family name.",
-        "The font files to include. These can be local or online. Local file\npaths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
+        "A list of font files to include. These can be local or online. Local\nfile paths should be relative to the <code>brand.yml</code> file. Online\npaths should be complete URLs.",
         "The path to the font file. This can be a local path or a URL.",
         "A locally-installed font family name. When used, the end-user is\nresponsible for ensuring that the font is installed on their system.",
         "A path to a brand.yml file, or an object with light and dark paths to\nbrand.yml",
@@ -25827,12 +25828,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 221295,
+        _internalId: 221297,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 221287,
+            _internalId: 221289,
             type: "enum",
             enum: [
               "png",
@@ -25848,7 +25849,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 221294,
+            _internalId: 221296,
             type: "anyOf",
             anyOf: [
               {

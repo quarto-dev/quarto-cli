@@ -1,0 +1,20 @@
+---
+title: Focus ring light/dark pair
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+---
+
+Fixture for the page-aware focus ring on a paired `light:`/`dark:` theme.
+Quarto compiles the two themes into separate stylesheets, and each one
+resolves the focus ring against its own `$body-bg`. The light (cosmo)
+stylesheet keeps the dark tone on the outline; the dark (darkly) stylesheet
+swaps the tones so the outline is white. Switching the color scheme at
+runtime switches which stylesheet is active, and the ring must switch with
+it.
+
+An [inline link](#target) in the body.
+
+## Target {#target}

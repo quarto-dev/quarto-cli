@@ -28,6 +28,9 @@ import {
 import { formatResourcePath } from "../../core/resources.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { normalizePath } from "../../core/path.ts";
+import { formatHasBootstrap } from "./format-html-info.ts";
+import { HtmlFormatFeatureDefaults } from "./format-html-types.ts";
+import { normalizeNewlines } from "../../core/text.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -72,6 +75,33 @@ export const kCitation = "citation";
 
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
+
+export function htmlFormatFeatureDefaults(
+  format: Format,
+): HtmlFormatFeatureDefaults {
+  const bootstrap = formatHasBootstrap(format);
+  const minimal = format.metadata[kMinimal] === true;
+  return {
+    tabby: !minimal && !bootstrap,
+    copyCode: !minimal,
+    anchors: !minimal,
+    hoverCitations: !minimal,
+    hoverFootnotes: !minimal,
+    figResponsive: !minimal,
+    codeAnnotations: !minimal,
+    hoverXrefs: !minimal,
+  };
+}
+
+// whether code copy buttons (and clipboard.js) are enabled for this format
+export function formatHasCodeCopy(
+  format: Format,
+  enabledByDefault = htmlFormatFeatureDefaults(format).copyCode,
+): boolean {
+  return enabledByDefault
+    ? format.metadata[kCodeCopy] !== false
+    : !!format.metadata[kCodeCopy];
+}
 
 export const clipboardDependency = () => {
   const dependency: FormatDependency = { name: "clipboard" };
@@ -487,19 +517,18 @@ export function createCodeCopyButton(doc: Document, format: Format) {
 
 export function createCodeBlock(
   doc: Document,
-  htmlContents: string,
+  text: string,
   language?: string,
 ) {
   const preEl = doc.createElement("PRE");
   preEl.classList.add("sourceCode");
-  preEl.classList.add("code-with-copy");
 
   const codeEl = doc.createElement("CODE");
   codeEl.classList.add("sourceCode");
   if (language) {
     codeEl.classList.add(language);
   }
-  codeEl.innerHTML = htmlContents;
+  codeEl.textContent = normalizeNewlines(text);
   preEl.appendChild(codeEl);
   return preEl;
 }

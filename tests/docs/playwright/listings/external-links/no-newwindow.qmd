@@ -1,0 +1,6 @@
+---
+title: "External Links Test - Option Absent"
+link-external-newwindow: false
+---
+
+An [Outside](https://example.com/outside) link.

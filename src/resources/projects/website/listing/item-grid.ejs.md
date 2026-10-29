@@ -40,7 +40,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 ::: {.g-col-1 <%= listing.utilities.metadataAttrs(item) %> }
 
 ```{=html}
-<a href="<%- item.path %>" class="quarto-grid-link">
+<a href="<%- item.path %>" class="quarto-grid-link no-external-icon">
 <div class="quarto-grid-item card h-100 <%= `card-${align}` %><%= hideBorders ? ' borderless' : '' %>">
 ```
 
@@ -97,15 +97,11 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 
 <% if (showField('description')) { %>
 
-```{=html}
-<div class="card-text listing-description delink">
-```
+::: {.card-text .listing-description .delink}
 
 <%= item.description %>
 
-```{=html}
-</div>
-```
+:::
 
 <% } %>
 

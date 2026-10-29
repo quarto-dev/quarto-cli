@@ -39,6 +39,7 @@ local removable_classes = {
     ["md"] = true,
     ["code-with-copy"] = true,
     ["no-external"] = true,
+    ["no-external-icon"] = true,
     ["no-anchor"] = true,
 }
 local removable_attributes = {

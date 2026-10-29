@@ -2,18 +2,25 @@ project:
   type: website
 
 website:
-  title: "bare-btn-focus"
+  title: "focus-indicator"
   search:
     location: sidebar
   navbar:
     left:
       - href: index.qmd
         text: Home
+      - about.qmd
   sidebar:
     style: floating
     search: true
     contents:
       - index.qmd
-      - about.qmd
+      - listing.qmd
+      - section: "Section"
+        contents:
+          - about.qmd
 
-format: html
+format:
+  html:
+    toc: true
+    theme: [default, focus-ring.scss]

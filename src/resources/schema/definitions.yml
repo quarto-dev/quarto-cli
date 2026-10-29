@@ -1528,6 +1528,7 @@
       skip-to-content: string
       scrollable-code-label: string
       scrollable-output-label: string
+      link-external-newwindow-label: string
       revealjs-menu-button-label: string
       repo-action-links-edit: string
       repo-action-links-source: string
@@ -3572,7 +3573,8 @@
                     #     string:
                     #       pattern: '^U\+[0-9A-F]{4}(?:-[0-9A-F]{4})?(?:,U\+[0-9A-F]{4}(?:-[0-9A-F]{4})?)*$'
         description: >
-          The font files to include. These can be local or online.
+          A list of font files to include.
+          These can be local or online.
           Local file paths should be relative to the `brand.yml` file.
           Online paths should be complete URLs.
     required: [files, family, source]

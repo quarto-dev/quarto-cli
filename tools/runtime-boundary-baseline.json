@@ -1,6 +1,6 @@
 {
   "src": {
-    "denoCalls": 991,
+    "denoCalls": 992,
     "stdImportFiles": 49
   },
   "src-js": {
@@ -8,7 +8,7 @@
     "stdImportFiles": 0
   },
   "resources": {
-    "denoCalls": 10,
+    "denoCalls": 12,
     "stdImportFiles": 1
   },
   "package/src": {
@@ -16,7 +16,7 @@
     "stdImportFiles": 3
   },
   "tests": {
-    "denoCalls": 870,
+    "denoCalls": 874,
     "stdImportFiles": 176
   }
 }

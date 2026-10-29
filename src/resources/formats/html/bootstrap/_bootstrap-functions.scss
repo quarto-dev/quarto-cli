@@ -29,10 +29,13 @@
   // A: 3:1
   // AA: 4.5:1
   // AAA: 7:1
-  $goalContrastRatio: 3;
-  @if $level == "AA" {
+  // A number: that ratio (e.g. 9 for the two tones of the focus ring)
+  $goalContrastRatio: $level;
+  @if $level == "A" {
+    $goalContrastRatio: 3;
+  } @else if $level == "AA" {
     $goalContrastRatio: 4.5;
-  } @else {
+  } @else if $level == "AAA" {
     $goalContrastRatio: 7;
   }
 

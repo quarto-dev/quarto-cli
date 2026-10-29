@@ -7,9 +7,10 @@
  * Counts, per scope, the `Deno.` occurrences and the files that import the
  * standard library directly instead of through src/deno_ral/. Two modes:
  * without flags it fails when any count exceeds the committed baseline (main);
- * with --against <rev> it compares the working tree with <rev> and fails only
- * for a Deno.* API that src/deno_ral already replaces (pull requests); other
- * increases are warnings until the working tree's baseline accepts them.
+ * with --against <rev> it compares the working tree with <rev> (pull requests):
+ * a Deno.* API that src/deno_ral already replaces is an error, any other
+ * increase above the working tree's baseline is a warning that still fails the
+ * run until a maintainer pushes the accepted baseline to the PR before merging.
  *
  * Usage (from the repository root):
  *   quarto run --dev tools/check-runtime-boundary.ts
@@ -106,15 +107,22 @@ const kCommentLineRe = /^\s*(\/\/|\/\*|\*)/;
 const kStdImportAllRe = new RegExp(kStdImportRe.source, "g");
 
 /** Per-file counts. `deno` maps the API key to its occurrences: "build.os" for `Deno.build.os`,
- * "readTextFileSync" for `Deno.readTextFileSync(`, "" for a `Deno.` followed by no identifier,
- * so the sum equals the old \bDeno\. count. `std` lists counted std specifiers (allow-listed excluded), in source order, duplicates kept. */
+ * "readTextFileSync" for `Deno.readTextFileSync(`, "" for a `Deno.` followed by no identifier.
+ * Indirect access keys the same way: `Deno?.errors` and `globalThis["Deno"]?.errors` as "errors",
+ * a bare `globalThis.Deno` or `globalThis["Deno"]` as "". `std` lists counted std specifiers
+ * (allow-listed excluded), in source order, duplicates kept. */
 export interface FileCounts {
   deno: Record<string, number>;
   std: string[];
 }
 
-// The key is read inside a lookahead so a following `Deno.` is never consumed.
-const kDenoRe = /\bDeno\.(?=(\w*)(?:\.(\w+))?)/g;
+// Three alternatives: `Deno.` or `Deno?.`; `globalThis["Deno"]` (any quote, also `globalThis?.[`);
+// a bare `globalThis.Deno` not followed by an access (the first alternative counts that one).
+// The globalThis receiver may be cast, `(globalThis as any)`; requiring it keeps `["Deno"]` in an
+// array or on another object uncounted. The key is read inside a lookahead so a following
+// `Deno.` is never consumed.
+const kDenoRe =
+  /\bDeno\??\.(?=(\w*)(?:\??\.(\w+))?)|\bglobalThis(?:\s+as\s+\w+\s*\))?\s*(?:\?\.)?\[\s*["'`]Deno["'`]\s*\](?:\??\.)?(?=(\w*)(?:\??\.(\w+))?)|\bglobalThis(?:\s+as\s+\w+\s*\))?\s*\??\.\s*Deno\b(?!\??\.)/g;
 
 /** Scans every import in the text, so an allow-listed import does not hide a counted one on the
  * same line, and a `from` separated from its specifier by a newline is still seen. Comment lines
@@ -123,7 +131,9 @@ export function countText(text: string): FileCounts {
   // No prototype: `Deno.constructor` or `Deno.__proto__` in a comment must be an ordinary key.
   const deno: Record<string, number> = Object.create(null);
   for (const match of text.matchAll(kDenoRe)) {
-    const key = match[1] + (match[2] ? "." + match[2] : "");
+    const first = match[1] ?? match[3] ?? "";
+    const second = match[2] ?? match[4];
+    const key = first + (second ? "." + second : "");
     deno[key] = (deno[key] ?? 0) + 1;
   }
   const code = text
@@ -505,14 +515,18 @@ export interface Rendered {
   accepted: Annotation[]; // increases the PR's own baseline already covers
   notices: string[];
   summary: string; // markdown for GITHUB_STEP_SUMMARY
-  failed: boolean; // errors.length > 0
+  failed: boolean; // errors or warnings: a warning is a count above the PR's baseline, which would turn main red
 }
 
 const kReadmeRelPath = "dev-docs/runtime-migration/README.md";
 
 const kAcceptClause =
-  "a maintainer accepts the new count before merging (see the job summary).";
+  "a maintainer accepts the new count before merging; this job stays red until then (see the job summary).";
 const kAcceptSentence = kAcceptClause[0].toUpperCase() + kAcceptClause.slice(1);
+
+/** Printed once in PR mode when a warning fails the job, so the contributor knows the remedy is not theirs. */
+const kPendingAcceptanceError =
+  `This PR raises runtime boundary counts that ${kBaselineRelPath} does not accept yet. Nothing for the contributor to change: a maintainer pushes the baseline update to this PR before merging (see the job summary).`;
 
 const signed = (n: number) => n > 0 ? `+${n}` : `${n}`;
 
@@ -539,6 +553,11 @@ export function renderDelta(
       (current[scope]?.[field] ?? 0) <= raised;
   };
   const acceptedSuffix = `; accepted by this PR's ${kBaselineRelPath}.`;
+  // The push check on main compares with `merged`: a count within it cannot turn main red,
+  // even when the PR did not raise it (main sits below its baseline).
+  const isCovered = (scope: string, field: keyof BoundaryCounts) =>
+    (current[scope]?.[field] ?? 0) <= (merged[scope]?.[field] ?? 0);
+  const coveredSuffix = `; within ${kBaselineRelPath}, which main sits below.`;
 
   for (const finding of report.findings) {
     const annotation = (message: string): Annotation => {
@@ -556,11 +575,13 @@ export function renderDelta(
       );
       continue;
     }
-    if (isAccepted(finding.scope, finding.kind === "deno" ? "denoCalls" : "stdImportFiles")) {
+    const field = finding.kind === "deno" ? "denoCalls" : "stdImportFiles";
+    if (isAccepted(finding.scope, field) || isCovered(finding.scope, field)) {
+      const suffix = isAccepted(finding.scope, field) ? acceptedSuffix : coveredSuffix;
       accepted.push(annotation(
         finding.kind === "deno"
-          ? `${finding.scope}: +${finding.delta} Deno.${finding.name} in ${finding.file}${acceptedSuffix}`
-          : `${finding.scope}: ${finding.file} now imports the standard library directly (${finding.name})${acceptedSuffix}`,
+          ? `${finding.scope}: +${finding.delta} Deno.${finding.name} in ${finding.file}${suffix}`
+          : `${finding.scope}: ${finding.file} now imports the standard library directly (${finding.name})${suffix}`,
       ));
       continue;
     }
@@ -633,6 +654,8 @@ export function renderDelta(
     summary.push(
       "### Maintainer action before merging",
       "",
+      "Nothing for the contributor to change: this job stays red until a maintainer accepts the new counts.",
+      "",
       "This PR raises counts (warnings above). Where a warning suggests a module, check whether the PR should use it; accept the rest. Before merging, update the branch with `main`, then run",
       "",
       "    quarto run --dev tools/check-runtime-boundary.ts --update-baseline --accept-increase",
@@ -647,7 +670,7 @@ export function renderDelta(
     accepted,
     notices,
     summary: summary.join("\n"),
-    failed: errors.length > 0,
+    failed: errors.length > 0 || warnings.length > 0,
   };
 }
 
@@ -885,6 +908,9 @@ if (import.meta.main) {
     }
     for (const { message, file, line } of rendered.errors) {
       error(message, { file, line });
+    }
+    if (rendered.warnings.length > 0) {
+      error(kPendingAcceptanceError);
     }
     if (!stepSummary(rendered.summary)) {
       console.log(rendered.summary);
