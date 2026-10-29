@@ -14,7 +14,7 @@ All changes included in 1.11:
 ## Dependencies
 
 - ([#15043](https://github.com/quarto-dev/quarto-cli/issues/15043)): Update the OJS runtime to acorn 8.17, Observable Inspector 5.0.1, and Observable Inputs 0.10.6. `FileAttachment(...).mimeType` now reports `text/javascript` instead of `application/javascript` for `.js` and `.mjs` files.
-- ([#15152](https://github.com/quarto-dev/quarto-cli/issues/15152)): Update `deno` to v2.9.8. HTTPS requests made by Quarto (`quarto publish`, `quarto add`, `quarto use template`, `quarto install`) no longer trust certificates issued through the compromised eMudhra / emSign certificate authorities, which Deno 2.7.14 accepted.
+- ([#15152](https://github.com/quarto-dev/quarto-cli/issues/15152)): Update `deno` to v2.9.8, which no longer trusts the compromised eMudhra / emSign certificate authorities whose exposed private keys let an attacker on the network impersonate any HTTPS site. This secures the HTTPS requests made by `quarto publish`, `quarto add`, `quarto use template`, `quarto install`, and TypeScript scripts run by Quarto.
 
 ## Accessibility
 
