@@ -15,6 +15,7 @@ import {
   codemodFile,
   type CodemodResult,
   collectFiles,
+  kCanonicalReverseHint,
   type RuleName,
 } from "../codemod-deno-ral.ts";
 
@@ -250,7 +251,6 @@ Deno.test("codemod --reverse - round-trips the basic fixtures", () => {
   const cases: [string, RuleName[]][] = [
     ["fs-basic", ["fs"]],
     ["no-imports", ["fs"]],
-    ["realpath", ["fs"]],
     ["temp-basic", ["temp"]],
     ["env-basic", ["env"]],
     ["process-basic", ["process"]],
@@ -298,6 +298,24 @@ Deno.test("codemod --reverse - follows aliases and reports what it cannot expres
   assertEquals(left.output, read("reverse-left.expected.ts"));
   assertEquals(left.result.left, [{ name: "args", line: 3, module: "process.ts" }]);
   assertEquals(left.result.importsRemoved, { "process.ts": ["exit"] });
+});
+
+Deno.test("codemod --reverse - reports canonicalPathSync instead of reversing it", () => {
+  const { result, output } = run("reverse-realpath", ["fs"], { reverse: true });
+  assertEquals(output, read("reverse-realpath.expected.ts"));
+  assertEquals(result.left, [
+    { name: "canonicalPathSync", line: 2, module: "fs.ts", hint: kCanonicalReverseHint },
+  ]);
+  assertEquals(result.importsRemoved, { "fs.ts": ["statSync"] });
+  assertEquals(result.replacements.length, 1);
+
+  // A re-export keeps the import and still carries the hint.
+  const reexport = run("reverse-realpath-reexport", ["fs"], { reverse: true });
+  assertEquals(reexport.output, read("reverse-realpath-reexport.input.ts"));
+  assertEquals(reexport.result.left, [
+    { name: "canonicalPathSync", line: 2, module: "fs.ts", hint: kCanonicalReverseHint },
+  ]);
+  assertEquals(reexport.result.replacements, []);
 });
 
 Deno.test("codemod - collectFiles applies the skip list", () => {

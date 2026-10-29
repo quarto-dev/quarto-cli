@@ -237,7 +237,8 @@ Behaviour (forward):
    Files are written only when at least one replacement was applied and `--dry-run` is off.
    The tool lives in `tools/`, outside the ratchet scopes, and may use `Deno.*`.
 
-Behaviour (reverse): for each import specifier from a layer module of the selected rules whose exported name appears in the rule tables, every reference to its local binding (resolved by symbol, so aliases and shadowing are handled) is replaced: values by `Deno.<name>` (`canonicalPathSync` → `Deno.realPathSync`, `env` → `Deno.env`, `os`/`arch` → `Deno.build.os`/`Deno.build.arch`), a call `args()`/`pid()` by `Deno.args`/`Deno.pid`, a type reference by `Deno.<T>`.
+Behaviour (reverse): for each import specifier from a layer module of the selected rules whose exported name appears in the rule tables, every reference to its local binding (resolved by symbol, so aliases and shadowing are handled) is replaced: values by `Deno.<name>` (`env` → `Deno.env`, `os`/`arch` → `Deno.build.os`/`Deno.build.arch`), a call `args()`/`pid()` by `Deno.args`/`Deno.pid`, a type reference by `Deno.<T>`.
+`canonicalPathSync` is never reversed; it is reported in `left` with a hint to use `originalRealPathSync`, because stable branches patch `Deno.realPathSync` to `normalizePath`.
 If every reference was rewritten the specifier is removed (the declaration too when nothing is left); otherwise the specifier stays and is reported in `left`.
 Names outside the tables (`existsSync`, `safeRemoveSync`, `isNotFound`, …) are untouched: stable branches have `deno_ral/fs.ts` with the `safe*` helpers, but not `errors.ts`.
 
@@ -2473,7 +2474,7 @@ In `dev-docs/checklist-backport-a-pr.md`, after the bullet "Cherry-pick the comm
   git worktree remove --force "$w"
   ```
 
-  Then, on the stable branch: `git apply -3 "$w.patch" && git commit -C "$c"`. The tool prints `left:` for any layer name it cannot express (for example `args` used without a call) and never rewrites `deno_ral/errors.ts` predicates: grep the patch for `deno_ral/errors.ts` and `isNotFound(` and turn them into `instanceof Deno.errors.X` by hand. `canonicalPathSync` reverses to `Deno.realPathSync`, which on branches that still load `core/deno/monkey-patch.ts` is the normalising patch: use `originalRealPathSync` there instead.
+  Then, on the stable branch: `git apply -3 "$w.patch" && git commit -C "$c"`. The tool prints `left:` for any layer name it cannot express (for example `args` used without a call) and never rewrites `deno_ral/errors.ts` predicates: grep the patch for `deno_ral/errors.ts` and `isNotFound(` and turn them into `instanceof Deno.errors.X` by hand. The tool reports `canonicalPathSync` as `left` (stable branches patch `Deno.realPathSync`): import `originalRealPathSync` from `deno_ral/original-real-path.ts` there.
 ````
 
 Check the procedure on a real commit before committing the doc: pick the PR 10 commit "core: codemod Deno fs/temp calls to deno_ral (mechanical)" once it exists, or this PR's own `src/deno_ral/fs.ts` change otherwise, and confirm `git apply --check` succeeds on `v1.10`.
@@ -2552,7 +2553,7 @@ git commit -m "codemod CI step, backport step, rules docs and changelog for deno
 - [ ] The codemod never mutates the AST; edits are applied from the end; a file is written only when something changed and `--dry-run` is off.
 - [ ] Collisions are symbol-based: an existing import of the same export from the same layer module never collides; an existing alias is reused; `import type` declarations stay type-only; aliases survive a merge.
 - [ ] `kCodemodExclusions` is `kSrcExclusions` plus `src/core/lib` and `src/resources/tools/ast-diagram`; the codemod test never runs under `run-tests.sh`.
-- [ ] `--reverse` round-trips the basic fixtures and reports, rather than guesses, uses it cannot express.
+- [ ] `--reverse` round-trips the basic fixtures and reports, rather than guesses, uses it cannot express; `canonicalPathSync` is always reported, never reversed.
 - [ ] No file outside `src/deno_ral/`, `tools/`, `tests/unit/ral/`, the two rules docs, the backport checklist, the workflow, the changelog and `deno.lock` changed; the ratchet baseline is unchanged.
 
 ## Risks and rollback
@@ -2663,3 +2664,7 @@ Seven review rounds on the forward guard that skips files patching `Deno.*` (for
 - `3c973e12b` (sixth round): `` globalThis[`Deno`] `` and `` Object[`assign`] `` escaped both guards, because `memberOf` accepted only string-literal keys. A template literal without substitutions now counts as a static key, like a string literal (`write-global-this-template`, `write-object-assign-template`).
 - `428714395` (seventh round): a parenthesized key (`globalThis[("Deno")]`, `Object[("assign")]`) escaped them the same way. `memberOf` now unwraps the key through the transparent wrappers already stripped from the receiver and the callee (`write-global-this-paren-key`, `write-object-assign-paren-key`).
 - After each round, `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` passed (27 tests after the last round), and the forward dry run over `src/` with all rules (`--rules fs,temp,env,process,platform --dir src --dry-run`) was unchanged: 624 files scanned, 224 would be rewritten, 816 replacements, 18 with collisions, 2 skipped (`src/core/deno/monkey-patch.ts`, `src/core/performance/metrics.ts`).
+
+### Branch review (2026-10-29)
+
+- Commit "tools: codemod-deno-ral --reverse reports canonicalPathSync instead of mapping it to Deno.realPathSync": `--reverse` no longer maps `canonicalPathSync` to `Deno.realPathSync` (the monkey-patched `normalizePath` on stable branches); it reports the binding in `left` with a hint naming `originalRealPathSync`, before the re-export check so a re-exported name keeps the hint. Pinned by the `reverse-realpath` and `reverse-realpath-reexport` fixtures. TDD: the new test failed first with a type error (`kCanonicalReverseHint` not exported). Suite after: `ok | 28 passed | 0 failed`. CLI dry-run on the fixture printed `:2: left: 'canonicalPathSync' (deno_ral/fs.ts) is not Deno.realPathSync on branches that load core/deno/monkey-patch.ts; use originalRealPathSync from deno_ral/original-real-path.ts; edit by hand` and `Summary: 1 files scanned, 1 would be rewritten, 1 replacements, 0 with collisions, 0 skipped, 1 left`. Plan text updated at Behaviour (reverse), the Task 5 backport text and the review checklist.

@@ -32,6 +32,7 @@ export type RuleName = "fs" | "temp" | "env" | "process" | "platform";
 interface Member {
   to: string;
   callAfter?: boolean; // Deno.args -> args()
+  reverseHint?: string; // never reversed; reported in `left` with this hint
 }
 
 interface Rule {
@@ -54,10 +55,16 @@ const kFsNames = [
 const same = (names: string[]): Record<string, Member> =>
   Object.fromEntries(names.map((n) => [n, { to: n }]));
 
+export const kCanonicalReverseHint =
+  "is not Deno.realPathSync on branches that load core/deno/monkey-patch.ts; use originalRealPathSync from deno_ral/original-real-path.ts";
+
 export const RULES: Record<RuleName, Rule> = {
   fs: {
     module: "fs.ts",
-    members: { ...same(kFsNames), realPathSync: { to: "canonicalPathSync" } },
+    members: {
+      ...same(kFsNames),
+      realPathSync: { to: "canonicalPathSync", reverseHint: kCanonicalReverseHint },
+    },
     types: { FileInfo: "FileInfo", DirEntry: "DirEntry", FsFile: "FsFile" },
     nested: {},
   },
@@ -109,6 +116,7 @@ export interface Collision {
   name: string;
   line: number;
   module: string;
+  hint?: string;
 }
 export interface CodemodResult {
   file: string;
@@ -626,12 +634,17 @@ interface ReverseTarget {
   value?: string; // replacement for a value reference
   call?: string; // replacement for `name()` (callAfter members)
   type?: string; // replacement for a type reference
+  hint?: string; // never reversed; reported in `left` with this hint
 }
 
 function reverseTable(rule: Rule): Record<string, ReverseTarget> {
   const table: Record<string, ReverseTarget> = {};
   for (const [deno, m] of Object.entries(rule.members)) {
-    table[m.to] = m.callAfter ? { call: `Deno.${deno}` } : { value: `Deno.${deno}` };
+    table[m.to] = m.reverseHint
+      ? { hint: m.reverseHint }
+      : m.callAfter
+      ? { call: `Deno.${deno}` }
+      : { value: `Deno.${deno}` };
   }
   for (const [deno, to] of Object.entries(rule.types)) {
     table[to] = { ...table[to], type: `Deno.${deno}` };
@@ -668,21 +681,33 @@ function reverseFile(
       const target = table[spec.getName()];
       if (!target) continue;
       const local = spec.getAliasNode()?.getText() ?? spec.getName();
+      const refs = identifiers.filter((id) =>
+        id.getText() === local && isBindingOrReference(id) &&
+        id !== spec.getNameNode() && id !== spec.getAliasNode() &&
+        referencedDeclarations(id, checker).includes(spec.compilerNode)
+      );
       // `export { x }` / `export { x as y }` re-exports the binding itself and
       // has no `Deno.*` spelling; keep the import (reported in `left`).
       const reexport = localExports.find((e) =>
         checker.getExportSpecifierLocalTargetSymbol(e.compilerNode)?.declarations
           ?.includes(spec.compilerNode)
       );
+      if (target.hint) {
+        // Never reversed (the `Deno.*` spelling means something else on some
+        // branches); keep the import and report in `left` with the hint. The
+        // line is the first use of the binding, counting a re-export as a
+        // use, or the specifier's line when nothing uses it.
+        const uses = [...(reexport ? [reexport] : []), ...refs];
+        const line = uses.length
+          ? Math.min(...uses.map((n) => n.getStartLineNumber()))
+          : spec.getStartLineNumber();
+        result.left.push({ name: local, line, module: rule.module, hint: target.hint });
+        continue;
+      }
       if (reexport) {
         result.left.push({ name: local, line: reexport.getStartLineNumber(), module: rule.module });
         continue;
       }
-      const refs = identifiers.filter((id) =>
-        id.getText() === local && isBindingOrReference(id) &&
-        id !== spec.getNameNode() && id !== spec.getAliasNode() &&
-        referencedDeclarations(id, checker).includes(spec.compilerNode)
-      );
       const specEdits: Edit[] = [];
       const specReplacements: Replacement[] = [];
       let complete = true;
@@ -799,7 +824,7 @@ if (import.meta.main) {
     }
     for (const c of r.left) {
       console.log(
-        `${rel}:${c.line}: left: '${c.name}' (deno_ral/${c.module}) has a use --reverse cannot express; edit by hand`,
+        `${rel}:${c.line}: left: '${c.name}' (deno_ral/${c.module}) ${c.hint ?? "has a use --reverse cannot express"}; edit by hand`,
       );
     }
     if (r.collisions.length > 0) withCollisions++;
