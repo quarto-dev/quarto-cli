@@ -44,7 +44,7 @@ What exists today (verified 2026-10-15, `main` at `b86f98d`):
 - `src/core/performance/metrics.ts:18-33` (`captureFileReads`) reassigns `Deno.readTextFileSync` at runtime to record file reads.
   Until PR 20b replaces that with the layer's `onFileRead(listener)` hook, the layer must look `Deno.readTextFileSync` up at call time (never cache the function).
   This PR does not add `onFileRead`; PR 20b owns it.
-- Deno-specific types used in application signatures that this PR gives a home: `Deno.FileInfo` (`src/core/copy.ts:231,232`), `Deno.MakeTempOptions` (`src/core/temp.ts:58,71,76,79`, `src/core/temp-types.ts:11,13,14`, `monkey-patch.ts`), `Deno.ReadFileOptions` (`src/core/qualified-path.ts:69`), `Deno.FsFile` (none by name; 11 `Deno.open` sites use it structurally).
+- Deno-specific types used in application signatures that this PR gives a home: `Deno.FileInfo` (`src/core/copy.ts:231,232`), `Deno.MakeTempOptions` (`src/core/temp.ts:58,71,76,79`, `src/core/temp-types.ts:11,13,14`, `monkey-patch.ts`), `Deno.FsFile` (none by name; 11 `Deno.open` sites use it structurally). `Deno.ReadFileOptions` gets no home — the layer's reads stay path-only (decided 2026-10-29: the codemod reports `qualified-path.ts`'s own `readTextFile`/`readTextFileSync` as collisions; no caller passes `options`; PR 10 drops the parameter in that hand-fix, `10-codemod-fs-core.md:59`; a `signal` would also break the path annotation, because an aborted read's `DOMException.message` is getter-only).
 - `Deno.errors.*` sites: 18 in `src/` (17 `instanceof` checks and one type alias), 1 in `package/src`, 4 in `tests/`: `NotFound` (`src/project/project-index.ts:250`, `src/command/render/pandoc.ts:1648`, `src/core/copy.ts:236`, `src/core/cache/cache.ts:161`, `src/core/path.ts:189`, `src/core/http.ts:64,230`, `src/core/jupyter/jupyter-shared.ts:107`, `src/core/typst.ts:82`, `package/src/common/validate-bundle.ts:72`), `PermissionDenied` (`src/project/project-context.ts:652,967,1072`; 967 is the type alias `InputWalkError`, rewritten by PR 12), `AddrInUse` (`src/core/port.ts:131`), and the five connection errors in `src/core/http.ts:231-235`.
 - `Deno.readDirSync`/`Deno.readDir` iteration: no caller uses `.next()`; `src/command/use/commands/brand.ts:706` spreads the result (works on an array); `src/tools/impl/chrome-headless-shell.ts:122` mutates the directory while iterating (safer with a snapshot array); emptiness checks (`src/core/path.ts:53`, `src/command/use/commands/template.ts:373`, `src/command/render/freeze.ts:250`) become a full read and sort, negligible for those directories.
   Order-dependent loops: `src/format/html/format-html-shared.ts:133` (bslib SCSS; PR 01 also sorts), `src/command/capabilities/capabilities.ts:75` (theme list), `src/command/call/build-ts-extension/cmd.ts:118` (entry list), `src/project/types/manuscript/manuscript-meca.ts:427` (MECA item order), `src/extension/extension.ts:296,477,683` (extension discovery order).
@@ -255,10 +255,10 @@ Names outside the tables (`existsSync`, `safeRemoveSync`, `isNotFound`, …) are
 
 ### Acceptance criteria
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → `ok | 24 passed | 0 failed` (12 fs + 4 errors + 5 temp + the 3 existing cases in `$(find unit/ral/ -name '*.test.ts')`).
-- `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` → `ok | 17 passed | 0 failed`; `run-tests.sh` does not discover it (it lives outside `tests/`).
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → `ok | 24 passed | 0 failed` (on Windows `23 passed | 1 ignored`: "safeRemoveDirSync with symlinks" is `ignore: isWindows`) (12 fs + 4 errors + 5 temp + the 3 existing cases in `$(find unit/ral/ -name '*.test.ts')`).
+- `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` → `ok | 29 passed | 0 failed`; `run-tests.sh` does not discover it (it lives outside `tests/`).
 - `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dry-run` runs to completion, reports `src/core/deno/monkey-patch.ts` and `src/core/performance/metrics.ts` as skipped (only the first if PR 20b has landed), reports the collisions in `src/core/copy.ts` (`copyFileSync`, local function first referenced at line 60) and `src/core/qualified-path.ts` (`readTextFile` line 69, `readTextFileSync` line 73), never lists a file under `src/core/lib/`, and leaves the tree unchanged (`git status --short src` is empty).
-- `quarto run --dev tools/check-runtime-boundary.ts` passes at the unchanged baseline.
+- `quarto run --dev tools/check-runtime-boundary.ts` passes; the baseline's `tests` count rises by one (874 → 875), every other scope is unchanged.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
 
 ## Plan
@@ -2537,10 +2537,10 @@ git commit -m "codemod CI step, backport step, rules docs and changelog for deno
 
 ## Verification
 
-- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → `ok | 24 passed | 0 failed`.
-- `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` → `ok | 17 passed | 0 failed`.
+- `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → `ok | 24 passed | 0 failed` (on Windows `23 passed | 1 ignored`: "safeRemoveDirSync with symlinks" is `ignore: isWindows`).
+- `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` → `ok | 29 passed | 0 failed`.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
-- `quarto run --dev tools/check-runtime-boundary.ts` → passes; `git diff --stat tools/runtime-boundary-baseline.json` is empty (no callers moved; the new tests use the layer, so the `tests` count does not rise).
+- `quarto run --dev tools/check-runtime-boundary.ts` → passes; `git diff upstream/main...HEAD -- tools/runtime-boundary-baseline.json` (three dots: against the merge base, so it holds whether or not the branch is rebased onto PR 02d) shows only `tests` 874 → 875 (the `typeof Deno` guard in `errors.test.ts`, Review of Tasks 1–3).
 - The Task 4 step 6 dry run → the lines shown there; `git status --short src` clean.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts unit/ral/safe-remove-dir.test.ts smoke/check/check-info-project.test.ts` → pass (`safeRemoveDirSync` now resolves through `canonicalPathSync`).
 
@@ -2556,7 +2556,7 @@ git commit -m "codemod CI step, backport step, rules docs and changelog for deno
 - [ ] Collisions are symbol-based: an existing import of the same export from the same layer module never collides; an existing alias is reused; `import type` declarations stay type-only; aliases survive a merge.
 - [ ] `kCodemodExclusions` is `kSrcExclusions` plus `src/core/lib` and `src/resources/tools/ast-diagram`; the codemod test never runs under `run-tests.sh`.
 - [ ] `--reverse` round-trips the basic fixtures and reports, rather than guesses, uses it cannot express; `canonicalPathSync` is always reported, never reversed.
-- [ ] No file outside `src/deno_ral/`, `tools/`, `tests/unit/ral/`, the two rules docs, the backport checklist, the workflow, the changelog and `deno.lock` changed; the ratchet baseline is unchanged.
+- [ ] No file outside `src/deno_ral/`, `tools/`, `tests/unit/ral/`, the two rules docs, the backport checklist, the workflow, the changelog and `deno.lock` changed; the ratchet baseline changes only `tests` (874 → 875).
 
 ## Risks and rollback
 
@@ -2589,14 +2589,14 @@ Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + 
 - PR 02 present: `tools/check-runtime-boundary.ts` exports `kSrcExclusions` at line 158; `.github/workflows/runtime-boundary.yml`, `tests/asserts.ts` exist.
 - Every `path:line` the plan cites was re-grepped. Two Context citations drifted (content identical, line moved): `src/core/cache/cache.ts:161` is now line 186; `src/core/path.ts:189` is now line 197. `src/deno_ral/fs.ts` is 215 lines (the plan says 206): the Task 3 append point "after `ensureUserWritable`, line 206" is the end of the file, line 214, and the `safeRemoveDirSync` block of lines 147-163 sits at lines 143-169. The `@std/fs` `walk.ts:922` citation cannot be re-grepped (`fs/` maps to the remote `jsr:/@std/fs@1.0.16/`); the `Deno.realPathSync(` grep over `src/` confirms no application caller.
 - README "Open decisions with an owner": no row names PR 09; the plan's "Decisions needed" is none.
-- Beads: `quarto-cli-81ld.13` open with both `blocks` dependencies closed (PR 02 #15135, PR 02c #15153). `quarto-cli-81ld.50` (plan defect: contract tests imported `testing/asserts`) is closed: the plan's `tests/unit/ral` tests import `../../asserts.ts`; only the `tools/codemod` test keeps `testing/asserts` (outside the ratchet `tests` scope, by design).
+- Dependencies PR 02 (#15135) and PR 02c (#15153) are merged. The plan defect where contract tests imported `testing/asserts` is fixed: the plan's `tests/unit/ral` tests import `../../asserts.ts`; only the `tools/codemod` test keeps `testing/asserts` (outside the ratchet `tests` scope, by design).
 
 ### Task 1: `src/deno_ral/errors.ts`
 
 - Step 2 (RED): `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/ral/errors.test.ts` →
 
   ```
-  TS2307 [ERROR]: Cannot find module 'file:///C:/Users/chris/Documents/DEV_R/quarto-cli.worktrees/rt-09-ral-fs-and-temp-layer/src/deno_ral/errors.ts'.
+  TS2307 [ERROR]: Cannot find module 'file:///<worktree>/src/deno_ral/errors.ts'.
   error: Type checking failed.
   ```
 - Step 4 (GREEN): same command →
@@ -2611,7 +2611,7 @@ Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + 
 - Step 2 (RED): `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/ral/temp.test.ts` →
 
   ```
-  TS2307 [ERROR]: Cannot find module 'file:///C:/Users/chris/Documents/DEV_R/quarto-cli.worktrees/rt-09-ral-fs-and-temp-layer/src/deno_ral/temp.ts'.
+  TS2307 [ERROR]: Cannot find module 'file:///<worktree>/src/deno_ral/temp.ts'.
   error: Type checking failed.
   ```
 - Step 4 (GREEN): same command →
@@ -2642,7 +2642,7 @@ Executed 2026-10-28 on branch `rt/09-ral-fs-and-temp-layer` (Windows 11, pwsh + 
 - Plan and PR numbers removed from the comments in `src/deno_ral/{fs,errors,temp}.ts` and the `fs.test.ts` header; README "Decisions and conventions" records both rules.
 - `$env:QUARTO_TESTS_NO_CONFIG="true"; pwsh -File run-tests.ps1 --agent unit/ral/*.test.ts` → `ok | 23 passed | 0 failed | 1 ignored`.
 - Post-commit review found `annotate` in `src/deno_ral/fs.ts` defeated `errorWithPath`'s idempotence for file URLs: it passed `toPathString(path)` (filesystem path) while the still-active read-annotation wrapper appends `"Path: " + path` (the URL href), so a second `Path:` line was added. Commit `4bdd5f4ca` switches to `String(path)` and adds missing-file URL cases to `fs.test.ts` (the new assertion fails on the old code: two `Path:` lines).
-- The `errorWithPath` docstring and the `annotate` comment no longer name the read-annotation wrapper's file: the wording holds while the wrapper is active and after its removal, so the removal-time comment sweep has two fewer hits (the remaining ones, in `temp.ts` and `fs.test.ts`, are tracked in beads). `String(path)` is unchanged, so idempotence with the active wrapper is unaffected.
+- The `errorWithPath` docstring and the `annotate` comment no longer name the read-annotation wrapper's file: the wording holds while the wrapper is active and after its removal, so the removal-time comment sweep has two fewer hits (the remaining ones are in `temp.ts` and `fs.test.ts`). `String(path)` is unchanged, so idempotence with the active wrapper is unaffected.
 
 ### Task 4: the codemod and its fixtures
 
@@ -2671,3 +2671,4 @@ Seven review rounds on the forward guard that skips files patching `Deno.*` (for
 
 - Commit "tools: codemod-deno-ral --reverse reports canonicalPathSync instead of mapping it to Deno.realPathSync": `--reverse` no longer maps `canonicalPathSync` to `Deno.realPathSync` (the monkey-patched `normalizePath` on stable branches); it reports the binding in `left` with a hint naming `originalRealPathSync`, before the re-export check so a re-exported name keeps the hint. Pinned by the `reverse-realpath` and `reverse-realpath-reexport` fixtures. TDD: the new test failed first with a type error (`kCanonicalReverseHint` not exported). Suite after: `ok | 28 passed | 0 failed`. CLI dry-run on the fixture printed `:2: left: 'canonicalPathSync' (deno_ral/fs.ts) is not Deno.realPathSync on branches that load core/deno/monkey-patch.ts; use originalRealPathSync from deno_ral/original-real-path.ts; edit by hand` and `Summary: 1 files scanned, 1 would be rewritten, 1 replacements, 0 with collisions, 0 skipped, 1 left`. Plan text updated at Behaviour (reverse), the Task 5 backport text and the review checklist.
 - Commit "tools: codemod-deno-ral freezes the write guard and skips the known patch files by path": the write guard is documented as best-effort and frozen, and `kCodemodPatchFiles` (`src/core/deno/monkey-patch.ts`, `src/core/performance/metrics.ts`) is a backstop checked after the guard, so a caught file keeps the guard's reason. Pinned by `patch-file-backstop.input.ts` (a `Reflect.get` write the guard misses) run under both listed paths. TDD: the test failed first with `result.skipped` `undefined` (the file was rewritten). Probe before documenting the gaps (Deno 2.7.14, `codemodFile` dry run): all three reproduced — `Reflect.get(globalThis, "Deno")` → skipped undefined, 1 replacement; computed key `globalThis[k]` → skipped undefined, 1 replacement; comma-wrapped `Object.assign((0, Deno.build), …)` → skipped undefined, 1 replacement. Suite after: `ok | 29 passed | 0 failed`. Full dry run (`--rules fs,temp,env,process,platform --dir src --dry-run`) unchanged: `src/core/deno/monkey-patch.ts: skipped: assigns to Deno.realPathSync at line 17`, `src/core/performance/metrics.ts: skipped: assigns to Deno.readTextFileSync at line 23`, `Summary: 624 files scanned, 224 would be rewritten, 816 replacements, 18 with collisions, 2 skipped`; `git status --short src` empty. README "Open decisions with an owner" gained the PR 20b and PR 25 rows that remove the two entries later.
+- Commit "runtime-migration docs: PR 09 plan matches its execution; tracking section is tool-neutral": private details (tracker IDs, `C:/Users/...` paths, tracker instructions) left the committed docs; README progress tracking is tool-neutral. Acceptance criteria, Verification and the review checklist now match what was executed: ral suite `ok | 24 passed | 0 failed` (on Windows `23 passed | 1 ignored`), codemod suite `ok | 29 passed | 0 failed`, and the ratchet baseline check is `git diff upstream/main...HEAD -- tools/runtime-boundary-baseline.json` showing only `tests` 874 → 875. RC1 (ReadFileOptions) was closed without a code change: the codemod reports `qualified-path.ts`'s own `readTextFile`/`readTextFileSync` as collisions, no caller passes `options`, and an aborted read's `DOMException.message` is getter-only, so a `signal` in the layer would break `errorWithPath`; only the Context line records the decision. Step 3 checks: both greps printed nothing; baseline diff is the one hunk above; suites re-run after the edits: codemod `ok | 29 passed | 0 failed`, unit ral `ok | 23 passed | 0 failed | 1 ignored`.

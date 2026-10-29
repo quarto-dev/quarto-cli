@@ -214,11 +214,9 @@ Progress tracking while executing (decided 2026-10-28, from PR 09's run):
 
 - The plan file ends with an "Execution log" section: one entry per task with the commands run and their quoted output; numbers reported anywhere (test counts, ratchet counts, dry-run summaries) are copied from real output.
   The executor ticks the plan's checkboxes as steps complete; the execution-log and checkbox updates fold into each task's own commit.
-- The beads issue for the PR is set to `in_progress` when execution starts; a `br comments add` one-liner records each finished task.
-  Beads state lives in the main checkout's `.beads/` (the worktree has a `redirect` file); it is never committed from a feature branch.
-  The issue closes when the PR merges, not before.
+- Status in a tracker, if the maintainer keeps one, stays in that tracker (HANDOFF "Tracking"); nothing about it is committed.
 - A plan may be executed over several sessions: hand off at a task boundary (a commit point), not mid-task.
-  The ticked checkboxes, the execution log, the beads comments and the git log make the plan file self-sufficient; a fresh session resumes with "Continue executing PR NN in worktree `<path>`; the plan is `dev-docs/runtime-migration/NN-*.md` — resume at Task N per its checkboxes and execution log."
+  The ticked checkboxes, the execution log and the git log make the plan file self-sufficient; a fresh session resumes with "Continue executing PR NN in worktree `<path>`; the plan is `dev-docs/runtime-migration/NN-*.md` — resume at Task N per its checkboxes and execution log."
   This is the fallback for `superpowers:subagent-driven-development` when the executor has no sub-agent tooling: the artifacts above replace the orchestrator's memory.
 
 ## The sequence
