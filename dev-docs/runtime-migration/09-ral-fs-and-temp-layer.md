@@ -2522,7 +2522,7 @@ Deno.cwd();
 Open the PR as a draft to get its number `N`, then add under `## Other fixes and improvements` in `news/changelog-1.11.md`:
 
 ```markdown
-- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): Directories are now read in a fixed order (sorted by name, uppercase before lowercase) on every platform.
+- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): Directories are now read in a fixed order (sorted by name in character-code order, not by locale) on every platform.
   Extension discovery, the theme list of `quarto capabilities`, and the items of a MECA bundle no longer depend on the file system's listing order; when two extensions share an id, which one wins can differ from earlier versions.
 ```
 
