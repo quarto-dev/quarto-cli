@@ -125,7 +125,12 @@ export async function revealPluginExtras(
     {
       plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
     },
-    { plugin: formatResourcePath("revealjs", join("plugins", "pdfexport")) },
+    {
+      plugin: formatResourcePath("revealjs", join("plugins", "pdfexport"))
+    },
+    {
+      plugin: formatResourcePath("revealjs", join("plugins", "tabset"))
+    },
   ];
 
   // menu plugin (enabled by default)
