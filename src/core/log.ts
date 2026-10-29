@@ -364,6 +364,17 @@ export function logError(e: unknown, defaultShowStack = true) {
   // print error name if requested
   let message = err.printName ? `${err.name}: ${err.message}` : err.message;
 
+  // runtime errors such as Deno's "fetch failed" carry the reason in `cause`
+  const seen = new Set<unknown>([err]);
+  for (
+    let cause = err.cause;
+    cause instanceof Error && !seen.has(cause);
+    cause = cause.cause
+  ) {
+    seen.add(cause);
+    message = `${message}: ${cause.message}`;
+  }
+
   if (e instanceof InternalError) {
     // always print stack information of internal errors
     message = message +

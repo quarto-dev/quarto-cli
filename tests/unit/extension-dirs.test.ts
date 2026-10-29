@@ -38,7 +38,7 @@ async function inputExtensionDirsInWorker(
     new URL("./extension-dirs-worker.ts", import.meta.url).href,
     { type: "module" },
   );
-  let timer: number | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     await nextMessage(worker);
     const reply = nextMessage(worker);

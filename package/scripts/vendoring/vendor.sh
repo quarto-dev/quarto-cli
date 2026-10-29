@@ -24,7 +24,7 @@ fi
 pushd "${QUARTO_SRC_PATH}"
 set +e
 for entrypoint in quarto.ts vendor_deps.ts ../tests/test-deps.ts ../package/scripts/deno_std/deno_std.ts; do
-  $DENO_BIN_PATH install --allow-all --no-config --entrypoint $entrypoint "--importmap=$QUARTO_SRC_PATH/import_map.json"
+  $DENO_BIN_PATH install --allow-import --no-config --entrypoint $entrypoint "--importmap=$QUARTO_SRC_PATH/import_map.json"
 done
 set -e
 popd

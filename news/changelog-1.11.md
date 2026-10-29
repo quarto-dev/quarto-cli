@@ -14,6 +14,7 @@ All changes included in 1.11:
 ## Dependencies
 
 - ([#15043](https://github.com/quarto-dev/quarto-cli/issues/15043)): Update the OJS runtime to acorn 8.17, Observable Inspector 5.0.1, and Observable Inputs 0.10.6. `FileAttachment(...).mimeType` now reports `text/javascript` instead of `application/javascript` for `.js` and `.mjs` files.
+- ([#15152](https://github.com/quarto-dev/quarto-cli/issues/15152)): Update `deno` to v2.9.8 to stop trusting the compromised eMudhra / emSign certificate authorities, whose exposed private keys allow network attackers to impersonate HTTPS sites, protecting HTTPS requests made by Quarto commands and TypeScript scripts from these attacks.
 
 ## Accessibility
 
@@ -204,5 +205,6 @@ All changes included in 1.11:
 - ([#15126](https://github.com/quarto-dev/quarto-cli/issues/15126)): Translate the `revealjs-menu-button-label` language key in French. (author: @D3ller)
 - ([#15126](https://github.com/quarto-dev/quarto-cli/issues/15126)): Translate the `revealjs-menu-button-label` language key in Greek. (author: @sogav21)
 - ([#15140](https://github.com/quarto-dev/quarto-cli/pull/15140)): Add support for definition lists written as a `definition-list` div holding a nested bullet list, the definition list syntax of Quarto 2.
+- ([#15157](https://github.com/quarto-dev/quarto-cli/issues/15157)): Fix `quarto preview` and other commands sometimes starting a local server on port 4190, which browsers refuse to connect to.
 - ([#15180](https://github.com/quarto-dev/quarto-cli/pull/15180)): Fix older Quarto versions failing to render with `RangeError: could not deserialize value` once a Quarto built on a newer Deno has used the same cache. Also fix a project cache that already has entries failing to clear with `Path must be a string`.
 - ([#15198](https://github.com/quarto-dev/quarto-cli/issues/15198)): Fix `quarto add`, `quarto use template`, `quarto use brand` and `quarto install tinytex` failing to unzip on Windows when a Group Policy blocks running `.bat` files from the temporary folder, and when a path contains an apostrophe.

@@ -14,7 +14,7 @@ import { kLocalhost } from "./port-consts.ts";
 const kMinPort = 3000;
 const kMaxPort = 8000;
 
-function isPortSafe(port: number): boolean {
+export function isPortSafe(port: number): boolean {
   // cf https://superuser.com/a/188070
   // and netwerk/base/nsIOService.cpp in Firefox's source
   //
@@ -22,7 +22,7 @@ function isPortSafe(port: number): boolean {
   return ![
     3659, // apple-sasl / PasswordServer
     4045, // lockd
-    4160, // sieve
+    4190, // sieve
     5060, // sip
     5061, // sips
     6000, // X11

@@ -1208,7 +1208,7 @@ async function init(
   const ideInit = async () => {
     const resourceModule = (await import(
       "../../../resources/editor/tools/yaml/yaml-intelligence-resources.json",
-      { assert: { type: "json" } }
+      { with: { type: "json" } }
     )).default as Record<string, unknown>;
 
     await getTreeSitter();
