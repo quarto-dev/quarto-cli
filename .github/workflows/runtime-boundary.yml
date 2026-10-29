@@ -21,6 +21,8 @@ on:
       - "tests/**"
       - "tools/check-runtime-boundary.ts"
       - "tools/runtime-boundary-baseline.json"
+      - "tools/codemod-deno-ral.ts"
+      - "tools/codemod/**"
       - ".github/workflows/runtime-boundary.yml"
   push:
     branches: [main]
@@ -30,6 +32,8 @@ on:
       - "tests/**"
       - "tools/check-runtime-boundary.ts"
       - "tools/runtime-boundary-baseline.json"
+      - "tools/codemod-deno-ral.ts"
+      - "tools/codemod/**"
       - ".github/workflows/runtime-boundary.yml"
 
 permissions:

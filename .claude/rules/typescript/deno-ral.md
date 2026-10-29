@@ -73,7 +73,7 @@ This ensures compatibility shims load before any code runs.
 
 ## Moving code off `Deno.*`
 
-Never add new `Deno.*` calls; import the equivalent from `deno_ral/`. To migrate existing files mechanically:
+Outside `deno_ral/`, never add new `Deno.*` calls; import the equivalent from `deno_ral/`. The `deno_ral/` modules themselves implement those functions with `Deno.*`. To migrate existing files mechanically:
 
     quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/<dir> --dry-run
     quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/<dir>

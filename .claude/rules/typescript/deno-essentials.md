@@ -55,11 +55,9 @@ Import from the runtime layer (`src/deno_ral/`) instead of calling `Deno.*` dire
 // Correct - runtime layer
 import { readTextFileSync, writeTextFileSync } from "../deno_ral/fs.ts";
 import { makeTempDirSync } from "../deno_ral/temp.ts";
-import { cwd } from "../deno_ral/process.ts";
 
 // Wrong - direct runtime calls (the CI ratchet counts these)
 Deno.readTextFileSync(path);
-Deno.cwd();
 ```
 
 ## Sync vs Async
