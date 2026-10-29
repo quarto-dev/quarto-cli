@@ -99,6 +99,9 @@ navigation-breadcrumbs-label: "Caminho"           # libreoffice sw 'Path' (attes
 scrollable-code-label: "Código deslocável"   # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Saída deslocável"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+# Accessible name for the Reveal.js slide menu button (never shown as visible text).
+revealjs-menu-button-label: "Menu de slides"
+
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabela"
 crossref-lst-title: "Listagem"
