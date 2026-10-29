@@ -81,10 +81,16 @@ function directoryListing(path: string): Set<string> {
   );
 }
 
-function directoryListingsMatch(path1: string, path2: string): boolean {
+// Deno may leave these in the seed and delete them from the user copy on a clean close
+const kSqliteSidecar = /_cache_v2-(shm|wal|journal)$/;
+
+export function directoryListingsMatch(path1: string, path2: string): boolean {
   const listing1 = directoryListing(path1),
     listing2 = directoryListing(path2);
   for (const path of listing1) {
+    if (kSqliteSidecar.test(path)) {
+      continue;
+    }
     if (!listing2.has(path)) {
       return false;
     }
