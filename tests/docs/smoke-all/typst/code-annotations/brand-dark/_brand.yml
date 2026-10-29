@@ -1,0 +1,8 @@
+color:
+  palette:
+    code-bg: "#1e1e2e"
+    code-fg: "#cdd6f4"
+typography:
+  monospace-block:
+    color: code-fg
+    background-color: code-bg

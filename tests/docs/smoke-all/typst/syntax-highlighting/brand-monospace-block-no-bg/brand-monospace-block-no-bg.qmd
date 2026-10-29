@@ -17,9 +17,9 @@ _quarto:
           # Even without brand bg, Skylighting override uses theme bgcolor
           # so that width/inset/radius are applied
           - 'let bgcolor = rgb\("#f1f3f5"\)'
-          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, stroke: 0\.5pt \+ luma\(128\), blocks\)'
         # No brand background-color show rule (not configured)
-        - ['^#show raw\.where\(block: true\): set block\(fill:']
+        - ['^#show raw\.where\(block: true\): set block\(fill: rgb\(']
 ---
 
 Brand sets monospace-block color, weight, size, and line-height but NOT

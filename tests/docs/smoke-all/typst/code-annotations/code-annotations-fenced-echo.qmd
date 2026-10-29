@@ -1,0 +1,24 @@
+---
+title: Code Annotations (fenced echo display block)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Skylighting output keeps the injected fence line, so the
+          # annotated code line is physical line 2
+          - 'Skylighting\(cell-id: "annotated-cell-1", annotations: \("2": 1\)'
+          - '#quarto-annotation-item\("annotated-cell-1"'
+        -
+          - 'quarto-code-annotations:'
+---
+
+```{{r}}
+x <- 1 # <1>
+```
+
+1. Assign x.

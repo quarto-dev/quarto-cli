@@ -1,0 +1,31 @@
+---
+title: Annotated cell without a list
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'Skylighting\(cell-id: "annotated-cell-1", annotations: \("1": 1\)'
+        -
+          - 'quarto-code-annotations:'
+          - '# <1>'
+---
+
+::: {.cell}
+```{.python .cell-code}
+x = 1  # <1>
+```
+
+::: {.cell-output .cell-output-stdout}
+```
+1
+```
+:::
+:::
+
+Plain paragraph, no list.

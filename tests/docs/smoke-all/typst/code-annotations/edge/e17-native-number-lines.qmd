@@ -1,0 +1,26 @@
+---
+title: Native mode with number-lines and startFrom
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: idiomatic
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrorsOrWarnings: default
+      ensureTypstFileRegexMatches:
+        -
+          - '#quarto-code-annotation\(\("1": 1, "2": 2\), cell-id: "lst-n"\)'
+        -
+          - 'quarto-code-annotations:'
+          - '# <'
+---
+
+```{#lst-n .python .number-lines startFrom="5"}
+x = 1  # <1>
+y = 2  # <2>
+```
+
+1. First.
+2. Second.

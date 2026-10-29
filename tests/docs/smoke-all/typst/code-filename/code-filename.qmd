@@ -1,0 +1,19 @@
+---
+title: Code Filename (Code Block)
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-code-filename\('
+          - 'block\(width: 100%, radius: 2pt, clip: true, stroke: 0\.5pt \+ luma\(128\)\)'
+        - []
+---
+
+```{.python filename="example.py"}
+def hello():
+    print("Hello, world!")
+```

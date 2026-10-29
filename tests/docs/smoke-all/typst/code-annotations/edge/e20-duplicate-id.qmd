@@ -1,0 +1,33 @@
+---
+title: Duplicate cell ids
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      printsMessage:
+        level: INFO
+        regex: "Duplicate code cell id 'lst-a'"
+      ensureTypstFileRegexMatches:
+        -
+          - 'cell-id: "lst-a", annotations'
+          - 'cell-id: "lst-a-2", annotations'
+          - 'quarto-annotation-item\("lst-a-2"'
+        -
+          - 'quarto-code-annotations:'
+---
+
+```{#lst-a .python}
+x = 1  # <1>
+```
+
+1. First.
+
+```{#lst-a .python}
+y = 2  # <1>
+```
+
+1. Second.

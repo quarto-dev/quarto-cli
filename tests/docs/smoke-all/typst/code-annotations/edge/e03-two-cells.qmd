@@ -1,0 +1,34 @@
+---
+title: Two cells
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrorsOrWarnings: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'cell-id: "annotated-cell-1", annotations: \("1": 1, "2": 2\)'
+          - 'cell-id: "annotated-cell-2", annotations: \("1": 1, "2": 2\)'
+        -
+          - 'quarto-code-annotations:'
+          - '# <1>'
+---
+
+```{.python}
+x = 1  # <1>
+y = 2  # <2>
+```
+
+1. First.
+2. Second.
+
+```{.python}
+a = 1  # <1>
+b = 2  # <2>
+```
+
+1. Third.
+2. Fourth.

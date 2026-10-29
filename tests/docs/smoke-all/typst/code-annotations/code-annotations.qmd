@@ -1,0 +1,26 @@
+---
+title: Code Annotations (Skylighting)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # Call sites, not the helper definitions inlined from definitions.typ
+          - 'Skylighting\(cell-id: "annotated-cell-1", annotations: \("1": 1, "3": 2\)'
+          - '#quarto-annotation-item\("annotated-cell-1", 1'
+          - '#quarto-annotation-item\("annotated-cell-1", 2'
+        - []
+---
+
+```python
+x = 1  # <1>
+y = 2
+z = x + y  # <2>
+```
+
+1. Assign x.
+2. Compute sum.

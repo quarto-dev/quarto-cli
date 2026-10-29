@@ -1,0 +1,22 @@
+---
+title: Code Annotations (text alternative)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'box\(height: 0pt, baseline: 0\.55em, move\(dy: -0\.63em, math\.equation\(alt: "Annotation " \+ str\(n\)'
+          - 'annotations: \("1": 1\)'
+          - 'quarto-annotation-item\("annotated-cell-1", 1, \['
+        - []
+---
+
+```{.python}
+x = 1  # <1>
+```
+
+1. Assign x.
