@@ -2427,7 +2427,7 @@ git commit -m "tools: ts-morph codemod for Deno.* <-> deno_ral rewrites, with fi
 **Files:**
 - Modify: `deno.lock`, `.github/workflows/runtime-boundary.yml`, `dev-docs/checklist-backport-a-pr.md`, `.claude/rules/typescript/deno-ral.md`, `.claude/rules/typescript/deno-essentials.md`, `news/changelog-1.11.md`
 
-- [ ] **Step 1: Lockfile**
+- [x] **Step 1: Lockfile**
 
 PR 00b commits `deno.lock` and runs Deno with `--frozen`, so a new `npm:` specifier must be recorded.
 Run:
@@ -2439,7 +2439,7 @@ git diff --stat deno.lock
 Expected: `deno.lock` gains `npm:ts-morph@28.0.0` and its dependencies (`@ts-morph/common`, `code-block-writer`, `typescript`, …); nothing else changes.
 (If PR 00b has not landed yet, `deno.lock` does not exist in the tree: skip this step; PR 00b's lockfile then picks the specifier up when it is generated.)
 
-- [ ] **Step 2: CI step**
+- [x] **Step 2: CI step**
 
 In `.github/workflows/runtime-boundary.yml` (PR 02's job, Linux, after its `configure.sh` step and before the ratchet step), add:
 
@@ -2451,7 +2451,7 @@ In `.github/workflows/runtime-boundary.yml` (PR 02's job, Linux, after its `conf
 This is the only place CI runs the codemod tests; `tests/run-tests.sh` never sees them.
 If PR 02b landed first, the step already exists (it runs `tools/codemod/` for 02b's own test); leave it as it is.
 
-- [ ] **Step 3: Backport checklist**
+- [x] **Step 3: Backport checklist**
 
 In `dev-docs/checklist-backport-a-pr.md`, after the bullet "Cherry-pick the commits from the development branch" (and its two sub-bullets), add:
 
@@ -2481,7 +2481,7 @@ In `dev-docs/checklist-backport-a-pr.md`, after the bullet "Cherry-pick the comm
 
 Check the procedure on a real commit before committing the doc: pick the PR 10 commit "core: codemod Deno fs/temp calls to deno_ral (mechanical)" once it exists, or this PR's own `src/deno_ral/fs.ts` change otherwise, and confirm `git apply --check` succeeds on `v1.10`.
 
-- [ ] **Step 4: Rules docs**
+- [x] **Step 4: Rules docs**
 
 In `.claude/rules/typescript/deno-ral.md`, replace the `fs.ts` row and add rows for `temp.ts` and `errors.ts`:
 
@@ -2696,3 +2696,14 @@ Seven review rounds on the forward guard that skips files patching `Deno.*` (for
   - `git diff upstream/main...HEAD -- src tests ':!src/deno_ral' | rg -nP '^\+.*(\bglobalThis\b|\bDeno\b(?!\??\.))'` → one hit, `if (typeof Deno === "undefined") return;` (`typeof Deno` is exempt).
   - `git diff upstream/main...HEAD -- src tests | rg -n '^\+.*(//|\*).*\bPR [0-9]'` → no hits.
   - `git diff upstream/main...HEAD -- tests | rg -n '^\+\s*(export )?(async )?function \w+'` → one hit, `errorWithCode` in `tests/unit/ral/utils.ts`, the shared helper of the two test files that use it (`temp.test.ts`, `errors.test.ts`); no same-purpose helper in `tests/utils.ts` or `tests/verify.ts`.
+
+### Task 5: CI step, backport checklist, rules docs (2026-10-29, steps 1–4)
+
+- Step 1 (lockfile): skipped per the step's own parenthetical — `deno.lock` is not in the tree until PR 00b (untracked and ignored); the lockfile picks up `npm:ts-morph@28.0.0` when 00b generates it.
+- Step 2 (CI step): the "Codemod contract test (tools/codemod)" step sits in `.github/workflows/runtime-boundary.yml` between "Configure Quarto" and "Check runtime boundary". The workflow's `paths` filter does not list `tools/codemod/**`, so a codemod-only change does not trigger the job; every migration PR touches `src/**`, so the step runs when it matters.
+- Step 3 (backport checklist): the procedure was checked on a real commit before committing the doc — this PR's own `fs.ts` commit `f01436670` against `upstream/v1.10` (`8f4600111`), in two scratch worktrees.
+  - Defect found and fixed in the doc: at the base revision the codemod crashes on Added files (`Deno.readTextFileSync` on `tests/unit/ral/fs.test.ts`, which does not exist at `$c^`), because `rev()` ran over `--diff-filter=AM` in both passes. `rev()` now takes the filter: `rev M` at the base, `rev AM` after the checkout.
+  - Reverse on the new revision: 49 replacements in `fs.test.ts`, one `left` (`canonicalPathSync`, reported with the `originalRealPathSync` hint), matching the hand-edits the doc describes; `fs.ts` itself gets 0 replacements (the layer implements on `Deno.*` directly).
+  - `git apply --check` exits 0 on `v1.10`, and `git apply -3 --check` exits 0 (the three-way falls back to direct application for the new test file).
+- Step 4 (rules docs): `deno-ral.md` gained the fuller `fs.ts` row, the `temp.ts` and `errors.ts` rows, and the "Moving code off `Deno.*`" subsection. In `deno-essentials.md` the example block is the plan's runtime-layer one; its intro line changed with it ("Use Deno APIs directly:" would contradict the new example).
+- Steps 5 (changelog, needs the PR number) and 6 run when the PR is opened.
