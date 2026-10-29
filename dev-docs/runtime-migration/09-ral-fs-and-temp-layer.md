@@ -2517,7 +2517,7 @@ Deno.readTextFileSync(path);
 Deno.cwd();
 ```
 
-- [ ] **Step 5: Changelog**
+- [x] **Step 5: Changelog**
 
 Open the PR as a draft to get its number `N`, then add under `## Other fixes and improvements` in `news/changelog-1.11.md`:
 
@@ -2528,7 +2528,7 @@ Open the PR as a draft to get its number `N`, then add under `## Other fixes and
 
 (The behaviour reaches users when PRs 11–13 move the callers; they land before the `v1.11` cut, decision 2.)
 
-- [ ] **Step 6: Run the Verification list, then commit**
+- [x] **Step 6: Run the Verification list, then commit**
 
 ```bash
 git add deno.lock .github/workflows/runtime-boundary.yml dev-docs/checklist-backport-a-pr.md .claude/rules/typescript/deno-ral.md .claude/rules/typescript/deno-essentials.md news/changelog-1.11.md
@@ -2706,4 +2706,5 @@ Seven review rounds on the forward guard that skips files patching `Deno.*` (for
   - Reverse on the new revision: 49 replacements in `fs.test.ts`, one `left` (`canonicalPathSync`, reported with the `originalRealPathSync` hint), matching the hand-edits the doc describes; `fs.ts` itself gets 0 replacements (the layer implements on `Deno.*` directly).
   - `git apply --check` exits 0 on `v1.10`, and `git apply -3 --check` exits 0 (the three-way falls back to direct application for the new test file).
 - Step 4 (rules docs): `deno-ral.md` gained the fuller `fs.ts` row, the `temp.ts` and `errors.ts` rows, and the "Moving code off `Deno.*`" subsection. In `deno-essentials.md` the example block is the plan's runtime-layer one; its intro line changed with it ("Use Deno APIs directly:" would contradict the new example).
-- Steps 5 (changelog, needs the PR number) and 6 run when the PR is opened.
+- Step 5 (changelog): the PR opened as draft #15223 and the plan's line went into `news/changelog-1.11.md` under `## Other fixes and improvements` with that number.
+- Step 6 (verification, re-run after the Task 5 commits): ral suite `ok | 23 passed | 0 failed | 1 ignored` (Windows), codemod suite `ok | 29 passed | 0 failed`, boundary check `OK: no count exceeds the baseline` (the baseline diff is still only `tests` 874 → 875), `deno check --allow-import` exit 0. The Task 4 step 6 dry run and the smoke trio stand from the post-rebase run; no code changed since.
