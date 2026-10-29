@@ -107,6 +107,15 @@ export const kCodemodExclusions: readonly string[] = [
   "src/resources/tools/ast-diagram",
 ];
 
+/** Repo-relative (`/`-separated) paths of files known to patch `Deno`, skipped
+ *  after the write guard as a backstop (the guard is best-effort and frozen). */
+export const kCodemodPatchFiles: readonly string[] = [
+  // patches Deno.realPathSync and the read functions; PR 25 deletes the file
+  "src/core/deno/monkey-patch.ts",
+  // patches Deno.readTextFileSync to record file reads; PR 20b moves it to `onFileRead`
+  "src/core/performance/metrics.ts",
+];
+
 export interface Replacement {
   line: number;
   from: string;
@@ -444,6 +453,11 @@ function forwardFile(
   //    that uses Deno other than as `Deno.x` (an alias, an argument such as
   //    `Object.defineProperty(Deno, ...)`, `globalThis.Deno`) is left alone
   //    too, since writes past that use cannot be followed.
+  //    The guard is best-effort and frozen: it does not see a write through
+  //    `Reflect.get(globalThis, "Deno")`, a computed key `globalThis[k]`, or a
+  //    comma-wrapped nested receiver `Object.assign((0, Deno.build), …)`. A
+  //    file that patches `Deno` with a spelling the guard misses belongs on
+  //    `kCodemodPatchFiles`, not in a wider guard.
   const skip = (reason: string, node: Node) => {
     result.skipped = `${reason} at line ${node.getStartLineNumber()}`;
     return { result, edits: [] };
@@ -460,6 +474,14 @@ function forwardFile(
     if (written) return skip(`assigns to ${written.getText()}`, written);
     const mutator = mutatorOf(access);
     if (mutator) return skip(`assigns to ${access.getText()} via ${mutator}`, access);
+  }
+
+  // Backstop, after the guard so a caught file keeps the guard's reason: skip
+  // the files known to patch `Deno` even when the guard misses the write.
+  const rel = relative(resolve(ralDir, "..", ".."), file).replaceAll("\\", "/");
+  if (kCodemodPatchFiles.includes(rel)) {
+    result.skipped = "listed in kCodemodPatchFiles";
+    return { result, edits: [] };
   }
 
   const importDecls = sourceFile.getImportDeclarations();

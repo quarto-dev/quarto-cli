@@ -27,11 +27,11 @@ const read = (name: string) => Deno.readTextFileSync(join(fixtures, name));
 function run(
   name: string,
   rules: RuleName[],
-  opts: { reverse?: boolean; input?: string } = {},
+  opts: { reverse?: boolean; input?: string; path?: string } = {},
 ): { result: CodemodResult; output: string } {
   const tmp = Deno.makeTempDirSync({ prefix: "codemod-" });
   try {
-    const target = join(tmp, "src", "core", `${name}.ts`);
+    const target = join(tmp, ...(opts.path ?? `src/core/${name}.ts`).split("/"));
     Deno.mkdirSync(dirname(target), { recursive: true });
     Deno.copyFileSync(join(fixtures, opts.input ?? `${name}.input.ts`), target);
     const result = codemodFile(target, rules, {
@@ -226,6 +226,15 @@ Deno.test("codemod - every form of write to Deno.* skips the file", () => {
     assertEquals(result.skipped, skipped, name);
     assertEquals(result.replacements, [], name);
     assertEquals(output, read(`${name}.input.ts`), name);
+  }
+});
+
+Deno.test("codemod - a listed patch file is skipped even when the guard misses its write", () => {
+  for (const path of ["src/core/deno/monkey-patch.ts", "src/core/performance/metrics.ts"]) {
+    const { result, output } = run("patch-file-backstop", ["fs"], { path });
+    assertEquals(result.skipped, "listed in kCodemodPatchFiles", path);
+    assertEquals(result.replacements, [], path);
+    assertEquals(output, read("patch-file-backstop.input.ts"), path);
   }
 });
 
