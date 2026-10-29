@@ -204,6 +204,7 @@ All changes included in 1.11:
 - ([#15119](https://github.com/quarto-dev/quarto-cli/issues/15119)): Fix renders failing with `RangeError: could not deserialize value` when a Quarto cache file is damaged. A damaged entry is now recomputed, and a damaged cache file is reported with the folder to delete.
 - ([#15126](https://github.com/quarto-dev/quarto-cli/issues/15126)): Translate the `revealjs-menu-button-label` language key in French. (author: @D3ller)
 - ([#15126](https://github.com/quarto-dev/quarto-cli/issues/15126)): Translate the `revealjs-menu-button-label` language key in Greek. (author: @sogav21)
+- ([#15126](https://github.com/quarto-dev/quarto-cli/issues/15126)): Translate the `revealjs-menu-button-label` language key in Brazilian Portuguese. (author: @bonijoao)
 - ([#15140](https://github.com/quarto-dev/quarto-cli/pull/15140)): Add support for definition lists written as a `definition-list` div holding a nested bullet list, the definition list syntax of Quarto 2.
 - ([#15157](https://github.com/quarto-dev/quarto-cli/issues/15157)): Fix `quarto preview` and other commands sometimes starting a local server on port 4190, which browsers refuse to connect to.
 - ([#15180](https://github.com/quarto-dev/quarto-cli/pull/15180)): Fix older Quarto versions failing to render with `RangeError: could not deserialize value` once a Quarto built on a newer Deno has used the same cache. Also fix a project cache that already has entries failing to clear with `Path must be a string`.
