@@ -49,19 +49,17 @@ import { join } from "jsr:/@std/path";
 
 ## Deno APIs vs Node.js
 
-Use Deno APIs directly:
+Import from the runtime layer (`src/deno_ral/`) instead of calling `Deno.*` directly:
 
 ```typescript
-// Correct - Deno APIs
-Deno.env.get("PATH");
-Deno.cwd();
-Deno.readTextFileSync(path);
-Deno.writeTextFileSync(path, content);
-Deno.makeTempDirSync({ prefix: "quarto" });
+// Correct - runtime layer
+import { readTextFileSync, writeTextFileSync } from "../deno_ral/fs.ts";
+import { makeTempDirSync } from "../deno_ral/temp.ts";
+import { cwd } from "../deno_ral/process.ts";
 
-// Wrong - Node.js patterns
-process.env.PATH;
-fs.readFileSync(path);
+// Wrong - direct runtime calls (the CI ratchet counts these)
+Deno.readTextFileSync(path);
+Deno.cwd();
 ```
 
 ## Sync vs Async
@@ -86,6 +84,7 @@ if (isWindows) {
 ## Lint Directives
 
 Common directives (use sparingly):
+
 - `no-explicit-any` - For Cliffy options, JSON parsing
 - `no-control-regex` - For regex with control characters
 

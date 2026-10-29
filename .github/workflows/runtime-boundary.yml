@@ -52,6 +52,9 @@ jobs:
       - name: Configure Quarto
         uses: ./.github/workflows/actions/quarto-dev
 
+      - name: Codemod contract test (tools/codemod)
+        run: package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/
+
       - name: Check runtime boundary
         shell: bash
         env:
