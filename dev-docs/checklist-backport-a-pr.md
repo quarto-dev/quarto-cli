@@ -14,15 +14,16 @@ We backport development PRs to the stable branch using the following steps:
   c=<commit>
   w=$(mktemp -d)/bp
   git worktree add --detach "$w" "$c^"
+  changed() { git diff -z --no-renames --name-only --diff-filter="$1" "$c^" "$c" -- "${@:2}"; }
   rev() {
-    for f in $(git diff --name-only --diff-filter=$1 "$c^" "$c" -- '*.ts'); do
+    changed "$1" '*.ts' | while IFS= read -r -d '' f; do
       quarto run --dev tools/codemod-deno-ral.ts --reverse --rules fs,temp,env,process,platform \
         --ral-dir "$w/src/deno_ral" --file "$w/$f"
     done
   }
-  rev M && git -C "$w" commit -qam "reversed base" --allow-empty
-  git -C "$w" checkout "$c" -- $(git diff --name-only --diff-filter=AM "$c^" "$c")
-  for f in $(git diff --name-only --diff-filter=D "$c^" "$c"); do git -C "$w" rm -q "$f"; done
+  rev MD && git -C "$w" commit -qam "reversed base" --allow-empty
+  changed AM | while IFS= read -r -d '' f; do git -C "$w" checkout "$c" -- "$f"; done
+  changed D | while IFS= read -r -d '' f; do git -C "$w" rm -q -- "$f"; done
   rev AM
   git -C "$w" add -A && git -C "$w" diff --cached HEAD > "$w.patch"
   git worktree remove --force "$w"
