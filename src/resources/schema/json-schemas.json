@@ -334,9 +334,110 @@
         "properties": {
           "path": {
             "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "claims": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "object": {
+                  "properties": {}
+                }
+              }
+            ]
+          },
+          "file-extensions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "claims-files": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "object": {
+                    "properties": {
+                      "extension": {
+                        "type": "string"
+                      },
+                      "processor": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "object": {
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "language": {
+                                  "type": "string"
+                                },
+                                "comment": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       }
+    },
+    "ExternalEngineLanguageClaim": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "enum": [
+            "primary",
+            "interop",
+            "fallback"
+          ]
+        },
+        {
+          "object": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "primary",
+                  "interop",
+                  "fallback"
+                ]
+              },
+              "priority": {
+                "type": "number"
+              },
+              "whenClass": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
     },
     "DocumentCommentsConfiguration": {
       "anyOf": [

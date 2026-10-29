@@ -1,0 +1,7 @@
+schema:
+  ref: external-engine
+value:
+  path: engine.js
+  claims:
+    - mylang
+    - otherlang
