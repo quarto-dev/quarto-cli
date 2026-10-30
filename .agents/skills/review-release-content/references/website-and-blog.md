@@ -2,7 +2,11 @@
 
 ## Locate the content and its rules
 
-Locate the user's quarto-web checkout; a sibling named `quarto-web-prerelease` may be a separate checkout. Read its project instructions before editing or drafting a handoff, especially branch routing, documentation style and freeze rules. Inspect upstream content as well as the local snapshot so completed documentation is not duplicated.
+Resolve the destination repositories from the current release checklist and configured git remotes. If the user supplies a checkout, verify its repository identity and branch rather than relying on its folder name.
+
+For research and drafting, use upstream repository files at the relevant branch or commit through GitHub's API or raw source access. Fetch project instructions, highlights, guides and examples this way when no checkout is supplied. Record the reviewed refs; stable website pages alone cannot establish unreleased behavior. This work does not require finding or creating a local clone.
+
+A local checkout is needed for destination edits or rendering. Use one provided by the user or identified by the workspace's repository tooling. Ask for a location only when those actions are required and no checkout is known. Read its project instructions, especially branch routing, documentation style and freeze rules, and compare with current upstream content to avoid duplicating completed documentation.
 
 Highlights belong in `docs/prerelease/{version}/_highlights.qmd` in quarto-web. Inspect its include callers and version page to understand where the copy appears. The technical CLI changelog and promotional highlights serve different readers.
 

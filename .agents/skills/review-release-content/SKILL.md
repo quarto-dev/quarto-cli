@@ -50,6 +50,6 @@ Check the resulting diff against the baseline:
 
 Report what changed, the evidence, unresolved claims and the exact checks run. Separate content verification from runtime, installer or release-candidate testing.
 
-For work spanning repositories, leave a preparation bundle in the project's existing local review area, or `.claude/docs/v{version}-release-review/` when suitable. Include a report and only the drafts or handoff prompts the user requested. State whether these files are tracked or ignored. Keep reusable guidance in this skill and version-specific facts in the review bundle.
+For work spanning repositories, save the report and requested drafts or handoff prompts in a location supplied by the user or established by repository conventions. If neither exists, choose a review directory in the current workspace and report its location and whether its files are tracked or ignored. Keep reusable guidance in this skill and version-specific facts in the review bundle.
 
 Completion means the requested content is prepared, changes are accounted for, and unresolved publication dependencies are explicit. Commit when requested. Release publication, workflow dispatches and edits in another repository require authority from the user's task; preparing content does not grant that authority.
