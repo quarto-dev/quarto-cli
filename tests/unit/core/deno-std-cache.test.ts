@@ -4,6 +4,7 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
+import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { directoryListingsMatch } from "../../../src/core/run/deno.ts";
 import { unitTest } from "../../test.ts";
@@ -12,12 +13,12 @@ import { withTempDir } from "../../utils.ts";
 
 const touch = (root: string, rel: string) => {
   const file = join(root, rel);
-  Deno.mkdirSync(dirname(file), { recursive: true });
+  ensureDirSync(dirname(file));
   Deno.writeTextFileSync(file, "");
 };
 
 const populate = (root: string, rels: string[]) => {
-  Deno.mkdirSync(root, { recursive: true });
+  ensureDirSync(root);
   rels.forEach((rel) => touch(root, rel));
 };
 
