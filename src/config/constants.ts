@@ -308,6 +308,7 @@ export const kScrollableCodeLabel = "scrollable-code-label";
 export const kScrollableOutputLabel = "scrollable-output-label";
 export const kLinkExternalNewwindowLabel = "link-external-newwindow-label";
 export const kRevealjsMenuButtonLabel = "revealjs-menu-button-label";
+export const kAnnouncementDismissLabel = "announcement-dismiss-label";
 
 export const kNavigationSiteLabel = "navigation-site-label";
 export const kNavigationSectionLabel = "navigation-section-label";
@@ -453,6 +454,7 @@ export const kLanguageDefaultsKeys = [
   kScrollableOutputLabel,
   kLinkExternalNewwindowLabel,
   kRevealjsMenuButtonLabel,
+  kAnnouncementDismissLabel,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,
