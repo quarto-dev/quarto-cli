@@ -71,6 +71,10 @@ All changes included in 1.11:
 - ([#14818](https://github.com/quarto-dev/quarto-cli/issues/14818)): Fix a dashboard with more than one page going blank when the URL hash does not name a page, such as a footnote link or a cross-reference link.
 - ([#15023](https://github.com/quarto-dev/quarto-cli/issues/15023)): Fix a dashboard cell's HTML output being moved out of its card when the output contains text such as `bslib` or the word "subslide", and the card being dropped, title included, when the cell shows nothing else. (author: @jooyoungseo)
 
+### `epub`
+
+- ([#15201](https://github.com/quarto-dev/quarto-cli/issues/15201)): Fix `epub-title-page: false` being ignored when set in YAML (document front matter or `_quarto.yml`). It only took effect when passed on the command line as `--epub-title-page=false`. (author: @Masad791)
+
 ### `html`
 
 - ([#12452](https://github.com/quarto-dev/quarto-cli/issues/12452)): Fix repeated HTML escaping in Google Scholar metadata, including apostrophes in titles, special characters in authors and URLs, and nested reference metadata.
