@@ -71,12 +71,10 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
       </button>
       <% if (nav.showBreadCrumbs) { %>
         <h1 class="quarto-secondary-nav-title no-breadcrumbs"></h1>
-        <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"
-        onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <a class="flex-grow-1" onclick="this.closest('.quarto-secondary-nav').querySelector('.quarto-btn-toggle').click();">      
         </a>
       <% } else { %>
-        <a class="flex-grow-1 no-decor" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"
-        onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <a class="flex-grow-1 no-decor" onclick="this.closest('.quarto-secondary-nav').querySelector('.quarto-btn-toggle').click();">      
           <h1 class="quarto-secondary-nav-title"></h1>
         </a>     
       <% }  %>
