@@ -24,7 +24,7 @@ Highlights belong in `docs/prerelease/{version}/_highlights.qmd` in quarto-web. 
 
 ### Blog rules
 
-Quarto release posts publish in `posit-dev/open-source-website`, under `content/blog/quarto-{major}-{minor}/`, rather than quarto-web. Confirm the destination against the current release checklist and blog guidance. Read quarto-web's `.claude/skills/blog-post/SKILL.md` and the Release Announcements section of `references/post-types.md` within that skill.
+Quarto release posts publish in `posit-dev/open-source-website`, under `content/blog/quarto-{major}-{minor}/`, rather than quarto-web. Confirm the destination against the current release checklist and blog guidance. Read quarto-web's [blog-post skill](https://github.com/quarto-dev/quarto-web/blob/prerelease/.claude/skills/blog-post/SKILL.md) and its [Release Announcements reference](https://github.com/quarto-dev/quarto-web/blob/prerelease/.claude/skills/blog-post/references/post-types.md#release-announcements). These links follow `prerelease`; read their contents at the reviewed commit when recording evidence.
 
 In the destination repository, read `content/blog/CLAUDE.md`, `content/blog/_authoring-guide.md` and `archetypes/blog.md`. Those sources govern metadata, scaffolding, rendering and validation; quarto-web supplies the Quarto editorial conventions. Read the blog skill's thumbnail references only when creating the image. Check source and rendered post together, and carry pending documentation-promotion links into the handoff.
 
