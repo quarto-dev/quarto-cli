@@ -40,7 +40,7 @@ Use exact option names and configuration placement from implementation or shippe
 
 ## Documentation and deliverables
 
-Map each highlighted claim to existing documentation and identify only the gaps needed to support it. Verify prerelease sources and anchors locally or at the relevant upstream ref. Use website-native links in highlights and absolute public documentation URLs in a cross-site blog post. Track which links require documentation promotion before publication.
+Map each highlighted claim to existing documentation and identify only the gaps needed to support it. Before declaring a gap, follow the page's includes and shared partials: a section and its anchor may live outside the page source. Verify prerelease sources and anchors locally or at the relevant upstream ref. Use website-native links in highlights and absolute public documentation URLs in a cross-site blog post. Track which links require documentation promotion before publication.
 
 If the current session is best suited to CLI review, prepare proposed highlight copy, a blog outline or preliminary body, and separate prompts for the destination repositories. Each handoff should name:
 

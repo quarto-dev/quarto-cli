@@ -15,4 +15,12 @@ Paths below are relative to quarto-cli. Use the current rules and their linked a
 | Site-scanning command | `.claude/rules/dev-tools/axe-scan.md` and `dev-docs/axe-scan.md` | Verify scanner scope, baseline behavior and CI flags independently of render-time checks. |
 | Hidden developer commands or generated schemas | `.claude/rules/dev-tools/dev-call-commands.md` | Clarifies the developer audience and generated outputs without turning internal tooling into a public feature headline. |
 
+For an extension-subtree import, inspect the landed import merge against its first parent, restricted to that subtree:
+
+```sh
+git diff IMPORT_MERGE^1 IMPORT_MERGE -- src/resources/extension-subtrees/NAME/
+```
+
+Substitute the merge commit and subtree name. An unscoped `git show` of the intermediate subtree squash can compare different repository roots and produce a misleading whole-repository diff.
+
 If a claim needs fresh runtime evidence, read `.claude/rules/testing/overview.md` and the relevant test-type rules before running focused tests. Use `.claude/skills/quarto-preview-test/SKILL.md` when the requested verification concerns preview or live reload. These are conditional verification paths, not mandatory release-content checks.

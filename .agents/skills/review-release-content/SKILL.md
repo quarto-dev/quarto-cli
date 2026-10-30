@@ -5,15 +5,21 @@ description: Review a Quarto release changelog for completeness, placement and w
 
 # Review release content
 
-Produce a verified changelog and, when requested, evidence-backed website highlights and blog preparation. Derive the version, release scope and editorial emphasis from the current request and repository state.
+Prepare the requested Quarto release content with verified claims. Derive the version, release scope and editorial emphasis from the current request and repository state.
+
+Choose the scope from the request:
+
+- For a changelog audit, check completeness across the release range and preserve entry identities while editing.
+- For highlights or a preliminary blog draft, use the changelog as input and verify the selected claims. A full omission audit is needed only when requested or when the source cannot support the draft.
+- For destination edits or a finished blog post, use the destination's own workflow and skills. This skill supplies release evidence and the handoff.
 
 ## Establish the review scope
 
-Read `.claude/rules/changelog.md` in full before editing. It is the source of truth for changelog structure and style, including its Backports section. Read the applicable release checklist in `dev-docs/` for context when preparing website or announcement content; executing the release is a separate task.
+Read `.claude/rules/changelog.md` in full before editing the changelog. It is the source of truth for changelog structure and style, including its Backports section. Read the applicable release checklist in `dev-docs/` for context when preparing website or announcement content; executing the release is a separate task.
 
 Identify the target `news/changelog-{version}.md`, intended release branch or candidate, previous stable release, and relevant commit range. Inspect local changes and upstream freshness before selecting a base. Record the refs and commits actually reviewed; do not assume the local default branch represents the candidate.
 
-Preserve a baseline of entry identities and contributor credits before reorganizing. Existing local release assessments can supply context, but their conclusions need current evidence before reuse.
+Preserve a baseline of entry identities and contributor credits before reorganizing the changelog. Existing local release assessments can supply context, but their conclusions need current evidence before reuse.
 
 ## Verify and edit the changelog
 
@@ -44,11 +50,12 @@ When requested, read [references/website-and-blog.md](references/website-and-blo
 
 ## Verify and hand off
 
-Check the resulting diff against the baseline:
+When editing the changelog, check the resulting diff against the baseline:
 
 - Account for every original entry and contributor credit, using counts per reference plus credit so repeated references remain distinguishable. Explain intentional removals.
 - List additions and their landed evidence. Check section hierarchy, reference ordering and any changed Regression fixes membership.
-- Run `git diff --check` and parse the edited Markdown with an available Markdown parser. Check documentation links and anchors against the relevant sources; HTTP 200 alone does not establish prerelease content availability.
+
+For all content work, run `git diff --check` for tracked edits and parse drafted or edited Markdown with an available Markdown parser. Check documentation links and anchors against the relevant sources; HTTP 200 alone does not establish prerelease content availability.
 
 Report what changed, the evidence, unresolved claims and the exact checks run. Separate content verification from runtime, installer or release-candidate testing.
 
