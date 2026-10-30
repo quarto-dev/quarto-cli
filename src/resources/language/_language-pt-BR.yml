@@ -1,4 +1,4 @@
-toc-title-document: "Índice"
+toc-title-document: "Sumário"
 toc-title-website: "Nesta página"
 
 related-formats-title: "Outros formatos"
@@ -20,7 +20,7 @@ section-title-appendices: "Apêndices"
 section-title-footnotes: "Notas de rodapé"
 section-title-references: "Referências"
 section-title-reuse: "Reuso"
-section-title-copyright: "Direito autoral"
+section-title-copyright: "Direitos autorais"
 section-title-citation: "Citação"
 
 appendix-attribution-bibtex: "BibTeX"
@@ -48,20 +48,20 @@ code-lines: "Linhas"
 code-tools-menu-caption: "Código"
 code-tools-show-all-code: "Mostrar o código"
 code-tools-hide-all-code: "Esconder o código"
-code-tools-view-source: "Ver o código fonte"
-code-tools-source-code: "Código fonte"
+code-tools-view-source: "Ver código-fonte"
+code-tools-source-code: "Código-fonte"
 
 tools-share: "Compartilhar"
 tools-download: "Baixar"
 
 copy-button-tooltip: "Copiar para a área de transferência"
-copy-button-tooltip-success: "Copiada"
+copy-button-tooltip-success: "Copiado!"
 
 repo-action-links-edit: "Editar essa página"
-repo-action-links-source: "Ver o código fonte"
+repo-action-links-source: "Ver código-fonte"
 repo-action-links-issue: "Criar uma issue"
 
-back-to-top: "De volta ao topo"
+back-to-top: "Voltar ao topo"
 
 skip-to-content: "Pular para o conteúdo principal"
 
@@ -80,8 +80,8 @@ search-label: "Procurar"
 toggle-section: "Alternar seção"
 toggle-sidebar: "Alternar barra lateral"
 toggle-dark-mode: "Alternar modo escuro"
-toggle-reader-mode: "Alternar modo de leitor"
-toggle-navigation: "Alternar de navegação"
+toggle-reader-mode: "Alternar modo de leitura"
+toggle-navigation: "Alternar navegação"
 
 # Landmark labels. Two rules for translators:
 # 1. Do not include the word "navigation". Screen readers announce the role after
@@ -96,8 +96,11 @@ navigation-breadcrumbs-label: "Caminho"           # libreoffice sw 'Path' (attes
 
 # Accessible names for scrollable regions (never shown as visible text). One rule
 # for translators: keep the word that says the region scrolls.
-scrollable-code-label: "Código deslocável"   # firefox devtools + code-summary — assembled, needs review
-scrollable-output-label: "Saída deslocável"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+scrollable-code-label: "Código rolável"
+scrollable-output-label: "Saída rolável"
+
+# Announced by screen readers after a link that opens in a new tab (never shown as visible text).
+link-external-newwindow-label: "(abre em uma nova aba)"
 
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabela"
@@ -116,27 +119,27 @@ crossref-lof-title: "Lista de Figuras"
 crossref-lot-title: "Lista de Tabelas"
 crossref-lol-title: "Lista de Listagens"
 
-environment-proof-title: "Comprovação"
+environment-proof-title: "Demonstração"
 environment-remark-title: "Comentário"
 environment-solution-title: "Solução"
 
 listing-page-order-by: "Ordenar por"
 listing-page-order-by-default: "Padrão"
 listing-page-order-by-date-asc: "Mais antigo"
-listing-page-order-by-date-desc: "O mais novo"
+listing-page-order-by-date-desc: "Mais recente"
 listing-page-order-by-number-desc: "Decrescente"
-listing-page-order-by-number-asc: "Baixo para alto"
+listing-page-order-by-number-asc: "Crescente"
 listing-page-field-date: "Data"
 listing-page-field-title: "Título"
 listing-page-field-description: "Descrição"
 listing-page-field-author: "Autor"
 listing-page-field-filename: "Nome do arquivo"
-listing-page-field-filemodified: "Modificada"
-listing-page-field-subtitle: "Legenda"
+listing-page-field-filemodified: "Modificado"
+listing-page-field-subtitle: "Subtítulo"
 listing-page-field-readingtime: "Tempo de leitura"
 listing-page-field-wordcount: "Contagem de palavras"
 listing-page-field-categories: "Categorias"
-listing-page-minutes-compact: "{0}Min"
+listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "Todos"
 listing-page-no-matches: "Sem itens correspondentes"
 listing-page-words: "{0} palavras"
