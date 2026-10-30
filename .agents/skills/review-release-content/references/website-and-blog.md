@@ -2,7 +2,9 @@
 
 ## Locate the content and its rules
 
-Resolve the destination repositories from the current release checklist and configured git remotes. If the user supplies a checkout, verify its repository identity and branch rather than relying on its folder name.
+The website repository is [quarto-dev/quarto-web](https://github.com/quarto-dev/quarto-web). Unreleased website content lives on its `prerelease` branch; use that branch for the target release's highlights, documentation and authoring instructions. Resolve its current commit when reviewing and record it so the evidence remains reproducible.
+
+Resolve other destination repositories from the current release checklist and configured git remotes. If the user supplies a checkout, verify its repository identity and branch rather than relying on its folder name.
 
 For research and drafting, use upstream repository files at the relevant branch or commit through GitHub's API or raw source access. Fetch project instructions, highlights, guides and examples this way when no checkout is supplied. Record the reviewed refs; stable website pages alone cannot establish unreleased behavior. This work does not require finding or creating a local clone.
 
